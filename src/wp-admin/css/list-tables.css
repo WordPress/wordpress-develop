@@ -384,31 +384,9 @@ table.media .column-title .filename {
 	margin-bottom: 0.2em;
 }
 
-/* Media Copy to clipboard row action */
-.media .row-actions .copy-to-clipboard-container {
-	display: inline;
-	position: relative;
-}
-
-.media .row-actions .copy-to-clipboard-container .success {
-	position: absolute;
-	left: 50%;
-	transform: translate(-50%, -100%);
-	background: #000;
-	color: #fff;
-	border-radius: 5px;
-	margin: 0;
-	padding: 2px 5px;
-}
-
 /* @todo: pick a consistent list table selector */
 .wp-list-table a {
 	transition: none;
-}
-
-.plugins #the-list {
-	display: flex;
-	flex-wrap: wrap;
 }
 
 #the-list tr:last-child td,
@@ -863,35 +841,16 @@ tr:hover .row-actions,
 /*	Layout */
 
 #wpbody-content .inline-edit-row fieldset {
+	font-size: 12px;
 	float: left;
 	margin: 0;
-	padding: 0 12px 0 0;
-	width: 100%;
-	box-sizing: border-box;
-}
-
-#wpbody-content .inline-edit-row td fieldset:last-of-type {
-	padding-right: 0;
-}
-
-tr.inline-edit-row td {
 	padding: 0;
-	/* Prevents the focus style on .inline-edit-wrapper from being cutted-off */
-	position: relative;
+	width: 100%;
 }
 
-.inline-edit-wrapper {
-	display: flow-root;
-	padding: 0 12px;
-	border: 1px solid transparent;
-	border-radius: 4px;
-}
-
-.inline-edit-wrapper:focus {
-	border-color: #2271b1;
-	box-shadow: 0 0 0 1px #2271b1;
-	/* Only visible in Windows High Contrast mode */
-	outline: 2px solid transparent;
+tr.inline-edit-row td,
+#wpbody-content .inline-edit-row fieldset .inline-edit-col {
+	padding: 0 0.5em;
 }
 
 #wpbody-content .quick-edit-row-post .inline-edit-col-left {
@@ -912,7 +871,7 @@ tr.inline-edit-row td {
 
 #wpbody-content .quick-edit-row-page .inline-edit-col-right,
 #wpbody-content .bulk-edit-row-post .inline-edit-col-right {
-	width: 50%;
+	width: 49%;
 }
 
 #wpbody-content .bulk-edit-row .inline-edit-col-left {
@@ -938,26 +897,12 @@ tr.inline-edit-row td {
 }
 
 .inline-edit-row .submit {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
 	clear: both;
-	margin: 0;
-	padding: 0.5em 0 1em;
-}
-
-.inline-edit-save.submit .button {
-	margin-right: 8px;
-}
-
-.inline-edit-save .spinner {
-	float: none;
-	margin: 0;
+	padding: 0.5em;
+	margin: 0.5em 0 0;
 }
 
 .inline-edit-row .notice-error {
-	box-sizing: border-box;
-	min-width: 100%;
 	margin-top: 1em;
 }
 
@@ -971,9 +916,13 @@ tr.inline-edit-row td {
 /* Needs higher specificity for the padding */
 #the-list .inline-edit-row .inline-edit-legend {
 	margin: 0;
-	padding: 0.2em 0;
+	padding: 0.2em 0.5em 0;
 	line-height: 2.5;
 	font-weight: 600;
+}
+
+#the-list #bulk-edit.inline-edit-row .inline-edit-legend {
+	padding: 0.2em 0.5em;
 }
 
 .inline-edit-row fieldset span.title,
@@ -1082,17 +1031,34 @@ tr.inline-edit-row td {
 	width: 8em;
 }
 
-#bulk-titles-list,
-#bulk-titles-list li,
+ul.cat-checklist {
+	height: 12em;
+	border: solid 1px #dcdcde;
+	overflow-y: scroll;
+	padding: 0 5px;
+	margin: 0;
+	background-color: #fff;
+}
+
+#bulk-titles {
+	display: block;
+	height: 12em;
+	border: 1px solid #dcdcde;
+	overflow-y: scroll;
+	padding: 0 5px;
+	margin: 0 0 5px;
+}
+
 .inline-edit-row fieldset ul.cat-checklist li,
 .inline-edit-row fieldset ul.cat-checklist input {
 	margin: 0;
 	position: relative; /* RTL fix, #WP27629 */
 }
 
-.inline-edit-row fieldset ul.cat-checklist input {
-	margin-top: -1px;
-	margin-left: 3px;
+.inline-edit-row fieldset ul.cat-checklist label,
+.inline-edit-row #bulk-titles div {
+	font-style: normal;
+	font-size: 11px;
 }
 
 .inline-edit-row fieldset label input.inline-edit-menu-order-input {
@@ -1112,48 +1078,27 @@ tr.inline-edit-row td {
 	float: left;
 }
 
-#bulk-titles,
-ul.cat-checklist {
-	height: 14em;
-	border: 1px solid #ddd;
-	margin: 0 0 5px;
-	padding: 0.2em 5px;
-	overflow-y: scroll;
+#bulk-titles {
+	line-height: 140%;
+}
+#bulk-titles div {
+	margin: 0.2em 0.3em;
 }
 
-#bulk-titles .ntdelbutton,
-#bulk-titles .ntdeltitle,
-.inline-edit-row fieldset ul.cat-checklist label {
-	display: inline-block;
-	margin: 0;
-	padding: 3px 0;
-	line-height: 20px;
-	vertical-align: top;
+#bulk-titles div a {
+	cursor: pointer;
+	display: block;
+	float: left;
+	height: 18px;
+	margin: 0 3px 0 -2px;
+	overflow: hidden;
+	position: relative;
+	width: 20px;
 }
 
-#bulk-titles .ntdelitem {
-	padding-left: 23px;
-}
-
-#bulk-titles .ntdelbutton {
-	width: 26px;
-	height: 26px;
-	margin: 0 0 0 -26px;
-	text-align: center;
-	border-radius: 3px;
-}
-
-#bulk-titles .ntdelbutton:before {
-	display: inline-block;
-	vertical-align: top;
-}
-
-#bulk-titles .ntdelbutton:focus {
-	box-shadow: 0 0 0 2px #3582c4;
-	/* Only visible in Windows High Contrast mode */
-	outline: 2px solid transparent;
-	/* Reset inherited offset from Gutenberg */
-	outline-offset: 0;
+#bulk-titles div a:before {
+	position: relative;
+	top: -3px;
 }
 
 /*------------------------------------------------------------------------------
@@ -1403,6 +1348,17 @@ ul.cat-checklist {
 	content: "\f147";
 }
 
+.plugin-install-php #the-list {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.plugin-install-php .plugin-card {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
 .plugin-install-php h2 {
 	clear: both;
 }
@@ -1433,9 +1389,6 @@ ul.cat-checklist {
 	background-color: #fff;
 	border: 1px solid #dcdcde;
 	box-sizing: border-box;
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
 }
 
 .plugin-card:nth-child(odd) {
@@ -1972,20 +1925,6 @@ div.action-links,
 	#wpbody-content .bulk-edit-row .inline-edit-col-bottom {
 		float: none;
 		width: 100%;
-		padding: 0;
-	}
-
-	#the-list .inline-edit-row .inline-edit-legend,
-	.inline-edit-row span.title {
-		font-size: 16px;
-	}
-
-	.inline-edit-row p.howto {
-		font-size: 14px;
-	}
-
-	#wpbody-content .inline-edit-row-page .inline-edit-col-right {
-		margin-top: 0;
 	}
 
 	#wpbody-content .quick-edit-row fieldset .inline-edit-col label,
@@ -2013,33 +1952,18 @@ div.action-links,
 		padding: 3px 4px;
 	}
 
-	#bulk-titles .ntdelbutton,
-	#bulk-titles .ntdeltitle,
-	.inline-edit-row fieldset ul.cat-checklist label {
-		padding: 6px 0;
+	.inline-edit-row fieldset ul.cat-checklist label,
+	.inline-edit-row #bulk-titles div {
 		font-size: 16px;
-		line-height: 28px;
-	}
-
-	#bulk-titles .ntdelitem {
-		padding-left: 37px;
-	}
-
-	#bulk-titles .ntdelbutton {
-		width: 40px;
-		height: 40px;
-		margin: 0 0 0 -40px;
-		overflow: hidden;
-	}
-
-	#bulk-titles .ntdelbutton:before {
-		font-size: 20px;
-		line-height: 28px;
 	}
 
 	.inline-edit-row fieldset label span.title,
 	.inline-edit-row fieldset.inline-edit-date legend {
 		float: none;
+	}
+
+	.inline-edit-row fieldset label.inline-edit-tags {
+		padding: 0 0.5em;
 	}
 
 	.inline-edit-row fieldset .inline-edit-col label.inline-edit-tags {
@@ -2069,6 +1993,14 @@ div.action-links,
 
 	#edithead label {
 		display: block;
+	}
+
+	#bulk-titles div {
+		margin: 0.8em 0.3em;
+	}
+
+	#bulk-titles div a {
+		height: 22px;
 	}
 
 	/* Updates */
