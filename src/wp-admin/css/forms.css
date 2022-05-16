@@ -1069,18 +1069,9 @@ table.form-table td .updated p {
 	vertical-align: middle;
 }
 
-.form-table.permalink-structure .available-structure-tag-buttons {
-	display: flex;
-	flex-wrap: wrap;
-	margin-top: 6px;
-}
-
-.form-table.permalink-structure button:not(:last-child) {
-	margin-right: 8px;
-}
-
-.form-table.permalink-structure button {
-	margin-top: 8px;
+.form-table.permalink-structure .available-structure-tags li {
+	float: left;
+	margin-right: 5px;
 }
 
 /*------------------------------------------------------------------------------
