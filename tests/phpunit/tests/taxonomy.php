@@ -221,7 +221,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertFalse( $tax_2->show_in_quick_edit );
 	}
 
-
 	/**
 	 * @ticket 53212
 	 */
