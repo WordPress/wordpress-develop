@@ -143,7 +143,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		}
 	}
 
-
 	/**
 	 * @ticket 50833
 	 */
@@ -341,6 +340,27 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		}
 
 		return $classes;
+	}
+
+	/**
+	 * @ticket 55403
+	 */
+	public function test_wp_crop_image_with_filtered_extension() {
+		add_filter( 'image_editor_output_format', array( $this, 'filter_image_editor_output_format' ) );
+		$file = wp_crop_image(
+			DIR_TESTDATA . '/images/canola.jpg',
+			0,
+			0,
+			100,
+			100,
+			100,
+			100
+		);
+
+		$this->assertNotWPError( $file );
+		$this->assertFileExists( $file );
+
+		unlink( $file );
 	}
 
 	/**
@@ -657,6 +677,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		foreach ( $metadata['sizes'] as $size ) {
 			unlink( $temp_dir . $size['file'] );
 		}
+	}
+
+	public function filter_image_editor_output_format() {
+		return array_fill_keys( array( 'image/jpg', 'image/jpeg', 'image/png' ), 'image/webp' );
 	}
 
 	public function filter_fallback_intermediate_image_sizes( $fallback_sizes, $metadata ) {

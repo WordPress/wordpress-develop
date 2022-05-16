@@ -249,7 +249,7 @@ class Tests_Pluggable extends WP_UnitTestCase {
 				'blog_title',
 				'user_name',
 				'user_email',
-				'public',
+				'is_public',
 				'deprecated'    => '',
 				'user_password' => '',
 				'language'      => '',
