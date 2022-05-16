@@ -503,7 +503,6 @@ input[type="number"].tiny-text {
 }
 
 .tablenav .actions select {
-	float: left;
 	margin-right: 6px;
 	max-width: 12.5rem;
 }
@@ -646,17 +645,17 @@ fieldset label,
 	display: inline-block;
 }
 
-p.search-box {
-	float: right;
+#posts-filter fieldset.search-box,
+fieldset.search-box {
 	margin: 0;
+	display: flex;
+	justify-content: flex-end;
 }
 
-.network-admin.themes-php p.search-box {
-	clear: left;
+fieldset.search-box #search-submit {
+	margin-left: 4px;
 }
 
-.search-box input[name="s"],
-.tablenav .search-plugins input[name="s"],
 .tagsdiv .newtag {
 	float: left;
 	margin: 0 4px 0 0;

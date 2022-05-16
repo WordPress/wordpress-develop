@@ -777,7 +777,6 @@ th.asc a:focus span.sorting-indicator {
 }
 
 #posts-filter fieldset {
-	float: left;
 	margin: 0 1.5ex 1em 0;
 	padding: 0;
 }
@@ -858,7 +857,6 @@ tr:hover .row-actions,
 /*	Layout */
 
 #wpbody-content .inline-edit-row fieldset {
-	float: left;
 	margin: 0;
 	padding: 0 12px 0 0;
 	width: 100%;
@@ -876,7 +874,8 @@ tr.inline-edit-row td {
 }
 
 .inline-edit-wrapper {
-	display: flow-root;
+	display: flex;
+	flex-wrap: wrap;
 	padding: 0 12px;
 	border: 1px solid transparent;
 	border-radius: 4px;

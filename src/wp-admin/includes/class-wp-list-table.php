@@ -367,11 +367,11 @@ class WP_List_Table {
 			echo '<input type="hidden" name="detached" value="' . esc_attr( $_REQUEST['detached'] ) . '" />';
 		}
 		?>
-<p class="search-box">
+<fieldset class="search-box">
 	<label class="screen-reader-text" for="<?php echo esc_attr( $input_id ); ?>"><?php echo $text; ?>:</label>
 	<input type="search" id="<?php echo esc_attr( $input_id ); ?>" name="s" value="<?php _admin_search_query(); ?>" />
 		<?php submit_button( $text, '', '', false, array( 'id' => 'search-submit' ) ); ?>
-</p>
+</fieldset>
 		<?php
 	}
 
