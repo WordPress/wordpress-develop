@@ -3434,6 +3434,12 @@ class WP_Query {
 	 */
 	public function the_post() {
 		global $post;
+		if ( ! $this->in_the_loop ) {
+			$author_ids = wp_list_pluck( $this->posts, 'post_author' );
+			$author_ids = array_map( 'absint', $author_ids );
+			$author_ids = array_unique( array_filter( $author_ids ) );
+			_prime_user_caches( $author_ids, false );
+		}
 		$this->in_the_loop = true;
 
 		if ( -1 == $this->current_post ) { // Loop has just started.

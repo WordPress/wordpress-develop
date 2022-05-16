@@ -123,31 +123,14 @@ if ( ! function_exists( 'cache_users' ) ) :
 	/**
 	 * Retrieve info for user lists to prevent multiple queries by get_userdata()
 	 *
-	 * @since 3.0.0
+	 * @see _prime_user_caches()
 	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
+	 * @since 3.0.0
 	 *
 	 * @param int[] $user_ids User ID numbers list
 	 */
 	function cache_users( $user_ids ) {
-		global $wpdb;
-
-		$clean = _get_non_cached_ids( $user_ids, 'users' );
-
-		if ( empty( $clean ) ) {
-			return;
-		}
-
-		$list = implode( ',', $clean );
-
-		$users = $wpdb->get_results( "SELECT * FROM $wpdb->users WHERE ID IN ($list)" );
-
-		$ids = array();
-		foreach ( $users as $user ) {
-			update_user_caches( $user );
-			$ids[] = $user->ID;
-		}
-		update_meta_cache( 'user', $ids );
+		_prime_user_caches( $user_ids, true );
 	}
 endif;
 
