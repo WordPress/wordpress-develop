@@ -61,15 +61,19 @@ foreach ( get_default_block_template_types() as $slug => $template_type ) {
 
 $block_editor_context = new WP_Block_Editor_Context( array( 'name' => 'core/edit-site' ) );
 $custom_settings      = array(
-	'siteUrl'                              => site_url(),
-	'postsPerPage'                         => get_option( 'posts_per_page' ),
-	'styles'                               => get_block_editor_theme_styles(),
-	'defaultTemplateTypes'                 => $indexed_template_types,
-	'defaultTemplatePartAreas'             => get_allowed_block_template_part_areas(),
-	'__unstableHomeTemplate'               => $home_template,
-	'__experimentalBlockPatterns'          => WP_Block_Patterns_Registry::get_instance()->get_all_registered( true ),
-	'__experimentalBlockPatternCategories' => WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered( true ),
+	'siteUrl'                  => site_url(),
+	'postsPerPage'             => get_option( 'posts_per_page' ),
+	'styles'                   => get_block_editor_theme_styles(),
+	'defaultTemplateTypes'     => $indexed_template_types,
+	'defaultTemplatePartAreas' => get_allowed_block_template_part_areas(),
+	'__unstableHomeTemplate'   => $home_template,
 );
+
+if ( apply_filters( 'should_add_block_patterns_to_editor_settings', false ) ) {
+	$custom_settings['__experimentalBlockPatterns']          = WP_Block_Patterns_Registry::get_instance()->get_all_registered( true );
+	$custom_settings['__experimentalBlockPatternCategories'] = WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered( true );
+}
+
 $editor_settings      = get_block_editor_settings( $custom_settings, $block_editor_context );
 
 if ( isset( $_GET['postType'] ) && ! isset( $_GET['postId'] ) ) {
