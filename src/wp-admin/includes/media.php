@@ -2722,11 +2722,11 @@ function media_upload_library_form( $errors ) {
 	<input type="hidden" name="post_mime_type" value="<?php echo isset( $_GET['post_mime_type'] ) ? esc_attr( $_GET['post_mime_type'] ) : ''; ?>" />
 	<input type="hidden" name="context" value="<?php echo isset( $_GET['context'] ) ? esc_attr( $_GET['context'] ) : ''; ?>" />
 
-	<fieldset id="media-search" class="search-box">
+	<p id="media-search" class="search-box">
 		<label class="screen-reader-text" for="media-search-input"><?php _e( 'Search Media' ); ?>:</label>
 		<input type="search" id="media-search-input" name="s" value="<?php the_search_query(); ?>" />
 		<?php submit_button( __( 'Search Media' ), '', '', false ); ?>
-	</fieldset>
+	</p>
 
 	<ul class="subsubsub">
 		<?php

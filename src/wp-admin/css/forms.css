@@ -503,6 +503,7 @@ input[type="number"].tiny-text {
 }
 
 .tablenav .actions select {
+	float: left;
 	margin-right: 6px;
 	max-width: 12.5rem;
 }
@@ -645,14 +646,17 @@ fieldset label,
 	display: inline-block;
 }
 
-fieldset.search-box {
+p.search-box {
 	float: right;
+	margin: 0;
 }
 
-.network-admin.themes-php fieldset.search-box {
+.network-admin.themes-php p.search-box {
 	clear: left;
 }
 
+.search-box input[name="s"],
+.tablenav .search-plugins input[name="s"],
 .tagsdiv .newtag {
 	float: left;
 	margin: 0 4px 0 0;
@@ -772,12 +776,6 @@ ul#add-to-blog-users {
 
 .form-table p.timezone-info {
 	margin: 1em 0;
-	display: flex;
-	flex-direction: column;
-}
-
-#local-time {
-	margin-top: 0.5em;
 }
 
 .form-table td fieldset label {
@@ -1611,6 +1609,13 @@ table.form-table td .updated p {
 
 	.form-table fieldset label {
 		display: block;
+	}
+
+	#utc-time,
+	#local-time {
+		display: block;
+		float: none;
+		margin-top: 0.5em;
 	}
 
 	.form-field #domain {
