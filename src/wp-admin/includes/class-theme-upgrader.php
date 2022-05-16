@@ -574,7 +574,8 @@ class Theme_Upgrader extends WP_Upgrader {
 		if (
 			empty( $info['Template'] ) &&
 			! file_exists( $working_directory . 'index.php' ) &&
-			! file_exists( $working_directory . 'templates/index.html' )
+			! file_exists( $working_directory . 'templates/index.html' ) &&
+			! file_exists( $working_directory . 'block-templates/index.html' )
 		) {
 			return new WP_Error(
 				'incompatible_archive_theme_no_index',
