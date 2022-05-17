@@ -338,9 +338,7 @@ $inputs = array(
 									<fieldset>
 										<legend><?php _e( 'Available tags:' ); ?></legend>
 										<ul role="list">
-											<?php
-											foreach ( $available_tags as $tag => $explanation ) {
-												?>
+											<?php foreach ( $available_tags as $tag => $explanation ) : ?>
 												<li>
 													<button type="button"
 															class="button button-secondary"
@@ -350,9 +348,7 @@ $inputs = array(
 														<?php echo '%' . $tag . '%'; ?>
 													</button>
 												</li>
-												<?php
-											}
-											?>
+											<?php endforeach; ?>
 										</ul>
 									</fieldset>
 								<?php endif; ?>
