@@ -348,7 +348,8 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 		$args      = $action->get_args();
 		$last_args = end( $args );
-		$this->assertSameSets( wp_list_pluck( $response->get_data(), 'id' ), $last_args[1], 'Ensure that post ids are primed' );
+		$ids = wp_list_pluck( $response->get_data(), 'id' );
+		$this->assertSameSets( $ids, $last_args[1], 'Ensure that post ids are primed' );
 	}
 
 	/**
