@@ -74,12 +74,12 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'delete_post':
 		case 'delete_page':
 			if ( ! isset( $args[0] ) ) {
-				if ( 'delete_page' === $cap ) {
-					/* translators: %s: Capability name. */
-					$message = __( 'When checking for the %s capability, you must always check it against a specific page.' );
-				} else {
+				if ( 'delete_post' === $cap ) {
 					/* translators: %s: Capability name. */
 					$message = __( 'When checking for the %s capability, you must always check it against a specific post.' );
+				} else {
+					/* translators: %s: Capability name. */
+					$message = __( 'When checking for the %s capability, you must always check it against a specific page.' );
 				}
 
 				_doing_it_wrong(
@@ -177,12 +177,12 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'edit_post':
 		case 'edit_page':
 			if ( ! isset( $args[0] ) ) {
-				if ( 'edit_page' === $cap ) {
-					/* translators: %s: Capability name. */
-					$message = __( 'When checking for the %s capability, you must always check it against a specific page.' );
-				} else {
+				if ( 'edit_post' === $cap ) {
 					/* translators: %s: Capability name. */
 					$message = __( 'When checking for the %s capability, you must always check it against a specific post.' );
+				} else {
+					/* translators: %s: Capability name. */
+					$message = __( 'When checking for the %s capability, you must always check it against a specific page.' );
 				}
 
 				_doing_it_wrong(
@@ -276,12 +276,12 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'read_post':
 		case 'read_page':
 			if ( ! isset( $args[0] ) ) {
-				if ( 'read_page' === $cap ) {
-					/* translators: %s: Capability name. */
-					$message = __( 'When checking for the %s capability, you must always check it against a specific page.' );
-				} else {
+				if ( 'read_post' === $cap ) {
 					/* translators: %s: Capability name. */
 					$message = __( 'When checking for the %s capability, you must always check it against a specific post.' );
+				} else {
+					/* translators: %s: Capability name. */
+					$message = __( 'When checking for the %s capability, you must always check it against a specific page.' );
 				}
 
 				_doing_it_wrong(
@@ -425,18 +425,18 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			$object_type = explode( '_', $cap )[1];
 
 			if ( ! isset( $args[0] ) ) {
-				if ( 'comment' === $object_type ) {
+				if ( 'post' === $object_type ) {
+					/* translators: %s: Capability name. */
+					$message = __( 'When checking for the %s capability, you must always check it against a specific post.' );
+				} elseif ( 'comment' === $object_type ) {
 					/* translators: %s: Capability name. */
 					$message = __( 'When checking for the %s capability, you must always check it against a specific comment.' );
-				} elseif ( 'user' === $object_type ) {
-					/* translators: %s: Capability name. */
-					$message = __( 'When checking for the %s capability, you must always check it against a specific user.' );
 				} elseif ( 'term' === $object_type ) {
 					/* translators: %s: Capability name. */
 					$message = __( 'When checking for the %s capability, you must always check it against a specific term.' );
 				} else {
 					/* translators: %s: Capability name. */
-					$message = __( 'When checking for the %s capability, you must always check it against a specific post.' );
+					$message = __( 'When checking for the %s capability, you must always check it against a specific user.' );
 				}
 
 				_doing_it_wrong(
