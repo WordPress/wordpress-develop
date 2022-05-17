@@ -69,10 +69,9 @@ $custom_settings      = array(
 	'__unstableHomeTemplate'   => $home_template,
 );
 
-if ( apply_filters( 'should_add_block_patterns_to_editor_settings', false ) ) {
-	$custom_settings['__experimentalBlockPatterns']          = WP_Block_Patterns_Registry::get_instance()->get_all_registered( true );
-	$custom_settings['__experimentalBlockPatternCategories'] = WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered( true );
-}
+// Add additional back-compat patterns registered by `current_screen` et al.
+$custom_settings['__experimentalAdditionalBlockPatterns']          = WP_Block_Patterns_Registry::get_instance()->get_all_registered( true );
+$custom_settings['__experimentalAdditionalBlockPatternCategories'] = WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered( true );
 
 $editor_settings      = get_block_editor_settings( $custom_settings, $block_editor_context );
 
