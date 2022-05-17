@@ -638,7 +638,12 @@ class Tests_Query extends WP_UnitTestCase {
 			);
 		}
 
-		$q = new WP_Query( array( 'post_type' => 'post', 'posts_per_page' => $count ) );
+		$q = new WP_Query(
+			array(
+				'post_type'      => 'post',
+				'posts_per_page' => $count,
+			)
+		);
 		while ( $q->have_posts() ) {
 			$q->the_post();
 		}
