@@ -7,6 +7,7 @@ on:
       - trunk
       - '3.[89]'
       - '[4-9].[0-9]'
+      - '**'
     tags:
       - '3.[89]*'
       - '[4-9].[0-9]*'
@@ -52,7 +53,7 @@ jobs:
     name: QUnit Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    # if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
       - name: Checkout repository
