@@ -85,7 +85,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				_doing_it_wrong(
 					__FUNCTION__,
 					sprintf( $message, '<code>' . $cap . '</code>' ),
-					'6.0.0'
+					'6.1.0'
 				);
 
 				$caps[] = 'do_not_allow';
@@ -188,7 +188,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				_doing_it_wrong(
 					__FUNCTION__,
 					sprintf( $message, '<code>' . $cap . '</code>' ),
-					'6.0.0'
+					'6.1.0'
 				);
 
 				$caps[] = 'do_not_allow';
@@ -287,7 +287,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				_doing_it_wrong(
 					__FUNCTION__,
 					sprintf( $message, '<code>' . $cap . '</code>' ),
-					'6.0.0'
+					'6.1.0'
 				);
 
 				$caps[] = 'do_not_allow';
@@ -376,7 +376,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				_doing_it_wrong(
 					__FUNCTION__,
 					sprintf( $message, '<code>' . $cap . '</code>' ),
-					'6.0.0'
+					'6.1.0'
 				);
 
 				$caps[] = 'do_not_allow';
@@ -442,7 +442,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				_doing_it_wrong(
 					__FUNCTION__,
 					sprintf( $message, '<code>' . $cap . '</code>' ),
-					'6.0.0'
+					'6.1.0'
 				);
 
 				$caps[] = 'do_not_allow';
@@ -551,7 +551,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				_doing_it_wrong(
 					__FUNCTION__,
 					sprintf( $message, '<code>' . $cap . '</code>' ),
-					'6.0.0'
+					'6.1.0'
 				);
 
 				$caps[] = 'do_not_allow';
@@ -705,7 +705,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				_doing_it_wrong(
 					__FUNCTION__,
 					sprintf( $message, '<code>' . $cap . '</code>' ),
-					'6.0.0'
+					'6.1.0'
 				);
 
 				$caps[] = 'do_not_allow';
