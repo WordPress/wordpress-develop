@@ -3434,13 +3434,13 @@ function wp_resource_hints() {
  * @link https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types/preload
  * @link https://web.dev/preload-responsive-images/
  *
- * @since 6.0.0
+ * @since 6.1.0
  */
 function wp_preload_links() {
 	/**
 	 * Filters domains and URLs for resource preloads.
 	 *
-	 * @since 6.0.0
+	 * @since 6.1.0
 	 *
 	 * @param array  $urls {
 	 *     Array of resources and their attributes, or URLs to print for resource preloads.
@@ -3532,7 +3532,7 @@ function wp_preload_links() {
 
 		$html = trim( $html );
 
-		echo "<link rel='preload' $html />\n";
+		printf( "<link rel='preload' %s />\n", $html );
 	}
 
 }
