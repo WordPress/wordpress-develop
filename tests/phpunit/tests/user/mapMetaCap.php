@@ -3,6 +3,7 @@
 /**
  * @group user
  * @group capabilities
+ * @covers ::map_meta_cap
  */
 class Tests_User_MapMetaCap extends WP_UnitTestCase {
 
@@ -414,7 +415,6 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_meta_caps_throws_doing_it_wrong_without_required_argument_provided
 	 * @ticket 44591
-	 * @covers ::map_meta_cap
 	 *
 	 * @param string $cap The meta capability requiring an argument.
 	 */
