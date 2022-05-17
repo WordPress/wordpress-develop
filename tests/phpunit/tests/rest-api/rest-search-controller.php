@@ -35,6 +35,13 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	private static $my_content_post_ids = array();
 
 	/**
+	 * Posts with title 'my-primed-posts'.
+	 *
+	 * @var array
+	 */
+	private static $my_primed_post_ids = array();
+
+	/**
 	 * Categories.
 	 *
 	 * @var int
@@ -79,6 +86,14 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
+		self::$my_primed_post_ids = $factory->post->create_many(
+			4,
+			array(
+				'post_title' => 'my-primedpoststitles',
+				'post_type'  => 'post',
+			)
+		);
+
 		set_post_format( self::$my_title_post_ids[0], 'aside' );
 
 		self::$my_category_id = $factory->term->create(
@@ -105,7 +120,8 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		$post_ids = array_merge(
 			self::$my_title_post_ids,
 			self::$my_title_page_ids,
-			self::$my_content_post_ids
+			self::$my_content_post_ids,
+			self::$my_primed_post_ids
 		);
 
 		foreach ( $post_ids as $post_id ) {
@@ -158,7 +174,8 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			array_merge(
 				self::$my_title_post_ids,
 				self::$my_title_page_ids,
-				self::$my_content_post_ids
+				self::$my_content_post_ids,
+				self::$my_primed_post_ids
 			),
 			wp_list_pluck( $response->get_data(), 'id' )
 		);
@@ -194,7 +211,8 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			array_merge(
 				self::$my_title_post_ids,
 				self::$my_title_page_ids,
-				self::$my_content_post_ids
+				self::$my_content_post_ids,
+				self::$my_primed_post_ids
 			),
 			wp_list_pluck( $response->get_data(), 'id' )
 		);
@@ -216,7 +234,8 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertSameSets(
 			array_merge(
 				self::$my_title_post_ids,
-				self::$my_content_post_ids
+				self::$my_content_post_ids,
+				self::$my_primed_post_ids
 			),
 			wp_list_pluck( $response->get_data(), 'id' )
 		);
@@ -287,7 +306,8 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			array_merge(
 				self::$my_title_post_ids,
 				self::$my_title_page_ids,
-				self::$my_content_post_ids
+				self::$my_content_post_ids,
+				self::$my_primed_post_ids
 			),
 			wp_list_pluck( $response->get_data(), 'id' )
 		);
@@ -337,19 +357,21 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	 * Make sure post ids are primed.
 	 */
 	public function test_get_items_search_prime_ids() {
-		$action = new MockAction();
-		add_filter( 'update_post_metadata_cache', array( $action, 'filter' ), 10, 2 );
-		// 'foocontent' was searched in test_get_items_search_for_foocontent, ids should be primed already.
-		$response  = $this->do_request_with_params(
-			array(
-				'per_page' => 100,
-				'search'   => 'foocontent',
-			)
-		);
-		$args      = $action->get_args();
-		$last_args = end( $args );
-		$ids = wp_list_pluck( $response->get_data(), 'id' );
-		$this->assertSameSets( $ids, $last_args[1], 'Ensure that post ids are primed' );
+		global $wpdb;
+
+		 $query_args = array(
+			 'per_page' => 100,
+			 'search'   => 'primedpoststitles',
+		 );
+		 $response   = $this->do_request_with_params( $query_args );
+		 $this->assertSame( 200, $response->get_status() );
+
+		 $ids = wp_list_pluck( $response->get_data(), 'id' );
+		 $this->assertSameSets( self::$my_primed_post_ids, $ids );
+
+		 // Primed query will use WHERE ID IN clause.
+		 $primed_query_string = 'WHERE ID IN (' . implode( ',', $ids ) . ')';
+		 $this->assertStringContainsString( $primed_query_string, $wpdb->last_query );
 	}
 
 	/**
