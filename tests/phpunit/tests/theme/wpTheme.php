@@ -309,6 +309,10 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 				'theme_dir' => 'block-theme-child',
 				'expected'  => true,
 			),
+			'deprecated block theme'    => array(
+				'theme_dir' => 'block-theme-deprecated-path',
+				'expected'  => true,
+			),
 		);
 	}
 
@@ -359,6 +363,11 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 				'theme_dir' => 'block-theme',
 				'file'      => '/templates/page-home.html',
 				'expected'  => '/block-theme/templates/page-home.html',
+			),
+			'parent theme: deprecated file exists' => array(
+				'theme_dir' => 'block-theme-deprecated-path',
+				'file'      => '/block-templates/page-home.html',
+				'expected'  => '/block-theme-deprecated-path/block-templates/page-home.html',
 			),
 			'parent theme: file does not exist' => array(
 				'theme_dir' => 'block-theme',
