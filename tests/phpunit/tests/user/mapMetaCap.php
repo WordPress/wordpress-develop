@@ -424,6 +424,13 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 		$this->assertContains( 'do_not_allow', map_meta_cap( $cap, $admin_user ) );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[] Test parameters {
+	 *     @type string $cap The meta capability requiring an argument.
+	 * }
+	 */
 	public function data_meta_caps_throw_doing_it_wrong_without_required_argument_provided() {
 		return array(
 			array( 'delete_post' ),
