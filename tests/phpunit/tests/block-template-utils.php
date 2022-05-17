@@ -357,10 +357,10 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		// Open ZIP file and make sure the directories exist.
 		$zip = new ZipArchive();
 		$zip->open( $filename );
-		$has_theme_dir                = $zip->locateName( 'theme/' ) !== false;
-		$has_block_templates_dir      = $zip->locateName( 'theme/templates/' ) !== false;
-		$has_block_template_parts_dir = $zip->locateName( 'theme/parts/' ) !== false;
-		$this->assertTrue( $has_theme_dir, 'theme directory exists' );
+		$has_theme_json               = $zip->locateName( 'theme.json' ) !== false;
+		$has_block_templates_dir      = $zip->locateName( 'templates/' ) !== false;
+		$has_block_template_parts_dir = $zip->locateName( 'parts/' ) !== false;
+		$this->assertTrue( $has_theme_json, 'theme.json exists' );
 		$this->assertTrue( $has_block_templates_dir, 'theme/templates directory exists' );
 		$this->assertTrue( $has_block_template_parts_dir, 'theme/parts directory exists' );
 

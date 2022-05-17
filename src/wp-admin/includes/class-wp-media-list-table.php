@@ -508,7 +508,16 @@ class WP_Media_List_Table extends WP_List_Table {
 			}
 		}
 
-		echo $h_time;
+		/**
+		 * Filters the published time of an attachment displayed in the Media list table.
+		 *
+		 * @since 6.0.0
+		 *
+		 * @param string  $h_time      The published time.
+		 * @param WP_Post $post        Attachment object.
+		 * @param string  $column_name The column name.
+		 */
+		echo apply_filters( 'media_date_column_time', $h_time, $post, 'date' );
 	}
 
 	/**
@@ -633,8 +642,7 @@ class WP_Media_List_Table extends WP_List_Table {
 						esc_html( sanitize_term_field( 'name', $t->name, $t->term_id, $taxonomy, 'display' ) )
 					);
 				}
-				/* translators: Used between list items, there is a space after the comma. */
-				echo implode( __( ', ' ), $out );
+				echo implode( wp_get_list_item_separator(), $out );
 			} else {
 				echo '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' . get_taxonomy( $taxonomy )->labels->no_terms . '</span>';
 			}
@@ -805,6 +813,15 @@ class WP_Media_List_Table extends WP_List_Table {
 					/* translators: %s: Attachment title. */
 					esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $att_title ) ),
 					__( 'View' )
+				);
+
+				$actions['copy'] = sprintf(
+					'<span class="copy-to-clipboard-container"><button type="button" class="button-link copy-attachment-url media-library" data-clipboard-text="%s" aria-label="%s">%s</button><span class="success hidden" aria-hidden="true">%s</span></span>',
+					esc_url( wp_get_attachment_url( $post->ID ) ),
+					/* translators: %s: Attachment title. */
+					esc_attr( sprintf( __( 'Copy &#8220;%s&#8221; URL to clipboard' ), $att_title ) ),
+					__( 'Copy URL to clipboard' ),
+					__( 'Copied!' )
 				);
 			}
 		}

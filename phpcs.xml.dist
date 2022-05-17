@@ -315,7 +315,7 @@
 		<exclude-pattern>/tests/phpunit/tests/*</exclude-pattern>
 	</rule>
 
-	<!-- Exclude some old classes that can't be renamed, as it would break back compat. -->
+	<!-- Exclude some old classes that cannot be renamed, as it would break back compat. -->
 	<rule ref="PEAR.NamingConventions.ValidClassName.Invalid">
 		<exclude-pattern>/src/wp-admin/includes/class-wp-filesystem-ftpsockets\.php</exclude-pattern>
 		<exclude-pattern>/src/wp-includes/class-wp-oembed\.php</exclude-pattern>
