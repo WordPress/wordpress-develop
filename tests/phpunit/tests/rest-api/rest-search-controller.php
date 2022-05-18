@@ -359,19 +359,19 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_get_items_search_prime_ids() {
 		global $wpdb;
 
-		 $query_args = array(
-			 'per_page' => 100,
-			 'search'   => 'primedpoststitles',
-		 );
-		 $response   = $this->do_request_with_params( $query_args );
-		 $this->assertSame( 200, $response->get_status() );
+		$query_args = array(
+			'per_page' => 100,
+			'search'   => 'primedpoststitles',
+		);
+		$response   = $this->do_request_with_params( $query_args );
+		$this->assertSame( 200, $response->get_status() );
 
-		 $ids = wp_list_pluck( $response->get_data(), 'id' );
-		 $this->assertSameSets( self::$my_primed_post_ids, $ids );
+		$ids = wp_list_pluck( $response->get_data(), 'id' );
+		$this->assertSameSets( self::$my_primed_post_ids, $ids );
 
-		 // Primed query will use WHERE ID IN clause.
-		 $primed_query_string = 'WHERE ID IN (' . implode( ',', $ids ) . ')';
-		 $this->assertStringContainsString( $primed_query_string, $wpdb->last_query );
+		// Primed query will use WHERE ID IN clause.
+		$primed_query_string = 'WHERE ID IN (' . implode( ',', $ids ) . ')';
+		$this->assertStringContainsString( $primed_query_string, $wpdb->last_query );
 	}
 
 	/**
