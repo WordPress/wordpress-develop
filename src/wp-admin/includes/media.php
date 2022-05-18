@@ -296,7 +296,7 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 	if ( $post ) {
 		// The post date doesn't usually matter for pages, so don't backdate this upload.
 		if ( 'page' !== $post->post_type && substr( $post->post_date, 0, 4 ) > 0 ) {
-			if ( apply_filters( 'should_backdate_media_upload', true, $post ) ) {
+			if ( apply_filters( 'should_backdate_media_upload', true, $post, $file_id ) ) {
 				$time = $post->post_date;
 			}
 		}
