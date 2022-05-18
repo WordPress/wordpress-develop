@@ -30,7 +30,7 @@ if ( ! wp_is_block_theme() ) {
 $home_template = _resolve_home_block_template();
 if ( $home_template && empty( $_GET['postType'] ) && empty( $_GET['postId'] ) ) {
 	$redirect_url = add_query_arg(
-		$home_template,
+		array_merge( $home_template, $_GET ),
 		admin_url( 'site-editor.php' )
 	);
 	wp_safe_redirect( $redirect_url );
