@@ -17,7 +17,7 @@
 final class WP_Customize_Background_Image_Setting extends WP_Customize_Setting {
 
 	/**
-	 * The setting type.
+	 * Unique string identifier for the setting.
 	 *
 	 * @since 3.4.0
 	 * @var string

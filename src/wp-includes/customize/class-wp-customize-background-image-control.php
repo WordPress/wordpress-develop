@@ -19,7 +19,7 @@ class WP_Customize_Background_Image_Control extends WP_Customize_Image_Control {
 	/**
 	 * Customize control type.
 	 *
-	 * @since 3.4.0
+	 * @since 4.1.0
 	 * @var string
 	 */
 	public $type = 'background';
