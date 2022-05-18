@@ -863,7 +863,7 @@ function validate_current_theme() {
 
 	if (
 		! file_exists( get_template_directory() . '/templates/index.html' )
-		&& ! file_exists( get_template_directory() . '/block-templates/index.html' ) // Deprecated path support.
+		&& ! file_exists( get_template_directory() . '/block-templates/index.html' ) // Deprecated path support since 5.9.0.
 		&& ! file_exists( get_template_directory() . '/index.php' )
 	) {
 		// Invalid.

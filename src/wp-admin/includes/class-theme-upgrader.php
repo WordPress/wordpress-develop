@@ -569,7 +569,7 @@ class Theme_Upgrader extends WP_Upgrader {
 		/*
 		 * Parent themes must contain an index file:
 		 * - classic themes require /index.php
-		 * - block themes require /templates/index.html or block-templates/index.html (deprecated).
+		 * - block themes require /templates/index.html or block-templates/index.html (deprecated 5.9.0).
 		 */
 		if (
 			empty( $info['Template'] ) &&
