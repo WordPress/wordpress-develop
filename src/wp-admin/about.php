@@ -311,7 +311,11 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: WordPress 6.0 Release Notes link. */
 						__( '<a href="%s">Read the WordPress 6.0 Release Notes</a> for more information on the included enhancements and issues fixed, installation information, developer notes and resources, release contributors, and the list of file changes in this release.' ),
-						'#'
+						sprintf(
+							/* translators: %s: WordPress version. */
+							esc_url( __( 'https://wordpress.org/support/wordpress-version/version-%s/' ) ),
+							sanitize_title( '6.0' )
+						)
 					);
 					?>
 				</p>
