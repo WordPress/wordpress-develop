@@ -3127,8 +3127,17 @@ function wp_rel_callback( $matches, $rel ) {
 	$atts = wp_kses_hair( $matches[1], wp_allowed_protocols() );
 
 	if ( ! empty( $atts['href'] ) ) {
-		if ( in_array( strtolower( wp_parse_url( $atts['href']['value'], PHP_URL_SCHEME ) ), array( 'http', 'https' ), true ) ) {
-			if ( strtolower( wp_parse_url( $atts['href']['value'], PHP_URL_HOST ) ) === strtolower( wp_parse_url( home_url(), PHP_URL_HOST ) ) ) {
+		$href_value_scheme = wp_parse_url( $atts['href']['value'], PHP_URL_SCHEME );
+		$href_value_scheme = is_string( $href_value_scheme ) ? $href_value_scheme : '';
+
+		$href_value_host = wp_parse_url( $atts['href']['value'], PHP_URL_HOST );
+		$href_value_host = is_string( $href_value_host ) ? $href_value_host : '';
+
+		$home_url_host = wp_parse_url( home_url(), PHP_URL_HOST );
+		$home_url_host = is_string( $home_url_host ) ? $home_url_host : '';
+
+		if ( in_array( strtolower( $href_value_scheme ), array( 'http', 'https' ), true ) ) {
+			if ( strtolower( $href_value_host ) === strtolower( $home_url_host ) ) {
 				return "<a $text>";
 			}
 		}
