@@ -10,7 +10,14 @@ class Tests_Media extends WP_UnitTestCase {
 	protected static $large_filename = 'test-image-large.jpg';
 	protected static $post_ids;
 
+	/**
+	 * @var int|null Post ID.
+	 */
 	private $post_id;
+
+	/**
+	 * @var int|null Attachment ID.
+	 */
 	private $attachment_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
@@ -1291,6 +1298,8 @@ VIDEO;
 
 	/**
 	 * @ticket 22768
+	 *
+	 * @covers ::media_handle_upload
 	 */
 	public function test_media_handle_upload_sets_post_excerpt() {
 		$iptc_file = DIR_TESTDATA . '/images/test-image-iptc.jpg';
@@ -1308,7 +1317,7 @@ VIDEO;
 			'size'     => filesize( $iptc_file ),
 		);
 
-		$post_id = media_handle_upload(
+		$this->attachment_id = media_handle_upload(
 			'upload',
 			0,
 			array(),
@@ -1320,16 +1329,15 @@ VIDEO;
 
 		unset( $_FILES['upload'] );
 
-		$post = get_post( $post_id );
+		$attachment = get_post( $this->attachment_id );
 
-		// Clean up.
-		wp_delete_attachment( $post_id );
-
-		$this->assertSame( 'This is a comment. / Это комментарий. / Βλέπετε ένα σχόλιο.', $post->post_excerpt );
+		$this->assertSame( 'This is a comment. / Это комментарий. / Βλέπετε ένα σχόλιο.', $attachment->post_excerpt );
 	}
 
 	/**
 	 * @ticket 37989
+	 *
+	 * @covers ::media_handle_upload
 	 */
 	public function test_media_handle_upload_expected_titles() {
 		$test_file = DIR_TESTDATA . '/images/test-image.jpg';
@@ -1347,7 +1355,7 @@ VIDEO;
 			'size'     => filesize( $test_file ),
 		);
 
-		$post_id = media_handle_upload(
+		$this->attachment_id = media_handle_upload(
 			'upload',
 			0,
 			array(),
@@ -1359,12 +1367,9 @@ VIDEO;
 
 		unset( $_FILES['upload'] );
 
-		$post = get_post( $post_id );
+		$attachment = get_post( $this->attachment_id );
 
-		// Clean up.
-		wp_delete_attachment( $post_id );
-
-		$this->assertSame( 'This is a test', $post->post_title );
+		$this->assertSame( 'This is a test', $attachment->post_title );
 	}
 
 	/**
@@ -1699,10 +1704,10 @@ EOF;
 		add_filter( 'upload_dir', '_upload_dir_no_subdir' );
 
 		// Make an image.
-		$filename = DIR_TESTDATA . '/images/' . self::$large_filename;
-		$id       = self::factory()->attachment->create_upload_object( $filename );
+		$filename            = DIR_TESTDATA . '/images/' . self::$large_filename;
+		$this->attachment_id = self::factory()->attachment->create_upload_object( $filename );
 
-		$image_meta      = wp_get_attachment_metadata( $id );
+		$image_meta      = wp_get_attachment_metadata( $this->attachment_id );
 		$uploads_dir_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/';
 
 		// Set up test cases for all expected size names.
@@ -1727,7 +1732,7 @@ EOF;
 
 		foreach ( $intermediates as $int ) {
 			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int );
-			$image_url  = wp_get_attachment_image_url( $id, $int );
+			$image_url  = wp_get_attachment_image_url( $this->attachment_id, $int );
 
 			if ( 'full' === $int ) {
 				// Add the full size image. Expected to be in the srcset when the full size image is used as src.
@@ -1740,8 +1745,6 @@ EOF;
 			$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 		}
 
-		// Remove the attachment.
-		wp_delete_attachment( $id );
 		remove_filter( 'upload_dir', '_upload_dir_no_subdir' );
 	}
 
