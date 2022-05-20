@@ -607,7 +607,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 				$this->assertSame(
 					strtotime( $headers['Last-Modified'] ),
 					strtotime( $today ),
-					'Last-Modified was not the date of the most recent most'
+					'Last-Modified was not the date of the most recent post'
 				);
 				return $headers;
 			}
