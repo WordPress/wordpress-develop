@@ -233,7 +233,7 @@ class WP_Roles {
 			unset( $this->roles[ $role ] );
 		}
 
-		// The roles database option will be updated in add_role();
+		// The roles database option will be updated in add_role().
 		return $this->add_role( $role, $display_name, $capabilities );
 	}
 
