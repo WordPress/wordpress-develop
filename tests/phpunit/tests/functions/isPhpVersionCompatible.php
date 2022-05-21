@@ -1,52 +1,88 @@
 <?php
 
 /**
- * Tests the is_php_version_compatible function.
+ * Tests the is_php_version_compatible() function.
  *
  * @group functions.php
  * @covers ::is_php_version_compatible
  */
-class Tests_Functions_isPhpVersionCompatible extends WP_UnitTestCase {
+class Tests_Functions_IsPhpVersionCompatible extends WP_UnitTestCase {
 	/**
 	 * Tests is_php_version_compatible().
 	 *
 	 * @dataProvider data_is_php_version_compatible
 	 *
-	 * @param mixed $test_value
-	 * @param bool $expected
-	 *
 	 * @ticket 54257
+	 *
+	 * @param mixed $required The minimum required PHP version.
+	 * @param bool  $expected The expected result.
 	 */
-	public function test_is_php_version_compatible( $test_value, $expected ) {
-		$this->assertSame( is_php_version_compatible( $test_value ), $expected );
+	public function test_is_php_version_compatible( $required, $expected ) {
+		$this->assertSame( $expected, is_php_version_compatible( $required ) );
 	}
 
 	/**
-	 * Provides test scenarios for test_php_version_compatible.
+	 * Data provider.
 	 *
 	 * @return array
 	 */
-	function data_is_php_version_compatible() {
-		$php_version = phpversion();
+	public function data_is_php_version_compatible() {
+		$php_version = PHP_VERSION;
 
-		$more = explode( '.', $php_version );
-		$less = $more;
+		$version_parts  = explode( '.', $php_version );
+		$lower_version  = $version_parts;
+		$higher_version = $version_parts;
 
-		-- $less[ count( $less ) - 1 ];
-		++ $more[ count( $less ) - 1 ];
+		// Adjust the major version numbers.
+		--$lower_version[0];
+		++$higher_version[0];
+
+		$lower_version  = implode( '.', $lower_version );
+		$higher_version = implode( '.', $higher_version );
 
 		return array(
-			'greater' => array(
-				'test_value' => implode( '.', $more ),
-				'expected'   => false,
+			// Happy paths.
+			'a lower required version'  => array(
+				'required' => $lower_version,
+				'expected' => true,
 			),
-			'same'    => array(
-				'test_value' => $php_version,
-				'expected'   => true,
+			'the same version'          => array(
+				'required' => $php_version,
+				'expected' => true,
 			),
-			'less'    => array(
-				'test_value' => implode( '.', $less ),
-				'expected'   => true,
+			'a higher required version' => array(
+				'required' => $higher_version,
+				'expected' => false,
+			),
+
+			// Falsey values.
+			'false'                     => array(
+				'required' => false,
+				'expected' => true,
+			),
+			'null'                      => array(
+				'required' => null,
+				'expected' => true,
+			),
+			'0 int'                     => array(
+				'required' => 0,
+				'expected' => true,
+			),
+			'0.0 float'                 => array(
+				'required' => 0.0,
+				'expected' => true,
+			),
+			'0 string'                  => array(
+				'required' => '0',
+				'expected' => true,
+			),
+			'empty string'              => array(
+				'required' => '',
+				'expected' => true,
+			),
+			'empty array'               => array(
+				'required' => array(),
+				'expected' => true,
 			),
 		);
 	}
