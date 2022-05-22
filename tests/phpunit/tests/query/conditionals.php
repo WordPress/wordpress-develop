@@ -1666,7 +1666,7 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	 * @dataProvider data_loop_functions_do_not_trigger_a_fatal_error_if_wp_query_is_not_set
 	 *
 	 * @param string     $function_name The name of the function to test.
-	 * @param null|false $expected      Expected return value.
+	 * @param false|null $expected      Expected return value.
 	 */
 	public function test_loop_functions_do_not_trigger_a_fatal_error_if_wp_query_is_not_set( $function_name, $expected ) {
 		unset( $GLOBALS['wp_query'] );
@@ -1679,7 +1679,7 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	 *
 	 * @return array[] Test parameters {
 	 *     @type string     $function_name The name of the function to test.
-	 *     @type null|false $expected      Expected return value.
+	 *     @type false|null $expected      Expected return value.
 	 * }
 	 */
 	public function data_loop_functions_do_not_trigger_a_fatal_error_if_wp_query_is_not_set() {
