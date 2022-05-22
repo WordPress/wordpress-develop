@@ -1013,8 +1013,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		);
 
 		$this->assertNotInstanceOf(
-			'WP_Roles',
-			update_role( $role_name, 'Janitor', $expected_caps ),
+			'WP_Role',
+			update_role( $role, $display_name, $capabilities ),
 			"The $role_name role was updated"
 		);
 
