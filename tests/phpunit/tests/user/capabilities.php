@@ -992,7 +992,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @param mixed $display_name The display name for the role.
 	 * @param mixed $capabilities The capabilities for the role.
 	 */
-	public function test_update_role_should_not_try_to_update_a_role( $role, $display_name, $capabilities ) {
+	public function test_update_role_unhappy_paths( $role, $display_name, $capabilities ) {
 		global $wp_roles;
 
 		// Create role if it does not exist.
