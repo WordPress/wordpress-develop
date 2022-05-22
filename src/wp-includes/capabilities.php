@@ -1038,6 +1038,8 @@ function add_role( $role, $display_name, $capabilities = array() ) {
  * The capabilities are defined in the following format: `array( 'read' => true )`.
  * To explicitly deny a role a capability, set the value for that capability to false.
  *
+ * @since 6.1.0
+ *
  * @param string      $role         Role name.
  * @param string|null $display_name Optional. Role display name. If null, the display name
  *                                  is not modified. Default null.
