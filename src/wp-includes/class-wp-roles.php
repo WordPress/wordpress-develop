@@ -138,20 +138,20 @@ class WP_Roles {
 	}
 
 	/**
-	 * Add role name with capabilities to list.
+	 * Adds a role name with capabilities to the list.
 	 *
 	 * Updates the list of roles, if the role doesn't already exist.
 	 *
-	 * The capabilities are defined in the following format `array( 'read' => true );`
-	 * To explicitly deny a role a capability you set the value for that capability to false.
+	 * The capabilities are defined in the following format: `array( 'read' => true )`.
+	 * To explicitly deny a role a capability, set the value for that capability to false.
 	 *
 	 * @since 2.0.0
 	 *
 	 * @param string $role         Role name.
 	 * @param string $display_name Role display name.
-	 * @param bool[] $capabilities List of capabilities keyed by the capability name,
-	 *                             e.g. array( 'edit_posts' => true, 'delete_posts' => false ).
-	 * @return WP_Role|void WP_Role object, if role is added.
+	 * @param bool[] $capabilities Optional. List of capabilities keyed by the capability name,
+	 *                             e.g. `array( 'edit_posts' => true, 'delete_posts' => false )`.
+	 * @return WP_Role|void WP_Role object, if the role is added.
 	 */
 	public function add_role( $role, $display_name, $capabilities = array() ) {
 		if ( empty( $role ) || isset( $this->roles[ $role ] ) ) {
@@ -171,21 +171,22 @@ class WP_Roles {
 	}
 
 	/**
-	 * Update an existing role. Create a new role if it doesn't exist.
+	 * Updates an existing role. Creates a new role if it doesn't exist.
 	 *
-	 * Modify the display name and/or capabilities for an existing role. If the
-	 * role doesn't exist then a new role is created.
+	 * Modifies the display name and/or capabilities for an existing role.
+	 * If the role does not exist then a new role is created.
 	 *
-	 * The capabilities are defined in the following format `array( 'read' => true );`
-	 * To explicitly deny a role a capability you set the value for that capability to false.
+	 * The capabilities are defined in the following format: `array( 'read' => true )`.
+	 * To explicitly deny a role a capability, set the value for that capability to false.
 	 *
 	 * @param string      $role         Role name.
-	 * @param string|null $display_name Role display name. If null, the display name is not modified. Optional, default null.
-	 * @param bool[]|null $capabilities List of capabilities keyed by the capability name,
-	 *                                  e.g. array( 'edit_posts' => true, 'delete_posts' => false ).
+	 * @param string|null $display_name Optional. Role display name. If null, the display name
+	 *                                  is not modified. Default null.
+	 * @param bool[]|null $capabilities Optional. List of capabilities keyed by the capability name,
+	 *                                  e.g. `array( 'edit_posts' => true, 'delete_posts' => false )`.
 	 *                                  If null, don't alter capabilities for the existing role and make
-	 *                                  empty capabilities for the new one. Optional, default null.
-	 * @return WP_Role|void             WP_Role object.
+	 *                                  empty capabilities for the new one. Default null.
+	 * @return WP_Role|void WP_Role object, if the role is updated.
 	 */
 	public function update_role( $role, $display_name = null, $capabilities = null ) {
 		if ( ! is_string( $role ) || '' === trim( $role ) ) {

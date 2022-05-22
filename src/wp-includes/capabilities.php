@@ -1020,7 +1020,7 @@ function get_role( $role ) {
  * @param string $display_name Display name for role.
  * @param bool[] $capabilities List of capabilities keyed by the capability name,
  *                             e.g. array( 'edit_posts' => true, 'delete_posts' => false ).
- * @return WP_Role|null WP_Role object if role is added, null if already exists.
+ * @return WP_Role|void WP_Role object, if the role is added.
  */
 function add_role( $role, $display_name, $capabilities = array() ) {
 	if ( empty( $role ) ) {
@@ -1030,21 +1030,22 @@ function add_role( $role, $display_name, $capabilities = array() ) {
 }
 
 /**
- * Update an existing role. Create a new role if it doesn't exist.
+ * Updates an existing role. Creates a new role if it doesn't exist.
  *
- * Modify the display name and/or capabilities for an existing role. If the
- * role doesn't exist then a new role is created.
+ * Modifies the display name and/or capabilities for an existing role.
+ * If the role does not exist then a new role is created.
  *
- * The capabilities are defined in the following format `array( 'read' => true );`
- * To explicitly deny a role a capability you set the value for that capability to false.
+ * The capabilities are defined in the following format: `array( 'read' => true )`.
+ * To explicitly deny a role a capability, set the value for that capability to false.
  *
  * @param string      $role         Role name.
- * @param string|null $display_name Role display name. If null, the display name is not modified. Optional, default null.
- * @param bool[]|null $capabilities List of capabilities keyed by the capability name,
- *                                  e.g. array( 'edit_posts' => true, 'delete_posts' => false ).
+ * @param string|null $display_name Optional. Role display name. If null, the display name
+ *                                  is not modified. Default null.
+ * @param bool[]|null $capabilities Optional. List of capabilities keyed by the capability name,
+ *                                  e.g. `array( 'edit_posts' => true, 'delete_posts' => false )`.
  *                                  If null, don't alter capabilities for the existing role and make
- *                                  empty capabilities for the new one. Optional, default null.
- * @return WP_Role|void             WP_Role object.
+ *                                  empty capabilities for the new one. Default null.
+ * @return WP_Role|void WP_Role object, if the role is updated.
  */
 function update_role( $role, $display_name = null, $capabilities = null ) {
 	return wp_roles()->update_role( $role, $display_name, $capabilities );
