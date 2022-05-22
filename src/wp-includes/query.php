@@ -1033,8 +1033,6 @@ function have_comments() {
  * @since 2.2.0
  *
  * @global WP_Query $wp_query WordPress Query object.
- *
- * @return null
  */
 function the_comment() {
 	global $wp_query;
@@ -1043,7 +1041,7 @@ function the_comment() {
 		return;
 	}
 
-	return $wp_query->the_comment();
+	$wp_query->the_comment();
 }
 
 /**
