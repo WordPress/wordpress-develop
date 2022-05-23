@@ -143,7 +143,7 @@ class WP_Roles {
 	 * Updates the list of roles, if the role doesn't already exist.
 	 *
 	 * The capabilities are defined in the following format: `array( 'read' => true )`.
-	 * To explicitly deny a role a capability, set the value for that capability to false.
+	 * To explicitly deny the role a capability, set the value for that capability to false.
 	 *
 	 * @since 2.0.0
 	 *
