@@ -1660,4 +1660,37 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		return $functions;
 	}
 
+	/**
+	 * @ticket 55722
+	 *
+	 * @dataProvider data_loop_functions_do_not_trigger_a_fatal_error_if_wp_query_is_not_set
+	 *
+	 * @param string     $function_name The name of the function to test.
+	 * @param false|null $expected      Expected return value.
+	 */
+	public function test_loop_functions_do_not_trigger_a_fatal_error_if_wp_query_is_not_set( $function_name, $expected ) {
+		unset( $GLOBALS['wp_query'] );
+
+		$this->assertSame( $expected, call_user_func( $function_name ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[] Test parameters {
+	 *     @type string     $function_name The name of the function to test.
+	 *     @type false|null $expected      Expected return value.
+	 * }
+	 */
+	public function data_loop_functions_do_not_trigger_a_fatal_error_if_wp_query_is_not_set() {
+		return array(
+			array( 'have_posts', false ),
+			array( 'in_the_loop', false ),
+			array( 'rewind_posts', null ),
+			array( 'the_post', null ),
+			array( 'have_comments', false ),
+			array( 'the_comment', null ),
+		);
+	}
+
 }
