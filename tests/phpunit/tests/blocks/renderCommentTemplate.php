@@ -22,7 +22,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 
 	/**
 	 * Array of the comments options and their original values.
-	 * Used to rest the options after each test.
+	 * Used to reset the options after each test.
 	 *
 	 * @var array
 	 */
