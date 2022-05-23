@@ -2198,6 +2198,44 @@ class WP_Site_Health {
 	}
 
 	/**
+	 * Callback for webp_enabled test.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @return array
+	 */
+	function get_test_webp_support() {
+		$result = array(
+			'label'       => __( 'Your site supports WebP' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'WebP image format is used by WordPress to improve the performance of your site by generating smaller images than it usually could with the JPEG format. This means your pages will load faster and consume less bandwidth.' )
+			),
+			'actions'     => '',
+			'test'        => 'webp_support',
+		);
+
+		$webp_supported = wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) );
+
+		if ( ! $webp_supported ) {
+			$result['status']  = 'recommended';
+			$result['label']   = __( 'Your site does not support WebP' );
+			$result['actions'] = sprintf(
+				'<p>%s</p>',
+				/* translators: Accessibility text. */
+				__( 'Please contact your host and ask them to add WebP support.' )
+			);
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Tests if the Authorization header has the expected values.
 	 *
 	 * @since 5.6.0
@@ -2328,6 +2366,10 @@ class WP_Site_Health {
 				'file_uploads'              => array(
 					'label' => __( 'File uploads' ),
 					'test'  => 'file_uploads',
+				),
+				'webp_support'              => array(
+					'label' => __( 'WebP Support' ),
+					'test'  => 'webp_support',
 				),
 				'plugin_theme_auto_updates' => array(
 					'label' => __( 'Plugin and theme auto-updates' ),
