@@ -174,6 +174,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			$GLOBALS[ $global ] = null;
 		}
 
+		// Reset comment globals.
+		$comment_globals = array( 'comment_alt', 'comment_depth', 'comment_thread_alt' );
+		foreach ( $comment_globals as $global ) {
+			$GLOBALS[ $global ] = null;
+		}
+
 		/*
 		 * Reset $wp_sitemap global so that sitemap-related dynamic $wp->public_query_vars
 		 * are added when the next test runs.
