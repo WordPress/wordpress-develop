@@ -43,6 +43,12 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 		foreach ( $options as $option ) {
 			static::$original_options[ $option ] = get_option( $option );
 		}
+
+		// Reset comment globals.
+		$comment_globals = array( 'comment_alt', 'comment_depth', 'comment_thread_alt' );
+		foreach ( $comment_globals as $global ) {
+			$GLOBALS[ $global ] = null;
+		}
 	}
 
 	public function set_up() {
@@ -78,6 +84,12 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 		// Reset the comment options to their original values.
 		foreach ( static::$original_options as $option => $original_value ) {
 			update_option( $option, $original_value );
+		}
+
+		// Reset comment globals.
+		$comment_globals = array( 'comment_alt', 'comment_depth', 'comment_thread_alt' );
+		foreach ( $comment_globals as $global ) {
+			$GLOBALS[ $global ] = null;
 		}
 
 		parent::tear_down();
