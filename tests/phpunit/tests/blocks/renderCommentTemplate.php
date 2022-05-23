@@ -20,12 +20,36 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 	private static $comment_ids;
 	private static $per_page = 5;
 
+	/**
+	 * Array of the comments options and their original values.
+	 * Used to reset the options after each test.
+	 *
+	 * @var array
+	 */
+	private static $original_options;
+
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
+		// Store the original option values.
+		$options = array(
+			'comment_order',
+			'comments_per_page',
+			'default_comments_page',
+			'page_comments',
+			'previous_default_page',
+			'thread_comments_depth',
+		);
+		foreach ( $options as $option ) {
+			static::$original_options[ $option ] = get_option( $option );
+		}
+	}
+
 	public function set_up() {
 		parent::set_up();
 
 		update_option( 'page_comments', true );
 		update_option( 'comments_per_page', self::$per_page );
-		update_option( 'comment_order', 'ASC' );
 
 		self::$custom_post = self::factory()->post->create_and_get(
 			array(
@@ -48,6 +72,15 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 				'comment_content'      => 'Hello world',
 			)
 		);
+	}
+
+	public function tear_down() {
+		// Reset the comment options to their original values.
+		foreach ( static::$original_options as $option => $original_value ) {
+			update_option( $option, $original_value );
+		}
+
+		parent::tear_down();
 	}
 
 	/**
@@ -187,9 +220,6 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 			),
 			build_comment_query_vars_from_block( $block )
 		);
-
-		update_option( 'comments_per_page', $comments_per_page );
-		update_option( 'default_comments_page', $default_comments_page );
 	}
 
 
@@ -308,7 +338,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 			'',
 			<<<END
 				<ol class="wp-block-comment-template">
-					<li id="comment-{$top_level_ids[0]}" class="comment odd alt thread-odd thread-alt depth-1">
+					<li id="comment-{$top_level_ids[0]}" class="comment even thread-even depth-1">
 						<div class="wp-block-comment-author-name">
 							<a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >
 								Test
@@ -318,7 +348,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 							<p>Hello world</p>
 						</div>
 						<ol>
-							<li id="comment-{$first_level_ids[0]}" class="comment even depth-2">
+							<li id="comment-{$first_level_ids[0]}" class="comment odd alt depth-2">
 								<div class="wp-block-comment-author-name">
 									<a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >
 										Test
@@ -328,7 +358,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 									<p>Hello world</p>
 								</div>
 								<ol>
-									<li id="comment-{$second_level_ids[0]}" class="comment odd alt depth-3">
+									<li id="comment-{$second_level_ids[0]}" class="comment even depth-3">
 										<div class="wp-block-comment-author-name">
 											<a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >
 												Test
@@ -340,7 +370,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 									</li>
 								</ol>
 							</li>
-							<li id="comment-{$first_level_ids[1]}" class="comment even depth-2">
+							<li id="comment-{$first_level_ids[1]}" class="comment odd alt depth-2">
 								<div class="wp-block-comment-author-name">
 									<a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >
 										Test
