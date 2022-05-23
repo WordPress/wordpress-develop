@@ -64,13 +64,6 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_body
 	 */
 	public function test_readme_mariadb_version() {
-		/*
-		 * Temporary skip as MariaDB 10.2 is EOL as of 23 May 2022.
-		 * See Trac #55791 and meta #6322.
-		 * Once the version is bumped, revert this change.
-		 */
-		$this->markTestSkipped( 'Temporarily skip due to MariaDB 10.2 now EOL as of 23 May 2022. Remove this skip once version is bumped.' );
-
 		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
 
