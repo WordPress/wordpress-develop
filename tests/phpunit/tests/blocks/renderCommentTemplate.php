@@ -19,6 +19,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 	private static $custom_post;
 	private static $comment_ids;
 	private static $per_page = 5;
+
 	/**
 	 * Array of the comments options and their original values.
 	 * Used to rest the options after each test.
