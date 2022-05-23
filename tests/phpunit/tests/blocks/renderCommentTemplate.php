@@ -20,12 +20,57 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 	private static $comment_ids;
 	private static $per_page = 5;
 
+	/**
+	 * Array of the comments options and their original values.
+	 * Used to reset the options after each test.
+	 *
+	 * @var array
+	 */
+	private static $original_options;
+
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
+		// Store the original option values.
+		$options = array(
+			'comment_order',
+			'comments_per_page',
+			'default_comments_page',
+			'page_comments',
+			'previous_default_page',
+			'thread_comments_depth',
+		);
+		foreach ( $options as $option ) {
+			static::$original_options[ $option ] = get_option( $option );
+		}
+
+		// Reset comment globals.
+		$comment_globals = array( 'comment_alt', 'comment_depth', 'comment_thread_alt' );
+		foreach ( $comment_globals as $global ) {
+			$GLOBALS[ $global ] = null;
+		}
+	}
+
+	public function tear_down() {
+		// Reset the comment options to their original values.
+		foreach ( static::$original_options as $option => $original_value ) {
+			update_option( $option, $original_value );
+		}
+
+		// Reset comment globals.
+		$comment_globals = array( 'comment_alt', 'comment_depth', 'comment_thread_alt' );
+		foreach ( $comment_globals as $global ) {
+			$GLOBALS[ $global ] = null;
+		}
+
+		parent::tear_down();
+	}
+
 	public function set_up() {
 		parent::set_up();
 
 		update_option( 'page_comments', true );
 		update_option( 'comments_per_page', self::$per_page );
-		update_option( 'comment_order', 'ASC' );
 
 		self::$custom_post = self::factory()->post->create_and_get(
 			array(
@@ -109,7 +154,6 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 			),
 			build_comment_query_vars_from_block( $block )
 		);
-		update_option( 'page_comments', true );
 	}
 
 	/**
@@ -187,9 +231,6 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 			),
 			build_comment_query_vars_from_block( $block )
 		);
-
-		update_option( 'comments_per_page', $comments_per_page );
-		update_option( 'default_comments_page', $default_comments_page );
 	}
 
 
@@ -261,9 +302,8 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 	 *
 	 * └─ comment 1
 	 *    └─ comment 2
-	 *       └─ comment 3
 	 *       └─ comment 4
-	 *    └─ comment 5
+	 *    └─ comment 3
 	 *
 	 * @ticket 55567
 	 */
@@ -309,7 +349,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 			'',
 			<<<END
 				<ol class="wp-block-comment-template">
-					<li id="comment-{$top_level_ids[0]}" class="comment odd alt thread-odd thread-alt depth-1">
+					<li id="comment-{$top_level_ids[0]}" class="comment even thread-even depth-1">
 						<div class="wp-block-comment-author-name">
 							<a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >
 								Test
@@ -319,7 +359,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 							<p>Hello world</p>
 						</div>
 						<ol>
-							<li id="comment-{$first_level_ids[0]}" class="comment even depth-2">
+							<li id="comment-{$first_level_ids[0]}" class="comment odd alt depth-2">
 								<div class="wp-block-comment-author-name">
 									<a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >
 										Test
@@ -329,7 +369,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 									<p>Hello world</p>
 								</div>
 								<ol>
-									<li id="comment-{$second_level_ids[0]}" class="comment odd alt depth-3">
+									<li id="comment-{$second_level_ids[0]}" class="comment even depth-3">
 										<div class="wp-block-comment-author-name">
 											<a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >
 												Test
@@ -341,7 +381,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 									</li>
 								</ol>
 							</li>
-							<li id="comment-{$first_level_ids[1]}" class="comment even depth-2">
+							<li id="comment-{$first_level_ids[1]}" class="comment odd alt depth-2">
 								<div class="wp-block-comment-author-name">
 									<a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >
 										Test
@@ -360,6 +400,39 @@ END
 		$this->assertSame(
 			$expected,
 			str_replace( array( "\n", "\t" ), '', $block->render() )
+		);
+	}
+
+	/**
+	 * Test that line and paragraph breaks are converted to HTML tags in a comment.
+	 *
+	 * @ticket 55643
+	 */
+	function test_render_block_core_comment_content_converts_to_html() {
+		$comment_id  = self::$comment_ids[0];
+		$new_content = "Paragraph One\n\nP2L1\nP2L2\n\nhttps://example.com/";
+		self::factory()->comment->update_object(
+			$comment_id,
+			array( 'comment_content' => $new_content )
+		);
+
+		$parsed_blocks = parse_blocks(
+			'<!-- wp:comment-template --><!-- wp:comment-content /--><!-- /wp:comment-template -->'
+		);
+
+		$block = new WP_Block(
+			$parsed_blocks[0],
+			array(
+				'postId'           => self::$custom_post->ID,
+				'comments/inherit' => true,
+			)
+		);
+
+		$expected_content = "<p>Paragraph One</p>\n<p>P2L1<br />\nP2L2</p>\n<p><a href=\"https://example.com/\" rel=\"nofollow ugc\">https://example.com/</a></p>\n";
+
+		$this->assertSame(
+			'<ol class="wp-block-comment-template"><li id="comment-' . self::$comment_ids[0] . '" class="comment even thread-even depth-1"><div class="wp-block-comment-content">' . $expected_content . '</div></li></ol>',
+			$block->render()
 		);
 	}
 
@@ -402,6 +475,59 @@ END
 				'paged'              => 1,
 			),
 			build_comment_query_vars_from_block( $block )
+		);
+	}
+
+	/**
+	 * Test rendering an unapproved comment preview.
+	 *
+	 * @ticket 55643
+	 */
+	function test_rendering_comment_template_unmoderated_preview() {
+		$parsed_blocks = parse_blocks(
+			'<!-- wp:comment-template --><!-- wp:comment-author-name /--><!-- wp:comment-content /--><!-- /wp:comment-template -->'
+		);
+
+		$unapproved_comment = self::factory()->comment->create_post_comments(
+			self::$custom_post->ID,
+			1,
+			array(
+				'comment_author'       => 'Visitor',
+				'comment_author_email' => 'unapproved@example.org',
+				'comment_author_url'   => 'http://example.com/unapproved/',
+				'comment_content'      => 'Hi there! My comment needs moderation.',
+				'comment_approved'     => 0,
+			)
+		);
+
+		$block = new WP_Block(
+			$parsed_blocks[0],
+			array(
+				'postId' => self::$custom_post->ID,
+			)
+		);
+
+		$commenter_filter = static function () {
+			return array(
+				'comment_author_email' => 'unapproved@example.org',
+			);
+		};
+
+		add_filter( 'wp_get_current_commenter', $commenter_filter );
+
+		$this->assertSame(
+			'<ol class="wp-block-comment-template"><li id="comment-' . self::$comment_ids[0] . '" class="comment even thread-even depth-1"><div class="wp-block-comment-author-name"><a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >Test</a></div><div class="wp-block-comment-content"><p>Hello world</p></div></li><li id="comment-' . $unapproved_comment[0] . '" class="comment odd alt thread-odd thread-alt depth-1"><div class="wp-block-comment-author-name">Visitor</div><div class="wp-block-comment-content"><p><em class="comment-awaiting-moderation">Your comment is awaiting moderation.</em></p>Hi there! My comment needs moderation.</div></li></ol>',
+			str_replace( array( "\n", "\t" ), '', $block->render() ),
+			'Should include unapproved comments when filter applied'
+		);
+
+		remove_filter( 'wp_get_current_commenter', $commenter_filter );
+
+		// Test it again and ensure the unmoderated comment doesn't leak out.
+		$this->assertSame(
+			'<ol class="wp-block-comment-template"><li id="comment-' . self::$comment_ids[0] . '" class="comment even thread-even depth-1"><div class="wp-block-comment-author-name"><a rel="external nofollow ugc" href="http://example.com/author-url/" target="_self" >Test</a></div><div class="wp-block-comment-content"><p>Hello world</p></div></li></ol>',
+			str_replace( array( "\n", "\t" ), '', $block->render() ),
+			'Should not include any unapproved comments after removing filter'
 		);
 	}
 }
