@@ -2212,7 +2212,7 @@ class WP_Site_Health {
 			),
 			'description' => sprintf(
 				'<p>%s</p>',
-				__( 'WebP image format is used by WordPress to improve the performance of your site by generating smaller images than it usually could with the JPEG format. This means your pages will load faster and consume less bandwidth.' )
+				__( 'The WebP image format produces images that are usually smaller in size than JPEG images, which can reduce page load time and consume less bandwidth.' )
 			),
 			'actions'     => '',
 			'test'        => 'webp_support',
@@ -2226,7 +2226,7 @@ class WP_Site_Health {
 			$result['actions'] = sprintf(
 				'<p>%s</p>',
 				/* translators: Accessibility text. */
-				__( 'Please contact your host and ask them to add WebP support.' )
+				__( 'WebP support can only be enabled by your hosting provider, so contact them for more information.' )
 			);
 		}
 
