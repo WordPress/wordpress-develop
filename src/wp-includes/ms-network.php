@@ -108,7 +108,7 @@ function clean_network_cache( $ids ) {
  * cache using the network group with the key using the ID of the networks.
  *
  * @since 4.6.0
- * @since 6.0.0 Introduced the `$update_meta_cache` parameter.
+ * @since 6.1.0 Introduced the `$update_meta_cache` parameter.
  *
  * @param array $networks Array of network row objects.
  * @param bool  $update_meta_cache Whether to update sitemeta cache. Default true.
@@ -130,7 +130,7 @@ function update_network_cache( $networks, $update_meta_cache = true ) {
  * Adds any networks from the given IDs to the cache that do not already exist in cache.
  *
  * @since 4.6.0
- * @since 6.0.0 Introduced the `$update_meta_cache` parameter.
+ * @since 6.1.0 Introduced the `$update_meta_cache` parameter.
  * @access private
  *
  * @see update_network_cache()
