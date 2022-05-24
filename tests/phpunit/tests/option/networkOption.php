@@ -132,7 +132,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$value      = __FUNCTION__;
 
 		add_metadata( 'site', $network_id, $option, $value, true );
-		$this->assertEquals( get_metadata( 'site', $network_id, $option ), array( get_network_option( $network_id, $option, true ) ) );
+		$this->assertEqualSets( get_metadata( 'site', $network_id, $option ), array( get_network_option( $network_id, $option, true ) ) );
 	}
 
 	/**
@@ -170,6 +170,22 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		add_metadata( 'site', $network_id, $option, 'tuesday', true );
 		add_metadata( 'site', $network_id, $option, 'wednesday', true );
 		$this->assertEquals( 'monday', get_network_option( $network_id, $option, true ) );
+	}
+
+	/**
+	 * @ticket 37181
+	 * @group ms-required
+	 */
+	public function test_network_option_count_queries_on_non_existing() {
+		$network_id = self::factory()->network->create();
+		$option     = __FUNCTION__;
+		add_network_option( $network_id, $option, 'monday' );
+		get_network_option( $network_id, $option );
+		$num_queries_pre_get = get_num_queries();
+		get_network_option( $network_id, 'do_not_exist' );
+		$num_queries_after_get = get_num_queries();
+
+		$this->assertSame( $num_queries_pre_get, $num_queries_after_get );
 	}
 
 	/**
