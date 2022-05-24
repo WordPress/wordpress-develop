@@ -86,9 +86,6 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 		$query     = new WP_Query();
 		$posts     = $query->query( $query_args );
 		$found_ids = wp_list_pluck( $posts, 'ID' );
-		if ( ! empty( $found_ids ) ) {
-			_prime_post_caches( $found_ids, false, false );
-		}
 		$total     = $query->found_posts;
 
 		return array(
