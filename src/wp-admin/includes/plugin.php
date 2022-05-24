@@ -155,8 +155,10 @@ function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup 
 		}
 		if ( $textdomain ) {
 			foreach ( array( 'Name', 'PluginURI', 'Description', 'Author', 'AuthorURI', 'Version' ) as $field ) {
-				// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
-				$plugin_data[ $field ] = translate( $plugin_data[ $field ], $textdomain );
+				if ( ! empty( $plugin_data[ $field ] ) ) {
+					// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
+					$plugin_data[ $field ] = translate( $plugin_data[ $field ], $textdomain );
+				}
 			}
 		}
 	}
@@ -1148,7 +1150,7 @@ function validate_plugin_requirements( $plugin ) {
 				/* translators: 1: Current WordPress version, 2: Current PHP version, 3: Plugin name, 4: Required WordPress version, 5: Required PHP version. */
 				_x( '<strong>Error:</strong> Current versions of WordPress (%1$s) and PHP (%2$s) do not meet minimum requirements for %3$s. The plugin requires WordPress %4$s and PHP %5$s.', 'plugin' ),
 				get_bloginfo( 'version' ),
-				phpversion(),
+				PHP_VERSION,
 				$plugin_headers['Name'],
 				$requirements['requires'],
 				$requirements['requires_php']
@@ -1160,7 +1162,7 @@ function validate_plugin_requirements( $plugin ) {
 			'<p>' . sprintf(
 				/* translators: 1: Current PHP version, 2: Plugin name, 3: Required PHP version. */
 				_x( '<strong>Error:</strong> Current PHP version (%1$s) does not meet minimum requirements for %2$s. The plugin requires PHP %3$s.', 'plugin' ),
-				phpversion(),
+				PHP_VERSION,
 				$plugin_headers['Name'],
 				$requirements['requires_php']
 			) . $php_update_message . '</p>'
@@ -1284,23 +1286,23 @@ function uninstall_plugin( $plugin ) {
  * @global array $_registered_pages
  * @global array $_parent_pages
  *
- * @param string   $page_title The text to be displayed in the title tags of the page when the menu is selected.
- * @param string   $menu_title The text to be used for the menu.
- * @param string   $capability The capability required for this menu to be displayed to the user.
- * @param string   $menu_slug  The slug name to refer to this menu by. Should be unique for this menu page and only
- *                             include lowercase alphanumeric, dashes, and underscores characters to be compatible
- *                             with sanitize_key().
- * @param callable $function   Optional. The function to be called to output the content for this page.
- * @param string   $icon_url   Optional. The URL to the icon to be used for this menu.
- *                             * Pass a base64-encoded SVG using a data URI, which will be colored to match
- *                               the color scheme. This should begin with 'data:image/svg+xml;base64,'.
- *                             * Pass the name of a Dashicons helper class to use a font icon,
- *                               e.g. 'dashicons-chart-pie'.
- *                             * Pass 'none' to leave div.wp-menu-image empty so an icon can be added via CSS.
- * @param int      $position   Optional. The position in the menu order this item should appear.
+ * @param string    $page_title The text to be displayed in the title tags of the page when the menu is selected.
+ * @param string    $menu_title The text to be used for the menu.
+ * @param string    $capability The capability required for this menu to be displayed to the user.
+ * @param string    $menu_slug  The slug name to refer to this menu by. Should be unique for this menu page and only
+ *                              include lowercase alphanumeric, dashes, and underscores characters to be compatible
+ *                              with sanitize_key().
+ * @param callable  $callback   Optional. The function to be called to output the content for this page.
+ * @param string    $icon_url   Optional. The URL to the icon to be used for this menu.
+ *                              * Pass a base64-encoded SVG using a data URI, which will be colored to match
+ *                                the color scheme. This should begin with 'data:image/svg+xml;base64,'.
+ *                              * Pass the name of a Dashicons helper class to use a font icon,
+ *                                e.g. 'dashicons-chart-pie'.
+ *                              * Pass 'none' to leave div.wp-menu-image empty so an icon can be added via CSS.
+ * @param int|float $position   Optional. The position in the menu order this item should appear.
  * @return string The resulting page's hook_suffix.
  */
-function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $icon_url = '', $position = null ) {
+function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $icon_url = '', $position = null ) {
 	global $menu, $admin_page_hooks, $_registered_pages, $_parent_pages;
 
 	$menu_slug = plugin_basename( $menu_slug );
@@ -1309,8 +1311,8 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $func
 
 	$hookname = get_plugin_page_hookname( $menu_slug, '' );
 
-	if ( ! empty( $function ) && ! empty( $hookname ) && current_user_can( $capability ) ) {
-		add_action( $hookname, $function );
+	if ( ! empty( $callback ) && ! empty( $hookname ) && current_user_can( $capability ) ) {
+		add_action( $hookname, $callback );
 	}
 
 	if ( empty( $icon_url ) ) {
@@ -1323,27 +1325,35 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $func
 
 	$new_menu = array( $menu_title, $capability, $menu_slug, $page_title, 'menu-top ' . $icon_class . $hookname, $hookname, $icon_url );
 
-	if ( null === $position ) {
+	if ( null !== $position && ! is_numeric( $position ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %s: add_menu_page() */
+				__( 'The seventh parameter passed to %s should be numeric representing menu position.' ),
+				'<code>add_menu_page()</code>'
+			),
+			'6.0.0'
+		);
+		$position = null;
+	}
+
+	if ( null === $position || ! is_numeric( $position ) ) {
 		$menu[] = $new_menu;
-	} elseif ( isset( $menu[ "$position" ] ) ) {
-		$position            = $position + substr( base_convert( md5( $menu_slug . $menu_title ), 16, 10 ), -5 ) * 0.00001;
-		$menu[ "$position" ] = $new_menu;
+	} elseif ( isset( $menu[ (string) $position ] ) ) {
+		$collision_avoider = base_convert( substr( md5( $menu_slug . $menu_title ), -4 ), 16, 10 ) * 0.00001;
+		$position          = (string) ( $position + $collision_avoider );
+		$menu[ $position ] = $new_menu;
 	} else {
-		if ( ! is_int( $position ) ) {
-			_doing_it_wrong(
-				__FUNCTION__,
-				sprintf(
-					/* translators: %s: add_menu_page() */
-					__( 'The seventh parameter passed to %s should be an integer representing menu position.' ),
-					'<code>add_menu_page()</code>'
-				),
-				'6.0.0'
-			);
-			// If the position is not a string (i.e. float), convert it to string.
-			if ( ! is_string( $position ) ) {
-				$position = (string) $position;
-			}
-		}
+		/*
+		 * Cast menu position to a string.
+		 *
+		 * This allows for floats to be passed as the position. PHP will normally cast a float to an
+		 * integer value, this ensures the float retains its mantissa (positive fractional part).
+		 *
+		 * A string containing an integer value, eg "10", is treated as a numeric index.
+		 */
+		$position          = (string) $position;
 		$menu[ $position ] = $new_menu;
 	}
 
@@ -1374,20 +1384,20 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $func
  * @global array $_registered_pages
  * @global array $_parent_pages
  *
- * @param string   $parent_slug The slug name for the parent menu (or the file name of a standard
- *                              WordPress admin page).
- * @param string   $page_title  The text to be displayed in the title tags of the page when the menu
- *                              is selected.
- * @param string   $menu_title  The text to be used for the menu.
- * @param string   $capability  The capability required for this menu to be displayed to the user.
- * @param string   $menu_slug   The slug name to refer to this menu by. Should be unique for this menu
- *                              and only include lowercase alphanumeric, dashes, and underscores characters
- *                              to be compatible with sanitize_key().
- * @param callable $function    Optional. The function to be called to output the content for this page.
- * @param int      $position    Optional. The position in the menu order this item should appear.
+ * @param string    $parent_slug The slug name for the parent menu (or the file name of a standard
+ *                               WordPress admin page).
+ * @param string    $page_title  The text to be displayed in the title tags of the page when the menu
+ *                               is selected.
+ * @param string    $menu_title  The text to be used for the menu.
+ * @param string    $capability  The capability required for this menu to be displayed to the user.
+ * @param string    $menu_slug   The slug name to refer to this menu by. Should be unique for this menu
+ *                               and only include lowercase alphanumeric, dashes, and underscores characters
+ *                               to be compatible with sanitize_key().
+ * @param callable  $callback    Optional. The function to be called to output the content for this page.
+ * @param int|float $position    Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
-function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
+function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
 	global $submenu, $menu, $_wp_real_parent_file, $_wp_submenu_nopriv,
 		$_registered_pages, $_parent_pages;
 
@@ -1418,49 +1428,49 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 	}
 
 	$new_sub_menu = array( $menu_title, $capability, $menu_slug, $page_title );
-	if ( ! is_int( $position ) ) {
-		if ( null !== $position ) {
-			_doing_it_wrong(
-				__FUNCTION__,
-				sprintf(
-					/* translators: %s: add_submenu_page() */
-					__( 'The seventh parameter passed to %s should be an integer representing menu position.' ),
-					'<code>add_submenu_page()</code>'
-				),
-				'5.3.0'
-			);
-		}
 
+	if ( null !== $position && ! is_numeric( $position ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %s: add_submenu_page() */
+				__( 'The seventh parameter passed to %s should be numeric representing menu position.' ),
+				'<code>add_submenu_page()</code>'
+			),
+			'5.3.0'
+		);
+		$position = null;
+	}
+
+	if (
+		null === $position ||
+		( ! isset( $submenu[ $parent_slug ] ) || $position >= count( $submenu[ $parent_slug ] ) )
+	) {
 		$submenu[ $parent_slug ][] = $new_sub_menu;
 	} else {
-		// Append the submenu if the parent item is not present in the submenu,
-		// or if position is equal or higher than the number of items in the array.
-		if ( ! isset( $submenu[ $parent_slug ] ) || $position >= count( $submenu[ $parent_slug ] ) ) {
-			$submenu[ $parent_slug ][] = $new_sub_menu;
+		// Test for a negative position.
+		$position = max( $position, 0 );
+		if ( 0 === $position ) {
+			// For negative or `0` positions, prepend the submenu.
+			array_unshift( $submenu[ $parent_slug ], $new_sub_menu );
 		} else {
-			// Test for a negative position.
-			$position = max( $position, 0 );
-			if ( 0 === $position ) {
-				// For negative or `0` positions, prepend the submenu.
-				array_unshift( $submenu[ $parent_slug ], $new_sub_menu );
-			} else {
-				// Grab all of the items before the insertion point.
-				$before_items = array_slice( $submenu[ $parent_slug ], 0, $position, true );
-				// Grab all of the items after the insertion point.
-				$after_items = array_slice( $submenu[ $parent_slug ], $position, null, true );
-				// Add the new item.
-				$before_items[] = $new_sub_menu;
-				// Merge the items.
-				$submenu[ $parent_slug ] = array_merge( $before_items, $after_items );
-			}
+			// Grab all of the items before the insertion point.
+			$before_items = array_slice( $submenu[ $parent_slug ], 0, $position, true );
+			// Grab all of the items after the insertion point.
+			$after_items = array_slice( $submenu[ $parent_slug ], $position, null, true );
+			// Add the new item.
+			$before_items[] = $new_sub_menu;
+			// Merge the items.
+			$submenu[ $parent_slug ] = array_merge( $before_items, $after_items );
 		}
 	}
+
 	// Sort the parent array.
 	ksort( $submenu[ $parent_slug ] );
 
 	$hookname = get_plugin_page_hookname( $menu_slug, $parent_slug );
-	if ( ! empty( $function ) && ! empty( $hookname ) ) {
-		add_action( $hookname, $function );
+	if ( ! empty( $callback ) && ! empty( $hookname ) ) {
+		add_action( $hookname, $callback );
 	}
 
 	$_registered_pages[ $hookname ] = true;
@@ -1495,12 +1505,12 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
  * @param string   $menu_title The text to be used for the menu.
  * @param string   $capability The capability required for this menu to be displayed to the user.
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
- * @param callable $function   Optional. The function to be called to output the content for this page.
+ * @param callable $callback   Optional. The function to be called to output the content for this page.
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
-function add_management_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
-	return add_submenu_page( 'tools.php', $page_title, $menu_title, $capability, $menu_slug, $function, $position );
+function add_management_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
+	return add_submenu_page( 'tools.php', $page_title, $menu_title, $capability, $menu_slug, $callback, $position );
 }
 
 /**
@@ -1519,12 +1529,12 @@ function add_management_page( $page_title, $menu_title, $capability, $menu_slug,
  * @param string   $menu_title The text to be used for the menu.
  * @param string   $capability The capability required for this menu to be displayed to the user.
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
- * @param callable $function   Optional. The function to be called to output the content for this page.
+ * @param callable $callback   Optional. The function to be called to output the content for this page.
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
-function add_options_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
-	return add_submenu_page( 'options-general.php', $page_title, $menu_title, $capability, $menu_slug, $function, $position );
+function add_options_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
+	return add_submenu_page( 'options-general.php', $page_title, $menu_title, $capability, $menu_slug, $callback, $position );
 }
 
 /**
@@ -1543,12 +1553,12 @@ function add_options_page( $page_title, $menu_title, $capability, $menu_slug, $f
  * @param string   $menu_title The text to be used for the menu.
  * @param string   $capability The capability required for this menu to be displayed to the user.
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
- * @param callable $function   Optional. The function to be called to output the content for this page.
+ * @param callable $callback   Optional. The function to be called to output the content for this page.
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
-function add_theme_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
-	return add_submenu_page( 'themes.php', $page_title, $menu_title, $capability, $menu_slug, $function, $position );
+function add_theme_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
+	return add_submenu_page( 'themes.php', $page_title, $menu_title, $capability, $menu_slug, $callback, $position );
 }
 
 /**
@@ -1567,12 +1577,12 @@ function add_theme_page( $page_title, $menu_title, $capability, $menu_slug, $fun
  * @param string   $menu_title The text to be used for the menu.
  * @param string   $capability The capability required for this menu to be displayed to the user.
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
- * @param callable $function   Optional. The function to be called to output the content for this page.
+ * @param callable $callback   Optional. The function to be called to output the content for this page.
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
-function add_plugins_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
-	return add_submenu_page( 'plugins.php', $page_title, $menu_title, $capability, $menu_slug, $function, $position );
+function add_plugins_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
+	return add_submenu_page( 'plugins.php', $page_title, $menu_title, $capability, $menu_slug, $callback, $position );
 }
 
 /**
@@ -1591,17 +1601,17 @@ function add_plugins_page( $page_title, $menu_title, $capability, $menu_slug, $f
  * @param string   $menu_title The text to be used for the menu.
  * @param string   $capability The capability required for this menu to be displayed to the user.
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
- * @param callable $function   Optional. The function to be called to output the content for this page.
+ * @param callable $callback   Optional. The function to be called to output the content for this page.
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
-function add_users_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
+function add_users_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
 	if ( current_user_can( 'edit_users' ) ) {
 		$parent = 'users.php';
 	} else {
 		$parent = 'profile.php';
 	}
-	return add_submenu_page( $parent, $page_title, $menu_title, $capability, $menu_slug, $function, $position );
+	return add_submenu_page( $parent, $page_title, $menu_title, $capability, $menu_slug, $callback, $position );
 }
 
 /**
@@ -1620,12 +1630,12 @@ function add_users_page( $page_title, $menu_title, $capability, $menu_slug, $fun
  * @param string   $menu_title The text to be used for the menu.
  * @param string   $capability The capability required for this menu to be displayed to the user.
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
- * @param callable $function   Optional. The function to be called to output the content for this page.
+ * @param callable $callback   Optional. The function to be called to output the content for this page.
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
-function add_dashboard_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
-	return add_submenu_page( 'index.php', $page_title, $menu_title, $capability, $menu_slug, $function, $position );
+function add_dashboard_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
+	return add_submenu_page( 'index.php', $page_title, $menu_title, $capability, $menu_slug, $callback, $position );
 }
 
 /**
@@ -1644,12 +1654,12 @@ function add_dashboard_page( $page_title, $menu_title, $capability, $menu_slug, 
  * @param string   $menu_title The text to be used for the menu.
  * @param string   $capability The capability required for this menu to be displayed to the user.
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
- * @param callable $function   Optional. The function to be called to output the content for this page.
+ * @param callable $callback   Optional. The function to be called to output the content for this page.
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
-function add_posts_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
-	return add_submenu_page( 'edit.php', $page_title, $menu_title, $capability, $menu_slug, $function, $position );
+function add_posts_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
+	return add_submenu_page( 'edit.php', $page_title, $menu_title, $capability, $menu_slug, $callback, $position );
 }
 
 /**
@@ -1668,12 +1678,12 @@ function add_posts_page( $page_title, $menu_title, $capability, $menu_slug, $fun
  * @param string   $menu_title The text to be used for the menu.
  * @param string   $capability The capability required for this menu to be displayed to the user.
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
- * @param callable $function   Optional. The function to be called to output the content for this page.
+ * @param callable $callback   Optional. The function to be called to output the content for this page.
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
-function add_media_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
-	return add_submenu_page( 'upload.php', $page_title, $menu_title, $capability, $menu_slug, $function, $position );
+function add_media_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
+	return add_submenu_page( 'upload.php', $page_title, $menu_title, $capability, $menu_slug, $callback, $position );
 }
 
 /**
@@ -1692,12 +1702,12 @@ function add_media_page( $page_title, $menu_title, $capability, $menu_slug, $fun
  * @param string   $menu_title The text to be used for the menu.
  * @param string   $capability The capability required for this menu to be displayed to the user.
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
- * @param callable $function   Optional. The function to be called to output the content for this page.
+ * @param callable $callback   Optional. The function to be called to output the content for this page.
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
-function add_links_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
-	return add_submenu_page( 'link-manager.php', $page_title, $menu_title, $capability, $menu_slug, $function, $position );
+function add_links_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
+	return add_submenu_page( 'link-manager.php', $page_title, $menu_title, $capability, $menu_slug, $callback, $position );
 }
 
 /**
@@ -1716,12 +1726,12 @@ function add_links_page( $page_title, $menu_title, $capability, $menu_slug, $fun
  * @param string   $menu_title The text to be used for the menu.
  * @param string   $capability The capability required for this menu to be displayed to the user.
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
- * @param callable $function   Optional. The function to be called to output the content for this page.
+ * @param callable $callback   Optional. The function to be called to output the content for this page.
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
-function add_pages_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
-	return add_submenu_page( 'edit.php?post_type=page', $page_title, $menu_title, $capability, $menu_slug, $function, $position );
+function add_pages_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
+	return add_submenu_page( 'edit.php?post_type=page', $page_title, $menu_title, $capability, $menu_slug, $callback, $position );
 }
 
 /**
@@ -1740,12 +1750,12 @@ function add_pages_page( $page_title, $menu_title, $capability, $menu_slug, $fun
  * @param string   $menu_title The text to be used for the menu.
  * @param string   $capability The capability required for this menu to be displayed to the user.
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
- * @param callable $function   Optional. The function to be called to output the content for this page.
+ * @param callable $callback   Optional. The function to be called to output the content for this page.
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
-function add_comments_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
-	return add_submenu_page( 'edit-comments.php', $page_title, $menu_title, $capability, $menu_slug, $function, $position );
+function add_comments_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
+	return add_submenu_page( 'edit-comments.php', $page_title, $menu_title, $capability, $menu_slug, $callback, $position );
 }
 
 /**
@@ -1820,10 +1830,10 @@ function remove_submenu_page( $menu_slug, $submenu_slug ) {
  * @global array $_parent_pages
  *
  * @param string $menu_slug The slug name to refer to this menu by (should be unique for this menu).
- * @param bool   $echo      Whether or not to echo the URL. Default true.
+ * @param bool   $display   Optional. Whether or not to display the URL. Default true.
  * @return string The menu page URL.
  */
-function menu_page_url( $menu_slug, $echo = true ) {
+function menu_page_url( $menu_slug, $display = true ) {
 	global $_parent_pages;
 
 	if ( isset( $_parent_pages[ $menu_slug ] ) ) {
@@ -1840,7 +1850,7 @@ function menu_page_url( $menu_slug, $echo = true ) {
 
 	$url = esc_url( $url );
 
-	if ( $echo ) {
+	if ( $display ) {
 		echo $url;
 	}
 
@@ -1865,20 +1875,20 @@ function menu_page_url( $menu_slug, $echo = true ) {
  * @global array  $_wp_menu_nopriv
  * @global array  $_wp_submenu_nopriv
  *
- * @param string $parent The slug name for the parent menu (or the file name of a standard
- *                       WordPress admin page). Default empty string.
+ * @param string $parent_page Optional. The slug name for the parent menu (or the file name
+ *                            of a standard WordPress admin page). Default empty string.
  * @return string The parent file of the current admin page.
  */
-function get_admin_page_parent( $parent = '' ) {
+function get_admin_page_parent( $parent_page = '' ) {
 	global $parent_file, $menu, $submenu, $pagenow, $typenow,
 		$plugin_page, $_wp_real_parent_file, $_wp_menu_nopriv, $_wp_submenu_nopriv;
 
-	if ( ! empty( $parent ) && 'admin.php' !== $parent ) {
-		if ( isset( $_wp_real_parent_file[ $parent ] ) ) {
-			$parent = $_wp_real_parent_file[ $parent ];
+	if ( ! empty( $parent_page ) && 'admin.php' !== $parent_page ) {
+		if ( isset( $_wp_real_parent_file[ $parent_page ] ) ) {
+			$parent_page = $_wp_real_parent_file[ $parent_page ];
 		}
 
-		return $parent;
+		return $parent_page;
 	}
 
 	if ( 'admin.php' === $pagenow && isset( $plugin_page ) ) {
@@ -1914,23 +1924,23 @@ function get_admin_page_parent( $parent = '' ) {
 		return $parent_file;
 	}
 
-	foreach ( array_keys( (array) $submenu ) as $parent ) {
-		foreach ( $submenu[ $parent ] as $submenu_array ) {
-			if ( isset( $_wp_real_parent_file[ $parent ] ) ) {
-				$parent = $_wp_real_parent_file[ $parent ];
+	foreach ( array_keys( (array) $submenu ) as $parent_page ) {
+		foreach ( $submenu[ $parent_page ] as $submenu_array ) {
+			if ( isset( $_wp_real_parent_file[ $parent_page ] ) ) {
+				$parent_page = $_wp_real_parent_file[ $parent_page ];
 			}
 
 			if ( ! empty( $typenow ) && "$pagenow?post_type=$typenow" === $submenu_array[2] ) {
-				$parent_file = $parent;
-				return $parent;
+				$parent_file = $parent_page;
+				return $parent_page;
 			} elseif ( empty( $typenow ) && $pagenow === $submenu_array[2]
 				&& ( empty( $parent_file ) || false === strpos( $parent_file, '?' ) )
 			) {
-				$parent_file = $parent;
-				return $parent;
+				$parent_file = $parent_page;
+				return $parent_page;
 			} elseif ( isset( $plugin_page ) && $plugin_page === $submenu_array[2] ) {
-				$parent_file = $parent;
-				return $parent;
+				$parent_file = $parent_page;
+				return $parent_page;
 			}
 		}
 	}

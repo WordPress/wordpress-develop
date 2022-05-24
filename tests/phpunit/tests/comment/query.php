@@ -4941,4 +4941,82 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		return array( get_comment( $c ) );
 	}
+
+	/**
+	 * @ticket 55460
+	 */
+	public function test_comment_cache_key_should_ignore_unset_params() {
+		$p = self::factory()->post->create();
+		$c = self::factory()->comment->create( array( 'comment_post_ID' => $p ) );
+
+		$_args = array(
+			'post_id'                   => $p,
+			'fields'                    => 'ids',
+			'update_comment_meta_cache' => true,
+			'update_comment_post_cache' => false,
+		);
+
+		$q1 = new WP_Comment_Query();
+		$q1->query( $_args );
+
+		$num_queries_all_args = get_num_queries();
+
+		// Ignore 'fields', 'update_comment_meta_cache', 'update_comment_post_cache'.
+		unset( $_args['fields'], $_args['update_comment_meta_cache'], $_args['update_comment_post_cache'] );
+		$q2 = new WP_Comment_Query();
+		$q2->query( $_args );
+
+		$this->assertSame( $num_queries_all_args, get_num_queries() );
+	}
+
+	/**
+	 * @ticket 55218
+	 */
+	public function test_unapproved_comment_with_meta_query_does_not_trigger_ambiguous_identifier_error() {
+		$p       = self::$post_id;
+		$c       = self::factory()->comment->create(
+			array(
+				'comment_post_ID'      => $p,
+				'comment_content'      => '1',
+				'comment_approved'     => '0',
+				'comment_date_gmt'     => gmdate( 'Y-m-d H:i:s', time() ),
+				'comment_author_email' => 'foo@bar.mail',
+				'comment_meta'         => array( 'foo' => 'bar' ),
+			)
+		);
+		$comment = get_comment( $c );
+
+		/*
+		 * This is used to get a bunch of globals set up prior to making the
+		 * database query. This helps with prepping for the moderation hash.
+		 */
+		$this->go_to(
+			add_query_arg(
+				array(
+					'unapproved'      => $comment->comment_ID,
+					'moderation-hash' => wp_hash( $comment->comment_date_gmt ),
+				),
+				get_comment_link( $comment )
+			)
+		);
+
+		/*
+		 * The result of the query is not needed so it's not assigned to variable.
+		 *
+		 * Returning the ID only limits the database query to only the one that was
+		 * causing the error reported in ticket 55218.
+		 */
+		new WP_Comment_Query(
+			array(
+				'include_unapproved' => array( 'foo@bar.mail' ),
+				'meta_query'         => array( array( 'key' => 'foo' ) ),
+				'post_id'            => $p,
+				'fields'             => 'ids',
+			)
+		);
+
+		global $wpdb;
+		$this->assertNotSame( "Column 'comment_ID' in where clause is ambiguous", $wpdb->last_error );
+		$this->assertStringNotContainsString( ' comment_ID ', $wpdb->last_query );
+	}
 }

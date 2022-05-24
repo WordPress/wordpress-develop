@@ -1709,6 +1709,23 @@ function register_post_type( $post_type, $args = array() ) {
 	 */
 	do_action( 'registered_post_type', $post_type, $post_type_object );
 
+	/**
+	 * Fires after a specific post type is registered.
+	 *
+	 * The dynamic portion of the filter name, `$post_type`, refers to the post type key.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `registered_post_type_post`
+	 *  - `registered_post_type_page`
+	 *
+	 * @since 6.0.0
+	 *
+	 * @param string       $post_type        Post type.
+	 * @param WP_Post_Type $post_type_object Arguments used to register the post type.
+	 */
+	do_action( "registered_post_type_{$post_type}", $post_type, $post_type_object );
+
 	return $post_type_object;
 }
 
@@ -2878,7 +2895,7 @@ function stick_post( $post_id ) {
 	$updated  = false;
 
 	if ( ! is_array( $stickies ) ) {
-		$stickies = array( $post_id );
+		$stickies = array();
 	} else {
 		$stickies = array_unique( array_map( 'intval', $stickies ) );
 	}
@@ -3351,9 +3368,9 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param bool|null $delete       Whether to go forward with deletion.
-	 * @param WP_Post   $post         Post object.
-	 * @param bool      $force_delete Whether to bypass the Trash.
+	 * @param WP_Post|false|null $delete       Whether to go forward with deletion. @TODO description
+	 * @param WP_Post            $post         Post object.
+	 * @param bool               $force_delete Whether to bypass the Trash.
 	 */
 	$check = apply_filters( 'pre_delete_post', null, $post, $force_delete );
 	if ( null !== $check ) {
@@ -6327,9 +6344,9 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param bool|null $delete       Whether to go forward with deletion.
-	 * @param WP_Post   $post         Post object.
-	 * @param bool      $force_delete Whether to bypass the Trash.
+	 * @param WP_Post|false|null $delete       Whether to go forward with deletion. @TODO description
+	 * @param WP_Post            $post         Post object.
+	 * @param bool               $force_delete Whether to bypass the Trash.
 	 */
 	$check = apply_filters( 'pre_delete_attachment', null, $post, $force_delete );
 	if ( null !== $check ) {

@@ -3146,6 +3146,76 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 					'term_taxonomy_id' => array(),
 				),
 			),
+			'array exclude vs no exclude'              => array(
+				array(
+					'taxonomy' => self::$taxonomy,
+					'fields'   => 'ids',
+				),
+				array(
+					'taxonomy' => self::$taxonomy,
+					'fields'   => 'all',
+					'exclude'  => array(),
+				),
+			),
+			'array exclude vs zero exclude'            => array(
+				array(
+					'taxonomy' => self::$taxonomy,
+					'fields'   => 'ids',
+					'exclude'  => 0,
+				),
+				array(
+					'taxonomy' => self::$taxonomy,
+					'fields'   => 'all',
+					'exclude'  => array(),
+				),
+			),
+			'array exclude vs string exclude'          => array(
+				array(
+					'taxonomy' => self::$taxonomy,
+					'fields'   => 'ids',
+					'exclude'  => '',
+				),
+				array(
+					'taxonomy' => self::$taxonomy,
+					'fields'   => 'all',
+					'exclude'  => array(),
+				),
+			),
+			'array include vs no include'              => array(
+				array(
+					'taxonomy' => self::$taxonomy,
+					'fields'   => 'ids',
+				),
+				array(
+					'taxonomy' => self::$taxonomy,
+					'fields'   => 'all',
+					'include'  => array(),
+				),
+			),
+			'array include vs zero include'            => array(
+				array(
+					'taxonomy' => self::$taxonomy,
+					'fields'   => 'ids',
+					'include'  => 0,
+				),
+				array(
+					'taxonomy' => self::$taxonomy,
+					'fields'   => 'all',
+					'include'  => array(),
+				),
+			),
+			'array include vs string include'          => array(
+				array(
+					'taxonomy' => self::$taxonomy,
+					'fields'   => 'ids',
+					'include'  => '',
+				),
+				array(
+					'taxonomy' => self::$taxonomy,
+					'fields'   => 'all',
+					'include'  => array(),
+				),
+			),
 			'array 1 slug vs string slug'              => array(
 				array(
 					'taxonomy' => self::$taxonomy,
