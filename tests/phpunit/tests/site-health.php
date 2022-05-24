@@ -60,6 +60,21 @@ class Tests_Site_Health extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure Site Health reports correctly WebP support.
+	 */
+	public function test_webp_support_check() {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->markTestSkipped( 'WebP image format is not supported on this system.' );
+		}
+
+		$wp_site_health = new WP_Site_Health();
+		$webp_support   = $wp_site_health->get_test_webp_support();
+
+		$this->assertSame( 'good', $webp_support['status'] );
+		$this->assertSame( 'Your site supports WebP', $webp_support['label'] );
+	}
+
+	/**
 	 * Data provider for Site Health cron reports.
 	 *
 	 * The test suite runs with `DISABLE_WP_CRON === true` so the
