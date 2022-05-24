@@ -2200,8 +2200,6 @@ class WP_Site_Health {
 	/**
 	 * Callback for webp_enabled test.
 	 *
-	 * @since 1.0.0
-	 *
 	 * @return array
 	 */
 	function get_test_webp_support() {
