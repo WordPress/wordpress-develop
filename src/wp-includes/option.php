@@ -1403,7 +1403,6 @@ function get_network_option( $network_id, $option, $default = false ) {
 		$meta = get_metadata_raw( 'site', $network_id, $option );
 		if ( is_array( $meta ) && ! empty( $meta ) ) {
 			$value = array_shift( $meta );
-			$value = maybe_unserialize( $value );
 		} else {
 			/**
 			 * Filters a specific default network option.
@@ -1494,7 +1493,6 @@ function add_network_option( $network_id, $option, $value ) {
 		$result = add_option( $option, $value, '', 'no' );
 	} else {
 		$value  = sanitize_option( $option, $value );
-		$value  = maybe_serialize( $value );
 		$result = add_metadata( 'site', $network_id, $option, $value, true );
 	}
 
@@ -1681,7 +1679,6 @@ function update_network_option( $network_id, $option, $value ) {
 		$result = update_option( $option, $value, 'no' );
 	} else {
 		$value  = sanitize_option( $option, $value );
-		$value  = maybe_serialize( $value );
 		$result = update_metadata( 'site', $network_id, $option, $value );
 	}
 
