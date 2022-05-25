@@ -1069,7 +1069,7 @@ function update_meta( $meta_id, $meta_key, $meta_value ) {
 //
 
 /**
- * Replace hrefs of attachment anchors with up-to-date permalinks.
+ * Replaces hrefs of attachment anchors with up-to-date permalinks.
  *
  * @since 2.3.0
  * @access private
@@ -1361,6 +1361,7 @@ function postbox_classes( $box_id, $screen_id ) {
 	 * @param string[] $classes An array of postbox classes.
 	 */
 	$classes = apply_filters( "postbox_classes_{$screen_id}_{$box_id}", $classes );
+
 	return implode( ' ', $classes );
 }
 
@@ -1506,7 +1507,7 @@ function get_sample_permalink_html( $id, $new_title = null, $new_slug = null ) {
 		if ( ! get_option( 'permalink_structure' ) && current_user_can( 'manage_options' )
 			&& ! ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' ) == $id )
 		) {
-			$return .= '<span id="change-permalinks"><a href="options-permalink.php" class="button button-small" target="_blank">' . __( 'Change Permalinks' ) . "</a></span>\n";
+			$return .= '<span id="change-permalinks"><a href="options-permalink.php" class="button button-small">' . __( 'Change Permalink Structure' ) . "</a></span>\n";
 		}
 	} else {
 		if ( mb_strlen( $post_name ) > 34 ) {
@@ -1660,8 +1661,13 @@ function wp_check_post_lock( $post_id ) {
  * @since 2.5.0
  *
  * @param int|WP_Post $post_id ID or object of the post being edited.
- * @return array|false Array of the lock time and user ID. False if the post does not exist, or
- *                     there is no current user.
+ * @return array|false {
+ *     Array of the lock time and user ID. False if the post does not exist, or there
+ *     is no current user.
+ *
+ *     @type int $0 The current time as a Unix timestamp.
+ *     @type int $1 The ID of the current user.
+ * }
  */
 function wp_set_post_lock( $post_id ) {
 	$post = get_post( $post_id );
@@ -2231,6 +2237,7 @@ function get_block_editor_server_block_settings() {
 		'styles'           => 'styles',
 		'textdomain'       => 'textdomain',
 		'parent'           => 'parent',
+		'ancestor'         => 'ancestor',
 		'keywords'         => 'keywords',
 		'example'          => 'example',
 		'variations'       => 'variations',
@@ -2336,12 +2343,12 @@ function the_block_editor_meta_boxes() {
 		}
 	}
 
-	/**
-	 * Sadly we probably can not add this data directly into editor settings.
+	/*
+	 * Sadly we probably cannot add this data directly into editor settings.
 	 *
-	 * Some meta boxes need admin_head to fire for meta box registry.
-	 * admin_head fires after admin_enqueue_scripts, which is where we create our
-	 * editor instance.
+	 * Some meta boxes need `admin_head` to fire for meta box registry.
+	 * `admin_head` fires after `admin_enqueue_scripts`, which is where we create
+	 * our editor instance.
 	 */
 	$script = 'window._wpLoadBlockEditor.then( function() {
 		wp.data.dispatch( \'core/edit-post\' ).setAvailableMetaBoxesPerLocation( ' . wp_json_encode( $meta_boxes_per_location ) . ' );
@@ -2349,19 +2356,21 @@ function the_block_editor_meta_boxes() {
 
 	wp_add_inline_script( 'wp-edit-post', $script );
 
-	/**
-	 * When `wp-edit-post` is output in the `<head>`, the inline script needs to be manually printed. Otherwise,
-	 * meta boxes will not display because inline scripts for `wp-edit-post` will not be printed again after this point.
+	/*
+	 * When `wp-edit-post` is output in the `<head>`, the inline script needs to be manually printed.
+	 * Otherwise, meta boxes will not display because inline scripts for `wp-edit-post`
+	 * will not be printed again after this point.
 	 */
 	if ( wp_script_is( 'wp-edit-post', 'done' ) ) {
 		printf( "<script type='text/javascript'>\n%s\n</script>\n", trim( $script ) );
 	}
 
-	/**
-	 * If the 'postcustom' meta box is enabled, then we need to perform some
-	 * extra initialization on it.
+	/*
+	 * If the 'postcustom' meta box is enabled, then we need to perform
+	 * some extra initialization on it.
 	 */
 	$enable_custom_fields = (bool) get_user_meta( get_current_user_id(), 'enable_custom_fields', true );
+
 	if ( $enable_custom_fields ) {
 		$script = "( function( $ ) {
 			if ( $('#postcustom').length ) {
@@ -2405,8 +2414,9 @@ function the_block_editor_meta_box_post_form_hidden_fields( $post ) {
 	wp_nonce_field( $nonce_action );
 
 	/*
-	 * Some meta boxes hook into these actions to add hidden input fields in the classic post form. For backwards
-	 * compatibility, we can capture the output from these actions, and extract the hidden input fields.
+	 * Some meta boxes hook into these actions to add hidden input fields in the classic post form.
+	 * For backward compatibility, we can capture the output from these actions,
+	 * and extract the hidden input fields.
 	 */
 	ob_start();
 	/** This filter is documented in wp-admin/edit-form-advanced.php */

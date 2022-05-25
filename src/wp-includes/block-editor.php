@@ -109,7 +109,7 @@ function get_block_categories( $post_or_block_editor_context ) {
  *
  * @param WP_Block_Editor_Context $block_editor_context The current block editor context.
  *
- * @return bool|array Array of block type slugs, or boolean to enable/disable all.
+ * @return bool|string[] Array of block type slugs, or boolean to enable/disable all.
  */
 function get_allowed_block_types( $block_editor_context ) {
 	$allowed_block_types = true;
@@ -119,7 +119,7 @@ function get_allowed_block_types( $block_editor_context ) {
 	 *
 	 * @since 5.8.0
 	 *
-	 * @param bool|array              $allowed_block_types  Array of block type slugs, or boolean to enable/disable all.
+	 * @param bool|string[]           $allowed_block_types  Array of block type slugs, or boolean to enable/disable all.
 	 *                                                      Default true (all registered block types supported).
 	 * @param WP_Block_Editor_Context $block_editor_context The current block editor context.
 	 */
@@ -134,9 +134,9 @@ function get_allowed_block_types( $block_editor_context ) {
 		 * @since 5.0.0
 		 * @deprecated 5.8.0 Use the {@see 'allowed_block_types_all'} filter instead.
 		 *
-		 * @param bool|array $allowed_block_types Array of block type slugs, or boolean to enable/disable all.
-		 *                                        Default true (all registered block types supported)
-		 * @param WP_Post    $post                The post resource data.
+		 * @param bool|string[] $allowed_block_types Array of block type slugs, or boolean to enable/disable all.
+		 *                                           Default true (all registered block types supported)
+		 * @param WP_Post       $post                The post resource data.
 		 */
 		$allowed_block_types = apply_filters_deprecated( 'allowed_block_types', array( $allowed_block_types, $post ), '5.8.0', 'allowed_block_types_all' );
 	}
@@ -288,6 +288,85 @@ function get_legacy_widget_block_editor_settings() {
 }
 
 /**
+ * Collect the block editor assets that need to be loaded into the editor's iframe.
+ *
+ * @since 6.0.0
+ * @access private
+ *
+ * @global string $pagenow The filename of the current screen.
+ *
+ * @return array {
+ *     The block editor assets.
+ *
+ *     @type string|false $styles  String containing the HTML for styles.
+ *     @type string|false $scripts String containing the HTML for scripts.
+ * }
+ */
+function _wp_get_iframed_editor_assets() {
+	global $pagenow;
+
+	$script_handles = array();
+	$style_handles  = array(
+		'wp-block-editor',
+		'wp-block-library',
+		'wp-edit-blocks',
+	);
+
+	if ( current_theme_supports( 'wp-block-styles' ) ) {
+		$style_handles[] = 'wp-block-library-theme';
+	}
+
+	if ( 'widgets.php' === $pagenow || 'customize.php' === $pagenow ) {
+		$style_handles[] = 'wp-widgets';
+		$style_handles[] = 'wp-edit-widgets';
+	}
+
+	$block_registry = WP_Block_Type_Registry::get_instance();
+
+	foreach ( $block_registry->get_all_registered() as $block_type ) {
+		if ( ! empty( $block_type->style ) ) {
+			$style_handles[] = $block_type->style;
+		}
+
+		if ( ! empty( $block_type->editor_style ) ) {
+			$style_handles[] = $block_type->editor_style;
+		}
+
+		if ( ! empty( $block_type->script ) ) {
+			$script_handles[] = $block_type->script;
+		}
+	}
+
+	$style_handles = array_unique( $style_handles );
+	$done          = wp_styles()->done;
+
+	ob_start();
+
+	// We do not need reset styles for the iframed editor.
+	wp_styles()->done = array( 'wp-reset-editor-styles' );
+	wp_styles()->do_items( $style_handles );
+	wp_styles()->done = $done;
+
+	$styles = ob_get_clean();
+
+	$script_handles = array_unique( $script_handles );
+	$done           = wp_scripts()->done;
+
+	ob_start();
+
+	wp_scripts()->done = array();
+	wp_scripts()->do_items( $script_handles );
+	wp_scripts()->done = $done;
+
+	$scripts = ob_get_clean();
+
+	return array(
+		'styles'  => $styles,
+		'scripts' => $scripts,
+	);
+}
+
+/**
  * Returns the contextualized block editor settings for a selected editor context.
  *
  * @since 5.8.0
@@ -312,10 +391,12 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		array(
 			'css'            => 'variables',
 			'__unstableType' => 'presets',
+			'isGlobalStyles' => true,
 		),
 		array(
 			'css'            => 'presets',
 			'__unstableType' => 'presets',
+			'isGlobalStyles' => true,
 		),
 	);
 	foreach ( $presets as $preset_style ) {
@@ -330,6 +411,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		$block_classes = array(
 			'css'            => 'styles',
 			'__unstableType' => 'theme',
+			'isGlobalStyles' => true,
 		);
 		$actual_css    = wp_get_global_stylesheet( array( $block_classes['css'] ) );
 		if ( '' !== $actual_css ) {
@@ -394,6 +476,26 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		unset( $editor_settings['__experimentalFeatures']['spacing']['padding'] );
 	}
 
+	$editor_settings['__unstableResolvedAssets']         = _wp_get_iframed_editor_assets();
+	$editor_settings['localAutosaveInterval']            = 15;
+	$editor_settings['__experimentalDiscussionSettings'] = array(
+		'commentOrder'         => get_option( 'comment_order' ),
+		'commentsPerPage'      => get_option( 'comments_per_page' ),
+		'defaultCommentsPage'  => get_option( 'default_comments_page' ),
+		'pageComments'         => get_option( 'page_comments' ),
+		'threadComments'       => get_option( 'thread_comments' ),
+		'threadCommentsDepth'  => get_option( 'thread_comments_depth' ),
+		'defaultCommentStatus' => get_option( 'default_comment_status' ),
+		'avatarURL'            => get_avatar_url(
+			'',
+			array(
+				'size'          => 96,
+				'force_default' => true,
+				'default'       => get_option( 'avatar_default' ),
+			)
+		),
+	);
+
 	/**
 	 * Filters the settings to pass to the block editor for all editor type.
 	 *
@@ -434,8 +536,6 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
  *
  * @param string[]                $preload_paths        List of paths to preload.
  * @param WP_Block_Editor_Context $block_editor_context The current block editor context.
- *
- * @return void
  */
 function block_editor_rest_api_preload( array $preload_paths, $block_editor_context ) {
 	global $post, $wp_scripts, $wp_styles;
@@ -538,6 +638,7 @@ function get_block_editor_theme_styles() {
 					$styles[] = array(
 						'css'            => wp_remote_retrieve_body( $response ),
 						'__unstableType' => 'theme',
+						'isGlobalStyles' => false,
 					);
 				}
 			} else {
@@ -547,6 +648,7 @@ function get_block_editor_theme_styles() {
 						'css'            => file_get_contents( $file ),
 						'baseURL'        => get_theme_file_uri( $style ),
 						'__unstableType' => 'theme',
+						'isGlobalStyles' => false,
 					);
 				}
 			}
