@@ -3697,6 +3697,18 @@ function wp_read_audio_metadata( $file ) {
 
 	wp_add_id3_tag_data( $metadata, $data );
 
+	/**
+	 * Filters the array of metadata retrieved from an audio file.
+	 *
+	 * In core, usually this selection is what is stored.
+	 * More complete data can be parsed from the `$data` parameter.
+	 *
+	 * @since 6.0.1
+	 *
+	 * @param array  $metadata    Filtered Audio metadata.
+	 * @param string $file        Path to audio file.
+	 * @param array  $data        Raw metadata from getID3.
+	 */
 	return apply_filters( 'wp_read_audio_metadata', $metadata, $file, $data );
 }
 
