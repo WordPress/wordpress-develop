@@ -25,8 +25,11 @@ class Tests_Post_GetAttachedFile extends WP_UnitTestCase {
 			)
 		);
 
-		$attachment_path = get_attached_file( $attachment->ID );
-		$this->assertSame( $attachment_path, 'C:/WWW/Sites/demo/htdocs/wordpress/wp-content/uploads/2016/03/example.jpg', 'Windows local filesystem paths should be equal' );
+		$this->assertSame(
+			'C:/WWW/Sites/demo/htdocs/wordpress/wp-content/uploads/2016/03/example.jpg',
+			get_attached_file( $attachment->ID ),
+			'Windows local filesystem paths should be equal'
+		);
 
 		// Windows network shares path.
 		$attachment = self::factory()->attachment->create_and_get(
@@ -36,8 +39,11 @@ class Tests_Post_GetAttachedFile extends WP_UnitTestCase {
 			)
 		);
 
-		$attachment_path = get_attached_file( $attachment->ID );
-		$this->assertSame( $attachment_path, '//ComputerName/ShareName/SubfolderName/example.txt', 'Network share paths should be equal' );
+		$this->assertSame(
+			'//ComputerName/ShareName/SubfolderName/example.txt',
+			get_attached_file( $attachment->ID ),
+			'Network share paths should be equal'
+		);
 	}
 
 }
