@@ -2070,7 +2070,7 @@ function wp_mkdir_p( $target ) {
  * For example, '/foo/bar', or 'c:\windows'.
  *
  * @since 2.5.0
- * @since 6.0.0 Allows Windows normalized paths (forward slashes).
+ * @since 6.0.0 Allows normalized Windows paths (forward slashes).
  *
  * @param string $path File path.
  * @return bool True if path is absolute, false is not absolute.
@@ -2101,7 +2101,7 @@ function path_is_absolute( $path ) {
 		return true;
 	}
 
-	// Windows normalized paths for local filesystem and network shares (forward slashes).
+	// Normalized Windows paths for local filesystem and network shares (forward slashes).
 	if ( preg_match( '#(^[a-zA-Z]+:/|^//[\w!@\#\$%\^\(\)\-\'{}\.~]{1,15})#', $path ) ) {
 		return true;
 	}
