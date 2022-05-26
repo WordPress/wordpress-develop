@@ -36,7 +36,7 @@
 		"cssnano": "4.1.11",
 		"dotenv": "16.0.0",
 		"dotenv-expand": "8.0.3",
-		"grunt": "~1.5.2",
+		"grunt": "~1.5.3",
 		"grunt-banner": "^0.6.0",
 		"grunt-contrib-clean": "~2.0.1",
 		"grunt-contrib-concat": "2.1.0",
