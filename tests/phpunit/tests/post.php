@@ -1800,7 +1800,7 @@ class Tests_Post extends WP_UnitTestCase {
 
 	/**
 	 * Testing the wp_get_attached_file() function.
-	 *
+	 * @covers ::wp_get_attached_file
 	 * @ticket 36308
 	 */
 	public function test_wp_get_attached_file() {
