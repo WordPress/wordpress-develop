@@ -2070,7 +2070,7 @@ function wp_mkdir_p( $target ) {
  * For example, '/foo/bar', or 'c:\windows'.
  *
  * @since 2.5.0
- * @since 6.0.0 Allows normalized Windows paths (forward slashes).
+ * @since 6.1.0 Allows normalized Windows paths (forward slashes).
  *
  * @param string $path File path.
  * @return bool True if path is absolute, false is not absolute.
