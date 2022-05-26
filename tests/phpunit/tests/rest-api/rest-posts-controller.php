@@ -1781,17 +1781,17 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		);
 
 		// Clean parents ids from cache.
-		wp_cache_delete_multiple( $parent_ids,'posts' );
+		wp_cache_delete_multiple( $parent_ids, 'posts' );
 
 		$action = new MockAction();
 		add_filter( 'query', array( $action, 'filter' ), 10, 2 );
 
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		rest_get_server()->dispatch( $request );
 
 		$args      = $action->get_args();
 		$last_args = end( $args );
-		$this->assertStringContainsString( implode(',', $parent_ids ), $last_args[0], 'Ensure that post ids are primed' );
+		$this->assertStringContainsString( implode( ',', $parent_ids ), $last_args[0], 'Ensure that parent post ids are primed' );
 	}
 
 	public function test_get_item() {
