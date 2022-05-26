@@ -1789,9 +1789,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		rest_get_server()->dispatch( $request );
 
-		$args      = $action->get_args();
-		$last_args = end( $args );
-		$this->assertStringContainsString( implode( ',', $parent_ids ), $last_args[0], 'Ensure that parent post ids are primed' );
+		$args               = $action->get_args();
+		$primed_query_found = false;
+		foreach ( $args as $arg ) {
+			if ( strpos( $arg[0], 'WHERE ID IN (' . implode( ',', $parent_ids ) ) > 0 ) {
+				$primed_query_found = true;
+			}
+		}
+		$this->assertTrue( $primed_query_found, 'Prime parents id query was not executed.' );
 	}
 
 	public function test_get_item() {
