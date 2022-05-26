@@ -1754,6 +1754,46 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( $formats, $data['schema']['properties']['format']['enum'] );
 	}
 
+	/**
+	 * @ticket 55593
+	 */
+	public function test_get_items_parent_ids_primed() {
+		$parent_id1 = $this->factory->post->create( array( 'post_title' => 'Test Post with attachment' ) );
+		$parent_id2 = $this->factory->post->create( array( 'post_title' => 'Test Post with attachment' ) );
+		$parent_ids = array( $parent_id2, $parent_id1 );
+
+		$this->factory->attachment->create_object(
+			DIR_TESTDATA . '/images/canola.jpg',
+			$parent_id1,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption',
+			)
+		);
+
+		$this->factory->attachment->create_object(
+			DIR_TESTDATA . '/images/canola.jpg',
+			$parent_id2,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption',
+			)
+		);
+
+		// Clean parents ids from cache.
+		wp_cache_delete_multiple( $parent_ids,'posts' );
+
+		$action = new MockAction();
+		add_filter( 'query', array( $action, 'filter' ), 10, 2 );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		rest_get_server()->dispatch( $request );
+
+		$args      = $action->get_args();
+		$last_args = end( $args );
+		$this->assertStringContainsString( implode(',', $parent_ids ), $last_args[0], 'Ensure that post ids are primed' );
+	}
+
 	public function test_get_item() {
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 		$response = rest_get_server()->dispatch( $request );
