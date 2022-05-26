@@ -1799,11 +1799,10 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Testing the wp_get_attached_file() function.
-	 * @covers ::wp_get_attached_file
+	 * @covers ::get_attached_file
 	 * @ticket 36308
 	 */
-	public function test_wp_get_attached_file() {
+	public function test_get_attached_file() {
 		$post = self::factory()->post->create_and_get(
 			array(
 				'post_title' => 'example-page',
