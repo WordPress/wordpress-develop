@@ -85,6 +85,7 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 
 		$query     = new WP_Query();
 		$posts     = $query->query( $query_args );
+		// Querying the whole post object will warm the object cache, avoiding an extra query per result.
 		$found_ids = wp_list_pluck( $posts, 'ID' );
 		$total     = $query->found_posts;
 
