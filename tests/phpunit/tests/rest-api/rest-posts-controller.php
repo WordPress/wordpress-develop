@@ -1758,8 +1758,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 * @ticket 55593
 	 */
 	public function test_get_items_parent_ids_primed() {
-		$parent_id1 = $this->factory->post->create( array( 'post_title' => 'Test Post with attachment' ) );
-		$parent_id2 = $this->factory->post->create( array( 'post_title' => 'Test Post with attachment' ) );
+		$parent_id1 = self::$post_ids[0];
+		$parent_id2 = self::$post_ids[1];
 		$parent_ids = array( $parent_id2, $parent_id1 );
 
 		$this->factory->attachment->create_object(
@@ -1767,7 +1767,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			$parent_id1,
 			array(
 				'post_mime_type' => 'image/jpeg',
-				'post_excerpt'   => 'A sample caption',
+				'post_excerpt'   => 'A sample caption 1',
 			)
 		);
 
@@ -1776,12 +1776,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			$parent_id2,
 			array(
 				'post_mime_type' => 'image/jpeg',
-				'post_excerpt'   => 'A sample caption',
+				'post_excerpt'   => 'A sample caption 2',
 			)
 		);
-
-		// Clean parents ids from cache.
-		wp_cache_delete_multiple( $parent_ids, 'posts' );
 
 		$action = new MockAction();
 		add_filter( 'query', array( $action, 'filter' ), 10, 2 );
