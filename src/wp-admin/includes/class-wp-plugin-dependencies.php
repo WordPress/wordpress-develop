@@ -65,7 +65,7 @@ class WP_Plugin_Dependencies {
 			add_action( 'network_admin_notices', array( $this, 'admin_notices' ) );
 			add_action( 'in_admin_header', array( $this, 'hide_action_links' ) );
 
-			$required_headers = $this->parse_headers();
+			$required_headers = $this->parse_plugin_headers();
 			$this->slugs      = $this->sanitize_required_headers( $required_headers );
 			$this->get_dot_org_data();
 			$this->deactivate_unmet_dependencies();
@@ -90,24 +90,33 @@ class WP_Plugin_Dependencies {
 	 * Parse 'Requires Plugins' header.
 	 * Store result with dependent plugin.
 	 *
+	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+	 *
 	 * @return \stdClass
 	 */
-	public function parse_headers() {
+	public function parse_plugin_headers() {
+		global $wp_filesystem;
+
+		if ( ! $wp_filesystem ) {
+			require_once ABSPATH . '/wp-admin/includes/file.php';
+			WP_Filesystem();
+		}
+
 		$this->get_plugins();
-		$required_headers = array();
+		$all_requires_headers = array();
 		foreach ( array_keys( $this->plugins ) as $plugin ) {
-			$plugin_required_headers = array();
-			$requires_plugins        = get_file_data( WP_PLUGIN_DIR . '/' . $plugin, array( 'RequiresPlugins' => 'Requires Plugins' ) );
+			$temp_requires    = array();
+			$requires_plugins = get_file_data( $wp_filesystem->wp_plugins_dir() . '/' . $plugin, array( 'RequiresPlugins' => 'Requires Plugins' ) );
 			if ( ! empty( $requires_plugins['RequiresPlugins'] ) ) {
-				$required_headers[ $plugin ]        = $requires_plugins;
-				$plugin_required_headers[ $plugin ] = $requires_plugins;
-				$sanitized_requires_slugs           = implode( ',', $this->sanitize_required_headers( $plugin_required_headers ) );
+				$all_requires_headers[ $plugin ] = $requires_plugins;
+				$temp_requires[ $plugin ]        = $requires_plugins;
+				$sanitized_requires_slugs        = implode( ',', $this->sanitize_required_headers( $temp_requires ) );
 
 				$this->requires_plugins[ $plugin ]['RequiresPlugins'] = $sanitized_requires_slugs;
 			}
 		}
 
-		return $required_headers;
+		return $all_requires_headers;
 	}
 
 	/**
@@ -195,13 +204,20 @@ class WP_Plugin_Dependencies {
 	 */
 	public function get_dot_org_data() {
 		global $pagenow;
+
 		$pages = array( 'plugin-install.php', 'plugins.php' );
 		if ( ! in_array( $pagenow, $pages, true ) ) {
 			return;
 		}
 
 		$this->plugin_data = (array) get_site_transient( 'wp_plugin_dependencies_plugin_data' );
-		foreach ( $this->slugs as $key => $slug ) {
+		foreach ( $this->slugs as $slug ) {
+			// Set transient for individual data, remove from $this->plugin_data if transient expired.
+			if ( ! get_site_transient( "wp_plugin_dependencies_plugin_timeout_{$slug}" ) ) {
+				unset( $this->plugin_data[ $slug ] );
+				set_site_transient( "wp_plugin_dependencies_plugin_timeout_{$slug}", true, 12 * HOUR_IN_SECONDS );
+			}
+
 			// Don't hit plugins API if data exists.
 			if ( array_key_exists( $slug, (array) $this->plugin_data ) ) {
 				continue;
@@ -226,10 +242,6 @@ class WP_Plugin_Dependencies {
 			}
 
 			$this->plugin_data[ $response->slug ] = (array) $response;
-
-			if ( ! in_array( $slug, $this->slugs, true ) ) {
-				unset( $this->plugin_data[ $key ] );
-			}
 		}
 
 		// Remove from $this->plugin_data if slug no longer a dependency.
@@ -241,7 +253,7 @@ class WP_Plugin_Dependencies {
 		}
 
 		ksort( $this->plugin_data );
-		set_site_transient( 'wp_plugin_dependencies_plugin_data', $this->plugin_data, 12 * HOUR_IN_SECONDS );
+		set_site_transient( 'wp_plugin_dependencies_plugin_data', $this->plugin_data, 0 );
 	}
 
 	/**
@@ -299,8 +311,9 @@ class WP_Plugin_Dependencies {
 	 * @return void
 	 */
 	public function modify_plugin_row_elements( $plugin_file, $plugin_data ) {
+		$sources = $this->get_dependency_sources( $plugin_data );
 		print '<script>';
-		print 'jQuery("tr[data-plugin=\'' . esc_attr( $plugin_file ) . '\'] .plugin-version-author-uri").append("<br><br><strong>' . esc_html__( 'Required by:' ) . '</strong> ' . esc_html( $this->get_dependency_sources( $plugin_data ) ) . '");';
+		print 'jQuery("tr[data-plugin=\'' . esc_attr( $plugin_file ) . '\'] .plugin-version-author-uri").append("<br><br><strong>' . esc_html__( 'Required by:' ) . '</strong> ' . esc_html( $sources ) . '");';
 		print 'jQuery(".active[data-plugin=\'' . esc_attr( $plugin_file ) . '\'] .check-column input").remove();';
 		print '</script>';
 	}
@@ -314,21 +327,8 @@ class WP_Plugin_Dependencies {
 	 * @return void
 	 */
 	public function modify_plugin_row_elements_requires( $plugin_file ) {
-		$this->plugin_data = get_site_transient( 'wp_plugin_dependencies_plugin_data' );
-
-		// Exit if no plugin data found.
-		if ( empty( $this->plugin_data ) ) {
-			return;
-		}
-
-		$requires = $this->plugins[ $plugin_file ]['RequiresPlugins'];
-		foreach ( $requires as $require ) {
-			if ( isset( $this->plugin_data[ $require ] ) ) {
-				$names[] = $this->plugin_data[ $require ]['name'];
-			}
-		}
+		$names = $this->get_requires_plugins_names( $plugin_file );
 		if ( ! empty( $names ) ) {
-			$names = implode( ', ', $names );
 			print '<script>';
 			print 'jQuery("tr[data-plugin=\'' . esc_attr( $plugin_file ) . '\'] .plugin-version-author-uri").append("<br><br><strong>' . esc_html__( 'Requires:' ) . '</strong> ' . esc_html( $names ) . '");';
 			print '</script>';
@@ -399,7 +399,7 @@ class WP_Plugin_Dependencies {
 					. esc_html__( '%1$s plugin(s) could not be activated. There are uninstalled or inactive dependencies. Go to the %2$sDependencies%3$s install page.' )
 					. '</p></div>',
 				'<strong>' . esc_html( $deactivated_plugins ) . '</strong>',
-				'<a href=' . esc_url_raw( admin_url( 'plugin-install.php?tab=dependencies' ) ) . '>',
+				'<a href=' . esc_url_raw( network_admin_url( 'plugin-install.php?tab=dependencies' ) ) . '>',
 				'</a>'
 			);
 		} else {
@@ -413,7 +413,7 @@ class WP_Plugin_Dependencies {
 						/* translators: 1: opening tag and link to Dependencies install page, 2:closing tag */
 						. esc_html__( 'There are additional plugins that must be installed. Go to the %1$sDependencies%2$s install page.' )
 						. '</p></div>',
-					'<a href=' . esc_url_raw( admin_url( 'plugin-install.php?tab=dependencies' ) ) . '>',
+					'<a href=' . esc_url_raw( network_admin_url( 'plugin-install.php?tab=dependencies' ) ) . '>',
 					'</a>'
 				);
 			}
@@ -525,6 +525,36 @@ class WP_Plugin_Dependencies {
 			$hide_selectors = implode( ', ', $hide_selectors );
 			printf( '<style>%s { display: none; }</style>', esc_attr( $hide_selectors ) );
 		}
+	}
+
+	/**
+	 * Get names of required plugins.
+	 *
+	 * @param array $data Array of plugin or theme data.
+	 *
+	 * @return string
+	 */
+	private function get_requires_plugins_names( $data ) {
+		$this->plugin_data = get_site_transient( 'wp_plugin_dependencies_plugin_data' );
+
+		// Exit if no plugin data found.
+		if ( empty( $this->plugin_data ) ) {
+			return;
+		}
+
+		if ( str_contains( $data, '.php' ) ) {
+			$requires = $this->plugins[ $data ]['RequiresPlugins'];
+		}
+		foreach ( $requires as $require ) {
+			if ( isset( $this->plugin_data[ $require ] ) ) {
+				$names[] = $this->plugin_data[ $require ]['name'];
+			}
+		}
+		if ( ! empty( $names ) ) {
+			$names = implode( ', ', $names );
+		}
+
+		return $names;
 	}
 }
 

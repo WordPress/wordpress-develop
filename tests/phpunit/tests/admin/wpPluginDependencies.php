@@ -2,7 +2,7 @@
 /**
  * Test WP_Plugin_Dependencies class.
  *
- * @package Plugin_Dependencies_Tab
+ * @package WP_Plugin_Dependencies
  *
  * @group admin
  * @group plugins
@@ -17,6 +17,7 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 	}
 
 	public static function wpTearDownAfterClass() {
+		array_map( 'unlink', array_filter( (array) glob( self::$plugin_dir . '/*' ) ) );
 		rmdir( self::$plugin_dir );
 	}
 
@@ -32,7 +33,7 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 	 * @param string $dir_path Optional. Path for directory where the plugin should live.
 	 * @return array Two-membered array of filename and full plugin path.
 	 */
-	private function create_plugin( $data = "<?php\n/*\nPlugin Name: Test\n*/", $filename, $dir_path = false ) {
+	private function create_plugin( $filename, $data = "<?php\n/*\nPlugin Name: Test\n*/", $dir_path = false ) {
 		if ( false === $filename ) {
 			$filename = __FUNCTION__ . '.php';
 		}
@@ -95,14 +96,14 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_parse_headers
+	 * @dataProvider data_parse_plugin_headers
 	 *
-	 * @covers WP_Plugin_Dependencies::parse_headers
+	 * @covers WP_Plugin_Dependencies::parse_plugin_headers
 	 *
 	 * @param array    $headers .
 	 * @param stdClass $expected     The expected parsed headers.
 	 */
-	public function test_parse_headers( $headers, $expected ) {
+	public function test_parse_plugin_headers( $headers, $expected ) {
 		$plugin_names = array();
 
 		foreach ( $headers as $plugin_name => $plugin ) {
@@ -117,8 +118,8 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 			$plugin_data = "<?php\n/*\n" . implode( "\n", $plugin_data ) . "\n*/\n";
 
 			$plugin_file = $this->create_plugin(
-				$plugin_data,
 				$plugin_name . '.php',
+				$plugin_data,
 				self::$plugin_dir
 			);
 
@@ -131,7 +132,7 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 		$plugins      = $this->make_prop_accessible( $dependencies, 'plugins' );
 		$plugins->setValue( $dependencies, $headers );
 
-		$actual = $dependencies->parse_headers();
+		$actual = $dependencies->parse_plugin_headers();
 
 		foreach ( $plugin_names as $plugin_name ) {
 			if ( $expected ) {
@@ -148,7 +149,7 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_parse_headers() {
+	public function data_parse_plugin_headers() {
 		return array(
 			'no dependencies'                        => array(
 				'plugins_data' => array(
