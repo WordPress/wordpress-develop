@@ -868,7 +868,7 @@ class WP_Term_Query {
 			update_termmeta_cache( $term_ids );
 		}
 
-		$cache_type = ( $_fields === 'all_with_object_id' ) ? 'id_object_id' : 'ids';
+		$cache_type = ( 'id_with_object_id' === $_fields ) ? 'id_object_id' : 'ids';
 		$term_cache = $this->format_terms( $term_objects, $cache_type );
 		wp_cache_add( $cache_key, $term_cache, 'terms' );
 		$this->terms = $this->format_terms( $term_objects, $_fields );
@@ -971,7 +971,7 @@ class WP_Term_Query {
 			foreach ( $term_objects as $term ) {
 				$_terms[ $term->term_id ] = $term->name;
 			}
-		} elseif ( 'id_object_id' === $_fields ) {
+		} elseif ( 'id_with_object_id' === $_fields ) {
 			foreach ( $term_objects as $term ) {
 				$object            = new stdClass();
 				$object->term_id   = $term->term_id;
