@@ -7481,7 +7481,7 @@ function update_post_caches( &$posts, $post_type = 'post', $update_term_cache = 
  *
  * @param WP_Post[] $posts Array of Post objects
  */
-function update_post_author_caches( &$posts ) {
+function update_post_author_caches( $posts ) {
 	$author_ids = wp_list_pluck( $posts, 'post_author' );
 	$author_ids = array_map( 'absint', $author_ids );
 	$author_ids = array_unique( array_filter( $author_ids ) );
