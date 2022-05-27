@@ -358,6 +358,9 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_get_items_search_prime_ids() {
 		global $wpdb;
 
+		$action = new MockAction();
+		add_filter( 'query', array( $action, 'filter' ), 10, 2 );
+
 		$query_args = array(
 			'per_page' => 100,
 			'search'   => 'primedpoststitles',
@@ -368,9 +371,16 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		$ids = wp_list_pluck( $response->get_data(), 'id' );
 		$this->assertSameSets( self::$my_primed_post_ids, $ids, 'Query result posts ids do not match with expected ones.' );
 
-		// Primed query will use WHERE ID IN clause.
-		$primed_query_string = 'WHERE ID IN (' . implode( ',', $ids ) . ')';
-		$this->assertStringContainsString( $primed_query_string, $wpdb->last_query, 'Last query do not use WHERE ID IN clause (posts not primed)' );
+		$args               = $action->get_args();
+		$primed_query_found = false;
+		foreach ( $args as $arg ) {
+			// Primed query will use WHERE ID IN clause.
+			if ( strpos( $arg[0], 'WHERE ID IN (' . implode( ',', $ids ) ) > 0 ) {
+				$primed_query_found = true;
+			}
+		}
+
+		$this->assertTrue( $primed_query_found, 'Prime query was not executed.' );
 	}
 
 	/**
