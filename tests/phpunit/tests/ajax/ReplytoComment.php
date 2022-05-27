@@ -186,7 +186,7 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 
 		// Make the request.
 		$this->expectException( 'WPAjaxDieStopException' );
-		$this->expectExceptionMessage( 'Error: You can&#8217;t reply to a comment on a draft post.' );
+		$this->expectExceptionMessage( 'You cannot reply to a comment on a draft post.' );
 		$this->_handleAjax( 'replyto-comment' );
 	}
 
@@ -264,7 +264,7 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Blocks comments from being saved on 'pre_comment_approved', by returning WP_Error.
 	 */
-	function _pre_comment_approved_filter( $approved, $commentdata ) {
+	public function _pre_comment_approved_filter( $approved, $commentdata ) {
 		return new WP_Error( 'comment_wrong', 'pre_comment_approved filter fails for new comment.', 403 );
 	}
 }

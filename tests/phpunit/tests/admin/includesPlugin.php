@@ -12,7 +12,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		self::_restore_mu_plugins();
 	}
 
-	function test_get_plugin_data() {
+	public function test_get_plugin_data() {
 		$data = get_plugin_data( DIR_TESTDATA . '/plugins/hello.php' );
 
 		$default_headers = array(
@@ -35,7 +35,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		}
 	}
 
-	function test_menu_page_url() {
+	public function test_menu_page_url() {
 		$current_user = get_current_user_id();
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		update_option( 'siteurl', 'http://example.com' );
@@ -77,7 +77,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_submenu_position
 	 */
-	function test_submenu_position( $position, $expected_position ) {
+	public function test_submenu_position( $position, $expected_position ) {
 		global $submenu;
 		global $menu;
 		$current_user = get_current_user_id();
@@ -125,7 +125,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_submenu_position
 	 */
-	function test_submenu_helpers_position( $position, $expected_position ) {
+	public function test_submenu_helpers_position( $position, $expected_position ) {
 		global $submenu;
 		global $menu;
 
@@ -227,7 +227,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	function submenus_to_add() {
+	private function submenus_to_add() {
 		return array(
 			array( 'Submenu Position', 'Submenu Position', 'manage_options', 'sub-page', '' ),
 			array( 'Submenu Position 2', 'Submenu Position 2', 'manage_options', 'sub-page2', '' ),
@@ -249,15 +249,23 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	function data_submenu_position() {
+	public function data_submenu_position() {
 		$menu_count = count( $this->submenus_to_add() );
 		return array(
 			array( null, $menu_count ),        // Insert at the end of the menu if null is passed. Default behavior.
 			array( 0, 0 ),                     // Insert at the beginning of the menu if 0 is passed.
 			array( -1, 0 ),                    // Negative numbers are treated the same as passing 0.
 			array( -7, 0 ),                    // Negative numbers are treated the same as passing 0.
+			array( '-7', 0 ),                  // Negative numbers are treated the same as passing 0.
 			array( 1, 1 ),                     // Insert as the second item.
+			array( '1', 1 ),                   // Insert as the second item.
+			array( 1.5, 1 ),                   // Insert as the second item.
+			array( '1.5', 1 ),                 // Insert as the second item.
 			array( 3, 3 ),                     // Insert as the 4th item.
+			array( '3', 3 ),                   // Insert as the 4th item.
+			array( '3e0', 3 ),                 // Insert as the 4th item.
+			array( 3.5, 3 ),                   // Insert as the 4th item.
+			array( '3.5', 3 ),                 // Insert as the 4th item.
 			array( $menu_count, $menu_count ), // Numbers equal to the number of items are added at the end.
 			array( 123456, $menu_count ),      // Numbers higher than the number of items are added at the end.
 		);
@@ -268,7 +276,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 *
 	 * @ticket 48599
 	 */
-	function test_position_when_parent_slug_child_slug_are_the_same() {
+	public function test_position_when_parent_slug_child_slug_are_the_same() {
 		global $submenu, $menu;
 
 		// Reset menus.
@@ -296,11 +304,11 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Passing a string as position will fail.
+	 * Passing a string as position will fail in submenu.
 	 *
 	 * @ticket 48599
 	 */
-	function test_passing_string_as_position_fires_doing_it_wrong() {
+	public function test_passing_string_as_position_fires_doing_it_wrong_submenu() {
 		$this->setExpectedIncorrectUsage( 'add_submenu_page' );
 		global $submenu, $menu;
 
@@ -314,7 +322,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 
 		// Setup a menu with some items.
 		add_menu_page( 'Main Menu', 'Main Menu', 'manage_options', 'main_slug', 'main_page_callback' );
-		add_submenu_page( 'main_slug', 'SubMenu 1', 'SubMenu 1', 'manage_options', 'submenu_page_1', 'submenu_callback_1', '2' );
+		add_submenu_page( 'main_slug', 'SubMenu 1', 'SubMenu 1', 'manage_options', 'submenu_page_1', 'submenu_callback_1', 'First' );
 
 		// Clean up the temporary user.
 		wp_set_current_user( $current_user );
@@ -324,7 +332,39 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$this->assertSame( 'submenu_page_1', $submenu['main_slug'][1][2] );
 	}
 
-	function test_is_plugin_active_true() {
+	/**
+	 * Passing a string as position will fail in menu.
+	 *
+	 * @ticket 54798
+	 */
+	public function test_passing_float_as_position_does_not_override_int() {
+		global $submenu, $menu;
+
+		// Reset menus.
+		$submenu      = array();
+		$menu         = array();
+		$current_user = get_current_user_id();
+		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_user );
+		set_current_screen( 'dashboard' );
+
+		// Setup a menu with some items.
+		add_menu_page( 'Main Menu 1', 'Main Menu 1', 'manage_options', 'main_slug_1', 'main_page_callback_1', 'icon_url_1', 1 );
+		add_menu_page( 'Main Menu 2', 'Main Menu 2', 'manage_options', 'main_slug_2', 'main_page_callback_2', 'icon_url_2', 2 );
+		add_menu_page( 'Main Menu 1.5', 'Main Menu 1.5', 'manage_options', 'main_slug_15', 'main_page_callback_15', 'icon_url_15', 1.5 );
+
+		// Clean up the temporary user.
+		wp_set_current_user( $current_user );
+		wp_delete_user( $admin_user );
+
+		// Verify the menus were inserted.
+		$this->assertSame( 'main_slug_1', $menu[1][2] );
+		$this->assertSame( 'main_slug_2', $menu[2][2] );
+		// Verify the menu was inserted correctly on passing float as position.
+		$this->assertSame( 'main_slug_15', $menu['1.5'][2] );
+	}
+
+	public function test_is_plugin_active_true() {
 		activate_plugin( 'hello.php' );
 		$test = is_plugin_active( 'hello.php' );
 		$this->assertTrue( $test );
@@ -332,19 +372,19 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		deactivate_plugins( 'hello.php' );
 	}
 
-	function test_is_plugin_active_false() {
+	public function test_is_plugin_active_false() {
 		deactivate_plugins( 'hello.php' );
 		$test = is_plugin_active( 'hello.php' );
 		$this->assertFalse( $test );
 	}
 
-	function test_is_plugin_inactive_true() {
+	public function test_is_plugin_inactive_true() {
 		deactivate_plugins( 'hello.php' );
 		$test = is_plugin_inactive( 'hello.php' );
 		$this->assertTrue( $test );
 	}
 
-	function test_is_plugin_inactive_false() {
+	public function test_is_plugin_inactive_false() {
 		activate_plugin( 'hello.php' );
 		$test = is_plugin_inactive( 'hello.php' );
 		$this->assertFalse( $test );
@@ -487,10 +527,11 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$p2 = $this->_create_plugin( "<?php\n//Test", 'not-a-dropin.php', WP_CONTENT_DIR );
 
 		$dropins = get_dropins();
-		$this->assertSame( array( 'advanced-cache.php' ), array_keys( $dropins ) );
 
 		unlink( $p1[1] );
 		unlink( $p2[1] );
+
+		$this->assertSame( array( 'advanced-cache.php' ), array_keys( $dropins ) );
 
 		// Clean up.
 		$this->_restore_drop_ins();
@@ -509,9 +550,11 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	public function test_is_network_only_plugin() {
 		$p = $this->_create_plugin( "<?php\n/*\nPlugin Name: test\nNetwork: true" );
 
-		$this->assertTrue( is_network_only_plugin( $p[0] ) );
+		$network_only = is_network_only_plugin( $p[0] );
 
 		unlink( $p[1] );
+
+		$this->assertTrue( $network_only );
 	}
 
 	/**
@@ -571,12 +614,14 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$uninstallable_plugins[ $plugin[0] ] = true;
 		update_option( 'uninstall_plugins', $uninstallable_plugins );
 
-		$this->assertTrue( is_uninstallable_plugin( $plugin[0] ) );
+		$is_uninstallable = is_uninstallable_plugin( $plugin[0] );
 
 		unset( $uninstallable_plugins[ $plugin[0] ] );
 		update_option( 'uninstall_plugins', $uninstallable_plugins );
 
 		unlink( $plugin[1] );
+
+		$this->assertTrue( $is_uninstallable );
 	}
 
 	/**
@@ -595,14 +640,15 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 */
 	private function _create_plugin( $data = "<?php\n/*\nPlugin Name: Test\n*/", $filename = false, $dir_path = false ) {
 		if ( false === $filename ) {
-			$filename = rand_str() . '.php';
+			$filename = __FUNCTION__ . '.php';
 		}
 
 		if ( false === $dir_path ) {
 			$dir_path = WP_PLUGIN_DIR;
 		}
 
-		$full_name = $dir_path . '/' . wp_unique_filename( $dir_path, $filename );
+		$filename  = wp_unique_filename( $dir_path, $filename );
+		$full_name = $dir_path . '/' . $filename;
 
 		$file = fopen( $full_name, 'w' );
 		fwrite( $file, $data );
