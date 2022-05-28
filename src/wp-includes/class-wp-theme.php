@@ -230,7 +230,7 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		$this->theme_root = $theme_root;
-		$this->stylesheet = $theme_dir;
+		$this->stylesheet = (string) $theme_dir;
 
 		// Correct a situation where the theme is 'some-directory/some-theme' but 'some-directory' was passed in as part of the theme root instead.
 		if ( ! in_array( $theme_root, (array) $wp_theme_directories, true )
