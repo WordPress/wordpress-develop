@@ -116,6 +116,17 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 54645
+	 */
+	public function test_new_WP_Theme_numerical() {
+		$theme = new WP_Theme( 1234, $this->theme_root );
+
+		// Important.
+		$this->assertSame( '1234', $theme->get_stylesheet() );
+		$this->assertSame( '1234', $theme->get_template() );
+	}
+
+	/**
 	 * @ticket 21969
 	 */
 	public function test_theme_uris_with_spaces() {
