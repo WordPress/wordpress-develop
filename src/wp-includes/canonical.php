@@ -566,6 +566,9 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 
 	if ( $redirect_url ) {
 		$redirect = parse_url( $redirect_url );
+		if ( ! isset( $redirect['path'] ) ) {
+			$redirect['path'] = '';
+		}
 	}
 
 	// www.example.com vs. example.com
