@@ -1780,6 +1780,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			)
 		);
 
+		// Attachment creation warms parent ids. Needs clean up for test.
+		wp_cache_delete_multiple( $parent_ids, 'posts' );
+
 		$action = new MockAction();
 		add_filter( 'query', array( $action, 'filter' ), 10, 2 );
 
@@ -1789,8 +1792,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$args               = $action->get_args();
 		$primed_query_found = false;
 		foreach ( $args as $arg ) {
-			if ( strpos( $arg[0], 'WHERE ID IN (' . implode( ',', $parent_ids ) ) > 0 ) {
+			if ( str_contains( $arg[0], 'WHERE ID IN (' . implode( ',', $parent_ids ) ) ) {
 				$primed_query_found = true;
+				break;
 			}
 		}
 		$this->assertTrue( $primed_query_found, 'Prime parents id query was not executed.' );
