@@ -747,6 +747,26 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 55837
+	 */
+	public function test_get_terms_child_of_cache() {
+		$parent = self::factory()->category->create();
+		self::factory()->category->create( array( 'parent' => $parent ) );
+
+		$args  = array(
+			'fields'     => 'ids',
+			'child_of'   => $parent,
+			'hide_empty' => false,
+		);
+		$terms = get_terms( 'category', $args );
+		$this->assertCount( 1, $terms, 'Check count on first response' );
+
+		$terms2 = get_terms( 'category', $args );
+		$this->assertCount( 1, $terms2, 'Check count on cached response' );
+		$this->assertSame( $terms, $terms2, 'Results are the same after caching' );
+	}
+
+	/**
 	 * @ticket 46768
 	 */
 	public function test_get_terms_child_of_fields_id_name() {

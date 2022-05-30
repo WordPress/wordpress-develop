@@ -784,13 +784,12 @@ class WP_Term_Query {
 		if ( false !== $cache ) {
 			if ( 'ids' === $_fields ) {
 				$cache = array_map( 'intval', $cache );
-			} elseif ( 'all_with_object_id' === $_fields ) {
-				$term_ids = wp_list_pluck( $cache, 'term_id' );
-				_prime_term_caches( $term_ids, $args['update_term_meta_cache'] );
-				$term_objects = $this->populate_terms( $cache );
-				$cache        = $this->format_terms( $term_objects, $_fields );
 			} elseif ( 'count' !== $_fields ) {
-				$term_ids = array_map( 'intval', $cache );
+				if ( 'all_with_object_id' === $_fields && ! empty( $args['object_ids'] ) ) {
+					$term_ids = wp_list_pluck( $cache, 'term_id' );
+				} else {
+					$term_ids = array_map( 'intval', $cache );
+				}
 				_prime_term_caches( $term_ids, $args['update_term_meta_cache'] );
 				$term_objects = $this->populate_terms( $cache );
 				$cache        = $this->format_terms( $term_objects, $_fields );
@@ -868,7 +867,7 @@ class WP_Term_Query {
 			update_termmeta_cache( $term_ids );
 		}
 
-		$cache_type = ( 'id_with_object_id' === $_fields ) ? 'id_object_id' : 'ids';
+		$cache_type = ( 'all_with_object_id' === $_fields && ! empty( $args['object_ids'] ) ) ? 'id_with_object_id' : 'ids';
 		$term_cache = $this->format_terms( $term_objects, $cache_type );
 		wp_cache_add( $cache_key, $term_cache, 'terms' );
 		$this->terms = $this->format_terms( $term_objects, $_fields );
