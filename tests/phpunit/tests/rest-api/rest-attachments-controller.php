@@ -29,6 +29,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 */
 	private $test_file2;
 
+	/**
+	 * @var array The recorded posts query clauses.
+	 */
+	protected $posts_clauses;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$superadmin_id  = $factory->user->create(
 			array(
@@ -85,6 +90,19 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$orig_file2       = DIR_TESTDATA . '/images/codeispoetry.png';
 		$this->test_file2 = get_temp_dir() . 'codeispoetry.png';
 		copy( $orig_file2, $this->test_file2 );
+
+		add_filter( 'rest_pre_dispatch', array( $this, 'wpSetUpBeforeRequest' ), 10, 3 );
+		add_filter( 'posts_clauses', array( $this, 'save_posts_clauses' ), 10, 2 );
+	}
+
+	public function wpSetUpBeforeRequest( $result ) {
+		$this->posts_clauses = array();
+		return $result;
+	}
+
+	public function save_posts_clauses( $clauses ) {
+		$this->posts_clauses[] = $clauses;
+		return $clauses;
 	}
 
 	public function tear_down() {
@@ -625,11 +643,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	public function test_get_items_avoid_duplicated_count_query_if_no_items() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		$request->set_param( 'media_type', 'video' );
-		$initial_num_queries = get_num_queries();
 
 		rest_get_server()->dispatch( $request );
 
-		$this->assertSame( 1, get_num_queries() - $initial_num_queries );
+		$this->assertCount( 1, $this->posts_clauses );
 	}
 
 	/**
@@ -639,11 +656,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		$request->set_param( 'media_type', 'video' );
 		$request->set_param( 'page', 2 );
-		$initial_num_queries = get_num_queries();
 
 		rest_get_server()->dispatch( $request );
 
-		$this->assertSame( 2, get_num_queries() - $initial_num_queries );
+		$this->assertCount( 2, $this->posts_clauses );
 	}
 
 	public function test_get_item() {
