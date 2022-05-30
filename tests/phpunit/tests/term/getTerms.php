@@ -748,6 +748,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55837
+	 * @covers ::get_terms
 	 */
 	public function test_get_terms_child_of_cache() {
 		$parent = self::factory()->category->create();
@@ -759,11 +760,11 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			'hide_empty' => false,
 		);
 		$terms = get_terms( 'category', $args );
-		$this->assertCount( 1, $terms, 'Check count on first response' );
+		$this->assertCount( 1, $terms, 'The first call to get_terms() did not return 1 term' );
 
 		$terms2 = get_terms( 'category', $args );
-		$this->assertCount( 1, $terms2, 'Check count on cached response' );
-		$this->assertSameSets( $terms, $terms2, 'Results are the same after caching' );
+		$this->assertCount( 1, $terms2, 'The second call to get_terms() did not return 1 term' );
+		$this->assertSameSets( $terms, $terms2, 'Results are not the same after caching' );
 	}
 
 	/**
@@ -2611,6 +2612,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55837
+	 * @covers ::get_terms
 	 */
 	public function test_pad_counts_cached() {
 		register_taxonomy( 'wptests_tax_1', 'post', array( 'hierarchical' => true ) );
