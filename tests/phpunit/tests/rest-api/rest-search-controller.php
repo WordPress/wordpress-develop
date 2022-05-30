@@ -377,6 +377,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			// Primed query will use WHERE ID IN clause.
 			if ( str_contains( $arg[0], 'WHERE ID IN (' . implode( ',', $ids ) ) ) {
 				$primed_query_found = true;
+				break;
 			}
 		}
 
