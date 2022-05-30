@@ -18,7 +18,7 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test as a logged out user
 	 *
-	 * @coversNothing
+	 * @covers ::wp_ajax_wp_compression_test
 	 */
 	public function test_logged_out() {
 		$this->logout();
