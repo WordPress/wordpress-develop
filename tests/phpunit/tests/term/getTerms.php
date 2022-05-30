@@ -2610,6 +2610,75 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 55837
+	 */
+	public function test_pad_counts_cached() {
+		register_taxonomy( 'wptests_tax_1', 'post', array( 'hierarchical' => true ) );
+
+		$posts = self::factory()->post->create_many( 3 );
+
+		$t1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax_1',
+			)
+		);
+		$t2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax_1',
+				'parent'   => $t1,
+			)
+		);
+		$t3 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax_1',
+				'parent'   => $t2,
+			)
+		);
+
+		wp_set_object_terms( $posts[0], array( $t1 ), 'wptests_tax_1' );
+		wp_set_object_terms( $posts[1], array( $t2 ), 'wptests_tax_1' );
+		wp_set_object_terms( $posts[2], array( $t3 ), 'wptests_tax_1' );
+
+		$found = get_terms(
+			'wptests_tax_1',
+			array(
+				'pad_counts' => true,
+			)
+		);
+
+		$this->assertSameSets( array( $t1, $t2, $t3 ), wp_list_pluck( $found, 'term_id' ) );
+
+		foreach ( $found as $f ) {
+			if ( $t1 === $f->term_id ) {
+				$this->assertSame( 3, $f->count );
+			} elseif ( $t2 === $f->term_id ) {
+				$this->assertSame( 2, $f->count );
+			} else {
+				$this->assertSame( 1, $f->count );
+			}
+		}
+
+		$found = get_terms(
+			'wptests_tax_1',
+			array(
+				'pad_counts' => true,
+			)
+		);
+
+		$this->assertSameSets( array( $t1, $t2, $t3 ), wp_list_pluck( $found, 'term_id' ) );
+
+		foreach ( $found as $f ) {
+			if ( $t1 === $f->term_id ) {
+				$this->assertSame( 3, $f->count );
+			} elseif ( $t2 === $f->term_id ) {
+				$this->assertSame( 2, $f->count );
+			} else {
+				$this->assertSame( 1, $f->count );
+			}
+		}
+	}
+
+	/**
 	 * @ticket 20635
 	 */
 	public function test_pad_counts_should_not_recurse_infinitely_when_term_hierarchy_has_a_loop() {
@@ -3117,17 +3186,6 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				array(
 					'taxonomy' => self::$taxonomy,
 					'fields'   => 'slugs',
-				),
-			),
-			'meta cache off, pad count on  vs meta cache on, pad count off' => array(
-				array(
-					'taxonomy'               => self::$taxonomy,
-					'pad_counts'             => true,
-					'update_term_meta_cache' => false,
-				),
-				array(
-					'taxonomy' => self::$taxonomy,
-					'fields'   => 'ids',
 				),
 			),
 			'array slug vs string slug'                => array(

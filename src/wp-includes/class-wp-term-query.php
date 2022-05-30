@@ -770,7 +770,7 @@ class WP_Term_Query {
 		// $args can be anything. Only use the args defined in defaults to compute the key.
 		$cache_args = wp_array_slice_assoc( $args, array_keys( $this->query_var_defaults ) );
 
-		unset( $cache_args['pad_counts'], $cache_args['update_term_meta_cache'] );
+		unset( $cache_args['update_term_meta_cache'] );
 
 		if ( 'count' !== $_fields && 'all_with_object_id' !== $_fields ) {
 			$cache_args['fields'] = 'all';
@@ -785,7 +785,7 @@ class WP_Term_Query {
 			if ( 'ids' === $_fields ) {
 				$cache = array_map( 'intval', $cache );
 			} elseif ( 'count' !== $_fields ) {
-				if ( 'all_with_object_id' === $_fields && ! empty( $args['object_ids'] ) ) {
+				if ( ( 'all_with_object_id' === $_fields && ! empty( $args['object_ids'] ) ) || ( 'all' === $_fields && $args['pad_counts'] ) ) {
 					$term_ids = wp_list_pluck( $cache, 'term_id' );
 				} else {
 					$term_ids = array_map( 'intval', $cache );
@@ -867,8 +867,25 @@ class WP_Term_Query {
 			update_termmeta_cache( $term_ids );
 		}
 
-		$cache_type = ( 'all_with_object_id' === $_fields && ! empty( $args['object_ids'] ) ) ? 'id_with_object_id' : 'ids';
-		$term_cache = $this->format_terms( $term_objects, $cache_type );
+		if ( 'all_with_object_id' === $_fields && ! empty( $args['object_ids'] ) ) {
+			$term_cache = array();
+			foreach ( $term_objects as $term ) {
+				$object            = new stdClass();
+				$object->term_id   = $term->term_id;
+				$object->object_id = $term->object_id;
+				$term_cache[]      = $object;
+			}
+		} elseif ( 'all' === $_fields && $args['pad_counts'] ) {
+			$term_cache = array();
+			foreach ( $term_objects as $term ) {
+				$object          = new stdClass();
+				$object->term_id = $term->term_id;
+				$object->count   = $term->count;
+				$term_cache[]    = $object;
+			}
+		} else {
+			$term_cache = wp_list_pluck( $term_objects, 'term_id' );
+		}
 		wp_cache_add( $cache_key, $term_cache, 'terms' );
 		$this->terms = $this->format_terms( $term_objects, $_fields );
 
@@ -969,13 +986,6 @@ class WP_Term_Query {
 		} elseif ( 'id=>name' === $_fields ) {
 			foreach ( $term_objects as $term ) {
 				$_terms[ $term->term_id ] = $term->name;
-			}
-		} elseif ( 'id_with_object_id' === $_fields ) {
-			foreach ( $term_objects as $term ) {
-				$object            = new stdClass();
-				$object->term_id   = $term->term_id;
-				$object->object_id = $term->object_id;
-				$_terms[]          = $object;
 			}
 		} elseif ( 'id=>slug' === $_fields ) {
 			foreach ( $term_objects as $term ) {
@@ -1106,6 +1116,9 @@ class WP_Term_Query {
 				$term = get_term( $term_data->term_id );
 				if ( property_exists( $term_data, 'object_id' ) ) {
 					$term->object_id = (int) $term_data->object_id;
+				}
+				if ( property_exists( $term_data, 'count' ) ) {
+					$term->count = (int) $term_data->count;
 				}
 			} else {
 				$term = get_term( $term_data );
