@@ -290,12 +290,25 @@ function media_send_to_editor( $html ) {
  * @return int|WP_Error ID of the attachment or a WP_Error object on failure.
  */
 function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrides = array( 'test_form' => false ) ) {
-	$time = current_time( 'mysql' );
-	$post = get_post( $post_id );
+	$time                = current_time( 'mysql' );
+	$post                = get_post( $post_id );
+	$has_valid_post_date = $post && substr( $post->post_date, 0, 4 ) > 0;
 
-	if ( $post ) {
-		// The post date doesn't usually matter for pages, so don't backdate this upload.
-		if ( 'page' !== $post->post_type && substr( $post->post_date, 0, 4 ) > 0 ) {
+	// The post date doesn't usually matter for pages, so don't backdate this upload.
+	if ( $has_valid_post_date && 'page' !== $post->post_type ) {
+		/**
+		 * Filters whether an uploaded file should be backdated.
+		 *
+		 * This could be useful for "regular" posts, but some users might want to disable this feature
+		 * for custom post type entities.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param bool         $should_backdate_media_upload Whether the uploaded file should be backdated. Default true.
+		 * @param WP_Post|null $post                         Post entity.
+		 * @param string       $file                         Index of the `$_FILES` array that the file was sent.
+		 */
+		if ( apply_filters( 'should_backdate_media_upload', true, $post, $file_id ) ) {
 			$time = $post->post_date;
 		}
 	}

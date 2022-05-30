@@ -10,6 +10,16 @@ class Tests_Media extends WP_UnitTestCase {
 	protected static $large_filename = 'test-image-large.jpg';
 	protected static $post_ids;
 
+	/**
+	 * @var int|null Post ID.
+	 */
+	private $post_id;
+
+	/**
+	 * @var int|null Attachment ID.
+	 */
+	private $attachment_id;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$_sizes                          = wp_get_additional_image_sizes();
 		$GLOBALS['_wp_additional_image_sizes'] = array();
@@ -74,6 +84,20 @@ CAP;
 			'height' => 100,
 			'sizes'  => '',
 		);
+	}
+
+	public function tear_down() {
+		if ( $this->attachment_id ) {
+			wp_delete_attachment( $this->attachment_id );
+			$this->attachment_id = null;
+		}
+
+		if ( $this->post_id ) {
+			wp_delete_post( $this->post_id );
+			$this->post_id = null;
+		}
+
+		parent::tear_down();
 	}
 
 	public function test_img_caption_shortcode_added() {
@@ -1274,6 +1298,8 @@ VIDEO;
 
 	/**
 	 * @ticket 22768
+	 *
+	 * @covers ::media_handle_upload
 	 */
 	public function test_media_handle_upload_sets_post_excerpt() {
 		$iptc_file = DIR_TESTDATA . '/images/test-image-iptc.jpg';
@@ -1291,7 +1317,7 @@ VIDEO;
 			'size'     => filesize( $iptc_file ),
 		);
 
-		$post_id = media_handle_upload(
+		$this->attachment_id = media_handle_upload(
 			'upload',
 			0,
 			array(),
@@ -1303,16 +1329,15 @@ VIDEO;
 
 		unset( $_FILES['upload'] );
 
-		$post = get_post( $post_id );
+		$attachment = get_post( $this->attachment_id );
 
-		// Clean up.
-		wp_delete_attachment( $post_id );
-
-		$this->assertSame( 'This is a comment. / Это комментарий. / Βλέπετε ένα σχόλιο.', $post->post_excerpt );
+		$this->assertSame( 'This is a comment. / Это комментарий. / Βλέπετε ένα σχόλιο.', $attachment->post_excerpt );
 	}
 
 	/**
 	 * @ticket 37989
+	 *
+	 * @covers ::media_handle_upload
 	 */
 	public function test_media_handle_upload_expected_titles() {
 		$test_file = DIR_TESTDATA . '/images/test-image.jpg';
@@ -1330,7 +1355,7 @@ VIDEO;
 			'size'     => filesize( $test_file ),
 		);
 
-		$post_id = media_handle_upload(
+		$this->attachment_id = media_handle_upload(
 			'upload',
 			0,
 			array(),
@@ -1342,12 +1367,9 @@ VIDEO;
 
 		unset( $_FILES['upload'] );
 
-		$post = get_post( $post_id );
+		$attachment = get_post( $this->attachment_id );
 
-		// Clean up.
-		wp_delete_attachment( $post_id );
-
-		$this->assertSame( 'This is a test', $post->post_title );
+		$this->assertSame( 'This is a test', $attachment->post_title );
 	}
 
 	/**
@@ -1682,10 +1704,10 @@ EOF;
 		add_filter( 'upload_dir', '_upload_dir_no_subdir' );
 
 		// Make an image.
-		$filename = DIR_TESTDATA . '/images/' . self::$large_filename;
-		$id       = self::factory()->attachment->create_upload_object( $filename );
+		$filename            = DIR_TESTDATA . '/images/' . self::$large_filename;
+		$this->attachment_id = self::factory()->attachment->create_upload_object( $filename );
 
-		$image_meta      = wp_get_attachment_metadata( $id );
+		$image_meta      = wp_get_attachment_metadata( $this->attachment_id );
 		$uploads_dir_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/';
 
 		// Set up test cases for all expected size names.
@@ -1710,7 +1732,7 @@ EOF;
 
 		foreach ( $intermediates as $int ) {
 			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int );
-			$image_url  = wp_get_attachment_image_url( $id, $int );
+			$image_url  = wp_get_attachment_image_url( $this->attachment_id, $int );
 
 			if ( 'full' === $int ) {
 				// Add the full size image. Expected to be in the srcset when the full size image is used as src.
@@ -1723,8 +1745,6 @@ EOF;
 			$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 		}
 
-		// Remove the attachment.
-		wp_delete_attachment( $id );
 		remove_filter( 'upload_dir', '_upload_dir_no_subdir' );
 	}
 
@@ -2780,55 +2800,59 @@ EOF;
 	}
 
 	/**
-	 * @ticket 10752
+	 *
+	 * @param string $tag_name Tag name.
+	 * @param bool   $expected Expected return value.
 	 */
-	public function test_media_handle_upload_uses_post_parent_for_directory_date() {
-		$iptc_file = DIR_TESTDATA . '/images/test-image-iptc.jpg';
-
-		// Make a copy of this file as it gets moved during the file upload.
-		$tmp_name = wp_tempnam( $iptc_file );
-
-		copy( $iptc_file, $tmp_name );
-
-		$_FILES['upload'] = array(
-			'tmp_name' => $tmp_name,
-			'name'     => 'test-image-iptc.jpg',
-			'type'     => 'image/jpeg',
-			'error'    => 0,
-			'size'     => filesize( $iptc_file ),
+	public function data_media_handle_upload_correctly_calculates_upload_date() {
+		return array(
+			'page === post_type, callback returns false'  => array(
+				'post_type'          => 'page',
+				'should_backdate'    => true,
+				'dates_should_match' => true,
+			),
+			'page === post_type, callback returns true'   => array(
+				'post_type'          => 'page',
+				'should_backdate'    => false,
+				'dates_should_match' => true,
+			),
+			'page === post_type, no callback'             => array(
+				'post_type'          => 'page',
+				'should_backdate'    => null,
+				'dates_should_match' => true,
+			),
+			'custom_post_type === post_type, callback returns false' => array(
+				'post_type'          => 'custom_post_type',
+				'should_backdate'    => false,
+				'dates_should_match' => true,
+			),
+			'custom_post_type === post_type, callback returns true' => array(
+				'post_type'          => 'custom_post_type',
+				'should_backdate'    => true,
+				'dates_should_match' => false,
+			),
+			'custom_post_type === post_type, no callback' => array(
+				'post_type'          => 'custom_post_type',
+				'should_backdate'    => null,
+				'dates_should_match' => false,
+			),
 		);
-
-		$parent_id = self::factory()->post->create( array( 'post_date' => '2010-01-01' ) );
-
-		$post_id = media_handle_upload(
-			'upload',
-			$parent_id,
-			array(),
-			array(
-				'action'    => 'test_iptc_upload',
-				'test_form' => false,
-			)
-		);
-
-		unset( $_FILES['upload'] );
-
-		$url = wp_get_attachment_url( $post_id );
-
-		$uploads_dir = wp_upload_dir( '2010/01' );
-
-		$expected = $uploads_dir['url'] . '/test-image-iptc.jpg';
-
-		// Clean up.
-		wp_delete_attachment( $post_id );
-		wp_delete_post( $parent_id );
-
-		$this->assertSame( $expected, $url );
 	}
 
 	/**
+	 *
 	 * @ticket 10752
+	 * @ticket 47726
+	 *
+	 * @covers ::media_handle_upload
+	 * @dataProvider data_media_handle_upload_correctly_calculates_upload_date
+	 * @param string $post_type Post type.
+	 * @param bool|null $should_backdate Whether the date of the uploaded file should be backdated.
+	 * @param bool $dates_should_match Whether the date of the post and the current date should match.
+	 *
+	 * @return void
 	 */
-	public function test_media_handle_upload_ignores_page_parent_for_directory_date() {
+	public function test_media_handle_upload_correctly_calculates_upload_date( $post_type, $should_backdate, $dates_should_match ) {
 		$iptc_file = DIR_TESTDATA . '/images/test-image-iptc.jpg';
 
 		// Make a copy of this file as it gets moved during the file upload.
@@ -2844,17 +2868,31 @@ EOF;
 			'size'     => filesize( $iptc_file ),
 		);
 
-		$parent_id = self::factory()->post->create(
+		$now            = new DateTimeImmutable( 'now', wp_timezone() );
+		$number_of_days = mt_rand( 40, 3650 );
+		$post_date      = $now->modify( "-{$number_of_days} days" );
+
+		$this->post_id = self::factory()->post->create(
 			array(
-				'post_date' => '2010-01-01',
-				'post_type' => 'page',
+				'post_date' => $post_date->format( 'Y-m-d' ),
+				'post_type' => $post_type,
 			)
 		);
-		$parent    = get_post( $parent_id );
 
-		$post_id = media_handle_upload(
+		if ( null !== $should_backdate ) {
+			add_filter(
+				'should_backdate_media_upload',
+				function( $value, $post, $file_id ) use ( $should_backdate ) {
+					return $should_backdate;
+				},
+				10,
+				3
+			);
+		}
+
+		$this->attachment_id = media_handle_upload(
 			'upload',
-			$parent_id,
+			$this->post_id,
 			array(),
 			array(
 				'action'    => 'test_iptc_upload',
@@ -2862,19 +2900,19 @@ EOF;
 			)
 		);
 
+		if ( null !== $should_backdate ) {
+			remove_all_filters( 'should_backdate_media_upload' );
+		}
+
 		unset( $_FILES['upload'] );
 
-		$url = wp_get_attachment_url( $post_id );
+		$actual_url = wp_get_attachment_url( $this->attachment_id );
 
-		$uploads_dir = wp_upload_dir( current_time( 'mysql' ) );
+		$expected_time             = $dates_should_match ? $now : $post_date;
+		$expected_upload_directory = wp_upload_dir( $expected_time->format( 'Y-m-d H:i:s' ) );
+		$expected_url              = $expected_upload_directory['url'] . '/test-image-iptc.jpg';
 
-		$expected = $uploads_dir['url'] . '/test-image-iptc.jpg';
-
-		// Clean up.
-		wp_delete_attachment( $post_id );
-		wp_delete_post( $parent_id );
-
-		$this->assertSame( $expected, $url );
+		$this->assertSame( $expected_url, $actual_url, 'Expected and actual date of the uploaded file must match.' );
 	}
 
 	/**
