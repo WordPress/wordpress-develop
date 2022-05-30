@@ -763,7 +763,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		$terms2 = get_terms( 'category', $args );
 		$this->assertCount( 1, $terms2, 'Check count on cached response' );
-		$this->assertSame( $terms, $terms2, 'Results are the same after caching' );
+		$this->assertSameSets( $terms, $terms2, 'Results are the same after caching' );
 	}
 
 	/**
@@ -2646,15 +2646,15 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSameSets( array( $t1, $t2, $t3 ), wp_list_pluck( $found, 'term_id' ) );
+		$this->assertSameSets( array( $t1, $t2, $t3 ), wp_list_pluck( $found, 'term_id' ), 'Check to see if results are as expected' );
 
 		foreach ( $found as $f ) {
 			if ( $t1 === $f->term_id ) {
-				$this->assertSame( 3, $f->count );
+				$this->assertSame( 3, $f->count, 'Check to see if term 1, has the correct count' );
 			} elseif ( $t2 === $f->term_id ) {
-				$this->assertSame( 2, $f->count );
+				$this->assertSame( 2, $f->count, 'Check to see if term 2, has the correct count' );
 			} else {
-				$this->assertSame( 1, $f->count );
+				$this->assertSame( 1, $f->count, 'Check to see if term 3, has the correct count' );
 			}
 		}
 
@@ -2665,15 +2665,15 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSameSets( array( $t1, $t2, $t3 ), wp_list_pluck( $found, 'term_id' ) );
+		$this->assertSameSets( array( $t1, $t2, $t3 ), wp_list_pluck( $found, 'term_id' ), 'Check to see if results are as expected on second run' );
 
 		foreach ( $found as $f ) {
 			if ( $t1 === $f->term_id ) {
-				$this->assertSame( 3, $f->count );
+				$this->assertSame( 3, $f->count, 'Check to see if term 1, has the correct count on second run' );
 			} elseif ( $t2 === $f->term_id ) {
-				$this->assertSame( 2, $f->count );
+				$this->assertSame( 2, $f->count, 'Check to see if term 2, has the correct count on second run' );
 			} else {
-				$this->assertSame( 1, $f->count );
+				$this->assertSame( 1, $f->count, 'Check to see if term 3, has the correct count on second run' );
 			}
 		}
 	}
