@@ -14,6 +14,7 @@ class Tests_Ajax_Attachments extends WP_Ajax_UnitTestCase {
 	 * @ticket 36578
 	 *
 	 * @covers ::wp_ajax_send_attachment_to_editor
+	 * @covers ::get_image_send_to_editor
 	 */
 	public function test_wp_ajax_send_attachment_to_editor_should_return_an_image() {
 		// Become an administrator.
