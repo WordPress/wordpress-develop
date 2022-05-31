@@ -188,4 +188,42 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		$resolved_template_path = locate_block_template( '', 'search', array() );
 		$this->assertSame( '', $resolved_template_path );
 	}
+
+	/**
+	 * Covers: https://github.com/WordPress/gutenberg/pull/38817.
+	 *
+	 * @ticket 55505
+	 */
+	public function test_resolve_home_block_template_default_hierarchy() {
+		$template = _resolve_home_block_template();
+
+		$this->assertSame( 'wp_template', $template['postType'] );
+		$this->assertSame( get_stylesheet() . '//index', $template['postId'] );
+	}
+
+	/**
+	 * @ticket 55505
+	 */
+	public function test_resolve_home_block_template_static_homepage() {
+		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $post_id );
+
+		$template = _resolve_home_block_template();
+
+		$this->assertSame( 'page', $template['postType'] );
+		$this->assertSame( $post_id, $template['postId'] );
+
+		delete_option( 'show_on_front', 'page' );
+	}
+
+	/**
+	 * @ticket 55505
+	 */
+	public function test_resolve_home_block_template_no_resolution() {
+		switch_theme( 'stylesheetonly' );
+		$template = _resolve_home_block_template();
+
+		$this->assertNull( $template );
+	}
 }

@@ -715,7 +715,7 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
 			wp_die( __( 'Sorry, that file cannot be edited.' ) );
 
 			// case 2 :
-			// wp_die( __('Sorry, can&#8217;t call files with their real path.' ));
+			// wp_die( __('Sorry, cannot call files with their real path.' ));
 
 		case 3:
 			wp_die( __( 'Sorry, that file cannot be edited.' ) );
@@ -1385,7 +1385,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 				'<span class="code">' . esc_html( $filename_for_errors ) . '</span>'
 			),
 			array(
-				'php'    => phpversion(),
+				'php'    => PHP_VERSION,
 				'sodium' => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
 			)
 		);
@@ -1420,7 +1420,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 					'<span class="code">' . esc_html( $filename_for_errors ) . '</span>'
 				),
 				array(
-					'php'                => phpversion(),
+					'php'                => PHP_VERSION,
 					'sodium'             => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
 					'polyfill_is_fast'   => false,
 					'max_execution_time' => ini_get( 'max_execution_time' ),
@@ -1493,7 +1493,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 			'hash'        => bin2hex( $file_hash ),
 			'skipped_key' => $skipped_key,
 			'skipped_sig' => $skipped_signature,
-			'php'         => phpversion(),
+			'php'         => PHP_VERSION,
 			'sodium'      => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
 		)
 	);
@@ -2146,7 +2146,7 @@ function get_filesystem_method( $args = array(), $context = '', $allow_relaxed_f
  * @since 2.5.0
  * @since 4.6.0 The `$context` parameter default changed from `false` to an empty string.
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  *
  * @param string        $form_post                    The URL to post the form to.
  * @param string        $type                         Optional. Chosen type of filesystem. Default empty.

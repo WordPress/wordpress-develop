@@ -253,6 +253,23 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 55513
+	 */
+	public function test_success_register_block_script_handle_in_theme() {
+		switch_theme( 'block-theme' );
+
+		$metadata = array(
+			'file'       => wp_normalize_path( get_theme_file_path( 'blocks/example-block/block.json' ) ),
+			'name'       => 'block-theme/example-block',
+			'viewScript' => 'file:./view.js',
+		);
+		$result   = register_block_script_handle( $metadata, 'viewScript' );
+
+		$expected_script_handle = 'block-theme-example-block-view-script';
+		$this->assertSame( $expected_script_handle, $result );
+	}
+
+	/**
 	 * @ticket 50263
 	 */
 	public function test_field_not_found_register_block_style_handle() {
@@ -303,6 +320,24 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block.css' ) ),
 			wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-style', 'path' ) )
 		);
+	}
+
+	/**
+	 * @ticket 55513
+	 */
+	public function test_success_register_block_style_handle_in_theme() {
+		switch_theme( 'block-theme' );
+
+		$metadata = array(
+			'file'        => wp_normalize_path( get_theme_file_path( 'blocks/example-block/block.json' ) ),
+			'name'        => 'block-theme/example-block',
+			'editorStyle' => 'file:./editor-style.css',
+		);
+		$result   = register_block_style_handle( $metadata, 'editorStyle' );
+
+		$expected_style_handle = 'block-theme-example-block-editor-style';
+		$this->assertSame( $expected_style_handle, $result );
+		$this->assertSame( 'replace', wp_styles()->get_data( $expected_style_handle, 'rtl' ) );
 	}
 
 	/**
@@ -357,6 +392,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 					'source'   => 'html',
 					'selector' => '.message',
 				),
+				'lock'    => array( 'type' => 'object' ),
 			),
 			$result->attributes
 		);

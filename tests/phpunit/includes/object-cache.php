@@ -803,7 +803,7 @@ class WP_Object_Cache {
 	 *
 	 * @var array
 	 */
-	public $no_mc_groups = array( 'comment', 'counts' );
+	public $no_mc_groups = array( 'counts' );
 
 	/**
 	 * Prefix used for global groups.
