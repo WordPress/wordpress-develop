@@ -517,6 +517,54 @@ function wp_get_post_revisions( $post_id = 0, $args = null ) {
 }
 
 /**
+ * Returns last revisions of specified post and count of total revisions.
+ *
+ * @since 6.1.0
+ *
+ * @param int|WP_Post $post_id Optional. Post ID or WP_Post object. Default is global `$post`.
+ * @return array {
+ *     Returns associative array with last revision and total count.
+ *
+ *     @type int $last_revision The last revision post id.
+ *     @type int $count The total count of revisions for $post_id.
+ * }
+ */
+function wp_get_last_post_revision_id_and_count( $post_id = 0 ) {
+	$post = get_post( $post_id );
+	if ( ! $post || empty( $post->ID ) ) {
+		return array();
+	}
+
+	if ( ! wp_revisions_enabled( $post ) ) {
+		return array();
+	}
+
+	$args = array(
+		'post_parent'            => $post_id,
+		'fields'                 => 'ids',
+		'post_type'              => 'revision',
+		'post_status'            => 'inherit',
+		'order'                  => 'DESC',
+		'orderby'                => 'date ID',
+		'posts_per_page'         => 1,
+		'update_post_meta_cache' => false,
+		'update_post_term_cache' => false,
+	);
+
+	$get_last_revision = new WP_Query();
+	$last_revision     = $get_last_revision->query( $args );
+
+	if ( ! $last_revision ) {
+		return array();
+	}
+
+	return array(
+		'last_revision' => $last_revision[0],
+		'count'         => $get_last_revision->found_posts,
+	);
+}
+
+/**
  * Returns the url for viewing and potentially restoring revisions of a given post.
  *
  * @since 5.9.0
