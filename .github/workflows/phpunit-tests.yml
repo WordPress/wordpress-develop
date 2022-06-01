@@ -132,7 +132,7 @@ jobs:
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Cache Composer dependencies
-        uses: actions/cache@136d96b4aee02b1f0de3ba493b1d47135042d9c0 # v3.0.1
+        uses: actions/cache@30f413bfed0a2bc738fdfd409e5a9e96b24545fd # v3.0.1
         env:
           cache-name: cache-composer-dependencies
         with:
