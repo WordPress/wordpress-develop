@@ -3154,7 +3154,16 @@ function feed_links_extra( $args = array() ) {
 		$post = get_post( $id );
 
 		/** This filter is documented in wp-includes/general-template.php */
-		$show_comments_feed = apply_filters( 'feed_links_show_comments_feed', true );
+		$show_global_comments_feed = apply_filters( 'feed_links_show_comments_feed', true );
+
+		/**
+		 * Filters whether to display the post comments feed link.
+		 *
+		 * @since 6.2.0
+		 *
+		 * @param bool $show Whether to display the post comments feed link. Default to the output of the `feed_links_show_comments_feed` filter.
+		 */
+		$show_comments_feed = apply_filters( 'feed_links_show_post_comments_feed', $show_global_comments_feed );
 
 		if ( $show_comments_feed && ( comments_open() || pings_open() || $post->comment_count > 0 ) ) {
 			$title     = sprintf( $args['singletitle'], get_bloginfo( 'name' ), $args['separator'], the_title_attribute( array( 'echo' => false ) ) );
@@ -3165,44 +3174,110 @@ function feed_links_extra( $args = array() ) {
 			}
 		}
 	} elseif ( is_post_type_archive() ) {
-		$post_type = get_query_var( 'post_type' );
-		if ( is_array( $post_type ) ) {
-			$post_type = reset( $post_type );
+		/**
+		 * Filters whether to display the post type archive feed link.
+		 *
+		 * @since 6.2.0
+		 *
+		 * @param bool $show Whether to display the post type archive feed link. Default true.
+		 */
+		$show_post_type_archive_feed = apply_filters( 'feed_links_show_post_type_archive_feed', true );
+
+		if ( $show_post_type_archive_feed ) {
+			$post_type = get_query_var( 'post_type' );
+			if ( is_array( $post_type ) ) {
+				$post_type = reset( $post_type );
+			}
+
+			$post_type_obj = get_post_type_object( $post_type );
+			$title         = sprintf( $args['posttypetitle'], get_bloginfo( 'name' ), $args['separator'], $post_type_obj->labels->name );
+			$href          = get_post_type_archive_feed_link( $post_type_obj->name );
 		}
-
-		$post_type_obj = get_post_type_object( $post_type );
-		$title         = sprintf( $args['posttypetitle'], get_bloginfo( 'name' ), $args['separator'], $post_type_obj->labels->name );
-		$href          = get_post_type_archive_feed_link( $post_type_obj->name );
 	} elseif ( is_category() ) {
-		$term = get_queried_object();
+		/**
+		 * Filters whether to display the category feed link.
+		 *
+		 * @since 6.2.0
+		 *
+		 * @param bool $show Whether to display the category feed link. Default true.
+		 */
+		$show_category_feed = apply_filters( 'feed_links_show_category_feed', true );
 
-		if ( $term ) {
-			$title = sprintf( $args['cattitle'], get_bloginfo( 'name' ), $args['separator'], $term->name );
-			$href  = get_category_feed_link( $term->term_id );
+		if ( $show_category_feed ) {
+			$term = get_queried_object();
+
+			if ( $term ) {
+				$title = sprintf( $args['cattitle'], get_bloginfo( 'name' ), $args['separator'], $term->name );
+				$href  = get_category_feed_link( $term->term_id );
+			}
 		}
 	} elseif ( is_tag() ) {
-		$term = get_queried_object();
+		/**
+		 * Filters whether to display the tag feed link.
+		 *
+		 * @since 6.2.0
+		 *
+		 * @param bool $show Whether to display the tag feed link. Default true.
+		 */
+		$show_tag_feed = apply_filters( 'feed_links_show_tag_feed', true );
 
-		if ( $term ) {
-			$title = sprintf( $args['tagtitle'], get_bloginfo( 'name' ), $args['separator'], $term->name );
-			$href  = get_tag_feed_link( $term->term_id );
+		if ( $show_tag_feed ) {
+			$term = get_queried_object();
+
+			if ( $term ) {
+				$title = sprintf( $args['tagtitle'], get_bloginfo( 'name' ), $args['separator'], $term->name );
+				$href  = get_tag_feed_link( $term->term_id );
+			}
 		}
 	} elseif ( is_tax() ) {
-		$term = get_queried_object();
+		/**
+		 * Filters whether to display the custom taxonomy feed link.
+		 *
+		 * @since 6.2.0
+		 *
+		 * @param bool $show Whether to display the custom taxonomy feed link. Default true.
+		 */
+		$show_tax_feed = apply_filters( 'feed_links_show_tax_feed', true );
 
-		if ( $term ) {
-			$tax   = get_taxonomy( $term->taxonomy );
-			$title = sprintf( $args['taxtitle'], get_bloginfo( 'name' ), $args['separator'], $term->name, $tax->labels->singular_name );
-			$href  = get_term_feed_link( $term->term_id, $term->taxonomy );
+		if ( $show_tax_feed ) {
+			$term = get_queried_object();
+
+			if ( $term ) {
+				$tax   = get_taxonomy( $term->taxonomy );
+				$title = sprintf( $args['taxtitle'], get_bloginfo( 'name' ), $args['separator'], $term->name, $tax->labels->singular_name );
+				$href  = get_term_feed_link( $term->term_id, $term->taxonomy );
+			}
 		}
 	} elseif ( is_author() ) {
-		$author_id = (int) get_query_var( 'author' );
+		/**
+		 * Filters whether to display the author feed link.
+		 *
+		 * @since 6.2.0
+		 *
+		 * @param bool $show Whether to display the author feed link. Default true.
+		 */
+		$show_author_feed = apply_filters( 'feed_links_show_author_feed', true );
 
-		$title = sprintf( $args['authortitle'], get_bloginfo( 'name' ), $args['separator'], get_the_author_meta( 'display_name', $author_id ) );
-		$href  = get_author_feed_link( $author_id );
+		if ( $show_author_feed ) {
+			$author_id = (int) get_query_var( 'author' );
+
+			$title = sprintf( $args['authortitle'], get_bloginfo( 'name' ), $args['separator'], get_the_author_meta( 'display_name', $author_id ) );
+			$href  = get_author_feed_link( $author_id );
+		}
 	} elseif ( is_search() ) {
-		$title = sprintf( $args['searchtitle'], get_bloginfo( 'name' ), $args['separator'], get_search_query( false ) );
-		$href  = get_search_feed_link();
+		/**
+		 * Filters whether to display the search results feed link.
+		 *
+		 * @since 6.2.0
+		 *
+		 * @param bool $show Whether to display the search results feed link. Default true.
+		 */
+		$show_search_feed = apply_filters( 'feed_links_show_search_feed', true );
+
+		if ( $show_search_feed ) {
+			$title = sprintf( $args['searchtitle'], get_bloginfo( 'name' ), $args['separator'], get_search_query( false ) );
+			$href  = get_search_feed_link();
+		}
 	}
 
 	if ( isset( $title ) && isset( $href ) ) {
