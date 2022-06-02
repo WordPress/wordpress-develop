@@ -38,6 +38,9 @@ class Tests_Functions_IsSerialized extends WP_UnitTestCase {
 
 			// Okay.
 			array( 'N;', true ),
+
+			// Enum.
+			array( 'E:7:"Foo:bar";', true ),
 		);
 	}
 
