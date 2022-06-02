@@ -130,8 +130,9 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests path_join.
+	 * Tests path_join().
 	 *
+	 * @ticket 55897
 	 * @dataProvider path_join_data_provider
 	 */
 	public function test_path_join( $base, $path, $expected ) {
@@ -139,19 +140,19 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_path_join_not_absolute.
+	 * Data provider for test_path_join().
 	 *
 	 * @return string[][]
 	 */
 	public function path_join_data_provider() {
 		return array(
-			// absolute path
+			// Absolute path.
 			'absolute path should return path' => array(
 				'base'     => 'base',
 				'path'     => '/path',
 				'expected' => '/path',
 			),
-			// non-absolute paths
+			// Non-absolute paths.
 			'join base and path'               => array(
 				'base'     => 'base',
 				'path'     => 'path',
