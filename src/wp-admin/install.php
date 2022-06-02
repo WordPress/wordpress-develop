@@ -197,7 +197,7 @@ function display_setup_form( $error = null ) {
 					} else {
 						$checked = '';
 						if ( isset( $_POST['blog_public'] ) && $blog_public ) {
-							$checked = checked( 0, $blog_public, false );
+							$checked = checked( 1, $blog_public, false );
 						}
 						?>
 						<label for="blog_public"><input name="blog_public" type="checkbox" id="blog_public" value="0" <?php echo $checked; ?> />
