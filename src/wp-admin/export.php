@@ -15,6 +15,8 @@ if ( ! current_user_can( 'export' ) ) {
 
 /** Load WordPress export API */
 require_once ABSPATH . 'wp-admin/includes/export.php';
+
+// Used in the HTML title tag.
 $title = __( 'Export' );
 
 /**
@@ -25,7 +27,7 @@ $title = __( 'Export' );
 function export_add_js() {
 	?>
 <script type="text/javascript">
-	jQuery(document).ready(function($){
+	jQuery( function($) {
 		var form = $('#export-filters'),
 			filters = form.find('.export-filters');
 		filters.hide();
@@ -37,7 +39,7 @@ function export_add_js() {
 				case 'pages': $('#page-filters').slideDown(); break;
 			}
 		});
-	});
+	} );
 </script>
 	<?php
 }
@@ -169,7 +171,7 @@ function export_date_options( $post_type = 'post' ) {
 <h1><?php echo esc_html( $title ); ?></h1>
 
 <p><?php _e( 'When you click the button below WordPress will create an XML file for you to save to your computer.' ); ?></p>
-<p><?php _e( 'This format, which we call WordPress eXtended RSS or WXR, will contain your posts, pages, comments, custom fields, categories, and tags.' ); ?></p>
+<p><?php _e( 'This format, which is called WordPress eXtended RSS or WXR, will contain your posts, pages, comments, custom fields, categories, and tags.' ); ?></p>
 <p><?php _e( 'Once you&#8217;ve saved the download file, you can use the Import function in another WordPress installation to import the content from this site.' ); ?></p>
 
 <h2><?php _e( 'Choose what to export' ); ?></h2>

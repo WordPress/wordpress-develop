@@ -169,7 +169,7 @@ function export_wp( $args = array() ) {
 
 		// Put categories in order with no child going before its parent.
 		while ( $cat = array_shift( $categories ) ) {
-			if ( 0 == $cat->parent || isset( $cats[ $cat->parent ] ) ) {
+			if ( ! $cat->parent || isset( $cats[ $cat->parent ] ) ) {
 				$cats[ $cat->term_id ] = $cat;
 			} else {
 				$categories[] = $cat;
@@ -178,7 +178,7 @@ function export_wp( $args = array() ) {
 
 		// Put terms in order with no child going before its parent.
 		while ( $t = array_shift( $custom_terms ) ) {
-			if ( 0 == $t->parent || isset( $terms[ $t->parent ] ) ) {
+			if ( ! $t->parent || isset( $terms[ $t->parent ] ) ) {
 				$terms[ $t->term_id ] = $t;
 			} else {
 				$custom_terms[] = $t;
@@ -542,8 +542,14 @@ function export_wp( $args = array() ) {
 			foreach ( $posts as $post ) {
 				setup_postdata( $post );
 
-				/** This filter is documented in wp-includes/feed.php */
-				$title = apply_filters( 'the_title_rss', $post->post_title );
+				/**
+				 * Filters the post title used for WXR exports.
+				 *
+				 * @since 5.7.0
+				 *
+				 * @param string $post_title Title of the current post.
+				 */
+				$title = wxr_cdata( apply_filters( 'the_title_export', $post->post_title ) );
 
 				/**
 				 * Filters the post content used for WXR exports.
@@ -626,7 +632,7 @@ function export_wp( $args = array() ) {
 			<wp:comment_id><?php echo (int) $c->comment_ID; ?></wp:comment_id>
 			<wp:comment_author><?php echo wxr_cdata( $c->comment_author ); ?></wp:comment_author>
 			<wp:comment_author_email><?php echo wxr_cdata( $c->comment_author_email ); ?></wp:comment_author_email>
-			<wp:comment_author_url><?php echo esc_url_raw( $c->comment_author_url ); ?></wp:comment_author_url>
+			<wp:comment_author_url><?php echo sanitize_url( $c->comment_author_url ); ?></wp:comment_author_url>
 			<wp:comment_author_IP><?php echo wxr_cdata( $c->comment_author_IP ); ?></wp:comment_author_IP>
 			<wp:comment_date><?php echo wxr_cdata( $c->comment_date ); ?></wp:comment_date>
 			<wp:comment_date_gmt><?php echo wxr_cdata( $c->comment_date_gmt ); ?></wp:comment_date_gmt>

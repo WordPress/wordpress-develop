@@ -5,8 +5,9 @@
  * Test the add_filter method of WP_Hook
  *
  * @group hooks
+ * @covers WP_Hook::add_filter
  */
-class Tests_WP_Hook_Add_Filter extends WP_UnitTestCase {
+class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 
 	public $hook;
 
@@ -14,8 +15,8 @@ class Tests_WP_Hook_Add_Filter extends WP_UnitTestCase {
 		$callback      = '__return_null';
 		$hook          = new WP_Hook();
 		$tag           = __FUNCTION__;
-		$priority      = rand( 1, 100 );
-		$accepted_args = rand( 1, 100 );
+		$priority      = 1;
+		$accepted_args = 2;
 
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
 
@@ -29,8 +30,8 @@ class Tests_WP_Hook_Add_Filter extends WP_UnitTestCase {
 		$callback      = array( $a, 'action' );
 		$hook          = new WP_Hook();
 		$tag           = __FUNCTION__;
-		$priority      = rand( 1, 100 );
-		$accepted_args = rand( 1, 100 );
+		$priority      = 1;
+		$accepted_args = 2;
 
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
 
@@ -43,8 +44,8 @@ class Tests_WP_Hook_Add_Filter extends WP_UnitTestCase {
 		$callback      = array( 'MockAction', 'action' );
 		$hook          = new WP_Hook();
 		$tag           = __FUNCTION__;
-		$priority      = rand( 1, 100 );
-		$accepted_args = rand( 1, 100 );
+		$priority      = 1;
+		$accepted_args = 2;
 
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
 
@@ -58,8 +59,8 @@ class Tests_WP_Hook_Add_Filter extends WP_UnitTestCase {
 		$callback_two  = '__return_false';
 		$hook          = new WP_Hook();
 		$tag           = __FUNCTION__;
-		$priority      = rand( 1, 100 );
-		$accepted_args = rand( 1, 100 );
+		$priority      = 1;
+		$accepted_args = 2;
 
 		$hook->add_filter( $tag, $callback_one, $priority, $accepted_args );
 		$this->assertCount( 1, $hook->callbacks[ $priority ] );
@@ -73,8 +74,8 @@ class Tests_WP_Hook_Add_Filter extends WP_UnitTestCase {
 		$callback_two  = '__return_false';
 		$hook          = new WP_Hook();
 		$tag           = __FUNCTION__;
-		$priority      = rand( 1, 100 );
-		$accepted_args = rand( 1, 100 );
+		$priority      = 1;
+		$accepted_args = 2;
 
 		$hook->add_filter( $tag, $callback_one, $priority, $accepted_args );
 		$this->assertCount( 1, $hook->callbacks[ $priority ] );
@@ -88,8 +89,8 @@ class Tests_WP_Hook_Add_Filter extends WP_UnitTestCase {
 		$callback      = '__return_null';
 		$hook          = new WP_Hook();
 		$tag           = __FUNCTION__;
-		$priority      = rand( 1, 100 );
-		$accepted_args = rand( 1, 100 );
+		$priority      = 1;
+		$accepted_args = 2;
 
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
 		$this->assertCount( 1, $hook->callbacks[ $priority ] );
@@ -102,8 +103,8 @@ class Tests_WP_Hook_Add_Filter extends WP_UnitTestCase {
 		$callback      = '__return_null';
 		$hook          = new WP_Hook();
 		$tag           = __FUNCTION__;
-		$priority      = rand( 1, 100 );
-		$accepted_args = rand( 1, 100 );
+		$priority      = 1;
+		$accepted_args = 2;
 
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
 		$this->assertCount( 1, $hook->callbacks[ $priority ] );

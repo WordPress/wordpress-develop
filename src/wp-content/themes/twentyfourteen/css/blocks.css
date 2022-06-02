@@ -168,6 +168,10 @@ p.has-drop-cap:not(:focus)::first-letter {
 	padding: 0;
 }
 
+.wp-block-code code {
+	font-size: inherit;
+}
+
 /* Pullquote */
 
 .wp-block-pullquote {
@@ -324,6 +328,15 @@ p.has-drop-cap:not(:focus)::first-letter {
 
 .wp-block-latest-comments_comment-meta a:hover,
 .wp-block-latest-comments_comment-meta a:focus {
+	color: #41a62a;
+}
+
+.widget-area .wp-block-latest-comments__comment-meta a {
+	color: #fff;
+}
+
+.widget-area .wp-block-latest-comments__comment-meta a:hover,
+.widget-area .wp-block-latest-comments__comment-meta a:focus {
 	color: #41a62a;
 }
 

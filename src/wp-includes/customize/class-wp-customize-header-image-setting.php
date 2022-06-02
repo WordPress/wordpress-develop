@@ -17,6 +17,13 @@
  * @see WP_Customize_Setting
  */
 final class WP_Customize_Header_Image_Setting extends WP_Customize_Setting {
+
+	/**
+	 * Unique string identifier for the setting.
+	 *
+	 * @since 3.4.0
+	 * @var string
+	 */
 	public $id = 'header_image_data';
 
 	/**
@@ -24,7 +31,7 @@ final class WP_Customize_Header_Image_Setting extends WP_Customize_Setting {
 	 *
 	 * @global Custom_Image_Header $custom_image_header
 	 *
-	 * @param $value
+	 * @param mixed $value The value to update.
 	 */
 	public function update( $value ) {
 		global $custom_image_header;

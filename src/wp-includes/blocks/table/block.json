@@ -1,14 +1,15 @@
 {
+	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 2,
 	"name": "core/table",
+	"title": "Table",
 	"category": "text",
+	"description": "Create structured content in rows and columns to display information.",
+	"textdomain": "default",
 	"attributes": {
 		"hasFixedLayout": {
 			"type": "boolean",
 			"default": false
-		},
-		"backgroundColor": {
-			"type": "string"
 		},
 		"caption": {
 			"type": "string",
@@ -125,6 +126,46 @@
 	"supports": {
 		"anchor": true,
 		"align": true,
-		"__experimentalSelector": ".wp-block-button > table"
-	}
+		"color": {
+			"__experimentalSkipSerialization": true,
+			"gradients": true,
+			"__experimentalDefaultControls": {
+				"background": true,
+				"text": true
+			}
+		},
+		"typography": {
+			"fontSize": true,
+			"lineHeight": true,
+			"__experimentalFontStyle": true,
+			"__experimentalFontWeight": true,
+			"__experimentalLetterSpacing": true,
+			"__experimentalTextTransform": true,
+			"__experimentalDefaultControls": {
+				"fontSize": true
+			}
+		},
+		"__experimentalBorder": {
+			"__experimentalSkipSerialization": true,
+			"color": true,
+			"style": true,
+			"width": true,
+			"__experimentalDefaultControls": {
+				"color": true,
+				"style": true,
+				"width": true
+			}
+		},
+		"__experimentalSelector": ".wp-block-table > table"
+	},
+	"styles": [
+		{
+			"name": "regular",
+			"label": "Default",
+			"isDefault": true
+		},
+		{ "name": "stripes", "label": "Stripes" }
+	],
+	"editorStyle": "wp-block-table-editor",
+	"style": "wp-block-table"
 }

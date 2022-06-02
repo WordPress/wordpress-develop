@@ -2,10 +2,23 @@
 
 // Misc help functions and utilities.
 
+/**
+ * Returns a string of the required length containing random characters. Note that
+ * the maximum possible string length is 32.
+ *
+ * @param int $len Optional. The required length. Default 32.
+ * @return string The string.
+ */
 function rand_str( $len = 32 ) {
 	return substr( md5( uniqid( rand() ) ), 0, $len );
 }
 
+/**
+ * Returns a string of the required length containing random characters.
+ *
+ * @param int $len The required length.
+ * @return string The string.
+ */
 function rand_long_str( $length ) {
 	$chars  = 'abcdefghijklmnopqrstuvwxyz';
 	$string = '';
@@ -18,7 +31,12 @@ function rand_long_str( $length ) {
 	return $string;
 }
 
-// Strip leading and trailing whitespace from each line in the string.
+/**
+ * Strips leading and trailing whitespace from each line in the string.
+ *
+ * @param string $txt The text.
+ * @return string Text with line-leading and line-trailing whitespace stripped.
+ */
 function strip_ws( $txt ) {
 	$lines  = explode( "\n", $txt );
 	$result = array();
@@ -33,9 +51,11 @@ function strip_ws( $txt ) {
 
 /*
  * Helper class for testing code that involves actions and filters.
+ *
  * Typical use:
- * $ma = new MockAction();
- * add_action( 'foo', array( &$ma, 'action' ) );
+ *
+ *     $ma = new MockAction();
+ *     add_action( 'foo', array( &$ma, 'action' ) );
  */
 class MockAction {
 	public $events;
@@ -44,16 +64,16 @@ class MockAction {
 	/**
 	 * PHP5 constructor.
 	 */
-	function __construct( $debug = 0 ) {
+	public function __construct( $debug = 0 ) {
 		$this->reset();
 		$this->debug = $debug;
 	}
 
-	function reset() {
+	public function reset() {
 		$this->events = array();
 	}
 
-	function current_filter() {
+	public function current_filter() {
 		if ( is_callable( 'current_filter' ) ) {
 			return current_filter();
 		}
@@ -61,7 +81,7 @@ class MockAction {
 		return end( $wp_actions );
 	}
 
-	function action( $arg ) {
+	public function action( $arg ) {
 		if ( $this->debug ) {
 			dmp( __FUNCTION__, $this->current_filter() );
 		}
@@ -74,7 +94,7 @@ class MockAction {
 		return $arg;
 	}
 
-	function action2( $arg ) {
+	public function action2( $arg ) {
 		if ( $this->debug ) {
 			dmp( __FUNCTION__, $this->current_filter() );
 		}
@@ -88,7 +108,7 @@ class MockAction {
 		return $arg;
 	}
 
-	function filter( $arg ) {
+	public function filter( $arg ) {
 		if ( $this->debug ) {
 			dmp( __FUNCTION__, $this->current_filter() );
 		}
@@ -102,7 +122,7 @@ class MockAction {
 		return $arg;
 	}
 
-	function filter2( $arg ) {
+	public function filter2( $arg ) {
 		if ( $this->debug ) {
 			dmp( __FUNCTION__, $this->current_filter() );
 		}
@@ -116,7 +136,7 @@ class MockAction {
 		return $arg;
 	}
 
-	function filter_append( $arg ) {
+	public function filter_append( $arg ) {
 		if ( $this->debug ) {
 			dmp( __FUNCTION__, $this->current_filter() );
 		}
@@ -130,7 +150,7 @@ class MockAction {
 		return $arg . '_append';
 	}
 
-	function filterall( $tag, ...$args ) {
+	public function filterall( $tag, ...$args ) {
 		// This one doesn't return the result, so it's safe to use with the new 'all' filter.
 		if ( $this->debug ) {
 			dmp( __FUNCTION__, $this->current_filter() );
@@ -144,12 +164,12 @@ class MockAction {
 	}
 
 	// Return a list of all the actions, tags and args.
-	function get_events() {
+	public function get_events() {
 		return $this->events;
 	}
 
 	// Return a count of the number of times the action was called since the last reset.
-	function get_call_count( $tag = '' ) {
+	public function get_call_count( $tag = '' ) {
 		if ( $tag ) {
 			$count = 0;
 			foreach ( $this->events as $e ) {
@@ -163,7 +183,7 @@ class MockAction {
 	}
 
 	// Return an array of the tags that triggered calls to this action.
-	function get_tags() {
+	public function get_tags() {
 		$out = array();
 		foreach ( $this->events as $e ) {
 			$out[] = $e['tag'];
@@ -172,7 +192,7 @@ class MockAction {
 	}
 
 	// Return an array of args passed in calls to this action.
-	function get_args() {
+	public function get_args() {
 		$out = array();
 		foreach ( $this->events as $e ) {
 			$out[] = $e['args'];
@@ -190,7 +210,7 @@ class TestXMLParser {
 	/**
 	 * PHP5 constructor.
 	 */
-	function __construct( $in ) {
+	public function __construct( $in ) {
 		$this->xml = xml_parser_create();
 		xml_set_object( $this->xml, $this );
 		xml_parser_set_option( $this->xml, XML_OPTION_CASE_FOLDING, 0 );
@@ -199,7 +219,7 @@ class TestXMLParser {
 		$this->parse( $in );
 	}
 
-	function parse( $in ) {
+	public function parse( $in ) {
 		$parse = xml_parse( $this->xml, $in, true );
 		if ( ! $parse ) {
 			trigger_error(
@@ -215,14 +235,14 @@ class TestXMLParser {
 		return true;
 	}
 
-	function start_handler( $parser, $name, $attributes ) {
+	public function start_handler( $parser, $name, $attributes ) {
 		$data['name'] = $name;
 		if ( $attributes ) {
 			$data['attributes'] = $attributes; }
 		$this->data[] = $data;
 	}
 
-	function data_handler( $parser, $data ) {
+	public function data_handler( $parser, $data ) {
 		$index = count( $this->data ) - 1;
 
 		if ( ! isset( $this->data[ $index ]['content'] ) ) {
@@ -231,7 +251,7 @@ class TestXMLParser {
 		$this->data[ $index ]['content'] .= $data;
 	}
 
-	function end_handler( $parser, $name ) {
+	public function end_handler( $parser, $name ) {
 		if ( count( $this->data ) > 1 ) {
 			$data                            = array_pop( $this->data );
 			$index                           = count( $this->data ) - 1;
@@ -240,11 +260,31 @@ class TestXMLParser {
 	}
 }
 
+/**
+ * Converts an XML string into an array tree structure.
+ *
+ * The output of this function can be passed to xml_find() to find nodes by their path.
+ *
+ * @param string $in The XML string.
+ * @return array XML as an array.
+ */
 function xml_to_array( $in ) {
 	$p = new TestXMLParser( $in );
 	return $p->data;
 }
 
+/**
+ * Finds XML nodes by a given "path".
+ *
+ * Example usage:
+ *
+ *     $tree = xml_to_array( $rss );
+ *     $items = xml_find( $tree, 'rss', 'channel', 'item' );
+ *
+ * @param array     $tree     An array tree structure of XML, typically from xml_to_array().
+ * @param string ...$elements Names of XML nodes to create a "path" to find within the XML.
+ * @return array Array of matching XML node information.
+ */
 function xml_find( $tree, ...$elements ) {
 	$n   = count( $elements );
 	$out = array();
@@ -338,7 +378,7 @@ function gen_tests_array( $name, $array ) {
 /**
  * Use to create objects by yourself
  */
-class MockClass {};
+class MockClass {}
 
 /**
  * Drops all tables from the WordPress database

@@ -36,8 +36,8 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 		unregister_taxonomy( 'customtax' );
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		register_meta(
 			'term',
@@ -237,7 +237,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 		$data = $response->get_data();
 		$meta = (array) $data['meta'];
 		$this->assertArrayHasKey( 'test_multi', $meta );
-		$this->assertInternalType( 'array', $meta['test_multi'] );
+		$this->assertIsArray( $meta['test_multi'] );
 		$this->assertContains( 'value1', $meta['test_multi'] );
 
 		// Check after an update.
@@ -342,15 +342,15 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 		$meta = (array) $data['meta'];
 
 		$this->assertArrayHasKey( 'test_string', $meta );
-		$this->assertInternalType( 'string', $meta['test_string'] );
+		$this->assertIsString( $meta['test_string'] );
 		$this->assertSame( '42', $meta['test_string'] );
 
 		$this->assertArrayHasKey( 'test_number', $meta );
-		$this->assertInternalType( 'float', $meta['test_number'] );
+		$this->assertIsFloat( $meta['test_number'] );
 		$this->assertSame( 42.0, $meta['test_number'] );
 
 		$this->assertArrayHasKey( 'test_bool', $meta );
-		$this->assertInternalType( 'boolean', $meta['test_bool'] );
+		$this->assertIsBool( $meta['test_bool'] );
 		$this->assertTrue( $meta['test_bool'] );
 	}
 
@@ -838,8 +838,8 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 		$meta = get_term_meta( self::$category_id, 'test_custom_schema_multi', false );
 		$this->assertNotEmpty( $meta );
 		$this->assertCount( 2, $meta );
-		$this->assertContains( 2, $meta );
-		$this->assertContains( 8, $meta );
+		$this->assertContains( '2', $meta );
+		$this->assertContains( '8', $meta );
 	}
 
 	/**
@@ -1157,7 +1157,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 		$data = $response->get_data();
 
 		$this->assertArrayHasKey( 'meta', $data );
-		$this->assertInternalType( 'array', $data['meta'] );
+		$this->assertIsArray( $data['meta'] );
 
 		if ( $in_taxonomy ) {
 			$expected_value = $meta_value;
@@ -1221,7 +1221,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 
 		$data = $response->get_data();
 		$this->assertArrayHasKey( 'meta', $data );
-		$this->assertInternalType( 'array', $data['meta'] );
+		$this->assertIsArray( $data['meta'] );
 
 		if ( $in_taxonomy ) {
 			$expected_value = $meta_value;
@@ -1283,6 +1283,54 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 		$meta = (array) $data['meta'];
 		$this->assertArrayHasKey( $meta_key, $meta );
 		$this->assertSame( 'Goodbye', $meta[ $meta_key ] );
+	}
+
+	/**
+	 * @ticket 53099
+	 */
+	public function test_get_term_metadata_returning_false_does_not_cause_php_warnings() {
+		add_filter( 'get_term_metadata', '__return_false', 11 );
+
+		// No PHP warning during GET request.
+		add_term_meta( self::$category_id, 'test_single', 'testvalue' );
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/categories/%d', self::$category_id ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		// No PHP warning during POST request.
+		$this->grant_write_permission();
+		$data    = array(
+			'meta' => array(
+				'test_multi' => array( 'val1' ),
+			),
+		);
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/categories/%d', self::$category_id ) );
+		$request->set_body_params( $data );
+		$response = rest_get_server()->dispatch( $request );
+
+		// No PHP warning during validation.
+		register_meta(
+			'term',
+			'my_meta_key',
+			array(
+				'show_in_rest' => true,
+				'single'       => true,
+				'type'         => 'integer',
+			)
+		);
+		$this->grant_write_permission();
+		$data    = array(
+			'meta' => array(
+				'my_meta_key' => '1', // Set to a string.
+			),
+		);
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/categories/%d', self::$category_id ) );
+		$request->set_body_params( $data );
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'get_term_metadata', '__return_false', 11 );
+
+		$data = $response->get_data();
+		$this->assertSame( 0, $data['meta']['my_meta_key'] );
 	}
 
 	/**

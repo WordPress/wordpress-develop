@@ -28,6 +28,7 @@
 		<script src="../../build/wp-includes/js/wp-util.js"></script>
 		<script src="../../build/wp-includes/js/dist/vendor/wp-polyfill.js"></script>
 		<script src="../../build/wp-includes/js/dist/dom-ready.js"></script>
+		<script src="../../build/wp-includes/js/dist/hooks.js"></script>
 		<script src="../../build/wp-includes/js/dist/i18n.js"></script>
 		<script src="../../build/wp-includes/js/dist/a11y.js"></script>
 		<script>
@@ -39,7 +40,7 @@
 		</script>
 		<script src="../../build/wp-includes/js/utils.js"></script>
 		<script>
-			window.pluploadL10n = {"queue_limit_exceeded":"You have attempted to queue too many files.","file_exceeds_size_limit":"%s exceeds the maximum upload size for this site.","zero_byte_file":"This file is empty. Please try another.","invalid_filetype":"Sorry, this file type is not permitted for security reasons.","not_an_image":"This file is not an image. Please try another.","image_memory_exceeded":"Memory exceeded. Please try another smaller file.","image_dimensions_exceeded":"This is larger than the maximum size. Please try another.","default_error":"An error occurred in the upload. Please try again later.","missing_upload_url":"There was a configuration error. Please contact the server administrator.","upload_limit_exceeded":"You may only upload 1 file.","http_error":"HTTP error.","upload_failed":"Upload failed.","big_upload_failed":"Please try uploading this file with the %1$sbrowser uploader%2$s.","big_upload_queued":"%s exceeds the maximum upload size for the multi-file uploader when used in your browser.","io_error":"IO error.","security_error":"Security error.","file_cancelled":"File canceled.","upload_stopped":"Upload stopped.","dismiss":"Dismiss","crunching":"Crunching\u2026","deleted":"moved to the Trash.","error_uploading":"\u201c%s\u201d has failed to upload."};
+			window.pluploadL10n = {"queue_limit_exceeded":"You have attempted to queue too many files.","file_exceeds_size_limit":"%s exceeds the maximum upload size for this site.","zero_byte_file":"This file is empty. Please try another.","invalid_filetype":"Sorry, you are not allowed to upload this file type.","not_an_image":"This file is not an image. Please try another.","image_memory_exceeded":"Memory exceeded. Please try another smaller file.","image_dimensions_exceeded":"This is larger than the maximum size. Please try another.","default_error":"An error occurred in the upload. Please try again later.","missing_upload_url":"There was a configuration error. Please contact the server administrator.","upload_limit_exceeded":"You may only upload 1 file.","http_error":"HTTP error.","upload_failed":"Upload failed.","big_upload_failed":"Please try uploading this file with the %1$sbrowser uploader%2$s.","big_upload_queued":"%s exceeds the maximum upload size for the multi-file uploader when used in your browser.","io_error":"IO error.","security_error":"Security error.","file_cancelled":"File canceled.","upload_stopped":"Upload stopped.","dismiss":"Dismiss","crunching":"Crunching\u2026","deleted":"moved to the Trash.","error_uploading":"\u201c%s\u201d has failed to upload."};
 			window._wpPluploadSettings = {"defaults":{"runtimes":"html5,flash,silverlight,html4","file_data_name":"async-upload","url":"\/wp-admin\/async-upload.php","flash_swf_url":"http:\/\/src.wordpress-develop.dev\/wp-includes\/js\/plupload\/plupload.flash.swf","silverlight_xap_url":"http:\/\/src.wordpress-develop.dev\/wp-includes\/js\/plupload\/plupload.silverlight.xap","filters":{"max_file_size":"2097152b","mime_types":[{"extensions":"jpg,jpeg,jpe,gif,png,bmp,tiff,tif,ico,asf,asx,wmv,wmx,wm,avi,divx,flv,mov,qt,mpeg,mpg,mpe,mp4,m4v,ogv,webm,mkv,3gp,3gpp,3g2,3gp2,txt,asc,c,cc,h,srt,csv,tsv,ics,rtx,css,vtt,dfxp,mp3,m4a,m4b,ra,ram,wav,ogg,oga,mid,midi,wma,wax,mka,rtf,js,pdf,class,tar,zip,gz,gzip,rar,7z,psd,xcf,doc,pot,pps,ppt,wri,xla,xls,xlt,xlw,mdb,mpp,docx,docm,dotx,dotm,xlsx,xlsm,xlsb,xltx,xltm,xlam,pptx,pptm,ppsx,ppsm,potx,potm,ppam,sldx,sldm,onetoc,onetoc2,onetmp,onepkg,oxps,xps,odt,odp,ods,odg,odc,odb,odf,wp,wpd,key,numbers,pages"}]},"multipart_params":{"action":"upload-attachment","_wpnonce":"87fa5740b8"}},"browser":{"mobile":false,"supported":true},"limitExceeded":false};
 		</script>
 		<script src="../../build/wp-includes/js/plupload/wp-plupload.js"></script>
@@ -120,28 +121,28 @@
 			wp.mediaWidgets.modelConstructors[ "media_image" ].prototype.schema = {"attachment_id":{"type":"integer","default":0,"minimum":0,"media_prop":"id"},"url":{"type":"string","default":"","format":"uri"},"title":{"type":"string","default":"","should_preview_update":false},"size":{"type":"string","default":"medium","enum":["thumbnail","medium","medium_large","large","twentyseventeen-featured-image","twentyseventeen-thumbnail-avatar","full","custom"]},"width":{"type":"integer","default":0,"minimum":0},"height":{"type":"integer","default":0,"minimum":0},"caption":{"type":"string","default":"","should_preview_update":false},"alt":{"type":"string","default":""},"link_type":{"type":"string","default":"none","enum":["none","file","post","custom"],"media_prop":"link","should_preview_update":false},"link_url":{"type":"string","default":"","format":"uri","media_prop":"linkUrl","should_preview_update":false},"image_classes":{"type":"string","default":"","media_prop":"extraClasses","should_preview_update":false},"link_classes":{"type":"string","default":"","media_prop":"linkClassName","should_preview_update":false},"link_rel":{"type":"string","default":"","media_prop":"linkRel","should_preview_update":false},"link_target_blank":{"type":"boolean","default":false,"media_prop":"linkTargetBlank","should_preview_update":false},"image_title":{"type":"string","default":"","media_prop":"title","should_preview_update":false}};
 
 			wp.mediaWidgets.controlConstructors[ "media_image" ].prototype.mime_type = "image";
-			_.extend( wp.mediaWidgets.controlConstructors[ "media_image" ].prototype.l10n, {"no_media_selected":"No image selected","select_media":"Select Image","change_media":"Change Image","edit_media":"Edit Image","add_to_widget":"Add to Widget","missing_attachment":"We can&#8217;t find that image. Check your <a href=\"http:\/\/src.wordpress-develop.dev\/wp-admin\/upload.php\">media library<\/a> and make sure it wasn&#8217;t deleted.","media_library_state_multi":{"0":"Image Widget (%d)","1":"Image Widget (%d)","singular":"Image Widget (%d)","plural":"Image Widget (%d)","context":null,"domain":null},"media_library_state_single":"Image Widget"} );
+			_.extend( wp.mediaWidgets.controlConstructors[ "media_image" ].prototype.l10n, {"no_media_selected":"No image selected","select_media":"Select Image","change_media":"Change Image","edit_media":"Edit Image","add_to_widget":"Add to Widget","missing_attachment":"That image cannot be found. Check your <a href=\"http:\/\/src.wordpress-develop.dev\/wp-admin\/upload.php\">media library<\/a> and make sure it was not deleted.","media_library_state_multi":{"0":"Image Widget (%d)","1":"Image Widget (%d)","singular":"Image Widget (%d)","plural":"Image Widget (%d)","context":null,"domain":null},"media_library_state_single":"Image Widget"} );
 		</script>
 		<script src="../../build/wp-admin/js/widgets/media-video-widget.js"></script>
 		<script>
 			wp.mediaWidgets.modelConstructors[ "media_video" ].prototype.schema = {"attachment_id":{"type":"integer","default":0,"minimum":0,"media_prop":"id"},"url":{"type":"string","default":"","format":"uri"},"title":{"type":"string","default":""},"preload":{"type":"string","default":"metadata","enum":["none","auto","metadata"]},"loop":{"type":"boolean","default":false},"content":{"type":"string","default":""},"mp4":{"type":"string","default":"","format":"uri"},"m4v":{"type":"string","default":"","format":"uri"},"webm":{"type":"string","default":"","format":"uri"},"ogv":{"type":"string","default":"","format":"uri"},"wmv":{"type":"string","default":"","format":"uri"},"flv":{"type":"string","default":"","format":"uri"}};
 
 			wp.mediaWidgets.controlConstructors[ "media_video" ].prototype.mime_type = "video";
-			_.extend( wp.mediaWidgets.controlConstructors[ "media_video" ].prototype.l10n, {"no_media_selected":"No video selected","select_media":"Select Video","change_media":"Change Video","edit_media":"Edit Video","add_to_widget":"Add to Widget","missing_attachment":"We can&#8217;t find that video. Check your <a href=\"http:\/\/src.wordpress-develop.dev\/wp-admin\/upload.php\">media library<\/a> and make sure it wasn&#8217;t deleted.","media_library_state_multi":{"0":"Video Widget (%d)","1":"Video Widget (%d)","singular":"Video Widget (%d)","plural":"Video Widget (%d)","context":null,"domain":null},"media_library_state_single":"Video Widget"} );
+			_.extend( wp.mediaWidgets.controlConstructors[ "media_video" ].prototype.l10n, {"no_media_selected":"No video selected","select_media":"Select Video","change_media":"Change Video","edit_media":"Edit Video","add_to_widget":"Add to Widget","missing_attachment":"That video cannot be found. Check your <a href=\"http:\/\/src.wordpress-develop.dev\/wp-admin\/upload.php\">media library<\/a> and make sure it was not deleted.","media_library_state_multi":{"0":"Video Widget (%d)","1":"Video Widget (%d)","singular":"Video Widget (%d)","plural":"Video Widget (%d)","context":null,"domain":null},"media_library_state_single":"Video Widget"} );
 		</script>
 		<script src="../../build/wp-admin/js/widgets/media-audio-widget.js"></script>
 		<script>
 			wp.mediaWidgets.modelConstructors[ "media_audio" ].prototype.schema = {"attachment_id":{"type":"integer","default":0,"minimum":0,"media_prop":"id"},"url":{"type":"string","default":"","format":"uri"},"title":{"type":"string","default":""},"preload":{"type":"string","default":"none","enum":["none","auto","metadata"]},"loop":{"type":"boolean","default":false},"mp3":{"type":"string","default":"","format":"uri"},"ogg":{"type":"string","default":"","format":"uri"},"wma":{"type":"string","default":"","format":"uri"},"m4a":{"type":"string","default":"","format":"uri"},"wav":{"type":"string","default":"","format":"uri"}};
 
 			wp.mediaWidgets.controlConstructors[ "media_audio" ].prototype.mime_type = "audio";
-			_.extend( wp.mediaWidgets.controlConstructors[ "media_audio" ].prototype.l10n, {"no_media_selected":"No audio selected","select_media":"Select File","change_media":"Change Audio","edit_media":"Edit Audio","add_to_widget":"Add to Widget","missing_attachment":"We can&#8217;t find that audio file. Check your <a href=\"http:\/\/src.wordpress-develop.dev\/wp-admin\/upload.php\">media library<\/a> and make sure it wasn&#8217;t deleted.","media_library_state_multi":{"0":"Audio Widget (%d)","1":"Audio Widget (%d)","singular":"Audio Widget (%d)","plural":"Audio Widget (%d)","context":null,"domain":null},"media_library_state_single":"Audio Widget"} );
+			_.extend( wp.mediaWidgets.controlConstructors[ "media_audio" ].prototype.l10n, {"no_media_selected":"No audio selected","select_media":"Select File","change_media":"Change Audio","edit_media":"Edit Audio","add_to_widget":"Add to Widget","missing_attachment":"That audio file cannot be found. Check your <a href=\"http:\/\/src.wordpress-develop.dev\/wp-admin\/upload.php\">media library<\/a> and make sure it was not deleted.","media_library_state_multi":{"0":"Audio Widget (%d)","1":"Audio Widget (%d)","singular":"Audio Widget (%d)","plural":"Audio Widget (%d)","context":null,"domain":null},"media_library_state_single":"Audio Widget"} );
 		</script>
 		<script type='text/javascript' src='../../build/wp-admin/js/widgets/media-gallery-widget.js'></script>
 		<script type='text/javascript'>
 			wp.mediaWidgets.modelConstructors[ "media_gallery" ].prototype.schema = {"title":{"type":"string","default":"","should_preview_update":false},"ids":{"type":"string","default":""},"columns":{"type":"integer","default":3},"size":{"type":"string","default":"thumbnail","enum":["thumbnail","medium","medium_large","large","post-thumbnail","full","custom"]},"link_type":{"type":"string","default":"none","enum":["none","file","post"],"media_prop":"link","should_preview_update":false},"orderby_random":{"type":"boolean","default":false,"media_prop":"_orderbyRandom","should_preview_update":false},"attachments":{"type":"string","default":""}};
 			wp.mediaWidgets.controlConstructors[ "media_gallery" ].prototype.mime_type = "image";
 
-			_.extend( wp.mediaWidgets.controlConstructors[ "media_gallery" ].prototype.l10n, {"no_media_selected":"No images selected","add_media":"Add Media","replace_media":"Replace Media","edit_media":"Edit Gallery","add_to_widget":"Add to Widget","missing_attachment":"We can&#8217;t find that gallery. Check your <a href=\"http:\/\/src.wordpress-develop.dev\/wp-admin\/upload.php\">media library<\/a> and make sure it wasn&#8217;t deleted.","media_library_state_multi":"","media_library_state_single":"","unsupported_file_type":"Looks like this isn&#8217;t the correct kind of file. Please link to an appropriate file instead.","select_media":"Select Images","change_media":"Add Image"} );
+			_.extend( wp.mediaWidgets.controlConstructors[ "media_gallery" ].prototype.l10n, {"no_media_selected":"No images selected","add_media":"Add Media","replace_media":"Replace Media","edit_media":"Edit Gallery","add_to_widget":"Add to Widget","missing_attachment":"We cannot find that gallery. Check your <a href=\"http:\/\/src.wordpress-develop.dev\/wp-admin\/upload.php\">media library<\/a> and make sure it was not deleted.","media_library_state_multi":"","media_library_state_single":"","unsupported_file_type":"Looks like this is not the correct kind of file. Please link to an appropriate file instead.","select_media":"Select Images","change_media":"Add Image"} );
 		</script>
 
 		<!-- Unit tests -->
@@ -151,6 +152,7 @@
 		<script src="wp-admin/js/dashboard.js"></script>
 		<script src="wp-includes/js/shortcode.js"></script>
 		<script src="wp-includes/js/api-request.js"></script>
+		<script src="wp-includes/js/jquery.js"></script>
 		<script src="wp-includes/js/wp-api.js"></script>
 		<script src="wp-admin/js/customize-controls.js"></script>
 		<script src="wp-admin/js/customize-controls-utils.js"></script>
@@ -633,7 +635,7 @@
 		<script type="text/html" id="tmpl-wp-media-widget-image-preview">
 			<# if ( data.error && 'missing_attachment' === data.error ) { #>
 				<div class="notice notice-error notice-alt notice-missing-attachment">
-					<p>We can&#8217;t find that image. Check your <a href="http://src.wordpress-develop.test/wp-admin/upload.php">media library</a> and make sure it wasn&#8217;t deleted.</p>
+					<p>That image cannot be found. Check your <a href="http://src.wordpress-develop.test/wp-admin/upload.php">media library</a> and make sure it was not deleted.</p>
 				</div>
 			<# } else if ( data.error ) { #>
 				<div class="notice notice-error notice-alt">
@@ -674,11 +676,11 @@
 		<script type="text/html" id="tmpl-wp-media-widget-video-preview">
 			<# if ( data.error && 'missing_attachment' === data.error ) { #>
 				<div class="notice notice-error notice-alt notice-missing-attachment">
-					<p>We can&#8217;t find that video. Check your <a href="http://src.wordpress-develop.test/wp-admin/upload.php">media library</a> and make sure it wasn&#8217;t deleted.</p>
+					<p>That video cannot be found. Check your <a href="http://src.wordpress-develop.test/wp-admin/upload.php">media library</a> and make sure it was not deleted.</p>
 				</div>
 			<# } else if ( data.error && 'unsupported_file_type' === data.error ) { #>
 				<div class="notice notice-error notice-alt notice-missing-attachment">
-					<p>Sorry, we can&#8217;t load the video at the supplied URL. Please check that the URL is for a supported video file (<code>.mp4</code>, <code>.m4v</code>, <code>.webm</code>, <code>.ogv</code>, <code>.flv</code>) or stream (e.g. YouTube and Vimeo).</p>
+					<p>Sorry, the video at the supplied URL cannot be loaded. Please check that the URL is for a supported video file (<code>.mp4</code>, <code>.m4v</code>, <code>.webm</code>, <code>.ogv</code>, <code>.flv</code>) or stream (e.g. YouTube and Vimeo).</p>
 				</div>
 			<# } else if ( data.error ) { #>
 				<div class="notice notice-error notice-alt">
@@ -802,7 +804,7 @@
 		<script type="text/html" id="tmpl-wp-media-widget-audio-preview">
 			<# if ( data.error && 'missing_attachment' === data.error ) { #>
 				<div class="notice notice-error notice-alt notice-missing-attachment">
-					<p>We can&#8217;t find that audio file. Check your <a href="http://src.wordpress-develop.test/wp-admin/upload.php">media library</a> and make sure it wasn&#8217;t deleted.</p>
+					<p>That audio file cannot be found. Check your <a href="http://src.wordpress-develop.test/wp-admin/upload.php">media library</a> and make sure it was not deleted.</p>
 				</div>
 			<# } else if ( data.error ) { #>
 				<div class="notice notice-error notice-alt">

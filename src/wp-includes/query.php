@@ -899,19 +899,28 @@ function is_embed() {
  * @return bool Whether the query is the main query.
  */
 function is_main_query() {
-	if ( 'pre_get_posts' === current_filter() ) {
-		$message = sprintf(
-			/* translators: 1: pre_get_posts, 2: WP_Query->is_main_query(), 3: is_main_query(), 4: Documentation URL. */
-			__( 'In %1$s, use the %2$s method, not the %3$s function. See %4$s.' ),
-			'<code>pre_get_posts</code>',
-			'<code>WP_Query->is_main_query()</code>',
-			'<code>is_main_query()</code>',
-			__( 'https://developer.wordpress.org/reference/functions/is_main_query/' )
-		);
-		_doing_it_wrong( __FUNCTION__, $message, '3.7.0' );
+	global $wp_query;
+
+	if ( ! isset( $wp_query ) ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '6.1.0' );
+		return false;
 	}
 
-	global $wp_query;
+	if ( 'pre_get_posts' === current_filter() ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: pre_get_posts, 2: WP_Query->is_main_query(), 3: is_main_query(), 4: Documentation URL. */
+				__( 'In %1$s, use the %2$s method, not the %3$s function. See %4$s.' ),
+				'<code>pre_get_posts</code>',
+				'<code>WP_Query->is_main_query()</code>',
+				'<code>is_main_query()</code>',
+				__( 'https://developer.wordpress.org/reference/functions/is_main_query/' )
+			),
+			'3.7.0'
+		);
+	}
+
 	return $wp_query->is_main_query();
 }
 
@@ -930,6 +939,11 @@ function is_main_query() {
  */
 function have_posts() {
 	global $wp_query;
+
+	if ( ! isset( $wp_query ) ) {
+		return false;
+	}
+
 	return $wp_query->have_posts();
 }
 
@@ -948,6 +962,11 @@ function have_posts() {
  */
 function in_the_loop() {
 	global $wp_query;
+
+	if ( ! isset( $wp_query ) ) {
+		return false;
+	}
+
 	return $wp_query->in_the_loop;
 }
 
@@ -960,6 +979,11 @@ function in_the_loop() {
  */
 function rewind_posts() {
 	global $wp_query;
+
+	if ( ! isset( $wp_query ) ) {
+		return;
+	}
+
 	$wp_query->rewind_posts();
 }
 
@@ -972,6 +996,11 @@ function rewind_posts() {
  */
 function the_post() {
 	global $wp_query;
+
+	if ( ! isset( $wp_query ) ) {
+		return;
+	}
+
 	$wp_query->the_post();
 }
 
@@ -990,6 +1019,11 @@ function the_post() {
  */
 function have_comments() {
 	global $wp_query;
+
+	if ( ! isset( $wp_query ) ) {
+		return false;
+	}
+
 	return $wp_query->have_comments();
 }
 
@@ -999,12 +1033,15 @@ function have_comments() {
  * @since 2.2.0
  *
  * @global WP_Query $wp_query WordPress Query object.
- *
- * @return null
  */
 function the_comment() {
 	global $wp_query;
-	return $wp_query->the_comment();
+
+	if ( ! isset( $wp_query ) ) {
+		return;
+	}
+
+	$wp_query->the_comment();
 }
 
 /**

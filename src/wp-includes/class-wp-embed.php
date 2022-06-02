@@ -31,6 +31,7 @@ class WP_Embed {
 		// Hack to get the [embed] shortcode to run before wpautop().
 		add_filter( 'the_content', array( $this, 'run_shortcode' ), 8 );
 		add_filter( 'widget_text_content', array( $this, 'run_shortcode' ), 8 );
+		add_filter( 'widget_block_content', array( $this, 'run_shortcode' ), 8 );
 
 		// Shortcode placeholder for strip_shortcodes().
 		add_shortcode( 'embed', '__return_false' );
@@ -38,6 +39,7 @@ class WP_Embed {
 		// Attempts to embed all URLs in a post.
 		add_filter( 'the_content', array( $this, 'autoembed' ), 8 );
 		add_filter( 'widget_text_content', array( $this, 'autoembed' ), 8 );
+		add_filter( 'widget_block_content', array( $this, 'autoembed' ), 8 );
 
 		// After a post is saved, cache oEmbed items via Ajax.
 		add_action( 'edit_form_advanced', array( $this, 'maybe_run_ajax_cache' ) );
@@ -45,7 +47,7 @@ class WP_Embed {
 	}
 
 	/**
-	 * Process the [embed] shortcode.
+	 * Processes the [embed] shortcode.
 	 *
 	 * Since the [embed] shortcode needs to be run earlier than other shortcodes,
 	 * this function removes all existing shortcodes, registers the [embed] shortcode,
@@ -53,8 +55,8 @@ class WP_Embed {
 	 *
 	 * @global array $shortcode_tags
 	 *
-	 * @param string $content Content to parse
-	 * @return string Content with shortcode parsed
+	 * @param string $content Content to parse.
+	 * @return string Content with shortcode parsed.
 	 */
 	public function run_shortcode( $content ) {
 		global $shortcode_tags;
@@ -84,12 +86,11 @@ class WP_Embed {
 		if ( ! $post || empty( $_GET['message'] ) ) {
 			return;
 		}
-
 		?>
 <script type="text/javascript">
-	jQuery(document).ready(function($){
-		$.get("<?php echo admin_url( 'admin-ajax.php?action=oembed-cache&post=' . $post->ID, 'relative' ); ?>");
-	});
+	jQuery( function($) {
+		$.get("<?php echo esc_url( admin_url( 'admin-ajax.php', 'relative' ) ) . '?action=oembed-cache&post=' . $post->ID; ?>");
+	} );
 </script>
 		<?php
 	}
@@ -375,7 +376,7 @@ class WP_Embed {
 	}
 
 	/**
-	 * Delete all oEmbed caches. Unused by core as of 4.0.0.
+	 * Deletes all oEmbed caches. Unused by core as of 4.0.0.
 	 *
 	 * @param int $post_ID Post ID to delete the caches for.
 	 */
@@ -453,16 +454,16 @@ class WP_Embed {
 	/**
 	 * Callback function for WP_Embed::autoembed().
 	 *
-	 * @param array $match A regex match array.
+	 * @param array $matches A regex match array.
 	 * @return string The embed HTML on success, otherwise the original URL.
 	 */
-	public function autoembed_callback( $match ) {
+	public function autoembed_callback( $matches ) {
 		$oldval              = $this->linkifunknown;
 		$this->linkifunknown = false;
-		$return              = $this->shortcode( array(), $match[2] );
+		$return              = $this->shortcode( array(), $matches[2] );
 		$this->linkifunknown = $oldval;
 
-		return $match[1] . $return . $match[3];
+		return $matches[1] . $return . $matches[3];
 	}
 
 	/**
@@ -490,7 +491,7 @@ class WP_Embed {
 	}
 
 	/**
-	 * Find the oEmbed cache post ID for a given cache key.
+	 * Finds the oEmbed cache post ID for a given cache key.
 	 *
 	 * @since 4.9.0
 	 *

@@ -2,13 +2,18 @@
 /**
  * @group dependencies
  * @group scripts
+ * @covers ::wp_enqueue_style
+ * @covers ::wp_register_style
+ * @covers ::wp_print_styles
+ * @covers ::wp_style_add_data
+ * @covers ::wp_add_inline_style
  */
 class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	private $old_wp_styles;
 	private $old_wp_scripts;
 
-	function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		if ( empty( $GLOBALS['wp_styles'] ) ) {
 			$GLOBALS['wp_styles'] = null;
@@ -32,7 +37,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		$GLOBALS['wp_scripts']->default_version = get_bloginfo( 'version' );
 	}
 
-	function tearDown() {
+	public function tear_down() {
 		$GLOBALS['wp_styles']  = $this->old_wp_styles;
 		$GLOBALS['wp_scripts'] = $this->old_wp_scripts;
 
@@ -43,7 +48,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 			remove_theme_support( 'wp-block-styles' );
 		}
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -51,7 +56,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 *
 	 * @ticket 11315
 	 */
-	function test_wp_enqueue_style() {
+	public function test_wp_enqueue_style() {
 		wp_enqueue_style( 'no-deps-no-version', 'example.com' );
 		wp_enqueue_style( 'no-deps-version', 'example.com', array(), 1.2 );
 		wp_enqueue_style( 'no-deps-null-version', 'example.com', array(), null );
@@ -72,7 +77,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	/**
 	 * @ticket 42804
 	 */
-	function test_wp_enqueue_style_with_html5_support_does_not_contain_type_attribute() {
+	public function test_wp_enqueue_style_with_html5_support_does_not_contain_type_attribute() {
 		add_theme_support( 'html5', array( 'style' ) );
 
 		$GLOBALS['wp_styles']                  = new WP_Styles();
@@ -185,6 +190,60 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test normalizing relative links in CSS.
+	 *
+	 * @dataProvider data_normalize_relative_css_links
+	 *
+	 * @ticket 54243
+	 * @ticket 54922
+	 *
+	 * @covers ::_wp_normalize_relative_css_links
+	 *
+	 * @param string $css      Given CSS to test.
+	 * @param string $expected Expected result.
+	 */
+	public function test_normalize_relative_css_links( $css, $expected ) {
+		$this->assertSame(
+			$expected,
+			_wp_normalize_relative_css_links( $css, site_url( 'wp-content/themes/test/style.css' ) )
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_normalize_relative_css_links() {
+		return array(
+			'Double quotes, same path'                     => array(
+				'css'      => 'p {background:url( "image0.svg" );}',
+				'expected' => 'p {background:url( "/wp-content/themes/test/image0.svg" );}',
+			),
+			'Single quotes, same path, prefixed with "./"' => array(
+				'css'      => 'p {background-image: url(\'./image2.png\');}',
+				'expected' => 'p {background-image: url(\'/wp-content/themes/test/image2.png\');}',
+			),
+			'Single quotes, one level up, prefixed with "../"' => array(
+				'css'      => 'p {background-image: url(\'../image1.jpg\');}',
+				'expected' => 'p {background-image: url(\'/wp-content/themes/test/../image1.jpg\');}',
+			),
+			'External URLs, shouldn\'t change'             => array(
+				'css'      => 'p {background-image: url(\'http://foo.com/image2.png\');}',
+				'expected' => 'p {background-image: url(\'http://foo.com/image2.png\');}',
+			),
+			'An HTML ID'                                   => array(
+				'css'      => 'clip-path: url(#image1);',
+				'expected' => 'clip-path: url(#image1);',
+			),
+			'Data URIs, shouldn\'t change'                 => array(
+				'css'      => 'img {mask-image: url(\'data:image/svg+xml;utf8,<svg></svg>\');}',
+				'expected' => 'img {mask-image: url(\'data:image/svg+xml;utf8,<svg></svg>\');}',
+			),
+		);
+	}
+
+	/**
 	 * Test if multiple inline styles work
 	 *
 	 * @ticket 24813
@@ -280,7 +339,7 @@ CSS;
 	 *
 	 * @ticket 31126
 	 */
-	function test_wp_register_style() {
+	public function test_wp_register_style() {
 		$this->assertTrue( wp_register_style( 'duplicate-handler', 'http://example.com' ) );
 		$this->assertFalse( wp_register_style( 'duplicate-handler', 'http://example.com' ) );
 	}
@@ -288,7 +347,7 @@ CSS;
 	/**
 	 * @ticket 35229
 	 */
-	function test_wp_add_inline_style_for_handle_without_source() {
+	public function test_wp_add_inline_style_for_handle_without_source() {
 		$style = 'a { color: blue; }';
 
 		$expected  = "<link rel='stylesheet' id='handle-one-css'  href='http://example.com?ver=1' type='text/css' media='all' />\n";
@@ -311,12 +370,12 @@ CSS;
 	 * @ticket 35921
 	 * @dataProvider data_styles_with_media
 	 */
-	function test_wp_enqueue_style_with_media( $expected, $media ) {
+	public function test_wp_enqueue_style_with_media( $expected, $media ) {
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1, $media );
-		$this->assertContains( $expected, get_echo( 'wp_print_styles' ) );
+		$this->assertStringContainsString( $expected, get_echo( 'wp_print_styles' ) );
 	}
 
-	function data_styles_with_media() {
+	public function data_styles_with_media() {
 		return array(
 			array(
 				"media='all'",
@@ -349,8 +408,10 @@ CSS;
 	 * Tests that visual block styles are enqueued in the editor even when there is not theme support for 'wp-block-styles'.
 	 *
 	 * Visual block styles should always be enqueued when editing to avoid the appearance of a broken editor.
+	 *
+	 * @covers ::wp_enqueue_style
 	 */
-	function test_block_styles_for_editing_without_theme_support() {
+	public function test_block_styles_for_editing_without_theme_support() {
 		// Confirm we are without theme support by default.
 		$this->assertFalse( current_theme_supports( 'wp-block-styles' ) );
 
@@ -365,8 +426,10 @@ CSS;
 	 * Tests that visual block styles are enqueued when there is theme support for 'wp-block-styles'.
 	 *
 	 * Visual block styles should always be enqueued when editing to avoid the appearance of a broken editor.
+	 *
+	 * @covers ::wp_common_block_scripts_and_styles
 	 */
-	function test_block_styles_for_editing_with_theme_support() {
+	public function test_block_styles_for_editing_with_theme_support() {
 		add_theme_support( 'wp-block-styles' );
 
 		wp_default_styles( $GLOBALS['wp_styles'] );
@@ -381,8 +444,10 @@ CSS;
 	 *
 	 * Visual block styles should not be enqueued unless a theme opts in.
 	 * This way we avoid style conflicts with existing themes.
+	 *
+	 * @covers ::wp_enqueue_style
 	 */
-	function test_no_block_styles_for_viewing_without_theme_support() {
+	public function test_no_block_styles_for_viewing_without_theme_support() {
 		// Confirm we are without theme support by default.
 		$this->assertFalse( current_theme_supports( 'wp-block-styles' ) );
 
@@ -397,8 +462,10 @@ CSS;
 	 * Tests that visual block styles are enqueued for viewing when there is theme support for 'wp-block-styles'.
 	 *
 	 * Visual block styles should be enqueued when a theme opts in.
+	 *
+	 * @covers ::wp_common_block_scripts_and_styles
 	 */
-	function test_block_styles_for_viewing_with_theme_support() {
+	public function test_block_styles_for_viewing_with_theme_support() {
 		add_theme_support( 'wp-block-styles' );
 
 		wp_default_styles( $GLOBALS['wp_styles'] );
@@ -406,5 +473,39 @@ CSS;
 		$this->assertFalse( wp_style_is( 'wp-block-library-theme' ) );
 		wp_common_block_scripts_and_styles();
 		$this->assertTrue( wp_style_is( 'wp-block-library-theme' ) );
+	}
+
+	/**
+	 * Tests that the main "style.css" file gets enqueued when the site doesn't opt in to separate core block assets.
+	 *
+	 * @ticket 50263
+	 *
+	 * @covers ::wp_default_styles
+	 */
+	public function test_block_styles_for_viewing_without_split_styles() {
+		add_filter( 'should_load_separate_core_block_assets', '__return_false' );
+		wp_default_styles( $GLOBALS['wp_styles'] );
+
+		$this->assertSame(
+			'/' . WPINC . '/css/dist/block-library/style.css',
+			$GLOBALS['wp_styles']->registered['wp-block-library']->src
+		);
+	}
+
+	/**
+	 * Tests that the "common.css" file gets enqueued when the site opts in to separate core block assets.
+	 *
+	 * @ticket 50263
+	 *
+	 * @covers ::wp_default_styles
+	 */
+	public function test_block_styles_for_viewing_with_split_styles() {
+		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
+		wp_default_styles( $GLOBALS['wp_styles'] );
+
+		$this->assertSame(
+			'/' . WPINC . '/css/dist/block-library/common.css',
+			$GLOBALS['wp_styles']->registered['wp-block-library']->src
+		);
 	}
 }

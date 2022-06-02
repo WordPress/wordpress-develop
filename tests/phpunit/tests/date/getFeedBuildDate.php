@@ -4,17 +4,18 @@
  * @group date
  * @group datetime
  * @group feed
+ * @covers ::get_feed_build_date
  */
-class Tests_Date_Get_Feed_Build_Date extends WP_UnitTestCase {
+class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 
-	function tearDown() {
+	public function tear_down() {
 		global $wp_query;
 
 		update_option( 'timezone_string', 'UTC' );
 
 		unset( $wp_query );
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

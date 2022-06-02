@@ -1,13 +1,28 @@
 name: End-to-end Tests
 
 on:
+  # The end to end test suite was introduced in WordPress 5.3.
   push:
     branches:
-      - master
-      # The end to end test suite was introduced in WordPress 5.3.
+      - trunk
       - '5.[3-9]'
-      - '[6-9].*'
+      - '[6-9].[0-9]'
+    tags:
+      - '5.[3-9]*'
+      - '[6-9].[0-9]*'
   pull_request:
+    branches:
+      - trunk
+      - '5.[3-9]'
+      - '[6-9].[0-9]'
+  workflow_dispatch:
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
 
 env:
   LOCAL_DIR: build
@@ -16,12 +31,10 @@ jobs:
   # Runs the end-to-end test suite.
   #
   # Performs the following steps:
-  # - Cancels all previous workflow runs for pull requests that have not completed.
   # - Set environment variables.
   # - Checks out the repository.
   # - Logs debug information about the runner container.
-  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches).
-  # - Sets up caching for NPM.
+  # - Installs NodeJS 14.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Builds WordPress to run from the `build` directory.
   # - Starts the WordPress Docker container.
@@ -30,26 +43,21 @@ jobs:
   # - Logs Docker debug information (about both the Docker installation within the runner and the WordPress container).
   # - Install WordPress within the Docker container.
   # - Run the E2E tests.
-  # - todo: Configure Slack notifications for failing tests.
+  # - Ensures version-controlled files are not modified or deleted.
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
-      - name: Cancel previous runs of this workflow (pull requests only)
-        if: ${{ github.event_name == 'pull_request' }}
-        uses: styfle/cancel-workflow-action@0.5.0
-        with:
-          access_token: ${{ github.token }}
-
       - name: Configure environment variables
         run: |
           echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
           echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
 
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
 
       - name: Log debug information
         run: |
@@ -63,23 +71,13 @@ jobs:
           locale -a
 
       - name: Install NodeJS
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@5b52f097d36d4b0b2f94ed6de710023fbb8b2236 # v3.1.0
         with:
-          node-version: 14
-
-      - name: Cache NodeJS modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
+          node-version-file: '.nvmrc'
+          cache: npm
 
       - name: Install Dependencies
-        run: npx install-changed --install-command="npm ci"
+        run: npm ci
 
       - name: Build WordPress
         run: npm run build
@@ -114,3 +112,19 @@ jobs:
 
       - name: Run E2E tests
         run: npm run test:e2e
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    needs: [ e2e-tests ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ needs.e2e-tests.result == 'success' && 'success' || needs.e2e-tests.result == 'cancelled' && 'cancelled' || 'failure' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
