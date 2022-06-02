@@ -1881,7 +1881,7 @@ function get_post_type_capabilities( $args ) {
 }
 
 /**
- * Stores or return a list of post type meta caps for map_meta_cap().
+ * Stores or returns a list of post type meta caps for map_meta_cap().
  *
  * @since 3.1.0
  * @access private
