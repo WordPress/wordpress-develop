@@ -1413,7 +1413,7 @@ function get_post_stati( $args = array(), $output = 'names', $operator = 'and' )
 }
 
 /**
- * Whethers the post type is hierarchical.
+ * Determines whether the post type is hierarchical.
  *
  * A false return value might also mean that the post type does not exist.
  *
