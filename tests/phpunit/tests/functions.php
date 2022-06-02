@@ -3,7 +3,7 @@
 /**
  * @group functions.php
  */
-class functions extends WP_UnitTestCase {
+class Tests_Functions extends WP_UnitTestCase {
 	public function test_wp_parse_args_object() {
 		$x        = new MockClass;
 		$x->_baba = 5;
