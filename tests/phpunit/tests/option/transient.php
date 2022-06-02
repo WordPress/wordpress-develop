@@ -161,18 +161,27 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	/**
 	 * @ticket 52345
 	 */
-	function test_nonexistent_timeout_get_transient() {
-		// Create a transient.
-		$key = 'test_transient';
-		set_transient( $key, 'test', 60 * 10 );
+	function test_failed_timeout_save_set_transient() {
+		// Test transients with a timeout
+		$key = 'test_new_transient_with_timeout';
+		add_filter( 'query', '__return_false' ); // Make sure the database query will not work
+		$transient_set = set_transient( $key, 'test', 60 );
+		remove_filter( 'query', '__return_false' ); // Make database queries work again
+		$this->assertFalse( $transient_set );
+		$this->assertFalse( get_transient( $key ) );
+		$this->assertFalse( get_option( sprintf( '_transient_%s', $key ) ) );
+		$this->assertFalse( get_option( sprintf( '_transient_timeout_%s', $key ) ) );
+
+
+		// Test transients without a timeout at first, but then a timeout is added
+		$key = 'test_existing_transient_without_timeout';
+		set_transient( $key, 'test' );
+		add_filter( 'query', '__return_false' ); // Make sure the database query will not work
+		$transient_set = set_transient( $key, 'test2', 60 );
+		remove_filter( 'query', '__return_false' );
+		$this->assertFalse( $transient_set );
 		$this->assertSame( 'test', get_transient( $key ) );
-
-		// Delete the timeout option to simulate that saving the timeout failed.
-		$timeout = '_transient_timeout_' . $key;
-		delete_option( $timeout );
-
-		// Validate transient returns false.
-		$transient_value = get_transient( $key );
-		$this->assertFalse( $transient_value );
+		$this->assertSame( 'test', get_option( sprintf( '_transient_%s', $key ) ) );
+		$this->assertFalse( get_option( sprintf( '_transient_timeout_%s', $key ) ) );
 	}
 }
