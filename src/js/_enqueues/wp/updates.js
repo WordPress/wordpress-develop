@@ -33,6 +33,8 @@
 	var $document = $( document ),
 		__ = wp.i18n.__,
 		_x = wp.i18n._x,
+		_n = wp.i18n._n,
+		_nx = wp.i18n._nx,
 		sprintf = wp.i18n.sprintf;
 
 	wp = wp || {};
@@ -352,8 +354,14 @@
 			$appearanceNavMenuUpdateCount = $( 'a[href="themes.php"] .update-plugins' ),
 			itemCount;
 
-		$adminBarUpdates.find( '.ab-item' ).removeAttr( 'title' );
 		$adminBarUpdates.find( '.ab-label' ).text( settings.totals.counts.total );
+		$adminBarUpdates.find( '.updates-available-text' ).text(
+			sprintf(
+				/* translators: %s: Total number of updates available. */
+				_n( '%s update available', '%s updates available', settings.totals.counts.total ),
+				settings.totals.counts.total
+			)
+		);
 
 		// Remove the update count from the toolbar if it's zero.
 		if ( 0 === settings.totals.counts.total ) {
@@ -443,7 +451,8 @@
 	 *                     decorated with an abort() method.
 	 */
 	wp.updates.updatePlugin = function( args ) {
-		var $updateRow, $card, $message, message;
+		var $updateRow, $card, $message, message,
+			$adminBarUpdates = $( '#wp-admin-bar-updates' );
 
 		args = _.extend( {
 			success: wp.updates.updatePluginSuccess,
@@ -470,6 +479,8 @@
 			// Remove previous error messages, if any.
 			$card.removeClass( 'plugin-card-update-failed' ).find( '.notice.notice-error' ).remove();
 		}
+
+		$adminBarUpdates.addClass( 'spin' );
 
 		if ( $message.html() !== __( 'Updating...' ) ) {
 			$message.data( 'originaltext', $message.html() );
@@ -499,7 +510,8 @@
 	 * @param {string} response.newVersion New version of the plugin.
 	 */
 	wp.updates.updatePluginSuccess = function( response ) {
-		var $pluginRow, $updateMessage, newText;
+		var $pluginRow, $updateMessage, newText,
+			$adminBarUpdates = $( '#wp-admin-bar-updates' );
 
 		if ( 'plugins' === pagenow || 'plugins-network' === pagenow ) {
 			$pluginRow     = $( 'tr[data-plugin="' + response.plugin + '"]' )
@@ -520,6 +532,8 @@
 				.removeClass( 'updating-message' )
 				.addClass( 'button-disabled updated-message' );
 		}
+
+		$adminBarUpdates.removeClass( 'spin' );
 
 		$updateMessage
 			.attr(
@@ -553,7 +567,8 @@
 	 * @param {string}  response.errorMessage The error that occurred.
 	 */
 	wp.updates.updatePluginError = function( response ) {
-		var $card, $message, errorMessage;
+		var $card, $message, errorMessage,
+			$adminBarUpdates = $( '#wp-admin-bar-updates' );
 
 		if ( ! wp.updates.isValidResponse( response, 'update' ) ) {
 			return;
@@ -622,7 +637,7 @@
 				setTimeout( function() {
 					$card
 						.removeClass( 'plugin-card-update-failed' )
-						.find( '.column-name a' ).focus();
+						.find( '.column-name a' ).trigger( 'focus' );
 
 					$card.find( '.update-now' )
 						.attr( 'aria-label', false )
@@ -630,6 +645,8 @@
 				}, 200 );
 			} );
 		}
+
+		$adminBarUpdates.removeClass( 'spin' );
 
 		wp.a11y.speak( errorMessage, 'assertive' );
 
@@ -792,7 +809,7 @@
 			setTimeout( function() {
 				$card
 					.removeClass( 'plugin-card-update-failed' )
-					.find( '.column-name a' ).focus();
+					.find( '.column-name a' ).trigger( 'focus' );
 			}, 200 );
 		} );
 
@@ -954,6 +971,8 @@
 			var $form            = $( '#bulk-action-form' ),
 				$views           = $( '.subsubsub' ),
 				$pluginRow       = $( this ),
+				$currentView     = $views.find( '[aria-current="page"]' ),
+				$itemsCount      = $( '.displaying-num' ),
 				columnCount      = $form.find( 'thead th:not(.hidden), thead td' ).length,
 				pluginDeletedRow = wp.template( 'item-deleted-row' ),
 				/**
@@ -961,7 +980,8 @@
 				 *
 				 * @type {Object}
 				 */
-				plugins          = settings.plugins;
+				plugins          = settings.plugins,
+				remainingCount;
 
 			// Add a success message after deleting a plugin.
 			if ( ! $pluginRow.hasClass( 'plugin-update-tr' ) ) {
@@ -1040,6 +1060,17 @@
 				if ( ! $form.find( 'tr.no-items' ).length ) {
 					$form.find( '#the-list' ).append( '<tr class="no-items"><td class="colspanchange" colspan="' + columnCount + '">' + __( 'No plugins are currently available.' ) + '</td></tr>' );
 				}
+			}
+
+			if ( $itemsCount.length && $currentView.length ) {
+				remainingCount = plugins[ $currentView.parent( 'li' ).attr('class') ].length;
+				$itemsCount.text(
+					sprintf(
+						/* translators: %s: The remaining number of plugins. */
+						_nx( '%s item', '%s items', 'plugin/plugins', remainingCount ),
+						remainingCount
+					)
+				);
 			}
 		} );
 
@@ -1206,10 +1237,10 @@
 
 			// Focus on Customize button after updating.
 			if ( isModalOpen ) {
-				$( '.load-customize:visible' ).focus();
+				$( '.load-customize:visible' ).trigger( 'focus' );
 				$( '.theme-info .theme-autoupdate' ).find( '.auto-update-time' ).empty();
 			} else {
-				$theme.find( '.load-customize' ).focus();
+				$theme.find( '.load-customize' ).trigger( 'focus' );
 			}
 		}
 
@@ -1262,7 +1293,7 @@
 		} else {
 			$notice = $( '.theme-info .notice' ).add( $theme.find( '.notice' ) );
 
-			$( 'body.modal-open' ).length ? $( '.load-customize:visible' ).focus() : $theme.find( '.load-customize' ).focus();
+			$( 'body.modal-open' ).length ? $( '.load-customize:visible' ).trigger( 'focus' ) : $theme.find( '.load-customize' ).trigger( 'focus');
 		}
 
 		wp.updates.addAdminNotice( {
@@ -1759,11 +1790,11 @@
 
 			// #upgrade button must always be the last focus-able element in the dialog.
 			if ( 'upgrade' === event.target.id && ! event.shiftKey ) {
-				$( '#hostname' ).focus();
+				$( '#hostname' ).trigger( 'focus' );
 
 				event.preventDefault();
 			} else if ( 'hostname' === event.target.id && event.shiftKey ) {
-				$( '#upgrade' ).focus();
+				$( '#upgrade' ).trigger( 'focus' );
 
 				event.preventDefault();
 			}
@@ -1780,7 +1811,7 @@
 
 		$( 'body' ).addClass( 'modal-open' );
 		$modal.show();
-		$modal.find( 'input:enabled:first' ).focus();
+		$modal.find( 'input:enabled:first' ).trigger( 'focus' );
 		$modal.on( 'keydown', wp.updates.keydown );
 	};
 
@@ -1794,7 +1825,7 @@
 		$( 'body' ).removeClass( 'modal-open' );
 
 		if ( wp.updates.$elToReturnFocusToFromCredentialsModal ) {
-			wp.updates.$elToReturnFocusToFromCredentialsModal.focus();
+			wp.updates.$elToReturnFocusToFromCredentialsModal.trigger( 'focus' );
 		}
 	};
 

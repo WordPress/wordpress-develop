@@ -8,10 +8,11 @@ jobs:
   # Comments on a pull request when the author is a new contributor.
   post-welcome-message:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
 
     steps:
-      - uses: bubkoo/welcome-action@v1
+      - uses: bubkoo/welcome-action@8dbbac2540d155744c90e4e37da6b05ffc9c5e2c # v1.0.3
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FIRST_PR_COMMENT: >

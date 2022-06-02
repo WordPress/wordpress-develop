@@ -63,10 +63,15 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		self::delete_user( self::$admin );
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+	}
+
+	public function tear_down() {
+		unset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'], $GLOBALS['wp_rest_application_password_status'], $GLOBALS['wp_rest_application_password_uuid'] );
+		parent::tear_down();
 	}
 
 	/**
@@ -185,7 +190,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		wp_set_current_user( self::$subscriber_id );
 
 		$response = rest_do_request( sprintf( '/wp/v2/users/%d/application-passwords', self::$admin ) );
-		$this->assertErrorResponse( 'rest_cannot_manage_application_passwords', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_list_application_passwords', $response, 403 );
 	}
 
 	/**
@@ -267,7 +272,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 		$uuid     = $item['uuid'];
 		$response = rest_do_request( sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$admin, $uuid ) );
-		$this->assertErrorResponse( 'rest_cannot_manage_application_passwords', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_read_application_password', $response, 403 );
 	}
 
 	/**
@@ -389,7 +394,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/users/%d/application-passwords', self::$admin ) );
 		$request->set_body_params( array( 'name' => 'App' ) );
 		$response = rest_do_request( $request );
-		$this->assertErrorResponse( 'rest_cannot_manage_application_passwords', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_create_application_passwords', $response, 403 );
 	}
 
 	/**
@@ -495,7 +500,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$admin, $uuid ) );
 		$request->set_body_params( array( 'name' => 'New App' ) );
 		$response = rest_do_request( $request );
-		$this->assertErrorResponse( 'rest_cannot_manage_application_passwords', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_edit_application_password', $response, 403 );
 	}
 
 	/**
@@ -538,6 +543,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 	/**
 	 * @ticket 51583
+	 * @ticket 51941
 	 */
 	public function test_update_item_cannot_overwrite_app_id() {
 		wp_set_current_user( self::$admin );
@@ -554,7 +560,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		list( , $item ) = WP_Application_Passwords::create_new_application_password(
 			self::$admin,
 			array(
-				'name'   => 'App',
+				'name'   => 'App 2',
 				'app_id' => $app_id,
 			)
 		);
@@ -637,7 +643,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$uuid     = $item['uuid'];
 		$request  = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$admin, $uuid ) );
 		$response = rest_do_request( $request );
-		$this->assertErrorResponse( 'rest_cannot_manage_application_passwords', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_delete_application_password', $response, 403 );
 	}
 
 	/**
@@ -741,7 +747,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 		$request  = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d/application-passwords', self::$admin ) );
 		$response = rest_do_request( $request );
-		$this->assertErrorResponse( 'rest_cannot_manage_application_passwords', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_delete_application_passwords', $response, 403 );
 	}
 
 	/**
@@ -875,5 +881,168 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$this->assertArrayHasKey( 'last_used', $properties );
 		$this->assertArrayHasKey( 'last_ip', $properties );
 		$this->assertCount( 7, $properties );
+	}
+
+	/**
+	 * @ticket 52275
+	 */
+	public function test_introspect_item() {
+		$password = $this->setup_app_password_authenticated_request();
+		$response = rest_do_request( '/wp/v2/users/me/application-passwords/introspect' );
+		$this->assertNotWPError( $response->as_error() );
+
+		$this->assertSame( $password['uuid'], $response->get_data()['uuid'] );
+	}
+
+	/**
+	 * @ticket 52275
+	 */
+	public function test_introspect_item_specific_user() {
+		$password = $this->setup_app_password_authenticated_request();
+		$response = rest_do_request( '/wp/v2/users/' . self::$admin . '/application-passwords/introspect' );
+
+		$this->assertSame( $password['uuid'], $response->get_data()['uuid'] );
+	}
+
+	/**
+	 * @ticket 52275
+	 */
+	public function test_introspect_item_logged_out() {
+		$response = rest_do_request( '/wp/v2/users/me/application-passwords/introspect' );
+		$this->assertErrorResponse( 'rest_not_logged_in', $response, 401 );
+	}
+
+	/**
+	 * @ticket 52275
+	 */
+	public function test_introspect_item_wrong_user() {
+		$this->setup_app_password_authenticated_request();
+		$response = rest_do_request( '/wp/v2/users/' . self::$subscriber_id . '/application-passwords/introspect' );
+		$this->assertErrorResponse( 'rest_cannot_introspect_app_password_for_non_authenticated_user', $response, 403 );
+	}
+
+	/**
+	 * @ticket 52275
+	 */
+	public function test_introspect_item_no_app_password_used() {
+		wp_set_current_user( self::$admin );
+		$response = rest_do_request( '/wp/v2/users/me/application-passwords/introspect' );
+		$this->assertErrorResponse( 'rest_no_authenticated_app_password', $response, 404 );
+	}
+
+	/**
+	 * @ticket 52275
+	 */
+	public function test_introspect_item_password_invalid() {
+		$this->setup_app_password_authenticated_request();
+		add_action(
+			'application_password_did_authenticate',
+			static function() {
+				$GLOBALS['wp_rest_application_password_uuid'] = 'invalid_uuid';
+			}
+		);
+
+		$response = rest_do_request( '/wp/v2/users/me/application-passwords/introspect' );
+		$this->assertErrorResponse( 'rest_application_password_not_found', $response, 500 );
+	}
+
+	/**
+	 * @ticket 53658
+	 *
+	 * @covers ::wp_is_application_passwords_supported
+	 */
+	public function test_wp_is_application_passwords_supported_with_https_only() {
+		$_SERVER['HTTPS'] = 'on';
+		$this->assertTrue( wp_is_application_passwords_supported() );
+	}
+
+	/**
+	 * @ticket 53658
+	 *
+	 * @covers ::wp_is_application_passwords_supported
+	 */
+	public function test_wp_is_application_passwords_supported_with_local_environment_only() {
+		putenv( 'WP_ENVIRONMENT_TYPE=local' );
+
+		$actual = wp_is_application_passwords_supported();
+
+		// Revert to default behaviour so that other tests are not affected.
+		putenv( 'WP_ENVIRONMENT_TYPE' );
+
+		$this->assertTrue( $actual );
+	}
+
+	/**
+	 * @dataProvider data_wp_is_application_passwords_available
+	 *
+	 * @ticket 53658
+	 *
+	 * @covers ::wp_is_application_passwords_available
+	 *
+	 * @param bool|string $expected The expected value.
+	 * @param string|null $callback Optional. The callback for the `wp_is_application_passwords_available` hook.
+	 *                              Default: null.
+	 */
+	public function test_wp_is_application_passwords_available( $expected, $callback = null ) {
+		remove_filter( 'wp_is_application_passwords_available', '__return_true' );
+
+		if ( $callback ) {
+			add_filter( 'wp_is_application_passwords_available', $callback );
+		}
+
+		if ( 'default' === $expected ) {
+			putenv( 'WP_ENVIRONMENT_TYPE=local' );
+			$expected = wp_is_application_passwords_supported();
+		}
+
+		$actual = wp_is_application_passwords_available();
+
+		if ( 'default' === $expected ) {
+			// Revert to default behaviour so that other tests are not affected.
+			putenv( 'WP_ENVIRONMENT_TYPE' );
+		}
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_wp_is_application_passwords_available() {
+		return array(
+			'availability not forced'   => array(
+				'expected' => 'default',
+			),
+			'availability forced true'  => array(
+				'expected' => true,
+				'callback' => '__return_true',
+			),
+			'availability forced false' => array(
+				'expected' => false,
+				'callback' => '__return_false',
+			),
+		);
+	}
+
+	/**
+	 * Sets up a REST API request to be authenticated using an App Password.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @return array The created App Password.
+	 */
+	private function setup_app_password_authenticated_request() {
+		list( $password, $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'Test' ) );
+
+		$_SERVER['PHP_AUTH_USER'] = get_userdata( self::$admin )->user_login;
+		$_SERVER['PHP_AUTH_PW']   = $password;
+
+		$GLOBALS['current_user'] = null;
+
+		add_filter( 'application_password_is_api_request', '__return_true' );
+
+		return $item;
 	}
 }

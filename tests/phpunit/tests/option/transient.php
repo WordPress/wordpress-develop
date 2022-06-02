@@ -5,15 +5,15 @@
  */
 class Tests_Option_Transient extends WP_UnitTestCase {
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		if ( wp_using_ext_object_cache() ) {
 			$this->markTestSkipped( 'Not testable with an external object cache.' );
 		}
 	}
 
-	function test_the_basics() {
+	public function test_the_basics() {
 		$key    = 'key1';
 		$value  = 'value1';
 		$value2 = 'value2';
@@ -29,7 +29,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 		$this->assertFalse( delete_transient( $key ) );
 	}
 
-	function test_serialized_data() {
+	public function test_serialized_data() {
 		$key   = rand_str();
 		$value = array(
 			'foo' => true,
@@ -48,7 +48,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	/**
 	 * @ticket 22807
 	 */
-	function test_transient_data_with_timeout() {
+	public function test_transient_data_with_timeout() {
 		$key   = rand_str();
 		$value = rand_str();
 
@@ -69,7 +69,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	/**
 	 * @ticket 22807
 	 */
-	function test_transient_add_timeout() {
+	public function test_transient_add_timeout() {
 		$key    = rand_str();
 		$value  = rand_str();
 		$value2 = rand_str();
@@ -88,9 +88,39 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	}
 
 	/**
+	 * If get_option( $transient_timeout ) returns false, don't bother trying to delete the transient.
+	 *
 	 * @ticket 30380
 	 */
-	function test_nonexistent_key_old_timeout() {
+	public function test_nonexistent_key_dont_delete_if_false() {
+		// Create a bogus a transient.
+		$key = 'test_transient';
+		set_transient( $key, 'test', 60 * 10 );
+		$this->assertSame( 'test', get_transient( $key ) );
+
+		// Useful variables for tracking.
+		$transient_timeout = '_transient_timeout_' . $key;
+
+		// Mock an action for tracking action calls.
+		$a = new MockAction();
+
+		// Make sure the timeout option returns false.
+		add_filter( 'option_' . $transient_timeout, '__return_false' );
+
+		// Add some actions to make sure options are _not_ deleted.
+		add_action( 'delete_option', array( $a, 'action' ) );
+
+		// Act.
+		get_transient( $key );
+
+		// Make sure 'delete_option' was not called for both the transient and the timeout.
+		$this->assertSame( 0, $a->get_call_count() );
+	}
+
+	/**
+	 * @ticket 30380
+	 */
+	public function test_nonexistent_key_old_timeout() {
 		// Create a transient.
 		$key = 'test_transient';
 		set_transient( $key, 'test', 60 * 10 );

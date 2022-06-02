@@ -37,8 +37,8 @@ class Tests_Functions_Deprecated extends WP_UnitTestCase {
 	/**
 	 * Sets up the test fixture.
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->_deprecated_functions = array();
 		$this->_deprecated_arguments = array();
 		$this->_deprecated_files     = array();
@@ -53,14 +53,14 @@ class Tests_Functions_Deprecated extends WP_UnitTestCase {
 	/**
 	 * Tears down the test fixture.
 	 */
-	public function teardown() {
+	public function tear_down() {
 		remove_action( 'deprecated_function_run', array( $this, 'deprecated_function' ), 10, 3 );
 		remove_action( 'deprecated_function_trigger_error', '__return_false' );
 		remove_action( 'deprecated_argument_run', array( $this, 'deprecated_argument' ), 10, 3 );
 		remove_action( 'deprecated_argument_trigger_error', '__return_false' );
 		remove_action( 'deprecated_file_included', array( $this, 'deprecated_argument' ), 10, 4 );
 		remove_action( 'deprecated_file_trigger_error', '__return_false' );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

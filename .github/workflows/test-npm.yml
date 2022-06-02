@@ -1,0 +1,169 @@
+name: Test NPM
+
+on:
+  push:
+    branches:
+      - trunk
+      - '3.[7-9]'
+      - '[4-9].[0-9]'
+  pull_request:
+    branches:
+      - trunk
+      - '3.[7-9]'
+      - '[4-9].[0-9]'
+    paths:
+      # These files configure NPM. Changes could affect the outcome.
+      - 'package*.json'
+      # JavaScript files are built using NPM.
+      - '**.js'
+      # CSS and SCSS files are built using NPM.
+      - '**.scss'
+      - '**.css'
+      # Changes to workflow files should always verify all workflows are successful.
+      - '.github/workflows/**.yml'
+  workflow_dispatch:
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+env:
+  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
+
+jobs:
+  # Verifies that installing NPM dependencies and building WordPress works as expected.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Logs debug information about the runner container.
+  # - Installs NodeJS 14.
+  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # - Builds WordPress to run from the `build` directory.
+  # - Cleans up after building WordPress to the `build` directory.
+  # - Ensures version-controlled files are not modified or deleted.
+  # - Builds WordPress to run from the `src` directory.
+  # - Cleans up after building WordPress to the `src` directory.
+  # - Ensures version-controlled files are not modified or deleted.
+  test-npm:
+    name: Test NPM on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+          svn --version
+
+      - name: Install NodeJS
+        uses: actions/setup-node@5b52f097d36d4b0b2f94ed6de710023fbb8b2236 # v3.1.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build WordPress
+        run: npm run build
+
+      - name: Clean after building
+        run: npm run grunt clean
+
+      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
+        run: git diff --exit-code
+
+      - name: Build WordPress in /src
+        run: npm run build:dev
+
+      - name: Clean after building in /src
+        run: npm run grunt clean -- --dev
+
+      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
+        run: git diff --exit-code
+
+  # Verifies that installing NPM dependencies and building WordPress works as expected on MacOS.
+  #
+  # This is a separate job in order to that more strict conditions can be used.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Logs debug information about the runner container.
+  # - Installs NodeJS 14.
+  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # - Builds WordPress to run from the `build` directory.
+  # - Cleans up after building WordPress to the `build` directory.
+  # - Ensures version-controlled files are not modified or deleted.
+  # - Builds WordPress to run from the `src` directory.
+  # - Cleans up after building WordPress to the `src` directory.
+  # - Ensures version-controlled files are not modified or deleted.
+  test-npm-macos:
+    name: Test NPM on MacOS
+    runs-on: macos-latest
+    timeout-minutes: 20
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+          svn --version
+
+      - name: Install NodeJS
+        uses: actions/setup-node@5b52f097d36d4b0b2f94ed6de710023fbb8b2236 # v3.1.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build WordPress
+        run: npm run build
+
+      - name: Clean after building
+        run: npm run grunt clean
+
+      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
+        run: git diff --exit-code
+
+      - name: Build WordPress in /src
+        run: npm run build:dev
+
+      - name: Clean after building in /src
+        run: npm run grunt clean -- --dev
+
+      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
+        run: git diff --exit-code
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    needs: [ test-npm, test-npm-macos ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ needs.test-npm.result == 'success' && needs.test-npm-macos.result == 'success' && 'success' || ( needs.test-npm.result == 'cancelled' || needs.test-npm-macos.result == 'cancelled' ) && 'cancelled' || 'failure' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}

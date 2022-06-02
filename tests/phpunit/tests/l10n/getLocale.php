@@ -39,7 +39,7 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	 */
 	public function test_network_option_should_be_fallback_on_multisite() {
 		if ( ! is_multisite() ) {
-			$this->markTestSkipped( __METHOD__ . ' requires Multisite.' );
+			$this->markTestSkipped( 'This test requires Multisite.' );
 		}
 
 		global $locale;
@@ -59,7 +59,7 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	 */
 	public function test_option_should_be_respected_on_nonmultisite() {
 		if ( is_multisite() ) {
-			$this->markTestSkipped( __METHOD__ . ' does not apply to Multisite.' );
+			$this->markTestSkipped( 'This test does not apply to Multisite.' );
 		}
 
 		global $locale;

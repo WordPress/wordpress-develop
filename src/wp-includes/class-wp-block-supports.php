@@ -58,7 +58,7 @@ class WP_Block_Supports {
 	}
 
 	/**
-	 * Initializes the block supports. It registes the block supports block attributes.
+	 * Initializes the block supports. It registers the block supports block attributes.
 	 *
 	 * @since 5.6.0
 	 */
@@ -72,7 +72,7 @@ class WP_Block_Supports {
 	 *
 	 * @since 5.6.0
 	 *
-	 * @param string $block_support_name Block support name.
+	 * @param string $block_support_name   Block support name.
 	 * @param array  $block_support_config Array containing the properties of the block support.
 	 */
 	public function register( $block_support_name, $block_support_config ) {
@@ -88,7 +88,7 @@ class WP_Block_Supports {
 	 *
 	 * @since 5.6.0
 	 *
-	 * @return array Array of HTML attributes.
+	 * @return string[] Array of HTML attributes.
 	 */
 	public function apply_block_supports() {
 		$block_attributes = self::$block_to_render['attrs'];
@@ -102,7 +102,7 @@ class WP_Block_Supports {
 		}
 
 		$output = array();
-		foreach ( $this->block_supports as $name => $block_support_config ) {
+		foreach ( $this->block_supports as $block_support_config ) {
 			if ( ! isset( $block_support_config['apply'] ) ) {
 				continue;
 			}
@@ -143,7 +143,7 @@ class WP_Block_Supports {
 				$block_type->attributes = array();
 			}
 
-			foreach ( $this->block_supports as $name => $block_support_config ) {
+			foreach ( $this->block_supports as $block_support_config ) {
 				if ( ! isset( $block_support_config['register_attribute'] ) ) {
 					continue;
 				}
@@ -163,9 +163,8 @@ class WP_Block_Supports {
  *
  * @since 5.6.0
  *
- * @param array $extra_attributes Optional. Extra attributes to render on the block wrapper.
- *
- * @return string String of HTML classes.
+ * @param string[] $extra_attributes Optional. Array of extra attributes to render on the block wrapper.
+ * @return string String of HTML attributes.
  */
 function get_block_wrapper_attributes( $extra_attributes = array() ) {
 	$new_attributes = WP_Block_Supports::get_instance()->apply_block_supports();

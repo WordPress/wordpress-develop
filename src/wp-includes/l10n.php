@@ -114,7 +114,7 @@ function get_user_locale( $user_id = 0 ) {
  *
  * @since 5.0.0
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  *
  * @return string The determined locale.
  */
@@ -144,8 +144,16 @@ function determine_locale() {
 		$determined_locale = get_user_locale();
 	}
 
-	if ( ! empty( $_GET['wp_lang'] ) && ! empty( $GLOBALS['pagenow'] ) && 'wp-login.php' === $GLOBALS['pagenow'] ) {
-		$determined_locale = sanitize_text_field( $_GET['wp_lang'] );
+	$wp_lang = '';
+
+	if ( ! empty( $_GET['wp_lang'] ) ) {
+		$wp_lang = sanitize_text_field( $_GET['wp_lang'] );
+	} elseif ( ! empty( $_COOKIE['wp_lang'] ) ) {
+		$wp_lang = sanitize_text_field( $_COOKIE['wp_lang'] );
+	}
+
+	if ( ! empty( $wp_lang ) && ! empty( $GLOBALS['pagenow'] ) && 'wp-login.php' === $GLOBALS['pagenow'] ) {
+		$determined_locale = $wp_lang;
 	}
 
 	/**
@@ -191,7 +199,7 @@ function translate( $text, $domain = 'default' ) {
 	/**
 	 * Filters text with its translation for a domain.
 	 *
-	 * The dynamic portion of the hook, `$domain`, refers to the text domain.
+	 * The dynamic portion of the hook name, `$domain`, refers to the text domain.
 	 *
 	 * @since 5.5.0
 	 *
@@ -259,7 +267,7 @@ function translate_with_gettext_context( $text, $context, $domain = 'default' ) 
 	/**
 	 * Filters text with its translation based on context information for a domain.
 	 *
-	 * The dynamic portion of the hook, `$domain`, refers to the text domain.
+	 * The dynamic portion of the hook name, `$domain`, refers to the text domain.
 	 *
 	 * @since 5.5.0
 	 *
@@ -401,7 +409,6 @@ function _x( $text, $context, $domain = 'default' ) {
  * @param string $context Context information for the translators.
  * @param string $domain  Optional. Text domain. Unique identifier for retrieving translated strings.
  *                        Default 'default'.
- * @return string Translated context string without pipe.
  */
 function _ex( $text, $context, $domain = 'default' ) {
 	echo _x( $text, $context, $domain );
@@ -483,7 +490,7 @@ function _n( $single, $plural, $number, $domain = 'default' ) {
 	/**
 	 * Filters the singular or plural form of a string for a domain.
 	 *
-	 * The dynamic portion of the hook, `$domain`, refers to the text domain.
+	 * The dynamic portion of the hook name, `$domain`, refers to the text domain.
 	 *
 	 * @since 5.5.0
 	 *
@@ -543,7 +550,7 @@ function _nx( $single, $plural, $number, $context, $domain = 'default' ) {
 	/**
 	 * Filters the singular or plural form of a string with gettext context for a domain.
 	 *
-	 * The dynamic portion of the hook, `$domain`, refers to the text domain.
+	 * The dynamic portion of the hook name, `$domain`, refers to the text domain.
 	 *
 	 * @since 5.5.0
 	 *
@@ -625,13 +632,13 @@ function _n_noop( $singular, $plural, $domain = null ) {
  * @return array {
  *     Array of translation information for the strings.
  *
- *     @type string $0        Singular form to be localized. No longer used.
- *     @type string $1        Plural form to be localized. No longer used.
- *     @type string $2        Context information for the translators. No longer used.
- *     @type string $singular Singular form to be localized.
- *     @type string $plural   Plural form to be localized.
- *     @type string $context  Context information for the translators.
- *     @type string $domain   Text domain.
+ *     @type string      $0        Singular form to be localized. No longer used.
+ *     @type string      $1        Plural form to be localized. No longer used.
+ *     @type string      $2        Context information for the translators. No longer used.
+ *     @type string      $singular Singular form to be localized.
+ *     @type string      $plural   Plural form to be localized.
+ *     @type string      $context  Context information for the translators.
+ *     @type string|null $domain   Text domain.
  * }
  */
 function _nx_noop( $singular, $plural, $context, $domain = null ) {
@@ -1481,6 +1488,7 @@ function wp_get_pomo_file_data( $po_file ) {
  * @since 4.3.0 Introduced the `echo` argument.
  * @since 4.7.0 Introduced the `show_option_site_default` argument.
  * @since 5.1.0 Introduced the `show_option_en_us` argument.
+ * @since 5.9.0 Introduced the `explicit_option_en_us` argument.
  *
  * @see get_available_languages()
  * @see wp_get_available_translations()
@@ -1500,6 +1508,8 @@ function wp_get_pomo_file_data( $po_file ) {
  *     @type bool     $show_available_translations  Whether to show available translations. Default true.
  *     @type bool     $show_option_site_default     Whether to show an option to fall back to the site's locale. Default false.
  *     @type bool     $show_option_en_us            Whether to show an option for English (United States). Default true.
+ *     @type bool     $explicit_option_en_us        Whether the English (United States) option uses an explicit value of en_US
+ *                                                  instead of an empty value. Default false.
  * }
  * @return string HTML dropdown list of languages.
  */
@@ -1517,6 +1527,7 @@ function wp_dropdown_languages( $args = array() ) {
 			'show_available_translations' => true,
 			'show_option_site_default'    => false,
 			'show_option_en_us'           => true,
+			'explicit_option_en_us'       => false,
 		)
 	);
 
@@ -1526,7 +1537,7 @@ function wp_dropdown_languages( $args = array() ) {
 	}
 
 	// English (United States) uses an empty string for the value attribute.
-	if ( 'en_US' === $parsed_args['selected'] ) {
+	if ( 'en_US' === $parsed_args['selected'] && ! $parsed_args['explicit_option_en_us'] ) {
 		$parsed_args['selected'] = '';
 	}
 
@@ -1581,8 +1592,10 @@ function wp_dropdown_languages( $args = array() ) {
 	}
 
 	if ( $parsed_args['show_option_en_us'] ) {
+		$value       = ( $parsed_args['explicit_option_en_us'] ) ? 'en_US' : '';
 		$structure[] = sprintf(
-			'<option value="" lang="en" data-installed="1"%s>English (United States)</option>',
+			'<option value="%s" lang="en" data-installed="1"%s>English (United States)</option>',
+			esc_attr( $value ),
 			selected( '', $parsed_args['selected'], false )
 		);
 	}
@@ -1712,4 +1725,63 @@ function is_locale_switched() {
 	global $wp_locale_switcher;
 
 	return $wp_locale_switcher->is_switched();
+}
+
+/**
+ * Translates the provided settings value using its i18n schema.
+ *
+ * @since 5.9.0
+ * @access private
+ *
+ * @param string|string[]|array[]|object $i18n_schema I18n schema for the setting.
+ * @param string|string[]|array[]        $settings    Value for the settings.
+ * @param string                         $textdomain  Textdomain to use with translations.
+ *
+ * @return string|string[]|array[] Translated settings.
+ */
+function translate_settings_using_i18n_schema( $i18n_schema, $settings, $textdomain ) {
+	if ( empty( $i18n_schema ) || empty( $settings ) || empty( $textdomain ) ) {
+		return $settings;
+	}
+
+	if ( is_string( $i18n_schema ) && is_string( $settings ) ) {
+		return translate_with_gettext_context( $settings, $i18n_schema, $textdomain );
+	}
+	if ( is_array( $i18n_schema ) && is_array( $settings ) ) {
+		$translated_settings = array();
+		foreach ( $settings as $value ) {
+			$translated_settings[] = translate_settings_using_i18n_schema( $i18n_schema[0], $value, $textdomain );
+		}
+		return $translated_settings;
+	}
+	if ( is_object( $i18n_schema ) && is_array( $settings ) ) {
+		$group_key           = '*';
+		$translated_settings = array();
+		foreach ( $settings as $key => $value ) {
+			if ( isset( $i18n_schema->$key ) ) {
+				$translated_settings[ $key ] = translate_settings_using_i18n_schema( $i18n_schema->$key, $value, $textdomain );
+			} elseif ( isset( $i18n_schema->$group_key ) ) {
+				$translated_settings[ $key ] = translate_settings_using_i18n_schema( $i18n_schema->$group_key, $value, $textdomain );
+			} else {
+				$translated_settings[ $key ] = $value;
+			}
+		}
+		return $translated_settings;
+	}
+	return $settings;
+}
+
+/**
+ * Retrieves the list item separator based on the locale.
+ *
+ * @since 6.0.0
+ *
+ * @global WP_Locale $wp_locale WordPress date and time locale object.
+ *
+ * @return string Locale-specific list item separator.
+ */
+function wp_get_list_item_separator() {
+	global $wp_locale;
+
+	return $wp_locale->get_list_item_separator();
 }

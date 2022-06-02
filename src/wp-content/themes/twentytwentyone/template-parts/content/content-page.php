@@ -32,7 +32,7 @@
 			array(
 				'before'   => '<nav class="page-links" aria-label="' . esc_attr__( 'Page', 'twentytwentyone' ) . '">',
 				'after'    => '</nav>',
-				/* translators: %: page number. */
+				/* translators: %: Page number. */
 				'pagelink' => esc_html__( 'Page %', 'twentytwentyone' ),
 			)
 		);
@@ -44,7 +44,7 @@
 			<?php
 			edit_post_link(
 				sprintf(
-					/* translators: %s: Name of current post. Only visible to screen readers. */
+					/* translators: %s: Post title. Only visible to screen readers. */
 					esc_html__( 'Edit %s', 'twentytwentyone' ),
 					'<span class="screen-reader-text">' . get_the_title() . '</span>'
 				),

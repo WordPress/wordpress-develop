@@ -72,6 +72,12 @@ function observeConsoleLogging() {
 			return;
 		}
 
+		// An exception is made for jQuery migrate console warnings output by
+		// the unminified script loaded in development environments.
+		if ( text.includes( 'JQMIGRATE' ) ) {
+			return;
+		}
+
 		// Viewing posts on the front end can result in this error, which
 		// has nothing to do with Gutenberg.
 		if ( text.includes( 'net::ERR_UNKNOWN_URL_SCHEME' ) ) {
@@ -123,6 +129,9 @@ beforeAll( async () => {
 	capturePageEventsForTearDown();
 	enablePageDialogAccept();
 	observeConsoleLogging();
+	await page.emulateMediaFeatures( [
+		{ name: 'prefers-reduced-motion', value: 'reduce' },
+	] );
 	await setBrowserViewport( 'large' );
 } );
 

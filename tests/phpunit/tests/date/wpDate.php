@@ -3,26 +3,27 @@
 /**
  * @group date
  * @group datetime
+ * @covers ::wp_date
  */
-class Tests_Date_WP_Date extends WP_UnitTestCase {
+class Tests_Date_wpDate extends WP_UnitTestCase {
 
 	/** @var WP_Locale */
 	private $wp_locale_original;
 
-	public function setUp() {
+	public function set_up() {
 		global $wp_locale;
 
-		parent::setUp();
+		parent::set_up();
 
 		$this->wp_locale_original = clone $wp_locale;
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		global $wp_locale;
 
 		$wp_locale = $this->wp_locale_original;
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

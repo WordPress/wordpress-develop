@@ -8,21 +8,8 @@ if ( is_multisite() ) :
 	 * @group multisite
 	 */
 	class Tests_Multisite extends WP_UnitTestCase {
-		protected $suppress = false;
 
-		function setUp() {
-			global $wpdb;
-			parent::setUp();
-			$this->suppress = $wpdb->suppress_errors();
-		}
-
-		function tearDown() {
-			global $wpdb;
-			parent::tearDown();
-			$wpdb->suppress_errors( $this->suppress );
-		}
-
-		function test_wpmu_log_new_registrations() {
+		public function test_wpmu_log_new_registrations() {
 			global $wpdb;
 
 			$user = new WP_User( 1 );
@@ -38,7 +25,7 @@ if ( is_multisite() ) :
 		/**
 		 * @ticket 37392
 		 */
-		function test_wp_count_sites() {
+		public function test_wp_count_sites() {
 			// Create a random number of sites with each status.
 			$site_ids = array(
 				'public'   => self::factory()->blog->create_many(

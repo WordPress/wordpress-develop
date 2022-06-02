@@ -1,11 +1,7 @@
 <?php
 
 /* Path to the WordPress codebase you'd like to test. Add a forward slash in the end. */
-if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
-	define( 'ABSPATH', dirname( __FILE__ ) . '/build/' );
-} else {
-	define( 'ABSPATH', dirname( __FILE__ ) . '/src/' );
-}
+define( 'ABSPATH', dirname( __FILE__ ) . '/src/' );
 
 /*
  * Path to the theme to test with.
@@ -30,7 +26,7 @@ define( 'WP_DEFAULT_THEME', 'default' );
 // Test with WordPress debug mode (default).
 define( 'WP_DEBUG', true );
 
-// ** MySQL settings ** //
+// ** Database settings ** //
 
 /*
  * This configuration file will be used by the copy of WordPress being tested.

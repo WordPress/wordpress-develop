@@ -157,9 +157,9 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	 */
 	public function test_format_validation_is_applied_if_missing_type() {
 		if ( PHP_VERSION_ID >= 80000 ) {
-			$this->expectException( 'PHPUnit_Framework_Error_Warning' ); // For the undefined index.
+			$this->expectWarning(); // For the undefined index.
 		} else {
-			$this->expectException( 'PHPUnit_Framework_Error_Notice' );
+			$this->expectNotice(); // For the undefined index.
 		}
 
 		$this->setExpectedIncorrectUsage( 'rest_validate_value_from_schema' );
@@ -246,6 +246,529 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertWPError( rest_validate_value_from_schema( 'chicken,coleslaw', $schema ) );
 		$this->assertTrue( rest_validate_value_from_schema( 'ribs,chicken,', $schema ) );
 		$this->assertTrue( rest_validate_value_from_schema( '', $schema ) );
+	}
+
+	/**
+	 * @ticket 51911
+	 * @ticket 52932
+	 *
+	 * @dataProvider data_different_types_of_value_and_enum_elements
+	 *
+	 * @param mixed $value
+	 * @param array $args
+	 * @param bool  $expected
+	 */
+	public function test_different_types_of_value_and_enum_elements( $value, $args, $expected ) {
+		$result = rest_validate_value_from_schema( $value, $args );
+		if ( $expected ) {
+			$this->assertTrue( $result );
+		} else {
+			$this->assertWPError( $result );
+		}
+	}
+
+	/**
+	 * @return array
+	 */
+	public function data_different_types_of_value_and_enum_elements() {
+		return array(
+			// enum with integers
+			array(
+				0,
+				array(
+					'type' => 'integer',
+					'enum' => array( 0, 1 ),
+				),
+				true,
+			),
+			array(
+				0.0,
+				array(
+					'type' => 'integer',
+					'enum' => array( 0, 1 ),
+				),
+				true,
+			),
+			array(
+				'0',
+				array(
+					'type' => 'integer',
+					'enum' => array( 0, 1 ),
+				),
+				true,
+			),
+			array(
+				1,
+				array(
+					'type' => 'integer',
+					'enum' => array( 0, 1 ),
+				),
+				true,
+			),
+			array(
+				1,
+				array(
+					'type' => 'integer',
+					'enum' => array( 0.0, 1.0 ),
+				),
+				true,
+			),
+			array(
+				1.0,
+				array(
+					'type' => 'integer',
+					'enum' => array( 0, 1 ),
+				),
+				true,
+			),
+			array(
+				'1',
+				array(
+					'type' => 'integer',
+					'enum' => array( 0, 1 ),
+				),
+				true,
+			),
+			array(
+				2,
+				array(
+					'type' => 'integer',
+					'enum' => array( 0, 1 ),
+				),
+				false,
+			),
+			array(
+				2.0,
+				array(
+					'type' => 'integer',
+					'enum' => array( 0, 1 ),
+				),
+				false,
+			),
+			array(
+				'2',
+				array(
+					'type' => 'integer',
+					'enum' => array( 0, 1 ),
+				),
+				false,
+			),
+
+			// enum with floats
+			array(
+				0,
+				array(
+					'type' => 'number',
+					'enum' => array( 0.0, 1.0 ),
+				),
+				true,
+			),
+			array(
+				0.0,
+				array(
+					'type' => 'number',
+					'enum' => array( 0.0, 1.0 ),
+				),
+				true,
+			),
+			array(
+				'0',
+				array(
+					'type' => 'number',
+					'enum' => array( 0.0, 1.0 ),
+				),
+				true,
+			),
+			array(
+				1,
+				array(
+					'type' => 'number',
+					'enum' => array( 0.0, 1.0 ),
+				),
+				true,
+			),
+			array(
+				1,
+				array(
+					'type' => 'number',
+					'enum' => array( 0, 1 ),
+				),
+				true,
+			),
+			array(
+				1.0,
+				array(
+					'type' => 'number',
+					'enum' => array( 0.0, 1.0 ),
+				),
+				true,
+			),
+			array(
+				'1',
+				array(
+					'type' => 'number',
+					'enum' => array( 0.0, 1.0 ),
+				),
+				true,
+			),
+			array(
+				2,
+				array(
+					'type' => 'number',
+					'enum' => array( 0.0, 1.0 ),
+				),
+				false,
+			),
+			array(
+				2.0,
+				array(
+					'type' => 'number',
+					'enum' => array( 0.0, 1.0 ),
+				),
+				false,
+			),
+			array(
+				'2',
+				array(
+					'type' => 'number',
+					'enum' => array( 0.0, 1.0 ),
+				),
+				false,
+			),
+
+			// enum with booleans
+			array(
+				true,
+				array(
+					'type' => 'boolean',
+					'enum' => array( true ),
+				),
+				true,
+			),
+			array(
+				1,
+				array(
+					'type' => 'boolean',
+					'enum' => array( true ),
+				),
+				true,
+			),
+			array(
+				'true',
+				array(
+					'type' => 'boolean',
+					'enum' => array( true ),
+				),
+				true,
+			),
+			array(
+				false,
+				array(
+					'type' => 'boolean',
+					'enum' => array( true ),
+				),
+				false,
+			),
+			array(
+				0,
+				array(
+					'type' => 'boolean',
+					'enum' => array( true ),
+				),
+				false,
+			),
+			array(
+				'false',
+				array(
+					'type' => 'boolean',
+					'enum' => array( true ),
+				),
+				false,
+			),
+			array(
+				false,
+				array(
+					'type' => 'boolean',
+					'enum' => array( false ),
+				),
+				true,
+			),
+			array(
+				0,
+				array(
+					'type' => 'boolean',
+					'enum' => array( false ),
+				),
+				true,
+			),
+			array(
+				'false',
+				array(
+					'type' => 'boolean',
+					'enum' => array( false ),
+				),
+				true,
+			),
+			array(
+				true,
+				array(
+					'type' => 'boolean',
+					'enum' => array( false ),
+				),
+				false,
+			),
+			array(
+				1,
+				array(
+					'type' => 'boolean',
+					'enum' => array( false ),
+				),
+				false,
+			),
+			array(
+				'true',
+				array(
+					'type' => 'boolean',
+					'enum' => array( false ),
+				),
+				false,
+			),
+
+			// enum with arrays
+			array(
+				array( 0, 1 ),
+				array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'integer' ),
+					'enum'  => array( array( 0, 1 ), array( 1, 2 ) ),
+				),
+				true,
+			),
+			array(
+				array( '0', 1 ),
+				array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'integer' ),
+					'enum'  => array( array( 0, 1 ), array( 1, 2 ) ),
+				),
+				true,
+			),
+			array(
+				array( 0, '1' ),
+				array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'integer' ),
+					'enum'  => array( array( 0, 1 ), array( 1, 2 ) ),
+				),
+				true,
+			),
+			array(
+				array( '0', '1' ),
+				array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'integer' ),
+					'enum'  => array( array( 0, 1 ), array( 1, 2 ) ),
+				),
+				true,
+			),
+			array(
+				array( 1, 2 ),
+				array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'integer' ),
+					'enum'  => array( array( 0, 1 ), array( 1, 2 ) ),
+				),
+				true,
+			),
+			array(
+				array( 2, 3 ),
+				array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'integer' ),
+					'enum'  => array( array( 0, 1 ), array( 1, 2 ) ),
+				),
+				false,
+			),
+			array(
+				array( 1, 0 ),
+				array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'integer' ),
+					'enum'  => array( array( 0, 1 ), array( 1, 2 ) ),
+				),
+				false,
+			),
+
+			// enum with objects
+			array(
+				array(
+					'a' => 1,
+					'b' => 2,
+				),
+				array(
+					'type'                 => 'object',
+					'additionalProperties' => array( 'type' => 'integer' ),
+					'enum'                 => array(
+						array(
+							'a' => 1,
+							'b' => 2,
+						),
+						array(
+							'b' => 2,
+							'c' => 3,
+						),
+					),
+				),
+				true,
+			),
+			array(
+				array(
+					'a' => '1',
+					'b' => 2,
+				),
+				array(
+					'type'                 => 'object',
+					'additionalProperties' => array( 'type' => 'integer' ),
+					'enum'                 => array(
+						array(
+							'a' => 1,
+							'b' => 2,
+						),
+						array(
+							'b' => 2,
+							'c' => 3,
+						),
+					),
+				),
+				true,
+			),
+			array(
+				array(
+					'a' => 1,
+					'b' => '2',
+				),
+				array(
+					'type'                 => 'object',
+					'additionalProperties' => array( 'type' => 'integer' ),
+					'enum'                 => array(
+						array(
+							'a' => 1,
+							'b' => 2,
+						),
+						array(
+							'b' => 2,
+							'c' => 3,
+						),
+					),
+				),
+				true,
+			),
+			array(
+				array(
+					'a' => '1',
+					'b' => '2',
+				),
+				array(
+					'type'                 => 'object',
+					'additionalProperties' => array( 'type' => 'integer' ),
+					'enum'                 => array(
+						array(
+							'a' => 1,
+							'b' => 2,
+						),
+						array(
+							'b' => 2,
+							'c' => 3,
+						),
+					),
+				),
+				true,
+			),
+			array(
+				array(
+					'b' => 2,
+					'a' => 1,
+				),
+				array(
+					'type'                 => 'object',
+					'additionalProperties' => array( 'type' => 'integer' ),
+					'enum'                 => array(
+						array(
+							'a' => 1,
+							'b' => 2,
+						),
+						array(
+							'b' => 2,
+							'c' => 3,
+						),
+					),
+				),
+				true,
+			),
+			array(
+				array(
+					'b' => 2,
+					'c' => 3,
+				),
+				array(
+					'type'                 => 'object',
+					'additionalProperties' => array( 'type' => 'integer' ),
+					'enum'                 => array(
+						array(
+							'a' => 1,
+							'b' => 2,
+						),
+						array(
+							'b' => 2,
+							'c' => 3,
+						),
+					),
+				),
+				true,
+			),
+			array(
+				array(
+					'a' => 1,
+					'b' => 3,
+				),
+				array(
+					'type'                 => 'object',
+					'additionalProperties' => array( 'type' => 'integer' ),
+					'enum'                 => array(
+						array(
+							'a' => 1,
+							'b' => 2,
+						),
+						array(
+							'b' => 2,
+							'c' => 3,
+						),
+					),
+				),
+				false,
+			),
+			array(
+				array(
+					'c' => 3,
+					'd' => 4,
+				),
+				array(
+					'type'                 => 'object',
+					'additionalProperties' => array( 'type' => 'integer' ),
+					'enum'                 => array(
+						array(
+							'a' => 1,
+							'b' => 2,
+						),
+						array(
+							'b' => 2,
+							'c' => 3,
+						),
+					),
+				),
+				false,
+			),
+		);
 	}
 
 	public function test_type_array_is_associative() {

@@ -111,6 +111,11 @@ function _wp_personal_data_handle_actions() {
 				$action_type               = sanitize_text_field( wp_unslash( $_POST['type_of_action'] ) );
 				$username_or_email_address = sanitize_text_field( wp_unslash( $_POST['username_or_email_for_privacy_request'] ) );
 				$email_address             = '';
+				$status                    = 'pending';
+
+				if ( ! isset( $_POST['send_confirmation_email'] ) ) {
+					$status = 'confirmed';
+				}
 
 				if ( ! in_array( $action_type, _wp_privacy_action_request_types(), true ) ) {
 					add_settings_error(
@@ -141,35 +146,42 @@ function _wp_personal_data_handle_actions() {
 					break;
 				}
 
-				$request_id = wp_create_user_request( $email_address, $action_type );
+				$request_id = wp_create_user_request( $email_address, $action_type, array(), $status );
+				$message    = '';
 
 				if ( is_wp_error( $request_id ) ) {
-					add_settings_error(
-						'username_or_email_for_privacy_request',
-						'username_or_email_for_privacy_request',
-						$request_id->get_error_message(),
-						'error'
-					);
-					break;
+					$message = $request_id->get_error_message();
 				} elseif ( ! $request_id ) {
+					$message = __( 'Unable to initiate confirmation request.' );
+				}
+
+				if ( $message ) {
 					add_settings_error(
 						'username_or_email_for_privacy_request',
 						'username_or_email_for_privacy_request',
-						__( 'Unable to initiate confirmation request.' ),
+						$message,
 						'error'
 					);
 					break;
 				}
 
-				wp_send_user_request( $request_id );
+				if ( 'pending' === $status ) {
+					wp_send_user_request( $request_id );
 
-				add_settings_error(
-					'username_or_email_for_privacy_request',
-					'username_or_email_for_privacy_request',
-					__( 'Confirmation request initiated successfully.' ),
-					'success'
-				);
-				break;
+					$message = __( 'Confirmation request initiated successfully.' );
+				} elseif ( 'confirmed' === $status ) {
+					$message = __( 'Request added successfully.' );
+				}
+
+				if ( $message ) {
+					add_settings_error(
+						'username_or_email_for_privacy_request',
+						'username_or_email_for_privacy_request',
+						$message,
+						'success'
+					);
+					break;
+				}
 		}
 	}
 }
@@ -322,13 +334,13 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	}
 
 	// Protect export folder from browsing.
-	$index_pathname = $exports_dir . 'index.html';
+	$index_pathname = $exports_dir . 'index.php';
 	if ( ! file_exists( $index_pathname ) ) {
 		$file = fopen( $index_pathname, 'w' );
 		if ( false === $file ) {
 			wp_send_json_error( __( 'Unable to protect personal data export folder from browsing.' ) );
 		}
-		fwrite( $file, '<!-- Silence is golden. -->' );
+		fwrite( $file, "<?php\n// Silence is golden.\n" );
 		fclose( $file );
 	}
 
@@ -349,9 +361,6 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 		__( 'Personal Data Export for %s' ),
 		$email_address
 	);
-
-	// And now, all the Groups.
-	$groups = get_post_meta( $request_id, '_export_data_grouped', true );
 
 	// First, build an "About" group on the fly for this report.
 	$about_group = array(
@@ -381,13 +390,38 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 		),
 	);
 
-	// Merge in the special about group.
-	$groups = array_merge( array( 'about' => $about_group ), $groups );
+	// And now, all the Groups.
+	$groups = get_post_meta( $request_id, '_export_data_grouped', true );
+	if ( is_array( $groups ) ) {
+		// Merge in the special "About" group.
+		$groups       = array_merge( array( 'about' => $about_group ), $groups );
+		$groups_count = count( $groups );
+	} else {
+		if ( false !== $groups ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				/* translators: %s: Post meta key. */
+				sprintf( __( 'The %s post meta must be an array.' ), '<code>_export_data_grouped</code>' ),
+				'5.8.0'
+			);
+		}
 
-	$groups_count = count( $groups );
+		$groups       = null;
+		$groups_count = 0;
+	}
 
 	// Convert the groups to JSON format.
 	$groups_json = wp_json_encode( $groups );
+
+	if ( false === $groups_json ) {
+		$error_message = sprintf(
+			/* translators: %s: Error message. */
+			__( 'Unable to encode the personal data for export. Error: %s' ),
+			json_last_error_msg()
+		);
+
+		wp_send_json_error( $error_message );
+	}
 
 	/*
 	 * Handle the JSON export.
@@ -672,10 +706,10 @@ All at ###SITENAME###
 	$content = apply_filters( 'wp_privacy_personal_data_email_content', $email_text, $request_id, $email_data );
 
 	$content = str_replace( '###EXPIRATION###', $expiration_date, $content );
-	$content = str_replace( '###LINK###', esc_url_raw( $export_file_url ), $content );
+	$content = str_replace( '###LINK###', sanitize_url( $export_file_url ), $content );
 	$content = str_replace( '###EMAIL###', $request_email, $content );
 	$content = str_replace( '###SITENAME###', $site_name, $content );
-	$content = str_replace( '###SITEURL###', esc_url_raw( $site_url ), $content );
+	$content = str_replace( '###SITEURL###', sanitize_url( $site_url ), $content );
 
 	$headers = '';
 

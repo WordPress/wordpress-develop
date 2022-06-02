@@ -850,7 +850,7 @@ window.commentReply = {
 	 */
 	toggle : function(el) {
 		if ( 'none' !== $( el ).css( 'display' ) && ( $( '#replyrow' ).parent().is('#com-reply') || window.confirm( __( 'Are you sure you want to edit this comment?\nThe changes you made will be lost.' ) ) ) ) {
-			$( el ).find( 'button.vim-q' ).click();
+			$( el ).find( 'button.vim-q' ).trigger( 'click' );
 		}
 	},
 
@@ -1019,7 +1019,8 @@ window.commentReply = {
 		}
 
 		setTimeout(function() {
-			var rtop, rbottom, scrollTop, vp, scrollBottom;
+			var rtop, rbottom, scrollTop, vp, scrollBottom,
+				isComposing = false;
 
 			rtop = $('#replyrow').offset().top;
 			rbottom = rtop + $('#replyrow').height();
@@ -1032,10 +1033,17 @@ window.commentReply = {
 			else if ( rtop - 20 < scrollTop )
 				window.scroll(0, rtop - 35);
 
-			$('#replycontent').trigger( 'focus' ).on( 'keyup', function(e){
-				if ( e.which == 27 )
-					commentReply.revert(); // Close on Escape.
-			});
+			$( '#replycontent' )
+				.trigger( 'focus' )
+				.on( 'keyup', function( e ) {
+					// Close on Escape except when Input Method Editors (IMEs) are in use.
+					if ( e.which === 27 && ! isComposing ) {
+						commentReply.revert();
+					}
+				} )
+				.on( 'compositionstart', function() {
+					isComposing = true;
+				} );
 		}, 600);
 
 		return false;
@@ -1225,7 +1233,7 @@ window.commentReply = {
 	}
 };
 
-$(document).ready(function(){
+$( function(){
 	var make_hotkeys_redirect, edit_comment, toggle_all, make_bulk;
 
 	setCommentsList();
@@ -1298,7 +1306,7 @@ $(document).ready(function(){
 			return function() {
 				var scope = $('select[name="action"]');
 				$('option[value="' + value + '"]', scope).prop('selected', true);
-				$('#doaction').click();
+				$('#doaction').trigger( 'click' );
 			};
 		};
 

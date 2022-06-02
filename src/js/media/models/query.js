@@ -112,8 +112,8 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 		options = options || {};
 		options.remove = false;
 
-		return this._more = this.fetch( options ).done( function( resp ) {
-			if ( _.isEmpty( resp ) || -1 === this.args.posts_per_page || resp.length < this.args.posts_per_page ) {
+		return this._more = this.fetch( options ).done( function( response ) {
+			if ( _.isEmpty( response ) || -1 === query.args.posts_per_page || response.length < query.args.posts_per_page ) {
 				query._hasMore = false;
 			}
 		});
@@ -171,7 +171,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	 * @readonly
 	 */
 	defaultArgs: {
-		posts_per_page: 40
+		posts_per_page: 80
 	},
 	/**
 	 * @readonly
@@ -213,7 +213,6 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	 * @method
 	 *
 	 * @param {object} [props]
-	 * @param {Object} [props.cache=true]   Whether to use the query cache or not.
 	 * @param {Object} [props.order]
 	 * @param {Object} [props.orderby]
 	 * @param {Object} [props.include]
@@ -243,13 +242,11 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 			var args     = {},
 				orderby  = Query.orderby,
 				defaults = Query.defaultProps,
-				query,
-				cache    = !! props.cache || _.isUndefined( props.cache );
+				query;
 
 			// Remove the `query` property. This isn't linked to a query,
 			// this *is* the query.
 			delete props.query;
-			delete props.cache;
 
 			// Fill default args.
 			_.defaults( props, defaults );
@@ -288,14 +285,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 			// Substitute exceptions specified in orderby.keymap.
 			args.orderby = orderby.valuemap[ props.orderby ] || props.orderby;
 
-			// Search the query cache for a matching query.
-			if ( cache ) {
-				query = _.find( queries, function( query ) {
-					return _.isEqual( query.args, args );
-				});
-			} else {
-				queries = [];
-			}
+			queries = [];
 
 			// Otherwise, create a new query and add it to the cache.
 			if ( ! query ) {
