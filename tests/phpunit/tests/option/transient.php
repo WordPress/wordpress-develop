@@ -177,7 +177,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 		set_transient( $key, 'test' );
 		add_filter( 'query', '__return_false' ); // Make sure the database query will not work
 		$transient_set = set_transient( $key, 'test2', 60 );
-		remove_filter( 'query', '__return_false' );
+		remove_filter( 'query', '__return_false' ); // Make database queries work again
 		$this->assertFalse( $transient_set );
 		$this->assertSame( 'test', get_transient( $key ) );
 		$this->assertSame( 'test', get_option( sprintf( '_transient_%s', $key ) ) );
