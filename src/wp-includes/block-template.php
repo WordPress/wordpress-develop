@@ -48,6 +48,10 @@ function _add_template_loader_filters() {
 function locate_block_template( $template, $type, array $templates ) {
 	global $_wp_current_template_content;
 
+	if ( ! current_theme_supports( 'block-templates' ) ) {
+		return $template;
+	}
+
 	if ( $template ) {
 		/*
 		 * locate_template() has found a PHP template at the path specified by $template.
@@ -160,7 +164,7 @@ function resolve_block_template( $template_type, $template_hierarchy, $fallback_
 	$theme_base_path        = get_stylesheet_directory() . DIRECTORY_SEPARATOR;
 	$parent_theme_base_path = get_template_directory() . DIRECTORY_SEPARATOR;
 
-	// Is the current theme a child theme, and is the PHP fallback template part of it?
+	// Is the active theme a child theme, and is the PHP fallback template part of it?
 	if (
 		strpos( $fallback_template, $theme_base_path ) === 0 &&
 		strpos( $fallback_template, $parent_theme_base_path ) === false
@@ -180,9 +184,9 @@ function resolve_block_template( $template_type, $template_hierarchy, $fallback_
 			'theme' === $templates[0]->source
 		) {
 			// Unfortunately, we cannot trust $templates[0]->theme, since it will always
-			// be set to the current theme's slug by _build_block_template_result_from_file(),
-			// even if the block template is really coming from the current theme's parent.
-			// (The reason for this is that we want it to be associated with the current theme
+			// be set to the active theme's slug by _build_block_template_result_from_file(),
+			// even if the block template is really coming from the active theme's parent.
+			// (The reason for this is that we want it to be associated with the active theme
 			// -- not its parent -- once we edit it and store it to the DB as a wp_template CPT.)
 			// Instead, we use _get_block_template_file() to locate the block template file.
 			$template_file = _get_block_template_file( 'wp_template', $fallback_template_slug );
@@ -326,4 +330,36 @@ function _resolve_template_for_new_post( $wp_query ) {
 	) {
 		$wp_query->set( 'post_status', 'auto-draft' );
 	}
+}
+
+/**
+ * Returns the correct template for the site's home page.
+ *
+ * @access private
+ * @since 6.0.0
+ *
+ * @return array|null A template object, or null if none could be found.
+ */
+function _resolve_home_block_template() {
+	$show_on_front = get_option( 'show_on_front' );
+	$front_page_id = get_option( 'page_on_front' );
+
+	if ( 'page' === $show_on_front && $front_page_id ) {
+		return array(
+			'postType' => 'page',
+			'postId'   => $front_page_id,
+		);
+	}
+
+	$hierarchy = array( 'front-page', 'home', 'index' );
+	$template  = resolve_block_template( 'home', $hierarchy, '' );
+
+	if ( ! $template ) {
+		return null;
+	}
+
+	return array(
+		'postType' => 'wp_template',
+		'postId'   => $template->id,
+	);
 }

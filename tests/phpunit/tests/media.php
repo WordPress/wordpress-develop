@@ -2294,6 +2294,84 @@ EOF;
 	}
 
 	/**
+	 * @ticket 55347
+	 */
+	public function test_wp_filter_content_tags_has_filter() {
+		$filter = new MockAction();
+		add_filter( 'wp_content_img_tag', array( &$filter, 'filter' ) );
+		$img_tag_1 = get_image_tag( self::$large_id, '', '', '', 'medium' );
+
+		wp_filter_content_tags( $img_tag_1 );
+		$this->assertSame( 1, $filter->get_call_count() );
+	}
+
+	/**
+	 * @ticket 55510
+	 * @covers ::wp_filter_content_tags
+	 */
+	public function test_wp_filter_content_tags_handles_duplicate_img_and_iframe_tags_once() {
+		$img     = get_image_tag( self::$large_id, '', '', '', 'large' );
+		$iframe  = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
+		$content = "$img\n$img\n$iframe\n$iframe";
+
+		// Record how often one of the available img and iframe filters is run.
+		// Both images and iframes support lazy-loading, so that's why this is used here.
+		$img_filter = new MockAction();
+		add_filter( 'wp_img_tag_add_loading_attr', array( &$img_filter, 'filter' ) );
+		$iframe_filter = new MockAction();
+		add_filter( 'wp_iframe_tag_add_loading_attr', array( &$iframe_filter, 'filter' ) );
+
+		// Ensure the img and iframe filters only ran once because the content is a single duplicated img tag and a
+		// single duplicate iframe tag.
+		wp_filter_content_tags( $content );
+		$this->assertSame( 1, $img_filter->get_call_count() );
+		$this->assertSame( 1, $iframe_filter->get_call_count() );
+	}
+
+	/**
+	 * @ticket 55510
+	 * @covers ::wp_filter_content_tags
+	 */
+	public function test_wp_filter_content_tags_filter_with_identical_image_tags_custom_attributes() {
+		$img     = get_image_tag( self::$large_id, '', '', '', 'large' );
+		$img     = str_replace( '<img ', '<img srcset="custom" sizes="custom" loading="custom" ', $img );
+		$content = "$img\n$img";
+
+		add_filter(
+			'wp_content_img_tag',
+			function( $filtered_image ) {
+				return "<span>$filtered_image</span>";
+			}
+		);
+
+		// Ensure there is no duplicate <span> wrapping the image.
+		$this->assertStringNotContainsString( '<span><span><img ', wp_filter_content_tags( $content ) );
+	}
+
+	/**
+	 * @ticket 55510
+	 * @covers ::wp_filter_content_tags
+	 */
+	public function test_wp_filter_content_tags_filter_with_identical_image_tags_disabled_core_filters() {
+		$img     = get_image_tag( self::$large_id, '', '', '', 'large' );
+		$content = "$img\n$img";
+
+		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
+		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
+		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+
+		add_filter(
+			'wp_content_img_tag',
+			function( $filtered_image ) {
+				return "<span>$filtered_image</span>";
+			}
+		);
+
+		// Ensure the output has both instances of the image wrapped with a single <span>.
+		$this->assertSame( "<span>$img</span>\n<span>$img</span>", wp_filter_content_tags( $content ) );
+	}
+
+	/**
 	 * @ticket 33641
 	 * @ticket 34528
 	 */
