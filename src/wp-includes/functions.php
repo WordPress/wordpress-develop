@@ -3503,7 +3503,7 @@ function wp_filesize( $path ) {
 		return $size;
 	}
 
-	$size = (int) @filesize( $path );
+	$size = file_exists( $path ) ? (int) filesize( $path ) : 0;
 
 	/**
 	 * Filters the size of the file.
@@ -8422,7 +8422,7 @@ function is_wp_version_compatible( $required ) {
  * @return bool True if required version is compatible or empty, false if not.
  */
 function is_php_version_compatible( $required ) {
-	return empty( $required ) || version_compare( phpversion(), $required, '>=' );
+	return empty( $required ) || version_compare( PHP_VERSION, $required, '>=' );
 }
 
 /**
