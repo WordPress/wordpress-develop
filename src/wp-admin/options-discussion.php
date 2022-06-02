@@ -164,16 +164,20 @@ printf( __( 'Comments should be displayed with the %s comments at the top of eac
 </fieldset></td>
 </tr>
 <tr>
-<th scope="row"><?php _e( 'Email me whenever' ); ?></th>
-<td><fieldset><legend class="screen-reader-text"><span><?php _e( 'Email me whenever' ); ?></span></legend>
-<label for="comments_notify">
-<input name="comments_notify" type="checkbox" id="comments_notify" value="1" <?php checked( '1', get_option( 'comments_notify' ) ); ?> />
-<?php _e( 'Anyone posts a comment' ); ?> </label>
-<br />
-<label for="moderation_notify">
-<input name="moderation_notify" type="checkbox" id="moderation_notify" value="1" <?php checked( '1', get_option( 'moderation_notify' ) ); ?> />
-<?php _e( 'A comment is held for moderation' ); ?> </label>
-</fieldset></td>
+	<th scope="row"><?php _e( 'Email me whenever' ); ?></th>
+	<td>
+		<fieldset>
+			<legend class="screen-reader-text"><span><?php _e( 'Email me whenever' ); ?></span></legend>
+			<label for="comments_notify">
+			<input name="comments_notify" type="checkbox" id="comments_notify" value="1" <?php checked( '1', get_option( 'comments_notify' ) ); ?> />
+			<?php _e( 'Anyone posts a comment' ); ?> </label>
+			<br />
+			<label for="moderation_notify">
+			<input name="moderation_notify" type="checkbox" id="moderation_notify" value="1" <?php checked( '1', get_option( 'moderation_notify' ) ); ?> />
+			<?php _e( 'A comment is held for moderation' ); ?> </label>
+			<?php do_action( 'extra_email_me_fields' ); ?>
+		</fieldset>
+	</td>
 </tr>
 <tr>
 <th scope="row"><?php _e( 'Before a comment appears' ); ?></th>
