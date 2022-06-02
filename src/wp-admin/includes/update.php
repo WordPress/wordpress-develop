@@ -872,14 +872,14 @@ function wp_print_admin_notice_templates() {
 			<p>
 				<# if ( data.successes ) { #>
 					<# if ( 'plugin' === data.type ) { #>
-						{{ wp.i18n._n( wp.i18n.sprintf( '%s plugin successfully updated.', data.successes ) , wp.i18n.sprintf( '%s plugins successfully updated.', data.successes ), data.successes ) }}
+						{{ wp.i18n.sprintf( wp.i18n._n( '%s plugin successfully updated.', '%s plugins successfully updated.', data.successes ), data.successes ) }}
 					<# } else { #>
-						{{ wp.i18n._n( wp.i18n.sprintf( '%s theme successfully updated.', data.successes ), wp.i18n.sprintf( '%s themes successfully updated.', data.successes ), data.successes ) }}
+						{{ wp.i18n.sprintf( wp.i18n._n( '%s theme successfully updated.', '%s themes successfully updated.', data.successes ), data.successes ) }}
 					<# } #>
 				<# } #>
 				<# if ( data.errors ) { #>
 					<button class="button-link bulk-action-errors-collapsed" aria-expanded="false">
-						{{ wp.i18n._n( wp.i18n.sprintf( '%s update failed.', data.errors ), wp.i18n.sprintf( '%s updates failed.' , data.errors ), data.errors ) }}
+						{{ wp.i18n.sprintf( wp.i18n._n( '%s update failed.', '%s updates failed.' , data.errors ), data.errors ) }}
 						<span class="screen-reader-text"><?php _e( 'Show more details' ); ?></span>
 						<span class="toggle-indicator" aria-hidden="true"></span>
 					</button>
