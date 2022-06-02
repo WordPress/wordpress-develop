@@ -172,7 +172,6 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 		$this->assertFalse( get_option( sprintf( '_transient_%s', $key ) ) );
 		$this->assertFalse( get_option( sprintf( '_transient_timeout_%s', $key ) ) );
 
-
 		// Test transients without a timeout at first, but then a timeout is added
 		$key = 'test_existing_transient_without_timeout';
 		set_transient( $key, 'test' );
