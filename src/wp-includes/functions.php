@@ -648,7 +648,7 @@ function maybe_unserialize( $data ) {
 /**
  * Check value to find if it was serialized.
  *
- * If $data is not an string, then returned value will always be false.
+ * If $data is not a string, then returned value will always be false.
  * Serialized data is always a string.
  *
  * @since 2.0.5
