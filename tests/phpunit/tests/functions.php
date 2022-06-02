@@ -3,7 +3,7 @@
 /**
  * @group functions.php
  */
-class Tests_Functions extends WP_UnitTestCase {
+class functions extends WP_UnitTestCase {
 	public function test_wp_parse_args_object() {
 		$x        = new MockClass;
 		$x->_baba = 5;
@@ -127,6 +127,57 @@ class Tests_Functions extends WP_UnitTestCase {
 		foreach ( $relative_paths as $path ) {
 			$this->assertFalse( path_is_absolute( $path ), "path_is_absolute('$path') should return false" );
 		}
+	}
+
+	/**
+	 * Tests path_join.
+	 *
+	 * @dataProvider path_join_data_provider
+	 */
+	public function test_path_join( $base, $path, $expected ) {
+		$this->assertSame( $expected, path_join( $base, $path ) );
+	}
+
+	/**
+	 * Data provider for test_path_join_not_absolute.
+	 *
+	 * @return string[][]
+	 */
+	public function path_join_data_provider() {
+		return array(
+			// absolute path
+			'absolute path should return path' => array(
+				'base'     => 'base',
+				'path'     => '/path',
+				'expected' => '/path',
+			),
+			// non-absolute paths
+			'join base and path'               => array(
+				'base'     => 'base',
+				'path'     => 'path',
+				'expected' => 'base/path',
+			),
+			'strip trailing slashes in base'   => array(
+				'base'     => 'base///',
+				'path'     => 'path',
+				'expected' => 'base/path',
+			),
+			'empty path'                       => array(
+				'base'     => 'base',
+				'path'     => '',
+				'expected' => 'base/',
+			),
+			'empty base'                       => array(
+				'base'     => '',
+				'path'     => 'path',
+				'expected' => '/path',
+			),
+			'empty path and base'              => array(
+				'base'     => '',
+				'path'     => '',
+				'expected' => '/',
+			),
+		);
 	}
 
 	/**
