@@ -3162,7 +3162,7 @@ function feed_links_extra( $args = array() ) {
 		 * This filter allows to enable/disable the feed link for a singular post in a way which is independent of `feed_links_show_comments_feed` (which disables the global comments feed).
 		 * It accepts as parameter the output of the `feed_links_show_comments_feed` filter itself (`true` by default).
 		 *
-		 * @since 6.2.0
+		 * @since 6.1.0
 		 *
 		 * @param bool $show Whether to display the post comments feed link. Default to the output of the `feed_links_show_comments_feed` filter.
 		 */
@@ -3180,7 +3180,7 @@ function feed_links_extra( $args = array() ) {
 		/**
 		 * Filters whether to display the post type archive feed link.
 		 *
-		 * @since 6.2.0
+		 * @since 6.1.0
 		 *
 		 * @param bool $show Whether to display the post type archive feed link. Default true.
 		 */
@@ -3200,7 +3200,7 @@ function feed_links_extra( $args = array() ) {
 		/**
 		 * Filters whether to display the category feed link.
 		 *
-		 * @since 6.2.0
+		 * @since 6.1.0
 		 *
 		 * @param bool $show Whether to display the category feed link. Default true.
 		 */
@@ -3218,7 +3218,7 @@ function feed_links_extra( $args = array() ) {
 		/**
 		 * Filters whether to display the tag feed link.
 		 *
-		 * @since 6.2.0
+		 * @since 6.1.0
 		 *
 		 * @param bool $show Whether to display the tag feed link. Default true.
 		 */
@@ -3236,7 +3236,7 @@ function feed_links_extra( $args = array() ) {
 		/**
 		 * Filters whether to display the custom taxonomy feed link.
 		 *
-		 * @since 6.2.0
+		 * @since 6.1.0
 		 *
 		 * @param bool $show Whether to display the custom taxonomy feed link. Default true.
 		 */
@@ -3255,7 +3255,7 @@ function feed_links_extra( $args = array() ) {
 		/**
 		 * Filters whether to display the author feed link.
 		 *
-		 * @since 6.2.0
+		 * @since 6.1.0
 		 *
 		 * @param bool $show Whether to display the author feed link. Default true.
 		 */
@@ -3271,7 +3271,7 @@ function feed_links_extra( $args = array() ) {
 		/**
 		 * Filters whether to display the search results feed link.
 		 *
-		 * @since 6.2.0
+		 * @since 6.1.0
 		 *
 		 * @param bool $show Whether to display the search results feed link. Default true.
 		 */
