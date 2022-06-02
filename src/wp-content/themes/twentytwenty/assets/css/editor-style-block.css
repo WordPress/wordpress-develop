@@ -1465,8 +1465,8 @@ hr.wp-block-separator.is-style-dots::before {
 	/* BLOCK: SEPARATOR */
 
 	hr.wp-block-separator.is-style-wide {
-		margin-left: -200px;
-		margin-right: -200px;
+		margin-left: auto;
+		margin-right: auto;
 	}
 
 
