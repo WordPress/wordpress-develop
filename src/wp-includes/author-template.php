@@ -11,7 +11,7 @@
  */
 
 /**
- * Retrieve the author of the current post.
+ * Retrieves the author of the current post.
  *
  * @since 1.5.0
  *
@@ -38,7 +38,7 @@ function get_the_author( $deprecated = '' ) {
 }
 
 /**
- * Display the name of the author of the current post.
+ * Displays the name of the author of the current post.
  *
  * The behavior of this function is based off of old functionality predating
  * get_the_author(). This function is not deprecated, but is designed to echo
@@ -82,11 +82,11 @@ function the_author( $deprecated = '', $deprecated_echo = true ) {
 }
 
 /**
- * Retrieve the author who last edited the current post.
+ * Retrieves the author who last edited the current post.
  *
  * @since 2.8.0
  *
- * @return string|void The author's display name.
+ * @return string|void The author's display name, empty string if unknown.
  */
 function get_the_modified_author() {
 	$last_id = get_post_meta( get_post()->ID, '_edit_last', true );
@@ -99,14 +99,14 @@ function get_the_modified_author() {
 		 *
 		 * @since 2.8.0
 		 *
-		 * @param string $display_name The author's display name.
+		 * @param string $display_name The author's display name, empty string if unknown.
 		 */
-		return apply_filters( 'the_modified_author', $last_user->display_name );
+		return apply_filters( 'the_modified_author', $last_user ? $last_user->display_name : '' );
 	}
 }
 
 /**
- * Display the name of the author who last edited the current post,
+ * Displays the name of the author who last edited the current post,
  * if the author's ID is available.
  *
  * @since 2.8.0
@@ -204,7 +204,7 @@ function the_author_meta( $field = '', $user_id = false ) {
 	$author_meta = get_the_author_meta( $field, $user_id );
 
 	/**
-	 * The value of the requested user metadata.
+	 * Filters the value of the requested user metadata.
 	 *
 	 * The filter name is dynamic and depends on the $field parameter of the function.
 	 *
@@ -217,32 +217,50 @@ function the_author_meta( $field = '', $user_id = false ) {
 }
 
 /**
- * Retrieve either author's link or author's name.
+ * Retrieves either author's link or author's name.
  *
  * If the author has a home page set, return an HTML link, otherwise just return the
  * author's name.
  *
  * @since 3.0.0
  *
+ * @global WP_User $authordata The current author's data.
+ *
  * @return string|null An HTML link if the author's url exist in user meta,
  *                     else the result of get_the_author().
  */
 function get_the_author_link() {
 	if ( get_the_author_meta( 'url' ) ) {
-		return sprintf(
+		global $authordata;
+
+		$author_url          = get_the_author_meta( 'url' );
+		$author_display_name = get_the_author();
+
+		$link = sprintf(
 			'<a href="%1$s" title="%2$s" rel="author external">%3$s</a>',
-			esc_url( get_the_author_meta( 'url' ) ),
+			esc_url( $author_url ),
 			/* translators: %s: Author's display name. */
-			esc_attr( sprintf( __( 'Visit %s&#8217;s website' ), get_the_author() ) ),
-			get_the_author()
+			esc_attr( sprintf( __( 'Visit %s&#8217;s website' ), $author_display_name ) ),
+			$author_display_name
 		);
+
+		/**
+		 * Filters the author URL link HTML.
+		 *
+		 * @since 6.0.0
+		 *
+		 * @param string  $link       The default rendered author HTML link.
+		 * @param string  $author_url Author's URL.
+		 * @param WP_User $authordata Author user data.
+		 */
+		return apply_filters( 'the_author_link', $link, $author_url, $authordata );
 	} else {
 		return get_the_author();
 	}
 }
 
 /**
- * Display either author's link or author's name.
+ * Displays either author's link or author's name.
  *
  * If the author has a home page set, echo an HTML link, otherwise just echo the
  * author's name.
@@ -256,7 +274,7 @@ function the_author_link() {
 }
 
 /**
- * Retrieve the number of posts by the author of the current post.
+ * Retrieves the number of posts by the author of the current post.
  *
  * @since 1.5.0
  *
@@ -271,7 +289,7 @@ function get_the_author_posts() {
 }
 
 /**
- * Display the number of posts by the author of the current post.
+ * Displays the number of posts by the author of the current post.
  *
  * @link https://developer.wordpress.org/reference/functions/the_author_posts/
  * @since 0.71
@@ -331,7 +349,7 @@ function the_author_posts_link( $deprecated = '' ) {
 }
 
 /**
- * Retrieve the URL to the author page for the user with the ID provided.
+ * Retrieves the URL to the author page for the user with the ID provided.
  *
  * @since 2.1.0
  *
@@ -343,12 +361,13 @@ function the_author_posts_link( $deprecated = '' ) {
  */
 function get_author_posts_url( $author_id, $author_nicename = '' ) {
 	global $wp_rewrite;
-	$auth_ID = (int) $author_id;
-	$link    = $wp_rewrite->get_author_permastruct();
+
+	$author_id = (int) $author_id;
+	$link      = $wp_rewrite->get_author_permastruct();
 
 	if ( empty( $link ) ) {
 		$file = home_url( '/' );
-		$link = $file . '?author=' . $auth_ID;
+		$link = $file . '?author=' . $author_id;
 	} else {
 		if ( '' === $author_nicename ) {
 			$user = get_userdata( $author_id );
@@ -375,7 +394,7 @@ function get_author_posts_url( $author_id, $author_nicename = '' ) {
 }
 
 /**
- * List all the authors of the site, with several options available.
+ * Lists all the authors of the site, with several options available.
  *
  * @link https://developer.wordpress.org/reference/functions/wp_list_authors/
  *

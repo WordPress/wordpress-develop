@@ -43,14 +43,14 @@ if ( ! is_main_site() ) {
 $wp_query->is_404 = false;
 
 /**
- * Fires before the Site Signup page is loaded.
+ * Fires before the Site Sign-up page is loaded.
  *
  * @since 4.4.0
  */
 do_action( 'before_signup_header' );
 
 /**
- * Prints styles for front-end Multisite signup pages.
+ * Prints styles for front-end Multisite Sign-up pages.
  *
  * @since MU (3.0.0)
  */
@@ -79,7 +79,7 @@ add_action( 'wp_head', 'wpmu_signup_stylesheet' );
 get_header( 'wp-signup' );
 
 /**
- * Fires before the site sign-up form.
+ * Fires before the site Sign-up form.
  *
  * @since 3.0.0
  */
@@ -89,7 +89,7 @@ do_action( 'before_signup_form' );
 <div class="mu_register wp-signup-container" role="main">
 <?php
 /**
- * Generates and displays the Signup and Create Site forms.
+ * Generates and displays the Sign-up and Create Site forms.
  *
  * @since MU (3.0.0)
  *
@@ -118,10 +118,10 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
 	}
 
 	if ( ! is_subdomain_install() ) {
-		echo '<span class="prefix_address">' . $current_network->domain . $current_network->path . '</span><input name="blogname" type="text" id="blogname" value="' . esc_attr( $blogname ) . '" maxlength="60" /><br />';
+		echo '<span class="prefix_address">' . $current_network->domain . $current_network->path . '</span><input name="blogname" type="text" id="blogname" value="' . esc_attr( $blogname ) . '" maxlength="60" autocomplete="off" /><br />';
 	} else {
 		$site_domain = preg_replace( '|^www\.|', '', $current_network->domain );
-		echo '<input name="blogname" type="text" id="blogname" value="' . esc_attr( $blogname ) . '" maxlength="60" /><span class="suffix_address">.' . esc_html( $site_domain ) . '</span><br />';
+		echo '<input name="blogname" type="text" id="blogname" value="' . esc_attr( $blogname ) . '" maxlength="60" autocomplete="off" /><span class="suffix_address">.' . esc_html( $site_domain ) . '</span><br />';
 	}
 
 	if ( ! is_user_logged_in() ) {
@@ -149,7 +149,7 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
 		<p class="error"><?php echo $errmsg; ?></p>
 		<?php
 	}
-	echo '<input name="blog_title" type="text" id="blog_title" value="' . esc_attr( $blog_title ) . '" />';
+	echo '<input name="blog_title" type="text" id="blog_title" value="' . esc_attr( $blog_title ) . '" autocomplete="off" />';
 	?>
 
 	<?php
@@ -224,7 +224,7 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
 }
 
 /**
- * Validates the new site signup.
+ * Validates the new site sign-up.
  *
  * @since MU (3.0.0)
  *
@@ -260,7 +260,7 @@ function show_user_form( $user_name = '', $user_email = '', $errors = '' ) {
 	if ( $errmsg ) {
 		echo '<p class="error">' . $errmsg . '</p>';
 	}
-	echo '<input name="user_name" type="text" id="user_name" value="' . esc_attr( $user_name ) . '" autocapitalize="none" autocorrect="off" maxlength="60" /><br />';
+	echo '<input name="user_name" type="text" id="user_name" value="' . esc_attr( $user_name ) . '" autocapitalize="none" autocorrect="off" maxlength="60" autocomplete="username" /><br />';
 	_e( '(Must be at least 4 characters, letters and numbers only.)' );
 	?>
 
@@ -271,7 +271,7 @@ function show_user_form( $user_name = '', $user_email = '', $errors = '' ) {
 		?>
 		<p class="error"><?php echo $errmsg; ?></p>
 	<?php } ?>
-	<input name="user_email" type="email" id="user_email" value="<?php echo esc_attr( $user_email ); ?>" maxlength="200" /><br /><?php _e( 'We send your registration email to this address. (Double-check your email address before continuing.)' ); ?>
+	<input name="user_email" type="email" id="user_email" value="<?php echo esc_attr( $user_email ); ?>" maxlength="200" autocomplete="email" /><br /><?php _e( 'Your registration email is sent to this address. (Double-check your email address before continuing.)' ); ?>
 	<?php
 	$errmsg = $errors->get_error_message( 'generic' );
 	if ( $errmsg ) {
@@ -288,7 +288,7 @@ function show_user_form( $user_name = '', $user_email = '', $errors = '' ) {
 }
 
 /**
- * Validates user signup name and email.
+ * Validates user sign-up name and email.
  *
  * @since MU (3.0.0)
  *
@@ -373,7 +373,7 @@ function signup_another_blog( $blogname = '', $blog_title = '', $errors = '' ) {
 			</ul>
 	<?php } ?>
 
-	<p><?php _e( 'If you&#8217;re not going to use a great site domain, leave it for a new user. Now have at it!' ); ?></p>
+	<p><?php _e( 'If you are not going to use a great site domain, leave it for a new user. Now have at it!' ); ?></p>
 	<form id="setupform" method="post" action="wp-signup.php">
 		<input type="hidden" name="stage" value="gimmeanotherblog" />
 		<?php
@@ -394,7 +394,7 @@ function signup_another_blog( $blogname = '', $blog_title = '', $errors = '' ) {
 }
 
 /**
- * Validates a new site signup for an existing user.
+ * Validates a new site sign-up for an existing user.
  *
  * @since MU (3.0.0)
  *
@@ -629,11 +629,11 @@ function signup_user( $user_name = '', $user_email = '', $errors = '' ) {
 }
 
 /**
- * Validates the new user signup.
+ * Validates the new user sign-up.
  *
  * @since MU (3.0.0)
  *
- * @return bool True if new user signup was validated, false on error.
+ * @return bool True if new user sign-up was validated, false on error.
  */
 function validate_user_signup() {
 	$result     = validate_user_form();
@@ -747,7 +747,7 @@ function signup_blog( $user_name = '', $user_email = '', $blogname = '', $blog_t
 		do_action( 'signup_hidden_fields', 'validate-site' );
 		?>
 		<?php show_blog_form( $blogname, $blog_title, $errors ); ?>
-		<p class="submit"><input type="submit" name="submit" class="submit" value="<?php esc_attr_e( 'Signup' ); ?>" /></p>
+		<p class="submit"><input type="submit" name="submit" class="submit" value="<?php esc_attr_e( 'Sign up' ); ?>" /></p>
 	</form>
 	<?php
 }
@@ -757,7 +757,7 @@ function signup_blog( $user_name = '', $user_email = '', $blogname = '', $blog_t
  *
  * @since MU (3.0.0)
  *
- * @return bool True if the site signup was validated, false on error.
+ * @return bool True if the site sign-up was validated, false on error.
  */
 function validate_blog_signup() {
 	// Re-validate user info.
@@ -842,7 +842,7 @@ function confirm_blog_signup( $domain, $path, $blog_title, $user_name = '', $use
 	<p><?php _e( 'If you do not activate your site within two days, you will have to sign up again.' ); ?></p>
 	<h2><?php _e( 'Still waiting for your email?' ); ?></h2>
 	<p>
-		<?php _e( 'If you haven&#8217;t received your email yet, there are a number of things you can do:' ); ?>
+		<?php _e( 'If you have not received your email yet, there are a number of things you can do:' ); ?>
 		<ul id="noemail-tips">
 			<li><p><strong><?php _e( 'Wait a little longer. Sometimes delivery of email can be delayed by processes outside of our control.' ); ?></strong></p></li>
 			<li><p><?php _e( 'Check the junk or spam folder of your email client. Sometime emails wind up there by mistake.' ); ?></p></li>
@@ -860,7 +860,7 @@ function confirm_blog_signup( $domain, $path, $blog_title, $user_name = '', $use
 }
 
 /**
- * Retrieves languages available during the site/user signup process.
+ * Retrieves languages available during the site/user sign-up process.
  *
  * @since 4.4.0
  *
@@ -871,10 +871,10 @@ function confirm_blog_signup( $domain, $path, $blog_title, $user_name = '', $use
  */
 function signup_get_available_languages() {
 	/**
-	 * Filters the list of available languages for front-end site signups.
+	 * Filters the list of available languages for front-end site sign-ups.
 	 *
 	 * Passing an empty array to this hook will disable output of the setting on the
-	 * signup form, and the default language will be used when creating the site.
+	 * sign-up form, and the default language will be used when creating the site.
 	 *
 	 * Languages not already installed will be stripped.
 	 *

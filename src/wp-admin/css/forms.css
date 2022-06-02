@@ -1528,6 +1528,10 @@ table.form-table td .updated p {
 		margin: 0 3px;
 	}
 
+	.form-table .regular-text ~ input[type="text"].small-text {
+		margin-top: 5px;
+	}
+
 	#pass-strength-result {
 		width: 100%;
 		box-sizing: border-box;
@@ -1639,6 +1643,10 @@ table.form-table td .updated p {
 		right: 2.5rem;
 	}
 
+	body.user-new-php .wp-pwd button.wp-hide-pw {
+		right: 0;
+	}
+
 	.wp-pwd button.button:hover,
 	.wp-pwd button.button:focus {
 		background: transparent;
@@ -1658,6 +1666,11 @@ table.form-table td .updated p {
 	.wp-pwd [type="password"] {
 		line-height: 2;
 		padding-right: 5rem;
+	}
+
+	body.user-new-php .wp-pwd [type="text"],
+	body.user-new-php .wp-pwd [type="password"] {
+		padding-right: 2.5rem;
 	}
 
 	.wp-cancel-pw .dashicons-no {

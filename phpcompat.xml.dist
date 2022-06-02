@@ -11,7 +11,7 @@
 	<arg name="extensions" value="php"/>
 
 	<!-- Whenever possible, cache the scan results and re-use those for unchanged files on the next scan. -->
-	<arg name="cache"/>
+	<arg name="cache" value=".cache/phpcompat.json"/>
 
 	<!-- Set the memory limit to 256M.
 		 For most standard PHP configurations, this means the memory limit will temporarily be raised.
@@ -39,6 +39,15 @@
 		This will need to be modified when that changes to ensure external packages meet compatibility requirements.
 	-->
 	<exclude-pattern>/vendor/*</exclude-pattern>
+
+	<!-- Must-Use plugins. -->
+	<exclude-pattern>/src/wp-content/mu-plugins/*</exclude-pattern>
+
+	<!-- Plugins. -->
+	<exclude-pattern>/src/wp-content/plugins/*</exclude-pattern>
+
+	<!-- Themes except the twenty* themes. -->
+	<exclude-pattern>/src/wp-content/themes/(?!twenty)*</exclude-pattern>
 
 	<!--
 		PHPCompatibilityParagonieSodiumCompat prevents false positives in `sodium_compat`.

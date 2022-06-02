@@ -35,9 +35,10 @@ if ( false === $installed_themes ) {
 	$installed_themes = array();
 }
 
-foreach ( $installed_themes as $k => $v ) {
-	if ( false !== strpos( $k, '/' ) ) {
-		unset( $installed_themes[ $k ] );
+foreach ( $installed_themes as $theme_slug => $theme_data ) {
+	// Ignore child themes.
+	if ( str_contains( $theme_slug, '/' ) ) {
+		unset( $installed_themes[ $theme_slug ] );
 	}
 }
 
@@ -124,7 +125,7 @@ get_current_screen()->add_help_tab(
 );
 
 $help_installing =
-	'<p>' . __( 'Once you have generated a list of themes, you can preview and install any of them. Click on the thumbnail of the theme you&#8217;re interested in previewing. It will open up in a full-screen Preview page to give you a better idea of how that theme will look.' ) . '</p>' .
+	'<p>' . __( 'Once you have generated a list of themes, you can preview and install any of them. Click on the thumbnail of the theme you are interested in previewing. It will open up in a full-screen Preview page to give you a better idea of how that theme will look.' ) . '</p>' .
 	'<p>' . __( 'To install the theme so you can preview it with your site&#8217;s content and customize its theme options, click the "Install" button at the top of the left-hand pane. The theme files will be downloaded to your website automatically. When this is complete, the theme is now available for activation, which you can do by clicking the "Activate" link, or by navigating to your Manage Themes screen and clicking the "Live Preview" link under any installed theme&#8217;s thumbnail image.' ) . '</p>';
 
 get_current_screen()->add_help_tab(
@@ -137,7 +138,7 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/using-themes/#adding-new-themes">Documentation on Adding New Themes</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/article/appearance-themes-screen/#install-themes">Documentation on Adding New Themes</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
@@ -281,7 +282,7 @@ if ( $tab ) {
 <script id="tmpl-theme" type="text/template">
 	<# if ( data.screenshot_url ) { #>
 		<div class="theme-screenshot">
-			<img src="{{ data.screenshot_url }}" alt="" />
+			<img src="{{ data.screenshot_url }}?ver={{ data.version }}" alt="" />
 		</div>
 	<# } else { #>
 		<div class="theme-screenshot blank"></div>
@@ -295,7 +296,7 @@ if ( $tab ) {
 		<div class="notice notice-error notice-alt"><p>
 			<# if ( ! data.compatible_wp && ! data.compatible_php ) { #>
 				<?php
-				_e( 'This theme doesn&#8217;t work with your versions of WordPress and PHP.' );
+				_e( 'This theme does not work with your versions of WordPress and PHP.' );
 				if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
 					printf(
 						/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
@@ -321,7 +322,7 @@ if ( $tab ) {
 				?>
 			<# } else if ( ! data.compatible_wp ) { #>
 				<?php
-				_e( 'This theme doesn&#8217;t work with your version of WordPress.' );
+				_e( 'This theme does not work with your version of WordPress.' );
 				if ( current_user_can( 'update_core' ) ) {
 					printf(
 						/* translators: %s: URL to WordPress Updates screen. */
@@ -332,7 +333,7 @@ if ( $tab ) {
 				?>
 			<# } else if ( ! data.compatible_php ) { #>
 				<?php
-				_e( 'This theme doesn&#8217;t work with your version of PHP.' );
+				_e( 'This theme does not work with your version of PHP.' );
 				if ( current_user_can( 'update_php' ) ) {
 					printf(
 						/* translators: %s: URL to Update PHP page. */
@@ -373,7 +374,9 @@ if ( $tab ) {
 					<# } #>
 					<# if ( data.customize_url ) { #>
 						<# if ( ! data.active ) { #>
-							<a class="button load-customize" href="{{ data.customize_url }}"><?php _e( 'Live Preview' ); ?></a>
+							<# if ( ! data.block_theme ) { #>
+								<a class="button load-customize" href="{{ data.customize_url }}"><?php _e( 'Live Preview' ); ?></a>
+							<# } #>
 						<# } else { #>
 							<a class="button load-customize" href="{{ data.customize_url }}"><?php _e( 'Customize' ); ?></a>
 						<# } #>
@@ -453,7 +456,9 @@ if ( $tab ) {
 						?>
 					</span>
 
-					<img class="theme-screenshot" src="{{ data.screenshot_url }}" alt="" />
+					<div class="theme-screenshot">
+						<img class="theme-screenshot" src="{{ data.screenshot_url }}?ver={{ data.version }}" alt="" />
+					</div>
 
 					<div class="theme-details">
 						<# if ( data.rating ) { #>
@@ -481,7 +486,7 @@ if ( $tab ) {
 							<div class="notice notice-error notice-alt notice-large"><p>
 								<# if ( ! data.compatible_wp && ! data.compatible_php ) { #>
 									<?php
-									_e( 'This theme doesn&#8217;t work with your versions of WordPress and PHP.' );
+									_e( 'This theme does not work with your versions of WordPress and PHP.' );
 									if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
 										printf(
 											/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
@@ -507,7 +512,7 @@ if ( $tab ) {
 									?>
 								<# } else if ( ! data.compatible_wp ) { #>
 									<?php
-									_e( 'This theme doesn&#8217;t work with your version of WordPress.' );
+									_e( 'This theme does not work with your version of WordPress.' );
 									if ( current_user_can( 'update_core' ) ) {
 										printf(
 											/* translators: %s: URL to WordPress Updates screen. */
@@ -518,7 +523,7 @@ if ( $tab ) {
 									?>
 								<# } else if ( ! data.compatible_php ) { #>
 									<?php
-									_e( 'This theme doesn&#8217;t work with your version of PHP.' );
+									_e( 'This theme does not work with your version of PHP.' );
 									if ( current_user_can( 'update_php' ) ) {
 										printf(
 											/* translators: %s: URL to Update PHP page. */
