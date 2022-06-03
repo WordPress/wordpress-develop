@@ -94,7 +94,7 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @return \stdClass
 	 */
-	public function parse_plugin_headers() {
+	private function parse_plugin_headers() {
 		global $wp_filesystem;
 
 		if ( ! $wp_filesystem ) {
@@ -125,7 +125,7 @@ class WP_Plugin_Dependencies {
 	 * @param array $required_headers Array of required plugin headers.
 	 * @return array
 	 */
-	public function sanitize_required_headers( $required_headers ) {
+	private function sanitize_required_headers( $required_headers ) {
 		$all_slugs = array();
 		foreach ( $required_headers as $key => $headers ) {
 			$sanitized_slugs = array();
@@ -153,7 +153,7 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @return void
 	 */
-	public function deactivate_unmet_dependencies() {
+	private function deactivate_unmet_dependencies() {
 		$dependencies        = $this->get_dependency_filepaths();
 		$deactivate_requires = array();
 
