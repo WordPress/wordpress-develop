@@ -146,11 +146,21 @@ class Tests_Functions extends WP_UnitTestCase {
 	 */
 	public function path_join_data_provider() {
 		return array(
-			// Absolute path.
+			// Absolute paths.
 			'absolute path should return path' => array(
 				'base'     => 'base',
 				'path'     => '/path',
 				'expected' => '/path',
+			),
+			'windows path with slashes'        => array(
+				'base'     => 'base',
+				'path'     => '//path',
+				'expected' => '//path',
+			),
+			'windows path with backslashes'    => array(
+				'base'     => 'base',
+				'path'     => '\\\\path',
+				'expected' => '\\\\path',
 			),
 			// Non-absolute paths.
 			'join base and path'               => array(
