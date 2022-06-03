@@ -196,7 +196,7 @@ function display_setup_form( $error = null ) {
 						do_action( 'blog_privacy_selector' );
 					} else {
 						?>
-						<label for="blog_public"><input name="blog_public" type="checkbox" id="blog_public" value="0" <?php $blog_public == 1 ? checked( 1, $blog_public ) : checked( 0, $blog_public ) ?> />
+						<label for="blog_public"><input name="blog_public" type="checkbox" id="blog_public" value="0" <?php 1 === $blog_public ? checked( 1, $blog_public ) : checked( 0, $blog_public ); ?> />
 						<?php _e( 'Discourage search engines from indexing this site' ); ?></label>
 						<p class="description"><?php _e( 'It is up to search engines to honor this request.' ); ?></p>
 					<?php } ?>
