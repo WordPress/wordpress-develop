@@ -475,7 +475,7 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @return \stdClass
 	 */
-	public function get_empty_plugins_api_response( $response, $args ) {
+	private function get_empty_plugins_api_response( $response, $args ) {
 		if ( is_wp_error( $response ) ) {
 			$response = array(
 				'name'              => $args['slug'],
