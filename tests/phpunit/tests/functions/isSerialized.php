@@ -37,8 +37,28 @@ class Tests_Functions_IsSerialized extends WP_UnitTestCase {
 				'data'     => new stdClass(),
 				'expected' => false,
 			),
+			'a boolean false'                      => array(
+				'data'     => false,
+				'expected' => false,
+			),
+			'a boolean true'                       => array(
+				'data'     => true,
+				'expected' => false,
+			),
 			'an integer 0'                         => array(
 				'data'     => 0,
+				'expected' => false,
+			),
+			'an integer 1'                         => array(
+				'data'     => 1,
+				'expected' => false,
+			),
+			'a float 0.0'                          => array(
+				'data'     => 0.0,
+				'expected' => false,
+			),
+			'a float 1.0'                          => array(
+				'data'     => 1.0,
 				'expected' => false,
 			),
 			'string that is too short'             => array(
