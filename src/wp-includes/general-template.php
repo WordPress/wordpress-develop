@@ -3164,7 +3164,7 @@ function feed_links_extra( $args = array() ) {
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param bool $show Whether to display the post comments feed link. Default to the output of the `feed_links_show_comments_feed` filter.
+		 * @param bool $show_global_comments_feed Whether to display the post comments feed link. Default to the output of the `feed_links_show_comments_feed` filter.
 		 */
 		$show_comments_feed = apply_filters( 'feed_links_show_post_comments_feed', $show_global_comments_feed );
 
