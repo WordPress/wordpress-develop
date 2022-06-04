@@ -195,8 +195,9 @@ function display_setup_form( $error = null ) {
 						/** This action is documented in wp-admin/options-reading.php */
 						do_action( 'blog_privacy_selector' );
 					} else {
+						$checked = ( isset( $_POST['blog_public'] ) && $blog_public ) ? ' checked="checked"' : '';
 						?>
-						<label for="blog_public"><input name="blog_public" type="checkbox" id="blog_public" value="0" <?php echo ( isset( $_POST['blog_public'] ) && $blog_public ) ? 'checked="checked"'; ?> />
+						<label for="blog_public"><input name="blog_public" type="checkbox" id="blog_public" value="0"<?php echo $checked; ?> />
 						<?php _e( 'Discourage search engines from indexing this site' ); ?></label>
 						<p class="description"><?php _e( 'It is up to search engines to honor this request.' ); ?></p>
 					<?php } ?>
