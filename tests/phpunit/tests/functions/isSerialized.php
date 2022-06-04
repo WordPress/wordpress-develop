@@ -11,48 +11,56 @@
 class Tests_Functions_IsSerialized extends WP_UnitTestCase {
 
 	/**
+	 * Run tests on `is_serialized()`.
+	 *
+	 * @dataProvider data_is_serialized
+	 *
+	 * @param mixed $data     Data value to test.
+	 * @param bool  $expected Expected function result.
+	 */
+	public function test_is_serialized_string( $data, $expected ) {
+		$this->assertSame( $expected, is_serialized( $data ) );
+	}
+
+	/**
 	 * Data provider method for testing `is_serialized()`.
 	 *
 	 * @return array
 	 */
-	public function _is_serialized() {
+	public function data_is_serialized() {
 		return array(
-
-			// pass array, not a string.
-			array( array(), false ),
-
-			// pass a class, not a string.
-			array( new stdClass(), false ),
-
-			// pass an integer, not a string.
-			array( 0, false ),
-
-			// Too short.
-			array( 's:3', false ),
-
-			// No colon in second position.
-			array( 's!3:"foo";', false ),
-
-			// Strict check: No trailing semicolon.
-			array( 's:3:"foo"', false ),
-
-			// Okay.
-			array( 'N;', true ),
-
-			// Enum.
-			array( 'E:7:"Foo:bar";', true ),
+			'an array'                             => array(
+				'data'     => array(),
+				'expected' => false,
+			),
+			'an object'                            => array(
+				'data'     => new stdClass(),
+				'expected' => false,
+			),
+			'an integer 0'                         => array(
+				'data'     => 0,
+				'expected' => false,
+			),
+			'string that is too short'             => array(
+				'data'     => 's:3',
+				'expected' => false,
+			),
+			'not a colon in second position'       => array(
+				'data'     => 's!3:"foo";',
+				'expected' => false,
+			),
+			'no trailing semicolon (strict check)' => array(
+				'data'     => 's:3:"foo"',
+				'expected' => false,
+			),
+			'valid serialized null'                => array(
+				'data'     => 'N;',
+				'expected' => true,
+			),
+			'valid serialized Enum'                => array(
+				'data'     => 'E:7:"Foo:bar";',
+				'expected' => true,
+			),
 		);
-	}
-
-	/**
-	 * Run tests on `is_serialized()`.
-	 *
-	 * @dataProvider _is_serialized
-	 *
-	 * @param array|object|int|string $data     Data value to test.
-	 * @param bool                    $expected Expected function result.
-	 */
-	public function test_is_serialized_string( $data, $expected ) {
-		$this->assertSame( $expected, is_serialized( $data ) );
 	}
 }
