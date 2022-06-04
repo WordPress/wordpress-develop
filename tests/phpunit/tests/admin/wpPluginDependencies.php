@@ -153,6 +153,12 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 		$parse_plugin_headers = $this->make_method_accessible( $dependencies, 'parse_plugin_headers');
 		$actual               = $parse_plugin_headers->invoke( $dependencies );
 
+		// Remove any non testing data, may be single file plugins in test environment.
+		$test_plugin = basename( self::$plugin_dir ) . '/' . $plugin_file[0];
+		$actual      = array_filter( $actual, function( $key ) use ( $test_plugin ) {
+			return $test_plugin === $key;
+		}, ARRAY_FILTER_USE_KEY );
+
 		foreach ( $plugin_names as $plugin_name ) {
 			if ( $expected ) {
 				$expected = array( str_replace( WP_PLUGIN_DIR . '/', '', $plugin_name ) => $expected );
