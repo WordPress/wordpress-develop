@@ -1829,9 +1829,8 @@ EOF;
 	 * @requires function imagejpeg
 	 */
 	public function test_wp_calculate_image_srcset_no_width() {
-		$file       = get_attached_file( self::$large_id );
 		$image_url  = wp_get_attachment_image_url( self::$large_id, 'medium' );
-		$image_meta = wp_generate_attachment_metadata( self::$large_id, $file );
+		$image_meta = wp_get_attachment_metadata( self::$large_id );
 
 		$size_array = array( 0, 0 );
 
