@@ -114,6 +114,11 @@ jobs:
 
             // Find the workflow run for the commit that immediately preceded this one.
             for ( let i = 0; i < previous_runs.data.workflow_runs.length; i++ ) {
+              // Protects against false notifications when contributors use similar head_ref names.
+              if ( previous_runs.data.workflow_runs[ i ].event !== "push" ) {
+                continue;
+              }
+
               if ( previous_runs.data.workflow_runs[ i ].run_number == workflow_run.data.run_number ) {
                 return previous_runs.data.workflow_runs[ i + 1 ].conclusion;
               }
