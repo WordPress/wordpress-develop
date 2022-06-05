@@ -28,7 +28,7 @@ if ( PHP_VERSION_ID >= 70016 && function_exists( 'fastcgi_finish_request' ) ) {
 	fastcgi_finish_request();
 }
 
-if ( ! empty( $_POST ) || defined( 'DOING_AJAX' ) || defined( 'DOING_CRON' ) ) {
+if ( ! empty( $_POST )||defined( 'DOING_AJAX' ) || defined( 'DOING_CRON' ) ) {
 	die();
 }
 
