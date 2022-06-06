@@ -778,7 +778,7 @@ function get_default_post_to_edit( $post_type = 'post', $create_in_db = false ) 
  * @param string $date    Optional. Post date.
  * @param string $type    Optional. Post type.
  * @param string $status  Optional. Post status.
- * @param integer $author Optional. Post author ID.
+ * @param int    $author Optional. Post author ID.
  * @return int Post ID if post exists, 0 otherwise.
  */
 function post_exists( $title, $content = '', $date = '', $type = '', $status = '', $author = '' ) {
