@@ -820,7 +820,7 @@ function post_exists( $title, $content = '', $date = '', $type = '', $status = '
 	}
 	
 	if ( ! empty( $author ) ) {
-		$query .= ' AND post_author = %s';
+		$query .= ' AND post_author = %d';
 		$args[] = $post_author;
 	}
 
