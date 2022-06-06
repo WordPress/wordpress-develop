@@ -109,6 +109,11 @@ if ( $_POST ) {
 		'first_comment_email',
 	);
 
+	// Default value for Max upload file size.
+	$defaults = array(
+		'fileuploadmaxk' => 1500,
+	);
+
 	// Handle translation installation.
 	if ( ! empty( $_POST['WPLANG'] ) && current_user_can( 'install_languages' ) && wp_can_install_language_pack() ) {
 		$language = wp_download_language_pack( $_POST['WPLANG'] );
@@ -118,8 +123,10 @@ if ( $_POST ) {
 	}
 
 	foreach ( $options as $option_name ) {
-		if ( ! isset( $_POST[ $option_name ] ) ) {
+		if ( ! isset( $_POST[ $option_name ] ) && ! isset( $defaults[ $option_name ] ) ) {
 			continue;
+		} elseif ( isset( $defaults[ $option_name ] ) ) {
+			$value = $defaults[ $option_name ];
 		}
 		$value = wp_unslash( $_POST[ $option_name ] );
 		update_site_option( $option_name, $value );
