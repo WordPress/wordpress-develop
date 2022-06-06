@@ -654,7 +654,6 @@ hr.wp-block-separator.is-style-dots::before {
 .editor-styles-wrapper .wp-block-quote footer {
 	color: #6d6d6d;
 	font-size: 14px;
-	font-style: normal;
 	font-weight: 600;
 	line-height: 1.25;
 }
