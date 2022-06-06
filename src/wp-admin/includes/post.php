@@ -789,7 +789,7 @@ function post_exists( $title, $content = '', $date = '', $type = '', $status = '
 	$post_date    = wp_unslash( sanitize_post_field( 'post_date', $date, 0, 'db' ) );
 	$post_type    = wp_unslash( sanitize_post_field( 'post_type', $type, 0, 'db' ) );
 	$post_status  = wp_unslash( sanitize_post_field( 'post_status', $status, 0, 'db' ) );
-	$post_author = wp_unslash( sanitize_post_field( 'post_author', $author, 0, 'db' ) );
+	$post_author  = wp_unslash( sanitize_post_field( 'post_author', $author, 0, 'db' ) );
 
 	$query = "SELECT ID FROM $wpdb->posts WHERE 1=1";
 	$args  = array();
