@@ -781,7 +781,7 @@ function get_default_post_to_edit( $post_type = 'post', $create_in_db = false ) 
  * @param int    $author Optional. Post author ID.
  * @return int Post ID if post exists, 0 otherwise.
  */
-function post_exists( $title, $content = '', $date = '', $type = '', $status = '', $author = '' ) {
+function post_exists( $title, $content = '', $date = '', $type = '', $status = '', $author = 0 ) {
 	global $wpdb;
 
 	$post_title   = wp_unslash( sanitize_post_field( 'post_title', $title, 0, 'db' ) );
