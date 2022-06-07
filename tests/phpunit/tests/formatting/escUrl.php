@@ -56,7 +56,7 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 			),
 			parse_url( $url )
 		);
-		$this->assertSame( 'https://user:pass@host.example.com:1234/path;p=1?query=2&r%5B%5D=3#fragment', esc_url_raw( $url ) );
+		$this->assertSame( 'https://user:pass@host.example.com:1234/path;p=1?query=2&r%5B%5D=3#fragment', sanitize_url( $url ) );
 		$this->assertSame( 'https://user:pass@host.example.com:1234/path;p=1?query=2&#038;r%5B%5D=3#fragment', esc_url( $url ) );
 	}
 
@@ -69,9 +69,9 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	}
 
 	public function test_encoding() {
-		$this->assertSame( 'http://example.com?foo=1&bar=2', esc_url_raw( 'http://example.com?foo=1&bar=2' ) );
-		$this->assertSame( 'http://example.com?foo=1&amp;bar=2', esc_url_raw( 'http://example.com?foo=1&amp;bar=2' ) );
-		$this->assertSame( 'http://example.com?foo=1&#038;bar=2', esc_url_raw( 'http://example.com?foo=1&#038;bar=2' ) );
+		$this->assertSame( 'http://example.com?foo=1&bar=2', sanitize_url( 'http://example.com?foo=1&bar=2' ) );
+		$this->assertSame( 'http://example.com?foo=1&amp;bar=2', sanitize_url( 'http://example.com?foo=1&amp;bar=2' ) );
+		$this->assertSame( 'http://example.com?foo=1&#038;bar=2', sanitize_url( 'http://example.com?foo=1&#038;bar=2' ) );
 
 		$this->assertSame( 'http://example.com?foo=1&#038;bar=2', esc_url( 'http://example.com?foo=1&bar=2' ) );
 		$this->assertSame( 'http://example.com?foo=1&#038;bar=2', esc_url( 'http://example.com?foo=1&amp;bar=2' ) );
@@ -190,7 +190,7 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	 */
 	public function test_reserved_characters() {
 		$url = "http://example.com/:@-._~!$&'()*+,=;:@-._~!$&'()*+,=:@-._~!$&'()*+,==?/?:@-._~!$%27()*+,;=/?:@-._~!$%27()*+,;==#/?:@-._~!$&'()*+,;=";
-		$this->assertSame( $url, esc_url_raw( $url ) );
+		$this->assertSame( $url, sanitize_url( $url ) );
 	}
 
 	/**
@@ -245,7 +245,7 @@ EOT;
 	 * @ticket 28015
 	 */
 	public function test_invalid_charaters() {
-		$this->assertEmpty( esc_url_raw( '"^<>{}`' ) );
+		$this->assertEmpty( sanitize_url( '"^<>{}`' ) );
 	}
 
 	/**

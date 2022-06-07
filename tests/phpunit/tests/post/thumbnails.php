@@ -27,7 +27,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	}
 
 	public static function tear_down_after_class() {
-		wp_delete_post( self::$attachment_id, true );
+		wp_delete_attachment( self::$attachment_id, true );
 		parent::tear_down_after_class();
 	}
 

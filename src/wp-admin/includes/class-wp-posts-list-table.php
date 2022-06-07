@@ -691,7 +691,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			&& ! in_array( $post_status, array( 'pending', 'draft', 'future' ), true )
 		) {
 			$posts_columns['comments'] = sprintf(
-				'<span class="vers comment-grey-bubble" title="%1$s"><span class="screen-reader-text">%2$s</span></span>',
+				'<span class="vers comment-grey-bubble" title="%1$s" aria-hidden="true"></span><span class="screen-reader-text">%2$s</span>',
 				esc_attr__( 'Comments' ),
 				__( 'Comments' )
 			);
@@ -1611,9 +1611,9 @@ class WP_Posts_List_Table extends WP_List_Table {
 			?>
 			<tr id="<?php echo $bulk ? 'bulk-edit' : 'inline-edit'; ?>" class="<?php echo $classes; ?>" style="display: none">
 			<td colspan="<?php echo $this->get_column_count(); ?>" class="colspanchange">
-			<div class="inline-edit-wrapper" role="region" aria-labelledby="inline-edit-legend">
+			<div class="inline-edit-wrapper" role="region" aria-labelledby="<?php echo $bulk ? 'bulk' : 'quick'; ?>-edit-legend">
 			<fieldset class="inline-edit-col-left">
-				<legend class="inline-edit-legend" id="inline-edit-legend"><?php echo $bulk ? __( 'Bulk Edit' ) : __( 'Quick Edit' ); ?></legend>
+				<legend class="inline-edit-legend" id="<?php echo $bulk ? 'bulk' : 'quick'; ?>-edit-legend"><?php echo $bulk ? __( 'Bulk Edit' ) : __( 'Quick Edit' ); ?></legend>
 				<div class="inline-edit-col">
 
 				<?php if ( post_type_supports( $screen->post_type, 'title' ) ) : ?>

@@ -34,6 +34,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'comment-reply-link',
 		'comment-template',
 		'comments-pagination',
+		'comments-title',
 		'comments-pagination-next',
 		'comments-pagination-numbers',
 		'comments-pagination-previous',
@@ -53,6 +54,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'post-author',
 		'post-author-biography',
 		'post-comments',
+		'post-comments-form',
 		'post-content',
 		'post-date',
 		'post-excerpt',
@@ -94,7 +96,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'heading',
 		'html',
 		'list',
-		'list-item',
 		'media-text',
 		'missing',
 		'more',
@@ -159,8 +160,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		},
 		plugins: [
 			new DefinePlugin( {
-				// Inject the `GUTENBERG_PHASE` global, used for feature flagging.
-				'process.env.GUTENBERG_PHASE': 1,
+				// Inject the `IS_GUTENBERG_PLUGIN` global, used for feature flagging.
+				'process.env.IS_GUTENBERG_PLUGIN': false,
 				'process.env.FORCE_REDUCED_MOTION': JSON.stringify(
 					process.env.FORCE_REDUCED_MOTION
 				),
