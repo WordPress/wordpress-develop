@@ -325,6 +325,10 @@ abstract class WP_Image_Editor {
 	protected function get_output_format( $filename = null, $mime_type = null ) {
 		$new_ext = null;
 
+		if ( ! $mime_type && $this->mime_type_set ) {
+			$mime_type = $this->mime_type;
+		}
+
 		// By default, assume specified type takes priority.
 		if ( $mime_type ) {
 			$new_ext = $this->get_extension( $mime_type );
@@ -336,18 +340,12 @@ abstract class WP_Image_Editor {
 		} else {
 			// If no file specified, grab editor's current extension and mime-type.
 			$file_ext  = strtolower( pathinfo( $this->file, PATHINFO_EXTENSION ) );
-			$file_mime = $this->mime_type;
-			// Favor the file mime extension.
-			$ext = $this->get_extension( $file_mime );
-			if ( $this->mime_type_set && $ext !== $file_ext ) {
-				$new_ext   = $ext;
-				$mime_type = $file_mime;
-			}
+			$file_mime = ! $this->mime_type_set ? $this->mime_type : $this->get_mime_type( $file_ext );
 		}
 
 		// Check to see if specified mime-type is the same as type implied by
 		// file extension. If so, prefer extension from file.
-		if ( ! $this->mime_type_set && ( ! $mime_type || ( $file_mime == $mime_type ) ) ) {
+		if ( ! $mime_type || ( $file_mime == $mime_type ) ) {
 			$mime_type = $file_mime;
 			$new_ext   = $file_ext;
 		}
