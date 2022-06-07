@@ -46,8 +46,7 @@ class Tests_Functions_GetThePostsNavigation extends WP_UnitTestCase {
 	 * @param boolean   $assert_empty       Assert empty posts nav string.
 	 */
 	public function test_get_the_posts_navigation( $paged_num, $post_per_page, $assert_older_posts = false, $assert_newer_posts = false, $assert_empty = false ) {
-		global $wp_query;
-		global $paged;
+		global $wp_query, $paged;
 		$paged    = $paged_num;
 		$wp_query = new WP_Query(
 			array(
@@ -62,7 +61,7 @@ class Tests_Functions_GetThePostsNavigation extends WP_UnitTestCase {
 		}
 
 		if ( $assert_newer_posts ) {
-			$this->assertStringContainsString( 'Newer posts', get_the_posts_navigation(), 'Posts navigation must contain string Older posts.' );
+			$this->assertStringContainsString( 'Newer posts', get_the_posts_navigation(), 'Posts navigation must contain string Newer posts.' );
 		}
 
 		if ( $assert_empty ) {
