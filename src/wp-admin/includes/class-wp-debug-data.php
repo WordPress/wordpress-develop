@@ -702,15 +702,15 @@ class WP_Debug_Data {
 			'value' => ( 'unknown' !== $server_architecture ? $server_architecture : __( 'Unable to determine server architecture' ) ),
 			'debug' => $server_architecture,
 		);
-		$info['wp-server']['fields']['virtualbox_environment'] = array(
-			'label' => __( 'VirtualBox Environment' ),
-			'value' => is_virtualbox() ? 'true' : 'false',
-			'debug' => is_virtualbox(),
-		);
 		$info['wp-server']['fields']['httpd_software']         = array(
 			'label' => __( 'Web server' ),
 			'value' => ( isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : __( 'Unable to determine what web server software is used' ) ),
 			'debug' => ( isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : 'unknown' ),
+		);
+		$info['wp-server']['fields']['virtualbox_environment'] = array(
+			'label' => __( 'VirtualBox environment' ),
+			'value' => is_virtualbox() ? 'true' : 'false',
+			'debug' => is_virtualbox(),
 		);
 		$info['wp-server']['fields']['php_version']            = array(
 			'label' => __( 'PHP version' ),
