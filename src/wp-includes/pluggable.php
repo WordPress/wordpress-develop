@@ -2386,6 +2386,11 @@ if ( ! function_exists( 'wp_salt' ) ) :
 		if ( null === $duplicated_keys ) {
 			$duplicated_keys = array(
 				'put your unique phrase here'       => true,
+				/*
+				* translators: This string should only be translated if wp-config-sample.php is localized.
+				* You can check the localized release package or
+				* https://i18n.svn.wordpress.org/<locale code>/branches/<wp version>/dist/wp-config-sample.php
+				*/
 				__( 'put your unique phrase here' ) => true,
 			);
 			foreach ( array( 'AUTH', 'SECURE_AUTH', 'LOGGED_IN', 'NONCE', 'SECRET' ) as $first ) {
