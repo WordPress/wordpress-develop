@@ -8464,9 +8464,9 @@ function wp_recursive_ksort( &$array ) {
  *
  * This attempts all known methods of detecting VirtualBox.
  *
- * @global $wp_filesystem The filesystem.
- *
  * @since 6.1.0
+ *
+ * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
  * @return bool Whether or not VirtualBox was detected.
  */
@@ -8483,8 +8483,7 @@ function is_virtualbox() {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param bool Whether the current environment uses VirtualBox.
-	 *             Default: false.
+	 * @param bool Whether the current environment uses VirtualBox. Default false.
 	 */
 	if ( apply_filters( 'is_virtualbox', false ) ) {
 		$is_virtualbox = true;
@@ -8507,7 +8506,7 @@ function is_virtualbox() {
 
 	/*
 	 * Vagrant can use alternative providers.
-	 * This isn't reliable without some additional check(s).
+	 * This may not be reliable without some additional checks.
 	 */
 	$virtualbox_usernames = array( 'vagrant' );
 
