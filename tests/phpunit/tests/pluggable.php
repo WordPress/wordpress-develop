@@ -356,16 +356,16 @@ class Tests_Pluggable extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_rand() returns zero.
+	 * Tests that wp_rand() returns zero when `$min` and `$max` are zero.
 	 *
 	 * @ticket 55194
-	 * @dataProvider data_wp_rand_should_return_zero
+	 * @dataProvider data_wp_rand_should_return_zero_when_min_and_max_are_zero
 	 * @covers ::wp_rand
 	 *
 	 * @param mixed $min Lower limit for the generated number.
 	 * @param mixed $max Upper limit for the generated number.
 	 */
-	public function test_wp_rand_should_return_zero( $min, $max ) {
+	public function test_wp_rand_should_return_zero_when_min_and_max_are_zero( $min, $max ) {
 		$this->assertSame( 0, wp_rand( $min, $max ) );
 	}
 
@@ -374,7 +374,7 @@ class Tests_Pluggable extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_rand_should_return_zero() {
+	public function data_wp_rand_should_return_zero_when_min_and_max_are_zero() {
 		return array(
 			'min and max as 0'      => array(
 				'min' => 0,
@@ -392,16 +392,16 @@ class Tests_Pluggable extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_rand() returns a value between 1 and 99.
+	 * Tests that wp_rand() returns a positive integer for both positive and negative input.
 	 *
 	 * @ticket 55194
-	 * @dataProvider data_wp_rand_should_return_between_1_and_99
+	 * @dataProvider data_wp_rand_should_return_a_positive_integer
 	 * @covers ::wp_rand
 	 *
 	 * @param int $min Lower limit for the generated number.
 	 * @param int $max Upper limit for the generated number.
 	 */
-	public function test_wp_rand_should_return_between_1_and_99( $min, $max ) {
+	public function test_wp_rand_should_return_a_positive_integer( $min, $max ) {
 		$this->assertGreaterThan(
 			0,
 			wp_rand( $min, $max ),
@@ -420,7 +420,7 @@ class Tests_Pluggable extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_rand_should_return_between_1_and_99() {
+	public function data_wp_rand_should_return_a_positive_integer() {
 		return array(
 			'1 and 99'       => array(
 				'min' => 1,
