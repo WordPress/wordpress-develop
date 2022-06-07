@@ -27,10 +27,10 @@ class Tests_Functions_GetThePostsNavigation extends WP_UnitTestCase {
 	 */
 	public function data_get_the_posts_navigation() {
 		return array(
-			array( 1, 1, true ),
-			array( 3, 1, false, true ),
-			array( 2, 1, true, true ),
-			array( 1, 3, false, false, true ),
+			array( 1, 1, true, false, false ),
+			array( 1, 3, false, true, false ),
+			array( 1, 2, true, true, false ),
+			array( 3, 1, false, false, true ),
 		);
 	}
 
@@ -39,13 +39,13 @@ class Tests_Functions_GetThePostsNavigation extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_get_the_posts_navigation
 	 *
-	 * @param int       $paged_num          Pagination page number.
 	 * @param int       $post_per_page      Posts per page to be queried.
+	 * @param int       $paged_num          Pagination page number.
 	 * @param boolean   $assert_older_posts Assert older posts nav string.
 	 * @param boolean   $assert_newer_posts Assert newer posts nav string.
 	 * @param boolean   $assert_empty       Assert empty posts nav string.
 	 */
-	public function test_get_the_posts_navigation( $paged_num, $post_per_page, $assert_older_posts = false, $assert_newer_posts = false, $assert_empty = false ) {
+	public function test_get_the_posts_navigation( $post_per_page, $paged_num, $assert_older_posts, $assert_newer_posts, $assert_empty ) {
 		global $wp_query, $paged;
 		$paged    = $paged_num;
 		$wp_query = new WP_Query(
