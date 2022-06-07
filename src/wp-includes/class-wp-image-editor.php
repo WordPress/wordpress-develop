@@ -423,7 +423,7 @@ abstract class WP_Image_Editor {
 	 * Builds an output filename based on current file, and adding proper suffix
 	 *
 	 * @since 3.5.0
-	 * @since 6.0.0 Skips adding a suffix when set to an empty string.
+	 * @since 6.1.0 Skips adding a suffix when set to an empty string.
 	 *
 	 * @param string $suffix Optional. Suffix to add to the filename. Passing null
 	 *                       will result in a 'widthxheight' suffix. Passing
@@ -647,7 +647,7 @@ abstract class WP_Image_Editor {
 	 *
 	 * Track that the mime type is set with the mime type set flag.
 	 *
-	 * @since 6.0.0
+	 * @since 6.1.0
 	 *
 	 * @param string $mime_type The mime type to set.
 	 */
@@ -660,6 +660,8 @@ abstract class WP_Image_Editor {
 	 * Reset the mime type to the original file mime type.
 	 *
 	 * Reset the mime type set flag.
+	 *
+	 * @since 6.1.0
 	 */
 	public function reset_mime_type() {
 		$this->mime_type     = wp_get_image_mime( $this->file );

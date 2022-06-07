@@ -77,7 +77,7 @@ function wp_crop_image( $src, $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h, $s
  * Registered sub-sizes that are larger than the image are skipped.
  *
  * @since 5.3.0
- * @since 6.0.0 The $mime_type parameter was added.
+ * @since 6.1.0 The $mime_type parameter was added.
  *
  * @param int    $attachment_id The image attachment post ID.
  * @param string $mime_type     Optional. The mime type to check for missing sizes. Default is the primary image mime.
@@ -153,7 +153,7 @@ function wp_get_missing_image_subsizes( $attachment_id, $mime_type = '' ) {
 	 * Filters the array of missing image sub-sizes for an uploaded image.
 	 *
 	 * @since 5.3.0
-	 * @since 6.0.0 The $mime_type filter parameter was added.
+	 * @since 6.1.0 The $mime_type filter parameter was added.
 	 *
 	 * @param array[] $missing_sizes Associative array of arrays of image sub-size information for
 	 *                               missing image sizes, keyed by image size name.
@@ -247,7 +247,7 @@ function _wp_image_meta_replace_original( $saved_data, $original_file, $image_me
  * sub-size is created. If there was an error, it is added to the returned image metadata array.
  *
  * @since 5.3.0
- * @since 6.0.0 Generates sub-sizes in alternate mime types based on the `wp_image_mime_transforms` filter.
+ * @since 6.1.0 Generates sub-sizes in alternate mime types based on the `wp_image_mime_transforms` filter.
  *
  * @param string $file          Full path to the image file.
  * @param int    $attachment_id Attachment ID to process.
@@ -343,7 +343,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 /**
  * Returns a WP_Image_Editor instance where the image file has been scaled and rotated as necessary.
  *
- * @since 6.0.0
+ * @since 6.1.0
  * @access private
  *
  * @param string     $file          Full path to the image file.
@@ -421,7 +421,7 @@ function _wp_maybe_scale_and_rotate_image( $file, $attachment_id, $imagesize, $e
 /**
  * Gets the suffix to use for image files based on resizing and rotating.
  *
- * @since 6.0.0
+ * @since 6.1.0
  * @access private
  *
  * @param bool|WP_Error Whether the image was resized, or an error if resizing failed.
@@ -449,7 +449,7 @@ function _wp_get_image_suffix( $resized, $rotated ) {
 /**
  * Gets a sources array element from a meta.
  *
- * @since 6.0.0
+ * @since 6.1.0
  * @access private
  *
  * @param array $meta The meta to get the source from.
@@ -469,7 +469,7 @@ function _wp_get_sources_from_meta( $meta ) {
  * Errors are stored in the returned image metadata array.
  *
  * @since 5.3.0
- * @since 6.0.0 The $mime_type parameter was added.
+ * @since 6.1.0 The $mime_type parameter was added.
  * @access private
  *
  * @param array  $new_sizes     Array defining what sizes to create.
@@ -590,7 +590,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
  *
  * Updates the image meta after each mime type image is created.
  *
- * @since 6.0.0
+ * @since 6.1.0
  * @access private
  *
  * @param array  $new_mime_types Array defining what mime types to create.
@@ -1316,7 +1316,7 @@ function _copy_image_file( $attachment_id ) {
  * For example an `image/jpeg` should be converted into an `image/jpeg` and `image/webp`. The first type
  * is considered the primary output type for this image.
  *
- * @since 6.0.0
+ * @since 6.1.0
  *
  * @param $attachment_id int The attachment ID.
  * @return array An array of valid mime types, where the key is the source file mime type and the list of mime types to
@@ -1331,7 +1331,7 @@ function wp_upload_image_mime_transforms( $attachment_id ) {
 	/**
 	 * Filter to the output mime types for a given input mime type.
 	 *
-	 * @since 6.0.0
+	 * @since 6.1.0
 	 *
 	 * @param array $image_mime_transforms A map with the valid mime transforms where the key is the source file mime type
 	 *                                     and the value is one or more mime file types to generate.
@@ -1343,7 +1343,7 @@ function wp_upload_image_mime_transforms( $attachment_id ) {
 /**
  * Extract the primary and additional mime output types for an image from the $image_mime_transforms.
  *
- * @since 6.0.0
+ * @since 6.1.0
  * @access private
  *
  * @param string $file          Full path to the image file.
