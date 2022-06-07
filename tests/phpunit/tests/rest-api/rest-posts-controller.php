@@ -1550,6 +1550,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$args               = $action->get_args();
 		$primed_query_found = false;
 		foreach ( $args as $arg ) {
+			var_dump( $arg[0] );  // debug.
 			if ( str_contains( $arg[0], 'WHERE ID IN (' . implode( ',', $attachment_ids ) ) ) {
 				$primed_query_found = true;
 				break;
