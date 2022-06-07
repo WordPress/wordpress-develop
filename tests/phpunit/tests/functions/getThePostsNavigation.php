@@ -19,7 +19,6 @@ class Tests_Functions_GetThePostsNavigation extends WP_UnitTestCase {
 		$factory->post->create_many( 3 );
 	}
 
-
 	/**
 	 * Data provider method for testing `get_the_posts_navigation()`.
 	 *
