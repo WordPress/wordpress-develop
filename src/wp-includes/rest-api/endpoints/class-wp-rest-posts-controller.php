@@ -375,7 +375,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $parent_ids ) ) {
-			_prime_post_caches( $parent_ids, false, false );
+			_prime_post_caches( $parent_ids, false );
 		}
 
 		$posts = array();
