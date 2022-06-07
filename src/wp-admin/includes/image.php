@@ -169,6 +169,7 @@ function wp_get_missing_image_subsizes( $attachment_id, $mime_type = '' ) {
  * create them and update the image meta data.
  *
  * @since 5.3.0
+ * @since 6.1.0 Now supports additional mime types, creating the additional sub-sizes and 'full' sized images.
  *
  * @param int $attachment_id The image attachment post ID.
  * @return array|WP_Error The updated image meta data array or WP_Error object
@@ -187,14 +188,33 @@ function wp_update_image_subsizes( $attachment_id ) {
 			return new WP_Error( 'invalid_attachment', __( 'The attached file cannot be found.' ) );
 		}
 	} else {
-		$missing_sizes = wp_get_missing_image_subsizes( $attachment_id );
+		// Get the primary and additional mime types to generate.
+		list( $primary_mime_type, $additional_mime_types ) = _wp_get_primary_and_additional_mime_types( $image_file, $attachment_id );
 
-		if ( empty( $missing_sizes ) ) {
-			return $image_meta;
+		// Generate missing 'full' image files for additional mime types.
+		if ( ! empty( $additional_mime_types ) ) {
+			if ( isset( $image_meta['sources'] ) ) {
+				$missing_mime_types = array_diff( $additional_mime_types, array_keys( $image_meta['sources'] ) );
+			} else {
+				$missing_mime_types = $additional_mime_types;
+			}
+			if ( ! empty( $missing_mime_types ) ) {
+				$image_meta = _wp_make_additional_mime_types( $missing_mime_types, $image_file, $image_meta, $attachment_id );
+			}
 		}
 
-		// This also updates the image meta.
-		$image_meta = _wp_make_subsizes( $missing_sizes, $image_file, $image_meta, $attachment_id );
+		// Generate missing image sub-sizes for each mime type.
+		$all_mime_types = array_merge( array( $primary_mime_type ), $additional_mime_types );
+		foreach ( $all_mime_types as $mime_type ) {
+			$missing_sizes = wp_get_missing_image_subsizes( $attachment_id, $mime_type );
+
+			if ( empty( $missing_sizes ) ) {
+				continue;
+			}
+
+			// This also updates the image meta.
+			$image_meta = _wp_make_subsizes( $missing_sizes, $image_file, $image_meta, $attachment_id, $mime_type );
+		}
 	}
 
 	/** This filter is documented in wp-admin/includes/image.php */
@@ -278,7 +298,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 		$image_meta['image_meta'] = $exif_meta;
 	}
 
-	// Calculate the primary (first) and additional mime types to generate.
+	// Get the primary and additional mime types to generate.
 	list( $primary_mime_type, $additional_mime_types ) = _wp_get_primary_and_additional_mime_types( $file, $attachment_id );
 
 	list( $editor, $resized, $rotated ) = _wp_maybe_scale_and_rotate_image( $file, $attachment_id, $imagesize, $exif_meta, $primary_mime_type );
