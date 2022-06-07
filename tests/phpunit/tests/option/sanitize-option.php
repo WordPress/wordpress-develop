@@ -155,6 +155,7 @@ class Tests_Sanitize_Option extends WP_UnitTestCase {
 			array( '/%postname%/', '/%postname%/', true ),
 			array( '/%year%/%monthnum%/%day%/%postname%/', '/%year%/%monthnum%/%day%/%postname%/', true ),
 			array( '/%year/%postname%/', '/%year/%postname%/', true ),
+			array( new WP_Error( 'wpdb_get_table_charset_failure' ), false, false ), // @ticket 53986
 		);
 	}
 

@@ -202,7 +202,6 @@ class Tests_Filters extends WP_UnitTestCase {
 	public function test_remove_all_filters_should_respect_the_priority_argument() {
 		$a   = new MockAction();
 		$tag = __FUNCTION__;
-		$val = __FUNCTION__ . '_val';
 
 		add_filter( $tag, array( $a, 'filter' ), 12 );
 		$this->assertTrue( has_filter( $tag ) );
@@ -213,6 +212,49 @@ class Tests_Filters extends WP_UnitTestCase {
 
 		remove_all_filters( $tag, 12 );
 		$this->assertFalse( has_filter( $tag ) );
+	}
+
+	/**
+	 * @ticket 53218
+	 */
+	public function test_filter_with_ref_value() {
+		$obj = new stdClass();
+		$ref = &$obj;
+		$a   = new MockAction();
+		$tag = __FUNCTION__;
+
+		add_action( $tag, array( $a, 'filter' ) );
+
+		$filtered = apply_filters( $tag, $ref );
+
+		$args = $a->get_args();
+		$this->assertSame( $args[0][0], $obj );
+		$this->assertSame( $filtered, $obj );
+		// Just in case we don't trust assertSame().
+		$obj->foo = true;
+		$this->assertNotEmpty( $args[0][0]->foo );
+		$this->assertNotEmpty( $filtered->foo );
+	}
+
+	/**
+	 * @ticket 53218
+	 */
+	public function test_filter_with_ref_argument() {
+		$obj = new stdClass();
+		$ref = &$obj;
+		$a   = new MockAction();
+		$tag = __FUNCTION__;
+		$val = 'Hello';
+
+		add_action( $tag, array( $a, 'filter' ), 10, 2 );
+
+		apply_filters( $tag, $val, $ref );
+
+		$args = $a->get_args();
+		$this->assertSame( $args[0][1], $obj );
+		// Just in case we don't trust assertSame().
+		$obj->foo = true;
+		$this->assertNotEmpty( $args[0][1]->foo );
 	}
 
 	/**
@@ -270,7 +312,6 @@ class Tests_Filters extends WP_UnitTestCase {
 	public function test_has_filter_after_remove_all_filters() {
 		$a   = new MockAction();
 		$tag = __FUNCTION__;
-		$val = __FUNCTION__ . '_val';
 
 		// No priority.
 		add_filter( $tag, array( $a, 'filter' ), 11 );

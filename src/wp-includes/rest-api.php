@@ -294,11 +294,15 @@ function create_initial_rest_routes() {
 	$controller->register_routes();
 
 	// Block Renderer.
-	$controller = new WP_REST_Block_Renderer_Controller;
+	$controller = new WP_REST_Block_Renderer_Controller();
 	$controller->register_routes();
 
 	// Block Types.
 	$controller = new WP_REST_Block_Types_Controller();
+	$controller->register_routes();
+
+	// Global Styles.
+	$controller = new WP_REST_Global_Styles_Controller;
 	$controller->register_routes();
 
 	// Settings.
@@ -333,6 +337,14 @@ function create_initial_rest_routes() {
 	$controller = new WP_REST_Pattern_Directory_Controller();
 	$controller->register_routes();
 
+	// Block Patterns.
+	$controller = new WP_REST_Block_Patterns_Controller();
+	$controller->register_routes();
+
+	// Block Pattern Categories.
+	$controller = new WP_REST_Block_Pattern_Categories_Controller();
+	$controller->register_routes();
+
 	// Site Health.
 	$site_health = WP_Site_Health::get_instance();
 	$controller  = new WP_REST_Site_Health_Controller( $site_health );
@@ -340,6 +352,14 @@ function create_initial_rest_routes() {
 
 	// URL Details.
 	$controller = new WP_REST_URL_Details_Controller();
+	$controller->register_routes();
+
+	// Menu Locations.
+	$controller = new WP_REST_Menu_Locations_Controller();
+	$controller->register_routes();
+
+	// Site Editor Export.
+	$controller = new WP_REST_Edit_Site_Export_Controller();
 	$controller->register_routes();
 }
 
@@ -2848,12 +2868,12 @@ function rest_preload_api_request( $memo, $path ) {
 	$response = rest_do_request( $request );
 	if ( 200 === $response->status ) {
 		$server = rest_get_server();
+		/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
+		$response = apply_filters( 'rest_post_dispatch', rest_ensure_response( $response ), $server, $request );
 		$embed  = $request->has_param( '_embed' ) ? rest_parse_embed_param( $request['_embed'] ) : false;
 		$data   = (array) $server->response_to_data( $response, $embed );
 
 		if ( 'OPTIONS' === $method ) {
-			$response = rest_send_allow_header( $response, $server, $request );
-
 			$memo[ $method ][ $path ] = array(
 				'body'    => $data,
 				'headers' => $response->headers,
@@ -3044,7 +3064,8 @@ function rest_default_additional_properties_to_false( $schema ) {
  * @since 5.5.0
  *
  * @param int|WP_Post $post Post ID or post object.
- * @return string The route path with a leading slash for the given post, or an empty string if there is not a route.
+ * @return string The route path with a leading slash for the given post,
+ *                or an empty string if there is not a route.
  */
 function rest_get_route_for_post( $post ) {
 	$post = get_post( $post );
@@ -3077,7 +3098,8 @@ function rest_get_route_for_post( $post ) {
  * @since 5.9.0
  *
  * @param string $post_type The name of a registered post type.
- * @return string The route path with a leading slash for the given post type, or an empty string if there is not a route.
+ * @return string The route path with a leading slash for the given post type,
+ *                or an empty string if there is not a route.
  */
 function rest_get_route_for_post_type_items( $post_type ) {
 	$post_type = get_post_type_object( $post_type );
@@ -3110,7 +3132,8 @@ function rest_get_route_for_post_type_items( $post_type ) {
  * @since 5.5.0
  *
  * @param int|WP_Term $term Term ID or term object.
- * @return string The route path with a leading slash for the given term, or an empty string if there is not a route.
+ * @return string The route path with a leading slash for the given term,
+ *                or an empty string if there is not a route.
  */
 function rest_get_route_for_term( $term ) {
 	$term = get_term( $term );

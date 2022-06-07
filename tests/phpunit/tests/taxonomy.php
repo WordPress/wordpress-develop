@@ -17,7 +17,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 */
 	public function test_get_unknown_taxonomies() {
 		// Taxonomies for an unknown object type.
-		$this->assertSame( array(), get_object_taxonomies( rand_str() ) );
+		$this->assertSame( array(), get_object_taxonomies( 'unknown' ) );
 		$this->assertSame( array(), get_object_taxonomies( '' ) );
 		$this->assertSame( array(), get_object_taxonomies( 0 ) );
 		$this->assertSame( array(), get_object_taxonomies( null ) );
@@ -144,7 +144,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	public function test_register_taxonomy() {
 
 		// Make up a new taxonomy name, and ensure it's unused.
-		$tax = rand_str();
+		$tax = 'tax_new';
 		$this->assertFalse( taxonomy_exists( $tax ) );
 
 		register_taxonomy( $tax, 'post' );
@@ -158,7 +158,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	public function test_register_hierarchical_taxonomy() {
 
 		// Make up a new taxonomy name, and ensure it's unused.
-		$tax = rand_str();
+		$tax = 'tax_new';
 		$this->assertFalse( taxonomy_exists( $tax ) );
 
 		register_taxonomy( $tax, 'post', array( 'hierarchical' => true ) );
@@ -219,6 +219,75 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 		$tax_2 = get_taxonomy( 'wptests_tax_2' );
 		$this->assertFalse( $tax_2->show_in_quick_edit );
+	}
+
+
+	/**
+	 * @ticket 53212
+	 */
+	public function test_register_taxonomy_fires_registered_actions() {
+		$taxonomy = 'taxonomy53212';
+		$action   = new MockAction();
+
+		add_action( 'registered_taxonomy', array( $action, 'action' ) );
+		add_action( "registered_taxonomy_{$taxonomy}", array( $action, 'action' ) );
+
+		register_taxonomy( $taxonomy, 'post' );
+		register_taxonomy( 'random', 'post' );
+
+		$this->assertSame( 3, $action->get_call_count() );
+	}
+
+	/**
+	 * @ticket 49701
+	 *
+	 * @covers ::get_inline_data
+	 */
+	public function test_get_inline_data_contains_term_if_show_ui_false_but_show_on_quick_edit_true_for_hierarchical_taxonomy() {
+		// Create a post with a term from a hierarchical taxonomy.
+		register_taxonomy(
+			'wptests_tax_1',
+			'post',
+			array(
+				'show_ui'            => false,
+				'show_in_quick_edit' => true,
+				'hierarchical'       => true,
+			)
+		);
+		$term = wp_insert_term( 'Test', 'wptests_tax_1' );
+		$post = self::factory()->post->create_and_get();
+		wp_set_object_terms( $post->ID, $term['term_id'], 'wptests_tax_1' );
+
+		// Test get_inline_data() has post_category div containing assigned term.
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		get_inline_data( $post );
+		$this->expectOutputRegex( '/<div class="post_category" id="wptests_tax_1_' . $post->ID . '">' . $term['term_id'] . '<\/div>/' );
+	}
+
+	/**
+	 * @ticket 49701
+	 *
+	 * @covers ::get_inline_data
+	 */
+	public function test_get_inline_data_contains_term_if_show_ui_false_but_show_on_quick_edit_true_for_nonhierarchical_taxonomy() {
+		// Create a post with a term from a hierarchical taxonomy.
+		register_taxonomy(
+			'wptests_tax_1',
+			'post',
+			array(
+				'show_ui'            => false,
+				'show_in_quick_edit' => true,
+				'hierarchical'       => false,
+			)
+		);
+		$term = wp_insert_term( 'Test', 'wptests_tax_1' );
+		$post = self::factory()->post->create_and_get();
+		wp_set_object_terms( $post->ID, $term['term_id'], 'wptests_tax_1' );
+
+		// Test get_inline_data() has tags_input div containing assigned term.
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		get_inline_data( $post );
+		$this->expectOutputRegex( '/<div class="tags_input" id="wptests_tax_1_' . $post->ID . '">Test<\/div>/' );
 	}
 
 	/**
