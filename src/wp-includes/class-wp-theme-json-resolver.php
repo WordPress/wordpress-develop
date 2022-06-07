@@ -123,7 +123,7 @@ class WP_Theme_JSON_Resolver {
 	}
 
 	/**
-	 * Return core's origin config.
+	 * Returns core's origin config.
 	 *
 	 * @since 5.8.0
 	 *
@@ -151,14 +151,23 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 5.8.0
 	 * @since 5.9.0 Theme supports have been inlined and the `$theme_support_data` argument removed.
+	 * @since 6.0.0 Added an `$options` parameter to allow the theme data to be returned without theme supports.
 	 *
 	 * @param array $deprecated Deprecated. Not used.
+	 * @param array $options {
+	 *     Options arguments.
+	 *
+	 *     @type bool $with_supports Whether to include theme supports in the data. Default true.
+	 * }
 	 * @return WP_Theme_JSON Entity that holds theme data.
 	 */
-	public static function get_theme_data( $deprecated = array() ) {
+	public static function get_theme_data( $deprecated = array(), $options = array() ) {
 		if ( ! empty( $deprecated ) ) {
 			_deprecated_argument( __METHOD__, '5.9.0' );
 		}
+
+		$options = wp_parse_args( $options, array( 'with_supports' => true ) );
+
 		if ( null === static::$theme ) {
 			$theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json' ) );
 			$theme_json_data = static::translate( $theme_json_data, wp_get_theme()->get( 'TextDomain' ) );
@@ -175,6 +184,10 @@ class WP_Theme_JSON_Resolver {
 				$parent_theme->merge( static::$theme );
 				static::$theme = $parent_theme;
 			}
+		}
+
+		if ( ! $options['with_supports'] ) {
+			return static::$theme;
 		}
 
 		/*
@@ -208,6 +221,9 @@ class WP_Theme_JSON_Resolver {
 				$default_gradients = true;
 			}
 			$theme_support_data['settings']['color']['defaultGradients'] = $default_gradients;
+
+			// Classic themes without a theme.json don't support global duotone.
+			$theme_support_data['settings']['color']['defaultDuotone'] = false;
 		}
 		$with_theme_supports = new WP_Theme_JSON( $theme_support_data );
 		$with_theme_supports->merge( static::$theme );
@@ -338,12 +354,13 @@ class WP_Theme_JSON_Resolver {
 	 * default, theme, and custom. The custom's has higher priority
 	 * than the theme's, and the theme's higher than default's.
 	 *
-	 * Unlike the getters {@link get_core_data},
-	 * {@link get_theme_data}, and {@link get_user_data},
-	 * this method returns data after it has been merged
-	 * with the previous origins. This means that if the same piece of data
-	 * is declared in different origins (user, theme, and core),
-	 * the last origin overrides the previous.
+	 * Unlike the getters
+	 * {@link https://developer.wordpress.org/reference/classes/wp_theme_json_resolver/get_core_data/ get_core_data},
+	 * {@link https://developer.wordpress.org/reference/classes/wp_theme_json_resolver/get_theme_data/ get_theme_data},
+	 * and {@link https://developer.wordpress.org/reference/classes/wp_theme_json_resolver/get_user_data/ get_user_data},
+	 * this method returns data after it has been merged with the previous origins.
+	 * This means that if the same piece of data is declared in different origins
+	 * (user, theme, and core), the last origin overrides the previous.
 	 *
 	 * For example, if the user has set a background color
 	 * for the paragraph block, and the theme has done it as well,
@@ -396,7 +413,7 @@ class WP_Theme_JSON_Resolver {
 	}
 
 	/**
-	 * Whether the active theme has a theme.json file.
+	 * Determines whether the active theme has a theme.json file.
 	 *
 	 * @since 5.8.0
 	 * @since 5.9.0 Added a check in the parent theme.
@@ -477,4 +494,5 @@ class WP_Theme_JSON_Resolver {
 		}
 		return $variations;
 	}
+
 }
