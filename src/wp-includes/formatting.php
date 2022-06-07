@@ -2746,7 +2746,7 @@ function trailingslashit( $string ) {
 		return untrailingslashit( $string ) . '/';
 	}
 
-	if ( is_string( $string ) && $string[ strlen( $string ) - 1 ] === '\\' ) {
+	if ( is_string( $string ) && '\\' === $string[ strlen( $string ) - 1 ] ) {
 		return $string . '/';
 	}
 
