@@ -46,9 +46,20 @@ class Tests_Formatting_Slashit extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 22267
+	 * @ticket xxxxx
+	 *
+	 * Related @ticket 22267
+	 *
+	 * Do not remove a backslash if it is non windows OS.
+	 * On linux, a file or directory name can contain a backslash as a valid character.
+	 * E.g. For directory name 'test\', a corresponding path could look like '/var/www/test\\'
+	 * trailingslashit() must not remove the backslash or it would change the folder name.
 	 */
-	public function test_converts_trailing_backslash_to_slash_if_one_exists() {
-		$this->assertSame( 'a/', trailingslashit( 'a\\' ) );
+	public function test_add_trailingslash_depending_on_win_or_nix() {
+		if (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN'){
+			$this->assertSame( 'a\/', trailingslashit( 'a\\' ) );
+		} else {
+			$this->assertSame( 'a/', trailingslashit( 'a' ) );
+		}
 	}
 }

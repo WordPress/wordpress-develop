@@ -2723,8 +2723,11 @@ function backslashit( $string ) {
 /**
  * Appends a trailing slash.
  *
- * Will remove trailing forward and backslashes if it exists already before adding
- * a trailing forward slash. This prevents double slashing a string or path.
+ * On windows it will remove trailing forward and backslashes if it exists already before adding
+ * a trailing slash. This prevents double slashing a string or path.
+ *
+ * If OS is *nix and path contains a backslash as part of a folder name, it appends the trailingslash
+ * and keeps the backslash because on linux systems the backslash is a legit character in file names.
  *
  * The primary use of this is for paths and thus should be used for paths. It is
  * not restricted to paths and offers no specific path support.
@@ -2735,6 +2738,18 @@ function backslashit( $string ) {
  * @return string String with trailing slash added.
  */
 function trailingslashit( $string ) {
+	if (empty($string)) {
+		return '/';
+	}
+
+	if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN'){
+		return untrailingslashit( $string ) . '/';
+	}
+
+	if ( is_string($string) && $string[strlen( $string ) - 1] === '\\') {
+		return $string . '/';
+	}
+
 	return untrailingslashit( $string ) . '/';
 }
 
