@@ -1836,7 +1836,7 @@ function sanitize_user_field( $field, $value, $user_id, $context ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param array $ids               ID list.
+ * @param int[] $user_ids          Array of user IDs.
  * @param bool  $update_meta_cache Optional. Whether to update the meta cache. Default true.
  */
 function _prime_user_caches( $ids, $update_meta_cache = true ) {
