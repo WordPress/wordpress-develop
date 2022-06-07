@@ -2738,15 +2738,15 @@ function backslashit( $string ) {
  * @return string String with trailing slash added.
  */
 function trailingslashit( $string ) {
-	if (empty($string)) {
+	if ( empty( $string ) ) {
 		return '/';
 	}
 
-	if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN'){
+	if ( strtoupper( substr( PHP_OS, 0, 3 ) ) === 'WIN' ) {
 		return untrailingslashit( $string ) . '/';
 	}
 
-	if ( is_string($string) && $string[strlen( $string ) - 1] === '\\') {
+	if ( is_string( $string ) && $string[ strlen( $string ) - 1 ] === '\\' ) {
 		return $string . '/';
 	}
 

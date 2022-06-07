@@ -56,7 +56,7 @@ class Tests_Formatting_Slashit extends WP_UnitTestCase {
 	 * trailingslashit() must not remove the backslash or it would change the folder name.
 	 */
 	public function test_add_trailingslash_depending_on_win_or_nix() {
-		if (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN'){
+		if ( strtoupper( substr( PHP_OS, 0, 3 ) ) !== 'WIN' ) {
 			$this->assertSame( 'a\/', trailingslashit( 'a\\' ) );
 		} else {
 			$this->assertSame( 'a/', trailingslashit( 'a' ) );
