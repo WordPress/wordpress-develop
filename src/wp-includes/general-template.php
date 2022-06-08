@@ -3205,7 +3205,7 @@ function feed_links_extra( $args = array() ) {
 		$href  = get_search_feed_link();
 	}
 
-	if ( isset( $title ) && isset( $href ) ) {
+	if ( ! empty( $title ) && ! empty( $href ) ) {
 		echo '<link rel="alternate" type="' . feed_content_type() . '" title="' . esc_attr( $title ) . '" href="' . esc_url( $href ) . '" />' . "\n";
 	}
 }
