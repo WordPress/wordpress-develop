@@ -1897,7 +1897,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 /**
  * Use alternate mime type images in the content output when available.
  *
- * @since 6.0.0
+ * @since 6.1.0
  *
  * @param string $image         The HTML `img` tag where the attribute should be added.
  * @param string $context       Additional context to pass to the filters.
@@ -1922,7 +1922,7 @@ function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
 	 *
 	 * When outputting images in the content, the first mime type available will be used.
 	 *
-	 * @since 6.0.0
+	 * @since 6.1.0
 	 *
 	 * @param array  $target_mimes  The image output mime type and order. Default is array( 'image/webp', 'image/jpeg' ).
 	 * @param int    $attachment_id The attachment ID.
