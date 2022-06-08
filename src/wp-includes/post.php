@@ -7485,7 +7485,7 @@ function update_post_author_caches( $posts ) {
 	$author_ids = wp_list_pluck( $posts, 'post_author' );
 	$author_ids = array_map( 'absint', $author_ids );
 	$author_ids = array_unique( array_filter( $author_ids ) );
-	_prime_user_caches( $author_ids );
+	cache_users( $author_ids );
 }
 
 /**

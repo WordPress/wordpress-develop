@@ -1827,34 +1827,6 @@ function sanitize_user_field( $field, $value, $user_id, $context ) {
 }
 
 /**
- * Adds any users from the given IDs to the cache that do not already exist in cache.
- *
- * @since 6.1.0
- * @access private
- *
- * @see update_user_caches()
- *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
- * @param array $ids               ID list.
- * @param bool  $update_meta_cache Optional. Whether to update the meta cache. Default true.
- */
-function _prime_user_caches( $ids, $update_meta_cache = true ) {
-	global $wpdb;
-
-	$non_cached_ids = _get_non_cached_ids( $ids, 'users' );
-	if ( ! empty( $non_cached_ids ) ) {
-		$users = $wpdb->get_results( sprintf( "SELECT * FROM $wpdb->users WHERE ID IN (%s)", implode( ',', $non_cached_ids ) ) );
-		foreach ( $users as $user ) {
-			update_user_caches( $user );
-		}
-	}
-	if ( $update_meta_cache ) {
-		update_meta_cache( 'user', $ids );
-	}
-}
-
-/**
  * Updates all user caches.
  *
  * @since 3.0.0
