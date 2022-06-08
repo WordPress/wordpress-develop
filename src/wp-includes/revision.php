@@ -555,6 +555,7 @@ function wp_get_last_revision_id_and_total_count( $post_id = 0 ) {
 		'posts_per_page'         => 1,
 		'update_post_meta_cache' => false,
 		'update_post_term_cache' => false,
+		'suppress_filters'       => true,
 	);
 
 	$revision_query = new WP_Query();
