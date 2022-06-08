@@ -656,6 +656,55 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that wp_get_last_revision_id_and_total_count() returns last revision id and total count.
+	 *
+	 * @ticket 55857
+	 * @dataProvider data_wp_get_post_revisions_url
+	 */
+	public function test_wp_get_last_revision_id_and_total_count( $revisions ) {
+		wp_set_current_user( self::$admin_user_id );
+		$post_id            = self::factory()->post->create( array( 'post_title' => 'Some Post' ) );
+		$latest_revision_id = $post_id;
+
+		for ( $i = 0; $i < $revisions; ++$i ) {
+			wp_update_post(
+				array(
+					'ID'         => $post_id,
+					'post_title' => 'Some Post ' . $i,
+				)
+			);
+
+			$latest_revision_id++;
+
+			$revision = wp_get_last_revision_id_and_total_count( $post_id );
+			$this->assertSame(
+				$latest_revision_id,
+				$revision['revision'],
+				'Failed asserting latest revision id.'
+			);
+
+			$this->assertSame(
+				count( wp_get_post_revisions( $post_id ) ),
+				$revision['count'],
+				'Failed asserting total count of revision.'
+			);
+		}
+	}
+
+	/**
+	 * Tests that wp_get_last_revision_id_and_total_count() when no revisions.
+	 *
+	 * @ticket 55857
+	 */
+	public function test_wp_get_last_revision_id_and_total_count_no_revisions() {
+		$post     = get_default_post_to_edit( 'post', true );
+		$post_id  = $post->ID;
+		$revision = wp_get_last_revision_id_and_total_count( $post_id );
+		$this->assertSame( 0, $revision['revision'], 'Post should not have revision.' );
+		$this->assertSame( 0, $revision['count'], 'Post should not have revision.' );
+	}
+
+	/**
 	 * Tests that wp_get_post_revisions_url() returns the revisions URL.
 	 *
 	 * @ticket 39062
