@@ -525,18 +525,24 @@ function wp_get_post_revisions( $post_id = 0, $args = null ) {
  * @return array {
  *     Returns associative array with last revision and total count.
  *
- *     @type int $last_revision The last revision post id.
+ *     @type int $revision The last revision post id or 0 if non existing.
  *     @type int $count The total count of revisions for $post_id.
  * }
  */
-function wp_get_last_post_revision_id_and_count( $post_id = 0 ) {
+function wp_get_last_revision_id_and_total_count( $post_id = 0 ) {
 	$post = get_post( $post_id );
 	if ( ! $post || empty( $post->ID ) ) {
-		return array();
+		return array(
+			'revision' => 0,
+			'count'    => 0,
+		);
 	}
 
 	if ( ! wp_revisions_enabled( $post ) ) {
-		return array();
+		return array(
+			'revision' => 0,
+			'count'    => 0,
+		);
 	}
 
 	$args = array(
@@ -551,16 +557,19 @@ function wp_get_last_post_revision_id_and_count( $post_id = 0 ) {
 		'update_post_term_cache' => false,
 	);
 
-	$get_last_revision = new WP_Query();
-	$last_revision     = $get_last_revision->query( $args );
+	$revision_query = new WP_Query();
+	$revisions      = $revision_query->query( $args );
 
-	if ( ! $last_revision ) {
-		return array();
+	if ( ! $revisions ) {
+		return array(
+			'revision' => 0,
+			'count'    => 0,
+		);
 	}
 
 	return array(
-		'last_revision' => $last_revision[0],
-		'count'         => $get_last_revision->found_posts,
+		'revision' => $revisions[0],
+		'count'    => $revision_query->found_posts,
 	);
 }
 

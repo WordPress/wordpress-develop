@@ -2017,9 +2017,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( in_array( $post->post_type, array( 'post', 'page' ), true ) || post_type_supports( $post->post_type, 'revisions' ) ) {
-			$revision        = wp_get_last_post_revision_id_and_count( $post->ID );
-			$last_revision   = isset( $revision['last_revision'] ) ? $revision['last_revision'] : '';
-			$revisions_count = isset( $revision['count'] ) ? $revision['count'] : 0;
+			$revision        = wp_get_last_revision_id_and_total_count( $post->ID );
+			$last_revision   = $revision['revision'];
+			$revisions_count = $revision['count'];
 
 			$links['version-history'] = array(
 				'href'  => rest_url( trailingslashit( $base ) . $post->ID . '/revisions' ),
