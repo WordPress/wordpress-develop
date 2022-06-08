@@ -61,6 +61,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 	 * @param string     $action  Action: 'trash', 'untrash', etc.
 	 *
 	 * @covers ::wp_ajax_delete_comment
+	 * @covers ::_wp_ajax_delete_comment_response
 	 */
 	public function _test_as_admin( $comment, $action ) {
 
@@ -275,6 +276,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 	 * Deletes a comment as an administrator (expects success).
 	 *
 	 * @covers ::wp_ajax_delete_comment
+	 * @covers ::_wp_ajax_delete_comment_response
 	 */
 	public function test_ajax_comment_trash_actions_as_administrator() {
 		// Test trash/untrash.
@@ -311,6 +313,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 	 * Deletes a comment with no ID.
 	 *
 	 * @covers ::wp_ajax_delete_comment
+	 * @covers ::_wp_ajax_delete_comment_response
 	 */
 	public function test_ajax_trash_comment_no_id() {
 		// Test trash/untrash.
