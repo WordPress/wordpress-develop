@@ -1942,7 +1942,7 @@ function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
 		}
 
 		// Go through each image and replace with the first available mime type version.
-		foreach ( $metadata['sizes'] as $name => $size_data ) {
+		foreach ( $metadata['sizes'] as $size_name => $size_data ) {
 			// Check if size has a file.
 			if ( empty( $size_data['file'] ) ) {
 				continue;
@@ -1957,6 +1957,14 @@ function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
 			// Replace the existing output image for this size.
 			$src_filename = wp_basename( $size_data['file'] );
 
+			// Short-circuit request if replacement has been done.
+			$filtered_image = apply_filters( 'wp_content_pre_replace_additional_image_source', $image, $attachment_id, $src_filename, $size_name, $target_mime, $context );
+
+			if ( $filtered_image !== $image ) {
+				$image = $filtered_image;
+				continue;
+			}
+
 			// This is the same as the file we want to replace nothing to do here.
 			if ( $target_file === $src_filename ) {
 				continue;
@@ -1969,6 +1977,13 @@ function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
 
 		// Handle full size image replacement.
 		$src_filename = wp_basename( $metadata['file'] );
+
+		// Short-circuit request if replacement has been done (full size image).
+		$filtered_image = apply_filters( 'wp_content_pre_replace_additional_image_source', $image, $attachment_id, $src_filename, 'full', $target_mime, $context );
+
+		if ( $filtered_image !== $image ) {
+			return $filtered_image;
+		}
 
 		// This is the same as the file we want to replace nothing else to do here.
 		if ( $metadata['sources'][ $target_mime ]['file'] === $src_filename ) {
