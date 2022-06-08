@@ -90,7 +90,7 @@ function wp_get_missing_image_subsizes( $attachment_id, $mime_type = '' ) {
 	}
 
 	if ( ! $mime_type ) {
-		$mime_type  = get_post_mime_type( get_post( $attachment_id ) );
+		$mime_type = get_post_mime_type( get_post( $attachment_id ) );
 	}
 
 	$registered_sizes = wp_get_registered_image_subsizes();
@@ -212,8 +212,26 @@ function wp_update_image_subsizes( $attachment_id ) {
 				continue;
 			}
 
+			// Filter hook to short-circuit image generation.
+			foreach ( $missing_sizes as $size_name => $size_data ) {
+				$size_meta = apply_filters( 'wp_content_pre_generate_additional_image_source', $image_file, $attachment_id, $size_name, $size_data, $mime_type );
+
+				if ( is_wp_error( $size_meta ) ) {
+					continue;
+				}
+
+				/**
+				 * @todo Add a check for expected return values and the returned value
+				 * to image meta.
+				 */
+
+				unset( $missing_sizes[ $size_name ] );
+			}
+
 			// This also updates the image meta.
-			$image_meta = _wp_make_subsizes( $missing_sizes, $image_file, $image_meta, $attachment_id, $mime_type );
+			if ( ! empty( $missing_sizes ) ) {
+				$image_meta = _wp_make_subsizes( $missing_sizes, $image_file, $image_meta, $attachment_id, $mime_type );
+			}
 		}
 	}
 
@@ -506,7 +524,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 	}
 
 	if ( ! $mime_type ) {
-		$mime_type  = wp_get_image_mime( $file );
+		$mime_type = wp_get_image_mime( $file );
 	}
 
 	// Check if any of the new sizes already exist.
