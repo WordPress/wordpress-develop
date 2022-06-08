@@ -2501,7 +2501,7 @@ class wpdb {
 	 *                                   A format is one of '%d', '%f', '%s' (integer, float, string).
 	 *                                   If omitted, all values in $data will be treated as strings unless otherwise
 	 *                                   specified in wpdb::$field_types.
-	 * @return int|false The number of rows updated, or false on error.
+	 * @return int|false The number of rows deleted, or false on error.
 	 */
 	public function delete( $table, $where, $where_format = null ) {
 		if ( ! is_array( $where ) ) {
@@ -3697,7 +3697,7 @@ class wpdb {
 		// Make sure the server has the required MySQL version.
 		if ( version_compare( $this->db_version(), $required_mysql_version, '<' ) ) {
 			/* translators: 1: WordPress version number, 2: Minimum required MySQL version number. */
-			return new WP_Error( 'database_version', sprintf( __( '<strong>Error</strong>: WordPress %1$s requires MySQL %2$s or higher' ), $wp_version, $required_mysql_version ) );
+			return new WP_Error( 'database_version', sprintf( __( '<strong>Error:</strong> WordPress %1$s requires MySQL %2$s or higher' ), $wp_version, $required_mysql_version ) );
 		}
 	}
 
