@@ -2494,6 +2494,21 @@ function maybe_create_table( $table_name, $create_ddl ) {
 }
 
 /**
+ * Maybe Rename table.
+ * @param  string $old_table_name Old Table Name.
+ * @param  string $new_table_name New Table Name.
+ * @return true True, when done with execution.
+ */
+function maybe_rename_table( $old_table_name, $new_table_name ) {
+
+	global $wpdb;
+
+	return $wpdb->query( "RENAME TABLE $old_table_name TO $new_table_name" );
+
+}
+
+
+/**
  * Drops a specified index from a table.
  *
  * @since 1.0.1
