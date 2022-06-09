@@ -1953,7 +1953,7 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
  * can use the {@see 'wp_img_tag_add_decoding_attr'} filter to modify this
  * to remove the attribute or set it to another accepted value.
  *
- * @since 6.0.0
+ * @since 6.1.0
  *
  * @param string $image   The HTML `img` tag where the attribute should be added.
  * @param string $context Additional context to pass to the filters.
@@ -1966,7 +1966,7 @@ function wp_img_tag_add_decoding_attr( $image, $context ) {
 	 *
 	 * Returning a falsey value will omit the attribute.
 	 *
-	 * @since 6.0.0
+	 * @since 6.1.0
 	 *
 	 * @param string|false|null $value   The `decoding` attribute value. Returning a falsey value will result in
 	 *                                   the attribute being omitted for the image. Otherwise, it may be:
