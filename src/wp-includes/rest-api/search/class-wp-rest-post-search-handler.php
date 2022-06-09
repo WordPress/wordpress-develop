@@ -63,8 +63,8 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 			'paged'                  => (int) $request['page'],
 			'posts_per_page'         => (int) $request['per_page'],
 			'ignore_sticky_posts'    => true,
-			'update_post_term_cache' => false,
-			'update_post_meta_cache' => false,
+			'update_post_term_cache' => true,
+			'update_post_meta_cache' => true,
 		);
 
 		if ( ! empty( $request['search'] ) ) {
