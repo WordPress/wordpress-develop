@@ -883,54 +883,7 @@ class WP_Theme_JSON {
 			if ( null === $metadata['selector'] ) {
 				continue;
 			}
-
-			$node         = _wp_array_get( $this->theme_json, $metadata['path'], array() );
-			$selector     = $metadata['selector'];
-			$settings     = _wp_array_get( $this->theme_json, array( 'settings' ) );
-			$declarations = static::compute_style_properties( $node, $settings );
-
-			// 1. Separate the ones who use the general selector
-			// and the ones who use the duotone selector.
-			$declarations_duotone = array();
-			foreach ( $declarations as $index => $declaration ) {
-				if ( 'filter' === $declaration['name'] ) {
-					unset( $declarations[ $index ] );
-					$declarations_duotone[] = $declaration;
-				}
-			}
-
-			/*
-			 * Reset default browser margin on the root body element.
-			 * This is set on the root selector **before** generating the ruleset
-			 * from the `theme.json`. This is to ensure that if the `theme.json` declares
-			 * `margin` in its `spacing` declaration for the `body` element then these
-			 * user-generated values take precedence in the CSS cascade.
-			 * @link https://github.com/WordPress/gutenberg/issues/36147.
-			 */
-			if ( static::ROOT_BLOCK_SELECTOR === $selector ) {
-				$block_rules .= 'body { margin: 0; }';
-			}
-
-			// 2. Generate the rules that use the general selector.
-			$block_rules .= static::to_ruleset( $selector, $declarations );
-
-			// 3. Generate the rules that use the duotone selector.
-			if ( isset( $metadata['duotone'] ) && ! empty( $declarations_duotone ) ) {
-				$selector_duotone = static::scope_selector( $metadata['selector'], $metadata['duotone'] );
-				$block_rules     .= static::to_ruleset( $selector_duotone, $declarations_duotone );
-			}
-
-			if ( static::ROOT_BLOCK_SELECTOR === $selector ) {
-				$block_rules .= '.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }';
-				$block_rules .= '.wp-site-blocks > .alignright { float: right; margin-left: 2em; }';
-				$block_rules .= '.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }';
-
-				$has_block_gap_support = _wp_array_get( $this->theme_json, array( 'settings', 'spacing', 'blockGap' ) ) !== null;
-				if ( $has_block_gap_support ) {
-					$block_rules .= '.wp-site-blocks > * { margin-block-start: 0; margin-block-end: 0; }';
-					$block_rules .= '.wp-site-blocks > * + * { margin-block-start: var( --wp--style--block-gap ); }';
-				}
-			}
+			$block_rules .= static::get_styles_for_block( $metadata );
 		}
 
 		return $block_rules;
@@ -1711,7 +1664,48 @@ class WP_Theme_JSON {
 
 		$block_rules = '';
 
+		// 1. Separate the ones who use the general selector
+		// and the ones who use the duotone selector.
+		$declarations_duotone = array();
+		foreach ( $declarations as $index => $declaration ) {
+			if ( 'filter' === $declaration['name'] ) {
+				unset( $declarations[ $index ] );
+				$declarations_duotone[] = $declaration;
+			}
+		}
+
+		/*
+		 * Reset default browser margin on the root body element.
+		 * This is set on the root selector **before** generating the ruleset
+		 * from the `theme.json`. This is to ensure that if the `theme.json` declares
+		 * `margin` in its `spacing` declaration for the `body` element then these
+		 * user-generated values take precedence in the CSS cascade.
+		 * @link https://github.com/WordPress/gutenberg/issues/36147.
+		 */
+		if ( static::ROOT_BLOCK_SELECTOR === $selector ) {
+			$block_rules .= 'body { margin: 0; }';
+		}
+
+		// 2. Generate and append the rules that use the general selector.
 		$block_rules .= static::to_ruleset( $selector, $declarations );
+
+		// 3. Generate and append the rules that use the duotone selector.
+		if ( isset( $block_metadata['duotone'] ) && ! empty( $declarations_duotone ) ) {
+			$selector_duotone = static::scope_selector( $block_metadata['selector'], $block_metadata['duotone'] );
+			$block_rules     .= static::to_ruleset( $selector_duotone, $declarations_duotone );
+		}
+
+		if ( static::ROOT_BLOCK_SELECTOR === $selector ) {
+			$block_rules .= '.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }';
+			$block_rules .= '.wp-site-blocks > .alignright { float: right; margin-left: 2em; }';
+			$block_rules .= '.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }';
+
+			$has_block_gap_support = _wp_array_get( $this->theme_json, array( 'settings', 'spacing', 'blockGap' ) ) !== null;
+			if ( $has_block_gap_support ) {
+				$block_rules .= '.wp-site-blocks > * { margin-block-start: 0; margin-block-end: 0; }';
+				$block_rules .= '.wp-site-blocks > * + * { margin-block-start: var( --wp--style--block-gap ); }';
+			}
+		}
 
 		return $block_rules;
 	}
