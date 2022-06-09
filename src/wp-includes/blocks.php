@@ -407,7 +407,7 @@ function unregister_block_type( $name ) {
 }
 
 /**
- * Determine whether a post or content string has blocks.
+ * Determines whether a post or content string has blocks.
  *
  * This test optimizes for performance rather than strict accuracy, detecting
  * the pattern of a block but not validating its structure. For strict accuracy,
@@ -433,7 +433,7 @@ function has_blocks( $post = null ) {
 }
 
 /**
- * Determine whether a $post or a string contains a specific block type.
+ * Determines whether a $post or a string contains a specific block type.
  *
  * This test optimizes for performance rather than strict accuracy, detecting
  * whether the block type exists but not validating its structure and not checking
@@ -595,7 +595,7 @@ function get_comment_delimited_block_content( $block_name, $block_attributes, $b
  *
  * @since 5.3.1
  *
- * @param WP_Block_Parser_Block $block A single parsed block object.
+ * @param array $block A representative array of a single parsed block object. See WP_Block_Parser_Block.
  * @return string String of rendered HTML.
  */
 function serialize_block( $block ) {
@@ -623,7 +623,7 @@ function serialize_block( $block ) {
  *
  * @since 5.3.1
  *
- * @param WP_Block_Parser_Block[] $blocks Parsed block objects.
+ * @param array[] $blocks An array of representative arrays of parsed block objects. See serialize_block().
  * @return string String of rendered HTML.
  */
 function serialize_blocks( $blocks ) {
@@ -1193,7 +1193,7 @@ function build_query_vars_from_query_block( $block, $page ) {
 }
 
 /**
- * Helper function that returns the proper pagination arrow html for
+ * Helper function that returns the proper pagination arrow HTML for
  * `QueryPaginationNext` and `QueryPaginationPrevious` blocks based
  * on the provided `paginationArrow` from `QueryPagination` context.
  *
@@ -1204,7 +1204,7 @@ function build_query_vars_from_query_block( $block, $page ) {
  * @param WP_Block $block   Block instance.
  * @param boolean  $is_next Flag for handling `next/previous` blocks.
  *
- * @return string|null Returns the constructed WP_Query arguments.
+ * @return string|null The pagination arrow HTML or null if there is none.
  */
 function get_query_pagination_arrow( $block, $is_next ) {
 	$arrow_map = array(
@@ -1229,113 +1229,7 @@ function get_query_pagination_arrow( $block, $is_next ) {
 }
 
 /**
- * Enqueues a stylesheet for a specific block.
- *
- * If the theme has opted-in to separate-styles loading,
- * then the stylesheet will be enqueued on-render,
- * otherwise when the block inits.
- *
- * @since 5.9.0
- *
- * @param string $block_name The block-name, including namespace.
- * @param array  $args       An array of arguments [handle,src,deps,ver,media].
- * @return void
- */
-function wp_enqueue_block_style( $block_name, $args ) {
-	$args = wp_parse_args(
-		$args,
-		array(
-			'handle' => '',
-			'src'    => '',
-			'deps'   => array(),
-			'ver'    => false,
-			'media'  => 'all',
-		)
-	);
-
-	/**
-	 * Callback function to register and enqueue styles.
-	 *
-	 * @param string $content When the callback is used for the render_block filter,
-	 *                        the content needs to be returned so the function parameter
-	 *                        is to ensure the content exists.
-	 * @return string Block content.
-	 */
-	$callback = static function( $content ) use ( $args ) {
-		// Register the stylesheet.
-		if ( ! empty( $args['src'] ) ) {
-			wp_register_style( $args['handle'], $args['src'], $args['deps'], $args['ver'], $args['media'] );
-		}
-
-		// Add `path` data if provided.
-		if ( isset( $args['path'] ) ) {
-			wp_style_add_data( $args['handle'], 'path', $args['path'] );
-
-			// Get the RTL file path.
-			$rtl_file_path = str_replace( '.css', '-rtl.css', $args['path'] );
-
-			// Add RTL stylesheet.
-			if ( file_exists( $rtl_file_path ) ) {
-				wp_style_add_data( $args['handle'], 'rtl', 'replace' );
-
-				if ( is_rtl() ) {
-					wp_style_add_data( $args['handle'], 'path', $rtl_file_path );
-				}
-			}
-		}
-
-		// Enqueue the stylesheet.
-		wp_enqueue_style( $args['handle'] );
-
-		return $content;
-	};
-
-	$hook = did_action( 'wp_enqueue_scripts' ) ? 'wp_footer' : 'wp_enqueue_scripts';
-	if ( wp_should_load_separate_core_block_assets() ) {
-		/**
-		 * Callback function to register and enqueue styles.
-		 *
-		 * @param string $content The block content.
-		 * @param array  $block   The full block, including name and attributes.
-		 * @return string Block content.
-		 */
-		$callback_separate = static function( $content, $block ) use ( $block_name, $callback ) {
-			if ( ! empty( $block['blockName'] ) && $block_name === $block['blockName'] ) {
-				return $callback( $content );
-			}
-			return $content;
-		};
-
-		/*
-		 * The filter's callback here is an anonymous function because
-		 * using a named function in this case is not possible.
-		 *
-		 * The function cannot be unhooked, however, users are still able
-		 * to dequeue the stylesheets registered/enqueued by the callback
-		 * which is why in this case, using an anonymous function
-		 * was deemed acceptable.
-		 */
-		add_filter( 'render_block', $callback_separate, 10, 2 );
-		return;
-	}
-
-	/*
-	 * The filter's callback here is an anonymous function because
-	 * using a named function in this case is not possible.
-	 *
-	 * The function cannot be unhooked, however, users are still able
-	 * to dequeue the stylesheets registered/enqueued by the callback
-	 * which is why in this case, using an anonymous function
-	 * was deemed acceptable.
-	 */
-	add_filter( $hook, $callback );
-
-	// Enqueue assets in the editor.
-	add_action( 'enqueue_block_assets', $callback );
-}
-
-/**
- * Allow multiple block styles.
+ * Allows multiple block styles.
  *
  * @since 5.9.0
  *
@@ -1388,16 +1282,26 @@ add_filter( 'block_type_metadata', '_wp_multiple_block_styles' );
  * @param WP_Block $block Block instance.
  *
  * @return array Returns the comment query parameters to use with the
- * WP_Comment_Query constructor.
+ *               WP_Comment_Query constructor.
  */
 function build_comment_query_vars_from_block( $block ) {
 
 	$comment_args = array(
-		'orderby'                   => 'comment_date_gmt',
-		'order'                     => 'ASC',
-		'status'                    => 'approve',
-		'no_found_rows'             => false,
+		'orderby'       => 'comment_date_gmt',
+		'order'         => 'ASC',
+		'status'        => 'approve',
+		'no_found_rows' => false,
 	);
+
+	if ( is_user_logged_in() ) {
+		$comment_args['include_unapproved'] = array( get_current_user_id() );
+	} else {
+		$unapproved_email = wp_get_unapproved_comment_author_email();
+
+		if ( $unapproved_email ) {
+			$comment_args['include_unapproved'] = array( $unapproved_email );
+		}
+	}
 
 	if ( ! empty( $block->context['postId'] ) ) {
 		$comment_args['post_id'] = (int) $block->context['postId'];
@@ -1421,7 +1325,10 @@ function build_comment_query_vars_from_block( $block ) {
 			} elseif ( 'oldest' === $default_page ) {
 				$comment_args['paged'] = 1;
 			} elseif ( 'newest' === $default_page ) {
-				$comment_args['paged'] = (int) ( new WP_Comment_Query( $comment_args ) )->max_num_pages;
+				$max_num_pages = (int) ( new WP_Comment_Query( $comment_args ) )->max_num_pages;
+				if ( 0 !== $max_num_pages ) {
+					$comment_args['paged'] = $max_num_pages;
+				}
 			}
 			// Set the `cpage` query var to ensure the previous and next pagination links are correct
 			// when inheriting the Discussion Settings.
@@ -1435,7 +1342,7 @@ function build_comment_query_vars_from_block( $block ) {
 }
 
 /**
- * Helper function that returns the proper pagination arrow html for
+ * Helper function that returns the proper pagination arrow HTML for
  * `CommentsPaginationNext` and `CommentsPaginationPrevious` blocks based on the
  * provided `paginationArrow` from `CommentsPagination` context.
  *
@@ -1447,7 +1354,7 @@ function build_comment_query_vars_from_block( $block ) {
  * @param string   $pagination_type Type of the arrow we will be rendering.
  *                                  Default 'next'. Accepts 'next' or 'previous'.
  *
- * @return string|null Returns the constructed WP_Query arguments.
+ * @return string|null The pagination arrow HTML or null if there is none.
  */
 function get_comments_pagination_arrow( $block, $pagination_type = 'next' ) {
 	$arrow_map = array(

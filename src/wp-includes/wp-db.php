@@ -1851,9 +1851,16 @@ class wpdb {
 	 * @since 4.9.0
 	 *
 	 * @param string $host The DB_HOST setting to parse.
-	 * @return array|false Array containing the host, the port, the socket and
-	 *                     whether it is an IPv6 address, in that order.
-	 *                     False if $host couldn't be parsed.
+	 * @return array|false {
+	 *     Array containing the host, the port, the socket and
+	 *     whether it is an IPv6 address, in that order.
+	 *     False if the host couldn't be parsed.
+	 *
+	 *     @type string      $0 Host name.
+	 *     @type string|null $1 Port.
+	 *     @type string|null $2 Socket.
+	 *     @type bool        $3 Whether it is an IPv6 address.
+	 * }
 	 */
 	public function parse_db_host( $host ) {
 		$port    = null;
@@ -2494,7 +2501,7 @@ class wpdb {
 	 *                                   A format is one of '%d', '%f', '%s' (integer, float, string).
 	 *                                   If omitted, all values in $data will be treated as strings unless otherwise
 	 *                                   specified in wpdb::$field_types.
-	 * @return int|false The number of rows updated, or false on error.
+	 * @return int|false The number of rows deleted, or false on error.
 	 */
 	public function delete( $table, $where, $where_format = null ) {
 		if ( ! is_array( $where ) ) {
@@ -3043,9 +3050,12 @@ class wpdb {
 	 *
 	 * @param string $table  Table name.
 	 * @param string $column Column name.
-	 * @return array|false|WP_Error array( 'length' => (int), 'type' => 'byte' | 'char' ).
-	 *                              False if the column has no length (for example, numeric column).
-	 *                              WP_Error object if there was an error.
+	 * @return array|false|WP_Error {
+	 *     Array of column length information, false if the column has no length (for
+	 *     example, numeric column), WP_Error object if there was an error.
+	 *
+	 *     @type int    $length The column length.
+	 *     @type string $type   One of 'byte' or 'char'.
 	 */
 	public function get_col_length( $table, $column ) {
 		$tablekey  = strtolower( $table );
@@ -3687,7 +3697,7 @@ class wpdb {
 		// Make sure the server has the required MySQL version.
 		if ( version_compare( $this->db_version(), $required_mysql_version, '<' ) ) {
 			/* translators: 1: WordPress version number, 2: Minimum required MySQL version number. */
-			return new WP_Error( 'database_version', sprintf( __( '<strong>Error</strong>: WordPress %1$s requires MySQL %2$s or higher' ), $wp_version, $required_mysql_version ) );
+			return new WP_Error( 'database_version', sprintf( __( '<strong>Error:</strong> WordPress %1$s requires MySQL %2$s or higher' ), $wp_version, $required_mysql_version ) );
 		}
 	}
 

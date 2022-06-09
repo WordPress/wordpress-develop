@@ -288,6 +288,16 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 					'post_excerpt' => 'Description of page home template.',
 				),
 			),
+			'template: parent theme deprecated path'      => array(
+				'theme_dir' => 'themedir1/block-theme-deprecated-path',
+				'template'  => 'page-home',
+				'args'      => array(
+					'post_name'    => 'page-home',
+					'post_title'   => 'Home Page Template',
+					'post_content' => file_get_contents( $theme_root_dir . 'block-theme-deprecated-path/block-templates/page-home.html' ),
+					'post_excerpt' => 'Description of page home template.',
+				),
+			),
 			'template: child theme'                       => array(
 				'theme_dir' => 'themedir1/block-theme-child',
 				'template'  => 'page-1',

@@ -52,7 +52,7 @@ class Tests_Media extends WP_UnitTestCase {
 	}
 
 	public static function tear_down_after_class() {
-		wp_delete_post( self::$large_id, true );
+		wp_delete_attachment( self::$large_id, true );
 		parent::tear_down_after_class();
 	}
 
@@ -1306,7 +1306,7 @@ VIDEO;
 		$post = get_post( $post_id );
 
 		// Clean up.
-		wp_delete_attachment( $post_id );
+		wp_delete_attachment( $post_id, true );
 
 		$this->assertSame( 'This is a comment. / Это комментарий. / Βλέπετε ένα σχόλιο.', $post->post_excerpt );
 	}
@@ -1345,7 +1345,7 @@ VIDEO;
 		$post = get_post( $post_id );
 
 		// Clean up.
-		wp_delete_attachment( $post_id );
+		wp_delete_attachment( $post_id, true );
 
 		$this->assertSame( 'This is a test', $post->post_title );
 	}
@@ -1724,7 +1724,7 @@ EOF;
 		}
 
 		// Remove the attachment.
-		wp_delete_attachment( $id );
+		wp_delete_attachment( $id, true );
 		remove_filter( 'upload_dir', '_upload_dir_no_subdir' );
 	}
 
@@ -1829,9 +1829,8 @@ EOF;
 	 * @requires function imagejpeg
 	 */
 	public function test_wp_calculate_image_srcset_no_width() {
-		$file       = get_attached_file( self::$large_id );
 		$image_url  = wp_get_attachment_image_url( self::$large_id, 'medium' );
-		$image_meta = wp_generate_attachment_metadata( self::$large_id, $file );
+		$image_meta = wp_get_attachment_metadata( self::$large_id );
 
 		$size_array = array( 0, 0 );
 
@@ -2824,8 +2823,8 @@ EOF;
 		$expected = $uploads_dir['url'] . '/test-image-iptc.jpg';
 
 		// Clean up.
-		wp_delete_attachment( $post_id );
-		wp_delete_post( $parent_id );
+		wp_delete_attachment( $post_id, true );
+		wp_delete_post( $parent_id, true );
 
 		$this->assertSame( $expected, $url );
 	}
@@ -2876,8 +2875,8 @@ EOF;
 		$expected = $uploads_dir['url'] . '/test-image-iptc.jpg';
 
 		// Clean up.
-		wp_delete_attachment( $post_id );
-		wp_delete_post( $parent_id );
+		wp_delete_attachment( $post_id, true );
+		wp_delete_post( $parent_id, true );
 
 		$this->assertSame( $expected, $url );
 	}
