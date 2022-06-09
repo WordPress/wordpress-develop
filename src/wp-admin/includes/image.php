@@ -212,26 +212,8 @@ function wp_update_image_subsizes( $attachment_id ) {
 				continue;
 			}
 
-			// Filter hook to short-circuit image generation.
-			foreach ( $missing_sizes as $size_name => $size_data ) {
-				$size_meta = apply_filters( 'wp_content_pre_generate_additional_image_source', $image_file, $attachment_id, $size_name, $size_data, $mime_type );
-
-				if ( is_wp_error( $size_meta ) ) {
-					continue;
-				}
-
-				/**
-				 * @todo Add a check for expected return values and the returned value
-				 * to image meta.
-				 */
-
-				unset( $missing_sizes[ $size_name ] );
-			}
-
 			// This also updates the image meta.
-			if ( ! empty( $missing_sizes ) ) {
-				$image_meta = _wp_make_subsizes( $missing_sizes, $image_file, $image_meta, $attachment_id, $mime_type );
-			}
+			$image_meta = _wp_make_subsizes( $missing_sizes, $image_file, $image_meta, $attachment_id, $mime_type );
 		}
 	}
 
@@ -540,9 +522,25 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 				// within sources.
 				if ( $size_meta['mime-type'] === $mime_type || isset( $size_meta['sources'][ $mime_type ] ) ) {
 					unset( $new_sizes[ $size_name ] );
+					continue;
 				}
 			}
+
+			// Short-cicuit image generation if file has been generated already.
+			$size_meta = apply_filters( 'wp_content_pre_generate_additional_image_source', $size_meta, $file, $attachment_id, $size_name, $mime_type );
+
+			if ( is_wp_error( $size_meta ) ) {
+				continue;
+			}
+
+			if ( isset( $size_meta['sources'][ $mime_type ] ) ) {
+				$image_meta['sizes'][ $size_name ] = $size_meta;
+
+				// Unset the size since it already exists.
+				unset( $new_sizes[ $size_name ] );
+			}
 		}
+		wp_update_attachment_metadata( $attachment_id, $image_meta );
 	} else {
 		$image_meta['sizes'] = array();
 	}
@@ -645,6 +643,18 @@ function _wp_make_additional_mime_types( $new_mime_types, $file, $image_meta, $a
 	$exif_meta = isset( $image_meta['image_meta'] ) ? $image_meta['image_meta'] : null;
 
 	foreach ( $new_mime_types as $mime_type ) {
+		// Short-cicuit image generation if file has been generated already.
+		$image_meta = apply_filters( 'wp_content_pre_generate_additional_image_source', $image_meta, $file, $attachment_id, 'full', $mime_type );
+
+		if ( is_wp_error( $image_meta ) ) {
+			continue;
+		}
+
+		if ( isset( $image_meta['sources'][ $mime_type ] ) ) {
+			wp_update_attachment_metadata( $attachment_id, $image_meta );
+			continue;
+		}
+
 		list( $editor, $resized, $rotated ) = _wp_maybe_scale_and_rotate_image( $file, $attachment_id, $imagesize, $exif_meta, $mime_type );
 		if ( is_wp_error( $editor ) ) {
 			// The image cannot be edited.
