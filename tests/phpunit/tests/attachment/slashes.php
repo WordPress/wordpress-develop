@@ -4,6 +4,8 @@
  * @group attachment
  * @group slashes
  * @ticket 21767
+ *
+ * @covers ::wp_insert_attachment
  */
 class Tests_Attachment_Slashes extends WP_UnitTestCase {
 	protected static $author_id;
@@ -30,8 +32,6 @@ class Tests_Attachment_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the model function that expects slashed data.
-	 *
-	 * @covers ::wp_insert_attachment
 	 */
 	public function test_wp_insert_attachment() {
 		$post_id = wp_insert_attachment(
