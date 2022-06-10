@@ -1040,8 +1040,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @since 6.1.0
 	 *
 	 * @param WP_Post[] $posts Array of posts
-	 *
-	 * @return WP_Post[]
+	 * @return WP_Post[] Unmodified array of posts.
 	 */
 	public function prime_menu_items_objects( $posts ) {
 		_prime_menu_items_objects( $posts );
