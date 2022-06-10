@@ -1540,23 +1540,16 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		// Attachment creation warms thumbnail ids. Needs clean up for test.
 		wp_cache_delete_multiple( $attachment_ids, 'posts' );
 
-		$action = new MockAction();
-		add_filter( 'query', array( $action, 'filter' ), 10, 2 );
+		$filter = new MockAction();
+		add_filter( 'update_post_metadata_cache', array( $filter, 'filter' ), 10, 2 );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'include', $post_ids );
 		rest_get_server()->dispatch( $request );
 
-		$args               = $action->get_args();
-		$primed_query_found = false;
-		foreach ( $args as $arg ) {
-			var_dump( $arg[0] );  // debug.
-			if ( str_contains( $arg[0], 'WHERE ID IN (' . implode( ',', $attachment_ids ) ) ) {
-				$primed_query_found = true;
-				break;
-			}
-		}
-		$this->assertTrue( $primed_query_found, 'Prime thumbnail id query was not executed.' );
+		$args = $filter->get_args();
+		$last = end( $args );
+		$this->assertEqualSets( $attachment_ids, $last[1] );
 	}
 
 	public function test_get_items_pagination_headers() {
