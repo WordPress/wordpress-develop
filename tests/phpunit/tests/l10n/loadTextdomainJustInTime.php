@@ -253,6 +253,7 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 	 * @ticket 37997
 	 *
 	 * @covers ::__
+	 * @covers ::translate
 	 */
 	public function test_get_locale_is_called_only_once_per_textdomain() {
 		$textdomain = 'foo-bar-baz';

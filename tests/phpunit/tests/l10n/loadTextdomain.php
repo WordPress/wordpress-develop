@@ -145,6 +145,7 @@ class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::load_textdomain
+	 * @covers ::is_textdomain_loaded
 	 */
 	public function test_override_load_textdomain_noop() {
 		add_filter( 'override_load_textdomain', '__return_true' );
@@ -157,6 +158,7 @@ class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::load_textdomain
+	 * @covers ::is_textdomain_loaded
 	 */
 	public function test_override_load_textdomain_non_existent_mofile() {
 		add_filter( 'override_load_textdomain', array( $this, '_override_load_textdomain_filter' ), 10, 3 );
@@ -174,6 +176,7 @@ class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::load_textdomain
+	 * @covers ::is_textdomain_loaded
 	 */
 	public function test_override_load_textdomain_custom_mofile() {
 		add_filter( 'override_load_textdomain', array( $this, '_override_load_textdomain_filter' ), 10, 3 );

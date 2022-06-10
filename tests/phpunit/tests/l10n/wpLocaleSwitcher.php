@@ -79,6 +79,8 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::switch_to_locale
+	 * @covers ::translate
+	 * @covers ::__
 	 */
 	public function test_switch_to_locale_loads_translation() {
 		switch_to_locale( 'es_ES' );
@@ -128,6 +130,9 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 		$this->assertSame( 'en_US', $locale_en_us );
 	}
 
+	/**
+	 * @covers ::switch_to_locale
+	 */
 	public function test_switch_to_locale_multiple_times() {
 		switch_to_locale( 'en_GB' );
 		switch_to_locale( 'es_ES' );
@@ -142,6 +147,8 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::switch_to_locale
+	 * @covers ::__
+	 * @covers ::translate
 	 */
 	public function test_switch_to_locale_multiple_times_loads_translation() {
 		switch_to_locale( 'en_GB' );
@@ -165,6 +172,9 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 		$this->assertFalse( restore_previous_locale() );
 	}
 
+	/**
+	 * @covers ::restore_previous_locale
+	 */
 	public function test_restore_previous_locale_changes_the_locale_back() {
 		switch_to_locale( 'en_GB' );
 
@@ -192,6 +202,8 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::restore_previous_locale
+	 * @covers ::__
+	 * @covers ::translate
 	 */
 	public function test_restore_previous_locale_restores_translation() {
 		switch_to_locale( 'es_ES' );
@@ -245,6 +257,9 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 		$this->assertFalse( restore_current_locale() );
 	}
 
+	/**
+	 * @covers ::restore_previous_locale
+	 */
 	public function test_restore_current_locale_after_switching_multiple_times() {
 		switch_to_locale( 'en_GB' );
 		switch_to_locale( 'nl_NL' );
@@ -299,6 +314,7 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::is_locale_switched
+	 * @covers ::switch_to_locale
 	 */
 	public function test_switch_to_site_locale_if_user_locale_is_set() {
 		global $l10n, $wp_locale_switcher;
