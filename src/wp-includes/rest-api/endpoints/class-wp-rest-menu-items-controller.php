@@ -102,21 +102,6 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Retrieves a collection of menu items.
-	 *
-	 * @since 6.1.0
-	 *
-	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
-	 */
-	public function get_items( $request ) {
-		add_filter( 'posts_results', array( $this, 'prime_menu_items_objects' ) );
-		$response = parent::get_items( $request );
-		remove_filter( 'posts_results', array( $this, 'prime_menu_items_objects' ) );
-		return $response;
-	}
-
-	/**
 	 * Creates a single post.
 	 *
 	 * @since 5.9.0
@@ -1013,6 +998,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			}
 		}
 
+		$query_args['update_menu_item_cache'] = true;
+
 		return $query_args;
 	}
 
@@ -1032,18 +1019,5 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		}
 
 		return $menu_id;
-	}
-
-	/**
-	 * Prime menu item objects.
-	 *
-	 * @since 6.1.0
-	 *
-	 * @param WP_Post[] $posts Array of posts
-	 * @return WP_Post[] Unmodified array of posts.
-	 */
-	public function prime_menu_items_objects( $posts ) {
-		_prime_menu_items_objects( $posts );
-		return $posts;
 	}
 }

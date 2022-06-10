@@ -691,21 +691,20 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 		return false;
 	}
 
-	static $fetched = array();
-
 	if ( ! taxonomy_exists( 'nav_menu' ) ) {
 		return false;
 	}
 
 	$defaults = array(
-		'order'       => 'ASC',
-		'orderby'     => 'menu_order',
-		'post_type'   => 'nav_menu_item',
-		'post_status' => 'publish',
-		'output'      => ARRAY_A,
-		'output_key'  => 'menu_order',
-		'nopaging'    => true,
-		'tax_query'   => array(
+		'order'                  => 'ASC',
+		'orderby'                => 'menu_order',
+		'post_type'              => 'nav_menu_item',
+		'post_status'            => 'publish',
+		'output'                 => ARRAY_A,
+		'output_key'             => 'menu_order',
+		'nopaging'               => true,
+		'update_menu_item_cache' => true,
+		'tax_query'              => array(
 			array(
 				'taxonomy' => 'nav_menu',
 				'field'    => 'term_taxonomy_id',
@@ -718,12 +717,6 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 		$items = get_posts( $args );
 	} else {
 		$items = array();
-	}
-
-	// Prime posts and terms caches.
-	if ( empty( $fetched[ $menu->term_id ] ) ) {
-		$fetched[ $menu->term_id ] = true;
-		_prime_menu_items_objects( $items );
 	}
 
 	$items = array_map( 'wp_setup_nav_menu_item', $items );
@@ -764,7 +757,7 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
  *
  * @param WP_Post[] $menu_items Array post objects of menu items.
  */
-function _prime_menu_items_objects( $menu_items ) {
+function update_menu_item_cache( $menu_items ) {
 	$post_ids = array();
 	$term_ids = array();
 
