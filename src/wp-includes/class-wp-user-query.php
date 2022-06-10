@@ -833,7 +833,6 @@ class WP_User_Query {
 		if ( ! $this->results ) {
 			return;
 		}
-
 		if (
 			is_array( $qv['fields'] ) &&
 			isset( $this->results[0]->ID )
