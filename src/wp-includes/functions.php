@@ -2132,7 +2132,7 @@ function path_join( $base, $path ) {
 		return $path;
 	}
 
-	return rtrim( $base, '/' ) . '/' . ltrim( $path, '/' );
+	return rtrim( $base, '/' ) . '/' . $path;
 }
 
 /**
@@ -8422,7 +8422,7 @@ function is_wp_version_compatible( $required ) {
  * @return bool True if required version is compatible or empty, false if not.
  */
 function is_php_version_compatible( $required ) {
-	return empty( $required ) || version_compare( phpversion(), $required, '>=' );
+	return empty( $required ) || version_compare( PHP_VERSION, $required, '>=' );
 }
 
 /**
