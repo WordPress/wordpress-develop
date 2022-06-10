@@ -786,12 +786,9 @@ function _prime_menu_items_objects( $menu_items ) {
 		_prime_post_caches( $post_ids, false );
 	}
 
-	unset( $post_ids );
-
 	if ( ! empty( $term_ids ) ) {
 		_prime_term_caches( $term_ids );
 	}
-	unset( $term_ids );
 }
 
 /**
