@@ -1783,21 +1783,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		// Attachment creation warms parent ids. Needs clean up for test.
 		wp_cache_delete_multiple( $parent_ids, 'posts' );
 
-		$action = new MockAction();
-		add_filter( 'query', array( $action, 'filter' ), 10, 2 );
+		$filter = new MockAction();
+		add_filter( 'update_post_metadata_cache', array( $filter, 'filter' ), 10, 2 );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		rest_get_server()->dispatch( $request );
 
-		$args               = $action->get_args();
-		$primed_query_found = false;
-		foreach ( $args as $arg ) {
-			if ( str_contains( $arg[0], 'WHERE ID IN (' . implode( ',', $parent_ids ) ) ) {
-				$primed_query_found = true;
-				break;
-			}
-		}
-		$this->assertTrue( $primed_query_found, 'Prime parents id query was not executed.' );
+		$args = $filter->get_args();
+		$last = end( $args );
+		$this->assertEqualSets( $parent_ids, $last[1] );
 	}
 
 	public function test_get_item() {
