@@ -755,6 +755,8 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 /**
  * Prime all linked objects to menu items.
  *
+ * @since 6.1.0
+ *
  * @param WP_Post[] $menu_items Array post objects of menu items.
  */
 function update_menu_item_cache( $menu_items ) {
