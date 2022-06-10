@@ -235,8 +235,8 @@ class WP_User_Query {
 	 *                                                - 'user_status'
 	 *                                                - 'spam' (only available on multisite installs)
 	 *                                                - 'deleted' (only available on multisite installs)
-	 *                                                - 'all' for all fields
-	 *                                                - 'all_with_meta' to include meta fields.
+	 *                                                - 'all' for all fields and loads user meta.
+	 *                                                - 'all_with_meta' Deprecated. Use 'all'.
 	 *                                                Default 'all'.
 	 *     @type string          $who                 Type of users to query. Accepts 'authors'.
 	 *                                                Default empty (all users).
