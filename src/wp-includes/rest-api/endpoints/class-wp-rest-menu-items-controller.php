@@ -107,7 +107,6 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @since 6.x.x
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 *
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
