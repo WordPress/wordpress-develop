@@ -21,6 +21,7 @@ class Tests_Option_Theme_Mods extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::get_theme_mod
+	 * @covers ::set_theme_mod
 	 */
 	public function test_theme_mod_set() {
 		$expected = 'value';
@@ -36,7 +37,7 @@ class Tests_Option_Theme_Mods extends WP_UnitTestCase {
 	public function test_theme_mod_set_with_invalid_theme_mods_option() {
 		$theme_slug = get_option( 'stylesheet' );
 		update_option( 'theme_mods_' . $theme_slug, '' );
-		self::test_theme_mod_set();
+		$this->test_theme_mod_set();
 	}
 
 	/**

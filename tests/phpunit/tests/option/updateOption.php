@@ -192,7 +192,7 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 		$before = $wpdb->num_queries;
 		$value  = get_option( 'foo' );
 
-		// 'foo' should still be autoload=yes, so we should see no additional querios.
+		// 'foo' should still be autoload=yes, so we should see no additional queries.
 		$this->assertSame( $before, $wpdb->num_queries );
 		$this->assertSame( $value, 'bar2' );
 	}

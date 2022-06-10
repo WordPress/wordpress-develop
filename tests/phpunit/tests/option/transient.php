@@ -61,6 +61,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	 * @covers ::get_option
 	 * @covers ::set_transient
 	 * @covers ::update_option
+	 * @covers ::get_transient
 	 */
 	public function test_transient_data_with_timeout() {
 		$key   = rand_str();

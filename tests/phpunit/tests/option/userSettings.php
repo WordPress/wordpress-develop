@@ -40,6 +40,7 @@ class Tests_User_Settings extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::get_user_setting
+	 * @covers ::get_all_user_settings
 	 * @covers ::wp_set_all_user_settings
 	 */
 	public function test_set_user_setting_dashes() {
@@ -54,6 +55,7 @@ class Tests_User_Settings extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::get_user_setting
+	 * @covers ::get_all_user_settings
 	 * @covers ::wp_set_all_user_settings
 	 */
 	public function test_set_user_setting_strip_asterisks() {

@@ -180,7 +180,7 @@ if ( is_multisite() ) :
 		 */
 		public function test_users_can_register_signup_filter() {
 
-			$registration = get_site_option( 'registration' );
+			get_site_option( 'registration' );
 			$this->assertFalse( users_can_register_signup_filter() );
 
 			update_site_option( 'registration', 'all' );
