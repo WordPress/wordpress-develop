@@ -1137,7 +1137,7 @@ class WP_Upgrader {
 				return new WP_Error( 'fs_no_content_dir', $this->strings['fs_no_content_dir'] );
 			}
 
-			return $wp_filesystem->delete(
+			$wp_filesystem->delete(
 				$wp_filesystem->wp_content_dir() . "upgrade/temp-backup/{$args['dir']}/{$args['slug']}",
 				true
 			);
