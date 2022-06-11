@@ -112,14 +112,14 @@ class WP_Upgrader {
 	public $update_current = 0;
 
 	/**
-	 * Store options passed to callback functions.
+	 * Store list of plugins/themes added to temp-backup directory.
 	 *
 	 * Used by rollback functions.
 	 *
 	 * @since 6.1.0
 	 * @var array
 	 */
-	private $options = array();
+	private $temp_backups = array();
 
 	/**
 	 * Construct the upgrader with a skin.
@@ -536,7 +536,8 @@ class WP_Upgrader {
 		}
 
 		if ( ! empty( $args['hook_extra']['temp_backup'] ) ) {
-			$temp_backup = $this->move_to_temp_backup_dir( $args['hook_extra']['temp_backup'] );
+			$this->temp_backups[] = $args['hook_extra']['temp_backup'];
+			$temp_backup          = $this->move_to_temp_backup_dir( $args['hook_extra']['temp_backup'] );
 			if ( is_wp_error( $temp_backup ) ) {
 				return $temp_backup;
 			}
@@ -753,9 +754,6 @@ class WP_Upgrader {
 		 * }
 		 */
 		$options = apply_filters( 'upgrader_package_options', $options );
-
-		// Store options in private variable for use in rollback methods.
-		$this->options = $options;
 
 		if ( ! $options['is_multi'] ) { // Call $this->header separately if running multiple times.
 			$this->skin->header();
@@ -1089,29 +1087,29 @@ class WP_Upgrader {
 	public function restore_temp_backup() {
 		global $wp_filesystem;
 
-		$args = $this->options['hook_extra']['temp_backup'];
-
-		if ( empty( $args['slug'] ) || empty( $args['src'] ) || empty( $args['dir'] ) ) {
-			return false;
-		}
-
-		if ( ! $wp_filesystem->wp_content_dir() ) {
-			return new WP_Error( 'fs_no_content_dir', $this->strings['fs_no_content_dir'] );
-		}
-
-		$src      = $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/' . $args['dir'] . '/' . $args['slug'];
-		$dest_dir = $wp_filesystem->find_folder( $args['src'] );
-		$dest     = trailingslashit( $dest_dir ) . $args['slug'];
-
-		if ( $wp_filesystem->is_dir( $src ) ) {
-			// Cleanup.
-			if ( $wp_filesystem->is_dir( $dest ) && ! $wp_filesystem->delete( $dest, true ) ) {
-				return new WP_Error( 'fs_temp_backup_delete', $this->strings['temp_backup_restore_failed'] );
+		foreach ( $this->temp_backups as $args ) {
+			if ( empty( $args['slug'] ) || empty( $args['src'] ) || empty( $args['dir'] ) ) {
+				return false;
 			}
 
-			// Move it.
-			if ( ! move_dir( $src, $dest ) ) {
-				return new WP_Error( 'fs_temp_backup_delete', $this->strings['temp_backup_restore_failed'] );
+			if ( ! $wp_filesystem->wp_content_dir() ) {
+				return new WP_Error( 'fs_no_content_dir', $this->strings['fs_no_content_dir'] );
+			}
+
+			$src      = $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/' . $args['dir'] . '/' . $args['slug'];
+			$dest_dir = $wp_filesystem->find_folder( $args['src'] );
+			$dest     = trailingslashit( $dest_dir ) . $args['slug'];
+
+			if ( $wp_filesystem->is_dir( $src ) ) {
+				// Cleanup.
+				if ( $wp_filesystem->is_dir( $dest ) && ! $wp_filesystem->delete( $dest, true ) ) {
+					return new WP_Error( 'fs_temp_backup_delete', $this->strings['temp_backup_restore_failed'] );
+				}
+
+				// Move it.
+				if ( ! move_dir( $src, $dest ) ) {
+					return new WP_Error( 'fs_temp_backup_delete', $this->strings['temp_backup_restore_failed'] );
+				}
 			}
 		}
 
@@ -1130,20 +1128,20 @@ class WP_Upgrader {
 	public function delete_temp_backup() {
 		global $wp_filesystem;
 
-		$args = $this->options['hook_extra']['temp_backup'];
+		foreach ( $this->temp_backups as $args ) {
+			if ( empty( $args['slug'] ) || empty( $args['dir'] ) ) {
+				return false;
+			}
 
-		if ( empty( $args['slug'] ) || empty( $args['dir'] ) ) {
-			return false;
+			if ( ! $wp_filesystem->wp_content_dir() ) {
+				return new WP_Error( 'fs_no_content_dir', $this->strings['fs_no_content_dir'] );
+			}
+
+			return $wp_filesystem->delete(
+				$wp_filesystem->wp_content_dir() . "upgrade/temp-backup/{$args['dir']}/{$args['slug']}",
+				true
+			);
 		}
-
-		if ( ! $wp_filesystem->wp_content_dir() ) {
-			return new WP_Error( 'fs_no_content_dir', $this->strings['fs_no_content_dir'] );
-		}
-
-		return $wp_filesystem->delete(
-			$wp_filesystem->wp_content_dir() . "upgrade/temp-backup/{$args['dir']}/{$args['slug']}",
-			true
-		);
 	}
 }
 
