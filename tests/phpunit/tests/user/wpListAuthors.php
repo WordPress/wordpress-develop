@@ -27,6 +27,8 @@ class Tests_User_wpListAuthors extends WP_UnitTestCase {
 	 * 'html'          => true,
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		global $wp_rewrite;
+
 		self::$user_ids[] = $factory->user->create(
 			array(
 				'user_login'   => 'zack',
@@ -60,6 +62,12 @@ class Tests_User_wpListAuthors extends WP_UnitTestCase {
 				'role'       => 'author',
 			)
 		);
+
+		/*
+		 * Re-initialize WP_Rewrite, so that get_author_posts_url() uses
+		 * the default permalink structure, not affected by other tests.
+		 */
+		$wp_rewrite->init();
 
 		$count = 0;
 		foreach ( self::$user_ids as $userid ) {
