@@ -2,27 +2,30 @@
 /**
  * @group author
  * @group user
+ * @covers ::wp_list_authors
  */
-class Tests_User_ListAuthors extends WP_UnitTestCase {
+class Tests_User_wpListAuthors extends WP_UnitTestCase {
 	public static $user_ids = array();
 	public static $fred_id;
 	public static $posts     = array();
 	public static $user_urls = array();
-		/* Defaults
-		'orderby'       => 'name',
-		'order'         => 'ASC',
-		'number'        => null,
-		'optioncount'   => false,
-		'exclude_admin' => true,
-		'show_fullname' => false,
-		'hide_empty'    => true,
-		'echo'          => true,
-		'feed'          => [empty string],
-		'feed_image'    => [empty string],
-		'feed_type'     => [empty string],
-		'style'         => 'list',
-		'html'          => true );
-		*/
+
+	/*
+	 * Defaults:
+	 * 'orderby'       => 'name',
+	 * 'order'         => 'ASC',
+	 * 'number'        => null,
+	 * 'optioncount'   => false,
+	 * 'exclude_admin' => true,
+	 * 'show_fullname' => false,
+	 * 'hide_empty'    => true,
+	 * 'echo'          => true,
+	 * 'feed'          => [empty string],
+	 * 'feed_image'    => [empty string],
+	 * 'feed_type'     => [empty string],
+	 * 'style'         => 'list',
+	 * 'html'          => true,
+	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_ids[] = $factory->user->create(
 			array(
