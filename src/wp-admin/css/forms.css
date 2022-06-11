@@ -1089,6 +1089,10 @@ table.form-table td .updated p {
 	flex-direction: column;
 }
 
+.form-table.permalink-structure .structure-selection .row label {
+	font-weight: 600;
+}
+
 .form-table.permalink-structure .structure-selection .row p {
 	margin-top: 0;
 }
@@ -1605,10 +1609,6 @@ table.form-table td .updated p {
 	.form-table.permalink-structure .structure-selection .row > div {
 		max-width: calc(100% - 36px);
 		width: 100%;
-	}
-
-	.form-table.permalink-structure .structure-selection .row label {
-		font-weight: 700;
 	}
 
 	.form-table.permalink-structure td input[type="text"] {
