@@ -166,17 +166,22 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
  *                                    as a query string for cache busting purposes. If version is set to false, a version
  *                                    number is automatically added equal to current installed WordPress version.
  *                                    If set to null, no version is added.
- * @param bool             $in_footer Optional. Whether to enqueue the script before `</body>` instead of in the `<head>`.
- *                                    Default 'false'.
+ * @param bool|array       $attr      Optional. When a boolean is passed, determines whether to enqueue the script before
+ *                                    `</body>` instead of in the `<head>`. Default 'false'. When passing an array, accepts
+ *                                    key value pairs. Supports a `strategy` key - passing a value of `defer` will enqueue the
+ *                                    script with a defer attribute, passing a value of `blocking` will enqueue the script
+ *                                    in the header.
+ * @since 6.1.0 Added the `$attr` parameter, replacing the boolean `in_footer` parameter.
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
-function wp_register_script( $handle, $src, $deps = array(), $ver = false, $in_footer = false ) {
+function wp_register_script( $handle, $src, $deps = array(), $ver = false, $attr = false ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
 	$wp_scripts = wp_scripts();
 
 	$registered = $wp_scripts->add( $handle, $src, $deps, $ver );
-	if ( $in_footer ) {
+
+	if ( true === $attr ) {
 		$wp_scripts->add_data( $handle, 'group', 1 );
 	}
 
@@ -340,23 +345,33 @@ function wp_deregister_script( $handle ) {
  *                                    as a query string for cache busting purposes. If version is set to false, a version
  *                                    number is automatically added equal to current installed WordPress version.
  *                                    If set to null, no version is added.
- * @param bool             $in_footer Optional. Whether to enqueue the script before `</body>` instead of in the `<head>`.
- *                                    Default 'false'.
+ * @param bool|array       $attr      Optional. When a boolean is passed, determines whether to enqueue the script before
+ *                                    `</body>` instead of in the `<head>`. Default 'false'. When passing an array, accepts
+ *                                    key value pairs. Supports a `strategy` key - passing a value of `defer` will enqueue the
+ *                                    script with a defer attribute, passing a value of `blocking` will enqueue the script
+ *                                    in the header.
+ * @since 6.1.0 Added the `$attr` parameter, replacing the boolean `in_footer` parameter.
  */
-function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $in_footer = false ) {
+function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $attr = false ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
 	$wp_scripts = wp_scripts();
 
-	if ( $src || $in_footer ) {
+	if ( $src || $attr ) {
 		$_handle = explode( '?', $handle );
 
 		if ( $src ) {
 			$wp_scripts->add( $_handle[0], $src, $deps, $ver );
 		}
 
-		if ( $in_footer ) {
+		if ( true === $attr ) {
 			$wp_scripts->add_data( $_handle[0], 'group', 1 );
+		}
+
+		if ( is_array( $attr ) ) {
+			if ( isset( $attr['strategy'] ) ) {
+				$wp_scripts->add_data( $_handle[0], 'strategy', $attr['strategy'] );
+			}
 		}
 	}
 

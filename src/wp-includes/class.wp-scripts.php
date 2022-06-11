@@ -289,6 +289,11 @@ class WP_Scripts extends WP_Dependencies {
 		$cond_after  = '';
 		$conditional = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
 
+		$extra_attributes = '';
+		if ( $this->is_deferred( $handle ) && $this->_all_dependencies_are_deferred( $obj ) ) {
+			$extra_attributes .= ' defer';
+		}
+
 		if ( $conditional ) {
 			$cond_before = "<!--[if {$conditional}]>\n";
 			$cond_after  = "<![endif]-->\n";
@@ -391,7 +396,7 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		$tag  = $translations . $cond_before . $before_handle;
-		$tag .= sprintf( "<script%s src='%s' id='%s-js'></script>\n", $this->type_attr, $src, esc_attr( $handle ) );
+		$tag .= sprintf( "<script%s src='%s' id='%s-js'%s></script>\n", $this->type_attr, $src, esc_attr( $handle ), $extra_attributes );
 		$tag .= $after_handle . $cond_after;
 
 		/**
@@ -412,6 +417,28 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Check if all of a script's dependencies are deferred.
+	 */
+	private function _all_dependencies_are_deferred( $args ) {
+		$deps = isset( $args->deps ) ? $args->deps : array();
+		foreach( $deps as $dependency ) {
+			if ( ! $this->is_deferred( $dependency ) ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Check if a script has a strategy of 'defer'.
+	 */
+	public function is_deferred( $handle ) {
+		$obj      = $this->registered[ $handle ];
+		$strategy = isset ( $obj->args['strategy'] ) ? $obj->args['strategy'] : '';
+		return 'defer' === $strategy;
 	}
 
 	/**
