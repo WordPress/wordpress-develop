@@ -1133,7 +1133,6 @@ class WP_Upgrader {
 
 			return $errors->has_errors() ? $errors : true;
 	}
-}
 
 	/**
 	 * Deletes a temp-backup.
@@ -1144,35 +1143,35 @@ class WP_Upgrader {
 	 *
 	 * @return bool|WP_Error
 	 */
-public function delete_temp_backup() {
-	global $wp_filesystem;
+	public function delete_temp_backup() {
+		global $wp_filesystem;
 
-	$errors = new WP_Error();
+		$errors = new WP_Error();
 
-	foreach ( $this->temp_backups as $args ) {
-		if ( empty( $args['slug'] ) || empty( $args['dir'] ) ) {
-			return false;
+		foreach ( $this->temp_backups as $args ) {
+			if ( empty( $args['slug'] ) || empty( $args['dir'] ) ) {
+				return false;
+			}
+
+			if ( ! $wp_filesystem->wp_content_dir() ) {
+				$errors->add( 'fs_no_content_dir', $this->strings['fs_no_content_dir'] );
+				return $errors;
+			}
+
+			$temp_backup_dir = $wp_filesystem->wp_content_dir() . "upgrade/temp-backup/{$args['dir']}/{$args['slug']}";
+
+			if ( ! $wp_filesystem->delete( $temp_backup_dir, true ) ) {
+				$errors->add(
+					'temp_backup_delete_failed',
+					sprintf( $this->strings['temp_backup_delete_failed'] ),
+					$args['slug']
+				);
+				continue;
+			}
 		}
 
-		if ( ! $wp_filesystem->wp_content_dir() ) {
-			$errors->add( 'fs_no_content_dir', $this->strings['fs_no_content_dir'] );
-			return $errors;
-		}
-
-		$temp_backup_dir = $wp_filesystem->wp_content_dir() . "upgrade/temp-backup/{$args['dir']}/{$args['slug']}";
-
-		if ( ! $wp_filesystem->delete( $temp_backup_dir, true ) ) {
-			$errors->add(
-				'temp_backup_delete_failed',
-				sprintf( $this->strings['temp_backup_delete_failed'] ),
-				$args['slug']
-			);
-			continue;
-		}
+		return $errors->has_errors() ? $errors : true;
 	}
-
-	return $errors->has_errors() ? $errors : true;
-}
 }
 
 /** Plugin_Upgrader class */
