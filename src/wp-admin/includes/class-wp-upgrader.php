@@ -536,11 +536,11 @@ class WP_Upgrader {
 		}
 
 		if ( ! empty( $args['hook_extra']['temp_backup'] ) ) {
-			$this->temp_backups[] = $args['hook_extra']['temp_backup'];
-			$temp_backup          = $this->move_to_temp_backup_dir( $args['hook_extra']['temp_backup'] );
+			$temp_backup = $this->move_to_temp_backup_dir( $args['hook_extra']['temp_backup'] );
 			if ( is_wp_error( $temp_backup ) ) {
 				return $temp_backup;
 			}
+			$this->temp_backups[] = $args['hook_extra']['temp_backup'];
 		}
 
 		// Retain the original source and destinations.
