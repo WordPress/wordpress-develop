@@ -1144,7 +1144,7 @@ class WP_Upgrader {
 
 			if ( ! $wp_filesystem->wp_content_dir() ) {
 				$errors->add( 'fs_no_content_dir', $this->strings['fs_no_content_dir'] );
-				continue;
+				return $errors;
 			}
 
 			$temp_backup_dir = $wp_filesystem->wp_content_dir() . "upgrade/temp-backup/{$args['dir']}/{$args['slug']}";
