@@ -473,7 +473,6 @@ class WP_REST_Server {
 			}
 
 			// Embed links inside the request.
-			$embed  = isset( $_GET['_embed'] ) ? rest_parse_embed_param( $_GET['_embed'] ) : false;
 			$result = $this->response_to_data( $result, $embed );
 
 			/**
@@ -1558,6 +1557,8 @@ class WP_REST_Server {
 				$query_args = null; // Satisfy linter.
 				wp_parse_str( $parsed_url['query'], $query_args );
 				$single_request->set_query_params( $query_args );
+				$embed = isset( $query_params['_embed'] ) ? rest_parse_embed_param( $query_params['_embed'] ) : false;
+				$single_request->set_embed( $embed );
 			}
 
 			if ( ! empty( $args['body'] ) ) {

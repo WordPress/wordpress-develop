@@ -2863,6 +2863,8 @@ function rest_preload_api_request( $memo, $path ) {
 	if ( ! empty( $path_parts['query'] ) ) {
 		parse_str( $path_parts['query'], $query_params );
 		$request->set_query_params( $query_params );
+		$embed = isset( $query_params['_embed'] ) ? rest_parse_embed_param( $query_params['_embed'] ) : false;
+		$request->set_embed( $embed );
 	}
 
 	$response = rest_do_request( $request );

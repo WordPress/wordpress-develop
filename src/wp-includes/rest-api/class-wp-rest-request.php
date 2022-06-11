@@ -1070,6 +1070,8 @@ class WP_REST_Request implements ArrayAccess {
 		if ( ! empty( $route ) ) {
 			$request = new WP_REST_Request( 'GET', $route );
 			$request->set_query_params( $query_params );
+			$embed = isset( $query_params['_embed'] ) ? rest_parse_embed_param( $query_params['_embed'] ) : false;
+			$request->set_embed( $embed );
 		}
 
 		/**
