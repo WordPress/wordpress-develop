@@ -1155,7 +1155,7 @@ class WP_Upgrader {
 					sprintf( $this->strings['temp_backup_delete_failed'] ),
 					$args['slug']
 				);
-				continue; // This isn't necessary at this time, but would be needed if future updates added something below this conditional.
+				continue;
 			}
 		}
 
