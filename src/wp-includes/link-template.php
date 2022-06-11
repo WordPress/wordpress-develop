@@ -904,10 +904,10 @@ function get_author_feed_link( $author_id, $feed = '' ) {
  *
  * @since 2.5.0
  *
- * @param int|WP_Term|object $cat  The ID or term object whose feed link will be retrieved.
+ * @param int|WP_Term|object $cat  The ID or category object whose feed link will be retrieved.
  * @param string             $feed Optional. Feed type. Possible values include 'rss2', 'atom'.
  *                                 Default is the value of get_default_feed().
- * @return string Link to the feed for the category specified by $cat_id.
+ * @return string Link to the feed for the category specified by `$cat`.
  */
 function get_category_feed_link( $cat, $feed = '' ) {
 	return get_term_feed_link( $cat, 'category', $feed );
@@ -925,7 +925,7 @@ function get_category_feed_link( $cat, $feed = '' ) {
  * @param string             $taxonomy Optional. Taxonomy of `$term_id`.
  * @param string             $feed     Optional. Feed type. Possible values include 'rss2', 'atom'.
  *                                     Default is the value of get_default_feed().
- * @return string|false Link to the feed for the term specified by $term_id and $taxonomy.
+ * @return string|false Link to the feed for the term specified by `$term` and `$taxonomy`.
  */
 function get_term_feed_link( $term, $taxonomy = '', $feed = '' ) {
 	if ( ! is_object( $term ) ) {
@@ -2343,7 +2343,7 @@ function adjacent_post_link( $format, $link, $in_same_term = false, $excluded_te
  *
  * @param int  $pagenum Optional. Page number. Default 1.
  * @param bool $escape  Optional. Whether to escape the URL for display, with esc_url(). Defaults to true.
- *                      Otherwise, prepares the URL with esc_url_raw().
+ *                      Otherwise, prepares the URL with sanitize_url().
  * @return string The link URL for the given page number.
  */
 function get_pagenum_link( $pagenum = 1, $escape = true ) {
@@ -2410,7 +2410,7 @@ function get_pagenum_link( $pagenum = 1, $escape = true ) {
 	if ( $escape ) {
 		return esc_url( $result );
 	} else {
-		return esc_url_raw( $result );
+		return sanitize_url( $result );
 	}
 }
 

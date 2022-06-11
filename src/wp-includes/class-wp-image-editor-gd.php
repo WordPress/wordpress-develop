@@ -89,7 +89,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		}
 
 		if ( ! is_file( $this->file ) && ! preg_match( '|^https?://|', $this->file ) ) {
-			return new WP_Error( 'error_loading_image', __( 'File doesn&#8217;t exist?' ), $this->file );
+			return new WP_Error( 'error_loading_image', __( 'File does not exist?' ), $this->file );
 		}
 
 		// Set artificially high because GD uses uncompressed images in memory.
@@ -98,7 +98,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		$file_contents = @file_get_contents( $this->file );
 
 		if ( ! $file_contents ) {
-			return new WP_Error( 'error_loading_image', __( 'File doesn&#8217;t exist?' ), $this->file );
+			return new WP_Error( 'error_loading_image', __( 'File does not exist?' ), $this->file );
 		}
 
 		// WebP may not work with imagecreatefromstring().
@@ -233,7 +233,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *     If one of the two is set to null, the resize will
 	 *     maintain aspect ratio according to the source image.
 	 *
-	 *     @type array $size {
+	 *     @type array ...$0 {
 	 *         Array of height, width values, and whether to crop.
 	 *
 	 *         @type int  $width  Image width. Optional if `$height` is specified.
@@ -497,6 +497,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			'width'     => $this->size['width'],
 			'height'    => $this->size['height'],
 			'mime-type' => $mime_type,
+			'filesize'  => wp_filesize( $filename ),
 		);
 	}
 
@@ -536,15 +537,15 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @since 3.5.0
 	 *
 	 * @param string   $filename
-	 * @param callable $function
+	 * @param callable $callback
 	 * @param array    $arguments
 	 * @return bool
 	 */
-	protected function make_image( $filename, $function, $arguments ) {
+	protected function make_image( $filename, $callback, $arguments ) {
 		if ( wp_is_stream( $filename ) ) {
 			$arguments[1] = null;
 		}
 
-		return parent::make_image( $filename, $function, $arguments );
+		return parent::make_image( $filename, $callback, $arguments );
 	}
 }

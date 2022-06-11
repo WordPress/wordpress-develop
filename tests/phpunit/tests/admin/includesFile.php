@@ -115,6 +115,35 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 55109
+	 * @dataProvider data_save_to_temp_directory_when_getting_filename_from_content_disposition_header
+	 *
+	 * @covers ::download_url
+	 *
+	 * @param $filter A callback containing a fake Content-Disposition header.
+	 */
+	public function test_save_to_temp_directory_when_getting_filename_from_content_disposition_header( $filter ) {
+		add_filter( 'pre_http_request', array( $this, $filter ), 10, 3 );
+
+		$filename = download_url( 'url_with_content_disposition_header' );
+		$this->assertStringContainsString( get_temp_dir(), $filename );
+		$this->unlink( $filename );
+
+		remove_filter( 'pre_http_request', array( $this, $filter ) );
+	}
+
+	/**
+	 * Data provider for test_save_to_temp_directory_when_getting_filename_from_content_disposition_header.
+	 *
+	 * @return array
+	 */
+	public function data_save_to_temp_directory_when_getting_filename_from_content_disposition_header() {
+		return array(
+			'valid parameters' => array( 'filter_content_disposition_header_with_filename' ),
+		);
+	}
+
+	/**
 	 * Filter callback for data_download_url_should_respect_filename_from_content_disposition_header.
 	 *
 	 * @since 5.9.0
