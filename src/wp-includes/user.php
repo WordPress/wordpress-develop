@@ -45,6 +45,14 @@ function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 		}
 	}
 
+	if ( empty( $credentials['user_login'] ) ) {
+		$credentials['user_login'] = '';
+	}
+
+	if ( empty( $credentials['user_password'] ) ) {
+		$credentials['user_password'] = '';
+	}
+
 	if ( ! empty( $credentials['remember'] ) ) {
 		$credentials['remember'] = true;
 	} else {
