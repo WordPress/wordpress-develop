@@ -209,7 +209,7 @@ switch ( $action ) {
 					<p><strong><?php _e( 'User updated.' ); ?></strong></p>
 				<?php endif; ?>
 				<?php if ( $wp_http_referer && false === strpos( $wp_http_referer, 'user-new.php' ) && ! IS_PROFILE_PAGE ) : ?>
-					<p><a href="<?php echo esc_url( wp_validate_redirect( esc_url_raw( $wp_http_referer ), self_admin_url( 'users.php' ) ) ); ?>"><?php _e( '&larr; Go to Users' ); ?></a></p>
+					<p><a href="<?php echo esc_url( wp_validate_redirect( sanitize_url( $wp_http_referer ), self_admin_url( 'users.php' ) ) ); ?>"><?php _e( '&larr; Go to Users' ); ?></a></p>
 				<?php endif; ?>
 			</div>
 		<?php endif; ?>
@@ -514,7 +514,7 @@ switch ( $action ) {
 							<input type="email" name="email" id="email" aria-describedby="email-description" value="<?php echo esc_attr( $profile_user->user_email ); ?>" class="regular-text ltr" />
 							<?php if ( $profile_user->ID === $current_user->ID ) : ?>
 								<p class="description" id="email-description">
-									<?php _e( 'If you change this, we will send you an email at your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?>
+									<?php _e( 'If you change this, an email will be sent at your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?>
 								</p>
 							<?php endif; ?>
 

@@ -973,7 +973,7 @@ endif;
 		$file     = $file['file'];
 		$filename = wp_basename( $file );
 
-		// Construct the array with attachment object data.
+		// Construct the attachment array.
 		$attachment = array(
 			'post_title'     => $filename,
 			'post_content'   => $url,
@@ -1159,7 +1159,7 @@ endif;
 				return;
 			}
 
-			$choice['url'] = esc_url_raw( $choice['url'] );
+			$choice['url'] = sanitize_url( $choice['url'] );
 
 			$header_image_data = (object) array(
 				'attachment_id' => $choice['attachment_id'],
@@ -1197,7 +1197,7 @@ endif;
 			}
 		}
 
-		set_theme_mod( 'header_image', esc_url_raw( $header_image_data['url'] ) );
+		set_theme_mod( 'header_image', sanitize_url( $header_image_data['url'] ) );
 		set_theme_mod( 'header_image_data', $header_image_data );
 	}
 

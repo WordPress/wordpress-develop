@@ -130,6 +130,68 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests path_join().
+	 *
+	 * @ticket 55897
+	 * @dataProvider path_join_data_provider
+	 */
+	public function test_path_join( $base, $path, $expected ) {
+		$this->assertSame( $expected, path_join( $base, $path ) );
+	}
+
+	/**
+	 * Data provider for test_path_join().
+	 *
+	 * @return string[][]
+	 */
+	public function path_join_data_provider() {
+		return array(
+			// Absolute paths.
+			'absolute path should return path' => array(
+				'base'     => 'base',
+				'path'     => '/path',
+				'expected' => '/path',
+			),
+			'windows path with slashes'        => array(
+				'base'     => 'base',
+				'path'     => '//path',
+				'expected' => '//path',
+			),
+			'windows path with backslashes'    => array(
+				'base'     => 'base',
+				'path'     => '\\\\path',
+				'expected' => '\\\\path',
+			),
+			// Non-absolute paths.
+			'join base and path'               => array(
+				'base'     => 'base',
+				'path'     => 'path',
+				'expected' => 'base/path',
+			),
+			'strip trailing slashes in base'   => array(
+				'base'     => 'base///',
+				'path'     => 'path',
+				'expected' => 'base/path',
+			),
+			'empty path'                       => array(
+				'base'     => 'base',
+				'path'     => '',
+				'expected' => 'base/',
+			),
+			'empty base'                       => array(
+				'base'     => '',
+				'path'     => 'path',
+				'expected' => '/path',
+			),
+			'empty path and base'              => array(
+				'base'     => '',
+				'path'     => '',
+				'expected' => '/',
+			),
+		);
+	}
+
+	/**
 	 * @ticket 33265
 	 * @ticket 35996
 	 *
@@ -2173,4 +2235,91 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		$this->assertEquals( 111, wp_filesize( $file ) );
 	}
+
+	/**
+	 * @ticket 55505
+	 * @covers ::wp_recursive_ksort
+	 */
+	function test_wp_recursive_ksort() {
+		// Create an array to test.
+		$theme_json = array(
+			'version'  => 1,
+			'settings' => array(
+				'typography' => array(
+					'fontFamilies' => array(
+						'fontFamily' => 'DM Sans, sans-serif',
+						'slug'       => 'dm-sans',
+						'name'       => 'DM Sans',
+					),
+				),
+				'color'      => array(
+					'palette' => array(
+						array(
+							'slug'  => 'foreground',
+							'color' => '#242321',
+							'name'  => 'Foreground',
+						),
+						array(
+							'slug'  => 'background',
+							'color' => '#FCFBF8',
+							'name'  => 'Background',
+						),
+						array(
+							'slug'  => 'primary',
+							'color' => '#71706E',
+							'name'  => 'Primary',
+						),
+						array(
+							'slug'  => 'tertiary',
+							'color' => '#CFCFCF',
+							'name'  => 'Tertiary',
+						),
+					),
+				),
+			),
+		);
+
+		// Sort the array.
+		wp_recursive_ksort( $theme_json );
+
+		// Expected result.
+		$expected_theme_json = array(
+			'settings' => array(
+				'color'      => array(
+					'palette' => array(
+						array(
+							'color' => '#242321',
+							'name'  => 'Foreground',
+							'slug'  => 'foreground',
+						),
+						array(
+							'color' => '#FCFBF8',
+							'name'  => 'Background',
+							'slug'  => 'background',
+						),
+						array(
+							'color' => '#71706E',
+							'name'  => 'Primary',
+							'slug'  => 'primary',
+						),
+						array(
+							'color' => '#CFCFCF',
+							'name'  => 'Tertiary',
+							'slug'  => 'tertiary',
+						),
+					),
+				),
+				'typography' => array(
+					'fontFamilies' => array(
+						'fontFamily' => 'DM Sans, sans-serif',
+						'name'       => 'DM Sans',
+						'slug'       => 'dm-sans',
+					),
+				),
+			),
+			'version'  => 1,
+		);
+		$this->assertEquals( $theme_json, $expected_theme_json );
+	}
+
 }
