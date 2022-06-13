@@ -1525,7 +1525,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$file           = DIR_TESTDATA . '/images/canola.jpg';
 		$attachment_ids = array();
 		$post_ids       = array();
-		for ( $i = 0; $i < 3; $i ++ ) {
+		for ( $i = 0; $i < 3; $i++ ) {
 			$post_ids[ $i ]       = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 			$attachment_ids[ $i ] = self::factory()->attachment->create_object(
 				$file,
