@@ -223,20 +223,13 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 		wp_cache_delete( $post_id, 'posts' );
 		$action = new MockAction();
-		add_filter( 'query', array( $action, 'filter' ), 10, 2 );
+		add_filter( 'update_post_metadata_cache', array( $action, 'filter' ), 10, 2 );
 
 		update_menu_item_cache( $query_result );
 
-		$args                    = $action->get_args();
-		$primed_post_query_found = false;
-		foreach ( $args as $arg ) {
-			// Primed query will use WHERE ID IN clause.
-			if ( str_contains( $arg[0], 'WHERE ID IN (' . $post_id ) ) {
-				$primed_post_query_found = true;
-				break;
-			}
-		}
-		$this->assertTrue( $primed_post_query_found, '_prime_post_caches was not executed.' );
+		$args = $action->get_args();
+		$last = end( $args );
+		$this->assertEqualSets( array( $post_id ), $last[1], '_prime_post_caches was not executed.' );
 	}
 
 	/**
