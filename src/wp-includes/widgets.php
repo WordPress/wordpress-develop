@@ -1096,7 +1096,11 @@ function wp_set_sidebars_widgets( $new_sidebars_widgets, $refresh_global_sidebar
 	// Refresh the $sidebars_widgets global.
 	if ( $refresh_global_sidebars_widgets ) {
 		$sidebars_widgets = wp_get_sidebars_widgets();
-		sync_registered_widgets( true );
+		/*
+		 * The name retrieve_widgets() is somewhat misleading. It doesn't just "retrieve". It also
+		 * moves any "hidden" or "lost" widgets to the wp_inactive_widgets sidebar.
+		 */
+		retrieve_widgets( true );
 	}
 }
 

@@ -977,10 +977,11 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		rest_do_request( $request );
 
 		// Get a list of all widgets.
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/widgets' );
-		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
-		$data     = $this->remove_links( $data );
+		$request            = new WP_REST_Request( 'GET', '/wp/v2/widgets' );
+		$request['context'] = 'edit';
+		$response           = rest_get_server()->dispatch( $request );
+		$data               = $response->get_data();
+		$data               = $this->remove_links( $data );
 
 		// Confirm that we deleted exactly the widget that we wanted, and
 		// no other one. This tests against a regression in running multiple
