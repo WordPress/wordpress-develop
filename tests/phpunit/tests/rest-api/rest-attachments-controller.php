@@ -644,22 +644,39 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		$request->set_param( 'media_type', 'video' );
 
-		rest_get_server()->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertCount( 1, $this->posts_clauses );
+
+		$headers = $response->get_headers();
+
+		$this->assertSame( 0, $headers['X-WP-Total'] );
+		$this->assertSame( 0, $headers['X-WP-TotalPages'] );
 	}
 
 	/**
 	 * @ticket 55677
 	 */
 	public function test_get_items_with_empty_page_runs_count_query_after() {
+		$this->factory->attachment->create_object(
+			$this->test_file,
+			0,
+			array(
+				'post_date'      => '2022-06-12T00:00:00Z',
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption',
+			)
+		);
+
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
-		$request->set_param( 'media_type', 'video' );
+		$request->set_param( 'media_type', 'image' );
 		$request->set_param( 'page', 2 );
 
-		rest_get_server()->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertCount( 2, $this->posts_clauses );
+
+		$this->assertErrorResponse( 'rest_post_invalid_page_number', $response, 400 );
 	}
 
 	public function test_get_item() {
