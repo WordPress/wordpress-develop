@@ -927,6 +927,79 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * @ticket 53816
+	 */
+	public function test_create_and_delete() {
+		$this->setup_widget(
+			'text',
+			1,
+			array(
+				'text' => 'Custom text test',
+			)
+		);
+		$this->setup_sidebar(
+			'sidebar-1',
+			array(
+				'name' => 'Test sidebar',
+			),
+			array( 'text-1' )
+		);
+
+		// Create a new text widget.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/widgets' );
+		$request->set_body_params(
+			array(
+				'id_base'  => 'text',
+				'sidebar'  => 'sidebar-1',
+				'instance' => array(
+					'encoded' => base64_encode(
+						serialize(
+							array(
+								'text' => 'Updated text test',
+							)
+						)
+					),
+					'hash'    => wp_hash(
+						serialize(
+							array(
+								'text' => 'Updated text test',
+							)
+						)
+					),
+				),
+			)
+		);
+		rest_get_server()->dispatch( $request );
+
+		// Delete an old text widget (not the one we just created).
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/widgets/text-1' );
+		$request->set_query_params( array( 'force' => true ) );
+		rest_do_request( $request );
+
+		// Get a list of all widgets.
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/widgets' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$data     = $this->remove_links( $data );
+
+		// Confirm that we deleted exactly the widget that we wanted, and
+		// no other one. This tests against a regression in running multiple
+		// request handlers during the same run. See the following comment for more details:
+		// https://github.com/WordPress/gutenberg/issues/33335#issuecomment-879903958
+		$this->assertCount( 1, $data );
+		$this->assertSame( 'text-2', $data[0]['id'] );
+		$this->assertSame( 'sidebar-1', $data[0]['sidebar'] );
+		$this->assertSameSetsWithIndex(
+			array(
+				'text'   => 'Updated text test',
+				'title'  => '',
+				'filter' => false,
+			),
+			$data[0]['instance']['raw']
+		);
+	}
+
+	/**
 	 * @ticket 41683
 	 */
 	public function test_update_item() {
