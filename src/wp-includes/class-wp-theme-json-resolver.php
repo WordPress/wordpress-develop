@@ -255,25 +255,27 @@ class WP_Theme_JSON_Resolver {
 		}
 		$user_cpt         = array();
 		$post_type_filter = 'wp_global_styles';
+		$stylesheet       = $theme->get_stylesheet();
 		$args             = array(
-			'numberposts' => 1,
-			'orderby'     => 'date',
-			'order'       => 'desc',
-			'post_type'   => $post_type_filter,
-			'post_status' => $post_status_filter,
-			'tax_query'   => array(
+			'posts_per_page'      => 1,
+			'orderby'             => 'post_date',
+			'order'               => 'desc',
+			'post_type'           => $post_type_filter,
+			'post_status'         => $post_status_filter,
+			'ignore_sticky_posts' => true,
+			'no_found_rows'       => true,
+			'tax_query'           => array(
 				array(
 					'taxonomy' => 'wp_theme',
 					'field'    => 'name',
-					'terms'    => $theme->get_stylesheet(),
+					'terms'    => $stylesheet,
 				),
 			),
 		);
 
 		$cache_key = sprintf( 'wp_global_styles_%s', md5( serialize( $args ) ) );
-		$post_id   = wp_cache_get( $cache_key );
-
-		if ( (int) $post_id > 0 ) {
+		$post_id   = (int) get_transient( $cache_key );
+		if ( $post_id > 0 ) {
 			return get_post( $post_id, ARRAY_A );
 		}
 
@@ -282,7 +284,7 @@ class WP_Theme_JSON_Resolver {
 			return $user_cpt;
 		}
 
-		$recent_posts = wp_get_recent_posts( $args );
+		$recent_posts = new WP_Query( $args );
 		if ( is_array( $recent_posts ) && ( count( $recent_posts ) === 1 ) ) {
 			$user_cpt = $recent_posts[0];
 		} elseif ( $create_post ) {
@@ -292,9 +294,9 @@ class WP_Theme_JSON_Resolver {
 					'post_status'  => 'publish',
 					'post_title'   => 'Custom Styles',
 					'post_type'    => $post_type_filter,
-					'post_name'    => 'wp-global-styles-' . urlencode( wp_get_theme()->get_stylesheet() ),
+					'post_name'    => 'wp-global-styles-' . urlencode( $stylesheet ),
 					'tax_input'    => array(
-						'wp_theme' => array( wp_get_theme()->get_stylesheet() ),
+						'wp_theme' => array( $stylesheet ),
 					),
 				),
 				true
@@ -302,7 +304,7 @@ class WP_Theme_JSON_Resolver {
 			$user_cpt    = get_post( $cpt_post_id, ARRAY_A );
 		}
 		$cache_expiration = $user_cpt ? DAY_IN_SECONDS : HOUR_IN_SECONDS;
-		wp_cache_set( $cache_key, $user_cpt ? $user_cpt['ID'] : -1, '', $cache_expiration );
+		set_transient( $cache_key, $user_cpt ? $user_cpt['ID'] : -1, $cache_expiration );
 
 		return $user_cpt;
 	}
