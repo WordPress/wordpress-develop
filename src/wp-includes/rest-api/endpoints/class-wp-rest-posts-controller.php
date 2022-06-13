@@ -367,13 +367,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			add_filter( 'post_password_required', array( $this, 'check_password_required' ), 10, 2 );
 		}
 
-		if ( post_type_supports( $this->post_type, 'thumbnail' ) ) {
-			update_post_thumbnail_cache( $posts_query );
-		}
-
 		$posts = array();
 
 		update_post_author_caches( $query_result );
+		if ( post_type_supports( $this->post_type, 'thumbnail' ) ) {
+			update_post_thumbnail_cache( $posts_query );
+		}
 
 		foreach ( $query_result as $post ) {
 			if ( ! $this->check_read_permission( $post ) ) {
