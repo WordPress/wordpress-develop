@@ -2,28 +2,33 @@
 /**
  * @group author
  * @group user
+ * @covers ::wp_list_authors
  */
-class Tests_User_ListAuthors extends WP_UnitTestCase {
+class Tests_User_wpListAuthors extends WP_UnitTestCase {
 	public static $user_ids = array();
 	public static $fred_id;
 	public static $posts     = array();
 	public static $user_urls = array();
-		/* Defaults
-		'orderby'       => 'name',
-		'order'         => 'ASC',
-		'number'        => null,
-		'optioncount'   => false,
-		'exclude_admin' => true,
-		'show_fullname' => false,
-		'hide_empty'    => true,
-		'echo'          => true,
-		'feed'          => [empty string],
-		'feed_image'    => [empty string],
-		'feed_type'     => [empty string],
-		'style'         => 'list',
-		'html'          => true );
-		*/
+
+	/*
+	 * Defaults:
+	 * 'orderby'       => 'name',
+	 * 'order'         => 'ASC',
+	 * 'number'        => null,
+	 * 'optioncount'   => false,
+	 * 'exclude_admin' => true,
+	 * 'show_fullname' => false,
+	 * 'hide_empty'    => true,
+	 * 'echo'          => true,
+	 * 'feed'          => [empty string],
+	 * 'feed_image'    => [empty string],
+	 * 'feed_type'     => [empty string],
+	 * 'style'         => 'list',
+	 * 'html'          => true,
+	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		global $wp_rewrite;
+
 		self::$user_ids[] = $factory->user->create(
 			array(
 				'user_login'   => 'zack',
@@ -57,6 +62,12 @@ class Tests_User_ListAuthors extends WP_UnitTestCase {
 				'role'       => 'author',
 			)
 		);
+
+		/*
+		 * Re-initialize WP_Rewrite, so that get_author_posts_url() uses
+		 * the default permalink structure, not affected by other tests.
+		 */
+		$wp_rewrite->init();
 
 		$count = 0;
 		foreach ( self::$user_ids as $userid ) {
