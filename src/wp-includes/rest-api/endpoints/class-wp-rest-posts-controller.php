@@ -370,6 +370,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$posts = array();
 
 		update_post_author_caches( $query_result );
+		update_menu_item_cache( $query_result );
 
 		foreach ( $query_result as $post ) {
 			if ( ! $this->check_read_permission( $post ) ) {
