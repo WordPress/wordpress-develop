@@ -7008,8 +7008,8 @@ function wp_mime_type_icon( $mime = 0 ) {
  * @since 2.1.0
  *
  * @param int     $post_id     Post ID.
- * @param WP_Post $post        The Post Object
- * @param WP_Post $post_before The Previous Post Object
+ * @param WP_Post $post        The post object.
+ * @param WP_Post $post_before The previous post object.
  */
 function wp_check_for_changed_slugs( $post_id, $post, $post_before ) {
 	// Don't bother if it hasn't changed.
@@ -7051,8 +7051,8 @@ function wp_check_for_changed_slugs( $post_id, $post, $post_before ) {
  * @since 4.9.3
  *
  * @param int     $post_id     Post ID.
- * @param WP_Post $post        The Post Object
- * @param WP_Post $post_before The Previous Post Object
+ * @param WP_Post $post        The post object.
+ * @param WP_Post $post_before The previous post object.
  */
 function wp_check_for_changed_dates( $post_id, $post, $post_before ) {
 	$previous_date = gmdate( 'Y-m-d', strtotime( $post_before->post_date ) );
@@ -7424,11 +7424,11 @@ function clean_post_cache( $post ) {
 }
 
 /**
- * Calls major cache updating functions for list of Post objects.
+ * Updates post, term, and metadata caches for a list of post objects.
  *
  * @since 1.5.0
  *
- * @param WP_Post[] $posts             Array of Post objects
+ * @param WP_Post[] $posts             Array of post objects (passed by reference).
  * @param string    $post_type         Optional. Post type. Default 'post'.
  * @param bool      $update_term_cache Optional. Whether to update the term cache. Default true.
  * @param bool      $update_meta_cache Optional. Whether to update the meta cache. Default true.
@@ -7475,16 +7475,17 @@ function update_post_caches( &$posts, $post_type = 'post', $update_term_cache = 
 }
 
 /**
- * Prime post author user caches.
+ * Updates post author user caches for a list of post objects.
  *
  * @since 6.1.0
  *
- * @param WP_Post[] $posts Array of Post objects
+ * @param WP_Post[] $posts Array of post objects.
  */
 function update_post_author_caches( $posts ) {
 	$author_ids = wp_list_pluck( $posts, 'post_author' );
 	$author_ids = array_map( 'absint', $author_ids );
 	$author_ids = array_unique( array_filter( $author_ids ) );
+
 	cache_users( $author_ids );
 }
 
@@ -7505,7 +7506,7 @@ function update_post_parent_caches( $posts ) {
 }
 
 /**
- * Updates metadata cache for list of post IDs.
+ * Updates metadata cache for a list of post IDs.
  *
  * Performs SQL query to retrieve the metadata for the post IDs and updates the
  * metadata cache for the posts. Therefore, the functions, which call this
@@ -7808,7 +7809,7 @@ function wp_delete_auto_drafts() {
  *
  * @since 4.5.0
  *
- * @param array $posts Array of WP_Post objects.
+ * @param WP_Post[] $posts Array of WP_Post objects.
  */
 function wp_queue_posts_for_term_meta_lazyload( $posts ) {
 	$post_type_taxonomies = array();
@@ -7872,7 +7873,7 @@ function _update_term_count_on_transition_post_status( $new_status, $old_status,
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param array $ids               ID list.
+ * @param int[] $ids               ID list.
  * @param bool  $update_term_cache Optional. Whether to update the term cache. Default true.
  * @param bool  $update_meta_cache Optional. Whether to update the meta cache. Default true.
  */
