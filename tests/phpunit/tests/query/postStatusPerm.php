@@ -68,6 +68,10 @@ class Tests_Query_PostStatus_Perm extends WP_UnitTestCase {
 		);
 	}
 
+	public static function wpTearDownAfterClass() {
+		$role->remove_cap( 'read_private_pages' );
+	}
+
 	public function test_perm_readable() {
 		wp_set_current_user( 1 ); // admin.
 		$query = new WP_Query(
