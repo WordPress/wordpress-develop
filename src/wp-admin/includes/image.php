@@ -142,7 +142,7 @@ function wp_get_missing_image_subsizes( $attachment_id, $mime_type = '' ) {
 			continue;
 		}
 
-		if ( $size_meta['mime-type'] === $mime_type || isset( $size_meta['sources'][ $mime_type ] ) ) {
+		if ( ( isset( $size_data['mime-type'] ) && $size_data['mime-type'] === $mime_type ) || isset( $size_data['sources'][ $mime_type ] ) ) {
 			continue;
 		}
 
