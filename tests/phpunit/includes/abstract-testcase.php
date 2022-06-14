@@ -212,7 +212,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * we want to skip tests that only need to run for trunk.
 	 */
 	public function skipOnAutomatedBranches() {
-		// https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables#default-environment-variables
+		// https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
 		$github_event_name = getenv( 'GITHUB_EVENT_NAME' );
 		$github_ref        = getenv( 'GITHUB_REF' );
 
