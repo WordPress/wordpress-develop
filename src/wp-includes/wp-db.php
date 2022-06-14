@@ -683,6 +683,15 @@ class wpdb {
 	public $error = null;
 
 	/**
+	 * Tables names cache for multisite.
+	 *
+	 * @since 5.8.3
+	 *
+	 * @var array
+	 */
+	private $tables_names_blog_cache = array();
+
+	/**
 	 * Connects to the database server and selects a database.
 	 *
 	 * Does the actual setting up
@@ -1035,12 +1044,28 @@ class wpdb {
 
 		$this->prefix = $this->get_blog_prefix();
 
-		foreach ( $this->tables( 'blog' ) as $table => $prefixed_table ) {
-			$this->$table = $prefixed_table;
-		}
+		$key_cache = $this->blogid . '~' . $this->siteid;
+		if ( ! array_key_exists( $key_cache, $this->tables_names_blog_cache ) ) {
 
-		foreach ( $this->tables( 'old' ) as $table => $prefixed_table ) {
-			$this->$table = $prefixed_table;
+			$c = array();
+
+			foreach ( $this->tables( 'blog' ) as $table => $prefixed_table ) {
+				$c[ $table ]  = $prefixed_table;
+				$this->$table = $prefixed_table;
+			}
+
+			foreach ( $this->tables( 'old' ) as $table => $prefixed_table ) {
+				$c[ $table ]  = $prefixed_table;
+				$this->$table = $prefixed_table;
+			}
+
+			$this->tables_names_blog_cache[ $key_cache ] = $c;
+
+		} else {
+
+			foreach ( $this->tables_names_blog_cache[ $key_cache ] as $table => $prefixed_table ) {
+				$this->$table = $prefixed_table;
+			}
 		}
 
 		return $old_blog_id;
