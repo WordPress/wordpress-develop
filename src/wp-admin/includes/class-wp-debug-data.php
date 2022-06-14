@@ -697,27 +697,22 @@ class WP_Debug_Data {
 			$php_sapi = 'unknown';
 		}
 
-		$info['wp-server']['fields']['server_architecture']    = array(
+		$info['wp-server']['fields']['server_architecture'] = array(
 			'label' => __( 'Server architecture' ),
 			'value' => ( 'unknown' !== $server_architecture ? $server_architecture : __( 'Unable to determine server architecture' ) ),
 			'debug' => $server_architecture,
 		);
-		$info['wp-server']['fields']['httpd_software']         = array(
+		$info['wp-server']['fields']['httpd_software']      = array(
 			'label' => __( 'Web server' ),
 			'value' => ( isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : __( 'Unable to determine what web server software is used' ) ),
 			'debug' => ( isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : 'unknown' ),
 		);
-		$info['wp-server']['fields']['virtualbox_environment'] = array(
-			'label' => __( 'VirtualBox environment' ),
-			'value' => is_virtualbox() ? 'true' : 'false',
-			'debug' => is_virtualbox(),
-		);
-		$info['wp-server']['fields']['php_version']            = array(
+		$info['wp-server']['fields']['php_version']         = array(
 			'label' => __( 'PHP version' ),
 			'value' => $php_version,
 			'debug' => $php_version_debug,
 		);
-		$info['wp-server']['fields']['php_sapi']               = array(
+		$info['wp-server']['fields']['php_sapi']            = array(
 			'label' => __( 'PHP SAPI' ),
 			'value' => ( 'unknown' !== $php_sapi ? $php_sapi : __( 'Unable to determine PHP SAPI' ) ),
 			'debug' => $php_sapi,
