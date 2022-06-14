@@ -1092,9 +1092,9 @@ class WP_Upgrader {
 	 * @return bool|WP_Error
 	 */
 	public function restore_temp_backup() {
-			global $wp_filesystem;
+		global $wp_filesystem;
 
-			$errors = new WP_Error();
+		$errors = new WP_Error();
 
 		foreach ( $this->temp_backups as $args ) {
 			if ( empty( $args['slug'] ) || empty( $args['src'] ) || empty( $args['dir'] ) ) {
