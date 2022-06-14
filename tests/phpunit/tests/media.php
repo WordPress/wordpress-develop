@@ -52,7 +52,7 @@ class Tests_Media extends WP_UnitTestCase {
 	}
 
 	public static function tear_down_after_class() {
-		wp_delete_post( self::$large_id, true );
+		wp_delete_attachment( self::$large_id, true );
 		parent::tear_down_after_class();
 	}
 
@@ -1306,7 +1306,7 @@ VIDEO;
 		$post = get_post( $post_id );
 
 		// Clean up.
-		wp_delete_attachment( $post_id );
+		wp_delete_attachment( $post_id, true );
 
 		$this->assertSame( 'This is a comment. / Это комментарий. / Βλέπετε ένα σχόλιο.', $post->post_excerpt );
 	}
@@ -1345,7 +1345,7 @@ VIDEO;
 		$post = get_post( $post_id );
 
 		// Clean up.
-		wp_delete_attachment( $post_id );
+		wp_delete_attachment( $post_id, true );
 
 		$this->assertSame( 'This is a test', $post->post_title );
 	}
@@ -1474,7 +1474,7 @@ EOF;
 	public function test_wp_get_attachment_image_defaults() {
 		$image    = image_downsize( self::$large_id, 'thumbnail' );
 		$expected = sprintf(
-			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="" loading="lazy" />',
+			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="" decoding="async" loading="lazy" />',
 			$image[1],
 			$image[2],
 			$image[0]
@@ -1512,7 +1512,7 @@ EOF;
 
 		$image    = image_downsize( self::$large_id, 'thumbnail' );
 		$expected = sprintf(
-			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="Some very clever alt text" loading="lazy" />',
+			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="Some very clever alt text" decoding="async" loading="lazy" />',
 			$image[1],
 			$image[2],
 			$image[0]
@@ -1724,7 +1724,7 @@ EOF;
 		}
 
 		// Remove the attachment.
-		wp_delete_attachment( $id );
+		wp_delete_attachment( $id, true );
 		remove_filter( 'upload_dir', '_upload_dir_no_subdir' );
 	}
 
@@ -1829,9 +1829,8 @@ EOF;
 	 * @requires function imagejpeg
 	 */
 	public function test_wp_calculate_image_srcset_no_width() {
-		$file       = get_attached_file( self::$large_id );
 		$image_url  = wp_get_attachment_image_url( self::$large_id, 'medium' );
-		$image_meta = wp_generate_attachment_metadata( self::$large_id, $file );
+		$image_meta = wp_get_attachment_metadata( self::$large_id );
 
 		$size_array = array( 0, 0 );
 
@@ -2248,6 +2247,7 @@ EOF;
 			$respimg_xhtml,
 			$respimg_html5
 		);
+		$content_filtered = wp_img_tag_add_decoding_attr( $content_filtered, 'the_content' );
 
 		// Do not add width, height, and loading.
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
@@ -2276,6 +2276,7 @@ EOF;
 	public function test_wp_filter_content_tags_srcset_sizes_wrong() {
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
+		$img = wp_img_tag_add_decoding_attr( $img, 'the_content' );
 
 		// Replace the src URL.
 		$image_wrong_src = preg_replace( '|src="[^"]+"|', 'src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/foo.jpg"', $img );
@@ -2290,6 +2291,7 @@ EOF;
 		// Generate HTML and add a dummy srcset attribute.
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
+		$img = wp_img_tag_add_decoding_attr( $img, 'the_content' );
 		$img = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . 'srcset="image2x.jpg 2x" />', $img );
 		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
 
@@ -2340,7 +2342,7 @@ EOF;
 	 */
 	public function test_wp_filter_content_tags_filter_with_identical_image_tags_custom_attributes() {
 		$img     = get_image_tag( self::$large_id, '', '', '', 'large' );
-		$img     = str_replace( '<img ', '<img srcset="custom" sizes="custom" loading="custom" ', $img );
+		$img     = str_replace( '<img ', '<img srcset="custom" sizes="custom" loading="custom" decoding="custom"', $img );
 		$content = "$img\n$img";
 
 		add_filter(
@@ -2365,6 +2367,7 @@ EOF;
 		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
 		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
 
 		add_filter(
@@ -2469,6 +2472,7 @@ EOF;
 			$respimg_https,
 			$respimg_relative
 		);
+		$expected = wp_img_tag_add_decoding_attr( $expected, 'the_content' );
 
 		$actual = wp_filter_content_tags( $unfiltered );
 
@@ -2535,7 +2539,14 @@ EOF;
 		$attachment = wp_get_attachment_image_src( $id, 'medium' );
 
 		$html     = '<img src="%1$s" alt="" width="%2$d" height="%3$d" class="align%4$s size-medium wp-image-%5$d" />';
-		$expected = sprintf( $html, $attachment[0], $attachment[1], $attachment[2], $align, $id );
+		$expected = sprintf(
+			$html,
+			$attachment[0],
+			$attachment[1],
+			$attachment[2],
+			$align,
+			$id
+		);
 
 		$this->assertSame( $expected, get_image_send_to_editor( $id, $caption, $title, $align ) );
 
@@ -2561,7 +2572,19 @@ EOF;
 		$html = '<a href="%1$s" rel="%2$s"><img src="%3$s" alt="%4$s" width="%5$d" height="%6$d" class="size-%8$s wp-image-%9$d" /></a>';
 		$html = '[caption id="attachment_%9$d" align="align%7$s" width="%5$d"]' . $html . ' %10$s[/caption]';
 
-		$expected = sprintf( $html, $url, 'attachment wp-att-' . $id, $attachment[0], $alt, $attachment[1], $attachment[2], $align, $size, $id, $caption );
+		$expected = sprintf(
+			$html,
+			$url,
+			'attachment wp-att-' . $id,
+			$attachment[0],
+			$alt,
+			$attachment[1],
+			$attachment[2],
+			$align,
+			$size,
+			$id,
+			$caption
+		);
 
 		$this->assertSame( $expected, get_image_send_to_editor( $id, $caption, $title, $align, $url, $rel, $size, $alt ) );
 	}
@@ -2584,7 +2607,17 @@ EOF;
 
 		$html = '<a href="%1$s"><img src="%2$s" alt="%3$s" width="%4$d" height="%5$d" class="align%6$s size-%7$s wp-image-%8$d" /></a>';
 
-		$expected = sprintf( $html, $url, $attachment[0], $alt, $attachment[1], $attachment[2], $align, $size, $id );
+		$expected = sprintf(
+			$html,
+			$url,
+			$attachment[0],
+			$alt,
+			$attachment[1],
+			$attachment[2],
+			$align,
+			$size,
+			$id
+		);
 
 		$this->assertSame( $expected, get_image_send_to_editor( $id, $caption, $title, $align, $url, $rel, $size, $alt ) );
 	}
@@ -2612,7 +2645,7 @@ EOF;
 
 		$expected = '<img width="999" height="999" ' .
 			'src="' . $uploads_url . 'test-image-testsize-999x999.jpg" ' .
-			'class="attachment-testsize size-testsize" alt="" loading="lazy" ' .
+			'class="attachment-testsize size-testsize" alt="" decoding="async" loading="lazy" ' .
 			'srcset="' . $uploads_url . 'test-image-testsize-999x999.jpg 999w, ' . $uploads_url . $basename . '-150x150.jpg 150w" ' .
 			'sizes="(max-width: 999px) 100vw, 999px" />';
 
@@ -2828,8 +2861,8 @@ EOF;
 		$expected = $uploads_dir['url'] . '/test-image-iptc.jpg';
 
 		// Clean up.
-		wp_delete_attachment( $post_id );
-		wp_delete_post( $parent_id );
+		wp_delete_attachment( $post_id, true );
+		wp_delete_post( $parent_id, true );
 
 		$this->assertSame( $expected, $url );
 	}
@@ -2880,8 +2913,8 @@ EOF;
 		$expected = $uploads_dir['url'] . '/test-image-iptc.jpg';
 
 		// Clean up.
-		wp_delete_attachment( $post_id );
-		wp_delete_post( $parent_id );
+		wp_delete_attachment( $post_id, true );
+		wp_delete_post( $parent_id, true );
 
 		$this->assertSame( $expected, $url );
 	}
@@ -2918,8 +2951,22 @@ EOF;
 			<p>Image, no height but width attribute. Should NOT be modified.</p>
 			%4$s';
 
-		$content_unfiltered = sprintf( $content, $img, $img_no_width_height, $img_no_width, $img_no_height );
-		$content_filtered   = sprintf( $content, $img, $respimg_no_width_height, $img_no_width, $img_no_height );
+		$content_unfiltered = sprintf(
+			$content,
+			$img,
+			$img_no_width_height,
+			$img_no_width,
+			$img_no_height
+		);
+
+		$content_filtered = sprintf(
+			$content,
+			$img,
+			$respimg_no_width_height,
+			$img_no_width,
+			$img_no_height
+		);
+		$content_filtered = wp_img_tag_add_decoding_attr( $content_filtered, 'the_content' );
 
 		// Do not add loading, srcset, and sizes.
 		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
@@ -2978,8 +3025,30 @@ EOF;
 			<p>Iframe, without dimension attributes. Should not be modified.</p>
 			%8$s';
 
-		$content_unfiltered = sprintf( $content, $img, $img_xhtml, $img_html5, $img_eager, $img_no_width_height, $iframe, $iframe_eager, $iframe_no_width_height );
-		$content_filtered   = sprintf( $content, $lazy_img, $lazy_img_xhtml, $lazy_img_html5, $img_eager, $img_no_width_height, $lazy_iframe, $iframe_eager, $iframe_no_width_height );
+		$content_unfiltered = sprintf(
+			$content,
+			$img,
+			$img_xhtml,
+			$img_html5,
+			$img_eager,
+			$img_no_width_height,
+			$iframe,
+			$iframe_eager,
+			$iframe_no_width_height
+		);
+
+		$content_filtered = sprintf(
+			$content,
+			$lazy_img,
+			$lazy_img_xhtml,
+			$lazy_img_html5,
+			$img_eager,
+			$img_no_width_height,
+			$lazy_iframe,
+			$iframe_eager,
+			$iframe_no_width_height
+		);
+		$content_filtered = wp_img_tag_add_decoding_attr( $content_filtered, 'the_content' );
 
 		// Do not add width, height, srcset, and sizes.
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
@@ -3000,6 +3069,7 @@ EOF;
 	public function test_wp_filter_content_tags_loading_lazy_opted_in() {
 		$img         = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$lazy_img    = wp_img_tag_add_loading_attr( $img, 'test' );
+		$lazy_img    = wp_img_tag_add_decoding_attr( $lazy_img, 'the_content' );
 		$iframe      = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 		$lazy_iframe = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
 
@@ -3033,6 +3103,7 @@ EOF;
 	 */
 	public function test_wp_filter_content_tags_loading_lazy_opted_out() {
 		$img    = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$img    = wp_img_tag_add_decoding_attr( $img, 'the_content' );
 		$iframe = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 
 		$content = '
@@ -3501,6 +3572,7 @@ EOF;
 		// Following the threshold of 2, the first two content media elements should not be lazy-loaded.
 		$content_unfiltered = $img1 . $iframe1 . $img2 . $img3 . $iframe2;
 		$content_expected   = $img1 . $iframe1 . $lazy_img2 . $lazy_img3 . $lazy_iframe2;
+		$content_expected   = wp_img_tag_add_decoding_attr( $content_expected, 'the_content' );
 
 		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
 		$wp_the_query = $wp_query;
