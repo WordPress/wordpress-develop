@@ -1549,7 +1549,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$args = $filter->get_args();
 		$last = end( $args );
-		$this->assertIsArray( $last );
+		$this->assertIsArray( $last, 'The last value is not an array' );
 		$this->assertEqualSets( $attachment_ids, $last[1] );
 	}
 
