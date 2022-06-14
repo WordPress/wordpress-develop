@@ -208,7 +208,7 @@ class Tests_Query_PostStatus_Perm extends WP_UnitTestCase {
 				'perm'        => 'readable',
 			)
 		);
-		$this->assertSame( 0, $query->found_posts, 'querying only for an invalid status should return no results' );
+		$this->assertSame( 4, $query->found_posts, 'When querying for "any" post status the permission checks are ignored.' );
 	}
 
 }
