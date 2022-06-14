@@ -7,19 +7,19 @@
 class Tests_Pluggable_wpRand extends WP_UnitTestCase {
 
 	/**
-	 * Tests that wp_rand() returns a positive integer for both positive and negative input.
+	 * Tests that wp_rand() returns a non-negative integer for both positive and negative input.
 	 *
 	 * @ticket 55194
-	 * @dataProvider data_wp_rand_should_return_a_positive_integer
+	 * @dataProvider data_wp_rand_should_return_a_non_negative_integer
 	 *
 	 * @param int $min Lower limit for the generated number.
 	 * @param int $max Upper limit for the generated number.
 	 */
-	public function test_wp_rand_should_return_a_positive_integer( $min, $max ) {
-		$this->assertGreaterThan(
+	public function test_wp_rand_should_return_a_non_negative_integer( $min, $max ) {
+		$this->assertGreaterThanOrEqual(
 			0,
 			wp_rand( $min, $max ),
-			'The value was not greater than 0'
+			'The value was not greater than or equal 0'
 		);
 
 		$this->assertLessThan(
@@ -34,7 +34,7 @@ class Tests_Pluggable_wpRand extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_rand_should_return_a_positive_integer() {
+	public function data_wp_rand_should_return_a_non_negative_integer() {
 		return array(
 			'1 and 99'       => array(
 				'min' => 1,

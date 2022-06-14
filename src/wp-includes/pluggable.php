@@ -132,6 +132,8 @@ if ( ! function_exists( 'cache_users' ) ) :
 	function cache_users( $user_ids ) {
 		global $wpdb;
 
+		update_meta_cache( 'user', $user_ids );
+
 		$clean = _get_non_cached_ids( $user_ids, 'users' );
 
 		if ( empty( $clean ) ) {
@@ -142,12 +144,9 @@ if ( ! function_exists( 'cache_users' ) ) :
 
 		$users = $wpdb->get_results( "SELECT * FROM $wpdb->users WHERE ID IN ($list)" );
 
-		$ids = array();
 		foreach ( $users as $user ) {
 			update_user_caches( $user );
-			$ids[] = $user->ID;
 		}
-		update_meta_cache( 'user', $ids );
 	}
 endif;
 
@@ -2764,6 +2763,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			'force_display' => false,
 			'loading'       => null,
 			'extra_attr'    => '',
+			'decoding'      => 'async',
 		);
 
 		if ( wp_lazy_loading_enabled( 'img', 'get_avatar' ) ) {
@@ -2849,6 +2849,13 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			}
 
 			$extra_attr .= "loading='{$loading}'";
+		}
+
+		if ( in_array( $args['decoding'], array( 'async', 'sync', 'auto' ) ) && ! preg_match( '/\bdecoding\s*=/', $extra_attr ) ) {
+			if ( ! empty( $extra_attr ) ) {
+				$extra_attr .= ' ';
+			}
+			$extra_attr .= "decoding='{$args['decoding']}'";
 		}
 
 		$avatar = sprintf(
