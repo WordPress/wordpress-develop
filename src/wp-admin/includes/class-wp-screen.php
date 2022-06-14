@@ -402,14 +402,15 @@ final class WP_Screen {
 	 * @since 3.3.0
 	 *
 	 * @global WP_Screen $current_screen WordPress current screen object.
-	 * @global string    $taxnow
-	 * @global string    $typenow
+	 * @global string    $typenow        The post type of the current screen.
+	 * @global string    $taxnow         The taxonomy of the current screen.
 	 */
 	public function set_current_screen() {
 		global $current_screen, $taxnow, $typenow;
+
 		$current_screen = $this;
-		$taxnow         = $this->taxonomy;
 		$typenow        = $this->post_type;
+		$taxnow         = $this->taxonomy;
 
 		/**
 		 * Fires after the current screen has been set.
@@ -1008,13 +1009,10 @@ final class WP_Screen {
 		/**
 		 * Filters the screen settings text displayed in the Screen Options tab.
 		 *
-		 * This filter is currently only used on the Widgets screen to enable
-		 * accessibility mode.
-		 *
 		 * @since 3.0.0
 		 *
 		 * @param string    $screen_settings Screen settings.
-		 * @param WP_Screen $this            WP_Screen object.
+		 * @param WP_Screen $screen          WP_Screen object.
 		 */
 		$this->_screen_settings = apply_filters( 'screen_settings', $this->_screen_settings, $this );
 
@@ -1029,7 +1027,7 @@ final class WP_Screen {
 		 *
 		 * @param bool      $show_screen Whether to show Screen Options tab.
 		 *                               Default true.
-		 * @param WP_Screen $this        Current WP_Screen instance.
+		 * @param WP_Screen $screen      Current WP_Screen instance.
 		 */
 		$this->_show_screen_options = apply_filters( 'screen_options_show_screen', $show_screen, $this );
 		return $this->_show_screen_options;

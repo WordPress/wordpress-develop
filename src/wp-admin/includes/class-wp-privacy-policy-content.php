@@ -125,6 +125,8 @@ final class WP_Privacy_Policy_Content {
 	 * Output a warning when some privacy info has changed.
 	 *
 	 * @since 4.9.6
+	 *
+	 * @global WP_Post $post Global post object.
 	 */
 	public static function policy_text_changed_notice() {
 		global $post;
@@ -303,6 +305,8 @@ final class WP_Privacy_Policy_Content {
 	 * @since 4.9.6
 	 * @since 5.0.0 The `$post` parameter was made optional.
 	 *
+	 * @global WP_Post $post Global post object.
+	 *
 	 * @param WP_Post|null $post The currently edited post. Default null.
 	 */
 	public static function notice( $post = null ) {
@@ -420,11 +424,11 @@ final class WP_Privacy_Policy_Content {
 				<div class="privacy-settings-accordion-actions">
 					<span class="success" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
 					<button type="button" class="privacy-text-copy button">
-						<?php _e( 'Copy suggested policy text to clipboard' ); ?>
+						<span aria-hidden="true"><?php _e( 'Copy suggested policy text to clipboard' ); ?></span>
 						<span class="screen-reader-text">
 							<?php
 							/* translators: %s: Plugin name. */
-							sprintf( __( 'Copy suggested policy text from %s.' ), $plugin_name );
+							printf( __( 'Copy suggested policy text from %s.' ), $plugin_name );
 							?>
 						</span>
 					</button>
@@ -587,7 +591,7 @@ final class WP_Privacy_Policy_Content {
 		}
 
 		/* translators: Default privacy policy heading. */
-		$strings[] = '<h2>' . __( 'Where we send your data' ) . '</h2>';
+		$strings[] = '<h2>' . __( 'Where your data is sent' ) . '</h2>';
 
 		if ( $description ) {
 			/* translators: Privacy policy tutorial. */

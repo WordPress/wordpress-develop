@@ -40,8 +40,8 @@ function wp_is_home_url_using_https() {
 /**
  * Checks whether the current site's URL where WordPress is stored is using HTTPS.
  *
- * This checks the URL where WordPress application files (e.g. wp-blog-header.php or the wp-admin/ folder) are
- * accessible.
+ * This checks the URL where WordPress application files (e.g. wp-blog-header.php or the wp-admin/ folder)
+ * are accessible.
  *
  * @since 5.7.0
  * @see site_url()
@@ -179,7 +179,7 @@ function wp_schedule_https_detection() {
  * @access private
  *
  * @param array $request The Cron request arguments.
- * @return array $request The filtered Cron request arguments.
+ * @return array The filtered Cron request arguments.
  */
 function wp_cron_conditionally_prevent_sslverify( $request ) {
 	if ( 'https' === wp_parse_url( $request['url'], PHP_URL_SCHEME ) ) {

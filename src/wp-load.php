@@ -27,6 +27,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  * is run prior to wp-config.php loading, it is wrapped in a function_exists() check.
  */
 if ( function_exists( 'error_reporting' ) ) {
+	/*
+	 * Initialize error reporting to a known set of levels.
+	 *
+	 * This will be adapted in wp_debug_mode() located in wp-includes/load.php based on WP_DEBUG.
+	 * @see http://php.net/manual/en/errorfunc.constants.php List of known error levels.
+	 */
 	error_reporting( E_CORE_ERROR | E_CORE_WARNING | E_COMPILE_ERROR | E_ERROR | E_WARNING | E_PARSE | E_USER_ERROR | E_USER_WARNING | E_RECOVERABLE_ERROR );
 }
 
@@ -85,9 +91,10 @@ if ( file_exists( ABSPATH . 'wp-config.php' ) ) {
 		'<code>wp-config.php</code>'
 	) . '</p>';
 	$die .= '<p>' . sprintf(
-		/* translators: %s: Documentation URL. */
-		__( "Need more help? <a href='%s'>We got it</a>." ),
-		__( 'https://wordpress.org/support/article/editing-wp-config-php/' )
+		/* translators: 1: Documentation URL, 2: wp-config.php */
+		__( 'Need more help? <a href="%1$s">Read the support article on %2$s</a>.' ),
+		__( 'https://wordpress.org/support/article/editing-wp-config-php/' ),
+		'<code>wp-config.php</code>'
 	) . '</p>';
 	$die .= '<p>' . sprintf(
 		/* translators: %s: wp-config.php */

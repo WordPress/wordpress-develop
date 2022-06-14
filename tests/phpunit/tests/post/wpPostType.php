@@ -119,7 +119,7 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 		);
 		$post_type_object->add_rewrite_rules();
 
-		$this->assertFalse( in_array( 'foobar', $wp->public_query_vars, true ) );
+		$this->assertNotContains( 'foobar', $wp->public_query_vars );
 	}
 
 	public function test_adds_query_var_if_public() {
@@ -215,5 +215,18 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 
 		$this->assertSameSets( array( 'post_tag' ), $taxonomies );
 		$this->assertSameSets( array(), $taxonomies_after );
+	}
+
+	public function test_applies_registration_args_filters() {
+		$post_type = 'cpt';
+		$action    = new MockAction();
+
+		add_filter( 'register_post_type_args', array( $action, 'filter' ) );
+		add_filter( "register_{$post_type}_post_type_args", array( $action, 'filter' ) );
+
+		new WP_Post_Type( $post_type );
+		new WP_Post_Type( 'random' );
+
+		$this->assertSame( 3, $action->get_call_count() );
 	}
 }

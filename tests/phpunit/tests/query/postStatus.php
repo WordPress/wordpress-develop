@@ -6,22 +6,21 @@
 class Tests_Query_PostStatus extends WP_UnitTestCase {
 	public static $editor_user_id;
 	public static $author_user_id;
-	public static $editor_private_post;
-	public static $author_private_post;
-	public static $editor_privatefoo_post;
-	public static $author_privatefoo_post;
+	public static $subscriber_user_id;
+	public static $post_ids;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$editor_user_id = $factory->user->create( array( 'role' => 'editor' ) );
-		self::$author_user_id = $factory->user->create( array( 'role' => 'author' ) );
+		self::$editor_user_id     = $factory->user->create( array( 'role' => 'editor' ) );
+		self::$author_user_id     = $factory->user->create( array( 'role' => 'author' ) );
+		self::$subscriber_user_id = $factory->user->create( array( 'role' => 'subscriber' ) );
 
-		self::$editor_private_post = $factory->post->create(
+		self::$post_ids['editor_private_post'] = $factory->post->create(
 			array(
 				'post_author' => self::$editor_user_id,
 				'post_status' => 'private',
 			)
 		);
-		self::$author_private_post = $factory->post->create(
+		self::$post_ids['author_private_post'] = $factory->post->create(
 			array(
 				'post_author' => self::$author_user_id,
 				'post_status' => 'private',
@@ -30,19 +29,83 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 
 		// Custom status with private=true.
 		register_post_status( 'privatefoo', array( 'private' => true ) );
-		self::$editor_privatefoo_post = $factory->post->create(
+		self::$post_ids['editor_privatefoo_post'] = $factory->post->create(
 			array(
 				'post_author' => self::$editor_user_id,
 				'post_status' => 'privatefoo',
 			)
 		);
-		self::$author_privatefoo_post = $factory->post->create(
+		self::$post_ids['author_privatefoo_post'] = $factory->post->create(
 			array(
 				'post_author' => self::$author_user_id,
 				'post_status' => 'privatefoo',
 			)
 		);
 		_unregister_post_status( 'privatefoo' );
+
+		self::register_custom_post_objects();
+
+		self::$post_ids['wptests_pt1_p1'] = $factory->post->create(
+			array(
+				'post_type'   => 'wptests_pt1',
+				'post_status' => 'private',
+				'post_author' => self::$editor_user_id,
+			)
+		);
+
+		self::$post_ids['wptests_pt1_p2'] = $factory->post->create(
+			array(
+				'post_type'   => 'wptests_pt1',
+				'post_status' => 'publish',
+				'post_author' => self::$editor_user_id,
+			)
+		);
+
+		self::$post_ids['wptests_pt2_p1'] = $factory->post->create(
+			array(
+				'post_type'   => 'wptests_pt2',
+				'post_status' => 'private',
+				'post_author' => self::$editor_user_id,
+			)
+		);
+
+		self::$post_ids['wptests_pt2_p2'] = $factory->post->create(
+			array(
+				'post_type'   => 'wptests_pt2',
+				'post_status' => 'publish',
+				'post_author' => self::$editor_user_id,
+			)
+		);
+	}
+
+	public function set_up() {
+		parent::set_up();
+		self::register_custom_post_objects();
+	}
+
+	/**
+	 * Register custom post types and statuses used in multiple tests.
+	 *
+	 * CPTs and CPSs are reset between each test run so need to be registered
+	 * in both the wpSetUpBeforeClass() and setUp() methods.
+	 */
+	public static function register_custom_post_objects() {
+		register_post_type(
+			'wptests_pt1',
+			array(
+				'exclude_from_search' => false,
+				'capabilities'        => array(
+					'read_private_posts' => 'read_private_pt1s',
+				),
+			)
+		);
+
+		register_post_type(
+			'wptests_pt2',
+			array(
+				'exclude_from_search' => false,
+			)
+		);
 	}
 
 	public function test_any_should_not_include_statuses_where_exclude_from_search_is_true() {
@@ -54,7 +117,7 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( "post_status <> 'foo'", $q->request );
+		$this->assertStringContainsString( "post_status <> 'foo'", $q->request );
 	}
 
 	public function test_any_should_include_statuses_where_exclude_from_search_is_false() {
@@ -66,7 +129,7 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotContains( "post_status <> 'foo'", $q->request );
+		$this->assertStringNotContainsString( "post_status <> 'foo'", $q->request );
 	}
 
 	public function test_private_should_be_included_if_perm_is_false() {
@@ -78,8 +141,8 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 		);
 
 		$expected = array(
-			self::$editor_private_post,
-			self::$author_private_post,
+			self::$post_ids['editor_private_post'],
+			self::$post_ids['author_private_post'],
 		);
 
 		$this->assertSameSets( $expected, wp_list_pluck( $q->posts, 'ID' ) );
@@ -109,7 +172,7 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 		);
 
 		$expected = array(
-			self::$author_private_post,
+			self::$post_ids['author_private_post'],
 		);
 
 		$this->assertSameSets( $expected, wp_list_pluck( $q->posts, 'ID' ) );
@@ -126,8 +189,8 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 		);
 
 		$expected = array(
-			self::$author_private_post,
-			self::$editor_private_post,
+			self::$post_ids['author_private_post'],
+			self::$post_ids['editor_private_post'],
 		);
 
 		$this->assertSameSets( $expected, wp_list_pluck( $q->posts, 'ID' ) );
@@ -144,7 +207,7 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 		);
 
 		$expected = array(
-			self::$author_private_post,
+			self::$post_ids['author_private_post'],
 		);
 
 		$this->assertSameSets( $expected, wp_list_pluck( $q->posts, 'ID' ) );
@@ -161,8 +224,8 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 		);
 
 		$expected = array(
-			self::$author_private_post,
-			self::$editor_private_post,
+			self::$post_ids['author_private_post'],
+			self::$post_ids['editor_private_post'],
 		);
 
 		$this->assertSameSets( $expected, wp_list_pluck( $q->posts, 'ID' ) );
@@ -178,7 +241,7 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 		);
 
 		foreach ( get_post_stati( array( 'public' => true ) ) as $status ) {
-			$this->assertContains( "post_status = '$status'", $q->request );
+			$this->assertStringContainsString( "post_status = '$status'", $q->request );
 		}
 	}
 
@@ -191,7 +254,7 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotContains( "post_status = 'foo", $q->request );
+		$this->assertStringNotContainsString( "post_status = 'foo", $q->request );
 	}
 
 	public function test_protected_should_be_included_when_in_the_admin() {
@@ -210,8 +273,7 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( "post_status = 'foo", $q->request );
-		set_current_screen( 'front' );
+		$this->assertStringContainsString( "post_status = 'foo", $q->request );
 	}
 
 	public function test_private_statuses_should_be_included_when_current_user_can_read_private_posts() {
@@ -225,8 +287,8 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( self::$author_privatefoo_post, wp_list_pluck( $q->posts, 'ID' ) );
-		$this->assertContains( self::$editor_privatefoo_post, wp_list_pluck( $q->posts, 'ID' ) );
+		$this->assertContains( self::$post_ids['author_privatefoo_post'], wp_list_pluck( $q->posts, 'ID' ) );
+		$this->assertContains( self::$post_ids['editor_privatefoo_post'], wp_list_pluck( $q->posts, 'ID' ) );
 	}
 
 	public function test_private_statuses_should_not_be_included_when_current_user_cannot_read_private_posts() {
@@ -236,16 +298,16 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 
 		$q = new WP_Query(
 			array(
-				'posts_per_page' => 2, // Or the query will short-circuit.
+				'posts_per_page' => -1, // Or the query will short-circuit.
 			)
 		);
 
 		$expected = array(
-			self::$author_privatefoo_post,
+			self::$post_ids['author_privatefoo_post'],
 		);
 
-		$this->assertContains( self::$author_privatefoo_post, wp_list_pluck( $q->posts, 'ID' ) );
-		$this->assertNotContains( self::$editor_privatefoo_post, wp_list_pluck( $q->posts, 'ID' ) );
+		$this->assertContains( self::$post_ids['author_privatefoo_post'], wp_list_pluck( $q->posts, 'ID' ) );
+		$this->assertNotContains( self::$post_ids['editor_privatefoo_post'], wp_list_pluck( $q->posts, 'ID' ) );
 	}
 
 	public function test_single_post_with_nonpublic_status_should_not_be_shown_to_logged_out_users() {
@@ -456,5 +518,65 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 		);
 
 		$this->assertContains( $p1, wp_list_pluck( $q->posts, 'ID' ) );
+	}
+
+	/**
+	 * @ticket 48556
+	 * @ticket 13509
+	 */
+	public function test_non_singular_queries_using_post_type_any_should_respect_post_type_read_private_posts_cap() {
+		$post_ids = self::$post_ids;
+
+		wp_set_current_user( 0 );
+
+		$q = new WP_Query(
+			array(
+				'post_type' => 'any',
+			)
+		);
+
+		$this->assertSameSets( array( $post_ids['wptests_pt1_p2'], $post_ids['wptests_pt2_p2'] ), wp_list_pluck( $q->posts, 'ID' ) );
+
+		wp_set_current_user( self::$subscriber_user_id );
+		$GLOBALS['current_user']->add_cap( 'read_private_pt1s' );
+
+		$q = new WP_Query(
+			array(
+				'post_type' => 'any',
+			)
+		);
+
+		$this->assertSameSets( array( $post_ids['wptests_pt1_p1'], $post_ids['wptests_pt1_p2'], $post_ids['wptests_pt2_p2'] ), wp_list_pluck( $q->posts, 'ID' ) );
+	}
+
+	/**
+	 * @ticket 48556
+	 * @ticket 13509
+	 */
+	public function test_non_singular_queries_using_multiple_post_type_should_respect_post_type_read_private_posts_cap() {
+		wp_set_current_user( 0 );
+
+		$post_ids = self::$post_ids;
+
+		$q = new WP_Query(
+			array(
+				'post_type'      => 'any',
+				'posts_per_page' => -1,
+			)
+		);
+
+		$this->assertSameSets( array( $post_ids['wptests_pt1_p2'], $post_ids['wptests_pt2_p2'] ), wp_list_pluck( $q->posts, 'ID' ) );
+
+		wp_set_current_user( self::$subscriber_user_id );
+		$GLOBALS['current_user']->add_cap( 'read_private_pt1s' );
+
+		$q = new WP_Query(
+			array(
+				'post_type'      => array( 'wptests_pt1', 'wptests_pt2' ),
+				'posts_per_page' => -1,
+			)
+		);
+
+		$this->assertSameSets( array( $post_ids['wptests_pt1_p1'], $post_ids['wptests_pt1_p2'], $post_ids['wptests_pt2_p2'] ), wp_list_pluck( $q->posts, 'ID' ) );
 	}
 }

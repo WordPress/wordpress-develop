@@ -37,7 +37,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 * Revision controller.
 	 *
 	 * @since 5.0.0
-	 * @var WP_REST_Controller
+	 * @var WP_REST_Revisions_Controller
 	 */
 	private $revisions_controller;
 
@@ -67,8 +67,8 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 
 		$this->parent_controller    = $parent_controller;
 		$this->revisions_controller = new WP_REST_Revisions_Controller( $parent_post_type );
-		$this->namespace            = 'wp/v2';
 		$this->rest_base            = 'autosaves';
+		$this->namespace            = ! empty( $post_type_object->rest_namespace ) ? $post_type_object->rest_namespace : 'wp/v2';
 		$this->parent_base          = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
 	}
 
@@ -86,7 +86,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			array(
 				'args'   => array(
 					'parent' => array(
-						'description' => __( 'The ID for the parent of the object.' ),
+						'description' => __( 'The ID for the parent of the autosave.' ),
 						'type'        => 'integer',
 					),
 				),
@@ -112,11 +112,11 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			array(
 				'args'   => array(
 					'parent' => array(
-						'description' => __( 'The ID for the parent of the object.' ),
+						'description' => __( 'The ID for the parent of the autosave.' ),
 						'type'        => 'integer',
 					),
 					'id'     => array(
-						'description' => __( 'The ID for the object.' ),
+						'description' => __( 'The ID for the autosave.' ),
 						'type'        => 'integer',
 					),
 				),
@@ -396,13 +396,15 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 * Prepares the revision for the REST response.
 	 *
 	 * @since 5.0.0
+	 * @since 5.9.0 Renamed `$post` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param WP_Post         $post    Post revision object.
+	 * @param WP_Post         $item    Post revision object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
-	public function prepare_item_for_response( $post, $request ) {
-
+	public function prepare_item_for_response( $item, $request ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$post     = $item;
 		$response = $this->revisions_controller->prepare_item_for_response( $post, $request );
 
 		$fields = $this->get_fields_for_response( $request );

@@ -735,7 +735,7 @@ function get_feed_link( $feed = '' ) {
  * @param int    $post_id Optional. Post ID. Default is the ID of the global `$post`.
  * @param string $feed    Optional. Feed type. Possible values include 'rss2', 'atom'.
  *                        Default is the value of get_default_feed().
- * @return string The permalink for the comments feed for the given post.
+ * @return string The permalink for the comments feed for the given post on success, empty string on failure.
  */
 function get_post_comments_feed_link( $post_id = 0, $feed = '' ) {
 	$post_id = absint( $post_id );
@@ -748,7 +748,13 @@ function get_post_comments_feed_link( $post_id = 0, $feed = '' ) {
 		$feed = get_default_feed();
 	}
 
-	$post       = get_post( $post_id );
+	$post = get_post( $post_id );
+
+	// Bail out if the post does not exist.
+	if ( ! $post instanceof WP_Post ) {
+		return '';
+	}
+
 	$unattached = 'attachment' === $post->post_type && 0 === (int) $post->post_parent;
 
 	if ( get_option( 'permalink_structure' ) ) {
@@ -898,13 +904,13 @@ function get_author_feed_link( $author_id, $feed = '' ) {
  *
  * @since 2.5.0
  *
- * @param int    $cat_id Category ID.
- * @param string $feed   Optional. Feed type. Possible values include 'rss2', 'atom'.
- *                       Default is the value of get_default_feed().
- * @return string Link to the feed for the category specified by $cat_id.
+ * @param int|WP_Term|object $cat  The ID or category object whose feed link will be retrieved.
+ * @param string             $feed Optional. Feed type. Possible values include 'rss2', 'atom'.
+ *                                 Default is the value of get_default_feed().
+ * @return string Link to the feed for the category specified by `$cat`.
  */
-function get_category_feed_link( $cat_id, $feed = '' ) {
-	return get_term_feed_link( $cat_id, 'category', $feed );
+function get_category_feed_link( $cat, $feed = '' ) {
+	return get_term_feed_link( $cat, 'category', $feed );
 }
 
 /**
@@ -915,20 +921,24 @@ function get_category_feed_link( $cat_id, $feed = '' ) {
  *
  * @since 3.0.0
  *
- * @param int    $term_id  Term ID.
- * @param string $taxonomy Optional. Taxonomy of `$term_id`. Default 'category'.
- * @param string $feed     Optional. Feed type. Possible values include 'rss2', 'atom'.
- *                         Default is the value of get_default_feed().
- * @return string|false Link to the feed for the term specified by $term_id and $taxonomy.
+ * @param int|WP_Term|object $term     The ID or term object whose feed link will be retrieved.
+ * @param string             $taxonomy Optional. Taxonomy of `$term_id`.
+ * @param string             $feed     Optional. Feed type. Possible values include 'rss2', 'atom'.
+ *                                     Default is the value of get_default_feed().
+ * @return string|false Link to the feed for the term specified by `$term` and `$taxonomy`.
  */
-function get_term_feed_link( $term_id, $taxonomy = 'category', $feed = '' ) {
-	$term_id = (int) $term_id;
+function get_term_feed_link( $term, $taxonomy = '', $feed = '' ) {
+	if ( ! is_object( $term ) ) {
+		$term = (int) $term;
+	}
 
-	$term = get_term( $term_id, $taxonomy );
+	$term = get_term( $term, $taxonomy );
 
 	if ( empty( $term ) || is_wp_error( $term ) ) {
 		return false;
 	}
+
+	$taxonomy = $term->taxonomy;
 
 	if ( empty( $feed ) ) {
 		$feed = get_default_feed();
@@ -938,7 +948,7 @@ function get_term_feed_link( $term_id, $taxonomy = 'category', $feed = '' ) {
 
 	if ( ! $permalink_structure ) {
 		if ( 'category' === $taxonomy ) {
-			$link = home_url( "?feed=$feed&amp;cat=$term_id" );
+			$link = home_url( "?feed=$feed&amp;cat=$term->term_id" );
 		} elseif ( 'post_tag' === $taxonomy ) {
 			$link = home_url( "?feed=$feed&amp;tag=$term->slug" );
 		} else {
@@ -946,7 +956,7 @@ function get_term_feed_link( $term_id, $taxonomy = 'category', $feed = '' ) {
 			$link = home_url( "?feed=$feed&amp;$t->query_var=$term->slug" );
 		}
 	} else {
-		$link = get_term_link( $term_id, $term->taxonomy );
+		$link = get_term_link( $term, $term->taxonomy );
 		if ( get_default_feed() == $feed ) {
 			$feed_link = 'feed';
 		} else {
@@ -997,13 +1007,13 @@ function get_term_feed_link( $term_id, $taxonomy = 'category', $feed = '' ) {
  *
  * @since 2.3.0
  *
- * @param int    $tag_id Tag ID.
- * @param string $feed   Optional. Feed type. Possible values include 'rss2', 'atom'.
- *                       Default is the value of get_default_feed().
- * @return string The feed permalink for the given tag.
+ * @param int|WP_Term|object $tag  The ID or term object whose feed link will be retrieved.
+ * @param string             $feed Optional. Feed type. Possible values include 'rss2', 'atom'.
+ *                                 Default is the value of get_default_feed().
+ * @return string                  The feed permalink for the given tag.
  */
-function get_tag_feed_link( $tag_id, $feed = '' ) {
-	return get_term_feed_link( $tag_id, 'post_tag', $feed );
+function get_tag_feed_link( $tag, $feed = '' ) {
+	return get_term_feed_link( $tag, 'post_tag', $feed );
 }
 
 /**
@@ -1011,11 +1021,11 @@ function get_tag_feed_link( $tag_id, $feed = '' ) {
  *
  * @since 2.7.0
  *
- * @param int    $tag_id   Tag ID.
- * @param string $taxonomy Optional. Taxonomy slug. Default 'post_tag'.
+ * @param int|WP_Term|object $tag      The ID or term object whose edit link will be retrieved.
+ * @param string             $taxonomy Optional. Taxonomy slug. Default 'post_tag'.
  * @return string The edit tag link URL for the given tag.
  */
-function get_edit_tag_link( $tag_id, $taxonomy = 'post_tag' ) {
+function get_edit_tag_link( $tag, $taxonomy = 'post_tag' ) {
 	/**
 	 * Filters the edit link for a tag (or term in another taxonomy).
 	 *
@@ -1023,7 +1033,7 @@ function get_edit_tag_link( $tag_id, $taxonomy = 'post_tag' ) {
 	 *
 	 * @param string $link The term edit link.
 	 */
-	return apply_filters( 'get_edit_tag_link', get_edit_term_link( $tag_id, $taxonomy ) );
+	return apply_filters( 'get_edit_tag_link', get_edit_term_link( $tag, $taxonomy ) );
 }
 
 /**
@@ -1056,28 +1066,29 @@ function edit_tag_link( $link = '', $before = '', $after = '', $tag = null ) {
  * @since 3.1.0
  * @since 4.5.0 The `$taxonomy` parameter was made optional.
  *
- * @param int    $term_id     Term ID.
- * @param string $taxonomy    Optional. Taxonomy. Defaults to the taxonomy of the term identified
- *                            by `$term_id`.
- * @param string $object_type Optional. The object type. Used to highlight the proper post type
- *                            menu on the linked page. Defaults to the first object_type associated
- *                            with the taxonomy.
+ * @param int|WP_Term|object $term        The ID or term object whose edit link will be retrieved.
+ * @param string             $taxonomy    Optional. Taxonomy. Defaults to the taxonomy of the term identified
+ *                                        by `$term`.
+ * @param string             $object_type Optional. The object type. Used to highlight the proper post type
+ *                                        menu on the linked page. Defaults to the first object_type associated
+ *                                        with the taxonomy.
  * @return string|null The edit term link URL for the given term, or null on failure.
  */
-function get_edit_term_link( $term_id, $taxonomy = '', $object_type = '' ) {
-	$term = get_term( $term_id, $taxonomy );
+function get_edit_term_link( $term, $taxonomy = '', $object_type = '' ) {
+	$term = get_term( $term, $taxonomy );
 	if ( ! $term || is_wp_error( $term ) ) {
 		return;
 	}
 
-	$tax = get_taxonomy( $term->taxonomy );
-	if ( ! $tax || ! current_user_can( 'edit_term', $term->term_id ) ) {
+	$tax     = get_taxonomy( $term->taxonomy );
+	$term_id = $term->term_id;
+	if ( ! $tax || ! current_user_can( 'edit_term', $term_id ) ) {
 		return;
 	}
 
 	$args = array(
 		'taxonomy' => $taxonomy,
-		'tag_ID'   => $term->term_id,
+		'tag_ID'   => $term_id,
 	);
 
 	if ( $object_type ) {
@@ -1100,7 +1111,7 @@ function get_edit_term_link( $term_id, $taxonomy = '', $object_type = '' ) {
 	 * @param string $location    The edit link.
 	 * @param int    $term_id     Term ID.
 	 * @param string $taxonomy    Taxonomy name.
-	 * @param string $object_type The object type (eg. the post type).
+	 * @param string $object_type The object type.
 	 */
 	return apply_filters( 'get_edit_term_link', $location, $term_id, $taxonomy, $object_type );
 }
@@ -1110,16 +1121,18 @@ function get_edit_term_link( $term_id, $taxonomy = '', $object_type = '' ) {
  *
  * @since 3.1.0
  *
- * @param string  $link   Optional. Anchor text. If empty, default is 'Edit This'. Default empty.
- * @param string  $before Optional. Display before edit link. Default empty.
- * @param string  $after  Optional. Display after edit link. Default empty.
- * @param WP_Term $term   Optional. Term object. If null, the queried object will be inspected. Default null.
- * @param bool    $echo   Optional. Whether or not to echo the return. Default true.
+ * @param string           $link   Optional. Anchor text. If empty, default is 'Edit This'. Default empty.
+ * @param string           $before Optional. Display before edit link. Default empty.
+ * @param string           $after  Optional. Display after edit link. Default empty.
+ * @param int|WP_Term|null $term   Optional. Term ID or object. If null, the queried object will be inspected. Default null.
+ * @param bool             $echo   Optional. Whether or not to echo the return. Default true.
  * @return string|void HTML content.
  */
 function edit_term_link( $link = '', $before = '', $after = '', $term = null, $echo = true ) {
 	if ( is_null( $term ) ) {
 		$term = get_queried_object();
+	} else {
+		$term = get_term( $term );
 	}
 
 	if ( ! $term ) {
@@ -1613,7 +1626,7 @@ function edit_comment_link( $text = null, $before = '', $after = '' ) {
 	 * @since 2.3.0
 	 *
 	 * @param string $link       Anchor tag for the edit link.
-	 * @param int    $comment_id Comment ID.
+	 * @param string $comment_id Comment ID as a numeric string.
 	 * @param string $text       Anchor text.
 	 */
 	echo $before . apply_filters( 'edit_comment_link', $link, $comment->comment_ID, $text ) . $after;
@@ -1733,7 +1746,7 @@ function get_edit_user_link( $user_id = null ) {
  * @param bool         $in_same_term   Optional. Whether post should be in a same taxonomy term. Default false.
  * @param int[]|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs. Default empty.
  * @param string       $taxonomy       Optional. Taxonomy, if $in_same_term is true. Default 'category'.
- * @return null|string|WP_Post Post object if successful. Null if global $post is not set. Empty string if no
+ * @return WP_Post|null|string Post object if successful. Null if global $post is not set. Empty string if no
  *                             corresponding post exists.
  */
 function get_previous_post( $in_same_term = false, $excluded_terms = '', $taxonomy = 'category' ) {
@@ -1748,7 +1761,7 @@ function get_previous_post( $in_same_term = false, $excluded_terms = '', $taxono
  * @param bool         $in_same_term   Optional. Whether post should be in a same taxonomy term. Default false.
  * @param int[]|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs. Default empty.
  * @param string       $taxonomy       Optional. Taxonomy, if $in_same_term is true. Default 'category'.
- * @return null|string|WP_Post Post object if successful. Null if global $post is not set. Empty string if no
+ * @return WP_Post|null|string Post object if successful. Null if global $post is not set. Empty string if no
  *                             corresponding post exists.
  */
 function get_next_post( $in_same_term = false, $excluded_terms = '', $taxonomy = 'category' ) {
@@ -1768,7 +1781,7 @@ function get_next_post( $in_same_term = false, $excluded_terms = '', $taxonomy =
  * @param int[]|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs. Default empty string.
  * @param bool         $previous       Optional. Whether to retrieve previous post. Default true
  * @param string       $taxonomy       Optional. Taxonomy, if $in_same_term is true. Default 'category'.
- * @return null|string|WP_Post Post object if successful. Null if global $post is not set. Empty string if no
+ * @return WP_Post|null|string Post object if successful. Null if global $post is not set. Empty string if no
  *                             corresponding post exists.
  */
 function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previous = true, $taxonomy = 'category' ) {
@@ -1824,7 +1837,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 
 	if ( $in_same_term || ! empty( $excluded_terms ) ) {
 		if ( $in_same_term ) {
-			$join  .= " INNER JOIN $wpdb->term_relationships AS tr ON p.ID = tr.object_id INNER JOIN $wpdb->term_taxonomy tt ON tr.term_taxonomy_id = tt.term_taxonomy_id";
+			$join  .= " INNER JOIN $wpdb->term_relationships AS tr ON p.ID = tr.object_id INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id";
 			$where .= $wpdb->prepare( 'AND tt.taxonomy = %s', $taxonomy );
 
 			if ( ! is_object_in_taxonomy( $post->post_type, $taxonomy ) ) {
@@ -1866,7 +1879,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 		 */
 		$private_states = get_post_stati( array( 'private' => true ) );
 		$where         .= " AND ( p.post_status = 'publish'";
-		foreach ( (array) $private_states as $state ) {
+		foreach ( $private_states as $state ) {
 			if ( current_user_can( $read_private_cap ) ) {
 				$where .= $wpdb->prepare( ' OR p.post_status = %s', $state );
 			} else {
@@ -2330,7 +2343,7 @@ function adjacent_post_link( $format, $link, $in_same_term = false, $excluded_te
  *
  * @param int  $pagenum Optional. Page number. Default 1.
  * @param bool $escape  Optional. Whether to escape the URL for display, with esc_url(). Defaults to true.
- *                      Otherwise, prepares the URL with esc_url_raw().
+ *                      Otherwise, prepares the URL with sanitize_url().
  * @return string The link URL for the given page number.
  */
 function get_pagenum_link( $pagenum = 1, $escape = true ) {
@@ -2397,7 +2410,7 @@ function get_pagenum_link( $pagenum = 1, $escape = true ) {
 	if ( $escape ) {
 		return esc_url( $result );
 	} else {
-		return esc_url_raw( $result );
+		return sanitize_url( $result );
 	}
 }
 
@@ -2893,7 +2906,7 @@ function _navigation_markup( $links, $class = 'posts-navigation', $screen_reader
 	}
 
 	$template = '
-	<nav class="navigation %1$s" role="navigation" aria-label="%4$s">
+	<nav class="navigation %1$s" aria-label="%4$s">
 		<h2 class="screen-reader-text">%2$s</h2>
 		<div class="nav-links">%3$s</div>
 	</nav>';
@@ -2905,7 +2918,7 @@ function _navigation_markup( $links, $class = 'posts-navigation', $screen_reader
 	 * class (%1$s), the screen-reader-text value (%2$s), placement of the navigation
 	 * links (%3$s), and ARIA label text if screen-reader-text does not fit that (%4$s):
 	 *
-	 *     <nav class="navigation %1$s" role="navigation" aria-label="%4$s">
+	 *     <nav class="navigation %1$s" aria-label="%4$s">
 	 *         <h2 class="screen-reader-text">%2$s</h2>
 	 *         <div class="nav-links">%3$s</div>
 	 *     </nav>
@@ -3429,12 +3442,15 @@ function get_admin_url( $blog_id = null, $path = '', $scheme = 'admin' ) {
 	 * Filters the admin area URL.
 	 *
 	 * @since 2.8.0
+	 * @since 5.8.0 The `$scheme` parameter was added.
 	 *
-	 * @param string   $url     The complete admin area URL including scheme and path.
-	 * @param string   $path    Path relative to the admin area URL. Blank string if no path is specified.
-	 * @param int|null $blog_id Site ID, or null for the current site.
+	 * @param string      $url     The complete admin area URL including scheme and path.
+	 * @param string      $path    Path relative to the admin area URL. Blank string if no path is specified.
+	 * @param int|null    $blog_id Site ID, or null for the current site.
+	 * @param string|null $scheme  The scheme to use. Accepts 'http', 'https',
+	 *                             'admin', or null. Default 'admin', which obeys force_ssl_admin() and is_ssl().
 	 */
-	return apply_filters( 'admin_url', $url, $path, $blog_id );
+	return apply_filters( 'admin_url', $url, $path, $blog_id, $scheme );
 }
 
 /**
@@ -3458,12 +3474,15 @@ function includes_url( $path = '', $scheme = null ) {
 	 * Filters the URL to the includes directory.
 	 *
 	 * @since 2.8.0
+	 * @since 5.8.0 The `$scheme` parameter was added.
 	 *
-	 * @param string $url  The complete URL to the includes directory including scheme and path.
-	 * @param string $path Path relative to the URL to the wp-includes directory. Blank string
-	 *                     if no path is specified.
+	 * @param string      $url    The complete URL to the includes directory including scheme and path.
+	 * @param string      $path   Path relative to the URL to the wp-includes directory. Blank string
+	 *                            if no path is specified.
+	 * @param string|null $scheme Scheme to give the includes URL context. Accepts
+	 *                            'http', 'https', 'relative', or null. Default null.
 	 */
-	return apply_filters( 'includes_url', $url, $path );
+	return apply_filters( 'includes_url', $url, $path, $scheme );
 }
 
 /**
@@ -3668,12 +3687,15 @@ function network_admin_url( $path = '', $scheme = 'admin' ) {
 	 * Filters the network admin URL.
 	 *
 	 * @since 3.0.0
+	 * @since 5.8.0 The `$scheme` parameter was added.
 	 *
-	 * @param string $url  The complete network admin URL including scheme and path.
-	 * @param string $path Path relative to the network admin URL. Blank string if
-	 *                     no path is specified.
+	 * @param string      $url    The complete network admin URL including scheme and path.
+	 * @param string      $path   Path relative to the network admin URL. Blank string if
+	 *                            no path is specified.
+	 * @param string|null $scheme The scheme to use. Accepts 'http', 'https',
+	 *                            'admin', or null. Default is 'admin', which obeys force_ssl_admin() and is_ssl().
 	 */
-	return apply_filters( 'network_admin_url', $url, $path );
+	return apply_filters( 'network_admin_url', $url, $path, $scheme );
 }
 
 /**
@@ -3697,12 +3719,15 @@ function user_admin_url( $path = '', $scheme = 'admin' ) {
 	 * Filters the user admin URL for the current user.
 	 *
 	 * @since 3.1.0
+	 * @since 5.8.0 The `$scheme` parameter was added.
 	 *
-	 * @param string $url  The complete URL including scheme and path.
-	 * @param string $path Path relative to the URL. Blank string if
-	 *                     no path is specified.
+	 * @param string      $url    The complete URL including scheme and path.
+	 * @param string      $path   Path relative to the URL. Blank string if
+	 *                            no path is specified.
+	 * @param string|null $scheme The scheme to use. Accepts 'http', 'https',
+	 *                            'admin', or null. Default is 'admin', which obeys force_ssl_admin() and is_ssl().
 	 */
-	return apply_filters( 'user_admin_url', $url, $path );
+	return apply_filters( 'user_admin_url', $url, $path, $scheme );
 }
 
 /**
@@ -3962,7 +3987,7 @@ function rel_canonical() {
  * @since 3.0.0
  *
  * @param int    $id          Optional. A post or site ID. Default is 0, which means the current post or site.
- * @param string $context     Optional. Whether the ID is a 'site' id, 'post' id, or 'media' id. If 'post',
+ * @param string $context     Optional. Whether the ID is a 'site' ID, 'post' ID, or 'media' ID. If 'post',
  *                            the post_type of the post is consulted. If 'query', the current query is consulted
  *                            to determine the ID and context. Default 'post'.
  * @param bool   $allow_slugs Optional. Whether to allow post slugs in the shortlink. It is up to the plugin how

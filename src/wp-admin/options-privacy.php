@@ -14,13 +14,13 @@ if ( ! current_user_can( 'manage_privacy_options' ) ) {
 }
 
 if ( isset( $_GET['tab'] ) && 'policyguide' === $_GET['tab'] ) {
-	require_once( dirname( __FILE__ ) . '/privacy-policy-guide.php' );
+	require_once dirname( __FILE__ ) . '/privacy-policy-guide.php';
 	return;
 }
 
 add_filter(
 	'admin_body_class',
-	function( $body_class ) {
+	static function( $body_class ) {
 		$body_class .= ' privacy-settings ';
 
 		return $body_class;
@@ -28,6 +28,21 @@ add_filter(
 );
 
 $action = isset( $_POST['action'] ) ? $_POST['action'] : '';
+
+get_current_screen()->add_help_tab(
+	array(
+		'id'      => 'overview',
+		'title'   => __( 'Overview' ),
+		'content' =>
+				'<p>' . __( 'The Privacy screen lets you either build a new privacy-policy page or choose one you already have to show.' ) . '</p>' .
+				'<p>' . __( 'This screen includes suggestions to help you write your own privacy policy. However, it is your responsibility to use these resources correctly, to provide the information required by your privacy policy, and to keep this information current and accurate.' ) . '</p>',
+	)
+);
+
+get_current_screen()->set_help_sidebar(
+	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/article/settings-privacy-screen/">Documentation on Privacy Settings</a>' ) . '</p>'
+);
 
 if ( ! empty( $action ) ) {
 	check_admin_referer( $action );
@@ -174,8 +189,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<?php _e( 'However, it is your responsibility to use those resources correctly, to provide the information that your Privacy Policy requires, and to keep that information current and accurate.' ); ?>
 	</p>
 	<p>
-		<?php _e( 'After your Privacy Policy page is set, we suggest that you edit it.' ); ?>
-		<?php _e( 'We would also suggest reviewing your Privacy Policy from time to time, especially after installing or updating any themes or plugins. There may be changes or new suggested information for you to consider adding to your policy.' ); ?>
+		<?php _e( 'After your Privacy Policy page is set, you should edit it.' ); ?>
+		<?php _e( 'You should also review your Privacy Policy from time to time, especially after installing or updating any themes or plugins. There may be changes or new suggested information for you to consider adding to your policy.' ); ?>
 	</p>
 	<p>
 		<?php

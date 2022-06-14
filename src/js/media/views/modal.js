@@ -133,13 +133,13 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 		}
 
 		// Pause current audio/video even after closing the modal.
-		$( '.mejs-pause button' ).click();
+		$( '.mejs-pause button' ).trigger( 'click' );
 
 		// Enable page scrolling.
 		$( 'body' ).removeClass( 'modal-open' );
 
-		// Hide modal and remove restricted media modal tab focus once it's closed.
-		this.$el.hide().off( 'keydown' );
+		// Hide the modal element by adding display:none.
+		this.$el.hide();
 
 		/*
 		 * Make visible again to assistive technologies all body children that
@@ -155,7 +155,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 			// Fallback to the admin page main element.
 			$( '#wpbody-content' )
 				.attr( 'tabindex', '-1' )
-				.focus();
+				.trigger( 'focus' );
 		}
 
 		this.propagate('close');

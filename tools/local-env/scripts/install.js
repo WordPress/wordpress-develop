@@ -4,7 +4,11 @@ const wait_on = require( 'wait-on' );
 const { execSync } = require( 'child_process' );
 const { renameSync, readFileSync, writeFileSync } = require( 'fs' );
 
-dotenvExpand( dotenv.config() );
+dotenvExpand.expand( dotenv.config() );
+
+if ( process.arch === 'arm64' ) {
+	process.env.LOCAL_DB_TYPE = `amd64/${process.env.LOCAL_DB_TYPE}`;
+}
 
 // Create wp-config.php.
 wp_cli( 'config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --path=/var/www/src --force' );
@@ -52,7 +56,8 @@ function wp_cli( cmd ) {
  * Downloads the WordPress Importer plugin for use in tests.
  */
 function install_wp_importer() {
-	const test_plugin_directory = 'tests/phpunit/data/plugins/wordpress-importer';
+	const testPluginDirectory = 'tests/phpunit/data/plugins/wordpress-importer';
 
-	execSync( `docker-compose exec -T php rm -rf ${test_plugin_directory} && svn checkout -r ${process.env.WP_IMPORTER_REVISION} https://plugins.svn.wordpress.org/wordpress-importer/trunk/ ${test_plugin_directory}`, { stdio: 'inherit' } );
+	execSync( `docker-compose exec -T php rm -rf ${testPluginDirectory}`, { stdio: 'inherit' } );
+	execSync( `docker-compose exec -T php git clone https://github.com/WordPress/wordpress-importer.git ${testPluginDirectory} --depth=1`, { stdio: 'inherit' } );
 }

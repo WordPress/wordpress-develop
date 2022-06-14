@@ -32,7 +32,7 @@ select {
 }
 
 textarea.code {
-	padding: 4px 6px 1px 6px;
+	padding: 4px 6px 1px;
 }
 
 input[type="text"],
@@ -226,16 +226,16 @@ textarea[readonly] {
 }
 
 ::-webkit-input-placeholder {
-	color: #787c82;
+	color: #646970;
 }
 
 ::-moz-placeholder {
-	color: #787c82;
+	color: #646970;
 	opacity: 1;
 }
 
 :-ms-input-placeholder {
-	color: #787c82;
+	color: #646970;
 }
 
 .form-invalid .form-required,
@@ -591,6 +591,10 @@ fieldset label,
 	background-color: #b8e6bf;
 	border-color: #68de7c;
 	opacity: 1;
+}
+
+.password-input-wrapper input {
+	font-family: Consolas, Monaco, monospace;
 }
 
 #pass1.short, #pass1-text.short {
@@ -995,8 +999,8 @@ table.form-table td .updated p {
 
 .pressthis-bookmarklet span {
 	display: inline-block;
-	margin: 0px 0 0;
-	padding: 0px 12px 8px 9px;
+	margin: 0;
+	padding: 0 12px 8px 9px;
 }
 
 .pressthis-bookmarklet span:before {
@@ -1221,7 +1225,7 @@ table.form-table td .updated p {
 }
 
 .request-filesystem-credentials-form .notice {
-	margin: 0 0 20px 0;
+	margin: 0 0 20px;
 	clear: both;
 }
 
@@ -1232,9 +1236,12 @@ table.form-table td .updated p {
 	margin-bottom: 1.3em;
 }
 
-.tools-privacy-policy-page input.button,
-.tools-privacy-policy-page select {
+.tools-privacy-policy-page input.button {
 	margin: 0 1px 0 6px;
+}
+
+.tools-privacy-policy-page select {
+	margin: 0 1px 0.5em 6px;
 }
 
 .tools-privacy-edit {
@@ -1317,7 +1324,7 @@ table.form-table td .updated p {
 .status-label.status-request-pending {
 	font-weight: 400;
 	font-style: italic;
-	color: #787c82;
+	color: #646970;
 }
 
 .status-label.status-request-failed {
@@ -1521,6 +1528,10 @@ table.form-table td .updated p {
 		margin: 0 3px;
 	}
 
+	.form-table .regular-text ~ input[type="text"].small-text {
+		margin-top: 5px;
+	}
+
 	#pass-strength-result {
 		width: 100%;
 		box-sizing: border-box;
@@ -1555,13 +1566,13 @@ table.form-table td .updated p {
 	}
 
 	.form-table th {
-		padding: 10px 0 0 0;
+		padding: 10px 0 0;
 		border-bottom: 0;
 	}
 
 	.form-table td {
 		margin-bottom: 0;
-		padding: 4px 0 6px 0;
+		padding: 4px 0 6px;
 	}
 
 	.form-table.permalink-structure td code {
@@ -1632,6 +1643,10 @@ table.form-table td .updated p {
 		right: 2.5rem;
 	}
 
+	body.user-new-php .wp-pwd button.wp-hide-pw {
+		right: 0;
+	}
+
 	.wp-pwd button.button:hover,
 	.wp-pwd button.button:focus {
 		background: transparent;
@@ -1651,6 +1666,11 @@ table.form-table td .updated p {
 	.wp-pwd [type="password"] {
 		line-height: 2;
 		padding-right: 5rem;
+	}
+
+	body.user-new-php .wp-pwd [type="text"],
+	body.user-new-php .wp-pwd [type="password"] {
+		padding-right: 2.5rem;
 	}
 
 	.wp-cancel-pw .dashicons-no {
