@@ -1040,22 +1040,6 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$this->assertFalse( $this->q->is_year );
 	}
 
-	public function test_perm_with_status_array() {
-		global $wpdb;
-		$this->q->query(
-			array(
-				'perm'        => 'readable',
-				'post_status' => array( 'publish', 'private' ),
-			)
-		);
-		$this->assertTrue( $this->q->have_posts() );
-		$this->assertStringContainsString(
-			"(({$wpdb->posts}.post_status = 'publish') OR ({$wpdb->posts}.post_author = 0 AND ({$wpdb->posts}.post_status = 'private')))",
-			$this->q->request
-		);
-		$this->assertStringNotContainsString( "({$wpdb->posts}.post_status = 'publish') AND", $this->q->request );
-	}
-
 	/**
 	 * @ticket 20308
 	 */
