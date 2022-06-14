@@ -2460,71 +2460,10 @@ class WP_Query {
 		$user_id = get_current_user_id();
 
 		$q_status = array();
+
 		if ( $skip_post_status ) {
 			$where .= $post_type_where;
-		} elseif ( ! empty( $q['post_status'] ) ) {
-
-			$where .= $post_type_where;
-
-			$statuswheres = array();
-			$q_status     = $q['post_status'];
-			if ( ! is_array( $q_status ) ) {
-				$q_status = explode( ',', $q_status );
-			}
-			$r_status = array();
-			$p_status = array();
-			$e_status = array();
-			if ( in_array( 'any', $q_status, true ) ) {
-				foreach ( get_post_stati( array( 'exclude_from_search' => true ) ) as $status ) {
-					if ( ! in_array( $status, $q_status, true ) ) {
-						$e_status[] = "{$wpdb->posts}.post_status <> '$status'";
-					}
-				}
-			} else {
-				foreach ( get_post_stati() as $status ) {
-					if ( in_array( $status, $q_status, true ) ) {
-						if ( 'private' === $status ) {
-							$p_status[] = "{$wpdb->posts}.post_status = '$status'";
-						} else {
-							$r_status[] = "{$wpdb->posts}.post_status = '$status'";
-						}
-					}
-				}
-			}
-
-			if ( empty( $q['perm'] ) || 'readable' !== $q['perm'] ) {
-				$r_status = array_merge( $r_status, $p_status );
-				unset( $p_status );
-			}
-
-			if ( ! empty( $e_status ) ) {
-				$statuswheres[] = '(' . implode( ' AND ', $e_status ) . ')';
-			}
-			if ( ! empty( $r_status ) ) {
-				if ( ! empty( $q['perm'] ) && 'editable' === $q['perm'] && ! current_user_can( $edit_others_cap ) ) {
-					$statuswheres[] = "({$wpdb->posts}.post_author = $user_id " . 'AND (' . implode( ' OR ', $r_status ) . '))';
-				} else {
-					$statuswheres[] = '(' . implode( ' OR ', $r_status ) . ')';
-				}
-			}
-			if ( ! empty( $p_status ) ) {
-				if ( ! empty( $q['perm'] ) && 'readable' === $q['perm'] && ! current_user_can( $read_private_cap ) ) {
-					$statuswheres[] = "({$wpdb->posts}.post_author = $user_id " . 'AND (' . implode( ' OR ', $p_status ) . '))';
-				} else {
-					$statuswheres[] = '(' . implode( ' OR ', $p_status ) . ')';
-				}
-			}
-			if ( $post_status_join ) {
-				$join .= " LEFT JOIN {$wpdb->posts} AS p2 ON ({$wpdb->posts}.post_parent = p2.ID) ";
-				foreach ( $statuswheres as $index => $statuswhere ) {
-					$statuswheres[ $index ] = "($statuswhere OR ({$wpdb->posts}.post_status = 'inherit' AND " . str_replace( $wpdb->posts, 'p2', $statuswhere ) . '))';
-				}
-			}
-			$where_status = implode( ' OR ', $statuswheres );
-			if ( ! empty( $where_status ) ) {
-				$where .= " AND ($where_status)";
-			}
-		} elseif ( ! $this->is_singular ) {
+		} elseif ( ! empty( $q['post_status'] ) || ! $this->is_singular ) {
 			if ( 'any' === $post_type ) {
 				$queried_post_types = get_post_types( array( 'exclude_from_search' => false ) );
 			} elseif ( is_array( $post_type ) ) {
@@ -2535,9 +2474,79 @@ class WP_Query {
 				$queried_post_types = array( 'post' );
 			}
 
-			if ( ! empty( $queried_post_types ) ) {
+			$r_status = array();
+			$p_status = array();
+			$e_status = array();
 
-				$status_type_clauses = array();
+			if ( empty( $q['post_status'] ) ) {
+				if ( empty( $q['perm'] ) ) {
+					$q['perm'] = 'readable';
+				}
+
+				// Public statuses.
+				$public_statuses = get_post_stati( array( 'public' => true ) );
+				foreach ( $public_statuses as $public_status ) {
+					$r_status[] = "{$wpdb->posts}.post_status = '$public_status'";
+				}
+
+				// Add protected states that should show in the admin all list.
+				if ( $this->is_admin ) {
+					$admin_all_statuses = get_post_stati(
+						array(
+							'protected'              => true,
+							'show_in_admin_all_list' => true,
+						)
+					);
+					foreach ( $admin_all_statuses as $admin_all_status ) {
+						$r_status[] = "{$wpdb->posts}.post_status = '$admin_all_status'";
+					}
+				}
+
+				// Add private states.
+				$private_statuses = get_post_stati( array( 'private' => true ) );
+				foreach ( $private_statuses as $private_status ) {
+					$p_status[] = "{$wpdb->posts}.post_status = '$private_status'";
+				}
+
+			} else {
+
+				$q_status = $q['post_status'];
+				if ( ! is_array( $q_status ) ) {
+					$q_status = explode( ',', $q_status );
+				}
+
+				if ( in_array( 'any', $q_status, true ) ) {
+					foreach ( get_post_stati( array( 'exclude_from_search' => true ) ) as $status ) {
+						if ( ! in_array( $status, $q_status, true ) ) {
+							$e_status[] = "{$wpdb->posts}.post_status <> '$status'";
+						}
+					}
+				} else {
+					foreach ( get_post_stati( array(), 'objects' ) as $status => $status_object ) {
+						if ( in_array( $status, $q_status, true ) ) {
+							if ( $status_object->private ) {
+								$p_status[] = "{$wpdb->posts}.post_status = '$status'";
+							} else {
+								$r_status[] = "{$wpdb->posts}.post_status = '$status'";
+							}
+						}
+					}
+				}
+
+				if ( empty( $q['perm'] ) || 'readable' !== $q['perm'] ) {
+					$r_status = array_merge( $r_status, $p_status );
+					unset( $p_status );
+				}
+			}
+
+
+			$found_at_least_one_valid_status_rule = ! empty( $r_status ) || ! empty( $p_status ) || ! empty( $e_status );
+
+			if ( $found_at_least_one_valid_status_rule && ! empty( $queried_post_types ) ) {
+
+				$status_type_clauses      = array();
+				$generic_read_private_cap = $read_private_cap;
+				$generic_edit_others_cap  = $edit_others_cap;
 
 				foreach ( $queried_post_types as $queried_post_type ) {
 
@@ -2545,47 +2554,56 @@ class WP_Query {
 
 					$type_where = '(' . $wpdb->prepare( "{$wpdb->posts}.post_type = %s AND (", $queried_post_type );
 
-					// Public statuses.
-					$public_statuses = get_post_stati( array( 'public' => true ) );
-					$status_clauses  = array();
-					foreach ( $public_statuses as $public_status ) {
-						$status_clauses[] = "{$wpdb->posts}.post_status = '$public_status'";
-					}
-					$type_where .= implode( ' OR ', $status_clauses );
+					$status_clauses = array();
 
-					// Add protected states that should show in the admin all list.
-					if ( $this->is_admin ) {
-						$admin_all_statuses = get_post_stati(
-							array(
-								'protected'              => true,
-								'show_in_admin_all_list' => true,
-							)
-						);
-						foreach ( $admin_all_statuses as $admin_all_status ) {
-							$type_where .= " OR {$wpdb->posts}.post_status = '$admin_all_status'";
-						}
+					if ( ! empty( $e_status ) ) {
+						$status_clauses[] = '(' . implode( ' AND ', $e_status ) . ')';
 					}
 
-					// Add private states that are visible to current user.
-					if ( is_user_logged_in() && $queried_post_type_object instanceof WP_Post_Type ) {
+					if ( $queried_post_type_object instanceof WP_Post_Type ) {
 						$read_private_cap = $queried_post_type_object->cap->read_private_posts;
-						$private_statuses = get_post_stati( array( 'private' => true ) );
-						foreach ( $private_statuses as $private_status ) {
-							$type_where .= current_user_can( $read_private_cap ) ? " \nOR {$wpdb->posts}.post_status = '$private_status'" : " \nOR ({$wpdb->posts}.post_author = $user_id AND {$wpdb->posts}.post_status = '$private_status')";
+						$edit_others_cap  = $queried_post_type_object->cap->edit_others_posts;
+					} else {
+						$read_private_cap = $generic_read_private_cap;
+						$edit_others_cap  = $generic_edit_others_cap;
+					}
+
+					if ( ! empty( $r_status ) ) {
+						if ( ! empty( $q['perm'] ) && 'editable' === $q['perm'] && ! current_user_can( $edit_others_cap ) ) {
+							$status_clauses[] = "({$wpdb->posts}.post_author = $user_id " . 'AND (' . implode( ' OR ', $r_status ) . '))';
+						} else {
+							$status_clauses[] = '(' . implode( ' OR ', $r_status ) . ')';
+						}
+					}
+					if ( is_user_logged_in() && ! empty( $p_status ) ) {
+						if ( ! empty( $q['perm'] ) && 'readable' === $q['perm'] && ! current_user_can( $read_private_cap ) ) {
+							$status_clauses[] = "({$wpdb->posts}.post_author = $user_id " . 'AND (' . implode( ' OR ', $p_status ) . '))';
+						} else {
+							$status_clauses[] = '(' . implode( ' OR ', $p_status ) . ')';
+						}
+					}
+					if ( ! empty( $q_status ) && $post_status_join ) {
+						$join .= " LEFT JOIN {$wpdb->posts} AS p2 ON ({$wpdb->posts}.post_parent = p2.ID) ";
+						foreach ( $status_clauses as $index => $clause ) {
+							$status_clauses[ $index ] = "($clause OR ({$wpdb->posts}.post_status = 'inherit' AND " . str_replace( $wpdb->posts, 'p2', $clause ) . '))';
 						}
 					}
 
-					$type_where .= '))';
-
-					$status_type_clauses[] = $type_where;
+					$status_all_clauses = implode( " OR ", $status_clauses );
+					if ( ! empty( $status_all_clauses ) ) {
+						$type_where .= "$status_all_clauses))";
+						$status_type_clauses[] = $type_where;
+					}
 				}
 
 				if ( ! empty( $status_type_clauses ) ) {
 					$where .= ' AND (' . implode( ' OR ', $status_type_clauses ) . ')';
 				}
+
 			} else {
 				$where .= ' AND 1=0 ';
 			}
+
 		} else {
 			$where .= $post_type_where;
 		}
