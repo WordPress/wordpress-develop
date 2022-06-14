@@ -174,6 +174,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			$GLOBALS[ $global ] = null;
 		}
 
+		// Reset comment globals.
+		$comment_globals = array( 'comment_alt', 'comment_depth', 'comment_thread_alt' );
+		foreach ( $comment_globals as $global ) {
+			$GLOBALS[ $global ] = null;
+		}
+
 		/*
 		 * Reset $wp_sitemap global so that sitemap-related dynamic $wp->public_query_vars
 		 * are added when the next test runs.
@@ -206,7 +212,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * we want to skip tests that only need to run for trunk.
 	 */
 	public function skipOnAutomatedBranches() {
-		// https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables#default-environment-variables
+		// https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
 		$github_event_name = getenv( 'GITHUB_EVENT_NAME' );
 		$github_ref        = getenv( 'GITHUB_REF' );
 
