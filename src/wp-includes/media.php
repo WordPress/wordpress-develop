@@ -1850,8 +1850,9 @@ function wp_filter_content_tags( $content, $context = null ) {
 			// Add 'decoding=async' attribute unless a 'decoding' attribute is already present.
 			if ( ! str_contains( $filtered_image, ' decoding=' ) ) {
 				$filtered_image = wp_img_tag_add_decoding_attr( $filtered_image, $context );
-			// Use alternate mime types when specified and available.
+			}
 
+			// Use alternate mime types when specified and available.
 			if ( $attachment_id > 0 ) {
 				$filtered_image = wp_image_use_alternate_mime_types( $filtered_image, $context, $attachment_id );
 			}
