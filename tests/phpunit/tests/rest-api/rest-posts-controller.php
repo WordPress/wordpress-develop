@@ -1514,6 +1514,42 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertPostsWhere( " AND {posts}.ID NOT IN ($id3) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
 	}
 
+	/**
+	 * @ticket 55592
+	 * @covers WP_REST_Posts_Controller::get_items()
+	 */
+	public function test_get_items_with_featured_media() {
+		$file           = DIR_TESTDATA . '/images/canola.jpg';
+		$attachment_ids = array();
+		$post_ids       = array();
+		for ( $i = 0; $i < 3; $i++ ) {
+			$post_ids[ $i ]       = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+			$attachment_ids[ $i ] = self::factory()->attachment->create_object(
+				$file,
+				$post_ids[ $i ],
+				array(
+					'post_mime_type' => 'image/jpeg',
+				)
+			);
+			set_post_thumbnail( $post_ids[ $i ], $attachment_ids[ $i ] );
+		}
+
+		// Attachment creation warms thumbnail ids. Needs clean up for test.
+		wp_cache_delete_multiple( $attachment_ids, 'posts' );
+
+		$filter = new MockAction();
+		add_filter( 'update_post_metadata_cache', array( $filter, 'filter' ), 10, 2 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'include', $post_ids );
+		rest_get_server()->dispatch( $request );
+
+		$args = $filter->get_args();
+		$last = end( $args );
+		$this->assertIsArray( $last, 'The last value is not an array' );
+		$this->assertEqualSets( $attachment_ids, $last[1] );
+	}
+
 	public function test_get_items_pagination_headers() {
 		$total_posts = self::$total_posts;
 		$total_pages = (int) ceil( $total_posts / 10 );
