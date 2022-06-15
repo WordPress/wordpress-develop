@@ -296,17 +296,7 @@ function twentyseventeen_fonts_url() {
 	$libre_franklin = _x( 'on', 'Libre Franklin font: on or off', 'twentyseventeen' );
 
 	if ( 'off' !== $libre_franklin ) {
-		$font_families = array();
-
-		$font_families[] = 'Libre Franklin:300,300i,400,400i,600,600i,800,800i';
-
-		$query_args = array(
-			'family'  => urlencode( implode( '|', $font_families ) ),
-			'subset'  => urlencode( 'latin,latin-ext' ),
-			'display' => urlencode( 'fallback' ),
-		);
-
-		$fonts_url = add_query_arg( $query_args, 'https://fonts.googleapis.com/css' );
+		$fonts_url = get_stylesheet_directory_uri() . '/font-libre-franklin.css';
 	}
 
 	return esc_url_raw( $fonts_url );
