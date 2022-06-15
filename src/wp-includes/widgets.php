@@ -1079,7 +1079,7 @@ function wp_get_sidebar( $id ) {
  * @global array $sidebars_widgets
  *
  * @param array   $new_sidebars_widgets            Sidebar widgets and their settings.
- * @param boolean $refresh_global_sidebars_widgets Optional. Whether to update $sidebars_widgets
+ * @param bool  $refresh_global_sidebars_widgets Optional. Whether to update $sidebars_widgets.
  *                                                 global. Default true.
  */
 function wp_set_sidebars_widgets( $new_sidebars_widgets, $refresh_global_sidebars_widgets = true ) {
