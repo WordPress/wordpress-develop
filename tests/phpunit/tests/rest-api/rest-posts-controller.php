@@ -1517,8 +1517,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	/**
 	 * @ticket 55592
 	 * @covers WP_REST_Posts_Controller::get_items
+	 * @covers ::update_post_thumbnail_cache
 	 */
-	public function test_get_items_with_featured_media() {
+	public function test_get_items_primes_thumbnail_cache_for_featured_media() {
 		$file           = DIR_TESTDATA . '/images/canola.jpg';
 		$attachment_ids = array();
 		$post_ids       = array();
@@ -1534,7 +1535,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			set_post_thumbnail( $post_ids[ $i ], $attachment_ids[ $i ] );
 		}
 
-		// Attachment creation warms thumbnail ids. Needs clean up for test.
+		// Attachment creation warms thumbnail IDs. Needs clean up for test.
 		wp_cache_delete_multiple( $attachment_ids, 'posts' );
 
 		$filter = new MockAction();
@@ -1548,6 +1549,49 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$last = end( $args );
 		$this->assertIsArray( $last, 'The last value is not an array' );
 		$this->assertEqualSets( $attachment_ids, $last[1] );
+	}
+
+	/**
+	 * @ticket 55593
+	 * @covers WP_REST_Posts_Controller::get_items
+	 * @covers ::update_post_parent_caches
+	 */
+	public function test_get_items_primes_parent_post_caches() {
+		$parent_id1 = self::$post_ids[0];
+		$parent_id2 = self::$post_ids[1];
+		$parent_ids = array( $parent_id2, $parent_id1 );
+
+		$this->factory->attachment->create_object(
+			DIR_TESTDATA . '/images/canola.jpg',
+			$parent_id1,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption 1',
+			)
+		);
+
+		$this->factory->attachment->create_object(
+			DIR_TESTDATA . '/images/canola.jpg',
+			$parent_id2,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption 2',
+			)
+		);
+
+		// Attachment creation warms parent IDs. Needs clean up for test.
+		wp_cache_delete_multiple( $parent_ids, 'posts' );
+
+		$filter = new MockAction();
+		add_filter( 'update_post_metadata_cache', array( $filter, 'filter' ), 10, 2 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		rest_get_server()->dispatch( $request );
+
+		$args = $filter->get_args();
+		$last = end( $args );
+		$this->assertIsArray( $last, 'The last value is not an array' );
+		$this->assertEqualSets( $parent_ids, $last[1] );
 	}
 
 	public function test_get_items_pagination_headers() {
@@ -1785,49 +1829,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$formats = array_values( get_post_format_slugs() );
 
 		$this->assertSame( $formats, $data['schema']['properties']['format']['enum'] );
-	}
-
-	/**
-	 * @ticket 55593
-	 * @covers WP_REST_Posts_Controller::get_items
-	 * @covers update_post_parent_caches
-	 */
-	public function test_get_items_parent_ids_primed() {
-		$parent_id1 = self::$post_ids[0];
-		$parent_id2 = self::$post_ids[1];
-		$parent_ids = array( $parent_id2, $parent_id1 );
-
-		$this->factory->attachment->create_object(
-			DIR_TESTDATA . '/images/canola.jpg',
-			$parent_id1,
-			array(
-				'post_mime_type' => 'image/jpeg',
-				'post_excerpt'   => 'A sample caption 1',
-			)
-		);
-
-		$this->factory->attachment->create_object(
-			DIR_TESTDATA . '/images/canola.jpg',
-			$parent_id2,
-			array(
-				'post_mime_type' => 'image/jpeg',
-				'post_excerpt'   => 'A sample caption 2',
-			)
-		);
-
-		// Attachment creation warms parent ids. Needs clean up for test.
-		wp_cache_delete_multiple( $parent_ids, 'posts' );
-
-		$filter = new MockAction();
-		add_filter( 'update_post_metadata_cache', array( $filter, 'filter' ), 10, 2 );
-
-		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
-		rest_get_server()->dispatch( $request );
-
-		$args = $filter->get_args();
-		$last = end( $args );
-		$this->assertIsArray( $last, 'The last value is not an array' );
-		$this->assertEqualSets( $parent_ids, $last[1] );
 	}
 
 	public function test_get_item() {

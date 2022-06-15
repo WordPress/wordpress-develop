@@ -204,9 +204,9 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55620
-	 * @covers update_menu_item_cache
+	 * @covers ::update_menu_item_cache
 	 */
-	public function test_update_menu_item_cache_primed_posts() {
+	public function test_update_menu_item_cache_primes_posts() {
 		$post_id = self::factory()->post->create();
 		wp_update_nav_menu_item(
 			$this->menu_id,
@@ -235,9 +235,9 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55620
-	 * @covers update_menu_item_cache
+	 * @covers ::update_menu_item_cache
 	 */
-	public function test_update_menu_item_cache_primed_terms() {
+	public function test_update_menu_item_cache_primes_terms() {
 		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
 		$term_id = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 		wp_update_nav_menu_item(
