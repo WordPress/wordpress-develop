@@ -927,7 +927,14 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * Tests that running multiple request handlers (create and delete) deletes the intended widget.
+	 *
+	 * See this comment for more details:
+	 * https://github.com/WordPress/gutenberg/issues/33335#issuecomment-879903958
+	 *
 	 * @ticket 53816
+	 * @covers WP_REST_Widgets_Controller::create_item
+	 * @covers WP_REST_Widgets_Controller::delete_item
 	 */
 	public function test_create_and_delete() {
 		$this->setup_widget(
