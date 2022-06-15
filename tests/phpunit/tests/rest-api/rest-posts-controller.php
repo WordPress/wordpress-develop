@@ -1557,11 +1557,11 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 * @covers ::update_post_parent_caches
 	 */
 	public function test_get_items_primes_parent_post_caches() {
-		$parent_id1 = self::$post_ids[0];
-		$parent_id2 = self::$post_ids[1];
-		$parent_ids = array( $parent_id2, $parent_id1 );
-
-		$this->factory->attachment->create_object(
+		$parent_id1       = self::$post_ids[0];
+		$parent_id2       = self::$post_ids[1];
+		$parent_ids       = array( $parent_id1, $parent_id2 );
+		$attachment_ids   = array();
+		$attachment_ids[] = $this->factory->attachment->create_object(
 			DIR_TESTDATA . '/images/canola.jpg',
 			$parent_id1,
 			array(
@@ -1570,7 +1570,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			)
 		);
 
-		$this->factory->attachment->create_object(
+		$attachment_ids[] = $this->factory->attachment->create_object(
 			DIR_TESTDATA . '/images/canola.jpg',
 			$parent_id2,
 			array(
@@ -1581,6 +1581,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		// Attachment creation warms parent IDs. Needs clean up for test.
 		wp_cache_delete_multiple( $parent_ids, 'posts' );
+		wp_cache_delete_multiple( $attachment_ids, 'posts' );
 
 		$filter = new MockAction();
 		add_filter( 'update_post_metadata_cache', array( $filter, 'filter' ), 10, 2 );
@@ -1591,8 +1592,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$args = $filter->get_args();
 		$last = end( $args );
 		$this->assertIsArray( $last, 'The last value is not an array' );
-		// TODO: Enable this once the test is updated to pass with persistent object cache.
-		// $this->assertSameSets( $parent_ids, $last[1] );
+		$this->assertSameSets( $parent_ids, $last[1] );
 	}
 
 	public function test_get_items_pagination_headers() {
