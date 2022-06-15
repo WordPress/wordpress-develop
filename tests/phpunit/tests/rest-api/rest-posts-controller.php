@@ -1557,10 +1557,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 * @covers ::update_post_parent_caches
 	 */
 	public function test_get_items_primes_parent_post_caches() {
-		$parent_id1 = self::$post_ids[0];
-		$parent_id2 = self::$post_ids[1];
-		$parent_ids = array( $parent_id1, $parent_id2 );
-		$attachment_ids = array();
+		$parent_id1       = self::$post_ids[0];
+		$parent_id2       = self::$post_ids[1];
+		$parent_ids       = array( $parent_id1, $parent_id2 );
+		$attachment_ids   = array();
 		$attachment_ids[] = $this->factory->attachment->create_object(
 			DIR_TESTDATA . '/images/canola.jpg',
 			$parent_id1,
