@@ -983,10 +983,12 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$data               = $response->get_data();
 		$data               = $this->remove_links( $data );
 
-		// Confirm that we deleted exactly the widget that we wanted, and
-		// no other one. This tests against a regression in running multiple
-		// request handlers during the same run. See the following comment for more details:
-		// https://github.com/WordPress/gutenberg/issues/33335#issuecomment-879903958
+		/*
+		 * Confirm that we deleted exactly the widget that we wanted, and
+		 * no other one. This tests against a regression in running multiple
+		 * request handlers during the same run. See the following comment for more details:
+		 * https://github.com/WordPress/gutenberg/issues/33335#issuecomment-879903958
+		 */
 		$this->assertCount( 1, $data );
 		$this->assertSame( 'text-2', $data[0]['id'] );
 		$this->assertSame( 'sidebar-1', $data[0]['sidebar'] );
