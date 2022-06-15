@@ -7494,7 +7494,7 @@ function update_post_author_caches( $posts ) {
  *
  * @since 6.1.0
  *
- * @param WP_Post[] $posts Array of Post objects
+ * @param WP_Post[] $posts Array of Post objects.
  */
 function update_post_parent_caches( $posts ) {
 	$parent_ids = wp_list_pluck( $posts, 'post_parent' );
