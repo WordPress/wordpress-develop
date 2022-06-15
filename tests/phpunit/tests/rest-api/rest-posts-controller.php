@@ -1559,7 +1559,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_get_items_primes_parent_post_caches() {
 		$parent_id1 = self::$post_ids[0];
 		$parent_id2 = self::$post_ids[1];
-		$parent_ids = array( $parent_id2, $parent_id1 );
+		$parent_ids = array( $parent_id1, $parent_id2 );
 
 		$this->factory->attachment->create_object(
 			DIR_TESTDATA . '/images/canola.jpg',
@@ -1588,10 +1588,16 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		rest_get_server()->dispatch( $request );
 
-		$args = $filter->get_args();
-		$last = end( $args );
-		$this->assertIsArray( $last, 'The last value is not an array' );
-		$this->assertSameSets( $parent_ids, $last[1] );
+		$args               = $filter->get_args();
+		$primed_query_found = false;
+		foreach ( $args as $arg ) {
+			if ( $parent_ids === $arg[1] ) {
+				$primed_query_found = true;
+				break;
+			}
+		}
+
+		$this->assertTrue( $primed_query_found, 'Prime query was not executed.' );
 	}
 
 	public function test_get_items_pagination_headers() {
