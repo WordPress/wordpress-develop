@@ -536,10 +536,10 @@ class WP_Query {
 	 * @since 2.1.0
 	 * @since 4.5.0 Removed the `comments_popup` public query variable.
 	 *
-	 * @param array $array Defined query variables.
+	 * @param array $query_vars Defined query variables.
 	 * @return array Complete query variables with undefined ones filled in empty.
 	 */
-	public function fill_query_vars( $array ) {
+	public function fill_query_vars( $query_vars ) {
 		$keys = array(
 			'error',
 			'm',
@@ -580,8 +580,8 @@ class WP_Query {
 		);
 
 		foreach ( $keys as $key ) {
-			if ( ! isset( $array[ $key ] ) ) {
-				$array[ $key ] = '';
+			if ( ! isset( $query_vars[ $key ] ) ) {
+				$query_vars[ $key ] = '';
 			}
 		}
 
@@ -604,11 +604,12 @@ class WP_Query {
 		);
 
 		foreach ( $array_keys as $key ) {
-			if ( ! isset( $array[ $key ] ) ) {
-				$array[ $key ] = array();
+			if ( ! isset( $query_vars[ $key ] ) ) {
+				$query_vars[ $key ] = array();
 			}
 		}
-		return $array;
+
+		return $query_vars;
 	}
 
 	/**
@@ -667,15 +668,15 @@ class WP_Query {
 	 *     @type string|string[] $meta_key                Meta key or keys to filter by.
 	 *     @type string|string[] $meta_value              Meta value or values to filter by.
 	 *     @type string          $meta_compare            MySQL operator used for comparing the meta value.
-	 *                                                    See WP_Meta_Query::__construct for accepted values and default value.
+	 *                                                    See WP_Meta_Query::__construct() for accepted values and default value.
 	 *     @type string          $meta_compare_key        MySQL operator used for comparing the meta key.
-	 *                                                    See WP_Meta_Query::__construct for accepted values and default value.
+	 *                                                    See WP_Meta_Query::__construct() for accepted values and default value.
 	 *     @type string          $meta_type               MySQL data type that the meta_value column will be CAST to for comparisons.
-	 *                                                    See WP_Meta_Query::__construct for accepted values and default value.
+	 *                                                    See WP_Meta_Query::__construct() for accepted values and default value.
 	 *     @type string          $meta_type_key           MySQL data type that the meta_key column will be CAST to for comparisons.
-	 *                                                    See WP_Meta_Query::__construct for accepted values and default value.
+	 *                                                    See WP_Meta_Query::__construct() for accepted values and default value.
 	 *     @type array           $meta_query              An associative array of WP_Meta_Query arguments.
-	 *                                                    See WP_Meta_Query::__construct for accepted values.
+	 *                                                    See WP_Meta_Query::__construct() for accepted values.
 	 *     @type int             $menu_order              The menu order of the posts.
 	 *     @type int             $minute                  Minute of the hour. Default empty. Accepts numbers 0-59.
 	 *     @type int             $monthnum                The two-digit month. Default empty. Accepts numbers 1-12.
@@ -751,7 +752,7 @@ class WP_Query {
 	 *     @type string[]        $tag_slug__in            An array of tag slugs (OR in). unless 'ignore_sticky_posts' is
 	 *                                                    true. Note: a string of comma-separated IDs will NOT work.
 	 *     @type array           $tax_query               An associative array of WP_Tax_Query arguments.
-	 *                                                    See WP_Tax_Query->__construct().
+	 *                                                    See WP_Tax_Query::__construct().
 	 *     @type string          $title                   Post title.
 	 *     @type bool            $update_post_meta_cache  Whether to update the post meta cache. Default true.
 	 *     @type bool            $update_post_term_cache  Whether to update the post term cache. Default true.
@@ -1748,18 +1749,18 @@ class WP_Query {
 	 * Retrieves the value of a query variable.
 	 *
 	 * @since 1.5.0
-	 * @since 3.9.0 The `$default` argument was introduced.
+	 * @since 3.9.0 The `$default_value` argument was introduced.
 	 *
-	 * @param string $query_var Query variable key.
-	 * @param mixed  $default   Optional. Value to return if the query variable is not set. Default empty string.
+	 * @param string $query_var     Query variable key.
+	 * @param mixed  $default_value Optional. Value to return if the query variable is not set. Default empty string.
 	 * @return mixed Contents of the query variable.
 	 */
-	public function get( $query_var, $default = '' ) {
+	public function get( $query_var, $default_value = '' ) {
 		if ( isset( $this->query_vars[ $query_var ] ) ) {
 			return $this->query_vars[ $query_var ];
 		}
 
-		return $default;
+		return $default_value;
 	}
 
 	/**
@@ -2758,7 +2759,7 @@ class WP_Query {
 			}
 		}
 
-		$clauses = array( 'where', 'groupby', 'join', 'orderby', 'distinct', 'fields', 'limits' );
+		$pieces = array( 'where', 'groupby', 'join', 'orderby', 'distinct', 'fields', 'limits' );
 
 		/*
 		 * Apply post-paging filters on where and join. Only plugins that
@@ -2860,7 +2861,7 @@ class WP_Query {
 			 * }
 			 * @param WP_Query $query   The WP_Query instance (passed by reference).
 			 */
-			$clauses = (array) apply_filters_ref_array( 'posts_clauses', array( compact( $clauses ), &$this ) );
+			$clauses = (array) apply_filters_ref_array( 'posts_clauses', array( compact( $pieces ), &$this ) );
 
 			$where    = isset( $clauses['where'] ) ? $clauses['where'] : '';
 			$groupby  = isset( $clauses['groupby'] ) ? $clauses['groupby'] : '';
@@ -2994,7 +2995,7 @@ class WP_Query {
 			 * }
 			 * @param WP_Query $query  The WP_Query instance (passed by reference).
 			 */
-			$clauses = (array) apply_filters_ref_array( 'posts_clauses_request', array( $clauses, &$this ) );
+			$clauses = (array) apply_filters_ref_array( 'posts_clauses_request', array( compact( $pieces ), &$this ) );
 
 			$where    = isset( $clauses['where'] ) ? $clauses['where'] : '';
 			$groupby  = isset( $clauses['groupby'] ) ? $clauses['groupby'] : '';
@@ -3442,6 +3443,11 @@ class WP_Query {
 	 */
 	public function the_post() {
 		global $post;
+
+		if ( ! $this->in_the_loop ) {
+			update_post_author_caches( $this->posts );
+		}
+
 		$this->in_the_loop = true;
 
 		if ( -1 == $this->current_post ) { // Loop has just started.

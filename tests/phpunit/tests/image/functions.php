@@ -28,6 +28,24 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Get the available image editor engine class(es).
+	 *
+	 * @return string[] Available image editor classes; empty array when none are available.
+	 */
+	private function get_image_editor_engine_classes() {
+		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
+
+		foreach ( $classes as $key => $class ) {
+			if ( ! call_user_func( array( $class, 'test' ) ) ) {
+				// If the image editor isn't available, skip it.
+				unset( $classes[ $key ] );
+			}
+		}
+
+		return $classes;
+	}
+
+	/**
 	 * Get the MIME type of a file
 	 *
 	 * @param string $filename
@@ -142,7 +160,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->assertFalse( file_is_displayable_image( DIR_TESTDATA . '/images/' . $file ), "file_is_valid_image($file) should return false" );
 		}
 	}
-
 
 	/**
 	 * @ticket 50833
@@ -322,25 +339,24 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Get the available image editor engine class(es).
-	 *
-	 * @return string[] Available image editor classes; empty array when none are avaialble.
+	 * @ticket 55403
 	 */
-	private function get_image_editor_engine_classes() {
-		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
+	public function test_wp_crop_image_with_filtered_extension() {
+		add_filter( 'image_editor_output_format', array( $this, 'filter_image_editor_output_format' ) );
+		$file = wp_crop_image(
+			DIR_TESTDATA . '/images/canola.jpg',
+			0,
+			0,
+			100,
+			100,
+			100,
+			100
+		);
 
-		foreach ( $classes as $key => $class ) {
-			if ( ! call_user_func( array( $class, 'test' ) ) ) {
-				// If the image editor isn't available, skip it.
-				unset( $classes[ $key ] );
-			}
-		}
+		$this->assertNotWPError( $file );
+		$this->assertFileExists( $file );
 
-		if ( empty( $classes ) ) {
-			$this->markTestSkipped( 'Image editor engines WP_Image_Editor_GD and WP_Image_Editor_Imagick are not supported on this system.' );
-		}
-
-		return $classes;
+		unlink( $file );
 	}
 
 	/**
@@ -426,10 +442,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Error', $file );
 	}
 
-	public function mock_image_editor( $editors ) {
-		return array( 'WP_Image_Editor_Mock' );
-	}
-
 	/**
 	 * @ticket 23325
 	 */
@@ -450,6 +462,13 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		remove_filter( 'wp_image_editors', array( $this, 'mock_image_editor' ) );
 		WP_Image_Editor_Mock::$save_return = array();
+	}
+
+	/**
+	 * @see test_wp_crop_image_error_on_saving()
+	 */
+	public function mock_image_editor( $editors ) {
+		return array( 'WP_Image_Editor_Mock' );
 	}
 
 	/**
@@ -657,6 +676,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		foreach ( $metadata['sizes'] as $size ) {
 			unlink( $temp_dir . $size['file'] );
 		}
+	}
+
+	public function filter_image_editor_output_format() {
+		return array_fill_keys( array( 'image/jpg', 'image/jpeg', 'image/png' ), 'image/webp' );
 	}
 
 	public function filter_fallback_intermediate_image_sizes( $fallback_sizes, $metadata ) {
