@@ -1572,11 +1572,10 @@ class wpdb {
 
 		$caller = $this->get_caller();
 		if ( $caller ) {
-			/* translators: 1: Database error message, 2: SQL query, 3: Name of the calling function. */
-			$error_str = sprintf( __( 'WordPress database error %1$s for query %2$s made by %3$s' ), $str, $this->last_query, $caller );
+			// not translated, as this will be error logged
+			$error_str = sprintf( 'WordPress database error %1$s for query %2$s made by %3$s', $str, $this->last_query, $caller );
 		} else {
-			/* translators: 1: Database error message, 2: SQL query. */
-			$error_str = sprintf( __( 'WordPress database error %1$s for query %2$s' ), $str, $this->last_query );
+			$error_str = sprintf( 'WordPress database error %1$s for query %2$s', $str, $this->last_query );
 		}
 
 		error_log( $error_str );
