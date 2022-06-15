@@ -230,7 +230,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 		$args = $action->get_args();
 		$last = end( $args );
-		$this->assertEqualSets( array( $post_id ), $last[1], '_prime_post_caches() was not executed.' );
+		$this->assertSameSets( array( $post_id ), $last[1], '_prime_post_caches() was not executed.' );
 	}
 
 	/**
@@ -262,7 +262,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 		$args = $action->get_args();
 		$last = end( $args );
-		$this->assertEqualSets( array( $term_id ), $last[1], '_prime_term_caches() was not executed.' );
+		$this->assertSameSets( array( $term_id ), $last[1], '_prime_term_caches() was not executed.' );
 	}
 
 	/**
