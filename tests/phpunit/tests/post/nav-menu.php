@@ -204,8 +204,9 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55620
+	 * @covers update_menu_item_cache
 	 */
-	public function test_update_menu_item_cache_primed_post() {
+	public function test_update_menu_item_cache_primed_posts() {
 		$post_id = self::factory()->post->create();
 		wp_update_nav_menu_item(
 			$this->menu_id,
@@ -229,11 +230,12 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 		$args = $action->get_args();
 		$last = end( $args );
-		$this->assertEqualSets( array( $post_id ), $last[1], '_prime_post_caches was not executed.' );
+		$this->assertEqualSets( array( $post_id ), $last[1], '_prime_post_caches() was not executed.' );
 	}
 
 	/**
 	 * @ticket 55620
+	 * @covers update_menu_item_cache
 	 */
 	public function test_update_menu_item_cache_primed_terms() {
 		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
@@ -260,7 +262,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 		$args = $action->get_args();
 		$last = end( $args );
-		$this->assertEqualSets( array( $term_id ), $last[1], '_prime_term_caches was not executed.' );
+		$this->assertEqualSets( array( $term_id ), $last[1], '_prime_term_caches() was not executed.' );
 	}
 
 	/**
