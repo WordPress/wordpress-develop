@@ -1516,7 +1516,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	/**
 	 * @ticket 55592
-	 * @covers WP_REST_Posts_Controller::get_items()
+	 * @covers WP_REST_Posts_Controller::get_items
 	 */
 	public function test_get_items_with_featured_media() {
 		$file           = DIR_TESTDATA . '/images/canola.jpg';
@@ -1789,6 +1789,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	/**
 	 * @ticket 55593
+	 * @covers WP_REST_Posts_Controller::get_items
+	 * @covers update_post_parent_caches
 	 */
 	public function test_get_items_parent_ids_primed() {
 		$parent_id1 = self::$post_ids[0];
