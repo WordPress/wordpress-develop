@@ -1568,11 +1568,9 @@ class wpdb {
 			return false;
 		}
 
-		wp_load_translations_early();
-
 		$caller = $this->get_caller();
 		if ( $caller ) {
-			// not translated, as this will be error logged
+			// Not translated, as this will only appear in the error log.
 			$error_str = sprintf( 'WordPress database error %1$s for query %2$s made by %3$s', $str, $this->last_query, $caller );
 		} else {
 			$error_str = sprintf( 'WordPress database error %1$s for query %2$s', $str, $this->last_query );
@@ -1584,6 +1582,8 @@ class wpdb {
 		if ( ! $this->show_errors ) {
 			return false;
 		}
+
+		wp_load_translations_early();
 
 		// If there is an error then take note of it.
 		if ( is_multisite() ) {
