@@ -696,8 +696,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 * @ticket 55857
 	 */
 	public function test_wp_get_last_revision_id_and_total_count_no_revisions() {
-		$post     = get_default_post_to_edit( 'post', true );
-		$post_id  = $post->ID;
+		add_filter( 'wp_revisions_to_keep', '__return_zero' );
+		$post_id = self::factory()->post->create();
 		$revision = wp_get_last_revision_id_and_total_count( $post_id );
 		$this->assertSame( 0, $revision['revision'], 'Post should not have revision.' );
 		$this->assertSame( 0, $revision['count'], 'Post should not have revision.' );
