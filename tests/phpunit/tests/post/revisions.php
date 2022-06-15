@@ -662,9 +662,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 * @dataProvider data_wp_get_post_revisions_url
 	 */
 	public function test_wp_get_last_revision_id_and_total_count( $revisions ) {
-		wp_set_current_user( self::$admin_user_id );
-		$post_id            = self::factory()->post->create( array( 'post_title' => 'Some Post' ) );
-		$latest_revision_id = $post_id;
+		$post_id            = self::factory()->post->create();
 
 		for ( $i = 0; $i < $revisions; ++$i ) {
 			wp_update_post(
@@ -674,17 +672,18 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 				)
 			);
 
-			$latest_revision_id++;
+			$post_revisions      = wp_get_post_revisions( $post_id );
+			$last_post_revision  = current( $post_revisions );
+			$revision            = wp_get_last_revision_id_and_total_count( $post_id );
 
-			$revision = wp_get_last_revision_id_and_total_count( $post_id );
 			$this->assertSame(
-				$latest_revision_id,
+				$last_post_revision->ID,
 				$revision['revision'],
-				'Failed asserting latest revision id.'
+				'Failed asserting latest revision id.' . print_r( $post_revisions, true )
 			);
 
 			$this->assertSame(
-				count( wp_get_post_revisions( $post_id ) ),
+				count( $post_revisions ),
 				$revision['count'],
 				'Failed asserting total count of revision.'
 			);
