@@ -487,7 +487,7 @@ class WP_oEmbed {
 					$atts = shortcode_parse_atts( $link );
 
 					if ( ! empty( $atts['type'] ) && ! empty( $linktypes[ $atts['type'] ] ) && ! empty( $atts['href'] ) ) {
-						$providers[ $linktypes[ $atts['type'] ] ] = htmlspecialchars_decode( $atts['href'] );
+						$providers[ $linktypes[ $atts['type'] ] ] = sanitize_url( $atts['href'] );
 
 						// Stop here if it's JSON (that's all we need).
 						if ( 'json' === $linktypes[ $atts['type'] ] ) {
