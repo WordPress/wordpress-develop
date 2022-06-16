@@ -608,7 +608,7 @@ function prep_atom_text_construct( $data ) {
 	if ( strpos( $data, ']]>' ) === false ) {
 		return array( 'html', "<![CDATA[$data]]>" );
 	} else {
-		return array( 'html', htmlspecialchars( $data ) );
+		return array( 'html', htmlspecialchars( $data, ENT_COMPAT | ENT_HTML401 ) );
 	}
 }
 
