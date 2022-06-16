@@ -5820,7 +5820,7 @@ function wp_encode_emoji( $content ) {
 	$emoji = _wp_emoji_list( 'partials' );
 
 	foreach ( $emoji as $emojum ) {
-		$emoji_char = html_entity_decode( $emojum );
+		$emoji_char = html_entity_decode( $emojum, ENT_COMPAT | ENT_HTML401 );
 		if ( false !== strpos( $content, $emoji_char ) ) {
 			$content = preg_replace( "/$emoji_char/", $emojum, $content );
 		}
@@ -5858,7 +5858,7 @@ function wp_staticize_emoji( $text ) {
 	$possible_emoji = array();
 	foreach ( $emoji as $emojum ) {
 		if ( false !== strpos( $text, $emojum ) ) {
-			$possible_emoji[ $emojum ] = html_entity_decode( $emojum );
+			$possible_emoji[ $emojum ] = html_entity_decode( $emojum, ENT_COMPAT | ENT_HTML401 );
 		}
 	}
 
