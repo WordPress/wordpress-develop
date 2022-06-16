@@ -530,19 +530,12 @@ function wp_get_post_revisions( $post_id = 0, $args = null ) {
  * }
  */
 function wp_get_last_revision_id_and_total_count( $post_id = 0 ) {
-	$post = get_post( $post_id );
-	if ( ! $post || empty( $post->ID ) ) {
-		return array(
-			'revision' => 0,
-			'count'    => 0,
-		);
-	}
+	$post     = get_post( $post_id );
+	$revision = 0;
+	$count    = 0;
 
-	if ( ! wp_revisions_enabled( $post ) ) {
-		return array(
-			'revision' => 0,
-			'count'    => 0,
-		);
+	if ( ! $post || empty( $post->ID ) || ! wp_revisions_enabled( $post ) ) {
+		return compact( 'revision', 'count' );
 	}
 
 	$args = array(
@@ -561,17 +554,12 @@ function wp_get_last_revision_id_and_total_count( $post_id = 0 ) {
 	$revision_query = new WP_Query();
 	$revisions      = $revision_query->query( $args );
 
-	if ( ! $revisions ) {
-		return array(
-			'revision' => 0,
-			'count'    => 0,
-		);
+	if ( $revisions ) {
+		$revision = $revisions[0];
+		$count    = $revision_query->found_posts;
 	}
 
-	return array(
-		'revision' => $revisions[0],
-		'count'    => $revision_query->found_posts,
-	);
+	return compact( 'revision', 'count' );
 }
 
 /**
