@@ -1242,9 +1242,9 @@ function wp_dashboard_rss_control( $widget_id, $form_inputs = array() ) {
 		if ( ! $widget_options[ $widget_id ]['title'] && isset( $_POST['widget-rss'][ $number ]['title'] ) ) {
 			$rss = fetch_feed( $widget_options[ $widget_id ]['url'] );
 			if ( is_wp_error( $rss ) ) {
-				$widget_options[ $widget_id ]['title'] = htmlentities( __( 'Unknown Feed' ) );
+				$widget_options[ $widget_id ]['title'] = htmlentities( __( 'Unknown Feed' ), ENT_COMPAT | ENT_HTML401 );
 			} else {
-				$widget_options[ $widget_id ]['title'] = htmlentities( strip_tags( $rss->get_title() ) );
+				$widget_options[ $widget_id ]['title'] = htmlentities( strip_tags( $rss->get_title() ), ENT_COMPAT | ENT_HTML401 );
 				$rss->__destruct();
 				unset( $rss );
 			}
