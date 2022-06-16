@@ -25,7 +25,7 @@ class Tests_Functions_wpGetReferer extends WP_UnitTestCase {
 	public function test_wp_get_referer__wp_http_referer_referer() {
 
 		$_REQUEST['_wp_http_referer'] = 'http://example.com';
-		$this->assertSame( 'http://example.com',   wp_get_referer(), '$_REQUEST["_wp_http_referer"] set but no $_REQUEST["REQUEST_URI"] set' );
+		$this->assertSame( 'http://example.com', wp_get_referer(), '$_REQUEST["_wp_http_referer"] set but no $_REQUEST["REQUEST_URI"] set' );
 	}
 
 	/**
@@ -52,7 +52,7 @@ class Tests_Functions_wpGetReferer extends WP_UnitTestCase {
 
 		$_REQUEST['_wp_http_referer'] = 'http://example.com';
 		$_SERVER['HTTP_REFERER']      = 'http://NotUSED.com';
-		$this->assertSame( 'http://example.com',  wp_get_referer(), 'Both set should use _wp_http_referer but no $_REQUEST["REQUEST_URI"] set' );
+		$this->assertSame( 'http://example.com', wp_get_referer(), 'Both set should use _wp_http_referer but no $_REQUEST["REQUEST_URI"] set' );
 	}
 	/**
 	 * @ticket 55729
