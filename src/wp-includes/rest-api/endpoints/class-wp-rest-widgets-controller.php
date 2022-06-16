@@ -292,8 +292,8 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		global $wp_widget_factory;
 
 		/*
-		 * The name retrieve_widgets() is somewhat misleading. It doesn't just "retrieve". It also
-		 * moves any "hidden" or "lost" widgets to the wp_inactive_widgets sidebar.
+		 * The name retrieve_widgets() is somewhat misleading. It doesn't just "retrieve". It
+		 * also moves any "hidden" or "lost" widgets to the wp_inactive_widgets sidebar.
 		 */
 		$this->retrieve_widgets();
 
