@@ -2479,7 +2479,7 @@ function allowed_tags() {
 		}
 		$allowed .= '> ';
 	}
-	return htmlentities( $allowed );
+	return htmlentities( $allowed, ENT_COMPAT | ENT_HTML401 );
 }
 
 /***** Date/Time tags */
@@ -4213,7 +4213,7 @@ function paginate_links( $args = '' ) {
 	global $wp_query, $wp_rewrite;
 
 	// Setting up default values based on the current URL.
-	$pagenum_link = html_entity_decode( get_pagenum_link() );
+	$pagenum_link = html_entity_decode( get_pagenum_link(), ENT_COMPAT | ENT_HTML401 );
 	$url_parts    = explode( '?', $pagenum_link );
 
 	// Get max pages and current page out of the current query, if available.
