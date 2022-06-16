@@ -1705,10 +1705,8 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'wp-packages:sync-stable-blocks', 'Refresh the PHP files referring to stable @wordpress/block-library blocks.', function() {
 		grunt.log.writeln( `Syncing stable blocks from @wordpress/block-library to src/` );
-		spawn( 'node', [ 'tools/release/sync-stable-blocks.js' ], {
-			cwd: __dirname,
-			stdio: 'inherit',
-		} );
+		const { main } = require( 'tools/release/sync-stable-blocks.js' );
+		main();
 	} );
 
 	// Patch task.

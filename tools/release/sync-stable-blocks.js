@@ -107,15 +107,10 @@ function toDirectoryName( metadata ) {
 }
 
 module.exports = {
+	main,
 	isDynamic,
 	toDirectoryName,
 	getStableBlocksMetadata,
 };
-
-// Only run the main() function when this file is executed directly and note
-// required by another file.
-if ( require.main === module ) {
-	main();
-}
 
 /* eslint-enable no-console */
