@@ -101,9 +101,8 @@ function isDynamic( metadata ) {
  * @return {string} Parent directory name.
  */
 function toDirectoryName( metadata ) {
-	const pathSegments = metadata.path.split( "/" );
 	return (
-		pathSegments[ pathSegments.length - 2 ]
+		path.basename( path.dirname( metadata.path ) )
 	);
 }
 
