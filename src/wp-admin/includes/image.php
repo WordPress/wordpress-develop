@@ -1387,6 +1387,11 @@ function _wp_get_primary_and_additional_mime_types( $file, $attachment_id ) {
 		}
 	);
 
+	// Handle an empty value for $output_mime_types: only output the original type.
+	if ( empty( $output_mime_types ) ) {
+		return array( $original_mime_type, array() );
+	}
+
 	// Use original mime type as primary mime type, or alternatively the first one.
 	$primary_mime_type_key = array_search( $original_mime_type, $output_mime_types, true );
 	if ( false === $primary_mime_type_key ) {
@@ -1396,10 +1401,6 @@ function _wp_get_primary_and_additional_mime_types( $file, $attachment_id ) {
 	$additional_mime_types     = $output_mime_types;
 	list( $primary_mime_type ) = array_splice( $additional_mime_types, $primary_mime_type_key, 1 );
 
-	// Ensure $primary_mime_type is set.
-	if ( empty( $primary_mime_type ) ) {
-		$primary_mime_type = $original_mime_type;
-	}
 	return array(
 		$primary_mime_type,
 		$additional_mime_types,
