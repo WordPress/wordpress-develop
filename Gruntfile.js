@@ -1705,7 +1705,7 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'wp-packages:sync-stable-blocks', 'Refresh the PHP files referring to stable @wordpress/block-library blocks.', function() {
 		grunt.log.writeln( `Syncing stable blocks from @wordpress/block-library to src/` );
-		const { main } = require( 'tools/release/sync-stable-blocks.js' );
+		const { main } = require( __dirname + '/tools/release/sync-stable-blocks' );
 		main();
 	} );
 
