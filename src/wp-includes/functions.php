@@ -4085,8 +4085,8 @@ function _xmlrpc_wp_die_handler( $message, $title = '', $args = array() ) {
 function _xml_wp_die_handler( $message, $title = '', $args = array() ) {
 	list( $message, $title, $parsed_args ) = _wp_die_process_input( $message, $title, $args );
 
-	$message = htmlspecialchars( $message );
-	$title   = htmlspecialchars( $title );
+	$message = htmlspecialchars( $message, ENT_COMPAT | ENT_HTML401 );
+	$title   = htmlspecialchars( $title, ENT_COMPAT | ENT_HTML401 );
 
 	$xml = <<<EOD
 <error>
