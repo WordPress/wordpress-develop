@@ -2021,7 +2021,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$last_revision   = $revision['revision'];
 			$revisions_count = $revision['count'];
 
-
 			$links['version-history'] = array(
 				'href'  => rest_url( trailingslashit( $base ) . $post->ID . '/revisions' ),
 				'count' => $revisions_count,
