@@ -90,7 +90,7 @@ function wp_get_missing_image_subsizes( $attachment_id, $mime_type = '' ) {
 	}
 
 	if ( ! $mime_type ) {
-		$mime_type  = get_post_mime_type( get_post( $attachment_id ) );
+		$mime_type = get_post_mime_type( get_post( $attachment_id ) );
 	}
 
 	$registered_sizes = wp_get_registered_image_subsizes();
@@ -506,7 +506,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 	}
 
 	if ( ! $mime_type ) {
-		$mime_type  = wp_get_image_mime( $file );
+		$mime_type = wp_get_image_mime( $file );
 	}
 
 	// Check if any of the new sizes already exist.
