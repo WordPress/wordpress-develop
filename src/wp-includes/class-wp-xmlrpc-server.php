@@ -975,7 +975,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			$enclosures         = (array) get_post_meta( $post['ID'], 'enclosure' );
 			if ( ! empty( $enclosures ) ) {
 				$encdata                      = explode( "\n", $enclosures[0] );
-				$_post['enclosure']['url']    = trim( htmlspecialchars( $encdata[0] ) );
+				$_post['enclosure']['url']    = sanitize_url( trim( $encdata[0] ) );
 				$_post['enclosure']['length'] = (int) trim( $encdata[1] );
 				$_post['enclosure']['type']   = trim( $encdata[2] );
 			}
@@ -6109,7 +6109,7 @@ class wp_xmlrpc_server extends IXR_Server {
 				if ( 'enclosure' === $key ) {
 					foreach ( (array) $val as $enc ) {
 						$encdata             = explode( "\n", $enc );
-						$enclosure['url']    = trim( htmlspecialchars( $encdata[0] ) );
+						$enclosure['url']    = sanitize_url( trim( $encdata[0] ) );
 						$enclosure['length'] = (int) trim( $encdata[1] );
 						$enclosure['type']   = trim( $encdata[2] );
 						break 2;
