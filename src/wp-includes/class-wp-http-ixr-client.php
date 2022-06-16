@@ -85,7 +85,7 @@ class WP_HTTP_IXR_Client extends IXR_Client {
 
 		// Now send the request.
 		if ( $this->debug ) {
-			echo '<pre class="ixr_request">' . htmlspecialchars( $xml ) . "\n</pre>\n\n";
+			echo '<pre class="ixr_request">' . htmlspecialchars( $xml, ENT_COMPAT | ENT_HTML401 ) . "\n</pre>\n\n";
 		}
 
 		$response = wp_remote_post( $url, $args );
@@ -103,7 +103,7 @@ class WP_HTTP_IXR_Client extends IXR_Client {
 		}
 
 		if ( $this->debug ) {
-			echo '<pre class="ixr_response">' . htmlspecialchars( wp_remote_retrieve_body( $response ) ) . "\n</pre>\n\n";
+			echo '<pre class="ixr_response">' . htmlspecialchars( wp_remote_retrieve_body( $response ), ENT_COMPAT | ENT_HTML401 ) . "\n</pre>\n\n";
 		}
 
 		// Now parse what we've got back.
