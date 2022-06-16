@@ -1401,7 +1401,7 @@ Thanks! -- The WordPress Team"
 				$body[] = str_repeat( '-', strlen( $update->name ) );
 
 				foreach ( $update->messages as $message ) {
-					$body[] = '  ' . html_entity_decode( str_replace( '&#8230;', '...', $message ) );
+					$body[] = '  ' . html_entity_decode( str_replace( '&#8230;', '...', $message ), ENT_COMPAT | ENT_HTML401 );
 				}
 
 				if ( is_wp_error( $update->result ) ) {
