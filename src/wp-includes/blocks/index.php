@@ -8,7 +8,7 @@
 // Include files required for core blocks registration.
 require ABSPATH . WPINC . '/blocks/legacy-widget.php';
 require ABSPATH . WPINC . '/blocks/widget-group.php';
-require __DIR__ . './require-blocks.php';
+require ABSPATH . WPINC . '/blocks/require-blocks.php';
 
 /**
  * Registers core block types using metadata files.

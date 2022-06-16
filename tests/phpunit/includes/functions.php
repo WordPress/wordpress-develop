@@ -302,7 +302,7 @@ tests_add_filter( 'send_auth_cookies', '__return_false' );
  * @since 5.0.0
  */
 function _unhook_block_registration() {
-	require './unregister-blocks-hooks.php';
+	require __DIR__ . '/unregister-blocks-hooks.php';
 	remove_action( 'init', 'register_core_block_types_from_metadata' );
 	remove_action( 'init', 'register_block_core_legacy_widget' );
 	remove_action( 'init', 'register_block_core_widget_group' );
