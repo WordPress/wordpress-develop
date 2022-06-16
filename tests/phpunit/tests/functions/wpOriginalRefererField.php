@@ -35,7 +35,7 @@ class Tests_Functions_wpOriginalRefererField extends WP_UnitTestCase {
 
 		$_REQUEST['_wp_original_http_referer'] = 'http://example.com/test/';
 
-		$this->assertSame( '<input type="hidden" name="_wp_http_referer" value="http://example.com/test/" />', wp_original_referer_field( false ) );
+		$this->assertSame( '<input type="hidden" name="_wp_original_http_referer" value="http://example.com/test/" />', wp_original_referer_field( false ) );
 	}
 
 	/**
@@ -45,6 +45,6 @@ class Tests_Functions_wpOriginalRefererField extends WP_UnitTestCase {
 
 		$_REQUEST['_wp_original_http_referer'] = 'http://example.com/test/';
 
-		$this->assertSame( '<input type="hidden" name="_wp_http_referer" value="http://example.com/test/" />', wp_original_referer_field( false, 'previous' ) );
+		$this->assertSame( '<input type="hidden" name="_wp_original_http_referer" value="http://example.com/test/" />', wp_original_referer_field( false, 'previous' ) );
 	}
 }

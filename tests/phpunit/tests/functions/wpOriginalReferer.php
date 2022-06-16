@@ -31,7 +31,7 @@ class Tests_Functions_wpOriginalReferer extends WP_UnitTestCase {
 	 */
 	public function test_wp_get_original_referer() {
 
-		$_REQUEST['_wp_original_http_referer'] = 'http://_wp_original_http_referer.com';
-		$this->assertSame( 'http://_wp_original_http_referer.com', wp_get_original_referer(), '_wp_original_http_referer set' );
+		$_REQUEST['_wp_original_http_referer'] = 'http://example.com';
+		$this->assertSame( 'http://example.com', wp_get_original_referer(), '_wp_original_http_referer set' );
 	}
 }
