@@ -157,7 +157,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 		$r = '';
 		foreach ( $lines as $line ) {
 			if ( $encode ) {
-				$processed_line = htmlspecialchars( $line );
+				$processed_line = htmlspecialchars( $line, ENT_COMPAT | ENT_HTML401 );
 
 				/**
 				 * Contextually filters a diffed line.
@@ -195,7 +195,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 		$r = '';
 		foreach ( $lines as $line ) {
 			if ( $encode ) {
-				$processed_line = htmlspecialchars( $line );
+				$processed_line = htmlspecialchars( $line, ENT_COMPAT | ENT_HTML401 );
 
 				/** This filter is documented in wp-includes/wp-diff.php */
 				$line = apply_filters( 'process_text_diff_html', $processed_line, $line, 'deleted' );
@@ -220,7 +220,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 		$r = '';
 		foreach ( $lines as $line ) {
 			if ( $encode ) {
-				$processed_line = htmlspecialchars( $line );
+				$processed_line = htmlspecialchars( $line, ENT_COMPAT | ENT_HTML401 );
 
 				/** This filter is documented in wp-includes/wp-diff.php */
 				$line = apply_filters( 'process_text_diff_html', $processed_line, $line, 'unchanged' );
@@ -300,7 +300,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 			if ( isset( $orig_diffs[ $orig_rows[ $row ] ] ) ) {
 				$orig_line = $orig_diffs[ $orig_rows[ $row ] ];
 			} elseif ( isset( $orig[ $orig_rows[ $row ] ] ) ) {
-				$orig_line = htmlspecialchars( $orig[ $orig_rows[ $row ] ] );
+				$orig_line = htmlspecialchars( $orig[ $orig_rows[ $row ] ], ENT_COMPAT | ENT_HTML401 );
 			} else {
 				$orig_line = '';
 			}
@@ -308,7 +308,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 			if ( isset( $final_diffs[ $final_rows[ $row ] ] ) ) {
 				$final_line = $final_diffs[ $final_rows[ $row ] ];
 			} elseif ( isset( $final[ $final_rows[ $row ] ] ) ) {
-				$final_line = htmlspecialchars( $final[ $final_rows[ $row ] ] );
+				$final_line = htmlspecialchars( $final[ $final_rows[ $row ] ], ENT_COMPAT | ENT_HTML401 );
 			} else {
 				$final_line = '';
 			}
