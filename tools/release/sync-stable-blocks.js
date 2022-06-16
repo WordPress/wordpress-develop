@@ -113,7 +113,7 @@ module.exports = {
 	getStableBlocksMetadata,
 };
 
-// Only run the main() function when this file is executed directly and note
+// Only run the main() function when this file is executed directly and not
 // required by another file.
 if ( require.main === module ) {
 	main();
