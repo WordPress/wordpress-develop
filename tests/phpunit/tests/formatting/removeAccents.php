@@ -109,4 +109,20 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 		$this->assertSame( 'DJdj', remove_accents( 'Đđ', 'sr_RS' ) );
 		$this->assertSame( 'Dd', remove_accents( 'Đđ' ) );
 	}
+
+	/**
+	 * @ticket 24661
+	 *
+	 * Tests Unicode sequence normalization from NFD (Normalization Form Decomposed)
+	 *   to NFC (Normalization Form [Pre]Composed), the encoding used in `remove_accents()`.
+	 *
+	 * For more information on Unicode normalization, see
+	 *   https://unicode.org/faq/normalization.html.
+	 */
+	public function test_remove_accents_latin1_supplement_nfd_encoding() {
+		$input  = 'ªºÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ';
+		$output = 'aoAAAAAAAECEEEEIIIIDNOOOOOOUUUUYTHsaaaaaaaeceeeeiiiidnoooooouuuuythy';
+
+		$this->assertSame( $output, remove_accents( $input ), 'remove_accents replaces Latin-1 Supplement with NFD encoding' );
+	}
 }
