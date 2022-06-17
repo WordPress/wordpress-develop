@@ -8492,7 +8492,7 @@ function wp_required_field_indicator( $space_before = ' ', $display = false ) {
  * @param bool   $display      Whether to output the result or instead return it. Default false.
  * @return string Message text and glyph wrapped in a `span` tag.
  */
-function wp_required_field_message( $space_before = ' ', $echo = false ) {
+function wp_required_field_message( $space_before = ' ', $display = false ) {
 	$message = sprintf(
 		'%1$s<span class="required-field-message" aria-hidden="true">%2$s</span>',
 		esc_html( $space_before ),
