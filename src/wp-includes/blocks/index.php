@@ -21,6 +21,7 @@ require ABSPATH . WPINC . '/blocks/comments-pagination-next.php';
 require ABSPATH . WPINC . '/blocks/comments-pagination-numbers.php';
 require ABSPATH . WPINC . '/blocks/comments-pagination-previous.php';
 require ABSPATH . WPINC . '/blocks/comments-pagination.php';
+require ABSPATH . WPINC . '/blocks/comments-query-loop.php';
 require ABSPATH . WPINC . '/blocks/comments-title.php';
 require ABSPATH . WPINC . '/blocks/cover.php';
 require ABSPATH . WPINC . '/blocks/file.php';
