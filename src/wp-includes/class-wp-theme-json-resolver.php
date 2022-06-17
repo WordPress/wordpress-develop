@@ -284,26 +284,29 @@ class WP_Theme_JSON_Resolver {
 			return get_post( $post_id, ARRAY_A );
 		}
 
-		$recent_posts = new WP_Query( $args );
-		if ( is_array( $recent_posts ) && ( count( $recent_posts ) === 1 ) ) {
-			$user_cpt = $recent_posts[0];
+		$gs_query     = new WP_Query();
+		$recent_posts = $gs_query->query( $args );
+		if ( count( $recent_posts ) === 1 ) {
+			$user_cpt = get_post( $recent_posts[0], ARRAY_A );
 		} elseif ( $create_post ) {
 			$cpt_post_id = wp_insert_post(
 				array(
 					'post_content' => '{"version": ' . WP_Theme_JSON::LATEST_SCHEMA . ', "isGlobalStylesUserThemeJSON": true }',
 					'post_status'  => 'publish',
-					'post_title'   => 'Custom Styles',
+					'post_title'   => __( 'Custom Styles' ),
 					'post_type'    => $post_type_filter,
-					'post_name'    => 'wp-global-styles-' . urlencode( $stylesheet ),
+					'post_name'    => sprintf( 'wp-global-styles-%s', urlencode( $stylesheet ) ),
 					'tax_input'    => array(
 						'wp_theme' => array( $stylesheet ),
 					),
 				),
 				true
 			);
-			$user_cpt    = get_post( $cpt_post_id, ARRAY_A );
+			if ( ! is_wp_error( $cpt_post_id ) ) {
+				$user_cpt = get_post( $cpt_post_id, ARRAY_A );
+			}
 		}
-		set_transient( $cache_key, $user_cpt ? $user_cpt['ID'] : -1 );
+		set_transient( $cache_key, $user_cpt ? $user_cpt['ID'] : - 1 );
 
 		return $user_cpt;
 	}
