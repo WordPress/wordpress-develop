@@ -505,13 +505,21 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 		return array();
 	}
 
+	$original_mime_type = wp_get_image_mime( $file );
+
 	if ( ! $mime_type ) {
-		$mime_type = wp_get_image_mime( $file );
+		$mime_type = $original_mime_type;
 	}
+
 
 	// Check if any of the new sizes already exist.
 	if ( isset( $image_meta['sizes'] ) && is_array( $image_meta['sizes'] ) ) {
 		foreach ( $image_meta['sizes'] as $size_name => $size_meta ) {
+			// Check if the output mime is enabled for this image size.
+			if ( ! _wp_mime_type_available_for_image_size( $attachment_id, $size_name, $original_mime_type, $mime_type ) ) {
+				continue;
+			}
+
 			/*
 			 * Only checks "size name" so we don't override existing images even if the dimensions
 			 * don't match the currently defined size with the same name.
@@ -603,6 +611,21 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 	}
 
 	return $image_meta;
+}
+
+/**
+ * Check whether mime type  output is available for a given size and mime type.
+ *
+ * @since 6.1.0
+ *
+ * @param int    $attachment_id Attachment ID.
+ * @param string $size_name     Size name to check.
+ * @return bool Whether the size is available for the given mime type.
+ */
+function _wp_mime_type_available_for_image_size( $attachment_id, $size_name, $source_mime, $destination_mime ) {
+	$image_mime_transforms = wp_upload_image_mime_transforms( $attachment_id, $size_name );
+
+	return isset( $image_mime_transforms[ $source_mime ] [ $destination_mime ] );
 }
 
 /**
@@ -1336,28 +1359,34 @@ function _copy_image_file( $attachment_id ) {
  * For example an `image/jpeg` should be converted into an `image/jpeg` and `image/webp`. The first type
  * is considered the primary output type for this image.
  *
+ * Called for each uploaded image to determine the list of mime types that should be converted into. Then,
+ * called again for each target image size as they are generated to see if the image should be converted into the mime type
+ * for that size.
+ *
  * @since 6.1.0
  *
- * @param $attachment_id int The attachment ID.
+ * @param int    $attachment_id  The attachment ID.
+ * @param string $image_size     The image size name. False when called on the image and target size is unavailable.
  * @return array An array of valid mime types, where the key is the source file mime type and the list of mime types to
  *               generate.
  */
-function wp_upload_image_mime_transforms( $attachment_id ) {
+function wp_upload_image_mime_transforms( $attachment_id, $image_size ) {
 	$image_mime_transforms = array(
 		'image/jpeg' => array( 'image/jpeg', 'image/webp' ),
 		'image/webp' => array( 'image/webp', 'image/jpeg' ),
 	);
 
 	/**
-	 * Filter to the output mime types for a given input mime type.
+	 * Filter to the output mime types for a given input mime type and image size.
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param array $image_mime_transforms A map with the valid mime transforms where the key is the source file mime type
-	 *                                     and the value is one or more mime file types to generate.
-	 * @param int   $attachment_id         The ID of the attachment where the hook was dispatched.
+	 * @param array  $image_mime_transforms A map with the valid mime transforms where the key is the source file mime type
+	 *                                      and the value is one or more mime file types to generate.
+	 * @param int    $attachment_id         The ID of the attachment where the hook was dispatched.
+	 * @param string $image_size            The image size name. Optional.
 	 */
-	return (array) apply_filters( 'wp_upload_image_mime_transforms', $image_mime_transforms, $attachment_id );
+	return (array) apply_filters( 'wp_upload_image_mime_transforms', $image_mime_transforms, $attachment_id, $image_size );
 }
 
 /**
@@ -1371,7 +1400,7 @@ function wp_upload_image_mime_transforms( $attachment_id ) {
  * @return array An array with two entries, the primary mime type and the list of additional mime types.
  */
 function _wp_get_primary_and_additional_mime_types( $file, $attachment_id ) {
-	$image_mime_transforms = wp_upload_image_mime_transforms( $attachment_id );
+	$image_mime_transforms = wp_upload_image_mime_transforms( $attachment_id, false );
 	$original_mime_type    = wp_get_image_mime( $file );
 	$output_mime_types     = isset( $image_mime_transforms[ $original_mime_type ] ) ? $image_mime_transforms[ $original_mime_type ] : array( $original_mime_type );
 
