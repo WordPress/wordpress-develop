@@ -102,7 +102,7 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::esc_url
-	 * @covers ::esc_url_raw
+	 * @covers ::wp_allowed_protocols
 	 */
 	public function test_protocol() {
 		$this->assertSame( 'http://example.com', esc_url( 'http://example.com' ) );
