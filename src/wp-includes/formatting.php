@@ -1597,6 +1597,11 @@ function remove_accents( $string, $locale = '' ) {
 	}
 
 	if ( seems_utf8( $string ) ) {
+		if ( function_exists( 'normalizer_normalize' ) ) {
+			if ( ! normalizer_is_normalized( $string, Normalizer::FORM_C ) ) {
+				$string = normalizer_normalize( $string, Normalizer::FORM_C );
+			}
+		}
 		$chars = array(
 			// Decompositions for Latin-1 Supplement.
 			'ª' => 'a',
