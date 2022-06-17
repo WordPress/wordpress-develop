@@ -4,7 +4,6 @@
  * Test wp_list_filter().
  *
  * @group functions.php
- *
  * @covers ::wp_list_filter
  */
 class Tests_Functions_wpListFilter extends WP_UnitTestCase {
@@ -211,7 +210,6 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 					),
 				),
 			),
-			$list
 		);
 	}
 }
