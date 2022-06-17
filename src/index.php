@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'WPINC', 'wp-includes' );
 
-if ( file_exists( ABSPATH . WPINC .'/js/dist/edit-post.js' ) ) {
+if ( file_exists( ABSPATH . WPINC . '/js/dist/edit-post.js' ) ) {
 	require_once ABSPATH . '_index.php';
 	return;
 }
