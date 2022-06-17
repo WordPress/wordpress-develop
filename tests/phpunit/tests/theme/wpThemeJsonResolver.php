@@ -370,13 +370,13 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @ticket 55392
 	 */
 	function test_get_user_data_from_wp_global_styles_create_post() {
-		$post1 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( 'testing' );
+		$post1 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( wp_get_theme( 'testing' ) );
 		$this->assertIsArray( $post1 );
 		$this->assertSameSets( array(), $post1 );
-		$post2 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( 'testing' );
+		$post2 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( wp_get_theme( 'testing' ) );
 		$this->assertIsArray( $post2 );
 		$this->assertSameSets( array(), $post2 );
-		$post3 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( 'testing', true );
+		$post3 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( wp_get_theme( 'testing' ), true );
 		$this->assertIsArray( $post3 );
 		$this->assertArrayHasKey( 'ID', $post3 );
 	}
@@ -386,10 +386,10 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @ticket 55392
 	 */
 	function test_get_user_data_from_wp_global_styles_filter_state() {
-		$post1 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( 'foo', true, array( 'publish' ) );
+		$post1 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( wp_get_theme( 'foo' ), true, array( 'publish' ) );
 		$this->assertIsArray( $post1 );
 		$this->assertArrayHasKey( 'ID', $post1 );
-		$post2 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( 'foo', false, array( 'draft' ) );
+		$post2 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( wp_get_theme( 'foo' ), false, array( 'draft' ) );
 		$this->assertIsArray( $post2 );
 		$this->assertSameSets( array(), $post2 );
 	}
