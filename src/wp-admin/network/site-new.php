@@ -198,7 +198,12 @@ if ( ! empty( $messages ) ) {
 <?php wp_nonce_field( 'add-blog', '_wpnonce_add-blog' ); ?>
 	<table class="form-table" role="presentation">
 		<tr class="form-field form-required">
-			<th scope="row"><label for="site-address"><?php _e( 'Site Address (URL)' ); wp_required_field_indicator( ' ', true ); ?></label></th>
+			<th scope="row"><label for="site-address">
+			<?php
+				_e( 'Site Address (URL)' );
+				wp_required_field_indicator( ' ', true );
+			?>
+			</label></th>
 			<td>
 			<?php if ( is_subdomain_install() ) { ?>
 				<input name="blog[domain]" type="text" class="regular-text ltr" id="site-address" aria-describedby="site-address-desc" autocapitalize="none" autocorrect="off" required /><span class="no-break">.<?php echo preg_replace( '|^www\.|', '', get_network()->domain ); ?></span>
@@ -214,7 +219,12 @@ if ( ! empty( $messages ) ) {
 			</td>
 		</tr>
 		<tr class="form-field form-required">
-			<th scope="row"><label for="site-title"><?php _e( 'Site Title' ); wp_required_field_indicator( ' ', true ); ?></label></th>
+			<th scope="row"><label for="site-title">
+			<?php
+				_e( 'Site Title' );
+				wp_required_field_indicator( ' ', true );
+			?>
+			</label></th>
 			<td><input name="blog[title]" type="text" class="regular-text" id="site-title" required /></td>
 		</tr>
 		<?php
@@ -249,7 +259,12 @@ if ( ! empty( $messages ) ) {
 			</tr>
 		<?php endif; // Languages. ?>
 		<tr class="form-field form-required">
-			<th scope="row"><label for="admin-email"><?php _e( 'Admin Email' ); wp_required_field_indicator( ' ', true ); ?></label></th>
+			<th scope="row"><label for="admin-email">
+			<?php
+				_e( 'Admin Email' );
+				wp_required_field_indicator( ' ', true );
+			?>
+			</label></th>
 			<td><input name="blog[email]" type="email" class="regular-text wp-suggest-user" id="admin-email" data-autocomplete-type="search" data-autocomplete-field="user_email" aria-describedby="site-admin-email" required /></td>
 		</tr>
 		<tr class="form-field">

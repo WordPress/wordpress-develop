@@ -8474,7 +8474,7 @@ function wp_required_field_indicator( $space_before = ' ', $display = false ) {
 	$indicator = sprintf(
 		'%1$s<span class="required" aria-hidden="true">%2$s</span>',
 		esc_html( $space_before ),
-		esc_html( $glyph ),
+		esc_html( $glyph )
 	);
 
 	if ( ! $display ) {
@@ -8497,11 +8497,11 @@ function wp_required_field_message( $space_before = ' ', $echo = false ) {
 		'%1$s<span class="required-field-message" aria-hidden="true">%2$s</span>',
 		esc_html( $space_before ),
 		/* translators: %s: Asterisk symbol (*). */
-		sprintf( __( 'Required fields are marked %s' ), wp_required_field_indicator( '' ) ),
+		sprintf( __( 'Required fields are marked %s' ), wp_required_field_indicator( '' ) )
 	);
 
 	if ( ! $display ) {
-		return $messages;
+		return $message;
 	}
 	echo $message;
 }
