@@ -27,6 +27,9 @@ concurrency:
 env:
   LOCAL_DIR: build
 
+permissions:
+  contents: read
+
 jobs:
   # Runs the end-to-end test suite.
   #
@@ -117,6 +120,8 @@ jobs:
         run: git diff --exit-code
 
   slack-notifications:
+    permissions:
+      contents: none
     name: Slack Notifications
     uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     needs: [ e2e-tests ]

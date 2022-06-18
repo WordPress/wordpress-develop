@@ -33,6 +33,9 @@ concurrency:
 env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
 
+permissions:
+  contents: read
+
 jobs:
   # Verifies that installing NPM dependencies and building WordPress works as expected.
   #
@@ -156,6 +159,8 @@ jobs:
         run: git diff --exit-code
 
   slack-notifications:
+    permissions:
+      contents: none
     name: Slack Notifications
     uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     needs: [ test-npm, test-npm-macos ]

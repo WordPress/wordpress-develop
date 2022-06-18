@@ -80,6 +80,8 @@ jobs:
             });
 
   slack-notifications:
+    permissions:
+      contents: none
     name: Slack Notifications
     uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     needs: [ dispatch-workflows-for-old-branches ]

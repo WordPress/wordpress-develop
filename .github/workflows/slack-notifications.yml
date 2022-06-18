@@ -164,6 +164,8 @@ jobs:
 
   # Posts notifications when a workflow fails.
   failure:
+    permissions:
+      contents: none
     name: Failure notifications
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -180,6 +182,8 @@ jobs:
 
   # Posts notifications the first time a workflow run succeeds after previously failing.
   fixed:
+    permissions:
+      contents: none
     name: Fixed notifications
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -196,6 +200,8 @@ jobs:
 
   # Posts notifications when a workflow is successful.
   success:
+    permissions:
+      contents: none
     name: Success notifications
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -212,6 +218,8 @@ jobs:
 
   # Posts notifications when a workflow is cancelled.
   cancelled:
+    permissions:
+      contents: none
     name: Cancelled notifications
     runs-on: ubuntu-latest
     timeout-minutes: 5

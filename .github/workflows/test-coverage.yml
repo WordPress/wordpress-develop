@@ -21,6 +21,9 @@ env:
   LOCAL_PHP_XDEBUG: true
   LOCAL_PHP_MEMCACHED: ${{ false }}
 
+permissions:
+  contents: read
+
 jobs:
   # Sets up WordPress for testing or development use.
   #
@@ -170,6 +173,8 @@ jobs:
           flags: multisite,php
 
   slack-notifications:
+    permissions:
+      contents: none
     name: Slack Notifications
     uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     needs: [ test-coverage-report ]

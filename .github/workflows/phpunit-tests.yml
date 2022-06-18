@@ -31,6 +31,9 @@ env:
   LOCAL_PHP_MEMCACHED: ${{ false }}
   SLOW_TESTS: 'external-http,media,restapi'
 
+permissions:
+  contents: read
+
 jobs:
   # Runs the PHPUnit tests for WordPress.
   #
@@ -243,6 +246,8 @@ jobs:
         run: docker-compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
 
   slack-notifications:
+    permissions:
+      contents: none
     name: Slack Notifications
     uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     needs: [ test-php ]
