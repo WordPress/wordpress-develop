@@ -2,6 +2,7 @@
 
 /**
  * @group formatting
+ * @covers ::remove_accents
  */
 class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 	public function test_remove_accents_simple() {
