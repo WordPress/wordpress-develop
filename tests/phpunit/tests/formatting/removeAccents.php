@@ -118,6 +118,8 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 	 *
 	 * For more information on Unicode normalization, see
 	 *   https://unicode.org/faq/normalization.html.
+	 *
+	 * @requires extension intl
 	 */
 	public function test_remove_accents_latin1_supplement_nfd_encoding() {
 		$input  = 'ªºÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ';
