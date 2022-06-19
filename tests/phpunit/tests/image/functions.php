@@ -359,6 +359,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		unlink( $file );
 	}
 
+	public function filter_image_editor_output_format() {
+		return array_fill_keys( array( 'image/jpg', 'image/jpeg', 'image/png' ), 'image/webp' );
+	}
+
 	/**
 	 * @requires function imagejpeg
 	 */
@@ -676,10 +680,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		foreach ( $metadata['sizes'] as $size ) {
 			unlink( $temp_dir . $size['file'] );
 		}
-	}
-
-	public function filter_image_editor_output_format() {
-		return array_fill_keys( array( 'image/jpg', 'image/jpeg', 'image/png' ), 'image/webp' );
 	}
 
 	public function filter_fallback_intermediate_image_sizes( $fallback_sizes, $metadata ) {
