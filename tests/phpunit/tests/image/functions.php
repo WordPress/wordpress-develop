@@ -220,6 +220,14 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50833
+	 * @requires extension gd
+	 */
+	public function test_is_gd_image_valid_types() {
+		$this->assertTrue( is_gd_image( imagecreate( 5, 5 ) ) );
+	}
+
+	/**
+	 * @ticket 50833
 	 */
 	public function test_is_gd_image_invalid_types() {
 		$this->assertFalse( is_gd_image( new stdClass() ) );
@@ -229,14 +237,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$handle = fopen( __FILE__, 'r' );
 		$this->assertFalse( is_gd_image( $handle ) );
 		fclose( $handle );
-	}
-
-	/**
-	 * @ticket 50833
-	 * @requires extension gd
-	 */
-	public function test_is_gd_image_valid_types() {
-		$this->assertTrue( is_gd_image( imagecreate( 5, 5 ) ) );
 	}
 
 	/**
