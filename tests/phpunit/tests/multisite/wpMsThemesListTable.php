@@ -109,13 +109,13 @@ if ( is_multisite() ) :
 			);
 
 			$expected = array(
-				'all'                  => '<a href=\'themes.php?theme_status=all\' class="current" aria-current="page">All <span class="count">(21)</span></a>',
-				'enabled'              => '<a href=\'themes.php?theme_status=enabled\'>Enabled <span class="count">(1)</span></a>',
-				'disabled'             => '<a href=\'themes.php?theme_status=disabled\'>Disabled <span class="count">(2)</span></a>',
-				'upgrade'              => '<a href=\'themes.php?theme_status=upgrade\'>Update Available <span class="count">(3)</span></a>',
-				'broken'               => '<a href=\'themes.php?theme_status=broken\'>Broken <span class="count">(4)</span></a>',
-				'auto-update-enabled'  => '<a href=\'themes.php?theme_status=auto-update-enabled\'>Auto-updates Enabled <span class="count">(5)</span></a>',
-				'auto-update-disabled' => '<a href=\'themes.php?theme_status=auto-update-disabled\'>Auto-updates Disabled <span class="count">(6)</span></a>',
+				'all'                  => '<a href="themes.php?theme_status=all" class="current" aria-current="page">All <span class="count">(21)</span></a>',
+				'enabled'              => '<a href="themes.php?theme_status=enabled">Enabled <span class="count">(1)</span></a>',
+				'disabled'             => '<a href="themes.php?theme_status=disabled">Disabled <span class="count">(2)</span></a>',
+				'upgrade'              => '<a href="themes.php?theme_status=upgrade">Update Available <span class="count">(3)</span></a>',
+				'broken'               => '<a href="themes.php?theme_status=broken">Broken <span class="count">(4)</span></a>',
+				'auto-update-enabled'  => '<a href="themes.php?theme_status=auto-update-enabled">Auto-updates Enabled <span class="count">(5)</span></a>',
+				'auto-update-disabled' => '<a href="themes.php?theme_status=auto-update-disabled">Auto-updates Disabled <span class="count">(6)</span></a>',
 			);
 
 			$actual = $this->table->get_views();

@@ -39,16 +39,16 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 		);
 
 		$expected = array(
-			'all'                  => '<a href=\'plugins.php?plugin_status=all\' class="current" aria-current="page">All <span class="count">(45)</span></a>',
-			'active'               => '<a href=\'plugins.php?plugin_status=active\'>Active <span class="count">(1)</span></a>',
-			'recently_activated'   => '<a href=\'plugins.php?plugin_status=recently_activated\'>Recently Active <span class="count">(2)</span></a>',
-			'inactive'             => '<a href=\'plugins.php?plugin_status=inactive\'>Inactive <span class="count">(3)</span></a>',
-			'mustuse'              => '<a href=\'plugins.php?plugin_status=mustuse\'>Must-Use <span class="count">(4)</span></a>',
-			'dropins'              => '<a href=\'plugins.php?plugin_status=dropins\'>Drop-ins <span class="count">(5)</span></a>',
-			'paused'               => '<a href=\'plugins.php?plugin_status=paused\'>Paused <span class="count">(6)</span></a>',
-			'upgrade'              => '<a href=\'plugins.php?plugin_status=upgrade\'>Update Available <span class="count">(7)</span></a>',
-			'auto-update-enabled'  => '<a href=\'plugins.php?plugin_status=auto-update-enabled\'>Auto-updates Enabled <span class="count">(8)</span></a>',
-			'auto-update-disabled' => '<a href=\'plugins.php?plugin_status=auto-update-disabled\'>Auto-updates Disabled <span class="count">(9)</span></a>',
+			'all'                  => '<a href="plugins.php?plugin_status=all" class="current" aria-current="page">All <span class="count">(45)</span></a>',
+			'active'               => '<a href="plugins.php?plugin_status=active">Active <span class="count">(1)</span></a>',
+			'recently_activated'   => '<a href="plugins.php?plugin_status=recently_activated">Recently Active <span class="count">(2)</span></a>',
+			'inactive'             => '<a href="plugins.php?plugin_status=inactive">Inactive <span class="count">(3)</span></a>',
+			'mustuse'              => '<a href="plugins.php?plugin_status=mustuse">Must-Use <span class="count">(4)</span></a>',
+			'dropins'              => '<a href="plugins.php?plugin_status=dropins">Drop-ins <span class="count">(5)</span></a>',
+			'paused'               => '<a href="plugins.php?plugin_status=paused">Paused <span class="count">(6)</span></a>',
+			'upgrade'              => '<a href="plugins.php?plugin_status=upgrade">Update Available <span class="count">(7)</span></a>',
+			'auto-update-enabled'  => '<a href="plugins.php?plugin_status=auto-update-enabled">Auto-updates Enabled <span class="count">(8)</span></a>',
+			'auto-update-disabled' => '<a href="plugins.php?plugin_status=auto-update-disabled">Auto-updates Disabled <span class="count">(9)</span></a>',
 		);
 
 		$actual = $this->table->get_views();
