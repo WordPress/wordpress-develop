@@ -1513,6 +1513,78 @@ class WP_List_Table {
 	}
 
 	/**
+	 * Generates views links.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param array $link_data {
+	 *     An array of link data.
+	 *
+	 *     @type string $url     The link URL.
+	 *     @type string $label   The link label.
+	 *     @type bool   $current Optional. Whether this is the currently selected view.
+	 * }
+	 * @return array An array of link markup. Keys match the $link_data input array.
+	 */
+	protected function get_views_links( $link_data = array() ) {
+		if ( ! $link_data || ! is_array( $link_data ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %s: The $link_data argument. */
+					__( 'The <code>%s</code> argument must be a non-empty array.' ),
+					'$link_data'
+				),
+				'6.1.0'
+			);
+
+			return array( '' );
+		}
+
+		$views_links = array();
+		foreach ( $link_data as $view => $link ) {
+			if ( ! isset( $link['url'] ) || ! is_string( $link['url'] ) || '' === trim( $link['url'] ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: %1$s: The argument name. %2$s: The view name. */
+						__( 'The <code>%1$s</code> argument must be a non-empty string for <code>%2$s</code>.' ),
+						'url',
+						$view
+					),
+					'6.1.0'
+				);
+
+				continue;
+			}
+
+			if ( ! isset( $link['label'] ) || ! is_string( $link['label'] ) || '' === trim( $link['label'] ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: %1$s: The argument name. %2$s: The view name. */
+						__( 'The <code>%1$s</code> argument must be a non-empty string for <code>%2$s</code>.' ),
+						'label',
+						$view
+					),
+					'6.1.0'
+				);
+
+				continue;
+			}
+
+			$views_links[ $view ] = sprintf(
+				'<a href="%s"%s>%s</a>',
+				$link['url'],
+				isset( $link['current'] ) && true === $link['current'] ? ' class="current" aria-current="page"' : '',
+				$link['label']
+			);
+		}
+
+		return $views_links;
+	}
+
+	/**
 	 * Sends required variables to JavaScript land.
 	 *
 	 * @since 3.1.0
