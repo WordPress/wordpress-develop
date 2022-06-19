@@ -257,6 +257,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$img    = new $class_name( DIR_TESTDATA . '/images/canola.jpg' );
 		$loaded = $img->load();
 
+		$this->assertNotWPError( $loaded, 'Image failed to load - WP_Error returned' );
+
 		if ( ! $img->supports_mime_type( $mime_type ) ) {
 			$this->markTestSkipped(
 				sprintf(
@@ -332,6 +334,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$img    = new $class_name( DIR_TESTDATA . '/images/canola.jpg' );
 		$loaded = $img->load();
 
+		$this->assertNotWPError( $loaded, 'Image failed to load - WP_Error returned' );
+
 		// Save the file.
 		$mime_type = 'image/gif';
 		$file      = wp_tempnam( 'tmp.jpg' );
@@ -375,8 +379,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$img    = new $class_name( DIR_TESTDATA . '/images/canola.jpg' );
 		$loaded = $img->load();
 
-		$img = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
-		$this->assertNotWPError( $img );
+		$this->assertNotWPError( $loaded, 'Image failed to load - WP_Error returned' );
 
 		if ( ! $img->supports_mime_type( $mime_type ) ) {
 			$this->markTestSkipped(
