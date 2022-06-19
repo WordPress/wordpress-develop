@@ -79,7 +79,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data Provider.
+	 * Data provider.
 	 *
 	 * @return array
 	 */
@@ -107,7 +107,27 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		return $this->text_array_to_dataprovider( $files );
 	}
 
-	public function test_is_image_negative() {
+	/**
+	 * @dataProvider data_is_image_negative
+	 *
+	 * @covers ::file_is_valid_image
+	 * @covers ::wp_getimagesize
+	 *
+	 * @param string $file File name.
+	 */
+	public function test_is_image_negative( $file ) {
+		$this->assertFalse(
+			file_is_valid_image( DIR_TESTDATA . '/images/' . $file ),
+			"file_is_valid_image( '$file' ) should return false"
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_is_image_negative() {
 		// These are actually image files but aren't recognized or usable by PHP.
 		$files = array(
 			'test-image.pct',
@@ -115,9 +135,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.sgi',
 		);
 
-		foreach ( $files as $file ) {
-			$this->assertFalse( file_is_valid_image( DIR_TESTDATA . '/images/' . $file ), "file_is_valid_image($file) should return false" );
-		}
+		return $this->text_array_to_dataprovider( $files );
 	}
 
 	public function test_is_displayable_image_positive() {
