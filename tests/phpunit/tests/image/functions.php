@@ -138,12 +138,32 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		return $this->text_array_to_dataprovider( $files );
 	}
 
-	public function test_is_displayable_image_positive() {
+	/**
+	 * @dataProvider data_is_displayable_image_positive
+	 *
+	 * @covers ::file_is_displayable_image
+	 *
+	 * @param string $file File name.
+	 */
+	public function test_is_displayable_image_positive( $file ) {
+		$this->assertTrue(
+			file_is_displayable_image( DIR_TESTDATA . '/images/' . $file ),
+			"file_is_displayable_image( '$file' ) should return true"
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_is_displayable_image_positive() {
 		// These are all usable in typical web browsers.
 		$files = array(
 			'test-image.gif',
 			'test-image.png',
 			'test-image.jpg',
+			'test-image.ico',
 		);
 
 		// Add WebP images if the image editor supports them.
@@ -151,25 +171,13 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$editor = wp_get_image_editor( $file );
 
 		if ( ! is_wp_error( $editor ) && $editor->supports_mime_type( 'image/webp' ) ) {
-			$files = array_merge(
-				$files,
-				array(
-					'webp-animated.webp',
-					'webp-lossless.webp',
-					'webp-lossy.webp',
-					'webp-transparent.webp',
-				)
-			);
+			$files[] = 'webp-animated.webp';
+			$files[] = 'webp-lossless.webp';
+			$files[] = 'webp-lossy.webp';
+			$files[] = 'webp-transparent.webp';
 		}
 
-		// IMAGETYPE_ICO is only defined in PHP 5.3+.
-		if ( defined( 'IMAGETYPE_ICO' ) ) {
-			$files[] = 'test-image.ico';
-		}
-
-		foreach ( $files as $file ) {
-			$this->assertTrue( file_is_displayable_image( DIR_TESTDATA . '/images/' . $file ), "file_is_valid_image($file) should return true" );
-		}
+		return $this->text_array_to_dataprovider( $files );
 	}
 
 	public function test_is_displayable_image_negative() {
