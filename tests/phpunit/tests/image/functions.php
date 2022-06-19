@@ -267,9 +267,11 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			);
 		}
 
+		// Save the file.
 		$file = wp_tempnam();
 		$ret  = wp_save_image_file( $file, $img, $mime_type, 1 );
 
+		// Make assertions.
 		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned' );
 		$this->assertNotWPError( $ret, 'Image failed to save - WP_Error returned' );
 		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image does not match' );
@@ -317,7 +319,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * Test that a passed mime type overrides the extension in the filename when saving an image.
 	 *
-	 * @dataProvider data_mime_overrides_filename
+	 * @dataProvider data_mime_overrides_filename_when_saving_an_image
 	 *
 	 * @ticket 6821
 	 * @covers WP_Image_Editor::get_mime_type
@@ -351,17 +353,62 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_mime_overrides_filename() {
+	public function data_mime_overrides_filename_when_saving_an_image() {
 		return $this->text_array_to_dataprovider( $this->get_image_editor_engine_classes() );
 	}
 
 	/**
-	 * Test that mime types are correctly inferred from file extensions
+	 * Test that mime types are correctly inferred from file extensions when saving an image.
+	 *
+	 * @dataProvider data_inferred_mime_types_when_saving_an_image
 	 *
 	 * @ticket 6821
+	 * @covers WP_Image_Editor::get_mime_type
+	 * @covers WP_Image_Editor::get_output_format
 	 * @requires extension fileinfo
+	 *
+	 * @param string $class_name Name of the image editor engine class to be tested.
+	 * @param string $extension  File extension.
+	 * @param string $mime_type  The mime type to test.
 	 */
-	public function test_inferred_mime_types() {
+	public function test_inferred_mime_types_when_saving_an_image( $class_name, $extension, $mime_type ) {
+		$img    = new $class_name( DIR_TESTDATA . '/images/canola.jpg' );
+		$loaded = $img->load();
+
+		$img = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
+		$this->assertNotWPError( $img );
+
+		if ( ! $img->supports_mime_type( $mime_type ) ) {
+			$this->markTestSkipped(
+				sprintf(
+					'The %s mime type is not supported by the %s engine',
+					$mime_type,
+					str_replace( 'WP_Image_Editor_', '', $class_name )
+				)
+			);
+		}
+
+		// Save the file.
+		$temp = get_temp_dir();
+		$file = wp_unique_filename( $temp, uniqid() . ".$extension" );
+		$ret  = $img->save( trailingslashit( $temp ) . $file );
+
+		// Make assertions.
+		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned' );
+		$this->assertNotWPError( $ret, 'Image failed to save - WP Error returned' );
+		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image was not inferred correctly' );
+
+		// Clean up.
+		unlink( $ret['path'] );
+		unset( $img );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_inferred_mime_types_when_saving_an_image() {
 		$classes = $this->get_image_editor_engine_classes();
 
 		// Mime types.
@@ -372,35 +419,22 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'gif'  => 'image/gif',
 			'png'  => 'image/png',
 			'webp' => 'image/webp',
-			'unk'  => 'image/jpeg',   // Default, unknown.
+			'unk'  => 'image/jpeg', // Default, unknown.
 		);
 
-		// Test each image editor engine.
+		$data = array();
+
 		foreach ( $classes as $class ) {
-			$img    = new $class( DIR_TESTDATA . '/images/canola.jpg' );
-			$loaded = $img->load();
-
-			// Save the image as each file extension, check the mime type.
-			$img = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
-			$this->assertNotWPError( $img );
-
-			$temp = get_temp_dir();
 			foreach ( $mime_types as $ext => $mime_type ) {
-				if ( ! $img->supports_mime_type( $mime_type ) ) {
-					continue;
-				}
-
-				$file = wp_unique_filename( $temp, uniqid() . ".$ext" );
-				$ret  = $img->save( trailingslashit( $temp ) . $file );
-				$this->assertNotEmpty( $ret );
-				$this->assertNotWPError( $ret );
-				$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ) );
-				unlink( $ret['path'] );
+				$data[ $class . '; Extension: ' . $ext . '; Mime type: ' . $mime_type ] = array(
+					'class_name' => $class,
+					'extension'  => $ext,
+					'mime_type'  => $mime_type,
+				);
 			}
-
-			// Clean up.
-			unset( $img );
 		}
+
+		return $data;
 	}
 
 	/**
