@@ -319,10 +319,6 @@ class WP_User_Query {
 			$this->query_fields = "$wpdb->users.$field";
 		}
 
-		if ( isset( $qv['count_total'] ) && $qv['count_total'] ) {
-			$this->query_fields = 'SQL_CALC_FOUND_ROWS ' . $this->query_fields;
-		}
-
 		$this->query_from  = "FROM $wpdb->users";
 		$this->query_where = 'WHERE 1=1';
 
@@ -815,6 +811,11 @@ class WP_User_Query {
 			}
 
 			if ( isset( $qv['count_total'] ) && $qv['count_total'] ) {
+				$found_request = "SELECT COUNT(*)
+				{$this->query_from}
+				{$this->query_where}
+				{$this->query_orderby}
+				";
 				/**
 				 * Filters SELECT FOUND_ROWS() query for the current WP_User_Query instance.
 				 *
@@ -826,7 +827,7 @@ class WP_User_Query {
 				 * @param string        $sql   The SELECT FOUND_ROWS() query for the current WP_User_Query.
 				 * @param WP_User_Query $query The current WP_User_Query instance.
 				 */
-				$found_users_query = apply_filters( 'found_users_query', 'SELECT FOUND_ROWS()', $this );
+				$found_users_query = apply_filters( 'found_users_query', $found_request, $this );
 
 				$this->total_users = (int) $wpdb->get_var( $found_users_query );
 			}

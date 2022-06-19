@@ -469,21 +469,17 @@ class WP_Network_Query {
 			$orderby = "ORDER BY $orderby";
 		}
 
-		$found_rows = '';
-		if ( ! $this->query_vars['no_found_rows'] ) {
-			$found_rows = 'SQL_CALC_FOUND_ROWS';
-		}
-
-		$this->sql_clauses['select']  = "SELECT $found_rows $fields";
+		$this->sql_clauses['select']  = "SELECT $fields";
 		$this->sql_clauses['from']    = "FROM $wpdb->site $join";
 		$this->sql_clauses['groupby'] = $groupby;
+		$this->sql_clauses['where']   = $where;
 		$this->sql_clauses['orderby'] = $orderby;
 		$this->sql_clauses['limits']  = $limits;
 
 		$this->request = "
 			{$this->sql_clauses['select']}
 			{$this->sql_clauses['from']}
-			{$where}
+			{$this->sql_clauses['where']}
 			{$this->sql_clauses['groupby']}
 			{$this->sql_clauses['orderby']}
 			{$this->sql_clauses['limits']}
@@ -510,6 +506,12 @@ class WP_Network_Query {
 		global $wpdb;
 
 		if ( $this->query_vars['number'] && ! $this->query_vars['no_found_rows'] ) {
+			$found_request = "SELECT COUNT(*)
+			{$this->sql_clauses['from']}
+			{$this->sql_clauses['where']}
+			{$this->sql_clauses['groupby']}
+			{$this->sql_clauses['orderby']}
+			";
 			/**
 			 * Filters the query used to retrieve found network count.
 			 *
@@ -518,7 +520,7 @@ class WP_Network_Query {
 			 * @param string           $found_networks_query SQL query. Default 'SELECT FOUND_ROWS()'.
 			 * @param WP_Network_Query $network_query        The `WP_Network_Query` instance.
 			 */
-			$found_networks_query = apply_filters( 'found_networks_query', 'SELECT FOUND_ROWS()', $this );
+			$found_networks_query = apply_filters( 'found_networks_query', $found_request, $this );
 
 			$this->found_networks = (int) $wpdb->get_var( $found_networks_query );
 		}

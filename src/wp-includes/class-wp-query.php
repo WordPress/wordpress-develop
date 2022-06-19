@@ -3014,13 +3014,10 @@ class WP_Query {
 			$orderby = 'ORDER BY ' . $orderby;
 		}
 
-		$found_rows = '';
-		if ( ! $q['no_found_rows'] && ! empty( $limits ) ) {
-			$found_rows = 'SQL_CALC_FOUND_ROWS';
-		}
+
 
 		$old_request = "
-			SELECT $found_rows $distinct $fields
+			SELECT  $distinct $fields
 			FROM {$wpdb->posts} $join
 			WHERE 1=1 $where
 			$groupby
@@ -3029,6 +3026,14 @@ class WP_Query {
 		";
 
 		$this->request = $old_request;
+
+		$this->request_found = "
+					SELECT COUNT(*)
+					FROM {$wpdb->posts} $join
+					WHERE 1=1 $where
+					$groupby
+					$orderby
+				";
 
 		if ( ! $q['suppress_filters'] ) {
 			/**
@@ -3114,12 +3119,20 @@ class WP_Query {
 				// First get the IDs and then fill in the objects.
 
 				$this->request = "
-					SELECT $found_rows $distinct {$wpdb->posts}.ID
+					SELECT $distinct {$wpdb->posts}.ID
 					FROM {$wpdb->posts} $join
 					WHERE 1=1 $where
 					$groupby
 					$orderby
 					$limits
+				";
+
+				$this->request_found = "
+					SELECT COUNT(*)
+					FROM {$wpdb->posts} $join
+					WHERE 1=1 $where
+					$groupby
+					$orderby
 				";
 
 				/**
@@ -3386,7 +3399,7 @@ class WP_Query {
 			 * @param string   $found_posts_query The query to run to find the found posts.
 			 * @param WP_Query $query             The WP_Query instance (passed by reference).
 			 */
-			$found_posts_query = apply_filters_ref_array( 'found_posts_query', array( 'SELECT FOUND_ROWS()', &$this ) );
+			$found_posts_query = apply_filters_ref_array( 'found_posts_query', array( $this->request_found, &$this ) );
 
 			$this->found_posts = (int) $wpdb->get_var( $found_posts_query );
 		} else {

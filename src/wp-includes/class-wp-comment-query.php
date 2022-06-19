@@ -952,21 +952,17 @@ class WP_Comment_Query {
 			$orderby = "ORDER BY $orderby";
 		}
 
-		$found_rows = '';
-		if ( ! $this->query_vars['no_found_rows'] ) {
-			$found_rows = 'SQL_CALC_FOUND_ROWS';
-		}
-
-		$this->sql_clauses['select']  = "SELECT $found_rows $fields";
+		$this->sql_clauses['select']  = "SELECT $fields";
 		$this->sql_clauses['from']    = "FROM $wpdb->comments $join";
 		$this->sql_clauses['groupby'] = $groupby;
+		$this->sql_clauses['where']   = $where;
 		$this->sql_clauses['orderby'] = $orderby;
 		$this->sql_clauses['limits']  = $limits;
 
 		$this->request = "
 			{$this->sql_clauses['select']}
 			{$this->sql_clauses['from']}
-			{$where}
+			{$this->sql_clauses['where']}
 			{$this->sql_clauses['groupby']}
 			{$this->sql_clauses['orderby']}
 			{$this->sql_clauses['limits']}
@@ -992,6 +988,12 @@ class WP_Comment_Query {
 		global $wpdb;
 
 		if ( $this->query_vars['number'] && ! $this->query_vars['no_found_rows'] ) {
+			$found_request = "SELECT COUNT(*)
+			{$this->sql_clauses['from']}
+			{$this->sql_clauses['where']}
+			{$this->sql_clauses['groupby']}
+			{$this->sql_clauses['orderby']}
+			";
 			/**
 			 * Filters the query used to retrieve found comment count.
 			 *
@@ -1000,7 +1002,7 @@ class WP_Comment_Query {
 			 * @param string           $found_comments_query SQL query. Default 'SELECT FOUND_ROWS()'.
 			 * @param WP_Comment_Query $comment_query        The `WP_Comment_Query` instance.
 			 */
-			$found_comments_query = apply_filters( 'found_comments_query', 'SELECT FOUND_ROWS()', $this );
+			$found_comments_query = apply_filters( 'found_comments_query', $found_request, $this );
 
 			$this->found_comments = (int) $wpdb->get_var( $found_comments_query );
 		}

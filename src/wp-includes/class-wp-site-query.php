@@ -686,6 +686,7 @@ class WP_Site_Query {
 
 		$this->sql_clauses['select']  = "SELECT $found_rows $fields";
 		$this->sql_clauses['from']    = "FROM $wpdb->blogs $join";
+		$this->sql_clauses['where']   = $where;
 		$this->sql_clauses['groupby'] = $groupby;
 		$this->sql_clauses['orderby'] = $orderby;
 		$this->sql_clauses['limits']  = $limits;
@@ -693,7 +694,7 @@ class WP_Site_Query {
 		$this->request = "
 			{$this->sql_clauses['select']}
 			{$this->sql_clauses['from']}
-			{$where}
+			{$this->sql_clauses['where']}
 			{$this->sql_clauses['groupby']}
 			{$this->sql_clauses['orderby']}
 			{$this->sql_clauses['limits']}
@@ -720,6 +721,14 @@ class WP_Site_Query {
 		global $wpdb;
 
 		if ( $this->query_vars['number'] && ! $this->query_vars['no_found_rows'] ) {
+
+			$found_request = "SELECT COUNT(*)
+			{$this->sql_clauses['from']}
+			{$this->sql_clauses['where']}
+			{$this->sql_clauses['groupby']}
+			{$this->sql_clauses['orderby']}
+			";
+
 			/**
 			 * Filters the query used to retrieve found site count.
 			 *
@@ -728,7 +737,7 @@ class WP_Site_Query {
 			 * @param string        $found_sites_query SQL query. Default 'SELECT FOUND_ROWS()'.
 			 * @param WP_Site_Query $site_query        The `WP_Site_Query` instance.
 			 */
-			$found_sites_query = apply_filters( 'found_sites_query', 'SELECT FOUND_ROWS()', $this );
+			$found_sites_query = apply_filters( 'found_sites_query', $found_request, $this );
 
 			$this->found_sites = (int) $wpdb->get_var( $found_sites_query );
 		}
