@@ -240,15 +240,53 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test save image file and mime_types
+	 * Test wp_save_image_file() and mime types.
+	 *
+	 * @dataProvider data_wp_save_image_file
 	 *
 	 * @ticket 6821
+	 * @covers ::wp_save_image_file
 	 * @requires extension fileinfo
+	 *
+	 * @param string $class_name Name of the image editor engine class to be tested.
+	 * @param string $mime_type  The mime type to test.
 	 */
-	public function test_wp_save_image_file() {
-		$classes = $this->get_image_editor_engine_classes();
-
+	public function test_wp_save_image_file( $class_name, $mime_type ) {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$img    = new $class_name( DIR_TESTDATA . '/images/canola.jpg' );
+		$loaded = $img->load();
+
+		if ( ! $img->supports_mime_type( $mime_type ) ) {
+			$this->markTestSkipped(
+				sprintf(
+					'The %s mime type is not supported by the %s engine',
+					$mime_type,
+					str_replace( 'WP_Image_Editor_', '', $class_name )
+				)
+			);
+		}
+
+		$file = wp_tempnam();
+		$ret  = wp_save_image_file( $file, $img, $mime_type, 1 );
+
+		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned' );
+		$this->assertNotWPError( $ret, 'Image failed to save - WP_Error returned' );
+		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image does not match' );
+
+		// Clean up.
+		unlink( $file );
+		unlink( $ret['path'] );
+		unset( $img );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_wp_save_image_file() {
+		$classes = $this->get_image_editor_engine_classes();
 
 		// Mime types.
 		$mime_types = array(
@@ -259,34 +297,21 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		// Include WebP in tests when platform supports it.
 		if ( function_exists( 'imagewebp' ) ) {
-			array_push( $mime_types, 'image/webp' );
+			$mime_types[] = 'image/webp';
 		}
 
-		// Test each image editor engine.
+		$data = array();
+
 		foreach ( $classes as $class ) {
-			$img    = new $class( DIR_TESTDATA . '/images/canola.jpg' );
-			$loaded = $img->load();
-
-			// Save a file as each mime type, assert it works.
 			foreach ( $mime_types as $mime_type ) {
-				if ( ! $img->supports_mime_type( $mime_type ) ) {
-					continue;
-				}
-
-				$file = wp_tempnam();
-				$ret  = wp_save_image_file( $file, $img, $mime_type, 1 );
-				$this->assertNotEmpty( $ret );
-				$this->assertNotWPError( $ret );
-				$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ) );
-
-				// Clean up.
-				unlink( $file );
-				unlink( $ret['path'] );
+				$data[ $class . '; ' . $mime_type ] = array(
+					'class_name' => $class,
+					'mime_type'  => $mime_type,
+				);
 			}
-
-			// Clean up.
-			unset( $img );
 		}
+
+		return $data;
 	}
 
 	/**
