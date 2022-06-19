@@ -64,14 +64,14 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_is_image_positive
+	 * @dataProvider data_file_is_valid_image_positive
 	 *
 	 * @covers ::file_is_valid_image
 	 * @covers ::wp_getimagesize
 	 *
 	 * @param string $file File name.
 	 */
-	public function test_is_image_positive( $file ) {
+	public function test_file_is_valid_image_positive( $file ) {
 		$this->assertTrue(
 			file_is_valid_image( DIR_TESTDATA . '/images/' . $file ),
 			"file_is_valid_image( '$file' ) should return true"
@@ -83,7 +83,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_is_image_positive() {
+	public function data_file_is_valid_image_positive() {
 		// These are all image files recognized by PHP.
 		$files = array(
 			'test-image-cmyk.jpg',
@@ -108,14 +108,14 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_is_image_negative
+	 * @dataProvider data_file_is_valid_image_negative
 	 *
 	 * @covers ::file_is_valid_image
 	 * @covers ::wp_getimagesize
 	 *
 	 * @param string $file File name.
 	 */
-	public function test_is_image_negative( $file ) {
+	public function test_file_is_valid_image_negative( $file ) {
 		$this->assertFalse(
 			file_is_valid_image( DIR_TESTDATA . '/images/' . $file ),
 			"file_is_valid_image( '$file' ) should return false"
@@ -127,7 +127,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_is_image_negative() {
+	public function data_file_is_valid_image_negative() {
 		// These are actually image files but aren't recognized or usable by PHP.
 		$files = array(
 			'test-image.pct',
@@ -139,13 +139,13 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_is_displayable_image_positive
+	 * @dataProvider data_file_is_displayable_image_positive
 	 *
 	 * @covers ::file_is_displayable_image
 	 *
 	 * @param string $file File name.
 	 */
-	public function test_is_displayable_image_positive( $file ) {
+	public function test_file_is_displayable_image_positive( $file ) {
 		$this->assertTrue(
 			file_is_displayable_image( DIR_TESTDATA . '/images/' . $file ),
 			"file_is_displayable_image( '$file' ) should return true"
@@ -157,7 +157,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_is_displayable_image_positive() {
+	public function data_file_is_displayable_image_positive() {
 		// These are all usable in typical web browsers.
 		$files = array(
 			'test-image.gif',
@@ -181,13 +181,13 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_is_displayable_image_negative
+	 * @dataProvider data_file_is_displayable_image_negative
 	 *
 	 * @covers ::file_is_displayable_image
 	 *
 	 * @param string $file File name.
 	 */
-	public function test_is_displayable_image_negative( $file ) {
+	public function test_file_is_displayable_image_negative( $file ) {
 		$this->assertFalse(
 			file_is_displayable_image( DIR_TESTDATA . '/images/' . $file ),
 			"file_is_displayable_image( '$file' ) should return false"
@@ -199,7 +199,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_is_displayable_image_negative() {
+	public function data_file_is_displayable_image_negative() {
 		// These are image files but aren't suitable for web pages because of compatibility or size issues.
 		$files = array(
 			// 'test-image-cmyk.jpg',      Allowed in r9727.
