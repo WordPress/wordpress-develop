@@ -878,6 +878,56 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	}
 
 	/**
+	 * Helper function to convert a single-level array containing text strings to a named data provider.
+	 *
+	 * The value of the data set will also be used as the name of the data set.
+	 *
+	 * Typical usage of this method:
+	 *
+	 *     public function data_provider_for_test_name() {
+	 *         $array = array(
+	 *             'value1',
+	 *             'value2',
+	 *         );
+	 *
+	 *         return $this->text_array_to_dataprovider( $array );
+	 *     }
+	 *
+	 * The returned result will look like:
+	 *
+	 *     array(
+	 *         'value1' => array( 'value1' ),
+	 *         'value2' => array( 'value2' ),
+	 *     )
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param array $input Input array.
+	 * @return array Array which is usable as a test data provider with named data sets.
+	 */
+	public static function text_array_to_dataprovider( $input ) {
+		$data = array();
+
+		foreach ( $input as $value ) {
+			if ( ! is_string( $value ) ) {
+				throw new Exception(
+					'All values in the input array should be text strings. Fix the input data.'
+				);
+			}
+
+			if ( isset( $data[ $value ] ) ) {
+				throw new Exception(
+					"Attempting to add a duplicate data set for value $value to the data provider. Fix the input data."
+				);
+			}
+
+			$data[ $value ] = array( $value );
+		}
+
+		return $data;
+	}
+
+	/**
 	 * Sets the global state to as if a given URL has been requested.
 	 *
 	 * This sets:
