@@ -996,16 +996,17 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		 * request handlers during the same run. See the following comment for more details:
 		 * https://github.com/WordPress/gutenberg/issues/33335#issuecomment-879903958
 		 */
-		$this->assertCount( 1, $data );
-		$this->assertSame( 'text-2', $data[0]['id'] );
-		$this->assertSame( 'sidebar-1', $data[0]['sidebar'] );
+		$this->assertCount( 1, $data, 'The text-1 widget was not deleted' );
+		$this->assertSame( 'text-2', $data[0]['id'], 'The text-2 widget was not preserved' );
+		$this->assertSame( 'sidebar-1', $data[0]['sidebar'], 'The text-2 widget is no longer assigned to sidebar-1' );
 		$this->assertSameSetsWithIndex(
 			array(
 				'text'   => 'Updated text test',
 				'title'  => '',
 				'filter' => false,
 			),
-			$data[0]['instance']['raw']
+			$data[0]['instance']['raw'],
+			'The content of the text-2 widget changed'
 		);
 	}
 
