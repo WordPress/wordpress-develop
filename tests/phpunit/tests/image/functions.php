@@ -8,7 +8,7 @@
 class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
-	 * Setup test fixture
+	 * Includes the required files.
 	 */
 	public function set_up() {
 		parent::set_up();
@@ -28,7 +28,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Get the available image editor engine classes.
+	 * Gets the available image editor engine classes.
 	 *
 	 * @return string[] Available image editor classes; empty array when none are available.
 	 */
@@ -55,7 +55,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Get the MIME type of a file
+	 * Gets the MIME type of a file.
 	 *
 	 * @param string $filename
 	 * @return string
@@ -249,7 +249,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test wp_save_image_file() and mime types.
+	 * Tests wp_save_image_file() and mime types.
 	 *
 	 * @dataProvider data_wp_save_image_file
 	 *
@@ -328,7 +328,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that a passed mime type overrides the extension in the filename when saving an image.
+	 * Tests that a passed mime type overrides the extension in the filename when saving an image.
 	 *
 	 * @dataProvider data_image_editor_engine_classes
 	 *
@@ -362,7 +362,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that mime types are correctly inferred from file extensions when saving an image.
+	 * Tests that mime types are correctly inferred from file extensions when saving an image.
 	 *
 	 * @dataProvider data_inferred_mime_types_when_saving_an_image
 	 *
@@ -441,7 +441,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the deprecated wp_load_image() function fails when loading a directory.
+	 * Tests that the deprecated wp_load_image() function fails when loading a directory.
 	 *
 	 * @ticket 17814
 	 * @covers ::wp_load_image
@@ -453,7 +453,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the wp_get_image_editor() function fails when loading a directory.
+	 * Tests that the wp_get_image_editor() function fails when loading a directory.
 	 *
 	 * @ticket 17814
 	 * @covers ::wp_get_image_editor
@@ -464,7 +464,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the load() method in an image editor class fails when loading a directory.
+	 * Tests that the load() method in an image editor class fails when loading a directory.
 	 *
 	 * @dataProvider data_image_editor_engine_classes
 	 *
@@ -545,7 +545,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_crop_image
 	 */
-	public function test_wp_crop_image_should_fail_with_wp_error_object_if_file_does_not_exists() {
+	public function test_wp_crop_image_should_fail_with_wp_error_object_if_file_does_not_exist() {
 		$file = wp_crop_image(
 			DIR_TESTDATA . '/images/canoladoesnotexist.jpg',
 			0,
@@ -705,7 +705,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Crop setting for PDF.
+	 * Tests crop setting for PDF.
 	 *
 	 * @ticket 43226
 	 */
@@ -846,7 +846,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test PDF preview doesn't overwrite existing JPEG.
+	 * Tests that PDF preview does not overwrite existing JPEG.
 	 *
 	 * @ticket 39875
 	 */
@@ -902,7 +902,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test for wp_exif_frac2dec verified that it properly handles edge cases
+	 * Tests that wp_exif_frac2dec() properly handles edge cases
 	 * and always returns an int or float, or 0 for failures.
 	 *
 	 * @param mixed     $fraction The fraction to convert.
