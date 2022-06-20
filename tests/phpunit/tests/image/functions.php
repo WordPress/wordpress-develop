@@ -28,7 +28,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Get the available image editor engine class(es).
+	 * Get the available image editor engine classes.
 	 *
 	 * @return string[] Available image editor classes; empty array when none are available.
 	 */
@@ -43,6 +43,15 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		}
 
 		return $classes;
+	}
+
+	/**
+	 * Data provider with the available image editor engine classes.
+	 *
+	 * @return array
+	 */
+	public function data_image_editor_engine_classes() {
+		return $this->text_array_to_dataprovider( $this->get_image_editor_engine_classes() );
 	}
 
 	/**
@@ -321,7 +330,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * Test that a passed mime type overrides the extension in the filename when saving an image.
 	 *
-	 * @dataProvider data_mime_overrides_filename_when_saving_an_image
+	 * @dataProvider data_image_editor_engine_classes
 	 *
 	 * @ticket 6821
 	 * @covers WP_Image_Editor::get_mime_type
@@ -350,15 +359,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		unlink( $file );
 		unlink( $ret['path'] );
 		unset( $img );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array
-	 */
-	public function data_mime_overrides_filename_when_saving_an_image() {
-		return $this->text_array_to_dataprovider( $this->get_image_editor_engine_classes() );
 	}
 
 	/**
@@ -441,30 +441,45 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Try loading a directory
+	 * Test that the deprecated wp_load_image() function fails when loading a directory.
 	 *
 	 * @ticket 17814
+	 * @covers ::wp_load_image
 	 * @expectedDeprecated wp_load_image
 	 */
-	public function test_load_directory() {
+	public function test_wp_load_image_should_fail_with_error_message_when_loading_a_directory() {
+		$editor = wp_load_image( DIR_TESTDATA );
+		$this->assertIsString( $editor );
+	}
 
-		// First, test with deprecated wp_load_image function.
-		$editor1 = wp_load_image( DIR_TESTDATA );
-		$this->assertIsString( $editor1 );
+	/**
+	 * Test that the wp_get_image_editor() function fails when loading a directory.
+	 *
+	 * @ticket 17814
+	 * @covers ::wp_get_image_editor
+	 */
+	public function test_wp_get_image_editor_should_fail_with_wp_error_object_when_loading_a_directory() {
+		$editor = wp_get_image_editor( DIR_TESTDATA );
+		$this->assertInstanceOf( 'WP_Error', $editor );
+	}
 
-		$editor2 = wp_get_image_editor( DIR_TESTDATA );
-		$this->assertInstanceOf( 'WP_Error', $editor2 );
+	/**
+	 * Test that the load() method in an image editor class fails when loading a directory.
+	 *
+	 * @dataProvider data_image_editor_engine_classes
+	 *
+	 * @ticket 17814
+	 * @covers WP_Image_Editor_GD::load
+	 * @covers WP_Image_Editor_Imagick::load
+	 *
+	 * @param string $class_name Name of the image editor engine class to be tested.
+	 */
+	public function test_image_editor_classes_should_fail_with_wp_error_object_when_loading_a_directory( $class_name ) {
+		$editor = new $class_name( DIR_TESTDATA );
+		$loaded = $editor->load();
 
-		$classes = $this->get_image_editor_engine_classes();
-
-		// Then, test with editors.
-		foreach ( $classes as $class ) {
-			$editor = new $class( DIR_TESTDATA );
-			$loaded = $editor->load();
-
-			$this->assertInstanceOf( 'WP_Error', $loaded );
-			$this->assertSame( 'error_loading_image', $loaded->get_error_code() );
-		}
+		$this->assertInstanceOf( 'WP_Error', $loaded, 'Loading a directory did not result in a WP_Error.' );
+		$this->assertSame( 'error_loading_image', $loaded->get_error_code(), 'Error code from WP_Error did not match expectation.' );
 	}
 
 	/**
