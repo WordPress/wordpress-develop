@@ -484,6 +484,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55403
+	 * @covers ::wp_crop_image
 	 */
 	public function test_wp_crop_image_with_filtered_extension() {
 		add_filter( 'image_editor_output_format', array( $this, 'filter_image_editor_output_format' ) );
@@ -508,6 +509,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::wp_crop_image
 	 * @requires function imagejpeg
 	 */
 	public function test_wp_crop_image_file() {
@@ -520,17 +522,20 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			100,
 			100
 		);
-		$this->assertNotWPError( $file );
-		$this->assertFileExists( $file );
+		$this->assertNotWPError( $file, 'Cropping the image resulted in a WP_Error.' );
+		$this->assertFileExists( $file, "The file $file does not exist." );
+
 		$image = wp_get_image_editor( $file );
 		$size  = $image->get_size();
-		$this->assertSame( 100, $size['height'] );
-		$this->assertSame( 100, $size['width'] );
+
+		$this->assertSame( 100, $size['height'], 'Cropped image height does not match expectation.' );
+		$this->assertSame( 100, $size['width'], 'Cropped image width does not match expectation.' );
 
 		unlink( $file );
 	}
 
 	/**
+	 * @covers ::wp_crop_image
 	 * @requires function imagejpeg
 	 * @requires extension openssl
 	 */
@@ -551,17 +556,22 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( 'Tests_Image_Functions::test_wp_crop_image_url() cannot access remote image.' );
 		}
 
-		$this->assertNotWPError( $file );
-		$this->assertFileExists( $file );
+		$this->assertNotWPError( $file, 'Cropping the image resulted in a WP_Error.' );
+		$this->assertFileExists( $file, "The file $file does not exist." );
+
 		$image = wp_get_image_editor( $file );
 		$size  = $image->get_size();
-		$this->assertSame( 100, $size['height'] );
-		$this->assertSame( 100, $size['width'] );
+
+		$this->assertSame( 100, $size['height'], 'Cropped image height does not match expectation.' );
+		$this->assertSame( 100, $size['width'], 'Cropped image width does not match expectation.' );
 
 		unlink( $file );
 	}
 
-	public function test_wp_crop_image_file_not_exist() {
+	/**
+	 * @covers ::wp_crop_image
+	 */
+	public function test_wp_crop_image_file_not_exists() {
 		$file = wp_crop_image(
 			DIR_TESTDATA . '/images/canoladoesnotexist.jpg',
 			0,
@@ -575,9 +585,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::wp_crop_image
 	 * @requires extension openssl
 	 */
-	public function test_wp_crop_image_url_not_exist() {
+	public function test_wp_crop_image_url_not_exists() {
 		$file = wp_crop_image(
 			'https://asdftestblog1.files.wordpress.com/2008/04/canoladoesnotexist.jpg',
 			0,
@@ -592,6 +603,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23325
+	 * @covers ::wp_crop_image
 	 */
 	public function test_wp_crop_image_error_on_saving() {
 		WP_Image_Editor_Mock::$save_return = new WP_Error();
