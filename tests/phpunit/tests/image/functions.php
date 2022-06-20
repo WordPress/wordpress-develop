@@ -74,7 +74,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function test_file_is_valid_image_positive( $file ) {
 		$this->assertTrue(
 			file_is_valid_image( DIR_TESTDATA . '/images/' . $file ),
-			"file_is_valid_image( '$file' ) should return true"
+			"file_is_valid_image( '$file' ) should return true."
 		);
 	}
 
@@ -118,7 +118,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function test_file_is_valid_image_negative( $file ) {
 		$this->assertFalse(
 			file_is_valid_image( DIR_TESTDATA . '/images/' . $file ),
-			"file_is_valid_image( '$file' ) should return false"
+			"file_is_valid_image( '$file' ) should return false."
 		);
 	}
 
@@ -148,7 +148,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function test_file_is_displayable_image_positive( $file ) {
 		$this->assertTrue(
 			file_is_displayable_image( DIR_TESTDATA . '/images/' . $file ),
-			"file_is_displayable_image( '$file' ) should return true"
+			"file_is_displayable_image( '$file' ) should return true."
 		);
 	}
 
@@ -190,7 +190,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function test_file_is_displayable_image_negative( $file ) {
 		$this->assertFalse(
 			file_is_displayable_image( DIR_TESTDATA . '/images/' . $file ),
-			"file_is_displayable_image( '$file' ) should return false"
+			"file_is_displayable_image( '$file' ) should return false."
 		);
 	}
 
@@ -257,12 +257,12 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$img    = new $class_name( DIR_TESTDATA . '/images/canola.jpg' );
 		$loaded = $img->load();
 
-		$this->assertNotWPError( $loaded, 'Image failed to load - WP_Error returned' );
+		$this->assertNotWPError( $loaded, 'Image failed to load - WP_Error returned.' );
 
 		if ( ! $img->supports_mime_type( $mime_type ) ) {
 			$this->markTestSkipped(
 				sprintf(
-					'The %s mime type is not supported by the %s engine',
+					'The %s mime type is not supported by the %s engine.',
 					$mime_type,
 					str_replace( 'WP_Image_Editor_', '', $class_name )
 				)
@@ -274,9 +274,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$ret  = wp_save_image_file( $file, $img, $mime_type, 1 );
 
 		// Make assertions.
-		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned' );
-		$this->assertNotWPError( $ret, 'Image failed to save - WP_Error returned' );
-		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image does not match' );
+		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned.' );
+		$this->assertNotWPError( $ret, 'Image failed to save - WP_Error returned.' );
+		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image does not match.' );
 
 		// Clean up.
 		unlink( $file );
@@ -334,7 +334,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$img    = new $class_name( DIR_TESTDATA . '/images/canola.jpg' );
 		$loaded = $img->load();
 
-		$this->assertNotWPError( $loaded, 'Image failed to load - WP_Error returned' );
+		$this->assertNotWPError( $loaded, 'Image failed to load - WP_Error returned.' );
 
 		// Save the file.
 		$mime_type = 'image/gif';
@@ -342,9 +342,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$ret       = $img->save( $file, $mime_type );
 
 		// Make assertions.
-		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned' );
-		$this->assertNotWPError( $ret, 'Image failed to save - WP_Error returned' );
-		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image did not override file name' );
+		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned.' );
+		$this->assertNotWPError( $ret, 'Image failed to save - WP_Error returned.' );
+		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image did not override file name.' );
 
 		// Clean up.
 		unlink( $file );
@@ -379,12 +379,12 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$img    = new $class_name( DIR_TESTDATA . '/images/canola.jpg' );
 		$loaded = $img->load();
 
-		$this->assertNotWPError( $loaded, 'Image failed to load - WP_Error returned' );
+		$this->assertNotWPError( $loaded, 'Image failed to load - WP_Error returned.' );
 
 		if ( ! $img->supports_mime_type( $mime_type ) ) {
 			$this->markTestSkipped(
 				sprintf(
-					'The %s mime type is not supported by the %s engine',
+					'The %s mime type is not supported by the %s engine.',
 					$mime_type,
 					str_replace( 'WP_Image_Editor_', '', $class_name )
 				)
@@ -397,9 +397,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$ret  = $img->save( trailingslashit( $temp ) . $file );
 
 		// Make assertions.
-		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned' );
-		$this->assertNotWPError( $ret, 'Image failed to save - WP Error returned' );
-		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image was not inferred correctly' );
+		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned.' );
+		$this->assertNotWPError( $ret, 'Image failed to save - WP Error returned.' );
+		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image was not inferred correctly.' );
 
 		// Clean up.
 		unlink( $ret['path'] );
