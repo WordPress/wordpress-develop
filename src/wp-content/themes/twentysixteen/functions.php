@@ -386,6 +386,10 @@ function twentysixteen_scripts() {
 		wp_enqueue_style( 'twentysixteen-font-' . $font_slug, $font_url, array(), null );
 	}
 
+	// Register the style 'twentysixteen-fonts' for backwards compatibility.
+	wp_register_style( 'twentysixteen-fonts', false );
+	wp_enqueue_style( 'twentysixteen-fonts' );
+
 	// Add Genericons, used in the main stylesheet.
 	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '20201208' );
 
@@ -442,10 +446,15 @@ add_action( 'wp_enqueue_scripts', 'twentysixteen_scripts' );
 function twentysixteen_block_editor_styles() {
 	// Block styles.
 	wp_enqueue_style( 'twentysixteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20201208' );
+
 	// Add custom fonts.
 	foreach ( twentysixteen_fonts_urls() as $font_slug => $font_url ) {
 		wp_enqueue_style( 'twentysixteen-font-' . $font_slug, $font_url, array(), null );
 	}
+
+	// Register the style 'twentysixteen-fonts' for backwards compatibility.
+	wp_register_style( 'twentysixteen-fonts', false );
+	wp_enqueue_style( 'twentysixteen-fonts' );
 }
 add_action( 'enqueue_block_editor_assets', 'twentysixteen_block_editor_styles' );
 
