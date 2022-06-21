@@ -63,6 +63,30 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that sticky posts are not moved to the front of the first page of the post sitemap.
+	 *
+	 * @ticket 55633
+	 */
+	public function test_posts_sticky_posts() {
+		$factory = self::factory();
+
+		// Create 4 posts, and stick the last one.
+		$post_ids     = $factory->post->create_many( 4 );
+		$last_post_id = end( $post_ids );
+		stick_post( $last_post_id );
+
+		$posts_provider = new WP_Sitemaps_Posts();
+
+		$url_list = $posts_provider->get_url_list( 1, 'post' );
+
+		$this->assertCount( count( $post_ids ), $url_list );
+		// Check that the URL list is still in the order of the post IDs (i.e., sticky post wasn't moved to the front).
+		foreach ( $post_ids as $idx => $post_id ) {
+			$this->assertSame( array( 'loc' => home_url( "?p={$post_id}" ) ), $url_list[ $idx ] );
+		}
+	}
+
+	/**
 	 * Callback for 'wp_sitemaps_posts_show_on_front_entry' filter.
 	 */
 	public function _show_on_front_entry( $sitemap_entry ) {
