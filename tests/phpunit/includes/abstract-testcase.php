@@ -654,9 +654,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string $message Optional. Message to display when the assertion fails.
 	 */
 	public function assertNotWPError( $actual, $message = '' ) {
-		if ( '' === $message && is_wp_error( $actual ) ) {
-			$message = $actual->get_error_message();
+		if ( is_wp_error( $actual ) ) {
+			$message .= ' ' . $actual->get_error_message();
 		}
+
 		$this->assertNotInstanceOf( 'WP_Error', $actual, $message );
 	}
 
@@ -677,9 +678,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string $message Optional. Message to display when the assertion fails.
 	 */
 	public function assertNotIXRError( $actual, $message = '' ) {
-		if ( '' === $message && $actual instanceof IXR_Error ) {
-			$message = $actual->message;
+		if ( $actual instanceof IXR_Error ) {
+			$message .= ' ' . $actual->message;
 		}
+
 		$this->assertNotInstanceOf( 'IXR_Error', $actual, $message );
 	}
 
