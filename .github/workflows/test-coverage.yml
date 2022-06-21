@@ -19,6 +19,7 @@ env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
   LOCAL_PHP: '7.4-fpm'
   LOCAL_PHP_XDEBUG: true
+  LOCAL_PHP_XDEBUG_MODE: 'coverage'
   LOCAL_PHP_MEMCACHED: ${{ false }}
 
 jobs:
