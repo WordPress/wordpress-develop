@@ -716,9 +716,14 @@ function locate_template( $template_names, $load = false, $require_once = true, 
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param string The template filename.
+		 * @param string       $located        The template filename.
+		 * @param string|array $template_names Template file(s) to search for, in order.
+		 * @param bool         $require_once   Whether to require_once or require. Has no effect if `$load` is false.
+		 *                                     Default true.
+		 * @param array        $args           Optional. Additional arguments passed to the template.
+		 *                                     Default empty array.
 		 */
-		do_action( 'wp_before_load_template', $located );
+		do_action( 'wp_before_load_template', $located, $template_names, $require_once, $args );
 
 		load_template( $located, $require_once, $args );
 
@@ -727,9 +732,14 @@ function locate_template( $template_names, $load = false, $require_once = true, 
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param string The template filename.
+		 * @param string       $located        The template filename.
+		 * @param string|array $template_names Template file(s) to search for, in order.
+		 * @param bool         $require_once   Whether to require_once or require. Has no effect if `$load` is false.
+		 *                                     Default true.
+		 * @param array        $args           Optional. Additional arguments passed to the template.
+		 *                                     Default empty array.
 		 */
-		do_action( 'wp_after_load_template', $located );
+		do_action( 'wp_after_load_template', $located, $template_names, $require_once, $args );
 	}
 
 	return $located;
