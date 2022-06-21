@@ -29,7 +29,7 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test ability to filter object subtypes.
+	 * Tests ability to filter object subtypes.
 	 */
 	public function test_filter_sitemaps_post_types() {
 		$posts_provider = new WP_Sitemaps_Posts();
@@ -42,7 +42,7 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test `wp_sitemaps_posts_show_on_front_entry` filter.
+	 * Tests `wp_sitemaps_posts_show_on_front_entry` filter.
 	 */
 	public function test_posts_show_on_front_entry() {
 		$posts_provider = new WP_Sitemaps_Posts();
