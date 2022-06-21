@@ -13,8 +13,6 @@ on:
   pull_request:
     branches:
       - trunk
-      - '3.[89]'
-      - '[4-9].[0-9]'
     paths:
       - '.github/workflows/test-coverage.yml'
       - 'docker-compose.yml'
