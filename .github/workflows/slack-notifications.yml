@@ -112,6 +112,8 @@ jobs:
               return 'none';
             }
 
+            const expected_events = new Array( 'push', 'schedule', 'workflow_dispatch' );
+
             // Find the workflow run for the commit that immediately preceded this one.
             for ( let i = 0; i < previous_runs.data.workflow_runs.length; i++ ) {
               if ( previous_runs.data.workflow_runs[ i ].run_number == workflow_run.data.run_number ) {
@@ -120,7 +122,7 @@ jobs:
                   next_index++;
 
                   // Protects against a false notification when contributors use the trunk branch as the pull request head_ref.
-                  if ( previous_runs.data.workflow_runs[ next_index ].event !== "push" ) {
+                  if ( expected_events.indexOf( previous_runs.data.workflow_runs[ next_index ].event ) == -1 ) {
                     continue;
                   }
 

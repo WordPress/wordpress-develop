@@ -627,6 +627,7 @@ class WP_Query {
 	 * @since 4.9.0 Introduced the `$comment_count` parameter.
 	 * @since 5.1.0 Introduced the `$meta_compare_key` parameter.
 	 * @since 5.3.0 Introduced the `$meta_type_key` parameter.
+	 * @since 6.1.0 Introduced the `$update_menu_item_cache` parameter.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or string of Query parameters.
@@ -756,6 +757,7 @@ class WP_Query {
 	 *     @type string          $title                   Post title.
 	 *     @type bool            $update_post_meta_cache  Whether to update the post meta cache. Default true.
 	 *     @type bool            $update_post_term_cache  Whether to update the post term cache. Default true.
+	 *     @type bool            $update_menu_item_cache  Whether to update the menu item cache. Default false.
 	 *     @type bool            $lazy_load_term_meta     Whether to lazy-load term meta. Setting to false will
 	 *                                                    disable cache priming for term meta, so that each
 	 *                                                    get_term_meta() call will hit the database.
@@ -1869,6 +1871,10 @@ class WP_Query {
 
 		if ( ! isset( $q['update_post_term_cache'] ) ) {
 			$q['update_post_term_cache'] = true;
+		}
+
+		if ( ! isset( $q['update_menu_item_cache'] ) ) {
+			$q['update_menu_item_cache'] = false;
 		}
 
 		if ( ! isset( $q['lazy_load_term_meta'] ) ) {
@@ -3147,6 +3153,10 @@ class WP_Query {
 			$this->posts = array_map( 'get_post', $this->posts );
 		}
 
+		if ( ! empty( $this->posts ) && $q['update_menu_item_cache'] ) {
+			update_menu_item_cache( $this->posts );
+		}
+
 		if ( ! $q['suppress_filters'] ) {
 			/**
 			 * Filters the raw post results array, prior to status checks.
@@ -3434,6 +3444,11 @@ class WP_Query {
 	 */
 	public function the_post() {
 		global $post;
+
+		if ( ! $this->in_the_loop ) {
+			update_post_author_caches( $this->posts );
+		}
+
 		$this->in_the_loop = true;
 
 		if ( -1 == $this->current_post ) { // Loop has just started.

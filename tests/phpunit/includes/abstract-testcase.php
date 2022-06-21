@@ -654,9 +654,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string $message Optional. Message to display when the assertion fails.
 	 */
 	public function assertNotWPError( $actual, $message = '' ) {
-		if ( '' === $message && is_wp_error( $actual ) ) {
-			$message = $actual->get_error_message();
+		if ( is_wp_error( $actual ) ) {
+			$message .= ' ' . $actual->get_error_message();
 		}
+
 		$this->assertNotInstanceOf( 'WP_Error', $actual, $message );
 	}
 
@@ -677,9 +678,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string $message Optional. Message to display when the assertion fails.
 	 */
 	public function assertNotIXRError( $actual, $message = '' ) {
-		if ( '' === $message && $actual instanceof IXR_Error ) {
-			$message = $actual->message;
+		if ( $actual instanceof IXR_Error ) {
+			$message .= ' ' . $actual->message;
 		}
+
 		$this->assertNotInstanceOf( 'IXR_Error', $actual, $message );
 	}
 
@@ -875,6 +877,56 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			$this->assertIsArray( $sub_array, $message . ' Subitem of the array is not an array.' );
 			$this->assertNotEmpty( $sub_array, $message . ' Subitem of the array is empty.' );
 		}
+	}
+
+	/**
+	 * Helper function to convert a single-level array containing text strings to a named data provider.
+	 *
+	 * The value of the data set will also be used as the name of the data set.
+	 *
+	 * Typical usage of this method:
+	 *
+	 *     public function data_provider_for_test_name() {
+	 *         $array = array(
+	 *             'value1',
+	 *             'value2',
+	 *         );
+	 *
+	 *         return $this->text_array_to_dataprovider( $array );
+	 *     }
+	 *
+	 * The returned result will look like:
+	 *
+	 *     array(
+	 *         'value1' => array( 'value1' ),
+	 *         'value2' => array( 'value2' ),
+	 *     )
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param array $input Input array.
+	 * @return array Array which is usable as a test data provider with named data sets.
+	 */
+	public static function text_array_to_dataprovider( $input ) {
+		$data = array();
+
+		foreach ( $input as $value ) {
+			if ( ! is_string( $value ) ) {
+				throw new Exception(
+					'All values in the input array should be text strings. Fix the input data.'
+				);
+			}
+
+			if ( isset( $data[ $value ] ) ) {
+				throw new Exception(
+					"Attempting to add a duplicate data set for value $value to the data provider. Fix the input data."
+				);
+			}
+
+			$data[ $value ] = array( $value );
+		}
+
+		return $data;
 	}
 
 	/**

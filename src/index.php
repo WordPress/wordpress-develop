@@ -11,12 +11,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', __DIR__ . '/' );
 }
 
-if ( file_exists( ABSPATH . 'wp-includes/js/dist/edit-post.js' ) ) {
+define( 'WPINC', 'wp-includes' );
+
+if ( file_exists( ABSPATH . WPINC . '/js/dist/edit-post.js' ) ) {
 	require_once ABSPATH . '_index.php';
 	return;
 }
 
-define( 'WPINC', 'wp-includes' );
 require_once ABSPATH . WPINC . '/load.php';
 
 // Standardize $_SERVER variables across setups.
