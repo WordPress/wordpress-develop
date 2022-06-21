@@ -3020,7 +3020,7 @@ function check_password_reset_key( $key, $login ) {
  * @global wpdb         $wpdb       WordPress database abstraction object.
  * @global PasswordHash $wp_hasher  Portable PHP password hashing framework.
  *
- * @param string $user_login Optional. Username to send a password retrieval email for.
+ * @param string|WP_User $user_login Optional. Username or Email or WP_User object to send a password retrieval email for.
  *                           Defaults to `$_POST['user_login']` if not set.
  * @return true|WP_Error True when finished, WP_Error object on error.
  */
@@ -3035,6 +3035,8 @@ function retrieve_password( $user_login = null ) {
 
 	if ( empty( $user_login ) ) {
 		$errors->add( 'empty_username', __( '<strong>Error:</strong> Please enter a username or email address.' ) );
+	} elseif ( is_object( $user_login ) && get_class( $user_login ) === 'WP_User' ) {
+		$user_data = $user_login;
 	} elseif ( strpos( $user_login, '@' ) ) {
 		$user_data = get_user_by( 'email', trim( wp_unslash( $user_login ) ) );
 		if ( empty( $user_data ) ) {
