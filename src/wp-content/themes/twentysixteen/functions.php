@@ -136,7 +136,7 @@ if ( ! function_exists( 'twentysixteen_setup' ) ) :
 		 * This theme styles the visual editor to resemble the theme style,
 		 * specifically font, colors, icons, and column width.
 		 */
-		add_editor_style( array( 'css/editor-style.css', twentysixteen_fonts_url() ) );
+		add_editor_style( array_merge( array( 'css/editor-style.css' ), twentysixteen_fonts_urls() ) );
 
 		// Load regular editor styles into the new block-based editor.
 		add_theme_support( 'editor-styles' );
@@ -294,13 +294,29 @@ if ( ! function_exists( 'twentysixteen_fonts_url' ) ) :
 	 * @return string Fonts URL for the theme.
 	 */
 	function twentysixteen_fonts_url() {
+		return '';
+	}
+endif;
+
+if ( ! function_exists( 'twentysixteen_fonts_urls' ) ) :
+	/**
+	 * Return an array of font URLs to be enqueued in Twenty Sixteen.
+	 *
+	 * Create your own twentysixteen_fonts_urls() function to override in a child theme.
+	 *
+	 * @since Twenty Sixteen 2.8
+	 *
+	 * @return array<string,string> Font URLs for the theme.
+	 */
+	function twentysixteen_fonts_urls() {
+		$font_urls = array();
 
 		/*
 		 * translators: If there are characters in your language that are not supported
 		 * by Merriweather, translate this to 'off'. Do not translate into your own language.
 		 */
 		if ( 'off' !== _x( 'on', 'Merriweather font: on or off', 'twentysixteen' ) ) {
-			$fonts[] = 'Merriweather:400,700,900,400italic,700italic,900italic';
+			$font_urls['merriweather'] = get_stylesheet_directory_uri() . '/fonts/merriweather/font-merriweather.css';
 		}
 
 		/*
@@ -308,7 +324,7 @@ if ( ! function_exists( 'twentysixteen_fonts_url' ) ) :
 		 * by Montserrat, translate this to 'off'. Do not translate into your own language.
 		 */
 		if ( 'off' !== _x( 'on', 'Montserrat font: on or off', 'twentysixteen' ) ) {
-			$fonts[] = 'Montserrat:400,700';
+			$font_urls['montserrat'] = get_stylesheet_directory_uri() . '/fonts/montserrat/font-montserrat.css';
 		}
 
 		/*
@@ -316,11 +332,17 @@ if ( ! function_exists( 'twentysixteen_fonts_url' ) ) :
 		 * by Inconsolata, translate this to 'off'. Do not translate into your own language.
 		 */
 		if ( 'off' !== _x( 'on', 'Inconsolata font: on or off', 'twentysixteen' ) ) {
-			$fonts[] = 'Inconsolata:400';
+			$font_urls['inconsolata'] = get_stylesheet_directory_uri() . '/fonts/inconsolata/font-inconsolata.css';
 		}
 
-		$fonts_url = get_stylesheet_directory_uri() . '/fonts.css';
-		return $fonts_url;
+		/**
+		 * Include the old fonts file, in case it was used and overridden by a child theme.
+		 */
+		if ( ! empty( twentysixteen_fonts_url() ) ) {
+			$fonts_url['legacy'] = twentysixteen_fonts_url();
+		}
+
+		return $font_urls;
 	}
 endif;
 
@@ -343,7 +365,9 @@ add_action( 'wp_head', 'twentysixteen_javascript_detection', 0 );
  */
 function twentysixteen_scripts() {
 	// Add custom fonts, used in the main stylesheet.
-	wp_enqueue_style( 'twentysixteen-fonts', twentysixteen_fonts_url(), array(), null );
+	foreach ( twentysixteen_fonts_urls() as $font_slug => $font_url ) {
+		wp_enqueue_style( 'twentysixteen-font-' . $font_slug, $font_url, array(), null );
+	}
 
 	// Add Genericons, used in the main stylesheet.
 	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '20201208' );
@@ -402,7 +426,9 @@ function twentysixteen_block_editor_styles() {
 	// Block styles.
 	wp_enqueue_style( 'twentysixteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20201208' );
 	// Add custom fonts.
-	wp_enqueue_style( 'twentysixteen-fonts', twentysixteen_fonts_url(), array(), null );
+	foreach ( twentysixteen_fonts_urls() as $font_slug => $font_url ) {
+		wp_enqueue_style( 'twentysixteen-font-' . $font_slug, $font_url, array(), null );
+	}
 }
 add_action( 'enqueue_block_editor_assets', 'twentysixteen_block_editor_styles' );
 
