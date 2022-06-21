@@ -109,7 +109,7 @@ if ( $_POST ) {
 		'first_comment_email',
 	);
 
-	// Default value for Max upload file size.
+	// Default option values.
 	$defaults = array(
 		'fileupload_maxk' => 1500,
 	);
