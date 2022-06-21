@@ -1977,6 +1977,10 @@ function move_dir( $from, $to ) {
 		$result = @rename( $from, $to );
 	}
 
+	if ( 'direct' !== $wp_filesystem->method() ) {
+		$result = $wp_filesystem->move( $from, $to );
+	}
+
 	if ( ! $result ) {
 		if ( ! $wp_filesystem->is_dir( $to ) ) {
 			if ( ! $wp_filesystem->mkdir( $to, FS_CHMOD_DIR ) ) {
