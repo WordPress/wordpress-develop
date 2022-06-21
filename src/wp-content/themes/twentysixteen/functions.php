@@ -336,9 +336,12 @@ if ( ! function_exists( 'twentysixteen_fonts_urls' ) ) :
 		}
 
 		/**
-		 * Include the old fonts file, in case it was used and overridden by a child theme.
+		 * If the `twentysixteen_fonts_url` function does not return an empty string,
+		 * we can assume that the user has defined a custom font URL.
 		 */
 		if ( ! empty( twentysixteen_fonts_url() ) ) {
+			// Empty the fonts urls array to prevent loading of fonts the user did not intent to load.
+			$fonts_url           = array();
 			$fonts_url['legacy'] = twentysixteen_fonts_url();
 		}
 
