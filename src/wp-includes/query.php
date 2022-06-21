@@ -1090,6 +1090,7 @@ function wp_old_slug_redirect() {
 		 * @param int $id The redirect post ID.
 		 */
 		$id = apply_filters( 'old_slug_redirect_post_id', $id );
+
 		if ( ! $id ) {
 			return;
 		}
@@ -1151,7 +1152,7 @@ function _find_post_by_old_slug( $post_type ) {
 
 	$key          = md5( $query );
 	$last_changed = wp_cache_get_last_changed( 'posts' );
-	$cache_key    = "_find_post_by_old_slug:$key:$last_changed";
+	$cache_key    = "find_post_by_old_slug:$key:$last_changed";
 	$cache        = wp_cache_get( $cache_key, 'posts' );
 	if ( false !== $cache ) {
 		$id = $cache;
@@ -1194,7 +1195,7 @@ function _find_post_by_old_date( $post_type ) {
 		$query        = $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta AS pm_date, $wpdb->posts WHERE ID = post_id AND post_type = %s AND meta_key = '_wp_old_date' AND post_name = %s" . $date_query, $post_type, get_query_var( 'name' ) );
 		$key          = md5( $query );
 		$last_changed = wp_cache_get_last_changed( 'posts' );
-		$cache_key    = "_find_post_by_old_date:$key:$last_changed";
+		$cache_key    = "find_post_by_old_date:$key:$last_changed";
 		$cache        = wp_cache_get( $cache_key, 'posts' );
 		if ( false !== $cache ) {
 			$id = $cache;
