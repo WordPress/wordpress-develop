@@ -5512,7 +5512,7 @@ function wp_ajax_send_password_reset() {
 
 	// Send the password reset link.
 	$user    = get_userdata( $user_id );
-	$results = retrieve_password( $user->user_login );
+	$results = retrieve_password( $user->user_email );
 
 	if ( true === $results ) {
 		wp_send_json_success(
