@@ -173,17 +173,19 @@ function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
 		 * @since Twenty Twenty-One 1.1
 		 */
 		document.addEventListener( 'click', function( event ) {
-			// If target onclick is <a> with # within the href attribute
-			if ( event.target.hash && event.target.hash.includes( '#' ) ) {
-				wrapper.classList.remove( id + '-navigation-open', 'lock-scrolling' );
-				twentytwentyoneToggleAriaExpanded( mobileButton );
-				// Wait 550 and scroll to the anchor.
-				setTimeout(function () {
-					var anchor = document.getElementById(event.target.hash.slice(1));
-					if ( anchor ) {
-						anchor.scrollIntoView();
-					}
-				}, 550);
+			if ( document.getElementById( 'site-navigation' ).contains( event.target ) ) {
+				// If target onclick is <a> with # within the href attribute
+				if ( event.target.hash && event.target.hash.includes( '#' ) ) {
+					wrapper.classList.remove( id + '-navigation-open', 'lock-scrolling' );
+					twentytwentyoneToggleAriaExpanded( mobileButton );
+					// Wait 550 and scroll to the anchor.
+					setTimeout(function () {
+						var anchor = document.getElementById(event.target.hash.slice(1));
+						if ( anchor ) {
+							anchor.scrollIntoView();
+						}
+					}, 550);
+				}
 			}
 		} );
 
