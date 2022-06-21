@@ -679,7 +679,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 			$this->assertSame(
 				$last_post_revision->ID,
 				$revision['revision'],
-				'Failed asserting latest revision id.' . print_r( $post_revisions, true )
+				'Failed asserting latest revision id.'
 			);
 
 			$this->assertSame(
