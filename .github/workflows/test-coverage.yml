@@ -164,6 +164,7 @@ jobs:
         with:
           file: wp-code-coverage-single-clover-${{ github.sha }}.xml
           flags: single,php
+          fail_ci_if_error: true
 
       - name: Run tests as a multisite install
         if: ${{ matrix.multisite }}
@@ -178,6 +179,7 @@ jobs:
         with:
           file: wp-code-coverage-multisite-clover-${{ github.sha }}.xml
           flags: multisite,php
+          fail_ci_if_error: true
 
   slack-notifications:
     name: Slack Notifications
