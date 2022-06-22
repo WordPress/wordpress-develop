@@ -131,6 +131,25 @@ function get_option( $option, $default = false ) {
 	 */
 	$pre = apply_filters( "pre_option_{$option}", false, $option, $default );
 
+
+	/**
+	 * Filters the value of all existing options before it is retrieved.
+	 *
+	 * Returning a truthy value from the filter will effectively short-circuit retrieval
+	 * and return the passed value instead.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param mixed  $pre_option  The value to return instead of the option value. This differs
+	 *                            from `$default`, which is used as the fallback value in the event
+	 *                            the option doesn't exist elsewhere in get_option().
+	 *                            Default false (to skip past the short-circuit).
+	 * @param string $option_name Option name.
+	 * @param mixed  $default     The fallback value to return if the option does not exist.
+	 *                            Default false.
+	 */
+	$pre = apply_filters( 'pre_option_all', $pre, $option_name, $default );
+
 	if ( false !== $pre ) {
 		return $pre;
 	}
@@ -276,6 +295,19 @@ function form_option( $option ) {
  */
 function wp_load_alloptions( $force_cache = false ) {
 	global $wpdb;
+
+	/**
+	 * This filter allows the wp load all options function to be shortcut.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param null $pre if an array is returned then the wp_load_alloptions will be shortcuted and the array returned.
+	 * @param bool $force_cache Whether to force an update of the local cache from the persistent cache. Default false.
+	 */
+	$pre = apply_filters( 'pre_wp_load_alloptions', null, $force_cache );
+	if ( is_array( $pre ) ) {
+		return $pre;
+	}
 
 	if ( ! wp_installing() || ! is_multisite() ) {
 		$alloptions = wp_cache_get( 'alloptions', 'options', $force_cache );
