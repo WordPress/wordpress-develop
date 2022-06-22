@@ -571,8 +571,6 @@ line 2<br/>
 	 * @uses ::trim
 	 *
 	 * @ticket 39307
-	 *
-	 * @covers ::wpautop
 	 */
 	public function test_that_wpautop_does_not_add_extra_closing_p_in_figure() {
 		$content1  = '<figure><img src="example.jpg" /><figcaption>Caption</figcaption></figure>';
