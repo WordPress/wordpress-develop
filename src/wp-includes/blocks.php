@@ -148,48 +148,69 @@ function register_block_script_handle( $metadata, $field_name ) {
  *
  * @param array  $metadata   Block metadata.
  * @param string $field_name Field name to pick from metadata.
- * @return string|false Style handle provided directly or created through
+ * @return array|string|false Style handle provided directly or created through
  *                      style's registration, or false on failure.
  */
+
 function register_block_style_handle( $metadata, $field_name ) {
-	if ( empty( $metadata[ $field_name ] ) ) {
+	$style_data = $metadata[ $field_name ];
+	if ( empty( $style_data ) ) {
 		return false;
 	}
+	$block_name   = $metadata['name'];
+	$style_handle = generate_block_asset_handle( $block_name, $field_name );
+	if ( ! is_array( $style_data ) ) {
+		return _register_block_style_handle( $metadata, $style_handle, $style_data );
+	}
+
+	$handles = array();
+	foreach ( $style_data as $style_item ) {
+		if ( is_array( $style_item ) ) {
+			$handles[] = $style_item;
+		} else {
+			$handles[] = _register_single_block_style_handle( $metadata, $style_handle, $style_item );
+		}
+	}
+
+	return $handles;
+}
+
+function _register_single_block_style_handle( $metadata, $style_handle, $style_data ) {
+	$block_name      = $metadata['name'];
 	$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
 	$theme_path_norm = wp_normalize_path( get_theme_file_path() );
-	$is_core_block   = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
+
+	$block_json_file_path = $metadata['file'];
+	$is_core_block        = isset( $block_json_file_path ) && 0 === strpos( $block_json_file_path, $wpinc_path_norm );
+	$version              = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
+
 	if ( $is_core_block && ! wp_should_load_separate_core_block_assets() ) {
 		return false;
 	}
 
 	// Check whether styles should have a ".min" suffix or not.
-	$suffix = SCRIPT_DEBUG ? '' : '.min';
-
-	$style_handle = $metadata[ $field_name ];
-	$style_path   = remove_block_asset_path_prefix( $metadata[ $field_name ] );
-
-	if ( $style_handle === $style_path && ! $is_core_block ) {
-		return $style_handle;
+	$suffix     = SCRIPT_DEBUG ? '' : '.min';
+	$style_path = remove_block_asset_path_prefix( $style_data );
+	if ( $style_data === $style_path && ! $is_core_block ) {
+		return $style_data;
 	}
 
-	$style_uri = plugins_url( $style_path, $metadata['file'] );
+	$style_uri = plugins_url( $style_path, $block_json_file_path );
 	if ( $is_core_block ) {
 		$style_path = "style$suffix.css";
-		$style_uri  = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . "/style$suffix.css" );
+		$style_uri  = includes_url( 'blocks/' . str_replace( 'core/', '', $block_name ) . "/style$suffix.css" );
 	}
 
-	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
+	$style_path_norm = wp_normalize_path( realpath( dirname( $block_json_file_path ) . '/' . $style_path ) );
 	$is_theme_block  = 0 === strpos( $style_path_norm, $theme_path_norm );
 
 	if ( $is_theme_block ) {
 		$style_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $style_path_norm ) );
 	}
 
-	$style_handle   = generate_block_asset_handle( $metadata['name'], $field_name );
-	$block_dir      = dirname( $metadata['file'] );
+	$block_dir      = dirname( $block_json_file_path );
 	$style_file     = realpath( "$block_dir/$style_path" );
 	$has_style_file = false !== $style_file;
-	$version        = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
 	$style_uri      = $has_style_file ? $style_uri : false;
 	$result         = wp_register_style(
 		$style_handle,
@@ -1241,6 +1262,10 @@ function _wp_multiple_block_styles( $metadata ) {
 		if ( ! empty( $metadata[ $key ] ) && is_array( $metadata[ $key ] ) ) {
 			$default_style = array_shift( $metadata[ $key ] );
 			foreach ( $metadata[ $key ] as $handle ) {
+				if ( is_array( $handle ) ) {
+					continue;
+				}
+
 				$args = array( 'handle' => $handle );
 				if ( 0 === strpos( $handle, 'file:' ) && isset( $metadata['file'] ) ) {
 					$style_path      = remove_block_asset_path_prefix( $handle );
