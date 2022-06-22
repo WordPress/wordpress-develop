@@ -107,4 +107,22 @@ class Tests_Option_wpLoadAlloptions extends WP_UnitTestCase {
 		$this->alloptions = $alloptions;
 		return $this->alloptions;
 	}
+
+	/**
+	 * Test that you can shortcut the function with the filter "pre_wp_load_alloptions".
+	 *
+	 * @ticket 56045
+	 */
+	public function test_filter_pre_wp_load_alloptions_filter_is_called() {
+
+		add_filter( 'pre_wp_load_alloptions', array( $this, 'pre_wp_load_alloptions_filter' ) );
+
+		// Filter was called.
+		$this->assertEquals( array( 'filtered' => 'true' ), wp_load_alloptions() );
+	}
+
+	public function pre_wp_load_alloptions_filter() {
+		return array( 'filtered' => 'true' );
+	}
+
 }
