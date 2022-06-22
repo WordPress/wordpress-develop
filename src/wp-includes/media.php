@@ -367,7 +367,7 @@ function remove_image_size( $name ) {
  *                           An array can specify positioning of the crop area. Default false.
  */
 function set_post_thumbnail_size( $width = 0, $height = 0, $crop = false ) {
-	add_image_size( 'post-thumbnail', $width, $height, $crop );
+	add_image_size( 'post-thumbnail', $width, $height, $crop, array( 'image/webp' ) );
 }
 
 /**
@@ -5314,9 +5314,9 @@ function wp_media_personal_data_exporter( $email_address, $page = 1 ) {
  */
 function _wp_add_additional_image_sizes() {
 	// 2x medium_large size.
-	add_image_size( '1536x1536', 1536, 1536 );
+	add_image_size( '1536x1536', 1536, 1536, false, array( 'image/webp' ) );
 	// 2x large size.
-	add_image_size( '2048x2048', 2048, 2048 );
+	add_image_size( '2048x2048', 2048, 2048, false, array( 'image/webp' ) );
 }
 
 /**
