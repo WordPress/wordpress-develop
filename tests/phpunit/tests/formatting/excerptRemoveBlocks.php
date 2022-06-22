@@ -2,7 +2,6 @@
 
 /**
  * @group formatting
- * @covers ::excerpt_remove_blocks
  * @ticket 46133
  */
 class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
