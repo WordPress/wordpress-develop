@@ -213,8 +213,8 @@ CAP;
 		$img_preg     = preg_quote( self::IMG_CONTENT );
 		$content_preg = preg_quote( self::HTML_CONTENT );
 
-		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result, $_r ) );
+		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result ) );
+		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result ) );
 	}
 
 	public function test_new_img_caption_shortcode_new_format_and_linked_image() {
@@ -226,8 +226,8 @@ CAP;
 		$img_preg     = preg_quote( $linked_image );
 		$content_preg = preg_quote( self::HTML_CONTENT );
 
-		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result, $_r ) );
+		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result ) );
+		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result ) );
 	}
 
 	public function test_new_img_caption_shortcode_new_format_and_linked_image_with_newline() {
@@ -239,8 +239,8 @@ CAP;
 		$img_preg     = preg_quote( $linked_image );
 		$content_preg = preg_quote( self::HTML_CONTENT );
 
-		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result, $_r ) );
+		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result ) );
+		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result ) );
 	}
 
 	/**
