@@ -172,7 +172,7 @@ if ( ! function_exists( 'twentyfifteen_setup' ) ) :
 		 * This theme styles the visual editor to resemble the theme style,
 		 * specifically font, colors, icons, and column width.
 		 */
-		add_editor_style( array( 'css/editor-style.css', 'genericons/genericons.css', twentyfifteen_fonts_url() ) );
+		add_editor_style( array_merge( array( 'css/editor-style.css', 'genericons/genericons.css' ), twentyfifteen_fonts_urls() ) );
 
 		// Load regular editor styles into the new block-based editor.
 		add_theme_support( 'editor-styles' );
@@ -347,23 +347,36 @@ add_action( 'widgets_init', 'twentyfifteen_widgets_init' );
 
 if ( ! function_exists( 'twentyfifteen_fonts_url' ) ) :
 	/**
-	 * Register Google fonts for Twenty Fifteen.
+	 * Register fonts for Twenty Fifteen.
 	 *
 	 * @since Twenty Fifteen 1.0
 	 *
-	 * @return string Google fonts URL for the theme.
+	 * @return string Fonts URL for the theme.
 	 */
 	function twentyfifteen_fonts_url() {
-		$fonts_url = '';
-		$fonts     = array();
-		$subsets   = 'latin,latin-ext';
+		return '';
+	}
+endif;
+
+if ( ! function_exists( 'twentyfifteen_fonts_urls' ) ) :
+	/**
+	 * Return an array of font URLs to be enqueued in Twenty Fifteen.
+	 *
+	 * Create your own twentyfifteen_fonts_urls() function to override in a child theme.
+	 *
+	 * @since Twenty Sixteen 2.8
+	 *
+	 * @return array<string,string> Font URLs for the theme.
+	 */
+	function twentyfifteen_fonts_urls() {
+		$font_urls = array();
 
 		/*
 		 * translators: If there are characters in your language that are not supported
 		 * by Noto Sans, translate this to 'off'. Do not translate into your own language.
 		 */
 		if ( 'off' !== _x( 'on', 'Noto Sans font: on or off', 'twentyfifteen' ) ) {
-			$fonts[] = 'Noto Sans:400italic,700italic,400,700';
+			$font_urls['noto-sans'] = get_stylesheet_directory_uri() . '/assets/fonts/noto-sans/font-noto-sans.css';
 		}
 
 		/*
@@ -371,7 +384,7 @@ if ( ! function_exists( 'twentyfifteen_fonts_url' ) ) :
 		 * by Noto Serif, translate this to 'off'. Do not translate into your own language.
 		 */
 		if ( 'off' !== _x( 'on', 'Noto Serif font: on or off', 'twentyfifteen' ) ) {
-			$fonts[] = 'Noto Serif:400italic,700italic,400,700';
+			$font_urls['noto-serif'] = get_stylesheet_directory_uri() . '/assets/fonts/noto-serif/font-noto-serif.css';
 		}
 
 		/*
@@ -379,37 +392,20 @@ if ( ! function_exists( 'twentyfifteen_fonts_url' ) ) :
 		 * by Inconsolata, translate this to 'off'. Do not translate into your own language.
 		 */
 		if ( 'off' !== _x( 'on', 'Inconsolata font: on or off', 'twentyfifteen' ) ) {
-			$fonts[] = 'Inconsolata:400,700';
+			$font_urls['inconsolata'] = get_stylesheet_directory_uri() . '/assets/fonts/inconsolata/font-inconsolata.css';
 		}
 
-		/*
-		 * translators: To add an additional character subset specific to your language,
-		 * translate this to 'greek', 'cyrillic', 'devanagari' or 'vietnamese'. Do not translate into your own language.
+		/**
+		 * If the `twentyfifteen_fonts_url` function does not return an empty string,
+		 * we can assume that the user has defined a custom font URL.
 		 */
-		$subset = _x( 'no-subset', 'Add new subset (greek, cyrillic, devanagari, vietnamese)', 'twentyfifteen' );
-
-		if ( 'cyrillic' === $subset ) {
-			$subsets .= ',cyrillic,cyrillic-ext';
-		} elseif ( 'greek' === $subset ) {
-			$subsets .= ',greek,greek-ext';
-		} elseif ( 'devanagari' === $subset ) {
-			$subsets .= ',devanagari';
-		} elseif ( 'vietnamese' === $subset ) {
-			$subsets .= ',vietnamese';
+		if ( ! empty( twentyfifteen_fonts_url() ) ) {
+			// Empty the fonts urls array to prevent loading of fonts the user did not intent to load.
+			$font_urls           = array();
+			$font_urls['legacy'] = twentyfifteen_fonts_url();
 		}
 
-		if ( $fonts ) {
-			$fonts_url = add_query_arg(
-				array(
-					'family'  => urlencode( implode( '|', $fonts ) ),
-					'subset'  => urlencode( $subsets ),
-					'display' => urlencode( 'fallback' ),
-				),
-				'https://fonts.googleapis.com/css'
-			);
-		}
-
-		return $fonts_url;
+		return $font_urls;
 	}
 endif;
 
@@ -432,7 +428,13 @@ add_action( 'wp_head', 'twentyfifteen_javascript_detection', 0 );
  */
 function twentyfifteen_scripts() {
 	// Add custom fonts, used in the main stylesheet.
-	wp_enqueue_style( 'twentyfifteen-fonts', twentyfifteen_fonts_url(), array(), null );
+	foreach ( twentyfifteen_fonts_urls() as $font_slug => $font_url ) {
+		wp_enqueue_style( 'twentyfifteen-font-' . $font_slug, $font_url, array(), null );
+	}
+
+	// Register the style 'twentyfifteen-fonts' for backwards compatibility.
+	wp_register_style( 'twentyfifteen-fonts', false );
+	wp_enqueue_style( 'twentyfifteen-fonts' );
 
 	// Add Genericons, used in the main stylesheet.
 	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '20201208' );
@@ -481,14 +483,22 @@ add_action( 'wp_enqueue_scripts', 'twentyfifteen_scripts' );
 function twentyfifteen_block_editor_styles() {
 	// Block styles.
 	wp_enqueue_style( 'twentyfifteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20201208' );
-	// Add custom fonts.
-	wp_enqueue_style( 'twentyfifteen-fonts', twentyfifteen_fonts_url(), array(), null );
+
+	// Add custom fonts, used in the main stylesheet.
+	foreach ( twentyfifteen_fonts_urls() as $font_slug => $font_url ) {
+		wp_enqueue_style( 'twentyfifteen-font-' . $font_slug, $font_url, array(), null );
+	}
+
+	// Register the style 'twentyfifteen-fonts' for backwards compatibility.
+	wp_register_style( 'twentyfifteen-fonts', false );
+	wp_enqueue_style( 'twentyfifteen-fonts' );
 }
 add_action( 'enqueue_block_editor_assets', 'twentyfifteen_block_editor_styles' );
 
 
 /**
  * Add preconnect for Google Fonts.
+ * This has been removed due to privacy concerns.
  *
  * @since Twenty Fifteen 1.7
  *
@@ -497,17 +507,6 @@ add_action( 'enqueue_block_editor_assets', 'twentyfifteen_block_editor_styles' )
  * @return array URLs to print for resource hints.
  */
 function twentyfifteen_resource_hints( $urls, $relation_type ) {
-	if ( wp_style_is( 'twentyfifteen-fonts', 'queue' ) && 'preconnect' === $relation_type ) {
-		if ( version_compare( $GLOBALS['wp_version'], '4.7-alpha', '>=' ) ) {
-			$urls[] = array(
-				'href' => 'https://fonts.gstatic.com',
-				'crossorigin',
-			);
-		} else {
-			$urls[] = 'https://fonts.gstatic.com';
-		}
-	}
-
 	return $urls;
 }
 add_filter( 'wp_resource_hints', 'twentyfifteen_resource_hints', 10, 2 );
