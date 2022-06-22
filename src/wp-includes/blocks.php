@@ -160,7 +160,7 @@ function register_block_style_handle( $metadata, $field_name ) {
 	$block_name   = $metadata['name'];
 	$style_handle = generate_block_asset_handle( $block_name, $field_name );
 	if ( ! is_array( $style_data ) ) {
-		return _register_block_style_handle( $metadata, $style_handle, $style_data );
+		return _register_single_block_style_handle( $metadata, $style_handle, $style_data );
 	}
 
 	$handles = array();
