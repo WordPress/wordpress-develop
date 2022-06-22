@@ -1178,6 +1178,21 @@ VIDEO;
 	}
 
 	/**
+	 * @ticket 55443
+	 */
+	public function test_image_size_supports_mime() {
+		add_image_size( 'test-size', 200, 600, true );
+		$this->assertSame( false, image_size_supports_mime( 'test-size', 'image/webp' ) );
+		remove_image_size( 'test-size' );
+
+		add_image_size( 'test-size', 200, 600, true, array( 'image/webp' ) );
+		$this->assertSame( true, image_size_supports_mime( 'test-size', 'image/webp' ) );
+
+		// Clean up.
+		remove_image_size( 'test-size' );
+	}
+
+	/**
 	 * @ticket 30346
 	 */
 	public function test_attachment_url_to_postid() {

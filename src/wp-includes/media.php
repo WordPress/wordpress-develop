@@ -275,27 +275,49 @@ function image_downsize( $id, $size = 'medium' ) {
  * Register a new image size.
  *
  * @since 2.9.0
+ * @since 6.1.0 Add the $output_mimes parameter.
  *
  * @global array $_wp_additional_image_sizes Associative array of additional image sizes.
  *
- * @param string     $name   Image size identifier.
- * @param int        $width  Optional. Image width in pixels. Default 0.
- * @param int        $height Optional. Image height in pixels. Default 0.
- * @param bool|array $crop   Optional. Image cropping behavior. If false, the image will be scaled (default),
- *                           If true, image will be cropped to the specified dimensions using center positions.
- *                           If an array, the image will be cropped using the array to specify the crop location.
- *                           Array values must be in the format: array( x_crop_position, y_crop_position ) where:
- *                               - x_crop_position accepts: 'left', 'center', or 'right'.
- *                               - y_crop_position accepts: 'top', 'center', or 'bottom'.
+ * @param string     $name         Image size identifier.
+ * @param int        $width        Optional. Image width in pixels. Default 0.
+ * @param int        $height       Optional. Image height in pixels. Default 0.
+ * @param bool|array $crop         Optional. Image cropping behavior. If false, the image will be scaled (default),
+ *                                 If true, image will be cropped to the specified dimensions using center positions.
+ *                                 If an array, the image will be cropped using the array to specify the crop location.
+ *                                 Array values must be in the format: array( x_crop_position, y_crop_position ) where:
+ *                                     - x_crop_position accepts: 'left', 'center', or 'right'.
+ *                                     - y_crop_position accepts: 'top', 'center', or 'bottom'.
+ * @param array      $output_mimes A list of supported output mime types for this image size. If empty, no secondary mime
+ *                                 type images will created for this size. Default is empty. Note this serves to limit the
+ *                                 mime types that are generated per size, to specify the mime types that are supported,
+ * 	                               for a given input type, use the `wp_upload_image_mime_transforms` filter.
  */
-function add_image_size( $name, $width = 0, $height = 0, $crop = false ) {
+function add_image_size( $name, $width = 0, $height = 0, $crop = false, $output_mimes = array() ) {
 	global $_wp_additional_image_sizes;
 
 	$_wp_additional_image_sizes[ $name ] = array(
-		'width'  => absint( $width ),
-		'height' => absint( $height ),
-		'crop'   => $crop,
+		'width'        => absint( $width ),
+		'height'       => absint( $height ),
+		'crop'         => $crop,
+		'output_mimes' => $output_mimes
 	);
+}
+
+/**
+ * Check if an image size supports output in a specific mime type.
+ *
+ * @since 6.1.0
+ *
+ * @uses wp_get_additional_image_sizes()
+ *
+ * @param string $name      Image size identifier.
+ * @param string $mime_type The mime type to check.
+ * @return bool Whether the size supports the mime type for output.
+ */
+function image_size_supports_mime( $name, $mime_type ) {
+	$sizes = wp_get_additional_image_sizes();
+	return isset( $sizes[ $name ][ 'output_mimes' ] ) && in_array( $mime_type, $sizes[ $name ][ 'output_mimes' ] );
 }
 
 /**

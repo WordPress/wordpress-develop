@@ -625,7 +625,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 function _wp_mime_type_available_for_image_size( $attachment_id, $size_name, $source_mime, $destination_mime ) {
 	$image_mime_transforms = wp_upload_image_mime_transforms( $attachment_id, $size_name );
 
-	return isset( $image_mime_transforms[ $source_mime ] [ $destination_mime ] );
+	return isset( $image_mime_transforms[ $source_mime ] [ $destination_mime ] ) && image_size_supports_mime( $size_name, $destination_mime );
 }
 
 /**
