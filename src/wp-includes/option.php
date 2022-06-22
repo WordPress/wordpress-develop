@@ -131,7 +131,6 @@ function get_option( $option, $default = false ) {
 	 */
 	$pre = apply_filters( "pre_option_{$option}", false, $option, $default );
 
-
 	/**
 	 * Filters the value of all existing options before it is retrieved.
 	 *
