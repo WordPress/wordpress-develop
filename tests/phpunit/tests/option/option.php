@@ -255,4 +255,24 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			array( 'autoload_false', false, 'no' ),
 		);
 	}
+
+	/**
+	 * Check we can shortcut the get_option with the pre_option_all filter.
+	 *
+	 * @ticket 37930
+	 *
+	 * @covers get_option
+	 */
+	public function test_filter_pre_option_all_filter_is_called() {
+
+		add_filter( 'pre_option_all', array( $this, 'pre_option_all_filter' ) );
+
+		// Filter was not called.
+		$this->assertEquals( array( 'filtered' => 'true' ), get_option( 'ignored' ) );
+	}
+
+	public function pre_option_all_filter() {
+		return array( 'filtered' => 'true' );
+	}
+
 }
