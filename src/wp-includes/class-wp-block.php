@@ -268,7 +268,23 @@ class WP_Block {
 		}
 
 		if ( ! empty( $this->block_type->style ) ) {
-			wp_enqueue_style( $this->block_type->style );
+			/*
+			 * Extract the style handles from $this->block_type->style and
+			 * register them. The challenge is that $this->block_type->style
+			 * can be either a string (handle) or an array.
+			 *
+			 * If it's an array, some elements may be handles, and others may be
+			 * arrays of styles.
+			 */
+			if ( is_array( $this->block_type->style ) ) {
+				foreach ( $this->block_type->style as $handle_maybe ) {
+					if ( is_string( $handle_maybe ) ) {
+						wp_enqueue_style( $handle_maybe );
+					}
+				}
+			} else {
+				wp_enqueue_style( $this->block_type->style );
+			}
 		}
 
 		/**
