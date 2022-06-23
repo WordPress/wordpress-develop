@@ -153,14 +153,12 @@ function register_block_script_handle( $metadata, $field_name ) {
  */
 
 function register_block_style_handle( $metadata, $field_name ) {
-	$style_data = $metadata[ $field_name ];
-	if ( empty( $style_data ) ) {
+	if ( empty( $metadata[ $field_name ] ) ) {
 		return false;
 	}
-	$block_name   = $metadata['name'];
-	$style_handle = generate_block_asset_handle( $block_name, $field_name );
+	$style_data = $metadata[ $field_name ];
 	if ( ! is_array( $style_data ) ) {
-		return _register_single_block_style_handle( $metadata, $style_handle, $style_data );
+		return _register_single_block_style_handle( $metadata, $field_name, $style_data );
 	}
 
 	/*
@@ -174,15 +172,14 @@ function register_block_style_handle( $metadata, $field_name ) {
 		if ( is_array( $style_item ) ) {
 			$handles[] = $style_item;
 		} else {
-			$handles[] = _register_single_block_style_handle( $metadata, $style_handle, $style_item );
+			$handles[] = _register_single_block_style_handle( $metadata, $field_name, $style_item );
 		}
 	}
 
 	return $handles;
 }
 
-function _register_single_block_style_handle( $metadata, $style_handle, $style_data ) {
-	$block_name      = $metadata['name'];
+function _register_single_block_style_handle( $metadata, $field_name, $style_data ) {
 	$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
 	$theme_path_norm = wp_normalize_path( get_theme_file_path() );
 
@@ -201,7 +198,8 @@ function _register_single_block_style_handle( $metadata, $style_handle, $style_d
 		return $style_data;
 	}
 
-	$style_uri = plugins_url( $style_path, $block_json_file_path );
+	$block_name = $metadata['name'];
+	$style_uri  = plugins_url( $style_path, $block_json_file_path );
 	if ( $is_core_block ) {
 		$style_path = "style$suffix.css";
 		$style_uri  = includes_url( 'blocks/' . str_replace( 'core/', '', $block_name ) . "/style$suffix.css" );
@@ -214,6 +212,7 @@ function _register_single_block_style_handle( $metadata, $style_handle, $style_d
 		$style_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $style_path_norm ) );
 	}
 
+	$style_handle   = generate_block_asset_handle( $block_name, $field_name );
 	$block_dir      = dirname( $block_json_file_path );
 	$style_file     = realpath( "$block_dir/$style_path" );
 	$has_style_file = false !== $style_file;
