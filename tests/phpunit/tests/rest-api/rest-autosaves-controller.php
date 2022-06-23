@@ -25,6 +25,8 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	protected static $child_page_id;
 	protected static $child_draft_page_id;
 
+	private $post_autosave;
+
 	protected function set_post_data( $args = array() ) {
 		$defaults = array(
 			'title'   => 'Post Title',

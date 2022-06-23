@@ -14,6 +14,11 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	protected static $administrator;
 	protected static $author;
 
+	/**
+	 * @var WP_REST_Settings_Controller
+	 */
+	private $endpoint;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$administrator = $factory->user->create(
 			array(
