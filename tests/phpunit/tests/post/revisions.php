@@ -688,7 +688,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_get_last_revision_id_and_total_count() when no revisions.
+	 * Tests that wp_get_lastest_revision_id_and_total_count() when no revisions.
 	 *
 	 * @ticket 55857
 	 */
