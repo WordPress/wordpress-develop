@@ -502,7 +502,7 @@ EOF;
 	/**
 	 * @ticket 20210
 	 *
-	 * @covers ::wp_kses
+	 * @covers ::wp_kses_allowed_html
 	 */
 	public function test_wp_kses_allowed_html() {
 		global $allowedposttags, $allowedtags, $allowedentitynames;
