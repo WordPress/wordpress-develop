@@ -593,7 +593,13 @@ class WP_Upgrader {
 		}
 
 		// Copy new version of item into place.
-		$result = copy_dir( $source, $remote_destination );
+		if ( class_exists( 'Rollback_Update_Failure\WP_Upgrader' )
+			&& function_exists( '\Rollback_Update_Failure\move_dir' )
+		) {
+			$result = \Rollback_Update_Failure\move_dir( $source, $remote_destination );
+		} else {
+			$result = copy_dir( $source, $remote_destination );
+		}
 		if ( is_wp_error( $result ) ) {
 			if ( $args['clear_working'] ) {
 				$wp_filesystem->delete( $remote_source, true );
