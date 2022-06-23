@@ -1260,7 +1260,6 @@ function get_query_pagination_arrow( $block, $is_next ) {
 function _wp_multiple_block_styles( $metadata ) {
 	foreach ( array( 'style', 'editorStyle' ) as $key ) {
 		if ( ! empty( $metadata[ $key ] ) && is_array( $metadata[ $key ] ) ) {
-			$default_style = array_shift( $metadata[ $key ] );
 			foreach ( $metadata[ $key ] as $handle ) {
 				if ( is_array( $handle ) ) {
 					continue;
@@ -1287,9 +1286,6 @@ function _wp_multiple_block_styles( $metadata ) {
 
 				wp_enqueue_block_style( $metadata['name'], $args );
 			}
-
-			// Only return the 1st item in the array.
-			$metadata[ $key ] = $default_style;
 		}
 	}
 	return $metadata;
