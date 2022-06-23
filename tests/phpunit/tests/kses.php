@@ -557,6 +557,7 @@ EOF;
 
 	/**
 	 * @covers ::wp_kses_post
+	 * @covers ::wp_kses
 	 */
 	public function test_hyphenated_tag() {
 		$string                 = '<hyphenated-tag attribute="value" otherattribute="value2">Alot of hyphens.</hyphenated-tag>';
@@ -907,6 +908,8 @@ EOF;
 
 	/**
 	 * @ticket 54698
+	 *
+	 * @covers ::wp_kses
 	 */
 	public function test_ruby_tag_allowed() {
 		global $allowedposttags;
@@ -1559,6 +1562,8 @@ EOF;
 	 * Test filtering a standard main tag.
 	 *
 	 * @ticket 53156
+	 *
+	 * @covers ::wp_kses_post
 	 */
 	public function test_wp_kses_main_tag_standard_attributes() {
 		$test = array(
@@ -1579,6 +1584,8 @@ EOF;
 	 * @ticket 54261
 	 *
 	 * @dataProvider data_wp_kses_object_tag_allowed
+	 *
+	 * @covers ::wp_kses_post
 	 *
 	 * @param string $html     A string of HTML to test.
 	 * @param string $expected The expected result from KSES.
@@ -1690,6 +1697,8 @@ EOF;
 	 *
 	 * @dataProvider data_wp_kses_object_data_url_with_port_number_allowed
 	 *
+	 * @covers ::wp_kses_post
+	 *
 	 * @param string $html     A string of HTML to test.
 	 * @param string $expected The expected result from KSES.
 	 */
@@ -1739,6 +1748,8 @@ EOF;
 	 * 'wp_kses_allowed_html' filter.
 	 *
 	 * @ticket 54261
+	 *
+	 * @covers ::wp_kses_post
 	 */
 	function test_wp_kses_object_added_in_html_filter() {
 		$html = <<<HTML
@@ -1779,6 +1790,8 @@ HTML;
 	 * @ticket 54261
 	 *
 	 * @dataProvider data_wp_kses_allowed_values_list
+	 *
+	 * @covers ::wp_kses
 	 *
 	 * @param string $html         A string of HTML to test.
 	 * @param string $expected     The expected result from KSES.
@@ -1837,6 +1850,8 @@ HTML;
 	 * @ticket 54261
 	 *
 	 * @dataProvider data_wp_kses_required_attribute
+	 *
+	 * @covers ::wp_kses
 	 *
 	 * @param string $html         A string of HTML to test.
 	 * @param string $expected     The expected result from KSES.
