@@ -323,7 +323,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		foreach ( $post_ids as $post_id ) {
 			$expected = array(
 				'id'         => 'post-' . $post_id,
-				'title'      => html_entity_decode( get_the_title( $post_id ) ),
+				'title'      => html_entity_decode( get_the_title( $post_id ), ENT_COMPAT | ENT_HTML401 ),
 				'type'       => 'post_type',
 				'type_label' => get_post_type_object( 'post' )->labels->singular_name,
 				'object'     => 'post',
@@ -1143,7 +1143,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		$this->assertStringContainsString( sprintf( ' data-customize-partial-id="nav_menu_instance[%s]"', $args['customize_preview_nav_menus_args']['args_hmac'] ), $result );
 		$this->assertStringContainsString( ' data-customize-partial-type="nav_menu_instance"', $result );
 		$this->assertTrue( (bool) preg_match( '/data-customize-partial-placement-context="(.+?)"/', $result, $matches ) );
-		$context = json_decode( html_entity_decode( $matches[1] ), true );
+		$context = json_decode( html_entity_decode( $matches[1], ENT_COMPAT | ENT_HTML401 ), true );
 
 		foreach ( $original_args as $key => $value ) {
 			$this->assertArrayHasKey( $key, $context );
