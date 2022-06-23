@@ -17,7 +17,7 @@ class IXR_Error
     function __construct( $code, $message )
     {
         $this->code = $code;
-        $this->message = htmlspecialchars($message);
+        $this->message = htmlspecialchars($message, ENT_COMPAT | ENT_HTML401);
     }
 
 	/**
