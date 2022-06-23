@@ -1898,7 +1898,7 @@ function wp_count_terms( $args = array(), $deprecated = '' ) {
 
 	$args['fields'] = 'count';
 
-	$taxonomy = $args['taxonomy'];
+	$taxonomy = isset( $args['taxonomy'] ) ? $args['taxonomy'] : '';
 	$count    = get_terms( $args );
 
 	/**
@@ -1907,7 +1907,8 @@ function wp_count_terms( $args = array(), $deprecated = '' ) {
 	 * @since 3.7.0
 	 *
 	 * @param int    $count    The number of terms retrieved.
-	 * @param string $taxonomy Taxonomy.
+	 * @param string $taxonomy The taxonomy. Empty string if no taxonomy
+	 *                         was provided.
 	 * @param string $args     The arguments provided for get_terms().
 	 */
 	return apply_filters( 'wp_count_terms', $count, $taxonomy, $args );
