@@ -73,7 +73,7 @@ PS.  Not yet subscribed for update notifications?  <a href="%1$s" title="Subscri
 	public function test_skip_pre_elements() {
 		$code = file_get_contents( DIR_TESTDATA . '/formatting/sizzle.js' );
 		$code = str_replace( "\r", '', $code );
-		$code = htmlentities( $code );
+		$code = htmlentities( $code, ENT_COMPAT | ENT_HTML401 );
 
 		// Not wrapped in <p> tags.
 		$str = "<pre>$code</pre>";
