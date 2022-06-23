@@ -1261,6 +1261,7 @@ function _wp_multiple_block_styles( $metadata ) {
 	foreach ( array( 'style', 'editorStyle' ) as $key ) {
 		if ( ! empty( $metadata[ $key ] ) && is_array( $metadata[ $key ] ) ) {
 			foreach ( $metadata[ $key ] as $handle ) {
+				// Do not enqueue style arrays such as { "color": { "text": "#fff" } }.
 				if ( is_array( $handle ) ) {
 					continue;
 				}
