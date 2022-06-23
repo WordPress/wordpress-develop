@@ -423,6 +423,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 					'source'   => 'html',
 					'selector' => '.message',
 				),
+				'lock'    => array( 'type' => 'object' ),
 			),
 			$result->attributes
 		);

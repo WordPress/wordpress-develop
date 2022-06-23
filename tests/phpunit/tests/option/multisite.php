@@ -9,7 +9,7 @@ if ( is_multisite() ) :
 	 * @group ms-option
 	 * @group multisite
 	 */
-	class Tests_Multisite_Option extends WP_UnitTestCase {
+	class Tests_Option_Multisite extends WP_UnitTestCase {
 
 		/**
 		 * @covers ::get_blog_option

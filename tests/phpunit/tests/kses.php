@@ -176,8 +176,6 @@ class Tests_Kses extends WP_UnitTestCase {
 	 * @param string $string        Test string for kses.
 	 * @param string $expect_string Expected result after passing through kses.
 	 * @return void
-	 *
-	 * @covers ::wp_kses
 	 */
 	public function test_wp_filter_post_kses_abbr( $string, $expect_string ) {
 		global $allowedposttags;

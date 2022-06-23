@@ -1204,12 +1204,12 @@ function wp_dropdown_pages( $args = '' ) {
 	}
 
 	/**
-	 * Filters the HTML output of a list of pages as a drop down.
+	 * Filters the HTML output of a list of pages as a dropdown.
 	 *
 	 * @since 2.1.0
 	 * @since 4.4.0 `$parsed_args` and `$pages` added as arguments.
 	 *
-	 * @param string    $output      HTML output for drop down list of pages.
+	 * @param string    $output      HTML output for dropdown list of pages.
 	 * @param array     $parsed_args The parsed arguments array. See wp_dropdown_pages()
 	 *                               for information on accepted arguments.
 	 * @param WP_Post[] $pages       Array of the page objects.
@@ -1259,7 +1259,8 @@ function wp_dropdown_pages( $args = '' ) {
  *                                      will not be wrapped with unordered list `<ul>` tags. Default 'Pages'.
  *     @type string       $item_spacing Whether to preserve whitespace within the menu's HTML. Accepts 'preserve' or 'discard'.
  *                                      Default 'preserve'.
- *     @type Walker       $walker       Walker instance to use for listing pages. Default empty (Walker_Page).
+ *     @type Walker       $walker       Walker instance to use for listing pages. Default empty which results in a
+ *                                      Walker_Page instance being used.
  * }
  * @return void|string Void if 'echo' argument is true, HTML list of pages if 'echo' is false.
  */
@@ -1381,7 +1382,8 @@ function wp_list_pages( $args = '' ) {
  *     @type string          $after        The HTML or text to append to the menu. Default is '</ul>'.
  *     @type string          $item_spacing Whether to preserve whitespace within the menu's HTML. Accepts 'preserve'
  *                                         or 'discard'. Default 'discard'.
- *     @type Walker          $walker       Walker instance to use for listing pages. Default empty (Walker_Page).
+ *     @type Walker          $walker       Walker instance to use for listing pages. Default empty which results in a
+ *                                         Walker_Page instance being used.
  * }
  * @return void|string Void if 'echo' argument is true, HTML menu if 'echo' is false.
  */

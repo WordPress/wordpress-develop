@@ -32,7 +32,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 
 	// Include an unmodified $wp_version.
 	require ABSPATH . WPINC . '/version.php';
-	$php_version = phpversion();
+	$php_version = PHP_VERSION;
 
 	$current      = get_site_transient( 'update_core' );
 	$translations = wp_get_installed_translations( 'core' );
@@ -430,7 +430,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 			continue;
 		}
 
-		$hostname = wp_parse_url( esc_url_raw( $plugin_data['UpdateURI'] ), PHP_URL_HOST );
+		$hostname = wp_parse_url( sanitize_url( $plugin_data['UpdateURI'] ), PHP_URL_HOST );
 
 		/**
 		 * Filters the update response for a given plugin hostname.

@@ -29,6 +29,9 @@ if ( ! wp_is_block_theme() ) {
  */
 $home_template = _resolve_home_block_template();
 if ( $home_template && empty( $_GET['postType'] ) && empty( $_GET['postId'] ) ) {
+	if ( ! empty( $_GET['styles'] ) ) {
+		$home_template['styles'] = sanitize_key( $_GET['styles'] );
+	}
 	$redirect_url = add_query_arg(
 		$home_template,
 		admin_url( 'site-editor.php' )
@@ -61,14 +64,19 @@ foreach ( get_default_block_template_types() as $slug => $template_type ) {
 
 $block_editor_context = new WP_Block_Editor_Context( array( 'name' => 'core/edit-site' ) );
 $custom_settings      = array(
-	'siteUrl'                              => site_url(),
-	'postsPerPage'                         => get_option( 'posts_per_page' ),
-	'styles'                               => get_block_editor_theme_styles(),
-	'defaultTemplateTypes'                 => $indexed_template_types,
-	'defaultTemplatePartAreas'             => get_allowed_block_template_part_areas(),
-	'__unstableHomeTemplate'               => $home_template,
+	'siteUrl'                  => site_url(),
+	'postsPerPage'             => get_option( 'posts_per_page' ),
+	'styles'                   => get_block_editor_theme_styles(),
+	'defaultTemplateTypes'     => $indexed_template_types,
+	'defaultTemplatePartAreas' => get_allowed_block_template_part_areas(),
+	'__unstableHomeTemplate'   => $home_template,
 );
-$editor_settings      = get_block_editor_settings( $custom_settings, $block_editor_context );
+
+// Add additional back-compat patterns registered by `current_screen` et al.
+$custom_settings['__experimentalAdditionalBlockPatterns']          = WP_Block_Patterns_Registry::get_instance()->get_all_registered( true );
+$custom_settings['__experimentalAdditionalBlockPatternCategories'] = WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered( true );
+
+$editor_settings = get_block_editor_settings( $custom_settings, $block_editor_context );
 
 if ( isset( $_GET['postType'] ) && ! isset( $_GET['postId'] ) ) {
 	$post_type = get_post_type_object( $_GET['postType'] );

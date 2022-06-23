@@ -228,8 +228,8 @@ class Tests_Pluggable extends WP_UnitTestCase {
 				'extra_special_chars' => false,
 			),
 			'wp_rand'                         => array(
-				'min' => 0,
-				'max' => 0,
+				'min' => null,
+				'max' => null,
 			),
 			'wp_set_password'                 => array( 'password', 'user_id' ),
 			'get_avatar'                      => array(
@@ -253,7 +253,7 @@ class Tests_Pluggable extends WP_UnitTestCase {
 				'blog_title',
 				'user_name',
 				'user_email',
-				'public',
+				'is_public',
 				'deprecated'    => '',
 				'user_password' => '',
 				'language'      => '',
@@ -341,23 +341,5 @@ class Tests_Pluggable extends WP_UnitTestCase {
 		}
 
 		return $signatures;
-	}
-
-	/**
-	 * @ticket 28020
-	 *
-	 * @covers ::get_user_by
-	 */
-	public function test_get_user_by_should_return_same_instance_as_wp_get_current_user() {
-		// Create a test user.
-		$new_user = self::factory()->user->create( array( 'role' => 'subscriber' ) );
-
-		// Set the test user as the current user.
-		$current_user = wp_set_current_user( $new_user );
-
-		// Get the test user using get_user_by().
-		$from_get_user_by = get_user_by( 'id', $new_user );
-
-		$this->assertSame( $current_user, $from_get_user_by );
 	}
 }

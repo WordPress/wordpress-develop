@@ -9,7 +9,7 @@ if ( is_multisite() ) :
 	 * @group ms-user
 	 * @group multisite
 	 */
-	class Tests_Multisite_User extends WP_UnitTestCase {
+	class Tests_User_Multisite extends WP_UnitTestCase {
 
 		/**
 		 * @covers ::remove_user_from_blog

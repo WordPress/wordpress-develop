@@ -2549,7 +2549,7 @@ function force_balance_tags( $text ) {
 	 * REPL like `php -a`.
 	 *
 	 * @see https://html.spec.whatwg.org/#elements-2
-	 * @see https://w3c.github.io/webcomponents/spec/custom/#valid-custom-element-name
+	 * @see https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
 	 *
 	 * @example
 	 * ~# php -a
@@ -4354,7 +4354,7 @@ function esc_sql( $data ) {
  * @param string   $url       The URL to be cleaned.
  * @param string[] $protocols Optional. An array of acceptable protocols.
  *                            Defaults to return value of wp_allowed_protocols().
- * @param string   $_context  Private. Use esc_url_raw() for database usage.
+ * @param string   $_context  Private. Use sanitize_url() for database usage.
  * @return string The cleaned URL after the {@see 'clean_url'} filter is applied.
  *                An empty string is returned if `$url` specifies a protocol other than
  *                those in `$protocols`, or if `$url` contains an empty string.
@@ -4458,9 +4458,30 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
 }
 
 /**
- * Performs esc_url() for database or redirect usage.
+ * Sanitizes a URL for database or redirect usage.
+ *
+ * This function is an alias for sanitize_url().
  *
  * @since 2.8.0
+ * @since 6.1.0 Turned into an alias for sanitize_url().
+ *
+ * @see sanitize_url()
+ *
+ * @param string   $url       The URL to be cleaned.
+ * @param string[] $protocols Optional. An array of acceptable protocols.
+ *                            Defaults to return value of wp_allowed_protocols().
+ * @return string The cleaned URL after sanitize_url() is run.
+ */
+function esc_url_raw( $url, $protocols = null ) {
+	return sanitize_url( $url, $protocols );
+}
+
+/**
+ * Sanitizes a URL for database or redirect usage.
+ *
+ * @since 2.3.1
+ * @since 2.8.0 Deprecated in favor of esc_url_raw().
+ * @since 5.9.0 Restored (un-deprecated).
  *
  * @see esc_url()
  *
@@ -4469,28 +4490,8 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
  *                            Defaults to return value of wp_allowed_protocols().
  * @return string The cleaned URL after esc_url() is run with the 'db' context.
  */
-function esc_url_raw( $url, $protocols = null ) {
-	return esc_url( $url, $protocols, 'db' );
-}
-
-/**
- * Performs esc_url() for database or redirect usage.
- *
- * This function is an alias for esc_url_raw().
- *
- * @since 2.3.1
- * @since 2.8.0 Deprecated in favor of esc_url_raw().
- * @since 5.9.0 Restored (un-deprecated).
- *
- * @see esc_url_raw()
- *
- * @param string   $url       The URL to be cleaned.
- * @param string[] $protocols Optional. An array of acceptable protocols.
- *                            Defaults to return value of wp_allowed_protocols().
- * @return string The cleaned URL after esc_url() is run with the 'db' context.
- */
 function sanitize_url( $url, $protocols = null ) {
-	return esc_url_raw( $url, $protocols );
+	return esc_url( $url, $protocols, 'db' );
 }
 
 /**
@@ -4829,7 +4830,7 @@ function sanitize_option( $option, $value ) {
 		case 'ping_sites':
 			$value = explode( "\n", $value );
 			$value = array_filter( array_map( 'trim', $value ) );
-			$value = array_filter( array_map( 'esc_url_raw', $value ) );
+			$value = array_filter( array_map( 'sanitize_url', $value ) );
 			$value = implode( "\n", $value );
 			break;
 
@@ -4843,7 +4844,7 @@ function sanitize_option( $option, $value ) {
 				$error = $value->get_error_message();
 			} else {
 				if ( preg_match( '#http(s?)://(.+)#i', $value ) ) {
-					$value = esc_url_raw( $value );
+					$value = sanitize_url( $value );
 				} else {
 					$error = __( 'The WordPress address you entered did not appear to be a valid URL. Please enter a valid URL.' );
 				}
@@ -4856,7 +4857,7 @@ function sanitize_option( $option, $value ) {
 				$error = $value->get_error_message();
 			} else {
 				if ( preg_match( '#http(s?)://(.+)#i', $value ) ) {
-					$value = esc_url_raw( $value );
+					$value = sanitize_url( $value );
 				} else {
 					$error = __( 'The Site address you entered did not appear to be a valid URL. Please enter a valid URL.' );
 				}
@@ -4928,7 +4929,7 @@ function sanitize_option( $option, $value ) {
 			if ( is_wp_error( $value ) ) {
 				$error = $value->get_error_message();
 			} else {
-				$value = esc_url_raw( $value );
+				$value = sanitize_url( $value );
 				$value = str_replace( 'http://', '', $value );
 			}
 
@@ -5579,7 +5580,7 @@ function sanitize_trackback_urls( $to_ping ) {
 			unset( $urls_to_ping[ $k ] );
 		}
 	}
-	$urls_to_ping = array_map( 'esc_url_raw', $urls_to_ping );
+	$urls_to_ping = array_map( 'sanitize_url', $urls_to_ping );
 	$urls_to_ping = implode( "\n", $urls_to_ping );
 	/**
 	 * Filters a list of trackback URLs following sanitization.
@@ -5648,7 +5649,7 @@ function get_url_in_content( $content ) {
 	}
 
 	if ( preg_match( '/<a\s[^>]*?href=([\'"])(.+?)\1/is', $content, $matches ) ) {
-		return esc_url_raw( $matches[2] );
+		return sanitize_url( $matches[2] );
 	}
 
 	return false;

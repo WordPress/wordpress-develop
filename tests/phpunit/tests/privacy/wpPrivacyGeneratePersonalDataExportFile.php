@@ -11,6 +11,8 @@
  * Test cases for `wp_privacy_generate_personal_data_export_file()`.
  *
  * @group privacy
+ * @covers ::wp_privacy_generate_personal_data_export_file
+ * @requires extension zip
  *
  * @since 5.2.0
  *
@@ -68,10 +70,6 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		parent::set_up();
 
 		$this->export_file_name = '';
-
-		if ( ! class_exists( 'ZipArchive' ) ) {
-			$this->markTestSkipped( 'The ZipArchive class is missing.' );
-		}
 
 		if ( ! $this->remove_exports_dir() ) {
 			$this->markTestSkipped( 'Existing exports directory could not be removed. Skipping test.' );

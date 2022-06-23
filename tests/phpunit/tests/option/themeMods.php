@@ -3,7 +3,7 @@
 /**
  * @group option
  */
-class Tests_Option_Theme_Mods extends WP_UnitTestCase {
+class Tests_Option_ThemeMods extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::get_theme_mod

@@ -25,13 +25,14 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 	public function test_resize_jpg() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/test-image.jpg', 25, 25 );
 
+		list( $w, $h, $type ) = getimagesize( $image );
+
+		unlink( $image );
+
 		$this->assertSame( 'test-image-25x25.jpg', wp_basename( $image ) );
-		list($w, $h, $type) = getimagesize( $image );
 		$this->assertSame( 25, $w );
 		$this->assertSame( 25, $h );
 		$this->assertSame( IMAGETYPE_JPEG, $type );
-
-		unlink( $image );
 	}
 
 	public function test_resize_png() {
@@ -41,13 +42,14 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 			$this->fail( sprintf( 'No PNG support in the editor engine %s on this system.', $this->editor_engine ) );
 		}
 
+		list( $w, $h, $type ) = getimagesize( $image );
+
+		unlink( $image );
+
 		$this->assertSame( 'test-image-25x25.png', wp_basename( $image ) );
-		list($w, $h, $type) = getimagesize( $image );
 		$this->assertSame( 25, $w );
 		$this->assertSame( 25, $h );
 		$this->assertSame( IMAGETYPE_PNG, $type );
-
-		unlink( $image );
 	}
 
 	public function test_resize_gif() {
@@ -57,13 +59,14 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 			$this->fail( sprintf( 'No GIF support in the editor engine %s on this system.', $this->editor_engine ) );
 		}
 
+		list( $w, $h, $type ) = getimagesize( $image );
+
+		unlink( $image );
+
 		$this->assertSame( 'test-image-25x25.gif', wp_basename( $image ) );
-		list($w, $h, $type) = getimagesize( $image );
 		$this->assertSame( 25, $w );
 		$this->assertSame( 25, $h );
 		$this->assertSame( IMAGETYPE_GIF, $type );
-
-		unlink( $image );
 	}
 
 	public function test_resize_webp() {
@@ -76,12 +79,15 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		}
 
 		$image = $this->resize_helper( $file, 25, 25 );
+
+		list( $w, $h, $type ) = wp_getimagesize( $image );
+
+		unlink( $image );
+
 		$this->assertSame( 'test-image-25x25.webp', wp_basename( $image ) );
-		list($w, $h, $type) = wp_getimagesize( $image );
 		$this->assertSame( 25, $w );
 		$this->assertSame( 25, $h );
 		$this->assertSame( IMAGETYPE_WEBP, $type );
-		unlink( $image );
 	}
 
 	public function test_resize_larger() {
@@ -95,73 +101,79 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 	public function test_resize_thumb_128x96() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 128, 96 );
 
+		list( $w, $h, $type ) = getimagesize( $image );
+
+		unlink( $image );
+
 		$this->assertSame( '2007-06-17DSC_4173-64x96.jpg', wp_basename( $image ) );
-		list($w, $h, $type) = getimagesize( $image );
 		$this->assertSame( 64, $w );
 		$this->assertSame( 96, $h );
 		$this->assertSame( IMAGETYPE_JPEG, $type );
-
-		unlink( $image );
 	}
 
 	public function test_resize_thumb_128x0() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 128, 0 );
 
+		list( $w, $h, $type ) = getimagesize( $image );
+
+		unlink( $image );
+
 		$this->assertSame( '2007-06-17DSC_4173-128x193.jpg', wp_basename( $image ) );
-		list($w, $h, $type) = getimagesize( $image );
 		$this->assertSame( 128, $w );
 		$this->assertSame( 193, $h );
 		$this->assertSame( IMAGETYPE_JPEG, $type );
-
-		unlink( $image );
 	}
 
 	public function test_resize_thumb_0x96() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 0, 96 );
 
+		list( $w, $h, $type ) = getimagesize( $image );
+
+		unlink( $image );
+
 		$this->assertSame( '2007-06-17DSC_4173-64x96.jpg', wp_basename( $image ) );
-		list($w, $h, $type) = getimagesize( $image );
 		$this->assertSame( 64, $w );
 		$this->assertSame( 96, $h );
 		$this->assertSame( IMAGETYPE_JPEG, $type );
-
-		unlink( $image );
 	}
 
 	public function test_resize_thumb_150x150_crop() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 150, 150, true );
 
+		list( $w, $h, $type ) = getimagesize( $image );
+
+		unlink( $image );
+
 		$this->assertSame( '2007-06-17DSC_4173-150x150.jpg', wp_basename( $image ) );
-		list($w, $h, $type) = getimagesize( $image );
 		$this->assertSame( 150, $w );
 		$this->assertSame( 150, $h );
 		$this->assertSame( IMAGETYPE_JPEG, $type );
-
-		unlink( $image );
 	}
 
 	public function test_resize_thumb_150x100_crop() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 150, 100, true );
 
+		list( $w, $h, $type ) = getimagesize( $image );
+
+		unlink( $image );
+
 		$this->assertSame( '2007-06-17DSC_4173-150x100.jpg', wp_basename( $image ) );
-		list($w, $h, $type) = getimagesize( $image );
 		$this->assertSame( 150, $w );
 		$this->assertSame( 100, $h );
 		$this->assertSame( IMAGETYPE_JPEG, $type );
-
-		unlink( $image );
 	}
 
 	public function test_resize_thumb_50x150_crop() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 50, 150, true );
 
+		list( $w, $h, $type ) = getimagesize( $image );
+
+		unlink( $image );
+
 		$this->assertSame( '2007-06-17DSC_4173-50x150.jpg', wp_basename( $image ) );
-		list($w, $h, $type) = getimagesize( $image );
 		$this->assertSame( 50, $w );
 		$this->assertSame( 150, $h );
 		$this->assertSame( IMAGETYPE_JPEG, $type );
-
-		unlink( $image );
 	}
 
 	/**
@@ -187,6 +199,7 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		}
 
 		$resized = $editor->resize( $width, $height, $crop );
+
 		if ( is_wp_error( $resized ) ) {
 			return $resized;
 		}
