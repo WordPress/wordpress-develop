@@ -163,6 +163,12 @@ function register_block_style_handle( $metadata, $field_name ) {
 		return _register_single_block_style_handle( $metadata, $style_handle, $style_data );
 	}
 
+	/*
+	 * $style_data is a list of stylesheet paths and
+	 * style arrays such as { "color": { "text": "#fff" } }.
+	 *
+	 * In here, we replace the stylesheet paths with registered handles.
+	 */
 	$handles = array();
 	foreach ( $style_data as $style_item ) {
 		if ( is_array( $style_item ) ) {
