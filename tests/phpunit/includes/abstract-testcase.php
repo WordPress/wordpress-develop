@@ -23,6 +23,15 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	protected static $hooks_saved = array();
 	protected static $ignore_files;
 
+	/**
+	 * Directory list.
+	 *
+	 * Set by the scandir() method and used by the delete_folders() method.
+	 *
+	 * @var array
+	 */
+	private $matched_dirs = array();
+
 	public function __isset( $name ) {
 		return 'factory' === $name;
 	}
