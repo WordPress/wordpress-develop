@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::get_bloginfo
  */
 class Tests_Formatting_GetBloginfo extends WP_UnitTestCase {
 
@@ -35,6 +37,7 @@ class Tests_Formatting_GetBloginfo extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 27942
+	 * @covers ::sanitize_option
 	 */
 	public function test_bloginfo_sanitize_option() {
 		$old_values = array(
