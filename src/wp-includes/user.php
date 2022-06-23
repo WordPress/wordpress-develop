@@ -3035,7 +3035,7 @@ function retrieve_password( $user_login = null ) {
 
 	if ( empty( $user_login ) ) {
 		$errors->add( 'empty_username', __( '<strong>Error:</strong> Please enter a username or email address.' ) );
-	} elseif ( $user_login instanceof WP_User  ) {
+	} elseif ( $user_login instanceof WP_User ) {
 		$user_data = $user_login;
 	} elseif ( strpos( $user_login, '@' ) ) {
 		$user_data = get_user_by( 'email', trim( wp_unslash( $user_login ) ) );
