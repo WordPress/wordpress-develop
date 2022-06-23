@@ -653,11 +653,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$prepared_post->post_type = $this->post_type;
 
-		if (
-			! empty( $prepared_post->post_name )
+		if ( ! empty( $prepared_post->post_name )
 			&& ! empty( $prepared_post->post_status )
 			&& in_array( $prepared_post->post_status, array( 'draft', 'pending' ), true )
-			) {
+		) {
 			/*
 			 * `wp_unique_post_slug()` returns the same
 			 * slug for 'draft' or 'pending' posts.
