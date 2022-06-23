@@ -254,12 +254,18 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 			// Post content.
 			if ( ! $this->excerpt_only ) {
 				$content = xml_find( $items[ $key ]['child'], 'content:encoded' );
-				$this->assertSame( trim( apply_filters( 'the_content', $post->post_content ) ), trim( $content[0]['content'] ) );
+				$this->assertSame(
+					trim( apply_filters( 'the_content', $post->post_content ) ),
+					trim( $content[0]['content'] )
+				);
 			}
 
 			// Comment RSS.
 			$comment_rss = xml_find( $items[ $key ]['child'], 'wfw:commentRss' );
-			$this->assertSame( html_entity_decode( get_post_comments_feed_link( $post->ID ) ), $comment_rss[0]['content'] );
+			$this->assertSame(
+				get_post_comments_feed_link( $post->ID ),
+				$comment_rss[0]['content']
+			);
 		}
 	}
 
