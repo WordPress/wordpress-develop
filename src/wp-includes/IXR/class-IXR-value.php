@@ -90,7 +90,7 @@ class IXR_Value {
                 return '<double>'.$this->data.'</double>';
                 break;
             case 'string':
-                return '<string>'.htmlspecialchars($this->data).'</string>';
+                return '<string>'.htmlspecialchars($this->data, ENT_COMPAT | ENT_HTML401).'</string>';
                 break;
             case 'array':
                 $return = '<array><data>'."\n";
@@ -103,7 +103,7 @@ class IXR_Value {
             case 'struct':
                 $return = '<struct>'."\n";
                 foreach ($this->data as $name => $value) {
-					$name = htmlspecialchars($name);
+					$name = htmlspecialchars($name, ENT_COMPAT | ENT_HTML401);
                     $return .= "  <member><name>$name</name><value>";
                     $return .= $value->getXml()."</value></member>\n";
                 }
