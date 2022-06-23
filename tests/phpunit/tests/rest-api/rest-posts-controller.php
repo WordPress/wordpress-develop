@@ -115,6 +115,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		add_filter( 'posts_clauses', array( $this, 'save_posts_clauses' ), 10, 2 );
 	}
 
+	public function tear_down() {
+		if ( isset( $this->attachment_id ) ) {
+			$this->remove_added_uploads();
+		}
+
+		parent::tear_down();
+	}
+
 	public function wpSetUpBeforeRequest( $result, $server, $request ) {
 		$this->posts_clauses = array();
 		return $result;
@@ -5275,14 +5283,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			$post->post_name,
 			'The post slug was not set to "sample-slug-2"'
 		);
-	}
-
-	public function tear_down() {
-		if ( isset( $this->attachment_id ) ) {
-			$this->remove_added_uploads();
-		}
-
-		parent::tear_down();
 	}
 
 	/**
