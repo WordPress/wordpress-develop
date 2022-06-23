@@ -1568,15 +1568,12 @@ class wpdb {
 			return false;
 		}
 
-		wp_load_translations_early();
-
 		$caller = $this->get_caller();
 		if ( $caller ) {
-			/* translators: 1: Database error message, 2: SQL query, 3: Name of the calling function. */
-			$error_str = sprintf( __( 'WordPress database error %1$s for query %2$s made by %3$s' ), $str, $this->last_query, $caller );
+			// Not translated, as this will only appear in the error log.
+			$error_str = sprintf( 'WordPress database error %1$s for query %2$s made by %3$s', $str, $this->last_query, $caller );
 		} else {
-			/* translators: 1: Database error message, 2: SQL query. */
-			$error_str = sprintf( __( 'WordPress database error %1$s for query %2$s' ), $str, $this->last_query );
+			$error_str = sprintf( 'WordPress database error %1$s for query %2$s', $str, $this->last_query );
 		}
 
 		error_log( $error_str );
@@ -1585,6 +1582,8 @@ class wpdb {
 		if ( ! $this->show_errors ) {
 			return false;
 		}
+
+		wp_load_translations_early();
 
 		// If there is an error then take note of it.
 		if ( is_multisite() ) {
@@ -2501,7 +2500,7 @@ class wpdb {
 	 *                                   A format is one of '%d', '%f', '%s' (integer, float, string).
 	 *                                   If omitted, all values in $data will be treated as strings unless otherwise
 	 *                                   specified in wpdb::$field_types.
-	 * @return int|false The number of rows updated, or false on error.
+	 * @return int|false The number of rows deleted, or false on error.
 	 */
 	public function delete( $table, $where, $where_format = null ) {
 		if ( ! is_array( $where ) ) {
@@ -3697,7 +3696,7 @@ class wpdb {
 		// Make sure the server has the required MySQL version.
 		if ( version_compare( $this->db_version(), $required_mysql_version, '<' ) ) {
 			/* translators: 1: WordPress version number, 2: Minimum required MySQL version number. */
-			return new WP_Error( 'database_version', sprintf( __( '<strong>Error</strong>: WordPress %1$s requires MySQL %2$s or higher' ), $wp_version, $required_mysql_version ) );
+			return new WP_Error( 'database_version', sprintf( __( '<strong>Error:</strong> WordPress %1$s requires MySQL %2$s or higher' ), $wp_version, $required_mysql_version ) );
 		}
 	}
 

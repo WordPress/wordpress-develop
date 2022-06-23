@@ -789,39 +789,6 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertSame( $p, post_exists( $title, $content, $date ) );
 	}
 
-	public function test_use_block_editor_for_post() {
-		$this->assertFalse( use_block_editor_for_post( -1 ) );
-		$bogus_post_id = $this->factory()->post->create(
-			array(
-				'post_type' => 'bogus',
-			)
-		);
-		$this->assertFalse( use_block_editor_for_post( $bogus_post_id ) );
-
-		register_post_type(
-			'restless',
-			array(
-				'show_in_rest' => false,
-			)
-		);
-		$restless_post_id = $this->factory()->post->create(
-			array(
-				'post_type' => 'restless',
-			)
-		);
-		$this->assertFalse( use_block_editor_for_post( $restless_post_id ) );
-
-		$generic_post_id = $this->factory()->post->create();
-
-		add_filter( 'use_block_editor_for_post', '__return_false' );
-		$this->assertFalse( use_block_editor_for_post( $generic_post_id ) );
-		remove_filter( 'use_block_editor_for_post', '__return_false' );
-
-		add_filter( 'use_block_editor_for_post', '__return_true' );
-		$this->assertTrue( use_block_editor_for_post( $restless_post_id ) );
-		remove_filter( 'use_block_editor_for_post', '__return_true' );
-	}
-
 	public function test_get_block_editor_server_block_settings() {
 		$name     = 'core/test';
 		$settings = array(

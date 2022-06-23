@@ -483,6 +483,7 @@ function wp_dropdown_categories( $args = '' ) {
  * @since 2.1.0
  * @since 4.4.0 Introduced the `hide_title_if_empty` and `separator` arguments.
  * @since 4.4.0 The `current_category` argument was modified to optionally accept an array of values.
+ * @since 6.1.0 Default value of the 'use_desc_for_title' argument was changed from 1 to 0.
  *
  * @param array|string $args {
  *     Array of optional arguments. See get_categories(), get_terms(), and WP_Term_Query::__construct()
@@ -519,7 +520,7 @@ function wp_dropdown_categories( $args = '' ) {
  *     @type string       $title_li              Text to use for the list title `<li>` element. Pass an empty string
  *                                               to disable. Default 'Categories'.
  *     @type bool|int     $use_desc_for_title    Whether to use the category description as the title attribute.
- *                                               Accepts 0, 1, or their bool equivalents. Default 1.
+ *                                               Accepts 0, 1, or their bool equivalents. Default 0.
  *     @type Walker       $walker                Walker object to use to build the output. Default empty which results
  *                                               in a Walker_Category instance being used.
  * }
@@ -549,7 +550,7 @@ function wp_list_categories( $args = '' ) {
 		'style'               => 'list',
 		'taxonomy'            => 'category',
 		'title_li'            => __( 'Categories' ),
-		'use_desc_for_title'  => 1,
+		'use_desc_for_title'  => 0,
 	);
 
 	$parsed_args = wp_parse_args( $args, $defaults );
@@ -822,7 +823,7 @@ function default_topic_count_scale( $count ) {
  *                                                'DESC' (descending), or 'RAND' (random). Default 'ASC'.
  *     @type int|bool $filter                     Whether to enable filtering of the final output
  *                                                via {@see 'wp_generate_tag_cloud'}. Default 1.
- *     @type string   $topic_count_text           Nooped plural text from _n_noop() to supply to
+ *     @type array    $topic_count_text           Nooped plural text from _n_noop() to supply to
  *                                                tag counts. Default null.
  *     @type callable $topic_count_text_callback  Callback used to generate nooped plural text for
  *                                                tag counts based on the count. Default null.

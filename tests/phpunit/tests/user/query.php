@@ -1972,7 +1972,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 * @dataProvider data_returning_field_subset_as_string
 	 *
 	 * @param string $field
-	 * @param mixed $expected
+	 * @param mixed  $expected
 	 */
 	public function test_returning_field_subset_as_string( $field, $expected ) {
 		$q       = new WP_User_Query(
@@ -2078,8 +2078,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 			'id'                 => array(
 				'fields'   => array( 'id' ),
 				'expected' => array(
-					'id' => '1',
 					'ID' => '1',
+					'id' => '1',
 				),
 			),
 			'ID'                 => array(
@@ -2125,8 +2125,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 				'expected' => array(
 					'display_name' => 'admin',
 					'user_email'   => WP_TESTS_EMAIL,
-					'id'           => '1',
 					'ID'           => '1',
+					'id'           => '1',
 				),
 			),
 			'valid array inc ID' => array(
@@ -2134,8 +2134,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 				'expected' => array(
 					'display_name' => 'admin',
 					'user_email'   => WP_TESTS_EMAIL,
-					'id'           => '1',
 					'ID'           => '1',
+					'id'           => '1',
 				),
 			),
 			'partly valid array' => array(
