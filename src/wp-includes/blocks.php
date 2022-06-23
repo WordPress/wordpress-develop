@@ -183,8 +183,8 @@ function _register_single_block_style_handle( $metadata, $field_name, $style_dat
 	$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
 	$theme_path_norm = wp_normalize_path( get_theme_file_path() );
 
-	$block_json_file_path = $metadata['file'];
-	$is_core_block        = isset( $block_json_file_path ) && 0 === strpos( $block_json_file_path, $wpinc_path_norm );
+	$block_json_file_path = isset( $metadata['file'] ) ? $metadata['file'] : null;
+	$is_core_block        = $block_json_file_path && 0 === strpos( $block_json_file_path, $wpinc_path_norm );
 	$version              = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
 
 	if ( $is_core_block && ! wp_should_load_separate_core_block_assets() ) {
