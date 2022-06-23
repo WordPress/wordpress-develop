@@ -1603,11 +1603,14 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @return string     The formatted SQL query.
 	 */
 	protected static function format_sql( $sql ) {
-		return preg_replace(
+		$sql = preg_replace(
 			'# (FROM|INNER JOIN|LEFT JOIN|ON|WHERE|AND|GROUP BY|ORDER BY|LIMIT) #',
 			"\n\$1 ",
 			$sql
 		);
+		$sql = preg_replace( '#^\t+#m', '', $sql );
+
+		return $sql;
 	}
 
 }
