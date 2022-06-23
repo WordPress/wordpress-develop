@@ -593,8 +593,7 @@ class WP_Upgrader {
 		}
 
 		// Copy new version of item into place.
-		if ( class_exists( 'Rollback_Update_Failure\WP_Upgrader' ) && function_exists( '\Rollback_Update_Failure\move_dir' )
-		) {
+		if ( class_exists( 'Rollback_Update_Failure\WP_Upgrader' ) && function_exists( '\Rollback_Update_Failure\move_dir' ) ) {
 			$result = \Rollback_Update_Failure\move_dir( $source, $remote_destination );
 		} else {
 			$result = copy_dir( $source, $remote_destination );
