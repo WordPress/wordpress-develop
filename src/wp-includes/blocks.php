@@ -167,7 +167,7 @@ function register_block_style_handle( $metadata, $field_name ) {
 	 * $style_data is a list of stylesheet paths and
 	 * style arrays such as { "color": { "text": "#fff" } }.
 	 *
-	 * In here, we replace the stylesheet paths with registered handles.
+	 * In here, we replace the stylesheet paths with registered style handles.
 	 */
 	$handles = array();
 	foreach ( $style_data as $style_item ) {
