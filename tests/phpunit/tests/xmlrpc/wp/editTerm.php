@@ -220,7 +220,16 @@ class Tests_XMLRPC_wp_editTerm extends WP_XMLRPC_UnitTestCase {
 		);
 		$this->assertIXRError( $result );
 		$this->assertSame( 500, $result->code );
-		$this->assertSame( htmlspecialchars( sprintf( __( 'The slug &#8220;%s&#8221; is already in use by another term.' ), $parent_term->slug ) ), $result->message );
+		$this->assertSame(
+			htmlspecialchars(
+				sprintf(
+					__( 'The slug &#8220;%s&#8221; is already in use by another term.' ),
+					$parent_term->slug
+				),
+				ENT_COMPAT | ENT_HTML401
+			),
+			$result->message
+		);
 	}
 
 	public function test_edit_all_fields() {
