@@ -521,7 +521,7 @@ function wp_get_post_revisions( $post_id = 0, $args = null ) {
  *
  * @since 6.1.0
  *
- * @param int|WP_Post $post_id Optional. Post ID or WP_Post object.
+ * @param int|WP_Post $post Optional. Post ID or post object. Default is the global $post.
  * @return array {
  *     Returns associative array with last revision and total count.
  *
@@ -529,17 +529,17 @@ function wp_get_post_revisions( $post_id = 0, $args = null ) {
  *     @type int $count The total count of revisions for $post_id.
  * }
  */
-function wp_get_last_revision_id_and_total_count( $post_id = 0 ) {
-	$post     = get_post( $post_id );
+function wp_get_lastest_revision_id_and_total_count( $post = 0 ) {
+	$post     = get_post( $post );
 	$revision = 0;
 	$count    = 0;
 
-	if ( ! $post || empty( $post->ID ) || ! wp_revisions_enabled( $post ) ) {
+	if ( ! $post || ! wp_revisions_enabled( $post ) ) {
 		return compact( 'revision', 'count' );
 	}
 
 	$args = array(
-		'post_parent'            => $post_id,
+		'post_parent'            => $post->ID,
 		'fields'                 => 'ids',
 		'post_type'              => 'revision',
 		'post_status'            => 'inherit',
