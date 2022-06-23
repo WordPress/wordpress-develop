@@ -89,7 +89,7 @@ class IXR_Client
 
         // Now send the request
         if ($this->debug) {
-            echo '<pre class="ixr_request">'.htmlspecialchars($request)."\n</pre>\n\n";
+            echo '<pre class="ixr_request">'.htmlspecialchars($request, ENT_COMPAT | ENT_HTML401)."\n</pre>\n\n";
         }
 
         if ($this->timeout) {
@@ -128,7 +128,7 @@ class IXR_Client
             }
         }
         if ($this->debug) {
-            echo '<pre class="ixr_response">'.htmlspecialchars($debugContents)."\n</pre>\n\n";
+            echo '<pre class="ixr_response">'.htmlspecialchars($debugContents, ENT_COMPAT | ENT_HTML401)."\n</pre>\n\n";
         }
 
         // Now parse what we've got back
