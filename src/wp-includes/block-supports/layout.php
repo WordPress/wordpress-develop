@@ -141,43 +141,6 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 }
 
 /**
- * Generates classnames for block layout attributes.
- *
- * This method was added to reintroduce a small set of layout classnames that were
- * removed in the 5.9 release (https://github.com/WordPress/gutenberg/issues/38719). It is
- * not intended to provide an extended set of classes to match all block layout attributes
- * and should not be extended to do so. The plan is to have the new style engine
- * (https://github.com/WordPress/gutenberg/issues/38167) generate the full list of utility
- * classnames for a block which will then replace this method.
- *
- * @since 6.0.1
- *
- * @param array $block_attributes Array of block attributes.
- * @return array Array of CSS classname strings.
- */
-function wp_get_layout_classes( $block_attributes ) {
-	$class_names = array();
-
-	if ( empty( $block_attributes['layout'] ) ) {
-		return $class_names;
-	}
-
-	if ( ! empty( $block_attributes['layout']['orientation'] ) ) {
-		$class_names[] = 'is-' . sanitize_title( $block_attributes['layout']['orientation'] );
-	}
-
-	if ( ! empty( $block_attributes['layout']['justifyContent'] ) ) {
-		$class_names[] = 'is-content-justification-' . sanitize_title( $block_attributes['layout']['justifyContent'] );
-	}
-
-	if ( ! empty( $block_attributes['layout']['flexWrap'] ) && 'nowrap' === $block_attributes['layout']['flexWrap'] ) {
-		$class_names[] = 'is-nowrap';
-	}
-
-	return $class_names;
-}
-
-/**
  * Renders the layout config to the block wrapper.
  *
  * @since 5.8.0
@@ -207,9 +170,25 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		$used_layout = $default_layout;
 	}
 
+	$class_names     = array();
 	$container_class = wp_unique_id( 'wp-container-' );
-	$class_names     = wp_get_layout_classes( $block['attrs'] );
 	$class_names[]   = $container_class;
+
+	// The following section was added to reintroduce a small set of layout classnames that were
+	// removed in the 5.9 release (https://github.com/WordPress/gutenberg/issues/38719). It is
+	// not intended to provide an extended set of classes to match all block layout attributes
+	// here.
+	if ( ! empty( $block['attrs']['layout']['orientation'] ) ) {
+		$class_names[] = 'is-' . sanitize_title( $block['attrs']['layout']['orientation'] );
+	}
+
+	if ( ! empty( $block['attrs']['layout']['justifyContent'] ) ) {
+		$class_names[] = 'is-content-justification-' . sanitize_title( $block['attrs']['layout']['justifyContent'] );
+	}
+
+	if ( ! empty( $block['attrs']['layout']['flexWrap'] ) && 'nowrap' === $block['attrs']['layout']['flexWrap'] ) {
+		$class_names[] = 'is-nowrap';
+	}
 
 	$gap_value = _wp_array_get( $block, array( 'attrs', 'style', 'spacing', 'blockGap' ) );
 	// Skip if gap value contains unsupported characters.
