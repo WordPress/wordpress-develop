@@ -24,9 +24,9 @@ class Tests_Cron_setCronArray extends WP_UnitTestCase {
 	 * Tests the input validation for the `_set_cron_array()` function.
 	 *
 	 * Includes verifying that invalid input - typically `false` - does not result in a PHP
-	 * deprecation notice on PHP 8.1 or higher.
+	 * deprecation warning on PHP 8.1 or higher.
 	 *
-	 * The notice that we should not see:
+	 * The warning that we should not see:
 	 * `Deprecated: Automatic conversion of false to array is deprecated`.
 	 *
 	 * @ticket 53635
