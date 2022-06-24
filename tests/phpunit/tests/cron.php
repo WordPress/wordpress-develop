@@ -117,16 +117,16 @@ class Tests_Cron extends WP_UnitTestCase {
 
 	/**
 	 * Tests that a call to wp_schedule_event() on a site without any scheduled events
-	 * does not result in a PHP deprecation warning on PHP 8.1 or higher.
+	 * does not result in a PHP deprecation notice on PHP 8.1 or higher.
 	 *
-	 * The warning that we should not see:
+	 * The notice that we should not see:
 	 * `Deprecated: Automatic conversion of false to array is deprecated`.
 	 *
 	 * @ticket 53635
 	 *
 	 * @covers ::wp_schedule_event
 	 */
-	public function test_wp_schedule_event_without_cron_option_does_not_throw_warning() {
+	public function test_wp_schedule_event_without_cron_option_does_not_throw_deprecation_notice() {
 		delete_option( 'cron' );
 
 		// Verify that the cause of the error is in place.
