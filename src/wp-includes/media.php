@@ -918,11 +918,15 @@ function wp_get_registered_image_subsizes() {
 	$all_sizes        = array();
 
 	foreach ( get_intermediate_image_sizes() as $size_name ) {
-		$size_data = array(
-			'width'  => 0,
-			'height' => 0,
-			'crop'   => false,
-		);
+		$default_sizes    = array( 'thumbnail', 'medium', 'medium_large', 'large' );
+		foreach ( get_intermediate_image_sizes() as $size_name ) {
+			$size_data = array(
+				'width'        => 0,
+				'height'       => 0,
+				'crop'         => false,
+				'output_mimes' => in_array( $size_name, $default_sizes, true ),
+			);
+		}
 
 		if ( isset( $additional_sizes[ $size_name ]['width'] ) ) {
 			// For sizes added by plugins and themes.
