@@ -304,7 +304,7 @@ function add_image_size( $name, $width = 0, $height = 0, $crop = false, $output_
 		'width'        => absint( $width ),
 		'height'       => absint( $height ),
 		'crop'         => $crop,
-		'output_mimes' => $output_mimes
+		'output_mimes' => $output_mimes,
 	);
 }
 
@@ -321,9 +321,7 @@ function add_image_size( $name, $width = 0, $height = 0, $crop = false, $output_
  */
 function image_size_supports_mime( $name, $mime_type ) {
 	$sizes = wp_get_additional_image_sizes();
-	error_log( 'image_size_supports_mime ---  ' .  json_encode( $sizes,  JSON_PRETTY_PRINT));
-
-	return isset( $sizes[ $name ][ 'output_mimes' ] ) && $sizes[ $name ][ 'output_mimes' ];
+	return isset( $sizes[ $name ]['output_mimes'] ) && $sizes[ $name ]['output_mimes'];
 }
 
 /**
@@ -918,7 +916,7 @@ function wp_get_registered_image_subsizes() {
 	$all_sizes        = array();
 
 	foreach ( get_intermediate_image_sizes() as $size_name ) {
-		$default_sizes    = array( 'thumbnail', 'medium', 'medium_large', 'large' );
+		$default_sizes = array( 'thumbnail', 'medium', 'medium_large', 'large' );
 		foreach ( get_intermediate_image_sizes() as $size_name ) {
 			$size_data = array(
 				'width'        => 0,
