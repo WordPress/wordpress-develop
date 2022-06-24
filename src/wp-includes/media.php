@@ -288,13 +288,17 @@ function image_downsize( $id, $size = 'medium' ) {
  *                                 Array values must be in the format: array( x_crop_position, y_crop_position ) where:
  *                                     - x_crop_position accepts: 'left', 'center', or 'right'.
  *                                     - y_crop_position accepts: 'top', 'center', or 'bottom'.
- * @param array      $output_mimes A list of supported output mime types for this image size. If empty, no secondary mime
- *                                 type images will created for this size. Default is empty. Note this serves to limit the
- *                                 mime types that are generated per size, to specify the mime types that are supported,
- * 	                               for a given input type, use the `wp_upload_image_mime_transforms` filter.
+ * @param bool       $output_mimes Whether to output secondary mimes  for this image size. Default is null which will
+ *                                 throw a doing_it_wrong warning to warn developers they should set this value.
+ *                                 Default will be true in 6.2.
  */
-function add_image_size( $name, $width = 0, $height = 0, $crop = false, $output_mimes = array() ) {
+function add_image_size( $name, $width = 0, $height = 0, $crop = false, $output_mimes = null ) {
 	global $_wp_additional_image_sizes;
+
+	// For 6.1.x, warn developers about setting a value for $output_mimes.
+	if ( null === $output_mimes ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Passing the $output_mimes parameter to add_image_size is recommended.' ), '6.1.0' );
+	}
 
 	$_wp_additional_image_sizes[ $name ] = array(
 		'width'        => absint( $width ),
@@ -317,7 +321,9 @@ function add_image_size( $name, $width = 0, $height = 0, $crop = false, $output_
  */
 function image_size_supports_mime( $name, $mime_type ) {
 	$sizes = wp_get_additional_image_sizes();
-	return isset( $sizes[ $name ][ 'output_mimes' ] ) && in_array( $mime_type, $sizes[ $name ][ 'output_mimes' ] );
+	error_log( 'image_size_supports_mime ---  ' .  json_encode( $sizes,  JSON_PRETTY_PRINT));
+
+	return isset( $sizes[ $name ][ 'output_mimes' ] ) && $sizes[ $name ][ 'output_mimes' ];
 }
 
 /**
@@ -367,7 +373,7 @@ function remove_image_size( $name ) {
  *                           An array can specify positioning of the crop area. Default false.
  */
 function set_post_thumbnail_size( $width = 0, $height = 0, $crop = false ) {
-	add_image_size( 'post-thumbnail', $width, $height, $crop, array( 'image/webp' ) );
+	add_image_size( 'post-thumbnail', $width, $height, $crop, true );
 }
 
 /**
@@ -5314,9 +5320,9 @@ function wp_media_personal_data_exporter( $email_address, $page = 1 ) {
  */
 function _wp_add_additional_image_sizes() {
 	// 2x medium_large size.
-	add_image_size( '1536x1536', 1536, 1536, false, array( 'image/webp' ) );
+	add_image_size( '1536x1536', 1536, 1536, false, true );
 	// 2x large size.
-	add_image_size( '2048x2048', 2048, 2048, false, array( 'image/webp' ) );
+	add_image_size( '2048x2048', 2048, 2048, false, true );
 }
 
 /**
