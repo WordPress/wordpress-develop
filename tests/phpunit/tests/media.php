@@ -1181,11 +1181,11 @@ VIDEO;
 	 * @ticket 55443
 	 */
 	public function test_image_size_supports_mime() {
-		add_image_size( 'test-size', 200, 600, true );
+		add_image_size( 'test-size', 200, 600, true, false );
 		$this->assertSame( false, image_size_supports_mime( 'test-size', 'image/webp' ) );
 		remove_image_size( 'test-size' );
 
-		add_image_size( 'test-size', 200, 600, true, array( 'image/webp' ) );
+		add_image_size( 'test-size', 200, 600, true, true );
 		$this->assertSame( true, image_size_supports_mime( 'test-size', 'image/webp' ) );
 
 		// Clean up.
