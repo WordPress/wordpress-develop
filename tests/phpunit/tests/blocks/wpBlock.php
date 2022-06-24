@@ -13,8 +13,6 @@
  * @since 5.5.0
  *
  * @group blocks
- *
- * @covers WP_Block::__construct
  */
 class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
@@ -451,6 +449,8 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52991
+	 *
+	 * @covers ::build_query_vars_from_query_block
 	 */
 	public function test_build_query_vars_from_query_block() {
 		$this->registry->register(
@@ -497,6 +497,8 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52991
+	 *
+	 * @covers ::build_query_vars_from_query_block
 	 */
 	public function test_build_query_vars_from_query_block_no_context() {
 		$this->registry->register( 'core/example', array() );
@@ -519,6 +521,8 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52991
+	 *
+	 * @covers ::build_query_vars_from_query_block
 	 */
 	public function test_build_query_vars_from_query_block_first_page() {
 		$this->registry->register(
@@ -552,6 +556,8 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52991
+	 *
+	 * @covers ::build_query_vars_from_query_block
 	 */
 	public function test_build_query_vars_from_query_block_page_no_offset() {
 		$this->registry->register(
@@ -584,6 +590,8 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52991
+	 *
+	 * @covers ::build_query_vars_from_query_block
 	 */
 	public function test_build_query_vars_from_query_block_page_with_offset() {
 		$this->registry->register(
@@ -616,6 +624,8 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52991
+	 *
+	 * @covers ::block_has_support
 	 */
 	public function test_block_has_support() {
 		$this->registry->register(
@@ -646,6 +656,8 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52991
+	 *
+	 * @covers ::block_has_support
 	 */
 	public function test_block_has_support_no_supports() {
 		$this->registry->register( 'core/example', array() );
@@ -656,6 +668,8 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52991
+	 *
+	 * @covers ::block_has_support
 	 */
 	public function test_block_has_support_provided_defaults() {
 		$this->registry->register(
@@ -677,6 +691,8 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 51612
+	 *
+	 * @covers WP_Block::render
 	 */
 	public function test_block_filters_for_inner_blocks() {
 		$pre_render_callback           = new MockAction();

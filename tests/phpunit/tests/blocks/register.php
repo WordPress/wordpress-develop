@@ -277,6 +277,8 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55513
+	 *
+	 * @covers ::register_block_script_handle
 	 */
 	public function test_success_register_block_script_handle_in_theme() {
 		switch_theme( 'block-theme' );
@@ -349,6 +351,8 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55513
+	 *
+	 * @covers ::register_block_style_handle
 	 */
 	public function test_success_register_block_style_handle_in_theme() {
 		switch_theme( 'block-theme' );
@@ -400,7 +404,8 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * @ticket 50263
 	 * @ticket 50328
 	 *
-	 * @covers ::register_block_script_handle
+	 * @covers ::register_block_type_from_metadata
+	 * @covers WP_Styles
 	 */
 	public function test_block_registers_with_metadata_fixture() {
 		$result = register_block_type_from_metadata(
@@ -489,6 +494,8 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53233
+	 *
+	 * @covers ::register_block_type
 	 */
 	public function test_block_register_block_type_proxy_for_metadata() {
 		$result = register_block_type(
@@ -551,6 +558,8 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * @ticket 45109
 	 *
 	 * @covers ::get_dynamic_block_names
+	 *
+	 * @uses ::register_block_type
 	 */
 	public function test_get_dynamic_block_names() {
 		register_block_type( 'core/test-static', array() );
@@ -566,6 +575,9 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * @ticket 45109
 	 *
 	 * @covers ::has_blocks
+	 *
+	 * @uses WP_Query
+	 * @uses ::get_post
 	 */
 	public function test_has_blocks() {
 		// Test with passing post ID.
@@ -592,6 +604,8 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * @ticket 49615
 	 *
 	 * @covers ::register_block_type
+	 *
+	 * @uses WP_Block_Type_Registry
 	 */
 	public function test_filter_block_registration() {
 		$filter_registration = static function( $args, $name ) {

@@ -28,6 +28,9 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
+	/**
+	 * @covers ::locate_block_template
+	 */
 	function test_page_home_block_template_takes_precedence_over_less_specific_block_templates() {
 		global $_wp_current_template_content;
 		$type                   = 'page';
@@ -41,6 +44,9 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		$this->assertStringEqualsFile( get_stylesheet_directory() . '/templates/page-home.html', $_wp_current_template_content );
 	}
 
+	/**
+	 * @covers ::locate_block_template
+	 */
 	function test_page_block_template_takes_precedence() {
 		global $_wp_current_template_content;
 		$type                   = 'page';
@@ -54,6 +60,9 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		$this->assertStringEqualsFile( get_stylesheet_directory() . '/templates/page.html', $_wp_current_template_content );
 	}
 
+	/**
+	 * @covers ::locate_block_template
+	 */
 	function test_block_template_takes_precedence_over_equally_specific_php_template() {
 		global $_wp_current_template_content;
 		$type                   = 'index';
@@ -70,6 +79,8 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 * with lower specificity.
 	 *
 	 * Covers https://github.com/WordPress/gutenberg/pull/29026.
+	 *
+	 * @covers ::locate_block_template
 	 */
 	function test_more_specific_php_template_takes_precedence_over_less_specific_block_template() {
 		$page_id_template       = 'page-1.php';
@@ -92,6 +103,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 * Covers https://github.com/WordPress/gutenberg/pull/31123.
 	 * Covers https://core.trac.wordpress.org/ticket/54515.
 	 *
+	 * @covers ::locate_block_template
 	 */
 	function test_child_theme_php_template_takes_precedence_over_equally_specific_parent_theme_block_template() {
 		switch_theme( 'block-theme-child' );
@@ -108,6 +120,9 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		$this->assertSame( $page_slug_template_path, $resolved_template_path );
 	}
 
+	/**
+	 * @covers ::locate_block_template
+	 */
 	function test_child_theme_block_template_takes_precedence_over_equally_specific_parent_theme_php_template() {
 		global $_wp_current_template_content;
 
@@ -128,6 +143,8 @@ class Tests_Block_Template extends WP_UnitTestCase {
 
 	/**
 	 * Regression: https://github.com/WordPress/gutenberg/issues/31399.
+	 *
+	 * @covers ::locate_block_template
 	 */
 	public function test_custom_page_php_template_takes_precedence_over_all_other_templates() {
 		$custom_page_template      = 'templates/full-width.php';
@@ -145,6 +162,8 @@ class Tests_Block_Template extends WP_UnitTestCase {
 
 	/**
 	 * Covers: https://github.com/WordPress/gutenberg/pull/30438.
+	 *
+	 * @covers ::locate_block_template
 	 */
 	public function test_custom_page_block_template_takes_precedence_over_all_other_templates() {
 		global $_wp_current_template_content;
@@ -183,6 +202,8 @@ class Tests_Block_Template extends WP_UnitTestCase {
 
 	/**
 	 * Regression: https://github.com/WordPress/gutenberg/issues/31652.
+	 *
+	 * @covers ::locate_block_template
 	 */
 	public function test_template_remains_unchanged_if_templates_array_is_empty() {
 		$resolved_template_path = locate_block_template( '', 'search', array() );
@@ -193,6 +214,8 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 * Covers: https://github.com/WordPress/gutenberg/pull/38817.
 	 *
 	 * @ticket 55505
+	 *
+	 * @covers ::locate_block_template
 	 */
 	public function test_resolve_home_block_template_default_hierarchy() {
 		$template = _resolve_home_block_template();
@@ -203,6 +226,8 @@ class Tests_Block_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
+	 *
+	 * @covers ::_resolve_home_block_template
 	 */
 	public function test_resolve_home_block_template_static_homepage() {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
@@ -219,6 +244,8 @@ class Tests_Block_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
+	 *
+	 * @covers ::_resolve_home_block_template
 	 */
 	public function test_resolve_home_block_template_no_resolution() {
 		switch_theme( 'stylesheetonly' );

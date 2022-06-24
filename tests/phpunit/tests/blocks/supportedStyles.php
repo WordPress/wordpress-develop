@@ -13,6 +13,9 @@
  * @since 5.6.0
  *
  * @group blocks
+ *
+ * @covers ::get_block_wrapper_attributes
+ * @covers WP_Block_Supports::apply_block_supports
  */
 class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 
@@ -693,6 +696,8 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 
 	/**
 	 * Ensures libxml_internal_errors is being used instead of @ warning suppression
+	 *
+	 * @covers WP_Block::render
 	 */
 	public function test_render_block_suppresses_warnings_without_at_suppression() {
 		$block_type_settings = array(

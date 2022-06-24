@@ -266,6 +266,8 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 	 * Test rendering a single comment
 	 *
 	 * @ticket 55567
+	 *
+	 * @covers WP_Block::render
 	 */
 	function test_rendering_comment_template() {
 		$parsed_blocks = parse_blocks(
@@ -294,6 +296,8 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 	 *    └─ comment 3
 	 *
 	 * @ticket 55567
+	 *
+	 * @covers WP_Block::render
 	 */
 	function test_rendering_comment_template_nested() {
 		$first_level_ids = self::factory()->comment->create_post_comments(
@@ -395,6 +399,8 @@ END
 	 * Test that line and paragraph breaks are converted to HTML tags in a comment.
 	 *
 	 * @ticket 55643
+	 *
+	 * @covers WP_Block::render
 	 */
 	function test_render_block_core_comment_content_converts_to_html() {
 		$comment_id  = self::$comment_ids[0];
@@ -470,6 +476,8 @@ END
 	 * Test rendering an unapproved comment preview.
 	 *
 	 * @ticket 55643
+	 *
+	 * @covers WP_Block::render
 	 */
 	function test_rendering_comment_template_unmoderated_preview() {
 		$parsed_blocks = parse_blocks(
