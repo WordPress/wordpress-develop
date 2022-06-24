@@ -68,7 +68,7 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 		load_theme_textdomain( 'twentyfourteen' );
 
 		// This theme styles the visual editor to resemble the theme style.
-		add_editor_style( array( 'css/editor-style.css', twentyfourteen_font_url(), 'genericons/genericons.css' ) );
+		add_editor_style( array_merge( array( 'css/editor-style.css', 'genericons/genericons.css' ), twentyfourteen_fonts_urls() ) );
 
 		// Load regular editor styles into the new block-based editor.
 		add_theme_support( 'editor-styles' );
@@ -301,22 +301,44 @@ add_action( 'widgets_init', 'twentyfourteen_widgets_init' );
  * @return string
  */
 function twentyfourteen_font_url() {
-	$font_url = '';
-	/*
-	 * translators: If there are characters in your language that are not supported
-	 * by Lato, translate this to 'off'. Do not translate into your own language.
-	 */
-	if ( 'off' !== _x( 'on', 'Lato font: on or off', 'twentyfourteen' ) ) {
-		$query_args = array(
-			'family'  => urlencode( 'Lato:300,400,700,900,300italic,400italic,700italic' ),
-			'subset'  => urlencode( 'latin,latin-ext' ),
-			'display' => urlencode( 'fallback' ),
-		);
-		$font_url   = add_query_arg( $query_args, 'https://fonts.googleapis.com/css' );
-	}
-
-	return $font_url;
+	return '';
 }
+
+
+if ( ! function_exists( 'twentyfourteen_fonts_urls' ) ) :
+	/**
+	 * Return an array of font URLs to be enqueued in Twenty Fourteen.
+	 *
+	 * Create your own twentyfourteen_fonts_urls() function to override in a child theme.
+	 *
+	 * @since Twenty Fourteen 3.5
+	 *
+	 * @return array<string,string> Font URLs for the theme.
+	 */
+	function twentyfourteen_fonts_urls() {
+		$font_urls = array();
+
+		/*
+		 * translators: If there are characters in your language that are not supported
+		 * by Lato, translate this to 'off'. Do not translate into your own language.
+		 */
+		if ( 'off' !== _x( 'on', 'Lato font: on or off', 'twentyfourteen' ) ) {
+			$font_urls['lato'] = get_stylesheet_directory_uri() . '/fonts/lato/font-lato.css';
+		}
+
+		/**
+		 * If the `twentyfourteen_fonts_url` function does not return an empty string,
+		 * we can assume that the user has defined a custom font URL.
+		 */
+		if ( ! empty( twentyfourteen_font_url() ) ) {
+			// Empty the fonts urls array to prevent loading of fonts the user did not intent to load.
+			$font_urls           = array();
+			$font_urls['legacy'] = twentyfourteen_font_url();
+		}
+
+		return $font_urls;
+	}
+endif;
 
 /**
  * Enqueue scripts and styles for the front end.
@@ -324,8 +346,14 @@ function twentyfourteen_font_url() {
  * @since Twenty Fourteen 1.0
  */
 function twentyfourteen_scripts() {
+	// Add custom fonts, used in the main stylesheet.
+	foreach ( twentyfourteen_fonts_urls() as $font_slug => $font_url ) {
+		wp_enqueue_style( 'twentyfourteen-font-' . $font_slug, $font_url, array(), null );
+	}
+
 	// Add Lato font, used in the main stylesheet.
-	wp_enqueue_style( 'twentyfourteen-lato', twentyfourteen_font_url(), array(), null );
+	wp_register_style( 'twentyfourteen-lato', false );
+	wp_enqueue_style( 'twentyfourteen-lato' );
 
 	// Add Genericons font, used in the main stylesheet.
 	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.0.3' );
@@ -374,7 +402,14 @@ add_action( 'wp_enqueue_scripts', 'twentyfourteen_scripts' );
  * @since Twenty Fourteen 1.0
  */
 function twentyfourteen_admin_fonts() {
-	wp_enqueue_style( 'twentyfourteen-lato', twentyfourteen_font_url(), array(), null );
+	// Add custom fonts, used in the main stylesheet.
+	foreach ( twentyfourteen_fonts_urls() as $font_slug => $font_url ) {
+		wp_enqueue_style( 'twentyfourteen-font-' . $font_slug, $font_url, array(), null );
+	}
+
+	// Add Lato font, used in the main stylesheet.
+	wp_register_style( 'twentyfourteen-lato', false );
+	wp_enqueue_style( 'twentyfourteen-lato' );
 }
 add_action( 'admin_print_scripts-appearance_page_custom-header', 'twentyfourteen_admin_fonts' );
 
@@ -400,8 +435,15 @@ add_filter( 'wp_resource_hints', 'twentyfourteen_resource_hints', 10, 2 );
 function twentyfourteen_block_editor_styles() {
 	// Block styles.
 	wp_enqueue_style( 'twentyfourteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20201208' );
-	// Add custom fonts.
-	wp_enqueue_style( 'twentyfourteen-fonts', twentyfourteen_font_url(), array(), null );
+
+	// Add custom fonts, used in the main stylesheet.
+	foreach ( twentyfourteen_fonts_urls() as $font_slug => $font_url ) {
+		wp_enqueue_style( 'twentyfourteen-font-' . $font_slug, $font_url, array(), null );
+	}
+
+	// Register the old handle for BC purposes.
+	wp_register_style( 'twentyfourteen-fonts', false );
+	wp_enqueue_style( 'twentyfourteen-fonts' );
 }
 add_action( 'enqueue_block_editor_assets', 'twentyfourteen_block_editor_styles' );
 
