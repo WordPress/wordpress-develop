@@ -2,6 +2,7 @@
 /**
  * @group author
  * @group user
+ *
  * @covers ::wp_list_authors
  */
 class Tests_User_wpListAuthors extends WP_UnitTestCase {

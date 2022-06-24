@@ -25,6 +25,7 @@ class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 	 * Tests that the return value for selected() is as expected with equal values.
 	 *
 	 * @ticket 53858
+	 *
 	 * @covers ::selected
 	 */
 	public function test_selected_with_equal_values() {
@@ -35,6 +36,7 @@ class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 	 * Tests that the return value for checked() is as expected with equal values.
 	 *
 	 * @ticket 53858
+	 *
 	 * @covers ::checked
 	 */
 	public function test_checked_with_equal_values() {
@@ -45,6 +47,7 @@ class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 	 * Tests that the return value for disabled() is as expected with equal values.
 	 *
 	 * @ticket 53858
+	 *
 	 * @covers ::disabled
 	 */
 	public function test_disabled_with_equal_values() {
@@ -55,6 +58,7 @@ class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 	 * Tests that the return value for readonly() is as expected with equal values.
 	 *
 	 * @ticket 53858
+	 *
 	 * @covers ::readonly
 	 */
 	public function test_readonly_with_equal_values() {
@@ -73,6 +77,7 @@ class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 	 * Tests that the return value for wp_readonly() is as expected with equal values.
 	 *
 	 * @ticket 53858
+	 *
 	 * @covers ::wp_readonly
 	 */
 	public function test_wp_readonly_with_equal_values() {
@@ -85,6 +90,7 @@ class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 	 * @ticket 9862
 	 * @ticket 51166
 	 * @ticket 53858
+	 *
 	 * @covers ::__checked_selected_helper
 	 *
 	 * @param mixed $helper  One of the values to compare.
@@ -130,6 +136,7 @@ class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 	 * @ticket 9862
 	 * @ticket 51166
 	 * @ticket 53858
+	 *
 	 * @covers ::__checked_selected_helper
 	 *
 	 * @param mixed $helper  One of the values to compare.
@@ -168,6 +175,7 @@ class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 	 * the text is also returned.
 	 *
 	 * @ticket 53858
+	 *
 	 * @covers ::__checked_selected_helper
 	 */
 	public function test_checked_selected_helper_echoes_result_by_default() {
@@ -182,6 +190,7 @@ class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 	 * @dataProvider data_checked_selected_helper_default_value_for_second_parameter
 	 *
 	 * @ticket 53858
+	 *
 	 * @covers ::__checked_selected_helper
 	 * @covers ::selected
 	 * @covers ::checked

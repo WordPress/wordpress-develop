@@ -2,6 +2,7 @@
 
 /**
  * @group rewrite
+ *
  * @covers wp_old_slug_redirect
  */
 class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {

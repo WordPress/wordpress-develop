@@ -4,6 +4,7 @@
  * Tests for the wp_validate_boolean() function.
  *
  * @group functions.php
+ *
  * @covers ::wp_validate_boolean
  */
 class Tests_Functions_wpValidateBoolean extends WP_UnitTestCase {

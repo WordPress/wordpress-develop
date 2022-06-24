@@ -947,6 +947,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 	 * Test WP_Customize_Nav_Menu_Item_Setting::value_as_wp_post_nav_menu_item() to set url for posts, terms, and post type archives.
 	 *
 	 * @ticket 38945
+	 *
 	 * @covers WP_Customize_Nav_Menu_Item_Setting::value_as_wp_post_nav_menu_item
 	 */
 	public function test_value_as_wp_post_nav_menu_item_term_urls() {
@@ -1020,6 +1021,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 	 * Test WP_Customize_Nav_Menu_Item_Setting::value_as_wp_post_nav_menu_item() for obtaining original title.
 	 *
 	 * @ticket 38945
+	 *
 	 * @covers WP_Customize_Nav_Menu_Item_Setting::get_original_title
 	 */
 	public function test_get_original_title() {

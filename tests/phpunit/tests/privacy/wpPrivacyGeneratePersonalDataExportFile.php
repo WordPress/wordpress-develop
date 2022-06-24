@@ -11,6 +11,7 @@
  * Test cases for `wp_privacy_generate_personal_data_export_file()`.
  *
  * @group privacy
+ *
  * @covers ::wp_privacy_generate_personal_data_export_file
  * @requires extension zip
  *

@@ -2,6 +2,7 @@
 
 /**
  * @group  comment
+ *
  * @covers ::pings_open
  */
 class Tests_Comment_PingsOpen extends WP_UnitTestCase {

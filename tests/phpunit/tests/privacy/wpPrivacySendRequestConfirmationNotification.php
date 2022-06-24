@@ -12,6 +12,7 @@
  *
  * @group privacy
  * @group user
+ *
  * @covers ::_wp_privacy_send_request_confirmation_notification
  *
  * @since 4.9.8

@@ -2,6 +2,7 @@
 /**
  * @group dependencies
  * @group scripts
+ *
  * @covers ::wp_enqueue_style
  * @covers ::wp_register_style
  * @covers ::wp_print_styles

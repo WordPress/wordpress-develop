@@ -11,6 +11,7 @@
  * Tests_Privacy_wpPrivacySendErasureFulfillmentNotification class.
  *
  * @group privacy
+ *
  * @covers ::_wp_privacy_send_erasure_fulfillment_notification
  *
  * @since 5.1.0

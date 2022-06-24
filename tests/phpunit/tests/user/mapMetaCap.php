@@ -3,6 +3,7 @@
 /**
  * @group user
  * @group capabilities
+ *
  * @covers ::map_meta_cap
  */
 class Tests_User_MapMetaCap extends WP_UnitTestCase {

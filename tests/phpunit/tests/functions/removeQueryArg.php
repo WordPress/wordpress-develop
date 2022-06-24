@@ -2,6 +2,7 @@
 
 /**
  * @group functions.php
+ *
  * @covers ::remove_query_arg
  */
 class Tests_Functions_RemoveQueryArg extends WP_UnitTestCase {

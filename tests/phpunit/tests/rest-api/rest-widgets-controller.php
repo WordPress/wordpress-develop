@@ -14,6 +14,7 @@
  *
  * @see WP_Test_REST_Controller_Testcase
  * @group restapi
+ *
  * @covers WP_REST_Widgets_Controller
  */
 class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {

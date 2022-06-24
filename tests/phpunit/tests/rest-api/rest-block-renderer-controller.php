@@ -12,10 +12,10 @@
  *
  * @since 5.0.0
  *
- * @covers WP_REST_Block_Renderer_Controller
- *
  * @group restapi-blocks
  * @group restapi
+ *
+ * @covers WP_REST_Block_Renderer_Controller
  */
 class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testcase {
 

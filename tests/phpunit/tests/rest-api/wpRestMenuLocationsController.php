@@ -59,6 +59,7 @@ class Tests_REST_WpRestMenuLocationsController extends WP_Test_REST_Controller_T
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::register_routes
 	 */
 	public function test_register_routes() {
@@ -71,6 +72,7 @@ class Tests_REST_WpRestMenuLocationsController extends WP_Test_REST_Controller_T
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::get_context_param
 	 */
 	public function test_context_param() {
@@ -91,6 +93,7 @@ class Tests_REST_WpRestMenuLocationsController extends WP_Test_REST_Controller_T
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::get_items
 	 */
 	public function test_get_items() {
@@ -111,6 +114,7 @@ class Tests_REST_WpRestMenuLocationsController extends WP_Test_REST_Controller_T
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::get_item
 	 */
 	public function test_get_item() {
@@ -126,6 +130,7 @@ class Tests_REST_WpRestMenuLocationsController extends WP_Test_REST_Controller_T
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::get_item
 	 */
 	public function test_get_item_invalid() {
@@ -161,6 +166,7 @@ class Tests_REST_WpRestMenuLocationsController extends WP_Test_REST_Controller_T
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::get_item_schema
 	 */
 	public function test_get_item_schema() {
@@ -178,6 +184,7 @@ class Tests_REST_WpRestMenuLocationsController extends WP_Test_REST_Controller_T
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::get_items
 	 * @covers ::get_items_permissions_check
 	 */
@@ -191,6 +198,7 @@ class Tests_REST_WpRestMenuLocationsController extends WP_Test_REST_Controller_T
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::get_item
 	 * @covers ::get_item_permissions_check
 	 */

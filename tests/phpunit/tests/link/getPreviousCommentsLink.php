@@ -3,6 +3,7 @@
 /**
  * @group link
  * @group comment
+ *
  * @covers ::get_previous_comments_link
  */
 class Tests_Link_GetPreviousCommentsLink extends WP_UnitTestCase {

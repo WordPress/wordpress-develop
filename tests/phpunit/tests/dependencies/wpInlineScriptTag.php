@@ -5,6 +5,7 @@
  *
  * @group dependencies
  * @group scripts
+ *
  * @covers ::wp_get_inline_script_tag
  * @covers ::wp_print_inline_script_tag
  */

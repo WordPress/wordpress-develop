@@ -84,8 +84,9 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 		$this->assertSame( $args['foo'], $block_type->foo );
 	}
 
-	/*
+	/**
 	 * @ticket 55567
+	 *
 	 * @covers WP_Block_Type::set_props
 	 */
 	public function test_core_attributes() {
@@ -99,8 +100,9 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 		);
 	}
 
-	/*
+	/**
 	 * @ticket 55567
+	 *
 	 * @covers WP_Block_Type::set_props
 	 */
 	public function test_core_attributes_matches_custom() {

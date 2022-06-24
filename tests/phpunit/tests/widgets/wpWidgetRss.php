@@ -15,6 +15,7 @@ class Tests_Widgets_wpWidgetRss extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53278
+	 *
 	 * @covers WP_Widget_RSS::widget
 	 * @dataProvider data_url_unhappy_path
 	 *
@@ -58,6 +59,7 @@ class Tests_Widgets_wpWidgetRss extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53278
+	 *
 	 * @covers WP_Widget_RSS::widget
 	 * @dataProvider data_url_happy_path
 	 *

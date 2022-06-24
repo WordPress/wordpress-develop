@@ -4,6 +4,7 @@
  * Test the `_set_cron_array()` function.
  *
  * @group cron
+ *
  * @covers ::_set_cron_array
  */
 class Tests_Cron_setCronArray extends WP_UnitTestCase {

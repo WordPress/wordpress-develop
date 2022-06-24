@@ -12,9 +12,9 @@
  *
  * @since 5.9.0
  *
- * @covers WP_REST_Edit_Site_Export_Controller
- *
  * @group restapi
+ *
+ * @covers WP_REST_Edit_Site_Export_Controller
  */
 class Tests_REST_WpRestEditSiteExportController extends WP_Test_REST_Controller_Testcase {
 

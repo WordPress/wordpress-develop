@@ -6,6 +6,7 @@
  * @since 5.8.0
  *
  * @group functions.php
+ *
  * @covers ::_wp_to_kebab_case
  */
 class Tests_Functions_wpToKebabCase extends WP_UnitTestCase {

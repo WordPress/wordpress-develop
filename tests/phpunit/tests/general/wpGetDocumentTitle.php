@@ -6,6 +6,7 @@
  * @group general
  * @group template
  * @group document-title
+ *
  * @covers ::wp_get_document_title
  * @covers ::_wp_render_title_tag
  */

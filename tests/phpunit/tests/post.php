@@ -1656,6 +1656,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 * Ensure sticking a post does not duplicate post IDs in the option.
 	 *
 	 * @ticket 52007
+	 *
 	 * @covers ::stick_post
 	 * @dataProvider data_stick_post_does_not_duplicate_post_ids
 	 *
@@ -1690,6 +1691,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 *
 	 * @ticket 52007
 	 * @ticket 55176
+	 *
 	 * @covers ::stick_post
 	 */
 	public function test_stick_post_after_delete_sticky_posts_option() {
@@ -1704,6 +1706,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 *
 	 * @ticket 52007
 	 * @ticket 55176
+	 *
 	 * @covers ::stick_post
 	 * @dataProvider data_stick_post_with_unexpected_sticky_posts_option
 	 *
@@ -1736,6 +1739,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 * Ensure sticking a post removes other duplicate post IDs from the option.
 	 *
 	 * @ticket 52007
+	 *
 	 * @covers ::stick_post
 	 *
 	 * @param mixed $stick Value to pass to stick_post().
@@ -1766,6 +1770,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 * Ensure unsticking a post removes duplicate post IDs from the option.
 	 *
 	 * @ticket 52007
+	 *
 	 * @covers ::unstick_post
 	 *
 	 * @dataProvider data_unstick_post_removes_duplicate_post_ids
@@ -1825,6 +1830,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 * Ensure sticking a duplicate post does not update the `sticky_posts` option.
 	 *
 	 * @ticket 52007
+	 *
 	 * @covers ::stick_post
 	 */
 	public function test_stick_post_with_duplicate_post_id_does_not_update_option() {
@@ -1837,6 +1843,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 * Ensure unsticking a non-sticky post does not update the `sticky_posts` option.
 	 *
 	 * @ticket 52007
+	 *
 	 * @covers ::unstick_post
 	 */
 	public function test_unstick_post_with_non_sticky_post_id_does_not_update_option() {
@@ -1849,6 +1856,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 * Check if post supports block editor.
 	 *
 	 * @ticket 51819
+	 *
 	 * @covers ::use_block_editor_for_post
 	 */
 	public function test_use_block_editor_for_post() {

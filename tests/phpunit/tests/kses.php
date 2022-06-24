@@ -1892,6 +1892,7 @@ HTML;
 	 * @dataProvider data_wp_kses_xml_named_entities
 	 *
 	 * @ticket 54060
+	 *
 	 * @covers ::wp_kses_xml_named_entities
 	 *
 	 * @param array  $input    The input to wp_kses_xml_named_entities().

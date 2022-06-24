@@ -4,6 +4,7 @@
  * @group general
  * @group template
  * @ticket 34292
+ *
  * @covers ::wp_resource_hints
  */
 class Tests_General_wpResourceHints extends WP_UnitTestCase {

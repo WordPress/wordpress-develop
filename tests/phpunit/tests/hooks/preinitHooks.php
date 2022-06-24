@@ -4,6 +4,7 @@
  * Test the IteratorAggregate implementation of WP_Hook
  *
  * @group hooks
+ *
  * @covers WP_Hook::build_preinitialized_hooks
  */
 class Tests_Hooks_PreinitHooks extends WP_UnitTestCase {

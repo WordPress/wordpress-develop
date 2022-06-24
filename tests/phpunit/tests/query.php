@@ -725,6 +725,7 @@ class Tests_Query extends WP_UnitTestCase {
 	 * with the other `posts_*` filters applied, e.g. `posts_join_paged`.
 	 *
 	 * @ticket 55699
+	 *
 	 * @covers WP_Query::get_posts
 	 */
 	public function test_posts_clauses_filter_should_receive_filtered_clauses() {
@@ -750,6 +751,7 @@ class Tests_Query extends WP_UnitTestCase {
 	 * with the other `posts_*_request` filters applied, e.g. `posts_join_request`.
 	 *
 	 * @ticket 55699
+	 *
 	 * @covers WP_Query::get_posts
 	 */
 	public function test_posts_clauses_request_filter_should_receive_filtered_clauses() {

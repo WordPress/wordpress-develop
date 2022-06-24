@@ -147,9 +147,10 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	/**
 	 * Tests the label and description controls when registering sidebars with Customizer.
 	 *
-	 * @ticket       53487
+	 * @ticket 53487
+	 *
+	 * @covers WP_Customize_Widgets::customize_register
 	 * @dataProvider data_customize_register_control_label_and_description
-	 * @covers       WP_Customize_Widgets::customize_register
 	 */
 	public function test_customize_register_control_label_and_description( $sidebars, $use_classic_widgets, $expected ) {
 		if ( $use_classic_widgets ) {

@@ -10,6 +10,7 @@
  *
  * @group webfonts
  * @group themes
+ *
  * @covers _wp_theme_json_webfonts_handler
  */
 class Tests_Webfonts_wpThemeJsonWebfontsHandler extends WP_UnitTestCase {

@@ -576,6 +576,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * Test request for dismissing autosave changesets.
 	 *
 	 * @ticket 39896
+	 *
 	 * @covers WP_Customize_Manager::handle_dismiss_autosave_or_lock_request
 	 * @covers WP_Customize_Manager::dismiss_user_auto_draft_changesets
 	 */
@@ -725,6 +726,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * Test request for retrieving installed themes.
 	 *
 	 * @ticket 54549
+	 *
 	 * @covers WP_Customize_Manager::handle_load_themes_request
 	 */
 	public function test_wp_ajax_customize_load_themes_action() {

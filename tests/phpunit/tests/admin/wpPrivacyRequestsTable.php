@@ -54,15 +54,15 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 	 * Test columns should be sortable.
 	 *
 	 * @since 5.1.0
+	 * @ticket 43960
+	 *
+	 * @covers WP_Privacy_Requests_Table::prepare_items
+	 * @dataProvider data_test_columns_should_be_sortable
 	 *
 	 * @param string|null $order    Order.
 	 * @param string|null $orderby  Order by.
 	 * @param string|null $search   Search term.
 	 * @param string      $expected Expected in SQL query.
-
-	 * @dataProvider data_test_columns_should_be_sortable
-	 * @covers WP_Privacy_Requests_Table::prepare_items
-	 * @ticket 43960
 	 */
 	public function test_columns_should_be_sortable( $order, $orderby, $search, $expected ) {
 		global $wpdb;

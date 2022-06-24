@@ -4,6 +4,7 @@
  * Test wp_list_pluck().
  *
  * @group functions.php
+ *
  * @covers ::wp_list_pluck
  */
 class Tests_Functions_wpListPluck extends WP_UnitTestCase {

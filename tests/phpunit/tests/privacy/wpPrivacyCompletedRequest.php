@@ -11,6 +11,7 @@
  * Tests_Privacy_wpPrivacyCompletedRequest class.
  *
  * @group privacy
+ *
  * @covers ::_wp_privacy_completed_request
  *
  * @since 4.9.6

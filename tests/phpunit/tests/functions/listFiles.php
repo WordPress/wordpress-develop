@@ -4,6 +4,7 @@
  * Test list_files().
  *
  * @group functions.php
+ *
  * @covers ::list_files
  */
 class Tests_Functions_ListFiles extends WP_UnitTestCase {

@@ -2,6 +2,7 @@
 /**
  * @group dependencies
  * @group scripts
+ *
  * @covers ::wp_enqueue_script
  * @covers ::wp_register_script
  * @covers ::wp_print_scripts
@@ -1063,6 +1064,7 @@ JS;
 	 * Testing `wp_enqueue_code_editor` with file path.
 	 *
 	 * @ticket 41871
+	 *
 	 * @covers ::wp_enqueue_code_editor
 	 */
 	public function test_wp_enqueue_code_editor_when_php_file_will_be_passed() {
@@ -1150,6 +1152,7 @@ JS;
 	 * Testing `wp_enqueue_code_editor` with `compact`.
 	 *
 	 * @ticket 41871
+	 *
 	 * @covers ::wp_enqueue_code_editor
 	 */
 	public function test_wp_enqueue_code_editor_when_generated_array_by_compact_will_be_passed() {
@@ -1233,6 +1236,7 @@ JS;
 	 * Testing `wp_enqueue_code_editor` with `array_merge`.
 	 *
 	 * @ticket 41871
+	 *
 	 * @covers ::wp_enqueue_code_editor
 	 */
 	public function test_wp_enqueue_code_editor_when_generated_array_by_array_merge_will_be_passed() {
@@ -1330,6 +1334,7 @@ JS;
 	 * Testing `wp_enqueue_code_editor` with `array`.
 	 *
 	 * @ticket 41871
+	 *
 	 * @covers ::wp_enqueue_code_editor
 	 */
 	public function test_wp_enqueue_code_editor_when_simple_array_will_be_passed() {
@@ -1422,6 +1427,7 @@ JS;
 
 	/**
 	 * @ticket 52534
+	 *
 	 * @covers ::wp_localize_script
 	 *
 	 * @dataProvider data_wp_localize_script_data_formats
@@ -1484,6 +1490,7 @@ JS;
 
 	/**
 	 * @ticket 55628
+	 *
 	 * @covers ::wp_set_script_translations
 	 */
 	public function test_wp_external_wp_i18n_print_order() {

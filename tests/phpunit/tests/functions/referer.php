@@ -4,6 +4,7 @@
  * Test wp_get_referer().
  *
  * @group functions.php
+ *
  * @covers ::wp_get_referer
  * @covers ::wp_get_raw_referer
  */
