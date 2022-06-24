@@ -364,7 +364,7 @@ if ( ! function_exists( 'twentyfifteen_fonts_urls' ) ) :
 	 *
 	 * Create your own twentyfifteen_fonts_urls() function to override in a child theme.
 	 *
-	 * @since Twenty Sixteen 2.8
+	 * @since Twenty Fifteen 3.3
 	 *
 	 * @return array<string,string> Font URLs for the theme.
 	 */
