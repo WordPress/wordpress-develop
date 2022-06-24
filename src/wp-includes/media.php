@@ -321,8 +321,6 @@ function add_image_size( $name, $width = 0, $height = 0, $crop = false, $output_
  */
 function image_size_supports_mime( $name, $mime_type ) {
 	$sizes = wp_get_additional_image_sizes();
-	error_log( 'image_size_supports_mime ---  ' .  json_encode( $sizes,  JSON_PRETTY_PRINT));
-
 	return isset( $sizes[ $name ][ 'output_mimes' ] ) && $sizes[ $name ][ 'output_mimes' ];
 }
 
