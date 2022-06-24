@@ -520,7 +520,7 @@ final class WP_Customize_Nav_Menus {
 				'movedLeft'              => __( 'Menu item moved out of submenu' ),
 				'movedRight'             => __( 'Menu item is now a sub-item' ),
 				/* translators: &#9656; is the unicode right-pointing triangle. %s: Section title in the Customizer. */
-				'customizingMenus'       => sprintf( __( 'Customizing &#9656; %s' ), esc_html( $this->manager->get_panel( 'nav_menus' )->title ) ),
+				'customizingMenus'       => ( $this->manager->get_panel( 'nav_menus' ) ) ? sprintf( __( 'Customizing &#9656; %s' ), esc_html( $this->manager->get_panel( 'nav_menus' )->title ) ) : __( 'Customizing' ),
 				/* translators: %s: Title of an invalid menu item. */
 				'invalidTitleTpl'        => __( '%s (Invalid)' ),
 				/* translators: %s: Title of a menu item in draft status. */
