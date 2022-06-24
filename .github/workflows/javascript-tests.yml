@@ -4,7 +4,6 @@ on:
   # JavaScript testing was introduced in WordPress 3.8.
   push:
     branches:
-      - master
       - trunk
       - '3.[89]'
       - '[4-9].[0-9]'
@@ -13,7 +12,6 @@ on:
       - '[4-9].[0-9]*'
   pull_request:
     branches:
-      - master
       - trunk
       - '3.[89]'
       - '[4-9].[0-9]'
@@ -53,11 +51,12 @@ jobs:
   test-js:
     name: QUnit Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
+        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
 
       - name: Log debug information
         run: |
@@ -67,9 +66,9 @@ jobs:
           svn --version
 
       - name: Install NodeJS
-        uses: actions/setup-node@38d90ce44d5275ad62cc48384b3d8a58c500bb5f # v2.2.2
+        uses: actions/setup-node@5b52f097d36d4b0b2f94ed6de710023fbb8b2236 # v3.1.0
         with:
-          node-version: 14
+          node-version-file: '.nvmrc'
           cache: npm
 
       - name: Log debug information
@@ -85,3 +84,16 @@ jobs:
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    needs: [ test-js ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ needs.test-js.result == 'success' && 'success' || needs.test-js.result == 'cancelled' && 'cancelled' || 'failure' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}

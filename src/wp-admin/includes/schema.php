@@ -390,7 +390,7 @@ function populate_options( array $options = array() ) {
 	 * or a valid timezone string (America/New_York). See https://www.php.net/manual/en/timezones.php
 	 * for all timezone strings supported by PHP.
 	 */
-	$offset_or_tz = _x( '0', 'default GMT offset or timezone string' ); // phpcs:ignore WordPress.WP.I18n.NoEmptyStrings
+	$offset_or_tz = _x( '0', 'default GMT offset or timezone string' );
 	if ( is_numeric( $offset_or_tz ) ) {
 		$gmt_offset = $offset_or_tz;
 	} elseif ( $offset_or_tz && in_array( $offset_or_tz, timezone_identifiers_list(), true ) ) {
@@ -964,7 +964,7 @@ endif;
  * @global WP_Rewrite $wp_rewrite   WordPress rewrite component.
  *
  * @param int    $network_id        ID of network to populate.
- * @param string $domain            The domain name for the network (eg. "example.com").
+ * @param string $domain            The domain name for the network. Example: "example.com".
  * @param string $email             Email address for the network administrator.
  * @param string $site_name         The name of the network.
  * @param string $path              Optional. The path to append to the network's domain name. Default '/'.
@@ -1173,8 +1173,6 @@ function populate_network_meta( $network_id, array $meta = array() ) {
 		wp_cache_delete( $network_id, 'networks' );
 	}
 
-	wp_cache_delete( 'networks_have_paths', 'site-options' );
-
 	if ( ! is_multisite() ) {
 		$site_admins = array( $site_user->user_login );
 		$users       = get_users(
@@ -1267,6 +1265,7 @@ We hope you enjoy your new site. Thanks!
 		'subdomain_install'           => $subdomain_install,
 		'global_terms_enabled'        => global_terms_enabled() ? '1' : '0',
 		'ms_files_rewriting'          => is_multisite() ? get_site_option( 'ms_files_rewriting' ) : '0',
+		'user_count'                  => get_site_option( 'user_count' ),
 		'initial_db_version'          => get_option( 'initial_db_version' ),
 		'active_sitewide_plugins'     => array(),
 		'WPLANG'                      => get_locale(),

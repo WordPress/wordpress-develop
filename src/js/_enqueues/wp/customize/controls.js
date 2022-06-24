@@ -6,6 +6,12 @@
 (function( exports, $ ){
 	var Container, focus, normalizedTransitionendEventName, api = wp.customize;
 
+	var reducedMotionMediaQuery = window.matchMedia( '(prefers-reduced-motion: reduce)' );
+	var isReducedMotion = reducedMotionMediaQuery.matches;
+	reducedMotionMediaQuery.addEventListener( 'change' , function handleReducedMotionChange( event ) {
+		isReducedMotion = event.matches;
+	});
+
 	api.OverlayNotification = api.Notification.extend(/** @lends wp.customize.OverlayNotification.prototype */{
 
 		/**
@@ -689,10 +695,22 @@
 	 * @param {Function} [params.completeCallback]
 	 */
 	focus = function ( params ) {
-		var construct, completeCallback, focus, focusElement;
+		var construct, completeCallback, focus, focusElement, sections;
 		construct = this;
 		params = params || {};
 		focus = function () {
+			// If a child section is currently expanded, collapse it.
+			if ( construct.extended( api.Panel ) ) {
+				sections = construct.sections();
+				if ( 1 < sections.length ) {
+					sections.forEach( function ( section ) {
+						if ( section.expanded() ) {
+							section.collapse();
+						}
+					} );
+				}
+			}
+
 			var focusContainer;
 			if ( ( construct.extended( api.Panel ) || construct.extended( api.Section ) ) && construct.expanded && construct.expanded() ) {
 				focusContainer = construct.contentContainer;
@@ -1264,11 +1282,14 @@
 		 * @return {void}
 		 */
 		_animateChangeExpanded: function( completeCallback ) {
-			// Return if CSS transitions are not supported.
-			if ( ! normalizedTransitionendEventName ) {
-				if ( completeCallback ) {
-					completeCallback();
-				}
+			// Return if CSS transitions are not supported or if reduced motion is enabled.
+			if ( ! normalizedTransitionendEventName || isReducedMotion ) {
+				// Schedule the callback until the next tick to prevent focus loss.
+				_.defer( function () {
+					if ( completeCallback ) {
+						completeCallback();
+					}
+				} );
 				return;
 			}
 
@@ -8314,6 +8335,33 @@
 			}
 
 			/**
+			 * Displays a Site Editor notification when a block theme is activated.
+			 *
+			 * @since 4.9.0
+			 *
+			 * @param {string} [notification] - A notification to display.
+			 * @return {void}
+			 */
+			function addSiteEditorNotification( notification ) {
+				api.notifications.add( new api.Notification( 'site_editor_block_theme_notice', {
+					message: notification,
+					type: 'info',
+					dismissible: false,
+					render: function() {
+						var notification = api.Notification.prototype.render.call( this ),
+							button = notification.find( 'button.switch-to-editor' );
+
+						button.on( 'click', function( event ) {
+							event.preventDefault();
+							location.assign( button.data( 'action' ) );
+						} );
+
+						return notification;
+					}
+				} ) );
+			}
+
+			/**
 			 * Dismiss autosave.
 			 *
 			 * @return {void}
@@ -8387,6 +8435,10 @@
 			if ( api.settings.changeset.latestAutoDraftUuid || api.settings.changeset.hasAutosaveRevision ) {
 				addAutosaveRestoreNotification();
 			}
+			var shouldDisplayBlockThemeNotification = !! parseInt( $( '#customize-info' ).data( 'block-theme' ), 10 );
+			if (shouldDisplayBlockThemeNotification) {
+				addSiteEditorNotification( api.l10n.blockThemeNotification );
+			}
 		})();
 
 		// Check if preview url is valid and load the preview frame.
@@ -8449,6 +8501,13 @@
 			 * This ensures that ESC meant to collapse a modal dialog or a TinyMCE toolbar won't collapse something else.
 			 */
 			if ( ! $( event.target ).is( 'body' ) && ! $.contains( $( '#customize-controls' )[0], event.target ) ) {
+				return;
+			}
+
+			// Abort if we're inside of a block editor instance.
+			if ( event.target.closest( '.block-editor-writing-flow' ) !== null ||
+				event.target.closest( '.block-editor-block-list__block-popover' ) !== null
+			) {
 				return;
 			}
 

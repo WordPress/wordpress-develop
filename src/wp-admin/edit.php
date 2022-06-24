@@ -9,6 +9,11 @@
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
+/**
+ * @global string $typenow The post type of the current screen.
+ */
+global $typenow;
+
 if ( ! $typenow ) {
 	wp_die( __( 'Invalid post type.' ) );
 }
@@ -87,6 +92,11 @@ if ( $doaction ) {
 		$post_status = preg_replace( '/[^a-z0-9_-]+/i', '', $_REQUEST['post_status'] );
 		// Validate the post status exists.
 		if ( get_post_status_object( $post_status ) ) {
+			/**
+			 * @global wpdb $wpdb WordPress database abstraction object.
+			 */
+			global $wpdb;
+
 			$post_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_type=%s AND post_status = %s", $post_type, $post_status ) );
 		}
 		$doaction = 'delete';
@@ -154,7 +164,7 @@ if ( $doaction ) {
 			}
 			$sendback = add_query_arg( 'untrashed', $untrashed, $sendback );
 
-			remove_filter( 'wp_untrash_post_status', 'wp_untrash_post_set_previous_status', 10, 3 );
+			remove_filter( 'wp_untrash_post_status', 'wp_untrash_post_set_previous_status', 10 );
 
 			break;
 		case 'delete':

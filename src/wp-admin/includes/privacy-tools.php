@@ -662,8 +662,7 @@ function wp_privacy_send_personal_data_export_email( $request_id ) {
 
 	/* translators: Do not translate EXPIRATION, LINK, SITENAME, SITEURL: those are placeholders. */
 	$email_text = __(
-// phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect, PEAR.Functions.FunctionCallSignature.Indent
-'Howdy,
+		'Howdy,
 
 Your request for an export of personal data has been completed. You may
 download your personal data by clicking on the link below. For privacy
@@ -707,10 +706,10 @@ All at ###SITENAME###
 	$content = apply_filters( 'wp_privacy_personal_data_email_content', $email_text, $request_id, $email_data );
 
 	$content = str_replace( '###EXPIRATION###', $expiration_date, $content );
-	$content = str_replace( '###LINK###', esc_url_raw( $export_file_url ), $content );
+	$content = str_replace( '###LINK###', sanitize_url( $export_file_url ), $content );
 	$content = str_replace( '###EMAIL###', $request_email, $content );
 	$content = str_replace( '###SITENAME###', $site_name, $content );
-	$content = str_replace( '###SITEURL###', esc_url_raw( $site_url ), $content );
+	$content = str_replace( '###SITEURL###', sanitize_url( $site_url ), $content );
 
 	$headers = '';
 

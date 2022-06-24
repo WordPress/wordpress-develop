@@ -120,7 +120,7 @@ function find_core_auto_update() {
  * @return array|false An array of checksums on success, false on failure.
  */
 function get_core_checksums( $version, $locale ) {
-	$http_url = 'http://api.wordpress.org/core/checksums/1.0/?' . http_build_query( compact( 'version', 'locale' ), null, '&' );
+	$http_url = 'http://api.wordpress.org/core/checksums/1.0/?' . http_build_query( compact( 'version', 'locale' ), '', '&' );
 	$url      = $http_url;
 
 	$ssl = wp_http_supports( array( 'ssl' ) );
@@ -277,15 +277,15 @@ function core_update_footer( $msg = '' ) {
 /**
  * @since 2.3.0
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  * @return void|false
  */
 function update_nag() {
+	global $pagenow;
+
 	if ( is_multisite() && ! current_user_can( 'update_core' ) ) {
 		return false;
 	}
-
-	global $pagenow;
 
 	if ( 'update-core.php' === $pagenow ) {
 		return;
@@ -534,7 +534,7 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 			} else {
 				printf(
 					/* translators: 1: Plugin name, 2: Details URL, 3: Additional link attributes, 4: Version number 5: URL to Update PHP page. */
-					__( 'There is a new version of %1$s available, but it doesn&#8217;t work with your version of PHP. <a href="%2$s" %3$s>View version %4$s details</a> or <a href="%5$s">learn more about updating PHP</a>.' ),
+					__( 'There is a new version of %1$s available, but it does not work with your version of PHP. <a href="%2$s" %3$s>View version %4$s details</a> or <a href="%5$s">learn more about updating PHP</a>.' ),
 					$plugin_name,
 					esc_url( $details_url ),
 					sprintf(
@@ -558,30 +558,24 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 		 *
 		 * @since 2.8.0
 		 *
-		 * @param array $plugin_data {
-		 *     An array of plugin metadata.
+		 * @param array  $plugin_data An array of plugin metadata. See get_plugin_data()
+		 *                            and the {@see 'plugin_row_meta'} filter for the list
+		 *                            of possible values.
+		 * @param object $response {
+		 *     An object of metadata about the available plugin update.
 		 *
-		 *     @type string $name        The human-readable name of the plugin.
-		 *     @type string $plugin_uri  Plugin URI.
-		 *     @type string $version     Plugin version.
-		 *     @type string $description Plugin description.
-		 *     @type string $author      Plugin author.
-		 *     @type string $author_uri  Plugin author URI.
-		 *     @type string $text_domain Plugin text domain.
-		 *     @type string $domain_path Relative path to the plugin's .mo file(s).
-		 *     @type bool   $network     Whether the plugin can only be activated network wide.
-		 *     @type string $title       The human-readable title of the plugin.
-		 *     @type string $author_name Plugin author's name.
-		 *     @type bool   $update      Whether there's an available update. Default null.
-		 * }
-		 * @param array $response {
-		 *     An array of metadata about the available plugin update.
-		 *
-		 *     @type int    $id          Plugin ID.
-		 *     @type string $slug        Plugin slug.
-		 *     @type string $new_version New plugin version.
-		 *     @type string $url         Plugin URL.
-		 *     @type string $package     Plugin update package URL.
+		 *     @type string   $id           Plugin ID, e.g. `w.org/plugins/[plugin-name]`.
+		 *     @type string   $slug         Plugin slug.
+		 *     @type string   $plugin       Plugin basename.
+		 *     @type string   $new_version  New plugin version.
+		 *     @type string   $url          Plugin URL.
+		 *     @type string   $package      Plugin update package URL.
+		 *     @type string[] $icons        An array of plugin icon URLs.
+		 *     @type string[] $banners      An array of plugin banner URLs.
+		 *     @type string[] $banners_rtl  An array of plugin RTL banner URLs.
+		 *     @type string   $requires     The version of WordPress which the plugin requires.
+		 *     @type string   $tested       The version of WordPress the plugin is tested against.
+		 *     @type string   $requires_php The version of PHP which the plugin requires.
 		 * }
 		 */
 		do_action( "in_plugin_update_message-{$file}", $plugin_data, $response ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
@@ -728,7 +722,7 @@ function wp_theme_update_row( $theme_key, $theme ) {
 		if ( ! $compatible_wp && ! $compatible_php ) {
 			printf(
 				/* translators: %s: Theme name. */
-				__( 'There is a new version of %s available, but it doesn&#8217;t work with your versions of WordPress and PHP.' ),
+				__( 'There is a new version of %s available, but it does not work with your versions of WordPress and PHP.' ),
 				$theme['Name']
 			);
 			if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
@@ -756,7 +750,7 @@ function wp_theme_update_row( $theme_key, $theme ) {
 		} elseif ( ! $compatible_wp ) {
 			printf(
 				/* translators: %s: Theme name. */
-				__( 'There is a new version of %s available, but it doesn&#8217;t work with your version of WordPress.' ),
+				__( 'There is a new version of %s available, but it does not work with your version of WordPress.' ),
 				$theme['Name']
 			);
 			if ( current_user_can( 'update_core' ) ) {
@@ -769,7 +763,7 @@ function wp_theme_update_row( $theme_key, $theme ) {
 		} elseif ( ! $compatible_php ) {
 			printf(
 				/* translators: %s: Theme name. */
-				__( 'There is a new version of %s available, but it doesn&#8217;t work with your version of PHP.' ),
+				__( 'There is a new version of %s available, but it does not work with your version of PHP.' ),
 				$theme['Name']
 			);
 			if ( current_user_can( 'update_php' ) ) {

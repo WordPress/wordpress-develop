@@ -2708,7 +2708,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 				'single'            => true,
 				'type'              => 'boolean',
 				'show_in_rest'      => true,
-				'sanitize_callback' => function( $value ) {
+				'sanitize_callback' => static function( $value ) {
 					return $value ? '1' : '0';
 				},
 			)

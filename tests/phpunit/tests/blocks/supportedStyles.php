@@ -712,7 +712,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		// Custom error handler's see Warnings even if they are suppressed by the @ symbol.
 		$errors = array();
 		set_error_handler(
-			function ( $errno = 0, $errstr = '' ) use ( &$errors ) {
+			static function ( $errno = 0, $errstr = '' ) use ( &$errors ) {
 				$errors[] = $errstr;
 				return false;
 			}

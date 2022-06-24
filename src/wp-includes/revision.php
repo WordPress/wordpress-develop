@@ -447,7 +447,7 @@ function wp_restore_post_revision( $revision_id, $fields = null ) {
  * @since 2.6.0
  *
  * @param int|WP_Post $revision_id Revision ID or revision object.
- * @return array|false|WP_Post|WP_Error|null Null or WP_Error if error, deleted post if success.
+ * @return WP_Post|false|null Null or false if error, deleted post object if success.
  */
 function wp_delete_post_revision( $revision_id ) {
 	$revision = wp_get_post_revision( $revision_id );
@@ -514,6 +514,40 @@ function wp_get_post_revisions( $post_id = 0, $args = null ) {
 	}
 
 	return $revisions;
+}
+
+/**
+ * Returns the url for viewing and potentially restoring revisions of a given post.
+ *
+ * @since 5.9.0
+ *
+ * @param int|WP_Post $post_id Optional. Post ID or WP_Post object. Default is global `$post`.
+ * @return null|string The URL for editing revisions on the given post, otherwise null.
+ */
+function wp_get_post_revisions_url( $post_id = 0 ) {
+	$post = get_post( $post_id );
+
+	if ( ! $post instanceof WP_Post ) {
+		return null;
+	}
+
+	// If the post is a revision, return early.
+	if ( 'revision' === $post->post_type ) {
+		return get_edit_post_link( $post );
+	}
+
+	if ( ! wp_revisions_enabled( $post ) ) {
+		return null;
+	}
+
+	$revisions = wp_get_post_revisions( $post->ID, array( 'posts_per_page' => 1 ) );
+
+	if ( 0 === count( $revisions ) ) {
+		return null;
+	}
+
+	$revision = reset( $revisions );
+	return get_edit_post_link( $revision );
 }
 
 /**
@@ -604,15 +638,14 @@ function _set_preview( $post ) {
 	}
 
 	$preview = wp_get_post_autosave( $post->ID );
-	if ( ! is_object( $preview ) ) {
-		return $post;
+
+	if ( is_object( $preview ) ) {
+		$preview = sanitize_post( $preview );
+
+		$post->post_content = $preview->post_content;
+		$post->post_title   = $preview->post_title;
+		$post->post_excerpt = $preview->post_excerpt;
 	}
-
-	$preview = sanitize_post( $preview );
-
-	$post->post_content = $preview->post_content;
-	$post->post_title   = $preview->post_title;
-	$post->post_excerpt = $preview->post_excerpt;
 
 	add_filter( 'get_the_terms', '_wp_preview_terms_filter', 10, 3 );
 	add_filter( 'get_post_metadata', '_wp_preview_post_thumbnail_filter', 10, 3 );

@@ -103,14 +103,14 @@ class PHPMailer
      *
      * @var string
      */
-    public $From = 'root@localhost';
+    public $From = '';
 
     /**
      * The From name of the message.
      *
      * @var string
      */
-    public $FromName = 'Root User';
+    public $FromName = '';
 
     /**
      * The envelope sender of the message.
@@ -358,9 +358,9 @@ class PHPMailer
     public $AuthType = '';
 
     /**
-     * An instance of the PHPMailer OAuth class.
+     * An implementation of the PHPMailer OAuthTokenProvider interface.
      *
-     * @var OAuth
+     * @var OAuthTokenProvider
      */
     protected $oauth;
 
@@ -689,7 +689,7 @@ class PHPMailer
     protected $boundary = [];
 
     /**
-     * The array of available languages.
+     * The array of available text strings for the current language.
      *
      * @var array
      */
@@ -750,7 +750,7 @@ class PHPMailer
      *
      * @var string
      */
-    const VERSION = '6.5.0';
+    const VERSION = '6.6.3';
 
     /**
      * Error severity: message only, continue processing.
@@ -1066,8 +1066,8 @@ class PHPMailer
      * Addresses that have been added already return false, but do not throw exceptions.
      *
      * @param string $kind    One of 'to', 'cc', 'bcc', or 'ReplyTo'
-     * @param string $address The email address to send, resp. to reply to
-     * @param string $name
+     * @param string $address The email address
+     * @param string $name    An optional username associated with the address
      *
      * @throws Exception
      *
@@ -1075,9 +1075,11 @@ class PHPMailer
      */
     protected function addOrEnqueueAnAddress($kind, $address, $name)
     {
-        $address = trim($address);
-        $name = trim(preg_replace('/[\r\n]+/', '', $name)); //Strip breaks and trim
-        $pos = strrpos($address, '@');
+        $pos = false;
+        if ($address !== null) {
+            $address = trim($address);
+            $pos = strrpos($address, '@');
+        }
         if (false === $pos) {
             //At-sign is missing.
             $error_message = sprintf(
@@ -1094,8 +1096,14 @@ class PHPMailer
 
             return false;
         }
+        if ($name !== null) {
+            $name = trim(preg_replace('/[\r\n]+/', '', $name)); //Strip breaks and trim
+        } else {
+            $name = '';
+        }
         $params = [$kind, $address, $name];
         //Enqueue addresses with IDN until we know the PHPMailer::$CharSet.
+        //Domain is assumed to be whatever is after the last @ symbol in the address
         if (static::idnSupported() && $this->has8bitChars(substr($address, ++$pos))) {
             if ('Reply-To' !== $kind) {
                 if (!array_key_exists($address, $this->RecipientsQueue)) {
@@ -1185,28 +1193,37 @@ class PHPMailer
      *
      * @param string $addrstr The address list string
      * @param bool   $useimap Whether to use the IMAP extension to parse the list
+     * @param string $charset The charset to use when decoding the address list string.
      *
      * @return array
      */
-    public static function parseAddresses($addrstr, $useimap = true)
+    public static function parseAddresses($addrstr, $useimap = true, $charset = self::CHARSET_ISO88591)
     {
         $addresses = [];
         if ($useimap && function_exists('imap_rfc822_parse_adrlist')) {
             //Use this built-in parser if it's available
             $list = imap_rfc822_parse_adrlist($addrstr, '');
+            // Clear any potential IMAP errors to get rid of notices being thrown at end of script.
+            imap_errors();
             foreach ($list as $address) {
                 if (
-                    ('.SYNTAX-ERROR.' !== $address->host) && static::validateAddress(
-                        $address->mailbox . '@' . $address->host
-                    )
+                    '.SYNTAX-ERROR.' !== $address->host &&
+                    static::validateAddress($address->mailbox . '@' . $address->host)
                 ) {
                     //Decode the name part if it's present and encoded
                     if (
                         property_exists($address, 'personal') &&
-                        extension_loaded('mbstring') &&
-                        preg_match('/^=\?.*\?=$/', $address->personal)
+                        //Check for a Mbstring constant rather than using extension_loaded, which is sometimes disabled
+                        defined('MB_CASE_UPPER') &&
+                        preg_match('/^=\?.*\?=$/s', $address->personal)
                     ) {
+                        $origCharset = mb_internal_encoding();
+                        mb_internal_encoding($charset);
+                        //Undo any RFC2047-encoded spaces-as-underscores
+                        $address->personal = str_replace('_', '=20', $address->personal);
+                        //Decode the name
                         $address->personal = mb_decode_mimeheader($address->personal);
+                        mb_internal_encoding($origCharset);
                     }
 
                     $addresses[] = [
@@ -1234,9 +1251,16 @@ class PHPMailer
                     $email = trim(str_replace('>', '', $email));
                     $name = trim($name);
                     if (static::validateAddress($email)) {
+                        //Check for a Mbstring constant rather than using extension_loaded, which is sometimes disabled
                         //If this name is encoded, decode it
-                        if (preg_match('/^=\?.*\?=$/', $name)) {
+                        if (defined('MB_CASE_UPPER') && preg_match('/^=\?.*\?=$/s', $name)) {
+                            $origCharset = mb_internal_encoding();
+                            mb_internal_encoding($charset);
+                            //Undo any RFC2047-encoded spaces-as-underscores
+                            $name = str_replace('_', '=20', $name);
+                            //Decode the name
                             $name = mb_decode_mimeheader($name);
+                            mb_internal_encoding($origCharset);
                         }
                         $addresses[] = [
                             //Remove any surrounding quotes and spaces from the name
@@ -1436,7 +1460,12 @@ class PHPMailer
                 $errorcode = 0;
                 if (defined('INTL_IDNA_VARIANT_UTS46')) {
                     //Use the current punycode standard (appeared in PHP 7.2)
-                    $punycode = idn_to_ascii($domain, $errorcode, \INTL_IDNA_VARIANT_UTS46);
+                    $punycode = idn_to_ascii(
+                        $domain,
+                        \IDNA_DEFAULT | \IDNA_USE_STD3_RULES | \IDNA_CHECK_BIDI |
+                            \IDNA_CHECK_CONTEXTJ | \IDNA_NONTRANSITIONAL_TO_ASCII,
+                        \INTL_IDNA_VARIANT_UTS46
+                    );
                 } elseif (defined('INTL_IDNA_VARIANT_2003')) {
                     //Fall back to this old, deprecated/removed encoding
                     // phpcs:ignore PHPCompatibility.Constants.RemovedConstants.intl_idna_variant_2003Deprecated
@@ -1510,12 +1539,7 @@ class PHPMailer
             && ini_get('mail.add_x_header') === '1'
             && stripos(PHP_OS, 'WIN') === 0
         ) {
-            trigger_error(
-                'Your version of PHP is affected by a bug that may result in corrupted messages.' .
-                ' To fix it, switch to sending using SMTP, disable the mail.add_x_header option in' .
-                ' your php.ini, switch to MacOS or Linux, or upgrade your PHP to version 7.0.17+ or 7.1.3+.',
-                E_USER_WARNING
-            );
+            trigger_error($this->lang('buggy_php'), E_USER_WARNING);
         }
 
         try {
@@ -1533,17 +1557,17 @@ class PHPMailer
 
             //Validate From, Sender, and ConfirmReadingTo addresses
             foreach (['From', 'Sender', 'ConfirmReadingTo'] as $address_kind) {
-                $this->$address_kind = trim($this->$address_kind);
-                if (empty($this->$address_kind)) {
+                $this->{$address_kind} = trim($this->{$address_kind});
+                if (empty($this->{$address_kind})) {
                     continue;
                 }
-                $this->$address_kind = $this->punyencodeAddress($this->$address_kind);
-                if (!static::validateAddress($this->$address_kind)) {
+                $this->{$address_kind} = $this->punyencodeAddress($this->{$address_kind});
+                if (!static::validateAddress($this->{$address_kind})) {
                     $error_message = sprintf(
                         '%s (%s): %s',
                         $this->lang('invalid_address'),
                         $address_kind,
-                        $this->$address_kind
+                        $this->{$address_kind}
                     );
                     $this->setError($error_message);
                     $this->edebug($error_message);
@@ -1643,7 +1667,7 @@ class PHPMailer
                 default:
                     $sendMethod = $this->Mailer . 'Send';
                     if (method_exists($this, $sendMethod)) {
-                        return $this->$sendMethod($this->MIMEHeader, $this->MIMEBody);
+                        return $this->{$sendMethod}($this->MIMEHeader, $this->MIMEBody);
                     }
 
                     return $this->mailSend($this->MIMEHeader, $this->MIMEBody);
@@ -1689,7 +1713,10 @@ class PHPMailer
         //Sendmail docs: http://www.sendmail.org/~ca/email/man/sendmail.html
         //Qmail docs: http://www.qmail.org/man/man8/qmail-inject.html
         //Example problem: https://www.drupal.org/node/1057954
-        if (empty($this->Sender) && !empty(ini_get('sendmail_from'))) {
+
+        //PHP 5.6 workaround
+        $sendmail_from_value = ini_get('sendmail_from');
+        if (empty($this->Sender) && !empty($sendmail_from_value)) {
             //PHP config has a sender address we can use
             $this->Sender = ini_get('sendmail_from');
         }
@@ -1726,7 +1753,7 @@ class PHPMailer
                 fwrite($mail, $header);
                 fwrite($mail, $body);
                 $result = pclose($mail);
-                $addrinfo = static::parseAddresses($toAddr);
+                $addrinfo = static::parseAddresses($toAddr, true, $this->CharSet);
                 $this->doCallback(
                     ($result === 0),
                     [[$addrinfo['address'], $addrinfo['name']]],
@@ -1781,7 +1808,13 @@ class PHPMailer
      */
     protected static function isShellSafe($string)
     {
-        //Future-proof
+        //It's not possible to use shell commands safely (which includes the mail() function) without escapeshellarg,
+        //but some hosting providers disable it, creating a security problem that we don't want to have to deal with,
+        //so we don't.
+        if (!function_exists('escapeshellarg') || !function_exists('escapeshellcmd')) {
+            return false;
+        }
+
         if (
             escapeshellcmd($string) !== $string
             || !in_array(escapeshellarg($string), ["'$string'", "\"$string\""])
@@ -1871,7 +1904,10 @@ class PHPMailer
         //Qmail docs: http://www.qmail.org/man/man8/qmail-inject.html
         //Example problem: https://www.drupal.org/node/1057954
         //CVE-2016-10033, CVE-2016-10045: Don't pass -f if characters will be escaped.
-        if (empty($this->Sender) && !empty(ini_get('sendmail_from'))) {
+
+        //PHP 5.6 workaround
+        $sendmail_from_value = ini_get('sendmail_from');
+        if (empty($this->Sender) && !empty($sendmail_from_value)) {
             //PHP config has a sender address we can use
             $this->Sender = ini_get('sendmail_from');
         }
@@ -1886,7 +1922,7 @@ class PHPMailer
         if ($this->SingleTo && count($toArr) > 1) {
             foreach ($toArr as $toAddr) {
                 $result = $this->mailPassthru($toAddr, $this->Subject, $body, $header, $params);
-                $addrinfo = static::parseAddresses($toAddr);
+                $addrinfo = static::parseAddresses($toAddr, true, $this->CharSet);
                 $this->doCallback(
                     $result,
                     [[$addrinfo['address'], $addrinfo['name']]],
@@ -2135,7 +2171,8 @@ class PHPMailer
                     }
                     if ($tls) {
                         if (!$this->smtp->startTLS()) {
-                            throw new Exception($this->lang('connect_host'));
+                            $message = $this->getSmtpErrorMessage('connect_host');
+                            throw new Exception($message);
                         }
                         //We must resend EHLO after TLS negotiation
                         $this->smtp->hello($hello);
@@ -2166,6 +2203,11 @@ class PHPMailer
         if ($this->exceptions && null !== $lastexception) {
             throw $lastexception;
         }
+        if ($this->exceptions) {
+            // no exception was thrown, likely $this->smtp->connect() failed
+            $message = $this->getSmtpErrorMessage('connect_host');
+            throw new Exception($message);
+        }
 
         return false;
     }
@@ -2183,14 +2225,15 @@ class PHPMailer
 
     /**
      * Set the language for error messages.
-     * Returns false if it cannot load the language file.
      * The default language is English.
      *
      * @param string $langcode  ISO 639-1 2-character language code (e.g. French is "fr")
-     * @param string $lang_path Path to the language file directory, with trailing separator (slash).D
+     *                          Optionally, the language code can be enhanced with a 4-character
+     *                          script annotation and/or a 2-character country annotation.
+     * @param string $lang_path Path to the language file directory, with trailing separator (slash)
      *                          Do not set this from user input!
      *
-     * @return bool
+     * @return bool Returns true if the requested language was loaded, false otherwise.
      */
     public function setLanguage($langcode = 'en', $lang_path = '')
     {
@@ -2213,44 +2256,77 @@ class PHPMailer
         //Define full set of translatable strings in English
         $PHPMAILER_LANG = [
             'authenticate' => 'SMTP Error: Could not authenticate.',
+            'buggy_php' => 'Your version of PHP is affected by a bug that may result in corrupted messages.' .
+                ' To fix it, switch to sending using SMTP, disable the mail.add_x_header option in' .
+                ' your php.ini, switch to MacOS or Linux, or upgrade your PHP to version 7.0.17+ or 7.1.3+.',
             'connect_host' => 'SMTP Error: Could not connect to SMTP host.',
             'data_not_accepted' => 'SMTP Error: data not accepted.',
             'empty_message' => 'Message body empty',
             'encoding' => 'Unknown encoding: ',
             'execute' => 'Could not execute: ',
+            'extension_missing' => 'Extension missing: ',
             'file_access' => 'Could not access file: ',
             'file_open' => 'File Error: Could not open file: ',
             'from_failed' => 'The following From address failed: ',
             'instantiate' => 'Could not instantiate mail function.',
             'invalid_address' => 'Invalid address: ',
+            'invalid_header' => 'Invalid header name or value',
             'invalid_hostentry' => 'Invalid hostentry: ',
             'invalid_host' => 'Invalid host: ',
             'mailer_not_supported' => ' mailer is not supported.',
             'provide_address' => 'You must provide at least one recipient email address.',
             'recipients_failed' => 'SMTP Error: The following recipients failed: ',
             'signing' => 'Signing Error: ',
+            'smtp_code' => 'SMTP code: ',
+            'smtp_code_ex' => 'Additional SMTP info: ',
             'smtp_connect_failed' => 'SMTP connect() failed.',
+            'smtp_detail' => 'Detail: ',
             'smtp_error' => 'SMTP server error: ',
             'variable_set' => 'Cannot set or reset variable: ',
-            'extension_missing' => 'Extension missing: ',
         ];
         if (empty($lang_path)) {
             //Calculate an absolute path so it can work if CWD is not here
             $lang_path = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'language' . DIRECTORY_SEPARATOR;
         }
+
         //Validate $langcode
-        if (!preg_match('/^[a-z]{2}(?:_[a-zA-Z]{2})?$/', $langcode)) {
+        $foundlang = true;
+        $langcode  = strtolower($langcode);
+        if (
+            !preg_match('/^(?P<lang>[a-z]{2})(?P<script>_[a-z]{4})?(?P<country>_[a-z]{2})?$/', $langcode, $matches)
+            && $langcode !== 'en'
+        ) {
+            $foundlang = false;
             $langcode = 'en';
         }
-        $foundlang = true;
-        $lang_file = $lang_path . 'phpmailer.lang-' . $langcode . '.php';
+
         //There is no English translation file
         if ('en' !== $langcode) {
-            //Make sure language file path is readable
-            if (!static::fileIsAccessible($lang_file)) {
+            $langcodes = [];
+            if (!empty($matches['script']) && !empty($matches['country'])) {
+                $langcodes[] = $matches['lang'] . $matches['script'] . $matches['country'];
+            }
+            if (!empty($matches['country'])) {
+                $langcodes[] = $matches['lang'] . $matches['country'];
+            }
+            if (!empty($matches['script'])) {
+                $langcodes[] = $matches['lang'] . $matches['script'];
+            }
+            $langcodes[] = $matches['lang'];
+
+            //Try and find a readable language file for the requested language.
+            $foundFile = false;
+            foreach ($langcodes as $code) {
+                $lang_file = $lang_path . 'phpmailer.lang-' . $code . '.php';
+                if (static::fileIsAccessible($lang_file)) {
+                    $foundFile = true;
+                    break;
+                }
+            }
+
+            if ($foundFile === false) {
                 $foundlang = false;
             } else {
-                //$foundlang = include $lang_file;
                 $lines = file($lang_file);
                 foreach ($lines as $line) {
                     //Translation file lines look like this:
@@ -2285,6 +2361,10 @@ class PHPMailer
      */
     public function getTranslations()
     {
+        if (empty($this->language)) {
+            $this->setLanguage(); // Set the default language.
+        }
+
         return $this->language;
     }
 
@@ -2553,7 +2633,17 @@ class PHPMailer
 
         //Only allow a custom message ID if it conforms to RFC 5322 section 3.6.4
         //https://tools.ietf.org/html/rfc5322#section-3.6.4
-        if ('' !== $this->MessageID && preg_match('/^<.*@.*>$/', $this->MessageID)) {
+        if (
+            '' !== $this->MessageID &&
+            preg_match(
+                '/^<((([a-z\d!#$%&\'*+\/=?^_`{|}~-]+(\.[a-z\d!#$%&\'*+\/=?^_`{|}~-]+)*)' .
+                '|("(([\x01-\x08\x0B\x0C\x0E-\x1F\x7F]|[\x21\x23-\x5B\x5D-\x7E])' .
+                '|(\\[\x01-\x09\x0B\x0C\x0E-\x7F]))*"))@(([a-z\d!#$%&\'*+\/=?^_`{|}~-]+' .
+                '(\.[a-z\d!#$%&\'*+\/=?^_`{|}~-]+)*)|(\[(([\x01-\x08\x0B\x0C\x0E-\x1F\x7F]' .
+                '|[\x21-\x5A\x5E-\x7E])|(\\[\x01-\x09\x0B\x0C\x0E-\x7F]))*\])))>$/Di',
+                $this->MessageID
+            )
+        ) {
             $this->lastMessageID = $this->MessageID;
         } else {
             $this->lastMessageID = sprintf('<%s@%s>', $this->uniqueid, $this->serverHostname());
@@ -2563,16 +2653,15 @@ class PHPMailer
             $result .= $this->headerLine('X-Priority', $this->Priority);
         }
         if ('' === $this->XMailer) {
+            //Empty string for default X-Mailer header
             $result .= $this->headerLine(
                 'X-Mailer',
                 'PHPMailer ' . self::VERSION . ' (https://github.com/PHPMailer/PHPMailer)'
             );
-        } else {
-            $myXmailer = trim($this->XMailer);
-            if ($myXmailer) {
-                $result .= $this->headerLine('X-Mailer', $myXmailer);
-            }
-        }
+        } elseif (is_string($this->XMailer) && trim($this->XMailer) !== '') {
+            //Some string
+            $result .= $this->headerLine('X-Mailer', trim($this->XMailer));
+        } //Other values result in no X-Mailer header
 
         if ('' !== $this->ConfirmReadingTo) {
             $result .= $this->headerLine('Disposition-Notification-To', '<' . $this->ConfirmReadingTo . '>');
@@ -3627,20 +3716,21 @@ class PHPMailer
      * These differ from 'regular' attachments in that they are intended to be
      * displayed inline with the message, not just attached for download.
      * This is used in HTML messages that embed the images
-     * the HTML refers to using the $cid value.
+     * the HTML refers to using the `$cid` value in `img` tags, for example `<img src="cid:mylogo">`.
      * Never use a user-supplied path to a file!
      *
      * @param string $path        Path to the attachment
      * @param string $cid         Content ID of the attachment; Use this to reference
      *                            the content when using an embedded image in HTML
-     * @param string $name        Overrides the attachment name
-     * @param string $encoding    File encoding (see $Encoding)
-     * @param string $type        File MIME type
-     * @param string $disposition Disposition to use
-     *
-     * @throws Exception
+     * @param string $name        Overrides the attachment filename
+     * @param string $encoding    File encoding (see $Encoding) defaults to `base64`
+     * @param string $type        File MIME type (by default mapped from the `$path` filename's extension)
+     * @param string $disposition Disposition to use: `inline` (default) or `attachment`
+     *                            (unlikely you want this – {@see `addAttachment()`} instead)
      *
      * @return bool True on successfully adding an attachment
+     * @throws Exception
+     *
      */
     public function addEmbeddedImage(
         $path,
@@ -3937,13 +4027,13 @@ class PHPMailer
             if (!empty($lasterror['error'])) {
                 $msg .= $this->lang('smtp_error') . $lasterror['error'];
                 if (!empty($lasterror['detail'])) {
-                    $msg .= ' Detail: ' . $lasterror['detail'];
+                    $msg .= ' ' . $this->lang('smtp_detail') . $lasterror['detail'];
                 }
                 if (!empty($lasterror['smtp_code'])) {
-                    $msg .= ' SMTP code: ' . $lasterror['smtp_code'];
+                    $msg .= ' ' . $this->lang('smtp_code') . $lasterror['smtp_code'];
                 }
                 if (!empty($lasterror['smtp_code_ex'])) {
-                    $msg .= ' Additional SMTP info: ' . $lasterror['smtp_code_ex'];
+                    $msg .= ' ' . $this->lang('smtp_code_ex') . $lasterror['smtp_code_ex'];
                 }
             }
         }
@@ -4004,7 +4094,7 @@ class PHPMailer
             empty($host)
             || !is_string($host)
             || strlen($host) > 256
-            || !preg_match('/^([a-zA-Z\d.-]*|\[[a-fA-F\d:]+])$/', $host)
+            || !preg_match('/^([a-zA-Z\d.-]*|\[[a-fA-F\d:]+\])$/', $host)
         ) {
             return false;
         }
@@ -4018,12 +4108,8 @@ class PHPMailer
             //Is it a valid IPv4 address?
             return filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false;
         }
-        if (filter_var('http://' . $host, FILTER_VALIDATE_URL) !== false) {
-            //Is it a syntactically valid hostname?
-            return true;
-        }
-
-        return false;
+        //Is it a syntactically valid hostname (when embeded in a URL)?
+        return filter_var('http://' . $host, FILTER_VALIDATE_URL) !== false;
     }
 
     /**
@@ -4055,6 +4141,26 @@ class PHPMailer
     }
 
     /**
+     * Build an error message starting with a generic one and adding details if possible.
+     *
+     * @param string $base_key
+     * @return string
+     */
+    private function getSmtpErrorMessage($base_key)
+    {
+        $message = $this->lang($base_key);
+        $error = $this->smtp->getError();
+        if (!empty($error['error'])) {
+            $message .= ' ' . $error['error'];
+            if (!empty($error['detail'])) {
+                $message .= ' ' . $error['detail'];
+            }
+        }
+
+        return $message;
+    }
+
+    /**
      * Check if an error occurred.
      *
      * @return bool True if an error did occur
@@ -4081,11 +4187,11 @@ class PHPMailer
             list($name, $value) = explode(':', $name, 2);
         }
         $name = trim($name);
-        $value = trim($value);
+        $value = (null === $value) ? '' : trim($value);
         //Ensure name is not empty, and that neither name nor value contain line breaks
         if (empty($name) || strpbrk($name . $value, "\r\n") !== false) {
             if ($this->exceptions) {
-                throw new Exception('Invalid header name or value');
+                throw new Exception($this->lang('invalid_header'));
             }
 
             return false;
@@ -4239,7 +4345,8 @@ class PHPMailer
      *
      * @param string        $html     The HTML text to convert
      * @param bool|callable $advanced Any boolean value to use the internal converter,
-     *                                or provide your own callable for custom conversion
+     *                                or provide your own callable for custom conversion.
+     *                                *Never* pass user-supplied data into this parameter
      *
      * @return string
      */
@@ -4472,7 +4579,7 @@ class PHPMailer
     public function set($name, $value = '')
     {
         if (property_exists($this, $name)) {
-            $this->$name = $value;
+            $this->{$name} = $value;
 
             return true;
         }
@@ -4953,9 +5060,9 @@ class PHPMailer
     }
 
     /**
-     * Get the OAuth instance.
+     * Get the OAuthTokenProvider instance.
      *
-     * @return OAuth
+     * @return OAuthTokenProvider
      */
     public function getOAuth()
     {
@@ -4963,9 +5070,9 @@ class PHPMailer
     }
 
     /**
-     * Set an OAuth instance.
+     * Set an OAuthTokenProvider instance.
      */
-    public function setOAuth(OAuth $oauth)
+    public function setOAuth(OAuthTokenProvider $oauth)
     {
         $this->oauth = $oauth;
     }

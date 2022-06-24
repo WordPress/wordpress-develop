@@ -7,6 +7,10 @@
   16.1 - Manage Themes
 ------------------------------------------------------------------------------*/
 
+.themes-php {
+	overflow-y: scroll;
+}
+
 body.js .theme-browser.search-loading {
 	display: none;
 }
@@ -168,6 +172,7 @@ body.js .theme-browser.search-loading {
 	border-radius: 3px;
 	border: none;
 	transition: opacity 0.1s ease-in-out;
+	cursor: pointer;
 }
 
 .theme-browser .theme .more-details:focus {
@@ -703,7 +708,7 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 	font-size: 15px;
 	font-weight: 400;
 	line-height: 1.5;
-	margin: 30px 0 0 0;
+	margin: 30px 0 0;
 }
 
 .theme-overlay .theme-tags {
@@ -711,7 +716,7 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 	color: #646970;
 	font-size: 13px;
 	font-weight: 400;
-	margin: 30px 0 0 0;
+	margin: 30px 0 0;
 	padding-top: 20px;
 }
 
@@ -865,7 +870,7 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 	}
 
 	.theme-browser .theme .theme-actions {
-		padding: 5px 10px 4px 10px;
+		padding: 5px 10px 4px;
 	}
 
 	.theme-overlay.small-screenshot .theme-screenshots {
@@ -938,7 +943,7 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 	}
 
 	.theme-overlay .theme-author {
-		margin: 5px 0 15px 0;
+		margin: 5px 0 15px;
 	}
 
 	.theme-overlay .current-label {
@@ -951,7 +956,7 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 		clear: both;
 		left: 0;
 		right: 0;
-		margin: -5px 0 20px 0;
+		margin: -5px 0 20px;
 		width: 100%;
 		max-width: 280px;
 	}
@@ -1316,7 +1321,7 @@ div#custom-background-image img {
 }
 
 .background-position-control .button-group:last-child > label:last-child .button {
-	border-radius: 0 0 3px 0;
+	border-radius: 0 0 3px;
 }
 
 .background-position-control .button-group:last-child > label:last-child .dashicons {
@@ -1801,7 +1806,7 @@ body.full-overlay-active {
 #customize-container iframe,
 .theme-install-overlay iframe {
 	height: 100%;
-	width: 100%;
+	width: 100vw;
 	z-index: 20;
 	transition: opacity 0.3s;
 }
@@ -1847,6 +1852,22 @@ body.full-overlay-active {
 	margin: 15px 0;
 	width: 258px;
 	border: 1px solid #c3c4c7;
+	position: relative;
+	overflow: hidden;
+}
+
+.install-theme-info .theme-screenshot > img {
+	width: 100%;
+	height: auto;
+	position: absolute;
+	left: 0;
+	top: 0;
+}
+
+.install-theme-info .theme-screenshot:after {
+	content: "";
+	display: block;
+	padding-top: 66.66666666%;
 }
 
 .install-theme-info .theme-details {

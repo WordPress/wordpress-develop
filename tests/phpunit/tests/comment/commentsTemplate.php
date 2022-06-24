@@ -993,7 +993,7 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 
 		add_filter(
 			'comments_template_query_args',
-			function ( $args ) use ( &$offset, $query_args ) {
+			static function ( $args ) use ( &$offset, $query_args ) {
 				$offset = $args['offset'];
 
 				return array_merge( $args, $query_args );
@@ -1003,7 +1003,7 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 		if ( ! empty( $top_level_query_args ) ) {
 			add_filter(
 				'comments_template_top_level_query_args',
-				function ( $args ) use ( $top_level_query_args ) {
+				static function ( $args ) use ( $top_level_query_args ) {
 					return array_merge( $args, $top_level_query_args );
 				}
 			);

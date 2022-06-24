@@ -166,7 +166,7 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
  *                                    as a query string for cache busting purposes. If version is set to false, a version
  *                                    number is automatically added equal to current installed WordPress version.
  *                                    If set to null, no version is added.
- * @param bool             $in_footer Optional. Whether to enqueue the script before </body> instead of in the <head>.
+ * @param bool             $in_footer Optional. Whether to enqueue the script before `</body>` instead of in the `<head>`.
  *                                    Default 'false'.
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
@@ -186,7 +186,7 @@ function wp_register_script( $handle, $src, $deps = array(), $ver = false, $in_f
 /**
  * Localize a script.
  *
- * Works only if the script has already been added.
+ * Works only if the script has already been registered.
  *
  * Accepts an associative array $l10n and creates a JavaScript object:
  *
@@ -224,7 +224,7 @@ function wp_localize_script( $handle, $object_name, $l10n ) {
 /**
  * Sets translated strings for a script.
  *
- * Works only if the script has already been added.
+ * Works only if the script has already been registered.
  *
  * @see WP_Scripts::set_translations()
  * @global WP_Scripts $wp_scripts The WP_Scripts object for printing scripts.
@@ -258,7 +258,7 @@ function wp_set_script_translations( $handle, $domain = 'default', $path = null 
  *
  * @since 2.1.0
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  *
  * @param string $handle Name of the script to be removed.
  */
@@ -340,7 +340,7 @@ function wp_deregister_script( $handle ) {
  *                                    as a query string for cache busting purposes. If version is set to false, a version
  *                                    number is automatically added equal to current installed WordPress version.
  *                                    If set to null, no version is added.
- * @param bool             $in_footer Optional. Whether to enqueue the script before </body> instead of in the <head>.
+ * @param bool             $in_footer Optional. Whether to enqueue the script before `</body>` instead of in the `<head>`.
  *                                    Default 'false'.
  */
 function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $in_footer = false ) {
@@ -402,7 +402,7 @@ function wp_script_is( $handle, $list = 'enqueued' ) {
 /**
  * Add metadata to a script.
  *
- * Works only if the script has already been added.
+ * Works only if the script has already been registered.
  *
  * Possible values for $key and $value:
  * 'conditional' string Comments for IE 6, lte IE 7, etc.

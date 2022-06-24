@@ -248,7 +248,7 @@
 .media-upload-form .media-item.error,
 .media-upload-form .media-item .error {
 	width: auto;
-	margin: 0 0 1px 0;
+	margin: 0 0 1px;
 }
 
 .media-upload-form .media-item .error {
@@ -507,24 +507,6 @@ border color while dragging a file over the uploader drop area */
 	background: none;
 }
 
-.upload-php .mode-grid .media-sidebar .media-uploader-status .upload-dismiss-errors {
-	top: -10px;
-	right: -14px;
-	padding: 10px;
-}
-
-.upload-php .mode-grid .media-sidebar .media-uploader-status .upload-dismiss-errors:before {
-	content: "\f153";
-	display: block;
-	font: normal 16px/1 dashicons;
-	color: #787c82;
-}
-
-.upload-php .mode-grid .media-sidebar .media-uploader-status .upload-dismiss-errors:focus:before,
-.upload-php .mode-grid .media-sidebar .media-uploader-status .upload-dismiss-errors:hover:before {
-	color: #d63638;
-}
-
 .upload-php .mode-grid .media-sidebar .media-uploader-status.errors h2 {
 	display: none;
 }
@@ -759,7 +741,7 @@ border color while dragging a file over the uploader drop area */
 	bottom: 0;
 	right: 0;
 	left: 0;
-	box-shadow: inset 0px 4px 4px -4px rgba(0, 0, 0, 0.1);
+	box-shadow: inset 0 4px 4px -4px rgba(0, 0, 0, 0.1);
 }
 
 .edit-attachment-frame .attachment-media-view {
@@ -810,7 +792,7 @@ border color while dragging a file over the uploader drop area */
 	padding: 12px 16px 0;
 	width: 35%;
 	height: 100%;
-	box-shadow: inset 0px 4px 4px -4px rgba(0, 0, 0, 0.1);
+	box-shadow: inset 0 4px 4px -4px rgba(0, 0, 0, 0.1);
 	border-bottom: 0;
 	border-left: 1px solid #dcdcde;
 	background: #f6f7f7;
@@ -1285,6 +1267,25 @@ audio, video {
 
 	.copy-to-clipboard-container .success {
 		font-size: 14px;
+	}
+
+	/* Restructure image editor on narrow viewports. */
+	.imgedit-crop-wrap img{
+		width: 100%;
+	}
+
+	.media-modal .imgedit-wrap .imgedit-panel-content,
+	.media-modal .imgedit-wrap .imgedit-settings {
+		position: initial !important;
+	}
+
+	.media-modal .imgedit-wrap .imgedit-settings {
+		box-sizing: border-box;
+		width: 100% !important;
+	}
+
+	.imgedit-settings .imgedit-scale-button-wrapper {
+		display: inline-block;
 	}
 }
 

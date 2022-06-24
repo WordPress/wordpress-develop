@@ -110,11 +110,11 @@ function get_user_locale( $user_id = 0 ) {
 }
 
 /**
- * Determine the current locale desired for the request.
+ * Determines the current locale desired for the request.
  *
  * @since 5.0.0
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  *
  * @return string The determined locale.
  */
@@ -144,8 +144,16 @@ function determine_locale() {
 		$determined_locale = get_user_locale();
 	}
 
-	if ( ! empty( $_GET['wp_lang'] ) && ! empty( $GLOBALS['pagenow'] ) && 'wp-login.php' === $GLOBALS['pagenow'] ) {
-		$determined_locale = sanitize_text_field( $_GET['wp_lang'] );
+	$wp_lang = '';
+
+	if ( ! empty( $_GET['wp_lang'] ) ) {
+		$wp_lang = sanitize_text_field( $_GET['wp_lang'] );
+	} elseif ( ! empty( $_COOKIE['wp_lang'] ) ) {
+		$wp_lang = sanitize_text_field( $_COOKIE['wp_lang'] );
+	}
+
+	if ( ! empty( $wp_lang ) && ! empty( $GLOBALS['pagenow'] ) && 'wp-login.php' === $GLOBALS['pagenow'] ) {
+		$determined_locale = $wp_lang;
 	}
 
 	/**
@@ -159,7 +167,7 @@ function determine_locale() {
 }
 
 /**
- * Retrieve the translation of $text.
+ * Retrieves the translation of $text.
  *
  * If there is no translation, or the text domain isn't loaded, the original text is returned.
  *
@@ -191,7 +199,7 @@ function translate( $text, $domain = 'default' ) {
 	/**
 	 * Filters text with its translation for a domain.
 	 *
-	 * The dynamic portion of the hook, `$domain`, refers to the text domain.
+	 * The dynamic portion of the hook name, `$domain`, refers to the text domain.
 	 *
 	 * @since 5.5.0
 	 *
@@ -205,7 +213,7 @@ function translate( $text, $domain = 'default' ) {
 }
 
 /**
- * Remove last item on a pipe-delimited string.
+ * Removes last item on a pipe-delimited string.
  *
  * Meant for removing the last item in a string, such as 'Role name|User role'. The original
  * string will be returned if no pipe '|' characters are found in the string.
@@ -225,7 +233,7 @@ function before_last_bar( $string ) {
 }
 
 /**
- * Retrieve the translation of $text in the context defined in $context.
+ * Retrieves the translation of $text in the context defined in $context.
  *
  * If there is no translation, or the text domain isn't loaded, the original text is returned.
  *
@@ -259,7 +267,7 @@ function translate_with_gettext_context( $text, $context, $domain = 'default' ) 
 	/**
 	 * Filters text with its translation based on context information for a domain.
 	 *
-	 * The dynamic portion of the hook, `$domain`, refers to the text domain.
+	 * The dynamic portion of the hook name, `$domain`, refers to the text domain.
 	 *
 	 * @since 5.5.0
 	 *
@@ -274,7 +282,7 @@ function translate_with_gettext_context( $text, $context, $domain = 'default' ) 
 }
 
 /**
- * Retrieve the translation of $text.
+ * Retrieves the translation of $text.
  *
  * If there is no translation, or the text domain isn't loaded, the original text is returned.
  *
@@ -290,7 +298,7 @@ function __( $text, $domain = 'default' ) {
 }
 
 /**
- * Retrieve the translation of $text and escapes it for safe use in an attribute.
+ * Retrieves the translation of $text and escapes it for safe use in an attribute.
  *
  * If there is no translation, or the text domain isn't loaded, the original text is returned.
  *
@@ -306,7 +314,7 @@ function esc_attr__( $text, $domain = 'default' ) {
 }
 
 /**
- * Retrieve the translation of $text and escapes it for safe use in HTML output.
+ * Retrieves the translation of $text and escapes it for safe use in HTML output.
  *
  * If there is no translation, or the text domain isn't loaded, the original text
  * is escaped and returned.
@@ -323,7 +331,7 @@ function esc_html__( $text, $domain = 'default' ) {
 }
 
 /**
- * Display translated text.
+ * Displays translated text.
  *
  * @since 1.2.0
  *
@@ -336,7 +344,7 @@ function _e( $text, $domain = 'default' ) {
 }
 
 /**
- * Display translated text that has been escaped for safe use in an attribute.
+ * Displays translated text that has been escaped for safe use in an attribute.
  *
  * Encodes `< > & " '` (less than, greater than, ampersand, double quote, single quote).
  * Will never double encode entities.
@@ -354,7 +362,7 @@ function esc_attr_e( $text, $domain = 'default' ) {
 }
 
 /**
- * Display translated text that has been escaped for safe use in HTML output.
+ * Displays translated text that has been escaped for safe use in HTML output.
  *
  * If there is no translation, or the text domain isn't loaded, the original text
  * is escaped and displayed.
@@ -372,7 +380,7 @@ function esc_html_e( $text, $domain = 'default' ) {
 }
 
 /**
- * Retrieve translated string with gettext context.
+ * Retrieves translated string with gettext context.
  *
  * Quite a few times, there will be collisions with similar translatable text
  * found in more than two places, but with different translated context.
@@ -393,7 +401,7 @@ function _x( $text, $context, $domain = 'default' ) {
 }
 
 /**
- * Display translated string with gettext context.
+ * Displays translated string with gettext context.
  *
  * @since 3.0.0
  *
@@ -407,7 +415,7 @@ function _ex( $text, $context, $domain = 'default' ) {
 }
 
 /**
- * Translate string with gettext context, and escapes it for safe use in an attribute.
+ * Translates string with gettext context, and escapes it for safe use in an attribute.
  *
  * If there is no translation, or the text domain isn't loaded, the original text
  * is escaped and returned.
@@ -425,7 +433,7 @@ function esc_attr_x( $text, $context, $domain = 'default' ) {
 }
 
 /**
- * Translate string with gettext context, and escapes it for safe use in HTML output.
+ * Translates string with gettext context, and escapes it for safe use in HTML output.
  *
  * If there is no translation, or the text domain isn't loaded, the original text
  * is escaped and returned.
@@ -482,7 +490,7 @@ function _n( $single, $plural, $number, $domain = 'default' ) {
 	/**
 	 * Filters the singular or plural form of a string for a domain.
 	 *
-	 * The dynamic portion of the hook, `$domain`, refers to the text domain.
+	 * The dynamic portion of the hook name, `$domain`, refers to the text domain.
 	 *
 	 * @since 5.5.0
 	 *
@@ -542,7 +550,7 @@ function _nx( $single, $plural, $number, $context, $domain = 'default' ) {
 	/**
 	 * Filters the singular or plural form of a string with gettext context for a domain.
 	 *
-	 * The dynamic portion of the hook, `$domain`, refers to the text domain.
+	 * The dynamic portion of the hook name, `$domain`, refers to the text domain.
 	 *
 	 * @since 5.5.0
 	 *
@@ -579,12 +587,12 @@ function _nx( $single, $plural, $number, $context, $domain = 'default' ) {
  * @return array {
  *     Array of translation information for the strings.
  *
- *     @type string $0        Singular form to be localized. No longer used.
- *     @type string $1        Plural form to be localized. No longer used.
- *     @type string $singular Singular form to be localized.
- *     @type string $plural   Plural form to be localized.
- *     @type null   $context  Context information for the translators.
- *     @type string $domain   Text domain.
+ *     @type string      $0        Singular form to be localized. No longer used.
+ *     @type string      $1        Plural form to be localized. No longer used.
+ *     @type string      $singular Singular form to be localized.
+ *     @type string      $plural   Plural form to be localized.
+ *     @type null        $context  Context information for the translators.
+ *     @type string|null $domain   Text domain.
  * }
  */
 function _n_noop( $singular, $plural, $domain = null ) {
@@ -624,13 +632,13 @@ function _n_noop( $singular, $plural, $domain = null ) {
  * @return array {
  *     Array of translation information for the strings.
  *
- *     @type string $0        Singular form to be localized. No longer used.
- *     @type string $1        Plural form to be localized. No longer used.
- *     @type string $2        Context information for the translators. No longer used.
- *     @type string $singular Singular form to be localized.
- *     @type string $plural   Plural form to be localized.
- *     @type string $context  Context information for the translators.
- *     @type string $domain   Text domain.
+ *     @type string      $0        Singular form to be localized. No longer used.
+ *     @type string      $1        Plural form to be localized. No longer used.
+ *     @type string      $2        Context information for the translators. No longer used.
+ *     @type string      $singular Singular form to be localized.
+ *     @type string      $plural   Plural form to be localized.
+ *     @type string      $context  Context information for the translators.
+ *     @type string|null $domain   Text domain.
  * }
  */
 function _nx_noop( $singular, $plural, $context, $domain = null ) {
@@ -646,7 +654,7 @@ function _nx_noop( $singular, $plural, $context, $domain = null ) {
 }
 
 /**
- * Translates and retrieves the singular or plural form of a string that's been registered
+ * Translates and returns the singular or plural form of a string that's been registered
  * with _n_noop() or _nx_noop().
  *
  * Used when you want to use a translatable plural string once the number is known.
@@ -659,11 +667,18 @@ function _nx_noop( $singular, $plural, $context, $domain = null ) {
  *
  * @since 3.1.0
  *
- * @param array  $nooped_plural Array with singular, plural, and context keys, usually the result of _n_noop() or _nx_noop().
+ * @param array  $nooped_plural {
+ *     Array that is usually a return value from _n_noop() or _nx_noop().
+ *
+ *     @type string      $singular Singular form to be localized.
+ *     @type string      $plural   Plural form to be localized.
+ *     @type string|null $context  Context information for the translators.
+ *     @type string|null $domain   Text domain.
+ * }
  * @param int    $count         Number of objects.
  * @param string $domain        Optional. Text domain. Unique identifier for retrieving translated strings. If $nooped_plural contains
  *                              a text domain passed to _n_noop() or _nx_noop(), it will override this value. Default 'default'.
- * @return string Either $single or $plural translated text.
+ * @return string Either $singular or $plural translated text.
  */
 function translate_nooped_plural( $nooped_plural, $count, $domain = 'default' ) {
 	if ( $nooped_plural['domain'] ) {
@@ -678,7 +693,7 @@ function translate_nooped_plural( $nooped_plural, $count, $domain = 'default' ) 
 }
 
 /**
- * Load a .mo file into the text domain $domain.
+ * Loads a .mo file into the text domain $domain.
  *
  * If the text domain already exists, the translations will be merged. If both
  * sets have the same string, the translation from the original value will be taken.
@@ -758,7 +773,7 @@ function load_textdomain( $domain, $mofile ) {
 }
 
 /**
- * Unload translations for a text domain.
+ * Unloads translations for a text domain.
  *
  * @since 3.0.0
  *
@@ -810,7 +825,7 @@ function unload_textdomain( $domain ) {
 }
 
 /**
- * Load default translated strings based on locale.
+ * Loads default translated strings based on locale.
  *
  * Loads the .mo file in WP_LANG_DIR constant path from WordPress root.
  * The translated (.mo) file is named based on the locale.
@@ -896,7 +911,7 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
 }
 
 /**
- * Load the translated strings for a plugin residing in the mu-plugins directory.
+ * Loads the translated strings for a plugin residing in the mu-plugins directory.
  *
  * @since 3.0.0
  * @since 4.6.0 The function now tries to load the .mo file from the languages directory first.
@@ -923,7 +938,7 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
 }
 
 /**
- * Load the theme's translated strings.
+ * Loads the theme's translated strings.
  *
  * If the current locale exists as a .mo file in the theme's root directory, it
  * will be included in the translated strings by the $domain.
@@ -964,7 +979,7 @@ function load_theme_textdomain( $domain, $path = false ) {
 }
 
 /**
- * Load the child themes translated strings.
+ * Loads the child themes translated strings.
  *
  * If the current locale exists as a .mo file in the child themes
  * root directory, it will be included in the translated strings by the $domain.
@@ -1291,7 +1306,7 @@ function _get_path_to_translation_from_lang_dir( $domain ) {
 }
 
 /**
- * Return the Translations instance for a text domain.
+ * Returns the Translations instance for a text domain.
  *
  * If there isn't one, returns empty Translations instance.
  *
@@ -1317,7 +1332,7 @@ function get_translations_for_domain( $domain ) {
 }
 
 /**
- * Whether there are translations for the text domain.
+ * Determines whether there are translations for the text domain.
  *
  * @since 3.0.0
  *
@@ -1356,7 +1371,7 @@ function translate_user_role( $name, $domain = 'default' ) {
 }
 
 /**
- * Get all available languages based on the presence of *.mo files in a given directory.
+ * Gets all available languages based on the presence of *.mo files in a given directory.
  *
  * The default directory is WP_LANG_DIR.
  *
@@ -1393,7 +1408,7 @@ function get_available_languages( $dir = null ) {
 }
 
 /**
- * Get installed translations.
+ * Gets installed translations.
  *
  * Looks in the wp-content/languages directory for translations of
  * plugins or themes.
@@ -1449,7 +1464,7 @@ function wp_get_installed_translations( $type ) {
 }
 
 /**
- * Extract headers from a PO file.
+ * Extracts headers from a PO file.
  *
  * @since 3.7.0
  *
@@ -1474,12 +1489,13 @@ function wp_get_pomo_file_data( $po_file ) {
 }
 
 /**
- * Language selector.
+ * Displays or returns a Language selector.
  *
  * @since 4.0.0
  * @since 4.3.0 Introduced the `echo` argument.
  * @since 4.7.0 Introduced the `show_option_site_default` argument.
  * @since 5.1.0 Introduced the `show_option_en_us` argument.
+ * @since 5.9.0 Introduced the `explicit_option_en_us` argument.
  *
  * @see get_available_languages()
  * @see wp_get_available_translations()
@@ -1499,6 +1515,8 @@ function wp_get_pomo_file_data( $po_file ) {
  *     @type bool     $show_available_translations  Whether to show available translations. Default true.
  *     @type bool     $show_option_site_default     Whether to show an option to fall back to the site's locale. Default false.
  *     @type bool     $show_option_en_us            Whether to show an option for English (United States). Default true.
+ *     @type bool     $explicit_option_en_us        Whether the English (United States) option uses an explicit value of en_US
+ *                                                  instead of an empty value. Default false.
  * }
  * @return string HTML dropdown list of languages.
  */
@@ -1516,6 +1534,7 @@ function wp_dropdown_languages( $args = array() ) {
 			'show_available_translations' => true,
 			'show_option_site_default'    => false,
 			'show_option_en_us'           => true,
+			'explicit_option_en_us'       => false,
 		)
 	);
 
@@ -1525,7 +1544,7 @@ function wp_dropdown_languages( $args = array() ) {
 	}
 
 	// English (United States) uses an empty string for the value attribute.
-	if ( 'en_US' === $parsed_args['selected'] ) {
+	if ( 'en_US' === $parsed_args['selected'] && ! $parsed_args['explicit_option_en_us'] ) {
 		$parsed_args['selected'] = '';
 	}
 
@@ -1580,8 +1599,10 @@ function wp_dropdown_languages( $args = array() ) {
 	}
 
 	if ( $parsed_args['show_option_en_us'] ) {
+		$value       = ( $parsed_args['explicit_option_en_us'] ) ? 'en_US' : '';
 		$structure[] = sprintf(
-			'<option value="" lang="en" data-installed="1"%s>English (United States)</option>',
+			'<option value="%s" lang="en" data-installed="1"%s>English (United States)</option>',
+			esc_attr( $value ),
 			selected( '', $parsed_args['selected'], false )
 		);
 	}
@@ -1698,7 +1719,7 @@ function restore_current_locale() {
 }
 
 /**
- * Whether switch_to_locale() is in effect.
+ * Determines whether switch_to_locale() is in effect.
  *
  * @since 4.7.0
  *
@@ -1755,4 +1776,19 @@ function translate_settings_using_i18n_schema( $i18n_schema, $settings, $textdom
 		return $translated_settings;
 	}
 	return $settings;
+}
+
+/**
+ * Retrieves the list item separator based on the locale.
+ *
+ * @since 6.0.0
+ *
+ * @global WP_Locale $wp_locale WordPress date and time locale object.
+ *
+ * @return string Locale-specific list item separator.
+ */
+function wp_get_list_item_separator() {
+	global $wp_locale;
+
+	return $wp_locale->get_list_item_separator();
 }

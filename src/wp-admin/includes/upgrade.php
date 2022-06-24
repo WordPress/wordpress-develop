@@ -31,7 +31,7 @@ if ( ! function_exists( 'wp_install' ) ) :
 	 * @param string $blog_title    Site title.
 	 * @param string $user_name     User's username.
 	 * @param string $user_email    User's email.
-	 * @param bool   $public        Whether site is public.
+	 * @param bool   $is_public     Whether the site is public.
 	 * @param string $deprecated    Optional. Not used.
 	 * @param string $user_password Optional. User's chosen password. Default empty (random password).
 	 * @param string $language      Optional. Language chosen. Default empty.
@@ -44,7 +44,7 @@ if ( ! function_exists( 'wp_install' ) ) :
 	 *     @type string $password_message The explanatory message regarding the password.
 	 * }
 	 */
-	function wp_install( $blog_title, $user_name, $user_email, $public, $deprecated = '', $user_password = '', $language = '' ) {
+	function wp_install( $blog_title, $user_name, $user_email, $is_public, $deprecated = '', $user_password = '', $language = '' ) {
 		if ( ! empty( $deprecated ) ) {
 			_deprecated_argument( __FUNCTION__, '2.6.0' );
 		}
@@ -57,7 +57,7 @@ if ( ! function_exists( 'wp_install' ) ) :
 
 		update_option( 'blogname', $blog_title );
 		update_option( 'admin_email', $user_email );
-		update_option( 'blog_public', $public );
+		update_option( 'blog_public', $is_public );
 
 		// Freshness of site - in the future, this could get more specific about actions taken, perhaps.
 		update_option( 'fresh_site', 1 );
@@ -71,7 +71,7 @@ if ( ! function_exists( 'wp_install' ) ) :
 		update_option( 'siteurl', $guessurl );
 
 		// If not a public site, don't ping.
-		if ( ! $public ) {
+		if ( ! $is_public ) {
 			update_option( 'default_pingback_flag', 0 );
 		}
 
@@ -249,6 +249,11 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 				'post_content_filtered' => '',
 			)
 		);
+
+		if ( is_multisite() ) {
+			update_posts_count();
+		}
+
 		$wpdb->insert(
 			$wpdb->term_relationships,
 			array(
@@ -267,11 +272,15 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 
 		$first_comment_author = ! empty( $first_comment_author ) ? $first_comment_author : __( 'A WordPress Commenter' );
 		$first_comment_email  = ! empty( $first_comment_email ) ? $first_comment_email : 'wapuu@wordpress.example';
-		$first_comment_url    = ! empty( $first_comment_url ) ? $first_comment_url : 'https://wordpress.org/';
-		$first_comment        = ! empty( $first_comment ) ? $first_comment : __(
-			'Hi, this is a comment.
+		$first_comment_url    = ! empty( $first_comment_url ) ? $first_comment_url : esc_url( __( 'https://wordpress.org/' ) );
+		$first_comment        = ! empty( $first_comment ) ? $first_comment : sprintf(
+			/* translators: %s: Gravatar URL. */
+			__(
+				'Hi, this is a comment.
 To get started with moderating, editing, and deleting comments, please visit the Comments screen in the dashboard.
-Commenter avatars come from <a href="https://gravatar.com">Gravatar</a>.'
+Commenter avatars come from <a href="%s">Gravatar</a>.'
+			),
+			esc_url( __( 'https://en.gravatar.com/' ) )
 		);
 		$wpdb->insert(
 			$wpdb->comments,
@@ -830,6 +839,14 @@ function upgrade_all() {
 
 	if ( $wp_current_db_version < 49752 ) {
 		upgrade_560();
+	}
+
+	if ( $wp_current_db_version < 51917 ) {
+		upgrade_590();
+	}
+
+	if ( $wp_current_db_version < 53011 ) {
+		upgrade_600();
 	}
 
 	maybe_disable_link_manager();
@@ -1612,8 +1629,8 @@ function upgrade_280() {
 		$start = 0;
 		while ( $rows = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options ORDER BY option_id LIMIT $start, 20" ) ) {
 			foreach ( $rows as $row ) {
-				$value = $row->option_value;
-				if ( ! @unserialize( $value ) ) {
+				$value = maybe_unserialize( $row->option_value );
+				if ( $value === $row->option_value ) {
 					$value = stripslashes( $value );
 				}
 				if ( $value !== $row->option_value ) {
@@ -1874,7 +1891,6 @@ function upgrade_370() {
  *
  * @ignore
  * @since 3.7.2
- * @since 3.8.0
  *
  * @global int $wp_current_db_version The old (current) database version.
  */
@@ -2245,6 +2261,44 @@ function upgrade_560() {
 			$network_id = get_main_network_id();
 			update_network_option( $network_id, WP_Application_Passwords::OPTION_KEY_IN_USE, 1 );
 		}
+	}
+}
+
+/**
+ * Executes changes made in WordPress 5.9.0.
+ *
+ * @ignore
+ * @since 5.9.0
+ *
+ * @global int $wp_current_db_version The old (current) database version.
+ */
+function upgrade_590() {
+	global $wp_current_db_version;
+
+	if ( $wp_current_db_version < 51917 ) {
+		$crons = _get_cron_array();
+
+		if ( $crons && is_array( $crons ) ) {
+			// Remove errant `false` values, see #53950, #54906.
+			$crons = array_filter( $crons );
+			_set_cron_array( $crons );
+		}
+	}
+}
+
+/**
+ * Executes changes made in WordPress 6.0.0.
+ *
+ * @ignore
+ * @since 6.0.0
+ *
+ * @global int $wp_current_db_version The old (current) database version.
+ */
+function upgrade_600() {
+	global $wp_current_db_version;
+
+	if ( $wp_current_db_version < 53011 ) {
+		wp_update_user_counts();
 	}
 }
 

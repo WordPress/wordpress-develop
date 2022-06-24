@@ -19,7 +19,7 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_serialize_identity_from_parsed
 	 */
-	function test_serialize_identity_from_parsed( $original ) {
+	public function test_serialize_identity_from_parsed( $original ) {
 		$blocks = parse_blocks( $original );
 
 		$actual   = serialize_blocks( $blocks );
@@ -28,7 +28,7 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	function data_serialize_identity_from_parsed() {
+	public function data_serialize_identity_from_parsed() {
 		return array(
 			// Void block.
 			array( '<!-- wp:void /-->' ),
@@ -47,10 +47,13 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 
 			// Block with attribute values that may conflict with HTML comment.
 			array( '<!-- wp:attributes {"key":"\\u002d\\u002d\\u003c\\u003e\\u0026\\u0022"} /-->' ),
+
+			// Block with attribute values that should not be escaped.
+			array( '<!-- wp:attributes {"key":"€1.00 / 3 for €2.00"} /-->' ),
 		);
 	}
 
-	function test_serialized_block_name() {
+	public function test_serialized_block_name() {
 		$this->assertNull( strip_core_block_namespace( null ) );
 		$this->assertSame( 'example', strip_core_block_namespace( 'example' ) );
 		$this->assertSame( 'example', strip_core_block_namespace( 'core/example' ) );

@@ -3,6 +3,8 @@
 /**
  * @group formatting
  * @group emoji
+ *
+ * @covers ::convert_smilies
  */
 class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 
@@ -48,7 +50,7 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	 * Basic Validation Test to confirm that smilies are converted to image
 	 * when use_smilies = 1 and not when use_smilies = 0
 	 */
-	function test_convert_standard_smilies( $in_txt, $converted_txt ) {
+	public function test_convert_standard_smilies( $in_txt, $converted_txt ) {
 		// Standard smilies, use_smilies: ON.
 		update_option( 'use_smilies', 1 );
 
@@ -91,7 +93,7 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	 *
 	 * Validate Custom Smilies are converted to images when use_smilies = 1
 	 */
-	function test_convert_custom_smilies( $in_txt, $converted_txt ) {
+	public function test_convert_custom_smilies( $in_txt, $converted_txt ) {
 		global $wpsmiliestrans;
 
 		// Custom smilies, use_smilies: ON.
@@ -299,7 +301,7 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	 * @ticket 22692
 	 * @dataProvider get_spaces_around_smilies
 	 */
-	function test_spaces_around_smilies( $in_txt, $converted_txt ) {
+	public function test_spaces_around_smilies( $in_txt, $converted_txt ) {
 		// Standard smilies, use_smilies: ON.
 		update_option( 'use_smilies', 1 );
 

@@ -41,14 +41,14 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
-	function filter_render_block( $content, $parsed_block ) {
+	public function filter_render_block( $content, $parsed_block ) {
 		return 'Original: "' . $content . '", from block "' . $parsed_block['blockName'] . '"';
 	}
 
 	/**
 	 * @ticket 49927
 	 */
-	function test_constructor_assigns_properties_from_parsed_block() {
+	public function test_constructor_assigns_properties_from_parsed_block() {
 		$this->registry->register( 'core/example', array() );
 
 		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
@@ -66,7 +66,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	/**
 	 * @ticket 49927
 	 */
-	function test_constructor_assigns_block_type_from_registry() {
+	public function test_constructor_assigns_block_type_from_registry() {
 		$block_type_settings = array(
 			'attributes' => array(
 				'defaulted' => array(
@@ -82,8 +82,14 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$block        = new WP_Block( $parsed_block, $context, $this->registry );
 
 		$this->assertInstanceOf( WP_Block_Type::class, $block->block_type );
-		$this->assertSame(
-			$block_type_settings['attributes'],
+		$this->assertSameSetsWithIndex(
+			array(
+				'defaulted' => array(
+					'type'    => 'number',
+					'default' => 10,
+				),
+				'lock'      => array( 'type' => 'object' ),
+			),
 			$block->block_type->attributes
 		);
 	}
@@ -91,7 +97,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	/**
 	 * @ticket 49927
 	 */
-	function test_lazily_assigns_attributes_with_defaults() {
+	public function test_lazily_assigns_attributes_with_defaults() {
 		$this->registry->register(
 			'core/example',
 			array(
@@ -125,7 +131,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	/**
 	 * @ticket 49927
 	 */
-	function test_lazily_assigns_attributes_with_only_defaults() {
+	public function test_lazily_assigns_attributes_with_only_defaults() {
 		$this->registry->register(
 			'core/example',
 			array(
@@ -153,7 +159,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	/**
 	 * @ticket 49927
 	 */
-	function test_constructor_assigns_context_from_block_type() {
+	public function test_constructor_assigns_context_from_block_type() {
 		$this->registry->register(
 			'core/example',
 			array(
@@ -174,7 +180,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	/**
 	 * @ticket 49927
 	 */
-	function test_constructor_maps_inner_blocks() {
+	public function test_constructor_maps_inner_blocks() {
 		$this->registry->register( 'core/example', array() );
 
 		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
@@ -190,7 +196,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	/**
 	 * @ticket 49927
 	 */
-	function test_constructor_prepares_context_for_inner_blocks() {
+	public function test_constructor_prepares_context_for_inner_blocks() {
 		$this->registry->register(
 			'core/outer',
 			array(
@@ -226,7 +232,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	/**
 	 * @ticket 49927
 	 */
-	function test_constructor_assigns_merged_context() {
+	public function test_constructor_assigns_merged_context() {
 		$this->registry->register(
 			'core/example',
 			array(
@@ -270,12 +276,12 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	/**
 	 * @ticket 49927
 	 */
-	function test_render_static_block_type_returns_own_content() {
+	public function test_render_static_block_type_returns_own_content() {
 		$this->registry->register( 'core/static', array() );
 		$this->registry->register(
 			'core/dynamic',
 			array(
-				'render_callback' => function() {
+				'render_callback' => static function() {
 					return 'b';
 				},
 			)
@@ -292,11 +298,11 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	/**
 	 * @ticket 49927
 	 */
-	function test_render_passes_block_for_render_callback() {
+	public function test_render_passes_block_for_render_callback() {
 		$this->registry->register(
 			'core/greeting',
 			array(
-				'render_callback' => function( $attributes, $content, $block ) {
+				'render_callback' => static function( $attributes, $content, $block ) {
 					return sprintf( 'Hello from %s', $block->name );
 				},
 			)
@@ -313,7 +319,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	/**
 	 * @ticket 49927
 	 */
-	function test_render_applies_render_block_filter() {
+	public function test_render_applies_render_block_filter() {
 		$this->registry->register( 'core/example', array() );
 
 		add_filter( 'render_block', array( $this, 'filter_render_block' ), 10, 2 );
@@ -333,7 +339,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	/**
 	 * @ticket 46187
 	 */
-	function test_render_applies_dynamic_render_block_filter() {
+	public function test_render_applies_dynamic_render_block_filter() {
 		$this->registry->register( 'core/example', array() );
 
 		add_filter( 'render_block_core/example', array( $this, 'filter_render_block' ), 10, 2 );
@@ -353,7 +359,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	/**
 	 * @ticket 49927
 	 */
-	function test_passes_attributes_to_render_callback() {
+	public function test_passes_attributes_to_render_callback() {
 		$this->registry->register(
 			'core/greeting',
 			array(
@@ -366,7 +372,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 						'default' => '!',
 					),
 				),
-				'render_callback' => function( $block_attributes ) {
+				'render_callback' => static function( $block_attributes ) {
 					return sprintf(
 						'Hello %s%s',
 						$block_attributes['toWhom'],
@@ -387,11 +393,11 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	/**
 	 * @ticket 49927
 	 */
-	function test_passes_content_to_render_callback() {
+	public function test_passes_content_to_render_callback() {
 		$this->registry->register(
 			'core/outer',
 			array(
-				'render_callback' => function( $block_attributes, $content ) {
+				'render_callback' => static function( $block_attributes, $content ) {
 					return $content;
 				},
 			)
@@ -399,7 +405,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$this->registry->register(
 			'core/inner',
 			array(
-				'render_callback' => function() {
+				'render_callback' => static function() {
 					return 'b';
 				},
 			)
@@ -443,8 +449,18 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 				'order'        => 'DESC',
 				'orderby'      => 'title',
 				'post__not_in' => array( 1, 2 ),
-				'category__in' => array( 56 ),
-				'tag__in'      => array( 3, 11, 10 ),
+				'tax_query'    => array(
+					array(
+						'taxonomy'         => 'category',
+						'terms'            => array( 56 ),
+						'include_children' => false,
+					),
+					array(
+						'taxonomy'         => 'post_tag',
+						'terms'            => array( 3, 11, 10 ),
+						'include_children' => false,
+					),
+				),
 			)
 		);
 	}
@@ -627,5 +643,45 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$this->assertTrue( $align_support );
 		$gradient_support = block_has_support( $block_type, array( 'color', 'gradient' ), true );
 		$this->assertFalse( $gradient_support );
+	}
+
+	/**
+	 * @ticket 51612
+	 */
+	public function test_block_filters_for_inner_blocks() {
+		$pre_render_callback           = new MockAction();
+		$render_block_data_callback    = new MockAction();
+		$render_block_context_callback = new MockAction();
+
+		$this->registry->register(
+			'core/outer',
+			array(
+				'render_callback' => function( $block_attributes, $content ) {
+					return $content;
+				},
+			)
+		);
+
+		$this->registry->register(
+			'core/inner',
+			array(
+				'render_callback' => function() {
+					return 'b';
+				},
+			)
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:outer -->a<!-- wp:inner /-->c<!-- /wp:outer -->' );
+		$parsed_block  = $parsed_blocks[0];
+
+		add_filter( 'pre_render_block', array( $pre_render_callback, 'filter' ) );
+		add_filter( 'render_block_data', array( $render_block_data_callback, 'filter' ) );
+		add_filter( 'render_block_context', array( $render_block_context_callback, 'filter' ) );
+
+		render_block( $parsed_block );
+
+		$this->assertSame( 2, $pre_render_callback->get_call_count() );
+		$this->assertSame( 2, $render_block_data_callback->get_call_count() );
+		$this->assertSame( 2, $render_block_context_callback->get_call_count() );
 	}
 }
