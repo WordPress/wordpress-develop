@@ -1342,10 +1342,11 @@ class wpdb {
 	 * @param string $string String to escape.
 	 */
 	public function escape_by_ref( &$string ) {
-		if ( ! is_float( $string ) ) {
+		if ( ! is_float( $string ) && ! $string instanceof WP_DB_Partial_Query ) {
 			$string = $this->_real_escape( $string );
 		}
 	}
+
 
 	/**
 	 * Prepares a SQL query for safe execution.
@@ -1419,6 +1420,10 @@ class wpdb {
 		}
 
 		foreach ( $args as $arg ) {
+			if ( $arg instanceof WP_DB_Partial_Query ) {
+				continue;
+			}
+
 			if ( ! is_scalar( $arg ) && ! is_null( $arg ) ) {
 				wp_load_translations_early();
 				_doing_it_wrong(
@@ -1454,6 +1459,8 @@ class wpdb {
 		$query = str_replace( "'%s'", '%s', $query ); // Strip any existing single quotes.
 		$query = str_replace( '"%s"', '%s', $query ); // Strip any existing double quotes.
 		$query = preg_replace( '/(?<!%)%s/', "'%s'", $query ); // Quote the strings, avoiding escaped strings like %%s.
+
+		$query = preg_replace( '/(?<!%)%q/', '%s', $query ); // Change %q to %s so that it can be interpolated by vprintf later on. We don't do this earlier to prevent quoting.
 
 		$query = preg_replace( "/(?<!%)(%($allowed_format)?f)/", '%\\2F', $query ); // Force floats to be locale-unaware.
 
@@ -1510,6 +1517,20 @@ class wpdb {
 		$query = vsprintf( $query, $args );
 
 		return $this->add_placeholder_escape( $query );
+	}
+
+	/**
+	 * Similar to $this->prepare(), but returns a WP_DB_Partial_Query object instead of a string.
+	 * This method can be used as a query builder to join prepared query from various places.
+	 *
+	 * @param string $query     Same as $this->prepare()'s $query argument.
+	 * @param array|mixed $args Same as $this->prepare()'s $args argument.
+	 *
+	 * @return WP_DB_Partial_Query The prepared partial query.
+	 */
+	public function prepare_partial( $query, ...$args ) {
+		require_once trailingslashit( __DIR__ ) . 'class-wp-db-partial-query.php';
+		return new WP_DB_Partial_Query( $query, ...$args );
 	}
 
 	/**
