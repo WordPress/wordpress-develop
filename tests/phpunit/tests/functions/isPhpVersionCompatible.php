@@ -4,6 +4,7 @@
  * Tests the is_php_version_compatible() function.
  *
  * @group functions.php
+ *
  * @covers ::is_php_version_compatible
  */
 class Tests_Functions_IsPhpVersionCompatible extends WP_UnitTestCase {

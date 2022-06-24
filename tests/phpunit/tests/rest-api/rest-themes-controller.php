@@ -1287,6 +1287,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @dataProvider data_get_item_non_subdir_theme
 	 * @ticket 54596
+	 *
 	 * @covers WP_REST_Themes_Controller::get_item
 	 *
 	 * @param string $theme_dir     Theme directory to test.
@@ -1327,6 +1328,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 * @dataProvider data_get_item_subdirectory_theme
 	 * @ticket 54349
 	 * @ticket 54596
+	 *
 	 * @covers WP_REST_Themes_Controller::get_item
 	 *
 	 * @param string $theme_dir     Theme directory to test.

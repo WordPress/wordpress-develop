@@ -4,6 +4,7 @@
  * Test wp_list_sort().
  *
  * @group functions.php
+ *
  * @covers ::wp_list_sort
  */
 class Tests_Functions_wpListSort extends WP_UnitTestCase {

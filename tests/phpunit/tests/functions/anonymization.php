@@ -14,6 +14,7 @@
  *
  * @group functions.php
  * @group privacy
+ *
  * @covers ::wp_privacy_anonymize_data
  */
 class Tests_Functions_Anonymization extends WP_UnitTestCase {

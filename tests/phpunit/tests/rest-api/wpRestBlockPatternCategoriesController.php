@@ -14,9 +14,9 @@
  *
  * @ticket 55505
  *
- * @covers WP_REST_Block_Pattern_Categories_Controller
- *
  * @group restapi
+ *
+ * @covers WP_REST_Block_Pattern_Categories_Controller
  */
 class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Controller_Testcase {
 

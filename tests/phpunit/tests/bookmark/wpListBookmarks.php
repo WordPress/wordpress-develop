@@ -4,6 +4,7 @@
  * Test wp_list_bookmarks().
  *
  * @group bookmark
+ *
  * @covers ::wp_list_bookmarks
  */
 class Tests_Functions_wpListBookmarks extends WP_UnitTestCase {

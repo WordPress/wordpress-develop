@@ -273,6 +273,7 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36949
+	 *
 	 * @covers ::term_exists()
 	 */
 	public function test_term_lookup_by_id_and_update() {
@@ -295,6 +296,7 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36949
+	 *
 	 * @covers ::term_exists()
 	 */
 	public function test_term_lookup_by_slug_and_update() {
@@ -317,6 +319,7 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36949
+	 *
 	 * @covers ::term_exists()
 	 */
 	public function test_term_exists_caching() {
@@ -346,6 +349,7 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36949
+	 *
 	 * @covers ::term_exists()
 	 */
 	public function test_term_exists_caching_suspend_cache_invalidation() {
@@ -373,6 +377,7 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36949
+	 *
 	 * @covers ::term_exists()
 	 */
 	public function test_term_exists_caching_by_int_suspend_cache_invalidation() {

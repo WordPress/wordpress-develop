@@ -12,6 +12,7 @@
  * @since 6.0.0
  *
  * @group user
+ *
  * @covers ::retrieve_password
  */
 class Tests_User_RetrievePassword extends WP_UnitTestCase {

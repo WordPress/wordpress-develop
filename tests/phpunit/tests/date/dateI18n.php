@@ -3,6 +3,7 @@
 /**
  * @group date
  * @group datetime
+ *
  * @covers ::date_i18n
  */
 class Tests_Date_DateI18n extends WP_UnitTestCase {

@@ -35,6 +35,7 @@ class Tests_Post_wpGetPostParentId extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 48358
+	 *
 	 * @covers ::wp_get_post_parent_id
 	 */
 	public function test_wp_get_post_parent_id_with_no_post_argument_default_to_global_post_id() {

@@ -8,6 +8,7 @@
  * @ticket 40875
  *
  * @group functions.php
+ *
  * @covers ::size_format
  */
 class Tests_Functions_SizeFormat extends WP_UnitTestCase {

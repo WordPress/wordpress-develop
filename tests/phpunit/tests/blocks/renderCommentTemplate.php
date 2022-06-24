@@ -85,6 +85,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
+	 *
 	 * @covers ::build_comment_query_vars_from_block
 	 */
 	function test_build_comment_query_vars_from_block_with_context() {
@@ -116,6 +117,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55567
+	 *
 	 * @covers ::build_comment_query_vars_from_block
 	 */
 	function test_build_comment_query_vars_from_block_with_context_no_pagination() {
@@ -146,6 +148,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
+	 *
 	 * @covers ::build_comment_query_vars_from_block
 	 */
 	function test_build_comment_query_vars_from_block_no_context() {
@@ -176,6 +179,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 	 * Regression: https://github.com/WordPress/gutenberg/issues/40758.
 	 *
 	 * @ticket 55658
+	 *
 	 * @covers ::build_comment_query_vars_from_block
 	 */
 	function test_build_comment_query_vars_from_block_pagination_with_no_comments() {
@@ -228,6 +232,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 	 * In order to do that, it should exist a query var 'cpage' set with the $comment_args['paged'] value.
 	 *
 	 * @ticket 55505
+	 *
 	 * @covers ::build_comment_query_vars_from_block
 	 */
 	function test_build_comment_query_vars_from_block_sets_cpage_var() {
@@ -428,6 +433,7 @@ END
 	 * Test that unapproved comments are included if it is a preview.
 	 *
 	 * @ticket 55634
+	 *
 	 * @covers ::build_comment_query_vars_from_block
 	 */
 	function test_build_comment_query_vars_from_block_with_comment_preview() {

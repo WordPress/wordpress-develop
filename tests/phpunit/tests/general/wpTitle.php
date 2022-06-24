@@ -3,6 +3,7 @@
 /**
  * @group general
  * @group template
+ *
  * @covers ::wp_title
  */
 class Tests_General_WpTitle extends WP_UnitTestCase {

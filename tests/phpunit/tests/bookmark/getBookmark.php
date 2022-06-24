@@ -2,6 +2,7 @@
 
 /**
  * @group bookmark
+ *
  * @covers ::get_bookmark
  */
 class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {

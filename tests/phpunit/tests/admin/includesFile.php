@@ -285,8 +285,9 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	/**
 	 * Verify that a WP_Error object is returned when invalid input is passed as the `$url` parameter.
 	 *
-	 * @covers ::download_url
 	 * @dataProvider data_download_url_empty_url
+	 *
+	 * @covers ::download_url
 	 *
 	 * @param mixed $url Input URL.
 	 */
@@ -317,6 +318,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	 * is not thrown when the `$url` does not have a path component.
 	 *
 	 * @ticket 53635
+	 *
 	 * @covers ::download_url
 	 */
 	public function test_download_url_no_warning_for_url_without_path() {
@@ -335,6 +337,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	 * and signature verification via a local file is requested.
 	 *
 	 * @ticket 53635
+	 *
 	 * @covers ::download_url
 	 */
 	public function test_download_url_no_warning_for_url_without_path_with_signature_verification() {

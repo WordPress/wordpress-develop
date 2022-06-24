@@ -2,6 +2,7 @@
 
 /**
  * @group formatting
+ *
  * @covers ::wp_parse_str
  */
 class Tests_Formatting_wpParseStr extends WP_UnitTestCase {

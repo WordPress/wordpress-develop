@@ -748,6 +748,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55837
+	 *
 	 * @covers ::get_terms
 	 */
 	public function test_get_terms_child_of_cache() {
@@ -915,8 +916,9 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::_get_term_children
 	 * @ticket 24461
+	 *
+	 * @covers ::_get_term_children
 	 */
 	public function test__get_term_children_handles_cycles() {
 		remove_filter( 'wp_update_term_parent', 'wp_check_term_hierarchy_for_loops', 10 );
@@ -934,8 +936,9 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::_get_term_children
 	 * @ticket 24461
+	 *
+	 * @covers ::_get_term_children
 	 */
 	public function test__get_term_children_handles_cycles_when_terms_argument_contains_objects() {
 		remove_filter( 'wp_update_term_parent', 'wp_check_term_hierarchy_for_loops', 10 );
@@ -2612,6 +2615,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55837
+	 *
 	 * @covers ::get_terms
 	 */
 	public function test_pad_counts_cached() {

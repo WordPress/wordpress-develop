@@ -2,6 +2,7 @@
 
 /**
  * @group wp
+ *
  * @covers WP::parse_request
  */
 class Tests_WP_ParseRequest extends WP_UnitTestCase {

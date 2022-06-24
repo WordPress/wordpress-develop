@@ -12,6 +12,7 @@
  *
  * @group url
  * @group privacy
+ *
  * @covers ::get_privacy_policy_url
  *
  * @since 4.9.6

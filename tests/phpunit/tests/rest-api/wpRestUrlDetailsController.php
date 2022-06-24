@@ -12,10 +12,10 @@
  *
  * @since 5.9.0
  *
- * @covers WP_REST_URL_Details_Controller
- *
  * @group url-details
  * @group restapi
+ *
+ * @covers WP_REST_URL_Details_Controller
  */
 class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Testcase {
 

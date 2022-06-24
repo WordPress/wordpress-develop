@@ -23,6 +23,7 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 	 * It just and only tests for/against the PHP warning.
 	 *
 	 * @ticket 53949
+	 *
 	 * @covers WP_Media_List_Table::prepare_items
 	 */
 	public function test_prepare_items_without_cron_option_does_not_throw_warning() {

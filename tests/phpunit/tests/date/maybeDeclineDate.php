@@ -4,6 +4,7 @@
  * @group functions.php
  * @group i18n
  * @group datetime
+ *
  * @covers ::wp_maybe_decline_date
  */
 class Tests_Date_MaybeDeclineDate extends WP_UnitTestCase {

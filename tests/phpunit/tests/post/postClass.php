@@ -2,6 +2,7 @@
 
 /**
  * @group post
+ *
  * @covers ::post_class
  */
 class Tests_Post_PostClass extends WP_UnitTestCase {

@@ -2,6 +2,7 @@
 
 /**
  * @group oembed
+ *
  * @covers ::get_oembed_response_data
  */
 class Tests_oEmbed_Response_Data extends WP_UnitTestCase {

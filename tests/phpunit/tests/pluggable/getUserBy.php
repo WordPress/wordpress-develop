@@ -2,6 +2,7 @@
 
 /**
  * @group pluggable
+ *
  * @covers ::get_user_by
  */
 class Tests_Pluggable_GetUserBy extends WP_UnitTestCase {

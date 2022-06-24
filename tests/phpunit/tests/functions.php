@@ -2203,6 +2203,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49412
+	 *
 	 * @covers ::wp_filesize
 	 */
 	function test_wp_filesize_with_nonexistent_file() {
@@ -2212,6 +2213,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49412
+	 *
 	 * @covers ::wp_filesize
 	 */
 	function test_wp_filesize() {
@@ -2238,6 +2240,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
+	 *
 	 * @covers ::wp_recursive_ksort
 	 */
 	function test_wp_recursive_ksort() {

@@ -4,6 +4,7 @@ require_once __DIR__ . '/testcase-adjacent-image-link.php';
 
 /**
  * @group media
+ *
  * @covers ::get_next_image_link
  */
 class Tests_Media_GetNextImageLink extends WP_Test_Adjacent_Image_Link_TestCase {

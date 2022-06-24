@@ -204,6 +204,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55620
+	 *
 	 * @covers ::update_menu_item_cache
 	 */
 	public function test_update_menu_item_cache_primes_posts() {
@@ -235,6 +236,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55620
+	 *
 	 * @covers ::update_menu_item_cache
 	 */
 	public function test_update_menu_item_cache_primes_terms() {

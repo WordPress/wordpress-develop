@@ -13,6 +13,7 @@
  *
  * @group load.php
  * @group wp-debug-mode
+ *
  * @covers ::wp_debug_mode
  *
  * @since 5.9.0

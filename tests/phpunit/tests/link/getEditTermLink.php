@@ -2,6 +2,7 @@
 
 /**
  * @group link
+ *
  * @covers ::get_edit_term_link
  */
 class Tests_Link_GetEditTermLink extends WP_UnitTestCase {

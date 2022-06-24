@@ -4,6 +4,7 @@
  * Test the do_action method of WP_Hook
  *
  * @group hooks
+ *
  * @covers WP_Hook::do_action
  */
 class Tests_Hooks_DoAction extends WP_UnitTestCase {

@@ -254,6 +254,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @dataProvider data_wp_save_image_file
 	 *
 	 * @ticket 6821
+	 *
 	 * @covers ::wp_save_image_file
 	 * @requires extension fileinfo
 	 *
@@ -333,6 +334,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @dataProvider data_image_editor_engine_classes
 	 *
 	 * @ticket 6821
+	 *
 	 * @covers WP_Image_Editor::get_mime_type
 	 * @covers WP_Image_Editor::get_output_format
 	 * @requires extension fileinfo
@@ -367,6 +369,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @dataProvider data_inferred_mime_types_when_saving_an_image
 	 *
 	 * @ticket 6821
+	 *
 	 * @covers WP_Image_Editor::get_mime_type
 	 * @covers WP_Image_Editor::get_output_format
 	 * @requires extension fileinfo
@@ -444,6 +447,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * Tests that the deprecated wp_load_image() function fails when loading a directory.
 	 *
 	 * @ticket 17814
+	 *
 	 * @covers ::wp_load_image
 	 * @expectedDeprecated wp_load_image
 	 */
@@ -456,6 +460,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * Tests that the wp_get_image_editor() function fails when loading a directory.
 	 *
 	 * @ticket 17814
+	 *
 	 * @covers ::wp_get_image_editor
 	 */
 	public function test_wp_get_image_editor_should_fail_with_wp_error_object_when_loading_a_directory() {
@@ -469,6 +474,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @dataProvider data_image_editor_engine_classes
 	 *
 	 * @ticket 17814
+	 *
 	 * @covers WP_Image_Editor_GD::load
 	 * @covers WP_Image_Editor_Imagick::load
 	 *
@@ -577,6 +583,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23325
+	 *
 	 * @covers ::wp_crop_image
 	 */
 	public function test_wp_crop_image_should_fail_with_wp_error_object_if_there_was_an_error_on_saving() {
@@ -605,6 +612,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55403
+	 *
 	 * @covers ::wp_crop_image
 	 */
 	public function test_wp_crop_image_should_return_correct_file_extension_if_output_format_was_modified() {

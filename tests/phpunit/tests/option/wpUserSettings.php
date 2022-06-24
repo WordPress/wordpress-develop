@@ -4,6 +4,7 @@
  *
  * @group option
  * @group user
+ *
  * @covers ::wp_user_settings
  */
 class Tests_Option_wpUserSettings extends WP_UnitTestCase {

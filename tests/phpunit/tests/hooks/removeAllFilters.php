@@ -4,6 +4,7 @@
  * Test the remove_all_filters method of WP_Hook
  *
  * @group hooks
+ *
  * @covers WP_Hook::remove_all_filters
  */
 class Tests_Hooks_RemoveAllFilters extends WP_UnitTestCase {

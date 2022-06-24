@@ -7,9 +7,10 @@
  */
 
 /**
- * @covers WP_REST_Global_Styles_Controller
  * @group restapi-global-styles
  * @group restapi
+ *
+ * @covers WP_REST_Global_Styles_Controller
  */
 class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
@@ -166,9 +167,10 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @dataProvider data_get_theme_item_invalid_theme_dirname
-	 * @covers WP_REST_Global_Styles_Controller::get_theme_item
 	 * @ticket 54596
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_theme_item
+	 * @dataProvider data_get_theme_item_invalid_theme_dirname
 	 *
 	 * @param string $theme_dirname Theme directory to test.
 	 * @param string $expected      Expected error code.
@@ -226,9 +228,10 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @dataProvider data_get_theme_item
-	 * @covers WP_REST_Global_Styles_Controller::get_theme_item
 	 * @ticket 54596
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_theme_item
+	 * @dataProvider data_get_theme_item
 	 *
 	 * @param string $theme Theme directory to test.
 	 */

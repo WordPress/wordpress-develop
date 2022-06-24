@@ -93,6 +93,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::register_routes
 	 */
 	public function test_register_routes() {
@@ -106,6 +107,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::get_context_param
 	 */
 	public function test_context_param() {
@@ -127,6 +129,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::get_collection_params
 	 */
 	public function test_registered_query_params() {
@@ -165,6 +168,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::get_items
 	 */
 	public function test_get_items() {
@@ -177,6 +181,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::get_item
 	 */
 	public function test_get_item() {
@@ -189,6 +194,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::get_item
 	 */
 	public function test_get_item_edit() {
@@ -202,6 +208,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::get_item
 	 * @covers ::prepare_links
 	 */
@@ -228,6 +235,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::get_item
 	 * @covers ::prepare_links
 	 */
@@ -261,6 +269,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 	 * @see https://github.com/WordPress/gutenberg/pull/24673
 	 *
 	 * @ticket 40878
+	 *
 	 * @covers ::get_item
 	 */
 	public function test_get_item_escapes_title() {
@@ -312,6 +321,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item() {
@@ -328,6 +338,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item_invalid_invalid() {
@@ -348,6 +359,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item_invalid_term() {
@@ -368,6 +380,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item_change_position() {
@@ -397,6 +410,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_menu_order_must_be_set() {
@@ -430,6 +444,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item_invalid_position_2() {
@@ -450,6 +465,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item_invalid_position_3() {
@@ -470,6 +486,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item_invalid_parent() {
@@ -489,6 +506,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item_invalid_menu() {
@@ -507,6 +525,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item_invalid_post() {
@@ -527,6 +546,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item_invalid_post_type() {
@@ -547,6 +567,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item_invalid_custom_link() {
@@ -567,6 +588,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item_missing_custom_link_url() {
@@ -587,6 +609,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item_invalid_custom_link_url() {
@@ -609,6 +632,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::update_item
 	 */
 	public function test_update_item() {
@@ -639,6 +663,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::update_item
 	 */
 	public function test_update_item_clean_xfn() {
@@ -673,6 +698,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::update_item
 	 */
 	public function test_update_item_invalid() {
@@ -689,6 +715,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::delete_item
 	 */
 	public function test_delete_item() {
@@ -702,6 +729,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::delete_item
 	 */
 	public function test_delete_item_no_force() {
@@ -715,6 +743,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::delete_item
 	 */
 	public function test_delete_item_invalid() {
@@ -727,6 +756,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
@@ -739,6 +769,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::get_item_schema
 	 */
 	public function test_get_item_schema() {
@@ -768,6 +799,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::get_items_permissions_check
 	 */
 	public function test_get_items_no_permission() {
@@ -779,6 +811,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::get_item_permissions_check
 	 */
 	public function test_get_item_no_permission() {
@@ -790,6 +823,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::get_items_permissions_check
 	 */
 	public function test_get_items_wrong_permission() {
@@ -801,6 +835,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::get_item_permissions_check
 	 */
 	public function test_get_item_wrong_permission() {
@@ -1015,6 +1050,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::create_item
 	 */
 	public function test_create_item_properly_handles_slashed_data() {
@@ -1037,6 +1073,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 
 	/**
 	 * @ticket 40878
+	 *
 	 * @covers ::update_item
 	 */
 	public function test_update_item_properly_handles_slashed_data() {

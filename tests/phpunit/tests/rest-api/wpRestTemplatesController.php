@@ -9,9 +9,9 @@
 /**
  * Tests for REST API for templates.
  *
- * @covers WP_REST_Templates_Controller
- *
  * @group restapi
+ *
+ * @covers WP_REST_Templates_Controller
  */
 class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testcase {
 	/**
@@ -209,9 +209,10 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
-	 * @dataProvider data_get_item_with_valid_theme_dirname
-	 * @covers WP_REST_Templates_Controller::get_item
 	 * @ticket 54596
+	 *
+	 * @covers WP_REST_Templates_Controller::get_item
+	 * @dataProvider data_get_item_with_valid_theme_dirname
 	 *
 	 * @param string $theme_dir Theme directory to test.
 	 * @param string $template  Template to test.
@@ -355,6 +356,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 54422
+	 *
 	 * @covers WP_REST_Templates_Controller::create_item
 	 */
 	public function test_create_item() {
@@ -401,6 +403,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 54680
+	 *
 	 * @covers WP_REST_Templates_Controller::create_item
 	 * @covers WP_REST_Templates_Controller::get_item_schema
 	 */
@@ -447,6 +450,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 54422
+	 *
 	 * @covers WP_REST_Templates_Controller::create_item
 	 */
 	public function test_create_item_raw() {
@@ -638,6 +642,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 54422
+	 *
 	 * @covers WP_REST_Templates_Controller::get_item_schema
 	 */
 	public function test_get_item_schema() {
