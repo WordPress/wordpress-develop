@@ -924,38 +924,38 @@ function wp_get_registered_image_subsizes() {
 				'crop'         => false,
 				'output_mimes' => in_array( $size_name, $default_sizes, true ),
 			);
-		}
 
-		if ( isset( $additional_sizes[ $size_name ]['width'] ) ) {
-			// For sizes added by plugins and themes.
-			$size_data['width'] = (int) $additional_sizes[ $size_name ]['width'];
-		} else {
-			// For default sizes set in options.
-			$size_data['width'] = (int) get_option( "{$size_name}_size_w" );
-		}
+			if ( isset( $additional_sizes[ $size_name ]['width'] ) ) {
+				// For sizes added by plugins and themes.
+				$size_data['width'] = (int) $additional_sizes[ $size_name ]['width'];
+			} else {
+				// For default sizes set in options.
+				$size_data['width'] = (int) get_option( "{$size_name}_size_w" );
+			}
 
-		if ( isset( $additional_sizes[ $size_name ]['height'] ) ) {
-			$size_data['height'] = (int) $additional_sizes[ $size_name ]['height'];
-		} else {
-			$size_data['height'] = (int) get_option( "{$size_name}_size_h" );
-		}
+			if ( isset( $additional_sizes[ $size_name ]['height'] ) ) {
+				$size_data['height'] = (int) $additional_sizes[ $size_name ]['height'];
+			} else {
+				$size_data['height'] = (int) get_option( "{$size_name}_size_h" );
+			}
 
-		if ( empty( $size_data['width'] ) && empty( $size_data['height'] ) ) {
-			// This size isn't set.
-			continue;
-		}
+			if ( empty( $size_data['width'] ) && empty( $size_data['height'] ) ) {
+				// This size isn't set.
+				continue;
+			}
 
-		if ( isset( $additional_sizes[ $size_name ]['crop'] ) ) {
-			$size_data['crop'] = $additional_sizes[ $size_name ]['crop'];
-		} else {
-			$size_data['crop'] = get_option( "{$size_name}_crop" );
-		}
+			if ( isset( $additional_sizes[ $size_name ]['crop'] ) ) {
+				$size_data['crop'] = $additional_sizes[ $size_name ]['crop'];
+			} else {
+				$size_data['crop'] = get_option( "{$size_name}_crop" );
+			}
 
-		if ( ! is_array( $size_data['crop'] ) || empty( $size_data['crop'] ) ) {
-			$size_data['crop'] = (bool) $size_data['crop'];
-		}
+			if ( ! is_array( $size_data['crop'] ) || empty( $size_data['crop'] ) ) {
+				$size_data['crop'] = (bool) $size_data['crop'];
+			}
 
-		$all_sizes[ $size_name ] = $size_data;
+			$all_sizes[ $size_name ] = $size_data;
+		}
 	}
 
 	return $all_sizes;

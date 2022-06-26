@@ -700,7 +700,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $attachment_id );
 
-		add_image_size( 'test-size', 100, 100 );
+		add_image_size( 'test-size', 100, 100, false, true );
 		add_filter( 'fallback_intermediate_image_sizes', array( $this, 'filter_fallback_intermediate_image_sizes' ), 10, 2 );
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
