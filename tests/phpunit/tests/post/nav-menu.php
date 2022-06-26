@@ -203,6 +203,69 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 55620
+	 * @covers ::update_menu_item_cache
+	 */
+	public function test_update_menu_item_cache_primes_posts() {
+		$post_id = self::factory()->post->create();
+		wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'post_type',
+				'menu-item-object'    => 'post',
+				'menu-item-object-id' => $post_id,
+				'menu-item-status'    => 'publish',
+			)
+		);
+
+		$posts_query  = new WP_Query();
+		$query_result = $posts_query->query( array( 'post_type' => 'nav_menu_item' ) );
+
+		wp_cache_delete( $post_id, 'posts' );
+		$action = new MockAction();
+		add_filter( 'update_post_metadata_cache', array( $action, 'filter' ), 10, 2 );
+
+		update_menu_item_cache( $query_result );
+
+		$args = $action->get_args();
+		$last = end( $args );
+		$this->assertSameSets( array( $post_id ), $last[1], '_prime_post_caches() was not executed.' );
+	}
+
+	/**
+	 * @ticket 55620
+	 * @covers ::update_menu_item_cache
+	 */
+	public function test_update_menu_item_cache_primes_terms() {
+		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
+		$term_id = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
+		wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'taxonomy',
+				'menu-item-object'    => 'wptests_tax',
+				'menu-item-object-id' => $term_id,
+				'menu-item-status'    => 'publish',
+			)
+		);
+
+		$posts_query  = new WP_Query();
+		$query_result = $posts_query->query( array( 'post_type' => 'nav_menu_item' ) );
+
+		wp_cache_delete( $term_id, 'terms' );
+		$action = new MockAction();
+		add_filter( 'update_term_metadata_cache', array( $action, 'filter' ), 10, 2 );
+
+		update_menu_item_cache( $query_result );
+
+		$args = $action->get_args();
+		$last = end( $args );
+		$this->assertSameSets( array( $term_id ), $last[1], '_prime_term_caches() was not executed.' );
+	}
+
+	/**
 	 * @ticket 13910
 	 */
 	public function test_wp_get_nav_menu_name() {

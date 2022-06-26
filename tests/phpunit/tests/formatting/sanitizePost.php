@@ -2,6 +2,8 @@
 /**
  * @group formatting
  * @group post
+ *
+ * @covers WP_Post::__construct
  */
 class Tests_Formatting_SanitizePost extends WP_UnitTestCase {
 

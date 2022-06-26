@@ -370,6 +370,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$posts = array();
 
 		update_post_author_caches( $query_result );
+		update_post_parent_caches( $query_result );
+
+		if ( post_type_supports( $this->post_type, 'thumbnail' ) ) {
+			update_post_thumbnail_cache( $posts_query );
+		}
 
 		foreach ( $query_result as $post ) {
 			if ( ! $this->check_read_permission( $post ) ) {
@@ -388,7 +393,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$page        = (int) $query_args['paged'];
 		$total_posts = $posts_query->found_posts;
 
-		if ( $total_posts < 1 ) {
+		if ( $total_posts < 1 && $page > 1 ) {
 			// Out-of-bounds, run the query again without LIMIT for total count.
 			unset( $query_args['paged'] );
 
