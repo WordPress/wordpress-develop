@@ -1957,7 +1957,18 @@ function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
 			// Replace the existing output image for this size.
 			$src_filename = wp_basename( $size_data['file'] );
 
-			// Short-circuit request if replacement has been done.
+			/**
+			 * Filters the image tag.
+			 *
+			 * @since 6.1.0
+			 *
+			 * @param array  $image         The HTML `img` tag.
+			 * @param string $attachment_id The attachment ID.
+			 * @param string $src_filename  File name of the attachment.
+			 * @param string $size_name     Image size - e.g. 'full', 'medium', 'small' etc.
+			 * @param string $target_mime   Image mime type.
+			 * @param string $context       Additional context, like the current filter name or the function name from where this was called.
+			 */
 			$filtered_image = apply_filters( 'wp_content_pre_replace_additional_image_source', $image, $attachment_id, $src_filename, $size_name, $target_mime, $context );
 
 			if ( $filtered_image !== $image ) {
@@ -1978,7 +1989,7 @@ function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
 		// Handle full size image replacement.
 		$src_filename = wp_basename( $metadata['file'] );
 
-		// Short-circuit request if replacement has been done (full size image).
+		/** This filter is documented above. */
 		$filtered_image = apply_filters( 'wp_content_pre_replace_additional_image_source', $image, $attachment_id, $src_filename, 'full', $target_mime, $context );
 
 		if ( $filtered_image !== $image ) {

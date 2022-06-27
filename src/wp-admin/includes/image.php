@@ -90,7 +90,7 @@ function wp_get_missing_image_subsizes( $attachment_id, $mime_type = '' ) {
 	}
 
 	if ( ! $mime_type ) {
-		$mime_type = get_post_mime_type( get_post( $attachment_id ) );
+		$mime_type  = get_post_mime_type( get_post( $attachment_id ) );
 	}
 
 	$registered_sizes = wp_get_registered_image_subsizes();
@@ -506,7 +506,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 	}
 
 	if ( ! $mime_type ) {
-		$mime_type = wp_get_image_mime( $file );
+		$mime_type  = wp_get_image_mime( $file );
 	}
 
 	// Check if any of the new sizes already exist.
@@ -526,7 +526,17 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 				}
 			}
 
-			// Short-cicuit image generation if file has been generated already.
+			/**
+			 * Filters the image meta information.
+			 *
+			 * @since 6.1.0
+			 *
+			 * @param array  $size_meta     Image meta information.
+			 * @param string $file          File name.
+			 * @param string $attachment_id Attachment ID.
+			 * @param string $size_name     Image size - e.g. 'full', 'medium', 'small' etc.
+			 * @param string $mime_type     Image mime type.
+			 */
 			$size_meta = apply_filters( 'wp_content_pre_generate_additional_image_source', $size_meta, $file, $attachment_id, $size_name, $mime_type );
 
 			if ( is_wp_error( $size_meta ) ) {
@@ -643,7 +653,7 @@ function _wp_make_additional_mime_types( $new_mime_types, $file, $image_meta, $a
 	$exif_meta = isset( $image_meta['image_meta'] ) ? $image_meta['image_meta'] : null;
 
 	foreach ( $new_mime_types as $mime_type ) {
-		// Short-cicuit image generation if file has been generated already.
+		// Short-circuit image generation if file has been generated already.
 		$image_meta = apply_filters( 'wp_content_pre_generate_additional_image_source', $image_meta, $file, $attachment_id, 'full', $mime_type );
 
 		if ( is_wp_error( $image_meta ) ) {
