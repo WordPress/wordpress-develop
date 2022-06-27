@@ -150,7 +150,7 @@
 		"react-dom": "16.13.1",
 		"regenerator-runtime": "0.13.7",
 		"twemoji": "13.1.0",
-		"underscore": "1.13.1",
+		"underscore": "1.13.4",
 		"whatwg-fetch": "3.6.2"
 	},
 	"scripts": {
