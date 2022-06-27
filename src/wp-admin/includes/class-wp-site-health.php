@@ -2271,27 +2271,27 @@ class WP_Site_Health {
 		$action_url = apply_filters(
 			'site_status_persistent_object_cache_url',
 			/* translators: Localized Support reference. */
-			__( 'https://wordpress.org/support/article/optimization/#object-caching', 'performance-lab' )
+			__( 'https://wordpress.org/support/article/optimization/#object-caching' )
 		);
 
 		$result = array(
 			'test'        => 'persistent_object_cache',
 			'status'      => 'good',
 			'badge'       => array(
-				'label' => __( 'Performance', 'performance-lab' ),
+				'label' => __( 'Performance' ),
 				'color' => 'blue',
 			),
-			'label'       => __( 'A persistent object cache is being used', 'performance-lab' ),
+			'label'       => __( 'A persistent object cache is being used' ),
 			'description' => sprintf(
 				'<p>%s</p>',
-				__( "A persistent object cache makes your site's database more efficient, resulting in faster load times because WordPress can retrieve your site's content and settings much more quickly.", 'performance-lab' )
+				__( "A persistent object cache makes your site's database more efficient, resulting in faster load times because WordPress can retrieve your site's content and settings much more quickly." )
 			),
 			'actions'     => sprintf(
 				'<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				esc_url( $action_url ),
-				__( 'Learn more about persistent object caching.', 'performance-lab' ),
+				__( 'Learn more about persistent object caching.' ),
 				/* translators: Accessibility text. */
-				__( '(opens in a new tab)', 'performance-lab' )
+				__( '(opens in a new tab)' )
 			),
 		);
 
@@ -2300,19 +2300,19 @@ class WP_Site_Health {
 		}
 
 		if ( ! $this->should_suggest_persistent_object_cache() ) {
-			$result['label'] = __( 'A persistent object cache is not required', 'performance-lab' );
+			$result['label'] = __( 'A persistent object cache is not required' );
 
 			return $result;
 		}
 
 		$available_services = $this->available_object_cache_services();
 
-		$notes = __( 'Your hosting provider can tell you if persistent object caches are able to be enabled on your site.', 'performance-lab' );
+		$notes = __( 'Your hosting provider can tell you if persistent object caches are able to be enabled on your site.' );
 
 		if ( ! empty( $available_services ) ) {
 			$notes .= ' ' . sprintf(
 				/* translators: Available object caching services. */
-				__( 'Your host appears to support the following object caching services: %s.', 'performance-lab' ),
+				__( 'Your host appears to support the following object caching services: %s.' ),
 				implode( ', ', $available_services )
 			);
 		}
@@ -2333,7 +2333,7 @@ class WP_Site_Health {
 		$notes = apply_filters( 'site_status_persistent_object_cache_notes', $notes, $available_services );
 
 		$result['status']         = 'recommended';
-		$result['label']          = __( 'You should use a persistent object cache', 'performance-lab' );
+		$result['label']          = __( 'You should use a persistent object cache' );
 		$result['badge']['color'] = 'orange';
 		$result['description']   .= sprintf(
 			'<p>%s</p>',
