@@ -121,9 +121,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function save_posts_clauses( $orderby, $query ) {
-		if ( 'revision' !== $query->query_vars['post_type'] ) {
-			array_push( $this->posts_clauses, $orderby );
-		}
+		array_push( $this->posts_clauses, $orderby );
 		return $orderby;
 	}
 
