@@ -326,7 +326,11 @@ function _wp_get_iframed_editor_assets() {
 	foreach ( $block_registry->get_all_registered() as $block_type ) {
 		if ( ! empty( $block_type->style ) ) {
 			if ( is_array( $block_type->style ) ) {
-				$style_handles[] = $block_type->style[0];
+				foreach ( $block_type->style as $single_style ) {
+					if ( is_string( $single_style ) ) {
+						$style_handles[] = $single_style;
+					}
+				}
 			} else {
 				$style_handles[] = $block_type->style;
 			}

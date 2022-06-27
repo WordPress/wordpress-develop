@@ -2503,7 +2503,11 @@ function wp_enqueue_registered_block_scripts_and_styles() {
 		// Front-end styles.
 		if ( ! empty( $block_type->style ) ) {
 			if ( is_array( $block_type->style ) ) {
-				wp_enqueue_style( $block_type->style[0] );
+				foreach ( $block_type->style as $single_style ) {
+					if ( is_string( $single_style ) ) {
+						wp_enqueue_style( $single_style );
+					}
+				}
 			} else {
 				wp_enqueue_style( $block_type->style );
 			}
