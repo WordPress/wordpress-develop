@@ -104,7 +104,7 @@ jobs:
   # Performs the following steps:
   # - Checks out the repository.
   # - Logs debug information about the runner container.
-  # - Installs NodeJS 14.
+  # - Installs NodeJS.
   # - Sets up caching for NPM.
   # - Logs updated debug information.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
