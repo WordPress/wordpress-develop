@@ -8,7 +8,7 @@
 class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
-	 * Setup test fixture
+	 * Includes the required files.
 	 */
 	public function set_up() {
 		parent::set_up();
@@ -28,7 +28,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Get the available image editor engine class(es).
+	 * Gets the available image editor engine classes.
 	 *
 	 * @return string[] Available image editor classes; empty array when none are available.
 	 */
@@ -46,7 +46,16 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Get the MIME type of a file
+	 * Data provider with the available image editor engine classes.
+	 *
+	 * @return array
+	 */
+	public function data_image_editor_engine_classes() {
+		return $this->text_array_to_dataprovider( $this->get_image_editor_engine_classes() );
+	}
+
+	/**
+	 * Gets the MIME type of a file.
 	 *
 	 * @param string $filename
 	 * @return string
@@ -240,7 +249,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test wp_save_image_file() and mime types.
+	 * Tests wp_save_image_file() and mime types.
 	 *
 	 * @dataProvider data_wp_save_image_file
 	 *
@@ -319,9 +328,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that a passed mime type overrides the extension in the filename when saving an image.
+	 * Tests that a passed mime type overrides the extension in the filename when saving an image.
 	 *
-	 * @dataProvider data_mime_overrides_filename_when_saving_an_image
+	 * @dataProvider data_image_editor_engine_classes
 	 *
 	 * @ticket 6821
 	 * @covers WP_Image_Editor::get_mime_type
@@ -353,16 +362,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
-	 *
-	 * @return array
-	 */
-	public function data_mime_overrides_filename_when_saving_an_image() {
-		return $this->text_array_to_dataprovider( $this->get_image_editor_engine_classes() );
-	}
-
-	/**
-	 * Test that mime types are correctly inferred from file extensions when saving an image.
+	 * Tests that mime types are correctly inferred from file extensions when saving an image.
 	 *
 	 * @dataProvider data_inferred_mime_types_when_saving_an_image
 	 *
@@ -441,61 +441,52 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Try loading a directory
+	 * Tests that the deprecated wp_load_image() function fails when loading a directory.
 	 *
 	 * @ticket 17814
+	 * @covers ::wp_load_image
 	 * @expectedDeprecated wp_load_image
 	 */
-	public function test_load_directory() {
-
-		// First, test with deprecated wp_load_image function.
-		$editor1 = wp_load_image( DIR_TESTDATA );
-		$this->assertIsString( $editor1 );
-
-		$editor2 = wp_get_image_editor( DIR_TESTDATA );
-		$this->assertInstanceOf( 'WP_Error', $editor2 );
-
-		$classes = $this->get_image_editor_engine_classes();
-
-		// Then, test with editors.
-		foreach ( $classes as $class ) {
-			$editor = new $class( DIR_TESTDATA );
-			$loaded = $editor->load();
-
-			$this->assertInstanceOf( 'WP_Error', $loaded );
-			$this->assertSame( 'error_loading_image', $loaded->get_error_code() );
-		}
+	public function test_wp_load_image_should_fail_with_error_message_when_loading_a_directory() {
+		$editor = wp_load_image( DIR_TESTDATA );
+		$this->assertIsString( $editor );
 	}
 
 	/**
-	 * @ticket 55403
+	 * Tests that the wp_get_image_editor() function fails when loading a directory.
+	 *
+	 * @ticket 17814
+	 * @covers ::wp_get_image_editor
 	 */
-	public function test_wp_crop_image_with_filtered_extension() {
-		add_filter( 'image_editor_output_format', array( $this, 'filter_image_editor_output_format' ) );
-		$file = wp_crop_image(
-			DIR_TESTDATA . '/images/canola.jpg',
-			0,
-			0,
-			100,
-			100,
-			100,
-			100
-		);
-
-		$this->assertNotWPError( $file );
-		$this->assertFileExists( $file );
-
-		unlink( $file );
-	}
-
-	public function filter_image_editor_output_format() {
-		return array_fill_keys( array( 'image/jpg', 'image/jpeg', 'image/png' ), 'image/webp' );
+	public function test_wp_get_image_editor_should_fail_with_wp_error_object_when_loading_a_directory() {
+		$editor = wp_get_image_editor( DIR_TESTDATA );
+		$this->assertInstanceOf( 'WP_Error', $editor );
 	}
 
 	/**
+	 * Tests that the load() method in an image editor class fails when loading a directory.
+	 *
+	 * @dataProvider data_image_editor_engine_classes
+	 *
+	 * @ticket 17814
+	 * @covers WP_Image_Editor_GD::load
+	 * @covers WP_Image_Editor_Imagick::load
+	 *
+	 * @param string $class_name Name of the image editor engine class to be tested.
+	 */
+	public function test_image_editor_classes_should_fail_with_wp_error_object_when_loading_a_directory( $class_name ) {
+		$editor = new $class_name( DIR_TESTDATA );
+		$loaded = $editor->load();
+
+		$this->assertInstanceOf( 'WP_Error', $loaded, 'Loading a directory did not result in a WP_Error.' );
+		$this->assertSame( 'error_loading_image', $loaded->get_error_code(), 'Error code from WP_Error did not match expectation.' );
+	}
+
+	/**
+	 * @covers ::wp_crop_image
 	 * @requires function imagejpeg
 	 */
-	public function test_wp_crop_image_file() {
+	public function test_wp_crop_image_with_file() {
 		$file = wp_crop_image(
 			DIR_TESTDATA . '/images/canola.jpg',
 			0,
@@ -505,21 +496,24 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			100,
 			100
 		);
-		$this->assertNotWPError( $file );
-		$this->assertFileExists( $file );
+		$this->assertNotWPError( $file, 'Cropping the image resulted in a WP_Error.' );
+		$this->assertFileExists( $file, "The file $file does not exist." );
+
 		$image = wp_get_image_editor( $file );
 		$size  = $image->get_size();
-		$this->assertSame( 100, $size['height'] );
-		$this->assertSame( 100, $size['width'] );
+
+		$this->assertSame( 100, $size['height'], 'Cropped image height does not match expectation.' );
+		$this->assertSame( 100, $size['width'], 'Cropped image width does not match expectation.' );
 
 		unlink( $file );
 	}
 
 	/**
+	 * @covers ::wp_crop_image
 	 * @requires function imagejpeg
 	 * @requires extension openssl
 	 */
-	public function test_wp_crop_image_url() {
+	public function test_wp_crop_image_with_url() {
 		$file = wp_crop_image(
 			'https://asdftestblog1.files.wordpress.com/2008/04/canola.jpg',
 			0,
@@ -536,17 +530,22 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( 'Tests_Image_Functions::test_wp_crop_image_url() cannot access remote image.' );
 		}
 
-		$this->assertNotWPError( $file );
-		$this->assertFileExists( $file );
+		$this->assertNotWPError( $file, 'Cropping the image resulted in a WP_Error.' );
+		$this->assertFileExists( $file, "The file $file does not exist." );
+
 		$image = wp_get_image_editor( $file );
 		$size  = $image->get_size();
-		$this->assertSame( 100, $size['height'] );
-		$this->assertSame( 100, $size['width'] );
+
+		$this->assertSame( 100, $size['height'], 'Cropped image height does not match expectation.' );
+		$this->assertSame( 100, $size['width'], 'Cropped image width does not match expectation.' );
 
 		unlink( $file );
 	}
 
-	public function test_wp_crop_image_file_not_exist() {
+	/**
+	 * @covers ::wp_crop_image
+	 */
+	public function test_wp_crop_image_should_fail_with_wp_error_object_if_file_does_not_exist() {
 		$file = wp_crop_image(
 			DIR_TESTDATA . '/images/canoladoesnotexist.jpg',
 			0,
@@ -560,9 +559,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::wp_crop_image
 	 * @requires extension openssl
 	 */
-	public function test_wp_crop_image_url_not_exist() {
+	public function test_wp_crop_image_should_fail_with_wp_error_object_if_url_does_not_exist() {
 		$file = wp_crop_image(
 			'https://asdftestblog1.files.wordpress.com/2008/04/canoladoesnotexist.jpg',
 			0,
@@ -577,10 +577,17 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23325
+	 * @covers ::wp_crop_image
 	 */
-	public function test_wp_crop_image_error_on_saving() {
+	public function test_wp_crop_image_should_fail_with_wp_error_object_if_there_was_an_error_on_saving() {
 		WP_Image_Editor_Mock::$save_return = new WP_Error();
-		add_filter( 'wp_image_editors', array( $this, 'mock_image_editor' ) );
+
+		add_filter(
+			'wp_image_editors',
+			static function( $editors ) {
+				return array( 'WP_Image_Editor_Mock' );
+			}
+		);
 
 		$file = wp_crop_image(
 			DIR_TESTDATA . '/images/canola.jpg',
@@ -593,15 +600,35 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		);
 		$this->assertInstanceOf( 'WP_Error', $file );
 
-		remove_filter( 'wp_image_editors', array( $this, 'mock_image_editor' ) );
 		WP_Image_Editor_Mock::$save_return = array();
 	}
 
 	/**
-	 * @see test_wp_crop_image_error_on_saving()
+	 * @ticket 55403
+	 * @covers ::wp_crop_image
 	 */
-	public function mock_image_editor( $editors ) {
-		return array( 'WP_Image_Editor_Mock' );
+	public function test_wp_crop_image_should_return_correct_file_extension_if_output_format_was_modified() {
+		add_filter(
+			'image_editor_output_format',
+			static function() {
+				return array_fill_keys( array( 'image/jpg', 'image/jpeg', 'image/png' ), 'image/webp' );
+			}
+		);
+
+		$file = wp_crop_image(
+			DIR_TESTDATA . '/images/canola.jpg',
+			0,
+			0,
+			100,
+			100,
+			100,
+			100
+		);
+
+		$this->assertNotWPError( $file, 'Cropping the image resulted in a WP_Error.' );
+		$this->assertFileExists( $file, "The file $file does not exist." );
+
+		unlink( $file );
 	}
 
 	/**
@@ -678,7 +705,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Crop setting for PDF.
+	 * Tests crop setting for PDF.
 	 *
 	 * @ticket 43226
 	 */
@@ -819,7 +846,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test PDF preview doesn't overwrite existing JPEG.
+	 * Tests that PDF preview does not overwrite existing JPEG.
 	 *
 	 * @ticket 39875
 	 */
@@ -875,7 +902,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test for wp_exif_frac2dec verified that it properly handles edge cases
+	 * Tests that wp_exif_frac2dec() properly handles edge cases
 	 * and always returns an int or float, or 0 for failures.
 	 *
 	 * @param mixed     $fraction The fraction to convert.

@@ -1254,8 +1254,10 @@ function _wp_privacy_statuses() {
  *
  *     @type bool|string $label                     A descriptive name for the post status marked
  *                                                  for translation. Defaults to value of $post_status.
- *     @type bool|array  $label_count               Descriptive text to use for nooped plurals.
- *                                                  Default array of $label, twice.
+ *     @type array|false $label_count               Nooped plural text from _n_noop() to provide the singular
+ *                                                  and plural forms of the label for counts. Default false
+ *                                                  which means the `$label` argument will be used for both
+ *                                                  the singular and plural forms of this label.
  *     @type bool        $exclude_from_search       Whether to exclude posts with this post status
  *                                                  from search results. Default is value of $internal.
  *     @type bool        $_builtin                  Whether the status is built-in. Core-use only.
@@ -6506,6 +6508,7 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
  * Retrieves attachment metadata for attachment ID.
  *
  * @since 2.1.0
+ * @since 6.0.0 The `$filesize` value was added to the returned array.
  *
  * @param int  $attachment_id Attachment post ID. Defaults to global $post.
  * @param bool $unfiltered    Optional. If true, filters are not run. Default false.
@@ -8102,4 +8105,76 @@ function wp_get_original_image_url( $attachment_id ) {
  */
 function wp_untrash_post_set_previous_status( $new_status, $post_id, $previous_status ) {
 	return $previous_status;
+}
+
+/**
+ * Returns whether the post can be edited in the block editor.
+ *
+ * @since 5.0.0
+ * @since 6.1.0 Moved to wp-includes from wp-admin.
+ *
+ * @param int|WP_Post $post Post ID or WP_Post object.
+ * @return bool Whether the post can be edited in the block editor.
+ */
+function use_block_editor_for_post( $post ) {
+	$post = get_post( $post );
+
+	if ( ! $post ) {
+		return false;
+	}
+
+	// We're in the meta box loader, so don't use the block editor.
+	if ( is_admin() && isset( $_GET['meta-box-loader'] ) ) {
+		check_admin_referer( 'meta-box-loader', 'meta-box-loader-nonce' );
+		return false;
+	}
+
+	$use_block_editor = use_block_editor_for_post_type( $post->post_type );
+
+	/**
+	 * Filters whether a post is able to be edited in the block editor.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @param bool    $use_block_editor Whether the post can be edited or not.
+	 * @param WP_Post $post             The post being checked.
+	 */
+	return apply_filters( 'use_block_editor_for_post', $use_block_editor, $post );
+}
+
+/**
+ * Returns whether a post type is compatible with the block editor.
+ *
+ * The block editor depends on the REST API, and if the post type is not shown in the
+ * REST API, then it won't work with the block editor.
+ *
+ * @since 5.0.0
+ * @since 6.1.0 Moved to wp-includes from wp-admin.
+ *
+ * @param string $post_type The post type.
+ * @return bool Whether the post type can be edited with the block editor.
+ */
+function use_block_editor_for_post_type( $post_type ) {
+	if ( ! post_type_exists( $post_type ) ) {
+		return false;
+	}
+
+	if ( ! post_type_supports( $post_type, 'editor' ) ) {
+		return false;
+	}
+
+	$post_type_object = get_post_type_object( $post_type );
+	if ( $post_type_object && ! $post_type_object->show_in_rest ) {
+		return false;
+	}
+
+	/**
+	 * Filters whether a post is able to be edited in the block editor.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @param bool   $use_block_editor  Whether the post type can be edited or not. Default true.
+	 * @param string $post_type         The post type being checked.
+	 */
+	return apply_filters( 'use_block_editor_for_post_type', true, $post_type );
 }
