@@ -2256,15 +2256,15 @@ class WP_Site_Health {
 	/**
 	 * Tests persistent_object_cache health check.
 	 *
-	 * @since 6.1
+	 * @since 6.1.0
 	 *
 	 * @return array The health check result suggesting persistent object caching.
 	 */
 	public function get_test_health_persistent_object_cache() {
 		/**
-		 * Filter the action URL for the persistent object cache health check.
+		 * Filters the action URL for the persistent object cache health check.
 		 *
-		 * @since 6.1
+		 * @since 6.1.0
 		 *
 		 * @param string $action_url Learn more link for persistent object cache health check.
 		 */
@@ -2318,14 +2318,14 @@ class WP_Site_Health {
 		}
 
 		/**
-		 * Filter the second paragraph of the health check's description
+		 * Filters the second paragraph of the health check's description
 		 * when suggesting the use of a persistent object cache.
 		 *
 		 * Hosts may want to replace the notes to recommend their preferred object caching solution.
 		 *
 		 * Plugin authors may want to append notes (not replace) on why object caching is recommended for their plugin.
 		 *
-		 * @since 6.1
+		 * @since 6.1.0
 		 *
 		 * @param string $notes              The notes appended to the health check description.
 		 * @param array  $available_services The list of available persistent object cache services.
@@ -2956,7 +2956,7 @@ class WP_Site_Health {
 	/**
 	 * Determines whether to suggest using a persistent object cache.
 	 *
-	 * @since 6.1
+	 * @since 6.1.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -2970,9 +2970,9 @@ class WP_Site_Health {
 		}
 
 		/**
-		 * Filter to force suggestion to use a persistent object cache and bypass threshold checks.
+		 * Filters to force suggestion to use a persistent object cache and bypass threshold checks.
 		 *
-		 * @since 6.1
+		 * @since 6.1.0
 		 *
 		 * @param bool $suggest Whether to suggest using a persistent object cache.
 		 */
@@ -2981,9 +2981,9 @@ class WP_Site_Health {
 		}
 
 		/**
-		 * Filter the thresholds used to determine whether to suggest the use of a persistent object cache.
+		 * Filters the thresholds used to determine whether to suggest the use of a persistent object cache.
 		 *
-		 * @since 6.1
+		 * @since 6.1.0
 		 *
 		 * @param array $thresholds The list of threshold names and numbers.
 		 */
@@ -3047,7 +3047,7 @@ class WP_Site_Health {
 	/**
 	 * Returns a list of available persistent object cache services.
 	 *
-	 * @since 6.1
+	 * @since 6.1.0
 	 *
 	 * @return array The list of available persistent object cache services.
 	 */
@@ -3066,11 +3066,11 @@ class WP_Site_Health {
 		$services = array_keys( array_filter( $extensions ) );
 
 		/**
-		 * Filter the persistent object cache services available to the user.
+		 * Filters the persistent object cache services available to the user.
 		 *
 		 * This can be useful to hide or add services not included in the defaults.
 		 *
-		 * @since 6.1
+		 * @since 6.1.0
 		 *
 		 * @param array $services The list of available persistent object cache services.
 		 */
