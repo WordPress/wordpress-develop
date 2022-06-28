@@ -39,7 +39,7 @@ jobs:
   # Performs the following steps:
   # - Set environment variables.
   # - Sets up the environment variables needed for testing with memcached (if desired).
-  # - Installs NodeJS 14.
+  # - Installs NodeJS.
   # - Installs NPM dependencies
   # - Configures caching for Composer.
   # - Installs Composer dependencies (if desired).
