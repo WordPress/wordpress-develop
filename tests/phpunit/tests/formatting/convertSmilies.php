@@ -3,6 +3,8 @@
 /**
  * @group formatting
  * @group emoji
+ *
+ * @covers ::convert_smilies
  */
 class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 

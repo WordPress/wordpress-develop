@@ -3,6 +3,8 @@
 /**
  * @group formatting
  * @expectedDeprecated wp_richedit_pre
+ *
+ * @covers ::wp_richedit_pre
  */
 class Tests_Formatting_wpRicheditPre extends WP_UnitTestCase {
 

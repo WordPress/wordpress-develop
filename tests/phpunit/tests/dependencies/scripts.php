@@ -740,13 +740,6 @@ JS;
 		$expected .= "<script type='text/javascript' id='wp-i18n-js-after'>\n";
 		$expected .= "wp.i18n.setLocaleData( { 'text direction\u0004ltr': [ 'ltr' ] } );\n";
 		$expected .= "</script>\n";
-		$expected .= "<script type='text/javascript' id='wp-a11y-js-translations'>\n";
-		$expected .= "( function( domain, translations ) {\n";
-		$expected .= "	var localeData = translations.locale_data[ domain ] || translations.locale_data.messages;\n";
-		$expected .= "	localeData[\"\"].domain = domain;\n";
-		$expected .= "	wp.i18n.setLocaleData( localeData, domain );\n";
-		$expected .= "} )( \"default\", { \"locale_data\": { \"messages\": { \"\": {} } } } );\n";
-		$expected .= "</script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/a11y{$suffix}.js' id='wp-a11y-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example2.com' id='test-example2-js'></script>\n";
 		$expected .= "<script type='text/javascript' id='test-example2-js-after'>\nconsole.log(\"after\");\n</script>\n";
@@ -994,6 +987,7 @@ JS;
 
 	/**
 	 * @ticket 45103
+	 * @ticket 55250
 	 */
 	public function test_wp_set_script_translations_when_translation_file_does_not_exist() {
 		wp_register_script( 'wp-i18n', '/wp-includes/js/dist/wp-i18n.js', array(), null );
@@ -1001,19 +995,6 @@ JS;
 		wp_set_script_translations( 'test-example', 'admin', DIR_TESTDATA . '/languages/' );
 
 		$expected  = "<script type='text/javascript' src='/wp-includes/js/dist/wp-i18n.js' id='wp-i18n-js'></script>\n";
-		$expected .= str_replace(
-			array(
-				'__DOMAIN__',
-				'__HANDLE__',
-				'__JSON_TRANSLATIONS__',
-			),
-			array(
-				'admin',
-				'test-example',
-				'{ "locale_data": { "messages": { "": {} } } }',
-			),
-			$this->wp_scripts_print_translations_output
-		);
 		$expected .= "<script type='text/javascript' src='/wp-admin/js/script.js' id='test-example-js'></script>\n";
 
 		$this->assertSameIgnoreEOL( $expected, get_echo( 'wp_print_scripts' ) );
@@ -1499,5 +1480,39 @@ JS;
 			array( 1, '1', true ),
 			array( false, '[""]' ),
 		);
+	}
+
+	/**
+	 * @ticket 55628
+	 * @covers ::wp_set_script_translations
+	 */
+	public function test_wp_external_wp_i18n_print_order() {
+		global $wp_scripts;
+
+		$wp_scripts->do_concat    = true;
+		$wp_scripts->default_dirs = array( '/default/' );
+
+		// wp-i18n script in a non-default directory.
+		wp_register_script( 'wp-i18n', '/plugins/wp-i18n.js', array(), null );
+		// Script in default dir that's going to be concatenated.
+		wp_enqueue_script( 'jquery-core', '/default/jquery-core.js', array(), null );
+		// Script in default dir that depends on wp-i18n.
+		wp_enqueue_script( 'common', '/default/common.js', array(), null );
+		wp_set_script_translations( 'common' );
+
+		$print_scripts = get_echo(
+			function() {
+				wp_print_scripts();
+				_print_scripts();
+			}
+		);
+
+		// The non-default script should end concatenation and maintain order.
+		$ver       = get_bloginfo( 'version' );
+		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core&amp;ver={$ver}'></script>\n";
+		$expected .= "<script type='text/javascript' src='/plugins/wp-i18n.js' id='wp-i18n-js'></script>\n";
+		$expected .= "<script type='text/javascript' src='/default/common.js' id='common-js'></script>\n";
+
+		$this->assertSame( $expected, $print_scripts );
 	}
 }
