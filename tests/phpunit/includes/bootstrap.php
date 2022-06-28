@@ -322,6 +322,7 @@ require __DIR__ . '/testcase-xmlrpc.php';
 require __DIR__ . '/testcase-ajax.php';
 require __DIR__ . '/testcase-canonical.php';
 require __DIR__ . '/testcase-xml.php';
+require __DIR__ . '/testcase-dominant-color.php';
 require __DIR__ . '/exceptions.php';
 require __DIR__ . '/utils.php';
 require __DIR__ . '/spy-rest-server.php';
