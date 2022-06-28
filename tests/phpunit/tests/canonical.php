@@ -19,6 +19,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	 * @dataProvider data_canonical
 	 *
 	 * @covers ::redirect_canonical
+	 * @covers ::home_url
 	 */
 	public function test_canonical( $test_url, $expected, $ticket = 0, $expected_doing_it_wrong = array() ) {
 
@@ -349,6 +350,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	 *
 	 * @ticket 43056
 	 *
+	 * @covers ::redirect_canonical
 	 * @covers ::home_url
 	 */
 	public function test_redirect_guess_404_permalink_post_types() {
