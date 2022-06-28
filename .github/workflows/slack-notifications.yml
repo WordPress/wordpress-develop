@@ -70,7 +70,7 @@ jobs:
       - name: Determine the status of the previous attempt
         id: previous-attempt-result
         if: ${{ github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
-        uses: actions/github-script@9ac08808f993958e9de277fe43a64532a609130e # v6.0.0
+        uses: actions/github-script@7a5c598405937d486b0331594b5da2b14db670da # v6.1.0
         with:
           script: |
             const workflow_run = await github.rest.actions.getWorkflowRun({
@@ -140,7 +140,7 @@ jobs:
 
       - name: Get the commit message
         id: current-commit-message
-        uses: actions/github-script@9ac08808f993958e9de277fe43a64532a609130e # v6.0.0
+        uses: actions/github-script@7a5c598405937d486b0331594b5da2b14db670da # v6.1.0
         if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
         with:
           script: |
@@ -174,7 +174,7 @@ jobs:
 
     steps:
       - name: Post failure notifications to Slack
-        uses: slackapi/slack-github-action@16b6c78ee73689a627b65332b34e5d409c7299da # v1.18.0
+        uses: slackapi/slack-github-action@34c3fd73326693ef04728f8611669d918a2d781d # v1.19.0
         with:
           payload: ${{ needs.prepare.outputs.payload }}
         env:
@@ -190,7 +190,7 @@ jobs:
 
     steps:
       - name: Post failure notifications to Slack
-        uses: slackapi/slack-github-action@16b6c78ee73689a627b65332b34e5d409c7299da # v1.18.0
+        uses: slackapi/slack-github-action@34c3fd73326693ef04728f8611669d918a2d781d # v1.19.0
         with:
           payload: ${{ needs.prepare.outputs.payload }}
         env:
@@ -206,7 +206,7 @@ jobs:
 
     steps:
       - name: Post success notifications to Slack
-        uses: slackapi/slack-github-action@16b6c78ee73689a627b65332b34e5d409c7299da # v1.18.0
+        uses: slackapi/slack-github-action@34c3fd73326693ef04728f8611669d918a2d781d # v1.19.0
         with:
           payload: ${{ needs.prepare.outputs.payload }}
         env:
@@ -222,7 +222,7 @@ jobs:
 
     steps:
       - name: Post cancelled notifications to Slack
-        uses: slackapi/slack-github-action@16b6c78ee73689a627b65332b34e5d409c7299da # v1.18.0
+        uses: slackapi/slack-github-action@34c3fd73326693ef04728f8611669d918a2d781d # v1.19.0
         with:
           payload: ${{ needs.prepare.outputs.payload }}
         env:

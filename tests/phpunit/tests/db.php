@@ -424,6 +424,8 @@ class Tests_DB extends WP_UnitTestCase {
 	public function data_prepare_incorrect_arg_count() {
 		global $wpdb;
 
+		$placeholder_escape = $wpdb->placeholder_escape();
+
 		return array(
 			array(
 				"SELECT * FROM $wpdb->users WHERE id = %d AND user_login = %s",     // Query.
@@ -443,12 +445,12 @@ class Tests_DB extends WP_UnitTestCase {
 			array(
 				"SELECT * FROM $wpdb->users WHERE id = %d AND %% AND user_login = %s",
 				array( 1, 'admin', 'extra-arg' ),
-				"SELECT * FROM $wpdb->users WHERE id = 1 AND {$wpdb->placeholder_escape()} AND user_login = 'admin'",
+				"SELECT * FROM $wpdb->users WHERE id = 1 AND {$placeholder_escape} AND user_login = 'admin'",
 			),
 			array(
 				"SELECT * FROM $wpdb->users WHERE id = %%%d AND %F AND %f AND user_login = %s",
 				array( 1, 2.3, '4.5', 'admin', 'extra-arg' ),
-				"SELECT * FROM $wpdb->users WHERE id = {$wpdb->placeholder_escape()}1 AND 2.300000 AND 4.500000 AND user_login = 'admin'",
+				"SELECT * FROM $wpdb->users WHERE id = {$placeholder_escape}1 AND 2.300000 AND 4.500000 AND user_login = 'admin'",
 			),
 			array(
 				"SELECT * FROM $wpdb->users WHERE id = %d AND user_login = %s",
@@ -1552,6 +1554,8 @@ class Tests_DB extends WP_UnitTestCase {
 	public function data_prepare_with_placeholders() {
 		global $wpdb;
 
+		$placeholder_escape = $wpdb->placeholder_escape();
+
 		return array(
 			array(
 				'%5s',   // SQL to prepare.
@@ -1563,7 +1567,7 @@ class Tests_DB extends WP_UnitTestCase {
 				'%1$d %%% % %%1$d%% %%%1$d%%',
 				1,
 				true,
-				"1 {$wpdb->placeholder_escape()}{$wpdb->placeholder_escape()} {$wpdb->placeholder_escape()} {$wpdb->placeholder_escape()}1\$d{$wpdb->placeholder_escape()} {$wpdb->placeholder_escape()}1{$wpdb->placeholder_escape()}",
+				"1 {$placeholder_escape}{$placeholder_escape} {$placeholder_escape} {$placeholder_escape}1\$d{$placeholder_escape} {$placeholder_escape}1{$placeholder_escape}",
 			),
 			array(
 				'%-5s',
@@ -1605,25 +1609,25 @@ class Tests_DB extends WP_UnitTestCase {
 				'%s',
 				' %s ',
 				false,
-				"' {$wpdb->placeholder_escape()}s '",
+				"' {$placeholder_escape}s '",
 			),
 			array(
 				'%1$s',
 				' %s ',
 				false,
-				" {$wpdb->placeholder_escape()}s ",
+				" {$placeholder_escape}s ",
 			),
 			array(
 				'%1$s',
 				' %1$s ',
 				false,
-				" {$wpdb->placeholder_escape()}1\$s ",
+				" {$placeholder_escape}1\$s ",
 			),
 			array(
 				'%d %1$d %%% %',
 				1,
 				true,
-				"1 1 {$wpdb->placeholder_escape()}{$wpdb->placeholder_escape()} {$wpdb->placeholder_escape()}",
+				"1 1 {$placeholder_escape}{$placeholder_escape} {$placeholder_escape}",
 			),
 			array(
 				'%d %2$s',
@@ -1665,25 +1669,25 @@ class Tests_DB extends WP_UnitTestCase {
 				"%%s %%'%1\$s'",
 				'hello',
 				false,
-				"{$wpdb->placeholder_escape()}s {$wpdb->placeholder_escape()}'hello'",
+				"{$placeholder_escape}s {$placeholder_escape}'hello'",
 			),
 			array(
 				'%%s %%"%1$s"',
 				'hello',
 				false,
-				"{$wpdb->placeholder_escape()}s {$wpdb->placeholder_escape()}\"hello\"",
+				"{$placeholder_escape}s {$placeholder_escape}\"hello\"",
 			),
 			array(
 				'%s',
 				' %  s ',
 				false,
-				"' {$wpdb->placeholder_escape()}  s '",
+				"' {$placeholder_escape}  s '",
 			),
 			array(
 				'%%f %%"%1$f"',
 				3,
 				false,
-				"{$wpdb->placeholder_escape()}f {$wpdb->placeholder_escape()}\"3.000000\"",
+				"{$placeholder_escape}f {$placeholder_escape}\"3.000000\"",
 			),
 			array(
 				'WHERE second=\'%2$s\' AND first=\'%1$s\'',
@@ -1701,19 +1705,19 @@ class Tests_DB extends WP_UnitTestCase {
 				"'%'%%s",
 				'hello',
 				true,
-				"'{$wpdb->placeholder_escape()}'{$wpdb->placeholder_escape()}s",
+				"'{$placeholder_escape}'{$placeholder_escape}s",
 			),
 			array(
 				"'%'%%s%s",
 				'hello',
 				false,
-				"'{$wpdb->placeholder_escape()}'{$wpdb->placeholder_escape()}s'hello'",
+				"'{$placeholder_escape}'{$placeholder_escape}s'hello'",
 			),
 			array(
 				"'%'%%s %s",
 				'hello',
 				false,
-				"'{$wpdb->placeholder_escape()}'{$wpdb->placeholder_escape()}s 'hello'",
+				"'{$placeholder_escape}'{$placeholder_escape}s 'hello'",
 			),
 			array(
 				"'%-'#5s' '%'#-+-5s'",
@@ -1761,7 +1765,7 @@ class Tests_DB extends WP_UnitTestCase {
 				'WHERE %i = %d;',
 				array( 'evil_%s_field', 321 ),
 				false,
-				"WHERE `evil_{$wpdb->placeholder_escape()}s_field` = 321;",
+				"WHERE `evil_{$placeholder_escape}s_field` = 321;",
 			),
 			array(
 				'WHERE %i = %d;',
@@ -1896,13 +1900,16 @@ class Tests_DB extends WP_UnitTestCase {
 
 	public function data_escape_and_prepare() {
 		global $wpdb;
+
+		$placeholder_escape = $wpdb->placeholder_escape();
+
 		return array(
 			array(
 				'%s',                                  // String to pass through esc_url().
 				' {ESCAPE} ',                          // Query to insert the output of esc_url() into, replacing "{ESCAPE}".
 				'foo',                                 // Data to send to prepare().
 				true,                                  // Whether to expect an incorrect usage error or not.
-				" {$wpdb->placeholder_escape()}s ",    // Expected output.
+				" {$placeholder_escape}s ",    // Expected output.
 			),
 			array(
 				'foo%sbar',
@@ -1916,7 +1923,7 @@ class Tests_DB extends WP_UnitTestCase {
 				' %s {ESCAPE} ',
 				'foo',
 				false,
-				" 'foo' {$wpdb->placeholder_escape()}s ",
+				" 'foo' {$placeholder_escape}s ",
 			),
 		);
 	}
