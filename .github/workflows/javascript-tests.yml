@@ -47,7 +47,6 @@ jobs:
   # - Logs updated debug information.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Run the WordPress QUnit tests.
-  # - Ensures version-controlled files are not modified or deleted.
   test-js:
     name: QUnit Tests
     runs-on: ubuntu-latest
@@ -81,9 +80,6 @@ jobs:
 
       - name: Run QUnit tests
         run: npm run grunt qunit:compiled
-
-      - name: Ensure version-controlled files are not modified or deleted
-        run: git diff --exit-code
 
   slack-notifications:
     name: Slack Notifications
