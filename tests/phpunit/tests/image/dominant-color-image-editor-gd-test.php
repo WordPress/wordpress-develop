@@ -12,7 +12,7 @@ class Dominant_Color_Image_Editor_GD_Test extends DominantColorTestCase {
 
 		add_filter(
 			'wp_image_editors',
-			static function () {
+			function () {
 				return array( 'WP_Image_Editor_GD' );
 			},
 			100
