@@ -2221,6 +2221,36 @@ function register_initial_settings() {
 	);
 
 	register_setting(
+		'reading',
+		'show_on_front',
+		array(
+			'show_in_rest' => true,
+			'type'         => 'string',
+			'description'  => __( 'What to show on the front page' ),
+		)
+	);
+
+	register_setting(
+		'reading',
+		'page_on_front',
+		array(
+			'show_in_rest' => true,
+			'type'         => 'number',
+			'description'  => __( 'The ID of the page that should be displayed on the front page' ),
+		)
+	);
+
+	register_setting(
+		'reading',
+		'page_for_posts',
+		array(
+			'show_in_rest' => true,
+			'type'         => 'number',
+			'description'  => __( 'The ID of the page that should display the latest posts' ),
+		)
+	);
+
+	register_setting(
 		'discussion',
 		'default_ping_status',
 		array(
