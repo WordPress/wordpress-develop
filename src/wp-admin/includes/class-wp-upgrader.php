@@ -872,7 +872,7 @@ class WP_Upgrader {
 		$this->skin->set_result( $result );
 		if ( is_wp_error( $result ) ) {
 			if ( ! empty( $options['hook_extra']['temp_backup'] ) ) {
-				$this->temp_restores[] = $this->options['hook_extra']['temp_backup'];
+				$this->temp_restores[] = $options['hook_extra']['temp_backup'];
 
 				/*
 				 * Restore the backup on shutdown.
