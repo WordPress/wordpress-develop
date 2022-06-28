@@ -40,7 +40,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-
   # Runs the JavaScript coding standards checks.
   #
   # JSHint violations are not currently reported inline with annotations.
