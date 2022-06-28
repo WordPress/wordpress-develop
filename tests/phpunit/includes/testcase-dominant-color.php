@@ -1,6 +1,6 @@
 <?php
 
-abstract class DominantColorTestCase extends WP_UnitTestCase {
+abstract class DominantColorTestCase extends WP_Image_UnitTestCase {
 	/**
 	 * Data provider for test_get_dominant_color_GD.
 	 *
