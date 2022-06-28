@@ -2,6 +2,7 @@
 
 /**
  * @group bookmark
+ *
  * @covers ::get_bookmark
  */
 class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
@@ -42,8 +43,6 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	 * Path 1A: Given empty bookmark and global link exists.
 	 *
 	 * @dataProvider data_when_empty_bookmark
-	 *
-	 * @covers ::get_bookmark
 	 */
 	public function test_should_return_global_link_in_requested_output_format( $args ) {
 		$GLOBALS['link'] = self::$bookmark;
@@ -62,8 +61,6 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	 * Path 1B: Given empty bookmark and global link does not exist.
 	 *
 	 * @dataProvider data_when_empty_bookmark
-	 *
-	 * @covers ::get_bookmark
 	 */
 	public function test_should_return_null( $args ) {
 		$args = $this->init_func_args( $args, 0 );
@@ -131,8 +128,6 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	 * Path 2: Bookmark instance is given.
 	 *
 	 * @dataProvider data_when_instance_bookmark
-	 *
-	 * @covers ::get_bookmark
 	 */
 	public function test_should_cache_bookmark_when_given_instance( $args ) {
 		$args     = $this->init_func_args( $args );
@@ -204,8 +199,6 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	 * @dataProvider data_when_else
 	 *
 	 * @param array $args Function argument list.
-	 *
-	 * @covers ::get_bookmark
 	 */
 	public function test_should_return_global_when_else( $args ) {
 		$args            = $this->init_func_args( $args, self::$bookmark->link_id );
@@ -225,8 +218,6 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	 * @dataProvider data_when_else
 	 *
 	 * @param array $args Function argument list.
-	 *
-	 * @covers ::get_bookmark
 	 */
 	public function test_should_return_cached_bookmark_when_given_existing_link_id( $args ) {
 		// Cache the bookmark instance to setup the test.
@@ -258,8 +249,6 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	 * @dataProvider data_when_else
 	 *
 	 * @param array $args Function argument list.
-	 *
-	 * @covers ::get_bookmark
 	 */
 	public function test_should_return_null_when_bookmark_not_in_database( $args ) {
 		$bookmark_link_id = self::$bookmark->link_id * 100;
@@ -285,8 +274,6 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	 * @dataProvider data_when_else
 	 *
 	 * @param array $args Function argument list.
-	 *
-	 * @covers ::get_bookmark
 	 */
 	public function test_should_return_existing_bookmark_from_database( $args ) {
 		$args     = $this->init_func_args( $args, self::$bookmark->link_id );
