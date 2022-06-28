@@ -1143,7 +1143,7 @@ class WP_Upgrader {
 			}
 		}
 
-			return $errors->has_errors() ? $errors : true;
+		return $errors->has_errors() ? $errors : true;
 	}
 
 	/**
