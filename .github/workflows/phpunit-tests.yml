@@ -26,7 +26,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
   cancel-in-progress: true
 
-
 env:
   LOCAL_DIR: build
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
