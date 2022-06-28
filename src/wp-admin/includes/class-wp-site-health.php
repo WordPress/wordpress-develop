@@ -1732,17 +1732,17 @@ class WP_Site_Health {
 			if ( $page_cache_detail['response_time'] < $threshold ) {
 				$page_cache_test_summary[] = '<span class="dashicons dashicons-yes-alt"></span> ' . sprintf(
 					/* translators: %d is the response time in milliseconds */
-						__( 'Median server response time was %1$s milliseconds. This is less than the recommended %2$s millisecond threshold.' ),
-						number_format_i18n( $page_cache_detail['response_time'] ),
-						number_format_i18n( $threshold )
-					);
+					__( 'Median server response time was %1$s milliseconds. This is less than the recommended %2$s millisecond threshold.' ),
+					number_format_i18n( $page_cache_detail['response_time'] ),
+					number_format_i18n( $threshold )
+				);
 			} else {
 				$page_cache_test_summary[] = '<span class="dashicons dashicons-warning"></span> ' . sprintf(
 					/* translators: %d is the response time in milliseconds */
-						__( 'Median server response time was %1$s milliseconds. It should be less than the recommended %2$s milliseconds threshold.' ),
-						number_format_i18n( $page_cache_detail['response_time'] ),
-						number_format_i18n( $threshold )
-					);
+					__( 'Median server response time was %1$s milliseconds. It should be less than the recommended %2$s milliseconds threshold.' ),
+					number_format_i18n( $page_cache_detail['response_time'] ),
+					number_format_i18n( $threshold )
+				);
 			}
 
 			if ( empty( $page_cache_detail['headers'] ) ) {
@@ -2477,7 +2477,7 @@ class WP_Site_Health {
 					'has_rest'          => true,
 					'async_direct_test' => array( WP_Site_Health::get_instance(), 'get_test_https_status' ),
 				),
-				'page_cache'         => array(
+				'page_cache'           => array(
 					'label'             => __( 'Page caching' ),
 					'test'              => rest_url( 'wp-site-health/v1/tests/page-cache' ),
 					'has_rest'          => true,
