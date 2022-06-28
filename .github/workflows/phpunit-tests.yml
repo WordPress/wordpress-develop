@@ -42,7 +42,7 @@ jobs:
   # - Cancels all previous workflow runs for pull requests that have not completed.
   # - Checks out the repository.
   # - Logs debug information about the runner container.
-  # - Installs NodeJS 14.
+  # - Installs NodeJS.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Builds WordPress to run from the `build` directory.
   # - Creates a ZIP file of compiled WordPress.
@@ -101,7 +101,7 @@ jobs:
   # - Sets up the environment variables needed for testing with memcached (if desired).
   # - Downloads the built WordPress artifact from the previous job.
   # - Unzips the artifact.
-  # - Installs NodeJS 14.
+  # - Installs NodeJS.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Configures caching for Composer.
   # _ Installs Composer dependencies (if desired).
