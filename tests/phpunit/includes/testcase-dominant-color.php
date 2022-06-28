@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '../tests/image/base.php';
+require_once __DIR__ . '/../tests/image/base.php';
 
 abstract class DominantColorTestCase extends WP_Image_UnitTestCase {
 	/**
