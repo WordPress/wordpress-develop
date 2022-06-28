@@ -111,7 +111,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 			'site_icon', // Registered in wp-includes/blocks/site-logo.php
 			'show_on_front',
 			'page_on_front',
-			'posts_per_page',
+			'page_for_posts',
 		);
 
 		if ( ! is_multisite() ) {
