@@ -9635,12 +9635,12 @@ mockedApiResponse.Schema = {
                         },
                         "page_on_front": {
                             "description": "The ID of the page that should be displayed on the front page",
-                            "type": "number",
+                            "type": "integer",
                             "required": false
                         },
                         "page_for_posts": {
                             "description": "The ID of the page that should display the latest posts",
-                            "type": "number",
+                            "type": "integer",
                             "required": false
                         },
                         "default_ping_status": {
