@@ -74,13 +74,11 @@ jobs:
               return previous_run.data.conclusion;
             }
 
-            let workflow_id = workflow_run.data.workflow_id;
-
             // Otherwise, check the previous workflow run.
             const previous_runs = await github.rest.actions.listWorkflowRuns({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              workflow_id: workflow_id,
+              workflow_id: workflow_run.data.workflow_id,
               branch: '${{ env.CURRENT_BRANCH }}',
               exclude_pull_requests: true,
             });
