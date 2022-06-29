@@ -5540,7 +5540,7 @@ function dominant_color_img_tag_add_dominant_color( $filtered_image, $context, $
 	 *
 	 * You can set this to false in order disable adding the dominant color to the image.
 	 *
-	 * @since 1.2.0
+	 * @since 6.1
 	 *
 	 * @param bool   $add_dominant_color Whether to add the dominant color to the image. default true.
 	 * @param int    $attachment_id      The image attachment ID.
