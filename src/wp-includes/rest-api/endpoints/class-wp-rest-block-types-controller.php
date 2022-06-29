@@ -543,7 +543,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 				),
 				'style'            => array(
 					'description' => __( 'Public facing and editor style handle.' ),
-					'type'        => array( 'string', 'null' ),
+					'type'        => array( 'array', 'string', 'null' ),
 					'default'     => null,
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
