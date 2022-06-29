@@ -301,6 +301,61 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 56094
+	 */
+	public function test_handle_passed_register_block_style_handle_array() {
+		$metadata = array(
+			'style' => array( 'test-style-handle' ),
+		);
+		$result   = register_block_style_handle( $metadata, 'style' );
+
+		$this->assertSame( array( 'test-style-handle' ), $result );
+	}
+
+	/**
+	 * @ticket 56094
+	 */
+	public function test_handle_passed_register_block_style_element() {
+		$style_element = array( 'color' => array( 'text' => '#000' ) );
+		$metadata      = array( 'style' => $style_element );
+		$result        = register_block_style_handle( $metadata, 'style' );
+
+		$this->assertSame( array( $style_element ), $result );
+	}
+
+	/**
+	 * @ticket 56094
+	 */
+	public function test_block_register_wraps_style_handle_in_an_array() {
+		$type = register_block_type( 'core/test-styles', array( 'style' => 'test-handle' ) );
+		unregister_block_type( 'core/test-styles' );
+
+		$this->assertSame( array( 'test-handle' ), $type->style );
+	}
+
+	/**
+	 * @ticket 56094
+	 */
+	public function test_block_register_wraps_style_definition_in_an_array() {
+		$style = array( 'color' => array( 'text' => '#000' ) );
+		$type  = register_block_type( 'core/test-styles', array( 'style' => $style ) );
+		unregister_block_type( 'core/test-styles' );
+
+		$this->assertSame( array( $style ), $type->style );
+	}
+
+	/**
+	 * @ticket 56094
+	 */
+	public function test_block_register_preserves_an_array() {
+		$style = array( 'color' => array( 'text' => '#000' ) );
+		$type  = register_block_type( 'core/test-styles', array( 'style' => array( 'handle', $style ) ) );
+		unregister_block_type( 'core/test-styles' );
+
+		$this->assertSame( array( 'handle', $style ), $type->style );
+	}
+
+	/**
 	 * @ticket 50263
 	 * @ticket 50328
 	 */
@@ -446,8 +501,8 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$this->assertSame( 'tests-notice-editor-script', $result->editor_script );
 		$this->assertSame( 'tests-notice-script', $result->script );
 		$this->assertSame( 'tests-notice-view-script', $result->view_script );
-		$this->assertSame( 'tests-notice-editor-style', $result->editor_style );
-		$this->assertSame( 'tests-notice-style', $result->style );
+		$this->assertSame( array( 'tests-notice-editor-style' ), $result->editor_style );
+		$this->assertSame( array( 'tests-notice-style' ), $result->style );
 
 		// @ticket 50328
 		$this->assertSame(

@@ -160,8 +160,14 @@ function register_block_style_handle( $metadata, $field_name ) {
 		return false;
 	}
 	$style_data = $metadata[ $field_name ];
-	if ( ! is_array( $style_data ) ) {
+	if ( is_string( $style_data ) ) {
 		return register_single_style_handle_for_block( $metadata, $field_name, $style_data );
+	}
+
+	$is_assoc_array = count( array_filter( array_keys( $style_data ), 'is_string' ) ) > 0;
+	if ( $is_assoc_array ) {
+		// $style_data is a definition like { "color": { "text": "#fff" } }.
+		return array( $style_data );
 	}
 
 	/*
