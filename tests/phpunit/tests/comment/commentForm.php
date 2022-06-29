@@ -2,7 +2,6 @@
 
 /**
  * @group  comment
- * @covers ::comment_form
  *
  * @covers ::comment_form
  */

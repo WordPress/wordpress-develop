@@ -41,6 +41,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_handle_comment_submission
+	 * @covers ::did_action
 	 */
 	public function test_submitting_comment_to_invalid_post_returns_error() {
 		$error = 'comment_id_not_found';
@@ -60,6 +61,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_handle_comment_submission
+	 * @covers ::did_action
 	 */
 	public function test_submitting_comment_to_post_with_closed_comments_returns_error() {
 
@@ -86,6 +88,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_handle_comment_submission
+	 * @covers ::did_action
 	 */
 	public function test_submitting_comment_to_trashed_post_returns_error() {
 
@@ -110,6 +113,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_handle_comment_submission
+	 * @covers ::did_action
 	 */
 	public function test_submitting_comment_to_draft_post_returns_error() {
 		$error = 'comment_on_draft';
@@ -138,6 +142,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	 * @ticket 39650
 	 *
 	 * @covers ::wp_handle_comment_submission
+	 * @covers ::did_action
 	 */
 	public function test_submitting_comment_to_draft_post_returns_error_message_for_user_with_correct_caps() {
 		$error = 'comment_on_draft';
@@ -166,6 +171,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_handle_comment_submission
+	 * @covers ::did_action
 	 */
 	public function test_submitting_comment_to_scheduled_post_returns_error() {
 
@@ -195,6 +201,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_handle_comment_submission
+	 * @covers ::did_action
 	 */
 	public function test_submitting_comment_to_password_required_post_returns_error() {
 
@@ -351,6 +358,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_handle_comment_submission
+	 * @covers ::is_user_logged_in
 	 */
 	public function test_submitting_comment_anonymously_to_private_post_returns_error() {
 
@@ -375,6 +383,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_handle_comment_submission
+	 * @covers ::current_user_can
 	 */
 	public function test_submitting_comment_as_logged_in_user_to_inaccessible_private_post_returns_error() {
 
@@ -408,6 +417,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_handle_comment_submission
+	 * @covers ::current_user_can
 	 */
 	public function test_submitting_comment_to_private_post_with_closed_comments_returns_correct_error() {
 
@@ -442,6 +452,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_handle_comment_submission
+	 * @covers ::current_user_can
 	 */
 	public function test_submitting_comment_to_own_private_post_succeeds() {
 
@@ -468,6 +479,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_handle_comment_submission
+	 * @covers ::current_user_can
 	 */
 	public function test_submitting_comment_to_accessible_private_post_succeeds() {
 
@@ -494,6 +506,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_handle_comment_submission
+	 * @covers ::current_user_can
 	 */
 	public function test_anonymous_user_cannot_comment_unfiltered_html() {
 		if ( PHP_VERSION_ID >= 80100 ) {
@@ -543,6 +556,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_handle_comment_submission
+	 * @covers ::current_user_can
 	 */
 	public function test_unprivileged_user_cannot_comment_unfiltered_html_even_with_valid_nonce() {
 
@@ -570,6 +584,8 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_handle_comment_submission
+	 * @covers ::current_user_can
+	 * @covers ::wp_verify_nonce
 	 */
 	public function test_privileged_user_can_comment_unfiltered_html_with_valid_nonce() {
 
@@ -605,6 +621,8 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_handle_comment_submission
+	 * @covers ::current_user_can
+	 * @covers ::user_can
 	 */
 	public function test_privileged_user_cannot_comment_unfiltered_html_without_valid_nonce() {
 
@@ -632,6 +650,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_handle_comment_submission
+	 * @covers WP_Error::get_error_code
 	 */
 	public function test_submitting_comment_as_anonymous_user_when_registration_required_returns_error() {
 
@@ -654,6 +673,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_handle_comment_submission
+	 * @covers WP_Error::get_error_code
 	 */
 	public function test_submitting_comment_with_no_name_when_name_email_required_returns_error() {
 
@@ -678,6 +698,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_handle_comment_submission
+	 * @covers WP_Error::get_error_code
 	 */
 	public function test_submitting_comment_with_no_email_when_name_email_required_returns_error() {
 
@@ -702,6 +723,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_handle_comment_submission
+	 * @covers WP_Error::get_error_code
 	 */
 	public function test_submitting_comment_with_invalid_email_when_name_email_required_returns_error() {
 
@@ -727,6 +749,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_handle_comment_submission
+	 * @covers WP_Error::get_error_code
 	 */
 	public function test_submitting_comment_with_no_comment_content_returns_error() {
 
@@ -749,6 +772,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	 * @ticket 10377
 	 *
 	 * @covers ::wp_handle_comment_submission
+	 * @covers WP_Error::get_error_code
 	 */
 	public function test_submitting_comment_with_content_too_long_returns_error() {
 		$error = 'comment_content_column_length';
@@ -769,6 +793,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	 * @ticket 10377
 	 *
 	 * @covers ::wp_handle_comment_submission
+	 * @covers WP_Error::get_error_code
 	 */
 	public function test_submitting_comment_with_author_too_long_returns_error() {
 		$error = 'comment_author_column_length';
@@ -789,6 +814,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	 * @ticket 10377
 	 *
 	 * @covers ::wp_handle_comment_submission
+	 * @covers WP_Error::get_error_code
 	 */
 	public function test_submitting_comment_with_email_too_long_returns_error() {
 		$error = 'comment_author_email_column_length';
@@ -809,6 +835,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	 * @ticket 10377
 	 *
 	 * @covers ::wp_handle_comment_submission
+	 * @covers WP_Error::get_error_code
 	 */
 	public function test_submitting_comment_with_url_too_long_returns_error() {
 		$error = 'comment_author_url_column_length';
@@ -860,7 +887,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	/**
 	 * @ticket 49236
 	 *
-	 * @covers ::wp_handle_comment_submission
+	 * @covers ::wp_insert_comment
 	 */
 	public function test_inserting_comment_with_empty_type_results_in_correct_type() {
 		$data       = array(
@@ -929,6 +956,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	 * @ticket 36901
 	 *
 	 * @covers ::wp_handle_comment_submission
+	 * @covers WP_Error::get_error_code
 	 */
 	public function test_submitting_duplicate_comments() {
 		if ( PHP_VERSION_ID >= 80100 ) {
@@ -957,6 +985,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	 * @ticket 36901
 	 *
 	 * @covers ::wp_handle_comment_submission
+	 * @covers WP_Error::get_error_code
 	 */
 	public function test_comments_flood() {
 		if ( PHP_VERSION_ID >= 80100 ) {

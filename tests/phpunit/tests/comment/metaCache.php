@@ -243,6 +243,7 @@ class Tests_Comment_Meta_Cache extends WP_UnitTestCase {
 	 * @ticket 44467
 	 *
 	 * @covers ::add_metadata
+	 * @covers ::wp_cache_get_last_changed
 	 */
 	public function test_add_metadata_sets_comments_last_changed() {
 		$comment_id = self::factory()->comment->create();
@@ -257,6 +258,7 @@ class Tests_Comment_Meta_Cache extends WP_UnitTestCase {
 	 * @ticket 44467
 	 *
 	 * @covers ::update_metadata
+	 * @covers ::wp_cache_get_last_changed
 	 */
 	public function test_update_metadata_sets_comments_last_changed() {
 		$comment_id = self::factory()->comment->create();
@@ -271,6 +273,7 @@ class Tests_Comment_Meta_Cache extends WP_UnitTestCase {
 	 * @ticket 44467
 	 *
 	 * @covers ::delete_metadata
+	 * @covers ::wp_cache_get_last_changed
 	 */
 	public function test_delete_metadata_sets_comments_last_changed() {
 		$comment_id = self::factory()->comment->create();
