@@ -413,6 +413,7 @@ class WP_Block_Type {
 	 * That's a lot of work for the developer to handle, so we'll handle it for them.
 	 * This function always stores the styles in the mixed array format.
 	 *
+	 * @since 6.1.0
 	 * @param array $args Array or string of arguments for registering a block type.
 	 * @return array Modified array with styles in a consistent format.
 	 */
