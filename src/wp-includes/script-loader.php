@@ -2502,6 +2502,9 @@ function wp_enqueue_registered_block_scripts_and_styles() {
 	foreach ( $block_registry->get_all_registered() as $block_name => $block_type ) {
 		// Front-end styles.
 		if ( ! empty( $block_type->style ) ) {
+			if(!is_array($block_type->style)) {
+				var_dump($block_type->style);
+			}
 			foreach ( $block_type->style as $single_style ) {
 				if ( is_string( $single_style ) ) {
 					wp_enqueue_style( $single_style );
