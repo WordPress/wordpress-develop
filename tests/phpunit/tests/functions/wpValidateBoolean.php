@@ -32,32 +32,32 @@ class Tests_Functions_wpValidateBoolean extends WP_UnitTestCase {
 	 * }
 	 */
 	public function data_wp_validate_boolean() {
-			$std = new \stdClass();
+		$std = new \stdClass();
 
-			return array(
-				array( null, false ),
-				array( true, true ),
-				array( false, false ),
-				array( 'true', true ),
-				array( 'false', false ),
-				array( 'FalSE', false ), // @ticket 30238
-				array( 'FALSE', false ), // @ticket 30238
-				array( 'TRUE', true ),
-				array( ' FALSE ', true ),
-				array( 'yes', true ),
-				array( 'no', true ),
-				array( 'string', true ),
-				array( '', false ),
-				array( array(), false ),
-				array( 1, true ),
-				array( 0, false ),
-				array( -1, true ),
-				array( 99, true ),
-				array( 0.1, true ),
-				array( 0.0, false ),
-				array( '1', true ),
-				array( '0', false ),
-				array( $std, true ),
-			);
+		return array(
+			array( null, false ),
+			array( true, true ),
+			array( false, false ),
+			array( 'true', true ),
+			array( 'false', false ),
+			array( 'FalSE', false ), // @ticket 30238
+			array( 'FALSE', false ), // @ticket 30238
+			array( 'TRUE', true ),
+			array( ' FALSE ', true ),
+			array( 'yes', true ),
+			array( 'no', true ),
+			array( 'string', true ),
+			array( '', false ),
+			array( array(), false ),
+			array( 1, true ),
+			array( 0, false ),
+			array( -1, true ),
+			array( 99, true ),
+			array( 0.1, true ),
+			array( 0.0, false ),
+			array( '1', true ),
+			array( '0', false ),
+			array( $std, true ),
+		);
 	}
 }

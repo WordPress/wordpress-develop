@@ -322,7 +322,7 @@ function edit_post( $post_data = null ) {
 	foreach ( $format_meta_urls as $format_meta_url ) {
 		$keyed = '_format_' . $format_meta_url;
 		if ( isset( $post_data[ $keyed ] ) ) {
-			update_post_meta( $post_ID, $keyed, wp_slash( esc_url_raw( wp_unslash( $post_data[ $keyed ] ) ) ) );
+			update_post_meta( $post_ID, $keyed, wp_slash( sanitize_url( wp_unslash( $post_data[ $keyed ] ) ) ) );
 		}
 	}
 
@@ -597,8 +597,14 @@ function bulk_edit_posts( $post_data = null ) {
 
 		$post      = get_post( $post_ID );
 		$tax_names = get_object_taxonomies( $post );
+
 		foreach ( $tax_names as $tax_name ) {
 			$taxonomy_obj = get_taxonomy( $tax_name );
+
+			if ( ! $taxonomy_obj->show_in_quick_edit ) {
+				continue;
+			}
+
 			if ( isset( $tax_input[ $tax_name ] ) && current_user_can( $taxonomy_obj->cap->assign_terms ) ) {
 				$new_terms = $tax_input[ $tax_name ];
 			} else {
@@ -1661,8 +1667,13 @@ function wp_check_post_lock( $post_id ) {
  * @since 2.5.0
  *
  * @param int|WP_Post $post_id ID or object of the post being edited.
- * @return array|false Array of the lock time and user ID. False if the post does not exist, or
- *                     there is no current user.
+ * @return array|false {
+ *     Array of the lock time and user ID. False if the post does not exist, or there
+ *     is no current user.
+ *
+ *     @type int $0 The current time as a Unix timestamp.
+ *     @type int $1 The ID of the current user.
+ * }
  */
 function wp_set_post_lock( $post_id ) {
 	$post = get_post( $post_id );
@@ -2134,76 +2145,6 @@ function taxonomy_meta_box_sanitize_cb_input( $taxonomy, $terms ) {
 	}
 
 	return $clean_terms;
-}
-
-/**
- * Returns whether the post can be edited in the block editor.
- *
- * @since 5.0.0
- *
- * @param int|WP_Post $post Post ID or WP_Post object.
- * @return bool Whether the post can be edited in the block editor.
- */
-function use_block_editor_for_post( $post ) {
-	$post = get_post( $post );
-
-	if ( ! $post ) {
-		return false;
-	}
-
-	// We're in the meta box loader, so don't use the block editor.
-	if ( isset( $_GET['meta-box-loader'] ) ) {
-		check_admin_referer( 'meta-box-loader', 'meta-box-loader-nonce' );
-		return false;
-	}
-
-	$use_block_editor = use_block_editor_for_post_type( $post->post_type );
-
-	/**
-	 * Filters whether a post is able to be edited in the block editor.
-	 *
-	 * @since 5.0.0
-	 *
-	 * @param bool    $use_block_editor Whether the post can be edited or not.
-	 * @param WP_Post $post             The post being checked.
-	 */
-	return apply_filters( 'use_block_editor_for_post', $use_block_editor, $post );
-}
-
-/**
- * Returns whether a post type is compatible with the block editor.
- *
- * The block editor depends on the REST API, and if the post type is not shown in the
- * REST API, then it won't work with the block editor.
- *
- * @since 5.0.0
- *
- * @param string $post_type The post type.
- * @return bool Whether the post type can be edited with the block editor.
- */
-function use_block_editor_for_post_type( $post_type ) {
-	if ( ! post_type_exists( $post_type ) ) {
-		return false;
-	}
-
-	if ( ! post_type_supports( $post_type, 'editor' ) ) {
-		return false;
-	}
-
-	$post_type_object = get_post_type_object( $post_type );
-	if ( $post_type_object && ! $post_type_object->show_in_rest ) {
-		return false;
-	}
-
-	/**
-	 * Filters whether a post is able to be edited in the block editor.
-	 *
-	 * @since 5.0.0
-	 *
-	 * @param bool   $use_block_editor  Whether the post type can be edited or not. Default true.
-	 * @param string $post_type         The post type being checked.
-	 */
-	return apply_filters( 'use_block_editor_for_post_type', true, $post_type );
 }
 
 /**

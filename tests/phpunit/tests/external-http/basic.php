@@ -10,7 +10,7 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_body
 	 */
 	public function test_readme_php_version() {
-		// This test is designed to only run on trunk/master.
+		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
 
 		$readme = file_get_contents( ABSPATH . 'readme.html' );
@@ -31,7 +31,7 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_body
 	 */
 	public function test_readme_mysql_version() {
-		// This test is designed to only run on trunk/master.
+		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
 
 		$readme = file_get_contents( ABSPATH . 'readme.html' );
@@ -52,9 +52,10 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 		 *
 		 * TODO: Reduce this back to 5 years once MySQL 8.0 compatibility is achieved.
 		 */
-		$mysql_eol = strtotime( $mysql_matches[1] . ' +8 years' );
+		$mysql_eol    = gmdate( 'Y-m-d', strtotime( $mysql_matches[1] . ' +8 years' ) );
+		$current_date = gmdate( 'Y-m-d' );
 
-		$this->assertLessThan( $mysql_eol, time(), "readme.html's Recommended MySQL version is too old. Remember to update the WordPress.org Requirements page, too." );
+		$this->assertLessThan( $mysql_eol, $current_date, "readme.html's Recommended MySQL version is too old. Remember to update the WordPress.org Requirements page, too." );
 	}
 
 	/**
@@ -63,7 +64,7 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_body
 	 */
 	public function test_readme_mariadb_version() {
-		// This test is designed to only run on trunk/master.
+		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
 
 		$readme = file_get_contents( ABSPATH . 'readme.html' );
@@ -77,9 +78,10 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 		preg_match( '#.*Stable.*?(\d{2} [A-Za-z]{3} \d{4})#s', $response_body, $mariadb_matches );
 
 		// Per https://mariadb.org/about/#maintenance-policy, MariaDB releases are supported for 5 years.
-		$mariadb_eol = strtotime( $mariadb_matches[1] . ' +5 years' );
+		$mariadb_eol  = gmdate( 'Y-m-d', strtotime( $mariadb_matches[1] . ' +5 years' ) );
+		$current_date = gmdate( 'Y-m-d' );
 
-		$this->assertLessThan( $mariadb_eol, time(), "readme.html's Recommended MariaDB version is too old. Remember to update the WordPress.org Requirements page, too." );
+		$this->assertLessThan( $mariadb_eol, $current_date, "readme.html's Recommended MariaDB version is too old. Remember to update the WordPress.org Requirements page, too." );
 	}
 
 	/**
