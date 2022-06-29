@@ -74,12 +74,7 @@ jobs:
               return previous_run.data.conclusion;
             }
 
-            let workflow_id = '';
-            if ( ${{ github.event_name == 'workflow_run' }} ) {
-              workflow_id = '${{ github.event.workflow_run.workflow_id }}';
-            } else {
-              workflow_id = workflow_run.data.workflow_id;
-            }
+            let workflow_id = workflow_run.data.workflow_id;
 
             // Otherwise, check the previous workflow run.
             const previous_runs = await github.rest.actions.listWorkflowRuns({
