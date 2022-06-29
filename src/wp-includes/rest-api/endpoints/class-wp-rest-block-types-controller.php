@@ -536,7 +536,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 				),
 				'editor_style'     => array(
 					'description' => __( 'Editor style handle.' ),
-					'type'        => array( 'string', 'null' ),
+					'type'        => array( 'array', 'string', 'null' ),
 					'default'     => null,
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,

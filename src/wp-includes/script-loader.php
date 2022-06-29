@@ -2520,7 +2520,15 @@ function wp_enqueue_registered_block_scripts_and_styles() {
 
 		// Editor styles.
 		if ( $load_editor_scripts && ! empty( $block_type->editor_style ) ) {
-			wp_enqueue_style( $block_type->editor_style );
+			if ( is_array( $block_type->editor_style ) ) {
+				foreach ( $block_type->editor_style as $single_style ) {
+					if ( is_string( $single_style ) ) {
+						wp_enqueue_style( $single_style );
+					}
+				}
+			} else {
+				wp_enqueue_style( $block_type->editor_style );
+			}
 		}
 
 		// Editor script.

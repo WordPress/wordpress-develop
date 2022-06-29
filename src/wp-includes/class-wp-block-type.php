@@ -259,7 +259,7 @@ class WP_Block_Type {
 	 *     @type string|null       $editor_script    Block type editor only script handle.
 	 *     @type string|null       $script           Block type front end and editor script handle.
 	 *     @type string|null       $view_script      Block type front end only script handle.
-	 *     @type string|null       $editor_style     Block type editor only style handle.
+	 *     @type array|string|null $editor_style     Block type editor only style handle.
 	 *     @type array|string|null $style            Block type front end and editor style handle.
 	 * }
 	 */
