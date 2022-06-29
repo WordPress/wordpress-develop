@@ -377,6 +377,8 @@ class WP_Block_Type {
 			}
 		}
 
+		$args = $this->normalize_block_styles_from_mixed_format_to_array( $args );
+
 		/**
 		 * Filters the arguments for registering a block type.
 		 *
@@ -393,6 +395,51 @@ class WP_Block_Type {
 	}
 
 	/**
+	 * The style and editor_style properties may be defined in any of the following ways:
+	 *
+	 * String handle:
+	 *    { "style": "my-block" }
+	 *
+	 * Style definition:
+	 *    { "style": { "color": { "text": "#fff" } } }
+	 *
+	 * An array with a string handle:
+	 *    { "style": [ "my-block" ] }
+	 *
+	 * A mixed array of string handle and style definitions:
+	 *    { "style": [ "my-block", { "color": { "text": "#fff" } } ] }
+	 *
+	 * That's a lot of work for the developer to handle, so we'll handle it for them.
+	 * This filter always stores the styles in the mixed array format.
+	 *
+	 * @param array $args Array or string of arguments for registering a block type.
+	 * @return array Modified array with styles in a consistent format.
+	 */
+	private function normalize_block_styles_from_mixed_format_to_array( $args ) {
+		foreach ( $args as $property_name => $property_value ) {
+			if (
+				! is_null( $property_value ) &&
+				in_array( $property_name, array( 'style', 'editor_style' ), true )
+			) {
+				/*
+				 * Tests for an associative array.
+				 * * true  if the value is like array("color" => ...)
+				 * * false if the value is like array("handle", array())
+				 */
+				$is_style_definition = is_array( $property_value ) && count( array_filter( array_keys( $property_value ), 'is_string' ) ) > 0;
+				$is_style_handle     = is_string( $property_value );
+				$is_style_element    = $is_style_definition || $is_style_handle;
+
+				if ( $is_style_element ) {
+					$args[ $property_name ] = array( $property_value );
+				}
+			}
+		}
+
+		return $args;
+	}
+
+	/**
 	 * Get all available block attributes including possible layout attribute from Columns block.
 	 *
 	 * @since 5.0.0
@@ -405,50 +452,3 @@ class WP_Block_Type {
 			array();
 	}
 }
-
-/**
- * The style and editor_style properties may be defined in any of the following ways:
- *
- * String handle:
- *    { "style": "my-block" }
- *
- * Style definition:
- *    { "style": { "color": { "text": "#fff" } } }
- *
- * An array with a string handle:
- *    { "style": [ "my-block" ] }
- *
- * A mixed array of string handle and style definitions:
- *    { "style": [ "my-block", { "color": { "text": "#fff" } } ] }
- *
- * That's a lot of work for the developer to handle, so we'll handle it for them.
- * This filter always stores the styles in the mixed array format.
- *
- * @param array $args Array or string of arguments for registering a block type.
- * @return array Modified array with styles in a consistent format.
- */
-function _wp_normalize_block_styles_from_mixed_format_to_array( $args ) {
-	foreach ( $args as $property_name => $property_value ) {
-		if (
-			! is_null( $property_value ) &&
-			in_array( $property_name, array( 'style', 'editor_style' ), true )
-		) {
-			/*
-			 * Tests for an associative array.
-			 * * true  if the value is like array("color" => ...)
-			 * * false if the value is like array("handle", array())
-			 */
-			$is_style_definition = is_array( $property_value ) && count( array_filter( array_keys( $property_value ), 'is_string' ) ) > 0;
-			$is_style_handle     = is_string( $property_value );
-			$is_style_element    = $is_style_definition || $is_style_handle;
-
-			if ( $is_style_element ) {
-				$args[ $property_name ] = array( $property_value );
-			}
-		}
-	}
-
-	return $args;
-}
-
-add_filter( 'register_block_type_args', '_wp_normalize_block_styles_from_mixed_format_to_array', 10 );
