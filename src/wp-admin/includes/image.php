@@ -653,7 +653,7 @@ function _wp_make_additional_mime_types( $new_mime_types, $file, $image_meta, $a
 	$exif_meta = isset( $image_meta['image_meta'] ) ? $image_meta['image_meta'] : null;
 
 	foreach ( $new_mime_types as $mime_type ) {
-		// Short-circuit image generation if file has been generated already.
+		/** This filter is documented above. */
 		$image_meta = apply_filters( 'wp_content_pre_generate_additional_image_source', $image_meta, $file, $attachment_id, 'full', $mime_type );
 
 		if ( is_wp_error( $image_meta ) ) {
