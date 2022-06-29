@@ -274,14 +274,10 @@ class WP_Block {
 			 *
 			 * This code enqueues the stylesheet handles and omit the style arrays.
 			 */
-			if ( is_array( $this->block_type->style ) ) {
-				foreach ( $this->block_type->style as $handle_maybe ) {
-					if ( is_string( $handle_maybe ) ) {
-						wp_enqueue_style( $handle_maybe );
-					}
+			foreach ( $this->block_type->style as $handle_maybe ) {
+				if ( is_string( $handle_maybe ) ) {
+					wp_enqueue_style( $handle_maybe );
 				}
-			} else {
-				wp_enqueue_style( $this->block_type->style );
 			}
 		}
 

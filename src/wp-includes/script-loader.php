@@ -2502,14 +2502,10 @@ function wp_enqueue_registered_block_scripts_and_styles() {
 	foreach ( $block_registry->get_all_registered() as $block_name => $block_type ) {
 		// Front-end styles.
 		if ( ! empty( $block_type->style ) ) {
-			if ( is_array( $block_type->style ) ) {
-				foreach ( $block_type->style as $single_style ) {
-					if ( is_string( $single_style ) ) {
-						wp_enqueue_style( $single_style );
-					}
+			foreach ( $block_type->style as $single_style ) {
+				if ( is_string( $single_style ) ) {
+					wp_enqueue_style( $single_style );
 				}
-			} else {
-				wp_enqueue_style( $block_type->style );
 			}
 		}
 
@@ -2520,14 +2516,10 @@ function wp_enqueue_registered_block_scripts_and_styles() {
 
 		// Editor styles.
 		if ( $load_editor_scripts && ! empty( $block_type->editor_style ) ) {
-			if ( is_array( $block_type->editor_style ) ) {
-				foreach ( $block_type->editor_style as $single_style ) {
-					if ( is_string( $single_style ) ) {
-						wp_enqueue_style( $single_style );
-					}
+			foreach ( $block_type->editor_style as $single_style ) {
+				if ( is_string( $single_style ) ) {
+					wp_enqueue_style( $single_style );
 				}
-			} else {
-				wp_enqueue_style( $block_type->editor_style );
 			}
 		}
 
