@@ -227,6 +227,7 @@ class WP_Block_Type {
 	 * @since 5.8.0 Added the `variations` property.
 	 * @since 5.9.0 Added the `view_script` property.
 	 * @since 6.0.0 Added the `ancestor` property.
+	 * @since 6.1.0 Accept array for the `style` and `editor_style` properties.
 	 *
 	 * @see register_block_type()
 	 *
@@ -410,7 +411,7 @@ class WP_Block_Type {
 	 *    { "style": [ "my-block", { "color": { "text": "#fff" } } ] }
 	 *
 	 * That's a lot of work for the developer to handle, so we'll handle it for them.
-	 * This filter always stores the styles in the mixed array format.
+	 * This function always stores the styles in the mixed array format.
 	 *
 	 * @param array $args Array or string of arguments for registering a block type.
 	 * @return array Modified array with styles in a consistent format.
