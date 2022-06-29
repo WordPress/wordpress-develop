@@ -1271,50 +1271,6 @@ function get_query_pagination_arrow( $block, $is_next ) {
 }
 
 /**
- * Allows multiple block styles.
- *
- * @since 5.9.0
- *
- * @param array $metadata Metadata for registering a block type.
- * @return array Metadata for registering a block type.
- */
-function _wp_multiple_block_styles( $metadata ) {
-	foreach ( array( 'style', 'editorStyle' ) as $key ) {
-		if ( ! empty( $metadata[ $key ] ) && is_array( $metadata[ $key ] ) ) {
-			foreach ( $metadata[ $key ] as $handle ) {
-				// Do not enqueue style arrays such as { "color": { "text": "#fff" } }.
-				if ( is_array( $handle ) ) {
-					continue;
-				}
-
-				$args = array( 'handle' => $handle );
-				if ( 0 === strpos( $handle, 'file:' ) && isset( $metadata['file'] ) ) {
-					$style_path      = remove_block_asset_path_prefix( $handle );
-					$theme_path_norm = wp_normalize_path( get_theme_file_path() );
-					$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
-					$is_theme_block  = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $theme_path_norm );
-
-					$style_uri = plugins_url( $style_path, $metadata['file'] );
-
-					if ( $is_theme_block ) {
-						$style_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $style_path_norm ) );
-					}
-
-					$args = array(
-						'handle' => sanitize_key( "{$metadata['name']}-{$style_path}" ),
-						'src'    => $style_uri,
-					);
-				}
-
-				wp_enqueue_block_style( $metadata['name'], $args );
-			}
-		}
-	}
-	return $metadata;
-}
-add_filter( 'block_type_metadata', '_wp_multiple_block_styles' );
-
-/**
  * Helper function that constructs a comment query vars array from the passed
  * block properties.
  *
