@@ -233,6 +233,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		unregister_block_type( $block_type );
 		$this->assertSame( $block_type, $data['name'] );
 		$this->assertSame( '1', $data['title'] );
 		$this->assertSame( '1', $data['description'] );

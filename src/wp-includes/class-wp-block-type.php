@@ -433,6 +433,9 @@ class WP_Block_Type {
 
 				if ( $is_style_element ) {
 					$args[ $property_name ] = array( $property_value );
+				} elseif ( ! is_array( $property_value ) ) {
+					// Remove invalid style declarations.
+					$args[ $property_name ] = null;
 				}
 			}
 		}
