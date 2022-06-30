@@ -2,7 +2,6 @@
 /**
  * Tests for dominant-color module.
  *
- * @package performance-lab
  * @group   dominant-color
  */
 

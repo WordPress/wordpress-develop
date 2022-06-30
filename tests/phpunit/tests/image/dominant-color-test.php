@@ -3,7 +3,6 @@
 /**
  * Tests for dominant-color module.
  *
- * @package performance-lab
  * @group dominant-color
  */
 class Dominant_Color_Test extends DominantColorTestCase {
@@ -57,6 +56,9 @@ class Dominant_Color_Test extends DominantColorTestCase {
 		$attachment_id = $this->factory->attachment->create_upload_object( $image_path );
 		wp_maybe_generate_attachment_metadata( get_post( $attachment_id ) );
 		$transparency_metadata = dominant_color_metadata( array(), $attachment_id );
+		if ( strpos( $image_path, '.gif' ) ) {
+			$expected_transparency = true; // all gif have alpha.
+		}
 		$this->assertArrayHasKey( 'has_transparency', $transparency_metadata );
 		$this->assertSame( $expected_transparency, $transparency_metadata['has_transparency'] );
 	}
@@ -71,6 +73,9 @@ class Dominant_Color_Test extends DominantColorTestCase {
 	public function test_dominant_color_has_transparency( $image_path, $expected_color, $expected_transparency ) {
 		// Creating attachment.
 		$attachment_id = $this->factory->attachment->create_upload_object( $image_path );
+		if ( strpos( $image_path, '.gif' ) ) {
+			$expected_transparency = true; // all gif have alpha.
+		}
 		$this->assertSame( $expected_transparency, dominant_color_has_transparency( $attachment_id ) );
 	}
 
@@ -90,7 +95,9 @@ class Dominant_Color_Test extends DominantColorTestCase {
 		$filtered_image_mock_lazy_load = sprintf( '<img loading="lazy" class="test" src="%s" width="%d" height="%d" />', $src, $width, $height );
 
 		$filtered_image_tags_added = dominant_color_img_tag_add_dominant_color( $filtered_image_mock_lazy_load, 'the_content', $attachment_id );
-
+		if ( strpos( $image_path, '.gif' ) ) {
+			$expected_transparency = true; // all gif have alpha.
+		}
 		$this->assertStringContainsString( 'data-has-transparency="' . json_encode( $expected_transparency ) . '"', $filtered_image_tags_added );
 
 		foreach ( $expected_color as $color ) {

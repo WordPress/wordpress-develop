@@ -30,21 +30,21 @@ abstract class DominantColorTestCase extends WP_Image_UnitTestCase {
 				'expected_transparency' => false,
 			),
 
-//			'red_gif'       => array(
-//				'image_path'            => DIR_TESTDATA . '/images/dominant-color/red.gif',
-//				'expected_color'        => array( 'ff0000' ),
-//				'expected_transparency' => false,
-//			),
-//			'green_gif'     => array(
-//				'image_path'            => DIR_TESTDATA . '/images/dominant-color/green.gif',
-//				'expected_color'        => array( '00ff00' ),
-//				'expected_transparency' => false,
-//			),
-//			'white_gif'     => array(
-//				'image_path'            => DIR_TESTDATA . '/images/dominant-color/white.gif',
-//				'expected_color'        => array( 'ffffff' ),
-//				'expected_transparency' => false,
-//			),
+			'red_gif'       => array(
+				'image_path'            => DIR_TESTDATA . '/images/dominant-color/red.gif',
+				'expected_color'        => array( 'ff0000' ),
+				'expected_transparency' => false,
+			),
+			'green_gif'     => array(
+				'image_path'            => DIR_TESTDATA . '/images/dominant-color/green.gif',
+				'expected_color'        => array( '00ff00' ),
+				'expected_transparency' => false,
+			),
+			'white_gif'     => array(
+				'image_path'            => DIR_TESTDATA . '/images/dominant-color/white.gif',
+				'expected_color'        => array( 'ffffff' ),
+				'expected_transparency' => false,
+			),
 			'trans_gif'     => array(
 				'image_path'            => DIR_TESTDATA . '/images/dominant-color/trans.gif',
 				'expected_color'        => array( '5a5a5a', '020202' ),

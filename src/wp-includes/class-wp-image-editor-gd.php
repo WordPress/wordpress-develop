@@ -574,14 +574,14 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	/**
 	 * Get dominant color from a file.
 	 *
-	 * @since 1.2.0
+	 * @since 6.1
 	 *
 	 * @return string|WP_Error Dominant hex color string, or an error on failure.
 	 */
 	public function get_dominant_color() {
 
 		if ( ! $this->image ) {
-			return new WP_Error( 'image_editor_dominant_color_error_no_image', __( 'Dominant color detection no image found.', 'performance-lab' ) );
+			return new WP_Error( 'image_editor_dominant_color_error_no_image', __( 'Dominant color detection no image found.' ) );
 		}
 		// The logic here is resize the image to 1x1 pixel, then get the color of that pixel.
 		$shorted_image = imagecreatetruecolor( 1, 1 );
@@ -593,7 +593,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		$b   = $rgb & 0xFF;
 		$hex = get_hex_from_rgb( $r, $g, $b );
 		if ( ! $hex ) {
-			return new WP_Error( 'image_editor_dominant_color_error', __( 'Dominant color detection failed.', 'performance-lab' ) );
+			return new WP_Error( 'image_editor_dominant_color_error', __( 'Dominant color detection failed.' ) );
 		}
 
 		return $hex;
@@ -604,14 +604,14 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * Looks for transparent pixels in the image.
 	 * If there are none, it returns false.
 	 *
-	 * @since 1.2.0
+	 * @since 6.1
 	 *
 	 * @return bool|WP_Error True or false based on whether there are transparent pixels, or an error on failure.
 	 */
 	public function has_transparency() {
 
 		if ( ! $this->image ) {
-			return new WP_Error( 'image_editor_has_transparency_error_no_image', __( 'Transparency detection no image found.', 'performance-lab' ) );
+			return new WP_Error( 'image_editor_has_transparency_error_no_image', __( 'Transparency detection no image found.' ) );
 		}
 
 		// Walk through the pixels and look transparent pixels.
