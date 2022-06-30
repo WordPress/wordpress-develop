@@ -47,7 +47,7 @@ jobs:
   # - Make Composer packages available globally.
   # - Logs PHP_CodeSniffer debug information.
   # - Runs the PHP compatibility tests.
-  php-comatibility:
+  php-compatibility:
     name: Check PHP compatibility
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -86,7 +86,7 @@ jobs:
   slack-notifications:
     name: Slack Notifications
     uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
-    needs: [ php-comatibility ]
+    needs: [ php-compatibility ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ needs.php-compatibility.result == 'success' && 'success' || needs.php-compatibility.result == 'cancelled' && 'cancelled' || 'failure' }}
