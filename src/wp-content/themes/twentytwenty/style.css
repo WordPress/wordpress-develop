@@ -2756,6 +2756,10 @@ h2.entry-title {
 	color: #fff;
 }
 
+:root .has-accent-border-color {
+	border-color: #cd2653;
+}
+
 :root .has-primary-color {
 	color: #000;
 }
@@ -2763,6 +2767,10 @@ h2.entry-title {
 :root .has-primary-background-color {
 	background-color: #000;
 	color: #f5efe0;
+}
+
+:root .has-primary-border-color {
+	border-color: #000;
 }
 
 :root .has-secondary-color {
@@ -2774,6 +2782,10 @@ h2.entry-title {
 	color: #fff;
 }
 
+:root .has-secondary-border-color {
+	border-color: #6d6d6d;
+}
+
 :root .has-subtle-background-color {
 	color: #dcd7ca;
 }
@@ -2781,6 +2793,10 @@ h2.entry-title {
 :root .has-subtle-background-background-color {
 	background-color: #dcd7ca;
 	color: #000;
+}
+
+:root .has-subtle-background-border-color {
+	border-color: #dcd7ca;
 }
 
 :root .has-background-color {
@@ -2792,6 +2808,9 @@ h2.entry-title {
 	color: #000;
 }
 
+:root .has-background-border-color {
+	border-color: #f5efe0;
+}
 
 /* Block Typography Classes ------------------ */
 
