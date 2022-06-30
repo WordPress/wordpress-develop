@@ -14,6 +14,9 @@ class Tests_Ajax_QuickEdit extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * @ticket 26948
+	 *
+	 * @covers ::wp_ajax_inline_save
+	 * @covers ::edit_post
 	 */
 	public function test_dont_process_terms_if_taxonomy_does_not_allow_show_on_quick_edit() {
 		register_taxonomy(
