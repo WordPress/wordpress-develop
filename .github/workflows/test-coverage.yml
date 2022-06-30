@@ -35,12 +35,12 @@ jobs:
   # Sets up WordPress for testing or development use.
   #
   # Performs the following steps:
-  # - Set environment variables.
+  # - Sets environment variables.
   # - Checks out the repository.
   # - Checks out the WordPress Importer plugin (needed for the Core PHPUnit tests).
-  # - Logs debug information about the runner container.
-  # - Installs NodeJS 14.
-  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # - Logs debug information about the GitHub Action runner.
+  # - Installs NodeJS.
+  # _ Installs NPM dependencies.
   # - Logs Docker debug information (about the Docker installation within the runner).
   # - Starts the WordPress Docker container.
   # - Logs debug general information.

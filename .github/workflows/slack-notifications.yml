@@ -37,7 +37,7 @@ jobs:
   #
   # Performs the following steps:
   # - Retrieves the current workflow run.
-  # - Determine the conclusion of the previous workflow run or run attempt.
+  # - Determines the conclusion of the previous workflow run or run attempt.
   # - Sets the previous conclusion as an output.
   # - Prepares the commit message.
   # - Constructs and stores a message payload as an output.
