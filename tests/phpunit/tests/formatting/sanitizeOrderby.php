@@ -2,17 +2,18 @@
 
 /**
  * @group sanitize_sql_orderby
+ *
+ * @covers ::sanitize_sql_orderby
  */
 class Tests_Formatting_SanitizeOrderby extends WP_UnitTestCase {
 
 	/**
-	 * @covers ::sanitize_sql_orderby
 	 * @dataProvider valid_orderbys
 	 */
-	function test_valid( $orderby ) {
+	public function test_valid( $orderby ) {
 		$this->assertSame( $orderby, sanitize_sql_orderby( $orderby ) );
 	}
-	function valid_orderbys() {
+	public function valid_orderbys() {
 		return array(
 			array( '1' ),
 			array( '1 ASC' ),
@@ -33,13 +34,12 @@ class Tests_Formatting_SanitizeOrderby extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::sanitize_sql_orderby
 	 * @dataProvider invalid_orderbys
 	 */
-	function test_invalid( $orderby ) {
+	public function test_invalid( $orderby ) {
 		$this->assertFalse( sanitize_sql_orderby( $orderby ) );
 	}
-	function invalid_orderbys() {
+	public function invalid_orderbys() {
 		return array(
 			array( '' ),
 			array( '1 2' ),

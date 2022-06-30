@@ -26,7 +26,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		self::$post_id = $factory->post->create();
 	}
 
-	function test__wp_translate_postdata_cap_checks_contributor() {
+	public function test__wp_translate_postdata_cap_checks_contributor() {
 		wp_set_current_user( self::$contributor_id );
 
 		// Create new draft post.
@@ -76,7 +76,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertSame( 'Sorry, you are not allowed to edit posts as this user.', $_results->get_error_message() );
 	}
 
-	function test__wp_translate_postdata_cap_checks_editor() {
+	public function test__wp_translate_postdata_cap_checks_editor() {
 		wp_set_current_user( self::$editor_id );
 
 		// Create new draft post.
@@ -131,7 +131,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 *
 	 * @ticket 25272
 	 */
-	function test_edit_post_auto_draft() {
+	public function test_edit_post_auto_draft() {
 		wp_set_current_user( self::$editor_id );
 		$post = self::factory()->post->create_and_get( array( 'post_status' => 'auto-draft' ) );
 		$this->assertSame( 'auto-draft', $post->post_status );
@@ -789,45 +789,13 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertSame( $p, post_exists( $title, $content, $date ) );
 	}
 
-	function test_use_block_editor_for_post() {
-		$this->assertFalse( use_block_editor_for_post( -1 ) );
-		$bogus_post_id = $this->factory()->post->create(
-			array(
-				'post_type' => 'bogus',
-			)
-		);
-		$this->assertFalse( use_block_editor_for_post( $bogus_post_id ) );
-
-		register_post_type(
-			'restless',
-			array(
-				'show_in_rest' => false,
-			)
-		);
-		$restless_post_id = $this->factory()->post->create(
-			array(
-				'post_type' => 'restless',
-			)
-		);
-		$this->assertFalse( use_block_editor_for_post( $restless_post_id ) );
-
-		$generic_post_id = $this->factory()->post->create();
-
-		add_filter( 'use_block_editor_for_post', '__return_false' );
-		$this->assertFalse( use_block_editor_for_post( $generic_post_id ) );
-		remove_filter( 'use_block_editor_for_post', '__return_false' );
-
-		add_filter( 'use_block_editor_for_post', '__return_true' );
-		$this->assertTrue( use_block_editor_for_post( $restless_post_id ) );
-		remove_filter( 'use_block_editor_for_post', '__return_true' );
-	}
-
-	function test_get_block_editor_server_block_settings() {
+	public function test_get_block_editor_server_block_settings() {
 		$name     = 'core/test';
 		$settings = array(
 			'icon'            => 'text',
 			'category'        => 'common',
 			'render_callback' => 'foo',
+			'ancestor'        => array( 'core/test-ancestor' ),
 		);
 
 		register_block_type( $name, $settings );
@@ -843,9 +811,13 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 				'title'       => '',
 				'description' => '',
 				'icon'        => 'text',
+				'attributes'  => array(
+					'lock' => array( 'type' => 'object' ),
+				),
 				'usesContext' => array(),
 				'category'    => 'common',
 				'styles'      => array(),
+				'ancestor'    => array( 'core/test-ancestor' ),
 				'keywords'    => array(),
 				'variations'  => array(),
 			),
@@ -855,8 +827,10 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 43559
+	 *
+	 * @covers ::add_meta
 	 */
-	public function test_post_add_meta_empty_is_allowed() {
+	public function test_add_meta_allows_empty_values() {
 		$p = self::factory()->post->create();
 
 		$_POST = array(
@@ -876,6 +850,16 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 37406
 	 */
 	public function test_post_exists_should_support_post_type() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$title     = 'Foo Bar';
 		$post_type = 'page';
 		$post_id   = self::factory()->post->create(
@@ -893,6 +877,16 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 37406
 	 */
 	public function test_post_exists_should_not_match_a_page_for_post() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$title     = 'Foo Bar';
 		$post_type = 'page';
 		$post_id   = self::factory()->post->create(
@@ -910,6 +904,16 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 34012
 	 */
 	public function test_post_exists_should_support_post_status() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$title       = 'Foo Bar';
 		$post_type   = 'post';
 		$post_status = 'publish';
@@ -930,6 +934,16 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 34012
 	 */
 	public function test_post_exists_should_support_post_type_status_combined() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$title       = 'Foo Bar';
 		$post_type   = 'post';
 		$post_status = 'publish';
@@ -949,6 +963,16 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 34012
 	 */
 	public function test_post_exists_should_only_match_correct_post_status() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$title       = 'Foo Bar';
 		$post_type   = 'post';
 		$post_status = 'draft';
@@ -968,6 +992,16 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 34012
 	 */
 	public function test_post_exists_should_not_match_invalid_post_type_and_status_combined() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$title       = 'Foo Bar';
 		$post_type   = 'post';
 		$post_status = 'publish';

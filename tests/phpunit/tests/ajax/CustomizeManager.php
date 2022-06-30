@@ -94,7 +94,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * @param array $allcaps An array of all the user's capabilities.
 	 * @return array All caps.
 	 */
-	function filter_user_has_cap( $allcaps ) {
+	public function filter_user_has_cap( $allcaps ) {
 		$allcaps = array_merge( $allcaps, $this->overridden_caps );
 		return $allcaps;
 	}
@@ -103,9 +103,10 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * Test WP_Customize_Manager::save().
 	 *
 	 * @ticket 30937
+	 *
 	 * @covers WP_Customize_Manager::save
 	 */
-	function test_save_failures() {
+	public function test_save_failures() {
 		global $wp_customize;
 		$wp_customize = new WP_Customize_Manager();
 		$wp_customize->register_controls();
@@ -270,9 +271,10 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * Test WP_Customize_Manager::save().
 	 *
 	 * @ticket 30937
+	 *
 	 * @covers WP_Customize_Manager::save
 	 */
-	function test_save_success_publish_create() {
+	public function test_save_success_publish_create() {
 		$wp_customize = $this->set_up_valid_state();
 
 		$_POST['customize_changeset_status'] = 'publish';
@@ -299,9 +301,10 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * Test WP_Customize_Manager::save().
 	 *
 	 * @ticket 30937
+	 *
 	 * @covers WP_Customize_Manager::save
 	 */
-	function test_save_success_publish_edit() {
+	public function test_save_success_publish_edit() {
 		$uuid = wp_generate_uuid4();
 
 		$post_id      = $this->factory()->post->create(
@@ -338,9 +341,10 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * Test WP_Customize_Manager::save().
 	 *
 	 * @ticket 38943
+	 *
 	 * @covers WP_Customize_Manager::save
 	 */
-	function test_success_save_post_date() {
+	public function test_success_save_post_date() {
 		$uuid         = wp_generate_uuid4();
 		$post_id      = $this->factory()->post->create(
 			array(
@@ -436,6 +440,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * Test WP_Customize_Manager::save().
 	 *
 	 * @ticket 39896
+	 *
 	 * @covers WP_Customize_Manager::save
 	 */
 	public function test_save_autosave() {
@@ -482,6 +487,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * Test request for trashing a changeset.
 	 *
 	 * @ticket 39896
+	 *
 	 * @covers WP_Customize_Manager::handle_changeset_trash_request
 	 */
 	public function test_handle_changeset_trash_request() {
@@ -713,5 +719,50 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 		$this->make_ajax_call( 'customize_dismiss_autosave_or_lock' );
 		$this->assertFalse( $this->_last_response_parsed['success'] );
 		$this->assertSame( 'no_autosave_revision_to_delete', $this->_last_response_parsed['data'] );
+	}
+
+	/**
+	 * Test request for retrieving installed themes.
+	 *
+	 * @ticket 54549
+	 * @covers WP_Customize_Manager::handle_load_themes_request
+	 */
+	public function test_wp_ajax_customize_load_themes_action() {
+		$arguments = array(
+			'changeset_uuid'     => false,
+			'settings_previewed' => true,
+			'branching'          => false,
+		);
+		new WP_Customize_Manager( $arguments );
+		wp_set_current_user( self::$admin_user_id );
+		$nonce                 = wp_create_nonce( 'switch_themes' );
+		$_POST['nonce']        = $nonce;
+		$_GET['nonce']         = $nonce;
+		$_REQUEST['nonce']     = $nonce;
+		$_POST['theme_action'] = 'installed';
+		$this->make_ajax_call( 'customize_load_themes' );
+		$response = $this->_last_response_parsed;
+		$this->assertIsArray( $response, 'Response is not an array' );
+
+		$this->assertArrayHasKey( 'success', $response, 'Response must have a "success" key' );
+		$this->assertTrue( $response['success'], 'Response was not "success"' );
+
+		$this->assertArrayHasKey( 'data', $response, 'Response must have a "data" key' );
+		$this->assertIsArray( $response['data'], 'The response "data" is not an array' );
+		$this->assertArrayHasKey( 'themes', $response['data'], 'The response data must have a "themes" key' );
+		$this->assertIsArray( $response['data']['themes'], 'Themes data is not an array' );
+		$this->assertNotEmpty( $response['data']['themes'], 'Themes data must not be empty' );
+
+		foreach ( $response['data']['themes'] as $theme ) {
+			$this->assertIsArray( $theme, 'Theme is not an array' );
+			$this->assertNotEmpty( $theme, 'Theme data must not be empty' );
+			$this->assertArrayHasKey( 'id', $theme, 'Theme data must have an "id" key' );
+			$this->assertNotEmpty( $theme['id'], 'Theme id cannot be empty' );
+
+			$this->assertArrayHasKey( 'name', $theme, 'Theme data must have a "name" key' );
+			$this->assertNotEmpty( $theme['name'], 'Theme name cannot be empty' );
+
+			$this->assertArrayHasKey( 'blockTheme', $theme, 'Themes data must include information about blocks support' );
+		}
 	}
 }

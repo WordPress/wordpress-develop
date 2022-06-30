@@ -123,7 +123,7 @@ function wp_insert_site( array $data ) {
 		 * Fires immediately after a new site is created.
 		 *
 		 * @since MU (3.0.0)
-		 * @deprecated 5.1.0 Use {@see 'wp_insert_site'} instead.
+		 * @deprecated 5.1.0 Use {@see 'wp_initialize_site'} instead.
 		 *
 		 * @param int    $site_id    Site ID.
 		 * @param int    $user_id    User ID.
@@ -136,7 +136,7 @@ function wp_insert_site( array $data ) {
 			'wpmu_new_blog',
 			array( $new_site->id, $user_id, $new_site->domain, $new_site->path, $new_site->network_id, $meta ),
 			'5.1.0',
-			'wp_insert_site'
+			'wp_initialize_site'
 		);
 	}
 
@@ -371,12 +371,17 @@ function update_site_cache( $sites, $update_meta_cache = true ) {
 	if ( ! $sites ) {
 		return;
 	}
-	$site_ids = array();
+	$site_ids          = array();
+	$site_data         = array();
+	$blog_details_data = array();
 	foreach ( $sites as $site ) {
-		$site_ids[] = $site->blog_id;
-		wp_cache_add( $site->blog_id, $site, 'sites' );
-		wp_cache_add( $site->blog_id . 'short', $site, 'blog-details' );
+		$site_ids[]                                    = $site->blog_id;
+		$site_data[ $site->blog_id ]                   = $site;
+		$blog_details_data[ $site->blog_id . 'short' ] = $site;
+
 	}
+	wp_cache_add_multiple( $site_data, 'sites' );
+	wp_cache_add_multiple( $blog_details_data, 'blog-details' );
 
 	if ( $update_meta_cache ) {
 		update_sitemeta_cache( $site_ids );
@@ -977,7 +982,7 @@ function clean_blog_cache( $blog ) {
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param int     $id              Blog ID.
+	 * @param string  $id              Site ID as a numeric string.
 	 * @param WP_Site $blog            Site object.
 	 * @param string  $domain_path_key md5 hash of domain and path.
 	 */

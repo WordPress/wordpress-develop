@@ -3,9 +3,11 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::capital_P_dangit
  */
 class Tests_Formatting_CapitalPDangit extends WP_UnitTestCase {
-	function test_esc_attr_quotes() {
+	public function test_esc_attr_quotes() {
 		global $wp_current_filter;
 		$this->assertSame( 'Something about WordPress', capital_P_dangit( 'Something about Wordpress' ) );
 		$this->assertSame( 'Something about (WordPress', capital_P_dangit( 'Something about (Wordpress' ) );

@@ -491,14 +491,29 @@ if ( ! function_exists( 'twentyfourteen_list_authors' ) ) :
 	 * @since Twenty Fourteen 1.0
 	 */
 	function twentyfourteen_list_authors() {
-		$contributor_ids = get_users(
-			array(
-				'fields'  => 'ID',
-				'orderby' => 'post_count',
-				'order'   => 'DESC',
-				'who'     => 'authors',
-			)
+		$args = array(
+			'fields'     => 'ID',
+			'orderby'    => 'post_count',
+			'order'      => 'DESC',
+			'capability' => array( 'edit_posts' ),
 		);
+
+		// Capability queries were only introduced in WP 5.9.
+		if ( version_compare( $GLOBALS['wp_version'], '5.9-alpha', '<' ) ) {
+			$args['who'] = 'authors';
+			unset( $args['capability'] );
+		}
+
+		/**
+		 * Filters query arguments for listing authors.
+		 *
+		 * @since 3.3
+		 *
+		 * @param array $args Query arguments.
+		 */
+		$args = apply_filters( 'twentyfourteen_list_authors_query_args', $args );
+
+		$contributor_ids = get_users( $args );
 
 		foreach ( $contributor_ids as $contributor_id ) :
 			$post_count = count_user_posts( $contributor_id );
