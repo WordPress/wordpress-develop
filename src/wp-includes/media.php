@@ -5453,7 +5453,7 @@ function wp_increase_content_media_count( $amount = 1 ) {
 /**
  * Add the dominant color metadata to the attachment.
  *
- * @since 1.2.0
+ * @since 6.1
  *
  * @param array $metadata      The attachment metadata.
  * @param int   $attachment_id The attachment ID.
@@ -5478,7 +5478,7 @@ add_filter( 'wp_generate_attachment_metadata', 'dominant_color_metadata', 10, 2 
 /**
  * Filter various image attributes to add the dominant color to the image
  *
- * @since 1.2.0
+ * @since 6.1
  *
  * @param array  $attr       Attributes for the image markup.
  * @param object $attachment Image attachment post.
@@ -5516,7 +5516,7 @@ add_filter( 'wp_get_attachment_image_attributes', 'dominant_color_update_attachm
 /**
  * Filter image tags in content to add the dominant color to the image.
  *
- * @since 1.2.0
+ * @since 6.1
  *
  * @param string $filtered_image The filtered image.
  * @param string $context        The context of the image.
@@ -5540,7 +5540,7 @@ function dominant_color_img_tag_add_dominant_color( $filtered_image, $context, $
 	 *
 	 * You can set this to false in order disable adding the dominant color to the image.
 	 *
-	 * @since 1.2.0
+	 * @since 6.1
 	 *
 	 * @param bool   $add_dominant_color Whether to add the dominant color to the image. default true.
 	 * @param int    $attachment_id      The image attachment ID.
@@ -5582,7 +5582,7 @@ add_filter( 'wp_content_img_tag', 'dominant_color_img_tag_add_dominant_color', 2
 /**
  * Add CSS needed for to show the dominant color as an image background.
  *
- * @since 1.2.0
+ * @since 6.1
  */
 function dominant_color_add_inline_style() {
 	$handle = 'dominant-color-styles';
@@ -5596,7 +5596,7 @@ add_filter( 'wp_enqueue_scripts', 'dominant_color_add_inline_style' );
 /**
  * Computes the Dominant color of the given attachment image.
  *
- * @since 1.2.0
+ * @since 6.1
  * @access private
  *
  * @param int $attachment_id The attachment ID.
@@ -5604,7 +5604,7 @@ add_filter( 'wp_enqueue_scripts', 'dominant_color_add_inline_style' );
  */
 function _dominant_color_get_dominant_color_data( $attachment_id ) {
 	if ( ! wp_attachment_is_image( $attachment_id ) ) {
-		return new WP_Error( 'no_image_found', __( 'Unable to load image.', 'performance-lab' ) );
+		return new WP_Error( 'no_image_found', __( 'Unable to load image.' ) );
 	}
 	$file = wp_get_attachment_file_path( $attachment_id );
 	if ( ! $file ) {
@@ -5617,7 +5617,7 @@ function _dominant_color_get_dominant_color_data( $attachment_id ) {
 	}
 
 	if ( ! method_exists( $editor, 'has_transparency' ) ) {
-		return new WP_Error( 'unable_to_find_method', __( 'Unable to find has_transparency method', 'performance-lab' ) );
+		return new WP_Error( 'unable_to_find_method', __( 'Unable to find has_transparency method' ) );
 	}
 	$has_transparency = $editor->has_transparency();
 	if ( is_wp_error( $has_transparency ) ) {
@@ -5626,7 +5626,7 @@ function _dominant_color_get_dominant_color_data( $attachment_id ) {
 	$dominant_color_data['has_transparency'] = $has_transparency;
 
 	if ( ! method_exists( $editor, 'get_dominant_color' ) ) {
-		return new WP_Error( 'unable_to_find_method', __( 'Unable to find get_dominant_color method', 'performance-lab' ) );
+		return new WP_Error( 'unable_to_find_method', __( 'Unable to find get_dominant_color method' ) );
 	}
 
 	$dominant_color = $editor->get_dominant_color();
@@ -5641,7 +5641,7 @@ function _dominant_color_get_dominant_color_data( $attachment_id ) {
 /**
  * Gets file path of image based on size.
  *
- * @since 1.2.0
+ * @since 6.1
  *
  * @param int    $attachment_id Attachment ID for image.
  * @param string $size          Optional. Image size. Default 'thumbnail'.
@@ -5667,7 +5667,7 @@ function wp_get_attachment_file_path( $attachment_id, $size = 'medium' ) {
 /**
  * Gets the dominant color for an image attachment.
  *
- * @since n.e.x.t
+ * @since 6.1
  *
  * @param int $attachment_id Attachment ID for image.
  * @return string|null Hex value of dominant color or null if not set.
@@ -5691,7 +5691,7 @@ function dominant_color_get_dominant_color( $attachment_id ) {
 /**
  * Returns whether an image attachment has transparency.
  *
- * @since n.e.x.t
+ * @since 6.1
  *
  * @param int $attachment_id Attachment ID for image.
  * @return bool|null Whether the image has transparency, or null if not set.
