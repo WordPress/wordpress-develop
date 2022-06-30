@@ -315,6 +315,7 @@ function _resolve_template_for_new_post( $wp_query ) {
 	if ( ! $wp_query->is_main_query() ) {
 		return;
 	}
+
 	remove_filter( 'pre_get_posts', '_resolve_template_for_new_post' );
 
 	// Pages.
