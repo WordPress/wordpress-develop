@@ -3,7 +3,6 @@ name: PHPUnit Tests
 on:
   push:
     branches:
-      - master
       - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
@@ -12,7 +11,6 @@ on:
       - '[4-9].[0-9]*'
   pull_request:
     branches:
-      - master
       - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
@@ -39,19 +37,19 @@ jobs:
   # Runs the PHPUnit tests for WordPress.
   #
   # Performs the following steps:
-  # - Set environment variables.
+  # - Sets environment variables.
   # - Sets up the environment variables needed for testing with memcached (if desired).
-  # - Installs NodeJS 14.
+  # - Installs NodeJS.
   # - Sets up caching for NPM.
   # - Installs NPM dependencies
   # - Configures caching for Composer.
-  # - Installs Composer dependencies (if desired).
-  # - Logs Docker debug information (about both the Docker installation within the runner).
+  # - Installs Composer dependencies.
+  # - Logs Docker debug information (about the Docker installation within the runner).
   # - Starts the WordPress Docker container.
-  # - Starts the memcached server after the Docker network has been created (if desired).
-  # - Logs WordPress Docker container debug information.
-  # - Logs debug general information.
+  # - Starts the Memcached server after the Docker network has been created (if desired).
+  # - Logs general debug information about the runner.
   # - Logs the running Docker containers.
+  # - Logs debug information from inside the WordPress Docker container.
   # - Logs debug information about what's installed within the WordPress Docker containers.
   # - Install WordPress within the Docker container.
   # - Run the PHPUnit tests.
@@ -59,10 +57,10 @@ jobs:
   # - Checks out the WordPress Test reporter repository.
   # - Reconnect the directory to the Git repository.
   # - Submit the test results to the WordPress.org host test results.
-  # - todo: Configure Slack notifications for failing tests.
   test-php:
     name: ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.split_slow && ' slow tests' || '' }}${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
@@ -111,21 +109,13 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
 
       - name: Checkout repository
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
 
       - name: Install NodeJS
-        uses: actions/setup-node@46071b5c7a2e0c34e49c3cb8a0e792e86e18d5ea # v2.1.5
+        uses: actions/setup-node@eeb10cff27034e7acf239c5d29f62154018672fd # v3.3.0
         with:
-          node-version: 14
-
-      - name: Use cached Node modules
-        uses: actions/cache@26968a09c0ea4f3e233fdddbafd1166051a095f6 # v2.1.4
-        env:
-          cache-name: cache-node-modules
-        with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          node-version-file: '.nvmrc'
+          cache: npm
 
       - name: Install Dependencies
         run: npm ci
@@ -135,7 +125,7 @@ jobs:
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Cache Composer dependencies
-        uses: actions/cache@26968a09c0ea4f3e233fdddbafd1166051a095f6 # v2.1.4
+        uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d # v3.0.4
         env:
           cache-name: cache-composer-dependencies
         with:
@@ -237,14 +227,27 @@ jobs:
         run: git diff --exit-code
 
       - name: Checkout the WordPress Test Reporter
-        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/master' && matrix.report }}
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
+        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/trunk' && matrix.report }}
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
         with:
           repository: 'WordPress/phpunit-test-runner'
           path: 'test-runner'
 
       - name: Submit test results to the WordPress.org host test results
-        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/master' && matrix.report }}
+        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/trunk' && matrix.report }}
         env:
           WPT_REPORT_API_KEY: "${{ secrets.WPT_REPORT_API_KEY }}"
         run: docker-compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    needs: [ test-php ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ needs.test-php.result == 'success' && 'success' || needs.test-php.result == 'cancelled' && 'cancelled' || 'failure' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
