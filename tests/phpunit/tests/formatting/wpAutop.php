@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::wpautop
  */
 class Tests_Formatting_wpAutop extends WP_UnitTestCase {
 
@@ -541,10 +543,9 @@ line 2<br/>
 	/**
 	 * wpautop() should not add extra </p> before <figcaption>
 	 *
-	 * @covers ::wpautop
-	 * @uses ::trim
-	 *
 	 * @ticket 39307
+	 *
+	 * @uses ::trim
 	 */
 	public function test_that_wpautop_does_not_add_extra_closing_p_in_figure() {
 		$content1  = '<figure><img src="example.jpg" /><figcaption>Caption</figcaption></figure>';

@@ -621,39 +621,6 @@ class Tests_Query extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 55716
-	 */
-	public function test_prime_user_cache() {
-		$action = new MockAction();
-		add_filter( 'update_user_metadata_cache', array( $action, 'filter' ), 10, 2 );
-		$user_ids = array();
-		$count    = 5;
-		for ( $i = 0; $i < $count; $i ++ ) {
-			$user_ids[ $i ] = self::factory()->user->create();
-			self::factory()->post->create(
-				array(
-					'post_type'   => 'post',
-					'post_author' => $user_ids[ $i ],
-				)
-			);
-		}
-
-		$q = new WP_Query(
-			array(
-				'post_type'      => 'post',
-				'posts_per_page' => $count,
-			)
-		);
-		while ( $q->have_posts() ) {
-			$q->the_post();
-		}
-
-		$args      = $action->get_args();
-		$last_args = end( $args );
-		$this->assertSameSets( $user_ids, $last_args[1], 'Ensure that user ids are primed' );
-	}
-
-	/**
 	 * @ticket 35601
 	 */
 	public function test_ping_status() {
