@@ -6505,8 +6505,7 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 				continue;
 			}
 
-			$intermediate_file = str_replace( wp_basename( $file ), $properties['file'], $file );
-			if ( ! wp_delete_file_from_directory( $intermediate_file, $intermediate_dir ) ) {
+			if ( ! wp_delete_file_from_directory( $properties['file'], $uploadpath['basedir'] ) ) {
 				$deleted = false;
 			}
 		}
