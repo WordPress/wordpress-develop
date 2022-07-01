@@ -729,7 +729,6 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	?>
 	<?php
 	if ( $locations_screen ) :
-
 		if ( 1 === $num_locations ) {
 			$text = __( 'Your theme supports one menu. Select which menu you would like to use.' );
 		} else {
@@ -741,7 +740,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					$num_locations
 				),
 				number_format_i18n( $num_locations )
-			) ;
+			);
 			$text = add_filter( 'nav_menu_theme_support_text', $text );
 			echo '<p>' . $text . '</p>';
 		}
