@@ -741,7 +741,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				),
 				number_format_i18n( $num_locations )
 			);
-			$text = apply_filters('nav_menu_theme_support_text', $text);
+			$text = apply_filters( 'nav_menu_theme_support_text', $text );
 			echo '<p>' . $text . '</p>';
 		}
 		?>
