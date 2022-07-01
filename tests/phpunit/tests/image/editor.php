@@ -489,7 +489,8 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 				}
 				return $transforms;
 			},
-			10, 3
+			10,
+			3
 		);
 
 		$attachment_id = $this->factory->attachment->create_upload_object(
