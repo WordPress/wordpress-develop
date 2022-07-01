@@ -614,7 +614,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 }
 
 /**
- * Check whether mime type  output is available for a given size and mime type.
+ * Check whether mime type output is available for a given size and source mime type.
  *
  * @since 6.1.0
  *
@@ -1361,7 +1361,7 @@ function _copy_image_file( $attachment_id ) {
  * is considered the primary output type for this image.
  *
  * Called for each uploaded image to determine the list of mime types that should be converted into. Then,
- * called again for each target image size as they are generated to see if the image should be converted into the mime type
+ * called again for each image size as they are generated to check if the image should be converted into the mime type
  * for that size.
  *
  * @since 6.1.0
@@ -1387,7 +1387,7 @@ function wp_upload_image_mime_transforms( $attachment_id, $image_size ) {
 	 * @param int    $attachment_id         The ID of the attachment where the hook was dispatched.
 	 * @param string $image_size            The image size name. Optional.
 	 */
-	return (array) apply_filters( 'wp_upload_image_mime_transforms', $image_mime_transforms, $attachment_id, $image_size );
+	return apply_filters( 'wp_upload_image_mime_transforms', $image_mime_transforms, $attachment_id, $image_size );
 }
 
 /**

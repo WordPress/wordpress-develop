@@ -6458,8 +6458,11 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 			if ( isset( $sizeinfo['sources'] ) && is_array( $sizeinfo['sources'] ) ) {
 				foreach ( $sizeinfo['sources'] as $mime => $properties ) {
 					$intermediate_file = str_replace( wp_basename( $file ), $properties['file'], $file );
-					if ( ! wp_delete_file_from_directory( $intermediate_file, $intermediate_dir ) ) {
-						$deleted = false;
+					if ( ! empty( $intermediate_file ) ) {
+						$intermediate_file = path_join( $uploadpath['basedir'], $intermediate_file );
+						if ( ! wp_delete_file_from_directory( $intermediate_file, $intermediate_dir ) ) {
+							$deleted = false;
+						}
 					}
 				}
 			} else {
@@ -6502,8 +6505,7 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 				continue;
 			}
 
-			$intermediate_file = str_replace( wp_basename( $file ), $properties['file'], $file );
-			if ( ! wp_delete_file_from_directory( $intermediate_file, $intermediate_dir ) ) {
+			if ( ! wp_delete_file_from_directory( $properties['file'], $uploadpath['basedir'] ) ) {
 				$deleted = false;
 			}
 		}
