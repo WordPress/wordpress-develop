@@ -1254,8 +1254,10 @@ function _wp_privacy_statuses() {
  *
  *     @type bool|string $label                     A descriptive name for the post status marked
  *                                                  for translation. Defaults to value of $post_status.
- *     @type bool|array  $label_count               Descriptive text to use for nooped plurals.
- *                                                  Default array of $label, twice.
+ *     @type array|false $label_count               Nooped plural text from _n_noop() to provide the singular
+ *                                                  and plural forms of the label for counts. Default false
+ *                                                  which means the `$label` argument will be used for both
+ *                                                  the singular and plural forms of this label.
  *     @type bool        $exclude_from_search       Whether to exclude posts with this post status
  *                                                  from search results. Default is value of $internal.
  *     @type bool        $_builtin                  Whether the status is built-in. Core-use only.
@@ -6506,6 +6508,7 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
  * Retrieves attachment metadata for attachment ID.
  *
  * @since 2.1.0
+ * @since 6.0.0 The `$filesize` value was added to the returned array.
  *
  * @param int  $attachment_id Attachment post ID. Defaults to global $post.
  * @param bool $unfiltered    Optional. If true, filters are not run. Default false.
@@ -7008,8 +7011,8 @@ function wp_mime_type_icon( $mime = 0 ) {
  * @since 2.1.0
  *
  * @param int     $post_id     Post ID.
- * @param WP_Post $post        The Post Object
- * @param WP_Post $post_before The Previous Post Object
+ * @param WP_Post $post        The post object.
+ * @param WP_Post $post_before The previous post object.
  */
 function wp_check_for_changed_slugs( $post_id, $post, $post_before ) {
 	// Don't bother if it hasn't changed.
@@ -7051,8 +7054,8 @@ function wp_check_for_changed_slugs( $post_id, $post, $post_before ) {
  * @since 4.9.3
  *
  * @param int     $post_id     Post ID.
- * @param WP_Post $post        The Post Object
- * @param WP_Post $post_before The Previous Post Object
+ * @param WP_Post $post        The post object.
+ * @param WP_Post $post_before The previous post object.
  */
 function wp_check_for_changed_dates( $post_id, $post, $post_before ) {
 	$previous_date = gmdate( 'Y-m-d', strtotime( $post_before->post_date ) );
@@ -7424,11 +7427,11 @@ function clean_post_cache( $post ) {
 }
 
 /**
- * Calls major cache updating functions for list of Post objects.
+ * Updates post, term, and metadata caches for a list of post objects.
  *
  * @since 1.5.0
  *
- * @param WP_Post[] $posts             Array of Post objects
+ * @param WP_Post[] $posts             Array of post objects (passed by reference).
  * @param string    $post_type         Optional. Post type. Default 'post'.
  * @param bool      $update_term_cache Optional. Whether to update the term cache. Default true.
  * @param bool      $update_meta_cache Optional. Whether to update the meta cache. Default true.
@@ -7475,7 +7478,39 @@ function update_post_caches( &$posts, $post_type = 'post', $update_term_cache = 
 }
 
 /**
- * Updates metadata cache for list of post IDs.
+ * Updates post author user caches for a list of post objects.
+ *
+ * @since 6.1.0
+ *
+ * @param WP_Post[] $posts Array of post objects.
+ */
+function update_post_author_caches( $posts ) {
+	$author_ids = wp_list_pluck( $posts, 'post_author' );
+	$author_ids = array_map( 'absint', $author_ids );
+	$author_ids = array_unique( array_filter( $author_ids ) );
+
+	cache_users( $author_ids );
+}
+
+/**
+ * Updates parent post caches for a list of post objects.
+ *
+ * @since 6.1.0
+ *
+ * @param WP_Post[] $posts Array of post objects.
+ */
+function update_post_parent_caches( $posts ) {
+	$parent_ids = wp_list_pluck( $posts, 'post_parent' );
+	$parent_ids = array_map( 'absint', $parent_ids );
+	$parent_ids = array_unique( array_filter( $parent_ids ) );
+
+	if ( ! empty( $parent_ids ) ) {
+		_prime_post_caches( $parent_ids, false );
+	}
+}
+
+/**
+ * Updates metadata cache for a list of post IDs.
  *
  * Performs SQL query to retrieve the metadata for the post IDs and updates the
  * metadata cache for the posts. Therefore, the functions, which call this
@@ -7778,7 +7813,7 @@ function wp_delete_auto_drafts() {
  *
  * @since 4.5.0
  *
- * @param array $posts Array of WP_Post objects.
+ * @param WP_Post[] $posts Array of WP_Post objects.
  */
 function wp_queue_posts_for_term_meta_lazyload( $posts ) {
 	$post_type_taxonomies = array();
@@ -7842,7 +7877,7 @@ function _update_term_count_on_transition_post_status( $new_status, $old_status,
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param array $ids               ID list.
+ * @param int[] $ids               ID list.
  * @param bool  $update_term_cache Optional. Whether to update the term cache. Default true.
  * @param bool  $update_meta_cache Optional. Whether to update the meta cache. Default true.
  */
@@ -8070,4 +8105,76 @@ function wp_get_original_image_url( $attachment_id ) {
  */
 function wp_untrash_post_set_previous_status( $new_status, $post_id, $previous_status ) {
 	return $previous_status;
+}
+
+/**
+ * Returns whether the post can be edited in the block editor.
+ *
+ * @since 5.0.0
+ * @since 6.1.0 Moved to wp-includes from wp-admin.
+ *
+ * @param int|WP_Post $post Post ID or WP_Post object.
+ * @return bool Whether the post can be edited in the block editor.
+ */
+function use_block_editor_for_post( $post ) {
+	$post = get_post( $post );
+
+	if ( ! $post ) {
+		return false;
+	}
+
+	// We're in the meta box loader, so don't use the block editor.
+	if ( is_admin() && isset( $_GET['meta-box-loader'] ) ) {
+		check_admin_referer( 'meta-box-loader', 'meta-box-loader-nonce' );
+		return false;
+	}
+
+	$use_block_editor = use_block_editor_for_post_type( $post->post_type );
+
+	/**
+	 * Filters whether a post is able to be edited in the block editor.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @param bool    $use_block_editor Whether the post can be edited or not.
+	 * @param WP_Post $post             The post being checked.
+	 */
+	return apply_filters( 'use_block_editor_for_post', $use_block_editor, $post );
+}
+
+/**
+ * Returns whether a post type is compatible with the block editor.
+ *
+ * The block editor depends on the REST API, and if the post type is not shown in the
+ * REST API, then it won't work with the block editor.
+ *
+ * @since 5.0.0
+ * @since 6.1.0 Moved to wp-includes from wp-admin.
+ *
+ * @param string $post_type The post type.
+ * @return bool Whether the post type can be edited with the block editor.
+ */
+function use_block_editor_for_post_type( $post_type ) {
+	if ( ! post_type_exists( $post_type ) ) {
+		return false;
+	}
+
+	if ( ! post_type_supports( $post_type, 'editor' ) ) {
+		return false;
+	}
+
+	$post_type_object = get_post_type_object( $post_type );
+	if ( $post_type_object && ! $post_type_object->show_in_rest ) {
+		return false;
+	}
+
+	/**
+	 * Filters whether a post is able to be edited in the block editor.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @param bool   $use_block_editor  Whether the post type can be edited or not. Default true.
+	 * @param string $post_type         The post type being checked.
+	 */
+	return apply_filters( 'use_block_editor_for_post_type', true, $post_type );
 }
