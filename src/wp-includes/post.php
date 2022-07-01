@@ -6496,7 +6496,7 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 		$sources = $meta['sources'];
 		array_shift( $sources );
 		foreach ( $sources as $mime => $properties ) {
-			if ( $mime === $primary_mime || ! is_array( $properties ) || empty( $properties['file'] ) ) {
+			if ( ! is_array( $properties ) || empty( $properties['file'] ) ) {
 				continue;
 			}
 
