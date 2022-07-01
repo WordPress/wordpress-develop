@@ -52,6 +52,9 @@ services:
     depends_on:
       - mysql
 
+    # The init directive ensures the command runs with a PID > 1, so Ctrl+C works correctly.
+    init: true
+
   ##
   # The MySQL container.
   ##
