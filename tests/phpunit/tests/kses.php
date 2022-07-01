@@ -1122,13 +1122,13 @@ EOF;
 			),
 			// Gap introduced in 6.1.
 			array(
-				'css'      => 'gap: 10px; column-gap: 5px; row-gap: 20px',
-				'expected' => 'gap: 10px; column-gap: 5px; row-gap: 20px',
+				'css'      => 'gap: 10px;column-gap: 5px;row-gap: 20px',
+				'expected' => 'gap: 10px;column-gap: 5px;row-gap: 20px',
 			),
 			// Margin and padding logical properties introduced in 6.1.
 			array(
-				'css'      => 'margin-block-start: 1px; margin-block-end: 2px; margin-inline-start: 3px; margin-inline-end: 4px; padding-block-start: 1px; padding-block-end: 2px; padding-inline-start: 3px; padding-inline-end: 4px',
-				'expected' => 'margin-block-start: 1px; margin-block-end: 2px; margin-inline-start: 3px; margin-inline-end: 4px; padding-block-start: 1px; padding-block-end: 2px; padding-inline-start: 3px; padding-inline-end: 4px',
+				'css'      => 'margin-block-start: 1px;margin-block-end: 2px;margin-inline-start: 3px;margin-inline-end: 4px;padding-block-start: 1px;padding-block-end: 2px;padding-inline-start: 3px;padding-inline-end: 4px',
+				'expected' => 'margin-block-start: 1px;margin-block-end: 2px;margin-inline-start: 3px;margin-inline-end: 4px;padding-block-start: 1px;padding-block-end: 2px;padding-inline-start: 3px;padding-inline-end: 4px',
 			),
 			// Display property introduced in 6.1.
 			array(
