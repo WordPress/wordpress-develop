@@ -172,7 +172,7 @@ class WP_Nav_Menu_Widget extends WP_Widget {
 			}
 
 			/* translators: %s: URL to create a new menu. */
-			printf( __( 'No menus have been created yet. <a href="%s">Create some</a>.' ), esc_url( $url ) );
+			printf( __( 'No menus have been created yet. <a href="%s">Create some</a>.' ), esc_attr( $url ) );
 			?>
 		</p>
 		<div class="nav-menu-widget-form-controls" <?php echo $empty_menus_style; ?>>
