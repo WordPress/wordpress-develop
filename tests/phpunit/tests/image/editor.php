@@ -403,10 +403,10 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	/**
 	 * Not create the sources property if no transform is provided
 	 *
-	 * @since 6.0.0
+	 * @since 6.1.0
 	 */
 	public function it_should_not_create_the_sources_property_if_no_transform_is_provided() {
-		add_filter( 'webp_uploads_supported_image_mime_transforms', '__return_empty_array' );
+		add_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
 
 		$attachment_id = $this->factory->attachment->create_upload_object(
 			DIR_TESTDATA . '/images/test-image.jpg'
@@ -423,11 +423,11 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	/**
 	 * Create the sources property when no transform is available
 	 *
-	 * @since 6.0.0
+	 * @since 6.1.0
 	 */
 	public function it_should_create_the_sources_property_when_no_transform_is_available() {
 		add_filter(
-			'webp_uploads_supported_image_mime_transforms',
+			'wp_upload_image_mime_transforms',
 			function () {
 				return array( 'image/jpeg' => array() );
 			}
@@ -453,11 +453,11 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	/**
 	 * Not create the sources property if the mime is not specified on the transforms images
 	 *
-	 * @since 6.0.0
+	 * @since 6.1.0
 	 */
 	public function it_should_not_create_the_sources_property_if_the_mime_is_not_specified_on_the_transforms_images() {
 		add_filter(
-			'webp_uploads_supported_image_mime_transforms',
+			'wp_upload_image_mime_transforms',
 			function () {
 				return array( 'image/jpeg' => array() );
 			}
@@ -474,6 +474,43 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 			$this->assertArrayNotHasKey( 'sources', $properties );
 		}
 	}
+
+	/**
+	 * Do not create the sources property when opting out by size.
+	 * @since 6.1.0
+	 */
+	public function it_should_not_create_the_sources_property_when_opting_out_by_size() {
+		// Exclude the large image from mime transforms.
+		add_filter(
+			'wp_upload_image_mime_transforms',
+			function ( $transforms, $attachment_id, $size_name ) {
+				if ( 'large' === $size_name ) {
+					return array();
+				}
+				return $transforms;
+			},
+			10, 3
+		);
+
+		$attachment_id = $this->factory->attachment->create_upload_object(
+			DIR_TESTDATA . '/images/test-image.jpg'
+		);
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+
+		$this->assertIsArray( $metadata );
+		// Expect sources data for every size except the large size.
+		foreach ( $metadata['sizes'] as $size_name => $properties ) {
+			if ( 'large' === $size_name ) {
+				$this->assertArrayNotHasKey( 'sources', $properties );
+			} else {
+				$this->assertArrayHasKey( 'sources', $properties );
+
+			}
+		}
+	}
+
+
 
 	/**
 	 * Create a WebP version with all the required properties
@@ -736,7 +773,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * @since 6.0.0
 	 */
 	public function it_should_prevent_replacing_an_image_with_no_available_sources() {
-		add_filter( 'webp_uploads_supported_image_mime_transforms', '__return_empty_array' );
+		add_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
 
 		$attachment_id = $this->factory->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
 
