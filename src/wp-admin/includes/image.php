@@ -1367,8 +1367,8 @@ function _copy_image_file( $attachment_id ) {
  *
  * @param int    $attachment_id  The attachment ID.
  * @param string $image_size     The image size name. False when called on the image and target size is unavailable.
- * @return array An array of valid mime types, where the key is the source file mime type and the list of mime types to
- *               generate.
+ * @return array An array of valid mime types, where the key is the source file mime type and the value is the list of
+ *               mime types to generate.
  */
 function wp_upload_image_mime_transforms( $attachment_id, $image_size ) {
 	$image_mime_transforms = array(
@@ -1386,7 +1386,7 @@ function wp_upload_image_mime_transforms( $attachment_id, $image_size ) {
 	 * @param int    $attachment_id         The ID of the attachment where the hook was dispatched.
 	 * @param string $image_size            The image size name. Optional.
 	 */
-	return (array) apply_filters( 'wp_upload_image_mime_transforms', $image_mime_transforms, $attachment_id, $image_size );
+	return apply_filters( 'wp_upload_image_mime_transforms', $image_mime_transforms, $attachment_id, $image_size );
 }
 
 /**
