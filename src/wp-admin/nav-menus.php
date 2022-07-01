@@ -736,13 +736,13 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			$text = sprintf(
 				/* translators: %s: Number of menus. */
 				_n(
-						'Your theme supports %s menu. Select which menu appears in each location.',
-						'Your theme supports %s menus. Select which menu appears in each location.',
-						$num_locations
+					'Your theme supports %s menu. Select which menu appears in each location.',
+					'Your theme supports %s menus. Select which menu appears in each location.',
+					$num_locations
 				),
 				number_format_i18n( $num_locations )
 			) ;
-			$text = add_filter('nav_menu_theme_support_text', $text);
+			$text = add_filter( 'nav_menu_theme_support_text', $text );
 			echo '<p>' . $text . '</p>' ;
 		}
 		?>
