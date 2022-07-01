@@ -145,7 +145,7 @@ function get_image_send_to_editor( $id, $caption, $title, $align, $url = '', $re
 	}
 
 	if ( $url ) {
-		$html = '<a href="' . esc_attr( $url ) . '"' . $rel . '>' . $html . '</a>';
+		$html = '<a href="' . esc_url( $url ) . '"' . $rel . '>' . $html . '</a>';
 	}
 
 	/**
