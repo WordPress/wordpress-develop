@@ -212,7 +212,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * we want to skip tests that only need to run for trunk.
 	 */
 	public function skipOnAutomatedBranches() {
-		// https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables#default-environment-variables
+		// https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
 		$github_event_name = getenv( 'GITHUB_EVENT_NAME' );
 		$github_ref        = getenv( 'GITHUB_REF' );
 
@@ -654,9 +654,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string $message Optional. Message to display when the assertion fails.
 	 */
 	public function assertNotWPError( $actual, $message = '' ) {
-		if ( '' === $message && is_wp_error( $actual ) ) {
-			$message = $actual->get_error_message();
+		if ( is_wp_error( $actual ) ) {
+			$message .= ' ' . $actual->get_error_message();
 		}
+
 		$this->assertNotInstanceOf( 'WP_Error', $actual, $message );
 	}
 
@@ -677,9 +678,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string $message Optional. Message to display when the assertion fails.
 	 */
 	public function assertNotIXRError( $actual, $message = '' ) {
-		if ( '' === $message && $actual instanceof IXR_Error ) {
-			$message = $actual->message;
+		if ( $actual instanceof IXR_Error ) {
+			$message .= ' ' . $actual->message;
 		}
+
 		$this->assertNotInstanceOf( 'IXR_Error', $actual, $message );
 	}
 
@@ -878,6 +880,132 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	}
 
 	/**
+	 * Checks each of the WP_Query is_* functions/properties against expected boolean value.
+	 *
+	 * Any properties that are listed by name as parameters will be expected to be true; all others are
+	 * expected to be false. For example, assertQueryTrue( 'is_single', 'is_feed' ) means is_single()
+	 * and is_feed() must be true and everything else must be false to pass.
+	 *
+	 * @since 2.5.0
+	 * @since 3.8.0 Moved from `Tests_Query_Conditionals` to `WP_UnitTestCase`.
+	 * @since 5.3.0 Formalized the existing `...$prop` parameter by adding it
+	 *              to the function signature.
+	 *
+	 * @param string ...$prop Any number of WP_Query properties that are expected to be true for the current request.
+	 */
+	public function assertQueryTrue( ...$prop ) {
+		global $wp_query;
+
+		$all = array(
+			'is_404',
+			'is_admin',
+			'is_archive',
+			'is_attachment',
+			'is_author',
+			'is_category',
+			'is_comment_feed',
+			'is_date',
+			'is_day',
+			'is_embed',
+			'is_feed',
+			'is_front_page',
+			'is_home',
+			'is_privacy_policy',
+			'is_month',
+			'is_page',
+			'is_paged',
+			'is_post_type_archive',
+			'is_posts_page',
+			'is_preview',
+			'is_robots',
+			'is_favicon',
+			'is_search',
+			'is_single',
+			'is_singular',
+			'is_tag',
+			'is_tax',
+			'is_time',
+			'is_trackback',
+			'is_year',
+		);
+
+		foreach ( $prop as $true_thing ) {
+			$this->assertContains( $true_thing, $all, "Unknown conditional: {$true_thing}." );
+		}
+
+		$passed  = true;
+		$message = '';
+
+		foreach ( $all as $query_thing ) {
+			$result = is_callable( $query_thing ) ? call_user_func( $query_thing ) : $wp_query->$query_thing;
+
+			if ( in_array( $query_thing, $prop, true ) ) {
+				if ( ! $result ) {
+					$message .= $query_thing . ' is false but is expected to be true. ' . PHP_EOL;
+					$passed   = false;
+				}
+			} elseif ( $result ) {
+				$message .= $query_thing . ' is true but is expected to be false. ' . PHP_EOL;
+				$passed   = false;
+			}
+		}
+
+		if ( ! $passed ) {
+			$this->fail( $message );
+		}
+	}
+
+	/**
+	 * Helper function to convert a single-level array containing text strings to a named data provider.
+	 *
+	 * The value of the data set will also be used as the name of the data set.
+	 *
+	 * Typical usage of this method:
+	 *
+	 *     public function data_provider_for_test_name() {
+	 *         $array = array(
+	 *             'value1',
+	 *             'value2',
+	 *         );
+	 *
+	 *         return $this->text_array_to_dataprovider( $array );
+	 *     }
+	 *
+	 * The returned result will look like:
+	 *
+	 *     array(
+	 *         'value1' => array( 'value1' ),
+	 *         'value2' => array( 'value2' ),
+	 *     )
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param array $input Input array.
+	 * @return array Array which is usable as a test data provider with named data sets.
+	 */
+	public static function text_array_to_dataprovider( $input ) {
+		$data = array();
+
+		foreach ( $input as $value ) {
+			if ( ! is_string( $value ) ) {
+				throw new Exception(
+					'All values in the input array should be text strings. Fix the input data.'
+				);
+			}
+
+			if ( isset( $data[ $value ] ) ) {
+				throw new Exception(
+					"Attempting to add a duplicate data set for value $value to the data provider. Fix the input data."
+				);
+			}
+
+			$data[ $value ] = array( $value );
+		}
+
+		return $data;
+	}
+
+	/**
 	 * Sets the global state to as if a given URL has been requested.
 	 *
 	 * This sets:
@@ -1051,82 +1179,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$tmp_dir = realpath( $tmp_dir );
 
 		return tempnam( $tmp_dir, 'wpunit' );
-	}
-
-	/**
-	 * Checks each of the WP_Query is_* functions/properties against expected boolean value.
-	 *
-	 * Any properties that are listed by name as parameters will be expected to be true; all others are
-	 * expected to be false. For example, assertQueryTrue( 'is_single', 'is_feed' ) means is_single()
-	 * and is_feed() must be true and everything else must be false to pass.
-	 *
-	 * @since 2.5.0
-	 * @since 3.8.0 Moved from `Tests_Query_Conditionals` to `WP_UnitTestCase`.
-	 * @since 5.3.0 Formalized the existing `...$prop` parameter by adding it
-	 *              to the function signature.
-	 *
-	 * @param string ...$prop Any number of WP_Query properties that are expected to be true for the current request.
-	 */
-	public function assertQueryTrue( ...$prop ) {
-		global $wp_query;
-
-		$all = array(
-			'is_404',
-			'is_admin',
-			'is_archive',
-			'is_attachment',
-			'is_author',
-			'is_category',
-			'is_comment_feed',
-			'is_date',
-			'is_day',
-			'is_embed',
-			'is_feed',
-			'is_front_page',
-			'is_home',
-			'is_privacy_policy',
-			'is_month',
-			'is_page',
-			'is_paged',
-			'is_post_type_archive',
-			'is_posts_page',
-			'is_preview',
-			'is_robots',
-			'is_favicon',
-			'is_search',
-			'is_single',
-			'is_singular',
-			'is_tag',
-			'is_tax',
-			'is_time',
-			'is_trackback',
-			'is_year',
-		);
-
-		foreach ( $prop as $true_thing ) {
-			$this->assertContains( $true_thing, $all, "Unknown conditional: {$true_thing}." );
-		}
-
-		$passed  = true;
-		$message = '';
-
-		foreach ( $all as $query_thing ) {
-			$result = is_callable( $query_thing ) ? call_user_func( $query_thing ) : $wp_query->$query_thing;
-
-			if ( in_array( $query_thing, $prop, true ) ) {
-				if ( ! $result ) {
-					$message .= $query_thing . ' is false but is expected to be true. ' . PHP_EOL;
-					$passed   = false;
-				}
-			} elseif ( $result ) {
-				$message .= $query_thing . ' is true but is expected to be false. ' . PHP_EOL;
-				$passed   = false;
-			}
-		}
-
-		if ( ! $passed ) {
-			$this->fail( $message );
-		}
 	}
 
 	/**
