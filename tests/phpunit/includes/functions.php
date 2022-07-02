@@ -152,6 +152,9 @@ function _delete_all_posts() {
 /**
  * Handles the WP die handler by outputting the given values as text.
  *
+ * @since UT (3.7.0)
+ * @since 6.1.0 The `$message` parameter can accept a `WP_Error` object.
+ *
  * @param string|WP_Error $message Error message or WP_Error object.
  * @param string          $title   Error title.
  * @param array           $args    Arguments passed to wp_die().
@@ -166,6 +169,8 @@ function _wp_die_handler( $message, $title = '', $args = array() ) {
 
 /**
  * Disables the WP die handler.
+ *
+ * @since UT (3.7.0)
  */
 function _disable_wp_die() {
 	$GLOBALS['_wp_die_disabled'] = true;
@@ -173,6 +178,8 @@ function _disable_wp_die() {
 
 /**
  * Enables the WP die handler.
+ *
+ * @since UT (3.7.0)
  */
 function _enable_wp_die() {
 	$GLOBALS['_wp_die_disabled'] = false;
@@ -180,6 +187,8 @@ function _enable_wp_die() {
 
 /**
  * Returns the die handler.
+ *
+ * @since UT (3.7.0)
  *
  * @return string The die handler.
  */
@@ -190,6 +199,8 @@ function _wp_die_handler_filter() {
 /**
  * Returns the die handler.
  *
+ * @since 4.9.0
+ *
  * @return string The die handler.
  */
 function _wp_die_handler_filter_exit() {
@@ -198,6 +209,9 @@ function _wp_die_handler_filter_exit() {
 
 /**
  * Dies without an exit.
+ *
+ * @since 4.0.0
+ * @since 6.1.0 The `$message` parameter can accept a `WP_Error` object.
  *
  * @param string|WP_Error $message Error message or WP_Error object.
  * @param string          $title   Error title.
@@ -227,6 +241,9 @@ function _wp_die_handler_txt( $message, $title, $args ) {
 
 /**
  * Dies with an exit.
+ *
+ * @since 4.9.0
+ * @since 6.1.0 The `$message` parameter can accept a `WP_Error` object.
  *
  * @param string|WP_Error $message Error message or WP_Error object.
  * @param string          $title   Error title.
