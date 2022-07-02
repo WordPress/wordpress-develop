@@ -152,9 +152,9 @@ function _delete_all_posts() {
 /**
  * Handles the WP die handler by outputting the given values as text.
  *
- * @param string $message The message.
- * @param string $title   The title.
- * @param array  $args    Array with arguments.
+ * @param string|WP_Error $message Error message or WP_Error object.
+ * @param string          $title   Error title.
+ * @param array           $args    Arguments passed to wp_die().
  */
 function _wp_die_handler( $message, $title = '', $args = array() ) {
 	if ( ! $GLOBALS['_wp_die_disabled'] ) {
@@ -199,12 +199,14 @@ function _wp_die_handler_filter_exit() {
 /**
  * Dies without an exit.
  *
- * @param string $message The message.
- * @param string $title   The title.
- * @param array  $args    Array with arguments.
+ * @param string|WP_Error $message Error message or WP_Error object.
+ * @param string          $title   Error title.
+ * @param array           $args    Arguments passed to wp_die().
  */
 function _wp_die_handler_txt( $message, $title, $args ) {
-	echo "\nwp_die called\n";
+	list( $message, $title, $args ) = _wp_die_process_input( $message, $title, $args );
+
+	echo "\nwp_die() called\n";
 	echo "Message: $message\n";
 
 	if ( ! empty( $title ) ) {
@@ -212,9 +214,13 @@ function _wp_die_handler_txt( $message, $title, $args ) {
 	}
 
 	if ( ! empty( $args ) ) {
-		echo "Args: \n";
-		foreach ( $args as $k => $v ) {
-			echo "\t $k : $v\n";
+		echo "Args:\n";
+		foreach ( $args as $key => $value ) {
+			if ( ! is_scalar( $value ) ) {
+				$value = var_export( $value, true );
+			}
+
+			echo "\t$key: $value\n";
 		}
 	}
 }
@@ -222,12 +228,14 @@ function _wp_die_handler_txt( $message, $title, $args ) {
 /**
  * Dies with an exit.
  *
- * @param string $message The message.
- * @param string $title   The title.
- * @param array  $args    Array with arguments.
+ * @param string|WP_Error $message Error message or WP_Error object.
+ * @param string          $title   Error title.
+ * @param array           $args    Arguments passed to wp_die().
  */
 function _wp_die_handler_exit( $message, $title, $args ) {
-	echo "\nwp_die called\n";
+	list( $message, $title, $args ) = _wp_die_process_input( $message, $title, $args );
+
+	echo "\nwp_die() called\n";
 	echo "Message: $message\n";
 
 	if ( ! empty( $title ) ) {
@@ -235,11 +243,16 @@ function _wp_die_handler_exit( $message, $title, $args ) {
 	}
 
 	if ( ! empty( $args ) ) {
-		echo "Args: \n";
-		foreach ( $args as $k => $v ) {
-			echo "\t $k : $v\n";
+		echo "Args:\n";
+		foreach ( $args as $key => $value ) {
+			if ( ! is_scalar( $value ) ) {
+				$value = var_export( $value, true );
+			}
+
+			echo "\t$key: $value\n";
 		}
 	}
+
 	exit( 1 );
 }
 
