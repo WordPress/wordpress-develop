@@ -359,11 +359,10 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_site_tagline' );
 	remove_action( 'init', 'register_block_core_site_title' );
 	remove_action( 'init', 'register_block_core_social_link' );
-	remove_action( 'init', 'register_block_core_social_link' );
 	remove_action( 'init', 'register_block_core_tag_cloud' );
 	remove_action( 'init', 'register_block_core_template_part' );
 	remove_action( 'init', 'register_block_core_term_description' );
-	remove_action( 'init', 'register_core_block_types_from_metadata' );
 	remove_action( 'init', 'register_block_core_widget_group' );
+	remove_action( 'init', 'register_core_block_types_from_metadata' );
 }
 tests_add_filter( 'init', '_unhook_block_registration', 1000 );
