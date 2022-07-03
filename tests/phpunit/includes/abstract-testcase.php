@@ -487,6 +487,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 	/**
 	 * Sets up the expectations for testing a deprecated call.
+	 *
+	 * @since 3.7.0
 	 */
 	public function expectDeprecated() {
 		if ( method_exists( $this, 'getAnnotations' ) ) {
@@ -533,6 +535,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Handles a deprecated expectation.
 	 *
 	 * The DocBlock should contain `@expectedDeprecated` to trigger this.
+	 *
+	 * @since 3.7.0
+	 * @since 6.1.0 Includes the actual unexpected `_doing_it_wrong()` message
+	 *              or deprecation notice in the output if one is encountered.
 	 */
 	public function expectedDeprecated() {
 		$errors = array();
@@ -543,7 +549,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		);
 
 		foreach ( $not_caught_deprecated as $not_caught ) {
-			$errors[] = "Failed to assert that $not_caught triggered a deprecation notice";
+			$errors[] = "Failed to assert that $not_caught triggered a deprecation notice.";
 		}
 
 		$unexpected_deprecated = array_diff(
@@ -552,7 +558,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		);
 
 		foreach ( $unexpected_deprecated as $unexpected ) {
-			$errors[] = "Unexpected deprecation notice for $unexpected";
+			$errors[] = "Unexpected deprecation notice for $unexpected.";
 			$errors[] = $this->caught_deprecated[ $unexpected ];
 		}
 
@@ -562,7 +568,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		);
 
 		foreach ( $not_caught_doing_it_wrong as $not_caught ) {
-			$errors[] = "Failed to assert that $not_caught triggered an incorrect usage notice";
+			$errors[] = "Failed to assert that $not_caught triggered an incorrect usage notice.";
 		}
 
 		$unexpected_doing_it_wrong = array_diff(
@@ -571,7 +577,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		);
 
 		foreach ( $unexpected_doing_it_wrong as $unexpected ) {
-			$errors[] = "Unexpected incorrect usage notice for $unexpected";
+			$errors[] = "Unexpected incorrect usage notice for $unexpected.";
 			$errors[] = $this->caught_doing_it_wrong[ $unexpected ];
 		}
 
@@ -600,8 +606,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * @since 4.2.0
 	 *
-	 * @param string $deprecated Name of the function, method, class, or argument that is deprecated. Must match
-	 *                           the first parameter of the `_deprecated_function()` or `_deprecated_argument()` call.
+	 * @param string $deprecated Name of the function, method, class, or argument that is deprecated.
+	 *                           Must match the first parameter of the `_deprecated_function()`
+	 *                           or `_deprecated_argument()` call.
 	 */
 	public function setExpectedDeprecated( $deprecated ) {
 		$this->expected_deprecated[] = $deprecated;
@@ -612,8 +619,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * @since 4.2.0
 	 *
-	 * @param string $doing_it_wrong Name of the function, method, or class that appears in the first argument
-	 *                               of the source `_doing_it_wrong()` call.
+	 * @param string $doing_it_wrong Name of the function, method, or class that appears in
+	 *                               the first argument of the source `_doing_it_wrong()` call.
 	 */
 	public function setExpectedIncorrectUsage( $doing_it_wrong ) {
 		$this->expected_doing_it_wrong[] = $doing_it_wrong;
@@ -624,6 +631,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * This method is only left in place for backward compatibility reasons.
 	 *
+	 * @since 4.8.0
 	 * @deprecated 5.9.0 Use the PHPUnit native expectException*() methods directly.
 	 *
 	 * @param mixed      $exception
@@ -644,6 +652,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 	/**
 	 * Adds a deprecated function to the list of caught deprecated calls.
+	 *
+	 * @since 3.7.0
+	 * @since 6.1.0 Added the `$replacement`, `$version`, and `$message` parameters.
 	 *
 	 * @param string $function    The deprecated function.
 	 * @param string $replacement The function that should have been called.
@@ -728,6 +739,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 	/**
 	 * Adds a function called in a wrong way to the list of `_doing_it_wrong()` calls.
+	 *
+	 * @since 3.7.0
+	 * @since 6.1.0 Added the `$message` and `$version` parameters.
 	 *
 	 * @param string $function The function to add.
 	 * @param string $message  A message explaining what has been done incorrectly.
