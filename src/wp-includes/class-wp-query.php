@@ -174,7 +174,7 @@ class WP_Query implements JsonSerializable, Serializable {
 	 * @since 2.1.0
 	 * @since x.x.x This value is now lazily loaded only when it's needed.
 	 *
-	 * @var int
+	 * @var int|null
 	 */
 	private $found_posts = null;
 
