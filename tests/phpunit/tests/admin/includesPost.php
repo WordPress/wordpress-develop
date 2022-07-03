@@ -827,8 +827,10 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 43559
+	 *
+	 * @covers ::add_meta
 	 */
-	public function test_post_add_meta_empty_is_allowed() {
+	public function test_add_meta_allows_empty_values() {
 		$p = self::factory()->post->create();
 
 		$_POST = array(
