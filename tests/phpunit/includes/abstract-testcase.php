@@ -502,17 +502,26 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		foreach ( array( 'class', 'method' ) as $depth ) {
 			if ( ! empty( $annotations[ $depth ]['expectedDeprecated'] ) ) {
-				$this->expected_deprecated = array_merge( $this->expected_deprecated, $annotations[ $depth ]['expectedDeprecated'] );
+				$this->expected_deprecated = array_merge(
+					$this->expected_deprecated,
+					$annotations[ $depth ]['expectedDeprecated']
+				);
 			}
+
 			if ( ! empty( $annotations[ $depth ]['expectedIncorrectUsage'] ) ) {
-				$this->expected_doing_it_wrong = array_merge( $this->expected_doing_it_wrong, $annotations[ $depth ]['expectedIncorrectUsage'] );
+				$this->expected_doing_it_wrong = array_merge(
+					$this->expected_doing_it_wrong,
+					$annotations[ $depth ]['expectedIncorrectUsage']
+				);
 			}
 		}
-		add_action( 'deprecated_function_run', array( $this, 'deprecated_function_run' ) );
-		add_action( 'deprecated_argument_run', array( $this, 'deprecated_function_run' ) );
-		add_action( 'deprecated_file_included', array( $this, 'deprecated_function_run' ) );
-		add_action( 'deprecated_hook_run', array( $this, 'deprecated_function_run' ) );
-		add_action( 'doing_it_wrong_run', array( $this, 'doing_it_wrong_run' ) );
+
+		add_action( 'deprecated_function_run', array( $this, 'deprecated_function_run' ), 10, 3 );
+		add_action( 'deprecated_argument_run', array( $this, 'deprecated_function_run' ), 10, 3 );
+		add_action( 'deprecated_file_included', array( $this, 'deprecated_function_run' ), 10, 4 );
+		add_action( 'deprecated_hook_run', array( $this, 'deprecated_function_run' ), 10, 4 );
+		add_action( 'doing_it_wrong_run', array( $this, 'doing_it_wrong_run' ), 10, 3 );
+
 		add_action( 'deprecated_function_trigger_error', '__return_false' );
 		add_action( 'deprecated_argument_trigger_error', '__return_false' );
 		add_action( 'deprecated_file_trigger_error', '__return_false' );
@@ -528,24 +537,42 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	public function expectedDeprecated() {
 		$errors = array();
 
-		$not_caught_deprecated = array_diff( $this->expected_deprecated, $this->caught_deprecated );
+		$not_caught_deprecated = array_diff(
+			$this->expected_deprecated,
+			array_keys( $this->caught_deprecated )
+		);
+
 		foreach ( $not_caught_deprecated as $not_caught ) {
-			$errors[] = "Failed to assert that $not_caught triggered a deprecated notice";
+			$errors[] = "Failed to assert that $not_caught triggered a deprecation notice";
 		}
 
-		$unexpected_deprecated = array_diff( $this->caught_deprecated, $this->expected_deprecated );
+		$unexpected_deprecated = array_diff(
+			array_keys( $this->caught_deprecated ),
+			$this->expected_deprecated
+		);
+
 		foreach ( $unexpected_deprecated as $unexpected ) {
-			$errors[] = "Unexpected deprecated notice for $unexpected";
+			$errors[] = "Unexpected deprecation notice for $unexpected";
+			$errors[] = $this->caught_deprecated[ $unexpected ];
 		}
 
-		$not_caught_doing_it_wrong = array_diff( $this->expected_doing_it_wrong, $this->caught_doing_it_wrong );
+		$not_caught_doing_it_wrong = array_diff(
+			$this->expected_doing_it_wrong,
+			array_keys( $this->caught_doing_it_wrong )
+		);
+
 		foreach ( $not_caught_doing_it_wrong as $not_caught ) {
 			$errors[] = "Failed to assert that $not_caught triggered an incorrect usage notice";
 		}
 
-		$unexpected_doing_it_wrong = array_diff( $this->caught_doing_it_wrong, $this->expected_doing_it_wrong );
+		$unexpected_doing_it_wrong = array_diff(
+			array_keys( $this->caught_doing_it_wrong ),
+			$this->expected_doing_it_wrong
+		);
+
 		foreach ( $unexpected_doing_it_wrong as $unexpected ) {
 			$errors[] = "Unexpected incorrect usage notice for $unexpected";
+			$errors[] = $this->caught_doing_it_wrong[ $unexpected ];
 		}
 
 		// Perform an assertion, but only if there are expected or unexpected deprecated calls or wrongdoings.
@@ -618,11 +645,84 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	/**
 	 * Adds a deprecated function to the list of caught deprecated calls.
 	 *
-	 * @param string $function The deprecated function.
+	 * @param string $function    The deprecated function.
+	 * @param string $replacement The function that should have been called.
+	 * @param string $version     The version of WordPress that deprecated the function.
+	 * @param string $message     Optional. A message regarding the change.
 	 */
-	public function deprecated_function_run( $function ) {
-		if ( ! in_array( $function, $this->caught_deprecated, true ) ) {
-			$this->caught_deprecated[] = $function;
+	public function deprecated_function_run( $function, $replacement, $version, $message = '' ) {
+		if ( ! isset( $this->caught_deprecated[ $function ] ) ) {
+			switch ( current_action() ) {
+				case 'deprecated_function_run':
+					if ( $replacement ) {
+						$message = sprintf(
+							'Function %1$s is deprecated since version %2$s! Use %3$s instead.',
+							$function,
+							$version,
+							$replacement
+						);
+					} else {
+						$message = sprintf(
+							'Function %1$s is deprecated since version %2$s with no alternative available.',
+							$function,
+							$version
+						);
+					}
+					break;
+
+				case 'deprecated_argument_run':
+					if ( $replacement ) {
+						$message = sprintf(
+							'Function %1$s was called with an argument that is deprecated since version %2$s! %3$s',
+							$function,
+							$version,
+							$replacement
+						);
+					} else {
+						$message = sprintf(
+							'Function %1$s was called with an argument that is deprecated since version %2$s with no alternative available.',
+							$function,
+							$version
+						);
+					}
+					break;
+
+				case 'deprecated_file_included':
+					if ( $replacement ) {
+						$message = sprintf(
+							'File %1$s is deprecated since version %2$s! Use %3$s instead.',
+							$function,
+							$version,
+							$replacement
+						) . ' ' . $message;
+					} else {
+						$message = sprintf(
+							'File %1$s is deprecated since version %2$s with no alternative available.',
+							$function,
+							$version
+						) . ' ' . $message;
+					}
+					break;
+
+				case 'deprecated_hook_run':
+					if ( $replacement ) {
+						$message = sprintf(
+							'Hook %1$s is deprecated since version %2$s! Use %3$s instead.',
+							$function,
+							$version,
+							$replacement
+						) . ' ' . $message;
+					} else {
+						$message = sprintf(
+							'Hook %1$s is deprecated since version %2$s with no alternative available.',
+							$function,
+							$version
+						) . ' ' . $message;
+					}
+					break;
+			}
+
+			$this->caught_deprecated[ $function ] = $message;
 		}
 	}
 
@@ -630,10 +730,16 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Adds a function called in a wrong way to the list of `_doing_it_wrong()` calls.
 	 *
 	 * @param string $function The function to add.
+	 * @param string $message  A message explaining what has been done incorrectly.
+	 * @param string $version  The version of WordPress where the message was added.
 	 */
-	public function doing_it_wrong_run( $function ) {
-		if ( ! in_array( $function, $this->caught_doing_it_wrong, true ) ) {
-			$this->caught_doing_it_wrong[] = $function;
+	public function doing_it_wrong_run( $function, $message, $version ) {
+		if ( ! isset( $this->caught_doing_it_wrong[ $function ] ) ) {
+			if ( $version ) {
+				$message .= ' ' . sprintf( '(This message was added in version %s.)', $version );
+			}
+
+			$this->caught_doing_it_wrong[ $function ] = $message;
 		}
 	}
 
