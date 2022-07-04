@@ -46,7 +46,7 @@ class WP_Textdomain_Registry {
 			return $this->domains[ $domain ][ $locale ];
 		}
 
-		return $this->get_path_from_lang_dir( $domain );
+		return $this->get_path_from_lang_dir( $domain, $locale );
 	}
 
 	/**
@@ -78,19 +78,20 @@ class WP_Textdomain_Registry {
 	 * @since 6.1.0
 	 *
 	 * @param string $domain Text domain.
+	 * @param string $locale Locale.
 	 * @return string|false MO file path or false if there is none available.
 	 */
-	private function get_path_from_lang_dir( $domain ) {
+	private function get_path_from_lang_dir( $domain, $locale ) {
 		if ( null === $this->cached_mo_files ) {
 			$this->cached_mo_files = array();
 
 			$this->set_cached_mo_files();
 		}
 
-		$locale = determine_locale();
 		$mofile = "{$domain}-{$locale}.mo";
 
 		$path = WP_LANG_DIR . '/plugins/' . $mofile;
+
 		if ( in_array( $path, $this->cached_mo_files, true ) ) {
 			$path = WP_LANG_DIR . '/plugins/';
 			$this->set( $domain, $locale, $path );
@@ -104,6 +105,14 @@ class WP_Textdomain_Registry {
 			$this->set( $domain, $locale, $path );
 
 			return $path;
+		}
+
+		// If no path is found for the given locale, check if an entry for the default
+		// en_US locale exists. This is the case when e.g. using load_plugin_textdomain
+		// with a custom path.
+		if ( 'en_US' !== $locale && isset( $this->domains[ $domain ]['en_US'] ) ) {
+			$this->set( $domain, $locale, $this->domains[ $domain ]['en_US'] );
+			return $this->domains[ $domain ]['en_US'];
 		}
 
 		$this->set( $domain, $locale, false );

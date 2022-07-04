@@ -903,6 +903,7 @@ function load_default_textdomain( $locale = null ) {
  * @return bool True when textdomain is successfully loaded, false otherwise.
  */
 function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path = false ) {
+	/* @var WP_Textdomain_Registry $wp_textdomain_registry */
 	global $wp_textdomain_registry;
 
 	/**
@@ -931,7 +932,6 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
 		$path = WP_PLUGIN_DIR;
 	}
 
-	/* @var WP_Textdomain_Registry $wp_textdomain_registry */
 	$wp_textdomain_registry->set( $domain, $locale, $path );
 
 	return load_textdomain( $domain, $path . '/' . $mofile );
@@ -951,6 +951,7 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
  * @return bool True when textdomain is successfully loaded, false otherwise.
  */
 function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
+	/* @var WP_Textdomain_Registry $wp_textdomain_registry */
 	global $wp_textdomain_registry;
 
 	/** This filter is documented in wp-includes/l10n.php */
@@ -965,7 +966,6 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
 
 	$path = WPMU_PLUGIN_DIR . '/' . ltrim( $mu_plugin_rel_path, '/' );
 
-	/* @var WP_Textdomain_Registry $wp_textdomain_registry */
 	$wp_textdomain_registry->set( $domain, $locale, $path );
 
 	return load_textdomain( $domain, $path . '/' . $mofile );
@@ -990,6 +990,7 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
  * @return bool True when textdomain is successfully loaded, false otherwise.
  */
 function load_theme_textdomain( $domain, $path = false ) {
+	/* @var WP_Textdomain_Registry $wp_textdomain_registry */
 	global $wp_textdomain_registry;
 
 	/**
@@ -1013,7 +1014,6 @@ function load_theme_textdomain( $domain, $path = false ) {
 		$path = get_template_directory();
 	}
 
-	/* @var WP_Textdomain_Registry $wp_textdomain_registry */
 	$wp_textdomain_registry->set( $domain, $locale, $path );
 
 	return load_textdomain( $domain, $path . '/' . $locale . '.mo' );
