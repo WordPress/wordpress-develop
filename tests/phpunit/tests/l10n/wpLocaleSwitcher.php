@@ -441,7 +441,7 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		require_once get_stylesheet_directory() . '/functions.php';
 
-		$registry_value = $wp_textdomain_registry->get('custom-internationalized-theme', determine_locale());
+		$registry_value = $wp_textdomain_registry->get( 'custom-internationalized-theme', determine_locale() );
 
 		$actual = custom_i18n_theme_test();
 
@@ -458,7 +458,7 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		$wp_locale_switcher = $locale_switcher;
 
-		$this->assertSame( get_template_directory() . '/languages/', $registry_value);
+		$this->assertSame( get_template_directory() . '/languages/', $registry_value );
 		$this->assertSame( 'This is a dummy theme', $actual );
 		$this->assertSame( 'Das ist ein Dummy Theme', $actual_de_DE );
 		$this->assertSame( 'Este es un tema dummy', $actual_es_ES );
