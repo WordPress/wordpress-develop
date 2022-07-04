@@ -6997,12 +6997,20 @@ h1.page-title {
 	background-color: #000;
 }
 
+.has-black-border-color[class] {
+	border-color: #000;
+}
+
 .has-dark-gray-background-color[class] {
 	background-color: #28303d;
 }
 
 .has-dark-gray-background-color[class] > [class*=__inner-container] {
 	background-color: #28303d;
+}
+
+.has-dark-gray-border-color[class] {
+	border-color: #28303d;
 }
 
 .has-gray-background-color[class] {
@@ -7013,12 +7021,20 @@ h1.page-title {
 	background-color: #39414d;
 }
 
+.has-gray-border-color[class] {
+	border-color: #39414d;
+}
+
 .has-light-gray-background-color[class] {
 	background-color: #f0f0f0;
 }
 
 .has-light-gray-background-color[class] > [class*=__inner-container] {
 	background-color: #f0f0f0;
+}
+
+.has-light-grey-border-color[class] {
+	border-color: undefined;
 }
 
 .has-green-background-color[class] {
@@ -7029,12 +7045,20 @@ h1.page-title {
 	background-color: #d1e4dd;
 }
 
+.has-green-border-color[class] {
+	border-color: #d1e4dd;
+}
+
 .has-blue-background-color[class] {
 	background-color: #d1dfe4;
 }
 
 .has-blue-background-color[class] > [class*=__inner-container] {
 	background-color: #d1dfe4;
+}
+
+.has-blue-border-color[class] {
+	border-color: #d1dfe4;
 }
 
 .has-purple-background-color[class] {
@@ -7045,12 +7069,20 @@ h1.page-title {
 	background-color: #d1d1e4;
 }
 
+.has-purple-border-color[class] {
+	border-color: #d1d1e4;
+}
+
 .has-red-background-color[class] {
 	background-color: #e4d1d1;
 }
 
 .has-red-background-color[class] > [class*=__inner-container] {
 	background-color: #e4d1d1;
+}
+
+.has-red-border-color[class] {
+	border-color: #e4d1d1;
 }
 
 .has-orange-background-color[class] {
@@ -7061,6 +7093,10 @@ h1.page-title {
 	background-color: #e4dad1;
 }
 
+.has-orange-border-color[class] {
+	border-color: #e4dad1;
+}
+
 .has-yellow-background-color[class] {
 	background-color: #eeeadd;
 }
@@ -7069,12 +7105,20 @@ h1.page-title {
 	background-color: #eeeadd;
 }
 
+.has-yellow-border-color[class] {
+	border-color: #eeeadd;
+}
+
 .has-white-background-color[class] {
 	background-color: #fff;
 }
 
 .has-white-background-color[class] > [class*=__inner-container] {
 	background-color: #fff;
+}
+
+.has-white-border-color[class] {
+	border-color: #fff;
 }
 
 .has-background:not(.has-text-color).has-black-background-color[class] {
