@@ -282,7 +282,7 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 						'Requires Plugins' => 'я-делюсь',
 					),
 				),
-				'expected'     => array( 'я-делюсь' ),
+				'expected'     => array( 'RequiresPlugins' => 'я-делюсь' ),
 			),
 			'arabic dependencies'                 => array(
 				'plugins_data' => array(
@@ -291,7 +291,7 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 						'Requires Plugins' => 'لينوكس-ويكى',
 					),
 				),
-				'expected'     => array( 'لينوكس-ويكى' ),
+				'expected'     => array( 'RequiresPlugins' => 'لينوكس-ويكى' ),
 			),
 			'chinese dependencies'                 => array(
 				'plugins_data' => array(
@@ -300,7 +300,7 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 						'Requires Plugins' => '唐诗宋词chinese-poem,社交登录,腾讯微博一键登录,豆瓣秀-for-wordpress',
 					),
 				),
-				'expected'     => array( '唐诗宋词chinese-poem,社交登录,腾讯微博一键登录,豆瓣秀-for-wordpress' ),
+				'expected'     => array( 'RequiresPlugins' => '唐诗宋词chinese-poem,社交登录,腾讯微博一键登录,豆瓣秀-for-wordpress' ),
 			),
 		);
 	}
