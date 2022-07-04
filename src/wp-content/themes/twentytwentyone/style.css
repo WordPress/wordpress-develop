@@ -5655,7 +5655,7 @@ h1.page-title {
 }
 
 .has-black-border-color[class] {
-	border-color: var(--global--color-black);
+	border-color: var(--global--color-black, #000);
 }
 
 .has-dark-gray-background-color[class] {
@@ -5668,7 +5668,7 @@ h1.page-title {
 }
 
 .has-dark-gray-border-color[class] {
-	border-color: var(--global--color-dark-gray);
+	border-color: var(--global--color-dark-gray, #000);
 }
 
 .has-gray-background-color[class] {
@@ -5681,7 +5681,7 @@ h1.page-title {
 }
 
 .has-gray-border-color[class] {
-	border-color: var(--global--color-gray);
+	border-color: var(--global--color-gray, #000);
 }
 
 .has-light-gray-background-color[class] {
@@ -5694,7 +5694,7 @@ h1.page-title {
 }
 
 .has-light-grey-border-color[class] {
-	border-color: var(--global--color-light-grey);
+	border-color: var(--global--color-light-grey, #fff);
 }
 
 .has-green-background-color[class] {
@@ -5707,7 +5707,7 @@ h1.page-title {
 }
 
 .has-green-border-color[class] {
-	border-color: var(--global--color-green);
+	border-color: var(--global--color-green, #fff);
 }
 
 .has-blue-background-color[class] {
@@ -5720,7 +5720,7 @@ h1.page-title {
 }
 
 .has-blue-border-color[class] {
-	border-color: var(--global--color-blue);
+	border-color: var(--global--color-blue, #fff);
 }
 
 .has-purple-background-color[class] {
@@ -5733,7 +5733,7 @@ h1.page-title {
 }
 
 .has-purple-border-color[class] {
-	border-color: var(--global--color-purple);
+	border-color: var(--global--color-purple, #fff);
 }
 
 .has-red-background-color[class] {
@@ -5746,7 +5746,7 @@ h1.page-title {
 }
 
 .has-red-border-color[class] {
-	border-color: var(--global--color-red);
+	border-color: var(--global--color-red, #fff);
 }
 
 .has-orange-background-color[class] {
@@ -5759,7 +5759,7 @@ h1.page-title {
 }
 
 .has-orange-border-color[class] {
-	border-color: var(--global--color-orange);
+	border-color: var(--global--color-orange, #fff);
 }
 
 .has-yellow-background-color[class] {
@@ -5772,7 +5772,7 @@ h1.page-title {
 }
 
 .has-yellow-border-color[class] {
-	border-color: var(--global--color-yellow);
+	border-color: var(--global--color-yellow, #fff);
 }
 
 .has-white-background-color[class] {
@@ -5785,7 +5785,7 @@ h1.page-title {
 }
 
 .has-white-border-color[class] {
-	border-color: var(--global--color-white);
+	border-color: var(--global--color-white, #fff);
 }
 
 .has-background:not(.has-text-color).has-black-background-color[class],

@@ -2835,7 +2835,7 @@ a {
 }
 
 .has-light-grey-border-color[class] {
-	border-color: undefined;
+	border-color: #fff;
 }
 
 .has-green-background-color[class] {
