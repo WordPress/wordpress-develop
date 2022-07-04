@@ -133,6 +133,11 @@ function _load_remote_featured_patterns() {
  * @access private
  */
 function _register_remote_theme_patterns() {
+	/** This filter is documented in wp-includes/block-patterns.php */
+	if ( ! apply_filters( 'should_load_remote_block_patterns', true ) ) {
+		return;
+	}
+
 	if ( ! WP_Theme_JSON_Resolver::theme_has_support() ) {
 		return;
 	}
