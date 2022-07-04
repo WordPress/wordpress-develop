@@ -275,15 +275,6 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 				),
 				'expected'     => array( 'RequiresPlugins' => '"hello-dolly, woocommerce"' ),
 			),
-			'non-ascii dependencies'                 => array(
-				'plugins_data' => array(
-					'test-plugin' => array(
-						'Plugin Name'      => 'Test Plugin',
-						'Requires Plugins' => 'я-делюсь,لينوكس-ويكى,唐诗宋词chinese-poem,社交登录,腾讯微博一键登录,豆瓣秀-for-wordpress',
-					),
-				),
-				'expected'     => array( 'делюсь,لينوكس-ويكى,唐诗宋词chinese-poem,社交登录,腾讯微博一键登录,豆瓣秀-for-wordpress' ),
-			),
 			'cyrillic dependencies'                 => array(
 				'plugins_data' => array(
 					'test-plugin' => array(
@@ -291,7 +282,7 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 						'Requires Plugins' => 'я-делюсь',
 					),
 				),
-				'expected'     => array( 'делюсь,لينوكس-ويكى,唐诗宋词chinese-poem,社交登录,腾讯微博一键登录,豆瓣秀-for-wordpress' ),
+				'expected'     => array( 'я-делюсь' ),
 			),
 			'arabic dependencies'                 => array(
 				'plugins_data' => array(
