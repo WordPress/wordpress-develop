@@ -184,7 +184,7 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 
 		restore_current_locale();
 
-		$this->assertSame( 'Das ist ein Dummy Plugin', $actual_es_es );
+		$this->assertSame( 'Das ist ein Dummy Plugin', $actual_de_de );
 		$this->assertSame( 'Este es un plugin dummy', $actual_es_es );
 	}
 
