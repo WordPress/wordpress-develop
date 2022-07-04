@@ -1385,7 +1385,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 				'<span class="code">' . esc_html( $filename_for_errors ) . '</span>'
 			),
 			array(
-				'php'    => phpversion(),
+				'php'    => PHP_VERSION,
 				'sodium' => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
 			)
 		);
@@ -1420,7 +1420,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 					'<span class="code">' . esc_html( $filename_for_errors ) . '</span>'
 				),
 				array(
-					'php'                => phpversion(),
+					'php'                => PHP_VERSION,
 					'sodium'             => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
 					'polyfill_is_fast'   => false,
 					'max_execution_time' => ini_get( 'max_execution_time' ),
@@ -1493,7 +1493,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 			'hash'        => bin2hex( $file_hash ),
 			'skipped_key' => $skipped_key,
 			'skipped_sig' => $skipped_signature,
-			'php'         => phpversion(),
+			'php'         => PHP_VERSION,
 			'sodium'      => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
 		)
 	);
@@ -2302,7 +2302,7 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 	$connection_type = isset( $credentials['connection_type'] ) ? $credentials['connection_type'] : '';
 
 	if ( $error ) {
-		$error_string = __( '<strong>Error</strong>: Could not connect to the server. Please verify the settings are correct.' );
+		$error_string = __( '<strong>Error:</strong> Could not connect to the server. Please verify the settings are correct.' );
 		if ( is_wp_error( $error ) ) {
 			$error_string = esc_html( $error->get_error_message() );
 		}
