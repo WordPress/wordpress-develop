@@ -409,11 +409,11 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 		switch_to_locale( 'es_ES' );
 		switch_to_locale( 'de_DE' );
 
-		$actual_de_DE = custom_i18n_plugin_test();
+		$actual_de_de = custom_i18n_plugin_test();
 
 		restore_previous_locale();
 
-		$actual_es_ES = custom_i18n_plugin_test();
+		$actual_es_es = custom_i18n_plugin_test();
 
 		restore_current_locale();
 
@@ -421,8 +421,8 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		$this->assertSame( 'This is a dummy plugin', $actual );
 		$this->assertSame( WP_PLUGIN_DIR . '/custom-internationalized-plugin/languages/', $registry_value );
-		$this->assertSame( 'Das ist ein Dummy Plugin', $actual_de_DE );
-		$this->assertSame( 'Este es un plugin dummy', $actual_es_ES );
+		$this->assertSame( 'Das ist ein Dummy Plugin', $actual_de_de );
+		$this->assertSame( 'Este es un plugin dummy', $actual_es_es );
 	}
 
 	/**
@@ -448,11 +448,11 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 		switch_to_locale( 'es_ES' );
 		switch_to_locale( 'de_DE' );
 
-		$actual_de_DE = custom_i18n_theme_test();
+		$actual_de_de = custom_i18n_theme_test();
 
 		restore_previous_locale();
 
-		$actual_es_ES = custom_i18n_theme_test();
+		$actual_es_es = custom_i18n_theme_test();
 
 		restore_current_locale();
 
@@ -460,8 +460,8 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		$this->assertSame( get_template_directory() . '/languages/', $registry_value );
 		$this->assertSame( 'This is a dummy theme', $actual );
-		$this->assertSame( 'Das ist ein Dummy Theme', $actual_de_DE );
-		$this->assertSame( 'Este es un tema dummy', $actual_es_ES );
+		$this->assertSame( 'Das ist ein Dummy Theme', $actual_de_de );
+		$this->assertSame( 'Este es un tema dummy', $actual_es_es );
 	}
 
 	public function filter_locale() {
