@@ -302,6 +302,15 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 				),
 				'expected'     => array( 'RequiresPlugins' => '唐诗宋词chinese-poem,社交登录,腾讯微博一键登录,豆瓣秀-for-wordpress' ),
 			),
+			'symbol dependencies'                 => array(
+				'plugins_data' => array(
+					'test-plugin' => array(
+						'Plugin Name'      => 'Test Plugin',
+						'Requires Plugins' => '★-wpsymbols-★',
+					),
+				),
+				'expected'     => array( 'RequiresPlugins' => '★-wpsymbols-★' ),
+			),
 		);
 	}
 
