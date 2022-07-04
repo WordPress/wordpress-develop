@@ -373,6 +373,22 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 				'requires_plugins' => '"hello-dolly, woocommerce"',
 				'expected'         => array(),
 			),
+			'cyrillic dependencies'                  => array(
+				'requires_plugins' => 'я-делюсь',
+				'expected'         => array( 'я-делюсь' ),
+			),
+			'arabic dependencies'                    => array(
+				'requires_plugins' => 'لينوكس-ويكى',
+				'expected'         => array( 'لينوكس-ويكى' ),
+			),
+			'chinese dependencies'                   => array(
+				'requires_plugins' => '唐诗宋词chinese-poem,社交登录,腾讯微博一键登录,豆瓣秀-for-wordpress',
+				'expected'         => array( '唐诗宋词chinese-poem', '社交登录', '腾讯微博一键登录', '豆瓣秀-for-wordpress' ),
+			),
+			'symbol dependencies'                    => array(
+				'requires_plugins' => '★-wpsymbols-★',
+				'expected'         => array( '★-wpsymbols-★' ),
+			),
 		);
 	}
 }
