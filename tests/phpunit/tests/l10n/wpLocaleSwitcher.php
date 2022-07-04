@@ -402,7 +402,7 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		require_once DIR_TESTDATA . '/plugins/custom-internationalized-plugin/custom-internationalized-plugin.php';
 
-		$registry_value = $wp_textdomain_registry->get( 'custom-internationalized-plugin', get_locale() );
+		$registry_value = $wp_textdomain_registry->get( 'custom-internationalized-plugin', determine_locale() );
 
 		$actual = custom_i18n_plugin_test();
 
@@ -441,7 +441,7 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		require_once get_stylesheet_directory() . '/functions.php';
 
-		$registry_value = $wp_textdomain_registry->get('custom-internationalized-theme', get_locale());
+		$registry_value = $wp_textdomain_registry->get('custom-internationalized-theme', determine_locale());
 
 		$actual = custom_i18n_theme_test();
 
