@@ -31,14 +31,14 @@ class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 		$wp_textdomain_registry->reset();
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 
 		/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 		global $wp_textdomain_registry;
 
 		$wp_textdomain_registry->reset();
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	public function store_locale( $locale ) {
