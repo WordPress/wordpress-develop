@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2015-12-31 16:38+0100\n"
+"POT-Creation-Date: 2015-12-31 16:31+0100\n"
 "PO-Revision-Date: 2020-10-20 17:09+0200\n"
 "Language: de_DE\n"
 "MIME-Version: 1.0\n"
@@ -14,10 +14,10 @@ msgstr ""
 "_nx_noop:1,2,3c;esc_attr__;esc_html__;esc_attr_e;esc_html_e;esc_attr_x:1,2c;"
 "esc_html_x:1,2c\n"
 "X-Textdomain-Support: yes\n"
-"Last-Translator: \n"
+"Last-Translator: Dominik Schilling\n"
 "Language-Team: \n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: functions.php:7
-msgid "This is a dummy theme"
-msgstr "Das ist ein Dummy Theme"
+#: internationalized-plugin.php:11
+msgid "This is a dummy plugin"
+msgstr "Das ist ein Dummy Plugin"

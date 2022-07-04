@@ -22,7 +22,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 			'Description' => 'This is not just a plugin, it symbolizes the hope and enthusiasm of an entire generation summed up in two words sung most famously by Louis Armstrong: Hello, Dolly. When activated you will randomly see a lyric from Hello, Dolly in the upper right of your admin screen on every page. <cite>By <a href="http://ma.tt/">Matt Mullenweg</a>.</cite>',
 			'Author'      => '<a href="http://ma.tt/">Matt Mullenweg</a>',
 			'AuthorURI'   => 'http://ma.tt/',
-			'Version'     => '1.5.1',
+			'Version'     => '1.7.2',
 			'TextDomain'  => 'hello-dolly',
 			'DomainPath'  => '',
 		);
