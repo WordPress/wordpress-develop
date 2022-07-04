@@ -402,25 +402,27 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		require_once DIR_TESTDATA . '/plugins/custom-internationalized-plugin/custom-internationalized-plugin.php';
 
-		$this->assertSame( WP_PLUGIN_DIR . '/custom-internationalized-plugin/languages/', $wp_textdomain_registry->get( 'custom-internationalized-plugin', get_locale() ) );
+		$registry_value = $wp_textdomain_registry->get( 'custom-internationalized-plugin', get_locale() );
 
-		$expected = custom_i18n_plugin_test();
-		$this->assertSame( 'This is a dummy plugin', $expected );
+		$actual = custom_i18n_plugin_test();
 
 		switch_to_locale( 'es_ES' );
 		switch_to_locale( 'de_DE' );
 
-		$expected = custom_i18n_plugin_test();
-		$this->assertSame( 'Das ist ein Dummy Plugin', $expected );
+		$actual_de_DE = custom_i18n_plugin_test();
 
 		restore_previous_locale();
 
-		$expected = custom_i18n_plugin_test();
-		$this->assertSame( 'Este es un plugin dummy', $expected );
+		$actual_es_ES = custom_i18n_plugin_test();
 
 		restore_current_locale();
 
 		$wp_locale_switcher = $locale_switcher;
+
+		$this->assertSame( 'This is a dummy plugin', $actual );
+		$this->assertSame( WP_PLUGIN_DIR . '/custom-internationalized-plugin/languages/', $registry_value );
+		$this->assertSame( 'Das ist ein Dummy Plugin', $actual_de_DE );
+		$this->assertSame( 'Este es un plugin dummy', $actual_es_ES );
 	}
 
 	/**
@@ -439,26 +441,27 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		require_once get_stylesheet_directory() . '/functions.php';
 
-		$this->assertSame( get_template_directory() . '/languages/', $wp_textdomain_registry->get( 'custom-internationalized-theme', get_locale() ) );
+		$registry_value = $wp_textdomain_registry->get('custom-internationalized-theme', get_locale());
 
-		$expected = custom_i18n_theme_test();
-
-		$this->assertSame( 'This is a dummy theme', $expected );
+		$actual = custom_i18n_theme_test();
 
 		switch_to_locale( 'es_ES' );
 		switch_to_locale( 'de_DE' );
 
-		$expected = custom_i18n_theme_test();
-		$this->assertSame( 'Das ist ein Dummy Theme', $expected );
+		$actual_de_DE = custom_i18n_theme_test();
 
 		restore_previous_locale();
 
-		$expected = custom_i18n_theme_test();
-		$this->assertSame( 'Este es un tema dummy', $expected );
+		$actual_es_ES = custom_i18n_theme_test();
 
 		restore_current_locale();
 
 		$wp_locale_switcher = $locale_switcher;
+
+		$this->assertSame( get_template_directory() . '/languages/', $registry_value);
+		$this->assertSame( 'This is a dummy theme', $actual );
+		$this->assertSame( 'Das ist ein Dummy Theme', $actual_de_DE );
+		$this->assertSame( 'Este es un tema dummy', $actual_es_ES );
 	}
 
 	public function filter_locale() {
