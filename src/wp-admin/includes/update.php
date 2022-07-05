@@ -220,6 +220,8 @@ function find_core_update( $version, $locale ) {
 }
 
 /**
+ * Returns Core update footer HTML message.
+ *
  * @since 2.3.0
  *
  * @param string $msg
@@ -275,6 +277,8 @@ function core_update_footer( $msg = '' ) {
 }
 
 /**
+ * Returns Core update nag HTML message.
+ *
  * @since 2.3.0
  *
  * @global string $pagenow The filename of the current screen.
@@ -370,6 +374,8 @@ function update_right_now_message() {
 }
 
 /**
+ * Retrieves plugins waiting for an update.
+ *
  * @since 2.9.0
  *
  * @return array
@@ -389,6 +395,8 @@ function get_plugin_updates() {
 }
 
 /**
+ * Hooks after_plugin_row_{$plugin_file} on each plugin row.
+ *
  * @since 2.9.0
  */
 function wp_plugin_update_rows() {
@@ -585,6 +593,8 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 }
 
 /**
+ * Retrieves themes waiting for an update.
+ *
  * @since 2.9.0
  *
  * @return array
@@ -606,6 +616,8 @@ function get_theme_updates() {
 }
 
 /**
+ * Hooks after_theme_row_{$theme} on each theme row.
+ *
  * @since 3.1.0
  */
 function wp_theme_update_rows() {
@@ -801,6 +813,8 @@ function wp_theme_update_row( $theme_key, $theme ) {
 }
 
 /**
+ * Displays maintenance nag HTML message.
+ *
  * @since 2.7.0
  *
  * @global int $upgrading
