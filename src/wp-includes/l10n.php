@@ -867,19 +867,19 @@ function load_default_textdomain( $locale = null ) {
 	// Unload previously loaded strings so we can switch translations.
 	unload_textdomain( 'default' );
 
-	$return = load_textdomain( 'default', WP_LANG_DIR . "/$locale.mo" );
+	$return = load_textdomain( 'default', WP_LANG_DIR . "/$locale.mo", $locale );
 
 	if ( ( is_multisite() || ( defined( 'WP_INSTALLING_NETWORK' ) && WP_INSTALLING_NETWORK ) ) && ! file_exists( WP_LANG_DIR . "/admin-$locale.mo" ) ) {
-		load_textdomain( 'default', WP_LANG_DIR . "/ms-$locale.mo" );
+		load_textdomain( 'default', WP_LANG_DIR . "/ms-$locale.mo", $locale );
 		return $return;
 	}
 
 	if ( is_admin() || wp_installing() || ( defined( 'WP_REPAIRING' ) && WP_REPAIRING ) ) {
-		load_textdomain( 'default', WP_LANG_DIR . "/admin-$locale.mo" );
+		load_textdomain( 'default', WP_LANG_DIR . "/admin-$locale.mo", $locale );
 	}
 
 	if ( is_network_admin() || ( defined( 'WP_INSTALLING_NETWORK' ) && WP_INSTALLING_NETWORK ) ) {
-		load_textdomain( 'default', WP_LANG_DIR . "/admin-network-$locale.mo" );
+		load_textdomain( 'default', WP_LANG_DIR . "/admin-network-$locale.mo", $locale );
 	}
 
 	return $return;
@@ -919,7 +919,7 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
 	$mofile = $domain . '-' . $locale . '.mo';
 
 	// Try to load from the languages directory first.
-	if ( load_textdomain( $domain, WP_LANG_DIR . '/plugins/' . $mofile ) ) {
+	if ( load_textdomain( $domain, WP_LANG_DIR . '/plugins/' . $mofile, $locale ) ) {
 		return true;
 	}
 
@@ -934,7 +934,7 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
 
 	$wp_textdomain_registry->set( $domain, $locale, $path );
 
-	return load_textdomain( $domain, $path . '/' . $mofile );
+	return load_textdomain( $domain, $path . '/' . $mofile, $locale );
 }
 
 /**
@@ -960,7 +960,7 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
 	$mofile = $domain . '-' . $locale . '.mo';
 
 	// Try to load from the languages directory first.
-	if ( load_textdomain( $domain, WP_LANG_DIR . '/plugins/' . $mofile ) ) {
+	if ( load_textdomain( $domain, WP_LANG_DIR . '/plugins/' . $mofile, $locale ) ) {
 		return true;
 	}
 
@@ -968,7 +968,7 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
 
 	$wp_textdomain_registry->set( $domain, $locale, $path );
 
-	return load_textdomain( $domain, $path . '/' . $mofile );
+	return load_textdomain( $domain, $path . '/' . $mofile, $locale );
 }
 
 /**
@@ -1006,7 +1006,7 @@ function load_theme_textdomain( $domain, $path = false ) {
 	$mofile = $domain . '-' . $locale . '.mo';
 
 	// Try to load from the languages directory first.
-	if ( load_textdomain( $domain, WP_LANG_DIR . '/themes/' . $mofile ) ) {
+	if ( load_textdomain( $domain, WP_LANG_DIR . '/themes/' . $mofile, $locale ) ) {
 		return true;
 	}
 
@@ -1016,7 +1016,7 @@ function load_theme_textdomain( $domain, $path = false ) {
 
 	$wp_textdomain_registry->set( $domain, $locale, $path );
 
-	return load_textdomain( $domain, $path . '/' . $locale . '.mo' );
+	return load_textdomain( $domain, $path . '/' . $locale . '.mo', $locale );
 }
 
 /**
@@ -1281,7 +1281,7 @@ function _load_textdomain_just_in_time( $domain ) {
 		$mofile = "{$path}{$domain}-{$locale}.mo";
 	}
 
-	return load_textdomain( $domain, $mofile );
+	return load_textdomain( $domain, $mofile, $locale );
 }
 
 /**
