@@ -5638,7 +5638,7 @@ add_filter( 'wp_get_attachment_image_attributes', 'dominant_color_update_attachm
  * @param int    $attachment_id  The attachment ID.
  * @return string image tag
  */
-function dominant_color_img_tag_add_dominant_color( $filtered_image, $context, $attachment_id ) {
+function img_tag_add_dominant_color( $filtered_image, $context, $attachment_id ) {
 
 	// Only apply this in `the_content` for now, since otherwise it can result in duplicate runs due to a problem with full site editing logic.
 	if ( 'the_content' !== $context ) {
@@ -5663,7 +5663,7 @@ function dominant_color_img_tag_add_dominant_color( $filtered_image, $context, $
 	 * @param string $filtered_image     The filtered image. html including img tag
 	 * @param string $context            The context of the image.
 	 */
-	$check = apply_filters( 'dominant_color_img_tag_add_dominant_color', true, $attachment_id, $image_meta, $filtered_image, $context );
+	$check = apply_filters( 'img_tag_add_dominant_color', true, $attachment_id, $image_meta, $filtered_image, $context );
 	if ( ! $check ) {
 		return $filtered_image;
 	}
@@ -5692,7 +5692,7 @@ function dominant_color_img_tag_add_dominant_color( $filtered_image, $context, $
 
 	return $filtered_image;
 }
-add_filter( 'wp_content_img_tag', 'dominant_color_img_tag_add_dominant_color', 20, 3 );
+add_filter( 'wp_content_img_tag', 'img_tag_add_dominant_color', 20, 3 );
 
 /**
  * Add CSS needed for to show the dominant color as an image background.
