@@ -307,7 +307,7 @@ class WP_Theme_JSON_Resolver {
 			}
 		}
 		$cache_expiration = $user_cpt ? DAY_IN_SECONDS : HOUR_IN_SECONDS;
-		set_transient( $cache_key, $user_cpt ? $user_cpt['ID'] : - 1, $cache_expiration );
+		set_transient( $cache_key, $user_cpt ? $user_cpt['ID'] : -1, $cache_expiration );
 
 		return $user_cpt;
 	}
