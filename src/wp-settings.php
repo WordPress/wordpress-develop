@@ -342,7 +342,7 @@ $GLOBALS['wp_embed'] = new WP_Embed();
  *
  * @since 6.1.0
  *
- * @global WP_Locale_Switcher $wp_locale_switcher WordPress Textdomain Registry.
+ * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
  */
 $GLOBALS['wp_textdomain_registry'] = new WP_Textdomain_Registry();
 
