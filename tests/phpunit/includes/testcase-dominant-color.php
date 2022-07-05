@@ -33,17 +33,17 @@ abstract class DominantColorTestCase extends WP_Image_UnitTestCase {
 			'red_gif'       => array(
 				'image_path'            => DIR_TESTDATA . '/images/dominant-color/red.gif',
 				'expected_color'        => array( 'ff0000' ),
-				'expected_transparency' => false,
+				'expected_transparency' => true,
 			),
 			'green_gif'     => array(
 				'image_path'            => DIR_TESTDATA . '/images/dominant-color/green.gif',
 				'expected_color'        => array( '00ff00' ),
-				'expected_transparency' => false,
+				'expected_transparency' => true,
 			),
 			'white_gif'     => array(
 				'image_path'            => DIR_TESTDATA . '/images/dominant-color/white.gif',
 				'expected_color'        => array( 'ffffff' ),
-				'expected_transparency' => false,
+				'expected_transparency' => true,
 			),
 			'trans_gif'     => array(
 				'image_path'            => DIR_TESTDATA . '/images/dominant-color/trans.gif',

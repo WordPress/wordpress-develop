@@ -4,7 +4,10 @@
  *
  * @since 1.2.0
  *
- * @group   dominant-color
+ * @group image
+ * @group media
+ * @group wp-image-editor-gd
+ * @group dominant-color
  */
 
 class Dominant_Color_Image_Editor_Imageick_Test extends DominantColorTestCase {
@@ -21,7 +24,7 @@ class Dominant_Color_Image_Editor_Imageick_Test extends DominantColorTestCase {
 	 *
 	 * @dataProvider provider_get_dominant_color
 	 *
-	 * @covers       Dominant_Color_Image_Editor_GD::get_dominant_color
+	 * @covers       WP_Image_Editor_Imagick::get_dominant_color
 	 */
 	public function test_get_dominant_color( $image_path, $expected_color, $expected_transparency ) {
 
@@ -44,7 +47,7 @@ class Dominant_Color_Image_Editor_Imageick_Test extends DominantColorTestCase {
 	 *
 	 * @group ms-excluded
 	 *
-	 * @covers       Dominant_Color_Image_Editor_GD::get_dominant_color
+	 * @covers       WP_Image_Editor_Imagick::get_dominant_color
 	 */
 	public function test_get_dominant_color_invalid( $image_path, $expected_color, $expected_transparency ) {
 
@@ -57,7 +60,6 @@ class Dominant_Color_Image_Editor_Imageick_Test extends DominantColorTestCase {
 		}
 
 		$this->assertContains( $dominant_color_data['dominant_color'], $expected_color );
-		$this->assertSame( $dominant_color_data['has_transparency'], $expected_transparency );
 	}
 
 	/**
@@ -65,7 +67,7 @@ class Dominant_Color_Image_Editor_Imageick_Test extends DominantColorTestCase {
 	 *
 	 * @dataProvider provider_get_dominant_color_none_images
 	 *
-	 * @covers       Dominant_Color_Image_Editor_GD::get_dominant_color
+	 * @covers       WP_Image_Editor_Imagick::get_dominant_color
 	 */
 	public function test_get_dominant_color_none_images( $image_path ) {
 
