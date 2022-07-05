@@ -237,13 +237,15 @@ $structures = array(
 );
 ?>
 <h2 class="title"><?php _e( 'Common Settings' ); ?></h2>
-<p><?php
+<p>
+<?php
 printf(
-    /* translators: %s: the %postname% tag. */
-    __( 'Select the permalink structure for your website. Including the %s tag makes links easy to understand, and can help your posts rank higher in search engines.' ),
-    '<code>%postname%</code>'
+	/* translators: %s: the %postname% tag. */
+	__( 'Select the permalink structure for your website. Including the %s tag makes links easy to understand, and can help your posts rank higher in search engines.' ),
+	'<code>%postname%</code>'
 );
-?></p>
+?>
+</p>
 <table class="form-table permalink-structure">
 	<tr>
 		<th scope="row"><label><input name="selection" type="radio" value="" <?php checked( '', $permalink_structure ); ?> /> <?php _e( 'Plain' ); ?></label></th>
