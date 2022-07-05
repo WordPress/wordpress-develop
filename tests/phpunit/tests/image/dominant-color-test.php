@@ -122,7 +122,7 @@ class Dominant_Color_Test extends DominantColorTestCase {
 			// Testing tag_add_adjust() with image being lazy load.
 			$filtered_image_mock_lazy_load = sprintf( '<img loading="lazy" class="test" src="%s" width="%d" height="%d" />', $src, $width, $height );
 
-			$filtered_image_tags_added = dominant_color_img_tag_add_dominant_color( $filtered_image_mock_lazy_load, 'the_content', $attachment_id );
+			$filtered_image_tags_added = img_tag_add_dominant_color( $filtered_image_mock_lazy_load, 'the_content', $attachment_id );
 			$this->assertStringContainsString( 'data-has-transparency="' . json_encode( $expected_transparency ) . '"', $filtered_image_tags_added );
 
 			foreach ( $expected_color as $color ) {
@@ -135,7 +135,7 @@ class Dominant_Color_Test extends DominantColorTestCase {
 
 			// Deactivate filter.
 			add_filter( 'dominant_color_img_tag_add_dominant_color', '__return_false' );
-			$filtered_image_tags_not_added = dominant_color_img_tag_add_dominant_color( $filtered_image_mock_lazy_load, 'the_content', $attachment_id );
+			$filtered_image_tags_not_added = img_tag_add_dominant_color( $filtered_image_mock_lazy_load, 'the_content', $attachment_id );
 			$this->assertEquals( $filtered_image_mock_lazy_load, $filtered_image_tags_not_added );
 			remove_filter( 'dominant_color_img_tag_add_dominant_color', '__return_false' );
 		}
