@@ -685,7 +685,7 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 	if ( $comment->comment_post_ID > 0 ) {
 		$comment_post_title = _draft_or_post_title( $comment->comment_post_ID );
 		$comment_post_url   = get_the_permalink( $comment->comment_post_ID );
-		$comment_post_link  = "<a href='$comment_post_url'>$comment_post_title</a>";
+		$comment_post_link  = '<a href="' . esc_url( $comment_post_url ) . '">' . $comment_post_title . '</a>';
 	} else {
 		$comment_post_link = '';
 	}
@@ -1414,7 +1414,7 @@ function wp_print_community_events_templates() {
 			 * that they match the expected location before including them.
 			 * Use endonyms (native locale names) whenever possible.
 			 */
-			__( 'We couldn&#8217;t locate %s. Please try another nearby city. For example: Kansas City; Springfield; Portland.' ),
+			__( '%s could not be located. Please try another nearby city. For example: Kansas City; Springfield; Portland.' ),
 			'<em>{{data.unknownCity}}</em>'
 		);
 		?>
@@ -1462,7 +1462,7 @@ function wp_print_community_events_templates() {
 				<?php
 				printf(
 					/* translators: 1: The city the user searched for, 2: Meetup organization documentation URL. */
-					__( 'There aren&#8217;t any events scheduled near %1$s at the moment. Would you like to <a href="%2$s">organize a WordPress event</a>?' ),
+					__( 'There are no events scheduled near %1$s at the moment. Would you like to <a href="%2$s">organize a WordPress event</a>?' ),
 					'{{ data.location.description }}',
 					__( 'https://make.wordpress.org/community/handbook/meetup-organizer/welcome/' )
 				);
@@ -1472,7 +1472,7 @@ function wp_print_community_events_templates() {
 				<?php
 				printf(
 					/* translators: %s: Meetup organization documentation URL. */
-					__( 'There aren&#8217;t any events scheduled near you at the moment. Would you like to <a href="%s">organize a WordPress event</a>?' ),
+					__( 'There are no events scheduled near you at the moment. Would you like to <a href="%s">organize a WordPress event</a>?' ),
 					__( 'https://make.wordpress.org/community/handbook/meetup-organizer/welcome/' )
 				);
 				?>
@@ -1690,7 +1690,7 @@ function wp_dashboard_browser_nag() {
 		if ( ! empty( $response['img_src'] ) ) {
 			$img_src = ( is_ssl() && ! empty( $response['img_src_ssl'] ) ) ? $response['img_src_ssl'] : $response['img_src'];
 
-			$notice           .= '<div class="alignright browser-icon"><img src="' . esc_attr( $img_src ) . '" alt="" /></div>';
+			$notice           .= '<div class="alignright browser-icon"><img src="' . esc_url( $img_src ) . '" alt="" /></div>';
 			$browser_nag_class = ' has-browser-icon';
 		}
 		$notice .= "<p class='browser-update-nag{$browser_nag_class}'>{$msg}</p>";
@@ -1987,7 +1987,7 @@ function wp_dashboard_empty() {}
  * Displays a welcome panel to introduce users to WordPress.
  *
  * @since 3.3.0
- * @since 5.9.0 Send users to the Site Editor if the current theme is block-based.
+ * @since 5.9.0 Send users to the Site Editor if the active theme is block-based.
  */
 function wp_welcome_panel() {
 	list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
@@ -1996,6 +1996,9 @@ function wp_welcome_panel() {
 	?>
 	<div class="welcome-panel-content">
 	<div class="welcome-panel-header">
+		<div class="welcome-panel-header-image">
+			<?php echo file_get_contents( dirname( __DIR__ ) . '/images/about-header-about.svg' ); ?>
+		</div>
 		<h2><?php _e( 'Welcome to WordPress!' ); ?></h2>
 		<p>
 			<a href="<?php echo esc_url( admin_url( 'about.php' ) ); ?>">
@@ -2040,7 +2043,7 @@ function wp_welcome_panel() {
 				<a href="<?php echo esc_url( admin_url( 'site-editor.php?styles=open' ) ); ?>"><?php _e( 'Edit styles' ); ?></a>
 			<?php else : ?>
 				<h3><?php _e( 'Discover a new way to build your site.' ); ?></h3>
-				<p><?php _e( 'There&#8217;s a new kind of WordPress theme, called a block theme, that lets you build the site you&#8217;ve always wanted &#8212; with blocks and styles.' ); ?></p>
+				<p><?php _e( 'There is a new kind of WordPress theme, called a block theme, that lets you build the site you&#8217;ve always wanted &#8212; with blocks and styles.' ); ?></p>
 				<a href="<?php echo esc_url( __( 'https://wordpress.org/support/article/block-themes/' ) ); ?>"><?php _e( 'Learn about block themes' ); ?></a>
 			<?php endif; ?>
 			</div>

@@ -143,7 +143,7 @@ function wp_populate_basic_auth_from_authorization_header() {
  */
 function wp_check_php_mysql_versions() {
 	global $required_php_version, $wp_version;
-	$php_version = phpversion();
+	$php_version = PHP_VERSION;
 
 	if ( version_compare( $required_php_version, $php_version, '>' ) ) {
 		$protocol = wp_get_server_protocol();
@@ -624,7 +624,7 @@ function wp_set_wpdb_vars() {
 		wp_die(
 			sprintf(
 				/* translators: 1: $table_prefix, 2: wp-config.php */
-				__( '<strong>Error</strong>: %1$s in %2$s can only contain numbers, letters, and underscores.' ),
+				__( '<strong>Error:</strong> %1$s in %2$s can only contain numbers, letters, and underscores.' ),
 				'<code>$table_prefix</code>',
 				'<code>wp-config.php</code>'
 			)
@@ -886,6 +886,8 @@ function wp_skip_paused_plugins( array $plugins ) {
  * @since 5.1.0
  * @access private
  *
+ * @global string $pagenow The filename of the current screen.
+ *
  * @return string[] Array of absolute paths to theme directories.
  */
 function wp_get_active_and_valid_themes() {
@@ -966,7 +968,7 @@ function wp_is_recovery_mode() {
  *
  * @since 5.2.0
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  *
  * @return bool True if the current endpoint should be protected.
  */
@@ -1746,7 +1748,7 @@ function wp_is_xml_request() {
  *
  * @since 5.6.1
  *
- * @global string $pagenow The current page.
+ * @global string $pagenow The filename of the current screen.
  *
  * @param string $context The context to check for protection. Accepts 'login', 'admin', and 'front'.
  *                        Defaults to the current context.
