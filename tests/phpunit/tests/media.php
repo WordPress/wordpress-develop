@@ -1472,7 +1472,7 @@ EOF;
 	public function test_wp_get_attachment_image_defaults() {
 		$image    = image_downsize( self::$large_id, 'thumbnail' );
 		$expected = sprintf(
-			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="" decoding="async" loading="lazy" />',
+			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail not-transparent" alt="" decoding="async" loading="lazy" data-has-transparency="false" data-dominant-color="dadada" style="--dominant-color: #dadada;" />',
 			$image[1],
 			$image[2],
 			$image[0]
@@ -1510,7 +1510,7 @@ EOF;
 
 		$image    = image_downsize( self::$large_id, 'thumbnail' );
 		$expected = sprintf(
-			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="Some very clever alt text" decoding="async" loading="lazy" />',
+			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail not-transparent" alt="Some very clever alt text" decoding="async" loading="lazy" data-has-transparency="false" data-dominant-color="dadada" style="--dominant-color: #dadada;" />',
 			$image[1],
 			$image[2],
 			$image[0]
@@ -2643,9 +2643,9 @@ EOF;
 
 		$expected = '<img width="999" height="999" ' .
 			'src="' . $uploads_url . 'test-image-testsize-999x999.jpg" ' .
-			'class="attachment-testsize size-testsize" alt="" decoding="async" loading="lazy" ' .
+			'class="attachment-testsize size-testsize not-transparent" alt="" decoding="async" loading="lazy" ' .
 			'srcset="' . $uploads_url . 'test-image-testsize-999x999.jpg 999w, ' . $uploads_url . $basename . '-150x150.jpg 150w" ' .
-			'sizes="(max-width: 999px) 100vw, 999px" />';
+			'sizes="(max-width: 999px) 100vw, 999px" data-has-transparency="false" data-dominant-color="dadada" style="--dominant-color: #dadada;" />';
 
 		$actual = wp_get_attachment_image( self::$large_id, 'testsize' );
 
@@ -3559,6 +3559,7 @@ EOF;
 		$lazy_img3    = wp_img_tag_add_loading_attr( $img3, 'the_content' );
 		$lazy_iframe2 = wp_iframe_tag_add_loading_attr( $iframe2, 'the_content' );
 
+
 		// Use a threshold of 2.
 		add_filter(
 			'wp_omit_loading_attr_threshold',
@@ -3571,6 +3572,19 @@ EOF;
 		$content_unfiltered = $img1 . $iframe1 . $img2 . $img3 . $iframe2;
 		$content_expected   = $img1 . $iframe1 . $lazy_img2 . $lazy_img3 . $lazy_iframe2;
 		$content_expected   = wp_img_tag_add_decoding_attr( $content_expected, 'the_content' );
+
+		// add dominant color markup
+		$content_expected = str_replace(
+			array(
+				'<img decoding="async" ',
+				'class="align',
+			),
+			array(
+				'<img data-dominant-color="dadada" data-has-transparency="false" style="--dominant-color: #dadada;" decoding="async" ',
+				'class="not-transparent align',
+			),
+			$content_expected
+		);
 
 		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
 		$wp_the_query = $wp_query;
