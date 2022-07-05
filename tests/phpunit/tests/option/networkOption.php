@@ -11,6 +11,11 @@
  * @group multisite
  */
 class Tests_Option_NetworkOption extends WP_UnitTestCase {
+	private static $network_id;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$network_id = $factory->network->create();
+	}
 
 	/**
 	 * @group ms-required
@@ -139,7 +144,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * @ticket 37181
 	 * @group ms-required
 	 */
-	function test_funky_post_meta() {
+	function test_funky_network_meta() {
 		$network_id      = self::factory()->network->create();
 		$option          = __FUNCTION__;
 		$classy          = new StdClass();
@@ -250,5 +255,128 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 
 		add_metadata( 'site', $network_id, $option, 'monday', true );
 		$this->assertSame( 'monday', get_network_option( $network_id, $option ) );
+	}
+
+	/**
+	 * @dataProvider data_types_options
+	 * @covers ::add_network_option
+	 * @group ms-required
+	 */
+	public function test_type_add_network_option( $name, $value, $expected ) {
+		$result = add_network_option( self::$network_id, $name, $value );
+		$this->assertTrue( $result, 'Network option was not added' );
+
+		$test_value = get_network_option( self::$network_id, $name );
+		$this->assertSame( $expected, $test_value, 'Values do not match' );
+	}
+
+	/**
+	 * @dataProvider data_slashed_options
+	 * @covers ::add_network_option
+	 * @group ms-required
+	 */
+	public function test_slash_add_network_option( $name, $value ) {
+		$result = add_network_option( self::$network_id, $name, $value );
+		$this->assertTrue( $result, 'Network option was not added' );
+		$this->assertSame( $value, get_network_option( self::$network_id, $name ), 'Values do not match' );
+	}
+
+	/**
+	 * @dataProvider data_slashed_options
+	 * @covers ::update_network_option
+	 * @group ms-required
+	 */
+	public function test_slash_update_network_option( $name, $value ) {
+		$result = update_network_option( self::$network_id, $name, $value );
+		$this->assertTrue( $result, 'Network option was not updated' );
+		$this->assertSame( $value, get_network_option( self::$network_id, $name ), 'Values do not match' );
+	}
+
+	/**
+	 * @dataProvider data_slashed_options
+	 * @covers ::delete_network_option()
+	 * @group ms-required
+	 */
+	public function test_slash_delete_network_option( $name, $value ) {
+		$result = add_network_option( self::$network_id, $name, $value );
+		$this->assertTrue( $result, 'Network option was not added' );
+		$this->assertSame( $value, get_network_option( self::$network_id, $name ) );
+		$result = delete_network_option( self::$network_id, $name );
+		$this->assertTrue( $result, 'Network option was not deleted' );
+		$this->assertFalse( get_network_option( self::$network_id, $name ), 'Network option was not deleted' );
+	}
+
+	public function data_slashed_options() {
+		return array(
+			'slashed option name'                   => array(
+				'option' => 'String with 1 slash \\',
+				'value'  => 'foo',
+			),
+			'slashed in middle option name'         => array(
+				'option' => 'String\\thing',
+				'value'  => 'foo',
+			),
+			'slashed option value'                  => array(
+				'option' => 'bar',
+				'value'  => 'String with 1 slash \\',
+			),
+			'slashed option name and value'         => array(
+				'option' => 'String with 1 slash \\',
+				'value'  => 'String with 1 slash \\',
+			),
+			'slashed 4 times option name and value' => array(
+				'option' => 'String with 4 slashes \\\\\\\\',
+				'value'  => 'String with 4 slashes \\\\\\\\',
+			),
+			'slashed 7 times option name and value' => array(
+				'option' => 'String with 7 slashes \\\\\\\\\\\\\\',
+				'value'  => 'String with 7 slashes \\\\\\\\\\\\\\',
+			),
+		);
+	}
+
+	public function data_types_options() {
+		return array(
+			'array'       => array(
+				'option'   => 'array',
+				'value'    => array(),
+				'expected' => array(),
+			),
+			'array_keys'  => array(
+				'option'   => 'array',
+				'value'    => array( 'key' => 'value' ),
+				'expected' => array( 'key' => 'value' ),
+			),
+			'int'         => array(
+				'option'   => 'int',
+				'value'    => 33,
+				'expected' => '33',
+			),
+			'string'      => array(
+				'option'   => 'string',
+				'value'    => 'foo',
+				'expected' => 'foo',
+			),
+			'string_bool' => array(
+				'option'   => 'string',
+				'value'    => 'true',
+				'expected' => 'true',
+			),
+			'float'       => array(
+				'option'   => 'float',
+				'value'    => 33.5555,
+				'expected' => '33.5555',
+			),
+			'bool'        => array(
+				'option'   => 'bool',
+				'value'    => true,
+				'expected' => '1',
+			),
+			'null'        => array(
+				'option'   => 'null',
+				'value'    => null,
+				'expected' => null,
+			),
+		);
 	}
 }

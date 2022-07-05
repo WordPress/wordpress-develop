@@ -1493,7 +1493,7 @@ function add_network_option( $network_id, $option, $value ) {
 		$result = add_option( $option, $value, '', 'no' );
 	} else {
 		$value  = sanitize_option( $option, $value );
-		$result = add_metadata( 'site', $network_id, $option, $value, true );
+		$result = add_metadata( 'site', $network_id, wp_slash( $option ), wp_slash( $value ), true );
 	}
 
 	if ( $result ) {
@@ -1575,7 +1575,7 @@ function delete_network_option( $network_id, $option ) {
 	if ( ! is_multisite() ) {
 		$result = delete_option( $option );
 	} else {
-		$result = delete_metadata( 'site', $network_id, $option, '' );
+		$result = delete_metadata( 'site', $network_id, wp_slash( $option ), '' );
 	}
 
 	if ( $result ) {
@@ -1679,7 +1679,7 @@ function update_network_option( $network_id, $option, $value ) {
 		$result = update_option( $option, $value, 'no' );
 	} else {
 		$value  = sanitize_option( $option, $value );
-		$result = update_metadata( 'site', $network_id, $option, $value );
+		$result = update_metadata( 'site', $network_id, wp_slash( $option ), wp_slash( $value ) );
 	}
 
 	if ( $result ) {
