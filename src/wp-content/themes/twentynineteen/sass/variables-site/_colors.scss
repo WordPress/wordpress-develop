@@ -1,31 +1,42 @@
+// Default palette
+$color__primary: #0073aa;
+$color__secondary: #005177;
+$color__dark-gray: #111;
+$color__light-gray: #767676;
+$color__white: #fff;
 
 // Backgrounds
-$color__background-body: #fff;
-$color__background-input: #fff;
+$color__background-body: $color__white;
+$color__background-input: $color__white;
 $color__background-screen: #f1f1f1;
 $color__background-hr: #ccc;
-$color__background-button: #0073aa;
-$color__background-button-hover: #111;
+$color__background-button: $color__primary;
+$color__background-button-hover: $color__dark-gray;
 $color__background-pre: #eee;
 $color__background-ins: #fff9c0;
 $color__background_selection: mix( $color__background-body, $color__background-button, 75% ); // lighten( salmon, 22.5% ); // lighten( #0999d4, 48% );
 
 // Text
-$color__text-main: #111;
-$color__text-light: #767676;
-$color__text-hover: lighten( #111, 22.5% );
+$color__text-main: $color__dark-gray;
+$color__text-light: $color__light-gray;
+$color__text-hover: lighten( $color__dark-gray, 22.5% );
 $color__text-screen: #21759b;
 $color__text-input: #666;
-$color__text-input-focus: #111;
+$color__text-input-focus: $color__dark-gray;
 
 // Links
-$color__link: #0073aa;
-$color__link-visited: #0073aa;
+$color__link: $color__primary;
+$color__link-visited: $color__primary;
 $color__link-hover: darken( $color__link, 10% );
 
 // Borders
 $color__border: #ccc;
-$color__border-link: #0073aa;
+$color__border-link: $color__primary;
+$color__border-block-primary: $color__primary;
+$color__border-block-secondary: $color__secondary;
+$color__border-block-dark-gray: $color__dark-gray;
+$color__border-block-light-gray: $color__light-gray;
+$color__border-block-white: $color__white;
 $color__border-link-hover: darken( $color__link, 10% );
 $color__border-button: #ccc #ccc #bbb;
 $color__border-button-hover: #ccc #bbb #aaa;

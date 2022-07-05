@@ -6443,6 +6443,26 @@ body.page .main-navigation {
   color: #FFF;
 }
 
+.entry .entry-content .has-primary-border-color {
+  border-color: #0073aa;
+}
+
+.entry .entry-content .has-secondary-border-color {
+  border-color: #005177;
+}
+
+.entry .entry-content .has-dark-gray-border-color {
+  border-color: #111;
+}
+
+.entry .entry-content .has-light-gray-border-color {
+  border-color: #767676;
+}
+
+.entry .entry-content.has-white-border-color {
+  border-color: #fff;
+}
+
 /* Media */
 .page-content .wp-smiley,
 .entry-content .wp-smiley,
