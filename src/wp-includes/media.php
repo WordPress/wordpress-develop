@@ -5621,7 +5621,7 @@ function _dominant_color_get_dominant_color_data( $attachment_id ) {
 			),
 		)
 	);
-	var_dump();
+
 	if ( is_wp_error( $editor ) ) {
 		var_dump( $editor );
 		return $editor;
