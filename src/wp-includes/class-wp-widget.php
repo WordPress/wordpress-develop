@@ -640,12 +640,11 @@ class WP_Widget {
 
 		unset( $settings['_multiwidget'], $settings['__i__'] );
 
+		// Normalize settings stored as `null`.
 		foreach ( $settings as &$instance ) {
-			if ( ! is_null( $instance ) ) {
-				continue;
+			if ( is_null( $instance ) ) {
+				$instance = array();
 			}
-
-			$instance = array();
 		}
 
 		return $settings;
