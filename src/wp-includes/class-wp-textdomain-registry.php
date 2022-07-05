@@ -14,13 +14,22 @@
  */
 class WP_Textdomain_Registry {
 	/**
-	 * List of domains and their language directory paths.
+	 * List of domains and their language directory paths for each locale.
 	 *
 	 * @since 6.1.0
 	 *
 	 * @var array
 	 */
 	protected $domains = array();
+
+	/**
+	 * List of domains and their language directory paths for the current locale.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @var array
+	 */
+	protected $current = array();
 
 	/**
 	 * Holds a cached list of available .mo files to improve performance.
@@ -70,13 +79,12 @@ class WP_Textdomain_Registry {
 	 * @return string|false Current MO file path or false if there is none available.
 	 */
 	public function get_current( $domain ) {
-		if ( isset( $this->domains[ $domain ]['current'] ) ) {
-			return $this->domains[ $domain ]['current'];
+		if ( isset( $this->current[ $domain ] ) ) {
+			return $this->current[ $domain ];
 		}
 
 		return false;
 	}
-
 
 	/**
 	 * Sets the MO file path for a specific domain and locale.
@@ -88,11 +96,11 @@ class WP_Textdomain_Registry {
 	 *
 	 * @param string       $domain Text domain.
 	 * @param string       $locale Locale.
-	 * @param string|false $path Language directory path or false if there is none available.
+	 * @param string|false $path   Language directory path or false if there is none available.
 	 */
 	public function set( $domain, $locale, $path ) {
 		$this->domains[ $domain ][ $locale ] = $path ? trailingslashit( $path ) : false;
-		$this->domains[ $domain ]['current'] = $this->domains[ $domain ][ $locale ];
+		$this->current[ $domain ] = $this->domains[ $domain ][ $locale ];
 	}
 
 	/**
@@ -103,6 +111,7 @@ class WP_Textdomain_Registry {
 	public function reset() {
 		$this->cached_mo_files = null;
 		$this->domains         = array();
+		$this->current         = array();
 	}
 
 	/**
@@ -116,8 +125,6 @@ class WP_Textdomain_Registry {
 	 */
 	private function get_path_from_lang_dir( $domain, $locale ) {
 		if ( null === $this->cached_mo_files ) {
-			$this->cached_mo_files = array();
-
 			$this->set_cached_mo_files();
 		}
 
@@ -159,6 +166,8 @@ class WP_Textdomain_Registry {
 	 * @since 6.1.0
 	 */
 	protected function set_cached_mo_files() {
+		$this->cached_mo_files = array();
+
 		$locations = array(
 			WP_LANG_DIR . '/plugins',
 			WP_LANG_DIR . '/themes',
