@@ -68,9 +68,7 @@ class Dominant_Color_Test extends DominantColorTestCase {
 	public function test_has_transparency_metadata( $image_path, $expected_color, $expected_transparency ) {
 		foreach ( $this->editor_engines as $editor ) {
 			$this->editor_engine = $editor;
-//			if ( strpos( $image_path, '.gif' ) ) {
-//				$expected_transparency = true; // all gif have alpha.var_dump();
-//			}
+
 			// Non existing attachment.
 			$transparency_metadata = dominant_color_metadata( array(), 1 );
 			$this->assertEmpty( $transparency_metadata );
