@@ -306,7 +306,8 @@ class WP_Theme_JSON_Resolver {
 				$user_cpt = get_post( $cpt_post_id, ARRAY_A );
 			}
 		}
-		set_transient( $cache_key, $user_cpt ? $user_cpt['ID'] : - 1 );
+		$cache_expiration = $user_cpt ? DAY_IN_SECONDS : HOUR_IN_SECONDS;
+		set_transient( $cache_key, $user_cpt ? $user_cpt['ID'] : - 1, $cache_expiration );
 
 		return $user_cpt;
 	}
