@@ -4010,7 +4010,8 @@ function _wp_image_editor_choose( $args = array() ) {
 
 		if ( isset( $args['methods'] ) &&
 			array_diff( $args['methods'], get_class_methods( $implementation ) ) ) {
-
+var_dump( $args['methods'] );
+var_dump(et_class_methods( $implementation ));
 			continue;
 		}
 
