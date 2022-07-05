@@ -14,16 +14,16 @@
  */
 class WP_Textdomain_Registry {
 	/**
-	 * List of domains and their language directory paths for each locale.
+	 * List of domains and all their language directory paths for each locale.
 	 *
 	 * @since 6.1.0
 	 *
 	 * @var array
 	 */
-	protected $domains = array();
+	protected $all = array();
 
 	/**
-	 * List of domains and their language directory paths for the current locale.
+	 * List of domains and their language directory path for the current (most recent) locale.
 	 *
 	 * @since 6.1.0
 	 *
@@ -51,8 +51,8 @@ class WP_Textdomain_Registry {
 	 * @return string|false MO file path or false if there is none available.
 	 */
 	public function get( $domain, $locale ) {
-		if ( isset( $this->domains[ $domain ][ $locale ] ) ) {
-			return $this->domains[ $domain ][ $locale ];
+		if ( isset( $this->all[ $domain ][ $locale ] ) ) {
+			return $this->all[ $domain ][ $locale ];
 		}
 
 		return $this->get_path_from_lang_dir( $domain, $locale );
@@ -67,7 +67,7 @@ class WP_Textdomain_Registry {
 	 * @return bool Whether any MO file paths are available for the domain.
 	 */
 	public function has( $domain ) {
-		return ! empty( $this->domains[ $domain ] );
+		return ! empty( $this->all[ $domain ] );
 	}
 
 	/**
@@ -99,8 +99,8 @@ class WP_Textdomain_Registry {
 	 * @param string|false $path   Language directory path or false if there is none available.
 	 */
 	public function set( $domain, $locale, $path ) {
-		$this->domains[ $domain ][ $locale ] = $path ? trailingslashit( $path ) : false;
-		$this->current[ $domain ] = $this->domains[ $domain ][ $locale ];
+		$this->all[ $domain ][ $locale ] = $path ? trailingslashit( $path ) : false;
+		$this->current[ $domain ]        = $this->all[ $domain ][ $locale ];
 	}
 
 	/**
@@ -110,7 +110,7 @@ class WP_Textdomain_Registry {
 	 */
 	public function reset() {
 		$this->cached_mo_files = null;
-		$this->domains         = array();
+		$this->all             = array();
 		$this->current         = array();
 	}
 
@@ -150,9 +150,9 @@ class WP_Textdomain_Registry {
 		// If no path is found for the given locale, check if an entry for the default
 		// en_US locale exists. This is the case when e.g. using load_plugin_textdomain
 		// with a custom path.
-		if ( 'en_US' !== $locale && isset( $this->domains[ $domain ]['en_US'] ) ) {
-			$this->set( $domain, $locale, $this->domains[ $domain ]['en_US'] );
-			return $this->domains[ $domain ]['en_US'];
+		if ( 'en_US' !== $locale && isset( $this->all[ $domain ]['en_US'] ) ) {
+			$this->set( $domain, $locale, $this->all[ $domain ]['en_US'] );
+			return $this->all[ $domain ]['en_US'];
 		}
 
 		$this->set( $domain, $locale, false );
