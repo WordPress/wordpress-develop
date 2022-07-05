@@ -5726,23 +5726,24 @@ function _dominant_color_get_dominant_color_data( $attachment_id ) {
 		$file = get_attached_file( $attachment_id );
 	}
 
-	$editor = wp_get_image_editor( $file );
+	$editor = wp_get_image_editor(
+		$file,
+		array(
+			'methods' => array(
+				'get_dominant_color',
+				'has_transparency',
+			),
+		)
+	);
 	if ( is_wp_error( $editor ) ) {
 		return $editor;
 	}
 
-	if ( ! method_exists( $editor, 'has_transparency' ) ) {
-		return new WP_Error( 'unable_to_find_method', __( 'Unable to find has_transparency method' ) );
-	}
 	$has_transparency = $editor->has_transparency();
 	if ( is_wp_error( $has_transparency ) ) {
 		return $has_transparency;
 	}
 	$dominant_color_data['has_transparency'] = $has_transparency;
-
-	if ( ! method_exists( $editor, 'get_dominant_color' ) ) {
-		return new WP_Error( 'unable_to_find_method', __( 'Unable to find get_dominant_color method' ) );
-	}
 
 	$dominant_color = $editor->get_dominant_color();
 	if ( is_wp_error( $dominant_color ) ) {
