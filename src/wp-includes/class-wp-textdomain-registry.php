@@ -32,7 +32,7 @@ class WP_Textdomain_Registry {
 	protected $cached_mo_files;
 
 	/**
-	 * Returns the MO file path for a specific domain.
+	 * Returns the MO file path for a specific domain and locale.
 	 *
 	 * @since 6.1.0
 	 *
@@ -50,7 +50,39 @@ class WP_Textdomain_Registry {
 	}
 
 	/**
-	 * Sets the MO file path for a specific domain.
+	 * Determines whether any MO file paths are available for the domain.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param string $domain Text domain.
+	 * @return bool Whether any MO file paths are available for the domain.
+	 */
+	public function has( $domain ) {
+		return ! empty( $this->domains[ $domain ] );
+	}
+
+	/**
+	 * Returns the current (most recent) MO file path for a specific domain.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param string $domain Text domain.
+	 * @return string|false Current MO file path or false if there is none available.
+	 */
+	public function get_current( $domain ) {
+		if ( isset( $this->domains[ $domain ]['current'] ) ) {
+			return $this->domains[ $domain ]['current'];
+		}
+
+		return false;
+	}
+
+
+	/**
+	 * Sets the MO file path for a specific domain and locale.
+	 *
+	 * Also sets the 'current' property for direct access
+	 * to the path for the current (most recent) locale.
 	 *
 	 * @since 6.1.0
 	 *
@@ -60,6 +92,7 @@ class WP_Textdomain_Registry {
 	 */
 	public function set( $domain, $locale, $path ) {
 		$this->domains[ $domain ][ $locale ] = $path ? trailingslashit( $path ) : false;
+		$this->domains[ $domain ]['current'] = $this->domains[ $domain ][ $locale ];
 	}
 
 	/**

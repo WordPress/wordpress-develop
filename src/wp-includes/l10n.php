@@ -714,6 +714,7 @@ function translate_nooped_plural( $nooped_plural, $count, $domain = 'default' ) 
  * @return bool True on success, false on failure.
  */
 function load_textdomain( $domain, $mofile, $locale = null ) {
+	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 	global $l10n, $l10n_unloaded, $wp_textdomain_registry;
 
 	$l10n_unloaded = (array) $l10n_unloaded;
@@ -902,7 +903,7 @@ function load_default_textdomain( $locale = null ) {
  * @return bool True when textdomain is successfully loaded, false otherwise.
  */
 function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path = false ) {
-	/* @var WP_Textdomain_Registry $wp_textdomain_registry */
+	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 	global $wp_textdomain_registry;
 
 	/**
@@ -950,7 +951,7 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
  * @return bool True when textdomain is successfully loaded, false otherwise.
  */
 function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
-	/* @var WP_Textdomain_Registry $wp_textdomain_registry */
+	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 	global $wp_textdomain_registry;
 
 	/** This filter is documented in wp-includes/l10n.php */
@@ -1252,6 +1253,7 @@ function load_script_translations( $file, $handle, $domain ) {
  * @return bool True when the textdomain is successfully loaded, false otherwise.
  */
 function _load_textdomain_just_in_time( $domain ) {
+	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 	global $l10n_unloaded, $wp_textdomain_registry;
 
 	$l10n_unloaded = (array) $l10n_unloaded;
@@ -1261,18 +1263,19 @@ function _load_textdomain_just_in_time( $domain ) {
 		return false;
 	}
 
-	$locale = determine_locale();
+	if ( $wp_textdomain_registry->has( $domain ) && ! $wp_textdomain_registry->get_current( $domain ) ) {
+		return false;
+	}
 
-	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
+	$locale = determine_locale();
 	$path = $wp_textdomain_registry->get( $domain, $locale );
 	if ( ! $path ) {
 		return false;
 	}
-
 	// Themes with their language directory outside of WP_LANG_DIR have a different file name.
 	$template_directory   = trailingslashit( get_template_directory() );
 	$stylesheet_directory = trailingslashit( get_stylesheet_directory() );
-	if ( 0 === strpos( $path, $template_directory ) || 0 === strpos( $path, $stylesheet_directory ) ) {
+	if ( str_starts_with( $path, $template_directory ) || str_starts_with( $path, $stylesheet_directory ) ) {
 		$mofile = "{$path}{$locale}.mo";
 	} else {
 		$mofile = "{$path}{$domain}-{$locale}.mo";
