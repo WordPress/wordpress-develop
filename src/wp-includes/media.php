@@ -3997,6 +3997,7 @@ function _wp_image_editor_choose( $args = array() ) {
 
 	foreach ( $implementations as $implementation ) {
 		if ( ! call_user_func( array( $implementation, 'test' ), $args ) ) {
+			var_dump( call_user_func( array( $implementation, 'test' ), $args ) );
 			continue;
 		}
 
@@ -4005,13 +4006,14 @@ function _wp_image_editor_choose( $args = array() ) {
 				array( $implementation, 'supports_mime_type' ),
 				$args['mime_type']
 			) ) {
+			var_dump('supports_mime_type fails');
 			continue;
 		}
 
 		if ( isset( $args['methods'] ) &&
 			array_diff( $args['methods'], get_class_methods( $implementation ) ) ) {
 var_dump( $args['methods'] );
-var_dump(et_class_methods( $implementation ));
+var_dump(get_class_methods( $implementation ));
 			continue;
 		}
 
