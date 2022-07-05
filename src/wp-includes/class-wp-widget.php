@@ -456,6 +456,7 @@ class WP_Widget {
 				$instance = $this->update( $new_instance, $old_instance );
 
 				if ( is_null( $instance ) ) {
+					// Normalize settings if the update callback returns null.
 					$instance = array();
 					_doing_it_wrong(
 						'WP_Widget::update',
