@@ -759,6 +759,10 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 		return false;
 	}
 
+	if ( ! $locale ) {
+		$locale = determine_locale();
+	}
+
 	$mo = new MO();
 	if ( ! $mo->import_from_file( $mofile ) ) {
 		$wp_textdomain_registry->set( $domain, $locale, false );
@@ -774,11 +778,6 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 
 	$l10n[ $domain ] = &$mo;
 
-	if ( ! $locale ) {
-		$locale = determine_locale();
-	}
-
-	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 	$wp_textdomain_registry->set( $domain, $locale, dirname( $mofile ) );
 
 	return true;
