@@ -11,11 +11,6 @@
  * @group multisite
  */
 class Tests_Option_NetworkOption extends WP_UnitTestCase {
-	private static $network_id;
-
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$network_id = $factory->network->create();
-	}
 
 	/**
 	 * @group ms-required
@@ -260,50 +255,51 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_types_options
 	 * @covers ::add_network_option
+	 * @ticket 37181
 	 * @group ms-required
 	 */
 	public function test_type_add_network_option( $name, $value, $expected ) {
-		$result = add_network_option( self::$network_id, $name, $value );
+		$result = add_network_option( null, $name, $value );
 		$this->assertTrue( $result, 'Network option was not added' );
 
-		$test_value = get_network_option( self::$network_id, $name );
+		$test_value = get_network_option( null, $name );
 		$this->assertSame( $expected, $test_value, 'Values do not match' );
 	}
 
 	/**
 	 * @dataProvider data_slashed_options
 	 * @covers ::add_network_option
-	 * @group ms-required
+	 * @ticket 37181
 	 */
 	public function test_slash_add_network_option( $name, $value ) {
-		$result = add_network_option( self::$network_id, $name, $value );
+		$result = add_network_option( null, $name, $value );
 		$this->assertTrue( $result, 'Network option was not added' );
-		$this->assertSame( $value, get_network_option( self::$network_id, $name ), 'Values do not match' );
+		$this->assertSame( $value, get_network_option( null, $name ), 'Values do not match' );
 	}
 
 	/**
 	 * @dataProvider data_slashed_options
 	 * @covers ::update_network_option
-	 * @group ms-required
+	 * @ticket 37181
 	 */
 	public function test_slash_update_network_option( $name, $value ) {
-		$result = update_network_option( self::$network_id, $name, $value );
+		$result = update_network_option( null, $name, $value );
 		$this->assertTrue( $result, 'Network option was not updated' );
-		$this->assertSame( $value, get_network_option( self::$network_id, $name ), 'Values do not match' );
+		$this->assertSame( $value, get_network_option( null, $name ), 'Values do not match' );
 	}
 
 	/**
 	 * @dataProvider data_slashed_options
 	 * @covers ::delete_network_option()
-	 * @group ms-required
+	 * @ticket 37181
 	 */
 	public function test_slash_delete_network_option( $name, $value ) {
-		$result = add_network_option( self::$network_id, $name, $value );
+		$result = add_network_option( null, $name, $value );
 		$this->assertTrue( $result, 'Network option was not added' );
-		$this->assertSame( $value, get_network_option( self::$network_id, $name ) );
-		$result = delete_network_option( self::$network_id, $name );
+		$this->assertSame( $value, get_network_option( null, $name ) );
+		$result = delete_network_option( null, $name );
 		$this->assertTrue( $result, 'Network option was not deleted' );
-		$this->assertFalse( get_network_option( self::$network_id, $name ), 'Network option was not deleted' );
+		$this->assertFalse( get_network_option( null, $name ), 'Network option was not deleted' );
 	}
 
 	public function data_slashed_options() {
