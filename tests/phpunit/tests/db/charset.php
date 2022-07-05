@@ -34,8 +34,6 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21212
-	 *
-	 * @covers wpdb::get_col_charset
 	 */
 	public function data_strip_invalid_text() {
 		$fields = array(
@@ -529,8 +527,6 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21212
-	 *
-	 * @covers wpdb::check_ascii
 	 */
 	public function data_process_field_charsets() {
 		if ( $GLOBALS['wpdb']->charset ) {
@@ -742,8 +738,6 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21212
-	 *
-	 * @covers wpdb::check_ascii
 	 */
 	public function data_test_get_table_charset() {
 		$table_name = 'test_get_table_charset';
@@ -785,8 +779,6 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21212
-	 *
-	 * @covers wpdb::strip_invalid_text_for_column
 	 */
 	public function data_test_get_column_charset() {
 		$table_name = 'test_get_column_charset';
@@ -881,8 +873,6 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21212
-	 *
-	 * @covers wpdb::get_table_charset
 	 */
 	public function data_strip_invalid_text_from_query() {
 		$table_name = 'strip_invalid_text_from_query_table';
@@ -937,8 +927,6 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 32104
-	 *
-	 * @covers wpdb::strip_invalid_text_from_query
 	 */
 	public function data_dont_strip_text_from_schema_queries() {
 		// An obviously invalid and fake table name.
@@ -989,8 +977,6 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21212
-	 *
-	 * @covers wpdb::get_col_charset
 	 */
 	public function data_table_collation_check() {
 		$table_name = 'table_collation_check';

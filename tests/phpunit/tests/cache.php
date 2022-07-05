@@ -104,6 +104,8 @@ class Tests_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @covers WP_Object_Cache::replace
+	 * @covers WP_Object_Cache::add
+	 * @covers WP_Object_Cache::get
 	 */
 	public function test_replace() {
 		$key  = __FUNCTION__;
@@ -121,6 +123,7 @@ class Tests_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @covers WP_Object_Cache::set
+	 * @covers WP_Object_Cache::get
 	 */
 	public function test_set() {
 		$key  = __FUNCTION__;
@@ -137,6 +140,8 @@ class Tests_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @covers WP_Object_Cache::flush
+	 * @covers WP_Object_Cache::add
+	 * @covers WP_Object_Cache::get
 	 */
 	public function test_flush() {
 		global $_wp_using_ext_object_cache;
@@ -161,6 +166,7 @@ class Tests_Cache extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Object_Cache::set
 	 * @covers WP_Object_Cache::get
+	 * @covers WP_Object_Cache::add
 	 */
 	public function test_object_refs() {
 		$key           = __FUNCTION__ . '_1';
@@ -218,6 +224,7 @@ class Tests_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @covers WP_Object_Cache::decr
+	 * @covers WP_Object_Cache::get
 	 */
 	public function test_decr() {
 		$key = __FUNCTION__;
@@ -240,6 +247,7 @@ class Tests_Cache extends WP_UnitTestCase {
 	 * @ticket 21327
 	 *
 	 * @covers ::wp_cache_decr
+	 * @covers ::wp_cache_get
 	 */
 	public function test_wp_cache_decr() {
 		$key = __FUNCTION__;
@@ -260,6 +268,8 @@ class Tests_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @covers WP_Object_Cache::delete
+	 * @covers WP_Object_Cache::set
+	 * @covers WP_Object_Cache::get
 	 */
 	public function test_delete() {
 		$key = __FUNCTION__;
@@ -302,6 +312,8 @@ class Tests_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @covers WP_Object_Cache::switch_to_blog
+	 * @covers WP_Object_Cache::set
+	 * @covers WP_Object_Cache::get
 	 */
 	public function test_switch_to_blog() {
 		if ( ! method_exists( $this->cache, 'switch_to_blog' ) ) {
@@ -368,6 +380,8 @@ class Tests_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_cache_replace
+	 * @covers ::wp_cache_set
+	 * @covers ::wp_cache_get
 	 */
 	public function test_wp_cache_replace() {
 		$key  = 'my-key';

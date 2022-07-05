@@ -101,6 +101,9 @@ class Tests_dbDelta extends WP_UnitTestCase {
 	 * Test table creation.
 	 *
 	 * @covers ::dbDelta
+	 * @covers wpdb::get_var
+	 * @covers wpdb::prepare
+	 * @covers wpdb::esc_like
 	 */
 	public function test_creating_a_table() {
 
