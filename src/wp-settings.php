@@ -338,7 +338,7 @@ $GLOBALS['wp_embed'] = new WP_Embed();
 /**
  * WordPress Textdomain Registry object.
  *
- * Used to support just-in-time translations for manually loaded textdomains.
+ * Used to support just-in-time translations for manually loaded text domains.
  *
  * @since 6.1.0
  *

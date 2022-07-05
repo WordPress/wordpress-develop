@@ -1237,7 +1237,7 @@ function load_script_translations( $file, $handle, $domain ) {
 }
 
 /**
- * Loads plugin and theme textdomains just-in-time.
+ * Loads plugin and theme text domains just-in-time.
  *
  * When a textdomain is encountered for the first time, we try to load
  * the translation file from `wp-content/languages`, removing the need
