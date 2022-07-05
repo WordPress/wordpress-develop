@@ -455,6 +455,15 @@ class WP_Widget {
 
 				$instance = $this->update( $new_instance, $old_instance );
 
+				if ( is_null( $instance ) ) {
+					$instance = array();
+					_doing_it_wrong(
+						'WP_Widget::update',
+						__( 'WP_Widget::update() must return an array of settings or false.' ),
+						'6.1.0'
+					);
+				}
+
 				if ( $this->is_preview() ) {
 					wp_suspend_cache_addition( $was_cache_addition_suspended );
 				}
@@ -630,6 +639,14 @@ class WP_Widget {
 		}
 
 		unset( $settings['_multiwidget'], $settings['__i__'] );
+
+		foreach ( $settings as &$instance ) {
+			if ( ! is_null( $instance ) ) {
+				continue;
+			}
+
+			$instance = array();
+		}
 
 		return $settings;
 	}
