@@ -136,7 +136,7 @@ function plugins_api( $action, $args = array() ) {
 	/**
 	 * Filters the response for the current WordPress.org Plugin Installation API request.
 	 *
-	 * Passing a non-false value will effectively short-circuit the WordPress.org API request.
+	 * Returning a non-false value will effectively short-circuit the WordPress.org API request.
 	 *
 	 * If `$action` is 'query_plugins' or 'plugin_information', an object MUST be passed.
 	 * If `$action` is 'hot_tags' or 'hot_categories', an array should be passed.
@@ -235,7 +235,7 @@ function plugins_api( $action, $args = array() ) {
 }
 
 /**
- * Retrieve popular WordPress plugin tags.
+ * Retrieves popular WordPress plugin tags.
  *
  * @since 2.7.0
  *
@@ -261,21 +261,13 @@ function install_popular_tags( $args = array() ) {
 }
 
 /**
+ * Displays the Featured tab of Add Plugins screen.
+ *
  * @since 2.7.0
  */
 function install_dashboard() {
+	display_plugins_table();
 	?>
-	<p>
-		<?php
-		printf(
-			/* translators: %s: https://wordpress.org/plugins/ */
-			__( 'Plugins extend and expand the functionality of WordPress. You may automatically install plugins from the <a href="%s">WordPress Plugin Directory</a> or upload a plugin in .zip format by clicking the button at the top of this page.' ),
-			__( 'https://wordpress.org/plugins/' )
-		);
-		?>
-	</p>
-
-	<?php display_plugins_table(); ?>
 
 	<div class="plugins-popular-tags-wrapper">
 	<h2><?php _e( 'Popular tags' ); ?></h2>
@@ -342,7 +334,7 @@ function install_search_form( $deprecated = true ) {
 }
 
 /**
- * Upload from zip
+ * Displays a form to upload plugins from zip files.
  *
  * @since 2.8.0
  */
@@ -361,7 +353,7 @@ function install_plugins_upload() {
 }
 
 /**
- * Show a username form for the favorites page
+ * Shows a username form for the favorites page.
  *
  * @since 3.5.0
  */
@@ -383,7 +375,7 @@ function install_plugins_favorites_form() {
 }
 
 /**
- * Display plugin content based on plugin list.
+ * Displays plugin content based on plugin list.
  *
  * @since 2.7.0
  *
@@ -393,14 +385,6 @@ function display_plugins_table() {
 	global $wp_list_table;
 
 	switch ( current_filter() ) {
-		case 'install_plugins_favorites':
-			if ( empty( $_GET['user'] ) && ! get_user_option( 'wporg_favorites' ) ) {
-				return;
-			}
-			break;
-		case 'install_plugins_recommended':
-			echo '<p>' . __( 'These suggestions are based on the plugins you and other users have installed.' ) . '</p>';
-			break;
 		case 'install_plugins_beta':
 			printf(
 				/* translators: %s: URL to "Features as Plugins" page. */
@@ -408,8 +392,22 @@ function display_plugins_table() {
 				'https://make.wordpress.org/core/handbook/about/release-cycle/features-as-plugins/'
 			);
 			break;
+		case 'install_plugins_featured':
+			printf(
+				/* translators: %s: https://wordpress.org/plugins/ */
+				'<p>' . __( 'Plugins extend and expand the functionality of WordPress. You may automatically install plugins from the <a href="%s">WordPress Plugin Directory</a> or upload a plugin in .zip format by clicking the button at the top of this page.' ) . '</p>',
+				__( 'https://wordpress.org/plugins/' )
+			);
+			break;
+		case 'install_plugins_recommended':
+			echo '<p>' . __( 'These suggestions are based on the plugins you and other users have installed.' ) . '</p>';
+			break;
+		case 'install_plugins_favorites':
+			if ( empty( $_GET['user'] ) && ! get_user_option( 'wporg_favorites' ) ) {
+				return;
+			}
+			break;
 	}
-
 	?>
 	<form id="plugin-filter" method="post">
 		<?php $wp_list_table->display(); ?>
@@ -418,7 +416,7 @@ function display_plugins_table() {
 }
 
 /**
- * Determine the status we can perform on a plugin.
+ * Determines the status we can perform on a plugin.
  *
  * @since 3.0.0
  *
@@ -508,7 +506,7 @@ function install_plugin_install_status( $api, $loop = false ) {
 }
 
 /**
- * Display plugin information in dialog box form.
+ * Displays plugin information in dialog box form.
  *
  * @since 2.7.0
  *
@@ -697,7 +695,7 @@ function install_plugin_information() {
 				?>
 				</li>
 			<?php } if ( ! empty( $api->slug ) && empty( $api->external ) ) { ?>
-				<li><a target="_blank" href="<?php echo __( 'https://wordpress.org/plugins/' ) . $api->slug; ?>/"><?php _e( 'WordPress.org Plugin Page &#187;' ); ?></a></li>
+				<li><a target="_blank" href="<?php echo esc_url( __( 'https://wordpress.org/plugins/' ) . $api->slug ); ?>/"><?php _e( 'WordPress.org Plugin Page &#187;' ); ?></a></li>
 			<?php } if ( ! empty( $api->homepage ) ) { ?>
 				<li><a target="_blank" href="<?php echo esc_url( $api->homepage ); ?>"><?php _e( 'Plugin Homepage &#187;' ); ?></a></li>
 			<?php } if ( ! empty( $api->donate_link ) && empty( $api->contributors ) ) { ?>

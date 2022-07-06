@@ -136,4 +136,18 @@ class Tests_Dependencies extends WP_UnitTestCase {
 		$this->assertFalse( $dep->query( 'one' ) );
 
 	}
+
+	function test_enqueue_before_register() {
+		$dep = new WP_Dependencies;
+
+		$this->assertArrayNotHasKey( 'one', $dep->registered );
+
+		$dep->enqueue( 'one' );
+
+		$this->assertNotContains( 'one', $dep->queue );
+
+		$this->assertTrue( $dep->add( 'one', '' ) );
+
+		$this->assertContains( 'one', $dep->queue );
+	}
 }

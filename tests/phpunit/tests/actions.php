@@ -240,8 +240,8 @@ class Tests_Actions extends WP_UnitTestCase {
 		$this->assertSame( 1, did_action( $tag1 ) );
 		$this->assertSame( 0, did_action( $tag2 ) );
 
-		// Do action $tag2 a random number of times.
-		$count = rand( 0, 10 );
+		// Do action $tag2 10 times.
+		$count = 10;
 		for ( $i = 0; $i < $count; $i++ ) {
 			do_action( $tag2 );
 		}

@@ -611,8 +611,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 			}
 		);
 
-		// Effectively ignore the output until retrieving it later via `getActualOutput()`.
-		$this->expectOutputRegex( '`.`' );
+		$this->expectOutputRegex( '/Test Title/' );
 
 		$widget->display_callback(
 			array(
@@ -624,11 +623,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 			2
 		);
 
-		$actual = $this->getActualOutput();
-
 		unregister_widget( $widget );
-
-		$this->assertStringContainsString( 'Test Title', $actual );
 	}
 
 	/**

@@ -12,8 +12,8 @@
  *
  * @since 3.0.0
  *
- * @param array $file $_FILES array for a given file.
- * @return array $_FILES array with 'error' key set if file exceeds quota. 'error' is empty otherwise.
+ * @param array $file An element from the `$_FILES` array for a given file.
+ * @return array The `$_FILES` array element with 'error' key set if file exceeds quota. 'error' is empty otherwise.
  */
 function check_upload_size( $file ) {
 	if ( get_site_option( 'upload_space_check_disabled' ) ) {
@@ -217,10 +217,11 @@ function wpmu_delete_user( $id ) {
  *
  * @since MU (3.0.0)
  *
- * @param bool $echo Optional. If $echo is set and the quota is exceeded, a warning message is echoed. Default is true.
+ * @param bool $display_message Optional. If set to true and the quota is exceeded,
+ *                              a warning message is displayed. Default true.
  * @return bool True if user is over upload space quota, otherwise false.
  */
-function upload_is_user_over_quota( $echo = true ) {
+function upload_is_user_over_quota( $display_message = true ) {
 	if ( get_site_option( 'upload_space_check_disabled' ) ) {
 		return false;
 	}
@@ -232,7 +233,7 @@ function upload_is_user_over_quota( $echo = true ) {
 	$space_used = get_space_used();
 
 	if ( ( $space_allowed - $space_used ) < 0 ) {
-		if ( $echo ) {
+		if ( $display_message ) {
 			printf(
 				/* translators: %s: Allowed space allocation. */
 				__( 'Sorry, you have used your space allocation of %s. Please delete some files to upload more files.' ),
@@ -692,7 +693,7 @@ function mu_dropdown_languages( $lang_files = array(), $current = '' ) {
  * @since 3.0.0
  *
  * @global int    $wp_db_version WordPress database version.
- * @global string $pagenow
+ * @global string $pagenow       The filename of the current screen.
  *
  * @return void|false Void on success. False if the current user is not a super admin.
  */
@@ -1010,7 +1011,7 @@ function confirm_delete_users( $users ) {
 function network_settings_add_js() {
 	?>
 <script type="text/javascript">
-jQuery(document).ready( function($) {
+jQuery( function($) {
 	var languageSelect = $( '#WPLANG' );
 	$( 'form' ).on( 'submit', function() {
 		// Don't show a spinner for English and installed languages,
@@ -1019,7 +1020,7 @@ jQuery(document).ready( function($) {
 			$( '#submit', this ).after( '<span class="spinner language-install-spinner is-active" />' );
 		}
 	});
-});
+} );
 </script>
 	<?php
 }
@@ -1029,7 +1030,7 @@ jQuery(document).ready( function($) {
  *
  * @since 4.6.0
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  *
  * @param array $args {
  *     Optional. Array or string of Query parameters. Default empty array.

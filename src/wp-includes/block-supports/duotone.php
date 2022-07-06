@@ -45,7 +45,6 @@
  *
  * @param mixed $n   Number of unknown type.
  * @param int   $max Upper value of the range to bound to.
- *
  * @return float Value in the range [0, 1].
  */
 function wp_tinycolor_bound01( $n, $max ) {
@@ -78,8 +77,8 @@ function wp_tinycolor_bound01( $n, $max ) {
  * @since 5.9.0
  * @access private
  *
- * @param  mixed $n   Number of unknown type.
- * @return float      Value in the range [0,1].
+ * @param mixed $n Number of unknown type.
+ * @return float Value in the range [0,1].
  */
 function _wp_tinycolor_bound_alpha( $n ) {
 	if ( is_numeric( $n ) ) {
@@ -92,7 +91,7 @@ function _wp_tinycolor_bound_alpha( $n ) {
 }
 
 /**
- * Round and convert values of an RGB object.
+ * Rounds and converts values of an RGB object.
  *
  * Direct port of TinyColor's function, lightly simplified to maintain
  * consistency with TinyColor.
@@ -103,7 +102,6 @@ function _wp_tinycolor_bound_alpha( $n ) {
  * @access private
  *
  * @param array $rgb_color RGB object.
- *
  * @return array Rounded and converted RGB object.
  */
 function wp_tinycolor_rgb_to_rgb( $rgb_color ) {
@@ -128,7 +126,6 @@ function wp_tinycolor_rgb_to_rgb( $rgb_color ) {
  * @param float $p first component.
  * @param float $q second component.
  * @param float $t third component.
- *
  * @return float R, G, or B component.
  */
 function wp_tinycolor_hue_to_rgb( $p, $q, $t ) {
@@ -151,7 +148,7 @@ function wp_tinycolor_hue_to_rgb( $p, $q, $t ) {
 }
 
 /**
- * Convert an HSL object to an RGB object with converted and rounded values.
+ * Converts an HSL object to an RGB object with converted and rounded values.
  *
  * Direct port of TinyColor's function, lightly simplified to maintain
  * consistency with TinyColor.
@@ -162,7 +159,6 @@ function wp_tinycolor_hue_to_rgb( $p, $q, $t ) {
  * @access private
  *
  * @param array $hsl_color HSL object.
- *
  * @return array Rounded and converted RGB object.
  */
 function wp_tinycolor_hsl_to_rgb( $hsl_color ) {
@@ -205,7 +201,6 @@ function wp_tinycolor_hsl_to_rgb( $hsl_color ) {
  * @access private
  *
  * @param string $color_str CSS color string.
- *
  * @return array RGB object.
  */
 function wp_tinycolor_string_to_rgb( $color_str ) {
@@ -357,56 +352,61 @@ function wp_tinycolor_string_to_rgb( $color_str ) {
 	}
 }
 
-
 /**
- * Registers the style and colors block attributes for block types that support it.
+ * Returns the prefixed id for the duotone filter for use as a CSS id.
  *
- * @since 5.8.0
+ * @since 5.9.1
  * @access private
  *
- * @param WP_Block_Type $block_type Block Type.
+ * @param array $preset Duotone preset value as seen in theme.json.
+ * @return string Duotone filter CSS id.
  */
-function wp_register_duotone_support( $block_type ) {
-	$has_duotone_support = false;
-	if ( property_exists( $block_type, 'supports' ) ) {
-		$has_duotone_support = _wp_array_get( $block_type->supports, array( 'color', '__experimentalDuotone' ), false );
+function wp_get_duotone_filter_id( $preset ) {
+	if ( ! isset( $preset['slug'] ) ) {
+		return '';
 	}
 
-	if ( $has_duotone_support ) {
-		if ( ! $block_type->attributes ) {
-			$block_type->attributes = array();
-		}
-
-		if ( ! array_key_exists( 'style', $block_type->attributes ) ) {
-			$block_type->attributes['style'] = array(
-				'type' => 'object',
-			);
-		}
-	}
+	return 'wp-duotone-' . $preset['slug'];
 }
 
 /**
- * Renders the duotone filter SVG and returns the CSS filter property to
- * reference the rendered SVG.
+ * Returns the CSS filter property url to reference the rendered SVG.
  *
  * @since 5.9.0
  * @access private
-
- * @param array $preset Duotone preset value as seen in theme.json.
  *
- * @return string Duotone CSS filter property.
+ * @param array $preset Duotone preset value as seen in theme.json.
+ * @return string Duotone CSS filter property url value.
  */
-function wp_render_duotone_filter_preset( $preset ) {
-	$duotone_id     = $preset['slug'];
-	$duotone_colors = $preset['colors'];
-	$filter_id      = 'wp-duotone-' . $duotone_id;
+function wp_get_duotone_filter_property( $preset ) {
+	$filter_id = wp_get_duotone_filter_id( $preset );
+	return "url('#" . $filter_id . "')";
+}
+
+/**
+ * Returns the duotone filter SVG string for the preset.
+ *
+ * @since 5.9.1
+ * @access private
+ *
+ * @param array $preset Duotone preset value as seen in theme.json.
+ * @return string Duotone SVG filter.
+ */
+function wp_get_duotone_filter_svg( $preset ) {
+	$filter_id = wp_get_duotone_filter_id( $preset );
+
 	$duotone_values = array(
 		'r' => array(),
 		'g' => array(),
 		'b' => array(),
 		'a' => array(),
 	);
-	foreach ( $duotone_colors as $color_str ) {
+
+	if ( ! isset( $preset['colors'] ) || ! is_array( $preset['colors'] ) ) {
+		$preset['colors'] = array();
+	}
+
+	foreach ( $preset['colors'] as $color_str ) {
 		$color = wp_tinycolor_string_to_rgb( $color_str );
 
 		$duotone_values['r'][] = $color['r'] / 255;
@@ -462,17 +462,34 @@ function wp_render_duotone_filter_preset( $preset ) {
 		$svg = trim( $svg );
 	}
 
-	add_action(
-		// Safari doesn't render SVG filters defined in data URIs,
-		// and SVG filters won't render in the head of a document,
-		// so the next best place to put the SVG is in the footer.
-		is_admin() ? 'admin_footer' : 'wp_footer',
-		function () use ( $svg ) {
-			echo $svg;
-		}
-	);
+	return $svg;
+}
 
-	return "url('#" . $filter_id . "')";
+/**
+ * Registers the style and colors block attributes for block types that support it.
+ *
+ * @since 5.8.0
+ * @access private
+ *
+ * @param WP_Block_Type $block_type Block Type.
+ */
+function wp_register_duotone_support( $block_type ) {
+	$has_duotone_support = false;
+	if ( property_exists( $block_type, 'supports' ) ) {
+		$has_duotone_support = _wp_array_get( $block_type->supports, array( 'color', '__experimentalDuotone' ), false );
+	}
+
+	if ( $has_duotone_support ) {
+		if ( ! $block_type->attributes ) {
+			$block_type->attributes = array();
+		}
+
+		if ( ! array_key_exists( 'style', $block_type->attributes ) ) {
+			$block_type->attributes['style'] = array(
+				'type' => 'object',
+			);
+		}
+	}
 }
 
 /**
@@ -483,7 +500,6 @@ function wp_render_duotone_filter_preset( $preset ) {
  *
  * @param string $block_content Rendered block content.
  * @param array  $block         Block object.
- *
  * @return string Filtered block content.
  */
 function wp_render_duotone_support( $block_content, $block ) {
@@ -504,11 +520,12 @@ function wp_render_duotone_support( $block_content, $block ) {
 	}
 
 	$filter_preset   = array(
-		'slug'   => uniqid(),
+		'slug'   => wp_unique_id( sanitize_key( implode( '-', $block['attrs']['style']['color']['duotone'] ) . '-' ) ),
 		'colors' => $block['attrs']['style']['color']['duotone'],
 	);
-	$filter_property = wp_render_duotone_filter_preset( $filter_preset );
-	$filter_id       = 'wp-duotone-' . $filter_preset['slug'];
+	$filter_property = wp_get_duotone_filter_property( $filter_preset );
+	$filter_id       = wp_get_duotone_filter_id( $filter_preset );
+	$filter_svg      = wp_get_duotone_filter_svg( $filter_preset );
 
 	$scope     = '.' . $filter_id;
 	$selectors = explode( ',', $duotone_support );
@@ -527,6 +544,28 @@ function wp_render_duotone_support( $block_content, $block ) {
 	wp_register_style( $filter_id, false, array(), true, true );
 	wp_add_inline_style( $filter_id, $filter_style );
 	wp_enqueue_style( $filter_id );
+
+	add_action(
+		'wp_footer',
+		static function () use ( $filter_svg, $selector ) {
+			echo $filter_svg;
+
+			/*
+			 * Safari renders elements incorrectly on first paint when the SVG
+			 * filter comes after the content that it is filtering, so we force
+			 * a repaint with a WebKit hack which solves the issue.
+			 */
+			global $is_safari;
+			if ( $is_safari ) {
+				printf(
+					// Simply accessing el.offsetHeight flushes layout and style
+					// changes in WebKit without having to wait for setTimeout.
+					'<script>( function() { var el = document.querySelector( %s ); var display = el.style.display; el.style.display = "none"; el.offsetHeight; el.style.display = display; } )();</script>',
+					wp_json_encode( $selector )
+				);
+			}
+		}
+	);
 
 	// Like the layout hook, this assumes the hook only applies to blocks with a single wrapper.
 	return preg_replace(

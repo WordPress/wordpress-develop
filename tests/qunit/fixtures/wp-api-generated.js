@@ -18,7 +18,13 @@ mockedApiResponse.Schema = {
         "wp-site-health/v1",
         "wp-block-editor/v1"
     ],
-    "authentication": [],
+    "authentication": {
+        "application-passwords": {
+            "endpoints": {
+                "authorization": "http://example.org/wp-admin/authorize-application.php"
+            }
+        }
+    },
     "routes": {
         "/": {
             "namespace": "",
@@ -3755,7 +3761,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "object": {
-                            "description": "The type of object originally represented, such as \"category,\" \"post\", or \"attachment.\"",
+                            "description": "The type of object originally represented, such as \"category\", \"post\", or \"attachment\".",
                             "type": "string",
                             "required": false
                         },
@@ -3943,7 +3949,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "object": {
-                            "description": "The type of object originally represented, such as \"category,\" \"post\", or \"attachment.\"",
+                            "description": "The type of object originally represented, such as \"category\", \"post\", or \"attachment\".",
                             "type": "string",
                             "required": false
                         },
@@ -4128,7 +4134,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "object": {
-                            "description": "The type of object originally represented, such as \"category,\" \"post\", or \"attachment.\"",
+                            "description": "The type of object originally represented, such as \"category\", \"post\", or \"attachment\".",
                             "type": "string",
                             "required": false
                         },
@@ -5029,7 +5035,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": true
                         },
                         "theme": {
@@ -5117,6 +5123,11 @@ mockedApiResponse.Schema = {
                                 "private"
                             ],
                             "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
+                            "required": false
                         }
                     }
                 }
@@ -5129,7 +5140,7 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
-        "/wp/v2/templates/(?P<id>[\\/\\w-]+)": {
+        "/wp/v2/templates/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w-]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -5178,7 +5189,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": false
                         },
                         "theme": {
@@ -5261,6 +5272,11 @@ mockedApiResponse.Schema = {
                                 "pending",
                                 "private"
                             ],
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
                             "required": false
                         }
                     }
@@ -5487,7 +5503,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": false
                         },
                         "theme": {
@@ -5570,6 +5586,11 @@ mockedApiResponse.Schema = {
                                 "pending",
                                 "private"
                             ],
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
                             "required": false
                         }
                     }
@@ -5661,7 +5682,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": true
                         },
                         "theme": {
@@ -5750,6 +5771,11 @@ mockedApiResponse.Schema = {
                             ],
                             "required": false
                         },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
+                            "required": false
+                        },
                         "area": {
                             "description": "Where the template part is intended for use (header, footer, etc.)",
                             "type": "string",
@@ -5766,7 +5792,7 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
-        "/wp/v2/template-parts/(?P<id>[\\/\\w-]+)": {
+        "/wp/v2/template-parts/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w-]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -5815,7 +5841,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": false
                         },
                         "theme": {
@@ -5898,6 +5924,11 @@ mockedApiResponse.Schema = {
                                 "pending",
                                 "private"
                             ],
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
                             "required": false
                         },
                         "area": {
@@ -6129,7 +6160,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\-]+",
                             "required": false
                         },
                         "theme": {
@@ -6212,6 +6243,11 @@ mockedApiResponse.Schema = {
                                 "pending",
                                 "private"
                             ],
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
                             "required": false
                         },
                         "area": {
@@ -9388,7 +9424,27 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/global-styles/themes/(?P<stylesheet>[^.\\/]+(?:\\/[^.\\/]+)?)": {
+        "/wp/v2/global-styles/themes/(?P<stylesheet>[\\/\\s%\\w\\.\\(\\)\\[\\]\\@_\\-]+)/variations": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "stylesheet": {
+                            "description": "The theme identifier",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/global-styles/themes/(?P<stylesheet>[^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET"
@@ -9572,6 +9628,21 @@ mockedApiResponse.Schema = {
                             "type": "integer",
                             "required": false
                         },
+                        "show_on_front": {
+                            "description": "What to show on the front page",
+                            "type": "string",
+                            "required": false
+                        },
+                        "page_on_front": {
+                            "description": "The ID of the page that should be displayed on the front page",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "page_for_posts": {
+                            "description": "The ID of the page that should display the latest posts",
+                            "type": "integer",
+                            "required": false
+                        },
                         "default_ping_status": {
                             "description": "Allow link notifications from other blogs (pingbacks and trackbacks) on new articles.",
                             "type": "string",
@@ -9592,6 +9663,11 @@ mockedApiResponse.Schema = {
                         },
                         "site_logo": {
                             "description": "Site logo.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "site_icon": {
+                            "description": "Site icon.",
                             "type": "integer",
                             "required": false
                         }
@@ -9632,7 +9708,7 @@ mockedApiResponse.Schema = {
                 "self": "http://example.org/index.php?rest_route=/wp/v2/themes"
             }
         },
-        "/wp/v2/themes/(?P<stylesheet>[^.\\/]+(?:\\/[^.\\/]+)?)": {
+        "/wp/v2/themes/(?P<stylesheet>[^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET"
@@ -10301,7 +10377,8 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "enum": [
                                 "view",
-                                "embed"
+                                "embed",
+                                "edit"
                             ],
                             "default": "view",
                             "required": false
@@ -10323,6 +10400,11 @@ mockedApiResponse.Schema = {
                             "type": "integer",
                             "minimum": 1,
                             "required": false
+                        },
+                        "slug": {
+                            "description": "Limit results to those matching a pattern (slug).",
+                            "type": "array",
+                            "required": false
                         }
                     }
                 }
@@ -10331,6 +10413,48 @@ mockedApiResponse.Schema = {
                 "self": [
                     {
                         "href": "http://example.org/index.php?rest_route=/wp/v2/pattern-directory/patterns"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/block-patterns/patterns": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": []
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/block-patterns/patterns"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/block-patterns/categories": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": []
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/block-patterns/categories"
                     }
                 ]
             }
@@ -10613,8 +10737,8 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/block-navigation-areas": {
-            "namespace": "wp/v2",
+        "/wp-block-editor/v1/export": {
+            "namespace": "wp-block-editor/v1",
             "methods": [
                 "GET"
             ],
@@ -10623,82 +10747,16 @@ mockedApiResponse.Schema = {
                     "methods": [
                         "GET"
                     ],
-                    "args": {
-                        "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
-                            "enum": [
-                                "view",
-                                "embed",
-                                "edit"
-                            ],
-                            "default": "view",
-                            "required": false
-                        }
-                    }
+                    "args": []
                 }
             ],
             "_links": {
                 "self": [
                     {
-                        "href": "http://example.org/index.php?rest_route=/wp/v2/block-navigation-areas"
+                        "href": "http://example.org/index.php?rest_route=/wp-block-editor/v1/export"
                     }
                 ]
             }
-        },
-        "/wp/v2/block-navigation-areas/(?P<area>[\\w-]+)": {
-            "namespace": "wp/v2",
-            "methods": [
-                "GET",
-                "POST",
-                "PUT",
-                "PATCH"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "GET"
-                    ],
-                    "allow_batch": {
-                        "v1": true
-                    },
-                    "args": {
-                        "area": {
-                            "description": "An alphanumeric identifier for the navigation area.",
-                            "type": "string",
-                            "required": false
-                        },
-                        "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
-                            "enum": [
-                                "view",
-                                "embed",
-                                "edit"
-                            ],
-                            "default": "view",
-                            "required": false
-                        }
-                    }
-                },
-                {
-                    "methods": [
-                        "POST",
-                        "PUT",
-                        "PATCH"
-                    ],
-                    "allow_batch": {
-                        "v1": true
-                    },
-                    "args": {
-                        "area": {
-                            "description": "An alphanumeric identifier for the navigation area.",
-                            "type": "string",
-                            "required": false
-                        }
-                    }
-                }
-            ]
         }
     },
     "site_logo": 0,
@@ -12240,7 +12298,11 @@ mockedApiResponse.settings = {
     "default_category": 1,
     "default_post_format": "0",
     "posts_per_page": 10,
+    "show_on_front": "posts",
+    "page_on_front": 0,
+    "page_for_posts": 0,
     "default_ping_status": "open",
     "default_comment_status": "open",
-    "site_logo": null
+    "site_logo": null,
+    "site_icon": 0
 };

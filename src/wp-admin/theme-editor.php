@@ -1,6 +1,6 @@
 <?php
 /**
- * Theme editor administration panel.
+ * Theme file editor administration panel.
  *
  * @package WordPress
  * @subpackage Administration
@@ -27,9 +27,9 @@ get_current_screen()->add_help_tab(
 		'id'      => 'overview',
 		'title'   => __( 'Overview' ),
 		'content' =>
-				'<p>' . __( 'You can use the theme editor to edit the individual CSS and PHP files which make up your theme.' ) . '</p>' .
+				'<p>' . __( 'You can use the theme file editor to edit the individual CSS and PHP files which make up your theme.' ) . '</p>' .
 				'<p>' . __( 'Begin by choosing a theme to edit from the dropdown menu and clicking the Select button. A list then appears of the theme&#8217;s template files. Clicking once on any file name causes the file to appear in the large Editor box.' ) . '</p>' .
-				'<p>' . __( 'For PHP files, you can use the Documentation dropdown to select from functions recognized in that file. Look Up takes you to a web page with reference material about that particular function.' ) . '</p>' .
+				'<p>' . __( 'For PHP files, you can use the documentation dropdown to select from functions recognized in that file. Look Up takes you to a web page with reference material about that particular function.' ) . '</p>' .
 				'<p id="editor-keyboard-trap-help-1">' . __( 'When using a keyboard to navigate:' ) . '</p>' .
 				'<ul>' .
 				'<li id="editor-keyboard-trap-help-2">' . __( 'In the editing area, the Tab key enters a tab character.' ) . '</li>' .
@@ -196,14 +196,14 @@ if ( $file_description !== $file_show ) {
 	</div>
 <?php endif; ?>
 
-<?php if ( preg_match( '/\.css$/', $file ) ) : ?>
+<?php if ( preg_match( '/\.css$/', $file ) && ! wp_is_block_theme() && current_user_can( 'customize' ) ) : ?>
 	<div id="message" class="notice-info notice">
 		<p><strong><?php _e( 'Did you know?' ); ?></strong></p>
 		<p>
 			<?php
 			printf(
 				/* translators: %s: Link to Custom CSS section in the Customizer. */
-				__( 'There&#8217;s no need to change your CSS here &mdash; you can edit and live preview CSS changes in the <a href="%s">built-in CSS editor</a>.' ),
+				__( 'There is no need to change your CSS here &mdash; you can edit and live preview CSS changes in the <a href="%s">built-in CSS editor</a>.' ),
 				esc_url( add_query_arg( 'autofocus[section]', 'custom_css', admin_url( 'customize.php' ) ) )
 			);
 			?>

@@ -447,7 +447,7 @@ function wp_restore_post_revision( $revision_id, $fields = null ) {
  * @since 2.6.0
  *
  * @param int|WP_Post $revision_id Revision ID or revision object.
- * @return array|false|WP_Post|WP_Error|null Null or WP_Error if error, deleted post if success.
+ * @return WP_Post|false|null Null or false if error, deleted post object if success.
  */
 function wp_delete_post_revision( $revision_id ) {
 	$revision = wp_get_post_revision( $revision_id );
@@ -638,15 +638,14 @@ function _set_preview( $post ) {
 	}
 
 	$preview = wp_get_post_autosave( $post->ID );
-	if ( ! is_object( $preview ) ) {
-		return $post;
+
+	if ( is_object( $preview ) ) {
+		$preview = sanitize_post( $preview );
+
+		$post->post_content = $preview->post_content;
+		$post->post_title   = $preview->post_title;
+		$post->post_excerpt = $preview->post_excerpt;
 	}
-
-	$preview = sanitize_post( $preview );
-
-	$post->post_content = $preview->post_content;
-	$post->post_title   = $preview->post_title;
-	$post->post_excerpt = $preview->post_excerpt;
 
 	add_filter( 'get_the_terms', '_wp_preview_terms_filter', 10, 3 );
 	add_filter( 'get_post_metadata', '_wp_preview_post_thumbnail_filter', 10, 3 );

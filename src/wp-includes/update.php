@@ -32,7 +32,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 
 	// Include an unmodified $wp_version.
 	require ABSPATH . WPINC . '/version.php';
-	$php_version = phpversion();
+	$php_version = PHP_VERSION;
 
 	$current      = get_site_transient( 'update_core' );
 	$translations = wp_get_installed_translations( 'core' );
@@ -80,13 +80,10 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	}
 
 	if ( is_multisite() ) {
-		$user_count        = get_user_count();
 		$num_blogs         = get_blog_count();
 		$wp_install        = network_site_url();
 		$multisite_enabled = 1;
 	} else {
-		$user_count        = count_users();
-		$user_count        = $user_count['total_users'];
 		$multisite_enabled = 0;
 		$num_blogs         = 1;
 		$wp_install        = home_url( '/' );
@@ -99,7 +96,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		'mysql'              => $mysql_version,
 		'local_package'      => isset( $wp_local_package ) ? $wp_local_package : '',
 		'blogs'              => $num_blogs,
-		'users'              => $user_count,
+		'users'              => get_user_count(),
 		'multisite_enabled'  => $multisite_enabled,
 		'initial_db_version' => get_site_option( 'initial_db_version' ),
 	);
@@ -433,7 +430,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 			continue;
 		}
 
-		$hostname = wp_parse_url( esc_url_raw( $plugin_data['UpdateURI'] ), PHP_URL_HOST );
+		$hostname = wp_parse_url( sanitize_url( $plugin_data['UpdateURI'] ), PHP_URL_HOST );
 
 		/**
 		 * Filters the update response for a given plugin hostname.
@@ -568,7 +565,7 @@ function wp_update_themes( $extra_stats = array() ) {
 	$checked = array();
 	$request = array();
 
-	// Put slug of current theme into request.
+	// Put slug of active theme into request.
 	$request['active'] = get_option( 'stylesheet' );
 
 	foreach ( $installed_themes as $theme ) {
@@ -956,51 +953,6 @@ function wp_clean_update_cache() {
 	delete_site_transient( 'update_core' );
 }
 
-/**
- * Deletes all contents of the temp-backup directory.
- *
- * @since 5.9.0
- *
- * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
- */
-function wp_delete_all_temp_backups() {
-	/*
-	 * Check if there's a lock, or if currently performing an Ajax request,
-	 * in which case there's a chance we're doing an update.
-	 * Reschedule for an hour from now and exit early.
-	 */
-	if ( get_option( 'core_updater.lock' ) || get_option( 'auto_updater.lock' ) || wp_doing_ajax() ) {
-		wp_schedule_single_event( time() + HOUR_IN_SECONDS, 'wp_delete_temp_updater_backups' );
-		return;
-	}
-
-	add_action(
-		'shutdown',
-		/*
-		 * This action runs on shutdown to make sure there's no plugin updates currently running.
-		 * Using a closure in this case is OK since the action can be removed by removing the parent hook.
-		 */
-		function() {
-			global $wp_filesystem;
-
-			if ( ! $wp_filesystem ) {
-				include_once ABSPATH . '/wp-admin/includes/file.php';
-				WP_Filesystem();
-			}
-
-			$dirlist = $wp_filesystem->dirlist( $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/' );
-
-			foreach ( array_keys( $dirlist ) as $dir ) {
-				if ( '.' === $dir || '..' === $dir ) {
-					continue;
-				}
-
-				$wp_filesystem->delete( $wp_filesystem->wp_content_dir() . 'upgrade/temp-backup/' . $dir, true );
-			}
-		}
-	);
-}
-
 if ( ( ! is_main_site() && ! is_network_admin() ) || wp_doing_ajax() ) {
 	return;
 }
@@ -1025,5 +977,3 @@ add_action( 'update_option_WPLANG', 'wp_clean_update_cache', 10, 0 );
 add_action( 'wp_maybe_auto_update', 'wp_maybe_auto_update' );
 
 add_action( 'init', 'wp_schedule_update_checks' );
-
-add_action( 'wp_delete_temp_updater_backups', 'wp_delete_all_temp_backups' );
