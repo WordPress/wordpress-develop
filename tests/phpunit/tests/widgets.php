@@ -687,6 +687,53 @@ class Tests_Widgets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers WP_Widget::get_settings
+	 * @ticket 54677
+	 */
+	public function test_wp_widget_initiates_widget_with_alt_option() {
+		/*
+		 * Pretend the recent posts widget is new.
+		 *
+		 * The widget contains an alt (legacy) option so both the
+		 * new and the old option need to be deleted.
+		 */
+		delete_option( 'widget_recent-posts' );
+		delete_option( 'widget_recent_entries' );
+
+		wp_widgets_init();
+		$this->assertSameSetsWithIndex( array( '_multiwidget' => 1 ), get_option( 'widget_recent-posts' ) );
+		$this->assertFalse( get_option( 'widget_recent_entries' ) );
+	}
+
+	/**
+	 * @covers WP_Widget::get_settings
+	 * @ticket 54677
+	 */
+	public function test_wp_widget_migrates_widget_with_alt_option() {
+		$option = array(
+			2              => array(
+				'title'     => 'Recent Posts',
+				'number'    => 5,
+				'show_date' => false,
+			),
+			'_multiwidget' => 1,
+		);
+
+		/*
+		 * Pretend the recent posts widget has a legacy option.
+		 *
+		 * The widget contains an alt (legacy) option so both the
+		 * new option is deleted while the legacy option is created.
+		 */
+		delete_option( 'widget_recent-posts' );
+		update_option( 'widget_recent_entries', $option );
+
+		wp_widgets_init();
+		$this->assertSameSetsWithIndex( $option, get_option( 'widget_recent-posts' ) );
+		$this->assertFalse( get_option( 'widget_recent_entries' ) );
+	}
+
+	/**
 	 * @see WP_Widget::save_settings()
 	 */
 	public function test_wp_widget_save_settings() {
