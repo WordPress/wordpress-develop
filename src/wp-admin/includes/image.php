@@ -510,13 +510,15 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 
 	if ( ! $mime_type ) {
 		$mime_type = $original_mime_type;
+	} else {
+		$supported_multi_mime_sizes = _wp_multi_mime_get_supported_sizes( $attachment_id );
 	}
 
 	// Check if any of the new sizes already exist.
 	if ( isset( $image_meta['sizes'] ) && is_array( $image_meta['sizes'] ) ) {
 		foreach ( $image_meta['sizes'] as $size_name => $size_meta ) {
-			// Check if the output mime is enabled for this image size.
-			if ( ! _wp_mime_type_available_for_image_size( $attachment_id, $size_name, $original_mime_type, $mime_type ) ) {
+			// Check if the additional mime output is enabled for this image size.
+			if ( $original_mime_type !== $mime_type && ! $supported_multi_mime_sizes[ $size_name ] ) ) {
 				continue;
 			}
 
@@ -614,18 +616,46 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 }
 
 /**
- * Check whether mime type output is available for a given size and source mime type.
+ * Get the list of image sizes that support multi-mime type output.
  *
  * @since 6.1.0
  *
- * @param int    $attachment_id Attachment ID.
- * @param string $size_name     Size name to check.
- * @return bool Whether the size is available for the given mime type.
+ * @param int $attachment_id Attachment ID.
+ * @return array the list of size names that support multi-mime type output.
  */
-function _wp_mime_type_available_for_image_size( $attachment_id, $size_name, $source_mime, $destination_mime ) {
-	$image_mime_transforms = wp_upload_image_mime_transforms( $attachment_id, $size_name );
+function _wp_multi_mime_get_supported_sizes( $attachment_id ) {
+	// For WordPress 6.1, output WebP by default for core/core theme sizes.
+	$default_core_sizes = array (
+		'thumbnail',
+		'medium',
+		'medium_large',
+		'large',
+		// 2x medium_large size.
+		'1536x1536',
+		// 2x large size.
+		'2048x2048',
+		// Twentyeleven theme.
+		'large-feature',
+		'small-feature',
+		// Twentyfourteen theme.
+		'twentyfourteen-full-width',
+		// Twentyseventeen theme.
+		'twentyseventeen-featured-image',
+		'twentyseventeen-thumbnail-avatar',
+		// Twentytwenty theme.
+		'twentytwenty-fullscreen',
+	);
 
-	return isset( $image_mime_transforms[ $source_mime ] [ $destination_mime ] );
+	/**
+	 * Filter the sizes that support multi-mime type output. Developers can use this
+	 * to control the output of additional mime type sub-sized images.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param array $default_core_sizes The list of sizes that support multi-mime type output.
+	 * @param int   $attachment_id      Attachment ID.
+	 */
+	return apply_filters( 'wp_multi_mime_get_supported_sizes', $default_core_sizes, $attachment_id );
 }
 
 /**
