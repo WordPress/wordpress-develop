@@ -110,7 +110,7 @@ function clean_network_cache( $ids ) {
  * @since 4.6.0
  * @since 6.1.0 Introduced the `$update_meta_cache` parameter.
  *
- * @param array $networks Array of network row objects.
+ * @param array $networks          Array of network row objects.
  * @param bool  $update_meta_cache Whether to update sitemeta cache. Default true.
  */
 function update_network_cache( $networks, $update_meta_cache = true ) {
@@ -136,7 +136,7 @@ function update_network_cache( $networks, $update_meta_cache = true ) {
  * @see update_network_cache()
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param array $network_ids Array of network IDs.
+ * @param array $network_ids       Array of network IDs.
  * @param bool  $update_meta_cache Whether to update sitemeta cache. Default true.
  */
 function _prime_network_caches( $network_ids, $update_meta_cache = true ) {
