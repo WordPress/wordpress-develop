@@ -908,7 +908,7 @@ table {
 	border-collapse: collapse;
 	border-spacing: 0;
 	empty-cells: show;
-	font-size: 1.6rem;
+	font-size: inherit;
 	margin: 4rem 0;
 	max-width: 100%;
 	overflow: hidden;
