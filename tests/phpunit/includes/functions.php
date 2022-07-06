@@ -152,9 +152,12 @@ function _delete_all_posts() {
 /**
  * Handles the WP die handler by outputting the given values as text.
  *
- * @param string $message The message.
- * @param string $title   The title.
- * @param array  $args    Array with arguments.
+ * @since UT (3.7.0)
+ * @since 6.1.0 The `$message` parameter can accept a `WP_Error` object.
+ *
+ * @param string|WP_Error $message Error message or WP_Error object.
+ * @param string          $title   Error title.
+ * @param array           $args    Arguments passed to wp_die().
  */
 function _wp_die_handler( $message, $title = '', $args = array() ) {
 	if ( ! $GLOBALS['_wp_die_disabled'] ) {
@@ -166,6 +169,8 @@ function _wp_die_handler( $message, $title = '', $args = array() ) {
 
 /**
  * Disables the WP die handler.
+ *
+ * @since UT (3.7.0)
  */
 function _disable_wp_die() {
 	$GLOBALS['_wp_die_disabled'] = true;
@@ -173,6 +178,8 @@ function _disable_wp_die() {
 
 /**
  * Enables the WP die handler.
+ *
+ * @since UT (3.7.0)
  */
 function _enable_wp_die() {
 	$GLOBALS['_wp_die_disabled'] = false;
@@ -180,6 +187,8 @@ function _enable_wp_die() {
 
 /**
  * Returns the die handler.
+ *
+ * @since UT (3.7.0)
  *
  * @return string The die handler.
  */
@@ -190,6 +199,8 @@ function _wp_die_handler_filter() {
 /**
  * Returns the die handler.
  *
+ * @since 4.9.0
+ *
  * @return string The die handler.
  */
 function _wp_die_handler_filter_exit() {
@@ -199,12 +210,17 @@ function _wp_die_handler_filter_exit() {
 /**
  * Dies without an exit.
  *
- * @param string $message The message.
- * @param string $title   The title.
- * @param array  $args    Array with arguments.
+ * @since 4.0.0
+ * @since 6.1.0 The `$message` parameter can accept a `WP_Error` object.
+ *
+ * @param string|WP_Error $message Error message or WP_Error object.
+ * @param string          $title   Error title.
+ * @param array           $args    Arguments passed to wp_die().
  */
 function _wp_die_handler_txt( $message, $title, $args ) {
-	echo "\nwp_die called\n";
+	list( $message, $title, $args ) = _wp_die_process_input( $message, $title, $args );
+
+	echo "\nwp_die() called\n";
 	echo "Message: $message\n";
 
 	if ( ! empty( $title ) ) {
@@ -212,9 +228,13 @@ function _wp_die_handler_txt( $message, $title, $args ) {
 	}
 
 	if ( ! empty( $args ) ) {
-		echo "Args: \n";
-		foreach ( $args as $k => $v ) {
-			echo "\t $k : $v\n";
+		echo "Args:\n";
+		foreach ( $args as $key => $value ) {
+			if ( ! is_scalar( $value ) ) {
+				$value = var_export( $value, true );
+			}
+
+			echo "\t$key: $value\n";
 		}
 	}
 }
@@ -222,12 +242,17 @@ function _wp_die_handler_txt( $message, $title, $args ) {
 /**
  * Dies with an exit.
  *
- * @param string $message The message.
- * @param string $title   The title.
- * @param array  $args    Array with arguments.
+ * @since 4.9.0
+ * @since 6.1.0 The `$message` parameter can accept a `WP_Error` object.
+ *
+ * @param string|WP_Error $message Error message or WP_Error object.
+ * @param string          $title   Error title.
+ * @param array           $args    Arguments passed to wp_die().
  */
 function _wp_die_handler_exit( $message, $title, $args ) {
-	echo "\nwp_die called\n";
+	list( $message, $title, $args ) = _wp_die_process_input( $message, $title, $args );
+
+	echo "\nwp_die() called\n";
 	echo "Message: $message\n";
 
 	if ( ! empty( $title ) ) {
@@ -235,11 +260,16 @@ function _wp_die_handler_exit( $message, $title, $args ) {
 	}
 
 	if ( ! empty( $args ) ) {
-		echo "Args: \n";
-		foreach ( $args as $k => $v ) {
-			echo "\t $k : $v\n";
+		echo "Args:\n";
+		foreach ( $args as $key => $value ) {
+			if ( ! is_scalar( $value ) ) {
+				$value = var_export( $value, true );
+			}
+
+			echo "\t$key: $value\n";
 		}
 	}
+
 	exit( 1 );
 }
 
@@ -317,6 +347,7 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_comments_pagination_next' );
 	remove_action( 'init', 'register_block_core_comments_pagination_numbers' );
 	remove_action( 'init', 'register_block_core_comments_pagination_previous' );
+	remove_action( 'init', 'register_block_core_comments_title' );
 	remove_action( 'init', 'register_block_core_cover' );
 	remove_action( 'init', 'register_block_core_file' );
 	remove_action( 'init', 'register_block_core_gallery' );
@@ -334,6 +365,7 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_post_author' );
 	remove_action( 'init', 'register_block_core_post_author_biography' );
 	remove_action( 'init', 'register_block_core_post_comments' );
+	remove_action( 'init', 'register_block_core_post_comments_form' );
 	remove_action( 'init', 'register_block_core_post_content' );
 	remove_action( 'init', 'register_block_core_post_date' );
 	remove_action( 'init', 'register_block_core_post_excerpt' );
@@ -357,11 +389,10 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_site_tagline' );
 	remove_action( 'init', 'register_block_core_site_title' );
 	remove_action( 'init', 'register_block_core_social_link' );
-	remove_action( 'init', 'register_block_core_social_link' );
 	remove_action( 'init', 'register_block_core_tag_cloud' );
 	remove_action( 'init', 'register_block_core_template_part' );
 	remove_action( 'init', 'register_block_core_term_description' );
-	remove_action( 'init', 'register_core_block_types_from_metadata' );
 	remove_action( 'init', 'register_block_core_widget_group' );
+	remove_action( 'init', 'register_core_block_types_from_metadata' );
 }
 tests_add_filter( 'init', '_unhook_block_registration', 1000 );

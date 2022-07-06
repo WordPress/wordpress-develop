@@ -860,7 +860,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 						return true;
 					}
 
-					if ( esc_url_raw( $url ) ) {
+					if ( sanitize_url( $url ) ) {
 						return true;
 					}
 
@@ -997,6 +997,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 				$query_args['orderby'] = $orderby_mappings[ $request['orderby'] ];
 			}
 		}
+
+		$query_args['update_menu_item_cache'] = true;
 
 		return $query_args;
 	}

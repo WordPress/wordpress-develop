@@ -319,7 +319,7 @@ function twentythirteen_scripts_styles() {
 	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.0.3' );
 
 	// Loads our main stylesheet.
-	wp_enqueue_style( 'twentythirteen-style', get_stylesheet_uri(), array(), '20201208' );
+	wp_enqueue_style( 'twentythirteen-style', get_stylesheet_uri(), array(), '20220524' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentythirteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentythirteen-style' ), '20190102' );
@@ -562,10 +562,10 @@ if ( ! function_exists( 'twentythirteen_entry_date' ) ) :
 	 *
 	 * @since Twenty Thirteen 1.0
 	 *
-	 * @param bool $echo (optional) Whether to echo the date. Default true.
+	 * @param bool $display (optional) Whether to display the date. Default true.
 	 * @return string The HTML-formatted post date.
 	 */
-	function twentythirteen_entry_date( $echo = true ) {
+	function twentythirteen_entry_date( $display = true ) {
 		if ( has_post_format( array( 'chat', 'status' ) ) ) {
 			/* translators: 1: Post format name, 2: Date. */
 			$format_prefix = _x( '%1$s on %2$s', '1: post format name. 2: date', 'twentythirteen' );
@@ -582,7 +582,7 @@ if ( ! function_exists( 'twentythirteen_entry_date' ) ) :
 			esc_html( sprintf( $format_prefix, get_post_format_string( get_post_format() ), get_the_date() ) )
 		);
 
-		if ( $echo ) {
+		if ( $display ) {
 			echo $date;
 		}
 
@@ -690,7 +690,7 @@ if ( ! function_exists( 'twentythirteen_excerpt_more' ) && ! is_admin() ) :
 		$link = sprintf(
 			'<a href="%1$s" class="more-link">%2$s</a>',
 			esc_url( get_permalink( get_the_ID() ) ),
-			/* translators: %s: Post title. */
+			/* translators: %s: Post title. Only visible to screen readers. */
 			sprintf( __( 'Continue reading %s <span class="meta-nav">&rarr;</span>', 'twentythirteen' ), '<span class="screen-reader-text">' . get_the_title( get_the_ID() ) . '</span>' )
 		);
 		return ' &hellip; ' . $link;
