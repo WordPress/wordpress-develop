@@ -20,9 +20,6 @@ class Dominant_Color_Test extends DominantColorTestCase {
 
 		foreach ( $this->editor_engines as $editor ) {
 			$this->editor_engine = $editor;
-			if ( strpos( $image_path, '.gif' ) ) {
-				$expected_transparency = true; // all gif have alpha.
-			}
 			// Non existing attachment.
 			$dominant_color_metadata = dominant_color_metadata( array(), 1 );
 			$this->assertEmpty( $dominant_color_metadata );
@@ -49,9 +46,6 @@ class Dominant_Color_Test extends DominantColorTestCase {
 	public function test_dominant_color_get_dominant_color( $image_path, $expected_color, $expected_transparency ) {
 		foreach ( $this->editor_engines as $editor ) {
 			$this->editor_engine = $editor;
-			if ( strpos( $image_path, '.gif' ) ) {
-				$expected_transparency = true; // all gif have alpha.
-			}
 			// Creating attachment.
 			$attachment_id = $this->factory->attachment->create_upload_object( $image_path );
 			$this->assertContains( dominant_color_get_dominant_color( $attachment_id ), $expected_color );
@@ -93,9 +87,6 @@ class Dominant_Color_Test extends DominantColorTestCase {
 			$this->editor_engine = $editor;
 			// Creating attachment.
 			$attachment_id = $this->factory->attachment->create_upload_object( $image_path );
-			if ( strpos( $image_path, '.gif' ) ) {
-				$expected_transparency = true; // all gif have alpha.
-			}
 			$this->assertSame( $expected_transparency, dominant_color_has_transparency( $attachment_id ) );
 		}
 	}
