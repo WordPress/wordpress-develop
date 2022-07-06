@@ -518,7 +518,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 	if ( isset( $image_meta['sizes'] ) && is_array( $image_meta['sizes'] ) ) {
 		foreach ( $image_meta['sizes'] as $size_name => $size_meta ) {
 			// Check if the additional mime output is enabled for this image size.
-			if ( $original_mime_type !== $mime_type && ! $supported_multi_mime_sizes[ $size_name ] ) ) {
+			if ( $original_mime_type !== $mime_type && ! $supported_multi_mime_sizes[ $size_name ] ) {
 				continue;
 			}
 
