@@ -1503,8 +1503,8 @@ function get_sample_permalink_html( $id, $new_title = null, $new_slug = null ) {
 		$return = '<strong>' . __( 'Permalink:' ) . "</strong>\n";
 
 		if ( false !== $view_link ) {
-			$display_link = urldecode( $view_link );
-			$return      .= '<a id="sample-permalink" href="' . esc_url( $view_link ) . '"' . $preview_target . '>' . esc_html( $display_link ) . "</a>\n";
+			$display_link = str_replace( '/%', '/<span class="lrm">&lrm;</span>%', esc_html( $view_link ) );
+			$return      .= '<a id="sample-permalink" href="' . esc_url( $view_link ) . '"' . $preview_target . '>' . urldecode( $display_link ) . "</a>\n";
 		} else {
 			$return .= '<span id="sample-permalink">' . $permalink . "</span>\n";
 		}
@@ -1522,12 +1522,20 @@ function get_sample_permalink_html( $id, $new_title = null, $new_slug = null ) {
 			$post_name_abridged = $post_name;
 		}
 
+		$display_link = esc_html( urldecode( $permalink ) );
+		$url_base     = esc_html( home_url() );
+		if ( str_starts_with( $display_link, $url_base ) ) {
+			// Fix bi-directional text display defect in RTL languages by adding an entity to every slash character after the home URL.
+			$display_link_slugs = str_replace( $url_base, '', $display_link ) ;
+			$display_link_array = explode( '/', $display_link_slugs );
+			$display_link       = $url_base . implode( '/<span class="lrm">&lrm;</span>', $display_link_array );
+		}
 		$post_name_html = '<span id="editable-post-name">' . esc_html( $post_name_abridged ) . '</span>';
-		$display_link   = str_replace( array( '%pagename%', '%postname%' ), $post_name_html, esc_html( urldecode( $permalink ) ) );
+		$display_link   = str_replace( array( '%pagename%', '%postname%' ), $post_name_html, $display_link );
 
 		$return  = '<strong>' . __( 'Permalink:' ) . "</strong>\n";
 		$return .= '<span id="sample-permalink"><a href="' . esc_url( $view_link ) . '"' . $preview_target . '>' . $display_link . "</a></span>\n";
-		$return .= '&lrm;'; // Fix bi-directional text display defect in RTL languages.
+		$return .= '<span class="lrm">&lrm;</span>'; // Fix bi-directional text display defect in RTL languages.
 		$return .= '<span id="edit-slug-buttons"><button type="button" class="edit-slug button button-small hide-if-no-js" aria-label="' . __( 'Edit permalink' ) . '">' . __( 'Edit' ) . "</button></span>\n";
 		$return .= '<span id="editable-post-name-full">' . esc_html( $post_name ) . "</span>\n";
 	}

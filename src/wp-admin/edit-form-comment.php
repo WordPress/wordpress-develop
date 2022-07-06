@@ -31,13 +31,14 @@ global $comment;
 <?php
 if ( 'approved' === wp_get_comment_status( $comment ) && $comment->comment_post_ID > 0 ) :
 	$comment_link = get_comment_link( $comment );
+	$display_link = str_replace( '/%', '/<span class="lrm">&lrm;</span>%', esc_html( $comment_link ) );
 	?>
 <div class="inside">
 	<div id="comment-link-box">
 		<strong><?php _ex( 'Permalink:', 'comment' ); ?></strong>
 		<span id="sample-permalink">
 			<a href="<?php echo esc_url( $comment_link ); ?>">
-				<?php echo esc_html( $comment_link ); ?>
+				<?php echo urldecode( $display_link ); ?>
 			</a>
 		</span>
 	</div>
