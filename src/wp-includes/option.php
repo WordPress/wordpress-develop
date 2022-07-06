@@ -1396,30 +1396,30 @@ function get_network_option( $network_id, $option, $default = false ) {
 	}
 
 	if ( ! is_multisite() ) {
-		/** This filter is documented in wp-includes/option.php */
-		$default = apply_filters( 'default_site_option_' . $option, $default, $option, $network_id );
+		/**
+		 * Filters a specific default network option.
+		 *
+		 * The dynamic portion of the hook name, `$option`, refers to the option name.
+		 *
+		 * @param mixed $default The value to return if the site option does not exist
+		 *                           in the database.
+		 * @param string $option Option name.
+		 * @param int $network_id ID of the network.
+		 *
+		 * @since 3.4.0
+		 * @since 4.4.0 The `$option` parameter was added.
+		 * @since 4.7.0 The `$network_id` parameter was added.
+		 *
+		 */
+		$default = apply_filters( "default_site_option_{$option}", $default, $option, $network_id );
 		$value   = get_option( $option, $default );
 	} else {
 		$meta = get_metadata_raw( 'site', $network_id, $option );
 		if ( is_array( $meta ) && ! empty( $meta ) ) {
 			$value = array_shift( $meta );
 		} else {
-			/**
-			 * Filters a specific default network option.
-			 *
-			 * The dynamic portion of the hook name, `$option`, refers to the option name.
-			 *
-			 * @param mixed $default The value to return if the site option does not exist
-			 *                           in the database.
-			 * @param string $option Option name.
-			 * @param int $network_id ID of the network.
-			 *
-			 * @since 3.4.0
-			 * @since 4.4.0 The `$option` parameter was added.
-			 * @since 4.7.0 The `$network_id` parameter was added.
-			 *
-			 */
-			$value = apply_filters( 'default_site_option_' . $option, $default, $option );
+			/** This filter is documented in wp-includes/option.php */
+			$value = apply_filters( "default_site_option_{$option}", $default, $option, $network_id );
 
 			/** This action is documented in wp-includes/meta.php */
 			$value = apply_filters( 'default_site_metadata', $value, $network_id, $option, true, 'site' );
