@@ -2320,8 +2320,6 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'text-indent',
 			'text-transform',
 
-			'display',
-
 			'height',
 			'min-height',
 			'max-height',
