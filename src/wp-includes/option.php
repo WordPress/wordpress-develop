@@ -1344,7 +1344,7 @@ function update_site_option( $option, $value ) {
  * Retrieves a network's option value based on the option name.
  *
  * @since 4.4.0
- * @since 6.1.0 Uses get_metadata
+ * @since 6.1.0 Now uses get_metadata().
  *
  * @see get_option()
  * @see get_metadata()
@@ -1452,7 +1452,7 @@ function get_network_option( $network_id, $option, $default = false ) {
  * Existing options will not be updated.
  *
  * @since 4.4.0
- * @since 6.1.0 Uses add_metadata
+ * @since 6.1.0 Now uses add_metadata().
  *
  * @see add_option()
  * @see add_metadata()
@@ -1538,7 +1538,7 @@ function add_network_option( $network_id, $option, $value ) {
  * Removes a network option by name.
  *
  * @since 4.4.0
- * @since 6.1.0 Uses delete_metadata
+ * @since 6.1.0 Now uses delete_metadata().
  *
  * @see delete_option()
  * @see delete_metadata()
@@ -1618,7 +1618,7 @@ function delete_network_option( $network_id, $option ) {
  * Updates the value of a network option that was already added.
  *
  * @since 4.4.0
- * @since 6.1.0 Uses update_metadata.
+ * @since 6.1.0 Now uses update_metadata().
  *
  * @see update_option()
  * @see update_metadata()
