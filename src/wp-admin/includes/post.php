@@ -1526,7 +1526,7 @@ function get_sample_permalink_html( $id, $new_title = null, $new_slug = null ) {
 		$url_base     = esc_html( home_url() );
 		if ( str_starts_with( $display_link, $url_base ) ) {
 			// Fix bi-directional text display defect in RTL languages by adding an entity to every slash character after the home URL.
-			$display_link_slugs = str_replace( $url_base, '', $display_link ) ;
+			$display_link_slugs = str_replace( $url_base, '', $display_link );
 			$display_link_array = explode( '/', $display_link_slugs );
 			$display_link       = $url_base . implode( '/<span class="lrm">&lrm;</span>', $display_link_array );
 		}
