@@ -17,7 +17,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 */
 	public function test_get_unknown_taxonomies() {
 		// Taxonomies for an unknown object type.
-		$this->assertSame( array(), get_object_taxonomies( rand_str() ) );
+		$this->assertSame( array(), get_object_taxonomies( 'unknown' ) );
 		$this->assertSame( array(), get_object_taxonomies( '' ) );
 		$this->assertSame( array(), get_object_taxonomies( 0 ) );
 		$this->assertSame( array(), get_object_taxonomies( null ) );
@@ -144,7 +144,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	public function test_register_taxonomy() {
 
 		// Make up a new taxonomy name, and ensure it's unused.
-		$tax = rand_str();
+		$tax = 'tax_new';
 		$this->assertFalse( taxonomy_exists( $tax ) );
 
 		register_taxonomy( $tax, 'post' );
@@ -158,7 +158,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	public function test_register_hierarchical_taxonomy() {
 
 		// Make up a new taxonomy name, and ensure it's unused.
-		$tax = rand_str();
+		$tax = 'tax_new';
 		$this->assertFalse( taxonomy_exists( $tax ) );
 
 		register_taxonomy( $tax, 'post', array( 'hierarchical' => true ) );
@@ -219,6 +219,22 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 		$tax_2 = get_taxonomy( 'wptests_tax_2' );
 		$this->assertFalse( $tax_2->show_in_quick_edit );
+	}
+
+	/**
+	 * @ticket 53212
+	 */
+	public function test_register_taxonomy_fires_registered_actions() {
+		$taxonomy = 'taxonomy53212';
+		$action   = new MockAction();
+
+		add_action( 'registered_taxonomy', array( $action, 'action' ) );
+		add_action( "registered_taxonomy_{$taxonomy}", array( $action, 'action' ) );
+
+		register_taxonomy( $taxonomy, 'post' );
+		register_taxonomy( 'random', 'post' );
+
+		$this->assertSame( 3, $action->get_call_count() );
 	}
 
 	/**
@@ -1028,9 +1044,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		wp_set_object_terms( $post_id, array(), $tax );
 		$term = wp_get_post_terms( $post_id, $tax );
 		$this->assertSame( array(), $term );
-
-		unregister_taxonomy( $tax );
-		$this->assertSame( get_option( 'default_term_' . $tax ), false );
 	}
 
 	/**

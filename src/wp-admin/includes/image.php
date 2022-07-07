@@ -63,6 +63,10 @@ function wp_crop_image( $src, $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h, $s
 		return $result;
 	}
 
+	if ( ! empty( $result['path'] ) ) {
+		return $result['path'];
+	}
+
 	return $dst_file;
 }
 
@@ -186,6 +190,7 @@ function wp_update_image_subsizes( $attachment_id ) {
  * Updates the attached file and image meta data when the original image was edited.
  *
  * @since 5.3.0
+ * @since 6.0.0 The `$filesize` value was added to the returned array.
  * @access private
  *
  * @param array  $saved_data    The data returned from WP_Image_Editor after successfully saving an image.
@@ -207,6 +212,9 @@ function _wp_image_meta_replace_original( $saved_data, $original_file, $image_me
 	// Make the file path relative to the upload dir.
 	$image_meta['file'] = _wp_relative_upload_path( $new_file );
 
+	// Add image file size.
+	$image_meta['filesize'] = wp_filesize( $new_file );
+
 	// Store the original image file name in image_meta.
 	$image_meta['original_image'] = wp_basename( $original_file );
 
@@ -222,7 +230,7 @@ function _wp_image_meta_replace_original( $saved_data, $original_file, $image_me
  * @since 5.3.0
  *
  * @param string $file          Full path to the image file.
- * @param int    $attachment_id Attachment Id to process.
+ * @param int    $attachment_id Attachment ID to process.
  * @return array The image attachment meta data.
  */
 function wp_create_image_subsizes( $file, $attachment_id ) {
@@ -235,10 +243,11 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 
 	// Default image meta.
 	$image_meta = array(
-		'width'  => $imagesize[0],
-		'height' => $imagesize[1],
-		'file'   => _wp_relative_upload_path( $file ),
-		'sizes'  => array(),
+		'width'    => $imagesize[0],
+		'height'   => $imagesize[1],
+		'file'     => _wp_relative_upload_path( $file ),
+		'filesize' => wp_filesize( $file ),
+		'sizes'    => array(),
 	);
 
 	// Fetch additional metadata from EXIF/IPTC.
@@ -380,7 +389,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
  * @param array  $new_sizes     Array defining what sizes to create.
  * @param string $file          Full path to the image file.
  * @param array  $image_meta    The attachment meta data array.
- * @param int    $attachment_id Attachment Id to process.
+ * @param int    $attachment_id Attachment ID to process.
  * @return array The attachment meta data with updated `sizes` array. Includes an array of errors encountered while resizing.
  */
 function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
@@ -469,9 +478,10 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
  * Generate attachment meta data and create image sub-sizes for images.
  *
  * @since 2.1.0
+ * @since 6.0.0 The `$filesize` value was added to the returned array.
  *
- * @param int    $attachment_id Attachment Id to process.
- * @param string $file          Filepath of the Attached image.
+ * @param int    $attachment_id Attachment ID to process.
+ * @param string $file          Filepath of the attached image.
  * @return array Metadata for attachment.
  */
 function wp_generate_attachment_metadata( $attachment_id, $file ) {
@@ -629,6 +639,11 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 	// Remove the blob of binary data from the array.
 	unset( $metadata['image']['data'] );
 
+	// Capture file size for cases where it has not been captured yet, such as PDFs.
+	if ( ! isset( $metadata['filesize'] ) && file_exists( $file ) ) {
+		$metadata['filesize'] = wp_filesize( $file );
+	}
+
 	/**
 	 * Filters the generated attachment meta data.
 	 *
@@ -763,6 +778,10 @@ function wp_read_image_metadata( $file ) {
 				$iptc = @iptcparse( $info['APP13'] );
 			}
 
+			if ( ! is_array( $iptc ) ) {
+				$iptc = array();
+			}
+
 			// Headline, "A brief synopsis of the caption".
 			if ( ! empty( $iptc['2#105'][0] ) ) {
 				$meta['title'] = trim( $iptc['2#105'][0] );
@@ -830,6 +849,10 @@ function wp_read_image_metadata( $file ) {
 		} else {
 			// phpcs:ignore WordPress.PHP.NoSilencedErrors -- Silencing notice and warning is intentional. See https://core.trac.wordpress.org/ticket/42480
 			$exif = @exif_read_data( $file );
+		}
+
+		if ( ! is_array( $exif ) ) {
+			$exif = array();
 		}
 
 		if ( ! empty( $exif['ImageDescription'] ) ) {
@@ -947,7 +970,7 @@ function file_is_valid_image( $path ) {
  * @return bool True if suitable, false if not suitable.
  */
 function file_is_displayable_image( $path ) {
-	$displayable_image_types = array( IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_BMP, IMAGETYPE_ICO, IMAGETYPE_WEBP ); // phpcs:ignore PHPCompatibility.Constants.NewConstants.imagetype_webpFound
+	$displayable_image_types = array( IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_BMP, IMAGETYPE_ICO, IMAGETYPE_WEBP );
 
 	$info = wp_getimagesize( $path );
 	if ( empty( $info ) ) {

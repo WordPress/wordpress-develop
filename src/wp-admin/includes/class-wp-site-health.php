@@ -381,10 +381,9 @@ class WP_Site_Health {
 		$plugins        = get_plugins();
 		$plugin_updates = get_plugin_updates();
 
-		$plugins_have_updates = false;
-		$plugins_active       = 0;
-		$plugins_total        = 0;
-		$plugins_need_update  = 0;
+		$plugins_active      = 0;
+		$plugins_total       = 0;
+		$plugins_need_update = 0;
 
 		// Loop over the available plugins and check their versions and active state.
 		foreach ( $plugins as $plugin_path => $plugin ) {
@@ -394,11 +393,8 @@ class WP_Site_Health {
 				$plugins_active++;
 			}
 
-			$plugin_version = $plugin['Version'];
-
 			if ( array_key_exists( $plugin_path, $plugin_updates ) ) {
 				$plugins_need_update++;
-				$plugins_have_updates = true;
 			}
 		}
 
@@ -467,7 +463,7 @@ class WP_Site_Health {
 					),
 					$unused_plugins
 				),
-				__( 'Inactive plugins are tempting targets for attackers. If you&#8217;re not going to use a plugin, you should consider removing it.' )
+				__( 'Inactive plugins are tempting targets for attackers. If you are not going to use a plugin, you should consider removing it.' )
 			);
 
 			$result['actions'] .= sprintf(
@@ -634,7 +630,7 @@ class WP_Site_Health {
 						),
 						sprintf(
 							/* translators: 1: The currently active theme. 2: The active theme's parent theme. */
-							__( 'To enhance your site&#8217;s security, you should consider removing any themes you&#8217;re not using. You should keep your current theme, %1$s, and %2$s, its parent theme.' ),
+							__( 'To enhance your site&#8217;s security, you should consider removing any themes you are not using. You should keep your active theme, %1$s, and %2$s, its parent theme.' ),
 							$active_theme->name,
 							$active_theme->parent()->name
 						)
@@ -653,7 +649,7 @@ class WP_Site_Health {
 						),
 						sprintf(
 							/* translators: 1: The default theme for WordPress. 2: The currently active theme. 3: The active theme's parent theme. */
-							__( 'To enhance your site&#8217;s security, you should consider removing any themes you&#8217;re not using. You should keep %1$s, the default WordPress theme, %2$s, your current theme, and %3$s, its parent theme.' ),
+							__( 'To enhance your site&#8217;s security, you should consider removing any themes you are not using. You should keep %1$s, the default WordPress theme, %2$s, your active theme, and %3$s, its parent theme.' ),
 							$default_theme ? $default_theme->name : WP_DEFAULT_THEME,
 							$active_theme->name,
 							$active_theme->parent()->name
@@ -802,30 +798,33 @@ class WP_Site_Health {
 	 * Make the check for available PHP modules into a simple boolean operator for a cleaner test runner.
 	 *
 	 * @since 5.2.0
-	 * @since 5.3.0 The `$constant` and `$class` parameters were added.
+	 * @since 5.3.0 The `$constant_name` and `$class_name` parameters were added.
 	 *
-	 * @param string $extension Optional. The extension name to test. Default null.
-	 * @param string $function  Optional. The function name to test. Default null.
-	 * @param string $constant  Optional. The constant name to test for. Default null.
-	 * @param string $class     Optional. The class name to test for. Default null.
+	 * @param string $extension_name Optional. The extension name to test. Default null.
+	 * @param string $function_name  Optional. The function name to test. Default null.
+	 * @param string $constant_name  Optional. The constant name to test for. Default null.
+	 * @param string $class_name     Optional. The class name to test for. Default null.
 	 * @return bool Whether or not the extension and function are available.
 	 */
-	private function test_php_extension_availability( $extension = null, $function = null, $constant = null, $class = null ) {
+	private function test_php_extension_availability( $extension_name = null, $function_name = null, $constant_name = null, $class_name = null ) {
 		// If no extension or function is passed, claim to fail testing, as we have nothing to test against.
-		if ( ! $extension && ! $function && ! $constant && ! $class ) {
+		if ( ! $extension_name && ! $function_name && ! $constant_name && ! $class_name ) {
 			return false;
 		}
 
-		if ( $extension && ! extension_loaded( $extension ) ) {
+		if ( $extension_name && ! extension_loaded( $extension_name ) ) {
 			return false;
 		}
-		if ( $function && ! function_exists( $function ) ) {
+
+		if ( $function_name && ! function_exists( $function_name ) ) {
 			return false;
 		}
-		if ( $constant && ! defined( $constant ) ) {
+
+		if ( $constant_name && ! defined( $constant_name ) ) {
 			return false;
 		}
-		if ( $class && ! class_exists( $class ) ) {
+
+		if ( $class_name && ! class_exists( $class_name ) ) {
 			return false;
 		}
 
@@ -994,10 +993,10 @@ class WP_Site_Health {
 		$failures = array();
 
 		foreach ( $modules as $library => $module ) {
-			$extension  = ( isset( $module['extension'] ) ? $module['extension'] : null );
-			$function   = ( isset( $module['function'] ) ? $module['function'] : null );
-			$constant   = ( isset( $module['constant'] ) ? $module['constant'] : null );
-			$class_name = ( isset( $module['class'] ) ? $module['class'] : null );
+			$extension_name = ( isset( $module['extension'] ) ? $module['extension'] : null );
+			$function_name  = ( isset( $module['function'] ) ? $module['function'] : null );
+			$constant_name  = ( isset( $module['constant'] ) ? $module['constant'] : null );
+			$class_name     = ( isset( $module['class'] ) ? $module['class'] : null );
 
 			// If this module is a fallback for another function, check if that other function passed.
 			if ( isset( $module['fallback_for'] ) ) {
@@ -1012,7 +1011,10 @@ class WP_Site_Health {
 				}
 			}
 
-			if ( ! $this->test_php_extension_availability( $extension, $function, $constant, $class_name ) && ( ! isset( $module['php_bundled_version'] ) || version_compare( PHP_VERSION, $module['php_bundled_version'], '<' ) ) ) {
+			if ( ! $this->test_php_extension_availability( $extension_name, $function_name, $constant_name, $class_name )
+				&& ( ! isset( $module['php_bundled_version'] )
+					|| version_compare( PHP_VERSION, $module['php_bundled_version'], '<' ) )
+			) {
 				if ( $module['required'] ) {
 					$result['status'] = 'critical';
 
@@ -1883,196 +1885,6 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test available disk space for updates.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @return array The test results.
-	 */
-	public function get_test_available_updates_disk_space() {
-		$available_space       = function_exists( 'disk_free_space' ) ? (int) @disk_free_space( WP_CONTENT_DIR . '/upgrade/' ) : 0;
-		$available_space_in_mb = $available_space / MB_IN_BYTES;
-
-		$result = array(
-			'label'       => __( 'Disk space available to safely perform updates' ),
-			'status'      => 'good',
-			'badge'       => array(
-				'label' => __( 'Security' ),
-				'color' => 'blue',
-			),
-			'description' => sprintf(
-				/* translators: %s: Available disk space in MB or GB. */
-				'<p>' . __( '%s available disk space was detected, update routines can be performed safely.' ),
-				size_format( $available_space )
-			),
-			'actions'     => '',
-			'test'        => 'available_updates_disk_space',
-		);
-
-		if ( $available_space_in_mb < 100 ) {
-			$result['description'] = __( 'Available disk space is low, less than 100 MB available.' );
-			$result['status']      = 'recommended';
-		}
-
-		if ( $available_space_in_mb < 20 ) {
-			$result['description'] = __( 'Available disk space is critically low, less than 20 MB available. Proceed with caution, updates may fail.' );
-			$result['status']      = 'critical';
-		}
-
-		if ( ! $available_space ) {
-			$result['description'] = __( 'Could not determine available disk space for updates.' );
-			$result['status']      = 'recommended';
-		}
-
-		return $result;
-	}
-
-	/**
-	 * Test if plugin and theme updates temp-backup directories are writable or can be created.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
-	 *
-	 * @return array The test results.
-	 */
-	public function get_test_update_temp_backup_writable() {
-		global $wp_filesystem;
-
-		$result = array(
-			'label'       => sprintf(
-				/* translators: %s: temp-backup */
-				__( 'Plugin and theme update %s directory is writable' ),
-				'temp-backup'
-			),
-			'status'      => 'good',
-			'badge'       => array(
-				'label' => __( 'Security' ),
-				'color' => 'blue',
-			),
-			'description' => sprintf(
-				/* translators: %s: wp-content/upgrade/temp-backup */
-				'<p>' . __( 'The %s directory used to improve the stability of plugin and theme updates is writable.' ),
-				'<code>wp-content/upgrade/temp-backup</code>'
-			),
-			'actions'     => '',
-			'test'        => 'update_temp_backup_writable',
-		);
-
-		if ( ! $wp_filesystem ) {
-			if ( ! function_exists( 'WP_Filesystem' ) ) {
-				require_once wp_normalize_path( ABSPATH . '/wp-admin/includes/file.php' );
-			}
-			WP_Filesystem();
-		}
-		$wp_content = $wp_filesystem->wp_content_dir();
-
-		$upgrade_dir_exists      = $wp_filesystem->is_dir( "$wp_content/upgrade" );
-		$upgrade_dir_is_writable = $wp_filesystem->is_writable( "$wp_content/upgrade" );
-		$backup_dir_exists       = $wp_filesystem->is_dir( "$wp_content/upgrade/temp-backup" );
-		$backup_dir_is_writable  = $wp_filesystem->is_writable( "$wp_content/upgrade/temp-backup" );
-
-		$plugins_dir_exists      = $wp_filesystem->is_dir( "$wp_content/upgrade/temp-backup/plugins" );
-		$plugins_dir_is_writable = $wp_filesystem->is_writable( "$wp_content/upgrade/temp-backup/plugins" );
-		$themes_dir_exists       = $wp_filesystem->is_dir( "$wp_content/upgrade/temp-backup/themes" );
-		$themes_dir_is_writable  = $wp_filesystem->is_writable( "$wp_content/upgrade/temp-backup/themes" );
-
-		if ( $plugins_dir_exists && ! $plugins_dir_is_writable && $themes_dir_exists && ! $themes_dir_is_writable ) {
-			$result['status'] = 'critical';
-			$result['label']  = sprintf(
-				/* translators: %s: temp-backup */
-				__( 'Plugins and themes %s directories exist but are not writable' ),
-				'temp-backup'
-			);
-			$result['description'] = sprintf(
-				/* translators: 1: wp-content/upgrade/temp-backup/plugins, 2: wp-content/upgrade/temp-backup/themes. */
-				'<p>' . __( 'The %1$s and %2$s directories exist but are not writable. These directories are used to improve the stability of plugin updates. Please make sure the server has write permissions to these directories.' ) . '</p>',
-				'<code>wp-content/upgrade/temp-backup/plugins</code>',
-				'<code>wp-content/upgrade/temp-backup/themes</code>'
-			);
-			return $result;
-		}
-
-		if ( $plugins_dir_exists && ! $plugins_dir_is_writable ) {
-			$result['status'] = 'critical';
-			$result['label']  = sprintf(
-				/* translators: %s: temp-backup */
-				__( 'Plugins %s directory exists but is not writable' ),
-				'temp-backup'
-			);
-			$result['description'] = sprintf(
-				/* translators: %s: wp-content/upgrade/temp-backup/plugins */
-				'<p>' . __( 'The %s directory exists but is not writable. This directory is used to improve the stability of plugin updates. Please make sure the server has write permissions to this directory.' ) . '</p>',
-				'<code>wp-content/upgrade/temp-backup/plugins</code>'
-			);
-			return $result;
-		}
-
-		if ( $themes_dir_exists && ! $themes_dir_is_writable ) {
-			$result['status'] = 'critical';
-			$result['label']  = sprintf(
-				/* translators: %s: temp-backup */
-				__( 'Themes %s directory exists but is not writable' ),
-				'temp-backup'
-			);
-			$result['description'] = sprintf(
-				/* translators: %s: wp-content/upgrade/temp-backup/themes */
-				'<p>' . __( 'The %s directory exists but is not writable. This directory is used to improve the stability of theme updates. Please make sure the server has write permissions to this directory.' ) . '</p>',
-				'<code>wp-content/upgrade/temp-backup/themes</code>'
-			);
-			return $result;
-		}
-
-		if ( ( ! $plugins_dir_exists || ! $themes_dir_exists ) && $backup_dir_exists && ! $backup_dir_is_writable ) {
-			$result['status'] = 'critical';
-			$result['label']  = sprintf(
-				/* translators: %s: temp-backup */
-				__( 'The %s directory exists but is not writable' ),
-				'temp-backup'
-			);
-			$result['description'] = sprintf(
-				/* translators: %s: wp-content/upgrade/temp-backup */
-				'<p>' . __( 'The %s directory exists but is not writable. This directory is used to improve the stability of plugin and theme updates. Please make sure the server has write permissions to this directory.' ) . '</p>',
-				'<code>wp-content/upgrade/temp-backup</code>'
-			);
-			return $result;
-		}
-
-		if ( ! $backup_dir_exists && $upgrade_dir_exists && ! $upgrade_dir_is_writable ) {
-			$result['status'] = 'critical';
-			$result['label']  = sprintf(
-				/* translators: %s: upgrade */
-				__( 'The %s directory exists but is not writable' ),
-				'upgrade'
-			);
-			$result['description'] = sprintf(
-				/* translators: %s: wp-content/upgrade */
-				'<p>' . __( 'The %s directory exists but is not writable. This directory is used for plugin and theme updates. Please make sure the server has write permissions to this directory.' ) . '</p>',
-				'<code>wp-content/upgrade</code>'
-			);
-			return $result;
-		}
-
-		if ( ! $upgrade_dir_exists && ! $wp_filesystem->is_writable( $wp_content ) ) {
-			$result['status'] = 'critical';
-			$result['label']  = sprintf(
-				/* translators: %s: upgrade */
-				__( 'The %s directory cannot be created' ),
-				'upgrade'
-			);
-			$result['description'] = sprintf(
-				/* translators: 1: wp-content/upgrade, 2: wp-content. */
-				'<p>' . __( 'The %1$s directory does not exist, and the server does not have write permissions in %2$s to create it. This directory is used for plugin and theme updates. Please make sure the server has write permissions in %2$s.' ) . '</p>',
-				'<code>wp-content/upgrade</code>',
-				'<code>wp-content</code>'
-			);
-			return $result;
-		}
-
-		return $result;
-	}
-
-	/**
 	 * Test if loopbacks work as expected.
 	 *
 	 * A loopback is when WordPress queries itself, for example to start a new WP_Cron instance,
@@ -2456,79 +2268,70 @@ class WP_Site_Health {
 	public static function get_tests() {
 		$tests = array(
 			'direct' => array(
-				'wordpress_version'            => array(
+				'wordpress_version'         => array(
 					'label' => __( 'WordPress Version' ),
 					'test'  => 'wordpress_version',
 				),
-				'plugin_version'               => array(
+				'plugin_version'            => array(
 					'label' => __( 'Plugin Versions' ),
 					'test'  => 'plugin_version',
 				),
-				'theme_version'                => array(
+				'theme_version'             => array(
 					'label' => __( 'Theme Versions' ),
 					'test'  => 'theme_version',
 				),
-				'php_version'                  => array(
+				'php_version'               => array(
 					'label' => __( 'PHP Version' ),
 					'test'  => 'php_version',
 				),
-				'php_extensions'               => array(
+				'php_extensions'            => array(
 					'label' => __( 'PHP Extensions' ),
 					'test'  => 'php_extensions',
 				),
-				'php_default_timezone'         => array(
+				'php_default_timezone'      => array(
 					'label' => __( 'PHP Default Timezone' ),
 					'test'  => 'php_default_timezone',
 				),
-				'php_sessions'                 => array(
+				'php_sessions'              => array(
 					'label' => __( 'PHP Sessions' ),
 					'test'  => 'php_sessions',
 				),
-				'sql_server'                   => array(
+				'sql_server'                => array(
 					'label' => __( 'Database Server version' ),
 					'test'  => 'sql_server',
 				),
-				'utf8mb4_support'              => array(
+				'utf8mb4_support'           => array(
 					'label' => __( 'MySQL utf8mb4 support' ),
 					'test'  => 'utf8mb4_support',
 				),
-				'ssl_support'                  => array(
+				'ssl_support'               => array(
 					'label' => __( 'Secure communication' ),
 					'test'  => 'ssl_support',
 				),
-				'scheduled_events'             => array(
+				'scheduled_events'          => array(
 					'label' => __( 'Scheduled events' ),
 					'test'  => 'scheduled_events',
 				),
-				'http_requests'                => array(
+				'http_requests'             => array(
 					'label' => __( 'HTTP Requests' ),
 					'test'  => 'http_requests',
 				),
-				'rest_availability'            => array(
+				'rest_availability'         => array(
 					'label'     => __( 'REST API availability' ),
 					'test'      => 'rest_availability',
 					'skip_cron' => true,
 				),
-				'debug_enabled'                => array(
+				'debug_enabled'             => array(
 					'label' => __( 'Debugging enabled' ),
 					'test'  => 'is_in_debug_mode',
 				),
-				'file_uploads'                 => array(
+				'file_uploads'              => array(
 					'label' => __( 'File uploads' ),
 					'test'  => 'file_uploads',
 				),
-				'plugin_theme_auto_updates'    => array(
+				'plugin_theme_auto_updates' => array(
 					'label' => __( 'Plugin and theme auto-updates' ),
 					'test'  => 'plugin_theme_auto_updates',
-				),
-				'update_temp_backup_writable'  => array(
-					/* translators: %s: temp-backup */
-					'label' => sprintf( __( 'Updates %s directory access' ), 'temp-backup' ),
-					'test'  => 'update_temp_backup_writable',
-				),
-				'available_updates_disk_space' => array(
-					'label' => __( 'Available disk space' ),
-					'test'  => 'available_updates_disk_space',
 				),
 			),
 			'async'  => array(

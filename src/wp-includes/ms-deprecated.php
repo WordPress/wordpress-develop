@@ -378,7 +378,7 @@ function get_blogaddress_by_domain( $domain, $path ) {
 			$url = 'http://' . $domain . $path;
 		}
 	}
-	return esc_url_raw( $url );
+	return sanitize_url( $url );
 }
 
 /**
@@ -401,7 +401,7 @@ function create_empty_blog( $domain, $path, $weblog_title, $site_id = 1 ) {
 
 	// Check if the domain has been used already. We should return an error message.
 	if ( domain_exists($domain, $path, $site_id) )
-		return __( '<strong>Error</strong>: Site URL you&#8217;ve entered is already taken.' );
+		return __( '<strong>Error:</strong> Site URL you&#8217;ve entered is already taken.' );
 
 	/*
 	 * Need to back up wpdb table names, and create a new wp_blogs entry for new blog.
@@ -410,7 +410,7 @@ function create_empty_blog( $domain, $path, $weblog_title, $site_id = 1 ) {
 	 */
 
 	if ( ! $blog_id = insert_blog($domain, $path, $site_id) )
-		return __( '<strong>Error</strong>: There was a problem creating site entry.' );
+		return __( '<strong>Error:</strong> There was a problem creating site entry.' );
 
 	switch_to_blog($blog_id);
 	install_blog($blog_id);
@@ -559,7 +559,7 @@ function is_user_option_local( $key, $user_id = 0, $blog_id = 0 ) {
  * the new blog's ID. It is the first step in creating a new blog.
  *
  * @since MU (3.0.0)
- * @deprecated 5.1.0 Use `wp_insert_site()`
+ * @deprecated 5.1.0 Use wp_insert_site()
  * @see wp_insert_site()
  *
  * @param string $domain  The domain of the new site.

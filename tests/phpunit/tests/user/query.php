@@ -156,6 +156,26 @@ class Tests_User_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 55594
+	 */
+	public function test_get_all_primed_users() {
+		$filter = new MockAction();
+		add_filter( 'update_user_metadata_cache', array( $filter, 'filter' ), 10, 2 );
+
+		new WP_User_Query(
+			array(
+				'include' => self::$author_ids,
+				'fields'  => 'all',
+			)
+		);
+
+		$args      = $filter->get_args();
+		$last_args = end( $args );
+		$this->assertIsArray( $last_args[1] );
+		$this->assertSameSets( self::$author_ids, $last_args[1], 'Ensure that user meta is primed' );
+	}
+
+	/**
 	 * @ticket 39297
 	 */
 	public function test_get_total_is_int() {
@@ -198,7 +218,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 				'include'  => self::$author_ids,
 				'meta_key' => 'last_name',
 				'orderby'  => 'meta_value',
-				'fields'   => 'ids',
+				'fields'   => 'ID',
 			)
 		);
 
@@ -220,7 +240,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 				'include'  => self::$author_ids,
 				'meta_key' => 'user_age',
 				'orderby'  => 'meta_value_num',
-				'fields'   => 'ids',
+				'fields'   => 'ID',
 			)
 		);
 
@@ -242,7 +262,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 				'include'  => self::$author_ids,
 				'meta_key' => 'foo',
 				'orderby'  => 'foo',
-				'fields'   => 'ids',
+				'fields'   => 'ID',
 			)
 		);
 
@@ -261,7 +281,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$q = new WP_User_Query(
 			array(
-				'fields'     => 'ids',
+				'fields'     => 'ID',
 				'meta_query' => array(
 					'foo_key' => array(
 						'key'     => 'foo',
@@ -302,7 +322,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$q = new WP_User_Query(
 			array(
-				'fields'     => 'ids',
+				'fields'     => 'ID',
 				'meta_query' => array(
 					'foo_key' => array(
 						'key'     => 'foo',
@@ -332,7 +352,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$q = new WP_User_Query(
 			array(
-				'fields'     => 'ids',
+				'fields'     => 'ID',
 				'meta_query' => array(
 					'foo_key' => array(
 						'key'     => 'foo',
@@ -1281,7 +1301,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 				'paged'   => 2,
 				'orderby' => 'ID',
 				'order'   => 'DESC', // Avoid funkiness with user 1.
-				'fields'  => 'ids',
+				'fields'  => 'ID',
 			)
 		);
 
@@ -1357,7 +1377,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$users = get_users(
 			array(
 				'role'   => 'editor',
-				'fields' => 'ids',
+				'fields' => 'ID',
 			)
 		);
 
@@ -1965,5 +1985,248 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$this->assertNotContains( self::$author_ids[0], $found );
 		$this->assertContains( self::$author_ids[1], $found );
 		$this->assertContains( self::$author_ids[2], $found );
+	}
+
+	/**
+	 * @ticket 53177
+	 * @dataProvider data_returning_field_subset_as_string
+	 *
+	 * @param string $field
+	 * @param mixed  $expected
+	 */
+	public function test_returning_field_subset_as_string( $field, $expected ) {
+		$q       = new WP_User_Query(
+			array(
+				'fields'  => $field,
+				'include' => array( '1' ),
+			)
+		);
+		$results = $q->get_results();
+
+		$this->assertSameSets( $expected, $results );
+	}
+
+	/**
+	 * Data provider
+	 *
+	 * @return array
+	 */
+	function data_returning_field_subset_as_string() {
+		$data = array(
+			'id'            => array(
+				'fields'   => 'id',
+				'expected' => array( '1' ),
+			),
+			'ID'            => array(
+				'fields'   => 'ID',
+				'expected' => array( '1' ),
+			),
+			'user_login'    => array(
+				'fields'   => 'user_login',
+				'expected' => array( 'admin' ),
+			),
+			'user_nicename' => array(
+				'fields'   => 'user_nicename',
+				'expected' => array( 'admin' ),
+			),
+			'user_email'    => array(
+				'fields'   => 'user_email',
+				'expected' => array( WP_TESTS_EMAIL ),
+			),
+			'user_url'      => array(
+				'fields'   => 'user_url',
+				'expected' => array( wp_guess_url() ),
+			),
+			'user_status'   => array(
+				'fields'   => 'user_status',
+				'expected' => array( '0' ),
+			),
+			'display_name'  => array(
+				'fields'   => 'display_name',
+				'expected' => array( 'admin' ),
+			),
+			'invalid_field' => array(
+				'fields'   => 'invalid_field',
+				'expected' => array( '1' ),
+			),
+		);
+
+		if ( is_multisite() ) {
+			$data['spam']    = array(
+				'fields'   => 'spam',
+				'expected' => array( '0' ),
+			);
+			$data['deleted'] = array(
+				'fields'   => 'deleted',
+				'expected' => array( '0' ),
+			);
+		}
+
+		return $data;
+	}
+
+	/**
+	 * @ticket 53177
+	 * @dataProvider data_returning_field_subset_as_array
+	 *
+	 * @param array $field
+	 * @param mixed $expected
+	 */
+	public function test_returning_field_subset_as_array( $field, $expected ) {
+		$q       = new WP_User_Query(
+			array(
+				'fields'  => $field,
+				'include' => array( '1' ),
+			)
+		);
+		$results = $q->get_results();
+
+		if ( isset( $results[0] ) && is_object( $results[0] ) ) {
+			$results = (array) $results[0];
+		}
+
+		$this->assertSameSetsWithIndex( $expected, $results );
+	}
+
+	/**
+	 * Data provider
+	 *
+	 * @return array
+	 */
+	function data_returning_field_subset_as_array() {
+		$data = array(
+			'id'                 => array(
+				'fields'   => array( 'id' ),
+				'expected' => array(
+					'ID' => '1',
+					'id' => '1',
+				),
+			),
+			'ID'                 => array(
+				'fields'   => array( 'ID' ),
+				'expected' => array(
+					'ID' => '1',
+					'id' => '1',
+				),
+			),
+			'user_login'         => array(
+				'fields'   => array( 'user_login' ),
+				'expected' => array( 'user_login' => 'admin' ),
+			),
+			'user_nicename'      => array(
+				'fields'   => array( 'user_nicename' ),
+				'expected' => array( 'user_nicename' => 'admin' ),
+			),
+			'user_email'         => array(
+				'fields'   => array( 'user_email' ),
+				'expected' => array( 'user_email' => WP_TESTS_EMAIL ),
+			),
+			'user_url'           => array(
+				'fields'   => array( 'user_url' ),
+				'expected' => array( 'user_url' => wp_guess_url() ),
+			),
+			'user_status'        => array(
+				'fields'   => array( 'user_status' ),
+				'expected' => array( 'user_status' => '0' ),
+			),
+			'display_name'       => array(
+				'fields'   => array( 'display_name' ),
+				'expected' => array( 'display_name' => 'admin' ),
+			),
+			'invalid_field'      => array(
+				'fields'   => array( 'invalid_field' ),
+				'expected' => array(
+					'ID' => '1',
+					'id' => '1',
+				),
+			),
+			'valid array inc id' => array(
+				'fields'   => array( 'display_name', 'user_email', 'id' ),
+				'expected' => array(
+					'display_name' => 'admin',
+					'user_email'   => WP_TESTS_EMAIL,
+					'ID'           => '1',
+					'id'           => '1',
+				),
+			),
+			'valid array inc ID' => array(
+				'fields'   => array( 'display_name', 'user_email', 'ID' ),
+				'expected' => array(
+					'display_name' => 'admin',
+					'user_email'   => WP_TESTS_EMAIL,
+					'ID'           => '1',
+					'id'           => '1',
+				),
+			),
+			'partly valid array' => array(
+				'fields'   => array( 'display_name', 'invalid_field' ),
+				'expected' => array( 'display_name' => 'admin' ),
+			),
+		);
+
+		if ( is_multisite() ) {
+			$data['spam']    = array(
+				'fields'   => array( 'spam' ),
+				'expected' => array( 'spam' => '0' ),
+			);
+			$data['deleted'] = array(
+				'fields'   => array( 'deleted' ),
+				'expected' => array( 'deleted' => '0' ),
+			);
+		}
+
+		return $data;
+	}
+
+	/**
+	 * @ticket 53177
+	 */
+	public function test_returning_field_all() {
+		$q         = new WP_User_Query(
+			array(
+				'fields'  => 'all',
+				'include' => array( '1' ),
+			)
+		);
+		$results   = $q->get_results();
+		$user_data = (array) $results[0]->data;
+
+		$expected_results = array(
+			'ID'                  => '1',
+			'user_login'          => 'admin',
+			'user_nicename'       => 'admin',
+			'user_url'            => wp_guess_url(),
+			'user_email'          => WP_TESTS_EMAIL,
+			'user_activation_key' => '',
+			'user_status'         => '0',
+			'display_name'        => 'admin',
+		);
+
+		if ( is_multisite() ) {
+			$expected_results['spam']    = '0';
+			$expected_results['deleted'] = '0';
+		}
+
+		// These change for each run.
+		unset( $user_data['user_pass'], $user_data['user_registered'] );
+
+		$this->assertSameSetsWithIndex( $expected_results, $user_data );
+		$this->assertInstanceOf( 'WP_User', $results[0] );
+	}
+
+	/**
+	 * @ticket 53177
+	 *
+	 * @covers WP_User_Query::prepare_query
+	 */
+	public function test_returning_field_user_registered() {
+		$q       = new WP_User_Query(
+			array(
+				'fields'  => 'user_registered',
+				'include' => array( self::$admin_ids[0] ),
+			)
+		);
+		$results = $q->get_results();
+		$this->assertNotFalse( DateTime::createFromFormat( 'Y-m-d H:i:s', $results[0] ) );
 	}
 }
