@@ -2052,7 +2052,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		/**
 		 * Filters whether the Admin is notified of a new user registration.
 		 *
-		 * @since 6.0.0
+		 * @since 6.1.0
 		 *
 		 * @param bool    $send Whether to send the email. Default true.
 		 * @param WP_User $user User object for new user.
@@ -2110,7 +2110,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		/**
 		 * Filters whether the User is notified of a new user registration.
 		 *
-		 * @since 6.0.0
+		 * @since 6.1.0
 		 *
 		 * @param bool    $send Whether to send the email. Default true.
 		 * @param WP_User $user User object for new user.
