@@ -6496,39 +6496,58 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 		}
 	}
 
-	// Check for alternate full size mime types in the root sources array to delete.
+	// Delete the full size images from 'sources' if available, or the root file.
 	if ( isset( $meta['sources'] ) && is_array( $meta['sources'] ) ) {
-		$sources = $meta['sources'];
-		array_shift( $sources );
+		$sources          = $meta['sources'];
+		$intermediate_dir = path_join( $uploadpath['basedir'], dirname( $file ) );
 		foreach ( $sources as $mime => $properties ) {
 			if ( ! is_array( $properties ) || empty( $properties['file'] ) ) {
 				continue;
 			}
-
-			if ( ! wp_delete_file_from_directory( $properties['file'], $uploadpath['basedir'] ) ) {
+			$intermediate_file = str_replace( wp_basename( $file ), $properties['file'], $file );
+			if ( ! wp_delete_file_from_directory( $intermediate_file, $intermediate_dir ) ) {
 				$deleted = false;
 			}
+		}
+	} else {
+		if ( ! wp_delete_file_from_directory( $file, $uploadpath['basedir'] ) ) {
+			$deleted = false;
 		}
 	}
 
 	if ( is_array( $backup_sizes ) ) {
+
 		$del_dir = path_join( $uploadpath['basedir'], dirname( $meta['file'] ) );
-
+		// Delete the root (edited) file which was not deleted above.
+		if ( ! wp_delete_file_from_directory( $file, $uploadpath['basedir'] ) ) {
+			$deleted = false;
+		}
 		foreach ( $backup_sizes as $size ) {
-			$del_file = path_join( dirname( $meta['file'] ), $size['file'] );
+			// Delete files from 'sources' data if available, otherwise from 'sizes' data.
+			if ( isset( $meta['sources'] ) && is_array( $meta['sources'] ) ) {
+				// Delete any backup images stored in the 'sources' array.
+				if ( isset( $size['sources'] ) && is_array( $size['sources'] ) ) {
+					foreach ( $size['sources'] as $mime => $properties ) {
+						$del_file = path_join( dirname( $meta['file'] ), $properties['file'] );
+						if ( ! empty( $del_file ) ) {
+							$del_file = path_join( $uploadpath['basedir'], $del_file );
+							if ( ! wp_delete_file_from_directory( $del_file, $del_dir ) ) {
+								$deleted = false;
+							}
+						}
+					}
+				}
+			} else {
+				$del_file = path_join( dirname( $meta['file'] ), $size['file'] );
 
-			if ( ! empty( $del_file ) ) {
-				$del_file = path_join( $uploadpath['basedir'], $del_file );
-
-				if ( ! wp_delete_file_from_directory( $del_file, $del_dir ) ) {
-					$deleted = false;
+				if ( ! empty( $del_file ) ) {
+					$del_file = path_join( $uploadpath['basedir'], $del_file );
+					if ( ! wp_delete_file_from_directory( $del_file, $del_dir ) ) {
+						$deleted = false;
+					}
 				}
 			}
 		}
-	}
-
-	if ( ! wp_delete_file_from_directory( $file, $uploadpath['basedir'] ) ) {
-		$deleted = false;
 	}
 
 	return $deleted;
