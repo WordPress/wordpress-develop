@@ -30,10 +30,6 @@ class Dominant_Color_Image_Editor_GD_Test extends DominantColorTestCase {
 		wp_maybe_generate_attachment_metadata( get_post( $attachment_id ) );
 
 		$dominant_color_data = _dominant_color_get_dominant_color_data( $attachment_id );
-//		if ( is_wp_error( $dominant_color_data ) ) {
-//			$this->assertWPError( $dominant_color_data );
-//			return;
-//		}
 
 		$this->assertContains( $dominant_color_data['dominant_color'], $expected_color );
 		$this->assertSame( $dominant_color_data['has_transparency'], $expected_transparency );
