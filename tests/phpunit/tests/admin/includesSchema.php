@@ -238,7 +238,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 		$results = array();
 		foreach ( $expected as $meta_key => $value ) {
 			if ( is_multisite() ) {
-				$results[ $meta_key ] = get_network_option( 42, $meta_key );
+				$results[ $meta_key ] = (string) get_network_option( 42, $meta_key );
 			} else {
 				$results[ $meta_key ] = $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM {$wpdb->sitemeta} WHERE meta_key = %s AND site_id = %d", $meta_key, 42 ) );
 			}
@@ -258,8 +258,8 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 				array(
 					// Random meta to check.
 					'registration'      => 'none',
-					'blog_upload_space' => 100,
-					'fileupload_maxk'   => 1500,
+					'blog_upload_space' => '100',
+					'fileupload_maxk'   => '1500',
 				),
 			),
 			array(
@@ -271,8 +271,8 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 					// Random meta to check.
 					'site_name'         => 'My Great Network',
 					'registration'      => 'none',
-					'blog_upload_space' => 100,
-					'fileupload_maxk'   => 1500,
+					'blog_upload_space' => '100',
+					'fileupload_maxk'   => '1500',
 					'WPLANG'            => 'fr_FR',
 				),
 			),
@@ -282,10 +282,10 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 				),
 				array(
 					// Random meta to check.
-					'custom_meta'       => 1,
+					'custom_meta'       => '1',
 					'registration'      => 'none',
-					'blog_upload_space' => 100,
-					'fileupload_maxk'   => 1500,
+					'blog_upload_space' => '100',
+					'fileupload_maxk'   => '1500',
 				),
 			),
 		);
