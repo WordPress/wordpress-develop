@@ -1853,7 +1853,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 			}
 
 			// Use alternate mime types when specified and available.
-			if ( $attachment_id > 0 ) {
+			if ( $attachment_id > 0 && _wp_in_front_end_context() ) {
 				$filtered_image = wp_image_use_alternate_mime_types( $filtered_image, $context, $attachment_id );
 			}
 
@@ -1987,6 +1987,17 @@ function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
 		$image = str_replace( $src_filename, $metadata['sources'][ $target_mime ]['file'], $image );
 	}
 	return $image;
+}
+
+/*
+ * Check if execution is currently in the front end content context.
+ *
+ * @since 6.1.0
+ *
+ * @return bool True if in the front end content context, false otherwise.
+ */
+function _wp_in_front_end_context() {
+	return did_action( 'template_redirect' ) && did_action( 'wp_head' ) && ! doing_action( 'wp_head' ) && ! doing_action( 'wp_footer' );
 }
 
 /**
