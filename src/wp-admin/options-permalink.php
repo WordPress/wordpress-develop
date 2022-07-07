@@ -345,23 +345,27 @@ printf( __( 'If you like, you may enter custom structures for your category and 
 <table class="form-table" role="presentation">
 	<tr>
 		<th><label for="category_base"><?php /* translators: Prefix for category permalinks. */ _e( 'Category base' ); ?></label></th>
-		<td><?php
+		<td>
+		<?php
 			if ( ! empty( $blog_prefix ) ) {
 				echo '<span class="code permalink-structure-has-blog-prefix"><code id="category-base-prefix">' . $blog_prefix . '</code><input name="category_base" id="category_base" type="text" value="' . esc_attr( $category_base ) . '" class="regular-text code" aria-describedby="category-base-prefix" /></span>';
 			} else {
 				echo '<input name="category_base" id="category_base" type="text" value="' . esc_attr( $category_base ) . '" class="regular-text code" />';
 			}
-		?></td>
+			?>
+		</td>
 	</tr>
 	<tr>
 		<th><label for="tag_base"><?php _e( 'Tag base' ); ?></label></th>
-		<td><?php
+		<td>
+		<?php
 			if ( ! empty( $blog_prefix ) ) {
 				echo '<span class="code permalink-structure-has-blog-prefix"><code id="tag-base-prefix">' . $blog_prefix . '</code><input name="tag_base" id="tag_base" type="text" value="' . esc_attr( $tag_base ) . '" class="regular-text code" aria-describedby="tag-base-prefix" /></span>';
 			} else {
 				echo '<input name="tag_base" id="tag_base" type="text" value="' . esc_attr( $tag_base ) . '" class="regular-text code" />';
 			}
-		?></td>
+			?>
+		</td>
 	</tr>
 	<?php do_settings_fields( 'permalink', 'optional' ); ?>
 </table>
