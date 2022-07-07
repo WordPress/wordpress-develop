@@ -614,9 +614,6 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			return new WP_Error( 'image_editor_has_transparency_error_no_image', __( 'Transparency detection no image found.' ) );
 		}
 
-		if ( 'image/gif' === $this->mime_type ) {
-			return true;
-		}
 
 		// Walk through the pixels and look transparent pixels.
 		$w = imagesx( $this->image );
