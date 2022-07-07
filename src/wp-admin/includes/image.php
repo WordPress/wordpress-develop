@@ -506,22 +506,16 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 		return array();
 	}
 
-	$original_mime_type = wp_get_image_mime( $file );
+	$sizes = array();
 
-	if ( ! $mime_type ) {
+	$original_mime_type = wp_get_image_mime( $file );
+	if ( ! $mime_type || $mime_type === $original_mime_type ) {
 		$mime_type = $original_mime_type;
-	} else {
-		$supported_multi_mime_sizes = _wp_multi_mime_get_supported_sizes( $attachment_id );
 	}
 
 	// Check if any of the new sizes already exist.
-	if ( isset( $image_meta['sizes'] ) && is_array( $image_meta['sizes'] ) ) {
-		foreach ( $image_meta['sizes'] as $size_name => $size_meta ) {
-			// Check if the additional mime output is enabled for this image size.
-			if ( $original_mime_type !== $mime_type && ! $supported_multi_mime_sizes[ $size_name ] ) {
-				continue;
-			}
-
+	if ( isset( $sizes ) && is_array( $sizes ) ) {
+		foreach ( $sizes as $size_name => $size_meta ) {
 			/*
 			 * Only checks "size name" so we don't override existing images even if the dimensions
 			 * don't match the currently defined size with the same name.
@@ -576,6 +570,12 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 		}
 	}
 
+	// Filter new sizes to those supported for this mime type.
+	if ( $mime_type !== $primary_mime_type ) {
+		$supported_multi_mime_sizes = _wp_multi_mime_get_supported_sizes( $attachment_id );
+		$new_sizes                  = array_intersect_key( $new_sizes, $supported_multi_mime_sizes );
+	}
+
 	if ( method_exists( $editor, 'make_subsize' ) ) {
 		foreach ( $new_sizes as $new_size_name => $new_size_data ) {
 			$new_size_meta = $editor->make_subsize( $new_size_data );
@@ -625,7 +625,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
  */
 function _wp_multi_mime_get_supported_sizes( $attachment_id ) {
 	// For WordPress 6.1, output WebP by default for core/core theme sizes.
-	$default_core_sizes = array (
+	$default_core_sizes = array(
 		'thumbnail',
 		'medium',
 		'medium_large',
