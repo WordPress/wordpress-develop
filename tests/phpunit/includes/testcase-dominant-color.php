@@ -73,7 +73,7 @@ abstract class DominantColorTestCase extends WP_Image_UnitTestCase {
 			),
 		);
 
-		if ( version_compare( phpversion(), '7', '>=' ) ) {
+//		if ( version_compare( phpversion(), '8', '>=' ) ) {
 
 			$data = array_merge(
 				$data,
@@ -106,7 +106,7 @@ abstract class DominantColorTestCase extends WP_Image_UnitTestCase {
 					),
 				)
 			);
-		}
+//		}
 
 		return $data;
 	}
@@ -130,9 +130,10 @@ abstract class DominantColorTestCase extends WP_Image_UnitTestCase {
 			),
 		);
 
-		if ( version_compare( phpversion(), '7', '<' ) ) {
+//		if ( version_compare( phpversion(), '8', '<' ) ) {
 			$data = array_merge(
-				$data, array(
+				$data,
+				array(
 					'red_webp' => array(
 						'image_path'            => DIR_TESTDATA . '/images/dominant-color/red.webp',
 						'expected_color'        => array( 'ff0000' ),
@@ -140,7 +141,7 @@ abstract class DominantColorTestCase extends WP_Image_UnitTestCase {
 					),
 				)
 			);
-		}
+//		}
 
 		return $data;
 	}
