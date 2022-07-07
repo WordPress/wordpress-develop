@@ -57,11 +57,11 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 	 *
 	 * Expects test to pass.
 	 *
-	 * @param WP_Comment $comment Comment object.
-	 * @param string     $action  Action: 'trash', 'untrash', etc.
-	 *
 	 * @covers ::wp_ajax_delete_comment
 	 * @covers ::_wp_ajax_delete_comment_response
+	 *
+	 * @param WP_Comment $comment Comment object.
+	 * @param string     $action  Action: 'trash', 'untrash', etc.
 	 */
 	public function _test_as_admin( $comment, $action ) {
 
@@ -119,10 +119,10 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 	 *
 	 * Expects test to fail.
 	 *
+	 * @covers ::wp_ajax_delete_comment
+	 *
 	 * @param WP_Comment $comment Comment object.
 	 * @param string     $action  Action: 'trash', 'untrash', etc.
-	 *
-	 * @covers ::wp_ajax_delete_comment
 	 */
 	public function _test_as_subscriber( $comment, $action ) {
 
@@ -153,10 +153,10 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 	 *
 	 * Expects test to fail.
 	 *
+	 * @covers ::wp_ajax_delete_comment
+	 *
 	 * @param WP_Comment $comment Comment object.
 	 * @param string     $action  Action: 'trash', 'untrash', etc.
-	 *
-	 * @covers ::wp_ajax_delete_comment
 	 */
 	public function _test_with_bad_nonce( $comment, $action ) {
 
@@ -186,10 +186,10 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 	 *
 	 * Expects test to fail.
 	 *
+	 * @covers ::wp_ajax_delete_comment
+	 *
 	 * @param WP_Comment $comment Comment object.
 	 * @param string     $action  Action: 'trash', 'untrash', etc.
-	 *
-	 * @covers ::wp_ajax_delete_comment
 	 */
 	public function _test_with_bad_id( $comment, $action ) {
 
@@ -225,10 +225,10 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 	 *
 	 * Expects test to fail.
 	 *
+	 * @covers ::wp_ajax_delete_comment
+	 *
 	 * @param WP_Comment $comment Comment object.
 	 * @param string     $action  Action: 'trash', 'untrash', etc.
-	 *
-	 * @covers ::wp_ajax_delete_comment
 	 */
 	public function _test_double_action( $comment, $action ) {
 

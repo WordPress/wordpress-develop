@@ -14,10 +14,10 @@ class Tests_Ajax_AddMeta extends WP_Ajax_UnitTestCase {
 	/**
 	 * @ticket 43559
 	 *
-	 * @covers ::add_post_meta
 	 * @covers ::wp_ajax_add_meta
+	 * @covers ::add_post_meta
 	 */
-	public function test_post_add_meta_empty_is_allowed_ajax() {
+	public function test_wp_ajax_add_meta_allows_empty_values_on_adding() {
 		$post = self::factory()->post->create();
 
 		// Become an administrator.
@@ -43,10 +43,10 @@ class Tests_Ajax_AddMeta extends WP_Ajax_UnitTestCase {
 	/**
 	 * @ticket 43559
 	 *
-	 * @covers ::update_metadata_by_mid
 	 * @covers ::wp_ajax_add_meta
+	 * @covers ::update_metadata_by_mid
 	 */
-	public function test_update_metadata_by_mid_allows_empty_values_ajax() {
+	public function test_wp_ajax_add_meta_allows_empty_values_on_updating() {
 		$post = self::factory()->post->create();
 
 		$meta_id = add_post_meta( $post, 'testkey', 'hello' );
