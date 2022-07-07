@@ -571,7 +571,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 	}
 
 	// Filter new sizes to those supported for this mime type.
-	if ( $mime_type !== $primary_mime_type ) {
+	if ( $mime_type !== $original_mime_type ) {
 		$supported_multi_mime_sizes = _wp_multi_mime_get_supported_sizes( $attachment_id );
 		$new_sizes                  = array_intersect_key( $new_sizes, $supported_multi_mime_sizes );
 	}
