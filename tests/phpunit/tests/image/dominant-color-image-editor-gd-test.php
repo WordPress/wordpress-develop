@@ -31,6 +31,7 @@ class Dominant_Color_Image_Editor_GD_Test extends DominantColorTestCase {
 
 		$dominant_color_data = _dominant_color_get_dominant_color_data( $attachment_id );
 		if ( is_wp_error( $dominant_color_data ) ) {
+			var_dump( $dominant_color_data);
 			$this->assertWPError( $dominant_color_data );
 			return;
 		}

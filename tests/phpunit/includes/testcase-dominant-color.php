@@ -73,7 +73,8 @@ abstract class DominantColorTestCase extends WP_Image_UnitTestCase {
 			),
 		);
 
-		if ( version_compare( phpversion(), '8.1', '>=' ) ) {
+		if ( version_compare( phpversion(), '7', '>=' ) ) {
+
 			$data = array_merge(
 				$data,
 				array(
@@ -129,7 +130,7 @@ abstract class DominantColorTestCase extends WP_Image_UnitTestCase {
 			),
 		);
 
-		if ( version_compare( phpversion(), '8.1', '<' ) ) {
+		if ( version_compare( phpversion(), '7', '<' ) ) {
 			$data = array_merge(
 				$data, array(
 					'red_webp' => array(

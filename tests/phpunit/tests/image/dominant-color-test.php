@@ -101,9 +101,7 @@ class Dominant_Color_Test extends DominantColorTestCase {
 	public function test_tag_add_adjust_to_image_attributes( $image_path, $expected_color, $expected_transparency ) {
 		foreach ( $this->editor_engines as $editor ) {
 			$this->editor_engine = $editor;
-			if ( strpos( $image_path, '.gif' ) ) {
-				$expected_transparency = true; // all gif have alpha.
-			}
+
 			$attachment_id       = $this->factory->attachment->create_upload_object( $image_path );
 			wp_maybe_generate_attachment_metadata( get_post( $attachment_id ) );
 
@@ -123,10 +121,10 @@ class Dominant_Color_Test extends DominantColorTestCase {
 			}
 
 			// Deactivate filter.
-			add_filter( 'dominant_color_img_tag_add_dominant_color', '__return_false' );
+			add_filter( 'img_tag_add_dominant_color', '__return_false' );
 			$filtered_image_tags_not_added = img_tag_add_dominant_color( $filtered_image_mock_lazy_load, 'the_content', $attachment_id );
 			$this->assertEquals( $filtered_image_mock_lazy_load, $filtered_image_tags_not_added );
-			remove_filter( 'dominant_color_img_tag_add_dominant_color', '__return_false' );
+			remove_filter( 'img_tag_add_dominant_color', '__return_false' );
 		}
 	}
 
