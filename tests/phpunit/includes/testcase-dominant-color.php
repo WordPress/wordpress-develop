@@ -71,44 +71,33 @@ abstract class DominantColorTestCase extends WP_Image_UnitTestCase {
 				'expected_color'        => array( '000000' ),
 				'expected_transparency' => true,
 			),
+
+			'red_webp'      => array(
+				'image_path'            => DIR_TESTDATA . '/images/dominant-color/red.webp',
+				'expected_color'        => array( 'ff0000' ),
+				'expected_transparency' => false,
+			),
+			'green_webp'    => array(
+				'image_path'            => DIR_TESTDATA . '/images/dominant-color/green.webp',
+				'expected_color'        => array( '00ff00' ),
+				'expected_transparency' => false,
+			),
+			'white_webp'    => array(
+				'image_path'            => DIR_TESTDATA . '/images/dominant-color/white.webp',
+				'expected_color'        => array( 'ffffff' ),
+				'expected_transparency' => false,
+			),
+			'trans_webp'    => array(
+				'image_path'            => DIR_TESTDATA . '/images/dominant-color/trans.webp',
+				'expected_color'        => array( '000000' ),
+				'expected_transparency' => true,
+			),
+			'balloons_webp' => array(
+				'image_path'            => DIR_TESTDATA . '/images/dominant-color/balloons.webp',
+				'expected_color'        => array( 'c1bbb9', 'c0bab8', 'c3bdbd' ),
+				'expected_transparency' => false,
+			),
 		);
-
-//		if ( version_compare( phpversion(), '8', '>=' ) ) {
-
-			$data = array_merge(
-				$data,
-				array(
-
-					'red_webp'      => array(
-						'image_path'            => DIR_TESTDATA . '/images/dominant-color/red.webp',
-						'expected_color'        => array( 'ff0000' ),
-						'expected_transparency' => false,
-					),
-					'green_webp'    => array(
-						'image_path'            => DIR_TESTDATA . '/images/dominant-color/green.webp',
-						'expected_color'        => array( '00ff00' ),
-						'expected_transparency' => false,
-					),
-					'white_webp'    => array(
-						'image_path'            => DIR_TESTDATA . '/images/dominant-color/white.webp',
-						'expected_color'        => array( 'ffffff' ),
-						'expected_transparency' => false,
-					),
-					'trans_webp'    => array(
-						'image_path'            => DIR_TESTDATA . '/images/dominant-color/trans.webp',
-						'expected_color'        => array( '000000' ),
-						'expected_transparency' => true,
-					),
-					'balloons_webp' => array(
-						'image_path'            => DIR_TESTDATA . '/images/dominant-color/balloons.webp',
-						'expected_color'        => array( 'c1bbb9', 'c0bab8', 'c3bdbd' ),
-						'expected_transparency' => false,
-					),
-				)
-			);
-//		}
-
-		return $data;
 	}
 
 	/**
@@ -129,19 +118,6 @@ abstract class DominantColorTestCase extends WP_Image_UnitTestCase {
 				'expected_transparency' => true,
 			),
 		);
-
-//		if ( version_compare( phpversion(), '8', '<' ) ) {
-			$data = array_merge(
-				$data,
-				array(
-					'red_webp' => array(
-						'image_path'            => DIR_TESTDATA . '/images/dominant-color/red.webp',
-						'expected_color'        => array( 'ff0000' ),
-						'expected_transparency' => false,
-					),
-				)
-			);
-//		}
 
 		return $data;
 	}
