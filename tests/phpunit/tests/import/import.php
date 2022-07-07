@@ -35,6 +35,18 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::wp_get_post_categories
+	 * @covers ::get_user_by
+	 * @covers ::get_term_by
+	 * @covers ::wp_count_posts
+	 * @covers ::wp_count_comments
+	 * @covers ::get_posts
+	 * @covers ::wp_get_post_categories
+	 * @covers ::has_post_format
+	 * @covers ::get_post_meta
+	 * @covers ::count_users
+	 */
 	public function test_small_import() {
 		global $wpdb;
 
@@ -203,6 +215,13 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$this->assertCount( 1, $cats );
 	}
 
+	/**
+	 * @covers ::get_user_by
+	 * @covers ::get_term_by
+	 * @covers ::wp_count_posts
+	 * @covers ::wp_count_comments
+	 * @covers ::count_users
+	 */
 	public function test_double_import() {
 		$authors = array(
 			'admin'  => false,
@@ -244,6 +263,9 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$this->assertSame( 1, $comment_count->total_comments );
 	}
 
+	/**
+	 * @covers ::get_importers
+	 */
 	public function test_ordering_of_importers() {
 		global $wp_importers;
 		$_wp_importers = $wp_importers; // Preserve global state.
@@ -269,6 +291,9 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 
 	/**
 	 * @ticket 21007
+	 *
+	 * @covers ::get_term_by
+	 * @covers ::get_posts
 	 */
 	public function test_slashes_should_not_be_stripped() {
 		global $wpdb;
