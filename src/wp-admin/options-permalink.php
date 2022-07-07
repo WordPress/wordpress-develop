@@ -348,7 +348,7 @@ printf( __( 'If you like, you may enter custom structures for your category and 
 		<td>
 		<?php
 			if ( ! empty( $blog_prefix ) ) {
-				echo '<span class="code permalink-structure-has-blog-prefix"><code id="category-base-prefix">' . $blog_prefix . '</code><input name="category_base" id="category_base" type="text" value="' . esc_attr( $category_base ) . '" class="regular-text code" aria-describedby="category-base-prefix" /></span>';
+				echo '<span class="code permalink-structure-has-blog-prefix"><code>' . $blog_prefix . '</code><input name="category_base" id="category_base" type="text" value="' . esc_attr( $category_base ) . '" class="regular-text code" /></span>';
 			} else {
 				echo '<input name="category_base" id="category_base" type="text" value="' . esc_attr( $category_base ) . '" class="regular-text code" />';
 			}
@@ -360,7 +360,7 @@ printf( __( 'If you like, you may enter custom structures for your category and 
 		<td>
 		<?php
 			if ( ! empty( $blog_prefix ) ) {
-				echo '<span class="code permalink-structure-has-blog-prefix"><code id="tag-base-prefix">' . $blog_prefix . '</code><input name="tag_base" id="tag_base" type="text" value="' . esc_attr( $tag_base ) . '" class="regular-text code" aria-describedby="tag-base-prefix" /></span>';
+				echo '<span class="code permalink-structure-has-blog-prefix"><code>' . $blog_prefix . '</code><input name="tag_base" id="tag_base" type="text" value="' . esc_attr( $tag_base ) . '" class="regular-text code" /></span>';
 			} else {
 				echo '<input name="tag_base" id="tag_base" type="text" value="' . esc_attr( $tag_base ) . '" class="regular-text code" />';
 			}
