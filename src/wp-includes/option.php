@@ -1401,15 +1401,14 @@ function get_network_option( $network_id, $option, $default = false ) {
 		 *
 		 * The dynamic portion of the hook name, `$option`, refers to the option name.
 		 *
-		 * @param mixed $default The value to return if the site option does not exist
-		 *                           in the database.
-		 * @param string $option Option name.
-		 * @param int $network_id ID of the network.
-		 *
 		 * @since 3.4.0
 		 * @since 4.4.0 The `$option` parameter was added.
 		 * @since 4.7.0 The `$network_id` parameter was added.
 		 *
+		 * @param mixed  $default    The value to return if the site option does not exist
+		 *                           in the database.
+		 * @param string $option     Option name.
+		 * @param int    $network_id ID of the network.
 		 */
 		$default = apply_filters( "default_site_option_{$option}", $default, $option, $network_id );
 		$value   = get_option( $option, $default );
