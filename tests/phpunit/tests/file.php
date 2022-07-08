@@ -75,6 +75,8 @@ class Tests_File extends WP_UnitTestCase {
 	 * @ticket 47186
 	 * @group plugins
 	 * @group themes
+	 *
+	 * @covers ::get_file_data
 	 */
 	public function test_get_file_data_with_php_open_tag_prefix() {
 		$headers = array(

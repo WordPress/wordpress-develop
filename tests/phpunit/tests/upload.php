@@ -2,6 +2,8 @@
 /**
  * @group upload
  * @group media
+ *
+ * @covers ::wp_upload_dir
  */
 class Tests_Upload extends WP_UnitTestCase {
 
@@ -19,9 +21,6 @@ class Tests_Upload extends WP_UnitTestCase {
 		update_option( 'uploads_use_yearmonth_folders', 1 );
 	}
 
-	/**
-	 * @covers ::wp_upload_dir
-	 */
 	public function test_upload_dir_default() {
 		// wp_upload_dir() with default parameters.
 		$info   = wp_upload_dir();
@@ -33,9 +32,6 @@ class Tests_Upload extends WP_UnitTestCase {
 		$this->assertFalse( $info['error'] );
 	}
 
-	/**
-	 * @covers ::wp_upload_dir
-	 */
 	public function test_upload_dir_relative() {
 		// wp_upload_dir() with a relative upload path that is not 'wp-content/uploads'.
 		update_option( 'upload_path', 'foo/bar' );
@@ -50,8 +46,6 @@ class Tests_Upload extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 5953
-	 *
-	 * @covers ::wp_upload_dir
 	 */
 	public function test_upload_dir_absolute() {
 		$path = get_temp_dir() . 'wp-unit-test';
@@ -73,9 +67,6 @@ class Tests_Upload extends WP_UnitTestCase {
 		$this->assertFalse( $info['error'] );
 	}
 
-	/**
-	 * @covers ::wp_upload_dir
-	 */
 	public function test_upload_dir_no_yearnum() {
 		update_option( 'uploads_use_yearmonth_folders', 0 );
 
@@ -88,9 +79,6 @@ class Tests_Upload extends WP_UnitTestCase {
 		$this->assertFalse( $info['error'] );
 	}
 
-	/**
-	 * @covers ::wp_upload_dir
-	 */
 	public function test_upload_path_absolute() {
 		update_option( 'upload_url_path', 'http://' . WP_TESTS_DOMAIN . '/asdf' );
 
@@ -105,9 +93,6 @@ class Tests_Upload extends WP_UnitTestCase {
 		$this->assertFalse( $info['error'] );
 	}
 
-	/**
-	 * @covers ::wp_upload_dir
-	 */
 	public function test_upload_dir_empty() {
 		// Upload path setting is empty - it should default to 'wp-content/uploads'.
 		update_option( 'upload_path', '' );

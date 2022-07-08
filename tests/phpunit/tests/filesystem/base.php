@@ -28,7 +28,10 @@ abstract class WP_Filesystem_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers WP_Filesystem_MockFS::__construct
+	 * This test method covers a mock class. Mock classes are not supposed
+	 * to be added to the coverage report.
+	 *
+	 * @coversNothing
 	 */
 	public function test_is_MockFS_sane() {
 		global $wp_filesystem;
