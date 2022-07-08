@@ -313,7 +313,6 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::is_locale_switched
 	 * @covers ::switch_to_locale
 	 */
 	public function test_switch_to_site_locale_if_user_locale_is_set() {
