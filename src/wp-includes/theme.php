@@ -1398,11 +1398,11 @@ function header_image() {
 	$image = get_header_image();
 
 	/**
-	 * Filters the Header image URL.
+	 * Filters the header image URL.
 	 *
-	 * @since 6.1
+	 * @since 6.1.0
 	 *
-	 * @param string $image Header image URL 
+	 * @param string $image Header image URL.
 	 */
 	$image = apply_filters( 'header_image', $image );
 
