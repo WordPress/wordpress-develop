@@ -58,8 +58,6 @@ class Tests_Url_GetPrivacyPolicyUrl extends WP_UnitTestCase {
 	/**
 	 * The function should return the privacy policy URL when `wp_page_for_privacy_policy` is set.
 	 *
-	 * @covers ::get_privacy_policy_url
-	 *
 	 * @uses ::get_permalink
 	 */
 	public function test_get_privacy_policy_url_should_return_valid_url_when_policy_page_set() {
@@ -87,8 +85,6 @@ class Tests_Url_GetPrivacyPolicyUrl extends WP_UnitTestCase {
 
 	/**
 	 * The output of `get_privacy_policy_url()` should be filterable with the 'privacy_policy_url' filter.
-	 *
-	 * @covers ::get_privacy_policy_url
 	 */
 	public function test_get_privacy_policy_url_should_be_filterable() {
 		update_option( 'wp_page_for_privacy_policy', self::$privacy_policy_page_id );
