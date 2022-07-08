@@ -593,6 +593,15 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 				// Save the size meta value.
 				if ( ! isset( $image_meta['sizes'][ $new_size_name ] ) ) {
 					$image_meta['sizes'][ $new_size_name ] = $new_size_meta;
+				} else {
+					// Remove any newly generated images that are larger than the primary mime type.
+					$new_size = isset( $new_size_meta['filesize'] ) ? $new_size_meta['filesize'] : 0;
+					$primary_size = isset( $image_meta['sizes'][ $new_size_name ]['filesize'] ) ? $image_meta['sizes'][ $new_size_name ]['filesize'] : 0;
+
+					if ( $new_size && $new_size >= $primary_size ) {
+						wp_delete_file( dirname( $file ) . '/' . $new_size_meta['file'] );
+						continue;
+					}
 				}
 				if ( ! isset( $image_meta['sizes'][ $new_size_name ]['sources'] ) ) {
 					$image_meta['sizes'][ $new_size_name ]['sources'] = array();
@@ -607,8 +616,19 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 
 		if ( ! empty( $created_sizes ) ) {
 			foreach ( $created_sizes as $created_size_name => $created_size_meta ) {
+
+				// Primary mime type is set in 'sizes' array.
 				if ( ! isset( $image_meta['sizes'][ $created_size_name ] ) ) {
 					$image_meta['sizes'][ $created_size_name ] = $created_size_meta;
+				} else {
+					// Remove any newly generated images that are larger than the primary mime type.
+					$new_size = isset( $created_size_meta['filesize'] ) ? $created_size_meta['filesize'] : 0;
+					$primary_size = isset( $image_meta['sizes'][ $created_size_name ]['filesize'] ) ? $image_meta['sizes'][ $created_size_name ]['filesize'] : 0;
+
+					if ( $new_size && $new_size >= $primary_size ) {
+						wp_delete_file( dirname( $file ) . '/' . $created_size_meta['file'] );
+						continue;
+					}
 				}
 				if ( ! isset( $image_meta['sizes'][ $created_size_name ]['sources'] ) ) {
 					$image_meta['sizes'][ $created_size_name ]['sources'] = array();
@@ -680,11 +700,12 @@ function _wp_multi_mime_get_supported_sizes( $attachment_id ) {
  * @return array The attachment meta data with updated `sizes` array. Includes an array of errors encountered while resizing.
  */
 function _wp_make_additional_mime_types( $new_mime_types, $file, $image_meta, $attachment_id ) {
-	$imagesize = array(
+	$imagesize          = array(
 		$image_meta['width'],
 		$image_meta['height'],
 	);
-	$exif_meta = isset( $image_meta['image_meta'] ) ? $image_meta['image_meta'] : null;
+	$exif_meta          = isset( $image_meta['image_meta'] ) ? $image_meta['image_meta'] : null;
+	$original_file_size = isset( $image_meta['filesize'] ) ? $image_meta['filesize'] : wp_filesize( $file );
 
 	foreach ( $new_mime_types as $mime_type ) {
 		list( $editor, $resized, $rotated ) = _wp_maybe_scale_and_rotate_image( $file, $attachment_id, $imagesize, $exif_meta, $mime_type );
@@ -696,6 +717,13 @@ function _wp_make_additional_mime_types( $new_mime_types, $file, $image_meta, $a
 		$suffix = _wp_get_image_suffix( $resized, $rotated );
 
 		$saved = $editor->save( $editor->generate_filename( $suffix ) );
+
+		// If the saved image is larger than the original, discard it.
+		$filesize = isset( $saved['filesize'] ) ? $saved['filesize'] : wp_filesize( $saved['path'] );
+		if ( $filesize > $original_file_size ) {
+			wp_delete_file( $saved['path'] );
+			continue;
+		}
 
 		if ( is_wp_error( $saved ) ) {
 			// TODO: Log errors.
