@@ -595,7 +595,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 					$image_meta['sizes'][ $new_size_name ] = $new_size_meta;
 				} else {
 					// Remove any newly generated images that are larger than the primary mime type.
-					$new_size = isset( $new_size_meta['filesize'] ) ? $new_size_meta['filesize'] : 0;
+					$new_size     = isset( $new_size_meta['filesize'] ) ? $new_size_meta['filesize'] : 0;
 					$primary_size = isset( $image_meta['sizes'][ $new_size_name ]['filesize'] ) ? $image_meta['sizes'][ $new_size_name ]['filesize'] : 0;
 
 					if ( $new_size && $new_size >= $primary_size ) {
@@ -622,7 +622,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 					$image_meta['sizes'][ $created_size_name ] = $created_size_meta;
 				} else {
 					// Remove any newly generated images that are larger than the primary mime type.
-					$new_size = isset( $created_size_meta['filesize'] ) ? $created_size_meta['filesize'] : 0;
+					$new_size     = isset( $created_size_meta['filesize'] ) ? $created_size_meta['filesize'] : 0;
 					$primary_size = isset( $image_meta['sizes'][ $created_size_name ]['filesize'] ) ? $image_meta['sizes'][ $created_size_name ]['filesize'] : 0;
 
 					if ( $new_size && $new_size >= $primary_size ) {
