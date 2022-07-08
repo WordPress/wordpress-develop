@@ -1904,7 +1904,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 }
 
 /**
- * Use alternate mime type images in the content output when available.
+ * Use alternate mime type images in the front end content output when available.
  *
  * @since 6.1.0
  *
@@ -1914,10 +1914,6 @@ function wp_filter_content_tags( $content, $context = null ) {
  * @return string Converted `img` tag with `loading` attribute added.
  */
 function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
-	if ( ! _wp_in_content_context() ) {
-		return $image;
-	}
-
 	$metadata = wp_get_attachment_metadata( $attachment_id );
 	if ( empty( $metadata['file'] ) ) {
 		return $image;
