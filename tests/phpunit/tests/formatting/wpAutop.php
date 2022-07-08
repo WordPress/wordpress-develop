@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::wpautop
  */
 class Tests_Formatting_wpAutop extends WP_UnitTestCase {
 
@@ -540,9 +542,6 @@ line 2<br/>
 
 	/**
 	 * wpautop() should not add extra </p> before <figcaption>
-	 *
-	 * @covers ::wpautop
-	 * @uses ::trim
 	 *
 	 * @ticket 39307
 	 */

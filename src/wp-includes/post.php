@@ -6508,6 +6508,7 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
  * Retrieves attachment metadata for attachment ID.
  *
  * @since 2.1.0
+ * @since 6.0.0 The `$filesize` value was added to the returned array.
  *
  * @param int  $attachment_id Attachment post ID. Defaults to global $post.
  * @param bool $unfiltered    Optional. If true, filters are not run. Default false.
@@ -6701,87 +6702,34 @@ function wp_get_attachment_caption( $post_id = 0 ) {
 }
 
 /**
- * Retrieves thumbnail for an attachment.
- *
- * @since 2.1.0
- *
- * @param int $post_id Optional. Attachment ID. Default is the ID of the global `$post`.
- * @return string|false Thumbnail file path on success, false on failure.
- */
-function wp_get_attachment_thumb_file( $post_id = 0 ) {
-	$post_id = (int) $post_id;
-	$post    = get_post( $post_id );
-
-	if ( ! $post ) {
-		return false;
-	}
-
-	$imagedata = wp_get_attachment_metadata( $post->ID );
-	if ( ! is_array( $imagedata ) ) {
-		return false;
-	}
-
-	$file = get_attached_file( $post->ID );
-
-	if ( ! empty( $imagedata['thumb'] ) ) {
-		$thumbfile = str_replace( wp_basename( $file ), $imagedata['thumb'], $file );
-		if ( file_exists( $thumbfile ) ) {
-			/**
-			 * Filters the attachment thumbnail file path.
-			 *
-			 * @since 2.1.0
-			 *
-			 * @param string $thumbfile File path to the attachment thumbnail.
-			 * @param int    $post_id   Attachment ID.
-			 */
-			return apply_filters( 'wp_get_attachment_thumb_file', $thumbfile, $post->ID );
-		}
-	}
-	return false;
-}
-
-/**
  * Retrieves URL for an attachment thumbnail.
  *
  * @since 2.1.0
+ * @since 6.1.0 Changed to use wp_get_attachment_image_url().
  *
  * @param int $post_id Optional. Attachment ID. Default is the ID of the global `$post`.
  * @return string|false Thumbnail URL on success, false on failure.
  */
 function wp_get_attachment_thumb_url( $post_id = 0 ) {
 	$post_id = (int) $post_id;
-	$post    = get_post( $post_id );
 
-	if ( ! $post ) {
+	// This uses image_downsize() which also looks for the (very) old format $image_meta['thumb']
+	// when the newer format $image_meta['sizes']['thumbnail'] doesn't exist.
+	$thumbnail_url = wp_get_attachment_image_url( $post_id, 'thumbnail' );
+
+	if ( empty( $thumbnail_url ) ) {
 		return false;
 	}
-
-	$url = wp_get_attachment_url( $post->ID );
-	if ( ! $url ) {
-		return false;
-	}
-
-	$sized = image_downsize( $post_id, 'thumbnail' );
-	if ( $sized ) {
-		return $sized[0];
-	}
-
-	$thumb = wp_get_attachment_thumb_file( $post->ID );
-	if ( ! $thumb ) {
-		return false;
-	}
-
-	$url = str_replace( wp_basename( $url ), wp_basename( $thumb ), $url );
 
 	/**
 	 * Filters the attachment thumbnail URL.
 	 *
 	 * @since 2.1.0
 	 *
-	 * @param string $url     URL for the attachment thumbnail.
-	 * @param int    $post_id Attachment ID.
+	 * @param string $thumbnail_url URL for the attachment thumbnail.
+	 * @param int    $post_id       Attachment ID.
 	 */
-	return apply_filters( 'wp_get_attachment_thumb_url', $url, $post->ID );
+	return apply_filters( 'wp_get_attachment_thumb_url', $thumbnail_url, $post_id );
 }
 
 /**
@@ -8104,4 +8052,76 @@ function wp_get_original_image_url( $attachment_id ) {
  */
 function wp_untrash_post_set_previous_status( $new_status, $post_id, $previous_status ) {
 	return $previous_status;
+}
+
+/**
+ * Returns whether the post can be edited in the block editor.
+ *
+ * @since 5.0.0
+ * @since 6.1.0 Moved to wp-includes from wp-admin.
+ *
+ * @param int|WP_Post $post Post ID or WP_Post object.
+ * @return bool Whether the post can be edited in the block editor.
+ */
+function use_block_editor_for_post( $post ) {
+	$post = get_post( $post );
+
+	if ( ! $post ) {
+		return false;
+	}
+
+	// We're in the meta box loader, so don't use the block editor.
+	if ( is_admin() && isset( $_GET['meta-box-loader'] ) ) {
+		check_admin_referer( 'meta-box-loader', 'meta-box-loader-nonce' );
+		return false;
+	}
+
+	$use_block_editor = use_block_editor_for_post_type( $post->post_type );
+
+	/**
+	 * Filters whether a post is able to be edited in the block editor.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @param bool    $use_block_editor Whether the post can be edited or not.
+	 * @param WP_Post $post             The post being checked.
+	 */
+	return apply_filters( 'use_block_editor_for_post', $use_block_editor, $post );
+}
+
+/**
+ * Returns whether a post type is compatible with the block editor.
+ *
+ * The block editor depends on the REST API, and if the post type is not shown in the
+ * REST API, then it won't work with the block editor.
+ *
+ * @since 5.0.0
+ * @since 6.1.0 Moved to wp-includes from wp-admin.
+ *
+ * @param string $post_type The post type.
+ * @return bool Whether the post type can be edited with the block editor.
+ */
+function use_block_editor_for_post_type( $post_type ) {
+	if ( ! post_type_exists( $post_type ) ) {
+		return false;
+	}
+
+	if ( ! post_type_supports( $post_type, 'editor' ) ) {
+		return false;
+	}
+
+	$post_type_object = get_post_type_object( $post_type );
+	if ( $post_type_object && ! $post_type_object->show_in_rest ) {
+		return false;
+	}
+
+	/**
+	 * Filters whether a post is able to be edited in the block editor.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @param bool   $use_block_editor  Whether the post type can be edited or not. Default true.
+	 * @param string $post_type         The post type being checked.
+	 */
+	return apply_filters( 'use_block_editor_for_post_type', true, $post_type );
 }
