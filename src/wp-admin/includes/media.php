@@ -1521,7 +1521,7 @@ function get_attachment_fields_to_edit( $post, $errors = null ) {
  *
  * @global WP_Query $wp_the_query WordPress Query object.
  *
- * @param int   $post_id Optional. Post ID.
+ * @param int   $post_id Post ID.
  * @param array $errors  Errors for attachment, if any.
  * @return string
  */
@@ -3228,7 +3228,7 @@ function edit_form_image_editor( $post ) {
 
 		printf(
 			/* translators: 1: Link to tutorial, 2: Additional link attributes, 3: Accessibility text. */
-			__( '<a href="%1$s" %2$s>Describe the purpose of the image%3$s</a>. Leave empty if the image is purely decorative.' ),
+			__( '<a href="%1$s" %2$s>Learn how to describe the purpose of the image%3$s</a>. Leave empty if the image is purely decorative.' ),
 			esc_url( 'https://www.w3.org/WAI/tutorials/images/decision-tree' ),
 			'target="_blank" rel="noopener"',
 			sprintf(

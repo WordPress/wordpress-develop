@@ -497,6 +497,7 @@ class WP_REST_Server {
 			$json_error_message = $this->get_json_last_error();
 
 			if ( $json_error_message ) {
+				$this->set_status( 500 );
 				$json_error_obj = new WP_Error(
 					'rest_encode_error',
 					$json_error_message,
@@ -1287,7 +1288,7 @@ class WP_REST_Server {
 		if ( $site_logo_id ) {
 			$response->add_link(
 				'https://api.w.org/featuredmedia',
-				rest_url( 'wp/v2/media/' . $site_logo_id ),
+				rest_url( rest_get_route_for_post( $site_logo_id ) ),
 				array(
 					'embeddable' => true,
 				)

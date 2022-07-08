@@ -8,7 +8,7 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	/**
 	 * @ticket 23605
 	 */
-	function test_spaces() {
+	public function test_spaces() {
 		$this->assertSame( 'http://example.com/Mr%20WordPress', esc_url( 'http://example.com/Mr WordPress' ) );
 		$this->assertSame( 'http://example.com/Mr%20WordPress', esc_url( 'http://example.com/Mr%20WordPress' ) );
 		$this->assertSame( 'http://example.com/Mr%20%20WordPress', esc_url( 'http://example.com/Mr%20%20WordPress' ) );
@@ -19,7 +19,7 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 		$this->assertSame( 'http://example.com/?foo=one%20two%20three&#038;bar=four', esc_url( 'http://example.com/?foo=one%20two%20three&bar=four' ) );
 	}
 
-	function test_bad_characters() {
+	public function test_bad_characters() {
 		$this->assertSame( 'http://example.com/watchthelinefeedgo', esc_url( 'http://example.com/watchthelinefeed%0Ago' ) );
 		$this->assertSame( 'http://example.com/watchthelinefeedgo', esc_url( 'http://example.com/watchthelinefeed%0ago' ) );
 		$this->assertSame( 'http://example.com/watchthecarriagereturngo', esc_url( 'http://example.com/watchthecarriagereturn%0Dgo' ) );
@@ -33,14 +33,14 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 		$this->assertSame( 'http://example.com/', esc_url( 'http://example.com/%0%0%0ADa' ) );
 	}
 
-	function test_relative() {
+	public function test_relative() {
 		$this->assertSame( '/example.php', esc_url( '/example.php' ) );
 		$this->assertSame( 'example.php', esc_url( 'example.php' ) );
 		$this->assertSame( '#fragment', esc_url( '#fragment' ) );
 		$this->assertSame( '?foo=bar', esc_url( '?foo=bar' ) );
 	}
 
-	function test_all_url_parts() {
+	public function test_all_url_parts() {
 		$url = 'https://user:pass@host.example.com:1234/path;p=1?query=2&r[]=3#fragment';
 
 		$this->assertSame(
@@ -60,7 +60,7 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 		$this->assertSame( 'https://user:pass@host.example.com:1234/path;p=1?query=2&#038;r%5B%5D=3#fragment', esc_url( $url ) );
 	}
 
-	function test_bare() {
+	public function test_bare() {
 		$this->assertSame( 'http://example.com?foo', esc_url( 'example.com?foo' ) );
 		$this->assertSame( 'http://example.com', esc_url( 'example.com' ) );
 		$this->assertSame( 'http://localhost', esc_url( 'localhost' ) );
@@ -68,7 +68,7 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 		$this->assertSame( 'http://баба.org/баба', esc_url( 'баба.org/баба' ) );
 	}
 
-	function test_encoding() {
+	public function test_encoding() {
 		$this->assertSame( 'http://example.com?foo=1&bar=2', esc_url_raw( 'http://example.com?foo=1&bar=2' ) );
 		$this->assertSame( 'http://example.com?foo=1&amp;bar=2', esc_url_raw( 'http://example.com?foo=1&amp;bar=2' ) );
 		$this->assertSame( 'http://example.com?foo=1&#038;bar=2', esc_url_raw( 'http://example.com?foo=1&#038;bar=2' ) );
@@ -81,7 +81,7 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 		$this->assertSame( "http://example.com?url={$param}", esc_url( "http://example.com?url={$param}" ) );
 	}
 
-	function test_protocol() {
+	public function test_protocol() {
 		$this->assertSame( 'http://example.com', esc_url( 'http://example.com' ) );
 		$this->assertSame( '', esc_url( 'nasty://example.com/' ) );
 		$this->assertSame(
@@ -146,23 +146,23 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	/**
 	 * @ticket 23187
 	 */
-	function test_protocol_case() {
+	public function test_protocol_case() {
 		$this->assertSame( 'http://example.com', esc_url( 'HTTP://example.com' ) );
 		$this->assertSame( 'http://example.com', esc_url( 'Http://example.com' ) );
 	}
 
-	function test_display_extras() {
+	public function test_display_extras() {
 		$this->assertSame( 'http://example.com/&#039;quoted&#039;', esc_url( 'http://example.com/\'quoted\'' ) );
 		$this->assertSame( 'http://example.com/\'quoted\'', esc_url( 'http://example.com/\'quoted\'', null, 'notdisplay' ) );
 	}
 
-	function test_non_ascii() {
+	public function test_non_ascii() {
 		$this->assertSame( 'http://example.org/баба', esc_url( 'http://example.org/баба' ) );
 		$this->assertSame( 'http://баба.org/баба', esc_url( 'http://баба.org/баба' ) );
 		$this->assertSame( 'http://müller.com/', esc_url( 'http://müller.com/' ) );
 	}
 
-	function test_feed() {
+	public function test_feed() {
 		$this->assertSame( '', esc_url( 'feed:javascript:alert(1)' ) );
 		$this->assertSame( '', esc_url( 'feed:javascript:feed:alert(1)' ) );
 		$this->assertSame( '', esc_url( 'feed:feed:javascript:alert(1)' ) );
@@ -173,7 +173,7 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	/**
 	 * @ticket 16859
 	 */
-	function test_square_brackets() {
+	public function test_square_brackets() {
 		$this->assertSame( '/example.php?one%5B%5D=two', esc_url( '/example.php?one[]=two' ) );
 		$this->assertSame( '?foo%5Bbar%5D=baz', esc_url( '?foo[bar]=baz' ) );
 		$this->assertSame( '//example.com/?foo%5Bbar%5D=baz', esc_url( '//example.com/?foo[bar]=baz' ) );
@@ -188,7 +188,7 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	/**
 	 * Courtesy of http://blog.lunatech.com/2009/02/03/what-every-web-developer-must-know-about-url-encoding
 	 */
-	function test_reserved_characters() {
+	public function test_reserved_characters() {
 		$url = "http://example.com/:@-._~!$&'()*+,=;:@-._~!$&'()*+,=:@-._~!$&'()*+,==?/?:@-._~!$%27()*+,;=/?:@-._~!$%27()*+,;==#/?:@-._~!$&'()*+,;=";
 		$this->assertSame( $url, esc_url_raw( $url ) );
 	}
@@ -196,14 +196,14 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	/**
 	 * @ticket 21974
 	 */
-	function test_protocol_relative_with_colon() {
+	public function test_protocol_relative_with_colon() {
 		$this->assertSame( '//example.com/foo?foo=abc:def', esc_url( '//example.com/foo?foo=abc:def' ) );
 	}
 
 	/**
 	 * @ticket 31632
 	 */
-	function test_mailto_with_newline() {
+	public function test_mailto_with_newline() {
 		$body       = <<<EOT
 Hi there,
 
@@ -218,7 +218,7 @@ EOT;
 	/**
 	 * @ticket 31632
 	 */
-	function test_mailto_in_http_url_with_newline() {
+	public function test_mailto_in_http_url_with_newline() {
 		$body       = <<<EOT
 Hi there,
 
@@ -233,7 +233,7 @@ EOT;
 	/**
 	 * @ticket 23605
 	 */
-	function test_mailto_with_spaces() {
+	public function test_mailto_with_spaces() {
 		$body = 'Hi there, I thought you might want to sign up for this newsletter';
 
 		$email_link = 'mailto:?body=' . $body;
@@ -244,14 +244,14 @@ EOT;
 	/**
 	 * @ticket 28015
 	 */
-	function test_invalid_charaters() {
+	public function test_invalid_charaters() {
 		$this->assertEmpty( esc_url_raw( '"^<>{}`' ) );
 	}
 
 	/**
 	 * @ticket 34202
 	 */
-	function test_ipv6_hosts() {
+	public function test_ipv6_hosts() {
 		$this->assertSame( '//[::127.0.0.1]', esc_url( '//[::127.0.0.1]' ) );
 		$this->assertSame( 'http://[::FFFF::127.0.0.1]', esc_url( 'http://[::FFFF::127.0.0.1]' ) );
 		$this->assertSame( 'http://[::127.0.0.1]', esc_url( 'http://[::127.0.0.1]' ) );

@@ -159,7 +159,9 @@ jobs:
     name: Slack Notifications
     uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@master
     needs: [ test-npm, test-npm-macos ]
-    if: ${{ always() }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ needs.test-npm.result == 'success' && needs.test-npm-macos.result == 'success' && 'success' || ( needs.test-npm.result == 'cancelled' || needs.test-npm-macos.result == 'cancelled' ) && 'cancelled' || 'failure' }}
     secrets:
       SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
