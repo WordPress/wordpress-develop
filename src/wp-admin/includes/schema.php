@@ -51,6 +51,7 @@ function wp_get_db_schema( $scope = 'all', $blog_id = null ) {
 	 * used to have room for floor(767/3) = 255 characters, now only has room for floor(767/4) = 191 characters.
 	 */
 	$max_index_length = 191;
+
 	$db_version = $wpdb->db_version();
 
 	/*
