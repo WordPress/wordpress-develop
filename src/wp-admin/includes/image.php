@@ -213,7 +213,7 @@ function wp_update_image_subsizes( $attachment_id ) {
 			}
 
 			// This also updates the image meta.
-			$image_meta = _wp_make_subsizes( $missing_sizes, $image_file, $image_meta, $attachment_id, $mime_type );
+			$image_meta = _wp_make_subsizes( $missing_sizes, $image_file, $image_meta, $attachment_id, $mime_type, $mime_type === $primary_mime_type );
 		}
 	}
 
@@ -353,9 +353,9 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 	 */
 	$new_sizes = apply_filters( 'intermediate_image_sizes_advanced', $new_sizes, $image_meta, $attachment_id );
 
-	$image_meta = _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $primary_mime_type );
+	$image_meta = _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $primary_mime_type, true );
 	foreach ( $additional_mime_types as $additional_mime_type ) {
-		$image_meta = _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $additional_mime_type );
+		$image_meta = _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $additional_mime_type, false );
 	}
 
 	return $image_meta;
@@ -493,14 +493,15 @@ function _wp_get_sources_from_meta( $meta ) {
  * @since 6.1.0 The $mime_type parameter was added.
  * @access private
  *
- * @param array  $new_sizes     Array defining what sizes to create.
- * @param string $file          Full path to the image file.
- * @param array  $image_meta    The attachment meta data array.
- * @param int    $attachment_id Attachment ID to process.
- * @param string $mime_type     Optional. The mime type to check for missing sizes. Default is the image mime of $file.
+ * @param array  $new_sizes       Array defining what sizes to create.
+ * @param string $file            Full path to the image file.
+ * @param array  $image_meta      The attachment meta data array.
+ * @param int    $attachment_id   Attachment ID to process.
+ * @param string $mime_type       Optional. The mime type to check for missing sizes. Default is the image mime of $file.
+ * @param bool   $is_primary_mime Whether this subsize run is generating the primary mime type. Default true.
  * @return array The attachment meta data with updated `sizes` array. Includes an array of errors encountered while resizing.
  */
-function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mime_type = '' ) {
+function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mime_type = '', $is_primary_mime = true ) {
 	if ( empty( $image_meta ) || ! is_array( $image_meta ) ) {
 		// Not an image attachment.
 		return array();
@@ -570,8 +571,8 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 		}
 	}
 
-	// Filter new sizes to those supported for this mime type.
-	if ( $mime_type !== $original_mime_type ) {
+	// Filter supported sizes for non primary mime types.
+	if ( ! $is_primary_mime ) {
 		$supported_multi_mime_sizes = _wp_multi_mime_get_supported_sizes( $attachment_id );
 		$new_sizes                  = array_filter(
 			$new_sizes,
@@ -863,7 +864,7 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 					wp_update_attachment_metadata( $attachment_id, $metadata );
 
 					// Create sub-sizes saving the image meta after each.
-					$metadata = _wp_make_subsizes( $merged_sizes, $image_file, $metadata, $attachment_id );
+					$metadata = _wp_make_subsizes( $merged_sizes, $image_file, $metadata, $attachment_id, '', true );
 				}
 			}
 		}
