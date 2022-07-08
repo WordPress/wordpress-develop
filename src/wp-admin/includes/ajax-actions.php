@@ -2566,7 +2566,12 @@ function wp_ajax_upload_attachment() {
 		}
 	}
 
-	$attachment_id = media_handle_upload( 'async-upload', $post_id, $post_data );
+	$overrides = array(
+		'unique_filename_callback' => '_wp_unique_media_filename',
+		'test_form'                => false,
+	);
+
+	$attachment_id = media_handle_upload( 'async-upload', $post_id, $post_data, $overrides );
 
 	if ( is_wp_error( $attachment_id ) ) {
 		echo wp_json_encode(
@@ -2605,6 +2610,25 @@ function wp_ajax_upload_attachment() {
 	);
 
 	wp_die();
+}
+
+function _wp_unique_media_filename( $dir, $filename, $ext ) {
+	$extension_sets = array(
+		'image/jpeg' => array( '.jpe', '.jpeg', '.jpg' ),
+	);
+	foreach( $extension_sets as $mime => $extensions ) {
+		if ( ! in_array( $ext, $extensions, true ) ) {
+			continue;
+		}
+		foreach( $extensions as $extension ) {
+			$new_filename = str_replace( $ext, $extension, $filename );
+			$new_filename = wp_unique_filename( $dir, $new_filename );
+			if ( $new_filename !== $filename ) {
+				return str_replace( $extension, $ext, $new_filename );
+			}
+		}
+	}
+	return $filename;
 }
 
 /**
