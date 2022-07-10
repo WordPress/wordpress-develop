@@ -1118,7 +1118,7 @@ function get_page_of_comment( $comment_ID, $args = array() ) {
 			'date_query' => array(
 				array(
 					'column' => "$wpdb->comments.comment_date_gmt",
-					'before' => $comment->comment_date_gmt,
+					'after' => $comment->comment_date_gmt,
 				),
 			),
 		);
