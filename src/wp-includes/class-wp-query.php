@@ -3072,7 +3072,7 @@ class WP_Query {
 				$cache_args['update_post_term_cache'],
 				$cache_args['lazy_load_term_meta']
 			);
-			$key          = md5( serialize( $cache_args ) );
+			$key          = md5( serialize( $cache_args ) . $this->request );
 			$last_changed = wp_cache_get_last_changed( 'posts' );
 			if ( ! empty( $this->tax_query->queried_terms ) ) {
 				$last_changed .= wp_cache_get_last_changed( 'terms' );
