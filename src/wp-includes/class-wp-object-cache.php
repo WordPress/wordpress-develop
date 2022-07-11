@@ -143,6 +143,34 @@ class WP_Object_Cache {
 	}
 
 	/**
+	 * Serves as a utility function to determine whether a key is valid.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param int|string $key   Cache key to check for validity.
+	 * @return bool Whether the key is valid.
+	 */
+	protected function _valid_key( $key ) {
+		if ( is_int( $key ) ) {
+			return true;
+		}
+
+		if ( is_string( $key ) && trim( $key ) !== '') {
+			return true;
+		}
+
+		$type = str_replace( 'string', 'empty string', gettype( $key ) );
+
+		_doing_it_wrong(
+			debug_backtrace()[1]['function'],
+			sprintf( __( 'Cache key must be integer or non-empty string, %s given.', $type ) ),
+			'6.1.0'
+		);
+
+		return false;
+	}
+
+	/**
 	 * Adds data to the cache if it doesn't already exist.
 	 *
 	 * @since 2.0.0
@@ -160,6 +188,10 @@ class WP_Object_Cache {
 	 */
 	public function add( $key, $data, $group = 'default', $expire = 0 ) {
 		if ( wp_suspend_cache_addition() ) {
+			return false;
+		}
+
+		if ( $this->_valid_key( $key ) ) {
 			return false;
 		}
 
@@ -216,6 +248,10 @@ class WP_Object_Cache {
 	 * @return bool True if contents were replaced, false if original value does not exist.
 	 */
 	public function replace( $key, $data, $group = 'default', $expire = 0 ) {
+		if ( $this->_valid_key( $key ) ) {
+			return false;
+		}
+
 		if ( empty( $group ) ) {
 			$group = 'default';
 		}
@@ -250,9 +286,13 @@ class WP_Object_Cache {
 	 * @param mixed      $data   The contents to store in the cache.
 	 * @param string     $group  Optional. Where to group the cache contents. Default 'default'.
 	 * @param int        $expire Optional. Not used.
-	 * @return true Always returns true.
+	 * @return bool True if contents were set, false if key is invalid.
 	 */
 	public function set( $key, $data, $group = 'default', $expire = 0 ) {
+		if ( $this->_valid_key( $key ) ) {
+			return false;
+		}
+
 		if ( empty( $group ) ) {
 			$group = 'default';
 		}
@@ -310,6 +350,10 @@ class WP_Object_Cache {
 	 * @return mixed|false The cache contents on success, false on failure to retrieve contents.
 	 */
 	public function get( $key, $group = 'default', $force = false, &$found = null ) {
+		if ( $this->_valid_key( $key ) ) {
+			return false;
+		}
+
 		if ( empty( $group ) ) {
 			$group = 'default';
 		}
@@ -368,6 +412,10 @@ class WP_Object_Cache {
 	 * @return bool True on success, false if the contents were not deleted.
 	 */
 	public function delete( $key, $group = 'default', $deprecated = false ) {
+		if ( $this->_valid_key( $key ) ) {
+			return false;
+		}
+
 		if ( empty( $group ) ) {
 			$group = 'default';
 		}
@@ -416,6 +464,10 @@ class WP_Object_Cache {
 	 * @return int|false The item's new value on success, false on failure.
 	 */
 	public function incr( $key, $offset = 1, $group = 'default' ) {
+		if ( $this->_valid_key( $key ) ) {
+			return false;
+		}
+
 		if ( empty( $group ) ) {
 			$group = 'default';
 		}
@@ -455,6 +507,10 @@ class WP_Object_Cache {
 	 * @return int|false The item's new value on success, false on failure.
 	 */
 	public function decr( $key, $offset = 1, $group = 'default' ) {
+		if ( $this->_valid_key( $key ) ) {
+			return false;
+		}
+
 		if ( empty( $group ) ) {
 			$group = 'default';
 		}
