@@ -291,6 +291,19 @@ class WP_Object_Cache {
 	}
 
 	/**
+	 * Removes all cache items in a group.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @return true Always returns true.
+	 */
+	public function flush_group( $group ) {
+		unset( $this->cache[ $group ] );
+
+		return true;
+	}
+
+	/**
 	 * Retrieves the cache contents, if it exists.
 	 *
 	 * The contents will be first attempted to be retrieved by searching by the

@@ -332,6 +332,7 @@ class Tests_Pluggable extends WP_UnitTestCase {
 					'wp_cache_add_non_persistent_groups' => array( 'groups' ),
 					'wp_cache_switch_to_blog'            => array( 'blog_id' ),
 					'wp_cache_reset'                     => array(),
+					'wp_cache_flush_group'               => array( 'group' ),
 				)
 			);
 		}
