@@ -146,30 +146,6 @@ function wp_cache_set_multiple( array $data, $group = '', $expire = 0 ) {
 }
 
 /**
- * Removes all cache items in a group, if the object cache implementation supports it.
- * Before calling this method, always check for group flushing support using the
- * `WP_OBJECT_CACHE_SUPPORTS_GROUP_FLUSH` constant.
- *
- * @since 6.1.0
- *
- * @see WP_Object_Cache::flush_group()
- * @global WP_Object_Cache $wp_object_cache Object cache global instance.
- *
- * @param string|array $group name(s) of group to remove from cache.
- * @return bool|array|WP_Error Bool or array of bool if array passed, WP_Error if not supported.
- */
-function wp_cache_flush_group( $group ) {
-	global $wp_object_cache;
-
-	// if group is an array loop and call each key in the array
-	if ( is_array( $group ) ) {
-		return array_map( 'wp_cache_flush_group', array_values( $group ) );
-	}
-
-	return $wp_object_cache->flush_group( $group );
-}
-
-/**
  * Retrieves the cache contents from the cache by key and group.
  *
  * @since 2.0.0
@@ -316,6 +292,30 @@ function wp_cache_flush() {
  */
 function wp_cache_flush_runtime() {
 	return wp_cache_flush();
+}
+
+/**
+ * Removes all cache items in a group, if the object cache implementation supports it.
+ * Before calling this method, always check for group flushing support using the
+ * `wp_cache_supports_group_flush()` method.
+ *
+ * @since 6.1.0
+ *
+ * @see WP_Object_Cache::flush_group()
+ * @global WP_Object_Cache $wp_object_cache Object cache global instance.
+ *
+ * @param string|array $group name(s) of group to remove from cache.
+ * @return bool|array|WP_Error Bool or array of bool if array passed, WP_Error if not supported.
+ */
+function wp_cache_flush_group( $group ) {
+	global $wp_object_cache;
+
+	// if group is an array loop and call each key in the array
+	if ( is_array( $group ) ) {
+		return array_map( 'wp_cache_flush_group', array_values( $group ) );
+	}
+
+	return $wp_object_cache->flush_group( $group );
 }
 
 /**
