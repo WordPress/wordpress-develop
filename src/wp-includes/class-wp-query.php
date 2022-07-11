@@ -3110,7 +3110,7 @@ class WP_Query {
 
 					$this->posts[ $key ] = $obj;
 
-					$r[ (int) $post->ID ] = (int) $post->post_parent;
+					$r[ $obj->ID ] = $obj->post_parent;
 				}
 
 				return $r;
