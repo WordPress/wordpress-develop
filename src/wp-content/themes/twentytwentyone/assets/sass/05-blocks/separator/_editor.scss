@@ -1,7 +1,8 @@
 .wp-block-separator,
 hr {
-	border-bottom: var(--separator--height) solid var(--separator--border-color);
+	border-bottom: var(--separator--height) solid;
 	clear: both;
+	color: var(--separator--border-color);
 	opacity: 1;
 
 	&[style*="text-align:right"],
