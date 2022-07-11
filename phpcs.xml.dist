@@ -25,7 +25,9 @@
 
 	<file>.</file>
 
-	<rule ref="WordPress-Core"/>
+	<rule ref="WordPress-Core">
+		<exclude name="WordPress.PHP.YodaConditions.NotYoda"/>
+	</rule>
 	<rule ref="WordPress.CodeAnalysis.EmptyStatement"/>
 
 	<!-- These rules are being set as warnings instead of errors, so we can error check the entire codebase. -->
@@ -340,7 +342,4 @@
 		<exclude-pattern>/src/wp-content/themes/twentyfourteen/inc/widgets\.php</exclude-pattern>
 		<exclude-pattern>/src/wp-content/themes/twentyfourteen/inc/featured-content\.php</exclude-pattern>
 	</rule>
-
-	<!-- Disallow Yoda conditions. -->
-	<rule ref="Generic.ControlStructures.DisallowYodaConditions"/>
 </ruleset>
