@@ -1,7 +1,8 @@
 <?php
 
 $finder = \PhpCsFixer\Finder::create()
-	->exclude( __DIR__ . '/../../src/blocks' )
+	->exclude( __DIR__ . '/../../src/wp-includes/blocks' )
+	->exclude( __DIR__ . '/../../src/wp-includes/class-wp-block-parser.php' )
 	->in( __DIR__ . '/../../src' )
 	->in( __DIR__ . '/../../tests' );
 

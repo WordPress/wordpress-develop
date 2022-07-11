@@ -340,4 +340,7 @@
 		<exclude-pattern>/src/wp-content/themes/twentyfourteen/inc/widgets\.php</exclude-pattern>
 		<exclude-pattern>/src/wp-content/themes/twentyfourteen/inc/featured-content\.php</exclude-pattern>
 	</rule>
+
+	<!-- Disallow Yoda conditions. -->
+	<rule ref="Generic.ControlStructures.DisallowYodaConditions"/>
 </ruleset>
