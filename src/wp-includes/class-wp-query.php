@@ -3077,7 +3077,7 @@ class WP_Query {
 				$cache_args['update_post_meta_cache'],
 				$cache_args['update_post_term_cache'],
 				$cache_args['lazy_load_term_meta'],
-        $cache_args['update_menu_item_cache']
+				$cache_args['update_menu_item_cache']
 			);
 			$key          = md5( serialize( $cache_args ) . $this->request );
 			$last_changed = wp_cache_get_last_changed( 'posts' );
@@ -3236,11 +3236,10 @@ class WP_Query {
 				'max_num_pages' => $this->max_num_pages,
 			);
 			wp_cache_set( $cache_key, $cache_value, 'posts' );
-    }
-    
+		}
+
 		if ( ! empty( $this->posts ) && $q['update_menu_item_cache'] ) {
 			update_menu_item_cache( $this->posts );
-
 		}
 
 		if ( ! $q['suppress_filters'] ) {
