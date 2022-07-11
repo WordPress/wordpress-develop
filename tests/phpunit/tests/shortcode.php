@@ -445,7 +445,7 @@ EOF;
 	// Filter shortcode atts in various ways.
 	public function filter_atts2( $out, $pairs, $atts ) {
 		// If foo attribute equals "foo1", change it to be default value.
-		if ( isset( $out['foo'] ) && 'foo1' === $out['foo'] ) {
+		if ( isset( $out['foo'] ) && $out['foo'] === 'foo1' ) {
 			$out['foo'] = $pairs['foo'];
 		}
 

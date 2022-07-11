@@ -1066,7 +1066,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		add_filter(
 			'map_meta_cap',
 			static function ( $caps, $cap, $user, $args ) use ( $plugin ) {
-				if ( 'activate_plugin' === $cap && $plugin === $args[0] ) {
+				if ( $cap === 'activate_plugin' && $plugin === $args[0] ) {
 					$caps = array( 'do_not_allow' );
 				}
 
@@ -1088,7 +1088,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		add_filter(
 			'map_meta_cap',
 			static function ( $caps, $cap, $user, $args ) use ( $plugin ) {
-				if ( 'deactivate_plugin' === $cap && $plugin === $args[0] ) {
+				if ( $cap === 'deactivate_plugin' && $plugin === $args[0] ) {
 					$caps = array( 'do_not_allow' );
 				}
 

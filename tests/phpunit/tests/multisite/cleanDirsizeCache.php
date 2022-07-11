@@ -24,7 +24,7 @@ if ( is_multisite() ) :
 			 * or if the `src` directory already contains a directory with site content, then the initial
 			 * expectation will be polluted. We create sites until an empty one is available.
 			 */
-			while ( 0 !== get_space_used() ) {
+			while ( get_space_used() !== 0 ) {
 				restore_current_blog();
 				$blog_id = self::factory()->blog->create();
 				switch_to_blog( $blog_id );
@@ -73,7 +73,7 @@ if ( is_multisite() ) :
 			 * or if the `src` directory already contains a directory with site content, then the initial
 			 * expectation will be polluted. We create sites until an empty one is available.
 			 */
-			while ( 0 !== get_space_used() ) {
+			while ( get_space_used() !== 0 ) {
 				restore_current_blog();
 				$blog_id = self::factory()->blog->create();
 				switch_to_blog( $blog_id );
@@ -121,7 +121,7 @@ if ( is_multisite() ) :
 			 * or if the `src` directory already contains a directory with site content, then the initial
 			 * expectation will be polluted. We create sites until an empty one is available.
 			 */
-			while ( 0 !== get_space_used() ) {
+			while ( get_space_used() !== 0 ) {
 				restore_current_blog();
 				$blog_id = self::factory()->blog->create();
 				switch_to_blog( $blog_id );
@@ -169,7 +169,7 @@ if ( is_multisite() ) :
 			 * or if the `src` directory already contains a directory with site content, then the initial
 			 * expectation will be polluted. We create sites until an empty one is available.
 			 */
-			while ( 0 !== get_space_used() ) {
+			while ( get_space_used() !== 0 ) {
 				restore_current_blog();
 				$blog_id = self::factory()->blog->create();
 				switch_to_blog( $blog_id );
@@ -248,7 +248,7 @@ if ( is_multisite() ) :
 			 * or if the `src` directory already contains a directory with site content, then the initial
 			 * expectation will be polluted. We create sites until an empty one is available.
 			 */
-			while ( 0 !== get_space_used() ) {
+			while ( get_space_used() !== 0 ) {
 				restore_current_blog();
 				$blog_id = self::factory()->blog->create();
 				switch_to_blog( $blog_id );

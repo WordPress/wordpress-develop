@@ -237,7 +237,7 @@ $GLOBALS['PHP_SELF'] = '/index.php';
 $_SERVER['PHP_SELF'] = '/index.php';
 
 // Should we run in multisite mode?
-$multisite = ( '1' === getenv( 'WP_MULTISITE' ) );
+$multisite = ( getenv( 'WP_MULTISITE' ) === '1' );
 $multisite = $multisite || ( defined( 'WP_TESTS_MULTISITE' ) && WP_TESTS_MULTISITE );
 $multisite = $multisite || ( defined( 'MULTISITE' ) && MULTISITE );
 
@@ -254,12 +254,12 @@ if ( file_exists( DIR_TESTDATA . '/themedir1' ) ) {
 	$wp_theme_directories[] = DIR_TESTDATA . '/themedir1';
 }
 
-if ( '1' !== getenv( 'WP_TESTS_SKIP_INSTALL' ) ) {
+if ( getenv( 'WP_TESTS_SKIP_INSTALL' ) !== '1' ) {
 	$core_tests = ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) ? 'run_core_tests' : 'no_core_tests';
 	$ms_tests   = $multisite ? 'run_ms_tests' : 'no_ms_tests';
 
 	system( WP_PHP_BINARY . ' ' . escapeshellarg( __DIR__ . '/install.php' ) . ' ' . escapeshellarg( $config_file_path ) . ' ' . $ms_tests . ' ' . $core_tests, $retval );
-	if ( 0 !== $retval ) {
+	if ( $retval !== 0 ) {
 		exit( $retval );
 	}
 }

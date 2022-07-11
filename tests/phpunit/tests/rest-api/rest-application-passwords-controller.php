@@ -990,14 +990,14 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 			add_filter( 'wp_is_application_passwords_available', $callback );
 		}
 
-		if ( 'default' === $expected ) {
+		if ( $expected === 'default' ) {
 			putenv( 'WP_ENVIRONMENT_TYPE=local' );
 			$expected = wp_is_application_passwords_supported();
 		}
 
 		$actual = wp_is_application_passwords_available();
 
-		if ( 'default' === $expected ) {
+		if ( $expected === 'default' ) {
 			// Revert to default behaviour so that other tests are not affected.
 			putenv( 'WP_ENVIRONMENT_TYPE' );
 		}

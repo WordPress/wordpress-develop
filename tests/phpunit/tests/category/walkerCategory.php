@@ -48,7 +48,7 @@ class Tests_Category_Walker_Category extends WP_UnitTestCase {
 
 		$this->walker->start_el( $output, $category, 0, $args );
 
-		if ( '' !== $expected ) {
+		if ( $expected !== '' ) {
 			$expected = sprintf( ' data-test="%s"', $expected );
 		}
 

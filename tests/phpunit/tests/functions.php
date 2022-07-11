@@ -2052,7 +2052,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @param bool   $expected Expected result.
 	 */
 	public function test_wp_is_stream( $path, $expected ) {
-		if ( ! extension_loaded( 'openssl' ) && false !== strpos( $path, 'https://' ) ) {
+		if ( ! extension_loaded( 'openssl' ) && strpos( $path, 'https://' ) !== false ) {
 			$this->markTestSkipped( 'The openssl PHP extension is not loaded.' );
 		}
 

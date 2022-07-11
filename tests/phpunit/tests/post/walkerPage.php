@@ -41,7 +41,7 @@ class Tests_Post_Walker_Page extends WP_UnitTestCase {
 
 		$this->walker->start_el( $output, $page, 0 );
 
-		if ( '' !== $expected ) {
+		if ( $expected !== '' ) {
 			$expected = sprintf( ' data-test="%s"', $expected );
 		}
 

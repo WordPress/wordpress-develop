@@ -98,7 +98,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->request_count += 1;
 
 		// Mock request to YouTube Embed.
-		if ( ! empty( $query_params['url'] ) && false !== strpos( $query_params['url'], '?v=' . self::YOUTUBE_VIDEO_ID ) ) {
+		if ( ! empty( $query_params['url'] ) && strpos( $query_params['url'], '?v=' . self::YOUTUBE_VIDEO_ID ) !== false ) {
 			return array(
 				'response' => array(
 					'code' => 200,
@@ -122,7 +122,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 			);
 		}
 
-		if ( self::UNTRUSTED_PROVIDER_URL === $url ) {
+		if ( $url === self::UNTRUSTED_PROVIDER_URL ) {
 			return array(
 				'response' => array(
 					'code' => 200,
@@ -131,7 +131,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 			);
 		}
 
-		if ( ! empty( $query_params['url'] ) && false !== strpos( $query_params['url'], self::UNTRUSTED_PROVIDER_URL ) ) {
+		if ( ! empty( $query_params['url'] ) && strpos( $query_params['url'], self::UNTRUSTED_PROVIDER_URL ) !== false ) {
 			return array(
 				'response' => array(
 					'code' => 200,
@@ -166,7 +166,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	 * @return string
 	 */
 	public function filter_oembed_result( $data, $url, $args ) {
-		if ( ! is_string( $data ) && false !== $data ) {
+		if ( ! is_string( $data ) && $data !== false ) {
 			$this->fail( 'Unexpected type for $data.' );
 		}
 		$this->assertIsString( $url );

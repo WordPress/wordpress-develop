@@ -392,7 +392,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 			self::$different_post->ID => 'thumbnail',
 		);
 
-		$post = 1 === $which_post ? self::$different_post : self::$post;
+		$post = $which_post === 1 ? self::$different_post : self::$post;
 
 		add_filter( 'post_thumbnail_size', array( $this, 'filter_post_thumbnail_size' ), 10, 2 );
 

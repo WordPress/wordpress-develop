@@ -1442,7 +1442,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		foreach ( $errors as $error ) {
 			// Check the code matches one we know.
 			$this->assertContains( $error['code'], array( 'user_name', 'user_email' ) );
-			if ( 'user_name' === $error['code'] ) {
+			if ( $error['code'] === 'user_name' ) {
 				$this->assertSame( 'Sorry, that username already exists!', $error['message'] );
 			} else {
 				$expected = '<strong>Error:</strong> This email address is already registered. ' .
@@ -2165,7 +2165,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		// Update the user.
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
 		foreach ( $input as $name => $value ) {
-			if ( 'username' !== $name ) {
+			if ( $name !== 'username' ) {
 				$request->set_param( $name, $value );
 			}
 		}
@@ -3072,7 +3072,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function additional_field_update_callback( $value, $user ) {
-		if ( 'returnError' === $value ) {
+		if ( $value === 'returnError' ) {
 			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
 		}
 		update_user_meta( $user->ID, 'my_custom_int', $value );
@@ -3087,7 +3087,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'avatar_urls', $data );
 		$this->assertSame( $user->user_nicename, $data['slug'] );
 
-		if ( 'edit' === $context ) {
+		if ( $context === 'edit' ) {
 			$this->assertSame( $user->first_name, $data['first_name'] );
 			$this->assertSame( $user->last_name, $data['last_name'] );
 			$this->assertSame( $user->nickname, $data['nickname'] );
@@ -3100,7 +3100,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertSame( get_user_locale( $user ), $data['locale'] );
 		}
 
-		if ( 'edit' !== $context ) {
+		if ( $context !== 'edit' ) {
 			$this->assertArrayNotHasKey( 'roles', $data );
 			$this->assertArrayNotHasKey( 'capabilities', $data );
 			$this->assertArrayNotHasKey( 'registered_date', $data );

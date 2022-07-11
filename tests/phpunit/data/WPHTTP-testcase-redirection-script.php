@@ -3,17 +3,17 @@
 // Thanks WordPress...
 function is_ssl() {
 	if ( isset($_SERVER['HTTPS']) ) {
-		if ( 'on' == strtolower($_SERVER['HTTPS']) )
+		if ( strtolower($_SERVER['HTTPS']) == 'on' )
 			return true;
-		if ( '1' == $_SERVER['HTTPS'] )
+		if ( $_SERVER['HTTPS'] == '1' )
 			return true;
-	} elseif ( isset($_SERVER['SERVER_PORT']) && ( '443' == $_SERVER['SERVER_PORT'] ) ) {
+	} elseif ( isset($_SERVER['SERVER_PORT']) && ( $_SERVER['SERVER_PORT'] == '443' ) ) {
 		return true;
 	}
 	return false;
 }
 
-$url = ( is_ssl() ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . (!empty($_SERVER['HTTP_POST']) && 80 != $_SERVER['HTTP_POST'] ? ':' . $_SERVER['HTTP_POST'] : '');
+$url = ( is_ssl() ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . (!empty($_SERVER['HTTP_POST']) && $_SERVER['HTTP_POST'] != 80 ? ':' . $_SERVER['HTTP_POST'] : '');
 if ( strpos($_SERVER['REQUEST_URI'], '?') )
 	$url .= substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'], '?'));
 else
@@ -56,7 +56,7 @@ if ( isset( $_GET['post-redirect-to-method'] ) ) {
 	$method = $_SERVER['REQUEST_METHOD'];
 	$response_code = isset( $_GET['response_code'] ) ? $_GET['response_code'] : 301;
 
-	if ( 'POST' == $method && ! isset( $_GET['redirection-performed'] ) ) {
+	if ( $method == 'POST' && ! isset( $_GET['redirection-performed'] ) ) {
 		header( "Location: $url?post-redirect-to-method=1&redirection-performed=1", true, $response_code );
 		exit;
 	}
@@ -89,7 +89,7 @@ if ( isset( $_GET['multiple-location-headers'] ) ) {
 		header( "Location: $url?multiple-location-headers=1&redirected=two", false );
 		exit;
 	}
-	if ( 'two' != $_GET['redirected'] )
+	if ( $_GET['redirected'] != 'two' )
 		echo 'FAIL';
 	else
 		echo 'PASS';
@@ -97,7 +97,7 @@ if ( isset( $_GET['multiple-location-headers'] ) ) {
 }
 
 if ( isset( $_GET['cookie-test'] ) ) {
-	if ( 'test-cookie' != $_GET['cookie-test'] ) {
+	if ( $_GET['cookie-test'] != 'test-cookie' ) {
 		setcookie( 'api_test_cookie', 'value', time() + 365*24*60*60, '/core/tests/1.0/', 'api.wordpress.org' );
 		setcookie( 'api_test_cookie_minimal', 'value'  );
 		setcookie( 'api_test_cookie_wrong_host', 'value', time() + 365*24*60*60, '/', 'example.com' );
@@ -107,7 +107,7 @@ if ( isset( $_GET['cookie-test'] ) ) {
 		exit;
 	}
 
-	if ( empty( $_COOKIE['api_test_cookie'] ) || 'value' != $_COOKIE['api_test_cookie'] )
+	if ( empty( $_COOKIE['api_test_cookie'] ) || $_COOKIE['api_test_cookie'] != 'value' )
 		die( 'FAIL_NO_COOKIE' );
 	if ( empty( $_COOKIE['api_test_cookie_minimal'] ) )
 		die( 'FAIL_NO_MINIMAL' );

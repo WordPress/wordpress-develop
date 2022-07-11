@@ -104,7 +104,7 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 		self::$passed_post_title  = $post->post_title;
 		self::$passed_post_status = $post->post_status;
 
-		if ( null === $post_before ) {
+		if ( $post_before === null ) {
 			self::$passed_post_before_title  = null;
 			self::$passed_post_before_status = null;
 			return;

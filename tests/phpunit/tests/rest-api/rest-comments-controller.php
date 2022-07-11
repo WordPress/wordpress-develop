@@ -3295,7 +3295,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function additional_field_update_callback( $value, $comment ) {
-		if ( 'returnError' === $value ) {
+		if ( $value === 'returnError' ) {
 			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
 		}
 		update_comment_meta( $comment->comment_ID, 'my_custom_int', $value );
@@ -3328,14 +3328,14 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			$this->assertSame( rest_url( '/wp/v2/posts/' . $comment->comment_post_ID ), $links['up'][0]['href'] );
 		}
 
-		if ( 'edit' === $context ) {
+		if ( $context === 'edit' ) {
 			$this->assertSame( $comment->comment_author_email, $data['author_email'] );
 			$this->assertSame( $comment->comment_author_IP, $data['author_ip'] );
 			$this->assertSame( $comment->comment_agent, $data['author_user_agent'] );
 			$this->assertSame( $comment->comment_content, $data['content']['raw'] );
 		}
 
-		if ( 'edit' !== $context ) {
+		if ( $context !== 'edit' ) {
 			$this->assertArrayNotHasKey( 'author_email', $data );
 			$this->assertArrayNotHasKey( 'author_ip', $data );
 			$this->assertArrayNotHasKey( 'author_user_agent', $data );

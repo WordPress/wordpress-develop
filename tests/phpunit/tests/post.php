@@ -101,7 +101,7 @@ class Tests_Post extends WP_UnitTestCase {
 			$this->assertCount( 2, $tcache );
 
 			$tcache = wp_cache_get( $id, 'ctax_relationships' );
-			if ( 'cpt' === $post_type ) {
+			if ( $post_type === 'cpt' ) {
 				$this->assertIsArray( $tcache );
 				$this->assertCount( 2, $tcache );
 			} else {
@@ -935,7 +935,7 @@ class Tests_Post extends WP_UnitTestCase {
 	public function test_utf8mb3_post_saves_with_emoji() {
 		global $wpdb;
 
-		if ( 'utf8' !== $wpdb->get_col_charset( $wpdb->posts, 'post_title' ) ) {
+		if ( $wpdb->get_col_charset( $wpdb->posts, 'post_title' ) !== 'utf8' ) {
 			$this->markTestSkipped( 'This test is only useful with the utf8 character set.' );
 		}
 

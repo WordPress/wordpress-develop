@@ -29,7 +29,7 @@ if ( is_multisite() ) :
 
 			// Populate the main network flag as necessary.
 			self::$flag_was_set = true;
-			if ( false === get_network_option( get_main_network_id(), 'site_meta_supported', false ) ) {
+			if ( get_network_option( get_main_network_id(), 'site_meta_supported', false ) === false ) {
 				self::$flag_was_set = false;
 				is_site_meta_supported();
 			}

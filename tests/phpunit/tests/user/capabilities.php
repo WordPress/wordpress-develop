@@ -413,7 +413,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertFalse( defined( 'ALLOW_UNFILTERED_UPLOADS' ) );
 
 		foreach ( self::$users as $role => $user ) {
-			if ( 'anonymous' === $role ) {
+			if ( $role === 'anonymous' ) {
 				// The anonymous role does not exist.
 				$this->assertFalse( $user->exists(), "User with {$role} role should not exist" );
 			} else {
@@ -599,7 +599,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		// Make sure the role name is correct.
 		$expected_roles = array( $role );
-		if ( 'anonymous' === $role ) {
+		if ( $role === 'anonymous' ) {
 			//  Anonymous role does not exist, user roles should be empty.
 			$expected_roles = array();
 		}
@@ -632,7 +632,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$user     = self::$users[ $role ];
 		$expected = true;
 
-		if ( 'anonymous' === $role ) {
+		if ( $role === 'anonymous' ) {
 			$expected = false;
 		}
 
@@ -657,7 +657,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			remove_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
 			$this->assertFalse( $has_cap, "User with the {$role} role should not have the do_not_allow capability" );
 
-			if ( 'anonymous' === $role ) {
+			if ( $role === 'anonymous' ) {
 				// The anonymous role does not exist.
 				continue;
 			}
@@ -1010,7 +1010,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		// Shouldn't have any other caps.
 		$caps = $this->getAllCapsAndRoles();
 		foreach ( $caps as $cap => $roles ) {
-			if ( 'level_1' !== $cap ) {
+			if ( $cap !== 'level_1' ) {
 				$this->assertFalse( $user->has_cap( $cap ), "User should not have the {$cap} capability" );
 			}
 		}
@@ -1097,7 +1097,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		// Make sure the other caps didn't get messed up.
 		$caps = $this->getAllCapsAndRoles();
 		foreach ( $caps as $cap => $roles ) {
-			if ( in_array( 'contributor', $roles, true ) || 'publish_posts' === $cap ) {
+			if ( in_array( 'contributor', $roles, true ) || $cap === 'publish_posts' ) {
 				$this->assertTrue( $user_1->has_cap( $cap ), "User should have the {$cap} capability" );
 			} else {
 				$this->assertFalse( $user_1->has_cap( $cap ), "User should not have the {$cap} capability" );
@@ -1328,7 +1328,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertFalse( $contributor->has_cap( 'publish_post', $post ) );
 		$this->assertFalse( $contributor->has_cap( 'edit_post', $post ) );
 		$this->assertFalse( $contributor->has_cap( 'delete_post', $post ) );
-		$this->assertSame( 'publish' === $status, $contributor->has_cap( 'read_post', $post ) );
+		$this->assertSame( $status === 'publish', $contributor->has_cap( 'read_post', $post ) );
 	}
 
 	/**

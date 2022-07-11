@@ -38,7 +38,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		unset( $preempt, $r );
 
 		// Mock request to YouTube Embed.
-		if ( false !== strpos( $url, self::YOUTUBE_VIDEO_ID ) ) {
+		if ( strpos( $url, self::YOUTUBE_VIDEO_ID ) !== false ) {
 			return array(
 				'response' => array(
 					'code' => 200,
@@ -191,7 +191,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 
 	private function is_builtin_route( $route ) {
 		return (
-			'/' === $route ||
+			$route === '/' ||
 			preg_match( '#^/oembed/1\.0(/.+)?$#', $route ) ||
 			preg_match( '#^/wp/v2(/.+)?$#', $route ) ||
 			preg_match( '#^/wp-site-health/v1(/.+)?$#', $route )
@@ -746,10 +746,10 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 
 		foreach ( $data as $key => $value ) {
 			if ( is_string( $value ) && (
-				'date' === $key ||
-				'date_gmt' === $key ||
-				'modified' === $key ||
-				'modified_gmt' === $key
+				$key === 'date' ||
+				$key === 'date_gmt' ||
+				$key === 'modified' ||
+				$key === 'modified_gmt'
 			) ) {
 				$data[ $key ] = '2017-02-14T00:00:00';
 			} else {

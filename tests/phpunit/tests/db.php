@@ -85,7 +85,7 @@ class Tests_DB extends WP_UnitTestCase {
 
 		// Switch to a locale using comma as a decimal point separator.
 		$flag = setlocale( LC_ALL, 'ru_RU.utf8', 'rus', 'fr_FR.utf8', 'fr_FR', 'de_DE.utf8', 'de_DE', 'es_ES.utf8', 'es_ES' );
-		if ( false === $flag ) {
+		if ( $flag === false ) {
 			$this->markTestSkipped( 'No European locales available for testing.' );
 		}
 
@@ -109,7 +109,7 @@ class Tests_DB extends WP_UnitTestCase {
 
 		// Restore locale settings.
 		foreach ( $current_locales as $locale_setting ) {
-			if ( false !== strpos( $locale_setting, '=' ) ) {
+			if ( strpos( $locale_setting, '=' ) !== false ) {
 				list( $category, $locale ) = explode( '=', $locale_setting );
 				if ( defined( $category ) ) {
 					setlocale( constant( $category ), $locale );
@@ -343,7 +343,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$pos = array_search( 'ONLY_FULL_GROUP_BY', $modes, true );
 		$this->assertGreaterThanOrEqual( 0, $pos );
 
-		if ( false === $pos ) {
+		if ( $pos === false ) {
 			return $modes;
 		}
 

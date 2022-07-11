@@ -510,7 +510,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 			'pre_http_request',
 			static function ( $preempt, $args, $url ) use ( $action, $expects_results ) {
 
-				if ( 'api.wordpress.org' !== wp_parse_url( $url, PHP_URL_HOST ) ) {
+				if ( wp_parse_url( $url, PHP_URL_HOST ) !== 'api.wordpress.org' ) {
 					return $preempt;
 				}
 

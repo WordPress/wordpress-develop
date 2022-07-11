@@ -176,7 +176,7 @@ class WP_Test_Stream {
 	 */
 	public function stream_metadata( $path, $option, $var ) {
 		$this->open( $path );
-		if ( STREAM_META_TOUCH === $option ) {
+		if ( $option === STREAM_META_TOUCH ) {
 			if ( ! isset( $this->data_ref ) ) {
 				$this->data_ref = '';
 			}

@@ -141,7 +141,7 @@ function _delete_all_posts() {
 	}
 
 	foreach ( $all_posts as $data ) {
-		if ( 'attachment' === $data['post_type'] ) {
+		if ( $data['post_type'] === 'attachment' ) {
 			wp_delete_attachment( $data['ID'], true );
 		} else {
 			wp_delete_post( $data['ID'], true );

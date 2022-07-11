@@ -214,7 +214,7 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 	 * @return array List of data exporters.
 	 */
 	public function filter_unset_exporter_key( $exporters ) {
-		if ( false === $this->key_to_unset ) {
+		if ( $this->key_to_unset === false ) {
 			$exporters[ self::$exporter_key ] = false;
 		} elseif ( ! empty( $this->key_to_unset ) ) {
 			unset( $exporters[ self::$exporter_key ][ $this->key_to_unset ] );
@@ -787,7 +787,7 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 	public function callback_custom_personal_data_exporter( $email_address, $page = 1 ) {
 		$data_to_export = array();
 
-		if ( 1 === $page ) {
+		if ( $page === 1 ) {
 			$data_to_export = array(
 				'group_id'    => self::$exporter_key . '-group-id',
 				'group_label' => self::$exporter_key . '-group-label',

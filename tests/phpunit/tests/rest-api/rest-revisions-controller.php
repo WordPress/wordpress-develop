@@ -77,15 +77,15 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	public function _filter_map_meta_cap_remove_no_allow_revisions( $caps, $cap, $user_id, $args ) {
-		if ( 'delete_post' !== $cap || empty( $args ) ) {
+		if ( $cap !== 'delete_post' || empty( $args ) ) {
 			return $caps;
 		}
 		$post = get_post( $args[0] );
-		if ( ! $post || 'revision' !== $post->post_type ) {
+		if ( ! $post || $post->post_type !== 'revision' ) {
 			return $caps;
 		}
 		$key = array_search( 'do_not_allow', $caps, true );
-		if ( false !== $key ) {
+		if ( $key !== false ) {
 			unset( $caps[ $key ] );
 		}
 		return $caps;
