@@ -460,7 +460,7 @@ class Tests_Cache extends WP_UnitTestCase {
 
 		if ( wp_using_ext_object_cache() ) {
 			$this->assertWPError( $results );
-		    $this->assertSame( 'unsupported', $results->get_error_code() );
+			$this->assertSame( 'unsupported', $results->get_error_code() );
 		} else {
 			$this->assertIsArray( $results );
 			$this->assertCount( 2, $results );
