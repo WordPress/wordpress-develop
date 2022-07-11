@@ -86,10 +86,10 @@ if ( defined( 'IS_GUTENBERG_PLUGIN' ) && IS_GUTENBERG_PLUGIN ) {
 
 		foreach ( $menu_items as $menu_item ) {
 			$class_name       = ! empty( $menu_item->classes ) ? implode( ' ', (array) $menu_item->classes ) : null;
-			$id               = ( $menu_item->object_id !== null && $menu_item->object !== 'custom' ) ? $menu_item->object_id : null;
-			$opens_in_new_tab = $menu_item->target !== null && $menu_item->target === '_blank';
-			$rel              = ( $menu_item->xfn !== null && $menu_item->xfn !== '' ) ? $menu_item->xfn : null;
-			$kind             = $menu_item->type !== null ? str_replace( '_', '-', $menu_item->type ) : 'custom';
+			$id               = ( null !== $menu_item->object_id && 'custom' !== $menu_item->object ) ? $menu_item->object_id : null;
+			$opens_in_new_tab = null !== $menu_item->target && '_blank' === $menu_item->target;
+			$rel              = ( null !== $menu_item->xfn && '' !== $menu_item->xfn ) ? $menu_item->xfn : null;
+			$kind             = null !== $menu_item->type ? str_replace( '_', '-', $menu_item->type ) : 'custom';
 
 			$block = array(
 				'blockName' => isset( $menu_items_by_parent_id[ $menu_item->ID ] ) ? 'core/navigation-submenu' : 'core/navigation-link',
@@ -376,8 +376,8 @@ function block_core_navigation_from_block_get_post_ids( $block ) {
 		$post_ids = block_core_navigation_get_post_ids( $block->inner_blocks );
 	}
 
-	if ( $block->name === 'core/navigation-link' || $block->name === 'core/navigation-submenu' ) {
-		if ( $block->attributes && isset( $block->attributes['kind'] ) && $block->attributes['kind'] === 'post-type' ) {
+	if ( 'core/navigation-link' === $block->name || 'core/navigation-submenu' === $block->name ) {
+		if ( $block->attributes && isset( $block->attributes['kind'] ) && 'post-type' === $block->attributes['kind'] ) {
 			$post_ids[] = $block->attributes['id'];
 		}
 	}
@@ -425,7 +425,7 @@ function render_block_core_navigation( $attributes, $content, $block ) {
 	 * This is for backwards compatibility after `isResponsive` attribute has been removed.
 	 */
 	$has_old_responsive_attribute = ! empty( $attributes['isResponsive'] ) && $attributes['isResponsive'];
-	$is_responsive_menu           = isset( $attributes['overlayMenu'] ) && $attributes['overlayMenu'] !== 'never' || $has_old_responsive_attribute;
+	$is_responsive_menu           = isset( $attributes['overlayMenu'] ) && 'never' !== $attributes['overlayMenu'] || $has_old_responsive_attribute;
 	$should_load_view_script      = ! wp_script_is( 'wp-block-navigation-view' ) && ( $is_responsive_menu || $attributes['openSubmenusOnClick'] || $attributes['showSubmenuIcon'] );
 	if ( $should_load_view_script ) {
 		wp_enqueue_script( 'wp-block-navigation-view' );
@@ -513,11 +513,11 @@ function render_block_core_navigation( $attributes, $content, $block ) {
 	if ( isset( $attributes['layout']['justifyContent'] ) ) {
 		$layout_class .= $layout_justification[ $attributes['layout']['justifyContent'] ];
 	}
-	if ( isset( $attributes['layout']['orientation'] ) && $attributes['layout']['orientation'] === 'vertical' ) {
+	if ( isset( $attributes['layout']['orientation'] ) && 'vertical' === $attributes['layout']['orientation'] ) {
 		$layout_class .= ' is-vertical';
 	}
 
-	if ( isset( $attributes['layout']['flexWrap'] ) && $attributes['layout']['flexWrap'] === 'nowrap' ) {
+	if ( isset( $attributes['layout']['flexWrap'] ) && 'nowrap' === $attributes['layout']['flexWrap'] ) {
 		$layout_class .= ' no-wrap';
 	}
 
@@ -544,15 +544,15 @@ function render_block_core_navigation( $attributes, $content, $block ) {
 	$inner_blocks_html = '';
 	$is_list_open      = false;
 	foreach ( $inner_blocks as $inner_block ) {
-		if ( ( $inner_block->name === 'core/navigation-link' || $inner_block->name === 'core/home-link' || $inner_block->name === 'core/site-title' || $inner_block->name === 'core/site-logo' || $inner_block->name === 'core/navigation-submenu' ) && ! $is_list_open ) {
+		if ( ( 'core/navigation-link' === $inner_block->name || 'core/home-link' === $inner_block->name || 'core/site-title' === $inner_block->name || 'core/site-logo' === $inner_block->name || 'core/navigation-submenu' === $inner_block->name ) && ! $is_list_open ) {
 			$is_list_open       = true;
 			$inner_blocks_html .= '<ul class="wp-block-navigation__container">';
 		}
-		if ( $inner_block->name !== 'core/navigation-link' && $inner_block->name !== 'core/home-link' && $inner_block->name !== 'core/site-title' && $inner_block->name !== 'core/site-logo' && $inner_block->name !== 'core/navigation-submenu' && $is_list_open ) {
+		if ( 'core/navigation-link' !== $inner_block->name && 'core/home-link' !== $inner_block->name && 'core/site-title' !== $inner_block->name && 'core/site-logo' !== $inner_block->name && 'core/navigation-submenu' !== $inner_block->name && $is_list_open ) {
 			$is_list_open       = false;
 			$inner_blocks_html .= '</ul>';
 		}
-		if ( $inner_block->name === 'core/site-title' || $inner_block->name === 'core/site-logo' ) {
+		if ( 'core/site-title' === $inner_block->name || 'core/site-logo' === $inner_block->name ) {
 			$inner_blocks_html .= '<li class="wp-block-navigation-item">' . $inner_block->render() . '</li>';
 		} else {
 			$inner_blocks_html .= $inner_block->render();
@@ -592,7 +592,7 @@ function render_block_core_navigation( $attributes, $content, $block ) {
 		);
 	}
 
-	$is_hidden_by_default = isset( $attributes['overlayMenu'] ) && $attributes['overlayMenu'] === 'always';
+	$is_hidden_by_default = isset( $attributes['overlayMenu'] ) && 'always' === $attributes['overlayMenu'];
 
 	$responsive_container_classes = array(
 		'wp-block-navigation__responsive-container',
@@ -605,7 +605,7 @@ function render_block_core_navigation( $attributes, $content, $block ) {
 	);
 
 	$toggle_button_icon        = '<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="7.5" width="16" height="1.5" /><rect x="4" y="15" width="16" height="1.5" /></svg>';
-	$should_display_icon_label = isset( $attributes['hasIcon'] ) && $attributes['hasIcon'] === true;
+	$should_display_icon_label = isset( $attributes['hasIcon'] ) && true === $attributes['hasIcon'];
 	$toggle_button_content     = $should_display_icon_label ? $toggle_button_icon : 'Menu';
 
 	$responsive_container_markup = sprintf(
@@ -663,7 +663,7 @@ add_action( 'init', 'register_block_core_navigation' );
  * @return array The block being rendered without typographic presets.
  */
 function block_core_navigation_typographic_presets_backcompatibility( $parsed_block ) {
-	if ( $parsed_block['blockName'] === 'core/navigation' ) {
+	if ( 'core/navigation' === $parsed_block['blockName'] ) {
 		$attribute_to_prefix_map = array(
 			'fontStyle'      => 'var:preset|font-style|',
 			'fontWeight'     => 'var:preset|font-weight|',
@@ -674,10 +674,10 @@ function block_core_navigation_typographic_presets_backcompatibility( $parsed_bl
 			if ( ! empty( $parsed_block['attrs']['style']['typography'][ $style_attribute ] ) ) {
 				$prefix_len      = strlen( $prefix );
 				$attribute_value = &$parsed_block['attrs']['style']['typography'][ $style_attribute ];
-				if ( strncmp( $attribute_value, $prefix, $prefix_len ) === 0 ) {
+				if ( 0 === strncmp( $attribute_value, $prefix, $prefix_len ) ) {
 					$attribute_value = substr( $attribute_value, $prefix_len );
 				}
-				if ( $style_attribute === 'textDecoration' && $attribute_value === 'strikethrough' ) {
+				if ( 'textDecoration' === $style_attribute && 'strikethrough' === $attribute_value ) {
 					$attribute_value = 'line-through';
 				}
 			}

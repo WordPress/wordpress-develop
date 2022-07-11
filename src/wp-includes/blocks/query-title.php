@@ -17,7 +17,7 @@
 function render_block_core_query_title( $attributes ) {
 	$type       = isset( $attributes['type'] ) ? $attributes['type'] : null;
 	$is_archive = is_archive();
-	if ( ! $type || ( $type === 'archive' && ! $is_archive ) ) {
+	if ( ! $type || ( 'archive' === $type && ! $is_archive ) ) {
 		return '';
 	}
 	$title = '';

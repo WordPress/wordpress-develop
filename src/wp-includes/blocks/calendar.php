@@ -81,12 +81,12 @@ function block_core_calendar_has_published_posts() {
 	// Multisite already has an option that stores the count of the published posts.
 	// Let's use that for multisites.
 	if ( is_multisite() ) {
-		return (int) get_option( 'post_count' ) > 0;
+		return 0 < (int) get_option( 'post_count' );
 	}
 
 	// On single sites we try our own cached option first.
 	$has_published_posts = get_option( 'wp_calendar_block_has_published_posts', null );
-	if ( $has_published_posts !== null ) {
+	if ( null !== $has_published_posts ) {
 		return (bool) $has_published_posts;
 	}
 
@@ -118,7 +118,7 @@ if ( ! is_multisite() ) {
 	function block_core_calendar_update_has_published_post_on_delete( $post_id ) {
 		$post = get_post( $post_id );
 
-		if ( ! $post || $post->post_status !== 'publish' || $post->post_type !== 'post' ) {
+		if ( ! $post || 'publish' !== $post->post_status || 'post' !== $post->post_type ) {
 			return;
 		}
 
@@ -137,11 +137,11 @@ if ( ! is_multisite() ) {
 			return;
 		}
 
-		if ( get_post_type( $post ) !== 'post' ) {
+		if ( 'post' !== get_post_type( $post ) ) {
 			return;
 		}
 
-		if ( $new_status !== 'publish' && $old_status !== 'publish' ) {
+		if ( 'publish' !== $new_status && 'publish' !== $old_status ) {
 			return;
 		}
 

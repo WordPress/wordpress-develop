@@ -45,7 +45,7 @@ function render_block_core_query_pagination_numbers( $attributes, $content, $blo
 			'total'     => $total,
 			'prev_next' => false,
 		);
-		if ( $page !== 1 ) {
+		if ( 1 !== $page ) {
 			/**
 			 * `paginate_links` doesn't use the provided `format` when the page is `1`.
 			 * This is great for the main query as it removes the extra query params

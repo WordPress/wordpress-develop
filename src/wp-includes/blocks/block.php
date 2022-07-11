@@ -20,7 +20,7 @@ function render_block_core_block( $attributes ) {
 	}
 
 	$reusable_block = get_post( $attributes['ref'] );
-	if ( ! $reusable_block || $reusable_block->post_type !== 'wp_block' ) {
+	if ( ! $reusable_block || 'wp_block' !== $reusable_block->post_type ) {
 		return '';
 	}
 
@@ -36,7 +36,7 @@ function render_block_core_block( $attributes ) {
 			'';
 	}
 
-	if ( $reusable_block->post_status !== 'publish' || ! empty( $reusable_block->post_password ) ) {
+	if ( 'publish' !== $reusable_block->post_status || ! empty( $reusable_block->post_password ) ) {
 		return '';
 	}
 

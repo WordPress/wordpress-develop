@@ -14,7 +14,7 @@
  * @return string Returns the cover block markup, if useFeaturedImage is true.
  */
 function render_block_core_cover( $attributes, $content ) {
-	if ( $attributes['backgroundType'] !== 'image' || $attributes['useFeaturedImage'] === false ) {
+	if ( 'image' !== $attributes['backgroundType'] || false === $attributes['useFeaturedImage'] ) {
 		return $content;
 	}
 
@@ -37,7 +37,7 @@ function render_block_core_cover( $attributes, $content ) {
 		 * and removes eventual withespace characters between the two (typically introduced at template level)
 		 */
 		$inner_container_start = '/<div\b[^>]+wp-block-cover__inner-container[\s|"][^>]*>/U';
-		if ( preg_match( $inner_container_start, $content, $matches, PREG_OFFSET_CAPTURE ) === 1 ) {
+		if ( 1 === preg_match( $inner_container_start, $content, $matches, PREG_OFFSET_CAPTURE ) ) {
 			$offset  = $matches[0][1];
 			$content = substr( $content, 0, $offset ) . $image . substr( $content, $offset );
 		}

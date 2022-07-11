@@ -17,9 +17,9 @@
  * @return array The migrated block object.
  */
 function block_core_gallery_data_id_backcompatibility( $parsed_block ) {
-	if ( $parsed_block['blockName'] === 'core/gallery' ) {
+	if ( 'core/gallery' === $parsed_block['blockName'] ) {
 		foreach ( $parsed_block['innerBlocks'] as $key => $inner_block ) {
-			if ( $inner_block['blockName'] === 'core/image' ) {
+			if ( 'core/image' === $inner_block['blockName'] ) {
 				if ( ! isset( $parsed_block['innerBlocks'][ $key ]['attrs']['data-id'] ) && isset( $inner_block['attrs']['id'] ) ) {
 					$parsed_block['innerBlocks'][ $key ]['attrs']['data-id'] = esc_attr( $inner_block['attrs']['id'] );
 				}

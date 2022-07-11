@@ -73,7 +73,7 @@ function render_block_core_rss( $attributes ) {
 			$excerpt = esc_attr( wp_trim_words( $excerpt, $attributes['excerptLength'], ' [&hellip;]' ) );
 
 			// Change existing [...] to [&hellip;].
-			if ( substr( $excerpt, -5 ) === '[...]' ) {
+			if ( '[...]' === substr( $excerpt, -5 ) ) {
 				$excerpt = substr( $excerpt, 0, -5 ) . '[&hellip;]';
 			}
 
@@ -84,10 +84,10 @@ function render_block_core_rss( $attributes ) {
 	}
 
 	$classnames = array();
-	if ( isset( $attributes['blockLayout'] ) && $attributes['blockLayout'] === 'grid' ) {
+	if ( isset( $attributes['blockLayout'] ) && 'grid' === $attributes['blockLayout'] ) {
 		$classnames[] = 'is-grid';
 	}
-	if ( isset( $attributes['columns'] ) && $attributes['blockLayout'] === 'grid' ) {
+	if ( isset( $attributes['columns'] ) && 'grid' === $attributes['blockLayout'] ) {
 		$classnames[] = 'columns-' . $attributes['columns'];
 	}
 	if ( $attributes['displayDate'] ) {
