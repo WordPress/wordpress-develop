@@ -2531,7 +2531,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 			array(
 				'callback'            => '__return_true',
 				'permission_callback' => '__return_true',
-				'args'                => array( 'string' ),
+				'args'                => array( 'pattern' ),
 			)
 		);
 
