@@ -521,21 +521,23 @@ function wp_get_post_revisions( $post_id = 0, $args = null ) {
  *
  * @since 6.1.0
  *
- * @param int|WP_Post $post Optional. Post ID or post object. Default is the global $post.
- * @return array {
+ * @param int|WP_Post|null $post Optional. Post ID or post object. `null`, `false`, `0` and other PHP falsey values
+ *                               return the current global post inside the loop. A numerically valid post ID that
+ *                               points to a non-existent post returns `null`. Defaults to global $post.
+ * @return WP_Error|array {
  *     Returns associative array with last revision and total count.
  *
  *     @type int $revision The last revision post id or 0 if non existing.
  *     @type int $count The total count of revisions for $post_id.
  * }
  */
-function wp_get_lastest_revision_id_and_total_count( $post = 0 ) {
+function wp_get_lastest_revision_id_and_total_count( $post = null ) {
 	$post     = get_post( $post );
 	$revision = 0;
 	$count    = 0;
 
 	if ( ! $post || ! wp_revisions_enabled( $post ) ) {
-		return compact( 'revision', 'count' );
+		return new WP_Error( 'revision_error', __( 'Invalid post or revisions not enabled.' ) );
 	}
 
 	$args = array(
@@ -548,8 +550,8 @@ function wp_get_lastest_revision_id_and_total_count( $post = 0 ) {
 		'posts_per_page'         => 1,
 		'update_post_meta_cache' => false,
 		'update_post_term_cache' => false,
-		'suppress_filters'       => true,
-		'ignore_sticky_posts'    => true,
+		'suppress_filters'       => false,
+		'ignore_sticky_posts'    => true
 	);
 
 	$revision_query = new WP_Query();

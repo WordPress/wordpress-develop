@@ -663,12 +663,14 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 */
 	public function test_wp_get_last_revision_id_and_total_count( $revisions ) {
 		$post_id = self::factory()->post->create();
-		wp_update_post(
-			array(
-				'ID'         => $post_id,
-				'post_title' => 'Some Post',
-			)
-		);
+		for ( $i = 0; $i < $revisions; ++$i ) {
+			wp_update_post(
+				array(
+					'ID'         => $post_id,
+					'post_title' => 'Some Post',
+				)
+			);
+		}
 
 		$post_revisions     = wp_get_post_revisions( $post_id );
 		$last_post_revision = current( $post_revisions );
@@ -693,11 +695,14 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 * @ticket 55857
 	 */
 	public function test_wp_get_last_revision_id_and_total_count_no_revisions() {
+
+		$revision = wp_get_lastest_revision_id_and_total_count( null );
+		$this->assertWPError( $revision, 'Invalid Post, non existing revisions.' );
+
 		add_filter( 'wp_revisions_to_keep', '__return_zero' );
 		$post_id  = self::factory()->post->create();
 		$revision = wp_get_lastest_revision_id_and_total_count( $post_id );
-		$this->assertSame( 0, $revision['revision'], 'Post should not have revision.' );
-		$this->assertSame( 0, $revision['count'], 'Post should not have revision.' );
+		$this->assertWPError( $revision, 'Revisions should be not enabled.' );
 	}
 
 	/**
