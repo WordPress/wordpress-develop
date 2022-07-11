@@ -3074,8 +3074,11 @@ class WP_Query {
 			);
 			$key          = md5( serialize( $cache_args ) );
 			$last_changed = wp_cache_get_last_changed( 'posts' );
-			$cache_key    = "wp_query:$key:$last_changed";
-			$cache        = wp_cache_get( $cache_key, 'posts' );
+			if ( ! empty( $this->tax_query->queried_terms ) ) {
+				$last_changed .= wp_cache_get_last_changed( 'terms' );
+			}
+			$cache_key = "wp_query:$key:$last_changed";
+			$cache     = wp_cache_get( $cache_key, 'posts' );
 		}
 		if ( null === $this->posts && $cache ) {
 			if ( 'ids' === $q['fields'] ) {
