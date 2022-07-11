@@ -309,6 +309,10 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 				'theme_dir' => 'block-theme-child',
 				'expected'  => true,
 			),
+			'deprecated block theme'    => array(
+				'theme_dir' => 'block-theme-deprecated-path',
+				'expected'  => true,
+			),
 		);
 	}
 
@@ -335,42 +339,47 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 */
 	public function data_get_file_path() {
 		return array(
-			'no theme: no file given'           => array(
+			'no theme: no file given'              => array(
 				'theme_dir' => 'nonexistent',
 				'file'      => '',
 				'expected'  => '/nonexistent',
 			),
-			'parent theme: no file given'       => array(
+			'parent theme: no file given'          => array(
 				'theme_dir' => 'block-theme',
 				'file'      => '',
 				'expected'  => '/block-theme',
 			),
-			'child theme: no file given'        => array(
+			'child theme: no file given'           => array(
 				'theme_dir' => 'block-theme-child',
 				'file'      => '',
 				'expected'  => '/block-theme-child',
 			),
-			'nonexistent theme: file given'     => array(
+			'nonexistent theme: file given'        => array(
 				'theme_dir' => 'nonexistent',
 				'file'      => '/templates/page.html',
 				'expected'  => '/nonexistent/templates/page.html',
 			),
-			'parent theme: file exists'         => array(
+			'parent theme: file exists'            => array(
 				'theme_dir' => 'block-theme',
 				'file'      => '/templates/page-home.html',
 				'expected'  => '/block-theme/templates/page-home.html',
 			),
-			'parent theme: file does not exist' => array(
+			'parent theme: deprecated file exists' => array(
+				'theme_dir' => 'block-theme-deprecated-path',
+				'file'      => '/block-templates/page-home.html',
+				'expected'  => '/block-theme-deprecated-path/block-templates/page-home.html',
+			),
+			'parent theme: file does not exist'    => array(
 				'theme_dir' => 'block-theme',
 				'file'      => '/templates/nonexistent.html',
 				'expected'  => '/block-theme/templates/nonexistent.html',
 			),
-			'child theme: file exists'          => array(
+			'child theme: file exists'             => array(
 				'theme_dir' => 'block-theme-child',
 				'file'      => '/templates/page-1.html',
 				'expected'  => '/block-theme-child/templates/page-1.html',
 			),
-			'child theme: file does not exist'  => array(
+			'child theme: file does not exist'     => array(
 				'theme_dir' => 'block-theme-child',
 				'file'      => '/templates/nonexistent.html',
 				'expected'  => '/block-theme/templates/nonexistent.html',
