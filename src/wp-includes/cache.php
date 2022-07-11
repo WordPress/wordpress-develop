@@ -12,13 +12,6 @@
 require_once ABSPATH . WPINC . '/class-wp-object-cache.php';
 
 /**
-  * Indicate that this object cache implementation supports group flushing.
-  *
-  * @since 6.1.0
-  */
-define( 'WP_OBJECT_CACHE_SUPPORTS_GROUP_FLUSH', true );
-
-/**
  * Sets up Object Cache Global and assigns it.
  *
  * @since 2.0.0
@@ -27,6 +20,19 @@ define( 'WP_OBJECT_CACHE_SUPPORTS_GROUP_FLUSH', true );
  */
 function wp_cache_init() {
 	$GLOBALS['wp_object_cache'] = new WP_Object_Cache();
+}
+
+/**
+ * Whether the object cache implementation supports flushing individual cache groups.
+ *
+ * @since 6.1.0
+ *
+ * @see WP_Object_Cache::flush_group()
+ *
+ * @return bool True if group flushing is supported, false otherwise.
+ */
+function wp_cache_supports_group_flush() {
+	return false;
 }
 
 /**

@@ -1,10 +1,4 @@
 <?php
-/**
- * Indicate that this object cache implementation does not support group flushing.
- *
- * @since 6.1.0
- */
-define( 'WP_OBJECT_CACHE_SUPPORTS_GROUP_FLUSH', false );
 
 /**
  * Adds a value to cache.
@@ -740,7 +734,6 @@ function wp_cache_switch_to_blog( $blog_id ) {
 	return $wp_object_cache->switch_to_blog( $blog_id );
 }
 
-
 /**
  * Sets up Object Cache Global and assigns it.
  *
@@ -750,6 +743,17 @@ function wp_cache_switch_to_blog( $blog_id ) {
 function wp_cache_init() {
 	global $wp_object_cache;
 	$wp_object_cache = new WP_Object_Cache();
+}
+
+/**
+ * Whether the object cache implementation supports flushing individual cache groups.
+ *
+ * @since 6.1.0
+ *
+ * @return bool True if group flushing is supported, false otherwise.
+ */
+function wp_cache_supports_group_flush() {
+	return false;
 }
 
 /**

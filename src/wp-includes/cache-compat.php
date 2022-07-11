@@ -157,7 +157,7 @@ if ( ! function_exists( 'wp_cache_flush_group' ) ) :
 	 * @return bool|array|WP_Error Bool or array of bool if array passed, WP_Error if not supported.
 	 */
 	function wp_cache_flush_group( $group ) {
-		if ( ! defined( 'WP_OBJECT_CACHE_SUPPORTS_GROUP_FLUSH' ) || ! WP_OBJECT_CACHE_SUPPORTS_GROUP_FLUSH ) {
+		if ( ! wp_cache_supports_group_flush() ) {
 			$error = new WP_Error( 'unsupported', __( 'Your object cache implementation does not support flushing individual groups.' ) );
 
 			_doing_it_wrong( __FUNCTION__, $error->get_error_message(), '6.1.0' );
@@ -166,5 +166,20 @@ if ( ! function_exists( 'wp_cache_flush_group' ) ) :
 		}
 
 		return $wp_object_cache->flush_group( $group );
+	}
+endif;
+
+if ( ! function_exists( 'wp_cache_supports_group_flush' ) ) :
+	/**
+	 * Whether the object cache implementation supports flushing individual cache groups.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @see WP_Object_Cache::flush_group()
+	 *
+	 * @return bool True if group flushing is supported, false otherwise.
+	 */
+	function wp_cache_supports_group_flush() {
+		return false;
 	}
 endif;
