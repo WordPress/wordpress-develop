@@ -527,7 +527,12 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 			}
 
 			/**
-			 * Filters the image meta information.
+			 * Short-circuits the image generation process.
+			 *
+			 * This filter can be used to update $size_meta with custom information for the
+			 * target mime_type.
+			 *
+			 * Can also be returned `false` to skip generating size image and updating it's metadata.
 			 *
 			 * @since 6.1.0
 			 *
@@ -536,10 +541,13 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 			 * @param string $attachment_id Attachment ID.
 			 * @param string $size_name     Image size - e.g. 'full', 'medium', 'small' etc.
 			 * @param string $mime_type     Image mime type.
+			 *
+			 * @return array|false Can be array with updated meta information or false.
 			 */
 			$size_meta = apply_filters( 'wp_content_pre_generate_additional_image_source', $size_meta, $file, $attachment_id, $size_name, $mime_type );
 
-			if ( is_wp_error( $size_meta ) ) {
+			if ( false === $size_meta ) {
+				unset( $new_sizes[ $size_name ] );
 				continue;
 			}
 
@@ -653,10 +661,10 @@ function _wp_make_additional_mime_types( $new_mime_types, $file, $image_meta, $a
 	$exif_meta = isset( $image_meta['image_meta'] ) ? $image_meta['image_meta'] : null;
 
 	foreach ( $new_mime_types as $mime_type ) {
-		/** This filter is documented above. */
+		/** This filter is documented in wp-includes/image.php. */
 		$image_meta = apply_filters( 'wp_content_pre_generate_additional_image_source', $image_meta, $file, $attachment_id, 'full', $mime_type );
 
-		if ( is_wp_error( $image_meta ) ) {
+		if ( false === $image_meta ) {
 			continue;
 		}
 
