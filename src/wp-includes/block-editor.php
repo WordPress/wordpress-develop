@@ -309,9 +309,12 @@ function _wp_get_iframed_editor_assets() {
 	$style_handles  = array(
 		'wp-block-editor',
 		'wp-block-library',
-		'wp-block-library-theme',
 		'wp-edit-blocks',
 	);
+
+	if ( current_theme_supports( 'wp-block-styles' ) ) {
+		$style_handles[] = 'wp-block-library-theme';
+	}
 
 	if ( 'widgets.php' === $pagenow || 'customize.php' === $pagenow ) {
 		$style_handles[] = 'wp-widgets';
@@ -533,8 +536,6 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
  *
  * @param string[]                $preload_paths        List of paths to preload.
  * @param WP_Block_Editor_Context $block_editor_context The current block editor context.
- *
- * @return void
  */
 function block_editor_rest_api_preload( array $preload_paths, $block_editor_context ) {
 	global $post, $wp_scripts, $wp_styles;

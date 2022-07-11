@@ -2132,7 +2132,7 @@ function path_join( $base, $path ) {
 		return $path;
 	}
 
-	return rtrim( $base, '/' ) . '/' . ltrim( $path, '/' );
+	return rtrim( $base, '/' ) . '/' . $path;
 }
 
 /**
@@ -3503,7 +3503,7 @@ function wp_filesize( $path ) {
 		return $size;
 	}
 
-	$size = (int) @filesize( $path );
+	$size = file_exists( $path ) ? (int) filesize( $path ) : 0;
 
 	/**
 	 * Filters the size of the file.
@@ -4515,8 +4515,8 @@ function wp_check_jsonp_callback( $callback ) {
  * @param array  $options  {
  *     Optional. Options to be used with `json_decode()`.
  *
- *     @type bool associative Optional. When `true`, JSON objects will be returned as associative arrays.
- *                            When `false`, JSON objects will be returned as objects.
+ *     @type bool $associative Optional. When `true`, JSON objects will be returned as associative arrays.
+ *                             When `false`, JSON objects will be returned as objects.
  * }
  *
  * @return mixed Returns the value encoded in JSON in appropriate PHP type.
@@ -8422,7 +8422,7 @@ function is_wp_version_compatible( $required ) {
  * @return bool True if required version is compatible or empty, false if not.
  */
 function is_php_version_compatible( $required ) {
-	return empty( $required ) || version_compare( phpversion(), $required, '>=' );
+	return empty( $required ) || version_compare( PHP_VERSION, $required, '>=' );
 }
 
 /**
