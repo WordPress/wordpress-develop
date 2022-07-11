@@ -36,6 +36,8 @@ wp-tests-config.php
 /src/wp-includes/blocks/**/*.js.map
 /packagehash.txt
 /artifacts
+/tools/php-cs-fixer/vendor
+/.php-cs-fixer.cache
 
 # Files and folders that get created in wp-content
 /src/wp-content/blogs.dir
