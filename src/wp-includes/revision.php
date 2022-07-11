@@ -551,7 +551,7 @@ function wp_get_lastest_revision_id_and_total_count( $post = null ) {
 		'update_post_meta_cache' => false,
 		'update_post_term_cache' => false,
 		'suppress_filters'       => false,
-		'ignore_sticky_posts'    => true
+		'ignore_sticky_posts'    => true,
 	);
 
 	$revision_query = new WP_Query();
