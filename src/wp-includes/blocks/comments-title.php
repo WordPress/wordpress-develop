@@ -30,13 +30,13 @@ function render_block_core_comments_title( $attributes ) {
 		$tag_name = 'h' . $attributes['level'];
 	}
 
-	if ( '0' === $comments_count ) {
+	if ( $comments_count === '0' ) {
 		return;
 	}
 
 	if ( $show_comments_count ) {
 		if ( $show_post_title ) {
-			if ( '1' === $comments_count ) {
+			if ( $comments_count === '1' ) {
 				/* translators: %s: Post title. */
 				$comments_title = sprintf( __( 'One response to %s' ), $post_title );
 			} else {
@@ -51,7 +51,7 @@ function render_block_core_comments_title( $attributes ) {
 					$post_title
 				);
 			}
-		} elseif ( '1' === $comments_count ) {
+		} elseif ( $comments_count === '1' ) {
 			$comments_title = __( 'One response' );
 		} else {
 			$comments_title = sprintf(
@@ -61,14 +61,14 @@ function render_block_core_comments_title( $attributes ) {
 			);
 		}
 	} elseif ( $show_post_title ) {
-		if ( '1' === $comments_count ) {
+		if ( $comments_count === '1' ) {
 			/* translators: %s: Post title. */
 			$comments_title = sprintf( __( 'Response to %s' ), $post_title );
 		} else {
 			/* translators: %s: Post title. */
 			$comments_title = sprintf( __( 'Responses to %s' ), $post_title );
 		}
-	} elseif ( '1' === $comments_count ) {
+	} elseif ( $comments_count === '1' ) {
 		$comments_title = __( 'Response' );
 	} else {
 		$comments_title = __( 'Responses' );

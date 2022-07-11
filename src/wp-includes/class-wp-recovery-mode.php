@@ -234,7 +234,7 @@ class WP_Recovery_Mode {
 			die;
 		}
 
-		if ( ! isset( $_GET['action'] ) || self::EXIT_ACTION !== $_GET['action'] ) {
+		if ( ! isset( $_GET['action'] ) || $_GET['action'] !== self::EXIT_ACTION ) {
 			return;
 		}
 
@@ -361,7 +361,7 @@ class WP_Recovery_Mode {
 		$error_file    = wp_normalize_path( $error['file'] );
 		$wp_plugin_dir = wp_normalize_path( WP_PLUGIN_DIR );
 
-		if ( 0 === strpos( $error_file, $wp_plugin_dir ) ) {
+		if ( strpos( $error_file, $wp_plugin_dir ) === 0 ) {
 			$path  = str_replace( $wp_plugin_dir . '/', '', $error_file );
 			$parts = explode( '/', $path );
 
@@ -378,7 +378,7 @@ class WP_Recovery_Mode {
 		foreach ( $wp_theme_directories as $theme_directory ) {
 			$theme_directory = wp_normalize_path( $theme_directory );
 
-			if ( 0 === strpos( $error_file, $theme_directory ) ) {
+			if ( strpos( $error_file, $theme_directory ) === 0 ) {
 				$path  = str_replace( $theme_directory . '/', '', $error_file );
 				$parts = explode( '/', $path );
 
@@ -401,7 +401,7 @@ class WP_Recovery_Mode {
 	 * @return bool True if network plugin, false otherwise.
 	 */
 	protected function is_network_plugin( $extension ) {
-		if ( 'plugin' !== $extension['type'] ) {
+		if ( $extension['type'] !== 'plugin' ) {
 			return false;
 		}
 
@@ -412,7 +412,7 @@ class WP_Recovery_Mode {
 		$network_plugins = wp_get_active_network_plugins();
 
 		foreach ( $network_plugins as $plugin ) {
-			if ( 0 === strpos( $plugin, $extension['slug'] . '/' ) ) {
+			if ( strpos( $plugin, $extension['slug'] . '/' ) === 0 ) {
 				return true;
 			}
 		}

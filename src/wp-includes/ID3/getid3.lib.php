@@ -1694,7 +1694,7 @@ class getid3_lib
 		}
 
 		// Loop thru line
-		while (0 < $line_count--) {
+		while ($line_count-- > 0) {
 
 			// Read line
 			$line = ltrim(fgets($fp, 1024), "\t ");

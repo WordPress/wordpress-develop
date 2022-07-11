@@ -14,7 +14,7 @@
 function wp_paused_plugins() {
 	static $storage = null;
 
-	if ( null === $storage ) {
+	if ( $storage === null ) {
 		$storage = new WP_Paused_Extensions_Storage( 'plugin' );
 	}
 
@@ -29,7 +29,7 @@ function wp_paused_plugins() {
 function wp_paused_themes() {
 	static $storage = null;
 
-	if ( null === $storage ) {
+	if ( $storage === null ) {
 		$storage = new WP_Paused_Extensions_Storage( 'theme' );
 	}
 
@@ -50,7 +50,7 @@ function wp_get_extension_error_description( $error ) {
 	$core_errors = array();
 
 	foreach ( $constants as $constant => $value ) {
-		if ( 0 === strpos( $constant, 'E_' ) ) {
+		if ( strpos( $constant, 'E_' ) === 0 ) {
 			$core_errors[ $value ] = $constant;
 		}
 	}

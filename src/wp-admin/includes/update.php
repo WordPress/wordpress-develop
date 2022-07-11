@@ -56,7 +56,7 @@ function get_core_updates( $options = array() ) {
 	$updates = $from_api->updates;
 	$result  = array();
 	foreach ( $updates as $update ) {
-		if ( 'autoupdate' === $update->response ) {
+		if ( $update->response === 'autoupdate' ) {
 			continue;
 		}
 
@@ -95,7 +95,7 @@ function find_core_auto_update() {
 	$auto_update = false;
 	$upgrader    = new WP_Automatic_Updater;
 	foreach ( $updates->updates as $update ) {
-		if ( 'autoupdate' !== $update->response ) {
+		if ( $update->response !== 'autoupdate' ) {
 			continue;
 		}
 
@@ -145,7 +145,7 @@ function get_core_checksums( $version, $locale ) {
 		$response = wp_remote_get( $http_url, $options );
 	}
 
-	if ( is_wp_error( $response ) || 200 != wp_remote_retrieve_response_code( $response ) ) {
+	if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) != 200 ) {
 		return false;
 	}
 
@@ -291,13 +291,13 @@ function update_nag() {
 		return false;
 	}
 
-	if ( 'update-core.php' === $pagenow ) {
+	if ( $pagenow === 'update-core.php' ) {
 		return;
 	}
 
 	$cur = get_preferred_from_update_core();
 
-	if ( ! isset( $cur->response ) || 'upgrade' !== $cur->response ) {
+	if ( ! isset( $cur->response ) || $cur->response !== 'upgrade' ) {
 		return false;
 	}
 
@@ -344,7 +344,7 @@ function update_right_now_message() {
 	if ( current_user_can( 'update_core' ) ) {
 		$cur = get_preferred_from_update_core();
 
-		if ( isset( $cur->response ) && 'upgrade' === $cur->response ) {
+		if ( isset( $cur->response ) && $cur->response === 'upgrade' ) {
 			$msg .= sprintf(
 				'<a href="%s" class="button" aria-describedby="wp-version">%s</a> ',
 				network_admin_url( 'update-core.php' ),
@@ -1099,7 +1099,7 @@ function wp_get_auto_update_message() {
 	$next_update_time = wp_next_scheduled( 'wp_version_check' );
 
 	// Check if the event exists.
-	if ( false === $next_update_time ) {
+	if ( $next_update_time === false ) {
 		$message = __( 'Automatic update not scheduled. There may be a problem with WP-Cron.' );
 	} else {
 		$time_to_next_update = human_time_diff( (int) $next_update_time );

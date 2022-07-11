@@ -187,7 +187,7 @@ class Custom_Background {
 
 			$repeat = $_POST['background-repeat'];
 
-			if ( 'no-repeat' !== $repeat ) {
+			if ( $repeat !== 'no-repeat' ) {
 				$repeat = 'repeat';
 			}
 
@@ -199,7 +199,7 @@ class Custom_Background {
 
 			$attachment = $_POST['background-attachment'];
 
-			if ( 'fixed' !== $attachment ) {
+			if ( $attachment !== 'fixed' ) {
 				$attachment = 'scroll';
 			}
 

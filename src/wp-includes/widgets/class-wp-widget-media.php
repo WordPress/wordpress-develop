@@ -187,7 +187,7 @@ abstract class WP_Widget_Media extends WP_Widget {
 		if ( ! $attachment ) {
 			return false;
 		}
-		if ( 'attachment' !== $attachment->post_type ) {
+		if ( $attachment->post_type !== 'attachment' ) {
 			return false;
 		}
 		return wp_attachment_is( $mime_type, $attachment );
@@ -283,11 +283,11 @@ abstract class WP_Widget_Media extends WP_Widget {
 			 * Workaround for rest_validate_value_from_schema() due to the fact that
 			 * rest_is_boolean( '' ) === false, while rest_is_boolean( '1' ) is true.
 			 */
-			if ( 'boolean' === $field_schema['type'] && '' === $value ) {
+			if ( $field_schema['type'] === 'boolean' && $value === '' ) {
 				$value = false;
 			}
 
-			if ( true !== rest_validate_value_from_schema( $value, $field_schema, $field ) ) {
+			if ( rest_validate_value_from_schema( $value, $field_schema, $field ) !== true ) {
 				continue;
 			}
 
@@ -373,7 +373,7 @@ abstract class WP_Widget_Media extends WP_Widget {
 			}
 		}
 
-		if ( 1 === $use_count ) {
+		if ( $use_count === 1 ) {
 			$states[] = $this->l10n['media_library_state_single'];
 		} elseif ( $use_count > 0 ) {
 			$states[] = sprintf( translate_nooped_plural( $this->l10n['media_library_state_multi'], $use_count ), number_format_i18n( $use_count ) );
@@ -459,7 +459,7 @@ abstract class WP_Widget_Media extends WP_Widget {
 	 * @return bool Whether widget has content.
 	 */
 	protected function has_content( $instance ) {
-		return ( $instance['attachment_id'] && 'attachment' === get_post_type( $instance['attachment_id'] ) ) || $instance['url'];
+		return ( $instance['attachment_id'] && get_post_type( $instance['attachment_id'] ) === 'attachment' ) || $instance['url'];
 	}
 
 	/**

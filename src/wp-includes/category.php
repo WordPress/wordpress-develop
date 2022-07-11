@@ -38,7 +38,7 @@ function get_categories( $args = '' ) {
 	$args['taxonomy'] = apply_filters( 'get_categories_taxonomy', $args['taxonomy'], $args );
 
 	// Back compat.
-	if ( isset( $args['type'] ) && 'link' === $args['type'] ) {
+	if ( isset( $args['type'] ) && $args['type'] === 'link' ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.0.0',
@@ -131,7 +131,7 @@ function get_category_by_path( $category_path, $full_match = true, $output = OBJ
 	$full_path      = '';
 
 	foreach ( (array) $category_paths as $pathdir ) {
-		$full_path .= ( '' !== $pathdir ? '/' : '' ) . sanitize_title( $pathdir );
+		$full_path .= ( $pathdir !== '' ? '/' : '' ) . sanitize_title( $pathdir );
 	}
 
 	$categories = get_terms(
@@ -149,7 +149,7 @@ function get_category_by_path( $category_path, $full_match = true, $output = OBJ
 	foreach ( $categories as $category ) {
 		$path        = '/' . $leaf_path;
 		$curcategory = $category;
-		while ( ( 0 != $curcategory->parent ) && ( $curcategory->parent != $curcategory->term_id ) ) {
+		while ( ( $curcategory->parent != 0 ) && ( $curcategory->parent != $curcategory->term_id ) ) {
 			$curcategory = get_term( $curcategory->parent, 'category' );
 
 			if ( is_wp_error( $curcategory ) ) {

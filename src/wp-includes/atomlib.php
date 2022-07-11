@@ -125,7 +125,7 @@ class AtomParser {
 	 */
 	public static function map_xmlns($p, $n) {
 		$xd = "xmlns";
-		if( 0 < strlen($n[0]) ) {
+		if( strlen($n[0]) > 0 ) {
 			$xd .= ":{$n[0]}";
 		}
 		return "{$xd}=\"{$n[1]}\"";

@@ -60,12 +60,12 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'edit_user':
 		case 'edit_users':
 			// Allow user to edit themselves.
-			if ( 'edit_user' === $cap && isset( $args[0] ) && $user_id == $args[0] ) {
+			if ( $cap === 'edit_user' && isset( $args[0] ) && $user_id == $args[0] ) {
 				break;
 			}
 
 			// In multisite the user must have manage_network_users caps. If editing a super admin, the user must be a super admin.
-			if ( is_multisite() && ( ( ! is_super_admin( $user_id ) && 'edit_user' === $cap && is_super_admin( $args[0] ) ) || ! user_can( $user_id, 'manage_network_users' ) ) ) {
+			if ( is_multisite() && ( ( ! is_super_admin( $user_id ) && $cap === 'edit_user' && is_super_admin( $args[0] ) ) || ! user_can( $user_id, 'manage_network_users' ) ) ) {
 				$caps[] = 'do_not_allow';
 			} else {
 				$caps[] = 'edit_users'; // edit_user maps to edit_users.
@@ -74,7 +74,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'delete_post':
 		case 'delete_page':
 			if ( ! isset( $args[0] ) ) {
-				if ( 'delete_post' === $cap ) {
+				if ( $cap === 'delete_post' ) {
 					/* translators: %s: Capability name. */
 					$message = __( 'When checking for the %s capability, you must always check it against a specific post.' );
 				} else {
@@ -98,7 +98,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				break;
 			}
 
-			if ( 'revision' === $post->post_type ) {
+			if ( $post->post_type === 'revision' ) {
 				$caps[] = 'do_not_allow';
 				break;
 			}
@@ -130,7 +130,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			if ( ! $post_type->map_meta_cap ) {
 				$caps[] = $post_type->cap->$cap;
 				// Prior to 3.1 we would re-call map_meta_cap here.
-				if ( 'delete_post' === $cap ) {
+				if ( $cap === 'delete_post' ) {
 					$cap = $post_type->cap->$cap;
 				}
 				break;
@@ -141,7 +141,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				// If the post is published or scheduled...
 				if ( in_array( $post->post_status, array( 'publish', 'future' ), true ) ) {
 					$caps[] = $post_type->cap->delete_published_posts;
-				} elseif ( 'trash' === $post->post_status ) {
+				} elseif ( $post->post_status === 'trash' ) {
 					$status = get_post_meta( $post->ID, '_wp_trash_meta_status', true );
 					if ( in_array( $status, array( 'publish', 'future' ), true ) ) {
 						$caps[] = $post_type->cap->delete_published_posts;
@@ -158,7 +158,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				// The post is published or scheduled, extra cap required.
 				if ( in_array( $post->post_status, array( 'publish', 'future' ), true ) ) {
 					$caps[] = $post_type->cap->delete_published_posts;
-				} elseif ( 'private' === $post->post_status ) {
+				} elseif ( $post->post_status === 'private' ) {
 					$caps[] = $post_type->cap->delete_private_posts;
 				}
 			}
@@ -177,7 +177,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'edit_post':
 		case 'edit_page':
 			if ( ! isset( $args[0] ) ) {
-				if ( 'edit_post' === $cap ) {
+				if ( $cap === 'edit_post' ) {
 					/* translators: %s: Capability name. */
 					$message = __( 'When checking for the %s capability, you must always check it against a specific post.' );
 				} else {
@@ -201,7 +201,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				break;
 			}
 
-			if ( 'revision' === $post->post_type ) {
+			if ( $post->post_type === 'revision' ) {
 				$post = get_post( $post->post_parent );
 				if ( ! $post ) {
 					$caps[] = 'do_not_allow';
@@ -231,7 +231,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			if ( ! $post_type->map_meta_cap ) {
 				$caps[] = $post_type->cap->$cap;
 				// Prior to 3.1 we would re-call map_meta_cap here.
-				if ( 'edit_post' === $cap ) {
+				if ( $cap === 'edit_post' ) {
 					$cap = $post_type->cap->$cap;
 				}
 				break;
@@ -242,7 +242,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				// If the post is published or scheduled...
 				if ( in_array( $post->post_status, array( 'publish', 'future' ), true ) ) {
 					$caps[] = $post_type->cap->edit_published_posts;
-				} elseif ( 'trash' === $post->post_status ) {
+				} elseif ( $post->post_status === 'trash' ) {
 					$status = get_post_meta( $post->ID, '_wp_trash_meta_status', true );
 					if ( in_array( $status, array( 'publish', 'future' ), true ) ) {
 						$caps[] = $post_type->cap->edit_published_posts;
@@ -259,7 +259,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				// The post is published or scheduled, extra cap required.
 				if ( in_array( $post->post_status, array( 'publish', 'future' ), true ) ) {
 					$caps[] = $post_type->cap->edit_published_posts;
-				} elseif ( 'private' === $post->post_status ) {
+				} elseif ( $post->post_status === 'private' ) {
 					$caps[] = $post_type->cap->edit_private_posts;
 				}
 			}
@@ -276,7 +276,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'read_post':
 		case 'read_page':
 			if ( ! isset( $args[0] ) ) {
-				if ( 'read_post' === $cap ) {
+				if ( $cap === 'read_post' ) {
 					/* translators: %s: Capability name. */
 					$message = __( 'When checking for the %s capability, you must always check it against a specific post.' );
 				} else {
@@ -300,7 +300,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				break;
 			}
 
-			if ( 'revision' === $post->post_type ) {
+			if ( $post->post_type === 'revision' ) {
 				$post = get_post( $post->post_parent );
 				if ( ! $post ) {
 					$caps[] = 'do_not_allow';
@@ -330,7 +330,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			if ( ! $post_type->map_meta_cap ) {
 				$caps[] = $post_type->cap->$cap;
 				// Prior to 3.1 we would re-call map_meta_cap here.
-				if ( 'read_post' === $cap ) {
+				if ( $cap === 'read_post' ) {
 					$cap = $post_type->cap->$cap;
 				}
 				break;
@@ -425,13 +425,13 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			$object_type = explode( '_', $cap )[1];
 
 			if ( ! isset( $args[0] ) ) {
-				if ( 'post' === $object_type ) {
+				if ( $object_type === 'post' ) {
 					/* translators: %s: Capability name. */
 					$message = __( 'When checking for the %s capability, you must always check it against a specific post.' );
-				} elseif ( 'comment' === $object_type ) {
+				} elseif ( $object_type === 'comment' ) {
 					/* translators: %s: Capability name. */
 					$message = __( 'When checking for the %s capability, you must always check it against a specific comment.' );
-				} elseif ( 'term' === $object_type ) {
+				} elseif ( $object_type === 'term' ) {
 					/* translators: %s: Capability name. */
 					$message = __( 'When checking for the %s capability, you must always check it against a specific term.' );
 				} else {
@@ -623,9 +623,9 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				$caps[] = 'do_not_allow';
 			} elseif ( is_multisite() && ! is_super_admin( $user_id ) ) {
 				$caps[] = 'do_not_allow';
-			} elseif ( 'upload_themes' === $cap ) {
+			} elseif ( $cap === 'upload_themes' ) {
 				$caps[] = 'install_themes';
-			} elseif ( 'upload_plugins' === $cap ) {
+			} elseif ( $cap === 'upload_plugins' ) {
 				$caps[] = 'install_plugins';
 			} else {
 				$caps[] = $cap;
@@ -725,7 +725,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				break;
 			}
 
-			if ( 'delete_term' === $cap
+			if ( $cap === 'delete_term'
 				&& ( get_option( 'default_' . $term->taxonomy ) == $term->term_id
 					|| get_option( 'default_term_' . $term->taxonomy ) == $term->term_id )
 			) {
@@ -1170,9 +1170,9 @@ function revoke_super_admin( $user_id ) {
 	$super_admins = get_site_option( 'site_admins', array( 'admin' ) );
 
 	$user = get_userdata( $user_id );
-	if ( $user && 0 !== strcasecmp( $user->user_email, get_site_option( 'admin_email' ) ) ) {
+	if ( $user && strcasecmp( $user->user_email, get_site_option( 'admin_email' ) ) !== 0 ) {
 		$key = array_search( $user->user_login, $super_admins, true );
-		if ( false !== $key ) {
+		if ( $key !== false ) {
 			unset( $super_admins[ $key ] );
 			update_site_option( 'site_admins', $super_admins );
 

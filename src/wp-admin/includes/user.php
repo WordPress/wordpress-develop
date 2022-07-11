@@ -81,7 +81,7 @@ function edit_user( $user_id = 0 ) {
 		$user->user_email = sanitize_text_field( wp_unslash( $_POST['email'] ) );
 	}
 	if ( isset( $_POST['url'] ) ) {
-		if ( empty( $_POST['url'] ) || 'http://' === $_POST['url'] ) {
+		if ( empty( $_POST['url'] ) || $_POST['url'] === 'http://' ) {
 			$user->user_url = '';
 		} else {
 			$user->user_url = sanitize_url( $_POST['url'] );
@@ -114,9 +114,9 @@ function edit_user( $user_id = 0 ) {
 
 	if ( isset( $_POST['locale'] ) ) {
 		$locale = sanitize_text_field( $_POST['locale'] );
-		if ( 'site-default' === $locale ) {
+		if ( $locale === 'site-default' ) {
 			$locale = '';
-		} elseif ( '' === $locale ) {
+		} elseif ( $locale === '' ) {
 			$locale = 'en_US';
 		} elseif ( ! in_array( $locale, get_available_languages(), true ) ) {
 			$locale = '';
@@ -126,13 +126,13 @@ function edit_user( $user_id = 0 ) {
 	}
 
 	if ( $update ) {
-		$user->rich_editing         = isset( $_POST['rich_editing'] ) && 'false' === $_POST['rich_editing'] ? 'false' : 'true';
-		$user->syntax_highlighting  = isset( $_POST['syntax_highlighting'] ) && 'false' === $_POST['syntax_highlighting'] ? 'false' : 'true';
+		$user->rich_editing         = isset( $_POST['rich_editing'] ) && $_POST['rich_editing'] === 'false' ? 'false' : 'true';
+		$user->syntax_highlighting  = isset( $_POST['syntax_highlighting'] ) && $_POST['syntax_highlighting'] === 'false' ? 'false' : 'true';
 		$user->admin_color          = isset( $_POST['admin_color'] ) ? sanitize_text_field( $_POST['admin_color'] ) : 'fresh';
 		$user->show_admin_bar_front = isset( $_POST['admin_bar_front'] ) ? 'true' : 'false';
 	}
 
-	$user->comment_shortcuts = isset( $_POST['comment_shortcuts'] ) && 'true' === $_POST['comment_shortcuts'] ? 'true' : '';
+	$user->comment_shortcuts = isset( $_POST['comment_shortcuts'] ) && $_POST['comment_shortcuts'] === 'true' ? 'true' : '';
 
 	$user->use_ssl = 0;
 	if ( ! empty( $_POST['use_ssl'] ) ) {
@@ -142,7 +142,7 @@ function edit_user( $user_id = 0 ) {
 	$errors = new WP_Error();
 
 	/* checking that username has been typed */
-	if ( '' === $user->user_login ) {
+	if ( $user->user_login === '' ) {
 		$errors->add( 'user_login', __( '<strong>Error:</strong> Please enter a username.' ) );
 	}
 
@@ -168,7 +168,7 @@ function edit_user( $user_id = 0 ) {
 	}
 
 	// Check for "\" in password.
-	if ( false !== strpos( wp_unslash( $pass1 ), '\\' ) ) {
+	if ( strpos( wp_unslash( $pass1 ), '\\' ) !== false ) {
 		$errors->add( 'pass', __( '<strong>Error:</strong> Passwords may not contain the character "\\".' ), array( 'form-field' => 'pass1' ) );
 	}
 
@@ -348,9 +348,9 @@ function wp_delete_user( $id, $reassign = null ) {
 	}
 
 	// Normalize $reassign to null or a user ID. 'novalue' was an older default.
-	if ( 'novalue' === $reassign ) {
+	if ( $reassign === 'novalue' ) {
 		$reassign = null;
-	} elseif ( null !== $reassign ) {
+	} elseif ( $reassign !== null ) {
 		$reassign = (int) $reassign;
 	}
 
@@ -367,12 +367,12 @@ function wp_delete_user( $id, $reassign = null ) {
 	 */
 	do_action( 'delete_user', $id, $reassign, $user );
 
-	if ( null === $reassign ) {
+	if ( $reassign === null ) {
 		$post_types_to_delete = array();
 		foreach ( get_post_types( array(), 'objects' ) as $post_type ) {
 			if ( $post_type->delete_with_user ) {
 				$post_types_to_delete[] = $post_type->name;
-			} elseif ( null === $post_type->delete_with_user && post_type_supports( $post_type->name, 'author' ) ) {
+			} elseif ( $post_type->delete_with_user === null && post_type_supports( $post_type->name, 'author' ) ) {
 				$post_types_to_delete[] = $post_type->name;
 			}
 		}
@@ -478,8 +478,8 @@ function default_password_nag_handler( $errors = false ) {
 	}
 
 	// get_user_setting() = JS-saved UI setting. Else no-js-fallback code.
-	if ( 'hide' === get_user_setting( 'default_password_nag' )
-		|| isset( $_GET['default_password_nag'] ) && '0' == $_GET['default_password_nag']
+	if ( get_user_setting( 'default_password_nag' ) === 'hide'
+		|| isset( $_GET['default_password_nag'] ) && $_GET['default_password_nag'] == '0'
 	) {
 		delete_user_setting( 'default_password_nag' );
 		update_user_meta( $user_ID, 'default_password_nag', false );
@@ -516,7 +516,7 @@ function default_password_nag() {
 	global $pagenow;
 
 	// Short-circuit it.
-	if ( 'profile.php' === $pagenow || ! get_user_option( 'default_password_nag' ) ) {
+	if ( $pagenow === 'profile.php' || ! get_user_option( 'default_password_nag' ) ) {
 		return;
 	}
 
@@ -578,7 +578,7 @@ function admin_created_user_email( $text ) {
 	$roles = get_editable_roles();
 	$role  = $roles[ $_REQUEST['role'] ];
 
-	if ( '' !== get_bloginfo( 'name' ) ) {
+	if ( get_bloginfo( 'name' ) !== '' ) {
 		$site_title = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
 	} else {
 		$site_title = parse_url( home_url(), PHP_URL_HOST );
@@ -624,7 +624,7 @@ function wp_is_authorize_application_password_request_valid( $request, $user ) {
 	if ( ! empty( $request['success_url'] ) ) {
 		$scheme = wp_parse_url( $request['success_url'], PHP_URL_SCHEME );
 
-		if ( 'http' === $scheme ) {
+		if ( $scheme === 'http' ) {
 			$error->add(
 				'invalid_redirect_scheme',
 				__( 'The success URL must be served over a secure connection.' )
@@ -635,7 +635,7 @@ function wp_is_authorize_application_password_request_valid( $request, $user ) {
 	if ( ! empty( $request['reject_url'] ) ) {
 		$scheme = wp_parse_url( $request['reject_url'], PHP_URL_SCHEME );
 
-		if ( 'http' === $scheme ) {
+		if ( $scheme === 'http' ) {
 			$error->add(
 				'invalid_redirect_scheme',
 				__( 'The rejection URL must be served over a secure connection.' )

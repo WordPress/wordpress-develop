@@ -49,15 +49,15 @@ if ( isset( $_POST['post_type'] ) && $post && $post_type !== $_POST['post_type']
 
 if ( isset( $_POST['deletepost'] ) ) {
 	$action = 'delete';
-} elseif ( isset( $_POST['wp-preview'] ) && 'dopreview' === $_POST['wp-preview'] ) {
+} elseif ( isset( $_POST['wp-preview'] ) && $_POST['wp-preview'] === 'dopreview' ) {
 	$action = 'preview';
 }
 
 $sendback = wp_get_referer();
 if ( ! $sendback ||
-	false !== strpos( $sendback, 'post.php' ) ||
-	false !== strpos( $sendback, 'post-new.php' ) ) {
-	if ( 'attachment' === $post_type ) {
+	strpos( $sendback, 'post.php' ) !== false ||
+	strpos( $sendback, 'post-new.php' ) !== false ) {
+	if ( $post_type === 'attachment' ) {
 		$sendback = admin_url( 'upload.php' );
 	} else {
 		$sendback = admin_url( 'edit.php' );
@@ -97,7 +97,7 @@ switch ( $action ) {
 		$_POST['ping_status']    = get_default_comment_status( $post->post_type, 'pingback' );
 
 		// Wrap Quick Draft content in the Paragraph block.
-		if ( false === strpos( $_POST['content'], '<!-- wp:paragraph -->' ) ) {
+		if ( strpos( $_POST['content'], '<!-- wp:paragraph -->' ) === false ) {
 			$_POST['content'] = sprintf(
 				'<!-- wp:paragraph -->%s<!-- /wp:paragraph -->',
 				str_replace( array( "\r\n", "\r", "\n" ), '<br />', $_POST['content'] )
@@ -111,7 +111,7 @@ switch ( $action ) {
 	case 'postajaxpost':
 	case 'post':
 		check_admin_referer( 'add-' . $post_type );
-		$post_id = 'postajaxpost' === $action ? edit_post() : write_post();
+		$post_id = $action === 'postajaxpost' ? edit_post() : write_post();
 		redirect_post( $post_id );
 		exit;
 
@@ -139,7 +139,7 @@ switch ( $action ) {
 			wp_die( __( 'Sorry, you are not allowed to edit this item.' ) );
 		}
 
-		if ( 'trash' === $post->post_status ) {
+		if ( $post->post_status === 'trash' ) {
 			wp_die( __( 'You cannot edit this item because it is in the Trash. Please restore it and try again.' ) );
 		}
 
@@ -151,16 +151,16 @@ switch ( $action ) {
 		}
 
 		$post_type = $post->post_type;
-		if ( 'post' === $post_type ) {
+		if ( $post_type === 'post' ) {
 			$parent_file   = 'edit.php';
 			$submenu_file  = 'edit.php';
 			$post_new_file = 'post-new.php';
-		} elseif ( 'attachment' === $post_type ) {
+		} elseif ( $post_type === 'attachment' ) {
 			$parent_file   = 'upload.php';
 			$submenu_file  = 'upload.php';
 			$post_new_file = 'media-new.php';
 		} else {
-			if ( isset( $post_type_object ) && $post_type_object->show_in_menu && true !== $post_type_object->show_in_menu ) {
+			if ( isset( $post_type_object ) && $post_type_object->show_in_menu && $post_type_object->show_in_menu !== true ) {
 				$parent_file = $post_type_object->show_in_menu;
 			} else {
 				$parent_file = "edit.php?post_type=$post_type";
@@ -179,7 +179,7 @@ switch ( $action ) {
 		 * @param bool    $replace Whether to replace the editor. Default false.
 		 * @param WP_Post $post    Post object.
 		 */
-		if ( true === apply_filters( 'replace_editor', false, $post ) ) {
+		if ( apply_filters( 'replace_editor', false, $post ) === true ) {
 			break;
 		}
 
@@ -191,7 +191,7 @@ switch ( $action ) {
 		if ( ! wp_check_post_lock( $post->ID ) ) {
 			$active_post_lock = wp_set_post_lock( $post->ID );
 
-			if ( 'attachment' !== $post_type ) {
+			if ( $post_type !== 'attachment' ) {
 				wp_enqueue_script( 'autosave' );
 			}
 		}
@@ -316,7 +316,7 @@ switch ( $action ) {
 			wp_die( __( 'Sorry, you are not allowed to delete this item.' ) );
 		}
 
-		if ( 'attachment' === $post->post_type ) {
+		if ( $post->post_type === 'attachment' ) {
 			$force = ( ! MEDIA_TRASH );
 			if ( ! wp_delete_attachment( $post_id, $force ) ) {
 				wp_die( __( 'Error in deleting the attachment.' ) );

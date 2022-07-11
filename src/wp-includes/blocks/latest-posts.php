@@ -139,7 +139,7 @@ function render_block_core_latest_posts( $attributes ) {
 		}
 
 		if ( isset( $attributes['displayPostContent'] ) && $attributes['displayPostContent']
-			&& isset( $attributes['displayPostContentRadio'] ) && 'excerpt' === $attributes['displayPostContentRadio'] ) {
+			&& isset( $attributes['displayPostContentRadio'] ) && $attributes['displayPostContentRadio'] === 'excerpt' ) {
 
 			$trimmed_excerpt = get_the_excerpt( $post );
 
@@ -154,7 +154,7 @@ function render_block_core_latest_posts( $attributes ) {
 		}
 
 		if ( isset( $attributes['displayPostContent'] ) && $attributes['displayPostContent']
-			&& isset( $attributes['displayPostContentRadio'] ) && 'full_post' === $attributes['displayPostContentRadio'] ) {
+			&& isset( $attributes['displayPostContentRadio'] ) && $attributes['displayPostContentRadio'] === 'full_post' ) {
 
 			$post_content = html_entity_decode( $post->post_content, ENT_QUOTES, get_option( 'blog_charset' ) );
 
@@ -175,11 +175,11 @@ function render_block_core_latest_posts( $attributes ) {
 
 	$class = 'wp-block-latest-posts__list';
 
-	if ( isset( $attributes['postLayout'] ) && 'grid' === $attributes['postLayout'] ) {
+	if ( isset( $attributes['postLayout'] ) && $attributes['postLayout'] === 'grid' ) {
 		$class .= ' is-grid';
 	}
 
-	if ( isset( $attributes['columns'] ) && 'grid' === $attributes['postLayout'] ) {
+	if ( isset( $attributes['columns'] ) && $attributes['postLayout'] === 'grid' ) {
 		$class .= ' columns-' . $attributes['columns'];
 	}
 
@@ -231,7 +231,7 @@ add_action( 'init', 'register_block_core_latest_posts' );
  */
 function block_core_latest_posts_migrate_categories( $block ) {
 	if (
-		'core/latest-posts' === $block['blockName'] &&
+		$block['blockName'] === 'core/latest-posts' &&
 		! empty( $block['attrs']['categories'] ) &&
 		is_string( $block['attrs']['categories'] )
 	) {

@@ -216,7 +216,7 @@ class WP_Http {
 		$args = wp_parse_args( $args );
 
 		// By default, HEAD requests do not cause redirections.
-		if ( isset( $args['method'] ) && 'HEAD' === $args['method'] ) {
+		if ( isset( $args['method'] ) && $args['method'] === 'HEAD' ) {
 			$defaults['redirection'] = 0;
 		}
 
@@ -256,7 +256,7 @@ class WP_Http {
 		 */
 		$pre = apply_filters( 'pre_http_request', false, $parsed_args, $url );
 
-		if ( false !== $pre ) {
+		if ( $pre !== false ) {
 			return $pre;
 		}
 
@@ -360,7 +360,7 @@ class WP_Http {
 		}
 
 		// All non-GET/HEAD requests should put the arguments in the form body.
-		if ( 'HEAD' !== $type && 'GET' !== $type ) {
+		if ( $type !== 'HEAD' && $type !== 'GET' ) {
 			$options['data_format'] = 'body';
 		}
 
@@ -462,7 +462,7 @@ class WP_Http {
 				$attributes                 = array_filter(
 					$value->get_attributes(),
 					static function( $attr ) {
-						return null !== $attr;
+						return $attr !== null;
 					}
 				);
 				$cookie_jar[ $value->name ] = new Requests_Cookie( $value->name, $value->value, $attributes, array( 'host-only' => $value->host_only ) );
@@ -491,7 +491,7 @@ class WP_Http {
 	 */
 	public static function browser_redirect_compatibility( $location, $headers, $data, &$options, $original ) {
 		// Browser compatibility.
-		if ( 302 === $original->status_code ) {
+		if ( $original->status_code === 302 ) {
 			$options['type'] = Requests::GET;
 		}
 	}
@@ -719,7 +719,7 @@ class WP_Http {
 		 * In this case, determine the final HTTP header and parse from there.
 		 */
 		for ( $i = count( $headers ) - 1; $i >= 0; $i-- ) {
-			if ( ! empty( $headers[ $i ] ) && false === strpos( $headers[ $i ], ':' ) ) {
+			if ( ! empty( $headers[ $i ] ) && strpos( $headers[ $i ], ':' ) === false ) {
 				$headers = array_splice( $headers, $i );
 				break;
 			}
@@ -732,7 +732,7 @@ class WP_Http {
 				continue;
 			}
 
-			if ( false === strpos( $tempheader, ':' ) ) {
+			if ( strpos( $tempheader, ':' ) === false ) {
 				$stack   = explode( ' ', $tempheader, 3 );
 				$stack[] = '';
 				list( , $response['code'], $response['message']) = $stack;
@@ -752,7 +752,7 @@ class WP_Http {
 			} else {
 				$newheaders[ $key ] = $value;
 			}
-			if ( 'set-cookie' === $key ) {
+			if ( $key === 'set-cookie' ) {
 				$cookies[] = new WP_Http_Cookie( $value, $url );
 			}
 		}
@@ -841,7 +841,7 @@ class WP_Http {
 			$body = substr( $body, $length + $chunk_length );
 
 			// End of the document.
-			if ( '0' === trim( $body ) ) {
+			if ( trim( $body ) === '0' ) {
 				return $parsed_body;
 			}
 		}
@@ -881,7 +881,7 @@ class WP_Http {
 		$home = parse_url( get_option( 'siteurl' ) );
 
 		// Don't block requests back to ourselves by default.
-		if ( 'localhost' === $check['host'] || ( isset( $home['host'] ) && $home['host'] === $check['host'] ) ) {
+		if ( $check['host'] === 'localhost' || ( isset( $home['host'] ) && $home['host'] === $check['host'] ) ) {
 			/**
 			 * Filters whether to block local HTTP API requests.
 			 *
@@ -900,10 +900,10 @@ class WP_Http {
 
 		static $accessible_hosts = null;
 		static $wildcard_regex   = array();
-		if ( null === $accessible_hosts ) {
+		if ( $accessible_hosts === null ) {
 			$accessible_hosts = preg_split( '|,\s*|', WP_ACCESSIBLE_HOSTS );
 
-			if ( false !== strpos( WP_ACCESSIBLE_HOSTS, '*' ) ) {
+			if ( strpos( WP_ACCESSIBLE_HOSTS, '*' ) !== false ) {
 				$wildcard_regex = array();
 				foreach ( $accessible_hosts as $host ) {
 					$wildcard_regex[] = str_replace( '\*', '.+', preg_quote( $host, '/' ) );
@@ -986,7 +986,7 @@ class WP_Http {
 		$path = ! empty( $url_parts['path'] ) ? $url_parts['path'] : '/';
 
 		// If it's a root-relative path, then great.
-		if ( ! empty( $relative_url_parts['path'] ) && '/' === $relative_url_parts['path'][0] ) {
+		if ( ! empty( $relative_url_parts['path'] ) && $relative_url_parts['path'][0] === '/' ) {
 			$path = $relative_url_parts['path'];
 
 			// Else it's a relative path.
@@ -1027,7 +1027,7 @@ class WP_Http {
 	 */
 	public static function handle_redirects( $url, $args, $response ) {
 		// If no redirects are present, or, redirects were not requested, perform no action.
-		if ( ! isset( $response['headers']['location'] ) || 0 === $args['_redirection'] ) {
+		if ( ! isset( $response['headers']['location'] ) || $args['_redirection'] === 0 ) {
 			return false;
 		}
 
@@ -1051,7 +1051,7 @@ class WP_Http {
 		$redirect_location = WP_Http::make_absolute_url( $redirect_location, $url );
 
 		// POST requests should not POST to a redirected location.
-		if ( 'POST' === $args['method'] ) {
+		if ( $args['method'] === 'POST' ) {
 			if ( in_array( $response['response']['code'], array( 302, 303 ), true ) ) {
 				$args['method'] = 'GET';
 			}
@@ -1089,7 +1089,7 @@ class WP_Http {
 			return 4;
 		}
 
-		if ( false !== strpos( $maybe_ip, ':' ) && preg_match( '/^(((?=.*(::))(?!.*\3.+\3))\3?|([\dA-F]{1,4}(\3|:\b|$)|\2))(?4){5}((?4){2}|(((2[0-4]|1\d|[1-9])?\d|25[0-5])\.?\b){4})$/i', trim( $maybe_ip, ' []' ) ) ) {
+		if ( strpos( $maybe_ip, ':' ) !== false && preg_match( '/^(((?=.*(::))(?!.*\3.+\3))\3?|([\dA-F]{1,4}(\3|:\b|$)|\2))(?4){5}((?4){2}|(((2[0-4]|1\d|[1-9])?\d|25[0-5])\.?\b){4})$/i', trim( $maybe_ip, ' []' ) ) ) {
 			return 6;
 		}
 

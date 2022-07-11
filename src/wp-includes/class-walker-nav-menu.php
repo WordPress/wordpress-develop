@@ -51,7 +51,7 @@ class Walker_Nav_Menu extends Walker {
 	 * @param stdClass $args   An object of wp_nav_menu() arguments.
 	 */
 	public function start_lvl( &$output, $depth = 0, $args = null ) {
-		if ( isset( $args->item_spacing ) && 'discard' === $args->item_spacing ) {
+		if ( isset( $args->item_spacing ) && $args->item_spacing === 'discard' ) {
 			$t = '';
 			$n = '';
 		} else {
@@ -90,7 +90,7 @@ class Walker_Nav_Menu extends Walker {
 	 * @param stdClass $args   An object of wp_nav_menu() arguments.
 	 */
 	public function end_lvl( &$output, $depth = 0, $args = null ) {
-		if ( isset( $args->item_spacing ) && 'discard' === $args->item_spacing ) {
+		if ( isset( $args->item_spacing ) && $args->item_spacing === 'discard' ) {
 			$t = '';
 			$n = '';
 		} else {
@@ -121,7 +121,7 @@ class Walker_Nav_Menu extends Walker {
 		// Restores the more descriptive, specific name for use within this method.
 		$menu_item = $data_object;
 
-		if ( isset( $args->item_spacing ) && 'discard' === $args->item_spacing ) {
+		if ( isset( $args->item_spacing ) && $args->item_spacing === 'discard' ) {
 			$t = '';
 			$n = '';
 		} else {
@@ -177,7 +177,7 @@ class Walker_Nav_Menu extends Walker {
 		$atts           = array();
 		$atts['title']  = ! empty( $menu_item->attr_title ) ? $menu_item->attr_title : '';
 		$atts['target'] = ! empty( $menu_item->target ) ? $menu_item->target : '';
-		if ( '_blank' === $menu_item->target && empty( $menu_item->xfn ) ) {
+		if ( $menu_item->target === '_blank' && empty( $menu_item->xfn ) ) {
 			$atts['rel'] = 'noopener';
 		} else {
 			$atts['rel'] = $menu_item->xfn;
@@ -208,8 +208,8 @@ class Walker_Nav_Menu extends Walker {
 
 		$attributes = '';
 		foreach ( $atts as $attr => $value ) {
-			if ( is_scalar( $value ) && '' !== $value && false !== $value ) {
-				$value       = ( 'href' === $attr ) ? esc_url( $value ) : esc_attr( $value );
+			if ( is_scalar( $value ) && $value !== '' && $value !== false ) {
+				$value       = ( $attr === 'href' ) ? esc_url( $value ) : esc_attr( $value );
 				$attributes .= ' ' . $attr . '="' . $value . '"';
 			}
 		}
@@ -266,7 +266,7 @@ class Walker_Nav_Menu extends Walker {
 	 * @param stdClass $args        An object of wp_nav_menu() arguments.
 	 */
 	public function end_el( &$output, $data_object, $depth = 0, $args = null ) {
-		if ( isset( $args->item_spacing ) && 'discard' === $args->item_spacing ) {
+		if ( isset( $args->item_spacing ) && $args->item_spacing === 'discard' ) {
 			$t = '';
 			$n = '';
 		} else {

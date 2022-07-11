@@ -35,7 +35,7 @@ function render_block_core_comment_content( $attributes, $content, $block ) {
 	$comment_text = apply_filters( 'comment_text', $comment_text, $comment, $args );
 
 	$moderation_note = '';
-	if ( '0' === $comment->comment_approved ) {
+	if ( $comment->comment_approved === '0' ) {
 		$commenter = wp_get_current_commenter();
 
 		if ( $commenter['comment_author_email'] ) {

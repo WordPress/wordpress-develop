@@ -376,7 +376,7 @@ class SMTP
         static $streamok;
         //This is enabled by default since 5.0.0 but some providers disable it
         //Check this once and cache the result
-        if (null === $streamok) {
+        if ($streamok === null) {
             $streamok = function_exists('stream_socket_client');
         }
 
@@ -432,7 +432,7 @@ class SMTP
         if (strpos(PHP_OS, 'WIN') !== 0) {
             $max = (int)ini_get('max_execution_time');
             //Don't bother if unlimited, or if set_time_limit is disabled
-            if (0 !== $max && $timeout > $max && strpos(ini_get('disable_functions'), 'set_time_limit') === false) {
+            if ($max !== 0 && $timeout > $max && strpos(ini_get('disable_functions'), 'set_time_limit') === false) {
                 @set_time_limit($timeout);
             }
             stream_set_timeout($connection, $timeout, 0);
@@ -516,7 +516,7 @@ class SMTP
             );
 
             //If we have requested a specific auth type, check the server supports it before trying others
-            if (null !== $authtype && !in_array($authtype, $this->server_caps['AUTH'], true)) {
+            if ($authtype !== null && !in_array($authtype, $this->server_caps['AUTH'], true)) {
                 $this->edebug('Requested auth method not available: ' . $authtype, self::DEBUG_LOWLEVEL);
                 $authtype = null;
             }
@@ -592,7 +592,7 @@ class SMTP
                 return $this->sendCommand('Username', base64_encode($response), 235);
             case 'XOAUTH2':
                 //The OAuth instance must be set up prior to requesting auth.
-                if (null === $OAuth) {
+                if ($OAuth === null) {
                     return false;
                 }
                 $oauth = $OAuth->getOauth64();
@@ -1117,7 +1117,7 @@ class SMTP
         //If SMTP transcripts are left enabled, or debug output is posted online
         //it can leak credentials, so hide credentials in all but lowest level
         if (
-            self::DEBUG_LOWLEVEL > $this->do_debug &&
+            $this->do_debug < self::DEBUG_LOWLEVEL &&
             in_array($command, ['User & Password', 'Username', 'Password'], true)
         ) {
             $this->edebug('CLIENT -> SERVER: [credentials hidden]', self::DEBUG_CLIENT);
@@ -1177,10 +1177,10 @@ class SMTP
         }
 
         if (!array_key_exists($name, $this->server_caps)) {
-            if ('HELO' === $name) {
+            if ($name === 'HELO') {
                 return $this->server_caps['EHLO'];
             }
-            if ('EHLO' === $name || array_key_exists('EHLO', $this->server_caps)) {
+            if ($name === 'EHLO' || array_key_exists('EHLO', $this->server_caps)) {
                 return false;
             }
             $this->setError('HELO handshake was used; No information about server extensions available');

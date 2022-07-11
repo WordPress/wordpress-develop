@@ -315,16 +315,16 @@ class WP_Themes_List_Table extends WP_List_Table {
 
 			foreach ( array( 'Name', 'Description', 'Author', 'AuthorURI' ) as $header ) {
 				// Don't mark up; Do translate.
-				if ( false !== stripos( strip_tags( $theme->display( $header, false, true ) ), $word ) ) {
+				if ( stripos( strip_tags( $theme->display( $header, false, true ) ), $word ) !== false ) {
 					continue 2;
 				}
 			}
 
-			if ( false !== stripos( $theme->get_stylesheet(), $word ) ) {
+			if ( stripos( $theme->get_stylesheet(), $word ) !== false ) {
 				continue;
 			}
 
-			if ( false !== stripos( $theme->get_template(), $word ) ) {
+			if ( stripos( $theme->get_template(), $word ) !== false ) {
 				continue;
 			}
 

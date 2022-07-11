@@ -197,7 +197,7 @@ final class WP_oEmbed_Controller {
 
 		$data = _wp_oembed_get_object()->get_data( $url, $args );
 
-		if ( false === $data ) {
+		if ( $data === false ) {
 			// Try using a classic embed, instead.
 			/* @var WP_Embed $wp_embed */
 			$html = $wp_embed->get_embed_handler_html( $args, $url );

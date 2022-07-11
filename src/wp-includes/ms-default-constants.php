@@ -130,7 +130,7 @@ function ms_subdomain_constants() {
 	static $subdomain_error      = null;
 	static $subdomain_error_warn = null;
 
-	if ( false === $subdomain_error ) {
+	if ( $subdomain_error === false ) {
 		return;
 	}
 

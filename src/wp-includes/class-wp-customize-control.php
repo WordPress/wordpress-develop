@@ -320,7 +320,7 @@ class WP_Customize_Control {
 		$this->json['description']    = $this->description;
 		$this->json['instanceNumber'] = $this->instance_number;
 
-		if ( 'dropdown-pages' === $this->type ) {
+		if ( $this->type === 'dropdown-pages' ) {
 			$this->json['allow_addition'] = $this->allow_addition;
 		}
 	}
@@ -613,7 +613,7 @@ class WP_Customize_Control {
 					$auto_draft_page_options = '';
 					foreach ( $nav_menus_created_posts_setting->value() as $auto_draft_page_id ) {
 						$post = get_post( $auto_draft_page_id );
-						if ( $post && 'page' === $post->post_type ) {
+						if ( $post && $post->post_type === 'page' ) {
 							$auto_draft_page_options .= sprintf( '<option value="%1$s">%2$s</option>', esc_attr( $post->ID ), esc_html( $post->post_title ) );
 						}
 					}

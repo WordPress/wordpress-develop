@@ -96,10 +96,10 @@ if (!is_callable('random_bytes')) {
                 PATH_SEPARATOR,
                 strtolower($RandomCompat_basedir)
             );
-            $RandomCompatUrandom = (array() !== array_intersect(
+            $RandomCompatUrandom = (array_intersect(
                 array('/dev', '/dev/', '/dev/urandom'),
                 $RandomCompat_open_basedir
-            ));
+            ) !== array());
             $RandomCompat_open_basedir = null;
         }
 

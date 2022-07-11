@@ -16,7 +16,7 @@ _deprecated_file(
 );
 
 // Do not delete these lines.
-if ( ! empty( $_SERVER['SCRIPT_FILENAME'] ) && 'comments.php' === basename( $_SERVER['SCRIPT_FILENAME'] ) ) {
+if ( ! empty( $_SERVER['SCRIPT_FILENAME'] ) && basename( $_SERVER['SCRIPT_FILENAME'] ) === 'comments.php' ) {
 	die( 'Please do not load this page directly. Thanks!' );
 }
 
@@ -32,7 +32,7 @@ if ( post_password_required() ) { ?>
 <?php if ( have_comments() ) : ?>
 	<h3 id="comments">
 		<?php
-		if ( 1 == get_comments_number() ) {
+		if ( get_comments_number() == 1 ) {
 			printf(
 				/* translators: %s: Post title. */
 				__( 'One response to %s' ),

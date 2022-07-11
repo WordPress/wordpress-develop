@@ -68,7 +68,7 @@ if ( $action ) {
 				$password = wp_generate_password( 12, false );
 				$user_id  = wpmu_create_user( esc_html( strtolower( $user['username'] ) ), $password, esc_html( $user['email'] ) );
 
-				if ( false === $user_id ) {
+				if ( $user_id === false ) {
 					$update = 'err_new_dup';
 				} else {
 					$result = add_user_to_blog( $id, $user_id, $_POST['new_role'] );
@@ -188,7 +188,7 @@ if ( $action ) {
 
 restore_current_blog();
 
-if ( isset( $_GET['action'] ) && 'update-site' === $_GET['action'] ) {
+if ( isset( $_GET['action'] ) && $_GET['action'] === 'update-site' ) {
 	wp_safe_redirect( $referer );
 	exit;
 }

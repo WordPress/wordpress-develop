@@ -89,7 +89,7 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 		 * @return string|false The key or false if the entry is empty.
 		 */
 		public function key() {
-			if ( null === $this->singular || '' === $this->singular ) {
+			if ( $this->singular === null || $this->singular === '' ) {
 				return false;
 			}
 

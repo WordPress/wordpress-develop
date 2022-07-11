@@ -496,8 +496,8 @@ class WP_User_Search {
 		_deprecated_function( __FUNCTION__, '3.1.0', 'WP_User_Query' );
 
 		$this->search_term = wp_unslash( $search_term );
-		$this->raw_page = ( '' == $page ) ? false : (int) $page;
-		$this->page = ( '' == $page ) ? 1 : (int) $page;
+		$this->raw_page = ( $page == '' ) ? false : (int) $page;
+		$this->page = ( $page == '' ) ? 1 : (int) $page;
 		$this->role = $role;
 
 		$this->prepare_query();
@@ -698,7 +698,7 @@ function get_others_unpublished_posts( $user_id, $type = 'any' ) {
 	else
 		$type_sql = " ( post_status = 'draft' OR post_status = 'pending' ) ";
 
-	$dir = ( 'pending' == $type ) ? 'ASC' : 'DESC';
+	$dir = ( $type == 'pending' ) ? 'ASC' : 'DESC';
 
 	if ( !$editable ) {
 		$other_unpubs = '';
@@ -1342,7 +1342,7 @@ function wp_dashboard_plugins_output( $rss, $args = array() ) {
 		// Pick a random, non-installed plugin.
 		while ( true ) {
 			// Abort this foreach loop iteration if there's no plugins left of this type.
-			if ( 0 === count($items) )
+			if ( count($items) === 0 )
 				continue 2;
 
 			$item_key = array_rand($items);
@@ -1372,7 +1372,7 @@ function wp_dashboard_plugins_output( $rss, $args = array() ) {
 		}
 
 		// Eliminate some common badly formed plugin descriptions.
-		while ( ( null !== $item_key = array_rand($items) ) && false !== strpos( $items[$item_key]->get_description(), 'Plugin Name:' ) )
+		while ( ( null !== $item_key = array_rand($items) ) && strpos( $items[$item_key]->get_description(), 'Plugin Name:' ) !== false )
 			unset($items[$item_key]);
 
 		if ( !isset($items[$item_key]) )

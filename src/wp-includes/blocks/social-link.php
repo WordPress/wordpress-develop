@@ -283,7 +283,7 @@ function block_core_social_link_services( $service = '', $field = '' ) {
 	if ( ! empty( $service )
 		&& ! empty( $field )
 		&& isset( $services_data[ $service ] )
-		&& ( 'icon' === $field || 'name' === $field )
+		&& ( $field === 'icon' || $field === 'name' )
 	) {
 		return $services_data[ $service ][ $field ];
 	} elseif ( ! empty( $service ) && isset( $services_data[ $service ] ) ) {

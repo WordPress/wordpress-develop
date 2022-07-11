@@ -80,7 +80,7 @@ final class WP_Privacy_Policy_Content {
 		 * execution instead.
 		 */
 		if ( ! did_action( 'admin_init' ) ) {
-			return 'changed' === $cached;
+			return $cached === 'changed';
 		}
 
 		$new = self::$policy_content;
@@ -118,7 +118,7 @@ final class WP_Privacy_Policy_Content {
 			update_option( '_wp_suggested_policy_text_has_changed', $state );
 		}
 
-		return 'changed' === $state;
+		return $state === 'changed';
 	}
 
 	/**
@@ -133,7 +133,7 @@ final class WP_Privacy_Policy_Content {
 
 		$screen = get_current_screen()->id;
 
-		if ( 'privacy' !== $screen ) {
+		if ( $screen !== 'privacy' ) {
 			return;
 		}
 
@@ -327,7 +327,7 @@ final class WP_Privacy_Policy_Content {
 		$current_screen = get_current_screen();
 		$policy_page_id = (int) get_option( 'wp_page_for_privacy_policy' );
 
-		if ( 'post' !== $current_screen->base || $policy_page_id !== $post->ID ) {
+		if ( $current_screen->base !== 'post' || $policy_page_id !== $post->ID ) {
 			return;
 		}
 
@@ -655,11 +655,11 @@ final class WP_Privacy_Policy_Content {
 
 		if ( $blocks ) {
 			foreach ( $strings as $key => $string ) {
-				if ( 0 === strpos( $string, '<p>' ) ) {
+				if ( strpos( $string, '<p>' ) === 0 ) {
 					$strings[ $key ] = '<!-- wp:paragraph -->' . $string . '<!-- /wp:paragraph -->';
 				}
 
-				if ( 0 === strpos( $string, '<h2>' ) ) {
+				if ( strpos( $string, '<h2>' ) === 0 ) {
 					$strings[ $key ] = '<!-- wp:heading -->' . $string . '<!-- /wp:heading -->';
 				}
 			}

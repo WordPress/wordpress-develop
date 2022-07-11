@@ -906,7 +906,7 @@ function is_main_query() {
 		return false;
 	}
 
-	if ( 'pre_get_posts' === current_filter() ) {
+	if ( current_filter() === 'pre_get_posts' ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
@@ -1052,7 +1052,7 @@ function the_comment() {
  * @since 2.1.0
  */
 function wp_old_slug_redirect() {
-	if ( is_404() && '' !== get_query_var( 'name' ) ) {
+	if ( is_404() && get_query_var( 'name' ) !== '' ) {
 		// Guess the current post type based on the query vars.
 		if ( get_query_var( 'post_type' ) ) {
 			$post_type = get_query_var( 'post_type' );
@@ -1154,7 +1154,7 @@ function _find_post_by_old_slug( $post_type ) {
 	$last_changed = wp_cache_get_last_changed( 'posts' );
 	$cache_key    = "find_post_by_old_slug:$key:$last_changed";
 	$cache        = wp_cache_get( $cache_key, 'posts' );
-	if ( false !== $cache ) {
+	if ( $cache !== false ) {
 		$id = $cache;
 	} else {
 		$id = (int) $wpdb->get_var( $query );
@@ -1197,7 +1197,7 @@ function _find_post_by_old_date( $post_type ) {
 		$last_changed = wp_cache_get_last_changed( 'posts' );
 		$cache_key    = "find_post_by_old_date:$key:$last_changed";
 		$cache        = wp_cache_get( $cache_key, 'posts' );
-		if ( false !== $cache ) {
+		if ( $cache !== false ) {
 			$id = $cache;
 		} else {
 			$id = (int) $wpdb->get_var( $query );

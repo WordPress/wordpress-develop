@@ -150,7 +150,7 @@ if ( ! function_exists( 'twentyeleven_setup' ) ) :
 		add_theme_support( 'post-formats', array( 'aside', 'link', 'gallery', 'status', 'quote', 'image' ) );
 
 		$theme_options = twentyeleven_get_theme_options();
-		if ( 'dark' === $theme_options['color_scheme'] ) {
+		if ( $theme_options['color_scheme'] === 'dark' ) {
 			$default_background_color = '1d1d1d';
 		} else {
 			$default_background_color = 'e2e2e2';
@@ -322,7 +322,7 @@ if ( ! function_exists( 'twentyeleven_header_style' ) ) :
 		$text_color = get_header_textcolor();
 
 		// If no custom options for text are set, let's bail.
-		if ( HEADER_TEXTCOLOR == $text_color ) {
+		if ( $text_color == HEADER_TEXTCOLOR ) {
 			return;
 		}
 
@@ -331,7 +331,7 @@ if ( ! function_exists( 'twentyeleven_header_style' ) ) :
 		<style type="text/css" id="twentyeleven-header-css">
 		<?php
 		// Has the text been hidden?
-		if ( 'blank' === $text_color ) :
+		if ( $text_color === 'blank' ) :
 			?>
 		#site-title,
 		#site-description {
@@ -419,7 +419,7 @@ if ( ! function_exists( 'twentyeleven_admin_header_image' ) ) :
 			$color = get_header_textcolor();
 			$image = get_header_image();
 			$style = 'display: none;';
-			if ( $color && 'blank' !== $color ) {
+			if ( $color && $color !== 'blank' ) {
 				$style = 'color: #' . $color . ';';
 			}
 			?>
@@ -724,7 +724,7 @@ if ( ! function_exists( 'twentyeleven_comment' ) ) :
 					<?php
 					$avatar_size = 68;
 
-					if ( '0' != $comment->comment_parent ) {
+					if ( $comment->comment_parent != '0' ) {
 						$avatar_size = 39;
 					}
 
@@ -756,7 +756,7 @@ if ( ! function_exists( 'twentyeleven_comment' ) ) :
 					}
 					?>
 
-					<?php if ( '0' == $comment->comment_approved ) : ?>
+					<?php if ( $comment->comment_approved == '0' ) : ?>
 					<em class="comment-awaiting-moderation"><?php echo $moderation_note; ?></em>
 					<br />
 					<?php endif; ?>

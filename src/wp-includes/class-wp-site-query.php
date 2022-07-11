@@ -339,7 +339,7 @@ class WP_Site_Query {
 		 */
 		$site_data = apply_filters_ref_array( 'sites_pre_query', array( $site_data, &$this ) );
 
-		if ( null !== $site_data ) {
+		if ( $site_data !== null ) {
 			if ( is_array( $site_data ) && ! $this->query_vars['count'] ) {
 				$this->sites = $site_data;
 			}
@@ -359,7 +359,7 @@ class WP_Site_Query {
 		$cache_key   = "get_sites:$key:$last_changed";
 		$cache_value = wp_cache_get( $cache_key, 'sites' );
 
-		if ( false === $cache_value ) {
+		if ( $cache_value === false ) {
 			$site_ids = $this->get_site_ids();
 			if ( $site_ids ) {
 				$this->set_found_sites();
@@ -387,7 +387,7 @@ class WP_Site_Query {
 
 		$site_ids = array_map( 'intval', $site_ids );
 
-		if ( 'ids' === $this->query_vars['fields'] ) {
+		if ( $this->query_vars['fields'] === 'ids' ) {
 			$this->sites = $site_ids;
 
 			return $this->sites;
@@ -465,7 +465,7 @@ class WP_Site_Query {
 					continue;
 				}
 
-				if ( 'site__in' === $_orderby || 'network__in' === $_orderby ) {
+				if ( $_orderby === 'site__in' || $_orderby === 'network__in' ) {
 					$orderby_array[] = $parsed;
 					continue;
 				}
@@ -748,7 +748,7 @@ class WP_Site_Query {
 	protected function get_search_sql( $search, $columns ) {
 		global $wpdb;
 
-		if ( false !== strpos( $search, '*' ) ) {
+		if ( strpos( $search, '*' ) !== false ) {
 			$like = '%' . implode( '%', array_map( array( $wpdb, 'esc_like' ), explode( '*', $search ) ) ) . '%';
 		} else {
 			$like = '%' . $wpdb->esc_like( $search ) . '%';
@@ -859,7 +859,7 @@ class WP_Site_Query {
 			return 'ASC';
 		}
 
-		if ( 'ASC' === strtoupper( $order ) ) {
+		if ( strtoupper( $order ) === 'ASC' ) {
 			return 'ASC';
 		} else {
 			return 'DESC';

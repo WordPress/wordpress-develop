@@ -6,7 +6,7 @@
  * @subpackage Administration
  */
 
-if ( isset( $_REQUEST['action'] ) && 'upload-attachment' === $_REQUEST['action'] ) {
+if ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] === 'upload-attachment' ) {
 	define( 'DOING_AJAX', true );
 }
 
@@ -24,7 +24,7 @@ require_once ABSPATH . 'wp-admin/admin.php';
 
 header( 'Content-Type: text/plain; charset=' . get_option( 'blog_charset' ) );
 
-if ( isset( $_REQUEST['action'] ) && 'upload-attachment' === $_REQUEST['action'] ) {
+if ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] === 'upload-attachment' ) {
 	require ABSPATH . 'wp-admin/includes/ajax-actions.php';
 
 	send_nosniff_header();
@@ -42,7 +42,7 @@ if ( ! current_user_can( 'upload_files' ) ) {
 if ( isset( $_REQUEST['attachment_id'] ) && (int) $_REQUEST['attachment_id'] && $_REQUEST['fetch'] ) {
 	$id   = (int) $_REQUEST['attachment_id'];
 	$post = get_post( $id );
-	if ( 'attachment' !== $post->post_type ) {
+	if ( $post->post_type !== 'attachment' ) {
 		wp_die( __( 'Invalid post type.' ) );
 	}
 

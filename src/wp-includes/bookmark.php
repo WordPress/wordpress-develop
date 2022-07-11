@@ -53,11 +53,11 @@ function get_bookmark( $bookmark, $output = OBJECT, $filter = 'raw' ) {
 
 	$_bookmark = sanitize_bookmark( $_bookmark, $filter );
 
-	if ( OBJECT === $output ) {
+	if ( $output === OBJECT ) {
 		return $_bookmark;
-	} elseif ( ARRAY_A === $output ) {
+	} elseif ( $output === ARRAY_A ) {
 		return get_object_vars( $_bookmark );
-	} elseif ( ARRAY_N === $output ) {
+	} elseif ( $output === ARRAY_N ) {
 		return array_values( get_object_vars( $_bookmark ) );
 	} else {
 		return $_bookmark;
@@ -153,7 +153,7 @@ function get_bookmarks( $args = '' ) {
 	$key   = md5( serialize( $parsed_args ) );
 	$cache = wp_cache_get( 'get_bookmarks', 'bookmark' );
 
-	if ( 'rand' !== $parsed_args['orderby'] && $cache ) {
+	if ( $parsed_args['orderby'] !== 'rand' && $cache ) {
 		if ( is_array( $cache ) && isset( $cache[ $key ] ) ) {
 			$bookmarks = $cache[ $key ];
 			/**
@@ -294,7 +294,7 @@ function get_bookmarks( $args = '' ) {
 	}
 
 	$order = strtoupper( $parsed_args['order'] );
-	if ( '' !== $order && ! in_array( $order, array( 'ASC', 'DESC' ), true ) ) {
+	if ( $order !== '' && ! in_array( $order, array( 'ASC', 'DESC' ), true ) ) {
 		$order = 'ASC';
 	}
 
@@ -306,13 +306,13 @@ function get_bookmarks( $args = '' ) {
 	$query  = "SELECT * $length $recently_updated_test $get_updated FROM $wpdb->links $join WHERE 1=1 $visible $category_query";
 	$query .= " $exclusions $inclusions $search";
 	$query .= " ORDER BY $orderby $order";
-	if ( -1 != $parsed_args['limit'] ) {
+	if ( $parsed_args['limit'] != -1 ) {
 		$query .= ' LIMIT ' . $parsed_args['limit'];
 	}
 
 	$results = $wpdb->get_results( $query );
 
-	if ( 'rand()' !== $orderby ) {
+	if ( $orderby !== 'rand()' ) {
 		$cache[ $key ] = $results;
 		wp_cache_set( 'get_bookmarks', $cache, 'bookmark' );
 	}
@@ -419,29 +419,29 @@ function sanitize_bookmark_field( $field, $value, $bookmark_id, $context ) {
 			break;
 	}
 
-	if ( 'raw' === $context ) {
+	if ( $context === 'raw' ) {
 		return $value;
 	}
 
-	if ( 'edit' === $context ) {
+	if ( $context === 'edit' ) {
 		/** This filter is documented in wp-includes/post.php */
 		$value = apply_filters( "edit_{$field}", $value, $bookmark_id );
 
-		if ( 'link_notes' === $field ) {
+		if ( $field === 'link_notes' ) {
 			$value = esc_html( $value ); // textarea_escaped
 		} else {
 			$value = esc_attr( $value );
 		}
-	} elseif ( 'db' === $context ) {
+	} elseif ( $context === 'db' ) {
 		/** This filter is documented in wp-includes/post.php */
 		$value = apply_filters( "pre_{$field}", $value );
 	} else {
 		/** This filter is documented in wp-includes/post.php */
 		$value = apply_filters( "{$field}", $value, $bookmark_id, $context );
 
-		if ( 'attribute' === $context ) {
+		if ( $context === 'attribute' ) {
 			$value = esc_attr( $value );
-		} elseif ( 'js' === $context ) {
+		} elseif ( $context === 'js' ) {
 			$value = esc_js( $value );
 		}
 	}

@@ -104,7 +104,7 @@ class WP_Locale_Switcher {
 	public function restore_previous_locale() {
 		$previous_locale = array_pop( $this->locales );
 
-		if ( null === $previous_locale ) {
+		if ( $previous_locale === null ) {
 			// The stack is empty, bail.
 			return false;
 		}
@@ -196,7 +196,7 @@ class WP_Locale_Switcher {
 		load_default_textdomain( $locale );
 
 		foreach ( $domains as $domain ) {
-			if ( 'default' === $domain ) {
+			if ( $domain === 'default' ) {
 				continue;
 			}
 

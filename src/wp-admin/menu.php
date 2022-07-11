@@ -121,7 +121,7 @@ $builtin = array( 'post', 'page' );
 foreach ( array_merge( $builtin, $types ) as $ptype ) {
 	$ptype_obj = get_post_type_object( $ptype );
 	// Check if it should be a submenu.
-	if ( true !== $ptype_obj->show_in_menu ) {
+	if ( $ptype_obj->show_in_menu !== true ) {
 		continue;
 	}
 	$ptype_menu_position = is_int( $ptype_obj->menu_position ) ? $ptype_obj->menu_position : ++$_wp_last_object_menu; // If we're to use $_wp_last_object_menu, increment it first.
@@ -130,7 +130,7 @@ foreach ( array_merge( $builtin, $types ) as $ptype ) {
 	$menu_icon = 'dashicons-admin-post';
 	if ( is_string( $ptype_obj->menu_icon ) ) {
 		// Special handling for data:image/svg+xml and Dashicons.
-		if ( 0 === strpos( $ptype_obj->menu_icon, 'data:image/svg+xml;base64,' ) || 0 === strpos( $ptype_obj->menu_icon, 'dashicons-' ) ) {
+		if ( strpos( $ptype_obj->menu_icon, 'data:image/svg+xml;base64,' ) === 0 || strpos( $ptype_obj->menu_icon, 'dashicons-' ) === 0 ) {
 			$menu_icon = $ptype_obj->menu_icon;
 		} else {
 			$menu_icon = esc_url( $ptype_obj->menu_icon );
@@ -141,7 +141,7 @@ foreach ( array_merge( $builtin, $types ) as $ptype ) {
 
 	$menu_class = 'menu-top menu-icon-' . $ptype_for_id;
 	// 'post' special case.
-	if ( 'post' === $ptype ) {
+	if ( $ptype === 'post' ) {
 		$menu_class    .= ' open-if-no-js';
 		$ptype_file     = 'edit.php';
 		$post_new_file  = 'post-new.php';

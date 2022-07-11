@@ -35,7 +35,7 @@ $discussion = twentynineteen_get_discussion_data();
 				_e( 'Leave a comment', 'twentynineteen' );
 			}
 		} else {
-			if ( '1' == $discussion->responses ) {
+			if ( $discussion->responses == '1' ) {
 				/* translators: %s: Post title. */
 				printf( _x( 'One reply on &ldquo;%s&rdquo;', 'comments title', 'twentynineteen' ), get_the_title() );
 			} else {
@@ -99,7 +99,7 @@ $discussion = twentynineteen_get_discussion_data();
 		endif;
 
 		// Show comment form at bottom if showing newest comments at the bottom.
-		if ( comments_open() && 'asc' === strtolower( get_option( 'comment_order', 'asc' ) ) ) :
+		if ( comments_open() && strtolower( get_option( 'comment_order', 'asc' ) ) === 'asc' ) :
 			?>
 			<div class="comment-form-flex comment-form-wrapper">
 				<h2 class="comments-title"><?php _e( 'Leave a comment', 'twentynineteen' ); ?></h2>

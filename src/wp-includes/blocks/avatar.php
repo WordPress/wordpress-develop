@@ -36,7 +36,7 @@ function render_block_core_avatar( $attributes, $content, $block ) {
 		if ( is_array( $border_radius ) ) {
 			// Apply styles for individual corner border radii.
 			foreach ( $border_radius as $key => $value ) {
-				if ( null !== $value ) {
+				if ( $value !== null ) {
 					$name = _wp_to_kebab_case( $key );
 					// Add shared styles for individual border radii.
 					$border_style   = sprintf(
@@ -95,7 +95,7 @@ function render_block_core_avatar( $attributes, $content, $block ) {
 		);
 		if ( isset( $attributes['isLink'] ) && $attributes['isLink'] ) {
 			$label = '';
-			if ( '_blank' === $attributes['linkTarget'] ) {
+			if ( $attributes['linkTarget'] === '_blank' ) {
 				// translators: %s is the Author name.
 				$label = 'aria-label="' . sprintf( esc_attr__( '(%s author archive, opens in a new tab)' ), $author_name ) . '"';
 			}
@@ -120,9 +120,9 @@ function render_block_core_avatar( $attributes, $content, $block ) {
 			'class'      => "wp-block-avatar__image $image_classes",
 		)
 	);
-	if ( isset( $attributes['isLink'] ) && $attributes['isLink'] && isset( $comment->comment_author_url ) && '' !== $comment->comment_author_url ) {
+	if ( isset( $attributes['isLink'] ) && $attributes['isLink'] && isset( $comment->comment_author_url ) && $comment->comment_author_url !== '' ) {
 		$label = '';
-		if ( '_blank' === $attributes['linkTarget'] ) {
+		if ( $attributes['linkTarget'] === '_blank' ) {
 			// translators: %s is the Comment Author name.
 			$label = 'aria-label="' . sprintf( esc_attr__( '(%s website link, opens in a new tab)' ), $comment->comment_author ) . '"';
 		}

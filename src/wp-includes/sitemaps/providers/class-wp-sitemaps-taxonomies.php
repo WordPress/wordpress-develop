@@ -87,7 +87,7 @@ class WP_Sitemaps_Taxonomies extends WP_Sitemaps_Provider {
 			$page_num
 		);
 
-		if ( null !== $url_list ) {
+		if ( $url_list !== null ) {
 			return $url_list;
 		}
 
@@ -164,7 +164,7 @@ class WP_Sitemaps_Taxonomies extends WP_Sitemaps_Provider {
 		 */
 		$max_num_pages = apply_filters( 'wp_sitemaps_taxonomies_pre_max_num_pages', null, $taxonomy );
 
-		if ( null !== $max_num_pages ) {
+		if ( $max_num_pages !== null ) {
 			return $max_num_pages;
 		}
 

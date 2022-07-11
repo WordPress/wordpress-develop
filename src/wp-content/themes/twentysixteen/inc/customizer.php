@@ -447,7 +447,7 @@ function twentysixteen_color_scheme_css() {
 	$color_scheme_option = get_theme_mod( 'color_scheme', 'default' );
 
 	// Don't do anything if the default color scheme is selected.
-	if ( 'default' === $color_scheme_option ) {
+	if ( $color_scheme_option === 'default' ) {
 		return;
 	}
 

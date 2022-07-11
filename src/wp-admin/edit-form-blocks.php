@@ -86,7 +86,7 @@ wp_add_inline_script(
  */
 $initial_edits = array();
 $is_new_post   = false;
-if ( 'auto-draft' === $post->post_status ) {
+if ( $post->post_status === 'auto-draft' ) {
 	$is_new_post = true;
 	// Override "(Auto Draft)" new post default title with empty string, or filtered value.
 	if ( post_type_supports( $post->post_type, 'title' ) ) {
@@ -230,7 +230,7 @@ if ( ! empty( $post_type_object->template ) ) {
 }
 
 // If there's no template set on a new post, use the post format, instead.
-if ( $is_new_post && ! isset( $editor_settings['template'] ) && 'post' === $post->post_type ) {
+if ( $is_new_post && ! isset( $editor_settings['template'] ) && $post->post_type === 'post' ) {
 	$post_format = get_post_format( $post );
 	if ( in_array( $post_format, array( 'audio', 'gallery', 'image', 'quote', 'video' ), true ) ) {
 		$editor_settings['template'] = array( array( "core/$post_format" ) );

@@ -362,7 +362,7 @@ if ( ! function_exists( 'twentyfifteen_fonts_url' ) ) :
 		 * translators: If there are characters in your language that are not supported
 		 * by Noto Sans, translate this to 'off'. Do not translate into your own language.
 		 */
-		if ( 'off' !== _x( 'on', 'Noto Sans font: on or off', 'twentyfifteen' ) ) {
+		if ( _x( 'on', 'Noto Sans font: on or off', 'twentyfifteen' ) !== 'off' ) {
 			$fonts[] = 'Noto Sans:400italic,700italic,400,700';
 		}
 
@@ -370,7 +370,7 @@ if ( ! function_exists( 'twentyfifteen_fonts_url' ) ) :
 		 * translators: If there are characters in your language that are not supported
 		 * by Noto Serif, translate this to 'off'. Do not translate into your own language.
 		 */
-		if ( 'off' !== _x( 'on', 'Noto Serif font: on or off', 'twentyfifteen' ) ) {
+		if ( _x( 'on', 'Noto Serif font: on or off', 'twentyfifteen' ) !== 'off' ) {
 			$fonts[] = 'Noto Serif:400italic,700italic,400,700';
 		}
 
@@ -378,7 +378,7 @@ if ( ! function_exists( 'twentyfifteen_fonts_url' ) ) :
 		 * translators: If there are characters in your language that are not supported
 		 * by Inconsolata, translate this to 'off'. Do not translate into your own language.
 		 */
-		if ( 'off' !== _x( 'on', 'Inconsolata font: on or off', 'twentyfifteen' ) ) {
+		if ( _x( 'on', 'Inconsolata font: on or off', 'twentyfifteen' ) !== 'off' ) {
 			$fonts[] = 'Inconsolata:400,700';
 		}
 
@@ -388,13 +388,13 @@ if ( ! function_exists( 'twentyfifteen_fonts_url' ) ) :
 		 */
 		$subset = _x( 'no-subset', 'Add new subset (greek, cyrillic, devanagari, vietnamese)', 'twentyfifteen' );
 
-		if ( 'cyrillic' === $subset ) {
+		if ( $subset === 'cyrillic' ) {
 			$subsets .= ',cyrillic,cyrillic-ext';
-		} elseif ( 'greek' === $subset ) {
+		} elseif ( $subset === 'greek' ) {
 			$subsets .= ',greek,greek-ext';
-		} elseif ( 'devanagari' === $subset ) {
+		} elseif ( $subset === 'devanagari' ) {
 			$subsets .= ',devanagari';
-		} elseif ( 'vietnamese' === $subset ) {
+		} elseif ( $subset === 'vietnamese' ) {
 			$subsets .= ',vietnamese';
 		}
 
@@ -497,7 +497,7 @@ add_action( 'enqueue_block_editor_assets', 'twentyfifteen_block_editor_styles' )
  * @return array URLs to print for resource hints.
  */
 function twentyfifteen_resource_hints( $urls, $relation_type ) {
-	if ( wp_style_is( 'twentyfifteen-fonts', 'queue' ) && 'preconnect' === $relation_type ) {
+	if ( wp_style_is( 'twentyfifteen-fonts', 'queue' ) && $relation_type === 'preconnect' ) {
 		if ( version_compare( $GLOBALS['wp_version'], '4.7-alpha', '>=' ) ) {
 			$urls[] = array(
 				'href' => 'https://fonts.gstatic.com',
@@ -528,7 +528,7 @@ function twentyfifteen_post_nav_background() {
 	$next     = get_adjacent_post( false, '', false );
 	$css      = '';
 
-	if ( is_attachment() && 'attachment' === $previous->post_type ) {
+	if ( is_attachment() && $previous->post_type === 'attachment' ) {
 		return;
 	}
 
@@ -566,7 +566,7 @@ add_action( 'wp_enqueue_scripts', 'twentyfifteen_post_nav_background' );
  * @return string Menu item with possible description.
  */
 function twentyfifteen_nav_description( $item_output, $item, $depth, $args ) {
-	if ( 'primary' === $args->theme_location && $item->description ) {
+	if ( $args->theme_location === 'primary' && $item->description ) {
 		$item_output = str_replace( $args->link_after . '</a>', '<div class="menu-item-description">' . $item->description . '</div>' . $args->link_after . '</a>', $item_output );
 	}
 
@@ -618,7 +618,7 @@ add_filter( 'widget_tag_cloud_args', 'twentyfifteen_widget_tag_cloud_args' );
 function twentyfifteen_author_bio_template( $template ) {
 	if ( is_author() ) {
 		$author = get_queried_object();
-		if ( $author instanceof WP_User && 'bio' === $author->user_nicename ) {
+		if ( $author instanceof WP_User && $author->user_nicename === 'bio' ) {
 			// Use author templates if exist, fall back to template hierarchy otherwise.
 			return locate_template( array( "author-{$author->ID}.php", 'author.php' ) );
 		}

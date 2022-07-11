@@ -30,7 +30,7 @@ $twenty_twenty_one_comment_count = get_comments_number();
 	if ( have_comments() ) :
 		?>
 		<h2 class="comments-title">
-			<?php if ( '1' === $twenty_twenty_one_comment_count ) : ?>
+			<?php if ( $twenty_twenty_one_comment_count === '1' ) : ?>
 				<?php esc_html_e( '1 comment', 'twentytwentyone' ); ?>
 			<?php else : ?>
 				<?php

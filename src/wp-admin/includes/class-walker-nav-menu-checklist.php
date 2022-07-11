@@ -79,9 +79,9 @@ class Walker_Nav_Menu_Checklist extends Walker_Nav_Menu {
 		// Restores the more descriptive, specific name for use within this method.
 		$menu_item = $data_object;
 
-		$_nav_menu_placeholder = ( 0 > $_nav_menu_placeholder ) ? (int) $_nav_menu_placeholder - 1 : -1;
-		$possible_object_id    = isset( $menu_item->post_type ) && 'nav_menu_item' === $menu_item->post_type ? $menu_item->object_id : $_nav_menu_placeholder;
-		$possible_db_id        = ( ! empty( $menu_item->ID ) ) && ( 0 < $possible_object_id ) ? (int) $menu_item->ID : 0;
+		$_nav_menu_placeholder = ( $_nav_menu_placeholder < 0 ) ? (int) $_nav_menu_placeholder - 1 : -1;
+		$possible_object_id    = isset( $menu_item->post_type ) && $menu_item->post_type === 'nav_menu_item' ? $menu_item->object_id : $_nav_menu_placeholder;
+		$possible_db_id        = ( ! empty( $menu_item->ID ) ) && ( $possible_object_id > 0 ) ? (int) $menu_item->ID : 0;
 
 		$indent = ( $depth ) ? str_repeat( "\t", $depth ) : '';
 
@@ -104,7 +104,7 @@ class Walker_Nav_Menu_Checklist extends Walker_Nav_Menu {
 
 		$output .= isset( $title ) ? esc_html( $title ) : esc_html( $menu_item->title );
 
-		if ( empty( $menu_item->label ) && isset( $menu_item->post_type ) && 'page' === $menu_item->post_type ) {
+		if ( empty( $menu_item->label ) && isset( $menu_item->post_type ) && $menu_item->post_type === 'page' ) {
 			// Append post states.
 			$output .= _post_states( $menu_item, false );
 		}

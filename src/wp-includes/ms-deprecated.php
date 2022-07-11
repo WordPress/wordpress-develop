@@ -199,7 +199,7 @@ function get_blog_list( $start = 0, $num = 10, $deprecated = '' ) {
 		return array();
 	}
 
-	if ( 'all' === $num ) {
+	if ( $num === 'all' ) {
 		return array_slice( $blog_list, $start, count( $blog_list ) );
 	} else {
 		return array_slice( $blog_list, $start, $num );
@@ -293,7 +293,7 @@ function wpmu_admin_do_redirect( $url = '' ) {
 	if ( isset( $_GET['redirect'] ) && isset( $_POST['redirect'] ) && $_GET['redirect'] !== $_POST['redirect'] ) {
 		wp_die( __( 'A variable mismatch has been detected.' ), __( 'Sorry, you are not allowed to view this item.' ), 400 );
 	} elseif ( isset( $_GET['redirect'] ) ) {
-		if ( 's_' === substr( $_GET['redirect'], 0, 2 ) )
+		if ( substr( $_GET['redirect'], 0, 2 ) === 's_' )
 			$url .= '&action=blogs&s='. esc_html( substr( $_GET['redirect'], 2 ) );
 	} elseif ( isset( $_POST['redirect'] ) ) {
 		$url = wpmu_admin_redirect_add_updated_param( $_POST['redirect'] );
@@ -372,7 +372,7 @@ function get_blogaddress_by_domain( $domain, $path ) {
 			$blogname = substr( $domain, 0, strpos( $domain, '.' ) );
 			$url = 'http://' . substr( $domain, strpos( $domain, '.' ) + 1 ) . $path;
 			// We're not installing the main blog.
-			if ( 'www.' !== $blogname )
+			if ( $blogname !== 'www.' )
 				$url .= $blogname . '/';
 		} else { // Main blog.
 			$url = 'http://' . $domain . $path;
@@ -632,10 +632,10 @@ function install_blog( $blog_id, $blog_title = '' ) {
 
 	if ( ! is_subdomain_install() ) {
 
-		if ( 'https' === parse_url( get_site_option( 'siteurl' ), PHP_URL_SCHEME ) ) {
+		if ( parse_url( get_site_option( 'siteurl' ), PHP_URL_SCHEME ) === 'https' ) {
 			$siteurl = set_url_scheme( $siteurl, 'https' );
 		}
-		if ( 'https' === parse_url( get_home_url( get_network()->site_id ), PHP_URL_SCHEME ) ) {
+		if ( parse_url( get_home_url( get_network()->site_id ), PHP_URL_SCHEME ) === 'https' ) {
 			$home = set_url_scheme( $home, 'https' );
 		}
 	}
@@ -709,7 +709,7 @@ function update_user_status( $id, $pref, $value, $deprecated = null ) {
 
 	_deprecated_function( __FUNCTION__, '5.3.0', 'wp_update_user()' );
 
-	if ( null !== $deprecated ) {
+	if ( $deprecated !== null ) {
 		_deprecated_argument( __FUNCTION__, '3.0.2' );
 	}
 
@@ -718,7 +718,7 @@ function update_user_status( $id, $pref, $value, $deprecated = null ) {
 	$user = new WP_User( $id );
 	clean_user_cache( $user );
 
-	if ( 'spam' === $pref ) {
+	if ( $pref === 'spam' ) {
 		if ( $value == 1 ) {
 			/** This filter is documented in wp-includes/user.php */
 			do_action( 'make_spam_user', $id );

@@ -175,7 +175,7 @@ class WP_Block {
 	 * @return array|null Prepared attributes, or null.
 	 */
 	public function __get( $name ) {
-		if ( 'attributes' === $name ) {
+		if ( $name === 'attributes' ) {
 			$this->attributes = isset( $this->parsed_block['attrs'] ) ?
 				$this->parsed_block['attrs'] :
 				array();
@@ -211,7 +211,7 @@ class WP_Block {
 			)
 		);
 
-		$is_dynamic    = $options['dynamic'] && $this->name && null !== $this->block_type && $this->block_type->is_dynamic();
+		$is_dynamic    = $options['dynamic'] && $this->name && $this->block_type !== null && $this->block_type->is_dynamic();
 		$block_content = '';
 
 		if ( ! $options['dynamic'] || empty( $this->block_type->skip_inner_blocks ) ) {

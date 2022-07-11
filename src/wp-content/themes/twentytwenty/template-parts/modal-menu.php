@@ -39,7 +39,7 @@
 
 					$expanded_nav_classes = '';
 
-					if ( 'expanded' === $mobile_menu_location ) {
+					if ( $mobile_menu_location === 'expanded' ) {
 						$expanded_nav_classes .= ' mobile-menu';
 					}
 
@@ -67,7 +67,7 @@
 					<?php
 				}
 
-				if ( 'expanded' !== $mobile_menu_location ) {
+				if ( $mobile_menu_location !== 'expanded' ) {
 					?>
 
 					<nav class="mobile-menu" aria-label="<?php echo esc_attr_x( 'Mobile', 'menu', 'twentytwenty' ); ?>">

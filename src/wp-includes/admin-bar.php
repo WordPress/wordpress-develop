@@ -306,7 +306,7 @@ function wp_admin_bar_my_account_menu( $wp_admin_bar ) {
 		)
 	);
 
-	if ( false !== $profile_url ) {
+	if ( $profile_url !== false ) {
 		$wp_admin_bar->add_node(
 			array(
 				'parent' => 'user-actions',
@@ -626,7 +626,7 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 	foreach ( (array) $wp_admin_bar->user->blogs as $blog ) {
 		switch_to_blog( $blog->userblog_id );
 
-		if ( true === $show_site_icons && has_site_icon() ) {
+		if ( $show_site_icons === true && has_site_icon() ) {
 			$blavatar = sprintf(
 				'<img class="blavatar" src="%s" srcset="%s 2x" alt="" width="16" height="16"%s />',
 				esc_url( get_site_icon_url( 16 ) ),
@@ -758,24 +758,24 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 		$post             = get_post();
 		$post_type_object = null;
 
-		if ( 'post' === $current_screen->base ) {
+		if ( $current_screen->base === 'post' ) {
 			$post_type_object = get_post_type_object( $post->post_type );
-		} elseif ( 'edit' === $current_screen->base ) {
+		} elseif ( $current_screen->base === 'edit' ) {
 			$post_type_object = get_post_type_object( $current_screen->post_type );
-		} elseif ( 'edit-comments' === $current_screen->base && $post_id ) {
+		} elseif ( $current_screen->base === 'edit-comments' && $post_id ) {
 			$post = get_post( $post_id );
 			if ( $post ) {
 				$post_type_object = get_post_type_object( $post->post_type );
 			}
 		}
 
-		if ( ( 'post' === $current_screen->base || 'edit-comments' === $current_screen->base )
-			&& 'add' !== $current_screen->action
+		if ( ( $current_screen->base === 'post' || $current_screen->base === 'edit-comments' )
+			&& $current_screen->action !== 'add'
 			&& ( $post_type_object )
 			&& current_user_can( 'read_post', $post->ID )
 			&& ( $post_type_object->public )
 			&& ( $post_type_object->show_in_admin_bar ) ) {
-			if ( 'draft' === $post->post_status ) {
+			if ( $post->post_status === 'draft' ) {
 				$preview_link = get_preview_post_link( $post );
 				$wp_admin_bar->add_node(
 					array(
@@ -794,12 +794,12 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 					)
 				);
 			}
-		} elseif ( 'edit' === $current_screen->base
+		} elseif ( $current_screen->base === 'edit'
 			&& ( $post_type_object )
 			&& ( $post_type_object->public )
 			&& ( $post_type_object->show_in_admin_bar )
 			&& ( get_post_type_archive_link( $post_type_object->name ) )
-			&& ! ( 'post' === $post_type_object->name && 'posts' === get_option( 'show_on_front' ) ) ) {
+			&& ! ( $post_type_object->name === 'post' && get_option( 'show_on_front' ) === 'posts' ) ) {
 			$wp_admin_bar->add_node(
 				array(
 					'id'    => 'archive',
@@ -807,7 +807,7 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 					'href'  => get_post_type_archive_link( $current_screen->post_type ),
 				)
 			);
-		} elseif ( 'term' === $current_screen->base && isset( $tag ) && is_object( $tag ) && ! is_wp_error( $tag ) ) {
+		} elseif ( $current_screen->base === 'term' && isset( $tag ) && is_object( $tag ) && ! is_wp_error( $tag ) ) {
 			$tax = get_taxonomy( $tag->taxonomy );
 			if ( is_taxonomy_viewable( $tax ) ) {
 				$wp_admin_bar->add_node(
@@ -818,7 +818,7 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 					)
 				);
 			}
-		} elseif ( 'user-edit' === $current_screen->base && isset( $user_id ) ) {
+		} elseif ( $current_screen->base === 'user-edit' && isset( $user_id ) ) {
 			$user_object = get_userdata( $user_id );
 			$view_link   = get_author_posts_url( $user_object->ID );
 			if ( $user_object->exists() && $view_link ) {
@@ -1268,7 +1268,7 @@ function is_admin_bar_showing() {
 	}
 
 	if ( ! isset( $show_admin_bar ) ) {
-		if ( ! is_user_logged_in() || 'wp-login.php' === $pagenow ) {
+		if ( ! is_user_logged_in() || $pagenow === 'wp-login.php' ) {
 			$show_admin_bar = false;
 		} else {
 			$show_admin_bar = _get_admin_bar_pref();
@@ -1303,9 +1303,9 @@ function is_admin_bar_showing() {
  */
 function _get_admin_bar_pref( $context = 'front', $user = 0 ) {
 	$pref = get_user_option( "show_admin_bar_{$context}", $user );
-	if ( false === $pref ) {
+	if ( $pref === false ) {
 		return true;
 	}
 
-	return 'true' === $pref;
+	return $pref === 'true';
 }

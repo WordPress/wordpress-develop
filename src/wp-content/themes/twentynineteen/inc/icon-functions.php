@@ -39,7 +39,7 @@ function twentynineteen_get_social_link_svg( $uri, $size = 24 ) {
  */
 function twentynineteen_nav_menu_social_icons( $item_output, $item, $depth, $args ) {
 	// Change SVG icon inside social links menu if there is supported URL.
-	if ( 'social' === $args->theme_location ) {
+	if ( $args->theme_location === 'social' ) {
 		$svg = twentynineteen_get_social_link_svg( $item->url, 26 );
 		if ( empty( $svg ) ) {
 			$svg = twentynineteen_get_icon_svg( 'link' );
@@ -63,7 +63,7 @@ add_filter( 'walker_nav_menu_start_el', 'twentynineteen_nav_menu_social_icons', 
 function twentynineteen_add_dropdown_icons( $item_output, $item, $depth, $args ) {
 
 	// Only add class to 'top level' items on the 'primary' menu.
-	if ( ! isset( $args->theme_location ) || 'menu-1' !== $args->theme_location ) {
+	if ( ! isset( $args->theme_location ) || $args->theme_location !== 'menu-1' ) {
 		return $item_output;
 	}
 

@@ -74,7 +74,7 @@ if ( ! function_exists( 'twentynineteen_entry_footer' ) ) :
 	function twentynineteen_entry_footer() {
 
 		// Hide author, post date, category and tag text for pages.
-		if ( 'post' === get_post_type() ) {
+		if ( get_post_type() === 'post' ) {
 
 			// Posted by.
 			twentynineteen_posted_by();
@@ -202,7 +202,7 @@ if ( ! function_exists( 'twentynineteen_comment_form' ) ) :
 	 * Documentation for function.
 	 */
 	function twentynineteen_comment_form( $order ) {
-		if ( true === $order || strtolower( $order ) === strtolower( get_option( 'comment_order', 'asc' ) ) ) {
+		if ( $order === true || strtolower( $order ) === strtolower( get_option( 'comment_order', 'asc' ) ) ) {
 
 			comment_form(
 				array(

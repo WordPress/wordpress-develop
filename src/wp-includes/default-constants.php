@@ -44,7 +44,7 @@ function wp_initial_constants() {
 
 	// Define memory limits.
 	if ( ! defined( 'WP_MEMORY_LIMIT' ) ) {
-		if ( false === wp_is_ini_value_changeable( 'memory_limit' ) ) {
+		if ( wp_is_ini_value_changeable( 'memory_limit' ) === false ) {
 			define( 'WP_MEMORY_LIMIT', $current_limit );
 		} elseif ( is_multisite() ) {
 			define( 'WP_MEMORY_LIMIT', '64M' );
@@ -54,9 +54,9 @@ function wp_initial_constants() {
 	}
 
 	if ( ! defined( 'WP_MAX_MEMORY_LIMIT' ) ) {
-		if ( false === wp_is_ini_value_changeable( 'memory_limit' ) ) {
+		if ( wp_is_ini_value_changeable( 'memory_limit' ) === false ) {
 			define( 'WP_MAX_MEMORY_LIMIT', $current_limit );
-		} elseif ( -1 === $current_limit_int || $current_limit_int > 268435456 /* = 256M */ ) {
+		} elseif ( $current_limit_int === -1 || $current_limit_int > 268435456 /* = 256M */ ) {
 			define( 'WP_MAX_MEMORY_LIMIT', $current_limit );
 		} else {
 			define( 'WP_MAX_MEMORY_LIMIT', '256M' );
@@ -65,7 +65,7 @@ function wp_initial_constants() {
 
 	// Set memory limits.
 	$wp_limit_int = wp_convert_hr_to_bytes( WP_MEMORY_LIMIT );
-	if ( -1 !== $current_limit_int && ( -1 === $wp_limit_int || $wp_limit_int > $current_limit_int ) ) {
+	if ( $current_limit_int !== -1 && ( $wp_limit_int === -1 || $wp_limit_int > $current_limit_int ) ) {
 		ini_set( 'memory_limit', WP_MEMORY_LIMIT );
 	}
 
@@ -79,7 +79,7 @@ function wp_initial_constants() {
 
 	// Add define( 'WP_DEBUG', true ); to wp-config.php to enable display of notices during development.
 	if ( ! defined( 'WP_DEBUG' ) ) {
-		if ( 'development' === wp_get_environment_type() ) {
+		if ( wp_get_environment_type() === 'development' ) {
 			define( 'WP_DEBUG', true );
 		} else {
 			define( 'WP_DEBUG', false );
@@ -105,7 +105,7 @@ function wp_initial_constants() {
 	// non-concatenated scripts and stylesheets.
 	if ( ! defined( 'SCRIPT_DEBUG' ) ) {
 		if ( ! empty( $wp_version ) ) {
-			$develop_src = false !== strpos( $wp_version, '-src' );
+			$develop_src = strpos( $wp_version, '-src' ) !== false;
 		} else {
 			$develop_src = false;
 		}
@@ -335,7 +335,7 @@ function wp_ssl_constants() {
 	 * @since 2.6.0
 	 */
 	if ( ! defined( 'FORCE_SSL_ADMIN' ) ) {
-		if ( 'https' === parse_url( get_option( 'siteurl' ), PHP_URL_SCHEME ) ) {
+		if ( parse_url( get_option( 'siteurl' ), PHP_URL_SCHEME ) === 'https' ) {
 			define( 'FORCE_SSL_ADMIN', true );
 		} else {
 			define( 'FORCE_SSL_ADMIN', false );

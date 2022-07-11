@@ -66,7 +66,7 @@ if ( ! function_exists( 'twenty_twenty_one_entry_meta_footer' ) ) {
 	function twenty_twenty_one_entry_meta_footer() {
 
 		// Early exit if not a post.
-		if ( 'post' !== get_post_type() ) {
+		if ( get_post_type() !== 'post' ) {
 			return;
 		}
 
@@ -78,7 +78,7 @@ if ( ! function_exists( 'twenty_twenty_one_entry_meta_footer' ) ) {
 			}
 
 			$post_format = get_post_format();
-			if ( 'aside' === $post_format || 'status' === $post_format ) {
+			if ( $post_format === 'aside' || $post_format === 'status' ) {
 				echo '<p><a href="' . esc_url( get_permalink() ) . '">' . twenty_twenty_one_continue_reading_text() . '</a></p>'; // phpcs:ignore WordPress.Security.EscapeOutput
 			}
 

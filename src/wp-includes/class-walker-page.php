@@ -53,7 +53,7 @@ class Walker_Page extends Walker {
 	 *                       Default empty array.
 	 */
 	public function start_lvl( &$output, $depth = 0, $args = array() ) {
-		if ( isset( $args['item_spacing'] ) && 'preserve' === $args['item_spacing'] ) {
+		if ( isset( $args['item_spacing'] ) && $args['item_spacing'] === 'preserve' ) {
 			$t = "\t";
 			$n = "\n";
 		} else {
@@ -77,7 +77,7 @@ class Walker_Page extends Walker {
 	 *                       Default empty array.
 	 */
 	public function end_lvl( &$output, $depth = 0, $args = array() ) {
-		if ( isset( $args['item_spacing'] ) && 'preserve' === $args['item_spacing'] ) {
+		if ( isset( $args['item_spacing'] ) && $args['item_spacing'] === 'preserve' ) {
 			$t = "\t";
 			$n = "\n";
 		} else {
@@ -107,7 +107,7 @@ class Walker_Page extends Walker {
 		$page            = $data_object;
 		$current_page_id = $current_object_id;
 
-		if ( isset( $args['item_spacing'] ) && 'preserve' === $args['item_spacing'] ) {
+		if ( isset( $args['item_spacing'] ) && $args['item_spacing'] === 'preserve' ) {
 			$t = "\t";
 			$n = "\n";
 		} else {
@@ -158,7 +158,7 @@ class Walker_Page extends Walker {
 		$css_classes = implode( ' ', apply_filters( 'page_css_class', $css_class, $page, $depth, $args, $current_page_id ) );
 		$css_classes = $css_classes ? ' class="' . esc_attr( $css_classes ) . '"' : '';
 
-		if ( '' === $page->post_title ) {
+		if ( $page->post_title === '' ) {
 			/* translators: %d: ID of a post. */
 			$page->post_title = sprintf( __( '#%d (no title)' ), $page->ID );
 		}
@@ -190,8 +190,8 @@ class Walker_Page extends Walker {
 
 		$attributes = '';
 		foreach ( $atts as $attr => $value ) {
-			if ( is_scalar( $value ) && '' !== $value && false !== $value ) {
-				$value       = ( 'href' === $attr ) ? esc_url( $value ) : esc_attr( $value );
+			if ( is_scalar( $value ) && $value !== '' && $value !== false ) {
+				$value       = ( $attr === 'href' ) ? esc_url( $value ) : esc_attr( $value );
 				$attributes .= ' ' . $attr . '="' . $value . '"';
 			}
 		}
@@ -207,7 +207,7 @@ class Walker_Page extends Walker {
 		);
 
 		if ( ! empty( $args['show_date'] ) ) {
-			if ( 'modified' === $args['show_date'] ) {
+			if ( $args['show_date'] === 'modified' ) {
 				$time = $page->post_modified;
 			} else {
 				$time = $page->post_date;
@@ -232,7 +232,7 @@ class Walker_Page extends Walker {
 	 * @param array   $args        Optional. Array of arguments. Default empty array.
 	 */
 	public function end_el( &$output, $data_object, $depth = 0, $args = array() ) {
-		if ( isset( $args['item_spacing'] ) && 'preserve' === $args['item_spacing'] ) {
+		if ( isset( $args['item_spacing'] ) && $args['item_spacing'] === 'preserve' ) {
 			$t = "\t";
 			$n = "\n";
 		} else {

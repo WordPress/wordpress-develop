@@ -29,7 +29,7 @@ global $comment;
 <div id="post-body" class="metabox-holder columns-2">
 <div id="post-body-content" class="edit-form-section edit-comment-section">
 <?php
-if ( 'approved' === wp_get_comment_status( $comment ) && $comment->comment_post_ID > 0 ) :
+if ( wp_get_comment_status( $comment ) === 'approved' && $comment->comment_post_ID > 0 ) :
 	$comment_link = get_comment_link( $comment );
 	?>
 <div class="inside">
@@ -150,7 +150,7 @@ printf( __( 'Submitted on: %s' ), '<b>' . $submitted . '</b>' );
  */
 global $action;
 
-touch_time( ( 'editcomment' === $action ), 0 );
+touch_time( ( $action === 'editcomment' ), 0 );
 ?>
 </fieldset>
 </div>

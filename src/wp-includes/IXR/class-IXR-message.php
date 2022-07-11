@@ -53,20 +53,20 @@ class IXR_Message
         // merged from WP #10698 - this method avoids the RAM usage of preg_replace on very large messages
         $header = preg_replace( '/<\?xml.*?\?'.'>/s', '', substr( $this->message, 0, 100 ), 1 );
         $this->message = trim( substr_replace( $this->message, $header, 0, 100 ) );
-        if ( '' == $this->message ) {
+        if ( $this->message == '' ) {
             return false;
         }
 
         // Then remove the DOCTYPE
         $header = preg_replace( '/^<!DOCTYPE[^>]*+>/i', '', substr( $this->message, 0, 200 ), 1 );
         $this->message = trim( substr_replace( $this->message, $header, 0, 200 ) );
-        if ( '' == $this->message ) {
+        if ( $this->message == '' ) {
             return false;
         }
 
         // Check that the root tag is valid
         $root_tag = substr( $this->message, 0, strcspn( substr( $this->message, 0, 20 ), "> \t\r\n" ) );
-        if ( '<!DOCTYPE' === strtoupper( $root_tag ) ) {
+        if ( strtoupper( $root_tag ) === '<!DOCTYPE' ) {
             return false;
         }
         if ( ! in_array( $root_tag, array( '<methodCall', '<methodResponse', '<fault' ) ) ) {

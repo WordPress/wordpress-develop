@@ -17,7 +17,7 @@ if ( ! apply_filters( 'enable_post_by_email_configuration', true ) ) {
 
 $mailserver_url = get_option( 'mailserver_url' );
 
-if ( 'mail.example.com' === $mailserver_url || empty( $mailserver_url ) ) {
+if ( $mailserver_url === 'mail.example.com' || empty( $mailserver_url ) ) {
 	wp_die( __( 'This action has been disabled by the administrator.' ), 403 );
 }
 
@@ -56,11 +56,11 @@ if ( ! $pop3->connect( get_option( 'mailserver_url' ), get_option( 'mailserver_p
 
 $count = $pop3->pass( get_option( 'mailserver_pass' ) );
 
-if ( false === $count ) {
+if ( $count === false ) {
 	wp_die( esc_html( $pop3->ERROR ) );
 }
 
-if ( 0 === $count ) {
+if ( $count === 0 ) {
 	$pop3->quit();
 	wp_die( __( 'There does not seem to be any new mail.' ) );
 }
@@ -104,7 +104,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 				$content_transfer_encoding = explode( ';', $content_transfer_encoding );
 				$content_transfer_encoding = $content_transfer_encoding[0];
 			}
-			if ( ( 'multipart/alternative' === $content_type ) && ( false !== strpos( $line, 'boundary="' ) ) && ( '' === $boundary ) ) {
+			if ( ( $content_type === 'multipart/alternative' ) && ( strpos( $line, 'boundary="' ) !== false ) && ( $boundary === '' ) ) {
 				$boundary = trim( $line );
 				$boundary = explode( '"', $boundary );
 				$boundary = $boundary[1];
@@ -166,7 +166,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 
 	$subject = trim( $subject );
 
-	if ( 'multipart/alternative' === $content_type ) {
+	if ( $content_type === 'multipart/alternative' ) {
 		$content = explode( '--' . $boundary, $content );
 		$content = $content[2];
 
@@ -191,7 +191,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 	 */
 	$content = apply_filters( 'wp_mail_original_content', $content );
 
-	if ( false !== stripos( $content_transfer_encoding, 'quoted-printable' ) ) {
+	if ( stripos( $content_transfer_encoding, 'quoted-printable' ) !== false ) {
 		$content = quoted_printable_decode( $content );
 	}
 
@@ -216,7 +216,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 
 	$post_title = xmlrpc_getposttitle( $content );
 
-	if ( '' === trim( $post_title ) ) {
+	if ( trim( $post_title ) === '' ) {
 		$post_title = $subject;
 	}
 

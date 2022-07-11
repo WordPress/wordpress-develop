@@ -51,7 +51,7 @@ if ( $admin_title === $title ) {
 } else {
 	$screen_title = $title;
 
-	if ( 'post' === $current_screen->base && 'add' !== $current_screen->action ) {
+	if ( $current_screen->base === 'post' && $current_screen->action !== 'add' ) {
 		$post_title = get_the_title();
 		if ( ! empty( $post_title ) ) {
 			$post_type_obj = get_post_type_object( $typenow );
@@ -162,7 +162,7 @@ do_action( "admin_head-{$hook_suffix}" ); // phpcs:ignore WordPress.NamingConven
  */
 do_action( 'admin_head' );
 
-if ( 'f' === get_user_setting( 'mfold' ) ) {
+if ( get_user_setting( 'mfold' ) === 'f' ) {
 	$admin_body_class .= ' folded';
 }
 
@@ -215,7 +215,7 @@ $error_get_last = error_get_last();
 if ( $error_get_last && WP_DEBUG && WP_DEBUG_DISPLAY && ini_get( 'display_errors' )
 	// Don't print the class for PHP notices in wp-config.php, as they happen before WP_DEBUG takes effect,
 	// and should not be displayed with the `error_reporting` level previously set in wp-load.php.
-	&& ( E_NOTICE !== $error_get_last['type'] || 'wp-config.php' !== wp_basename( $error_get_last['file'] ) )
+	&& ( $error_get_last['type'] !== E_NOTICE || wp_basename( $error_get_last['file'] ) !== 'wp-config.php' )
 ) {
 	$admin_body_class .= ' php-error';
 }
@@ -310,6 +310,6 @@ if ( is_network_admin() ) {
  */
 do_action( 'all_admin_notices' );
 
-if ( 'options-general.php' === $parent_file ) {
+if ( $parent_file === 'options-general.php' ) {
 	require ABSPATH . 'wp-admin/options-head.php';
 }

@@ -105,7 +105,7 @@ final class _WP_Editors {
 		self::$this_tinymce = ( $set['tinymce'] && user_can_richedit() );
 
 		if ( self::$this_tinymce ) {
-			if ( false !== strpos( $editor_id, '[' ) ) {
+			if ( strpos( $editor_id, '[' ) !== false ) {
 				self::$this_tinymce = false;
 				_deprecated_argument( 'wp_editor()', '3.9.0', 'TinyMCE editor IDs cannot have brackets.' );
 			}
@@ -125,7 +125,7 @@ final class _WP_Editors {
 			return $set;
 		}
 
-		if ( 'content' === $editor_id && empty( $set['tinymce']['wp_autoresize_on'] ) ) {
+		if ( $editor_id === 'content' && empty( $set['tinymce']['wp_autoresize_on'] ) ) {
 			// A cookie (set when a user resizes the editor) overrides the height.
 			$cookie = (int) get_user_setting( 'ed_size' );
 
@@ -182,7 +182,7 @@ final class _WP_Editors {
 			if ( self::$this_quicktags ) {
 				$default_editor = $set['default_editor'] ? $set['default_editor'] : wp_default_editor();
 				// 'html' is used for the "Text" editor tab.
-				if ( 'html' !== $default_editor ) {
+				if ( $default_editor !== 'html' ) {
 					$default_editor = 'tinymce';
 				}
 
@@ -195,7 +195,7 @@ final class _WP_Editors {
 			}
 		}
 
-		$switch_class = 'html' === $default_editor ? 'html-active' : 'tmce-active';
+		$switch_class = $default_editor === 'html' ? 'html-active' : 'tmce-active';
 		$wrap_class   = 'wp-core-ui wp-editor-wrap ' . $switch_class;
 
 		if ( $set['_content_editor_dfw'] ) {
@@ -243,7 +243,7 @@ final class _WP_Editors {
 		$quicktags_toolbar = '';
 
 		if ( self::$this_quicktags ) {
-			if ( 'content' === $editor_id && ! empty( $GLOBALS['current_screen'] ) && 'post' === $GLOBALS['current_screen']->base ) {
+			if ( $editor_id === 'content' && ! empty( $GLOBALS['current_screen'] ) && $GLOBALS['current_screen']->base === 'post' ) {
 				$toolbar_id = 'ed_toolbar';
 			} else {
 				$toolbar_id = 'qt_' . $editor_id_attr . '_toolbar';
@@ -289,15 +289,15 @@ final class _WP_Editors {
 		}
 
 		// Back-compat for the `htmledit_pre` and `richedit_pre` filters.
-		if ( 'html' === $default_editor && has_filter( 'htmledit_pre' ) ) {
+		if ( $default_editor === 'html' && has_filter( 'htmledit_pre' ) ) {
 			/** This filter is documented in wp-includes/deprecated.php */
 			$content = apply_filters_deprecated( 'htmledit_pre', array( $content ), '4.3.0', 'format_for_editor' );
-		} elseif ( 'tinymce' === $default_editor && has_filter( 'richedit_pre' ) ) {
+		} elseif ( $default_editor === 'tinymce' && has_filter( 'richedit_pre' ) ) {
 			/** This filter is documented in wp-includes/deprecated.php */
 			$content = apply_filters_deprecated( 'richedit_pre', array( $content ), '4.3.0', 'format_for_editor' );
 		}
 
-		if ( false !== stripos( $content, 'textarea' ) ) {
+		if ( stripos( $content, 'textarea' ) !== false ) {
 			$content = preg_replace( '%</textarea%i', '&lt;/textarea', $content );
 		}
 
@@ -456,7 +456,7 @@ final class _WP_Editors {
 					$plugins = array_unique( apply_filters( 'tiny_mce_plugins', $plugins, $editor_id ) );
 
 					$key = array_search( 'spellchecker', $plugins, true );
-					if ( false !== $key ) {
+					if ( $key !== false ) {
 						// Remove 'spellchecker' from the internal plugins if added with 'tiny_mce_plugins' filter to prevent errors.
 						// It can be added with 'mce_external_plugins'.
 						unset( $plugins[ $key ] );
@@ -520,7 +520,7 @@ final class _WP_Editors {
 									$strings .= @file_get_contents( $path . $mce_locale . '_dlg.js' ) . "\n";
 								}
 
-								if ( 'en' !== $mce_locale && empty( $strings ) ) {
+								if ( $mce_locale !== 'en' && empty( $strings ) ) {
 									if ( @is_file( $path . 'en.js' ) ) {
 										$str1     = @file_get_contents( $path . 'en.js' );
 										$strings .= preg_replace( '/([\'"])en\./', '$1' . $mce_locale . '.', $str1, 1 ) . "\n";
@@ -739,7 +739,7 @@ final class _WP_Editors {
 
 				$page_template = get_page_template_slug( $post );
 
-				if ( false !== $page_template ) {
+				if ( $page_template !== false ) {
 					$page_template = empty( $page_template ) ? 'default' : str_replace( '.', '-', basename( $page_template, '.php' ) );
 					$body_class   .= ' page-template-' . sanitize_html_class( $page_template );
 				}
@@ -830,8 +830,8 @@ final class _WP_Editors {
 				$options .= $key . ':' . $val . ',';
 				continue;
 			} elseif ( ! empty( $value ) && is_string( $value ) && (
-				( '{' === $value[0] && '}' === $value[ strlen( $value ) - 1 ] ) ||
-				( '[' === $value[0] && ']' === $value[ strlen( $value ) - 1 ] ) ||
+				( $value[0] === '{' && $value[ strlen( $value ) - 1 ] === '}' ) ||
+				( $value[0] === '[' && $value[ strlen( $value ) - 1 ] === ']' ) ||
 				preg_match( '/^\(?function ?\(/', $value ) ) ) {
 
 				$options .= $key . ':' . $value . ',';
@@ -1483,7 +1483,7 @@ final class _WP_Editors {
 				continue;
 			}
 
-			if ( false !== strpos( $value, '&' ) ) {
+			if ( strpos( $value, '&' ) !== false ) {
 				$mce_translation[ $key ] = html_entity_decode( $value, ENT_QUOTES, 'UTF-8' );
 			}
 		}
@@ -1804,7 +1804,7 @@ final class _WP_Editors {
 		// Build results.
 		$results = array();
 		foreach ( $posts as $post ) {
-			if ( 'post' === $post->post_type ) {
+			if ( $post->post_type === 'post' ) {
 				$info = mysql2date( __( 'Y/m/d' ), $post->post_date );
 			} else {
 				$info = $pts[ $post->post_type ]->labels->singular_name;

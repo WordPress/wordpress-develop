@@ -263,7 +263,7 @@ class WP_Block_Parser {
 		switch ( $token_type ) {
 			case 'no-more-tokens':
 				// if not in a block then flush output.
-				if ( 0 === $stack_depth ) {
+				if ( $stack_depth === 0 ) {
 					$this->add_freeform();
 					return false;
 				}
@@ -278,7 +278,7 @@ class WP_Block_Parser {
 				 */
 
 				// for the easy case we'll assume an implicit closer.
-				if ( 1 === $stack_depth ) {
+				if ( $stack_depth === 1 ) {
 					$this->add_block_from_stack();
 					return false;
 				}
@@ -288,7 +288,7 @@ class WP_Block_Parser {
 				 * have to assume that multiple closers are missing
 				 * and so we'll collapse the whole stack piecewise
 				 */
-				while ( 0 < count( $this->stack ) ) {
+				while ( count( $this->stack ) > 0 ) {
 					$this->add_block_from_stack();
 				}
 				return false;
@@ -298,7 +298,7 @@ class WP_Block_Parser {
 				 * easy case is if we stumbled upon a void block
 				 * in the top-level of the document
 				 */
-				if ( 0 === $stack_depth ) {
+				if ( $stack_depth === 0 ) {
 					if ( isset( $leading_html_start ) ) {
 						$this->output[] = (array) $this->freeform(
 							substr(
@@ -343,7 +343,7 @@ class WP_Block_Parser {
 				 * if we're missing an opener we're in trouble
 				 * This is an error
 				 */
-				if ( 0 === $stack_depth ) {
+				if ( $stack_depth === 0 ) {
 					/*
 					 * we have options
 					 * - assume an implicit opener
@@ -355,7 +355,7 @@ class WP_Block_Parser {
 				}
 
 				// if we're not nesting then this is easy - close the block.
-				if ( 1 === $stack_depth ) {
+				if ( $stack_depth === 1 ) {
 					$this->add_block_from_stack( $start_offset );
 					$this->offset = $start_offset + $token_length;
 					return true;
@@ -418,24 +418,24 @@ class WP_Block_Parser {
 		);
 
 		// if we get here we probably have catastrophic backtracking or out-of-memory in the PCRE.
-		if ( false === $has_match ) {
+		if ( $has_match === false ) {
 			return array( 'no-more-tokens', null, null, null, null );
 		}
 
 		// we have no more tokens.
-		if ( 0 === $has_match ) {
+		if ( $has_match === 0 ) {
 			return array( 'no-more-tokens', null, null, null, null );
 		}
 
 		list( $match, $started_at ) = $matches[0];
 
 		$length    = strlen( $match );
-		$is_closer = isset( $matches['closer'] ) && -1 !== $matches['closer'][1];
-		$is_void   = isset( $matches['void'] ) && -1 !== $matches['void'][1];
+		$is_closer = isset( $matches['closer'] ) && $matches['closer'][1] !== -1;
+		$is_void   = isset( $matches['void'] ) && $matches['void'][1] !== -1;
 		$namespace = $matches['namespace'];
-		$namespace = ( isset( $namespace ) && -1 !== $namespace[1] ) ? $namespace[0] : 'core/';
+		$namespace = ( isset( $namespace ) && $namespace[1] !== -1 ) ? $namespace[0] : 'core/';
 		$name      = $namespace . $matches['name'][0];
-		$has_attrs = isset( $matches['attrs'] ) && -1 !== $matches['attrs'][1];
+		$has_attrs = isset( $matches['attrs'] ) && $matches['attrs'][1] !== -1;
 
 		/*
 		 * Fun fact! It's not trivial in PHP to create "an empty associative array" since all arrays
@@ -488,7 +488,7 @@ class WP_Block_Parser {
 	function add_freeform( $length = null ) {
 		$length = $length ? $length : strlen( $this->document ) - $this->offset;
 
-		if ( 0 === $length ) {
+		if ( $length === 0 ) {
 			return;
 		}
 

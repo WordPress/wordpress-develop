@@ -88,7 +88,7 @@ function get_default_feed() {
 	 */
 	$default_feed = apply_filters( 'default_feed', 'rss2' );
 
-	return ( 'rss' === $default_feed ) ? 'rss2' : $default_feed;
+	return ( $default_feed === 'rss' ) ? 'rss2' : $default_feed;
 }
 
 /**
@@ -101,7 +101,7 @@ function get_default_feed() {
  * @return string The document title.
  */
 function get_wp_title_rss( $deprecated = '&#8211;' ) {
-	if ( '&#8211;' !== $deprecated ) {
+	if ( $deprecated !== '&#8211;' ) {
 		/* translators: %s: 'document_title_separator' filter name. */
 		_deprecated_argument( __FUNCTION__, '4.4.0', sprintf( __( 'Use the %s filter instead.' ), '<code>document_title_separator</code>' ) );
 	}
@@ -127,7 +127,7 @@ function get_wp_title_rss( $deprecated = '&#8211;' ) {
  * @param string $deprecated Unused.
  */
 function wp_title_rss( $deprecated = '&#8211;' ) {
-	if ( '&#8211;' !== $deprecated ) {
+	if ( $deprecated !== '&#8211;' ) {
 		/* translators: %s: 'document_title_separator' filter name. */
 		_deprecated_argument( __FUNCTION__, '4.4.0', sprintf( __( 'Use the %s filter instead.' ), '<code>document_title_separator</code>' ) );
 	}
@@ -386,7 +386,7 @@ function get_the_category_rss( $type = null ) {
 	$cat_names  = array();
 
 	$filter = 'rss';
-	if ( 'atom' === $type ) {
+	if ( $type === 'atom' ) {
 		$filter = 'raw';
 	}
 
@@ -405,9 +405,9 @@ function get_the_category_rss( $type = null ) {
 	$cat_names = array_unique( $cat_names );
 
 	foreach ( $cat_names as $cat_name ) {
-		if ( 'rdf' === $type ) {
+		if ( $type === 'rdf' ) {
 			$the_list .= "\t\t<dc:subject><![CDATA[$cat_name]]></dc:subject>\n";
-		} elseif ( 'atom' === $type ) {
+		} elseif ( $type === 'atom' ) {
 			$the_list .= sprintf( '<category scheme="%1$s" term="%2$s" />', esc_attr( get_bloginfo_rss( 'url' ) ), esc_attr( $cat_name ) );
 		} else {
 			$the_list .= "\t\t<category><![CDATA[" . html_entity_decode( $cat_name, ENT_COMPAT, get_option( 'blog_charset' ) ) . "]]></category>\n";
@@ -476,7 +476,7 @@ function rss_enclosure() {
 	}
 
 	foreach ( (array) get_post_custom() as $key => $val ) {
-		if ( 'enclosure' === $key ) {
+		if ( $key === 'enclosure' ) {
 			foreach ( (array) $val as $enc ) {
 				$enclosure = explode( "\n", $enc );
 
@@ -516,7 +516,7 @@ function atom_enclosure() {
 	}
 
 	foreach ( (array) get_post_custom() as $key => $val ) {
-		if ( 'enclosure' === $key ) {
+		if ( $key === 'enclosure' ) {
 			foreach ( (array) $val as $enc ) {
 				$enclosure = explode( "\n", $enc );
 
@@ -720,12 +720,12 @@ function get_feed_build_date( $format ) {
 		$datetime = date_create_immutable_from_format( 'Y-m-d H:i:s', max( $modified_times ), $utc );
 	}
 
-	if ( false === $datetime ) {
+	if ( $datetime === false ) {
 		// Fall back to last time any post was modified or published.
 		$datetime = date_create_immutable_from_format( 'Y-m-d H:i:s', get_lastpostmodified( 'GMT' ), $utc );
 	}
 
-	if ( false !== $datetime ) {
+	if ( $datetime !== false ) {
 		$max_modified_time = $datetime->format( $format );
 	}
 

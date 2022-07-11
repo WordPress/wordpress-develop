@@ -177,7 +177,7 @@ class SimplePie_Misc
 			}
 
 			$log_file = @ini_get('error_log');
-			if (!empty($log_file) && ('syslog' !== $log_file) && !@is_writable($log_file))
+			if (!empty($log_file) && ($log_file !== 'syslog') && !@is_writable($log_file))
 			{
 				$log_error = false;
 			}

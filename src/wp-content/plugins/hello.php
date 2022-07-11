@@ -53,7 +53,7 @@ Dolly'll never go away again";
 function hello_dolly() {
 	$chosen = hello_dolly_get_lyric();
 	$lang   = '';
-	if ( 'en_' !== substr( get_user_locale(), 0, 3 ) ) {
+	if ( substr( get_user_locale(), 0, 3 ) !== 'en_' ) {
 		$lang = ' lang="en"';
 	}
 

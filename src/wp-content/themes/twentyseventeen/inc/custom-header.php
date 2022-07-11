@@ -80,7 +80,7 @@ if ( ! function_exists( 'twentyseventeen_header_style' ) ) :
 		<style id="twentyseventeen-custom-header-styles" type="text/css">
 		<?php
 		// Has the text been hidden?
-		if ( 'blank' === $header_text_color ) :
+		if ( $header_text_color === 'blank' ) :
 			?>
 		.site-title,
 		.site-description {

@@ -152,7 +152,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	protected function display_tablenav( $which ) {
 		?>
 		<div class="tablenav <?php echo esc_attr( $which ); ?>">
-			<?php if ( 'bottom' === $which ) : ?>
+			<?php if ( $which === 'bottom' ) : ?>
 				<div class="alignright">
 					<button type="button" name="revoke-all-application-passwords" id="revoke-all-application-passwords" class="button delete"><?php _e( 'Revoke all application passwords' ); ?></button>
 				</div>

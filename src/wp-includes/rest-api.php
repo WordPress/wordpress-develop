@@ -232,7 +232,7 @@ function create_initial_rest_routes() {
 			$revisions_controller->register_routes();
 		}
 
-		if ( 'attachment' !== $post_type->name ) {
+		if ( $post_type->name !== 'attachment' ) {
 			$autosaves_controller = new WP_REST_Autosaves_Controller( $post_type->name );
 			$autosaves_controller->register_routes();
 		}
@@ -451,7 +451,7 @@ function get_rest_url( $blog_id = null, $path = '/', $scheme = 'rest' ) {
 		$url = trailingslashit( get_home_url( $blog_id, '', $scheme ) );
 		// nginx only allows HTTP/1.0 methods when redirecting from / to /index.php.
 		// To work around this, we manually add index.php to the URL, avoiding the redirect.
-		if ( 'index.php' !== substr( $url, 9 ) ) {
+		if ( substr( $url, 9 ) !== 'index.php' ) {
 			$url .= 'index.php';
 		}
 
@@ -709,14 +709,14 @@ function rest_send_cors_headers( $value ) {
 
 	if ( $origin ) {
 		// Requests from file:// and data: URLs send "Origin: null".
-		if ( 'null' !== $origin ) {
+		if ( $origin !== 'null' ) {
 			$origin = sanitize_url( $origin );
 		}
 		header( 'Access-Control-Allow-Origin: ' . $origin );
 		header( 'Access-Control-Allow-Methods: OPTIONS, GET, POST, PUT, PATCH, DELETE' );
 		header( 'Access-Control-Allow-Credentials: true' );
 		header( 'Vary: Origin', false );
-	} elseif ( ! headers_sent() && 'GET' === $_SERVER['REQUEST_METHOD'] && ! is_user_logged_in() ) {
+	} elseif ( ! headers_sent() && $_SERVER['REQUEST_METHOD'] === 'GET' && ! is_user_logged_in() ) {
 		header( 'Vary: Origin', false );
 	}
 
@@ -804,7 +804,7 @@ function rest_send_allow_header( $response, $server, $request ) {
 
 				$permission = call_user_func( $_handler['permission_callback'], $request );
 
-				$allowed_methods[ $handler_method ] = true === $permission;
+				$allowed_methods[ $handler_method ] = $permission === true;
 			} else {
 				$allowed_methods[ $handler_method ] = true;
 			}
@@ -860,7 +860,7 @@ function rest_filter_response_fields( $response, $server, $request ) {
 
 	$fields = wp_parse_list( $request['_fields'] );
 
-	if ( 0 === count( $fields ) ) {
+	if ( count( $fields ) === 0 ) {
 		return $response;
 	}
 
@@ -874,7 +874,7 @@ function rest_filter_response_fields( $response, $server, $request ) {
 		$ref   = &$fields_as_keyed;
 		while ( count( $parts ) > 1 ) {
 			$next = array_shift( $parts );
-			if ( isset( $ref[ $next ] ) && true === $ref[ $next ] ) {
+			if ( isset( $ref[ $next ] ) && $ref[ $next ] === true ) {
 				// Skip any sub-properties if their parent prop is already marked for inclusion.
 				break 2;
 			}
@@ -1029,7 +1029,7 @@ function rest_cookie_check_errors( $result ) {
 	 * error, but we're still logged in, another authentication
 	 * must have been used).
 	 */
-	if ( true !== $wp_rest_auth_cookie && is_user_logged_in() ) {
+	if ( $wp_rest_auth_cookie !== true && is_user_logged_in() ) {
 		return $result;
 	}
 
@@ -1042,7 +1042,7 @@ function rest_cookie_check_errors( $result ) {
 		$nonce = $_SERVER['HTTP_X_WP_NONCE'];
 	}
 
-	if ( null === $nonce ) {
+	if ( $nonce === null ) {
 		// No nonce at all, so act as if it's an unauthenticated request.
 		wp_set_current_user( 0 );
 		return true;
@@ -1076,7 +1076,7 @@ function rest_cookie_collect_status() {
 
 	$status_type = current_action();
 
-	if ( 'auth_cookie_valid' !== $status_type ) {
+	if ( $status_type !== 'auth_cookie_valid' ) {
 		$wp_rest_auth_cookie = substr( $status_type, 12 );
 		return;
 	}
@@ -1517,7 +1517,7 @@ function rest_sanitize_array( $maybe_array ) {
  * @return bool True if object like, otherwise false.
  */
 function rest_is_object( $maybe_object ) {
-	if ( '' === $maybe_object ) {
+	if ( $maybe_object === '' ) {
 		return true;
 	}
 
@@ -1541,7 +1541,7 @@ function rest_is_object( $maybe_object ) {
  * @return array Returns the object extracted from the value.
  */
 function rest_sanitize_object( $maybe_object ) {
-	if ( '' === $maybe_object ) {
+	if ( $maybe_object === '' ) {
 		return array();
 	}
 
@@ -1582,7 +1582,7 @@ function rest_get_best_type_for_value( $value, $types ) {
 
 	// Both arrays and objects allow empty strings to be converted to their types.
 	// But the best answer for this type is a string.
-	if ( '' === $value && in_array( 'string', $types, true ) ) {
+	if ( $value === '' && in_array( 'string', $types, true ) ) {
 		return 'string';
 	}
 
@@ -1704,7 +1704,7 @@ function rest_stabilize_value( $value ) {
 function rest_validate_json_schema_pattern( $pattern, $value ) {
 	$escaped_pattern = str_replace( '#', '\\#', $pattern );
 
-	return 1 === preg_match( '#' . $escaped_pattern . '#u', $value );
+	return preg_match( '#' . $escaped_pattern . '#u', $value ) === 1;
 }
 
 /**
@@ -1772,7 +1772,7 @@ function rest_format_combining_operation_error( $param, $error ) {
  */
 function rest_get_combining_operation_error( $value, $param, $errors ) {
 	// If there is only one error, simply return it.
-	if ( 1 === count( $errors ) ) {
+	if ( count( $errors ) === 1 ) {
 		return rest_format_combining_operation_error( $param, $errors[0] );
 	}
 
@@ -1782,18 +1782,18 @@ function rest_get_combining_operation_error( $value, $param, $errors ) {
 		$error_code = $error['error_object']->get_error_code();
 		$error_data = $error['error_object']->get_error_data();
 
-		if ( 'rest_invalid_type' !== $error_code || ( isset( $error_data['param'] ) && $param !== $error_data['param'] ) ) {
+		if ( $error_code !== 'rest_invalid_type' || ( isset( $error_data['param'] ) && $param !== $error_data['param'] ) ) {
 			$filtered_errors[] = $error;
 		}
 	}
 
 	// If there is only one error left, simply return it.
-	if ( 1 === count( $filtered_errors ) ) {
+	if ( count( $filtered_errors ) === 1 ) {
 		return rest_format_combining_operation_error( $param, $filtered_errors[0] );
 	}
 
 	// If there are only errors related to object validation, try choosing the most appropriate one.
-	if ( count( $filtered_errors ) > 1 && 'object' === $filtered_errors[0]['schema']['type'] ) {
+	if ( count( $filtered_errors ) > 1 && $filtered_errors[0]['schema']['type'] === 'object' ) {
 		$result = null;
 		$number = 0;
 
@@ -1807,7 +1807,7 @@ function rest_get_combining_operation_error( $value, $param, $errors ) {
 			}
 		}
 
-		if ( null !== $result ) {
+		if ( $result !== null ) {
 			return rest_format_combining_operation_error( $param, $result );
 		}
 	}
@@ -2165,7 +2165,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 	// The "format" keyword should only be applied to strings. However, for backward compatibility,
 	// we allow the "format" keyword if the type keyword was not specified, or was set to an invalid value.
 	if ( isset( $args['format'] )
-		&& ( ! isset( $args['type'] ) || 'string' === $args['type'] || ! in_array( $args['type'], $allowed_types, true ) )
+		&& ( ! isset( $args['type'] ) || $args['type'] === 'string' || ! in_array( $args['type'], $allowed_types, true ) )
 	) {
 		switch ( $args['format'] ) {
 			case 'hex-color':
@@ -2213,7 +2213,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
  * @return true|WP_Error
  */
 function rest_validate_null_value_from_schema( $value, $param ) {
-	if ( null !== $value ) {
+	if ( $value !== null ) {
 		return new WP_Error(
 			'rest_invalid_type',
 			/* translators: 1: Parameter, 2: Type name. */
@@ -2281,7 +2281,7 @@ function rest_validate_object_value_from_schema( $value, $args, $param ) {
 		}
 	} elseif ( isset( $args['properties'] ) ) { // schema version 3
 		foreach ( $args['properties'] as $name => $property ) {
-			if ( isset( $property['required'] ) && true === $property['required'] && ! array_key_exists( $name, $value ) ) {
+			if ( isset( $property['required'] ) && $property['required'] === true && ! array_key_exists( $name, $value ) ) {
 				return new WP_Error(
 					'rest_property_required',
 					/* translators: 1: Property of an object, 2: Parameter. */
@@ -2301,7 +2301,7 @@ function rest_validate_object_value_from_schema( $value, $args, $param ) {
 		}
 
 		$pattern_property_schema = rest_find_matching_pattern_property_schema( $property, $args );
-		if ( null !== $pattern_property_schema ) {
+		if ( $pattern_property_schema !== null ) {
 			$is_valid = rest_validate_value_from_schema( $v, $pattern_property_schema, $param . '[' . $property . ']' );
 			if ( is_wp_error( $is_valid ) ) {
 				return $is_valid;
@@ -2310,7 +2310,7 @@ function rest_validate_object_value_from_schema( $value, $args, $param ) {
 		}
 
 		if ( isset( $args['additionalProperties'] ) ) {
-			if ( false === $args['additionalProperties'] ) {
+			if ( $args['additionalProperties'] === false ) {
 				return new WP_Error(
 					'rest_additional_properties_forbidden',
 					/* translators: %s: Property of an object. */
@@ -2719,7 +2719,7 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 		);
 	}
 
-	if ( 'array' === $args['type'] ) {
+	if ( $args['type'] === 'array' ) {
 		$value = rest_sanitize_array( $value );
 
 		if ( ! empty( $args['items'] ) ) {
@@ -2736,7 +2736,7 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 		return $value;
 	}
 
-	if ( 'object' === $args['type'] ) {
+	if ( $args['type'] === 'object' ) {
 		$value = rest_sanitize_object( $value );
 
 		foreach ( $value as $property => $v ) {
@@ -2746,13 +2746,13 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 			}
 
 			$pattern_property_schema = rest_find_matching_pattern_property_schema( $property, $args );
-			if ( null !== $pattern_property_schema ) {
+			if ( $pattern_property_schema !== null ) {
 				$value[ $property ] = rest_sanitize_value_from_schema( $v, $pattern_property_schema, $param . '[' . $property . ']' );
 				continue;
 			}
 
 			if ( isset( $args['additionalProperties'] ) ) {
-				if ( false === $args['additionalProperties'] ) {
+				if ( $args['additionalProperties'] === false ) {
 					unset( $value[ $property ] );
 				} elseif ( is_array( $args['additionalProperties'] ) ) {
 					$value[ $property ] = rest_sanitize_value_from_schema( $v, $args['additionalProperties'], $param . '[' . $property . ']' );
@@ -2763,25 +2763,25 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 		return $value;
 	}
 
-	if ( 'null' === $args['type'] ) {
+	if ( $args['type'] === 'null' ) {
 		return null;
 	}
 
-	if ( 'integer' === $args['type'] ) {
+	if ( $args['type'] === 'integer' ) {
 		return (int) $value;
 	}
 
-	if ( 'number' === $args['type'] ) {
+	if ( $args['type'] === 'number' ) {
 		return (float) $value;
 	}
 
-	if ( 'boolean' === $args['type'] ) {
+	if ( $args['type'] === 'boolean' ) {
 		return rest_sanitize_boolean( $value );
 	}
 
 	// This behavior matches rest_validate_value_from_schema().
 	if ( isset( $args['format'] )
-		&& ( ! isset( $args['type'] ) || 'string' === $args['type'] || ! in_array( $args['type'], $allowed_types, true ) )
+		&& ( ! isset( $args['type'] ) || $args['type'] === 'string' || ! in_array( $args['type'], $allowed_types, true ) )
 	) {
 		switch ( $args['format'] ) {
 			case 'hex-color':
@@ -2811,7 +2811,7 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 		}
 	}
 
-	if ( 'string' === $args['type'] ) {
+	if ( $args['type'] === 'string' ) {
 		return (string) $value;
 	}
 
@@ -2840,7 +2840,7 @@ function rest_preload_api_request( $memo, $path ) {
 	}
 
 	$method = 'GET';
-	if ( is_array( $path ) && 2 === count( $path ) ) {
+	if ( is_array( $path ) && count( $path ) === 2 ) {
 		$method = end( $path );
 		$path   = reset( $path );
 
@@ -2855,7 +2855,7 @@ function rest_preload_api_request( $memo, $path ) {
 	}
 
 	$path_parts = parse_url( $path );
-	if ( false === $path_parts ) {
+	if ( $path_parts === false ) {
 		return $memo;
 	}
 
@@ -2866,14 +2866,14 @@ function rest_preload_api_request( $memo, $path ) {
 	}
 
 	$response = rest_do_request( $request );
-	if ( 200 === $response->status ) {
+	if ( $response->status === 200 ) {
 		$server = rest_get_server();
 		/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
 		$response = apply_filters( 'rest_post_dispatch', rest_ensure_response( $response ), $server, $request );
 		$embed    = $request->has_param( '_embed' ) ? rest_parse_embed_param( $request['_embed'] ) : false;
 		$data     = (array) $server->response_to_data( $response, $embed );
 
-		if ( 'OPTIONS' === $method ) {
+		if ( $method === 'OPTIONS' ) {
 			$memo[ $method ][ $path ] = array(
 				'body'    => $data,
 				'headers' => $response->headers,
@@ -2898,7 +2898,7 @@ function rest_preload_api_request( $memo, $path ) {
  * @return true|string[] Either true to embed all embeds, or a list of relations to embed.
  */
 function rest_parse_embed_param( $embed ) {
-	if ( ! $embed || 'true' === $embed || '1' === $embed ) {
+	if ( ! $embed || $embed === 'true' || $embed === '1' ) {
 		return true;
 	}
 
@@ -2958,8 +2958,8 @@ function rest_filter_response_by_context( $data, $schema, $context ) {
 		return $data;
 	}
 
-	$is_array_type  = 'array' === $type || ( is_array( $type ) && in_array( 'array', $type, true ) );
-	$is_object_type = 'object' === $type || ( is_array( $type ) && in_array( 'object', $type, true ) );
+	$is_array_type  = $type === 'array' || ( is_array( $type ) && in_array( 'array', $type, true ) );
+	$is_object_type = $type === 'object' || ( is_array( $type ) && in_array( 'object', $type, true ) );
 
 	if ( $is_array_type && $is_object_type ) {
 		if ( rest_is_array( $data ) ) {
@@ -2981,7 +2981,7 @@ function rest_filter_response_by_context( $data, $schema, $context ) {
 				$check = $schema['properties'][ $key ];
 			} else {
 				$pattern_property_schema = rest_find_matching_pattern_property_schema( $key, $schema );
-				if ( null !== $pattern_property_schema ) {
+				if ( $pattern_property_schema !== null ) {
 					$check = $pattern_property_schema;
 				} elseif ( $has_additional_properties ) {
 					$check = $schema['additionalProperties'];
@@ -3251,11 +3251,11 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
 			'sanitize_callback' => 'rest_sanitize_request_arg',
 		);
 
-		if ( WP_REST_Server::CREATABLE === $method && isset( $params['default'] ) ) {
+		if ( $method === WP_REST_Server::CREATABLE && isset( $params['default'] ) ) {
 			$endpoint_args[ $field_id ]['default'] = $params['default'];
 		}
 
-		if ( WP_REST_Server::CREATABLE === $method && ! empty( $params['required'] ) ) {
+		if ( $method === WP_REST_Server::CREATABLE && ! empty( $params['required'] ) ) {
 			$endpoint_args[ $field_id ]['required'] = true;
 		}
 
@@ -3269,7 +3269,7 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
 		if ( isset( $params['arg_options'] ) ) {
 
 			// Only use required / default from arg_options on CREATABLE endpoints.
-			if ( WP_REST_Server::CREATABLE !== $method ) {
+			if ( $method !== WP_REST_Server::CREATABLE ) {
 				$params['arg_options'] = array_diff_key(
 					$params['arg_options'],
 					array(

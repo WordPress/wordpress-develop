@@ -34,12 +34,12 @@ if ( is_admin() ) {
 	$pagenow = trim( $pagenow, '/' );
 	$pagenow = preg_replace( '#\?.*?$#', '', $pagenow );
 
-	if ( '' === $pagenow || 'index' === $pagenow || 'index.php' === $pagenow ) {
+	if ( $pagenow === '' || $pagenow === 'index' || $pagenow === 'index.php' ) {
 		$pagenow = 'index.php';
 	} else {
 		preg_match( '#(.*?)(/|$)#', $pagenow, $self_matches );
 		$pagenow = strtolower( $self_matches[1] );
-		if ( '.php' !== substr( $pagenow, -4, 4 ) ) {
+		if ( substr( $pagenow, -4, 4 ) !== '.php' ) {
 			$pagenow .= '.php'; // For `Options +Multiviews`: /wp-admin/themes/index.php (themes.php is queried).
 		}
 	}

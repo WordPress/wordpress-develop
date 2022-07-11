@@ -153,9 +153,9 @@ class Twenty_Twenty_One_SVG_Icons {
 	 */
 	public static function get_svg( $group, $icon, $size ) {
 
-		if ( 'ui' === $group ) {
+		if ( $group === 'ui' ) {
 			$arr = self::$icons;
-		} elseif ( 'social' === $group ) {
+		} elseif ( $group === 'social' ) {
 			$arr = self::$social_icons;
 		} else {
 			$arr = array();

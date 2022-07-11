@@ -31,7 +31,7 @@ function render_block_core_post_navigation_link( $attributes, $content ) {
 	$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => $classes ) );
 	// Set default values.
 	$format = '%link';
-	$link   = 'next' === $navigation_type ? _x( 'Next', 'label for next post link' ) : _x( 'Previous', 'label for previous post link' );
+	$link   = $navigation_type === 'next' ? _x( 'Next', 'label for next post link' ) : _x( 'Previous', 'label for previous post link' );
 	$label  = '';
 
 	// If a custom label is provided, make this a link.
@@ -61,7 +61,7 @@ function render_block_core_post_navigation_link( $attributes, $content ) {
 				 * If the label link option is enabled and there is no custom label,
 				 * add a colon between the label and the post title.
 				 */
-				$label = 'next' === $navigation_type ? _x( 'Next:', 'label before the title of the next post' ) : _x( 'Previous:', 'label before the title of the previous post' );
+				$label = $navigation_type === 'next' ? _x( 'Next:', 'label before the title of the next post' ) : _x( 'Previous:', 'label before the title of the previous post' );
 				$link  = sprintf(
 					'<span class="post-navigation-link__label">%1$s</span> <span class="post-navigation-link__title">%2$s</span>',
 					wp_kses_post( $label ),

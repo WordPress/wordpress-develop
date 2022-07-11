@@ -120,7 +120,7 @@ function wp_save_post_revision( $post_id ) {
 		return;
 	}
 
-	if ( 'auto-draft' === $post->post_status ) {
+	if ( $post->post_status === 'auto-draft' ) {
 		return;
 	}
 
@@ -137,7 +137,7 @@ function wp_save_post_revision( $post_id ) {
 	if ( $revisions ) {
 		// Grab the last revision, but not an autosave.
 		foreach ( $revisions as $revision ) {
-			if ( false !== strpos( $revision->post_name, "{$revision->post_parent}-revision" ) ) {
+			if ( strpos( $revision->post_name, "{$revision->post_parent}-revision" ) !== false ) {
 				$last_revision = $revision;
 				break;
 			}
@@ -208,7 +208,7 @@ function wp_save_post_revision( $post_id ) {
 	$revisions = array_slice( $revisions, 0, $delete );
 
 	for ( $i = 0; isset( $revisions[ $i ] ); $i++ ) {
-		if ( false !== strpos( $revisions[ $i ]->post_name, 'autosave' ) ) {
+		if ( strpos( $revisions[ $i ]->post_name, 'autosave' ) !== false ) {
 			continue;
 		}
 
@@ -237,7 +237,7 @@ function wp_get_post_autosave( $post_id, $user_id = 0 ) {
 	global $wpdb;
 
 	$autosave_name = $post_id . '-autosave-v1';
-	$user_id_query = ( 0 !== $user_id ) ? "AND post_author = $user_id" : null;
+	$user_id_query = ( $user_id !== 0 ) ? "AND post_author = $user_id" : null;
 
 	// Construct the autosave query.
 	$autosave_query = "
@@ -296,7 +296,7 @@ function wp_is_post_autosave( $post ) {
 		return false;
 	}
 
-	if ( false !== strpos( $post->post_name, "{$post->post_parent}-autosave" ) ) {
+	if ( strpos( $post->post_name, "{$post->post_parent}-autosave" ) !== false ) {
 		return (int) $post->post_parent;
 	}
 
@@ -324,7 +324,7 @@ function _wp_put_post_revision( $post = null, $autosave = false ) {
 		return new WP_Error( 'invalid_post', __( 'Invalid post ID.' ) );
 	}
 
-	if ( isset( $post['post_type'] ) && 'revision' === $post['post_type'] ) {
+	if ( isset( $post['post_type'] ) && $post['post_type'] === 'revision' ) {
 		return new WP_Error( 'post_type', __( 'Cannot create a revision of a revision' ) );
 	}
 
@@ -367,16 +367,16 @@ function wp_get_post_revision( &$post, $output = OBJECT, $filter = 'raw' ) {
 	if ( ! $revision ) {
 		return $revision;
 	}
-	if ( 'revision' !== $revision->post_type ) {
+	if ( $revision->post_type !== 'revision' ) {
 		return null;
 	}
 
-	if ( OBJECT === $output ) {
+	if ( $output === OBJECT ) {
 		return $revision;
-	} elseif ( ARRAY_A === $output ) {
+	} elseif ( $output === ARRAY_A ) {
 		$_revision = get_object_vars( $revision );
 		return $_revision;
-	} elseif ( ARRAY_N === $output ) {
+	} elseif ( $output === ARRAY_N ) {
 		$_revision = array_values( get_object_vars( $revision ) );
 		return $_revision;
 	}
@@ -532,7 +532,7 @@ function wp_get_post_revisions_url( $post_id = 0 ) {
 	}
 
 	// If the post is a revision, return early.
-	if ( 'revision' === $post->post_type ) {
+	if ( $post->post_type === 'revision' ) {
 		return get_edit_post_link( $post );
 	}
 
@@ -542,7 +542,7 @@ function wp_get_post_revisions_url( $post_id = 0 ) {
 
 	$revisions = wp_get_post_revisions( $post->ID, array( 'posts_per_page' => 1 ) );
 
-	if ( 0 === count( $revisions ) ) {
+	if ( count( $revisions ) === 0 ) {
 		return null;
 	}
 
@@ -578,7 +578,7 @@ function wp_revisions_enabled( $post ) {
 function wp_revisions_to_keep( $post ) {
 	$num = WP_POST_REVISIONS;
 
-	if ( true === $num ) {
+	if ( $num === true ) {
 		$num = -1;
 	} else {
 		$num = (int) $num;
@@ -663,7 +663,7 @@ function _show_post_preview() {
 	if ( isset( $_GET['preview_id'] ) && isset( $_GET['preview_nonce'] ) ) {
 		$id = (int) $_GET['preview_id'];
 
-		if ( false === wp_verify_nonce( $_GET['preview_nonce'], 'post_preview_' . $id ) ) {
+		if ( wp_verify_nonce( $_GET['preview_nonce'], 'post_preview_' . $id ) === false ) {
 			wp_die( __( 'Sorry, you are not allowed to preview drafts.' ), 403 );
 		}
 
@@ -689,12 +689,12 @@ function _wp_preview_terms_filter( $terms, $post_id, $taxonomy ) {
 	}
 
 	if ( empty( $_REQUEST['post_format'] ) || $post->ID != $post_id
-		|| 'post_format' !== $taxonomy || 'revision' === $post->post_type
+		|| $taxonomy !== 'post_format' || $post->post_type === 'revision'
 	) {
 		return $terms;
 	}
 
-	if ( 'standard' === $_REQUEST['post_format'] ) {
+	if ( $_REQUEST['post_format'] === 'standard' ) {
 		$terms = array();
 	} else {
 		$term = get_term_by( 'slug', 'post-format-' . sanitize_key( $_REQUEST['post_format'] ), 'post_format' );
@@ -726,8 +726,8 @@ function _wp_preview_post_thumbnail_filter( $value, $post_id, $meta_key ) {
 	if ( empty( $_REQUEST['_thumbnail_id'] ) ||
 		empty( $_REQUEST['preview_id'] ) ||
 		$post->ID != $post_id ||
-		'_thumbnail_id' !== $meta_key ||
-		'revision' === $post->post_type ||
+		$meta_key !== '_thumbnail_id' ||
+		$post->post_type === 'revision' ||
 		$post_id != $_REQUEST['preview_id'] ) {
 
 		return $value;
@@ -813,13 +813,13 @@ function _wp_upgrade_revisions_of_post( $post, $revisions ) {
 		$this_revision_version = _wp_get_post_revision_version( $this_revision );
 
 		// Something terrible happened.
-		if ( false === $this_revision_version ) {
+		if ( $this_revision_version === false ) {
 			continue;
 		}
 
 		// 1 is the latest revision version, so we're already up to date.
 		// No need to add a copy of the post as latest revision.
-		if ( 0 < $this_revision_version ) {
+		if ( $this_revision_version > 0 ) {
 			$add_last = false;
 			continue;
 		}

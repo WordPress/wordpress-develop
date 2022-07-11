@@ -14,11 +14,11 @@
  */
 function block_core_post_template_uses_featured_image( $inner_blocks ) {
 	foreach ( $inner_blocks as $block ) {
-		if ( 'core/post-featured-image' === $block->name ) {
+		if ( $block->name === 'core/post-featured-image' ) {
 			return true;
 		}
 		if (
-			'core/cover' === $block->name &&
+			$block->name === 'core/cover' &&
 			! empty( $block->attributes['useFeaturedImage'] )
 		) {
 			return true;
@@ -72,7 +72,7 @@ function render_block_core_post_template( $attributes, $content, $block ) {
 
 	$classnames = '';
 	if ( isset( $block->context['displayLayout'] ) && isset( $block->context['query'] ) ) {
-		if ( isset( $block->context['displayLayout']['type'] ) && 'flex' === $block->context['displayLayout']['type'] ) {
+		if ( isset( $block->context['displayLayout']['type'] ) && $block->context['displayLayout']['type'] === 'flex' ) {
 			$classnames = "is-flex-container columns-{$block->context['displayLayout']['columns']}";
 		}
 	}

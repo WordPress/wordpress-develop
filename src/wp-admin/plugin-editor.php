@@ -52,7 +52,7 @@ if ( empty( $plugin ) ) {
 		// Locate the plugin for a given plugin file being edited.
 		$file_dirname = dirname( $file );
 		foreach ( array_keys( $plugins ) as $plugin_candidate ) {
-			if ( $plugin_candidate === $file || ( '.' !== $file_dirname && dirname( $plugin_candidate ) === $file_dirname ) ) {
+			if ( $plugin_candidate === $file || ( $file_dirname !== '.' && dirname( $plugin_candidate ) === $file_dirname ) ) {
 				$plugin = $plugin_candidate;
 				break;
 			}
@@ -81,7 +81,7 @@ $real_file = WP_PLUGIN_DIR . '/' . $file;
 $edit_error     = null;
 $posted_content = null;
 
-if ( 'POST' === $_SERVER['REQUEST_METHOD'] ) {
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 	$r = wp_edit_theme_plugin_file( wp_unslash( $_POST ) );
 	if ( is_wp_error( $r ) ) {
 		$edit_error = $r;
@@ -162,7 +162,7 @@ if ( ! empty( $posted_content ) ) {
 	$content = file_get_contents( $real_file );
 }
 
-if ( '.php' === substr( $real_file, strrpos( $real_file, '.' ) ) ) {
+if ( substr( $real_file, strrpos( $real_file, '.' ) ) === '.php' ) {
 	$functions = wp_doc_link_parse( $content );
 
 	if ( ! empty( $functions ) ) {

@@ -152,7 +152,7 @@ add_action( 'customize_preview_init', 'twentyfourteen_customize_preview_js' );
  * @since Twenty Fourteen 1.0
  */
 function twentyfourteen_contextual_help() {
-	if ( 'admin_head-edit.php' === current_filter() && 'post' !== $GLOBALS['typenow'] ) {
+	if ( current_filter() === 'admin_head-edit.php' && $GLOBALS['typenow'] !== 'post' ) {
 		return;
 	}
 

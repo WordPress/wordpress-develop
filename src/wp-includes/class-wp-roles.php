@@ -100,7 +100,7 @@ class WP_Roles {
 	 * @return mixed|false Return value of the callback, false otherwise.
 	 */
 	public function __call( $name, $arguments ) {
-		if ( '_init' === $name ) {
+		if ( $name === '_init' ) {
 			return $this->_init( ...$arguments );
 		}
 		return false;

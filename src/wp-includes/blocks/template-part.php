@@ -47,7 +47,7 @@ function render_block_core_template_part( $attributes ) {
 			// or if it's part of a customized template.
 			$content    = $template_part_post->post_content;
 			$area_terms = get_the_terms( $template_part_post, 'wp_template_part_area' );
-			if ( ! is_wp_error( $area_terms ) && false !== $area_terms ) {
+			if ( ! is_wp_error( $area_terms ) && $area_terms !== false ) {
 				$area = $area_terms[0]->name;
 			}
 			/**
@@ -68,15 +68,15 @@ function render_block_core_template_part( $attributes ) {
 			$child_theme_folders         = get_block_theme_folders( get_stylesheet() );
 			$child_theme_part_file_path  = get_theme_file_path( '/' . $child_theme_folders['wp_template_part'] . '/' . $attributes['slug'] . '.html' );
 			$parent_theme_part_file_path = get_theme_file_path( '/' . $parent_theme_folders['wp_template_part'] . '/' . $attributes['slug'] . '.html' );
-			$template_part_file_path     = 0 === validate_file( $attributes['slug'] ) && file_exists( $child_theme_part_file_path ) ? $child_theme_part_file_path : $parent_theme_part_file_path;
-			if ( 0 === validate_file( $attributes['slug'] ) && file_exists( $template_part_file_path ) ) {
+			$template_part_file_path     = validate_file( $attributes['slug'] ) === 0 && file_exists( $child_theme_part_file_path ) ? $child_theme_part_file_path : $parent_theme_part_file_path;
+			if ( validate_file( $attributes['slug'] ) === 0 && file_exists( $template_part_file_path ) ) {
 				$content = file_get_contents( $template_part_file_path );
-				$content = is_string( $content ) && '' !== $content
+				$content = is_string( $content ) && $content !== ''
 						? _inject_theme_attribute_in_block_template_content( $content )
 						: '';
 			}
 
-			if ( '' !== $content && null !== $content ) {
+			if ( $content !== '' && $content !== null ) {
 				/**
 				 * Fires when a block template part is loaded from a template part in the theme.
 				 *
@@ -167,7 +167,7 @@ function build_template_part_block_variations() {
 	$variations    = array();
 	$defined_areas = get_allowed_block_template_part_areas();
 	foreach ( $defined_areas as $area ) {
-		if ( 'uncategorized' !== $area['area'] ) {
+		if ( $area['area'] !== 'uncategorized' ) {
 			$variations[] = array(
 				'name'        => $area['area'],
 				'title'       => $area['label'],

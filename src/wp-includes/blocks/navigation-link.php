@@ -124,13 +124,13 @@ function block_core_navigation_link_render_submenu_icon() {
  */
 function render_block_core_navigation_link( $attributes, $content, $block ) {
 	$navigation_link_has_id = isset( $attributes['id'] ) && is_numeric( $attributes['id'] );
-	$is_post_type           = isset( $attributes['kind'] ) && 'post-type' === $attributes['kind'];
-	$is_post_type           = $is_post_type || isset( $attributes['type'] ) && ( 'post' === $attributes['type'] || 'page' === $attributes['type'] );
+	$is_post_type           = isset( $attributes['kind'] ) && $attributes['kind'] === 'post-type';
+	$is_post_type           = $is_post_type || isset( $attributes['type'] ) && ( $attributes['type'] === 'post' || $attributes['type'] === 'page' );
 
 	// Don't render the block's subtree if it is a draft or if the ID does not exist.
 	if ( $is_post_type && $navigation_link_has_id ) {
 		$post = get_post( $attributes['id'] );
-		if ( ! $post || 'publish' !== $post->post_status ) {
+		if ( ! $post || $post->post_status !== 'publish' ) {
 			return '';
 		}
 	}
@@ -171,7 +171,7 @@ function render_block_core_navigation_link( $attributes, $content, $block ) {
 		$html .= ' aria-current="page"';
 	}
 
-	if ( isset( $attributes['opensInNewTab'] ) && true === $attributes['opensInNewTab'] ) {
+	if ( isset( $attributes['opensInNewTab'] ) && $attributes['opensInNewTab'] === true ) {
 		$html .= ' target="_blank"  ';
 	}
 

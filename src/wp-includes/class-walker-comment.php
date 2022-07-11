@@ -186,15 +186,15 @@ class Walker_Comment extends Walker {
 			return;
 		}
 
-		if ( 'comment' === $comment->comment_type ) {
+		if ( $comment->comment_type === 'comment' ) {
 			add_filter( 'comment_text', array( $this, 'filter_comment_text' ), 40, 2 );
 		}
 
-		if ( ( 'pingback' === $comment->comment_type || 'trackback' === $comment->comment_type ) && $args['short_ping'] ) {
+		if ( ( $comment->comment_type === 'pingback' || $comment->comment_type === 'trackback' ) && $args['short_ping'] ) {
 			ob_start();
 			$this->ping( $comment, $depth, $args );
 			$output .= ob_get_clean();
-		} elseif ( 'html5' === $args['format'] ) {
+		} elseif ( $args['format'] === 'html5' ) {
 			ob_start();
 			$this->html5_comment( $comment, $depth, $args );
 			$output .= ob_get_clean();
@@ -204,7 +204,7 @@ class Walker_Comment extends Walker {
 			$output .= ob_get_clean();
 		}
 
-		if ( 'comment' === $comment->comment_type ) {
+		if ( $comment->comment_type === 'comment' ) {
 			remove_filter( 'comment_text', array( $this, 'filter_comment_text' ), 40 );
 		}
 	}
@@ -235,7 +235,7 @@ class Walker_Comment extends Walker {
 			$output .= ob_get_clean();
 			return;
 		}
-		if ( 'div' === $args['style'] ) {
+		if ( $args['style'] === 'div' ) {
 			$output .= "</div><!-- #comment-## -->\n";
 		} else {
 			$output .= "</li><!-- #comment-## -->\n";
@@ -254,7 +254,7 @@ class Walker_Comment extends Walker {
 	 * @param array      $args    An array of arguments.
 	 */
 	protected function ping( $comment, $depth, $args ) {
-		$tag = ( 'div' === $args['style'] ) ? 'div' : 'li';
+		$tag = ( $args['style'] === 'div' ) ? 'div' : 'li';
 		?>
 		<<?php echo $tag; ?> id="comment-<?php comment_ID(); ?>" <?php comment_class( '', $comment ); ?>>
 			<div class="comment-body">
@@ -279,7 +279,7 @@ class Walker_Comment extends Walker {
 		$commenter          = wp_get_current_commenter();
 		$show_pending_links = ! empty( $commenter['comment_author'] );
 
-		if ( $comment && '0' == $comment->comment_approved && ! $show_pending_links ) {
+		if ( $comment && $comment->comment_approved == '0' && ! $show_pending_links ) {
 			$comment_text = wp_kses( $comment_text, array() );
 		}
 
@@ -298,7 +298,7 @@ class Walker_Comment extends Walker {
 	 * @param array      $args    An array of arguments.
 	 */
 	protected function comment( $comment, $depth, $args ) {
-		if ( 'div' === $args['style'] ) {
+		if ( $args['style'] === 'div' ) {
 			$tag       = 'div';
 			$add_below = 'comment';
 		} else {
@@ -316,19 +316,19 @@ class Walker_Comment extends Walker {
 		}
 		?>
 		<<?php echo $tag; ?> <?php comment_class( $this->has_children ? 'parent' : '', $comment ); ?> id="comment-<?php comment_ID(); ?>">
-		<?php if ( 'div' !== $args['style'] ) : ?>
+		<?php if ( $args['style'] !== 'div' ) : ?>
 		<div id="div-comment-<?php comment_ID(); ?>" class="comment-body">
 		<?php endif; ?>
 		<div class="comment-author vcard">
 			<?php
-			if ( 0 != $args['avatar_size'] ) {
+			if ( $args['avatar_size'] != 0 ) {
 				echo get_avatar( $comment, $args['avatar_size'] );
 			}
 			?>
 			<?php
 			$comment_author = get_comment_author_link( $comment );
 
-			if ( '0' == $comment->comment_approved && ! $show_pending_links ) {
+			if ( $comment->comment_approved == '0' && ! $show_pending_links ) {
 				$comment_author = get_comment_author( $comment );
 			}
 
@@ -339,7 +339,7 @@ class Walker_Comment extends Walker {
 			);
 			?>
 		</div>
-		<?php if ( '0' == $comment->comment_approved ) : ?>
+		<?php if ( $comment->comment_approved == '0' ) : ?>
 		<em class="comment-awaiting-moderation"><?php echo $moderation_note; ?></em>
 		<br />
 		<?php endif; ?>
@@ -390,7 +390,7 @@ class Walker_Comment extends Walker {
 		);
 		?>
 
-		<?php if ( 'div' !== $args['style'] ) : ?>
+		<?php if ( $args['style'] !== 'div' ) : ?>
 		</div>
 		<?php endif; ?>
 		<?php
@@ -408,7 +408,7 @@ class Walker_Comment extends Walker {
 	 * @param array      $args    An array of arguments.
 	 */
 	protected function html5_comment( $comment, $depth, $args ) {
-		$tag = ( 'div' === $args['style'] ) ? 'div' : 'li';
+		$tag = ( $args['style'] === 'div' ) ? 'div' : 'li';
 
 		$commenter          = wp_get_current_commenter();
 		$show_pending_links = ! empty( $commenter['comment_author'] );
@@ -424,14 +424,14 @@ class Walker_Comment extends Walker {
 				<footer class="comment-meta">
 					<div class="comment-author vcard">
 						<?php
-						if ( 0 != $args['avatar_size'] ) {
+						if ( $args['avatar_size'] != 0 ) {
 							echo get_avatar( $comment, $args['avatar_size'] );
 						}
 						?>
 						<?php
 						$comment_author = get_comment_author_link( $comment );
 
-						if ( '0' == $comment->comment_approved && ! $show_pending_links ) {
+						if ( $comment->comment_approved == '0' && ! $show_pending_links ) {
 							$comment_author = get_comment_author( $comment );
 						}
 
@@ -461,7 +461,7 @@ class Walker_Comment extends Walker {
 						?>
 					</div><!-- .comment-metadata -->
 
-					<?php if ( '0' == $comment->comment_approved ) : ?>
+					<?php if ( $comment->comment_approved == '0' ) : ?>
 					<em class="comment-awaiting-moderation"><?php echo $moderation_note; ?></em>
 					<?php endif; ?>
 				</footer><!-- .comment-meta -->
@@ -471,7 +471,7 @@ class Walker_Comment extends Walker {
 				</div><!-- .comment-content -->
 
 				<?php
-				if ( '1' == $comment->comment_approved || $show_pending_links ) {
+				if ( $comment->comment_approved == '1' || $show_pending_links ) {
 					comment_reply_link(
 						array_merge(
 							$args,

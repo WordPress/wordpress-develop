@@ -231,7 +231,7 @@ class WP_Network_Query {
 		 */
 		$network_data = apply_filters_ref_array( 'networks_pre_query', array( $network_data, &$this ) );
 
-		if ( null !== $network_data ) {
+		if ( $network_data !== null ) {
 			if ( is_array( $network_data ) && ! $this->query_vars['count'] ) {
 				$this->networks = $network_data;
 			}
@@ -251,7 +251,7 @@ class WP_Network_Query {
 		$cache_key   = "get_network_ids:$key:$last_changed";
 		$cache_value = wp_cache_get( $cache_key, 'networks' );
 
-		if ( false === $cache_value ) {
+		if ( $cache_value === false ) {
 			$network_ids = $this->get_network_ids();
 			if ( $network_ids ) {
 				$this->set_found_networks();
@@ -279,7 +279,7 @@ class WP_Network_Query {
 
 		$network_ids = array_map( 'intval', $network_ids );
 
-		if ( 'ids' === $this->query_vars['fields'] ) {
+		if ( $this->query_vars['fields'] === 'ids' ) {
 			$this->networks = $network_ids;
 			return $this->networks;
 		}
@@ -355,7 +355,7 @@ class WP_Network_Query {
 					continue;
 				}
 
-				if ( 'network__in' === $_orderby ) {
+				if ( $_orderby === 'network__in' ) {
 					$orderby_array[] = $parsed;
 					continue;
 				}
@@ -568,10 +568,10 @@ class WP_Network_Query {
 		);
 
 		$parsed = false;
-		if ( 'network__in' === $orderby ) {
+		if ( $orderby === 'network__in' ) {
 			$network__in = implode( ',', array_map( 'absint', $this->query_vars['network__in'] ) );
 			$parsed      = "FIELD( {$wpdb->site}.id, $network__in )";
-		} elseif ( 'domain_length' === $orderby || 'path_length' === $orderby ) {
+		} elseif ( $orderby === 'domain_length' || $orderby === 'path_length' ) {
 			$field  = substr( $orderby, 0, -7 );
 			$parsed = "CHAR_LENGTH($wpdb->site.$field)";
 		} elseif ( in_array( $orderby, $allowed_keys, true ) ) {
@@ -594,7 +594,7 @@ class WP_Network_Query {
 			return 'ASC';
 		}
 
-		if ( 'ASC' === strtoupper( $order ) ) {
+		if ( strtoupper( $order ) === 'ASC' ) {
 			return 'ASC';
 		} else {
 			return 'DESC';

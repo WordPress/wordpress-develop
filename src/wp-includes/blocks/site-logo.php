@@ -36,7 +36,7 @@ function render_block_core_site_logo( $attributes ) {
 		$custom_logo = preg_replace( '#<a.*?>(.*?)</a>#i', '\1', $custom_logo );
 	}
 
-	if ( $attributes['isLink'] && '_blank' === $attributes['linkTarget'] ) {
+	if ( $attributes['isLink'] && $attributes['linkTarget'] === '_blank' ) {
 		// Add the link target after the rel="home".
 		// Add an aria-label for informing that the page opens in a new tab.
 		$aria_label  = 'aria-label="' . esc_attr__( '(Home link, opens in a new tab)' ) . '"';
@@ -112,7 +112,7 @@ add_action( 'init', 'register_block_core_site_logo' );
  */
 function _override_custom_logo_theme_mod( $custom_logo ) {
 	$site_logo = get_option( 'site_logo' );
-	return false === $site_logo ? $custom_logo : $site_logo;
+	return $site_logo === false ? $custom_logo : $site_logo;
 }
 
 add_filter( 'theme_mod_custom_logo', '_override_custom_logo_theme_mod' );
@@ -164,7 +164,7 @@ function _delete_site_logo_on_remove_theme_mods() {
 		return;
 	}
 
-	if ( false !== get_theme_support( 'custom-logo' ) ) {
+	if ( get_theme_support( 'custom-logo' ) !== false ) {
 		delete_option( 'site_logo' );
 	}
 }

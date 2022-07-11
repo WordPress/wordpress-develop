@@ -264,7 +264,7 @@ function wp_print_media_templates() {
 				/** This action is documented in wp-admin/includes/media.php */
 				do_action( 'pre-plupload-upload-ui' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
-				if ( 10 === remove_action( 'post-plupload-upload-ui', 'media_upload_flash_bypass' ) ) {
+				if ( remove_action( 'post-plupload-upload-ui', 'media_upload_flash_bypass' ) === 10 ) {
 					/** This action is documented in wp-admin/includes/media.php */
 					do_action( 'post-plupload-upload-ui' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 					add_action( 'post-plupload-upload-ui', 'media_upload_flash_bypass' );

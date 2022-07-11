@@ -77,17 +77,17 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 
 		$original_title = false;
 
-		if ( 'taxonomy' === $menu_item->type ) {
+		if ( $menu_item->type === 'taxonomy' ) {
 			$original_object = get_term( (int) $menu_item->object_id, $menu_item->object );
 			if ( $original_object && ! is_wp_error( $original_object ) ) {
 				$original_title = $original_object->name;
 			}
-		} elseif ( 'post_type' === $menu_item->type ) {
+		} elseif ( $menu_item->type === 'post_type' ) {
 			$original_object = get_post( $menu_item->object_id );
 			if ( $original_object ) {
 				$original_title = get_the_title( $original_object->ID );
 			}
-		} elseif ( 'post_type_archive' === $menu_item->type ) {
+		} elseif ( $menu_item->type === 'post_type_archive' ) {
 			$original_object = get_post_type_object( $menu_item->object );
 			if ( $original_object ) {
 				$original_title = $original_object->labels->archives;
@@ -106,16 +106,16 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 			$classes[] = 'menu-item-invalid';
 			/* translators: %s: Title of an invalid menu item. */
 			$title = sprintf( __( '%s (Invalid)' ), $menu_item->title );
-		} elseif ( isset( $menu_item->post_status ) && 'draft' === $menu_item->post_status ) {
+		} elseif ( isset( $menu_item->post_status ) && $menu_item->post_status === 'draft' ) {
 			$classes[] = 'pending';
 			/* translators: %s: Title of a menu item in draft status. */
 			$title = sprintf( __( '%s (Pending)' ), $menu_item->title );
 		}
 
-		$title = ( ! isset( $menu_item->label ) || '' === $menu_item->label ) ? $title : $menu_item->label;
+		$title = ( ! isset( $menu_item->label ) || $menu_item->label === '' ) ? $title : $menu_item->label;
 
 		$submenu_text = '';
-		if ( 0 === $depth ) {
+		if ( $depth === 0 ) {
 			$submenu_text = 'style="display: none;"';
 		}
 
@@ -190,7 +190,7 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 			</div>
 
 			<div class="menu-item-settings wp-clearfix" id="menu-item-settings-<?php echo $item_id; ?>">
-				<?php if ( 'custom' === $menu_item->type ) : ?>
+				<?php if ( $menu_item->type === 'custom' ) : ?>
 					<p class="field-url description description-wide">
 						<label for="edit-menu-item-url-<?php echo $item_id; ?>">
 							<?php _e( 'URL' ); ?><br />
@@ -261,7 +261,7 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 				</fieldset>
 
 				<div class="menu-item-actions description-wide submitbox">
-					<?php if ( 'custom' !== $menu_item->type && false !== $original_title ) : ?>
+					<?php if ( $menu_item->type !== 'custom' && $original_title !== false ) : ?>
 						<p class="link-to-original">
 							<?php
 							/* translators: %s: Link to menu item's original object. */

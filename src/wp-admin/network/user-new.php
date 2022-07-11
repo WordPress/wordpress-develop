@@ -30,7 +30,7 @@ get_current_screen()->set_help_sidebar(
 	'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support Forums</a>' ) . '</p>'
 );
 
-if ( isset( $_REQUEST['action'] ) && 'add-user' === $_REQUEST['action'] ) {
+if ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] === 'add-user' ) {
 	check_admin_referer( 'add-user', '_wpnonce_add-user' );
 
 	if ( ! current_user_can( 'manage_network_users' ) ) {
@@ -79,7 +79,7 @@ if ( isset( $_REQUEST['action'] ) && 'add-user' === $_REQUEST['action'] ) {
 
 if ( isset( $_GET['update'] ) ) {
 	$messages = array();
-	if ( 'added' === $_GET['update'] ) {
+	if ( $_GET['update'] === 'added' ) {
 		$edit_link = '';
 		if ( isset( $_GET['user_id'] ) ) {
 			$user_id_new = absint( $_GET['user_id'] );

@@ -249,7 +249,7 @@ class WP_Widget_Media_Gallery extends WP_Widget_Media {
 		if ( ! empty( $instance['ids'] ) ) {
 			$attachments = wp_parse_id_list( $instance['ids'] );
 			foreach ( $attachments as $attachment ) {
-				if ( 'attachment' !== get_post_type( $attachment ) ) {
+				if ( get_post_type( $attachment ) !== 'attachment' ) {
 					return false;
 				}
 			}

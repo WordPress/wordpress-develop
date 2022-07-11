@@ -34,7 +34,7 @@ if ( ! class_exists( 'TwentyTwenty_Walker_Comment' ) ) {
 		 */
 		protected function html5_comment( $comment, $depth, $args ) {
 
-			$tag = ( 'div' === $args['style'] ) ? 'div' : 'li';
+			$tag = ( $args['style'] === 'div' ) ? 'div' : 'li';
 
 			?>
 			<<?php echo $tag; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static output ?> id="comment-<?php comment_ID(); ?>" <?php comment_class( $this->has_children ? 'parent' : '', $comment ); ?>>
@@ -45,7 +45,7 @@ if ( ! class_exists( 'TwentyTwenty_Walker_Comment' ) ) {
 							$comment_author_url = get_comment_author_url( $comment );
 							$comment_author     = get_comment_author( $comment );
 							$avatar             = get_avatar( $comment, $args['avatar_size'] );
-							if ( 0 !== $args['avatar_size'] ) {
+							if ( $args['avatar_size'] !== 0 ) {
 								if ( empty( $comment_author_url ) ) {
 									echo wp_kses_post( $avatar );
 								} else {
@@ -97,7 +97,7 @@ if ( ! class_exists( 'TwentyTwenty_Walker_Comment' ) ) {
 
 						comment_text();
 
-						if ( '0' === $comment->comment_approved ) {
+						if ( $comment->comment_approved === '0' ) {
 							?>
 							<p class="comment-awaiting-moderation"><?php _e( 'Your comment is awaiting moderation.', 'twentytwenty' ); ?></p>
 							<?php

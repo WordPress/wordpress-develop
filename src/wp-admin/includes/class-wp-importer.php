@@ -200,7 +200,7 @@ class WP_Importer {
 
 		$headers = array();
 		$args    = array();
-		if ( true === $head ) {
+		if ( $head === true ) {
 			$args['method'] = 'HEAD';
 		}
 		if ( ! empty( $username ) && ! empty( $password ) ) {
@@ -304,7 +304,7 @@ function get_cli_args( $param, $required = false ) {
 			}
 
 			$last_arg = $key;
-		} elseif ( null !== $last_arg ) {
+		} elseif ( $last_arg !== null ) {
 			$out[ $last_arg ] = $args[ $i ];
 		}
 	}

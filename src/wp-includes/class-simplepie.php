@@ -22,7 +22,7 @@ require ABSPATH . WPINC . '/SimplePie/Author.php';
  * @since 3.5.0
  */
 function wp_simplepie_autoload( $class ) {
-	if ( 0 !== strpos( $class, 'SimplePie_' ) )
+	if ( strpos( $class, 'SimplePie_' ) !== 0 )
 		return;
 
 	$file = ABSPATH . WPINC . '/' . str_replace( '_', '/', $class ) . '.php';

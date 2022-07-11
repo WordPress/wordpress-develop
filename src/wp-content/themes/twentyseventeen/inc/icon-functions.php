@@ -40,7 +40,7 @@ function twentyseventeen_get_svg( $args = array() ) {
 	}
 
 	// Define an icon.
-	if ( false === array_key_exists( 'icon', $args ) ) {
+	if ( array_key_exists( 'icon', $args ) === false ) {
 		return __( 'Please define an SVG icon filename.', 'twentyseventeen' );
 	}
 
@@ -128,9 +128,9 @@ function twentyseventeen_nav_menu_social_icons( $item_output, $item, $depth, $ar
 	$social_icons = twentyseventeen_social_links_icons();
 
 	// Change SVG icon inside social links menu if there is supported URL.
-	if ( 'social' === $args->theme_location ) {
+	if ( $args->theme_location === 'social' ) {
 		foreach ( $social_icons as $attr => $value ) {
-			if ( false !== strpos( $item_output, $attr ) ) {
+			if ( strpos( $item_output, $attr ) !== false ) {
 				$item_output = str_replace( $args->link_after, '</span>' . twentyseventeen_get_svg( array( 'icon' => esc_attr( $value ) ) ), $item_output );
 			}
 		}
@@ -150,9 +150,9 @@ add_filter( 'walker_nav_menu_start_el', 'twentyseventeen_nav_menu_social_icons',
  * @return string The menu item's title with dropdown icon.
  */
 function twentyseventeen_dropdown_icon_to_menu_link( $title, $item, $args, $depth ) {
-	if ( 'top' === $args->theme_location ) {
+	if ( $args->theme_location === 'top' ) {
 		foreach ( $item->classes as $value ) {
-			if ( 'menu-item-has-children' === $value || 'page_item_has_children' === $value ) {
+			if ( $value === 'menu-item-has-children' || $value === 'page_item_has_children' ) {
 				$title = $title . twentyseventeen_get_svg( array( 'icon' => 'angle-down' ) );
 			}
 		}

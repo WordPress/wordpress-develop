@@ -443,11 +443,11 @@ function get_post_embed_url( $post = null ) {
 function get_oembed_endpoint_url( $permalink = '', $format = 'json' ) {
 	$url = rest_url( 'oembed/1.0/embed' );
 
-	if ( '' !== $permalink ) {
+	if ( $permalink !== '' ) {
 		$url = add_query_arg(
 			array(
 				'url'    => urlencode( $permalink ),
-				'format' => ( 'json' !== $format ) ? $format : false,
+				'format' => ( $format !== 'json' ) ? $format : false,
 			),
 			$url
 		);
@@ -708,7 +708,7 @@ function get_oembed_response_data_rich( $data, $post, $width, $height ) {
 		$thumbnail_id = get_post_thumbnail_id( $post->ID );
 	}
 
-	if ( 'attachment' === get_post_type( $post ) ) {
+	if ( get_post_type( $post ) === 'attachment' ) {
 		if ( wp_attachment_is_image( $post ) ) {
 			$thumbnail_id = $post->ID;
 		} elseif ( wp_attachment_is( 'video', $post ) ) {
@@ -761,11 +761,11 @@ function wp_oembed_ensure_format( $format ) {
 function _oembed_rest_pre_serve_request( $served, $result, $request, $server ) {
 	$params = $request->get_params();
 
-	if ( '/oembed/1.0/embed' !== $request->get_route() || 'GET' !== $request->get_method() ) {
+	if ( $request->get_route() !== '/oembed/1.0/embed' || $request->get_method() !== 'GET' ) {
 		return $served;
 	}
 
-	if ( ! isset( $params['format'] ) || 'xml' !== $params['format'] ) {
+	if ( ! isset( $params['format'] ) || $params['format'] !== 'xml' ) {
 		return $served;
 	}
 
@@ -809,7 +809,7 @@ function _oembed_create_xml( $data, $node = null ) {
 		return false;
 	}
 
-	if ( null === $node ) {
+	if ( $node === null ) {
 		$node = new SimpleXMLElement( '<oembed></oembed>' );
 	}
 
@@ -840,7 +840,7 @@ function _oembed_create_xml( $data, $node = null ) {
  * @return string The filtered oEmbed result.
  */
 function wp_filter_oembed_iframe_title_attribute( $result, $data, $url ) {
-	if ( false === $result || ! in_array( $data->type, array( 'rich', 'video' ), true ) ) {
+	if ( $result === false || ! in_array( $data->type, array( 'rich', 'video' ), true ) ) {
 		return $result;
 	}
 
@@ -878,7 +878,7 @@ function wp_filter_oembed_iframe_title_attribute( $result, $data, $url ) {
 	 */
 	$title = apply_filters( 'oembed_iframe_title_attribute', $title, $result, $data, $url );
 
-	if ( '' === $title ) {
+	if ( $title === '' ) {
 		return $result;
 	}
 
@@ -907,14 +907,14 @@ function wp_filter_oembed_iframe_title_attribute( $result, $data, $url ) {
  * @return string The filtered and sanitized oEmbed result.
  */
 function wp_filter_oembed_result( $result, $data, $url ) {
-	if ( false === $result || ! in_array( $data->type, array( 'rich', 'video' ), true ) ) {
+	if ( $result === false || ! in_array( $data->type, array( 'rich', 'video' ), true ) ) {
 		return $result;
 	}
 
 	$wp_oembed = _wp_oembed_get_object();
 
 	// Don't modify the HTML for trusted providers.
-	if ( false !== $wp_oembed->get_provider( $url, array( 'discover' => false ) ) ) {
+	if ( $wp_oembed->get_provider( $url, array( 'discover' => false ) ) !== false ) {
 		return $result;
 	}
 

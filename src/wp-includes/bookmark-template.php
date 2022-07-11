@@ -83,7 +83,7 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 		$title = $desc;
 
 		if ( $parsed_args['show_updated'] ) {
-			if ( '00' !== substr( $bookmark->link_updated_f, 0, 2 ) ) {
+			if ( substr( $bookmark->link_updated_f, 0, 2 ) !== '00' ) {
 				$title .= ' (';
 				$title .= sprintf(
 					/* translators: %s: Date and time of last update. */
@@ -98,14 +98,14 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 		}
 		$alt = ' alt="' . $name . ( $parsed_args['show_description'] ? ' ' . $title : '' ) . '"';
 
-		if ( '' !== $title ) {
+		if ( $title !== '' ) {
 			$title = ' title="' . $title . '"';
 		}
 		$rel = $bookmark->link_rel;
 
 		$target = $bookmark->link_target;
-		if ( '' !== $target ) {
-			if ( is_string( $rel ) && '' !== $rel ) {
+		if ( $target !== '' ) {
+			if ( is_string( $rel ) && $rel !== '' ) {
 				if ( ! str_contains( $rel, 'noopener' ) ) {
 					$rel = trim( $rel ) . ' noopener';
 				}
@@ -116,7 +116,7 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 			$target = ' target="' . $target . '"';
 		}
 
-		if ( '' !== $rel ) {
+		if ( $rel !== '' ) {
 			$rel = ' rel="' . esc_attr( $rel ) . '"';
 		}
 
@@ -124,7 +124,7 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 
 		$output .= $parsed_args['link_before'];
 
-		if ( null != $bookmark->link_image && $parsed_args['show_images'] ) {
+		if ( $bookmark->link_image != null && $parsed_args['show_images'] ) {
 			if ( strpos( $bookmark->link_image, 'http' ) === 0 ) {
 				$output .= "<img src=\"$bookmark->link_image\" $alt $title />";
 			} else { // If it's a relative path.
@@ -145,7 +145,7 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 			$output .= '</em>';
 		}
 
-		if ( $parsed_args['show_description'] && '' !== $desc ) {
+		if ( $parsed_args['show_description'] && $desc !== '' ) {
 			$output .= $parsed_args['between'] . $desc;
 		}
 

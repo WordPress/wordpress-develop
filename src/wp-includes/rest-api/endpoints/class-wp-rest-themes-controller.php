@@ -407,7 +407,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	protected function prepare_theme_support( $support, $args, $feature, $request ) {
 		$schema = $args['show_in_rest']['schema'];
 
-		if ( 'boolean' === $schema['type'] ) {
+		if ( $schema['type'] === 'boolean' ) {
 			return true;
 		}
 

@@ -154,7 +154,7 @@ class Twenty_Twenty_One_Dark_Mode {
 					'section'         => 'colors',
 					'priority'        => 100,
 					'active_callback' => static function() {
-						return 127 >= Twenty_Twenty_One_Custom_Colors::get_relative_luminance_from_hex( get_theme_mod( 'background_color', 'D1E4DD' ) );
+						return Twenty_Twenty_One_Custom_Colors::get_relative_luminance_from_hex( get_theme_mod( 'background_color', 'D1E4DD' ) ) <= 127;
 					},
 				)
 			)
@@ -189,7 +189,7 @@ class Twenty_Twenty_One_Dark_Mode {
 				'priority'        => 110,
 				'description'     => $description,
 				'active_callback' => static function( $value ) {
-					return 127 < Twenty_Twenty_One_Custom_Colors::get_relative_luminance_from_hex( get_theme_mod( 'background_color', 'D1E4DD' ) );
+					return Twenty_Twenty_One_Custom_Colors::get_relative_luminance_from_hex( get_theme_mod( 'background_color', 'D1E4DD' ) ) > 127;
 				},
 			)
 		);
@@ -223,7 +223,7 @@ class Twenty_Twenty_One_Dark_Mode {
 
 		$background_color            = get_theme_mod( 'background_color', 'D1E4DD' );
 		$should_respect_color_scheme = get_theme_mod( 'respect_user_color_preference', false );
-		if ( $should_respect_color_scheme && 127 <= Twenty_Twenty_One_Custom_Colors::get_relative_luminance_from_hex( $background_color ) ) {
+		if ( $should_respect_color_scheme && Twenty_Twenty_One_Custom_Colors::get_relative_luminance_from_hex( $background_color ) >= 127 ) {
 			return ( $classes ) ? ' respect-color-scheme-preference' : 'respect-color-scheme-preference';
 		}
 
@@ -272,7 +272,7 @@ class Twenty_Twenty_One_Dark_Mode {
 		return (
 			get_theme_mod( 'respect_user_color_preference', false ) &&
 			! $is_IE &&
-			127 <= Twenty_Twenty_One_Custom_Colors::get_relative_luminance_from_hex( get_theme_mod( 'background_color', 'D1E4DD' ) )
+			Twenty_Twenty_One_Custom_Colors::get_relative_luminance_from_hex( get_theme_mod( 'background_color', 'D1E4DD' ) ) >= 127
 		);
 	}
 

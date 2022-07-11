@@ -38,7 +38,7 @@ if ( $wp_customize->changeset_post_id() ) {
 	}
 
 	$missed_schedule = (
-		'future' === $changeset_post->post_status &&
+		$changeset_post->post_status === 'future' &&
 		get_post_time( 'G', true, $changeset_post ) < time()
 	);
 	if ( $missed_schedule ) {

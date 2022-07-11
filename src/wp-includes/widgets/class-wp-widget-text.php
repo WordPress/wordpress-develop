@@ -93,7 +93,7 @@ class WP_Widget_Text extends WP_Widget {
 		}
 
 		// Or, the widget has been added/updated in 4.8.0 then filter prop is 'content' and it is no longer legacy.
-		if ( isset( $instance['filter'] ) && 'content' === $instance['filter'] ) {
+		if ( isset( $instance['filter'] ) && $instance['filter'] === 'content' ) {
 			return false;
 		}
 
@@ -103,7 +103,7 @@ class WP_Widget_Text extends WP_Widget {
 		}
 
 		$wpautop         = ! empty( $instance['filter'] );
-		$has_line_breaks = ( false !== strpos( trim( $instance['text'] ), "\n" ) );
+		$has_line_breaks = ( strpos( trim( $instance['text'] ), "\n" ) !== false );
 
 		// If auto-paragraphs are not enabled and there are line breaks, then ensure legacy mode.
 		if ( ! $wpautop && $has_line_breaks ) {
@@ -111,7 +111,7 @@ class WP_Widget_Text extends WP_Widget {
 		}
 
 		// If an HTML comment is present, assume legacy mode.
-		if ( false !== strpos( $instance['text'], '<!--' ) ) {
+		if ( strpos( $instance['text'], '<!--' ) !== false ) {
 			return true;
 		}
 
@@ -174,7 +174,7 @@ class WP_Widget_Text extends WP_Widget {
 			}
 
 			// If the element is not safely empty and it has empty contents, then legacy mode.
-			if ( ! in_array( $tag_name, $safe_empty_elements, true ) && '' === trim( $element->textContent ) ) {
+			if ( ! in_array( $tag_name, $safe_empty_elements, true ) && trim( $element->textContent ) === '' ) {
 				return true;
 			}
 
@@ -235,7 +235,7 @@ class WP_Widget_Text extends WP_Widget {
 
 		// In 4.8.0 only, visual Text widgets get filter=content, without visual prop; upgrade instance props just-in-time.
 		if ( ! $is_visual_text_widget ) {
-			$is_visual_text_widget = ( isset( $instance['filter'] ) && 'content' === $instance['filter'] );
+			$is_visual_text_widget = ( isset( $instance['filter'] ) && $instance['filter'] === 'content' );
 		}
 		if ( $is_visual_text_widget ) {
 			$instance['filter'] = true;
@@ -249,7 +249,7 @@ class WP_Widget_Text extends WP_Widget {
 		 * added to 'widget_text_content' then do_shortcode() will be manually called when in legacy mode as well.
 		 */
 		$widget_text_do_shortcode_priority       = has_filter( 'widget_text', 'do_shortcode' );
-		$should_suspend_legacy_shortcode_support = ( $is_visual_text_widget && false !== $widget_text_do_shortcode_priority );
+		$should_suspend_legacy_shortcode_support = ( $is_visual_text_widget && $widget_text_do_shortcode_priority !== false );
 		if ( $should_suspend_legacy_shortcode_support ) {
 			remove_filter( 'widget_text', 'do_shortcode', $widget_text_do_shortcode_priority );
 		}
@@ -392,10 +392,10 @@ class WP_Widget_Text extends WP_Widget {
 		$instance['filter'] = ! empty( $new_instance['filter'] );
 
 		// Upgrade 4.8.0 format.
-		if ( isset( $old_instance['filter'] ) && 'content' === $old_instance['filter'] ) {
+		if ( isset( $old_instance['filter'] ) && $old_instance['filter'] === 'content' ) {
 			$instance['visual'] = true;
 		}
-		if ( 'content' === $new_instance['filter'] ) {
+		if ( $new_instance['filter'] === 'content' ) {
 			$instance['visual'] = true;
 		}
 

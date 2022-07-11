@@ -136,7 +136,7 @@ function previous_post($format='%', $previous='previous post: ', $title='yes', $
 
 	_deprecated_function( __FUNCTION__, '2.0.0', 'previous_post_link()' );
 
-	if ( empty($in_same_cat) || 'no' == $in_same_cat )
+	if ( empty($in_same_cat) || $in_same_cat == 'no' )
 		$in_same_cat = false;
 	else
 		$in_same_cat = true;
@@ -147,7 +147,7 @@ function previous_post($format='%', $previous='previous post: ', $title='yes', $
 		return;
 
 	$string = '<a href="'.get_permalink($post->ID).'">'.$previous;
-	if ( 'yes' == $title )
+	if ( $title == 'yes' )
 		$string .= apply_filters('the_title', $post->post_title, $post->ID);
 	$string .= '</a>';
 	$format = str_replace('%', $string, $format);
@@ -171,7 +171,7 @@ function previous_post($format='%', $previous='previous post: ', $title='yes', $
 function next_post($format='%', $next='next post: ', $title='yes', $in_same_cat='no', $limitnext=1, $excluded_categories='') {
 	_deprecated_function( __FUNCTION__, '2.0.0', 'next_post_link()' );
 
-	if ( empty($in_same_cat) || 'no' == $in_same_cat )
+	if ( empty($in_same_cat) || $in_same_cat == 'no' )
 		$in_same_cat = false;
 	else
 		$in_same_cat = true;
@@ -182,7 +182,7 @@ function next_post($format='%', $next='next post: ', $title='yes', $in_same_cat=
 		return;
 
 	$string = '<a href="'.get_permalink($post->ID).'">'.$next;
-	if ( 'yes' == $title )
+	if ( $title == 'yes' )
 		$string .= apply_filters('the_title', $post->post_title, $post->ID);
 	$string .= '</a>';
 	$format = str_replace('%', $string, $format);
@@ -972,7 +972,7 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 		if ( !empty($row->link_url) )
 			$the_link = esc_url($row->link_url);
 		$rel = $row->link_rel;
-		if ( '' != $rel )
+		if ( $rel != '' )
 			$rel = ' rel="' . $rel . '"';
 
 		$desc = esc_attr(sanitize_bookmark_field('link_description', $row->link_description, $row->link_id, 'display'));
@@ -983,13 +983,13 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 			if (substr($row->link_updated_f, 0, 2) != '00')
 				$title .= ' ('.__('Last updated') . ' ' . gmdate(get_option('links_updated_date_format'), $row->link_updated_f + (get_option('gmt_offset') * HOUR_IN_SECONDS)) . ')';
 
-		if ( '' != $title )
+		if ( $title != '' )
 			$title = ' title="' . $title . '"';
 
 		$alt = ' alt="' . $name . '"';
 
 		$target = $row->link_target;
-		if ( '' != $target )
+		if ( $target != '' )
 			$target = ' target="' . $target . '"';
 
 		$output .= '<a href="' . $the_link . '"' . $rel . $title . $target. '>';
@@ -1008,7 +1008,7 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 		if ( $show_updated && $row->recently_updated )
 			$output .= get_option('links_recently_updated_append');
 
-		if ( $show_description && '' != $desc )
+		if ( $show_description && $desc != '' )
 			$output .= $between . $desc;
 
 		if ($show_rating) {
@@ -1042,7 +1042,7 @@ function get_links_list($order = 'name') {
 
 	// Handle link category sorting.
 	$direction = 'ASC';
-	if ( '_' == substr($order,0,1) ) {
+	if ( substr($order,0,1) == '_' ) {
 		$direction = 'DESC';
 		$order = substr($order,1);
 	}
@@ -1272,7 +1272,7 @@ function get_catname( $cat_ID ) {
  */
 function get_category_children( $id, $before = '/', $after = '', $visited = array() ) {
 	_deprecated_function( __FUNCTION__, '2.8.0', 'get_term_children()' );
-	if ( 0 == $id )
+	if ( $id == 0 )
 		return '';
 
 	$chain = '';
@@ -1689,12 +1689,12 @@ function the_content_rss($more_link_text='(more...)', $stripteaser=0, $more_file
 	$content = apply_filters('the_content_rss', $content);
 	if ( $cut && !$encode_html )
 		$encode_html = 2;
-	if ( 1== $encode_html ) {
+	if ( $encode_html== 1 ) {
 		$content = esc_html($content);
 		$cut = 0;
-	} elseif ( 0 == $encode_html ) {
+	} elseif ( $encode_html == 0 ) {
 		$content = make_url_footnote($content);
-	} elseif ( 2 == $encode_html ) {
+	} elseif ( $encode_html == 2 ) {
 		$content = strip_tags($content);
 	}
 	if ( $cut ) {
@@ -1868,7 +1868,7 @@ function get_the_attachment_link($id = 0, $fullsize = false, $max_dims = false, 
 	$id = (int) $id;
 	$_post = get_post($id);
 
-	if ( ('attachment' != $_post->post_type) || !$url = wp_get_attachment_url($_post->ID) )
+	if ( ($_post->post_type != 'attachment') || !$url = wp_get_attachment_url($_post->ID) )
 		return __('Missing Attachment');
 
 	if ( $permalink )
@@ -2280,7 +2280,7 @@ function get_usermeta( $user_id, $meta_key = '' ) {
 		$meta_key = preg_replace('|[^a-z0-9_]|i', '', $meta_key);
 		$user = wp_cache_get($user_id, 'users');
 		// Check the cached user object.
-		if ( false !== $user && isset($user->$meta_key) )
+		if ( $user !== false && isset($user->$meta_key) )
 			$metas = array($user->$meta_key);
 		else
 			$metas = $wpdb->get_col( $wpdb->prepare("SELECT meta_value FROM $wpdb->usermeta WHERE user_id = %d AND meta_key = %s", $user_id, $meta_key) );
@@ -2805,7 +2805,7 @@ function wp_admin_bar_dashboard_view_site_menu( $wp_admin_bar ) {
 
 	$user_id = get_current_user_id();
 
-	if ( 0 != $user_id ) {
+	if ( $user_id != 0 ) {
 		if ( is_admin() )
 			$wp_admin_bar->add_menu( array( 'id' => 'view-site', 'title' => __( 'Visit Site' ), 'href' => home_url() ) );
 		elseif ( is_multisite() )
@@ -3470,7 +3470,7 @@ function url_is_accessable_via_ssl( $url ) {
 
 	if ( !is_wp_error( $response ) ) {
 		$status = wp_remote_retrieve_response_code( $response );
-		if ( 200 == $status || 401 == $status ) {
+		if ( $status == 200 || $status == 401 ) {
 			return true;
 		}
 	}
@@ -3667,7 +3667,7 @@ function wp_get_http( $url, $file_path = false, $red = 1 ) {
 	$options = array();
 	$options['redirection'] = 5;
 
-	if ( false == $file_path )
+	if ( $file_path == false )
 		$options['method'] = 'HEAD';
 	else
 		$options['method'] = 'GET';
@@ -3681,11 +3681,11 @@ function wp_get_http( $url, $file_path = false, $red = 1 ) {
 	$headers['response'] = wp_remote_retrieve_response_code( $response );
 
 	// WP_HTTP no longer follows redirects for HEAD requests.
-	if ( 'HEAD' == $options['method'] && in_array($headers['response'], array(301, 302)) && isset( $headers['location'] ) ) {
+	if ( $options['method'] == 'HEAD' && in_array($headers['response'], array(301, 302)) && isset( $headers['location'] ) ) {
 		return wp_get_http( $headers['location'], $file_path, ++$red );
 	}
 
-	if ( false == $file_path )
+	if ( $file_path == false )
 		return $headers;
 
 	// GET request - write it to the supplied filename.
@@ -4143,7 +4143,7 @@ function noindex() {
 	_deprecated_function( __FUNCTION__, '5.7.0', 'wp_robots_noindex()' );
 
 	// If the blog is not public, tell robots to go away.
-	if ( '0' == get_option( 'blog_public' ) ) {
+	if ( get_option( 'blog_public' ) == '0' ) {
 		wp_no_robots();
 	}
 }

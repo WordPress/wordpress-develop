@@ -34,7 +34,7 @@ function wp_is_using_https() {
  * @return bool True if using HTTPS, false otherwise.
  */
 function wp_is_home_url_using_https() {
-	return 'https' === wp_parse_url( home_url(), PHP_URL_SCHEME );
+	return wp_parse_url( home_url(), PHP_URL_SCHEME ) === 'https';
 }
 
 /**
@@ -55,7 +55,7 @@ function wp_is_site_url_using_https() {
 	/** This filter is documented in wp-includes/link-template.php */
 	$site_url = apply_filters( 'site_url', get_option( 'siteurl' ), '', null, null );
 
-	return 'https' === wp_parse_url( $site_url, PHP_URL_SCHEME );
+	return wp_parse_url( $site_url, PHP_URL_SCHEME ) === 'https';
 }
 
 /**
@@ -69,7 +69,7 @@ function wp_is_https_supported() {
 	$https_detection_errors = get_option( 'https_detection_errors' );
 
 	// If option has never been set by the Cron hook before, run it on-the-fly as fallback.
-	if ( false === $https_detection_errors ) {
+	if ( $https_detection_errors === false ) {
 		wp_update_https_detection_errors();
 
 		$https_detection_errors = get_option( 'https_detection_errors' );
@@ -144,9 +144,9 @@ function wp_update_https_detection_errors() {
 	}
 
 	if ( ! is_wp_error( $response ) ) {
-		if ( 200 !== wp_remote_retrieve_response_code( $response ) ) {
+		if ( wp_remote_retrieve_response_code( $response ) !== 200 ) {
 			$support_errors->add( 'bad_response_code', wp_remote_retrieve_response_message( $response ) );
-		} elseif ( false === wp_is_local_html_output( wp_remote_retrieve_body( $response ) ) ) {
+		} elseif ( wp_is_local_html_output( wp_remote_retrieve_body( $response ) ) === false ) {
 			$support_errors->add( 'bad_response_source', __( 'It looks like the response did not come from this site.' ) );
 		}
 	}
@@ -182,7 +182,7 @@ function wp_schedule_https_detection() {
  * @return array The filtered Cron request arguments.
  */
 function wp_cron_conditionally_prevent_sslverify( $request ) {
-	if ( 'https' === wp_parse_url( $request['url'], PHP_URL_SCHEME ) ) {
+	if ( wp_parse_url( $request['url'], PHP_URL_SCHEME ) === 'https' ) {
 		$request['args']['sslverify'] = false;
 	}
 	return $request;
@@ -205,21 +205,21 @@ function wp_is_local_html_output( $html ) {
 	// 1. Check if HTML includes the site's Really Simple Discovery link.
 	if ( has_action( 'wp_head', 'rsd_link' ) ) {
 		$pattern = preg_replace( '#^https?:(?=//)#', '', esc_url( site_url( 'xmlrpc.php?rsd', 'rpc' ) ) ); // See rsd_link().
-		return false !== strpos( $html, $pattern );
+		return strpos( $html, $pattern ) !== false;
 	}
 
 	// 2. Check if HTML includes the site's Windows Live Writer manifest link.
 	if ( has_action( 'wp_head', 'wlwmanifest_link' ) ) {
 		// Try both HTTPS and HTTP since the URL depends on context.
 		$pattern = preg_replace( '#^https?:(?=//)#', '', includes_url( 'wlwmanifest.xml' ) ); // See wlwmanifest_link().
-		return false !== strpos( $html, $pattern );
+		return strpos( $html, $pattern ) !== false;
 	}
 
 	// 3. Check if HTML includes the site's REST API link.
 	if ( has_action( 'wp_head', 'rest_output_link_wp_head' ) ) {
 		// Try both HTTPS and HTTP since the URL depends on context.
 		$pattern = preg_replace( '#^https?:(?=//)#', '', esc_url( get_rest_url() ) ); // See rest_output_link_wp_head().
-		return false !== strpos( $html, $pattern );
+		return strpos( $html, $pattern ) !== false;
 	}
 
 	// Otherwise the result cannot be determined.

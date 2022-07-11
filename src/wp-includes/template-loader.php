@@ -23,7 +23,7 @@ if ( wp_using_themes() ) {
  *
  * @param bool $exit Whether to exit without generating any content for 'HEAD' requests. Default true.
  */
-if ( 'HEAD' === $_SERVER['REQUEST_METHOD'] && apply_filters( 'exit_on_http_head', true ) ) {
+if ( $_SERVER['REQUEST_METHOD'] === 'HEAD' && apply_filters( 'exit_on_http_head', true ) ) {
 	exit;
 }
 
@@ -82,7 +82,7 @@ if ( wp_using_themes() ) {
 		}
 
 		if ( $template ) {
-			if ( 'is_attachment' === $tag ) {
+			if ( $tag === 'is_attachment' ) {
 				remove_filter( 'the_content', 'prepend_attachment' );
 			}
 

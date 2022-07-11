@@ -31,14 +31,14 @@ function render_block_core_search( $attributes ) {
 	$classnames       = classnames_for_block_core_search( $attributes );
 	$show_label       = ( ! empty( $attributes['showLabel'] ) ) ? true : false;
 	$use_icon_button  = ( ! empty( $attributes['buttonUseIcon'] ) ) ? true : false;
-	$show_input       = ( ! empty( $attributes['buttonPosition'] ) && 'button-only' === $attributes['buttonPosition'] ) ? false : true;
-	$show_button      = ( ! empty( $attributes['buttonPosition'] ) && 'no-button' === $attributes['buttonPosition'] ) ? false : true;
+	$show_input       = ( ! empty( $attributes['buttonPosition'] ) && $attributes['buttonPosition'] === 'button-only' ) ? false : true;
+	$show_button      = ( ! empty( $attributes['buttonPosition'] ) && $attributes['buttonPosition'] === 'no-button' ) ? false : true;
 	$input_markup     = '';
 	$button_markup    = '';
 	$inline_styles    = styles_for_block_core_search( $attributes );
 	$color_classes    = get_color_classes_for_block_core_search( $attributes );
 	$is_button_inside = ! empty( $attributes['buttonPosition'] ) &&
-		'button-inside' === $attributes['buttonPosition'];
+		$attributes['buttonPosition'] === 'button-inside';
 	// Border color classes need to be applied to the elements that have a border color.
 	$border_color_classes = get_border_color_classes_for_block_core_search( $attributes );
 
@@ -141,25 +141,25 @@ function classnames_for_block_core_search( $attributes ) {
 	$classnames = array();
 
 	if ( ! empty( $attributes['buttonPosition'] ) ) {
-		if ( 'button-inside' === $attributes['buttonPosition'] ) {
+		if ( $attributes['buttonPosition'] === 'button-inside' ) {
 			$classnames[] = 'wp-block-search__button-inside';
 		}
 
-		if ( 'button-outside' === $attributes['buttonPosition'] ) {
+		if ( $attributes['buttonPosition'] === 'button-outside' ) {
 			$classnames[] = 'wp-block-search__button-outside';
 		}
 
-		if ( 'no-button' === $attributes['buttonPosition'] ) {
+		if ( $attributes['buttonPosition'] === 'no-button' ) {
 			$classnames[] = 'wp-block-search__no-button';
 		}
 
-		if ( 'button-only' === $attributes['buttonPosition'] ) {
+		if ( $attributes['buttonPosition'] === 'button-only' ) {
 			$classnames[] = 'wp-block-search__button-only';
 		}
 	}
 
 	if ( isset( $attributes['buttonUseIcon'] ) ) {
-		if ( ! empty( $attributes['buttonPosition'] ) && 'no-button' !== $attributes['buttonPosition'] ) {
+		if ( ! empty( $attributes['buttonPosition'] ) && $attributes['buttonPosition'] !== 'no-button' ) {
 			if ( $attributes['buttonUseIcon'] ) {
 				$classnames[] = 'wp-block-search__icon-button';
 			} else {
@@ -187,11 +187,11 @@ function styles_for_block_core_search( $attributes ) {
 	$button_styles    = array();
 	$input_styles     = array();
 	$is_button_inside = ! empty( $attributes['buttonPosition'] ) &&
-		'button-inside' === $attributes['buttonPosition'];
+		$attributes['buttonPosition'] === 'button-inside';
 
 	// Add width styles.
 	$has_width   = ! empty( $attributes['width'] ) && ! empty( $attributes['widthUnit'] );
-	$button_only = ! empty( $attributes['buttonPosition'] ) && 'button-only' === $attributes['buttonPosition'];
+	$button_only = ! empty( $attributes['buttonPosition'] ) && $attributes['buttonPosition'] === 'button-only';
 
 	if ( $has_width && ! $button_only ) {
 		$wrapper_styles[] = sprintf(
@@ -225,7 +225,7 @@ function styles_for_block_core_search( $attributes ) {
 		if ( is_array( $border_radius ) ) {
 			// Apply styles for individual corner border radii.
 			foreach ( $border_radius as $key => $value ) {
-				if ( null !== $value ) {
+				if ( $value !== null ) {
 					// Convert camelCase key to kebab-case.
 					$name = strtolower( preg_replace( '/(?<!^)[A-Z]/', '-$0', $key ) );
 

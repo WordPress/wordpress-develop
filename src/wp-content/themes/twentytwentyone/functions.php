@@ -126,7 +126,7 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 		// Add support for editor styles.
 		add_theme_support( 'editor-styles' );
 		$background_color = get_theme_mod( 'background_color', 'D1E4DD' );
-		if ( 127 > Twenty_Twenty_One_Custom_Colors::get_relative_luminance_from_hex( $background_color ) ) {
+		if ( Twenty_Twenty_One_Custom_Colors::get_relative_luminance_from_hex( $background_color ) < 127 ) {
 			add_theme_support( 'dark-editor-style' );
 		}
 

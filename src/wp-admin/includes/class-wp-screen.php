@@ -228,7 +228,7 @@ final class WP_Screen {
 			$post_type = $id;
 			$id        = 'post'; // Changes later. Ends up being $base.
 		} else {
-			if ( '.php' === substr( $id, -4 ) ) {
+			if ( substr( $id, -4 ) === '.php' ) {
 				$id = substr( $id, 0, -4 );
 			}
 
@@ -239,16 +239,16 @@ final class WP_Screen {
 		}
 
 		if ( ! $post_type && $hook_name ) {
-			if ( '-network' === substr( $id, -8 ) ) {
+			if ( substr( $id, -8 ) === '-network' ) {
 				$id       = substr( $id, 0, -8 );
 				$in_admin = 'network';
-			} elseif ( '-user' === substr( $id, -5 ) ) {
+			} elseif ( substr( $id, -5 ) === '-user' ) {
 				$id       = substr( $id, 0, -5 );
 				$in_admin = 'user';
 			}
 
 			$id = sanitize_key( $id );
-			if ( 'edit-comments' !== $id && 'edit-tags' !== $id && 'edit-' === substr( $id, 0, 5 ) ) {
+			if ( $id !== 'edit-comments' && $id !== 'edit-tags' && substr( $id, 0, 5 ) === 'edit-' ) {
 				$maybe = substr( $id, 5 );
 				if ( taxonomy_exists( $maybe ) ) {
 					$id       = 'edit-tags';
@@ -272,9 +272,9 @@ final class WP_Screen {
 			}
 		}
 
-		if ( 'index' === $id ) {
+		if ( $id === 'index' ) {
 			$id = 'dashboard';
-		} elseif ( 'front' === $id ) {
+		} elseif ( $id === 'front' ) {
 			$in_admin = false;
 		}
 
@@ -317,7 +317,7 @@ final class WP_Screen {
 					break;
 				case 'edit-tags':
 				case 'term':
-					if ( null === $post_type && is_object_in_taxonomy( 'post', $taxonomy ? $taxonomy : 'post_tag' ) ) {
+					if ( $post_type === null && is_object_in_taxonomy( 'post', $taxonomy ? $taxonomy : 'post_tag' ) ) {
 						$post_type = 'post';
 					}
 					break;
@@ -329,7 +329,7 @@ final class WP_Screen {
 
 		switch ( $base ) {
 			case 'post':
-				if ( null === $post_type ) {
+				if ( $post_type === null ) {
 					$post_type = 'post';
 				}
 
@@ -341,18 +341,18 @@ final class WP_Screen {
 				$id = $post_type;
 				break;
 			case 'edit':
-				if ( null === $post_type ) {
+				if ( $post_type === null ) {
 					$post_type = 'post';
 				}
 				$id .= '-' . $post_type;
 				break;
 			case 'edit-tags':
 			case 'term':
-				if ( null === $taxonomy ) {
+				if ( $taxonomy === null ) {
 					$taxonomy = 'post_tag';
 				}
 				// The edit-tags ID does not contain the post type. Look for it in the request.
-				if ( null === $post_type ) {
+				if ( $post_type === null ) {
 					$post_type = 'post';
 					if ( isset( $_REQUEST['post_type'] ) && post_type_exists( $_REQUEST['post_type'] ) ) {
 						$post_type = $_REQUEST['post_type'];
@@ -363,10 +363,10 @@ final class WP_Screen {
 				break;
 		}
 
-		if ( 'network' === $in_admin ) {
+		if ( $in_admin === 'network' ) {
 			$id   .= '-network';
 			$base .= '-network';
-		} elseif ( 'user' === $in_admin ) {
+		} elseif ( $in_admin === 'user' ) {
 			$id   .= '-user';
 			$base .= '-user';
 		}
@@ -385,8 +385,8 @@ final class WP_Screen {
 		$screen->action          = $action;
 		$screen->post_type       = (string) $post_type;
 		$screen->taxonomy        = (string) $taxonomy;
-		$screen->is_user         = ( 'user' === $in_admin );
-		$screen->is_network      = ( 'network' === $in_admin );
+		$screen->is_user         = ( $in_admin === 'user' );
+		$screen->is_network      = ( $in_admin === 'network' );
 		$screen->in_admin        = $in_admin;
 		$screen->is_block_editor = $is_block_editor;
 
@@ -455,7 +455,7 @@ final class WP_Screen {
 	 * @return bool True if the block editor is being loaded, false otherwise.
 	 */
 	public function is_block_editor( $set = null ) {
-		if ( null !== $set ) {
+		if ( $set !== null ) {
 			$this->is_block_editor = (bool) $set;
 		}
 
@@ -999,7 +999,7 @@ final class WP_Screen {
 
 		$this->_screen_settings = '';
 
-		if ( 'post' === $this->base ) {
+		if ( $this->base === 'post' ) {
 			$expand                 = '<fieldset class="editor-expand hidden"><legend>' . __( 'Additional settings' ) . '</legend><label for="editor-expand-toggle">';
 			$expand                .= '<input type="checkbox" id="editor-expand-toggle"' . checked( get_user_setting( 'editor_expand', 'on' ), 'on', false ) . ' />';
 			$expand                .= __( 'Enable full-height editor and distraction-free functionality.' ) . '</label></fieldset>';
@@ -1064,7 +1064,7 @@ final class WP_Screen {
 		}
 
 		// Don't output the form and nonce for the widgets accessibility mode links.
-		if ( 'widgets' !== $this->base ) {
+		if ( $this->base !== 'widgets' ) {
 			$form_start = "\n<form id='adv-settings' method='post'>\n";
 			$form_end   = "\n" . wp_nonce_field( 'screen-options-nonce', 'screenoptionnonce', false, false ) . "\n</form>\n";
 		}
@@ -1120,13 +1120,13 @@ final class WP_Screen {
 
 		meta_box_prefs( $this );
 
-		if ( 'dashboard' === $this->id && has_action( 'welcome_panel' ) && current_user_can( 'edit_theme_options' ) ) {
+		if ( $this->id === 'dashboard' && has_action( 'welcome_panel' ) && current_user_can( 'edit_theme_options' ) ) {
 			if ( isset( $_GET['welcome'] ) ) {
 				$welcome_checked = empty( $_GET['welcome'] ) ? 0 : 1;
 				update_user_meta( get_current_user_id(), 'show_welcome_panel', $welcome_checked );
 			} else {
 				$welcome_checked = (int) get_user_meta( get_current_user_id(), 'show_welcome_panel', true );
-				if ( 2 === $welcome_checked && wp_get_current_user()->user_email !== get_option( 'admin_email' ) ) {
+				if ( $welcome_checked === 2 && wp_get_current_user()->user_email !== get_option( 'admin_email' ) ) {
 					$welcome_checked = false;
 				}
 			}
@@ -1225,12 +1225,12 @@ final class WP_Screen {
 	 * @since 3.3.0
 	 */
 	public function render_per_page_options() {
-		if ( null === $this->get_option( 'per_page' ) ) {
+		if ( $this->get_option( 'per_page' ) === null ) {
 			return;
 		}
 
 		$per_page_label = $this->get_option( 'per_page', 'label' );
-		if ( null === $per_page_label ) {
+		if ( $per_page_label === null ) {
 			$per_page_label = __( 'Number of items per page:' );
 		}
 
@@ -1247,12 +1247,12 @@ final class WP_Screen {
 			}
 		}
 
-		if ( 'edit_comments_per_page' === $option ) {
+		if ( $option === 'edit_comments_per_page' ) {
 			$comment_status = isset( $_REQUEST['comment_status'] ) ? $_REQUEST['comment_status'] : 'all';
 
 			/** This filter is documented in wp-admin/includes/class-wp-comments-list-table.php */
 			$per_page = apply_filters( 'comments_per_page', $per_page, $comment_status );
-		} elseif ( 'categories_per_page' === $option ) {
+		} elseif ( $option === 'categories_per_page' ) {
 			/** This filter is documented in wp-admin/includes/class-wp-terms-list-table.php */
 			$per_page = apply_filters( 'edit_categories_per_page', $per_page );
 		} else {
@@ -1296,7 +1296,7 @@ final class WP_Screen {
 		$screen = get_current_screen();
 
 		// Currently only enabled for posts and comments lists.
-		if ( 'edit' !== $screen->base && 'edit-comments' !== $screen->base ) {
+		if ( $screen->base !== 'edit' && $screen->base !== 'edit-comments' ) {
 			return;
 		}
 
@@ -1312,7 +1312,7 @@ final class WP_Screen {
 		 */
 		$view_mode_post_types = apply_filters( 'view_mode_post_types', $view_mode_post_types );
 
-		if ( 'edit' === $screen->base && ! in_array( $this->post_type, $view_mode_post_types, true ) ) {
+		if ( $screen->base === 'edit' && ! in_array( $this->post_type, $view_mode_post_types, true ) ) {
 			return;
 		}
 

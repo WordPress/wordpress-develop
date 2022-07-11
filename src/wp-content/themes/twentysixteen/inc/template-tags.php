@@ -18,7 +18,7 @@ if ( ! function_exists( 'twentysixteen_entry_meta' ) ) :
 	 * @since Twenty Sixteen 1.0
 	 */
 	function twentysixteen_entry_meta() {
-		if ( 'post' === get_post_type() ) {
+		if ( get_post_type() === 'post' ) {
 			$author_avatar_size = apply_filters( 'twentysixteen_author_avatar_size', 49 );
 			printf(
 				'<span class="byline"><span class="author vcard">%1$s<span class="screen-reader-text">%2$s </span> <a class="url fn n" href="%3$s">%4$s</a></span></span>',
@@ -43,7 +43,7 @@ if ( ! function_exists( 'twentysixteen_entry_meta' ) ) :
 			);
 		}
 
-		if ( 'post' === get_post_type() ) {
+		if ( get_post_type() === 'post' ) {
 			twentysixteen_entry_taxonomies();
 		}
 
@@ -211,7 +211,7 @@ if ( ! function_exists( 'twentysixteen_categorized_blog' ) ) :
 	 */
 	function twentysixteen_categorized_blog() {
 		$all_the_cool_cats = get_transient( 'twentysixteen_categories' );
-		if ( false === $all_the_cool_cats ) {
+		if ( $all_the_cool_cats === false ) {
 			// Create an array of all the categories that are attached to posts.
 			$all_the_cool_cats = get_categories(
 				array(

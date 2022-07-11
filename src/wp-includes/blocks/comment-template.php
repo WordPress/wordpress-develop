@@ -95,7 +95,7 @@ function render_block_core_comment_template( $attributes, $content, $block ) {
 
 	$comment_order = get_option( 'comment_order' );
 
-	if ( 'desc' === $comment_order ) {
+	if ( $comment_order === 'desc' ) {
 		$comments = array_reverse( $comments );
 	}
 
