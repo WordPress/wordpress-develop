@@ -155,7 +155,7 @@ class WP_Object_Cache {
 			return true;
 		}
 
-		if ( is_string( $key ) && trim( $key ) !== '') {
+		if ( is_string( $key ) && trim( $key ) !== '' ) {
 			return true;
 		}
 
@@ -163,7 +163,7 @@ class WP_Object_Cache {
 
 		_doing_it_wrong(
 			debug_backtrace()[1]['function'],
-			sprintf( __( 'Cache key must be integer or non-empty string, %s given.', $type ) ),
+			sprintf( __( 'Cache key must be integer or non-empty string, %s given.' ), $type ),
 			'6.1.0'
 		);
 
