@@ -282,8 +282,8 @@ function wp_load_alloptions( $force_cache = false ) {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param null $pre if an array is returned then the wp_load_alloptions will be shortcuted and the array returned.
-	 * @param bool $force_cache Whether to force an update of the local cache from the persistent cache. Default false.
+	 * @param null|array $pre if an array is returned then the wp_load_alloptions will be shortcuted and the array returned.
+	 * @param bool       $force_cache Whether to force an update of the local cache from the persistent cache. Default false.
 	 */
 	$pre = apply_filters( 'pre_wp_load_alloptions', null, $force_cache );
 	if ( is_array( $pre ) ) {
