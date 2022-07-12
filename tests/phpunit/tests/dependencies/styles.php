@@ -2,11 +2,6 @@
 /**
  * @group dependencies
  * @group scripts
- * @covers ::wp_enqueue_style
- * @covers ::wp_register_style
- * @covers ::wp_print_styles
- * @covers ::wp_style_add_data
- * @covers ::wp_add_inline_style
  */
 class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	private $old_wp_styles;
@@ -436,6 +431,7 @@ CSS;
 	 * Visual block styles should always be enqueued when editing to avoid the appearance of a broken editor.
 	 *
 	 * @covers ::wp_enqueue_style
+	 * @covers ::wp_default_styles
 	 */
 	public function test_block_styles_for_editing_without_theme_support() {
 		// Confirm we are without theme support by default.
@@ -454,6 +450,7 @@ CSS;
 	 * Visual block styles should always be enqueued when editing to avoid the appearance of a broken editor.
 	 *
 	 * @covers ::wp_common_block_scripts_and_styles
+	 * @covers ::wp_default_styles
 	 */
 	public function test_block_styles_for_editing_with_theme_support() {
 		add_theme_support( 'wp-block-styles' );
@@ -472,6 +469,7 @@ CSS;
 	 * This way we avoid style conflicts with existing themes.
 	 *
 	 * @covers ::wp_enqueue_style
+	 * @covers ::wp_default_styles
 	 */
 	public function test_no_block_styles_for_viewing_without_theme_support() {
 		// Confirm we are without theme support by default.
@@ -490,6 +488,7 @@ CSS;
 	 * Visual block styles should be enqueued when a theme opts in.
 	 *
 	 * @covers ::wp_common_block_scripts_and_styles
+	 * @covers ::wp_default_styles
 	 */
 	public function test_block_styles_for_viewing_with_theme_support() {
 		add_theme_support( 'wp-block-styles' );

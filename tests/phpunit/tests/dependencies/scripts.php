@@ -2,12 +2,6 @@
 /**
  * @group dependencies
  * @group scripts
- * @covers ::wp_enqueue_script
- * @covers ::wp_register_script
- * @covers ::wp_print_scripts
- * @covers ::wp_script_add_data
- * @covers ::wp_add_inline_script
- * @covers ::wp_set_script_translations
  */
 class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	protected $old_wp_scripts;
@@ -45,7 +39,7 @@ JS;
 	 *
 	 * @ticket 11315
 	 *
-	 * @covers ::wp_print_scripts
+	 * @covers ::wp_enqueue_script
 	 */
 	public function test_wp_enqueue_script() {
 		wp_enqueue_script( 'no-deps-no-version', 'example.com', array() );
@@ -68,7 +62,7 @@ JS;
 	/**
 	 * @ticket 42804
 	 *
-	 * @covers ::wp_print_scripts
+	 * @covers ::wp_enqueue_script
 	 */
 	public function test_wp_enqueue_script_with_html5_support_does_not_contain_type_attribute() {
 		add_theme_support( 'html5', array( 'script' ) );
@@ -341,9 +335,7 @@ JS;
 	/**
 	 * @ticket 35873
 	 *
-	 * @covers WP_Dependencies::add
-	 * @covers WP_Dependencies::enqueue
-	 * @covers WP_Dependencies::do_items
+	 * @covers ::wp_register_script
 	 */
 	public function test_wp_register_script_with_dependencies_in_head_and_footer() {
 		wp_register_script( 'parent', '/parent.js', array( 'child-head' ), null, true );            // In footer.
@@ -659,6 +651,7 @@ JS;
 	 * @ticket 14853
 	 *
 	 * @covers ::wp_add_inline_script
+	 * @covers ::wp_script_add_data
 	 */
 	public function test_wp_add_inline_script_after_and_before_with_concat_and_conditional() {
 		global $wp_scripts;
@@ -718,6 +711,7 @@ JS;
 	 * @ticket 36392
 	 *
 	 * @covers ::wp_add_inline_script
+	 * @covers ::wp_script_add_data
 	 */
 	public function test_wp_add_inline_script_after_with_concat_and_conditional_and_core_dependency() {
 		global $wp_scripts;
