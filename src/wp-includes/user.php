@@ -1849,9 +1849,18 @@ function update_user_caches( $user ) {
 	}
 
 	wp_cache_add( $user->ID, $user, 'users' );
-	wp_cache_add( $user->user_login, $user->ID, 'userlogins' );
-	wp_cache_add( $user->user_email, $user->ID, 'useremail' );
-	wp_cache_add( $user->user_nicename, $user->ID, 'userslugs' );
+
+	if ( ! empty( $user->user_login ) ) {
+		wp_cache_add( $user->user_login, $user->ID, 'userlogins' );
+	}
+
+	if ( ! empty( $user->user_email ) ) {
+		wp_cache_add( $user->user_email, $user->ID, 'useremail' );
+	}
+
+	if ( ! empty( $user->user_nicename ) ) {
+		wp_cache_add( $user->user_nicename, $user->ID, 'userslugs' );
+	}
 }
 
 /**
@@ -1877,9 +1886,18 @@ function clean_user_cache( $user ) {
 	}
 
 	wp_cache_delete( $user->ID, 'users' );
-	wp_cache_delete( $user->user_login, 'userlogins' );
-	wp_cache_delete( $user->user_email, 'useremail' );
-	wp_cache_delete( $user->user_nicename, 'userslugs' );
+
+	if ( ! empty( $user->user_login ) ) {
+		wp_cache_delete( $user->user_login, 'userlogins' );
+	}
+
+	if ( ! empty( $user->user_email ) ) {
+		wp_cache_delete( $user->user_email, 'useremail' );
+	}
+
+	if ( ! empty( $user->user_nicename ) ) {
+		wp_cache_delete( $user->user_nicename, 'userslugs' );
+	}
 
 	/**
 	 * Fires immediately after the given user's cache is cleaned.
