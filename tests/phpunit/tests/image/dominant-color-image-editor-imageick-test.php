@@ -2,7 +2,7 @@
 /**
  * Tests for dominant-color module.
  *
- * @since 1.2.0
+ * @since 6.1
  *
  * @group image
  * @group media
