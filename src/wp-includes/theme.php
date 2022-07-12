@@ -1390,21 +1390,12 @@ function is_random_header_image( $type = 'any' ) {
 }
 
 /**
- * Prints header image URL.
+ * Displays header image URL.
  *
  * @since 2.1.0
  */
 function header_image() {
 	$image = get_header_image();
-
-	/**
-	 * Filters the header image URL.
-	 *
-	 * @since 6.1.0
-	 *
-	 * @param string $image Header image URL.
-	 */
-	$image = apply_filters( 'header_image', $image );
 
 	if ( $image ) {
 		echo esc_url( $image );
