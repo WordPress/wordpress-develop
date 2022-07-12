@@ -6878,7 +6878,7 @@ function wp_mime_type_icon( $mime = 0 ) {
 				$uri  = array_shift( $dirs );
 				$dh   = opendir( $dir );
 				if ( $dh ) {
-					while ( false !== $file = readdir( $dh ) ) {
+					while ( false !== $file = readdir( $dh ) ) { // phpcs:ignore
 						$file = wp_basename( $file );
 						if ( substr( $file, 0, 1 ) === '.' ) {
 							continue;
