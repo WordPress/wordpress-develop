@@ -7,7 +7,7 @@
  */
 class Dominant_Color_Test extends DominantColorTestCase {
 	public $editor_engines = array( 'WP_Image_Editor_Imagick', 'WP_Image_Editor_GD' );
-	public $editor_engine = 'WP_Image_Editor_GD';
+	public $editor_engine  = 'WP_Image_Editor_GD';
 	/**
 	 * Tests dominant_color_metadata().
 	 *
@@ -102,7 +102,7 @@ class Dominant_Color_Test extends DominantColorTestCase {
 		foreach ( $this->editor_engines as $editor ) {
 			$this->editor_engine = $editor;
 
-			$attachment_id       = $this->factory->attachment->create_upload_object( $image_path );
+			$attachment_id = $this->factory->attachment->create_upload_object( $image_path );
 			wp_maybe_generate_attachment_metadata( get_post( $attachment_id ) );
 
 			list( $src, $width, $height ) = wp_get_attachment_image_src( $attachment_id );
