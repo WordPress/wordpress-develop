@@ -142,7 +142,13 @@ jobs:
       - name: Install Composer dependencies
         run: |
           docker-compose run --rm php composer --version
-          docker-compose run --rm php composer update --ignore-platform-reqs
+
+          # Install using `composer update` as there is no `composer.lock` file.
+          if [ ${{ env.LOCAL_PHP }} == '8.1-fpm' ]; then
+            docker-compose run --rm php composer update --ignore-platform-reqs
+          else
+            docker-compose run --rm php composer update
+          fi
 
       - name: Docker debug information
         run: |
