@@ -587,11 +587,23 @@ class WP_Object_Cache {
 			return true;
 		}
 
-		$type = str_replace( 'string', 'empty string', gettype( $key ) );
+		$type = gettype( $key );
+
+		if ( function_exists( '__' ) ) {
+			$message = is_string( $key )
+				? __( 'Cache key must not be an empty string.' )
+				/* translators: %s: The type of the given cache key. */
+				: sprintf( __( 'Cache key must be integer or non-empty string, %s given.' ), $type );
+		} else {
+			$message = is_string( $key )
+				? 'Cache key must not be an empty string.'
+				/* translators: %s: The type of the given cache key. */
+				: sprintf( 'Cache key must be integer or non-empty string, %s given.', $type );
+		}
 
 		_doing_it_wrong(
-			debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS )[1]['function'],
-			sprintf( __( 'Cache key must be integer or non-empty string, %s given.' ), $type ),
+			debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 2 )[1]['function'],
+			$message,
 			'6.1.0'
 		);
 
