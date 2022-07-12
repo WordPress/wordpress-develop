@@ -310,7 +310,7 @@ function wp_cache_flush_runtime() {
 function wp_cache_flush_group( $group ) {
 	global $wp_object_cache;
 
-	// if group is an array loop and call each key in the array
+	// if group is an array, loop and call each group in the array
 	if ( is_array( $group ) ) {
 		return array_combine(
 			array_values( $group ),
