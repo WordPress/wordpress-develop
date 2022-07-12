@@ -71,7 +71,7 @@ jobs:
           locale -a
 
       - name: Install NodeJS
-        uses: actions/setup-node@eeb10cff27034e7acf239c5d29f62154018672fd # v3.3.0
+        uses: actions/setup-node@5b949b50c3461bbcd5a540b150c368278160234a # v3.3.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
