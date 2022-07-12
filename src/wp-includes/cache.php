@@ -32,7 +32,7 @@ function wp_cache_init() {
  * @return bool True if group flushing is supported, false otherwise.
  */
 function wp_cache_supports_group_flush() {
-	return false;
+	return true;
 }
 
 /**
