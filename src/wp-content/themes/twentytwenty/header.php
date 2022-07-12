@@ -41,7 +41,7 @@
 					// Check whether the header search is activated in the customizer.
 					$enable_header_search = get_theme_mod( 'enable_header_search', true );
 
-					if ( true === $enable_header_search ) {
+					if ( $enable_header_search === true ) {
 
 						?>
 
@@ -121,7 +121,7 @@
 						<?php
 					}
 
-					if ( true === $enable_header_search || has_nav_menu( 'expanded' ) ) {
+					if ( $enable_header_search === true || has_nav_menu( 'expanded' ) ) {
 						?>
 
 						<div class="header-toggles hide-no-js">
@@ -146,7 +146,7 @@
 							<?php
 						}
 
-						if ( true === $enable_header_search ) {
+						if ( $enable_header_search === true ) {
 							?>
 
 							<div class="toggle-wrapper search-toggle-wrapper">
@@ -175,7 +175,7 @@
 
 			<?php
 			// Output the search modal (if it is activated in the customizer).
-			if ( true === $enable_header_search ) {
+			if ( $enable_header_search === true ) {
 				get_template_part( 'template-parts/modal-search' );
 			}
 			?>

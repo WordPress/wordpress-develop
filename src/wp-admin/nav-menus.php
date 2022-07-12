@@ -323,7 +323,7 @@ switch ( $action ) {
 		}
 
 		// Add Menu.
-		if ( 0 === $nav_menu_selected_id ) {
+		if ( $nav_menu_selected_id === 0 ) {
 			$new_menu_title = trim( esc_html( $_POST['menu-name'] ) );
 
 			if ( $new_menu_title ) {
@@ -460,9 +460,9 @@ $nav_menus  = wp_get_nav_menus();
 $menu_count = count( $nav_menus );
 
 // Are we on the add new screen?
-$add_new_screen = ( isset( $_GET['menu'] ) && 0 === (int) $_GET['menu'] ) ? true : false;
+$add_new_screen = ( isset( $_GET['menu'] ) && (int) $_GET['menu'] === 0 ) ? true : false;
 
-$locations_screen = ( isset( $_GET['action'] ) && 'locations' === $_GET['action'] ) ? true : false;
+$locations_screen = ( isset( $_GET['action'] ) && $_GET['action'] === 'locations' ) ? true : false;
 
 $page_count = wp_count_posts( 'page' );
 
@@ -470,7 +470,7 @@ $page_count = wp_count_posts( 'page' );
  * If we have one theme location, and zero menus, we take them right
  * into editing their first menu.
  */
-if ( 1 === count( get_registered_nav_menus() ) && ! $add_new_screen
+if ( count( get_registered_nav_menus() ) === 1 && ! $add_new_screen
 	&& empty( $nav_menus ) && ! empty( $page_count->publish )
 ) {
 	$one_theme_location_no_menus = true;
@@ -513,7 +513,7 @@ wp_localize_script( 'nav-menu', 'menus', $nav_menus_l10n );
  * Redirect to add screen if there are no menus and this users has either zero,
  * or more than 1 theme locations.
  */
-if ( 0 === $menu_count && ! $add_new_screen && ! $one_theme_location_no_menus ) {
+if ( $menu_count === 0 && ! $add_new_screen && ! $one_theme_location_no_menus ) {
 	wp_redirect( admin_url( 'nav-menus.php?action=edit&menu=0' ) );
 }
 
@@ -529,7 +529,7 @@ if ( empty( $nav_menu_selected_id ) && ! isset( $_GET['menu'] ) && is_nav_menu( 
 }
 
 // On deletion of menu, if another menu exists, show it.
-if ( ! $add_new_screen && $menu_count > 0 && isset( $_GET['action'] ) && 'delete' === $_GET['action'] ) {
+if ( ! $add_new_screen && $menu_count > 0 && isset( $_GET['action'] ) && $_GET['action'] === 'delete' ) {
 	$nav_menu_selected_id = $nav_menus[0]->term_id;
 }
 
@@ -697,7 +697,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	$nav_tab_active_class = '';
 	$nav_aria_current     = '';
 
-	if ( ! isset( $_GET['action'] ) || isset( $_GET['action'] ) && 'locations' !== $_GET['action'] ) {
+	if ( ! isset( $_GET['action'] ) || isset( $_GET['action'] ) && $_GET['action'] !== 'locations' ) {
 		$nav_tab_active_class = ' nav-tab-active';
 		$nav_aria_current     = ' aria-current="page"';
 	}
@@ -729,7 +729,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	?>
 	<?php
 	if ( $locations_screen ) :
-		if ( 1 === $num_locations ) {
+		if ( $num_locations === 1 ) {
 			echo '<p>' . __( 'Your theme supports one menu. Select which menu you would like to use.' ) . '</p>';
 		} else {
 			echo '<p>' . sprintf(
@@ -774,7 +774,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 								<?php endforeach; ?>
 							</select>
 							<div class="locations-row-links">
-								<?php if ( isset( $menu_locations[ $_location ] ) && 0 !== $menu_locations[ $_location ] ) : ?>
+								<?php if ( isset( $menu_locations[ $_location ] ) && $menu_locations[ $_location ] !== 0 ) : ?>
 								<span class="locations-edit-menu-link">
 									<a href="
 									<?php
@@ -927,7 +927,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		$metabox_holder_disabled_class = '';
 
-		if ( isset( $_GET['menu'] ) && 0 === (int) $_GET['menu'] ) {
+		if ( isset( $_GET['menu'] ) && (int) $_GET['menu'] === 0 ) {
 			$metabox_holder_disabled_class = ' metabox-holder-disabled';
 		}
 		?>
@@ -985,7 +985,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 								<?php
 								$hide_style = '';
 
-								if ( isset( $menu_items ) && 0 === count( $menu_items ) ) {
+								if ( isset( $menu_items ) && count( $menu_items ) === 0 ) {
 									$hide_style = 'style="display: none;"';
 								}
 
@@ -1056,7 +1056,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 									if ( ! isset( $auto_add['auto_add'] ) ) {
 										$auto_add = false;
-									} elseif ( false !== array_search( $nav_menu_selected_id, $auto_add['auto_add'], true ) ) {
+									} elseif ( array_search( $nav_menu_selected_id, $auto_add['auto_add'], true ) !== false ) {
 										$auto_add = true;
 									} else {
 										$auto_add = false;
@@ -1080,7 +1080,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 											$checked = false;
 
 											if ( isset( $menu_locations[ $location ] )
-													&& 0 !== $nav_menu_selected_id
+													&& $nav_menu_selected_id !== 0
 													&& $menu_locations[ $location ] === $nav_menu_selected_id
 											) {
 													$checked = true;

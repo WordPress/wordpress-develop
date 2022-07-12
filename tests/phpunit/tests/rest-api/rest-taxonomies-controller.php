@@ -258,7 +258,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( $tax_obj->rest_namespace, $data['rest_namespace'] );
 		$this->assertSame( rest_url( 'wp/v2/taxonomies' ), $links['collection'][0]['href'] );
 		$this->assertArrayHasKey( 'https://api.w.org/items', $links );
-		if ( 'edit' === $context ) {
+		if ( $context === 'edit' ) {
 			$this->assertSame( $tax_obj->cap, $data['capabilities'] );
 			$this->assertSame( $tax_obj->labels, $data['labels'] );
 			$this->assertSame( $tax_obj->show_tagcloud, $data['show_cloud'] );

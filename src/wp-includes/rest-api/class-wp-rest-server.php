@@ -466,7 +466,7 @@ class WP_REST_Server {
 		$served = apply_filters( 'rest_pre_serve_request', false, $result, $request, $this );
 
 		if ( ! $served ) {
-			if ( 'HEAD' === $request->get_method() ) {
+			if ( $request->get_method() === 'HEAD' ) {
 				return null;
 			}
 
@@ -489,7 +489,7 @@ class WP_REST_Server {
 			$result = apply_filters( 'rest_pre_echo_response', $result, $this, $request );
 
 			// The 204 response shouldn't have a body.
-			if ( 204 === $code || null === $result ) {
+			if ( $code === 204 || $result === null ) {
 				return null;
 			}
 
@@ -1006,7 +1006,7 @@ class WP_REST_Server {
 		$with_namespace = array();
 
 		foreach ( $this->get_namespaces() as $namespace ) {
-			if ( 0 === strpos( trailingslashit( ltrim( $path, '/' ) ), $namespace ) ) {
+			if ( strpos( trailingslashit( ltrim( $path, '/' ) ), $namespace ) === 0 ) {
 				$with_namespace[] = $this->get_routes( $namespace );
 			}
 		}
@@ -1038,7 +1038,7 @@ class WP_REST_Server {
 
 				// Fallback to GET method if no HEAD method is registered.
 				$checked_method = $method;
-				if ( 'HEAD' === $method && empty( $handler['methods']['HEAD'] ) ) {
+				if ( $method === 'HEAD' && empty( $handler['methods']['HEAD'] ) ) {
 					$checked_method = 'GET';
 				}
 				if ( empty( $handler['methods'][ $checked_method ] ) ) {
@@ -1111,7 +1111,7 @@ class WP_REST_Server {
 
 			if ( is_wp_error( $permission ) ) {
 				$response = $permission;
-			} elseif ( false === $permission || null === $permission ) {
+			} elseif ( $permission === false || $permission === null ) {
 				$response = new WP_Error(
 					'rest_forbidden',
 					__( 'Sorry, you are not allowed to do that.' ),
@@ -1137,7 +1137,7 @@ class WP_REST_Server {
 			$dispatch_result = apply_filters( 'rest_dispatch_request', null, $request, $route, $handler );
 
 			// Allow plugins to halt the request via this filter.
-			if ( null !== $dispatch_result ) {
+			if ( $dispatch_result !== null ) {
 				$response = $dispatch_result;
 			} else {
 				$response = call_user_func( $handler['callback'], $request );
@@ -1192,7 +1192,7 @@ class WP_REST_Server {
 	protected function get_json_last_error() {
 		$last_error_code = json_last_error();
 
-		if ( JSON_ERROR_NONE === $last_error_code || empty( $last_error_code ) ) {
+		if ( $last_error_code === JSON_ERROR_NONE || empty( $last_error_code ) ) {
 			return false;
 		}
 
@@ -1453,7 +1453,7 @@ class WP_REST_Server {
 
 			$allow_batch = isset( $options['allow_batch'] ) ? $options['allow_batch'] : false;
 
-			if ( isset( $options['schema'] ) && 'help' === $context ) {
+			if ( isset( $options['schema'] ) && $context === 'help' ) {
 				$data['schema'] = call_user_func( $options['schema'] );
 			}
 		}
@@ -1544,7 +1544,7 @@ class WP_REST_Server {
 		foreach ( $batch_request['requests'] as $args ) {
 			$parsed_url = wp_parse_url( $args['path'] );
 
-			if ( false === $parsed_url ) {
+			if ( $parsed_url === false ) {
 				$requests[] = new WP_Error( 'parse_path_failed', __( 'Could not parse the path.' ), array( 'status' => 400 ) );
 
 				continue;
@@ -1625,7 +1625,7 @@ class WP_REST_Server {
 
 		$responses = array();
 
-		if ( $has_error && 'require-all-validate' === $batch_request['validation'] ) {
+		if ( $has_error && $batch_request['validation'] === 'require-all-validate' ) {
 			foreach ( $validation as $valid ) {
 				if ( is_wp_error( $valid ) ) {
 					$responses[] = $this->envelope_response( $this->error_to_response( $valid ), false )->get_data();
@@ -1784,7 +1784,7 @@ class WP_REST_Server {
 		foreach ( $server as $key => $value ) {
 			if ( strpos( $key, 'HTTP_' ) === 0 ) {
 				$headers[ substr( $key, 5 ) ] = $value;
-			} elseif ( 'REDIRECT_HTTP_AUTHORIZATION' === $key && empty( $server['HTTP_AUTHORIZATION'] ) ) {
+			} elseif ( $key === 'REDIRECT_HTTP_AUTHORIZATION' && empty( $server['HTTP_AUTHORIZATION'] ) ) {
 				/*
 				 * In some server configurations, the authorization header is passed in this alternate location.
 				 * Since it would not be passed in in both places we do not check for both headers and resolve.

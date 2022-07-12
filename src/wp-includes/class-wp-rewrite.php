@@ -508,7 +508,7 @@ class WP_Rewrite {
 		$date_endian          = '';
 
 		foreach ( $endians as $endian ) {
-			if ( false !== strpos( $this->permalink_structure, $endian ) ) {
+			if ( strpos( $this->permalink_structure, $endian ) !== false ) {
 				$date_endian = $endian;
 				break;
 			}
@@ -526,7 +526,7 @@ class WP_Rewrite {
 		preg_match_all( '/%.+?%/', $this->permalink_structure, $tokens );
 		$tok_index = 1;
 		foreach ( (array) $tokens[0] as $token ) {
-			if ( '%post_id%' === $token && ( $tok_index <= 3 ) ) {
+			if ( $token === '%post_id%' && ( $tok_index <= 3 ) ) {
 				$front = $front . 'date/';
 				break;
 			}
@@ -798,7 +798,7 @@ class WP_Rewrite {
 	 */
 	public function add_rewrite_tag( $tag, $regex, $query ) {
 		$position = array_search( $tag, $this->rewritecode, true );
-		if ( false !== $position && null !== $position ) {
+		if ( $position !== false && $position !== null ) {
 			$this->rewritereplace[ $position ] = $regex;
 			$this->queryreplace[ $position ]   = $query;
 		} else {
@@ -822,7 +822,7 @@ class WP_Rewrite {
 	 */
 	public function remove_rewrite_tag( $tag ) {
 		$position = array_search( $tag, $this->rewritecode, true );
-		if ( false !== $position && null !== $position ) {
+		if ( $position !== false && $position !== null ) {
 			unset( $this->rewritecode[ $position ] );
 			unset( $this->rewritereplace[ $position ] );
 			unset( $this->queryreplace[ $position ] );
@@ -934,7 +934,7 @@ class WP_Rewrite {
 
 		// Get the structure, minus any cruft (stuff that isn't tags) at the front.
 		$structure = $permalink_structure;
-		if ( '/' !== $front ) {
+		if ( $front !== '/' ) {
 			$structure = str_replace( $front, '', $structure );
 		}
 
@@ -1276,10 +1276,10 @@ class WP_Rewrite {
 
 		// robots.txt -- only if installed at the root.
 		$home_path      = parse_url( home_url() );
-		$robots_rewrite = ( empty( $home_path['path'] ) || '/' === $home_path['path'] ) ? array( 'robots\.txt$' => $this->index . '?robots=1' ) : array();
+		$robots_rewrite = ( empty( $home_path['path'] ) || $home_path['path'] === '/' ) ? array( 'robots\.txt$' => $this->index . '?robots=1' ) : array();
 
 		// favicon.ico -- only if installed at the root.
-		$favicon_rewrite = ( empty( $home_path['path'] ) || '/' === $home_path['path'] ) ? array( 'favicon\.ico$' => $this->index . '?favicon=1' ) : array();
+		$favicon_rewrite = ( empty( $home_path['path'] ) || $home_path['path'] === '/' ) ? array( 'favicon\.ico$' => $this->index . '?favicon=1' ) : array();
 
 		// Old feed and service files.
 		$deprecated_files = array(
@@ -1425,7 +1425,7 @@ class WP_Rewrite {
 			 */
 			$rules = apply_filters( "{$permastructname}_rewrite_rules", $rules );
 
-			if ( 'post_tag' === $permastructname ) {
+			if ( $permastructname === 'post_tag' ) {
 
 				/**
 				 * Filters rewrite rules used specifically for Tags.
@@ -1659,7 +1659,7 @@ class WP_Rewrite {
 			$external = false;
 			$query    = add_query_arg( $query, 'index.php' );
 		} else {
-			$index = false === strpos( $query, '?' ) ? strlen( $query ) : strpos( $query, '?' );
+			$index = strpos( $query, '?' ) === false ? strlen( $query ) : strpos( $query, '?' );
 			$front = substr( $query, 0, $index );
 
 			$external = $front != $this->index;
@@ -1669,7 +1669,7 @@ class WP_Rewrite {
 		if ( $external ) {
 			$this->add_external_rule( $regex, $query );
 		} else {
-			if ( 'bottom' === $after ) {
+			if ( $after === 'bottom' ) {
 				$this->extra_rules = array_merge( $this->extra_rules, array( $regex => $query ) );
 			} else {
 				$this->extra_rules_top = array_merge( $this->extra_rules_top, array( $regex => $query ) );
@@ -1726,7 +1726,7 @@ class WP_Rewrite {
 		global $wp;
 
 		// For backward compatibility, if null has explicitly been passed as `$query_var`, assume `true`.
-		if ( true === $query_var || null === $query_var ) {
+		if ( $query_var === true || $query_var === null ) {
 			$query_var = $name;
 		}
 		$this->endpoints[] = array( $places, $name, $query_var );
@@ -1906,7 +1906,7 @@ class WP_Rewrite {
 		unset( $this->feed_structure );
 		unset( $this->comment_feed_structure );
 
-		$this->use_trailing_slashes = ( '/' === substr( $this->permalink_structure, -1, 1 ) );
+		$this->use_trailing_slashes = ( substr( $this->permalink_structure, -1, 1 ) === '/' );
 
 		// Enable generic rules for pages if permalink structure doesn't begin with a wildcard.
 		if ( preg_match( '/^[^%]*%(?:postname|category|tag|author)%/', $this->permalink_structure ) ) {

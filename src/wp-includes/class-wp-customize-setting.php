@@ -205,12 +205,12 @@ class WP_Customize_Setting {
 			add_filter( "customize_sanitize_js_{$this->id}", $this->sanitize_js_callback, 10, 2 );
 		}
 
-		if ( 'option' === $this->type || 'theme_mod' === $this->type ) {
+		if ( $this->type === 'option' || $this->type === 'theme_mod' ) {
 			// Other setting types can opt-in to aggregate multidimensional explicitly.
 			$this->aggregate_multidimensional();
 
 			// Allow option settings to indicate whether they should be autoloaded.
-			if ( 'option' === $this->type && isset( $args['autoload'] ) ) {
+			if ( $this->type === 'option' && isset( $args['autoload'] ) ) {
 				self::$aggregated_multidimensionals[ $this->type ][ $this->id_data['base'] ]['autoload'] = $args['autoload'];
 			}
 		}
@@ -626,9 +626,9 @@ class WP_Customize_Setting {
 	 */
 	protected function get_root_value( $default_value = null ) {
 		$id_base = $this->id_data['base'];
-		if ( 'option' === $this->type ) {
+		if ( $this->type === 'option' ) {
 			return get_option( $id_base, $default_value );
-		} elseif ( 'theme_mod' === $this->type ) {
+		} elseif ( $this->type === 'theme_mod' ) {
 			return get_theme_mod( $id_base, $default_value );
 		} else {
 			/*
@@ -650,13 +650,13 @@ class WP_Customize_Setting {
 	 */
 	protected function set_root_value( $value ) {
 		$id_base = $this->id_data['base'];
-		if ( 'option' === $this->type ) {
+		if ( $this->type === 'option' ) {
 			$autoload = true;
 			if ( isset( self::$aggregated_multidimensionals[ $this->type ][ $this->id_data['base'] ]['autoload'] ) ) {
 				$autoload = self::$aggregated_multidimensionals[ $this->type ][ $this->id_data['base'] ]['autoload'];
 			}
 			return update_option( $id_base, $value, $autoload );
-		} elseif ( 'theme_mod' === $this->type ) {
+		} elseif ( $this->type === 'theme_mod' ) {
 			set_theme_mod( $id_base, $value );
 			return true;
 		} else {
@@ -679,7 +679,7 @@ class WP_Customize_Setting {
 	 */
 	protected function update( $value ) {
 		$id_base = $this->id_data['base'];
-		if ( 'option' === $this->type || 'theme_mod' === $this->type ) {
+		if ( $this->type === 'option' || $this->type === 'theme_mod' ) {
 			if ( ! $this->is_multidimensional_aggregated ) {
 				return $this->set_root_value( $value );
 			} else {
@@ -735,14 +735,14 @@ class WP_Customize_Setting {
 	 */
 	public function value() {
 		$id_base      = $this->id_data['base'];
-		$is_core_type = ( 'option' === $this->type || 'theme_mod' === $this->type );
+		$is_core_type = ( $this->type === 'option' || $this->type === 'theme_mod' );
 
 		if ( ! $is_core_type && ! $this->is_multidimensional_aggregated ) {
 
 			// Use post value if previewed and a post value is present.
 			if ( $this->is_previewed ) {
 				$value = $this->post_value( null );
-				if ( null !== $value ) {
+				if ( $value !== null ) {
 					return $value;
 				}
 			}

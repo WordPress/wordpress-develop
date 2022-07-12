@@ -33,7 +33,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		$post_statuses = array( 'publish', 'future', 'draft', 'pending', 'private', 'auto-draft', 'a-private-status' );
 		foreach ( $post_statuses as $post_status ) {
 			$post_date = '';
-			if ( 'future' === $post_status ) {
+			if ( $post_status === 'future' ) {
 				$post_date = date_format( date_create( '+1 year' ), 'Y-m-d H:i:s' );
 			}
 

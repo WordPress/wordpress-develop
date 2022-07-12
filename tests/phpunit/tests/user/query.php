@@ -606,7 +606,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		// Multisite adds a 'blog_id' clause, so we have to find the 'foo' clause.
 		$mq_clauses = $q->meta_query->get_clauses();
 		foreach ( $mq_clauses as $mq_clause ) {
-			if ( 'foo' === $mq_clause['key'] ) {
+			if ( $mq_clause['key'] === 'foo' ) {
 				$clause = $mq_clause;
 			}
 		}

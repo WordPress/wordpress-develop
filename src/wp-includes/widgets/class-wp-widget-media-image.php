@@ -211,7 +211,7 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 
 			$size = $instance['size'];
 
-			if ( 'custom' === $size || ! in_array( $size, array_merge( get_intermediate_image_sizes(), array( 'full' ) ), true ) ) {
+			if ( $size === 'custom' || ! in_array( $size, array_merge( get_intermediate_image_sizes(), array( 'full' ) ), true ) ) {
 				$size  = array( $instance['width'], $instance['height'] );
 				$width = $instance['width'];
 			} else {
@@ -232,10 +232,10 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 			$caption          = $instance['caption'];
 			$width            = $instance['width'];
 			$classes          = 'image ' . $instance['image_classes'];
-			if ( 0 === $instance['width'] ) {
+			if ( $instance['width'] === 0 ) {
 				$instance['width'] = '';
 			}
-			if ( 0 === $instance['height'] ) {
+			if ( $instance['height'] === 0 ) {
 				$instance['height'] = '';
 			}
 
@@ -250,11 +250,11 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 		} // End if().
 
 		$url = '';
-		if ( 'file' === $instance['link_type'] ) {
+		if ( $instance['link_type'] === 'file' ) {
 			$url = $attachment ? wp_get_attachment_url( $attachment->ID ) : $instance['url'];
-		} elseif ( $attachment && 'post' === $instance['link_type'] ) {
+		} elseif ( $attachment && $instance['link_type'] === 'post' ) {
 			$url = get_attachment_link( $attachment->ID );
-		} elseif ( 'custom' === $instance['link_type'] && ! empty( $instance['link_url'] ) ) {
+		} elseif ( $instance['link_type'] === 'custom' && ! empty( $instance['link_url'] ) ) {
 			$url = $instance['link_url'];
 		}
 

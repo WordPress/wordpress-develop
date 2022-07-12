@@ -220,7 +220,7 @@ class WP_Site_Icon {
 	 * @return array|null|string The attachment metadata value, array of values, or null.
 	 */
 	public function get_post_metadata( $value, $post_id, $meta_key, $single ) {
-		if ( $single && '_wp_attachment_backup_sizes' === $meta_key ) {
+		if ( $single && $meta_key === '_wp_attachment_backup_sizes' ) {
 			$site_icon_id = get_option( 'site_icon' );
 
 			if ( $post_id == $site_icon_id ) {

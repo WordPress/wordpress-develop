@@ -55,17 +55,17 @@ class Twenty_Twenty_One_Custom_Colors {
 	 */
 	public function generate_custom_color_variables( $context = null ) {
 
-		$theme_css        = 'editor' === $context ? ':root .editor-styles-wrapper{' : ':root{';
+		$theme_css        = $context === 'editor' ? ':root .editor-styles-wrapper{' : ':root{';
 		$background_color = get_theme_mod( 'background_color', 'D1E4DD' );
 
-		if ( 'd1e4dd' !== strtolower( $background_color ) ) {
+		if ( strtolower( $background_color ) !== 'd1e4dd' ) {
 			$theme_css .= '--global--color-background: #' . $background_color . ';';
 			$theme_css .= '--global--color-primary: ' . $this->custom_get_readable_color( $background_color ) . ';';
 			$theme_css .= '--global--color-secondary: ' . $this->custom_get_readable_color( $background_color ) . ';';
 			$theme_css .= '--button--color-background: ' . $this->custom_get_readable_color( $background_color ) . ';';
 			$theme_css .= '--button--color-text-hover: ' . $this->custom_get_readable_color( $background_color ) . ';';
 
-			if ( '#fff' === $this->custom_get_readable_color( $background_color ) ) {
+			if ( $this->custom_get_readable_color( $background_color ) === '#fff' ) {
 				$theme_css .= '--table--stripes-border-color: rgba(240, 240, 240, 0.15);';
 				$theme_css .= '--table--stripes-background-color: rgba(240, 240, 240, 0.15);';
 			}
@@ -84,7 +84,7 @@ class Twenty_Twenty_One_Custom_Colors {
 	 * @return void
 	 */
 	public function custom_color_variables() {
-		if ( 'd1e4dd' !== strtolower( get_theme_mod( 'background_color', 'D1E4DD' ) ) ) {
+		if ( strtolower( get_theme_mod( 'background_color', 'D1E4DD' ) ) !== 'd1e4dd' ) {
 			wp_add_inline_style( 'twenty-twenty-one-style', $this->generate_custom_color_variables() );
 		}
 	}
@@ -105,7 +105,7 @@ class Twenty_Twenty_One_Custom_Colors {
 		);
 
 		$background_color = get_theme_mod( 'background_color', 'D1E4DD' );
-		if ( 'd1e4dd' !== strtolower( $background_color ) ) {
+		if ( strtolower( $background_color ) !== 'd1e4dd' ) {
 			wp_add_inline_style( 'twenty-twenty-one-custom-color-overrides', $this->generate_custom_color_variables( 'editor' ) );
 		}
 	}
@@ -126,7 +126,7 @@ class Twenty_Twenty_One_Custom_Colors {
 		$hex = ltrim( $hex, '#' );
 
 		// Make sure there are 6 digits for the below calculations.
-		if ( 3 === strlen( $hex ) ) {
+		if ( strlen( $hex ) === 3 ) {
 			$hex = substr( $hex, 0, 1 ) . substr( $hex, 0, 1 ) . substr( $hex, 1, 1 ) . substr( $hex, 1, 1 ) . substr( $hex, 2, 1 ) . substr( $hex, 2, 1 );
 		}
 

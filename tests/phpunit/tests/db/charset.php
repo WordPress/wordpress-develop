@@ -488,11 +488,11 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 			$new_charset = $data[0]['charset'];
 		}
 
-		if ( 'utf8mb4' === $new_charset && ! self::$_wpdb->has_cap( 'utf8mb4' ) ) {
+		if ( $new_charset === 'utf8mb4' && ! self::$_wpdb->has_cap( 'utf8mb4' ) ) {
 			$this->markTestSkipped( "The current MySQL server doesn't support the utf8mb4 character set." );
 		}
 
-		if ( 'big5' === $new_charset && 'byte' === $data[0]['length']['type'] && false !== strpos( self::$server_info, 'MariaDB' ) ) {
+		if ( $new_charset === 'big5' && $data[0]['length']['type'] === 'byte' && strpos( self::$server_info, 'MariaDB' ) !== false ) {
 			$this->markTestSkipped( "MariaDB doesn't support this data set. See https://core.trac.wordpress.org/ticket/33171." );
 		}
 
@@ -516,7 +516,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 		global $wpdb;
 
 		$charset = $wpdb->get_col_charset( $wpdb->posts, 'post_content' );
-		if ( 'utf8' !== $charset && 'utf8mb4' !== $charset ) {
+		if ( $charset !== 'utf8' && $charset !== 'utf8mb4' ) {
 			$this->markTestSkipped( 'This test requires a utf8 character set.' );
 		}
 
@@ -651,7 +651,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 		global $wpdb;
 
 		$charset = $wpdb->get_col_charset( $wpdb->posts, 'post_content' );
-		if ( 'utf8' !== $charset && 'utf8mb4' !== $charset ) {
+		if ( $charset !== 'utf8' && $charset !== 'utf8mb4' ) {
 			$this->markTestSkipped( 'This test requires a utf8 character set.' );
 		}
 
@@ -966,7 +966,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 		global $wpdb;
 
 		$charset = $wpdb->get_col_charset( $wpdb->posts, 'post_content' );
-		if ( 'utf8' !== $charset && 'utf8mb4' !== $charset ) {
+		if ( $charset !== 'utf8' && $charset !== 'utf8mb4' ) {
 			$this->markTestSkipped( 'This test requires a utf8 character set.' );
 		}
 

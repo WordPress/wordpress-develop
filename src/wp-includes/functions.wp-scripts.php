@@ -94,7 +94,7 @@ function wp_print_scripts( $handles = false ) {
 	 */
 	do_action( 'wp_print_scripts' );
 
-	if ( '' === $handles ) { // For 'wp_head'.
+	if ( $handles === '' ) { // For 'wp_head'.
 		$handles = false;
 	}
 
@@ -130,7 +130,7 @@ function wp_print_scripts( $handles = false ) {
 function wp_add_inline_script( $handle, $data, $position = 'after' ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
-	if ( false !== stripos( $data, '</script>' ) ) {
+	if ( stripos( $data, '</script>' ) !== false ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
@@ -272,8 +272,8 @@ function wp_deregister_script( $handle ) {
 	 * Show minimal remorse if the correct hook is used.
 	 */
 	$current_filter = current_filter();
-	if ( ( is_admin() && 'admin_enqueue_scripts' !== $current_filter ) ||
-		( 'wp-login.php' === $pagenow && 'login_enqueue_scripts' !== $current_filter )
+	if ( ( is_admin() && $current_filter !== 'admin_enqueue_scripts' ) ||
+		( $pagenow === 'wp-login.php' && $current_filter !== 'login_enqueue_scripts' )
 	) {
 		$not_allowed = array(
 			'jquery',

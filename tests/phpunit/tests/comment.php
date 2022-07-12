@@ -792,7 +792,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		// Check to see if a notification email was sent to the moderator `admin@example.org`.
 		if ( isset( $GLOBALS['phpmailer']->mock_sent )
 			&& ! empty( $GLOBALS['phpmailer']->mock_sent )
-			&& WP_TESTS_EMAIL === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0]
+			&& $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] === WP_TESTS_EMAIL
 		) {
 			$email_sent_when_comment_added = true;
 			reset_phpmailer_instance();
@@ -820,7 +820,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		// Check to see if a notification email was sent to the post author `test@test.com`.
 		if ( isset( $GLOBALS['phpmailer']->mock_sent )
 			&& ! empty( $GLOBALS['phpmailer']->mock_sent )
-			&& 'test@test.com' === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0]
+			&& $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] === 'test@test.com'
 		) {
 			$email_sent_when_comment_approved = true;
 		} else {
@@ -842,7 +842,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		// Check to see if a notification email was sent to the post author `test@test.com`.
 		if ( isset( $GLOBALS['phpmailer']->mock_sent ) &&
 			! empty( $GLOBALS['phpmailer']->mock_sent ) &&
-			'test@test.com' === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] ) {
+			$GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] === 'test@test.com' ) {
 				$email_sent_when_comment_added = true;
 				reset_phpmailer_instance();
 		} else {

@@ -55,7 +55,7 @@ if ( ! class_exists( 'WP_Site_Health' ) ) {
 	require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
 }
 
-if ( 'update_https' === $action ) {
+if ( $action === 'update_https' ) {
 	check_admin_referer( 'wp_update_https' );
 
 	if ( ! current_user_can( 'update_https' ) ) {

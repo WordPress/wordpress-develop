@@ -73,7 +73,7 @@ class Tests_Date_GetTheModifiedDate extends WP_UnitTestCase {
 		$actual   = $the_date;
 		$this->assertSame( $expected, $actual );
 
-		if ( false === $the_date ) {
+		if ( $the_date === false ) {
 			return 'filtered modified date failure result';
 		}
 		return $the_date;
@@ -164,7 +164,7 @@ class Tests_Date_GetTheModifiedDate extends WP_UnitTestCase {
 		$actual   = $the_time;
 		$this->assertSame( $expected, $actual );
 
-		if ( false === $the_time ) {
+		if ( $the_time === false ) {
 			return 'filtered modified time failure result';
 		}
 		return $the_time;

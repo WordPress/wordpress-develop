@@ -400,7 +400,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 			case ARRAY_N:
 				$expected = get_object_vars( $bookmark );
 
-				if ( ARRAY_N === $args[1] ) {
+				if ( $args[1] === ARRAY_N ) {
 					$expected = array_values( $expected );
 				}
 

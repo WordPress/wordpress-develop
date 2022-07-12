@@ -85,7 +85,7 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
 
 	// Don't destroy the initial, main, or root blog.
 	if ( $drop
-		&& ( 1 === $blog_id || is_main_site( $blog_id )
+		&& ( $blog_id === 1 || is_main_site( $blog_id )
 			|| ( $blog->path === $current_network->path && $blog->domain === $current_network->domain ) )
 	) {
 		$drop = false;
@@ -556,7 +556,7 @@ function format_code_lang( $code = '' ) {
  *                       if `$taxonomy` is 'category' or 'post_tag'.
  */
 function sync_category_tag_slugs( $term, $taxonomy ) {
-	if ( global_terms_enabled() && ( 'category' === $taxonomy || 'post_tag' === $taxonomy ) ) {
+	if ( global_terms_enabled() && ( $taxonomy === 'category' || $taxonomy === 'post_tag' ) ) {
 		if ( is_object( $term ) ) {
 			$term->slug = sanitize_title( $term->name );
 		} else {
@@ -652,11 +652,11 @@ function mu_dropdown_languages( $lang_files = array(), $current = '' ) {
 	foreach ( (array) $lang_files as $val ) {
 		$code_lang = basename( $val, '.mo' );
 
-		if ( 'en_US' === $code_lang ) { // American English.
+		if ( $code_lang === 'en_US' ) { // American English.
 			$flag          = true;
 			$ae            = __( 'American English' );
 			$output[ $ae ] = '<option value="' . esc_attr( $code_lang ) . '"' . selected( $current, $code_lang, false ) . '> ' . $ae . '</option>';
-		} elseif ( 'en_GB' === $code_lang ) { // British English.
+		} elseif ( $code_lang === 'en_GB' ) { // British English.
 			$flag          = true;
 			$be            = __( 'British English' );
 			$output[ $be ] = '<option value="' . esc_attr( $code_lang ) . '"' . selected( $current, $code_lang, false ) . '> ' . $be . '</option>';
@@ -666,7 +666,7 @@ function mu_dropdown_languages( $lang_files = array(), $current = '' ) {
 		}
 	}
 
-	if ( false === $flag ) { // WordPress English.
+	if ( $flag === false ) { // WordPress English.
 		$output[] = '<option value=""' . selected( $current, '', false ) . '>' . __( 'English' ) . '</option>';
 	}
 
@@ -704,7 +704,7 @@ function site_admin_notice() {
 		return false;
 	}
 
-	if ( 'upgrade.php' === $pagenow ) {
+	if ( $pagenow === 'upgrade.php' ) {
 		return;
 	}
 
@@ -733,10 +733,10 @@ function avoid_blog_page_permalink_collision( $data, $postarr ) {
 	if ( is_subdomain_install() ) {
 		return $data;
 	}
-	if ( 'page' !== $data['post_type'] ) {
+	if ( $data['post_type'] !== 'page' ) {
 		return $data;
 	}
-	if ( ! isset( $data['post_name'] ) || '' === $data['post_name'] ) {
+	if ( ! isset( $data['post_name'] ) || $data['post_name'] === '' ) {
 		return $data;
 	}
 	if ( ! is_main_site() ) {
@@ -799,7 +799,7 @@ function choose_primary_blog() {
 				$blog = reset( $all_blogs );
 				update_user_meta( get_current_user_id(), 'primary_blog', $blog->userblog_id );
 			}
-		} elseif ( 1 === count( $all_blogs ) ) {
+		} elseif ( count( $all_blogs ) === 1 ) {
 			$blog = reset( $all_blogs );
 			echo esc_url( get_home_url( $blog->userblog_id ) );
 			if ( $blog->userblog_id !== $primary_blog ) { // Set the primary blog again if it's out of sync with blog list.
@@ -870,7 +870,7 @@ function confirm_delete_users( $users ) {
 	?>
 	<h1><?php esc_html_e( 'Users' ); ?></h1>
 
-	<?php if ( 1 === count( $users ) ) : ?>
+	<?php if ( count( $users ) === 1 ) : ?>
 		<p><?php _e( 'You have chosen to delete the user from all networks and sites.' ); ?></p>
 	<?php else : ?>
 		<p><?php _e( 'You have chosen to delete the following users from all networks and sites.' ); ?></p>
@@ -887,7 +887,7 @@ function confirm_delete_users( $users ) {
 	<?php
 	$allusers = (array) $_POST['allusers'];
 	foreach ( $allusers as $user_id ) {
-		if ( '' !== $user_id && '0' !== $user_id ) {
+		if ( $user_id !== '' && $user_id !== '0' ) {
 			$delete_user = get_userdata( $user_id );
 
 			if ( ! current_user_can( 'delete_user', $delete_user->ID ) ) {
@@ -949,7 +949,7 @@ function confirm_delete_users( $users ) {
 							}
 						}
 
-						if ( '' === $user_list ) {
+						if ( $user_list === '' ) {
 							$user_list = $admin_out;
 						}
 
@@ -988,7 +988,7 @@ function confirm_delete_users( $users ) {
 	/** This action is documented in wp-admin/users.php */
 	do_action( 'delete_user_form', $current_user, $allusers );
 
-	if ( 1 === count( $users ) ) :
+	if ( count( $users ) === 1 ) :
 		?>
 		<p><?php _e( 'Once you hit &#8220;Confirm Deletion&#8221;, the user will be permanently removed.' ); ?></p>
 	<?php else : ?>

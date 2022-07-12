@@ -198,7 +198,7 @@ class Tests_Link extends WP_UnitTestCase {
 		$this->assertSame( get_permalink( $post_id ) . user_trailingslashit( $attachment->post_name ), get_permalink( $attachment_id ) );
 
 		foreach ( $wp_post_types as $id => $pt ) {
-			if ( 'not_a_post_type' === $pt->name ) {
+			if ( $pt->name === 'not_a_post_type' ) {
 				unset( $wp_post_types[ $id ] );
 				break;
 			}

@@ -164,7 +164,7 @@ class Test_WP_Customize_Partial extends WP_UnitTestCase {
 	 * @return string|false Content.
 	 */
 	public function filter_customize_partial_render( $rendered, $partial, $container_context ) {
-		$this->assertTrue( false === $rendered || is_string( $rendered ) );
+		$this->assertTrue( $rendered === false || is_string( $rendered ) );
 		$this->assertInstanceOf( 'WP_Customize_Partial', $partial );
 		$this->assertIsArray( $container_context );
 		$this->count_filter_customize_partial_render += 1;
@@ -181,7 +181,7 @@ class Test_WP_Customize_Partial extends WP_UnitTestCase {
 	 */
 	public function filter_customize_partial_render_with_id( $rendered, $partial, $container_context ) {
 		$this->assertSame( sprintf( 'customize_partial_render_%s', $partial->id ), current_filter() );
-		$this->assertTrue( false === $rendered || is_string( $rendered ) );
+		$this->assertTrue( $rendered === false || is_string( $rendered ) );
 		$this->assertInstanceOf( 'WP_Customize_Partial', $partial );
 		$this->assertIsArray( $container_context );
 		$this->count_filter_customize_partial_render_with_id += 1;

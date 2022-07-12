@@ -84,7 +84,7 @@ if ( ! function_exists( 'twentyfifteen_entry_meta' ) ) :
 			);
 		}
 
-		if ( 'post' === get_post_type() ) {
+		if ( get_post_type() === 'post' ) {
 			if ( is_singular() || is_multi_author() ) {
 				printf(
 					'<span class="byline"><span class="author vcard"><span class="screen-reader-text">%1$s </span><a class="url fn n" href="%2$s">%3$s</a></span></span>',
@@ -144,7 +144,7 @@ endif;
  */
 function twentyfifteen_categorized_blog() {
 	$all_the_cool_cats = get_transient( 'twentyfifteen_categories' );
-	if ( false === $all_the_cool_cats ) {
+	if ( $all_the_cool_cats === false ) {
 		// Create an array of all the categories that are attached to posts.
 		$all_the_cool_cats = get_categories(
 			array(

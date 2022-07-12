@@ -13,7 +13,7 @@ if ( ! current_user_can( 'manage_privacy_options' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to manage privacy options on this site.' ) );
 }
 
-if ( isset( $_GET['tab'] ) && 'policyguide' === $_GET['tab'] ) {
+if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'policyguide' ) {
 	require_once dirname( __FILE__ ) . '/privacy-policy-guide.php';
 	return;
 }
@@ -47,7 +47,7 @@ get_current_screen()->set_help_sidebar(
 if ( ! empty( $action ) ) {
 	check_admin_referer( $action );
 
-	if ( 'set-privacy-page' === $action ) {
+	if ( $action === 'set-privacy-page' ) {
 		$privacy_policy_page_id = isset( $_POST['page_for_privacy_policy'] ) ? (int) $_POST['page_for_privacy_policy'] : 0;
 		update_option( 'wp_page_for_privacy_policy', $privacy_policy_page_id );
 
@@ -62,7 +62,7 @@ if ( ! empty( $action ) ) {
 			 * - Themes might not "officially" support menus.
 			 */
 			if (
-				'publish' === get_post_status( $privacy_policy_page_id )
+				get_post_status( $privacy_policy_page_id ) === 'publish'
 				&& current_user_can( 'edit_theme_options' )
 				&& current_theme_supports( 'menus' )
 			) {
@@ -75,7 +75,7 @@ if ( ! empty( $action ) ) {
 		}
 
 		add_settings_error( 'page_for_privacy_policy', 'page_for_privacy_policy', $privacy_page_updated_message, 'success' );
-	} elseif ( 'create-privacy-page' === $action ) {
+	} elseif ( $action === 'create-privacy-page' ) {
 
 		if ( ! class_exists( 'WP_Privacy_Policy_Content' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/class-wp-privacy-policy-content.php';
@@ -124,7 +124,7 @@ if ( ! empty( $privacy_policy_page_id ) ) {
 			'error'
 		);
 	} else {
-		if ( 'trash' === $privacy_policy_page->post_status ) {
+		if ( $privacy_policy_page->post_status === 'trash' ) {
 			add_settings_error(
 				'page_for_privacy_policy',
 				'page_for_privacy_policy',
@@ -206,7 +206,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			?>
 				<strong>
 				<?php
-				if ( 'publish' === get_post_status( $privacy_policy_page_id ) ) {
+				if ( get_post_status( $privacy_policy_page_id ) === 'publish' ) {
 					printf(
 						/* translators: 1: URL to edit Privacy Policy page, 2: URL to view Privacy Policy page. */
 						__( '<a href="%1$s">Edit</a> or <a href="%2$s">view</a> your Privacy Policy page content.' ),

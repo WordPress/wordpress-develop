@@ -355,7 +355,7 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 		$schema = $this->get_item_schema();
 		$data   = array();
 		foreach ( $schema['properties'] as $property_id => $property ) {
-			if ( isset( $sidebar[ $property_id ] ) && true === rest_validate_value_from_schema( $sidebar[ $property_id ], $property ) ) {
+			if ( isset( $sidebar[ $property_id ] ) && rest_validate_value_from_schema( $sidebar[ $property_id ], $property ) === true ) {
 				$data[ $property_id ] = $sidebar[ $property_id ];
 			} elseif ( isset( $property['default'] ) ) {
 				$data[ $property_id ] = $property['default'];

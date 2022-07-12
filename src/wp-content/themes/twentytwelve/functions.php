@@ -154,7 +154,7 @@ function twentytwelve_get_font_url() {
 	 * translators: If there are characters in your language that are not supported
 	 * by Open Sans, translate this to 'off'. Do not translate into your own language.
 	 */
-	if ( 'off' !== _x( 'on', 'Open Sans font: on or off', 'twentytwelve' ) ) {
+	if ( _x( 'on', 'Open Sans font: on or off', 'twentytwelve' ) !== 'off' ) {
 		$subsets = 'latin,latin-ext';
 
 		/*
@@ -163,11 +163,11 @@ function twentytwelve_get_font_url() {
 		 */
 		$subset = _x( 'no-subset', 'Open Sans font: add new subset (greek, cyrillic, vietnamese)', 'twentytwelve' );
 
-		if ( 'cyrillic' === $subset ) {
+		if ( $subset === 'cyrillic' ) {
 			$subsets .= ',cyrillic,cyrillic-ext';
-		} elseif ( 'greek' === $subset ) {
+		} elseif ( $subset === 'greek' ) {
 			$subsets .= ',greek,greek-ext';
-		} elseif ( 'vietnamese' === $subset ) {
+		} elseif ( $subset === 'vietnamese' ) {
 			$subsets .= ',vietnamese';
 		}
 
@@ -241,7 +241,7 @@ add_action( 'enqueue_block_editor_assets', 'twentytwelve_block_editor_styles' );
  * @return array URLs to print for resource hints.
  */
 function twentytwelve_resource_hints( $urls, $relation_type ) {
-	if ( wp_style_is( 'twentytwelve-fonts', 'queue' ) && 'preconnect' === $relation_type ) {
+	if ( wp_style_is( 'twentytwelve-fonts', 'queue' ) && $relation_type === 'preconnect' ) {
 		if ( version_compare( $GLOBALS['wp_version'], '4.7-alpha', '>=' ) ) {
 			$urls[] = array(
 				'href' => 'https://fonts.gstatic.com',
@@ -474,7 +474,7 @@ if ( ! function_exists( 'twentytwelve_comment' ) ) :
 				}
 				?>
 
-				<?php if ( '0' == $comment->comment_approved ) : ?>
+				<?php if ( $comment->comment_approved == '0' ) : ?>
 				<p class="comment-awaiting-moderation"><?php echo $moderation_note; ?></p>
 				<?php endif; ?>
 

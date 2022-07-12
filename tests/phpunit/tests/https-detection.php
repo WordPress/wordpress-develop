@@ -187,7 +187,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 
 		// HTML includes RSD link with alternative URL scheme.
 		$head_tag = get_echo( 'rsd_link' );
-		$head_tag = false !== strpos( $head_tag, 'https://' ) ? str_replace( 'https://', 'http://', $head_tag ) : str_replace( 'http://', 'https://', $head_tag );
+		$head_tag = strpos( $head_tag, 'https://' ) !== false ? str_replace( 'https://', 'http://', $head_tag ) : str_replace( 'http://', 'https://', $head_tag );
 		$html     = $this->get_sample_html_string( $head_tag );
 		$this->assertTrue( wp_is_local_html_output( $html ) );
 
@@ -214,7 +214,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 
 		// HTML includes WLW manifest link with alternative URL scheme.
 		$head_tag = get_echo( 'wlwmanifest_link' );
-		$head_tag = false !== strpos( $head_tag, 'https://' ) ? str_replace( 'https://', 'http://', $head_tag ) : str_replace( 'http://', 'https://', $head_tag );
+		$head_tag = strpos( $head_tag, 'https://' ) !== false ? str_replace( 'https://', 'http://', $head_tag ) : str_replace( 'http://', 'https://', $head_tag );
 		$html     = $this->get_sample_html_string( $head_tag );
 		$this->assertTrue( wp_is_local_html_output( $html ) );
 
@@ -242,7 +242,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 
 		// HTML includes REST API link with alternative URL scheme.
 		$head_tag = get_echo( 'rest_output_link_wp_head' );
-		$head_tag = false !== strpos( $head_tag, 'https://' ) ? str_replace( 'https://', 'http://', $head_tag ) : str_replace( 'http://', 'https://', $head_tag );
+		$head_tag = strpos( $head_tag, 'https://' ) !== false ? str_replace( 'https://', 'http://', $head_tag ) : str_replace( 'http://', 'https://', $head_tag );
 		$html     = $this->get_sample_html_string( $head_tag );
 		$this->assertTrue( wp_is_local_html_output( $html ) );
 

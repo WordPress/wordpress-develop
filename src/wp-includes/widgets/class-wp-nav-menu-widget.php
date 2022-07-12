@@ -71,7 +71,7 @@ class WP_Nav_Menu_Widget extends WP_Widget {
 		 */
 		$format = apply_filters( 'navigation_widgets_format', $format );
 
-		if ( 'html5' === $format ) {
+		if ( $format === 'html5' ) {
 			// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
 			$title      = trim( strip_tags( $title ) );
 			$aria_label = $title ? $title : $default_title;

@@ -280,7 +280,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @param bool  $override If true, replace the request's headers. Otherwise, merge with existing.
 	 */
 	public function set_headers( $headers, $override = true ) {
-		if ( true === $override ) {
+		if ( $override === true ) {
 			$this->headers = array();
 		}
 
@@ -310,7 +310,7 @@ class WP_REST_Request implements ArrayAccess {
 		}
 
 		$value = strtolower( $value );
-		if ( false === strpos( $value, '/' ) ) {
+		if ( strpos( $value, '/' ) === false ) {
 			return null;
 		}
 
@@ -357,7 +357,7 @@ class WP_REST_Request implements ArrayAccess {
 		// Ensure we parse the body data.
 		$body = $this->get_body();
 
-		if ( 'POST' !== $this->method && ! empty( $body ) ) {
+		if ( $this->method !== 'POST' && ! empty( $body ) ) {
 			$this->parse_body_params();
 		}
 
@@ -445,7 +445,7 @@ class WP_REST_Request implements ArrayAccess {
 		$found_key = false;
 
 		foreach ( $order as $type ) {
-			if ( 'defaults' !== $type && is_array( $this->params[ $type ] ) && array_key_exists( $key, $this->params[ $type ] ) ) {
+			if ( $type !== 'defaults' && is_array( $this->params[ $type ] ) && array_key_exists( $key, $this->params[ $type ] ) ) {
 				$this->params[ $type ][ $key ] = $value;
 				$found_key                     = true;
 			}
@@ -684,7 +684,7 @@ class WP_REST_Request implements ArrayAccess {
 		/*
 		 * Check for a parsing error.
 		 */
-		if ( null === $params && JSON_ERROR_NONE !== json_last_error() ) {
+		if ( $params === null && json_last_error() !== JSON_ERROR_NONE ) {
 			// Ensure subsequent calls receive error instance.
 			$this->parsed_json = false;
 
@@ -723,7 +723,7 @@ class WP_REST_Request implements ArrayAccess {
 		 */
 		$content_type = $this->get_content_type();
 
-		if ( ! empty( $content_type ) && 'application/x-www-form-urlencoded' !== $content_type['value'] ) {
+		if ( ! empty( $content_type ) && $content_type['value'] !== 'application/x-www-form-urlencoded' ) {
 			return;
 		}
 
@@ -876,7 +876,7 @@ class WP_REST_Request implements ArrayAccess {
 
 		foreach ( $args as $key => $arg ) {
 			$param = $this->get_param( $key );
-			if ( isset( $arg['required'] ) && true === $arg['required'] && null === $param ) {
+			if ( isset( $arg['required'] ) && $arg['required'] === true && $param === null ) {
 				$required[] = $key;
 			}
 		}
@@ -905,11 +905,11 @@ class WP_REST_Request implements ArrayAccess {
 
 			$param = $this->get_param( $key );
 
-			if ( null !== $param && ! empty( $arg['validate_callback'] ) ) {
+			if ( $param !== null && ! empty( $arg['validate_callback'] ) ) {
 				/** @var bool|\WP_Error $valid_check */
 				$valid_check = call_user_func( $arg['validate_callback'], $param, $this, $key );
 
-				if ( false === $valid_check ) {
+				if ( $valid_check === false ) {
 					$invalid_params[ $key ] = __( 'Invalid parameter.' );
 				}
 
@@ -940,7 +940,7 @@ class WP_REST_Request implements ArrayAccess {
 				return $valid_check;
 			}
 
-			if ( false === $valid_check ) {
+			if ( $valid_check === false ) {
 				// A WP_Error instance is preferred, but false is supported for parity with the per-arg validate_callback.
 				return new WP_Error( 'rest_invalid_params', __( 'Invalid parameters.' ), array( 'status' => 400 ) );
 			}
@@ -1030,7 +1030,7 @@ class WP_REST_Request implements ArrayAccess {
 		}
 
 		$api_root = rest_url();
-		if ( get_option( 'permalink_structure' ) && 0 === strpos( $url, $api_root ) ) {
+		if ( get_option( 'permalink_structure' ) && strpos( $url, $api_root ) === 0 ) {
 			// Pretty permalinks on, and URL is under the API root.
 			$api_url_part = substr( $url, strlen( untrailingslashit( $api_root ) ) );
 			$route        = parse_url( $api_url_part, PHP_URL_PATH );

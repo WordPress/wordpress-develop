@@ -54,24 +54,24 @@ class WP_Http_Encoding {
 		}
 
 		$decompressed = @gzinflate( $compressed );
-		if ( false !== $decompressed ) {
+		if ( $decompressed !== false ) {
 			return $decompressed;
 		}
 
 		$decompressed = self::compatible_gzinflate( $compressed );
-		if ( false !== $decompressed ) {
+		if ( $decompressed !== false ) {
 			return $decompressed;
 		}
 
 		$decompressed = @gzuncompress( $compressed );
-		if ( false !== $decompressed ) {
+		if ( $decompressed !== false ) {
 			return $decompressed;
 		}
 
 		if ( function_exists( 'gzdecode' ) ) {
 			$decompressed = @gzdecode( $compressed );
 
-			if ( false !== $decompressed ) {
+			if ( $decompressed !== false ) {
 				return $decompressed;
 			}
 		}
@@ -103,7 +103,7 @@ class WP_Http_Encoding {
 	public static function compatible_gzinflate( $gz_data ) {
 
 		// Compressed data might contain a full header, if so strip it for gzinflate().
-		if ( "\x1f\x8b\x08" === substr( $gz_data, 0, 3 ) ) {
+		if ( substr( $gz_data, 0, 3 ) === "\x1f\x8b\x08" ) {
 			$i   = 10;
 			$flg = ord( substr( $gz_data, 3, 1 ) );
 			if ( $flg > 0 ) {
@@ -122,14 +122,14 @@ class WP_Http_Encoding {
 				}
 			}
 			$decompressed = @gzinflate( substr( $gz_data, $i, -8 ) );
-			if ( false !== $decompressed ) {
+			if ( $decompressed !== false ) {
 				return $decompressed;
 			}
 		}
 
 		// Compressed data from java.util.zip.Deflater amongst others.
 		$decompressed = @gzinflate( substr( $gz_data, 2 ) );
-		if ( false !== $decompressed ) {
+		if ( $decompressed !== false ) {
 			return $decompressed;
 		}
 

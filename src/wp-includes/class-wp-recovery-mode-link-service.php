@@ -70,11 +70,11 @@ class WP_Recovery_Mode_Link_Service {
 	 * @param int $ttl Number of seconds the link should be valid for.
 	 */
 	public function handle_begin_link( $ttl ) {
-		if ( ! isset( $GLOBALS['pagenow'] ) || 'wp-login.php' !== $GLOBALS['pagenow'] ) {
+		if ( ! isset( $GLOBALS['pagenow'] ) || $GLOBALS['pagenow'] !== 'wp-login.php' ) {
 			return;
 		}
 
-		if ( ! isset( $_GET['action'], $_GET['rm_token'], $_GET['rm_key'] ) || self::LOGIN_ACTION_ENTER !== $_GET['action'] ) {
+		if ( ! isset( $_GET['action'], $_GET['rm_token'], $_GET['rm_key'] ) || $_GET['action'] !== self::LOGIN_ACTION_ENTER ) {
 			return;
 		}
 

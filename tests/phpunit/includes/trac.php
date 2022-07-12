@@ -24,7 +24,7 @@ class TracTickets {
 			$tickets = @file_get_contents( $trac_url . '/query?status=%21closed&format=csv&col=id' );
 
 			// Check if our HTTP request failed.
-			if ( false === $tickets ) {
+			if ( $tickets === false ) {
 				if ( file_exists( $file ) ) {
 					register_shutdown_function( array( 'TracTickets', 'usingLocalCache' ) );
 					$tickets = file_get_contents( $file );

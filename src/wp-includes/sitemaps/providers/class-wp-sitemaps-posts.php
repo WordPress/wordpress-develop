@@ -91,7 +91,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 			$page_num
 		);
 
-		if ( null !== $url_list ) {
+		if ( $url_list !== null ) {
 			return $url_list;
 		}
 
@@ -106,7 +106,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 		 * Add a URL for the homepage in the pages sitemap.
 		 * Shows only on the first page if the reading settings are set to display latest posts.
 		 */
-		if ( 'page' === $post_type && 1 === $page_num && 'posts' === get_option( 'show_on_front' ) ) {
+		if ( $post_type === 'page' && $page_num === 1 && get_option( 'show_on_front' ) === 'posts' ) {
 			// Extract the data needed for home URL to add to the array.
 			$sitemap_entry = array(
 				'loc' => home_url( '/' ),
@@ -175,7 +175,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 		 */
 		$max_num_pages = apply_filters( 'wp_sitemaps_posts_pre_max_num_pages', null, $post_type );
 
-		if ( null !== $max_num_pages ) {
+		if ( $max_num_pages !== null ) {
 			return $max_num_pages;
 		}
 
@@ -185,7 +185,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 
 		$query = new WP_Query( $args );
 
-		$min_num_pages = ( 'page' === $post_type && 'posts' === get_option( 'show_on_front' ) ) ? 1 : 0;
+		$min_num_pages = ( $post_type === 'page' && get_option( 'show_on_front' ) === 'posts' ) ? 1 : 0;
 		return isset( $query->max_num_pages ) ? max( $min_num_pages, $query->max_num_pages ) : 1;
 	}
 

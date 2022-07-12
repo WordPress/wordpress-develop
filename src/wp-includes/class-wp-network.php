@@ -101,7 +101,7 @@ class WP_Network {
 
 		$_network = wp_cache_get( $network_id, 'networks' );
 
-		if ( false === $_network ) {
+		if ( $_network === false ) {
 			$_network = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->site} WHERE id = %d LIMIT 1", $network_id ) );
 
 			if ( empty( $_network ) || is_wp_error( $_network ) ) {
@@ -235,8 +235,8 @@ class WP_Network {
 			return (int) $this->blog_id;
 		}
 
-		if ( ( defined( 'DOMAIN_CURRENT_SITE' ) && defined( 'PATH_CURRENT_SITE' ) && DOMAIN_CURRENT_SITE === $this->domain && PATH_CURRENT_SITE === $this->path )
-			|| ( defined( 'SITE_ID_CURRENT_SITE' ) && SITE_ID_CURRENT_SITE == $this->id ) ) {
+		if ( ( defined( 'DOMAIN_CURRENT_SITE' ) && defined( 'PATH_CURRENT_SITE' ) && $this->domain === DOMAIN_CURRENT_SITE && $this->path === PATH_CURRENT_SITE )
+			|| ( defined( 'SITE_ID_CURRENT_SITE' ) && $this->id == SITE_ID_CURRENT_SITE ) ) {
 			if ( defined( 'BLOG_ID_CURRENT_SITE' ) ) {
 				$this->blog_id = (string) BLOG_ID_CURRENT_SITE;
 
@@ -257,7 +257,7 @@ class WP_Network {
 			$cache_key = 'network:' . $this->id . ':main_site';
 
 			$main_site_id = wp_cache_get( $cache_key, 'site-options' );
-			if ( false === $main_site_id ) {
+			if ( $main_site_id === false ) {
 				$_sites       = get_sites(
 					array(
 						'fields'     => 'ids',
@@ -306,7 +306,7 @@ class WP_Network {
 		}
 
 		$this->cookie_domain = $this->domain;
-		if ( 'www.' === substr( $this->cookie_domain, 0, 4 ) ) {
+		if ( substr( $this->cookie_domain, 0, 4 ) === 'www.' ) {
 			$this->cookie_domain = substr( $this->cookie_domain, 4 );
 		}
 	}
@@ -379,7 +379,7 @@ class WP_Network {
 			 */
 			$segments = apply_filters( 'network_by_path_segments_count', $segments, $domain, $path );
 
-			if ( ( null !== $segments ) && count( $path_segments ) > $segments ) {
+			if ( ( $segments !== null ) && count( $path_segments ) > $segments ) {
 				$path_segments = array_slice( $path_segments, 0, $segments );
 			}
 
@@ -412,7 +412,7 @@ class WP_Network {
 		 * @param string[]              $paths    Array of paths to search for, based on `$path` and `$segments`.
 		 */
 		$pre = apply_filters( 'pre_get_network_by_path', null, $domain, $path, $segments, $paths );
-		if ( null !== $pre ) {
+		if ( $pre !== null ) {
 			return $pre;
 		}
 
@@ -458,13 +458,13 @@ class WP_Network {
 					break;
 				}
 			}
-			if ( '/' === $network->path ) {
+			if ( $network->path === '/' ) {
 				$found = true;
 				break;
 			}
 		}
 
-		if ( true === $found ) {
+		if ( $found === true ) {
 			return $network;
 		}
 

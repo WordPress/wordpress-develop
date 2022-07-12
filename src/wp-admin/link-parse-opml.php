@@ -34,7 +34,7 @@ global $opml;
 function startElement( $parser, $tag_name, $attrs ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	global $names, $urls, $targets, $descriptions, $feeds;
 
-	if ( 'OUTLINE' === $tag_name ) {
+	if ( $tag_name === 'OUTLINE' ) {
 		$name = '';
 		if ( isset( $attrs['TEXT'] ) ) {
 			$name = $attrs['TEXT'];

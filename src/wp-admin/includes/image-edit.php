@@ -254,7 +254,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 			}
 			foreach ( array_unique( $edit_custom_sizes ) as $key => $size ) {
 				if ( array_key_exists( $size, $meta['sizes'] ) ) {
-					if ( 'thumbnail' === $size ) {
+					if ( $size === 'thumbnail' ) {
 						continue;
 					}
 					?>
@@ -394,7 +394,7 @@ function wp_save_image_file( $filename, $image, $mime_type, $post_id ) {
 		 */
 		$saved = apply_filters( 'wp_save_image_editor_file', null, $filename, $image, $mime_type, $post_id );
 
-		if ( null !== $saved ) {
+		if ( $saved !== null ) {
 			return $saved;
 		}
 
@@ -428,7 +428,7 @@ function wp_save_image_file( $filename, $image, $mime_type, $post_id ) {
 			'wp_save_image_editor_file'
 		);
 
-		if ( null !== $saved ) {
+		if ( $saved !== null ) {
 			return $saved;
 		}
 
@@ -645,7 +645,7 @@ function image_edit_apply_changes( $image, $changes ) {
 	foreach ( $changes as $operation ) {
 		switch ( $operation->type ) {
 			case 'rotate':
-				if ( 0 != $operation->angle ) {
+				if ( $operation->angle != 0 ) {
 					if ( $image instanceof WP_Image_Editor ) {
 						$image->rotate( $operation->angle );
 					} else {
@@ -654,7 +654,7 @@ function image_edit_apply_changes( $image, $changes ) {
 				}
 				break;
 			case 'flip':
-				if ( 0 != $operation->axis ) {
+				if ( $operation->axis != 0 ) {
 					if ( $image instanceof WP_Image_Editor ) {
 						$image->flip( ( $operation->axis & 1 ) != 0, ( $operation->axis & 2 ) != 0 );
 					} else {
@@ -843,7 +843,7 @@ function wp_save_image( $post_id ) {
 	$fwidth  = ! empty( $_REQUEST['fwidth'] ) ? (int) $_REQUEST['fwidth'] : 0;
 	$fheight = ! empty( $_REQUEST['fheight'] ) ? (int) $_REQUEST['fheight'] : 0;
 	$target  = ! empty( $_REQUEST['target'] ) ? preg_replace( '/[^a-z0-9_-]+/i', '', $_REQUEST['target'] ) : '';
-	$scale   = ! empty( $_REQUEST['do'] ) && 'scale' === $_REQUEST['do'];
+	$scale   = ! empty( $_REQUEST['do'] ) && $_REQUEST['do'] === 'scale';
 
 	if ( $scale && $fwidth > 0 && $fheight > 0 ) {
 		$size = $img->get_size();
@@ -897,7 +897,7 @@ function wp_save_image( $post_id ) {
 	if ( defined( 'IMAGE_EDIT_OVERWRITE' ) && IMAGE_EDIT_OVERWRITE &&
 		isset( $backup_sizes['full-orig'] ) && $backup_sizes['full-orig']['file'] != $basename ) {
 
-		if ( 'thumbnail' === $target ) {
+		if ( $target === 'thumbnail' ) {
 			$new_path = "{$dirname}/{$filename}-temp.{$ext}";
 		} else {
 			$new_path = $path;
@@ -922,7 +922,7 @@ function wp_save_image( $post_id ) {
 		return $return;
 	}
 
-	if ( 'nothumb' === $target || 'all' === $target || 'full' === $target || $scaled ) {
+	if ( $target === 'nothumb' || $target === 'all' || $target === 'full' || $scaled ) {
 		$tag = false;
 		if ( isset( $backup_sizes['full-orig'] ) ) {
 			if ( ( ! defined( 'IMAGE_EDIT_OVERWRITE' ) || ! IMAGE_EDIT_OVERWRITE ) && $backup_sizes['full-orig']['file'] !== $basename ) {
@@ -949,18 +949,18 @@ function wp_save_image( $post_id ) {
 
 		if ( $success ) {
 			$sizes = get_intermediate_image_sizes();
-			if ( 'nothumb' === $target || 'all' === $target ) {
-				if ( 'nothumb' === $target ) {
+			if ( $target === 'nothumb' || $target === 'all' ) {
+				if ( $target === 'nothumb' ) {
 					$sizes = array_diff( $sizes, array( 'thumbnail' ) );
 				}
-			} elseif ( 'thumbnail' !== $target ) {
+			} elseif ( $target !== 'thumbnail' ) {
 				$sizes = array_diff( $sizes, array( $target ) );
 			}
 		}
 
 		$return->fw = $meta['width'];
 		$return->fh = $meta['height'];
-	} elseif ( 'thumbnail' === $target ) {
+	} elseif ( $target === 'thumbnail' ) {
 		$sizes   = array( 'thumbnail' );
 		$success = true;
 		$delete  = true;
@@ -1032,9 +1032,9 @@ function wp_save_image( $post_id ) {
 		wp_update_attachment_metadata( $post_id, $meta );
 		update_post_meta( $post_id, '_wp_attachment_backup_sizes', $backup_sizes );
 
-		if ( 'thumbnail' === $target || 'all' === $target || 'full' === $target ) {
+		if ( $target === 'thumbnail' || $target === 'all' || $target === 'full' ) {
 			// Check if it's an image edit from attachment edit screen.
-			if ( ! empty( $_REQUEST['context'] ) && 'edit-attachment' === $_REQUEST['context'] ) {
+			if ( ! empty( $_REQUEST['context'] ) && $_REQUEST['context'] === 'edit-attachment' ) {
 				$thumb_url         = wp_get_attachment_image_src( $post_id, array( 900, 600 ), true );
 				$return->thumbnail = $thumb_url[0];
 			} else {

@@ -95,13 +95,13 @@ class Theme_Upgrader extends WP_Upgrader {
 		$this->strings['current_theme_has_errors'] = __( 'The active theme has the following error: "%s".' );
 
 		if ( ! empty( $this->skin->overwrite ) ) {
-			if ( 'update-theme' === $this->skin->overwrite ) {
+			if ( $this->skin->overwrite === 'update-theme' ) {
 				$this->strings['installing_package'] = __( 'Updating the theme&#8230;' );
 				$this->strings['process_failed']     = __( 'Theme update failed.' );
 				$this->strings['process_success']    = __( 'Theme updated successfully.' );
 			}
 
-			if ( 'downgrade-theme' === $this->skin->overwrite ) {
+			if ( $this->skin->overwrite === 'downgrade-theme' ) {
 				$this->strings['installing_package'] = __( 'Downgrading the theme&#8230;' );
 				$this->strings['process_failed']     = __( 'Theme downgrade failed.' );
 				$this->strings['process_success']    = __( 'Theme downgraded successfully.' );
@@ -451,7 +451,7 @@ class Theme_Upgrader extends WP_Upgrader {
 			$results[ $theme ] = $result;
 
 			// Prevent credentials auth screen from displaying multiple times.
-			if ( false === $result ) {
+			if ( $result === false ) {
 				break;
 			}
 		} // End foreach $themes.

@@ -758,12 +758,12 @@ function wp_kses_one_attr( $string, $element ) {
 
 		// Remove quotes surrounding $value.
 		// Also guarantee correct quoting in $string for this one attribute.
-		if ( '' === $value ) {
+		if ( $value === '' ) {
 			$quote = '';
 		} else {
 			$quote = $value[0];
 		}
-		if ( '"' === $quote || "'" === $quote ) {
+		if ( $quote === '"' || $quote === "'" ) {
 			if ( substr( $value, -1 ) != $quote ) {
 				return '';
 			}
@@ -1044,17 +1044,17 @@ function wp_kses_split2( $string, $allowed_html, $allowed_protocols ) {
 	$string = wp_kses_stripslashes( $string );
 
 	// It matched a ">" character.
-	if ( '<' !== substr( $string, 0, 1 ) ) {
+	if ( substr( $string, 0, 1 ) !== '<' ) {
 		return '&gt;';
 	}
 
 	// Allow HTML comments.
-	if ( '<!--' === substr( $string, 0, 4 ) ) {
+	if ( substr( $string, 0, 4 ) === '<!--' ) {
 		$string = str_replace( array( '<!--', '-->' ), '', $string );
 		while ( ( $newstring = wp_kses( $string, $allowed_html, $allowed_protocols ) ) != $string ) {
 			$string = $newstring;
 		}
-		if ( '' === $string ) {
+		if ( $string === '' ) {
 			return '';
 		}
 		// Prevent multiple dashes in comments.
@@ -1083,7 +1083,7 @@ function wp_kses_split2( $string, $allowed_html, $allowed_protocols ) {
 	}
 
 	// No attributes are allowed for closing elements.
-	if ( '' !== $slash ) {
+	if ( $slash !== '' ) {
 		return "</$elem>";
 	}
 
@@ -1132,7 +1132,7 @@ function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols ) {
 
 	// Are any attributes allowed at all for this element?
 	$element_low = strtolower( $element );
-	if ( empty( $allowed_html[ $element_low ] ) || true === $allowed_html[ $element_low ] ) {
+	if ( empty( $allowed_html[ $element_low ] ) || $allowed_html[ $element_low ] === true ) {
 		return "<$element$xhtml_slash>";
 	}
 
@@ -1143,7 +1143,7 @@ function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols ) {
 	$required_attrs = array_filter(
 		$allowed_html[ $element_low ],
 		function( $required_attr_limits ) {
-			return isset( $required_attr_limits['required'] ) && true === $required_attr_limits['required'];
+			return isset( $required_attr_limits['required'] ) && $required_attr_limits['required'] === true;
 		}
 	);
 
@@ -1214,7 +1214,7 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
 
 	$allowed_attr = $allowed_html[ $element_low ];
 
-	if ( ! isset( $allowed_attr[ $name_low ] ) || '' === $allowed_attr[ $name_low ] ) {
+	if ( ! isset( $allowed_attr[ $name_low ] ) || $allowed_attr[ $name_low ] === '' ) {
 		/*
 		 * Allow `data-*` attributes.
 		 *
@@ -1241,7 +1241,7 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
 		}
 	}
 
-	if ( 'style' === $name_low ) {
+	if ( $name_low === 'style' ) {
 		$new_value = safecss_filter_attr( $value );
 
 		if ( empty( $new_value ) ) {
@@ -1320,7 +1320,7 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 				if ( preg_match( '/^\s+/', $attr ) ) { // Valueless.
 					$working = 1;
 					$mode    = 0;
-					if ( false === array_key_exists( $attrname, $attrarr ) ) {
+					if ( array_key_exists( $attrname, $attrarr ) === false ) {
 						$attrarr[ $attrname ] = array(
 							'name'  => $attrname,
 							'value' => '',
@@ -1341,7 +1341,7 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 						$thisval = wp_kses_bad_protocol( $thisval, $allowed_protocols );
 					}
 
-					if ( false === array_key_exists( $attrname, $attrarr ) ) {
+					if ( array_key_exists( $attrname, $attrarr ) === false ) {
 						$attrarr[ $attrname ] = array(
 							'name'  => $attrname,
 							'value' => $thisval,
@@ -1362,7 +1362,7 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 						$thisval = wp_kses_bad_protocol( $thisval, $allowed_protocols );
 					}
 
-					if ( false === array_key_exists( $attrname, $attrarr ) ) {
+					if ( array_key_exists( $attrname, $attrarr ) === false ) {
 						$attrarr[ $attrname ] = array(
 							'name'  => $attrname,
 							'value' => $thisval,
@@ -1383,7 +1383,7 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 						$thisval = wp_kses_bad_protocol( $thisval, $allowed_protocols );
 					}
 
-					if ( false === array_key_exists( $attrname, $attrarr ) ) {
+					if ( array_key_exists( $attrname, $attrarr ) === false ) {
 						$attrarr[ $attrname ] = array(
 							'name'  => $attrname,
 							'value' => $thisval,
@@ -1400,13 +1400,13 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 				break;
 		} // End switch.
 
-		if ( 0 == $working ) { // Not well-formed, remove and try again.
+		if ( $working == 0 ) { // Not well-formed, remove and try again.
 			$attr = wp_kses_html_error( $attr );
 			$mode = 0;
 		}
 	} // End while.
 
-	if ( 1 == $mode && false === array_key_exists( $attrname, $attrarr ) ) {
+	if ( $mode == 1 && array_key_exists( $attrname, $attrarr ) === false ) {
 		// Special case, for when the attribute list ends with a valueless
 		// attribute like "selected".
 		$attrarr[ $attrname ] = array(
@@ -1434,7 +1434,7 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
  */
 function wp_kses_attr_parse( $element ) {
 	$valid = preg_match( '%^(<\s*)(/\s*)?([a-zA-Z0-9]+\s*)([^>]*)(>?)$%', $element, $matches );
-	if ( 1 !== $valid ) {
+	if ( $valid !== 1 ) {
 		return false;
 	}
 
@@ -1444,13 +1444,13 @@ function wp_kses_attr_parse( $element ) {
 	$attr   = $matches[4];
 	$end    = $matches[5];
 
-	if ( '' !== $slash ) {
+	if ( $slash !== '' ) {
 		// Closing elements do not get parsed.
 		return false;
 	}
 
 	// Is there a closing XHTML slash at the end of the attributes?
-	if ( 1 === preg_match( '%\s*/\s*$%', $attr, $matches ) ) {
+	if ( preg_match( '%\s*/\s*$%', $attr, $matches ) === 1 ) {
 		$xhtml_slash = $matches[0];
 		$attr        = substr( $attr, 0, -strlen( $xhtml_slash ) );
 	} else {
@@ -1459,7 +1459,7 @@ function wp_kses_attr_parse( $element ) {
 
 	// Split it.
 	$attrarr = wp_kses_hair_parse( $attr );
-	if ( false === $attrarr ) {
+	if ( $attrarr === false ) {
 		return false;
 	}
 
@@ -1484,7 +1484,7 @@ function wp_kses_attr_parse( $element ) {
  * @return array|false List of attributes found in $attr. Returns false on failure.
  */
 function wp_kses_hair_parse( $attr ) {
-	if ( '' === $attr ) {
+	if ( $attr === '' ) {
 		return array();
 	}
 
@@ -1517,7 +1517,7 @@ function wp_kses_hair_parse( $attr ) {
 	$validation = "%^($regex)+$%";
 	$extraction = "%$regex%";
 
-	if ( 1 === preg_match( $validation, $attr ) ) {
+	if ( preg_match( $validation, $attr ) === 1 ) {
 		preg_match_all( $extraction, $attr, $attrarr );
 		return $attrarr[0];
 	} else {
@@ -1616,7 +1616,7 @@ function wp_kses_check_attr_val( $value, $vless, $checkname, $checkvalue ) {
 			 * has one of the given values.
 			 */
 
-			if ( false === array_search( strtolower( $value ), $checkvalue, true ) ) {
+			if ( array_search( strtolower( $value ), $checkvalue, true ) === false ) {
 				$ok = false;
 			}
 			break;
@@ -1683,7 +1683,7 @@ function wp_kses_no_null( $string, $options = null ) {
 	}
 
 	$string = preg_replace( '/[\x00-\x08\x0B\x0C\x0E-\x1F]/', '', $string );
-	if ( 'remove' === $options['slash_zero'] ) {
+	if ( $options['slash_zero'] === 'remove' ) {
 		$string = preg_replace( '/\\\\+0+/', '', $string );
 	}
 
@@ -1763,7 +1763,7 @@ function wp_kses_bad_protocol_once( $string, $allowed_protocols, $count = 1 ) {
 	if ( isset( $string2[1] ) && ! preg_match( '%/\?%', $string2[0] ) ) {
 		$string   = trim( $string2[1] );
 		$protocol = wp_kses_bad_protocol_once2( $string2[0], $allowed_protocols );
-		if ( 'feed:' === $protocol ) {
+		if ( $protocol === 'feed:' ) {
 			if ( $count > 2 ) {
 				return '';
 			}
@@ -1836,7 +1836,7 @@ function wp_kses_normalize_entities( $string, $context = 'html' ) {
 	$string = str_replace( '&', '&amp;', $string );
 
 	// Change back the allowed entities in our list of allowed entities.
-	if ( 'xml' === $context ) {
+	if ( $context === 'xml' ) {
 		$string = preg_replace_callback( '/&amp;([A-Za-z]{2,8}[0-9]{0,2});/', 'wp_kses_xml_named_entities', $string );
 	} else {
 		$string = preg_replace_callback( '/&amp;([A-Za-z]{2,8}[0-9]{0,2});/', 'wp_kses_named_entities', $string );
@@ -1964,7 +1964,7 @@ function wp_kses_normalize_entities3( $matches ) {
  * @return bool Whether or not the codepoint is a valid Unicode codepoint.
  */
 function valid_unicode( $i ) {
-	return ( 0x9 == $i || 0xa == $i || 0xd == $i ||
+	return ( $i == 0x9 || $i == 0xa || $i == 0xd ||
 			( 0x20 <= $i && $i <= 0xd7ff ) ||
 			( 0xe000 <= $i && $i <= 0xfffd ) ||
 			( 0x10000 <= $i && $i <= 0x10ffff ) );
@@ -2074,7 +2074,7 @@ function wp_filter_global_styles_post( $data ) {
 	$decoded_data        = json_decode( wp_unslash( $data ), true );
 	$json_decoding_error = json_last_error();
 	if (
-		JSON_ERROR_NONE === $json_decoding_error &&
+		$json_decoding_error === JSON_ERROR_NONE &&
 		is_array( $decoded_data ) &&
 		isset( $decoded_data['isGlobalStylesUserThemeJSON'] ) &&
 		$decoded_data['isGlobalStylesUserThemeJSON']
@@ -2410,7 +2410,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 
 	$css = '';
 	foreach ( $css_array as $css_item ) {
-		if ( '' === $css_item ) {
+		if ( $css_item === '' ) {
 			continue;
 		}
 
@@ -2492,7 +2492,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 
 			// Only add the CSS part if it passes the regex check.
 			if ( $allow_css ) {
-				if ( '' !== $css ) {
+				if ( $css !== '' ) {
 					$css .= ';';
 				}
 
@@ -2535,7 +2535,7 @@ function _wp_add_global_attributes( $value ) {
 		'xml:lang'         => true,
 	);
 
-	if ( true === $value ) {
+	if ( $value === true ) {
 		$value = array();
 	}
 

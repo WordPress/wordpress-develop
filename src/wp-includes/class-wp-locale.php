@@ -210,12 +210,12 @@ class WP_Locale {
 		// Replace space with a non-breaking space to avoid wrapping.
 		$thousands_sep = str_replace( ' ', '&nbsp;', $thousands_sep );
 
-		$this->number_format['thousands_sep'] = ( 'number_format_thousands_sep' === $thousands_sep ) ? ',' : $thousands_sep;
+		$this->number_format['thousands_sep'] = ( $thousands_sep === 'number_format_thousands_sep' ) ? ',' : $thousands_sep;
 
 		/* translators: $dec_point argument for https://www.php.net/number_format, default is '.' */
 		$decimal_point = __( 'number_format_decimal_point' );
 
-		$this->number_format['decimal_point'] = ( 'number_format_decimal_point' === $decimal_point ) ? '.' : $decimal_point;
+		$this->number_format['decimal_point'] = ( $decimal_point === 'number_format_decimal_point' ) ? '.' : $decimal_point;
 
 		/* translators: used between list items, there is a space after the comma */
 		$this->list_item_separator = __( ', ' );
@@ -225,7 +225,7 @@ class WP_Locale {
 			$this->text_direction = $GLOBALS['text_direction'];
 
 			/* translators: 'rtl' or 'ltr'. This sets the text direction for WordPress. */
-		} elseif ( 'rtl' === _x( 'ltr', 'text direction' ) ) {
+		} elseif ( _x( 'ltr', 'text direction' ) === 'rtl' ) {
 			$this->text_direction = 'rtl';
 		}
 	}
@@ -357,7 +357,7 @@ class WP_Locale {
 	 * @return bool Whether locale is RTL.
 	 */
 	public function is_rtl() {
-		return 'rtl' === $this->text_direction;
+		return $this->text_direction === 'rtl';
 	}
 
 	/**

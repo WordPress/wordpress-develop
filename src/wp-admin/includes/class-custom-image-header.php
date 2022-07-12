@@ -152,8 +152,8 @@ class Custom_Image_Header {
 
 		$step = (int) $_GET['step'];
 		if ( $step < 1 || 3 < $step ||
-			( 2 === $step && ! wp_verify_nonce( $_REQUEST['_wpnonce-custom-header-upload'], 'custom-header-upload' ) ) ||
-			( 3 === $step && ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'custom-header-crop-image' ) )
+			( $step === 2 && ! wp_verify_nonce( $_REQUEST['_wpnonce-custom-header-upload'], 'custom-header-upload' ) ) ||
+			( $step === 3 && ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'custom-header-crop-image' ) )
 		) {
 			return 1;
 		}
@@ -169,13 +169,13 @@ class Custom_Image_Header {
 	public function js_includes() {
 		$step = $this->step();
 
-		if ( ( 1 === $step || 3 === $step ) ) {
+		if ( ( $step === 1 || $step === 3 ) ) {
 			wp_enqueue_media();
 			wp_enqueue_script( 'custom-header' );
 			if ( current_theme_supports( 'custom-header', 'header-text' ) ) {
 				wp_enqueue_script( 'wp-color-picker' );
 			}
-		} elseif ( 2 === $step ) {
+		} elseif ( $step === 2 ) {
 			wp_enqueue_script( 'imgareaselect' );
 		}
 	}
@@ -188,9 +188,9 @@ class Custom_Image_Header {
 	public function css_includes() {
 		$step = $this->step();
 
-		if ( ( 1 === $step || 3 === $step ) && current_theme_supports( 'custom-header', 'header-text' ) ) {
+		if ( ( $step === 1 || $step === 3 ) && current_theme_supports( 'custom-header', 'header-text' ) ) {
 			wp_enqueue_style( 'wp-color-picker' );
-		} elseif ( 2 === $step ) {
+		} elseif ( $step === 2 ) {
 			wp_enqueue_style( 'imgareaselect' );
 		}
 	}
@@ -303,7 +303,7 @@ class Custom_Image_Header {
 	 *                     or 'uploaded' (for the Uploaded Images control).
 	 */
 	public function show_header_selector( $type = 'default' ) {
-		if ( 'default' === $type ) {
+		if ( $type === 'default' ) {
 			$headers = $this->default_headers;
 		} else {
 			$headers = get_uploaded_header_images();
@@ -346,9 +346,9 @@ class Custom_Image_Header {
 	public function js() {
 		$step = $this->step();
 
-		if ( ( 1 === $step || 3 === $step ) && current_theme_supports( 'custom-header', 'header-text' ) ) {
+		if ( ( $step === 1 || $step === 3 ) && current_theme_supports( 'custom-header', 'header-text' ) ) {
 			$this->js_1();
-		} elseif ( 2 === $step ) {
+		} elseif ( $step === 2 ) {
 			$this->js_2();
 		}
 	}
@@ -362,7 +362,7 @@ class Custom_Image_Header {
 		$default_color = '';
 		if ( current_theme_supports( 'custom-header', 'default-text-color' ) ) {
 			$default_color = get_theme_support( 'custom-header', 'default-text-color' );
-			if ( $default_color && false === strpos( $default_color, '#' ) ) {
+			if ( $default_color && strpos( $default_color, '#' ) === false ) {
 				$default_color = '#' . $default_color;
 			}
 		}
@@ -761,7 +761,7 @@ class Custom_Image_Header {
 			$default_color = '';
 			if ( current_theme_supports( 'custom-header', 'default-text-color' ) ) {
 				$default_color = get_theme_support( 'custom-header', 'default-text-color' );
-				if ( $default_color && false === strpos( $default_color, '#' ) ) {
+				if ( $default_color && strpos( $default_color, '#' ) === false ) {
 					$default_color = '#' . $default_color;
 				}
 			}
@@ -769,7 +769,7 @@ class Custom_Image_Header {
 			$default_color_attr = $default_color ? ' data-default-color="' . esc_attr( $default_color ) . '"' : '';
 
 			$header_textcolor = display_header_text() ? get_header_textcolor() : get_theme_support( 'custom-header', 'default-text-color' );
-			if ( $header_textcolor && false === strpos( $header_textcolor, '#' ) ) {
+			if ( $header_textcolor && strpos( $header_textcolor, '#' ) === false ) {
 				$header_textcolor = '#' . $header_textcolor;
 			}
 
@@ -933,7 +933,7 @@ endif;
 	<p class="submit">
 		<?php submit_button( __( 'Crop and Publish' ), 'primary', 'submit', false ); ?>
 		<?php
-		if ( isset( $oitar ) && 1 === $oitar
+		if ( isset( $oitar ) && $oitar === 1
 			&& ( current_theme_supports( 'custom-header', 'flex-height' )
 				|| current_theme_supports( 'custom-header', 'flex-width' ) )
 		) {
@@ -1106,9 +1106,9 @@ endif;
 
 		$step = $this->step();
 
-		if ( 2 === $step ) {
+		if ( $step === 2 ) {
 			$this->step_2();
-		} elseif ( 3 === $step ) {
+		} elseif ( $step === 3 ) {
 			$this->step_3();
 		} else {
 			$this->step_1();

@@ -370,7 +370,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$num_files      = $zip->numFiles;
 		for ( $i = 0; $i < $num_files; $i++ ) {
 			$filename = $zip->getNameIndex( $i );
-			if ( '.html' === substr( $filename, -5 ) ) {
+			if ( substr( $filename, -5 ) === '.html' ) {
 				$has_html_files = true;
 				break;
 			}

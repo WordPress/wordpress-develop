@@ -64,10 +64,10 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 	 */
 	public function __construct( $manager, $id, $args = array() ) {
 		parent::__construct( $manager, $id, $args );
-		if ( 'custom_css' !== $this->id_data['base'] ) {
+		if ( $this->id_data['base'] !== 'custom_css' ) {
 			throw new Exception( 'Expected custom_css id_base.' );
 		}
-		if ( 1 !== count( $this->id_data['keys'] ) || empty( $this->id_data['keys'][0] ) ) {
+		if ( count( $this->id_data['keys'] ) !== 1 || empty( $this->id_data['keys'][0] ) ) {
 			throw new Exception( 'Expected single stylesheet key.' );
 		}
 		$this->stylesheet = $this->id_data['keys'][0];
@@ -124,7 +124,7 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 	public function value() {
 		if ( $this->is_previewed ) {
 			$post_value = $this->post_value( null );
-			if ( null !== $post_value ) {
+			if ( $post_value !== null ) {
 				return $post_value;
 			}
 		}

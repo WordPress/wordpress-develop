@@ -93,7 +93,7 @@ if ( ! function_exists( 'twentytwenty_get_customizer_css' ) ) {
 		 */
 
 		// Front-End Styles.
-		if ( 'front-end' === $type ) {
+		if ( $type === 'front-end' ) {
 
 			// Auto-calculated colors.
 			$elements_definitions = twentytwenty_get_elements_array();
@@ -121,7 +121,7 @@ if ( ! function_exists( 'twentytwenty_get_customizer_css' ) ) {
 			}
 
 			// Block Editor Styles.
-		} elseif ( 'block-editor' === $type ) {
+		} elseif ( $type === 'block-editor' ) {
 
 			// Colors.
 			// Accent color.
@@ -157,7 +157,7 @@ if ( ! function_exists( 'twentytwenty_get_customizer_css' ) ) {
 			if ( $header_footer_background && $header_footer_background !== $header_footer_background_default ) {
 				twentytwenty_generate_css( '.editor-styles-wrapper .wp-block-pullquote::before', 'background-color', $header_footer_background );
 			}
-		} elseif ( 'classic-editor' === $type ) {
+		} elseif ( $type === 'classic-editor' ) {
 
 			// Colors.
 			// Accent color.

@@ -19,7 +19,7 @@
 			<h1 class="entry-title"><a href="<?php the_permalink(); ?>" rel="bookmark"><?php the_title(); ?></a></h1>
 			<?php endif; ?>
 
-			<?php if ( 'post' === get_post_type() ) : ?>
+			<?php if ( get_post_type() === 'post' ) : ?>
 			<div class="entry-meta">
 				<?php twentyeleven_posted_on(); ?>
 			</div><!-- .entry-meta -->

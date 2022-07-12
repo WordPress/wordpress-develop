@@ -144,7 +144,7 @@ class Featured_Content {
 		// Get array of cached results if they exist.
 		$featured_ids = get_transient( 'featured_content_ids' );
 
-		if ( false === $featured_ids ) {
+		if ( $featured_ids === false ) {
 			$settings = self::get_setting();
 			$term     = get_term_by( 'name', $settings['tag-name'], 'post_tag' );
 
@@ -222,7 +222,7 @@ class Featured_Content {
 		}
 
 		// Bail if the blog page is not the front page.
-		if ( 'posts' !== get_option( 'show_on_front' ) ) {
+		if ( get_option( 'show_on_front' ) !== 'posts' ) {
 			return;
 		}
 
@@ -302,13 +302,13 @@ class Featured_Content {
 		}
 
 		// Bail if term objects are unavailable.
-		if ( 'all' !== $args['fields'] ) {
+		if ( $args['fields'] !== 'all' ) {
 			return $terms;
 		}
 
 		$settings = self::get_setting();
 		foreach ( $terms as $order => $term ) {
-			if ( ( $settings['tag-id'] === $term->term_id || $settings['tag-name'] === $term->name ) && 'post_tag' === $term->taxonomy ) {
+			if ( ( $settings['tag-id'] === $term->term_id || $settings['tag-name'] === $term->name ) && $term->taxonomy === 'post_tag' ) {
 				unset( $terms[ $order ] );
 			}
 		}
@@ -339,7 +339,7 @@ class Featured_Content {
 		}
 
 		// Make sure we are in the correct taxonomy.
-		if ( 'post_tag' !== $taxonomy ) {
+		if ( $taxonomy !== 'post_tag' ) {
 			return $terms;
 		}
 
@@ -350,7 +350,7 @@ class Featured_Content {
 
 		$settings = self::get_setting();
 		foreach ( $terms as $order => $term ) {
-			if ( ( $settings['tag-id'] === $term->term_id || $settings['tag-name'] === $term->name ) && 'post_tag' === $term->taxonomy ) {
+			if ( ( $settings['tag-id'] === $term->term_id || $settings['tag-name'] === $term->name ) && $term->taxonomy === 'post_tag' ) {
 				unset( $terms[ $term->term_id ] );
 			}
 		}
@@ -466,7 +466,7 @@ class Featured_Content {
 		$options = wp_parse_args( $saved, $defaults );
 		$options = array_intersect_key( $options, $defaults );
 
-		if ( 'all' !== $key ) {
+		if ( $key !== 'all' ) {
 			return isset( $options[ $key ] ) ? $options[ $key ] : false;
 		}
 

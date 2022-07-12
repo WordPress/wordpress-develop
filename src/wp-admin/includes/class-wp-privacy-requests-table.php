@@ -58,7 +58,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	protected function get_admin_url() {
 		$pagenow = str_replace( '_', '-', $this->request_type );
 
-		if ( 'remove-personal-data' === $pagenow ) {
+		if ( $pagenow === 'remove-personal-data' ) {
 			$pagenow = 'erase-personal-data';
 		}
 
@@ -112,7 +112,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 		$cache_key = $this->post_type . '-' . $this->request_type;
 		$counts    = wp_cache_get( $cache_key, 'counts' );
 
-		if ( false !== $counts ) {
+		if ( $counts !== false ) {
 			return $counts;
 		}
 

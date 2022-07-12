@@ -76,7 +76,7 @@ function set_post_format( $post, $format ) {
 
 	if ( ! empty( $format ) ) {
 		$format = sanitize_key( $format );
-		if ( 'standard' === $format || ! in_array( $format, get_post_format_slugs(), true ) ) {
+		if ( $format === 'standard' || ! in_array( $format, get_post_format_slugs(), true ) ) {
 			$format = '';
 		} else {
 			$format = 'post-format-' . $format;
@@ -193,7 +193,7 @@ function _post_format_request( $qvs ) {
  */
 function _post_format_link( $link, $term, $taxonomy ) {
 	global $wp_rewrite;
-	if ( 'post_format' !== $taxonomy ) {
+	if ( $taxonomy !== 'post_format' ) {
 		return $link;
 	}
 	if ( $wp_rewrite->get_extra_permastruct( $taxonomy ) ) {
@@ -233,13 +233,13 @@ function _post_format_get_term( $term ) {
  */
 function _post_format_get_terms( $terms, $taxonomies, $args ) {
 	if ( in_array( 'post_format', (array) $taxonomies, true ) ) {
-		if ( isset( $args['fields'] ) && 'names' === $args['fields'] ) {
+		if ( isset( $args['fields'] ) && $args['fields'] === 'names' ) {
 			foreach ( $terms as $order => $name ) {
 				$terms[ $order ] = get_post_format_string( str_replace( 'post-format-', '', $name ) );
 			}
 		} else {
 			foreach ( (array) $terms as $order => $term ) {
-				if ( isset( $term->taxonomy ) && 'post_format' === $term->taxonomy ) {
+				if ( isset( $term->taxonomy ) && $term->taxonomy === 'post_format' ) {
 					$terms[ $order ]->name = get_post_format_string( str_replace( 'post-format-', '', $term->slug ) );
 				}
 			}
@@ -259,7 +259,7 @@ function _post_format_get_terms( $terms, $taxonomies, $args ) {
  */
 function _post_format_wp_get_object_terms( $terms ) {
 	foreach ( (array) $terms as $order => $term ) {
-		if ( isset( $term->taxonomy ) && 'post_format' === $term->taxonomy ) {
+		if ( isset( $term->taxonomy ) && $term->taxonomy === 'post_format' ) {
 			$terms[ $order ]->name = get_post_format_string( str_replace( 'post-format-', '', $term->slug ) );
 		}
 	}

@@ -38,7 +38,7 @@ class Test_WP_Debug_Mode extends WP_UnitTestCase {
 		 *
 		 * @link https://theaveragedev.com/mocking-constants-in-tests/
 		 */
-		if ( true !== WP_DEBUG || true !== WP_DEBUG_DISPLAY || true !== WP_DEBUG_LOG ) {
+		if ( WP_DEBUG !== true || WP_DEBUG_DISPLAY !== true || WP_DEBUG_LOG !== true ) {
 			$this->markTestSkipped( 'Test requires setting `WP_DEBUG_*` constants in `wp-tests-config.php` to expected values.' );
 		}
 

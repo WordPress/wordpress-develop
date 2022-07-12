@@ -768,7 +768,7 @@ class wpdb {
 	 * @return mixed The private member.
 	 */
 	public function __get( $name ) {
-		if ( 'col_info' === $name ) {
+		if ( $name === 'col_info' ) {
 			$this->load_col_info();
 		}
 
@@ -869,18 +869,18 @@ class wpdb {
 			return compact( 'charset', 'collate' );
 		}
 
-		if ( 'utf8' === $charset && $this->has_cap( 'utf8mb4' ) ) {
+		if ( $charset === 'utf8' && $this->has_cap( 'utf8mb4' ) ) {
 			$charset = 'utf8mb4';
 		}
 
-		if ( 'utf8mb4' === $charset && ! $this->has_cap( 'utf8mb4' ) ) {
+		if ( $charset === 'utf8mb4' && ! $this->has_cap( 'utf8mb4' ) ) {
 			$charset = 'utf8';
 			$collate = str_replace( 'utf8mb4_', 'utf8_', $collate );
 		}
 
-		if ( 'utf8mb4' === $charset ) {
+		if ( $charset === 'utf8mb4' ) {
 			// _general_ is outdated, so we can upgrade it to _unicode_, instead.
-			if ( ! $collate || 'utf8_general_ci' === $collate ) {
+			if ( ! $collate || $collate === 'utf8_general_ci' ) {
 				$collate = 'utf8mb4_unicode_ci';
 			} else {
 				$collate = str_replace( 'utf8_', 'utf8mb4_', $collate );
@@ -888,7 +888,7 @@ class wpdb {
 		}
 
 		// _unicode_520_ is a better collation, we should use that when it's available.
-		if ( $this->has_cap( 'utf8mb4_520' ) && 'utf8mb4_unicode_ci' === $collate ) {
+		if ( $this->has_cap( 'utf8mb4_520' ) && $collate === 'utf8mb4_unicode_ci' ) {
 			$collate = 'utf8mb4_unicode_520_ci';
 		}
 
@@ -1091,13 +1091,13 @@ class wpdb {
 	 */
 	public function get_blog_prefix( $blog_id = null ) {
 		if ( is_multisite() ) {
-			if ( null === $blog_id ) {
+			if ( $blog_id === null ) {
 				$blog_id = $this->blogid;
 			}
 
 			$blog_id = (int) $blog_id;
 
-			if ( defined( 'MULTISITE' ) && ( 0 === $blog_id || 1 === $blog_id ) ) {
+			if ( defined( 'MULTISITE' ) && ( $blog_id === 0 || $blog_id === 1 ) ) {
 				return $this->base_prefix;
 			} else {
 				return $this->base_prefix . $blog_id . '_';
@@ -1524,7 +1524,7 @@ class wpdb {
 		$placeholder_count = ( ( $split_query_count - 1 ) / 3 );
 
 		// If args were passed as an array, as in vsprintf(), move them up.
-		$passed_as_array = ( isset( $args[0] ) && is_array( $args[0] ) && 1 === count( $args ) );
+		$passed_as_array = ( isset( $args[0] ) && is_array( $args[0] ) && count( $args ) === 1 );
 		if ( $passed_as_array ) {
 			$args = $args[0];
 		}
@@ -1541,35 +1541,35 @@ class wpdb {
 			$format = substr( $placeholder, 1, -1 );
 			$type   = substr( $placeholder, -1 );
 
-			if ( 'f' === $type ) { // Force floats to be locale-unaware.
+			if ( $type === 'f' ) { // Force floats to be locale-unaware.
 				$type        = 'F';
 				$placeholder = '%' . $format . $type;
 			}
 
-			if ( 'i' === $type ) {
+			if ( $type === 'i' ) {
 				$placeholder = '`%' . $format . 's`';
 				// Using a simple strpos() due to previous checking (e.g. $allowed_format).
 				$argnum_pos = strpos( $format, '$' );
 
-				if ( false !== $argnum_pos ) {
+				if ( $argnum_pos !== false ) {
 					// sprintf() argnum starts at 1, $arg_id from 0.
 					$arg_identifiers[] = ( intval( substr( $format, 0, $argnum_pos ) ) - 1 );
 				} else {
 					$arg_identifiers[] = $arg_id;
 				}
-			} elseif ( 'd' !== $type && 'F' !== $type ) {
+			} elseif ( $type !== 'd' && $type !== 'F' ) {
 				/*
 				 * i.e. ( 's' === $type ), where 'd' and 'F' keeps $placeholder unchanged,
 				 * and we ensure string escaping is used as a safe default (e.g. even if 'x').
 				 */
 				$argnum_pos = strpos( $format, '$' );
 
-				if ( false !== $argnum_pos ) {
+				if ( $argnum_pos !== false ) {
 					$arg_strings[] = ( intval( substr( $format, 0, $argnum_pos ) ) - 1 );
 				}
 
 				// Unquoted strings for backward compatibility (dangerous).
-				if ( true !== $this->allow_unsafe_unquoted_parameters || '' === $format ) {
+				if ( $this->allow_unsafe_unquoted_parameters !== true || $format === '' ) {
 					$placeholder = "'%" . $format . "s'";
 				}
 			}
@@ -1604,7 +1604,7 @@ class wpdb {
 		$args_count = count( $args );
 
 		if ( $args_count !== $placeholder_count ) {
-			if ( 1 === $placeholder_count && $passed_as_array ) {
+			if ( $placeholder_count === 1 && $passed_as_array ) {
 				/*
 				 * If the passed query only expected one argument,
 				 * but the wrong number of arguments was sent as an array, bail.
@@ -2046,7 +2046,7 @@ class wpdb {
 
 		// First peel off the socket parameter from the right, if it exists.
 		$socket_pos = strpos( $host, ':/' );
-		if ( false !== $socket_pos ) {
+		if ( $socket_pos !== false ) {
 			$socket = substr( $host, $socket_pos + 1 );
 			$host   = substr( $host, 0, $socket_pos );
 		}
@@ -2064,7 +2064,7 @@ class wpdb {
 		$matches = array();
 		$result  = preg_match( $pattern, $host, $matches );
 
-		if ( 1 !== $result ) {
+		if ( $result !== 1 ) {
 			// Couldn't parse the address, bail.
 			return false;
 		}
@@ -2251,7 +2251,7 @@ class wpdb {
 			}
 		}
 
-		if ( empty( $this->dbh ) || 2006 === $mysql_errno ) {
+		if ( empty( $this->dbh ) || $mysql_errno === 2006 ) {
 			if ( $this->check_connection() ) {
 				$this->_do_query( $query );
 			} else {
@@ -2417,7 +2417,7 @@ class wpdb {
 		 * Add the filter to remove the placeholder escaper. Uses priority 0, so that anything
 		 * else attached to this filter will receive the query with the placeholder string removed.
 		 */
-		if ( false === has_filter( 'query', array( $this, 'remove_placeholder_escape' ) ) ) {
+		if ( has_filter( 'query', array( $this, 'remove_placeholder_escape' ) ) === false ) {
 			add_filter( 'query', array( $this, 'remove_placeholder_escape' ), 0 );
 		}
 
@@ -2545,7 +2545,7 @@ class wpdb {
 		}
 
 		$data = $this->process_fields( $table, $data, $format );
-		if ( false === $data ) {
+		if ( $data === false ) {
 			return false;
 		}
 
@@ -2611,11 +2611,11 @@ class wpdb {
 		}
 
 		$data = $this->process_fields( $table, $data, $format );
-		if ( false === $data ) {
+		if ( $data === false ) {
 			return false;
 		}
 		$where = $this->process_fields( $table, $where, $where_format );
-		if ( false === $where ) {
+		if ( $where === false ) {
 			return false;
 		}
 
@@ -2683,7 +2683,7 @@ class wpdb {
 		}
 
 		$where = $this->process_fields( $table, $where, $where_format );
-		if ( false === $where ) {
+		if ( $where === false ) {
 			return false;
 		}
 
@@ -2726,17 +2726,17 @@ class wpdb {
 	 */
 	protected function process_fields( $table, $data, $format ) {
 		$data = $this->process_field_formats( $data, $format );
-		if ( false === $data ) {
+		if ( $data === false ) {
 			return false;
 		}
 
 		$data = $this->process_field_charsets( $data, $table );
-		if ( false === $data ) {
+		if ( $data === false ) {
 			return false;
 		}
 
 		$data = $this->process_field_lengths( $data, $table );
-		if ( false === $data ) {
+		if ( $data === false ) {
 			return false;
 		}
 
@@ -2753,7 +2753,7 @@ class wpdb {
 
 			wp_load_translations_early();
 
-			if ( 1 === count( $problem_fields ) ) {
+			if ( count( $problem_fields ) === 1 ) {
 				$this->last_error = sprintf(
 					/* translators: %s: Database field where the error occurred. */
 					__( 'WordPress database error: Processing the value for the following field failed: %s. The supplied value may be too long or contains invalid data.' ),
@@ -2820,7 +2820,7 @@ class wpdb {
 	 */
 	protected function process_field_charsets( $data, $table ) {
 		foreach ( $data as $field => $value ) {
-			if ( '%d' === $value['format'] || '%f' === $value['format'] ) {
+			if ( $value['format'] === '%d' || $value['format'] === '%f' ) {
 				/*
 				 * We can skip this field if we know it isn't a string.
 				 * This checks %d/%f versus ! %s because its sprintf() could take more.
@@ -2851,7 +2851,7 @@ class wpdb {
 	 */
 	protected function process_field_lengths( $data, $table ) {
 		foreach ( $data as $field => $value ) {
-			if ( '%d' === $value['format'] || '%f' === $value['format'] ) {
+			if ( $value['format'] === '%d' || $value['format'] === '%f' ) {
 				/*
 				 * We can skip this field if we know it isn't a string.
 				 * This checks %d/%f versus ! %s because its sprintf() could take more.
@@ -2902,7 +2902,7 @@ class wpdb {
 		}
 
 		// If there is a value return it, else return null.
-		return ( isset( $values[ $x ] ) && '' !== $values[ $x ] ) ? $values[ $x ] : null;
+		return ( isset( $values[ $x ] ) && $values[ $x ] !== '' ) ? $values[ $x ] : null;
 	}
 
 	/**
@@ -2936,13 +2936,13 @@ class wpdb {
 			return null;
 		}
 
-		if ( OBJECT === $output ) {
+		if ( $output === OBJECT ) {
 			return $this->last_result[ $y ] ? $this->last_result[ $y ] : null;
-		} elseif ( ARRAY_A === $output ) {
+		} elseif ( $output === ARRAY_A ) {
 			return $this->last_result[ $y ] ? get_object_vars( $this->last_result[ $y ] ) : null;
-		} elseif ( ARRAY_N === $output ) {
+		} elseif ( $output === ARRAY_N ) {
 			return $this->last_result[ $y ] ? array_values( get_object_vars( $this->last_result[ $y ] ) ) : null;
-		} elseif ( OBJECT === strtoupper( $output ) ) {
+		} elseif ( strtoupper( $output ) === OBJECT ) {
 			// Back compat for OBJECT being previously case-insensitive.
 			return $this->last_result[ $y ] ? $this->last_result[ $y ] : null;
 		} else {
@@ -3013,10 +3013,10 @@ class wpdb {
 		}
 
 		$new_array = array();
-		if ( OBJECT === $output ) {
+		if ( $output === OBJECT ) {
 			// Return an integer-keyed array of row objects.
 			return $this->last_result;
-		} elseif ( OBJECT_K === $output ) {
+		} elseif ( $output === OBJECT_K ) {
 			// Return an array of row objects with keys from column 1.
 			// (Duplicates are discarded.)
 			if ( $this->last_result ) {
@@ -3029,11 +3029,11 @@ class wpdb {
 				}
 			}
 			return $new_array;
-		} elseif ( ARRAY_A === $output || ARRAY_N === $output ) {
+		} elseif ( $output === ARRAY_A || $output === ARRAY_N ) {
 			// Return an integer-keyed array of...
 			if ( $this->last_result ) {
 				foreach ( (array) $this->last_result as $row ) {
-					if ( ARRAY_N === $output ) {
+					if ( $output === ARRAY_N ) {
 						// ...integer-keyed row arrays.
 						$new_array[] = array_values( get_object_vars( $row ) );
 					} else {
@@ -3074,7 +3074,7 @@ class wpdb {
 		 * @param string               $table   The name of the table being checked.
 		 */
 		$charset = apply_filters( 'pre_get_table_charset', null, $table );
-		if ( null !== $charset ) {
+		if ( $charset !== null ) {
 			return $charset;
 		}
 
@@ -3103,7 +3103,7 @@ class wpdb {
 				list( $charset ) = explode( '_', $column->Collation );
 
 				// If the current connection can't support utf8mb4 characters, let's only send 3-byte utf8 characters.
-				if ( 'utf8mb4' === $charset && ! $this->has_cap( 'utf8mb4' ) ) {
+				if ( $charset === 'utf8mb4' && ! $this->has_cap( 'utf8mb4' ) ) {
 					$charset = 'utf8';
 				}
 
@@ -3127,19 +3127,19 @@ class wpdb {
 
 		// Check if we have more than one charset in play.
 		$count = count( $charsets );
-		if ( 1 === $count ) {
+		if ( $count === 1 ) {
 			$charset = key( $charsets );
-		} elseif ( 0 === $count ) {
+		} elseif ( $count === 0 ) {
 			// No charsets, assume this table can store whatever.
 			$charset = false;
 		} else {
 			// More than one charset. Remove latin1 if present and recalculate.
 			unset( $charsets['latin1'] );
 			$count = count( $charsets );
-			if ( 1 === $count ) {
+			if ( $count === 1 ) {
 				// Only one charset (besides latin1).
 				$charset = key( $charsets );
-			} elseif ( 2 === $count && isset( $charsets['utf8'], $charsets['utf8mb4'] ) ) {
+			} elseif ( $count === 2 && isset( $charsets['utf8'], $charsets['utf8mb4'] ) ) {
 				// Two charsets, but they're utf8 and utf8mb4, use utf8.
 				$charset = 'utf8';
 			} else {
@@ -3179,7 +3179,7 @@ class wpdb {
 		 * @param string      $column  The name of the column being checked.
 		 */
 		$charset = apply_filters( 'pre_get_col_charset', null, $table, $column );
-		if ( null !== $charset ) {
+		if ( $charset !== null ) {
 			return $charset;
 		}
 
@@ -3366,7 +3366,7 @@ class wpdb {
 		$this->checking_collation = false;
 
 		// Tables with no collation, or latin1 only, don't need extra checking.
-		if ( false === $collation || 'latin1' === $collation ) {
+		if ( $collation === false || $collation === 'latin1' ) {
 			return true;
 		}
 
@@ -3409,7 +3409,7 @@ class wpdb {
 
 			if ( is_array( $value['length'] ) ) {
 				$length                  = $value['length']['length'];
-				$truncate_by_byte_length = 'byte' === $value['length']['type'];
+				$truncate_by_byte_length = $value['length']['type'] === 'byte';
 			} else {
 				$length = false;
 				// Since we have no length, we'll never truncate. Initialize the variable to false.
@@ -3418,7 +3418,7 @@ class wpdb {
 			}
 
 			// There's no charset to work with.
-			if ( false === $charset ) {
+			if ( $charset === false ) {
 				continue;
 			}
 
@@ -3429,8 +3429,8 @@ class wpdb {
 
 			$needs_validation = true;
 			if (
-				// latin1 can store any byte sequence.
-				'latin1' === $charset
+				$charset === // latin1 can store any byte sequence.
+				'latin1'
 			||
 				// ASCII is always OK.
 				( ! isset( $value['ascii'] ) && $this->check_ascii( $value['value'] ) )
@@ -3441,7 +3441,7 @@ class wpdb {
 
 			if ( $truncate_by_byte_length ) {
 				mbstring_binary_safe_encoding();
-				if ( false !== $length && strlen( $value['value'] ) > $length ) {
+				if ( $length !== false && strlen( $value['value'] ) > $length ) {
 					$value['value'] = substr( $value['value'], 0, $length );
 				}
 				reset_mbstring_encoding();
@@ -3452,7 +3452,7 @@ class wpdb {
 			}
 
 			// utf8 can be handled by regex, which is a bunch faster than a DB lookup.
-			if ( ( 'utf8' === $charset || 'utf8mb3' === $charset || 'utf8mb4' === $charset ) && function_exists( 'mb_strlen' ) ) {
+			if ( ( $charset === 'utf8' || $charset === 'utf8mb3' || $charset === 'utf8mb4' ) && function_exists( 'mb_strlen' ) ) {
 				$regex = '/
 					(
 						(?: [\x00-\x7F]                  # single-byte sequences   0xxxxxxx
@@ -3462,7 +3462,7 @@ class wpdb {
 						|   \xED[\x80-\x9F][\x80-\xBF]
 						|   [\xEE-\xEF][\x80-\xBF]{2}';
 
-				if ( 'utf8mb4' === $charset ) {
+				if ( $charset === 'utf8mb4' ) {
 					$regex .= '
 						|    \xF0[\x90-\xBF][\x80-\xBF]{2} # four-byte sequences   11110xxx 10xxxxxx * 3
 						|    [\xF1-\xF3][\x80-\xBF]{3}
@@ -3476,7 +3476,7 @@ class wpdb {
 					/x';
 				$value['value'] = preg_replace( $regex, '$1', $value['value'] );
 
-				if ( false !== $length && mb_strlen( $value['value'], 'UTF-8' ) > $length ) {
+				if ( $length !== false && mb_strlen( $value['value'], 'UTF-8' ) > $length ) {
 					$value['value'] = mb_substr( $value['value'], 0, $length, 'UTF-8' );
 				}
 				continue;
@@ -3493,7 +3493,7 @@ class wpdb {
 			foreach ( $data as $col => $value ) {
 				if ( ! empty( $value['db'] ) ) {
 					// We're going to need to truncate by characters or bytes, depending on the length value we have.
-					if ( isset( $value['length']['type'] ) && 'byte' === $value['length']['type'] ) {
+					if ( isset( $value['length']['type'] ) && $value['length']['type'] === 'byte' ) {
 						// Using binary causes LEFT() to truncate by bytes.
 						$charset = 'binary';
 					} else {
@@ -3513,7 +3513,7 @@ class wpdb {
 					if ( is_array( $value['length'] ) ) {
 						$length          = sprintf( '%.0f', $value['length']['length'] );
 						$queries[ $col ] = $this->prepare( "CONVERT( LEFT( CONVERT( %s USING $charset ), $length ) USING $connection_charset )", $value['value'] );
-					} elseif ( 'binary' !== $charset ) {
+					} elseif ( $charset !== 'binary' ) {
 						// If we don't have a length, there's no need to convert binary - it will always return the same result.
 						$queries[ $col ] = $this->prepare( "CONVERT( CONVERT( %s USING $charset ) USING $connection_charset )", $value['value'] );
 					}
@@ -3570,7 +3570,7 @@ class wpdb {
 			}
 
 			// We can't reliably strip text from tables containing binary/blob columns.
-			if ( 'binary' === $charset ) {
+			if ( $charset === 'binary' ) {
 				return $query;
 			}
 		} else {
@@ -3746,7 +3746,7 @@ class wpdb {
 		$this->load_col_info();
 
 		if ( $this->col_info ) {
-			if ( -1 === $col_offset ) {
+			if ( $col_offset === -1 ) {
 				$i         = 0;
 				$new_array = array();
 				foreach ( (array) $this->col_info as $col ) {
@@ -3959,7 +3959,7 @@ class wpdb {
 				 * libmysql has supported utf8mb4 since 5.5.3, same as the MySQL server.
 				 * mysqlnd has supported utf8mb4 since 5.0.9.
 				 */
-				if ( false !== strpos( $client_version, 'mysqlnd' ) ) {
+				if ( strpos( $client_version, 'mysqlnd' ) !== false ) {
 					$client_version = preg_replace( '/^\D+([\d.]+).*/', '$1', $client_version );
 					return version_compare( $client_version, '5.0.9', '>=' );
 				} else {

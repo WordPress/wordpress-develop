@@ -283,7 +283,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$id = wp_insert_attachment( wp_slash( (array) $attachment ), $file, 0, true, false );
 
 		if ( is_wp_error( $id ) ) {
-			if ( 'db_update_error' === $id->get_error_code() ) {
+			if ( $id->get_error_code() === 'db_update_error' ) {
 				$id->add_data( array( 'status' => 500 ) );
 			} else {
 				$id->add_data( array( 'status' => 400 ) );
@@ -483,7 +483,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				);
 			}
 
-			if ( 0 === count( $modifiers ) ) {
+			if ( count( $modifiers ) === 0 ) {
 				return new WP_Error(
 					'rest_image_not_edited',
 					__( 'The image was not edited. Edit the image before applying the changes.' ),
@@ -519,7 +519,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					// Rotation direction: clockwise vs. counter clockwise.
 					$rotate = 0 - $args['angle'];
 
-					if ( 0 !== $rotate ) {
+					if ( $rotate !== 0 ) {
 						$result = $image_editor->rotate( $rotate );
 
 						if ( is_wp_error( $result ) ) {
@@ -607,7 +607,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$new_attachment_id = wp_insert_attachment( wp_slash( $new_attachment_post ), $saved['path'], 0, true );
 
 		if ( is_wp_error( $new_attachment_id ) ) {
-			if ( 'db_update_error' === $new_attachment_id->get_error_code() ) {
+			if ( $new_attachment_id->get_error_code() === 'db_update_error' ) {
 				$new_attachment_id->add_data( array( 'status' => 500 ) );
 			} else {
 				$new_attachment_id->add_data( array( 'status' => 400 ) );

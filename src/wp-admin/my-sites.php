@@ -22,7 +22,7 @@ $action = isset( $_POST['action'] ) ? $_POST['action'] : 'splash';
 $blogs = get_blogs_of_user( $current_user->ID );
 
 $updated = false;
-if ( 'updateblogsettings' === $action && isset( $_POST['primary_blog'] ) ) {
+if ( $action === 'updateblogsettings' && isset( $_POST['primary_blog'] ) ) {
 	check_admin_referer( 'update-my-sites' );
 
 	$blog = get_site( (int) $_POST['primary_blog'] );

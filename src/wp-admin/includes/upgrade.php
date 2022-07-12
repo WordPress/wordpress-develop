@@ -161,7 +161,7 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 
 		if ( global_terms_enabled() ) {
 			$cat_id = $wpdb->get_var( $wpdb->prepare( "SELECT cat_ID FROM {$wpdb->sitecategories} WHERE category_nicename = %s", $cat_slug ) );
-			if ( null == $cat_id ) {
+			if ( $cat_id == null ) {
 				$wpdb->insert(
 					$wpdb->sitecategories,
 					array(
@@ -459,7 +459,7 @@ Commenter avatars come from <a href="%s">Gravatar</a>.'
 
 			// Delete any caps that snuck into the previously active blog. (Hardcoded to blog 1 for now.)
 			// TODO: Get previous_blog_id.
-			if ( ! is_super_admin( $user_id ) && 1 != $user_id ) {
+			if ( ! is_super_admin( $user_id ) && $user_id != 1 ) {
 				$wpdb->delete(
 					$wpdb->usermeta,
 					array(
@@ -872,7 +872,7 @@ function upgrade_100() {
 	$posts = $wpdb->get_results( "SELECT ID, post_title, post_name FROM $wpdb->posts WHERE post_name = ''" );
 	if ( $posts ) {
 		foreach ( $posts as $post ) {
-			if ( '' === $post->post_name ) {
+			if ( $post->post_name === '' ) {
 				$newtitle = sanitize_title( $post->post_title );
 				$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->posts SET post_name = %s WHERE ID = %d", $newtitle, $post->ID ) );
 			}
@@ -881,7 +881,7 @@ function upgrade_100() {
 
 	$categories = $wpdb->get_results( "SELECT cat_ID, cat_name, category_nicename FROM $wpdb->categories" );
 	foreach ( $categories as $category ) {
-		if ( '' === $category->category_nicename ) {
+		if ( $category->category_nicename === '' ) {
 			$newtitle = sanitize_title( $category->cat_name );
 			$wpdb->update( $wpdb->categories, array( 'category_nicename' => $newtitle ), array( 'cat_ID' => $category->cat_ID ) );
 		}
@@ -909,7 +909,7 @@ function upgrade_100() {
 		foreach ( $allposts as $post ) {
 			// Check to see if it's already been imported.
 			$cat = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->post2cat WHERE post_id = %d AND category_id = %d", $post->ID, $post->post_category ) );
-			if ( ! $cat && 0 != $post->post_category ) { // If there's no result.
+			if ( ! $cat && $post->post_category != 0 ) { // If there's no result.
 				$wpdb->insert(
 					$wpdb->post2cat,
 					array(
@@ -957,7 +957,7 @@ function upgrade_110() {
 	// Set user_nicename.
 	$users = $wpdb->get_results( "SELECT ID, user_nickname, user_nicename FROM $wpdb->users" );
 	foreach ( $users as $user ) {
-		if ( '' === $user->user_nicename ) {
+		if ( $user->user_nicename === '' ) {
 			$newname = sanitize_title( $user->user_nickname );
 			$wpdb->update( $wpdb->users, array( 'user_nicename' => $newname ), array( 'ID' => $user->ID ) );
 		}
@@ -992,7 +992,7 @@ function upgrade_110() {
 	 * MAX(post_date_gmt) can't be '0000-00-00 00:00:00'.
 	 * <michel_v> I just slapped myself silly for not thinking about it earlier.
 	 */
-	$got_gmt_fields = ( '0000-00-00 00:00:00' !== $wpdb->get_var( "SELECT MAX(post_date_gmt) FROM $wpdb->posts" ) );
+	$got_gmt_fields = ( $wpdb->get_var( "SELECT MAX(post_date_gmt) FROM $wpdb->posts" ) !== '0000-00-00 00:00:00' );
 
 	if ( ! $got_gmt_fields ) {
 
@@ -1083,7 +1083,7 @@ function upgrade_130() {
 	// Some versions have multiple duplicate option_name rows with the same values.
 	$options = $wpdb->get_results( "SELECT option_name, COUNT(option_name) AS dupes FROM `$wpdb->options` GROUP BY option_name" );
 	foreach ( $options as $option ) {
-		if ( 1 != $option->dupes ) { // Could this be done in the query?
+		if ( $option->dupes != 1 ) { // Could this be done in the query?
 			$limit    = $option->dupes - 1;
 			$dupe_ids = $wpdb->get_col( $wpdb->prepare( "SELECT option_id FROM $wpdb->options WHERE option_name = %s LIMIT %d", $option->option_name, $limit ) );
 			if ( $dupe_ids ) {
@@ -1142,22 +1142,22 @@ function upgrade_160() {
 
 		if ( isset( $user->user_idmode ) ) :
 			$idmode = $user->user_idmode;
-			if ( 'nickname' === $idmode ) {
+			if ( $idmode === 'nickname' ) {
 				$id = $user->user_nickname;
 			}
-			if ( 'login' === $idmode ) {
+			if ( $idmode === 'login' ) {
 				$id = $user->user_login;
 			}
-			if ( 'firstname' === $idmode ) {
+			if ( $idmode === 'firstname' ) {
 				$id = $user->user_firstname;
 			}
-			if ( 'lastname' === $idmode ) {
+			if ( $idmode === 'lastname' ) {
 				$id = $user->user_lastname;
 			}
-			if ( 'namefl' === $idmode ) {
+			if ( $idmode === 'namefl' ) {
 				$id = $user->user_firstname . ' ' . $user->user_lastname;
 			}
-			if ( 'namelf' === $idmode ) {
+			if ( $idmode === 'namelf' ) {
 				$id = $user->user_lastname . ' ' . $user->user_firstname;
 			}
 			if ( ! $idmode ) {
@@ -1236,10 +1236,10 @@ function upgrade_210() {
 				$status = $post->post_status;
 				$type   = 'post';
 
-				if ( 'static' === $status ) {
+				if ( $status === 'static' ) {
 					$status = 'publish';
 					$type   = 'page';
-				} elseif ( 'attachment' === $status ) {
+				} elseif ( $status === 'attachment' ) {
 					$status = 'inherit';
 					$type   = 'attachment';
 				}
@@ -1367,7 +1367,7 @@ function upgrade_230() {
 		$post_id  = (int) $post->post_id;
 		$term_id  = (int) $post->category_id;
 		$taxonomy = 'category';
-		if ( ! empty( $post->rel_type ) && 'tag' === $post->rel_type ) {
+		if ( ! empty( $post->rel_type ) && $post->rel_type === 'tag' ) {
 			$taxonomy = 'tag';
 		}
 		$tt_id = $tt_ids[ $term_id ][ $taxonomy ];
@@ -1433,7 +1433,7 @@ function upgrade_230() {
 		$links = $wpdb->get_results( "SELECT link_id, link_category FROM $wpdb->links" );
 		if ( ! empty( $links ) ) {
 			foreach ( $links as $link ) {
-				if ( 0 == $link->link_category ) {
+				if ( $link->link_category == 0 ) {
 					continue;
 				}
 				if ( ! isset( $link_cat_id_map[ $link->link_category ] ) ) {
@@ -1485,7 +1485,7 @@ function upgrade_230() {
 	// Recalculate all counts.
 	$terms = $wpdb->get_results( "SELECT term_taxonomy_id, taxonomy FROM $wpdb->term_taxonomy" );
 	foreach ( (array) $terms as $term ) {
-		if ( 'post_tag' === $term->taxonomy || 'category' === $term->taxonomy ) {
+		if ( $term->taxonomy === 'post_tag' || $term->taxonomy === 'category' ) {
 			$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts WHERE $wpdb->posts.ID = $wpdb->term_relationships.object_id AND post_status = 'publish' AND post_type = 'post' AND term_taxonomy_id = %d", $term->term_taxonomy_id ) );
 		} else {
 			$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships WHERE term_taxonomy_id = %d", $term->term_taxonomy_id ) );
@@ -1825,7 +1825,7 @@ function upgrade_340() {
 	}
 
 	if ( $wp_current_db_version < 20080 ) {
-		if ( 'yes' === $wpdb->get_var( "SELECT autoload FROM $wpdb->options WHERE option_name = 'uninstall_plugins'" ) ) {
+		if ( $wpdb->get_var( "SELECT autoload FROM $wpdb->options WHERE option_name = 'uninstall_plugins'" ) === 'yes' ) {
 			$uninstall_plugins = get_option( 'uninstall_plugins' );
 			delete_option( 'uninstall_plugins' );
 			add_option( 'uninstall_plugins', $uninstall_plugins, null, 'no' );
@@ -1852,7 +1852,7 @@ function upgrade_350() {
 	if ( $wp_current_db_version < 21811 && wp_should_upgrade_global_tables() ) {
 		$meta_keys = array();
 		foreach ( array_merge( get_post_types(), get_taxonomies() ) as $name ) {
-			if ( false !== strpos( $name, '-' ) ) {
+			if ( strpos( $name, '-' ) !== false ) {
 				$meta_keys[] = 'edit_' . str_replace( '-', '_', $name ) . '_per_page';
 			}
 		}
@@ -1930,8 +1930,8 @@ function upgrade_400() {
 	global $wp_current_db_version;
 
 	if ( $wp_current_db_version < 29630 ) {
-		if ( ! is_multisite() && false === get_option( 'WPLANG' ) ) {
-			if ( defined( 'WPLANG' ) && ( '' !== WPLANG ) && in_array( WPLANG, get_available_languages(), true ) ) {
+		if ( ! is_multisite() && get_option( 'WPLANG' ) === false ) {
+			if ( defined( 'WPLANG' ) && ( WPLANG !== '' ) && in_array( WPLANG, get_available_languages(), true ) ) {
 				update_option( 'WPLANG', WPLANG );
 			} else {
 				update_option( 'WPLANG', '' );
@@ -1970,7 +1970,7 @@ function upgrade_430() {
 		wp_schedule_single_event( time() + ( 1 * MINUTE_IN_SECONDS ), 'wp_split_shared_term_batch' );
 	}
 
-	if ( $wp_current_db_version < 33055 && 'utf8mb4' === $wpdb->charset ) {
+	if ( $wp_current_db_version < 33055 && $wpdb->charset === 'utf8mb4' ) {
 		if ( is_multisite() ) {
 			$tables = $wpdb->tables( 'blog' );
 		} else {
@@ -2004,7 +2004,7 @@ function upgrade_430_fix_comments() {
 		return;
 	}
 
-	if ( false === $content_length ) {
+	if ( $content_length === false ) {
 		$content_length = array(
 			'type'   => 'byte',
 			'length' => 65535,
@@ -2017,7 +2017,7 @@ function upgrade_430_fix_comments() {
 		);
 	}
 
-	if ( 'byte' !== $content_length['type'] || 0 === $content_length['length'] ) {
+	if ( $content_length['type'] !== 'byte' || $content_length['length'] === 0 ) {
 		// Sites with malformed DB schemas are on their own.
 		return;
 	}
@@ -2195,7 +2195,7 @@ function upgrade_550() {
 		 * This option key was briefly renamed `blocklist_keys`.
 		 * Account for sites that have this key present when the original key does not exist.
 		 */
-		if ( false === $disallowed_list ) {
+		if ( $disallowed_list === false ) {
 			$disallowed_list = get_option( 'blocklist_keys' );
 		}
 
@@ -2358,7 +2358,7 @@ function upgrade_network() {
 	}
 
 	if ( $wp_current_db_version < 19470 ) {
-		if ( false === get_site_option( 'active_sitewide_plugins' ) ) {
+		if ( get_site_option( 'active_sitewide_plugins' ) === false ) {
 			update_site_option( 'active_sitewide_plugins', array() );
 		}
 	}
@@ -2368,7 +2368,7 @@ function upgrade_network() {
 		// 'allowedthemes' keys things by stylesheet. 'allowed_themes' keyed things by name.
 		$allowedthemes  = get_site_option( 'allowedthemes' );
 		$allowed_themes = get_site_option( 'allowed_themes' );
-		if ( false === $allowedthemes && is_array( $allowed_themes ) && $allowed_themes ) {
+		if ( $allowedthemes === false && is_array( $allowed_themes ) && $allowed_themes ) {
 			$converted = array();
 			$themes    = wp_get_themes();
 			foreach ( $themes as $stylesheet => $theme_data ) {
@@ -2397,7 +2397,7 @@ function upgrade_network() {
 	}
 
 	// 4.2.0
-	if ( $wp_current_db_version < 31351 && 'utf8mb4' === $wpdb->charset ) {
+	if ( $wp_current_db_version < 31351 && $wpdb->charset === 'utf8mb4' ) {
 		if ( wp_should_upgrade_global_tables() ) {
 			$wpdb->query( "ALTER TABLE $wpdb->usermeta DROP INDEX meta_key, ADD INDEX meta_key(meta_key(191))" );
 			$wpdb->query( "ALTER TABLE $wpdb->site DROP INDEX domain, ADD INDEX domain(domain(140),path(51))" );
@@ -2418,12 +2418,12 @@ function upgrade_network() {
 	}
 
 	// 4.3.0
-	if ( $wp_current_db_version < 33055 && 'utf8mb4' === $wpdb->charset ) {
+	if ( $wp_current_db_version < 33055 && $wpdb->charset === 'utf8mb4' ) {
 		if ( wp_should_upgrade_global_tables() ) {
 			$upgrade = false;
 			$indexes = $wpdb->get_results( "SHOW INDEXES FROM $wpdb->signups" );
 			foreach ( $indexes as $index ) {
-				if ( 'domain_path' === $index->Key_name && 'domain' === $index->Column_name && 140 != $index->Sub_part ) {
+				if ( $index->Key_name === 'domain_path' && $index->Column_name === 'domain' && $index->Sub_part != 140 ) {
 					$upgrade = true;
 					break;
 				}
@@ -2597,7 +2597,7 @@ function maybe_convert_table_to_utf8mb4( $table ) {
 		if ( $column->Collation ) {
 			list( $charset ) = explode( '_', $column->Collation );
 			$charset         = strtolower( $charset );
-			if ( 'utf8' !== $charset && 'utf8mb4' !== $charset ) {
+			if ( $charset !== 'utf8' && $charset !== 'utf8mb4' ) {
 				// Don't upgrade tables that have non-utf8 columns.
 				return false;
 			}
@@ -2611,7 +2611,7 @@ function maybe_convert_table_to_utf8mb4( $table ) {
 
 	list( $table_charset ) = explode( '_', $table_details->Collation );
 	$table_charset         = strtolower( $table_charset );
-	if ( 'utf8mb4' === $table_charset ) {
+	if ( $table_charset === 'utf8mb4' ) {
 		return true;
 	}
 
@@ -2633,7 +2633,7 @@ function get_alloptions_110() {
 	$options     = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options" );
 	if ( $options ) {
 		foreach ( $options as $option ) {
-			if ( 'siteurl' === $option->option_name || 'home' === $option->option_name || 'category_base' === $option->option_name ) {
+			if ( $option->option_name === 'siteurl' || $option->option_name === 'home' || $option->option_name === 'category_base' ) {
 				$option->option_value = untrailingslashit( $option->option_value );
 			}
 			$all_options->{$option->option_name} = stripslashes( $option->option_value );
@@ -2657,17 +2657,17 @@ function get_alloptions_110() {
 function __get_option( $setting ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	global $wpdb;
 
-	if ( 'home' === $setting && defined( 'WP_HOME' ) ) {
+	if ( $setting === 'home' && defined( 'WP_HOME' ) ) {
 		return untrailingslashit( WP_HOME );
 	}
 
-	if ( 'siteurl' === $setting && defined( 'WP_SITEURL' ) ) {
+	if ( $setting === 'siteurl' && defined( 'WP_SITEURL' ) ) {
 		return untrailingslashit( WP_SITEURL );
 	}
 
 	$option = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name = %s", $setting ) );
 
-	if ( 'home' === $setting && ! $option ) {
+	if ( $setting === 'home' && ! $option ) {
 		return __get_option( 'siteurl' );
 	}
 
@@ -2882,7 +2882,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 					$index_type = str_replace( 'INDEX', 'KEY', $index_type );
 
 					// Escape the index name with backticks. An index for a primary key has no name.
-					$index_name = ( 'PRIMARY KEY' === $index_type ) ? '' : '`' . strtolower( $index_matches['index_name'] ) . '`';
+					$index_name = ( $index_type === 'PRIMARY KEY' ) ? '' : '`' . strtolower( $index_matches['index_name'] ) . '`';
 
 					// Parse the columns. Multiple columns are separated by a comma.
 					$index_columns                  = array_map( 'trim', explode( ',', $index_matches['index_columns'] ) );
@@ -3019,7 +3019,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 					'fieldname' => $tableindex->Column_name,
 					'subpart'   => $tableindex->Sub_part,
 				);
-				$index_ary[ $keyname ]['unique']     = ( 0 == $tableindex->Non_unique ) ? true : false;
+				$index_ary[ $keyname ]['unique']     = ( $tableindex->Non_unique == 0 ) ? true : false;
 				$index_ary[ $keyname ]['index_type'] = $tableindex->Index_type;
 			}
 
@@ -3028,26 +3028,26 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 
 				// Build a create string to compare to the query.
 				$index_string = '';
-				if ( 'primary' === $index_name ) {
+				if ( $index_name === 'primary' ) {
 					$index_string .= 'PRIMARY ';
 				} elseif ( $index_data['unique'] ) {
 					$index_string .= 'UNIQUE ';
 				}
-				if ( 'FULLTEXT' === strtoupper( $index_data['index_type'] ) ) {
+				if ( strtoupper( $index_data['index_type'] ) === 'FULLTEXT' ) {
 					$index_string .= 'FULLTEXT ';
 				}
-				if ( 'SPATIAL' === strtoupper( $index_data['index_type'] ) ) {
+				if ( strtoupper( $index_data['index_type'] ) === 'SPATIAL' ) {
 					$index_string .= 'SPATIAL ';
 				}
 				$index_string .= 'KEY ';
-				if ( 'primary' !== $index_name ) {
+				if ( $index_name !== 'primary' ) {
 					$index_string .= '`' . $index_name . '`';
 				}
 				$index_columns = '';
 
 				// For each column in the index.
 				foreach ( $index_data['columns'] as $column_data ) {
-					if ( '' !== $index_columns ) {
+					if ( $index_columns !== '' ) {
 						$index_columns .= ',';
 					}
 
@@ -3060,7 +3060,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 
 				// Check if the index definition exists, ignoring subparts.
 				$aindex = array_search( $index_string, $indices_without_subparts, true );
-				if ( false !== $aindex ) {
+				if ( $aindex !== false ) {
 					// If the index already exists (even with different subparts), we don't need to create it.
 					unset( $indices_without_subparts[ $aindex ] );
 					unset( $indices[ $aindex ] );
@@ -3158,14 +3158,14 @@ function make_site_theme_from_oldschool( $theme_name, $template ) {
 	);
 
 	foreach ( $files as $oldfile => $newfile ) {
-		if ( 'index.php' === $oldfile ) {
+		if ( $oldfile === 'index.php' ) {
 			$oldpath = $home_path;
 		} else {
 			$oldpath = ABSPATH;
 		}
 
 		// Check to make sure it's not a new index.
-		if ( 'index.php' === $oldfile ) {
+		if ( $oldfile === 'index.php' ) {
 			$index = implode( '', file( "$oldpath/$oldfile" ) );
 			if ( strpos( $index, 'WP_USE_THEMES' ) !== false ) {
 				if ( ! copy( WP_CONTENT_DIR . '/themes/' . WP_DEFAULT_THEME . '/index.php', "$site_dir/$newfile" ) ) {
@@ -3341,7 +3341,7 @@ function make_site_theme() {
 
 	// Make the new site theme active.
 	$current_template = __get_option( 'template' );
-	if ( WP_DEFAULT_THEME == $current_template ) {
+	if ( $current_template == WP_DEFAULT_THEME ) {
 		update_option( 'template', $template );
 		update_option( 'stylesheet', $template );
 	}
@@ -3402,7 +3402,7 @@ function maybe_disable_automattic_widgets() {
 	$plugins = __get_option( 'active_plugins' );
 
 	foreach ( (array) $plugins as $plugin ) {
-		if ( 'widgets.php' === basename( $plugin ) ) {
+		if ( basename( $plugin ) === 'widgets.php' ) {
 			array_splice( $plugins, array_search( $plugin, $plugins, true ), 1 );
 			update_option( 'active_plugins', $plugins );
 			break;

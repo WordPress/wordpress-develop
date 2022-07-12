@@ -305,7 +305,7 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 		$content .= __( 'Use the Custom HTML widget to add arbitrary HTML code to your widget areas.' );
 		$content .= '</p>';
 
-		if ( 'false' !== wp_get_current_user()->syntax_highlighting ) {
+		if ( wp_get_current_user()->syntax_highlighting !== 'false' ) {
 			$content .= '<p>';
 			$content .= sprintf(
 				/* translators: 1: Link to user profile, 2: Additional link attributes, 3: Accessibility text. */

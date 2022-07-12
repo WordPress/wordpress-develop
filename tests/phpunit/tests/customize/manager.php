@@ -86,7 +86,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	private function get_inactive_core_theme() {
 		$stylesheet = get_stylesheet();
 		foreach ( wp_get_themes() as $theme ) {
-			if ( $theme->stylesheet !== $stylesheet && 0 === strpos( $theme->stylesheet, 'twenty' ) ) {
+			if ( $theme->stylesheet !== $stylesheet && strpos( $theme->stylesheet, 'twenty' ) === 0 ) {
 				return $theme->stylesheet;
 			}
 		}
@@ -1401,7 +1401,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @return array Caps.
 	 */
 	public function filter_map_meta_cap_to_disallow_unfiltered_html( $caps, $cap ) {
-		if ( 'unfiltered_html' === $cap ) {
+		if ( $cap === 'unfiltered_html' ) {
 			$caps = array( 'do_not_allow' );
 		}
 		return $caps;
@@ -2484,11 +2484,11 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @return string|WP_Error
 	 */
 	public function filter_customize_sanitize_foo( $value ) {
-		if ( 'return_null_in_sanitize' === $value ) {
+		if ( $value === 'return_null_in_sanitize' ) {
 			$value = null;
 		} elseif ( is_string( $value ) ) {
 			$value = strtoupper( $value );
-			if ( false !== stripos( $value, 'return_wp_error_in_sanitize' ) ) {
+			if ( stripos( $value, 'return_wp_error_in_sanitize' ) !== false ) {
 				$value = new WP_Error( 'invalid_value_in_sanitize', __( 'Invalid value.' ), array( 'source' => 'filter_customize_sanitize_foo' ) );
 			}
 		}
@@ -2503,7 +2503,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @return WP_Error
 	 */
 	public function filter_customize_validate_foo( $validity, $value ) {
-		if ( false !== stripos( $value, '<script' ) ) {
+		if ( stripos( $value, '<script' ) !== false ) {
 			$validity->add( 'invalid_value_in_validate', __( 'Invalid value.' ), array( 'source' => 'filter_customize_validate_foo' ) );
 		}
 		return $validity;
@@ -3355,7 +3355,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 */
 	public function return_dynamic_customize_setting_class( $class, $id, $args ) {
 		unset( $args );
-		if ( 0 === strpos( $id, 'dynamic' ) ) {
+		if ( strpos( $id, 'dynamic' ) === 0 ) {
 			$class = 'Test_Dynamic_Customize_Setting';
 		}
 		return $class;
@@ -3369,7 +3369,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @return string      Setting args.
 	 */
 	public function return_dynamic_customize_setting_args( $args, $id ) {
-		if ( 0 === strpos( $id, 'dynamic' ) ) {
+		if ( strpos( $id, 'dynamic' ) === 0 ) {
 			$args['custom'] = 'foo';
 		}
 		return $args;

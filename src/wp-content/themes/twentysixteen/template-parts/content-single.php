@@ -32,7 +32,7 @@
 				)
 			);
 
-			if ( '' !== get_the_author_meta( 'description' ) ) {
+			if ( get_the_author_meta( 'description' ) !== '' ) {
 				get_template_part( 'template-parts/biography' );
 			}
 			?>

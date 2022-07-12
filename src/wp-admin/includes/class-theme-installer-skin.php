@@ -70,8 +70,8 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 	 */
 	public function hide_process_failed( $wp_error ) {
 		if (
-			'upload' === $this->type &&
-			'' === $this->overwrite &&
+			$this->type === 'upload' &&
+			$this->overwrite === '' &&
 			$wp_error->get_error_code() === 'folder_exists'
 		) {
 			return true;
@@ -119,7 +119,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 			$customize_url = add_query_arg(
 				array(
 					'theme'  => urlencode( $stylesheet ),
-					'return' => urlencode( admin_url( 'web' === $this->type ? 'theme-install.php' : 'themes.php' ) ),
+					'return' => urlencode( admin_url( $this->type === 'web' ? 'theme-install.php' : 'themes.php' ) ),
 				),
 				admin_url( 'customize.php' )
 			);
@@ -151,7 +151,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 			);
 		}
 
-		if ( 'web' === $this->type ) {
+		if ( $this->type === 'web' ) {
 			$install_actions['themes_page'] = sprintf(
 				'<a href="%s" target="_parent">%s</a>',
 				self_admin_url( 'theme-install.php' ),
@@ -195,7 +195,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 	 * @return bool Whether the theme can be overwritten and HTML was outputted.
 	 */
 	private function do_overwrite() {
-		if ( 'upload' !== $this->type || ! is_wp_error( $this->result ) || 'folder_exists' !== $this->result->get_error_code() ) {
+		if ( $this->type !== 'upload' || ! is_wp_error( $this->result ) || $this->result->get_error_code() !== 'folder_exists' ) {
 			return false;
 		}
 
@@ -255,17 +255,17 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 
 			$new_value = ! empty( $new_theme_data[ $field ] ) ? (string) $new_theme_data[ $field ] : '-';
 
-			if ( $old_value === $new_value && '-' === $new_value && 'Template' === $field ) {
+			if ( $old_value === $new_value && $new_value === '-' && $field === 'Template' ) {
 				continue;
 			}
 
 			$is_same_theme = $is_same_theme && ( $old_value === $new_value );
 
-			$diff_field     = ( 'Version' !== $field && $new_value !== $old_value );
-			$diff_version   = ( 'Version' === $field && $this->is_downgrading );
+			$diff_field     = ( $field !== 'Version' && $new_value !== $old_value );
+			$diff_version   = ( $field === 'Version' && $this->is_downgrading );
 			$invalid_parent = false;
 
-			if ( 'Template' === $field && $is_invalid_parent ) {
+			if ( $field === 'Template' && $is_invalid_parent ) {
 				$invalid_parent = true;
 				$new_value     .= ' ' . __( '(not found)' );
 			}

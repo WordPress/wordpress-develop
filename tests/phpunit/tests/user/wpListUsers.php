@@ -85,7 +85,7 @@ class Tests_User_wpListUsers extends WP_UnitTestCase {
 			$expected
 		);
 
-		if ( null === $actual ) {
+		if ( $actual === null ) {
 			$this->expectOutputString( $expected );
 		} else {
 			$this->assertSame( $expected, $actual );
@@ -177,7 +177,7 @@ class Tests_User_wpListUsers extends WP_UnitTestCase {
 	public function test_should_not_create_a_user_list( $args ) {
 		$actual = wp_list_users( $args );
 
-		if ( null === $actual ) {
+		if ( $actual === null ) {
 			$this->expectOutputString( '', 'wp_list_users() did not output an empty string.' );
 		} else {
 			$this->assertSame( $actual, 'wp_list_users() did not return an empty string.' );

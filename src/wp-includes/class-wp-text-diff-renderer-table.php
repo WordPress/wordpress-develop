@@ -412,7 +412,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 			$final_pos = array_search( $orig_matches[ $orig_row ], $final_rows, true );
 			$orig_pos  = (int) array_search( $orig_row, $orig_rows, true );
 
-			if ( false === $final_pos ) { // This orig is paired with a blank final.
+			if ( $final_pos === false ) { // This orig is paired with a blank final.
 				array_splice( $final_rows, $orig_pos, 0, -1 );
 			} elseif ( $final_pos < $orig_pos ) { // This orig's match is up a ways. Pad final with blank rows.
 				$diff_array = range( -1, $final_pos - $orig_pos );

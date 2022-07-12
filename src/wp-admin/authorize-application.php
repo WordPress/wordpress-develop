@@ -13,7 +13,7 @@ $error        = null;
 $new_password = '';
 
 // This is the no-js fallback script. Generally this will all be handled by `auth-app.js`.
-if ( isset( $_POST['action'] ) && 'authorize_application_password' === $_POST['action'] ) {
+if ( isset( $_POST['action'] ) && $_POST['action'] === 'authorize_application_password' ) {
 	check_admin_referer( 'authorize_application_password' );
 
 	$success_url = $_POST['success_url'];

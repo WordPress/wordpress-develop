@@ -167,7 +167,7 @@ if ( isset( $_GET['action'] ) ) {
 							continue;
 						}
 
-						if ( ! empty( $_POST['delete'] ) && 'reassign' === $_POST['delete'][ $blogid ][ $id ] ) {
+						if ( ! empty( $_POST['delete'] ) && $_POST['delete'][ $blogid ][ $id ] === 'reassign' ) {
 							remove_user_from_blog( $id, $blogid, (int) $user_id );
 						} else {
 							remove_user_from_blog( $id, $blogid );
@@ -188,7 +188,7 @@ if ( isset( $_GET['action'] ) ) {
 				}
 			}
 
-			if ( 1 === $i ) {
+			if ( $i === 1 ) {
 				$deletefunction = 'delete';
 			} else {
 				$deletefunction = 'all_delete';
@@ -253,7 +253,7 @@ get_current_screen()->set_screen_reader_content(
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
-if ( isset( $_REQUEST['updated'] ) && 'true' == $_REQUEST['updated'] && ! empty( $_REQUEST['action'] ) ) {
+if ( isset( $_REQUEST['updated'] ) && $_REQUEST['updated'] == 'true' && ! empty( $_REQUEST['action'] ) ) {
 	?>
 	<div id="message" class="updated notice is-dismissible"><p>
 		<?php

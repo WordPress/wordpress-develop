@@ -33,7 +33,7 @@ function delete_theme( $stylesheet, $redirect = '' ) {
 	$credentials = request_filesystem_credentials( $redirect );
 	$data        = ob_get_clean();
 
-	if ( false === $credentials ) {
+	if ( $credentials === false ) {
 		if ( ! empty( $data ) ) {
 			require_once ABSPATH . 'wp-admin/admin-header.php';
 			echo $data;
@@ -491,7 +491,7 @@ function themes_api( $action, $args = array() ) {
 		$args = (object) $args;
 	}
 
-	if ( 'query_themes' === $action ) {
+	if ( $action === 'query_themes' ) {
 		if ( ! isset( $args->per_page ) ) {
 			$args->per_page = 24;
 		}
@@ -585,7 +585,7 @@ function themes_api( $action, $args = array() ) {
 			if ( is_array( $res ) ) {
 				// Object casting is required in order to match the info/1.0 format.
 				$res = (object) $res;
-			} elseif ( null === $res ) {
+			} elseif ( $res === null ) {
 				$res = new WP_Error(
 					'themes_api_failed',
 					sprintf(
@@ -604,14 +604,14 @@ function themes_api( $action, $args = array() ) {
 
 		if ( ! is_wp_error( $res ) ) {
 			// Back-compat for info/1.2 API, upgrade the theme objects in query_themes to objects.
-			if ( 'query_themes' === $action ) {
+			if ( $action === 'query_themes' ) {
 				foreach ( $res->themes as $i => $theme ) {
 					$res->themes[ $i ] = (object) $theme;
 				}
 			}
 
 			// Back-compat for info/1.2 API, downgrade the feature_list result back to an array.
-			if ( 'feature_list' === $action ) {
+			if ( $action === 'feature_list' ) {
 				$res = (array) $res;
 			}
 		}
@@ -664,7 +664,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 	// Make sure the active theme is listed first.
 	$prepared_themes[ $current_theme ] = array();
 
-	if ( null === $themes ) {
+	if ( $themes === null ) {
 		$themes = wp_get_themes( array( 'allowed' => true ) );
 		if ( ! isset( $themes[ $current_theme ] ) ) {
 			$themes[ $current_theme ] = wp_get_theme();
@@ -1188,7 +1188,7 @@ function resume_theme( $theme, $redirect = '' ) {
  * @global string $pagenow The filename of the current screen.
  */
 function paused_themes_notice() {
-	if ( 'themes.php' === $GLOBALS['pagenow'] ) {
+	if ( $GLOBALS['pagenow'] === 'themes.php' ) {
 		return;
 	}
 

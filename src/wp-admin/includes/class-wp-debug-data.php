@@ -50,7 +50,7 @@ class WP_Debug_Data {
 
 		if ( is_array( $core_updates ) ) {
 			foreach ( $core_updates as $core => $update ) {
-				if ( 'upgrade' === $update->response ) {
+				if ( $update->response === 'upgrade' ) {
 					/* translators: %s: Latest WordPress version number. */
 					$core_update_needed = ' ' . sprintf( __( '(Latest version: %s)' ), $update->version );
 				} else {
@@ -119,7 +119,7 @@ class WP_Debug_Data {
 				),
 				'default_comment_status' => array(
 					'label' => __( 'Default comment status' ),
-					'value' => 'open' === $default_comment_status ? _x( 'Open', 'comment status' ) : _x( 'Closed', 'comment status' ),
+					'value' => $default_comment_status === 'open' ? _x( 'Open', 'comment status' ) : _x( 'Closed', 'comment status' ),
 					'debug' => $default_comment_status,
 				),
 				'environment_type'       => array(
@@ -571,7 +571,7 @@ class WP_Debug_Data {
 		}
 
 		// If Imagick is used as our editor, provide some more information about its limitations.
-		if ( 'WP_Image_Editor_Imagick' === _wp_image_editor_choose() && isset( $imagick ) && $imagick instanceof Imagick ) {
+		if ( _wp_image_editor_choose() === 'WP_Image_Editor_Imagick' && isset( $imagick ) && $imagick instanceof Imagick ) {
 			$limits = array(
 				'area'   => ( defined( 'imagick::RESOURCETYPE_AREA' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_AREA ) ) : $not_available ),
 				'disk'   => ( defined( 'imagick::RESOURCETYPE_DISK' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_DISK ) : $not_available ),
@@ -699,7 +699,7 @@ class WP_Debug_Data {
 
 		$info['wp-server']['fields']['server_architecture'] = array(
 			'label' => __( 'Server architecture' ),
-			'value' => ( 'unknown' !== $server_architecture ? $server_architecture : __( 'Unable to determine server architecture' ) ),
+			'value' => ( $server_architecture !== 'unknown' ? $server_architecture : __( 'Unable to determine server architecture' ) ),
 			'debug' => $server_architecture,
 		);
 		$info['wp-server']['fields']['httpd_software']      = array(
@@ -714,7 +714,7 @@ class WP_Debug_Data {
 		);
 		$info['wp-server']['fields']['php_sapi']            = array(
 			'label' => __( 'PHP SAPI' ),
-			'value' => ( 'unknown' !== $php_sapi ? $php_sapi : __( 'Unable to determine PHP SAPI' ) ),
+			'value' => ( $php_sapi !== 'unknown' ? $php_sapi : __( 'Unable to determine PHP SAPI' ) ),
 			'debug' => $php_sapi,
 		);
 
@@ -1501,7 +1501,7 @@ class WP_Debug_Data {
 				continue;
 			}
 
-			$section_label = 'debug' === $data_type ? $section : $details['label'];
+			$section_label = $data_type === 'debug' ? $section : $details['label'];
 
 			$return .= sprintf(
 				"### %s%s ###\n\n",
@@ -1510,11 +1510,11 @@ class WP_Debug_Data {
 			);
 
 			foreach ( $details['fields'] as $field_name => $field ) {
-				if ( isset( $field['private'] ) && true === $field['private'] ) {
+				if ( isset( $field['private'] ) && $field['private'] === true ) {
 					continue;
 				}
 
-				if ( 'debug' === $data_type && isset( $field['debug'] ) ) {
+				if ( $data_type === 'debug' && isset( $field['debug'] ) ) {
 					$debug_data = $field['debug'];
 				} else {
 					$debug_data = $field['value'];
@@ -1529,13 +1529,13 @@ class WP_Debug_Data {
 					}
 				} elseif ( is_bool( $debug_data ) ) {
 					$value = $debug_data ? 'true' : 'false';
-				} elseif ( empty( $debug_data ) && '0' !== $debug_data ) {
+				} elseif ( empty( $debug_data ) && $debug_data !== '0' ) {
 					$value = 'undefined';
 				} else {
 					$value = $debug_data;
 				}
 
-				if ( 'debug' === $data_type ) {
+				if ( $data_type === 'debug' ) {
 					$label = $field_name;
 				} else {
 					$label = $field['label'];
@@ -1631,21 +1631,21 @@ class WP_Debug_Data {
 			);
 
 			if ( microtime( true ) - WP_START_TIMESTAMP < $max_execution_time ) {
-				if ( 'wordpress_size' === $name ) {
+				if ( $name === 'wordpress_size' ) {
 					$dir_size = recurse_dirsize( $path, $exclude, $max_execution_time );
 				} else {
 					$dir_size = recurse_dirsize( $path, null, $max_execution_time );
 				}
 			}
 
-			if ( false === $dir_size ) {
+			if ( $dir_size === false ) {
 				// Error reading.
 				$results['size']  = __( 'The size cannot be calculated. The directory is not accessible. Usually caused by invalid permissions.' );
 				$results['debug'] = 'not accessible';
 
 				// Stop total size calculation.
 				$size_total = null;
-			} elseif ( null === $dir_size ) {
+			} elseif ( $dir_size === null ) {
 				// Timeout.
 				$results['size']  = __( 'The directory size calculation has timed out. Usually caused by a very large number of sub-directories and files.' );
 				$results['debug'] = 'timeout while calculating size';
@@ -1653,7 +1653,7 @@ class WP_Debug_Data {
 				// Stop total size calculation.
 				$size_total = null;
 			} else {
-				if ( null !== $size_total ) {
+				if ( $size_total !== null ) {
 					$size_total += $dir_size;
 				}
 
@@ -1680,7 +1680,7 @@ class WP_Debug_Data {
 			);
 		}
 
-		if ( null !== $size_total && $size_db > 0 ) {
+		if ( $size_total !== null && $size_db > 0 ) {
 			$total_size    = $size_total + $size_db;
 			$total_size_mb = size_format( $total_size, 2 );
 

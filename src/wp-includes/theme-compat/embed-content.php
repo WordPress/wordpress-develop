@@ -18,7 +18,7 @@
 			$thumbnail_id = get_post_thumbnail_id();
 		}
 
-		if ( 'attachment' === get_post_type() && wp_attachment_is_image() ) {
+		if ( get_post_type() === 'attachment' && wp_attachment_is_image() ) {
 			$thumbnail_id = get_the_ID();
 		}
 
@@ -75,7 +75,7 @@
 			$shape = apply_filters( 'embed_thumbnail_image_shape', $shape, $thumbnail_id );
 		}
 
-		if ( $thumbnail_id && 'rectangular' === $shape ) :
+		if ( $thumbnail_id && $shape === 'rectangular' ) :
 			?>
 			<div class="wp-embed-featured-image rectangular">
 				<a href="<?php the_permalink(); ?>" target="_top">
@@ -90,7 +90,7 @@
 			</a>
 		</p>
 
-		<?php if ( $thumbnail_id && 'square' === $shape ) : ?>
+		<?php if ( $thumbnail_id && $shape === 'square' ) : ?>
 			<div class="wp-embed-featured-image square">
 				<a href="<?php the_permalink(); ?>" target="_top">
 					<?php echo wp_get_attachment_image( $thumbnail_id, $image_size ); ?>

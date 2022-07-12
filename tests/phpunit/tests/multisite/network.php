@@ -403,7 +403,7 @@ if ( is_multisite() ) :
 		 */
 		public function test_wp_is_large_network( $using, $count, $expected, $different_network ) {
 			$network_id     = $different_network ? self::$different_network_id : null;
-			$network_option = 'users' === $using ? 'user_count' : 'blog_count';
+			$network_option = $using === 'users' ? 'user_count' : 'blog_count';
 
 			update_network_option( $network_id, $network_option, $count );
 
@@ -434,7 +434,7 @@ if ( is_multisite() ) :
 		 */
 		public function test_wp_is_large_network_filtered_by_component( $using, $count, $expected, $different_network ) {
 			$network_id     = $different_network ? self::$different_network_id : null;
-			$network_option = 'users' === $using ? 'user_count' : 'blog_count';
+			$network_option = $using === 'users' ? 'user_count' : 'blog_count';
 
 			update_network_option( $network_id, $network_option, $count );
 
@@ -463,7 +463,7 @@ if ( is_multisite() ) :
 		}
 
 		public function filter_wp_is_large_network_for_users( $is_large_network, $using, $count ) {
-			if ( 'users' === $using ) {
+			if ( $using === 'users' ) {
 				return $count > 1000;
 			}
 
@@ -476,7 +476,7 @@ if ( is_multisite() ) :
 		 */
 		public function test_wp_is_large_network_filtered_by_network( $using, $count, $expected, $different_network ) {
 			$network_id     = $different_network ? self::$different_network_id : null;
-			$network_option = 'users' === $using ? 'user_count' : 'blog_count';
+			$network_option = $using === 'users' ? 'user_count' : 'blog_count';
 
 			update_network_option( $network_id, $network_option, $count );
 

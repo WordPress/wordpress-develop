@@ -30,7 +30,7 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
 	}
 
 	$origin = 'custom';
-	if ( isset( $context['origin'] ) && 'base' === $context['origin'] ) {
+	if ( isset( $context['origin'] ) && $context['origin'] === 'base' ) {
 		$origin = 'theme';
 	}
 
@@ -64,7 +64,7 @@ function wp_get_global_styles( $path = array(), $context = array() ) {
 	}
 
 	$origin = 'custom';
-	if ( isset( $context['origin'] ) && 'base' === $context['origin'] ) {
+	if ( isset( $context['origin'] ) && $context['origin'] === 'base' ) {
 		$origin = 'theme';
 	}
 

@@ -186,7 +186,7 @@ if ( isset( $plugin_page ) ) {
 		$page_hook = get_plugin_page_hook( $plugin_page, $plugin_page );
 
 		// Back-compat for plugins using add_management_page().
-		if ( empty( $page_hook ) && 'edit.php' === $pagenow && get_plugin_page_hook( $plugin_page, 'tools.php' ) ) {
+		if ( empty( $page_hook ) && $pagenow === 'edit.php' && get_plugin_page_hook( $plugin_page, 'tools.php' ) ) {
 			// There could be plugin specific params on the URL, so we need the whole query string.
 			if ( ! empty( $_SERVER['QUERY_STRING'] ) ) {
 				$query_string = $_SERVER['QUERY_STRING'];
@@ -388,19 +388,19 @@ if ( isset( $plugin_page ) ) {
 	 * The following hooks are fired to ensure backward compatibility.
 	 * In all other cases, 'load-' . $pagenow should be used instead.
 	 */
-	if ( 'page' === $typenow ) {
-		if ( 'post-new.php' === $pagenow ) {
+	if ( $typenow === 'page' ) {
+		if ( $pagenow === 'post-new.php' ) {
 			do_action( 'load-page-new.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
-		} elseif ( 'post.php' === $pagenow ) {
+		} elseif ( $pagenow === 'post.php' ) {
 			do_action( 'load-page.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 		}
-	} elseif ( 'edit-tags.php' === $pagenow ) {
-		if ( 'category' === $taxnow ) {
+	} elseif ( $pagenow === 'edit-tags.php' ) {
+		if ( $taxnow === 'category' ) {
 			do_action( 'load-categories.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
-		} elseif ( 'link_category' === $taxnow ) {
+		} elseif ( $taxnow === 'link_category' ) {
 			do_action( 'load-edit-link-categories.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 		}
-	} elseif ( 'term.php' === $pagenow ) {
+	} elseif ( $pagenow === 'term.php' ) {
 		do_action( 'load-edit-tags.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 	}
 }

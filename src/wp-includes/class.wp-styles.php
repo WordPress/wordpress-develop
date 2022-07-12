@@ -155,7 +155,7 @@ class WP_Styles extends WP_Dependencies {
 
 		$obj = $this->registered[ $handle ];
 
-		if ( null === $obj->ver ) {
+		if ( $obj->ver === null ) {
 			$ver = '';
 		} else {
 			$ver = $obj->ver ? $obj->ver : $this->default_version;
@@ -250,8 +250,8 @@ class WP_Styles extends WP_Dependencies {
 		 */
 		$tag = apply_filters( 'style_loader_tag', $tag, $handle, $href, $media );
 
-		if ( 'rtl' === $this->text_direction && isset( $obj->extra['rtl'] ) && $obj->extra['rtl'] ) {
-			if ( is_bool( $obj->extra['rtl'] ) || 'replace' === $obj->extra['rtl'] ) {
+		if ( $this->text_direction === 'rtl' && isset( $obj->extra['rtl'] ) && $obj->extra['rtl'] ) {
+			if ( is_bool( $obj->extra['rtl'] ) || $obj->extra['rtl'] === 'replace' ) {
 				$suffix   = isset( $obj->extra['suffix'] ) ? $obj->extra['suffix'] : '';
 				$rtl_href = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $this->_css_href( $src, $ver, "$handle-rtl" ) );
 			} else {
@@ -271,7 +271,7 @@ class WP_Styles extends WP_Dependencies {
 			/** This filter is documented in wp-includes/class.wp-styles.php */
 			$rtl_tag = apply_filters( 'style_loader_tag', $rtl_tag, $handle, $rtl_href, $media );
 
-			if ( 'replace' === $obj->extra['rtl'] ) {
+			if ( $obj->extra['rtl'] === 'replace' ) {
 				$tag = $rtl_tag;
 			} else {
 				$tag .= $rtl_tag;
@@ -393,7 +393,7 @@ class WP_Styles extends WP_Dependencies {
 	 * @return string Style's fully-qualified URL.
 	 */
 	public function _css_href( $src, $ver, $handle ) {
-		if ( ! is_bool( $src ) && ! preg_match( '|^(https?:)?//|', $src ) && ! ( $this->content_url && 0 === strpos( $src, $this->content_url ) ) ) {
+		if ( ! is_bool( $src ) && ! preg_match( '|^(https?:)?//|', $src ) && ! ( $this->content_url && strpos( $src, $this->content_url ) === 0 ) ) {
 			$src = $this->base_url . $src;
 		}
 
@@ -427,7 +427,7 @@ class WP_Styles extends WP_Dependencies {
 		}
 
 		foreach ( (array) $this->default_dirs as $test ) {
-			if ( 0 === strpos( $src, $test ) ) {
+			if ( strpos( $src, $test ) === 0 ) {
 				return true;
 			}
 		}

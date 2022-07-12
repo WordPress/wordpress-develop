@@ -17,7 +17,7 @@
 
 	<?php twentysixteen_excerpt(); ?>
 
-	<?php if ( 'post' === get_post_type() ) : ?>
+	<?php if ( get_post_type() === 'post' ) : ?>
 
 		<footer class="entry-footer">
 			<?php twentysixteen_entry_meta(); ?>

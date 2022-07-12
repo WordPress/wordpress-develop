@@ -50,7 +50,7 @@ class Tests_HTTP_wpGetHttpHeaders extends WP_UnitTestCase {
 	 * @return array|bool
 	 */
 	public function mock_http_request( $false, $arguments, $url ) {
-		if ( 'http://example.com' === $url ) {
+		if ( $url === 'http://example.com' ) {
 			return array( 'headers' => true );
 		}
 

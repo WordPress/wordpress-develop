@@ -35,7 +35,7 @@ function translations_api( $type, $args = null ) {
 	 */
 	$res = apply_filters( 'translations_api', false, $type, $args );
 
-	if ( false === $res ) {
+	if ( $res === false ) {
 		$url      = 'http://api.wordpress.org/translations/' . $type . '/1.0/';
 		$http_url = $url;
 		$ssl      = wp_http_supports( array( 'ssl' ) );
@@ -52,7 +52,7 @@ function translations_api( $type, $args = null ) {
 			),
 		);
 
-		if ( 'core' !== $type ) {
+		if ( $type !== 'core' ) {
 			$options['body']['slug'] = $args['slug']; // Plugin or theme slug.
 		}
 
@@ -122,7 +122,7 @@ function translations_api( $type, $args = null ) {
 function wp_get_available_translations() {
 	if ( ! wp_installing() ) {
 		$translations = get_site_transient( 'available_translations' );
-		if ( false !== $translations ) {
+		if ( $translations !== false ) {
 			return $translations;
 		}
 	}

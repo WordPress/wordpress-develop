@@ -143,7 +143,7 @@ final class WP_Term {
 				}
 
 				// If only one match was found, it's the one we want.
-			} elseif ( 1 === count( $terms ) ) {
+			} elseif ( count( $terms ) === 1 ) {
 				$_term = reset( $terms );
 
 				// Otherwise, the term must be shared between taxonomies.
@@ -175,7 +175,7 @@ final class WP_Term {
 			$_term = sanitize_term( $_term, $_term->taxonomy, 'raw' );
 
 			// Don't cache terms that are shared between taxonomies.
-			if ( 1 === count( $terms ) ) {
+			if ( count( $terms ) === 1 ) {
 				wp_cache_add( $term_id, $_term, 'terms' );
 			}
 		}

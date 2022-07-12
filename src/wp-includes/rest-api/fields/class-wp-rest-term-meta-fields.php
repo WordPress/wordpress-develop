@@ -65,6 +65,6 @@ class WP_REST_Term_Meta_Fields extends WP_REST_Meta_Fields {
 	 * @return string The REST field type.
 	 */
 	public function get_rest_field_type() {
-		return 'post_tag' === $this->taxonomy ? 'tag' : $this->taxonomy;
+		return $this->taxonomy === 'post_tag' ? 'tag' : $this->taxonomy;
 	}
 }

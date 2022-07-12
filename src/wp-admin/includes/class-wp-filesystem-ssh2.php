@@ -196,7 +196,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 * @return string The ssh2.sftp:// wrapped path to use.
 	 */
 	public function sftp_path( $path ) {
-		if ( '/' === $path ) {
+		if ( $path === '/' ) {
 			$path = '/./';
 		}
 
@@ -234,7 +234,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 			fclose( $stream );
 
 			if ( $returnbool ) {
-				return ( false === $data ) ? false : '' !== trim( $data );
+				return ( $data === false ) ? false : trim( $data ) !== '';
 			} else {
 				return $data;
 			}
@@ -488,7 +488,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 
 		$content = $this->get_contents( $source );
 
-		if ( false === $content ) {
+		if ( $content === false ) {
 			return false;
 		}
 
@@ -533,7 +533,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 * @return bool True on success, false on failure.
 	 */
 	public function delete( $file, $recursive = false, $type = false ) {
-		if ( 'f' === $type || $this->is_file( $file ) ) {
+		if ( $type === 'f' || $this->is_file( $file ) ) {
 			return ssh2_sftp_unlink( $this->sftp_link, $file );
 		}
 
@@ -767,15 +767,15 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 			return false;
 		}
 
-		while ( false !== ( $entry = $dir->read() ) ) {
+		while ( ( $entry = $dir->read() ) !== false ) {
 			$struc         = array();
 			$struc['name'] = $entry;
 
-			if ( '.' === $struc['name'] || '..' === $struc['name'] ) {
+			if ( $struc['name'] === '.' || $struc['name'] === '..' ) {
 				continue; // Do not care about these folders.
 			}
 
-			if ( ! $include_hidden && '.' === $struc['name'][0] ) {
+			if ( ! $include_hidden && $struc['name'][0] === '.' ) {
 				continue;
 			}
 
@@ -794,7 +794,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 			$struc['time']        = gmdate( 'h:i:s', $struc['lastmodunix'] );
 			$struc['type']        = $this->is_dir( $path . '/' . $entry ) ? 'd' : 'f';
 
-			if ( 'd' === $struc['type'] ) {
+			if ( $struc['type'] === 'd' ) {
 				if ( $recursive ) {
 					$struc['files'] = $this->dirlist( $path . '/' . $struc['name'], $include_hidden, $recursive );
 				} else {

@@ -32,7 +32,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 		global $mode, $usersearch, $role;
 
 		if ( ! empty( $_REQUEST['mode'] ) ) {
-			$mode = 'excerpt' === $_REQUEST['mode'] ? 'excerpt' : 'list';
+			$mode = $_REQUEST['mode'] === 'excerpt' ? 'excerpt' : 'list';
 			set_user_setting( 'network_users_list_mode', $mode );
 		} else {
 			$mode = get_user_setting( 'network_users_list_mode', 'list' );
@@ -56,12 +56,12 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 
 		if ( wp_is_large_network( 'users' ) ) {
 			$args['search'] = ltrim( $args['search'], '*' );
-		} elseif ( '' !== $args['search'] ) {
+		} elseif ( $args['search'] !== '' ) {
 			$args['search'] = trim( $args['search'], '*' );
 			$args['search'] = '*' . $args['search'] . '*';
 		}
 
-		if ( 'super' === $role ) {
+		if ( $role === 'super' ) {
 			$args['login__in'] = get_super_admins();
 		}
 
@@ -137,7 +137,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 		$super_admins = get_super_admins();
 		$total_admins = count( $super_admins );
 
-		$current_link_attributes = 'super' !== $role ? ' class="current" aria-current="page"' : '';
+		$current_link_attributes = $role !== 'super' ? ' class="current" aria-current="page"' : '';
 		$role_links              = array();
 		$role_links['all']       = sprintf(
 			'<a href="%s"%s>%s</a>',
@@ -154,7 +154,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 				number_format_i18n( $total_users )
 			)
 		);
-		$current_link_attributes = 'super' === $role ? ' class="current" aria-current="page"' : '';
+		$current_link_attributes = $role === 'super' ? ' class="current" aria-current="page"' : '';
 		$role_links['super']     = sprintf(
 			'<a href="%s"%s>%s</a>',
 			network_admin_url( 'users.php?role=super' ),
@@ -183,7 +183,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 
 		parent::pagination( $which );
 
-		if ( 'top' === $which ) {
+		if ( $which === 'top' ) {
 			$this->view_switcher( $mode );
 		}
 	}
@@ -339,7 +339,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 */
 	public function column_registered( $user ) {
 		global $mode;
-		if ( 'list' === $mode ) {
+		if ( $mode === 'list' ) {
 			$date = __( 'Y/m/d' );
 		} else {
 			$date = __( 'Y/m/d g:i:s a' );
@@ -380,7 +380,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 				continue;
 			}
 
-			$path         = ( '/' === $site->path ) ? '' : $site->path;
+			$path         = ( $site->path === '/' ) ? '' : $site->path;
 			$site_classes = array( 'site-' . $site->site_id );
 			/**
 			 * Filters the span class for a site listing on the mulisite user list table.
@@ -405,16 +405,16 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 			$actions['edit'] = '<a href="' . esc_url( network_admin_url( 'site-info.php?id=' . $site->userblog_id ) ) . '">' . __( 'Edit' ) . '</a>';
 
 			$class = '';
-			if ( 1 === (int) $site->spam ) {
+			if ( (int) $site->spam === 1 ) {
 				$class .= 'site-spammed ';
 			}
-			if ( 1 === (int) $site->mature ) {
+			if ( (int) $site->mature === 1 ) {
 				$class .= 'site-mature ';
 			}
-			if ( 1 === (int) $site->deleted ) {
+			if ( (int) $site->deleted === 1 ) {
 				$class .= 'site-deleted ';
 			}
-			if ( 1 === (int) $site->archived ) {
+			if ( (int) $site->archived === 1 ) {
 				$class .= 'site-archived ';
 			}
 

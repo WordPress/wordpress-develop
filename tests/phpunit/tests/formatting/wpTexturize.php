@@ -1668,7 +1668,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 			case '&#8216;':
 				return '!openq1!';
 			case '&#8217;':
-				if ( 'apostrophe' === $context ) {
+				if ( $context === 'apostrophe' ) {
 					return '!apos!';
 				} else {
 					return '!closeq1!';
@@ -2101,7 +2101,7 @@ String with a number followed by a single quote &#8216;Expendables 3&#8217; vest
 			case '&#8216;':
 				return '!q1!';
 			case '&#8217;':
-				if ( 'apostrophe' === $context ) {
+				if ( $context === 'apostrophe' ) {
 					return '!apos!';
 				} else {
 					return '!q1!';

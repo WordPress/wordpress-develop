@@ -259,7 +259,7 @@ function twentyseventeen_content_width() {
 	$page_layout = get_theme_mod( 'page_layout' );
 
 	// Check if layout is one column.
-	if ( 'one-column' === $page_layout ) {
+	if ( $page_layout === 'one-column' ) {
 		if ( twentyseventeen_is_frontpage() ) {
 			$content_width = 644;
 		} elseif ( is_page() ) {
@@ -295,7 +295,7 @@ function twentyseventeen_fonts_url() {
 	 */
 	$libre_franklin = _x( 'on', 'Libre Franklin font: on or off', 'twentyseventeen' );
 
-	if ( 'off' !== $libre_franklin ) {
+	if ( $libre_franklin !== 'off' ) {
 		$font_families = array();
 
 		$font_families[] = 'Libre Franklin:300,300i,400,400i,600,600i,800,800i';
@@ -322,7 +322,7 @@ function twentyseventeen_fonts_url() {
  * @return array URLs to print for resource hints.
  */
 function twentyseventeen_resource_hints( $urls, $relation_type ) {
-	if ( wp_style_is( 'twentyseventeen-fonts', 'queue' ) && 'preconnect' === $relation_type ) {
+	if ( wp_style_is( 'twentyseventeen-fonts', 'queue' ) && $relation_type === 'preconnect' ) {
 		$urls[] = array(
 			'href' => 'https://fonts.gstatic.com',
 			'crossorigin',
@@ -427,7 +427,7 @@ add_action( 'wp_head', 'twentyseventeen_pingback_header' );
  * Display custom color CSS.
  */
 function twentyseventeen_colors_css_wrap() {
-	if ( 'custom' !== get_theme_mod( 'colorscheme' ) && ! is_customize_preview() ) {
+	if ( get_theme_mod( 'colorscheme' ) !== 'custom' && ! is_customize_preview() ) {
 		return;
 	}
 
@@ -460,7 +460,7 @@ function twentyseventeen_scripts() {
 	wp_enqueue_style( 'twentyseventeen-block-style', get_theme_file_uri( '/assets/css/blocks.css' ), array( 'twentyseventeen-style' ), '20220524' );
 
 	// Load the dark colorscheme.
-	if ( 'dark' === get_theme_mod( 'colorscheme', 'light' ) || is_customize_preview() ) {
+	if ( get_theme_mod( 'colorscheme', 'light' ) === 'dark' || is_customize_preview() ) {
 		wp_enqueue_style( 'twentyseventeen-colors-dark', get_theme_file_uri( '/assets/css/colors-dark.css' ), array( 'twentyseventeen-style' ), '20190408' );
 	}
 
@@ -540,7 +540,7 @@ function twentyseventeen_content_image_sizes_attr( $sizes, $size ) {
 	}
 
 	if ( is_active_sidebar( 'sidebar-1' ) || is_archive() || is_search() || is_home() || is_page() ) {
-		if ( ! ( is_page() && 'one-column' === get_theme_mod( 'page_options' ) ) && 767 <= $width ) {
+		if ( ! ( is_page() && get_theme_mod( 'page_options' ) === 'one-column' ) && 767 <= $width ) {
 			$sizes = '(max-width: 767px) 89vw, (max-width: 1000px) 54vw, (max-width: 1071px) 543px, 580px';
 		}
 	}

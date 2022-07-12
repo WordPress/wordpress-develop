@@ -195,9 +195,9 @@ class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 		$fn       = array_rand( $this->child_functions );
 		$expected = '';
 
-		if ( false !== $expect_output ) {
+		if ( $expect_output !== false ) {
 			$expected = " {$fn}='{$fn}'";
-			if ( 'wp_readonly' === $fn ) {
+			if ( $fn === 'wp_readonly' ) {
 				// Account for the function name not matching the expected output string.
 				$expected = " readonly='readonly'";
 			}

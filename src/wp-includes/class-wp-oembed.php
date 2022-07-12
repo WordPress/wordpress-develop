@@ -353,7 +353,7 @@ class WP_oEmbed {
 
 		$data = $this->fetch( $provider, $url, $args );
 
-		if ( false === $data ) {
+		if ( $data === false ) {
 			return false;
 		}
 
@@ -394,13 +394,13 @@ class WP_oEmbed {
 		 */
 		$pre = apply_filters( 'pre_oembed_result', null, $url, $args );
 
-		if ( null !== $pre ) {
+		if ( $pre !== null ) {
 			return $pre;
 		}
 
 		$data = $this->get_data( $url, $args );
 
-		if ( false === $data ) {
+		if ( $data === false ) {
 			return false;
 		}
 
@@ -489,7 +489,7 @@ class WP_oEmbed {
 						$providers[ $linktypes[ $atts['type'] ] ] = htmlspecialchars_decode( $atts['href'] );
 
 						// Stop here if it's JSON (that's all we need).
-						if ( 'json' === $linktypes[ $atts['type'] ] ) {
+						if ( $linktypes[ $atts['type'] ] === 'json' ) {
 							break;
 						}
 					}
@@ -541,7 +541,7 @@ class WP_oEmbed {
 
 		foreach ( array( 'json', 'xml' ) as $format ) {
 			$result = $this->_fetch_with_format( $provider, $format );
-			if ( is_wp_error( $result ) && 'not-implemented' === $result->get_error_code() ) {
+			if ( is_wp_error( $result ) && $result->get_error_code() === 'not-implemented' ) {
 				continue;
 			}
 			return ( $result && ! is_wp_error( $result ) ) ? $result : false;
@@ -565,7 +565,7 @@ class WP_oEmbed {
 		$args = apply_filters( 'oembed_remote_get_args', array(), $provider_url_with_args );
 
 		$response = wp_safe_remote_get( $provider_url_with_args, $args );
-		if ( 501 == wp_remote_retrieve_response_code( $response ) ) {
+		if ( wp_remote_retrieve_response_code( $response ) == 501 ) {
 			return new WP_Error( 'not-implemented' );
 		}
 		$body = wp_remote_retrieve_body( $response );
@@ -647,7 +647,7 @@ class WP_oEmbed {
 		}
 
 		foreach ( $dom->childNodes as $child ) {
-			if ( XML_DOCUMENT_TYPE_NODE === $child->nodeType ) {
+			if ( $child->nodeType === XML_DOCUMENT_TYPE_NODE ) {
 				return false;
 			}
 		}
@@ -737,7 +737,7 @@ class WP_oEmbed {
 	 * @return string Possibly modified $html
 	 */
 	public function _strip_newlines( $html, $data, $url ) {
-		if ( false === strpos( $html, "\n" ) ) {
+		if ( strpos( $html, "\n" ) === false ) {
 			return $html;
 		}
 

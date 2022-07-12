@@ -188,7 +188,7 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 						'description'     => __( 'Apply a custom color for links, buttons, featured images.', 'twentytwenty' ),
 						'mode'            => 'hue',
 						'active_callback' => static function() use ( $wp_customize ) {
-							return ( 'custom' === $wp_customize->get_setting( 'accent_hue_active' )->value() );
+							return ( $wp_customize->get_setting( 'accent_hue_active' )->value() === 'custom' );
 						},
 					)
 				)
@@ -461,7 +461,7 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 		 * @return bool
 		 */
 		public static function sanitize_checkbox( $checked ) {
-			return ( ( isset( $checked ) && true === $checked ) ? true : false );
+			return ( ( isset( $checked ) && $checked === true ) ? true : false );
 		}
 
 	}

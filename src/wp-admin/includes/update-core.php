@@ -1017,7 +1017,7 @@ function update_core( $from, $to ) {
 	$php_version       = PHP_VERSION;
 	$mysql_version     = $wpdb->db_version();
 	$old_wp_version    = $GLOBALS['wp_version']; // The version of WordPress we're updating from.
-	$development_build = ( false !== strpos( $old_wp_version . $wp_version, '-' ) ); // A dash in the version indicates a development release.
+	$development_build = ( strpos( $old_wp_version . $wp_version, '-' ) !== false ); // A dash in the version indicates a development release.
 	$php_compat        = version_compare( $php_version, $required_php_version, '>=' );
 
 	if ( file_exists( WP_CONTENT_DIR . '/db.php' ) && empty( $wpdb->is_mysql ) ) {
@@ -1119,7 +1119,7 @@ function update_core( $from, $to ) {
 
 		if ( is_array( $checksums ) ) {
 			foreach ( $checksums as $file => $checksum ) {
-				if ( 'wp-content' === substr( $file, 0, 10 ) ) {
+				if ( substr( $file, 0, 10 ) === 'wp-content' ) {
 					continue;
 				}
 
@@ -1131,7 +1131,7 @@ function update_core( $from, $to ) {
 					continue;
 				}
 
-				if ( '.' === dirname( $file )
+				if ( dirname( $file ) === '.'
 					&& in_array( pathinfo( $file, PATHINFO_EXTENSION ), array( 'html', 'txt' ), true )
 				) {
 					continue;
@@ -1147,7 +1147,7 @@ function update_core( $from, $to ) {
 	}
 
 	// If we're using the direct method, we can predict write failures that are due to permissions.
-	if ( $check_is_writable && 'direct' === $wp_filesystem->method ) {
+	if ( $check_is_writable && $wp_filesystem->method === 'direct' ) {
 		$files_writable = array_filter( $check_is_writable, array( $wp_filesystem, 'is_writable' ) );
 
 		if ( $files_writable !== $check_is_writable ) {
@@ -1226,7 +1226,7 @@ function update_core( $from, $to ) {
 
 	if ( isset( $checksums ) && is_array( $checksums ) ) {
 		foreach ( $checksums as $file => $checksum ) {
-			if ( 'wp-content' === substr( $file, 0, 10 ) ) {
+			if ( substr( $file, 0, 10 ) === 'wp-content' ) {
 				continue;
 			}
 
@@ -1234,7 +1234,7 @@ function update_core( $from, $to ) {
 				continue;
 			}
 
-			if ( '.' === dirname( $file )
+			if ( dirname( $file ) === '.'
 				&& in_array( pathinfo( $file, PATHINFO_EXTENSION ), array( 'html', 'txt' ), true )
 			) {
 				$skip[] = $file;
@@ -1281,14 +1281,14 @@ function update_core( $from, $to ) {
 	// Custom content directory needs updating now.
 	// Copy languages.
 	if ( ! is_wp_error( $result ) && $wp_filesystem->is_dir( $from . $distro . 'wp-content/languages' ) ) {
-		if ( WP_LANG_DIR !== ABSPATH . WPINC . '/languages' || @is_dir( WP_LANG_DIR ) ) {
+		if ( ABSPATH . WPINC . '/languages' !== WP_LANG_DIR || @is_dir( WP_LANG_DIR ) ) {
 			$lang_dir = WP_LANG_DIR;
 		} else {
 			$lang_dir = WP_CONTENT_DIR . '/languages';
 		}
 
 		// Check if the language directory exists first.
-		if ( ! @is_dir( $lang_dir ) && 0 === strpos( $lang_dir, ABSPATH ) ) {
+		if ( ! @is_dir( $lang_dir ) && strpos( $lang_dir, ABSPATH ) === 0 ) {
 			// If it's within the ABSPATH we can handle it here, otherwise they're out of luck.
 			$wp_filesystem->mkdir( $to . str_replace( ABSPATH, '', $lang_dir ), FS_CHMOD_DIR );
 			clearstatcache(); // For FTP, need to clear the stat cache.
@@ -1319,7 +1319,7 @@ function update_core( $from, $to ) {
 
 	// 3.5 -> 3.5+ - an empty twentytwelve directory was created upon upgrade to 3.5 for some users,
 	// preventing installation of Twenty Twelve.
-	if ( '3.5' === $old_wp_version ) {
+	if ( $old_wp_version === '3.5' ) {
 		if ( is_dir( WP_CONTENT_DIR . '/themes/twentytwelve' )
 			&& ! file_exists( WP_CONTENT_DIR . '/themes/twentytwelve/style.css' )
 		) {
@@ -1339,7 +1339,7 @@ function update_core( $from, $to ) {
 		foreach ( (array) $_new_bundled_files as $file => $introduced_version ) {
 			// If a $development_build or if $introduced version is greater than what the site was previously running.
 			if ( $development_build || version_compare( $introduced_version, $old_wp_version, '>' ) ) {
-				$directory = ( '/' === $file[ strlen( $file ) - 1 ] );
+				$directory = ( $file[ strlen( $file ) - 1 ] === '/' );
 
 				list( $type, $filename ) = explode( '/', $file, 2 );
 
@@ -1348,9 +1348,9 @@ function update_core( $from, $to ) {
 					continue;
 				}
 
-				if ( 'plugins' === $type ) {
+				if ( $type === 'plugins' ) {
 					$dest = $wp_filesystem->wp_plugins_dir();
-				} elseif ( 'themes' === $type ) {
+				} elseif ( $type === 'themes' ) {
 					// Back-compat, ::wp_themes_dir() did not return trailingslash'd pre-3.2.
 					$dest = trailingslashit( $wp_filesystem->wp_themes_dir() );
 				} else {
@@ -1489,7 +1489,7 @@ function _copy_dir( $from, $to, $skip_list = array() ) {
 
 	$dirlist = $wp_filesystem->dirlist( $from );
 
-	if ( false === $dirlist ) {
+	if ( $dirlist === false ) {
 		return new WP_Error( 'dirlist_failed__copy_dir', __( 'Directory listing failed.' ), basename( $to ) );
 	}
 
@@ -1501,7 +1501,7 @@ function _copy_dir( $from, $to, $skip_list = array() ) {
 			continue;
 		}
 
-		if ( 'f' === $fileinfo['type'] ) {
+		if ( $fileinfo['type'] === 'f' ) {
 			if ( ! $wp_filesystem->copy( $from . $filename, $to . $filename, true, FS_CHMOD_FILE ) ) {
 				// If copy failed, chmod file to 0644 and try again.
 				$wp_filesystem->chmod( $to . $filename, FS_CHMOD_FILE );
@@ -1518,7 +1518,7 @@ function _copy_dir( $from, $to, $skip_list = array() ) {
 			if ( function_exists( 'wp_opcache_invalidate' ) ) {
 				wp_opcache_invalidate( $to . $filename );
 			}
-		} elseif ( 'd' === $fileinfo['type'] ) {
+		} elseif ( $fileinfo['type'] === 'd' ) {
 			if ( ! $wp_filesystem->is_dir( $to . $filename ) ) {
 				if ( ! $wp_filesystem->mkdir( $to . $filename, FS_CHMOD_DIR ) ) {
 					return new WP_Error( 'mkdir_failed__copy_dir', __( 'Could not create directory.' ), $to . $filename );
@@ -1532,7 +1532,7 @@ function _copy_dir( $from, $to, $skip_list = array() ) {
 			$sub_skip_list = array();
 
 			foreach ( $skip_list as $skip_item ) {
-				if ( 0 === strpos( $skip_item, $filename . '/' ) ) {
+				if ( strpos( $skip_item, $filename . '/' ) === 0 ) {
 					$sub_skip_list[] = preg_replace( '!^' . preg_quote( $filename, '!' ) . '/!i', '', $skip_item );
 				}
 			}
@@ -1569,11 +1569,11 @@ function _redirect_to_about_wordpress( $new_version ) {
 	}
 
 	// Ensure we only run this on the update-core.php page. The Core_Upgrader may be used in other contexts.
-	if ( 'update-core.php' !== $pagenow ) {
+	if ( $pagenow !== 'update-core.php' ) {
 		return;
 	}
 
-	if ( 'do-core-upgrade' !== $action && 'do-core-reinstall' !== $action ) {
+	if ( $action !== 'do-core-upgrade' && $action !== 'do-core-reinstall' ) {
 		return;
 	}
 
@@ -1670,7 +1670,7 @@ function _upgrade_422_find_genericons_files_in_folder( $directory ) {
 	$files     = array();
 
 	if ( file_exists( "{$directory}example.html" )
-		&& false !== strpos( file_get_contents( "{$directory}example.html" ), '<title>Genericons</title>' )
+		&& strpos( file_get_contents( "{$directory}example.html" ), '<title>Genericons</title>' ) !== false
 	) {
 		$files[] = "{$directory}example.html";
 	}
@@ -1680,7 +1680,7 @@ function _upgrade_422_find_genericons_files_in_folder( $directory ) {
 		$dirs,
 		static function( $dir ) {
 			// Skip any node_modules directories.
-			return false === strpos( $dir, 'node_modules' );
+			return strpos( $dir, 'node_modules' ) === false;
 		}
 	);
 

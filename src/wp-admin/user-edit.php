@@ -208,7 +208,7 @@ switch ( $action ) {
 				<?php else : ?>
 					<p><strong><?php _e( 'User updated.' ); ?></strong></p>
 				<?php endif; ?>
-				<?php if ( $wp_http_referer && false === strpos( $wp_http_referer, 'user-new.php' ) && ! IS_PROFILE_PAGE ) : ?>
+				<?php if ( $wp_http_referer && strpos( $wp_http_referer, 'user-new.php' ) === false && ! IS_PROFILE_PAGE ) : ?>
 					<p><a href="<?php echo esc_url( wp_validate_redirect( sanitize_url( $wp_http_referer ), self_admin_url( 'users.php' ) ) ); ?>"><?php _e( '&larr; Go to Users' ); ?></a></p>
 				<?php endif; ?>
 			</div>
@@ -216,7 +216,7 @@ switch ( $action ) {
 
 		<?php if ( isset( $_GET['error'] ) ) : ?>
 			<div class="notice notice-error">
-			<?php if ( 'new-email' === $_GET['error'] ) : ?>
+			<?php if ( $_GET['error'] === 'new-email' ) : ?>
 				<p><?php _e( 'Error while saving the new email address. Please try again.' ); ?></p>
 			<?php endif; ?>
 			</div>
@@ -356,9 +356,9 @@ switch ( $action ) {
 							<?php
 								$user_locale = $profile_user->locale;
 
-							if ( 'en_US' === $user_locale ) {
+							if ( $user_locale === 'en_US' ) {
 								$user_locale = '';
-							} elseif ( '' === $user_locale || ! in_array( $user_locale, $languages, true ) ) {
+							} elseif ( $user_locale === '' || ! in_array( $user_locale, $languages, true ) ) {
 								$user_locale = 'site-default';
 							}
 
@@ -441,7 +441,7 @@ switch ( $action ) {
 						<tr class="user-super-admin-wrap">
 							<th><?php _e( 'Super Admin' ); ?></th>
 							<td>
-								<?php if ( 0 !== strcasecmp( $profile_user->user_email, get_site_option( 'admin_email' ) ) || ! is_super_admin( $profile_user->ID ) ) : ?>
+								<?php if ( strcasecmp( $profile_user->user_email, get_site_option( 'admin_email' ) ) !== 0 || ! is_super_admin( $profile_user->ID ) ) : ?>
 									<p><label><input type="checkbox" id="super_admin" name="super_admin"<?php checked( is_super_admin( $profile_user->ID ) ); ?> /> <?php _e( 'Grant this user super admin privileges for the Network.' ); ?></label></p>
 								<?php else : ?>
 									<p><?php _e( 'Super admin privileges cannot be removed because this user has the network admin email.' ); ?></p>
@@ -864,7 +864,7 @@ switch ( $action ) {
 					$display_additional_caps = apply_filters( 'additional_capabilities_display', true, $profile_user );
 					?>
 
-				<?php if ( count( $profile_user->caps ) > count( $profile_user->roles ) && ( true === $display_additional_caps ) ) : ?>
+				<?php if ( count( $profile_user->caps ) > count( $profile_user->roles ) && ( $display_additional_caps === true ) ) : ?>
 					<h2><?php _e( 'Additional Capabilities' ); ?></h2>
 
 					<table class="form-table" role="presentation">
@@ -875,7 +875,7 @@ switch ( $action ) {
 								$output = '';
 								foreach ( $profile_user->caps as $cap => $value ) {
 									if ( ! $wp_roles->is_role( $cap ) ) {
-										if ( '' !== $output ) {
+										if ( $output !== '' ) {
 											$output .= ', ';
 										}
 

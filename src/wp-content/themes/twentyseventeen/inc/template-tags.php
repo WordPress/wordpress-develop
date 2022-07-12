@@ -75,7 +75,7 @@ if ( ! function_exists( 'twentyseventeen_entry_footer' ) ) :
 
 			echo '<footer class="entry-footer">';
 
-			if ( 'post' === get_post_type() ) {
+			if ( get_post_type() === 'post' ) {
 				if ( ( $categories_list && twentyseventeen_categorized_blog() ) || $tags_list ) {
 					echo '<span class="cat-tags-links">';
 
@@ -167,7 +167,7 @@ function twentyseventeen_front_page_section( $partial = null, $id = 0 ) {
 function twentyseventeen_categorized_blog() {
 	$category_count = get_transient( 'twentyseventeen_categories' );
 
-	if ( false === $category_count ) {
+	if ( $category_count === false ) {
 		// Create an array of all the categories that are attached to posts.
 		$categories = get_categories(
 			array(

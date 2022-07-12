@@ -132,7 +132,7 @@ endif;
  */
 function twentyfourteen_categorized_blog() {
 	$all_the_cool_cats = get_transient( 'twentyfourteen_category_count' );
-	if ( false === $all_the_cool_cats ) {
+	if ( $all_the_cool_cats === false ) {
 		// Create an array of all the categories that are attached to posts.
 		$all_the_cool_cats = get_categories(
 			array(

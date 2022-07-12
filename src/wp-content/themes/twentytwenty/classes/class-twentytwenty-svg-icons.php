@@ -26,9 +26,9 @@ if ( ! class_exists( 'TwentyTwenty_SVG_Icons' ) ) {
 		 * @param string $color Color.
 		 */
 		public static function get_svg( $icon, $group = 'ui', $color = '#1A1A1B' ) {
-			if ( 'ui' === $group ) {
+			if ( $group === 'ui' ) {
 				$arr = self::$ui_icons;
-			} elseif ( 'social' === $group ) {
+			} elseif ( $group === 'social' ) {
 				$arr = self::$social_icons;
 			} else {
 				$arr = array();

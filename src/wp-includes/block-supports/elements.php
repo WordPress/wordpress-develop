@@ -52,7 +52,7 @@ function wp_render_elements_support( $block_content, $block ) {
 	 * should take advantage of WP_Theme_JSON::compute_style_properties
 	 * and work for any element and style.
 	 */
-	if ( null === $link_color ) {
+	if ( $link_color === null ) {
 		return $block_content;
 	}
 
@@ -114,7 +114,7 @@ function wp_render_elements_support_styles( $pre_render, $block ) {
 	* should take advantage of WP_Theme_JSON::compute_style_properties
 	* and work for any element and style.
 	*/
-	if ( null === $link_color ) {
+	if ( $link_color === null ) {
 		return null;
 	}
 

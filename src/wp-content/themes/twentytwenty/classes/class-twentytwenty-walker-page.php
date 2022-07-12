@@ -36,7 +36,7 @@ if ( ! class_exists( 'TwentyTwenty_Walker_Page' ) ) {
 			$page            = $data_object;
 			$current_page_id = $current_object_id;
 
-			if ( isset( $args['item_spacing'] ) && 'preserve' === $args['item_spacing'] ) {
+			if ( isset( $args['item_spacing'] ) && $args['item_spacing'] === 'preserve' ) {
 				$t = "\t";
 				$n = "\n";
 			} else {
@@ -73,7 +73,7 @@ if ( ! class_exists( 'TwentyTwenty_Walker_Page' ) ) {
 			$css_classes = implode( ' ', apply_filters( 'page_css_class', $css_class, $page, $depth, $args, $current_page_id ) );
 			$css_classes = $css_classes ? ' class="' . esc_attr( $css_classes ) . '"' : '';
 
-			if ( '' === $page->post_title ) {
+			if ( $page->post_title === '' ) {
 				/* translators: %d: ID of a post. */
 				$page->post_title = sprintf( __( '#%d (no title)', 'twentytwenty' ), $page->ID );
 			}
@@ -91,7 +91,7 @@ if ( ! class_exists( 'TwentyTwenty_Walker_Page' ) ) {
 			$attributes = '';
 			foreach ( $atts as $attr => $value ) {
 				if ( ! empty( $value ) ) {
-					$value       = ( 'href' === $attr ) ? esc_url( $value ) : esc_attr( $value );
+					$value       = ( $attr === 'href' ) ? esc_url( $value ) : esc_attr( $value );
 					$attributes .= ' ' . $attr . '="' . $value . '"';
 				}
 			}
@@ -100,7 +100,7 @@ if ( ! class_exists( 'TwentyTwenty_Walker_Page' ) ) {
 			$args['list_item_after']  = '';
 
 			// Wrap the link in a div and append a sub menu toggle.
-			if ( isset( $args['show_toggles'] ) && true === $args['show_toggles'] ) {
+			if ( isset( $args['show_toggles'] ) && $args['show_toggles'] === true ) {
 				// Wrap the menu item link contents in a div, used for positioning.
 				$args['list_item_before'] = '<div class="ancestor-wrapper">';
 				$args['list_item_after']  = '';
@@ -121,7 +121,7 @@ if ( ! class_exists( 'TwentyTwenty_Walker_Page' ) ) {
 			}
 
 			// Add icons to menu items with children.
-			if ( isset( $args['show_sub_menu_icons'] ) && true === $args['show_sub_menu_icons'] ) {
+			if ( isset( $args['show_sub_menu_icons'] ) && $args['show_sub_menu_icons'] === true ) {
 				if ( isset( $args['pages_with_children'][ $page->ID ] ) ) {
 					$args['list_item_after'] = '<span class="icon"></span>';
 				}
@@ -140,7 +140,7 @@ if ( ! class_exists( 'TwentyTwenty_Walker_Page' ) ) {
 			);
 
 			if ( ! empty( $args['show_date'] ) ) {
-				if ( 'modified' === $args['show_date'] ) {
+				if ( $args['show_date'] === 'modified' ) {
 					$time = $page->post_modified;
 				} else {
 					$time = $page->post_date;

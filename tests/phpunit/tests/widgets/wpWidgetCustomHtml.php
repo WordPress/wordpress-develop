@@ -213,7 +213,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 	 * @return array Caps.
 	 */
 	public function grant_unfiltered_html_cap( $caps, $cap ) {
-		if ( 'unfiltered_html' === $cap ) {
+		if ( $cap === 'unfiltered_html' ) {
 			$caps   = array_diff( $caps, array( 'do_not_allow' ) );
 			$caps[] = 'unfiltered_html';
 		}
@@ -228,7 +228,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 	 * @return array Caps.
 	 */
 	public function revoke_unfiltered_html_cap( $caps, $cap ) {
-		if ( 'unfiltered_html' === $cap ) {
+		if ( $cap === 'unfiltered_html' ) {
 			$caps   = array_diff( $caps, array( 'unfiltered_html' ) );
 			$caps[] = 'do_not_allow';
 		}

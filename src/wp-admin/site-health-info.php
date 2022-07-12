@@ -85,7 +85,7 @@ $health_check_site_status = WP_Site_Health::get_instance();
 					</span>
 					<?php
 
-					if ( 'wp-paths-sizes' === $section ) {
+					if ( $section === 'wp-paths-sizes' ) {
 						?>
 						<span class="health-check-wp-paths-sizes spinner"></span>
 						<?php

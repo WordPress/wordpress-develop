@@ -39,7 +39,7 @@ if ( $action ) {
 		case 'enable':
 			check_admin_referer( 'enable-theme_' . $_GET['theme'] );
 			WP_Theme::network_enable_theme( $_GET['theme'] );
-			if ( false === strpos( $referer, '/network/themes.php' ) ) {
+			if ( strpos( $referer, '/network/themes.php' ) === false ) {
 				wp_redirect( network_admin_url( 'themes.php?enabled=1' ) );
 			} else {
 				wp_safe_redirect( add_query_arg( 'enabled', 1, $referer ) );
@@ -133,7 +133,7 @@ if ( $action ) {
 				$themes_to_delete = count( $themes );
 				?>
 				<div class="wrap">
-				<?php if ( 1 === $themes_to_delete ) : ?>
+				<?php if ( $themes_to_delete === 1 ) : ?>
 					<h1><?php _e( 'Delete Theme' ); ?></h1>
 					<div class="error"><p><strong><?php _e( 'Caution:' ); ?></strong> <?php _e( 'This theme may be active on other sites in the network.' ); ?></p></div>
 					<p><?php _e( 'You are about to remove the following theme:' ); ?></p>
@@ -154,7 +154,7 @@ if ( $action ) {
 					}
 					?>
 					</ul>
-				<?php if ( 1 === $themes_to_delete ) : ?>
+				<?php if ( $themes_to_delete === 1 ) : ?>
 					<p><?php _e( 'Are you sure you want to delete this theme?' ); ?></p>
 				<?php else : ?>
 					<p><?php _e( 'Are you sure you want to delete these themes?' ); ?></p>
@@ -170,7 +170,7 @@ if ( $action ) {
 
 					wp_nonce_field( 'bulk-themes' );
 
-					if ( 1 === $themes_to_delete ) {
+					if ( $themes_to_delete === 1 ) {
 						submit_button( __( 'Yes, delete this theme' ), '', 'submit', false );
 					} else {
 						submit_button( __( 'Yes, delete these themes' ), '', 'submit', false );
@@ -226,7 +226,7 @@ if ( $action ) {
 				wp_die( __( 'Sorry, you are not allowed to change themes automatic update settings.' ) );
 			}
 
-			if ( 'enable-auto-update' === $action || 'disable-auto-update' === $action ) {
+			if ( $action === 'enable-auto-update' || $action === 'disable-auto-update' ) {
 				check_admin_referer( 'updates' );
 			} else {
 				if ( empty( $_POST['checked'] ) ) {
@@ -240,18 +240,18 @@ if ( $action ) {
 
 			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
 
-			if ( 'enable-auto-update' === $action ) {
+			if ( $action === 'enable-auto-update' ) {
 				$auto_updates[] = $_GET['theme'];
 				$auto_updates   = array_unique( $auto_updates );
 				$referer        = add_query_arg( 'enabled-auto-update', 1, $referer );
-			} elseif ( 'disable-auto-update' === $action ) {
+			} elseif ( $action === 'disable-auto-update' ) {
 				$auto_updates = array_diff( $auto_updates, array( $_GET['theme'] ) );
 				$referer      = add_query_arg( 'disabled-auto-update', 1, $referer );
 			} else {
 				// Bulk enable/disable.
 				$themes = (array) wp_unslash( $_POST['checked'] );
 
-				if ( 'enable-auto-update-selected' === $action ) {
+				if ( $action === 'enable-auto-update-selected' ) {
 					$auto_updates = array_merge( $auto_updates, $themes );
 					$auto_updates = array_unique( $auto_updates );
 					$referer      = add_query_arg( 'enabled-auto-update', count( $themes ), $referer );
@@ -369,7 +369,7 @@ if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
 <?php
 if ( isset( $_GET['enabled'] ) ) {
 	$enabled = absint( $_GET['enabled'] );
-	if ( 1 === $enabled ) {
+	if ( $enabled === 1 ) {
 		$message = __( 'Theme enabled.' );
 	} else {
 		/* translators: %s: Number of themes. */
@@ -378,7 +378,7 @@ if ( isset( $_GET['enabled'] ) ) {
 	echo '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $enabled ) ) . '</p></div>';
 } elseif ( isset( $_GET['disabled'] ) ) {
 	$disabled = absint( $_GET['disabled'] );
-	if ( 1 === $disabled ) {
+	if ( $disabled === 1 ) {
 		$message = __( 'Theme disabled.' );
 	} else {
 		/* translators: %s: Number of themes. */
@@ -387,7 +387,7 @@ if ( isset( $_GET['enabled'] ) ) {
 	echo '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $disabled ) ) . '</p></div>';
 } elseif ( isset( $_GET['deleted'] ) ) {
 	$deleted = absint( $_GET['deleted'] );
-	if ( 1 === $deleted ) {
+	if ( $deleted === 1 ) {
 		$message = __( 'Theme deleted.' );
 	} else {
 		/* translators: %s: Number of themes. */
@@ -396,7 +396,7 @@ if ( isset( $_GET['enabled'] ) ) {
 	echo '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $deleted ) ) . '</p></div>';
 } elseif ( isset( $_GET['enabled-auto-update'] ) ) {
 	$enabled = absint( $_GET['enabled-auto-update'] );
-	if ( 1 === $enabled ) {
+	if ( $enabled === 1 ) {
 		$message = __( 'Theme will be auto-updated.' );
 	} else {
 		/* translators: %s: Number of themes. */
@@ -405,16 +405,16 @@ if ( isset( $_GET['enabled'] ) ) {
 	echo '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $enabled ) ) . '</p></div>';
 } elseif ( isset( $_GET['disabled-auto-update'] ) ) {
 	$disabled = absint( $_GET['disabled-auto-update'] );
-	if ( 1 === $disabled ) {
+	if ( $disabled === 1 ) {
 		$message = __( 'Theme will no longer be auto-updated.' );
 	} else {
 		/* translators: %s: Number of themes. */
 		$message = _n( '%s theme will no longer be auto-updated.', '%s themes will no longer be auto-updated.', $disabled );
 	}
 	echo '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $disabled ) ) . '</p></div>';
-} elseif ( isset( $_GET['error'] ) && 'none' === $_GET['error'] ) {
+} elseif ( isset( $_GET['error'] ) && $_GET['error'] === 'none' ) {
 	echo '<div id="message" class="error notice is-dismissible"><p>' . __( 'No theme selected.' ) . '</p></div>';
-} elseif ( isset( $_GET['error'] ) && 'main' === $_GET['error'] ) {
+} elseif ( isset( $_GET['error'] ) && $_GET['error'] === 'main' ) {
 	echo '<div class="error notice is-dismissible"><p>' . __( 'You cannot delete a theme while it is active on the main site.' ) . '</p></div>';
 }
 
@@ -427,7 +427,7 @@ if ( isset( $_GET['enabled'] ) ) {
 <?php
 $wp_list_table->views();
 
-if ( 'broken' === $status ) {
+if ( $status === 'broken' ) {
 	echo '<p class="clear">' . __( 'The following themes are installed but incomplete.' ) . '</p>';
 }
 ?>

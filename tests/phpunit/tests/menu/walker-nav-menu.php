@@ -102,7 +102,7 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 
 		$this->walker->start_el( $output, (object) $item, 0, (object) $args );
 
-		if ( '' !== $expected ) {
+		if ( $expected !== '' ) {
 			$expected = sprintf( ' data-test="%s"', $expected );
 		}
 

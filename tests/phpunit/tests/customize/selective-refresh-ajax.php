@@ -354,7 +354,7 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	 * @return array|false Args.
 	 */
 	public function filter_customize_dynamic_partial_args( $partial_args, $partial_id ) {
-		if ( 'test_dynamic_blogname' === $partial_id ) {
+		if ( $partial_id === 'test_dynamic_blogname' ) {
 			$partial_args = array(
 				'settings'        => array( 'blogname' ),
 				'render_callback' => array( $this, 'render_callback_blogname' ),

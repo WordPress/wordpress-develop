@@ -412,7 +412,7 @@ class WP_Theme_JSON {
 			foreach ( static::PRESETS_METADATA as $preset_metadata ) {
 				$path   = array_merge( $node['path'], $preset_metadata['path'] );
 				$preset = _wp_array_get( $this->theme_json, $path, null );
-				if ( null !== $preset ) {
+				if ( $preset !== null ) {
 					// If the preset is not already keyed by origin.
 					if ( isset( $preset[0] ) || empty( $preset ) ) {
 						_wp_array_set( $this->theme_json, $path, array( $origin => $preset ) );
@@ -435,14 +435,14 @@ class WP_Theme_JSON {
 
 		if (
 			isset( $new_theme_json['settings']['appearanceTools'] ) &&
-			true === $new_theme_json['settings']['appearanceTools']
+			$new_theme_json['settings']['appearanceTools'] === true
 		) {
 			static::do_opt_in_into_settings( $new_theme_json['settings'] );
 		}
 
 		if ( isset( $new_theme_json['settings']['blocks'] ) && is_array( $new_theme_json['settings']['blocks'] ) ) {
 			foreach ( $new_theme_json['settings']['blocks'] as &$block ) {
-				if ( isset( $block['appearanceTools'] ) && ( true === $block['appearanceTools'] ) ) {
+				if ( isset( $block['appearanceTools'] ) && ( $block['appearanceTools'] === true ) ) {
 					static::do_opt_in_into_settings( $block );
 				}
 			}
@@ -462,7 +462,7 @@ class WP_Theme_JSON {
 		foreach ( static::APPEARANCE_TOOLS_OPT_INS as $path ) {
 			// Use "unset prop" as a marker instead of "null" because
 			// "null" can be a valid value for some props (e.g. blockGap).
-			if ( 'unset prop' === _wp_array_get( $context, $path, 'unset prop' ) ) {
+			if ( _wp_array_get( $context, $path, 'unset prop' ) === 'unset prop' ) {
 				_wp_array_set( $context, $path, true );
 			}
 		}
@@ -495,7 +495,7 @@ class WP_Theme_JSON {
 		$styles_non_top_level = static::VALID_STYLES;
 		foreach ( array_keys( $styles_non_top_level ) as $section ) {
 			foreach ( array_keys( $styles_non_top_level[ $section ] ) as $prop ) {
-				if ( 'top' === $styles_non_top_level[ $section ][ $prop ] ) {
+				if ( $styles_non_top_level[ $section ][ $prop ] === 'top' ) {
 					unset( $styles_non_top_level[ $section ][ $prop ] );
 				}
 			}
@@ -573,7 +573,7 @@ class WP_Theme_JSON {
 	 * @return array Block metadata.
 	 */
 	protected static function get_blocks_metadata() {
-		if ( null !== static::$blocks_metadata ) {
+		if ( static::$blocks_metadata !== null ) {
 			return static::$blocks_metadata;
 		}
 
@@ -692,16 +692,16 @@ class WP_Theme_JSON {
 	 * @return string Stylesheet.
 	 */
 	public function get_stylesheet( $types = array( 'variables', 'styles', 'presets' ), $origins = null ) {
-		if ( null === $origins ) {
+		if ( $origins === null ) {
 			$origins = static::VALID_ORIGINS;
 		}
 
 		if ( is_string( $types ) ) {
 			// Dispatch error and map old arguments to new ones.
 			_deprecated_argument( __FUNCTION__, '5.9.0' );
-			if ( 'block_styles' === $types ) {
+			if ( $types === 'block_styles' ) {
 				$types = array( 'styles', 'presets' );
-			} elseif ( 'css_variables' === $types ) {
+			} elseif ( $types === 'css_variables' ) {
 				$types = array( 'variables' );
 			} else {
 				$types = array( 'variables', 'styles', 'presets' );
@@ -801,7 +801,7 @@ class WP_Theme_JSON {
 		$block_rules = '';
 
 		foreach ( $style_nodes as $metadata ) {
-			if ( null === $metadata['selector'] ) {
+			if ( $metadata['selector'] === null ) {
 				continue;
 			}
 
@@ -814,7 +814,7 @@ class WP_Theme_JSON {
 			// and the ones who use the duotone selector.
 			$declarations_duotone = array();
 			foreach ( $declarations as $index => $declaration ) {
-				if ( 'filter' === $declaration['name'] ) {
+				if ( $declaration['name'] === 'filter' ) {
 					unset( $declarations[ $index ] );
 					$declarations_duotone[] = $declaration;
 				}
@@ -828,7 +828,7 @@ class WP_Theme_JSON {
 			 * user-generated values take precedence in the CSS cascade.
 			 * @link https://github.com/WordPress/gutenberg/issues/36147.
 			 */
-			if ( static::ROOT_BLOCK_SELECTOR === $selector ) {
+			if ( $selector === static::ROOT_BLOCK_SELECTOR ) {
 				$block_rules .= 'body { margin: 0; }';
 			}
 
@@ -841,7 +841,7 @@ class WP_Theme_JSON {
 				$block_rules     .= static::to_ruleset( $selector_duotone, $declarations_duotone );
 			}
 
-			if ( static::ROOT_BLOCK_SELECTOR === $selector ) {
+			if ( $selector === static::ROOT_BLOCK_SELECTOR ) {
 				$block_rules .= '.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }';
 				$block_rules .= '.wp-site-blocks > .alignright { float: right; margin-left: 2em; }';
 				$block_rules .= '.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }';
@@ -890,7 +890,7 @@ class WP_Theme_JSON {
 		$preset_rules = '';
 
 		foreach ( $setting_nodes as $metadata ) {
-			if ( null === $metadata['selector'] ) {
+			if ( $metadata['selector'] === null ) {
 				continue;
 			}
 
@@ -926,7 +926,7 @@ class WP_Theme_JSON {
 	protected function get_css_variables( $nodes, $origins ) {
 		$stylesheet = '';
 		foreach ( $nodes as $metadata ) {
-			if ( null === $metadata['selector'] ) {
+			if ( $metadata['selector'] === null ) {
 				continue;
 			}
 
@@ -1002,7 +1002,7 @@ class WP_Theme_JSON {
 	 * @return string The result of processing the presets.
 	 */
 	protected static function compute_preset_classes( $settings, $selector, $origins ) {
-		if ( static::ROOT_BLOCK_SELECTOR === $selector ) {
+		if ( $selector === static::ROOT_BLOCK_SELECTOR ) {
 			// Classes at the global level do not need any CSS prefixed,
 			// and we don't want to increase its specificity.
 			$selector = '';
@@ -1141,7 +1141,7 @@ class WP_Theme_JSON {
 	 * @return array Array of presets where the key and value are both the slug.
 	 */
 	protected static function get_settings_slugs( $settings, $preset_metadata, $origins = null ) {
-		if ( null === $origins ) {
+		if ( $origins === null ) {
 			$origins = static::VALID_ORIGINS;
 		}
 
@@ -1313,7 +1313,7 @@ class WP_Theme_JSON {
 	 * @return array Returns the modified $declarations.
 	 */
 	protected static function compute_style_properties( $styles, $settings = array(), $properties = null ) {
-		if ( null === $properties ) {
+		if ( $properties === null ) {
 			$properties = static::PROPERTIES_METADATA;
 		}
 
@@ -1369,7 +1369,7 @@ class WP_Theme_JSON {
 	protected static function get_property_value( $styles, $path ) {
 		$value = _wp_array_get( $styles, $path, '' );
 
-		if ( '' === $value || is_array( $value ) ) {
+		if ( $value === '' || is_array( $value ) ) {
 			return $value;
 		}
 
@@ -1377,7 +1377,7 @@ class WP_Theme_JSON {
 		$prefix_len = strlen( $prefix );
 		$token_in   = '|';
 		$token_out  = '--';
-		if ( 0 === strncmp( $value, $prefix, $prefix_len ) ) {
+		if ( strncmp( $value, $prefix, $prefix_len ) === 0 ) {
 			$unwrapped_name = str_replace(
 				$token_in,
 				$token_out,
@@ -1551,7 +1551,7 @@ class WP_Theme_JSON {
 
 		if ( is_array( $path ) ) {
 			$value = _wp_array_get( $data, $path );
-			if ( null !== $value ) {
+			if ( $value !== null ) {
 				return $value;
 			}
 		}
@@ -1618,11 +1618,11 @@ class WP_Theme_JSON {
 						continue;
 					}
 
-					if ( 'theme' === $origin && $preset['use_default_names'] ) {
+					if ( $origin === 'theme' && $preset['use_default_names'] ) {
 						foreach ( $content as &$item ) {
 							if ( ! array_key_exists( 'name', $item ) ) {
 								$name = static::get_name_from_defaults( $item['slug'], $base_path );
-								if ( null !== $name ) {
+								if ( $name !== null ) {
 									$item['name'] = $name;
 								}
 							}
@@ -1630,8 +1630,8 @@ class WP_Theme_JSON {
 					}
 
 					if (
-						( 'theme' !== $origin ) ||
-						( 'theme' === $origin && $override_preset )
+						( $origin !== 'theme' ) ||
+						( $origin === 'theme' && $override_preset )
 					) {
 						_wp_array_set( $this->theme_json, $path, $content );
 					} else {
@@ -1887,7 +1887,7 @@ class WP_Theme_JSON {
 			foreach ( static::VALID_ORIGINS as $origin ) {
 				$path_with_origin = array_merge( $preset_metadata['path'], array( $origin ) );
 				$presets          = _wp_array_get( $input, $path_with_origin, null );
-				if ( null === $presets ) {
+				if ( $presets === null ) {
 					continue;
 				}
 
@@ -2031,7 +2031,7 @@ class WP_Theme_JSON {
 			if ( ! isset( $theme_settings['settings']['spacing'] ) ) {
 				$theme_settings['settings']['spacing'] = array();
 			}
-			$theme_settings['settings']['spacing']['units'] = ( true === $settings['enableCustomUnits'] ) ?
+			$theme_settings['settings']['spacing']['units'] = ( $settings['enableCustomUnits'] === true ) ?
 				array( 'px', 'em', 'rem', 'vh', 'vw', '%' ) :
 				$settings['enableCustomUnits'];
 		}
@@ -2133,7 +2133,7 @@ class WP_Theme_JSON {
 			foreach ( static::PRESETS_METADATA as $preset_metadata ) {
 				$path   = array_merge( $node['path'], $preset_metadata['path'] );
 				$preset = _wp_array_get( $output, $path, null );
-				if ( null === $preset ) {
+				if ( $preset === null ) {
 					continue;
 				}
 
@@ -2169,7 +2169,7 @@ class WP_Theme_JSON {
 				// Use "unset prop" as a marker instead of "null" because
 				// "null" can be a valid value for some props (e.g. blockGap).
 				$opt_in_value = _wp_array_get( $output, $full_path, 'unset prop' );
-				if ( 'unset prop' === $opt_in_value ) {
+				if ( $opt_in_value === 'unset prop' ) {
 					$all_opt_ins_are_set = false;
 					break;
 				}
@@ -2182,7 +2182,7 @@ class WP_Theme_JSON {
 					// Use "unset prop" as a marker instead of "null" because
 					// "null" can be a valid value for some props (e.g. blockGap).
 					$opt_in_value = _wp_array_get( $output, $full_path, 'unset prop' );
-					if ( true !== $opt_in_value ) {
+					if ( $opt_in_value !== true ) {
 						continue;
 					}
 
@@ -2192,8 +2192,8 @@ class WP_Theme_JSON {
 					// - all opt-ins having a path of size 2.
 					// - there's two sources of settings: the top-level and the block-level.
 					if (
-						( 1 === count( $node['path'] ) ) &&
-						( 'settings' === $node['path'][0] )
+						( count( $node['path'] ) === 1 ) &&
+						( $node['path'][0] === 'settings' )
 					) {
 						// Top-level settings.
 						unset( $output['settings'][ $opt_in_path[0] ][ $opt_in_path[1] ] );
@@ -2201,9 +2201,9 @@ class WP_Theme_JSON {
 							unset( $output['settings'][ $opt_in_path[0] ] );
 						}
 					} elseif (
-						( 3 === count( $node['path'] ) ) &&
-						( 'settings' === $node['path'][0] ) &&
-						( 'blocks' === $node['path'][1] )
+						( count( $node['path'] ) === 3 ) &&
+						( $node['path'][0] === 'settings' ) &&
+						( $node['path'][1] === 'blocks' )
 					) {
 						// Block-level settings.
 						$block_name = $node['path'][2];

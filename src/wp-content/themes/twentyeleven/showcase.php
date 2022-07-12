@@ -33,7 +33,7 @@ get_header(); ?>
 					 * We are using a heading by rendering the_content
 					 * If we have content for this page, let's display it.
 					 */
-					if ( '' !== get_the_content() ) {
+					if ( get_the_content() !== '' ) {
 						get_template_part( 'content', 'intro' );
 					}
 					?>
@@ -154,7 +154,7 @@ get_header(); ?>
 							while ( $featured->have_posts() ) :
 								$featured->the_post();
 								$counter_slider++;
-								if ( 1 == $counter_slider ) {
+								if ( $counter_slider == 1 ) {
 									$class = ' class="active"';
 								} else {
 									$class = '';

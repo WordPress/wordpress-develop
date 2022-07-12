@@ -1706,7 +1706,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function additional_field_update_callback( $value, $attachment ) {
-		if ( 'returnError' === $value ) {
+		if ( $value === 'returnError' ) {
 			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
 		}
 	}
@@ -1767,7 +1767,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayNotHasKey( 'excerpt', $data );
 
 		$this->assertSame( get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ), $data['alt_text'] );
-		if ( 'edit' === $context ) {
+		if ( $context === 'edit' ) {
 			$this->assertSame( $attachment->post_excerpt, $data['caption']['raw'] );
 			$this->assertSame( $attachment->post_content, $data['description']['raw'] );
 		} else {

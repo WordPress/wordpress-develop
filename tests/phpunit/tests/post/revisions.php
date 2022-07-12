@@ -672,7 +672,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$post_id            = self::factory()->post->create( array( 'post_title' => 'Some Post' ) );
 		$latest_revision_id = null;
 
-		if ( 0 !== $revisions ) {
+		if ( $revisions !== 0 ) {
 			$latest_revision_id = $post_id;
 
 			for ( $i = 0; $i < $revisions; ++$i ) {
@@ -720,7 +720,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$post               = self::factory()->post->create_and_get( array( 'post_title' => 'Some Post' ) );
 		$latest_revision_id = null;
 
-		if ( 0 !== $revisions ) {
+		if ( $revisions !== 0 ) {
 			$latest_revision_id = $post->ID;
 
 			for ( $i = 0; $i < $revisions; ++$i ) {

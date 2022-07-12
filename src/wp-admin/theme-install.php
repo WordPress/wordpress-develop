@@ -31,7 +31,7 @@ if ( ! is_network_admin() ) {
 
 $installed_themes = search_theme_directories();
 
-if ( false === $installed_themes ) {
+if ( $installed_themes === false ) {
 	$installed_themes = array();
 }
 

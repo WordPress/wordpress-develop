@@ -143,7 +143,7 @@ function wp_dashboard_setup() {
 		wp_add_dashboard_widget( $widget_id, $name, $wp_registered_widgets[ $widget_id ]['callback'], $wp_registered_widget_controls[ $widget_id ]['callback'] );
 	}
 
-	if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['widget_id'] ) ) {
+	if ( $_SERVER['REQUEST_METHOD'] === 'POST' && isset( $_POST['widget_id'] ) ) {
 		check_admin_referer( 'edit-dashboard-widget_' . $_POST['widget_id'], 'dashboard-widget-nonce' );
 		ob_start(); // Hack - but the same hack wp-admin/widgets.php uses.
 		wp_dashboard_trigger_widget_control( $_POST['widget_id'] );
@@ -302,7 +302,7 @@ function wp_dashboard_right_now() {
 		$num_posts = wp_count_posts( $post_type );
 
 		if ( $num_posts && $num_posts->publish ) {
-			if ( 'post' === $post_type ) {
+			if ( $post_type === 'post' ) {
 				/* translators: %s: Number of posts. */
 				$text = _n( '%s Post', '%s Posts', $num_posts->publish );
 			} else {
@@ -394,7 +394,7 @@ function wp_dashboard_right_now() {
 		 */
 		$content = apply_filters( 'privacy_on_link_text', __( 'Search engines discouraged' ) );
 
-		$title_attr = '' === $title ? '' : " title='$title'";
+		$title_attr = $title === '' ? '' : " title='$title'";
 
 		echo "<p class='search-engines-info'><a href='options-reading.php'$title_attr>$content</a></p>";
 	}
@@ -537,7 +537,7 @@ function wp_dashboard_quick_press( $error_msg = false ) {
 	if ( $last_post_id ) {
 		$post = get_post( $last_post_id );
 
-		if ( empty( $post ) || 'auto-draft' !== $post->post_status ) { // auto-draft doesn't exist anymore.
+		if ( empty( $post ) || $post->post_status !== 'auto-draft' ) { // auto-draft doesn't exist anymore.
 			$post = get_default_post_to_edit( 'post', true );
 			update_user_option( get_current_user_id(), 'dashboard_quick_press_last_post_id', (int) $post->ID ); // Save post_ID.
 		} else {
@@ -796,8 +796,8 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 		foreach ( $actions as $action => $link ) {
 			++$i;
 
-			if ( ( ( 'approve' === $action || 'unapprove' === $action ) && 2 === $i )
-				|| 1 === $i
+			if ( ( ( $action === 'approve' || $action === 'unapprove' ) && $i === 2 )
+				|| $i === 1
 			) {
 				$sep = '';
 			} else {
@@ -805,11 +805,11 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 			}
 
 			// Reply and quickedit need a hide-if-no-js span.
-			if ( 'reply' === $action || 'quickedit' === $action ) {
+			if ( $action === 'reply' || $action === 'quickedit' ) {
 				$action .= ' hide-if-no-js';
 			}
 
-			if ( 'view' === $action && '1' !== $comment->comment_approved ) {
+			if ( $action === 'view' && $comment->comment_approved !== '1' ) {
 				$action .= ' hidden';
 			}
 
@@ -829,7 +829,7 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 			}
 			?>
 
-			<?php if ( ! $comment->comment_type || 'comment' === $comment->comment_type ) : ?>
+			<?php if ( ! $comment->comment_type || $comment->comment_type === 'comment' ) : ?>
 
 			<div class="dashboard-comment-wrap has-row-actions <?php echo $comment_row_class; ?>">
 			<p class="comment-meta">
@@ -967,7 +967,7 @@ function wp_dashboard_recent_posts( $args ) {
 		'posts_per_page' => (int) $args['max'],
 		'no_found_rows'  => true,
 		'cache_results'  => false,
-		'perm'           => ( 'future' === $args['status'] ) ? 'editable' : 'readable',
+		'perm'           => ( $args['status'] === 'future' ) ? 'editable' : 'readable',
 	);
 
 	/**
@@ -1155,7 +1155,7 @@ function wp_dashboard_cached_rss_widget( $widget_id, $callback, $check_urls = ar
 	$cache_key = 'dash_v2_' . md5( $widget_id . '_' . $locale );
 	$output    = get_transient( $cache_key );
 
-	if ( false !== $output ) {
+	if ( $output !== false ) {
 		echo $output;
 		return true;
 	}
@@ -1233,7 +1233,7 @@ function wp_dashboard_rss_control( $widget_id, $form_inputs = array() ) {
 
 	$widget_options[ $widget_id ]['number'] = $number;
 
-	if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['widget-rss'][ $number ] ) ) {
+	if ( $_SERVER['REQUEST_METHOD'] === 'POST' && isset( $_POST['widget-rss'][ $number ] ) ) {
 		$_POST['widget-rss'][ $number ]         = wp_unslash( $_POST['widget-rss'][ $number ] );
 		$widget_options[ $widget_id ]           = wp_widget_rss_process( $_POST['widget-rss'][ $number ] );
 		$widget_options[ $widget_id ]['number'] = $number;
@@ -1697,7 +1697,7 @@ function wp_dashboard_browser_nag() {
 
 		$browsehappy = 'https://browsehappy.com/';
 		$locale      = get_user_locale();
-		if ( 'en_US' !== $locale ) {
+		if ( $locale !== 'en_US' ) {
 			$browsehappy = add_query_arg( 'locale', $locale, $browsehappy );
 		}
 
@@ -1768,7 +1768,7 @@ function wp_check_browser_version() {
 
 	$response = get_site_transient( 'browser_' . $key );
 
-	if ( false === $response ) {
+	if ( $response === false ) {
 		// Include an unmodified $wp_version.
 		require ABSPATH . WPINC . '/version.php';
 
@@ -1784,7 +1784,7 @@ function wp_check_browser_version() {
 
 		$response = wp_remote_post( $url, $options );
 
-		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+		if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
 			return false;
 		}
 
@@ -1896,7 +1896,7 @@ function wp_dashboard_site_health() {
 
 	$issue_counts = array();
 
-	if ( false !== $get_issues ) {
+	if ( $get_issues !== false ) {
 		$issue_counts = json_decode( $get_issues, true );
 	}
 
@@ -1919,7 +1919,7 @@ function wp_dashboard_site_health() {
 				</svg>
 			</div>
 			<div class="site-health-progress-label">
-				<?php if ( false === $get_issues ) : ?>
+				<?php if ( $get_issues === false ) : ?>
 					<?php _e( 'No information yet&hellip;' ); ?>
 				<?php else : ?>
 					<?php _e( 'Results are still loading&hellip;' ); ?>
@@ -1928,7 +1928,7 @@ function wp_dashboard_site_health() {
 		</div>
 
 		<div class="site-health-details">
-			<?php if ( false === $get_issues ) : ?>
+			<?php if ( $get_issues === false ) : ?>
 				<p>
 					<?php
 					printf(
@@ -1942,11 +1942,11 @@ function wp_dashboard_site_health() {
 				<p>
 					<?php if ( $issues_total <= 0 ) : ?>
 						<?php _e( 'Great job! Your site currently passes all site health checks.' ); ?>
-					<?php elseif ( 1 === (int) $issue_counts['critical'] ) : ?>
+					<?php elseif ( (int) $issue_counts['critical'] === 1 ) : ?>
 						<?php _e( 'Your site has a critical issue that should be addressed as soon as possible to improve its performance and security.' ); ?>
 					<?php elseif ( $issue_counts['critical'] > 1 ) : ?>
 						<?php _e( 'Your site has critical issues that should be addressed as soon as possible to improve its performance and security.' ); ?>
-					<?php elseif ( 1 === (int) $issue_counts['recommended'] ) : ?>
+					<?php elseif ( (int) $issue_counts['recommended'] === 1 ) : ?>
 						<?php _e( 'Your site&#8217;s health is looking good, but there is still one thing you can do to improve its performance and security.' ); ?>
 					<?php else : ?>
 						<?php _e( 'Your site&#8217;s health is looking good, but there are still some things you can do to improve its performance and security.' ); ?>
@@ -1954,7 +1954,7 @@ function wp_dashboard_site_health() {
 				</p>
 			<?php endif; ?>
 
-			<?php if ( $issues_total > 0 && false !== $get_issues ) : ?>
+			<?php if ( $issues_total > 0 && $get_issues !== false ) : ?>
 				<p>
 					<?php
 					printf(

@@ -232,7 +232,7 @@ final class WP_Customize_Selective_Refresh {
 			 * @param string      $partial_id   ID for dynamic partial.
 			 */
 			$partial_args = apply_filters( 'customize_dynamic_partial_args', $partial_args, $partial_id );
-			if ( false === $partial_args ) {
+			if ( $partial_args === false ) {
 				continue;
 			}
 

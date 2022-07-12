@@ -44,7 +44,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 	 * @return object
 	 */
 	public function filter_type_label( $menu_item ) {
-		if ( 'custom_type' === $menu_item->type ) {
+		if ( $menu_item->type === 'custom_type' ) {
 			$menu_item->type_label = 'Custom Label';
 		}
 

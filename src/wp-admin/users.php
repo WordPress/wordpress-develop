@@ -129,7 +129,7 @@ switch ( $wp_list_table->current_action() ) {
 			wp_die( __( 'Sorry, you are not allowed to give users that role.' ), 403 );
 		}
 
-		if ( 'none' === $role ) {
+		if ( $role === 'none' ) {
 			$role = '';
 		}
 
@@ -328,7 +328,7 @@ switch ( $wp_list_table->current_action() ) {
 	</div>
 		<?php endif; ?>
 
-		<?php if ( 1 === count( $all_userids ) ) : ?>
+		<?php if ( count( $all_userids ) === 1 ) : ?>
 	<p><?php _e( 'You have specified this user for deletion:' ); ?></p>
 		<?php else : ?>
 	<p><?php _e( 'You have specified these users for deletion:' ); ?></p>
@@ -357,7 +357,7 @@ switch ( $wp_list_table->current_action() ) {
 				?>
 			<input type="hidden" name="delete_option" value="delete" />
 			<?php else : ?>
-				<?php if ( 1 == $go_delete ) : ?>
+				<?php if ( $go_delete == 1 ) : ?>
 			<fieldset><p><legend><?php _e( 'What should be done with content owned by this user?' ); ?></legend></p>
 		<?php else : ?>
 			<fieldset><p><legend><?php _e( 'What should be done with content owned by these users?' ); ?></legend></p>
@@ -465,7 +465,7 @@ switch ( $wp_list_table->current_action() ) {
 <div class="wrap">
 <h1><?php _e( 'Remove Users from Site' ); ?></h1>
 
-		<?php if ( 1 === count( $userids ) ) : ?>
+		<?php if ( count( $userids ) === 1 ) : ?>
 	<p><?php _e( 'You have specified this user for removal:' ); ?></p>
 		<?php else : ?>
 	<p><?php _e( 'You have specified these users for removal:' ); ?></p>
@@ -533,7 +533,7 @@ switch ( $wp_list_table->current_action() ) {
 				case 'del':
 				case 'del_many':
 					$delete_count = isset( $_GET['delete_count'] ) ? (int) $_GET['delete_count'] : 0;
-					if ( 1 == $delete_count ) {
+					if ( $delete_count == 1 ) {
 						$message = __( 'User deleted.' );
 					} else {
 						/* translators: %s: Number of users. */
@@ -563,7 +563,7 @@ switch ( $wp_list_table->current_action() ) {
 					break;
 				case 'resetpassword':
 					$reset_count = isset( $_GET['reset_count'] ) ? (int) $_GET['reset_count'] : 0;
-					if ( 1 === $reset_count ) {
+					if ( $reset_count === 1 ) {
 						$message = __( 'Password reset link sent.' );
 					} else {
 						/* translators: %s: Number of users. */

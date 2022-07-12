@@ -79,7 +79,7 @@ class WP_HTTP_IXR_Client extends IXR_Client {
 		 */
 		$args['headers'] = apply_filters( 'wp_http_ixr_client_headers', $args['headers'] );
 
-		if ( false !== $this->timeout ) {
+		if ( $this->timeout !== false ) {
 			$args['timeout'] = $this->timeout;
 		}
 
@@ -97,7 +97,7 @@ class WP_HTTP_IXR_Client extends IXR_Client {
 			return false;
 		}
 
-		if ( 200 !== wp_remote_retrieve_response_code( $response ) ) {
+		if ( wp_remote_retrieve_response_code( $response ) !== 200 ) {
 			$this->error = new IXR_Error( -32301, 'transport error - HTTP status code was not 200 (' . wp_remote_retrieve_response_code( $response ) . ')' );
 			return false;
 		}
@@ -115,7 +115,7 @@ class WP_HTTP_IXR_Client extends IXR_Client {
 		}
 
 		// Is the message a fault?
-		if ( 'fault' === $this->message->messageType ) {
+		if ( $this->message->messageType === 'fault' ) {
 			$this->error = new IXR_Error( $this->message->faultCode, $this->message->faultString );
 			return false;
 		}

@@ -58,10 +58,10 @@ if ( ! class_exists( 'POMO_Reader', false ) ) :
 		 */
 		public function readint32() {
 			$bytes = $this->read( 4 );
-			if ( 4 != $this->strlen( $bytes ) ) {
+			if ( $this->strlen( $bytes ) != 4 ) {
 				return false;
 			}
-			$endian_letter = ( 'big' === $this->endian ) ? 'N' : 'V';
+			$endian_letter = ( $this->endian === 'big' ) ? 'N' : 'V';
 			$int           = unpack( $endian_letter, $bytes );
 			return reset( $int );
 		}
@@ -75,10 +75,10 @@ if ( ! class_exists( 'POMO_Reader', false ) ) :
 		 */
 		public function readint32array( $count ) {
 			$bytes = $this->read( 4 * $count );
-			if ( 4 * $count != $this->strlen( $bytes ) ) {
+			if ( $this->strlen( $bytes ) != 4 * $count ) {
 				return false;
 			}
-			$endian_letter = ( 'big' === $this->endian ) ? 'N' : 'V';
+			$endian_letter = ( $this->endian === 'big' ) ? 'N' : 'V';
 			return unpack( $endian_letter . $count, $bytes );
 		}
 
@@ -185,7 +185,7 @@ if ( ! class_exists( 'POMO_FileReader', false ) ) :
 		 * @return bool
 		 */
 		public function seekto( $pos ) {
-			if ( -1 == fseek( $this->_f, $pos, SEEK_SET ) ) {
+			if ( fseek( $this->_f, $pos, SEEK_SET ) == -1 ) {
 				return false;
 			}
 			$this->_pos = $pos;
@@ -305,7 +305,7 @@ if ( ! class_exists( 'POMO_CachedFileReader', false ) ) :
 		public function __construct( $filename ) {
 			parent::__construct();
 			$this->_str = file_get_contents( $filename );
-			if ( false === $this->_str ) {
+			if ( $this->_str === false ) {
 				return false;
 			}
 			$this->_pos = 0;

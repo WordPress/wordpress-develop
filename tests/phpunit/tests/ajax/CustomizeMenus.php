@@ -84,7 +84,7 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_ajax_load_available_items_cap_check( $role, $expected_results ) {
 
-		if ( 'administrator' !== $role ) {
+		if ( $role !== 'administrator' ) {
 			// If we're not an admin, we should get a wp_die( -1 ).
 			$this->expectException( 'WPAjaxDieStopException' );
 			$this->expectExceptionMessage( '-1' );
@@ -100,7 +100,7 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 		$this->make_ajax_call( 'load-available-menu-items-customizer' );
 
 		// If we are an admin, we should get a proper response.
-		if ( 'administrator' === $role ) {
+		if ( $role === 'administrator' ) {
 			// Get the results.
 			$response = json_decode( $this->_last_response, true );
 
@@ -414,18 +414,18 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 		}
 
 		// Special test for the home page.
-		if ( 'page' === $test_item['object'] ) {
+		if ( $test_item['object'] === 'page' ) {
 			$first_prop = current( $response['data']['items'] );
 			$home       = $first_prop[0];
 			foreach ( $expected_keys as $key ) {
-				if ( 'object_id' !== $key ) {
+				if ( $key !== 'object_id' ) {
 					$this->assertArrayHasKey( $key, $home );
-					if ( 'object' !== $key ) {
+					if ( $key !== 'object' ) {
 						$this->assertNotEmpty( $home[ $key ] );
 					}
 				}
 			}
-		} elseif ( 'post' === $test_item['object'] ) {
+		} elseif ( $test_item['object'] === 'post' ) {
 			$item_ids = wp_list_pluck( $response['data']['items']['post_type:post'], 'id' );
 			$this->assertContains( 'post-' . $auto_draft_post->ID, $item_ids );
 		}
@@ -480,7 +480,7 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_ajax_search_available_items_caps_check( $role, $expected_results ) {
 
-		if ( 'administrator' !== $role ) {
+		if ( $role !== 'administrator' ) {
 			// If we're not an admin, we should get a wp_die( -1 ).
 			$this->expectException( 'WPAjaxDieStopException' );
 			$this->expectExceptionMessage( '-1' );
@@ -496,7 +496,7 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 		$this->make_ajax_call( 'search-available-menu-items-customizer' );
 
 		// If we are an admin, we should get a proper response.
-		if ( 'administrator' === $role ) {
+		if ( $role === 'administrator' ) {
 			// Get the results.
 			$response = json_decode( $this->_last_response, true );
 
@@ -591,7 +591,7 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 
 		$response = json_decode( $this->_last_response, true );
 
-		if ( isset( $post_args['search'] ) && 'test' === $post_args['search'] ) {
+		if ( isset( $post_args['search'] ) && $post_args['search'] === 'test' ) {
 			$this->assertTrue( $response['success'] );
 			$this->assertCount( 6, $response['data']['items'] );
 			$item_ids = wp_list_pluck( $response['data']['items'], 'id' );

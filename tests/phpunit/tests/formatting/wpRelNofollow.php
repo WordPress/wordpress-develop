@@ -50,7 +50,7 @@ class Tests_Formatting_wpRelNofollow extends WP_UnitTestCase {
 	 * @dataProvider data_wp_rel_nofollow
 	 */
 	public function test_wp_rel_nofollow( $input, $output, $expect_deprecation = false ) {
-		if ( true === $expect_deprecation && PHP_VERSION_ID >= 80100 ) {
+		if ( $expect_deprecation === true && PHP_VERSION_ID >= 80100 ) {
 			/*
 			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
 			 * via hooked in filter functions until a more structural solution to the

@@ -114,9 +114,9 @@ class WP_Theme_JSON_Resolver {
 	 * @return array Returns the modified $theme_json_structure.
 	 */
 	protected static function translate( $theme_json, $domain = 'default' ) {
-		if ( null === static::$i18n_schema ) {
+		if ( static::$i18n_schema === null ) {
 			$i18n_schema         = wp_json_file_decode( __DIR__ . '/theme-i18n.json' );
-			static::$i18n_schema = null === $i18n_schema ? array() : $i18n_schema;
+			static::$i18n_schema = $i18n_schema === null ? array() : $i18n_schema;
 		}
 
 		return translate_settings_using_i18n_schema( static::$i18n_schema, $theme_json, $domain );
@@ -130,7 +130,7 @@ class WP_Theme_JSON_Resolver {
 	 * @return WP_Theme_JSON Entity that holds core data.
 	 */
 	public static function get_core_data() {
-		if ( null !== static::$core ) {
+		if ( static::$core !== null ) {
 			return static::$core;
 		}
 
@@ -168,7 +168,7 @@ class WP_Theme_JSON_Resolver {
 
 		$options = wp_parse_args( $options, array( 'with_supports' => true ) );
 
-		if ( null === static::$theme ) {
+		if ( static::$theme === null ) {
 			$theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json' ) );
 			$theme_json_data = static::translate( $theme_json_data, wp_get_theme()->get( 'TextDomain' ) );
 			static::$theme   = new WP_Theme_JSON( $theme_json_data );
@@ -278,7 +278,7 @@ class WP_Theme_JSON_Resolver {
 		}
 
 		// Special case: '-1' is a results not found.
-		if ( -1 === $post_id && ! $create_post ) {
+		if ( $post_id === -1 && ! $create_post ) {
 			return $user_cpt;
 		}
 
@@ -315,7 +315,7 @@ class WP_Theme_JSON_Resolver {
 	 * @return WP_Theme_JSON Entity that holds styles for user data.
 	 */
 	public static function get_user_data() {
-		if ( null !== static::$user ) {
+		if ( static::$user !== null ) {
 			return static::$user;
 		}
 
@@ -326,7 +326,7 @@ class WP_Theme_JSON_Resolver {
 			$decoded_data = json_decode( $user_cpt['post_content'], true );
 
 			$json_decoding_error = json_last_error();
-			if ( JSON_ERROR_NONE !== $json_decoding_error ) {
+			if ( $json_decoding_error !== JSON_ERROR_NONE ) {
 				trigger_error( 'Error when decoding a theme.json schema for user data. ' . json_last_error_msg() );
 				return new WP_Theme_JSON( $config, 'custom' );
 			}
@@ -383,7 +383,7 @@ class WP_Theme_JSON_Resolver {
 		$result->merge( static::get_core_data() );
 		$result->merge( static::get_theme_data() );
 
-		if ( 'custom' === $origin ) {
+		if ( $origin === 'custom' ) {
 			$result->merge( static::get_user_data() );
 		}
 
@@ -399,7 +399,7 @@ class WP_Theme_JSON_Resolver {
 	 * @return integer|null
 	 */
 	public static function get_user_global_styles_post_id() {
-		if ( null !== static::$user_custom_post_type_id ) {
+		if ( static::$user_custom_post_type_id !== null ) {
 			return static::$user_custom_post_type_id;
 		}
 

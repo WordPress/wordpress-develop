@@ -367,12 +367,12 @@ final class WP_Taxonomy {
 		$args = array_merge( $defaults, $args );
 
 		// If not set, default to the setting for 'public'.
-		if ( null === $args['publicly_queryable'] ) {
+		if ( $args['publicly_queryable'] === null ) {
 			$args['publicly_queryable'] = $args['public'];
 		}
 
-		if ( false !== $args['query_var'] && ( is_admin() || false !== $args['publicly_queryable'] ) ) {
-			if ( true === $args['query_var'] ) {
+		if ( $args['query_var'] !== false && ( is_admin() || $args['publicly_queryable'] !== false ) ) {
+			if ( $args['query_var'] === true ) {
 				$args['query_var'] = $this->name;
 			} else {
 				$args['query_var'] = sanitize_title_with_dashes( $args['query_var'] );
@@ -382,7 +382,7 @@ final class WP_Taxonomy {
 			$args['query_var'] = false;
 		}
 
-		if ( false !== $args['rewrite'] && ( is_admin() || get_option( 'permalink_structure' ) ) ) {
+		if ( $args['rewrite'] !== false && ( is_admin() || get_option( 'permalink_structure' ) ) ) {
 			$args['rewrite'] = wp_parse_args(
 				$args['rewrite'],
 				array(
@@ -398,32 +398,32 @@ final class WP_Taxonomy {
 		}
 
 		// If not set, default to the setting for 'public'.
-		if ( null === $args['show_ui'] ) {
+		if ( $args['show_ui'] === null ) {
 			$args['show_ui'] = $args['public'];
 		}
 
 		// If not set, default to the setting for 'show_ui'.
-		if ( null === $args['show_in_menu'] || ! $args['show_ui'] ) {
+		if ( $args['show_in_menu'] === null || ! $args['show_ui'] ) {
 			$args['show_in_menu'] = $args['show_ui'];
 		}
 
 		// If not set, default to the setting for 'public'.
-		if ( null === $args['show_in_nav_menus'] ) {
+		if ( $args['show_in_nav_menus'] === null ) {
 			$args['show_in_nav_menus'] = $args['public'];
 		}
 
 		// If not set, default to the setting for 'show_ui'.
-		if ( null === $args['show_tagcloud'] ) {
+		if ( $args['show_tagcloud'] === null ) {
 			$args['show_tagcloud'] = $args['show_ui'];
 		}
 
 		// If not set, default to the setting for 'show_ui'.
-		if ( null === $args['show_in_quick_edit'] ) {
+		if ( $args['show_in_quick_edit'] === null ) {
 			$args['show_in_quick_edit'] = $args['show_ui'];
 		}
 
 		// If not set, default rest_namespace to wp/v2 if show_in_rest is true.
-		if ( false === $args['rest_namespace'] && ! empty( $args['show_in_rest'] ) ) {
+		if ( $args['rest_namespace'] === false && ! empty( $args['show_in_rest'] ) ) {
 			$args['rest_namespace'] = 'wp/v2';
 		}
 
@@ -440,7 +440,7 @@ final class WP_Taxonomy {
 		$args['object_type'] = array_unique( (array) $object_type );
 
 		// If not set, use the default meta box.
-		if ( null === $args['meta_box_cb'] ) {
+		if ( $args['meta_box_cb'] === null ) {
 			if ( $args['hierarchical'] ) {
 				$args['meta_box_cb'] = 'post_categories_meta_box';
 			} else {
@@ -451,7 +451,7 @@ final class WP_Taxonomy {
 		$args['name'] = $this->name;
 
 		// Default meta box sanitization callback depends on the value of 'meta_box_cb'.
-		if ( null === $args['meta_box_sanitize_cb'] ) {
+		if ( $args['meta_box_sanitize_cb'] === null ) {
 			switch ( $args['meta_box_cb'] ) {
 				case 'post_categories_meta_box':
 					$args['meta_box_sanitize_cb'] = 'taxonomy_meta_box_sanitize_cb_checkboxes';
@@ -499,11 +499,11 @@ final class WP_Taxonomy {
 		global $wp;
 
 		// Non-publicly queryable taxonomies should not register query vars, except in the admin.
-		if ( false !== $this->query_var && $wp ) {
+		if ( $this->query_var !== false && $wp ) {
 			$wp->add_query_var( $this->query_var );
 		}
 
-		if ( false !== $this->rewrite && ( is_admin() || get_option( 'permalink_structure' ) ) ) {
+		if ( $this->rewrite !== false && ( is_admin() || get_option( 'permalink_structure' ) ) ) {
 			if ( $this->hierarchical && $this->rewrite['hierarchical'] ) {
 				$tag = '(.+?)';
 			} else {
@@ -527,12 +527,12 @@ final class WP_Taxonomy {
 		global $wp;
 
 		// Remove query var.
-		if ( false !== $this->query_var ) {
+		if ( $this->query_var !== false ) {
 			$wp->remove_query_var( $this->query_var );
 		}
 
 		// Remove rewrite tags and permastructs.
-		if ( false !== $this->rewrite ) {
+		if ( $this->rewrite !== false ) {
 			remove_rewrite_tag( "%$this->name%" );
 			remove_permastruct( $this->name );
 		}

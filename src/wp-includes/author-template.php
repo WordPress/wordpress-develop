@@ -62,7 +62,7 @@ function the_author( $deprecated = '', $deprecated_echo = true ) {
 		_deprecated_argument( __FUNCTION__, '2.1.0' );
 	}
 
-	if ( true !== $deprecated_echo ) {
+	if ( $deprecated_echo !== true ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'1.5.0',
@@ -369,7 +369,7 @@ function get_author_posts_url( $author_id, $author_nicename = '' ) {
 		$file = home_url( '/' );
 		$link = $file . '?author=' . $author_id;
 	} else {
-		if ( '' === $author_nicename ) {
+		if ( $author_nicename === '' ) {
 			$user = get_userdata( $author_id );
 			if ( ! empty( $user->user_nicename ) ) {
 				$author_nicename = $user->user_nicename;
@@ -471,7 +471,7 @@ function wp_list_authors( $args = '' ) {
 
 		$author = get_userdata( $author_id );
 
-		if ( $args['exclude_admin'] && 'admin' === $author->display_name ) {
+		if ( $args['exclude_admin'] && $author->display_name === 'admin' ) {
 			continue;
 		}
 
@@ -492,7 +492,7 @@ function wp_list_authors( $args = '' ) {
 			continue; // No need to go further to process HTML.
 		}
 
-		if ( 'list' === $args['style'] ) {
+		if ( $args['style'] === 'list' ) {
 			$return .= '<li>';
 		}
 
@@ -538,7 +538,7 @@ function wp_list_authors( $args = '' ) {
 		}
 
 		$return .= $link;
-		$return .= ( 'list' === $args['style'] ) ? '</li>' : ', ';
+		$return .= ( $args['style'] === 'list' ) ? '</li>' : ', ';
 	}
 
 	$return = rtrim( $return, ', ' );
@@ -569,7 +569,7 @@ function is_multi_author() {
 	global $wpdb;
 
 	$is_multi_author = get_transient( 'is_multi_author' );
-	if ( false === $is_multi_author ) {
+	if ( $is_multi_author === false ) {
 		$rows            = (array) $wpdb->get_col( "SELECT DISTINCT post_author FROM $wpdb->posts WHERE post_type = 'post' AND post_status = 'publish' LIMIT 2" );
 		$is_multi_author = 1 < count( $rows ) ? 1 : 0;
 		set_transient( 'is_multi_author', $is_multi_author );

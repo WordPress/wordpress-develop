@@ -129,7 +129,7 @@ class WP_Http_Curl {
 
 		curl_setopt( $handle, CURLOPT_URL, $url );
 		curl_setopt( $handle, CURLOPT_RETURNTRANSFER, true );
-		curl_setopt( $handle, CURLOPT_SSL_VERIFYHOST, ( true === $ssl_verify ) ? 2 : false );
+		curl_setopt( $handle, CURLOPT_SSL_VERIFYHOST, ( $ssl_verify === true ) ? 2 : false );
 		curl_setopt( $handle, CURLOPT_SSL_VERIFYPEER, $ssl_verify );
 
 		if ( $ssl_verify ) {
@@ -165,7 +165,7 @@ class WP_Http_Curl {
 				break;
 		}
 
-		if ( true === $parsed_args['blocking'] ) {
+		if ( $parsed_args['blocking'] === true ) {
 			curl_setopt( $handle, CURLOPT_HEADERFUNCTION, array( $this, 'stream_headers' ) );
 			curl_setopt( $handle, CURLOPT_WRITEFUNCTION, array( $this, 'stream_body' ) );
 		}
@@ -209,7 +209,7 @@ class WP_Http_Curl {
 			curl_setopt( $handle, CURLOPT_HTTPHEADER, $headers );
 		}
 
-		if ( '1.0' === $parsed_args['httpversion'] ) {
+		if ( $parsed_args['httpversion'] === '1.0' ) {
 			curl_setopt( $handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0 );
 		} else {
 			curl_setopt( $handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1 );
@@ -268,8 +268,8 @@ class WP_Http_Curl {
 		$curl_error = curl_errno( $handle );
 
 		// If an error occurred, or, no response.
-		if ( $curl_error || ( 0 === strlen( $body ) && empty( $processed_headers['headers'] ) ) ) {
-			if ( CURLE_WRITE_ERROR /* 23 */ === $curl_error ) {
+		if ( $curl_error || ( strlen( $body ) === 0 && empty( $processed_headers['headers'] ) ) ) {
+			if ( $curl_error === CURLE_WRITE_ERROR /* 23 */ ) {
 				if ( ! $this->max_body_length || $this->max_body_length !== $bytes_written_total ) {
 					if ( $parsed_args['stream'] ) {
 						curl_close( $handle );
@@ -309,12 +309,12 @@ class WP_Http_Curl {
 
 		// Handle redirects.
 		$redirect_response = WP_Http::handle_redirects( $url, $parsed_args, $response );
-		if ( false !== $redirect_response ) {
+		if ( $redirect_response !== false ) {
 			return $redirect_response;
 		}
 
-		if ( true === $parsed_args['decompress']
-			&& true === WP_Http_Encoding::should_decode( $processed_headers['headers'] )
+		if ( $parsed_args['decompress'] === true
+			&& WP_Http_Encoding::should_decode( $processed_headers['headers'] ) === true
 		) {
 			$body = WP_Http_Encoding::decompress( $body );
 		}

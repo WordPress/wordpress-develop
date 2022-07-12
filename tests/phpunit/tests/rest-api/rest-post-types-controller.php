@@ -227,7 +227,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$links = test_rest_expand_compact_links( $links );
 		$this->assertSame( rest_url( 'wp/v2/types' ), $links['collection'][0]['href'] );
 		$this->assertArrayHasKey( 'https://api.w.org/items', $links );
-		if ( 'edit' === $context ) {
+		if ( $context === 'edit' ) {
 			$this->assertSame( $post_type_obj->cap, $data['capabilities'] );
 			$this->assertSame( $post_type_obj->labels, $data['labels'] );
 			if ( in_array( $post_type_obj->name, array( 'post', 'page' ), true ) ) {
