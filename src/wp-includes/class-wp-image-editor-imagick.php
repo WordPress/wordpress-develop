@@ -1004,7 +1004,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			 * has been compiled against ImageMagick version 6.4.0 or newer.
 			 */
 			if ( is_callable( array( $this->image, 'getImageAlphaChannel' ) ) && defined( 'Imagick:: ALPHACHANNEL_UNDEFINED' ) ) {
-				if ( $this->image->getImageAlphaChannel() === Imagick:: ALPHACHANNEL_UNDEFINED ) {
+				if ( $this->image->getImageAlphaChannel() === Imagick::ALPHACHANNEL_UNDEFINED ) {
 					return false;
 				}
 			}

@@ -51,8 +51,6 @@ class Dominant_Color_Image_Editor_Imageick_Test extends DominantColorTestCase {
 		} else {
 			$this->assertContains( $dominant_color_data['dominant_color'], $expected_color );
 		}
-
-
 	}
 
 	/**
