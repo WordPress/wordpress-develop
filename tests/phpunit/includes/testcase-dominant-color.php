@@ -1,9 +1,12 @@
 <?php
 require_once __DIR__ . '/../tests/image/base.php';
 
+/**
+ * Data provider for Dominant_Color_Image_Editor_GD_Test and Dominant_Color_Image_Editor_Imageick_Test classes.
+ */
 abstract class DominantColorTestCase extends WP_Image_UnitTestCase {
 	/**
-	 * Data provider for test_get_dominant_color_GD.
+	 * Data provider for test_get_dominant_color.
 	 *
 	 * @return array
 	 */
@@ -101,19 +104,24 @@ abstract class DominantColorTestCase extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_get_dominant_color_GD.
+	 * Data provider for test_get_dominant_color.
 	 *
 	 * @return array
 	 */
 	public function provider_get_dominant_color_invalid_images() {
 		$data = array(
 			'tiff' => array(
-				'image_path'            => DIR_TESTDATA . '/images/dominant-color/test-image.tiff',
+				'image_path'            => DIR_TESTDATA . '/images/test-image.tiff',
 				'expected_color'        => array( 'dfdfdf' ),
 				'expected_transparency' => true,
 			),
 			'bmp'  => array(
-				'image_path'            => DIR_TESTDATA . '/images/dominant-color/test-image.bmp',
+				'image_path'            => DIR_TESTDATA . '/images/test-image.bmp',
+				'expected_color'        => array( 'dfdfdf' ),
+				'expected_transparency' => true,
+			),
+			'psd' => array(
+				'image_path'            => DIR_TESTDATA . '/images/test-image.psd',
 				'expected_color'        => array( 'dfdfdf' ),
 				'expected_transparency' => true,
 			),
@@ -123,17 +131,17 @@ abstract class DominantColorTestCase extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_get_dominant_color_GD.
+	 * Data provider for test_get_dominant_color.
 	 *
 	 * @return array
 	 */
 	public function provider_get_dominant_color_none_images() {
 		return array(
 			'pdf' => array(
-				'files_path' => DIR_TESTDATA . '/images/dominant-color/wordpress-gsoc-flyer.pdf',
+				'files_path' => DIR_TESTDATA . '/images/wordpress-gsoc-flyer.pdf',
 			),
 			'mp4' => array(
-				'files_path' => DIR_TESTDATA . '/images/dominant-color/small-video.mp4',
+				'files_path' => DIR_TESTDATA . '/uploads/small-video.mp4',
 			),
 		);
 	}
