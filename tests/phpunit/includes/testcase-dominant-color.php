@@ -120,7 +120,7 @@ abstract class DominantColorTestCase extends WP_Image_UnitTestCase {
 				'expected_color'        => array( 'dfdfdf' ),
 				'expected_transparency' => true,
 			),
-			'psd' => array(
+			'psd'  => array(
 				'image_path'            => DIR_TESTDATA . '/images/test-image.psd',
 				'expected_color'        => array( 'dfdfdf' ),
 				'expected_transparency' => true,
