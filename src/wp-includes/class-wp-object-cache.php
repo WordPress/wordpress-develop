@@ -163,7 +163,7 @@ class WP_Object_Cache {
 			return false;
 		}
 
-		if ( $this->is_valid_key( $key ) ) {
+		if ( ! $this->is_valid_key( $key ) ) {
 			return false;
 		}
 
@@ -220,7 +220,7 @@ class WP_Object_Cache {
 	 * @return bool True if contents were replaced, false if original value does not exist.
 	 */
 	public function replace( $key, $data, $group = 'default', $expire = 0 ) {
-		if ( $this->is_valid_key( $key ) ) {
+		if ( ! $this->is_valid_key( $key ) ) {
 			return false;
 		}
 
@@ -261,7 +261,7 @@ class WP_Object_Cache {
 	 * @return bool True if contents were set, false if key is invalid.
 	 */
 	public function set( $key, $data, $group = 'default', $expire = 0 ) {
-		if ( $this->is_valid_key( $key ) ) {
+		if ( ! $this->is_valid_key( $key ) ) {
 			return false;
 		}
 
@@ -322,7 +322,7 @@ class WP_Object_Cache {
 	 * @return mixed|false The cache contents on success, false on failure to retrieve contents.
 	 */
 	public function get( $key, $group = 'default', $force = false, &$found = null ) {
-		if ( $this->is_valid_key( $key ) ) {
+		if ( ! $this->is_valid_key( $key ) ) {
 			return false;
 		}
 
@@ -384,7 +384,7 @@ class WP_Object_Cache {
 	 * @return bool True on success, false if the contents were not deleted.
 	 */
 	public function delete( $key, $group = 'default', $deprecated = false ) {
-		if ( $this->is_valid_key( $key ) ) {
+		if ( ! $this->is_valid_key( $key ) ) {
 			return false;
 		}
 
@@ -436,7 +436,7 @@ class WP_Object_Cache {
 	 * @return int|false The item's new value on success, false on failure.
 	 */
 	public function incr( $key, $offset = 1, $group = 'default' ) {
-		if ( $this->is_valid_key( $key ) ) {
+		if ( ! $this->is_valid_key( $key ) ) {
 			return false;
 		}
 
@@ -479,7 +479,7 @@ class WP_Object_Cache {
 	 * @return int|false The item's new value on success, false on failure.
 	 */
 	public function decr( $key, $offset = 1, $group = 'default' ) {
-		if ( $this->is_valid_key( $key ) ) {
+		if ( ! $this->is_valid_key( $key ) ) {
 			return false;
 		}
 
