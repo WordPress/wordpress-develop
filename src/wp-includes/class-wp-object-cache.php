@@ -597,7 +597,6 @@ class WP_Object_Cache {
 		} else {
 			$message = is_string( $key )
 				? 'Cache key must not be an empty string.'
-				/* translators: %s: The type of the given cache key. */
 				: sprintf( 'Cache key must be integer or non-empty string, %s given.', $type );
 		}
 
