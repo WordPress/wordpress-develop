@@ -310,7 +310,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 
 	// Save image only if either it was modified or if the primary mime type is different from the original.
 	if ( ! empty( $suffix ) || $primary_mime_type !== $imagesize['mime'] ) {
-		$saved = $editor->save( $editor->generate_filename( $suffix ) );
+		$saved = $editor->save( $editor->generate_filename( $suffix, null, null ), null, true );
 
 		if ( ! is_wp_error( $saved ) ) {
 			$image_meta = _wp_image_meta_replace_original( $saved, $file, $image_meta, $attachment_id );
@@ -585,7 +585,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 
 	if ( method_exists( $editor, 'make_subsize' ) ) {
 		foreach ( $new_sizes as $new_size_name => $new_size_data ) {
-			$new_size_meta = $editor->make_subsize( $new_size_data );
+			$new_size_meta = $editor->make_subsize( $new_size_data, true );
 
 			if ( is_wp_error( $new_size_meta ) ) {
 				// TODO: Log errors.
@@ -612,7 +612,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 		}
 	} else {
 		// Fall back to `$editor->multi_resize()`.
-		$created_sizes = $editor->multi_resize( $new_sizes );
+		$created_sizes = $editor->multi_resize( $new_sizes, true );
 
 		if ( ! empty( $created_sizes ) ) {
 			foreach ( $created_sizes as $created_size_name => $created_size_meta ) {
@@ -714,20 +714,24 @@ function _wp_make_additional_mime_types( $new_mime_types, $file, $image_meta, $a
 			continue;
 		}
 
-		$suffix = _wp_get_image_suffix( $resized, $rotated );
+		$suffix    = _wp_get_image_suffix( $resized, $rotated );
+		$extension = wp_get_default_extension_for_mime_type( $mime_type );
+		$save_as   = $editor->generate_filename( $suffix, null, $extension );
 
-		$saved = $editor->save( $editor->generate_filename( $suffix ) );
-
-		// If the saved image is larger than the original, discard it.
-		$filesize = isset( $saved['filesize'] ) ? $saved['filesize'] : wp_filesize( $saved['path'] );
-		if ( $filesize > $original_file_size ) {
-			wp_delete_file( $saved['path'] );
-			continue;
+		if ( file_exists( $file ) ) {
+			$save_as = $editor->generate_filename( $suffix, null, $extension, true );
 		}
 
+		$saved = $editor->save( $save_as, $mime_type );
 		if ( is_wp_error( $saved ) ) {
 			// TODO: Log errors.
 		} else {
+			// If the saved image is larger than the original, discard it.
+			$filesize = isset( $saved['filesize'] ) ? $saved['filesize'] : wp_filesize( $saved['path'] );
+			if ( $filesize > $original_file_size ) {
+				wp_delete_file( $saved['path'] );
+				continue;
+			}
 			$image_meta['sources'][ $mime_type ] = _wp_get_sources_from_meta( $saved );
 			wp_update_attachment_metadata( $attachment_id, $image_meta );
 		}
