@@ -79,6 +79,29 @@ class Test_Cache_Results extends WP_UnitTestCase {
 			$this->assertNotSame( $queries_after, get_num_queries() );
 		}
 	}
+	/**
+	 * @ticket 22176
+	 */
+	public function test_query_cache_filter_request() {
+		$args   = array(
+			'post_query_cache' => true,
+			'fields'           => 'ids',
+		);
+		$query1 = new WP_Query();
+		$query1->query( $args );
+		$queries_before = get_num_queries();
+
+		add_filter( 'posts_request', array( $this, 'filter_posts_request' ) );
+
+		$query2 = new WP_Query();
+		$query2->query( $args );
+
+		remove_filter( 'posts_request', array( $this, 'filter_posts_request' ) );
+
+		$queries_after = get_num_queries();
+
+		$this->assertNotSame( $queries_before, $queries_after );
+	}
 
 	/**
 	 * @ticket 22176
@@ -186,7 +209,12 @@ class Test_Cache_Results extends WP_UnitTestCase {
 		$query1 = new WP_Query();
 		$posts1 = $query1->query( $args );
 
-		wp_update_post( array( 'ID' => $p1, 'post_status' => 'draft' ) );
+		wp_update_post(
+			array(
+				'ID'          => $p1,
+				'post_status' => 'draft',
+			)
+		);
 
 		$query2 = new WP_Query();
 		$posts2 = $query2->query( $args );
@@ -359,5 +387,9 @@ class Test_Cache_Results extends WP_UnitTestCase {
 				),
 			),
 		);
+	}
+
+	public function filter_posts_request( $request ) {
+		return $request . ' -- Add comment';
 	}
 }
