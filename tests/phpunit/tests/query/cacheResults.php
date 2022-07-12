@@ -45,6 +45,7 @@ class Test_Cache_Results extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_query_args
+	 * @ticket 22176
 	 */
 	public function test_query_cache( $args ) {
 		$query1 = new WP_Query();
@@ -56,10 +57,10 @@ class Test_Cache_Results extends WP_UnitTestCase {
 		$queries_after  = get_num_queries();
 
 		if ( isset( $args['fields'] ) ) {
-			if ( $args['fields'] !== 'all' ) {
+			if ( 'all' !== $args['fields'] ) {
 				$this->assertSameSets( $posts1, $posts2 );
 			}
-			if ( $args['fields'] !== 'id=>parent' ) {
+			if ( 'id=>parent' !== $args['fields'] ) {
 				$this->assertSame( $queries_after, $queries_before );
 			}
 		} else {
@@ -79,6 +80,9 @@ class Test_Cache_Results extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @ticket 22176
+	 */
 	public function test_query_cache_new_post() {
 		$args   = array(
 			'post_query_cache' => true,
@@ -96,6 +100,9 @@ class Test_Cache_Results extends WP_UnitTestCase {
 		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
 	}
 
+	/**
+	 * @ticket 22176
+	 */
 	public function test_query_cache_different_args() {
 		$args   = array(
 			'post_query_cache' => true,
@@ -123,6 +130,9 @@ class Test_Cache_Results extends WP_UnitTestCase {
 		$this->assertSame( $query1->found_posts, $query2->found_posts );
 	}
 
+	/**
+	 * @ticket 22176
+	 */
 	public function test_query_cache_new_comment() {
 		$args   = array(
 			'post_query_cache' => true,
@@ -141,6 +151,53 @@ class Test_Cache_Results extends WP_UnitTestCase {
 		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
 	}
 
+	/**
+	 * @ticket 22176
+	 */
+	public function test_query_cache_delete_comment() {
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$posts[0] ) );
+		$args       = array(
+			'post_query_cache' => true,
+			'fields'           => 'ids',
+			'comment_count'    => 1,
+		);
+		$query1     = new WP_Query();
+		$posts1     = $query1->query( $args );
+
+		wp_delete_comment( $comment_id, true );
+
+		$query2 = new WP_Query();
+		$posts2 = $query2->query( $args );
+
+		$this->assertNotSame( $posts1, $posts2 );
+		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
+	}
+
+	/**
+	 * @ticket 22176
+	 */
+	public function test_query_cache_update_post() {
+		$p1 = self::factory()->post->create();
+
+		$args   = array(
+			'post_query_cache' => true,
+			'fields'           => 'ids',
+		);
+		$query1 = new WP_Query();
+		$posts1 = $query1->query( $args );
+
+		wp_update_post( array( 'ID' => $p1, 'post_status' => 'draft' ) );
+
+		$query2 = new WP_Query();
+		$posts2 = $query2->query( $args );
+
+		$this->assertNotSame( $posts1, $posts2 );
+		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
+	}
+
+	/**
+	 * @ticket 22176
+	 */
 	public function test_query_cache_new_meta() {
 		$p1 = self::factory()->post->create();
 
@@ -165,6 +222,9 @@ class Test_Cache_Results extends WP_UnitTestCase {
 		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
 	}
 
+	/**
+	 * @ticket 22176
+	 */
 	public function test_query_cache_new_term() {
 		$p1 = self::factory()->post->create();
 
@@ -191,6 +251,39 @@ class Test_Cache_Results extends WP_UnitTestCase {
 		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
 	}
 
+	/**
+	 * @ticket 22176
+	 */
+	public function test_query_cache_delete_term() {
+		$p1 = self::factory()->post->create();
+		register_taxonomy( 'wptests_tax1', 'post' );
+
+		$t1 = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax1' ) );
+
+		wp_set_object_terms( $p1, array( $t1 ), 'wptests_tax1' );
+
+		$args   = array(
+			'post_query_cache' => true,
+			'fields'           => 'ids',
+			'tax_query'        => array(
+				array(
+					'taxonomy' => 'wptests_tax1',
+					'terms'    => array( $t1 ),
+					'field'    => 'term_id',
+				),
+			),
+		);
+		$query1 = new WP_Query();
+		$posts1 = $query1->query( $args );
+
+		wp_delete_term( $t1, 'wptests_tax1' );
+
+		$query2 = new WP_Query();
+		$posts2 = $query2->query( $args );
+
+		$this->assertNotSame( $posts1, $posts2 );
+		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
+	}
 
 	public function data_query_args() {
 		return array(
