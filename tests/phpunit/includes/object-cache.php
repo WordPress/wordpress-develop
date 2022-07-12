@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Adds a value to cache.
  *
@@ -733,6 +732,7 @@ function wp_cache_switch_to_blog( $blog_id ) {
 	global $wp_object_cache;
 	return $wp_object_cache->switch_to_blog( $blog_id );
 }
+
 
 /**
  * Sets up Object Cache Global and assigns it.
