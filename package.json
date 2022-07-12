@@ -144,14 +144,14 @@
 		"jquery-hoverintent": "1.10.2",
 		"lodash": "4.17.21",
 		"masonry-layout": "4.2.2",
-		"moment": "2.29.2",
+		"moment": "2.29.3",
 		"objectFitPolyfill": "2.3.5",
 		"polyfill-library": "4.0.0",
 		"react": "17.0.2",
 		"react-dom": "17.0.2",
 		"regenerator-runtime": "0.13.9",
 		"twemoji": "14.0.2",
-		"underscore": "1.13.3",
+		"underscore": "1.13.4",
 		"whatwg-fetch": "3.6.2"
 	},
 	"scripts": {
@@ -175,6 +175,7 @@
 		"test:php": "node ./tools/local-env/scripts/docker.js run -T php composer update -W && node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit",
 		"test:e2e": "node ./tests/e2e/run-tests.js",
 		"test:visual": "node ./tests/visual-regression/run-tests.js",
-		"sync-gutenberg-packages": "grunt sync-gutenberg-packages --dev"
+		"sync-gutenberg-packages": "grunt sync-gutenberg-packages",
+		"postsync-gutenberg-packages": "grunt wp-packages:sync-stable-blocks && grunt build --dev && grunt build"
 	}
 }
