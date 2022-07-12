@@ -4008,8 +4008,7 @@ function _wp_image_editor_choose( $args = array() ) {
 			continue;
 		}
 
-		if ( isset( $args['methods'] ) &&
-			array_diff( $args['methods'], get_class_methods( $implementation ) ) ) {
+		if ( isset( $args['methods'] ) && array_diff( $args['methods'], get_class_methods( $implementation ) ) ) {
 			continue;
 		}
 
@@ -5717,8 +5716,9 @@ add_filter( 'wp_enqueue_scripts', 'dominant_color_add_inline_style' );
  * @return array|WP_Error Array with the Dominant color and has transparency values or WP_Error on error.
  */
 function _dominant_color_get_dominant_color_data( $attachment_id ) {
-	if ( ! wp_attachment_is_image( $attachment_id ) ) {
-		return new WP_Error( 'no_image_found', __( 'Unable to load image.' ) );
+	$mime_type = get_post_mime_type( $attachment_id );
+	if ( 'application/pdf' === $mime_type ) {
+		return new WP_Error( 'no_image_found', __( 'Unable to load image.', 'performance-lab' ) );
 	}
 	$file = wp_get_attachment_file_path( $attachment_id );
 	if ( ! $file ) {
