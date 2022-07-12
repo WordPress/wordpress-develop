@@ -312,7 +312,10 @@ function wp_cache_flush_group( $group ) {
 
 	// if group is an array loop and call each key in the array
 	if ( is_array( $group ) ) {
-		return array_map( 'wp_cache_flush_group', array_values( $group ) );
+		return array_combine(
+			array_values( $group ),
+			array_map( 'wp_cache_flush_group', array_values( $group ) )
+		);
 	}
 
 	return $wp_object_cache->flush_group( $group );
