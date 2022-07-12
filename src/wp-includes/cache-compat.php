@@ -154,17 +154,19 @@ if ( ! function_exists( 'wp_cache_flush_group' ) ) :
 	 * @global WP_Object_Cache $wp_object_cache Object cache global instance.
 	 *
 	 * @param string|array $group name(s) of group to remove from cache.
-	 * @return bool|array|WP_Error Bool or array of bool if array passed, WP_Error if not supported.
+	 * @return bool True if group was flushed, false otherwise.
 	 */
 	function wp_cache_flush_group( $group ) {
 		global $wp_object_cache;
 
 		if ( ! wp_cache_supports_group_flush() ) {
-			$error = new WP_Error( 'unsupported', __( 'Your object cache implementation does not support flushing individual groups.' ) );
+			_doing_it_wrong(
+				__FUNCTION__,
+				__( 'Your object cache implementation does not support flushing individual groups.' ),
+				'6.1.0'
+			);
 
-			_doing_it_wrong( __FUNCTION__, $error->get_error_message(), '6.1.0' );
-
-			return $error;
+			return false;
 		}
 
 		return $wp_object_cache->flush_group( $group );

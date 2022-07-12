@@ -305,7 +305,7 @@ function wp_cache_flush_runtime() {
  * @global WP_Object_Cache $wp_object_cache Object cache global instance.
  *
  * @param string|array $group name(s) of group to remove from cache.
- * @return bool|array|WP_Error Bool or array of bool if array passed, WP_Error if not supported.
+ * @return bool True if group was flushed, false otherwise.
  */
 function wp_cache_flush_group( $group ) {
 	global $wp_object_cache;

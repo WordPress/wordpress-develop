@@ -440,8 +440,7 @@ class Tests_Cache extends WP_UnitTestCase {
 		$results = wp_cache_flush_group( 'group-test' );
 
 		if ( wp_using_ext_object_cache() ) {
-			$this->assertWPError( $results );
-			$this->assertSame( 'unsupported', $results->get_error_code() );
+			$this->assertFalse( $results );
 		} else {
 			$this->assertTrue( $results );
 			$this->assertFalse( wp_cache_get( $key, 'group-test' ), 'test_wp_cache_flush_group: group-test should return false' );
@@ -475,8 +474,7 @@ class Tests_Cache extends WP_UnitTestCase {
 		$results = wp_cache_flush_group( array( 'group-test', 'group-test2' ) );
 
 		if ( wp_using_ext_object_cache() ) {
-			$this->assertWPError( $results );
-			$this->assertSame( 'unsupported', $results->get_error_code() );
+			$this->assertFalse( $results );
 		} else {
 			$this->assertIsArray( $results );
 			$this->assertCount( 2, $results );
