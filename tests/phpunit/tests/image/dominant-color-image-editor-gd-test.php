@@ -7,7 +7,6 @@
  * @group wp-image-editor-gd
  * @group dominant-color
  */
-
 class Dominant_Color_Image_Editor_GD_Test extends DominantColorTestCase {
 
 	public $editor_engine = 'WP_Image_Editor_GD';
