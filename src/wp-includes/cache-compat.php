@@ -157,6 +157,8 @@ if ( ! function_exists( 'wp_cache_flush_group' ) ) :
 	 * @return bool|array|WP_Error Bool or array of bool if array passed, WP_Error if not supported.
 	 */
 	function wp_cache_flush_group( $group ) {
+		global $wp_object_cache;
+
 		if ( ! wp_cache_supports_group_flush() ) {
 			$error = new WP_Error( 'unsupported', __( 'Your object cache implementation does not support flushing individual groups.' ) );
 
