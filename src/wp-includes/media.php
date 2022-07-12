@@ -5825,7 +5825,7 @@ function dominant_color_has_transparency( $attachment_id ) {
 /**
  * Get Hex color from RGB.
  *
- * @since n.e.x.t
+ * @since 6.1
  *
  * @param int $red Red 0-255.
  * @param int $green Green 0-255.
