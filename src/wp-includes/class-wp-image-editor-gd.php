@@ -225,6 +225,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * each new image is created.
 	 *
 	 * @since 3.5.0
+	 * @since 6.1.0 Added the `$unique` parameter.
 	 *
 	 * @param array $sizes {
 	 *     An array of image size data arrays.
@@ -241,13 +242,14 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *         @type bool $crop   Optional. Whether to crop the image. Default false.
 	 *     }
 	 * }
+	 * @param bool $unique Whether to generate unique file names for the sub-sizes.
 	 * @return array An array of resized images' metadata by size.
 	 */
-	public function multi_resize( $sizes ) {
+	public function multi_resize( $sizes, $unique = false ) {
 		$metadata = array();
 
 		foreach ( $sizes as $size => $size_data ) {
-			$meta = $this->make_subsize( $size_data );
+			$meta = $this->make_subsize( $size_data, $unique );
 
 			if ( ! is_wp_error( $meta ) ) {
 				$metadata[ $size ] = $meta;
@@ -261,6 +263,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * Create an image sub-size and return the image meta data value for it.
 	 *
 	 * @since 5.3.0
+	 * @since 6.1.0 Added the `$unique` parameter.
 	 *
 	 * @param array $size_data {
 	 *     Array of size data.
@@ -269,10 +272,11 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *     @type int  $height The maximum height in pixels.
 	 *     @type bool $crop   Whether to crop the image to exact dimensions.
 	 * }
+	 * @param bool  $unique   Whether to generate unique file names. Default false.
 	 * @return array|WP_Error The image data array for inclusion in the `sizes` array in the image meta,
 	 *                        WP_Error object on error.
 	 */
-	public function make_subsize( $size_data ) {
+	public function make_subsize( $size_data, $unique = false ) {
 		if ( ! isset( $size_data['width'] ) && ! isset( $size_data['height'] ) ) {
 			return new WP_Error( 'image_subsize_create_error', __( 'Cannot resize the image. Both width and height are not set.' ) );
 		}
@@ -296,7 +300,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		if ( is_wp_error( $resized ) ) {
 			$saved = $resized;
 		} else {
-			$saved = $this->_save( $resized );
+			$saved = $this->_save( $resized, null, null, $unique );
 			imagedestroy( $resized );
 		}
 
@@ -426,9 +430,11 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @since 5.9.0 Renamed `$filename` to `$destfilename` to match parent class
 	 *              for PHP 8 named parameter support.
 	 * @since 6.0.0 The `$filesize` value was added to the returned array.
+	 * @since 6.1.0 The `$unique` parameter was added.
 	 *
 	 * @param string|null $destfilename Optional. Destination filename. Default null.
 	 * @param string|null $mime_type    Optional. The mime-type. Default null.
+	 * @param bool         $unique      Whether the filename should be unique. Default false.
 	 * @return array|WP_Error {
 	 *     Array on success or WP_Error if the file failed to save.
 	 *
@@ -440,8 +446,8 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *     @type int    $filesize  File size of the image.
 	 * }
 	 */
-	public function save( $destfilename = null, $mime_type = null ) {
-		$saved = $this->_save( $this->image, $destfilename, $mime_type );
+	public function save( $destfilename = null, $mime_type = null, $unique = false ) {
+		$saved = $this->_save( $this->image, $destfilename, $mime_type, $unique );
 
 		if ( ! is_wp_error( $saved ) ) {
 			$this->file      = $saved['path'];
@@ -454,10 +460,12 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	/**
 	 * @since 3.5.0
 	 * @since 6.0.0 The `$filesize` value was added to the returned array.
+	 * @since 6.1.0 The `$unique` parameter was added.
 	 *
 	 * @param resource|GdImage $image
 	 * @param string|null      $filename
 	 * @param string|null      $mime_type
+	 * @param bool             $unique Whether the filename should be unique. Default false.
 	 * @return array|WP_Error {
 	 *     Array on success or WP_Error if the file failed to save.
 	 *
@@ -469,11 +477,15 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *     @type int    $filesize  File size of the image.
 	 * }
 	 */
-	protected function _save( $image, $filename = null, $mime_type = null ) {
+	protected function _save( $image, $filename = null, $mime_type = null, $unique = false ) {
 		list( $filename, $extension, $mime_type ) = $this->get_output_format( $filename, $mime_type );
 
 		if ( ! $filename ) {
 			$filename = $this->generate_filename( null, null, $extension );
+			// Only generate a unique name when needed. Without this check, a '-#' suffix is added to all sub sizes.
+			if ( $unique && file_exists( $filename ) ) {
+				$filename = $this->generate_filename( null, null, $extension, true );
+			}
 		}
 
 		if ( 'image/gif' === $mime_type ) {

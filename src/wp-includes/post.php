@@ -6458,8 +6458,11 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 			if ( isset( $sizeinfo['sources'] ) && is_array( $sizeinfo['sources'] ) ) {
 				foreach ( $sizeinfo['sources'] as $mime => $properties ) {
 					$intermediate_file = str_replace( wp_basename( $file ), $properties['file'], $file );
-					if ( ! wp_delete_file_from_directory( $intermediate_file, $intermediate_dir ) ) {
-						$deleted = false;
+					if ( ! empty( $intermediate_file ) ) {
+						$intermediate_file = path_join( $uploadpath['basedir'], $intermediate_file );
+						if ( ! wp_delete_file_from_directory( $intermediate_file, $intermediate_dir ) ) {
+							$deleted = false;
+						}
 					}
 				}
 			} else {
@@ -6493,40 +6496,58 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 		}
 	}
 
-	// Check for alternate full size mime types in the root sources array to delete.
+	// Delete the full size images from 'sources' if available, or the root file.
 	if ( isset( $meta['sources'] ) && is_array( $meta['sources'] ) ) {
-		$sources = $meta['sources'];
-		array_shift( $sources );
+		$sources          = $meta['sources'];
+		$intermediate_dir = path_join( $uploadpath['basedir'], dirname( $file ) );
 		foreach ( $sources as $mime => $properties ) {
 			if ( ! is_array( $properties ) || empty( $properties['file'] ) ) {
 				continue;
 			}
-
 			$intermediate_file = str_replace( wp_basename( $file ), $properties['file'], $file );
 			if ( ! wp_delete_file_from_directory( $intermediate_file, $intermediate_dir ) ) {
 				$deleted = false;
 			}
 		}
-	}
-
-	if ( is_array( $backup_sizes ) ) {
-		$del_dir = path_join( $uploadpath['basedir'], dirname( $meta['file'] ) );
-
-		foreach ( $backup_sizes as $size ) {
-			$del_file = path_join( dirname( $meta['file'] ), $size['file'] );
-
-			if ( ! empty( $del_file ) ) {
-				$del_file = path_join( $uploadpath['basedir'], $del_file );
-
-				if ( ! wp_delete_file_from_directory( $del_file, $del_dir ) ) {
-					$deleted = false;
-				}
-			}
+	} else {
+		if ( ! wp_delete_file_from_directory( $file, $uploadpath['basedir'] ) ) {
+			$deleted = false;
 		}
 	}
 
-	if ( ! wp_delete_file_from_directory( $file, $uploadpath['basedir'] ) ) {
-		$deleted = false;
+	if ( is_array( $backup_sizes ) ) {
+
+		$del_dir = path_join( $uploadpath['basedir'], dirname( $meta['file'] ) );
+		// Delete the root (edited) file which was not deleted above.
+		if ( ! wp_delete_file_from_directory( $file, $uploadpath['basedir'] ) ) {
+			$deleted = false;
+		}
+		foreach ( $backup_sizes as $size ) {
+			// Delete files from 'sources' data if available, otherwise from 'sizes' data.
+			if ( isset( $meta['sources'] ) && is_array( $meta['sources'] ) ) {
+				// Delete any backup images stored in the 'sources' array.
+				if ( isset( $size['sources'] ) && is_array( $size['sources'] ) ) {
+					foreach ( $size['sources'] as $mime => $properties ) {
+						$del_file = path_join( dirname( $meta['file'] ), $properties['file'] );
+						if ( ! empty( $del_file ) ) {
+							$del_file = path_join( $uploadpath['basedir'], $del_file );
+							if ( ! wp_delete_file_from_directory( $del_file, $del_dir ) ) {
+								$deleted = false;
+							}
+						}
+					}
+				}
+			} else {
+				$del_file = path_join( dirname( $meta['file'] ), $size['file'] );
+
+				if ( ! empty( $del_file ) ) {
+					$del_file = path_join( $uploadpath['basedir'], $del_file );
+					if ( ! wp_delete_file_from_directory( $del_file, $del_dir ) ) {
+						$deleted = false;
+					}
+				}
+			}
+		}
 	}
 
 	return $deleted;
@@ -6730,87 +6751,34 @@ function wp_get_attachment_caption( $post_id = 0 ) {
 }
 
 /**
- * Retrieves thumbnail for an attachment.
- *
- * @since 2.1.0
- *
- * @param int $post_id Optional. Attachment ID. Default is the ID of the global `$post`.
- * @return string|false Thumbnail file path on success, false on failure.
- */
-function wp_get_attachment_thumb_file( $post_id = 0 ) {
-	$post_id = (int) $post_id;
-	$post    = get_post( $post_id );
-
-	if ( ! $post ) {
-		return false;
-	}
-
-	$imagedata = wp_get_attachment_metadata( $post->ID );
-	if ( ! is_array( $imagedata ) ) {
-		return false;
-	}
-
-	$file = get_attached_file( $post->ID );
-
-	if ( ! empty( $imagedata['thumb'] ) ) {
-		$thumbfile = str_replace( wp_basename( $file ), $imagedata['thumb'], $file );
-		if ( file_exists( $thumbfile ) ) {
-			/**
-			 * Filters the attachment thumbnail file path.
-			 *
-			 * @since 2.1.0
-			 *
-			 * @param string $thumbfile File path to the attachment thumbnail.
-			 * @param int    $post_id   Attachment ID.
-			 */
-			return apply_filters( 'wp_get_attachment_thumb_file', $thumbfile, $post->ID );
-		}
-	}
-	return false;
-}
-
-/**
  * Retrieves URL for an attachment thumbnail.
  *
  * @since 2.1.0
+ * @since 6.1.0 Changed to use wp_get_attachment_image_url().
  *
  * @param int $post_id Optional. Attachment ID. Default is the ID of the global `$post`.
  * @return string|false Thumbnail URL on success, false on failure.
  */
 function wp_get_attachment_thumb_url( $post_id = 0 ) {
 	$post_id = (int) $post_id;
-	$post    = get_post( $post_id );
 
-	if ( ! $post ) {
+	// This uses image_downsize() which also looks for the (very) old format $image_meta['thumb']
+	// when the newer format $image_meta['sizes']['thumbnail'] doesn't exist.
+	$thumbnail_url = wp_get_attachment_image_url( $post_id, 'thumbnail' );
+
+	if ( empty( $thumbnail_url ) ) {
 		return false;
 	}
-
-	$url = wp_get_attachment_url( $post->ID );
-	if ( ! $url ) {
-		return false;
-	}
-
-	$sized = image_downsize( $post_id, 'thumbnail' );
-	if ( $sized ) {
-		return $sized[0];
-	}
-
-	$thumb = wp_get_attachment_thumb_file( $post->ID );
-	if ( ! $thumb ) {
-		return false;
-	}
-
-	$url = str_replace( wp_basename( $url ), wp_basename( $thumb ), $url );
 
 	/**
 	 * Filters the attachment thumbnail URL.
 	 *
 	 * @since 2.1.0
 	 *
-	 * @param string $url     URL for the attachment thumbnail.
-	 * @param int    $post_id Attachment ID.
+	 * @param string $thumbnail_url URL for the attachment thumbnail.
+	 * @param int    $post_id       Attachment ID.
 	 */
-	return apply_filters( 'wp_get_attachment_thumb_url', $url, $post->ID );
+	return apply_filters( 'wp_get_attachment_thumb_url', $thumbnail_url, $post_id );
 }
 
 /**
