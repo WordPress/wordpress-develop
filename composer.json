@@ -16,9 +16,9 @@
 		"yoast/phpunit-polyfills": "^1.0.1"
 	},
 	"scripts": {
-		"compat": "@php ./tools/phpcs/vendor/squizlabs/php_codesniffer/bin/phpcs --standard=./tools/phpcs/phpcompat.xml.dist --report=summary,source",
-		"format": "@php ./tools/phpcs/vendor/squizlabs/php_codesniffer/bin/phpcbf --report=summary,source",
-		"lint": "@php ./tools/phpcs/vendor/squizlabs/php_codesniffer/bin/phpcs --report=summary,source",
+		"compat": "@php ./tools/phpcs/vendor/squizlabs/php_codesniffer/bin/phpcs --standard=./phpcompat.xml.dist --report=summary,source",
+		"format": "@php ./tools/phpcs/vendor/squizlabs/php_codesniffer/bin/phpcbf --standard=./phpcs.xml.dist --report=summary,source",
+		"lint": "@php ./tools/phpcs/vendor/squizlabs/php_codesniffer/bin/phpcs --standard=./phpcs.xml.dist --report=summary,source",
 		"lint:errors": "@lint -n",
 		"test": "@php ./vendor/phpunit/phpunit/phpunit",
 	  	"post-update-cmd": [
