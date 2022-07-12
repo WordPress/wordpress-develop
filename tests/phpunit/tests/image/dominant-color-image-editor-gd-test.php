@@ -68,6 +68,6 @@ class Dominant_Color_Image_Editor_GD_Test extends DominantColorTestCase {
 		$dominant_color_data = _dominant_color_get_dominant_color_data( $attachment_id );
 
 		$this->assertWPError( $dominant_color_data );
-		$this->assertContains(  $dominant_color_data->get_error_code(), [ 'no_image_found','image_no_editor' ] );
+		$this->assertContains( $dominant_color_data->get_error_code(), array( 'no_image_found', 'image_no_editor' ) );
 	}
 }
