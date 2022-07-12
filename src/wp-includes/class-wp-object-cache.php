@@ -295,6 +295,7 @@ class WP_Object_Cache {
 	 *
 	 * @since 6.1.0
 	 *
+	 * @param string $group Name of group to remove from cache.
 	 * @return true Always returns true.
 	 */
 	public function flush_group( $group ) {

@@ -304,19 +304,11 @@ function wp_cache_flush_runtime() {
  * @see WP_Object_Cache::flush_group()
  * @global WP_Object_Cache $wp_object_cache Object cache global instance.
  *
- * @param string|array $group name(s) of group to remove from cache.
+ * @param string $group Name of group to remove from cache.
  * @return bool True if group was flushed, false otherwise.
  */
 function wp_cache_flush_group( $group ) {
 	global $wp_object_cache;
-
-	// if group is an array, loop and call each group in the array
-	if ( is_array( $group ) ) {
-		return array_combine(
-			array_values( $group ),
-			array_map( 'wp_cache_flush_group', array_values( $group ) )
-		);
-	}
 
 	return $wp_object_cache->flush_group( $group );
 }

@@ -153,7 +153,7 @@ if ( ! function_exists( 'wp_cache_flush_group' ) ) :
 	 * @see WP_Object_Cache::flush_group()
 	 * @global WP_Object_Cache $wp_object_cache Object cache global instance.
 	 *
-	 * @param string|array $group name(s) of group to remove from cache.
+	 * @param string $group Name of group to remove from cache.
 	 * @return bool True if group was flushed, false otherwise.
 	 */
 	function wp_cache_flush_group( $group ) {

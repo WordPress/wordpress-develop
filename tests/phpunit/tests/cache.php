@@ -447,40 +447,4 @@ class Tests_Cache extends WP_UnitTestCase {
 			$this->assertSame( $val, wp_cache_get( $key, 'group-kept' ), 'test_wp_cache_flush_group: group-kept should still contain my-val' );
 		}
 	}
-
-	/**
-	 * @ticket 4476
-	 * @ticket 9773
-	 *
-	 * test wp_cache_flush_group with an array of groups
-	 *
-	 * @covers ::wp_cache_flush_groups
-	 */
-	public function test_wp_cache_flush_groups() {
-		$key = 'my-key';
-		$val = 'my-val';
-
-		wp_cache_set( $key, $val, 'group-test' );
-		wp_cache_set( $key, $val, 'group-test2' );
-		wp_cache_set( $key, $val, 'group-kept' );
-
-		$this->assertSame( $val, wp_cache_get( $key, 'group-test' ), 'test_wp_cache_flush_groups: group-test should contain my-val' );
-		$this->assertSame( $val, wp_cache_get( $key, 'group-test2' ), 'test_wp_cache_flush_groups: group-test2 should contain my-val' );
-
-		if ( wp_using_ext_object_cache() ) {
-			$this->setExpectedIncorrectUsage( 'wp_cache_flush_group' );
-		}
-
-		$results = wp_cache_flush_group( array( 'group-test', 'group-test2' ) );
-
-		if ( wp_using_ext_object_cache() ) {
-			$this->assertFalse( $results );
-		} else {
-			$this->assertIsArray( $results );
-			$this->assertCount( 2, $results );
-			$this->assertFalse( wp_cache_get( $key, 'group-test' ), 'test_wp_cache_flush_groups: group-test should return false' );
-			$this->assertFalse( wp_cache_get( $key, 'group-test2' ), 'test_wp_cache_flush_groups: group-test2 should return false' );
-			$this->assertSame( $val, wp_cache_get( $key, 'group-kept' ), 'test_wp_cache_flush_groups: group-kept should still contain my-val' );
-		}
-	}
 }
