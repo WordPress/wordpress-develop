@@ -573,7 +573,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 
 	// Filter supported sizes for non primary mime types.
 	if ( ! $is_primary_mime ) {
-		$supported_multi_mime_sizes = _wp_multi_mime_get_supported_sizes( $attachment_id );
+		$supported_multi_mime_sizes = _wp_get_image_sizes_additional_mime_type_support( $attachment_id );
 		$new_sizes                  = array_filter(
 			$new_sizes,
 			function( $size ) use ( $supported_multi_mime_sizes ) {
@@ -650,7 +650,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
  * @param int $attachment_id Attachment ID.
  * @return array the list of size names that support multi-mime type output.
  */
-function _wp_multi_mime_get_supported_sizes( $attachment_id ) {
+function _wp_get_image_sizes_additional_mime_type_support( $attachment_id ) {
 	// Include only the core sizes that do not rely on add_image_size(). Additional image sizes are opt-in.
 	$default_core_sizes = array(
 		'thumbnail',
