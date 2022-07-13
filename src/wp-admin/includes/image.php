@@ -651,7 +651,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
  * @return array the list of size names that support multi-mime type output.
  */
 function _wp_multi_mime_get_supported_sizes( $attachment_id ) {
-	// For WordPress 6.1, output WebP by default for core/core theme sizes.
+	// Include only the core sizes that do not rely on add_image_size(). Additional image sizes are opt-in.
 	$default_core_sizes = array(
 		'thumbnail',
 		'medium',
