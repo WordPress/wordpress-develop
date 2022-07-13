@@ -652,7 +652,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
  */
 function _wp_get_image_sizes_additional_mime_type_support( $attachment_id ) {
 	// Include only the core sizes that do not rely on add_image_size(). Additional image sizes are opt-in.
-	$default_core_sizes = array(
+	$enabled_sizes = array(
 		'thumbnail',
 		'medium',
 		'medium_large',
@@ -666,10 +666,10 @@ function _wp_get_image_sizes_additional_mime_type_support( $attachment_id ) {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param array $default_core_sizes The list of sizes that support multi-mime type output.
+	 * @param array $enabled_sizes The list of sizes that support multi-mime type output.
 	 * @param int   $attachment_id      Attachment ID.
 	 */
-	return apply_filters( 'wp_image_sizes_with_additional_mime_type_support', $default_core_sizes, $attachment_id );
+	return apply_filters( 'wp_image_sizes_with_additional_mime_type_support', $enabled_sizes, $attachment_id );
 }
 
 /**
