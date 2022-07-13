@@ -89,8 +89,9 @@ function wp_get_missing_image_subsizes( $attachment_id, $mime_type = '' ) {
 		return array();
 	}
 
+	$primary_mime_type = get_post_mime_type( get_post( $attachment_id ) );
 	if ( ! $mime_type ) {
-		$mime_type = get_post_mime_type( get_post( $attachment_id ) );
+		$mime_type = $primary_mime_type;
 	}
 
 	$registered_sizes = wp_get_registered_image_subsizes();
@@ -147,6 +148,11 @@ function wp_get_missing_image_subsizes( $attachment_id, $mime_type = '' ) {
 		}
 
 		$missing_sizes[ $size_name ] = $size_data;
+	}
+
+	// Filter secondary mime types to those sizes that are enabled.
+	if ( $primary_mime_type !== $mime_type ) {
+		$missing_sizes = _wp_filter_image_sizes_additional_mime_type_support( $missing_sizes, $attachment_id );
 	}
 
 	/**
@@ -213,7 +219,7 @@ function wp_update_image_subsizes( $attachment_id ) {
 			}
 
 			// This also updates the image meta.
-			$image_meta = _wp_make_subsizes( $missing_sizes, $image_file, $image_meta, $attachment_id, $mime_type, $mime_type === $primary_mime_type );
+			$image_meta = _wp_make_subsizes( $missing_sizes, $image_file, $image_meta, $attachment_id, $mime_type );
 		}
 	}
 
@@ -353,9 +359,13 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 	 */
 	$new_sizes = apply_filters( 'intermediate_image_sizes_advanced', $new_sizes, $image_meta, $attachment_id );
 
-	$image_meta = _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $primary_mime_type, true );
+	$image_meta = _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $primary_mime_type );
+
+	// Filter secondary mime types to those sizes that are enabled.
+	$new_sizes = _wp_filter_image_sizes_additional_mime_type_support( $new_sizes, $attachment_id );
+
 	foreach ( $additional_mime_types as $additional_mime_type ) {
-		$image_meta = _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $additional_mime_type, false );
+		$image_meta = _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $additional_mime_type );
 	}
 
 	return $image_meta;
@@ -498,10 +508,9 @@ function _wp_get_sources_from_meta( $meta ) {
  * @param array  $image_meta      The attachment meta data array.
  * @param int    $attachment_id   Attachment ID to process.
  * @param string $mime_type       Optional. The mime type to check for missing sizes. Default is the image mime of $file.
- * @param bool   $is_primary_mime Whether this subsize run is generating the primary mime type. Default true.
  * @return array The attachment meta data with updated `sizes` array. Includes an array of errors encountered while resizing.
  */
-function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mime_type = '', $is_primary_mime = true ) {
+function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mime_type = '' ) {
 	if ( empty( $image_meta ) || ! is_array( $image_meta ) ) {
 		// Not an image attachment.
 		return array();
@@ -571,18 +580,6 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 		}
 	}
 
-	// Filter supported sizes for non primary mime types.
-	if ( ! $is_primary_mime ) {
-		$supported_multi_mime_sizes = _wp_get_image_sizes_additional_mime_type_support( $attachment_id );
-		$new_sizes                  = array_filter(
-			$new_sizes,
-			function( $size ) use ( $supported_multi_mime_sizes ) {
-				return in_array( $size, $supported_multi_mime_sizes );
-			},
-			ARRAY_FILTER_USE_KEY
-		);
-	}
-
 	if ( method_exists( $editor, 'make_subsize' ) ) {
 		foreach ( $new_sizes as $new_size_name => $new_size_data ) {
 			$new_size_meta = $editor->make_subsize( $new_size_data, true );
@@ -643,14 +640,15 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 }
 
 /**
- * Get the list of image sizes that support multi-mime type output.
+ * Get the list of image sizes that support secondary type output.
  *
  * @since 6.1.0
  *
- * @param int $attachment_id Attachment ID.
- * @return array the list of size names that support multi-mime type output.
+ * @param array $sizes         Array of image sizes to filter
+ * @param int   $attachment_id Attachment ID.
+ * @return array $sizes Array of sizes that support secondary type output.
  */
-function _wp_get_image_sizes_additional_mime_type_support( $attachment_id ) {
+function _wp_filter_image_sizes_additional_mime_type_support( $sizes, $attachment_id ) {
 	// Include only the core sizes that do not rely on add_image_size(). Additional image sizes are opt-in.
 	$enabled_sizes = array(
 		'thumbnail',
@@ -660,16 +658,27 @@ function _wp_get_image_sizes_additional_mime_type_support( $attachment_id ) {
 		'post-thumbnail',
 	);
 
+	// Filter supported sizes to only include enabled size.
+	$sizes = array_filter(
+		$sizes,
+		function( $size ) use ( $enabled_sizes ) {
+			return in_array( $size, $supported_multi_mime_sizes );
+		},
+		ARRAY_FILTER_USE_KEY
+	);
+
 	/**
-	 * Filter the sizes that support multi-mime type output. Developers can use this
+	 * Filter the sizes that support secondary type output. Developers can use this
 	 * to control the output of additional mime type sub-sized images.
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param array $enabled_sizes The list of sizes that support multi-mime type output.
-	 * @param int   $attachment_id      Attachment ID.
+	 * @param array $sizes         Array of sizes that support secondary type output.
+	 * @param int   $attachment_id Attachment ID.
+	 * @return array $sizes Array of sizes that support secondary type output.
 	 */
-	return apply_filters( 'wp_image_sizes_with_additional_mime_type_support', $enabled_sizes, $attachment_id );
+	 * /
+	return apply_filters( 'wp_image_sizes_with_additional_mime_type_support', $sizes, $attachment_id );
 }
 
 /**
@@ -883,7 +892,7 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 					wp_update_attachment_metadata( $attachment_id, $metadata );
 
 					// Create sub-sizes saving the image meta after each.
-					$metadata = _wp_make_subsizes( $merged_sizes, $image_file, $metadata, $attachment_id, '', true );
+					$metadata = _wp_make_subsizes( $merged_sizes, $image_file, $metadata, $attachment_id, '' );
 				}
 			}
 		}
