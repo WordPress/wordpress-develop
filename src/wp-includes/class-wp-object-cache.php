@@ -601,7 +601,7 @@ class WP_Object_Cache {
 		}
 
 		_doing_it_wrong(
-			debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 2 )[1]['function'],
+			sprintf( '%s::%s', __CLASS__, debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 2 )[1]['function'] ),
 			$message,
 			'6.1.0'
 		);
