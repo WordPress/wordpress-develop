@@ -4991,6 +4991,26 @@ function is_taxonomy_viewable( $taxonomy ) {
 }
 
 /**
+ * Determines whether a term is publicly viewable.
+ *
+ * A term is considered publicly viewable if its taxonomy is viewable.
+ *
+ * @since x.x.x
+ *
+ * @param int|WP_Term $term Term ID or term object.
+ * @return bool Whether the term is publicly viewable.
+ */
+function is_term_publicly_viewable( $term ) {
+	$term = get_term( $term );
+
+	if ( ! $term ) {
+		return false;
+	}
+
+	return is_taxonomy_viewable( $term->taxonomy );
+}
+
+/**
  * Sets the last changed time for the 'terms' cache group.
  *
  * @since 5.0.0
