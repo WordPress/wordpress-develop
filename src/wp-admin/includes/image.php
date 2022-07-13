@@ -657,20 +657,7 @@ function _wp_multi_mime_get_supported_sizes( $attachment_id ) {
 		'medium',
 		'medium_large',
 		'large',
-		// 2x medium_large size.
-		'1536x1536',
-		// 2x large size.
-		'2048x2048',
-		// Twentyeleven theme.
-		'large-feature',
-		'small-feature',
-		// Twentyfourteen theme.
-		'twentyfourteen-full-width',
-		// Twentyseventeen theme.
-		'twentyseventeen-featured-image',
-		'twentyseventeen-thumbnail-avatar',
-		// Twentytwenty theme.
-		'twentytwenty-fullscreen',
+		'post-thumbnail',
 	);
 
 	/**
