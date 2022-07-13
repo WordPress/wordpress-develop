@@ -715,7 +715,7 @@ function _wp_make_additional_mime_types( $new_mime_types, $file, $image_meta, $a
 		} else {
 			// If the saved image is larger than the original, discard it.
 			$filesize = isset( $saved['filesize'] ) ? $saved['filesize'] : wp_filesize( $saved['path'] );
-			if ( $filesize > $original_file_size ) {
+			if ( $filesize && $original_file_size && $filesize > $original_file_size ) {
 				wp_delete_file( $saved['path'] );
 				continue;
 			}
