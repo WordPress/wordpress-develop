@@ -669,7 +669,7 @@ function _wp_multi_mime_get_supported_sizes( $attachment_id ) {
 	 * @param array $default_core_sizes The list of sizes that support multi-mime type output.
 	 * @param int   $attachment_id      Attachment ID.
 	 */
-	return apply_filters( 'wp_multi_mime_get_supported_sizes', $default_core_sizes, $attachment_id );
+	return apply_filters( 'wp_image_sizes_with_additional_mime_type_support', $default_core_sizes, $attachment_id );
 }
 
 /**
