@@ -625,7 +625,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 					$new_size     = isset( $created_size_meta['filesize'] ) ? $created_size_meta['filesize'] : 0;
 					$primary_size = isset( $image_meta['sizes'][ $created_size_name ]['filesize'] ) ? $image_meta['sizes'][ $created_size_name ]['filesize'] : 0;
 
-					if ( $new_size && $new_size >= $primary_size ) {
+					if ( $new_size && $primary_size && $new_size >= $primary_size ) {
 						wp_delete_file( dirname( $file ) . '/' . $created_size_meta['file'] );
 						continue;
 					}
