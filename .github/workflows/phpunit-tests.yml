@@ -38,18 +38,18 @@ jobs:
   # This prevents workflow runs from being marked as "failed" when only PHP 8.1 fails.
   #
   # Performs the following steps:
-  # - Set environment variables.
+  # - Sets environment variables.
   # - Sets up the environment variables needed for testing with memcached (if desired).
-  # - Installs NodeJS 14.
+  # - Installs NodeJS.
   # - Installs NPM dependencies
   # - Configures caching for Composer.
-  # - Installs Composer dependencies (if desired).
-  # - Logs Docker debug information (about both the Docker installation within the runner).
+  # - Installs Composer dependencies.
+  # - Logs Docker debug information (about the Docker installation within the runner).
   # - Starts the WordPress Docker container.
-  # - Starts the memcached server after the Docker network has been created (if desired).
-  # - Logs WordPress Docker container debug information.
-  # - Logs debug general information.
+  # - Starts the Memcached server after the Docker network has been created (if desired).
+  # - Logs general debug information about the runner.
   # - Logs the running Docker containers.
+  # - Logs debug information from inside the WordPress Docker container.
   # - Logs debug information about what's installed within the WordPress Docker containers.
   # - Install WordPress within the Docker container.
   # - Run the PHPUnit tests.
