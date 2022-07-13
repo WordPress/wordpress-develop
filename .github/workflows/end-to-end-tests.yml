@@ -1,7 +1,7 @@
 name: End-to-end Tests
 
 on:
-  # The end to end test suite was introduced in WordPress 5.3.
+  # The end-to-end test suite was introduced in WordPress 5.3.
   push:
     branches:
       - trunk
@@ -31,11 +31,11 @@ jobs:
   # Runs the end-to-end test suite.
   #
   # Performs the following steps:
-  # - Set environment variables.
+  # - Sets environment variables.
   # - Checks out the repository.
-  # - Logs debug information about the runner container.
-  # - Installs NodeJS 14.
-  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # - Logs debug information about the GitHub Action runner.
+  # - Installs NodeJS.
+  # _ Installs NPM dependencies.
   # - Builds WordPress to run from the `build` directory.
   # - Starts the WordPress Docker container.
   # - Logs general debug information.
