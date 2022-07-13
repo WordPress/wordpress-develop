@@ -435,15 +435,14 @@ abstract class WP_Image_Editor {
 	 * @since 3.5.0
 	 * @since 6.1.0 Skips adding a suffix when set to an empty string.
 	 *
-	 * @param string $suffix    Optional. Suffix to add to the filename. Passing null will result in a 'widthxheight'
-	 *                          suffix. Passing an empty string will result in no suffix.
-	 * @param string $dest_path The path to the destination folder.
-	 * @param string $extension The file extension to use. By default uses the same extension as the source.
-	 * @param bool   $unique    Whether to overwrite an existing file. When set to true
-	 *                          will return a unique file name. Default false.
+	 * @param string $suffix Optional. Suffix to add to the filename. Passing null
+	 *                       will result in a 'widthxheight' suffix. Passing
+	 *                       an empty string will result in no suffix.
+	 * @param string $dest_path
+	 * @param string $extension
 	 * @return string filename
 	 */
-	public function generate_filename( $suffix = null, $dest_path = null, $extension = null, $unique = false ) {
+	public function generate_filename( $suffix = null, $dest_path = null, $extension = null ) {
 		// $suffix will be appended to the destination filename, just before the extension.
 		if ( null === $suffix ) {
 			$suffix = $this->get_suffix();
@@ -472,9 +471,6 @@ abstract class WP_Image_Editor {
 			$suffix = "-{$suffix}";
 		}
 
-		if ( $unique ) {
-			return $dir . '/' . wp_unique_filename( $dir, wp_basename( trailingslashit( $dir ) . "{$name}{$suffix}.{$new_ext}" ) );
-		}
 		return trailingslashit( $dir ) . "{$name}{$suffix}.{$new_ext}";
 	}
 
