@@ -677,7 +677,6 @@ function _wp_filter_image_sizes_additional_mime_type_support( $sizes, $attachmen
 	 * @param int   $attachment_id Attachment ID.
 	 * @return array $sizes Array of sizes that support secondary type output.
 	 */
-	 * /
 	return apply_filters( 'wp_image_sizes_with_additional_mime_type_support', $sizes, $attachment_id );
 }
 
