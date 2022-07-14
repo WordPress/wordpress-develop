@@ -640,31 +640,23 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 }
 
 /**
- * Get the list of image sizes that support secondary mime type output.
+ * Filter the list of image size objects that support secondary mime type output.
  *
  * @since 6.1.0
  *
  * @param array $sizes         Array of image sizes to filter
  * @param int   $attachment_id Attachment ID.
- * @return array $sizes Array of sizes that support secondary mime type output.
+ * @return array $sizes Array of size objects that support secondary mime type output.
  */
 function _wp_filter_image_sizes_additional_mime_type_support( $sizes, $attachment_id ) {
+
 	// Include only the core sizes that do not rely on add_image_size(). Additional image sizes are opt-in.
 	$enabled_sizes = array(
-		'thumbnail',
-		'medium',
-		'medium_large',
-		'large',
-		'post-thumbnail',
-	);
-
-	// Filter supported sizes to only include enabled size.
-	$sizes = array_filter(
-		$sizes,
-		function( $size ) use ( $enabled_sizes ) {
-			return in_array( $size, $enabled_sizes, true );
-		},
-		ARRAY_FILTER_USE_KEY
+		'thumbnail'      => true,
+		'medium'         => true,
+		'medium_large'   => true,
+		'large'          => true,
+		'post-thumbnail' => true,
 	);
 
 	/**
@@ -673,11 +665,14 @@ function _wp_filter_image_sizes_additional_mime_type_support( $sizes, $attachmen
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param array $sizes         Array of sizes that support secondary mime type output.
+	 * @param array $enabled_sizes Map of size names and whether they support secondary mime type output.
 	 * @param int   $attachment_id Attachment ID.
 	 * @return array $sizes Array of sizes that support secondary mime type output.
 	 */
-	return apply_filters( 'wp_image_sizes_with_additional_mime_type_support', $sizes, $attachment_id );
+	$enabled_sizes = apply_filters( 'wp_image_sizes_with_additional_mime_type_support', $enabled_sizes, $attachment_id );
+
+	// Filter supported sizes to only include enabled sizes.
+	return array_intersect_key( $sizes, array_filter( $enabled_sizes ) );
 }
 
 /**
