@@ -1470,7 +1470,7 @@ function wp_upload_image_mime_transforms( $attachment_id, $image_size ) {
 	);
 
 	/**
-	 * Filter to the output mime types for a given input mime type and image size.
+	 * Filter the output mime types for a given input mime type and image size.
 	 *
 	 * @since 6.1.0
 	 *
