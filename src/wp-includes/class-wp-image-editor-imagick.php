@@ -718,6 +718,18 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			$filename = $this->generate_filename( null, null, $extension );
 		}
 
+		// Skip already existing files that don't belong to this image attachment.
+		if ( file_exists( $filename ) ) {
+			// Get the url of the image file.
+			$file_url      = str_replace( $uploads_dir['basedir'], $uploads_dir()['baseurl'], $this->file );
+			$attachment_id = attachment_url_to_postid( $file_url );
+			$uploads_dir   = wp_upload_dir();
+
+			if ( $attachment_id && ! _wp_image_belongs_to_attachment( wp_basename( $filename ), $attachment_id ) ) {
+				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
+			}
+		}
+
 		try {
 			// Store initial format.
 			$orig_format = $this->image->getImageFormat();
