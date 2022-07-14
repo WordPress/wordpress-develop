@@ -226,7 +226,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		$this->assertSame( trailingslashit( realpath( get_temp_dir() ) ), trailingslashit( realpath( dirname( $editor->generate_filename( null, get_temp_dir() ) ) ) ) );
 
 		// Test with a suffix only.
-		$this->assertSame( 'canola-100x50.png', wp_basename( $editor->generate_filename( null, null, 'png' ) ) );
+		$this->assertSame( 'canola-100x50-jpg.png', wp_basename( $editor->generate_filename( null, null, 'png' ) ) );
 
 		// Combo!
 		$this->assertSame( trailingslashit( realpath( get_temp_dir() ) ) . 'canola-new.png', $editor->generate_filename( 'new', realpath( get_temp_dir() ), 'png' ) );
