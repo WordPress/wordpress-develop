@@ -640,13 +640,13 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 }
 
 /**
- * Get the list of image sizes that support secondary type output.
+ * Get the list of image sizes that support secondary mime type output.
  *
  * @since 6.1.0
  *
  * @param array $sizes         Array of image sizes to filter
  * @param int   $attachment_id Attachment ID.
- * @return array $sizes Array of sizes that support secondary type output.
+ * @return array $sizes Array of sizes that support secondary mime type output.
  */
 function _wp_filter_image_sizes_additional_mime_type_support( $sizes, $attachment_id ) {
 	// Include only the core sizes that do not rely on add_image_size(). Additional image sizes are opt-in.
@@ -668,14 +668,14 @@ function _wp_filter_image_sizes_additional_mime_type_support( $sizes, $attachmen
 	);
 
 	/**
-	 * Filter the sizes that support secondary type output. Developers can use this
+	 * Filter the sizes that support secondary mime type output. Developers can use this
 	 * to control the output of additional mime type sub-sized images.
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param array $sizes         Array of sizes that support secondary type output.
+	 * @param array $sizes         Array of sizes that support secondary mime type output.
 	 * @param int   $attachment_id Attachment ID.
-	 * @return array $sizes Array of sizes that support secondary type output.
+	 * @return array $sizes Array of sizes that support secondary mime type output.
 	 */
 	return apply_filters( 'wp_image_sizes_with_additional_mime_type_support', $sizes, $attachment_id );
 }
