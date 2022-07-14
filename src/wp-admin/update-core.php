@@ -186,7 +186,7 @@ function list_core_update( $update ) {
 		echo '<p class="hint">' . sprintf(
 			/* translators: %s: WordPress version. */
 			__( 'You are about to install WordPress %s <strong>in English (US)</strong>. There is a chance this update will break your translation. You may prefer to wait for the localized version to be released.' ),
-			'development' !== $update->response ? $update->current : ''
+			$update->response !== 'development' ? $update->current : ''
 		) . '</p>';
 	}
 

@@ -1365,7 +1365,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		$mailer    = tests_retrieve_phpmailer_instance();
 		$recipient = $mailer->get_recipient( 'to' );
-		$actual    = $recipient ? WP_TESTS_EMAIL === $recipient->address : false;
+		$actual    = $recipient ? $recipient->address === WP_TESTS_EMAIL : false;
 
 		$this->assertSame( $expected, $actual, 'Admin email result was not as expected in test_wp_send_new_user_notification_to_admin_filter' );
 	}
@@ -1392,7 +1392,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		$mailer    = tests_retrieve_phpmailer_instance();
 		$recipient = $mailer->get_recipient( 'to' );
-		$actual    = $recipient ? 'blackburn@battlefield3.com' === $recipient->address : false;
+		$actual    = $recipient ? $recipient->address === 'blackburn@battlefield3.com' : false;
 
 		$this->assertSame( $expected, $actual, 'User email result was not as expected in test_wp_send_new_user_notification_to_user_filter' );
 	}
