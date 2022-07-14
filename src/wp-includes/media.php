@@ -2003,7 +2003,7 @@ function _wp_in_front_end_context() {
 		return false;
 	}
 	// Check if we're anywhere before the 'wp_head' action has completed.
-	if ( ! did_action( 'template_redirect' ) || ! did_action( 'wp_head' ) || doing_action( 'wp_head' ) ) {
+	if ( ! did_action( 'template_redirect' ) || doing_action( 'wp_head' ) ) {
 		return false;
 	}
 	return true;
