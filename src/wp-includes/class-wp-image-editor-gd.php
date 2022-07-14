@@ -479,9 +479,9 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		// Skip already existing files that don't belong to this image attachment.
 		if ( file_exists( $filename ) ) {
 			// Get the url of the image file.
+			$uploads_dir   = wp_upload_dir();
 			$file_url      = str_replace( $uploads_dir['basedir'], $uploads_dir()['baseurl'], $this->file );
 			$attachment_id = attachment_url_to_postid( $file_url );
-			$uploads_dir   = wp_upload_dir();
 
 			if ( $attachment_id && ! _wp_image_belongs_to_attachment( wp_basename( $filename ), $attachment_id ) ) {
 				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
