@@ -9,6 +9,8 @@ class Tests_Formatting_wpHtmlSplit extends WP_UnitTestCase {
 	 * Basic functionality goes here.
 	 *
 	 * @dataProvider data_basic_features
+	 *
+	 * @covers ::wp_html_split
 	 */
 	public function test_basic_features( $input, $output ) {
 		return $this->assertSame( $output, wp_html_split( $input ) );
@@ -39,6 +41,8 @@ class Tests_Formatting_wpHtmlSplit extends WP_UnitTestCase {
 	 * Automated performance testing of the main regex.
 	 *
 	 * @dataProvider data_whole_posts
+	 *
+	 * @covers ::preg_split
 	 */
 	public function test_pcre_performance( $input ) {
 		$regex  = get_html_split_regex();
