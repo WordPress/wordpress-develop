@@ -115,10 +115,10 @@ jobs:
   #
   # Performs the following steps:
   # - Checks out the repository.
-  # - Logs debug information about the runner container.
-  # - Installs NodeJS 14.
+  # - Logs debug information about the GitHub Action runner.
+  # - Installs NodeJS.
   # - Logs updated debug information.
-  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # _ Installs NPM dependencies.
   # - Run the WordPress JSHint checks.
   # - Ensures version-controlled files are not modified or deleted.
   jshint:
