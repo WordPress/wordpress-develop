@@ -662,7 +662,7 @@ function _wp_filter_image_sizes_additional_mime_type_support( $sizes, $attachmen
 	$sizes = array_filter(
 		$sizes,
 		function( $size ) use ( $enabled_sizes ) {
-			return in_array( $size, $supported_multi_mime_sizes );
+			return in_array( $size, $enabled_sizes, true );
 		},
 		ARRAY_FILTER_USE_KEY
 	);
