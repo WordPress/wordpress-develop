@@ -519,7 +519,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 	$sizes = array();
 
 	$original_mime_type = wp_get_image_mime( $file );
-	if ( ! $mime_type || $mime_type === $original_mime_type ) {
+	if ( ! $mime_type ) {
 		$mime_type = $original_mime_type;
 	}
 
