@@ -703,9 +703,10 @@ function _wp_make_additional_mime_types( $new_mime_types, $file, $image_meta, $a
 			continue;
 		}
 
-		$suffix = _wp_get_image_suffix( $resized, $rotated );
+		$suffix    = _wp_get_image_suffix( $resized, $rotated );
+		$extension = wp_get_default_extension_for_mime_type( $mime_type );
 
-		$saved = $editor->save( $editor->generate_filename( $suffix ) );
+		$saved = $editor->save( $editor->generate_filename( $suffix, null, $extension ) );
 
 		if ( is_wp_error( $saved ) ) {
 			// TODO: Log errors.

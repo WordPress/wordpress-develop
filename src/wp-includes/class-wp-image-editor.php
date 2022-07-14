@@ -471,6 +471,11 @@ abstract class WP_Image_Editor {
 			$suffix = "-{$suffix}";
 		}
 
+		// When the mime type being generated is different from the source, add the extension to the suffix to ensure uniqueness.
+		if ( ! empty( $extension ) && $extension !== $ext ) {
+			$suffix .= "-{$ext}";
+		}
+
 		return trailingslashit( $dir ) . "{$name}{$suffix}.{$new_ext}";
 	}
 
