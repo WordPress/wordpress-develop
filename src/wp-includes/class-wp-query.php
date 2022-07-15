@@ -3060,6 +3060,7 @@ class WP_Query {
 		$this->posts = apply_filters_ref_array( 'posts_pre_query', array( null, &$this ) );
 
 		$cache = false;
+
 		if ( $q['post_query_cache'] ) {
 			$cache_args = $q;
 
@@ -3071,11 +3072,13 @@ class WP_Query {
 				$cache_args['update_post_term_cache'],
 				$cache_args['lazy_load_term_meta']
 			);
+
 			$key          = md5( serialize( $cache_args ) );
 			$last_changed = wp_cache_get_last_changed( 'posts' );
 			$cache_key    = "wp_query:$key:$last_changed";
 			$cache        = wp_cache_get( $cache_key, 'posts' );
 		}
+
 		if ( null === $this->posts && $cache ) {
 			if ( 'ids' === $q['fields'] ) {
 				/** @var int[] */
@@ -3085,6 +3088,7 @@ class WP_Query {
 				/** @var WP_Post[] */
 				$this->posts = array_map( 'get_post', $cache['posts'] );
 			}
+
 			$this->post_count    = count( $this->posts );
 			$this->found_posts   = $cache['found_posts'];
 			$this->max_num_pages = $cache['max_num_pages'];
@@ -3092,6 +3096,7 @@ class WP_Query {
 			if ( 'id=>parent' === $q['fields'] && $cache ) {
 				/** @var int[] */
 				$r = array();
+
 				foreach ( $this->posts as $key => $post ) {
 					$obj              = new stdClass();
 					$obj->ID          = (int) $post->ID;
@@ -3117,6 +3122,7 @@ class WP_Query {
 			$this->posts      = array_map( 'intval', $this->posts );
 			$this->post_count = count( $this->posts );
 			$this->set_found_posts( $q, $limits );
+
 			if ( $q['post_query_cache'] ) {
 				$cache_value = array(
 					'posts'         => $this->posts,
@@ -3125,6 +3131,7 @@ class WP_Query {
 				);
 				wp_cache_set( $cache_key, $cache_value, 'posts' );
 			}
+
 			return $this->posts;
 		}
 
@@ -3139,6 +3146,7 @@ class WP_Query {
 			/** @var int[] */
 			$r   = array();
 			$ids = array();
+
 			foreach ( $this->posts as $key => $post ) {
 				$this->posts[ $key ]->ID          = (int) $post->ID;
 				$this->posts[ $key ]->post_parent = (int) $post->post_parent;
@@ -3146,6 +3154,7 @@ class WP_Query {
 				$r[ (int) $post->ID ] = (int) $post->post_parent;
 				$ids[]                = (int) $post->ID;
 			}
+
 			if ( $q['post_query_cache'] ) {
 				$cache_value = array(
 					'posts'         => $ids,
@@ -3154,6 +3163,7 @@ class WP_Query {
 				);
 				wp_cache_set( $cache_key, $cache_value, 'posts' );
 			}
+
 			return $r;
 		}
 
