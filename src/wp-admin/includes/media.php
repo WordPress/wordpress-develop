@@ -1969,7 +1969,7 @@ function get_compat_media_markup( $attachment_id, $args = null ) {
 		}
 
 		$readonly      = ! $user_can_edit && ! empty( $field['taxonomy'] ) ? " readonly='readonly' " : '';
-		$required      = $field['required'] ? wp_required_field_indicator() : '';
+		$required      = $field['required'] ? ' ' . wp_required_field_indicator() : '';
 		$required_attr = $field['required'] ? ' required' : '';
 		$class         = 'compat-field-' . $id;
 		$class        .= $field['required'] ? ' form-required' : '';
