@@ -3644,7 +3644,7 @@ EOF;
 		$tag          = wp_get_attachment_image( self::$large_id, 'full' );
 		$expected_tag = $tag;
 
-		$metadata     = wp_get_attachment_metadata( self::$large_id );
+		$metadata = wp_get_attachment_metadata( self::$large_id );
 		foreach ( $metadata['sizes'] as $size => $properties ) {
 			// Some sizes may not have WebP if the WebP file is larger than the JPEG for the size.
 			if ( ! isset( $properties['sources']['image/webp'] ) ) {

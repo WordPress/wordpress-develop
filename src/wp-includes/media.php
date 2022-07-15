@@ -1957,6 +1957,10 @@ function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
 			}
 
 			$image = str_replace( $src_filename, $metadata['sources'][ $target_mime ]['file'], $image );
+
+			// The full size was replaced, so unset this entirely here so that in the next iteration it is no longer
+			// considered, simply for a small performance optimization.
+			unset( $metadata['sources'] );
 		}
 
 		// Go through each image size and replace with the first available mime type version.
@@ -1981,6 +1985,10 @@ function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
 
 			// Found a match, replace with the new filename.
 			$image = str_replace( $src_filename, $size_data['sources'][ $target_mime ]['file'], $image );
+
+			// This size was replaced, so unset this entirely here so that in the next iteration it is no longer
+			// considered, simply for a small performance optimization.
+			unset( $metadata['sizes'][ $name ] );
 		}
 	}
 	return $image;
