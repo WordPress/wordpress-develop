@@ -1164,7 +1164,13 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		list( $primary_mime_type, $additional_mime_types ) = _wp_get_primary_and_additional_mime_types( $jpeg_file, 42 );
 		$this->assertSame( 'image/jpeg', $primary_mime_type );
-		$this->assertSame( array( 'image/webp' ), $additional_mime_types );
+
+		// WebP may not be supported by the server, in which case it will be stripped from the results.
+		if ( wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->assertSame( array( 'image/webp' ), $additional_mime_types );
+		} else {
+			$this->assertSame( array(), $additional_mime_types );
+		}
 	}
 
 	/**
@@ -1185,7 +1191,13 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		list( $primary_mime_type, $additional_mime_types ) = _wp_get_primary_and_additional_mime_types( $jpeg_file, 42 );
 		$this->assertSame( 'image/jpeg', $primary_mime_type );
-		$this->assertSame( array( 'image/webp' ), $additional_mime_types );
+
+		// WebP may not be supported by the server, in which case it will be stripped from the results.
+		if ( wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->assertSame( array( 'image/webp' ), $additional_mime_types );
+		} else {
+			$this->assertSame( array(), $additional_mime_types );
+		}
 	}
 
 	/**
@@ -1219,7 +1231,14 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		);
 
 		list( $primary_mime_type, $additional_mime_types ) = _wp_get_primary_and_additional_mime_types( $jpeg_file, 42 );
-		$this->assertSame( 'image/webp', $primary_mime_type );
+
+		// WebP may not be supported by the server, in which case it will fall back to the original MIME type.
+		if ( wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->assertSame( 'image/webp', $primary_mime_type );
+		} else {
+			$this->assertSame( 'image/jpeg', $primary_mime_type );
+		}
+
 		$this->assertSame( array(), $additional_mime_types );
 	}
 
@@ -1240,7 +1259,13 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		);
 
 		list( $primary_mime_type, $additional_mime_types ) = _wp_get_primary_and_additional_mime_types( $jpeg_file, 42 );
-		$this->assertSame( 'image/webp', $primary_mime_type );
+
+		// WebP may not be supported by the server, in which case it will fall back to the original MIME type.
+		if ( wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->assertSame( 'image/webp', $primary_mime_type );
+		} else {
+			$this->assertSame( 'image/jpeg', $primary_mime_type );
+		}
 
 		// AVIF may not be supported by the server, in which case it will be stripped from the results.
 		if ( wp_image_editor_supports( array( 'mime_type' => 'image/avif' ) ) ) {
