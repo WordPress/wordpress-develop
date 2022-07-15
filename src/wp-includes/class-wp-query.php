@@ -3065,9 +3065,7 @@ class WP_Query {
 		 */
 		$this->posts = apply_filters_ref_array( 'posts_pre_query', array( null, &$this ) );
 
-		$cached_results = false;
-
-		if ( $q['post_query_cache'] ) {
+		if ( null === $this->posts && $q['post_query_cache'] ) {
 			$cache_args = $q;
 
 			unset(
@@ -3080,7 +3078,8 @@ class WP_Query {
 				$cache_args['update_menu_item_cache']
 			);
 
-			$key = md5( serialize( $cache_args ) . $this->request );
+			$new_request = str_replace( $fields, "{$wpdb->posts}.*", $this->request );
+			$key         = md5( serialize( $cache_args ) . $new_request );
 
 			$last_changed = wp_cache_get_last_changed( 'posts' );
 			if ( ! empty( $this->tax_query->queried_terms ) ) {
@@ -3089,40 +3088,40 @@ class WP_Query {
 
 			$cache_key      = "wp_query:$key:$last_changed";
 			$cached_results = wp_cache_get( $cache_key, 'posts' );
-		}
 
-		if ( null === $this->posts && $cached_results ) {
-			if ( 'ids' === $q['fields'] ) {
-				/** @var int[] */
-				$this->posts = array_map( 'intval', $cached_results['posts'] );
-			} else {
-				_prime_post_caches( $cached_results['posts'], $q['update_post_term_cache'], $q['update_post_meta_cache'] );
-				/** @var WP_Post[] */
-				$this->posts = array_map( 'get_post', $cached_results['posts'] );
-			}
-
-			$this->post_count    = count( $this->posts );
-			$this->found_posts   = $cached_results['found_posts'];
-			$this->max_num_pages = $cached_results['max_num_pages'];
-
-			if ( 'id=>parent' === $q['fields'] && $cached_results ) {
-				/** @var int[] */
-				$post_parents = array();
-
-				foreach ( $this->posts as $key => $post ) {
-					$obj              = new stdClass();
-					$obj->ID          = (int) $post->ID;
-					$obj->post_parent = (int) $post->post_parent;
-
-					$this->posts[ $key ] = $obj;
-
-					$post_parents[ $obj->ID ] = $obj->post_parent;
+			if ( $cached_results ) {
+				if ( 'ids' === $q['fields'] ) {
+					/** @var int[] */
+					$this->posts = array_map( 'intval', $cached_results['posts'] );
+				} else {
+					_prime_post_caches( $cached_results['posts'], $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+					/** @var WP_Post[] */
+					$this->posts = array_map( 'get_post', $cached_results['posts'] );
 				}
 
-				return $post_parents;
-			}
+				$this->post_count    = count( $this->posts );
+				$this->found_posts   = $cached_results['found_posts'];
+				$this->max_num_pages = $cached_results['max_num_pages'];
 
-			return $this->posts;
+				if ( 'id=>parent' === $q['fields'] && $cached_results ) {
+					/** @var int[] */
+					$post_parents = array();
+
+					foreach ( $this->posts as $key => $post ) {
+						$obj              = new stdClass();
+						$obj->ID          = (int) $post->ID;
+						$obj->post_parent = (int) $post->post_parent;
+
+						$this->posts[ $key ] = $obj;
+
+						$post_parents[ $obj->ID ] = $obj->post_parent;
+					}
+
+					return $post_parents;
+				}
+
+				return $this->posts;
+			}
 		}
 
 		if ( 'ids' === $q['fields'] ) {

@@ -304,6 +304,33 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	/**
 	 * @ticket 22176
 	 */
+	public function test_query_cache_different_fields() {
+		global $wpdb;
+		$args   = array(
+			'post_query_cache' => true,
+			'fields'           => 'all',
+		);
+		$query1 = new WP_Query();
+		$query1->query( $args );
+
+		$args           = array(
+			'post_query_cache' => true,
+			'fields'           => 'id=>parent',
+		);
+		$queries_before = get_num_queries();
+		$query2         = new WP_Query();
+		$query2->query( $args );
+		$queries_after = get_num_queries();
+
+		$this->assertSame( $queries_before, $queries_after );
+		$this->assertCount( 5, $query1->posts );
+		$this->assertCount( 5, $query2->posts );
+		$this->assertSame( $query1->found_posts, $query2->found_posts );
+	}
+
+	/**
+	 * @ticket 22176
+	 */
 	public function test_query_cache_logged_in() {
 		register_post_type( 'foo_pt' );
 		register_post_status( 'foo_ps', array( 'public' => false ) );
