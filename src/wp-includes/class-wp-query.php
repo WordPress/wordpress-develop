@@ -3065,7 +3065,7 @@ class WP_Query {
 		 */
 		$this->posts = apply_filters_ref_array( 'posts_pre_query', array( null, &$this ) );
 
-		$cached_result = false;
+		$cached_results = false;
 
 		if ( $q['post_query_cache'] ) {
 			$cache_args = $q;
@@ -3087,25 +3087,25 @@ class WP_Query {
 				$last_changed .= wp_cache_get_last_changed( 'terms' );
 			}
 
-			$cache_key     = "wp_query:$key:$last_changed";
-			$cached_result = wp_cache_get( $cache_key, 'posts' );
+			$cache_key      = "wp_query:$key:$last_changed";
+			$cached_results = wp_cache_get( $cache_key, 'posts' );
 		}
 
-		if ( null === $this->posts && $cached_result ) {
+		if ( null === $this->posts && $cached_results ) {
 			if ( 'ids' === $q['fields'] ) {
 				/** @var int[] */
-				$this->posts = array_map( 'intval', $cached_result['posts'] );
+				$this->posts = array_map( 'intval', $cached_results['posts'] );
 			} else {
-				_prime_post_caches( $cached_result['posts'], $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+				_prime_post_caches( $cached_results['posts'], $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 				/** @var WP_Post[] */
-				$this->posts = array_map( 'get_post', $cached_result['posts'] );
+				$this->posts = array_map( 'get_post', $cached_results['posts'] );
 			}
 
 			$this->post_count    = count( $this->posts );
-			$this->found_posts   = $cached_result['found_posts'];
-			$this->max_num_pages = $cached_result['max_num_pages'];
+			$this->found_posts   = $cached_results['found_posts'];
+			$this->max_num_pages = $cached_results['max_num_pages'];
 
-			if ( 'id=>parent' === $q['fields'] && $cached_result ) {
+			if ( 'id=>parent' === $q['fields'] && $cached_results ) {
 				/** @var int[] */
 				$post_parents = array();
 
