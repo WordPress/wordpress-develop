@@ -79,6 +79,88 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			$this->assertNotSame( $queries_after, get_num_queries() );
 		}
 	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[] Test parameters.
+	 */
+	public function data_query_args() {
+		return array(
+			'cache true'                                  => array(
+				'args' => array(
+					'post_query_cache' => true,
+				),
+			),
+			'cache true and page'                         => array(
+				'args' => array(
+					'post_query_cache' => true,
+					'post_type'        => 'page',
+				),
+			),
+			'cache true and ids'                          => array(
+				'args' => array(
+					'post_query_cache' => true,
+					'fields'           => 'ids',
+				),
+			),
+			'cache true and id=>parent and no found rows' => array(
+				'args' => array(
+					'post_query_cache' => true,
+					'fields'           => 'id=>parent',
+				),
+			),
+			'cache true and ids and no found rows'        => array(
+				'args' => array(
+					'no_found_rows'    => true,
+					'post_query_cache' => true,
+					'fields'           => 'ids',
+				),
+			),
+			'cache true and id=>parent'                   => array(
+				'args' => array(
+					'no_found_rows'    => true,
+					'post_query_cache' => true,
+					'fields'           => 'id=>parent',
+				),
+			),
+			'cache and ignore_sticky_posts'               => array(
+				'args' => array(
+					'post_query_cache'    => true,
+					'ignore_sticky_posts' => true,
+				),
+			),
+			'cache meta query'                            => array(
+				'args' => array(
+					'post_query_cache' => true,
+					'meta_query'       => array(
+						array(
+							'key' => 'color',
+						),
+					),
+				),
+			),
+			'cache comment_count'                         => array(
+				'args' => array(
+					'post_query_cache' => true,
+					'comment_count'    => 0,
+				),
+			),
+			'cache term query'                            => array(
+				'args' => array(
+					'post_query_cache' => true,
+					'tax_query'        => array(
+						array(
+							'taxonomy' => 'category',
+							'terms'    => array( 'foo' ),
+							'field'    => 'slug',
+						),
+					),
+				),
+			),
+		);
+	}
+
 	/**
 	 * @ticket 22176
 	 */
@@ -101,6 +183,10 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$queries_after = get_num_queries();
 
 		$this->assertNotSame( $queries_before, $queries_after );
+	}
+
+	public function filter_posts_request( $request ) {
+		return $request . ' -- Add comment';
 	}
 
 	/**
@@ -311,85 +397,5 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 
 		$this->assertNotSame( $posts1, $posts2 );
 		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
-	}
-
-	public function data_query_args() {
-		return array(
-			'cache true'                                  => array(
-				'args' => array(
-					'post_query_cache' => true,
-				),
-			),
-			'cache true and page'                         => array(
-				'args' => array(
-					'post_query_cache' => true,
-					'post_type'        => 'page',
-				),
-			),
-			'cache true and ids'                          => array(
-				'args' => array(
-					'post_query_cache' => true,
-					'fields'           => 'ids',
-				),
-			),
-			'cache true and id=>parent and no found rows' => array(
-				'args' => array(
-					'post_query_cache' => true,
-					'fields'           => 'id=>parent',
-				),
-			),
-			'cache true and ids and no found rows'        => array(
-				'args' => array(
-					'no_found_rows'    => true,
-					'post_query_cache' => true,
-					'fields'           => 'ids',
-				),
-			),
-			'cache true and id=>parent'                   => array(
-				'args' => array(
-					'no_found_rows'    => true,
-					'post_query_cache' => true,
-					'fields'           => 'id=>parent',
-				),
-			),
-			'cache and ignore_sticky_posts'               => array(
-				'args' => array(
-					'post_query_cache'    => true,
-					'ignore_sticky_posts' => true,
-				),
-			),
-			'cache meta query'                            => array(
-				'args' => array(
-					'post_query_cache' => true,
-					'meta_query'       => array(
-						array(
-							'key' => 'color',
-						),
-					),
-				),
-			),
-			'cache comment_count'                         => array(
-				'args' => array(
-					'post_query_cache' => true,
-					'comment_count'    => 0,
-				),
-			),
-			'cache term query'                            => array(
-				'args' => array(
-					'post_query_cache' => true,
-					'tax_query'        => array(
-						array(
-							'taxonomy' => 'category',
-							'terms'    => array( 'foo' ),
-							'field'    => 'slug',
-						),
-					),
-				),
-			),
-		);
-	}
-
-	public function filter_posts_request( $request ) {
-		return $request . ' -- Add comment';
 	}
 }
