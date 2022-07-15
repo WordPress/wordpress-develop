@@ -4911,23 +4911,14 @@ function __checked_selected_helper( $helper, $current, $echo, $type ) { // phpcs
  *
  * @since 6.1.0
  *
- * @param string $space_before Space character, entity or empty string to add before glyph. Default ' '.
- * @param bool   $display      Whether to output the result or instead return it. Default false.
  * @return string Indicator glyph wrapped in a `span` tag.
  */
-function wp_required_field_indicator( $space_before = ' ', $display = false ) {
+function wp_required_field_indicator() {
 	/* translators: Character to identify required form fields. */
 	$glyph     = __( '*' );
-	$indicator = sprintf(
-		'%1$s<span class="required" aria-hidden="true">%2$s</span>',
-		esc_html( $space_before ),
-		esc_html( $glyph )
-	);
+	$indicator = '<span class="required" aria-hidden="true">' . esc_html( $glyph ) . '</span>';
 
-	if ( ! $display ) {
-		return $indicator;
-	}
-	echo $indicator;
+	return $indicator;
 }
 
 /**
@@ -4935,22 +4926,16 @@ function wp_required_field_indicator( $space_before = ' ', $display = false ) {
  *
  * @since 6.1.0
  *
- * @param string $space_before Space character, entity or empty string to add before glyph. Default ' '.
- * @param bool   $display      Whether to output the result or instead return it. Default false.
  * @return string Message text and glyph wrapped in a `span` tag.
  */
-function wp_required_field_message( $space_before = ' ', $display = false ) {
+function wp_required_field_message() {
 	$message = sprintf(
-		'%1$s<span class="required-field-message" aria-hidden="true">%2$s</span>',
-		esc_html( $space_before ),
+		'<span class="required-field-message" aria-hidden="true">%s</span>',
 		/* translators: %s: Asterisk symbol (*). */
-		sprintf( __( 'Required fields are marked %s' ), wp_required_field_indicator( '' ) )
+		sprintf( __( 'Required fields are marked %s' ), wp_required_field_indicator() )
 	);
 
-	if ( ! $display ) {
-		return $message;
-	}
-	echo $message;
+	return $message;
 }
 
 /**

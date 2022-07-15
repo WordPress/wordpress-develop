@@ -193,7 +193,7 @@ if ( ! empty( $messages ) ) {
 	}
 }
 ?>
-<p><?php wp_required_field_message( '', true ); ?></p>
+<p><?php echo wp_required_field_message(); ?></p>
 <form method="post" action="<?php echo esc_url( network_admin_url( 'site-new.php?action=add-site' ) ); ?>" novalidate="novalidate">
 <?php wp_nonce_field( 'add-blog', '_wpnonce_add-blog' ); ?>
 	<table class="form-table" role="presentation">
@@ -201,7 +201,7 @@ if ( ! empty( $messages ) ) {
 			<th scope="row"><label for="site-address">
 			<?php
 				_e( 'Site Address (URL)' );
-				wp_required_field_indicator( ' ', true );
+				echo ' ' . wp_required_field_indicator();
 			?>
 			</label></th>
 			<td>
@@ -222,7 +222,7 @@ if ( ! empty( $messages ) ) {
 			<th scope="row"><label for="site-title">
 			<?php
 				_e( 'Site Title' );
-				wp_required_field_indicator( ' ', true );
+				echo ' ' . wp_required_field_indicator();
 			?>
 			</label></th>
 			<td><input name="blog[title]" type="text" class="regular-text" id="site-title" required /></td>
@@ -262,7 +262,7 @@ if ( ! empty( $messages ) ) {
 			<th scope="row"><label for="admin-email">
 			<?php
 				_e( 'Admin Email' );
-				wp_required_field_indicator( ' ', true );
+				echo ' ' . wp_required_field_indicator();
 			?>
 			</label></th>
 			<td><input name="blog[email]" type="email" class="regular-text wp-suggest-user" id="admin-email" data-autocomplete-type="search" data-autocomplete-field="user_email" aria-describedby="site-admin-email" required /></td>
