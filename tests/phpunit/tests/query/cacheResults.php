@@ -3,7 +3,7 @@
 /**
  * @group query
  */
-class Test_Cache_Results extends WP_UnitTestCase {
+class Test_Query_CacheResults extends WP_UnitTestCase {
 	/**
 	 * Page IDs.
 	 *
