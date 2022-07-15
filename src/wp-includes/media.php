@@ -1946,13 +1946,22 @@ function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
 
 	// Find the appropriate size for the provided URL in the first available mime type.
 	foreach ( $target_mimes as $target_mime ) {
-		if ( ! isset( $metadata['sources'][ $target_mime ] ) || empty( $metadata['sources'][ $target_mime ]['file'] ) ) {
-			continue;
+		// Handle full size image replacement.
+		if ( ! empty( $metadata['sources'][ $target_mime ]['file'] ) ) {
+			$src_filename = wp_basename( $metadata['file'] );
+
+			// This is the same MIME type as the original, so the entire $target_mime can be skipped.
+			// Since it is already the preferred MIME type, the entire loop can be cancelled.
+			if ( $metadata['sources'][ $target_mime ]['file'] === $src_filename ) {
+				break;
+			}
+
+			$image = str_replace( $src_filename, $metadata['sources'][ $target_mime ]['file'], $image );
 		}
 
-		// Go through each image and replace with the first available mime type version.
+		// Go through each image size and replace with the first available mime type version.
 		foreach ( $metadata['sizes'] as $name => $size_data ) {
-			// Check if size has a file.
+			// Check if size has an original file.
 			if ( empty( $size_data['file'] ) ) {
 				continue;
 			}
@@ -1961,30 +1970,18 @@ function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
 			if ( empty( $size_data['sources'][ $target_mime ]['file'] ) ) {
 				continue;
 			}
-			$target_file = $size_data['sources'][ $target_mime ]['file'];
 
-			// Replace the existing output image for this size.
 			$src_filename = wp_basename( $size_data['file'] );
 
-			// This is the same as the file we want to replace nothing to do here.
-			if ( $target_file === $src_filename ) {
-				continue;
+			// This is the same MIME type as the original, so the entire $target_mime can be skipped.
+			// Since it is already the preferred MIME type, the entire loop can be cancelled.
+			if ( $size_data['sources'][ $target_mime ]['file'] === $src_filename ) {
+				break 2;
 			}
 
-			// Found a match, replace with the new filename and stop searching.
+			// Found a match, replace with the new filename.
 			$image = str_replace( $src_filename, $size_data['sources'][ $target_mime ]['file'], $image );
-			continue;
 		}
-
-		// Handle full size image replacement.
-		$src_filename = wp_basename( $metadata['file'] );
-
-		// This is the same as the file we want to replace nothing else to do here.
-		if ( $metadata['sources'][ $target_mime ]['file'] === $src_filename ) {
-			return $image;
-		}
-
-		$image = str_replace( $src_filename, $metadata['sources'][ $target_mime ]['file'], $image );
 	}
 	return $image;
 }
