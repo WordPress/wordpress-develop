@@ -112,6 +112,15 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 					'post_type'        => 'any',
 				),
 			),
+			'cache true and get all'                      => array(
+				'args' => array(
+					'post_query_cache' => true,
+					'fields'           => 'all',
+					'posts_per_page'   => -1,
+					'post_status'      => 'any',
+					'post_type'        => 'any',
+				),
+			),
 			'cache true and page'                         => array(
 				'args' => array(
 					'post_query_cache' => true,
@@ -220,12 +229,13 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query1 = new WP_Query();
 		$posts1 = $query1->query( $args );
 
-		self::factory()->post->create();
+		$p1 = self::factory()->post->create();
 
 		$query2 = new WP_Query();
 		$posts2 = $query2->query( $args );
 
 		$this->assertNotSame( $posts1, $posts2 );
+		$this->assertContains( $p1, $posts2 );
 		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
 	}
 
@@ -340,6 +350,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$posts2 = $query2->query( $args );
 
 		$this->assertNotSame( $posts1, $posts2 );
+		$this->assertContains( self::$posts[0], $posts2 );
+		$this->assertNotEmpty( $posts2 );
 		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
 	}
 
@@ -362,6 +374,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$posts2 = $query2->query( $args );
 
 		$this->assertNotSame( $posts1, $posts2 );
+		$this->assertEmpty( $posts2 );
 		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
 	}
 
@@ -389,6 +402,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$posts2 = $query2->query( $args );
 
 		$this->assertNotSame( $posts1, $posts2 );
+		$this->assertContains( $p1, $posts1 );
+		$this->assertNotContains( $p1, $posts2 );
 		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
 	}
 
@@ -416,6 +431,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$posts2 = $query2->query( $args );
 
 		$this->assertNotSame( $posts1, $posts2 );
+		$this->assertContains( $p1, $posts2 );
 		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
 	}
 
@@ -445,6 +461,40 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$posts2 = $query2->query( $args );
 
 		$this->assertNotSame( $posts1, $posts2 );
+		$this->assertContains( $p1, $posts1 );
+		$this->assertEmpty( $posts2 );
+		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
+	}
+
+
+	/**
+	 * @ticket 22176
+	 */
+	public function test_query_cache_delete_attachment() {
+		$p1 = self::factory()->post->create(
+			array(
+				'post_type'   => 'attachment',
+				'post_status' => 'inherit',
+			)
+		);
+
+		$args   = array(
+			'post_query_cache' => true,
+			'fields'           => 'ids',
+			'post_type'        => 'attachment',
+			'post_status'      => 'inherit',
+		);
+		$query1 = new WP_Query();
+		$posts1 = $query1->query( $args );
+
+		wp_delete_attachment( $p1 );
+
+		$query2 = new WP_Query();
+		$posts2 = $query2->query( $args );
+
+		$this->assertNotSame( $posts1, $posts2 );
+		$this->assertContains( $p1, $posts1 );
+		$this->assertEmpty( $posts2 );
 		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
 	}
 
@@ -473,6 +523,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$posts2 = $query2->query( $args );
 
 		$this->assertNotSame( $posts1, $posts2 );
+		$this->assertContains( $p1, $posts1 );
+		$this->assertNotEmpty( $posts2 );
 		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
 	}
 
@@ -502,6 +554,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$posts2 = $query2->query( $args );
 
 		$this->assertNotSame( $posts1, $posts2 );
+		$this->assertContains( $p1, $posts2 );
 		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
 	}
 
@@ -536,6 +589,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$posts2 = $query2->query( $args );
 
 		$this->assertNotSame( $posts1, $posts2 );
+		$this->assertContains( $p1, $posts1 );
+		$this->assertEmpty( $posts2 );
 		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
 	}
 }
