@@ -627,8 +627,7 @@ class WP_Query {
 	 * @since 4.9.0 Introduced the `$comment_count` parameter.
 	 * @since 5.1.0 Introduced the `$meta_compare_key` parameter.
 	 * @since 5.3.0 Introduced the `$meta_type_key` parameter.
-	 * @since 6.1.0 Introduced the `$post_query_cache` parameter.
-	 * @since 6.1.0 Introduced the `$update_menu_item_cache` parameter
+	 * @since 6.1.0 Introduced the `$post_query_cache` and `$update_menu_item_cache` parameters.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or string of Query parameters.
@@ -3066,7 +3065,7 @@ class WP_Query {
 		 */
 		$this->posts = apply_filters_ref_array( 'posts_pre_query', array( null, &$this ) );
 
-		$cache = false;
+		$cached_result = false;
 
 		if ( $q['post_query_cache'] ) {
 			$cache_args = $q;
@@ -3088,25 +3087,25 @@ class WP_Query {
 				$last_changed .= wp_cache_get_last_changed( 'terms' );
 			}
 
-			$cache_key = "wp_query:$key:$last_changed";
-			$cache     = wp_cache_get( $cache_key, 'posts' );
+			$cache_key     = "wp_query:$key:$last_changed";
+			$cached_result = wp_cache_get( $cache_key, 'posts' );
 		}
 
-		if ( null === $this->posts && $cache ) {
+		if ( null === $this->posts && $cached_result ) {
 			if ( 'ids' === $q['fields'] ) {
 				/** @var int[] */
-				$this->posts = array_map( 'intval', $cache['posts'] );
+				$this->posts = array_map( 'intval', $cached_result['posts'] );
 			} else {
-				_prime_post_caches( $cache['posts'], $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+				_prime_post_caches( $cached_result['posts'], $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 				/** @var WP_Post[] */
-				$this->posts = array_map( 'get_post', $cache['posts'] );
+				$this->posts = array_map( 'get_post', $cached_result['posts'] );
 			}
 
 			$this->post_count    = count( $this->posts );
-			$this->found_posts   = $cache['found_posts'];
-			$this->max_num_pages = $cache['max_num_pages'];
+			$this->found_posts   = $cached_result['found_posts'];
+			$this->max_num_pages = $cached_result['max_num_pages'];
 
-			if ( 'id=>parent' === $q['fields'] && $cache ) {
+			if ( 'id=>parent' === $q['fields'] && $cached_result ) {
 				/** @var int[] */
 				$post_parents = array();
 
