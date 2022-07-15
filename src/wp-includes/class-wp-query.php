@@ -755,7 +755,7 @@ class WP_Query {
 	 *     @type array           $tax_query               An associative array of WP_Tax_Query arguments.
 	 *                                                    See WP_Tax_Query::__construct().
 	 *     @type string          $title                   Post title.
-	 *     @type bool            $post_query_cache        Whether cache query. Default false.
+	 *     @type bool            $post_query_cache        Whether to cache the query results. Default false.
 	 *     @type bool            $update_post_meta_cache  Whether to update the post meta cache. Default true.
 	 *     @type bool            $update_post_term_cache  Whether to update the post term cache. Default true.
 	 *     @type bool            $update_menu_item_cache  Whether to update the menu item cache. Default false.
