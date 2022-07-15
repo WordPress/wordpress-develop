@@ -3095,7 +3095,7 @@ class WP_Query {
 
 			if ( 'id=>parent' === $q['fields'] && $cache ) {
 				/** @var int[] */
-				$r = array();
+				$post_parents = array();
 
 				foreach ( $this->posts as $key => $post ) {
 					$obj              = new stdClass();
@@ -3104,10 +3104,10 @@ class WP_Query {
 
 					$this->posts[ $key ] = $obj;
 
-					$r[ (int) $post->ID ] = (int) $post->post_parent;
+					$post_parents[ (int) $post->ID ] = (int) $post->post_parent;
 				}
 
-				return $r;
+				return $post_parents;
 			}
 
 			return $this->posts;
@@ -3129,6 +3129,7 @@ class WP_Query {
 					'found_posts'   => $this->found_posts,
 					'max_num_pages' => $this->max_num_pages,
 				);
+
 				wp_cache_set( $cache_key, $cache_value, 'posts' );
 			}
 
@@ -3144,27 +3145,28 @@ class WP_Query {
 			$this->set_found_posts( $q, $limits );
 
 			/** @var int[] */
-			$r   = array();
-			$ids = array();
+			$post_parents = array();
+			$post_ids     = array();
 
 			foreach ( $this->posts as $key => $post ) {
 				$this->posts[ $key ]->ID          = (int) $post->ID;
 				$this->posts[ $key ]->post_parent = (int) $post->post_parent;
 
-				$r[ (int) $post->ID ] = (int) $post->post_parent;
-				$ids[]                = (int) $post->ID;
+				$post_parents[ (int) $post->ID ] = (int) $post->post_parent;
+				$post_ids[]                      = (int) $post->ID;
 			}
 
 			if ( $q['post_query_cache'] ) {
 				$cache_value = array(
-					'posts'         => $ids,
+					'posts'         => $post_ids,
 					'found_posts'   => $this->found_posts,
 					'max_num_pages' => $this->max_num_pages,
 				);
+
 				wp_cache_set( $cache_key, $cache_value, 'posts' );
 			}
 
-			return $r;
+			return $post_parents;
 		}
 
 		if ( null === $this->posts ) {
@@ -3206,12 +3208,12 @@ class WP_Query {
 				 */
 				$this->request = apply_filters( 'posts_request_ids', $this->request, $this );
 
-				$ids = $wpdb->get_col( $this->request );
+				$post_ids = $wpdb->get_col( $this->request );
 
-				if ( $ids ) {
-					$this->posts = $ids;
+				if ( $post_ids ) {
+					$this->posts = $post_ids;
 					$this->set_found_posts( $q, $limits );
-					_prime_post_caches( $ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+					_prime_post_caches( $post_ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 				} else {
 					$this->posts = array();
 				}
@@ -3228,12 +3230,14 @@ class WP_Query {
 		}
 
 		if ( $q['post_query_cache'] ) {
-			$ids         = wp_list_pluck( $this->posts, 'ID' );
+			$post_ids = wp_list_pluck( $this->posts, 'ID' );
+
 			$cache_value = array(
-				'posts'         => $ids,
+				'posts'         => $post_ids,
 				'found_posts'   => $this->found_posts,
 				'max_num_pages' => $this->max_num_pages,
 			);
+
 			wp_cache_set( $cache_key, $cache_value, 'posts' );
 		}
 
