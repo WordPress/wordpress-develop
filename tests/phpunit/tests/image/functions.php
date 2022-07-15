@@ -1155,4 +1155,98 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$result = wp_upload_image_mime_transforms( 42, 'large' );
 		$this->assertSame( $default, $result );
 	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test__wp_get_primary_and_additional_mime_types_default() {
+		$jpeg_file = DIR_TESTDATA . '/images/test-image-large.jpg';
+
+		list( $primary_mime_type, $additional_mime_types ) = _wp_get_primary_and_additional_mime_types( $jpeg_file, 42 );
+		$this->assertSame( 'image/jpeg', $primary_mime_type );
+		$this->assertSame( array( 'image/webp' ), $additional_mime_types );
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test__wp_get_primary_and_additional_mime_types_prefer_original_mime() {
+		$jpeg_file = DIR_TESTDATA . '/images/test-image-large.jpg';
+
+		// Set 'image/jpeg' only as secondary output MIME type.
+		// Still, because it is the original, it should be chosen as primary over 'image/webp'.
+		add_filter(
+			'wp_upload_image_mime_transforms',
+			function( $transforms ) {
+				$transforms['image/jpeg'] = array( 'image/webp', 'image/jpeg' );
+				return $transforms;
+			}
+		);
+
+		list( $primary_mime_type, $additional_mime_types ) = _wp_get_primary_and_additional_mime_types( $jpeg_file, 42 );
+		$this->assertSame( 'image/jpeg', $primary_mime_type );
+		$this->assertSame( array( 'image/webp' ), $additional_mime_types );
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test__wp_get_primary_and_additional_mime_types_use_original_mime_when_no_transformation_rules() {
+		$jpeg_file = DIR_TESTDATA . '/images/test-image-large.jpg';
+
+		// Strip all transformation rules.
+		add_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
+
+		list( $primary_mime_type, $additional_mime_types ) = _wp_get_primary_and_additional_mime_types( $jpeg_file, 42 );
+		$this->assertSame( 'image/jpeg', $primary_mime_type );
+		$this->assertSame( array(), $additional_mime_types );
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test__wp_get_primary_and_additional_mime_types_different_output_mime() {
+		$jpeg_file = DIR_TESTDATA . '/images/test-image-large.jpg';
+
+		// Set 'image/webp' as the only output MIME type.
+		// In that case, JPEG is not generated at all, so WebP becomes the primary MIME type.
+		add_filter(
+			'wp_upload_image_mime_transforms',
+			function( $transforms ) {
+				$transforms['image/jpeg'] = array( 'image/webp' );
+				return $transforms;
+			}
+		);
+
+		list( $primary_mime_type, $additional_mime_types ) = _wp_get_primary_and_additional_mime_types( $jpeg_file, 42 );
+		$this->assertSame( 'image/webp', $primary_mime_type );
+		$this->assertSame( array(), $additional_mime_types );
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test__wp_get_primary_and_additional_mime_types_different_output_mimes() {
+		$jpeg_file = DIR_TESTDATA . '/images/test-image-large.jpg';
+
+		// Set 'image/webp' and 'image/avif' as output MIME types.
+		// In that case, JPEG is not generated at all, with WebP being the primary MIME type and AVIF the secondary.
+		add_filter(
+			'wp_upload_image_mime_transforms',
+			function( $transforms ) {
+				$transforms['image/jpeg'] = array( 'image/webp', 'image/avif' );
+				return $transforms;
+			}
+		);
+
+		list( $primary_mime_type, $additional_mime_types ) = _wp_get_primary_and_additional_mime_types( $jpeg_file, 42 );
+		$this->assertSame( 'image/webp', $primary_mime_type );
+
+		// AVIF may not be supported by the server, in which case it will be stripped from the results.
+		if ( wp_image_editor_supports( array( 'mime_type' => 'image/avif' ) ) ) {
+			$this->assertSame( array( 'image/avif' ), $additional_mime_types );
+		} else {
+			$this->assertSame( array(), $additional_mime_types );
+		}
+	}
 }
