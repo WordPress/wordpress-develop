@@ -3728,6 +3728,60 @@ EOF;
 		);
 		$this->assertSame( $tag, wp_image_use_alternate_mime_types( $tag, 'the_content', self::$large_id ) );
 	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test__wp_in_front_end_context_without_wp_query() {
+		unset( $GLOBALS['wp_query'] );
+
+		$this->assertFalse( _wp_in_front_end_context() );
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test__wp_in_front_end_context_with_feed() {
+		remove_all_actions( 'template_redirect' );
+		do_action( 'template_redirect' );
+		$GLOBALS['wp_query']->is_feed = true;
+
+		$this->assertFalse( _wp_in_front_end_context() );
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test__wp_in_front_end_context_before_and_after_template_redirect() {
+		$result = _wp_in_front_end_context();
+
+		remove_all_actions( 'template_redirect' );
+		do_action( 'template_redirect' );
+
+		$this->assertFalse( $result );
+		$this->assertTrue( _wp_in_front_end_context() );
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test__wp_in_front_end_context_within_wp_head() {
+		remove_all_actions( 'template_redirect' );
+		do_action( 'template_redirect' );
+
+		// Call function within a 'wp_head' callback.
+		remove_all_actions( 'wp_head' );
+		$result = null;
+		add_action(
+			'wp_head',
+			function() use ( &$result ) {
+				$result = _wp_in_front_end_context();
+			}
+		);
+		do_action( 'wp_head' );
+
+		$this->assertFalse( $result );
+	}
 }
 
 /**

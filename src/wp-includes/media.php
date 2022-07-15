@@ -1994,24 +1994,24 @@ function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
 	return $image;
 }
 
-/*
- * Check if execution is currently in the front end content context.
+/**
+ * Check if execution is currently in the front end content context, outside of <head>.
  *
  * @since 6.1.0
+ * @access private
  *
  * @return bool True if in the front end content context, false otherwise.
  */
 function _wp_in_front_end_context() {
 	global $wp_query;
+
 	// Check if this request is generally outside (or before) any frontend context.
 	if ( ! isset( $wp_query ) || defined( 'XMLRPC_REQUEST' ) || defined( 'REST_REQUEST' ) || is_feed() ) {
 		return false;
 	}
+
 	// Check if we're anywhere before the 'wp_head' action has completed.
-	if ( ! did_action( 'template_redirect' ) || doing_action( 'wp_head' ) ) {
-		return false;
-	}
-	return true;
+	return did_action( 'template_redirect' ) && ! doing_action( 'wp_head' );
 }
 
 /**
