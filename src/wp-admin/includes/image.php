@@ -1459,10 +1459,11 @@ function _copy_image_file( $attachment_id ) {
  *               generate.
  */
 function wp_upload_image_mime_transforms( $attachment_id, $image_size ) {
-	$image_mime_transforms = array(
+	$default_image_mime_transforms = array(
 		'image/jpeg' => array( 'image/jpeg', 'image/webp' ),
 		'image/webp' => array( 'image/webp', 'image/jpeg' ),
 	);
+	$image_mime_transforms         = $default_image_mime_transforms;
 
 	/**
 	 * Filter the output mime types for a given input mime type and image size.
@@ -1474,7 +1475,18 @@ function wp_upload_image_mime_transforms( $attachment_id, $image_size ) {
 	 * @param int    $attachment_id         The ID of the attachment where the hook was dispatched.
 	 * @param string $image_size            The image size name. Optional.
 	 */
-	return apply_filters( 'wp_upload_image_mime_transforms', $image_mime_transforms, $attachment_id, $image_size );
+	$image_mime_transforms = apply_filters( 'wp_upload_image_mime_transforms', $image_mime_transforms, $attachment_id, $image_size );
+
+	if ( ! is_array( $image_mime_transforms ) ) {
+		return $default_image_mime_transforms;
+	}
+
+	return array_map(
+		function( $transforms_list ) {
+			return (array) $transforms_list;
+		},
+		$image_mime_transforms
+	);
 }
 
 /**

@@ -1081,4 +1081,78 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test_wp_upload_image_mime_transforms_generates_webp_and_jpeg_for_both_by_default() {
+		$result = wp_upload_image_mime_transforms( 42, 'large' );
+		$this->assertArrayHasKey( 'image/jpeg', $result );
+		$this->assertArrayHasKey( 'image/webp', $result );
+		$this->assertSameSets( array( 'image/jpeg', 'image/webp' ), $result['image/jpeg'] );
+		$this->assertSameSets( array( 'image/jpeg', 'image/webp' ), $result['image/webp'] );
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test_wp_upload_image_mime_transforms_filter_always_use_webp_instead_of_jpeg() {
+		add_filter(
+			'wp_upload_image_mime_transforms',
+			function( $transforms ) {
+				// Ensure JPG only results in WebP files.
+				$transforms['image/jpeg'] = array( 'image/webp' );
+				// Unset WebP since it does not need any transformation in that case.
+				unset( $transforms['image/webp'] );
+				return $transforms;
+			}
+		);
+
+		$result = wp_upload_image_mime_transforms( 42, 'large' );
+		$this->assertArrayHasKey( 'image/jpeg', $result );
+		$this->assertArrayNotHasKey( 'image/webp', $result );
+		$this->assertSameSets( array( 'image/webp' ), $result['image/jpeg'] );
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test_wp_upload_image_mime_transforms_filter_receives_parameters() {
+		$attachment_id = null;
+		$image_size    = null;
+		add_filter(
+			'wp_upload_image_mime_transforms',
+			function( $transforms, $param1, $param2 ) use ( &$attachment_id, &$image_size ) {
+				$attachment_id = $param1;
+				$image_size    = $param2;
+				return $transforms;
+			},
+			10,
+			3
+		);
+
+		wp_upload_image_mime_transforms( 23, 'medium' );
+		$this->assertSame( 23, $attachment_id );
+		$this->assertSame( 'medium', $image_size );
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test_wp_upload_image_mime_transforms_filter_with_empty_array() {
+		add_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
+		$result = wp_upload_image_mime_transforms( 42, 'large' );
+		$this->assertSame( array(), $result );
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test_wp_upload_image_mime_transforms_filter_with_invalid_usage() {
+		$default = wp_upload_image_mime_transforms( 42, 'large' );
+
+		add_filter( 'wp_upload_image_mime_transforms', '__return_false' );
+		$result = wp_upload_image_mime_transforms( 42, 'large' );
+		$this->assertSame( $default, $result );
+	}
 }
