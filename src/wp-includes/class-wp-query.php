@@ -627,6 +627,8 @@ class WP_Query {
 	 * @since 4.9.0 Introduced the `$comment_count` parameter.
 	 * @since 5.1.0 Introduced the `$meta_compare_key` parameter.
 	 * @since 5.3.0 Introduced the `$meta_type_key` parameter.
+	 * @since 6.1.0 Introduced the `$post_query_cache` parameter.
+	 * @since 6.1.0 Introduced the `$update_menu_item_cache` parameter
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or string of Query parameters.
@@ -668,15 +670,15 @@ class WP_Query {
 	 *     @type string|string[] $meta_key                Meta key or keys to filter by.
 	 *     @type string|string[] $meta_value              Meta value or values to filter by.
 	 *     @type string          $meta_compare            MySQL operator used for comparing the meta value.
-	 *                                                    See WP_Meta_Query::__construct for accepted values and default value.
+	 *                                                    See WP_Meta_Query::__construct() for accepted values and default value.
 	 *     @type string          $meta_compare_key        MySQL operator used for comparing the meta key.
-	 *                                                    See WP_Meta_Query::__construct for accepted values and default value.
+	 *                                                    See WP_Meta_Query::__construct() for accepted values and default value.
 	 *     @type string          $meta_type               MySQL data type that the meta_value column will be CAST to for comparisons.
-	 *                                                    See WP_Meta_Query::__construct for accepted values and default value.
+	 *                                                    See WP_Meta_Query::__construct() for accepted values and default value.
 	 *     @type string          $meta_type_key           MySQL data type that the meta_key column will be CAST to for comparisons.
-	 *                                                    See WP_Meta_Query::__construct for accepted values and default value.
+	 *                                                    See WP_Meta_Query::__construct() for accepted values and default value.
 	 *     @type array           $meta_query              An associative array of WP_Meta_Query arguments.
-	 *                                                    See WP_Meta_Query::__construct for accepted values.
+	 *                                                    See WP_Meta_Query::__construct() for accepted values.
 	 *     @type int             $menu_order              The menu order of the posts.
 	 *     @type int             $minute                  Minute of the hour. Default empty. Accepts numbers 0-59.
 	 *     @type int             $monthnum                The two-digit month. Default empty. Accepts numbers 1-12.
@@ -752,11 +754,12 @@ class WP_Query {
 	 *     @type string[]        $tag_slug__in            An array of tag slugs (OR in). unless 'ignore_sticky_posts' is
 	 *                                                    true. Note: a string of comma-separated IDs will NOT work.
 	 *     @type array           $tax_query               An associative array of WP_Tax_Query arguments.
-	 *                                                    See WP_Tax_Query->__construct().
+	 *                                                    See WP_Tax_Query::__construct().
 	 *     @type string          $title                   Post title.
 	 *     @type bool            $post_query_cache        Whether cache query. Default false.
 	 *     @type bool            $update_post_meta_cache  Whether to update the post meta cache. Default true.
 	 *     @type bool            $update_post_term_cache  Whether to update the post term cache. Default true.
+	 *     @type bool            $update_menu_item_cache  Whether to update the menu item cache. Default false.
 	 *     @type bool            $lazy_load_term_meta     Whether to lazy-load term meta. Setting to false will
 	 *                                                    disable cache priming for term meta, so that each
 	 *                                                    get_term_meta() call will hit the database.
@@ -1872,6 +1875,10 @@ class WP_Query {
 			$q['update_post_term_cache'] = true;
 		}
 
+		if ( ! isset( $q['update_menu_item_cache'] ) ) {
+			$q['update_menu_item_cache'] = false;
+		}
+
 		if ( ! isset( $q['lazy_load_term_meta'] ) ) {
 			$q['lazy_load_term_meta'] = $q['update_post_term_cache'];
 		}
@@ -2759,7 +2766,7 @@ class WP_Query {
 			}
 		}
 
-		$clauses = array( 'where', 'groupby', 'join', 'orderby', 'distinct', 'fields', 'limits' );
+		$pieces = array( 'where', 'groupby', 'join', 'orderby', 'distinct', 'fields', 'limits' );
 
 		/*
 		 * Apply post-paging filters on where and join. Only plugins that
@@ -2861,7 +2868,7 @@ class WP_Query {
 			 * }
 			 * @param WP_Query $query   The WP_Query instance (passed by reference).
 			 */
-			$clauses = (array) apply_filters_ref_array( 'posts_clauses', array( compact( $clauses ), &$this ) );
+			$clauses = (array) apply_filters_ref_array( 'posts_clauses', array( compact( $pieces ), &$this ) );
 
 			$where    = isset( $clauses['where'] ) ? $clauses['where'] : '';
 			$groupby  = isset( $clauses['groupby'] ) ? $clauses['groupby'] : '';
@@ -2995,7 +3002,7 @@ class WP_Query {
 			 * }
 			 * @param WP_Query $query  The WP_Query instance (passed by reference).
 			 */
-			$clauses = (array) apply_filters_ref_array( 'posts_clauses_request', array( $clauses, &$this ) );
+			$clauses = (array) apply_filters_ref_array( 'posts_clauses_request', array( compact( $pieces ), &$this ) );
 
 			$where    = isset( $clauses['where'] ) ? $clauses['where'] : '';
 			$groupby  = isset( $clauses['groupby'] ) ? $clauses['groupby'] : '';
@@ -3070,13 +3077,19 @@ class WP_Query {
 				$cache_args['fields'],
 				$cache_args['update_post_meta_cache'],
 				$cache_args['update_post_term_cache'],
-				$cache_args['lazy_load_term_meta']
+				$cache_args['lazy_load_term_meta'],
+				$cache_args['update_menu_item_cache']
 			);
 
-			$key          = md5( serialize( $cache_args ) );
+			$key = md5( serialize( $cache_args ) . $this->request );
+
 			$last_changed = wp_cache_get_last_changed( 'posts' );
-			$cache_key    = "wp_query:$key:$last_changed";
-			$cache        = wp_cache_get( $cache_key, 'posts' );
+			if ( ! empty( $this->tax_query->queried_terms ) ) {
+				$last_changed .= wp_cache_get_last_changed( 'terms' );
+			}
+
+			$cache_key = "wp_query:$key:$last_changed";
+			$cache     = wp_cache_get( $cache_key, 'posts' );
 		}
 
 		if ( null === $this->posts && $cache ) {
@@ -3104,7 +3117,7 @@ class WP_Query {
 
 					$this->posts[ $key ] = $obj;
 
-					$post_parents[ (int) $post->ID ] = (int) $post->post_parent;
+					$post_parents[ $obj->ID ] = $obj->post_parent;
 				}
 
 				return $post_parents;
@@ -3239,6 +3252,10 @@ class WP_Query {
 			);
 
 			wp_cache_set( $cache_key, $cache_value, 'posts' );
+		}
+
+		if ( ! empty( $this->posts ) && $q['update_menu_item_cache'] ) {
+			update_menu_item_cache( $this->posts );
 		}
 
 		if ( ! $q['suppress_filters'] ) {
@@ -3528,6 +3545,11 @@ class WP_Query {
 	 */
 	public function the_post() {
 		global $post;
+
+		if ( ! $this->in_the_loop ) {
+			update_post_author_caches( $this->posts );
+		}
+
 		$this->in_the_loop = true;
 
 		if ( -1 == $this->current_post ) { // Loop has just started.

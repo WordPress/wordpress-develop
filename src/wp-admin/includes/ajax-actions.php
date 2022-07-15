@@ -431,7 +431,7 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 	$total    = isset( $_POST['_total'] ) ? (int) $_POST['_total'] : 0;
 	$per_page = isset( $_POST['_per_page'] ) ? (int) $_POST['_per_page'] : 0;
 	$page     = isset( $_POST['_page'] ) ? (int) $_POST['_page'] : 0;
-	$url      = isset( $_POST['_url'] ) ? esc_url_raw( $_POST['_url'] ) : '';
+	$url      = isset( $_POST['_url'] ) ? sanitize_url( $_POST['_url'] ) : '';
 
 	// JS didn't send us everything we need to know. Just die with success message.
 	if ( ! $total || ! $per_page || ! $page || ! $url ) {
@@ -1291,7 +1291,7 @@ function wp_ajax_replyto_comment( $action ) {
 	if ( empty( $post->post_status ) ) {
 		wp_die( 1 );
 	} elseif ( in_array( $post->post_status, array( 'draft', 'pending', 'trash' ), true ) ) {
-		wp_die( __( 'Error: You cannot reply to a comment on a draft post.' ) );
+		wp_die( __( 'You cannot reply to a comment on a draft post.' ) );
 	}
 
 	$user = wp_get_current_user();
@@ -1321,7 +1321,7 @@ function wp_ajax_replyto_comment( $action ) {
 	}
 
 	if ( '' === $comment_content ) {
-		wp_die( __( 'Error: Please type your comment text.' ) );
+		wp_die( __( 'Please type your comment text.' ) );
 	}
 
 	$comment_parent = 0;
@@ -1423,7 +1423,7 @@ function wp_ajax_edit_comment() {
 	}
 
 	if ( '' === $_POST['content'] ) {
-		wp_die( __( 'Error: Please type your comment text.' ) );
+		wp_die( __( 'Please type your comment text.' ) );
 	}
 
 	if ( isset( $_POST['status'] ) ) {
@@ -3333,7 +3333,7 @@ function wp_ajax_send_link_to_editor() {
 		$src = 'http://' . $src;
 	}
 
-	$src = esc_url_raw( $src );
+	$src = sanitize_url( $src );
 	if ( ! $src ) {
 		wp_send_json_error();
 	}
