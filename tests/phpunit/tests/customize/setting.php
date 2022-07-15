@@ -772,6 +772,8 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 *
 	 * @ticket 37294
 	 *
+	 * @covers WP_Customize_Setting::value
+	 * @covers WP_Customize_Setting::preview
 	 * @covers WP_Customize_Setting::reset_aggregated_multidimensionals
 	 */
 	public function test_multidimensional_value_when_previewed() {

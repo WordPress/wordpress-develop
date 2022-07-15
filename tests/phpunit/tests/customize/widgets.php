@@ -124,7 +124,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	/**
 	 * Test WP_Customize_Widgets::__construct()
 	 *
-	 * @covers WP_Customize_Widgets::__construct
+	 * @coversNothing
 	 */
 	public function test_construct() {
 		$this->assertInstanceOf( 'WP_Customize_Widgets', $this->manager->widgets );
@@ -507,6 +507,9 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 * the widget supports them via `show_instance_in_rest`.
 	 *
 	 * @ticket 53489
+	 *
+	 * @covers WP_Customize_Widgets::sanitize_widget_js_instance
+	 * @covers WP_Customize_Widgets::sanitize_widget_instance
 	 */
 	public function test_sanitize_widget_instance_raw_instance() {
 		remove_action( 'widgets_init', array( $this, 'remove_widgets_block_editor' ) );
@@ -534,6 +537,9 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 * the widget is set to false.
 	 *
 	 * @ticket 53489
+	 *
+	 * @covers WP_Customize_Widgets::sanitize_widget_js_instance
+	 * @covers WP_Customize_Widgets::sanitize_widget_instance
 	 */
 	public function test_sanitize_widget_instance_with_no_show_instance_in_rest() {
 		global $wp_widget_factory;
@@ -565,6 +571,8 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 * when sanitized.
 	 *
 	 * @ticket 53479
+	 *
+	 * @covers WP_Customize_Widgets::sanitize_widget_instance
 	 */
 	public function test_sanitize_widget_instance_empty_instance() {
 		$this->do_customize_boot_actions();

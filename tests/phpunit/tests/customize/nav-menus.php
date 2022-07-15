@@ -311,7 +311,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Nav_Menus::search_available_items_query()
 	 *
-	 * @covers WP_Customize_Nav_Menus::load_available_items_query
+	 * @covers WP_Customize_Nav_Menus::search_available_items_query
 	 */
 	public function test_search_available_items_query() {
 		$menus = new WP_Customize_Nav_Menus( $this->wp_customize );
@@ -416,7 +416,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		$this->assertSame( 'custom', $results[0]['type'] );
 	}
 
-	/*
+	/**
 	 * Tests that the search_available_items_query method should return term items
 	 * not assigned to any posts.
 	 *

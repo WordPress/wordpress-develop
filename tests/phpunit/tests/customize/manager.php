@@ -404,6 +404,9 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @ticket 30937
 	 *
 	 * @covers WP_Customize_Manager::wp_loaded
+	 * @covers WP_Customize_Manager::is_preview
+	 * @covers WP_Customize_Setting::value
+	 * @covers ::get_option
 	 */
 	public function test_wp_loaded() {
 		wp_set_current_user( self::$admin_user_id );
@@ -2034,7 +2037,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @see WP_Customize_Widgets::schedule_customize_register()
 	 * @see WP_Customize_Widgets::customize_register()
 	 *
-	 * @covers ::_wp_customize_publish_changeset
+	 * @covers ::wp_publish_post
 	 */
 	public function test_wp_customize_publish_changeset() {
 		global $wp_customize;
@@ -2457,7 +2460,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @ticket 30988
 	 *
 	 * @covers WP_Customize_Manager::post_value
-	 * @covers WP_Customize_Manager::get_setting
 	 */
 	public function test_post_value() {
 		wp_set_current_user( self::$admin_user_id );
@@ -3713,7 +3715,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 *
 	 * @ticket 39125
 	 *
-	 * @covers WP_Customize_Manager::get_setting
+	 * @covers WP_Customize_Setting::sanitize
 	 */
 	public function test_sanitize_external_header_video_trim() {
 		$this->manager->register_controls();
@@ -3743,7 +3745,7 @@ require_once ABSPATH . WPINC . '/class-wp-customize-setting.php';
  *
  * @see Tests_WP_Customize_Manager::test_add_setting_honoring_dynamic()
  *
- * @covers WP_Customize_Manager::test_add_setting_honoring_dynamic
+ * @coversNothing
  */
 class Test_Dynamic_Customize_Setting extends WP_Customize_Setting {
 	public $type = 'dynamic';
@@ -3755,7 +3757,7 @@ class Test_Dynamic_Customize_Setting extends WP_Customize_Setting {
  *
  * @see Tests_WP_Customize_Manager::test_late_validate_setting_values()
  *
- * @covers WP_Customize_Manager::test_late_validate_setting_values
+ * @coversNothing
  */
 class Test_Setting_Without_Applying_Validate_Filter extends WP_Customize_Setting {
 

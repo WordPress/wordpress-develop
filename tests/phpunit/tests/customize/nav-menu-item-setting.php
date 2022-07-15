@@ -53,6 +53,8 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 
 	/**
 	 * Test constants and statics.
+	 *
+	 * @coversNothing
 	 */
 	public function test_constants() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -662,6 +664,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 	 * @see WP_Customize_Nav_Menu_Item_Setting::update()
 	 *
 	 * @covers WP_Customize_Nav_Menu_Item_Setting::update
+	 * @covers WP_Customize_Nav_Menu_Item_Setting::save
 	 */
 	public function test_save_updated() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -733,6 +736,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 	 * @see WP_Customize_Nav_Menu_Item_Setting::update()
 	 *
 	 * @covers WP_Customize_Nav_Menu_Item_Setting::update
+	 * @covers WP_Customize_Nav_Menu_Item_Setting::save
 	 */
 	public function test_save_inserted() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -808,6 +812,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 	 * @see WP_Customize_Nav_Menu_Item_Setting::update()
 	 *
 	 * @covers WP_Customize_Nav_Menu_Item_Setting::update
+	 * @covers WP_Customize_Nav_Menu_Item_Setting::save
 	 */
 	public function test_save_deleted() {
 		do_action( 'customize_register', $this->wp_customize );

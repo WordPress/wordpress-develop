@@ -44,7 +44,7 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Selective_Refresh::__construct()
 	 *
-	 * @covers WP_Customize_Selective_Refresh::__construct
+	 * @coversNothing
 	 */
 	public function test_construct() {
 		$this->assertSame( $this->selective_refresh, $this->wp_customize->selective_refresh );
