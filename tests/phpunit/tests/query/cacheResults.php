@@ -305,7 +305,6 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 * @ticket 22176
 	 */
 	public function test_query_cache_different_fields() {
-		global $wpdb;
 		$args   = array(
 			'post_query_cache' => true,
 			'fields'           => 'all',
