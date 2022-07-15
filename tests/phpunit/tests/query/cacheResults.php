@@ -92,6 +92,26 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 					'post_query_cache' => true,
 				),
 			),
+			'cache true and pagination'                   => array(
+				'args' => array(
+					'post_query_cache' => true,
+					'posts_per_page'   => 3,
+					'page'             => 2,
+				),
+			),
+			'cache true and no pagination'                => array(
+				'args' => array(
+					'post_query_cache' => true,
+					'nopaging'         => true,
+				),
+			),
+			'cache true and post type any'                => array(
+				'args' => array(
+					'post_query_cache' => true,
+					'nopaging'         => true,
+					'post_type'        => 'any',
+				),
+			),
 			'cache true and page'                         => array(
 				'args' => array(
 					'post_query_cache' => true,
@@ -212,6 +232,38 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	/**
 	 * @ticket 22176
 	 */
+	public function test_query_cache_stick_post() {
+		$old_date = date_create( '-25 hours' );
+		$p1       = self::factory()->post->create( array( 'post_date' => date_format( $old_date, 'Y-m-d H:i:s' ) ) );
+		stick_post( $p1 );
+		$args = array(
+			'post_query_cache' => true,
+			'posts_per_page'   => 5,
+			'fields'           => 'ids',
+		);
+		add_action( 'parse_query', array( $this, 'set_post_query_cache' ) );
+		$this->go_to( '/' );
+		$query1 = $GLOBALS['wp_query'];
+		$posts1 = $query1->posts;
+
+		unstick_post( $p1 );
+
+		$this->go_to( '/' );
+		$query2 = $GLOBALS['wp_query'];
+		$posts2 = $query2->query( $args );
+
+		$this->assertNotSame( $posts1, $posts2 );
+		$this->assertSame( $query1->found_posts, $query2->found_posts );
+		remove_action( 'parse_query', array( $this, 'set_post_query_cache' ) );
+	}
+
+	public function set_post_query_cache( $q ) {
+		$q->set( 'post_query_cache', true );
+	}
+
+	/**
+	 * @ticket 22176
+	 */
 	public function test_query_cache_different_args() {
 		$args   = array(
 			'post_query_cache' => true,
@@ -236,6 +288,37 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 
 		$this->assertSame( $queries_before, $queries_after );
 		$this->assertSame( $posts1, $posts2 );
+		$this->assertSame( $query1->found_posts, $query2->found_posts );
+	}
+
+	/**
+	 * @ticket 22176
+	 */
+	public function test_query_cache_logged_in() {
+		register_post_type( 'foo_pt' );
+		register_post_status( 'foo_ps', array( 'public' => false ) );
+		$p1 = self::factory()->post->create( array( 'post_status' => 'foo_ps' ) );
+
+		$args   = array(
+			'post_query_cache' => true,
+			'p'                => $p1,
+		);
+		$query1 = new WP_Query();
+		$posts1 = $query1->query( $args );
+
+		$user = self::factory()->user->create_and_get(
+			array(
+				'role' => 'author',
+			)
+		);
+
+		wp_set_current_user( $user->ID );
+
+		$query2 = new WP_Query();
+		$posts2 = $query2->query( $args );
+
+		$this->assertEmpty( $posts1 );
+		$this->assertNotSame( $posts1, $posts2 );
 		$this->assertSame( $query1->found_posts, $query2->found_posts );
 	}
 
@@ -328,6 +411,63 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$posts1 = $query1->query( $args );
 
 		add_post_meta( $p1, 'color', 'black' );
+
+		$query2 = new WP_Query();
+		$posts2 = $query2->query( $args );
+
+		$this->assertNotSame( $posts1, $posts2 );
+		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
+	}
+
+	/**
+	 * @ticket 22176
+	 */
+	public function test_query_cache_update_meta() {
+		$p1 = self::factory()->post->create();
+		add_post_meta( $p1, 'color', 'black' );
+
+		$args   = array(
+			'post_query_cache' => true,
+			'fields'           => 'ids',
+			'meta_query'       => array(
+				array(
+					'key'   => 'color',
+					'value' => 'black',
+				),
+			),
+		);
+		$query1 = new WP_Query();
+		$posts1 = $query1->query( $args );
+
+		update_post_meta( $p1, 'color', 'blue' );
+
+		$query2 = new WP_Query();
+		$posts2 = $query2->query( $args );
+
+		$this->assertNotSame( $posts1, $posts2 );
+		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
+	}
+
+	/**
+	 * @ticket 22176
+	 */
+	public function test_query_cache_delete_meta() {
+		$p1 = self::factory()->post->create();
+		add_post_meta( $p1, 'color', 'black' );
+
+		$args   = array(
+			'post_query_cache' => true,
+			'fields'           => 'ids',
+			'meta_query'       => array(
+				array(
+					'key' => 'color',
+				),
+			),
+		);
+		$query1 = new WP_Query();
+		$posts1 = $query1->query( $args );
+
+		delete_post_meta( $p1, 'color' );
 
 		$query2 = new WP_Query();
 		$posts2 = $query2->query( $args );
