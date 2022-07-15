@@ -638,6 +638,7 @@ class WP_Query {
 	 *     @type int[]           $author__in              An array of author IDs to query from.
 	 *     @type int[]           $author__not_in          An array of author IDs not to query from.
 	 *     @type bool            $cache_results           Whether to cache post information. Default true.
+	 *     @type bool            $post_query_cache        Whether to cache the query results. Default false.
 	 *     @type int|string      $cat                     Category ID or comma-separated list of IDs (this or any children).
 	 *     @type int[]           $category__and           An array of category IDs (AND in).
 	 *     @type int[]           $category__in            An array of category IDs (OR in, no children).
@@ -755,7 +756,6 @@ class WP_Query {
 	 *     @type array           $tax_query               An associative array of WP_Tax_Query arguments.
 	 *                                                    See WP_Tax_Query::__construct().
 	 *     @type string          $title                   Post title.
-	 *     @type bool            $post_query_cache        Whether cache query. Default false.
 	 *     @type bool            $update_post_meta_cache  Whether to update the post meta cache. Default true.
 	 *     @type bool            $update_post_term_cache  Whether to update the post term cache. Default true.
 	 *     @type bool            $update_menu_item_cache  Whether to update the menu item cache. Default false.
@@ -1870,6 +1870,10 @@ class WP_Query {
 			}
 		}
 
+		if ( ! isset( $q['post_query_cache'] ) ) {
+			$q['post_query_cache'] = false;
+		}
+
 		if ( ! isset( $q['update_post_term_cache'] ) ) {
 			$q['update_post_term_cache'] = true;
 		}
@@ -1884,10 +1888,6 @@ class WP_Query {
 
 		if ( ! isset( $q['update_post_meta_cache'] ) ) {
 			$q['update_post_meta_cache'] = true;
-		}
-
-		if ( ! isset( $q['post_query_cache'] ) ) {
-			$q['post_query_cache'] = false;
 		}
 
 		if ( ! isset( $q['post_type'] ) ) {
@@ -3065,7 +3065,7 @@ class WP_Query {
 		 */
 		$this->posts = apply_filters_ref_array( 'posts_pre_query', array( null, &$this ) );
 
-		$cached_result = false;
+		$cached_results = false;
 
 		if ( $q['post_query_cache'] ) {
 			$cache_args = $q;
@@ -3087,25 +3087,25 @@ class WP_Query {
 				$last_changed .= wp_cache_get_last_changed( 'terms' );
 			}
 
-			$cache_key     = "wp_query:$key:$last_changed";
-			$cached_result = wp_cache_get( $cache_key, 'posts' );
+			$cache_key      = "wp_query:$key:$last_changed";
+			$cached_results = wp_cache_get( $cache_key, 'posts' );
 		}
 
-		if ( null === $this->posts && $cached_result ) {
+		if ( null === $this->posts && $cached_results ) {
 			if ( 'ids' === $q['fields'] ) {
 				/** @var int[] */
-				$this->posts = array_map( 'intval', $cached_result['posts'] );
+				$this->posts = array_map( 'intval', $cached_results['posts'] );
 			} else {
-				_prime_post_caches( $cached_result['posts'], $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+				_prime_post_caches( $cached_results['posts'], $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 				/** @var WP_Post[] */
-				$this->posts = array_map( 'get_post', $cached_result['posts'] );
+				$this->posts = array_map( 'get_post', $cached_results['posts'] );
 			}
 
 			$this->post_count    = count( $this->posts );
-			$this->found_posts   = $cached_result['found_posts'];
-			$this->max_num_pages = $cached_result['max_num_pages'];
+			$this->found_posts   = $cached_results['found_posts'];
+			$this->max_num_pages = $cached_results['max_num_pages'];
 
-			if ( 'id=>parent' === $q['fields'] && $cached_result ) {
+			if ( 'id=>parent' === $q['fields'] && $cached_results ) {
 				/** @var int[] */
 				$post_parents = array();
 
