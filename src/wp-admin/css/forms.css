@@ -1098,6 +1098,18 @@ table.form-table td .updated p {
 	margin-top: 0;
 }
 
+.permalink-structure-optional legend {
+	padding: 0;
+}
+
+.permalink-structure-optional legend + p {
+	margin-top: 0;
+}
+
+.permalink-structure-optional p code {
+	display: inline-block;
+}
+
 /*------------------------------------------------------------------------------
   21.0 - Network Admin
 ------------------------------------------------------------------------------*/
