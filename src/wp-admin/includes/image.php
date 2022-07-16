@@ -437,8 +437,7 @@ function _wp_maybe_scale_and_rotate_image( $file, $attachment_id, $imagesize, $e
 
 			// If there is EXIF data, rotate according to EXIF Orientation.
 			if ( ! is_wp_error( $resized ) && is_array( $exif_meta ) ) {
-				$resized = $editor->maybe_exif_rotate();
-				$rotated = $resized;
+				$rotated = $editor->maybe_exif_rotate();
 			}
 		} elseif ( ! empty( $exif_meta['orientation'] ) && 1 !== (int) $exif_meta['orientation'] ) {
 			// Rotate the whole original image if there is EXIF data and "orientation" is not 1.
