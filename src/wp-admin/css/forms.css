@@ -1628,14 +1628,6 @@ table.form-table td .updated p {
 		margin-top: 4px;
 	}
 
-	.form-table input.regular-text {
-		width: 100%;
-	}
-
-	.form-table label {
-		font-size: 14px;
-	}
-
 	.permalink-structure-has-blog-prefix {
 		display: flex;
 		align-items: center;
@@ -1644,6 +1636,14 @@ table.form-table td .updated p {
 	.permalink-structure-has-blog-prefix code {
 		word-wrap: normal;
 		word-break: normal;
+	}
+
+	.form-table input.regular-text {
+		width: 100%;
+	}
+
+	.form-table label {
+		font-size: 14px;
 	}
 
 	.background-position-control .button-group > label {
