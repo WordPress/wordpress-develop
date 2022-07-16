@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::sanitize_trackback_urls
  */
 class Tests_Formatting_SanitizeTrackbackUrls extends WP_UnitTestCase {
 	/**

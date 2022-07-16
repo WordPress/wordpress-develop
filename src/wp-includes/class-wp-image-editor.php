@@ -75,11 +75,21 @@ abstract class WP_Image_Editor {
 	 * Saves current image to file.
 	 *
 	 * @since 3.5.0
+	 * @since 6.0.0 The `$filesize` value was added to the returned array.
 	 * @abstract
 	 *
 	 * @param string $destfilename Optional. Destination filename. Default null.
 	 * @param string $mime_type    Optional. The mime-type. Default null.
-	 * @return array|WP_Error {'path'=>string, 'file'=>string, 'width'=>int, 'height'=>int, 'mime-type'=>string}
+	 * @return array|WP_Error {
+	 *     Array on success or WP_Error if the file failed to save.
+	 *
+	 *     @type string $path      Path to the image file.
+	 *     @type string $file      Name of the image file.
+	 *     @type int    $width     Image width.
+	 *     @type int    $height    Image height.
+	 *     @type string $mime-type The mime type of the image.
+	 *     @type int    $filesize  File size of the image.
+	 * }
 	 */
 	abstract public function save( $destfilename = null, $mime_type = null );
 
@@ -109,7 +119,7 @@ abstract class WP_Image_Editor {
 	 * @param array $sizes {
 	 *     An array of image size arrays. Default sizes are 'small', 'medium', 'large'.
 	 *
-	 *     @type array $size {
+	 *     @type array ...$0 {
 	 *         @type int  $width  Image width.
 	 *         @type int  $height Image height.
 	 *         @type bool $crop   Optional. Whether to crop the image. Default false.
@@ -549,11 +559,11 @@ abstract class WP_Image_Editor {
 	 * @since 3.5.0
 	 *
 	 * @param string   $filename
-	 * @param callable $function
+	 * @param callable $callback
 	 * @param array    $arguments
 	 * @return bool
 	 */
-	protected function make_image( $filename, $function, $arguments ) {
+	protected function make_image( $filename, $callback, $arguments ) {
 		$stream = wp_is_stream( $filename );
 		if ( $stream ) {
 			ob_start();
@@ -562,7 +572,7 @@ abstract class WP_Image_Editor {
 			wp_mkdir_p( dirname( $filename ) );
 		}
 
-		$result = call_user_func_array( $function, $arguments );
+		$result = call_user_func_array( $callback, $arguments );
 
 		if ( $result && $stream ) {
 			$contents = ob_get_contents();

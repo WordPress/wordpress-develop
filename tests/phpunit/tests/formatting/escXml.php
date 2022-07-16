@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::esc_xml
  */
 class Tests_Formatting_EscXml extends WP_UnitTestCase {
 	/**
@@ -41,6 +43,11 @@ class Tests_Formatting_EscXml extends WP_UnitTestCase {
 			array(
 				"SELECT meta_key, meta_value FROM wp_trunk_sitemeta WHERE meta_key IN ('site_name', 'siteurl', 'active_sitewide_plugins', '_site_transient_timeout_theme_roots', '_site_transient_theme_roots', 'site_admins', 'can_compress_scripts', 'global_terms_enabled') AND site_id = 1",
 				'SELECT meta_key, meta_value FROM wp_trunk_sitemeta WHERE meta_key IN (&apos;site_name&apos;, &apos;siteurl&apos;, &apos;active_sitewide_plugins&apos;, &apos;_site_transient_timeout_theme_roots&apos;, &apos;_site_transient_theme_roots&apos;, &apos;site_admins&apos;, &apos;can_compress_scripts&apos;, &apos;global_terms_enabled&apos;) AND site_id = 1',
+			),
+			// Zero string.
+			array(
+				'0',
+				'0',
 			),
 		);
 	}

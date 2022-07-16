@@ -560,21 +560,34 @@ class Theme_Upgrader extends WP_Upgrader {
 				$this->strings['incompatible_archive'],
 				sprintf(
 					/* translators: %s: style.css */
-					__( 'The %s stylesheet doesn&#8217;t contain a valid theme header.' ),
+					__( 'The %s stylesheet does not contain a valid theme header.' ),
 					'<code>style.css</code>'
 				)
 			);
 		}
 
-		// If it's not a child theme, it must have at least an index.php to be legit.
-		if ( empty( $info['Template'] ) && ! file_exists( $working_directory . 'index.php' ) ) {
+		/*
+		 * Parent themes must contain an index file:
+		 * - classic themes require /index.php
+		 * - block themes require /templates/index.html or block-templates/index.html (deprecated 5.9.0).
+		 */
+		if (
+			empty( $info['Template'] ) &&
+			! file_exists( $working_directory . 'index.php' ) &&
+			! file_exists( $working_directory . 'templates/index.html' ) &&
+			! file_exists( $working_directory . 'block-templates/index.html' )
+		) {
 			return new WP_Error(
 				'incompatible_archive_theme_no_index',
 				$this->strings['incompatible_archive'],
 				sprintf(
-					/* translators: %s: index.php */
-					__( 'The theme is missing the %s file.' ),
-					'<code>index.php</code>'
+					/* translators: 1: templates/index.html, 2: index.php, 3: Documentation URL, 4: Template, 5: style.css */
+					__( 'Template is missing. Standalone themes need to have a %1$s or %2$s template file. <a href="%3$s">Child themes</a> need to have a %4$s header in the %5$s stylesheet.' ),
+					'<code>templates/index.html</code>',
+					'<code>index.php</code>',
+					__( 'https://developer.wordpress.org/themes/advanced-topics/child-themes/' ),
+					'<code>Template</code>',
+					'<code>style.css</code>'
 				)
 			);
 		}
@@ -586,7 +599,7 @@ class Theme_Upgrader extends WP_Upgrader {
 			$error = sprintf(
 				/* translators: 1: Current PHP version, 2: Version required by the uploaded theme. */
 				__( 'The PHP version on your server is %1$s, however the uploaded theme requires %2$s.' ),
-				phpversion(),
+				PHP_VERSION,
 				$requires_php
 			);
 
@@ -616,20 +629,20 @@ class Theme_Upgrader extends WP_Upgrader {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param bool|WP_Error $return Upgrade offer return.
-	 * @param array         $theme  Theme arguments.
-	 * @return bool|WP_Error The passed in $return param or WP_Error.
+	 * @param bool|WP_Error $response The installation response before the installation has started.
+	 * @param array         $theme    Theme arguments.
+	 * @return bool|WP_Error The original `$response` parameter or WP_Error.
 	 */
-	public function current_before( $return, $theme ) {
-		if ( is_wp_error( $return ) ) {
-			return $return;
+	public function current_before( $response, $theme ) {
+		if ( is_wp_error( $response ) ) {
+			return $response;
 		}
 
 		$theme = isset( $theme['theme'] ) ? $theme['theme'] : '';
 
-		// Only run if active theme
+		// Only run if active theme.
 		if ( get_stylesheet() !== $theme ) {
-			return $return;
+			return $response;
 		}
 
 		// Change to maintenance mode. Bulk edit handles this separately.
@@ -637,7 +650,7 @@ class Theme_Upgrader extends WP_Upgrader {
 			$this->maintenance_mode( true );
 		}
 
-		return $return;
+		return $response;
 	}
 
 	/**
@@ -648,20 +661,20 @@ class Theme_Upgrader extends WP_Upgrader {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param bool|WP_Error $return Upgrade offer return.
-	 * @param array         $theme  Theme arguments.
-	 * @return bool|WP_Error The passed in $return param or WP_Error.
+	 * @param bool|WP_Error $response The installation response after the installation has finished.
+	 * @param array         $theme    Theme arguments.
+	 * @return bool|WP_Error The original `$response` parameter or WP_Error.
 	 */
-	public function current_after( $return, $theme ) {
-		if ( is_wp_error( $return ) ) {
-			return $return;
+	public function current_after( $response, $theme ) {
+		if ( is_wp_error( $response ) ) {
+			return $response;
 		}
 
 		$theme = isset( $theme['theme'] ) ? $theme['theme'] : '';
 
 		// Only run if active theme.
 		if ( get_stylesheet() !== $theme ) {
-			return $return;
+			return $response;
 		}
 
 		// Ensure stylesheet name hasn't changed after the upgrade:
@@ -675,7 +688,7 @@ class Theme_Upgrader extends WP_Upgrader {
 		if ( ! $this->bulk ) {
 			$this->maintenance_mode( false );
 		}
-		return $return;
+		return $response;
 	}
 
 	/**

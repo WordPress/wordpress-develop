@@ -77,6 +77,62 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( $headers, $enveloped['headers'] );
 	}
 
+	/**
+	 * @dataProvider data_envelope_params
+	 * @ticket 54015
+	 */
+	public function test_envelope_param( $_embed ) {
+		// Register our testing route.
+		rest_get_server()->register_route(
+			'test',
+			'/test/embeddable',
+			array(
+				'methods'  => 'GET',
+				'callback' => array( $this, 'embedded_response_callback' ),
+			)
+		);
+		$data    = array(
+			'amount of arbitrary data' => 'alot',
+		);
+		$status  = 987;
+		$headers = array(
+			'Arbitrary-Header' => 'value',
+			'Multiple'         => 'maybe, yes',
+		);
+
+		$response = new WP_REST_Response( $data, $status );
+		$response->header( 'Arbitrary-Header', 'value' );
+
+		// Check header concatenation as well.
+		$response->header( 'Multiple', 'maybe' );
+		$response->header( 'Multiple', 'yes', false );
+
+		// All others should be embedded.
+		$response->add_link( 'alternate', rest_url( '/test/embeddable' ), array( 'embeddable' => true ) );
+
+		$embed             = rest_parse_embed_param( $_embed );
+		$envelope_response = rest_get_server()->envelope_response( $response, $embed );
+
+		// The envelope should still be a response, but with defaults.
+		$this->assertInstanceOf( WP_REST_Response::class, $envelope_response );
+		$this->assertSame( 200, $envelope_response->get_status() );
+		$this->assertEmpty( $envelope_response->get_headers() );
+		$this->assertEmpty( $envelope_response->get_links() );
+
+		$enveloped = $envelope_response->get_data();
+
+		$this->assertArrayHasKey( 'body', $enveloped );
+		$this->assertArrayHasKey( '_links', $enveloped['body'] );
+		$this->assertArrayHasKey( '_embedded', $enveloped['body'] );
+		$this->assertArrayHasKey( 'alternate', $enveloped['body']['_embedded'] );
+
+		$alternate = $enveloped['body']['_embedded']['alternate'];
+		$this->assertCount( 1, $alternate );
+
+		$this->assertSame( $status, $enveloped['status'] );
+		$this->assertSame( $headers, $enveloped['headers'] );
+	}
+
 	public function test_default_param() {
 
 		register_rest_route(
@@ -1183,7 +1239,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$result  = rest_get_server()->serve_request( '/' );
 		$headers = rest_get_server()->sent_headers;
 
-		$this->assertSame( '<' . esc_url_raw( $api_root ) . '>; rel="https://api.w.org/"', $headers['Link'] );
+		$this->assertSame( '<' . sanitize_url( $api_root ) . '>; rel="https://api.w.org/"', $headers['Link'] );
 	}
 
 	public function test_nocache_headers_on_authenticated_requests() {
@@ -2172,5 +2228,20 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$result  = rest_get_server()->serve_request( '/' );
 
 		return rest_get_server()->sent_headers;
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_envelope_params() {
+		return array(
+			array( '1' ),
+			array( 'true' ),
+			array( false ),
+			array( 'alternate' ),
+			array( array( 'alternate' ) ),
+		);
 	}
 }

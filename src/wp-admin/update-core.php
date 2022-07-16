@@ -59,7 +59,7 @@ function list_core_update( $update ) {
 
 	$message       = '';
 	$form_action   = 'update-core.php?action=do-core-upgrade';
-	$php_version   = phpversion();
+	$php_version   = PHP_VERSION;
 	$mysql_version = $wpdb->db_version();
 	$show_buttons  = true;
 
@@ -185,7 +185,7 @@ function list_core_update( $update ) {
 		// Partial builds don't need language-specific warnings.
 		echo '<p class="hint">' . sprintf(
 			/* translators: %s: WordPress version. */
-			__( 'You are about to install WordPress %s <strong>in English (US).</strong> There is a chance this update will break your translation. You may prefer to wait for the localized version to be released.' ),
+			__( 'You are about to install WordPress %s <strong>in English (US)</strong>. There is a chance this update will break your translation. You may prefer to wait for the localized version to be released.' ),
 			'development' !== $update->response ? $update->current : ''
 		) . '</p>';
 	}
@@ -535,7 +535,7 @@ function list_plugin_updates() {
 		$compatible_php = is_php_version_compatible( $requires_php );
 
 		if ( ! $compatible_php && current_user_can( 'update_php' ) ) {
-			$compat .= '<br>' . __( 'This update doesn&#8217;t work with your version of PHP.' ) . '&nbsp;';
+			$compat .= '<br>' . __( 'This update does not work with your version of PHP.' ) . '&nbsp;';
 			$compat .= sprintf(
 				/* translators: %s: URL to Update PHP page. */
 				__( '<a href="%s">Learn more about updating PHP</a>.' ),
@@ -681,7 +681,7 @@ function list_theme_updates() {
 		$compat = '';
 
 		if ( ! $compatible_wp && ! $compatible_php ) {
-			$compat .= '<br>' . __( 'This update doesn&#8217;t work with your versions of WordPress and PHP.' ) . '&nbsp;';
+			$compat .= '<br>' . __( 'This update does not work with your versions of WordPress and PHP.' ) . '&nbsp;';
 			if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
 				$compat .= sprintf(
 					/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
@@ -715,7 +715,7 @@ function list_theme_updates() {
 				}
 			}
 		} elseif ( ! $compatible_wp ) {
-			$compat .= '<br>' . __( 'This update doesn&#8217;t work with your version of WordPress.' ) . '&nbsp;';
+			$compat .= '<br>' . __( 'This update does not work with your version of WordPress.' ) . '&nbsp;';
 			if ( current_user_can( 'update_core' ) ) {
 				$compat .= sprintf(
 					/* translators: %s: URL to WordPress Updates screen. */
@@ -724,7 +724,7 @@ function list_theme_updates() {
 				);
 			}
 		} elseif ( ! $compatible_php ) {
-			$compat .= '<br>' . __( 'This update doesn&#8217;t work with your version of PHP.' ) . '&nbsp;';
+			$compat .= '<br>' . __( 'This update does not work with your version of PHP.' ) . '&nbsp;';
 			if ( current_user_can( 'update_php' ) ) {
 				$compat .= sprintf(
 					/* translators: %s: URL to Update PHP page. */
