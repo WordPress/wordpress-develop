@@ -53,7 +53,7 @@ endif;
 
 if ( ! function_exists( 'wp_get_current_user' ) ) :
 	/**
-	 * Retrieve the current user object.
+	 * Retrieves the current user object.
 	 *
 	 * Will set the current user, if the current user is not set. The current user
 	 * will be set to the logged-in person. If no user is logged-in, then it will
@@ -73,7 +73,7 @@ endif;
 
 if ( ! function_exists( 'get_userdata' ) ) :
 	/**
-	 * Retrieve user info by user ID.
+	 * Retrieves user info by user ID.
 	 *
 	 * @since 0.71
 	 *
@@ -87,7 +87,7 @@ endif;
 
 if ( ! function_exists( 'get_user_by' ) ) :
 	/**
-	 * Retrieve user info by a given field
+	 * Retrieves user info by a given field.
 	 *
 	 * @since 2.8.0
 	 * @since 4.4.0 Added 'ID' as an alias of 'id' for the `$field` parameter.
@@ -121,7 +121,7 @@ endif;
 
 if ( ! function_exists( 'cache_users' ) ) :
 	/**
-	 * Retrieve info for user lists to prevent multiple queries by get_userdata()
+	 * Retrieves info for user lists to prevent multiple queries by get_userdata().
 	 *
 	 * @since 3.0.0
 	 *
@@ -131,6 +131,8 @@ if ( ! function_exists( 'cache_users' ) ) :
 	 */
 	function cache_users( $user_ids ) {
 		global $wpdb;
+
+		update_meta_cache( 'user', $user_ids );
 
 		$clean = _get_non_cached_ids( $user_ids, 'users' );
 
@@ -142,12 +144,9 @@ if ( ! function_exists( 'cache_users' ) ) :
 
 		$users = $wpdb->get_results( "SELECT * FROM $wpdb->users WHERE ID IN ($list)" );
 
-		$ids = array();
 		foreach ( $users as $user ) {
 			update_user_caches( $user );
-			$ids[] = $user->ID;
 		}
-		update_meta_cache( 'user', $ids );
 	}
 endif;
 
@@ -589,7 +588,7 @@ endif;
 
 if ( ! function_exists( 'wp_authenticate' ) ) :
 	/**
-	 * Authenticate a user, confirming the login credentials are valid.
+	 * Authenticates a user, confirming the login credentials are valid.
 	 *
 	 * @since 2.5.0
 	 * @since 4.5.0 `$username` now accepts an email address.
@@ -615,14 +614,14 @@ if ( ! function_exists( 'wp_authenticate' ) ) :
 		 * @param null|WP_User|WP_Error $user     WP_User if the user is authenticated.
 		 *                                        WP_Error or null otherwise.
 		 * @param string                $username Username or email address.
-		 * @param string                $password User password
+		 * @param string                $password User password.
 		 */
 		$user = apply_filters( 'authenticate', null, $username, $password );
 
 		if ( null == $user ) {
 			// TODO: What should the error message be? (Or would these even happen?)
 			// Only needed if all authentication handlers fail to return anything.
-			$user = new WP_Error( 'authentication_failed', __( '<strong>Error</strong>: Invalid username, email address or incorrect password.' ) );
+			$user = new WP_Error( 'authentication_failed', __( '<strong>Error:</strong> Invalid username, email address or incorrect password.' ) );
 		}
 
 		$ignore_codes = array( 'empty_username', 'empty_password' );
@@ -649,7 +648,7 @@ endif;
 
 if ( ! function_exists( 'wp_logout' ) ) :
 	/**
-	 * Log the current user out.
+	 * Logs the current user out.
 	 *
 	 * @since 2.5.0
 	 */
@@ -1462,7 +1461,7 @@ if ( ! function_exists( 'wp_sanitize_redirect' ) ) :
 	}
 
 	/**
-	 * URL encode UTF-8 characters in a URL.
+	 * URL encodes UTF-8 characters in a URL.
 	 *
 	 * @ignore
 	 * @since 4.2.0
@@ -1538,13 +1537,13 @@ if ( ! function_exists( 'wp_validate_redirect' ) ) :
 	 * path. A plugin can therefore set or remove allowed host(s) to or from the
 	 * list.
 	 *
-	 * If the host is not allowed, then the redirect is to $default supplied
+	 * If the host is not allowed, then the redirect is to $default supplied.
 	 *
 	 * @since 2.8.1
 	 *
-	 * @param string $location The redirect to validate
-	 * @param string $default  The value to return if $location is not allowed
-	 * @return string redirect-sanitized URL
+	 * @param string $location The redirect to validate.
+	 * @param string $default  The value to return if $location is not allowed.
+	 * @return string redirect-sanitized URL.
 	 */
 	function wp_validate_redirect( $location, $default = '' ) {
 		$location = wp_sanitize_redirect( trim( $location, " \t\n\r\0\x08\x0B" ) );
@@ -1614,12 +1613,12 @@ endif;
 
 if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 	/**
-	 * Notify an author (and/or others) of a comment/trackback/pingback on a post.
+	 * Notifies an author (and/or others) of a comment/trackback/pingback on a post.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @param int|WP_Comment $comment_id Comment ID or WP_Comment object.
-	 * @param string         $deprecated Not used
+	 * @param string         $deprecated Not used.
 	 * @return bool True on completion. False if no email addresses were specified.
 	 */
 	function wp_notify_postauthor( $comment_id, $deprecated = null ) {
@@ -2027,7 +2026,7 @@ endif;
 
 if ( ! function_exists( 'wp_password_change_notification' ) ) :
 	/**
-	 * Notify the blog admin of a user changing password, normally via email.
+	 * Notifies the blog admin of a user changing password, normally via email.
 	 *
 	 * @since 2.7.0
 	 *
@@ -2081,7 +2080,7 @@ endif;
 
 if ( ! function_exists( 'wp_new_user_notification' ) ) :
 	/**
-	 * Email login credentials to a newly-registered user.
+	 * Emails login credentials to a newly-registered user.
 	 *
 	 * A new user registration notification is also sent to admin email.
 	 *
@@ -2111,7 +2110,17 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		// We want to reverse this for the plain text arena of emails.
 		$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 
-		if ( 'user' !== $notify ) {
+		/**
+		 * Filters whether the admin is notified of a new user registration.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param bool    $send Whether to send the email. Default true.
+		 * @param WP_User $user User object for new user.
+		 */
+		$send_notification_to_admin = apply_filters( 'wp_send_new_user_notification_to_admin', true, $user );
+
+		if ( 'user' !== $notify && true === $send_notification_to_admin ) {
 			$switched_locale = switch_to_locale( get_locale() );
 
 			/* translators: %s: Site title. */
@@ -2159,8 +2168,18 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 			}
 		}
 
+		/**
+		 * Filters whether the user is notified of their new user registration.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param bool    $send Whether to send the email. Default true.
+		 * @param WP_User $user User object for new user.
+		 */
+		$send_notification_to_user = apply_filters( 'wp_send_new_user_notification_to_user', true, $user );
+
 		// `$deprecated` was pre-4.3 `$plaintext_pass`. An empty `$plaintext_pass` didn't sent a user notification.
-		if ( 'admin' === $notify || ( empty( $deprecated ) && empty( $notify ) ) ) {
+		if ( 'admin' === $notify || true !== $send_notification_to_user || ( empty( $deprecated ) && empty( $notify ) ) ) {
 			return;
 		}
 
@@ -2314,7 +2333,7 @@ if ( ! function_exists( 'wp_create_nonce' ) ) :
 	 * and window of time.
 	 *
 	 * @since 2.0.3
-	 * @since 4.0.0 Session tokens were integrated with nonce creation
+	 * @since 4.0.0 Session tokens were integrated with nonce creation.
 	 *
 	 * @param string|int $action Scalar value to add context to the nonce.
 	 * @return string The token.
@@ -2364,7 +2383,7 @@ if ( ! function_exists( 'wp_salt' ) ) :
 	 *
 	 * @link https://api.wordpress.org/secret-key/1.1/salt/ Create secrets for wp-config.php
 	 *
-	 * @param string $scheme Authentication scheme (auth, secure_auth, logged_in, nonce)
+	 * @param string $scheme Authentication scheme (auth, secure_auth, logged_in, nonce).
 	 * @return string Salt value
 	 */
 	function wp_salt( $scheme = 'auth' ) {
@@ -2440,13 +2459,13 @@ endif;
 
 if ( ! function_exists( 'wp_hash' ) ) :
 	/**
-	 * Get hash of given string.
+	 * Gets hash of given string.
 	 *
 	 * @since 2.0.3
 	 *
-	 * @param string $data   Plain text to hash
-	 * @param string $scheme Authentication scheme (auth, secure_auth, logged_in, nonce)
-	 * @return string Hash of $data
+	 * @param string $data   Plain text to hash.
+	 * @param string $scheme Authentication scheme (auth, secure_auth, logged_in, nonce).
+	 * @return string Hash of $data.
 	 */
 	function wp_hash( $data, $scheme = 'auth' ) {
 		$salt = wp_salt( $scheme );
@@ -2457,7 +2476,7 @@ endif;
 
 if ( ! function_exists( 'wp_hash_password' ) ) :
 	/**
-	 * Create a hash (encrypt) of a plain text password.
+	 * Creates a hash (encrypt) of a plain text password.
 	 *
 	 * For integration with other applications, this function can be overwritten to
 	 * instead use the other package password checking algorithm.
@@ -2466,8 +2485,8 @@ if ( ! function_exists( 'wp_hash_password' ) ) :
 	 *
 	 * @global PasswordHash $wp_hasher PHPass object
 	 *
-	 * @param string $password Plain text user password to hash
-	 * @return string The hash string of the password
+	 * @param string $password Plain text user password to hash.
+	 * @return string The hash string of the password.
 	 */
 	function wp_hash_password( $password ) {
 		global $wp_hasher;
@@ -2497,13 +2516,13 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 	 * @since 2.5.0
 	 *
 	 * @global PasswordHash $wp_hasher PHPass object used for checking the password
-	 *                                 against the $hash + $password
+	 *                                 against the $hash + $password.
 	 * @uses PasswordHash::CheckPassword
 	 *
-	 * @param string     $password Plaintext user's password
+	 * @param string     $password Plaintext user's password.
 	 * @param string     $hash     Hash of the user's password to check against.
 	 * @param string|int $user_id  Optional. User ID.
-	 * @return bool False, if the $password does not match the hashed password
+	 * @return bool False, if the $password does not match the hashed password.
 	 */
 	function wp_check_password( $password, $hash, $user_id = '' ) {
 		global $wp_hasher;
@@ -2596,19 +2615,30 @@ if ( ! function_exists( 'wp_rand' ) ) :
 	 *
 	 * @since 2.6.2
 	 * @since 4.4.0 Uses PHP7 random_int() or the random_compat library if available.
+	 * @since 6.1.0 Returns zero instead of a random number if both `$min` and `$max` are zero.
 	 *
 	 * @global string $rnd_value
 	 *
-	 * @param int $min Lower limit for the generated number
-	 * @param int $max Upper limit for the generated number
-	 * @return int A random number between min and max
+	 * @param int $min Optional. Lower limit for the generated number.
+	 *                 Accepts positive integers or zero. Defaults to 0.
+	 * @param int $max Optional. Upper limit for the generated number.
+	 *                 Accepts positive integers. Defaults to 4294967295.
+	 * @return int A random number between min and max.
 	 */
-	function wp_rand( $min = 0, $max = 0 ) {
+	function wp_rand( $min = null, $max = null ) {
 		global $rnd_value;
 
 		// Some misconfigured 32-bit environments (Entropy PHP, for example)
 		// truncate integers larger than PHP_INT_MAX to PHP_INT_MAX rather than overflowing them to floats.
 		$max_random_number = 3000000000 === 2147483647 ? (float) '4294967295' : 4294967295; // 4294967295 = 0xffffffff
+
+		if ( null === $min ) {
+			$min = 0;
+		}
+
+		if ( null === $max ) {
+			$max = $max_random_number;
+		}
 
 		// We only handle ints, floats are truncated to their integer value.
 		$min = (int) $min;
@@ -2618,10 +2648,9 @@ if ( ! function_exists( 'wp_rand' ) ) :
 		static $use_random_int_functionality = true;
 		if ( $use_random_int_functionality ) {
 			try {
-				$_max = ( 0 != $max ) ? $max : $max_random_number;
 				// wp_rand() can accept arguments in either order, PHP cannot.
-				$_max = max( $min, $_max );
-				$_min = min( $min, $_max );
+				$_max = max( $min, $max );
+				$_min = min( $min, $max );
 				$val  = random_int( $_min, $_max );
 				if ( false !== $val ) {
 					return absint( $val );
@@ -2661,9 +2690,7 @@ if ( ! function_exists( 'wp_rand' ) ) :
 		$value = abs( hexdec( $value ) );
 
 		// Reduce the value to be within the min - max range.
-		if ( 0 != $max ) {
-			$value = $min + ( $max - $min + 1 ) * $value / ( $max_random_number + 1 );
-		}
+		$value = $min + ( $max - $min + 1 ) * $value / ( $max_random_number + 1 );
 
 		return abs( (int) $value );
 	}
@@ -2684,8 +2711,8 @@ if ( ! function_exists( 'wp_set_password' ) ) :
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param string $password The plaintext new user password
-	 * @param int    $user_id  User ID
+	 * @param string $password The plaintext new user password.
+	 * @param int    $user_id  User ID.
 	 */
 	function wp_set_password( $password, $user_id ) {
 		global $wpdb;
@@ -2706,7 +2733,7 @@ endif;
 
 if ( ! function_exists( 'get_avatar' ) ) :
 	/**
-	 * Retrieve the avatar `<img>` tag for a user, email address, MD5 hash, comment, or post.
+	 * Retrieves the avatar `<img>` tag for a user, email address, MD5 hash, comment, or post.
 	 *
 	 * @since 2.5.0
 	 * @since 4.2.0 Optional `$args` parameter added.
@@ -2756,6 +2783,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			'force_display' => false,
 			'loading'       => null,
 			'extra_attr'    => '',
+			'decoding'      => 'async',
 		);
 
 		if ( wp_lazy_loading_enabled( 'img', 'get_avatar' ) ) {
@@ -2843,6 +2871,13 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			$extra_attr .= "loading='{$loading}'";
 		}
 
+		if ( in_array( $args['decoding'], array( 'async', 'sync', 'auto' ) ) && ! preg_match( '/\bdecoding\s*=/', $extra_attr ) ) {
+			if ( ! empty( $extra_attr ) ) {
+				$extra_attr .= ' ';
+			}
+			$extra_attr .= "decoding='{$args['decoding']}'";
+		}
+
 		$avatar = sprintf(
 			"<img alt='%s' src='%s' srcset='%s' class='%s' height='%d' width='%d' %s/>",
 			esc_attr( $args['alt'] ),
@@ -2887,8 +2922,8 @@ if ( ! function_exists( 'wp_text_diff' ) ) :
 	 * @uses Text_Diff
 	 * @uses WP_Text_Diff_Renderer_Table
 	 *
-	 * @param string       $left_string  "old" (left) version of string
-	 * @param string       $right_string "new" (right) version of string
+	 * @param string       $left_string  "old" (left) version of string.
+	 * @param string       $right_string "new" (right) version of string.
 	 * @param string|array $args {
 	 *     Associative array of options to pass to WP_Text_Diff_Renderer_Table().
 	 *

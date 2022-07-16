@@ -1600,7 +1600,7 @@ function do_feed() {
 	}
 
 	if ( ! has_action( "do_feed_{$feed}" ) ) {
-		wp_die( __( '<strong>Error</strong>: This is not a valid feed template.' ), '', array( 'response' => 404 ) );
+		wp_die( __( '<strong>Error:</strong> This is not a valid feed template.' ), '', array( 'response' => 404 ) );
 	}
 
 	/**
@@ -2132,7 +2132,7 @@ function path_join( $base, $path ) {
 		return $path;
 	}
 
-	return rtrim( $base, '/' ) . '/' . ltrim( $path, '/' );
+	return rtrim( $base, '/' ) . '/' . $path;
 }
 
 /**

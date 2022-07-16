@@ -2462,6 +2462,7 @@ function delete_get_calendar_cache() {
  * attributes are supported. As well as any plugins which want to display it.
  *
  * @since 1.0.1
+ * @since 4.4.0 No longer used in core.
  *
  * @global array $allowedtags
  *
@@ -4559,7 +4560,7 @@ function register_admin_color_schemes() {
 /**
  * Displays the URL of a WordPress admin CSS file.
  *
- * @see WP_Styles::_css_href and its {@see 'style_loader_src'} filter.
+ * @see WP_Styles::_css_href() and its {@see 'style_loader_src'} filter.
  *
  * @since 2.3.0
  *
@@ -4759,10 +4760,10 @@ function get_the_generator( $type = '' ) {
 			$gen = '<generator uri="https://wordpress.org/" version="' . esc_attr( get_bloginfo_rss( 'version' ) ) . '">WordPress</generator>';
 			break;
 		case 'rss2':
-			$gen = '<generator>' . esc_url_raw( 'https://wordpress.org/?v=' . get_bloginfo_rss( 'version' ) ) . '</generator>';
+			$gen = '<generator>' . sanitize_url( 'https://wordpress.org/?v=' . get_bloginfo_rss( 'version' ) ) . '</generator>';
 			break;
 		case 'rdf':
-			$gen = '<admin:generatorAgent rdf:resource="' . esc_url_raw( 'https://wordpress.org/?v=' . get_bloginfo_rss( 'version' ) ) . '" />';
+			$gen = '<admin:generatorAgent rdf:resource="' . sanitize_url( 'https://wordpress.org/?v=' . get_bloginfo_rss( 'version' ) ) . '" />';
 			break;
 		case 'comment':
 			$gen = '<!-- generator="WordPress/' . esc_attr( get_bloginfo( 'version' ) ) . '" -->';

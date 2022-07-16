@@ -282,7 +282,7 @@ final class WP_Theme implements ArrayAccess {
 				)
 			);
 			if ( ! file_exists( $this->theme_root ) ) { // Don't cache this one.
-				$this->errors->add( 'theme_root_missing', __( '<strong>Error</strong>: The themes directory is either empty or does not exist. Please check your installation.' ) );
+				$this->errors->add( 'theme_root_missing', __( '<strong>Error:</strong> The themes directory is either empty or does not exist. Please check your installation.' ) );
 			}
 			return;
 		} elseif ( ! is_readable( $this->theme_root . '/' . $theme_file ) ) {
@@ -888,7 +888,7 @@ final class WP_Theme implements ArrayAccess {
 				break;
 			case 'ThemeURI':
 			case 'AuthorURI':
-				$value = esc_url_raw( $value );
+				$value = sanitize_url( $value );
 				break;
 			case 'Tags':
 				$value = array_filter( array_map( 'trim', explode( ',', strip_tags( $value ) ) ) );

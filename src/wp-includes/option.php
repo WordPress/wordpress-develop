@@ -1109,8 +1109,8 @@ function wp_user_settings() {
 
 	// The cookie is not set in the current browser or the saved value is newer.
 	$secure = ( 'https' === parse_url( admin_url(), PHP_URL_SCHEME ) );
-	setcookie( 'wp-settings-' . $user_id, $settings, time() + YEAR_IN_SECONDS, SITECOOKIEPATH, null, $secure );
-	setcookie( 'wp-settings-time-' . $user_id, time(), time() + YEAR_IN_SECONDS, SITECOOKIEPATH, null, $secure );
+	setcookie( 'wp-settings-' . $user_id, $settings, time() + YEAR_IN_SECONDS, SITECOOKIEPATH, '', $secure );
+	setcookie( 'wp-settings-time-' . $user_id, time(), time() + YEAR_IN_SECONDS, SITECOOKIEPATH, '', $secure );
 	$_COOKIE[ 'wp-settings-' . $user_id ] = $settings;
 }
 
@@ -2063,6 +2063,7 @@ function set_site_transient( $transient, $value, $expiration = 0 ) {
  * does not encompass all settings available in WordPress.
  *
  * @since 4.7.0
+ * @since 6.0.1 The `show_on_front`, `page_on_front`, and `page_for_posts` options were added.
  */
 function register_initial_settings() {
 	register_setting(
@@ -2217,6 +2218,36 @@ function register_initial_settings() {
 			'type'         => 'integer',
 			'description'  => __( 'Blog pages show at most.' ),
 			'default'      => 10,
+		)
+	);
+
+	register_setting(
+		'reading',
+		'show_on_front',
+		array(
+			'show_in_rest' => true,
+			'type'         => 'string',
+			'description'  => __( 'What to show on the front page' ),
+		)
+	);
+
+	register_setting(
+		'reading',
+		'page_on_front',
+		array(
+			'show_in_rest' => true,
+			'type'         => 'integer',
+			'description'  => __( 'The ID of the page that should be displayed on the front page' ),
+		)
+	);
+
+	register_setting(
+		'reading',
+		'page_for_posts',
+		array(
+			'show_in_rest' => true,
+			'type'         => 'integer',
+			'description'  => __( 'The ID of the page that should display the latest posts' ),
 		)
 	);
 
