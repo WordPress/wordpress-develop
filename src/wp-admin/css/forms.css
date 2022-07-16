@@ -1070,11 +1070,6 @@ table.form-table td .updated p {
 	vertical-align: middle;
 }
 
-.form-table.permalink-structure .available-structure-tags li {
-	float: left;
-	margin-right: 5px;
-}
-
 .permalink-structure-optional legend {
 	padding: 0;
 }
@@ -1085,6 +1080,11 @@ table.form-table td .updated p {
 
 .permalink-structure-optional p code {
 	display: inline-block;
+}
+
+.form-table.permalink-structure .available-structure-tags li {
+	float: left;
+	margin-right: 5px;
 }
 
 /*------------------------------------------------------------------------------
