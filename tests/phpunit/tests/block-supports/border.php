@@ -1,6 +1,8 @@
 <?php
 /**
  * @group block-supports
+ *
+ * @covers ::wp_apply_border_support
  */
 class Test_Block_Supports_Border extends WP_UnitTestCase {
 	/**
@@ -21,8 +23,6 @@ class Test_Block_Supports_Border extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
-	 *
-	 * @covers ::wp_apply_border_support
 	 */
 	function test_border_color_slug_with_numbers_is_kebab_cased_properly() {
 		$this->test_block_name = 'test/border-color-slug-with-numbers-is-kebab-cased-properly';
@@ -72,8 +72,6 @@ class Test_Block_Supports_Border extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
-	 *
-	 * @covers ::wp_apply_border_support
 	 */
 	function test_border_with_skipped_serialization_block_supports() {
 		$this->test_block_name = 'test/border-with-skipped-serialization-block-supports';
@@ -118,8 +116,6 @@ class Test_Block_Supports_Border extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
-	 *
-	 * @covers ::wp_apply_border_support
 	 */
 	function test_radius_with_individual_skipped_serialization_block_supports() {
 		$this->test_block_name = 'test/radius-with-individual-skipped-serialization-block-supports';

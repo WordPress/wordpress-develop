@@ -1246,9 +1246,6 @@ module.exports = function(grunt) {
 		 * Update any non-@wordpress deps to the same version as required in the @wordpress packages (e.g. react 16 -> 17).
 		 */
 		grunt.task.run( 'wp-packages:refresh-deps' );
-
-		// Build the files stored in the src/ directory.
-		grunt.task.run( 'build' );
 	} );
 
 	grunt.renameTask( 'watch', '_watch' );
@@ -1696,6 +1693,12 @@ module.exports = function(grunt) {
 			cwd: __dirname,
 			stdio: 'inherit',
 		} );
+	} );
+
+	grunt.registerTask( 'wp-packages:sync-stable-blocks', 'Refresh the PHP files referring to stable @wordpress/block-library blocks.', function() {
+		grunt.log.writeln( `Syncing stable blocks from @wordpress/block-library to src/` );
+		const { main } = require( './tools/release/sync-stable-blocks' );
+		main();
 	} );
 
 	// Patch task.
