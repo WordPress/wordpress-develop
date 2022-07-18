@@ -1504,15 +1504,17 @@ function _wp_get_primary_and_additional_mime_types( $file, $attachment_id ) {
 	$output_mime_types     = isset( $image_mime_transforms[ $original_mime_type ] ) ? $image_mime_transforms[ $original_mime_type ] : array( $original_mime_type );
 
 	// Exclude any output mime types that the system doesn't support.
-	$output_mime_types = array_filter(
-		$output_mime_types,
-		function( $mime_type ) {
-			return wp_image_editor_supports(
-				array(
-					'mime_type' => $mime_type,
-				)
-			);
-		}
+	$output_mime_types = array_values(
+		array_filter(
+			$output_mime_types,
+			function( $mime_type ) {
+				return wp_image_editor_supports(
+					array(
+						'mime_type' => $mime_type,
+					)
+				);
+			}
+		)
 	);
 
 	// Handle an empty value for $output_mime_types: only output the original type.
