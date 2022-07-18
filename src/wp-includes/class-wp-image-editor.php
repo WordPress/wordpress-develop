@@ -495,7 +495,7 @@ abstract class WP_Image_Editor {
 	}
 
 	/**
-	 * Check if a JPEG image has EXIF Orientation tag and rotate it if needed.
+	 * Check if an image has EXIF Orientation tag and rotate it if needed.
 	 *
 	 * @since 5.3.0
 	 *
@@ -505,7 +505,7 @@ abstract class WP_Image_Editor {
 	public function maybe_exif_rotate() {
 		$orientation = null;
 
-		if ( is_callable( 'exif_read_data' ) && 'image/jpeg' === $this->mime_type ) {
+		if ( is_callable( 'exif_read_data' ) ) {
 			$exif_data = @exif_read_data( $this->file );
 
 			if ( ! empty( $exif_data['Orientation'] ) ) {
