@@ -731,6 +731,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 200, $response->get_status() );
 
 		$all_data = $response->get_data();
+
+		$this->assertNotEmpty( $all_data );
+
 		foreach ( $all_data as $post ) {
 			$this->assertNotEquals( $draft_id, $post['id'] );
 		}

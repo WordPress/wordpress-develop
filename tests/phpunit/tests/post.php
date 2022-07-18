@@ -923,6 +923,9 @@ class Tests_Post extends WP_UnitTestCase {
 		$terms = get_terms( $tax );
 		$term  = reset( $terms );
 
+		$this->assertNotEmpty( $matches );
+		$this->assertNotEmpty( $matches[1] );
+
 		foreach ( $matches[1] as $url ) {
 			$this->assertStringContainsString( 'tag_ID=' . $term->term_id, $url );
 			$this->assertStringContainsString( 'post_type=new_post_type', $url );

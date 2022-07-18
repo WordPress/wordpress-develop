@@ -103,6 +103,8 @@ class Tests_Ajax_MediaEdit extends WP_Ajax_UnitTestCase {
 			}
 		}
 
+		$this->assertNotEmpty( $files_that_shouldnt_exist );
+
 		foreach ( $files_that_shouldnt_exist as $file ) {
 			$this->assertFileDoesNotExist( $file, 'IMAGE_EDIT_OVERWRITE is leaving garbage image files behind.' );
 		}

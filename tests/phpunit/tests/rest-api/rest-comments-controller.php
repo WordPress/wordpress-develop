@@ -3333,9 +3333,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			$this->assertSame( $comment->comment_author_IP, $data['author_ip'] );
 			$this->assertSame( $comment->comment_agent, $data['author_user_agent'] );
 			$this->assertSame( $comment->comment_content, $data['content']['raw'] );
-		}
-
-		if ( 'edit' !== $context ) {
+		} else {
 			$this->assertArrayNotHasKey( 'author_email', $data );
 			$this->assertArrayNotHasKey( 'author_ip', $data );
 			$this->assertArrayNotHasKey( 'author_user_agent', $data );

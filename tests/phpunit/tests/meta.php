@@ -99,6 +99,8 @@ class Tests_Meta extends WP_UnitTestCase {
 		$found              = $this->updated_mids;
 		$this->updated_mids = array();
 
+		$this->assertNotEmpty( $found );
+
 		foreach ( $found as $action => $mids ) {
 			$this->assertCount( 2, $mids );
 		}

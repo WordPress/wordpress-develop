@@ -7,6 +7,8 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 	public function test_instances() {
 		global $wp_taxonomies;
 
+		$this->assertNotEmpty( $wp_taxonomies );
+
 		foreach ( $wp_taxonomies as $taxonomy ) {
 			$this->assertInstanceOf( 'WP_Taxonomy', $taxonomy );
 		}

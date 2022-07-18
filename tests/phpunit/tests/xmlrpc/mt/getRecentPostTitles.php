@@ -36,6 +36,7 @@ class Tests_XMLRPC_mt_getRecentPostTitles extends WP_XMLRPC_UnitTestCase {
 
 		$results = $this->myxmlrpcserver->mt_getRecentPostTitles( array( 1, 'author', 'author' ) );
 		$this->assertNotIXRError( $results );
+		$this->assertNotEmpty( $results );
 
 		foreach ( $results as $result ) {
 			$post     = get_post( $result['postid'] );

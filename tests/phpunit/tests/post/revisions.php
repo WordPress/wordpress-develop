@@ -232,6 +232,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$this->assertCount( 1, $revisions );
 		$this->assertTrue( user_can( self::$editor_user_id, 'read_post', $post_id ) );
 
+		$this->assertNotEmpty( $revisions );
+
 		foreach ( $revisions as $revision ) {
 			$this->assertTrue( user_can( self::$editor_user_id, 'read_post', $revision->ID ) );
 		}

@@ -78,6 +78,9 @@ class Tests_Theme extends WP_UnitTestCase {
 	 */
 	public function test_get_theme() {
 		$themes = get_themes();
+
+		$this->assertNotEmpty( $themes );
+
 		foreach ( array_keys( $themes ) as $name ) {
 			$theme = get_theme( $name );
 			// WP_Theme implements ArrayAccess. Even ArrayObject returns false for is_array().
@@ -89,6 +92,9 @@ class Tests_Theme extends WP_UnitTestCase {
 
 	public function test_wp_get_theme() {
 		$themes = wp_get_themes();
+
+		$this->assertNotEmpty( $themes );
+
 		foreach ( $themes as $theme ) {
 			$this->assertInstanceOf( 'WP_Theme', $theme );
 			$this->assertFalse( $theme->errors() );
@@ -104,6 +110,9 @@ class Tests_Theme extends WP_UnitTestCase {
 	 */
 	public function test_get_themes_contents() {
 		$themes = get_themes();
+
+		$this->assertNotEmpty( $themes );
+
 		// Generic tests that should hold true for any theme.
 		foreach ( $themes as $k => $theme ) {
 			// Don't run these checks for custom themes.
@@ -267,6 +276,8 @@ class Tests_Theme extends WP_UnitTestCase {
 	 */
 	public function test_switch_theme() {
 		$themes = get_themes();
+
+		$this->assertNotEmpty( $themes );
 
 		// Switch to each theme in sequence.
 		// Do it twice to make sure we switch to the first theme, even if it's our starting theme.

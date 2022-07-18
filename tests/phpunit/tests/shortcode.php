@@ -671,10 +671,11 @@ EOF;
 	private function sub_registration( $input, $expected ) {
 		add_shortcode( $input, '' );
 		$actual = shortcode_exists( $input );
-		$this->assertSame( $expected, $actual );
 		if ( $actual ) {
 			remove_shortcode( $input );
 		}
+
+		$this->assertSame( $expected, $actual );
 	}
 
 	public function data_registration_bad() {

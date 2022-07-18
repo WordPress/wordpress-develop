@@ -412,6 +412,8 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$tags     = $response->get_data();
 
+		$this->assertNotEmpty( $tags );
+
 		$i = 0;
 		foreach ( $tags as $tag ) {
 			$this->assertSame( $tag['name'], "Tag {$i}" );
@@ -425,6 +427,8 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'orderby', 'id' );
 		$response = rest_get_server()->dispatch( $request );
 		$tags     = $response->get_data();
+
+		$this->assertNotEmpty( $tags );
 
 		foreach ( $tags as $tag ) {
 			$this->assertSame( $tag['name'], "Tag {$i}" );

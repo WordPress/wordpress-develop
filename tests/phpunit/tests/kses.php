@@ -490,6 +490,8 @@ EOF;
 
 		$tags = wp_kses_allowed_html( 'post' );
 
+		$this->assertNotEmpty( $tags );
+
 		foreach ( $tags as $tag ) {
 			$this->assertTrue( $tag['class'] );
 			$this->assertTrue( $tag['dir'] );

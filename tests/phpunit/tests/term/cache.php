@@ -233,6 +233,8 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 
 		update_term_cache( $terms );
 
+		$this->assertNotEmpty( $terms );
+
 		foreach ( $terms as $term ) {
 			$this->assertSame( $p, $term->object_id );
 		}

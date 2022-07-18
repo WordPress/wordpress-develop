@@ -136,7 +136,11 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 			)
 		);
 
-		foreach ( wp_allowed_protocols() as $scheme ) {
+		$protocols = wp_allowed_protocols();
+
+		$this->assertNotEmpty( $protocols );
+
+		foreach ( $protocols as $scheme ) {
 			$this->assertSame( "{$scheme}://example.com", esc_url( "{$scheme}://example.com" ), $scheme );
 			$this->assertSame(
 				"{$scheme}://example.com",

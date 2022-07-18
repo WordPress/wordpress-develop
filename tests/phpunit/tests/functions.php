@@ -1350,6 +1350,8 @@ class Tests_Functions extends WP_UnitTestCase {
 	public function test_wp_ext2type() {
 		$extensions = wp_get_ext_types();
 
+		$this->assertNotEmpty( $extensions );
+
 		foreach ( $extensions as $type => $extension_list ) {
 			foreach ( $extension_list as $extension ) {
 				$this->assertSame( $type, wp_ext2type( $extension ) );

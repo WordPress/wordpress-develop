@@ -29,12 +29,13 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 				'post__in' => array( $post2 ),
 			)
 		);
-		if ( $q->have_posts() ) {
+
+		$this->assertTrue( $q->have_posts() );
+
 			while ( $q->have_posts() ) {
 				$q->the_post();
 				$this->assertSame( 'Post 2 Page 1', wp_trim_excerpt() );
 			}
-		}
 	}
 
 	/**
@@ -60,12 +61,13 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 				'post__in' => array( $post2 ),
 			)
 		);
-		if ( $q->have_posts() ) {
+
+		$this->assertTrue( $q->have_posts() );
+
 			while ( $q->have_posts() ) {
 				$q->the_post();
 				$this->assertSame( 'Post 2 Page 1', wp_trim_excerpt() );
 			}
-		}
 	}
 
 	/**
