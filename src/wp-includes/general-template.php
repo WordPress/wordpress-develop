@@ -2462,6 +2462,7 @@ function delete_get_calendar_cache() {
  * attributes are supported. As well as any plugins which want to display it.
  *
  * @since 1.0.1
+ * @since 4.4.0 No longer used in core.
  *
  * @global array $allowedtags
  *
@@ -2679,7 +2680,7 @@ function the_time( $format = '' ) {
  * @param string      $format Optional. Format to use for retrieving the time the post
  *                            was written. Accepts 'G', 'U', or PHP date format.
  *                            Defaults to the 'time_format' option.
- * @param int|WP_Post $post   WP_Post object or ID. Default is global `$post` object.
+ * @param int|WP_Post $post   Post ID or post object. Default is global `$post` object.
  * @return string|int|false Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
  *                          False on failure.
  */
@@ -2715,7 +2716,7 @@ function get_the_time( $format = '', $post = null ) {
  * @param string      $format    Optional. Format to use for retrieving the time the post
  *                               was written. Accepts 'G', 'U', or PHP date format. Default 'U'.
  * @param bool        $gmt       Optional. Whether to retrieve the GMT time. Default false.
- * @param int|WP_Post $post      WP_Post object or ID. Default is global `$post` object.
+ * @param int|WP_Post $post      Post ID or post object. Default is global `$post` object.
  * @param bool        $translate Whether to translate the time string. Default false.
  * @return string|int|false Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
  *                          False on failure.
@@ -2776,7 +2777,7 @@ function get_post_time( $format = 'U', $gmt = false, $post = null, $translate = 
  *
  * @since 5.3.0
  *
- * @param int|WP_Post $post   Optional. WP_Post object or ID. Default is global `$post` object.
+ * @param int|WP_Post $post   Optional. Post ID or post object. Default is global `$post` object.
  * @param string      $field  Optional. Published or modified time to use from database. Accepts 'date' or 'modified'.
  *                            Default 'date'.
  * @param string      $source Optional. Local or UTC time to use from database. Accepts 'local' or 'gmt'.
@@ -2821,7 +2822,7 @@ function get_post_datetime( $post = null, $field = 'date', $source = 'local' ) {
  *
  * @since 5.3.0
  *
- * @param int|WP_Post $post  Optional. WP_Post object or ID. Default is global `$post` object.
+ * @param int|WP_Post $post  Optional. Post ID or post object. Default is global `$post` object.
  * @param string      $field Optional. Published or modified time to use from database. Accepts 'date' or 'modified'.
  *                           Default 'date'.
  * @return int|false Unix timestamp on success, false on failure.
@@ -2904,7 +2905,7 @@ function get_the_modified_time( $format = '', $post = null ) {
  * @param string      $format    Optional. Format to use for retrieving the time the post
  *                               was modified. Accepts 'G', 'U', or PHP date format. Default 'U'.
  * @param bool        $gmt       Optional. Whether to retrieve the GMT time. Default false.
- * @param int|WP_Post $post      WP_Post object or ID. Default is global `$post` object.
+ * @param int|WP_Post $post      Post ID or post object. Default is global `$post` object.
  * @param bool        $translate Whether to translate the time string. Default false.
  * @return string|int|false Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
  *                          False on failure.
