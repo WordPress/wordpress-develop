@@ -1383,4 +1383,26 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		);
 	}
+
+	/**
+	 * Test the `_wp_get_image_suffix()` function.
+	 * @dataProvider data_test__wp_get_image_suffix
+	 *
+	 * @ticket 55443
+	 */
+	public function test__wp_get_image_suffix( $resized, $rotated, $expected ) {
+		$this->assertSame( $expected, _wp_get_image_suffix( $resized, $rotated ) );
+	}
+
+	/**
+	 * Data provider for the `test__wp_get_image_suffix()` test.
+	 */
+	public function data_test__wp_get_image_suffix() {
+		return array(
+			array( false, false, '' ),
+			array( true, false, 'scaled' ),
+			array( false, true, 'rotated' ),
+			array( true, true, 'scaled' ),
+		);
+	}
 }
