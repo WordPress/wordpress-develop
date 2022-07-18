@@ -1005,6 +1005,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			 */
 			if ( is_callable( array( $this->image, 'getImageAlphaChannel' ) ) ) {
 				$not_alpha_channel_code = ( defined( 'Imagick::ALPHACHANNEL_UNDEFINED' ) ) ? Imagick::ALPHACHANNEL_UNDEFINED : 0;
+				var_dump($not_alpha_channel_code);
 				if ( $this->image->getImageAlphaChannel() === $not_alpha_channel_code ) {
 					return false;
 				}
