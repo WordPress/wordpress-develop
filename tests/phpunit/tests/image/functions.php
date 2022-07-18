@@ -1283,6 +1283,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @ticket 55443
 	 */
 	public function test__wp_maybe_scale_and_rotate_image( $file, $imagesize, $mime_type, $expected ) {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => $mime_type ) ) ) {
+			$this->markTestSkipped( sprintf( 'This test requires %s support.', $mime_type ) );
+		}
+
 		$attributes    = array( 'post_mime_type' => $mime_type );
 		$attachment_id = $this->factory->attachment->create_object( $file, 0, $attributes );
 		$exif_meta     = wp_read_image_metadata( $file );
@@ -1365,14 +1369,14 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			// Image that will not be rotated - WebP Exif is not supported in PHP.
 			array(
 				DIR_TESTDATA . '/images/test-image-rotated-90cw.webp',
-				array( 1200, 1800 ),
+				array( 1024, 768 ),
 				'image/jpeg',
 				array(
 					'rotated' => false,
 					'resized' => false,
 					'size'    => array(
-						'width'  => 1200,
-						'height' => 1800,
+						'width'  => 1024,
+						'height' => 768,
 					),
 				),
 			),
