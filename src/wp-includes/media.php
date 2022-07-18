@@ -5681,7 +5681,7 @@ function img_tag_add_dominant_color( $filtered_image, $context, $attachment_id )
 		$extra_class  = $image_meta['has_transparency'] ? 'has-transparency' : 'not-transparent';
 	}
 
-	if ( ! empty( $data ) || ! empty( $style ) || ! str_contains( $style,  $filtered_image )  || ! str_contains( $data,  $filtered_image ) ) {
+	if ( ! empty( $data ) || ! empty( $style ) || ! str_contains( $style, $filtered_image ) || ! str_contains( $data, $filtered_image ) ) {
 		$filtered_image = str_replace( '<img ', '<img ' . $data . $style, $filtered_image );
 	}
 	if ( ! empty( $extra_class ) ) {
