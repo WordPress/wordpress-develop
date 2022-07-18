@@ -341,11 +341,10 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 	wp_update_attachment_metadata( $attachment_id, $image_meta );
 
 	if ( ! empty( $additional_mime_types ) ) {
-		// Use the original file's exif_meta for the secondary mime types, especially useful for properly rotating WebP
-		// images since PHP does not correctly read exif meta data from WebP files.
-		$secondary_mime_meta               = $image_meta;
-		$secondary_mime_meta['image_meta'] = $exif_meta;
-		$image_meta                        = _wp_make_additional_mime_types( $additional_mime_types, $file, $secondary_mime_meta, $attachment_id );
+		// Use the original file's exif_meta orientation information for secondary mime generation.
+		$secondary_mime_meta                              = $image_meta;
+		$secondary_mime_meta['image_meta']['orientation'] = $exif_meta['orientation'];
+		$image_meta                                       = _wp_make_additional_mime_types( $additional_mime_types, $file, $secondary_mime_meta, $attachment_id );
 	}
 
 	$new_sizes = wp_get_registered_image_subsizes();
