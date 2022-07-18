@@ -1274,4 +1274,109 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->assertSame( array(), $additional_mime_types );
 		}
 	}
+
+	/**
+	 * Test the `_wp_maybe_scale_and_rotate_image()` function.
+	 *
+	 * @dataProvider data_test__wp_maybe_scale_and_rotate_image
+	 *
+	 * @ticket 55443
+	 */
+	public function test__wp_maybe_scale_and_rotate_image( $file, $imagesize, $mime_type, $expected ) {
+		$attributes    = array( 'post_mime_type' => $mime_type );
+		$attachment_id = $this->factory->attachment->create_object( $file, 0, $attributes );
+		$exif_meta     = wp_read_image_metadata( $file );
+
+		list( $editor, $resized, $rotated ) = _wp_maybe_scale_and_rotate_image( $file, $attachment_id, $imagesize, $exif_meta, $mime_type );
+
+		$this->assertSame( $expected['rotated'], $rotated );
+		$this->assertSame( $expected['resized'], $resized );
+		$this->assertSame( $expected['size'], $editor->get_size() );
+	}
+
+	/**
+	 * Data provider for the `test__wp_maybe_scale_and_rotate_image()` test.
+	 *
+	 * @return array
+	 */
+	public function data_test__wp_maybe_scale_and_rotate_image() {
+		return array(
+
+			// Image that will be scaled.
+			array(
+				DIR_TESTDATA . '/images/test-image-large.jpg',
+				array( 3000, 2250 ),
+				'image/jpeg',
+				array(
+					'rotated' => false,
+					'resized' => true,
+					'size'    => array(
+						'width'  => 2560,
+						'height' => 1920,
+					),
+				),
+			),
+
+			// Image that will not be scaled.
+			array(
+				DIR_TESTDATA . '/images/canola.jpg',
+				array( 640, 480 ),
+				'image/jpeg',
+				array(
+					'rotated' => false,
+					'resized' => false,
+					'size'    => array(
+						'width'  => 640,
+						'height' => 480,
+					),
+				),
+			),
+
+			// Image that will be flipped.
+			array(
+				DIR_TESTDATA . '/images/test-image-upside-down.jpg',
+				array( 600, 450 ),
+				'image/jpeg',
+				array(
+					'rotated' => true,
+					'resized' => false,
+					'size'    => array(
+						'width'  => 600,
+						'height' => 450,
+					),
+				),
+			),
+
+			// Image that will be rotated.
+			array(
+				DIR_TESTDATA . '/images/test-image-rotated-90ccw.jpg',
+				array( 1200, 1800 ),
+				'image/jpeg',
+				array(
+					'rotated' => true,
+					'resized' => false,
+					'size'    => array(
+						'width'  => 1800,
+						'height' => 1200,
+					),
+				),
+			),
+
+			// Image that will not be rotated - WebP Exif is not supported in PHP.
+			array(
+				DIR_TESTDATA . '/images/test-image-rotated-90cw.webp',
+				array( 1200, 1800 ),
+				'image/jpeg',
+				array(
+					'rotated' => false,
+					'resized' => false,
+					'size'    => array(
+						'width'  => 1200,
+						'height' => 1800,
+					),
+				),
+			),
+
+		);
+	}
 }

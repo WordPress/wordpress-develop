@@ -388,11 +388,11 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
  * @param array|null $exif_meta EXIF metadata if extracted from the image file.
  * @param string     $mime_type Output mime type.
  * @return array Array with three entries: The WP_Image_Editor instance, whether the image was resized, and whether the
- *               image was rotated. Each entry can alternatively be a WP_Error in case something went wrong.
+ *               image was rotated (booleans). Each entry can alternatively be a WP_Error in case something went wrong.
  */
 function _wp_maybe_scale_and_rotate_image( $file, $attachment_id, $imagesize, $exif_meta, $mime_type ) {
-	$resized = null;
-	$rotated = null;
+	$resized = false;
+	$rotated = false;
 
 	$editor = wp_get_image_editor( $file, array( 'mime_type' => $mime_type ) );
 	if ( is_wp_error( $editor ) ) {
