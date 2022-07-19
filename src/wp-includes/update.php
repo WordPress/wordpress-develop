@@ -101,7 +101,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		'initial_db_version' => get_site_option( 'initial_db_version' ),
 		'extensions'         => array_combine( get_loaded_extensions(), array_map( 'phpversion', get_loaded_extensions() ) ),
 		'platform_flags'     => array(
-			'os'   => defined( 'PHP_OS_FAMILY' ) ? PHP_OS_FAMILY : PHP_OS,
+			'os'   => PHP_OS,
 			'bits' => PHP_INT_SIZE === 4 ? 32 : 64,
 		),
 		'gd_info'            => extension_loaded( 'gd' ) ? gd_info() : array(),
