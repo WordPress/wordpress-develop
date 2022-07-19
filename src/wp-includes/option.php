@@ -1445,7 +1445,9 @@ function get_network_option( $network_id, $option, $default = false ) {
 		$value     = wp_cache_get( $cache_key, 'site-options' );
 
 		if ( ! isset( $value ) || false === $value ) {
-			$row = $wpdb->get_row( $wpdb->prepare( "SELECT meta_value FROM $wpdb->sitemeta WHERE meta_key = %s AND site_id = %d", $option, $network_id ) );
+			$suppress = $wpdb->suppress_errors();
+			$row      = $wpdb->get_row( $wpdb->prepare( "SELECT meta_value FROM $wpdb->sitemeta WHERE meta_key = %s AND site_id = %d", $option, $network_id ) );
+			$wpdb->suppress_errors( $suppress );
 
 			// Has to be get_row() instead of get_var() because of funkiness with 0, false, null values.
 			if ( is_object( $row ) ) {

@@ -700,12 +700,18 @@ class WP_Site_Query {
 		";
 
 		if ( $this->query_vars['count'] ) {
-			return (int) $wpdb->get_var( $this->request );
+			$suppress = $wpdb->suppress_errors();
+			$result   = $wpdb->get_var( $this->request );
+			$wpdb->suppress_errors( $suppress );
+
+			return (int) $result;
 		}
 
+		$suppress = $wpdb->suppress_errors();
 		$site_ids = $wpdb->get_col( $this->request );
+		$wpdb->suppress_errors( $suppress );
 
-		return array_map( 'intval', $site_ids );
+		return is_array( $site_ids ) ? array_map( 'intval', $site_ids ) : array();
 	}
 
 	/**
