@@ -1108,8 +1108,8 @@ function get_page_of_comment( $comment_ID, $args = array() ) {
 		}
 
 		// If comment order is ascending count older comments, otherwise count newer ones.
-		$comment_order = get_option('comment_order');
-		if ($comment_order === 'asc') {
+		$comment_order = get_option( 'comment_order' );
+		if ( 'asc' === $comment_order ) {
 			$time_key = 'before';
 		} else {
 			$time_key = 'after';
