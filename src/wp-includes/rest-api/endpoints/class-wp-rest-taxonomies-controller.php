@@ -434,9 +434,9 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 * @since 6.1.0
 	 *
 	 * @param @param WP_Taxonomy $taxonomy The taxonomy.
-	 * @return array[]
+	 * @return array Links for the given taxonomy.
 	 */
-	protected function prepare_links( WP_Taxonomy $taxonomy ) {
+	protected function prepare_links( $taxonomy ) {
 		return array(
 			'collection'              => array(
 				'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),

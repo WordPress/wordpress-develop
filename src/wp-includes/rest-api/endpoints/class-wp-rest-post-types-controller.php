@@ -391,9 +391,9 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	 * @since 6.1.0
 	 *
 	 * @param WP_Post_Type $post_type The post type.
-	 * @return array[]
+	 * @return array Links for the given post type.
 	 */
-	protected function prepare_links( WP_Post_Type $post_type ) {
+	protected function prepare_links( $post_type ) {
 		return array(
 			'collection'              => array(
 				'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
