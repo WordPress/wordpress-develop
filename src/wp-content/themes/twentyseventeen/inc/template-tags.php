@@ -62,8 +62,7 @@ if ( ! function_exists( 'twentyseventeen_entry_footer' ) ) :
 	 */
 	function twentyseventeen_entry_footer() {
 
-		/* translators: Used between list items, there is a space after the comma. */
-		$separate_meta = __( ', ', 'twentyseventeen' );
+		$separate_meta = wp_get_list_item_separator();
 
 		// Get Categories for posts.
 		$categories_list = get_the_category_list( $separate_meta );
@@ -113,7 +112,7 @@ if ( ! function_exists( 'twentyseventeen_edit_link' ) ) :
 	function twentyseventeen_edit_link() {
 		edit_post_link(
 			sprintf(
-				/* translators: %s: Post title. */
+				/* translators: %s: Post title. Only visible to screen readers. */
 				__( 'Edit<span class="screen-reader-text"> "%s"</span>', 'twentyseventeen' ),
 				get_the_title()
 			),

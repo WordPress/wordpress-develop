@@ -48,6 +48,10 @@ function _add_template_loader_filters() {
 function locate_block_template( $template, $type, array $templates ) {
 	global $_wp_current_template_content;
 
+	if ( ! current_theme_supports( 'block-templates' ) ) {
+		return $template;
+	}
+
 	if ( $template ) {
 		/*
 		 * locate_template() has found a PHP template at the path specified by $template.
@@ -308,6 +312,10 @@ function _block_template_render_without_post_block_context( $context ) {
  * @param WP_Query $wp_query Current WP_Query instance, passed by reference.
  */
 function _resolve_template_for_new_post( $wp_query ) {
+	if ( ! $wp_query->is_main_query() ) {
+		return;
+	}
+
 	remove_filter( 'pre_get_posts', '_resolve_template_for_new_post' );
 
 	// Pages.
@@ -326,4 +334,36 @@ function _resolve_template_for_new_post( $wp_query ) {
 	) {
 		$wp_query->set( 'post_status', 'auto-draft' );
 	}
+}
+
+/**
+ * Returns the correct template for the site's home page.
+ *
+ * @access private
+ * @since 6.0.0
+ *
+ * @return array|null A template object, or null if none could be found.
+ */
+function _resolve_home_block_template() {
+	$show_on_front = get_option( 'show_on_front' );
+	$front_page_id = get_option( 'page_on_front' );
+
+	if ( 'page' === $show_on_front && $front_page_id ) {
+		return array(
+			'postType' => 'page',
+			'postId'   => $front_page_id,
+		);
+	}
+
+	$hierarchy = array( 'front-page', 'home', 'index' );
+	$template  = resolve_block_template( 'home', $hierarchy, '' );
+
+	if ( ! $template ) {
+		return null;
+	}
+
+	return array(
+		'postType' => 'wp_template',
+		'postId'   => $template->id,
+	);
 }

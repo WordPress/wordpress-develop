@@ -22,6 +22,15 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	protected static $contributor_id;
 
 	/**
+	 * An instance of WP_REST_Pattern_Directory_Controller class.
+	 *
+	 * @since 6.0.0
+	 *
+	 * @var WP_REST_Pattern_Directory_Controller
+	 */
+	private static $controller;
+
+	/**
 	 * Set up class test fixtures.
 	 *
 	 * @since 5.8.0
@@ -34,6 +43,8 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 				'role' => 'contributor',
 			)
 		);
+
+		static::$controller = new WP_REST_Pattern_Directory_Controller();
 	}
 
 	/**
@@ -42,7 +53,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 * @param WP_REST_Response[] $pattern An individual pattern from the REST API response.
 	 */
 	public function assertPatternMatchesSchema( $pattern ) {
-		$schema     = ( new WP_REST_Pattern_Directory_Controller() )->get_item_schema();
+		$schema     = static::$controller->get_item_schema();
 		$pattern_id = isset( $pattern->id ) ? $pattern->id : '{pattern ID is missing}';
 
 		$this->assertTrue(
@@ -79,7 +90,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		$patterns = $response->get_data();
 
 		$this->assertSame( 'view', $patterns['endpoints'][0]['args']['context']['default'] );
-		$this->assertSame( array( 'view', 'embed' ), $patterns['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $patterns['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	/**
@@ -100,6 +111,9 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		$this->assertGreaterThan( 0, count( $patterns ) );
 
 		array_walk( $patterns, array( $this, 'assertPatternMatchesSchema' ) );
+		$this->assertSame( array( 'blog post' ), $patterns[0]['keywords'] );
+		$this->assertSame( array( 'header', 'hero' ), $patterns[1]['keywords'] );
+		$this->assertSame( array( 'call to action', 'hero section' ), $patterns[2]['keywords'] );
 	}
 
 	/**
@@ -146,10 +160,6 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		$this->assertGreaterThan( 0, count( $patterns ) );
 
 		array_walk( $patterns, array( $this, 'assertPatternMatchesSchema' ) );
-
-		foreach ( $patterns as $pattern ) {
-			$this->assertContains( 'core', $pattern['keywords'] );
-		}
 	}
 
 	/**
@@ -322,12 +332,11 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 * @since 5.8.0
 	 */
 	public function test_prepare_item() {
-		$controller                   = new WP_REST_Pattern_Directory_Controller();
 		$raw_patterns                 = json_decode( self::get_raw_response( 'browse-all' ) );
 		$raw_patterns[0]->extra_field = 'this should be removed';
 
-		$prepared_pattern = $controller->prepare_response_for_collection(
-			$controller->prepare_item_for_response( $raw_patterns[0], new WP_REST_Request() )
+		$prepared_pattern = static::$controller->prepare_response_for_collection(
+			static::$controller->prepare_item_for_response( $raw_patterns[0], new WP_REST_Request() )
 		);
 
 		$this->assertPatternMatchesSchema( $prepared_pattern );
@@ -340,12 +349,11 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 * @since 5.8.0
 	 */
 	public function test_prepare_item_search() {
-		$controller                   = new WP_REST_Pattern_Directory_Controller();
 		$raw_patterns                 = json_decode( self::get_raw_response( 'search' ) );
 		$raw_patterns[0]->extra_field = 'this should be removed';
 
-		$prepared_pattern = $controller->prepare_response_for_collection(
-			$controller->prepare_item_for_response( $raw_patterns[0], new WP_REST_Request() )
+		$prepared_pattern = static::$controller->prepare_response_for_collection(
+			static::$controller->prepare_item_for_response( $raw_patterns[0], new WP_REST_Request() )
 		);
 
 		$this->assertPatternMatchesSchema( $prepared_pattern );
@@ -397,6 +405,96 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 */
 	public function test_get_item_schema() {
 		$this->markTestSkipped( "The controller's schema is hardcoded, so tests would not be meaningful." );
+	}
+
+	/**
+	 * Tests if the transient key gets generated correctly.
+	 *
+	 * @dataProvider data_get_query_parameters
+	 *
+	 * @covers WP_REST_Pattern_Directory_Controller::get_transient_key
+	 *
+	 * @since 6.0.0
+	 *
+	 * @ticket 55617
+	 *
+	 * @param array     $parameters_1   Expected query arguments.
+	 * @param array     $parameters_2   Actual query arguments.
+	 * @param string    $message        An error message to display.
+	 * @param bool      $assert_same    Assertion type (assertSame vs assertNotSame).
+	 */
+	public function test_transient_keys_get_generated_correctly( $parameters_1, $parameters_2, $message, $assert_same = true ) {
+		$reflection_method = new ReflectionMethod( static::$controller, 'get_transient_key' );
+		$reflection_method->setAccessible( true );
+
+		$result_1 = $reflection_method->invoke( self::$controller, $parameters_1 );
+		$result_2 = $reflection_method->invoke( self::$controller, $parameters_2 );
+
+		$this->assertIsString( $result_1, 'Transient key #1 must be a string.' );
+		$this->assertNotEmpty( $result_1, 'Transient key #1 must not be empty.' );
+
+		$this->assertIsString( $result_2, 'Transient key #2 must be a string.' );
+		$this->assertNotEmpty( $result_2, 'Transient key #2 must not be empty.' );
+
+		if ( $assert_same ) {
+			$this->assertSame( $result_1, $result_2, $message );
+		} else {
+			$this->assertNotSame( $result_1, $result_2, $message );
+		}
+
+	}
+
+	/**
+	 * @since 6.0.0
+	 *
+	 * @ticket 55617
+	 */
+	public function data_get_query_parameters() {
+		return array(
+			'same key and empty slugs'              => array(
+				'parameters_1' => array(
+					'parameter_1' => 1,
+					'slug'        => array(),
+				),
+				'parameters_2' => array(
+					'parameter_1' => 1,
+				),
+				'message'      => 'Empty slugs should not affect the transient key.',
+			),
+			'same key and slugs in different order' => array(
+				'parameters_1' => array(
+					'parameter_1' => 1,
+					'slug'        => array( 0, 2 ),
+				),
+				'parameters_2' => array(
+					'parameter_1' => 1,
+					'slug'        => array( 2, 0 ),
+				),
+				'message'      => 'The order of slugs should not affect the transient key.',
+			),
+			'same key and different slugs'          => array(
+				'parameters_1' => array(
+					'parameter_1' => 1,
+					'slug'        => array( 'some_slug' ),
+				),
+				'parameters_2' => array(
+					'parameter_1' => 1,
+					'slug'        => array( 'some_other_slug' ),
+				),
+				'message'      => 'Transient keys must not match.',
+				false,
+			),
+			'different keys'                        => array(
+				'parameters_1' => array(
+					'parameter_1' => 1,
+				),
+				'parameters_2' => array(
+					'parameter_2' => 1,
+				),
+				'message'      => 'Transient keys must depend on array keys.',
+				false,
+			),
+		);
 	}
 
 	/**

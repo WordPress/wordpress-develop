@@ -5,6 +5,8 @@
  */
 class Tests_Term_GetTermBy extends WP_UnitTestCase {
 
+	protected $query = '';
+
 	public function test_get_term_by_slug() {
 		$term1 = wp_insert_term( 'Foo', 'category', array( 'slug' => 'foo' ) );
 		$term2 = get_term_by( 'slug', 'foo', 'category' );
@@ -123,7 +125,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 
 		$num_queries = $wpdb->num_queries;
 		$found       = get_term_by( 'slug', 'foo', 'wptests_tax' );
-		$num_queries++;
+		$num_queries = $num_queries + 2;
 
 		$this->assertInstanceOf( 'WP_Term', $found );
 		$this->assertSame( $t, $found->term_id );
@@ -209,17 +211,16 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 	 * @ticket 21760
 	 */
 	public function test_query_should_contain_limit_clause() {
-		global $wpdb;
-
 		$term_id = $this->factory->term->create(
 			array(
 				'name'     => 'burrito',
 				'taxonomy' => 'post_tag',
 			)
 		);
-		$found   = get_term_by( 'name', 'burrito', 'post_tag' );
+		add_filter( 'terms_pre_query', array( $this, 'get_query_from_filter' ), 10, 2 );
+		$found = get_term_by( 'name', 'burrito', 'post_tag' );
 		$this->assertSame( $term_id, $found->term_id );
-		$this->assertStringContainsString( 'LIMIT 1', $wpdb->last_query );
+		$this->assertStringContainsString( 'LIMIT 1', $this->query );
 	}
 
 	/**
@@ -281,5 +282,11 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 
 		$this->assertFalse( $found_by_slug );
 		$this->assertFalse( $found_by_name );
+	}
+
+	public function get_query_from_filter( $terms, $wp_term_query ) {
+		$this->query = $wp_term_query->request;
+
+		return $terms;
 	}
 }
