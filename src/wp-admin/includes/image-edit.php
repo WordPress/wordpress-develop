@@ -1203,8 +1203,8 @@ function wp_save_image( $post_id ) {
 			$target_size_name_from_source = $size_name;
 		}
 
-		if ( null !== $target_size_name_from_source ) {
-			$backup_sources[ $target_size_name_from_source ] = $meta['sources'];
+		if ( null !== $target_size_name_from_source && ! empty( $old_metadata['sources'] ) ) {
+			$backup_sources[ $target_size_name_from_source ] = $old_metadata['sources'];
 			// Store the `sources` property into the full size if present.
 			update_post_meta( $post_id, '_wp_attachment_backup_sources', $backup_sources );
 		}
