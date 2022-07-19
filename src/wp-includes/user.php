@@ -1854,7 +1854,7 @@ function update_user_caches( $user ) {
 		wp_cache_add( $user->user_login, $user->ID, 'userlogins' );
 	}
 
-	if ( trim( (string)  $user->user_email ) !== '' ) {
+	if ( trim( (string) $user->user_email ) !== '' ) {
 		wp_cache_add( $user->user_email, $user->ID, 'useremail' );
 	}
 
