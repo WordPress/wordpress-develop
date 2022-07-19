@@ -33,4 +33,4 @@ if ( 'content' !== $current_layout ) :
 
 			<?php endif; // End sidebar widget area. ?>
 		</div><!-- #secondary .widget-area -->
-<?php endif; ?>
+<?php endif;

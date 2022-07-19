@@ -43,4 +43,4 @@ $discussion = ! is_page() && twentynineteen_can_show_post_thumbnail() ? twentyni
 		);
 	?>
 </div><!-- .entry-meta -->
-<?php endif; ?>
+<?php endif;

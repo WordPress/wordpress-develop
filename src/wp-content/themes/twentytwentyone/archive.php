@@ -34,4 +34,4 @@ $description = get_the_archive_description();
 	<?php get_template_part( 'template-parts/content/content-none' ); ?>
 <?php endif; ?>
 
-<?php get_footer(); ?>
+<?php get_footer();
