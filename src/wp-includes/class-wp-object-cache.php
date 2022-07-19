@@ -589,16 +589,14 @@ class WP_Object_Cache {
 
 		$type = gettype( $key );
 
-		if ( function_exists( '__' ) ) {
-			$message = is_string( $key )
-				? __( 'Cache key must not be an empty string.' )
-				/* translators: %s: The type of the given cache key. */
-				: sprintf( __( 'Cache key must be integer or non-empty string, %s given.' ), $type );
-		} else {
-			$message = is_string( $key )
-				? 'Cache key must not be an empty string.'
-				: sprintf( 'Cache key must be integer or non-empty string, %s given.', $type );
+		if ( ! function_exists( '__' ) ) {
+			wp_load_translations_early();
 		}
+
+		$message = is_string( $key )
+			? __( 'Cache key must not be an empty string.' )
+			/* translators: %s: The type of the given cache key. */
+			: sprintf( __( 'Cache key must be integer or non-empty string, %s given.' ), $type );
 
 		_doing_it_wrong(
 			sprintf( '%s::%s', __CLASS__, debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 2 )[1]['function'] ),
