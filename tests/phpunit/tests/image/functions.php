@@ -1292,7 +1292,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$exif_meta     = wp_read_image_metadata( $file );
 
 		list( $editor, $resized, $rotated ) = _wp_maybe_scale_and_rotate_image( $file, $attachment_id, $imagesize, $exif_meta, $mime_type );
-
+		if ( is_wp_error( $editor ) ) {
+			$this->markTestSkipped( sprintf( 'Editor not supported for: %s.', $editor->get_error_data() ) );
+		}
 		$this->assertSame( $expected['rotated'], $rotated );
 		$this->assertSame( $expected['resized'], $resized );
 		$this->assertSame( $expected['size'], $editor->get_size() );
