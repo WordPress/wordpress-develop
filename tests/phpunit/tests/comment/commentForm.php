@@ -160,7 +160,7 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 		// Go to permalink to ensure global post ID is set.
 		$this->go_to( get_permalink( self::$post_id ) );
 		$impossibly_high_post_id = 9999999999;
-		$form = get_echo( 'comment_form', array( array(), $impossibly_high_post_id ) );
+		$form                    = get_echo( 'comment_form', array( array(), $impossibly_high_post_id ) );
 		$this->assertEmpty( $form );
 	}
 
@@ -181,7 +181,7 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 	 */
 	public function test_comment_form_should_display_for_specified_post_when_passed_a_valid_post_id() {
 		$post_id = self::$post_id;
-		$form = get_echo( 'comment_form', array( array(), $post_id ) );
+		$form    = get_echo( 'comment_form', array( array(), $post_id ) );
 		$this->assertNotEmpty( $form );
 		$post_hidden_field = "<input type='hidden' name='comment_post_ID' value='{$post_id}' id='comment_post_ID' />";
 		$this->assertStringNotContainsString( '<form', $post_hidden_field );
