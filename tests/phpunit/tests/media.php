@@ -35,6 +35,9 @@ CAP;
 
 		$filename       = DIR_TESTDATA . '/images/' . self::$large_filename;
 		self::$large_id = $factory->attachment->create_upload_object( $filename );
+		$metadata       = wp_get_attachment_metadata( self::$large_id );
+		$metadata       = dominant_color_metadata( $metadata, self::$large_id );
+		wp_update_attachment_metadata( self::$large_id, $metadata );
 
 		$post_statuses = array( 'publish', 'future', 'draft', 'auto-draft', 'trash' );
 		foreach ( $post_statuses as $post_status ) {
