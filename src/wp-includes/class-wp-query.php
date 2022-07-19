@@ -3103,7 +3103,7 @@ class WP_Query {
 				$this->found_posts   = $cached_results['found_posts'];
 				$this->max_num_pages = $cached_results['max_num_pages'];
 
-				if ( 'id=>parent' === $q['fields'] && $cached_results ) {
+				if ( 'id=>parent' === $q['fields'] ) {
 					/** @var int[] */
 					$post_parents = array();
 
