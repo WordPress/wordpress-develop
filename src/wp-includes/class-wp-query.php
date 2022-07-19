@@ -3399,6 +3399,7 @@ class WP_Query {
 						'posts_per_page'         => count( $sticky_posts ),
 						'suppress_filters'       => $q['suppress_filters'],
 						'cache_results'          => $q['cache_results'],
+						'post_query_cache'       => $q['post_query_cache'],
 						'update_post_meta_cache' => $q['update_post_meta_cache'],
 						'update_post_term_cache' => $q['update_post_term_cache'],
 						'lazy_load_term_meta'    => $q['lazy_load_term_meta'],
