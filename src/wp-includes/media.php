@@ -275,27 +275,53 @@ function image_downsize( $id, $size = 'medium' ) {
  * Register a new image size.
  *
  * @since 2.9.0
+ * @since 6.1.0 Add the $output_mimes parameter.
  *
  * @global array $_wp_additional_image_sizes Associative array of additional image sizes.
  *
- * @param string     $name   Image size identifier.
- * @param int        $width  Optional. Image width in pixels. Default 0.
- * @param int        $height Optional. Image height in pixels. Default 0.
- * @param bool|array $crop   Optional. Image cropping behavior. If false, the image will be scaled (default),
- *                           If true, image will be cropped to the specified dimensions using center positions.
- *                           If an array, the image will be cropped using the array to specify the crop location.
- *                           Array values must be in the format: array( x_crop_position, y_crop_position ) where:
- *                               - x_crop_position accepts: 'left', 'center', or 'right'.
- *                               - y_crop_position accepts: 'top', 'center', or 'bottom'.
+ * @param string     $name         Image size identifier.
+ * @param int        $width        Optional. Image width in pixels. Default 0.
+ * @param int        $height       Optional. Image height in pixels. Default 0.
+ * @param bool|array $crop         Optional. Image cropping behavior. If false, the image will be scaled (default),
+ *                                 If true, image will be cropped to the specified dimensions using center positions.
+ *                                 If an array, the image will be cropped using the array to specify the crop location.
+ *                                 Array values must be in the format: array( x_crop_position, y_crop_position ) where:
+ *                                     - x_crop_position accepts: 'left', 'center', or 'right'.
+ *                                     - y_crop_position accepts: 'top', 'center', or 'bottom'.
+ * @param bool       $output_mimes Whether to output secondary mimes  for this image size. Default is null which will
+ *                                 throw a doing_it_wrong warning to warn developers they should set this value.
+ *                                 Default will be true in 6.2.
  */
-function add_image_size( $name, $width = 0, $height = 0, $crop = false ) {
+function add_image_size( $name, $width = 0, $height = 0, $crop = false, $output_mimes = null ) {
 	global $_wp_additional_image_sizes;
 
+	// For 6.1.x, warn developers about setting a value for $output_mimes.
+	if ( null === $output_mimes ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Passing the $output_mimes parameter to add_image_size is recommended.' ), '6.1.0' );
+	}
+
 	$_wp_additional_image_sizes[ $name ] = array(
-		'width'  => absint( $width ),
-		'height' => absint( $height ),
-		'crop'   => $crop,
+		'width'        => absint( $width ),
+		'height'       => absint( $height ),
+		'crop'         => $crop,
+		'output_mimes' => $output_mimes,
 	);
+}
+
+/**
+ * Check if an image size supports output in a specific mime type.
+ *
+ * @since 6.1.0
+ *
+ * @uses wp_get_additional_image_sizes()
+ *
+ * @param string $name      Image size identifier.
+ * @param string $mime_type The mime type to check.
+ * @return bool Whether the size supports the mime type for output.
+ */
+function image_size_supports_mime( $name, $mime_type ) {
+	$sizes = wp_get_additional_image_sizes();
+	return isset( $sizes[ $name ]['output_mimes'] ) && $sizes[ $name ]['output_mimes'];
 }
 
 /**
@@ -345,7 +371,7 @@ function remove_image_size( $name ) {
  *                           An array can specify positioning of the crop area. Default false.
  */
 function set_post_thumbnail_size( $width = 0, $height = 0, $crop = false ) {
-	add_image_size( 'post-thumbnail', $width, $height, $crop );
+	add_image_size( 'post-thumbnail', $width, $height, $crop, true );
 }
 
 /**
@@ -890,42 +916,46 @@ function wp_get_registered_image_subsizes() {
 	$all_sizes        = array();
 
 	foreach ( get_intermediate_image_sizes() as $size_name ) {
-		$size_data = array(
-			'width'  => 0,
-			'height' => 0,
-			'crop'   => false,
-		);
+		$default_sizes = array( 'thumbnail', 'medium', 'medium_large', 'large' );
+		foreach ( get_intermediate_image_sizes() as $size_name ) {
+			$size_data = array(
+				'width'        => 0,
+				'height'       => 0,
+				'crop'         => false,
+				'output_mimes' => in_array( $size_name, $default_sizes, true ),
+			);
 
-		if ( isset( $additional_sizes[ $size_name ]['width'] ) ) {
-			// For sizes added by plugins and themes.
-			$size_data['width'] = (int) $additional_sizes[ $size_name ]['width'];
-		} else {
-			// For default sizes set in options.
-			$size_data['width'] = (int) get_option( "{$size_name}_size_w" );
+			if ( isset( $additional_sizes[ $size_name ]['width'] ) ) {
+				// For sizes added by plugins and themes.
+				$size_data['width'] = (int) $additional_sizes[ $size_name ]['width'];
+			} else {
+				// For default sizes set in options.
+				$size_data['width'] = (int) get_option( "{$size_name}_size_w" );
+			}
+
+			if ( isset( $additional_sizes[ $size_name ]['height'] ) ) {
+				$size_data['height'] = (int) $additional_sizes[ $size_name ]['height'];
+			} else {
+				$size_data['height'] = (int) get_option( "{$size_name}_size_h" );
+			}
+
+			if ( empty( $size_data['width'] ) && empty( $size_data['height'] ) ) {
+				// This size isn't set.
+				continue;
+			}
+
+			if ( isset( $additional_sizes[ $size_name ]['crop'] ) ) {
+				$size_data['crop'] = $additional_sizes[ $size_name ]['crop'];
+			} else {
+				$size_data['crop'] = get_option( "{$size_name}_crop" );
+			}
+
+			if ( ! is_array( $size_data['crop'] ) || empty( $size_data['crop'] ) ) {
+				$size_data['crop'] = (bool) $size_data['crop'];
+			}
+
+			$all_sizes[ $size_name ] = $size_data;
 		}
-
-		if ( isset( $additional_sizes[ $size_name ]['height'] ) ) {
-			$size_data['height'] = (int) $additional_sizes[ $size_name ]['height'];
-		} else {
-			$size_data['height'] = (int) get_option( "{$size_name}_size_h" );
-		}
-
-		if ( empty( $size_data['width'] ) && empty( $size_data['height'] ) ) {
-			// This size isn't set.
-			continue;
-		}
-
-		if ( isset( $additional_sizes[ $size_name ]['crop'] ) ) {
-			$size_data['crop'] = $additional_sizes[ $size_name ]['crop'];
-		} else {
-			$size_data['crop'] = get_option( "{$size_name}_crop" );
-		}
-
-		if ( ! is_array( $size_data['crop'] ) || empty( $size_data['crop'] ) ) {
-			$size_data['crop'] = (bool) $size_data['crop'];
-		}
-
-		$all_sizes[ $size_name ] = $size_data;
 	}
 
 	return $all_sizes;
@@ -1852,6 +1882,11 @@ function wp_filter_content_tags( $content, $context = null ) {
 				$filtered_image = wp_img_tag_add_decoding_attr( $filtered_image, $context );
 			}
 
+			// Use alternate mime types when specified and available.
+			if ( $attachment_id > 0 ) {
+				$filtered_image = wp_image_use_alternate_mime_types( $filtered_image, $context, $attachment_id );
+			}
+
 			/**
 			 * Filters an img tag within the content for a given context.
 			 *
@@ -1896,6 +1931,92 @@ function wp_filter_content_tags( $content, $context = null ) {
 	}
 
 	return $content;
+}
+
+/**
+ * Use alternate mime type images in the content output when available.
+ *
+ * @since 6.1.0
+ *
+ * @param string $image         The HTML `img` tag where the attribute should be added.
+ * @param string $context       Additional context to pass to the filters.
+ * @param int    $attachment_id The attachment ID.
+ * @return string Converted `img` tag with `loading` attribute added.
+ */
+function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
+	$metadata = wp_get_attachment_metadata( $attachment_id );
+	if ( empty( $metadata['file'] ) ) {
+		return $image;
+	}
+
+	// Only alter images with a `sources` attribute
+	if ( empty( $metadata['sources'] ) ) {
+		return $image;
+	};
+
+	$target_mimes = array( 'image/webp', 'image/jpeg' );
+
+	/**
+	 * Filter the content image mime type output selection and order.
+	 *
+	 * When outputting images in the content, the first mime type available will be used.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param array  $target_mimes  The image output mime type and order. Default is array( 'image/webp', 'image/jpeg' ).
+	 * @param int    $attachment_id The attachment ID.
+	 * @param string $context       Additional context to pass to the filters.
+	 * @return array The filtered output mime type and order. Return an empty array to skip mime type substitution.
+	 */
+	$target_mimes = apply_filters( 'wp_content_image_mimes', $target_mimes, $attachment_id, $context );
+
+	if ( false === $target_mimes ) {
+		return $image;
+	}
+
+	// Find the appropriate size for the provided URL in the first available mime type.
+	foreach ( $target_mimes as $target_mime ) {
+		if ( ! isset( $metadata['sources'][ $target_mime ] ) || empty( $metadata['sources'][ $target_mime ]['file'] ) ) {
+			continue;
+		}
+
+		// Go through each image and replace with the first available mime type version.
+		foreach ( $metadata['sizes'] as $name => $size_data ) {
+			// Check if size has a file.
+			if ( empty( $size_data['file'] ) ) {
+				continue;
+			}
+
+			// Check if size has a source in the desired mime type.
+			if ( empty( $size_data['sources'][ $target_mime ]['file'] ) ) {
+				continue;
+			}
+			$target_file = $size_data['sources'][ $target_mime ]['file'];
+
+			// Replace the existing output image for this size.
+			$src_filename = wp_basename( $size_data['file'] );
+
+			// This is the same as the file we want to replace nothing to do here.
+			if ( $target_file === $src_filename ) {
+				continue;
+			}
+
+			// Found a match, replace with the new filename and stop searching.
+			$image = str_replace( $src_filename, $size_data['sources'][ $target_mime ]['file'], $image );
+			continue;
+		}
+
+		// Handle full size image replacement.
+		$src_filename = wp_basename( $metadata['file'] );
+
+		// This is the same as the file we want to replace nothing else to do here.
+		if ( $metadata['sources'][ $target_mime ]['file'] === $src_filename ) {
+			return $image;
+		}
+
+		$image = str_replace( $src_filename, $metadata['sources'][ $target_mime ]['file'], $image );
+	}
+	return $image;
 }
 
 /**
@@ -5201,9 +5322,9 @@ function wp_media_personal_data_exporter( $email_address, $page = 1 ) {
  */
 function _wp_add_additional_image_sizes() {
 	// 2x medium_large size.
-	add_image_size( '1536x1536', 1536, 1536 );
+	add_image_size( '1536x1536', 1536, 1536, false, true );
 	// 2x large size.
-	add_image_size( '2048x2048', 2048, 2048 );
+	add_image_size( '2048x2048', 2048, 2048, false, true );
 }
 
 /**

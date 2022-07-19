@@ -6481,13 +6481,25 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 		$intermediate_dir = path_join( $uploadpath['basedir'], dirname( $file ) );
 
 		foreach ( $meta['sizes'] as $size => $sizeinfo ) {
-			$intermediate_file = str_replace( wp_basename( $file ), $sizeinfo['file'], $file );
 
-			if ( ! empty( $intermediate_file ) ) {
-				$intermediate_file = path_join( $uploadpath['basedir'], $intermediate_file );
+			// Check for alternate size mime types in the sizeinfo['sources'] array to delete.
+			if ( isset( $sizeinfo['sources'] ) && is_array( $sizeinfo['sources'] ) ) {
+				foreach ( $sizeinfo['sources'] as $mime => $properties ) {
+					$intermediate_file = str_replace( wp_basename( $file ), $properties['file'], $file );
+					if ( ! wp_delete_file_from_directory( $intermediate_file, $intermediate_dir ) ) {
+						$deleted = false;
+					}
+				}
+			} else {
+				// Otherwise, delete files from the sizeinfo data.
+				$intermediate_file = str_replace( wp_basename( $file ), $sizeinfo['file'], $file );
 
-				if ( ! wp_delete_file_from_directory( $intermediate_file, $intermediate_dir ) ) {
-					$deleted = false;
+				if ( ! empty( $intermediate_file ) ) {
+					$intermediate_file = path_join( $uploadpath['basedir'], $intermediate_file );
+
+					if ( ! wp_delete_file_from_directory( $intermediate_file, $intermediate_dir ) ) {
+						$deleted = false;
+					}
 				}
 			}
 		}
@@ -6504,6 +6516,22 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 			$original_image = path_join( $uploadpath['basedir'], $original_image );
 
 			if ( ! wp_delete_file_from_directory( $original_image, $intermediate_dir ) ) {
+				$deleted = false;
+			}
+		}
+	}
+
+	// Check for alternate full size mime types in the root sources array to delete.
+	if ( isset( $meta['sources'] ) && is_array( $meta['sources'] ) ) {
+		$sources = $meta['sources'];
+		array_shift( $sources );
+		foreach ( $sources as $mime => $properties ) {
+			if ( ! is_array( $properties ) || empty( $properties['file'] ) ) {
+				continue;
+			}
+
+			$intermediate_file = str_replace( wp_basename( $file ), $properties['file'], $file );
+			if ( ! wp_delete_file_from_directory( $intermediate_file, $intermediate_dir ) ) {
 				$deleted = false;
 			}
 		}

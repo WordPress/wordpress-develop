@@ -15,6 +15,7 @@ abstract class WP_Image_Editor {
 	protected $file              = null;
 	protected $size              = null;
 	protected $mime_type         = null;
+	protected $mime_type_set     = false;
 	protected $output_mime_type  = null;
 	protected $default_mime_type = 'image/jpeg';
 	protected $quality           = false;
@@ -334,6 +335,10 @@ abstract class WP_Image_Editor {
 	protected function get_output_format( $filename = null, $mime_type = null ) {
 		$new_ext = null;
 
+		if ( ! $mime_type && $this->mime_type_set ) {
+			$mime_type = $this->mime_type;
+		}
+
 		// By default, assume specified type takes priority.
 		if ( $mime_type ) {
 			$new_ext = $this->get_extension( $mime_type );
@@ -345,7 +350,7 @@ abstract class WP_Image_Editor {
 		} else {
 			// If no file specified, grab editor's current extension and mime-type.
 			$file_ext  = strtolower( pathinfo( $this->file, PATHINFO_EXTENSION ) );
-			$file_mime = $this->mime_type;
+			$file_mime = ! $this->mime_type_set ? $this->mime_type : $this->get_mime_type( $file_ext );
 		}
 
 		// Check to see if specified mime-type is the same as type implied by
@@ -428,15 +433,18 @@ abstract class WP_Image_Editor {
 	 * Builds an output filename based on current file, and adding proper suffix
 	 *
 	 * @since 3.5.0
+	 * @since 6.1.0 Skips adding a suffix when set to an empty string.
 	 *
-	 * @param string $suffix
+	 * @param string $suffix Optional. Suffix to add to the filename. Passing null
+	 *                       will result in a 'widthxheight' suffix. Passing
+	 *                       an empty string will result in no suffix.
 	 * @param string $dest_path
 	 * @param string $extension
 	 * @return string filename
 	 */
 	public function generate_filename( $suffix = null, $dest_path = null, $extension = null ) {
 		// $suffix will be appended to the destination filename, just before the extension.
-		if ( ! $suffix ) {
+		if ( null === $suffix ) {
 			$suffix = $this->get_suffix();
 		}
 
@@ -457,7 +465,13 @@ abstract class WP_Image_Editor {
 			}
 		}
 
-		return trailingslashit( $dir ) . "{$name}-{$suffix}.{$new_ext}";
+		if ( empty( $suffix ) ) {
+			$suffix = '';
+		} else {
+			$suffix = "-{$suffix}";
+		}
+
+		return trailingslashit( $dir ) . "{$name}{$suffix}.{$new_ext}";
 	}
 
 	/**
@@ -637,5 +651,30 @@ abstract class WP_Image_Editor {
 
 		return wp_get_default_extension_for_mime_type( $mime_type );
 	}
-}
 
+	/**
+	 * Set the editor mime type, useful when outputting alternate mime types.
+	 *
+	 * Track that the mime type is set with the mime type set flag.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param string $mime_type The mime type to set.
+	 */
+	public function set_mime_type( $mime_type ) {
+		$this->mime_type     = $mime_type;
+		$this->mime_type_set = true;
+	}
+
+	/**
+	 * Reset the mime type to the original file mime type.
+	 *
+	 * Reset the mime type set flag.
+	 *
+	 * @since 6.1.0
+	 */
+	public function reset_mime_type() {
+		$this->mime_type     = wp_get_image_mime( $this->file );
+		$this->mime_type_set = false;
+	}
+}
