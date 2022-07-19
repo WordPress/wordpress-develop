@@ -1107,6 +1107,14 @@ function get_page_of_comment( $comment_ID, $args = array() ) {
 			return get_page_of_comment( $comment->comment_parent, $args );
 		}
 
+		// If comment order is ascending count older comments, otherwise count newer ones.
+		$comment_order = get_option('comment_order');
+		if ($comment_order === 'asc') {
+			$time_key = 'before';
+		} else {
+			$time_key = 'after';
+		}
+
 		$comment_args = array(
 			'type'       => $args['type'],
 			'post_id'    => $comment->comment_post_ID,
@@ -1117,7 +1125,7 @@ function get_page_of_comment( $comment_ID, $args = array() ) {
 			'date_query' => array(
 				array(
 					'column' => "$wpdb->comments.comment_date_gmt",
-					'before' => $comment->comment_date_gmt,
+					$time_key => $comment->comment_date_gmt,
 				),
 			),
 		);
