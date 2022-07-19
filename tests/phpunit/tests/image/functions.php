@@ -249,6 +249,57 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Backup the sources structure alongside the full size
+	 *
+	 * @test
+	 */
+	public function test_backup_the_sources_structure_alongside_the_full_size() {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$filename = DIR_TESTDATA . '/images/canola.jpg';
+		$contents = file_get_contents( $filename );
+
+		$upload        = wp_upload_bits( wp_basename( $filename ), null, $contents );
+		$attachment_id = $this->_make_attachment( $upload );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		$this->assertEmpty( get_post_meta( $attachment_id, '_wp_attachment_backup_sizes', true ) );
+		$this->assertEmpty( get_post_meta( $attachment_id, '_wp_attachment_backup_sources', true ) );
+
+		$_REQUEST['action']  = 'image-editor';
+		$_REQUEST['context'] = 'edit-attachment';
+		$_REQUEST['postid']  = $attachment_id;
+		$_REQUEST['target']  = 'all';
+		$_REQUEST['do']      = 'save';
+		$_REQUEST['history'] = '[{"r":-90}]';
+
+		$ret = wp_save_image( $attachment_id );
+
+		$this->assertSame( 'Image saved', $ret->msg );
+
+		$backup_sizes = get_post_meta( $attachment_id, '_wp_attachment_backup_sizes', true );
+
+		$this->assertNotEmpty( $backup_sizes );
+		$this->assertIsArray( $backup_sizes );
+
+		$backup_sources = get_post_meta( $attachment_id, '_wp_attachment_backup_sources', true );
+		$this->assertIsArray( $backup_sources );
+		$this->assertArrayHasKey( 'full-orig', $backup_sources );
+		$this->assertSame( $metadata['sources'], $backup_sources['full-orig'] );
+
+		foreach ( $backup_sizes as $size => $properties ) {
+			$size_name = str_replace( '-orig', '', $size );
+
+			if ( 'full-orig' === $size ) {
+				continue;
+			}
+
+			$this->assertArrayHasKey( 'sources', $properties );
+			$this->assertSame( $metadata['sizes'][ $size_name ]['sources'], $properties['sources'] );
+		}
+	}
+
+	/**
 	 * Tests wp_save_image_file() and mime types.
 	 *
 	 * @dataProvider data_wp_save_image_file
