@@ -873,8 +873,9 @@ function wp_save_image( $post_id ) {
 		return $return;
 	}
 
-	$meta         = wp_get_attachment_metadata( $post_id );
-	$backup_sizes = get_post_meta( $post->ID, '_wp_attachment_backup_sizes', true );
+	$meta           = wp_get_attachment_metadata( $post_id );
+	$backup_sizes   = get_post_meta( $post->ID, '_wp_attachment_backup_sizes', true );
+	$backup_sources = get_post_meta( $post->ID, '_wp_attachment_backup_sources', true );
 
 	if ( ! is_array( $meta ) ) {
 		$return->error = esc_js( __( 'Image data does not exist. Please re-upload the image.' ) );
@@ -883,6 +884,10 @@ function wp_save_image( $post_id ) {
 
 	if ( ! is_array( $backup_sizes ) ) {
 		$backup_sizes = array();
+	}
+
+	if ( ! is_array( $backup_sources ) ) {
+		$backup_sources = array();
 	}
 
 	// Generate new filename.
@@ -1029,110 +1034,30 @@ function wp_save_image( $post_id ) {
 	unset( $img );
 
 	if ( $success ) {
-		$transforms = wp_upload_image_mime_transforms( $post_id, '' );
-
-		if ( ! empty( $transforms[ $post->post_mime_type ] ) ) {
-			$mime_transforms = $transforms[ $post->post_mime_type ];
-
-			// Check sizes to be created.
-			if ( ! empty( $meta['sizes'] ) ) {
-				$old_metadata = wp_get_attachment_metadata( $post_id );
-				$resize_sizes = array();
-
-				foreach ( $old_metadata['sizes'] as $size_name => $size_details ) {
-					// If the target is 'nothumb', skip generating the 'thumbnail' size.
-					if ( 'nothumb' === $target && 'thumbnail' === $size_name ) {
-						continue;
-					}
-
-					if ( isset( $meta['sizes'][ $size_name ] ) && ! empty( $meta['sizes'][ $size_name ] ) &&
-						 $meta['sizes'][ $size_name ]['file'] !== $old_metadata['sizes'][ $size_name ]['file'] ) {
-						$resize_sizes[ $size_name ] = $meta['sizes'][ $size_name ];
-					}
-				}
-
-				$allowed_mimes      = array_flip( wp_get_mime_types() );
-				$original_directory = pathinfo( $new_path, PATHINFO_DIRNAME );
-				$filename           = pathinfo( $new_path, PATHINFO_FILENAME );
-				$main_images        = array();
-				$subsized_images    = array();
-
-				foreach ( $mime_transforms as $targeted_mime ) {
-					if ( $targeted_mime === $post->post_mime_type ) {
-						// If the target is `thumbnail` make sure it is the only selected size.
-						if ( 'thumbnail' === $target ) {
-							if ( isset( $meta['sizes']['thumbnail'] ) ) {
-								$subsized_images[ $targeted_mime ] = array( 'thumbnail' => $meta['sizes']['thumbnail'] );
-							}
-							// When the targeted thumbnail is selected no additional size and subsize is set.
-							continue;
-						}
-
-						$main_images[ $targeted_mime ]     = array(
-								'path' => $new_path,
-								'file' => pathinfo( $new_path, PATHINFO_BASENAME ),
-						);
-						$subsized_images[ $targeted_mime ] = $meta['sizes'];
-						continue;
-					}
-
-					if ( ! isset( $allowed_mimes[ $targeted_mime ] ) || ! is_string( $allowed_mimes[ $targeted_mime ] ) ) {
-						continue;
-					}
-
-					if ( ! $img::supports_mime_type( $targeted_mime ) ) {
-						continue;
-					}
-
-					$extension = explode( '|', $allowed_mimes[ $targeted_mime ] );
-					$extension = $extension[0];
-
-					// If the target is `thumbnail` make sure only that size is generated.
-					if ( 'thumbnail' === $target ) {
-						if ( ! isset( $subsized_images[ $post->post_mime_type ]['thumbnail']['file'] ) ) {
-							continue;
-						}
-						$thumbnail_file = $subsized_images[ $post->post_mime_type ]['thumbnail']['file'];
-						$image_path     = path_join( $original_directory, $thumbnail_file );
-						$editor         = wp_get_image_editor( $image_path, array( 'mime_type' => $targeted_mime ) );
-
-						if ( is_wp_error( $editor ) ) {
-							continue;
-						}
-
-						$current_extension = pathinfo( $thumbnail_file, PATHINFO_EXTENSION );
-						// Create a file with then new extension out of the targeted file.
-						$target_file_name     = preg_replace( "/\.$current_extension$/", ".$extension", $thumbnail_file );
-						$target_file_location = path_join( $original_directory, $target_file_name );
-						$result               = $editor->save( $target_file_location, $targeted_mime );
-
-						if ( is_wp_error( $result ) ) {
-							continue;
-						}
-
-						$subsized_images[ $targeted_mime ] = array( 'thumbnail' => $result );
-					} else {
-						$destination = trailingslashit( $original_directory ) . "{$filename}.{$extension}";
-						$result      = $img->save( $destination, $targeted_mime );
-
-						if ( is_wp_error( $result ) ) {
-							continue;
-						}
-
-						$main_images[ $targeted_mime ]     = $result;
-						$subsized_images[ $targeted_mime ] = $img->multi_resize( $resize_sizes );
-					}
-				}
-
-				$meta = wp_uploads_update_sources( $meta, $mime_transforms, $main_images, $subsized_images );
-			}
-		}
-
-		// Perform operations to save the sources properties, specifically for the `full` size image due this is a virtual image size.
-		wp_uploads_backup_sources( $post_id, $meta );
-
 		wp_update_attachment_metadata( $post_id, $meta );
 		update_post_meta( $post_id, '_wp_attachment_backup_sizes', $backup_sizes );
+
+		$target_size_name_from_source = false;
+		// Store the provided sources for the attachment ID in the `_wp_attachment_backup_sources` with the next available target if target is `null` no source would be stored.
+		foreach ( array_keys( $backup_sizes ) as $size_name ) {
+			// If the target already has the sources attributes find the next one.
+			if ( isset( $backup_sources[ $size_name ] ) ) {
+				continue;
+			}
+
+			// We are only interested in the `full-` sizes.
+			if ( strpos( $size_name, 'full-' ) === false ) {
+				continue;
+			}
+
+			$target_size_name_from_source = $size_name;
+		}
+
+		if ( null !== $target_size_name_from_source ) {
+			$backup_sources[ $target_size_name_from_source ] = $meta['sources'];
+			// Store the `sources` property into the full size if present.
+			update_post_meta( $post_id, '_wp_attachment_backup_sources', $backup_sources );
+		}
 
 		if ( 'thumbnail' === $target || 'all' === $target || 'full' === $target ) {
 			// Check if it's an image edit from attachment edit screen.
