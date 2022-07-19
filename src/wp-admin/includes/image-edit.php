@@ -738,6 +738,7 @@ function wp_restore_image( $post_id ) {
 	$file             = get_attached_file( $post_id );
 	$backup_sizes     = get_post_meta( $post_id, '_wp_attachment_backup_sizes', true );
 	$old_backup_sizes = $backup_sizes;
+	$backup_sources   = get_post_meta( $post_id, '_wp_attachment_backup_sources', true );
 	$restored         = false;
 	$msg              = new stdClass;
 
@@ -797,6 +798,10 @@ function wp_restore_image( $post_id ) {
 		} else {
 			unset( $meta['sizes'][ $default_size ] );
 		}
+	}
+
+	if ( isset( $backup_sources['full-orig'] ) && is_array( $backup_sources['full-orig'] ) ) {
+		$meta['sources'] = $backup_sources['full-orig'];
 	}
 
 	if ( ! wp_update_attachment_metadata( $post_id, $meta ) ||
