@@ -1331,9 +1331,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			),
 			array(
 				array(
-					'thumbnail'    => $thumbnail_data,
-					'medium'       => $medium_data,
-					'custom'       => $custom_data,
+					'thumbnail' => $thumbnail_data,
+					'medium'    => $medium_data,
+					'custom'    => $custom_data,
 				),
 				null,
 				array( 'thumbnail', 'medium' ),
@@ -1367,9 +1367,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			),
 			array(
 				array(
-					'thumbnail'    => $thumbnail_data,
-					'medium'       => $medium_data,
-					'custom'       => $custom_data,
+					'thumbnail' => $thumbnail_data,
+					'medium'    => $medium_data,
+					'custom'    => $custom_data,
 				),
 				function( $enabled_sizes ) {
 					unset( $enabled_sizes['medium'] );
