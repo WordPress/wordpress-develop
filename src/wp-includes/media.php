@@ -5738,11 +5738,16 @@ function _dominant_color_get_dominant_color_data( $attachment_id ) {
 		return $editor;
 	}
 
-	$has_transparency = $editor->has_transparency();
-	if ( is_wp_error( $has_transparency ) ) {
-		return $has_transparency;
+	// can the image type be transparent if not lets shortcut here
+	if ( in_array( $mime_type, array( 'image/jpeg', 'image/bmp' ), true ) ) {
+		$dominant_color_data['has_transparency'] = false;
+	} else {
+		$has_transparency = $editor->has_transparency();
+		if ( is_wp_error( $has_transparency ) ) {
+			return $has_transparency;
+		}
+		$dominant_color_data['has_transparency'] = $has_transparency;
 	}
-	$dominant_color_data['has_transparency'] = $has_transparency;
 
 	$dominant_color = $editor->get_dominant_color();
 	if ( is_wp_error( $dominant_color ) ) {

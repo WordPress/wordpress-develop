@@ -996,11 +996,6 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			return new WP_Error( 'image_editor_has_transparency_error_no_image', __( 'Transparency detection no image found.' ) );
 		}
 
-		// can image type be transparent
-		if ( 'image/jpeg' === $this->mime_type ) {
-			return false;
-		}
-
 		try {
 			/*
 			 * Check if the image has an alpha channel if false, then it can't have transparency so return early.
