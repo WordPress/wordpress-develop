@@ -173,7 +173,7 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 		$form = get_echo( 'comment_form', array( array(), false ) );
 		$this->assertNotEmpty( $form );
 		$post_hidden_field = "<input type='hidden' name='comment_post_ID' value='{$post_id}' id='comment_post_ID' />";
-		$this->assertStringNotContainsString( '<form', $post_hidden_field );
+		$this->assertStringContainsString( $post_hidden_field, $form );
 	}
 
 	/**
@@ -184,6 +184,6 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 		$form    = get_echo( 'comment_form', array( array(), $post_id ) );
 		$this->assertNotEmpty( $form );
 		$post_hidden_field = "<input type='hidden' name='comment_post_ID' value='{$post_id}' id='comment_post_ID' />";
-		$this->assertStringNotContainsString( '<form', $post_hidden_field );
+		$this->assertStringContainsString( $post_hidden_field, $form );
 	}
 }
