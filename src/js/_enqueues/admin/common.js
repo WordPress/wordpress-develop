@@ -354,10 +354,10 @@ window.setPostThumbnailL10n = window.setPostThumbnailL10n || {
 window.setPostThumbnailL10n = deprecateL10nObject( 'setPostThumbnailL10n', window.setPostThumbnailL10n, '5.5.0' );
 
 /**
- * Removed in 6.0.0, needed for back-compatibility.
+ * Removed in 6.1.0, needed for back-compatibility.
  *
  * @since 4.5.0
- * @deprecated 6.0.0
+ * @deprecated 6.1.0
  */
 window.uiAutocompleteL10n = window.uiAutocompleteL10n || {
 	noResults: '',
@@ -366,7 +366,7 @@ window.uiAutocompleteL10n = window.uiAutocompleteL10n || {
 	itemSelected: ''
 };
 
-window.uiAutocompleteL10n = deprecateL10nObject( 'uiAutocompleteL10n', window.uiAutocompleteL10n, '6.0.0' );
+window.uiAutocompleteL10n = deprecateL10nObject( 'uiAutocompleteL10n', window.uiAutocompleteL10n, '6.1.0' );
 
 /**
  * Removed in 3.3.0, needed for back-compatibility.
