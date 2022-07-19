@@ -648,9 +648,9 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
  *
  * @since 6.1.0
  *
- * @param array $sizes         Array of image sizes to filter
+ * @param array $sizes         Associative array of image sizes.
  * @param int   $attachment_id Attachment ID.
- * @return array $sizes Array of size objects that support secondary mime type output.
+ * @return array $sizes Filtered $sizes with only those that support secondary mime type output.
  */
 function _wp_filter_image_sizes_additional_mime_type_support( $sizes, $attachment_id ) {
 
