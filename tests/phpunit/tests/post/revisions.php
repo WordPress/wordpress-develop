@@ -698,11 +698,13 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		$revision = wp_get_lastest_revision_id_and_total_count( null );
 		$this->assertWPError( $revision, 'Invalid Post, non existing revisions.' );
+		$this->assertSame( $revision->get_error_message(), 'Invalid post.' );
 
 		add_filter( 'wp_revisions_to_keep', '__return_zero' );
 		$post_id  = self::factory()->post->create();
 		$revision = wp_get_lastest_revision_id_and_total_count( $post_id );
 		$this->assertWPError( $revision, 'Revisions should be not enabled.' );
+		$this->assertSame( $revision->get_error_message(), 'Revisions not enabled.' );
 	}
 
 	/**

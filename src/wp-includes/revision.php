@@ -532,37 +532,41 @@ function wp_get_post_revisions( $post_id = 0, $args = null ) {
  * }
  */
 function wp_get_lastest_revision_id_and_total_count( $post = null ) {
-	$post     = get_post( $post );
-	$revision = 0;
-	$count    = 0;
+	$post = get_post( $post );
 
-	if ( ! $post || ! wp_revisions_enabled( $post ) ) {
-		return new WP_Error( 'revision_error', __( 'Invalid post or revisions not enabled.' ) );
+	if ( ! $post ) {
+		return new WP_Error( 'revision_error', __( 'Invalid post.' ) );
+	}
+
+	if ( ! wp_revisions_enabled( $post ) ) {
+		return new WP_Error( 'revision_error', __( 'Revisions not enabled.' ) );
 	}
 
 	$args = array(
-		'post_parent'            => $post->ID,
-		'fields'                 => 'ids',
-		'post_type'              => 'revision',
-		'post_status'            => 'inherit',
-		'order'                  => 'DESC',
-		'orderby'                => 'date ID',
-		'posts_per_page'         => 1,
-		'update_post_meta_cache' => false,
-		'update_post_term_cache' => false,
-		'suppress_filters'       => false,
-		'ignore_sticky_posts'    => true,
+		'post_parent'         => $post->ID,
+		'fields'              => 'ids',
+		'post_type'           => 'revision',
+		'post_status'         => 'inherit',
+		'order'               => 'DESC',
+		'orderby'             => 'date ID',
+		'posts_per_page'      => 1,
+		'ignore_sticky_posts' => true,
 	);
 
 	$revision_query = new WP_Query();
 	$revisions      = $revision_query->query( $args );
 
-	if ( $revisions ) {
-		$revision = $revisions[0];
-		$count    = $revision_query->found_posts;
+	if ( ! $revisions ) {
+		return array(
+			'revision' => 0,
+			'count'    => 0,
+		);
 	}
 
-	return compact( 'revision', 'count' );
+	return array(
+		'revision' => $revisions[0],
+		'count'    => $revision_query->found_posts,
+	);
 }
 
 /**
