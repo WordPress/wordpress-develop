@@ -430,17 +430,21 @@ abstract class WP_Image_Editor {
 	}
 
 	/**
-	 * Builds an output filename based on current file, and adding proper suffix
+	 * Builds an output filename based on current file, and adding proper suffix.
 	 *
 	 * @since 3.5.0
-	 * @since 6.1.0 Skips adding a suffix when set to an empty string.
+	 * @since 6.1.0 Skips adding a suffix when set to an empty string. When the
+	 *              file extension being generated doesn't match the image file extension,
+	 *              add the extension to the suffix
 	 *
-	 * @param string $suffix Optional. Suffix to add to the filename. Passing null
-	 *                       will result in a 'widthxheight' suffix. Passing
-	 *                       an empty string will result in no suffix.
-	 * @param string $dest_path
-	 * @param string $extension
-	 * @return string filename
+	 * @param string $suffix    Optional. Suffix to add to the filename. The default null
+	 *                          will result in a 'widthxheight' suffix. Passing
+	 *                          an empty string will result in no suffix.
+	 * @param string $dest_path Optional. The path to save the file to. The default null
+	 *                          will use the image file path.
+	 * @param string $extension Optional. The file extension to use. The default null
+	 *                          will use the image file extension.
+	 * @return string filename The generated file name.
 	 */
 	public function generate_filename( $suffix = null, $dest_path = null, $extension = null ) {
 		// $suffix will be appended to the destination filename, just before the extension.
