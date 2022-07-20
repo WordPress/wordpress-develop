@@ -15,7 +15,6 @@ abstract class WP_Image_Editor {
 	protected $file              = null;
 	protected $size              = null;
 	protected $mime_type         = null;
-	protected $mime_type_set     = false;
 	protected $output_mime_type  = null;
 	protected $default_mime_type = 'image/jpeg';
 	protected $quality           = false;
@@ -351,7 +350,7 @@ abstract class WP_Image_Editor {
 		} else {
 			// If no file specified, grab editor's current extension and mime-type.
 			$file_ext  = strtolower( pathinfo( $this->file, PATHINFO_EXTENSION ) );
-			$file_mime = ! $this->mime_type_set ? $this->mime_type : $this->get_mime_type( $file_ext );
+			$file_mime = $this->mime_type;
 		}
 
 		// Check to see if specified mime-type is the same as type implied by
