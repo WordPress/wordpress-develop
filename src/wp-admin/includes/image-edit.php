@@ -1100,8 +1100,8 @@ function wp_save_image( $post_id ) {
 				}
 
 				$main_images[ $targeted_mime ]     = array(
-						'path' => $new_path,
-						'file' => pathinfo( $new_path, PATHINFO_BASENAME ),
+					'path' => $new_path,
+					'file' => pathinfo( $new_path, PATHINFO_BASENAME ),
 				);
 				$subsized_images[ $targeted_mime ] = $meta['sizes'];
 				continue;
@@ -1155,8 +1155,8 @@ function wp_save_image( $post_id ) {
 			if ( isset( $main_images[ $targeted_mime ]['path'], $main_images[ $targeted_mime ]['file'] ) && file_exists( $main_images[ $targeted_mime ]['path'] ) ) {
 				// Add sources to original image metadata.
 				$meta['sources'][ $targeted_mime ] = array(
-						'file'     => $main_images[ $targeted_mime ]['file'],
-						'filesize' => wp_filesize( $main_images[ $targeted_mime ]['path'] ),
+					'file'     => $main_images[ $targeted_mime ]['file'],
+					'filesize' => wp_filesize( $main_images[ $targeted_mime ]['path'] ),
 				);
 				$image_directory                   = pathinfo( $main_images[ $targeted_mime ]['path'], PATHINFO_DIRNAME );
 			}
