@@ -334,7 +334,7 @@ abstract class WP_Image_Editor {
 	protected function get_output_format( $filename = null, $mime_type = null ) {
 		$new_ext = null;
 
-		// Use the output mime type if present. If not, fall back to the input/initial mime type.
+		// If no mime type is passed but output mime type is set, use that.
 		if ( ! $mime_type && ! empty( $this->output_mime_type ) ) {
 			$mime_type = $this->output_mime_type;
 		}
@@ -495,7 +495,7 @@ abstract class WP_Image_Editor {
 	}
 
 	/**
-	 * Check if an image has EXIF Orientation tag and rotate it if needed.
+	 * Check if a JPEG image has EXIF Orientation tag and rotate it if needed.
 	 *
 	 * @since 5.3.0
 	 *
