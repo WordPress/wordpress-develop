@@ -1174,8 +1174,8 @@ function wp_save_image( $post_id ) {
 				}
 
 				$meta['sizes'][ $size_name ]['sources'][ $targeted_mime ] = array(
-						'file'     => $subsized_images[ $targeted_mime ][ $size_name ]['file'],
-						'filesize' => wp_filesize( $subsize_path ),
+					'file'     => $subsized_images[ $targeted_mime ][ $size_name ]['file'],
+					'filesize' => wp_filesize( $subsize_path ),
 				);
 			}
 		}
