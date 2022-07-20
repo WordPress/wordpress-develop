@@ -2099,4 +2099,26 @@ HTML;
 
 		return $this->text_array_to_dataprovider( $globals );
 	}
+
+	/**
+	 * @covers ::wp_filter_global_styles_post
+	 */
+	function test_wp_filter_global_styles_post() {
+		$user_theme_json = '{
+ 			"isGlobalStylesUserThemeJSON": 1,
+ 			"version": 1,
+ 			"settings": {
+ 				"typography": {
+ 					"fontFamilies": {
+ 						"fontFamily": "\"DM Sans\", sans-serif",
+ 						"slug": "dm-sans",
+ 						"name": "DM Sans",
+ 					}
+ 				}
+ 			}
+ 		}';
+
+		$filtered_user_theme_json = wp_filter_global_styles_post( $user_theme_json );
+		$this->assertEquals( $user_theme_json, $filtered_user_theme_json );
+	}
 }
