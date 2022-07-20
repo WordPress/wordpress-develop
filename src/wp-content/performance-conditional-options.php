@@ -8,7 +8,7 @@
  * @return object|void
  */
 function performance_conditional_options_options_preload( $pre, $force_cache ) {
-	global $wpdb,$alloptions_names;
+	global $wpdb,$alloptions_names,$alloptions_used;
 
 	if ( ! wp_installing() || ! is_multisite() ) {
 		$alloptions = wp_cache_get( 'alloptions', 'options', $force_cache );
@@ -16,31 +16,38 @@ function performance_conditional_options_options_preload( $pre, $force_cache ) {
 			return $alloptions;
 		}
 	}
-	var_dump(performance_conditional_options_get_context());
 
-	$alloptions_names = array();
-	var_dump(   "SELECT option_value, option_id  FROM `$wpdb->options` WHERE option_name = '" . performance_conditional_options_get_context(). "'" );
-	// $maybe_option_ids = wp_cache_get( performance_conditional_options_get_context(), 'wp_conditional_options' );
-	$maybe_option_ids = $wpdb->get_results( "SELECT option_value FROM `$wpdb->options` WHERE option_name = '" . performance_conditional_options_get_context(). "'" );
-	var_dump( $maybe_option_ids );
-	if ( false !== $maybe_option_ids ) {
-		//      $suppress      = $wpdb->suppress_errors();
-		$key_string = "'" . implode( "','", $maybe_option_ids ) . "'";
-		var_dump( $key_string );
-		$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM `$wpdb->options` WHERE option_id IN ( $key_string )", OBJECT );
-		//      $wpdb->suppress_errors( $suppress );
-		var_dump( $alloptions_db );
-		$alloptions_names = array_map(
-			static function( $o ) {
-				return $o->option_name;
-			},
-			$alloptions_db
-		);
-
-		if ( ! empty( $alloptions_db ) ) {
-			return $alloptions_db;
-		}
+	if( ! empty( $alloptions_names ) ) {
+		return $pre;
 	}
+	$alloptions_names = array();
+
+	$maybe_option_ids = $wpdb->get_results( "SELECT option_value FROM `$wpdb->options` WHERE option_name = '" . performance_conditional_options_get_context() . "'" );
+
+
+	if ( empty( $maybe_option_ids ) ) {
+		return $pre;
+	}
+
+	$key_string = $maybe_option_ids[0]->option_value;
+
+	$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM `$wpdb->options` WHERE option_id IN ( $key_string )" );
+
+	$alloptions = array();
+	foreach ( (array) $alloptions_db as $o ) {
+		$alloptions[ $o->option_name ] = $o->option_value;
+		$alloptions_names[] = $o->option_name;
+	}
+
+	if ( ! empty( $alloptions ) ) {
+		if ( ! is_array( $alloptions_used ) ) {
+			$alloptions_used = array();
+		}
+
+		wp_cache_add( 'alloptions', $alloptions, 'options' );
+		return $alloptions;
+	}
+
 	return $pre;
 }
 add_filter( 'pre_get_alloptions', 'performance_conditional_options_options_preload', 1, 2 );
@@ -70,19 +77,26 @@ add_filter( 'pre_option_all', 'performance_conditional_options_get_option', 10, 
  */
 function performance_conditional_options_save_options_cache() {
 	global $wpdb,$alloptions_names, $alloptions_used;
-	//  var_dump($alloptions_used);
 
 	if ( array_diff( $alloptions_used, $alloptions_names ) !== array() ) {
 
 		$key_string = "'" . implode( "','", $alloptions_used ) . "'";
 
-		$DBids = $wpdb->get_results( "select option_id from $wpdb->options where option_name IN  ( $key_string )", ARRAY_A );
+		$db_ids = $wpdb->get_results( "select option_id from $wpdb->options where option_name IN  ( $key_string ) order by option_id", ARRAY_A );
 
-		$ids = implode( ',',  wp_list_pluck( $DBids, 'option_id' ) );
-//var_dump( $ids );
-		$result = $wpdb->insert( $wpdb->options, array( 'option_value' => $ids, 'autoload' => 'no' ), array( 'option_name' => performance_conditional_options_get_context() ) );
-		var_dump( $result );
-//		var_dump( update_option( performance_conditional_options_get_context(), 'wp_conditional_options', $ids ) );
+		$ids = implode( ',', wp_list_pluck( $db_ids, 'option_id' ) );
+
+		$wpdb->replace(
+			$wpdb->options,
+			array(
+				'option_name'  => performance_conditional_options_get_context(),
+				'option_value' => $ids,
+				'autoload'     => 'no',
+			),
+			array( '%s', '%s', '%s' )
+		);
+
+//		update_option( performance_conditional_options_get_context(), 'wp_conditional_options', $ids );
 		//wp_cache_add( performance_conditional_options_get_context(), $ids, 'wp_conditional_options' );
 
 	}
@@ -92,7 +106,7 @@ add_action( 'shutdown', 'performance_conditional_options_save_options_cache' );
 function performance_conditional_options_stats() {
 	global $wpdb,$alloptions_names, $alloptions_used;
 
-	$keys_count = count( $alloptions_names );
+	$keys_count = count( $alloptions_used );
 	$alloptions = $wpdb->get_results( "SELECT option_name FROM $wpdb->options WHERE autoload = 'yes'" );
 
 	$options_keys = array();
@@ -100,7 +114,7 @@ function performance_conditional_options_stats() {
 		$options_keys[] = $value->option_name;
 	}
 
-	$diff_count = count( array_diff( array_keys( $alloptions_names ), $options_keys ) );
+	$diff_count = count( array_diff( $alloptions_names, $options_keys ) );
 
 	$options_count = count( $alloptions );
 
@@ -116,17 +130,14 @@ add_action( 'shutdown', 'performance_conditional_options_stats', 99 );
  * @return string
  */
 function performance_conditional_options_get_context() {
-	global $wp_query;
-	$queryied_name = '';
-	if ( null !== $wp_query ) {
-		$queryied_object = $wp_query->get_queried_object();
-		if ( null !== $queryied_object ) {
-			$queryied_name = get_class( $queryied_object );
-		}
-	} else {
-		$queryied_name = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );
-	}
-	// TODO: add logged in
+	global $wp_query,$coc;
+	//  if ( $coc ) {
+	//      return $coc;
+	//  }
 
-	return md5( $queryied_name );
+	$queryied_name = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );
+
+	// TODO: add logged in
+	$coc = md5( $queryied_name );
+	return md5( $coc );
 }
