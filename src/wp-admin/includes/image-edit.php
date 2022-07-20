@@ -1046,8 +1046,8 @@ function wp_save_image( $post_id ) {
 		}
 
 		if (
-				isset( $meta['sizes'][ $size_name ] ) && ! empty( $meta['sizes'][ $size_name ] ) &&
-				$meta['sizes'][ $size_name ]['file'] !== $old_metadata['sizes'][ $size_name ]['file']
+			isset( $meta['sizes'][ $size_name ] ) && ! empty( $meta['sizes'][ $size_name ] ) &&
+			$meta['sizes'][ $size_name ]['file'] !== $old_metadata['sizes'][ $size_name ]['file']
 		) {
 			$resize_sizes[ $size_name ] = $meta['sizes'][ $size_name ];
 		}
