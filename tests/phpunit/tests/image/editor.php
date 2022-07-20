@@ -475,43 +475,6 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		}
 	}
 
-	/**
-	 * Do not create the sources property when opting out by size.
-	 * @since 6.1.0
-	 */
-	public function it_should_not_create_the_sources_property_when_opting_out_by_size() {
-		// Exclude the large image from mime transforms.
-		add_filter(
-			'wp_upload_image_mime_transforms',
-			function ( $transforms, $attachment_id, $size_name ) {
-				if ( 'large' === $size_name ) {
-					return array();
-				}
-				return $transforms;
-			},
-			10,
-			3
-		);
-
-		$attachment_id = $this->factory->attachment->create_upload_object(
-			DIR_TESTDATA . '/images/test-image.jpg'
-		);
-
-		$metadata = wp_get_attachment_metadata( $attachment_id );
-
-		$this->assertIsArray( $metadata );
-		// Expect sources data for every size except the large size.
-		foreach ( $metadata['sizes'] as $size_name => $properties ) {
-			if ( 'large' === $size_name ) {
-				$this->assertArrayNotHasKey( 'sources', $properties );
-			} else {
-				$this->assertArrayHasKey( 'sources', $properties );
-
-			}
-		}
-	}
-
-
 
 	/**
 	 * Create a WebP version with all the required properties

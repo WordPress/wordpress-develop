@@ -1086,7 +1086,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @ticket 55443
 	 */
 	public function test_wp_upload_image_mime_transforms_generates_webp_and_jpeg_for_both_by_default() {
-		$result = wp_upload_image_mime_transforms( 42, 'large' );
+		$result = wp_upload_image_mime_transforms( 42 );
 		$this->assertArrayHasKey( 'image/jpeg', $result );
 		$this->assertArrayHasKey( 'image/webp', $result );
 		$this->assertSameSets( array( 'image/jpeg', 'image/webp' ), $result['image/jpeg'] );
@@ -1108,7 +1108,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			}
 		);
 
-		$result = wp_upload_image_mime_transforms( 42, 'large' );
+		$result = wp_upload_image_mime_transforms( 42 );
 		$this->assertArrayHasKey( 'image/jpeg', $result );
 		$this->assertArrayNotHasKey( 'image/webp', $result );
 		$this->assertSameSets( array( 'image/webp' ), $result['image/jpeg'] );
@@ -1119,21 +1119,18 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	public function test_wp_upload_image_mime_transforms_filter_receives_parameters() {
 		$attachment_id = null;
-		$image_size    = null;
 		add_filter(
 			'wp_upload_image_mime_transforms',
-			function( $transforms, $param1, $param2 ) use ( &$attachment_id, &$image_size ) {
+			function( $transforms, $param1 ) use ( &$attachment_id ) {
 				$attachment_id = $param1;
-				$image_size    = $param2;
 				return $transforms;
 			},
 			10,
-			3
+			2
 		);
 
-		wp_upload_image_mime_transforms( 23, 'medium' );
+		wp_upload_image_mime_transforms( 23 );
 		$this->assertSame( 23, $attachment_id );
-		$this->assertSame( 'medium', $image_size );
 	}
 
 	/**
@@ -1141,7 +1138,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	public function test_wp_upload_image_mime_transforms_filter_with_empty_array() {
 		add_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
-		$result = wp_upload_image_mime_transforms( 42, 'large' );
+		$result = wp_upload_image_mime_transforms( 42 );
 		$this->assertSame( array(), $result );
 	}
 
@@ -1149,10 +1146,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @ticket 55443
 	 */
 	public function test_wp_upload_image_mime_transforms_filter_with_invalid_usage() {
-		$default = wp_upload_image_mime_transforms( 42, 'large' );
+		$default = wp_upload_image_mime_transforms( 42 );
 
 		add_filter( 'wp_upload_image_mime_transforms', '__return_false' );
-		$result = wp_upload_image_mime_transforms( 42, 'large' );
+		$result = wp_upload_image_mime_transforms( 42 );
 		$this->assertSame( $default, $result );
 	}
 
