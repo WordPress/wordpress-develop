@@ -654,7 +654,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 *
 	 * @ticket 55443
 	 */
-	public function it_should_Test preventing_replacing_a_webp_image() {
+	public function it_should_test_preventing_replacing_a_webp_image() {
 		$attachment_id = $this->factory->attachment->create_upload_object(
 			DIR_TESTDATA . '/images/webp-lossy.webp'
 		);
@@ -669,7 +669,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 *
 	 * @ticket 55443
 	 */
-	public function it_should_Test preventing_replacing_a_jpg_image_if_the_image_does_not_have_the_target_class_name() {
+	public function it_should_test_preventing_replacing_a_jpg_image_if_the_image_does_not_have_the_target_class_name() {
 		$attachment_id = $this->factory->attachment->create_upload_object(
 			DIR_TESTDATA . '/images/test-image.jpg'
 		);
