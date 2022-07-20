@@ -363,12 +363,13 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 			),
 		);
 	}
+
 	/**
-	 * Create the original image mime type when the image is uploaded
+	 * Test creating  the original image mime type when the image is uploaded.
+	 *
+	 * @ticket 55443
 	 *
 	 * @dataProvider provider_image_with_default_behaviors_during_upload
-	 *
-	 * @since 6.0.0
 	 */
 	public function it_should_create_the_original_image_mime_type_when_the_image_is_uploaded( $file_location, $expected_mime, $targeted_mime ) {
 		$attachment_id = $this->factory->attachment->create_upload_object( $file_location );
@@ -388,6 +389,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		}
 	}
 
+	/**
+	 * Data provider for it_should_create_the_original_image_mime_type_when_the_image_is_uploaded.
+	 */
 	public function provider_image_with_default_behaviors_during_upload() {
 		yield 'JPEG image' => array(
 			DIR_TESTDATA . '/images/test-image.jpg',
@@ -403,9 +407,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Not create the sources property if no transform is provided
+	 * Test Do not create the sources property if no transform is provided.
 	 *
-	 * @since 6.1.0
+	 * @ticket 55443
 	 */
 	public function it_should_not_create_the_sources_property_if_no_transform_is_provided() {
 		add_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
@@ -423,9 +427,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Create the sources property when no transform is available
+	 * Test creating the sources property when no transform is available.
 	 *
-	 * @since 6.1.0
+	 * @ticket 55443
 	 */
 	public function it_should_create_the_sources_property_when_no_transform_is_available() {
 		add_filter(
@@ -453,9 +457,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Not create the sources property if the mime is not specified on the transforms images
+	 * Test not creating the sources property if the mime is not specified on the transforms images.
 	 *
-	 * @since 6.1.0
+	 * @ticket 55443
 	 */
 	public function it_should_not_create_the_sources_property_if_the_mime_is_not_specified_on_the_transforms_images() {
 		add_filter(
@@ -479,9 +483,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 
 
 	/**
-	 * Create a WebP version with all the required properties
+	 * Test creating a WebP version with all the required properties.
 	 *
-	 * @since 6.0.0
+	 * @ticket 55443
 	 */
 	public function it_should_create_a_webp_version_with_all_the_required_properties() {
 		$attachment_id = $this->factory->attachment->create_upload_object(
@@ -501,9 +505,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Remove `scaled` suffix from the generated filename
+	 * Test removing `scaled` suffix from the generated filename.
 	 *
-	 * @since 6.0.0
+	 * @ticket 55443
 	 */
 	public function it_should_remove_scaled_suffix_from_the_generated_filename() {
 		// The leafs image is 1080 pixels wide with this filter we ensure a -scaled version is created.
@@ -525,9 +529,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Remove the generated webp images when the attachment is deleted
+	 * Test removing the generated webp images when the attachment is deleted.
 	 *
-	 * @since 6.0.0
+	 * @ticket 55443
 	 */
 	public function it_should_remove_the_generated_webp_images_when_the_attachment_is_deleted() {
 		// Make sure no editor is available.
@@ -562,9 +566,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Remove the attached WebP version if the attachment is force deleted but empty trash day is not defined
+	 * Test removing the attached WebP version if the attachment is force deleted but empty trash day is not defined.
 	 *
-	 * @since 6.0.0
+	 * @ticket 55443
 	 */
 	public function it_should_remove_the_attached_webp_version_if_the_attachment_is_force_deleted_but_empty_trash_day_is_not_defined() {
 		// Make sure no editor is available.
@@ -592,9 +596,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Remove the WebP version of the image if the image is force deleted and empty trash days is set to zero
+	 * Test removing the WebP version of the image if the image is force deleted and empty trash days is set to zero.
 	 *
-	 * @since 6.0.0
+	 * @ticket 55443
 	 */
 	public function it_should_remove_the_webp_version_of_the_image_if_the_image_is_force_deleted_and_empty_trash_days_is_set_to_zero() {
 		// Make sure no editor is available.
@@ -624,11 +628,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Avoid the change of URLs of images that are not part of the media library
+	 * Test avoiding the change of URLs of images that are not part of the media library.
 	 *
-	 * @group webp_uploads_update_image_references
-	 *
-	 * @since 6.0.0
+	 * @ticket 55443
 	 */
 	public function it_should_avoid_the_change_of_urls_of_images_that_are_not_part_of_the_media_library() {
 		$paragraph = '<p>Donec accumsan, sapien et <img src="https://ia600200.us.archive.org/16/items/SPD-SLRSY-1867/hubblesite_2001_06.jpg">, id commodo nisi sapien et est. Mauris nisl odio, iaculis vitae pellentesque nec.</p>';
@@ -637,11 +639,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Avoid replacing not existing attachment IDs
+	 * Test avoiding replacing not existing attachment IDs.
 	 *
-	 * @group webp_uploads_update_image_references
-	 *
-	 * @since 6.0.0
+	 * @ticket 55443
 	 */
 	public function it_should_avoid_replacing_not_existing_attachment_i_ds() {
 		$paragraph = '<p>Donec accumsan, sapien et <img class="wp-image-0" src="https://ia600200.us.archive.org/16/items/SPD-SLRSY-1867/hubblesite_2001_06.jpg">, id commodo nisi sapien et est. Mauris nisl odio, iaculis vitae pellentesque nec.</p>';
@@ -650,13 +650,11 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Prevent replacing a WebP image
+	 * Test preventing replacing a WebP image.
 	 *
-	 * @group webp_uploads_update_image_references
-	 *
-	 * @since 6.0.0
+	 * @ticket 55443
 	 */
-	public function it_should_prevent_replacing_a_webp_image() {
+	public function it_should_Test preventing_replacing_a_webp_image() {
 		$attachment_id = $this->factory->attachment->create_upload_object(
 			DIR_TESTDATA . '/images/webp-lossy.webp'
 		);
@@ -667,11 +665,11 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Prevent replacing a jpg image if the image does not have the target class name
+	 * Test preventing replacing a jpg image if the image does not have the target class name.
 	 *
-	 * @since 6.0.0
+	 * @ticket 55443
 	 */
-	public function it_should_prevent_replacing_a_jpg_image_if_the_image_does_not_have_the_target_class_name() {
+	public function it_should_Test preventing_replacing_a_jpg_image_if_the_image_does_not_have_the_target_class_name() {
 		$attachment_id = $this->factory->attachment->create_upload_object(
 			DIR_TESTDATA . '/images/test-image.jpg'
 		);
@@ -682,12 +680,11 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Replace the references to a JPG image to a WebP version
+	 * Test replacing the references to a JPG image to a WebP version.
 	 *
 	 * @dataProvider provider_replace_images_with_different_extensions
-	 * @group webp_uploads_update_image_references
 	 *
-	 * @since 6.0.0
+	 * @ticket 55443
 	 */
 	public function it_should_replace_the_references_to_a_jpg_image_to_a_webp_version( $image_path ) {
 		$attachment_id = $this->factory->attachment->create_upload_object( $image_path );
@@ -710,11 +707,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Contain the full image size from the original mime
+	 * Test the full image size from the original mime type.
 	 *
-	 * @group webp_uploads_update_image_references
-	 *
-	 * @since 6.0.0
+	 * @ticket 55443
 	 */
 	public function it_should_contain_the_full_image_size_from_the_original_mime() {
 		$attachment_id = $this->factory->attachment->create_upload_object(
@@ -732,11 +727,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Prevent replacing an image with no available sources
+	 * Test preventing replacing an image with no available sources.
 	 *
-	 * @group webp_uploads_update_image_references
-	 *
-	 * @since 6.0.0
+	 * @ticket 55443
 	 */
 	public function it_should_prevent_replacing_an_image_with_no_available_sources() {
 		add_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
@@ -748,12 +741,11 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Prevent update not supported images with no available sources
+	 * Test preventing update not supported images with no available sources.
 	 *
-	 * @dataProvider data_provider_not_supported_webp_images
-	 * @group webp_uploads_update_image_references
+	 * @dataProvider provider_it_should_prevent_update_not_supported_images_with_no_available_sources
 	 *
-	 * @since 6.0.0
+	 * @ticket 55443
 	 */
 	public function it_should_prevent_update_not_supported_images_with_no_available_sources( $image_path ) {
 		$attachment_id = $this->factory->attachment->create_upload_object( $image_path );
@@ -764,11 +756,12 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		$this->assertSame( $tag, webp_uploads_img_tag_update_mime_type( $tag, 'the_content', $attachment_id ) );
 	}
 
-	public function data_provider_not_supported_webp_images() {
+	/**
+	 * Data provider for it_should_prevent_update_not_supported_images_with_no_available_sources.
+	 */
+	public function provider_it_should_prevent_update_not_supported_images_with_no_available_sources() {
 		yield 'PNG image' => array( DIR_TESTDATA . '/images/test-image.png' );
 		yield 'GIFT image' => array( DIR_TESTDATA . '/images/test-image.gif' );
 	}
-
-
 
 }
