@@ -1210,7 +1210,7 @@ function wp_save_image( $post_id ) {
 		wp_update_attachment_metadata( $post_id, $meta );
 		update_post_meta( $post_id, '_wp_attachment_backup_sizes', $backup_sizes );
 
-		$target_size_name_from_source = false;
+		$next_target_size_name_from_source = null;
 		// Store the provided sources for the attachment ID in the `_wp_attachment_backup_sources` with the next available target if target is `null` no source would be stored.
 		foreach ( array_keys( $backup_sizes ) as $size_name ) {
 			// If the target already has the sources attributes find the next one.
@@ -1223,11 +1223,11 @@ function wp_save_image( $post_id ) {
 				continue;
 			}
 
-			$target_size_name_from_source = $size_name;
+			$next_target_size_name_from_source = $size_name;
 		}
 
-		if ( null !== $target_size_name_from_source && ! empty( $old_metadata['sources'] ) ) {
-			$backup_sources[ $target_size_name_from_source ] = $old_metadata['sources'];
+		if ( null !== $next_target_size_name_from_source && ! empty( $old_metadata['sources'] ) ) {
+			$backup_sources[ $next_target_size_name_from_source ] = $old_metadata['sources'];
 			// Store the `sources` property into the full size if present.
 			update_post_meta( $post_id, '_wp_attachment_backup_sources', $backup_sources );
 		}
