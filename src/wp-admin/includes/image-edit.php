@@ -1145,10 +1145,10 @@ function wp_save_image( $post_id ) {
 			 * @see get_attached_file()
 			 */
 			if (
-					null === $image_directory
-					&& isset( $meta['file'] )
-					&& 0 !== strpos( $meta['file'], '/' )
-					&& ':\\' !== substr( $meta['file'], 1, 2 )
+				null === $image_directory
+				&& isset( $meta['file'] )
+				&& 0 !== strpos( $meta['file'], '/' )
+				&& ':\\' !== substr( $meta['file'], 1, 2 )
 			) {
 				if ( false === $uploads_dir['error'] && isset( $uploads_dir['basedir'] ) ) {
 					$file = path_join( $uploads_dir['basedir'], $meta['file'] );
