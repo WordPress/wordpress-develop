@@ -66,7 +66,7 @@ function wp_cache_add( $key, $data, $group = 'default', $expire = 0 ) {
 function wp_cache_add_multiple( array $data, $group = 'default', $expire = 0 ) {
 	global $wp_object_cache;
 
-	if ( 'last_changed' !== $key && ! wp_cache_supports_flush_group() ) {
+	if ( ! wp_cache_supports_flush_group() ) {
 		$group .= wp_cache_get_last_changed( $group );
 	}
 
