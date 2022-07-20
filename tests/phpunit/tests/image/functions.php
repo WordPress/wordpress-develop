@@ -662,6 +662,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$this->assertNotEmpty( $attachment_id );
 
 		$temp_dir = get_temp_dir();
+
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
 
 		$expected = array(
