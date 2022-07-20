@@ -1416,9 +1416,6 @@ function get_network_option( $network_id, $option, $default = false ) {
 		$meta = get_metadata_raw( 'site', $network_id, $option );
 		if ( is_array( $meta ) && ! empty( $meta ) ) {
 			$value = array_shift( $meta );
-			if ( is_numeric( $value ) ) {
-				$value = +$value;
-			}
 		} else {
 			/** This filter is documented in wp-includes/option.php */
 			$value = apply_filters( "default_site_option_{$option}", $default, $option, $network_id );

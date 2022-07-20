@@ -346,7 +346,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 			'int'         => array(
 				'option'   => 'int',
 				'value'    => 33,
-				'expected' => 33,
+				'expected' => '33',
 			),
 			'string'      => array(
 				'option'   => 'string',
@@ -361,12 +361,12 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 			'float'       => array(
 				'option'   => 'float',
 				'value'    => 33.5555,
-				'expected' => 33.5555,
+				'expected' => '33.5555',
 			),
 			'bool'        => array(
 				'option'   => 'bool',
 				'value'    => true,
-				'expected' => 1,
+				'expected' => '1',
 			),
 			'null'        => array(
 				'option'   => 'null',

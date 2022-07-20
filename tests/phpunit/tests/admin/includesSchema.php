@@ -238,7 +238,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 		$results = array();
 		foreach ( $expected as $meta_key => $value ) {
 			if ( is_multisite() ) {
-				$results[ $meta_key ] = (string) get_network_option( 42, $meta_key );
+				$results[ $meta_key ] = get_network_option( 42, $meta_key );
 			} else {
 				$results[ $meta_key ] = $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM {$wpdb->sitemeta} WHERE meta_key = %s AND site_id = %d", $meta_key, 42 ) );
 			}
