@@ -7614,9 +7614,25 @@ function wp_cache_get_last_changed( $group ) {
 	$last_changed = wp_cache_get( 'last_changed', $group );
 
 	if ( ! $last_changed ) {
-		$last_changed = microtime();
-		wp_cache_set( 'last_changed', $last_changed, $group );
+		$last_changed = wp_cache_set_last_changed( $group );
 	}
+
+	return $last_changed;
+}
+
+/**
+ * Set last changed date for the specified cache group.
+ *
+ * @since 6.1.0
+ *
+ * @param string $group Where the cache contents are grouped.
+ * @return string UNIX timestamp with microseconds representing when the group was last changed.
+ */
+function wp_cache_set_last_changed( $group ) {
+	$last_changed = microtime();
+	wp_cache_set( 'last_changed', $last_changed, $group );
+
+	do_action( 'wp_cache_set_last_changed', $group, $last_changed );
 
 	return $last_changed;
 }
