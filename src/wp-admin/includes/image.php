@@ -1479,7 +1479,7 @@ function wp_upload_image_mime_transforms( $attachment_id, $image_size ) {
 	 * @param int    $attachment_id         The ID of the attachment where the hook was dispatched.
 	 * @param string $image_size            The image size name. Optional.
 	 */
-	$image_mime_transforms = apply_filters( 'wp_upload_image_mime_transforms', $image_mime_transforms, $attachment_id, $image_size );
+	$image_mime_transforms = apply_filters( 'wp_upload_image_mime_transforms', $image_mime_transforms, $attachment_id );
 
 	if ( ! is_array( $image_mime_transforms ) ) {
 		return $default_image_mime_transforms;
