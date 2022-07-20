@@ -101,7 +101,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 			}
 		);
 
-        $this->assertSame( $expected, get_header_image() );
+		$this->assertSame( $expected, get_header_image() );
 	}
 
 	/**
