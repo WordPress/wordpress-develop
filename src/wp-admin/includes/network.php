@@ -625,14 +625,14 @@ define( 'BLOG_ID_CURRENT_SITE', 1 );
 			echo '<p><strong>' . __( 'Warning:' ) . ' ' . __( 'Subdirectory networks may not be fully compatible with custom wp-content directories.' ) . '</strong></p>';
 		}
 		?>
-		<p class="configuration-rules-label"><label for="network-webconfig-rules">
-			<?php
-			printf(
-				/* translators: %s: File name (wp-config.php, .htaccess or web.config). */
-				__( 'Network configuration rules for %s' ),
-				'<code>web.config</code>'
-			);
-			?>
+			<p class="configuration-rules-label"><label for="network-webconfig-rules">
+				<?php
+				printf(
+					/* translators: %s: File name (wp-config.php, .htaccess or web.config). */
+					__( 'Network configuration rules for %s' ),
+					'<code>web.config</code>'
+				);
+				?>
 			</label></p>
 			<textarea id="network-webconfig-rules" class="code" readonly="readonly" cols="100" rows="20" aria-describedby="network-webconfig-rules-description"><?php echo esc_textarea( $web_config_file ); ?></textarea>
 		</li>
