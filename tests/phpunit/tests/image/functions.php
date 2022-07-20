@@ -1276,6 +1276,112 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 55443
+	 * @dataProvider data__wp_filter_image_sizes_additional_mime_type_support
+	 */
+	public function test__wp_filter_image_sizes_additional_mime_type_support( $input_size_data, $filter_callback, $expected_size_names ) {
+		remove_all_filters( 'wp_image_sizes_with_additional_mime_type_support' );
+		if ( $filter_callback ) {
+			add_filter( 'wp_image_sizes_with_additional_mime_type_support', $filter_callback );
+		}
+
+		$expected_size_data = array_intersect_key( $input_size_data, array_flip( $expected_size_names ) );
+
+		$output_size_data = _wp_filter_image_sizes_additional_mime_type_support( $input_size_data, 42 );
+		$this->assertEqualSetsWithIndex( $expected_size_data, $output_size_data );
+	}
+
+	public function data__wp_filter_image_sizes_additional_mime_type_support() {
+		$thumbnail_data    = array(
+			'width'  => 150,
+			'height' => 150,
+			'crop'   => true,
+		);
+		$medium_data       = array(
+			'width'  => 300,
+			'height' => 300,
+			'crop'   => false,
+		);
+		$medium_large_data = array(
+			'width'  => 768,
+			'height' => 0,
+			'crop'   => false,
+		);
+		$large_data        = array(
+			'width'  => 1024,
+			'height' => 1024,
+			'crop'   => false,
+		);
+		$custom_data       = array(
+			'width'  => 512,
+			'height' => 512,
+			'crop'   => true,
+		);
+
+		return array(
+			array(
+				array(
+					'thumbnail'    => $thumbnail_data,
+					'medium'       => $medium_data,
+					'medium_large' => $medium_large_data,
+					'large'        => $large_data,
+				),
+				null,
+				array( 'thumbnail', 'medium', 'medium_large', 'large' ),
+			),
+			array(
+				array(
+					'thumbnail' => $thumbnail_data,
+					'medium'    => $medium_data,
+					'custom'    => $custom_data,
+				),
+				null,
+				array( 'thumbnail', 'medium' ),
+			),
+			array(
+				array(
+					'thumbnail'    => $thumbnail_data,
+					'medium'       => $medium_data,
+					'medium_large' => $medium_large_data,
+					'large'        => $large_data,
+				),
+				function( $enabled_sizes ) {
+					unset( $enabled_sizes['medium_large'], $enabled_sizes['large'] );
+					return $enabled_sizes;
+				},
+				array( 'thumbnail', 'medium' ),
+			),
+			array(
+				array(
+					'thumbnail'    => $thumbnail_data,
+					'medium'       => $medium_data,
+					'medium_large' => $medium_large_data,
+					'large'        => $large_data,
+				),
+				function( $enabled_sizes ) {
+					$enabled_sizes['medium_large'] = false;
+					$enabled_sizes['large']        = false;
+					return $enabled_sizes;
+				},
+				array( 'thumbnail', 'medium' ),
+			),
+			array(
+				array(
+					'thumbnail' => $thumbnail_data,
+					'medium'    => $medium_data,
+					'custom'    => $custom_data,
+				),
+				function( $enabled_sizes ) {
+					unset( $enabled_sizes['medium'] );
+					$enabled_sizes['custom'] = true;
+					return $enabled_sizes;
+				},
+				array( 'thumbnail', 'custom' ),
+			),
+		);
+	}
+
+	/**
 	 * Test the `_wp_maybe_scale_and_rotate_image()` function.
 	 *
 	 * @dataProvider data_test__wp_maybe_scale_and_rotate_image

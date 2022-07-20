@@ -648,9 +648,9 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
  *
  * @since 6.1.0
  *
- * @param array $sizes         Array of image sizes to filter
+ * @param array $sizes         Associative array of image sizes.
  * @param int   $attachment_id Attachment ID.
- * @return array $sizes Array of size objects that support secondary mime type output.
+ * @return array $sizes Filtered $sizes with only those that support secondary mime type output.
  */
 function _wp_filter_image_sizes_additional_mime_type_support( $sizes, $attachment_id ) {
 
@@ -1479,7 +1479,7 @@ function wp_upload_image_mime_transforms( $attachment_id, $image_size ) {
 	 * @param int    $attachment_id         The ID of the attachment where the hook was dispatched.
 	 * @param string $image_size            The image size name. Optional.
 	 */
-	$image_mime_transforms = apply_filters( 'wp_upload_image_mime_transforms', $image_mime_transforms, $attachment_id, $image_size );
+	$image_mime_transforms = apply_filters( 'wp_upload_image_mime_transforms', $image_mime_transforms, $attachment_id );
 
 	if ( ! is_array( $image_mime_transforms ) ) {
 		return $default_image_mime_transforms;
