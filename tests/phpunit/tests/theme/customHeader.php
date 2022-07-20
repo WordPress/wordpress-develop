@@ -111,28 +111,28 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 */
 	public function data_filter_header_image() {
 		return array(
-				'an image url'         => array(
-						'header_image' => 'http://example.org/image.png',
-						'expected'     => 'http://example.org/image.png',
-				),
-				'an empty string'      => array(
-						'header_image' => '',
-						'expected'     => '',
-				),
-				'a string with spaces' => array(
-						'header_image' => ' ',
-						'expected'     => '',
-				),
-				'null'                 => array(
-						'header_image' => null,
-						'expected'     => false,
-				),
-				'false'                => array(
-						'header_image' => false,
-						'expected'     => false,
-				),
+			'an image url'         => array(
+				'header_image' => 'http://example.org/image.png',
+				'expected'     => 'http://example.org/image.png',
+			),
+			'an empty string'      => array(
+				'header_image' => '',
+				'expected'     => '',
+			),
+			'a string with spaces' => array(
+				'header_image' => ' ',
+				'expected'     => '',
+			),
+			'null'                 => array(
+				'header_image' => null,
+				'expected'     => false,
+			),
+			'false'                => array(
+				'header_image' => false,
+				'expected'     => false,
+			),
 		);
-}
+	}
 
 	public function test_get_header_image_tag_without_registered_default_image() {
 		$this->add_theme_support();
