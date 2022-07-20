@@ -336,7 +336,9 @@ abstract class WP_Image_Editor {
 		$new_ext = null;
 
 		// Use the output mime type if present. If not, fall back to the input/initial mime type.
-		$mime_type = ! empty( $this->output_mime_type ) ? $this->output_mime_type : $this->mime_type;
+		if ( ! $mime_type && ! empty( $this->output_mime_type ) ) {
+			$mime_type = $this->output_mime_type;
+		}
 
 		// By default, assume specified type takes priority.
 		if ( $mime_type ) {
