@@ -735,6 +735,7 @@ function stream_preview_image( $post_id ) {
  */
 function wp_restore_image( $post_id ) {
 	$meta             = wp_get_attachment_metadata( $post_id );
+	$old_meta         = $meta;
 	$file             = get_attached_file( $post_id );
 	$backup_sizes     = get_post_meta( $post_id, '_wp_attachment_backup_sizes', true );
 	$old_backup_sizes = $backup_sizes;
@@ -798,6 +799,28 @@ function wp_restore_image( $post_id ) {
 		} else {
 			unset( $meta['sizes'][ $default_size ] );
 		}
+	}
+
+	$next_full_size_key_from_backup = null;
+	foreach ( array_keys( $backup_sizes ) as $size_name ) {
+		// If the target already has the sources attributes find the next one.
+		if ( isset( $backup_sources[ $size_name ] ) ) {
+			continue;
+		}
+
+		// We are only interested in the `full-` sizes.
+		if ( strpos( $size_name, 'full-' ) === false ) {
+			continue;
+		}
+
+		$next_full_size_key_from_backup = $size_name;
+		break;
+	}
+
+	if ( null !== $next_full_size_key_from_backup ) {
+		$backup_sources[ $next_full_size_key_from_backup ] = $old_meta['sources'];
+		// Store the `sources` property into the full size if present.
+		update_post_meta( $post_id, '_wp_attachment_backup_sources', $backup_sources );
 	}
 
 	if ( isset( $backup_sources['full-orig'] ) && is_array( $backup_sources['full-orig'] ) ) {
