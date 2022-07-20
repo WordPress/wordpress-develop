@@ -478,7 +478,7 @@ abstract class WP_Image_Editor {
 		// When the file extension being generated doesn't match the image file extension,
 		// add the extension to the suffix to ensure a unique file name. Prevents
 		// name conflicts when a single image type can have multiple extensions,
-		// eg. .jpg, .jpg and .jpeg are all valid JPEG extensions.
+		// eg. .jpg, .jpeg and .jpe are all valid JPEG extensions.
 		if ( ! empty( $extension ) && $extension !== $ext ) {
 			$suffix .= "-{$ext}";
 		}
