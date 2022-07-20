@@ -275,8 +275,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$ret = wp_save_image( $attachment_id );
 
-		$this->assertSame( 'Image saved', $ret->msg );
-
 		$backup_sizes = get_post_meta( $attachment_id, '_wp_attachment_backup_sizes', true );
 
 		$this->assertNotEmpty( $backup_sizes );
@@ -296,6 +294,66 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 			$this->assertArrayHasKey( 'sources', $properties );
 			$this->assertSame( $metadata['sizes'][ $size_name ]['sources'], $properties['sources'] );
+		}
+	}
+
+	/**
+	 * Restore the sources array from the backup when an image is edited
+	 *
+	 * @test
+	 */
+	public function test_restore_the_sources_array_from_the_backup_when_an_image_is_edited() {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$filename = DIR_TESTDATA . '/images/canola.jpg';
+		$contents = file_get_contents( $filename );
+
+		$upload        = wp_upload_bits( wp_basename( $filename ), null, $contents );
+		$attachment_id = $this->_make_attachment( $upload );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+
+		$_REQUEST['action']  = 'image-editor';
+		$_REQUEST['context'] = 'edit-attachment';
+		$_REQUEST['postid']  = $attachment_id;
+		$_REQUEST['target']  = 'all';
+		$_REQUEST['do']      = 'save';
+		$_REQUEST['history'] = '[{"r":-90}]';
+
+		$ret = wp_save_image( $attachment_id );
+
+		$backup_sources = get_post_meta( $attachment_id, '_wp_attachment_backup_sources', true );
+
+		$this->assertArrayHasKey( 'full-orig', $backup_sources );
+		$this->assertIsArray( $backup_sources['full-orig'] );
+		$this->assertSame( $metadata['sources'], $backup_sources['full-orig'] );
+
+		wp_restore_image( $attachment_id );
+
+		$metadata               = wp_get_attachment_metadata( $attachment_id );
+		$updated_backup_sources = get_post_meta( $attachment_id, '_wp_attachment_backup_sources', true );
+
+		$this->assertSame( $backup_sources['full-orig'], $metadata['sources'] );
+		$this->assertNotSame( $backup_sources, $updated_backup_sources );
+		$this->assertCount( 1, $backup_sources );
+		$this->assertCount( 2, $updated_backup_sources );
+
+		$backup_sizes = get_post_meta( $attachment_id, '_wp_attachment_backup_sizes', true );
+		foreach ( $backup_sizes as $size_name => $properties ) {
+			// We are only interested in the original filenames to be compared against the backup and restored values.
+			if ( false === strpos( $size_name, '-orig' ) ) {
+				continue;
+			}
+
+			$size_name = str_replace( '-orig', '', $size_name );
+			// Full name is verified above.
+			if ( 'full' === $size_name ) {
+				continue;
+			}
+
+			$this->assertArrayHasKey( $size_name, $metadata['sizes'] );
+			$this->assertArrayHasKey( 'sources', $metadata['sizes'][ $size_name ] );
+			$this->assertSame( $properties['sources'], $metadata['sizes'][ $size_name ]['sources'] );
 		}
 	}
 
