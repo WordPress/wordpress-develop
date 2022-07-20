@@ -168,13 +168,13 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
 	$errmsg_blog_title      = $errors->get_error_message( 'blog_title' );
 	$errmsg_blog_title_aria = '';
 	if ( $errmsg_blog_title ) {
-		$errmsg_blog_title_aria = 'aria-describedby="wp-signup-blog-title-error" ';
+		$errmsg_blog_title_aria = 'aria-describedby="wp-signup-blog-title-error"';
 		?>
 		<p class="error" id="wp-signup-blog-title-error"><?php echo $errmsg_blog_title; ?></p>
 		<?php
 	}
 	?>
-	<input name="blog_title" type="text" id="blog_title" value="<?php echo esc_attr( $blog_title ); ?>" autocomplete="off" <?php echo $errmsg_blog_title_aria; ?>/>
+	<input name="blog_title" type="text" id="blog_title" value="<?php echo esc_attr( $blog_title ); ?>" autocomplete="off" <?php echo $errmsg_blog_title_aria; ?> />
 
 	<?php
 	// Site Language.
