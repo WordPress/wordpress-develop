@@ -1281,10 +1281,10 @@ function wp_refresh_metabox_loader_nonces( $response, $data ) {
 	}
 
 	$response['wp-refresh-metabox-loader-nonces'] = array(
-			'replace' => array(
-					'metabox_loader_nonce' => wp_create_nonce( 'meta-box-loader' ),
-					'_wpnonce'             => wp_create_nonce( 'update-post_' . $post_id ),
-			),
+		'replace' => array(
+			'metabox_loader_nonce' => wp_create_nonce( 'meta-box-loader' ),
+			'_wpnonce'             => wp_create_nonce( 'update-post_' . $post_id ),
+		),
 	);
 
 	return $response;

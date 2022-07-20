@@ -1037,18 +1037,18 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$post_id   = wp_insert_post( $post_data );
 
 		// Simulate the $_POST data from the heartbeat.
-		$data = [
-			'wp-refresh-metabox-loader-nonces' => [
+		$data = array(
+			'wp-refresh-metabox-loader-nonces' => array(
 				'post_id' => (string) $post_id,
-			],
-			'wp-refresh-post-lock'             => [
+			),
+			'wp-refresh-post-lock'             => array(
 				'lock'    => '1658203298:1',
-				'post_id' => (string) $post_id
-			]
-		];
+				'post_id' => (string) $post_id,
+			),
+		);
 
 		// Call the function we're testing.
-		$response = wp_refresh_metabox_loader_nonces( [], $data );
+		$response = wp_refresh_metabox_loader_nonces( array(), $data );
 
 		// Ensure that both nonces were created.
 		$this->assertNotEmpty( $response['wp-refresh-metabox-loader-nonces']['replace']['_wpnonce'] );
