@@ -406,7 +406,7 @@ function _wp_maybe_scale_and_rotate_image( $file, $attachment_id, $imagesize, $e
 	}
 
 	if ( ! empty( $mime_type ) ) {
-		$editor->set_mime_type( $mime_type );
+		$editor->set_output_mime_type( $mime_type );
 	}
 
 	// Do not scale (large) PNG images. May result in sub-sizes that have greater file size than the original. See #48736.
@@ -573,7 +573,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 		return $image_meta;
 	}
 
-	$editor->set_mime_type( $mime_type );
+	$editor->set_output_mime_type( $mime_type );
 
 	// If stored EXIF data exists, rotate the source image before creating sub-sizes.
 	if ( ! empty( $image_meta['image_meta'] ) ) {

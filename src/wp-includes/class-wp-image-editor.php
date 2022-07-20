@@ -335,9 +335,8 @@ abstract class WP_Image_Editor {
 	protected function get_output_format( $filename = null, $mime_type = null ) {
 		$new_ext = null;
 
-		if ( ! $mime_type && $this->mime_type_set ) {
-			$mime_type = $this->mime_type;
-		}
+		// Use the output mime type if present. If not, fall back to the input/initial mime type.
+		$mime_type = ! empty( $this->output_mime_type ) ? $this->output_mime_type : $this->mime_type;
 
 		// By default, assume specified type takes priority.
 		if ( $mime_type ) {
@@ -505,7 +504,7 @@ abstract class WP_Image_Editor {
 	public function maybe_exif_rotate() {
 		$orientation = null;
 
-		if ( is_callable( 'exif_read_data' ) ) {
+		if ( is_callable( 'exif_read_data' ) && 'image/jpeg' === $this->mime_type ) {
 			$exif_data = @exif_read_data( $this->file );
 
 			if ( ! empty( $exif_data['Orientation'] ) ) {
@@ -658,17 +657,16 @@ abstract class WP_Image_Editor {
 	}
 
 	/**
-	 * Set the editor mime type, useful when outputting alternate mime types.
+	 * Set the editor output mime type, useful when outputting alternate mime types.
 	 *
 	 * Track that the mime type is set with the mime type set flag.
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param string $mime_type The mime type to set.
+	 * @param string $output_mime_type The mime type to set.
 	 */
-	public function set_mime_type( $mime_type ) {
-		$this->mime_type     = $mime_type;
-		$this->mime_type_set = true;
+	public function set_output_mime_type( $output_mime_type ) {
+		$this->output_mime_type     = $output_mime_type;
 	}
 
 	/**
@@ -678,8 +676,7 @@ abstract class WP_Image_Editor {
 	 *
 	 * @since 6.1.0
 	 */
-	public function reset_mime_type() {
-		$this->mime_type     = wp_get_image_mime( $this->file );
-		$this->mime_type_set = false;
+	public function reset_output_mime_type() {
+		$this->output_mime_type     = $this->mime_type;
 	}
 }
