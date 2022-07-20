@@ -495,10 +495,12 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertTrue( $wpdb->has_cap( 'group_concat' ) );
 		$this->assertTrue( $wpdb->has_cap( 'subqueries' ) );
 		$this->assertTrue( $wpdb->has_cap( 'identifier_placeholders' ) );
+		$this->assertTrue( $wpdb->has_cap( 'variadic_placeholders' ) );
 		$this->assertTrue( $wpdb->has_cap( 'COLLATION' ) );
 		$this->assertTrue( $wpdb->has_cap( 'GROUP_CONCAT' ) );
 		$this->assertTrue( $wpdb->has_cap( 'SUBQUERIES' ) );
 		$this->assertTrue( $wpdb->has_cap( 'IDENTIFIER_PLACEHOLDERS' ) );
+		$this->assertTrue( $wpdb->has_cap( 'VARIADIC_PLACEHOLDERS' ) );
 		$this->assertSame(
 			version_compare( $wpdb->db_version(), '5.0.7', '>=' ),
 			$wpdb->has_cap( 'set_charset' )
@@ -1818,6 +1820,36 @@ class Tests_DB extends WP_UnitTestCase {
 				array( "field' -- ", "field' -- " ),
 				false,
 				"WHERE `field' -- ` LIKE 'field\' -- ' LIMIT 1", // In contrast to the above, Identifier vs String escaping is used.
+			),
+			array(
+				'WHERE id IN (%...d)',
+				array( array( 1, 2, 3, 'not-int' ) ),
+				false,
+				'WHERE id IN (1,2,3,0)',
+			),
+			array(
+				'WHERE id IN (%...f)',
+				array( array( 1.1, 2, 3.3, 'not-float' ) ),
+				false,
+				'WHERE id IN (1.100000,2.000000,3.300000,0.000000)',
+			),
+			array(
+				'WHERE type IN (%...s)',
+				array( array( 'post', 'page' ) ),
+				false,
+				"WHERE type IN ('post','page')",
+			),
+			array(
+				'SELECT %...i FROM %i WHERE id IN (%...d)',
+				array( array( 'field_1', 'field_2', 'field`3' ), 'table', array( 1, 2, 'non-int' ) ),
+				false,
+				'SELECT `field_1`,`field_2`,`field``3` FROM `table` WHERE id IN (1,2,0)',
+			),
+			array(
+				'WHERE id IN (%...d) AND type = (%...s)',
+				array( array( 4, 29, 51 ), array( 'post', 'page' ) ),
+				false,
+				"WHERE id IN (4,29,51) AND type = ('post','page')",
 			),
 		);
 	}

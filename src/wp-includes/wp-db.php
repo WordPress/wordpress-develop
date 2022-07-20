@@ -1423,6 +1423,8 @@ class wpdb {
 	 * - %s (string)
 	 * - %i (identifier, e.g. table/field names)
 	 *
+	 * - %...d (an array of integers, e.g. 'WHERE id IN (%...d)')
+	 *
 	 * All placeholders MUST be left unquoted in the query string. A corresponding argument
 	 * MUST be passed for each placeholder.
 	 *
@@ -1458,6 +1460,8 @@ class wpdb {
 	 *              Check support via `wpdb::has_cap( 'identifier_placeholders' )`.
 	 *              This preserves compatibility with sprintf(), as the C version uses
 	 *              `%d` and `$i` as a signed integer, whereas PHP only supports `%d`.
+	 * @since 6.1.0 Added `%...d` and `%...s` to work with the `IN()` operator, e.g.
+	 *              'WHERE id IN (%...d) AND type = (%...s)', [[4, 29, 51], ['post', 'page']]
 	 *
 	 * @link https://www.php.net/sprintf Description of syntax.
 	 *
@@ -1511,10 +1515,10 @@ class wpdb {
 		$query = str_replace( '"%s"', '%s', $query ); // Strip any existing double quotes.
 
 		// Escape any unescaped percents (i.e. anything unrecognised).
-		$query = preg_replace( "/%(?:%|$|(?!($allowed_format)?[sdfFi]))/", '%%\\1', $query );
+		$query = preg_replace( "/%(?:%|$|(?!($allowed_format|\.\.\.)?[sdfFi]))/", '%%\\1', $query );
 
 		// Extract placeholders from the query.
-		$split_query = preg_split( "/(^|[^%]|(?:%%)+)(%(?:$allowed_format)?[sdfFi])/", $query, -1, PREG_SPLIT_DELIM_CAPTURE );
+		$split_query = preg_split( "/(^|[^%]|(?:%%)+)(%(?:$allowed_format|\.\.\.)?[sdfFi])/", $query, -1, PREG_SPLIT_DELIM_CAPTURE );
 
 		$split_query_count = count( $split_query );
 		/*
@@ -1525,6 +1529,9 @@ class wpdb {
 
 		// If args were passed as an array, as in vsprintf(), move them up.
 		$passed_as_array = ( isset( $args[0] ) && is_array( $args[0] ) && 1 === count( $args ) );
+		if ( $passed_as_array && isset( $split_query[2] ) && substr( $split_query[2], 1, -1 ) === '...' && false === is_array( $args[0][0] ) ) {
+			$passed_as_array = false; // The first (and only) placeholder, is using variadics (e.g. '%...d'), but the args were *not* passed as an array, e.g. $wpdb->prepare('id IN (%...d)', [ [ 1, 2, 3 ] ] );
+		}
 		if ( $passed_as_array ) {
 			$args = $args[0];
 		}
@@ -1534,6 +1541,7 @@ class wpdb {
 		$arg_id          = 0;
 		$arg_identifiers = array();
 		$arg_strings     = array();
+		$arg_variadics   = array();
 
 		while ( $key < $split_query_count ) {
 			$placeholder = $split_query[ $key ];
@@ -1546,7 +1554,18 @@ class wpdb {
 				$placeholder = '%' . $format . $type;
 			}
 
-			if ( 'i' === $type ) {
+			if ( '...' === $format ) {
+				if ( 'i' === $type ) {
+					$new_placeholder   = '`%s`';
+					$arg_identifiers[] = $arg_id;
+				} elseif ( 'd' === $type || 'F' === $type ) {
+					$new_placeholder = '%' . $type; // No need to quote integers or floats.
+				} else {
+					$new_placeholder = "'%" . $type . "'";
+				}
+				$placeholder     = substr( str_repeat( $new_placeholder . ',', count( $args[ $arg_id ] ) ), 0, -1 );
+				$arg_variadics[] = $arg_id;
+			} elseif ( 'i' === $type ) {
 				$placeholder = '`%' . $format . 's`';
 				// Using a simple strpos() due to previous checking (e.g. $allowed_format).
 				$argnum_pos = strpos( $format, '$' );
@@ -1661,7 +1680,13 @@ class wpdb {
 		$args_escaped = array();
 
 		foreach ( $args as $i => $value ) {
-			if ( in_array( $i, $arg_identifiers, true ) ) {
+			if ( in_array( $i, $arg_variadics, true ) ) {
+				if ( in_array( $i, $arg_identifiers, true ) ) {
+					$args_escaped = array_merge( $args_escaped, array_map( array( $this, '_escape_identifier_value' ), $value ) );
+				} else {
+					$args_escaped = array_merge( $args_escaped, array_map( array( $this, '_real_escape' ), $value ) );
+				}
+			} elseif ( in_array( $i, $arg_identifiers, true ) ) {
 				$args_escaped[] = $this->_escape_identifier_value( $value );
 			} elseif ( is_int( $value ) || is_float( $value ) ) {
 				$args_escaped[] = $value;
@@ -3968,9 +3993,11 @@ class wpdb {
 			case 'utf8mb4_520': // @since 4.6.0
 				return version_compare( $version, '5.6', '>=' );
 			case 'identifier_placeholders': // @since 6.1.0
+			case 'variadic_placeholders':   // @since 6.1.0
 				/*
-				 * As of WordPress 6.1, wpdb::prepare() supports identifiers via '%i',
-				 * e.g. table/field names.
+				 * As of WordPress 6.1, wpdb::prepare() supports:
+				 * - identifiers via '%i', e.g. table/field names.
+				 * - variadics via `%...d`, e.g. `IN (%...d)`.
 				 */
 				return true;
 		}
