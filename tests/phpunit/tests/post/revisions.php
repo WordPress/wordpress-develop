@@ -229,7 +229,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		);
 
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 1, $revisions );
+		$this->assertCount( 2, $revisions );
 		$this->assertTrue( user_can( self::$editor_user_id, 'read_post', $post_id ) );
 
 		foreach ( $revisions as $revision ) {
@@ -262,7 +262,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		);
 
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 1, $revisions );
+		$this->assertCount( 2, $revisions );
 		foreach ( $revisions as $revision ) {
 			$this->assertTrue( user_can( self::$editor_user_id, 'edit_post', $revision->post_parent ) );
 		}
@@ -300,7 +300,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		// Diff checks if you can read both left and right revisions.
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 2, $revisions );
+		$this->assertCount( 3, $revisions );
 		foreach ( $revisions as $revision ) {
 			$this->assertTrue( user_can( self::$editor_user_id, 'read_post', $revision->ID ) );
 		}
@@ -340,7 +340,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		);
 
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 1, $revisions );
+		$this->assertCount( 2, $revisions );
 		$this->assertTrue( user_can( self::$editor_user_id, 'read_post', $post_id ) );
 
 		foreach ( $revisions as $revision ) {
@@ -387,7 +387,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		);
 
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 1, $revisions );
+		$this->assertCount( 2, $revisions );
 		foreach ( $revisions as $revision ) {
 			$this->assertTrue( user_can( self::$editor_user_id, 'edit_post', $revision->post_parent ) );
 		}
@@ -495,7 +495,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		// Diff checks if you can read both left and right revisions.
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 2, $revisions );
+		$this->assertCount( 3, $revisions );
 		foreach ( $revisions as $revision ) {
 			$this->assertTrue( user_can( self::$editor_user_id, 'read_post', $revision->ID ) );
 		}
@@ -539,6 +539,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		$revisions = wp_get_post_revisions( $post['ID'] );
 
+		array_unshift( $revision_ids, reset( $revisions )->ID );
+
 		$this->assertSame( $revision_ids, array_values( wp_list_pluck( $revisions, 'ID' ) ) );
 	}
 
@@ -573,6 +575,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		rsort( $revision_ids );
 
 		$revisions = wp_get_post_revisions( $post['ID'] );
+
+		array_unshift( $revision_ids, reset( $revisions )->ID );
 
 		$this->assertSame( $revision_ids, array_values( wp_list_pluck( $revisions, 'ID' ) ) );
 	}
@@ -656,6 +660,38 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 30854
+	 */
+	function test_wp_first_revision_is_not_lost() {
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_title'   => 'some-post',
+				'post_type'    => 'post',
+				'post_content' => 'Initial Content',
+			)
+		);
+
+		wp_update_post(
+			array(
+				'ID'           => $post->ID,
+				'post_content' => 'Update #1',
+			)
+		);
+
+		wp_update_post(
+			array(
+				'ID'           => $post->ID,
+				'post_content' => 'Update #2',
+			)
+		);
+
+		$revisions         = wp_get_post_revisions( $post->ID );
+		$earliest_revision = end( $revisions );
+
+		$this->assertSame( 'Initial Content', $earliest_revision->post_content );
+	}
+
+	/**
 	 * Tests that wp_get_post_revisions_url() returns the revisions URL.
 	 *
 	 * @ticket 39062
@@ -669,7 +705,12 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	public function test_wp_get_post_revisions_url( $revisions ) {
 		wp_set_current_user( self::$admin_user_id );
 
-		$post_id            = self::factory()->post->create( array( 'post_title' => 'Some Post' ) );
+		$post_id            = self::factory()->post->create(
+			array(
+				'post_title'  => 'Some Post',
+				'post_status' => 'draft',
+			)
+		);
 		$latest_revision_id = null;
 
 		if ( 0 !== $revisions ) {
@@ -678,8 +719,9 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 			for ( $i = 0; $i < $revisions; ++$i ) {
 				wp_update_post(
 					array(
-						'ID'         => $post_id,
-						'post_title' => 'Some Post ' . $i,
+						'ID'          => $post_id,
+						'post_title'  => 'Some Post ' . $i,
+						'post_status' => 'publish',
 					)
 				);
 
@@ -717,7 +759,12 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	public function test_wp_get_post_revisions_url_with_post_object( $revisions ) {
 		wp_set_current_user( self::$admin_user_id );
 
-		$post               = self::factory()->post->create_and_get( array( 'post_title' => 'Some Post' ) );
+		$post               = self::factory()->post->create_and_get(
+			array(
+				'post_title'  => 'Some Post',
+				'post_status' => 'draft',
+			)
+		);
 		$latest_revision_id = null;
 
 		if ( 0 !== $revisions ) {
@@ -726,8 +773,9 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 			for ( $i = 0; $i < $revisions; ++$i ) {
 				wp_update_post(
 					array(
-						'ID'         => $post->ID,
-						'post_title' => 'Some Post ' . $i,
+						'ID'          => $post->ID,
+						'post_title'  => 'Some Post ' . $i,
+						'post_status' => 'publish',
 					)
 				);
 
@@ -784,7 +832,12 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 */
 	public function test_wp_get_post_revisions_url_returns_null_with_no_revisions() {
 		wp_set_current_user( self::$admin_user_id );
-		$post_id = self::factory()->post->create( array( 'post_title' => 'Some Post' ) );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'  => 'Some Post',
+				'post_status' => 'draft',
+			)
+		);
 		$this->assertNull( wp_get_post_revisions_url( $post_id ) );
 	}
 

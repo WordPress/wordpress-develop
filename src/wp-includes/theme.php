@@ -2048,15 +2048,8 @@ function wp_update_custom_css_post( $css, $args = array() ) {
 	} else {
 		$r = wp_insert_post( wp_slash( $post_data ), true );
 
-		if ( ! is_wp_error( $r ) ) {
-			if ( get_stylesheet() === $args['stylesheet'] ) {
-				set_theme_mod( 'custom_css_post_id', $r );
-			}
-
-			// Trigger creation of a revision. This should be removed once #30854 is resolved.
-			if ( 0 === count( wp_get_post_revisions( $r ) ) ) {
-				wp_save_post_revision( $r );
-			}
+		if ( ! is_wp_error( $r ) && get_stylesheet() === $args['stylesheet'] ) {
+			set_theme_mod( 'custom_css_post_id', $r );
 		}
 	}
 
