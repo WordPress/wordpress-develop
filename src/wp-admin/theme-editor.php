@@ -164,12 +164,15 @@ if ( ! empty( $posted_content ) ) {
 	if ( '.php' === substr( $file, strrpos( $file, '.' ) ) ) {
 		$functions = wp_doc_link_parse( $content );
 
-		$docs_select  = '<select name="docs-list" id="docs-list">';
-		$docs_select .= '<option value="">' . esc_attr__( 'Function Name&hellip;' ) . '</option>';
-		foreach ( $functions as $function ) {
-			$docs_select .= '<option value="' . esc_attr( urlencode( $function ) ) . '">' . htmlspecialchars( $function ) . '()</option>';
-		}
-		$docs_select .= '</select>';
+        if ( ! empty( $functions ) ) {
+            $docs_select  = '<select name="docs-list" id="docs-list">';
+            $docs_select .= '<option value="">' . esc_html__( 'Function Name&hellip;' ) . '</option>';
+            foreach ( $functions as $function ) {
+                $docs_select .= '<option value="' . esc_attr( $function ) . '">' . esc_html( $function ) . '()</option>';
+            }
+            $docs_select .= '</select>';
+        }
+
 	}
 
 	$content = esc_textarea( $content );
