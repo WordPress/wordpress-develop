@@ -668,7 +668,7 @@ abstract class WP_Image_Editor {
 	 * @param string $output_mime_type The mime type to set.
 	 */
 	public function set_output_mime_type( $output_mime_type ) {
-		$this->output_mime_type     = $output_mime_type;
+		$this->output_mime_type = $output_mime_type;
 	}
 
 	/**
@@ -679,6 +679,6 @@ abstract class WP_Image_Editor {
 	 * @since 6.1.0
 	 */
 	public function reset_output_mime_type() {
-		$this->output_mime_type     = $this->mime_type;
+		$this->output_mime_type = $this->mime_type;
 	}
 }
