@@ -4,8 +4,8 @@
  *
  * @covers ::_disable_content_editor_for_navigation_post_type
  */
-class Tests_Editor_DisableContentEditorForNavigationPostType extends WP_UnitTestCase
-{
+class Tests_Editor_DisableContentEditorForNavigationPostType extends WP_UnitTestCase {
+
 	const NAVIGATION_POST_TYPE     = 'wp_navigation';
 	const NON_NAVIGATION_POST_TYPE = 'wp_non_navigation';
 
