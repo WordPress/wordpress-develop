@@ -2105,7 +2105,7 @@ HTML;
 	 *
 	 * @covers ::wp_filter_global_styles_post
 	 */
-	function test_wp_filter_global_styles_post_returns_correct_value() {
+	public function test_wp_filter_global_styles_post_returns_correct_value() {
 		$user_theme_json = '{
  			"isGlobalStylesUserThemeJSON": 1,
  			"version": 1,
