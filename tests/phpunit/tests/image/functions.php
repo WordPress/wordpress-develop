@@ -1027,6 +1027,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$metadata       = wp_generate_attachment_metadata( $attachment_id, $img_path );
 		$image          = wp_get_attachment_image( $attachment_id );
+
+		$this->assertStringContainsString( 'test-150x150.jpg', $image );
+
 		$context        = 'the_content';
 		$filtered_image = wp_image_use_alternate_mime_types( $image, $context, $attachment_id, );
 
