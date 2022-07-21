@@ -37,9 +37,9 @@ class Tests_Editor_DisableContentEditorForNavigationPostType extends WP_UnitTest
 		return post_type_supports( static::NAVIGATION_POST_TYPE, 'editor' );
 	}
 
-	private function create_post( $type ) {
+	private function create_post( $post_type ) {
 		$post            = new WP_Post( new StdClass() );
-		$post->post_type = $type;
+		$post->post_type = $post_type;
 		$post->filter    = 'raw';
 		return $post;
 	}
