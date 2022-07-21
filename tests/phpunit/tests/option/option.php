@@ -261,7 +261,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 *
 	 * @ticket 37930
 	 *
-	 * @covers get_option
+	 * @covers ::get_option
 	 */
 	public function test_filter_pre_option_all_filter_is_called() {
 		$filter = new MockAction();
@@ -269,7 +269,6 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		get_option( 'ignored' );
 
 		// Filter was called.
-		$this->assertSame( 1, $a->get_call_count() );
+		$this->assertSame( 1, $filter->get_call_count() );
 	}
-
 }
