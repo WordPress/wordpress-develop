@@ -147,7 +147,7 @@ function get_option( $option, $default = false ) {
 	 * @param mixed  $default     The fallback value to return if the option does not exist.
 	 *                            Default false.
 	 */
-	$pre = apply_filters( 'pre_option_all', $pre, $option, $default );
+	$pre = apply_filters( 'pre_option', $pre, $option, $default );
 
 	if ( false !== $pre ) {
 		return $pre;
