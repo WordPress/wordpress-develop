@@ -264,15 +264,12 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @covers get_option
 	 */
 	public function test_filter_pre_option_all_filter_is_called() {
+		$filter = new MockAction();
+		add_filter( 'pre_option', array( $filter, 'filter' ) );
+		get_option( 'ignored' );
 
-		add_filter( 'pre_option_all', array( $this, 'pre_option_all_filter' ) );
-
-		// Filter was not called.
-		$this->assertEquals( array( 'filtered' => 'true' ), get_option( 'ignored' ) );
-	}
-
-	public function pre_option_all_filter() {
-		return array( 'filtered' => 'true' );
+		// Filter was called.
+		$this->assertSame( 1, $a->get_call_count() );
 	}
 
 }
