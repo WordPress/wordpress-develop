@@ -520,16 +520,13 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 		return array();
 	}
 
-	$sizes = array();
-
-	$original_mime_type = wp_get_image_mime( $file );
 	if ( ! $mime_type ) {
-		$mime_type = $original_mime_type;
+		$mime_type = wp_get_image_mime( $file );
 	}
 
 	// Check if any of the new sizes already exist.
-	if ( isset( $sizes ) && is_array( $sizes ) ) {
-		foreach ( $sizes as $size_name => $size_meta ) {
+	if ( isset( $image_meta['sizes'] ) && is_array( $image_meta['sizes'] ) ) {
+		foreach ( $image_meta['sizes'] as $size_name => $size_meta ) {
 			/*
 			 * Only checks "size name" so we don't override existing images even if the dimensions
 			 * don't match the currently defined size with the same name.
