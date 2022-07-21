@@ -274,7 +274,7 @@ function get_comment_author_IP( $comment_ID = 0 ) { // phpcs:ignore WordPress.Na
 	 * @since 1.5.0
 	 * @since 4.1.0 The `$comment_ID` and `$comment` parameters were added.
 	 *
-	 * @param string     $comment_author_IP The comment author's IP address, or an empty string if it's not available.
+	 * @param string     $comment_author_ip The comment author's IP address, or an empty string if it's not available.
 	 * @param string     $comment_ID        The comment ID as a numeric string.
 	 * @param WP_Comment $comment           The comment object.
 	 */
@@ -1146,9 +1146,9 @@ function comment_type( $commenttxt = false, $trackbacktxt = false, $pingbacktxt 
  */
 function get_trackback_url() {
 	if ( get_option( 'permalink_structure' ) ) {
-		$tb_url = trailingslashit( get_permalink() ) . user_trailingslashit( 'trackback', 'single_trackback' );
+		$trackback_url = trailingslashit( get_permalink() ) . user_trailingslashit( 'trackback', 'single_trackback' );
 	} else {
-		$tb_url = get_option( 'siteurl' ) . '/wp-trackback.php?p=' . get_the_ID();
+		$trackback_url = get_option( 'siteurl' ) . '/wp-trackback.php?p=' . get_the_ID();
 	}
 
 	/**
@@ -1156,9 +1156,9 @@ function get_trackback_url() {
 	 *
 	 * @since 2.2.0
 	 *
-	 * @param string $tb_url The trackback URL.
+	 * @param string $trackback_url The trackback URL.
 	 */
-	return apply_filters( 'trackback_url', $tb_url );
+	return apply_filters( 'trackback_url', $trackback_url );
 }
 
 /**
