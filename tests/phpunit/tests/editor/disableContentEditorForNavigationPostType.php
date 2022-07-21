@@ -9,6 +9,11 @@ class Tests_Editor_DisableContentEditorForNavigationPostType extends WP_UnitTest
 	const NAVIGATION_POST_TYPE     = 'wp_navigation';
 	const NON_NAVIGATION_POST_TYPE = 'wp_non_navigation';
 
+	public function tear_down() {
+		$this->enable_editor_support();
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 56266
 	 */
@@ -50,5 +55,9 @@ class Tests_Editor_DisableContentEditorForNavigationPostType extends WP_UnitTest
 
 	private function create_navigation_post() {
 		return $this->create_post( static::NAVIGATION_POST_TYPE );
+	}
+
+	private function enable_editor_support() {
+		add_post_type_support( static::NAVIGATION_POST_TYPE, 'editor' );
 	}
 }
