@@ -7129,7 +7129,7 @@ function get_posts_by_author_sql( $post_type, $full = true, $post_author = null,
 		// Only need to check the cap if $public_only is false.
 		$post_status_sql = "post_status = 'publish'";
 
-		if ( false === $public_only ) {
+		if ( $public_only === false ) {
 			if ( $cap ) {
 				// Does the user have the capability to view private posts? Guess so.
 				$post_status_sql .= " OR post_status = 'private'";

@@ -1513,7 +1513,7 @@ function get_sample_permalink_html( $post, $new_title = null, $new_slug = null )
 
 		// Encourage a pretty permalink setting.
 		if ( ! get_option( 'permalink_structure' ) && current_user_can( 'manage_options' )
-			&& ! ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' ) == $post->ID )
+			&& ! ( get_option( 'show_on_front' ) === 'page' && get_option( 'page_on_front' ) == $post->ID )
 		) {
 			$return .= '<span id="change-permalinks"><a href="options-permalink.php" class="button button-small">' . __( 'Change Permalink Structure' ) . "</a></span>\n";
 		}
@@ -1688,7 +1688,7 @@ function wp_set_post_lock( $post ) {
 
 	$user_id = get_current_user_id();
 
-	if ( 0 == $user_id ) {
+	if ( $user_id == 0 ) {
 		return false;
 	}
 

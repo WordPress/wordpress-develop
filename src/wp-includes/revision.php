@@ -372,7 +372,7 @@ function wp_get_post_revision( &$post, $output = OBJECT, $filter = 'raw' ) {
 		return $revision;
 	}
 
-	if ( 'revision' !== $revision->post_type ) {
+	if ( $revision->post_type !== 'revision' ) {
 		return null;
 	}
 

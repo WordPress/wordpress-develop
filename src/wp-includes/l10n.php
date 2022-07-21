@@ -94,7 +94,7 @@ function get_locale() {
 function get_user_locale( $user = 0 ) {
 	$user_object = false;
 
-	if ( 0 === $user && function_exists( 'wp_get_current_user' ) ) {
+	if ( $user === 0 && function_exists( 'wp_get_current_user' ) ) {
 		$user_object = wp_get_current_user();
 	} elseif ( $user instanceof WP_User ) {
 		$user_object = $user;

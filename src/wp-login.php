@@ -1395,7 +1395,7 @@ switch ( $action ) {
 			$aria_describedby = ' aria-describedby="login_error"';
 		}
 
-		if ( $has_errors && 'message' === $errors->get_error_data() ) {
+		if ( $has_errors && $errors->get_error_data() === 'message' ) {
 			$aria_describedby = ' aria-describedby="login-message"';
 		}
 

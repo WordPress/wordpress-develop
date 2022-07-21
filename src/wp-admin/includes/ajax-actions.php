@@ -1320,7 +1320,7 @@ function wp_ajax_replyto_comment( $action ) {
 
 	$comment_content = trim( $_POST['content'] );
 
-	if ( '' === $comment_content ) {
+	if ( $comment_content === '' ) {
 		wp_die( __( 'Please type your comment text.' ) );
 	}
 
@@ -1352,7 +1352,7 @@ function wp_ajax_replyto_comment( $action ) {
 	if ( ! empty( $_POST['approve_parent'] ) ) {
 		$parent = get_comment( $comment_parent );
 
-		if ( $parent && '0' === $parent->comment_approved && $parent->comment_post_ID == $comment_post_id ) {
+		if ( $parent && $parent->comment_approved === '0' && $parent->comment_post_ID == $comment_post_id ) {
 			if ( ! current_user_can( 'edit_comment', $parent->comment_ID ) ) {
 				wp_die( -1 );
 			}

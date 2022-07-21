@@ -140,7 +140,7 @@ function get_the_title( $post = 0 ) {
 			$protected_title_format = apply_filters( 'protected_title_format', $prepend, $post );
 
 			$post_title = sprintf( $protected_title_format, $post_title );
-		} elseif ( isset( $post->post_status ) && 'private' === $post->post_status ) {
+		} elseif ( isset( $post->post_status ) && $post->post_status === 'private' ) {
 
 			/* translators: %s: Private post title. */
 			$prepend = __( 'Private: %s' );
