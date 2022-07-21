@@ -1966,14 +1966,14 @@ function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
 			 *
 			 * @param array  $image         The HTML `img` tag.
 			 * @param string $attachment_id The attachment ID.
-			 * @param string $size_data     Image size metadata.
+			 * @param string $metadata      Image size metadata.
 			 * @param string $name          Size identifier - e.g. 'full', 'medium', 'small' etc.
 			 * @param string $target_mime   Image mime type.
 			 * @param string $context       Additional context, like the current filter name or the function name from where this was called.
 			 *
 			 * @return string Updated <img> HTML tag.
 			 */
-			$filtered_image = apply_filters( 'wp_content_pre_replace_additional_image_source', $image, $attachment_id, $size_data, $name, $target_mime, $context );
+			$filtered_image = apply_filters( 'wp_content_pre_replace_additional_image_source', $image, $attachment_id, $metadata, 'full', $target_mime, $context );
 
 			if ( $filtered_image !== $image ) {
 				$image = $filtered_image;

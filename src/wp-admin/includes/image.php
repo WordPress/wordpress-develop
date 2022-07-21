@@ -544,10 +544,10 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 			/**
 			 * Short-circuits the image generation process.
 			 *
-			 * This filter can be used to update $size_meta with custom information for the
+			 * Developers can use this filter to update $size_meta with custom information for the
 			 * target mime_type.
 			 *
-			 * Can also be returned `false` to skip generating size image and updating it's metadata.
+			 * Returning `false` will skip generating image sub sizes and updating metadata.
 			 *
 			 * @since 6.1.0
 			 *
