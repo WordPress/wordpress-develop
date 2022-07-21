@@ -9,11 +9,6 @@ class Tests_Editor_EnableContentEditorForNavigationPostType extends WP_UnitTestC
 	const NAVIGATION_POST_TYPE     = 'wp_navigation';
 	const NON_NAVIGATION_POST_TYPE = 'wp_non_navigation';
 
-	public function set_up() {
-		parent::set_up();
-		$this->disable_editor_support();
-	}
-
 	public function tear_down() {
 		$this->enable_editor_support();
 		parent::tear_down();
@@ -23,6 +18,7 @@ class Tests_Editor_EnableContentEditorForNavigationPostType extends WP_UnitTestC
 	 * @ticket 56266
 	 */
 	public function test_it_enables_content_editor_for_non_navigation_type_posts_after_the_content_editor_form() {
+		$this->disable_editor_support();
 		$post = $this->create_navigation_post();
 		$this->assertFalse( $this->supports_block_editor() );
 
@@ -35,6 +31,7 @@ class Tests_Editor_EnableContentEditorForNavigationPostType extends WP_UnitTestC
 	 * @ticket 56266
 	 */
 	public function test_it_doesnt_enable_content_editor_for_non_navigation_type_posts_after_the_content_editor_form() {
+		$this->disable_editor_support();
 		$post = $this->create_non_navigation_post();
 		$this->assertFalse( $this->supports_block_editor() );
 
