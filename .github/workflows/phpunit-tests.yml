@@ -104,10 +104,10 @@ jobs:
       PHPUNIT_CONFIG: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
 
     steps:
-      - name: Summary?
+      - name: Summary Table
         run: echo '### Hello world! :rocket:' >> $GITHUB_STEP_SUMMARY
         # tests were identified as risky.
-        # tests were skipped.
+        # x - tests were skipped.
         # tests encountered errors.
         # total tests were found.
         # assertions were made.
@@ -226,8 +226,8 @@ jobs:
       - name: Run external HTTP tests
         if: ${{ ! matrix.multisite && ! matrix.split_slow }}
         continue-on-error: ${{ matrix.php == '8.1' }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c phpunit.xml.dist --group external-http | grep 'skipped tests' >> $GITHUB_STEP_SUMMARY
-
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c phpunit.xml.dist --group external-http | grep ', Assertions:' >> $GITHUB_STEP_SUMMARY
+        # Tests: 167, Assertions: 248, Skipped: 3.
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
       - name: Run (xDebug) tests
         if: ${{ ! matrix.split_slow }}
