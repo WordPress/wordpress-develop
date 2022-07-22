@@ -73,10 +73,11 @@ function wpmu_signup_stylesheet() {
 			.mu_register .suffix_address { font-size: 18px; display: inline-block; direction: ltr; }
 		.mu_register label,
 			.mu_register .label-heading { font-weight: 600; font-size: 15px; display: block; margin: 10px 0; }
-		.mu_register label.checkbox { display:inline; }
+		.mu_register label.checkbox { display: inline; }
 		.mu_register .mu_alert { font-weight: 600; padding: 10px; color: #333; background: #ffffe0; border: 1px solid #e6db55; }
 		.mu_register .mu_alert a { color: inherit; text-decoration: underline; }
 		.mu_register .signup-options .wp-signup-radio-button { display: block; }
+		.mu_register .privacy-intro .wp-signup-radio-button { margin-right: 0.5em; }
 	</style>
 	<?php
 }
@@ -120,30 +121,14 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
 	$errmsg_blogname_aria = '';
 	if ( $errmsg_blogname ) {
 		$errmsg_blogname_aria = 'wp-signup-blogname-error ';
-		?>
-		<p class="error" id="wp-signup-blogname-error"><?php echo $errmsg_blogname; ?></p>
-		<?php
+		echo '<p class="error" id="wp-signup-blogname-error">' . $errmsg_blogname . '</p>';
 	}
 
 	if ( ! is_subdomain_install() ) {
-		?>
-		<div class="wp-signup-blogname">
-			<span class="prefix_address" id="prefix-address"><?php echo $current_network->domain . $current_network->path; ?></span>
-			<input name="blogname" type="text" id="blogname" value="<?php echo esc_attr( $blogname ); ?>"
-				maxlength="60" autocomplete="off" aria-describedby="<?php echo $errmsg_blogname_aria; ?>prefix-address"
-			/>
-		</div>
-		<?php
+		echo '<div class="wp-signup-blogname"><span class="prefix_address" id="prefix-address">' . $current_network->domain . $current_network->path . '</span><input name="blogname" type="text" id="blogname" value="' . esc_attr( $blogname ) . '" maxlength="60" autocomplete="off" aria-describedby="' . $errmsg_blogname_aria . 'prefix-address" /></div>';
 	} else {
 		$site_domain = preg_replace( '|^www\.|', '', $current_network->domain );
-		?>
-		<div class="wp-signup-blogname">
-			<input name="blogname" type="text" id="blogname" value="<?php echo esc_attr( $blogname ); ?>"
-				maxlength="60" autocomplete="off" aria-describedby="<?php echo $errmsg_blogname_aria; ?>suffix-address"
-			/>
-			<span class="suffix_address" id="suffix-address">.<?php echo esc_html( $site_domain ); ?></span>
-		</div>
-		<?php
+		echo '<div class="wp-signup-blogname"><input name="blogname" type="text" id="blogname" value="' . esc_attr( $blogname ) . '" maxlength="60" autocomplete="off" aria-describedby="' . $errmsg_blogname_aria . 'suffix-address" /><span class="suffix_address" id="suffix-address">.' . esc_html( $site_domain ) . '</span></div>';
 	}
 
 	if ( ! is_user_logged_in() ) {
@@ -168,13 +153,11 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
 	$errmsg_blog_title      = $errors->get_error_message( 'blog_title' );
 	$errmsg_blog_title_aria = '';
 	if ( $errmsg_blog_title ) {
-		$errmsg_blog_title_aria = 'aria-describedby="wp-signup-blog-title-error"';
-		?>
-		<p class="error" id="wp-signup-blog-title-error"><?php echo $errmsg_blog_title; ?></p>
-		<?php
+		$errmsg_blog_title_aria = ' aria-describedby="wp-signup-blog-title-error"';
+		echo '<p class="error" id="wp-signup-blog-title-error">' . $errmsg_blog_title . '</p>';
 	}
+	echo '<input name="blog_title" type="text" id="blog_title" value="' . esc_attr( $blog_title ) . '" autocomplete="off"' . $errmsg_blog_title_aria . ' />';
 	?>
-	<input name="blog_title" type="text" id="blog_title" value="<?php echo esc_attr( $blog_title ); ?>" autocomplete="off" <?php echo $errmsg_blog_title_aria; ?> />
 
 	<?php
 	// Site Language.
@@ -283,45 +266,37 @@ function show_user_form( $user_name = '', $user_email = '', $errors = '' ) {
 		$errors = new WP_Error();
 	}
 
-	// Username and email address.
-	?>
-
-	<label for="user_name"><?php _e( 'Username:' ); ?></label>
-	<?php
+	// Username.
+	echo '<label for="user_name">' . __( 'Username:' ) . '</label>';
 	$errmsg_username      = $errors->get_error_message( 'user_name' );
 	$errmsg_username_aria = '';
 	if ( $errmsg_username ) {
 		$errmsg_username_aria = 'wp-signup-username-error ';
-		?>
-		<p class="error" id="wp-signup-username-error"><?php echo $errmsg_username; ?></p>
-	<?php } ?>
-	<input name="user_name" type="text" id="user_name" value="<?php echo esc_attr( $user_name ); ?>"
-		autocapitalize="none" autocorrect="off" maxlength="60" autocomplete="username"
-		aria-describedby="<?php echo $errmsg_username_aria; ?>wp-signup-username-description"
-	/>
+		echo '<p class="error" id="wp-signup-username-error">' . $errmsg_username . '</p>';
+	}
+	?>
+	<input name="user_name" type="text" id="user_name" value="<?php echo esc_attr( $user_name ); ?>" autocapitalize="none" autocorrect="off" maxlength="60" autocomplete="username" aria-describedby="<?php echo $errmsg_username_aria; ?>wp-signup-username-description" />
 	<p id="wp-signup-username-description"><?php _e( '(Must be at least 4 characters, lowercase letters and numbers only.)' ); ?></p>
 
-	<label for="user_email"><?php _e( 'Email&nbsp;Address:' ); ?></label>
 	<?php
+	// Email address.
+	echo '<label for="user_email">' . __( 'Email&nbsp;Address:' ) . '</label>';
 	$errmsg_email      = $errors->get_error_message( 'user_email' );
 	$errmsg_email_aria = '';
 	if ( $errmsg_email ) {
 		$errmsg_email_aria = 'wp-signup-email-error ';
-		?>
-		<p class="error" id="wp-signup-email-error"><?php echo $errmsg_email; ?></p>
-	<?php } ?>
-	<input name="user_email" type="email" id="user_email" value="<?php echo esc_attr( $user_email ); ?>"
-		maxlength="200" autocomplete="email" aria-describedby="<?php echo $errmsg_email_aria; ?>wp-signup-email-description"
-	/>
+		echo '<p class="error" id="wp-signup-email-error">' . $errmsg_email . '</p>';
+	}
+	?>
+	<input name="user_email" type="email" id="user_email" value="<?php echo esc_attr( $user_email ); ?>" maxlength="200" autocomplete="email" aria-describedby="<?php echo $errmsg_email_aria; ?>wp-signup-email-description" />
 	<p id="wp-signup-email-description"><?php _e( 'Your registration email is sent to this address. (Double-check your email address before continuing.)' ); ?></p>
-	<?php
-	$errmsg_generic = $errors->get_error_message( 'generic' );
-	if ( $errmsg_generic ) {
-		?>
-		<p class="error" id="wp-signup-generic-error"><?php echo $errmsg_generic; ?></p>
-	<?php } ?>
 
 	<?php
+	// Extra fields.
+	$errmsg_generic = $errors->get_error_message( 'generic' );
+	if ( $errmsg_generic ) {
+		echo '<p class="error" id="wp-signup-generic-error">' . $errmsg_generic . '</p>';
+	}
 	/**
 	 * Fires at the end of the new user account registration form.
 	 *
