@@ -82,7 +82,7 @@ class Tests_Functions_CanonicalCharset extends WP_UnitTestCase {
 	/**
 	 * @ticket 23688
 	 *
-	 * @covers ::get_option
+	 * @covers ::update_option
 	 */
 	public function test_update_option_blog_charset() {
 		$orig_blog_charset = get_option( 'blog_charset' );

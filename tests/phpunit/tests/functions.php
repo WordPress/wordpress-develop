@@ -160,6 +160,8 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *
 	 * @ticket 55897
 	 * @dataProvider path_join_data_provider
+	 *
+	 * @covers ::path_join
 	 */
 	public function test_path_join( $base, $path, $expected ) {
 		$this->assertSame( $expected, path_join( $base, $path ) );
@@ -327,6 +329,8 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53668
+	 *
+	 * @covers ::wp_unique_filename
 	 */
 	public function test_wp_unique_filename_with_additional_image_extension() {
 		$testdir = DIR_TESTDATA . '/images/';
@@ -410,7 +414,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_is_not_serialized
 	 *
-	 * @covers ::serialize
+	 * @covers ::maybe_serialize
 	 */
 	public function test_maybe_serialize( $value ) {
 		if ( is_array( $value ) || is_object( $value ) ) {
@@ -425,7 +429,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_is_serialized
 	 *
-	 * @covers ::serialize
+	 * @covers ::maybe_serialize
 	 */
 	public function test_maybe_serialize_with_double_serialization( $value ) {
 		$expected = serialize( $value );
@@ -465,6 +469,8 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_serialize_deserialize_objects
+	 *
+	 * @coversNothing
 	 */
 	public function test_deserialize_request_utility_filtered_iterator_objects( $value ) {
 		$serialized = maybe_serialize( $value );
@@ -978,6 +984,8 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_wp_parse_slug_list
+	 *
+	 * @covers ::wp_parse_slug_list
 	 */
 	public function test_wp_parse_slug_list( $expected, $actual ) {
 		$this->assertSame( $expected, array_values( wp_parse_slug_list( $actual ) ) );
@@ -1358,6 +1366,8 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53238
+	 *
+	 * @covers ::wp_json_file_decode
 	 */
 	public function test_wp_json_file_decode() {
 		$result = wp_json_file_decode(
@@ -1370,6 +1380,8 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53238
+	 *
+	 * @covers ::wp_json_file_decode
 	 */
 	public function test_wp_json_file_decode_associative_array() {
 		$result = wp_json_file_decode(
@@ -1430,7 +1442,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * @ticket 35987
 	 *
-	 * @covers ::wp_get_ext_types
+	 * @covers ::wp_ext2type
 	 */
 	public function test_wp_ext2type() {
 		$extensions = wp_get_ext_types();
@@ -2297,6 +2309,8 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53668
+	 *
+	 * @covers ::wp_get_default_extension_for_mime_type
 	 */
 	public function test_wp_get_default_extension_for_mime_type() {
 		$this->assertEquals( 'jpg', wp_get_default_extension_for_mime_type( 'image/jpeg' ), 'jpg not returned as default extension for "image/jpeg"' );
@@ -2311,6 +2325,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49412
+	 *
 	 * @covers ::wp_filesize
 	 */
 	function test_wp_filesize_with_nonexistent_file() {
@@ -2346,6 +2361,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
+	 *
 	 * @covers ::wp_recursive_ksort
 	 */
 	function test_wp_recursive_ksort() {

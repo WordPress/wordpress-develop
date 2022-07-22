@@ -5,8 +5,6 @@
  * @package WordPress\UnitTests
  *
 	 * @since 5.3.0
-	 *
-	 * @covers ::do_enclose
 	 */
 
 /**
@@ -25,8 +23,6 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	 * Setup before each test method.
 	 *
 	 * @since 5.3.0
-	 *
-	 * @covers ::do_enclose
 	 */
 	public function set_up() {
 		parent::set_up();

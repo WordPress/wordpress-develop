@@ -10,6 +10,8 @@
  *
  * @group functions.php
  * @group deprecated
+ *
+ * @covers ::wp_save_image_file
  */
 class Tests_Functions_Deprecated extends WP_UnitTestCase {
 
@@ -144,8 +146,6 @@ class Tests_Functions_Deprecated extends WP_UnitTestCase {
 	 * @ticket 6821
 	 * @expectedDeprecated wp_save_image_file
 	 * @requires function imagejpeg
-	 *
-	 * @covers ::wp_save_image_file
 	 */
 	public function test_wp_save_image_file_deprecated_with_gd_resource() {
 		// Call wp_save_image_file().
@@ -166,8 +166,6 @@ class Tests_Functions_Deprecated extends WP_UnitTestCase {
 	 *
 	 * @ticket 6821
 	 * @requires function imagejpeg
-	 *
-	 * @covers ::wp_save_image_file
 	 */
 	public function test_wp_save_image_file_not_deprecated_with_wp_image_editor() {
 		// Call wp_save_image_file().
