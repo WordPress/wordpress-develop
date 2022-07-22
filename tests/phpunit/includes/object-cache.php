@@ -746,6 +746,17 @@ function wp_cache_init() {
 }
 
 /**
+ * Whether the object cache implementation supports flushing individual cache groups.
+ *
+ * @since 6.1.0
+ *
+ * @return bool True if group flushing is supported, false otherwise.
+ */
+function wp_cache_supports_group_flush() {
+	return false;
+}
+
+/**
  * Adds a group or set of groups to the list of non-persistent groups.
  *
  * @param string|array $groups A group or an array of groups to add.
