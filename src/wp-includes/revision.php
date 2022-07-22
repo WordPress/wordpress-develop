@@ -517,13 +517,11 @@ function wp_get_post_revisions( $post_id = 0, $args = null ) {
 }
 
 /**
- * Returns last revisions of specified post and count of total revisions.
+ * Get latest revision and count of revisions for a post.
  *
  * @since 6.1.0
  *
- * @param int|WP_Post|null $post Optional. Post ID or post object. `null`, `false`, `0` and other PHP falsey values
- *                               return the current global post inside the loop. A numerically valid post ID that
- *                               points to a non-existent post returns `null`. Defaults to global $post.
+ * @param int|WP_Post|null $post Optional. Post ID or WP_Post object. Default is global $post.
  * @return WP_Error|array {
  *     Returns associative array with last revision and total count.
  *

@@ -695,7 +695,6 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 * @ticket 55857
 	 */
 	public function test_wp_get_last_revision_id_and_total_count_no_revisions() {
-
 		$revision = wp_get_lastest_revision_id_and_total_count( null );
 		$this->assertWPError( $revision, 'Invalid Post, non existing revisions.' );
 		$this->assertSame( $revision->get_error_message(), 'Invalid post.' );
