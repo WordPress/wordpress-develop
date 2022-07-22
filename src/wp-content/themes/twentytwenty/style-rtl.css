@@ -3897,10 +3897,13 @@ div.comment:first-of-type {
 	text-align: center;
 }
 
-.comment-respond .comment-notes a,
-.comment-respond .logged-in-as a {
+.comment-respond .comment-notes a {
 	color: inherit;
 	text-decoration: none;
+}
+
+.comment-respond .logged-in-as a {
+	text-decoration: inherit;
 }
 
 .comment-respond .comment-notes a:focus,
