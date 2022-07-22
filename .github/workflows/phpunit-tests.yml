@@ -113,12 +113,15 @@ jobs:
 
     steps:
       - name: Summary Table
-        run: echo '### Hello world! :rocket:' >> $GITHUB_STEP_SUMMARY
+        id: summary-table
+        #run: echo '### Hello world! :rocket:' >> $GITHUB_STEP_SUMMARY
         # tests were identified as risky.
         # x - tests were skipped.
         # tests encountered errors.
         # total tests were found.
         # assertions were made.
+        run: |
+          echo "::set-output name=php-${{ matrix.php }}::${{ matrix.php }}"
 
       - name: Configure environment variables
         run: |
