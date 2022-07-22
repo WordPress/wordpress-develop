@@ -2,6 +2,8 @@
 
 /**
  * @group term
+ *
+ * @covers ::is_term_publicly_viewable
  */
 class Tests_Term_IsTermPubliclyViewable extends WP_UnitTestCase {
 	/**
