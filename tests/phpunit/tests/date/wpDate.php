@@ -3,6 +3,7 @@
 /**
  * @group date
  * @group datetime
+ *
  * @covers ::wp_date
  */
 class Tests_Date_wpDate extends WP_UnitTestCase {
@@ -28,8 +29,6 @@ class Tests_Date_wpDate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28636
-	 *
-	 * @covers ::wp_date
 	 */
 	public function test_should_return_false_on_invalid_timestamp() {
 		$this->assertFalse( wp_date( DATE_RFC3339, 'invalid' ) );
@@ -37,8 +36,6 @@ class Tests_Date_wpDate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 48319
-	 *
-	 * @covers ::wp_date
 	 */
 	public function test_should_not_escape_localized_numbers() {
 		global $wp_locale;
@@ -53,8 +50,6 @@ class Tests_Date_wpDate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 48319
-	 *
-	 * @covers ::wp_date
 	 */
 	public function test_should_keep_localized_slashes() {
 		global $wp_locale;

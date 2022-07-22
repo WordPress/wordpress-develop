@@ -4,6 +4,7 @@
  * @group date
  * @group datetime
  * @group post
+ *
  * @covers ::get_permalink
  */
 class Tests_Date_GetPermalink extends WP_UnitTestCase {
@@ -19,8 +20,6 @@ class Tests_Date_GetPermalink extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 48623
-	 *
-	 * @covers ::get_permalink
 	 */
 	public function test_should_return_correct_date_permalink_with_changed_time_zone() {
 		$timezone = 'America/Chicago';

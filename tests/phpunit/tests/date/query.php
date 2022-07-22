@@ -7,7 +7,6 @@
  *
  * @group datequery
  * @group date
- * @covers WP_Date_Query
  */
 class Tests_Date_Query extends WP_UnitTestCase {
 	/**
@@ -21,10 +20,10 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->q = new WP_Date_Query( array( 'm' => 2 ) );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query handling of empty query
 	*
-	* @covers WP_Date_Query
+	* @covers WP_Date_Query::__construct
 	*/
 	public function test_construct_date_query_empty() {
 		$q = new WP_Date_Query( array() );
@@ -34,10 +33,10 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( array(), $q->queries );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query handling of non array query
 	*
-	* @covers WP_Date_Query
+	* @covers WP_Date_Query::__construct
 	*/
 	public function test_construct_date_query_non_array() {
 		$q = new WP_Date_Query( 'foo' );
@@ -47,10 +46,10 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( array(), $q->queries );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query handling of using a lowercase 'or' relation value
 	*
-	* @covers WP_Date_Query
+	* @covers WP_Date_Query::_construct
 	*/
 	public function test_construct_relation_or_lowercase() {
 		$q = new WP_Date_Query(
@@ -62,10 +61,10 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( 'OR', $q->relation );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query handling of an invalid relation value
 	*
-	* @covers WP_Date_Query
+	* @covers WP_Date_Query::__construct
 	*/
 	public function test_construct_relation_invalid() {
 		$q = new WP_Date_Query(
@@ -77,10 +76,10 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( 'AND', $q->relation );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query handling of the query not being an array of arrays
 	*
-	* @covers WP_Date_Query
+	* @covers WP_Date_Query::__construct
 	*/
 	public function test_construct_query_not_an_array_of_arrays() {
 		$q = new WP_Date_Query(
@@ -110,10 +109,10 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( $expected, $q->queries );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query handling of the query missing a level of array nesting
 	*
-	* @covers WP_Date_Query
+	* @covers WP_Date_Query::__construct
 	*/
 	public function test_construct_query_contains_non_arrays() {
 		$q = new WP_Date_Query(
@@ -147,20 +146,20 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( $expected, $q->queries );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query handling of not provided compare value
 	*
-	* @covers WP_Date_Query
+	* @covers WP_Date_Query::get_compare
 	*/
 	public function test_get_compare_empty() {
 		$q = new WP_Date_Query( array() );
 		$this->assertSame( '=', $q->get_compare( array() ) );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query handling of '=' compare value
 	*
-	* @covers WP_Date_Query
+	* @covers WP_Date_Query::get_compare
 	*/
 	public function test_get_compare_equals() {
 		$q = new WP_Date_Query( array() );
@@ -173,10 +172,10 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( '=', $found );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query handling of '!=' compare value
 	*
-	* @covers WP_Date_Query
+	* @covers WP_Date_Query::get_compare
 	*/
 	public function test_get_compare_not_equals() {
 		$q = new WP_Date_Query( array() );
@@ -189,10 +188,10 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( '!=', $found );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query handling of '>' compare value
 	*
-	* @covers WP_Date_Query
+	* @covers WP_Date_Query::get_compare
 	*/
 	public function test_get_compare_greater_than() {
 		$q = new WP_Date_Query( array() );
@@ -205,10 +204,10 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( '>', $found );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query handling of '>=' compare value
 	*
-	* @covers WP_Date_Query
+	* @covers WP_Date_Query::get_compare
 	*/
 	public function test_get_compare_greater_than_or_equal_to() {
 		$q = new WP_Date_Query( array() );
@@ -221,10 +220,10 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( '>=', $found );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query handling of '<' compare value
 	*
-	* @covers WP_Date_Query
+	* @covers WP_Date_Query::get_compare
 	*/
 	public function test_get_compare_less_than() {
 		$q = new WP_Date_Query( array() );
@@ -237,10 +236,10 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( '<', $found );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query handling of '<=' compare value
 	*
-	* @covers WP_Date_Query
+	* @covers WP_Date_Query::get_compare
 	*/
 	public function test_get_compare_less_than_or_equal_to() {
 		$q = new WP_Date_Query( array() );
@@ -253,10 +252,10 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( '<=', $found );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query handling of 'IN' compare value
 	*
-	* @covers WP_Date_Query
+	* @covers WP_Date_Query::get_compare
 	*/
 	public function test_get_compare_in() {
 		$q = new WP_Date_Query( array() );
@@ -269,10 +268,10 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( 'IN', $found );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query handling of 'NOT IN' compare value
 	*
-	* @covers WP_Date_Query
+	* @covers WP_Date_Query::get_compare
 	*/
 	public function test_get_compare_not_in() {
 		$q = new WP_Date_Query( array() );
@@ -285,10 +284,10 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( 'NOT IN', $found );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query handling of 'BETWEEN' compare value
 	*
-	* @covers WP_Date_Query
+	* @covers WP_Date_Query::get_compare
 	*/
 	public function test_get_compare_between() {
 		$q = new WP_Date_Query( array() );
@@ -302,7 +301,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers WP_Date_Query
+	 * @covers WP_Date_Query::get_compare
 	 */
 	public function test_get_compare_not_between() {
 		$q = new WP_Date_Query( array() );
@@ -327,7 +326,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( $wpdb->posts . '.post_date', $q->validate_column( 'post_date' ) );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query validation of post_date_gmt column
 	*
 	* @covers WP_Date_Query::validate_column
@@ -339,7 +338,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( $wpdb->posts . '.post_date_gmt', $q->validate_column( 'post_date_gmt' ) );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query validation of post_modified column
 	*
 	* @covers WP_Date_Query::validate_column
@@ -351,7 +350,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( $wpdb->posts . '.post_modified', $q->validate_column( 'post_modified' ) );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query validation of post_modified_gmt column
 	*
 	* @covers WP_Date_Query::validate_column
@@ -363,7 +362,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( $wpdb->posts . '.post_modified_gmt', $q->validate_column( 'post_modified_gmt' ) );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query validation of comment_date column
 	*
 	* @covers WP_Date_Query::validate_column
@@ -375,7 +374,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( $wpdb->comments . '.comment_date', $q->validate_column( 'comment_date' ) );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query validation of comment_date_gmt column
 	*
 	* @covers WP_Date_Query::validate_column
@@ -387,7 +386,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( $wpdb->comments . '.comment_date_gmt', $q->validate_column( 'comment_date_gmt' ) );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query validation of an invalid post_date value
 	*
 	* @covers WP_Date_Query::validate_column
@@ -441,7 +440,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( 'foo.bar', $q->validate_column( 'f"\'oo\/.b;:()ar' ) );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query::build_value when passed a null value
 	*
 	* @covers WP_Date_Query::build_value
@@ -503,7 +502,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( '(1,7)', $found );
 	}
 
-	/*
+	/**
 	* Test WP_Date_Query::build_value when passed the same values as compare BETWEEN
 	*
 	* @covers WP_Date_Query::build_value
@@ -775,7 +774,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertEqualsWithDelta( strtotime( $expected ), strtotime( $found ), 10, $message );
 	}
 
-	/*
+	/**
 	*
 	* @covers WP_Date_Query::build_time_query
 	*/
@@ -885,6 +884,9 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( 'HOUR( post_date ) = 5', $found );
 	}
 
+	/**
+	 * @covers WP_Date_Query::build_time_query
+	 */
 	public function test_build_time_query_minute_only() {
 		$q = new WP_Date_Query( array() );
 
@@ -1312,7 +1314,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 31001
 	 *
-	 * @covers WP_Date_Query
+	 * @covers WP_Date_Query::__construct
 	 */
 	public function test_validate_date_values_should_process_array_value_for_year() {
 		$p1 = self::factory()->post->create( array( 'post_date' => '2015-01-12 00:00:00' ) );
@@ -1336,7 +1338,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 31001
 	 *
-	 * @covers WP_Date_Query
+	 * @covers WP_Date_Query::__construct
 	 */
 	public function test_validate_date_values_should_process_array_value_for_day() {
 		$p1 = self::factory()->post->create( array( 'post_date' => '2015-01-12 00:00:00' ) );
@@ -1361,7 +1363,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 	 * @ticket 31001
 	 * @expectedIncorrectUsage WP_Date_Query
 	 *
-	 * @covers WP_Date_Query
+	 * @covers WP_Date_Query::__construct
 	 */
 	public function test_validate_date_values_should_process_array_value_for_day_when_values_are_invalid() {
 		$p1 = self::factory()->post->create( array( 'post_date' => '2015-01-12 00:00:00' ) );

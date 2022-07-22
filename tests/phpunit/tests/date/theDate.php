@@ -4,8 +4,6 @@
  * @group date
  * @group datetime
  * @group post
- * @covers ::the_date
- * @covers ::the_weekday_date
  */
 class Tests_Date_TheDate extends WP_UnitTestCase {
 
@@ -23,6 +21,17 @@ class Tests_Date_TheDate extends WP_UnitTestCase {
 		'get_post_modified_time' => 0,
 	);
 
+	/**
+	 * @covers ::get_the_time
+	 * @covers ::the_modified_time
+	 * @covers ::get_the_modified_time
+	 * @covers ::the_date
+	 * @covers ::get_the_date
+	 * @covers ::the_modified_date
+	 * @covers ::get_the_modified_date
+	 * @covers ::get_post_time
+	 * @covers ::get_post_modified_time
+	 */
 	public function test_should_call_hooks() {
 		add_filter( 'the_time', array( $this, 'count_hook' ) );
 		add_filter( 'get_the_time', array( $this, 'count_hook' ) );

@@ -4,7 +4,6 @@
  * @group date
  * @group datetime
  * @group comment
- * @covers ::get_comment_date
  */
 class Tests_Date_GetCommentDate extends WP_UnitTestCase {
 

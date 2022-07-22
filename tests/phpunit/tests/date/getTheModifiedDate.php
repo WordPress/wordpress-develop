@@ -4,7 +4,6 @@
  * @group date
  * @group datetime
  * @group post
- * @covers ::get_the_modified_date
  */
 class Tests_Date_GetTheModifiedDate extends WP_UnitTestCase {
 

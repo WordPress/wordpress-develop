@@ -4,7 +4,6 @@
  * @group date
  * @group datetime
  * @group post
- * @covers ::get_the_date
  */
 class Tests_Date_GetTheDate extends WP_UnitTestCase {
 

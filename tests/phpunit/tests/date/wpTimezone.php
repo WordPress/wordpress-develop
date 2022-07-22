@@ -3,6 +3,7 @@
 /**
  * @group date
  * @group datetime
+ *
  * @covers ::wp_timezone_string
  * @covers ::wp_timezone
  */
@@ -15,9 +16,6 @@ class Tests_Date_wpTimezone extends WP_UnitTestCase {
 	 *
 	 * @param float  $gmt_offset Numeric offset from UTC.
 	 * @param string $tz_name    Expected timezone name.
-	 *
-	 * @covers ::wp_timezone_string
-	 * @covers ::wp_timezone
 	 */
 	public function test_should_convert_gmt_offset( $gmt_offset, $tz_name ) {
 		delete_option( 'timezone_string' );
@@ -32,9 +30,6 @@ class Tests_Date_wpTimezone extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 24730
-	 *
-	 * @covers ::wp_timezone_string
-	 * @covers ::wp_timezone
 	 */
 	public function test_should_return_timezone_string() {
 		update_option( 'timezone_string', 'Europe/Kiev' );

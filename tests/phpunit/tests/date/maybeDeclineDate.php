@@ -4,6 +4,7 @@
  * @group functions.php
  * @group i18n
  * @group datetime
+ *
  * @covers ::wp_maybe_decline_date
  */
 class Tests_Date_MaybeDeclineDate extends WP_UnitTestCase {
@@ -42,8 +43,6 @@ class Tests_Date_MaybeDeclineDate extends WP_UnitTestCase {
 	 * @ticket 48606
 	 * @ticket 48934
 	 * @dataProvider data_wp_maybe_decline_date
-	 *
-	 * @covers ::wp_maybe_decline_date
 	 */
 	public function test_wp_maybe_decline_date( $test_locale, $format, $input, $output ) {
 		global $locale, $wp_locale;
