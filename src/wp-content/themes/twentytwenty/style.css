@@ -3938,14 +3938,8 @@ div.comment:first-of-type {
 	text-decoration: none;
 }
 
-.comment-respond .logged-in-as a {
-	text-decoration: inherit;
-}
-
 .comment-respond .comment-notes a:focus,
-.comment-respond .comment-notes a:hover,
-.comment-respond .logged-in-as a:focus,
-.comment-respond .logged-in-as a:hover {
+.comment-respond .comment-notes a:hover {
 	text-decoration: underline;
 }
 
