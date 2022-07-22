@@ -155,6 +155,9 @@ jobs:
       PHPUNIT_CONFIG: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
 
     steps:
+      - name: Summary?
+        run: echo '### Hello world! :rocket:' >> $GITHUB_STEP_SUMMARY
+
       - name: Configure environment variables
         run: |
           echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
