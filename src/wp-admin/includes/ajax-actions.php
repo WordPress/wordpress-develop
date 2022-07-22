@@ -1277,14 +1277,14 @@ function wp_ajax_replyto_comment( $action ) {
 
 	check_ajax_referer( $action, '_ajax_nonce-replyto-comment' );
 
-	$comment_post_ID = (int) $_POST['comment_post_ID'];
-	$post            = get_post( $comment_post_ID );
+	$comment_post_id = (int) $_POST['comment_post_ID'];
+	$post            = get_post( $comment_post_id );
 
 	if ( ! $post ) {
 		wp_die( -1 );
 	}
 
-	if ( ! current_user_can( 'edit_post', $comment_post_ID ) ) {
+	if ( ! current_user_can( 'edit_post', $comment_post_id ) ) {
 		wp_die( -1 );
 	}
 
@@ -1297,12 +1297,10 @@ function wp_ajax_replyto_comment( $action ) {
 	$user = wp_get_current_user();
 
 	if ( $user->exists() ) {
-		$user_ID              = $user->ID;
 		$comment_author       = wp_slash( $user->display_name );
 		$comment_author_email = wp_slash( $user->user_email );
 		$comment_author_url   = wp_slash( $user->user_url );
-		$comment_content      = trim( $_POST['content'] );
-		$comment_type         = isset( $_POST['comment_type'] ) ? trim( $_POST['comment_type'] ) : 'comment';
+		$user_id              = $user->ID;
 
 		if ( current_user_can( 'unfiltered_html' ) ) {
 			if ( ! isset( $_POST['_wp_unfiltered_html_comment'] ) ) {
@@ -1320,9 +1318,13 @@ function wp_ajax_replyto_comment( $action ) {
 		wp_die( __( 'Sorry, you must be logged in to reply to a comment.' ) );
 	}
 
+	$comment_content = trim( $_POST['content'] );
+
 	if ( '' === $comment_content ) {
 		wp_die( __( 'Please type your comment text.' ) );
 	}
+
+	$comment_type = isset( $_POST['comment_type'] ) ? trim( $_POST['comment_type'] ) : 'comment';
 
 	$comment_parent = 0;
 
@@ -1331,13 +1333,26 @@ function wp_ajax_replyto_comment( $action ) {
 	}
 
 	$comment_auto_approved = false;
-	$commentdata           = compact( 'comment_post_ID', 'comment_author', 'comment_author_email', 'comment_author_url', 'comment_content', 'comment_type', 'comment_parent', 'user_ID' );
+
+	$commentdata = array(
+		'comment_post_ID' => $comment_post_id,
+	);
+
+	$commentdata += compact(
+		'comment_author',
+		'comment_author_email',
+		'comment_author_url',
+		'comment_content',
+		'comment_type',
+		'comment_parent',
+		'user_id'
+	);
 
 	// Automatically approve parent comment.
 	if ( ! empty( $_POST['approve_parent'] ) ) {
 		$parent = get_comment( $comment_parent );
 
-		if ( $parent && '0' === $parent->comment_approved && $parent->comment_post_ID == $comment_post_ID ) {
+		if ( $parent && '0' === $parent->comment_approved && $parent->comment_post_ID == $comment_post_id ) {
 			if ( ! current_user_can( 'edit_comment', $parent->comment_ID ) ) {
 				wp_die( -1 );
 			}

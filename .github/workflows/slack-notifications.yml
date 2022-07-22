@@ -84,7 +84,7 @@ jobs:
             });
 
             // This is the first workflow run for this branch or tag.
-            if ( previous_runs.data.workflow_runs.length == 0 ) {
+            if ( previous_runs.data.workflow_runs.length < 2 ) {
               return 'none';
             }
 
