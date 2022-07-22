@@ -3096,7 +3096,9 @@ class WP_Query {
 					$this->found_posts   = $cached_results['found_posts'];
 					$this->max_num_pages = $cached_results['max_num_pages'];
 
-					if ( 'id=>parent' === $q['fields'] ) {
+					if ( 'ids' === $q['fields'] ) {
+						return $this->posts;
+					} elseif ( 'id=>parent' === $q['fields'] ) {
 						/** @var int[] */
 						$post_parents = array();
 
@@ -3112,8 +3114,6 @@ class WP_Query {
 
 						return $post_parents;
 					}
-
-					return $this->posts;
 				}
 			}
 		}
