@@ -89,80 +89,80 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		return array(
 			'cache true'                                  => array(
 				'args' => array(
-					'post_query_cache' => true,
+					'cache_results' => true,
 				),
 			),
 			'cache true and pagination'                   => array(
 				'args' => array(
-					'post_query_cache' => true,
-					'posts_per_page'   => 3,
-					'page'             => 2,
+					'cache_results'  => true,
+					'posts_per_page' => 3,
+					'page'           => 2,
 				),
 			),
 			'cache true and no pagination'                => array(
 				'args' => array(
-					'post_query_cache' => true,
-					'nopaging'         => true,
+					'cache_results' => true,
+					'nopaging'      => true,
 				),
 			),
 			'cache true and post type any'                => array(
 				'args' => array(
-					'post_query_cache' => true,
-					'nopaging'         => true,
-					'post_type'        => 'any',
+					'cache_results' => true,
+					'nopaging'      => true,
+					'post_type'     => 'any',
 				),
 			),
 			'cache true and get all'                      => array(
 				'args' => array(
-					'post_query_cache' => true,
-					'fields'           => 'all',
-					'posts_per_page'   => -1,
-					'post_status'      => 'any',
-					'post_type'        => 'any',
+					'cache_results'  => true,
+					'fields'         => 'all',
+					'posts_per_page' => -1,
+					'post_status'    => 'any',
+					'post_type'      => 'any',
 				),
 			),
 			'cache true and page'                         => array(
 				'args' => array(
-					'post_query_cache' => true,
-					'post_type'        => 'page',
+					'cache_results' => true,
+					'post_type'     => 'page',
 				),
 			),
 			'cache true and ids'                          => array(
 				'args' => array(
-					'post_query_cache' => true,
-					'fields'           => 'ids',
+					'cache_results' => true,
+					'fields'        => 'ids',
 				),
 			),
 			'cache true and id=>parent and no found rows' => array(
 				'args' => array(
-					'post_query_cache' => true,
-					'fields'           => 'id=>parent',
+					'cache_results' => true,
+					'fields'        => 'id=>parent',
 				),
 			),
 			'cache true and ids and no found rows'        => array(
 				'args' => array(
-					'no_found_rows'    => true,
-					'post_query_cache' => true,
-					'fields'           => 'ids',
+					'no_found_rows' => true,
+					'cache_results' => true,
+					'fields'        => 'ids',
 				),
 			),
 			'cache true and id=>parent'                   => array(
 				'args' => array(
-					'no_found_rows'    => true,
-					'post_query_cache' => true,
-					'fields'           => 'id=>parent',
+					'no_found_rows' => true,
+					'cache_results' => true,
+					'fields'        => 'id=>parent',
 				),
 			),
 			'cache and ignore_sticky_posts'               => array(
 				'args' => array(
-					'post_query_cache'    => true,
+					'cache_results'       => true,
 					'ignore_sticky_posts' => true,
 				),
 			),
 			'cache meta query'                            => array(
 				'args' => array(
-					'post_query_cache' => true,
-					'meta_query'       => array(
+					'cache_results' => true,
+					'meta_query'    => array(
 						array(
 							'key' => 'color',
 						),
@@ -171,14 +171,14 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			),
 			'cache comment_count'                         => array(
 				'args' => array(
-					'post_query_cache' => true,
-					'comment_count'    => 0,
+					'cache_results' => true,
+					'comment_count' => 0,
 				),
 			),
 			'cache term query'                            => array(
 				'args' => array(
-					'post_query_cache' => true,
-					'tax_query'        => array(
+					'cache_results' => true,
+					'tax_query'     => array(
 						array(
 							'taxonomy' => 'category',
 							'terms'    => array( 'foo' ),
@@ -195,8 +195,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 */
 	public function test_query_cache_filter_request() {
 		$args   = array(
-			'post_query_cache' => true,
-			'fields'           => 'ids',
+			'cache_results' => true,
+			'fields'        => 'ids',
 		);
 		$query1 = new WP_Query();
 		$query1->query( $args );
@@ -223,8 +223,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 */
 	public function test_query_cache_new_post() {
 		$args   = array(
-			'post_query_cache' => true,
-			'fields'           => 'ids',
+			'cache_results' => true,
+			'fields'        => 'ids',
 		);
 		$query1 = new WP_Query();
 		$posts1 = $query1->query( $args );
@@ -247,11 +247,11 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$p1       = self::factory()->post->create( array( 'post_date' => date_format( $old_date, 'Y-m-d H:i:s' ) ) );
 		stick_post( $p1 );
 		$args = array(
-			'post_query_cache' => true,
-			'posts_per_page'   => 5,
-			'fields'           => 'ids',
+			'cache_results'  => true,
+			'posts_per_page' => 5,
+			'fields'         => 'ids',
 		);
-		add_action( 'parse_query', array( $this, 'set_post_query_cache' ) );
+		add_action( 'parse_query', array( $this, 'set_cache_results' ) );
 		$this->go_to( '/' );
 		$query1 = $GLOBALS['wp_query'];
 		$posts1 = $query1->posts;
@@ -264,11 +264,11 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 
 		$this->assertNotSame( $posts1, $posts2 );
 		$this->assertSame( $query1->found_posts, $query2->found_posts );
-		remove_action( 'parse_query', array( $this, 'set_post_query_cache' ) );
+		remove_action( 'parse_query', array( $this, 'set_cache_results' ) );
 	}
 
-	public function set_post_query_cache( $q ) {
-		$q->set( 'post_query_cache', true );
+	public function set_cache_results( $q ) {
+		$q->set( 'cache_results', true );
 	}
 
 	/**
@@ -276,14 +276,14 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 */
 	public function test_query_cache_different_args() {
 		$args   = array(
-			'post_query_cache' => true,
-			'fields'           => 'ids',
+			'cache_results' => true,
+			'fields'        => 'ids',
 		);
 		$query1 = new WP_Query();
 		$posts1 = $query1->query( $args );
 
 		$args           = array(
-			'post_query_cache'       => true,
+			'cache_results'          => true,
 			'fields'                 => 'ids',
 			'suppress_filters'       => true,
 			'cache_results'          => true,
@@ -306,15 +306,15 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 */
 	public function test_query_cache_different_fields() {
 		$args   = array(
-			'post_query_cache' => true,
-			'fields'           => 'all',
+			'cache_results' => true,
+			'fields'        => 'all',
 		);
 		$query1 = new WP_Query();
 		$query1->query( $args );
 
 		$args           = array(
-			'post_query_cache' => true,
-			'fields'           => 'id=>parent',
+			'cache_results' => true,
+			'fields'        => 'id=>parent',
 		);
 		$queries_before = get_num_queries();
 		$query2         = new WP_Query();
@@ -336,8 +336,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$p1 = self::factory()->post->create( array( 'post_status' => 'foo_ps' ) );
 
 		$args   = array(
-			'post_query_cache' => true,
-			'p'                => $p1,
+			'cache_results' => true,
+			'p'             => $p1,
 		);
 		$query1 = new WP_Query();
 		$posts1 = $query1->query( $args );
@@ -363,9 +363,9 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 */
 	public function test_query_cache_new_comment() {
 		$args   = array(
-			'post_query_cache' => true,
-			'fields'           => 'ids',
-			'comment_count'    => 1,
+			'cache_results' => true,
+			'fields'        => 'ids',
+			'comment_count' => 1,
 		);
 		$query1 = new WP_Query();
 		$posts1 = $query1->query( $args );
@@ -387,9 +387,9 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	public function test_query_cache_delete_comment() {
 		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$posts[0] ) );
 		$args       = array(
-			'post_query_cache' => true,
-			'fields'           => 'ids',
-			'comment_count'    => 1,
+			'cache_results' => true,
+			'fields'        => 'ids',
+			'comment_count' => 1,
 		);
 		$query1     = new WP_Query();
 		$posts1     = $query1->query( $args );
@@ -411,8 +411,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$p1 = self::factory()->post->create();
 
 		$args   = array(
-			'post_query_cache' => true,
-			'fields'           => 'ids',
+			'cache_results' => true,
+			'fields'        => 'ids',
 		);
 		$query1 = new WP_Query();
 		$posts1 = $query1->query( $args );
@@ -440,9 +440,9 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$p1 = self::factory()->post->create();
 
 		$args   = array(
-			'post_query_cache' => true,
-			'fields'           => 'ids',
-			'meta_query'       => array(
+			'cache_results' => true,
+			'fields'        => 'ids',
+			'meta_query'    => array(
 				array(
 					'key' => 'color',
 				),
@@ -469,9 +469,9 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		add_post_meta( $p1, 'color', 'black' );
 
 		$args   = array(
-			'post_query_cache' => true,
-			'fields'           => 'ids',
-			'meta_query'       => array(
+			'cache_results' => true,
+			'fields'        => 'ids',
+			'meta_query'    => array(
 				array(
 					'key'   => 'color',
 					'value' => 'black',
@@ -505,10 +505,10 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		);
 
 		$args   = array(
-			'post_query_cache' => true,
-			'fields'           => 'ids',
-			'post_type'        => 'attachment',
-			'post_status'      => 'inherit',
+			'cache_results' => true,
+			'fields'        => 'ids',
+			'post_type'     => 'attachment',
+			'post_status'   => 'inherit',
 		);
 		$query1 = new WP_Query();
 		$posts1 = $query1->query( $args );
@@ -532,9 +532,9 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		add_post_meta( $p1, 'color', 'black' );
 
 		$args   = array(
-			'post_query_cache' => true,
-			'fields'           => 'ids',
-			'meta_query'       => array(
+			'cache_results' => true,
+			'fields'        => 'ids',
+			'meta_query'    => array(
 				array(
 					'key' => 'color',
 				),
@@ -561,9 +561,9 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$p1 = self::factory()->post->create();
 
 		$args   = array(
-			'post_query_cache' => true,
-			'fields'           => 'ids',
-			'tax_query'        => array(
+			'cache_results' => true,
+			'fields'        => 'ids',
+			'tax_query'     => array(
 				array(
 					'taxonomy' => 'category',
 					'terms'    => array( 'foo' ),
@@ -596,9 +596,9 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		wp_set_object_terms( $p1, array( $t1 ), 'wptests_tax1' );
 
 		$args   = array(
-			'post_query_cache' => true,
-			'fields'           => 'ids',
-			'tax_query'        => array(
+			'cache_results' => true,
+			'fields'        => 'ids',
+			'tax_query'     => array(
 				array(
 					'taxonomy' => 'wptests_tax1',
 					'terms'    => array( $t1 ),
