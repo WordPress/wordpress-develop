@@ -97,7 +97,15 @@ jobs:
             memcached: false
             multisite: false
             report: true
-
+    outputs:
+      "8.1": ${{ steps.test.outputs['php-8.1'] }}
+      "8.0": ${{ steps.test.outputs['php-8.0'] }}
+      "7.4": ${{ steps.test.outputs['php-7.4'] }}
+      "7.3": ${{ steps.test.outputs['php-7.3'] }}
+      "7.2": ${{ steps.test.outputs['php-7.2'] }}
+      "7.1": ${{ steps.test.outputs['php-7.1'] }}
+      "7.0": ${{ steps.test.outputs['php-7.0'] }}
+      "5.6": ${{ steps.test.outputs['php-5.6'] }}
     env:
       LOCAL_PHP: ${{ matrix.php }}-fpm
       LOCAL_PHP_MEMCACHED: ${{ matrix.memcached }}
@@ -226,8 +234,8 @@ jobs:
       - name: Run external HTTP tests
         if: ${{ ! matrix.multisite && ! matrix.split_slow }}
         continue-on-error: ${{ matrix.php == '8.1' }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c phpunit.xml.dist --group external-http | grep ', Assertions:' >> $GITHUB_STEP_SUMMARY
-        # Tests: 167, Assertions: 248, Skipped: 3.
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c phpunit.xml.dist --group external-http
+
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
       - name: Run (xDebug) tests
         if: ${{ ! matrix.split_slow }}
@@ -249,6 +257,23 @@ jobs:
         env:
           WPT_REPORT_API_KEY: "${{ secrets.WPT_REPORT_API_KEY }}"
         run: docker-compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
+
+  results:
+    needs: [test-php]
+    name: PHP Results
+    runs-on: ubuntu-18.04
+    timeout-minutes: 1
+    steps:
+      - name: PHP Output Summary
+        run: |
+          echo ${{ needs.test-php.outputs['8.1'] }} | grep ', Assertions:' >> $GITHUB_STEP_SUMMARY
+          echo ${{ needs.test-php.outputs['8.0'] }} >> $GITHUB_STEP_SUMMARY
+          echo ${{ needs.test-php.outputs['7.4'] }} >> $GITHUB_STEP_SUMMARY
+          echo ${{ needs.test-php.outputs['7.3'] }} >> $GITHUB_STEP_SUMMARY
+          echo ${{ needs.test-php.outputs['7.2'] }} >> $GITHUB_STEP_SUMMARY
+          echo ${{ needs.test-php.outputs['7.1'] }} >> $GITHUB_STEP_SUMMARY
+          echo ${{ needs.test-php.outputs['7.0'] }} >> $GITHUB_STEP_SUMMARY
+          echo ${{ needs.test-php.outputs['5.6'] }} >> $GITHUB_STEP_SUMMARY
 
   slack-notifications:
     name: Slack Notifications
