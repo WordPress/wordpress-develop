@@ -3,6 +3,8 @@
 /**
  * @group taxonomy
  * @group category.php
+ *
+ * @covers ::get_categories
  */
 class Tests_Category_GetCategories extends WP_UnitTestCase {
 	/**
