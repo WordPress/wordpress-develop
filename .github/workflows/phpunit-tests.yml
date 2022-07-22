@@ -157,6 +157,11 @@ jobs:
     steps:
       - name: Summary?
         run: echo '### Hello world! :rocket:' >> $GITHUB_STEP_SUMMARY
+        # tests were identified as risky.
+        # tests were skipped.
+        # tests encountered errors.
+        # total tests were found.
+        # assertions were made.
 
       - name: Configure environment variables
         run: |
@@ -271,7 +276,7 @@ jobs:
 
       - name: Run external HTTP tests
         if: ${{ ! matrix.multisite }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group external-http
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group external-http | grep -o 'skipped tests' >> $GITHUB_STEP_SUMMARY
 
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
       - name: Run (xDebug) tests
