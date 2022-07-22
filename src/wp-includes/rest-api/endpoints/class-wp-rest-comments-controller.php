@@ -243,6 +243,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		$prepared_args['no_found_rows'] = false;
+		
+		$prepared_args['update_comment_post_cache'] = true;
 
 		$prepared_args['date_query'] = array();
 
