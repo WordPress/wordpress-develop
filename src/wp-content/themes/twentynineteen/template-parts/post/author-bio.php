@@ -27,4 +27,5 @@ if ( (bool) get_the_author_meta( 'description' ) ) : ?>
 		</a>
 	</p><!-- .author-description -->
 </div><!-- .author-bio -->
-<?php endif;
+<?php
+endif;

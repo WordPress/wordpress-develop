@@ -58,4 +58,5 @@ get_header(); ?>
 	</section><!-- .content-area -->
 
 <?php get_sidebar(); ?>
-<?php get_footer();
+<?php
+get_footer();

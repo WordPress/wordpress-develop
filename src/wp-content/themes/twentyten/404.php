@@ -27,4 +27,5 @@ get_header(); ?>
 		document.getElementById('s') && document.getElementById('s').focus();
 	</script>
 
-<?php get_footer();
+<?php
+get_footer();

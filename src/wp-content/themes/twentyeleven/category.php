@@ -17,7 +17,7 @@ get_header(); ?>
 				<header class="page-header">
 					<h1 class="page-title">
 					<?php
-						/* translators: %s: Ñategory title. */
+						/* translators: %s: ï¿½ategory title. */
 						printf( __( 'Category Archives: %s', 'twentyeleven' ), '<span>' . single_cat_title( '', false ) . '</span>' );
 					?>
 					</h1>
@@ -78,4 +78,5 @@ get_header(); ?>
 		</section><!-- #primary -->
 
 <?php get_sidebar(); ?>
-<?php get_footer();
+<?php
+get_footer();

@@ -78,4 +78,5 @@ get_header(); ?>
 		</section><!-- #primary -->
 
 <?php get_sidebar(); ?>
-<?php get_footer();
+<?php
+get_footer();
