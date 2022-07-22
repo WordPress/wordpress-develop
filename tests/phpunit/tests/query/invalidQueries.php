@@ -62,8 +62,8 @@ class Tests_Query_InvalidQueries extends WP_UnitTestCase {
 	/**
 	 * Set up prior to each test.
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		// Clean up variable before each test.
 		self::$last_posts_request = '';
@@ -91,11 +91,28 @@ class Tests_Query_InvalidQueries extends WP_UnitTestCase {
 		global $wpdb;
 
 		$query = new WP_Query( array( 'post_type' => 'unregistered_cpt' ) );
-		$posts = $query->get_posts();
 
-		$this->assertContains( "{$wpdb->posts}.post_type = 'unregistered_cpt'", self::$last_posts_request );
-		$this->assertContains( "{$wpdb->posts}.post_status = 'publish'", self::$last_posts_request );
-		$this->assertCount( 0, $posts );
+		$this->assertStringContainsString( "{$wpdb->posts}.post_type = 'unregistered_cpt'", self::$last_posts_request );
+		$this->assertStringContainsString( "{$wpdb->posts}.post_status = 'publish'", self::$last_posts_request );
+		$this->assertCount( 0, $query->posts );
+	}
+
+	/**
+	 * Test WP Query with an invalid post type in a mutiple post type query.
+	 *
+	 * @ticket 48556
+	 */
+	public function test_unregistered_post_type_wp_query_multiple_post_types() {
+		global $wpdb;
+
+		$query = new WP_Query(
+			array(
+				'post_type' => array( 'unregistered_cpt', 'page' ),
+			)
+		);
+
+		$this->assertStringContainsString( "{$wpdb->posts}.post_type = 'unregistered_cpt'", self::$last_posts_request );
+		$this->assertCount( 1, $query->posts, 'the valid `page` post type should still return one post' );
 	}
 
 	/**
@@ -108,8 +125,8 @@ class Tests_Query_InvalidQueries extends WP_UnitTestCase {
 
 		$this->go_to( home_url( '?post_type=unregistered_cpt' ) );
 
-		$this->assertContains( "{$wpdb->posts}.post_type = 'unregistered_cpt'", self::$last_posts_request );
-		$this->assertContains( "{$wpdb->posts}.post_status = 'publish'", self::$last_posts_request );
+		$this->assertStringContainsString( "{$wpdb->posts}.post_type = 'unregistered_cpt'", self::$last_posts_request );
+		$this->assertStringContainsString( "{$wpdb->posts}.post_status = 'publish'", self::$last_posts_request );
 		// $wp_query recovers to the post type "post" and is expected to return one.
 		$this->assertCount( 1, $wp_query->get_posts() );
 	}
@@ -124,10 +141,9 @@ class Tests_Query_InvalidQueries extends WP_UnitTestCase {
 				'post_type' => 'page',
 			)
 		);
-		$posts = $query->get_posts();
 
 		// Only the published page should be returned.
-		$this->assertCount( 1, $posts );
+		$this->assertCount( 1, $query->posts );
 	}
 
 	/**
@@ -139,9 +155,8 @@ class Tests_Query_InvalidQueries extends WP_UnitTestCase {
 				'static' => 'a',
 			)
 		);
-		$posts = $query->get_posts();
 
 		// Only the published post should be returned.
-		$this->assertCount( 1, $posts );
+		$this->assertCount( 1, $query->posts );
 	}
 }

@@ -7,22 +7,24 @@
  */
 class Tests_URL extends WP_UnitTestCase {
 
-	function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$GLOBALS['pagenow'] = '';
 	}
 
 	/**
 	 * @dataProvider data_is_ssl
+	 *
+	 * @covers ::is_ssl
 	 */
-	function test_is_ssl( $value, $expected ) {
+	public function test_is_ssl( $value, $expected ) {
 		$_SERVER['HTTPS'] = $value;
 
 		$is_ssl = is_ssl();
 		$this->assertSame( $expected, $is_ssl );
 	}
 
-	function data_is_ssl() {
+	public function data_is_ssl() {
 		return array(
 			array(
 				'on',
@@ -47,7 +49,10 @@ class Tests_URL extends WP_UnitTestCase {
 		);
 	}
 
-	function test_is_ssl_by_port() {
+	/**
+	 * @covers ::is_ssl
+	 */
+	public function test_is_ssl_by_port() {
 		unset( $_SERVER['HTTPS'] );
 		$_SERVER['SERVER_PORT'] = '443';
 
@@ -55,7 +60,10 @@ class Tests_URL extends WP_UnitTestCase {
 		$this->assertTrue( $is_ssl );
 	}
 
-	function test_is_ssl_with_no_value() {
+	/**
+	 * @covers ::is_ssl
+	 */
+	public function test_is_ssl_with_no_value() {
 		unset( $_SERVER['HTTPS'] );
 
 		$is_ssl = is_ssl();
@@ -67,8 +75,10 @@ class Tests_URL extends WP_UnitTestCase {
 	 *
 	 * @param string $url      Test URL.
 	 * @param string $expected Expected result.
+	 *
+	 * @covers ::admin_url
 	 */
-	function test_admin_url( $url, $expected ) {
+	public function test_admin_url( $url, $expected ) {
 		$siteurl_http   = get_option( 'siteurl' );
 		$admin_url_http = admin_url( $url );
 
@@ -81,7 +91,7 @@ class Tests_URL extends WP_UnitTestCase {
 		$this->assertSame( $siteurl_https . $expected, $admin_url_https );
 	}
 
-	function data_admin_urls() {
+	public function data_admin_urls() {
 		return array(
 			array(
 				null,
@@ -135,8 +145,10 @@ class Tests_URL extends WP_UnitTestCase {
 	 *
 	 * @param string $url      Test URL.
 	 * @param string $expected Expected result.
+	 *
+	 * @covers ::home_url
 	 */
-	function test_home_url( $url, $expected ) {
+	public function test_home_url( $url, $expected ) {
 		$homeurl_http  = get_option( 'home' );
 		$home_url_http = home_url( $url );
 
@@ -149,7 +161,7 @@ class Tests_URL extends WP_UnitTestCase {
 		$this->assertSame( $homeurl_https . $expected, $home_url_https );
 	}
 
-	function data_home_urls() {
+	public function data_home_urls() {
 		return array(
 			array(
 				null,
@@ -198,9 +210,10 @@ class Tests_URL extends WP_UnitTestCase {
 		);
 	}
 
-	function test_home_url_from_admin() {
-		$screen = get_current_screen();
-
+	/**
+	 * @covers ::home_url
+	 */
+	public function test_home_url_from_admin() {
 		// Pretend to be in the site admin.
 		set_current_screen( 'dashboard' );
 		$home       = get_option( 'home' );
@@ -243,20 +256,19 @@ class Tests_URL extends WP_UnitTestCase {
 		$this->assertSame( $home, home_url() );
 
 		update_option( 'home', set_url_scheme( $home, 'http' ) );
-
-		$GLOBALS['current_screen'] = $screen;
 	}
 
-	function test_network_home_url_from_admin() {
-		$screen = get_current_screen();
-
+	/**
+	 * @covers ::network_home_url
+	 */
+	public function test_network_home_url_from_admin() {
 		// Pretend to be in the site admin.
 		set_current_screen( 'dashboard' );
 		$home       = network_home_url();
 		$home_https = str_replace( 'http://', 'https://', $home );
 
 		// is_ssl() should determine the scheme in the admin.
-		$this->assertSame( 0, strpos( $home, 'http://' ) );
+		$this->assertStringStartsWith( 'http://', $home );
 		$_SERVER['HTTPS'] = 'on';
 		$this->assertSame( $home_https, network_home_url() );
 
@@ -268,15 +280,12 @@ class Tests_URL extends WP_UnitTestCase {
 		$this->assertSame( $home, network_home_url() );
 		$_SERVER['HTTPS'] = 'on';
 		$this->assertSame( $home_https, network_home_url() );
-
-		$GLOBALS['current_screen'] = $screen;
 	}
 
-	function test_set_url_scheme() {
-		if ( ! function_exists( 'set_url_scheme' ) ) {
-			return;
-		}
-
+	/**
+	 * @covers ::set_url_scheme
+	 */
+	public function test_set_url_scheme() {
 		$links = array(
 			'http://wordpress.org/',
 			'https://wordpress.org/',
@@ -336,6 +345,9 @@ class Tests_URL extends WP_UnitTestCase {
 		force_ssl_admin( $forced_admin );
 	}
 
+	/**
+	 * @covers ::get_adjacent_post
+	 */
 	public function test_get_adjacent_post() {
 		$now      = time();
 		$post_id  = self::factory()->post->create( array( 'post_date' => gmdate( 'Y-m-d H:i:s', $now - 1 ) ) );
@@ -370,6 +382,8 @@ class Tests_URL extends WP_UnitTestCase {
 	 * Test get_adjacent_post returns the next private post when the author is the currently logged in user.
 	 *
 	 * @ticket 30287
+	 *
+	 * @covers ::get_adjacent_post
 	 */
 	public function test_get_adjacent_post_should_return_private_posts_belonging_to_the_current_user() {
 		$u       = self::factory()->user->create( array( 'role' => 'author' ) );
@@ -407,6 +421,8 @@ class Tests_URL extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30287
+	 *
+	 * @covers ::get_adjacent_post
 	 */
 	public function test_get_adjacent_post_should_return_private_posts_belonging_to_other_users_if_the_current_user_can_read_private_posts() {
 		$u1      = self::factory()->user->create( array( 'role' => 'author' ) );
@@ -445,6 +461,8 @@ class Tests_URL extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30287
+	 *
+	 * @covers ::get_adjacent_post
 	 */
 	public function test_get_adjacent_post_should_not_return_private_posts_belonging_to_other_users_if_the_current_user_cannot_read_private_posts() {
 		$u1      = self::factory()->user->create( array( 'role' => 'author' ) );
@@ -491,6 +509,17 @@ class Tests_URL extends WP_UnitTestCase {
 	 * Test that *_url functions handle paths with ".."
 	 *
 	 * @ticket 19032
+	 *
+	 * @covers ::site_url
+	 * @covers ::home_url
+	 * @covers ::admin_url
+	 * @covers ::network_admin_url
+	 * @covers ::user_admin_url
+	 * @covers ::includes_url
+	 * @covers ::network_site_url
+	 * @covers ::network_home_url
+	 * @covers ::content_url
+	 * @covers ::plugins_url
 	 */
 	public function test_url_functions_for_dots_in_paths() {
 		$functions = array(

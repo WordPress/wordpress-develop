@@ -68,7 +68,9 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_param( 'context', 'edit' );
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
-		$taxonomies = $this->get_public_taxonomies( get_taxonomies( '', 'objects' ) );
+		$taxonomies = get_taxonomies( '', 'objects' );
+		unset( $taxonomies['nav_menu'] ); // Menus are not editable by contributors.
+		$taxonomies = $this->get_public_taxonomies( $taxonomies );
 		$this->assertSame( count( $taxonomies ), count( $data ) );
 		$this->assertSame( 'Categories', $data['category']['name'] );
 		$this->assertSame( 'category', $data['category']['slug'] );
@@ -211,7 +213,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( 'post', $types[0] );
 		$this->assertArrayHasKey( 1, $types );
 		$this->assertSame( 'attachment', $types[1] );
-		$this->assertSame( 2, count( $types ) );
+		$this->assertCount( 2, $types );
 	}
 
 	public function test_get_item_schema() {
@@ -219,7 +221,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertSame( 10, count( $properties ) );
+		$this->assertCount( 11, $properties );
 		$this->assertArrayHasKey( 'capabilities', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'hierarchical', $properties );
@@ -230,10 +232,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertArrayHasKey( 'types', $properties );
 		$this->assertArrayHasKey( 'visibility', $properties );
 		$this->assertArrayHasKey( 'rest_base', $properties );
-	}
-
-	public function tearDown() {
-		parent::tearDown();
+		$this->assertArrayHasKey( 'rest_namespace', $properties );
 	}
 
 	/**
@@ -256,6 +255,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( $tax_obj->description, $data['description'] );
 		$this->assertSame( $tax_obj->hierarchical, $data['hierarchical'] );
 		$this->assertSame( $tax_obj->rest_base, $data['rest_base'] );
+		$this->assertSame( $tax_obj->rest_namespace, $data['rest_namespace'] );
 		$this->assertSame( rest_url( 'wp/v2/taxonomies' ), $links['collection'][0]['href'] );
 		$this->assertArrayHasKey( 'https://api.w.org/items', $links );
 		if ( 'edit' === $context ) {
@@ -270,10 +270,10 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 			$this->assertSame( $tax_obj->show_in_quick_edit, $data['visibility']['show_in_quick_edit'] );
 			$this->assertSame( $tax_obj->show_ui, $data['visibility']['show_ui'] );
 		} else {
-			$this->assertFalse( isset( $data['capabilities'] ) );
-			$this->assertFalse( isset( $data['labels'] ) );
-			$this->assertFalse( isset( $data['show_cloud'] ) );
-			$this->assertFalse( isset( $data['visibility'] ) );
+			$this->assertArrayNotHasKey( 'capabilities', $data );
+			$this->assertArrayNotHasKey( 'labels', $data );
+			$this->assertArrayNotHasKey( 'show_cloud', $data );
+			$this->assertArrayNotHasKey( 'visibility', $data );
 		}
 	}
 

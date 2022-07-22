@@ -137,6 +137,9 @@ if ( ! function_exists( 'twentyeleven_setup' ) ) :
 		// Grab Twenty Eleven's Ephemera widget.
 		require get_template_directory() . '/inc/widgets.php';
 
+		// Load block patterns.
+		require get_template_directory() . '/inc/block-patterns.php';
+
 		// Add default posts and comments RSS feed links to <head>.
 		add_theme_support( 'automatic-feed-links' );
 
@@ -926,3 +929,17 @@ function twentyeleven_skip_link() {
 	}
 }
 add_action( 'wp_body_open', 'twentyeleven_skip_link', 5 );
+
+if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
+	/**
+	 * Retrieves the list item separator based on the locale.
+	 *
+	 * Added for backward compatibility to support pre-6.0.0 WordPress versions.
+	 *
+	 * @since 6.0.0
+	 */
+	function wp_get_list_item_separator() {
+		/* translators: Used between list items, there is a space after the comma. */
+		return __( ', ', 'twentyeleven' );
+	}
+endif;

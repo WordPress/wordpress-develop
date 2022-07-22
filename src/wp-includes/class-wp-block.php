@@ -58,10 +58,19 @@ class WP_Block {
 	protected $available_context;
 
 	/**
+	 * Block type registry.
+	 *
+	 * @since 5.9.0
+	 * @var WP_Block_Type_Registry
+	 * @access protected
+	 */
+	protected $registry;
+
+	/**
 	 * List of inner blocks (of this same class)
 	 *
 	 * @since 5.5.0
-	 * @var WP_Block[]
+	 * @var WP_Block_List
 	 */
 	public $inner_blocks = array();
 
@@ -114,6 +123,8 @@ class WP_Block {
 		if ( is_null( $registry ) ) {
 			$registry = WP_Block_Type_Registry::get_instance();
 		}
+
+		$this->registry = $registry;
 
 		$this->block_type = $registry->get_registered( $this->name );
 
@@ -185,9 +196,9 @@ class WP_Block {
 	 * @since 5.5.0
 	 *
 	 * @param array $options {
-	 *   Optional options object.
+	 *     Optional options object.
 	 *
-	 *   @type bool $dynamic Defaults to 'true'. Optionally set to false to avoid using the block's render_callback.
+	 *     @type bool $dynamic Defaults to 'true'. Optionally set to false to avoid using the block's render_callback.
 	 * }
 	 * @return string Rendered block output.
 	 */
@@ -205,10 +216,33 @@ class WP_Block {
 
 		if ( ! $options['dynamic'] || empty( $this->block_type->skip_inner_blocks ) ) {
 			$index = 0;
+
 			foreach ( $this->inner_content as $chunk ) {
-				$block_content .= is_string( $chunk ) ?
-					$chunk :
-					$this->inner_blocks[ $index++ ]->render();
+				if ( is_string( $chunk ) ) {
+					$block_content .= $chunk;
+				} else {
+					$inner_block  = $this->inner_blocks[ $index ];
+					$parent_block = $this;
+
+					/** This filter is documented in wp-includes/blocks.php */
+					$pre_render = apply_filters( 'pre_render_block', null, $inner_block->parsed_block, $parent_block );
+
+					if ( ! is_null( $pre_render ) ) {
+						$block_content .= $pre_render;
+					} else {
+						$source_block = $inner_block->parsed_block;
+
+						/** This filter is documented in wp-includes/blocks.php */
+						$inner_block->parsed_block = apply_filters( 'render_block_data', $inner_block->parsed_block, $source_block, $parent_block );
+
+						/** This filter is documented in wp-includes/blocks.php */
+						$inner_block->context = apply_filters( 'render_block_context', $inner_block->context, $inner_block->parsed_block, $parent_block );
+
+						$block_content .= $inner_block->render();
+					}
+
+					$index++;
+				}
 			}
 		}
 
@@ -229,6 +263,10 @@ class WP_Block {
 			wp_enqueue_script( $this->block_type->script );
 		}
 
+		if ( ! empty( $this->block_type->view_script ) && empty( $this->block_type->render_callback ) ) {
+			wp_enqueue_script( $this->block_type->view_script );
+		}
+
 		if ( ! empty( $this->block_type->style ) ) {
 			wp_enqueue_style( $this->block_type->style );
 		}
@@ -237,11 +275,13 @@ class WP_Block {
 		 * Filters the content of a single block.
 		 *
 		 * @since 5.0.0
+		 * @since 5.9.0 The `$instance` parameter was added.
 		 *
-		 * @param string $block_content The block content about to be appended.
-		 * @param array  $block         The full block, including name and attributes.
+		 * @param string   $block_content The block content about to be appended.
+		 * @param array    $block         The full block, including name and attributes.
+		 * @param WP_Block $instance      The block instance.
 		 */
-		$block_content = apply_filters( 'render_block', $block_content, $this->parsed_block );
+		$block_content = apply_filters( 'render_block', $block_content, $this->parsed_block, $this );
 
 		/**
 		 * Filters the content of a single block.
@@ -250,11 +290,13 @@ class WP_Block {
 		 * the block name, e.g. "core/paragraph".
 		 *
 		 * @since 5.7.0
+		 * @since 5.9.0 The `$instance` parameter was added.
 		 *
-		 * @param string $block_content The block content about to be appended.
-		 * @param array  $block         The full block, including name and attributes.
+		 * @param string   $block_content The block content about to be appended.
+		 * @param array    $block         The full block, including name and attributes.
+		 * @param WP_Block $instance      The block instance.
 		 */
-		$block_content = apply_filters( "render_block_{$this->name}", $block_content, $this->parsed_block );
+		$block_content = apply_filters( "render_block_{$this->name}", $block_content, $this->parsed_block, $this );
 
 		return $block_content;
 	}

@@ -9,21 +9,11 @@ class Tests_HTTP_wpGetHttpHeaders extends WP_UnitTestCase {
 	/**
 	 * Set up the environment
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
-		// Hook a fake HTTP request response.
-		add_filter( 'pre_http_request', array( $this, 'fake_http_request' ), 10, 3 );
-	}
-
-	/**
-	 * Clean up environment
-	 */
-	public function tearDown() {
-		parent::tearDown();
-
-		// Clear the hook for the fake HTTP request response.
-		remove_filter( 'pre_http_request', array( $this, 'fake_http_request' ) );
+		// Hook a mocked HTTP request response.
+		add_filter( 'pre_http_request', array( $this, 'mock_http_request' ), 10, 3 );
 	}
 
 	/**
@@ -57,10 +47,9 @@ class Tests_HTTP_wpGetHttpHeaders extends WP_UnitTestCase {
 	 * @param bool   $false     False.
 	 * @param array  $arguments Request arguments.
 	 * @param string $url       Request URL.
-	 *
 	 * @return array|bool
 	 */
-	public function fake_http_request( $false, $arguments, $url ) {
+	public function mock_http_request( $false, $arguments, $url ) {
 		if ( 'http://example.com' === $url ) {
 			return array( 'headers' => true );
 		}

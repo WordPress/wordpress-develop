@@ -2,6 +2,7 @@
 
 /**
  * @group rewrite
+ * @covers wp_old_slug_redirect
  */
 class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 	protected $old_date_redirect_url;
@@ -28,8 +29,8 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 		);
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		add_filter( 'old_slug_redirect_url', array( $this, 'filter_old_date_redirect_url' ), 10, 1 );
 
@@ -41,10 +42,10 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 		flush_rewrite_rules();
 	}
 
-	public function tearDown() {
-		parent::tearDown();
-
+	public function tear_down() {
 		$this->old_date_redirect_url = null;
+
+		parent::tear_down();
 	}
 
 	public function test_old_date_redirect() {
@@ -84,6 +85,73 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 		$this->go_to( $old_permalink );
 		wp_old_slug_redirect();
 		$this->assertSame( $permalink, $this->old_date_redirect_url );
+	}
+
+	/**
+	 * @ticket 36723
+	 */
+	public function test_old_date_slug_redirect_cache() {
+		$old_permalink = user_trailingslashit( get_permalink( self::$post_id ) );
+
+		$time = '2004-01-03 00:00:00';
+		wp_update_post(
+			array(
+				'ID'            => self::$post_id,
+				'post_date'     => $time,
+				'post_date_gmt' => get_gmt_from_date( $time ),
+				'post_name'     => 'bar-baz',
+			)
+		);
+
+		$permalink = user_trailingslashit( get_permalink( self::$post_id ) );
+
+		$this->go_to( $old_permalink );
+		wp_old_slug_redirect();
+		$num_queries = get_num_queries();
+		$this->assertSame( $permalink, $this->old_date_redirect_url );
+		wp_old_slug_redirect();
+		$this->assertSame( $permalink, $this->old_date_redirect_url );
+		$this->assertSame( $num_queries, get_num_queries() );
+	}
+
+	/**
+	 * @ticket 36723
+	 */
+	public function test_old_date_redirect_cache_invalidation() {
+		global $wpdb;
+		$old_permalink = user_trailingslashit( get_permalink( self::$post_id ) );
+
+		$time = '2004-01-03 00:00:00';
+		wp_update_post(
+			array(
+				'ID'            => self::$post_id,
+				'post_date'     => $time,
+				'post_date_gmt' => get_gmt_from_date( $time ),
+				'post_name'     => 'bar-baz',
+			)
+		);
+
+		$permalink = user_trailingslashit( get_permalink( self::$post_id ) );
+
+		$this->go_to( $old_permalink );
+		wp_old_slug_redirect();
+		$this->assertSame( $permalink, $this->old_date_redirect_url );
+
+		$time = '2014-02-01 00:00:00';
+		wp_update_post(
+			array(
+				'ID'            => $this->post_id,
+				'post_date'     => $time,
+				'post_date_gmt' => get_gmt_from_date( $time ),
+				'post_name'     => 'bar-baz',
+			)
+		);
+
+		$num_queries = get_num_queries();
+		$this->go_to( $permalink );
+		wp_old_slug_redirect();
+		$this->assertSame( $permalink, $this->old_date_redirect_url );
+		$this->assertGreaterThan( $num_queries, get_num_queries() );
 	}
 
 	public function test_old_date_redirect_attachment() {

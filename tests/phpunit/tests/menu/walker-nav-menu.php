@@ -13,27 +13,26 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	/**
 	 * Setup.
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $_wp_nav_menu_max_depth;
 
-		parent::setUp();
+		parent::set_up();
 
 		/** Walker_Nav_Menu class */
 		require_once ABSPATH . 'wp-includes/class-walker-nav-menu.php';
 		$this->walker = new Walker_Nav_Menu();
 
 		$this->_wp_nav_menu_max_depth = $_wp_nav_menu_max_depth;
-		parent::setUp();
 	}
 
 	/**
 	 * Tear down
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		global $_wp_nav_menu_max_depth;
 
 		$_wp_nav_menu_max_depth = $this->_wp_nav_menu_max_depth;
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -42,7 +41,7 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	 * @ticket 43290
 	 */
 	public function test_noopener_no_referrer_for_target_blank() {
-		$expected   = '';
+		$actual     = '';
 		$post_id    = $this->factory->post->create();
 		$post_title = get_the_title( $post_id );
 
@@ -62,9 +61,9 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 			'link_after'  => '',
 		);
 
-		$this->walker->start_el( $expected, (object) $item, 0, (object) $args );
+		$this->walker->start_el( $actual, (object) $item, 0, (object) $args );
 
-		$this->assertSame( "<li id=\"menu-item-{$post_id}\" class=\"menu-item-{$post_id}\"><a target=\"_blank\" rel=\"noopener\">{$post_title}</a>", $expected );
+		$this->assertSame( "<li id=\"menu-item-{$post_id}\" class=\"menu-item-{$post_id}\"><a target=\"_blank\" rel=\"noopener\">{$post_title}</a>", $actual );
 	}
 
 	/**
@@ -95,7 +94,7 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 
 		add_filter(
 			'nav_menu_link_attributes',
-			function( $atts ) use ( $value ) {
+			static function( $atts ) use ( $value ) {
 				$atts['data-test'] = $value;
 				return $atts;
 			}

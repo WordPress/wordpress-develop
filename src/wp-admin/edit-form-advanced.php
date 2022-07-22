@@ -78,7 +78,7 @@ $post_ID = isset( $post_ID ) ? (int) $post_ID : 0;
 $user_ID = isset( $user_ID ) ? (int) $user_ID : 0;
 $action  = isset( $action ) ? $action : '';
 
-if ( (int) get_option( 'page_for_posts' ) === $post_ID && empty( $post->post_content ) ) {
+if ( (int) get_option( 'page_for_posts' ) === $post->ID && empty( $post->post_content ) ) {
 	add_action( 'edit_form_after_title', '_wp_posts_page_notice' );
 	remove_post_type_support( $post_type, 'editor' );
 }
@@ -94,7 +94,7 @@ if ( ! $thumbnail_support && 'attachment' === $post_type && $post->post_mime_typ
 
 if ( $thumbnail_support ) {
 	add_thickbox();
-	wp_enqueue_media( array( 'post' => $post_ID ) );
+	wp_enqueue_media( array( 'post' => $post->ID ) );
 }
 
 // Add the local autosave notice HTML.
@@ -103,7 +103,7 @@ add_action( 'admin_footer', '_local_storage_notice' );
 /*
  * @todo Document the $messages array(s).
  */
-$permalink = get_permalink( $post_ID );
+$permalink = get_permalink( $post->ID );
 if ( ! $permalink ) {
 	$permalink = '';
 }
@@ -237,12 +237,12 @@ if ( 'auto-draft' === $post->post_status ) {
 	$autosave    = false;
 	$form_extra .= "<input type='hidden' id='auto_draft' name='auto_draft' value='1' />";
 } else {
-	$autosave = wp_get_post_autosave( $post_ID );
+	$autosave = wp_get_post_autosave( $post->ID );
 }
 
 $form_action  = 'editpost';
-$nonce_action = 'update-post_' . $post_ID;
-$form_extra  .= "<input type='hidden' id='post_ID' name='post_ID' value='" . esc_attr( $post_ID ) . "' />";
+$nonce_action = 'update-post_' . $post->ID;
+$form_extra  .= "<input type='hidden' id='post_ID' name='post_ID' value='" . esc_attr( $post->ID ) . "' />";
 
 // Detect if there exists an autosave newer than the post and if that autosave is different than the post.
 if ( $autosave && mysql2date( 'U', $autosave->post_modified_gmt, false ) > mysql2date( 'U', $post->post_modified_gmt, false ) ) {
@@ -297,7 +297,7 @@ if ( 'post' === $post_type ) {
 	$title_and_editor .= '<p>' . __( 'You can enable distraction-free writing mode using the icon to the right. This feature is not available for old browsers or devices with small screens, and requires that the full-height editor be enabled in Screen Options.' ) . '</p>';
 	$title_and_editor .= '<p>' . sprintf(
 		/* translators: %s: Alt + F10 */
-		__( 'Keyboard users: When you&#8217;re working in the visual editor, you can use %s to access the toolbar.' ),
+		__( 'Keyboard users: When you are working in the visual editor, you can use %s to access the toolbar.' ),
 		'<kbd>Alt + F10</kbd>'
 	) . '</p>';
 
@@ -447,8 +447,8 @@ if ( isset( $post_new_file ) && current_user_can( $post_type_object->cap->create
 <div id="message" class="updated notice notice-success is-dismissible"><p><?php echo $message; ?></p></div>
 <?php endif; ?>
 <div id="lost-connection-notice" class="error hidden">
-	<p><span class="spinner"></span> <?php _e( '<strong>Connection lost.</strong> Saving has been disabled until you&#8217;re reconnected.' ); ?>
-	<span class="hide-if-no-sessionstorage"><?php _e( 'We&#8217;re backing up this post in your browser, just in case.' ); ?></span>
+	<p><span class="spinner"></span> <?php _e( '<strong>Connection lost.</strong> Saving has been disabled until you are reconnected.' ); ?>
+	<span class="hide-if-no-sessionstorage"><?php _e( 'This post is being backed up in your browser, just in case.' ); ?></span>
 	</p>
 </div>
 <form name="post" action="post.php" method="post" id="post"
@@ -621,7 +621,7 @@ if ( post_type_supports( $post_type, 'editor' ) ) {
 	<?php
 	if ( 'auto-draft' !== $post->post_status ) {
 		echo '<span id="last-edit">';
-		$last_user = get_userdata( get_post_meta( $post_ID, '_edit_last', true ) );
+		$last_user = get_userdata( get_post_meta( $post->ID, '_edit_last', true ) );
 		if ( $last_user ) {
 			/* translators: 1: Name of most recent post author, 2: Post edited date, 3: Post edited time. */
 			printf( __( 'Last edited by %1$s on %2$s at %3$s' ), esc_html( $last_user->display_name ), mysql2date( __( 'F j, Y' ), $post->post_modified ), mysql2date( __( 'g:i a' ), $post->post_modified ) );

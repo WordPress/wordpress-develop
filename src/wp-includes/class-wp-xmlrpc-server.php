@@ -14,7 +14,7 @@
  * options, etc.
  *
  * As of WordPress 3.5.0, XML-RPC is enabled by default. It can be disabled
- * via the {@see 'xmlrpc_enabled'} filter found in wp_xmlrpc_server::login().
+ * via the {@see 'xmlrpc_enabled'} filter found in wp_xmlrpc_server::set_is_enabled().
  *
  * @since 1.5.0
  *
@@ -48,6 +48,13 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @var bool
 	 */
 	protected $auth_failed = false;
+
+	/**
+	 * Flags that XML-RPC is enabled
+	 *
+	 * @var bool
+	 */
+	private $is_enabled;
 
 	/**
 	 * Registers all of the XMLRPC methods that XMLRPC server understands.
@@ -164,6 +171,51 @@ class wp_xmlrpc_server extends IXR_Server {
 		 * @param string[] $methods An array of XML-RPC methods, keyed by their methodName.
 		 */
 		$this->methods = apply_filters( 'xmlrpc_methods', $this->methods );
+
+		$this->set_is_enabled();
+	}
+
+	/**
+	 * Set wp_xmlrpc_server::$is_enabled property.
+	 *
+	 * Determine whether the xmlrpc server is enabled on this WordPress install
+	 * and set the is_enabled property accordingly.
+	 *
+	 * @since 5.7.3
+	 */
+	private function set_is_enabled() {
+		/*
+		 * Respect old get_option() filters left for back-compat when the 'enable_xmlrpc'
+		 * option was deprecated in 3.5.0. Use the {@see 'xmlrpc_enabled'} hook instead.
+		 */
+		$is_enabled = apply_filters( 'pre_option_enable_xmlrpc', false );
+		if ( false === $is_enabled ) {
+			$is_enabled = apply_filters( 'option_enable_xmlrpc', true );
+		}
+
+		/**
+		 * Filters whether XML-RPC methods requiring authentication are enabled.
+		 *
+		 * Contrary to the way it's named, this filter does not control whether XML-RPC is *fully*
+		 * enabled, rather, it only controls whether XML-RPC methods requiring authentication - such
+		 * as for publishing purposes - are enabled.
+		 *
+		 * Further, the filter does not control whether pingbacks or other custom endpoints that don't
+		 * require authentication are enabled. This behavior is expected, and due to how parity was matched
+		 * with the `enable_xmlrpc` UI option the filter replaced when it was introduced in 3.5.
+		 *
+		 * To disable XML-RPC methods that require authentication, use:
+		 *
+		 *     add_filter( 'xmlrpc_enabled', '__return_false' );
+		 *
+		 * For more granular control over all XML-RPC methods and requests, see the {@see 'xmlrpc_methods'}
+		 * and {@see 'xmlrpc_element_limit'} hooks.
+		 *
+		 * @since 3.5.0
+		 *
+		 * @param bool $is_enabled Whether XML-RPC is enabled. Default true.
+		 */
+		$this->is_enabled = apply_filters( 'xmlrpc_enabled', $is_enabled );
 	}
 
 	/**
@@ -231,40 +283,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @return WP_User|false WP_User object if authentication passed, false otherwise
 	 */
 	public function login( $username, $password ) {
-		/*
-		 * Respect old get_option() filters left for back-compat when the 'enable_xmlrpc'
-		 * option was deprecated in 3.5.0. Use the 'xmlrpc_enabled' hook instead.
-		 */
-		$enabled = apply_filters( 'pre_option_enable_xmlrpc', false );
-		if ( false === $enabled ) {
-			$enabled = apply_filters( 'option_enable_xmlrpc', true );
-		}
-
-		/**
-		 * Filters whether XML-RPC methods requiring authentication are enabled.
-		 *
-		 * Contrary to the way it's named, this filter does not control whether XML-RPC is *fully*
-		 * enabled, rather, it only controls whether XML-RPC methods requiring authentication - such
-		 * as for publishing purposes - are enabled.
-		 *
-		 * Further, the filter does not control whether pingbacks or other custom endpoints that don't
-		 * require authentication are enabled. This behavior is expected, and due to how parity was matched
-		 * with the `enable_xmlrpc` UI option the filter replaced when it was introduced in 3.5.
-		 *
-		 * To disable XML-RPC methods that require authentication, use:
-		 *
-		 *     add_filter( 'xmlrpc_enabled', '__return_false' );
-		 *
-		 * For more granular control over all XML-RPC methods and requests, see the {@see 'xmlrpc_methods'}
-		 * and {@see 'xmlrpc_element_limit'} hooks.
-		 *
-		 * @since 3.5.0
-		 *
-		 * @param bool $enabled Whether XML-RPC is enabled. Default true.
-		 */
-		$enabled = apply_filters( 'xmlrpc_enabled', $enabled );
-
-		if ( ! $enabled ) {
+		if ( ! $this->is_enabled ) {
 			$this->error = new IXR_Error( 405, sprintf( __( 'XML-RPC services are disabled on this site.' ) ) );
 			return false;
 		}
@@ -333,6 +352,30 @@ class wp_xmlrpc_server extends IXR_Server {
 				$v = wp_slash( $v );
 			}
 		}
+	}
+
+	/**
+	 * Send error response to client.
+	 *
+	 * Send an XML error response to the client. If the endpoint is enabled
+	 * an HTTP 200 response is always sent per the XML-RPC specification.
+	 *
+	 * @since 5.7.3
+	 *
+	 * @param IXR_Error|string $error   Error code or an error object.
+	 * @param false            $message Error message. Optional.
+	 */
+	public function error( $error, $message = false ) {
+		// Accepts either an error object or an error code and message
+		if ( $message && ! is_object( $error ) ) {
+			$error = new IXR_Error( $error, $message );
+		}
+
+		if ( ! $this->is_enabled ) {
+			status_header( $error->code );
+		}
+
+		$this->output( $error->getXml() );
 	}
 
 	/**
@@ -2228,11 +2271,11 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @param array $args {
 	 *     Method arguments. Note: arguments must be ordered as documented.
 	 *
-	 *     @type int    $blog_id      Blog ID (unused).
-	 *     @type string $username     Username.
-	 *     @type string $password     Password.
-	 *     @type string $taxnomy_name Taxonomy name.
-	 *     @type int    $term_id      Term ID.
+	 *     @type int    $blog_id       Blog ID (unused).
+	 *     @type string $username      Username.
+	 *     @type string $password      Password.
+	 *     @type string $taxonomy_name Taxonomy name.
+	 *     @type int    $term_id       Term ID.
 	 * }
 	 * @return true|IXR_Error True on success, IXR_Error instance on failure.
 	 */
@@ -2301,7 +2344,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *     @type int    $blog_id  Blog ID (unused).
 	 *     @type string $username Username.
 	 *     @type string $password Password.
-	 *     @type string $taxnomy  Taxonomy name.
+	 *     @type string $taxonomy Taxonomy name.
 	 *     @type string $term_id  Term ID.
 	 * }
 	 * @return array|IXR_Error IXR_Error on failure, array on success, containing:
@@ -2374,7 +2417,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *     @type int    $blog_id  Blog ID (unused).
 	 *     @type string $username Username.
 	 *     @type string $password Password.
-	 *     @type string $taxnomy  Taxonomy name.
+	 *     @type string $taxonomy Taxonomy name.
 	 *     @type array  $filter   Optional. Modifies the query used to retrieve posts. Accepts 'number',
 	 *                            'offset', 'orderby', 'order', 'hide_empty', and 'search'. Default empty array.
 	 * }
@@ -2466,7 +2509,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *     @type int    $blog_id  Blog ID (unused).
 	 *     @type string $username Username.
 	 *     @type string $password Password.
-	 *     @type string $taxnomy  Taxonomy name.
+	 *     @type string $taxonomy Taxonomy name.
 	 *     @type array  $fields   Optional. Array of taxonomy fields to limit to in the return.
 	 *                            Accepts 'labels', 'cap', 'menu', and 'object_type'.
 	 *                            Default empty array.
@@ -3907,7 +3950,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			$comment['comment_author']       = $this->escape( $display_name );
 			$comment['comment_author_email'] = $this->escape( $user_email );
 			$comment['comment_author_url']   = $this->escape( $user_url );
-			$comment['user_ID']              = $user->ID;
+			$comment['user_id']              = $user->ID;
 		} else {
 			$comment['comment_author'] = '';
 			if ( isset( $content_struct['author'] ) ) {
@@ -3924,7 +3967,7 @@ class wp_xmlrpc_server extends IXR_Server {
 				$comment['comment_author_url'] = $content_struct['author_url'];
 			}
 
-			$comment['user_ID'] = 0;
+			$comment['user_id'] = 0;
 
 			if ( get_option( 'require_name_email' ) ) {
 				if ( strlen( $comment['comment_author_email'] ) < 6 || '' === $comment['comment_author'] ) {
@@ -6356,7 +6399,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		/**
 		 * Filters whether to preempt the XML-RPC media upload.
 		 *
-		 * Passing a truthy value will effectively short-circuit the media upload,
+		 * Returning a truthy value will effectively short-circuit the media upload,
 		 * returning that value as a 500 error instead.
 		 *
 		 * @since 2.1.0
@@ -6649,7 +6692,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 */
 	public function mt_supportedMethods() {
 		/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
-		do_action( 'xmlrpc_call', 'mt.supportedMethods', $args, $this );
+		do_action( 'xmlrpc_call', 'mt.supportedMethods', array(), $this );
 
 		return array_keys( $this->methods );
 	}
@@ -6661,7 +6704,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 */
 	public function mt_supportedTextFilters() {
 		/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
-		do_action( 'xmlrpc_call', 'mt.supportedTextFilters', $args, $this );
+		do_action( 'xmlrpc_call', 'mt.supportedTextFilters', array(), $this );
 
 		/**
 		 * Filters the MoveableType text filters list for XML-RPC.
@@ -6851,14 +6894,14 @@ class wp_xmlrpc_server extends IXR_Server {
 			}
 		} else {
 			// TODO: Attempt to extract a post ID from the given URL.
-			return $this->pingback_error( 33, __( 'The specified target URL cannot be used as a target. It either doesn&#8217;t exist, or it is not a pingback-enabled resource.' ) );
+			return $this->pingback_error( 33, __( 'The specified target URL cannot be used as a target. It either does not exist, or it is not a pingback-enabled resource.' ) );
 		}
 		$post_ID = (int) $post_ID;
 
 		$post = get_post( $post_ID );
 
 		if ( ! $post ) { // Post not found.
-			return $this->pingback_error( 33, __( 'The specified target URL cannot be used as a target. It either doesn&#8217;t exist, or it is not a pingback-enabled resource.' ) );
+			return $this->pingback_error( 33, __( 'The specified target URL cannot be used as a target. It either does not exist, or it is not a pingback-enabled resource.' ) );
 		}
 
 		if ( url_to_postid( $pagelinkedfrom ) == $post_ID ) {
@@ -6867,7 +6910,7 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		// Check if pings are on.
 		if ( ! pings_open( $post ) ) {
-			return $this->pingback_error( 33, __( 'The specified target URL cannot be used as a target. It either doesn&#8217;t exist, or it is not a pingback-enabled resource.' ) );
+			return $this->pingback_error( 33, __( 'The specified target URL cannot be used as a target. It either does not exist, or it is not a pingback-enabled resource.' ) );
 		}
 
 		// Let's check that the remote site didn't already pingback this entry.
@@ -6880,7 +6923,7 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		$remote_ip = preg_replace( '/[^0-9a-fA-F:., ]/', '', $_SERVER['REMOTE_ADDR'] );
 
-		/** This filter is documented in wp-includes/class-http.php */
+		/** This filter is documented in wp-includes/class-wp-http.php */
 		$user_agent = apply_filters( 'http_headers_useragent', 'WordPress/' . get_bloginfo( 'version' ) . '; ' . get_bloginfo( 'url' ), $pagelinkedfrom );
 
 		// Let's check the remote site.
@@ -6920,7 +6963,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		preg_match( '|<title>([^<]*?)</title>|is', $remote_source, $matchtitle );
 		$title = isset( $matchtitle[1] ) ? $matchtitle[1] : '';
 		if ( empty( $title ) ) {
-			return $this->pingback_error( 32, __( 'We cannot find a title on that page.' ) );
+			return $this->pingback_error( 32, __( 'A title on that page cannot be found.' ) );
 		}
 
 		// Remove all script and style tags including their content.
@@ -6970,7 +7013,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		$context        = '[&#8230;] ' . esc_html( $excerpt ) . ' [&#8230;]';
 		$pagelinkedfrom = $this->escape( $pagelinkedfrom );
 
-		$comment_post_ID      = (int) $post_ID;
+		$comment_post_id      = (int) $post_ID;
 		$comment_author       = $title;
 		$comment_author_email = '';
 		$this->escape( $comment_author );
@@ -6979,8 +7022,11 @@ class wp_xmlrpc_server extends IXR_Server {
 		$this->escape( $comment_content );
 		$comment_type = 'pingback';
 
-		$commentdata = compact(
-			'comment_post_ID',
+		$commentdata = array(
+			'comment_post_ID' => $comment_post_id,
+		);
+
+		$commentdata += compact(
 			'comment_author',
 			'comment_author_url',
 			'comment_author_email',
@@ -7032,7 +7078,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		$post_ID = url_to_postid( $url );
 		if ( ! $post_ID ) {
 			// We aren't sure that the resource is available and/or pingback enabled.
-			return $this->pingback_error( 33, __( 'The specified target URL cannot be used as a target. It either doesn&#8217;t exist, or it is not a pingback-enabled resource.' ) );
+			return $this->pingback_error( 33, __( 'The specified target URL cannot be used as a target. It either does not exist, or it is not a pingback-enabled resource.' ) );
 		}
 
 		$actual_post = get_post( $post_ID, ARRAY_A );

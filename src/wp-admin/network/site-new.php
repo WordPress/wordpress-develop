@@ -37,7 +37,7 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 	check_admin_referer( 'add-blog', '_wpnonce_add-blog' );
 
 	if ( ! is_array( $_POST['blog'] ) ) {
-		wp_die( __( 'Can&#8217;t create an empty site.' ) );
+		wp_die( __( 'Cannot create an empty site.' ) );
 	}
 
 	$blog   = $_POST['blog'];
@@ -56,7 +56,7 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 			wp_die(
 				sprintf(
 					/* translators: %s: Reserved names list. */
-					__( 'The following words are reserved for use by WordPress functions and cannot be used as blog names: %s' ),
+					__( 'The following words are reserved for use by WordPress functions and cannot be used as site names: %s' ),
 					'<code>' . implode( '</code>, <code>', $subdirectory_reserved_names ) . '</code>'
 				)
 			);
@@ -174,6 +174,7 @@ if ( isset( $_GET['update'] ) ) {
 	}
 }
 
+// Used in the HTML title tag.
 $title       = __( 'Add New Site' );
 $parent_file = 'sites.php';
 
@@ -201,7 +202,7 @@ printf(
 );
 ?>
 </p>
-<form method="post" action="<?php echo network_admin_url( 'site-new.php?action=add-site' ); ?>" novalidate="novalidate">
+<form method="post" action="<?php echo esc_url( network_admin_url( 'site-new.php?action=add-site' ) ); ?>" novalidate="novalidate">
 <?php wp_nonce_field( 'add-blog', '_wpnonce_add-blog' ); ?>
 	<table class="form-table" role="presentation">
 		<tr class="form-field form-required">
