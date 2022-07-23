@@ -656,7 +656,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_get_lastest_revision_id_and_total_count() returns last revision id and total count.
+	 * Tests that wp_get_last_revision_id_and_total_count() returns the last revision ID and total count.
 	 *
 	 * @ticket 55857
 	 * @dataProvider data_wp_get_post_revisions_url
@@ -674,36 +674,38 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		$post_revisions     = wp_get_post_revisions( $post_id );
 		$last_post_revision = current( $post_revisions );
-		$revision           = wp_get_lastest_revision_id_and_total_count( $post_id );
+		$revision           = wp_get_last_revision_id_and_total_count( $post_id );
 
 		$this->assertSame(
 			$last_post_revision->ID,
 			$revision['revision'],
-			'Failed asserting latest revision id.'
+			'The last revision ID does not match.'
 		);
 
 		$this->assertSame(
 			count( $post_revisions ),
 			$revision['count'],
-			'Failed asserting total count of revision.'
+			'The total count of revisions does not match.'
 		);
 	}
 
 	/**
-	 * Tests that wp_get_lastest_revision_id_and_total_count() when no revisions.
+	 * Tests that wp_get_last_revision_id_and_total_count() returns a WP_Error when no revisions exist.
 	 *
 	 * @ticket 55857
 	 */
 	public function test_wp_get_last_revision_id_and_total_count_no_revisions() {
-		$revision = wp_get_lastest_revision_id_and_total_count( null );
-		$this->assertWPError( $revision, 'Invalid Post, non existing revisions.' );
-		$this->assertSame( $revision->get_error_message(), 'Invalid post.' );
+		$revision = wp_get_last_revision_id_and_total_count( null );
+
+		$this->assertWPError( $revision, 'Invalid post, no revisions should exist.' );
+		$this->assertSame( $revision->get_error_code(), 'invalid_post' );
 
 		add_filter( 'wp_revisions_to_keep', '__return_zero' );
 		$post_id  = self::factory()->post->create();
-		$revision = wp_get_lastest_revision_id_and_total_count( $post_id );
-		$this->assertWPError( $revision, 'Revisions should be not enabled.' );
-		$this->assertSame( $revision->get_error_message(), 'Revisions not enabled.' );
+		$revision = wp_get_last_revision_id_and_total_count( $post_id );
+
+		$this->assertWPError( $revision, 'Revisions should not be enabled.' );
+		$this->assertSame( $revision->get_error_code(), 'revisions_not_enabled' );
 	}
 
 	/**
