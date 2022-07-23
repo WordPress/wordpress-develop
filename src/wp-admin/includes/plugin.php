@@ -1925,6 +1925,27 @@ function get_admin_page_parent( $parent_page = '' ) {
 		return $parent_file;
 	}
 
+	/**
+	 * Check when $pagenow is edit.php or post-new.php for a
+	 * custom post type and doesn't have a submenu
+	 *
+	 *   edit.php?post_type=movies
+	 *       edit.php?post_type=movies
+	 *       post-new.php.php?post_type=movies
+	 */
+	if ( ! empty( $typenow ) && in_array( $pagenow, [ 'edit.php', 'post-new.php' ], true ) ) {
+		$post_type_menu    = "edit.php?post_type=$typenow";
+		$post_type_submenu = "$pagenow?post_type=$typenow";
+
+		if (
+			! isset( $submenu[ $post_type_submenu ] ) &&
+			in_array( $post_type_menu, array_column( $menu, 2 ), true )
+		) {
+			$parent_file = $post_type_menu;
+			return $parent_file;
+		}
+	}
+
 	foreach ( array_keys( (array) $submenu ) as $parent_page ) {
 		foreach ( $submenu[ $parent_page ] as $submenu_array ) {
 			if ( isset( $_wp_real_parent_file[ $parent_page ] ) ) {
