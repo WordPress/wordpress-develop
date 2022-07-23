@@ -33,5 +33,5 @@
 		);
 		?>
 	</nav><!-- #site-navigation -->
-<?php
+	<?php
 endif;

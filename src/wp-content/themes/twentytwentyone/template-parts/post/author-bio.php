@@ -35,5 +35,5 @@
 			?>
 		</div><!-- .author-bio-content -->
 	</div><!-- .author-bio -->
-<?php
+	<?php
 endif;

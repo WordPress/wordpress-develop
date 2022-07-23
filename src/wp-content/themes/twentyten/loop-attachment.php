@@ -154,9 +154,10 @@ if ( have_posts() ) {
 						<div class="entry-caption">
 						<?php
 						if ( ! empty( $post->post_excerpt ) ) {
-							the_excerpt();}
+							the_excerpt();
+						}
 						?>
-</div>
+						</div>
 
 		<?php the_content( __( 'Continue reading <span class="meta-nav">&rarr;</span>', 'twentyten' ) ); ?>
 		<?php
@@ -178,6 +179,6 @@ if ( have_posts() ) {
 
 		<?php comments_template(); ?>
 
-<?php
+		<?php
 	endwhile;
 } // End of the loop.
