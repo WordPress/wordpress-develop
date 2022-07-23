@@ -285,6 +285,17 @@ function wp_cache_flush( $delay = 0 ) {
 }
 
 /**
+ * Whether the object cache implementation supports flushing individual cache groups.
+ *
+ * @since 6.1.0
+ *
+ * @return bool True if group flushing is supported, false otherwise.
+ */
+function wp_cache_supports_group_flush() {
+	return false;
+}
+
+/**
  * Retrieves object from cache.
  *
  * Gets an object from cache based on $key and $group. In order to fully support
@@ -743,17 +754,6 @@ function wp_cache_switch_to_blog( $blog_id ) {
 function wp_cache_init() {
 	global $wp_object_cache;
 	$wp_object_cache = new WP_Object_Cache();
-}
-
-/**
- * Whether the object cache implementation supports flushing individual cache groups.
- *
- * @since 6.1.0
- *
- * @return bool True if group flushing is supported, false otherwise.
- */
-function wp_cache_supports_group_flush() {
-	return false;
 }
 
 /**
