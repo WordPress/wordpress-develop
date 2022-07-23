@@ -56,5 +56,5 @@ if ( is_active_sidebar( 'secondary-widget-area' ) ) :
 			</ul>
 		</div><!-- #secondary .widget-area -->
 
-<?php
+	<?php
 endif;

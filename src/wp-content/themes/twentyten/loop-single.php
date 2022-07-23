@@ -72,7 +72,7 @@ if ( have_posts() ) {
 							</div><!-- #author-link	-->
 							</div><!-- #author-description -->
 						</div><!-- #entry-author-info -->
-	<?php endif; ?>
+		<?php endif; ?>
 
 						<div class="entry-utility">
 							<?php twentyten_posted_in(); ?>
@@ -87,5 +87,6 @@ if ( have_posts() ) {
 
 					<?php comments_template( '', true ); ?>
 
-	<?php endwhile;
+	<?php
+	endwhile;
 } // End of the loop.
