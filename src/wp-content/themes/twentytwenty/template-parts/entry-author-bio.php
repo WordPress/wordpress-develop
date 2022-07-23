@@ -30,5 +30,4 @@ if ( (bool) get_the_author_meta( 'description' ) && (bool) get_theme_mod( 'show_
 		</a>
 	</div><!-- .author-description -->
 </div><!-- .author-bio -->
-<?php
-endif;
+<?php endif; ?>
