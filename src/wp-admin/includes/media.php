@@ -674,11 +674,16 @@ function media_buttons( $editor_id = 'content' ) {
 }
 
 /**
+ * Retrieves the upload iframe source URL.
+ *
+ * @since 3.0.0
+ *
  * @global int $post_ID
- * @param string $type
- * @param int    $post_id
- * @param string $tab
- * @return string
+ *
+ * @param string $type    Media type.
+ * @param int    $post_id Post ID.
+ * @param string $tab     Media upload tab.
+ * @return string Upload iframe source URL.
  */
 function get_upload_iframe_src( $type = null, $post_id = null, $tab = null ) {
 	global $post_ID;
@@ -3625,10 +3630,11 @@ function wp_read_video_metadata( $file ) {
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param array  $metadata       Filtered Video metadata.
-	 * @param string $file           Path to video file.
-	 * @param string $file_format    File format of video, as analyzed by getID3.
-	 * @param array  $data           Raw metadata from getID3.
+	 * @param array       $metadata    Filtered video metadata.
+	 * @param string      $file        Path to video file.
+	 * @param string|null $file_format File format of video, as analyzed by getID3.
+	 *                                 Null if unknown.
+	 * @param array       $data        Raw metadata from getID3.
 	 */
 	return apply_filters( 'wp_read_video_metadata', $metadata, $file, $file_format, $data );
 }
@@ -3697,7 +3703,23 @@ function wp_read_audio_metadata( $file ) {
 
 	wp_add_id3_tag_data( $metadata, $data );
 
-	return $metadata;
+	$file_format = isset( $metadata['fileformat'] ) ? $metadata['fileformat'] : null;
+
+	/**
+	 * Filters the array of metadata retrieved from an audio file.
+	 *
+	 * In core, usually this selection is what is stored.
+	 * More complete data can be parsed from the `$data` parameter.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param array       $metadata    Filtered audio metadata.
+	 * @param string      $file        Path to audio file.
+	 * @param string|null $file_format File format of audio, as analyzed by getID3.
+	 *                                 Null if unknown.
+	 * @param array       $data        Raw metadata from getID3.
+	 */
+	return apply_filters( 'wp_read_audio_metadata', $metadata, $file, $file_format, $data );
 }
 
 /**

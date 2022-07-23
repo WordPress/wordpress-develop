@@ -811,7 +811,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 		remove_filter( 'preprocess_comment', array( $this, 'filter_preprocess_comment' ) );
 
 		$this->assertNotWPError( $comment );
-		$this->assertSame(
+		$this->assertSameSetsWithIndex(
 			array(
 				'comment_post_ID'      => self::$post->ID,
 				'comment_author'       => $user->display_name,
