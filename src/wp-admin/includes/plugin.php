@@ -1933,7 +1933,7 @@ function get_admin_page_parent( $parent_page = '' ) {
 	 *       edit.php?post_type=movies
 	 *       post-new.php.php?post_type=movies
 	 */
-	if ( ! empty( $typenow ) && in_array( $pagenow, [ 'edit.php', 'post-new.php' ], true ) ) {
+	if ( ! empty( $typenow ) && in_array( $pagenow, array( 'edit.php', 'post-new.php' ), true ) ) {
 		$post_type_menu    = "edit.php?post_type=$typenow";
 		$post_type_submenu = "$pagenow?post_type=$typenow";
 
