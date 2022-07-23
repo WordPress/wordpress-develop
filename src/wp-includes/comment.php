@@ -775,7 +775,8 @@ function wp_allow_comment( $commentdata, $wp_error = false ) {
 		$user        = get_userdata( $commentdata['user_id'] );
 		$post_author = $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT post_author FROM $wpdb->posts WHERE ID = %d LIMIT 1",
+				'SELECT post_author FROM %i WHERE ID = %d LIMIT 1',
+				$wpdb->posts,
 				$commentdata['comment_post_ID']
 			)
 		);
@@ -1468,14 +1469,14 @@ function wp_delete_comment( $comment_id, $force_delete = false ) {
 	do_action( 'delete_comment', $comment->comment_ID, $comment );
 
 	// Move children up a level.
-	$children = $wpdb->get_col( $wpdb->prepare( "SELECT comment_ID FROM $wpdb->comments WHERE comment_parent = %d", $comment->comment_ID ) );
+	$children = $wpdb->get_col( $wpdb->prepare( 'SELECT comment_ID FROM %i WHERE comment_parent = %d', $wpdb->comments, $comment->comment_ID ) );
 	if ( ! empty( $children ) ) {
 		$wpdb->update( $wpdb->comments, array( 'comment_parent' => $comment->comment_parent ), array( 'comment_parent' => $comment->comment_ID ) );
 		clean_comment_cache( $children );
 	}
 
 	// Delete metadata.
-	$meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->commentmeta WHERE comment_id = %d", $comment->comment_ID ) );
+	$meta_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT meta_id FROM %i WHERE comment_id = %d', $wpdb->commentmeta, $comment->comment_ID ) );
 	foreach ( $meta_ids as $mid ) {
 		delete_metadata_by_mid( 'comment', $mid );
 	}
@@ -2723,7 +2724,7 @@ function wp_update_comment_count_now( $post_id ) {
 	$new = apply_filters( 'pre_wp_update_comment_count_now', null, $old, $post_id );
 
 	if ( is_null( $new ) ) {
-		$new = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved = '1'", $post_id ) );
+		$new = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE comment_post_ID = %d AND comment_approved = "1"', $wpdb->comments, $post_id ) );
 	} else {
 		$new = (int) $new;
 	}

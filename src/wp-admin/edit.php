@@ -97,7 +97,7 @@ if ( $doaction ) {
 			 */
 			global $wpdb;
 
-			$post_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_type=%s AND post_status = %s", $post_type, $post_status ) );
+			$post_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT ID FROM %i WHERE post_type = %s AND post_status = %s', $wpdb->posts, $post_type, $post_status ) );
 		}
 		$doaction = 'delete';
 	} elseif ( isset( $_REQUEST['media'] ) ) {

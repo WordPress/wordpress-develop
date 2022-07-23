@@ -165,7 +165,7 @@ final class WP_Site {
 		$_site = wp_cache_get( $site_id, 'sites' );
 
 		if ( false === $_site ) {
-			$_site = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->blogs} WHERE blog_id = %d LIMIT 1", $site_id ) );
+			$_site = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE blog_id = %d LIMIT 1', $wpdb->blogs, $site_id ) );
 
 			if ( empty( $_site ) || is_wp_error( $_site ) ) {
 				$_site = -1;

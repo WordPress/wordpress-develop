@@ -613,7 +613,7 @@ function install_blog( $blog_id, $blog_title = '' ) {
 	require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 	$suppress = $wpdb->suppress_errors();
-	if ( $wpdb->get_results( "DESCRIBE {$wpdb->posts}" ) ) {
+	if ( $wpdb->get_results( $wpdb->prepare( 'DESCRIBE %i', $wpdb->posts ) ) ) {
 		die( '<h1>' . __( 'Already Installed' ) . '</h1><p>' . __( 'You appear to have already installed WordPress. To reinstall please clear your old database tables first.' ) . '</p></body></html>' );
 	}
 	$wpdb->suppress_errors( $suppress );
