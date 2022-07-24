@@ -1119,7 +1119,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
 
-		$response->add_links( $this->prepare_links( $comment ) );
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$response->add_links( $this->prepare_links( $comment ) );
+		}
 
 		/**
 		 * Filters a comment returned from the REST API.
@@ -1883,11 +1885,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$prepared_comment,
 			array(
 				'comment_post_ID'      => 0,
-				'comment_parent'       => 0,
-				'user_ID'              => 0,
 				'comment_author'       => null,
 				'comment_author_email' => null,
 				'comment_author_url'   => null,
+				'comment_parent'       => 0,
+				'user_id'              => 0,
 			)
 		);
 
