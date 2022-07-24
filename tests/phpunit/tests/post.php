@@ -502,6 +502,23 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 55877
+	 * @covers ::wp_insert_post
+	 */
+	public function test_wp_insert_post_should_not_trigger_warning_for_pending_posts_with_unknown_cpt() {
+		$post_id = wp_insert_post(
+			array(
+				'post_title'  => 'title',
+				'post_type'   => 'unknown',
+				'post_status' => 'pending',
+			)
+		);
+
+		$this->assertIsNumeric( $post_id );
+		$this->assertGreaterThan( 0, $post_id );
+	}
+
+	/**
 	 * @ticket 20451
 	 */
 	public function test_wp_insert_post_with_meta_input() {
