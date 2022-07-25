@@ -673,9 +673,9 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 			);
 		}
 
-		$post_revisions     = wp_get_post_revisions( $post_id );
+		$post_revisions       = wp_get_post_revisions( $post_id );
 		$latest_post_revision = current( $post_revisions );
-		$revision           = wp_get_latest_revision_id_and_total_count( $post_id );
+		$revision             = wp_get_latest_revision_id_and_total_count( $post_id );
 
 		$this->assertSame(
 			$latest_post_revision->ID,
