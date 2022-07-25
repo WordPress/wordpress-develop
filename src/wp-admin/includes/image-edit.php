@@ -1080,7 +1080,6 @@ function wp_save_image( $post_id ) {
 	}
 
 	$uploads_dir        = wp_get_upload_dir();
-	$allowed_mimes      = array_flip( wp_get_mime_types() );
 	$original_directory = pathinfo( $new_path, PATHINFO_DIRNAME );
 	$filename           = pathinfo( $new_path, PATHINFO_FILENAME );
 	$main_images        = array();
@@ -1110,16 +1109,14 @@ function wp_save_image( $post_id ) {
 				continue;
 			}
 
-			if ( ! isset( $allowed_mimes[ $targeted_mime ] ) || ! is_string( $allowed_mimes[ $targeted_mime ] ) ) {
-				continue;
-			}
-
 			if ( ! $img::supports_mime_type( $targeted_mime ) ) {
 				continue;
 			}
 
-			$extension = explode( '|', $allowed_mimes[ $targeted_mime ] );
-			$extension = $extension[0];
+			$extension = wp_get_default_extension_for_mime_type( $targeted_mime );
+			if ( false === $extension ) {
+				continue;
+			}
 
 			// If the target is `thumbnail` make sure only that size is generated.
 			if ( 'thumbnail' === $target ) {
