@@ -38,13 +38,13 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @requires function imagejpeg
 	 */
 	public function test_get_site_icon_url() {
-		$this->assertEmpty( get_site_icon_url() );
+		$this->assertEmpty( get_site_icon_url(), 'Site icon URL should not be set initially.' );
 
 		$this->set_site_icon();
-		$this->assertSame( $this->site_icon_url, get_site_icon_url() );
+		$this->assertSame( $this->site_icon_url, get_site_icon_url(), 'Site icon URL should be set.' );
 
 		$this->remove_site_icon();
-		$this->assertEmpty( get_site_icon_url() );
+		$this->assertEmpty( get_site_icon_url(), 'Site icon URL should not be set after removal.' );
 	}
 
 	/**
@@ -67,13 +67,13 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @requires function imagejpeg
 	 */
 	public function test_has_site_icon() {
-		$this->assertFalse( has_site_icon() );
+		$this->assertFalse( has_site_icon(), 'Site icon should not be set initially.' );
 
 		$this->set_site_icon();
-		$this->assertTrue( has_site_icon() );
+		$this->assertTrue( has_site_icon(), 'Site icon should be set.' );
 
 		$this->remove_site_icon();
-		$this->assertFalse( has_site_icon() );
+		$this->assertFalse( has_site_icon(), 'Site icon should not be set after removal.' );
 	}
 
 	/**
@@ -261,13 +261,13 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @since 4.5.0
 	 */
 	public function test_has_custom_logo() {
-		$this->assertFalse( has_custom_logo() );
+		$this->assertFalse( has_custom_logo(), 'Custom logo should not be set initially.' );
 
 		$this->set_custom_logo();
-		$this->assertTrue( has_custom_logo() );
+		$this->assertTrue( has_custom_logo(), 'Custom logo should be set.' );
 
 		$this->remove_custom_logo();
-		$this->assertFalse( has_custom_logo() );
+		$this->assertFalse( has_custom_logo(), 'Custom logo should not be set after removal.' );
 	}
 
 	/**
@@ -304,15 +304,15 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @since 4.5.0
 	 */
 	public function test_get_custom_logo() {
-		$this->assertEmpty( get_custom_logo() );
+		$this->assertEmpty( get_custom_logo(), 'Custom logo should not be set initially.' );
 
 		$this->set_custom_logo();
 		$custom_logo = get_custom_logo();
-		$this->assertNotEmpty( $custom_logo );
-		$this->assertIsString( $custom_logo );
+		$this->assertNotEmpty( $custom_logo, 'Custom logo markup should not be empty.' );
+		$this->assertIsString( $custom_logo, 'Custom logo markup should be a string.' );
 
 		$this->remove_custom_logo();
-		$this->assertEmpty( get_custom_logo() );
+		$this->assertEmpty( get_custom_logo(), 'Custom logo should not be set after removal.' );
 	}
 
 	/**
@@ -402,7 +402,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Sets a site icon in options for testing.
+	 * Sets a custom logo in options for testing.
 	 *
 	 * @since 4.5.0
 	 */
@@ -415,7 +415,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Removes the site icon from options.
+	 * Removes the custom logo from options.
 	 *
 	 * @since 4.5.0
 	 */
