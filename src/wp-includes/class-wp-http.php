@@ -143,10 +143,104 @@ class WP_Http {
 	 *     @type int          $limit_response_size Size in bytes to limit the response to. Default null.
 	 *
 	 * }
-	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
+	 * @return array|WP_Error Array or array of arrays containing 'headers', 'body', 'response', 'cookies', 'filename'.
 	 *                        A WP_Error instance upon error.
 	 */
 	public function request( $url, $args = array() ) {
+		if ( is_array( $url ) ) {
+			$pending_requests = array();
+			$responses        = array();
+
+			foreach ( $url as $index => $request ) {
+				// Support an array of string URLs.
+				if ( ! is_array( $request ) ) {
+					$request = array( $request, array() );
+				}
+
+				$request = $this->format_request( $request[0], isset( $request[1] ) ? $request[1] : array() );
+
+				// Handle an error in the pre-request step. Also allow the request to be
+				// circumvented if the response was short-circuit'd.
+				if ( is_wp_error( $request ) || isset( $request['response'] ) ) {
+					$responses[ $index ] = isset( $request['response'] ) ? $request['response'] : $request;
+					continue;
+				}
+
+				$pending_requests[ $index ] = $request;
+			}
+
+			if ( ! empty( $pending_requests ) ) {
+				// Avoid issues where mbstring.func_overload is enabled.
+				mbstring_binary_safe_encoding();
+
+				try {
+					$raw_responses = Requests::request_multiple( $pending_requests );
+				} catch ( Requests_Exception $e ) {
+					$raw_responses = new WP_Error( 'http_request_failed', $e->getMessage() );
+				}
+
+				reset_mbstring_encoding();
+
+				if ( is_wp_error( $raw_responses ) ) {
+					return $raw_responses;
+				}
+
+				foreach ( $pending_requests as $index => $request ) {
+					$responses[ $index ] = $this->format_response(
+						$raw_responses[ $index ],
+						$request['args'],
+						$request['url']
+					);
+				}
+			}
+
+			return $responses;
+		}
+
+		$formatted = $this->format_request( $url, $args );
+
+		// Handle an error in the pre-request step. Also allow the request to be
+		// circumvented if the response was short-circuit'd.
+		if ( is_wp_error( $formatted ) || isset( $formatted['response'] ) ) {
+			return isset( $formatted['response'] ) ? $formatted['response'] : $formatted;
+		}
+
+		// Avoid issues where mbstring.func_overload is enabled.
+		mbstring_binary_safe_encoding();
+
+		try {
+			$response = Requests::request(
+				$formatted['url'],
+				$formatted['headers'],
+				$formatted['data'],
+				$formatted['type'],
+				$formatted['options']
+			);
+		} catch ( Requests_Exception $e ) {
+			$response = new WP_Error( 'http_request_failed', $e->getMessage() );
+		}
+
+		reset_mbstring_encoding();
+
+		return $this->format_response( $response, $formatted['args'], $formatted['url'] );
+	}
+
+	/**
+	 * Format a request to be passed to Requests.
+	 *
+	 * @param string $url  URL to request.
+	 * @param array  $args Arguments to send to request.
+	 * @return array {
+	 *     Array of formatted arguments for the request.
+	 *
+	 *     @type string $url  URL to request.
+	 *     @type array  $headers Array of headers for the request.
+	 *     @type string $data Data to send with the request.
+	 *     @type string $type The type of request to make.
+	 *     @type array  $options Array of options for the request.
+	 * }
+	 */
+	protected function format_request( $url, $args ) {
 		$defaults = array(
 			'method'              => 'GET',
 			/**
@@ -221,6 +315,7 @@ class WP_Http {
 		}
 
 		$parsed_args = wp_parse_args( $args, $defaults );
+
 		/**
 		 * Filters the arguments used in an HTTP request.
 		 *
@@ -257,7 +352,9 @@ class WP_Http {
 		$pre = apply_filters( 'pre_http_request', false, $parsed_args, $url );
 
 		if ( false !== $pre ) {
-			return $pre;
+			return array(
+				'response' => $pre,
+			);
 		}
 
 		if ( function_exists( 'wp_kses_bad_protocol' ) ) {
@@ -387,23 +484,33 @@ class WP_Http {
 			}
 		}
 
-		// Avoid issues where mbstring.func_overload is enabled.
-		mbstring_binary_safe_encoding();
+		return array(
+			'args'    => $parsed_args,
+			'data'    => $data,
+			'headers' => $headers,
+			'options' => $options,
+			'type'    => $type,
+			'url'     => $url,
+		);
+	}
 
-		try {
-			$requests_response = Requests::request( $url, $headers, $data, $type, $options );
-
-			// Convert the response into an array.
-			$http_response = new WP_HTTP_Requests_Response( $requests_response, $parsed_args['filename'] );
+	/**
+	 * Format a response into the expected shape.
+	 *
+	 * @param Requests_Response|WP_Error $response Response to format.
+	 * @param array                      $args     Request arguments.
+	 * @param string                     $url      Request URL.
+	 * @return array|WP_Error
+	 */
+	protected function format_response( $response, $args, $url ) {
+		// Convert the response into an array.
+		if ( ! is_wp_error( $response ) ) {
+			$http_response = new WP_HTTP_Requests_Response( $response, $args['filename'] );
 			$response      = $http_response->to_array();
 
 			// Add the original object to the array.
 			$response['http_response'] = $http_response;
-		} catch ( Requests_Exception $e ) {
-			$response = new WP_Error( 'http_request_failed', $e->getMessage() );
 		}
-
-		reset_mbstring_encoding();
 
 		/**
 		 * Fires after an HTTP API response is received and before the response is returned.
@@ -416,12 +523,13 @@ class WP_Http {
 		 * @param array          $parsed_args HTTP request arguments.
 		 * @param string         $url         The request URL.
 		 */
-		do_action( 'http_api_debug', $response, 'response', 'Requests', $parsed_args, $url );
+		do_action( 'http_api_debug', $response, 'response', 'Requests', $args, $url );
+
 		if ( is_wp_error( $response ) ) {
 			return $response;
 		}
 
-		if ( ! $parsed_args['blocking'] ) {
+		if ( ! $args['blocking'] ) {
 			return array(
 				'headers'       => array(),
 				'body'          => '',
@@ -443,9 +551,8 @@ class WP_Http {
 		 * @param array  $parsed_args HTTP request arguments.
 		 * @param string $url         The request URL.
 		 */
-		return apply_filters( 'http_response', $response, $parsed_args, $url );
+		return apply_filters( 'http_response', $response, $args, $url );
 	}
-
 	/**
 	 * Normalizes cookies for using in Requests.
 	 *
@@ -609,9 +716,7 @@ class WP_Http {
 	 *                        A WP_Error instance upon error.
 	 */
 	public function post( $url, $args = array() ) {
-		$defaults    = array( 'method' => 'POST' );
-		$parsed_args = wp_parse_args( $args, $defaults );
-		return $this->request( $url, $parsed_args );
+		return $this->normalize_request_args( $url, $args, 'POST' );
 	}
 
 	/**
@@ -621,15 +726,13 @@ class WP_Http {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param string       $url  The request URL.
+	 * @param string|array $url  The request URL or array of remote requests that will be run in parallel.
 	 * @param string|array $args Optional. Override the defaults.
 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
 	 *                        A WP_Error instance upon error.
 	 */
 	public function get( $url, $args = array() ) {
-		$defaults    = array( 'method' => 'GET' );
-		$parsed_args = wp_parse_args( $args, $defaults );
-		return $this->request( $url, $parsed_args );
+		return $this->normalize_request_args( $url, $args, 'GET' );
 	}
 
 	/**
@@ -645,8 +748,52 @@ class WP_Http {
 	 *                        A WP_Error instance upon error.
 	 */
 	public function head( $url, $args = array() ) {
-		$defaults    = array( 'method' => 'HEAD' );
+		return $this->normalize_request_args( $url, $args, 'HEAD' );
+	}
+
+	/**
+	 * Normalize the request arguments for a GET, HEAD, or POST request.
+	 *
+	 * @param string|array $url    The request URL or array of remote requests that will be run in parallel.
+	 * @param string|array $args   Request arguments, optional. Override the defaults.
+	 * @param string       $method Request method to make.
+	 * @return array Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
+	 *               A WP_Error instance upon error.
+	 */
+	protected function normalize_request_args( $url, $args, $method ) {
+		$defaults = array( 'method' => $method );
+
+		// Support an array of parallel requests.
+		if ( is_array( $url ) ) {
+			$parsed_requests = array();
+
+			if ( ! empty( $args ) ) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					__( 'Arguments passed to the second $args parameter are ignored when $url is an array of parallel requests.' ),
+					'6.0.0'
+				);
+			}
+
+			foreach ( $url as $i => $request ) {
+				// Support an array of string URLs.
+				if ( ! is_array( $request ) ) {
+					$request = array( $request, array() );
+				}
+
+				list( $request_url, $request_args ) = $request;
+
+				$parsed_requests[ $i ] = array(
+					$request_url,
+					wp_parse_args( $request_args, $defaults ),
+				);
+			}
+
+			return $this->request( $parsed_requests );
+		}
+
 		$parsed_args = wp_parse_args( $args, $defaults );
+
 		return $this->request( $url, $parsed_args );
 	}
 

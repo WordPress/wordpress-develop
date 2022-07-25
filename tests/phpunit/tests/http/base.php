@@ -513,5 +513,78 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$this->assertNotWPError( $res );
 	}
 
+	/**
+	 * Test parallel requests.
+	 *
+	 * @ticket 33055
+	 * @covers ::wp_remote_request
+	 */
+	public function test_parallel_request() {
+		$responses = wp_remote_request(
+			array(
+				'https://wordpress.org/',
+				array(
+					$this->redirection_script . '?code=301&rt=' . 5,
+					array(
+						'method'      => 'POST',
+						'redirection' => 0,
+					),
+				),
+			),
+		);
 
+		list( $request_wp, $request_redirect ) = $responses;
+
+		$this->skipTestOnTimeout( $request_wp );
+		$this->skipTestOnTimeout( $request_redirect );
+
+		$this->assertNotWPError( $request_wp );
+		$this->assertNotWPError( $request_redirect );
+
+		$this->assertSame( 200, wp_remote_retrieve_response_code( $request_wp ) );
+		$this->assertSame( 301, wp_remote_retrieve_response_code( $request_redirect ) );
+	}
+
+	/**
+	 * Test parallel requests with short circuiting.
+	 *
+	 * @ticket 33055
+	 * @covers ::wp_remote_request
+	 */
+	public function test_parallel_request_short_circuit() {
+		add_filter(
+			'pre_http_request',
+			function ( $pre, $args, $url ) {
+				if ( 'https://login.wordpress.org/wp-login.php' === $url ) {
+					return array(
+						'response' => array(
+							'code' => 418,
+						),
+					);
+				}
+
+				return $pre;
+			},
+			10,
+			3
+		);
+
+		$responses = wp_remote_request(
+			array(
+				'https://wordpress.org/',
+				'https://login.wordpress.org/wp-login.php',
+			)
+		);
+
+		list( $request_wp, $request_login ) = $responses;
+
+		$this->skipTestOnTimeout( $request_wp );
+		$this->skipTestOnTimeout( $request_login );
+
+		$this->assertNotWPError( $request_wp );
+		$this->assertNotWPError( $request_login );
+
+		$this->assertSame( 200, wp_remote_retrieve_response_code( $request_wp ) );
+		$this->assertSame( 418, wp_remote_retrieve_response_code( $request_login ) );
+	}
 }
