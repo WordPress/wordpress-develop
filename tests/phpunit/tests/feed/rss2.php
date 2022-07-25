@@ -13,6 +13,8 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	public static $posts;
 	public static $category;
 	public static $post_date;
+	public static $post_id;
+	public static $comment_ids = array();
 
 	/**
 	 * Setup a new user and attribute some posts.
@@ -58,6 +60,18 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		foreach ( self::$posts as $post ) {
 			wp_set_object_terms( $post, self::$category->slug, 'category' );
 		}
+
+		self::$post_id = $factory->post->create();
+
+		// Create a comment
+		self::$comment_ids[] = $factory->comment->create(
+			array(
+				'comment_author'   => 1,
+				'comment_date'     => '2021-05-06 12:00:00',
+				'comment_date_gmt' => '2021-05-06 07:00:00',
+				'comment_post_ID'  => self::$post_id,
+			)
+		);
 	}
 
 	/**
@@ -94,6 +108,24 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	}
 
 	/**
+	 * This is a bit of a hack used to buffer comment feed content.
+	 */
+	private function do_rss2_comments() {
+		ob_start();
+		// Nasty hack! In the future it would better to leverage do_comments_feed( 'rss2' ).
+		global $post;
+		try {
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			@require ABSPATH . 'wp-includes/feed-rss2-comments.php';
+			$out = ob_get_clean();
+		} catch ( Exception $e ) {
+			$out = ob_get_clean();
+			throw($e);
+		}
+		return $out;
+	}
+
+	/**
 	 * Test the <rss> element to make sure its present and populated
 	 * with the expected child elements and attributes.
 	 */
@@ -115,6 +147,33 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 		// RSS should have exactly one child element (channel).
 		$this->assertCount( 1, $rss[0]['child'] );
+	}
+
+	/**
+	 * Test the <rss> element to make sure its present and populated
+	 * with the modified version of the title.
+	 *
+	 * @ticket 13867
+	 */
+	function test_feed_title() {
+		add_filter( 'comments_feed_title', array( $this, 'apply_comments_feed_title' ), 10, 2 );
+		$this->go_to( '/comments/feed/' );
+		$feed = $this->do_rss2_comments();
+		$xml  = xml_to_array( $feed );
+
+		// Get the feed title.
+		$title = xml_find( $xml, 'rss', 'channel', 'title' );
+		$this->assertSame( 'Filtered Title', $title[0]['content'] );
+	}
+
+	/**
+	 * Apply the comments feed title filter.
+	 *
+	 * @ticket 13867
+	 */
+	function apply_comments_feed_title( $item_title, $the_title_rss ) {
+		$item_title = 'Filtered Title';
+		return $item_title;
 	}
 
 	/**
@@ -275,6 +334,9 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 		// Get all the rss -> channel -> item elements.
 		$items = xml_find( $xml, 'rss', 'channel', 'item' );
+
+		// Exclude the last post as it contains a comment.
+		array_shift( $items );
 
 		// Check each of the items against the known post data.
 		foreach ( $items as $key => $item ) {

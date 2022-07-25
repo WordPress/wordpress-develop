@@ -27,20 +27,30 @@ do_action( 'rss_tag_pre', 'atom-comments' );
 		do_action( 'atom_comments_ns' );
 	?>
 >
-	<title type="text">
 	<?php
+	$feed_title = '';
 	if ( is_singular() ) {
 		/* translators: Comments feed title. %s: Post title. */
-		printf( ent2ncr( __( 'Comments on %s' ) ), get_the_title_rss() );
+		$feed_title = sprintf( ent2ncr( __( 'Comments on: %s' ) ), get_the_title_rss() );
 	} elseif ( is_search() ) {
 		/* translators: Comments feed title. 1: Site title, 2: Search query. */
-		printf( ent2ncr( __( 'Comments for %1$s searching on %2$s' ) ), get_bloginfo_rss( 'name' ), get_search_query() );
+		$feed_title = sprintf( ent2ncr( __( 'Comments for %1$s searching on %2$s' ) ), get_bloginfo_rss( 'name' ), get_search_query() );
 	} else {
 		/* translators: Comments feed title. %s: Site title. */
-		printf( ent2ncr( __( 'Comments for %s' ) ), get_wp_title_rss() );
+		$feed_title = sprintf( ent2ncr( __( 'Comments for %s' ) ), get_bloginfo_rss( 'name' ) . get_wp_title_rss() );
 	}
+
+	/**
+	 * Filters the page title for the comments feed.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $feed_title Comments feed page title.
+	 */
+	$feed_title = apply_filters( 'comments_feed_title', $feed_title, get_the_title_rss() );
 	?>
-	</title>
+
+	<title type="text"><?php echo esc_html( $feed_title ); ?></title>
 	<subtitle type="text"><?php bloginfo_rss( 'description' ); ?></subtitle>
 
 	<updated><?php echo get_feed_build_date( 'Y-m-d\TH:i:s\Z' ); ?></updated>
