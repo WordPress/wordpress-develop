@@ -3282,14 +3282,14 @@ class WP_Query {
 
 			$comments_request = "SELECT {$wpdb->comments}.comment_ID FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
 
-			$key          = md5( $comments_request );
-			$last_changed = wp_cache_get_last_changed( 'comment' );
+			$comment_key          = md5( $comments_request );
+			$comment_last_changed = wp_cache_get_last_changed( 'comment' );
 
-			$cache_key   = "comment_feed:$key:$last_changed";
-			$comment_ids = wp_cache_get( $cache_key, 'comment' );
+			$comment_cache_key = "comment_feed:$comment_key:$comment_last_changed";
+			$comment_ids       = wp_cache_get( $comment_cache_key, 'comment' );
 			if ( false === $comment_ids ) {
 				$comment_ids = $wpdb->get_col( $comments_request );
-				wp_cache_add( $cache_key, $comment_ids, 'comment' );
+				wp_cache_add( $comment_cache_key, $comment_ids, 'comment' );
 			}
 			_prime_comment_caches( $comment_ids, false );
 
