@@ -696,12 +696,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 
 			$is_not_custom   = false === array_search(
 				wp_get_theme()->get_stylesheet() . '//' . $template_file['slug'],
-				array_map(
-					function ( $template ) {
-						return $template->id;
-					},
-					$query_result
-				),
+				wp_list_pluck( $query_result, 'id' ),
 				true
 			);
 			$fits_slug_query =
