@@ -288,17 +288,10 @@ function image_downsize( $id, $size = 'medium' ) {
  *                                 Array values must be in the format: array( x_crop_position, y_crop_position ) where:
  *                                     - x_crop_position accepts: 'left', 'center', or 'right'.
  *                                     - y_crop_position accepts: 'top', 'center', or 'bottom'.
- * @param bool       $output_mimes Whether to output secondary mimes  for this image size. Default is null which will
- *                                 throw a doing_it_wrong warning to warn developers they should set this value.
- *                                 Default will be true in 6.2.
+ * @param bool       $output_mimes Whether to output secondary mimes for this image size. Default is false.
  */
-function add_image_size( $name, $width = 0, $height = 0, $crop = false, $output_mimes = null ) {
+function add_image_size( $name, $width = 0, $height = 0, $crop = false, $output_mimes = false ) {
 	global $_wp_additional_image_sizes;
-
-	// For 6.1.x, warn developers about setting a value for $output_mimes.
-	if ( null === $output_mimes ) {
-		_doing_it_wrong( __FUNCTION__, __( 'Passing the $output_mimes parameter to add_image_size is recommended.' ), '6.1.0' );
-	}
 
 	$_wp_additional_image_sizes[ $name ] = array(
 		'width'        => absint( $width ),
