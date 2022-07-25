@@ -17,6 +17,27 @@ class Tests_General_Template extends WP_UnitTestCase {
 	public $custom_logo_id;
 	public $custom_logo_url;
 
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		/*
+		 * Declare theme support for custom logo.
+		 *
+		 * This ensures that the `site_logo` option gets deleted in
+		 * _delete_site_logo_on_remove_theme_mods(), which in turn
+		 * prevents the `core/site-logo` block filters from affecting
+		 * the custom logo tests.
+		 *
+		 * Alternatively, these filters can be removed instead:
+		 *
+		 *     remove_filter( 'theme_mod_custom_logo', '_override_custom_logo_theme_mod' );
+		 *     remove_filter( 'pre_set_theme_mod_custom_logo', '_sync_custom_logo_to_site_logo' );
+		 */
+		add_theme_support( 'custom-logo' );
+	}
+
+	public static function wpTearDownAfterClass() {
+		remove_theme_support( 'custom-logo' );
+	}
+
 	public function set_up() {
 		parent::set_up();
 
