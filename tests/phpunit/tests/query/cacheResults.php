@@ -25,13 +25,12 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 */
 	public static $t1;
 
-	public function set_up() {
-		parent::set_up();
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Make some post objects.
-		self::$posts = self::factory()->post->create_many( 5 );
-		self::$pages = self::factory()->post->create_many( 5, array( 'post_type' => 'page' ) );
+		self::$posts = $factory->post->create_many( 5 );
+		self::$pages = $factory->post->create_many( 5, array( 'post_type' => 'page' ) );
 
-		self::$t1 = self::factory()->term->create(
+		self::$t1 = $factory->term->create(
 			array(
 				'taxonomy' => 'category',
 				'slug'     => 'foo',
