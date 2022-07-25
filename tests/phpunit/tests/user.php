@@ -104,7 +104,7 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( $val, get_user_option( $key, self::$author_id ) );
 
 		// Change and get again.
-		$val2 = rand_str();
+		$val2 = 'baz';
 		update_user_option( self::$author_id, $key, $val2 );
 		$this->assertSame( $val2, get_user_option( $key, self::$author_id ) );
 	}
@@ -135,7 +135,7 @@ class Tests_User extends WP_UnitTestCase {
 		// Delete by key AND value.
 		update_user_meta( self::$author_id, $key, $val );
 		// Incorrect key: key still exists.
-		delete_user_meta( self::$author_id, $key, rand_str() );
+		delete_user_meta( self::$author_id, $key, 'foo' );
 		$this->assertSame( $val, get_user_meta( self::$author_id, $key, true ) );
 		// Correct key: deleted.
 		delete_user_meta( self::$author_id, $key, $val );
@@ -149,9 +149,9 @@ class Tests_User extends WP_UnitTestCase {
 	public function test_usermeta_array() {
 		// Some values to set.
 		$vals = array(
-			rand_str() => 'val-' . rand_str(),
-			rand_str() => 'val-' . rand_str(),
-			rand_str() => 'val-' . rand_str(),
+			'key0' => 'val0',
+			'key1' => 'val1',
+			'key2' => 'val2',
 		);
 
 		// There is already some stuff in the array.
@@ -475,8 +475,8 @@ class Tests_User extends WP_UnitTestCase {
 		$post = array(
 			'post_author'  => self::$author_id,
 			'post_status'  => 'publish',
-			'post_content' => rand_str(),
-			'post_title'   => rand_str(),
+			'post_content' => 'content',
+			'post_title'   => 'title',
 			'post_type'    => 'post',
 		);
 
@@ -636,7 +636,7 @@ class Tests_User extends WP_UnitTestCase {
 	public function test_user_meta_error() {
 		$id1 = wp_insert_user(
 			array(
-				'user_login' => rand_str(),
+				'user_login' => 'taco_burrito',
 				'user_pass'  => 'password',
 				'user_email' => 'taco@burrito.com',
 			)
@@ -645,7 +645,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		$id2 = wp_insert_user(
 			array(
-				'user_login' => rand_str(),
+				'user_login' => 'taco_burrito2',
 				'user_pass'  => 'password',
 				'user_email' => 'taco@burrito.com',
 			)
@@ -826,9 +826,9 @@ class Tests_User extends WP_UnitTestCase {
 	 */
 	public function test_wp_insert_user_should_not_wipe_existing_password() {
 		$user_details = array(
-			'user_login' => rand_str(),
+			'user_login' => 'jonsnow',
 			'user_pass'  => 'password',
-			'user_email' => rand_str() . '@example.com',
+			'user_email' => 'jonsnow@example.com',
 		);
 
 		$user_id = wp_insert_user( $user_details );
@@ -998,6 +998,24 @@ class Tests_User extends WP_UnitTestCase {
 		$user     = new WP_User( $u );
 		$expected = str_repeat( 'a', 48 ) . '-5';
 		$this->assertSame( $expected, $user->user_nicename );
+	}
+
+	/**
+	 * @ticket 44107
+	 */
+	public function test_wp_insert_user_should_reject_user_url_over_100_characters() {
+		$user_url = str_repeat( 'a', 101 );
+		$u        = wp_insert_user(
+			array(
+				'user_login' => 'test',
+				'user_email' => 'test@example.com',
+				'user_pass'  => 'password',
+				'user_url'   => $user_url,
+			)
+		);
+
+		$this->assertWPError( $u );
+		$this->assertSame( 'user_url_too_long', $u->get_error_code() );
 	}
 
 	/**
@@ -1323,6 +1341,129 @@ class Tests_User extends WP_UnitTestCase {
 
 		$this->assertTrue( $was_admin_email_sent );
 		$this->assertFalse( $was_user_email_sent );
+	}
+
+	/**
+	 * Test that admin notification of a new user registration is dependent
+	 * on the 'wp_send_new_user_notification_to_admin' filter.
+	 *
+	 * @dataProvider data_wp_send_new_user_notification_filters
+	 *
+	 * @ticket 54874
+	 *
+	 * @covers ::wp_new_user_notification
+	 *
+	 * @param bool   $expected Whether the email should be sent.
+	 * @param string $callback The callback to pass to the filter.
+	 */
+	public function test_wp_send_new_user_notification_to_admin_filter( $expected, $callback ) {
+		reset_phpmailer_instance();
+
+		add_filter( 'wp_send_new_user_notification_to_admin', $callback );
+
+		wp_new_user_notification( self::$contrib_id, null, 'admin' );
+
+		$mailer    = tests_retrieve_phpmailer_instance();
+		$recipient = $mailer->get_recipient( 'to' );
+		$actual    = $recipient ? WP_TESTS_EMAIL === $recipient->address : false;
+
+		$this->assertSame( $expected, $actual, 'Admin email result was not as expected in test_wp_send_new_user_notification_to_admin_filter' );
+	}
+
+	/**
+	 * Test that user notification of a new user registration is dependent
+	 * on the 'wp_send_new_user_notification_to_user' filter.
+	 *
+	 * @dataProvider data_wp_send_new_user_notification_filters
+	 *
+	 * @ticket 54874
+	 *
+	 * @covers ::wp_new_user_notification
+	 *
+	 * @param bool   $expected Whether the email should be sent.
+	 * @param string $callback The callback to pass to the filter.
+	 */
+	public function test_wp_send_new_user_notification_to_user_filter( $expected, $callback ) {
+		reset_phpmailer_instance();
+
+		add_filter( 'wp_send_new_user_notification_to_user', $callback );
+
+		wp_new_user_notification( self::$contrib_id, null, 'user' );
+
+		$mailer    = tests_retrieve_phpmailer_instance();
+		$recipient = $mailer->get_recipient( 'to' );
+		$actual    = $recipient ? 'blackburn@battlefield3.com' === $recipient->address : false;
+
+		$this->assertSame( $expected, $actual, 'User email result was not as expected in test_wp_send_new_user_notification_to_user_filter' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_wp_send_new_user_notification_filters() {
+		return array(
+			'true'          => array(
+				'expected' => true,
+				'callback' => '__return_true',
+			),
+			'false'         => array(
+				'expected' => false,
+				'callback' => '__return_false',
+			),
+			'null'          => array(
+				'expected' => false,
+				'callback' => '__return_null',
+			),
+			'empty array'   => array(
+				'expected' => false,
+				'callback' => '__return_empty_array',
+			),
+			'zero int'      => array(
+				'expected' => false,
+				'callback' => '__return_zero',
+			),
+			'zero float'    => array(
+				'expected' => false,
+				'callback' => array( $this, 'cb_return_zero_float' ),
+			),
+			'zero string'   => array(
+				'expected' => false,
+				'callback' => array( $this, 'cb_return_zero_string' ),
+			),
+			'array( true )' => array(
+				'expected' => false,
+				'callback' => array( $this, 'cb_return_array_true' ),
+			),
+		);
+	}
+
+	/**
+	 * Callback that returns 0.0.
+	 *
+	 * @return float 0.0.
+	 */
+	public function cb_return_zero_float() {
+		return 0.0;
+	}
+
+	/**
+	 * Callback that returns '0'.
+	 *
+	 * @return string '0'.
+	 */
+	public function cb_return_zero_string() {
+		return '0';
+	}
+
+	/**
+	 * Callback that returns array( true ).
+	 *
+	 * @return array array( true )
+	 */
+	public function cb_return_array_true() {
+		return array( true );
 	}
 
 	/**
@@ -1909,9 +2050,9 @@ class Tests_User extends WP_UnitTestCase {
 	 * This hook is used in `test_wp_insert_user_with_meta()`.
 	 */
 	public function filter_custom_meta( $meta_input ) {
-		// Update some meta inputs
+		// Update some meta inputs.
 		$meta_input['test_meta_key'] = 'update_from_filter';
-		// Add a new meta
+		// Add a new meta.
 		$meta_input['new_meta_from_filter'] = 'new_from_filter';
 
 		return $meta_input;
@@ -1956,7 +2097,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		// _doing_wrong() should be called because the filter callback
+		// _doing_it_wrong() should be called because the filter callback
 		// adds a item with a 'name' that is the same as one generated by core.
 		$this->setExpectedIncorrectUsage( 'wp_user_personal_data_exporter' );
 		add_filter( 'wp_privacy_additional_user_profile_data', array( $this, 'export_additional_user_profile_data_with_dup_name' ) );

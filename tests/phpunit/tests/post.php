@@ -68,8 +68,8 @@ class Tests_Post extends WP_UnitTestCase {
 			$post = array(
 				'post_author'  => self::$editor_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
-				'post_title'   => rand_str(),
+				'post_content' => "{$post_type}_content",
+				'post_title'   => "{$post_type}_title",
 				'tax_input'    => array(
 					'post_tag' => 'tag1,tag2',
 					'ctax'     => 'cterm1,cterm2',
@@ -126,8 +126,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = array(
 			'post_author'  => self::$editor_id,
 			'post_status'  => 'publish',
-			'post_content' => rand_str(),
-			'post_title'   => rand_str(),
+			'post_content' => 'content',
+			'post_title'   => 'title',
 			'post_date'    => date_format( date_create( "@{$future_date}" ), 'Y-m-d H:i:s' ),
 		);
 
@@ -162,8 +162,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = array(
 			'post_author'  => self::$editor_id,
 			'post_status'  => 'publish',
-			'post_content' => rand_str(),
-			'post_title'   => rand_str(),
+			'post_content' => 'content',
+			'post_title'   => 'title',
 			'post_date'    => date_format( date_create( "@{$future_date_1}" ), 'Y-m-d H:i:s' ),
 		);
 
@@ -207,8 +207,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = array(
 			'post_author'  => self::$editor_id,
 			'post_status'  => 'publish',
-			'post_content' => rand_str(),
-			'post_title'   => rand_str(),
+			'post_content' => 'content',
+			'post_title'   => 'title',
 			'post_date'    => date_format( date_create( "@{$future_date_1}" ), 'Y-m-d H:i:s' ),
 		);
 
@@ -249,8 +249,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = array(
 			'post_author'  => self::$editor_id,
 			'post_status'  => 'draft',
-			'post_content' => rand_str(),
-			'post_title'   => rand_str(),
+			'post_content' => 'content',
+			'post_title'   => 'title',
 			'post_date'    => date_format( date_create( "@{$future_date}" ), 'Y-m-d H:i:s' ),
 		);
 
@@ -284,8 +284,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = array(
 			'post_author'  => self::$editor_id,
 			'post_status'  => 'publish',
-			'post_content' => rand_str(),
-			'post_title'   => rand_str(),
+			'post_content' => 'content',
+			'post_title'   => 'title',
 			'post_date'    => date_format( date_create( "@{$future_date_1}" ), 'Y-m-d H:i:s' ),
 		);
 
@@ -328,8 +328,8 @@ class Tests_Post extends WP_UnitTestCase {
 			$post = array(
 				'post_author'  => self::$editor_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
-				'post_title'   => rand_str(),
+				'post_content' => "{$status}_content",
+				'post_title'   => "{$status}_title",
 				'post_date'    => date_format( date_create( "@{$future_date_1}" ), 'Y-m-d H:i:s' ),
 			);
 
@@ -370,8 +370,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = array(
 			'post_author'  => self::$editor_id,
 			'post_status'  => 'private',
-			'post_content' => rand_str(),
-			'post_title'   => rand_str(),
+			'post_content' => 'content',
+			'post_title'   => 'title',
 			'post_date'    => date_format( date_create( "@{$future_date}" ), 'Y-m-d H:i:s' ),
 		);
 
@@ -404,8 +404,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = array(
 			'post_author'  => self::$editor_id,
 			'post_status'  => 'publish',
-			'post_content' => rand_str(),
-			'post_title'   => rand_str(),
+			'post_content' => 'content',
+			'post_title'   => 'title',
 			'post_date'    => '2012-02-30 00:00:00',
 		);
 
@@ -427,8 +427,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = array(
 			'post_author'  => self::$editor_id,
 			'post_status'  => 'publish',
-			'post_content' => rand_str(),
-			'post_title'   => rand_str(),
+			'post_content' => 'content',
+			'post_title'   => 'title',
 			'post_date'    => date_format( date_create( "@{$future_date_1}" ), 'Y-m-d H:i:s' ),
 		);
 
@@ -502,6 +502,23 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 55877
+	 * @covers ::wp_insert_post
+	 */
+	public function test_wp_insert_post_should_not_trigger_warning_for_pending_posts_with_unknown_cpt() {
+		$post_id = wp_insert_post(
+			array(
+				'post_title'  => 'title',
+				'post_type'   => 'unknown',
+				'post_status' => 'pending',
+			)
+		);
+
+		$this->assertIsNumeric( $post_id );
+		$this->assertGreaterThan( 0, $post_id );
+	}
+
+	/**
 	 * @ticket 20451
 	 */
 	public function test_wp_insert_post_with_meta_input() {
@@ -533,8 +550,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = array(
 			'post_author'  => self::$editor_id,
 			'post_status'  => 'publish',
-			'post_content' => rand_str(),
-			'post_title'   => rand_str(),
+			'post_content' => 'content',
+			'post_title'   => 'title',
 			'post_date'    => date_format( date_create( "@{$future_date}" ), 'Y-m-d H:i:s' ),
 		);
 
@@ -564,7 +581,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = array(
 			'post_author'  => self::$editor_id,
 			'post_status'  => 'publish',
-			'post_content' => rand_str(),
+			'post_content' => 'content',
 			'post_title'   => '',
 			'post_date'    => '2007-10-31 06:15:00',
 		);
@@ -782,11 +799,11 @@ class Tests_Post extends WP_UnitTestCase {
 
 		register_taxonomy( 'test_tax', 'post' );
 
-		$title          = rand_str();
+		$title          = 'title';
 		$post_data      = array(
 			'post_author'  => self::$editor_id,
 			'post_status'  => 'publish',
-			'post_content' => rand_str(),
+			'post_content' => 'content',
 			'post_title'   => $title,
 			'tax_input'    => array(
 				'test_tax' => array( 'term', 'term2', 'term3' ),
@@ -906,7 +923,7 @@ class Tests_Post extends WP_UnitTestCase {
 		register_taxonomy( $tax, $post_type );
 
 		$post = self::factory()->post->create( array( 'post_type' => $post_type ) );
-		wp_set_object_terms( $post, rand_str(), $tax );
+		wp_set_object_terms( $post, 'foo', $tax );
 
 		$wp_tag_cloud = wp_tag_cloud(
 			array(
@@ -973,8 +990,8 @@ class Tests_Post extends WP_UnitTestCase {
 			array(
 				'post_author'  => self::$editor_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
-				'post_title'   => rand_str(),
+				'post_content' => 'content',
+				'post_title'   => 'title',
 			)
 		);
 		$post    = get_post( $post_id );
@@ -991,8 +1008,8 @@ class Tests_Post extends WP_UnitTestCase {
 			array(
 				'post_author'  => self::$editor_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
-				'post_title'   => rand_str(),
+				'post_content' => 'content',
+				'post_title'   => 'title',
 				'post_type'    => 'page',
 			)
 		);
@@ -1203,8 +1220,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = array(
 			'post_author'   => self::$editor_id,
 			'post_status'   => 'publish',
-			'post_content'  => rand_str(),
-			'post_title'    => rand_str(),
+			'post_content'  => 'content',
+			'post_title'    => 'title',
 			'post_date_gmt' => '2014-01-01 12:00:00',
 		);
 
@@ -1686,6 +1703,53 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures sticking a post succeeds after deleting the 'sticky_posts' option.
+	 *
+	 * @ticket 52007
+	 * @ticket 55176
+	 * @covers ::stick_post
+	 */
+	public function test_stick_post_after_delete_sticky_posts_option() {
+		delete_option( 'sticky_posts' );
+
+		stick_post( 1 );
+		$this->assertSameSets( array( 1 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Ensures sticking works with an unexpected option value.
+	 *
+	 * @ticket 52007
+	 * @ticket 55176
+	 * @covers ::stick_post
+	 * @dataProvider data_stick_post_with_unexpected_sticky_posts_option
+	 *
+	 * @param mixed $starting_option Starting value for sticky_posts option.
+	 */
+	public function test_stick_post_with_unexpected_sticky_posts_option( $starting_option ) {
+		update_option( 'sticky_posts', $starting_option );
+
+		stick_post( 1 );
+		$this->assertSameSets( array( 1 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_stick_post_with_unexpected_sticky_posts_option() {
+		return array(
+			'false'     => array( false ),
+			'a string'  => array( 'string' ),
+			'1 int'     => array( 1 ),
+			'null'      => array( null ),
+			'true'      => array( true ),
+			'an object' => array( new stdClass ),
+		);
+	}
+
+	/**
 	 * Ensure sticking a post removes other duplicate post IDs from the option.
 	 *
 	 * @ticket 52007
@@ -1796,5 +1860,44 @@ class Tests_Post extends WP_UnitTestCase {
 		update_option( 'sticky_posts', array( 1, 2, 2 ) );
 		unstick_post( 3 );
 		$this->assertSameSets( array( 1, 2, 2 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Check if post supports block editor.
+	 *
+	 * @ticket 51819
+	 * @covers ::use_block_editor_for_post
+	 */
+	public function test_use_block_editor_for_post() {
+		$this->assertFalse( use_block_editor_for_post( -1 ) );
+		$bogus_post_id = $this->factory()->post->create(
+			array(
+				'post_type' => 'bogus',
+			)
+		);
+		$this->assertFalse( use_block_editor_for_post( $bogus_post_id ) );
+
+		register_post_type(
+			'restless',
+			array(
+				'show_in_rest' => false,
+			)
+		);
+		$restless_post_id = $this->factory()->post->create(
+			array(
+				'post_type' => 'restless',
+			)
+		);
+		$this->assertFalse( use_block_editor_for_post( $restless_post_id ) );
+
+		$generic_post_id = $this->factory()->post->create();
+
+		add_filter( 'use_block_editor_for_post', '__return_false' );
+		$this->assertFalse( use_block_editor_for_post( $generic_post_id ) );
+		remove_filter( 'use_block_editor_for_post', '__return_false' );
+
+		add_filter( 'use_block_editor_for_post', '__return_true' );
+		$this->assertTrue( use_block_editor_for_post( $restless_post_id ) );
+		remove_filter( 'use_block_editor_for_post', '__return_true' );
 	}
 }

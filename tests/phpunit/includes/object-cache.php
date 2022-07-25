@@ -285,6 +285,17 @@ function wp_cache_flush( $delay = 0 ) {
 }
 
 /**
+ * Whether the object cache implementation supports flushing individual cache groups.
+ *
+ * @since 6.1.0
+ *
+ * @return bool True if group flushing is supported, false otherwise.
+ */
+function wp_cache_supports_group_flush() {
+	return false;
+}
+
+/**
  * Retrieves object from cache.
  *
  * Gets an object from cache based on $key and $group. In order to fully support
@@ -803,7 +814,7 @@ class WP_Object_Cache {
 	 *
 	 * @var array
 	 */
-	public $no_mc_groups = array( 'comment', 'counts' );
+	public $no_mc_groups = array( 'counts' );
 
 	/**
 	 * Prefix used for global groups.

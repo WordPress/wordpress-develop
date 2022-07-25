@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::balanceTags
  */
 class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 

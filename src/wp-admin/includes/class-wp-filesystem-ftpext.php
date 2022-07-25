@@ -40,7 +40,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 
 		// This class uses the timeout on a per-connection basis, others use it on a per-action basis.
 		if ( ! defined( 'FS_TIMEOUT' ) ) {
-			define( 'FS_TIMEOUT', 240 );
+			define( 'FS_TIMEOUT', 4 * MINUTE_IN_SECONDS );
 		}
 
 		if ( empty( $opt['port'] ) ) {
@@ -703,7 +703,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 *     @type mixed  $lastmod     Last modified month (3 letter) and day (without leading 0).
 	 *     @type int    $time        Last modified time.
 	 *     @type string $type        Type of resource. 'f' for file, 'd' for directory.
-	 *     @type mixed  $files       If a directory and $recursive is true, contains another array of files.
+	 *     @type mixed  $files       If a directory and `$recursive` is true, contains another array of files.
 	 * }
 	 */
 	public function dirlist( $path = '.', $include_hidden = true, $recursive = false ) {

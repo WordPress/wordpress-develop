@@ -188,7 +188,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param string $sidebar_id The sidebar id.
+	 * @param string $sidebar_id The sidebar ID.
 	 * @return bool Whether the sidebar can be read.
 	 */
 	protected function check_read_sidebar_permission( $sidebar_id ) {
@@ -726,7 +726,9 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 
 		$response = rest_ensure_response( $prepared );
 
-		$response->add_links( $this->prepare_links( $prepared ) );
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$response->add_links( $this->prepare_links( $prepared ) );
+		}
 
 		/**
 		 * Filters the REST API response for a widget.

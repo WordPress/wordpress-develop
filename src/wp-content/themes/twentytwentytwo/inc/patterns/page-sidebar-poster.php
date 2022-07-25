@@ -4,9 +4,9 @@
  */
 return array(
 	'title'      => __( 'Poster with right sidebar', 'twentytwentytwo' ),
-	'categories' => array( 'twentytwentytwo-pages' ),
-	'content'    => '<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"left":"max(1.25rem, 5vw)","right":"max(1.25rem, 5vw)"}}},"layout":{"inherit":true}} -->
-					<div class="wp-block-group alignfull" style="padding-right:max(1.25rem, 5vw);padding-left:max(1.25rem, 5vw)"><!-- wp:columns {"align":"wide","style":{"spacing":{"blockGap":"5%"}}} -->
+	'categories' => array( 'pages' ),
+	'content'    => '<!-- wp:group {"align":"full","layout":{"inherit":true}} -->
+					<div class="wp-block-group alignfull"><!-- wp:columns {"align":"wide","style":{"spacing":{"blockGap":"5%"}}} -->
 					<div class="wp-block-columns alignwide"><!-- wp:column {"width":"70%"} -->
 					<div class="wp-block-column" style="flex-basis:70%">
 
@@ -23,7 +23,7 @@ return array(
 					<!-- wp:columns {"align":"wide","style":{"spacing":{"blockGap":"5%"}}} -->
 					<div class="wp-block-columns alignwide"><!-- wp:column {"width":"70%","style":{"spacing":{"padding":{"bottom":"32px"}}}} -->
 					<div class="wp-block-column" style="padding-bottom:32px;flex-basis:70%"><!-- wp:image {"sizeSlug":"full","linkDestination":"none"} -->
-					<figure class="wp-block-image size-full"><img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/bird-on-salmon.jpg" alt="' . esc_attr__( 'Image of a bird on a branch', 'twentytwentytwo' ) . '"/></figure>
+					<figure class="wp-block-image size-full"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/bird-on-salmon.jpg" alt="' . esc_attr__( 'Image of a bird on a branch', 'twentytwentytwo' ) . '"/></figure>
 					<!-- /wp:image --></div>
 					<!-- /wp:column -->
 
@@ -36,8 +36,8 @@ return array(
 					<div style="height:16px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
-					<!-- wp:heading {"level":3,"fontSize":"medium"} -->
-					<h3 class="has-medium-font-size"><em>' . esc_html__( 'Date', 'twentytwentytwo' ) . '</em></h3>
+					<!-- wp:heading {"level":3,"fontSize":"large"} -->
+					<h3 class="has-large-font-size"><em>' . esc_html__( 'Date', 'twentytwentytwo' ) . '</em></h3>
 					<!-- /wp:heading -->
 
 					<!-- wp:paragraph -->
@@ -48,8 +48,8 @@ return array(
 					<div style="height:16px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
-					<!-- wp:heading {"level":3,"fontSize":"medium"} -->
-					<h3 class="has-medium-font-size"><em>' . esc_html__( 'Location', 'twentytwentytwo' ) . '</em></h3>
+					<!-- wp:heading {"level":3,"fontSize":"large"} -->
+					<h3 class="has-large-font-size"><em>' . esc_html__( 'Location', 'twentytwentytwo' ) . '</em></h3>
 					<!-- /wp:heading -->
 
 					<!-- wp:paragraph -->

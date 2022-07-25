@@ -68,7 +68,16 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		// Lists/updates a single template based on the given id.
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '/(?P<id>[\/\w-]+)',
+			// The route.
+			sprintf(
+				'/%s/(?P<id>%s%s)',
+				$this->rest_base,
+				// Matches theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
+				// Excludes invalid directory name characters: `/:<>*?"|`.
+				'([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)',
+				// Matches the template name.
+				'[\/\w-]+'
+			),
 			array(
 				'args'   => array(
 					'id' => array(
@@ -149,6 +158,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return string Sanitized template ID.
 	 */
 	public function _sanitize_template_id( $id ) {
+		$id = urldecode( $id );
+
 		$last_slash_pos = strrpos( $id, '/' );
 		if ( false === $last_slash_pos ) {
 			return $id;
@@ -342,7 +353,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function create_item( $request ) {
-		$prepared_post            = $this->prepare_item_for_database( $request );
+		$prepared_post = $this->prepare_item_for_database( $request );
 
 		if ( is_wp_error( $prepared_post ) ) {
 			return $prepared_post;
@@ -553,7 +564,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_Block_Template $item    Template instance.
 	 * @param WP_REST_Request   $request Request object.
-	 * @return WP_REST_Response $data
+	 * @return WP_REST_Response Response object.
 	 */
 	public function prepare_item_for_response( $item, $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 		// Restores the more descriptive, specific name for use within this method.
@@ -651,13 +662,15 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
 
-		$links = $this->prepare_links( $template->id );
-		$response->add_links( $links );
-		if ( ! empty( $links['self']['href'] ) ) {
-			$actions = $this->get_available_actions();
-			$self    = $links['self']['href'];
-			foreach ( $actions as $rel ) {
-				$response->add_link( $rel, $self );
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$links = $this->prepare_links( $template->id );
+			$response->add_links( $links );
+			if ( ! empty( $links['self']['href'] ) ) {
+				$actions = $this->get_available_actions();
+				$self    = $links['self']['href'];
+				foreach ( $actions as $rel ) {
+					$response->add_link( $rel, $self );
+				}
 			}
 		}
 
@@ -770,7 +783,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'required'    => true,
 					'minLength'   => 1,
-					'pattern'     => '[a-zA-Z_\-]+',
+					'pattern'     => '[a-zA-Z0-9_\-]+',
 				),
 				'theme'          => array(
 					'description' => __( 'Theme identifier for the template.' ),
@@ -857,7 +870,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'author' => array(
+				'author'         => array(
 					'description' => __( 'The ID for the author of the template.' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit', 'embed' ),

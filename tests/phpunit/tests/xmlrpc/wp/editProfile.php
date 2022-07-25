@@ -16,13 +16,13 @@ class Tests_XMLRPC_wp_editProfile extends WP_XMLRPC_UnitTestCase {
 		$subscriber_id = $this->make_user_by_role( 'subscriber' );
 
 		$new_data = array(
-			'first_name'   => rand_str(),
-			'last_name'    => rand_str(),
+			'first_name'   => 'firstname',
+			'last_name'    => 'lastname',
 			'url'          => 'http://www.example.org/subscriber',
-			'display_name' => rand_str(),
-			'nickname'     => rand_str(),
-			'nicename'     => rand_str(),
-			'bio'          => rand_str( 200 ),
+			'display_name' => 'displayname',
+			'nickname'     => 'nickname',
+			'nicename'     => 'nicename',
+			'bio'          => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
 		);
 		$result   = $this->myxmlrpcserver->wp_editProfile( array( 1, 'subscriber', 'subscriber', $new_data ) );
 		$this->assertNotIXRError( $result );

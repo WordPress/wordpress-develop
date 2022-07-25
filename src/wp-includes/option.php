@@ -28,10 +28,11 @@
  * as string equivalents.
  *
  * Exceptions:
+ *
  * 1. When the option has not been saved in the database, the `$default` value
  *    is returned if provided. If not, boolean `false` is returned.
- * 2. When one of the Options API filters is used: {@see 'pre_option_{$option}'},
- *    {@see 'default_option_{$option}'}, or {@see 'option_{$option}'}, the returned
+ * 2. When one of the Options API filters is used: {@see 'pre_option_$option'},
+ *    {@see 'default_option_$option'}, or {@see 'option_$option'}, the returned
  *    value may not match the expected type.
  * 3. When the option has just been saved in the database, and get_option()
  *    is used right after, non-string scalar and null values are not converted to
@@ -39,28 +40,28 @@
  *
  * Examples:
  *
- * When adding options like this: `add_option( 'my_option_name', 'value' );`
- * and then retrieving them with `get_option( 'my_option_name' );`, the returned
+ * When adding options like this: `add_option( 'my_option_name', 'value' )`
+ * and then retrieving them with `get_option( 'my_option_name' )`, the returned
  * values will be:
  *
- * `false` returns `string(0) ""`
- * `true`  returns `string(1) "1"`
- * `0`     returns `string(1) "0"`
- * `1`     returns `string(1) "1"`
- * `'0'`   returns `string(1) "0"`
- * `'1'`   returns `string(1) "1"`
- * `null`  returns `string(0) ""`
+ *   - `false` returns `string(0) ""`
+ *   - `true`  returns `string(1) "1"`
+ *   - `0`     returns `string(1) "0"`
+ *   - `1`     returns `string(1) "1"`
+ *   - `'0'`   returns `string(1) "0"`
+ *   - `'1'`   returns `string(1) "1"`
+ *   - `null`  returns `string(0) ""`
  *
  * When adding options with non-scalar values like
- * `add_option( 'my_array', array( false, 'str', null ) );`, the returned value
+ * `add_option( 'my_array', array( false, 'str', null ) )`, the returned value
  * will be identical to the original as it is serialized before saving
  * it in the database:
  *
- *    array(3) {
- *        [0] => bool(false)
- *        [1] => string(3) "str"
- *        [2] => NULL
- *    }
+ *     array(3) {
+ *         [0] => bool(false)
+ *         [1] => string(3) "str"
+ *         [2] => NULL
+ *     }
  *
  * @since 1.5.0
  *
@@ -344,13 +345,15 @@ function wp_load_core_site_options( $network_id = null ) {
 	$core_options_in = "'" . implode( "', '", $core_options ) . "'";
 	$options         = $wpdb->get_results( $wpdb->prepare( "SELECT meta_key, meta_value FROM $wpdb->sitemeta WHERE meta_key IN ($core_options_in) AND site_id = %d", $network_id ) );
 
+	$data = array();
 	foreach ( $options as $option ) {
 		$key                = $option->meta_key;
 		$cache_key          = "{$network_id}:$key";
 		$option->meta_value = maybe_unserialize( $option->meta_value );
 
-		wp_cache_set( $cache_key, $option->meta_value, 'site-options' );
+		$data[ $cache_key ] = $option->meta_value;
 	}
+	wp_cache_set_multiple( $data, 'site-options' );
 }
 
 /**
@@ -784,7 +787,7 @@ function delete_transient( $transient ) {
 	 */
 	do_action( "delete_transient_{$transient}", $transient );
 
-	if ( wp_using_ext_object_cache() ) {
+	if ( wp_using_ext_object_cache() || wp_installing() ) {
 		$result = wp_cache_delete( $transient, 'transient' );
 	} else {
 		$option_timeout = '_transient_timeout_' . $transient;
@@ -846,7 +849,7 @@ function get_transient( $transient ) {
 		return $pre;
 	}
 
-	if ( wp_using_ext_object_cache() ) {
+	if ( wp_using_ext_object_cache() || wp_installing() ) {
 		$value = wp_cache_get( $transient, 'transient' );
 	} else {
 		$transient_option = '_transient_' . $transient;
@@ -930,7 +933,7 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 	 */
 	$expiration = apply_filters( "expiration_of_transient_{$transient}", $expiration, $value, $transient );
 
-	if ( wp_using_ext_object_cache() ) {
+	if ( wp_using_ext_object_cache() || wp_installing() ) {
 		$result = wp_cache_set( $transient, $value, 'transient', $expiration );
 	} else {
 		$transient_timeout = '_transient_timeout_' . $transient;
@@ -1106,8 +1109,8 @@ function wp_user_settings() {
 
 	// The cookie is not set in the current browser or the saved value is newer.
 	$secure = ( 'https' === parse_url( admin_url(), PHP_URL_SCHEME ) );
-	setcookie( 'wp-settings-' . $user_id, $settings, time() + YEAR_IN_SECONDS, SITECOOKIEPATH, null, $secure );
-	setcookie( 'wp-settings-time-' . $user_id, time(), time() + YEAR_IN_SECONDS, SITECOOKIEPATH, null, $secure );
+	setcookie( 'wp-settings-' . $user_id, $settings, time() + YEAR_IN_SECONDS, SITECOOKIEPATH, '', $secure );
+	setcookie( 'wp-settings-time-' . $user_id, time(), time() + YEAR_IN_SECONDS, SITECOOKIEPATH, '', $secure );
 	$_COOKIE[ 'wp-settings-' . $user_id ] = $settings;
 }
 
@@ -1858,7 +1861,7 @@ function delete_site_transient( $transient ) {
 	 */
 	do_action( "delete_site_transient_{$transient}", $transient );
 
-	if ( wp_using_ext_object_cache() ) {
+	if ( wp_using_ext_object_cache() || wp_installing() ) {
 		$result = wp_cache_delete( $transient, 'site-transient' );
 	} else {
 		$option_timeout = '_site_transient_timeout_' . $transient;
@@ -1922,7 +1925,7 @@ function get_site_transient( $transient ) {
 		return $pre;
 	}
 
-	if ( wp_using_ext_object_cache() ) {
+	if ( wp_using_ext_object_cache() || wp_installing() ) {
 		$value = wp_cache_get( $transient, 'site-transient' );
 	} else {
 		// Core transients that do not have a timeout. Listed here so querying timeouts can be avoided.
@@ -2003,7 +2006,7 @@ function set_site_transient( $transient, $value, $expiration = 0 ) {
 	 */
 	$expiration = apply_filters( "expiration_of_site_transient_{$transient}", $expiration, $value, $transient );
 
-	if ( wp_using_ext_object_cache() ) {
+	if ( wp_using_ext_object_cache() || wp_installing() ) {
 		$result = wp_cache_set( $transient, $value, 'site-transient', $expiration );
 	} else {
 		$transient_timeout = '_site_transient_timeout_' . $transient;
@@ -2060,6 +2063,7 @@ function set_site_transient( $transient, $value, $expiration = 0 ) {
  * does not encompass all settings available in WordPress.
  *
  * @since 4.7.0
+ * @since 6.0.1 The `show_on_front`, `page_on_front`, and `page_for_posts` options were added.
  */
 function register_initial_settings() {
 	register_setting(
@@ -2214,6 +2218,36 @@ function register_initial_settings() {
 			'type'         => 'integer',
 			'description'  => __( 'Blog pages show at most.' ),
 			'default'      => 10,
+		)
+	);
+
+	register_setting(
+		'reading',
+		'show_on_front',
+		array(
+			'show_in_rest' => true,
+			'type'         => 'string',
+			'description'  => __( 'What to show on the front page' ),
+		)
+	);
+
+	register_setting(
+		'reading',
+		'page_on_front',
+		array(
+			'show_in_rest' => true,
+			'type'         => 'integer',
+			'description'  => __( 'The ID of the page that should be displayed on the front page' ),
+		)
+	);
+
+	register_setting(
+		'reading',
+		'page_for_posts',
+		array(
+			'show_in_rest' => true,
+			'type'         => 'integer',
+			'description'  => __( 'The ID of the page that should display the latest posts' ),
 		)
 	);
 
