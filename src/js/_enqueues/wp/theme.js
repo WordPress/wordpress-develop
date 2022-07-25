@@ -1694,7 +1694,18 @@ themes.view.Installer = themes.view.Appearance.extend({
 	browse: function( section ) {
 		// Create a new collection with the proper theme data
 		// for each section.
-		this.collection.query( { browse: section } );
+		if ( 'block-themes' === sort ) {
+
+			var request = { tag: 'full-site-editing' };
+
+			// Get the themes by sending Ajax POST request to api.wordpress.org/themes
+			// or searching the local cache.
+			this.collection.query( request );
+			return;
+
+		} else {
+			this.collection.query( { browse: section } );
+		}
 	},
 
 	// Sorting navigation.
@@ -1736,15 +1747,6 @@ themes.view.Installer = themes.view.Appearance.extend({
 			$( 'body' ).addClass( 'show-favorites-form' );
 		} else {
 			$( 'body' ).removeClass( 'show-favorites-form' );
-		}
-
-		if ( 'block-themes' === sort ) {
-			var request = { tag: 'full-site-editing' };
-
-			// Get the themes by sending Ajax POST request to api.wordpress.org/themes
-			// or searching the local cache.
-			this.collection.query( request );
-			return;
 		}
 
 		this.browse( sort );
