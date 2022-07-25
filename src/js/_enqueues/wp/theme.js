@@ -1694,7 +1694,7 @@ themes.view.Installer = themes.view.Appearance.extend({
 	browse: function( section ) {
 		// Create a new collection with the proper theme data
 		// for each section.
-		if ( 'block-themes' === sort ) {
+		if ( 'blockthemes' === section ) {
 
 			var request = { tag: 'full-site-editing' };
 
