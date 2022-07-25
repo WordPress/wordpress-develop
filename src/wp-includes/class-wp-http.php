@@ -160,9 +160,12 @@ class WP_Http {
 				$request = $this->format_request( $request[0], isset( $request[1] ) ? $request[1] : array() );
 
 				// Handle an error in the pre-request step. Also allow the request to be
-				// circumvented if the response was short-circuit'd.
-				if ( is_wp_error( $request ) || isset( $request['response'] ) ) {
-					$responses[ $index ] = isset( $request['response'] ) ? $request['response'] : $request;
+				// circumvented if the response was short-circuited.
+				if ( is_wp_error( $request ) ) {
+					$responses[ $index ] = $request;
+					continue;
+				} elseif ( isset( $request['response'] ) ) {
+					$responses[ $index ] = $request['response'];
 					continue;
 				}
 
@@ -200,9 +203,11 @@ class WP_Http {
 		$formatted = $this->format_request( $url, $args );
 
 		// Handle an error in the pre-request step. Also allow the request to be
-		// circumvented if the response was short-circuit'd.
-		if ( is_wp_error( $formatted ) || isset( $formatted['response'] ) ) {
-			return isset( $formatted['response'] ) ? $formatted['response'] : $formatted;
+		// circumvented if the response was short-circuited.
+		if ( is_wp_error( $formatted ) ) {
+			return $formatted;
+		} elseif ( isset( $formatted['response'] ) ) {
+			return $formatted['response'];
 		}
 
 		// Avoid issues where mbstring.func_overload is enabled.
