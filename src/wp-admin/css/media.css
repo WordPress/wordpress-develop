@@ -817,6 +817,10 @@ border color while dragging a file over the uploader drop area */
 	margin-bottom: 12px;
 }
 
+.attachment-info .original-image {
+	word-wrap: break-word;
+}
+
 .attachment-info .actions {
 	margin-bottom: 16px;
 }
