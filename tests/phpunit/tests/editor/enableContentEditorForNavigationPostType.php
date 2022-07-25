@@ -45,10 +45,9 @@ class Tests_Editor_EnableContentEditorForNavigationPostType extends WP_UnitTestC
 	}
 
 	private function create_post( $post_type ) {
-		$post            = new WP_Post( new stdClass() );
-		$post->post_type = $post_type;
-		$post->filter    = 'raw';
-		return $post;
+		return $this->factory()->post->create(
+			array( 'post_type' => $post_type )
+		);
 	}
 
 	private function create_non_navigation_post() {
