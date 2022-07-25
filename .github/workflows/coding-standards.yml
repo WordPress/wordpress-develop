@@ -9,8 +9,9 @@ on:
       - '3.[89]'
       - '[4-9].[0-9]'
     tags:
-      - '3.[89]*'
-      - '[4-9].[0-9]*'
+      - '[0-9]+.[0-9]'
+      - '[0-9]+.[0-9].[0-9]+'
+      - '!3.7.[0-9]+'
   pull_request:
     branches:
       - trunk
@@ -63,10 +64,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@d37cc3048580de06099c81ded417530716a0d7ab # v2.18.0
+        uses: shivammathur/setup-php@3eda58347216592f618bb1dff277810b6698e4ca # v2.19.1
         with:
           php-version: '7.4'
           coverage: none
@@ -84,7 +85,7 @@ jobs:
         run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
 
       - name: Cache PHPCS scan cache
-        uses: actions/cache@136d96b4aee02b1f0de3ba493b1d47135042d9c0 # v3.0.1
+        uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d # v3.0.4
         with:
           path: .cache/phpcs.json
           key: ${{ runner.os }}-date-${{ steps.get-date.outputs.date }}-phpcs-cache-${{ hashFiles('**/composer.json', 'phpcs.xml.dist') }}
@@ -115,10 +116,10 @@ jobs:
   #
   # Performs the following steps:
   # - Checks out the repository.
-  # - Logs debug information about the runner container.
-  # - Installs NodeJS 14.
+  # - Logs debug information about the GitHub Action runner.
+  # - Installs NodeJS.
   # - Logs updated debug information.
-  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # _ Installs NPM dependencies.
   # - Run the WordPress JSHint checks.
   # - Ensures version-controlled files are not modified or deleted.
   jshint:
@@ -131,7 +132,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
 
       - name: Log debug information
         run: |
@@ -141,7 +142,7 @@ jobs:
           svn --version
 
       - name: Install NodeJS
-        uses: actions/setup-node@5b52f097d36d4b0b2f94ed6de710023fbb8b2236 # v3.1.0
+        uses: actions/setup-node@eeb10cff27034e7acf239c5d29f62154018672fd # v3.3.0
         with:
           node-version-file: '.nvmrc'
           cache: npm

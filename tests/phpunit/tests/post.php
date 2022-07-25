@@ -502,6 +502,23 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 55877
+	 * @covers ::wp_insert_post
+	 */
+	public function test_wp_insert_post_should_not_trigger_warning_for_pending_posts_with_unknown_cpt() {
+		$post_id = wp_insert_post(
+			array(
+				'post_title'  => 'title',
+				'post_type'   => 'unknown',
+				'post_status' => 'pending',
+			)
+		);
+
+		$this->assertIsNumeric( $post_id );
+		$this->assertGreaterThan( 0, $post_id );
+	}
+
+	/**
 	 * @ticket 20451
 	 */
 	public function test_wp_insert_post_with_meta_input() {
@@ -1843,5 +1860,44 @@ class Tests_Post extends WP_UnitTestCase {
 		update_option( 'sticky_posts', array( 1, 2, 2 ) );
 		unstick_post( 3 );
 		$this->assertSameSets( array( 1, 2, 2 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Check if post supports block editor.
+	 *
+	 * @ticket 51819
+	 * @covers ::use_block_editor_for_post
+	 */
+	public function test_use_block_editor_for_post() {
+		$this->assertFalse( use_block_editor_for_post( -1 ) );
+		$bogus_post_id = $this->factory()->post->create(
+			array(
+				'post_type' => 'bogus',
+			)
+		);
+		$this->assertFalse( use_block_editor_for_post( $bogus_post_id ) );
+
+		register_post_type(
+			'restless',
+			array(
+				'show_in_rest' => false,
+			)
+		);
+		$restless_post_id = $this->factory()->post->create(
+			array(
+				'post_type' => 'restless',
+			)
+		);
+		$this->assertFalse( use_block_editor_for_post( $restless_post_id ) );
+
+		$generic_post_id = $this->factory()->post->create();
+
+		add_filter( 'use_block_editor_for_post', '__return_false' );
+		$this->assertFalse( use_block_editor_for_post( $generic_post_id ) );
+		remove_filter( 'use_block_editor_for_post', '__return_false' );
+
+		add_filter( 'use_block_editor_for_post', '__return_true' );
+		$this->assertTrue( use_block_editor_for_post( $restless_post_id ) );
+		remove_filter( 'use_block_editor_for_post', '__return_true' );
 	}
 }

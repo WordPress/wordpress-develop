@@ -443,7 +443,6 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			array(
 				'id',
 				'title',
-				'_links',
 			),
 			array_keys( $data[0] )
 		);
