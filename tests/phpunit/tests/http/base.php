@@ -530,7 +530,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 						'redirection' => 0,
 					),
 				),
-			),
+			)
 		);
 
 		list( $request_wp, $request_redirect ) = $responses;
