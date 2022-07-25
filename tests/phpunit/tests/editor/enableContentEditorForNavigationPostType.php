@@ -17,14 +17,14 @@ class Tests_Editor_EnableContentEditorForNavigationPostType extends WP_UnitTestC
 	/**
 	 * @ticket 56266
 	 */
-	public function test_it_enables_content_editor_for_non_navigation_type_posts_after_the_content_editor_form() {
+	public function test_it_enables_content_editor_for_navigation_type_posts_after_the_content_editor_form() {
 		$this->disable_editor_support();
 		$post = $this->create_navigation_post();
-		$this->assertFalse( $this->supports_block_editor() );
+		$this->assertFalse( $this->supports_block_editor(), 'Editor support must be disabled before running the test.' );
 
 		_enable_content_editor_for_navigation_post_type( $post );
 
-		$this->assertTrue( $this->supports_block_editor() );
+		$this->assertTrue( $this->supports_block_editor(), '_enable_content_editor_for_navigation_post_type() must enable editor support for navigation type posts.' );
 	}
 
 	/**
@@ -33,11 +33,11 @@ class Tests_Editor_EnableContentEditorForNavigationPostType extends WP_UnitTestC
 	public function test_it_doesnt_enable_content_editor_for_non_navigation_type_posts_after_the_content_editor_form() {
 		$this->disable_editor_support();
 		$post = $this->create_non_navigation_post();
-		$this->assertFalse( $this->supports_block_editor() );
+		$this->assertFalse( $this->supports_block_editor(), 'Editor support must be disabled before running the test.' );
 
 		_enable_content_editor_for_navigation_post_type( $post );
 
-		$this->assertFalse( $this->supports_block_editor() );
+		$this->assertFalse( $this->supports_block_editor(), '_enable_content_editor_for_navigation_post_type() must enable editor support for non-navigation type posts.' );
 	}
 
 	private function supports_block_editor() {
