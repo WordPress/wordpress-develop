@@ -1086,7 +1086,7 @@ function wp_save_image( $post_id ) {
 	$main_images        = array();
 	$subsized_images    = array();
 
-	$transforms = wp_upload_image_mime_transforms( $post_id, false );
+	$transforms = wp_upload_image_mime_transforms( $post_id );
 
 	if ( ! empty( $transforms[ $post->post_mime_type ] ) ) {
 		$mime_transforms = $transforms[ $post->post_mime_type ];
