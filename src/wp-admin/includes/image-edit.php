@@ -801,6 +801,9 @@ function wp_restore_image( $post_id ) {
 		}
 	}
 
+	// Get the next available `full-{orig or hash}` key on the images if the name
+	// has not been used as part of the backup sources it would be used if no size is
+	// found or backup exists `null` would be used instead.
 	$next_full_size_key_from_backup = null;
 	foreach ( array_keys( $backup_sizes ) as $size_name ) {
 		// If the target already has the sources attributes find the next one.
