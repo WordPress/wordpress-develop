@@ -262,29 +262,64 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	/**
 	 * @ticket 22176
 	 */
-	public function test_query_cache_stick_post() {
-		$old_date = date_create( '-25 hours' );
-		$p1       = self::factory()->post->create( array( 'post_date' => date_format( $old_date, 'Y-m-d H:i:s' ) ) );
-		stick_post( $p1 );
-		$args = array(
-			'cache_results'  => true,
-			'posts_per_page' => 5,
-			'fields'         => 'ids',
-		);
+	public function test_main_query_sticky_posts_change() {
 		add_action( 'parse_query', array( $this, 'set_cache_results' ) );
+		update_option( 'posts_per_page', 5 );
+
+		$old_date = date_create( '-25 hours' );
+		$old_post = self::factory()->post->create( array( 'post_date' => $old_date->format( 'Y-m-d H:i:s' ) ) );
+
+		// Post is unstuck.
 		$this->go_to( '/' );
-		$query1 = $GLOBALS['wp_query'];
-		$posts1 = $query1->posts;
+		$unstuck     = $GLOBALS['wp_query']->posts;
+		$unstuck_ids = wp_list_pluck( $unstuck, 'ID' );
 
-		unstick_post( $p1 );
+		$expected = array_reverse( self::$posts );
+		$this->assertSame( $expected, $unstuck_ids );
+
+		// Stick the post.
+		stick_post( $old_post );
 
 		$this->go_to( '/' );
-		$query2 = $GLOBALS['wp_query'];
-		$posts2 = $query2->query( $args );
+		$stuck     = $GLOBALS['wp_query']->posts;
+		$stuck_ids = wp_list_pluck( $stuck, 'ID' );
 
-		$this->assertNotSame( $posts1, $posts2 );
-		$this->assertSame( $query1->found_posts, $query2->found_posts );
-		remove_action( 'parse_query', array( $this, 'set_cache_results' ) );
+		$expected = array_reverse( self::$posts );
+		array_unshift( $expected, $old_post );
+
+		$this->assertSame( $expected, $stuck_ids );
+	}
+
+	/**
+	 * @ticket 22176
+	 */
+	public function test_query_sticky_posts_change() {
+		add_action( 'parse_query', array( $this, 'set_cache_results' ) );
+
+		$old_date = date_create( '-25 hours' );
+		$old_post = self::factory()->post->create( array( 'post_date' => $old_date->format( 'Y-m-d H:i:s' ) ) );
+
+		// Post is unstuck.
+		$unstuck     = ( new WP_Query( array( 'posts_per_page' => 5 ) ) )->posts;
+		$unstuck_ids = wp_list_pluck( $unstuck, 'ID' );
+
+		$expected = array_reverse( self::$posts );
+
+		$this->assertSame( $expected, $unstuck_ids );
+
+		// Stick the post.
+		stick_post( $old_post );
+
+		$stuck     = ( new WP_Query( array( 'posts_per_page' => 5 ) ) )->posts;
+		$stuck_ids = wp_list_pluck( $stuck, 'ID' );
+
+		$expected = array_reverse( self::$posts );
+		array_unshift( $expected, $old_post );
+
+		$this->assertSame( $expected, $stuck_ids );
+
+		// Just to make sure everything has changed.
+		$this->assertNotSame( $unstuck, $stuck );
 	}
 
 	public function set_cache_results( $q ) {
