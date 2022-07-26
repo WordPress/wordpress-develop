@@ -1017,8 +1017,6 @@ function wp_save_image( $post_id ) {
 		$nocrop  = $_wp_additional_image_sizes[ $size ]['crop'];
 	}
 
-	define( 'IMAGE_EDIT_OVERWRITE', true );
-
 	/*
 	 * We need to remove any existing resized image files because
 	 * a new crop or rotate could generate different sizes (and hence, filenames),
@@ -1029,7 +1027,20 @@ function wp_save_image( $post_id ) {
 		foreach ( $meta['sizes'] as $size ) {
 			if ( ! empty( $size['file'] ) && preg_match( '/-e[0-9]{13}-/', $size['file'] ) ) {
 				$delete_file = path_join( $dirname, $size['file'] );
-				wp_delete_file( $delete_file );
+				if ( file_exists( $delete_file ) ) {
+					wp_delete_file( $delete_file );
+				}
+
+				// Delete generated multiple mimes.
+				foreach ( $mime_transforms as $mime ) {
+					if ( ! empty( $size['sources'][ $mime ]['file'] ) ) {
+						$delete_file = path_join( $dirname, $size['sources'][ $mime ]['file'] );
+
+						if ( file_exists( $delete_file ) ) {
+							wp_delete_file( $delete_file );
+						}
+					}
+				}
 			}
 		}
 	}
