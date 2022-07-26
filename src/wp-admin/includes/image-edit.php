@@ -1100,23 +1100,49 @@ function wp_save_image( $post_id ) {
 				continue;
 			}
 
-			$destination = trailingslashit( $original_directory ) . "{$filename}.{$extension}";
-			$result      = $img->save( $destination, $targeted_mime );
+			if ( 'thumbnail' === $target ) {
+				if ( ! isset( $subsized_images[ $post->post_mime_type ]['thumbnail']['file'] ) ) {
+					continue;
+				}
 
-			if ( is_wp_error( $result ) ) {
-				continue;
+				$thumbnail_file    = $subsized_images[ $post->post_mime_type ]['thumbnail']['file'];
+				$current_extension = pathinfo( $thumbnail_file, PATHINFO_EXTENSION );
+
+				// Create a file with then new extension out of the targeted file.
+				$target_file_name     = preg_replace( "/\.$current_extension$/", ".$extension", $thumbnail_file );
+				$target_file_location = path_join( $original_directory, $target_file_name );
+				$result               = $img->save( $target_file_location, $targeted_mime );
+
+				if ( is_wp_error( $result ) ) {
+					continue;
+				}
+
+				$subsized_images[ $targeted_mime ] = array( 'thumbnail' => $result );
+			} else {
+				$destination = trailingslashit( $original_directory ) . "{$filename}.{$extension}";
+				$result      = $img->save( $destination, $targeted_mime );
+
+				if ( is_wp_error( $result ) ) {
+					continue;
+				}
+
+				$main_images[ $targeted_mime ] = $result;
+
+				$img->set_output_mime_type( $targeted_mime );
+				$subsized_images[ $targeted_mime ] = $img->multi_resize( $_sizes );
 			}
-
-			$main_images[ $targeted_mime ] = $result;
-
-			$img->set_output_mime_type( $targeted_mime );
-			$subsized_images[ $targeted_mime ] = $img->multi_resize( $_sizes );
 		} else {
-			$main_images[ $targeted_mime ]     = array(
-				'path' => $new_path,
-				'file' => pathinfo( $new_path, PATHINFO_BASENAME ),
-			);
-			$subsized_images[ $targeted_mime ] = $meta['sizes'];
+			// If the target is `thumbnail` make sure it is the only selected size.
+			// When the targeted thumbnail is selected no additional size and subsize is set.
+			if ( 'thumbnail' === $target && isset( $meta['sizes']['thumbnail'] ) ) {
+				$subsized_images[ $targeted_mime ] = array( 'thumbnail' => $meta['sizes']['thumbnail'] );
+			} else {
+				$main_images[ $targeted_mime ]     = array(
+					'path' => $new_path,
+					'file' => pathinfo( $new_path, PATHINFO_BASENAME ),
+				);
+				$subsized_images[ $targeted_mime ] = $meta['sizes'];
+			}
 		}
 
 		if ( isset( $main_images[ $targeted_mime ]['path'], $main_images[ $targeted_mime ]['file'] ) && file_exists( $main_images[ $targeted_mime ]['path'] ) ) {
