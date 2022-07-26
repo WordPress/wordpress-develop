@@ -251,16 +251,12 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * Backup the sources structure alongside the full size
 	 *
-	 * @test
+	 * @ticket 55443
 	 */
 	public function test_backup_the_sources_structure_alongside_the_full_size() {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
-		$filename = DIR_TESTDATA . '/images/canola.jpg';
-		$contents = file_get_contents( $filename );
-
-		$upload        = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$attachment_id = $this->_make_attachment( $upload );
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
 
 		$metadata = wp_get_attachment_metadata( $attachment_id );
 		$this->assertEmpty( get_post_meta( $attachment_id, '_wp_attachment_backup_sizes', true ) );
@@ -300,16 +296,12 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * Restore the sources array from the backup when an image is edited
 	 *
-	 * @test
+	 * @ticket 55443
 	 */
 	public function test_restore_the_sources_array_from_the_backup_when_an_image_is_edited() {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
-		$filename = DIR_TESTDATA . '/images/canola.jpg';
-		$contents = file_get_contents( $filename );
-
-		$upload        = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$attachment_id = $this->_make_attachment( $upload );
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
 
 		$metadata = wp_get_attachment_metadata( $attachment_id );
 
