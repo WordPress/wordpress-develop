@@ -929,6 +929,10 @@ function wp_get_registered_image_subsizes() {
 			$size_data['crop'] = (bool) $size_data['crop'];
 		}
 
+		if ( isset( $additional_sizes[ $size_name ]['output_mimes'] ) ) {
+			$size_data['output_mimes'] = $additional_sizes[ $size_name ]['output_mimes'];
+		}
+
 		$all_sizes[ $size_name ] = $size_data;
 	}
 
