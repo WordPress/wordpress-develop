@@ -167,7 +167,7 @@ function wp_ajax_ajax_tag_search() {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param array       $results The terms array.
+	 * @param string[]    $results Array of term names.
 	 * @param WP_Taxonomy $tax     The taxonomy object.
 	 * @param string      $s       The search term.
 	 */
