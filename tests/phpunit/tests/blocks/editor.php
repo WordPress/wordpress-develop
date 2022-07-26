@@ -257,19 +257,19 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$this->assertSameSets(
 			array(
 				array(
-					'width'        => 150,
-					'height'       => 150,
-					'crop'         => true,
+					'width'  => 150,
+					'height' => 150,
+					'crop'   => true,
 				),
 				array(
-					'width'        => 300,
-					'height'       => 300,
-					'crop'         => false,
+					'width'  => 300,
+					'height' => 300,
+					'crop'   => false,
 				),
 				array(
-					'width'        => 1024,
-					'height'       => 1024,
-					'crop'         => false,
+					'width'  => 1024,
+					'height' => 1024,
+					'crop'   => false,
 				),
 			),
 			$settings['imageDimensions']
