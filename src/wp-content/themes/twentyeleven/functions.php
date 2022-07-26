@@ -227,9 +227,9 @@ if ( ! function_exists( 'twentyeleven_setup' ) ) :
 		 * Add Twenty Eleven's custom image sizes.
 		 * Used for large feature (header) images.
 		 */
-		add_image_size( 'large-feature', $custom_header_support['width'], $custom_header_support['height'], true );
+		add_image_size( 'large-feature', $custom_header_support['width'], $custom_header_support['height'], true, true );
 		// Used for featured posts if a large-feature doesn't exist.
-		add_image_size( 'small-feature', 500, 300 );
+		add_image_size( 'small-feature', 500, 300, false, true );
 
 		// Default custom headers packaged with the theme. %s is a placeholder for the theme template directory URI.
 		register_default_headers(
