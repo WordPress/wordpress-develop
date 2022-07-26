@@ -6388,9 +6388,10 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
 	delete_post_meta( $post_id, '_wp_trash_meta_status' );
 	delete_post_meta( $post_id, '_wp_trash_meta_time' );
 
-	$meta         = wp_get_attachment_metadata( $post_id );
-	$backup_sizes = get_post_meta( $post->ID, '_wp_attachment_backup_sizes', true );
-	$file         = get_attached_file( $post_id );
+	$meta           = wp_get_attachment_metadata( $post_id );
+	$backup_sizes   = get_post_meta( $post->ID, '_wp_attachment_backup_sizes', true );
+	$backup_sources = get_post_meta( $post->ID, '_wp_attachment_backup_sources', true );
+	$file           = get_attached_file( $post_id );
 
 	if ( is_multisite() && is_string( $file ) && ! empty( $file ) ) {
 		clean_dirsize_cache( $file );
@@ -6436,7 +6437,7 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
 	/** This action is documented in wp-includes/post.php */
 	do_action( 'deleted_post', $post_id, $post );
 
-	wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file );
+	wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file, $backup_sources );
 
 	clean_post_cache( $post );
 
@@ -6450,13 +6451,14 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int    $post_id      Attachment ID.
- * @param array  $meta         The attachment's meta data.
- * @param array  $backup_sizes The meta data for the attachment's backup images.
- * @param string $file         Absolute path to the attachment's file.
+ * @param int    $post_id        Attachment ID.
+ * @param array  $meta           The attachment's meta data.
+ * @param array  $backup_sizes   The meta data for the attachment's backup images.
+ * @param string $file           Absolute path to the attachment's file.
+ * @param array  $backup_sources The meta data for the attachment's backup sources images.
  * @return bool True on success, false on failure.
  */
-function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
+function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file, $backup_sources ) {
 	global $wpdb;
 
 	$uploadpath = wp_get_upload_dir();
@@ -6575,6 +6577,24 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 					if ( ! wp_delete_file_from_directory( $del_file, $del_dir ) ) {
 						$deleted = false;
 					}
+				}
+			}
+		}
+	}
+
+	// Delete full sizes backup sources mime types.
+	if ( is_array( $backup_sources ) ) {
+		foreach ( $backup_sources as $backup_source ) {
+
+			foreach ( $backup_source as $properties ) {
+				if ( ! is_array( $properties ) || empty( $properties['file'] ) ) {
+					continue;
+				}
+
+				$source_file = str_replace( wp_basename( $file ), $properties['file'], $file );
+				$del_file    = path_join( $uploadpath['basedir'], $source_file );
+				if ( ! wp_delete_file_from_directory( $del_file, $intermediate_dir ) ) {
+					$deleted = false;
 				}
 			}
 		}
