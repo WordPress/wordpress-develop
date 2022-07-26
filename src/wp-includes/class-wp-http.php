@@ -558,6 +558,7 @@ class WP_Http {
 		 */
 		return apply_filters( 'http_response', $response, $args, $url );
 	}
+
 	/**
 	 * Normalizes cookies for using in Requests.
 	 *
