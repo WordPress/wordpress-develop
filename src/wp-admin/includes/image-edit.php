@@ -923,6 +923,13 @@ function wp_save_image( $post_id ) {
 		$backup_sources = array();
 	}
 
+	$transforms      = wp_upload_image_mime_transforms( $post_id );
+	$mime_transforms = array();
+
+	if ( ! empty( $transforms[ $post->post_mime_type ] ) ) {
+		$mime_transforms = $transforms[ $post->post_mime_type ];
+	}
+
 	// Generate new filename.
 	$path = get_attached_file( $post_id );
 
@@ -1010,6 +1017,8 @@ function wp_save_image( $post_id ) {
 		$nocrop  = $_wp_additional_image_sizes[ $size ]['crop'];
 	}
 
+	define( 'IMAGE_EDIT_OVERWRITE', true );
+
 	/*
 	 * We need to remove any existing resized image files because
 	 * a new crop or rotate could generate different sizes (and hence, filenames),
@@ -1025,8 +1034,8 @@ function wp_save_image( $post_id ) {
 		}
 	}
 
+	$_sizes = array();
 	if ( isset( $sizes ) ) {
-		$_sizes = array();
 
 		foreach ( $sizes as $size ) {
 			$tag = false;
@@ -1064,50 +1073,13 @@ function wp_save_image( $post_id ) {
 		$meta['sizes'] = array_merge( $meta['sizes'], $img->multi_resize( $_sizes ) );
 	}
 
-	$resize_sizes = array();
-	foreach ( $old_metadata['sizes'] as $size_name => $size_details ) {
-		// If the target is 'nothumb', skip generating the 'thumbnail' size.
-		if ( 'nothumb' === $target && 'thumbnail' === $size_name ) {
-			continue;
-		}
-
-		if (
-			isset( $meta['sizes'][ $size_name ] ) && ! empty( $meta['sizes'][ $size_name ] ) &&
-			$meta['sizes'][ $size_name ]['file'] !== $old_metadata['sizes'][ $size_name ]['file']
-		) {
-			$resize_sizes[ $size_name ] = $meta['sizes'][ $size_name ];
-		}
-	}
-
-	$uploads_dir        = wp_get_upload_dir();
 	$original_directory = pathinfo( $new_path, PATHINFO_DIRNAME );
+	$filename           = pathinfo( $new_path, PATHINFO_FILENAME );
 	$main_images        = array();
 	$subsized_images    = array();
 
-	$transforms = wp_upload_image_mime_transforms( $post_id );
-
-	if ( ! empty( $transforms[ $post->post_mime_type ] ) ) {
-		$mime_transforms = $transforms[ $post->post_mime_type ];
-
-		foreach ( $mime_transforms as $targeted_mime ) {
-			if ( $targeted_mime === $post->post_mime_type ) {
-				// If the target is `thumbnail` make sure it is the only selected size.
-				if ( 'thumbnail' === $target ) {
-					if ( isset( $meta['sizes']['thumbnail'] ) ) {
-						$subsized_images[ $targeted_mime ] = array( 'thumbnail' => $meta['sizes']['thumbnail'] );
-					}
-					// When the targeted thumbnail is selected no additional size and subsize is set.
-					continue;
-				}
-
-				$main_images[ $targeted_mime ]     = array(
-					'path' => $new_path,
-					'file' => pathinfo( $new_path, PATHINFO_BASENAME ),
-				);
-				$subsized_images[ $targeted_mime ] = $meta['sizes'];
-				continue;
-			}
-
+	foreach ( $mime_transforms as $targeted_mime ) {
+		if ( $targeted_mime !== $post->post_mime_type ) {
 			if ( ! $img::supports_mime_type( $targeted_mime ) ) {
 				continue;
 			}
@@ -1117,89 +1089,48 @@ function wp_save_image( $post_id ) {
 				continue;
 			}
 
-			// If the target is `thumbnail` make sure only that size is generated.
-			if ( 'thumbnail' === $target ) {
-				if ( ! isset( $subsized_images[ $post->post_mime_type ]['thumbnail']['file'] ) ) {
-					continue;
-				}
-				$thumbnail_file    = $subsized_images[ $post->post_mime_type ]['thumbnail']['file'];
-				$current_extension = pathinfo( $thumbnail_file, PATHINFO_EXTENSION );
+			$destination = trailingslashit( $original_directory ) . "{$filename}.{$extension}";
+			$result      = $img->save( $destination, $targeted_mime );
 
-				// Create a file with then new extension out of the targeted file.
-				$target_file_name     = preg_replace( "/\.$current_extension$/", ".$extension", $thumbnail_file );
-				$target_file_location = path_join( $original_directory, $target_file_name );
-				$result               = $img->save( $target_file_location, $targeted_mime );
-
-				if ( is_wp_error( $result ) ) {
-					continue;
-				}
-
-				$subsized_images[ $targeted_mime ] = array( 'thumbnail' => $result );
-			} else {
-				$img->set_output_mime_type( $targeted_mime );
-				$result = $img->save();
-
-				if ( is_wp_error( $result ) ) {
-					continue;
-				}
-
-				$main_images[ $targeted_mime ]     = $result;
-				$subsized_images[ $targeted_mime ] = $img->multi_resize( $resize_sizes );
-			}
-		}
-
-		foreach ( $mime_transforms as $targeted_mime ) {
-			// Make sure the path and file exists as those values are required.
-			$image_directory = null;
-			if ( isset( $main_images[ $targeted_mime ]['path'], $main_images[ $targeted_mime ]['file'] ) && file_exists( $main_images[ $targeted_mime ]['path'] ) ) {
-				// Add sources to original image metadata.
-				$meta['sources'][ $targeted_mime ] = array(
-					'file'     => $main_images[ $targeted_mime ]['file'],
-					'filesize' => wp_filesize( $main_images[ $targeted_mime ]['path'] ),
-				);
-				$image_directory                   = pathinfo( $main_images[ $targeted_mime ]['path'], PATHINFO_DIRNAME );
-			}
-
-			/**
-			 * If no original image was provided the image_directory can't be determined, in that scenario try to
-			 * find it from the `file` property.
-			 *
-			 * @see get_attached_file()
-			 */
-			if (
-				null === $image_directory
-				&& isset( $meta['file'] )
-				&& 0 !== strpos( $meta['file'], '/' )
-				&& ':\\' !== substr( $meta['file'], 1, 2 )
-			) {
-				if ( false === $uploads_dir['error'] && isset( $uploads_dir['basedir'] ) ) {
-					$file = path_join( $uploads_dir['basedir'], $meta['file'] );
-					if ( file_exists( $file ) ) {
-						$image_directory = pathinfo( $file, PATHINFO_DIRNAME );
-					}
-				}
-			}
-
-			if ( null === $image_directory ) {
+			if ( is_wp_error( $result ) ) {
 				continue;
 			}
 
-			foreach ( $meta['sizes'] as $size_name => $size_details ) {
-				if ( empty( $subsized_images[ $targeted_mime ][ $size_name ]['file'] ) ) {
-					continue;
-				}
+			$main_images[ $targeted_mime ] = $result;
 
-				// Add sources to resized image metadata.
-				$subsize_path = path_join( $image_directory, $subsized_images[ $targeted_mime ][ $size_name ]['file'] );
-				if ( ! file_exists( $subsize_path ) ) {
-					continue;
-				}
+			$img->set_output_mime_type( $targeted_mime );
+			$subsized_images[ $targeted_mime ] = $img->multi_resize( $_sizes );
+		} else {
+			$main_images[ $targeted_mime ]     = array(
+				'path' => $new_path,
+				'file' => pathinfo( $new_path, PATHINFO_BASENAME ),
+			);
+			$subsized_images[ $targeted_mime ] = $meta['sizes'];
+		}
 
-				$meta['sizes'][ $size_name ]['sources'][ $targeted_mime ] = array(
-					'file'     => $subsized_images[ $targeted_mime ][ $size_name ]['file'],
-					'filesize' => wp_filesize( $subsize_path ),
-				);
+		if ( isset( $main_images[ $targeted_mime ]['path'], $main_images[ $targeted_mime ]['file'] ) && file_exists( $main_images[ $targeted_mime ]['path'] ) ) {
+			// Add sources to original image metadata.
+			$meta['sources'][ $targeted_mime ] = array(
+				'file'     => $main_images[ $targeted_mime ]['file'],
+				'filesize' => isset( $main_images[ $targeted_mime ]['filesize'] ) ? $main_images[ $targeted_mime ]['filesize'] : wp_filesize( $main_images[ $targeted_mime ]['path'] ),
+			);
+		}
+
+		foreach ( $_sizes as $size_name => $size_details ) {
+			if ( empty( $subsized_images[ $targeted_mime ][ $size_name ]['file'] ) ) {
+				continue;
 			}
+
+			// Add sources to resized image metadata.
+			$subsize_path = path_join( $original_directory, $subsized_images[ $targeted_mime ][ $size_name ]['file'] );
+			if ( ! file_exists( $subsize_path ) ) {
+				continue;
+			}
+
+			$meta['sizes'][ $size_name ]['sources'][ $targeted_mime ] = array(
+				'file'     => $subsized_images[ $targeted_mime ][ $size_name ]['file'],
+				'filesize' => wp_filesize( $subsize_path ),
+			);
 		}
 	}
 
