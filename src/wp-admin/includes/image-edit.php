@@ -1081,7 +1081,6 @@ function wp_save_image( $post_id ) {
 
 	$uploads_dir        = wp_get_upload_dir();
 	$original_directory = pathinfo( $new_path, PATHINFO_DIRNAME );
-	$filename           = pathinfo( $new_path, PATHINFO_FILENAME );
 	$main_images        = array();
 	$subsized_images    = array();
 
