@@ -174,7 +174,6 @@ function get_default_block_editor_settings() {
 		$available_image_sizes[] = array(
 			'slug'         => $image_size_slug,
 			'name'         => $image_size_name,
-			'output_mimes' => true,
 		);
 	}
 
