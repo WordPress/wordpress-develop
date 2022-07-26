@@ -1476,11 +1476,13 @@ class WP_Theme_JSON {
 		);
 
 		if ( isset( $theme_json['styles']['elements'] ) ) {
-			foreach ( $theme_json['styles']['elements'] as $element => $node ) {
-				$nodes[] = array(
-					'path'     => array( 'styles', 'elements', $element ),
-					'selector' => static::ELEMENTS[ $element ],
-				);
+			if ( array_key_exists( $element, static::ELEMENTS ) ) {
+				foreach ( $theme_json['styles']['elements'] as $element => $node ) {
+					$nodes[] = array(
+						'path'     => array( 'styles', 'elements', $element ),
+						'selector' => static::ELEMENTS[ $element ],
+					);
+				}
 			}
 		}
 
