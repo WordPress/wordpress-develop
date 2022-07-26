@@ -163,7 +163,7 @@ function wp_ajax_ajax_tag_search() {
 	);
 
 	/**
-	 * Filters the tag results.
+	 * Filters the Ajax term search results.
 	 *
 	 * @since 6.1.0
 	 *
