@@ -1550,7 +1550,7 @@ class WP_List_Table {
 						/* translators: %1$s: The argument name. %2$s: The view name. */
 						__( 'The <code>%1$s</code> argument must be a non-empty string for <code>%2$s</code>.' ),
 						'url',
-						$view
+						esc_html( $view )
 					),
 					'6.1.0'
 				);
@@ -1565,7 +1565,7 @@ class WP_List_Table {
 						/* translators: %1$s: The argument name. %2$s: The view name. */
 						__( 'The <code>%1$s</code> argument must be a non-empty string for <code>%2$s</code>.' ),
 						'label',
-						$view
+						esc_html( $view )
 					),
 					'6.1.0'
 				);
@@ -1575,7 +1575,7 @@ class WP_List_Table {
 
 			$views_links[ $view ] = sprintf(
 				'<a href="%s"%s>%s</a>',
-				$link['url'],
+				esc_url( $link['url'] ),
 				isset( $link['current'] ) && true === $link['current'] ? ' class="current" aria-current="page"' : '',
 				$link['label']
 			);
