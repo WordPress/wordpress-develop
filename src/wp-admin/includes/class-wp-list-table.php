@@ -1527,12 +1527,12 @@ class WP_List_Table {
 	 * @return array An array of link markup. Keys match the $link_data input array.
 	 */
 	protected function get_views_links( $link_data = array() ) {
-		if ( ! $link_data || ! is_array( $link_data ) ) {
+		if ( ! is_array( $link_data ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				sprintf(
 					/* translators: %s: The $link_data argument. */
-					__( 'The <code>%s</code> argument must be a non-empty array.' ),
+					__( 'The <code>%s</code> argument must be an array.' ),
 					'$link_data'
 				),
 				'6.1.0'
