@@ -1137,8 +1137,8 @@ function wp_save_image( $post_id ) {
 
 				$subsized_images[ $targeted_mime ] = array( 'thumbnail' => $result );
 			} else {
-				$destination = trailingslashit( $original_directory ) . "{$filename}.{$extension}";
-				$result      = $img->save( $destination, $targeted_mime );
+				$img->set_output_mime_type( $targeted_mime );
+				$result = $img->save();
 
 				if ( is_wp_error( $result ) ) {
 					continue;
