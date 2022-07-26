@@ -172,8 +172,9 @@ function get_default_block_editor_settings() {
 	$available_image_sizes = array();
 	foreach ( $image_size_names as $image_size_slug => $image_size_name ) {
 		$available_image_sizes[] = array(
-			'slug' => $image_size_slug,
-			'name' => $image_size_name,
+			'slug'         => $image_size_slug,
+			'name'         => $image_size_name,
+			'output_mimes' => true,
 		);
 	}
 
