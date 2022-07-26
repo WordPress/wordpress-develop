@@ -783,6 +783,20 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					}
 
 					$size_data['source_url'] = $image_src[0];
+
+					if ( empty( $data['media_details']['sizes'][ $size ]['sources'] ) || ! is_array( $data['media_details']['sizes'][ $size ]['sources'] ) ) {
+						continue;
+					}
+
+					$size_data_sources = array();
+					$directory = dirname( $data['media_details']['sizes'][ $size ]['source_url'] );
+					foreach ( $data['media_details']['sizes'][ $size ]['sources'] as $mime => $mime_details ) {
+						$source_url                 = "{$directory}/{$mime_details['file']}";
+						$mime_details['source_url'] = $source_url;
+						$size_data_sources[ $mime ] = $mime_details;
+					}
+
+					$data['media_details']['sizes'][ $size ]['sources'] = $size_data_sources;
 				}
 
 				$full_src = wp_get_attachment_image_src( $post->ID, 'full' );
