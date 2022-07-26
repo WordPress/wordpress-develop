@@ -171,7 +171,7 @@ function wp_ajax_ajax_tag_search() {
 	 * @param WP_Taxonomy $tax     The taxonomy object.
 	 * @param string      $s       The search term.
 	 */
-	$results = apply_filters( 'wp_after_tag_search', $results, $tax, $s );
+	$results = apply_filters( 'ajax_term_search_results', $results, $tax, $s );
 
 	echo implode( "\n", $results );
 	wp_die();
