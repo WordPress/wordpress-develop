@@ -16,26 +16,54 @@ class Tests_Editor_DisableContentEditorForNavigationPostType extends WP_UnitTest
 
 	/**
 	 * @ticket 56266
+	 *
+	 * @dataProvider data_test_it_correctly_handles_different_post_types
 	 */
-	public function test_it_doesnt_disable_content_editor_for_non_navigation_type_posts() {
-		$post = $this->create_non_navigation_post();
-		$this->assertTrue( $this->supports_block_editor(), 'Editor support must be enabled before running the test.' );
+	public function test_it_correctly_handles_different_post_types( $post_type, $enable_editor_support, $expected, $message ) {
+		$post = $this->create_post( $post_type );
+		if ( $enable_editor_support ) {
+			$this->enable_editor_support();
+			$this->assertTrue( $this->supports_block_editor(), 'Editor support must be enabled before running the test.' );
+		} else {
+			$this->disable_editor_support();
+			$this->assertFalse( $this->supports_block_editor(), 'Editor support must be disabled before running the test.' );
+		}
 
 		_disable_content_editor_for_navigation_post_type( $post );
 
-		$this->assertTrue( $this->supports_block_editor(), '_disable_content_editor_for_navigation_post_type() must not disable editor support for non-navigation type posts.' );
+		$this->assertSame( $expected, $this->supports_block_editor(), $message );
 	}
 
 	/**
 	 * @ticket 56266
 	 */
-	public function test_it_disables_content_editor_for_navigation_type_posts() {
-		$post = $this->create_navigation_post();
-		$this->assertTrue( $this->supports_block_editor(), 'Editor support must be enabled before running the test.' );
-
-		_disable_content_editor_for_navigation_post_type( $post );
-
-		$this->assertFalse( $this->supports_block_editor(), '_disable_content_editor_for_navigation_post_type() must disable editor support for navigation type posts.' );
+	public function data_test_it_correctly_handles_different_post_types() {
+		return array(
+			'non-navigation post type and false' => array(
+				'post_type'             => static::NON_NAVIGATION_POST_TYPE,
+				'enable_editor_support' => false,
+				'expected'              => false,
+				'message'               => '_disable_content_editor_for_navigation_post_type() must not enable editor support for non-navigation type posts.',
+			),
+			'non-navigation post type and true'  => array(
+				'post_type'             => static::NON_NAVIGATION_POST_TYPE,
+				'enable_editor_support' => true,
+				'expected'              => true,
+				'message'               => '_disable_content_editor_for_navigation_post_type() must not disable editor support for non-navigation type posts.',
+			),
+			'navigation post type and false'     => array(
+				'post_type'             => static::NAVIGATION_POST_TYPE,
+				'enable_editor_support' => false,
+				'expected'              => false,
+				'message'               => '_disable_content_editor_for_navigation_post_type() must not enable editor support for navigation type posts.',
+			),
+			'navigation post type and true'      => array(
+				'post_type'             => static::NAVIGATION_POST_TYPE,
+				'enable_editor_support' => true,
+				'expected'              => false,
+				'message'               => '_disable_content_editor_for_navigation_post_type() must disable editor support for non-navigation type posts.',
+			),
+		);
 	}
 
 	private function supports_block_editor() {
@@ -48,15 +76,11 @@ class Tests_Editor_DisableContentEditorForNavigationPostType extends WP_UnitTest
 		);
 	}
 
-	private function create_non_navigation_post() {
-		return $this->create_post( static::NON_NAVIGATION_POST_TYPE );
-	}
-
-	private function create_navigation_post() {
-		return $this->create_post( static::NAVIGATION_POST_TYPE );
-	}
-
 	private function enable_editor_support() {
 		add_post_type_support( static::NAVIGATION_POST_TYPE, 'editor' );
+	}
+
+	private function disable_editor_support() {
+		remove_post_type_support( static::NAVIGATION_POST_TYPE, 'editor' );
 	}
 }
