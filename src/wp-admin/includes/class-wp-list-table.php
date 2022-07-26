@@ -1543,7 +1543,7 @@ class WP_List_Table {
 
 		$views_links = array();
 		foreach ( $link_data as $view => $link ) {
-			if ( ! isset( $link['url'] ) || ! is_string( $link['url'] ) || '' === trim( $link['url'] ) ) {
+			if ( empty( $link['url'] ) || ! is_string( $link['url'] ) || '' === trim( $link['url'] ) ) {
 				_doing_it_wrong(
 					__METHOD__,
 					sprintf(
@@ -1558,7 +1558,7 @@ class WP_List_Table {
 				continue;
 			}
 
-			if ( ! isset( $link['label'] ) || ! is_string( $link['label'] ) || '' === trim( $link['label'] ) ) {
+			if ( empty( $link['label'] ) || ! is_string( $link['label'] ) || '' === trim( $link['label'] ) ) {
 				_doing_it_wrong(
 					__METHOD__,
 					sprintf(
