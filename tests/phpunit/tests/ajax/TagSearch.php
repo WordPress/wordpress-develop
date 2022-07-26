@@ -157,12 +157,12 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Test the after_tag_search filter
+	 * Test the ajax_term_search_results filter
 	 *
 	 * @ticket 55606
-	 * @covers ::wp_ajax_ajax_tag_search
+	 * @covers ::ajax_term_search_results
 	 */
-	public function test_wp_after_tag_search_filter() {
+	public function test_ajax_term_search_results_filter() {
 
 		// Become an administrator.
 		$this->_setRole( 'administrator' );
@@ -171,11 +171,11 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 		$_GET['tax'] = 'post_tag';
 		$_GET['q']   = 'chat';
 
-		// Add the wp_after_tag_search filter.
+		// Add the ajax_term_search_results filter.
 		add_filter(
-			'wp_after_tag_search',
+			'ajax_term_search_results',
 			static function( $results, $tax, $s ) {
-				return array( 'wp_after_tag_search was applied' );
+				return array( 'ajax_term_search_results was applied' );
 			},
 			10,
 			3
@@ -189,7 +189,7 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 		}
 
 		// Ensure we found the right match.
-		$this->assertSame( 'wp_after_tag_search was applied', $this->_last_response );
+		$this->assertSame( 'ajax_term_search_results was applied', $this->_last_response );
 	}
 
 }
