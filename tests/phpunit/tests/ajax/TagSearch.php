@@ -160,7 +160,6 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 	 * Test the ajax_term_search_results filter
 	 *
 	 * @ticket 55606
-	 * @covers ::ajax_term_search_results
 	 */
 	public function test_ajax_term_search_results_filter() {
 
