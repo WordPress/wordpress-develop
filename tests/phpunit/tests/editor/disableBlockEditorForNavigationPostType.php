@@ -11,17 +11,39 @@ class Tests_Editor_DisableBlockEditorForNavigationPostType extends WP_UnitTestCa
 
 	/**
 	 * @ticket 56266
+	 *
+	 * @dataProvider data_test_it_correctly_handles_different_post_types
 	 */
-	public function test_it_doesnt_disable_block_editor_for_non_navigation_post_types() {
-		$filtered_result = _disable_block_editor_for_navigation_post_type( true, static::NON_NAVIGATION_POST_TYPE );
-		$this->assertTrue( $filtered_result );
+	public function test_it_correctly_handles_different_post_types( $post_type, $value, $expected ) {
+		$filtered_result = _disable_block_editor_for_navigation_post_type( $value, $post_type );
+		$this->assertSame( $expected, $filtered_result );
 	}
 
 	/**
 	 * @ticket 56266
 	 */
-	public function test_it_disables_block_editor_for_navigation_post_types() {
-		$filtered_result = _disable_block_editor_for_navigation_post_type( true, static::NAVIGATION_POST_TYPE );
-		$this->assertFalse( $filtered_result );
+	public function data_test_it_correctly_handles_different_post_types() {
+		return array(
+			'non-navigation post type and false' => array(
+				'post_type' => static::NON_NAVIGATION_POST_TYPE,
+				'value'     => false,
+				'expected'  => false,
+			),
+			'non-navigation post type and true'  => array(
+				'post_type' => static::NON_NAVIGATION_POST_TYPE,
+				'value'     => true,
+				'expected'  => true,
+			),
+			'navigation post type and false'     => array(
+				'post_type' => static::NAVIGATION_POST_TYPE,
+				'value'     => false,
+				'expected'  => false,
+			),
+			'navigation post type and true'      => array(
+				'post_type' => static::NAVIGATION_POST_TYPE,
+				'value'     => true,
+				'expected'  => false,
+			),
+		);
 	}
 }
