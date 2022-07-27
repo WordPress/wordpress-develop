@@ -2302,5 +2302,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				$this->assertNotFalse( filter_var( $properties['sources'][ $mime_type ]['source_url'], FILTER_VALIDATE_URL ) );
 			}
 		}
+		$this->assertArrayNotHasKey( 'sources', $data['media_details'] );
 	}
 }

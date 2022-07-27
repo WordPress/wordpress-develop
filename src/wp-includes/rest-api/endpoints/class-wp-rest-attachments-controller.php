@@ -790,29 +790,30 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 					$directory = dirname( $size_data['source_url'] );
 					foreach ( $size_data['sources'] as $mime => &$mime_details ) {
-						$source_url                 = "{$directory}/{$mime_details['file']}";
-						$mime_details['source_url'] = $source_url;
+						$mime_details['source_url'] = "{$directory}/{$mime_details['file']}";
 					}
 				}
 
 				$full_src = wp_get_attachment_image_src( $post->ID, 'full' );
 
 				if ( ! empty( $full_src ) ) {
-					$directory = dirname( $full_src[0] );
-					foreach ( $data['media_details']['sources'] as $mime => &$mime_details ) {
-						$source_url                 = "{$directory}/{$mime_details['file']}";
-						$mime_details['source_url'] = $source_url;
-					}
-
 					$data['media_details']['sizes']['full'] = array(
 						'file'       => wp_basename( $full_src[0] ),
 						'width'      => $full_src[1],
 						'height'     => $full_src[2],
 						'mime_type'  => $post->post_mime_type,
 						'source_url' => $full_src[0],
-						'sources'    => $data['media_details']['sources'],
 					);
-					unset( $data['media_details']['sources'] );
+
+					if ( $data['media_details']['sources'] ) {
+						$directory = dirname( $full_src[0] );
+						foreach ( $data['media_details']['sources'] as $mime => &$mime_details ) {
+							$mime_details['source_url'] = "{$directory}/{$mime_details['file']}";
+						}
+						$data['media_details']['sizes']['full']['sources'] = $data['media_details']['sources'];
+
+						unset( $data['media_details']['sources'] );
+					}
 				}
 			} else {
 				$data['media_details']['sizes'] = new stdClass;
