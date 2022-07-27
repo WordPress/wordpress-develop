@@ -688,8 +688,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_status'  => 'publish',
-				'post_content' => 'content',
-				'post_title'   => 'title',
 			)
 		);
 		$post    = get_post( $post_id );
@@ -705,8 +703,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_status'  => 'publish',
-				'post_content' => 'content',
-				'post_title'   => 'title',
 				'post_type'    => 'page',
 			)
 		);
@@ -720,20 +716,22 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 * @ticket 31168
 	 */
 	public function test_wp_insert_post_cpt_default_comment_ping_status_open() {
-		$post_type = rand_str( 20 );
-		register_post_type( $post_type, array( 'supports' => array( 'comments', 'trackbacks' ) ) );
+		register_post_type(
+			'cpt',
+			array(
+				'supports' => array( 'comments', 'trackbacks' ),
+			)
+		);
 
 		$post_id = self::factory()->post->create(
 			array(
-				'post_status'  => 'publish',
-				'post_content' => rand_str(),
-				'post_title'   => rand_str(),
-				'post_type'    => $post_type,
+				'post_status' => 'publish',
+				'post_type'   => 'cpt',
 			)
 		);
 		$post    = get_post( $post_id );
 
-		_unregister_post_type( $post_type );
+		_unregister_post_type( 'cpt' );
 
 		$this->assertSame( 'open', $post->comment_status );
 		$this->assertSame( 'open', $post->ping_status );
@@ -743,20 +741,17 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 * @ticket 31168
 	 */
 	public function test_wp_insert_post_cpt_default_comment_ping_status_closed() {
-		$post_type = rand_str( 20 );
-		register_post_type( $post_type );
+		register_post_type( 'cpt' );
 
 		$post_id = self::factory()->post->create(
 			array(
-				'post_status'  => 'publish',
-				'post_content' => rand_str(),
-				'post_title'   => rand_str(),
-				'post_type'    => $post_type,
+				'post_status' => 'publish',
+				'post_type'   => 'cpt',
 			)
 		);
 		$post    = get_post( $post_id );
 
-		_unregister_post_type( $post_type );
+		_unregister_post_type( 'cpt' );
 
 		$this->assertSame( 'closed', $post->comment_status );
 		$this->assertSame( 'closed', $post->ping_status );
