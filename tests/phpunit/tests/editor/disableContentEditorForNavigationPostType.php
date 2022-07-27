@@ -18,6 +18,11 @@ class Tests_Editor_DisableContentEditorForNavigationPostType extends WP_UnitTest
 	 * @ticket 56266
 	 *
 	 * @dataProvider data_test_it_correctly_handles_different_post_types
+	 *
+	 * @param string $post_type             The post type.
+	 * @param bool   $enable_editor_support Whether to enable editor support.
+	 * @param bool   $expected              The expected result.
+	 * @param string $message               The message to display if the test fails.
 	 */
 	public function test_it_correctly_handles_different_post_types( $post_type, $enable_editor_support, $expected, $message ) {
 		$post = $this->create_post( $post_type );
@@ -35,7 +40,9 @@ class Tests_Editor_DisableContentEditorForNavigationPostType extends WP_UnitTest
 	}
 
 	/**
-	 * @ticket 56266
+	 * Data provider for test_it_correctly_handles_different_post_types().
+	 *
+	 * @return array
 	 */
 	public function data_test_it_correctly_handles_different_post_types() {
 		return array(
