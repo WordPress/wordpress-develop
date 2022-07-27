@@ -1321,7 +1321,6 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_unspam_comment
-	 * @covers ::wp_spam_comment
 	 */
 	public function test_unspam_should_invalidate_comment_cache() {
 		global $wpdb;

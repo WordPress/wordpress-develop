@@ -4180,8 +4180,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @ticket 8071
 	 *
 	 * @covers WP_Comment_Query::__construct
-	 * @covers WP_Comment::get_children
-	 * @covers WP_Comment::get_child
 	 */
 	public function test_hierarchical_threaded_approved() {
 		$c1 = self::factory()->comment->create(
@@ -4500,7 +4498,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @ticket 37696
 	 *
 	 * @covers WP_Comment_Query::query
-	 * @covers WP_Comment::get_children
 	 */
 	public function test_fill_hierarchy_should_disregard_offset_and_number() {
 		$c0 = self::factory()->comment->create(
@@ -5270,7 +5267,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @ticket 55460
 	 *
 	 * @covers WP_Comment_Query::__construct
-	 * @covers ::get_num_queries
 	 */
 	public function test_comment_cache_key_should_ignore_unset_params() {
 		$p = self::factory()->post->create();
