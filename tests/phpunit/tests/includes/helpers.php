@@ -261,7 +261,7 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	/**
 	 * @ticket 31417
 	 *
-	 * @covers ::is_home
+	 * @coversNothing
 	 */
 	public function test_go_to_should_go_to_home_page_when_passing_the_untrailingslashed_home_url() {
 		$this->assertFalse( is_home() );
