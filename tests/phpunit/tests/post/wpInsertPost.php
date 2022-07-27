@@ -170,7 +170,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$future_date = strtotime( '+1 day' );
 
 		$data = array(
-			'post_author'  => self::$user_ids['editor'],
 			'post_status'  => 'publish',
 			'post_content' => 'content',
 			'post_title'   => 'title',
@@ -188,7 +187,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$this->assertSame( $data['post_content'], $post->post_content );
 		$this->assertSame( $data['post_title'], $post->post_title );
 		$this->assertSame( 'future', $post->post_status );
-		$this->assertEquals( $data['post_author'], $post->post_author );
 		$this->assertSame( $data['post_date'], $post->post_date );
 
 		// There should be a publish_future_post hook scheduled on the future date.
@@ -204,7 +202,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$future_date_2 = strtotime( 'Jan 11th +1 year' );
 
 		$data = array(
-			'post_author'  => self::$user_ids['editor'],
 			'post_status'  => 'publish',
 			'post_content' => 'content',
 			'post_title'   => 'title',
@@ -247,7 +244,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$future_date_2 = strtotime( '+2 day' );
 
 		$data = array(
-			'post_author'  => self::$user_ids['editor'],
 			'post_status'  => 'publish',
 			'post_content' => 'content',
 			'post_title'   => 'title',
@@ -287,7 +283,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$future_date = strtotime( '+1 day' );
 
 		$data = array(
-			'post_author'  => self::$user_ids['editor'],
 			'post_status'  => 'draft',
 			'post_content' => 'content',
 			'post_title'   => 'title',
@@ -305,7 +300,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$this->assertSame( $data['post_content'], $post->post_content );
 		$this->assertSame( $data['post_title'], $post->post_title );
 		$this->assertSame( 'draft', $post->post_status );
-		$this->assertEquals( $data['post_author'], $post->post_author );
 		$this->assertSame( $data['post_date'], $post->post_date );
 
 		// There should be a publish_future_post hook scheduled on the future date.
@@ -320,7 +314,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$future_date_1 = strtotime( '+1 day' );
 
 		$data = array(
-			'post_author'  => self::$user_ids['editor'],
 			'post_status'  => 'publish',
 			'post_content' => 'content',
 			'post_title'   => 'title',
@@ -361,7 +354,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$future_date_1 = strtotime( '+1 day' );
 
 		$data = array(
-			'post_author'  => self::$user_ids['editor'],
 			'post_status'  => 'publish',
 			'post_content' => "{$status}_content",
 			'post_title'   => "{$status}_title",
@@ -413,7 +405,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$future_date = strtotime( '+1 day' );
 
 		$data = array(
-			'post_author'  => self::$user_ids['editor'],
 			'post_status'  => 'private',
 			'post_content' => 'content',
 			'post_title'   => 'title',
@@ -431,7 +422,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$this->assertSame( $data['post_content'], $post->post_content );
 		$this->assertSame( $data['post_title'], $post->post_title );
 		$this->assertSame( 'private', $post->post_status );
-		$this->assertEquals( $data['post_author'], $post->post_author );
 		$this->assertSame( $data['post_date'], $post->post_date );
 
 		// There should be a publish_future_post hook scheduled on the future date.
@@ -445,7 +435,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 */
 	public function test_vb_insert_invalid_date() {
 		$data = array(
-			'post_author'  => self::$user_ids['editor'],
 			'post_status'  => 'publish',
 			'post_content' => 'content',
 			'post_title'   => 'title',
@@ -468,7 +457,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$future_date_1 = strtotime( '+1 day' );
 
 		$data = array(
-			'post_author'  => self::$user_ids['editor'],
 			'post_status'  => 'publish',
 			'post_content' => 'content',
 			'post_title'   => 'title',
@@ -588,7 +576,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$future_date = strtotime( '+1 day' );
 
 		$data = array(
-			'post_author'  => self::$user_ids['editor'],
 			'post_status'  => 'publish',
 			'post_content' => 'content',
 			'post_title'   => 'title',
@@ -618,7 +605,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
 		$data = array(
-			'post_author'  => self::$user_ids['editor'],
 			'post_status'  => 'publish',
 			'post_content' => 'content',
 			'post_title'   => '',
@@ -701,7 +687,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	public function test_wp_insert_post_default_comment_ping_status_open() {
 		$post_id = self::factory()->post->create(
 			array(
-				'post_author'  => self::$user_ids['editor'],
 				'post_status'  => 'publish',
 				'post_content' => 'content',
 				'post_title'   => 'title',
@@ -719,7 +704,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	public function test_wp_insert_post_page_default_comment_ping_status_closed() {
 		$post_id = self::factory()->post->create(
 			array(
-				'post_author'  => self::$user_ids['editor'],
 				'post_status'  => 'publish',
 				'post_content' => 'content',
 				'post_title'   => 'title',
@@ -741,7 +725,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		$post_id = self::factory()->post->create(
 			array(
-				'post_author'  => self::$user_ids['editor'],
 				'post_status'  => 'publish',
 				'post_content' => rand_str(),
 				'post_title'   => rand_str(),
@@ -765,7 +748,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		$post_id = self::factory()->post->create(
 			array(
-				'post_author'  => self::$user_ids['editor'],
 				'post_status'  => 'publish',
 				'post_content' => rand_str(),
 				'post_title'   => rand_str(),
@@ -831,7 +813,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 */
 	public function test_wp_insert_post_should_respect_post_date_gmt() {
 		$data = array(
-			'post_author'   => self::$user_ids['editor'],
 			'post_status'   => 'publish',
 			'post_content'  => 'content',
 			'post_title'    => 'title',
@@ -845,7 +826,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		$this->assertSame( $data['post_content'], $post->post_content );
 		$this->assertSame( $data['post_title'], $post->post_title );
-		$this->assertEquals( $data['post_author'], $post->post_author );
 		$this->assertSame( get_date_from_gmt( $data['post_date_gmt'] ), $post->post_date );
 		$this->assertSame( $data['post_date_gmt'], $post->post_date_gmt );
 	}

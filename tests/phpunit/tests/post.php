@@ -147,8 +147,7 @@ class Tests_Post extends WP_UnitTestCase {
 
 		self::factory()->post->create(
 			array(
-				'post_type'   => $post_type,
-				'post_author' => self::$editor_id,
+				'post_type' => $post_type,
 			)
 		);
 
@@ -167,8 +166,7 @@ class Tests_Post extends WP_UnitTestCase {
 		self::factory()->post->create_many(
 			3,
 			array(
-				'post_type'   => $post_type,
-				'post_author' => self::$editor_id,
+				'post_type' => $post_type,
 			)
 		);
 
