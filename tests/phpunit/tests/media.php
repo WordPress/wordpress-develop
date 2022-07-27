@@ -1174,6 +1174,24 @@ VIDEO;
 	}
 
 	/**
+	 * @ticket 56288
+	 */
+	public function test__wp_filter_image_sizes_additional_mime_type_support_with_add_image_size() {
+		add_image_size( 'test-size-with-additional-mimes', 200, 600, false, true );
+		add_image_size( 'test-size-without-additional-mimes', 200, 600, false, false );
+
+		$all_sizes      = wp_get_additional_image_sizes();
+		$filtered_sizes = _wp_filter_image_sizes_additional_mime_type_support( $all_sizes, $this->large_id );
+
+		remove_image_size( 'test-size-with-additional-mimes' );
+		remove_image_size( 'test-size-without-additional-mimes' );
+
+		$this->assertArrayHasKey( 'test-size-with-additional-mimes', $filtered_sizes );
+		$this->assertArrayNotHasKey( 'test-size-without-additional-mimes', $filtered_sizes );
+
+	}
+
+	/**
 	 * @ticket 26768
 	 */
 	public function test_remove_image_size() {
