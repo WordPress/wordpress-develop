@@ -1128,8 +1128,17 @@ function wp_save_image( $post_id ) {
 				}
 
 				$main_images[ $targeted_mime ] = $result;
+				if ( method_exists( $img, 'make_subsize' ) ) {
+					foreach ( $_sizes as $size_name => $size_data ) {
+						$size_meta = $img->make_subsize( $size_data );
 
-				$subsized_images[ $targeted_mime ] = $img->multi_resize( $_sizes );
+						if ( ! is_wp_error( $size_meta ) ) {
+							$subsized_images[ $targeted_mime ][ $size_name ] = $size_meta;
+						}
+					}
+				} else {
+ 					$subsized_images[ $targeted_mime ] = $img->multi_resize( $_sizes );
+				}
 			}
 		} else {
 			// If the target is `thumbnail` make sure it is the only selected size.
