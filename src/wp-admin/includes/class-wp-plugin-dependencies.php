@@ -314,7 +314,6 @@ class WP_Plugin_Dependencies {
 	public function modify_plugin_row_elements( $plugin_file, $plugin_data ) {
 		$sources            = $this->get_dependency_sources( $plugin_data );
 		$requires_filepaths = $this->get_requires_paths( $plugin_data );
-		$dep_paths          = $this->get_dependency_filepaths();
 		print '<script>';
 		print 'jQuery("tr[data-plugin=\'' . esc_attr( $plugin_file ) . '\'] .plugin-version-author-uri").append("<br><br><strong>' . esc_html__( 'Required by:' ) . '</strong> ' . esc_html( $sources ) . '");';
 		foreach ( $requires_filepaths as $filepath ) {
