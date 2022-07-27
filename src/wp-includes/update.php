@@ -187,7 +187,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	$doing_cron = wp_doing_cron();
 
 	$options = array(
-		'timeout'    => $doing_cron ? 30 : 3,
+		'timeout'    => $doing_cron ? MINUTE_IN_SECONDS / 2 : MINUTE_IN_SECONDS / 20,
 		'user-agent' => 'WordPress/' . $wp_version . '; ' . home_url( '/' ),
 		'headers'    => array(
 			'wp_install' => $wp_install,
@@ -405,10 +405,10 @@ function wp_update_plugins( $extra_stats = array() ) {
 	$locales = array_unique( $locales );
 
 	if ( $doing_cron ) {
-		$timeout = 30;
+		$timeout = MINUTE_IN_SECONDS / 2;
 	} else {
 		// Three seconds, plus one extra second for every 10 plugins.
-		$timeout = 3 + (int) ( count( $plugins ) / 10 );
+		$timeout = MINUTE_IN_SECONDS / 20 + (int) ( count( $plugins ) / 10 );
 	}
 
 	$options = array(
@@ -686,10 +686,10 @@ function wp_update_themes( $extra_stats = array() ) {
 	$locales = array_unique( $locales );
 
 	if ( $doing_cron ) {
-		$timeout = 30;
+		$timeout = MINUTE_IN_SECONDS / 2;
 	} else {
 		// Three seconds, plus one extra second for every 10 themes.
-		$timeout = 3 + (int) ( count( $themes ) / 10 );
+		$timeout = MINUTE_IN_SECONDS / 20 + (int) ( count( $themes ) / 10 );
 	}
 
 	$options = array(
