@@ -142,8 +142,10 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	/**
 	 * @ticket 21741
 	 *
-	 * @covers WP_Dependencies::query
 	 * @covers WP_Dependencies::add
+	 * @covers WP_Dependencies::enqueue
+	 * @covers WP_Dependencies::dequeue
+	 * @covers WP_Dependencies::remove
 	 */
 	public function test_query_and_registered_enqueued() {
 		$dep = new WP_Dependencies;
@@ -172,9 +174,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers WP_Dependencies::__construct
 	 * @covers WP_Dependencies::enqueue
-	 * @covers WP_Dependencies::add
 	 */
 	function test_enqueue_before_register() {
 		$dep = new WP_Dependencies;
