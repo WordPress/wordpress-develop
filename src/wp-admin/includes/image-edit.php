@@ -1130,7 +1130,7 @@ function wp_save_image( $post_id ) {
 						}
 					}
 				} else {
- 					$subsized_images[ $targeted_mime ] = $img->multi_resize( $_sizes );
+					$subsized_images[ $targeted_mime ] = $img->multi_resize( $_sizes );
 				}
 			}
 		} else {
