@@ -4,8 +4,6 @@ require_once __DIR__ . '/base.php';
 
 /**
  * @group import
- *
- * @covers WP_Import::import
  */
 class Tests_Import_Import extends WP_Import_UnitTestCase {
 	public function set_up() {
@@ -36,16 +34,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::wp_get_post_categories
-	 * @covers ::get_user_by
-	 * @covers ::get_term_by
-	 * @covers ::wp_count_posts
-	 * @covers ::wp_count_comments
-	 * @covers ::get_posts
-	 * @covers ::wp_get_post_categories
-	 * @covers ::has_post_format
-	 * @covers ::get_post_meta
-	 * @covers ::count_users
+	 * @covers WP_Import::import
 	 */
 	public function test_small_import() {
 		global $wpdb;
@@ -216,11 +205,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::get_user_by
-	 * @covers ::get_term_by
-	 * @covers ::wp_count_posts
-	 * @covers ::wp_count_comments
-	 * @covers ::count_users
+	 * @covers WP_Import::import
 	 */
 	public function test_double_import() {
 		$authors = array(
@@ -292,8 +277,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 	/**
 	 * @ticket 21007
 	 *
-	 * @covers ::get_term_by
-	 * @covers ::get_posts
+	 * @covers WP_Import::import
 	 */
 	public function test_slashes_should_not_be_stripped() {
 		global $wpdb;
