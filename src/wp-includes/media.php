@@ -346,9 +346,8 @@ function remove_image_size( $name ) {
  * @param int        $height Image height in pixels.
  * @param bool|array $crop   Optional. Whether to crop images to specified width and height or resize.
  *                           An array can specify positioning of the crop area. Default false.
- * @param bool       $output_mimes Whether to output secondary mimes for the post thumbnail. Default is true.
  */
-function set_post_thumbnail_size( $width = 0, $height = 0, $crop = false, $output_mimes = true ) {
+function set_post_thumbnail_size( $width = 0, $height = 0, $crop = false ) {
 	add_image_size( 'post-thumbnail', $width, $height, $crop, true );
 }
 
