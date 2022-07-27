@@ -312,10 +312,17 @@ class WP_Plugin_Dependencies {
 	 * @return void
 	 */
 	public function modify_plugin_row_elements( $plugin_file, $plugin_data ) {
-		$sources = $this->get_dependency_sources( $plugin_data );
+		$sources            = $this->get_dependency_sources( $plugin_data );
+		$requires_filepaths = $this->get_requires_paths( $plugin_data );
+		$dep_paths          = $this->get_dependency_filepaths();
 		print '<script>';
 		print 'jQuery("tr[data-plugin=\'' . esc_attr( $plugin_file ) . '\'] .plugin-version-author-uri").append("<br><br><strong>' . esc_html__( 'Required by:' ) . '</strong> ' . esc_html( $sources ) . '");';
-		print 'jQuery(".active[data-plugin=\'' . esc_attr( $plugin_file ) . '\'] .check-column input").remove();';
+		foreach ( $requires_filepaths as $filepath ) {
+			if ( is_plugin_active( $filepath ) ) {
+				print 'jQuery(".active[data-plugin=\'' . esc_attr( $plugin_file ) . '\'] .check-column input").remove();';
+				break;
+			}
+		}
 		print '</script>';
 	}
 
@@ -471,6 +478,8 @@ class WP_Plugin_Dependencies {
 	 * @return void
 	 */
 	public function admin_notices() {
+		global $pagenow;
+
 		// Plugin deactivated if dependencies not met.
 		// Transient on a 10 second timeout.
 		$deactivate_requires = get_site_transient( 'wp_plugin_dependencies_deactivate_plugins' );
@@ -482,7 +491,7 @@ class WP_Plugin_Dependencies {
 			printf(
 				'<div class="notice-error notice is-dismissible"><p>'
 					/* translators: 1: plugin names, 2: opening tag and link to Dependencies install page, 3: closing tag */
-					. esc_html__( '%1$s plugin(s) could not be activated. There are uninstalled or inactive dependencies. Go to the %2$sDependencies%3$s install page.' )
+					. esc_html__( '%1$s plugin(s) have been deactivated. There are uninstalled or inactive dependencies. Go to the %2$sDependencies%3$s install page.' )
 					. '</p></div>',
 				'<strong>' . esc_html( $deactivated_plugins ) . '</strong>',
 				'<a href=' . esc_url( network_admin_url( 'plugin-install.php?tab=dependencies' ) ) . '>',
@@ -494,13 +503,23 @@ class WP_Plugin_Dependencies {
 			$intersect       = array_intersect( $this->slugs, $installed_slugs );
 			asort( $intersect );
 			if ( $intersect !== $this->slugs ) {
+				$message_html = __( 'There are additional plugins that must be installed.' );
+
+				// Display link (if not already on Dependencies install page).
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				$tab = isset( $_GET['tab'] ) ? sanitize_title_with_dashes( wp_unslash( $_GET['tab'] ) ) : '';
+				if ( 'plugin-install.php' !== $pagenow || 'dependencies' !== $tab ) {
+					$message_html .= ' ' . sprintf(
+							/* translators: 1: opening tag and link to Dependencies install page, 2:closing tag */
+						__( 'Go to the %1$sDependencies%2$s install page.' ),
+						'<a href=' . esc_url( network_admin_url( 'plugin-install.php?tab=dependencies' ) ) . '>',
+						'</a>'
+					);
+				}
+
 				printf(
-					'<div class="notice-warning notice is-dismissible"><p>'
-						/* translators: 1: opening tag and link to Dependencies install page, 2:closing tag */
-						. esc_html__( 'There are additional plugins that must be installed. Go to the %1$sDependencies%2$s install page.' )
-						. '</p></div>',
-					'<a href=' . esc_url( network_admin_url( 'plugin-install.php?tab=dependencies' ) ) . '>',
-					'</a>'
+					'<div class="notice-warning notice is-dismissible"><p>%s</p></div>',
+					wp_kses_post( $message_html )
 				);
 			}
 		}
@@ -551,6 +570,31 @@ class WP_Plugin_Dependencies {
 		$sources = implode( ', ', $sources );
 
 		return $sources;
+	}
+
+	/**
+	 * Get array of plugin requirement filepaths.
+	 *
+	 * @param array $plugin_data Array of plugin data.
+	 *
+	 * @return array
+	 */
+	private function get_requires_paths( $plugin_data ) {
+		$paths = array();
+		foreach ( $this->plugins as $filepath => $plugin ) {
+			if ( ! empty( $plugin['RequiresPlugins'] ) ) {
+				// Default TextDomain derived from plugin directory name, should be slug equivalent.
+				$plugin_data['slug'] = isset( $plugin_data['slug'] ) ? $plugin_data['slug'] : $plugin_data['TextDomain'];
+				if ( in_array( $plugin_data['slug'], $plugin['RequiresPlugins'], true ) ) {
+					$paths[] = $filepath;
+				}
+			}
+		}
+		$paths = array_filter( $paths );
+		$paths = array_unique( $paths );
+		sort( $paths );
+
+		return $paths;
 	}
 
 	/**
