@@ -12,7 +12,10 @@
  * needed during the update process, and may not be available
  * after files from the updated version have been installed.
  *
- * @since 5.9.0
+ * This covers upgrades.
+ * Downgrades are covered in wp-admin/includes/class-wp-upgrader.php.
+ *
+ * @since 6.1.0
  */
 global $wp_version;
 if ( version_compare( $wp_version, '4.6', '>=' ) ) {
