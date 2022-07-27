@@ -16,7 +16,6 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * @group ms-required
 	 *
 	 * @covers ::add_site_option
-	 * @covers ::get_network_option
 	 */
 	public function test_add_network_option_not_available_on_other_network() {
 		$id     = self::factory()->network->create();
@@ -31,7 +30,6 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * @group ms-required
 	 *
 	 * @covers ::add_network_option
-	 * @covers ::get_network_option
 	 */
 	public function test_add_network_option_available_on_same_network() {
 		$id     = self::factory()->network->create();
@@ -46,8 +44,6 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * @group ms-required
 	 *
 	 * @covers ::delete_site_option
-	 * @covers ::get_network_option
-	 * @covers ::add_network_option
 	 */
 	public function test_delete_network_option_on_only_one_network() {
 		$id     = self::factory()->network->create();
@@ -65,7 +61,6 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * @group ms-excluded
 	 *
 	 * @covers ::add_network_option
-	 * @covers ::wp_load_alloptions
 	 */
 	public function test_add_network_option_is_not_stored_as_autoload_option() {
 		$key = __FUNCTION__;
@@ -82,7 +77,6 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * @group ms-excluded
 	 *
 	 * @covers ::update_network_option
-	 * @covers ::wp_load_alloptions
 	 */
 	public function test_update_network_option_is_not_stored_as_autoload_option() {
 		$key = __FUNCTION__;
@@ -203,7 +197,6 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * @ticket 44956
 	 *
 	 * @covers ::update_network_option
-	 * @covers ::get_num_queries
 	 */
 	public function test_update_network_option_array_with_object() {
 		$array_w_object = array(

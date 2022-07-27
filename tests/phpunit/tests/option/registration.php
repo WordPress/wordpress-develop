@@ -6,7 +6,6 @@
 class Tests_Option_Registration extends WP_UnitTestCase {
 
 	/**
-	 * @covers ::get_registered_settings
 	 * @covers ::register_setting
 	 */
 	public function test_register() {
@@ -61,7 +60,6 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	 * @ticket 38176
 	 *
 	 * @covers ::register_setting
-	 * @covers ::get_option
 	 */
 	public function test_register_with_default() {
 		register_setting(
@@ -79,7 +77,6 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	 * @ticket 38176
 	 *
 	 * @covers ::register_setting
-	 * @covers ::get_option
 	 */
 	public function test_register_with_default_override() {
 		register_setting(
@@ -138,7 +135,6 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	 *
 	 * @covers ::register_setting
 	 * @covers ::unregister_setting
-	 * @covers ::has_filter
 	 */
 	public function test_unregister_setting_removes_default() {
 		register_setting(
