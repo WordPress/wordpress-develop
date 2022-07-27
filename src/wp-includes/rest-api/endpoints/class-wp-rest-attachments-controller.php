@@ -805,7 +805,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 						'source_url' => $full_src[0],
 					);
 
-					if ( $data['media_details']['sources'] ) {
+					if ( ! empty( $data['media_details']['sources'] ) ) {
 						$directory = dirname( $full_src[0] );
 						foreach ( $data['media_details']['sources'] as $mime => &$mime_details ) {
 							$mime_details['source_url'] = "{$directory}/{$mime_details['file']}";
