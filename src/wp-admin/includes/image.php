@@ -665,7 +665,7 @@ function _wp_filter_image_sizes_additional_mime_type_support( $sizes, $attachmen
 	$additional_image_sizes = array_filter(
 		$additional_image_sizes,
 		function( $size ) {
-			return isset( $size['output_mimes'] ) && $size['output_mimes'];
+			return isset( $size['additional_mimes'] ) && $size['additional_mimes'];
 		}
 	);
 
