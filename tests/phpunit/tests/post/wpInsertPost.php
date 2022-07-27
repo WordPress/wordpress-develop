@@ -687,7 +687,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	public function test_wp_insert_post_default_comment_ping_status_open() {
 		$post_id = self::factory()->post->create(
 			array(
-				'post_status'  => 'publish',
+				'post_status' => 'publish',
 			)
 		);
 		$post    = get_post( $post_id );
@@ -702,8 +702,8 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	public function test_wp_insert_post_page_default_comment_ping_status_closed() {
 		$post_id = self::factory()->post->create(
 			array(
-				'post_status'  => 'publish',
-				'post_type'    => 'page',
+				'post_status' => 'publish',
+				'post_type'   => 'page',
 			)
 		);
 		$post    = get_post( $post_id );
@@ -1346,17 +1346,13 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 * @return array Array of test arguments.
 	 */
 	public function data_various_post_types() {
-		return array(
-			array(
-				'mapped_meta_caps',
-			),
-			array(
-				'unmapped_meta_caps',
-			),
-			array(
-				'post',
-			),
+		$post_types = array(
+			'mapped_meta_caps',
+			'unmapped_meta_caps',
+			'post',
 		);
+
+		return $this->text_array_to_dataprovider( $post_types );
 	}
 
 	/**
@@ -1365,20 +1361,14 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 * @return array Array of test arguments.
 	 */
 	public function data_various_post_statuses() {
-		return array(
-			array(
-				'draft',
-			),
-			array(
-				'pending',
-			),
-			array(
-				'private',
-			),
-			array(
-				'publish',
-			),
+		$post_statuses = array(
+			'draft',
+			'pending',
+			'private',
+			'publish',
 		);
+
+		return $this->text_array_to_dataprovider( $post_statuses );
 	}
 
 	/**
