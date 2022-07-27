@@ -710,7 +710,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			$this->test_file
 		);
 
-		add_image_size( 'rest-api-test', 119, 119, true, true );
+		add_image_size( 'rest-api-test', 119, 119, true );
 		wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $this->test_file ) );
 
 		$request            = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
@@ -741,7 +741,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			$this->test_file
 		);
 
-		add_image_size( 'rest-api-test', 119, 119, true, true );
+		add_image_size( 'rest-api-test', 119, 119, true );
 		wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $this->test_file ) );
 
 		add_filter( 'wp_get_attachment_image_src', '__return_false' );
@@ -2261,5 +2261,47 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				return array( 'WP_Image_Editor_Mock' );
 			}
 		);
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test_image_sources_to_rest_response() {
+
+		$attachment_id = self::factory()->attachment->create_upload_object( $this->test_file );
+		$metadata      = wp_get_attachment_metadata( $attachment_id );
+		$request       = new WP_REST_Request();
+		$request['id'] = $attachment_id;
+		$controller    = new WP_REST_Attachments_Controller( 'attachment' );
+		$response      = $controller->get_item( $request );
+
+		$this->assertNotWPError( $response );
+
+		$data       = $response->get_data();
+		$mime_types = array(
+			'image/jpeg',
+		);
+
+		if ( wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			array_push( $mime_types, 'image/webp' );
+		}
+
+		foreach ( $data['media_details']['sizes'] as $size_name => $properties ) {
+			if ( ! isset( $metadata['sizes'][ $size_name ]['sources'] ) ) {
+				continue;
+			}
+
+			$this->assertArrayHasKey( 'sources', $properties );
+			$this->assertIsArray( $properties['sources'] );
+
+			foreach ( $mime_types as $mime_type ) {
+				$this->assertArrayHasKey( $mime_type, $properties['sources'] );
+				$this->assertArrayHasKey( 'filesize', $properties['sources'][ $mime_type ] );
+				$this->assertArrayHasKey( 'file', $properties['sources'][ $mime_type ] );
+				$this->assertArrayHasKey( 'source_url', $properties['sources'][ $mime_type ] );
+				$this->assertNotFalse( filter_var( $properties['sources'][ $mime_type ]['source_url'], FILTER_VALIDATE_URL ) );
+			}
+		}
+		$this->assertArrayNotHasKey( 'sources', $data['media_details'] );
 	}
 }
