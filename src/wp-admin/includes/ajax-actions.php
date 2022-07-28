@@ -162,6 +162,17 @@ function wp_ajax_ajax_tag_search() {
 		)
 	);
 
+	/**
+	 * Filters the Ajax term search results.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param string[]    $results Array of term names.
+	 * @param WP_Taxonomy $tax     The taxonomy object.
+	 * @param string      $s       The search term.
+	 */
+	$results = apply_filters( 'ajax_term_search_results', $results, $tax, $s );
+
 	echo implode( "\n", $results );
 	wp_die();
 }
@@ -1297,12 +1308,10 @@ function wp_ajax_replyto_comment( $action ) {
 	$user = wp_get_current_user();
 
 	if ( $user->exists() ) {
-		$user_id              = $user->ID;
 		$comment_author       = wp_slash( $user->display_name );
 		$comment_author_email = wp_slash( $user->user_email );
 		$comment_author_url   = wp_slash( $user->user_url );
-		$comment_content      = trim( $_POST['content'] );
-		$comment_type         = isset( $_POST['comment_type'] ) ? trim( $_POST['comment_type'] ) : 'comment';
+		$user_id              = $user->ID;
 
 		if ( current_user_can( 'unfiltered_html' ) ) {
 			if ( ! isset( $_POST['_wp_unfiltered_html_comment'] ) ) {
@@ -1320,9 +1329,13 @@ function wp_ajax_replyto_comment( $action ) {
 		wp_die( __( 'Sorry, you must be logged in to reply to a comment.' ) );
 	}
 
+	$comment_content = trim( $_POST['content'] );
+
 	if ( '' === $comment_content ) {
 		wp_die( __( 'Please type your comment text.' ) );
 	}
+
+	$comment_type = isset( $_POST['comment_type'] ) ? trim( $_POST['comment_type'] ) : 'comment';
 
 	$comment_parent = 0;
 
