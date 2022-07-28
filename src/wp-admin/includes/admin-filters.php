@@ -93,6 +93,7 @@ add_action( 'admin_head-nav-menus.php', '_wp_delete_orphaned_draft_menu_items' )
 
 // Plugin hooks.
 add_filter( 'allowed_options', 'option_update_filter' );
+add_action( 'admin_init', array( 'WP_Plugin_Dependencies', 'init' ) );
 
 // Plugin Install hooks.
 add_action( 'install_plugins_featured', 'install_dashboard' );

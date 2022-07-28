@@ -52,15 +52,24 @@ class WP_Plugin_Dependencies {
 	}
 
 	/**
+	 * Static function to get rolling.
+	 *
+	 * @return void
+	 */
+	public static function init() {
+		( new WP_Plugin_Dependencies() )->start();
+	}
+
+	/**
 	 * Initialize, load filters, and get started.
 	 *
 	 * @return void
 	 */
-	public function init() {
+	public function start() {
 		if ( is_admin() && ! wp_doing_ajax() ) {
 			add_filter( 'plugins_api_result', array( $this, 'plugins_api_result' ), 10, 3 );
 			add_filter( 'plugin_install_description', array( $this, 'plugin_install_description' ), 10, 2 );
-			add_action( 'admin_init', array( $this, 'modify_plugin_row' ) );
+			add_action( 'admin_init', array( $this, 'modify_plugin_row' ), 15 );
 			add_action( 'admin_notices', array( $this, 'admin_notices' ) );
 			add_action( 'network_admin_notices', array( $this, 'admin_notices' ) );
 			add_action( 'in_admin_header', array( $this, 'hide_action_links' ) );
@@ -687,5 +696,3 @@ class WP_Plugin_Dependencies {
 		return isset( $names ) ? $names : '';
 	}
 }
-
-( new WP_Plugin_Dependencies() )->init();
