@@ -1031,7 +1031,7 @@ function wp_save_image( $post_id ) {
 					wp_delete_file( $delete_file );
 				}
 
-				// Delete generated multiple mimes.
+				// Delete generated secondary mimes.
 				foreach ( $mime_transforms as $mime ) {
 					if ( ! empty( $size['sources'][ $mime ]['file'] ) ) {
 						$delete_file = path_join( $dirname, $size['sources'][ $mime ]['file'] );
