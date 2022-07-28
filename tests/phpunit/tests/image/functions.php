@@ -1019,8 +1019,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( $editor->get_error_message() );
 		}
 
-		add_filter( 'wp_content_pre_replace_additional_image_source', array( $this, 'filter_pre_replace_additional_image_source' ), 10, 6 );
-
 		$attachment_id = $this->factory->attachment->create_object(
 			$img_path,
 			0,
@@ -1037,6 +1035,12 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$context        = 'the_content';
 		$filtered_image = wp_image_use_alternate_mime_types( $image, $context, $attachment_id, );
 
+		// Before the filter, the image is not replaced.
+		$this->assertStringNotContainsString( 'replaced-image-thumbnail.webp', $filtered_image );
+
+		// Adding the filter results in the file name changing.
+		add_filter( 'wp_content_pre_replace_additional_image_source', array( $this, 'filter_pre_replace_additional_image_source' ), 10, 6 );
+		$filtered_image = wp_image_use_alternate_mime_types( $image, $context, $attachment_id, );
 		$this->assertStringContainsString( 'replaced-image-thumbnail.webp', $filtered_image );
 
 		remove_filter( 'wp_content_pre_replace_additional_image_source', array( $this, 'filter_pre_replace_additional_image_source' ), 10, 6 );
