@@ -1164,12 +1164,12 @@ function wp_get_ready_cron_jobs() {
  * @since 2.1.0
  * @access private
  *
- * @return array[]|false Array of cron info arrays on success, false on failure.
+ * @return array[] Array of cron events.
  */
 function _get_cron_array() {
 	$cron = get_option( 'cron' );
 	if ( ! is_array( $cron ) ) {
-		return false;
+		return array();
 	}
 
 	if ( ! isset( $cron['version'] ) ) {
