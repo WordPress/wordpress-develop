@@ -959,6 +959,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * Test short-circuiting of additional image source generation for mime type.
+	 *
+	 * @ticket 55443
 	 */
 	public function test_wp_content_pre_generate_additional_image_source() {
 		$temp_dir = get_temp_dir();
@@ -1003,6 +1005,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * Test replacing of image filename in the desired context.
+	 *
+	 * @ticket 55443
 	 */
 	public function test_wp_content_pre_replace_additional_image_source_for_size_thumbnail() {
 		$temp_dir = get_temp_dir();
