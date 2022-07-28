@@ -575,7 +575,7 @@ class WP_Object_Cache {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param int|string $key   Cache key to check for validity.
+	 * @param int|string $key Cache key to check for validity.
 	 * @return bool Whether the key is valid.
 	 */
 	protected function is_valid_key( $key ) {
