@@ -106,7 +106,7 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 	 */
 	public function test_get_plugins() {
 		$dependencies = new WP_Plugin_Dependencies();
-		$get_plugins  = $this->make_method_accessible( $dependencies, 'get_plugins');
+		$get_plugins  = $this->make_method_accessible( $dependencies, 'get_plugins' );
 		$actual       = $get_plugins->invoke( $dependencies );
 
 		$this->assertIsArray( $actual, 'Did not return an array' );
@@ -150,14 +150,18 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 		$plugins      = $this->make_prop_accessible( $dependencies, 'plugins' );
 		$plugins->setValue( $dependencies, $headers );
 
-		$parse_plugin_headers = $this->make_method_accessible( $dependencies, 'parse_plugin_headers');
+		$parse_plugin_headers = $this->make_method_accessible( $dependencies, 'parse_plugin_headers' );
 		$actual               = $parse_plugin_headers->invoke( $dependencies );
 
 		// Remove any non testing data, may be single file plugins in test environment.
 		$test_plugin = basename( self::$plugin_dir ) . '/' . $plugin_file[0];
-		$actual      = array_filter( $actual, function( $key ) use ( $test_plugin ) {
-			return $test_plugin === $key;
-		}, ARRAY_FILTER_USE_KEY );
+		$actual      = array_filter(
+			$actual,
+			function( $key ) use ( $test_plugin ) {
+				return $test_plugin === $key;
+			},
+			ARRAY_FILTER_USE_KEY
+		);
 
 		foreach ( $plugin_names as $plugin_name ) {
 			if ( $expected ) {
@@ -275,7 +279,7 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 				),
 				'expected'     => array( 'RequiresPlugins' => '"hello-dolly, woocommerce"' ),
 			),
-			'cyrillic dependencies'                 => array(
+			'cyrillic dependencies'                  => array(
 				'plugins_data' => array(
 					'test-plugin' => array(
 						'Plugin Name'      => 'Test Plugin',
@@ -284,7 +288,7 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 				),
 				'expected'     => array( 'RequiresPlugins' => 'я-делюсь' ),
 			),
-			'arabic dependencies'                 => array(
+			'arabic dependencies'                    => array(
 				'plugins_data' => array(
 					'test-plugin' => array(
 						'Plugin Name'      => 'Test Plugin',
@@ -293,7 +297,7 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 				),
 				'expected'     => array( 'RequiresPlugins' => 'لينوكس-ويكى' ),
 			),
-			'chinese dependencies'                 => array(
+			'chinese dependencies'                   => array(
 				'plugins_data' => array(
 					'test-plugin' => array(
 						'Plugin Name'      => 'Test Plugin',
@@ -302,7 +306,7 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 				),
 				'expected'     => array( 'RequiresPlugins' => '唐诗宋词chinese-poem,社交登录,腾讯微博一键登录,豆瓣秀-for-wordpress' ),
 			),
-			'symbol dependencies'                 => array(
+			'symbol dependencies'                    => array(
 				'plugins_data' => array(
 					'test-plugin' => array(
 						'Plugin Name'      => 'Test Plugin',
@@ -324,7 +328,7 @@ class Tests_Admin_WpPluginDependencies extends WP_UnitTestCase {
 	 */
 	public function test_slug_sanitization( $requires_plugins, $expected ) {
 		$dependencies = new WP_Plugin_Dependencies();
-		$sanitize     = $this->make_method_accessible( $dependencies, 'sanitize_required_headers');
+		$sanitize     = $this->make_method_accessible( $dependencies, 'sanitize_required_headers' );
 		$headers      = array( 'test-plugin' => array( 'RequiresPlugins' => $requires_plugins ) );
 		$actual       = $sanitize->invoke( $dependencies, $headers );
 		$this->assertSameSetsWithIndex( $expected, $actual );
