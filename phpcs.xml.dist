@@ -165,7 +165,7 @@
 
 	<!-- Whitelist the WP DB Class and related tests for usage of direct database access functions. -->
 	<rule ref="WordPress.DB.RestrictedFunctions">
-		<exclude-pattern>/src/wp-includes/wp-db\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wpdb\.php</exclude-pattern>
 		<exclude-pattern>/tests/phpunit/tests/db/charset\.php</exclude-pattern>
 	</rule>
 
@@ -325,10 +325,10 @@
 	</rule>
 	<rule ref="PEAR.NamingConventions.ValidClassName.StartWithCapital">
 		<exclude-pattern>/src/wp-admin/includes/class-wp-list-table-compat\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-dependency\.php</exclude-pattern>
 		<exclude-pattern>/src/wp-includes/class-wp-editor\.php</exclude-pattern>
 		<exclude-pattern>/src/wp-includes/class-wp-xmlrpc-server\.php</exclude-pattern>
-		<exclude-pattern>/src/wp-includes/wp-db\.php</exclude-pattern>
-		<exclude-pattern>/src/wp-includes/class-wp-dependency\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wpdb\.php</exclude-pattern>
 	</rule>
 
 	<!-- Exclude some incorrectly named files that won't be renamed. -->
