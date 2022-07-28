@@ -612,7 +612,7 @@ class WP_Plugin_Dependencies {
 				'slug'              => $args['slug'],
 				'version'           => '',
 				'author'            => '',
-				'contributors'      => '',
+				'contributors'      => array(),
 				'requires'          => '',
 				'tested'            => '',
 				'requires_php'      => '',
