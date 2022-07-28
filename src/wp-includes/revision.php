@@ -136,16 +136,16 @@ function wp_save_post_revision( $post_id ) {
 	 */
 	$revisions = wp_get_post_revisions( $post_id );
 	if ( $revisions ) {
-		// Grab the last revision, but not an autosave.
+		// Grab the latest revision, but not an autosave.
 		foreach ( $revisions as $revision ) {
 			if ( false !== strpos( $revision->post_name, "{$revision->post_parent}-revision" ) ) {
-				$last_revision = $revision;
+				$latest_revision = $revision;
 				break;
 			}
 		}
 
 		/**
-		 * Filters whether the post has changed since the last revision.
+		 * Filters whether the post has changed since the latest revision.
 		 *
 		 * By default a revision is saved only if one of the revisioned fields has changed.
 		 * This filter can override that so a revision is saved even if nothing has changed.
@@ -154,14 +154,14 @@ function wp_save_post_revision( $post_id ) {
 		 *
 		 * @param bool    $check_for_changes Whether to check for changes before saving a new revision.
 		 *                                   Default true.
-		 * @param WP_Post $last_revision     The last revision post object.
+		 * @param WP_Post $latest_revision   The latest revision post object.
 		 * @param WP_Post $post              The post object.
 		 */
-		if ( isset( $last_revision ) && apply_filters( 'wp_save_post_revision_check_for_changes', true, $last_revision, $post ) ) {
+		if ( isset( $latest_revision ) && apply_filters( 'wp_save_post_revision_check_for_changes', true, $latest_revision, $post ) ) {
 			$post_has_changed = false;
 
 			foreach ( array_keys( _wp_post_revision_fields( $post ) ) as $field ) {
-				if ( normalize_whitespace( $post->$field ) !== normalize_whitespace( $last_revision->$field ) ) {
+				if ( normalize_whitespace( $post->$field ) !== normalize_whitespace( $latest_revision->$field ) ) {
 					$post_has_changed = true;
 					break;
 				}
@@ -176,10 +176,10 @@ function wp_save_post_revision( $post_id ) {
 			 * @since 4.1.0
 			 *
 			 * @param bool    $post_has_changed Whether the post has changed.
-			 * @param WP_Post $last_revision    The last revision post object.
+			 * @param WP_Post $latest_revision  The latest revision post object.
 			 * @param WP_Post $post             The post object.
 			 */
-			$post_has_changed = (bool) apply_filters( 'wp_save_post_revision_post_has_changed', $post_has_changed, $last_revision, $post );
+			$post_has_changed = (bool) apply_filters( 'wp_save_post_revision_post_has_changed', $post_has_changed, $latest_revision, $post );
 
 			// Don't save revision if post unchanged.
 			if ( ! $post_has_changed ) {
@@ -534,13 +534,13 @@ function wp_get_post_revisions( $post = 0, $args = null ) {
  *
  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
  * @return WP_Error|array {
- *     Returns associative array with last revision ID and total count.
+ *     Returns associative array with latest revision ID and total count.
  *
- *     @type int $revision The last revision post ID or 0 if no revisions exist.
+ *     @type int $revision The latest revision post ID or 0 if no revisions exist.
  *     @type int $count    The total count of revisions for the given post.
  * }
  */
-function wp_get_last_revision_id_and_total_count( $post = 0 ) {
+function wp_get_latest_revision_id_and_total_count( $post = 0 ) {
 	$post = get_post( $post );
 
 	if ( ! $post ) {
