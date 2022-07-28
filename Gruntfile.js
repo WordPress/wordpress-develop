@@ -336,7 +336,8 @@ module.exports = function(grunt) {
 					[ WORKING_DIR + 'wp-includes/js/wp-util.js' ]: [ './src/js/_enqueues/wp/util.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wpdialog.js' ]: [ './src/js/_enqueues/lib/dialog.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wplink.js' ]: [ './src/js/_enqueues/lib/link.js' ],
-					[ WORKING_DIR + 'wp-includes/js/zxcvbn-async.js' ]: [ './src/js/_enqueues/lib/zxcvbn-async.js' ]
+					[ WORKING_DIR + 'wp-includes/js/zxcvbn-async.js' ]: [ './src/js/_enqueues/lib/zxcvbn-async.js' ],
+					[ WORKING_DIR + 'wp-includes/js/webp-fallback.js' ]: [ './src/js/_enqueues/wp/webp-fallback.js' ]
 				}
 			},
 			'wp-admin-css-compat-rtl': {

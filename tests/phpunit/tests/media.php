@@ -3798,6 +3798,66 @@ EOF;
 
 		$this->assertFalse( $result );
 	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test_wp_wepb_fallback_if_content_has_updated_images() {
+
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->markTestSkipped( 'This test requires WebP support.' );
+		}
+
+		remove_all_actions( 'template_redirect' );
+		do_action( 'template_redirect' );
+
+		$filename       = DIR_TESTDATA . '/images/test-image-large.jpg';
+		$attachment_id = $this->factory->attachment->create_upload_object(
+			$filename
+		);
+
+		// Preferring WebP over JPEG results in no changes to content.
+		add_filter(
+			'wp_content_image_mimes',
+			function() {
+				return array( 'image/webp', 'image/jpeg' );
+			}
+		);
+
+		apply_filters(
+			'the_content',
+			sprintf(
+				'<p>before image</p>%s<p>after image</p>',
+				wp_filter_content_tags( wp_get_attachment_image( $attachment_id, 'medium', false, array( 'class' => "wp-image-{$attachment_id}" ) ) )
+			)
+		);
+
+		$this->assertTrue( has_action( 'wp_footer', 'wp_wepb_fallback' ) === 10 );
+
+		ob_start();
+			wp_footer();
+		$footer = ob_get_clean();
+		$this->assertStringContainsString( 'data:image/webp;base64,UklGR', $footer );
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test_wp_wepb_fallback_if_content_has_no_updated_images() {
+
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->markTestSkipped( 'This test requires WebP support.' );
+		}
+
+		apply_filters( 'the_content', '<p>no image</p>' );
+
+		$this->assertFalse( has_action( 'wp_footer', 'wp_wepb_fallback' ) );
+
+		ob_start();
+			wp_footer();
+		$footer = ob_get_clean();
+		$this->assertStringNotContainsString( 'data:image/webp;base64,UklGR', $footer );
+	}
 }
 
 /**

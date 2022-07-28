@@ -1854,7 +1854,14 @@ function wp_filter_content_tags( $content, $context = null ) {
 
 			// Use alternate mime types when specified and available.
 			if ( $attachment_id > 0 && _wp_in_front_end_context() ) {
+				$original_image = $filtered_image;
 				$filtered_image = wp_image_use_alternate_mime_types( $filtered_image, $context, $attachment_id );
+				if (
+					! has_action( 'wp_footer', 'wp_wepb_fallback' ) &&
+					$original_image !== $filtered_image
+				) {
+					add_action( 'wp_footer', 'wp_wepb_fallback' );
+				}
 			}
 
 			/**
@@ -1901,6 +1908,44 @@ function wp_filter_content_tags( $content, $context = null ) {
 	}
 
 	return $content;
+}
+
+/**
+ * Adds a fallback mechanism to replace webp images with jpeg alternatives on older browsers.
+ *
+ * @since 6.1.0
+ */
+function wp_wepb_fallback() {
+
+	ob_start();
+	$suffix     = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
+	$script_src = includes_url( "js/webp-fallback$suffix.js" );
+
+	?>
+	( function( d, i, s, p ) {
+		s = d.createElement( s );
+		s.src = '<?php echo esc_url_raw( $script_src ); ?>';
+
+		i = d.createElement( i );
+		i.src = p + 'jIAAABXRUJQVlA4ICYAAACyAgCdASoCAAEALmk0mk0iIiIiIgBoSygABc6zbAAA/v56QAAAAA==';
+		i.onload = function() {
+			i.onload = undefined;
+			i.src = p + 'h4AAABXRUJQVlA4TBEAAAAvAQAAAAfQ//73v/+BiOh/AAA=';
+		};
+
+		i.onerror = function() {
+			d.body.appendChild( s );
+		};
+	} )( document, 'img', 'script', 'data:image/webp;base64,UklGR' );
+	<?php
+	$javascript = ob_get_clean();
+	wp_print_inline_script_tag(
+		preg_replace( '/\s+/', '', $javascript ),
+		array(
+			'id'            => 'wpFallbackWebpImages',
+			'data-rest-api' => esc_url_raw( trailingslashit( get_rest_url() ) ),
+		)
+	);
 }
 
 /**
