@@ -3811,10 +3811,8 @@ EOF;
 		remove_all_actions( 'template_redirect' );
 		do_action( 'template_redirect' );
 
-		$filename       = DIR_TESTDATA . '/images/test-image-large.jpg';
-		$attachment_id = $this->factory->attachment->create_upload_object(
-			$filename
-		);
+		$filename      = DIR_TESTDATA . '/images/' . self::$large_filename;
+		$attachment_id = $this->factory->attachment->create_upload_object( $filename );
 
 		// Preferring WebP over JPEG results in no changes to content.
 		add_filter(
