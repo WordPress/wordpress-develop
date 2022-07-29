@@ -228,7 +228,7 @@ class Tests_General_wpPreloadLinks extends WP_UnitTestCase {
 						'as'    => 'image',
 						'media' => '(min-width: 601px)',
 					),
-					// No href but not imagesrcset, should be ignored
+					// No href but not imagesrcset, should be ignored.
 					array(
 						'as'    => 'image',
 						'media' => '(min-width: 601px)',
