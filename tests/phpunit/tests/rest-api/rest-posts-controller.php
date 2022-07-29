@@ -121,7 +121,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function save_posts_clauses( $orderby, $query ) {
-		array_push( $this->posts_clauses, $orderby );
+		if ( 'revision' !== $query->query_vars['post_type'] ) {
+			array_push( $this->posts_clauses, $orderby );
+		}
 		return $orderby;
 	}
 
@@ -154,12 +156,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		$this->assertSame( array( 'v1' => true ), $data['endpoints'][0]['allow_batch'] );
 		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 		// Single.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts/' . self::$post_id );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		$this->assertSame( array( 'v1' => true ), $data['endpoints'][0]['allow_batch'] );
 		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
@@ -1383,8 +1387,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( 0, $response->get_data() );
 
-		// FIXME Since this request returns zero posts, the query is executed twice.
-		$this->assertCount( 2, $this->posts_clauses );
+		$this->assertCount( 1, $this->posts_clauses );
 		$this->posts_clauses = array_slice( $this->posts_clauses, 0, 1 );
 
 		$this->assertPostsWhere( " AND {posts}.ID IN (0) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
@@ -1415,8 +1418,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( 0, $response->get_data() );
 
-		// FIXME Since this request returns zero posts, the query is executed twice.
-		$this->assertCount( 2, $this->posts_clauses );
+		$this->assertCount( 1, $this->posts_clauses );
 		$this->posts_clauses = array_slice( $this->posts_clauses, 0, 1 );
 
 		$this->assertPostsWhere( " AND {posts}.ID IN (0) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
@@ -1434,8 +1436,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( 0, $response->get_data() );
 
-		// FIXME Since this request returns zero posts, the query is executed twice.
-		$this->assertCount( 2, $this->posts_clauses );
+		$this->assertCount( 1, $this->posts_clauses );
 		$this->posts_clauses = array_slice( $this->posts_clauses, 0, 1 );
 
 		$this->assertPostsWhere( " AND {posts}.ID IN (0) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
@@ -1513,6 +1514,87 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertNotContains( $id3, $ids );
 
 		$this->assertPostsWhere( " AND {posts}.ID NOT IN ($id3) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
+	}
+
+	/**
+	 * @ticket 55592
+	 * @covers WP_REST_Posts_Controller::get_items
+	 * @covers ::update_post_thumbnail_cache
+	 */
+	public function test_get_items_primes_thumbnail_cache_for_featured_media() {
+		$file           = DIR_TESTDATA . '/images/canola.jpg';
+		$attachment_ids = array();
+		$post_ids       = array();
+		for ( $i = 0; $i < 3; $i++ ) {
+			$post_ids[ $i ]       = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+			$attachment_ids[ $i ] = self::factory()->attachment->create_object(
+				$file,
+				$post_ids[ $i ],
+				array(
+					'post_mime_type' => 'image/jpeg',
+				)
+			);
+			set_post_thumbnail( $post_ids[ $i ], $attachment_ids[ $i ] );
+		}
+
+		// Attachment creation warms thumbnail IDs. Needs clean up for test.
+		wp_cache_delete_multiple( $attachment_ids, 'posts' );
+
+		$filter = new MockAction();
+		add_filter( 'update_post_metadata_cache', array( $filter, 'filter' ), 10, 2 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'include', $post_ids );
+		rest_get_server()->dispatch( $request );
+
+		$args = $filter->get_args();
+		$last = end( $args );
+		$this->assertIsArray( $last, 'The last value is not an array' );
+		$this->assertSameSets( $attachment_ids, $last[1] );
+	}
+
+	/**
+	 * @ticket 55593
+	 * @covers WP_REST_Posts_Controller::get_items
+	 * @covers ::update_post_parent_caches
+	 */
+	public function test_get_items_primes_parent_post_caches() {
+		$parent_id1       = self::$post_ids[0];
+		$parent_id2       = self::$post_ids[1];
+		$parent_ids       = array( $parent_id1, $parent_id2 );
+		$attachment_ids   = array();
+		$attachment_ids[] = $this->factory->attachment->create_object(
+			DIR_TESTDATA . '/images/canola.jpg',
+			$parent_id1,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption 1',
+			)
+		);
+
+		$attachment_ids[] = $this->factory->attachment->create_object(
+			DIR_TESTDATA . '/images/canola.jpg',
+			$parent_id2,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption 2',
+			)
+		);
+
+		// Attachment creation warms parent IDs. Needs clean up for test.
+		wp_cache_delete_multiple( $parent_ids, 'posts' );
+		wp_cache_delete_multiple( $attachment_ids, 'posts' );
+
+		$filter = new MockAction();
+		add_filter( 'update_post_metadata_cache', array( $filter, 'filter' ), 10, 2 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		rest_get_server()->dispatch( $request );
+
+		$args = $filter->get_args();
+		$last = end( $args );
+		$this->assertIsArray( $last, 'The last value is not an array' );
+		$this->assertSameSets( $parent_ids, $last[1] );
 	}
 
 	public function test_get_items_pagination_headers() {
@@ -1692,8 +1774,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function test_get_items_invalid_date() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$request->set_param( 'after', rand_str() );
-		$request->set_param( 'before', rand_str() );
+		$request->set_param( 'after', 'foo' );
+		$request->set_param( 'before', 'bar' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
@@ -1717,8 +1799,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 */
 	public function test_get_items_invalid_modified_date() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$request->set_param( 'modified_after', rand_str() );
-		$request->set_param( 'modified_before', rand_str() );
+		$request->set_param( 'modified_after', 'foo' );
+		$request->set_param( 'modified_before', 'bar' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
@@ -1846,7 +1928,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( rest_url( '/wp/v2/users/' . self::$author_id ), $links['author'][0]['href'] );
 	}
 
-	public function test_get_post_draft_status_not_authenicated() {
+	public function test_get_post_draft_status_not_authenticated() {
 		$draft_id = $this->factory->post->create(
 			array(
 				'post_status' => 'draft',
@@ -2695,7 +2777,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			0,
 			array(
 				'post_mime_type' => 'image/jpeg',
-				'menu_order'     => rand( 1, 100 ),
+				'menu_order'     => 1,
 			)
 		);
 
@@ -3308,7 +3390,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_update_post_ignore_readonly() {
 		wp_set_current_user( self::$editor_id );
 
-		$new_content       = rand_str();
+		$new_content       = 'foo bar baz';
 		$expected_modified = current_time( 'mysql' );
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
@@ -3373,7 +3455,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 		$params  = $this->set_post_data(
 			array(
-				'date' => rand_str(),
+				'date' => 'foo',
 			)
 		);
 		$request->set_body_params( $params );
@@ -3388,7 +3470,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 		$params  = $this->set_post_data(
 			array(
-				'date_gmt' => rand_str(),
+				'date_gmt' => 'foo',
 			)
 		);
 		$request->set_body_params( $params );

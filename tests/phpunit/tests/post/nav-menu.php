@@ -12,7 +12,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$this->menu_id = wp_create_nav_menu( rand_str() );
+		$this->menu_id = wp_create_nav_menu( 'foo' );
 	}
 
 	/**
@@ -203,6 +203,69 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 55620
+	 * @covers ::update_menu_item_cache
+	 */
+	public function test_update_menu_item_cache_primes_posts() {
+		$post_id = self::factory()->post->create();
+		wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'post_type',
+				'menu-item-object'    => 'post',
+				'menu-item-object-id' => $post_id,
+				'menu-item-status'    => 'publish',
+			)
+		);
+
+		$posts_query  = new WP_Query();
+		$query_result = $posts_query->query( array( 'post_type' => 'nav_menu_item' ) );
+
+		wp_cache_delete( $post_id, 'posts' );
+		$action = new MockAction();
+		add_filter( 'update_post_metadata_cache', array( $action, 'filter' ), 10, 2 );
+
+		update_menu_item_cache( $query_result );
+
+		$args = $action->get_args();
+		$last = end( $args );
+		$this->assertSameSets( array( $post_id ), $last[1], '_prime_post_caches() was not executed.' );
+	}
+
+	/**
+	 * @ticket 55620
+	 * @covers ::update_menu_item_cache
+	 */
+	public function test_update_menu_item_cache_primes_terms() {
+		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
+		$term_id = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
+		wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'taxonomy',
+				'menu-item-object'    => 'wptests_tax',
+				'menu-item-object-id' => $term_id,
+				'menu-item-status'    => 'publish',
+			)
+		);
+
+		$posts_query  = new WP_Query();
+		$query_result = $posts_query->query( array( 'post_type' => 'nav_menu_item' ) );
+
+		wp_cache_delete( $term_id, 'terms' );
+		$action = new MockAction();
+		add_filter( 'update_term_metadata_cache', array( $action, 'filter' ), 10, 2 );
+
+		update_menu_item_cache( $query_result );
+
+		$args = $action->get_args();
+		$last = end( $args );
+		$this->assertSameSets( array( $term_id ), $last[1], '_prime_term_caches() was not executed.' );
+	}
+
+	/**
 	 * @ticket 13910
 	 */
 	public function test_wp_get_nav_menu_name() {
@@ -247,7 +310,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		// And this is what we got when calling wp_get_nav_menus().
 		$nav_menus_names = wp_list_pluck( wp_get_nav_menus(), 'name' );
 
-		$this->assertSame( $nav_menus_names, $expected_nav_menus_names );
+		$this->assertSame( $expected_nav_menus_names, $nav_menus_names );
 	}
 
 	/**
@@ -255,8 +318,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 */
 	public function test_wp_setup_nav_menu_item_for_post_type_archive() {
 
-		$post_type_slug        = rand_str( 12 );
-		$post_type_description = rand_str();
+		$post_type_slug        = 'fooo-bar-baz';
+		$post_type_description = 'foo';
 		register_post_type(
 			$post_type_slug,
 			array(
@@ -288,7 +351,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 */
 	public function test_wp_setup_nav_menu_item_for_post_type_archive_no_description() {
 
-		$post_type_slug        = rand_str( 12 );
+		$post_type_slug        = 'fooo-bar-baz';
 		$post_type_description = '';
 		register_post_type(
 			$post_type_slug,
@@ -319,8 +382,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 */
 	public function test_wp_setup_nav_menu_item_for_post_type_archive_custom_description() {
 
-		$post_type_slug        = rand_str( 12 );
-		$post_type_description = rand_str();
+		$post_type_slug        = 'fooo-bar-baz';
+		$post_type_description = 'foobaz';
 		register_post_type(
 			$post_type_slug,
 			array(
@@ -331,7 +394,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 			)
 		);
 
-		$menu_item_description = rand_str();
+		$menu_item_description = 'foo_description';
 
 		$post_type_archive_item_id = wp_update_nav_menu_item(
 			$this->menu_id,
@@ -354,7 +417,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 */
 	public function test_wp_setup_nav_menu_item_for_unknown_post_type_archive_no_description() {
 
-		$post_type_slug = rand_str( 12 );
+		$post_type_slug = 'fooo-bar-baz';
 
 		$post_type_archive_item_id = wp_update_nav_menu_item(
 			$this->menu_id,

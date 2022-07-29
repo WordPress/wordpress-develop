@@ -6,7 +6,7 @@
 	<arg name="extensions" value="php"/>
 
 	<!-- Whenever possible, cache the scan results and re-use those for unchanged files on the next scan. -->
-	<arg name="cache"/>
+	<arg name="cache" value=".cache/phpcs.json"/>
 
 	<!-- Set the memory limit to 256M.
 		 For most standard PHP configurations, this means the memory limit will temporarily be raised.
@@ -165,7 +165,7 @@
 
 	<!-- Whitelist the WP DB Class and related tests for usage of direct database access functions. -->
 	<rule ref="WordPress.DB.RestrictedFunctions">
-		<exclude-pattern>/src/wp-includes/wp-db\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wpdb\.php</exclude-pattern>
 		<exclude-pattern>/tests/phpunit/tests/db/charset\.php</exclude-pattern>
 	</rule>
 
@@ -249,6 +249,7 @@
 				<element value="WP_REST_Test_Controller"/>
 				<element value="WP_Image_Editor_Mock"/>
 				<element value="WP_Filesystem_MockFS"/>
+				<element value="Mock_Invokable"/>
 				<element value="MockPHPMailer"/>
 				<element value="MockAction"/>
 				<element value="WP_Object_Cache"/>
@@ -314,7 +315,7 @@
 		<exclude-pattern>/tests/phpunit/tests/*</exclude-pattern>
 	</rule>
 
-	<!-- Exclude some old classes that can't be renamed, as it would break back compat. -->
+	<!-- Exclude some old classes that cannot be renamed, as it would break back compat. -->
 	<rule ref="PEAR.NamingConventions.ValidClassName.Invalid">
 		<exclude-pattern>/src/wp-admin/includes/class-wp-filesystem-ftpsockets\.php</exclude-pattern>
 		<exclude-pattern>/src/wp-includes/class-wp-oembed\.php</exclude-pattern>
@@ -324,10 +325,10 @@
 	</rule>
 	<rule ref="PEAR.NamingConventions.ValidClassName.StartWithCapital">
 		<exclude-pattern>/src/wp-admin/includes/class-wp-list-table-compat\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-dependency\.php</exclude-pattern>
 		<exclude-pattern>/src/wp-includes/class-wp-editor\.php</exclude-pattern>
 		<exclude-pattern>/src/wp-includes/class-wp-xmlrpc-server\.php</exclude-pattern>
-		<exclude-pattern>/src/wp-includes/wp-db\.php</exclude-pattern>
-		<exclude-pattern>/src/wp-includes/class-wp-dependency\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wpdb\.php</exclude-pattern>
 	</rule>
 
 	<!-- Exclude some incorrectly named files that won't be renamed. -->

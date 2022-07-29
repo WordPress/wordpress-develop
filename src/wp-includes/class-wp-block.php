@@ -196,9 +196,9 @@ class WP_Block {
 	 * @since 5.5.0
 	 *
 	 * @param array $options {
-	 *   Optional options object.
+	 *     Optional options object.
 	 *
-	 *   @type bool $dynamic Defaults to 'true'. Optionally set to false to avoid using the block's render_callback.
+	 *     @type bool $dynamic Defaults to 'true'. Optionally set to false to avoid using the block's render_callback.
 	 * }
 	 * @return string Rendered block output.
 	 */
@@ -277,7 +277,7 @@ class WP_Block {
 		 * @since 5.0.0
 		 * @since 5.9.0 The `$instance` parameter was added.
 		 *
-		 * @param string   $block_content The block content about to be appended.
+		 * @param string   $block_content The block content.
 		 * @param array    $block         The full block, including name and attributes.
 		 * @param WP_Block $instance      The block instance.
 		 */
@@ -292,7 +292,7 @@ class WP_Block {
 		 * @since 5.7.0
 		 * @since 5.9.0 The `$instance` parameter was added.
 		 *
-		 * @param string   $block_content The block content about to be appended.
+		 * @param string   $block_content The block content.
 		 * @param array    $block         The full block, including name and attributes.
 		 * @param WP_Block $instance      The block instance.
 		 */

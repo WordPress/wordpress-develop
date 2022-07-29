@@ -125,6 +125,8 @@ final class WP_Privacy_Policy_Content {
 	 * Output a warning when some privacy info has changed.
 	 *
 	 * @since 4.9.6
+	 *
+	 * @global WP_Post $post Global post object.
 	 */
 	public static function policy_text_changed_notice() {
 		global $post;
@@ -302,6 +304,8 @@ final class WP_Privacy_Policy_Content {
 	 *
 	 * @since 4.9.6
 	 * @since 5.0.0 The `$post` parameter was made optional.
+	 *
+	 * @global WP_Post $post Global post object.
 	 *
 	 * @param WP_Post|null $post The currently edited post. Default null.
 	 */
@@ -587,7 +591,7 @@ final class WP_Privacy_Policy_Content {
 		}
 
 		/* translators: Default privacy policy heading. */
-		$strings[] = '<h2>' . __( 'Where we send your data' ) . '</h2>';
+		$strings[] = '<h2>' . __( 'Where your data is sent' ) . '</h2>';
 
 		if ( $description ) {
 			/* translators: Privacy policy tutorial. */

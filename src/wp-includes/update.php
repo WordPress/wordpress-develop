@@ -32,7 +32,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 
 	// Include an unmodified $wp_version.
 	require ABSPATH . WPINC . '/version.php';
-	$php_version = phpversion();
+	$php_version = PHP_VERSION;
 
 	$current      = get_site_transient( 'update_core' );
 	$translations = wp_get_installed_translations( 'core' );
@@ -80,18 +80,17 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	}
 
 	if ( is_multisite() ) {
-		$user_count        = get_user_count();
 		$num_blogs         = get_blog_count();
 		$wp_install        = network_site_url();
 		$multisite_enabled = 1;
 	} else {
-		$user_count        = count_users();
-		$user_count        = $user_count['total_users'];
 		$multisite_enabled = 0;
 		$num_blogs         = 1;
 		$wp_install        = home_url( '/' );
 	}
 
+	$extensions = get_loaded_extensions();
+	sort( $extensions, SORT_STRING | SORT_FLAG_CASE );
 	$query = array(
 		'version'            => $wp_version,
 		'php'                => $php_version,
@@ -99,10 +98,44 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		'mysql'              => $mysql_version,
 		'local_package'      => isset( $wp_local_package ) ? $wp_local_package : '',
 		'blogs'              => $num_blogs,
-		'users'              => $user_count,
+		'users'              => get_user_count(),
 		'multisite_enabled'  => $multisite_enabled,
 		'initial_db_version' => get_site_option( 'initial_db_version' ),
+		'extensions'         => array_combine( $extensions, array_map( 'phpversion', $extensions ) ),
+		'platform_flags'     => array(
+			'os'   => PHP_OS,
+			'bits' => PHP_INT_SIZE === 4 ? 32 : 64,
+		),
+		'image_support'      => array(),
 	);
+
+	if ( function_exists( 'gd_info' ) ) {
+		$gd_info = gd_info();
+		// Filter to supported values.
+		$gd_info = array_filter( $gd_info );
+
+		// Add data for GD WebP and AVIF support.
+		$query['image_support']['gd'] = array_keys(
+			array_filter(
+				array(
+					'webp' => isset( $gd_info['WebP Support'] ),
+					'avif' => isset( $gd_info['AVIF Support'] ),
+				)
+			)
+		);
+	}
+
+	if ( class_exists( 'Imagick' ) ) {
+		// Add data for Imagick WebP and AVIF support.
+		$query['image_support']['imagick'] = array_keys(
+			array_filter(
+				array(
+					'webp' => ! empty( Imagick::queryFormats( 'WEBP' ) ),
+					'avif' => ! empty( Imagick::queryFormats( 'AVIF' ) ),
+				)
+			)
+		);
+	}
 
 	/**
 	 * Filters the query arguments sent as part of the core version check.
@@ -433,7 +466,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 			continue;
 		}
 
-		$hostname = wp_parse_url( esc_url_raw( $plugin_data['UpdateURI'] ), PHP_URL_HOST );
+		$hostname = wp_parse_url( sanitize_url( $plugin_data['UpdateURI'] ), PHP_URL_HOST );
 
 		/**
 		 * Filters the update response for a given plugin hostname.
@@ -568,7 +601,7 @@ function wp_update_themes( $extra_stats = array() ) {
 	$checked = array();
 	$request = array();
 
-	// Put slug of current theme into request.
+	// Put slug of active theme into request.
 	$request['active'] = get_option( 'stylesheet' );
 
 	foreach ( $installed_themes as $theme ) {

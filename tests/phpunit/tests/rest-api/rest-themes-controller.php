@@ -387,6 +387,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$theme_supports = $properties['theme_supports']['properties'];
 		$this->assertArrayHasKey( 'align-wide', $theme_supports );
 		$this->assertArrayHasKey( 'automatic-feed-links', $theme_supports );
+		$this->assertArrayHasKey( 'block-templates', $theme_supports );
 		$this->assertArrayHasKey( 'custom-header', $theme_supports );
 		$this->assertArrayHasKey( 'custom-background', $theme_supports );
 		$this->assertArrayHasKey( 'custom-logo', $theme_supports );
@@ -405,7 +406,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'responsive-embeds', $theme_supports );
 		$this->assertArrayHasKey( 'title-tag', $theme_supports );
 		$this->assertArrayHasKey( 'wp-block-styles', $theme_supports );
-		$this->assertCount( 20, $theme_supports );
+		$this->assertCount( 21, $theme_supports );
 	}
 
 	/**
@@ -1285,15 +1286,86 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * @ticket 54349
+	 * @dataProvider data_get_item_non_subdir_theme
+	 * @ticket 54596
+	 * @covers WP_REST_Themes_Controller::get_item
+	 *
+	 * @param string $theme_dir     Theme directory to test.
+	 * @param string $expected_name Expected theme name.
 	 */
-	public function test_get_item_subdirectory_theme() {
+	public function test_get_item_non_subdir_theme( $theme_dir, $expected_name ) {
 		wp_set_current_user( self::$admin_id );
-		$request  = new WP_REST_Request( 'GET', self::$themes_route . '/subdir/theme2' );
+		$request  = new WP_REST_Request( 'GET', self::$themes_route . $theme_dir );
 		$response = rest_do_request( $request );
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( 'My Subdir Theme', $response->get_data()['name']['raw'] );
+		$this->assertSame( $expected_name, $response->get_data()['name']['raw'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_get_item_non_subdir_theme() {
+		return array(
+			'parent theme'                => array(
+				'theme_dir'     => '/block-theme',
+				'expected_name' => 'Block Theme',
+			),
+			'child theme'                 => array(
+				'theme_dir'     => '/block-theme-child',
+				'expected_name' => 'Block Theme Child Theme',
+			),
+			'theme with _-[]. characters' => array(
+				'theme_dir'     => '/block_theme-[0.4.0]',
+				'expected_name' => 'Block Theme [0.4.0]',
+			),
+		);
+	}
+
+	/**
+	 * @dataProvider data_get_item_subdirectory_theme
+	 * @ticket 54349
+	 * @ticket 54596
+	 * @covers WP_REST_Themes_Controller::get_item
+	 *
+	 * @param string $theme_dir     Theme directory to test.
+	 * @param string $expected_name Expected theme name.
+	 */
+	public function test_get_item_subdirectory_theme( $theme_dir, $expected_name ) {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', self::$themes_route . $theme_dir );
+		$response = rest_do_request( $request );
+
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			'A 200 OK status was not returned.'
+		);
+		$this->assertSame(
+			$expected_name,
+			$response->get_data()['name']['raw'],
+			'The actual theme name was not the expected theme name.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_get_item_subdirectory_theme() {
+		return array(
+			'theme2'                      => array(
+				'theme_dir'     => '/subdir/theme2',
+				'expected_name' => 'My Subdir Theme',
+			),
+			'theme with _-[]. characters' => array(
+				'theme_dir'     => '/subdir/block_theme-[1.0.0]',
+				'expected_name' => 'Block Theme [1.0.0] in subdirectory',
+			),
+		);
 	}
 
 	/**

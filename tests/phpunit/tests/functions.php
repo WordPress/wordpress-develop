@@ -130,6 +130,68 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests path_join().
+	 *
+	 * @ticket 55897
+	 * @dataProvider path_join_data_provider
+	 */
+	public function test_path_join( $base, $path, $expected ) {
+		$this->assertSame( $expected, path_join( $base, $path ) );
+	}
+
+	/**
+	 * Data provider for test_path_join().
+	 *
+	 * @return string[][]
+	 */
+	public function path_join_data_provider() {
+		return array(
+			// Absolute paths.
+			'absolute path should return path' => array(
+				'base'     => 'base',
+				'path'     => '/path',
+				'expected' => '/path',
+			),
+			'windows path with slashes'        => array(
+				'base'     => 'base',
+				'path'     => '//path',
+				'expected' => '//path',
+			),
+			'windows path with backslashes'    => array(
+				'base'     => 'base',
+				'path'     => '\\\\path',
+				'expected' => '\\\\path',
+			),
+			// Non-absolute paths.
+			'join base and path'               => array(
+				'base'     => 'base',
+				'path'     => 'path',
+				'expected' => 'base/path',
+			),
+			'strip trailing slashes in base'   => array(
+				'base'     => 'base///',
+				'path'     => 'path',
+				'expected' => 'base/path',
+			),
+			'empty path'                       => array(
+				'base'     => 'base',
+				'path'     => '',
+				'expected' => 'base/',
+			),
+			'empty base'                       => array(
+				'base'     => '',
+				'path'     => 'path',
+				'expected' => '/path',
+			),
+			'empty path and base'              => array(
+				'base'     => '',
+				'path'     => '',
+				'expected' => '/',
+			),
+		);
+	}
+
+	/**
 	 * @ticket 33265
 	 * @ticket 35996
 	 *
@@ -666,6 +728,62 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that add_query_arg removes the question mark when
+	 * a parameter is set to false.
+	 *
+	 * @dataProvider data_add_query_arg_removes_question_mark
+	 *
+	 * @ticket 44499
+	 * @group  add_query_arg
+	 *
+	 * @covers ::add_query_arg
+	 *
+	 * @param string $url      Url to test.
+	 * @param string $expected Expected URL.
+	 */
+	public function test_add_query_arg_removes_question_mark( $url, $expected, $key = 'param', $value = false ) {
+		$this->assertSame( $expected, add_query_arg( $key, $value, $url ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_add_query_arg_removes_question_mark() {
+		return array(
+			'anchor'                                     => array(
+				'url'      => 'http://example.org?#anchor',
+				'expected' => 'http://example.org#anchor',
+			),
+			'/ then anchor'                              => array(
+				'url'      => 'http://example.org/?#anchor',
+				'expected' => 'http://example.org/#anchor',
+			),
+			'invalid query param and anchor'             => array(
+				'url'      => 'http://example.org?param=value#anchor',
+				'expected' => 'http://example.org#anchor',
+			),
+			'/ then invalid query param and anchor'      => array(
+				'url'      => 'http://example.org/?param=value#anchor',
+				'expected' => 'http://example.org/#anchor',
+			),
+			'?#anchor when adding valid key/value args'  => array(
+				'url'      => 'http://example.org?#anchor',
+				'expected' => 'http://example.org?foo=bar#anchor',
+				'key'      => 'foo',
+				'value'    => 'bar',
+			),
+			'/?#anchor when adding valid key/value args' => array(
+				'url'      => 'http://example.org/?#anchor',
+				'expected' => 'http://example.org/?foo=bar#anchor',
+				'key'      => 'foo',
+				'value'    => 'bar',
+			),
+		);
+	}
+
+	/**
 	 * @ticket 21594
 	 */
 	public function test_get_allowed_mime_types() {
@@ -934,6 +1052,10 @@ class Tests_Functions extends WP_UnitTestCase {
 			'ftp://127.0.0.1/',
 			'http://www.woo.com/video?v=exvUH2qKLTU',
 			'http://taco.com?burrito=enchilada#guac',
+			'http://example.org/?post_type=post&p=4',
+			'http://example.org/?post_type=post&p=5',
+			'http://example.org/?post_type=post&p=6',
+			'http://typo-in-query.org/?foo=bar&ampbaz=missing_semicolon',
 		);
 
 		$blob = '
@@ -996,6 +1118,12 @@ class Tests_Functions extends WP_UnitTestCase {
 			http://www.woo.com/video?v=exvUH2qKLTU
 
 			http://taco.com?burrito=enchilada#guac
+
+			http://example.org/?post_type=post&amp;p=4
+			http://example.org/?post_type=post&#038;p=5
+			http://example.org/?post_type=post&p=6
+
+			http://typo-in-query.org/?foo=bar&ampbaz=missing_semicolon
 		';
 
 		$urls = wp_extract_urls( $blob );
@@ -1038,6 +1166,28 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertIsArray( $urls );
 		$this->assertCount( 8, $urls );
 		$this->assertSame( array_slice( $original_urls, 0, 8 ), $urls );
+	}
+
+	/**
+	 * Tests for backward compatibility of `wp_extract_urls` to remove unused semicolons.
+	 *
+	 * @ticket 30580
+	 *
+	 * @covers ::wp_extract_urls
+	 */
+	public function test_wp_extract_urls_remove_semicolon() {
+		$expected = array(
+			'http://typo.com',
+			'http://example.org/?post_type=post&p=8',
+		);
+		$actual   = wp_extract_urls(
+			'
+				http://typo.com;
+				http://example.org/?post_type=;p;o;s;t;&amp;p=8;
+			'
+		);
+
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
@@ -2050,4 +2200,126 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertFalse( wp_get_default_extension_for_mime_type( 123 ), 'false not returned when int as mime type supplied' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( null ), 'false not returned when null as mime type supplied' );
 	}
+
+	/**
+	 * @ticket 49412
+	 * @covers ::wp_filesize
+	 */
+	function test_wp_filesize_with_nonexistent_file() {
+		$file = 'nonexistent/file.jpg';
+		$this->assertEquals( 0, wp_filesize( $file ) );
+	}
+
+	/**
+	 * @ticket 49412
+	 * @covers ::wp_filesize
+	 */
+	function test_wp_filesize() {
+		$file = DIR_TESTDATA . '/images/test-image-upside-down.jpg';
+
+		$this->assertEquals( filesize( $file ), wp_filesize( $file ) );
+
+		$filter = function() {
+			return 999;
+		};
+
+		add_filter( 'wp_filesize', $filter );
+
+		$this->assertEquals( 999, wp_filesize( $file ) );
+
+		$pre_filter = function() {
+			return 111;
+		};
+
+		add_filter( 'pre_wp_filesize', $pre_filter );
+
+		$this->assertEquals( 111, wp_filesize( $file ) );
+	}
+
+	/**
+	 * @ticket 55505
+	 * @covers ::wp_recursive_ksort
+	 */
+	function test_wp_recursive_ksort() {
+		// Create an array to test.
+		$theme_json = array(
+			'version'  => 1,
+			'settings' => array(
+				'typography' => array(
+					'fontFamilies' => array(
+						'fontFamily' => 'DM Sans, sans-serif',
+						'slug'       => 'dm-sans',
+						'name'       => 'DM Sans',
+					),
+				),
+				'color'      => array(
+					'palette' => array(
+						array(
+							'slug'  => 'foreground',
+							'color' => '#242321',
+							'name'  => 'Foreground',
+						),
+						array(
+							'slug'  => 'background',
+							'color' => '#FCFBF8',
+							'name'  => 'Background',
+						),
+						array(
+							'slug'  => 'primary',
+							'color' => '#71706E',
+							'name'  => 'Primary',
+						),
+						array(
+							'slug'  => 'tertiary',
+							'color' => '#CFCFCF',
+							'name'  => 'Tertiary',
+						),
+					),
+				),
+			),
+		);
+
+		// Sort the array.
+		wp_recursive_ksort( $theme_json );
+
+		// Expected result.
+		$expected_theme_json = array(
+			'settings' => array(
+				'color'      => array(
+					'palette' => array(
+						array(
+							'color' => '#242321',
+							'name'  => 'Foreground',
+							'slug'  => 'foreground',
+						),
+						array(
+							'color' => '#FCFBF8',
+							'name'  => 'Background',
+							'slug'  => 'background',
+						),
+						array(
+							'color' => '#71706E',
+							'name'  => 'Primary',
+							'slug'  => 'primary',
+						),
+						array(
+							'color' => '#CFCFCF',
+							'name'  => 'Tertiary',
+							'slug'  => 'tertiary',
+						),
+					),
+				),
+				'typography' => array(
+					'fontFamilies' => array(
+						'fontFamily' => 'DM Sans, sans-serif',
+						'name'       => 'DM Sans',
+						'slug'       => 'dm-sans',
+					),
+				),
+			),
+			'version'  => 1,
+		);
+		$this->assertEquals( $theme_json, $expected_theme_json );
+	}
+
 }

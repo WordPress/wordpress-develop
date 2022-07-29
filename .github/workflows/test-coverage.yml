@@ -4,10 +4,18 @@ on:
   # Verify
   push:
     branches:
-      - master
       - trunk
     paths:
       - '.github/workflows/test-coverage.yml'
+      - 'docker-compose.yml'
+      - 'phpunit.xml.dist'
+      - 'tests/phpunit/multisite.xml'
+  pull_request:
+    branches:
+      - trunk
+    paths:
+      - '.github/workflows/test-coverage.yml'
+      - 'docker-compose.yml'
       - 'phpunit.xml.dist'
       - 'tests/phpunit/multisite.xml'
   # Once daily at 00:00 UTC.
@@ -20,18 +28,19 @@ env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
   LOCAL_PHP: '7.4-fpm'
   LOCAL_PHP_XDEBUG: true
+  LOCAL_PHP_XDEBUG_MODE: 'coverage'
   LOCAL_PHP_MEMCACHED: ${{ false }}
 
 jobs:
   # Sets up WordPress for testing or development use.
   #
   # Performs the following steps:
-  # - Set environment variables.
+  # - Sets environment variables.
   # - Checks out the repository.
   # - Checks out the WordPress Importer plugin (needed for the Core PHPUnit tests).
-  # - Logs debug information about the runner container.
-  # - Installs NodeJS 14.
-  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # - Logs debug information about the GitHub Action runner.
+  # - Installs NodeJS.
+  # _ Installs NPM dependencies.
   # - Logs Docker debug information (about the Docker installation within the runner).
   # - Starts the WordPress Docker container.
   # - Logs debug general information.
@@ -48,6 +57,7 @@ jobs:
   test-coverage-report:
     name: ${{ matrix.multisite && 'Multisite' || 'Single site' }} report
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     strategy:
       fail-fast: false
@@ -61,7 +71,7 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
 
       - name: Checkout repository
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
 
       - name: Log debug information
         run: |
@@ -77,9 +87,9 @@ jobs:
           locale -a
 
       - name: Install NodeJS
-        uses: actions/setup-node@38d90ce44d5275ad62cc48384b3d8a58c500bb5f # v2.2.2
+        uses: actions/setup-node@eeb10cff27034e7acf239c5d29f62154018672fd # v3.3.0
         with:
-          node-version: 14
+          node-version-file: '.nvmrc'
           cache: npm
 
       - name: Install Dependencies
@@ -96,7 +106,7 @@ jobs:
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Cache Composer dependencies
-        uses: actions/cache@26968a09c0ea4f3e233fdddbafd1166051a095f6 # v2.1.4
+        uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d # v3.0.4
         env:
           cache-name: cache-composer-dependencies
         with:
@@ -149,11 +159,12 @@ jobs:
         run: git diff --exit-code
 
       - name: Upload single site report to Codecov
-        if: ${{ ! matrix.multisite }}
-        uses: codecov/codecov-action@e156083f13aff6830c92fc5faa23505779fbf649 # v1.2.1
+        if: ${{ ! matrix.multisite && github.event_name != 'pull_request' }}
+        uses: codecov/codecov-action@81cd2dc8148241f03f5839d295e000b8f761e378 # v3.1.0
         with:
           file: wp-code-coverage-single-clover-${{ github.sha }}.xml
           flags: single,php
+          fail_ci_if_error: true
 
       - name: Run tests as a multisite install
         if: ${{ matrix.multisite }}
@@ -163,15 +174,16 @@ jobs:
         run: git diff --exit-code
 
       - name: Upload multisite report to Codecov
-        if: ${{ matrix.multisite }}
-        uses: codecov/codecov-action@e156083f13aff6830c92fc5faa23505779fbf649 # v1.2.1
+        if: ${{ matrix.multisite && github.event_name != 'pull_request' }}
+        uses: codecov/codecov-action@81cd2dc8148241f03f5839d295e000b8f761e378 # v3.1.0
         with:
           file: wp-code-coverage-multisite-clover-${{ github.sha }}.xml
           flags: multisite,php
+          fail_ci_if_error: true
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@master
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     needs: [ test-coverage-report ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:

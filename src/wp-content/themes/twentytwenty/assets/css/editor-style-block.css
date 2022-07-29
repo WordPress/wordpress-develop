@@ -115,11 +115,12 @@ Inter variable font. Usage:
 .editor-styles-wrapper ul,
 .editor-styles-wrapper dl,
 .editor-styles-wrapper dt {
-	font-family: NonBreakingSpaceOverride, "Hoefler Text", Garamond, "Times New Roman", serif;
+	font-family: NonBreakingSpaceOverride, "Hoefler Text", "Noto Serif", Garamond, "Times New Roman", serif;
 	letter-spacing: normal;
 }
 
 .editor-post-title__block .editor-post-title__input,
+.editor-styles-wrapper .wp-block-post-title,
 .editor-styles-wrapper .wp-block h1,
 .editor-styles-wrapper .wp-block h2,
 .editor-styles-wrapper .wp-block h3,
@@ -136,6 +137,7 @@ Inter variable font. Usage:
 @supports ( font-variation-settings: normal ) {
 
 	.editor-post-title__block .editor-post-title__input,
+	.editor-styles-wrapper .wp-block-post-title,
 	.editor-styles-wrapper .wp-block h1,
 	.editor-styles-wrapper .wp-block h2,
 	.editor-styles-wrapper .wp-block h3,
@@ -235,6 +237,7 @@ Inter variable font. Usage:
 }
 
 .editor-post-title__block .editor-post-title__input,
+.editor-styles-wrapper .wp-block-post-title,
 .editor-styles-wrapper .wp-block h1,
 .editor-styles-wrapper .wp-block h2,
 .editor-styles-wrapper .wp-block h3,
@@ -251,6 +254,7 @@ Inter variable font. Usage:
 }
 
 .editor-post-title__block .editor-post-title__input,
+.editor-styles-wrapper .wp-block-post-title,
 .editor-styles-wrapper .wp-block h1 {
 	font-size: 36px;
 	font-weight: 800;
@@ -286,6 +290,12 @@ Inter variable font. Usage:
 }
 
 /* POST TITLE */
+
+.editor-styles-wrapper .wp-block-post-title {
+	max-width: 1000px;
+	margin: 0 auto;
+	text-align: center;
+}
 
 .wp-block.editor-post-title__block {
 	max-width: 1000px;
@@ -646,6 +656,10 @@ hr.wp-block-separator.is-style-dots::before {
 	font-size: 14px;
 	font-weight: 600;
 	line-height: 1.25;
+}
+
+.editor-styles-wrapper .wp-block-quote cite {
+	font-style: normal;
 }
 
 .editor-styles-wrapper .wp-block-quote p {
@@ -1217,6 +1231,7 @@ hr.wp-block-separator.is-style-dots::before {
 	/* TYPOGRAPHY */
 
 	.editor-post-title__block .editor-post-title__input,
+	.editor-styles-wrapper .wp-block-post-title,
 	.editor-styles-wrapper .wp-block h1 {
 		font-size: 64px;
 	}
@@ -1381,8 +1396,8 @@ hr.wp-block-separator.is-style-dots::before {
 	}
 
 	hr.wp-block-separator.is-style-wide {
-		margin-left: -70px;
-		margin-right: -70px;
+		margin-left: auto;
+		margin-right: auto;
 	}
 
 
@@ -1395,6 +1410,7 @@ hr.wp-block-separator.is-style-dots::before {
 	/* TYPOGRAPHY */
 
 	.editor-post-title__block .editor-post-title__input,
+	.editor-styles-wrapper .wp-block-post-title,
 	.editor-styles-wrapper .wp-block h1 {
 		font-size: 84px;
 	}
@@ -1418,8 +1434,8 @@ hr.wp-block-separator.is-style-dots::before {
 	/* BLOCK: SEPARATOR */
 
 	hr.wp-block-separator.is-style-wide {
-		margin-left: -150px;
-		margin-right: -150px;
+		margin-left: auto;
+		margin-right: auto;
 	}
 
 }
@@ -1453,8 +1469,8 @@ hr.wp-block-separator.is-style-dots::before {
 	/* BLOCK: SEPARATOR */
 
 	hr.wp-block-separator.is-style-wide {
-		margin-left: -200px;
-		margin-right: -200px;
+		margin-left: auto;
+		margin-right: auto;
 	}
 
 
