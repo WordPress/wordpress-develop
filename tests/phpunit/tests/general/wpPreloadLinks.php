@@ -61,7 +61,7 @@ class Tests_General_wpPreloadLinks extends WP_UnitTestCase {
 							"<link rel='preload' href='https://example.com/main.js' as='script' />\n",
 				'urls'     => array(
 					array(
-						//Should ignore not valid attributes
+						// Should ignore not valid attributes.
 						'not'  => 'valid',
 						'href' => 'https://example.com/style.css',
 						'as'   => 'style',
