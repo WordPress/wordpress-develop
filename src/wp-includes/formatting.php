@@ -2012,7 +2012,7 @@ function remove_accents( $string, $locale = '' ) {
  */
 function sanitize_file_name( $filename ) {
 	$filename_raw = $filename;
-	$filename     = remove_accents( $filename );
+	$filename     = remove_accents( (string)$filename );
 
 	$special_chars = array( '?', '[', ']', '/', '\\', '=', '<', '>', ':', ';', ',', "'", '"', '&', '$', '#', '*', '(', ')', '|', '~', '`', '!', '{', '}', '%', '+', '’', '«', '»', '”', '“', chr( 0 ) );
 
