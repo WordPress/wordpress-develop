@@ -107,7 +107,7 @@ class Tests_Cron_getCronArray extends WP_UnitTestCase {
 			),
 			'cron v1'     => array(
 				'input'    => array(
-					time()    => array(
+					time() => array(
 						'hookname' => array(
 							'args' => 'args',
 						),
