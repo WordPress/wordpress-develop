@@ -3437,13 +3437,13 @@ function wp_resource_hints() {
  *
  * @since 6.1.0
  */
-function wp_preload_links() {
+function wp_preload_resources() {
 	/**
 	 * Filters domains and URLs for resource preloads.
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param array  $urls {
+	 * @param array  $preload_resources {
 	 *     Array of resources and their attributes, or URLs to print for resource preloads.
 	 *
 	 *     @type array ...$0 {
@@ -3460,82 +3460,80 @@ function wp_preload_links() {
 	 *     }
 	 * }
 	 */
-	$urls = apply_filters( 'wp_preload_links', array() );
+	$preload_resources = apply_filters( 'wp_preload_resources', array() );
 
-	if ( ! is_array( $urls ) ) {
+	if ( ! is_array( $preload_resources ) ) {
 		return;
 	}
 
-	$unique_urls = array();
-	foreach ( $urls as $url ) {
-		if ( ! is_array( $url ) ) {
+	$unique_resources = array();
+
+	// Parse the complete resource list and extract unique resources.
+	foreach ( $preload_resources as $resource ) {
+		if ( ! is_array( $resource ) ) {
 			continue;
 		}
 
-		$atts = $url;
-		if ( isset( $url['href'] ) ) {
-			$url = $url['href'];
-			if ( isset( $unique_urls[ $url ] ) ) {
+		$attributes = $resource;
+		if ( isset( $resource['href'] ) ) {
+			$href = $resource['href'];
+			if ( isset( $unique_resources[ $href ] ) ) {
 				continue;
 			}
-			$unique_urls[ $url ] = $atts;
+			$unique_resources[ $href ] = $attributes;
 			// Media can use imagesrcset and not href.
-		} elseif ( ! isset( $url['href'] )
-				&& ( 'image' === $url['as'] )
-				&& ( isset( $url['imagesrcset'] ) || isset( $url['imagesizes'] ) )
+		} elseif ( ( 'image' === $resource['as'] ) &&
+			( isset( $resource['imagesrcset'] ) || isset( $resource['imagesizes'] ) )
 		) {
-			if ( isset( $unique_urls[ $url['imagesrcset'] ] ) ) {
+			if ( isset( $unique_resources[ $resource['imagesrcset'] ] ) ) {
 				continue;
 			}
-			$unique_urls[ $url['imagesrcset'] ] = $atts;
+			$unique_resources[ $resource['imagesrcset'] ] = $attributes;
 		} else {
 			continue;
 		}
+	}
 
-		foreach ( $unique_urls as $unique_atts ) {
-			$html = '';
+	// Build and output the HTML for each unique resource.
+	foreach ( $unique_resources as $unique_resource ) {
+		$html = '';
 
-			foreach ( $unique_atts as $attr => $value ) {
-				/**
-				 * Ignore not supported attributes.
-				 */
-				if ( ! is_scalar( $value )
-					|| (
-							! in_array( $attr, array( 'as', 'crossorigin', 'href', 'imagesrcset', 'imagesizes', 'type', 'media' ), true )
-							&& ! is_numeric( $attr )
-					)
-				) {
+		foreach ( $unique_resource as $resource_key => $resource_value ) {
+			if ( ! is_scalar( $resource_value ) ) {
+				continue;
+			}
 
-					continue;
-				}
+			// Ignore non-supported attributes.
+			if ( ! in_array( $resource_key, array( 'as', 'crossorigin', 'href', 'imagesrcset', 'imagesizes', 'type', 'media' ), true ) &&
+				! is_numeric( $resource_key )
+			) {
+				continue;
+			}
 
-				// imagesrcset only usable when preloading image, ignore otherwise.
-				if ( ( 'imagesrcset' === $attr ) && ( ! isset( $unique_atts['as'] ) || ( 'image' !== $unique_atts['as'] ) ) ) {
-					continue;
-				}
+			// imagesrcset only usable when preloading image, ignore otherwise.
+			if ( ( 'imagesrcset' === $resource_key ) && ( ! isset( $unique_resource['as'] ) || ( 'image' !== $unique_resource['as'] ) ) ) {
+				continue;
+			}
 
-				// imagesizes only usable when preloading image and imagesrcset present, ignore otherwise.
-				if ( ( 'imagesizes' === $attr )
-					&& ( ! isset( $unique_atts['as'] ) || ( 'image' !== $unique_atts['as'] ) || ! isset( $unique_atts['imagesrcset'] ) )
-				) {
-					continue;
-				}
+			// imagesizes only usable when preloading image and imagesrcset present, ignore otherwise.
+			if ( ( 'imagesizes' === $resource_key ) &&
+				( ! isset( $unique_resource['as'] ) || ( 'image' !== $unique_resource['as'] ) || ! isset( $unique_resource['imagesrcset'] ) )
+			) {
+				continue;
+			}
 
-				$value = ( 'href' === $attr ) ? esc_url( $value, array( 'http', 'https' ) ) : esc_attr( $value );
+			$resource_value = ( 'href' === $resource_key ) ? esc_url( $resource_value, array( 'http', 'https' ) ) : esc_attr( $resource_value );
 
-				if ( ! is_string( $attr ) ) {
-					$html .= " $value";
-				} else {
-					$html .= " $attr='$value'";
-				}
+			if ( ! is_string( $resource_key ) ) {
+				$html .= " $resource_value";
+			} else {
+				$html .= " $resource_key='$resource_value'";
 			}
 		}
-
 		$html = trim( $html );
 
 		printf( "<link rel='preload' %s />\n", $html );
 	}
-
 }
 
 /**

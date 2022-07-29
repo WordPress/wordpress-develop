@@ -4,21 +4,23 @@
  * @group general
  * @group template
  * @ticket 42438
- * @covers ::wp_preload_links
+ * @covers ::wp_preload_resources
  */
 class Tests_General_wpPreloadLinks extends WP_UnitTestCase {
 
 	/**
-	 * @dataProvider provider_preload_links
+	 * @dataProvider provider_preload_resources
+	 *
+	 * @ticket 42438
 	 */
-	public function test_preload_links( $expected, $urls ) {
-		$callback = function () use ( $urls ) {
-			return $urls;
+	public function test_preload_resources( $expected, $preload_resources ) {
+		$callback = function () use ( $preload_resources ) {
+			return $preload_resources;
 		};
 
-		add_filter( 'wp_preload_links', $callback, 10 );
-		$actual = get_echo( 'wp_preload_links' );
-		remove_filter( 'wp_preload_links', $callback );
+		add_filter( 'wp_preload_resources', $callback, 10 );
+		$actual = get_echo( 'wp_preload_resources' );
+		remove_filter( 'wp_preload_resources', $callback );
 
 		$this->assertSame( $expected, $actual );
 	}
@@ -28,7 +30,7 @@ class Tests_General_wpPreloadLinks extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function provider_preload_links() {
+	public function provider_preload_resources() {
 		return array(
 			'basic_preload'          => array(
 				'expected' => "<link rel='preload' href='https://example.com/style.css' as='style' />\n",
