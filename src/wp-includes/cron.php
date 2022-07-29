@@ -119,9 +119,6 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error
 	 * are considered duplicates.
 	 */
 	$crons = _get_cron_array();
-	if ( ! is_array( $crons ) ) {
-		$crons = array();
-	}
 
 	$key       = md5( serialize( $event->args ) );
 	$duplicate = false;
@@ -306,9 +303,6 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp
 	$key = md5( serialize( $event->args ) );
 
 	$crons = _get_cron_array();
-	if ( ! is_array( $crons ) ) {
-		$crons = array();
-	}
 
 	$crons[ $event->timestamp ][ $event->hook ][ $key ] = array(
 		'schedule' => $event->schedule,
@@ -1133,9 +1127,6 @@ function wp_get_ready_cron_jobs() {
 	}
 
 	$crons = _get_cron_array();
-	if ( ! is_array( $crons ) ) {
-		return array();
-	}
 
 	$gmt_time = microtime( true );
 	$keys     = array_keys( $crons );
