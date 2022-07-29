@@ -9,7 +9,7 @@
 class Tests_General_wpPreloadLinks extends WP_UnitTestCase {
 
 	/**
-	 * @dataProvider provider_preload_resources
+	 * @dataProvider data_preload_resources
 	 *
 	 * @ticket 42438
 	 */
