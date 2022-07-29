@@ -6,7 +6,7 @@
  * @subpackage Administration
  */
 
-global $post, $editor_styles;
+global $editor_styles;
 
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
@@ -29,6 +29,9 @@ if ( ! wp_is_block_theme() ) {
  */
 $home_template = _resolve_home_block_template();
 if ( $home_template && empty( $_GET['postType'] ) && empty( $_GET['postId'] ) ) {
+	if ( ! empty( $_GET['styles'] ) ) {
+		$home_template['styles'] = sanitize_key( $_GET['styles'] );
+	}
 	$redirect_url = add_query_arg(
 		$home_template,
 		admin_url( 'site-editor.php' )
@@ -68,7 +71,12 @@ $custom_settings      = array(
 	'defaultTemplatePartAreas' => get_allowed_block_template_part_areas(),
 	'__unstableHomeTemplate'   => $home_template,
 );
-$editor_settings      = get_block_editor_settings( $custom_settings, $block_editor_context );
+
+// Add additional back-compat patterns registered by `current_screen` et al.
+$custom_settings['__experimentalAdditionalBlockPatterns']          = WP_Block_Patterns_Registry::get_instance()->get_all_registered( true );
+$custom_settings['__experimentalAdditionalBlockPatternCategories'] = WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered( true );
+
+$editor_settings = get_block_editor_settings( $custom_settings, $block_editor_context );
 
 if ( isset( $_GET['postType'] ) && ! isset( $_GET['postId'] ) ) {
 	$post_type = get_post_type_object( $_GET['postType'] );
@@ -112,7 +120,7 @@ wp_add_inline_script(
 
 wp_add_inline_script(
 	'wp-blocks',
-	sprintf( 'wp.blocks.setCategories( %s );', wp_json_encode( get_block_categories( $post ) ) ),
+	sprintf( 'wp.blocks.setCategories( %s );', wp_json_encode( isset( $editor_settings['blockCategories'] ) ? $editor_settings['blockCategories'] : array() ) ),
 	'after'
 );
 

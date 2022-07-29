@@ -1190,6 +1190,7 @@ function wp_refresh_post_lock( $response, $data, $screen_id ) {
 
 		if ( $user ) {
 			$error = array(
+				'name' => $user->display_name,
 				/* translators: %s: User's display name. */
 				'text' => sprintf( __( '%s has taken over and is currently editing.' ), $user->display_name ),
 			);
@@ -1524,7 +1525,7 @@ function _wp_privacy_settings_filter_draft_page_titles( $title, $page ) {
  * @return array|false Array of PHP version data. False on failure.
  */
 function wp_check_php_version() {
-	$version = phpversion();
+	$version = PHP_VERSION;
 	$key     = md5( $version );
 
 	$response = get_site_transient( 'php_check_' . $key );

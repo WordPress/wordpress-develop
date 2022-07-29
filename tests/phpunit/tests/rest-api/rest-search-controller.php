@@ -333,6 +333,36 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * @ticket 55674
+	 */
+	public function test_get_items_search_prime_ids() {
+		$action = new MockAction();
+		add_filter( 'query', array( $action, 'filter' ), 10, 2 );
+
+		$query_args = array(
+			'per_page' => 100,
+			'search'   => 'foocontent',
+		);
+		$response   = $this->do_request_with_params( $query_args );
+		$this->assertSame( 200, $response->get_status(), 'Request Status Response is not 200.' );
+
+		$ids = wp_list_pluck( $response->get_data(), 'id' );
+		$this->assertSameSets( self::$my_content_post_ids, $ids, 'Query result posts ids do not match with expected ones.' );
+
+		$args               = $action->get_args();
+		$primed_query_found = false;
+		foreach ( $args as $arg ) {
+			// Primed query will use WHERE ID IN clause.
+			if ( str_contains( $arg[0], 'WHERE ID IN (' . implode( ',', $ids ) ) ) {
+				$primed_query_found = true;
+				break;
+			}
+		}
+
+		$this->assertTrue( $primed_query_found, 'Prime query was not executed.' );
+	}
+
+	/**
 	 * Test retrieving a single item isn't possible.
 	 */
 	public function test_get_item() {
@@ -413,7 +443,6 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			array(
 				'id',
 				'title',
-				'_links',
 			),
 			array_keys( $data[0] )
 		);

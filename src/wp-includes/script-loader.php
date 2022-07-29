@@ -106,7 +106,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'react'                       => '17.0.1',
 		'react-dom'                   => '17.0.1',
 		'regenerator-runtime'         => '0.13.9',
-		'moment'                      => '2.29.2',
+		'moment'                      => '2.29.4',
 		'lodash'                      => '4.17.19',
 		'wp-polyfill-fetch'           => '3.6.2',
 		'wp-polyfill-formdata'        => '4.0.10',
@@ -337,7 +337,7 @@ function wp_default_packages_inline_scripts( $scripts ) {
 		'wp-api-fetch',
 		sprintf(
 			'wp.apiFetch.use( wp.apiFetch.createRootURLMiddleware( "%s" ) );',
-			esc_url_raw( get_rest_url() )
+			sanitize_url( get_rest_url() )
 		),
 		'after'
 	);
@@ -750,7 +750,7 @@ function wp_default_scripts( $scripts ) {
 		'wp-api-request',
 		'wpApiSettings',
 		array(
-			'root'          => esc_url_raw( get_rest_url() ),
+			'root'          => sanitize_url( get_rest_url() ),
 			'nonce'         => wp_installing() ? '' : wp_create_nonce( 'wp_rest' ),
 			'versionString' => 'wp/v2/',
 		)
@@ -968,7 +968,7 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'json2', "/wp-includes/js/json2$suffix.js", array(), '2015-05-03' );
 	did_action( 'init' ) && $scripts->add_data( 'json2', 'conditional', 'lt IE 8' );
 
-	$scripts->add( 'underscore', "/wp-includes/js/underscore$dev_suffix.js", array(), '1.13.3', 1 );
+	$scripts->add( 'underscore', "/wp-includes/js/underscore$dev_suffix.js", array(), '1.13.4', 1 );
 	$scripts->add( 'backbone', "/wp-includes/js/backbone$dev_suffix.js", array( 'underscore', 'jquery' ), '1.4.1', 1 );
 
 	$scripts->add( 'wp-util', "/wp-includes/js/wp-util$suffix.js", array( 'underscore', 'jquery' ), false, 1 );

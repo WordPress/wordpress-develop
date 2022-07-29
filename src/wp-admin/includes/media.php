@@ -145,7 +145,7 @@ function get_image_send_to_editor( $id, $caption, $title, $align, $url = '', $re
 	}
 
 	if ( $url ) {
-		$html = '<a href="' . esc_attr( $url ) . '"' . $rel . '>' . $html . '</a>';
+		$html = '<a href="' . esc_url( $url ) . '"' . $rel . '>' . $html . '</a>';
 	}
 
 	/**
@@ -674,11 +674,16 @@ function media_buttons( $editor_id = 'content' ) {
 }
 
 /**
+ * Retrieves the upload iframe source URL.
+ *
+ * @since 3.0.0
+ *
  * @global int $post_ID
- * @param string $type
- * @param int    $post_id
- * @param string $tab
- * @return string
+ *
+ * @param string $type    Media type.
+ * @param int    $post_id Post ID.
+ * @param string $tab     Media upload tab.
+ * @return string Upload iframe source URL.
  */
 function get_upload_iframe_src( $type = null, $post_id = null, $tab = null ) {
 	global $post_ID;
@@ -917,7 +922,7 @@ function wp_media_upload_handler() {
 			 * @param string $src   Media source URL.
 			 * @param string $title Media title.
 			 */
-			$html = apply_filters( "{$type}_send_to_editor_url", $html, esc_url_raw( $src ), $title );
+			$html = apply_filters( "{$type}_send_to_editor_url", $html, sanitize_url( $src ), $title );
 		} else {
 			$align = '';
 			$alt   = esc_attr( wp_unslash( $_POST['alt'] ) );
@@ -942,7 +947,7 @@ function wp_media_upload_handler() {
 			 * @param string $align The image alignment. Default 'alignnone'. Possible values include
 			 *                      'alignleft', 'aligncenter', 'alignright', 'alignnone'.
 			 */
-			$html = apply_filters( 'image_send_to_editor_url', $html, esc_url_raw( $src ), $alt, $align );
+			$html = apply_filters( 'image_send_to_editor_url', $html, sanitize_url( $src ), $alt, $align );
 		}
 
 		return media_send_to_editor( $html );
@@ -1269,8 +1274,8 @@ function image_link_input_fields( $post, $url_type = '' ) {
 	return "
 	<input type='text' class='text urlfield' name='attachments[$post->ID][url]' value='" . esc_attr( $url ) . "' /><br />
 	<button type='button' class='button urlnone' data-link-url=''>" . __( 'None' ) . "</button>
-	<button type='button' class='button urlfile' data-link-url='" . esc_attr( $file ) . "'>" . __( 'File URL' ) . "</button>
-	<button type='button' class='button urlpost' data-link-url='" . esc_attr( $link ) . "'>" . __( 'Attachment Post URL' ) . '</button>
+	<button type='button' class='button urlfile' data-link-url='" . esc_url( $file ) . "'>" . __( 'File URL' ) . "</button>
+	<button type='button' class='button urlpost' data-link-url='" . esc_url( $link ) . "'>" . __( 'Attachment Post URL' ) . '</button>
 ';
 }
 
@@ -3464,7 +3469,7 @@ function attachment_submitbox_metadata() {
 
 	if ( ! empty( $meta['original_image'] ) ) {
 		?>
-		<div class="misc-pub-section misc-pub-original-image">
+		<div class="misc-pub-section misc-pub-original-image word-wrap-break-word">
 			<?php _e( 'Original image:' ); ?>
 			<a href="<?php echo esc_url( wp_get_original_image_url( $attachment_id ) ); ?>">
 				<?php echo esc_html( wp_basename( wp_get_original_image_path( $attachment_id ) ) ); ?>
@@ -3625,10 +3630,11 @@ function wp_read_video_metadata( $file ) {
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param array  $metadata       Filtered Video metadata.
-	 * @param string $file           Path to video file.
-	 * @param string $file_format    File format of video, as analyzed by getID3.
-	 * @param array  $data           Raw metadata from getID3.
+	 * @param array       $metadata    Filtered video metadata.
+	 * @param string      $file        Path to video file.
+	 * @param string|null $file_format File format of video, as analyzed by getID3.
+	 *                                 Null if unknown.
+	 * @param array       $data        Raw metadata from getID3.
 	 */
 	return apply_filters( 'wp_read_video_metadata', $metadata, $file, $file_format, $data );
 }
@@ -3697,7 +3703,23 @@ function wp_read_audio_metadata( $file ) {
 
 	wp_add_id3_tag_data( $metadata, $data );
 
-	return $metadata;
+	$file_format = isset( $metadata['fileformat'] ) ? $metadata['fileformat'] : null;
+
+	/**
+	 * Filters the array of metadata retrieved from an audio file.
+	 *
+	 * In core, usually this selection is what is stored.
+	 * More complete data can be parsed from the `$data` parameter.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param array       $metadata    Filtered audio metadata.
+	 * @param string      $file        Path to audio file.
+	 * @param string|null $file_format File format of audio, as analyzed by getID3.
+	 *                                 Null if unknown.
+	 * @param array       $data        Raw metadata from getID3.
+	 */
+	return apply_filters( 'wp_read_audio_metadata', $metadata, $file, $file_format, $data );
 }
 
 /**

@@ -363,7 +363,7 @@ function current_filter() {
  * @see did_action()
  * @global string[] $wp_current_filter Current filter.
  *
- * @param null|string $hook_name Optional. Filter hook to check. Defaults to null,
+ * @param string|null $hook_name Optional. Filter hook to check. Defaults to null,
  *                               which checks if any filter is currently being run.
  * @return bool Whether the filter is currently in the stack.
  */
@@ -424,7 +424,7 @@ function add_action( $hook_name, $callback, $priority = 10, $accepted_args = 1 )
  *      *
  *      * - 'example_action' is the action hook.
  *      * - $arg1 and $arg2 are the additional arguments passed to the callback.
- *     $value = do_action( 'example_action', $arg1, $arg2 );
+ *     do_action( 'example_action', $arg1, $arg2 );
  *
  * @since 1.2.0
  * @since 5.3.0 Formalized the existing and already documented `...$arg` parameter

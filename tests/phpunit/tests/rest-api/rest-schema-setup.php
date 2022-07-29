@@ -520,7 +520,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		wp_delete_post( $post_id, true );
 		wp_delete_post( $page_id, true );
 		wp_delete_term( $tag_id, 'tags' );
-		wp_delete_attachment( $media_id );
+		wp_delete_attachment( $media_id, true );
 		wp_delete_comment( $comment_id );
 	}
 

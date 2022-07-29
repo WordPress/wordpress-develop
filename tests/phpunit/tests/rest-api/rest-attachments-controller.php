@@ -29,6 +29,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 */
 	private $test_file2;
 
+	/**
+	 * @var array The recorded posts query clauses.
+	 */
+	protected $posts_clauses;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$superadmin_id  = $factory->user->create(
 			array(
@@ -85,6 +90,19 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$orig_file2       = DIR_TESTDATA . '/images/codeispoetry.png';
 		$this->test_file2 = get_temp_dir() . 'codeispoetry.png';
 		copy( $orig_file2, $this->test_file2 );
+
+		add_filter( 'rest_pre_dispatch', array( $this, 'wpSetUpBeforeRequest' ), 10, 3 );
+		add_filter( 'posts_clauses', array( $this, 'save_posts_clauses' ), 10, 2 );
+	}
+
+	public function wpSetUpBeforeRequest( $result ) {
+		$this->posts_clauses = array();
+		return $result;
+	}
+
+	public function save_posts_clauses( $clauses ) {
+		$this->posts_clauses[] = $clauses;
+		return $clauses;
 	}
 
 	public function tear_down() {
@@ -617,6 +635,48 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$data     = $response->get_data();
 		$this->assertCount( 1, $data );
 		$this->assertSame( $id2, $data[0]['id'] );
+	}
+
+	/**
+	 * @ticket 55677
+	 */
+	public function test_get_items_avoid_duplicated_count_query_if_no_items() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request->set_param( 'media_type', 'video' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertCount( 1, $this->posts_clauses );
+
+		$headers = $response->get_headers();
+
+		$this->assertSame( 0, $headers['X-WP-Total'] );
+		$this->assertSame( 0, $headers['X-WP-TotalPages'] );
+	}
+
+	/**
+	 * @ticket 55677
+	 */
+	public function test_get_items_with_empty_page_runs_count_query_after() {
+		$this->factory->attachment->create_object(
+			$this->test_file,
+			0,
+			array(
+				'post_date'      => '2022-06-12T00:00:00Z',
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request->set_param( 'media_type', 'image' );
+		$request->set_param( 'page', 2 );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertCount( 2, $this->posts_clauses );
+
+		$this->assertErrorResponse( 'rest_post_invalid_page_number', $response, 400 );
 	}
 
 	public function test_get_item() {
@@ -2201,5 +2261,47 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				return array( 'WP_Image_Editor_Mock' );
 			}
 		);
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test_image_sources_to_rest_response() {
+
+		$attachment_id = self::factory()->attachment->create_upload_object( $this->test_file );
+		$metadata      = wp_get_attachment_metadata( $attachment_id );
+		$request       = new WP_REST_Request();
+		$request['id'] = $attachment_id;
+		$controller    = new WP_REST_Attachments_Controller( 'attachment' );
+		$response      = $controller->get_item( $request );
+
+		$this->assertNotWPError( $response );
+
+		$data       = $response->get_data();
+		$mime_types = array(
+			'image/jpeg',
+		);
+
+		if ( wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			array_push( $mime_types, 'image/webp' );
+		}
+
+		foreach ( $data['media_details']['sizes'] as $size_name => $properties ) {
+			if ( ! isset( $metadata['sizes'][ $size_name ]['sources'] ) ) {
+				continue;
+			}
+
+			$this->assertArrayHasKey( 'sources', $properties );
+			$this->assertIsArray( $properties['sources'] );
+
+			foreach ( $mime_types as $mime_type ) {
+				$this->assertArrayHasKey( $mime_type, $properties['sources'] );
+				$this->assertArrayHasKey( 'filesize', $properties['sources'][ $mime_type ] );
+				$this->assertArrayHasKey( 'file', $properties['sources'][ $mime_type ] );
+				$this->assertArrayHasKey( 'source_url', $properties['sources'][ $mime_type ] );
+				$this->assertNotFalse( filter_var( $properties['sources'][ $mime_type ]['source_url'], FILTER_VALIDATE_URL ) );
+			}
+		}
+		$this->assertArrayNotHasKey( 'sources', $data['media_details'] );
 	}
 }

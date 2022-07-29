@@ -238,20 +238,20 @@ function image_downsize( $id, $size = 'medium' ) {
 		$width           = $intermediate['width'];
 		$height          = $intermediate['height'];
 		$is_intermediate = true;
-	} elseif ( 'thumbnail' === $size ) {
+	} elseif ( 'thumbnail' === $size && ! empty( $meta['thumb'] ) && is_string( $meta['thumb'] ) ) {
 		// Fall back to the old thumbnail.
-		$thumb_file = wp_get_attachment_thumb_file( $id );
-		$info       = null;
+		$imagefile = get_attached_file( $id );
+		$thumbfile = str_replace( wp_basename( $imagefile ), wp_basename( $meta['thumb'] ), $imagefile );
 
-		if ( $thumb_file ) {
-			$info = wp_getimagesize( $thumb_file );
-		}
+		if ( file_exists( $thumbfile ) ) {
+			$info = wp_getimagesize( $thumbfile );
 
-		if ( $thumb_file && $info ) {
-			$img_url         = str_replace( $img_url_basename, wp_basename( $thumb_file ), $img_url );
-			$width           = $info[0];
-			$height          = $info[1];
-			$is_intermediate = true;
+			if ( $info ) {
+				$img_url         = str_replace( $img_url_basename, wp_basename( $thumbfile ), $img_url );
+				$width           = $info[0];
+				$height          = $info[1];
+				$is_intermediate = true;
+			}
 		}
 	}
 
@@ -1003,6 +1003,7 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
  * @since 2.5.0
  * @since 4.4.0 The `$srcset` and `$sizes` attributes were added.
  * @since 5.5.0 The `$loading` attribute was added.
+ * @since 6.1.0 The `$decoding` attribute was added.
  *
  * @param int          $attachment_id Image attachment ID.
  * @param string|int[] $size          Optional. Image size. Accepts any registered image size name, or an array
@@ -1011,16 +1012,18 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
  * @param string|array $attr {
  *     Optional. Attributes for the image markup.
  *
- *     @type string       $src     Image attachment URL.
- *     @type string       $class   CSS class name or space-separated list of classes.
- *                                 Default `attachment-$size_class size-$size_class`,
- *                                 where `$size_class` is the image size being requested.
- *     @type string       $alt     Image description for the alt attribute.
- *     @type string       $srcset  The 'srcset' attribute value.
- *     @type string       $sizes   The 'sizes' attribute value.
- *     @type string|false $loading The 'loading' attribute value. Passing a value of false
- *                                 will result in the attribute being omitted for the image.
- *                                 Defaults to 'lazy', depending on wp_lazy_loading_enabled().
+ *     @type string       $src      Image attachment URL.
+ *     @type string       $class    CSS class name or space-separated list of classes.
+ *                                  Default `attachment-$size_class size-$size_class`,
+ *                                  where `$size_class` is the image size being requested.
+ *     @type string       $alt      Image description for the alt attribute.
+ *     @type string       $srcset   The 'srcset' attribute value.
+ *     @type string       $sizes    The 'sizes' attribute value.
+ *     @type string|false $loading  The 'loading' attribute value. Passing a value of false
+ *                                  will result in the attribute being omitted for the image.
+ *                                  Defaults to 'lazy', depending on wp_lazy_loading_enabled().
+ *     @type string       $decoding The 'decoding' attribute value. Possible values are
+ *                                  'async' (default), 'sync', or 'auto'.
  * }
  * @return string HTML img element or empty string on failure.
  */
@@ -1040,9 +1043,10 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		}
 
 		$default_attr = array(
-			'src'   => $src,
-			'class' => "attachment-$size_class size-$size_class",
-			'alt'   => trim( strip_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) ),
+			'src'      => $src,
+			'class'    => "attachment-$size_class size-$size_class",
+			'alt'      => trim( strip_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) ),
+			'decoding' => 'async',
 		);
 
 		// Add `loading` attribute.
@@ -1843,6 +1847,16 @@ function wp_filter_content_tags( $content, $context = null ) {
 				$filtered_image = wp_img_tag_add_loading_attr( $filtered_image, $context );
 			}
 
+			// Add 'decoding=async' attribute unless a 'decoding' attribute is already present.
+			if ( ! str_contains( $filtered_image, ' decoding=' ) ) {
+				$filtered_image = wp_img_tag_add_decoding_attr( $filtered_image, $context );
+			}
+
+			// Use alternate mime types when specified and available.
+			if ( $attachment_id > 0 && _wp_in_front_end_context() ) {
+				$filtered_image = wp_image_use_alternate_mime_types( $filtered_image, $context, $attachment_id );
+			}
+
 			/**
 			 * Filters an img tag within the content for a given context.
 			 *
@@ -1890,6 +1904,117 @@ function wp_filter_content_tags( $content, $context = null ) {
 }
 
 /**
+ * Use alternate mime type images in the front end content output when available.
+ *
+ * @since 6.1.0
+ *
+ * @param string $image         The HTML `img` tag where the attribute should be added.
+ * @param string $context       Additional context to pass to the filters.
+ * @param int    $attachment_id The attachment ID.
+ * @return string Converted `img` tag with `loading` attribute added.
+ */
+function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
+	$metadata = wp_get_attachment_metadata( $attachment_id );
+	if ( empty( $metadata['file'] ) ) {
+		return $image;
+	}
+
+	// Only alter images with a `sources` attribute
+	if ( empty( $metadata['sources'] ) ) {
+		return $image;
+	};
+
+	$target_mimes = array( 'image/webp', 'image/jpeg' );
+
+	/**
+	 * Filter the content image mime type output selection and order.
+	 *
+	 * When outputting images in the content, the first mime type available will be used.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param array  $target_mimes  The image output mime type and order. Default is array( 'image/webp', 'image/jpeg' ).
+	 * @param int    $attachment_id The attachment ID.
+	 * @param string $context       Additional context to pass to the filters.
+	 * @return array The filtered output mime type and order. Return an empty array to skip mime type substitution.
+	 */
+	$target_mimes = apply_filters( 'wp_content_image_mimes', $target_mimes, $attachment_id, $context );
+
+	if ( false === $target_mimes ) {
+		return $image;
+	}
+
+	// Find the appropriate size for the provided URL in the first available mime type.
+	foreach ( $target_mimes as $target_mime ) {
+		// Handle full size image replacement.
+		if ( ! empty( $metadata['sources'][ $target_mime ]['file'] ) ) {
+			$src_filename = wp_basename( $metadata['file'] );
+
+			// This is the same MIME type as the original, so the entire $target_mime can be skipped.
+			// Since it is already the preferred MIME type, the entire loop can be cancelled.
+			if ( $metadata['sources'][ $target_mime ]['file'] === $src_filename ) {
+				break;
+			}
+
+			$image = str_replace( $src_filename, $metadata['sources'][ $target_mime ]['file'], $image );
+
+			// The full size was replaced, so unset this entirely here so that in the next iteration it is no longer
+			// considered, simply for a small performance optimization.
+			unset( $metadata['sources'] );
+		}
+
+		// Go through each image size and replace with the first available mime type version.
+		foreach ( $metadata['sizes'] as $name => $size_data ) {
+			// Check if size has an original file.
+			if ( empty( $size_data['file'] ) ) {
+				continue;
+			}
+
+			// Check if size has a source in the desired mime type.
+			if ( empty( $size_data['sources'][ $target_mime ]['file'] ) ) {
+				continue;
+			}
+
+			$src_filename = wp_basename( $size_data['file'] );
+
+			// This is the same MIME type as the original, so the entire $target_mime can be skipped.
+			// Since it is already the preferred MIME type, the entire loop can be cancelled.
+			if ( $size_data['sources'][ $target_mime ]['file'] === $src_filename ) {
+				break 2;
+			}
+
+			// Found a match, replace with the new filename.
+			$image = str_replace( $src_filename, $size_data['sources'][ $target_mime ]['file'], $image );
+
+			// This size was replaced, so unset this entirely here so that in the next iteration it is no longer
+			// considered, simply for a small performance optimization.
+			unset( $metadata['sizes'][ $name ] );
+		}
+	}
+	return $image;
+}
+
+/**
+ * Check if execution is currently in the front end content context, outside of <head>.
+ *
+ * @since 6.1.0
+ * @access private
+ *
+ * @return bool True if in the front end content context, false otherwise.
+ */
+function _wp_in_front_end_context() {
+	global $wp_query;
+
+	// Check if this request is generally outside (or before) any frontend context.
+	if ( ! isset( $wp_query ) || defined( 'XMLRPC_REQUEST' ) || defined( 'REST_REQUEST' ) || is_feed() ) {
+		return false;
+	}
+
+	// Check if we're anywhere before the 'wp_head' action has completed.
+	return did_action( 'template_redirect' ) && ! doing_action( 'wp_head' );
+}
+
+/**
  * Adds `loading` attribute to an `img` HTML tag.
  *
  * @since 5.5.0
@@ -1929,6 +2054,48 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
 		}
 
 		return str_replace( '<img', '<img loading="' . esc_attr( $value ) . '"', $image );
+	}
+
+	return $image;
+}
+
+/**
+ * Adds `decoding` attribute to an `img` HTML tag.
+ *
+ * The `decoding` attribute allows developers to indicate whether the
+ * browser can decode the image off the main thread (`async`), on the
+ * main thread (`sync`) or as determined by the browser (`auto`).
+ *
+ * By default WordPress adds `decoding="async"` to images but developers
+ * can use the {@see 'wp_img_tag_add_decoding_attr'} filter to modify this
+ * to remove the attribute or set it to another accepted value.
+ *
+ * @since 6.1.0
+ *
+ * @param string $image   The HTML `img` tag where the attribute should be added.
+ * @param string $context Additional context to pass to the filters.
+ *
+ * @return string Converted `img` tag with `decoding` attribute added.
+ */
+function wp_img_tag_add_decoding_attr( $image, $context ) {
+	/**
+	 * Filters the `decoding` attribute value to add to an image. Default `async`.
+	 *
+	 * Returning a falsey value will omit the attribute.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param string|false|null $value   The `decoding` attribute value. Returning a falsey value
+	 *                                   will result in the attribute being omitted for the image.
+	 *                                   Otherwise, it may be: 'async' (default), 'sync', or 'auto'.
+	 * @param string            $image   The HTML `img` tag to be filtered.
+	 * @param string            $context Additional context about how the function was called
+	 *                                   or where the img tag is.
+	 */
+	$value = apply_filters( 'wp_img_tag_add_decoding_attr', 'async', $image, $context );
+
+	if ( in_array( $value, array( 'async', 'sync', 'auto' ), true ) ) {
+		$image = str_replace( '<img ', '<img decoding="' . esc_attr( $value ) . '" ', $image );
 	}
 
 	return $image;
@@ -4248,7 +4415,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
  * @param array $args {
  *     Arguments for enqueuing media scripts.
  *
- *     @type int|WP_Post $post A post object or ID.
+ *     @type int|WP_Post $post Post ID or post object.
  * }
  */
 function wp_enqueue_media( $args = array() ) {

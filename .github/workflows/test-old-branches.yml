@@ -67,7 +67,7 @@ jobs:
     # Run all branches monthly, but only the currently supported one twice per month.
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@9ac08808f993958e9de277fe43a64532a609130e # v6.0.0
+        uses: actions/github-script@7a5c598405937d486b0331594b5da2b14db670da # v6.1.0
         if: ${{ github.event_name == 'push' || github.event.schedule == '0 0 15 * *' || matrix.branch == '6.0' }}
         with:
           github-token: ${{ secrets.GHA_OLD_BRANCH_DISPATCH }}

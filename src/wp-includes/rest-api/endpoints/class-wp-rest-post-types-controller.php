@@ -244,16 +244,9 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
 
-		$response->add_links(
-			array(
-				'collection'              => array(
-					'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
-				),
-				'https://api.w.org/items' => array(
-					'href' => rest_url( rest_get_route_for_post_type_items( $post_type->name ) ),
-				),
-			)
-		);
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$response->add_links( $this->prepare_links( $post_type ) );
+		}
 
 		/**
 		 * Filters a post type returned from the REST API.
@@ -267,6 +260,25 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 		 * @param WP_REST_Request  $request   Request used to generate the response.
 		 */
 		return apply_filters( 'rest_prepare_post_type', $response, $post_type, $request );
+	}
+
+	/**
+	 * Prepares links for the request.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param WP_Post_Type $post_type The post type.
+	 * @return array Links for the given post type.
+	 */
+	protected function prepare_links( $post_type ) {
+		return array(
+			'collection'              => array(
+				'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
+			),
+			'https://api.w.org/items' => array(
+				'href' => rest_url( rest_get_route_for_post_type_items( $post_type->name ) ),
+			),
+		);
 	}
 
 	/**
@@ -393,5 +405,4 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 			'context' => $this->get_context_param( array( 'default' => 'view' ) ),
 		);
 	}
-
 }
