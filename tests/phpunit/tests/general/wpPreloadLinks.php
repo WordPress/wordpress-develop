@@ -98,7 +98,7 @@ class Tests_General_wpPreloadLinks extends WP_UnitTestCase {
 						'as'   => 'script',
 					),
 					array(
-						//Should ignore not valid attributes.
+						// Should ignore not valid attributes.
 						'ignore' => 'ignore',
 						'href'   => 'https://example.com/font.woff2',
 						'as'     => 'font',
