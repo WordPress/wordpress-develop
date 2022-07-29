@@ -131,11 +131,17 @@ class Tests_Shortcode extends WP_UnitTestCase {
 		$this->assertSame( '[dumptag-notreal]', $out );
 	}
 
+	/**
+	 * @covers ::do_shortcode
+	 */
 	public function test_tag_underscore_not_tag() {
 		$out = do_shortcode( '[dumptag_notreal]' );
 		$this->assertSame( '[dumptag_notreal]', $out );
 	}
 
+	/**
+	 * @covers ::do_shortcode
+	 */
 	public function test_tag_not_tag() {
 		$out = do_shortcode( '[dumptagnotreal]' );
 		$this->assertSame( '[dumptagnotreal]', $out );
@@ -493,6 +499,8 @@ EOF;
 
 	/**
 	 * @ticket 37767
+	 *
+	 * @covers ::strip_shortcodes
 	 */
 	public function test_strip_shortcodes_filter() {
 		add_filter( 'strip_shortcodes_tagnames', array( $this, 'filter_strip_shortcodes_tagnames' ) );

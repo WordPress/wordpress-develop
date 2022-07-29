@@ -2,6 +2,8 @@
 
 /**
  * @group site-health
+ *
+ * @covers WP_Site_Health::get_test_scheduled_events
  */
 class Tests_Site_Health extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
@@ -13,8 +15,6 @@ class Tests_Site_Health extends WP_UnitTestCase {
 	 * Ensure Site Health reports correctly cron job reports.
 	 *
 	 * @ticket 47223
-	 *
-	 * @covers WP_Site_Health::get_test_scheduled_events
 	 */
 	public function test_cron_health_checks_critical() {
 		$wp_site_health = new WP_Site_Health();
@@ -35,8 +35,6 @@ class Tests_Site_Health extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_cron_health_checks
 	 * @ticket 47223
-	 *
-	 * @covers WP_Site_Health::get_test_scheduled_events
 	 */
 	public function test_cron_health_checks( $times, $expected_status, $expected_label, $expected_late, $expected_missed ) {
 		$wp_site_health = new WP_Site_Health();
