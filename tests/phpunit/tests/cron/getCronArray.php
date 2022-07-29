@@ -105,6 +105,16 @@ class Tests_Cron_getCronArray extends WP_UnitTestCase {
 				),
 				'expected' => 1,
 			),
+			'cron v1'     => array(
+				'input'    => array(
+					time()    => array(
+						'hookname' => array(
+							'args' => 'args',
+						),
+					),
+				),
+				'expected' => 1,
+			),
 		);
 	}
 }
