@@ -233,7 +233,7 @@ class Tests_General_wpPreloadLinks extends WP_UnitTestCase {
 						'as'    => 'image',
 						'media' => '(min-width: 601px)',
 					),
-					// imagesizes is optional
+					// imagesizes is optional.
 					array(
 						'href'        => 'https://example.com/image-800.png',
 						'as'          => 'image',
