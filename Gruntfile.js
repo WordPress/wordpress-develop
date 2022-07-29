@@ -13,7 +13,7 @@ module.exports = function(grunt) {
 		SOURCE_DIR = 'src/',
 		BUILD_DIR = 'build/',
 		WORKING_DIR = grunt.option( 'dev' ) ? SOURCE_DIR : BUILD_DIR,
- 		BANNER_TEXT = '/*! This file is auto-generated */',
+        BANNER_TEXT = '/*! This file is auto-generated */',
 		autoprefixer = require( 'autoprefixer' ),
 		sass = require( 'sass' ),
 		phpUnitWatchGroup = grunt.option( 'group' ),
@@ -80,7 +80,7 @@ module.exports = function(grunt) {
 				]
 			}
 		},
- 		usebanner: {
+        usebanner: {
 			options: {
 				position: 'top',
 				banner: BANNER_TEXT,
@@ -713,7 +713,6 @@ module.exports = function(grunt) {
 					'!**/*.min.js',
 					'!wp-admin/js/custom-header.js', // Why? We should minify this.
 					'!wp-admin/js/farbtastic.js',
-					'!wp-includes/js/swfobject.js',
 					'!wp-includes/js/wp-embed.js' // We have extra options for this, see uglify:embed.
 				]
 			},
