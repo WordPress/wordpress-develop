@@ -3504,9 +3504,8 @@ function wp_preload_resources() {
 			}
 
 			// Ignore non-supported attributes.
-			if ( ! in_array( $resource_key, array( 'as', 'crossorigin', 'href', 'imagesrcset', 'imagesizes', 'type', 'media' ), true ) &&
-				! is_numeric( $resource_key )
-			) {
+			$non_supported_attributes = array( 'as', 'crossorigin', 'href', 'imagesrcset', 'imagesizes', 'type', 'media' );
+			if ( ! in_array( $resource_key, $non_supported_attributes, true ) && ! is_numeric( $resource_key ) ) {
 				continue;
 			}
 
