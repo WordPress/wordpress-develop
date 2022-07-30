@@ -447,6 +447,8 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		$wpdb->update( $wpdb->term_taxonomy, array( 'term_taxonomy_id' => 100006 ), array( 'term_taxonomy_id' => $term_2->term_taxonomy_id ) );
 		$wpdb->update( $wpdb->term_taxonomy, array( 'term_taxonomy_id' => 100005 ), array( 'term_taxonomy_id' => $term_3->term_taxonomy_id ) );
 
+		clean_term_cache( array( $t1, $t2, $t3 ), $this->taxonomy );
+
 		$set = wp_set_object_terms( $p, array( $t1, $t2, $t3 ), $this->taxonomy );
 
 		$found = wp_get_object_terms(

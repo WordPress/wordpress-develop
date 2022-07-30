@@ -40,6 +40,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	protected $password_check_passed = array();
 
 	/**
+	 * Whether the controller supports batching.
+	 *
+	 * @since 5.9.0
+	 * @var array
+	 */
+	protected $allow_batch = array( 'v1' => true );
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 4.7.0
@@ -80,7 +88,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'permission_callback' => array( $this, 'create_item_permissions_check' ),
 					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
 				),
-				'schema' => array( $this, 'get_public_item_schema' ),
+				'allow_batch' => $this->allow_batch,
+				'schema'      => array( $this, 'get_public_item_schema' ),
 			)
 		);
 
@@ -98,7 +107,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$this->namespace,
 			'/' . $this->rest_base . '/(?P<id>[\d]+)',
 			array(
-				'args'   => array(
+				'args'        => array(
 					'id' => array(
 						'description' => __( 'Unique identifier for the post.' ),
 						'type'        => 'integer',
@@ -128,7 +137,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 						),
 					),
 				),
-				'schema' => array( $this, 'get_public_item_schema' ),
+				'allow_batch' => $this->allow_batch,
+				'schema'      => array( $this, 'get_public_item_schema' ),
 			)
 		);
 	}
@@ -359,6 +369,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$posts = array();
 
+		update_post_author_caches( $query_result );
+		update_post_parent_caches( $query_result );
+
+		if ( post_type_supports( $this->post_type, 'thumbnail' ) ) {
+			update_post_thumbnail_cache( $posts_query );
+		}
+
 		foreach ( $query_result as $post ) {
 			if ( ! $this->check_read_permission( $post ) ) {
 				continue;
@@ -376,7 +393,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$page        = (int) $query_args['paged'];
 		$total_posts = $posts_query->found_posts;
 
-		if ( $total_posts < 1 ) {
+		if ( $total_posts < 1 && $page > 1 ) {
 			// Out-of-bounds, run the query again without LIMIT for total count.
 			unset( $query_args['paged'] );
 
@@ -1541,7 +1558,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				continue;
 			}
 
-			foreach ( $request[ $base ] as $term_id ) {
+			foreach ( (array) $request[ $base ] as $term_id ) {
 				// Invalid terms will be rejected later.
 				if ( ! get_term( $term_id, $taxonomy->name ) ) {
 					continue;
@@ -1916,16 +1933,18 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
 
-		$links = $this->prepare_links( $post );
-		$response->add_links( $links );
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$links = $this->prepare_links( $post );
+			$response->add_links( $links );
 
-		if ( ! empty( $links['self']['href'] ) ) {
-			$actions = $this->get_available_actions( $post, $request );
+			if ( ! empty( $links['self']['href'] ) ) {
+				$actions = $this->get_available_actions( $post, $request );
 
-			$self = $links['self']['href'];
+				$self = $links['self']['href'];
 
-			foreach ( $actions as $rel ) {
-				$response->add_link( $rel, $self );
+				foreach ( $actions as $rel ) {
+					$response->add_link( $rel, $self );
+				}
 			}
 		}
 
@@ -2007,8 +2026,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( in_array( $post->post_type, array( 'post', 'page' ), true ) || post_type_supports( $post->post_type, 'revisions' ) ) {
-			$revisions       = wp_get_post_revisions( $post->ID, array( 'fields' => 'ids' ) );
-			$revisions_count = count( $revisions );
+			$revision        = wp_get_latest_revision_id_and_total_count( $post->ID );
+			$revisions_count = ! is_wp_error( $revision ) ? $revision['count'] : 0;
 
 			$links['version-history'] = array(
 				'href'  => rest_url( trailingslashit( $base ) . $post->ID . '/revisions' ),
@@ -2016,11 +2035,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 
 			if ( $revisions_count > 0 ) {
-				$last_revision = array_shift( $revisions );
+				$latest_revision = $revision['revision'];
 
 				$links['predecessor-version'] = array(
-					'href' => rest_url( trailingslashit( $base ) . $post->ID . '/revisions/' . $last_revision ),
-					'id'   => $last_revision,
+					'href' => rest_url( trailingslashit( $base ) . $post->ID . '/revisions/' . $latest_revision ),
+					'id'   => $latest_revision,
 				);
 			}
 		}
@@ -2029,7 +2048,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( $post_type_obj->hierarchical && ! empty( $post->post_parent ) ) {
 			$links['up'] = array(
-				'href'       => rest_url( trailingslashit( $base ) . (int) $post->post_parent ),
+				'href'       => rest_url( rest_get_route_for_post( $post->post_parent ) ),
 				'embeddable' => true,
 			);
 		}

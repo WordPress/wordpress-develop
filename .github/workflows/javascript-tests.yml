@@ -4,16 +4,15 @@ on:
   # JavaScript testing was introduced in WordPress 3.8.
   push:
     branches:
-      - master
       - trunk
       - '3.[89]'
       - '[4-9].[0-9]'
     tags:
-      - '3.[89]*'
-      - '[4-9].[0-9]*'
+      - '[0-9]+.[0-9]'
+      - '[0-9]+.[0-9].[0-9]+'
+      - '!3.7.[0-9]+'
   pull_request:
     branches:
-      - master
       - trunk
       - '3.[89]'
       - '[4-9].[0-9]'
@@ -44,20 +43,21 @@ jobs:
   #
   # Performs the following steps:
   # - Checks out the repository.
-  # - Logs debug information about the runner container.
-  # - Installs NodeJS 14.
+  # - Logs debug information about the GitHub Action runner.
+  # - Installs NodeJS.
   # - Logs updated debug information.
-  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # _ Installs NPM dependencies.
   # - Run the WordPress QUnit tests.
   # - Ensures version-controlled files are not modified or deleted.
   test-js:
     name: QUnit Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
 
       - name: Log debug information
         run: |
@@ -67,9 +67,9 @@ jobs:
           svn --version
 
       - name: Install NodeJS
-        uses: actions/setup-node@38d90ce44d5275ad62cc48384b3d8a58c500bb5f # v2.2.2
+        uses: actions/setup-node@eeb10cff27034e7acf239c5d29f62154018672fd # v3.3.0
         with:
-          node-version: 14
+          node-version-file: '.nvmrc'
           cache: npm
 
       - name: Log debug information
@@ -88,7 +88,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@master
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     needs: [ test-js ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:

@@ -4,7 +4,6 @@ on:
   # Verify the workflow is successful when this file is updated.
   push:
     branches:
-      - master
       - trunk
     paths:
       - '.github/workflows/test-old-branches.yml'
@@ -17,6 +16,7 @@ jobs:
   dispatch-workflows-for-old-branches:
     name: ${{ matrix.workflow }} for ${{ matrix.branch }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     strategy:
       fail-fast: false
@@ -28,12 +28,17 @@ jobs:
             'test-npm.yml'
         ]
         branch: [
-            '5.8', '5.7', '5.6', '5.5', '5.4', '5.3', '5.2', '5.1', '5.0',
+            '6.0',
+            '5.9', '5.8', '5.7', '5.6', '5.5', '5.4', '5.3', '5.2', '5.1', '5.0',
             '4.9', '4.8', '4.7', '4.6', '4.5', '4.4', '4.3', '4.2', '4.1', '4.0',
             '3.9', '3.8', '3.7'
         ]
         include:
           # PHP Compatibility testing was introduced in 5.5.
+          - branch: '6.0'
+            workflow: 'php-compatibility.yml'
+          - branch: '5.9'
+            workflow: 'php-compatibility.yml'
           - branch: '5.8'
             workflow: 'php-compatibility.yml'
           - branch: '5.7'
@@ -43,9 +48,13 @@ jobs:
           - branch: '5.5'
             workflow: 'php-compatibility.yml'
 
-          # End to End testing was introduced in 5.3 but later removed as there were no meaningful assertions.
-          # Only the officially supported major branch runs E2E tests so that more assertions can be added, and the
-          # workflow does not continue to run needlessly on old branches.
+          # End-to-end testing was introduced in 5.3 but was later removed as there were no meaningful assertions.
+          # Starting in 5.8 with #52905, some additional tests with real assertions were introduced.
+          # Branches 5.8 and newer should be tested to confirm no regressions are introduced.
+          - branch: '6.0'
+            workflow: 'end-to-end-tests.yml'
+          - branch: '5.9'
+            workflow: 'end-to-end-tests.yml'
           - branch: '5.8'
             workflow: 'end-to-end-tests.yml'
         exclude:
@@ -58,12 +67,12 @@ jobs:
     # Run all branches monthly, but only the currently supported one twice per month.
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # v3.1.0
-        if: ${{ github.event_name == 'push' || github.event.schedule == '0 0 15 * *' || matrix.branch == '5.7' }}
+        uses: actions/github-script@7a5c598405937d486b0331594b5da2b14db670da # v6.1.0
+        if: ${{ github.event_name == 'push' || github.event.schedule == '0 0 15 * *' || matrix.branch == '6.0' }}
         with:
           github-token: ${{ secrets.GHA_OLD_BRANCH_DISPATCH }}
           script: |
-            github.actions.createWorkflowDispatch({
+            github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: '${{ matrix.workflow }}',
@@ -72,7 +81,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@master
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     needs: [ dispatch-workflows-for-old-branches ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:

@@ -224,8 +224,8 @@ class Tests_Pluggable extends WP_UnitTestCase {
 				'extra_special_chars' => false,
 			),
 			'wp_rand'                         => array(
-				'min' => 0,
-				'max' => 0,
+				'min' => null,
+				'max' => null,
 			),
 			'wp_set_password'                 => array( 'password', 'user_id' ),
 			'get_avatar'                      => array(
@@ -249,7 +249,7 @@ class Tests_Pluggable extends WP_UnitTestCase {
 				'blog_title',
 				'user_name',
 				'user_email',
-				'public',
+				'is_public',
 				'deprecated'    => '',
 				'user_password' => '',
 				'language'      => '',
@@ -267,40 +267,18 @@ class Tests_Pluggable extends WP_UnitTestCase {
 				array(
 
 					// wp-includes/cache.php:
+					'wp_cache_init'                      => array(),
 					'wp_cache_add'                       => array(
 						'key',
 						'data',
 						'group'  => '',
 						'expire' => 0,
 					),
-					'wp_cache_close'                     => array(),
-					'wp_cache_decr'                      => array(
-						'key',
-						'offset' => 1,
+					'wp_cache_add_multiple'              => array(
+						'data',
 						'group'  => '',
+						'expire' => 0,
 					),
-					'wp_cache_delete'                    => array(
-						'key',
-						'group' => '',
-					),
-					'wp_cache_flush'                     => array(),
-					'wp_cache_get'                       => array(
-						'key',
-						'group' => '',
-						'force' => false,
-						'found' => null,
-					),
-					'wp_cache_get_multiple'              => array(
-						'keys',
-						'group' => '',
-						'force' => false,
-					),
-					'wp_cache_incr'                      => array(
-						'key',
-						'offset' => 1,
-						'group'  => '',
-					),
-					'wp_cache_init'                      => array(),
 					'wp_cache_replace'                   => array(
 						'key',
 						'data',
@@ -313,30 +291,53 @@ class Tests_Pluggable extends WP_UnitTestCase {
 						'group'  => '',
 						'expire' => 0,
 					),
-					'wp_cache_switch_to_blog'            => array( 'blog_id' ),
+					'wp_cache_set_multiple'              => array(
+						'data',
+						'group'  => '',
+						'expire' => 0,
+					),
+					'wp_cache_get'                       => array(
+						'key',
+						'group' => '',
+						'force' => false,
+						'found' => null,
+					),
+					'wp_cache_get_multiple'              => array(
+						'keys',
+						'group' => '',
+						'force' => false,
+					),
+					'wp_cache_delete'                    => array(
+						'key',
+						'group' => '',
+					),
+					'wp_cache_delete_multiple'           => array(
+						'keys',
+						'group' => '',
+					),
+					'wp_cache_incr'                      => array(
+						'key',
+						'offset' => 1,
+						'group'  => '',
+					),
+					'wp_cache_decr'                      => array(
+						'key',
+						'offset' => 1,
+						'group'  => '',
+					),
+					'wp_cache_flush'                     => array(),
+					'wp_cache_flush_runtime'             => array(),
+					'wp_cache_flush_group'               => array( 'group' ),
+					'wp_cache_supports_group_flush'      => array(),
+					'wp_cache_close'                     => array(),
 					'wp_cache_add_global_groups'         => array( 'groups' ),
 					'wp_cache_add_non_persistent_groups' => array( 'groups' ),
+					'wp_cache_switch_to_blog'            => array( 'blog_id' ),
 					'wp_cache_reset'                     => array(),
 				)
 			);
 		}
 
 		return $signatures;
-	}
-
-	/**
-	 * @ticket 28020
-	 */
-	public function test_get_user_by_should_return_same_instance_as_wp_get_current_user() {
-		// Create a test user.
-		$new_user = self::factory()->user->create( array( 'role' => 'subscriber' ) );
-
-		// Set the test user as the current user.
-		$current_user = wp_set_current_user( $new_user );
-
-		// Get the test user using get_user_by().
-		$from_get_user_by = get_user_by( 'id', $new_user );
-
-		$this->assertSame( $current_user, $from_get_user_by );
 	}
 }

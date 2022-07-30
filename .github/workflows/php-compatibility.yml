@@ -4,16 +4,16 @@ on:
   # PHP compatibility testing was introduced in WordPress 5.5.
   push:
     branches:
-      - master
       - trunk
       - '5.[5-9]'
       - '[6-9].[0-9]'
     tags:
-      - '5.[5-9]*'
-      - '[6-9].[0-9]*'
+      - '[0-9]+.[0-9]'
+      - '[0-9]+.[0-9].[0-9]+'
+      - '![34].[0-9].[0-9]+'
+      - '!5.[0-4].[0-9]+'
   pull_request:
     branches:
-      - master
       - trunk
       - '5.[5-9]'
       - '[6-9].[0-9]'
@@ -22,7 +22,7 @@ on:
       - '**.php'
       # These files configure Composer. Changes could affect the outcome.
       - 'composer.*'
-      # This file configures PHP Compatibility scanning. Changes could affect the outcome.
+      # This file configures PHP compatibility scanning. Changes could affect the outcome.
       - 'phpcompat.xml.dist'
       # Changes to workflow files should always verify all workflows are successful.
       - '.github/workflows/*.yml'
@@ -44,7 +44,8 @@ jobs:
   # Performs the following steps:
   # - Checks out the repository.
   # - Sets up PHP.
-  # - Logs debug information about the runner container.
+  # - Logs debug information.
+  # - Configures caching for PHP compatibility scans.
   # - Installs Composer dependencies (use cache if possible).
   # - Make Composer packages available globally.
   # - Logs PHP_CodeSniffer debug information.
@@ -53,14 +54,15 @@ jobs:
   php-compatibility:
     name: Check PHP compatibility
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@afefcaf556d98dc7896cca380e181decb609ca44 # v2.10.0
+        uses: shivammathur/setup-php@3eda58347216592f618bb1dff277810b6698e4ca # v2.19.1
         with:
           php-version: '7.4'
           coverage: none
@@ -71,8 +73,20 @@ jobs:
           php --version
           composer --version
 
+      # This date is used to ensure that the PHP compatibility cache is cleared at least once every week.
+      # http://man7.org/linux/man-pages/man1/date.1.html
+      - name: "Get last Monday's date"
+        id: get-date
+        run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
+
+      - name: Cache PHP compatibility scan cache
+        uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d # v3.0.4
+        with:
+          path: .cache/phpcompat.json
+          key: ${{ runner.os }}-date-${{ steps.get-date.outputs.date }}-phpcompat-cache-${{ hashFiles('**/composer.json', 'phpcompat.xml.dist') }}
+
       - name: Install Composer dependencies
-        uses: ramsey/composer-install@92a7904348d4ad30236f3611e33b7f0c6f9edd70 # v1.1.0
+        uses: ramsey/composer-install@f680dac46551dffb2234a240d65ae806c2999dd6 # v2.1.0
         with:
           composer-options: "--no-progress --no-ansi --no-interaction"
 
@@ -90,7 +104,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@master
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     needs: [ php-compatibility ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:

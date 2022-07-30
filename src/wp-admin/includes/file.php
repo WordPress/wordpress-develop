@@ -223,7 +223,7 @@ function wp_get_plugin_file_editable_extensions( $plugin ) {
 	);
 
 	/**
-	 * Filters the list of file types allowed for editing in the plugin editor.
+	 * Filters the list of file types allowed for editing in the plugin file editor.
 	 *
 	 * @since 2.8.0
 	 * @since 4.9.0 Added the `$plugin` parameter.
@@ -282,12 +282,12 @@ function wp_get_theme_file_editable_extensions( $theme ) {
 	);
 
 	/**
-	 * Filters the list of file types allowed for editing in the theme editor.
+	 * Filters the list of file types allowed for editing in the theme file editor.
 	 *
 	 * @since 4.4.0
 	 *
 	 * @param string[] $default_types An array of editable theme file extensions.
-	 * @param WP_Theme $theme         The current theme object.
+	 * @param WP_Theme $theme         The active theme object.
 	 */
 	$file_types = apply_filters( 'wp_theme_editor_filetypes', $default_types, $theme );
 
@@ -715,7 +715,7 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
 			wp_die( __( 'Sorry, that file cannot be edited.' ) );
 
 			// case 2 :
-			// wp_die( __('Sorry, can&#8217;t call files with their real path.' ));
+			// wp_die( __('Sorry, cannot call files with their real path.' ));
 
 		case 3:
 			wp_die( __( 'Sorry, that file cannot be edited.' ) );
@@ -1194,8 +1194,12 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 			$tmpfname_disposition = '';
 		}
 
-		// Potential file name must be valid string
-		if ( $tmpfname_disposition && is_string( $tmpfname_disposition ) && ( 0 === validate_file( $tmpfname_disposition ) ) ) {
+		// Potential file name must be valid string.
+		if ( $tmpfname_disposition && is_string( $tmpfname_disposition )
+			&& ( 0 === validate_file( $tmpfname_disposition ) )
+		) {
+			$tmpfname_disposition = dirname( $tmpfname ) . '/' . $tmpfname_disposition;
+
 			if ( rename( $tmpfname, $tmpfname_disposition ) ) {
 				$tmpfname = $tmpfname_disposition;
 			}
@@ -1381,8 +1385,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 				'<span class="code">' . esc_html( $filename_for_errors ) . '</span>'
 			),
 			array(
-				'php'    => phpversion(),
-				// phpcs:ignore PHPCompatibility.Constants.NewConstants.sodium_library_versionFound
+				'php'    => PHP_VERSION,
 				'sodium' => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
 			)
 		);
@@ -1394,7 +1397,10 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 
 		// Allow for an old version of Sodium_Compat being loaded before the bundled WordPress one.
 		if ( method_exists( 'ParagonIE_Sodium_Compat', 'runtime_speed_test' ) ) {
-			// Run `ParagonIE_Sodium_Compat::runtime_speed_test()` in optimized integer mode, as that's what WordPress utilises during signing verifications.
+			/*
+			 * Run `ParagonIE_Sodium_Compat::runtime_speed_test()` in optimized integer mode,
+			 * as that's what WordPress utilizes during signing verifications.
+			 */
 			// phpcs:disable WordPress.NamingConventions.ValidVariableName
 			$old_fastMult                      = ParagonIE_Sodium_Compat::$fastMult;
 			ParagonIE_Sodium_Compat::$fastMult = true;
@@ -1414,8 +1420,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 					'<span class="code">' . esc_html( $filename_for_errors ) . '</span>'
 				),
 				array(
-					'php'                => phpversion(),
-					// phpcs:ignore PHPCompatibility.Constants.NewConstants.sodium_library_versionFound
+					'php'                => PHP_VERSION,
 					'sodium'             => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
 					'polyfill_is_fast'   => false,
 					'max_execution_time' => ini_get( 'max_execution_time' ),
@@ -1488,8 +1493,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 			'hash'        => bin2hex( $file_hash ),
 			'skipped_key' => $skipped_key,
 			'skipped_sig' => $skipped_signature,
-			'php'         => phpversion(),
-			// phpcs:ignore PHPCompatibility.Constants.NewConstants.sodium_library_versionFound
+			'php'         => PHP_VERSION,
 			'sodium'      => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
 		)
 	);
@@ -1662,7 +1666,7 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 	 * Require we have enough space to unzip the file and copy its contents, with a 10% buffer.
 	 */
 	if ( wp_doing_cron() ) {
-		$available_space = @disk_free_space( WP_CONTENT_DIR );
+		$available_space = function_exists( 'disk_free_space' ) ? @disk_free_space( WP_CONTENT_DIR ) : false;
 
 		if ( $available_space && ( $uncompressed_size * 2.1 ) > $available_space ) {
 			return new WP_Error(
@@ -1803,7 +1807,7 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 	 * Require we have enough space to unzip the file and copy its contents, with a 10% buffer.
 	 */
 	if ( wp_doing_cron() ) {
-		$available_space = @disk_free_space( WP_CONTENT_DIR );
+		$available_space = function_exists( 'disk_free_space' ) ? @disk_free_space( WP_CONTENT_DIR ) : false;
 
 		if ( $available_space && ( $uncompressed_size * 2.1 ) > $available_space ) {
 			return new WP_Error(
@@ -1942,34 +1946,6 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 }
 
 /**
- * Moves a directory from one location to another via the rename() PHP function.
- * If the renaming failed, falls back to copy_dir().
- *
- * Assumes that WP_Filesystem() has already been called and setup.
- *
- * @since 5.9.0
- *
- * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
- *
- * @param string $from Source directory.
- * @param string $to   Destination directory.
- * @return true|WP_Error True on success, WP_Error on failure.
- */
-function move_dir( $from, $to ) {
-	global $wp_filesystem;
-
-	$wp_filesystem->rmdir( $to );
-	if ( @rename( $from, $to ) ) {
-		return true;
-	}
-
-	$wp_filesystem->mkdir( $to );
-	$result = copy_dir( $from, $to );
-
-	return $result;
-}
-
-/**
  * Initializes and connects the WordPress Filesystem Abstraction classes.
  *
  * This function will include the chosen transport and attempt connecting.
@@ -2031,10 +2007,10 @@ function WP_Filesystem( $args = false, $context = false, $allow_relaxed_file_own
 	 * to allow for per-transport overriding of the default.
 	 */
 	if ( ! defined( 'FS_CONNECT_TIMEOUT' ) ) {
-		define( 'FS_CONNECT_TIMEOUT', 30 );
+		define( 'FS_CONNECT_TIMEOUT', MINUTE_IN_SECONDS / 2 );
 	}
 	if ( ! defined( 'FS_TIMEOUT' ) ) {
-		define( 'FS_TIMEOUT', 30 );
+		define( 'FS_TIMEOUT', MINUTE_IN_SECONDS / 2 );
 	}
 
 	if ( is_wp_error( $wp_filesystem->errors ) && $wp_filesystem->errors->has_errors() ) {
@@ -2170,7 +2146,7 @@ function get_filesystem_method( $args = array(), $context = '', $allow_relaxed_f
  * @since 2.5.0
  * @since 4.6.0 The `$context` parameter default changed from `false` to an empty string.
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  *
  * @param string        $form_post                    The URL to post the form to.
  * @param string        $type                         Optional. Chosen type of filesystem. Default empty.
@@ -2326,7 +2302,7 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 	$connection_type = isset( $credentials['connection_type'] ) ? $credentials['connection_type'] : '';
 
 	if ( $error ) {
-		$error_string = __( '<strong>Error</strong>: Could not connect to the server. Please verify the settings are correct.' );
+		$error_string = __( '<strong>Error:</strong> Could not connect to the server. Please verify the settings are correct.' );
 		if ( is_wp_error( $error ) ) {
 			$error_string = esc_html( $error->get_error_message() );
 		}

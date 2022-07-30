@@ -95,6 +95,15 @@ class WP_Dependencies {
 	private $all_queued_deps;
 
 	/**
+	 * List of assets enqueued before details were registered.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @var array
+	 */
+	private $queued_before_register = array();
+
+	/**
 	 * Processes the items and dependencies.
 	 *
 	 * Processes the items passed to it or the queue, and their dependencies.
@@ -248,6 +257,18 @@ class WP_Dependencies {
 			return false;
 		}
 		$this->registered[ $handle ] = new _WP_Dependency( $handle, $src, $deps, $ver, $args );
+
+		// If the item was enqueued before the details were registered, enqueue it now.
+		if ( array_key_exists( $handle, $this->queued_before_register ) ) {
+			if ( ! is_null( $this->queued_before_register[ $handle ] ) ) {
+				$this->enqueue( $handle . '?' . $this->queued_before_register[ $handle ] );
+			} else {
+				$this->enqueue( $handle );
+			}
+
+			unset( $this->queued_before_register[ $handle ] );
+		}
+
 		return true;
 	}
 
@@ -334,6 +355,12 @@ class WP_Dependencies {
 				if ( isset( $handle[1] ) ) {
 					$this->args[ $handle[0] ] = $handle[1];
 				}
+			} elseif ( ! isset( $this->registered[ $handle[0] ] ) ) {
+				$this->queued_before_register[ $handle[0] ] = null; // $args
+
+				if ( isset( $handle[1] ) ) {
+					$this->queued_before_register[ $handle[0] ] = $handle[1];
+				}
 			}
 		}
 	}
@@ -360,6 +387,8 @@ class WP_Dependencies {
 
 				unset( $this->queue[ $key ] );
 				unset( $this->args[ $handle[0] ] );
+			} elseif ( array_key_exists( $handle[0], $this->queued_before_register ) ) {
+				unset( $this->queued_before_register[ $handle[0] ] );
 			}
 		}
 	}
@@ -402,17 +431,17 @@ class WP_Dependencies {
 	}
 
 	/**
-	 * Query list for an item.
+	 * Query the list for an item.
 	 *
 	 * @since 2.1.0
 	 * @since 2.6.0 Moved from `WP_Scripts`.
 	 *
 	 * @param string $handle Name of the item. Should be unique.
-	 * @param string $list   Optional. Property name of list array. Default 'registered'.
+	 * @param string $status Optional. Status of the item to query. Default 'registered'.
 	 * @return bool|_WP_Dependency Found, or object Item data.
 	 */
-	public function query( $handle, $list = 'registered' ) {
-		switch ( $list ) {
+	public function query( $handle, $status = 'registered' ) {
+		switch ( $status ) {
 			case 'registered':
 			case 'scripts': // Back compat.
 				if ( isset( $this->registered[ $handle ] ) ) {
@@ -421,7 +450,7 @@ class WP_Dependencies {
 				return false;
 
 			case 'enqueued':
-			case 'queue':
+			case 'queue': // Back compat.
 				if ( in_array( $handle, $this->queue, true ) ) {
 					return true;
 				}
@@ -435,6 +464,7 @@ class WP_Dependencies {
 			case 'printed': // Back compat.
 				return in_array( $handle, $this->done, true );
 		}
+
 		return false;
 	}
 

@@ -119,9 +119,6 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error
 	 * are considered duplicates.
 	 */
 	$crons = _get_cron_array();
-	if ( ! is_array( $crons ) ) {
-		$crons = array();
-	}
 
 	$key       = md5( serialize( $event->args ) );
 	$duplicate = false;
@@ -306,9 +303,6 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp
 	$key = md5( serialize( $event->args ) );
 
 	$crons = _get_cron_array();
-	if ( ! is_array( $crons ) ) {
-		$crons = array();
-	}
 
 	$crons[ $event->timestamp ][ $event->hook ][ $key ] = array(
 		'schedule' => $event->schedule,
@@ -1113,7 +1107,7 @@ function wp_get_schedule( $hook, $args = array() ) {
  *
  * @since 5.1.0
  *
- * @return array Cron jobs ready to be run.
+ * @return array[] Array of cron job arrays ready to be run.
  */
 function wp_get_ready_cron_jobs() {
 	/**
@@ -1124,8 +1118,8 @@ function wp_get_ready_cron_jobs() {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @param null|array $pre Array of ready cron tasks to return instead. Default null
-	 *                        to continue using results from _get_cron_array().
+	 * @param null|array[] $pre Array of ready cron tasks to return instead. Default null
+	 *                          to continue using results from _get_cron_array().
 	 */
 	$pre = apply_filters( 'pre_get_ready_cron_jobs', null );
 	if ( null !== $pre ) {
@@ -1133,9 +1127,6 @@ function wp_get_ready_cron_jobs() {
 	}
 
 	$crons = _get_cron_array();
-	if ( ! is_array( $crons ) ) {
-		return array();
-	}
 
 	$gmt_time = microtime( true );
 	$keys     = array_keys( $crons );
@@ -1162,14 +1153,15 @@ function wp_get_ready_cron_jobs() {
  * Retrieve cron info array option.
  *
  * @since 2.1.0
+ * @since 6.1.0 Return type modified to consistenty return an array.
  * @access private
  *
- * @return array|false Cron info array on success, false on failure.
+ * @return array[] Array of cron events.
  */
 function _get_cron_array() {
 	$cron = get_option( 'cron' );
 	if ( ! is_array( $cron ) ) {
-		return false;
+		return array();
 	}
 
 	if ( ! isset( $cron['version'] ) ) {
@@ -1190,8 +1182,8 @@ function _get_cron_array() {
  *
  * @access private
  *
- * @param array $cron     Cron info array from _get_cron_array().
- * @param bool  $wp_error Optional. Whether to return a WP_Error on failure. Default false.
+ * @param array[] $cron     Array of cron info arrays from _get_cron_array().
+ * @param bool    $wp_error Optional. Whether to return a WP_Error on failure. Default false.
  * @return bool|WP_Error True if cron array updated. False or WP_Error on failure.
  */
 function _set_cron_array( $cron, $wp_error = false ) {
