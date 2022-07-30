@@ -485,7 +485,7 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 
 		remove_filter( 'wp_get_current_commenter', array( $this, 'get_current_commenter' ) );
 
-		$this->assertContains( $new_unapproved, wp_list_pluck( $comments, 'comment_ID' ) );
+		$this->assertContains( (string) $new_unapproved, wp_list_pluck( $comments, 'comment_ID' ) );
 	}
 
 	public function get_current_commenter() {
@@ -542,7 +542,7 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( $new_unapproved, wp_list_pluck( $comments, 'comment_ID' ) );
+		$this->assertContains( (string) $new_unapproved, wp_list_pluck( $comments, 'comment_ID' ) );
 
 		wp_set_current_user( $current_user );
 	}

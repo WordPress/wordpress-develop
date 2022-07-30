@@ -24,7 +24,9 @@ while ( have_posts() ) {
 				/**
 				 * Filter the default image attachment size.
 				 *
-				 * @param string $image_size Image size. Default 'large'.
+				 * @since Twenty Twenty-One 1.0
+				 *
+				 * @param string $image_size Image size. Default 'full'.
 				 */
 				$image_size = apply_filters( 'twenty_twenty_one_attachment_size', 'full' );
 				echo wp_get_attachment_image( get_the_ID(), $image_size );
@@ -64,7 +66,7 @@ while ( have_posts() ) {
 				// Edit post link.
 				edit_post_link(
 					sprintf(
-						/* translators: %s: Name of current post. Only visible to screen readers. */
+						/* translators: %s: Post title. Only visible to screen readers. */
 						esc_html__( 'Edit %s', 'twentytwentyone' ),
 						'<span class="screen-reader-text">' . get_the_title() . '</span>'
 					),
@@ -89,7 +91,7 @@ while ( have_posts() ) {
 				// Edit post link.
 				edit_post_link(
 					sprintf(
-						/* translators: %s: Name of current post. Only visible to screen readers. */
+						/* translators: %s: Post title. Only visible to screen readers. */
 						esc_html__( 'Edit %s', 'twentytwentyone' ),
 						'<span class="screen-reader-text">' . get_the_title() . '</span>'
 					),

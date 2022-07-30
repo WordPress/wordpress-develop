@@ -2,6 +2,8 @@
 /**
  * @group taxonomy
  * @group walker
+ *
+ * @covers Walker_Category::start_el
  */
 class Tests_Category_Walker_Category extends WP_UnitTestCase {
 
@@ -13,8 +15,8 @@ class Tests_Category_Walker_Category extends WP_UnitTestCase {
 	/**
 	 * Setup.
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		/** Walker_Category class */
 		require_once ABSPATH . 'wp-includes/class-walker-category.php';
@@ -38,7 +40,7 @@ class Tests_Category_Walker_Category extends WP_UnitTestCase {
 
 		add_filter(
 			'category_list_link_attributes',
-			function( $atts ) use ( $value ) {
+			static function( $atts ) use ( $value ) {
 				$atts['data-test'] = $value;
 				return $atts;
 			}

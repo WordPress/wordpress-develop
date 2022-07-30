@@ -11,18 +11,18 @@
 //
 
 /**
- * Check whether a category exists.
+ * Checks whether a category exists.
  *
  * @since 2.0.0
  *
  * @see term_exists()
  *
- * @param int|string $cat_name Category name.
- * @param int        $parent   Optional. ID of parent term.
- * @return mixed
+ * @param int|string $cat_name        Category name.
+ * @param int        $category_parent Optional. ID of parent category.
+ * @return string|null Returns the category ID as a numeric string if the pairing exists, null if not.
  */
-function category_exists( $cat_name, $parent = null ) {
-	$id = term_exists( $cat_name, 'category', $parent );
+function category_exists( $cat_name, $category_parent = null ) {
+	$id = term_exists( $cat_name, 'category', $category_parent );
 	if ( is_array( $id ) ) {
 		$id = $id['term_id'];
 	}
@@ -30,7 +30,7 @@ function category_exists( $cat_name, $parent = null ) {
 }
 
 /**
- * Get category object for given ID and 'edit' filter context.
+ * Gets category object for given ID and 'edit' filter context.
  *
  * @since 2.0.0
  *
@@ -44,16 +44,16 @@ function get_category_to_edit( $id ) {
 }
 
 /**
- * Add a new category to the database if it does not already exist.
+ * Adds a new category to the database if it does not already exist.
  *
  * @since 2.0.0
  *
- * @param int|string $cat_name
- * @param int        $parent
+ * @param int|string $cat_name        Category name.
+ * @param int        $category_parent Optional. ID of parent category.
  * @return int|WP_Error
  */
-function wp_create_category( $cat_name, $parent = 0 ) {
-	$id = category_exists( $cat_name, $parent );
+function wp_create_category( $cat_name, $category_parent = 0 ) {
+	$id = category_exists( $cat_name, $category_parent );
 	if ( $id ) {
 		return $id;
 	}
@@ -61,13 +61,13 @@ function wp_create_category( $cat_name, $parent = 0 ) {
 	return wp_insert_category(
 		array(
 			'cat_name'        => $cat_name,
-			'category_parent' => $parent,
+			'category_parent' => $category_parent,
 		)
 	);
 }
 
 /**
- * Create categories for the given post.
+ * Creates categories for the given post.
  *
  * @since 2.0.0
  *
@@ -115,8 +115,8 @@ function wp_create_categories( $categories, $post_id = '' ) {
  *     @type int|string $category_parent      Category parent ID. Default empty.
  * }
  * @param bool  $wp_error Optional. Default false.
- * @return int|object The ID number of the new or updated Category on success. Zero or a WP_Error on failure,
- *                    depending on param $wp_error.
+ * @return int|WP_Error The ID number of the new or updated Category on success. Zero or a WP_Error on failure,
+ *                      depending on param `$wp_error`.
  */
 function wp_insert_category( $catarr, $wp_error = false ) {
 	$cat_defaults = array(
@@ -210,19 +210,21 @@ function wp_update_category( $catarr ) {
 //
 
 /**
- * Check whether a post tag with a given name exists.
+ * Checks whether a post tag with a given name exists.
  *
  * @since 2.3.0
  *
  * @param int|string $tag_name
- * @return mixed
+ * @return mixed Returns null if the term does not exist.
+ *               Returns an array of the term ID and the term taxonomy ID if the pairing exists.
+ *               Returns 0 if term ID 0 is passed to the function.
  */
 function tag_exists( $tag_name ) {
 	return term_exists( $tag_name, 'post_tag' );
 }
 
 /**
- * Add a new tag to the database if it does not already exist.
+ * Adds a new tag to the database if it does not already exist.
  *
  * @since 2.3.0
  *
@@ -234,7 +236,7 @@ function wp_create_tag( $tag_name ) {
 }
 
 /**
- * Get comma-separated list of tags available to edit.
+ * Gets comma-separated list of tags available to edit.
  *
  * @since 2.3.0
  *
@@ -247,7 +249,7 @@ function get_tags_to_edit( $post_id, $taxonomy = 'post_tag' ) {
 }
 
 /**
- * Get comma-separated list of terms available to edit for the given post ID.
+ * Gets comma-separated list of terms available to edit for the given post ID.
  *
  * @since 2.8.0
  *
@@ -296,7 +298,7 @@ function get_terms_to_edit( $post_id, $taxonomy = 'post_tag' ) {
 }
 
 /**
- * Add a new term to the database if it does not already exist.
+ * Adds a new term to the database if it does not already exist.
  *
  * @since 2.8.0
  *

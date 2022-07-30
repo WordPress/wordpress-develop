@@ -14,6 +14,13 @@ if ( ! defined( 'WP_RUN_CORE_TESTS' ) && in_array( 'run_core_tests', $argv, true
 }
 
 define( 'WP_INSTALLING', true );
+
+/*
+ * Cron tries to make an HTTP request to the site, which always fails,
+ * because tests are run in CLI mode only.
+ */
+define( 'DISABLE_WP_CRON', true );
+
 require_once $config_file_path;
 require_once __DIR__ . '/functions.php';
 
@@ -33,7 +40,7 @@ tests_add_filter( 'wp_die_handler', '_wp_die_handler_filter_exit' );
 require_once ABSPATH . '/wp-settings.php';
 
 require_once ABSPATH . '/wp-admin/includes/upgrade.php';
-require_once ABSPATH . '/wp-includes/wp-db.php';
+require_once ABSPATH . '/wp-includes/class-wpdb.php';
 
 // Override the PHPMailer.
 global $phpmailer;

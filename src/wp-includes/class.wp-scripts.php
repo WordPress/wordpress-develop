@@ -125,7 +125,7 @@ class WP_Scripts extends WP_Dependencies {
 	/**
 	 * Holds a string which contains the type attribute for script tag.
 	 *
-	 * If the current theme does not declare HTML5 support for 'script',
+	 * If the active theme does not declare HTML5 support for 'script',
 	 * then it initializes as `type='text/javascript'`.
 	 *
 	 * @since 5.3.0
@@ -162,7 +162,7 @@ class WP_Scripts extends WP_Dependencies {
 		 *
 		 * @since 2.6.0
 		 *
-		 * @param WP_Scripts $this WP_Scripts instance (passed by reference).
+		 * @param WP_Scripts $wp_scripts WP_Scripts instance (passed by reference).
 		 */
 		do_action_ref_array( 'wp_default_scripts', array( &$this ) );
 	}
@@ -190,20 +190,20 @@ class WP_Scripts extends WP_Dependencies {
 	 * Prints extra scripts of a registered script.
 	 *
 	 * @since 2.1.0
-	 * @since 2.8.0 Added the `$echo` parameter.
+	 * @since 2.8.0 Added the `$display` parameter.
 	 * @deprecated 3.3.0
 	 *
 	 * @see print_extra_script()
 	 *
-	 * @param string $handle The script's registered handle.
-	 * @param bool   $echo   Optional. Whether to echo the extra script
-	 *                       instead of just returning it. Default true.
-	 * @return bool|string|void Void if no data exists, extra scripts if `$echo` is true,
+	 * @param string $handle  The script's registered handle.
+	 * @param bool   $display Optional. Whether to print the extra script
+	 *                        instead of just returning it. Default true.
+	 * @return bool|string|void Void if no data exists, extra scripts if `$display` is true,
 	 *                          true otherwise.
 	 */
-	public function print_scripts_l10n( $handle, $echo = true ) {
+	public function print_scripts_l10n( $handle, $display = true ) {
 		_deprecated_function( __FUNCTION__, '3.3.0', 'WP_Scripts::print_extra_script()' );
-		return $this->print_extra_script( $handle, $echo );
+		return $this->print_extra_script( $handle, $display );
 	}
 
 	/**
@@ -211,19 +211,19 @@ class WP_Scripts extends WP_Dependencies {
 	 *
 	 * @since 3.3.0
 	 *
-	 * @param string $handle The script's registered handle.
-	 * @param bool   $echo   Optional. Whether to echo the extra script
-	 *                       instead of just returning it. Default true.
-	 * @return bool|string|void Void if no data exists, extra scripts if `$echo` is true,
+	 * @param string $handle  The script's registered handle.
+	 * @param bool   $display Optional. Whether to print the extra script
+	 *                        instead of just returning it. Default true.
+	 * @return bool|string|void Void if no data exists, extra scripts if `$display` is true,
 	 *                          true otherwise.
 	 */
-	public function print_extra_script( $handle, $echo = true ) {
+	public function print_extra_script( $handle, $display = true ) {
 		$output = $this->get_data( $handle, 'data' );
 		if ( ! $output ) {
 			return;
 		}
 
-		if ( ! $echo ) {
+		if ( ! $display ) {
 			return $output;
 		}
 
@@ -311,6 +311,12 @@ class WP_Scripts extends WP_Dependencies {
 			$inline_script_tag = '';
 		}
 
+		/*
+		 * Prevent concatenation of scripts if the text domain is defined
+		 * to ensure the dependency order is respected.
+		 */
+		$translations_stop_concat = ! empty( $obj->textdomain );
+
 		$translations = $this->print_translations( $handle, false );
 		if ( $translations ) {
 			$translations = sprintf( "<script%s id='%s-js-translations'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $translations );
@@ -327,7 +333,7 @@ class WP_Scripts extends WP_Dependencies {
 			 */
 			$srce = apply_filters( 'script_loader_src', $src, $handle );
 
-			if ( $this->in_default_dir( $srce ) && ( $before_handle || $after_handle || $translations ) ) {
+			if ( $this->in_default_dir( $srce ) && ( $before_handle || $after_handle || $translations_stop_concat ) ) {
 				$this->do_concat = false;
 
 				// Have to print the so-far concatenated scripts right away to maintain the right order.
@@ -444,11 +450,11 @@ class WP_Scripts extends WP_Dependencies {
 	 *                         Must be lowercase.
 	 * @param string $position Optional. Whether to add the inline script
 	 *                         before the handle or after. Default 'after'.
-	 * @param bool   $echo     Optional. Whether to echo the script
+	 * @param bool   $display  Optional. Whether to print the script
 	 *                         instead of just returning it. Default true.
 	 * @return string|false Script on success, false otherwise.
 	 */
-	public function print_inline_script( $handle, $position = 'after', $echo = true ) {
+	public function print_inline_script( $handle, $position = 'after', $display = true ) {
 		$output = $this->get_data( $handle, $position );
 
 		if ( empty( $output ) ) {
@@ -457,7 +463,7 @@ class WP_Scripts extends WP_Dependencies {
 
 		$output = trim( implode( "\n", $output ), "\n" );
 
-		if ( $echo ) {
+		if ( $display ) {
 			printf( "<script%s id='%s-js-%s'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), esc_attr( $position ), $output );
 		}
 
@@ -582,13 +588,13 @@ class WP_Scripts extends WP_Dependencies {
 	 *
 	 * @since 5.0.0
 	 *
-	 * @param string $handle Name of the script to add the inline script to.
-	 *                       Must be lowercase.
-	 * @param bool   $echo   Optional. Whether to echo the script
-	 *                       instead of just returning it. Default true.
+	 * @param string $handle  Name of the script to add the inline script to.
+	 *                        Must be lowercase.
+	 * @param bool   $display Optional. Whether to print the script
+	 *                        instead of just returning it. Default true.
 	 * @return string|false Script on success, false otherwise.
 	 */
-	public function print_translations( $handle, $echo = true ) {
+	public function print_translations( $handle, $display = true ) {
 		if ( ! isset( $this->registered[ $handle ] ) || empty( $this->registered[ $handle ]->textdomain ) ) {
 			return false;
 		}
@@ -599,8 +605,7 @@ class WP_Scripts extends WP_Dependencies {
 		$json_translations = load_script_textdomain( $handle, $domain, $path );
 
 		if ( ! $json_translations ) {
-			// Register empty locale data object to ensure the domain still exists.
-			$json_translations = '{ "locale_data": { "messages": { "": {} } } }';
+			return false;
 		}
 
 		$output = <<<JS
@@ -611,7 +616,7 @@ class WP_Scripts extends WP_Dependencies {
 } )( "{$domain}", {$json_translations} );
 JS;
 
-		if ( $echo ) {
+		if ( $display ) {
 			printf( "<script%s id='%s-js-translations'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $output );
 		}
 

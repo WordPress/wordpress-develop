@@ -242,7 +242,7 @@ function _wp_dashboard_control_callback( $dashboard, $meta_box ) {
 	wp_dashboard_trigger_widget_control( $meta_box['id'] );
 	wp_nonce_field( 'edit-dashboard-widget_' . $meta_box['id'], 'dashboard-widget-nonce' );
 	echo '<input type="hidden" name="widget_id" value="' . esc_attr( $meta_box['id'] ) . '" />';
-	submit_button( __( 'Submit' ) );
+	submit_button( __( 'Save Changes' ) );
 	echo '</form>';
 }
 
@@ -484,7 +484,7 @@ function wp_network_dashboard_right_now() {
 		do_action( 'wpmuadminresult' );
 	?>
 
-	<form action="<?php echo network_admin_url( 'users.php' ); ?>" method="get">
+	<form action="<?php echo esc_url( network_admin_url( 'users.php' ) ); ?>" method="get">
 		<p>
 			<label class="screen-reader-text" for="search-users"><?php _e( 'Search Users' ); ?></label>
 			<input type="search" name="s" value="" size="30" autocomplete="off" id="search-users" />
@@ -492,7 +492,7 @@ function wp_network_dashboard_right_now() {
 		</p>
 	</form>
 
-	<form action="<?php echo network_admin_url( 'sites.php' ); ?>" method="get">
+	<form action="<?php echo esc_url( network_admin_url( 'sites.php' ) ); ?>" method="get">
 		<p>
 			<label class="screen-reader-text" for="search-sites"><?php _e( 'Search Sites' ); ?></label>
 			<input type="search" name="s" value="" size="30" autocomplete="off" id="search-sites" />
@@ -685,7 +685,7 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 	if ( $comment->comment_post_ID > 0 ) {
 		$comment_post_title = _draft_or_post_title( $comment->comment_post_ID );
 		$comment_post_url   = get_the_permalink( $comment->comment_post_ID );
-		$comment_post_link  = "<a href='$comment_post_url'>$comment_post_title</a>";
+		$comment_post_link  = '<a href="' . esc_url( $comment_post_url ) . '">' . $comment_post_title . '</a>';
 	} else {
 		$comment_post_link = '';
 	}
@@ -1350,8 +1350,9 @@ function wp_print_community_events_markup() {
 			<p>
 				<span id="community-events-location-message"></span>
 
-				<button class="button-link community-events-toggle-location" aria-label="<?php esc_attr_e( 'Edit city' ); ?>" aria-expanded="false">
-					<span class="dashicons dashicons-edit"></span>
+				<button class="button-link community-events-toggle-location" aria-expanded="false">
+					<span class="dashicons dashicons-location" aria-hidden="true"></span>
+					<span class="community-events-location-edit"><?php _e( 'Select location' ); ?></span>
 				</button>
 			</p>
 
@@ -1413,7 +1414,7 @@ function wp_print_community_events_templates() {
 			 * that they match the expected location before including them.
 			 * Use endonyms (native locale names) whenever possible.
 			 */
-			__( 'We couldn&#8217;t locate %s. Please try another nearby city. For example: Kansas City; Springfield; Portland.' ),
+			__( '%s could not be located. Please try another nearby city. For example: Kansas City; Springfield; Portland.' ),
 			'<em>{{data.unknownCity}}</em>'
 		);
 		?>
@@ -1461,7 +1462,7 @@ function wp_print_community_events_templates() {
 				<?php
 				printf(
 					/* translators: 1: The city the user searched for, 2: Meetup organization documentation URL. */
-					__( 'There aren&#8217;t any events scheduled near %1$s at the moment. Would you like to <a href="%2$s">organize a WordPress event</a>?' ),
+					__( 'There are no events scheduled near %1$s at the moment. Would you like to <a href="%2$s">organize a WordPress event</a>?' ),
 					'{{ data.location.description }}',
 					__( 'https://make.wordpress.org/community/handbook/meetup-organizer/welcome/' )
 				);
@@ -1471,7 +1472,7 @@ function wp_print_community_events_templates() {
 				<?php
 				printf(
 					/* translators: %s: Meetup organization documentation URL. */
-					__( 'There aren&#8217;t any events scheduled near you at the moment. Would you like to <a href="%s">organize a WordPress event</a>?' ),
+					__( 'There are no events scheduled near you at the moment. Would you like to <a href="%s">organize a WordPress event</a>?' ),
 					__( 'https://make.wordpress.org/community/handbook/meetup-organizer/welcome/' )
 				);
 				?>
@@ -1658,13 +1659,20 @@ function wp_dashboard_quota() {
  * Displays the browser update nag.
  *
  * @since 3.2.0
+ * @since 5.8.0 Added a special message for Internet Explorer users.
+ *
+ * @global bool $is_IE
  */
 function wp_dashboard_browser_nag() {
+	global $is_IE;
+
 	$notice   = '';
 	$response = wp_check_browser_version();
 
 	if ( $response ) {
-		if ( $response['insecure'] ) {
+		if ( $is_IE ) {
+			$msg = __( 'Internet Explorer does not give you the best WordPress experience. Switch to Microsoft Edge, or another more modern browser to get the most from your site.' );
+		} elseif ( $response['insecure'] ) {
 			$msg = sprintf(
 				/* translators: %s: Browser name and link. */
 				__( "It looks like you're using an insecure version of %s. Using an outdated browser makes your computer unsafe. For the best WordPress experience, please update your browser." ),
@@ -1682,7 +1690,7 @@ function wp_dashboard_browser_nag() {
 		if ( ! empty( $response['img_src'] ) ) {
 			$img_src = ( is_ssl() && ! empty( $response['img_src_ssl'] ) ) ? $response['img_src_ssl'] : $response['img_src'];
 
-			$notice           .= '<div class="alignright browser-icon"><a href="' . esc_attr( $response['update_url'] ) . '"><img src="' . esc_attr( $img_src ) . '" alt="" /></a></div>';
+			$notice           .= '<div class="alignright browser-icon"><img src="' . esc_url( $img_src ) . '" alt="" /></div>';
 			$browser_nag_class = ' has-browser-icon';
 		}
 		$notice .= "<p class='browser-update-nag{$browser_nag_class}'>{$msg}</p>";
@@ -1693,13 +1701,23 @@ function wp_dashboard_browser_nag() {
 			$browsehappy = add_query_arg( 'locale', $locale, $browsehappy );
 		}
 
-		$notice .= '<p>' . sprintf(
-			/* translators: 1: Browser update URL, 2: Browser name, 3: Browse Happy URL. */
-			__( '<a href="%1$s" class="update-browser-link">Update %2$s</a> or learn how to <a href="%3$s" class="browse-happy-link">browse happy</a>' ),
-			esc_attr( $response['update_url'] ),
-			esc_html( $response['name'] ),
-			esc_url( $browsehappy )
-		) . '</p>';
+		if ( $is_IE ) {
+			$msg_browsehappy = sprintf(
+				/* translators: %s: Browse Happy URL. */
+				__( 'Learn how to <a href="%s" class="update-browser-link">browse happy</a>' ),
+				esc_url( $browsehappy )
+			);
+		} else {
+			$msg_browsehappy = sprintf(
+				/* translators: 1: Browser update URL, 2: Browser name, 3: Browse Happy URL. */
+				__( '<a href="%1$s" class="update-browser-link">Update %2$s</a> or learn how to <a href="%3$s" class="browse-happy-link">browse happy</a>' ),
+				esc_attr( $response['update_url'] ),
+				esc_html( $response['name'] ),
+				esc_url( $browsehappy )
+			);
+		}
+
+		$notice .= '<p>' . $msg_browsehappy . '</p>';
 		$notice .= '<p class="hide-if-no-js"><a href="" class="dismiss" aria-label="' . esc_attr__( 'Dismiss the browser warning panel' ) . '">' . __( 'Dismiss' ) . '</a></p>';
 		$notice .= '<div class="clear"></div>';
 	}
@@ -1709,8 +1727,9 @@ function wp_dashboard_browser_nag() {
 	 *
 	 * @since 3.2.0
 	 *
-	 * @param string $notice   The notice content.
-	 * @param array  $response An array containing web browser information. See `wp_check_browser_version()`.
+	 * @param string      $notice   The notice content.
+	 * @param array|false $response An array containing web browser information, or
+	 *                              false on failure. See `wp_check_browser_version()`.
 	 */
 	echo apply_filters( 'browse-happy-notice', $notice, $response ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 }
@@ -1891,65 +1910,67 @@ function wp_dashboard_site_health() {
 
 	$issues_total = $issue_counts['recommended'] + $issue_counts['critical'];
 	?>
-	<div class="health-check-title-section site-health-progress-wrapper loading hide-if-no-js">
-		<div class="site-health-progress">
-			<svg role="img" aria-hidden="true" focusable="false" width="100%" height="100%" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
-				<circle r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
-				<circle id="bar" r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
-			</svg>
+	<div class="health-check-widget">
+		<div class="health-check-widget-title-section site-health-progress-wrapper loading hide-if-no-js">
+			<div class="site-health-progress">
+				<svg role="img" aria-hidden="true" focusable="false" width="100%" height="100%" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
+					<circle r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
+					<circle id="bar" r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
+				</svg>
+			</div>
+			<div class="site-health-progress-label">
+				<?php if ( false === $get_issues ) : ?>
+					<?php _e( 'No information yet&hellip;' ); ?>
+				<?php else : ?>
+					<?php _e( 'Results are still loading&hellip;' ); ?>
+				<?php endif; ?>
+			</div>
 		</div>
-		<div class="site-health-progress-label">
+
+		<div class="site-health-details">
 			<?php if ( false === $get_issues ) : ?>
-				<?php _e( 'No information yet&hellip;' ); ?>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: URL to Site Health screen. */
+						__( 'Site health checks will automatically run periodically to gather information about your site. You can also <a href="%s">visit the Site Health screen</a> to gather information about your site now.' ),
+						esc_url( admin_url( 'site-health.php' ) )
+					);
+					?>
+				</p>
 			<?php else : ?>
-				<?php _e( 'Results are still loading&hellip;' ); ?>
+				<p>
+					<?php if ( $issues_total <= 0 ) : ?>
+						<?php _e( 'Great job! Your site currently passes all site health checks.' ); ?>
+					<?php elseif ( 1 === (int) $issue_counts['critical'] ) : ?>
+						<?php _e( 'Your site has a critical issue that should be addressed as soon as possible to improve its performance and security.' ); ?>
+					<?php elseif ( $issue_counts['critical'] > 1 ) : ?>
+						<?php _e( 'Your site has critical issues that should be addressed as soon as possible to improve its performance and security.' ); ?>
+					<?php elseif ( 1 === (int) $issue_counts['recommended'] ) : ?>
+						<?php _e( 'Your site&#8217;s health is looking good, but there is still one thing you can do to improve its performance and security.' ); ?>
+					<?php else : ?>
+						<?php _e( 'Your site&#8217;s health is looking good, but there are still some things you can do to improve its performance and security.' ); ?>
+					<?php endif; ?>
+				</p>
+			<?php endif; ?>
+
+			<?php if ( $issues_total > 0 && false !== $get_issues ) : ?>
+				<p>
+					<?php
+					printf(
+						/* translators: 1: Number of issues. 2: URL to Site Health screen. */
+						_n(
+							'Take a look at the <strong>%1$d item</strong> on the <a href="%2$s">Site Health screen</a>.',
+							'Take a look at the <strong>%1$d items</strong> on the <a href="%2$s">Site Health screen</a>.',
+							$issues_total
+						),
+						$issues_total,
+						esc_url( admin_url( 'site-health.php' ) )
+					);
+					?>
+				</p>
 			<?php endif; ?>
 		</div>
-	</div>
-
-	<div class="site-health-details">
-		<?php if ( false === $get_issues ) : ?>
-			<p>
-				<?php
-				printf(
-					/* translators: %s: URL to Site Health screen. */
-					__( 'Site health checks will automatically run periodically to gather information about your site. You can also <a href="%s">visit the Site Health screen</a> to gather information about your site now.' ),
-					esc_url( admin_url( 'site-health.php' ) )
-				);
-				?>
-			</p>
-		<?php else : ?>
-			<p>
-				<?php if ( $issues_total <= 0 ) : ?>
-					<?php _e( 'Great job! Your site currently passes all site health checks.' ); ?>
-				<?php elseif ( 1 === (int) $issue_counts['critical'] ) : ?>
-					<?php _e( 'Your site has a critical issue that should be addressed as soon as possible to improve its performance and security.' ); ?>
-				<?php elseif ( $issue_counts['critical'] > 1 ) : ?>
-					<?php _e( 'Your site has critical issues that should be addressed as soon as possible to improve its performance and security.' ); ?>
-				<?php elseif ( 1 === (int) $issue_counts['recommended'] ) : ?>
-					<?php _e( 'Your site&#8217;s health is looking good, but there is still one thing you can do to improve its performance and security.' ); ?>
-				<?php else : ?>
-					<?php _e( 'Your site&#8217;s health is looking good, but there are still some things you can do to improve its performance and security.' ); ?>
-				<?php endif; ?>
-			</p>
-		<?php endif; ?>
-
-		<?php if ( $issues_total > 0 && false !== $get_issues ) : ?>
-			<p>
-				<?php
-				printf(
-					/* translators: 1: Number of issues. 2: URL to Site Health screen. */
-					_n(
-						'Take a look at the <strong>%1$d item</strong> on the <a href="%2$s">Site Health screen</a>.',
-						'Take a look at the <strong>%1$d items</strong> on the <a href="%2$s">Site Health screen</a>.',
-						$issues_total
-					),
-					$issues_total,
-					esc_url( admin_url( 'site-health.php' ) )
-				);
-				?>
-			</p>
-		<?php endif; ?>
 	</div>
 
 	<?php
@@ -1966,62 +1987,67 @@ function wp_dashboard_empty() {}
  * Displays a welcome panel to introduce users to WordPress.
  *
  * @since 3.3.0
+ * @since 5.9.0 Send users to the Site Editor if the active theme is block-based.
  */
 function wp_welcome_panel() {
+	list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
+	$can_customize           = current_user_can( 'customize' );
+	$is_block_theme          = wp_is_block_theme();
 	?>
 	<div class="welcome-panel-content">
-	<h2><?php _e( 'Welcome to WordPress!' ); ?></h2>
-	<p class="about-description"><?php _e( 'We&#8217;ve assembled some links to get you started:' ); ?></p>
+	<div class="welcome-panel-header">
+		<div class="welcome-panel-header-image">
+			<?php echo file_get_contents( dirname( __DIR__ ) . '/images/about-header-about.svg' ); ?>
+		</div>
+		<h2><?php _e( 'Welcome to WordPress!' ); ?></h2>
+		<p>
+			<a href="<?php echo esc_url( admin_url( 'about.php' ) ); ?>">
+			<?php
+				/* translators: %s: Current WordPress version. */
+				printf( __( 'Learn more about the %s version.' ), $display_version );
+			?>
+			</a>
+		</p>
+	</div>
 	<div class="welcome-panel-column-container">
-	<div class="welcome-panel-column">
-		<?php if ( current_user_can( 'customize' ) ) : ?>
-			<h3><?php _e( 'Get Started' ); ?></h3>
-			<a class="button button-primary button-hero load-customize hide-if-no-customize" href="<?php echo wp_customize_url(); ?>"><?php _e( 'Customize Your Site' ); ?></a>
-		<?php endif; ?>
-		<a class="button button-primary button-hero hide-if-customize" href="<?php echo admin_url( 'themes.php' ); ?>"><?php _e( 'Customize Your Site' ); ?></a>
-		<?php if ( current_user_can( 'install_themes' ) || ( current_user_can( 'switch_themes' ) && count( wp_get_themes( array( 'allowed' => true ) ) ) > 1 ) ) : ?>
-			<?php $themes_link = current_user_can( 'customize' ) ? add_query_arg( 'autofocus[panel]', 'themes', admin_url( 'customize.php' ) ) : admin_url( 'themes.php' ); ?>
-			<p class="hide-if-no-customize">
-				<?php
-					/* translators: %s: URL to Themes panel in Customizer or Themes screen. */
-					printf( __( 'or, <a href="%s">change your theme completely</a>' ), $themes_link );
-				?>
-			</p>
-		<?php endif; ?>
-	</div>
-	<div class="welcome-panel-column">
-		<h3><?php _e( 'Next Steps' ); ?></h3>
-		<ul>
-		<?php if ( 'page' === get_option( 'show_on_front' ) && ! get_option( 'page_for_posts' ) ) : ?>
-			<li><?php printf( '<a href="%s" class="welcome-icon welcome-edit-page">' . __( 'Edit your front page' ) . '</a>', get_edit_post_link( get_option( 'page_on_front' ) ) ); ?></li>
-			<li><?php printf( '<a href="%s" class="welcome-icon welcome-add-page">' . __( 'Add additional pages' ) . '</a>', admin_url( 'post-new.php?post_type=page' ) ); ?></li>
-		<?php elseif ( 'page' === get_option( 'show_on_front' ) ) : ?>
-			<li><?php printf( '<a href="%s" class="welcome-icon welcome-edit-page">' . __( 'Edit your front page' ) . '</a>', get_edit_post_link( get_option( 'page_on_front' ) ) ); ?></li>
-			<li><?php printf( '<a href="%s" class="welcome-icon welcome-add-page">' . __( 'Add additional pages' ) . '</a>', admin_url( 'post-new.php?post_type=page' ) ); ?></li>
-			<li><?php printf( '<a href="%s" class="welcome-icon welcome-write-blog">' . __( 'Add a blog post' ) . '</a>', admin_url( 'post-new.php' ) ); ?></li>
-		<?php else : ?>
-			<li><?php printf( '<a href="%s" class="welcome-icon welcome-write-blog">' . __( 'Write your first blog post' ) . '</a>', admin_url( 'post-new.php' ) ); ?></li>
-			<li><?php printf( '<a href="%s" class="welcome-icon welcome-add-page">' . __( 'Add an About page' ) . '</a>', admin_url( 'post-new.php?post_type=page' ) ); ?></li>
-			<li><?php printf( '<a href="%s" class="welcome-icon welcome-setup-home">' . __( 'Set up your homepage' ) . '</a>', current_user_can( 'customize' ) ? add_query_arg( 'autofocus[section]', 'static_front_page', admin_url( 'customize.php' ) ) : admin_url( 'options-reading.php' ) ); ?></li>
-		<?php endif; ?>
-			<li><?php printf( '<a href="%s" class="welcome-icon welcome-view-site">' . __( 'View your site' ) . '</a>', home_url( '/' ) ); ?></li>
-		</ul>
-	</div>
-	<div class="welcome-panel-column welcome-panel-last">
-		<h3><?php _e( 'More Actions' ); ?></h3>
-		<ul>
-		<?php if ( current_theme_supports( 'widgets' ) ) : ?>
-			<li><?php printf( '<a href="%s" class="welcome-icon welcome-widgets">' . __( 'Manage widgets' ) . '</a>', admin_url( 'widgets.php' ) ); ?></li>
-		<?php endif; ?>
-		<?php if ( current_theme_supports( 'menus' ) ) : ?>
-			<li><?php printf( '<a href="%s" class="welcome-icon welcome-menus">' . __( 'Manage menus' ) . '</a>', admin_url( 'nav-menus.php' ) ); ?></li>
-		<?php endif; ?>
-		<?php if ( current_user_can( 'manage_options' ) ) : ?>
-			<li><?php printf( '<a href="%s" class="welcome-icon welcome-comments">' . __( 'Turn comments on or off' ) . '</a>', admin_url( 'options-discussion.php' ) ); ?></li>
-		<?php endif; ?>
-			<li><?php printf( '<a href="%s" class="welcome-icon welcome-learn-more">' . __( 'Learn more about getting started' ) . '</a>', __( 'https://wordpress.org/support/article/first-steps-with-wordpress/' ) ); ?></li>
-		</ul>
-	</div>
+		<div class="welcome-panel-column">
+			<div class="welcome-panel-icon-pages"></div>
+			<div class="welcome-panel-column-content">
+				<h3><?php _e( 'Author rich content with blocks and patterns' ); ?></h3>
+				<p><?php _e( 'Block patterns are pre-configured block layouts. Use them to get inspired or create new pages in a flash.' ); ?></p>
+				<a href="<?php echo esc_url( admin_url( 'post-new.php?post_type=page' ) ); ?>"><?php _e( 'Add a new page' ); ?></a>
+			</div>
+		</div>
+		<div class="welcome-panel-column">
+			<div class="welcome-panel-icon-layout"></div>
+			<div class="welcome-panel-column-content">
+			<?php if ( $is_block_theme ) : ?>
+				<h3><?php _e( 'Customize your entire site with block themes' ); ?></h3>
+				<p><?php _e( 'Design everything on your site &#8212; from the header down to the footer, all using blocks and patterns.' ); ?></p>
+				<a href="<?php echo esc_url( admin_url( 'site-editor.php' ) ); ?>"><?php _e( 'Open site editor' ); ?></a>
+			<?php else : ?>
+				<h3><?php _e( 'Start Customizing' ); ?></h3>
+				<p><?php _e( 'Configure your site&#8217;s logo, header, menus, and more in the Customizer.' ); ?></p>
+				<?php if ( $can_customize ) : ?>
+					<a class="load-customize hide-if-no-customize" href="<?php echo wp_customize_url(); ?>"><?php _e( 'Open the Customizer' ); ?></a>
+				<?php endif; ?>
+			<?php endif; ?>
+			</div>
+		</div>
+		<div class="welcome-panel-column">
+			<div class="welcome-panel-icon-styles"></div>
+			<div class="welcome-panel-column-content">
+			<?php if ( $is_block_theme ) : ?>
+				<h3><?php _e( 'Switch up your site&#8217;s look & feel with Styles' ); ?></h3>
+				<p><?php _e( 'Tweak your site, or give it a whole new look! Get creative &#8212; how about a new color palette or font?' ); ?></p>
+				<a href="<?php echo esc_url( admin_url( 'site-editor.php?styles=open' ) ); ?>"><?php _e( 'Edit styles' ); ?></a>
+			<?php else : ?>
+				<h3><?php _e( 'Discover a new way to build your site.' ); ?></h3>
+				<p><?php _e( 'There is a new kind of WordPress theme, called a block theme, that lets you build the site you&#8217;ve always wanted &#8212; with blocks and styles.' ); ?></p>
+				<a href="<?php echo esc_url( __( 'https://wordpress.org/support/article/block-themes/' ) ); ?>"><?php _e( 'Learn about block themes' ); ?></a>
+			<?php endif; ?>
+			</div>
+		</div>
 	</div>
 	</div>
 	<?php

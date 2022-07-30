@@ -4,7 +4,10 @@
 	"title": "Notice",
 	"category": "common",
 	"parent": [
-		"core/group"
+		"tests/group"
+	],
+	"ancestor": [
+		"tests/section"
 	],
 	"providesContext": {
 		"tests/message": "message"
@@ -41,6 +44,14 @@
 			"label": "Other"
 		}
 	],
+	"variations": [
+		{
+			"name": "error",
+			"title": "Error",
+			"description": "Shows error.",
+			"keywords": [ "failure" ]
+		}
+	],
 	"example": {
 		"attributes": {
 			"message": "This is a notice!"
@@ -48,6 +59,7 @@
 	},
 	"editorScript": "tests-notice-editor-script",
 	"script": "tests-notice-script",
+	"viewScript": "tests-notice-view-script",
 	"editorStyle": "tests-notice-editor-style",
 	"style": "tests-notice-style"
 }

@@ -12,9 +12,10 @@
  *
  * @group url
  * @group privacy
- * @covers ::get_privacy_policy_url
  *
  * @since 4.9.6
+ *
+ * @covers ::get_privacy_policy_url
  */
 class Tests_Url_GetPrivacyPolicyUrl extends WP_UnitTestCase {
 	/**
@@ -62,13 +63,6 @@ class Tests_Url_GetPrivacyPolicyUrl extends WP_UnitTestCase {
 		update_option( 'wp_page_for_privacy_policy', self::$privacy_policy_page_id );
 
 		$this->assertSame( $privacy_policy_url, get_privacy_policy_url() );
-	}
-
-	/**
-	 * The function should return an empty string when `wp_page_for_privacy_policy` is _not_ set.
-	 */
-	public function test_get_privacy_policy_url_should_return_empty_when_privacy_policy_page_not_set() {
-		$this->assertSame( '', get_privacy_policy_url() );
 	}
 
 	/**

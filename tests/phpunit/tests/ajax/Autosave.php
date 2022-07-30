@@ -34,21 +34,17 @@ class Tests_Ajax_Autosave extends WP_Ajax_UnitTestCase {
 		self::$editor_id  = $factory->user->create( array( 'role' => 'editor' ) );
 		self::$user_ids[] = self::$editor_id;
 
+		// Set a user so the $post has 'post_author'.
+		wp_set_current_user( self::$admin_id );
+
 		self::$post_id = $factory->post->create( array( 'post_status' => 'draft' ) );
 		self::$post    = get_post( self::$post_id );
 	}
 
 	/**
-	 * Sets up the test fixture.
-	 */
-	public function setUp() {
-		parent::setUp();
-		// Set a user so the $post has 'post_author'.
-		wp_set_current_user( self::$admin_id );
-	}
-
-	/**
 	 * Tests autosaving a post.
+	 *
+	 * @covers ::wp_ajax_heartbeat
 	 */
 	public function test_autosave_post() {
 		// The original post_author.
@@ -62,7 +58,7 @@ class Tests_Ajax_Autosave extends WP_Ajax_UnitTestCase {
 			'data'   => array(
 				'wp_autosave' => array(
 					'post_id'      => self::$post_id,
-					'_wpnonce'     => wp_create_nonce( 'update-post_' . self::$post->ID ),
+					'_wpnonce'     => wp_create_nonce( 'update-post_' . self::$post_id ),
 					'post_content' => self::$post->post_content . PHP_EOL . $md5,
 					'post_type'    => 'post',
 				),
@@ -85,11 +81,13 @@ class Tests_Ajax_Autosave extends WP_Ajax_UnitTestCase {
 
 		// Check that the edit happened.
 		$post = get_post( self::$post_id );
-		$this->assertGreaterThanOrEqual( 0, strpos( self::$post->post_content, $md5 ) );
+		$this->assertStringContainsString( $md5, $post->post_content );
 	}
 
 	/**
 	 * Tests autosaving a locked post.
+	 *
+	 * @covers ::wp_ajax_heartbeat
 	 */
 	public function test_autosave_locked_post() {
 		// Lock the post to another user.
@@ -131,16 +129,18 @@ class Tests_Ajax_Autosave extends WP_Ajax_UnitTestCase {
 
 		// Check that the original post was NOT edited.
 		$post = get_post( self::$post_id );
-		$this->assertFalse( strpos( $post->post_content, $md5 ) );
+		$this->assertStringNotContainsString( $md5, $post->post_content );
 
 		// Check if the autosave post was created.
 		$autosave = wp_get_post_autosave( self::$post_id, get_current_user_id() );
 		$this->assertNotEmpty( $autosave );
-		$this->assertGreaterThanOrEqual( 0, strpos( $autosave->post_content, $md5 ) );
+		$this->assertStringContainsString( $md5, $autosave->post_content );
 	}
 
 	/**
 	 * Tests with an invalid nonce.
+	 *
+	 * @covers ::wp_ajax_heartbeat
 	 */
 	public function test_with_invalid_nonce() {
 
