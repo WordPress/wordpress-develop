@@ -157,14 +157,14 @@ CAP;
 			)
 		);
 
-		$this->assertSame( 2, preg_match_all( '/wp-caption/', $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( '/alignnone/', $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( '/' . self::CAPTION . '/', $result, $_r ) );
+		$this->assertSame( 2, substr_count( $result, 'wp-caption' ) );
+		$this->assertSame( 1, substr_count( $result, 'alignnone' ) );
+		$this->assertSame( 1, substr_count( $result, self::CAPTION ) );
 
 		if ( current_theme_supports( 'html5', 'caption' ) ) {
-			$this->assertSame( 1, preg_match_all( '/width: 20/', $result, $_r ) );
+			$this->assertSame( 1, substr_count( $result, 'width: 20' ) );
 		} else {
-			$this->assertSame( 1, preg_match_all( '/width: 30/', $result, $_r ) );
+			$this->assertSame( 1, substr_count( $result, 'width: 30' ) );
 		}
 	}
 
@@ -177,9 +177,9 @@ CAP;
 				'align'   => '&myAlignment',
 			)
 		);
-		$this->assertSame( 1, preg_match_all( '/wp-caption &amp;myAlignment/', $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( '/id="myId"/', $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( '/' . self::CAPTION . '/', $result, $_r ) );
+		$this->assertSame( 1, substr_count( $result, 'wp-caption &amp;myAlignment' ) );
+		$this->assertSame( 1, substr_count( $result, 'id="myId"' ) );
+		$this->assertSame( 1, substr_count( $result, self::CAPTION ) );
 	}
 
 	public function test_img_caption_shortcode_with_old_format_and_class() {
@@ -190,20 +190,19 @@ CAP;
 				'caption' => self::CAPTION,
 			)
 		);
-		$this->assertSame( 1, preg_match_all( '/wp-caption alignnone some-class another-class/', $result, $_r ) );
+		$this->assertSame( 1, substr_count( $result, 'wp-caption alignnone some-class another-class' ) );
 
 	}
 
 	public function test_new_img_caption_shortcode_with_html_caption() {
-		$result   = img_caption_shortcode(
+		$result = img_caption_shortcode(
 			array(
 				'width'   => 20,
 				'caption' => self::HTML_CONTENT,
 			)
 		);
-		$our_preg = preg_quote( self::HTML_CONTENT );
 
-		$this->assertSame( 1, preg_match_all( "~{$our_preg}~", $result, $_r ) );
+		$this->assertSame( 1, substr_count( $result, self::HTML_CONTENT ) );
 	}
 
 	public function test_new_img_caption_shortcode_new_format() {
@@ -214,8 +213,8 @@ CAP;
 		$img_preg     = preg_quote( self::IMG_CONTENT );
 		$content_preg = preg_quote( self::HTML_CONTENT );
 
-		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result, $_r ) );
+		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result ) );
+		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result ) );
 	}
 
 	public function test_new_img_caption_shortcode_new_format_and_linked_image() {
@@ -227,8 +226,8 @@ CAP;
 		$img_preg     = preg_quote( $linked_image );
 		$content_preg = preg_quote( self::HTML_CONTENT );
 
-		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result, $_r ) );
+		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result ) );
+		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result ) );
 	}
 
 	public function test_new_img_caption_shortcode_new_format_and_linked_image_with_newline() {
@@ -240,8 +239,8 @@ CAP;
 		$img_preg     = preg_quote( $linked_image );
 		$content_preg = preg_quote( self::HTML_CONTENT );
 
-		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result, $_r ) );
+		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result ) );
+		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result ) );
 	}
 
 	/**
@@ -256,7 +255,7 @@ CAP;
 			self::IMG_CONTENT . self::HTML_CONTENT
 		);
 
-		$this->assertSame( 1, preg_match_all( '/aria-describedby="caption-myId"/', $result, $_r ) );
+		$this->assertSame( 1, substr_count( $result, 'aria-describedby="caption-myId"' ) );
 	}
 
 	public function test_add_remove_oembed_provider() {
