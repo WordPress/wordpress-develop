@@ -15,32 +15,32 @@ class Tests_Actions_Closures extends WP_UnitTestCase {
 	 * @covers ::do_action
 	 */
 	public function test_action_closure() {
-		$tag     = 'test_action_closure';
-		$closure = static function( $a, $b ) {
+		$hook_name = 'test_action_closure';
+		$closure   = static function( $a, $b ) {
 			$GLOBALS[ $a ] = $b;
 		};
-		add_action( $tag, $closure, 10, 2 );
+		add_action( $hook_name, $closure, 10, 2 );
 
-		$this->assertSame( 10, has_action( $tag, $closure ) );
+		$this->assertSame( 10, has_action( $hook_name, $closure ) );
 
 		$context = array( 'val1', 'val2' );
-		do_action( $tag, $context[0], $context[1] );
+		do_action( $hook_name, $context[0], $context[1] );
 
 		$this->assertSame( $GLOBALS[ $context[0] ], $context[1] );
 
-		$tag2     = 'test_action_closure_2';
-		$closure2 = static function() {
+		$hook_name2 = 'test_action_closure_2';
+		$closure2   = static function() {
 			$GLOBALS['closure_no_args'] = true;
 		};
-		add_action( $tag2, $closure2 );
+		add_action( $hook_name2, $closure2 );
 
-		$this->assertSame( 10, has_action( $tag2, $closure2 ) );
+		$this->assertSame( 10, has_action( $hook_name2, $closure2 ) );
 
-		do_action( $tag2 );
+		do_action( $hook_name2 );
 
 		$this->assertTrue( $GLOBALS['closure_no_args'] );
 
-		remove_action( $tag, $closure );
-		remove_action( $tag2, $closure2 );
+		remove_action( $hook_name, $closure );
+		remove_action( $hook_name2, $closure2 );
 	}
 }

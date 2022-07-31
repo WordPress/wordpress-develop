@@ -11,14 +11,14 @@ class Tests_Actions_Callbacks extends WP_UnitTestCase {
 	 * @covers ::add_action
 	 */
 	public function test_callback_representations() {
-		$tag = __FUNCTION__;
+		$hook_name = __FUNCTION__;
 
-		$this->assertFalse( has_action( $tag ) );
+		$this->assertFalse( has_action( $hook_name ) );
 
-		add_action( $tag, array( 'Class', 'method' ) );
+		add_action( $hook_name, array( 'Class', 'method' ) );
 
-		$this->assertSame( 10, has_action( $tag, array( 'Class', 'method' ) ) );
+		$this->assertSame( 10, has_action( $hook_name, array( 'Class', 'method' ) ) );
 
-		$this->assertSame( 10, has_action( $tag, 'Class::method' ) );
+		$this->assertSame( 10, has_action( $hook_name, 'Class::method' ) );
 	}
 }
