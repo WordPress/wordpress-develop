@@ -86,9 +86,9 @@ class Tests_Date_wpDate extends WP_UnitTestCase {
 	/**
 	 * Tests that the format is set correctly.
 	 *
-	 * @dataProvider data_should_format_date
-	 *
 	 * @ticket 53485
+	 *
+	 * @dataProvider data_should_format_date
 	 *
 	 * @param string $expected The expected result.
 	 * @param string $format   The date format.
