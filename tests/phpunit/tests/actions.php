@@ -20,7 +20,7 @@ class Tests_Actions extends WP_UnitTestCase {
 		// Only one event occurred for the hook, with empty args.
 		$this->assertSame( 1, $a->get_call_count() );
 		// Only our hook was called.
-		$this->assertSame( array( $hook_name ), $a->get_tags() );
+		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
 
 		$argsvar = $a->get_args();
 		$args    = array_pop( $argsvar );
@@ -39,13 +39,13 @@ class Tests_Actions extends WP_UnitTestCase {
 
 		// Make sure our hook was called correctly.
 		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( array( $hook_name ), $a->get_tags() );
+		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
 
 		// Now remove the action, do it again, and make sure it's not called this time.
 		remove_action( $hook_name, array( &$a, 'action' ) );
 		do_action( $hook_name );
 		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( array( $hook_name ), $a->get_tags() );
+		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
 
 	}
 
@@ -215,15 +215,17 @@ class Tests_Actions extends WP_UnitTestCase {
 		$expected = array(
 			// 'action2' is called first because it has priority 9.
 			array(
-				'action' => 'action2',
-				'tag'    => $hook_name,
-				'args'   => array( '' ),
+				'action'    => 'action2',
+				'hook_name' => $hook_name,
+				'tag'       => $hook_name, // Back compat.
+				'args'      => array( '' ),
 			),
 			// 'action' is called second.
 			array(
-				'action' => 'action',
-				'tag'    => $hook_name,
-				'args'   => array( '' ),
+				'action'    => 'action',
+				'hook_name' => $hook_name,
+				'tag'       => $hook_name, // Back compat.
+				'args'      => array( '' ),
 			),
 		);
 
@@ -274,7 +276,7 @@ class Tests_Actions extends WP_UnitTestCase {
 		// Our action should have been called once for each tag.
 		$this->assertSame( 4, $a->get_call_count() );
 		// Only our hook was called.
-		$this->assertSame( array( $hook_name1, $hook_name2, $hook_name1, $hook_name1 ), $a->get_tags() );
+		$this->assertSame( array( $hook_name1, $hook_name2, $hook_name1, $hook_name1 ), $a->get_hook_names() );
 
 		remove_action( 'all', array( &$a, 'action' ) );
 		$this->assertFalse( has_filter( 'all', array( &$a, 'action' ) ) );
@@ -294,14 +296,14 @@ class Tests_Actions extends WP_UnitTestCase {
 
 		// Make sure our hook was called correctly.
 		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( array( $hook_name ), $a->get_tags() );
+		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
 
 		// Now remove the action, do it again, and make sure it's not called this time.
 		remove_action( 'all', array( &$a, 'action' ) );
 		$this->assertFalse( has_filter( 'all', array( &$a, 'action' ) ) );
 		do_action( $hook_name );
 		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( array( $hook_name ), $a->get_tags() );
+		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
 	}
 
 	/**

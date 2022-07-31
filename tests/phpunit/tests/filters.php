@@ -18,7 +18,7 @@ class Tests_Filters extends WP_UnitTestCase {
 		// Only one event occurred for the hook, with empty args.
 		$this->assertSame( 1, $a->get_call_count() );
 		// Only our hook was called.
-		$this->assertSame( array( $hook_name ), $a->get_tags() );
+		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
 
 		$argsvar = $a->get_args();
 		$args    = array_pop( $argsvar );
@@ -35,13 +35,13 @@ class Tests_Filters extends WP_UnitTestCase {
 
 		// Make sure our hook was called correctly.
 		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( array( $hook_name ), $a->get_tags() );
+		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
 
 		// Now remove the filter, do it again, and make sure it's not called this time.
 		remove_filter( $hook_name, array( $a, 'filter' ) );
 		$this->assertSame( $val, apply_filters( $hook_name, $val ) );
 		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( array( $hook_name ), $a->get_tags() );
+		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
 
 	}
 
@@ -135,15 +135,17 @@ class Tests_Filters extends WP_UnitTestCase {
 		$expected = array(
 			// 'filter2' is called first because it has priority 9.
 			array(
-				'filter' => 'filter2',
-				'tag'    => $hook_name,
-				'args'   => array( $val ),
+				'filter'    => 'filter2',
+				'hook_name' => $hook_name,
+				'tag'       => $hook_name, // Back compat.
+				'args'      => array( $val ),
 			),
 			// 'filter' is called second.
 			array(
-				'filter' => 'filter',
-				'tag'    => $hook_name,
-				'args'   => array( $val ),
+				'filter'    => 'filter',
+				'hook_name' => $hook_name,
+				'tag'       => $hook_name, // Back compat.
+				'args'      => array( $val ),
 			),
 		);
 
@@ -192,7 +194,7 @@ class Tests_Filters extends WP_UnitTestCase {
 		// Our filter should have been called once for each apply_filters call.
 		$this->assertSame( 4, $a->get_call_count() );
 		// The right hooks should have been called in order.
-		$this->assertSame( array( $hook_name1, $hook_name2, $hook_name1, $hook_name1 ), $a->get_tags() );
+		$this->assertSame( array( $hook_name1, $hook_name2, $hook_name1, $hook_name1 ), $a->get_hook_names() );
 
 		remove_filter( 'all', array( $a, 'filterall' ) );
 		$this->assertFalse( has_filter( 'all', array( $a, 'filterall' ) ) );
@@ -211,7 +213,7 @@ class Tests_Filters extends WP_UnitTestCase {
 
 		// Make sure our hook was called correctly.
 		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( array( $hook_name ), $a->get_tags() );
+		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
 
 		// Now remove the filter, do it again, and make sure it's not called this time.
 		remove_filter( 'all', array( $a, 'filterall' ) );
@@ -220,7 +222,7 @@ class Tests_Filters extends WP_UnitTestCase {
 		$this->assertSame( $val, apply_filters( $hook_name, $val ) );
 		// Call cound should remain at 1.
 		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( array( $hook_name ), $a->get_tags() );
+		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
 	}
 
 	/**
