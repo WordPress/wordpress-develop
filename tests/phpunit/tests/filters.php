@@ -150,6 +150,31 @@ class Tests_Filters extends WP_UnitTestCase {
 		$this->assertSame( $expected, $a->get_events() );
 	}
 
+	/**
+	 * @covers ::did_filter
+	 */
+	public function test_did_filter() {
+		$tag1 = 'filter1';
+		$tag2 = 'filter2';
+		$val  = __FUNCTION__ . '_val';
+
+		// Apply filter $tag1 but not $tag2.
+		apply_filters( $tag1, $val );
+		$this->assertSame( 1, did_filter( $tag1 ) );
+		$this->assertSame( 0, did_filter( $tag2 ) );
+
+		// Apply filter $tag2 10 times.
+		$count = 10;
+		for ( $i = 0; $i < $count; $i++ ) {
+			apply_filters( $tag2, $val );
+		}
+
+		// $tag1's count hasn't changed, $tag2 should be correct.
+		$this->assertSame( 1, did_filter( $tag1 ) );
+		$this->assertSame( $count, did_filter( $tag2 ) );
+
+	}
+
 	public function test_all_filter() {
 		$a    = new MockAction();
 		$tag1 = __FUNCTION__ . '_1';
