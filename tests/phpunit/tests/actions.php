@@ -331,8 +331,7 @@ class Tests_Actions extends WP_UnitTestCase {
 	 * @covers ::do_action
 	 */
 	public function test_action_keyed_array() {
-		$a = new MockAction();
-
+		$a         = new MockAction();
 		$hook_name = __FUNCTION__;
 
 		add_action( $hook_name, array( &$a, 'action' ) );
@@ -361,7 +360,7 @@ class Tests_Actions extends WP_UnitTestCase {
 	 * @covers ::do_action
 	 */
 	public function test_action_closure() {
-		$hook_name = 'test_action_closure';
+		$hook_name = __FUNCTION__;
 		$closure   = static function( $a, $b ) {
 			$GLOBALS[ $a ] = $b;
 		};
@@ -374,7 +373,7 @@ class Tests_Actions extends WP_UnitTestCase {
 
 		$this->assertSame( $GLOBALS[ $context[0] ], $context[1] );
 
-		$hook_name2 = 'test_action_closure_2';
+		$hook_name2 = __FUNCTION__ . '_2';
 		$closure2   = static function() {
 			$GLOBALS['closure_no_args'] = true;
 		};
@@ -388,6 +387,23 @@ class Tests_Actions extends WP_UnitTestCase {
 
 		remove_action( $hook_name, $closure );
 		remove_action( $hook_name2, $closure2 );
+	}
+
+	/**
+	 * @ticket 23265
+	 *
+	 * @covers ::add_action
+	 */
+	public function test_action_callback_representations() {
+		$hook_name = __FUNCTION__;
+
+		$this->assertFalse( has_action( $hook_name ) );
+
+		add_action( $hook_name, array( 'Class', 'method' ) );
+
+		$this->assertSame( 10, has_action( $hook_name, array( 'Class', 'method' ) ) );
+
+		$this->assertSame( 10, has_action( $hook_name, 'Class::method' ) );
 	}
 
 	/**
