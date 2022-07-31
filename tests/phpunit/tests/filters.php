@@ -46,17 +46,19 @@ class Tests_Filters extends WP_UnitTestCase {
 	}
 
 	public function test_has_filter() {
-			$tag  = __FUNCTION__;
-			$func = __FUNCTION__ . '_func';
+		$tag  = __FUNCTION__;
+		$func = __FUNCTION__ . '_func';
 
-			$this->assertFalse( has_filter( $tag, $func ) );
-			$this->assertFalse( has_filter( $tag ) );
-			add_filter( $tag, $func );
-			$this->assertSame( 10, has_filter( $tag, $func ) );
-			$this->assertTrue( has_filter( $tag ) );
-			remove_filter( $tag, $func );
-			$this->assertFalse( has_filter( $tag, $func ) );
-			$this->assertFalse( has_filter( $tag ) );
+		$this->assertFalse( has_filter( $tag, $func ) );
+		$this->assertFalse( has_filter( $tag ) );
+
+		add_filter( $tag, $func );
+		$this->assertSame( 10, has_filter( $tag, $func ) );
+		$this->assertTrue( has_filter( $tag ) );
+
+		remove_filter( $tag, $func );
+		$this->assertFalse( has_filter( $tag, $func ) );
+		$this->assertFalse( has_filter( $tag ) );
 	}
 
 	// One tag with multiple filters.
