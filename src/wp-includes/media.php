@@ -4008,7 +4008,7 @@ function _wp_image_editor_choose( $args = array() ) {
 			continue;
 		}
 
-		// Implementation should support the input file mime type.
+		// Implementation should support the passed mime type.
 		if ( isset( $args['mime_type'] ) &&
 			! call_user_func(
 				array( $implementation, 'supports_mime_type' ),
@@ -4017,7 +4017,7 @@ function _wp_image_editor_choose( $args = array() ) {
 			continue;
 		}
 
-		// Implementation should support the output format as well - if set and different than the input type.
+		// Implementation should support the output mime type as well if set and different than the passed type.
 		if (
 			isset( $args['mime_type'] ) &&
 			isset( $args['output_mime_type'] ) &&
