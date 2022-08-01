@@ -221,7 +221,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertFalse( $tax_2->show_in_quick_edit );
 	}
 
-
 	/**
 	 * @ticket 53212
 	 */
@@ -1045,9 +1044,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		wp_set_object_terms( $post_id, array(), $tax );
 		$term = wp_get_post_terms( $post_id, $tax );
 		$this->assertSame( array(), $term );
-
-		unregister_taxonomy( $tax );
-		$this->assertSame( get_option( 'default_term_' . $tax ), false );
 	}
 
 	/**

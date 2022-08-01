@@ -213,7 +213,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * @ticket 48566
 	 */
 	public function test_year_in_readme() {
-		// This test is designed to only run on trunk/master.
+		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
 
 		foreach ( $this->default_themes as $theme ) {
@@ -221,17 +221,22 @@ class Tests_Theme extends WP_UnitTestCase {
 
 			$path_to_readme_txt = $wp_theme->get_theme_root() . '/' . $wp_theme->get_stylesheet() . '/readme.txt';
 			$this->assertFileExists( $path_to_readme_txt );
+
 			$readme    = file_get_contents( $path_to_readme_txt );
 			$this_year = gmdate( 'Y' );
 
 			preg_match( '#Copyright (\d+) WordPress.org#', $readme, $matches );
 			if ( $matches ) {
-				$this->assertSame( $this_year, trim( $matches[1] ), "Bundled themes readme.txt's year needs to be updated to $this_year." );
+				$readme_year = trim( $matches[1] );
+
+				$this->assertSame( $this_year, $readme_year, "Bundled themes readme.txt's year needs to be updated to $this_year." );
 			}
 
 			preg_match( '#Copyright 20\d\d-(\d+) WordPress.org#', $readme, $matches );
 			if ( $matches ) {
-				$this->assertSame( $this_year, trim( $matches[1] ), "Bundled themes readme.txt's year needs to be updated to $this_year." );
+				$readme_year = trim( $matches[1] );
+
+				$this->assertSame( $this_year, $readme_year, "Bundled themes readme.txt's year needs to be updated to $this_year." );
 			}
 		}
 	}

@@ -1595,6 +1595,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$editor = self::$users['editor'];
 
+		$this->setExpectedIncorrectUsage( 'map_meta_cap' );
 		foreach ( $caps as $cap ) {
 			// `null` represents a non-existent term ID.
 			$this->assertFalse( user_can( $editor->ID, $cap, null ) );

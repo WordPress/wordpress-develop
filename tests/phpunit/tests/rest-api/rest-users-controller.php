@@ -192,7 +192,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$keys     = array_keys( $data['endpoints'][0]['args'] );
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'context',
 				'exclude',

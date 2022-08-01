@@ -39,12 +39,13 @@ if ( 'upgrade_db' === $step ) {
  * @global string $wp_version             The WordPress version string.
  * @global string $required_php_version   The required PHP version string.
  * @global string $required_mysql_version The required MySQL version string.
+ * @global wpdb   $wpdb                   WordPress database abstraction object.
  */
-global $wp_version, $required_php_version, $required_mysql_version;
+global $wp_version, $required_php_version, $required_mysql_version, $wpdb;
 
 $step = (int) $step;
 
-$php_version   = phpversion();
+$php_version   = PHP_VERSION;
 $mysql_version = $wpdb->db_version();
 $php_compat    = version_compare( $php_version, $required_php_version, '>=' );
 if ( file_exists( WP_CONTENT_DIR . '/db.php' ) && empty( $wpdb->is_mysql ) ) {
@@ -132,7 +133,7 @@ else :
 		case 0:
 			$goback = wp_get_referer();
 			if ( $goback ) {
-				$goback = esc_url_raw( $goback );
+				$goback = sanitize_url( $goback );
 				$goback = urlencode( $goback );
 			}
 			?>

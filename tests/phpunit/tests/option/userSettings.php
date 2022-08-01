@@ -1,8 +1,9 @@
 <?php
 /**
- * @group 123456
+ * @group option
+ * @group user
  */
-class Tests_User_Settings extends WP_UnitTestCase {
+class Tests_Option_UserSettings extends WP_UnitTestCase {
 	protected $user_id;
 
 	public function set_up() {

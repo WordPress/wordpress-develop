@@ -3,7 +3,7 @@
 /**
  * @group option
  */
-class Tests_Option_Theme_Mods extends WP_UnitTestCase {
+class Tests_Option_ThemeMods extends WP_UnitTestCase {
 
 	public function test_theme_mod_default() {
 		$this->assertFalse( get_theme_mod( 'non_existent' ) );

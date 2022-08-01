@@ -145,14 +145,16 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 
 		$expected = array(
 			array(
-				'action' => 'action',
-				'tag'    => 'delete_option',
-				'args'   => array( $transient_option ),
+				'action'    => 'action',
+				'hook_name' => 'delete_option',
+				'tag'       => 'delete_option', // Back compat.
+				'args'      => array( $transient_option ),
 			),
 			array(
-				'action' => 'action',
-				'tag'    => 'delete_option',
-				'args'   => array( $timeout ),
+				'action'    => 'action',
+				'hook_name' => 'delete_option',
+				'tag'       => 'delete_option', // Back compat.
+				'args'      => array( $timeout ),
 			),
 		);
 		$this->assertSame( $expected, $a->get_events() );

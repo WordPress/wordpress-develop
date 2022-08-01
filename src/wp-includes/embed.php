@@ -426,7 +426,7 @@ function get_post_embed_url( $post = null ) {
 	 * @param string  $embed_url The post embed URL.
 	 * @param WP_Post $post      The corresponding post object.
 	 */
-	return esc_url_raw( apply_filters( 'post_embed_url', $embed_url, $post ) );
+	return sanitize_url( apply_filters( 'post_embed_url', $embed_url, $post ) );
 }
 
 /**
@@ -537,7 +537,7 @@ function get_post_embed_html( $width, $height, $post = null ) {
  *
  * @since 4.4.0
  *
- * @param WP_Post|int $post  Post object or ID.
+ * @param WP_Post|int $post  Post ID or post object.
  * @param int         $width The requested width.
  * @return array|false Response data on success, false if post doesn't exist
  *                     or is not publicly viewable.

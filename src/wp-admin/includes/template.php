@@ -68,8 +68,8 @@ function wp_category_checklist( $post_id = 0, $descendants_and_self = 0, $select
  *     @type int[]  $selected_cats        Array of category IDs to mark as checked. Default false.
  *     @type int[]  $popular_cats         Array of category IDs to receive the "popular-category" class.
  *                                        Default false.
- *     @type Walker $walker               Walker object to use to build the output.
- *                                        Default is a Walker_Category_Checklist instance.
+ *     @type Walker $walker               Walker object to use to build the output. Default empty which
+ *                                        results in a Walker_Category_Checklist instance being used.
  *     @type string $taxonomy             Taxonomy to generate the checklist for. Default 'category'.
  *     @type bool   $checked_ontop        Whether to move checked items out of the hierarchy and to
  *                                        the top of the list. Default true.
@@ -899,16 +899,24 @@ function page_template_dropdown( $default_template = '', $post_type = 'page' ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int         $default_page Optional. The default page ID to be pre-selected. Default 0.
- * @param int         $parent       Optional. The parent page ID. Default 0.
+ * @param int         $parent_page  Optional. The parent page ID. Default 0.
  * @param int         $level        Optional. Page depth level. Default 0.
  * @param int|WP_Post $post         Post ID or WP_Post object.
  * @return void|false Void on success, false if the page has no children.
  */
-function parent_dropdown( $default_page = 0, $parent = 0, $level = 0, $post = null ) {
+function parent_dropdown( $default_page = 0, $parent_page = 0, $level = 0, $post = null ) {
 	global $wpdb;
 
 	$post  = get_post( $post );
-	$items = $wpdb->get_results( $wpdb->prepare( "SELECT ID, post_parent, post_title FROM $wpdb->posts WHERE post_parent = %d AND post_type = 'page' ORDER BY menu_order", $parent ) );
+	$items = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT ID, post_parent, post_title
+			FROM $wpdb->posts
+			WHERE post_parent = %d AND post_type = 'page'
+			ORDER BY menu_order",
+			$parent_page
+		)
+	);
 
 	if ( $items ) {
 		foreach ( $items as $item ) {
@@ -954,7 +962,7 @@ function wp_dropdown_roles( $selected = '' ) {
 }
 
 /**
- * Outputs the form used by the importers to accept the data to be imported
+ * Outputs the form used by the importers to accept the data to be imported.
  *
  * @since 2.0.0
  *
@@ -1672,7 +1680,7 @@ function add_settings_field( $id, $title, $callback, $page, $section = 'default'
 }
 
 /**
- * Prints out all settings sections added to a particular settings page
+ * Prints out all settings sections added to a particular settings page.
  *
  * Part of the Settings API. Use this in a settings page callback function
  * to output all the sections and fields that were added to that $page with
@@ -2531,6 +2539,8 @@ function get_submit_button( $text = '', $type = 'primary large', $name = 'submit
 }
 
 /**
+ * Prints out the beginning of the admin HTML header.
+ *
  * @global bool $is_IE
  */
 function _wp_admin_html_begin() {
@@ -2592,7 +2602,7 @@ function convert_to_screen( $hook_name ) {
 }
 
 /**
- * Output the HTML for restoring the post data from DOM storage
+ * Outputs the HTML for restoring the post data from DOM storage
  *
  * @since 3.6.0
  * @access private

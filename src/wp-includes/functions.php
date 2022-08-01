@@ -1600,7 +1600,7 @@ function do_feed() {
 	}
 
 	if ( ! has_action( "do_feed_{$feed}" ) ) {
-		wp_die( __( '<strong>Error</strong>: This is not a valid feed template.' ), '', array( 'response' => 404 ) );
+		wp_die( __( '<strong>Error:</strong> This is not a valid feed template.' ), '', array( 'response' => 404 ) );
 	}
 
 	/**
@@ -2132,7 +2132,7 @@ function path_join( $base, $path ) {
 		return $path;
 	}
 
-	return rtrim( $base, '/' ) . '/' . ltrim( $path, '/' );
+	return rtrim( $base, '/' ) . '/' . $path;
 }
 
 /**
@@ -3503,7 +3503,7 @@ function wp_filesize( $path ) {
 		return $size;
 	}
 
-	$size = (int) @filesize( $path );
+	$size = file_exists( $path ) ? (int) filesize( $path ) : 0;
 
 	/**
 	 * Filters the size of the file.
@@ -4515,8 +4515,8 @@ function wp_check_jsonp_callback( $callback ) {
  * @param array  $options  {
  *     Optional. Options to be used with `json_decode()`.
  *
- *     @type bool associative Optional. When `true`, JSON objects will be returned as associative arrays.
- *                            When `false`, JSON objects will be returned as objects.
+ *     @type bool $associative Optional. When `true`, JSON objects will be returned as associative arrays.
+ *                             When `false`, JSON objects will be returned as objects.
  * }
  *
  * @return mixed Returns the value encoded in JSON in appropriate PHP type.
@@ -6918,7 +6918,7 @@ function wp_allowed_protocols() {
 }
 
 /**
- * Return a comma-separated string of functions that have been called to get
+ * Returns a comma-separated string or array of functions that have been called to get
  * to the current point in code.
  *
  * @since 3.4.0
@@ -6929,8 +6929,8 @@ function wp_allowed_protocols() {
  *                             when you want to just give info about the callee. Default null.
  * @param int    $skip_frames  Optional. A number of stack frames to skip - useful for unwinding
  *                             back to the source of the issue. Default 0.
- * @param bool   $pretty       Optional. Whether or not you want a comma separated string or raw
- *                             array returned. Default true.
+ * @param bool   $pretty       Optional. Whether you want a comma separated string instead of
+ *                             the raw array returned. Default true.
  * @return string|array Either a string containing a reversed comma separated trace or an array
  *                      of individual calls.
  */
@@ -8422,7 +8422,7 @@ function is_wp_version_compatible( $required ) {
  * @return bool True if required version is compatible or empty, false if not.
  */
 function is_php_version_compatible( $required ) {
-	return empty( $required ) || version_compare( phpversion(), $required, '>=' );
+	return empty( $required ) || version_compare( PHP_VERSION, $required, '>=' );
 }
 
 /**

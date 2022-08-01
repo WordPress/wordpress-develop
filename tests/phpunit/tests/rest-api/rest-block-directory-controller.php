@@ -213,6 +213,46 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 	}
 
 	/**
+	 * @ticket 53621
+	 */
+	public function test_get_items_response_conforms_to_schema() {
+		wp_set_current_user( self::$admin_id );
+		$plugin = $this->get_mock_plugin();
+
+		// Fetch the block directory schema.
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/block-directory/search' );
+		$schema  = rest_get_server()->dispatch( $request )->get_data()['schema'];
+
+		add_filter(
+			'plugins_api',
+			static function () use ( $plugin ) {
+				return (object) array(
+					'info'    =>
+						array(
+							'page'    => 1,
+							'pages'   => 1,
+							'results' => 1,
+						),
+					'plugins' => array(
+						$plugin,
+					),
+				);
+			}
+		);
+
+		// Fetch a block plugin.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/block-directory/search' );
+		$request->set_query_params( array( 'term' => 'cache' ) );
+
+		$result = rest_get_server()->dispatch( $request );
+		$data   = $result->get_data();
+
+		$valid = rest_validate_value_from_schema( $data[0], $schema );
+
+		$this->assertNotWPError( $valid );
+	}
+
+	/**
 	 * Simulate a network failure on outbound http requests to a given hostname.
 	 *
 	 * @since 5.5.0

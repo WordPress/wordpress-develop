@@ -1150,7 +1150,7 @@ function validate_plugin_requirements( $plugin ) {
 				/* translators: 1: Current WordPress version, 2: Current PHP version, 3: Plugin name, 4: Required WordPress version, 5: Required PHP version. */
 				_x( '<strong>Error:</strong> Current versions of WordPress (%1$s) and PHP (%2$s) do not meet minimum requirements for %3$s. The plugin requires WordPress %4$s and PHP %5$s.', 'plugin' ),
 				get_bloginfo( 'version' ),
-				phpversion(),
+				PHP_VERSION,
 				$plugin_headers['Name'],
 				$requirements['requires'],
 				$requirements['requires_php']
@@ -1162,7 +1162,7 @@ function validate_plugin_requirements( $plugin ) {
 			'<p>' . sprintf(
 				/* translators: 1: Current PHP version, 2: Plugin name, 3: Required PHP version. */
 				_x( '<strong>Error:</strong> Current PHP version (%1$s) does not meet minimum requirements for %2$s. The plugin requires PHP %3$s.', 'plugin' ),
-				phpversion(),
+				PHP_VERSION,
 				$plugin_headers['Name'],
 				$requirements['requires_php']
 			) . $php_update_message . '</p>'
@@ -1325,6 +1325,19 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $call
 
 	$new_menu = array( $menu_title, $capability, $menu_slug, $page_title, 'menu-top ' . $icon_class . $hookname, $hookname, $icon_url );
 
+	if ( null !== $position && ! is_numeric( $position ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %s: add_menu_page() */
+				__( 'The seventh parameter passed to %s should be numeric representing menu position.' ),
+				'<code>add_menu_page()</code>'
+			),
+			'6.0.0'
+		);
+		$position = null;
+	}
+
 	if ( null === $position || ! is_numeric( $position ) ) {
 		$menu[] = $new_menu;
 	} elseif ( isset( $menu[ (string) $position ] ) ) {
@@ -1421,7 +1434,7 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 			__FUNCTION__,
 			sprintf(
 				/* translators: %s: add_submenu_page() */
-				__( 'The seventh parameter passed to %s should be an integer representing menu position.' ),
+				__( 'The seventh parameter passed to %s should be numeric representing menu position.' ),
 				'<code>add_submenu_page()</code>'
 			),
 			'5.3.0'
@@ -1441,6 +1454,7 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 			// For negative or `0` positions, prepend the submenu.
 			array_unshift( $submenu[ $parent_slug ], $new_sub_menu );
 		} else {
+			$position = absint( $position );
 			// Grab all of the items before the insertion point.
 			$before_items = array_slice( $submenu[ $parent_slug ], 0, $position, true );
 			// Grab all of the items after the insertion point.

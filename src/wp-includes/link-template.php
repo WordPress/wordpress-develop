@@ -152,7 +152,7 @@ function wp_force_plain_post_permalink( $post = null, $sample = null ) {
  *
  * @param int|WP_Post $post      Optional. Post ID or post object. Default is the global `$post`.
  * @param bool        $leavename Optional. Whether to keep post name or page name. Default false.
- * @return string|false The permalink URL or false if post does not exist.
+ * @return string|false The permalink URL. False if the post does not exist.
  */
 function get_the_permalink( $post = 0, $leavename = false ) {
 	return get_permalink( $post, $leavename );
@@ -165,7 +165,7 @@ function get_the_permalink( $post = 0, $leavename = false ) {
  *
  * @param int|WP_Post $post      Optional. Post ID or post object. Default is the global `$post`.
  * @param bool        $leavename Optional. Whether to keep post name or page name. Default false.
- * @return string|false The permalink URL or false if post does not exist.
+ * @return string|false The permalink URL. False if the post does not exist.
  */
 function get_permalink( $post = 0, $leavename = false ) {
 	$rewritecode = array(
@@ -308,21 +308,22 @@ function get_permalink( $post = 0, $leavename = false ) {
  * Retrieves the permalink for a post of a custom post type.
  *
  * @since 3.0.0
+ * @since 6.1.0 Returns false if the post does not exist.
  *
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
- * @param int|WP_Post $id        Optional. Post ID or post object. Default is the global `$post`.
+ * @param int|WP_Post $post      Optional. Post ID or post object. Default is the global `$post`.
  * @param bool        $leavename Optional. Whether to keep post name. Default false.
  * @param bool        $sample    Optional. Is it a sample permalink. Default false.
- * @return string|WP_Error The post permalink.
+ * @return string|false The post permalink URL. False if the post does not exist.
  */
-function get_post_permalink( $id = 0, $leavename = false, $sample = false ) {
+function get_post_permalink( $post = 0, $leavename = false, $sample = false ) {
 	global $wp_rewrite;
 
-	$post = get_post( $id );
+	$post = get_post( $post );
 
-	if ( is_wp_error( $post ) ) {
-		return $post;
+	if ( ! $post ) {
+		return false;
 	}
 
 	$post_link = $wp_rewrite->get_extra_permastruct( $post->post_type );
@@ -1298,6 +1299,7 @@ function get_post_type_archive_link( $post_type ) {
 	global $wp_rewrite;
 
 	$post_type_obj = get_post_type_object( $post_type );
+
 	if ( ! $post_type_obj ) {
 		return false;
 	}
@@ -1402,6 +1404,7 @@ function get_post_type_archive_feed_link( $post_type, $feed = '' ) {
  */
 function get_preview_post_link( $post = null, $query_args = array(), $preview_link = '' ) {
 	$post = get_post( $post );
+
 	if ( ! $post ) {
 		return;
 	}
@@ -1436,13 +1439,14 @@ function get_preview_post_link( $post = null, $query_args = array(), $preview_li
  *
  * @since 2.3.0
  *
- * @param int|WP_Post $id      Optional. Post ID or post object. Default is the global `$post`.
+ * @param int|WP_Post $post    Optional. Post ID or post object. Default is the global `$post`.
  * @param string      $context Optional. How to output the '&' character. Default '&amp;'.
  * @return string|null The edit post link for the given post. Null if the post type does not exist
  *                     or does not allow an editing UI.
  */
-function get_edit_post_link( $id = 0, $context = 'display' ) {
-	$post = get_post( $id );
+function get_edit_post_link( $post = 0, $context = 'display' ) {
+	$post = get_post( $post );
+
 	if ( ! $post ) {
 		return;
 	}
@@ -1456,6 +1460,7 @@ function get_edit_post_link( $id = 0, $context = 'display' ) {
 	}
 
 	$post_type_object = get_post_type_object( $post->post_type );
+
 	if ( ! $post_type_object ) {
 		return;
 	}
@@ -1492,16 +1497,18 @@ function get_edit_post_link( $id = 0, $context = 'display' ) {
  * @param string      $text   Optional. Anchor text. If null, default is 'Edit This'. Default null.
  * @param string      $before Optional. Display before edit link. Default empty.
  * @param string      $after  Optional. Display after edit link. Default empty.
- * @param int|WP_Post $id     Optional. Post ID or post object. Default is the global `$post`.
+ * @param int|WP_Post $post   Optional. Post ID or post object. Default is the global `$post`.
  * @param string      $class  Optional. Add custom class to link. Default 'post-edit-link'.
  */
-function edit_post_link( $text = null, $before = '', $after = '', $id = 0, $class = 'post-edit-link' ) {
-	$post = get_post( $id );
+function edit_post_link( $text = null, $before = '', $after = '', $post = 0, $class = 'post-edit-link' ) {
+	$post = get_post( $post );
+
 	if ( ! $post ) {
 		return;
 	}
 
 	$url = get_edit_post_link( $post->ID );
+
 	if ( ! $url ) {
 		return;
 	}
@@ -1531,22 +1538,24 @@ function edit_post_link( $text = null, $before = '', $after = '', $id = 0, $clas
  *
  * @since 2.9.0
  *
- * @param int|WP_Post $id           Optional. Post ID or post object. Default is the global `$post`.
+ * @param int|WP_Post $post         Optional. Post ID or post object. Default is the global `$post`.
  * @param string      $deprecated   Not used.
  * @param bool        $force_delete Optional. Whether to bypass Trash and force deletion. Default false.
  * @return string|void The delete post link URL for the given post.
  */
-function get_delete_post_link( $id = 0, $deprecated = '', $force_delete = false ) {
+function get_delete_post_link( $post = 0, $deprecated = '', $force_delete = false ) {
 	if ( ! empty( $deprecated ) ) {
 		_deprecated_argument( __FUNCTION__, '3.0.0' );
 	}
 
-	$post = get_post( $id );
+	$post = get_post( $post );
+
 	if ( ! $post ) {
 		return;
 	}
 
 	$post_type_object = get_post_type_object( $post->post_type );
+
 	if ( ! $post_type_object ) {
 		return;
 	}
@@ -1788,6 +1797,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	global $wpdb;
 
 	$post = get_post();
+
 	if ( ! $post || ! taxonomy_exists( $taxonomy ) ) {
 		return null;
 	}
@@ -2132,6 +2142,7 @@ function prev_post_rel_link( $title = '%title', $in_same_term = false, $excluded
  */
 function get_boundary_post( $in_same_term = false, $excluded_terms = '', $start = true, $taxonomy = 'category' ) {
 	$post = get_post();
+
 	if ( ! $post || ! is_single() || is_attachment() || ! taxonomy_exists( $taxonomy ) ) {
 		return null;
 	}
@@ -2343,7 +2354,7 @@ function adjacent_post_link( $format, $link, $in_same_term = false, $excluded_te
  *
  * @param int  $pagenum Optional. Page number. Default 1.
  * @param bool $escape  Optional. Whether to escape the URL for display, with esc_url(). Defaults to true.
- *                      Otherwise, prepares the URL with esc_url_raw().
+ *                      Otherwise, prepares the URL with sanitize_url().
  * @return string The link URL for the given page number.
  */
 function get_pagenum_link( $pagenum = 1, $escape = true ) {
@@ -2410,7 +2421,7 @@ function get_pagenum_link( $pagenum = 1, $escape = true ) {
 	if ( $escape ) {
 		return esc_url( $result );
 	} else {
-		return esc_url_raw( $result );
+		return sanitize_url( $result );
 	}
 }
 
@@ -2765,10 +2776,12 @@ function the_post_navigation( $args = array() ) {
  * @return string Markup for posts links.
  */
 function get_the_posts_navigation( $args = array() ) {
+	global $wp_query;
+
 	$navigation = '';
 
 	// Don't print empty markup if there's only one page.
-	if ( $GLOBALS['wp_query']->max_num_pages > 1 ) {
+	if ( $wp_query->max_num_pages > 1 ) {
 		// Make sure the nav element has an aria-label attribute: fallback to the screen reader text.
 		if ( ! empty( $args['screen_reader_text'] ) && empty( $args['aria_label'] ) ) {
 			$args['aria_label'] = $args['screen_reader_text'];
@@ -2821,6 +2834,8 @@ function the_posts_navigation( $args = array() ) {
  * @since 5.3.0 Added the `aria_label` parameter.
  * @since 5.5.0 Added the `class` parameter.
  *
+ * @global WP_Query $wp_query WordPress Query object.
+ *
  * @param array $args {
  *     Optional. Default pagination arguments, see paginate_links().
  *
@@ -2832,10 +2847,12 @@ function the_posts_navigation( $args = array() ) {
  * @return string Markup for pagination links.
  */
 function get_the_posts_pagination( $args = array() ) {
+	global $wp_query;
+
 	$navigation = '';
 
 	// Don't print empty markup if there's only one page.
-	if ( $GLOBALS['wp_query']->max_num_pages > 1 ) {
+	if ( $wp_query->max_num_pages > 1 ) {
 		// Make sure the nav element has an aria-label attribute: fallback to the screen reader text.
 		if ( ! empty( $args['screen_reader_text'] ) && empty( $args['aria_label'] ) ) {
 			$args['aria_label'] = $args['screen_reader_text'];
@@ -3907,8 +3924,8 @@ function get_edit_profile_url( $user_id = 0, $scheme = 'admin' ) {
  * @since 4.6.0
  *
  * @param int|WP_Post $post Optional. Post ID or object. Default is global `$post`.
- * @return string|false The canonical URL, or false if the post does not exist or has not
- *                      been published yet.
+ * @return string|false The canonical URL. False if the post does not exist
+ *                      or has not been published yet.
  */
 function wp_get_canonical_url( $post = null ) {
 	$post = get_post( $post );

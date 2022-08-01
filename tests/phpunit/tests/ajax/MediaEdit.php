@@ -27,6 +27,10 @@ class Tests_Ajax_MediaEdit extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * @ticket 22985
+	 * @requires function imagejpeg
+	 *
+	 * @covers ::wp_insert_attachment
+	 * @covers ::wp_save_image
 	 */
 	public function testCropImageThumbnail() {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
@@ -56,6 +60,10 @@ class Tests_Ajax_MediaEdit extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * @ticket 32171
+	 * @requires function imagejpeg
+	 *
+	 * @covers ::wp_insert_attachment
+	 * @covers ::wp_save_image
 	 */
 	public function testImageEditOverwriteConstant() {
 		define( 'IMAGE_EDIT_OVERWRITE', true );

@@ -496,6 +496,20 @@ class WP_Object_Cache {
 	}
 
 	/**
+	 * Removes all cache items in a group.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param string $group Name of group to remove from cache.
+	 * @return true Always returns true.
+	 */
+	public function flush_group( $group ) {
+		unset( $this->cache[ $group ] );
+
+		return true;
+	}
+
+	/**
 	 * Sets the list of global cache groups.
 	 *
 	 * @since 3.0.0
