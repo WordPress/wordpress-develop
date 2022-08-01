@@ -942,9 +942,25 @@ class WP_Comments_List_Table extends WP_List_Table {
 			$author_url_display = wp_html_excerpt( $author_url_display, 49, '&hellip;' );
 		}
 
-		echo '<strong>';
-		comment_author( $comment );
-		echo '</strong><br />';
+		$author_name = get_comment_author( $comment );
+
+		if ( $comment->user_id ) {
+			$author_profile = admin_url( 'user-edit.php?user_id=' . $comment->user_id );
+
+			// Link the author's name to their profile page.
+			printf(
+				'<a href="%s"><strong>%s</strong></a><br />',
+				esc_attr( $author_profile ),
+				$author_name
+			);
+		} else {
+			// Indicate an unregistered author.
+			printf(
+				'<strong>%s</strong> (%s)<br />',
+				$author_name,
+				__( 'unregistered' )
+			);
+		}
 
 		if ( ! empty( $author_url_display ) ) {
 			// Print link to author URL, and disallow referrer information (without using target="_blank").

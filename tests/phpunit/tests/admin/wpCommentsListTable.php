@@ -195,4 +195,64 @@ OPTIONS;
 		$this->assertStringContainsString( 'column-date sorted desc', $output, 'Mismatch of CSS classes for the comment date column.' );
 	}
 
+	/**
+	 * @ticket 54473
+	 *
+	 * @covers WP_Comments_List_Table::column_author
+	 */
+	public function test_column_author_with_registered_author() {
+		$post_id = self::factory()->post->create();
+		$comment = self::factory()->comment->create_and_get(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '1',
+				'user_id'          => '1',
+			)
+		);
+
+		$output = get_echo( array( $this->table, 'column_author' ), array( $comment ) );
+
+		$this->assertStringStartsWith(
+			'<a href="',
+			$output,
+			"A registered author's name should be linked."
+		);
+
+		$this->assertStringNotContainsString(
+			'(unregistered)',
+			$output,
+			"(unregistered) followed the registered author's name."
+		);
+	}
+
+	/**
+	 * @ticket 54473
+	 *
+	 * @covers WP_Comments_List_Table::column_author
+	 */
+	public function test_column_author_with_unregistered_author() {
+		$post_id = self::factory()->post->create();
+		$comment = self::factory()->comment->create_and_get(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '1',
+				'user_id'          => '0',
+			)
+		);
+
+		$output = get_echo( array( $this->table, 'column_author' ), array( $comment ) );
+
+		$this->assertStringStartsNotWith(
+			'<a href="',
+			$output,
+			"An unregistered author's name should not be linked."
+		);
+
+		$this->assertStringContainsString(
+			'(unregistered)',
+			$output,
+			"(unregistered) did not follow the unregistered author's name."
+		);
+	}
+
 }
