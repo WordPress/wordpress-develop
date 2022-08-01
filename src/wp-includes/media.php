@@ -4008,18 +4008,7 @@ function _wp_image_editor_choose( $args = array() ) {
 			continue;
 		}
 
-		// If both mime type and output type are set, implementation should support both.
-		if (
-			isset( $args['mime_type'] ) &&
-			isset( $args['output_mime_type'] ) &&
-			(
-				! call_user_func( array( $implementation, 'supports_mime_type' ), $args['output_mime_type'] ) ||
-				! call_user_func( array( $implementation, 'supports_mime_type' ), $args['mime_type'] )
-			)
-		) {
-			continue;
-		}
-
+		// Implementation should support the input file mime type.
 		if ( isset( $args['mime_type'] ) &&
 			! call_user_func(
 				array( $implementation, 'supports_mime_type' ),
@@ -4028,6 +4017,17 @@ function _wp_image_editor_choose( $args = array() ) {
 			continue;
 		}
 
+		// Implementation should support the output format as well - if set and different than the input type.
+		if (
+			isset( $args['mime_type'] ) &&
+			isset( $args['output_mime_type'] ) &&
+			$args['mime_type'] !== $args['output_mime_type'] &&
+			! call_user_func( array( $implementation, 'supports_mime_type' ), $args['output_mime_type'] )
+		) {
+			continue;
+		}
+
+		// Implementation should support requested methods.
 		if ( isset( $args['methods'] ) &&
 			array_diff( $args['methods'], get_class_methods( $implementation ) ) ) {
 
