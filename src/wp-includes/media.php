@@ -4002,7 +4002,7 @@ function _wp_image_editor_choose( $args = array() ) {
 	 *                                'WP_Image_Editor_Imagick', 'WP_Image_Editor_GD'.
 	 */
 	$implementations = apply_filters( 'wp_image_editors', array( 'WP_Image_Editor_Imagick', 'WP_Image_Editor_GD' ) );
-	$supports_both   = false;
+	$supports_input  = false;
 
 	foreach ( $implementations as $implementation ) {
 		if ( ! call_user_func( array( $implementation, 'test' ), $args ) ) {
@@ -4032,15 +4032,17 @@ function _wp_image_editor_choose( $args = array() ) {
 			$args['mime_type'] !== $args['output_mime_type'] &&
 			! call_user_func( array( $implementation, 'supports_mime_type' ), $args['output_mime_type'] )
 		) {
-			$supports_both = $implementation;
+			// This implementation supports the imput type but not the output type.
+			// Keep looking to see if we can find an implementation that supports both.
+			$supports_input = $implementation;
 			continue;
 		}
 
 		// Favor the implementation that supports both input and output mime types.
-		return $supports_both ? $supports_both : $implementation;
+		return $implementation;
 	}
 
-	return false;
+	return $supports_input;
 }
 
 /**
