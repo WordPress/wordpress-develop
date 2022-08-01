@@ -608,10 +608,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_crop_image
 	 */
 	public function test_wp_crop_image_should_return_correct_file_extension_if_output_format_was_modified() {
-		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
-			$this->markTestSkipped( 'This test requires WebP support.' );
-		}
-
 		add_filter(
 			'image_editor_output_format',
 			static function() {
