@@ -914,8 +914,15 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 					// Save the meta data before any image post-processing errors could happen.
 					wp_update_attachment_metadata( $attachment_id, $metadata );
 
-					// Create sub-sizes saving the image meta after each.
-					$metadata = _wp_make_subsizes( $merged_sizes, $image_file, $metadata, $attachment_id, '' );
+					// Get the primary and additional mime types to generate.
+					list( $primary_mime_type, $additional_mime_types ) = _wp_get_primary_and_additional_mime_types( $image_file, $attachment_id );
+
+					// Generate missing image sub-sizes for each mime type.
+					$all_mime_types = array_merge( array( $primary_mime_type ), $additional_mime_types );
+					foreach ( $all_mime_types as $mime_type ) {
+						// Create sub-sizes saving the image meta after each.
+						$metadata = _wp_make_subsizes( $merged_sizes, $image_file, $metadata, $attachment_id, $mime_type );
+					}
 				}
 			}
 		}
