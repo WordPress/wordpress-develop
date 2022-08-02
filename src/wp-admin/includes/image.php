@@ -738,7 +738,7 @@ function _wp_make_additional_mime_types( $new_mime_types, $file, $image_meta, $a
  * @return bool True if the image belongs to the attachment, false otherwise.
  */
 function _wp_image_belongs_to_attachment( $filename, $attachment_id ) {
-	$meta_data = wp_get_attachment_metadata( $attachment_id );
+	$image_meta = wp_get_attachment_metadata( $attachment_id );
 
 	if ( ! isset( $image_meta['sizes'] ) ) {
 		return false;
