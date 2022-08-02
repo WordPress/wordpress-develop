@@ -73,12 +73,14 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	public function data_test_it_returns_unique_entities() {
 		return array(
 			'wp_template template type'      => array(
-				'template_type' => 'wp_template',
-				'error_message' => 'get_block_templates() must return unique templates.',
+				'template_type'        => 'wp_template',
+				'original_template_id' => 'index',
+				'error_message'        => 'get_block_templates() must return unique templates.',
 			),
 			'wp_template_part template type' => array(
-				'template_type' => 'wp_template_part',
-				'error_message' => 'get_block_templates() must return unique template parts.',
+				'template_type'        => 'wp_template_part',
+				'original_template_id' => 'small-header',
+				'error_message'        => 'get_block_templates() must return unique template parts.',
 			),
 		);
 	}
@@ -89,9 +91,13 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	 * @dataProvider data_test_it_returns_unique_entities
 	 *
 	 * @param string $template_type The template type.
+	 * @param string $original_template_id ID (slug) of the default entity.
 	 * @param string $error_message An error message to display if the test fails.
 	 */
-	public function test_it_returns_unique_entities( $template_type, $error_message ) {
+	public function test_it_returns_unique_entities( $template_type, $original_template_id, $error_message ) {
+		$original_template = _get_block_template_file( $template_type, $original_template_id );
+		$this->assertNotEmpty( $original_template, 'An original (non-duplicate) template must exist for this test to work correctly.' );
+
 		$block_templates = get_block_templates( array(), $template_type );
 		$this->assertNotEmpty( $block_templates, 'get_block_templates() must return a non-empty value.' );
 
