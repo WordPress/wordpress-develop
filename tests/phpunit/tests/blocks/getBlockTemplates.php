@@ -35,7 +35,7 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 		);
 		wp_set_post_terms( static::$template->ID, static::TEST_THEME, 'wp_theme' );
 
-		// This template part has to have the same ID ("block-theme/small-header") as the template that is shipped with the
+		// This template part has to have the same ID ("block-theme/small-header") as the template part that is shipped with the
 		// "block-theme" theme. This is needed for testing purposes.
 		self::$template_part = self::factory()->post->create_and_get(
 			array(
