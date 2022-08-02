@@ -754,7 +754,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		}
 
 		if ( ! $editor::supports_mime_type( 'image/webp' ) ) {
-			$this->markTestSkipped( $editor->get_error_message() );
+			$this->markTestSkipped();
 		}
 
 		$attachment_id = $this->factory->attachment->create_object(
