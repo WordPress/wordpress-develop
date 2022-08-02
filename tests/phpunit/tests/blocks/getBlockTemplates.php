@@ -71,26 +71,6 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_it_returns_unique_entities().
-	 *
-	 * @return array
-	 */
-	public function data_test_it_returns_unique_entities() {
-		return array(
-			'wp_template template type'      => array(
-				'template_type'        => 'wp_template',
-				'original_template_id' => 'index',
-				'error_message'        => 'get_block_templates() must return unique templates.',
-			),
-			'wp_template_part template type' => array(
-				'template_type'        => 'wp_template_part',
-				'original_template_id' => 'small-header',
-				'error_message'        => 'get_block_templates() must return unique template parts.',
-			),
-		);
-	}
-
-	/**
 	 * @ticket 56271
 	 *
 	 * @dataProvider data_test_it_returns_unique_entities
@@ -108,5 +88,25 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 
 		$block_template_ids = wp_list_pluck( $block_templates, 'id' );
 		$this->assertSame( count( array_unique( $block_template_ids ) ), count( $block_template_ids ), $error_message );
+	}
+
+	/**
+	 * Data provider for test_it_returns_unique_entities().
+	 *
+	 * @return array
+	 */
+	public function data_test_it_returns_unique_entities() {
+		return array(
+			'wp_template template type'      => array(
+				'template_type'        => 'wp_template',
+				'original_template_id' => 'index',
+				'error_message'        => 'get_block_templates() must return unique templates.',
+			),
+			'wp_template_part template type' => array(
+				'template_type'        => 'wp_template_part',
+				'original_template_id' => 'small-header',
+				'error_message'        => 'get_block_templates() must return unique template parts.',
+			),
+		);
 	}
 }
