@@ -67,6 +67,13 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tear down.
+	 */
+	public static function wpTearDownAfterClass() {
+		delete_option( 'blogdescription' );
+	}
+
+	/**
 	 * This is a bit of a hack used to buffer feed content.
 	 */
 	private function do_atom() {
