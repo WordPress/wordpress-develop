@@ -735,12 +735,15 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		}
 
 		// Use legacy JPEG output and WebP.
-		add_filter( 'wp_upload_image_mime_transforms', function () {
-			return array(
-				'image/jpeg' => array( 'image/jpeg', 'image/webp' ),
-				'image/webp' => array( 'image/webp', 'image/jpeg' ),
-			);
-		} );
+		add_filter(
+			'wp_upload_image_mime_transforms',
+			function () {
+				return array(
+					'image/jpeg' => array( 'image/jpeg', 'image/webp' ),
+					'image/webp' => array( 'image/webp', 'image/jpeg' ),
+				);
+			}
+		);
 
 		$orig_file = DIR_TESTDATA . '/images/wordpress-gsoc-flyer.pdf';
 		$test_file = get_temp_dir() . 'wordpress-gsoc-flyer.pdf';
