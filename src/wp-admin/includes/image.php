@@ -926,6 +926,10 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 					// Generate image sub-sizes for each mime type.
 					if ( ! empty( $mime_transforms ) ) {
 						foreach ( $mime_transforms as $mime_type ) {
+							if ( ! $editor::supports_mime_type( $mime_type ) ) {
+								continue;
+							}
+
 							if ( $primary_mime_type === $mime_type ) {
 								// Add primary mime type sources.
 								$metadata['sizes']['full']['sources'][ $primary_mime_type ] = _wp_get_sources_from_meta( $uploaded );

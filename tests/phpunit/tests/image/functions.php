@@ -740,7 +740,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			function () {
 				return array(
 					'image/jpeg' => array( 'image/jpeg', 'image/webp' ),
-					'image/webp' => array( 'image/webp', 'image/jpeg' ),
 				);
 			}
 		);
@@ -751,6 +750,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$editor = wp_get_image_editor( $test_file );
 		if ( is_wp_error( $editor ) ) {
+			$this->markTestSkipped( $editor->get_error_message() );
+		}
+
+		if ( ! $editor::supports_mime_type( 'image/webp' ) ) {
 			$this->markTestSkipped( $editor->get_error_message() );
 		}
 
