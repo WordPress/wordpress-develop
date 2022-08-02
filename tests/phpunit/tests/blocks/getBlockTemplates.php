@@ -92,7 +92,7 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	 * @param string $error_message An error message to display if the test fails.
 	 */
 	public function test_it_returns_unique_entities( $template_type, $error_message ) {
-		$templates    = get_block_templates( array(), 'wp_template' );
+		$templates    = get_block_templates( array(), $template_type );
 		$template_ids = array_map(
 			static function( WP_Block_Template $template ) {
 				return $template->id;
