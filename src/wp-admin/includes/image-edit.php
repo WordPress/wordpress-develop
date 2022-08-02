@@ -845,23 +845,30 @@ function wp_save_image( $post_id ) {
 	$target  = ! empty( $_REQUEST['target'] ) ? preg_replace( '/[^a-z0-9_-]+/i', '', $_REQUEST['target'] ) : '';
 	$scale   = ! empty( $_REQUEST['do'] ) && 'scale' === $_REQUEST['do'];
 
-	if ( $scale && $fwidth > 0 && $fheight > 0 ) {
+	if ( $scale ) {
 		$size = $img->get_size();
 		$sX   = $size['width'];
 		$sY   = $size['height'];
 
-		// Check if it has roughly the same w / h ratio.
-		$diff = round( $sX / $sY, 2 ) - round( $fwidth / $fheight, 2 );
-		if ( -0.1 < $diff && $diff < 0.1 ) {
-			// Scale the full size image.
-			if ( $img->resize( $fwidth, $fheight ) ) {
-				$scaled = true;
-			}
+		if ( $sX < $fwidth || $sY < $fheight ) {
+			$return->error = esc_js( __( 'Images cannot be scaled to a size larger than the original.' ) );
+			return $return;
 		}
 
-		if ( ! $scaled ) {
-			$return->error = esc_js( __( 'Error while saving the scaled image. Please reload the page and try again.' ) );
-			return $return;
+		if ( $fwidth > 0 && $fheight > 0 ) {
+			// Check if it has roughly the same w / h ratio.
+			$diff = round( $sX / $sY, 2 ) - round( $fwidth / $fheight, 2 );
+			if ( -0.1 < $diff && $diff < 0.1 ) {
+				// Scale the full size image.
+				if ( $img->resize( $fwidth, $fheight ) ) {
+					$scaled = true;
+				}
+			}
+
+			if ( ! $scaled ) {
+				$return->error = esc_js( __( 'Error while saving the scaled image. Please reload the page and try again.' ) );
+				return $return;
+			}
 		}
 	} elseif ( ! empty( $_REQUEST['history'] ) ) {
 		$changes = json_decode( wp_unslash( $_REQUEST['history'] ) );
