@@ -64,6 +64,18 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		_wp_render_title_tag();
 	}
 
+	/**
+	 * @ticket 6479
+	 */
+	public function test__wp_render_title_tag_with_blog_description() {
+		$this->go_to( '/' );
+
+		update_option( 'blogdescription', 'A blog description' );
+
+		$this->expectOutputString( sprintf( "<title>%s &#8211; %s</title>\n", $this->blog_name, get_option( 'blogdescription' ) ) );
+		_wp_render_title_tag();
+	}
+
 	public function test__wp_render_title_no_theme_support() {
 		$this->go_to( '/' );
 
