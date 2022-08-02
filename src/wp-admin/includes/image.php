@@ -900,7 +900,6 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 				$preview_file = $dirname . wp_unique_filename( $dirname, wp_basename( $file, $ext ) . '-pdf.jpg' );
 
 				$uploaded = $editor->save( $preview_file, 'image/jpeg' );
-				unset( $editor );
 
 				// Resize based on the full size image, rather than the source.
 				if ( ! is_wp_error( $uploaded ) ) {
@@ -914,16 +913,48 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 					// Save the meta data before any image post-processing errors could happen.
 					wp_update_attachment_metadata( $attachment_id, $metadata );
 
-					// Get the primary and additional mime types to generate.
-					list( $primary_mime_type, $additional_mime_types ) = _wp_get_primary_and_additional_mime_types( $image_file, $attachment_id );
+					$primary_mime_type = isset( $metadata['sizes']['full']['mime-type'] ) ? $metadata['sizes']['full']['mime-type'] : 'image/jpeg';
 
-					// Generate missing image sub-sizes for each mime type.
-					$all_mime_types = array_merge( array( $primary_mime_type ), $additional_mime_types );
-					foreach ( $all_mime_types as $mime_type ) {
+					// Get mime types to generate.
+					$transforms      = wp_upload_image_mime_transforms( $attachment_id );
+					$mime_transforms = array();
+
+					if ( ! empty( $transforms[ $primary_mime_type ] ) ) {
+						$mime_transforms = $transforms[ $primary_mime_type ];
+					}
+
+					// Generate image sub-sizes for each mime type.
+					if ( ! empty( $mime_transforms ) ) {
+						foreach ( $mime_transforms as $mime_type ) {
+							if ( $primary_mime_type === $mime_type ) {
+								// Add primary mime type sources.
+								$metadata['sizes']['full']['sources'][ $primary_mime_type ] = _wp_get_sources_from_meta( $uploaded );
+							} else {
+								$extension = wp_get_default_extension_for_mime_type( $mime_type );
+								if ( false === $extension ) {
+									continue;
+								}
+
+								$editor->set_output_mime_type( $mime_type );
+								$result = $editor->save( $editor->generate_filename( '', pathinfo( $image_file, PATHINFO_FILENAME ), $extension ) );
+
+								if ( is_wp_error( $result ) ) {
+									continue;
+								}
+
+								$metadata['sizes']['full']['sources'][ $mime_type ] = _wp_get_sources_from_meta( $result );
+							}
+
+							// Create sub-sizes saving the image meta after each.
+							$metadata = _wp_make_subsizes( $merged_sizes, $image_file, $metadata, $attachment_id, $mime_type );
+						}
+					} else {
 						// Create sub-sizes saving the image meta after each.
-						$metadata = _wp_make_subsizes( $merged_sizes, $image_file, $metadata, $attachment_id, $mime_type );
+						$metadata = _wp_make_subsizes( $merged_sizes, $image_file, $metadata, $attachment_id, '' );
 					}
 				}
+
+				unset( $editor );
 			}
 		}
 	}
