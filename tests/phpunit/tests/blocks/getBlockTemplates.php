@@ -88,7 +88,7 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_test_it_returns_unique_entities
 	 *
-	 * @param string $post_type The tempalte type.
+	 * @param string $template_type The tempalte type.
 	 * @param string $error_message An error message to display if the test fails.
 	 */
 	public function test_it_returns_unique_entities( $template_type, $error_message ) {
