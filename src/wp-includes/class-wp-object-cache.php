@@ -130,6 +130,43 @@ class WP_Object_Cache {
 	}
 
 	/**
+	 * Serves as a utility function to determine whether a key is valid.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param int|string $key Cache key to check for validity.
+	 * @return bool Whether the key is valid.
+	 */
+	protected function is_valid_key( $key ) {
+		if ( is_int( $key ) ) {
+			return true;
+		}
+
+		if ( is_string( $key ) && trim( $key ) !== '' ) {
+			return true;
+		}
+
+		$type = gettype( $key );
+
+		if ( ! function_exists( '__' ) ) {
+			wp_load_translations_early();
+		}
+
+		$message = is_string( $key )
+			? __( 'Cache key must not be an empty string.' )
+			/* translators: %s: The type of the given cache key. */
+			: sprintf( __( 'Cache key must be integer or non-empty string, %s given.' ), $type );
+
+		_doing_it_wrong(
+			sprintf( '%s::%s', __CLASS__, debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 2 )[1]['function'] ),
+			$message,
+			'6.1.0'
+		);
+
+		return false;
+	}
+
+	/**
 	 * Serves as a utility function to determine whether a key exists in the cache.
 	 *
 	 * @since 3.4.0
@@ -568,43 +605,6 @@ class WP_Object_Cache {
 				unset( $this->cache[ $group ] );
 			}
 		}
-	}
-
-	/**
-	 * Serves as a utility function to determine whether a key is valid.
-	 *
-	 * @since 6.1.0
-	 *
-	 * @param int|string $key Cache key to check for validity.
-	 * @return bool Whether the key is valid.
-	 */
-	protected function is_valid_key( $key ) {
-		if ( is_int( $key ) ) {
-			return true;
-		}
-
-		if ( is_string( $key ) && trim( $key ) !== '' ) {
-			return true;
-		}
-
-		$type = gettype( $key );
-
-		if ( ! function_exists( '__' ) ) {
-			wp_load_translations_early();
-		}
-
-		$message = is_string( $key )
-			? __( 'Cache key must not be an empty string.' )
-			/* translators: %s: The type of the given cache key. */
-			: sprintf( __( 'Cache key must be integer or non-empty string, %s given.' ), $type );
-
-		_doing_it_wrong(
-			sprintf( '%s::%s', __CLASS__, debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 2 )[1]['function'] ),
-			$message,
-			'6.1.0'
-		);
-
-		return false;
 	}
 
 	/**
