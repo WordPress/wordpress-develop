@@ -636,7 +636,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
 		$attachment_id = $this->factory->attachment->create_upload_object(
-			DIR_TESTDATA . '/tests/testdata/modules/images/leafs.jpg'
+			DIR_TESTDATA . '/images/test-image.jpg'
 		);
 
 		$file    = get_attached_file( $attachment_id, true );

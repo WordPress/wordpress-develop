@@ -6448,6 +6448,7 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
  * Deletes all files that belong to the given attachment.
  *
  * @since 4.9.7
+ * @since 6.1.0 The `$backup_sources` parameter was added.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
