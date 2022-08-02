@@ -5,6 +5,24 @@
  * @covers ::get_attached_file
  */
 class Tests_Post_GetAttachedFile extends WP_UnitTestCase {
+	/**
+	 * Post
+	 *
+	 * @var WP_Post
+	 */
+	protected static $post;
+
+	/**
+	 * Create shared fixtures.
+	 */
+	public static function set_up_before_class() {
+		self::$post = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'example-page',
+				'post_type'  => 'post',
+			)
+		);
+	}
 
 	/**
 	 * @ticket 36308
@@ -16,16 +34,9 @@ class Tests_Post_GetAttachedFile extends WP_UnitTestCase {
 	 * @param string $message  The message when an assertion fails.
 	 */
 	public function test_get_attached_file_with_windows_paths( $file, $expected, $message ) {
-		$post = self::factory()->post->create_and_get(
-			array(
-				'post_title' => 'example-page',
-				'post_type'  => 'post',
-			)
-		);
-
 		$attachment = self::factory()->attachment->create_and_get(
 			array(
-				'post_parent' => $post->ID,
+				'post_parent' => self::$post->ID,
 				'file'        => $file,
 			)
 		);
