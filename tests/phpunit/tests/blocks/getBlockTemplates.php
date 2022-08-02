@@ -77,7 +77,7 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 				'error_message' => 'get_block_templates() must return unique templates.',
 			),
 			'wp_template_part template type' => array(
-				'template_type' => 'wp_template',
+				'template_type' => 'wp_template_part',
 				'error_message' => 'get_block_templates() must return unique template parts.',
 			),
 		);
