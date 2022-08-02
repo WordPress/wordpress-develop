@@ -20,8 +20,10 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 
 	public static function wpSetUpBeforeClass() {
 
-		// This template has to have the same ID ("block-theme/index") as the template that is shipped with the
-		// "block-theme" theme. This is needed for testing purposes.
+		/**
+		 * This template has to have the same ID ("block-theme/index") as the template that is shipped with the
+		 * "block-theme" theme. This is needed for testing purposes.
+		 */
 		static::$template = self::factory()->post->create_and_get(
 			array(
 				'post_type' => 'wp_template',
@@ -35,8 +37,11 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 		);
 		wp_set_post_terms( static::$template->ID, static::TEST_THEME, 'wp_theme' );
 
-		// This template part has to have the same ID ("block-theme/small-header") as the template part that is shipped with the
-		// "block-theme" theme. This is needed for testing purposes.
+
+		/**
+		 * This template part has to have the same ID ("block-theme/small-header") as the template part that is shipped with the
+		 * "block-theme" theme. This is needed for testing purposes.
+		 */
 		self::$template_part = self::factory()->post->create_and_get(
 			array(
 				'post_type' => 'wp_template_part',
@@ -90,9 +95,9 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_test_it_returns_unique_entities
 	 *
-	 * @param string $template_type The template type.
+	 * @param string $template_type        The template type.
 	 * @param string $original_template_id ID (slug) of the default entity.
-	 * @param string $error_message An error message to display if the test fails.
+	 * @param string $error_message        An error message to display if the test fails.
 	 */
 	public function test_it_returns_unique_entities( $template_type, $original_template_id, $error_message ) {
 		$original_template = _get_block_template_file( $template_type, $original_template_id );
