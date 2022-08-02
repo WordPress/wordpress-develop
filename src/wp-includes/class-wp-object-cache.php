@@ -290,6 +290,7 @@ class WP_Object_Cache {
 	 * more for cache plugins which use files.
 	 *
 	 * @since 2.0.0
+	 * @since 6.1.0 Returns false if cache key is invalid.
 	 *
 	 * @param int|string $key    What to call the contents in the cache.
 	 * @param mixed      $data   The contents to store in the cache.
