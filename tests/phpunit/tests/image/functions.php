@@ -773,6 +773,16 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 					'height'    => 1408,
 					'mime-type' => 'image/jpeg',
 					'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf.jpg' ),
+					'sources'   => array(
+						'image/jpeg' => array(
+							'file'     => 'wordpress-gsoc-flyer-pdf.jpg',
+							'filesize' => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf.jpg' ),
+						),
+						'image/webp' => array(
+							'file'     => 'wordpress-gsoc-flyer-pdf-jpg.webp',
+							'filesize' => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-jpg.webp' ),
+						),
+					),
 				),
 				'medium'    => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-232x300.jpg',
