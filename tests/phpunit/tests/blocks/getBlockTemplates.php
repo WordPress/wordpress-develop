@@ -93,12 +93,7 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	 */
 	public function test_it_returns_unique_entities( $template_type, $error_message ) {
 		$block_templates    = get_block_templates( array(), $template_type );
-		$block_template_ids = array_map(
-			static function( WP_Block_Template $block_template ) {
-				return $block_template->id;
-			},
-			$block_templates
-		);
+		$block_template_ids = wp_list_pluck( $block_templates, 'id' );
 
 		$this->assertNotEmpty( $block_template_ids, 'get_block_templates() must return a non-empty value.' );
 		$this->assertSame( count( array_unique( $block_template_ids ) ), count( $block_template_ids ), $error_message );
