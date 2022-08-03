@@ -1679,9 +1679,9 @@ class WP_Site_Health {
 			'label'       => '',
 			'actions'     => sprintf(
 				'<p><a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
-				esc_url( 'https://wordpress.org/support/article/optimization/#Caching' ),
+				__( 'https://wordpress.org/support/article/optimization/#Caching' ),
 				__( 'Learn more about page caching' ),
-				/* translators: The accessibility text. */
+				/* translators: Accessibility text. */
 				__( '(opens in a new tab)' )
 			),
 		);
@@ -1732,7 +1732,7 @@ class WP_Site_Health {
 			if ( $page_cache_detail['response_time'] < $threshold ) {
 				$page_cache_test_summary[] = '<span class="dashicons dashicons-yes-alt"></span> ' . sprintf(
 					/* translators: %d is the response time in milliseconds */
-					__( 'Median server response time was %1$s milliseconds. This is less than the recommended %2$s millisecond threshold.' ),
+					__( 'Median server response time was %1$s milliseconds. This is less than the recommended %2$s milliseconds threshold.' ),
 					number_format_i18n( $page_cache_detail['response_time'] ),
 					number_format_i18n( $threshold )
 				);
@@ -2988,7 +2988,7 @@ class WP_Site_Health {
 			return false !== strpos( strtolower( $header_value ), 'hit' );
 		};
 
-		return array(
+		$cache_headers = array(
 			'cache-control'          => static function ( $header_value ) {
 				return (bool) preg_match( '/max-age=[1-9]/', $header_value );
 			},
@@ -3020,6 +3020,14 @@ class WP_Site_Health {
 				return false !== strpos( strtolower( $header_value ), 'cache' );
 			},
 		);
+
+		/**
+		 * Filters the list of cache headers supported by core.
+		 *
+		 * @since 6.1.0
+		 * @param int $cache_headers Array of supported cache headers.
+		 */
+		return apply_filters( 'page_cache_supported_cache_headers', $cache_headers );
 	}
 
 	/**
@@ -3077,15 +3085,7 @@ class WP_Site_Health {
 					continue;
 				}
 				$header_values = (array) $header_values;
-				if (
-					empty( $callback )
-					||
-					(
-						is_callable( $callback )
-						&&
-						count( array_filter( $header_values, $callback ) ) > 0
-					)
-				) {
+				if ( empty( $callback ) || ( is_callable( $callback ) && count( array_filter( $header_values, $callback ) ) > 0 ) ) {
 					$response_headers[ $header ] = $header_values;
 				}
 			}
