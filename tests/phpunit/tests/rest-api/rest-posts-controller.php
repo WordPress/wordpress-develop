@@ -5236,6 +5236,47 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$GLOBALS['wp_rest_server']->override_by_default = false;
 	}
 
+	/**
+	 * @ticket 52422
+	 *
+	 * @covers WP_REST_Request::create_item
+	 */
+	public function test_draft_post_do_not_have_the_same_slug_as_existing_post() {
+		wp_set_current_user( self::$editor_id );
+		$this->factory()->post->create( array( 'post_name' => 'sample-slug' ) );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$params  = $this->set_post_data(
+			array(
+				'status' => 'draft',
+				'slug'   => 'sample-slug',
+			)
+		);
+		$request->set_body_params( $params );
+		$response = rest_get_server()->dispatch( $request );
+
+		$new_data = $response->get_data();
+		$this->assertSame(
+			'sample-slug-2',
+			$new_data['slug'],
+			'The slug from the REST response did not match'
+		);
+
+		$post = get_post( $new_data['id'] );
+
+		$this->assertSame(
+			'draft',
+			$post->post_status,
+			'The post status is not draft'
+		);
+
+		$this->assertSame(
+			'sample-slug-2',
+			$post->post_name,
+			'The post slug was not set to "sample-slug-2"'
+		);
+	}
+
 	public function tear_down() {
 		if ( isset( $this->attachment_id ) ) {
 			$this->remove_added_uploads();
