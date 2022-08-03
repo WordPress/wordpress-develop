@@ -134,15 +134,24 @@ add_action( 'shutdown', 'performance_conditional_options_stats', 99 );
  * @return string
  */
 function performance_conditional_options_get_context() {
-	global $wp_query,$coc;
-	//  if ( $coc ) {
-	//      return $coc;
-	//  }
+	global $coc;
+	// use global valur to shortcut function
+	if ( $coc ) {
+		return $coc;
+	}
 
-	$queryied_name = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );
+	$queried_name = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );
 
-	// TODO: add logged in
-	$coc = md5( $queryied_name );
+	// find out if logged in
+	// this is too early to use WP functions
+	foreach ( $_COOKIE as $key => $val ) {
+		if ( false !== strpos( $key, 'wordpress_logged_in_' ) ) {
+			$queried_name .= $val;
+			break;
+		}
+	}
+
+	$coc = md5( $queried_name );
 	return md5( $coc );
 }
 
@@ -150,6 +159,7 @@ function performance_conditional_has_persistent_caching() {
 	$cached_value = wp_cache_get( 'persistent_test', 'wp_conditional_options' );
 
 	if ( 'cache_active' == $cached_value ) {
+
 		return true;
 	}
 
