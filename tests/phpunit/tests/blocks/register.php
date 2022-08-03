@@ -553,6 +553,18 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 55705
+	 *
+	 * @expectedIncorrectUsage has_blocks
+	 *
+	 * @covers ::has_blocks
+	 */
+	public function test_has_blocks_with_invalid_post() {
+		$a_post = (object) array( 'ID' => 13585, 'filter' => 'display' );
+		$this->assertFalse( has_blocks( $a_post ) );
+	}
+
+	/**
 	 * @ticket 49615
 	 */
 	public function test_filter_block_registration() {
