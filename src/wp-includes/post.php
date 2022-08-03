@@ -4142,13 +4142,18 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	if ( ! empty( $postarr['post_category'] ) ) {
 		// Filter out empty terms.
 		$post_category = array_filter( $postarr['post_category'] );
-	} elseif ( $update ) {
+	} elseif ( $update && ! isset( $postarr['post_category' ] ) ) {
 		$post_category = $post_before->post_category;
 	}
 
 	// Make sure we set a valid category.
 	if ( empty( $post_category ) || 0 === count( $post_category ) || ! is_array( $post_category ) ) {
-		$post_category = array();
+		// 'post' requires at least one category.
+		if ( 'post' === $post_type && 'auto-draft' !== $post_status ) {
+		   $post_category = array( get_option( 'default_category' ) );
+		} else {
+			$post_category = array();
+		}
 	}
 
 	/*
