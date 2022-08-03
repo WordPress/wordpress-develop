@@ -431,7 +431,7 @@ function has_blocks( $post = null ) {
 				__FUNCTION__,
 				sprintf(
 					/* translators: %s: The $post variable. */
-					__( '%s is not a valid post.'),
+					__( '%s is not a valid post.' ),
 					'<code>$post</code>'
 				),
 				'6.1.0'
