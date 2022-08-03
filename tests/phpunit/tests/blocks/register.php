@@ -561,7 +561,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 */
 	public function test_has_blocks_with_invalid_post() {
 		$a_post = (object) array(
-			'ID' => 13585,
+			'ID'     => 13585,
 			'filter' => 'display',
 		);
 		$this->assertFalse( has_blocks( $a_post ) );
