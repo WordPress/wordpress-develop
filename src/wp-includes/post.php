@@ -4150,7 +4150,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	if ( empty( $post_category ) || 0 === count( $post_category ) || ! is_array( $post_category ) ) {
 		// 'post' requires at least one category.
 		if ( 'post' === $post_type && 'auto-draft' !== $post_status ) {
-		   $post_category = array( get_option( 'default_category' ) );
+			$post_category = array( get_option( 'default_category' ) );
 		} else {
 			$post_category = array();
 		}
