@@ -63,6 +63,8 @@ class Tests_Cache extends WP_UnitTestCase {
 		return array(
 			array( false, false ),
 			array( null, false ),
+			array( "\n", false ),
+			array( "\0", false ),
 			array( '', false ),
 			array( ' ', false ),
 			array( '  ', false ),
@@ -71,8 +73,6 @@ class Tests_Cache extends WP_UnitTestCase {
 			array( 1, true ),
 			array( '0', true ),
 			array( 'key', true ),
-			array( "\n", true ),
-			array( "\0", true ),
 		);
 	}
 
