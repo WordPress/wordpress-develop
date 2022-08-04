@@ -719,13 +719,13 @@ class Tests_Query extends WP_UnitTestCase {
 
 		$queries = array(
 			// 0. Missing year.
-			array(
+			'missing year'  => array(
 				'monthnum' => 1,
 				'day'      => 15,
 			),
 
 			// 1. Missing month.
-			array(
+			'missing month' => array(
 				'year' => 2020,
 				'day'  => 15,
 			),
@@ -733,8 +733,8 @@ class Tests_Query extends WP_UnitTestCase {
 
 		$data = array();
 		foreach ( $permalink_structures as $permalink_structure ) {
-			foreach ( $queries as $query ) {
-				$data[] = array( $permalink_structure, $query );
+			foreach ( $queries as $test_name => $query ) {
+				$data[ "$permalink_structure with $test_name" ] = array( $permalink_structure, $query );
 			}
 		}
 
