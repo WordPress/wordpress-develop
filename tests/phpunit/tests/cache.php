@@ -61,7 +61,11 @@ class Tests_Cache extends WP_UnitTestCase {
 		return array(
 			array( false, false ),
 			array( null, false ),
+			array( "\n", false ),
+			array( "\0", false ),
 			array( '', false ),
+			array( ' ', false ),
+			array( '  ', false ),
 			array( 0.0, false ),
 			array( 0, true ),
 			array( 1, true ),
