@@ -59,18 +59,18 @@ class Tests_Cache extends WP_UnitTestCase {
 	 */
 	public function data_is_valid_key() {
 		return array(
-			array( false, false ),
-			array( null, false ),
-			array( "\n", false ),
-			array( "\0", false ),
-			array( '', false ),
-			array( ' ', false ),
-			array( '  ', false ),
-			array( 0.0, false ),
-			array( 0, true ),
-			array( 1, true ),
-			array( '0', true ),
-			array( 'key', true ),
+			'false'          => array( false, false ),
+			'null'           => array( null, false ),
+			'line break'     => array( "\n", false ),
+			'null character' => array( "\0", false ),
+			'empty string'   => array( '', false ),
+			'single space'   => array( ' ', false ),
+			'two spaces'     => array( '  ', false ),
+			'float 0'        => array( 0.0, false ),
+			'int 0'          => array( 0, true ),
+			'int 1'          => array( 1, true ),
+			'string 0'       => array( '0', true ),
+			'string'         => array( 'key', true ),
 		);
 	}
 
