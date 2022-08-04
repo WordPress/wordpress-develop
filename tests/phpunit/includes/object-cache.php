@@ -807,18 +807,7 @@ class WP_Object_Cache {
 	 *
 	 * @var array
 	 */
-	public $global_groups = array(
-		/*
-		'users',
-		'userlogins',
-		'usermeta',
-		'site-options',
-		'site-lookup',
-		'blog-lookup',
-		'blog-details',
-		'rss',
-		*/
-	);
+	public $global_groups = array();
 
 	/**
 	 * List of groups not saved to Memcached.
