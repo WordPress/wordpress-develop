@@ -380,23 +380,23 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		wp_cache_add_global_groups(
 			array(
-				'users',
-				'userlogins',
-				'usermeta',
-				'user_meta',
-				'useremail',
-				'userslugs',
-				'site-transient',
-				'site-options',
-				'blog-lookup',
 				'blog-details',
-				'rss',
-				'global-posts',
 				'blog-id-cache',
+				'blog-lookup',
+				'blog_meta',
+				'global-posts',
 				'networks',
 				'sites',
 				'site-details',
-				'blog_meta',
+				'site-options',
+				'site-transient',
+				'rss',
+				'users',
+				'useremail',
+				'userlogins',
+				'usermeta',
+				'user_meta',
+				'userslugs',
 			)
 		);
 
