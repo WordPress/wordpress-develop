@@ -129,6 +129,36 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertFalse( $this->cache->get( $key ) );
 	}
 
+	/**
+	 * @ticket 4476
+	 * @ticket 9773
+	 *
+	 * @covers ::wp_cache_flush_group
+	 */
+	public function test_wp_cache_flush_group() {
+		$key = 'my-key';
+		$val = 'my-val';
+
+		wp_cache_set( $key, $val, 'group-test' );
+		wp_cache_set( $key, $val, 'group-kept' );
+
+		$this->assertSame( $val, wp_cache_get( $key, 'group-test' ), 'group-test should contain my-val' );
+
+		if ( wp_using_ext_object_cache() ) {
+			$this->setExpectedIncorrectUsage( 'wp_cache_flush_group' );
+		}
+
+		$results = wp_cache_flush_group( 'group-test' );
+
+		if ( wp_using_ext_object_cache() ) {
+			$this->assertFalse( $results );
+		} else {
+			$this->assertTrue( $results );
+			$this->assertFalse( wp_cache_get( $key, 'group-test' ), 'group-test should return false' );
+			$this->assertSame( $val, wp_cache_get( $key, 'group-kept' ), 'group-kept should still contain my-val' );
+		}
+	}
+
 	// Make sure objects are cloned going to and from the cache.
 	public function test_object_refs() {
 		$key           = __FUNCTION__ . '_1';
