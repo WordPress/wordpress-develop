@@ -7,8 +7,8 @@
 class Tests_Post_BodyClass extends WP_UnitTestCase {
 	protected $post_id;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->post_id = self::factory()->post->create();
 	}
 

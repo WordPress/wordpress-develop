@@ -16,7 +16,7 @@
  * @param int         $compare_from The revision ID to compare from.
  * @param int         $compare_to   The revision ID to come to.
  * @return array|false Associative array of a post's revisioned fields and their diffs.
- *                    Or, false on failure.
+ *                     Or, false on failure.
  */
 function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 	$post = get_post( $post );
@@ -68,8 +68,14 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 		/**
 		 * Contextually filter a post revision field.
 		 *
-		 * The dynamic portion of the hook name, `$field`, corresponds to each of the post
-		 * fields of the revision object being iterated over in a foreach statement.
+		 * The dynamic portion of the hook name, `$field`, corresponds to a name of a
+		 * field of the revision object.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `_wp_post_revision_field_post_title`
+		 *  - `_wp_post_revision_field_post_content`
+		 *  - `_wp_post_revision_field_post_excerpt`
 		 *
 		 * @since 3.6.0
 		 *
@@ -294,7 +300,7 @@ function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null
 	}
 
 	/*
-	 * If a post has been saved since the last revision (no revisioned fields
+	 * If a post has been saved since the latest revision (no revisioned fields
 	 * were changed), we may not have a "current" revision. Mark the latest
 	 * revision as "current".
 	 */

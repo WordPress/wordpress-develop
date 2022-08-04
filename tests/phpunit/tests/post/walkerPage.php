@@ -13,8 +13,8 @@ class Tests_Post_Walker_Page extends WP_UnitTestCase {
 	/**
 	 * Setup.
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		/** Walker_Page class */
 		require_once ABSPATH . 'wp-includes/class-walker-page.php';
@@ -33,7 +33,7 @@ class Tests_Post_Walker_Page extends WP_UnitTestCase {
 
 		add_filter(
 			'page_menu_link_attributes',
-			function( $atts ) use ( $value ) {
+			static function( $atts ) use ( $value ) {
 				$atts['data-test'] = $value;
 				return $atts;
 			}

@@ -215,15 +215,18 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'category'         => true,
 			'editor_script'    => true,
 			'script'           => true,
+			'view_script'      => true,
 			'editor_style'     => true,
 			'style'            => true,
 			'keywords'         => 'invalid_keywords',
 			'example'          => 'invalid_example',
 			'parent'           => 'invalid_parent',
+			'ancestor'         => 'invalid_ancestor',
 			'supports'         => 'invalid_supports',
 			'styles'           => 'invalid_styles',
 			'render_callback'  => 'invalid_callback',
 			'textdomain'       => true,
+			'variations'       => 'invalid_variations',
 		);
 		register_block_type( $block_type, $settings );
 		wp_set_current_user( self::$admin_id );
@@ -236,19 +239,27 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertNull( $data['icon'] );
 		$this->assertNull( $data['editor_script'] );
 		$this->assertNull( $data['script'] );
+		$this->assertNull( $data['view_script'] );
 		$this->assertNull( $data['editor_style'] );
 		$this->assertNull( $data['style'] );
 		$this->assertSameSets( array(), $data['provides_context'] );
-		$this->assertSameSets( array(), $data['attributes'] );
+		$this->assertSameSetsWithIndex(
+			array(
+				'lock' => array( 'type' => 'object' ),
+			),
+			$data['attributes']
+		);
 		$this->assertSameSets( array( 'invalid_uses_context' ), $data['uses_context'] );
 		$this->assertSameSets( array( 'invalid_keywords' ), $data['keywords'] );
 		$this->assertSameSets( array( 'invalid_parent' ), $data['parent'] );
+		$this->assertSameSets( array( 'invalid_ancestor' ), $data['ancestor'] );
 		$this->assertSameSets( array(), $data['supports'] );
 		$this->assertSameSets( array(), $data['styles'] );
 		$this->assertNull( $data['example'] );
 		$this->assertNull( $data['category'] );
 		$this->assertNull( $data['textdomain'] );
 		$this->assertFalse( $data['is_dynamic'] );
+		$this->assertSameSets( array( array() ), $data['variations'] );
 	}
 
 	/**
@@ -266,15 +277,18 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'category'         => false,
 			'editor_script'    => false,
 			'script'           => false,
+			'view_script'      => false,
 			'editor_style'     => false,
 			'style'            => false,
 			'keywords'         => false,
 			'parent'           => false,
+			'ancestor'         => false,
 			'supports'         => false,
 			'styles'           => false,
 			'render_callback'  => false,
 			'textdomain'       => false,
 			'example'          => false,
+			'variations'       => false,
 		);
 		register_block_type( $block_type, $settings );
 		wp_set_current_user( self::$admin_id );
@@ -287,13 +301,20 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertNull( $data['icon'] );
 		$this->assertNull( $data['editor_script'] );
 		$this->assertNull( $data['script'] );
+		$this->assertNull( $data['view_script'] );
 		$this->assertNull( $data['editor_style'] );
 		$this->assertNull( $data['style'] );
-		$this->assertSameSets( array(), $data['attributes'] );
+		$this->assertSameSetsWithIndex(
+			array(
+				'lock' => array( 'type' => 'object' ),
+			),
+			$data['attributes']
+		);
 		$this->assertSameSets( array(), $data['provides_context'] );
 		$this->assertSameSets( array(), $data['uses_context'] );
 		$this->assertSameSets( array(), $data['keywords'] );
 		$this->assertSameSets( array(), $data['parent'] );
+		$this->assertSameSets( array(), $data['ancestor'] );
 		$this->assertSameSets( array(), $data['supports'] );
 		$this->assertSameSets( array(), $data['styles'] );
 		$this->assertNull( $data['example'] );
@@ -301,6 +322,65 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertNull( $data['example'] );
 		$this->assertNull( $data['textdomain'] );
 		$this->assertFalse( $data['is_dynamic'] );
+		$this->assertSameSets( array(), $data['variations'] );
+	}
+
+	public function test_get_variation() {
+		$block_type = 'fake/variations';
+		$settings   = array(
+			'title'       => 'variations block test',
+			'description' => 'a variations block test',
+			'attributes'  => array( 'kind' => array( 'type' => 'string' ) ),
+			'variations'  => array(
+				array(
+					'name'        => 'variation',
+					'title'       => 'variation title',
+					'description' => 'variation description',
+					'category'    => 'media',
+					'icon'        => 'checkmark',
+					'attributes'  => array( 'kind' => 'foo' ),
+					'isDefault'   => true,
+					'example'     => array( 'attributes' => array( 'kind' => 'example' ) ),
+					'scope'       => array( 'inserter', 'block' ),
+					'keywords'    => array( 'dogs', 'cats', 'mice' ),
+					'innerBlocks' => array(
+						array(
+							'name'       => 'fake/bar',
+							'attributes' => array( 'label' => 'hi' ),
+						),
+					),
+				),
+			),
+		);
+		register_block_type( $block_type, $settings );
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSame( $block_type, $data['name'] );
+		$this->assertArrayHasKey( 'variations', $data );
+		$this->assertCount( 1, $data['variations'] );
+		$variation = $data['variations'][0];
+		$this->assertSame( 'variation title', $variation['title'] );
+		$this->assertSame( 'variation description', $variation['description'] );
+		$this->assertSame( 'media', $variation['category'] );
+		$this->assertSame( 'checkmark', $variation['icon'] );
+		$this->assertSameSets( array( 'inserter', 'block' ), $variation['scope'] );
+		$this->assertSameSets( array( 'dogs', 'cats', 'mice' ), $variation['keywords'] );
+		$this->assertSameSets( array( 'attributes' => array( 'kind' => 'example' ) ), $variation['example'] );
+		$this->assertSameSets(
+			array(
+				array(
+					'name'       => 'fake/bar',
+					'attributes' => array( 'label' => 'hi' ),
+				),
+			),
+			$variation['innerBlocks']
+		);
+		$this->assertSameSets(
+			array( 'kind' => 'foo' ),
+			$variation['attributes']
+		);
 	}
 
 	/**
@@ -312,7 +392,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 20, $properties );
+		$this->assertCount( 23, $properties );
 		$this->assertArrayHasKey( 'api_version', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'icon', $properties );
@@ -327,12 +407,15 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'is_dynamic', $properties );
 		$this->assertArrayHasKey( 'editor_script', $properties );
 		$this->assertArrayHasKey( 'script', $properties );
+		$this->assertArrayHasKey( 'view_script', $properties );
 		$this->assertArrayHasKey( 'editor_style', $properties );
 		$this->assertArrayHasKey( 'style', $properties );
 		$this->assertArrayHasKey( 'parent', $properties );
 		$this->assertArrayHasKey( 'example', $properties );
 		$this->assertArrayHasKey( 'uses_context', $properties );
 		$this->assertArrayHasKey( 'provides_context', $properties );
+		$this->assertArrayHasKey( 'variations', $properties );
+		$this->assertArrayHasKey( 'ancestor', $properties );
 	}
 
 	/**
@@ -437,6 +520,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'category',
 			'editor_script',
 			'script',
+			'view_script',
 			'editor_style',
 			'style',
 			'title',

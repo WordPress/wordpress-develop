@@ -281,7 +281,7 @@ final class WP_Customize_Selective_Refresh {
 	 * @param int    $errno   Error number.
 	 * @param string $errstr  Error string.
 	 * @param string $errfile Error file.
-	 * @param string $errline Error line.
+	 * @param int    $errline Error line.
 	 * @return true Always true.
 	 */
 	public function handle_error( $errno, $errstr, $errfile = null, $errline = null ) {
@@ -335,7 +335,7 @@ final class WP_Customize_Selective_Refresh {
 		 *
 		 * @since 4.5.0
 		 *
-		 * @param WP_Customize_Selective_Refresh $this     Selective refresh component.
+		 * @param WP_Customize_Selective_Refresh $refresh  Selective refresh component.
 		 * @param array                          $partials Placements' context data for the partials rendered in the request.
 		 *                                                 The array is keyed by partial ID, with each item being an array of
 		 *                                                 the placements' context data.
@@ -384,7 +384,7 @@ final class WP_Customize_Selective_Refresh {
 		 *
 		 * @since 4.5.0
 		 *
-		 * @param WP_Customize_Selective_Refresh $this     Selective refresh component.
+		 * @param WP_Customize_Selective_Refresh $refresh  Selective refresh component.
 		 * @param array                          $partials Placements' context data for the partials rendered in the request.
 		 *                                                 The array is keyed by partial ID, with each item being an array of
 		 *                                                 the placements' context data.

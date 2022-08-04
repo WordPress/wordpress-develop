@@ -10,15 +10,15 @@
  */
 class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		wp_set_current_user( self::$author_id );
 	}
 
 	/**
 	 * @dataProvider data_canonical
 	 */
-	function test_canonical( $test_url, $expected, $ticket = 0, $expected_doing_it_wrong = array() ) {
+	public function test_canonical( $test_url, $expected, $ticket = 0, $expected_doing_it_wrong = array() ) {
 
 		if ( false !== strpos( $test_url, '%d' ) ) {
 			if ( false !== strpos( $test_url, '/?author=%d' ) ) {
@@ -32,7 +32,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$this->assertCanonical( $test_url, $expected, $ticket, $expected_doing_it_wrong );
 	}
 
-	function data_canonical() {
+	public function data_canonical() {
 		/*
 		 * Data format:
 		 * [0]: Test URL.
@@ -247,7 +247,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		// Test short-circuit filter.
 		add_filter(
 			'pre_redirect_guess_404_permalink',
-			function() {
+			static function() {
 				return 'wp';
 			}
 		);
@@ -273,6 +273,67 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		// Test 'strict' redirect guess.
 		add_filter( 'strict_redirect_guess_404_permalink', '__return_true' );
 		$this->assertFalse( redirect_guess_404_permalink() );
+	}
+
+	/**
+	 * Ensure public posts with custom public statuses are guessed.
+	 *
+	 * @ticket 47911
+	 * @dataProvider data_redirect_guess_404_permalink_with_custom_statuses
+	 *
+	 * @covers ::redirect_guess_404_permalink
+	 */
+	public function test_redirect_guess_404_permalink_with_custom_statuses( $status_args, $redirects ) {
+		register_post_status( 'custom', $status_args );
+
+		$post = self::factory()->post->create(
+			array(
+				'post_title'  => 'custom-status-public-guess-404-permalink',
+				'post_status' => 'custom',
+			)
+		);
+
+		$this->go_to( 'custom-status-public-guess-404-permalink' );
+
+		$expected = $redirects ? get_permalink( $post ) : false;
+
+		$this->assertSame( $expected, redirect_guess_404_permalink() );
+	}
+
+	/**
+	 * Data provider for test_redirect_guess_404_permalink_with_custom_statuses().
+	 *
+	 * return array[] {
+	 *    array Arguments used to register custom status
+	 *    bool  Whether the 404 link is expected to redirect
+	 * }
+	 */
+	public function data_redirect_guess_404_permalink_with_custom_statuses() {
+		return array(
+			'public status'                      => array(
+				'status_args' => array( 'public' => true ),
+				'redirects'   => true,
+			),
+			'private status'                     => array(
+				'status_args' => array( 'public' => false ),
+				'redirects'   => false,
+			),
+			'internal status'                    => array(
+				'status_args' => array( 'internal' => true ),
+				'redirects'   => false,
+			),
+			'protected status'                   => array(
+				'status_args' => array( 'protected' => true ),
+				'redirects'   => false,
+			),
+			'protected status flagged as public' => array(
+				'status_args' => array(
+					'protected' => true,
+					'public'    => true,
+				),
+				'redirects'   => false,
+			),
+		);
 	}
 
 	/**

@@ -19,6 +19,7 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 				'user_login'   => 'test_author',
 				'display_name' => 'Test Author',
 				'description'  => 'test_author',
+				'user_url'     => 'http://example.com',
 			)
 		);
 
@@ -26,25 +27,20 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 			array(
 				'post_author'  => self::$author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
-				'post_title'   => rand_str(),
+				'post_content' => 'content',
+				'post_title'   => 'title',
 				'post_type'    => 'post',
 			)
 		);
 	}
 
-	function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		setup_postdata( get_post( self::$post_id ) );
 	}
 
-	function tearDown() {
-		wp_reset_postdata();
-		parent::tearDown();
-	}
-
-	function test_get_the_author() {
+	public function test_get_the_author() {
 		$author_name = get_the_author();
 		$user        = new WP_User( self::$author_id );
 
@@ -52,7 +48,7 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 		$this->assertSame( 'Test Author', $author_name );
 	}
 
-	function test_get_the_author_meta() {
+	public function test_get_the_author_meta() {
 		$this->assertSame( 'test_author', get_the_author_meta( 'login' ) );
 		$this->assertSame( 'test_author', get_the_author_meta( 'user_login' ) );
 		$this->assertSame( 'Test Author', get_the_author_meta( 'display_name' ) );
@@ -73,14 +69,14 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 		$this->assertSame( '', get_the_author_meta( 'does_not_exist' ) );
 	}
 
-	function test_get_the_author_meta_no_authordata() {
+	public function test_get_the_author_meta_no_authordata() {
 		unset( $GLOBALS['authordata'] );
 		$this->assertSame( '', get_the_author_meta( 'id' ) );
 		$this->assertSame( '', get_the_author_meta( 'user_login' ) );
 		$this->assertSame( '', get_the_author_meta( 'does_not_exist' ) );
 	}
 
-	function test_get_the_author_posts() {
+	public function test_get_the_author_posts() {
 		// Test with no global post, result should be 0 because no author is found.
 		$this->assertSame( 0, get_the_author_posts() );
 		$GLOBALS['post'] = self::$post_id;
@@ -90,7 +86,7 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 30904
 	 */
-	function test_get_the_author_posts_with_custom_post_type() {
+	public function test_get_the_author_posts_with_custom_post_type() {
 		register_post_type( 'wptests_pt' );
 
 		$cpt_ids         = self::factory()->post->create_many(
@@ -119,9 +115,9 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 
 		$url = sprintf( 'http://%1$s/?author=%2$s', WP_TESTS_DOMAIN, $author->ID );
 
-		$this->assertContains( $url, $link );
-		$this->assertContains( 'Posts by Test Author', $link );
-		$this->assertContains( '>Test Author</a>', $link );
+		$this->assertStringContainsString( $url, $link );
+		$this->assertStringContainsString( 'Posts by Test Author', $link );
+		$this->assertStringContainsString( '>Test Author</a>', $link );
 
 		unset( $GLOBALS['authordata'] );
 	}
@@ -142,11 +138,41 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 
 		$this->set_permalink_structure( '' );
 
-		$this->assertContains( $url, $link );
-		$this->assertContains( 'Posts by Test Author', $link );
-		$this->assertContains( '>Test Author</a>', $link );
+		$this->assertStringContainsString( $url, $link );
+		$this->assertStringContainsString( 'Posts by Test Author', $link );
+		$this->assertStringContainsString( '>Test Author</a>', $link );
 
 		unset( $GLOBALS['authordata'] );
 	}
 
+	/**
+	 * @ticket 51859
+	 *
+	 * @covers ::get_the_author_link
+	 */
+	public function test_get_the_author_link() {
+		$author_url          = get_the_author_meta( 'url' );
+		$author_display_name = get_the_author();
+
+		$link = get_the_author_link();
+
+		$this->assertStringContainsString( $author_url, $link, 'The link does not contain the author URL' );
+		$this->assertStringContainsString( $author_display_name, $link, 'The link does not contain the author display name' );
+	}
+
+	/**
+	 * @ticket 51859
+	 *
+	 * @covers ::get_the_author_link
+	 */
+	public function test_filtered_get_the_author_link() {
+		$filter = new MockAction();
+
+		add_filter( 'the_author_link', array( &$filter, 'filter' ) );
+
+		get_the_author_link();
+
+		$this->assertSame( 1, $filter->get_call_count() );
+		$this->assertSame( array( 'the_author_link' ), $filter->get_hook_names() );
+	}
 }

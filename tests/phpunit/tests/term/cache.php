@@ -4,8 +4,8 @@
  * @group taxonomy
  */
 class Tests_Term_Cache extends WP_UnitTestCase {
-	function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		wp_cache_delete( 'last_changed', 'terms' );
 	}
@@ -13,7 +13,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	/**
 	 * @ticket 25711
 	 */
-	function test_category_children_cache() {
+	public function test_category_children_cache() {
 		// Test with only one Parent => Child.
 		$term_id1       = self::factory()->category->create();
 		$term_id1_child = self::factory()->category->create( array( 'parent' => $term_id1 ) );
@@ -38,7 +38,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	/**
 	 * @ticket 22526
 	 */
-	function test_category_name_change() {
+	public function test_category_name_change() {
 		$term    = self::factory()->category->create_and_get( array( 'name' => 'Foo' ) );
 		$post_id = self::factory()->post->create();
 		wp_set_post_categories( $post_id, $term->term_id );
@@ -55,7 +55,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	/**
 	 * @ticket 14485
 	 */
-	function test_hierachy_invalidation() {
+	public function test_hierachy_invalidation() {
 		$tax = 'burrito';
 		register_taxonomy( $tax, 'post', array( 'hierarchical' => true ) );
 		$this->assertTrue( get_taxonomy( $tax )->hierarchical );
@@ -83,7 +83,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 			}
 
 			$terms = get_terms( $tax, array( 'hide_empty' => false ) );
-			$this->assertSame( $i, count( $terms ) );
+			$this->assertCount( $i, $terms );
 			if ( $i > 1 ) {
 				$hierarchy = _get_term_hierarchy( $tax );
 				$this->assertNotEmpty( $hierarchy );
@@ -241,7 +241,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	/**
 	 * @ticket 21760
 	 */
-	function test_get_term_by_slug_cache() {
+	public function test_get_term_by_slug_cache() {
 		global $wpdb;
 
 		$term_id = $this->factory->term->create(
@@ -255,8 +255,8 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		clean_term_cache( $term_id, 'post_tag' );
 		$num_queries = $wpdb->num_queries;
 
-		$term = get_term_by( 'slug', 'burrito', 'post_tag' );
-		$num_queries++;
+		$term        = get_term_by( 'slug', 'burrito', 'post_tag' );
+		$num_queries = $num_queries + 2;
 		$this->assertSame( 'Taco', $term->name );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
@@ -272,7 +272,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	/**
 	 * @ticket 21760
 	 */
-	function test_get_term_by_slug_cache_update() {
+	public function test_get_term_by_slug_cache_update() {
 		global $wpdb;
 
 		$term_id = $this->factory->term->create(
@@ -286,8 +286,8 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		clean_term_cache( $term_id, 'post_tag' );
 		$num_queries = $wpdb->num_queries;
 
-		$term = get_term_by( 'slug', 'burrito', 'post_tag' );
-		$num_queries++;
+		$term        = get_term_by( 'slug', 'burrito', 'post_tag' );
+		$num_queries = $num_queries + 2;
 		$this->assertSame( 'Taco', $term->name );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
@@ -301,8 +301,8 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		$num_queries = $wpdb->num_queries;
 
 		// This should not hit cache.
-		$term = get_term_by( 'slug', 'burrito', 'post_tag' );
-		$num_queries++;
+		$term        = get_term_by( 'slug', 'burrito', 'post_tag' );
+		$num_queries = $num_queries + 2;
 		$this->assertSame( 'No Taco', $term->name );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}
@@ -310,7 +310,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	/**
 	 * @ticket 21760
 	 */
-	function test_get_term_by_name_cache() {
+	public function test_get_term_by_name_cache() {
 		global $wpdb;
 
 		$term_id = $this->factory->term->create(
@@ -325,7 +325,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		$num_queries = $wpdb->num_queries;
 
 		get_term_by( 'name', 'Burrito', 'post_tag' );
-		$num_queries++;
+		$num_queries = $num_queries + 2;
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
 		// This should now hit cache.
@@ -339,7 +339,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	/**
 	 * @ticket 21760
 	 */
-	function test_get_term_by_name_cache_update() {
+	public function test_get_term_by_name_cache_update() {
 		global $wpdb;
 
 		$term_id = $this->factory->term->create(
@@ -354,7 +354,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		$num_queries = $wpdb->num_queries;
 
 		get_term_by( 'name', 'Burrito', 'post_tag' );
-		$num_queries++;
+		$num_queries = $num_queries + 2;
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
 		// This should now hit cache.
@@ -367,14 +367,14 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 
 		// This should not hit cache.
 		get_term_by( 'name', 'burrito', 'post_tag' );
-		$num_queries++;
+		$num_queries = $num_queries + 2;
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}
 
 	/**
 	 * @ticket 21760
 	 */
-	function test_invalidating_term_caches_should_fail_when_invalidation_is_suspended() {
+	public function test_invalidating_term_caches_should_fail_when_invalidation_is_suspended() {
 		global $wpdb;
 
 		$term_id = $this->factory->term->create(
@@ -388,8 +388,8 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		$num_queries  = $wpdb->num_queries;
 		$last_changed = wp_cache_get( 'last_changed', 'terms' );
 
-		$term1 = get_term_by( 'name', 'Burrito', 'post_tag' );
-		$num_queries++;
+		$term1       = get_term_by( 'name', 'Burrito', 'post_tag' );
+		$num_queries = $num_queries + 2;
 
 		// Verify the term is cached.
 		$term2 = get_term_by( 'name', 'Burrito', 'post_tag' );
@@ -431,9 +431,9 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		clean_term_cache( $term_id, 'post_tag' );
 		$num_queries = $wpdb->num_queries;
 
-		$term = get_term_by( 'name', 'Burrito', 'post_tag' );
-		$num_queries++;
-		$this->assertTrue( $term instanceof WP_Term );
+		$term        = get_term_by( 'name', 'Burrito', 'post_tag' );
+		$num_queries = $num_queries + 2;
+		$this->assertInstanceOf( 'WP_Term', $term );
 		$this->assertSame( $term_id, $term->term_id );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 

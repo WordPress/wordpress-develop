@@ -133,6 +133,11 @@ add_action( 'after_setup_theme', 'twentytwelve_setup' );
 require get_template_directory() . '/inc/custom-header.php';
 
 /**
+ * Add block patterns.
+ */
+require get_template_directory() . '/inc/block-patterns.php';
+
+/**
  * Return the Google font stylesheet URL if available.
  *
  * The use of Open Sans by default is localized. For languages that use
@@ -379,6 +384,20 @@ function twentytwelve_widgets_init() {
 }
 add_action( 'widgets_init', 'twentytwelve_widgets_init' );
 
+if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
+	/**
+	 * Retrieves the list item separator based on the locale.
+	 *
+	 * Added for backward compatibility to support pre-6.0.0 WordPress versions.
+	 *
+	 * @since 6.0.0
+	 */
+	function wp_get_list_item_separator() {
+		/* translators: Used between list items, there is a space after the comma. */
+		return __( ', ', 'twentytwelve' );
+	}
+endif;
+
 if ( ! function_exists( 'twentytwelve_content_nav' ) ) :
 	/**
 	 * Displays navigation to next/previous pages when applicable.
@@ -389,7 +408,7 @@ if ( ! function_exists( 'twentytwelve_content_nav' ) ) :
 		global $wp_query;
 
 		if ( $wp_query->max_num_pages > 1 ) : ?>
-			<nav id="<?php echo esc_attr( $html_id ); ?>" class="navigation" role="navigation">
+			<nav id="<?php echo esc_attr( $html_id ); ?>" class="navigation">
 				<h3 class="assistive-text"><?php _e( 'Post navigation', 'twentytwelve' ); ?></h3>
 				<div class="nav-previous"><?php next_posts_link( __( '<span class="meta-nav">&larr;</span> Older posts', 'twentytwelve' ) ); ?></div>
 				<div class="nav-next"><?php previous_posts_link( __( 'Newer posts <span class="meta-nav">&rarr;</span>', 'twentytwelve' ) ); ?></div>
@@ -497,11 +516,9 @@ if ( ! function_exists( 'twentytwelve_entry_meta' ) ) :
 	 * @since Twenty Twelve 1.0
 	 */
 	function twentytwelve_entry_meta() {
-		/* translators: Used between list items, there is a space after the comma. */
-		$categories_list = get_the_category_list( __( ', ', 'twentytwelve' ) );
+		$categories_list = get_the_category_list( wp_get_list_item_separator() );
 
-		/* translators: Used between list items, there is a space after the comma. */
-		$tags_list = get_the_tag_list( '', __( ', ', 'twentytwelve' ) );
+		$tags_list = get_the_tag_list( '', wp_get_list_item_separator() );
 
 		$date = sprintf(
 			'<a href="%1$s" title="%2$s" rel="bookmark"><time class="entry-date" datetime="%3$s">%4$s</time></a>',

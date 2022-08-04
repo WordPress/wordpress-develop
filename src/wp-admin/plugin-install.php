@@ -47,11 +47,12 @@ if ( $pagenum > $total_pages && $total_pages > 0 ) {
 	exit;
 }
 
+// Used in the HTML title tag.
 $title       = __( 'Add Plugins' );
 $parent_file = 'plugins.php';
 
 wp_enqueue_script( 'plugin-install' );
-if ( 'plugin-information' != $tab ) {
+if ( 'plugin-information' !== $tab ) {
 	add_thickbox();
 }
 
@@ -62,8 +63,19 @@ wp_enqueue_script( 'updates' );
 /**
  * Fires before each tab on the Install Plugins screen is loaded.
  *
- * The dynamic portion of the action hook, `$tab`, allows for targeting
- * individual tabs, for instance 'install_plugins_pre_plugin-information'.
+ * The dynamic portion of the hook name, `$tab`, allows for targeting
+ * individual tabs.
+ *
+ * Possible hook names include:
+ *
+ *  - `install_plugins_pre_beta`
+ *  - `install_plugins_pre_favorites`
+ *  - `install_plugins_pre_featured`
+ *  - `install_plugins_pre_plugin-information`
+ *  - `install_plugins_pre_popular`
+ *  - `install_plugins_pre_recommended`
+ *  - `install_plugins_pre_search`
+ *  - `install_plugins_pre_upload`
  *
  * @since 2.7.0
  */
@@ -97,7 +109,7 @@ get_current_screen()->add_help_tab(
 		'id'      => 'adding-plugins',
 		'title'   => __( 'Adding Plugins' ),
 		'content' =>
-				'<p>' . __( 'If you know what you&#8217;re looking for, Search is your best bet. The Search screen has options to search the WordPress Plugin Directory for a particular Term, Author, or Tag. You can also search the directory by selecting popular tags. Tags in larger type mean more plugins have been labeled with that tag.' ) . '</p>' .
+				'<p>' . __( 'If you know what you are looking for, Search is your best bet. The Search screen has options to search the WordPress Plugin Directory for a particular Term, Author, or Tag. You can also search the directory by selecting popular tags. Tags in larger type mean more plugins have been labeled with that tag.' ) . '</p>' .
 				'<p>' . __( 'If you just want to get an idea of what&#8217;s available, you can browse Featured and Popular plugins by using the links above the plugins list. These sections rotate regularly.' ) . '</p>' .
 				'<p>' . __( 'You can also browse a user&#8217;s favorite plugins, by using the Favorites link above the plugins list and entering their WordPress.org username.' ) . '</p>' .
 				'<p>' . __( 'If you want to install a plugin that you&#8217;ve downloaded elsewhere, click the Upload Plugin button above the plugins list. You will be prompted to upload the .zip package, and once uploaded, you can activate the new plugin.' ) . '</p>',
@@ -163,8 +175,19 @@ if ( 'upload' !== $tab ) {
 /**
  * Fires after the plugins list table in each tab of the Install Plugins screen.
  *
- * The dynamic portion of the action hook, `$tab`, allows for targeting
- * individual tabs, for instance 'install_plugins_plugin-information'.
+ * The dynamic portion of the hook name, `$tab`, allows for targeting
+ * individual tabs.
+ *
+ * Possible hook names include:
+ *
+ *  - `install_plugins_beta`
+ *  - `install_plugins_favorites`
+ *  - `install_plugins_featured`
+ *  - `install_plugins_plugin-information`
+ *  - `install_plugins_popular`
+ *  - `install_plugins_recommended`
+ *  - `install_plugins_search`
+ *  - `install_plugins_upload`
  *
  * @since 2.7.0
  *

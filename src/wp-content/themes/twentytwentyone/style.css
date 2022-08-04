@@ -7,9 +7,9 @@ Author: the WordPress team
 Author URI: https://wordpress.org/
 Description: Twenty Twenty-One is a blank canvas for your ideas and it makes the block editor your best brush. With new block patterns, which allow you to create a beautiful layout in a matter of seconds, this theme’s soft colors and eye-catching — yet timeless — design will let your work shine. Take it for a spin! See how Twenty Twenty-One elevates your portfolio, business website, or personal blog.
 Requires at least: 5.3
-Tested up to: 5.6
+Tested up to: 6.0
 Requires PHP: 5.6
-Version: 1.1
+Version: 1.6
 License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: twentytwentyone
@@ -167,19 +167,11 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
 	--global--color-white: #fff;
 	--global--color-white-50: rgba(255, 255, 255, 0.5);
 	--global--color-white-90: rgba(255, 255, 255, 0.9);
-	--global--color-primary: var(--global--color-dark-gray);
-
-	/* Body text color, site title, footer text color. */
-	--global--color-secondary: var(--global--color-gray);
-
-	/* Headings */
+	--global--color-primary: var(--global--color-dark-gray); /* Body text color, site title, footer text color. */
+	--global--color-secondary: var(--global--color-gray); /* Headings */
 	--global--color-primary-hover: var(--global--color-primary);
-	--global--color-background: var(--global--color-green);
-
-	/* Mint, default body background */
-	--global--color-border: var(--global--color-primary);
-
-	/* Used for borders (separators) */
+	--global--color-background: var(--global--color-green); /* Mint, default body background */
+	--global--color-border: var(--global--color-primary); /* Used for borders (separators) */
 
 	/* Spacing */
 	--global--spacing-unit: 20px;
@@ -351,12 +343,8 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
  * 2. Prevent adjustments of font size after orientation changes in iOS.
  */
 html {
-	line-height: 1.15;
-
-	/* 1 */
-	-webkit-text-size-adjust: 100%;
-
-	/* 2 */
+	line-height: 1.15; /* 1 */
+	-webkit-text-size-adjust: 100%; /* 2 */
 }
 
 /* Sections
@@ -393,15 +381,9 @@ h1 {
  * 2. Show the overflow in Edge and IE.
  */
 hr {
-	box-sizing: content-box;
-
-	/* 1 */
-	height: 0;
-
-	/* 1 */
-	overflow: visible;
-
-	/* 2 */
+	box-sizing: content-box; /* 1 */
+	height: 0; /* 1 */
+	overflow: visible; /* 2 */
 }
 
 /**
@@ -409,12 +391,8 @@ hr {
  * 2. Correct the odd `em` font sizing in all browsers.
  */
 pre {
-	font-family: monospace;
-
-	/* 1 */
-	font-size: 1em;
-
-	/* 2 */
+	font-family: monospace; /* 1 */
+	font-size: 1em; /* 2 */
 }
 
 /* Text-level semantics
@@ -433,15 +411,9 @@ a {
  * 2. Add the correct text decoration in Chrome, Edge, IE, Opera, and Safari.
  */
 abbr[title] {
-	border-bottom: none;
-
-	/* 1 */
-	text-decoration: underline;
-
-	/* 2 */
-	text-decoration-style: dotted;
-
-	/* 2 */
+	border-bottom: none; /* 1 */
+	text-decoration: underline; /* 2 */
+	text-decoration-style: dotted; /* 2 */
 }
 
 /**
@@ -459,12 +431,8 @@ strong {
 code,
 kbd,
 samp {
-	font-family: monospace;
-
-	/* 1 */
-	font-size: 1em;
-
-	/* 2 */
+	font-family: monospace; /* 1 */
+	font-size: 1em; /* 2 */
 }
 
 /**
@@ -516,18 +484,10 @@ input,
 optgroup,
 select,
 textarea {
-	font-family: inherit;
-
-	/* 1 */
-	font-size: 100%;
-
-	/* 1 */
-	line-height: 1.15;
-
-	/* 1 */
-	margin: 0;
-
-	/* 2 */
+	font-family: inherit; /* 1 */
+	font-size: 100%; /* 1 */
+	line-height: 1.15; /* 1 */
+	margin: 0; /* 2 */
 }
 
 /**
@@ -535,9 +495,7 @@ textarea {
  * 1. Show the overflow in Edge.
  */
 button,
-input {
-
-	/* 1 */
+input { /* 1 */
 	overflow: visible;
 }
 
@@ -546,9 +504,7 @@ input {
  * 1. Remove the inheritance of text transform in Firefox.
  */
 button,
-select {
-
-	/* 1 */
+select { /* 1 */
 	text-transform: none;
 }
 
@@ -597,24 +553,12 @@ fieldset {
  *    `fieldset` elements in all browsers.
  */
 legend {
-	box-sizing: border-box;
-
-	/* 1 */
-	color: inherit;
-
-	/* 2 */
-	display: table;
-
-	/* 1 */
-	max-width: 100%;
-
-	/* 1 */
-	padding: 0;
-
-	/* 3 */
-	white-space: normal;
-
-	/* 1 */
+	box-sizing: border-box; /* 1 */
+	color: inherit; /* 2 */
+	display: table; /* 1 */
+	max-width: 100%; /* 1 */
+	padding: 0; /* 3 */
+	white-space: normal; /* 1 */
 }
 
 /**
@@ -637,12 +581,8 @@ textarea {
  */
 [type=checkbox],
 [type=radio] {
-	box-sizing: border-box;
-
-	/* 1 */
-	padding: 0;
-
-	/* 2 */
+	box-sizing: border-box; /* 1 */
+	padding: 0; /* 2 */
 }
 
 /**
@@ -658,12 +598,8 @@ textarea {
  * 2. Correct the outline style in Safari.
  */
 [type=search] {
-	-webkit-appearance: textfield;
-
-	/* 1 */
-	outline-offset: -2px;
-
-	/* 2 */
+	-webkit-appearance: textfield; /* 1 */
+	outline-offset: -2px; /* 2 */
 }
 
 /**
@@ -678,12 +614,8 @@ textarea {
  * 2. Change font properties to `inherit` in Safari.
  */
 ::-webkit-file-upload-button {
-	-webkit-appearance: button;
-
-	/* 1 */
-	font: inherit;
-
-	/* 2 */
+	-webkit-appearance: button; /* 1 */
+	font: inherit; /* 2 */
 }
 
 /* Interactive
@@ -922,7 +854,8 @@ template {
 .site-main > .not-found > *,
 .entry-content > *,
 [class*=inner-container] > *,
-.wp-block-template-part > * {
+.wp-block-template-part > *,
+.wp-block-post-template :where(li > *) {
 	margin-top: calc(0.666 * var(--global--spacing-vertical));
 	margin-bottom: calc(0.666 * var(--global--spacing-vertical));
 }
@@ -932,7 +865,8 @@ template {
 	.site-main > .not-found > *,
 	.entry-content > *,
 	[class*=inner-container] > *,
-	.wp-block-template-part > * {
+	.wp-block-template-part > *,
+	.wp-block-post-template :where(li > *) {
 		margin-top: var(--global--spacing-vertical);
 		margin-bottom: var(--global--spacing-vertical);
 	}
@@ -942,7 +876,8 @@ template {
 .site-main > .not-found > *:first-child,
 .entry-content > *:first-child,
 [class*=inner-container] > *:first-child,
-.wp-block-template-part > *:first-child {
+.wp-block-template-part > *:first-child,
+.wp-block-post-template :where(li > *):first-child {
 	margin-top: 0;
 }
 
@@ -950,7 +885,8 @@ template {
 .site-main > .not-found > *:last-child,
 .entry-content > *:last-child,
 [class*=inner-container] > *:last-child,
-.wp-block-template-part > *:last-child {
+.wp-block-template-part > *:last-child,
+.wp-block-post-template :where(li > *):last-child {
 	margin-bottom: 0;
 }
 
@@ -1442,12 +1378,8 @@ input[type=radio] + label {
 @supports (-webkit-appearance: none) or (-moz-appearance: none) {
 
 	input[type=range] {
-		-webkit-appearance: none;
-
-		/* Hides the slider so that custom slider can be made */
-		width: 100%;
-
-		/* Specific width is required for Firefox. */
+		-webkit-appearance: none; /* Hides the slider so that custom slider can be made */
+		width: 100%; /* Specific width is required for Firefox. */
 		height: 6px;
 		background: var(--form--color-ranged);
 		border-radius: 6px;
@@ -1670,9 +1602,14 @@ a:hover {
 	background: rgba(255, 255, 255, 0.9);
 }
 
-.is-dark-theme .site a:focus:not(.wp-block-button__link):not(.wp-block-file__button),
+.is-dark-theme .site a:focus:not(.wp-block-button__link):not(.wp-block-file__button) {
+	background: var(--global--color-black);
+	color: var(--global--color-white);
+	text-decoration: none;
+}
+
 .is-dark-theme .site a:focus:not(.wp-block-button__link):not(.wp-block-file__button) .meta-nav {
-	color: var(--wp--style--color--link, var(--global--color-background));
+	color: var(--wp--style--color--link, var(--global--color-white));
 }
 
 .has-background-white .site a:focus:not(.wp-block-button__link):not(.wp-block-file__button) {
@@ -1696,7 +1633,7 @@ a:hover {
 	background-color: #f1f1f1;
 }
 
-.site a:focus:not(.wp-block-button__link):not(.wp-block-file__button).custom-logo-link:focus {
+.site a:focus:not(.wp-block-button__link):not(.wp-block-file__button).custom-logo-link {
 	background: none;
 }
 
@@ -2025,6 +1962,8 @@ input[type=reset]:disabled,
 	/* Treating H2 separately to account for legacy /core styles */
 
 	/* Block Styles */
+
+	/* The background color class is used just for the overlay, and does not need to be applied to the inner container. */
 }
 
 .wp-block-cover:not(.alignwide):not(.alignfull),
@@ -2103,7 +2042,7 @@ input[type=reset]:disabled,
 
 .wp-block-cover .wp-block-cover__inner-container,
 .wp-block-cover-image .wp-block-cover__inner-container {
-	width: calc(100% - calc(2 * var(--global--spacing-vertical)));
+	width: calc(100% - 2 * var(--global--spacing-vertical));
 }
 
 .wp-block-cover .wp-block-cover__inner-container > *,
@@ -2158,6 +2097,11 @@ input[type=reset]:disabled,
 .wp-block-cover.is-style-twentytwentyone-border,
 .wp-block-cover-image.is-style-twentytwentyone-border {
 	border: calc(3 * var(--separator--height)) solid var(--global--color-border);
+}
+
+.wp-block-cover[class*=-background-color][class] .wp-block-cover__inner-container,
+.wp-block-cover-image[class*=-background-color][class] .wp-block-cover__inner-container {
+	background-color: unset;
 }
 
 .wp-block-file a.wp-block-file__button:active,
@@ -2260,8 +2204,8 @@ input[type=reset]:disabled,
 .wp-block-group.has-background .wp-block-group__inner-container > hr.wp-block-separator:not(.is-style-dots):not(.alignwide).alignfull,
 .wp-block-group.is-style-twentytwentyone-border .wp-block-group__inner-container > .alignfull,
 .wp-block-group.is-style-twentytwentyone-border .wp-block-group__inner-container > hr.wp-block-separator:not(.is-style-dots):not(.alignwide).alignfull {
-	max-width: calc(var(--responsive--alignfull-width) + (2 * var(--global--spacing-vertical)));
-	width: calc(var(--responsive--alignfull-width) + (2 * var(--global--spacing-vertical)));
+	max-width: calc(var(--responsive--alignfull-width) + 2 * var(--global--spacing-vertical));
+	width: calc(var(--responsive--alignfull-width) + 2 * var(--global--spacing-vertical));
 	margin-left: calc(-1 * var(--global--spacing-vertical));
 }
 
@@ -2456,6 +2400,11 @@ h6,
 	margin-bottom: 0;
 }
 
+.widget-area .wp-block-latest-posts:not(.is-grid) > li {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
 .wp-block-latest-posts.is-grid {
 	word-wrap: break-word;
 	word-break: break-word;
@@ -2502,6 +2451,11 @@ h6,
 	font-weight: var(--heading--font-weight);
 	line-height: var(--global--line-height-heading);
 	margin-bottom: calc(0.333 * var(--global--spacing-vertical));
+}
+
+.widget-area .wp-block-latest-posts > li > a {
+	font-size: var(--global--font-size-sm);
+	margin-bottom: 0;
 }
 
 .wp-block-latest-posts .wp-block-latest-posts__post-author {
@@ -2576,23 +2530,23 @@ h6,
 @media screen and (min-width: 600px) {
 
 	.wp-block-latest-posts.is-style-twentytwentyone-latest-posts-dividers.is-grid.columns-2 li {
-		width: calc((100% / 2));
+		width: calc(100% / 2);
 	}
 
 	.wp-block-latest-posts.is-style-twentytwentyone-latest-posts-dividers.is-grid.columns-3 li {
-		width: calc((100% / 3));
+		width: calc(100% / 3);
 	}
 
 	.wp-block-latest-posts.is-style-twentytwentyone-latest-posts-dividers.is-grid.columns-4 li {
-		width: calc((100% / 4));
+		width: calc(100% / 4);
 	}
 
 	.wp-block-latest-posts.is-style-twentytwentyone-latest-posts-dividers.is-grid.columns-5 li {
-		width: calc((100% / 5));
+		width: calc(100% / 5);
 	}
 
 	.wp-block-latest-posts.is-style-twentytwentyone-latest-posts-dividers.is-grid.columns-6 li {
-		width: calc((100% / 6));
+		width: calc(100% / 6);
 	}
 }
 
@@ -2993,6 +2947,16 @@ pre.wp-block-preformatted {
 .wp-block-pullquote.is-style-solid-color.alignleft blockquote,
 .wp-block-pullquote.is-style-solid-color.alignright blockquote {
 	max-width: initial;
+}
+
+.wp-block-query.has-background {
+	padding: calc(0.666 * var(--global--spacing-vertical));
+}
+@media only screen and (min-width: 482px) {
+
+	.wp-block-query.has-background {
+		padding: var(--global--spacing-vertical);
+	}
 }
 
 .wp-block-quote {
@@ -3880,7 +3844,7 @@ table.wp-calendar-table caption {
 	}
 
 	.site-header.has-logo:not(.has-title-and-tagline).has-menu .site-logo img {
-		max-height: calc(var(--button--padding-vertical) - (0.25 * var(--global--spacing-unit)) + 1.7em);
+		max-height: calc(var(--button--padding-vertical) - 0.25 * var(--global--spacing-unit) + 1.7em);
 	}
 
 	.site-header.has-logo.has-title-and-tagline {
@@ -3911,7 +3875,7 @@ table.wp-calendar-table caption {
 	body:not(.primary-navigation-open) .site-header.has-logo.has-title-and-tagline .menu-button-container {
 		position: relative;
 		padding-top: 0;
-		margin-top: calc(0px - var(--button--padding-vertical) + (0.25 * var(--global--spacing-unit)));
+		margin-top: calc(0px - var(--button--padding-vertical) + 0.25 * var(--global--spacing-unit));
 	}
 
 	body:not(.primary-navigation-open) .site-header.has-logo.has-title-and-tagline .menu-button-container #primary-mobile-menu {
@@ -3959,6 +3923,7 @@ table.wp-calendar-table caption {
 	font-size: var(--branding--title--font-size);
 }
 
+.site-footer > .site-info .privacy-policy,
 .site-footer > .site-info .powered-by {
 	margin-top: calc(0.5 * var(--global--spacing-vertical));
 }
@@ -3969,9 +3934,18 @@ table.wp-calendar-table caption {
 		align-items: center;
 	}
 
+	.site-footer > .site-info .site-name {
+		margin-right: calc(0.5 * var(--global--spacing-vertical));
+	}
+
+	.site-footer > .site-info .privacy-policy,
 	.site-footer > .site-info .powered-by {
 		margin-top: initial;
 		margin-left: auto;
+	}
+
+	.site-footer > .site-info .privacy-policy + .powered-by {
+		margin-left: calc(0.5 * var(--global--spacing-vertical));
 	}
 }
 
@@ -4555,7 +4529,7 @@ h1.page-title {
 .comment-form > p textarea {
 	display: block;
 	font-size: var(--global--font-size-sm);
-	margin-bottom: calc(.5 * var(--global--spacing-unit));
+	margin-bottom: calc(0.5 * var(--global--spacing-unit));
 	width: 100%;
 	font-weight: var(--form--label-weight);
 }
@@ -4593,7 +4567,7 @@ h1.page-title {
 .menu-button-container #primary-mobile-menu {
 	display: flex;
 	margin-left: auto;
-	padding: calc(var(--button--padding-vertical) - (0.25 * var(--global--spacing-unit))) calc(0.5 * var(--button--padding-horizontal));
+	padding: calc(var(--button--padding-vertical) - 0.25 * var(--global--spacing-unit)) calc(0.5 * var(--button--padding-horizontal));
 	font-size: var(--primary-nav--font-size-button);
 	font-weight: var(--primary-nav--font-weight-button);
 	background-color: transparent;
@@ -4666,8 +4640,13 @@ h1.page-title {
 	padding-right: var(--global--spacing-unit);
 	padding-bottom: var(--global--spacing-horizontal);
 	background-color: var(--global--color-background);
-	transition: all 0.15s ease-in-out;
 	transform: translateY(var(--global--spacing-vertical));
+}
+@media (prefers-reduced-motion: no-preference) {
+
+	.primary-navigation > .primary-menu-container {
+		transition: all 0.15s ease-in-out;
+	}
 }
 @media only screen and (max-width: 481px) {
 
@@ -4838,6 +4817,12 @@ h1.page-title {
 .primary-navigation > div > .menu-wrapper > li > .sub-menu {
 	position: relative;
 }
+@media only screen and (min-width: 482px) and (prefers-reduced-motion: no-preference) {
+
+	.primary-navigation > div > .menu-wrapper > li > .sub-menu {
+		transition: all 0.5s ease;
+	}
+}
 @media only screen and (min-width: 482px) {
 
 	.primary-navigation > div > .menu-wrapper > li > .sub-menu {
@@ -4847,7 +4832,6 @@ h1.page-title {
 		position: absolute;
 		top: 100%;
 		padding-top: 3px;
-		transition: all 0.5s ease;
 		z-index: 88888;
 	}
 
@@ -5095,7 +5079,6 @@ h1.page-title {
 
 .footer-navigation-wrapper li a {
 	padding: calc(1.25 * var(--primary-nav--padding)) var(--primary-nav--padding);
-	transition: transform 0.1s ease;
 	color: var(--footer--color-link);
 }
 
@@ -5127,6 +5110,12 @@ h1.page-title {
 
 .footer-navigation-wrapper li .svg-icon:hover {
 	transform: scale(1.1);
+}
+@media (prefers-reduced-motion: no-preference) {
+
+	.footer-navigation-wrapper li .svg-icon {
+		transition: transform 0.1s ease;
+	}
 }
 
 .footer-navigation-wrapper .sub-menu-toggle,
@@ -5185,7 +5174,7 @@ h1.page-title {
 		flex: 0 1 auto;
 		margin-bottom: inherit;
 		margin-top: inherit;
-		max-width: calc(50% - (0.5 * var(--global--spacing-unit)));
+		max-width: calc(50% - 0.5 * var(--global--spacing-unit));
 	}
 
 	.navigation .nav-links .nav-next {
@@ -5237,7 +5226,7 @@ h1.page-title {
 @media only screen and (min-width: 822px) {
 
 	.post-navigation .post-title {
-		margin: 5px calc(24px + (0.25 * var(--global--spacing-unit))) 0;
+		margin: 5px calc(24px + 0.25 * var(--global--spacing-unit)) 0;
 	}
 }
 @media only screen and (min-width: 482px) {
@@ -5417,42 +5406,6 @@ h1.page-title {
 	}
 }
 
-.widget-area ul {
-	list-style-type: none;
-	padding: 0;
-}
-
-.widget-area ul li {
-	line-height: var(--widget--line-height-list);
-}
-
-.widget-area ul.sub-menu,
-.widget-area ul.children {
-	margin-left: var(--widget--spacing-menu);
-}
-
-.widget-area ul .sub-menu-toggle {
-	display: none;
-}
-
-.widget-area a {
-	color: var(--footer--color-link);
-	text-decoration: underline;
-	text-decoration-style: solid;
-	text-decoration-color: currentColor;
-}
-
-.widget-area a:link,
-.widget-area a:visited,
-.widget-area a:active {
-	color: var(--footer--color-link);
-}
-
-.widget-area a:hover {
-	color: var(--footer--color-link-hover);
-	text-decoration-style: dotted;
-}
-
 .widget-area .wp-block-social-links.alignright {
 	margin-top: var(--global--spacing-vertical);
 	justify-content: flex-end;
@@ -5468,10 +5421,74 @@ h1.page-title {
 	clear: both;
 }
 
-.widget-title {
-	font-size: var(--global--font-size-sm);
+.widget h1,
+.widget h2,
+.widget h3,
+.widget h4,
+.widget h5,
+.widget h6 {
 	font-weight: var(--widget--font-weight-title);
 	line-height: var(--widget--line-height-title);
+}
+
+.widget h1 {
+	font-size: var(--global--font-size-md);
+}
+
+.widget h2 {
+	font-size: var(--global--font-size-sm);
+}
+
+.widget h3 {
+	font-size: var(--global--font-size-xs);
+}
+
+.widget h4 {
+	font-size: var(--global--font-size-xs);
+}
+
+.widget h5 {
+	font-size: var(--global--font-size-xs);
+}
+
+.widget h6 {
+	font-size: var(--global--font-size-xs);
+}
+
+.widget ul {
+	list-style-type: none;
+	padding: 0;
+}
+
+.widget ul li {
+	line-height: var(--widget--line-height-list);
+}
+
+.widget ul.sub-menu,
+.widget ul.children {
+	margin-left: var(--widget--spacing-menu);
+}
+
+.widget ul .sub-menu-toggle {
+	display: none;
+}
+
+.widget a {
+	color: var(--footer--color-link);
+	text-decoration: underline;
+	text-decoration-style: solid;
+	text-decoration-color: currentColor;
+}
+
+.widget a:link,
+.widget a:visited,
+.widget a:active {
+	color: var(--footer--color-link);
+}
+
+.widget a:hover {
+	color: var(--footer--color-link-hover);
+	text-decoration-style: dotted;
 }
 
 .search-form {
@@ -5556,19 +5573,11 @@ h1.page-title {
 	outline: 0;
 }
 
-@media (prefers-reduced-motion) {
-
-	* {
-		transition-delay: 0s !important;
-		transition-duration: 0s !important;
-	}
-}
-
 .has-black-color[class] {
 	color: var(--global--color-black);
 }
 
-.has-black-color[class] [class*=__inner-container] {
+.has-black-color[class] > [class*=__inner-container] {
 	--local--color-primary: var(--global--color-black, #000);
 	color: var(--local--color-primary);
 }
@@ -5577,7 +5586,7 @@ h1.page-title {
 	color: var(--global--color-gray);
 }
 
-.has-gray-color[class] [class*=__inner-container] {
+.has-gray-color[class] > [class*=__inner-container] {
 	--local--color-primary: var(--global--color-gray, #000);
 	color: var(--local--color-primary);
 }
@@ -5586,7 +5595,7 @@ h1.page-title {
 	color: var(--global--color-dark-gray);
 }
 
-.has-dark-gray-color[class] [class*=__inner-container] {
+.has-dark-gray-color[class] > [class*=__inner-container] {
 	--local--color-primary: var(--global--color-dark-gray, #000);
 	color: var(--local--color-primary);
 }
@@ -5595,7 +5604,7 @@ h1.page-title {
 	color: var(--global--color-green);
 }
 
-.has-green-color[class] [class*=__inner-container] {
+.has-green-color[class] > [class*=__inner-container] {
 	--local--color-primary: var(--global--color-green, #fff);
 	color: var(--local--color-primary);
 }
@@ -5604,7 +5613,7 @@ h1.page-title {
 	color: var(--global--color-blue);
 }
 
-.has-blue-color[class] [class*=__inner-container] {
+.has-blue-color[class] > [class*=__inner-container] {
 	--local--color-primary: var(--global--color-blue, #fff);
 	color: var(--local--color-primary);
 }
@@ -5613,7 +5622,7 @@ h1.page-title {
 	color: var(--global--color-purple);
 }
 
-.has-purple-color[class] [class*=__inner-container] {
+.has-purple-color[class] > [class*=__inner-container] {
 	--local--color-primary: var(--global--color-purple, #fff);
 	color: var(--local--color-primary);
 }
@@ -5622,7 +5631,7 @@ h1.page-title {
 	color: var(--global--color-red);
 }
 
-.has-red-color[class] [class*=__inner-container] {
+.has-red-color[class] > [class*=__inner-container] {
 	--local--color-primary: var(--global--color-red, #fff);
 	color: var(--local--color-primary);
 }
@@ -5631,7 +5640,7 @@ h1.page-title {
 	color: var(--global--color-orange);
 }
 
-.has-orange-color[class] [class*=__inner-container] {
+.has-orange-color[class] > [class*=__inner-container] {
 	--local--color-primary: var(--global--color-orange, #fff);
 	color: var(--local--color-primary);
 }
@@ -5640,7 +5649,7 @@ h1.page-title {
 	color: var(--global--color-yellow);
 }
 
-.has-yellow-color[class] [class*=__inner-container] {
+.has-yellow-color[class] > [class*=__inner-container] {
 	--local--color-primary: var(--global--color-yellow, #fff);
 	color: var(--local--color-primary);
 }
@@ -5649,7 +5658,7 @@ h1.page-title {
 	color: var(--global--color-white);
 }
 
-.has-white-color[class] [class*=__inner-container] {
+.has-white-color[class] > [class*=__inner-container] {
 	--local--color-primary: var(--global--color-white, #fff);
 	color: var(--local--color-primary);
 }
@@ -5669,7 +5678,7 @@ h1.page-title {
 	background-color: var(--global--color-black);
 }
 
-.has-black-background-color[class] [class*=__inner-container] {
+.has-black-background-color[class] > [class*=__inner-container] {
 	--local--color-background: var(--global--color-black, #000);
 	background-color: var(--local--color-background);
 }
@@ -5678,7 +5687,7 @@ h1.page-title {
 	background-color: var(--global--color-dark-gray);
 }
 
-.has-dark-gray-background-color[class] [class*=__inner-container] {
+.has-dark-gray-background-color[class] > [class*=__inner-container] {
 	--local--color-background: var(--global--color-dark-gray, #000);
 	background-color: var(--local--color-background);
 }
@@ -5687,7 +5696,7 @@ h1.page-title {
 	background-color: var(--global--color-gray);
 }
 
-.has-gray-background-color[class] [class*=__inner-container] {
+.has-gray-background-color[class] > [class*=__inner-container] {
 	--local--color-background: var(--global--color-gray, #000);
 	background-color: var(--local--color-background);
 }
@@ -5696,7 +5705,7 @@ h1.page-title {
 	background-color: var(--global--color-light-gray);
 }
 
-.has-light-gray-background-color[class] [class*=__inner-container] {
+.has-light-gray-background-color[class] > [class*=__inner-container] {
 	--local--color-background: var(--global--color-light-gray, #fff);
 	background-color: var(--local--color-background);
 }
@@ -5705,7 +5714,7 @@ h1.page-title {
 	background-color: var(--global--color-green);
 }
 
-.has-green-background-color[class] [class*=__inner-container] {
+.has-green-background-color[class] > [class*=__inner-container] {
 	--local--color-background: var(--global--color-green, #fff);
 	background-color: var(--local--color-background);
 }
@@ -5714,7 +5723,7 @@ h1.page-title {
 	background-color: var(--global--color-blue);
 }
 
-.has-blue-background-color[class] [class*=__inner-container] {
+.has-blue-background-color[class] > [class*=__inner-container] {
 	--local--color-background: var(--global--color-blue, #fff);
 	background-color: var(--local--color-background);
 }
@@ -5723,7 +5732,7 @@ h1.page-title {
 	background-color: var(--global--color-purple);
 }
 
-.has-purple-background-color[class] [class*=__inner-container] {
+.has-purple-background-color[class] > [class*=__inner-container] {
 	--local--color-background: var(--global--color-purple, #fff);
 	background-color: var(--local--color-background);
 }
@@ -5732,7 +5741,7 @@ h1.page-title {
 	background-color: var(--global--color-red);
 }
 
-.has-red-background-color[class] [class*=__inner-container] {
+.has-red-background-color[class] > [class*=__inner-container] {
 	--local--color-background: var(--global--color-red, #fff);
 	background-color: var(--local--color-background);
 }
@@ -5741,7 +5750,7 @@ h1.page-title {
 	background-color: var(--global--color-orange);
 }
 
-.has-orange-background-color[class] [class*=__inner-container] {
+.has-orange-background-color[class] > [class*=__inner-container] {
 	--local--color-background: var(--global--color-orange, #fff);
 	background-color: var(--local--color-background);
 }
@@ -5750,7 +5759,7 @@ h1.page-title {
 	background-color: var(--global--color-yellow);
 }
 
-.has-yellow-background-color[class] [class*=__inner-container] {
+.has-yellow-background-color[class] > [class*=__inner-container] {
 	--local--color-background: var(--global--color-yellow, #fff);
 	background-color: var(--local--color-background);
 }
@@ -5759,42 +5768,58 @@ h1.page-title {
 	background-color: var(--global--color-white);
 }
 
-.has-white-background-color[class] [class*=__inner-container] {
+.has-white-background-color[class] > [class*=__inner-container] {
 	--local--color-background: var(--global--color-white, #fff);
 	background-color: var(--local--color-background);
 }
 
-.has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container],
-.has-background:not(.has-text-color).has-gray-background-color[class] [class*=__inner-container],
-.has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
+.has-background:not(.has-text-color).has-black-background-color[class],
+.has-background:not(.has-text-color).has-gray-background-color[class],
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] {
+	color: var(--global--color-white);
+}
+
+.has-background:not(.has-text-color).has-black-background-color[class] > [class*=__inner-container],
+.has-background:not(.has-text-color).has-gray-background-color[class] > [class*=__inner-container],
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] > [class*=__inner-container] {
 	--local--color-primary: var(--global--color-background, #fff);
 	color: var(--local--color-primary, var(--global--color-primary));
 }
 
-.is-dark-theme .has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container],
-.is-dark-theme .has-background:not(.has-text-color).has-gray-background-color[class] [class*=__inner-container],
-.is-dark-theme .has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
+.is-dark-theme .has-background:not(.has-text-color).has-black-background-color[class] > [class*=__inner-container],
+.is-dark-theme .has-background:not(.has-text-color).has-gray-background-color[class] > [class*=__inner-container],
+.is-dark-theme .has-background:not(.has-text-color).has-dark-gray-background-color[class] > [class*=__inner-container] {
 	--local--color-primary: var(--global--color-primary, #000);
 }
 
-.has-background:not(.has-text-color).has-green-background-color[class] [class*=__inner-container],
-.has-background:not(.has-text-color).has-blue-background-color[class] [class*=__inner-container],
-.has-background:not(.has-text-color).has-purple-background-color[class] [class*=__inner-container],
-.has-background:not(.has-text-color).has-red-background-color[class] [class*=__inner-container],
-.has-background:not(.has-text-color).has-orange-background-color[class] [class*=__inner-container],
-.has-background:not(.has-text-color).has-yellow-background-color[class] [class*=__inner-container],
-.has-background:not(.has-text-color).has-white-background-color[class] [class*=__inner-container] {
+.has-background:not(.has-text-color).has-green-background-color[class],
+.has-background:not(.has-text-color).has-blue-background-color[class],
+.has-background:not(.has-text-color).has-purple-background-color[class],
+.has-background:not(.has-text-color).has-red-background-color[class],
+.has-background:not(.has-text-color).has-orange-background-color[class],
+.has-background:not(.has-text-color).has-yellow-background-color[class],
+.has-background:not(.has-text-color).has-white-background-color[class] {
+	color: var(--global--color-dark-gray);
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] > [class*=__inner-container],
+.has-background:not(.has-text-color).has-blue-background-color[class] > [class*=__inner-container],
+.has-background:not(.has-text-color).has-purple-background-color[class] > [class*=__inner-container],
+.has-background:not(.has-text-color).has-red-background-color[class] > [class*=__inner-container],
+.has-background:not(.has-text-color).has-orange-background-color[class] > [class*=__inner-container],
+.has-background:not(.has-text-color).has-yellow-background-color[class] > [class*=__inner-container],
+.has-background:not(.has-text-color).has-white-background-color[class] > [class*=__inner-container] {
 	--local--color-primary: var(--global--color-primary, #000);
 	color: var(--local--color-primary, var(--global--color-primary));
 }
 
-.is-dark-theme .has-background:not(.has-text-color).has-green-background-color[class] [class*=__inner-container],
-.is-dark-theme .has-background:not(.has-text-color).has-blue-background-color[class] [class*=__inner-container],
-.is-dark-theme .has-background:not(.has-text-color).has-purple-background-color[class] [class*=__inner-container],
-.is-dark-theme .has-background:not(.has-text-color).has-red-background-color[class] [class*=__inner-container],
-.is-dark-theme .has-background:not(.has-text-color).has-orange-background-color[class] [class*=__inner-container],
-.is-dark-theme .has-background:not(.has-text-color).has-yellow-background-color[class] [class*=__inner-container],
-.is-dark-theme .has-background:not(.has-text-color).has-white-background-color[class] [class*=__inner-container] {
+.is-dark-theme .has-background:not(.has-text-color).has-green-background-color[class] > [class*=__inner-container],
+.is-dark-theme .has-background:not(.has-text-color).has-blue-background-color[class] > [class*=__inner-container],
+.is-dark-theme .has-background:not(.has-text-color).has-purple-background-color[class] > [class*=__inner-container],
+.is-dark-theme .has-background:not(.has-text-color).has-red-background-color[class] > [class*=__inner-container],
+.is-dark-theme .has-background:not(.has-text-color).has-orange-background-color[class] > [class*=__inner-container],
+.is-dark-theme .has-background:not(.has-text-color).has-yellow-background-color[class] > [class*=__inner-container],
+.is-dark-theme .has-background:not(.has-text-color).has-white-background-color[class] > [class*=__inner-container] {
 	--local--color-primary: var(--global--color-background, #fff);
 }
 

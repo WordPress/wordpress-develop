@@ -2,7 +2,11 @@ const dotenv       = require( 'dotenv' );
 const dotenvExpand = require( 'dotenv-expand' );
 const { execSync } = require( 'child_process' );
 
-dotenvExpand( dotenv.config() );
+dotenvExpand.expand( dotenv.config() );
+
+if ( process.arch === 'arm64' ) {
+	process.env.LOCAL_DB_TYPE = `amd64/${process.env.LOCAL_DB_TYPE}`;
+}
 
 // Start the local-env containers.
 execSync( 'docker-compose up -d wordpress-develop', { stdio: 'inherit' } );

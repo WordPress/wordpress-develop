@@ -8,8 +8,8 @@
 class Tests_Rewrite extends WP_UnitTestCase {
 	private $home_url;
 
-	function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 		create_initial_taxonomies();
@@ -17,12 +17,12 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->home_url = get_option( 'home' );
 	}
 
-	function tearDown() {
+	public function tear_down() {
 		global $wp_rewrite;
 		$wp_rewrite->init();
 
 		update_option( 'home', $this->home_url );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -82,10 +82,10 @@ class Tests_Rewrite extends WP_UnitTestCase {
 
 		$extra_rules_top = $wp_rewrite->extra_rules_top;
 
-		$this->assertContains( $redirect, $extra_rules_top[ $pattern ] );
+		$this->assertStringContainsString( $redirect, $extra_rules_top[ $pattern ] );
 	}
 
-	function test_url_to_postid() {
+	public function test_url_to_postid() {
 
 		$id = self::factory()->post->create();
 		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
@@ -94,7 +94,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
-	function test_url_to_postid_set_url_scheme_https_to_http() {
+	public function test_url_to_postid_set_url_scheme_https_to_http() {
 		$post_id   = self::factory()->post->create();
 		$permalink = get_permalink( $post_id );
 		$this->assertSame( $post_id, url_to_postid( set_url_scheme( $permalink, 'https' ) ) );
@@ -104,7 +104,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->assertSame( $post_id, url_to_postid( set_url_scheme( $permalink, 'https' ) ) );
 	}
 
-	function test_url_to_postid_set_url_scheme_http_to_https() {
+	public function test_url_to_postid_set_url_scheme_http_to_https() {
 		$_SERVER['HTTPS'] = 'on';
 
 		$post_id        = self::factory()->post->create();
@@ -124,13 +124,13 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	 * @group multisite
 	 * @group ms-required
 	 */
-	function test_url_to_postid_of_http_site_when_current_site_uses_https() {
+	public function test_url_to_postid_of_http_site_when_current_site_uses_https() {
 		$_SERVER['HTTPS'] = 'on';
 
 		$network_home        = home_url();
 		$this->blog_id_35531 = self::factory()->blog->create();
 
-		add_filter( 'home_url', array( $this, '_filter_http_home_url' ), 10, 4 );
+		add_filter( 'home_url', array( $this, 'filter_http_home_url' ), 10, 4 );
 
 		switch_to_blog( $this->blog_id_35531 );
 
@@ -141,7 +141,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		restore_current_blog();
 
 		// Cleanup.
-		remove_filter( 'home_url', array( $this, '_filter_http_home_url' ), 10 );
+		remove_filter( 'home_url', array( $this, 'filter_http_home_url' ), 10 );
 
 		// Test the tests.
 		$this->assertSame( 'http', parse_url( $permalink, PHP_URL_SCHEME ) );
@@ -160,7 +160,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	 * @param int|null    $blog_id     Site ID, or null for the current site.
 	 * @return string                  The complete home URL including scheme and path.
 	 */
-	function _filter_http_home_url( $url, $path, $orig_scheme, $_blog_id ) {
+	public function filter_http_home_url( $url, $path, $orig_scheme, $_blog_id ) {
 		global $blog_id;
 
 		if ( $this->blog_id_35531 === $blog_id ) {
@@ -170,10 +170,10 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		return $url;
 	}
 
-	function test_url_to_postid_custom_post_type() {
+	public function test_url_to_postid_custom_post_type() {
 		delete_option( 'rewrite_rules' );
 
-		$post_type = rand_str( 12 );
+		$post_type = 'url_to_postid';
 		register_post_type( $post_type, array( 'public' => true ) );
 
 		$id = self::factory()->post->create( array( 'post_type' => $post_type ) );
@@ -182,7 +182,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		_unregister_post_type( $post_type );
 	}
 
-	function test_url_to_postid_hierarchical() {
+	public function test_url_to_postid_hierarchical() {
 
 		$parent_id = self::factory()->post->create(
 			array(
@@ -202,7 +202,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->assertSame( $child_id, url_to_postid( get_permalink( $child_id ) ) );
 	}
 
-	function test_url_to_postid_hierarchical_with_matching_leaves() {
+	public function test_url_to_postid_hierarchical_with_matching_leaves() {
 
 		$parent_id       = self::factory()->post->create(
 			array(
@@ -245,7 +245,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->assertSame( $grandchild_id_2, url_to_postid( get_permalink( $grandchild_id_2 ) ) );
 	}
 
-	function test_url_to_postid_home_has_path() {
+	public function test_url_to_postid_home_has_path() {
 
 		update_option( 'home', home_url( '/example/' ) );
 
@@ -271,7 +271,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	/**
 	 * @ticket 30438
 	 */
-	function test_parse_request_home_path() {
+	public function test_parse_request_home_path() {
 		$home_url = home_url( '/path/' );
 		update_option( 'home', $home_url );
 
@@ -291,7 +291,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	/**
 	 * @ticket 30438
 	 */
-	function test_parse_request_home_path_with_regex_character() {
+	public function test_parse_request_home_path_with_regex_character() {
 		$home_url       = home_url( '/ma.ch/' );
 		$not_a_home_url = home_url( '/match/' );
 		update_option( 'home', $home_url );
@@ -328,7 +328,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	/**
 	 * @ticket 30018
 	 */
-	function test_parse_request_home_path_non_public_type() {
+	public function test_parse_request_home_path_non_public_type() {
 		register_post_type( 'foo', array( 'public' => false ) );
 
 		$url = add_query_arg( 'foo', '1', home_url() );
@@ -340,7 +340,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->assertSame( array(), $GLOBALS['wp']->query_vars );
 	}
 
-	function test_url_to_postid_dupe_path() {
+	public function test_url_to_postid_dupe_path() {
 		update_option( 'home', home_url( '/example/' ) );
 
 		$id = self::factory()->post->create(
@@ -360,7 +360,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	/**
 	 * Reveals bug introduced in WP 3.0
 	 */
-	function test_url_to_postid_home_url_collision() {
+	public function test_url_to_postid_home_url_collision() {
 		update_option( 'home', home_url( '/example' ) );
 
 		self::factory()->post->create(
@@ -381,7 +381,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	 *
 	 * @group ms-required
 	 */
-	function test_url_to_postid_ms_home_url_collision() {
+	public function test_url_to_postid_ms_home_url_collision() {
 		$blog_id = self::factory()->blog->create( array( 'path' => '/example' ) );
 		switch_to_blog( $blog_id );
 
@@ -402,7 +402,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	/**
 	 * @ticket 21970
 	 */
-	function test_url_to_postid_with_post_slug_that_clashes_with_a_trashed_page() {
+	public function test_url_to_postid_with_post_slug_that_clashes_with_a_trashed_page() {
 		$this->set_permalink_structure( '/%postname%/' );
 
 		$page_id = self::factory()->post->create(
@@ -419,7 +419,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	/**
 	 * @ticket 34971
 	 */
-	function test_url_to_postid_static_front_page() {
+	public function test_url_to_postid_static_front_page() {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 
 		$this->assertSame( 0, url_to_postid( home_url() ) );
@@ -453,7 +453,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	/**
 	 * @ticket 21970
 	 */
-	function test_parse_request_with_post_slug_that_clashes_with_a_trashed_page() {
+	public function test_parse_request_with_post_slug_that_clashes_with_a_trashed_page() {
 		$this->set_permalink_structure( '/%postname%/' );
 
 		$page_id = self::factory()->post->create(
@@ -482,7 +482,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
 		$rewrite_rules = get_option( 'rewrite_rules' );
-		$this->assertInternalType( 'array', $rewrite_rules );
+		$this->assertIsArray( $rewrite_rules );
 		$this->assertNotEmpty( $rewrite_rules );
 	}
 }

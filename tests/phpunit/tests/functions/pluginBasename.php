@@ -21,23 +21,23 @@ class Tests_Functions_PluginBasename extends WP_UnitTestCase {
 	 */
 	protected $wp_plugin_path;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->wp_plugin_paths_backup = $GLOBALS['wp_plugin_paths'];
 		$this->wp_plugin_path         = wp_normalize_path( WP_PLUGIN_DIR );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		$GLOBALS['wp_plugin_paths'] = $this->wp_plugin_paths_backup;
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
 	 * @ticket 29154
 	 */
-	function test_return_correct_basename_for_symlinked_plugins() {
+	public function test_return_correct_basename_for_symlinked_plugins() {
 		global $wp_plugin_paths;
 
 		$wp_plugin_paths = array(
@@ -51,7 +51,7 @@ class Tests_Functions_PluginBasename extends WP_UnitTestCase {
 	/**
 	 * @ticket 28441
 	 */
-	function test_return_correct_basename_for_symlinked_plugins_with_path_conflicts() {
+	public function test_return_correct_basename_for_symlinked_plugins_with_path_conflicts() {
 		global $wp_plugin_paths;
 
 		$wp_plugin_paths = array(

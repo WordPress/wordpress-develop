@@ -17,6 +17,14 @@
 class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 	/**
+	 * Whether the controller supports batching.
+	 *
+	 * @since 5.9.0
+	 * @var false
+	 */
+	protected $allow_batch = false;
+
+	/**
 	 * Registers the routes for attachments.
 	 *
 	 * @since 5.3.0
@@ -34,7 +42,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				'permission_callback' => array( $this, 'post_process_item_permissions_check' ),
 				'args'                => array(
 					'id'     => array(
-						'description' => __( 'Unique identifier for the object.' ),
+						'description' => __( 'Unique identifier for the attachment.' ),
 						'type'        => 'integer',
 					),
 					'action' => array(
@@ -438,7 +446,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
-		$supported_types = array( 'image/jpeg', 'image/png', 'image/gif' );
+		$supported_types = array( 'image/jpeg', 'image/png', 'image/gif', 'image/webp' );
 		$mime_type       = get_post_mime_type( $attachment_id );
 		if ( ! in_array( $mime_type, $supported_types, true ) ) {
 			return new WP_Error(
@@ -707,12 +715,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Prepares a single attachment output for response.
 	 *
 	 * @since 4.7.0
+	 * @since 5.9.0 Renamed `$post` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param WP_Post         $post    Attachment object.
+	 * @param WP_Post         $item    Attachment object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
-	public function prepare_item_for_response( $post, $request ) {
+	public function prepare_item_for_response( $item, $request ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$post     = $item;
 		$response = parent::prepare_item_for_response( $post, $request );
 		$fields   = $this->get_fields_for_response( $request );
 		$data     = $response->get_data();
@@ -772,6 +783,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					}
 
 					$size_data['source_url'] = $image_src[0];
+
+					if ( empty( $size_data['sources'] ) || ! is_array( $size_data['sources'] ) ) {
+						continue;
+					}
+
+					$image_url_basename = wp_basename( $image_src[0] );
+					foreach ( $size_data['sources'] as $mime => &$mime_details ) {
+						$mime_details['source_url'] = str_replace( $image_url_basename, $mime_details['file'], $image_src[0] );
+					}
 				}
 
 				$full_src = wp_get_attachment_image_src( $post->ID, 'full' );
@@ -784,6 +804,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 						'mime_type'  => $post->post_mime_type,
 						'source_url' => $full_src[0],
 					);
+
+					if ( ! empty( $data['media_details']['sources'] ) ) {
+						$full_url_basename = wp_basename( $full_src[0] );
+						foreach ( $data['media_details']['sources'] as $mime => &$mime_details ) {
+							$mime_details['source_url'] = str_replace( $full_url_basename, $mime_details['file'], $full_src[0] );
+						}
+						$data['media_details']['sizes']['full']['sources'] = $data['media_details']['sources'];
+						unset( $data['media_details']['sources'] );
+					}
 				}
 			} else {
 				$data['media_details']['sizes'] = new stdClass;
@@ -888,12 +917,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			),
 			'properties'  => array(
 				'raw'      => array(
-					'description' => __( 'Description for the object, as it exists in the database.' ),
+					'description' => __( 'Description for the attachment, as it exists in the database.' ),
 					'type'        => 'string',
 					'context'     => array( 'edit' ),
 				),
 				'rendered' => array(
-					'description' => __( 'HTML description for the object, transformed for display.' ),
+					'description' => __( 'HTML description for the attachment, transformed for display.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,

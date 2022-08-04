@@ -49,7 +49,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 	}
 
-	function test_get_and_set() {
+	public function test_get_and_set() {
 		$users = new WP_User_Query();
 
 		$this->assertEquals( '', $users->get( 'fields' ) );
@@ -137,7 +137,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$users = $users->get_results();
 
 		// +1 for the default user created during installation.
-		$this->assertSame( 13, count( $users ) );
+		$this->assertCount( 13, $users );
 		foreach ( $users as $user ) {
 			$this->assertInstanceOf( 'WP_User', $user );
 		}
@@ -149,10 +149,30 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 		$users = $users->get_results();
-		$this->assertSame( 13, count( $users ) );
+		$this->assertCount( 13, $users );
 		foreach ( $users as $user ) {
 			$this->assertInstanceOf( 'WP_User', $user );
 		}
+	}
+
+	/**
+	 * @ticket 55594
+	 */
+	public function test_get_all_primed_users() {
+		$filter = new MockAction();
+		add_filter( 'update_user_metadata_cache', array( $filter, 'filter' ), 10, 2 );
+
+		new WP_User_Query(
+			array(
+				'include' => self::$author_ids,
+				'fields'  => 'all',
+			)
+		);
+
+		$args      = $filter->get_args();
+		$last_args = end( $args );
+		$this->assertIsArray( $last_args[1] );
+		$this->assertSameSets( self::$author_ids, $last_args[1], 'Ensure that user meta is primed' );
 	}
 
 	/**
@@ -175,7 +195,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( "ORDER BY $full_key", $q->query_orderby );
+		$this->assertStringContainsString( "ORDER BY $full_key", $q->query_orderby );
 	}
 
 	public function orderby_should_convert_non_prefixed_keys_data() {
@@ -198,7 +218,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 				'include'  => self::$author_ids,
 				'meta_key' => 'last_name',
 				'orderby'  => 'meta_value',
-				'fields'   => 'ids',
+				'fields'   => 'ID',
 			)
 		);
 
@@ -220,7 +240,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 				'include'  => self::$author_ids,
 				'meta_key' => 'user_age',
 				'orderby'  => 'meta_value_num',
-				'fields'   => 'ids',
+				'fields'   => 'ID',
 			)
 		);
 
@@ -242,7 +262,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 				'include'  => self::$author_ids,
 				'meta_key' => 'foo',
 				'orderby'  => 'foo',
-				'fields'   => 'ids',
+				'fields'   => 'ID',
 			)
 		);
 
@@ -261,7 +281,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$q = new WP_User_Query(
 			array(
-				'fields'     => 'ids',
+				'fields'     => 'ID',
 				'meta_query' => array(
 					'foo_key' => array(
 						'key'     => 'foo',
@@ -302,7 +322,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$q = new WP_User_Query(
 			array(
-				'fields'     => 'ids',
+				'fields'     => 'ID',
 				'meta_query' => array(
 					'foo_key' => array(
 						'key'     => 'foo',
@@ -332,7 +352,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$q = new WP_User_Query(
 			array(
-				'fields'     => 'ids',
+				'fields'     => 'ID',
 				'meta_query' => array(
 					'foo_key' => array(
 						'key'     => 'foo',
@@ -363,7 +383,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( 'ORDER BY user_login', $q->query_orderby );
+		$this->assertStringContainsString( 'ORDER BY user_login', $q->query_orderby );
 	}
 
 	/**
@@ -381,7 +401,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 
 		$expected_orderby = 'ORDER BY FIELD( ' . $wpdb->users . '.ID, ' . self::$author_ids[1] . ',' . self::$author_ids[0] . ',' . self::$author_ids[3] . ' )';
-		$this->assertContains( $expected_orderby, $q->query_orderby );
+		$this->assertStringContainsString( $expected_orderby, $q->query_orderby );
 
 		// assertEquals() respects order but ignores type (get_results() returns numeric strings).
 		$this->assertEquals( array( self::$author_ids[1], self::$author_ids[0], self::$author_ids[3] ), $q->get_results() );
@@ -402,7 +422,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 
 		$expected_orderby = 'ORDER BY FIELD( ' . $wpdb->users . '.ID, ' . self::$author_ids[1] . ',' . self::$author_ids[0] . ',' . self::$author_ids[3] . ' )';
-		$this->assertContains( $expected_orderby, $q->query_orderby );
+		$this->assertStringContainsString( $expected_orderby, $q->query_orderby );
 
 		// assertEquals() respects order but ignores type (get_results() returns numeric strings).
 		$this->assertEquals( array( self::$author_ids[1], self::$author_ids[0], self::$author_ids[3] ), $q->get_results() );
@@ -419,7 +439,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( 'ORDER BY user_login ASC, user_nicename ASC', $q->query_orderby );
+		$this->assertStringContainsString( 'ORDER BY user_login ASC, user_nicename ASC', $q->query_orderby );
 	}
 
 	/**
@@ -432,7 +452,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( 'ORDER BY user_login ASC, user_nicename ASC', $q->query_orderby );
+		$this->assertStringContainsString( 'ORDER BY user_login ASC, user_nicename ASC', $q->query_orderby );
 	}
 
 	/**
@@ -445,7 +465,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( 'ORDER BY user_login ASC, user_nicename ASC', $q->query_orderby );
+		$this->assertStringContainsString( 'ORDER BY user_login ASC, user_nicename ASC', $q->query_orderby );
 	}
 
 	/**
@@ -458,7 +478,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( 'ORDER BY user_login', $q->query_orderby );
+		$this->assertStringContainsString( 'ORDER BY user_login', $q->query_orderby );
 	}
 
 	/**
@@ -475,7 +495,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( 'ORDER BY user_login DESC, user_nicename ASC, user_email DESC', $q->query_orderby );
+		$this->assertStringContainsString( 'ORDER BY user_login DESC, user_nicename ASC, user_email DESC', $q->query_orderby );
 	}
 
 	/**
@@ -492,17 +512,17 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( 'ORDER BY user_login DESC, user_email ASC', $q->query_orderby );
+		$this->assertStringContainsString( 'ORDER BY user_login DESC, user_email ASC', $q->query_orderby );
 	}
 
 	/**
 	 * @ticket 28631
 	 */
-	function test_number() {
+	public function test_number() {
 		// +1 for the default user created by the test suite.
 		$users = new WP_User_Query( array( 'blog_id' => get_current_blog_id() ) );
 		$users = $users->get_results();
-		$this->assertSame( 13, count( $users ) );
+		$this->assertCount( 13, $users );
 
 		$users = new WP_User_Query(
 			array(
@@ -511,7 +531,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 		$users = $users->get_results();
-		$this->assertSame( 10, count( $users ) );
+		$this->assertCount( 10, $users );
 
 		$users = new WP_User_Query(
 			array(
@@ -520,7 +540,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 		$users = $users->get_results();
-		$this->assertSame( 2, count( $users ) );
+		$this->assertCount( 2, $users );
 
 		$users = new WP_User_Query(
 			array(
@@ -529,13 +549,13 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 		$users = $users->get_results();
-		$this->assertSame( 13, count( $users ) );
+		$this->assertCount( 13, $users );
 	}
 
 	/**
 	 * @ticket 21119
 	 */
-	function test_prepare_query() {
+	public function test_prepare_query() {
 		$query = new WP_User_Query();
 		$this->assertEmpty( $query->query_fields );
 		$this->assertEmpty( $query->query_from );
@@ -600,7 +620,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 23849
 	 */
-	function test_meta_query_with_role() {
+	public function test_meta_query_with_role() {
 		add_user_meta( self::$author_ids[0], 'foo', 'bar' );
 		add_user_meta( self::$author_ids[1], 'foo', 'baz' );
 
@@ -730,6 +750,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 32019
 	 * @group ms-required
+	 * @expectedDeprecated WP_User_Query
 	 */
 	public function test_who_authors() {
 		$b = self::factory()->blog->create();
@@ -755,6 +776,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 32019
 	 * @group ms-required
+	 * @expectedDeprecated WP_User_Query
 	 */
 	public function test_who_authors_should_work_alongside_meta_query() {
 		$b = self::factory()->blog->create();
@@ -789,6 +811,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 36724
 	 * @group ms-required
+	 * @expectedDeprecated WP_User_Query
 	 */
 	public function test_who_authors_should_work_alongside_meta_params() {
 		$b = self::factory()->blog->create();
@@ -1065,7 +1088,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$found    = wp_list_pluck( $q->get_results(), 'ID' );
 		$expected = array( self::$author_ids[0] );
 
-		$this->assertContains( "AND user_nicename = 'peter'", $q->query_where );
+		$this->assertStringContainsString( "AND user_nicename = 'peter'", $q->query_where );
 		$this->assertSameSets( $expected, $found );
 	}
 
@@ -1103,7 +1126,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$found    = wp_list_pluck( $q->get_results(), 'ID' );
 		$expected = array( self::$author_ids[0], self::$author_ids[1], self::$author_ids[2] );
 
-		$this->assertContains( "AND user_nicename IN ( 'peter','paul','mary' )", $q->query_where );
+		$this->assertStringContainsString( "AND user_nicename IN ( 'peter','paul','mary' )", $q->query_where );
 		$this->assertSameSets( $expected, $found );
 	}
 
@@ -1141,7 +1164,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$found_count    = count( $q->get_results() );
 		$expected_count = 10; // 13 total users minus 3 from query.
 
-		$this->assertContains( "AND user_nicename NOT IN ( 'peter','paul','mary' )", $q->query_where );
+		$this->assertStringContainsString( "AND user_nicename NOT IN ( 'peter','paul','mary' )", $q->query_where );
 		$this->assertSame( $expected_count, $found_count );
 	}
 
@@ -1180,7 +1203,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$found    = wp_list_pluck( $q->get_results(), 'ID' );
 		$expected = array( self::$author_ids[2], self::$author_ids[0], self::$author_ids[1] );
 
-		$this->assertContains( "FIELD( user_nicename, 'mary','peter','paul' )", $q->query_orderby );
+		$this->assertStringContainsString( "FIELD( user_nicename, 'mary','peter','paul' )", $q->query_orderby );
 		$this->assertSame( $expected, $found );
 	}
 
@@ -1200,7 +1223,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$found    = wp_list_pluck( $q->get_results(), 'ID' );
 		$expected = array( self::$author_ids[0] );
 
-		$this->assertContains( "AND user_login = '$user_login'", $q->query_where );
+		$this->assertStringContainsString( "AND user_login = '$user_login'", $q->query_where );
 		$this->assertSameSets( $expected, $found );
 	}
 
@@ -1221,7 +1244,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$found    = wp_list_pluck( $q->get_results(), 'ID' );
 		$expected = array( self::$author_ids[0], self::$author_ids[1], self::$author_ids[2] );
 
-		$this->assertContains( "AND user_login IN ( '$user_login1','$user_login2','$user_login3' )", $q->query_where );
+		$this->assertStringContainsString( "AND user_login IN ( '$user_login1','$user_login2','$user_login3' )", $q->query_where );
 		$this->assertSameSets( $expected, $found );
 	}
 
@@ -1242,7 +1265,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$found_count    = count( $q->get_results() );
 		$expected_count = 10; // 13 total users minus 3 from query.
 
-		$this->assertContains( "AND user_login NOT IN ( '$user_login1','$user_login2','$user_login3' )", $q->query_where );
+		$this->assertStringContainsString( "AND user_login NOT IN ( '$user_login1','$user_login2','$user_login3' )", $q->query_where );
 		$this->assertSame( $expected_count, $found_count );
 	}
 
@@ -1264,7 +1287,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$found    = wp_list_pluck( $q->get_results(), 'ID' );
 		$expected = array( self::$author_ids[1], self::$author_ids[2], self::$author_ids[0] );
 
-		$this->assertContains( "FIELD( user_login, '$user_login2','$user_login3','$user_login1' )", $q->query_orderby );
+		$this->assertStringContainsString( "FIELD( user_login, '$user_login2','$user_login3','$user_login1' )", $q->query_orderby );
 		$this->assertSame( $expected, $found );
 	}
 
@@ -1278,7 +1301,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 				'paged'   => 2,
 				'orderby' => 'ID',
 				'order'   => 'DESC', // Avoid funkiness with user 1.
-				'fields'  => 'ids',
+				'fields'  => 'ID',
 			)
 		);
 
@@ -1296,7 +1319,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		remove_action( 'pre_get_users', array( $this, 'filter_pre_get_users_args' ) );
 
 		foreach ( $query_vars as $query_var ) {
-			$this->assertTrue( array_key_exists( $query_var, $q->query_vars ), "$query_var does not exist." );
+			$this->assertArrayHasKey( $query_var, $q->query_vars, "$query_var does not exist." );
 		}
 
 	}
@@ -1314,7 +1337,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$wp_user_search = new WP_User_Query( array( 'role' => 'subscriber' ) );
 		$users          = $wp_user_search->get_results();
 
-		$this->assertSame( 2, count( $users ) );
+		$this->assertCount( 2, $users );
 	}
 
 	/**
@@ -1323,7 +1346,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	public function test_get_multiple_roles_by_user_query() {
 		$wp_user_search = new WP_User_Query( array( 'role__in' => array( 'subscriber', 'editor' ) ) );
 		$users          = $wp_user_search->get_results();
-		$this->assertSame( 5, count( $users ) );
+		$this->assertCount( 5, $users );
 	}
 
 	/**
@@ -1336,7 +1359,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 2, count( $users ) );
+		$this->assertCount( 2, $users );
 	}
 
 	/**
@@ -1354,7 +1377,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$users = get_users(
 			array(
 				'role'   => 'editor',
-				'fields' => 'ids',
+				'fields' => 'ID',
 			)
 		);
 
@@ -1372,7 +1395,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 2, count( $users ) );
+		$this->assertCount( 2, $users );
 	}
 
 	/**
@@ -1392,7 +1415,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$users = new WP_User_Query( array( 'role' => array( 'subscriber', 'editor' ) ) );
 		$users = $users->get_results();
 
-		$this->assertSame( 2, count( $users ) );
+		$this->assertCount( 2, $users );
 
 		foreach ( $users as $user ) {
 			$this->assertInstanceOf( 'WP_User', $user );
@@ -1407,7 +1430,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$users = $users->get_results();
 
 		// +1 for the default user created during installation.
-		$this->assertSame( 8, count( $users ) );
+		$this->assertCount( 8, $users );
 		foreach ( $users as $user ) {
 			$this->assertInstanceOf( 'WP_User', $user );
 		}
@@ -1436,7 +1459,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 2, count( $users ) );
+		$this->assertCount( 2, $users );
 	}
 
 	/**
@@ -1482,7 +1505,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 
 		// Check results.
-		$this->assertSame( 1, count( $users ) );
+		$this->assertCount( 1, $users );
 		$this->assertSame( self::$editor_ids[0], (int) $users[0]->ID );
 	}
 
@@ -1497,7 +1520,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 
 		// +1 for the default user created during installation.
-		$this->assertSame( 11, count( $users ) );
+		$this->assertCount( 11, $users );
 
 		$users = get_users(
 			array(
@@ -1506,7 +1529,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 
 		// +1 for the default user created during installation.
-		$this->assertSame( 10, count( $users ) );
+		$this->assertCount( 10, $users );
 	}
 
 	/**
@@ -1524,7 +1547,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 5, count( $users ) );
+		$this->assertCount( 5, $users );
 
 		$users = get_users(
 			array(
@@ -1533,7 +1556,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 3, count( $users ) );
+		$this->assertCount( 3, $users );
 	}
 
 	/**
@@ -1550,7 +1573,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 1, count( $users ) );
+		$this->assertCount( 1, $users );
 	}
 
 	/**
@@ -1568,7 +1591,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 
 		// +1 for the default user created during installation.
-		$this->assertSame( 12, count( $users ) );
+		$this->assertCount( 12, $users );
 
 		$users = get_users(
 			array(
@@ -1577,7 +1600,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 
 		// +1 for the default user created during installation.
-		$this->assertSame( 10, count( $users ) );
+		$this->assertCount( 10, $users );
 	}
 
 	/**
@@ -1724,5 +1747,486 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$query->total_users = 1;
 
 		return array( 555 );
+	}
+
+	/**
+	 * @ticket 16841
+	 * @group ms-excluded
+	 */
+	public function test_get_single_capability_by_string() {
+		$wp_user_search = new WP_User_Query( array( 'capability' => 'install_plugins' ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach ( $users as $user ) {
+			// User has the capability, but on Multisite they would also need to be a super admin.
+			// Hence using get_role_caps() instead of has_cap().
+			$role_caps = $user->get_role_caps();
+			$this->assertArrayHasKey( 'install_plugins', $role_caps );
+			$this->assertTrue( $role_caps['install_plugins'] );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 * @group ms-required
+	 */
+	public function test_get_single_capability_by_string_multisite() {
+		$wp_user_search = new WP_User_Query( array( 'capability' => array( 'install_plugins' ) ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach ( $users as $user ) {
+			$role_caps = $user->get_role_caps();
+			$this->assertArrayHasKey( 'install_plugins', $role_caps );
+			$this->assertTrue( $role_caps['install_plugins'] );
+			// While the user can have the capability, on Multisite they also need to be a super admin.
+			if ( is_super_admin( $user->ID ) ) {
+				$this->assertTrue( $user->has_cap( 'install_plugins' ) );
+			} else {
+				$this->assertFalse( $user->has_cap( 'install_plugins' ) );
+			}
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_get_single_capability_invalid() {
+		$wp_user_search = new WP_User_Query( array( 'capability' => 'foo_bar' ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertEmpty( $users );
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_get_single_capability_by_array() {
+		$wp_user_search = new WP_User_Query( array( 'capability' => array( 'install_plugins' ) ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach ( $users as $user ) {
+			// User has the capability, but on Multisite they would also need to be a super admin.
+			// Hence using get_role_caps() instead of has_cap().
+			$role_caps = $user->get_role_caps();
+			$this->assertArrayHasKey( 'install_plugins', $role_caps );
+			$this->assertTrue( $role_caps['install_plugins'] );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_get_single_capability_added_to_user() {
+		foreach ( self::$sub_ids as $subscriber ) {
+			$subscriber = get_user_by( 'ID', $subscriber );
+			$subscriber->add_cap( 'custom_cap' );
+		}
+
+		$wp_user_search = new WP_User_Query( array( 'capability' => 'custom_cap' ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertCount( 2, $users );
+		$this->assertEqualSets( self::$sub_ids, wp_list_pluck( $users, 'ID' ) );
+
+		foreach ( $users as $user ) {
+			$this->assertTrue( $user->has_cap( 'custom_cap' ) );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_get_multiple_capabilities_should_only_match_users_who_have_each_capability_test() {
+		wp_roles()->add_role( 'role_1', 'Role 1', array( 'role_1_cap' => true ) );
+		wp_roles()->add_role( 'role_2', 'Role 2', array( 'role_2_cap' => true ) );
+
+		$subscriber1 = get_user_by( 'ID', self::$sub_ids[0] );
+		$subscriber1->add_role( 'role_1' );
+
+		$subscriber2 = get_user_by( 'ID', self::$sub_ids[1] );
+		$subscriber2->add_role( 'role_1' );
+		$subscriber2->add_role( 'role_2' );
+
+		$wp_user_search = new WP_User_Query( array( 'capability' => array( 'role_1_cap', 'role_2_cap' ) ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertCount( 1, $users );
+		$this->assertSame( $users[0]->ID, $subscriber2->ID );
+		foreach ( $users as $user ) {
+			$this->assertTrue( $user->has_cap( 'role_1_cap' ) );
+			$this->assertTrue( $user->has_cap( 'role_2_cap' ) );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_get_multiple_capabilities_should_only_match_users_who_have_each_capability_added_to_user() {
+		$admin1 = get_user_by( 'ID', self::$admin_ids[0] );
+		$admin1->add_cap( 'custom_cap' );
+
+		$wp_user_search = new WP_User_Query( array( 'capability' => array( 'manage_options', 'custom_cap' ) ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertCount( 1, $users );
+		$this->assertSame( $users[0]->ID, $admin1->ID );
+		$this->assertTrue( $users[0]->has_cap( 'custom_cap' ) );
+		$this->assertTrue( $users[0]->has_cap( 'manage_options' ) );
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_get_multiple_capabilities_or() {
+		$wp_user_search = new WP_User_Query( array( 'capability__in' => array( 'publish_posts', 'edit_posts' ) ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach ( $users as $user ) {
+			$this->assertTrue( $user->has_cap( 'publish_posts' ) || $user->has_cap( 'edit_posts' ) );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_get_multiple_capabilities_or_added_to_user() {
+		$user = self::factory()->user->create_and_get( array( 'role' => 'subscriber' ) );
+		$user->add_cap( 'custom_cap' );
+
+		$wp_user_search = new WP_User_Query( array( 'capability__in' => array( 'publish_posts', 'custom_cap' ) ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach ( $users as $user ) {
+			$this->assertTrue( $user->has_cap( 'publish_posts' ) || $user->has_cap( 'custom_cap' ) );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_capability_exclusion() {
+		$wp_user_search = new WP_User_Query( array( 'capability__not_in' => array( 'publish_posts', 'edit_posts' ) ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach ( $users as $user ) {
+			$this->assertFalse( $user->has_cap( 'publish_posts' ) );
+			$this->assertFalse( $user->has_cap( 'edit_posts' ) );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_capability_exclusion_added_to_user() {
+		$user = self::factory()->user->create_and_get( array( 'role' => 'subscriber' ) );
+		$user->add_cap( 'custom_cap' );
+
+		$wp_user_search = new WP_User_Query( array( 'capability__not_in' => array( 'publish_posts', 'custom_cap' ) ) );
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach ( $users as $user ) {
+			$this->assertFalse( $user->has_cap( 'publish_posts' ) );
+			$this->assertFalse( $user->has_cap( 'custom_cap' ) );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 */
+	public function test_capability__in_capability__not_in_combined() {
+		$wp_user_search = new WP_User_Query(
+			array(
+				'capability__in'     => array( 'read' ),
+				'capability__not_in' => array( 'manage_options' ),
+			)
+		);
+		$users          = $wp_user_search->get_results();
+
+		$this->assertNotEmpty( $users );
+		foreach ( $users as $user ) {
+			$this->assertTrue( $user->has_cap( 'read' ) );
+			$this->assertFalse( $user->has_cap( 'manage_options' ) );
+		}
+	}
+
+	/**
+	 * @ticket 16841
+	 * @group ms-required
+	 */
+	public function test_get_single_capability_multisite_blog_id() {
+		$blog_id = self::factory()->blog->create();
+
+		add_user_to_blog( $blog_id, self::$author_ids[0], 'subscriber' );
+		add_user_to_blog( $blog_id, self::$author_ids[1], 'author' );
+		add_user_to_blog( $blog_id, self::$author_ids[2], 'editor' );
+
+		$wp_user_search = new WP_User_Query(
+			array(
+				'capability' => 'publish_posts',
+				'blog_id'    => $blog_id,
+			)
+		);
+		$users          = $wp_user_search->get_results();
+
+		$found = wp_list_pluck( $wp_user_search->get_results(), 'ID' );
+
+		$this->assertNotEmpty( $users );
+		foreach ( $users as $user ) {
+			$this->assertTrue( $user->has_cap( 'publish_posts' ) );
+		}
+
+		$this->assertNotContains( self::$author_ids[0], $found );
+		$this->assertContains( self::$author_ids[1], $found );
+		$this->assertContains( self::$author_ids[2], $found );
+	}
+
+	/**
+	 * @ticket 53177
+	 * @dataProvider data_returning_field_subset_as_string
+	 *
+	 * @param string $field
+	 * @param mixed  $expected
+	 */
+	public function test_returning_field_subset_as_string( $field, $expected ) {
+		$q       = new WP_User_Query(
+			array(
+				'fields'  => $field,
+				'include' => array( '1' ),
+			)
+		);
+		$results = $q->get_results();
+
+		$this->assertSameSets( $expected, $results );
+	}
+
+	/**
+	 * Data provider
+	 *
+	 * @return array
+	 */
+	function data_returning_field_subset_as_string() {
+		$data = array(
+			'id'            => array(
+				'fields'   => 'id',
+				'expected' => array( '1' ),
+			),
+			'ID'            => array(
+				'fields'   => 'ID',
+				'expected' => array( '1' ),
+			),
+			'user_login'    => array(
+				'fields'   => 'user_login',
+				'expected' => array( 'admin' ),
+			),
+			'user_nicename' => array(
+				'fields'   => 'user_nicename',
+				'expected' => array( 'admin' ),
+			),
+			'user_email'    => array(
+				'fields'   => 'user_email',
+				'expected' => array( WP_TESTS_EMAIL ),
+			),
+			'user_url'      => array(
+				'fields'   => 'user_url',
+				'expected' => array( wp_guess_url() ),
+			),
+			'user_status'   => array(
+				'fields'   => 'user_status',
+				'expected' => array( '0' ),
+			),
+			'display_name'  => array(
+				'fields'   => 'display_name',
+				'expected' => array( 'admin' ),
+			),
+			'invalid_field' => array(
+				'fields'   => 'invalid_field',
+				'expected' => array( '1' ),
+			),
+		);
+
+		if ( is_multisite() ) {
+			$data['spam']    = array(
+				'fields'   => 'spam',
+				'expected' => array( '0' ),
+			);
+			$data['deleted'] = array(
+				'fields'   => 'deleted',
+				'expected' => array( '0' ),
+			);
+		}
+
+		return $data;
+	}
+
+	/**
+	 * @ticket 53177
+	 * @dataProvider data_returning_field_subset_as_array
+	 *
+	 * @param array $field
+	 * @param mixed $expected
+	 */
+	public function test_returning_field_subset_as_array( $field, $expected ) {
+		$q       = new WP_User_Query(
+			array(
+				'fields'  => $field,
+				'include' => array( '1' ),
+			)
+		);
+		$results = $q->get_results();
+
+		if ( isset( $results[0] ) && is_object( $results[0] ) ) {
+			$results = (array) $results[0];
+		}
+
+		$this->assertSameSetsWithIndex( $expected, $results );
+	}
+
+	/**
+	 * Data provider
+	 *
+	 * @return array
+	 */
+	function data_returning_field_subset_as_array() {
+		$data = array(
+			'id'                 => array(
+				'fields'   => array( 'id' ),
+				'expected' => array(
+					'ID' => '1',
+					'id' => '1',
+				),
+			),
+			'ID'                 => array(
+				'fields'   => array( 'ID' ),
+				'expected' => array(
+					'ID' => '1',
+					'id' => '1',
+				),
+			),
+			'user_login'         => array(
+				'fields'   => array( 'user_login' ),
+				'expected' => array( 'user_login' => 'admin' ),
+			),
+			'user_nicename'      => array(
+				'fields'   => array( 'user_nicename' ),
+				'expected' => array( 'user_nicename' => 'admin' ),
+			),
+			'user_email'         => array(
+				'fields'   => array( 'user_email' ),
+				'expected' => array( 'user_email' => WP_TESTS_EMAIL ),
+			),
+			'user_url'           => array(
+				'fields'   => array( 'user_url' ),
+				'expected' => array( 'user_url' => wp_guess_url() ),
+			),
+			'user_status'        => array(
+				'fields'   => array( 'user_status' ),
+				'expected' => array( 'user_status' => '0' ),
+			),
+			'display_name'       => array(
+				'fields'   => array( 'display_name' ),
+				'expected' => array( 'display_name' => 'admin' ),
+			),
+			'invalid_field'      => array(
+				'fields'   => array( 'invalid_field' ),
+				'expected' => array(
+					'ID' => '1',
+					'id' => '1',
+				),
+			),
+			'valid array inc id' => array(
+				'fields'   => array( 'display_name', 'user_email', 'id' ),
+				'expected' => array(
+					'display_name' => 'admin',
+					'user_email'   => WP_TESTS_EMAIL,
+					'ID'           => '1',
+					'id'           => '1',
+				),
+			),
+			'valid array inc ID' => array(
+				'fields'   => array( 'display_name', 'user_email', 'ID' ),
+				'expected' => array(
+					'display_name' => 'admin',
+					'user_email'   => WP_TESTS_EMAIL,
+					'ID'           => '1',
+					'id'           => '1',
+				),
+			),
+			'partly valid array' => array(
+				'fields'   => array( 'display_name', 'invalid_field' ),
+				'expected' => array( 'display_name' => 'admin' ),
+			),
+		);
+
+		if ( is_multisite() ) {
+			$data['spam']    = array(
+				'fields'   => array( 'spam' ),
+				'expected' => array( 'spam' => '0' ),
+			);
+			$data['deleted'] = array(
+				'fields'   => array( 'deleted' ),
+				'expected' => array( 'deleted' => '0' ),
+			);
+		}
+
+		return $data;
+	}
+
+	/**
+	 * @ticket 53177
+	 */
+	public function test_returning_field_all() {
+		$q         = new WP_User_Query(
+			array(
+				'fields'  => 'all',
+				'include' => array( '1' ),
+			)
+		);
+		$results   = $q->get_results();
+		$user_data = (array) $results[0]->data;
+
+		$expected_results = array(
+			'ID'                  => '1',
+			'user_login'          => 'admin',
+			'user_nicename'       => 'admin',
+			'user_url'            => wp_guess_url(),
+			'user_email'          => WP_TESTS_EMAIL,
+			'user_activation_key' => '',
+			'user_status'         => '0',
+			'display_name'        => 'admin',
+		);
+
+		if ( is_multisite() ) {
+			$expected_results['spam']    = '0';
+			$expected_results['deleted'] = '0';
+		}
+
+		// These change for each run.
+		unset( $user_data['user_pass'], $user_data['user_registered'] );
+
+		$this->assertSameSetsWithIndex( $expected_results, $user_data );
+		$this->assertInstanceOf( 'WP_User', $results[0] );
+	}
+
+	/**
+	 * @ticket 53177
+	 *
+	 * @covers WP_User_Query::prepare_query
+	 */
+	public function test_returning_field_user_registered() {
+		$q       = new WP_User_Query(
+			array(
+				'fields'  => 'user_registered',
+				'include' => array( self::$admin_ids[0] ),
+			)
+		);
+		$results = $q->get_results();
+		$this->assertNotFalse( DateTime::createFromFormat( 'Y-m-d H:i:s', $results[0] ) );
 	}
 }

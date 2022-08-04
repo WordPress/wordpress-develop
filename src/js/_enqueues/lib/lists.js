@@ -218,7 +218,7 @@ wpList = {
 	 * Example 1: data-wp-lists="delete:the-comment-list:comment-{comment_ID}:66cc66:unspam=1"
 	 * Example 2: data-wp-lists="dim:the-comment-list:comment-{comment_ID}:unapproved:e7e7d3:e7e7d3:new=approved"
 	 *
-	 * Returns an unassociated array with the following data:
+	 * Returns an unassociative array with the following data:
 	 * data[0] - Data identifier: 'list', 'add', 'delete', or 'dim'.
 	 * data[1] - ID of the corresponding list. If data[0] is 'list', the type of list ('comment', 'category', etc).
 	 * data[2] - ID of the parent element of all inputs necessary for the request.
@@ -271,7 +271,7 @@ wpList = {
 			target:  list.get( 0 )
 		}, settings || {} );
 
-		if ( $.isFunction( settings.confirm ) ) {
+		if ( typeof settings.confirm === 'function' ) {
 			$element = $( '#' + settings.element );
 
 			if ( 'add' !== action ) {
@@ -337,13 +337,13 @@ wpList = {
 		}, wpAjax.unserialize( data[4] || '' ) ) );
 
 		formValues = $( '#' + settings.element + ' :input' ).not( '[name="_ajax_nonce"], [name="_wpnonce"], [name="action"]' );
-		formData   = $.isFunction( formValues.fieldSerialize ) ? formValues.fieldSerialize() : formValues.serialize();
+		formData   = typeof formValues.fieldSerialize === 'function' ? formValues.fieldSerialize() : formValues.serialize();
 
 		if ( formData ) {
 			settings.data += '&' + formData;
 		}
 
-		if ( $.isFunction( settings.addBefore ) ) {
+		if ( typeof settings.addBefore === 'function' ) {
 			settings = settings.addBefore( settings );
 
 			if ( ! settings ) {
@@ -381,7 +381,7 @@ wpList = {
 		};
 
 		settings.complete = function( jqXHR, status ) {
-			if ( $.isFunction( settings.addAfter ) ) {
+			if ( typeof settings.addAfter === 'function' ) {
 				settings.addAfter( returnedResponse, $.extend( {
 					xml:    jqXHR,
 					status: status,
@@ -427,7 +427,7 @@ wpList = {
 			id:          settings.element.split( '-' ).pop()
 		}, wpAjax.unserialize( data[4] || '' ) );
 
-		if ( $.isFunction( settings.delBefore ) ) {
+		if ( typeof settings.delBefore === 'function' ) {
 			settings = settings.delBefore( settings, list );
 
 			if ( ! settings ) {
@@ -466,7 +466,7 @@ wpList = {
 		};
 
 		settings.complete = function( jqXHR, status ) {
-			if ( $.isFunction( settings.delAfter ) ) {
+			if ( typeof settings.delAfter === 'function' ) {
 				$eventTarget.queue( function() {
 					settings.delAfter( returnedResponse, $.extend( {
 						xml:    jqXHR,
@@ -522,7 +522,7 @@ wpList = {
 			dimClass:    settings.dimClass
 		}, wpAjax.unserialize( data[6] || '' ) );
 
-		if ( $.isFunction( settings.dimBefore ) ) {
+		if ( typeof settings.dimBefore === 'function' ) {
 			settings = settings.dimBefore( settings );
 
 			if ( ! settings ) {
@@ -591,7 +591,7 @@ wpList = {
 		};
 
 		settings.complete = function( jqXHR, status ) {
-			if ( $.isFunction( settings.dimAfter ) ) {
+			if ( typeof settings.dimAfter === 'function' ) {
 				$eventTarget.queue( function() {
 					settings.dimAfter( returnedResponse, $.extend( {
 						xml:    jqXHR,

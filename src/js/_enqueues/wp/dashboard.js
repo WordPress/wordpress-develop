@@ -12,7 +12,7 @@ window.communityEventsData = window.communityEventsData || {};
  *
  * @since 2.7.0
  */
-jQuery(document).ready( function($) {
+jQuery( function($) {
 	var welcomePanel = $( '#welcome-panel' ),
 		welcomePanelHide = $('#wp_welcome_panel-hide'),
 		updateWelcomePanel;
@@ -154,7 +154,7 @@ jQuery(document).ready( function($) {
 				highlightLatestPost();
 
 				// Focus the title to allow for quickly drafting another post.
-				$('#title').focus();
+				$('#title').trigger( 'focus' );
 			});
 
 			/**
@@ -328,7 +328,7 @@ jQuery( function( $ ) {
 			 * @return {void}
 			 */
 			$container.on( 'submit', '.community-events-form', function( event ) {
-				var location = $.trim( $( '#community-events-location' ).val() );
+				var location = $( '#community-events-location' ).val().trim();
 
 				event.preventDefault();
 
@@ -391,7 +391,7 @@ jQuery( function( $ ) {
 				 * lose their place.
 				 */
 				if ( $target.hasClass( 'community-events-cancel' ) ) {
-					$toggleButton.focus();
+					$toggleButton.trigger( 'focus' );
 				}
 			} else {
 				$toggleButton.attr( 'aria-expanded', 'true' );
@@ -610,7 +610,7 @@ jQuery( function( $ ) {
 					 * bring the focus back to the toggle button so users relying
 					 * on screen readers don't lose their place.
 					 */
-					$toggleButton.focus();
+					$toggleButton.trigger( 'focus' );
 				}
 			} else {
 				app.toggleLocationForm( 'show' );

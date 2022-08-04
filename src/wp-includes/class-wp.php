@@ -40,7 +40,7 @@ class WP {
 	 * @since 2.0.0
 	 * @var array
 	 */
-	public $query_vars;
+	public $query_vars = array();
 
 	/**
 	 * String parsed to set the query variables.
@@ -48,7 +48,7 @@ class WP {
 	 * @since 2.0.0
 	 * @var string
 	 */
-	public $query_string;
+	public $query_string = '';
 
 	/**
 	 * The request path, e.g. 2015/05/06.
@@ -56,7 +56,7 @@ class WP {
 	 * @since 2.0.0
 	 * @var string
 	 */
-	public $request;
+	public $request = '';
 
 	/**
 	 * Rewrite rule the request matched.
@@ -64,7 +64,7 @@ class WP {
 	 * @since 2.0.0
 	 * @var string
 	 */
-	public $matched_rule;
+	public $matched_rule = '';
 
 	/**
 	 * Rewrite query the request matched.
@@ -72,7 +72,7 @@ class WP {
 	 * @since 2.0.0
 	 * @var string
 	 */
-	public $matched_query;
+	public $matched_query = '';
 
 	/**
 	 * Whether already did the permalink.
@@ -125,10 +125,12 @@ class WP {
 	 * filters and actions that can be used to further manipulate the result.
 	 *
 	 * @since 2.0.0
+	 * @since 6.0.0 A return value was added.
 	 *
 	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
 	 *
 	 * @param array|string $extra_query_vars Set the extra query variables.
+	 * @return bool Whether the request was parsed.
 	 */
 	public function parse_request( $extra_query_vars = '' ) {
 		global $wp_rewrite;
@@ -139,11 +141,11 @@ class WP {
 		 * @since 3.5.0
 		 *
 		 * @param bool         $bool             Whether or not to parse the request. Default true.
-		 * @param WP           $this             Current WordPress environment instance.
+		 * @param WP           $wp               Current WordPress environment instance.
 		 * @param array|string $extra_query_vars Extra passed query variables.
 		 */
 		if ( ! apply_filters( 'do_parse_request', true, $this, $extra_query_vars ) ) {
-			return;
+			return false;
 		}
 
 		$this->query_vars     = array();
@@ -170,8 +172,13 @@ class WP {
 
 			list( $req_uri ) = explode( '?', $_SERVER['REQUEST_URI'] );
 			$self            = $_SERVER['PHP_SELF'];
-			$home_path       = trim( parse_url( home_url(), PHP_URL_PATH ), '/' );
-			$home_path_regex = sprintf( '|^%s|i', preg_quote( $home_path, '|' ) );
+
+			$home_path       = parse_url( home_url(), PHP_URL_PATH );
+			$home_path_regex = '';
+			if ( is_string( $home_path ) && '' !== $home_path ) {
+				$home_path       = trim( $home_path, '/' );
+				$home_path_regex = sprintf( '|^%s|i', preg_quote( $home_path, '|' ) );
+			}
 
 			/*
 			 * Trim path info from the end and the leading home path from the front.
@@ -180,14 +187,17 @@ class WP {
 			 */
 			$req_uri  = str_replace( $pathinfo, '', $req_uri );
 			$req_uri  = trim( $req_uri, '/' );
-			$req_uri  = preg_replace( $home_path_regex, '', $req_uri );
-			$req_uri  = trim( $req_uri, '/' );
-			$pathinfo = trim( $pathinfo, '/' );
-			$pathinfo = preg_replace( $home_path_regex, '', $pathinfo );
 			$pathinfo = trim( $pathinfo, '/' );
 			$self     = trim( $self, '/' );
-			$self     = preg_replace( $home_path_regex, '', $self );
-			$self     = trim( $self, '/' );
+
+			if ( ! empty( $home_path_regex ) ) {
+				$req_uri  = preg_replace( $home_path_regex, '', $req_uri );
+				$req_uri  = trim( $req_uri, '/' );
+				$pathinfo = preg_replace( $home_path_regex, '', $pathinfo );
+				$pathinfo = trim( $pathinfo, '/' );
+				$self     = preg_replace( $home_path_regex, '', $self );
+				$self     = trim( $self, '/' );
+			}
 
 			// The requested permalink is in $pathinfo for path info requests and
 			// $req_uri for other requests.
@@ -244,7 +254,7 @@ class WP {
 				}
 			}
 
-			if ( isset( $this->matched_rule ) ) {
+			if ( ! empty( $this->matched_rule ) ) {
 				// Trim the query of everything up to the '?'.
 				$query = preg_replace( '!^.+\?!', '', $query );
 
@@ -383,9 +393,11 @@ class WP {
 		 *
 		 * @since 2.1.0
 		 *
-		 * @param WP $this Current WordPress environment instance (passed by reference).
+		 * @param WP $wp Current WordPress environment instance (passed by reference).
 		 */
 		do_action_ref_array( 'parse_request', array( &$this ) );
+
+		return true;
 	}
 
 	/**
@@ -401,6 +413,7 @@ class WP {
 		$headers       = array();
 		$status        = null;
 		$exit_required = false;
+		$date_format   = 'D, d M Y H:i:s';
 
 		if ( is_user_logged_in() ) {
 			$headers = array_merge( $headers, wp_get_nocache_headers() );
@@ -408,7 +421,7 @@ class WP {
 			// Unmoderated comments are only visible for 10 minutes via the moderation hash.
 			$expires = 10 * MINUTE_IN_SECONDS;
 
-			$headers['Expires']       = gmdate( 'D, d M Y H:i:s', time() + $expires );
+			$headers['Expires']       = gmdate( $date_format, time() + $expires );
 			$headers['Cache-Control'] = sprintf(
 				'max-age=%d, must-revalidate',
 				$expires
@@ -447,13 +460,19 @@ class WP {
 					)
 				)
 			) {
-				$wp_last_modified = mysql2date( 'D, d M Y H:i:s', get_lastcommentmodified( 'GMT' ), false );
+				$wp_last_modified_post    = mysql2date( $date_format, get_lastpostmodified( 'GMT' ), false );
+				$wp_last_modified_comment = mysql2date( $date_format, get_lastcommentmodified( 'GMT' ), false );
+				if ( strtotime( $wp_last_modified_post ) > strtotime( $wp_last_modified_comment ) ) {
+					$wp_last_modified = $wp_last_modified_post;
+				} else {
+					$wp_last_modified = $wp_last_modified_comment;
+				}
 			} else {
-				$wp_last_modified = mysql2date( 'D, d M Y H:i:s', get_lastpostmodified( 'GMT' ), false );
+				$wp_last_modified = mysql2date( $date_format, get_lastpostmodified( 'GMT' ), false );
 			}
 
 			if ( ! $wp_last_modified ) {
-				$wp_last_modified = gmdate( 'D, d M Y H:i:s' );
+				$wp_last_modified = gmdate( $date_format );
 			}
 
 			$wp_last_modified .= ' GMT';
@@ -522,7 +541,7 @@ class WP {
 		 *
 		 * @since 2.1.0
 		 *
-		 * @param WP $this Current WordPress environment instance (passed by reference).
+		 * @param WP $wp Current WordPress environment instance (passed by reference).
 		 */
 		do_action_ref_array( 'send_headers', array( &$this ) );
 	}
@@ -747,18 +766,23 @@ class WP {
 	 */
 	public function main( $query_args = '' ) {
 		$this->init();
-		$this->parse_request( $query_args );
+
+		$parsed = $this->parse_request( $query_args );
+
 		$this->send_headers();
-		$this->query_posts();
-		$this->handle_404();
-		$this->register_globals();
+
+		if ( $parsed ) {
+			$this->query_posts();
+			$this->handle_404();
+			$this->register_globals();
+		}
 
 		/**
 		 * Fires once the WordPress environment has been set up.
 		 *
 		 * @since 2.1.0
 		 *
-		 * @param WP $this Current WordPress environment instance (passed by reference).
+		 * @param WP $wp Current WordPress environment instance (passed by reference).
 		 */
 		do_action_ref_array( 'wp', array( &$this ) );
 	}

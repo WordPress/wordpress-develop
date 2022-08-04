@@ -112,8 +112,8 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 		options = options || {};
 		options.remove = false;
 
-		return this._more = this.fetch( options ).done( function( resp ) {
-			if ( _.isEmpty( resp ) || -1 === this.args.posts_per_page || resp.length < this.args.posts_per_page ) {
+		return this._more = this.fetch( options ).done( function( response ) {
+			if ( _.isEmpty( response ) || -1 === query.args.posts_per_page || response.length < query.args.posts_per_page ) {
 				query._hasMore = false;
 			}
 		});
@@ -171,7 +171,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	 * @readonly
 	 */
 	defaultArgs: {
-		posts_per_page: 40
+		posts_per_page: 80
 	},
 	/**
 	 * @readonly

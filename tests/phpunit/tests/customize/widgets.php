@@ -20,13 +20,45 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 */
 	protected $backup_registered_sidebars;
 
-	function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 
 		add_theme_support( 'customize-selective-refresh-widgets' );
+		add_action( 'widgets_init', array( $this, 'remove_widgets_block_editor' ) );
+
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $user_id );
+
+		update_option(
+			'widget_search',
+			array(
+				2              => array( 'title' => '' ),
+				'_multiwidget' => 1,
+			)
+		);
+		update_option(
+			'widget_categories',
+			array(
+				2              => array(
+					'title'        => '',
+					'count'        => 0,
+					'hierarchical' => 0,
+					'dropdown'     => 0,
+				),
+				'_multiwidget' => 1,
+			)
+		);
+		update_option(
+			'sidebars_widgets',
+			array(
+				'wp_inactive_widgets' => array(),
+				'sidebar-1'           => array( 'search-2' ),
+				'sidebar-2'           => array( 'categories-2' ),
+				'array_version'       => 3,
+			)
+		);
+
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
 		$this->manager           = $GLOBALS['wp_customize'];
 
@@ -46,7 +78,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		WP_Customize_Setting::reset_aggregated_multidimensionals();
 	}
 
-	function clean_up_global_scope() {
+	public function clean_up_global_scope() {
 		global $wp_widget_factory, $wp_registered_sidebars, $wp_registered_widgets, $wp_registered_widget_controls, $wp_registered_widget_updates;
 
 		$wp_registered_sidebars        = array();
@@ -58,15 +90,15 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		parent::clean_up_global_scope();
 	}
 
-	function tearDown() {
+	public function tear_down() {
 		$this->manager = null;
 		unset( $GLOBALS['wp_customize'] );
 		unset( $GLOBALS['wp_scripts'] );
 		$GLOBALS['wp_registered_sidebars'] = $this->backup_registered_sidebars;
-		parent::tearDown();
+		parent::tear_down();
 	}
 
-	function set_customized_post_data( $customized ) {
+	private function set_customized_post_data( $customized ) {
 		$_POST['customized'] = wp_slash( wp_json_encode( $customized ) );
 		if ( $this->manager ) {
 			foreach ( $customized as $id => $value ) {
@@ -75,7 +107,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		}
 	}
 
-	function do_customize_boot_actions() {
+	private function do_customize_boot_actions() {
 		$_SERVER['REQUEST_METHOD'] = 'POST';
 		$_REQUEST['nonce']         = wp_create_nonce( 'preview-customize_' . $this->manager->theme()->get_stylesheet() );
 		do_action( 'setup_theme' );
@@ -85,10 +117,14 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		do_action( 'wp', $GLOBALS['wp'] );
 	}
 
+	public function remove_widgets_block_editor() {
+		remove_theme_support( 'widgets-block-editor' );
+	}
+
 	/**
 	 * Test WP_Customize_Widgets::__construct()
 	 */
-	function test_construct() {
+	public function test_construct() {
 		$this->assertInstanceOf( 'WP_Customize_Widgets', $this->manager->widgets );
 		$this->assertSame( $this->manager, $this->manager->widgets->manager );
 	}
@@ -100,7 +136,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 * @see WP_Customize_Widgets::preview_sidebars_widgets()
 	 * @ticket 36660
 	 */
-	function test_customize_register_with_deleted_sidebars() {
+	public function test_customize_register_with_deleted_sidebars() {
 		$sidebar_id = 'sidebar-1';
 		delete_option( 'sidebars_widgets' );
 		register_sidebar( array( 'id' => $sidebar_id ) );
@@ -109,18 +145,97 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests the label and description controls when registering sidebars with Customizer.
+	 *
+	 * @ticket       53487
+	 * @dataProvider data_customize_register_control_label_and_description
+	 * @covers       WP_Customize_Widgets::customize_register
+	 */
+	public function test_customize_register_control_label_and_description( $sidebars, $use_classic_widgets, $expected ) {
+		if ( $use_classic_widgets ) {
+			add_filter( 'use_widgets_block_editor', '__return_false' );
+		}
+
+		foreach ( $sidebars as $args ) {
+			register_sidebar( $args );
+		}
+
+		$this->manager->widgets->customize_register();
+
+		$label       = array();
+		$description = array();
+		foreach ( array_keys( $sidebars ) as $sidebar_id ) {
+			$control_id    = "sidebars_widgets[{$sidebar_id}]";
+			$control       = $this->manager->get_control( $control_id );
+			$label[]       = $control->label;
+			$description[] = $control->description;
+		}
+
+		$this->assertSame( $expected['label'], $label );
+		$this->assertSame( $expected['description'], $description );
+	}
+
+	public function data_customize_register_control_label_and_description() {
+		return array(
+			'with widgets block editor' => array(
+				'sidebars'            => array(
+					'footer-1' => array(
+						'id'          => 'footer-1',
+						'name'        => 'Footer 1',
+						'description' => 'This is the Footer 1 sidebar.',
+					),
+					'footer-2' => array(
+						'id'          => 'footer-2',
+						'name'        => 'Footer 2',
+						'description' => 'This is the Footer 2 sidebar.',
+					),
+				),
+				'use_classic_widgets' => false,
+				'expected'            => array(
+					'label'       => array( 'Footer 1', 'Footer 2' ),
+					'description' => array( '', '' ),
+				),
+			),
+			'with classic widgets'      => array(
+				'sidebars'            => array(
+					'classic-1' => array(
+						'id'          => 'classic-1',
+						'name'        => 'Classic 1',
+						'description' => 'This is the Classic 1 sidebar.',
+					),
+					'classic-2' => array(
+						'id'          => 'classic-2',
+						'name'        => 'Classic 2',
+						'description' => 'This is the Classic 2 sidebar.',
+					),
+					'classic-3' => array(
+						'id'          => 'classic-3',
+						'name'        => 'Classic 3',
+						'description' => 'This is the Classic 3 sidebar.',
+					),
+				),
+				'use_classic_widgets' => true,
+				'expected'            => array(
+					'label'       => array( '', '', '' ),
+					'description' => array( '', '', '' ),
+				),
+			),
+		);
+	}
+
+	/**
 	 * Tests WP_Customize_Widgets::get_selective_refreshable_widgets().
 	 *
 	 * @see WP_Customize_Widgets::get_selective_refreshable_widgets()
 	 */
-	function test_get_selective_refreshable_widgets_when_theme_supports() {
+	public function test_get_selective_refreshable_widgets_when_theme_supports() {
 		global $wp_widget_factory;
 		add_action( 'widgets_init', array( $this, 'override_search_widget_customize_selective_refresh' ), 90 );
 		add_theme_support( 'customize-selective-refresh-widgets' );
 		$this->do_customize_boot_actions();
 
 		$selective_refreshable_widgets = $this->manager->widgets->get_selective_refreshable_widgets();
-		$this->assertInternalType( 'array', $selective_refreshable_widgets );
+		$this->assertIsArray( $selective_refreshable_widgets );
 		$this->assertSame( count( $wp_widget_factory->widgets ), count( $selective_refreshable_widgets ) );
 		$this->assertArrayHasKey( 'text', $selective_refreshable_widgets );
 		$this->assertTrue( $selective_refreshable_widgets['text'] );
@@ -133,7 +248,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Widgets::get_selective_refreshable_widgets()
 	 */
-	function test_get_selective_refreshable_widgets_when_no_theme_supports() {
+	public function test_get_selective_refreshable_widgets_when_no_theme_supports() {
 		add_action( 'widgets_init', array( $this, 'override_search_widget_customize_selective_refresh' ), 90 );
 		remove_theme_support( 'customize-selective-refresh-widgets' );
 		$this->do_customize_boot_actions();
@@ -147,7 +262,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 * @see Tests_WP_Customize_Widgets::test_get_selective_refreshable_widgets_when_theme_supports()
 	 * @see Tests_WP_Customize_Widgets::test_get_selective_refreshable_widgets_when_no_theme_supports()
 	 */
-	function override_search_widget_customize_selective_refresh() {
+	public function override_search_widget_customize_selective_refresh() {
 		global $wp_widget_factory;
 		$wp_widget_factory->widgets['WP_Widget_Search']->widget_options['customize_selective_refresh'] = false;
 	}
@@ -157,7 +272,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Widgets::is_widget_selective_refreshable()
 	 */
-	function test_is_widget_selective_refreshable() {
+	public function test_is_widget_selective_refreshable() {
 		add_action( 'widgets_init', array( $this, 'override_search_widget_customize_selective_refresh' ), 90 );
 		add_theme_support( 'customize-selective-refresh-widgets' );
 		$this->do_customize_boot_actions();
@@ -173,7 +288,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 * @ticket 30988
 	 * @ticket 36389
 	 */
-	function test_register_settings() {
+	public function test_register_settings() {
 		add_theme_support( 'customize-selective-refresh-widgets' );
 
 		$raw_widget_customized = array(
@@ -225,7 +340,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 *
 	 * @ticket 36389
 	 */
-	function test_register_settings_without_selective_refresh() {
+	public function test_register_settings_without_selective_refresh() {
 		remove_theme_support( 'customize-selective-refresh-widgets' );
 		$this->test_register_settings();
 	}
@@ -235,7 +350,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 *
 	 * @ticket 36389
 	 */
-	function test_register_settings_with_late_theme_support_added() {
+	public function test_register_settings_with_late_theme_support_added() {
 		remove_theme_support( 'customize-selective-refresh-widgets' );
 		add_action( 'after_setup_theme', array( $this, 'add_customize_selective_refresh_theme_support' ), 100 );
 		$this->test_register_settings();
@@ -244,45 +359,45 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	/**
 	 * Add customize-selective-refresh-widgets theme support.
 	 */
-	function add_customize_selective_refresh_theme_support() {
+	public function add_customize_selective_refresh_theme_support() {
 		add_theme_support( 'customize-selective-refresh-widgets' );
 	}
 
 	/**
 	 * Test WP_Customize_Widgets::get_setting_args()
 	 */
-	function test_get_setting_args() {
+	public function test_get_setting_args() {
 		add_theme_support( 'customize-selective-refresh-widgets' );
 		$this->do_customize_boot_actions();
 
 		add_filter( 'widget_customizer_setting_args', array( $this, 'filter_widget_customizer_setting_args' ), 10, 2 );
 
 		$default_args = array(
-			'type'                 => 'option',
-			'capability'           => 'edit_theme_options',
-			'transport'            => 'refresh',
-			'default'              => array(),
-			'sanitize_callback'    => array( $this->manager->widgets, 'sanitize_widget_instance' ),
-			'sanitize_js_callback' => array( $this->manager->widgets, 'sanitize_widget_js_instance' ),
+			'type'       => 'option',
+			'capability' => 'edit_theme_options',
+			'transport'  => 'refresh',
+			'default'    => array(),
 		);
 		$args         = $this->manager->widgets->get_setting_args( 'widget_foo[2]' );
 		foreach ( $default_args as $key => $default_value ) {
 			$this->assertSame( $default_value, $args[ $key ] );
 		}
+		$this->assertTrue( is_callable( $args['sanitize_callback'] ), 'sanitize_callback is callable' );
+		$this->asserttrue( is_callable( $args['sanitize_js_callback'] ), 'sanitize_js_callback is callable' );
 		$this->assertSame( 'WIDGET_FOO[2]', $args['uppercase_id_set_by_filter'] );
 
 		$default_args = array(
-			'type'                 => 'option',
-			'capability'           => 'edit_theme_options',
-			'transport'            => 'postMessage',
-			'default'              => array(),
-			'sanitize_callback'    => array( $this->manager->widgets, 'sanitize_widget_instance' ),
-			'sanitize_js_callback' => array( $this->manager->widgets, 'sanitize_widget_js_instance' ),
+			'type'       => 'option',
+			'capability' => 'edit_theme_options',
+			'transport'  => 'postMessage',
+			'default'    => array(),
 		);
 		$args         = $this->manager->widgets->get_setting_args( 'widget_search[2]' );
 		foreach ( $default_args as $key => $default_value ) {
 			$this->assertSame( $default_value, $args[ $key ] );
 		}
+		$this->assertTrue( is_callable( $args['sanitize_callback'] ), 'sanitize_callback is callable' );
+		$this->asserttrue( is_callable( $args['sanitize_js_callback'] ), 'sanitize_js_callback is callable' );
 
 		remove_theme_support( 'customize-selective-refresh-widgets' );
 		$args = $this->manager->widgets->get_setting_args( 'widget_search[2]' );
@@ -304,17 +419,17 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertSame( 'WIDGET_BAR[3]', $args['uppercase_id_set_by_filter'] );
 
 		$default_args = array(
-			'type'                 => 'option',
-			'capability'           => 'edit_theme_options',
-			'transport'            => 'postMessage',
-			'default'              => array(),
-			'sanitize_callback'    => array( $this->manager->widgets, 'sanitize_sidebar_widgets' ),
-			'sanitize_js_callback' => array( $this->manager->widgets, 'sanitize_sidebar_widgets_js_instance' ),
+			'type'       => 'option',
+			'capability' => 'edit_theme_options',
+			'transport'  => 'postMessage',
+			'default'    => array(),
 		);
 		$args         = $this->manager->widgets->get_setting_args( 'sidebars_widgets[sidebar-1]' );
 		foreach ( $default_args as $key => $default_value ) {
 			$this->assertSame( $default_value, $args[ $key ] );
 		}
+		$this->assertTrue( is_callable( $args['sanitize_callback'] ), 'sanitize_callback is callable' );
+		$this->asserttrue( is_callable( $args['sanitize_js_callback'] ), 'sanitize_js_callback is callable' );
 		$this->assertSame( 'SIDEBARS_WIDGETS[SIDEBAR-1]', $args['uppercase_id_set_by_filter'] );
 
 		$override_args = array(
@@ -332,7 +447,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertSame( 'SIDEBARS_WIDGETS[SIDEBAR-2]', $args['uppercase_id_set_by_filter'] );
 	}
 
-	function filter_widget_customizer_setting_args( $args, $id ) {
+	public function filter_widget_customizer_setting_args( $args, $id ) {
 		$args['uppercase_id_set_by_filter'] = strtoupper( $id );
 		return $args;
 	}
@@ -340,7 +455,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	/**
 	 * Test WP_Customize_Widgets::sanitize_widget_js_instance() and WP_Customize_Widgets::sanitize_widget_instance()
 	 */
-	function test_sanitize_widget_js_instance() {
+	public function test_sanitize_widget_js_instance() {
 		$this->do_customize_boot_actions();
 
 		$new_categories_instance = array(
@@ -366,11 +481,80 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * There should be a 'raw_instance' key when the block editor is enabled and
+	 * the widget supports them via `show_instance_in_rest`.
+	 *
+	 * @ticket 53489
+	 */
+	public function test_sanitize_widget_instance_raw_instance() {
+		remove_action( 'widgets_init', array( $this, 'remove_widgets_block_editor' ) );
+		$this->do_customize_boot_actions();
+
+		$block_instance = array(
+			'content' => '<!-- wp:paragraph --><p>Hello</p><!-- /wp:paragraph -->',
+		);
+
+		$sanitized_for_js = $this->manager->widgets->sanitize_widget_js_instance( $block_instance, 'block' );
+		$this->assertArrayHasKey( 'encoded_serialized_instance', $sanitized_for_js );
+		$this->assertTrue( is_serialized( base64_decode( $sanitized_for_js['encoded_serialized_instance'] ), true ) );
+		$this->assertSame( '', $sanitized_for_js['title'] );
+		$this->assertTrue( $sanitized_for_js['is_widget_customizer_js_value'] );
+		$this->assertArrayHasKey( 'instance_hash_key', $sanitized_for_js );
+		$this->assertEquals( (object) $block_instance, $sanitized_for_js['raw_instance'] );
+
+		$unsanitized_from_js = $this->manager->widgets->sanitize_widget_instance( $sanitized_for_js );
+		$this->assertSame( $unsanitized_from_js, $block_instance );
+	}
+
+	/**
+	 * There should NOT be a 'raw_instance' key when the block editor is enabled
+	 * but the widget does not support them because `show_instance_in_rest` on
+	 * the widget is set to false.
+	 *
+	 * @ticket 53489
+	 */
+	public function test_sanitize_widget_instance_with_no_show_instance_in_rest() {
+		global $wp_widget_factory;
+
+		remove_action( 'widgets_init', array( $this, 'remove_widgets_block_editor' ) );
+		$this->do_customize_boot_actions();
+
+		$widget_object = $wp_widget_factory->get_widget_object( 'block' );
+		$widget_object->widget_options['show_instance_in_rest'] = false;
+
+		$block_instance = array(
+			'content' => '<!-- wp:paragraph --><p>Hello</p><!-- /wp:paragraph -->',
+		);
+
+		$sanitized_for_js = $this->manager->widgets->sanitize_widget_js_instance( $block_instance, 'block' );
+		$this->assertArrayHasKey( 'encoded_serialized_instance', $sanitized_for_js );
+		$this->assertTrue( is_serialized( base64_decode( $sanitized_for_js['encoded_serialized_instance'] ), true ) );
+		$this->assertSame( '', $sanitized_for_js['title'] );
+		$this->assertTrue( $sanitized_for_js['is_widget_customizer_js_value'] );
+		$this->assertArrayHasKey( 'instance_hash_key', $sanitized_for_js );
+		$this->assertArrayNotHasKey( 'raw_instance', $sanitized_for_js );
+
+		$unsanitized_from_js = $this->manager->widgets->sanitize_widget_instance( $sanitized_for_js );
+		$this->assertSame( $unsanitized_from_js, $block_instance );
+	}
+
+	/**
+	 * Empty instances, seen when inserting a new widget, should be left alone
+	 * when sanitized.
+	 *
+	 * @ticket 53479
+	 */
+	public function test_sanitize_widget_instance_empty_instance() {
+		$this->do_customize_boot_actions();
+		$this->assertSame( $this->manager->widgets->sanitize_widget_instance( array() ), array() );
+	}
+
+	/**
 	 * Get the widget control args for tests.
 	 *
 	 * @return array
 	 */
-	function get_test_widget_control_args() {
+	private function get_test_widget_control_args() {
 		global $wp_registered_widgets;
 		require_once ABSPATH . '/wp-admin/includes/widgets.php';
 		$widget_id = 'search-2';
@@ -391,58 +575,58 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	/**
 	 * @see WP_Customize_Widgets::get_widget_control()
 	 */
-	function test_get_widget_control() {
+	public function test_get_widget_control() {
 		$this->do_customize_boot_actions();
 		$widget_control = $this->manager->widgets->get_widget_control( $this->get_test_widget_control_args() );
 
-		$this->assertContains( '<div class="form">', $widget_control );
-		$this->assertContains( '<div class="widget-content">', $widget_control );
-		$this->assertContains( '<input type="hidden" name="id_base" class="id_base" value="search"', $widget_control );
-		$this->assertContains( '<input class="widefat"', $widget_control );
+		$this->assertStringContainsString( '<div class="form">', $widget_control );
+		$this->assertStringContainsString( '<div class="widget-content">', $widget_control );
+		$this->assertStringContainsString( '<input type="hidden" name="id_base" class="id_base" value="search"', $widget_control );
+		$this->assertStringContainsString( '<input class="widefat"', $widget_control );
 	}
 
 	/**
 	 * @see WP_Customize_Widgets::get_widget_control_parts()
 	 */
-	function test_get_widget_control_parts() {
+	public function test_get_widget_control_parts() {
 		$this->do_customize_boot_actions();
 		$widget_control_parts = $this->manager->widgets->get_widget_control_parts( $this->get_test_widget_control_args() );
 		$this->assertArrayHasKey( 'content', $widget_control_parts );
 		$this->assertArrayHasKey( 'control', $widget_control_parts );
 
-		$this->assertContains( '<div class="form">', $widget_control_parts['control'] );
-		$this->assertContains( '<div class="widget-content">', $widget_control_parts['control'] );
-		$this->assertContains( '<input type="hidden" name="id_base" class="id_base" value="search"', $widget_control_parts['control'] );
-		$this->assertNotContains( '<input class="widefat"', $widget_control_parts['control'] );
-		$this->assertContains( '<input class="widefat"', $widget_control_parts['content'] );
+		$this->assertStringContainsString( '<div class="form">', $widget_control_parts['control'] );
+		$this->assertStringContainsString( '<div class="widget-content">', $widget_control_parts['control'] );
+		$this->assertStringContainsString( '<input type="hidden" name="id_base" class="id_base" value="search"', $widget_control_parts['control'] );
+		$this->assertStringNotContainsString( '<input class="widefat"', $widget_control_parts['control'] );
+		$this->assertStringContainsString( '<input class="widefat"', $widget_control_parts['content'] );
 	}
 
 	/**
 	 * @see WP_Widget_Form_Customize_Control::json()
 	 */
-	function test_wp_widget_form_customize_control_json() {
+	public function test_wp_widget_form_customize_control_json() {
 		$this->do_customize_boot_actions();
 		$control = $this->manager->get_control( 'widget_search[2]' );
 		$params  = $control->json();
 
 		$this->assertSame( 'widget_form', $params['type'] );
-		$this->assertRegExp( '#^<li[^>]+>\s*</li>$#', $params['content'] );
-		$this->assertRegExp( '#^<div[^>]*class=\'widget\'[^>]*#s', $params['widget_control'] );
-		$this->assertContains( '<div class="widget-content"></div>', $params['widget_control'] );
-		$this->assertNotContains( '<input class="widefat"', $params['widget_control'] );
-		$this->assertContains( '<input class="widefat"', $params['widget_content'] );
+		$this->assertMatchesRegularExpression( '#^<li[^>]+>\s*</li>$#', $params['content'] );
+		$this->assertMatchesRegularExpression( '#^<div[^>]*class=\'widget\'[^>]*#s', $params['widget_control'] );
+		$this->assertStringContainsString( '<div class="widget-content"></div>', $params['widget_control'] );
+		$this->assertStringNotContainsString( '<input class="widefat"', $params['widget_control'] );
+		$this->assertStringContainsString( '<input class="widefat"', $params['widget_content'] );
 		$this->assertSame( 'search-2', $params['widget_id'] );
 		$this->assertSame( 'search', $params['widget_id_base'] );
 		$this->assertArrayHasKey( 'sidebar_id', $params );
 		$this->assertArrayHasKey( 'width', $params );
 		$this->assertArrayHasKey( 'height', $params );
-		$this->assertInternalType( 'bool', $params['is_wide'] );
+		$this->assertIsBool( $params['is_wide'] );
 	}
 
 	/**
 	 * @see WP_Customize_Widgets::is_panel_active()
 	 */
-	function test_is_panel_active() {
+	public function test_is_panel_active() {
 		global $wp_registered_sidebars;
 		$this->do_customize_boot_actions();
 
@@ -459,7 +643,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 * @ticket 34738
 	 * @see WP_Customize_Widgets::call_widget_update()
 	 */
-	function test_call_widget_update() {
+	public function test_call_widget_update() {
 
 		$widget_number = 2;
 		$widget_id     = "search-{$widget_number}";
@@ -493,16 +677,16 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertArrayNotHasKey( $setting_id, $this->manager->unsanitized_post_values() );
 		$result = $this->manager->widgets->call_widget_update( $widget_id );
 
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertArrayHasKey( 'instance', $result );
 		$this->assertArrayHasKey( 'form', $result );
 		$this->assertSame( $instance, $result['instance'] );
-		$this->assertContains( sprintf( 'value="%s"', esc_attr( $instance['title'] ) ), $result['form'] );
+		$this->assertStringContainsString( sprintf( 'value="%s"', esc_attr( $instance['title'] ) ), $result['form'] );
 
 		$post_values = $this->manager->unsanitized_post_values();
 		$this->assertArrayHasKey( $setting_id, $post_values );
 		$post_value = $post_values[ $setting_id ];
-		$this->assertInternalType( 'array', $post_value );
+		$this->assertIsArray( $post_value );
 		$this->assertArrayHasKey( 'title', $post_value );
 		$this->assertArrayHasKey( 'encoded_serialized_instance', $post_value );
 		$this->assertArrayHasKey( 'instance_hash_key', $post_value );
@@ -515,17 +699,17 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Widgets::customize_dynamic_partial_args()
 	 */
-	function test_customize_dynamic_partial_args() {
+	public function test_customize_dynamic_partial_args() {
 		do_action( 'customize_register', $this->manager );
 
 		$args = apply_filters( 'customize_dynamic_partial_args', false, 'widget[search-2]' );
-		$this->assertInternalType( 'array', $args );
+		$this->assertIsArray( $args );
 		$this->assertSame( 'widget', $args['type'] );
 		$this->assertSame( array( $this->manager->widgets, 'render_widget_partial' ), $args['render_callback'] );
 		$this->assertTrue( $args['container_inclusive'] );
 
 		$args = apply_filters( 'customize_dynamic_partial_args', array( 'fallback_refresh' => false ), 'widget[search-2]' );
-		$this->assertInternalType( 'array', $args );
+		$this->assertIsArray( $args );
 		$this->assertSame( 'widget', $args['type'] );
 		$this->assertSame( array( $this->manager->widgets, 'render_widget_partial' ), $args['render_callback'] );
 		$this->assertTrue( $args['container_inclusive'] );
@@ -541,7 +725,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Widgets::selective_refresh_init()
 	 */
-	function test_selective_refresh_init_with_theme_support() {
+	public function test_selective_refresh_init_with_theme_support() {
 		add_theme_support( 'customize-selective-refresh-widgets' );
 		$this->manager->widgets->selective_refresh_init();
 		$this->assertSame( 10, has_action( 'dynamic_sidebar_before', array( $this->manager->widgets, 'start_dynamic_sidebar' ) ) );
@@ -555,7 +739,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Widgets::selective_refresh_init()
 	 */
-	function test_selective_refresh_init_without_theme_support() {
+	public function test_selective_refresh_init_without_theme_support() {
 		remove_theme_support( 'customize-selective-refresh-widgets' );
 		$this->manager->widgets->selective_refresh_init();
 		$this->assertFalse( has_action( 'dynamic_sidebar_before', array( $this->manager->widgets, 'start_dynamic_sidebar' ) ) );
@@ -569,7 +753,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Widgets::customize_preview_enqueue()
 	 */
-	function test_customize_preview_enqueue() {
+	public function test_customize_preview_enqueue() {
 		$this->manager->widgets->customize_preview_enqueue();
 		$this->assertTrue( wp_script_is( 'customize-preview-widgets', 'enqueued' ) );
 		$this->assertTrue( wp_style_is( 'customize-preview', 'enqueued' ) );
@@ -584,7 +768,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 * @see WP_Customize_Widgets::start_dynamic_sidebar()
 	 * @see WP_Customize_Widgets::end_dynamic_sidebar()
 	 */
-	function test_filter_dynamic_sidebar_params() {
+	public function test_filter_dynamic_sidebar_params() {
 		global $wp_registered_sidebars;
 		register_sidebar(
 			array(
@@ -630,8 +814,8 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertSame( '<!--dynamic_sidebar_after:foo:1-->', trim( $output ) );
 
 		$output = wp_kses_post( $filtered_params[0]['before_widget'] );
-		$this->assertContains( 'data-customize-partial-id="widget[search-2]"', $output );
-		$this->assertContains( 'data-customize-partial-type="widget"', $output );
+		$this->assertStringContainsString( 'data-customize-partial-id="widget[search-2]"', $output );
+		$this->assertStringContainsString( 'data-customize-partial-type="widget"', $output );
 	}
 
 	/**
@@ -639,7 +823,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Widgets::render_widget_partial()
 	 */
-	function test_render_widget_partial() {
+	public function test_render_widget_partial() {
 		add_theme_support( 'customize-selective-refresh-widgets' );
 		$this->do_customize_boot_actions();
 		$this->manager->widgets->selective_refresh_init();
@@ -657,7 +841,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 
 		$this->assertSame( 1, substr_count( $output, 'data-customize-partial-id' ) );
 		$this->assertSame( 1, substr_count( $output, 'data-customize-partial-type="widget"' ) );
-		$this->assertContains( ' id="search-2"', $output );
+		$this->assertStringContainsString( ' id="search-2"', $output );
 	}
 
 	/**

@@ -8,14 +8,14 @@
  */
 
 /**
- * Tests_WpCreateUserRequest class.
+ * Tests_Privacy_wpCreateUserRequest class.
  *
  * @group privacy
  * @covers ::wp_create_user_request
  *
  * @since 5.2.0
  */
-class Tests_WpCreateUserRequest extends WP_UnitTestCase {
+class Tests_Privacy_wpCreateUserRequest extends WP_UnitTestCase {
 	/**
 	 * Request ID.
 	 *

@@ -15,8 +15,8 @@
 class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 	const YOUTUBE_VIDEO_ID = 'i_cVJgIz_Cs';
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
@@ -26,14 +26,12 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		add_filter( 'pre_http_request', array( $this, 'mock_embed_request' ), 10, 3 );
 	}
 
-	public function tearDown() {
-		parent::tearDown();
-
+	public function tear_down() {
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = null;
 
-		remove_filter( 'pre_http_request', array( $this, 'mock_embed_request' ), 10, 3 );
+		parent::tear_down();
 	}
 
 	public function mock_embed_request( $preempt, $r, $url ) {
@@ -71,11 +69,14 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		}
 	}
 
+	/**
+	 * @ticket 54596
+	 */
 	public function test_expected_routes_in_schema() {
 		$routes = rest_get_server()->get_routes();
 
-		$this->assertTrue( is_array( $routes ), '`get_routes` should return an array.' );
-		$this->assertTrue( ! empty( $routes ), 'Routes should not be empty.' );
+		$this->assertIsArray( $routes, '`get_routes` should return an array.' );
+		$this->assertNotEmpty( $routes, 'Routes should not be empty.' );
 
 		$routes = array_filter( array_keys( $routes ), array( $this, 'is_builtin_route' ) );
 
@@ -91,12 +92,21 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/posts/(?P<parent>[\\d]+)/revisions/(?P<id>[\\d]+)',
 			'/wp/v2/posts/(?P<id>[\\d]+)/autosaves',
 			'/wp/v2/posts/(?P<parent>[\\d]+)/autosaves/(?P<id>[\\d]+)',
+			'/wp/v2/menu-items',
+			'/wp/v2/menu-items/(?P<id>[\d]+)',
+			'/wp/v2/menu-items/(?P<id>[\d]+)/autosaves',
+			'/wp/v2/menu-items/(?P<parent>[\d]+)/autosaves/(?P<id>[\d]+)',
+			'/wp/v2/menu-locations',
+			'/wp/v2/menu-locations/(?P<location>[\w-]+)',
+			'/wp/v2/menus',
+			'/wp/v2/menus/(?P<id>[\d]+)',
 			'/wp/v2/pages',
 			'/wp/v2/pages/(?P<id>[\\d]+)',
 			'/wp/v2/pages/(?P<parent>[\\d]+)/revisions',
 			'/wp/v2/pages/(?P<parent>[\\d]+)/revisions/(?P<id>[\\d]+)',
 			'/wp/v2/pages/(?P<id>[\\d]+)/autosaves',
 			'/wp/v2/pages/(?P<parent>[\\d]+)/autosaves/(?P<id>[\\d]+)',
+			'/wp/v2/pattern-directory/patterns',
 			'/wp/v2/media',
 			'/wp/v2/media/(?P<id>[\\d]+)',
 			'/wp/v2/media/(?P<id>[\\d]+)/post-process',
@@ -105,6 +115,8 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/blocks/(?P<id>[\d]+)',
 			'/wp/v2/blocks/(?P<id>[\d]+)/autosaves',
 			'/wp/v2/blocks/(?P<parent>[\d]+)/autosaves/(?P<id>[\d]+)',
+			'/wp/v2/blocks/(?P<parent>[\d]+)/revisions',
+			'/wp/v2/blocks/(?P<parent>[\d]+)/revisions/(?P<id>[\d]+)',
 			'/wp/v2/types',
 			'/wp/v2/types/(?P<type>[\\w-]+)',
 			'/wp/v2/statuses',
@@ -123,17 +135,48 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords/(?P<uuid>[\\w\\-]+)',
 			'/wp/v2/comments',
 			'/wp/v2/comments/(?P<id>[\\d]+)',
+			'/wp/v2/global-styles/(?P<id>[\/\w-]+)',
+			'/wp/v2/global-styles/themes/(?P<stylesheet>[\/\s%\w\.\(\)\[\]\@_\-]+)/variations',
+			'/wp/v2/global-styles/themes/(?P<stylesheet>[^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)',
 			'/wp/v2/search',
 			'/wp/v2/block-renderer/(?P<name>[a-z0-9-]+/[a-z0-9-]+)',
 			'/wp/v2/block-types',
 			'/wp/v2/block-types/(?P<namespace>[a-zA-Z0-9_-]+)',
 			'/wp/v2/block-types/(?P<namespace>[a-zA-Z0-9_-]+)/(?P<name>[a-zA-Z0-9_-]+)',
 			'/wp/v2/settings',
+			'/wp/v2/template-parts',
+			'/wp/v2/template-parts/(?P<id>[\d]+)/autosaves',
+			'/wp/v2/template-parts/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w-]+)',
+			'/wp/v2/template-parts/(?P<parent>[\d]+)/autosaves/(?P<id>[\d]+)',
+			'/wp/v2/template-parts/(?P<parent>[\d]+)/revisions',
+			'/wp/v2/template-parts/(?P<parent>[\d]+)/revisions/(?P<id>[\d]+)',
+			'/wp/v2/templates',
+			'/wp/v2/templates/(?P<id>[\d]+)/autosaves',
+			'/wp/v2/templates/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w-]+)',
+			'/wp/v2/templates/(?P<parent>[\d]+)/autosaves/(?P<id>[\d]+)',
+			'/wp/v2/templates/(?P<parent>[\d]+)/revisions',
+			'/wp/v2/templates/(?P<parent>[\d]+)/revisions/(?P<id>[\d]+)',
 			'/wp/v2/themes',
-			'/wp/v2/themes/(?P<stylesheet>[\w-]+)',
+			'/wp/v2/themes/(?P<stylesheet>[^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)',
 			'/wp/v2/plugins',
 			'/wp/v2/plugins/(?P<plugin>[^.\/]+(?:\/[^.\/]+)?)',
 			'/wp/v2/block-directory/search',
+			'/wp/v2/block-patterns/categories',
+			'/wp/v2/block-patterns/patterns',
+			'/wp/v2/sidebars',
+			'/wp/v2/sidebars/(?P<id>[\w-]+)',
+			'/wp/v2/widget-types',
+			'/wp/v2/widget-types/(?P<id>[a-zA-Z0-9_-]+)',
+			'/wp/v2/widget-types/(?P<id>[a-zA-Z0-9_-]+)/encode',
+			'/wp/v2/widget-types/(?P<id>[a-zA-Z0-9_-]+)/render',
+			'/wp/v2/widgets',
+			'/wp/v2/widgets/(?P<id>[\w\-]+)',
+			'/wp/v2/navigation',
+			'/wp/v2/navigation/(?P<id>[\d]+)',
+			'/wp/v2/navigation/(?P<id>[\d]+)/autosaves',
+			'/wp/v2/navigation/(?P<parent>[\d]+)/autosaves/(?P<id>[\d]+)',
+			'/wp/v2/navigation/(?P<parent>[\d]+)/revisions',
+			'/wp/v2/navigation/(?P<parent>[\d]+)/revisions/(?P<id>[\d]+)',
 			'/wp-site-health/v1',
 			'/wp-site-health/v1/tests/background-updates',
 			'/wp-site-health/v1/tests/loopback-requests',
@@ -458,7 +501,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 				$response->get_status(),
 				"HTTP $status from $route[route]: " . json_encode( $data )
 			);
-			$this->assertTrue( ! empty( $data ), $route['name'] . ' route should return data.' );
+			$this->assertNotEmpty( $data, $route['name'] . ' route should return data.' );
 
 			$fixture           = $this->normalize_fixture( $data, $route['name'] );
 			$mocked_responses .= "\nmockedApiResponse." . $route['name'] . ' = '
@@ -477,7 +520,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		wp_delete_post( $post_id, true );
 		wp_delete_post( $page_id, true );
 		wp_delete_term( $tag_id, 'tags' );
-		wp_delete_attachment( $media_id );
+		wp_delete_attachment( $media_id, true );
 		wp_delete_comment( $comment_id );
 	}
 

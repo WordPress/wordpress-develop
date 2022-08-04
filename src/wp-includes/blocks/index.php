@@ -5,18 +5,12 @@
  * @package WordPress
  */
 
+define( 'BLOCKS_PATH', ABSPATH . WPINC . '/blocks/' );
+
 // Include files required for core blocks registration.
-require ABSPATH . WPINC . '/blocks/archives.php';
-require ABSPATH . WPINC . '/blocks/block.php';
-require ABSPATH . WPINC . '/blocks/calendar.php';
-require ABSPATH . WPINC . '/blocks/categories.php';
-require ABSPATH . WPINC . '/blocks/latest-comments.php';
-require ABSPATH . WPINC . '/blocks/latest-posts.php';
-require ABSPATH . WPINC . '/blocks/rss.php';
-require ABSPATH . WPINC . '/blocks/search.php';
-require ABSPATH . WPINC . '/blocks/shortcode.php';
-require ABSPATH . WPINC . '/blocks/social-link.php';
-require ABSPATH . WPINC . '/blocks/tag-cloud.php';
+require BLOCKS_PATH . 'legacy-widget.php';
+require BLOCKS_PATH . 'widget-group.php';
+require BLOCKS_PATH . 'require-dynamic-blocks.php';
 
 /**
  * Registers core block types using metadata files.
@@ -25,43 +19,10 @@ require ABSPATH . WPINC . '/blocks/tag-cloud.php';
  * @since 5.5.0
  */
 function register_core_block_types_from_metadata() {
-	$block_folders = array(
-		'audio',
-		'button',
-		'buttons',
-		'code',
-		'column',
-		'columns',
-		'embed',
-		'file',
-		'freeform',
-		'gallery',
-		'group',
-		'heading',
-		'html',
-		'image',
-		'list',
-		'media-text',
-		'missing',
-		'more',
-		'nextpage',
-		'paragraph',
-		'preformatted',
-		'pullquote',
-		'quote',
-		'separator',
-		'social-links',
-		'spacer',
-		'subhead',
-		'table',
-		'text-columns',
-		'verse',
-		'video',
-	);
-
+	$block_folders = require BLOCKS_PATH . 'require-static-blocks.php';
 	foreach ( $block_folders as $block_folder ) {
-		register_block_type_from_metadata(
-			ABSPATH . WPINC . '/blocks/' . $block_folder
+		register_block_type(
+			BLOCKS_PATH . $block_folder
 		);
 	}
 }
