@@ -972,6 +972,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( 'Rendering PDFs is not supported on this system.' );
 		}
 
+		// Use legacy JPEG output.
+		add_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
+
 		$temp_dir = get_temp_dir();
 
 		// Dummy JPEGs.
