@@ -710,6 +710,11 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertQueryTrue( 'is_home' );
 	}
 
+	/**
+	 * Data provider for test_malformed_date_queries.
+	 *
+	 * @return array Test data.
+	 */
 	public function data_malformed_date_queries() {
 		$permalink_structures = array(
 			'/%postname%/',
