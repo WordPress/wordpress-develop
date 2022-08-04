@@ -163,13 +163,13 @@
 	<!-- Themes except the twenty* themes. -->
 	<exclude-pattern>/src/wp-content/themes/(?!twenty)*</exclude-pattern>
 
-	<!-- Whitelist the WP DB Class and related tests for usage of direct database access functions. -->
+	<!-- Allow the WP DB Class and related tests for usage of direct database access functions. -->
 	<rule ref="WordPress.DB.RestrictedFunctions">
-		<exclude-pattern>/src/wp-includes/wp-db\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wpdb\.php</exclude-pattern>
 		<exclude-pattern>/tests/phpunit/tests/db/charset\.php</exclude-pattern>
 	</rule>
 
-	<!-- Whitelist the WP DB related tests for issues with prepared SQL placeholders
+	<!-- Allow the WP DB related tests for issues with prepared SQL placeholders
 		 (as the handling of those are being tested). -->
 	<rule ref="WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare">
 		<exclude-pattern>/tests/phpunit/tests/db\.php</exclude-pattern>
@@ -185,7 +185,7 @@
 		<exclude-pattern>/tests/phpunit/tests/multisite/site\.php</exclude-pattern>
 	</rule>
 
-	<!-- Whitelist the I18n functions file from issues identified by the I18n sniff
+	<!-- Allow the I18n functions file for issues identified by the I18n sniff
 		 (such as calling the low-level translate() function). -->
 	<rule ref="WordPress.WP.I18n">
 		<exclude-pattern>/src/wp-includes/l10n\.php</exclude-pattern>
@@ -207,7 +207,7 @@
 
 	<!-- Exclude checking of line endings when reporting errors, but fix them when running phpcbf.
 		 Git and SVN manage these pretty well cross-platform as "native".
-		 Whitelist configuration files. -->
+		 Allow configuration files. -->
 	<rule ref="Generic.Files.LineEndings">
 		<exclude-pattern>/wp-config\.php</exclude-pattern>
 		<exclude-pattern>/wp-config-sample\.php</exclude-pattern>
@@ -227,7 +227,7 @@
 		<exclude-pattern>/src/wp-content/themes/twentyfourteen/taxonomy-post_format\.php</exclude-pattern>
 	</rule>
 
-	<!-- Whitelist test classes for select sniffs. -->
+	<!-- Allow test classes for select sniffs. -->
 	<rule ref="WordPress.Files.FileName">
 		<properties>
 			<property name="custom_test_class_whitelist" type="array">
@@ -325,10 +325,10 @@
 	</rule>
 	<rule ref="PEAR.NamingConventions.ValidClassName.StartWithCapital">
 		<exclude-pattern>/src/wp-admin/includes/class-wp-list-table-compat\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-dependency\.php</exclude-pattern>
 		<exclude-pattern>/src/wp-includes/class-wp-editor\.php</exclude-pattern>
 		<exclude-pattern>/src/wp-includes/class-wp-xmlrpc-server\.php</exclude-pattern>
-		<exclude-pattern>/src/wp-includes/wp-db\.php</exclude-pattern>
-		<exclude-pattern>/src/wp-includes/class-wp-dependency\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wpdb\.php</exclude-pattern>
 	</rule>
 
 	<!-- Exclude some incorrectly named files that won't be renamed. -->

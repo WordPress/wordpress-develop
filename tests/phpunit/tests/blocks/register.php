@@ -381,7 +381,8 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$this->assertSame( 'tests/notice', $result->name );
 		$this->assertSame( 'Notice', $result->title );
 		$this->assertSame( 'common', $result->category );
-		$this->assertSameSets( array( 'core/group' ), $result->parent );
+		$this->assertSameSets( array( 'tests/group' ), $result->parent );
+		$this->assertSameSets( array( 'tests/section' ), $result->ancestor );
 		$this->assertSame( 'star', $result->icon );
 		$this->assertSame( 'Shows warning, error or success notices…', $result->description );
 		$this->assertSameSets( array( 'alert', 'message' ), $result->keywords );

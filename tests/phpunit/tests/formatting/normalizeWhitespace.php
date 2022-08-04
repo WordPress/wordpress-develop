@@ -1,6 +1,8 @@
 <?php
 /**
  * @group formatting
+ *
+ * @covers ::normalize_whitespace
  */
 class Tests_Formatting_NormalizeWhitespace extends WP_UnitTestCase {
 	/**

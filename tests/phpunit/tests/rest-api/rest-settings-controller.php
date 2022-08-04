@@ -106,6 +106,9 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 			'default_category',
 			'default_post_format',
 			'posts_per_page',
+			'show_on_front',
+			'page_on_front',
+			'page_for_posts',
 			'default_ping_status',
 			'default_comment_status',
 			'site_icon', // Registered in wp-includes/blocks/site-logo.php

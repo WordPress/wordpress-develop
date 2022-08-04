@@ -424,6 +424,8 @@ class Tests_DB extends WP_UnitTestCase {
 	public function data_prepare_incorrect_arg_count() {
 		global $wpdb;
 
+		$placeholder_escape = $wpdb->placeholder_escape();
+
 		return array(
 			array(
 				"SELECT * FROM $wpdb->users WHERE id = %d AND user_login = %s",     // Query.
@@ -443,12 +445,12 @@ class Tests_DB extends WP_UnitTestCase {
 			array(
 				"SELECT * FROM $wpdb->users WHERE id = %d AND %% AND user_login = %s",
 				array( 1, 'admin', 'extra-arg' ),
-				"SELECT * FROM $wpdb->users WHERE id = 1 AND {$wpdb->placeholder_escape()} AND user_login = 'admin'",
+				"SELECT * FROM $wpdb->users WHERE id = 1 AND {$placeholder_escape} AND user_login = 'admin'",
 			),
 			array(
 				"SELECT * FROM $wpdb->users WHERE id = %%%d AND %F AND %f AND user_login = %s",
 				array( 1, 2.3, '4.5', 'admin', 'extra-arg' ),
-				"SELECT * FROM $wpdb->users WHERE id = {$wpdb->placeholder_escape()}1 AND 2.300000 AND 4.500000 AND user_login = 'admin'",
+				"SELECT * FROM $wpdb->users WHERE id = {$placeholder_escape}1 AND 2.300000 AND 4.500000 AND user_login = 'admin'",
 			),
 			array(
 				"SELECT * FROM $wpdb->users WHERE id = %d AND user_login = %s",
@@ -492,9 +494,11 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertTrue( $wpdb->has_cap( 'collation' ) );
 		$this->assertTrue( $wpdb->has_cap( 'group_concat' ) );
 		$this->assertTrue( $wpdb->has_cap( 'subqueries' ) );
+		$this->assertTrue( $wpdb->has_cap( 'identifier_placeholders' ) );
 		$this->assertTrue( $wpdb->has_cap( 'COLLATION' ) );
 		$this->assertTrue( $wpdb->has_cap( 'GROUP_CONCAT' ) );
 		$this->assertTrue( $wpdb->has_cap( 'SUBQUERIES' ) );
+		$this->assertTrue( $wpdb->has_cap( 'IDENTIFIER_PLACEHOLDERS' ) );
 		$this->assertSame(
 			version_compare( $wpdb->db_version(), '5.0.7', '>=' ),
 			$wpdb->has_cap( 'set_charset' )
@@ -1548,6 +1552,8 @@ class Tests_DB extends WP_UnitTestCase {
 	public function data_prepare_with_placeholders() {
 		global $wpdb;
 
+		$placeholder_escape = $wpdb->placeholder_escape();
+
 		return array(
 			array(
 				'%5s',   // SQL to prepare.
@@ -1559,7 +1565,7 @@ class Tests_DB extends WP_UnitTestCase {
 				'%1$d %%% % %%1$d%% %%%1$d%%',
 				1,
 				true,
-				"1 {$wpdb->placeholder_escape()}{$wpdb->placeholder_escape()} {$wpdb->placeholder_escape()} {$wpdb->placeholder_escape()}1\$d{$wpdb->placeholder_escape()} {$wpdb->placeholder_escape()}1{$wpdb->placeholder_escape()}",
+				"1 {$placeholder_escape}{$placeholder_escape} {$placeholder_escape} {$placeholder_escape}1\$d{$placeholder_escape} {$placeholder_escape}1{$placeholder_escape}",
 			),
 			array(
 				'%-5s',
@@ -1601,25 +1607,25 @@ class Tests_DB extends WP_UnitTestCase {
 				'%s',
 				' %s ',
 				false,
-				"' {$wpdb->placeholder_escape()}s '",
+				"' {$placeholder_escape}s '",
 			),
 			array(
 				'%1$s',
 				' %s ',
 				false,
-				" {$wpdb->placeholder_escape()}s ",
+				" {$placeholder_escape}s ",
 			),
 			array(
 				'%1$s',
 				' %1$s ',
 				false,
-				" {$wpdb->placeholder_escape()}1\$s ",
+				" {$placeholder_escape}1\$s ",
 			),
 			array(
 				'%d %1$d %%% %',
 				1,
 				true,
-				"1 1 {$wpdb->placeholder_escape()}{$wpdb->placeholder_escape()} {$wpdb->placeholder_escape()}",
+				"1 1 {$placeholder_escape}{$placeholder_escape} {$placeholder_escape}",
 			),
 			array(
 				'%d %2$s',
@@ -1661,25 +1667,25 @@ class Tests_DB extends WP_UnitTestCase {
 				"%%s %%'%1\$s'",
 				'hello',
 				false,
-				"{$wpdb->placeholder_escape()}s {$wpdb->placeholder_escape()}'hello'",
+				"{$placeholder_escape}s {$placeholder_escape}'hello'",
 			),
 			array(
 				'%%s %%"%1$s"',
 				'hello',
 				false,
-				"{$wpdb->placeholder_escape()}s {$wpdb->placeholder_escape()}\"hello\"",
+				"{$placeholder_escape}s {$placeholder_escape}\"hello\"",
 			),
 			array(
 				'%s',
 				' %  s ',
 				false,
-				"' {$wpdb->placeholder_escape()}  s '",
+				"' {$placeholder_escape}  s '",
 			),
 			array(
 				'%%f %%"%1$f"',
 				3,
 				false,
-				"{$wpdb->placeholder_escape()}f {$wpdb->placeholder_escape()}\"3.000000\"",
+				"{$placeholder_escape}f {$placeholder_escape}\"3.000000\"",
 			),
 			array(
 				'WHERE second=\'%2$s\' AND first=\'%1$s\'',
@@ -1697,19 +1703,19 @@ class Tests_DB extends WP_UnitTestCase {
 				"'%'%%s",
 				'hello',
 				true,
-				"'{$wpdb->placeholder_escape()}'{$wpdb->placeholder_escape()}s",
+				"'{$placeholder_escape}'{$placeholder_escape}s",
 			),
 			array(
 				"'%'%%s%s",
 				'hello',
 				false,
-				"'{$wpdb->placeholder_escape()}'{$wpdb->placeholder_escape()}s'hello'",
+				"'{$placeholder_escape}'{$placeholder_escape}s'hello'",
 			),
 			array(
 				"'%'%%s %s",
 				'hello',
 				false,
-				"'{$wpdb->placeholder_escape()}'{$wpdb->placeholder_escape()}s 'hello'",
+				"'{$placeholder_escape}'{$placeholder_escape}s 'hello'",
 			),
 			array(
 				"'%-'#5s' '%'#-+-5s'",
@@ -1717,7 +1723,127 @@ class Tests_DB extends WP_UnitTestCase {
 				false,
 				"'hello' 'foo##'",
 			),
+			array(
+				'SELECT * FROM %i WHERE %i = %d;',
+				array( 'my_table', 'my_field', 321 ),
+				false,
+				'SELECT * FROM `my_table` WHERE `my_field` = 321;',
+			),
+			array(
+				'WHERE %i = %d;',
+				array( 'evil_`_field', 321 ),
+				false,
+				'WHERE `evil_``_field` = 321;', // To quote the identifier itself, then you need to double the character, e.g. `a``b`.
+			),
+			array(
+				'WHERE %i = %d;',
+				array( 'evil_````````_field', 321 ),
+				false,
+				'WHERE `evil_````````````````_field` = 321;',
+			),
+			array(
+				'WHERE %i = %d;',
+				array( '``evil_field``', 321 ),
+				false,
+				'WHERE `````evil_field````` = 321;',
+			),
+			array(
+				'WHERE %i = %d;',
+				array( 'evil\'field', 321 ),
+				false,
+				'WHERE `evil\'field` = 321;',
+			),
+			array(
+				'WHERE %i = %d;',
+				array( 'evil_\``_field', 321 ),
+				false,
+				'WHERE `evil_\````_field` = 321;',
+			),
+			array(
+				'WHERE %i = %d;',
+				array( 'evil_%s_field', 321 ),
+				false,
+				"WHERE `evil_{$placeholder_escape}s_field` = 321;",
+			),
+			array(
+				'WHERE %i = %d;',
+				array( 'value`', 321 ),
+				false,
+				'WHERE `value``` = 321;',
+			),
+			array(
+				'WHERE `%i = %d;',
+				array( ' AND evil_value', 321 ),
+				false,
+				'WHERE `` AND evil_value` = 321;', // Won't run (SQL parse error: "Unclosed quote").
+			),
+			array(
+				'WHERE %i` = %d;',
+				array( 'evil_value -- ', 321 ),
+				false,
+				'WHERE `evil_value -- `` = 321;', // Won't run (SQL parse error: "Unclosed quote").
+			),
+			array(
+				'WHERE `%i`` = %d;',
+				array( ' AND true -- ', 321 ),
+				false,
+				'WHERE `` AND true -- ``` = 321;', // Won't run (Unknown column '').
+			),
+			array(
+				'WHERE ``%i` = %d;',
+				array( ' AND true -- ', 321 ),
+				false,
+				'WHERE ``` AND true -- `` = 321;', // Won't run (SQL parse error: "Unclosed quote").
+			),
+			array(
+				'WHERE %2$i = %1$d;',
+				array( '1', 'two' ),
+				false,
+				'WHERE `two` = 1;',
+			),
+			array(
+				'WHERE \'%i\' = 1 AND "%i" = 2 AND `%i` = 3 AND ``%i`` = 4 AND %15i = 5',
+				array( 'my_field1', 'my_field2', 'my_field3', 'my_field4', 'my_field5' ),
+				false,
+				'WHERE \'`my_field1`\' = 1 AND "`my_field2`" = 2 AND ``my_field3`` = 3 AND ```my_field4``` = 4 AND `      my_field5` = 5', // Does not remove any existing quotes, always adds it's own (safer).
+			),
+			array(
+				'WHERE id = %d AND %i LIKE %2$s LIMIT 1',
+				array( 123, 'field -- ', false ),
+				true, // Incorrect usage.
+				null, // Should be rejected, otherwise the `%1$s` could use Identifier escaping, e.g. 'WHERE `field -- ` LIKE field --  LIMIT 1' (thanks @vortfu).
+			),
+			array(
+				'WHERE %i LIKE %s LIMIT 1',
+				array( "field' -- ", "field' -- " ),
+				false,
+				"WHERE `field' -- ` LIKE 'field\' -- ' LIMIT 1", // In contrast to the above, Identifier vs String escaping is used.
+			),
 		);
+	}
+
+	public function test_allow_unsafe_unquoted_parameters() {
+		global $wpdb;
+
+		$sql    = 'WHERE (%i = %s) OR (%10i = %10s) OR (%5$i = %6$s)';
+		$values = array( 'field_a', 'string_a', 'field_b', 'string_b', 'field_c', 'string_c' );
+
+		$default = $wpdb->allow_unsafe_unquoted_parameters;
+
+		$wpdb->allow_unsafe_unquoted_parameters = true;
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$part = $wpdb->prepare( $sql, $values );
+		$this->assertSame( 'WHERE (`field_a` = \'string_a\') OR (`   field_b` =   string_b) OR (`field_c` = string_c)', $part ); // Unsafe, unquoted parameters.
+
+		$wpdb->allow_unsafe_unquoted_parameters = false;
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$part = $wpdb->prepare( $sql, $values );
+		$this->assertSame( 'WHERE (`field_a` = \'string_a\') OR (`   field_b` = \'  string_b\') OR (`field_c` = \'string_c\')', $part );
+
+		$wpdb->allow_unsafe_unquoted_parameters = $default;
+
 	}
 
 	/**
@@ -1742,13 +1868,16 @@ class Tests_DB extends WP_UnitTestCase {
 
 	public function data_escape_and_prepare() {
 		global $wpdb;
+
+		$placeholder_escape = $wpdb->placeholder_escape();
+
 		return array(
 			array(
 				'%s',                                  // String to pass through esc_url().
 				' {ESCAPE} ',                          // Query to insert the output of esc_url() into, replacing "{ESCAPE}".
 				'foo',                                 // Data to send to prepare().
 				true,                                  // Whether to expect an incorrect usage error or not.
-				" {$wpdb->placeholder_escape()}s ",    // Expected output.
+				" {$placeholder_escape}s ",    // Expected output.
 			),
 			array(
 				'foo%sbar',
@@ -1762,7 +1891,7 @@ class Tests_DB extends WP_UnitTestCase {
 				' %s {ESCAPE} ',
 				'foo',
 				false,
-				" 'foo' {$wpdb->placeholder_escape()}s ",
+				" 'foo' {$placeholder_escape}s ",
 			),
 		);
 	}
@@ -1841,6 +1970,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @dataProvider parse_db_host_data_provider
 	 * @ticket 41722
+	 * @ticket 54877
 	 */
 	public function test_parse_db_host( $host_string, $expect_bail, $host, $port, $socket, $is_ipv6 ) {
 		global $wpdb;
@@ -1873,7 +2003,7 @@ class Tests_DB extends WP_UnitTestCase {
 				':3306',
 				false,
 				'',
-				'3306',
+				3306,
 				null,
 				false,
 			),
@@ -1902,10 +2032,18 @@ class Tests_DB extends WP_UnitTestCase {
 				false,
 			),
 			array(
+				'127.0.0.1:port_as_string',
+				false,
+				'127.0.0.1',
+				null,
+				null,
+				false,
+			),
+			array(
 				'127.0.0.1:3306',
 				false,
 				'127.0.0.1',
-				'3306',
+				3306,
 				null,
 				false,
 			),
@@ -1913,7 +2051,7 @@ class Tests_DB extends WP_UnitTestCase {
 				'127.0.0.1:3306:/tmp/mysql:with_colon.sock',
 				false,
 				'127.0.0.1',
-				'3306',
+				3306,
 				'/tmp/mysql:with_colon.sock',
 				false,
 			),
@@ -1926,15 +2064,31 @@ class Tests_DB extends WP_UnitTestCase {
 				false,
 			),
 			array(
+				'example.com:port_as_string',
+				false,
+				'example.com',
+				null,
+				null,
+				false,
+			),
+			array(
 				'example.com:3306',
 				false,
 				'example.com',
-				'3306',
+				3306,
 				null,
 				false,
 			),
 			array(
 				'localhost',
+				false,
+				'localhost',
+				null,
+				null,
+				false,
+			),
+			array(
+				'localhost:port_as_string',
 				false,
 				'localhost',
 				null,
@@ -1951,6 +2105,14 @@ class Tests_DB extends WP_UnitTestCase {
 			),
 			array(
 				'localhost:/tmp/mysql:with_colon.sock',
+				false,
+				'localhost',
+				null,
+				'/tmp/mysql:with_colon.sock',
+				false,
+			),
+			array(
+				'localhost:port_as_string:/tmp/mysql:with_colon.sock',
 				false,
 				'localhost',
 				null,
@@ -1985,7 +2147,15 @@ class Tests_DB extends WP_UnitTestCase {
 				'[::1]:3306',
 				false,
 				'::1',
-				'3306',
+				3306,
+				null,
+				true,
+			),
+			array(
+				'[::1]:port_as_string',
+				false,
+				'::1',
+				null,
 				null,
 				true,
 			),
@@ -1993,7 +2163,7 @@ class Tests_DB extends WP_UnitTestCase {
 				'[::1]:3306:/tmp/mysql:with_colon.sock',
 				false,
 				'::1',
-				'3306',
+				3306,
 				'/tmp/mysql:with_colon.sock',
 				true,
 			),

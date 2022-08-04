@@ -12,19 +12,13 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 class Tests_Ajax_Attachments extends WP_Ajax_UnitTestCase {
 	/**
 	 * @ticket 36578
+	 *
+	 * @covers ::wp_ajax_send_attachment_to_editor
+	 * @covers ::get_image_send_to_editor
 	 */
 	public function test_wp_ajax_send_attachment_to_editor_should_return_an_image() {
 		// Become an administrator.
-		$post    = $_POST;
-		$user_id = self::factory()->user->create(
-			array(
-				'role'       => 'administrator',
-				'user_login' => 'user_36578_administrator',
-				'user_email' => 'user_36578_administrator@example.com',
-			)
-		);
-		wp_set_current_user( $user_id );
-		$_POST = array_merge( $_POST, $post );
+		$this->_setRole( 'administrator' );
 
 		$filename = DIR_TESTDATA . '/images/canola.jpg';
 		$contents = file_get_contents( $filename );
@@ -64,19 +58,14 @@ class Tests_Ajax_Attachments extends WP_Ajax_UnitTestCase {
 	/**
 	 * @ticket 36578
 	 * @group ms-excluded
+	 *
+	 * @covers ::wp_ajax_send_attachment_to_editor
 	 */
 	public function test_wp_ajax_send_attachment_to_editor_should_return_a_link() {
+		$this->skipWithMultisite();
+
 		// Become an administrator.
-		$post    = $_POST;
-		$user_id = self::factory()->user->create(
-			array(
-				'role'       => 'administrator',
-				'user_login' => 'user_36578_administrator',
-				'user_email' => 'user_36578_administrator@example.com',
-			)
-		);
-		wp_set_current_user( $user_id );
-		$_POST = array_merge( $_POST, $post );
+		$this->_setRole( 'administrator' );
 
 		$filename = DIR_TESTDATA . '/formatting/entities.txt';
 		$contents = file_get_contents( $filename );

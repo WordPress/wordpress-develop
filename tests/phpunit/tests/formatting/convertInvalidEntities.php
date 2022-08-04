@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::convert_invalid_entities
  */
 class Tests_Formatting_ConvertInvalidEntities extends WP_UnitTestCase {
 	public function test_replaces_windows1252_entities_with_unicode_ones() {
@@ -19,6 +21,9 @@ class Tests_Formatting_ConvertInvalidEntities extends WP_UnitTestCase {
 		$this->assertSame( $output, convert_invalid_entities( $input ) );
 	}
 
+	/**
+	 * @covers ::convert_chars
+	 */
 	public function test_escapes_lone_ampersands() {
 		$this->assertSame( 'at&#038;t', convert_chars( 'at&t' ) );
 	}

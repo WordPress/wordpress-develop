@@ -1,15 +1,17 @@
 name: End-to-end Tests
 
 on:
-  # The end to end test suite was introduced in WordPress 5.3.
+  # The end-to-end test suite was introduced in WordPress 5.3.
   push:
     branches:
       - trunk
       - '5.[3-9]'
       - '[6-9].[0-9]'
     tags:
-      - '5.[3-9]*'
-      - '[6-9].[0-9]*'
+      - '[0-9]+.[0-9]'
+      - '[0-9]+.[0-9].[0-9]+'
+      - '![34].[0-9].[0-9]+'
+      - '!5.[0-2].[0-9]+'
   pull_request:
     branches:
       - trunk
@@ -31,11 +33,11 @@ jobs:
   # Runs the end-to-end test suite.
   #
   # Performs the following steps:
-  # - Set environment variables.
+  # - Sets environment variables.
   # - Checks out the repository.
-  # - Logs debug information about the runner container.
-  # - Installs NodeJS 14.
-  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # - Logs debug information about the GitHub Action runner.
+  # - Installs NodeJS.
+  # _ Installs NPM dependencies.
   # - Builds WordPress to run from the `build` directory.
   # - Starts the WordPress Docker container.
   # - Logs general debug information.
@@ -57,7 +59,7 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
 
       - name: Checkout repository
-        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
 
       - name: Log debug information
         run: |
@@ -71,7 +73,7 @@ jobs:
           locale -a
 
       - name: Install NodeJS
-        uses: actions/setup-node@5b52f097d36d4b0b2f94ed6de710023fbb8b2236 # v3.1.0
+        uses: actions/setup-node@eeb10cff27034e7acf239c5d29f62154018672fd # v3.3.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
