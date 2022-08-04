@@ -269,7 +269,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$_REQUEST['do']      = 'save';
 		$_REQUEST['history'] = '[{"r":-90}]';
 
-		$ret = wp_save_image( $attachment_id );
+		wp_save_image( $attachment_id );
 
 		$backup_sizes = get_post_meta( $attachment_id, '_wp_attachment_backup_sizes', true );
 
@@ -312,7 +312,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$_REQUEST['do']      = 'save';
 		$_REQUEST['history'] = '[{"r":-90}]';
 
-		$ret = wp_save_image( $attachment_id );
+		wp_save_image( $attachment_id );
 
 		$backup_sources = get_post_meta( $attachment_id, '_wp_attachment_backup_sources', true );
 
@@ -346,6 +346,126 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->assertArrayHasKey( $size_name, $metadata['sizes'] );
 			$this->assertArrayHasKey( 'sources', $metadata['sizes'][ $size_name ] );
 			$this->assertSame( $properties['sources'], $metadata['sizes'][ $size_name ]['sources'] );
+		}
+	}
+
+	/**
+	 * Prevent to backup the full size image if only the thumbnail is edited
+	 *
+	 * @test
+	 */
+	public function test_prevent_to_backup_the_full_size_image_if_only_the_thumbnail_is_edited() {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->markTestSkipped( 'This test requires WebP support.' );
+		}
+
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+		$metadata      = wp_get_attachment_metadata( $attachment_id );
+		$this->assertArrayHasKey( 'sources', $metadata );
+
+		$_REQUEST['action']  = 'image-editor';
+		$_REQUEST['context'] = 'edit-attachment';
+		$_REQUEST['postid']  = $attachment_id;
+		$_REQUEST['target']  = 'thumbnail';
+		$_REQUEST['do']      = 'save';
+		$_REQUEST['history'] = '[{"f":1}]';
+
+		wp_save_image( $attachment_id );
+
+		$backup_sources = get_post_meta( $attachment_id, '_wp_attachment_backup_sources', true );
+		$this->assertEmpty( $backup_sources );
+		$backup_sizes = get_post_meta( $attachment_id, '_wp_attachment_backup_sizes', true );
+		$this->assertIsArray( $backup_sizes );
+		$this->assertCount( 1, $backup_sizes );
+		$this->assertArrayHasKey( 'thumbnail-orig', $backup_sizes );
+		$this->assertArrayHasKey( 'sources', $backup_sizes['thumbnail-orig'] );
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		$this->assertArrayHasKey( 'sources', $metadata );
+		$this->assertArrayHasKey( 'sizes', $metadata );
+		$this->assertArrayHasKey( 'image/jpeg', $metadata['sources'] );
+		$this->assertArrayHasKey( 'image/webp', $metadata['sources'] );
+		$this->assertArrayHasKey( 'file', $metadata['sources']['image/jpeg'] );
+		$this->assertArrayHasKey( 'file', $metadata['sources']['image/webp'] );
+
+		// Assert that file names is not edited.
+		$this->assertDoesNotMatchRegularExpression( '/e\d{13}/', $metadata['sources']['image/jpeg']['file'] );
+		$this->assertDoesNotMatchRegularExpression( '/e\d{13}/', $metadata['sources']['image/webp']['file'] );
+
+		foreach ( $metadata['sizes'] as $size_name => $properties ) {
+			$this->assertArrayHasKey( 'sources',$properties );
+			$this->assertArrayHasKey( 'image/jpeg', $properties['sources'] );
+			$this->assertArrayHasKey( 'image/webp', $properties['sources'] );
+			$this->assertArrayHasKey( 'file', $properties['sources']['image/jpeg'] );
+			$this->assertArrayHasKey( 'file', $properties['sources']['image/webp'] );
+
+			if ( 'thumbnail' === $size_name ) {
+				$this->assertSame( $properties['file'], $properties['sources']['image/jpeg']['file'] );
+				$this->assertMatchesRegularExpression( '/e\d{13}/', $properties['sources']['image/jpeg']['file'] );
+				$this->assertMatchesRegularExpression( '/e\d{13}/', $properties['sources']['image/webp']['file'] );
+			} else {
+				$this->assertDoesNotMatchRegularExpression( '/e\d{13}/', $properties['sources']['image/jpeg']['file'] );
+				$this->assertDoesNotMatchRegularExpression( '/e\d{13}/', $properties['sources']['image/webp']['file'] );
+			}
+		}
+	}
+
+	/**
+	 * Backup the image when all images except the thumbnail are updated
+	 *
+	 * @test
+	 */
+	public function test_backup_the_image_when_all_images_except_the_thumbnail_are_updated() {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->markTestSkipped( 'This test requires WebP support.' );
+		}
+
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+		$metadata      = wp_get_attachment_metadata( $attachment_id );
+
+		$this->assertArrayHasKey( 'sizes', $metadata );
+		$this->assertArrayHasKey( 'thumbnail', $metadata['sizes'] );
+		$this->assertArrayHasKey( 'file', $metadata['sizes']['thumbnail'] );
+
+		$_REQUEST['action']  = 'image-editor';
+		$_REQUEST['context'] = 'edit-attachment';
+		$_REQUEST['postid']  = $attachment_id;
+		$_REQUEST['target']  = 'nothumb';
+		$_REQUEST['do']      = 'save';
+		$_REQUEST['history'] = '[{"r":90}]';
+
+		wp_save_image( $attachment_id );
+
+		$backup_sources = get_post_meta( $attachment_id, '_wp_attachment_backup_sources', true );
+		$this->assertIsArray( $backup_sources );
+		$this->assertArrayHasKey( 'full-orig', $backup_sources );
+		$this->assertSame( $metadata['sources'], $backup_sources['full-orig'] );
+
+		$updated_metadata = wp_get_attachment_metadata( $attachment_id );
+
+		$this->assertArrayHasKey( 'sources', $updated_metadata );
+		$this->assertNotSame( $metadata['sources'], $updated_metadata['sources'] );
+		$this->assertArrayHasKey( 'image/jpeg', $updated_metadata['sources'] );
+		$this->assertArrayHasKey( 'image/webp', $updated_metadata['sources'] );
+		$this->assertArrayHasKey( 'file', $updated_metadata['sources']['image/jpeg'] );
+		$this->assertArrayHasKey( 'file', $updated_metadata['sources']['image/webp'] );
+
+		foreach ( $updated_metadata['sources'] as $properties ) {
+			$this->assertMatchesRegularExpression( '/e\d{13}/', $properties['file'] );
+		}
+
+		$this->assertSame( $metadata['sizes']['thumbnail']['file'], $updated_metadata['sizes']['thumbnail']['file'] );
+
+		$backup_sizes = get_post_meta( $attachment_id, '_wp_attachment_backup_sizes', true );
+		$this->assertIsArray( $backup_sizes );
+		$this->assertArrayNotHasKey( 'thumbnail-orig', $backup_sizes, 'The thumbnail-orig was stored in the back up' );
+
+		foreach ( $backup_sizes as $size_name => $properties ) {
+			if ( 'full-orig' === $size_name ) {
+				continue;
+			}
+			$this->assertArrayHasKey( 'sources', $properties, "The '{$size_name}' does not have the sources." );
 		}
 	}
 
