@@ -118,34 +118,34 @@ class Tests_Link_EditTermLink extends WP_UnitTestCase {
 	 */
 	public function data_edit_term_link() {
 		return array(
-			'category passing term_id'          => array(
-				'taxonomy' => 'category',
-				'use_id'   => false,
-				'expected' => 'term.php?taxonomy=category&tag_ID=%ID%&post_type=post',
-			),
-			'category passing term object'      => array(
+			'category passing term_id'              => array(
 				'taxonomy' => 'category',
 				'use_id'   => true,
 				'expected' => 'term.php?taxonomy=category&tag_ID=%ID%&post_type=post',
 			),
-			'post_tag passing term_id'          => array(
-				'taxonomy' => 'post_tag',
+			'category passing term object'          => array(
+				'taxonomy' => 'category',
 				'use_id'   => false,
-				'expected' => 'term.php?taxonomy=post_tag&tag_ID=%ID%&post_type=post',
+				'expected' => 'term.php?taxonomy=category&tag_ID=%ID%&post_type=post',
 			),
-			'post_tag passing term object'      => array(
+			'post_tag passing term_id'              => array(
 				'taxonomy' => 'post_tag',
 				'use_id'   => true,
 				'expected' => 'term.php?taxonomy=post_tag&tag_ID=%ID%&post_type=post',
 			),
-			'a custom taxonomy passing term_id' => array(
+			'post_tag passing term object'          => array(
+				'taxonomy' => 'post_tag',
+				'use_id'   => false,
+				'expected' => 'term.php?taxonomy=post_tag&tag_ID=%ID%&post_type=post',
+			),
+			'a custom taxonomy passing term_id'     => array(
 				'taxonomy' => 'custom_taxonomy',
-				'use_id'   => false,
+				'use_id'   => true,
 				'expected' => 'term.php?taxonomy=custom_taxonomy&tag_ID=%ID%&post_type=post',
 			),
-			'a custom taxonomy passing term_id' => array(
+			'a custom taxonomy passing term object' => array(
 				'taxonomy' => 'custom_taxonomy',
-				'use_id'   => true,
+				'use_id'   => false,
 				'expected' => 'term.php?taxonomy=custom_taxonomy&tag_ID=%ID%&post_type=post',
 			),
 		);
