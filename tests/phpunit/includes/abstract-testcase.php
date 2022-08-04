@@ -366,15 +366,40 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 */
 	public static function flush_cache() {
 		global $wp_object_cache;
+
 		$wp_object_cache->group_ops      = array();
 		$wp_object_cache->stats          = array();
 		$wp_object_cache->memcache_debug = array();
 		$wp_object_cache->cache          = array();
+
 		if ( method_exists( $wp_object_cache, '__remoteset' ) ) {
 			$wp_object_cache->__remoteset();
 		}
+
 		wp_cache_flush();
-		wp_cache_add_global_groups( array( 'users', 'userlogins', 'usermeta', 'user_meta', 'useremail', 'userslugs', 'site-transient', 'site-options', 'blog-lookup', 'blog-details', 'rss', 'global-posts', 'blog-id-cache', 'networks', 'sites', 'site-details', 'blog_meta' ) );
+
+		wp_cache_add_global_groups(
+			array(
+				'users',
+				'userlogins',
+				'usermeta',
+				'user_meta',
+				'useremail',
+				'userslugs',
+				'site-transient',
+				'site-options',
+				'blog-lookup',
+				'blog-details',
+				'rss',
+				'global-posts',
+				'blog-id-cache',
+				'networks',
+				'sites',
+				'site-details',
+				'blog_meta',
+			)
+		);
+
 		wp_cache_add_non_persistent_groups( array( 'comment', 'counts', 'plugins' ) );
 	}
 
