@@ -355,10 +355,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @test
 	 */
 	public function test_prevent_to_backup_the_full_size_image_if_only_the_thumbnail_is_edited() {
-		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
-			$this->markTestSkipped( 'This test requires WebP support.' );
-		}
-
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
 		$metadata      = wp_get_attachment_metadata( $attachment_id );
@@ -382,30 +378,28 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'sources', $backup_sizes['thumbnail-orig'] );
 		$metadata = wp_get_attachment_metadata( $attachment_id );
 		$this->assertArrayHasKey( 'sources', $metadata );
-		$this->assertArrayHasKey( 'sizes', $metadata );
-		$this->assertArrayHasKey( 'image/jpeg', $metadata['sources'] );
-		$this->assertArrayHasKey( 'image/webp', $metadata['sources'] );
-		$this->assertArrayHasKey( 'file', $metadata['sources']['image/jpeg'] );
-		$this->assertArrayHasKey( 'file', $metadata['sources']['image/webp'] );
 
-		// Assert that file names is not edited.
-		$this->assertDoesNotMatchRegularExpression( '/e\d{13}/', $metadata['sources']['image/jpeg']['file'] );
-		$this->assertDoesNotMatchRegularExpression( '/e\d{13}/', $metadata['sources']['image/webp']['file'] );
+		foreach ( $metadata['sources'] as $source ) {
+			$this->assertArrayHasKey( 'file', $source );
+
+			// Assert that file names is not edited.
+			$this->assertDoesNotMatchRegularExpression( '/e\d{13}/', $source['file'] );
+		}
+
+		$this->assertArrayHasKey( 'sizes', $metadata );
 
 		foreach ( $metadata['sizes'] as $size_name => $properties ) {
-			$this->assertArrayHasKey( 'sources',$properties );
-			$this->assertArrayHasKey( 'image/jpeg', $properties['sources'] );
-			$this->assertArrayHasKey( 'image/webp', $properties['sources'] );
-			$this->assertArrayHasKey( 'file', $properties['sources']['image/jpeg'] );
-			$this->assertArrayHasKey( 'file', $properties['sources']['image/webp'] );
+			$this->assertArrayHasKey( 'sources', $properties );
 
-			if ( 'thumbnail' === $size_name ) {
-				$this->assertSame( $properties['file'], $properties['sources']['image/jpeg']['file'] );
-				$this->assertMatchesRegularExpression( '/e\d{13}/', $properties['sources']['image/jpeg']['file'] );
-				$this->assertMatchesRegularExpression( '/e\d{13}/', $properties['sources']['image/webp']['file'] );
-			} else {
-				$this->assertDoesNotMatchRegularExpression( '/e\d{13}/', $properties['sources']['image/jpeg']['file'] );
-				$this->assertDoesNotMatchRegularExpression( '/e\d{13}/', $properties['sources']['image/webp']['file'] );
+			foreach ( $properties['sources'] as $source ) {
+				$this->assertArrayHasKey( 'file', $source );
+
+				if ( 'thumbnail' === $size_name ) {
+					$this->assertSame( $properties['file'], $source['file'] );
+					$this->assertMatchesRegularExpression( '/e\d{13}/', $source['file'] );
+				} else {
+					$this->assertDoesNotMatchRegularExpression( '/e\d{13}/', $source['file'] );
+				}
 			}
 		}
 	}
@@ -416,10 +410,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @test
 	 */
 	public function test_backup_the_image_when_all_images_except_the_thumbnail_are_updated() {
-		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
-			$this->markTestSkipped( 'This test requires WebP support.' );
-		}
-
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
 		$metadata      = wp_get_attachment_metadata( $attachment_id );
@@ -446,15 +436,19 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$this->assertArrayHasKey( 'sources', $updated_metadata );
 		$this->assertNotSame( $metadata['sources'], $updated_metadata['sources'] );
-		$this->assertArrayHasKey( 'image/jpeg', $updated_metadata['sources'] );
-		$this->assertArrayHasKey( 'image/webp', $updated_metadata['sources'] );
-		$this->assertArrayHasKey( 'file', $updated_metadata['sources']['image/jpeg'] );
-		$this->assertArrayHasKey( 'file', $updated_metadata['sources']['image/webp'] );
 
-		foreach ( $updated_metadata['sources'] as $properties ) {
-			$this->assertMatchesRegularExpression( '/e\d{13}/', $properties['file'] );
+		foreach ( $updated_metadata['sources'] as $source ) {
+			$this->assertArrayHasKey( 'file', $source );
+
+			// Assert that file names is edited.
+			$this->assertMatchesRegularExpression( '/e\d{13}/', $source['file'] );
 		}
 
+		$this->assertArrayHasKey( 'sizes', $updated_metadata );
+		$this->assertArrayHasKey( 'thumbnail', $updated_metadata['sizes'] );
+		$this->assertArrayHasKey( 'file', $updated_metadata['sizes']['thumbnail'] );
+
+		// Assert that thumbnail was not edited.
 		$this->assertSame( $metadata['sizes']['thumbnail']['file'], $updated_metadata['sizes']['thumbnail']['file'] );
 
 		$backup_sizes = get_post_meta( $attachment_id, '_wp_attachment_backup_sizes', true );
