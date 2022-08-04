@@ -526,7 +526,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	 * @ticket 55443
 	 */
 	public function test_backup_sizes_and_sources_removed_after_edited_attachment_is_deleted() {
-		$filename = DIR_TESTDATA . '/images/test-image.jpg';
+		$filename = DIR_TESTDATA . '/images/canola.jpg';
 		$contents = file_get_contents( $filename );
 
 		$upload        = wp_upload_bits( wp_basename( $filename ), null, $contents );
@@ -558,6 +558,6 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		wp_delete_attachment( $attachment_id, true );
 
 		$this->assertFileDoesNotExist( path_join( $dirname, $backup_sources['full-orig']['image/webp']['file'] ) );
-		$this->assertFileDoesNotExist( path_join( $dirname, $backup_sizes['full']['sources']['image/webp']['file'] ) );
+		$this->assertFileDoesNotExist( path_join( $dirname, $backup_sizes['thumbnail-orig']['sources']['image/webp']['file'] ) );
 	}
 }
