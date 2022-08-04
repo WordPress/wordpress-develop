@@ -808,6 +808,7 @@ class WP_Object_Cache {
 	 * @var array
 	 */
 	public $global_groups = array(
+		/*
 		'users',
 		'userlogins',
 		'usermeta',
@@ -816,6 +817,7 @@ class WP_Object_Cache {
 		'blog-lookup',
 		'blog-details',
 		'rss',
+		*/
 	);
 
 	/**
