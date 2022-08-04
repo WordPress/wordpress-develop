@@ -395,7 +395,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				$this->assertArrayHasKey( 'file', $source );
 
 				if ( 'thumbnail' === $size_name ) {
-					$this->assertSame( $properties['file'], $source['file'] );
 					$this->assertMatchesRegularExpression( '/e\d{13}/', $source['file'] );
 				} else {
 					$this->assertDoesNotMatchRegularExpression( '/e\d{13}/', $source['file'] );
@@ -440,7 +439,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		foreach ( $updated_metadata['sources'] as $source ) {
 			$this->assertArrayHasKey( 'file', $source );
 
-			// Assert that file names is edited.
+			// Assert that file names are edited.
 			$this->assertMatchesRegularExpression( '/e\d{13}/', $source['file'] );
 		}
 
