@@ -526,6 +526,10 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	 * @ticket 55443
 	 */
 	public function test_backup_sizes_and_sources_removed_after_edited_attachment_is_deleted() {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->markTestSkipped( 'This test requires WebP support.' );
+		}
+
 		$filename = DIR_TESTDATA . '/images/canola.jpg';
 		$contents = file_get_contents( $filename );
 
