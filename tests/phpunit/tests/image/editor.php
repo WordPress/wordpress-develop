@@ -628,47 +628,6 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test removing the backup sources files when image is removed after edited.
-	 *
-	 * @ticket 55443
-	 */
-	public function it_should_remove_the_backup_sizes_and_sources_if_the_attachment_is_deleted_after_edit() {
-		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
-
-		$attachment_id = $this->factory->attachment->create_upload_object(
-			DIR_TESTDATA . '/images/test-image.jpg'
-		);
-
-		$file    = get_attached_file( $attachment_id, true );
-		$dirname = pathinfo( $file, PATHINFO_DIRNAME );
-
-		$this->assertIsString( $file );
-		$this->assertFileExists( $file );
-
-		$_REQUEST['action']  = 'image-editor';
-		$_REQUEST['context'] = 'edit-attachment';
-		$_REQUEST['postid']  = $attachment_id;
-		$_REQUEST['target']  = 'all';
-		$_REQUEST['do']      = 'save';
-		$_REQUEST['history'] = '[{"r":-90}]';
-
-		wp_save_image( $attachment_id );
-
-		$backup_sources = get_post_meta( $attachment_id, '_wp_attachment_backup_sources', true );
-		$this->assertNotEmpty( $backup_sources );
-		$this->assertIsArray( $backup_sources );
-
-		$backup_sizes = get_post_meta( $attachment_id, '_wp_attachment_backup_sizes', true );
-		$this->assertNotEmpty( $backup_sizes );
-		$this->assertIsArray( $backup_sizes );
-
-		wp_delete_attachment( $attachment_id, true );
-
-		$this->assertFileDoesNotExist( path_join( $dirname, $backup_sources['full-orig']['image/webp']['file'] ) );
-		$this->assertFileDoesNotExist( path_join( $dirname, $backup_sizes['thumbnail-orig']['sources']['image/webp']['file'] ) );
-	}
-
-	/**
 	 * Test avoiding the change of URLs of images that are not part of the media library.
 	 *
 	 * @ticket 55443

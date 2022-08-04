@@ -519,4 +519,45 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'images/media/video.png', $icon );
 	}
+
+	/**
+	 * Test removing the backup sources files when image is removed after edited.
+	 *
+	 * @ticket 55443
+	 */
+	public function test_backup_sizes_and_sources_removed_after_edited_attachment_is_deleted() {
+		$filename = DIR_TESTDATA . '/images/test-image.jpg';
+		$contents = file_get_contents( $filename );
+
+		$upload        = wp_upload_bits( wp_basename( $filename ), null, $contents );
+		$attachment_id = $this->_make_attachment( $upload );
+
+		$file    = get_attached_file( $attachment_id, true );
+		$dirname = pathinfo( $file, PATHINFO_DIRNAME );
+
+		$this->assertIsString( $file );
+		$this->assertFileExists( $file );
+
+		$_REQUEST['action']  = 'image-editor';
+		$_REQUEST['context'] = 'edit-attachment';
+		$_REQUEST['postid']  = $attachment_id;
+		$_REQUEST['target']  = 'all';
+		$_REQUEST['do']      = 'save';
+		$_REQUEST['history'] = '[{"r":-90}]';
+
+		wp_save_image( $attachment_id );
+
+		$backup_sources = get_post_meta( $attachment_id, '_wp_attachment_backup_sources', true );
+		$this->assertNotEmpty( $backup_sources );
+		$this->assertIsArray( $backup_sources );
+
+		$backup_sizes = get_post_meta( $attachment_id, '_wp_attachment_backup_sizes', true );
+		$this->assertNotEmpty( $backup_sizes );
+		$this->assertIsArray( $backup_sizes );
+
+		wp_delete_attachment( $attachment_id, true );
+
+		$this->assertFileDoesNotExist( path_join( $dirname, $backup_sources['full-orig']['image/webp']['file'] ) );
+		$this->assertFileDoesNotExist( path_join( $dirname, $backup_sizes['thumbnail-orig']['sources']['image/webp']['file'] ) );
+	}
 }
