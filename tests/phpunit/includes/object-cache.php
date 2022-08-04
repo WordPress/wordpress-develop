@@ -814,7 +814,7 @@ class WP_Object_Cache {
 	 *
 	 * @var array
 	 */
-	public $no_mc_groups = array( 'counts' );
+	public $no_mc_groups = array();
 
 	/**
 	 * Prefix used for global groups.
