@@ -24,27 +24,7 @@ class Tests_Cache extends WP_UnitTestCase {
 		$cache_class = get_class( $wp_object_cache );
 		$cache       = new $cache_class();
 
-		$cache->add_global_groups(
-			array(
-				'global-cache-test',
-				'users',
-				'userlogins',
-				'usermeta',
-				'user_meta',
-				'useremail',
-				'userslugs',
-				'site-transient',
-				'site-options',
-				'blog-lookup',
-				'blog-details',
-				'rss',
-				'global-posts',
-				'blog-id-cache',
-				'networks',
-				'sites',
-				'site-details',
-			)
-		);
+		$cache->add_global_groups( array( 'global-cache-test' ) );
 
 		return $cache;
 	}
