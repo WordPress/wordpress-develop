@@ -777,9 +777,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		foreach ( $metadata['sizes'] as $size ) {
 			$this->assertArrayHasKey( 'file', $size );
-			$this->assertSame( 'image/webp', $size['mime-type'] );
 			$this->assertArrayHasKey( 'sources', $size );
-			$this->assertSame( $size['file'], $size['sources'][$size['mime-type']]['file'] );
+			$this->assertSame( $size['file'], $size['sources'][ $size['mime-type'] ]['file'] );
 		}
 
 		unlink( $test_file );
