@@ -26,6 +26,48 @@ class Tests_Cache extends WP_UnitTestCase {
 		return $cache;
 	}
 
+	/**
+	 * @ticket 56198
+	 *
+	 * @covers WP_Object_Cache::is_valid_key
+	 * @dataProvider data_is_valid_key
+	 */
+	public function test_is_valid_key( $key, $valid ) {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
+		$val = 'val';
+
+		if ( $valid ) {
+			$this->assertTrue( $this->cache->add( $key, $val ), 'WP_Object_Cache:add() should return true for valid keys.' );
+			$this->assertSame( $val, $this->cache->get( $key ), 'The retrieved value should match the added value.' );
+		} else {
+			$this->setExpectedIncorrectUsage( 'WP_Object_Cache::add' );
+			$this->assertFalse( $this->cache->add( $key, $val ), 'WP_Object_Cache:add() should return false for invalid keys.' );
+		}
+	}
+
+	/**
+	 * Data provider for test_is_valid_key().
+	 *
+	 * @return array[] Test parameters {
+	 *     @type mixed $key   Cache key value.
+	 *     @type bool  $valid Whether the key should be considered valid.
+	 * }
+	 */
+	public function data_is_valid_key() {
+		return array(
+			array( false, false ),
+			array( null, false ),
+			array( '', false ),
+			array( 0, true ),
+			array( 1, true ),
+			array( '0', true ),
+			array( 'key', true ),
+		);
+	}
+
 	public function test_miss() {
 		$this->assertFalse( $this->cache->get( 'test_miss' ) );
 	}
@@ -112,9 +154,7 @@ class Tests_Cache extends WP_UnitTestCase {
 	}
 
 	public function test_flush() {
-		global $_wp_using_ext_object_cache;
-
-		if ( $_wp_using_ext_object_cache ) {
+		if ( wp_using_ext_object_cache() ) {
 			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
 		}
 
