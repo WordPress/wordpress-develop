@@ -400,7 +400,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			)
 		);
 
-		wp_cache_add_non_persistent_groups( array( 'comment', 'counts', 'plugins' ) );
+		wp_cache_add_non_persistent_groups( array( 'counts', 'plugins' ) );
 	}
 
 	/**
