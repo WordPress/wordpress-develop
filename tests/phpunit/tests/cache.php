@@ -144,6 +144,28 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertSame( $val2, $this->cache->get( $key ) );
 	}
 
+	public function test_wp_cache_replace() {
+		$key  = 'my-key';
+		$val1 = 'first-val';
+		$val2 = 'second-val';
+
+		$fake_key = 'my-fake-key';
+
+		// Save the first value to cache and verify.
+		wp_cache_set( $key, $val1 );
+		$this->assertSame( $val1, wp_cache_get( $key ) );
+
+		// Replace the value and verify.
+		wp_cache_replace( $key, $val2 );
+		$this->assertSame( $val2, wp_cache_get( $key ) );
+
+		// Non-existent key should fail.
+		$this->assertFalse( wp_cache_replace( $fake_key, $val1 ) );
+
+		// Make sure $fake_key is not stored.
+		$this->assertFalse( wp_cache_get( $fake_key ) );
+	}
+
 	public function test_set() {
 		$key  = __FUNCTION__;
 		$val1 = 'val1';
@@ -381,28 +403,6 @@ class Tests_Cache extends WP_UnitTestCase {
 		} else {
 			$this->assertEquals( $wp_object_cache, $new_blank_cache_object );
 		}
-	}
-
-	public function test_wp_cache_replace() {
-		$key  = 'my-key';
-		$val1 = 'first-val';
-		$val2 = 'second-val';
-
-		$fake_key = 'my-fake-key';
-
-		// Save the first value to cache and verify.
-		wp_cache_set( $key, $val1 );
-		$this->assertSame( $val1, wp_cache_get( $key ) );
-
-		// Replace the value and verify.
-		wp_cache_replace( $key, $val2 );
-		$this->assertSame( $val2, wp_cache_get( $key ) );
-
-		// Non-existent key should fail.
-		$this->assertFalse( wp_cache_replace( $fake_key, $val1 ) );
-
-		// Make sure $fake_key is not stored.
-		$this->assertFalse( wp_cache_get( $fake_key ) );
 	}
 
 	/**
