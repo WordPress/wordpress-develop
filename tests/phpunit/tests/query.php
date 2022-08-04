@@ -707,7 +707,7 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->set_permalink_structure( $permalink_structure );
 		$this->go_to( add_query_arg( $query_vars, home_url() ) );
 
-		// $this->assertQueryTrue( 'is_home' );
+		$this->assertQueryTrue( 'is_home' );
 	}
 
 	public function data_malformed_date_queries() {
