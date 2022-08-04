@@ -27,6 +27,7 @@ class Tests_Cache extends WP_UnitTestCase {
 		$cache->add_global_groups(
 			array(
 				'global-cache-test',
+				/*
 				'users',
 				'userlogins',
 				'usermeta',
@@ -43,6 +44,7 @@ class Tests_Cache extends WP_UnitTestCase {
 				'networks',
 				'sites',
 				'site-details',
+				*/
 			)
 		);
 
