@@ -558,6 +558,6 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		wp_delete_attachment( $attachment_id, true );
 
 		$this->assertFileDoesNotExist( path_join( $dirname, $backup_sources['full-orig']['image/webp']['file'] ) );
-		$this->assertFileDoesNotExist( path_join( $dirname, $backup_sizes['thumbnail-orig']['sources']['image/webp']['file'] ) );
+		$this->assertFileDoesNotExist( path_join( $dirname, $backup_sizes['full']['sources']['image/webp']['file'] ) );
 	}
 }
