@@ -1458,7 +1458,7 @@ function register_and_do_post_meta_boxes( $post ) {
 
 	$publish_callback_args = array( '__back_compat_meta_box' => true );
 
-	if ( post_type_supports( $post_type, 'revisions' ) && 'auto-draft' !== $post->post_status ) {
+	if ( post_type_supports( $post_type, 'revisions' ) && $post->post_status !== 'auto-draft' ) {
 		$revisions = wp_get_latest_revision_id_and_total_count( $post->ID );
 
 		// We should aim to show the revisions meta box only when there are revisions.

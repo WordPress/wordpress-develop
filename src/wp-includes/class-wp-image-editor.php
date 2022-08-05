@@ -448,7 +448,7 @@ abstract class WP_Image_Editor {
 	 */
 	public function generate_filename( $suffix = null, $dest_path = null, $extension = null ) {
 		// $suffix will be appended to the destination filename, just before the extension.
-		if ( null === $suffix ) {
+		if ( $suffix === null ) {
 			$suffix = $this->get_suffix();
 		}
 

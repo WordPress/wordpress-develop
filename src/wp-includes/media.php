@@ -1940,7 +1940,7 @@ function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
 	 */
 	$target_mimes = apply_filters( 'wp_content_image_mimes', $target_mimes, $attachment_id, $context );
 
-	if ( false === $target_mimes ) {
+	if ( $target_mimes === false ) {
 		return $image;
 	}
 

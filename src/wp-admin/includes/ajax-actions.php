@@ -122,11 +122,11 @@ function wp_ajax_ajax_tag_search() {
 	$search = wp_unslash( $_GET['q'] );
 
 	$comma = _x( ',', 'tag delimiter' );
-	if ( ',' !== $comma ) {
+	if ( $comma !== ',' ) {
 		$search = str_replace( $comma, ',', $search );
 	}
 
-	if ( false !== strpos( $search, ',' ) ) {
+	if ( strpos( $search, ',' ) !== false ) {
 		$search = explode( ',', $search );
 		$search = $search[ count( $search ) - 1 ];
 	}
@@ -148,7 +148,7 @@ function wp_ajax_ajax_tag_search() {
 	 * Require $term_search_min_chars chars for matching (default: 2)
 	 * ensure it's a non-negative, non-zero integer.
 	 */
-	if ( ( 0 == $term_search_min_chars ) || ( strlen( $search ) < $term_search_min_chars ) ) {
+	if ( ( $term_search_min_chars == 0 ) || ( strlen( $search ) < $term_search_min_chars ) ) {
 		wp_die();
 	}
 
@@ -2218,7 +2218,7 @@ function wp_ajax_find_posts() {
 
 	$search = wp_unslash( $_POST['ps'] );
 
-	if ( '' !== $search ) {
+	if ( $search !== '' ) {
 		$args['s'] = $search;
 	}
 

@@ -138,7 +138,7 @@ function wp_save_post_revision( $post_id ) {
 	if ( $revisions ) {
 		// Grab the latest revision, but not an autosave.
 		foreach ( $revisions as $revision ) {
-			if ( false !== strpos( $revision->post_name, "{$revision->post_parent}-revision" ) ) {
+			if ( strpos( $revision->post_name, "{$revision->post_parent}-revision" ) !== false ) {
 				$latest_revision = $revision;
 				break;
 			}
@@ -605,7 +605,7 @@ function wp_get_post_revisions_url( $post = 0 ) {
 
 	$revisions = wp_get_latest_revision_id_and_total_count( $post->ID );
 
-	if ( is_wp_error( $revisions ) || 0 === $revisions['count'] ) {
+	if ( is_wp_error( $revisions ) || $revisions['count'] === 0 ) {
 		return null;
 	}
 

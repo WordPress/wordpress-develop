@@ -322,7 +322,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 			$image_meta = _wp_image_meta_replace_original( $saved, $file, $image_meta, $attachment_id );
 
 			// If the image was rotated update the stored EXIF data.
-			if ( true === $rotated && ! empty( $image_meta['image_meta']['orientation'] ) ) {
+			if ( $rotated === true && ! empty( $image_meta['image_meta']['orientation'] ) ) {
 				$image_meta['image_meta']['orientation'] = 1;
 			}
 		} else {
@@ -410,7 +410,7 @@ function _wp_maybe_scale_and_rotate_image( $file, $attachment_id, $imagesize, $e
 	}
 
 	// Do not scale (large) PNG images. May result in sub-sizes that have greater file size than the original. See #48736.
-	if ( 'image/png' !== $mime_type ) {
+	if ( $mime_type !== 'image/png' ) {
 		/**
 		 * Filters the "BIG image" threshold value.
 		 *
@@ -444,7 +444,7 @@ function _wp_maybe_scale_and_rotate_image( $file, $attachment_id, $imagesize, $e
 			if ( ! is_wp_error( $resized ) && is_array( $exif_meta ) ) {
 				$rotated = $editor->maybe_exif_rotate();
 			}
-		} elseif ( ! empty( $exif_meta['orientation'] ) && 1 !== (int) $exif_meta['orientation'] ) {
+		} elseif ( ! empty( $exif_meta['orientation'] ) && (int) $exif_meta['orientation'] !== 1 ) {
 			// Rotate the whole original image if there is EXIF data and "orientation" is not 1.
 			$rotated = $editor->maybe_exif_rotate();
 		}
@@ -470,7 +470,7 @@ function _wp_get_image_suffix( $resized, $rotated ) {
 		return 'scaled';
 	}
 
-	if ( true === $rotated ) {
+	if ( $rotated === true ) {
 		// Append `-rotated` to the image file name.
 		return 'rotated';
 	}
@@ -1524,7 +1524,7 @@ function _wp_get_primary_and_additional_mime_types( $file, $attachment_id ) {
 
 	// Use original mime type as primary mime type, or alternatively the first one.
 	$primary_mime_type_key = array_search( $original_mime_type, $output_mime_types, true );
-	if ( false === $primary_mime_type_key ) {
+	if ( $primary_mime_type_key === false ) {
 		$primary_mime_type_key = 0;
 	}
 	// Split output mime types into primary mime type and additional mime types.

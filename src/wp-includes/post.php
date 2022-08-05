@@ -4159,7 +4159,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	 *
 	 * For new posts check the primitive capability, for updates check the meta capability.
 	 */
-	if ( 'pending' === $post_status ) {
+	if ( $post_status === 'pending' ) {
 		$post_type_object = get_post_type_object( $post_type );
 
 		if ( ! $update && $post_type_object && ! current_user_can( $post_type_object->cap->publish_posts ) ) {
@@ -5231,7 +5231,7 @@ function wp_set_post_terms( $post_id = 0, $terms = '', $taxonomy = 'post_tag', $
 
 	if ( ! is_array( $terms ) ) {
 		$comma = _x( ',', 'tag delimiter' );
-		if ( ',' !== $comma ) {
+		if ( $comma !== ',' ) {
 			$terms = str_replace( $comma, ',', $terms );
 		}
 		$terms = explode( ',', trim( $terms, " \n\t\r\0\x0B," ) );

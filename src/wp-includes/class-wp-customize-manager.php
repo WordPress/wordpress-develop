@@ -3433,7 +3433,7 @@ final class WP_Customize_Manager {
 	 */
 	public function _filter_revision_post_has_changed( $post_has_changed, $latest_revision, $post ) {
 		unset( $latest_revision );
-		if ( 'customize_changeset' === $post->post_type ) {
+		if ( $post->post_type === 'customize_changeset' ) {
 			$post_has_changed = $this->store_changeset_revision;
 		}
 		return $post_has_changed;
