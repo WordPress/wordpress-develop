@@ -745,7 +745,7 @@ class Tests_Query extends WP_UnitTestCase {
 				'/%postname%/',
 				array(
 					'monthnum' => 1,
-					'day' => 15,
+					'day'      => 15,
 				),
 			),
 			'/%postname%/ with month only'           => array(
@@ -758,7 +758,7 @@ class Tests_Query extends WP_UnitTestCase {
 				'/%year%/%postname%/',
 				array(
 					'year' => 2020,
-					'day' => 15,
+					'day'  => 15,
 				),
 			),
 		);
