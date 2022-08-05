@@ -725,7 +725,7 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->go_to( add_query_arg( $query_vars, home_url() ) );
 
 		/*
-		 * These queries are expected to throw 404 errors but the
+		 * These queries are expected to result in 404 errors but the
 		 * purpose of ticket 52252 was to prevent notices from being
 		 * thrown.
 		 */
