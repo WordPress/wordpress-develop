@@ -724,7 +724,12 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->set_permalink_structure( $permalink_structure );
 		$this->go_to( add_query_arg( $query_vars, home_url() ) );
 
-		// assert no notice thrown
+		/*
+		 * These queries are expected to throw 404 errors but the
+		 * purpose of ticket 52252 was to prevent notices from being
+		 * thrown.
+		 */
+		$this->assertQueryTrue( 'is_404' );
 	}
 
 	/**
