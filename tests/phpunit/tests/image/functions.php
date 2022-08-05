@@ -352,7 +352,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * Prevent to backup the full size image if only the thumbnail is edited
 	 *
-	 * @test
+	 * @ticket 55443
 	 */
 	public function test_prevent_to_backup_the_full_size_image_if_only_the_thumbnail_is_edited() {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
@@ -406,7 +406,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * Backup the image when all images except the thumbnail are updated
 	 *
-	 * @test
+	 * @ticket 55443
 	 */
 	public function test_backup_the_image_when_all_images_except_the_thumbnail_are_updated() {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
