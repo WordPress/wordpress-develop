@@ -327,6 +327,8 @@ class Tests_Pluggable extends WP_UnitTestCase {
 					),
 					'wp_cache_flush'                     => array(),
 					'wp_cache_flush_runtime'             => array(),
+					'wp_cache_flush_group'               => array( 'group' ),
+					'wp_cache_supports_group_flush'      => array(),
 					'wp_cache_close'                     => array(),
 					'wp_cache_add_global_groups'         => array( 'groups' ),
 					'wp_cache_add_non_persistent_groups' => array( 'groups' ),

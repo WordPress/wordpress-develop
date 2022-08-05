@@ -2010,6 +2010,7 @@ class Tests_User extends WP_UnitTestCase {
 		$update_data = array(
 			'ID'         => $create_user,
 			'user_login' => 'test_user',
+			'user_email' => 'user@example.com',
 			'meta_input' => array(
 				'test_meta_key' => 'test_meta_updated',
 				'custom_meta'   => 'updated_value',
