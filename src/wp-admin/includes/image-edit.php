@@ -1091,7 +1091,11 @@ function wp_save_image( $post_id ) {
 
 	foreach ( $mime_transforms as $targeted_mime ) {
 		if ( $targeted_mime !== $post->post_mime_type ) {
-			if ( ! $img::supports_mime_type( $targeted_mime ) ) {
+			if ( ! wp_image_editor_supports(
+				array(
+					'mime_type' => $targeted_mime,
+				)
+			) ) {
 				continue;
 			}
 
