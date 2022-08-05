@@ -675,17 +675,17 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		$post_revisions       = wp_get_post_revisions( $post_id );
 		$latest_post_revision = current( $post_revisions );
-		$revision             = wp_get_latest_revision_id_and_total_count( $post_id );
+		$revisions            = wp_get_latest_revision_id_and_total_count( $post_id );
 
 		$this->assertSame(
 			$latest_post_revision->ID,
-			$revision['revision'],
+			$revisions['latest_id'],
 			'The latest revision ID does not match.'
 		);
 
 		$this->assertSame(
 			count( $post_revisions ),
-			$revision['count'],
+			$revisions['count'],
 			'The total count of revisions does not match.'
 		);
 	}
