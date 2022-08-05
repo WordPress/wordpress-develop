@@ -725,11 +725,13 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->go_to( add_query_arg( $query_vars, home_url() ) );
 
 		/*
-		 * These queries are expected to result in 404 errors but the
-		 * purpose of ticket 52252 was to prevent notices from being
-		 * thrown.
+		 * Ticket 52252 was to prevent notices from being thrown
+		 * if the date query is malformed.
+		 *
+		 * The test will automatically fail if the function triggers a notice,
+		 * so this dummy assertion is just for accurate stats.
 		 */
-		$this->assertQueryTrue( 'is_404' );
+		$this->assertTrue( true );
 	}
 
 	/**
