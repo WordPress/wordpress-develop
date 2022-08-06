@@ -6,7 +6,7 @@
  * @ticket 42438
  * @covers ::wp_preload_resources
  */
-class Tests_General_wpPreloadLinks extends WP_UnitTestCase {
+class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_preload_resources
