@@ -3012,9 +3012,6 @@ function wp_ajax_query_attachments() {
 		! empty( $_REQUEST['query']['post_status'] ) &&
 		'trash' === $_REQUEST['query']['post_status']
 	) {
-		$posts_query  = new WP_Query();
-		$query_result = $posts_query->query( $query );
-		update_post_parent_caches( $query_result );
 		$query['post_status'] = 'trash';
 	} else {
 		$query['post_status'] = 'inherit';
@@ -3044,6 +3041,7 @@ function wp_ajax_query_attachments() {
 
 	$posts       = array_map( 'wp_prepare_attachment_for_js', $attachments_query->posts );
 	$posts       = array_filter( $posts );
+	update_post_parent_caches( $posts );
 	$total_posts = $attachments_query->found_posts;
 
 	if ( $total_posts < 1 ) {
