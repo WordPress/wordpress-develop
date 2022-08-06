@@ -828,7 +828,12 @@ function twentyeleven_body_classes( $classes ) {
 		$classes[] = 'single-author';
 	}
 
-	if ( is_singular() && ! is_home() && ! is_page_template( 'showcase.php' ) && ! is_page_template( 'sidebar-page.php' ) ) {
+	if ( is_singular()
+		&& ! is_home()
+		&& ! is_page_template( 'showcase.php' )
+		&& ! is_page_template( 'sidebar-page.php' )
+		&& ! ( class_exists( 'WooCommerce' ) && is_product() )
+	) {
 		$classes[] = 'singular';
 	}
 
