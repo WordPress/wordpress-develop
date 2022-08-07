@@ -20,13 +20,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	public $manager;
 
 	/**
-	 * Symbol.
-	 *
-	 * @var stdClass
-	 */
-	public $undefined;
-
-	/**
 	 * Admin user ID.
 	 *
 	 * @var int
@@ -56,8 +49,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
-		$this->manager   = $this->instantiate();
-		$this->undefined = new stdClass();
+		$this->manager = $this->instantiate();
 
 		$orig_file       = DIR_TESTDATA . '/images/canola.jpg';
 		$this->test_file = get_temp_dir() . 'canola.jpg';
