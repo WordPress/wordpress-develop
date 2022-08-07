@@ -20,13 +20,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	public $manager;
 
 	/**
-	 * Symbol.
-	 *
-	 * @var stdClass
-	 */
-	public $undefined;
-
-	/**
 	 * Admin user ID.
 	 *
 	 * @var int
