@@ -425,6 +425,21 @@ function unregister_block_type( $name ) {
 function has_blocks( $post = null ) {
 	if ( ! is_string( $post ) ) {
 		$wp_post = get_post( $post );
+
+		if ( null === $wp_post ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				sprintf(
+					/* translators: %s: The $post variable. */
+					__( '%s is not a valid post.' ),
+					'<code>$post</code>'
+				),
+				'6.1.0'
+			);
+
+			return false;
+		}
+
 		if ( $wp_post instanceof WP_Post ) {
 			$post = $wp_post->post_content;
 		}
