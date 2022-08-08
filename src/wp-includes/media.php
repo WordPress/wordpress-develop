@@ -996,7 +996,7 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $args
 	 *                                    an array of width and height values in pixels (in that order).
 	 * @param bool         $icon          Whether the image should be treated as an icon.
 	 */
-	return apply_filters( 'wp_get_attachment_image_src', $image, $attachment_id, $size, $icon );
+	return apply_filters( 'wp_get_attachment_image_src', $image, $attachment_id, $size, $args );
 }
 
 /**
@@ -1015,7 +1015,9 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $args
  * @param int          $attachment_id Image attachment ID.
  * @param string|int[] $size          Optional. Image size. Accepts any registered image size name, or an array
  *                                    of width and height values in pixels (in that order). Default 'thumbnail'.
- * @param bool         $icon          Optional. Whether the image should be treated as an icon. Default false.
+ * @param array|bool   $args          Optional. Additional arguments for the image to return. For backward
+ *                                    compatibility boolean can be used to determine whether the image should
+ *                                    fall back to a mime type icon. Default false.
  * @param string|array $attr {
  *     Optional. Attributes for the image markup.
  *
@@ -1034,9 +1036,9 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $args
  * }
  * @return string HTML img element or empty string on failure.
  */
-function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = false, $attr = '' ) {
+function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $args = array(), $attr = '' ) {
 	$html  = '';
-	$image = wp_get_attachment_image_src( $attachment_id, $size, $icon );
+	$image = wp_get_attachment_image_src( $attachment_id, $size, $args );
 
 	if ( $image ) {
 		list( $src, $width, $height ) = $image;
@@ -1120,11 +1122,13 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 	 * @param int          $attachment_id Image attachment ID.
 	 * @param string|int[] $size          Requested image size. Can be any registered image size name, or
 	 *                                    an array of width and height values in pixels (in that order).
-	 * @param bool         $icon          Whether the image should be treated as an icon.
+	  * @param array|bool   $args         Optional. Additional arguments for the image to return. For backward
+	 *                                    compatibility boolean can be used to determine whether the image should
+	 *                                    fall back to a mime type icon. Default false.
 	 * @param string[]     $attr          Array of attribute values for the image markup, keyed by attribute name.
 	 *                                    See wp_get_attachment_image().
 	 */
-	return apply_filters( 'wp_get_attachment_image', $html, $attachment_id, $size, $icon, $attr );
+	return apply_filters( 'wp_get_attachment_image', $html, $attachment_id, $size, $args, $attr );
 }
 
 /**
@@ -1135,12 +1139,14 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
  * @param int          $attachment_id Image attachment ID.
  * @param string|int[] $size          Optional. Image size. Accepts any registered image size name, or an array of
  *                                    width and height values in pixels (in that order). Default 'thumbnail'.
- * @param bool         $icon          Optional. Whether the image should be treated as an icon. Default false.
+ * @param array|bool   $args          Optional. Additional arguments for the image to return. For backward
+ *                                    compatibility boolean can be used to determine whether the image should
+ *                                    fall back to a mime type icon. Default false.
  * @return string|false Attachment URL or false if no image is available. If `$size` does not match
  *                      any registered image size, the original image URL will be returned.
  */
-function wp_get_attachment_image_url( $attachment_id, $size = 'thumbnail', $icon = false ) {
-	$image = wp_get_attachment_image_src( $attachment_id, $size, $icon );
+function wp_get_attachment_image_url( $attachment_id, $size = 'thumbnail', $args = array() ) {
+	$image = wp_get_attachment_image_src( $attachment_id, $size, $args );
 	return isset( $image[0] ) ? $image[0] : false;
 }
 

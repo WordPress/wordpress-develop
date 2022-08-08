@@ -1609,13 +1609,15 @@ function the_attachment_link( $post = 0, $fullsize = false, $deprecated = false,
  * @param string|int[] $size      Optional. Image size. Accepts any registered image size name, or an array
  *                                of width and height values in pixels (in that order). Default 'thumbnail'.
  * @param bool         $permalink Optional. Whether to add permalink to image. Default false.
- * @param bool         $icon      Optional. Whether the attachment is an icon. Default false.
+ * @param array|bool   $args      Optional. Additional arguments for the image to return. For backward
+ *                                compatibility boolean can be used to determine whether the image should
+ *                                fall back to a mime type icon. Default false.
  * @param string|false $text      Optional. Link text to use. Activated by passing a string, false otherwise.
  *                                Default false.
  * @param array|string $attr      Optional. Array or string of attributes. Default empty.
  * @return string HTML content.
  */
-function wp_get_attachment_link( $post = 0, $size = 'thumbnail', $permalink = false, $icon = false, $text = false, $attr = '' ) {
+function wp_get_attachment_link( $post = 0, $size = 'thumbnail', $permalink = false, $args = array(), $text = false, $attr = '' ) {
 	$_post = get_post( $post );
 
 	if ( empty( $_post ) || ( 'attachment' !== $_post->post_type ) || ! wp_get_attachment_url( $_post->ID ) ) {
@@ -1631,7 +1633,7 @@ function wp_get_attachment_link( $post = 0, $size = 'thumbnail', $permalink = fa
 	if ( $text ) {
 		$link_text = $text;
 	} elseif ( $size && 'none' !== $size ) {
-		$link_text = wp_get_attachment_image( $_post->ID, $size, $icon, $attr );
+		$link_text = wp_get_attachment_image( $_post->ID, $size, $args, $attr );
 	} else {
 		$link_text = '';
 	}
@@ -1657,11 +1659,13 @@ function wp_get_attachment_link( $post = 0, $size = 'thumbnail', $permalink = fa
 	 * @param string|int[] $size      Requested image size. Can be any registered image size name, or
 	 *                                an array of width and height values in pixels (in that order).
 	 * @param bool         $permalink Whether to add permalink to image. Default false.
-	 * @param bool         $icon      Whether to include an icon.
+	 * @param array|bool   $args      Optional. Additional arguments for the image to return. For backward
+     *                                compatibility boolean can be used to determine whether the image should
+     *                                fall back to a mime type icon. Default false.
 	 * @param string|false $text      If string, will be link text.
 	 * @param array|string $attr      Array or string of attributes.
 	 */
-	return apply_filters( 'wp_get_attachment_link', $link_html, $post, $size, $permalink, $icon, $text, $attr );
+	return apply_filters( 'wp_get_attachment_link', $link_html, $post, $size, $permalink, $args, $text, $attr );
 }
 
 /**
