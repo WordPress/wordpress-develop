@@ -4,7 +4,10 @@
 	"title": "Notice",
 	"category": "common",
 	"parent": [
-		"core/group"
+		"tests/group"
+	],
+	"ancestor": [
+		"tests/section"
 	],
 	"providesContext": {
 		"tests/message": "message"
