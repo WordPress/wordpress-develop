@@ -230,7 +230,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	/**
 	 * @ticket 22176
 	 */
-	public function test_query_cache_filter_no_caching() {
+	public function test_query_cache_no_caching() {
 		$args   = array(
 			'cache_results' => true,
 			'fields'        => 'ids',
