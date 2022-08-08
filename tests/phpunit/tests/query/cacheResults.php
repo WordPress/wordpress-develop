@@ -380,6 +380,16 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$this->assertCount( 5, $query1->posts );
 		$this->assertCount( 5, $query2->posts );
 		$this->assertSame( $query1->found_posts, $query2->found_posts );
+
+		/*
+		 * Make sure the returned post objects differ due to the field argument.
+		 *
+		 * This uses assertNotEquals rather than assertNotSame as the former is
+		 * agnostic to the instance ID of objects, whereas the latter will take
+		 * it in to account. The test needs to discard the instance ID when
+		 * confirming inequality.
+		 */
+		$this->assertNotEquals( $query1->posts, $query2->posts );
 	}
 
 	/**
