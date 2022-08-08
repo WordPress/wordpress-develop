@@ -1920,7 +1920,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 *
 	 * @param string       $join           The JOIN clause in the SQL.
 	 * @param bool         $in_same_term   Whether post should be in a same taxonomy term.
-	 * @param int[]|string $excluded_terms Array of excluded term IDs.
+	 * @param int[]|string $excluded_terms Array of excluded term IDs. Empty string if none were provided.
 	 * @param string       $taxonomy       Taxonomy. Used to identify the term used when `$in_same_term` is true.
 	 * @param WP_Post      $post           WP_Post object.
 	 */
@@ -1942,7 +1942,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 *
 	 * @param string.      $where          The `WHERE` clause in the SQL.
 	 * @param bool         $in_same_term   Whether post should be in a same taxonomy term.
-	 * @param int[]|string $excluded_terms Array of excluded term IDs.
+	 * @param int[]|string $excluded_terms Array of excluded term IDs. Empty string if none were provided.
 	 * @param string       $taxonomy       Taxonomy. Used to identify the term used when `$in_same_term` is true.
 	 * @param WP_Post.     $post           WP_Post object.
 	 */
