@@ -53,7 +53,6 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 			'WP_MS_Users_List_Table'                      => 'username',
 			'WP_Plugin_Install_List_Table'                => '',
 			'WP_Plugins_List_Table'                       => 'name',
-			'WP_Post_Comments_List_Table'                 => 'author',
 			'WP_Posts_List_Table'                         => 'title',
 			'WP_Privacy_Data_Export_Requests_List_Table'  => 'email',
 			'WP_Privacy_Data_Removal_Requests_List_Table' => 'email',
