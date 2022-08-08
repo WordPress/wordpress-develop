@@ -742,9 +742,10 @@ function wp_image_matches_ratio( $source_width, $source_height, $target_width, $
  *
  * @since 2.5.0
  *
- * @param int          $post_id Attachment ID.
- * @param string|int[] $size    Optional. Image size. Accepts any registered image size name, or an array
- *                              of width and height values in pixels (in that order). Default 'thumbnail'.
+ * @param int          $post_id      Attachment ID.
+ * @param string|int[] $size         Optional. Image size. Accepts any registered image size name, or an array
+ *                                   of width and height values in pixels (in that order). Default 'thumbnail'.
+ * @param string       $mime_type    Optional. The file MIME type to return.
  * @return array|false {
  *     Array of file relative path, width, and height on success. Additionally includes absolute
  *     path and URL if registered size is passed to `$size` parameter. False on failure.
@@ -756,7 +757,7 @@ function wp_image_matches_ratio( $source_width, $source_height, $target_width, $
  *     @type string $url    URL of image.
  * }
  */
-function image_get_intermediate_size( $post_id, $size = 'thumbnail' ) {
+function image_get_intermediate_size( $post_id, $size = 'thumbnail', $mime_type = null ) {
 	$imagedata = wp_get_attachment_metadata( $post_id );
 
 	if ( ! $size || ! is_array( $imagedata ) || empty( $imagedata['sizes'] ) ) {
@@ -831,6 +832,14 @@ function image_get_intermediate_size( $post_id, $size = 'thumbnail' ) {
 		$file_url     = wp_get_attachment_url( $post_id );
 		$data['path'] = path_join( dirname( $imagedata['file'] ), $data['file'] );
 		$data['url']  = path_join( dirname( $file_url ), $data['file'] );
+	}
+
+	// Use the correct MIME type if available.
+	if ( ! empty( $mime_type ) && isset( $data['sources'][ $mime_type ]['file'] ) && $mime_type !== $data['mime-type'] ) {
+		$data['file']      = str_replace( wp_basename( $data['file'] ), $data['sources'][ $mime_type ]['file'], $data['file'] );
+		$data['path']      = str_replace( wp_basename( $data['path'] ), $data['sources'][ $mime_type ]['file'], $data['path'] );
+		$data['url']       = str_replace( wp_basename( $data['url'] ), $data['sources'][ $mime_type ]['file'], $data['url'] );
+		$data['mime-type'] = $mime_type;
 	}
 
 	/**
