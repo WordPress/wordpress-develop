@@ -804,7 +804,6 @@ function wp_restore_image( $post_id ) {
 	// Get the next available `full-{orig or hash}` key on the images if the name
 	// has not been used as part of the backup sources it would be used if no size is
 	// found or backup exists `null` would be used instead.
-	$next_full_size_key_from_backup = null;
 	foreach ( array_keys( $backup_sizes ) as $size_name ) {
 		// If the target already has the sources attributes find the next one.
 		if ( isset( $backup_sources[ $size_name ] ) ) {
@@ -816,16 +815,14 @@ function wp_restore_image( $post_id ) {
 			continue;
 		}
 
-		$next_full_size_key_from_backup = $size_name;
+		$backup_sources[ $size_name ] = $old_meta['sources'];
+
+		// Update the `sources` property.
+		update_post_meta( $post_id, '_wp_attachment_backup_sources', $backup_sources );
 		break;
 	}
 
-	if ( null !== $next_full_size_key_from_backup ) {
-		$backup_sources[ $next_full_size_key_from_backup ] = $old_meta['sources'];
-		// Store the `sources` property into the full size if present.
-		update_post_meta( $post_id, '_wp_attachment_backup_sources', $backup_sources );
-	}
-
+	// Restore the sources attribute for full size image.
 	if ( isset( $backup_sources['full-orig'] ) && is_array( $backup_sources['full-orig'] ) ) {
 		$meta['sources'] = $backup_sources['full-orig'];
 	}
@@ -1110,7 +1107,20 @@ function wp_save_image( $post_id ) {
 					continue;
 				}
 
-				$result = $img->make_subsize( $subsized_images[ $post->post_mime_type ]['thumbnail'] );
+				$thumbnail_file = $subsized_images[ $post->post_mime_type ]['thumbnail']['file'];
+				$image_path     = path_join( $original_directory, $thumbnail_file );
+				$editor         = wp_get_image_editor( $image_path, array( 'mime_type' => $targeted_mime ) );
+
+				if ( is_wp_error( $editor ) ) {
+					continue;
+				}
+
+				// Create a file with then new extension out of the targeted file.
+				$current_extension    = pathinfo( $thumbnail_file, PATHINFO_EXTENSION );
+				$target_file_name     = preg_replace( "/\.$current_extension$/", ".$extension", $thumbnail_file );
+				$target_file_location = path_join( $original_directory, $target_file_name );
+				$result               = $editor->save( $target_file_location, $targeted_mime );
+				unset( $editor );
 
 				if ( is_wp_error( $result ) ) {
 					continue;
@@ -1151,7 +1161,11 @@ function wp_save_image( $post_id ) {
 			}
 		}
 
-		if ( isset( $main_images[ $targeted_mime ]['path'], $main_images[ $targeted_mime ]['file'] ) && file_exists( $main_images[ $targeted_mime ]['path'] ) ) {
+		if (
+				isset( $main_images[ $targeted_mime ]['path'] ) &&
+				isset( $main_images[ $targeted_mime ]['file'] ) &&
+				file_exists( $main_images[ $targeted_mime ]['path'] )
+		) {
 			// Add sources to original image metadata.
 			$meta['sources'][ $targeted_mime ] = array(
 				'file'     => $main_images[ $targeted_mime ]['file'],
@@ -1164,12 +1178,12 @@ function wp_save_image( $post_id ) {
 				continue;
 			}
 
-			// Add sources to resized image metadata.
 			$subsize_path = path_join( $original_directory, $subsized_images[ $targeted_mime ][ $size_name ]['file'] );
 			if ( ! file_exists( $subsize_path ) ) {
 				continue;
 			}
 
+			// Add sources to resized image metadata.
 			$meta['sizes'][ $size_name ]['sources'][ $targeted_mime ] = array(
 				'file'     => $subsized_images[ $targeted_mime ][ $size_name ]['file'],
 				'filesize' => wp_filesize( $subsize_path ),
@@ -1183,26 +1197,25 @@ function wp_save_image( $post_id ) {
 		wp_update_attachment_metadata( $post_id, $meta );
 		update_post_meta( $post_id, '_wp_attachment_backup_sizes', $backup_sizes );
 
-		$next_target_size_name_from_source = null;
 		// Store the provided sources for the attachment ID in the `_wp_attachment_backup_sources` with the next available target if target is `null` no source would be stored.
-		foreach ( array_keys( $backup_sizes ) as $size_name ) {
-			// If the target already has the sources attributes find the next one.
-			if ( isset( $backup_sources[ $size_name ] ) ) {
-				continue;
+		if ( ! empty( $old_metadata['sources'] ) ) {
+			foreach ( array_keys( $backup_sizes ) as $size_name ) {
+				// If the target already has the sources attributes find the next one.
+				if ( isset( $backup_sources[ $size_name ] ) ) {
+					continue;
+				}
+
+				// We are only interested in the `full-` sizes.
+				if ( strpos( $size_name, 'full-' ) === false ) {
+					continue;
+				}
+
+				$backup_sources[ $size_name ] = $old_metadata['sources'];
+
+				// Update the `sources` property.
+				update_post_meta( $post_id, '_wp_attachment_backup_sources', $backup_sources );
+				break;
 			}
-
-			// We are only interested in the `full-` sizes.
-			if ( strpos( $size_name, 'full-' ) === false ) {
-				continue;
-			}
-
-			$next_target_size_name_from_source = $size_name;
-		}
-
-		if ( null !== $next_target_size_name_from_source && ! empty( $old_metadata['sources'] ) ) {
-			$backup_sources[ $next_target_size_name_from_source ] = $old_metadata['sources'];
-			// Store the `sources` property into the full size if present.
-			update_post_meta( $post_id, '_wp_attachment_backup_sources', $backup_sources );
 		}
 
 		if ( 'thumbnail' === $target || 'all' === $target || 'full' === $target ) {

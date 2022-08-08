@@ -282,11 +282,11 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$this->assertSame( $metadata['sources'], $backup_sources['full-orig'] );
 
 		foreach ( $backup_sizes as $size => $properties ) {
-			$size_name = str_replace( '-orig', '', $size );
-
 			if ( 'full-orig' === $size ) {
 				continue;
 			}
+
+			$size_name = str_replace( '-orig', '', $size );
 
 			$this->assertArrayHasKey( 'sources', $properties );
 			$this->assertSame( $metadata['sizes'][ $size_name ]['sources'], $properties['sources'] );
@@ -382,7 +382,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		foreach ( $metadata['sources'] as $source ) {
 			$this->assertArrayHasKey( 'file', $source );
 
-			// Assert that file names is not edited.
+			// Assert that the file name is not edited.
 			$this->assertDoesNotMatchRegularExpression( '/e\d{13}/', $source['file'] );
 		}
 
@@ -439,7 +439,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		foreach ( $updated_metadata['sources'] as $source ) {
 			$this->assertArrayHasKey( 'file', $source );
 
-			// Assert that file names are edited.
+			// Assert that the file name is edited.
 			$this->assertMatchesRegularExpression( '/e\d{13}/', $source['file'] );
 		}
 
