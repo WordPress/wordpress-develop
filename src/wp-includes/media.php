@@ -176,9 +176,10 @@ function image_hwstring( $width, $height ) {
  *
  * @since 2.5.0
  *
- * @param int          $id   Attachment ID for image.
- * @param string|int[] $size Optional. Image size. Accepts any registered image size name, or an array
- *                           of width and height values in pixels (in that order). Default 'medium'.
+ * @param int          $id        Attachment ID for image.
+ * @param string|int[] $size      Optional. Image size. Accepts any registered image size name, or an array
+ *                                of width and height values in pixels (in that order). Default 'medium'.
+ * @param string       $mime_type Optional. The file MIME type to return.
  * @return array|false {
  *     Array of image data, or boolean false if no image is available.
  *
@@ -188,7 +189,7 @@ function image_hwstring( $width, $height ) {
  *     @type bool   $3 Whether the image is a resized image.
  * }
  */
-function image_downsize( $id, $size = 'medium' ) {
+function image_downsize( $id, $size = 'medium', $mime_type = null ) {
 	$is_image = wp_attachment_is_image( $id );
 
 	/**
@@ -210,7 +211,7 @@ function image_downsize( $id, $size = 'medium' ) {
 		return $out;
 	}
 
-	$img_url          = wp_get_attachment_url( $id );
+	$img_url          = wp_get_attachment_url( $id, $mime_type );
 	$meta             = wp_get_attachment_metadata( $id );
 	$width            = 0;
 	$height           = 0;
@@ -231,7 +232,7 @@ function image_downsize( $id, $size = 'medium' ) {
 	}
 
 	// Try for a new style intermediate size.
-	$intermediate = image_get_intermediate_size( $id, $size );
+	$intermediate = image_get_intermediate_size( $id, $size, $mime_type );
 
 	if ( $intermediate ) {
 		$img_url         = str_replace( $img_url_basename, $intermediate['file'], $img_url );
@@ -240,7 +241,7 @@ function image_downsize( $id, $size = 'medium' ) {
 		$is_intermediate = true;
 	} elseif ( 'thumbnail' === $size && ! empty( $meta['thumb'] ) && is_string( $meta['thumb'] ) ) {
 		// Fall back to the old thumbnail.
-		$imagefile = get_attached_file( $id );
+		$imagefile = get_attached_file( $id, $mime_type );
 		$thumbfile = str_replace( wp_basename( $imagefile ), wp_basename( $meta['thumb'] ), $imagefile );
 
 		if ( file_exists( $thumbfile ) ) {
