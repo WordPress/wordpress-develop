@@ -412,18 +412,18 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * Checks if a file or directory exists.
 	 *
 	 * @since 2.5.0
+	 * @since 6.1.0 Uses WP_Filesystem_FTPext::is_dir() to check for directory existence
+	 *              and ftp_rawlist() to check for file existence.
 	 *
 	 * @param string $file Path to file or directory.
 	 * @return bool Whether $file exists or not.
 	 */
 	public function exists( $file ) {
-		$list = ftp_nlist( $this->link, $file );
-
-		if ( empty( $list ) && $this->is_dir( $file ) ) {
-			return true; // File is an empty directory.
+		if ( $this->is_dir( $file ) ) {
+			return true;
 		}
 
-		return ! empty( $list ); // Empty list = no file, so invert.
+		return ! empty( ftp_rawlist( $this->link, $file ) );
 	}
 
 	/**
@@ -510,9 +510,11 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * Gets the file size (in bytes).
 	 *
 	 * @since 2.5.0
+	 * @since 6.1.0 Corrected the return value: while WP_Filesystem_Base::size()
+	 *              is documented to return false on failure, ftp_size() returns -1.
 	 *
 	 * @param string $file Path to file.
-	 * @return int|false Size of the file in bytes on success, false on failure.
+	 * @return int Size of the file in bytes on success, -1 on failure.
 	 */
 	public function size( $file ) {
 		return ftp_size( $this->link, $file );
