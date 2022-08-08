@@ -544,7 +544,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 * @ticket 22176
 	 */
 	public function test_query_cache_update_post() {
-		$p1 = self::factory()->post->create();
+		$p1 = self::$posts[0];
 
 		$args   = array(
 			'cache_results' => true,
@@ -573,7 +573,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 * @ticket 22176
 	 */
 	public function test_query_cache_new_meta() {
-		$p1 = self::factory()->post->create();
+		$p1 = self::$posts[1]; // Post 0 already has a color meta value.
 
 		$args   = array(
 			'cache_results' => true,
@@ -601,8 +601,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 * @ticket 22176
 	 */
 	public function test_query_cache_update_meta() {
-		$p1 = self::factory()->post->create();
-		add_post_meta( $p1, 'color', 'black' );
+		// Posts[0] already has a color meta value set to #000000.
+		$p1 = self::$posts[0];
 
 		$args   = array(
 			'cache_results' => true,
@@ -610,7 +610,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			'meta_query'    => array(
 				array(
 					'key'   => 'color',
-					'value' => 'black',
+					'value' => '#000000',
 				),
 			),
 		);
@@ -664,7 +664,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 * @ticket 22176
 	 */
 	public function test_query_cache_delete_meta() {
-		$p1 = self::factory()->post->create();
+		// Post 0 already has a color meta value.
+		$p1 = self::$posts[1];
 		add_post_meta( $p1, 'color', 'black' );
 
 		$args   = array(
@@ -694,7 +695,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 * @ticket 22176
 	 */
 	public function test_query_cache_new_term() {
-		$p1 = self::factory()->post->create();
+		// Post 0 already has the category foo.
+		$p1 = self::$posts[1];
 
 		$args   = array(
 			'cache_results' => true,
@@ -724,7 +726,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 * @ticket 22176
 	 */
 	public function test_query_cache_delete_term() {
-		$p1 = self::factory()->post->create();
+		// Post 0 already has the category foo.
+		$p1 = self::$posts[1];
 		register_taxonomy( 'wptests_tax1', 'post' );
 
 		$t1 = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax1' ) );
