@@ -43,7 +43,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_query_args
+	 * @dataProvider data_query_cache
 	 * @ticket 22176
 	 */
 	public function test_query_cache( $args ) {
@@ -84,7 +84,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 *
 	 * @return array[] Test parameters.
 	 */
-	public function data_query_args() {
+	public function data_query_cache() {
 		return array(
 			'cache true'                                  => array(
 				'args' => array(
