@@ -25,6 +25,13 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 */
 	public static $t1;
 
+	/**
+	 * Author's user ID.
+	 *
+	 * @var int
+	 */
+	public static $author_id;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Make some post objects.
 		self::$posts = $factory->post->create_many( 5 );
@@ -40,6 +47,13 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 
 		wp_set_post_terms( self::$posts[0], self::$t1, 'category' );
 		add_post_meta( self::$posts[0], 'color', '#000000' );
+
+		// Make a user.
+		self::$author_id = $factory->user->create(
+			array(
+				'role' => 'author',
+			)
+		);
 	}
 
 	/**
@@ -396,26 +410,23 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 * @ticket 22176
 	 */
 	public function test_query_cache_logged_in() {
-		$user = self::factory()->user->create_and_get(
-			array(
-				'role' => 'author',
-			)
-		);
+		$user_id = self::$author_id;
+
 		self::factory()->post->create(
 			array(
 				'post_status' => 'private',
-				'post_author' => $user->ID,
+				'post_author' => $user_id,
 			)
 		);
 
 		$args   = array(
 			'cache_results' => true,
-			'author'        => $user->ID,
+			'author'        => $user_id,
 		);
 		$query1 = new WP_Query();
 		$posts1 = $query1->query( $args );
 
-		wp_set_current_user( $user->ID );
+		wp_set_current_user( $user_id );
 
 		$query2 = new WP_Query();
 		$posts2 = $query2->query( $args );
@@ -428,16 +439,12 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 * @ticket 22176
 	 */
 	public function test_query_cache_logged_in_password() {
-		$user = self::factory()->user->create_and_get(
-			array(
-				'role' => 'author',
-			)
-		);
+		$user_id = self::$author_id;
 		self::factory()->post->create(
 			array(
 				'post_title'    => 'foo',
 				'post_password' => 'password',
-				'post_author'   => $user->ID,
+				'post_author'   => $user_id,
 			)
 		);
 
@@ -448,7 +455,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query1 = new WP_Query();
 		$posts1 = $query1->query( $args );
 
-		wp_set_current_user( $user->ID );
+		wp_set_current_user( $user_id );
 
 		$query2 = new WP_Query();
 		$posts2 = $query2->query( $args );
