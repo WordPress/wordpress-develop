@@ -38,8 +38,8 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		$column_info = new ReflectionMethod( $list_table, 'get_column_info' );
 		$column_info->setAccessible( true );
 
-		$this->assertSame( $expected, $column_info->invoke( $list_table ) );
-		$this->assertSame( $expected_hook_count, $hook->get_call_count() );
+		$this->assertSame( $expected, $column_info->invoke( $list_table ), 'The actual columns did not match the expected columns' );
+		$this->assertSame( $expected_hook_count, $hook->get_call_count(), 'The hook was not called the expected number of times' );
 	}
 
 	/**
