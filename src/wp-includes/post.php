@@ -6678,10 +6678,11 @@ function wp_update_attachment_metadata( $attachment_id, $data ) {
  *
  * @global string $pagenow The filename of the current screen.
  *
- * @param int $attachment_id Optional. Attachment post ID. Defaults to global $post.
+ * @param int    $attachment_id Optional. Attachment post ID. Defaults to global $post.
+ * @param string $mime_type     Optional. The file MIME type to return.
  * @return string|false Attachment URL, otherwise false.
  */
-function wp_get_attachment_url( $attachment_id = 0 ) {
+function wp_get_attachment_url( $attachment_id = 0, $mime_type = null ) {
 	global $pagenow;
 
 	$attachment_id = (int) $attachment_id;
@@ -6699,6 +6700,16 @@ function wp_get_attachment_url( $attachment_id = 0 ) {
 	$url = '';
 	// Get attached file.
 	$file = get_post_meta( $post->ID, '_wp_attached_file', true );
+
+	// Get the correct MIME type.
+	if ( ! empty( $mime_type ) ) {
+		$metadata = wp_get_attachment_metadata( $post->ID );
+
+		if ( isset( $metadata['sources'][ $mime_type ]['file'] ) ) {
+			$file = str_replace( wp_basename( $file ), $metadata['sources'][ $mime_type ]['file'], $file );
+		}
+	}
+
 	if ( $file ) {
 		// Get upload directory.
 		$uploads = wp_get_upload_dir();
