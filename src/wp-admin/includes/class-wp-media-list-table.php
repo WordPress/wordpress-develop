@@ -424,7 +424,7 @@ class WP_Media_List_Table extends WP_List_Table {
 		list( $mime ) = explode( '/', $post->post_mime_type );
 
 		$title      = _draft_or_post_title();
-		$thumb      = wp_get_attachment_image( $post->ID, array( 60, 60 ), true, array( 'alt' => '' ) );
+		$thumb      = wp_get_attachment_image( $post->ID, array( 60, 60 ), array( 'icon' => true ), array( 'alt' => '' ) );
 		$link_start = '';
 		$link_end   = '';
 

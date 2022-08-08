@@ -1035,7 +1035,7 @@ function wp_save_image( $post_id ) {
 		if ( 'thumbnail' === $target || 'all' === $target || 'full' === $target ) {
 			// Check if it's an image edit from attachment edit screen.
 			if ( ! empty( $_REQUEST['context'] ) && 'edit-attachment' === $_REQUEST['context'] ) {
-				$thumb_url         = wp_get_attachment_image_src( $post_id, array( 900, 600 ), true );
+				$thumb_url         = wp_get_attachment_preview_src( $post_id, array( 900, 600 ) );
 				$return->thumbnail = $thumb_url[0];
 			} else {
 				$file_url = wp_get_attachment_url( $post_id );

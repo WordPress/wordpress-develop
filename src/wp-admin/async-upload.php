@@ -52,7 +52,7 @@ if ( isset( $_REQUEST['attachment_id'] ) && (int) $_REQUEST['attachment_id'] && 
 			<div class="media-item-wrapper">
 				<div class="attachment-details">
 					<?php
-					$thumb_url = wp_get_attachment_image_src( $id, 'thumbnail', true );
+					$thumb_url = wp_get_attachment_preview_src( $id, 'thumbnail' );
 					if ( $thumb_url ) {
 						echo '<img class="pinkynail" src="' . esc_url( $thumb_url[0] ) . '" alt="" />';
 					}

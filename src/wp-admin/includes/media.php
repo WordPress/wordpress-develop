@@ -1574,7 +1574,7 @@ function get_media_item( $attachment_id, $args = null ) {
 	$attachment_id = (int) $attachment_id;
 
 	if ( $attachment_id ) {
-		$thumb_url = wp_get_attachment_image_src( $attachment_id, 'thumbnail', true );
+		$thumb_url = wp_get_attachment_preview_src( $attachment_id, 'thumbnail' );
 
 		if ( $thumb_url ) {
 			$thumb_url = $thumb_url[0];
@@ -3106,7 +3106,7 @@ function edit_form_image_editor( $post ) {
 	$attachment_id = (int) $post->ID;
 
 	if ( $attachment_id ) {
-		$thumb_url = wp_get_attachment_image_src( $attachment_id, array( 900, 450 ), true );
+		$thumb_url = wp_get_attachment_preview_src( $attachment_id, array( 900, 450 ) );
 	}
 
 	$alt_text = get_post_meta( $post->ID, '_wp_attachment_image_alt', true );
