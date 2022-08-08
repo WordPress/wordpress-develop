@@ -716,12 +716,22 @@ function create_initial_post_types() {
  *
  * @since 2.0.0
  *
- * @param int  $attachment_id Attachment ID.
- * @param bool $unfiltered    Optional. Whether to apply filters. Default false.
+ * @param int    $attachment_id Attachment ID.
+ * @param bool   $unfiltered    Optional. Whether to apply filters. Default false.
+ * @param string $unfiltered    Optional. The file MIME type to return.
  * @return string|false The file path to where the attached file should be, false otherwise.
  */
-function get_attached_file( $attachment_id, $unfiltered = false ) {
+function get_attached_file( $attachment_id, $unfiltered = false, $mime_type = null ) {
 	$file = get_post_meta( $attachment_id, '_wp_attached_file', true );
+
+	// Get the correct MIME type.
+	if ( ! empty( $mime_type ) ) {
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+
+		if ( isset( $metadata['sources'][ $mime_type ]['file'] ) ) {
+			$file = str_replace( wp_basename( $file ), $metadata['sources'][ $mime_type ]['file'], $file );
+		}
+	}
 
 	// If the file is relative, prepend upload dir.
 	if ( $file && 0 !== strpos( $file, '/' ) && ! preg_match( '|^.:\\\|', $file ) ) {
