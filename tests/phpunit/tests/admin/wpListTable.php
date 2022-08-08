@@ -17,9 +17,10 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 *
 	 * @covers WP_List_Table::get_column_info
 	 *
-	 * @param string $list_class The name of the WP_List_Table child class.
-	 * @param array  $headers    A list of column headers.
-	 * @param array  $expected   The expected column headers.
+	 * @param string $list_class          The name of the WP_List_Table child class.
+	 * @param array  $headers             A list of column headers.
+	 * @param array  $expected            The expected column headers.
+	 * @param int    $expected_hook_count The expected number of times the hook is called.
 	 */
 	public function test_should_only_add_primary_column_when_needed( $list_class, $headers, $expected, $expected_hook_count ) {
 		$hook = new MockAction();
