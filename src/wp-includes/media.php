@@ -949,7 +949,9 @@ function wp_get_registered_image_subsizes() {
  * @param int          $attachment_id Image attachment ID.
  * @param string|int[] $size          Optional. Image size. Accepts any registered image size name, or an array of
  *                                    width and height values in pixels (in that order). Default 'thumbnail'.
- * @param bool         $icon          Optional. Whether the image should fall back to a mime type icon. Default false.
+ * @param array|bool   $args          Optional. Additional arguments for the image to return. For backward
+ *                                    compatibility boolean can be used to determine whether the image should
+ *                                    fall back to a mime type icon. Default false.
  * @return array|false {
  *     Array of image data, or boolean false if no image is available.
  *
@@ -959,27 +961,22 @@ function wp_get_registered_image_subsizes() {
  *     @type bool   $3 Whether the image is a resized image.
  * }
  */
-function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon = false ) {
+function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $args = array() ) {
+	$mime_type = false;
+	$icon      = false;
+
+	if ( is_array( $args ) && isset( $args['mime_type'] ) ) {
+		$mime_type = $args['mime_type'];
+	}
+
+	if ( is_array( $args ) && isset( $args['icon'] ) || is_bool( $args ) ) {
+		$icon = isset( $args['icon'] ) ? $args['icon'] : $args;
+	}
+
 	// Get a thumbnail or intermediate image if there is one.
-	$image = image_downsize( $attachment_id, $size );
-	if ( ! $image ) {
-		$src = false;
-
-		if ( $icon ) {
-			$src = wp_mime_type_icon( $attachment_id );
-
-			if ( $src ) {
-				/** This filter is documented in wp-includes/post.php */
-				$icon_dir = apply_filters( 'icon_dir', ABSPATH . WPINC . '/images/media' );
-
-				$src_file               = $icon_dir . '/' . wp_basename( $src );
-				list( $width, $height ) = wp_getimagesize( $src_file );
-			}
-		}
-
-		if ( $src && $width && $height ) {
-			$image = array( $src, $width, $height, false );
-		}
+	$image = image_downsize( $attachment_id, $size, $mime_type );
+	if ( ! $image && $icon ) {
+		$image = wp_get_attachment_preview_src( $attachment_id, $size );
 	}
 	/**
 	 * Filters the attachment image source result.
