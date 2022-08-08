@@ -743,6 +743,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'wp_upload_image_mime_transforms',
 			function () {
 				return array(
+					'image/jpeg'      => array( 'image/jpeg', 'image/webp' ),
 					'image/webp'      => array( 'image/webp', 'image/jpeg' ),
 					'application/pdf' => array( 'image/webp', 'image/jpeg' ),
 				);

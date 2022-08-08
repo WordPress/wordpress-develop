@@ -901,15 +901,28 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 
 				$priority_mime_type = ! empty( $mime_types ) ? array_shift( $mime_types ) : 'image/jpeg';
 
+				// Check if image editor supports mime type, defaults to image/jpeg.
+				if ( 'image/jpeg' !== $priority_mime_type && ! wp_image_editor_supports(
+					array(
+						'mime_type' => $priority_mime_type,
+					)
+				) ) {
+					$priority_mime_type = 'image/jpeg';
+				}
+
+				// Get the extension for mime type.
+				$extension = wp_get_default_extension_for_mime_type( $priority_mime_type );
+
 				/*
 				 * PDFs may have the same file filename as other image files.
 				 * Ensure the PDF preview image does not overwrite any other images that already exist.
 				 */
 				$dirname      = dirname( $file ) . '/';
 				$ext          = '.' . pathinfo( $file, PATHINFO_EXTENSION );
-				$preview_file = $dirname . wp_unique_filename( $dirname, wp_basename( $file, $ext ) . '-pdf' );
+				$preview_file = $dirname . wp_unique_filename( $dirname, wp_basename( $file, $ext ) . '-pdf.' . $extension );
 
 				$uploaded = $editor->save( $preview_file, $priority_mime_type );
+				unset( $editor );
 
 				// Resize based on the full size image, rather than the source.
 				if ( ! is_wp_error( $uploaded ) ) {
@@ -923,11 +936,11 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 					// Save the meta data before any image post-processing errors could happen.
 					wp_update_attachment_metadata( $attachment_id, $metadata );
 
-					// Get mime types to generate.
+					// Get primary and additional mime types to generate.
 					list( $primary_mime_type, $additional_mime_types ) = _wp_get_primary_and_additional_mime_types( $image_file, $attachment_id );
 
+					// Add primary mime type sources if additional mimes to generate.
 					if ( ! empty( $additional_mime_types ) ) {
-						// Add primary mime type sources.
 						$metadata['sizes']['full']['sources'][ $primary_mime_type ] = _wp_get_sources_from_meta( $uploaded );
 					}
 
@@ -942,8 +955,14 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 								continue;
 							}
 
-							$editor->set_output_mime_type( $mime_type );
-							$result = $editor->save( $editor->generate_filename( '', pathinfo( $image_file, PATHINFO_FILENAME ), $extension ) );
+							// Get new image editor for generated image file.
+							$img = wp_get_image_editor( $image_file, array( 'mime_type' => $mime_type ) );
+							if ( is_wp_error( $img ) ) {
+								continue;
+							}
+
+							$result = $img->save( $img->generate_filename( '', pathinfo( $image_file, PATHINFO_FILENAME ), $extension ) );
+							unset( $img );
 
 							if ( is_wp_error( $result ) ) {
 								continue;
@@ -956,8 +975,6 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 						}
 					}
 				}
-
-				unset( $editor );
 			}
 		}
 	}
