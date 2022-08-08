@@ -5564,3 +5564,61 @@ function wp_increase_content_media_count( $amount = 1 ) {
 
 	return $content_media_count;
 }
+
+/**
+ * Retrieves an attachments preview image or icon source.
+ *
+ * @since n.e.x.t
+ *
+ * @param int          $attachment_id Image attachment ID.
+ * @param string|int[] $size          Optional. Image size. Accepts any registered image size name, or an array of
+ *                                    width and height values in pixels (in that order). Default 'thumbnail'.
+ * @return array|false {
+ *     Array of image data, or boolean false if no image is available.
+ *
+ *     @type string $0 Image source URL.
+ *     @type int    $1 Image width in pixels.
+ *     @type int    $2 Image height in pixels.
+ *     @type bool   $3 Whether the image is a resized image.
+ * }
+ */
+function wp_get_attachment_preview_src( $attachment_id, $size = 'thumbnail' ) {
+	// Get a thumbnail or intermediate image if there is one.
+	$image = image_downsize( $attachment_id, $size );
+
+	// If there is no image available for the attachment, fallback to the mime type icon.
+	if ( ! $image ) {
+		$src = wp_mime_type_icon( $attachment_id );
+
+		if ( $src ) {
+			/** This filter is documented in wp-includes/post.php */
+			$icon_dir = apply_filters( 'icon_dir', ABSPATH . WPINC . '/images/media' );
+
+			$src_file               = $icon_dir . '/' . wp_basename( $src );
+			list( $width, $height ) = wp_getimagesize( $src_file );
+		}
+
+		if ( $src && $width && $height ) {
+			$image = array( $src, $width, $height, false );
+		}
+	}
+
+	/**
+	 * Filters the attachment preview source.
+	 *
+	 * @since n.e.x.t
+	 *
+	 * @param array|false  $image         {
+	 *     Array of image data, or boolean false if no image is available.
+	 *
+	 *     @type string $0 Image source URL.
+	 *     @type int    $1 Image width in pixels.
+	 *     @type int    $2 Image height in pixels.
+	 *     @type bool   $3 Whether the image is a resized image.
+	 * }
+	 * @param int          $attachment_id Image attachment ID.
+	 * @param string|int[] $size          Requested image size. Can be any registered image size name, or
+	 *                                    an array of width and height values in pixels (in that order).
+	 */
+	return apply_filters( 'wp_get_attachment_preview_src', $image, $attachment_id, $size );
+}
