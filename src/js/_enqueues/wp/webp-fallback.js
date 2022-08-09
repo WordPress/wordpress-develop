@@ -25,11 +25,14 @@ window.media = window.media || {};
 
 					var src = images[ j ].src;
 
-					// If there are no sizes, then replace src through sources, there is nothing more to replace.
-					if ( media_sources && ! sizes.full ) {
-						src = src.replace( media_sources['image/webp'].file, media_sources['image/jpeg'].file );
-						images[ j ].setAttribute( 'src', src );
-						break;
+					// If there are sources but no sizes, then attempt to replace src through sources. In that case, there is nothing more to replace.
+					if ( media_sources && ! sizes_keys.length ) {
+						// Only modify src if available and the relevant sources are set.
+						if ( src && media_sources['image/webp'] && media_sources['image/jpeg'] ) {
+							src = src.replace( media_sources['image/webp'].file, media_sources['image/jpeg'].file );
+							images[ j ].setAttribute( 'src', src );
+						}
+						continue;
 					}
 
 					var srcset = images[ j ].getAttribute( 'srcset' );
