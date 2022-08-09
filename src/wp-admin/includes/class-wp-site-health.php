@@ -1731,14 +1731,14 @@ class WP_Site_Health {
 			$threshold = $this->get_good_response_time_threshold();
 			if ( $page_cache_detail['response_time'] < $threshold ) {
 				$page_cache_test_summary[] = '<span class="dashicons dashicons-yes-alt"></span> ' . sprintf(
-					/* translators: %d is the response time in milliseconds */
+					/* translators: 1: The response time in milliseconds. 2: The recommended threshold milliseconds. */
 					__( 'Median server response time was %1$s milliseconds. This is less than the recommended %2$s milliseconds threshold.' ),
 					number_format_i18n( $page_cache_detail['response_time'] ),
 					number_format_i18n( $threshold )
 				);
 			} else {
 				$page_cache_test_summary[] = '<span class="dashicons dashicons-warning"></span> ' . sprintf(
-					/* translators: %d is the response time in milliseconds */
+					/* translators: 1: The response time in milliseconds. 2: The recommended threshold milliseconds. */
 					__( 'Median server response time was %1$s milliseconds. It should be less than the recommended %2$s milliseconds threshold.' ),
 					number_format_i18n( $page_cache_detail['response_time'] ),
 					number_format_i18n( $threshold )
