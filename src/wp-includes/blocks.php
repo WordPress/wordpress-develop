@@ -286,6 +286,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'title'           => 'title',
 		'category'        => 'category',
 		'parent'          => 'parent',
+		'ancestor'        => 'ancestor',
 		'icon'            => 'icon',
 		'description'     => 'description',
 		'keywords'        => 'keywords',
@@ -424,9 +425,12 @@ function unregister_block_type( $name ) {
 function has_blocks( $post = null ) {
 	if ( ! is_string( $post ) ) {
 		$wp_post = get_post( $post );
-		if ( $wp_post instanceof WP_Post ) {
-			$post = $wp_post->post_content;
+
+		if ( ! $wp_post instanceof WP_Post ) {
+			return false;
 		}
+
+		$post = $wp_post->post_content;
 	}
 
 	return false !== strpos( (string) $post, '<!-- wp:' );
@@ -799,7 +803,7 @@ function excerpt_remove_blocks( $content ) {
 }
 
 /**
- * Render inner blocks from the allowed wrapper blocks
+ * Renders inner blocks from the allowed wrapper blocks
  * for generating an excerpt.
  *
  * @since 5.8.0
@@ -832,7 +836,7 @@ function _excerpt_render_inner_blocks( $parsed_block, $allowed_blocks ) {
  *
  * @since 5.0.0
  *
- * @global WP_Post  $post     The post to edit.
+ * @global WP_Post $post The post to edit.
  *
  * @param array $parsed_block A single parsed block object.
  * @return string String of rendered HTML.
@@ -911,7 +915,7 @@ function render_block( $parsed_block ) {
  */
 function parse_blocks( $content ) {
 	/**
-	 * Filter to allow plugins to replace the server-side block parser
+	 * Filter to allow plugins to replace the server-side block parser.
 	 *
 	 * @since 5.0.0
 	 *
@@ -1016,7 +1020,7 @@ function unregister_block_style( $block_name, $block_style_name ) {
  * @since 5.8.0
  *
  * @param WP_Block_Type $block_type Block type to check for support.
- * @param string        $feature    Name of the feature to check support for.
+ * @param array         $feature    Path to a specific feature to check support for.
  * @param mixed         $default    Optional. Fallback value for feature support. Default false.
  * @return bool Whether the feature is supported.
  */
@@ -1202,8 +1206,7 @@ function build_query_vars_from_query_block( $block, $page ) {
  * @since 5.9.0
  *
  * @param WP_Block $block   Block instance.
- * @param boolean  $is_next Flag for handling `next/previous` blocks.
- *
+ * @param bool     $is_next Flag for handling `next/previous` blocks.
  * @return string|null The pagination arrow HTML or null if there is none.
  */
 function get_query_pagination_arrow( $block, $is_next ) {

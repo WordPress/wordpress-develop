@@ -1600,7 +1600,7 @@ function do_feed() {
 	}
 
 	if ( ! has_action( "do_feed_{$feed}" ) ) {
-		wp_die( __( '<strong>Error</strong>: This is not a valid feed template.' ), '', array( 'response' => 404 ) );
+		wp_die( __( '<strong>Error:</strong> This is not a valid feed template.' ), '', array( 'response' => 404 ) );
 	}
 
 	/**
@@ -5190,7 +5190,7 @@ function wp_list_pluck( $list, $field, $index_key = null ) {
  *
  * @since 4.7.0
  *
- * @param array        $list          An array of objects to sort.
+ * @param array        $list          An array of objects or arrays to sort.
  * @param string|array $orderby       Optional. Either the field name to order by or an array
  *                                    of multiple orderby fields as $orderby => $order.
  * @param string       $order         Optional. Either 'ASC' or 'DESC'. Only used if $orderby
