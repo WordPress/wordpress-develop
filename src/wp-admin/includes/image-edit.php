@@ -1093,8 +1093,6 @@ function wp_save_image( $post_id ) {
 					'mime_type' => $targeted_mime,
 				)
 			) ) {
-				error_log($targeted_mime);
-				error_log("asdasdasdasd");
 				continue;
 			}
 
