@@ -3597,7 +3597,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( $tag_tt_id, $tag_query[0]->term_taxonomy_id, 'Unsplit terms term_taxonomy_id incorrect for tag taxonomy.' );
-		$this->assertSame( $category_tt_id, $category_query[0]->term_taxonomy_id, 'Unsplit terms term_taxonomy_id incorrect for category taxonomy.' );
+		$this->assertSame( $tag_tt_id, $tag_query[0]->term_taxonomy_id, "Unsplit term's term_taxonomy_id incorrect for tag taxonomy." );
+		$this->assertSame( $category_tt_id, $category_query[0]->term_taxonomy_id, "Unsplit term's term_taxonomy_id incorrect for category taxonomy." );
 	}
 }
