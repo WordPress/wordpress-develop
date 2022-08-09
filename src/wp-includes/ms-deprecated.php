@@ -731,6 +731,37 @@ function update_user_status( $id, $pref, $value, $deprecated = null ) {
 	return $value;
 }
 
+if ( ! function_exists( 'install_global_terms' ) ) :
+	/**
+	 * Install global terms.
+	 *
+	 * @since 3.0.0
+	 * @deprecated 6.1.0
+	 *
+	 * @global wpdb   $wpdb            WordPress database abstraction object.
+	 * @global string $charset_collate
+	 */
+	function install_global_terms() {
+		global $wpdb, $charset_collate;
+
+		_deprecated_function( __FUNCTION__, '6.1.0' );
+
+		$ms_queries = "
+CREATE TABLE $wpdb->sitecategories (
+  cat_ID bigint(20) NOT NULL auto_increment,
+  cat_name varchar(55) NOT NULL default '',
+  category_nicename varchar(200) NOT NULL default '',
+  last_updated timestamp NOT NULL,
+  PRIMARY KEY  (cat_ID),
+  KEY category_nicename (category_nicename),
+  KEY last_updated (last_updated)
+) $charset_collate;
+";
+		// Now create tables.
+		dbDelta( $ms_queries );
+	}
+endif;
+
 /**
  * Determine whether global terms are enabled.
  *
@@ -812,6 +843,8 @@ function sync_category_tag_slugs( $term, $taxonomy ) {
 function global_terms( $term_id, $deprecated = '' ) {
 	global $wpdb;
 	static $global_terms_recurse = null;
+
+	_deprecated_function( __FUNCTION__, '6.1.0' );
 
 	if ( ! global_terms_enabled() ) {
 		return $term_id;
