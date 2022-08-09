@@ -2414,11 +2414,12 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			continue;
 		}
 
-		$css_item        = trim( $css_item );
-		$css_test_string = $css_item;
-		$found           = false;
-		$url_attr        = false;
-		$gradient_attr   = false;
+		$css_item            = trim( $css_item );
+		$css_test_string     = $css_item;
+		$found               = false;
+		$url_attr            = false;
+		$gradient_attr       = false;
+		$custom_css_property = false;
 
 		if ( strpos( $css_item, ':' ) === false ) {
 			$found = true;
@@ -2426,7 +2427,13 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			$parts        = explode( ':', $css_item, 2 );
 			$css_selector = trim( $parts[0] );
 
-			if ( in_array( $css_selector, $allowed_attr, true ) ) {
+			// Custom CSS properties, e.g., `--font-size-xl`.
+			if ( strpos( $css_selector, '--' ) === 0 && preg_match( '/^([a-z0-9\-]+)$/', $css_selector ) ) {
+				$custom_css_property = true;
+			}
+
+			// Allow properties defined in $allowed_attr or custom CSS properties.
+			if ( in_array( $css_selector, $allowed_attr, true ) || $custom_css_property ) {
 				$found         = true;
 				$url_attr      = in_array( $css_selector, $css_url_data_types, true );
 				$gradient_attr = in_array( $css_selector, $css_gradient_data_types, true );

@@ -1120,6 +1120,11 @@ EOF;
 				'css'      => 'color: rgb( 100, 100, 100, .4 )',
 				'expected' => '',
 			),
+			// Custom CSS properties.
+			array(
+				'css'      => '--wp--medium-width: 100px;--background-color-2: #cccccc;--CAPS-not-allowed:red;--underscore_not-allowed:red;--_:?><.%-not-allowed:red;',
+				'expected' => '--wp--medium-width: 100px;--background-color-2: #cccccc',
+			),
 		);
 	}
 
