@@ -2448,7 +2448,7 @@ add_shortcode( 'gallery', 'gallery_shortcode' );
  * @since 2.5.0
  * @since 2.8.0 Added the `$attr` parameter to set the shortcode output. New attributes included
  *        such as `size`, `itemtag`, `icontag`, `captiontag`, and columns. Changed markup from
- *        `<div>` tags to `<dl>`, `<dt>` and `<dd>` tags. Support more than one gallery on the
+ *        `div` tags to `dl`, `dt` and `dd` tags. Support more than one gallery on the
  *        same page.
  * @since 2.9.0 Adds support for `include` and `exclude` to shortcode.
  * @since 3.5.0 Uses get_post() instead of global `$post`. Handle mapping of `ids` to `include`
