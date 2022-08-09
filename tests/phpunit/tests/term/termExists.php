@@ -403,4 +403,48 @@ class Tests_TermExists extends WP_UnitTestCase {
 		$this->assertNull( term_exists( '' ) );
 		$this->assertNull( term_exists( null ) );
 	}
+
+	/**
+	 * @ticket 56351
+	 * @covers ::term_exists()
+	 */
+	public function test_term_exists_unsplit_terms() {
+		// Create an unsplit term.
+		global $wpdb;
+
+		$wpdb->insert(
+			$wpdb->terms,
+			array(
+				'name' => '56351 Unsplit term',
+				'slug' => '56351-unsplit-term',
+			)
+		);
+
+		$term_id = $wpdb->insert_id;
+
+		$wpdb->insert(
+			$wpdb->term_taxonomy,
+			array(
+				'term_id'  => $term_id,
+				'taxonomy' => 'post_tag',
+				'parent'   => 0,
+				'count'    => 0,
+			)
+		);
+
+		$wpdb->insert(
+			$wpdb->term_taxonomy,
+			array(
+				'term_id'  => $term_id,
+				'taxonomy' => 'category',
+				'parent'   => 0,
+				'count'    => 0,
+			)
+		);
+
+		$term_as_category = term_exists( '56351 Unsplit term', 'category' );
+		$term_as_tag      = term_exists( '56351 Unsplit term', 'post_tag' );
+
+		$this->assertNotSame( $term_as_category, $term_as_tag );
+	}
 }
