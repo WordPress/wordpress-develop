@@ -1660,8 +1660,8 @@ function wp_get_attachment_link( $post = 0, $size = 'thumbnail', $permalink = fa
 	 *                                an array of width and height values in pixels (in that order).
 	 * @param bool         $permalink Whether to add permalink to image. Default false.
 	 * @param array|bool   $args      Optional. Additional arguments for the image to return. For backward
-     *                                compatibility boolean can be used to determine whether the image should
-     *                                fall back to a mime type icon. Default false.
+	 *                                compatibility boolean can be used to determine whether the image should
+	 *                                fall back to a mime type icon. Default false.
 	 * @param string|false $text      If string, will be link text.
 	 * @param array|string $attr      Array or string of attributes.
 	 */
