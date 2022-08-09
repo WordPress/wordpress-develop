@@ -159,24 +159,7 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 		/* translators: Default category slug. */
 		$cat_slug = sanitize_title( _x( 'Uncategorized', 'Default category slug' ) );
 
-		if ( global_terms_enabled() ) {
-			$cat_id = $wpdb->get_var( $wpdb->prepare( "SELECT cat_ID FROM {$wpdb->sitecategories} WHERE category_nicename = %s", $cat_slug ) );
-			if ( null == $cat_id ) {
-				$wpdb->insert(
-					$wpdb->sitecategories,
-					array(
-						'cat_ID'            => 0,
-						'cat_name'          => $cat_name,
-						'category_nicename' => $cat_slug,
-						'last_updated'      => current_time( 'mysql', true ),
-					)
-				);
-				$cat_id = $wpdb->insert_id;
-			}
-			update_option( 'default_category', $cat_id );
-		} else {
-			$cat_id = 1;
-		}
+		$cat_id = 1;
 
 		$wpdb->insert(
 			$wpdb->terms,

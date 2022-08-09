@@ -730,3 +730,159 @@ function update_user_status( $id, $pref, $value, $deprecated = null ) {
 
 	return $value;
 }
+
+/**
+ * Determine whether global terms are enabled.
+ *
+ * @since 3.0.0
+ * @deprecated 6.1.0
+ *
+ * @return bool True if multisite and global terms enabled.
+ */
+function global_terms_enabled() {
+	_deprecated_function( __FUNCTION__, '6.1.0' );
+
+	if ( ! is_multisite() ) {
+		return false;
+	}
+
+	static $global_terms = null;
+	if ( is_null( $global_terms ) ) {
+
+		/**
+		 * Filters whether global terms are enabled.
+		 *
+		 * Returning a non-null value from the filter will effectively short-circuit the function
+		 * and return the value of the 'global_terms_enabled' site option instead.
+		 *
+		 * @since 3.0.0
+		 *
+		 * @param null $enabled Whether global terms are enabled.
+		 */
+		$filter = apply_filters( 'global_terms_enabled', null );
+		if ( ! is_null( $filter ) ) {
+			$global_terms = (bool) $filter;
+		} else {
+			$global_terms = (bool) get_site_option( 'global_terms_enabled', false );
+		}
+	}
+	return $global_terms;
+}
+
+/**
+ * Synchronizes category and post tag slugs when global terms are enabled.
+ *
+ * @since 3.0.0
+ * @deprecated 6.1.0
+ *
+ * @param WP_Term|array $term     The term.
+ * @param string        $taxonomy The taxonomy for `$term`. Should be 'category' or 'post_tag', as these are
+ *                                the only taxonomies which are processed by this function; anything else
+ *                                will be returned untouched.
+ * @return WP_Term|array Returns `$term`, after filtering the 'slug' field with `sanitize_title()`
+ *                       if `$taxonomy` is 'category' or 'post_tag'.
+ */
+function sync_category_tag_slugs( $term, $taxonomy ) {
+	_deprecated_function( __FUNCTION__, '6.1.0' );
+
+	if ( global_terms_enabled() && ( 'category' === $taxonomy || 'post_tag' === $taxonomy ) ) {
+		if ( is_object( $term ) ) {
+			$term->slug = sanitize_title( $term->name );
+		} else {
+			$term['slug'] = sanitize_title( $term['name'] );
+		}
+	}
+	return $term;
+}
+
+/**
+ * Maintains a canonical list of terms by syncing terms created for each blog with the global terms table.
+ *
+ * @since 3.0.0
+ * @deprecated 6.1.0
+ *
+ * @see term_id_filter
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param int    $term_id    An ID for a term on the current blog.
+ * @param string $deprecated Not used.
+ * @return int An ID from the global terms table mapped from $term_id.
+ */
+function global_terms( $term_id, $deprecated = '' ) {
+	global $wpdb;
+	static $global_terms_recurse = null;
+
+	if ( ! global_terms_enabled() ) {
+		return $term_id;
+	}
+
+	// Prevent a race condition.
+	$recurse_start = false;
+	if ( null === $global_terms_recurse ) {
+		$recurse_start        = true;
+		$global_terms_recurse = 1;
+	} elseif ( 10 < $global_terms_recurse++ ) {
+		return $term_id;
+	}
+
+	$term_id = (int) $term_id;
+	$c       = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->terms WHERE term_id = %d", $term_id ) );
+
+	$global_id = $wpdb->get_var( $wpdb->prepare( "SELECT cat_ID FROM $wpdb->sitecategories WHERE category_nicename = %s", $c->slug ) );
+	if ( null == $global_id ) {
+		$used_global_id = $wpdb->get_var( $wpdb->prepare( "SELECT cat_ID FROM $wpdb->sitecategories WHERE cat_ID = %d", $c->term_id ) );
+		if ( null == $used_global_id ) {
+			$wpdb->insert(
+				$wpdb->sitecategories,
+				array(
+					'cat_ID'            => $term_id,
+					'cat_name'          => $c->name,
+					'category_nicename' => $c->slug,
+				)
+			);
+			$global_id = $wpdb->insert_id;
+			if ( empty( $global_id ) ) {
+				return $term_id;
+			}
+		} else {
+			$max_global_id = $wpdb->get_var( "SELECT MAX(cat_ID) FROM $wpdb->sitecategories" );
+			$max_local_id  = $wpdb->get_var( "SELECT MAX(term_id) FROM $wpdb->terms" );
+			$new_global_id = max( $max_global_id, $max_local_id ) + mt_rand( 100, 400 );
+			$wpdb->insert(
+				$wpdb->sitecategories,
+				array(
+					'cat_ID'            => $new_global_id,
+					'cat_name'          => $c->name,
+					'category_nicename' => $c->slug,
+				)
+			);
+			$global_id = $wpdb->insert_id;
+		}
+	} elseif ( $global_id != $term_id ) {
+		$local_id = $wpdb->get_var( $wpdb->prepare( "SELECT term_id FROM $wpdb->terms WHERE term_id = %d", $global_id ) );
+		if ( null != $local_id ) {
+			global_terms( $local_id );
+			if ( 10 < $global_terms_recurse ) {
+				$global_id = $term_id;
+			}
+		}
+	}
+
+	if ( $global_id != $term_id ) {
+		if ( get_option( 'default_category' ) == $term_id ) {
+			update_option( 'default_category', $global_id );
+		}
+
+		$wpdb->update( $wpdb->terms, array( 'term_id' => $global_id ), array( 'term_id' => $term_id ) );
+		$wpdb->update( $wpdb->term_taxonomy, array( 'term_id' => $global_id ), array( 'term_id' => $term_id ) );
+		$wpdb->update( $wpdb->term_taxonomy, array( 'parent' => $global_id ), array( 'parent' => $term_id ) );
+
+		clean_term_cache( $term_id );
+	}
+	if ( $recurse_start ) {
+		$global_terms_recurse = null;
+	}
+
+	return $global_id;
+}
