@@ -177,7 +177,7 @@ class WP_Textdomain_Registry {
 			$mo_files = glob( $location . '/*.mo' );
 
 			if ( $mo_files ) {
-				$this->cached_mo_files = array_merge( $this->cached_mo_files, $mo_files );
+				$this->cached_mo_files = array( ...$this->cached_mo_files, ...$mo_files );
 			}
 		}
 	}
