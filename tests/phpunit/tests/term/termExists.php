@@ -419,7 +419,6 @@ class Tests_TermExists extends WP_UnitTestCase {
 				'slug' => '56351-unsplit-term',
 			)
 		);
-
 		$term_id = $wpdb->insert_id;
 
 		$wpdb->insert(
@@ -431,6 +430,7 @@ class Tests_TermExists extends WP_UnitTestCase {
 				'count'    => 0,
 			)
 		);
+		$tag_tt_id = $wpdb->insert_id;
 
 		$wpdb->insert(
 			$wpdb->term_taxonomy,
@@ -441,10 +441,25 @@ class Tests_TermExists extends WP_UnitTestCase {
 				'count'    => 0,
 			)
 		);
+		$category_tt_id = $wpdb->insert_id;
+
+		// term_exists() returns these numeric values as strings.
+		$expected_tag = array(
+			'term_id'          => (string) $term_id,
+			'term_taxonomy_id' => (string) $tag_tt_id,
+		);
+
+		// term_exists() returns these numeric values as strings.
+		$expected_category = array(
+			'term_id'          => (string) $term_id,
+			'term_taxonomy_id' => (string) $category_tt_id,
+		);
 
 		$term_as_category = term_exists( '56351 Unsplit term', 'category' );
 		$term_as_tag      = term_exists( '56351 Unsplit term', 'post_tag' );
 
-		$this->assertNotSame( $term_as_category, $term_as_tag );
+		$this->assertSameSetsWithIndex( $expected_tag, $term_as_tag, 'term_exists() for unsplit term incorrect for post_tag taxonomy.' );
+		$this->assertSameSetsWithIndex( $expected_category, $term_as_category, 'term_exists() for unsplit term incorrect for category taxonomy.' );
+		$this->assertNotSame( $term_as_category, $term_as_tag, 'term_exists() for unsplit term returns the same value for both taxonomies.' );
 	}
 }
