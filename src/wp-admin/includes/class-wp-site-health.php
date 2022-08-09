@@ -2471,6 +2471,7 @@ class WP_Site_Health {
 			);
 		}
 
+		// Only check for a persistent object cache in production environments to not unnecessarily promote complicated setups.
 		if ( 'production' === wp_get_environment_type() ) {
 			$tests['direct']['persistent_object_cache'] = array(
 				'label' => __( 'Persistent object cache' ),
@@ -3021,7 +3022,6 @@ class WP_Site_Health {
 			WHERE TABLE_SCHEMA = %s
 			AND TABLE_NAME IN ('$table_names')
 			GROUP BY TABLE_NAME;",
-				// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				DB_NAME
 			),
 			OBJECT_K
