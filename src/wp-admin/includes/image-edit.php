@@ -1093,6 +1093,8 @@ function wp_save_image( $post_id ) {
 					'mime_type' => $targeted_mime,
 				)
 			) ) {
+				error_log($targeted_mime);
+				error_log("asdasdasdasd");
 				continue;
 			}
 
@@ -1116,10 +1118,7 @@ function wp_save_image( $post_id ) {
 				}
 
 				// Create a file with then new extension out of the targeted file.
-				$current_extension    = pathinfo( $thumbnail_file, PATHINFO_EXTENSION );
-				$target_file_name     = preg_replace( "/\.$current_extension$/", ".$extension", $thumbnail_file );
-				$target_file_location = path_join( $original_directory, $target_file_name );
-				$result               = $editor->save( $target_file_location, $targeted_mime );
+				$result = $editor->save( $editor->generate_filename( '', $thumbnail_file, $extension ) );
 				unset( $editor );
 
 				if ( is_wp_error( $result ) ) {
