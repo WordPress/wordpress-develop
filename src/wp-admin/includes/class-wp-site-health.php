@@ -3052,9 +3052,8 @@ class WP_Site_Health {
 
 		// Include basic auth in loopback requests. Note that this will only pass along basic auth when user is
 		// initiating the test. If a site requires basic auth, the test will fail when it runs in WP Cron as part of
-		// wp_site_health_scheduled_check. This logic is copied from WP_Site_Health::can_perform_loopback() in core.
-		if ( isset( $_SERVER['PHP_AUTH_USER'] ) && isset( $_SERVER['PHP_AUTH_PW'] ) ) { // phpcs:ignore WordPressVIPMinimum.Variables.ServerVariables.BasicAuthentication
-			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPressVIPMinimum.Variables.ServerVariables.BasicAuthentication
+		// wp_site_health_scheduled_check. This logic is copied from WP_Site_Health::can_perform_loopback().
+		if ( isset( $_SERVER['PHP_AUTH_USER'] ) && isset( $_SERVER['PHP_AUTH_PW'] ) ) {
 			$headers['Authorization'] = 'Basic ' . base64_encode( wp_unslash( $_SERVER['PHP_AUTH_USER'] ) . ':' . wp_unslash( $_SERVER['PHP_AUTH_PW'] ) );
 		}
 
