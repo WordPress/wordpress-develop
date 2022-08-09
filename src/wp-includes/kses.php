@@ -2374,6 +2374,8 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'object-position',
 			'overflow',
 			'vertical-align',
+
+			'--*',
 		)
 	);
 
@@ -2425,6 +2427,10 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		} else {
 			$parts        = explode( ':', $css_item, 2 );
 			$css_selector = trim( $parts[0] );
+
+			if ( in_array( '--*', $allowed_attr, true ) && 0 === strpos( $css_selector, '--' ) && sanitize_key( $css_selector ) === $css_selector ) {
+				$allowed_attr[] = $css_selector;
+			}
 
 			if ( in_array( $css_selector, $allowed_attr, true ) ) {
 				$found         = true;
