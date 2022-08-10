@@ -3797,6 +3797,315 @@ EOF;
 
 		$this->assertFalse( $result );
 	}
+
+	/**
+	 * @ticket 55443
+	 *
+	 * @dataProvider provider_image_with_default_behaviors_during_upload
+	 */
+	public function test_it_should_create_the_original_mime_type_as_well_with_all_the_available_sources_for_the_specified_mime( $file_location, $expected_mime, $targeted_mime ) {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->markTestSkipped( 'This test requires WebP support.' );
+		}
+
+		$attachment_id = $this->factory->attachment->create_upload_object( $file_location );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		$this->assertIsArray( $metadata );
+		$this->assertStringEndsWith( $metadata['sources'][ $expected_mime ]['file'], $metadata['file'] );
+
+		// Assert some sizes that include both mime types.
+		$sizes = array( 'large', 'medium_large' );
+		foreach ( $sizes as $size_name ) {
+			if ( isset( $metadata['sizes'][ $size_name ]['sources'][ $expected_mime ] ) ) {
+				$this->assertArrayHasKey( $expected_mime, $metadata['sizes'][ $size_name ]['sources'] );
+				$this->assertArrayHasKey( 'filesize', $metadata['sizes'][ $size_name ]['sources'][ $expected_mime ] );
+				$this->assertArrayHasKey( 'file', $metadata['sizes'][ $size_name ]['sources'][ $expected_mime ] );
+			}
+			if ( isset( $metadata['sizes'][ $size_name ]['sources'][ $targeted_mime ] ) ) {
+				$this->assertArrayHasKey( $targeted_mime, $metadata['sizes'][ $size_name ]['sources'] );
+				$this->assertArrayHasKey( 'filesize', $metadata['sizes'][ $size_name ]['sources'][ $targeted_mime ] );
+				$this->assertArrayHasKey( 'file', $metadata['sizes'][ $size_name ]['sources'][ $targeted_mime ] );
+			}
+		}
+	}
+
+	public function provider_image_with_default_behaviors_during_upload() {
+		yield 'JPEG image' => array(
+			DIR_TESTDATA . '/images/33772.jpg',
+			'image/jpeg',
+			'image/webp',
+		);
+
+		yield 'WebP image' => array(
+			DIR_TESTDATA . '/images/webp-lossless.webp',
+			'image/webp',
+			'image/jpeg',
+		);
+	}
+
+	/**
+	 * @ticket 55443
+	 *
+	 * @dataProvider provider_image_with_default_behaviors_during_upload
+	 */
+	public function test_it_should_create_the_sources_property_when_no_transform_is_available( $file_location, $expected_mime, $targeted_mime ) {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->markTestSkipped( 'This test requires WebP support.' );
+		}
+
+		add_filter(
+			'wp_upload_image_mime_transforms',
+			function () {
+				return array( 'image/jpeg' => array() );
+			}
+		);
+
+		$attachment_id = $this->factory->attachment->create_upload_object( $file_location );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+
+		$this->assertIsArray( $metadata );
+		foreach ( $metadata['sizes'] as $size_name => $properties ) {
+			$this->assertArrayHasKey( 'sources', $properties );
+			$this->assertIsArray( $properties['sources'] );
+			$this->assertArrayHasKey( $expected_mime, $properties['sources'] );
+			$this->assertArrayHasKey( 'filesize', $properties['sources'][ $expected_mime ] );
+			$this->assertArrayHasKey( 'file', $properties['sources'][ $expected_mime ] );
+			$this->assertArrayNotHasKey( $targeted_mime, $properties['sources'] );
+		}
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test_it_should_create_a_webp_version_with_all_the_required_properties() {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->markTestSkipped( 'This test requires WebP support.' );
+		}
+
+		$attachment_id = $this->factory->attachment->create_upload_object(
+			DIR_TESTDATA . '/images/canola.jpg'
+		);
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+
+		foreach ( $metadata['sizes'] as $size_name => $properties ) {
+			$this->assertArrayHasKey( 'sources', $properties );
+			$this->assertArrayHasKey( 'image/jpeg', $properties['sources'] );
+			$this->assertArrayHasKey( 'filesize', $properties['sources']['image/jpeg'] );
+			$this->assertArrayHasKey( 'file', $properties['sources']['image/jpeg'] );
+			$this->assertArrayHasKey( 'image/webp', $properties['sources'] );
+			$this->assertArrayHasKey( 'filesize', $properties['sources']['image/webp'] );
+			$this->assertArrayHasKey( 'file', $properties['sources']['image/webp'] );
+			$this->assertStringEndsNotWith( '.jpeg', $properties['sources']['image/webp']['file'] );
+			$this->assertStringEndsWith( '.webp', $properties['sources']['image/webp']['file'] );
+		}
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test_it_should_remove_scaled_suffix_from_the_generated_filename() {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->markTestSkipped( 'This test requires WebP support.' );
+		}
+
+		// The 33772 image is 1910 pixels wide with this filter we ensure a -scaled version is created.
+		add_filter(
+			'big_image_size_threshold',
+			function () {
+				return 850;
+			}
+		);
+
+		$attachment_id = $this->factory->attachment->create_upload_object(
+			DIR_TESTDATA . '/images/33772.jpg'
+		);
+		$metadata      = wp_get_attachment_metadata( $attachment_id );
+		$this->assertStringEndsWith( '-scaled.jpg', get_attached_file( $attachment_id ) );
+		$this->assertArrayHasKey( 'image/webp', $metadata['sizes']['thumbnail']['sources'] );
+		$this->assertStringEndsNotWith( '-scaled-jpg.webp', $metadata['sizes']['thumbnail']['sources']['image/webp']['file'] );
+		$this->assertStringEndsWith( '-150x150-jpg.webp', $metadata['sizes']['thumbnail']['sources']['image/webp']['file'] );
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test_it_should_remove_the_generated_webp_images_when_the_attachment_is_deleted() {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->markTestSkipped( 'This test requires WebP support.' );
+		}
+
+		$attachment_id = $this->factory->attachment->create_upload_object(
+			DIR_TESTDATA . '/images/canola.jpg'
+		);
+
+		$file    = get_attached_file( $attachment_id, true );
+		$dirname = pathinfo( $file, PATHINFO_DIRNAME );
+
+		$this->assertIsString( $file );
+		$this->assertFileExists( $file );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		$sizes    = array( 'thumbnail', 'medium' );
+
+		foreach ( $sizes as $size_name ) {
+			$this->assertArrayHasKey( 'image/webp', $metadata['sizes'][ $size_name ]['sources'] );
+			$this->assertArrayHasKey( 'file', $metadata['sizes'][ $size_name ]['sources']['image/webp'] );
+			$this->assertFileExists(
+				path_join( $dirname, $metadata['sizes'][ $size_name ]['sources']['image/webp']['file'] )
+			);
+		}
+
+		wp_delete_attachment( $attachment_id );
+
+		foreach ( $sizes as $size_name ) {
+			$this->assertFileDoesNotExist(
+				path_join( $dirname, $metadata['sizes'][ $size_name ]['sources']['image/webp']['file'] )
+			);
+		}
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test_it_should_remove_the_attached_webp_version_if_the_attachment_is_force_deleted() {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->markTestSkipped( 'This test requires WebP support.' );
+		}
+
+		// Make sure no editor is available.
+		$attachment_id = $this->factory->attachment->create_upload_object(
+			DIR_TESTDATA . '/images/canola.jpg'
+		);
+
+		$file    = get_attached_file( $attachment_id, true );
+		$dirname = pathinfo( $file, PATHINFO_DIRNAME );
+
+		$this->assertIsString( $file );
+		$this->assertFileExists( $file );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+
+		$this->assertFileExists(
+			path_join( $dirname, $metadata['sizes']['thumbnail']['sources']['image/webp']['file'] )
+		);
+
+		wp_delete_attachment( $attachment_id, true );
+
+		$this->assertFileDoesNotExist(
+			path_join( $dirname, $metadata['sizes']['thumbnail']['sources']['image/webp']['file'] )
+		);
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test_it_should_avoid_the_change_of_urls_of_images_that_are_not_part_of_the_media_library() {
+		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
+		$paragraph = '<p>Donec accumsan, sapien et <img src="https://ia600200.us.archive.org/16/items/SPD-SLRSY-1867/hubblesite_2001_06.jpg">, id commodo nisi sapien et est. Mauris nisl odio, iaculis vitae pellentesque nec.</p>';
+
+		$this->assertSame( $paragraph, wp_filter_content_tags( $paragraph ) );
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test_it_should_avoid_replacing_not_existing_attachment_i_ds() {
+		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
+		$paragraph = '<p>Donec accumsan, sapien et <img class="wp-image-0" src="https://ia600200.us.archive.org/16/items/SPD-SLRSY-1867/hubblesite_2001_06.jpg">, id commodo nisi sapien et est. Mauris nisl odio, iaculis vitae pellentesque nec.</p>';
+
+		$this->assertSame( $paragraph, wp_filter_content_tags( $paragraph ) );
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test_it_should_test_preventing_replacing_a_webp_image() {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->markTestSkipped( 'This test requires WebP support.' );
+		}
+
+		$attachment_id = $this->factory->attachment->create_upload_object(
+			DIR_TESTDATA . '/images/webp-lossy.webp'
+		);
+
+		$tag = wp_get_attachment_image( $attachment_id, 'medium', false, array( 'class' => "wp-image-{$attachment_id}" ) );
+
+		$this->assertSame( $tag, wp_image_use_alternate_mime_types( $tag, 'the_content', $attachment_id ) );
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test_it_should_test_preventing_replacing_a_jpg_image_if_the_image_does_not_have_the_target_class_name() {
+		$attachment_id = $this->factory->attachment->create_upload_object(
+			DIR_TESTDATA . '/images/canola.jpg'
+		);
+
+		$tag = wp_get_attachment_image( $attachment_id, 'medium' );
+
+		$this->assertSame( $tag, wp_filter_content_tags( $tag ) );
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test_it_should_contain_the_full_image_size_from_the_original_mime() {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->markTestSkipped( 'This test requires WebP support.' );
+		}
+
+		$attachment_id = $this->factory->attachment->create_upload_object(
+			DIR_TESTDATA . '/images/test-image.jpg'
+		);
+
+		$tag = wp_get_attachment_image( $attachment_id, 'full', false, array( 'class' => "wp-image-{$attachment_id}" ) );
+
+		$expected = array(
+			'ext'  => 'jpg',
+			'type' => 'image/jpeg',
+		);
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		$this->assertSame( $expected, wp_check_filetype( get_attached_file( $attachment_id ) ) );
+		$this->assertStringNotContainsString( wp_basename( get_attached_file( $attachment_id ) ), wp_image_use_alternate_mime_types( $tag, 'the_content', $attachment_id ) );
+		$this->assertStringContainsString( $metadata['sources']['image/webp']['file'], wp_image_use_alternate_mime_types( $tag, 'the_content', $attachment_id ) );
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test_it_should_prevent_replacing_an_image_with_no_available_sources() {
+		add_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
+
+		$attachment_id = $this->factory->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
+
+		$tag = wp_get_attachment_image( $attachment_id, 'full', false, array( 'class' => "wp-image-{$attachment_id}" ) );
+		$this->assertSame( $tag, wp_image_use_alternate_mime_types( $tag, 'the_content', $attachment_id ) );
+	}
+
+	/**
+	 * @dataProvider provider_it_should_prevent_update_not_supported_images_with_no_available_sources
+	 *
+	 * @ticket 55443
+	 */
+	public function test_it_should_prevent_update_not_supported_images_with_no_available_sources( $image_path ) {
+		$attachment_id = $this->factory->attachment->create_upload_object( $image_path );
+
+		$this->assertIsNumeric( $attachment_id );
+		$tag = wp_get_attachment_image( $attachment_id, 'full', false, array( 'class' => "wp-image-{$attachment_id}" ) );
+
+		$this->assertSame( $tag, wp_image_use_alternate_mime_types( $tag, 'the_content', $attachment_id ) );
+	}
+
+	/**
+	 * Data provider for it_should_prevent_update_not_supported_images_with_no_available_sources.
+	 */
+	public function provider_it_should_prevent_update_not_supported_images_with_no_available_sources() {
+		yield 'PNG image' => array( DIR_TESTDATA . '/images/test-image.png' );
+		yield 'GIFT image' => array( DIR_TESTDATA . '/images/test-image.gif' );
+	}
 }
 
 /**
