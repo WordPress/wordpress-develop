@@ -2421,6 +2421,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		$found           = false;
 		$url_attr        = false;
 		$gradient_attr   = false;
+		$is_custom_var = false;
 
 		if ( strpos( $css_item, ':' ) === false ) {
 			$found = true;
@@ -2430,12 +2431,18 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 
 			if ( in_array( '--*', $allowed_attr, true ) && preg_match( '/^--[a-zA-Z0-9-_]+$/', $css_selector ) ) {
 				$allowed_attr[] = $css_selector;
+				$is_custom_var  = true;
 			}
 
 			if ( in_array( $css_selector, $allowed_attr, true ) ) {
 				$found         = true;
 				$url_attr      = in_array( $css_selector, $css_url_data_types, true );
 				$gradient_attr = in_array( $css_selector, $css_gradient_data_types, true );
+			}
+
+			if ( $is_custom_var ) {
+				$url_attr      = 0 === strpos( $parts[1], 'url(' ) );
+				$gradient_attr = false !== strpos( $parts[1], '-gradient(' );
 			}
 		}
 
