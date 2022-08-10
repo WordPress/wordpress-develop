@@ -2421,7 +2421,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		$found           = false;
 		$url_attr        = false;
 		$gradient_attr   = false;
-		$is_custom_var = false;
+		$is_custom_var   = false;
 
 		if ( strpos( $css_item, ':' ) === false ) {
 			$found = true;
