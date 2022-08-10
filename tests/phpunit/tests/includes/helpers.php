@@ -51,7 +51,7 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	 * @dataProvider data_assertSameSets
 	 * @ticket 30522
 	 *
-	 * @coversNothing
+	 * @covers Tests_TestHelpers::assertSameSets
 	 */
 	public function test_assertSameSets( $expected, $actual, $exception ) {
 		if ( $exception ) {
@@ -209,7 +209,7 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	 * @dataProvider data_assertSameSetsWithIndex
 	 * @ticket 30522
 	 *
-	 * @coversNothing
+	 * @covers Tests_TestHelpers::assertSameSetsWithIndex
 	 */
 	public function test_assertSameSetsWithIndex( $expected, $actual, $exception ) {
 		if ( $exception ) {
@@ -226,7 +226,6 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::register_post_status
 	 * @covers ::_unregister_post_status
 	 */
 	public function test__unregister_post_status() {
@@ -241,7 +240,7 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	/**
 	 * @ticket 28486
 	 *
-	 * @coversNothing
+	 * @covers Tests_TestHelpers::setExpectedDeprecated
 	 */
 	public function test_setExpectedDeprecated() {
 		$this->setExpectedDeprecated( 'Tests_TestHelpers::mock_deprecated' );
@@ -251,7 +250,7 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	/**
 	 * @ticket 28486
 	 *
-	 * @coversNothing
+	 * @covers Tests_TestHelpers::setExpectedIncorrectUsage
 	 */
 	public function test_setExpectedIncorrectUsage() {
 		$this->setExpectedIncorrectUsage( 'Tests_TestHelpers::mock_incorrect_usage' );
@@ -261,7 +260,7 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	/**
 	 * @ticket 31417
 	 *
-	 * @coversNothing
+	 * @covers Tests_TestHelpers::go_to
 	 */
 	public function test_go_to_should_go_to_home_page_when_passing_the_untrailingslashed_home_url() {
 		$this->assertFalse( is_home() );
@@ -427,9 +426,11 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	/**
 	 * @ticket 38196
 	 *
-	 * @coversNothing
+	 * @covers WP_UnitTestCase_Base::tear_down
 	 */
 	public function test_setup_postdata_globals_should_be_reset_on_teardown() {
+		static::tear_down();
+		static::tear_down_after_class();
 		$globals = array( 'post', 'id', 'authordata', 'currentday', 'currentmonth', 'page', 'pages', 'multipage', 'more', 'numpages' );
 
 		foreach ( $globals as $global ) {
