@@ -1741,4 +1741,91 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 		$this->assertSameSets( array( $p ), $q->posts );
 		$this->assertStringNotContainsString( 'LIMIT 1', $query );
 	}
+
+	public function test_tax_query_with_tax_slug_in_main_query() {
+		register_taxonomy( 'foo', 'post' );
+
+		$foo_term = self::factory()->term->create(
+			array(
+				'taxonomy' => 'foo',
+				'slug'     => 'foo-term',
+			)
+		);
+		$cat_term_1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'category',
+			)
+		);
+		$cat_term_2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'category',
+			)
+		);
+
+		$p1 = self::factory()->post->create();
+		$p2 = self::factory()->post->create();
+		$p3 = self::factory()->post->create();
+
+		wp_set_object_terms( $p1, array( $foo_term ), 'foo' );
+		wp_set_object_terms( $p1, array( $cat_term_1 ), 'bar' );
+		wp_set_object_terms( $p2, array( $foo_term ), 'foo' );
+		wp_set_object_terms( $p2, array( $cat_term_2 ), 'bar' );
+		wp_set_object_terms( $p3, array( $foo_term ), 'foo' );
+
+		$q = new WP_Query(
+			array(
+				'fields'                 => 'ids',
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'foo' => 'foo-term',
+				'tax_query'              => array(
+					'relation' => 'OR',
+					array(
+						'taxonomy' => 'foo',
+						'terms'    => array( $cat_term_1 ),
+						'field'    => 'term_id',
+					),
+					array(
+						'taxonomy' => 'bar',
+						'terms'    => array( $cat_term_2 ),
+						'field'    => 'term_id',
+					),
+				),
+			)
+		);
+
+		$expected = array(
+			'tax_query'              => array(
+				'relation' => 'AND',
+				array(
+					'taxonomy'         => 'foo',
+					'terms'            => 'foo-term',
+					'field'            => 'slug',
+					'operator'         => 'IN',
+					'include_children' => true,
+				),
+				array(
+					'relation' => 'OR',
+					array(
+						'taxonomy'         => 'category',
+						'terms'            => array( $cat_term_1 ),
+						'field'            => 'term_id',
+						'operator'         => 'IN',
+						'include_children' => true,
+					),
+					array(
+						'taxonomy'         => 'category',
+						'terms'            => array( $cat_term_2 ),
+						'field'            => 'term_id',
+						'operator'         => 'IN',
+						'include_children' => true,
+					),
+				),
+			),
+		);
+
+		_unregister_taxonomy( 'foo' );
+
+		$this->assertSameSets( $expected, $q->tax_query->queries );
+	}
 }
