@@ -652,6 +652,7 @@ function maybe_unserialize( $data ) {
  * Serialized data is always a string.
  *
  * @since 2.0.5
+ * @since 6.1.0 Added Enum support.
  *
  * @param string $data   Value to check to see if was serialized.
  * @param bool   $strict Optional. Whether to be strict about the end of the string. Default true.
