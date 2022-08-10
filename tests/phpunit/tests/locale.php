@@ -15,6 +15,9 @@ class Tests_Locale extends WP_UnitTestCase {
 		$this->locale = new WP_Locale();
 	}
 
+	/**
+	 * @covers WP_Locale::get_weekday
+	 */
 	public function test_get_weekday() {
 		$this->assertSame( __( 'Sunday' ), $this->locale->get_weekday( 0 ) );
 		$this->assertSame( __( 'Monday' ), $this->locale->get_weekday( 1 ) );
@@ -25,6 +28,9 @@ class Tests_Locale extends WP_UnitTestCase {
 		$this->assertSame( __( 'Saturday' ), $this->locale->get_weekday( 6 ) );
 	}
 
+	/**
+	 * @covers WP_Locale::get_weekday
+	 */
 	public function test_get_weekday_undefined_index() {
 		if ( PHP_VERSION_ID >= 80000 ) {
 			$this->expectWarning();
@@ -35,6 +41,9 @@ class Tests_Locale extends WP_UnitTestCase {
 		$this->locale->get_weekday( 7 );
 	}
 
+	/**
+	 * @covers WP_Locale::get_weekday_initial
+	 */
 	public function test_get_weekday_initial() {
 		$this->assertSame( __( 'S' ), $this->locale->get_weekday_initial( __( 'Sunday' ) ) );
 		$this->assertSame( __( 'M' ), $this->locale->get_weekday_initial( __( 'Monday' ) ) );
@@ -45,6 +54,9 @@ class Tests_Locale extends WP_UnitTestCase {
 		$this->assertSame( __( 'S' ), $this->locale->get_weekday_initial( __( 'Saturday' ) ) );
 	}
 
+	/**
+	 * @covers WP_Locale::get_weekday_abbrev
+	 */
 	public function test_get_weekday_abbrev() {
 		$this->assertSame( __( 'Sun' ), $this->locale->get_weekday_abbrev( __( 'Sunday' ) ) );
 		$this->assertSame( __( 'Mon' ), $this->locale->get_weekday_abbrev( __( 'Monday' ) ) );
@@ -55,6 +67,9 @@ class Tests_Locale extends WP_UnitTestCase {
 		$this->assertSame( __( 'Sat' ), $this->locale->get_weekday_abbrev( __( 'Saturday' ) ) );
 	}
 
+	/**
+	 * @covers WP_Locale::get_month
+	 */
 	public function test_get_month() {
 		$this->assertSame( __( 'January' ), $this->locale->get_month( 1 ) );
 		$this->assertSame( __( 'February' ), $this->locale->get_month( 2 ) );
@@ -70,6 +85,9 @@ class Tests_Locale extends WP_UnitTestCase {
 		$this->assertSame( __( 'December' ), $this->locale->get_month( 12 ) );
 	}
 
+	/**
+	 * @covers WP_Locale::get_month
+	 */
 	public function test_get_month_leading_zero() {
 		$this->assertSame( __( 'January' ), $this->locale->get_month( '01' ) );
 		$this->assertSame( __( 'February' ), $this->locale->get_month( '02' ) );
@@ -82,6 +100,9 @@ class Tests_Locale extends WP_UnitTestCase {
 		$this->assertSame( __( 'September' ), $this->locale->get_month( '09' ) );
 	}
 
+	/**
+	 * @covers WP_Locale::get_month_abbrev
+	 */
 	public function test_get_month_abbrev() {
 		$this->assertSame( __( 'Jan' ), $this->locale->get_month_abbrev( __( 'January' ) ) );
 		$this->assertSame( __( 'Feb' ), $this->locale->get_month_abbrev( __( 'February' ) ) );
@@ -97,6 +118,9 @@ class Tests_Locale extends WP_UnitTestCase {
 		$this->assertSame( __( 'Dec' ), $this->locale->get_month_abbrev( __( 'December' ) ) );
 	}
 
+	/**
+	 * @covers WP_Locale::get_meridiem
+	 */
 	public function test_get_meridiem() {
 		$this->assertSame( __( 'am' ), $this->locale->get_meridiem( 'am' ) );
 		$this->assertSame( __( 'AM' ), $this->locale->get_meridiem( 'AM' ) );
@@ -104,6 +128,9 @@ class Tests_Locale extends WP_UnitTestCase {
 		$this->assertSame( __( 'PM' ), $this->locale->get_meridiem( 'PM' ) );
 	}
 
+	/**
+	 * @covers WP_Locale::is_rtl
+	 */
 	public function test_is_rtl() {
 		$this->assertFalse( $this->locale->is_rtl() );
 		$this->locale->text_direction = 'foo';
