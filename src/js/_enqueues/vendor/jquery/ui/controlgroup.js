@@ -1,8 +1,8 @@
 /*!
- * jQuery UI Controlgroup 1.13.1
+ * jQuery UI Controlgroup @VERSION
  * http://jqueryui.com
  *
- * Copyright jQuery Foundation and other contributors
+ * Copyright OpenJS Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  */
@@ -24,7 +24,7 @@
 		// AMD. Register as an anonymous module.
 		define( [
 			"jquery",
-			"./core"
+			"../widget"
 		], factory );
 	} else {
 
@@ -37,7 +37,7 @@
 var controlgroupCornerRegex = /ui-corner-([a-z]){2,6}/g;
 
 return $.widget( "ui.controlgroup", {
-	version: "1.13.1",
+	version: "@VERSION",
 	defaultElement: "<div>",
 	options: {
 		direction: "horizontal",

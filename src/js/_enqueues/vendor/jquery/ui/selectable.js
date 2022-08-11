@@ -1,8 +1,8 @@
 /*!
- * jQuery UI Selectable 1.13.1
+ * jQuery UI Selectable @VERSION
  * http://jqueryui.com
  *
- * Copyright jQuery Foundation and other contributors
+ * Copyright OpenJS Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  */
@@ -23,7 +23,8 @@
 		define( [
 			"jquery",
 			"./mouse",
-			"./core"
+			"../version",
+			"../widget"
 		], factory );
 	} else {
 
@@ -34,7 +35,7 @@
 "use strict";
 
 return $.widget( "ui.selectable", $.ui.mouse, {
-	version: "1.13.1",
+	version: "@VERSION",
 	options: {
 		appendTo: "body",
 		autoRefresh: true,
@@ -210,10 +211,10 @@ return $.widget( "ui.selectable", $.ui.mouse, {
 
 			if ( options.tolerance === "touch" ) {
 				hit = ( !( offset.left > x2 || offset.right < x1 || offset.top > y2 ||
-					offset.bottom < y1 ) );
+                    offset.bottom < y1 ) );
 			} else if ( options.tolerance === "fit" ) {
 				hit = ( offset.left > x1 && offset.right < x2 && offset.top > y1 &&
-					offset.bottom < y2 );
+                    offset.bottom < y2 );
 			}
 
 			if ( hit ) {

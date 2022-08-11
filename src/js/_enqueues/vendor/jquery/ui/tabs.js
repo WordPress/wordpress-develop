@@ -1,8 +1,8 @@
 /*!
- * jQuery UI Tabs 1.13.1
+ * jQuery UI Tabs @VERSION
  * http://jqueryui.com
  *
- * Copyright jQuery Foundation and other contributors
+ * Copyright OpenJS Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  */
@@ -24,7 +24,11 @@
 		// AMD. Register as an anonymous module.
 		define( [
 			"jquery",
-			"./core"
+			"../keycode",
+			"../safe-active-element",
+			"../unique-id",
+			"../version",
+			"../widget"
 		], factory );
 	} else {
 
@@ -35,7 +39,7 @@
 "use strict";
 
 $.widget( "ui.tabs", {
-	version: "1.13.1",
+	version: "@VERSION",
 	delay: 300,
 	options: {
 		active: null,
@@ -176,39 +180,39 @@ $.widget( "ui.tabs", {
 		}
 
 		switch ( event.keyCode ) {
-			case $.ui.keyCode.RIGHT:
-			case $.ui.keyCode.DOWN:
-				selectedIndex++;
-				break;
-			case $.ui.keyCode.UP:
-			case $.ui.keyCode.LEFT:
-				goingForward = false;
-				selectedIndex--;
-				break;
-			case $.ui.keyCode.END:
-				selectedIndex = this.anchors.length - 1;
-				break;
-			case $.ui.keyCode.HOME:
-				selectedIndex = 0;
-				break;
-			case $.ui.keyCode.SPACE:
+		case $.ui.keyCode.RIGHT:
+		case $.ui.keyCode.DOWN:
+			selectedIndex++;
+			break;
+		case $.ui.keyCode.UP:
+		case $.ui.keyCode.LEFT:
+			goingForward = false;
+			selectedIndex--;
+			break;
+		case $.ui.keyCode.END:
+			selectedIndex = this.anchors.length - 1;
+			break;
+		case $.ui.keyCode.HOME:
+			selectedIndex = 0;
+			break;
+		case $.ui.keyCode.SPACE:
 
-				// Activate only, no collapsing
-				event.preventDefault();
-				clearTimeout( this.activating );
-				this._activate( selectedIndex );
-				return;
-			case $.ui.keyCode.ENTER:
+			// Activate only, no collapsing
+			event.preventDefault();
+			clearTimeout( this.activating );
+			this._activate( selectedIndex );
+			return;
+		case $.ui.keyCode.ENTER:
 
-				// Toggle (cancel delayed activation, allow collapsing)
-				event.preventDefault();
-				clearTimeout( this.activating );
+			// Toggle (cancel delayed activation, allow collapsing)
+			event.preventDefault();
+			clearTimeout( this.activating );
 
-				// Determine if we should collapse or activate
-				this._activate( selectedIndex === this.options.active ? false : selectedIndex );
-				return;
-			default:
-				return;
+			// Determine if we should collapse or activate
+			this._activate( selectedIndex === this.options.active ? false : selectedIndex );
+			return;
+		default:
+			return;
 		}
 
 		// Focus the appropriate tab, based on which key was pressed
@@ -330,7 +334,7 @@ $.widget( "ui.tabs", {
 			options.active = false;
 			this.active = $();
 
-			// was active, but active tab is gone
+		// was active, but active tab is gone
 		} else if ( this.active.length && !$.contains( this.tablist[ 0 ], this.active[ 0 ] ) ) {
 
 			// all remaining tabs are disabled
@@ -338,12 +342,12 @@ $.widget( "ui.tabs", {
 				options.active = false;
 				this.active = $();
 
-				// activate previous tab
+			// activate previous tab
 			} else {
 				this._activate( this._findNextTab( Math.max( 0, options.active - 1 ), false ) );
 			}
 
-			// was active, active tab still exists
+		// was active, active tab still exists
 		} else {
 
 			// make sure active index is correct
@@ -447,7 +451,7 @@ $.widget( "ui.tabs", {
 				panelId = selector.substring( 1 );
 				panel = that.element.find( that._sanitizeSelector( selector ) );
 
-				// remote tab
+			// remote tab
 			} else {
 
 				// If the tab doesn't already have aria-controls,
@@ -605,17 +609,17 @@ $.widget( "ui.tabs", {
 
 		if ( tab.hasClass( "ui-state-disabled" ) ||
 
-			// tab is already loading
-			tab.hasClass( "ui-tabs-loading" ) ||
+				// tab is already loading
+				tab.hasClass( "ui-tabs-loading" ) ||
 
-			// can't switch durning an animation
-			this.running ||
+				// can't switch durning an animation
+				this.running ||
 
-			// click on active header, but not collapsible
-			( clickedIsActive && !options.collapsible ) ||
+				// click on active header, but not collapsible
+				( clickedIsActive && !options.collapsible ) ||
 
-			// allow canceling activation
-			( this._trigger( "beforeActivate", event, eventData ) === false ) ) {
+				// allow canceling activation
+				( this._trigger( "beforeActivate", event, eventData ) === false ) ) {
 			return;
 		}
 
