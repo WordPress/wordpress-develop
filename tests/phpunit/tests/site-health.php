@@ -120,16 +120,11 @@ class Tests_Site_Health extends WP_UnitTestCase {
 	 */
 	public function test_get_page_cache( $responses, $expected_status, $expected_label, $good_basic_auth = null, $delay_the_response = false ) {
 		$wp_site_health = new WP_Site_Health();
-		$badge_color    = array(
-			'critical'    => 'red',
-			'recommended' => 'orange',
-			'good'        => 'green',
-		);
 
 		$expected_props = array(
 			'badge'  => array(
 				'label' => __( 'Performance' ),
-				'color' => $badge_color[ $expected_status ],
+				'color' => 'blue',
 			),
 			'test'   => 'page_cache',
 			'status' => $expected_status,
