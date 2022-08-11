@@ -2441,8 +2441,8 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			}
 
 			if ( $is_custom_var ) {
-				$url_attr      = 0 === strpos( $parts[1], 'url(' );
-				$gradient_attr = false !== strpos( $parts[1], '-gradient(' );
+				$url_attr      = str_starts_with( $parts[1], 'url(' );
+				$gradient_attr = str_contains( $parts[1], '-gradient(' );
 			}
 		}
 
