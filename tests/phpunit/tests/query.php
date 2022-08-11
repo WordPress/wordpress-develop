@@ -2,27 +2,11 @@
 
 class Tests_Query extends WP_UnitTestCase {
 
-	/**
-	 * Fixed date post ID.
-	 *
-	 * @var int
-	 */
-	public static $post_with_date;
-
 	public function set_up() {
 		parent::set_up();
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 		create_initial_taxonomies();
-	}
-
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$post_with_date = $factory->post->create(
-			array(
-				'post_date' => '2020-01-05 12:00:00',
-				'post_name' => 'post-with-date',
-			)
-		);
 	}
 
 	/**
@@ -711,57 +695,6 @@ class Tests_Query extends WP_UnitTestCase {
 
 		$this->assertSame( 'tax1', get_query_var( 'taxonomy' ) );
 		$this->assertSame( 'term1', get_query_var( 'term' ) );
-	}
-
-	/**
-	 * @ticket 52252
-	 * @dataProvider data_malformed_date_queries
-	 *
-	 * @param string $permalink_structure Permalink structure.
-	 * @param array $query_vars Querystring parameteres.
-	 */
-	public function test_malformed_date_queries( $permalink_structure, $query_vars ) {
-		$this->set_permalink_structure( $permalink_structure );
-		$this->go_to( add_query_arg( $query_vars, home_url() ) );
-
-		/*
-		 * Ticket 52252 was to prevent notices from being thrown
-		 * if the date query is malformed.
-		 *
-		 * The test will automatically fail if the function triggers a notice,
-		 * so this dummy assertion is just for accurate stats.
-		 */
-		$this->assertTrue( true );
-	}
-
-	/**
-	 * Data provider for test_malformed_date_queries.
-	 *
-	 * @return array Test data.
-	 */
-	public function data_malformed_date_queries() {
-		return array(
-			'/%postname%/ with missing year'         => array(
-				'/%postname%/',
-				array(
-					'monthnum' => 1,
-					'day'      => 15,
-				),
-			),
-			'/%postname%/ with month only'           => array(
-				'/%postname%/',
-				array(
-					'monthnum' => 1,
-				),
-			),
-			'/%year%/%postname%/ with missing month' => array(
-				'/%year%/%postname%/',
-				array(
-					'year' => 2020,
-					'day'  => 15,
-				),
-			),
-		);
 	}
 
 	/**
