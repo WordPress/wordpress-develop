@@ -131,7 +131,7 @@ function get_option( $option, $default = false ) {
 	 */
 	$pre = apply_filters( "pre_option_{$option}", false, $option, $default );
 
-	if ( false !== $pre ) {
+	if ( $pre !== false ) {
 		return $pre;
 	}
 
@@ -171,7 +171,7 @@ function get_option( $option, $default = false ) {
 		} else {
 			$value = wp_cache_get( $option, 'options' );
 
-			if ( false === $value ) {
+			if ( $value === false ) {
 				$row = $wpdb->get_row( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
 
 				// Has to be get_row() instead of get_var() because of funkiness with 0, false, null values.
@@ -205,7 +205,7 @@ function get_option( $option, $default = false ) {
 	}
 
 	// If home is not set, use siteurl.
-	if ( 'home' === $option && '' === $value ) {
+	if ( $option === 'home' && $value === '' ) {
 		return get_option( 'siteurl' );
 	}
 
@@ -240,7 +240,7 @@ function get_option( $option, $default = false ) {
  * @param string $option Option name.
  */
 function wp_protect_special_option( $option ) {
-	if ( 'alloptions' === $option || 'notoptions' === $option ) {
+	if ( $option === 'alloptions' || $option === 'notoptions' ) {
 		wp_die(
 			sprintf(
 				/* translators: %s: Option name. */
@@ -465,7 +465,7 @@ function update_option( $option, $value, $autoload = null ) {
 	/** This filter is documented in wp-includes/option.php */
 	if ( apply_filters( "default_option_{$option}", false, $option, false ) === $old_value ) {
 		// Default setting for new options is 'yes'.
-		if ( null === $autoload ) {
+		if ( $autoload === null ) {
 			$autoload = 'yes';
 		}
 
@@ -489,8 +489,8 @@ function update_option( $option, $value, $autoload = null ) {
 		'option_value' => $serialized_value,
 	);
 
-	if ( null !== $autoload ) {
-		$update_args['autoload'] = ( 'no' === $autoload || false === $autoload ) ? 'no' : 'yes';
+	if ( $autoload !== null ) {
+		$update_args['autoload'] = ( $autoload === 'no' || $autoload === false ) ? 'no' : 'yes';
 	}
 
 	$result = $wpdb->update( $wpdb->options, $update_args, array( 'option_name' => $option ) );
@@ -625,7 +625,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' )
 	}
 
 	$serialized_value = maybe_serialize( $value );
-	$autoload         = ( 'no' === $autoload || false === $autoload ) ? 'no' : 'yes';
+	$autoload         = ( $autoload === 'no' || $autoload === false ) ? 'no' : 'yes';
 
 	/**
 	 * Fires before an option is added.
@@ -643,7 +643,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' )
 	}
 
 	if ( ! wp_installing() ) {
-		if ( 'yes' === $autoload ) {
+		if ( $autoload === 'yes' ) {
 			$alloptions            = wp_load_alloptions( true );
 			$alloptions[ $option ] = $serialized_value;
 			wp_cache_set( 'alloptions', $alloptions, 'options' );
@@ -727,7 +727,7 @@ function delete_option( $option ) {
 	$result = $wpdb->delete( $wpdb->options, array( 'option_name' => $option ) );
 
 	if ( ! wp_installing() ) {
-		if ( 'yes' === $row->autoload ) {
+		if ( $row->autoload === 'yes' ) {
 			$alloptions = wp_load_alloptions( true );
 			if ( is_array( $alloptions ) && isset( $alloptions[ $option ] ) ) {
 				unset( $alloptions[ $option ] );
@@ -845,7 +845,7 @@ function get_transient( $transient ) {
 	 */
 	$pre = apply_filters( "pre_transient_{$transient}", false, $transient );
 
-	if ( false !== $pre ) {
+	if ( $pre !== false ) {
 		return $pre;
 	}
 
@@ -859,7 +859,7 @@ function get_transient( $transient ) {
 			if ( ! isset( $alloptions[ $transient_option ] ) ) {
 				$transient_timeout = '_transient_timeout_' . $transient;
 				$timeout           = get_option( $transient_timeout );
-				if ( false !== $timeout && $timeout < time() ) {
+				if ( $timeout !== false && $timeout < time() ) {
 					delete_option( $transient_option );
 					delete_option( $transient_timeout );
 					$value = false;
@@ -939,7 +939,7 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 		$transient_timeout = '_transient_timeout_' . $transient;
 		$transient_option  = '_transient_' . $transient;
 
-		if ( false === get_option( $transient_option ) ) {
+		if ( get_option( $transient_option ) === false ) {
 			$autoload = 'yes';
 			if ( $expiration ) {
 				$autoload = 'no';
@@ -952,7 +952,7 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 			$update = true;
 
 			if ( $expiration ) {
-				if ( false === get_option( $transient_timeout ) ) {
+				if ( get_option( $transient_timeout ) === false ) {
 					delete_option( $transient_option );
 					add_option( $transient_timeout, time() + $expiration, '', 'no' );
 					$result = add_option( $transient_option, $value, '', 'no' );
@@ -1110,7 +1110,7 @@ function wp_user_settings() {
 	}
 
 	// The cookie is not set in the current browser or the saved value is newer.
-	$secure = ( 'https' === parse_url( admin_url(), PHP_URL_SCHEME ) );
+	$secure = ( parse_url( admin_url(), PHP_URL_SCHEME ) === 'https' );
 	setcookie( 'wp-settings-' . $user_id, $settings, time() + YEAR_IN_SECONDS, SITECOOKIEPATH, '', $secure );
 	setcookie( 'wp-settings-time-' . $user_id, time(), time() + YEAR_IN_SECONDS, SITECOOKIEPATH, '', $secure );
 	$_COOKIE[ 'wp-settings-' . $user_id ] = $settings;
@@ -1411,7 +1411,7 @@ function get_network_option( $network_id, $option, $default = false ) {
 	 */
 	$pre = apply_filters( "pre_site_option_{$option}", false, $option, $network_id, $default );
 
-	if ( false !== $pre ) {
+	if ( $pre !== false ) {
 		return $pre;
 	}
 
@@ -1446,7 +1446,7 @@ function get_network_option( $network_id, $option, $default = false ) {
 		$cache_key = "$network_id:$option";
 		$value     = wp_cache_get( $cache_key, 'site-options' );
 
-		if ( ! isset( $value ) || false === $value ) {
+		if ( ! isset( $value ) || $value === false ) {
 			$row = $wpdb->get_row( $wpdb->prepare( "SELECT meta_value FROM $wpdb->sitemeta WHERE meta_key = %s AND site_id = %d", $option, $network_id ) );
 
 			// Has to be get_row() instead of get_var() because of funkiness with 0, false, null values.
@@ -1550,7 +1550,7 @@ function add_network_option( $network_id, $option, $value ) {
 		$notoptions = wp_cache_get( $notoptions_key, 'site-options' );
 
 		if ( ! is_array( $notoptions ) || ! isset( $notoptions[ $option ] ) ) {
-			if ( false !== get_network_option( $network_id, $option, false ) ) {
+			if ( get_network_option( $network_id, $option, false ) !== false ) {
 				return false;
 			}
 		}
@@ -1772,7 +1772,7 @@ function update_network_option( $network_id, $option, $value ) {
 		return false;
 	}
 
-	if ( false === $old_value ) {
+	if ( $old_value === false ) {
 		return add_network_option( $network_id, $option, $value );
 	}
 
@@ -1923,7 +1923,7 @@ function get_site_transient( $transient ) {
 	 */
 	$pre = apply_filters( "pre_site_transient_{$transient}", false, $transient );
 
-	if ( false !== $pre ) {
+	if ( $pre !== false ) {
 		return $pre;
 	}
 
@@ -1936,7 +1936,7 @@ function get_site_transient( $transient ) {
 		if ( ! in_array( $transient, $no_timeout, true ) ) {
 			$transient_timeout = '_site_transient_timeout_' . $transient;
 			$timeout           = get_site_option( $transient_timeout );
-			if ( false !== $timeout && $timeout < time() ) {
+			if ( $timeout !== false && $timeout < time() ) {
 				delete_site_option( $transient_option );
 				delete_site_option( $transient_timeout );
 				$value = false;
@@ -2014,7 +2014,7 @@ function set_site_transient( $transient, $value, $expiration = 0 ) {
 		$transient_timeout = '_site_transient_timeout_' . $transient;
 		$option            = '_site_transient_' . $transient;
 
-		if ( false === get_site_option( $option ) ) {
+		if ( get_site_option( $option ) === false ) {
 			if ( $expiration ) {
 				add_site_option( $transient_timeout, time() + $expiration );
 			}
@@ -2351,7 +2351,7 @@ function register_setting( $option_group, $option_name, $args = array() ) {
 	$args = wp_parse_args( $args, $defaults );
 
 	// Require an item schema when registering settings with an array type.
-	if ( false !== $args['show_in_rest'] && 'array' === $args['type'] && ( ! is_array( $args['show_in_rest'] ) || ! isset( $args['show_in_rest']['schema']['items'] ) ) ) {
+	if ( $args['show_in_rest'] !== false && $args['type'] === 'array' && ( ! is_array( $args['show_in_rest'] ) || ! isset( $args['show_in_rest']['schema']['items'] ) ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'When registering an "array" setting to show in the REST API, you must specify the schema for each array item in "show_in_rest.schema.items".' ), '5.4.0' );
 	}
 
@@ -2359,7 +2359,7 @@ function register_setting( $option_group, $option_name, $args = array() ) {
 		$wp_registered_settings = array();
 	}
 
-	if ( 'misc' === $option_group ) {
+	if ( $option_group === 'misc' ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.0.0',
@@ -2372,7 +2372,7 @@ function register_setting( $option_group, $option_name, $args = array() ) {
 		$option_group = 'general';
 	}
 
-	if ( 'privacy' === $option_group ) {
+	if ( $option_group === 'privacy' ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.5.0',
@@ -2432,7 +2432,7 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 	 */
 	$GLOBALS['new_whitelist_options'] = &$new_allowed_options;
 
-	if ( 'misc' === $option_group ) {
+	if ( $option_group === 'misc' ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.0.0',
@@ -2445,7 +2445,7 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 		$option_group = 'general';
 	}
 
-	if ( 'privacy' === $option_group ) {
+	if ( $option_group === 'privacy' ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.5.0',
@@ -2460,11 +2460,11 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 
 	$pos = array_search( $option_name, (array) $new_allowed_options[ $option_group ], true );
 
-	if ( false !== $pos ) {
+	if ( $pos !== false ) {
 		unset( $new_allowed_options[ $option_group ][ $pos ] );
 	}
 
-	if ( '' !== $deprecated ) {
+	if ( $deprecated !== '' ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'4.7.0',

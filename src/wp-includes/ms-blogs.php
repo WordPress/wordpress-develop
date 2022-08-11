@@ -61,7 +61,7 @@ function get_blogaddress_by_id( $blog_id ) {
  */
 function get_blogaddress_by_name( $blogname ) {
 	if ( is_subdomain_install() ) {
-		if ( 'main' === $blogname ) {
+		if ( $blogname === 'main' ) {
 			$blogname = 'www';
 		}
 		$url = rtrim( network_home_url(), '/' );
@@ -134,10 +134,10 @@ function get_blog_details( $fields = null, $get_all = true ) {
 		} elseif ( isset( $fields['domain'] ) && isset( $fields['path'] ) ) {
 			$key  = md5( $fields['domain'] . $fields['path'] );
 			$blog = wp_cache_get( $key, 'blog-lookup' );
-			if ( false !== $blog ) {
+			if ( $blog !== false ) {
 				return $blog;
 			}
-			if ( 'www.' === substr( $fields['domain'], 0, 4 ) ) {
+			if ( substr( $fields['domain'], 0, 4 ) === 'www.' ) {
 				$nowww = substr( $fields['domain'], 4 );
 				$blog  = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain IN (%s,%s) AND path = %s ORDER BY CHAR_LENGTH(domain) DESC", $nowww, $fields['domain'], $fields['path'] ) );
 			} else {
@@ -152,10 +152,10 @@ function get_blog_details( $fields = null, $get_all = true ) {
 		} elseif ( isset( $fields['domain'] ) && is_subdomain_install() ) {
 			$key  = md5( $fields['domain'] );
 			$blog = wp_cache_get( $key, 'blog-lookup' );
-			if ( false !== $blog ) {
+			if ( $blog !== false ) {
 				return $blog;
 			}
-			if ( 'www.' === substr( $fields['domain'], 0, 4 ) ) {
+			if ( substr( $fields['domain'], 0, 4 ) === 'www.' ) {
 				$nowww = substr( $fields['domain'], 4 );
 				$blog  = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain IN (%s,%s) ORDER BY CHAR_LENGTH(domain) DESC", $nowww, $fields['domain'] ) );
 			} else {
@@ -187,7 +187,7 @@ function get_blog_details( $fields = null, $get_all = true ) {
 
 	if ( $details ) {
 		if ( ! is_object( $details ) ) {
-			if ( -1 == $details ) {
+			if ( $details == -1 ) {
 				return false;
 			} else {
 				// Clear old pre-serialized objects. Cache clients do better with that.
@@ -207,7 +207,7 @@ function get_blog_details( $fields = null, $get_all = true ) {
 		// If short was requested and full cache is set, we can return.
 		if ( $details ) {
 			if ( ! is_object( $details ) ) {
-				if ( -1 == $details ) {
+				if ( $details == -1 ) {
 					return false;
 				} else {
 					// Clear old pre-serialized objects. Cache clients do better with that.
@@ -459,7 +459,7 @@ function delete_blog_option( $id, $option ) {
 function update_blog_option( $id, $option, $value, $deprecated = null ) {
 	$id = (int) $id;
 
-	if ( null !== $deprecated ) {
+	if ( $deprecated !== null ) {
 		_deprecated_argument( __FUNCTION__, '3.1.0' );
 	}
 
@@ -756,7 +756,7 @@ function update_archived( $id, $archived ) {
 function update_blog_status( $blog_id, $pref, $value, $deprecated = null ) {
 	global $wpdb;
 
-	if ( null !== $deprecated ) {
+	if ( $deprecated !== null ) {
 		_deprecated_argument( __FUNCTION__, '3.1.0' );
 	}
 
@@ -841,7 +841,7 @@ function _update_blog_date_on_post_publish( $new_status, $old_status, $post ) {
 		return;
 	}
 
-	if ( 'publish' !== $new_status && 'publish' !== $old_status ) {
+	if ( $new_status !== 'publish' && $old_status !== 'publish' ) {
 		return;
 	}
 
@@ -866,7 +866,7 @@ function _update_blog_date_on_post_delete( $post_id ) {
 		return;
 	}
 
-	if ( 'publish' !== $post->post_status ) {
+	if ( $post->post_status !== 'publish' ) {
 		return;
 	}
 
@@ -883,7 +883,7 @@ function _update_blog_date_on_post_delete( $post_id ) {
 function _update_posts_count_on_delete( $post_id ) {
 	$post = get_post( $post_id );
 
-	if ( ! $post || 'publish' !== $post->post_status || 'post' !== $post->post_type ) {
+	if ( ! $post || $post->post_status !== 'publish' || $post->post_type !== 'post' ) {
 		return;
 	}
 
@@ -905,11 +905,11 @@ function _update_posts_count_on_transition_post_status( $new_status, $old_status
 		return;
 	}
 
-	if ( 'post' !== get_post_type( $post ) ) {
+	if ( get_post_type( $post ) !== 'post' ) {
 		return;
 	}
 
-	if ( 'publish' !== $new_status && 'publish' !== $old_status ) {
+	if ( $new_status !== 'publish' && $old_status !== 'publish' ) {
 		return;
 	}
 

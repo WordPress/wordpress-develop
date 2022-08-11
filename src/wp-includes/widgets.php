@@ -908,7 +908,7 @@ function is_active_widget( $callback = false, $widget_id = false, $id_base = fal
 
 	if ( is_array( $sidebars_widgets ) ) {
 		foreach ( $sidebars_widgets as $sidebar => $widgets ) {
-			if ( $skip_inactive && ( 'wp_inactive_widgets' === $sidebar || 'orphaned_widgets' === substr( $sidebar, 0, 16 ) ) ) {
+			if ( $skip_inactive && ( $sidebar === 'wp_inactive_widgets' || substr( $sidebar, 0, 16 ) === 'orphaned_widgets' ) ) {
 				continue;
 			}
 
@@ -1007,7 +1007,7 @@ function is_active_sidebar( $index ) {
  * @return array Upgraded list of widgets to version 3 array format when called from the admin.
  */
 function wp_get_sidebars_widgets( $deprecated = true ) {
-	if ( true !== $deprecated ) {
+	if ( $deprecated !== true ) {
 		_deprecated_argument( __FUNCTION__, '2.8.1' );
 	}
 
@@ -1058,7 +1058,7 @@ function wp_get_sidebar( $id ) {
 		}
 	}
 
-	if ( 'wp_inactive_widgets' === $id ) {
+	if ( $id === 'wp_inactive_widgets' ) {
 		return array(
 			'id'   => 'wp_inactive_widgets',
 			'name' => __( 'Inactive widgets' ),
@@ -1133,7 +1133,7 @@ function wp_convert_widget_settings( $base_name, $option_name, $settings ) {
 		$single = true;
 	} else {
 		foreach ( array_keys( $settings ) as $number ) {
-			if ( 'number' === $number ) {
+			if ( $number === 'number' ) {
 				continue;
 			}
 			if ( ! is_numeric( $number ) ) {
@@ -1238,7 +1238,7 @@ function the_widget( $widget, $instance = array(), $args = array() ) {
 	/** This filter is documented in wp-includes/class-wp-widget.php */
 	$instance = apply_filters( 'widget_display_callback', $instance, $widget_obj, $args );
 
-	if ( false === $instance ) {
+	if ( $instance === false ) {
 		return;
 	}
 
@@ -1352,7 +1352,7 @@ function retrieve_widgets( $theme_changed = false ) {
 	}
 	$sidebars_widgets['wp_inactive_widgets'] = array_merge( $lost_widgets, (array) $sidebars_widgets['wp_inactive_widgets'] );
 
-	if ( 'customize' !== $theme_changed ) {
+	if ( $theme_changed !== 'customize' ) {
 		// Update the widgets settings in the database.
 		wp_set_sidebars_widgets( $sidebars_widgets );
 	}
@@ -1382,14 +1382,14 @@ function wp_map_sidebars_widgets( $existing_sidebars_widgets ) {
 	}
 
 	foreach ( $existing_sidebars_widgets as $sidebar => $widgets ) {
-		if ( 'wp_inactive_widgets' === $sidebar || 'orphaned_widgets' === substr( $sidebar, 0, 16 ) ) {
+		if ( $sidebar === 'wp_inactive_widgets' || substr( $sidebar, 0, 16 ) === 'orphaned_widgets' ) {
 			$new_sidebars_widgets['wp_inactive_widgets'] = array_merge( $new_sidebars_widgets['wp_inactive_widgets'], (array) $widgets );
 			unset( $existing_sidebars_widgets[ $sidebar ] );
 		}
 	}
 
 	// If old and new theme have just one sidebar, map it and we're done.
-	if ( 1 === count( $existing_sidebars_widgets ) && 1 === count( $wp_registered_sidebars ) ) {
+	if ( count( $existing_sidebars_widgets ) === 1 && count( $wp_registered_sidebars ) === 1 ) {
 		$new_sidebars_widgets[ key( $wp_registered_sidebars ) ] = array_pop( $existing_sidebars_widgets );
 
 		return $new_sidebars_widgets;
@@ -1431,7 +1431,7 @@ function wp_map_sidebars_widgets( $existing_sidebars_widgets ) {
 				foreach ( $wp_registered_sidebars as $new_sidebar => $args ) {
 
 					// ...actually match!
-					if ( false === stripos( $new_sidebar, $slug ) && false === stripos( $slug, $new_sidebar ) ) {
+					if ( stripos( $new_sidebar, $slug ) === false && stripos( $slug, $new_sidebar ) === false ) {
 						continue;
 					}
 
@@ -1442,7 +1442,7 @@ function wp_map_sidebars_widgets( $existing_sidebars_widgets ) {
 						foreach ( $slug_group as $slug ) {
 
 							// ... have a match as well.
-							if ( false === stripos( $sidebar, $slug ) && false === stripos( $slug, $sidebar ) ) {
+							if ( stripos( $sidebar, $slug ) === false && stripos( $slug, $sidebar ) === false ) {
 								continue;
 							}
 
@@ -1490,7 +1490,7 @@ function wp_map_sidebars_widgets( $existing_sidebars_widgets ) {
 
 		// Remove orphaned widgets, we're only interested in previously active sidebars.
 		foreach ( $old_sidebars_widgets as $sidebar => $widgets ) {
-			if ( 'orphaned_widgets' === substr( $sidebar, 0, 16 ) ) {
+			if ( substr( $sidebar, 0, 16 ) === 'orphaned_widgets' ) {
 				unset( $old_sidebars_widgets[ $sidebar ] );
 			}
 		}
@@ -1510,10 +1510,10 @@ function wp_map_sidebars_widgets( $existing_sidebars_widgets ) {
 						$active_key = array_search( $widget_id, $new_widgets, true );
 
 						// If the widget is used elsewhere...
-						if ( false !== $active_key ) {
+						if ( $active_key !== false ) {
 
 							// ...and that elsewhere is inactive widgets...
-							if ( 'wp_inactive_widgets' === $new_sidebar ) {
+							if ( $new_sidebar === 'wp_inactive_widgets' ) {
 
 								// ...remove it from there and keep the active version...
 								unset( $new_sidebars_widgets['wp_inactive_widgets'][ $active_key ] );
@@ -1627,7 +1627,7 @@ function wp_widget_rss_output( $rss, $args = array() ) {
 			$summary = $desc;
 
 			// Change existing [...] to [&hellip;].
-			if ( '[...]' === substr( $summary, -5 ) ) {
+			if ( substr( $summary, -5 ) === '[...]' ) {
 				$summary = substr( $summary, 0, -5 ) . '[&hellip;]';
 			}
 
@@ -1652,7 +1652,7 @@ function wp_widget_rss_output( $rss, $args = array() ) {
 			}
 		}
 
-		if ( '' === $link ) {
+		if ( $link === '' ) {
 			echo "<li>$title{$date}{$summary}{$author}</li>";
 		} elseif ( $show_summary ) {
 			echo "<li><a class='rsswidget' href='$link'>$title</a>{$date}{$summary}{$author}</li>";
@@ -1737,7 +1737,7 @@ function wp_widget_rss_form( $args, $inputs = null ) {
 	<?php
 	endif; // End of display options.
 foreach ( array_keys( $default_inputs ) as $input ) :
-	if ( 'hidden' === $inputs[ $input ] ) :
+	if ( $inputs[ $input ] === 'hidden' ) :
 		$id = str_replace( '_', '-', $input );
 		?>
 <input type="hidden" id="rss-<?php echo esc_attr( $id ); ?>-<?php echo $esc_number; ?>" name="widget-rss[<?php echo $esc_number; ?>][<?php echo esc_attr( $input ); ?>]" value="<?php echo esc_attr( $args[ $input ] ); ?>" />
@@ -1977,7 +1977,7 @@ function wp_render_widget( $widget_id, $sidebar_id ) {
 
 	if ( isset( $wp_registered_sidebars[ $sidebar_id ] ) ) {
 		$sidebar = $wp_registered_sidebars[ $sidebar_id ];
-	} elseif ( 'wp_inactive_widgets' === $sidebar_id ) {
+	} elseif ( $sidebar_id === 'wp_inactive_widgets' ) {
 		$sidebar = array();
 	} else {
 		return '';

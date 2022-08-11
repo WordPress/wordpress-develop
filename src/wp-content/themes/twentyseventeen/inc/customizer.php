@@ -140,7 +140,7 @@ function twentyseventeen_customize_register( $wp_customize ) {
 			array(
 				/* translators: %d: The front page section number. */
 				'label'           => sprintf( __( 'Front Page Section %d Content', 'twentyseventeen' ), $i ),
-				'description'     => ( 1 !== $i ? '' : __( 'Select pages to feature in each area from the dropdowns. Add an image to a section by setting a featured image in the page editor. Empty sections will not be displayed.', 'twentyseventeen' ) ),
+				'description'     => ( $i !== 1 ? '' : __( 'Select pages to feature in each area from the dropdowns. Add an image to a section by setting a featured image in the page editor. Empty sections will not be displayed.', 'twentyseventeen' ) ),
 				'section'         => 'theme_options',
 				'type'            => 'dropdown-pages',
 				'allow_addition'  => true,

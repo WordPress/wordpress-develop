@@ -81,7 +81,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
-		if ( 'edit' === $request['context'] ) {
+		if ( $request['context'] === 'edit' ) {
 			$types = get_post_types( array( 'show_in_rest' => true ), 'objects' );
 
 			foreach ( $types as $type ) {
@@ -168,11 +168,11 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	 * @return bool True if the post status is visible, otherwise false.
 	 */
 	protected function check_read_permission( $status ) {
-		if ( true === $status->public ) {
+		if ( $status->public === true ) {
 			return true;
 		}
 
-		if ( false === $status->internal || 'trash' === $status->name ) {
+		if ( $status->internal === false || $status->name === 'trash' ) {
 			$types = get_post_types( array( 'show_in_rest' => true ), 'objects' );
 
 			foreach ( $types as $type ) {
@@ -264,7 +264,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 		$response = rest_ensure_response( $data );
 
 		$rest_url = rest_url( rest_get_route_for_post_type_items( 'post' ) );
-		if ( 'publish' === $status->name ) {
+		if ( $status->name === 'publish' ) {
 			$response->add_link( 'archives', $rest_url );
 		} else {
 			$response->add_link( 'archives', add_query_arg( 'status', $status->name, $rest_url ) );

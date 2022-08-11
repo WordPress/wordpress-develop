@@ -123,7 +123,7 @@ class WP_Widget_RSS extends WP_Widget {
 		/** This filter is documented in wp-includes/widgets/class-wp-nav-menu-widget.php */
 		$format = apply_filters( 'navigation_widgets_format', $format );
 
-		if ( 'html5' === $format ) {
+		if ( $format === 'html5' ) {
 			// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
 			$title      = trim( strip_tags( $title ) );
 			$aria_label = $title ? $title : __( 'RSS Feed' );
@@ -132,7 +132,7 @@ class WP_Widget_RSS extends WP_Widget {
 
 		wp_widget_rss_output( $rss, $instance );
 
-		if ( 'html5' === $format ) {
+		if ( $format === 'html5' ) {
 			echo '</nav>';
 		}
 

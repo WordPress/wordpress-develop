@@ -374,7 +374,7 @@ function wp_http_supports( $capabilities = array(), $url = null ) {
 
 	if ( $url && ! isset( $capabilities['ssl'] ) ) {
 		$scheme = parse_url( $url, PHP_URL_SCHEME );
-		if ( 'https' === $scheme || 'ssl' === $scheme ) {
+		if ( $scheme === 'https' || $scheme === 'ssl' ) {
 			$capabilities['ssl'] = true;
 		}
 	}
@@ -454,7 +454,7 @@ function get_allowed_http_origins() {
 function is_allowed_http_origin( $origin = null ) {
 	$origin_arg = $origin;
 
-	if ( null === $origin ) {
+	if ( $origin === null ) {
 		$origin = get_http_origin();
 	}
 
@@ -492,13 +492,13 @@ function send_origin_headers() {
 	if ( is_allowed_http_origin( $origin ) ) {
 		header( 'Access-Control-Allow-Origin: ' . $origin );
 		header( 'Access-Control-Allow-Credentials: true' );
-		if ( 'OPTIONS' === $_SERVER['REQUEST_METHOD'] ) {
+		if ( $_SERVER['REQUEST_METHOD'] === 'OPTIONS' ) {
 			exit;
 		}
 		return $origin;
 	}
 
-	if ( 'OPTIONS' === $_SERVER['REQUEST_METHOD'] ) {
+	if ( $_SERVER['REQUEST_METHOD'] === 'OPTIONS' ) {
 		status_header( 403 );
 		exit;
 	}
@@ -515,7 +515,7 @@ function send_origin_headers() {
  * @return string|false URL or false on failure.
  */
 function wp_http_validate_url( $url ) {
-	if ( ! is_string( $url ) || '' === $url || is_numeric( $url ) ) {
+	if ( ! is_string( $url ) || $url === '' || is_numeric( $url ) ) {
 		return false;
 	}
 
@@ -534,7 +534,7 @@ function wp_http_validate_url( $url ) {
 		return false;
 	}
 
-	if ( false !== strpbrk( $parsed_url['host'], ':#?[]' ) ) {
+	if ( strpbrk( $parsed_url['host'], ':#?[]' ) !== false ) {
 		return false;
 	}
 
@@ -553,9 +553,9 @@ function wp_http_validate_url( $url ) {
 		}
 		if ( $ip ) {
 			$parts = array_map( 'intval', explode( '.', $ip ) );
-			if ( 127 === $parts[0] || 10 === $parts[0] || 0 === $parts[0]
-				|| ( 172 === $parts[0] && 16 <= $parts[1] && 31 >= $parts[1] )
-				|| ( 192 === $parts[0] && 168 === $parts[1] )
+			if ( $parts[0] === 127 || $parts[0] === 10 || $parts[0] === 0
+				|| ( $parts[0] === 172 && 16 <= $parts[1] && 31 >= $parts[1] )
+				|| ( $parts[0] === 192 && $parts[1] === 168 )
 			) {
 				// If host appears local, reject unless specifically allowed.
 				/**
@@ -682,10 +682,10 @@ function wp_parse_url( $url, $component = -1 ) {
 	$to_unset = array();
 	$url      = (string) $url;
 
-	if ( '//' === substr( $url, 0, 2 ) ) {
+	if ( substr( $url, 0, 2 ) === '//' ) {
 		$to_unset[] = 'scheme';
 		$url        = 'placeholder:' . $url;
-	} elseif ( '/' === substr( $url, 0, 1 ) ) {
+	} elseif ( substr( $url, 0, 1 ) === '/' ) {
 		$to_unset[] = 'scheme';
 		$to_unset[] = 'host';
 		$url        = 'placeholder://placeholder' . $url;
@@ -693,7 +693,7 @@ function wp_parse_url( $url, $component = -1 ) {
 
 	$parts = parse_url( $url );
 
-	if ( false === $parts ) {
+	if ( $parts === false ) {
 		// Parsing failure.
 		return $parts;
 	}
@@ -726,12 +726,12 @@ function wp_parse_url( $url, $component = -1 ) {
  *               PHP_URL_PORT - integer when it does. See parse_url()'s return values.
  */
 function _get_component_from_parsed_url_array( $url_parts, $component = -1 ) {
-	if ( -1 === $component ) {
+	if ( $component === -1 ) {
 		return $url_parts;
 	}
 
 	$key = _wp_translate_php_url_constant_to_key( $component );
-	if ( false !== $key && is_array( $url_parts ) && isset( $url_parts[ $key ] ) ) {
+	if ( $key !== false && is_array( $url_parts ) && isset( $url_parts[ $key ] ) ) {
 		return $url_parts[ $key ];
 	} else {
 		return null;

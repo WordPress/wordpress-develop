@@ -171,7 +171,7 @@ class WP_HTTP_Proxy {
 		$check = parse_url( $uri );
 
 		// Malformed URL, can not process, but this could mean ssl, so let through anyway.
-		if ( false === $check ) {
+		if ( $check === false ) {
 			return true;
 		}
 
@@ -195,7 +195,7 @@ class WP_HTTP_Proxy {
 			return $result;
 		}
 
-		if ( 'localhost' === $check['host'] || ( isset( $home['host'] ) && $home['host'] === $check['host'] ) ) {
+		if ( $check['host'] === 'localhost' || ( isset( $home['host'] ) && $home['host'] === $check['host'] ) ) {
 			return false;
 		}
 
@@ -205,10 +205,10 @@ class WP_HTTP_Proxy {
 
 		static $bypass_hosts   = null;
 		static $wildcard_regex = array();
-		if ( null === $bypass_hosts ) {
+		if ( $bypass_hosts === null ) {
 			$bypass_hosts = preg_split( '|,\s*|', WP_PROXY_BYPASS_HOSTS );
 
-			if ( false !== strpos( WP_PROXY_BYPASS_HOSTS, '*' ) ) {
+			if ( strpos( WP_PROXY_BYPASS_HOSTS, '*' ) !== false ) {
 				$wildcard_regex = array();
 				foreach ( $bypass_hosts as $host ) {
 					$wildcard_regex[] = str_replace( '\*', '.+', preg_quote( $host, '/' ) );

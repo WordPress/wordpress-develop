@@ -118,7 +118,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 			$current = current( $iteration );
 
 			// If we're already at the end of this iteration, just leave the array pointer where it is.
-			if ( false === $current ) {
+			if ( $current === false ) {
 				continue;
 			}
 
@@ -130,7 +130,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 			}
 
 			while ( current( $iteration ) < $current ) {
-				if ( false === next( $iteration ) ) {
+				if ( next( $iteration ) === false ) {
 					break;
 				}
 			}
@@ -142,7 +142,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 				 * priority, we need to move back to it.
 				 */
 
-				if ( false === current( $iteration ) ) {
+				if ( current( $iteration ) === false ) {
 					// If we've already moved off the end of the array, go back to the last element.
 					$prev = end( $iteration );
 				} else {
@@ -150,7 +150,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 					$prev = prev( $iteration );
 				}
 
-				if ( false === $prev ) {
+				if ( $prev === false ) {
 					// Start of the array. Reset, and go about our day.
 					reset( $iteration );
 				} elseif ( $new_priority !== $prev ) {
@@ -212,7 +212,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *                  of that hook is returned, or false if the function is not attached.
 	 */
 	public function has_filter( $hook_name = '', $callback = false ) {
-		if ( false === $callback ) {
+		if ( $callback === false ) {
 			return $this->has_filters();
 		}
 
@@ -260,7 +260,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 			return;
 		}
 
-		if ( false === $priority ) {
+		if ( $priority === false ) {
 			$this->callbacks = array();
 		} elseif ( isset( $this->callbacks[ $priority ] ) ) {
 			unset( $this->callbacks[ $priority ] );
@@ -301,7 +301,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 				}
 
 				// Avoid the array_slice() if possible.
-				if ( 0 == $the_['accepted_args'] ) {
+				if ( $the_['accepted_args'] == 0 ) {
 					$value = call_user_func( $the_['function'] );
 				} elseif ( $the_['accepted_args'] >= $num_args ) {
 					$value = call_user_func_array( $the_['function'], $args );
@@ -309,7 +309,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 					$value = call_user_func_array( $the_['function'], array_slice( $args, 0, (int) $the_['accepted_args'] ) );
 				}
 			}
-		} while ( false !== next( $this->iterations[ $nesting_level ] ) );
+		} while ( next( $this->iterations[ $nesting_level ] ) !== false );
 
 		unset( $this->iterations[ $nesting_level ] );
 		unset( $this->current_priority[ $nesting_level ] );
@@ -353,7 +353,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 			foreach ( $this->callbacks[ $priority ] as $the_ ) {
 				call_user_func_array( $the_['function'], $args );
 			}
-		} while ( false !== next( $this->iterations[ $nesting_level ] ) );
+		} while ( next( $this->iterations[ $nesting_level ] ) !== false );
 
 		unset( $this->iterations[ $nesting_level ] );
 		$this->nesting_level--;
@@ -368,7 +368,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *                   If it isn't running, return false.
 	 */
 	public function current_priority() {
-		if ( false === current( $this->iterations ) ) {
+		if ( current( $this->iterations ) === false ) {
 			return false;
 		}
 

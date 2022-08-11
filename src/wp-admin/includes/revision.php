@@ -117,13 +117,13 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 
 		$diff = wp_text_diff( $content_from, $content_to, $args );
 
-		if ( ! $diff && 'post_title' === $field ) {
+		if ( ! $diff && $field === 'post_title' ) {
 			// It's a better user experience to still show the Title, even if it didn't change.
 			// No, you didn't see this.
 			$diff = '<table class="diff"><colgroup><col class="content diffsplit left"><col class="content diffsplit middle"><col class="content diffsplit right"></colgroup><tbody><tr>';
 
 			// In split screen mode, show the title before/after side by side.
-			if ( true === $args['show_split_view'] ) {
+			if ( $args['show_split_view'] === true ) {
 				$diff .= '<td>' . esc_html( $compare_from->post_title ) . '</td><td></td><td>' . esc_html( $compare_to->post_title ) . '</td>';
 			} else {
 				$diff .= '<td>' . esc_html( $compare_from->post_title ) . '</td>';
@@ -283,7 +283,7 @@ function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null
 	 * If we only have one revision, the initial revision is missing; This happens
 	 * when we have an autsosave and the user has clicked 'View the Autosave'
 	 */
-	if ( 1 === count( $revisions ) ) {
+	if ( count( $revisions ) === 1 ) {
 		$revisions[ $post->ID ] = array(
 			'id'         => $post->ID,
 			'title'      => get_the_title( $post->ID ),

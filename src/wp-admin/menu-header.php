@@ -112,7 +112,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 		$img_style = '';
 		$img_class = ' dashicons-before';
 
-		if ( false !== strpos( $class, 'wp-menu-separator' ) ) {
+		if ( strpos( $class, 'wp-menu-separator' ) !== false ) {
 			$is_separator = true;
 		}
 
@@ -125,14 +125,14 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 		if ( ! empty( $item[6] ) ) {
 			$img = '<img src="' . esc_url( $item[6] ) . '" alt="" />';
 
-			if ( 'none' === $item[6] || 'div' === $item[6] ) {
+			if ( $item[6] === 'none' || $item[6] === 'div' ) {
 				$img = '<br />';
-			} elseif ( 0 === strpos( $item[6], 'data:image/svg+xml;base64,' ) ) {
+			} elseif ( strpos( $item[6], 'data:image/svg+xml;base64,' ) === 0 ) {
 				$img = '<br />';
 				// The value is base64-encoded data, so esc_attr() is used here instead of esc_url().
 				$img_style = ' style="background-image:url(\'' . esc_attr( $item[6] ) . '\')"';
 				$img_class = ' svg';
-			} elseif ( 0 === strpos( $item[6], 'dashicons-' ) ) {
+			} elseif ( strpos( $item[6], 'dashicons-' ) === 0 ) {
 				$img       = '<br />';
 				$img_class = ' dashicons-before ' . sanitize_html_class( $item[6] );
 			}
@@ -156,12 +156,12 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 			$menu_file     = $submenu_items[0][2];
 			$pos           = strpos( $menu_file, '?' );
 
-			if ( false !== $pos ) {
+			if ( $pos !== false ) {
 				$menu_file = substr( $menu_file, 0, $pos );
 			}
 
 			if ( ! empty( $menu_hook )
-				|| ( ( 'index.php' !== $submenu_items[0][2] )
+				|| ( ( $submenu_items[0][2] !== 'index.php' )
 					&& file_exists( WP_PLUGIN_DIR . "/$menu_file" )
 					&& ! file_exists( ABSPATH . "/wp-admin/$menu_file" ) )
 			) {
@@ -175,12 +175,12 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 			$menu_file = $item[2];
 			$pos       = strpos( $menu_file, '?' );
 
-			if ( false !== $pos ) {
+			if ( $pos !== false ) {
 				$menu_file = substr( $menu_file, 0, $pos );
 			}
 
 			if ( ! empty( $menu_hook )
-				|| ( ( 'index.php' !== $item[2] )
+				|| ( ( $item[2] !== 'index.php' )
 					&& file_exists( WP_PLUGIN_DIR . "/$menu_file" )
 					&& ! file_exists( ABSPATH . "/wp-admin/$menu_file" ) )
 			) {
@@ -214,7 +214,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 				$menu_file = $item[2];
 				$pos       = strpos( $menu_file, '?' );
 
-				if ( false !== $pos ) {
+				if ( $pos !== false ) {
 					$menu_file = substr( $menu_file, 0, $pos );
 				}
 
@@ -246,14 +246,14 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 				$menu_hook = get_plugin_page_hook( $sub_item[2], $item[2] );
 				$sub_file  = $sub_item[2];
 				$pos       = strpos( $sub_file, '?' );
-				if ( false !== $pos ) {
+				if ( $pos !== false ) {
 					$sub_file = substr( $sub_file, 0, $pos );
 				}
 
 				$title = wptexturize( $sub_item[0] );
 
 				if ( ! empty( $menu_hook )
-					|| ( ( 'index.php' !== $sub_item[2] )
+					|| ( ( $sub_item[2] !== 'index.php' )
 						&& file_exists( WP_PLUGIN_DIR . "/$sub_file" )
 						&& ! file_exists( ABSPATH . "/wp-admin/$sub_file" ) )
 				) {

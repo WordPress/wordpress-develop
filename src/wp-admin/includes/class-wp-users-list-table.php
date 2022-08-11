@@ -51,7 +51,7 @@ class WP_Users_List_Table extends WP_List_Table {
 			)
 		);
 
-		$this->is_site_users = 'site-users-network' === $this->screen->id;
+		$this->is_site_users = $this->screen->id === 'site-users-network';
 
 		if ( $this->is_site_users ) {
 			$this->site_id = isset( $_REQUEST['id'] ) ? (int) $_REQUEST['id'] : 0;
@@ -93,7 +93,7 @@ class WP_Users_List_Table extends WP_List_Table {
 
 		$paged = $this->get_pagenum();
 
-		if ( 'none' === $role ) {
+		if ( $role === 'none' ) {
 			$args = array(
 				'number'  => $users_per_page,
 				'offset'  => ( $paged - 1 ) * $users_per_page,
@@ -111,7 +111,7 @@ class WP_Users_List_Table extends WP_List_Table {
 			);
 		}
 
-		if ( '' !== $args['search'] ) {
+		if ( $args['search'] !== '' ) {
 			$args['search'] = '*' . $args['search'] . '*';
 		}
 
@@ -245,7 +245,7 @@ class WP_Users_List_Table extends WP_List_Table {
 
 			$current_link_attributes = '';
 
-			if ( 'none' === $role ) {
+			if ( $role === 'none' ) {
 				$current_link_attributes = ' class="current" aria-current="page"';
 			}
 
@@ -300,8 +300,8 @@ class WP_Users_List_Table extends WP_List_Table {
 	 *                      or below the table ("bottom").
 	 */
 	protected function extra_tablenav( $which ) {
-		$id        = 'bottom' === $which ? 'new_role2' : 'new_role';
-		$button_id = 'bottom' === $which ? 'changeit2' : 'changeit';
+		$id        = $which === 'bottom' ? 'new_role2' : 'new_role';
+		$button_id = $which === 'bottom' ? 'changeit2' : 'changeit';
 		?>
 	<div class="alignleft actions">
 		<?php if ( current_user_can( 'promote_users' ) && $this->has_items() ) : ?>
@@ -546,7 +546,7 @@ class WP_Users_List_Table extends WP_List_Table {
 			if ( $primary === $column_name ) {
 				$classes .= ' has-row-actions column-primary';
 			}
-			if ( 'posts' === $column_name ) {
+			if ( $column_name === 'posts' ) {
 				$classes .= ' num'; // Special case for that column.
 			}
 
@@ -558,7 +558,7 @@ class WP_Users_List_Table extends WP_List_Table {
 
 			$attributes = "class='$classes' $data";
 
-			if ( 'cb' === $column_name ) {
+			if ( $column_name === 'cb' ) {
 				$r .= "<th scope='row' class='check-column'>$checkbox</th>";
 			} else {
 				$r .= "<td $attributes>";

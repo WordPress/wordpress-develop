@@ -868,7 +868,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 			add_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
 			$this->assertSame( $post->title, $data['title']['rendered'] );
 			remove_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
-			if ( 'edit' === $context ) {
+			if ( $context === 'edit' ) {
 				$this->assertSame( $post->title, $data['title']['raw'] );
 			} else {
 				$this->assertFalse( isset( $data['title']['raw'] ) );
@@ -901,7 +901,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 			$this->assertTrue( isset( $data[ $taxonomy->rest_base ] ) );
 			$terms = wp_get_object_terms( $post->ID, $taxonomy->name, array( 'fields' => 'ids' ) );
 			sort( $terms );
-			if ( 'nav_menu' === $taxonomy->name ) {
+			if ( $taxonomy->name === 'nav_menu' ) {
 				$term_id = $terms ? array_shift( $terms ) : 0;
 				$this->assertSame( $term_id, $data[ $taxonomy->rest_base ] );
 			} else {
@@ -924,13 +924,13 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 				$num ++;
 			}
 
-			if ( 'post_type' === $data['type'] ) {
+			if ( $data['type'] === 'post_type' ) {
 				$this->assertArrayHasKey( 'https://api.w.org/menu-item-object', $links );
 				$this->assertArrayHasKey( $data['type'], $links['https://api.w.org/menu-item-object'][0]['attributes'] );
 				$this->assertSame( $links['https://api.w.org/menu-item-object'][0]['href'], rest_url( rest_get_route_for_post( $data['object_id'] ) ) );
 			}
 
-			if ( 'taxonomy' === $data['type'] ) {
+			if ( $data['type'] === 'taxonomy' ) {
 				$this->assertArrayHasKey( 'https://api.w.org/menu-item-object', $links );
 				$this->assertArrayHasKey( $data['type'], $links['https://api.w.org/menu-item-object'][0]['attributes'] );
 				$this->assertSame( $links['https://api.w.org/menu-item-object'][0]['href'], rest_url( rest_get_route_for_term( $data['object_id'] ) ) );

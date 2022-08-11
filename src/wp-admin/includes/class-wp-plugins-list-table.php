@@ -365,7 +365,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		global $s;
 
 		foreach ( $plugin as $value ) {
-			if ( is_string( $value ) && false !== stripos( strip_tags( $value ), urldecode( $s ) ) ) {
+			if ( is_string( $value ) && stripos( strip_tags( $value ), urldecode( $s ) ) !== false ) {
 				return true;
 			}
 		}
@@ -390,7 +390,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			return 0;
 		}
 
-		if ( 'DESC' === $order ) {
+		if ( $order === 'DESC' ) {
 			return strcasecmp( $b, $a );
 		} else {
 			return strcasecmp( $a, $b );
@@ -575,7 +575,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					break;
 			}
 
-			if ( 'search' !== $type ) {
+			if ( $type !== 'search' ) {
 				$status_links[ $type ] = sprintf(
 					"<a href='%s'%s>%s</a>",
 					add_query_arg( 'plugin_status', $type, 'plugins.php' ),
@@ -597,11 +597,11 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 		$actions = array();
 
-		if ( 'active' !== $status ) {
+		if ( $status !== 'active' ) {
 			$actions['activate-selected'] = $this->screen->in_admin( 'network' ) ? __( 'Network Activate' ) : __( 'Activate' );
 		}
 
-		if ( 'inactive' !== $status && 'recent' !== $status ) {
+		if ( $status !== 'inactive' && $status !== 'recent' ) {
 			$actions['deactivate-selected'] = $this->screen->in_admin( 'network' ) ? __( 'Network Deactivate' ) : __( 'Deactivate' );
 		}
 
@@ -610,15 +610,15 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				$actions['update-selected'] = __( 'Update' );
 			}
 
-			if ( current_user_can( 'delete_plugins' ) && ( 'active' !== $status ) ) {
+			if ( current_user_can( 'delete_plugins' ) && ( $status !== 'active' ) ) {
 				$actions['delete-selected'] = __( 'Delete' );
 			}
 
 			if ( $this->show_autoupdates ) {
-				if ( 'auto-update-enabled' !== $status ) {
+				if ( $status !== 'auto-update-enabled' ) {
 					$actions['enable-auto-update-selected'] = __( 'Enable Auto-updates' );
 				}
-				if ( 'auto-update-disabled' !== $status ) {
+				if ( $status !== 'auto-update-disabled' ) {
 					$actions['disable-auto-update-selected'] = __( 'Disable Auto-updates' );
 				}
 			}
@@ -654,15 +654,15 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 		echo '<div class="alignleft actions">';
 
-		if ( 'recently_activated' === $status ) {
+		if ( $status === 'recently_activated' ) {
 			submit_button( __( 'Clear List' ), '', 'clear-recent-list', false );
-		} elseif ( 'top' === $which && 'mustuse' === $status ) {
+		} elseif ( $which === 'top' && $status === 'mustuse' ) {
 			echo '<p>' . sprintf(
 				/* translators: %s: mu-plugins directory name. */
 				__( 'Files in the %s directory are executed automatically.' ),
 				'<code>' . str_replace( ABSPATH, '/', WPMU_PLUGIN_DIR ) . '</code>'
 			) . '</p>';
-		} elseif ( 'top' === $which && 'dropins' === $status ) {
+		} elseif ( $which === 'top' && $status === 'dropins' ) {
 			echo '<p>' . sprintf(
 				/* translators: %s: wp-content directory name. */
 				__( 'Drop-ins are single files, found in the %s directory, that replace or enhance WordPress features in ways that are not possible for traditional plugins.' ),
@@ -745,9 +745,9 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		$compatible_php = is_php_version_compatible( $requires_php );
 		$compatible_wp  = is_wp_version_compatible( $requires_wp );
 
-		if ( 'mustuse' === $context ) {
+		if ( $context === 'mustuse' ) {
 			$is_active = true;
-		} elseif ( 'dropins' === $context ) {
+		} elseif ( $context === 'dropins' ) {
 			$dropins     = _get_dropins();
 			$plugin_name = $plugin_file;
 
@@ -755,7 +755,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				$plugin_name .= '<br/>' . $plugin_data['Name'];
 			}
 
-			if ( true === ( $dropins[ $plugin_file ][1] ) ) { // Doesn't require a constant.
+			if ( ( $dropins[ $plugin_file ][1] ) === true ) { // Doesn't require a constant.
 				$is_active   = true;
 				$description = '<p><strong>' . $dropins[ $plugin_file ][0] . '</strong></p>';
 			} elseif ( defined( $dropins[ $plugin_file ][1] ) && constant( $dropins[ $plugin_file ][1] ) ) { // Constant is true.
@@ -993,7 +993,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			);
 		}
 
-		if ( 'dropins' !== $context ) {
+		if ( $context !== 'dropins' ) {
 			$description = '<p>' . ( $plugin_data['Description'] ? $plugin_data['Description'] : '&nbsp;' ) . '</p>';
 			$plugin_name = $plugin_data['Name'];
 		}
@@ -1148,7 +1148,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 						$error = wp_get_plugin_error( $plugin_file );
 
-						if ( false !== $error ) {
+						if ( $error !== false ) {
 							printf( '<div class="error-display"><p>%s</p></div>', wp_get_extension_error_description( $error ) );
 						}
 					}
@@ -1196,7 +1196,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 					$url = add_query_arg( $query_args, 'plugins.php' );
 
-					if ( 'unavailable' === $action ) {
+					if ( $action === 'unavailable' ) {
 						$html[] = '<span class="label">' . $text . '</span>';
 					} else {
 						$html[] = sprintf(

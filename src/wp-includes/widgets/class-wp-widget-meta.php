@@ -60,7 +60,7 @@ class WP_Widget_Meta extends WP_Widget {
 		/** This filter is documented in wp-includes/widgets/class-wp-nav-menu-widget.php */
 		$format = apply_filters( 'navigation_widgets_format', $format );
 
-		if ( 'html5' === $format ) {
+		if ( $format === 'html5' ) {
 			// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
 			$title      = trim( strip_tags( $title ) );
 			$aria_label = $title ? $title : $default_title;
@@ -100,7 +100,7 @@ class WP_Widget_Meta extends WP_Widget {
 		</ul>
 
 		<?php
-		if ( 'html5' === $format ) {
+		if ( $format === 'html5' ) {
 			echo '</nav>';
 		}
 

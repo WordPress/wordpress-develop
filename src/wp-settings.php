@@ -537,7 +537,7 @@ load_default_textdomain();
 
 $locale      = get_locale();
 $locale_file = WP_LANG_DIR . "/$locale.php";
-if ( ( 0 === validate_file( $locale ) ) && is_readable( $locale_file ) ) {
+if ( ( validate_file( $locale ) === 0 ) && is_readable( $locale_file ) ) {
 	require $locale_file;
 }
 unset( $locale_file );
@@ -600,7 +600,7 @@ do_action( 'init' );
 // Check site status.
 if ( is_multisite() ) {
 	$file = ms_site_check();
-	if ( true !== $file ) {
+	if ( $file !== true ) {
 		require $file;
 		die();
 	}

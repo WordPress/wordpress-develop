@@ -17,14 +17,14 @@
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 
 	<header class="entry-header">
-		<?php if ( 'post' === get_post_type() ) : ?>
+		<?php if ( get_post_type() === 'post' ) : ?>
 			<div class="entry-meta">
 				<?php
 				echo twentyseventeen_time_link();
 				twentyseventeen_edit_link();
 				?>
 			</div><!-- .entry-meta -->
-		<?php elseif ( 'page' === get_post_type() && get_edit_post_link() ) : ?>
+		<?php elseif ( get_post_type() === 'page' && get_edit_post_link() ) : ?>
 			<div class="entry-meta">
 				<?php twentyseventeen_edit_link(); ?>
 			</div><!-- .entry-meta -->

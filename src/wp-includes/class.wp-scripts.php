@@ -263,18 +263,18 @@ class WP_Scripts extends WP_Dependencies {
 			return false;
 		}
 
-		if ( 0 === $group && $this->groups[ $handle ] > 0 ) {
+		if ( $group === 0 && $this->groups[ $handle ] > 0 ) {
 			$this->in_footer[] = $handle;
 			return false;
 		}
 
-		if ( false === $group && in_array( $handle, $this->in_footer, true ) ) {
+		if ( $group === false && in_array( $handle, $this->in_footer, true ) ) {
 			$this->in_footer = array_diff( $this->in_footer, (array) $handle );
 		}
 
 		$obj = $this->registered[ $handle ];
 
-		if ( null === $obj->ver ) {
+		if ( $obj->ver === null ) {
 			$ver = '';
 		} else {
 			$ver = $obj->ver ? $obj->ver : $this->default_version;
@@ -375,7 +375,7 @@ class WP_Scripts extends WP_Dependencies {
 			return true;
 		}
 
-		if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $this->content_url && 0 === strpos( $src, $this->content_url ) ) ) {
+		if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $this->content_url && strpos( $src, $this->content_url ) === 0 ) ) {
 			$src = $this->base_url . $src;
 		}
 
@@ -431,7 +431,7 @@ class WP_Scripts extends WP_Dependencies {
 			return false;
 		}
 
-		if ( 'after' !== $position ) {
+		if ( $position !== 'after' ) {
 			$position = 'before';
 		}
 
@@ -481,7 +481,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * @return bool True on success, false on failure.
 	 */
 	public function localize( $handle, $object_name, $l10n ) {
-		if ( 'jquery' === $handle ) {
+		if ( $handle === 'jquery' ) {
 			$handle = 'jquery-core';
 		}
 
@@ -544,13 +544,13 @@ class WP_Scripts extends WP_Dependencies {
 	 * @return bool Not already in the group or a lower group.
 	 */
 	public function set_group( $handle, $recursion, $group = false ) {
-		if ( isset( $this->registered[ $handle ]->args ) && 1 === $this->registered[ $handle ]->args ) {
+		if ( isset( $this->registered[ $handle ]->args ) && $this->registered[ $handle ]->args === 1 ) {
 			$grp = 1;
 		} else {
 			$grp = (int) $this->get_data( $handle, 'group' );
 		}
 
-		if ( false !== $group && $grp > $group ) {
+		if ( $group !== false && $grp > $group ) {
 			$grp = $group;
 		}
 
@@ -693,12 +693,12 @@ JS;
 			return true;
 		}
 
-		if ( 0 === strpos( $src, '/' . WPINC . '/js/l10n' ) ) {
+		if ( strpos( $src, '/' . WPINC . '/js/l10n' ) === 0 ) {
 			return false;
 		}
 
 		foreach ( (array) $this->default_dirs as $test ) {
-			if ( 0 === strpos( $src, $test ) ) {
+			if ( strpos( $src, $test ) === 0 ) {
 				return true;
 			}
 		}

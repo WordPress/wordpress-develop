@@ -68,7 +68,7 @@ final class WP_Block_Pattern_Categories_Registry {
 		// If the category is registered inside an action other than `init`, store it
 		// also to a dedicated array. Used to detect deprecated registrations inside
 		// `admin_init` or `current_screen`.
-		if ( current_action() && 'init' !== current_action() ) {
+		if ( current_action() && current_action() !== 'init' ) {
 			$this->registered_categories_outside_init[ $category_name ] = $category;
 		}
 
@@ -154,7 +154,7 @@ final class WP_Block_Pattern_Categories_Registry {
 	 * @return WP_Block_Pattern_Categories_Registry The main instance.
 	 */
 	public static function get_instance() {
-		if ( null === self::$instance ) {
+		if ( self::$instance === null ) {
 			self::$instance = new self();
 		}
 

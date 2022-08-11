@@ -40,20 +40,20 @@ function list_core_update( $update ) {
 	$wp_version     = get_bloginfo( 'version' );
 	$version_string = sprintf( '%s&ndash;%s', $update->current, get_locale() );
 
-	if ( 'en_US' === $update->locale && 'en_US' === get_locale() ) {
+	if ( $update->locale === 'en_US' && get_locale() === 'en_US' ) {
 		$version_string = $update->current;
-	} elseif ( 'en_US' === $update->locale && $update->packages->partial && $wp_version == $update->partial_version ) {
+	} elseif ( $update->locale === 'en_US' && $update->packages->partial && $wp_version == $update->partial_version ) {
 		$updates = get_core_updates();
-		if ( $updates && 1 === count( $updates ) ) {
+		if ( $updates && count( $updates ) === 1 ) {
 			// If the only available update is a partial builds, it doesn't need a language-specific version string.
 			$version_string = $update->current;
 		}
-	} elseif ( 'en_US' === $update->locale && 'en_US' !== get_locale() ) {
+	} elseif ( $update->locale === 'en_US' && get_locale() !== 'en_US' ) {
 		$version_string = sprintf( '%s&ndash;%s', $update->current, $update->locale );
 	}
 
 	$current = false;
-	if ( ! isset( $update->response ) || 'latest' === $update->response ) {
+	if ( ! isset( $update->response ) || $update->response === 'latest' ) {
 		$current = true;
 	}
 
@@ -74,7 +74,7 @@ function list_core_update( $update ) {
 		$submit = sprintf( __( 'Update to version %s' ), $version_string );
 	}
 
-	if ( 'development' === $update->response ) {
+	if ( $update->response === 'development' ) {
 		$message = __( 'You can update to the latest nightly build manually:' );
 	} else {
 		if ( $current ) {
@@ -170,7 +170,7 @@ function list_core_update( $update ) {
 			submit_button( $submit, '', 'upgrade', false );
 		}
 	}
-	if ( 'en_US' !== $update->locale ) {
+	if ( $update->locale !== 'en_US' ) {
 		if ( ! isset( $update->dismissed ) || ! $update->dismissed ) {
 			submit_button( __( 'Hide this update' ), '', 'dismiss', false );
 		} else {
@@ -179,14 +179,14 @@ function list_core_update( $update ) {
 	}
 	echo '</p>';
 
-	if ( 'en_US' !== $update->locale && ( ! isset( $wp_local_package ) || $wp_local_package != $update->locale ) ) {
+	if ( $update->locale !== 'en_US' && ( ! isset( $wp_local_package ) || $wp_local_package != $update->locale ) ) {
 		echo '<p class="hint">' . __( 'This localized version contains both the translation and various other localization fixes.' ) . '</p>';
-	} elseif ( 'en_US' === $update->locale && 'en_US' !== get_locale() && ( ! $update->packages->partial && $wp_version == $update->partial_version ) ) {
+	} elseif ( $update->locale === 'en_US' && get_locale() !== 'en_US' && ( ! $update->packages->partial && $wp_version == $update->partial_version ) ) {
 		// Partial builds don't need language-specific warnings.
 		echo '<p class="hint">' . sprintf(
 			/* translators: %s: WordPress version. */
 			__( 'You are about to install WordPress %s <strong>in English (US)</strong>. There is a chance this update will break your translation. You may prefer to wait for the localized version to be released.' ),
-			'development' !== $update->response ? $update->current : ''
+			$update->response !== 'development' ? $update->current : ''
 		) . '</p>';
 	}
 
@@ -284,7 +284,7 @@ function core_upgrade_preamble() {
 	echo '</ul>';
 
 	// Don't show the maintenance mode notice when we are only showing a single re-install option.
-	if ( $updates && ( count( $updates ) > 1 || 'latest' !== $updates[0]->response ) ) {
+	if ( $updates && ( count( $updates ) > 1 || $updates[0]->response !== 'latest' ) ) {
 		echo '<p>' . __( 'While your site is being updated, it will be in maintenance mode. As soon as your updates are complete, this mode will be deactivated.' ) . '</p>';
 	} elseif ( ! $updates ) {
 		list( $normalized_version ) = explode( '-', $wp_version );
@@ -306,10 +306,10 @@ function core_upgrade_preamble() {
  */
 function core_auto_updates_settings() {
 	if ( isset( $_GET['core-major-auto-updates-saved'] ) ) {
-		if ( 'enabled' === $_GET['core-major-auto-updates-saved'] ) {
+		if ( $_GET['core-major-auto-updates-saved'] === 'enabled' ) {
 			$notice_text = __( 'Automatic updates for all WordPress versions have been enabled. Thank you!' );
 			echo '<div class="notice notice-success is-dismissible"><p>' . $notice_text . '</p></div>';
-		} elseif ( 'disabled' === $_GET['core-major-auto-updates-saved'] ) {
+		} elseif ( $_GET['core-major-auto-updates-saved'] === 'disabled' ) {
 			$notice_text = __( 'WordPress will only receive automatic security and maintenance releases from now on.' );
 			echo '<div class="notice notice-success is-dismissible"><p>' . $notice_text . '</p></div>';
 		}
@@ -326,19 +326,19 @@ function core_auto_updates_settings() {
 	$can_set_update_option = true;
 	// WP_AUTO_UPDATE_CORE = true (all), 'beta', 'rc', 'development', 'branch-development', 'minor', false.
 	if ( defined( 'WP_AUTO_UPDATE_CORE' ) ) {
-		if ( false === WP_AUTO_UPDATE_CORE ) {
+		if ( WP_AUTO_UPDATE_CORE === false ) {
 			// Defaults to turned off, unless a filter allows it.
 			$upgrade_dev   = false;
 			$upgrade_minor = false;
 			$upgrade_major = false;
-		} elseif ( true === WP_AUTO_UPDATE_CORE
+		} elseif ( WP_AUTO_UPDATE_CORE === true
 			|| in_array( WP_AUTO_UPDATE_CORE, array( 'beta', 'rc', 'development', 'branch-development' ), true )
 		) {
 			// ALL updates for core.
 			$upgrade_dev   = true;
 			$upgrade_minor = true;
 			$upgrade_major = true;
-		} elseif ( 'minor' === WP_AUTO_UPDATE_CORE ) {
+		} elseif ( WP_AUTO_UPDATE_CORE === 'minor' ) {
 			// Only minor updates for core.
 			$upgrade_dev   = false;
 			$upgrade_minor = true;
@@ -462,7 +462,7 @@ function list_plugin_updates() {
 	$form_action = 'update-core.php?action=do-plugin-upgrade';
 
 	$core_updates = get_core_updates();
-	if ( ! isset( $core_updates[0]->response ) || 'latest' === $core_updates[0]->response || 'development' === $core_updates[0]->response || version_compare( $core_updates[0]->current, $cur_wp_version, '=' ) ) {
+	if ( ! isset( $core_updates[0]->response ) || $core_updates[0]->response === 'latest' || $core_updates[0]->response === 'development' || version_compare( $core_updates[0]->current, $cur_wp_version, '=' ) ) {
 		$core_update_version = false;
 	} else {
 		$core_update_version = $core_updates[0]->current;
@@ -798,7 +798,7 @@ function list_theme_updates() {
 function list_translation_updates() {
 	$updates = wp_get_translation_updates();
 	if ( ! $updates ) {
-		if ( 'en_US' !== get_locale() ) {
+		if ( get_locale() !== 'en_US' ) {
 			echo '<h2>' . __( 'Translations' ) . '</h2>';
 			echo '<p>' . __( 'Your translations are all up to date.' ) . '</p>';
 		}
@@ -854,7 +854,7 @@ function do_core_upgrade( $reinstall = false ) {
 	<?php
 
 	$credentials = request_filesystem_credentials( $url, '', false, ABSPATH, array( 'version', 'locale' ), $allow_relaxed_file_ownership );
-	if ( false === $credentials ) {
+	if ( $credentials === false ) {
 		echo '</div>';
 		return;
 	}
@@ -890,7 +890,7 @@ function do_core_upgrade( $reinstall = false ) {
 
 	if ( is_wp_error( $result ) ) {
 		show_message( $result );
-		if ( 'up_to_date' != $result->get_error_code() && 'locked' != $result->get_error_code() ) {
+		if ( $result->get_error_code() != 'up_to_date' && $result->get_error_code() != 'locked' ) {
 			show_message( __( 'Installation failed.' ) );
 		}
 		echo '</div>';
@@ -959,9 +959,9 @@ function do_undismiss_core_update() {
 $action = isset( $_GET['action'] ) ? $_GET['action'] : 'upgrade-core';
 
 $upgrade_error = false;
-if ( ( 'do-theme-upgrade' === $action || ( 'do-plugin-upgrade' === $action && ! isset( $_GET['plugins'] ) ) )
+if ( ( $action === 'do-theme-upgrade' || ( $action === 'do-plugin-upgrade' && ! isset( $_GET['plugins'] ) ) )
 	&& ! isset( $_POST['checked'] ) ) {
-	$upgrade_error = ( 'do-theme-upgrade' === $action ) ? 'themes' : 'plugins';
+	$upgrade_error = ( $action === 'do-theme-upgrade' ) ? 'themes' : 'plugins';
 	$action        = 'upgrade-core';
 }
 
@@ -982,7 +982,7 @@ get_current_screen()->add_help_tab(
 $updates_howto  = '<p>' . __( '<strong>WordPress</strong> &mdash; Updating your WordPress installation is a simple one-click procedure: just <strong>click on the &#8220;Update now&#8221; button</strong> when you are notified that a new version is available.' ) . ' ' . __( 'In most cases, WordPress will automatically apply maintenance and security updates in the background for you.' ) . '</p>';
 $updates_howto .= '<p>' . __( '<strong>Themes and Plugins</strong> &mdash; To update individual themes or plugins from this screen, use the checkboxes to make your selection, then <strong>click on the appropriate &#8220;Update&#8221; button</strong>. To update all of your themes or plugins at once, you can check the box at the top of the section to select all before clicking the update button.' ) . '</p>';
 
-if ( 'en_US' !== get_locale() ) {
+if ( get_locale() !== 'en_US' ) {
 	$updates_howto .= '<p>' . __( '<strong>Translations</strong> &mdash; The files translating WordPress into your language are updated for you whenever any other updates occur. But if these files are out of date, you can <strong>click the &#8220;Update Translations&#8221;</strong> button.' ) . '</p>';
 }
 
@@ -1018,7 +1018,7 @@ get_current_screen()->set_help_sidebar(
 	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
-if ( 'upgrade-core' === $action ) {
+if ( $action === 'upgrade-core' ) {
 	// Force a update check when requested.
 	$force_check = ! empty( $_GET['force-check'] );
 	wp_version_check( array(), $force_check );
@@ -1032,7 +1032,7 @@ if ( 'upgrade-core' === $action ) {
 	<?php
 	if ( $upgrade_error ) {
 		echo '<div class="error"><p>';
-		if ( 'themes' === $upgrade_error ) {
+		if ( $upgrade_error === 'themes' ) {
 			_e( 'Please select one or more themes to update.' );
 		} else {
 			_e( 'Please select one or more plugins to update.' );
@@ -1090,7 +1090,7 @@ if ( 'upgrade-core' === $action ) {
 
 	require_once ABSPATH . 'wp-admin/admin-footer.php';
 
-} elseif ( 'do-core-upgrade' === $action || 'do-core-reinstall' === $action ) {
+} elseif ( $action === 'do-core-upgrade' || $action === 'do-core-reinstall' ) {
 
 	if ( ! current_user_can( 'update_core' ) ) {
 		wp_die( __( 'Sorry, you are not allowed to update this site.' ) );
@@ -1106,7 +1106,7 @@ if ( 'upgrade-core' === $action ) {
 	}
 
 	require_once ABSPATH . 'wp-admin/admin-header.php';
-	if ( 'do-core-reinstall' === $action ) {
+	if ( $action === 'do-core-reinstall' ) {
 		$reinstall = true;
 	} else {
 		$reinstall = false;
@@ -1126,7 +1126,7 @@ if ( 'upgrade-core' === $action ) {
 
 	require_once ABSPATH . 'wp-admin/admin-footer.php';
 
-} elseif ( 'do-plugin-upgrade' === $action ) {
+} elseif ( $action === 'do-plugin-upgrade' ) {
 
 	if ( ! current_user_can( 'update_plugins' ) ) {
 		wp_die( __( 'Sorry, you are not allowed to update this site.' ) );
@@ -1167,7 +1167,7 @@ if ( 'upgrade-core' === $action ) {
 
 	require_once ABSPATH . 'wp-admin/admin-footer.php';
 
-} elseif ( 'do-theme-upgrade' === $action ) {
+} elseif ( $action === 'do-theme-upgrade' ) {
 
 	if ( ! current_user_can( 'update_themes' ) ) {
 		wp_die( __( 'Sorry, you are not allowed to update this site.' ) );
@@ -1208,7 +1208,7 @@ if ( 'upgrade-core' === $action ) {
 
 	require_once ABSPATH . 'wp-admin/admin-footer.php';
 
-} elseif ( 'do-translation-upgrade' === $action ) {
+} elseif ( $action === 'do-translation-upgrade' ) {
 
 	if ( ! current_user_can( 'update_languages' ) ) {
 		wp_die( __( 'Sorry, you are not allowed to update this site.' ) );
@@ -1237,7 +1237,7 @@ if ( 'upgrade-core' === $action ) {
 
 	require_once ABSPATH . 'wp-admin/admin-footer.php';
 
-} elseif ( 'core-major-auto-updates-settings' === $action ) {
+} elseif ( $action === 'core-major-auto-updates-settings' ) {
 
 	if ( ! current_user_can( 'update_core' ) ) {
 		wp_die( __( 'Sorry, you are not allowed to update this site.' ) );
@@ -1248,10 +1248,10 @@ if ( 'upgrade-core' === $action ) {
 	if ( isset( $_GET['value'] ) ) {
 		check_admin_referer( 'core-major-auto-updates-nonce' );
 
-		if ( 'enable' === $_GET['value'] ) {
+		if ( $_GET['value'] === 'enable' ) {
 			update_site_option( 'auto_update_core_major', 'enabled' );
 			$redirect_url = add_query_arg( 'core-major-auto-updates-saved', 'enabled', $redirect_url );
-		} elseif ( 'disable' === $_GET['value'] ) {
+		} elseif ( $_GET['value'] === 'disable' ) {
 			update_site_option( 'auto_update_core_major', 'disabled' );
 			$redirect_url = add_query_arg( 'core-major-auto-updates-saved', 'disabled', $redirect_url );
 		}

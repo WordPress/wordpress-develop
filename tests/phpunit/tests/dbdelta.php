@@ -435,7 +435,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query( "DROP TABLE IF EXISTS $table_name;" );
 
-		if ( 191 !== $index->Sub_part ) {
+		if ( $index->Sub_part !== 191 ) {
 			$this->markTestSkipped( 'This test requires the index to be truncated.' );
 		}
 

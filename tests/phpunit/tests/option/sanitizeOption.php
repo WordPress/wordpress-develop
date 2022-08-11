@@ -116,7 +116,7 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 
 		$value = "whee\xf0\x9f\x98\x88";
 
-		if ( 'utf8mb4' === $wpdb->get_col_charset( $wpdb->options, 'option_value' ) ) {
+		if ( $wpdb->get_col_charset( $wpdb->options, 'option_value' ) === 'utf8mb4' ) {
 			$expected = $value;
 		} else {
 			$expected = 'whee&#x1f608;';

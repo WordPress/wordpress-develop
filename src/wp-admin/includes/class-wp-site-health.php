@@ -62,7 +62,7 @@ class WP_Site_Health {
 	 * @param string $tab Slug of the current tab being displayed.
 	 */
 	public function show_site_health_tab( $tab ) {
-		if ( 'debug' === $tab ) {
+		if ( $tab === 'debug' ) {
 			require_once ABSPATH . '/wp-admin/site-health-info.php';
 		}
 	}
@@ -75,7 +75,7 @@ class WP_Site_Health {
 	 * @return WP_Site_Health|null
 	 */
 	public static function get_instance() {
-		if ( null === self::$instance ) {
+		if ( self::$instance === null ) {
 			self::$instance = new WP_Site_Health();
 		}
 
@@ -89,7 +89,7 @@ class WP_Site_Health {
 	 */
 	public function enqueue_scripts() {
 		$screen = get_current_screen();
-		if ( 'site-health' !== $screen->id && 'dashboard' !== $screen->id ) {
+		if ( $screen->id !== 'site-health' && $screen->id !== 'dashboard' ) {
 			return;
 		}
 
@@ -112,13 +112,13 @@ class WP_Site_Health {
 
 		$issue_counts = get_transient( 'health-check-site-status-result' );
 
-		if ( false !== $issue_counts ) {
+		if ( $issue_counts !== false ) {
 			$issue_counts = json_decode( $issue_counts );
 
 			$health_check_js_variables['site_status']['issues'] = $issue_counts;
 		}
 
-		if ( 'site-health' === $screen->id && ( ! isset( $_GET['tab'] ) || empty( $_GET['tab'] ) ) ) {
+		if ( $screen->id === 'site-health' && ( ! isset( $_GET['tab'] ) || empty( $_GET['tab'] ) ) ) {
 			$tests = WP_Site_Health::get_tests();
 
 			// Don't run https test on development environments.
@@ -294,7 +294,7 @@ class WP_Site_Health {
 			);
 		} else {
 			foreach ( $core_updates as $core => $update ) {
-				if ( 'upgrade' === $update->response ) {
+				if ( $update->response === 'upgrade' ) {
 					$current_version = explode( '.', $core_current_version );
 					$new_version     = explode( '.', $update->version );
 
@@ -423,7 +423,7 @@ class WP_Site_Health {
 				__( 'Update your plugins' )
 			);
 		} else {
-			if ( 1 === $plugins_active ) {
+			if ( $plugins_active === 1 ) {
 				$result['description'] .= sprintf(
 					'<p>%s</p>',
 					__( 'Your site has 1 active plugin, and it is up to date.' )
@@ -591,7 +591,7 @@ class WP_Site_Health {
 			);
 		} else {
 			// Give positive feedback about the site being good about keeping things up to date.
-			if ( 1 === $themes_total ) {
+			if ( $themes_total === 1 ) {
 				$result['description'] .= sprintf(
 					'<p>%s</p>',
 					__( 'Your site has 1 installed theme, and it is up to date.' )
@@ -1045,7 +1045,7 @@ class WP_Site_Health {
 					);
 				}
 
-				if ( ! $module['required'] && 'good' === $result['status'] ) {
+				if ( ! $module['required'] && $result['status'] === 'good' ) {
 					$result['status'] = 'recommended';
 				}
 
@@ -1066,11 +1066,11 @@ class WP_Site_Health {
 			$output .= '</ul>';
 		}
 
-		if ( 'good' !== $result['status'] ) {
-			if ( 'recommended' === $result['status'] ) {
+		if ( $result['status'] !== 'good' ) {
+			if ( $result['status'] === 'recommended' ) {
 				$result['label'] = __( 'One or more recommended modules are missing' );
 			}
-			if ( 'critical' === $result['status'] ) {
+			if ( $result['status'] === 'critical' ) {
 				$result['label'] = __( 'One or more required modules are missing' );
 			}
 
@@ -1103,7 +1103,7 @@ class WP_Site_Health {
 			'test'        => 'php_default_timezone',
 		);
 
-		if ( 'UTC' !== date_default_timezone_get() ) {
+		if ( date_default_timezone_get() !== 'UTC' ) {
 			$result['status'] = 'critical';
 
 			$result['label'] = __( 'PHP default timezone is invalid' );
@@ -1148,7 +1148,7 @@ class WP_Site_Health {
 			'test'        => 'php_sessions',
 		);
 
-		if ( function_exists( 'session_status' ) && PHP_SESSION_ACTIVE === session_status() ) {
+		if ( function_exists( 'session_status' ) && session_status() === PHP_SESSION_ACTIVE ) {
 			$result['status'] = 'critical';
 
 			$result['label'] = __( 'An active PHP session was detected' );
@@ -1339,7 +1339,7 @@ class WP_Site_Health {
 		 * libmysql has supported utf8mb4 since 5.5.3, same as the MySQL server.
 		 * mysqlnd has supported utf8mb4 since 5.0.9.
 		 */
-		if ( false !== strpos( $mysql_client_version, 'mysqlnd' ) ) {
+		if ( strpos( $mysql_client_version, 'mysqlnd' ) !== false ) {
 			$mysql_client_version = preg_replace( '/^\D+([\d.]+).*/', '$1', $mysql_client_version );
 			if ( version_compare( $mysql_client_version, '5.0.9', '<' ) ) {
 				$result['status'] = 'recommended';
@@ -1480,7 +1480,7 @@ class WP_Site_Health {
 			if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
 				$result['label'] = __( 'Your site is set to log errors to a potentially public file' );
 
-				$result['status'] = ( 0 === strpos( ini_get( 'error_log' ), ABSPATH ) ) ? 'critical' : 'recommended';
+				$result['status'] = ( strpos( ini_get( 'error_log' ), ABSPATH ) === 0 ) ? 'critical' : 'recommended';
 
 				$result['description'] .= sprintf(
 					'<p>%s</p>',
@@ -1822,7 +1822,7 @@ class WP_Site_Health {
 		foreach ( $tests as $test ) {
 			$severity_string = __( 'Passed' );
 
-			if ( 'fail' === $test->severity ) {
+			if ( $test->severity === 'fail' ) {
 				$result['label'] = __( 'Background updates are not working as expected' );
 
 				$result['status'] = 'critical';
@@ -1830,7 +1830,7 @@ class WP_Site_Health {
 				$severity_string = __( 'Error' );
 			}
 
-			if ( 'warning' === $test->severity && 'good' === $result['status'] ) {
+			if ( $test->severity === 'warning' && $result['status'] === 'good' ) {
 				$result['label'] = __( 'Background updates may not be working properly' );
 
 				$result['status'] = 'recommended';
@@ -1848,7 +1848,7 @@ class WP_Site_Health {
 
 		$output .= '</ul>';
 
-		if ( 'good' !== $result['status'] ) {
+		if ( $result['status'] !== 'good' ) {
 			$result['description'] .= $output;
 		}
 
@@ -1882,7 +1882,7 @@ class WP_Site_Health {
 
 		$result['status'] = $check_plugin_theme_updates->status;
 
-		if ( 'good' !== $result['status'] ) {
+		if ( $result['status'] !== 'good' ) {
 			$result['label'] = __( 'Your site may have problems auto-updating plugins and themes' );
 
 			$result['description'] .= sprintf(
@@ -1925,7 +1925,7 @@ class WP_Site_Health {
 
 		$result['status'] = $check_loopback->status;
 
-		if ( 'good' !== $result['status'] ) {
+		if ( $result['status'] !== 'good' ) {
 			$result['label'] = __( 'Your site could not complete a loopback request' );
 
 			$result['description'] .= sprintf(
@@ -1975,7 +1975,7 @@ class WP_Site_Health {
 			$hosts = explode( ',', WP_ACCESSIBLE_HOSTS );
 		}
 
-		if ( $blocked && 0 === count( $hosts ) ) {
+		if ( $blocked && count( $hosts ) === 0 ) {
 			$result['status'] = 'critical';
 
 			$result['label'] = __( 'HTTP requests are blocked' );
@@ -2079,7 +2079,7 @@ class WP_Site_Health {
 					)
 				)
 			);
-		} elseif ( 200 !== wp_remote_retrieve_response_code( $r ) ) {
+		} elseif ( wp_remote_retrieve_response_code( $r ) !== 200 ) {
 			$result['status'] = 'recommended';
 
 			$result['label'] = __( 'The REST API encountered an unexpected result' );
@@ -2096,7 +2096,7 @@ class WP_Site_Health {
 		} else {
 			$json = json_decode( wp_remote_retrieve_body( $r ), true );
 
-			if ( false !== $json && ! isset( $json['capabilities'] ) ) {
+			if ( $json !== false && ! isset( $json['capabilities'] ) ) {
 				$result['status'] = 'recommended';
 
 				$result['label'] = __( 'The REST API did not behave correctly' );
@@ -2179,7 +2179,7 @@ class WP_Site_Health {
 			);
 			$result['status'] = 'recommended';
 
-			if ( 0 === wp_convert_hr_to_bytes( $post_max_size ) ) {
+			if ( wp_convert_hr_to_bytes( $post_max_size ) === 0 ) {
 				$result['description'] = sprintf(
 					'<p>%s</p>',
 					sprintf(
@@ -2232,7 +2232,7 @@ class WP_Site_Health {
 
 		if ( ! isset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] ) ) {
 			$result['label'] = __( 'The authorization header is missing' );
-		} elseif ( 'user' !== $_SERVER['PHP_AUTH_USER'] || 'pwd' !== $_SERVER['PHP_AUTH_PW'] ) {
+		} elseif ( $_SERVER['PHP_AUTH_USER'] !== 'user' || $_SERVER['PHP_AUTH_PW'] !== 'pwd' ) {
 			$result['label'] = __( 'The authorization header is invalid' );
 		} else {
 			return $result;
@@ -2461,7 +2461,7 @@ class WP_Site_Health {
 	 */
 	public function admin_body_class( $body_class ) {
 		$screen = get_current_screen();
-		if ( 'site-health' !== $screen->id ) {
+		if ( $screen->id !== 'site-health' ) {
 			return $body_class;
 		}
 
@@ -2708,7 +2708,7 @@ class WP_Site_Health {
 			);
 		}
 
-		if ( 200 !== wp_remote_retrieve_response_code( $r ) ) {
+		if ( wp_remote_retrieve_response_code( $r ) !== 200 ) {
 			return (object) array(
 				'status'  => 'recommended',
 				'message' => sprintf(
@@ -2817,7 +2817,7 @@ class WP_Site_Health {
 					);
 				}
 
-				if ( ! is_wp_error( $result_fetch ) && 200 === wp_remote_retrieve_response_code( $result_fetch ) ) {
+				if ( ! is_wp_error( $result_fetch ) && wp_remote_retrieve_response_code( $result_fetch ) === 200 ) {
 					$result = json_decode( wp_remote_retrieve_body( $result_fetch ), true );
 				} else {
 					$result = false;
@@ -2835,9 +2835,9 @@ class WP_Site_Health {
 		}
 
 		foreach ( $results as $result ) {
-			if ( 'critical' === $result['status'] ) {
+			if ( $result['status'] === 'critical' ) {
 				$site_status['critical']++;
-			} elseif ( 'recommended' === $result['status'] ) {
+			} elseif ( $result['status'] === 'recommended' ) {
 				$site_status['recommended']++;
 			} else {
 				$site_status['good']++;

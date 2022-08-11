@@ -320,7 +320,7 @@ class WP_Site_Health_Auto_Updates {
 
 		WP_Filesystem();
 
-		if ( 'direct' !== $wp_filesystem->method ) {
+		if ( $wp_filesystem->method !== 'direct' ) {
 			return false;
 		}
 
@@ -330,7 +330,7 @@ class WP_Site_Health_Auto_Updates {
 		}
 
 		$checksums = get_core_checksums( $wp_version, 'en_US' );
-		$dev       = ( false !== strpos( $wp_version, '-' ) );
+		$dev       = ( strpos( $wp_version, '-' ) !== false );
 		// Get the last stable version's files and test against that.
 		if ( ! $checksums && $dev ) {
 			$checksums = get_core_checksums( (float) $wp_version - 0.1, 'en_US' );
@@ -356,7 +356,7 @@ class WP_Site_Health_Auto_Updates {
 
 		$unwritable_files = array();
 		foreach ( array_keys( $checksums ) as $file ) {
-			if ( 'wp-content' === substr( $file, 0, 10 ) ) {
+			if ( substr( $file, 0, 10 ) === 'wp-content' ) {
 				continue;
 			}
 			if ( ! file_exists( ABSPATH . $file ) ) {
@@ -394,11 +394,11 @@ class WP_Site_Health_Auto_Updates {
 	public function test_accepts_dev_updates() {
 		require ABSPATH . WPINC . '/version.php'; // $wp_version; // x.y.z
 		// Only for dev versions.
-		if ( false === strpos( $wp_version, '-' ) ) {
+		if ( strpos( $wp_version, '-' ) === false ) {
 			return false;
 		}
 
-		if ( defined( 'WP_AUTO_UPDATE_CORE' ) && ( 'minor' === WP_AUTO_UPDATE_CORE || false === WP_AUTO_UPDATE_CORE ) ) {
+		if ( defined( 'WP_AUTO_UPDATE_CORE' ) && ( WP_AUTO_UPDATE_CORE === 'minor' || WP_AUTO_UPDATE_CORE === false ) ) {
 			return array(
 				'description' => sprintf(
 					/* translators: %s: Name of the constant used. */
@@ -430,7 +430,7 @@ class WP_Site_Health_Auto_Updates {
 	 * @return array The test results.
 	 */
 	public function test_accepts_minor_updates() {
-		if ( defined( 'WP_AUTO_UPDATE_CORE' ) && false === WP_AUTO_UPDATE_CORE ) {
+		if ( defined( 'WP_AUTO_UPDATE_CORE' ) && WP_AUTO_UPDATE_CORE === false ) {
 			return array(
 				'description' => sprintf(
 					/* translators: %s: Name of the constant used. */

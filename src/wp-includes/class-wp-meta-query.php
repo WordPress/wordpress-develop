@@ -169,7 +169,7 @@ class WP_Meta_Query {
 			return;
 		}
 
-		if ( isset( $meta_query['relation'] ) && 'OR' === strtoupper( $meta_query['relation'] ) ) {
+		if ( isset( $meta_query['relation'] ) && strtoupper( $meta_query['relation'] ) === 'OR' ) {
 			$this->relation = 'OR';
 		} else {
 			$this->relation = 'AND';
@@ -196,7 +196,7 @@ class WP_Meta_Query {
 		}
 
 		foreach ( $queries as $key => $query ) {
-			if ( 'relation' === $key ) {
+			if ( $key === 'relation' ) {
 				$relation = $query;
 
 			} elseif ( ! is_array( $query ) ) {
@@ -204,7 +204,7 @@ class WP_Meta_Query {
 
 				// First-order clause.
 			} elseif ( $this->is_first_order_clause( $query ) ) {
-				if ( isset( $query['value'] ) && array() === $query['value'] ) {
+				if ( isset( $query['value'] ) && $query['value'] === array() ) {
 					unset( $query['value'] );
 				}
 
@@ -225,7 +225,7 @@ class WP_Meta_Query {
 		}
 
 		// Sanitize the 'relation' key provided in the query.
-		if ( isset( $relation ) && 'OR' === strtoupper( $relation ) ) {
+		if ( isset( $relation ) && strtoupper( $relation ) === 'OR' ) {
 			$clean_queries['relation'] = 'OR';
 			$this->has_or_relation     = true;
 
@@ -234,7 +234,7 @@ class WP_Meta_Query {
 			* This value will not actually be used to join clauses, but it
 			* simplifies the logic around combining key-only queries.
 			*/
-		} elseif ( 1 === count( $clean_queries ) ) {
+		} elseif ( count( $clean_queries ) === 1 ) {
 			$clean_queries['relation'] = 'OR';
 
 			// Default to AND.
@@ -284,7 +284,7 @@ class WP_Meta_Query {
 		}
 
 		// WP_Query sets 'meta_value' = '' by default.
-		if ( isset( $qv['meta_value'] ) && '' !== $qv['meta_value'] && ( ! is_array( $qv['meta_value'] ) || $qv['meta_value'] ) ) {
+		if ( isset( $qv['meta_value'] ) && $qv['meta_value'] !== '' && ( ! is_array( $qv['meta_value'] ) || $qv['meta_value'] ) ) {
 			$primary_meta_query['value'] = $qv['meta_value'];
 		}
 
@@ -326,7 +326,7 @@ class WP_Meta_Query {
 			return 'CHAR';
 		}
 
-		if ( 'NUMERIC' === $meta_type ) {
+		if ( $meta_type === 'NUMERIC' ) {
 			$meta_type = 'SIGNED';
 		}
 
@@ -372,7 +372,7 @@ class WP_Meta_Query {
 		 * If any JOINs are LEFT JOINs (as in the case of NOT EXISTS), then all JOINs should
 		 * be LEFT. Otherwise posts with no metadata will be excluded from results.
 		 */
-		if ( false !== strpos( $sql['join'], 'LEFT JOIN' ) ) {
+		if ( strpos( $sql['join'], 'LEFT JOIN' ) !== false ) {
 			$sql['join'] = str_replace( 'INNER JOIN', 'LEFT JOIN', $sql['join'] );
 		}
 
@@ -458,7 +458,7 @@ class WP_Meta_Query {
 		}
 
 		foreach ( $query as $key => &$clause ) {
-			if ( 'relation' === $key ) {
+			if ( $key === 'relation' ) {
 				$relation = $query['relation'];
 			} elseif ( is_array( $clause ) ) {
 
@@ -469,7 +469,7 @@ class WP_Meta_Query {
 					$where_count = count( $clause_sql['where'] );
 					if ( ! $where_count ) {
 						$sql_chunks['where'][] = '';
-					} elseif ( 1 === $where_count ) {
+					} elseif ( $where_count === 1 ) {
 						$sql_chunks['where'][] = $clause_sql['where'][0];
 					} else {
 						$sql_chunks['where'][] = '( ' . implode( ' AND ', $clause_sql['where'] ) . ' )';
@@ -586,16 +586,16 @@ class WP_Meta_Query {
 
 		// We prefer to avoid joins if possible. Look for an existing join compatible with this clause.
 		$alias = $this->find_compatible_table_alias( $clause, $parent_query );
-		if ( false === $alias ) {
+		if ( $alias === false ) {
 			$i     = count( $this->table_aliases );
 			$alias = $i ? 'mt' . $i : $this->meta_table;
 
 			// JOIN clauses for NOT EXISTS have their own syntax.
-			if ( 'NOT EXISTS' === $meta_compare ) {
+			if ( $meta_compare === 'NOT EXISTS' ) {
 				$join .= " LEFT JOIN $this->meta_table";
 				$join .= $i ? " AS $alias" : '';
 
-				if ( 'LIKE' === $meta_compare_key ) {
+				if ( $meta_compare_key === 'LIKE' ) {
 					$join .= $wpdb->prepare( " ON ( $this->primary_table.$this->primary_id_column = $alias.$this->meta_id_column AND $alias.meta_key LIKE %s )", '%' . $wpdb->esc_like( $clause['key'] ) . '%' );
 				} else {
 					$join .= $wpdb->prepare( " ON ( $this->primary_table.$this->primary_id_column = $alias.$this->meta_id_column AND $alias.meta_key = %s )", $clause['key'] );
@@ -640,7 +640,7 @@ class WP_Meta_Query {
 
 		// meta_key.
 		if ( array_key_exists( 'key', $clause ) ) {
-			if ( 'NOT EXISTS' === $meta_compare ) {
+			if ( $meta_compare === 'NOT EXISTS' ) {
 				$sql_chunks['where'][] = $alias . '.' . $this->meta_id_column . ' IS NULL';
 			} else {
 				/**
@@ -678,7 +678,7 @@ class WP_Meta_Query {
 					case 'RLIKE':
 					case 'REGEXP':
 						$operator = $meta_compare_key;
-						if ( isset( $clause['type_key'] ) && 'BINARY' === strtoupper( $clause['type_key'] ) ) {
+						if ( isset( $clause['type_key'] ) && strtoupper( $clause['type_key'] ) === 'BINARY' ) {
 							$cast = 'BINARY';
 						} else {
 							$cast = '';
@@ -704,7 +704,7 @@ class WP_Meta_Query {
 						break;
 					case 'NOT REGEXP':
 						$operator = $meta_compare_key;
-						if ( isset( $clause['type_key'] ) && 'BINARY' === strtoupper( $clause['type_key'] ) ) {
+						if ( isset( $clause['type_key'] ) && strtoupper( $clause['type_key'] ) === 'BINARY' ) {
 							$cast = 'BINARY';
 						} else {
 							$cast = '';
@@ -767,7 +767,7 @@ class WP_Meta_Query {
 			}
 
 			if ( $where ) {
-				if ( 'CHAR' === $meta_type ) {
+				if ( $meta_type === 'CHAR' ) {
 					$sql_chunks['where'][] = "$alias.meta_value {$meta_compare} {$where}";
 				} else {
 					$sql_chunks['where'][] = "CAST($alias.meta_value AS {$meta_type}) {$meta_compare} {$where}";
@@ -837,7 +837,7 @@ class WP_Meta_Query {
 			$compatible_compares = array();
 
 			// Clauses connected by OR can share joins as long as they have "positive" operators.
-			if ( 'OR' === $parent_query['relation'] ) {
+			if ( $parent_query['relation'] === 'OR' ) {
 				$compatible_compares = array( '=', 'IN', 'BETWEEN', 'LIKE', 'REGEXP', 'RLIKE', '>', '>=', '<', '<=' );
 
 				// Clauses joined by AND with "negative" operators share a join only if they also share a key.

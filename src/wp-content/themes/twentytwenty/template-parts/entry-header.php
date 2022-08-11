@@ -29,7 +29,7 @@ if ( is_singular() ) {
 		 */
 		$show_categories = apply_filters( 'twentytwenty_show_categories_in_entry_header', true );
 
-		if ( true === $show_categories && has_category() ) {
+		if ( $show_categories === true && has_category() ) {
 			?>
 
 			<div class="entry-categories">

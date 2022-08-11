@@ -90,8 +90,8 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error
 	 */
 	$pre = apply_filters( 'pre_schedule_event', null, $event, $wp_error );
 
-	if ( null !== $pre ) {
-		if ( $wp_error && false === $pre ) {
+	if ( $pre !== null ) {
+		if ( $wp_error && $pre === false ) {
 			return new WP_Error(
 				'pre_schedule_event_false',
 				__( 'A plugin prevented the event from being scheduled.' )
@@ -270,8 +270,8 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp
 	/** This filter is documented in wp-includes/cron.php */
 	$pre = apply_filters( 'pre_schedule_event', null, $event, $wp_error );
 
-	if ( null !== $pre ) {
-		if ( $wp_error && false === $pre ) {
+	if ( $pre !== null ) {
+		if ( $wp_error && $pre === false ) {
 			return new WP_Error(
 				'pre_schedule_event_false',
 				__( 'A plugin prevented the event from being scheduled.' )
@@ -361,7 +361,7 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
 	}
 
 	// Now we try to get it from the saved interval in case the schedule disappears.
-	if ( 0 === $interval ) {
+	if ( $interval === 0 ) {
 		$scheduled_event = wp_get_scheduled_event( $hook, $args, $timestamp );
 		if ( $scheduled_event && isset( $scheduled_event->interval ) ) {
 			$interval = $scheduled_event->interval;
@@ -402,8 +402,8 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
 	 */
 	$pre = apply_filters( 'pre_reschedule_event', null, $event, $wp_error );
 
-	if ( null !== $pre ) {
-		if ( $wp_error && false === $pre ) {
+	if ( $pre !== null ) {
+		if ( $wp_error && $pre === false ) {
 			return new WP_Error(
 				'pre_reschedule_event_false',
 				__( 'A plugin prevented the event from being rescheduled.' )
@@ -418,7 +418,7 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
 	}
 
 	// Now we assume something is wrong and fail to schedule.
-	if ( 0 == $interval ) {
+	if ( $interval == 0 ) {
 		if ( $wp_error ) {
 			return new WP_Error(
 				'invalid_schedule',
@@ -493,8 +493,8 @@ function wp_unschedule_event( $timestamp, $hook, $args = array(), $wp_error = fa
 	 */
 	$pre = apply_filters( 'pre_unschedule_event', null, $timestamp, $hook, $args, $wp_error );
 
-	if ( null !== $pre ) {
-		if ( $wp_error && false === $pre ) {
+	if ( $pre !== null ) {
+		if ( $wp_error && $pre === false ) {
 			return new WP_Error(
 				'pre_unschedule_event_false',
 				__( 'A plugin prevented the event from being unscheduled.' )
@@ -573,8 +573,8 @@ function wp_clear_scheduled_hook( $hook, $args = array(), $wp_error = false ) {
 	 */
 	$pre = apply_filters( 'pre_clear_scheduled_hook', null, $hook, $args, $wp_error );
 
-	if ( null !== $pre ) {
-		if ( $wp_error && false === $pre ) {
+	if ( $pre !== null ) {
+		if ( $wp_error && $pre === false ) {
 			return new WP_Error(
 				'pre_clear_scheduled_hook_false',
 				__( 'A plugin prevented the hook from being cleared.' )
@@ -662,8 +662,8 @@ function wp_unschedule_hook( $hook, $wp_error = false ) {
 	 */
 	$pre = apply_filters( 'pre_unschedule_hook', null, $hook, $wp_error );
 
-	if ( null !== $pre ) {
-		if ( $wp_error && false === $pre ) {
+	if ( $pre !== null ) {
+		if ( $wp_error && $pre === false ) {
 			return new WP_Error(
 				'pre_unschedule_hook_false',
 				__( 'A plugin prevented the hook from being cleared.' )
@@ -704,7 +704,7 @@ function wp_unschedule_hook( $hook, $wp_error = false ) {
 
 	$set = _set_cron_array( $crons, $wp_error );
 
-	if ( true === $set ) {
+	if ( $set === true ) {
 		return array_sum( $results );
 	}
 
@@ -748,11 +748,11 @@ function wp_get_scheduled_event( $hook, $args = array(), $timestamp = null ) {
 	 * @param int|null  $timestamp Unix timestamp (UTC) of the event. Null to retrieve next scheduled event.
 	 */
 	$pre = apply_filters( 'pre_get_scheduled_event', null, $hook, $args, $timestamp );
-	if ( null !== $pre ) {
+	if ( $pre !== null ) {
 		return $pre;
 	}
 
-	if ( null !== $timestamp && ! is_numeric( $timestamp ) ) {
+	if ( $timestamp !== null && ! is_numeric( $timestamp ) ) {
 		return false;
 	}
 
@@ -864,7 +864,7 @@ function spawn_cron( $gmt_time = 0 ) {
 	}
 
 	if ( defined( 'ALTERNATE_WP_CRON' ) && ALTERNATE_WP_CRON ) {
-		if ( 'GET' !== $_SERVER['REQUEST_METHOD'] || defined( 'DOING_AJAX' ) || defined( 'XMLRPC_REQUEST' ) ) {
+		if ( $_SERVER['REQUEST_METHOD'] !== 'GET' || defined( 'DOING_AJAX' ) || defined( 'XMLRPC_REQUEST' ) ) {
 			return false;
 		}
 
@@ -1122,7 +1122,7 @@ function wp_get_ready_cron_jobs() {
 	 *                          to continue using results from _get_cron_array().
 	 */
 	$pre = apply_filters( 'pre_get_ready_cron_jobs', null );
-	if ( null !== $pre ) {
+	if ( $pre !== null ) {
 		return $pre;
 	}
 
@@ -1216,7 +1216,7 @@ function _set_cron_array( $cron, $wp_error = false ) {
  * @return array An upgraded Cron info array.
  */
 function _upgrade_cron_array( $cron ) {
-	if ( isset( $cron['version'] ) && 2 == $cron['version'] ) {
+	if ( isset( $cron['version'] ) && $cron['version'] == 2 ) {
 		return $cron;
 	}
 

@@ -353,7 +353,7 @@ function get_inline_data( $post ) {
 		if ( $taxonomy->hierarchical ) {
 
 			$terms = get_object_term_cache( $post->ID, $taxonomy_name );
-			if ( false === $terms ) {
+			if ( $terms === false ) {
 				$terms = wp_get_object_terms( $post->ID, $taxonomy_name );
 				wp_cache_add( $post->ID, wp_list_pluck( $terms, 'term_id' ), $taxonomy_name . '_relationships' );
 			}
@@ -440,7 +440,7 @@ function wp_comment_reply( $position = 1, $checkbox = false, $mode = 'single', $
 	}
 
 	if ( ! $wp_list_table ) {
-		if ( 'single' === $mode ) {
+		if ( $mode === 'single' ) {
 			$wp_list_table = _get_list_table( 'WP_Post_Comments_List_Table' );
 		} else {
 			$wp_list_table = _get_list_table( 'WP_Comments_List_Table' );
@@ -685,7 +685,7 @@ function meta_form( $post = null ) {
 	 */
 	$keys = apply_filters( 'postmeta_form_keys', null, $post );
 
-	if ( null === $keys ) {
+	if ( $keys === null ) {
 		/**
 		 * Filters the number of custom fields to retrieve for the drop-down
 		 * in the Custom Fields meta box.
@@ -794,7 +794,7 @@ function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
 	$post = get_post();
 
 	if ( $for_post ) {
-		$edit = ! ( in_array( $post->post_status, array( 'draft', 'pending' ), true ) && ( ! $post->post_date_gmt || '0000-00-00 00:00:00' === $post->post_date_gmt ) );
+		$edit = ! ( in_array( $post->post_status, array( 'draft', 'pending' ), true ) && ( ! $post->post_date_gmt || $post->post_date_gmt === '0000-00-00 00:00:00' ) );
 	}
 
 	$tab_index_attribute = '';
@@ -1076,19 +1076,19 @@ function add_meta_box( $id, $title, $callback, $screen = null, $context = 'advan
 			}
 
 			// If a core box was previously removed, don't add.
-			if ( ( 'core' === $priority || 'sorted' === $priority )
-				&& false === $wp_meta_boxes[ $page ][ $a_context ][ $a_priority ][ $id ]
+			if ( ( $priority === 'core' || $priority === 'sorted' )
+				&& $wp_meta_boxes[ $page ][ $a_context ][ $a_priority ][ $id ] === false
 			) {
 				return;
 			}
 
 			// If a core box was previously added by a plugin, don't add.
-			if ( 'core' === $priority ) {
+			if ( $priority === 'core' ) {
 				/*
 				 * If the box was added with default priority, give it core priority
 				 * to maintain sort order.
 				 */
-				if ( 'default' === $a_priority ) {
+				if ( $a_priority === 'default' ) {
 					$wp_meta_boxes[ $page ][ $a_context ]['core'][ $id ] = $wp_meta_boxes[ $page ][ $a_context ]['default'][ $id ];
 					unset( $wp_meta_boxes[ $page ][ $a_context ]['default'][ $id ] );
 				}
@@ -1102,7 +1102,7 @@ function add_meta_box( $id, $title, $callback, $screen = null, $context = 'advan
 				 * Else, if we're adding to the sorted priority, we don't know the title
 				 * or callback. Grab them from the previously added context/priority.
 				 */
-			} elseif ( 'sorted' === $priority ) {
+			} elseif ( $priority === 'sorted' ) {
 				$title         = $wp_meta_boxes[ $page ][ $a_context ][ $a_priority ][ $id ]['title'];
 				$callback      = $wp_meta_boxes[ $page ][ $a_context ][ $a_priority ][ $id ]['callback'];
 				$callback_args = $wp_meta_boxes[ $page ][ $a_context ][ $a_priority ][ $id ]['args'];
@@ -1213,7 +1213,7 @@ function _get_plugin_from_callback( $callback ) {
 	try {
 		if ( is_array( $callback ) ) {
 			$reflection = new ReflectionMethod( $callback[0], $callback[1] );
-		} elseif ( is_string( $callback ) && false !== strpos( $callback, '::' ) ) {
+		} elseif ( is_string( $callback ) && strpos( $callback, '::' ) !== false ) {
 			$reflection = new ReflectionMethod( $callback );
 		} else {
 			$reflection = new ReflectionFunction( $callback );
@@ -1287,7 +1287,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 	if ( ! $already_sorted && $sorted ) {
 		foreach ( $sorted as $box_context => $ids ) {
 			foreach ( explode( ',', $ids ) as $id ) {
-				if ( $id && 'dashboard_browser_nag' !== $id ) {
+				if ( $id && $id !== 'dashboard_browser_nag' ) {
 					add_meta_box( $id, null, null, $screen, $box_context, 'sorted' );
 				}
 			}
@@ -1302,7 +1302,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 		foreach ( array( 'high', 'sorted', 'core', 'default', 'low' ) as $priority ) {
 			if ( isset( $wp_meta_boxes[ $page ][ $context ][ $priority ] ) ) {
 				foreach ( (array) $wp_meta_boxes[ $page ][ $context ][ $priority ] as $box ) {
-					if ( false === $box || ! $box['title'] ) {
+					if ( $box === false || ! $box['title'] ) {
 						continue;
 					}
 
@@ -1337,14 +1337,14 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 
 					echo '<div class="postbox-header">';
 					echo '<h2 class="hndle">';
-					if ( 'dashboard_php_nag' === $box['id'] ) {
+					if ( $box['id'] === 'dashboard_php_nag' ) {
 						echo '<span aria-hidden="true" class="dashicons dashicons-warning"></span>';
 						echo '<span class="screen-reader-text">' . __( 'Warning:' ) . ' </span>';
 					}
 					echo $box['title'];
 					echo "</h2>\n";
 
-					if ( 'dashboard_browser_nag' !== $box['id'] ) {
+					if ( $box['id'] !== 'dashboard_browser_nag' ) {
 						$widget_title = $box['title'];
 
 						if ( is_array( $box['args'] ) && isset( $box['args']['__widget_basename'] ) ) {
@@ -1390,7 +1390,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
 
 					echo '<div class="inside">' . "\n";
 
-					if ( WP_DEBUG && ! $block_compatible && 'edit' === $screen->parent_base && ! $screen->is_block_editor() && ! isset( $_GET['meta-box-loader'] ) ) {
+					if ( WP_DEBUG && ! $block_compatible && $screen->parent_base === 'edit' && ! $screen->is_block_editor() && ! isset( $_GET['meta-box-loader'] ) ) {
 						$plugin = _get_plugin_from_callback( $box['callback'] );
 						if ( $plugin ) {
 							?>
@@ -1513,7 +1513,7 @@ function do_accordion_sections( $screen, $context, $data_object ) {
 		foreach ( array( 'high', 'core', 'default', 'low' ) as $priority ) {
 			if ( isset( $wp_meta_boxes[ $page ][ $context ][ $priority ] ) ) {
 				foreach ( $wp_meta_boxes[ $page ][ $context ][ $priority ] as $box ) {
-					if ( false === $box || ! $box['title'] ) {
+					if ( $box === false || ! $box['title'] ) {
 						continue;
 					}
 
@@ -1574,7 +1574,7 @@ function do_accordion_sections( $screen, $context, $data_object ) {
 function add_settings_section( $id, $title, $callback, $page ) {
 	global $wp_settings_sections;
 
-	if ( 'misc' === $page ) {
+	if ( $page === 'misc' ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.0.0',
@@ -1587,7 +1587,7 @@ function add_settings_section( $id, $title, $callback, $page ) {
 		$page = 'general';
 	}
 
-	if ( 'privacy' === $page ) {
+	if ( $page === 'privacy' ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.5.0',
@@ -1645,7 +1645,7 @@ function add_settings_section( $id, $title, $callback, $page ) {
 function add_settings_field( $id, $title, $callback, $page, $section = 'default', $args = array() ) {
 	global $wp_settings_fields;
 
-	if ( 'misc' === $page ) {
+	if ( $page === 'misc' ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.0.0',
@@ -1658,7 +1658,7 @@ function add_settings_field( $id, $title, $callback, $page, $section = 'default'
 		$page = 'general';
 	}
 
-	if ( 'privacy' === $page ) {
+	if ( $page === 'privacy' ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.5.0',
@@ -1911,7 +1911,7 @@ function settings_errors( $setting = '', $sanitize = false, $hide_on_update = fa
 	$output = '';
 
 	foreach ( $settings_errors as $key => $details ) {
-		if ( 'updated' === $details['type'] ) {
+		if ( $details['type'] === 'updated' ) {
 			$details['type'] = 'success';
 		}
 
@@ -2202,21 +2202,21 @@ function get_post_states( $post ) {
 		$post_states['protected'] = _x( 'Password protected', 'post status' );
 	}
 
-	if ( 'private' === $post->post_status && 'private' !== $post_status ) {
+	if ( $post->post_status === 'private' && $post_status !== 'private' ) {
 		$post_states['private'] = _x( 'Private', 'post status' );
 	}
 
-	if ( 'draft' === $post->post_status ) {
+	if ( $post->post_status === 'draft' ) {
 		if ( get_post_meta( $post->ID, '_customize_changeset_uuid', true ) ) {
 			$post_states[] = __( 'Customization Draft' );
-		} elseif ( 'draft' !== $post_status ) {
+		} elseif ( $post_status !== 'draft' ) {
 			$post_states['draft'] = _x( 'Draft', 'post status' );
 		}
-	} elseif ( 'trash' === $post->post_status && get_post_meta( $post->ID, '_customize_changeset_uuid', true ) ) {
+	} elseif ( $post->post_status === 'trash' && get_post_meta( $post->ID, '_customize_changeset_uuid', true ) ) {
 		$post_states[] = _x( 'Customization Draft', 'post status' );
 	}
 
-	if ( 'pending' === $post->post_status && 'pending' !== $post_status ) {
+	if ( $post->post_status === 'pending' && $post_status !== 'pending' ) {
 		$post_states['pending'] = _x( 'Pending', 'post status' );
 	}
 
@@ -2224,11 +2224,11 @@ function get_post_states( $post ) {
 		$post_states['sticky'] = _x( 'Sticky', 'post status' );
 	}
 
-	if ( 'future' === $post->post_status ) {
+	if ( $post->post_status === 'future' ) {
 		$post_states['scheduled'] = _x( 'Scheduled', 'post status' );
 	}
 
-	if ( 'page' === get_option( 'show_on_front' ) ) {
+	if ( get_option( 'show_on_front' ) === 'page' ) {
 		if ( (int) get_option( 'page_on_front' ) === $post->ID ) {
 			$post_states['page_on_front'] = _x( 'Front Page', 'page label' );
 		}
@@ -2496,7 +2496,7 @@ function get_submit_button( $text = '', $type = 'primary large', $name = 'submit
 	$classes          = array( 'button' );
 
 	foreach ( $type as $t ) {
-		if ( 'secondary' === $t || 'button-secondary' === $t ) {
+		if ( $t === 'secondary' || $t === 'button-secondary' ) {
 			continue;
 		}
 
@@ -2657,7 +2657,7 @@ function wp_star_rating( $args = array() ) {
 	$rating = (float) str_replace( ',', '.', $parsed_args['rating'] );
 
 	// Convert percentage to star rating, 0..5 in .5 increments.
-	if ( 'percent' === $parsed_args['type'] ) {
+	if ( $parsed_args['type'] === 'percent' ) {
 		$rating = round( $rating / 10, 0 ) / 2;
 	}
 

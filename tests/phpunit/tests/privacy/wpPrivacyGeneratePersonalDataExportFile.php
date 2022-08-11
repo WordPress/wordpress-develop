@@ -398,7 +398,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 */
 	private function setup_export_contents_test( $export_data_grouped = null ) {
 		// Delete or update the given meta.
-		if ( null === $export_data_grouped ) {
+		if ( $export_data_grouped === null ) {
 			delete_post_meta( self::$export_request_id, '_export_data_grouped' );
 		} else {
 			update_post_meta( self::$export_request_id, '_export_data_grouped', $export_data_grouped );
@@ -436,7 +436,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 */
 	private function replace_timestamp_placeholder( $actual_content, $expected_content ) {
 		$placeholder_pos = stripos( $expected_content, '{{TIMESTAMP}}' );
-		if ( false === $placeholder_pos ) {
+		if ( $placeholder_pos === false ) {
 			return $expected_content;
 		}
 
@@ -651,7 +651,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 			return $value;
 		}
 
-		if ( '_export_data_grouped' !== $meta_key ) {
+		if ( $meta_key !== '_export_data_grouped' ) {
 			return $value;
 		}
 

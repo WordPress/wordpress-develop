@@ -121,7 +121,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function save_posts_clauses( $orderby, $query ) {
-		if ( 'revision' !== $query->query_vars['post_type'] ) {
+		if ( $query->query_vars['post_type'] !== 'revision' ) {
 			array_push( $this->posts_clauses, $orderby );
 		}
 		return $orderby;
@@ -1870,11 +1870,11 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$cat_link    = null;
 		$format_link = null;
 		foreach ( $term_links as $link ) {
-			if ( 'post_tag' === $link['attributes']['taxonomy'] ) {
+			if ( $link['attributes']['taxonomy'] === 'post_tag' ) {
 				$tag_link = $link;
-			} elseif ( 'category' === $link['attributes']['taxonomy'] ) {
+			} elseif ( $link['attributes']['taxonomy'] === 'category' ) {
 				$cat_link = $link;
-			} elseif ( 'post_format' === $link['attributes']['taxonomy'] ) {
+			} elseif ( $link['attributes']['taxonomy'] === 'post_format' ) {
 				$format_link = $link;
 			}
 		}
@@ -3100,7 +3100,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function revoke_assign_term( $caps, $cap, $user_id, $args ) {
-		if ( 'assign_term' === $cap && isset( $args[0] ) && $this->forbidden_cat === $args[0] ) {
+		if ( $cap === 'assign_term' && isset( $args[0] ) && $this->forbidden_cat === $args[0] ) {
 			$caps = array( 'do_not_allow' );
 		}
 		return $caps;
@@ -3773,7 +3773,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$categories_path = '';
 		$links           = $response->get_links();
 		foreach ( $links['https://api.w.org/term'] as $link ) {
-			if ( 'category' === $link['attributes']['taxonomy'] ) {
+			if ( $link['attributes']['taxonomy'] === 'category' ) {
 				$categories_path = $link['href'];
 			}
 		}
@@ -4561,7 +4561,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function additional_field_update_callback( $value, $post ) {
-		if ( 'returnError' === $value ) {
+		if ( $value === 'returnError' ) {
 			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
 		}
 		update_post_meta( $post->ID, 'my_custom_int', $value );

@@ -107,7 +107,7 @@ function get_sitemap_url( $name, $subtype_name = '', $page = 1 ) {
 		return false;
 	}
 
-	if ( 'index' === $name ) {
+	if ( $name === 'index' ) {
 		return $sitemaps->index->get_index_url();
 	}
 

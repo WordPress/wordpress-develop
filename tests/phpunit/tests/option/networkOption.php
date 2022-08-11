@@ -149,7 +149,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$notoptions_key = "$network_id:notoptions";
 
 		$original_cache = wp_cache_get( $notoptions_key, 'site-options' );
-		if ( false !== $original_cache ) {
+		if ( $original_cache !== false ) {
 			wp_cache_delete( $notoptions_key, 'site-options' );
 		}
 
@@ -157,7 +157,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		get_network_option( $network_id, 'site_name' );
 
 		$cache = wp_cache_get( $notoptions_key, 'site-options' );
-		if ( false !== $original_cache ) {
+		if ( $original_cache !== false ) {
 			wp_cache_set( $notoptions_key, $original_cache, 'site-options' );
 		}
 
@@ -176,7 +176,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$notoptions_key = "$network_id:notoptions";
 
 		$original_cache = wp_cache_get( $notoptions_key, 'site-options' );
-		if ( false !== $original_cache ) {
+		if ( $original_cache !== false ) {
 			wp_cache_delete( $notoptions_key, 'site-options' );
 		}
 
@@ -184,7 +184,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		get_network_option( $network_id, 'this_does_not_exist' );
 
 		$cache = wp_cache_get( $notoptions_key, 'site-options' );
-		if ( false !== $original_cache ) {
+		if ( $original_cache !== false ) {
 			wp_cache_set( $notoptions_key, $original_cache, 'site-options' );
 		}
 

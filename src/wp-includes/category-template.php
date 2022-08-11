@@ -165,7 +165,7 @@ function get_the_category_list( $separator = '', $parents = '', $post_id = false
 	$rel = ( is_object( $wp_rewrite ) && $wp_rewrite->using_permalinks() ) ? 'rel="category tag"' : 'rel="category"';
 
 	$thelist = '';
-	if ( '' === $separator ) {
+	if ( $separator === '' ) {
 		$thelist .= '<ul class="post-categories">';
 		foreach ( $categories as $category ) {
 			$thelist .= "\n\t<li>";
@@ -366,7 +366,7 @@ function wp_dropdown_categories( $args = '' ) {
 	$defaults['selected'] = ( is_category() ) ? get_query_var( 'cat' ) : 0;
 
 	// Back compat.
-	if ( isset( $args['type'] ) && 'link' === $args['type'] ) {
+	if ( isset( $args['type'] ) && $args['type'] === 'link' ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.0.0',
@@ -438,7 +438,7 @@ function wp_dropdown_categories( $args = '' ) {
 
 			/** This filter is documented in wp-includes/category-template.php */
 			$show_option_all = apply_filters( 'list_cats', $parsed_args['show_option_all'], null );
-			$selected        = ( '0' === (string) $parsed_args['selected'] ) ? " selected='selected'" : '';
+			$selected        = ( (string) $parsed_args['selected'] === '0' ) ? " selected='selected'" : '';
 			$output         .= "\t<option value='0'$selected>$show_option_all</option>\n";
 		}
 
@@ -562,7 +562,7 @@ function wp_list_categories( $args = '' ) {
 	}
 
 	// Descendants of exclusions should be excluded too.
-	if ( true == $parsed_args['hierarchical'] ) {
+	if ( $parsed_args['hierarchical'] == true ) {
 		$exclude_tree = array();
 
 		if ( $parsed_args['exclude_tree'] ) {
@@ -578,7 +578,7 @@ function wp_list_categories( $args = '' ) {
 	}
 
 	if ( ! isset( $parsed_args['class'] ) ) {
-		$parsed_args['class'] = ( 'category' === $parsed_args['taxonomy'] ) ? 'categories' : $parsed_args['taxonomy'];
+		$parsed_args['class'] = ( $parsed_args['taxonomy'] === 'category' ) ? 'categories' : $parsed_args['taxonomy'];
 	}
 
 	if ( ! taxonomy_exists( $parsed_args['taxonomy'] ) ) {
@@ -592,7 +592,7 @@ function wp_list_categories( $args = '' ) {
 
 	$output = '';
 
-	if ( $parsed_args['title_li'] && 'list' === $parsed_args['style']
+	if ( $parsed_args['title_li'] && $parsed_args['style'] === 'list'
 		&& ( ! empty( $categories ) || ! $parsed_args['hide_title_if_empty'] )
 	) {
 		$output = '<li class="' . esc_attr( $parsed_args['class'] ) . '">' . $parsed_args['title_li'] . '<ul>';
@@ -600,7 +600,7 @@ function wp_list_categories( $args = '' ) {
 
 	if ( empty( $categories ) ) {
 		if ( ! empty( $show_option_none ) ) {
-			if ( 'list' === $parsed_args['style'] ) {
+			if ( $parsed_args['style'] === 'list' ) {
 				$output .= '<li class="cat-item-none">' . $show_option_none . '</li>';
 			} else {
 				$output .= $show_option_none;
@@ -627,7 +627,7 @@ function wp_list_categories( $args = '' ) {
 
 			// Fallback for the 'All' link is the posts page.
 			if ( ! $posts_page ) {
-				if ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_for_posts' ) ) {
+				if ( get_option( 'show_on_front' ) === 'page' && get_option( 'page_for_posts' ) ) {
 					$posts_page = get_permalink( get_option( 'page_for_posts' ) );
 				} else {
 					$posts_page = home_url( '/' );
@@ -635,7 +635,7 @@ function wp_list_categories( $args = '' ) {
 			}
 
 			$posts_page = esc_url( $posts_page );
-			if ( 'list' === $parsed_args['style'] ) {
+			if ( $parsed_args['style'] === 'list' ) {
 				$output .= "<li class='cat-item-all'><a href='$posts_page'>$show_option_all</a></li>";
 			} else {
 				$output .= "<a href='$posts_page'>$show_option_all</a>";
@@ -657,7 +657,7 @@ function wp_list_categories( $args = '' ) {
 		$output .= walk_category_tree( $categories, $depth, $parsed_args );
 	}
 
-	if ( $parsed_args['title_li'] && 'list' === $parsed_args['style']
+	if ( $parsed_args['title_li'] && $parsed_args['style'] === 'list'
 		&& ( ! empty( $categories ) || ! $parsed_args['hide_title_if_empty'] )
 	) {
 		$output .= '</ul></li>';
@@ -743,7 +743,7 @@ function wp_tag_cloud( $args = '' ) {
 	}
 
 	foreach ( $tags as $key => $tag ) {
-		if ( 'edit' === $args['link'] ) {
+		if ( $args['link'] === 'edit' ) {
 			$link = get_edit_term_link( $tag, $tag->taxonomy, $args['post_type'] );
 		} else {
 			$link = get_term_link( $tag, $tag->taxonomy );
@@ -771,7 +771,7 @@ function wp_tag_cloud( $args = '' ) {
 	 */
 	$return = apply_filters( 'wp_tag_cloud', $return, $args );
 
-	if ( 'array' === $args['format'] || empty( $args['echo'] ) ) {
+	if ( $args['format'] === 'array' || empty( $args['echo'] ) ) {
 		return $return;
 	}
 
@@ -855,7 +855,7 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 
 	$args = wp_parse_args( $args, $defaults );
 
-	$return = ( 'array' === $args['format'] ) ? array() : '';
+	$return = ( $args['format'] === 'array' ) ? array() : '';
 
 	if ( empty( $tags ) ) {
 		return $return;
@@ -867,7 +867,7 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 		$translate_nooped_plural = $args['topic_count_text'];
 	} elseif ( ! empty( $args['topic_count_text_callback'] ) ) {
 		// Look for the alternative callback style. Ignore the previous default.
-		if ( 'default_topic_count_text' === $args['topic_count_text_callback'] ) {
+		if ( $args['topic_count_text_callback'] === 'default_topic_count_text' ) {
 			/* translators: %s: Number of items (tags). */
 			$translate_nooped_plural = _n_noop( '%s item', '%s items' );
 		} else {
@@ -900,17 +900,17 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 		$tags = $tags_sorted;
 		unset( $tags_sorted );
 	} else {
-		if ( 'RAND' === $args['order'] ) {
+		if ( $args['order'] === 'RAND' ) {
 			shuffle( $tags );
 		} else {
 			// SQL cannot save you; this is a second (potentially different) sort on a subset of data.
-			if ( 'name' === $args['orderby'] ) {
+			if ( $args['orderby'] === 'name' ) {
 				uasort( $tags, '_wp_object_name_sort_cb' );
 			} else {
 				uasort( $tags, '_wp_object_count_sort_cb' );
 			}
 
-			if ( 'DESC' === $args['order'] ) {
+			if ( $args['order'] === 'DESC' ) {
 				$tags = array_reverse( $tags, true );
 			}
 		}
@@ -950,7 +950,7 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 	 * - when the tag count is displayed (for example when users check the checkbox in the
 	 *   Tag Cloud widget), regardless of the tags font size
 	 */
-	if ( $args['show_count'] || 0 !== $font_spread ) {
+	if ( $args['show_count'] || $font_spread !== 0 ) {
 		$aria_label = true;
 	}
 
@@ -970,8 +970,8 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 
 		$tags_data[] = array(
 			'id'              => $tag_id,
-			'url'             => ( '#' !== $tag->link ) ? $tag->link : '#',
-			'role'            => ( '#' !== $tag->link ) ? '' : ' role="button"',
+			'url'             => ( $tag->link !== '#' ) ? $tag->link : '#',
+			'role'            => ( $tag->link !== '#' ) ? '' : ' role="button"',
 			'name'            => $tag->name,
 			'formatted_count' => $formatted_count,
 			'slug'            => $tag->slug,
@@ -1222,7 +1222,7 @@ function get_the_tag_list( $before = '', $sep = '', $after = '', $post_id = 0 ) 
  * @param string $after  Optional. String to use after the tags. Default empty.
  */
 function the_tags( $before = null, $sep = ', ', $after = '' ) {
-	if ( null === $before ) {
+	if ( $before === null ) {
 		$before = __( 'Tags: ' );
 	}
 
@@ -1287,7 +1287,7 @@ function get_the_terms( $post, $taxonomy ) {
 
 	$terms = get_object_term_cache( $post->ID, $taxonomy );
 
-	if ( false === $terms ) {
+	if ( $terms === false ) {
 		$terms = wp_get_object_terms( $post->ID, $taxonomy );
 		if ( ! is_wp_error( $terms ) ) {
 			$term_ids = wp_list_pluck( $terms, 'term_id' );
@@ -1423,7 +1423,7 @@ function get_term_parents_list( $term_id, $taxonomy, $args = array() ) {
 
 	foreach ( array_reverse( $parents ) as $term_id ) {
 		$parent = get_term( $term_id, $taxonomy );
-		$name   = ( 'slug' === $args['format'] ) ? $parent->slug : $parent->name;
+		$name   = ( $args['format'] === 'slug' ) ? $parent->slug : $parent->name;
 
 		if ( $args['link'] ) {
 			$list .= '<a href="' . esc_url( get_term_link( $parent->term_id, $taxonomy ) ) . '">' . $name . '</a>' . $args['separator'];

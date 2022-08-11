@@ -247,7 +247,7 @@ add_action( 'after_setup_theme', 'twentysixteen_content_width', 0 );
  * @return array URLs to print for resource hints.
  */
 function twentysixteen_resource_hints( $urls, $relation_type ) {
-	if ( wp_style_is( 'twentysixteen-fonts', 'queue' ) && 'preconnect' === $relation_type ) {
+	if ( wp_style_is( 'twentysixteen-fonts', 'queue' ) && $relation_type === 'preconnect' ) {
 		$urls[] = array(
 			'href' => 'https://fonts.gstatic.com',
 			'crossorigin',
@@ -323,7 +323,7 @@ if ( ! function_exists( 'twentysixteen_fonts_url' ) ) :
 		 * translators: If there are characters in your language that are not supported
 		 * by Merriweather, translate this to 'off'. Do not translate into your own language.
 		 */
-		if ( 'off' !== _x( 'on', 'Merriweather font: on or off', 'twentysixteen' ) ) {
+		if ( _x( 'on', 'Merriweather font: on or off', 'twentysixteen' ) !== 'off' ) {
 			$fonts[] = 'Merriweather:400,700,900,400italic,700italic,900italic';
 		}
 
@@ -331,7 +331,7 @@ if ( ! function_exists( 'twentysixteen_fonts_url' ) ) :
 		 * translators: If there are characters in your language that are not supported
 		 * by Montserrat, translate this to 'off'. Do not translate into your own language.
 		 */
-		if ( 'off' !== _x( 'on', 'Montserrat font: on or off', 'twentysixteen' ) ) {
+		if ( _x( 'on', 'Montserrat font: on or off', 'twentysixteen' ) !== 'off' ) {
 			$fonts[] = 'Montserrat:400,700';
 		}
 
@@ -339,7 +339,7 @@ if ( ! function_exists( 'twentysixteen_fonts_url' ) ) :
 		 * translators: If there are characters in your language that are not supported
 		 * by Inconsolata, translate this to 'off'. Do not translate into your own language.
 		 */
-		if ( 'off' !== _x( 'on', 'Inconsolata font: on or off', 'twentysixteen' ) ) {
+		if ( _x( 'on', 'Inconsolata font: on or off', 'twentysixteen' ) !== 'off' ) {
 			$fonts[] = 'Inconsolata:400';
 		}
 
@@ -537,7 +537,7 @@ function twentysixteen_content_image_sizes_attr( $sizes, $size ) {
 		$sizes = '(max-width: 709px) 85vw, (max-width: 909px) 67vw, (max-width: 1362px) 62vw, 840px';
 	}
 
-	if ( 'page' === get_post_type() ) {
+	if ( get_post_type() === 'page' ) {
 		if ( 840 > $width ) {
 			$sizes = '(max-width: ' . $width . 'px) 85vw, ' . $width . 'px';
 		}
@@ -567,7 +567,7 @@ add_filter( 'wp_calculate_image_sizes', 'twentysixteen_content_image_sizes_attr'
  * @return string[] The filtered attributes for the image markup.
  */
 function twentysixteen_post_thumbnail_sizes_attr( $attr, $attachment, $size ) {
-	if ( 'post-thumbnail' === $size ) {
+	if ( $size === 'post-thumbnail' ) {
 		if ( is_active_sidebar( 'sidebar-1' ) ) {
 			$attr['sizes'] = '(max-width: 709px) 85vw, (max-width: 909px) 67vw, (max-width: 984px) 60vw, (max-width: 1362px) 62vw, 840px';
 		} else {

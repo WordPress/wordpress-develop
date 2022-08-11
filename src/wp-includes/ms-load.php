@@ -20,7 +20,7 @@ function is_subdomain_install() {
 		return SUBDOMAIN_INSTALL;
 	}
 
-	return ( defined( 'VHOST' ) && 'yes' === VHOST );
+	return ( defined( 'VHOST' ) && VHOST === 'yes' );
 }
 
 /**
@@ -46,8 +46,8 @@ function wp_get_active_network_plugins() {
 
 	foreach ( $active_plugins as $plugin ) {
 		if ( ! validate_file( $plugin )                     // $plugin must validate as file.
-			&& '.php' === substr( $plugin, -4 )             // $plugin must end with '.php'.
-			&& file_exists( WP_PLUGIN_DIR . '/' . $plugin ) // $plugin must exist.
+			&& substr( $plugin, -4 )             // $plugin must end with '.php'.
+		=== '.php' && file_exists( WP_PLUGIN_DIR . '/' . $plugin ) // $plugin must exist.
 			) {
 			$plugins[] = WP_PLUGIN_DIR . '/' . $plugin;
 		}
@@ -81,7 +81,7 @@ function ms_site_check() {
 	 * @param bool|null $check Whether to skip the blog status check. Default null.
 	 */
 	$check = apply_filters( 'ms_site_check', null );
-	if ( null !== $check ) {
+	if ( $check !== null ) {
 		return true;
 	}
 
@@ -92,7 +92,7 @@ function ms_site_check() {
 
 	$blog = get_site();
 
-	if ( '1' == $blog->deleted ) {
+	if ( $blog->deleted == '1' ) {
 		if ( file_exists( WP_CONTENT_DIR . '/blog-deleted.php' ) ) {
 			return WP_CONTENT_DIR . '/blog-deleted.php';
 		} else {
@@ -100,7 +100,7 @@ function ms_site_check() {
 		}
 	}
 
-	if ( '2' == $blog->deleted ) {
+	if ( $blog->deleted == '2' ) {
 		if ( file_exists( WP_CONTENT_DIR . '/blog-inactive.php' ) ) {
 			return WP_CONTENT_DIR . '/blog-inactive.php';
 		} else {
@@ -115,7 +115,7 @@ function ms_site_check() {
 		}
 	}
 
-	if ( '1' == $blog->archived || '1' == $blog->spam ) {
+	if ( $blog->archived == '1' || $blog->spam == '1' ) {
 		if ( file_exists( WP_CONTENT_DIR . '/blog-suspended.php' ) ) {
 			return WP_CONTENT_DIR . '/blog-suspended.php';
 		} else {
@@ -176,7 +176,7 @@ function get_site_by_path( $domain, $path, $segments = null ) {
 	 */
 	$segments = apply_filters( 'site_by_path_segments_count', $segments, $domain, $path );
 
-	if ( null !== $segments && count( $path_segments ) > $segments ) {
+	if ( $segments !== null && count( $path_segments ) > $segments ) {
 		$path_segments = array_slice( $path_segments, 0, $segments );
 	}
 
@@ -210,8 +210,8 @@ function get_site_by_path( $domain, $path, $segments = null ) {
 	 * @param string[]           $paths    The paths to search for, based on $path and $segments.
 	 */
 	$pre = apply_filters( 'pre_get_site_by_path', null, $domain, $path, $segments, $paths );
-	if ( null !== $pre ) {
-		if ( false !== $pre && ! $pre instanceof WP_Site ) {
+	if ( $pre !== null ) {
+		if ( $pre !== false && ! $pre instanceof WP_Site ) {
 			$pre = new WP_Site( $pre );
 		}
 		return $pre;
@@ -229,7 +229,7 @@ function get_site_by_path( $domain, $path, $segments = null ) {
 	// Either www or non-www is supported, not both. If a www domain is requested,
 	// query for both to provide the proper redirect.
 	$domains = array( $domain );
-	if ( 'www.' === substr( $domain, 0, 4 ) ) {
+	if ( substr( $domain, 0, 4 ) === 'www.' ) {
 		$domains[] = substr( $domain, 4 );
 	}
 
@@ -307,9 +307,9 @@ function ms_load_current_site_and_network( $domain, $path, $subdomain = false ) 
 			$current_site->blog_id = BLOGID_CURRENT_SITE;
 		}
 
-		if ( 0 === strcasecmp( $current_site->domain, $domain ) && 0 === strcasecmp( $current_site->path, $path ) ) {
+		if ( strcasecmp( $current_site->domain, $domain ) === 0 && strcasecmp( $current_site->path, $path ) === 0 ) {
 			$current_blog = get_site_by_path( $domain, $path );
-		} elseif ( '/' !== $current_site->path && 0 === strcasecmp( $current_site->domain, $domain ) && 0 === stripos( $path, $current_site->path ) ) {
+		} elseif ( $current_site->path !== '/' && strcasecmp( $current_site->domain, $domain ) === 0 && stripos( $path, $current_site->path ) === 0 ) {
 			// If the current network has a path and also matches the domain and path of the request,
 			// we need to look for a site using the first path segment following the network's path.
 			$current_blog = get_site_by_path( $domain, $path, 1 + count( explode( '/', trim( $current_site->path, '/' ) ) ) );
@@ -422,10 +422,10 @@ function ms_load_current_site_and_network( $domain, $path, $subdomain = false ) 
 			 * can be used to avoid a redirect to the signup form.
 			 * Using the ms_site_not_found action is preferred to the constant.
 			 */
-			if ( '%siteurl%' !== NOBLOGREDIRECT ) {
+			if ( NOBLOGREDIRECT !== '%siteurl%' ) {
 				$destination = NOBLOGREDIRECT;
 			}
-		} elseif ( 0 === strcasecmp( $current_site->domain, $domain ) ) {
+		} elseif ( strcasecmp( $current_site->domain, $domain ) === 0 ) {
 			/*
 			 * If the domain we were searching for matches the network's domain,
 			 * it's no use redirecting back to ourselves -- it'll cause a loop.
@@ -497,7 +497,7 @@ function ms_not_installed( $domain, $path ) {
 	);
 	$msg .= ' ' . __( 'If you are still stuck with this message, then check that your database contains the following tables:' ) . '</p><ul>';
 	foreach ( $wpdb->tables( 'global' ) as $t => $table ) {
-		if ( 'sitecategories' === $t ) {
+		if ( $t === 'sitecategories' ) {
 			continue;
 		}
 		$msg .= '<li>' . $table . '</li>';
@@ -561,7 +561,7 @@ function wp_get_network( $network ) {
 	_deprecated_function( __FUNCTION__, '4.7.0', 'get_network()' );
 
 	$network = get_network( $network );
-	if ( null === $network ) {
+	if ( $network === null ) {
 		return false;
 	}
 

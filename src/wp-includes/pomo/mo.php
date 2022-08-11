@@ -216,12 +216,12 @@ if ( ! class_exists( 'MO', false ) ) :
 		 */
 		public function import_from_reader( $reader ) {
 			$endian_string = MO::get_byteorder( $reader->readint32() );
-			if ( false === $endian_string ) {
+			if ( $endian_string === false ) {
 				return false;
 			}
 			$reader->setEndian( $endian_string );
 
-			$endian = ( 'big' === $endian_string ) ? 'N' : 'V';
+			$endian = ( $endian_string === 'big' ) ? 'N' : 'V';
 
 			$header = $reader->read( 24 );
 			if ( $reader->strlen( $header ) != 24 ) {
@@ -235,7 +235,7 @@ if ( ! class_exists( 'MO', false ) ) :
 			}
 
 			// Support revision 0 of MO format specs, only.
-			if ( 0 != $header['revision'] ) {
+			if ( $header['revision'] != 0 ) {
 				return false;
 			}
 
@@ -290,7 +290,7 @@ if ( ! class_exists( 'MO', false ) ) :
 				$original    = $reader->substr( $strings, $o['pos'], $o['length'] );
 				$translation = $reader->substr( $strings, $t['pos'], $t['length'] );
 
-				if ( '' === $original ) {
+				if ( $original === '' ) {
 					$this->set_headers( $this->make_headers( $translation ) );
 				} else {
 					$entry                          = &$this->make_entry( $original, $translation );

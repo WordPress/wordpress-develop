@@ -243,7 +243,7 @@ function twentyeleven_get_default_theme_options() {
  * @return string The default link color.
  */
 function twentyeleven_get_default_link_color( $color_scheme = null ) {
-	if ( null === $color_scheme ) {
+	if ( $color_scheme === null ) {
 		$options      = twentyeleven_get_theme_options();
 		$color_scheme = $options['color_scheme'];
 	}
@@ -417,7 +417,7 @@ function twentyeleven_enqueue_color_scheme() {
 	$options      = twentyeleven_get_theme_options();
 	$color_scheme = $options['color_scheme'];
 
-	if ( 'dark' === $color_scheme ) {
+	if ( $color_scheme === 'dark' ) {
 		wp_enqueue_style( 'dark', get_template_directory_uri() . '/colors/dark.css', array(), '20190404' );
 	}
 
@@ -498,9 +498,9 @@ function twentyeleven_layout_classes( $existing_classes ) {
 		$classes = array( 'one-column' );
 	}
 
-	if ( 'content-sidebar' === $current_layout ) {
+	if ( $current_layout === 'content-sidebar' ) {
 		$classes[] = 'right-sidebar';
-	} elseif ( 'sidebar-content' === $current_layout ) {
+	} elseif ( $current_layout === 'sidebar-content' ) {
 		$classes[] = 'left-sidebar';
 	} else {
 		$classes[] = $current_layout;

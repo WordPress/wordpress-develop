@@ -18,7 +18,7 @@ if ( ! current_user_can( 'switch_themes' ) && ! current_user_can( 'edit_theme_op
 }
 
 if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
-	if ( 'activate' === $_GET['action'] ) {
+	if ( $_GET['action'] === 'activate' ) {
 		check_admin_referer( 'switch-theme_' . $_GET['stylesheet'] );
 		$theme = wp_get_theme( $_GET['stylesheet'] );
 
@@ -33,7 +33,7 @@ if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
 		switch_theme( $theme->get_stylesheet() );
 		wp_redirect( admin_url( 'themes.php?activated=true' ) );
 		exit;
-	} elseif ( 'resume' === $_GET['action'] ) {
+	} elseif ( $_GET['action'] === 'resume' ) {
 		check_admin_referer( 'resume-theme_' . $_GET['stylesheet'] );
 		$theme = wp_get_theme( $_GET['stylesheet'] );
 
@@ -53,7 +53,7 @@ if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
 
 		wp_redirect( admin_url( 'themes.php?resumed=true' ) );
 		exit;
-	} elseif ( 'delete' === $_GET['action'] ) {
+	} elseif ( $_GET['action'] === 'delete' ) {
 		check_admin_referer( 'delete-theme_' . $_GET['stylesheet'] );
 		$theme = wp_get_theme( $_GET['stylesheet'] );
 
@@ -81,7 +81,7 @@ if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
 			wp_redirect( admin_url( 'themes.php?deleted=true' ) );
 		}
 		exit;
-	} elseif ( 'enable-auto-update' === $_GET['action'] ) {
+	} elseif ( $_GET['action'] === 'enable-auto-update' ) {
 		if ( ! ( current_user_can( 'update_themes' ) && wp_is_auto_update_enabled_for_type( 'theme' ) ) ) {
 			wp_die( __( 'Sorry, you are not allowed to enable themes automatic updates.' ) );
 		}
@@ -101,7 +101,7 @@ if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
 		wp_redirect( admin_url( 'themes.php?enabled-auto-update=true' ) );
 
 		exit;
-	} elseif ( 'disable-auto-update' === $_GET['action'] ) {
+	} elseif ( $_GET['action'] === 'disable-auto-update' ) {
 		if ( ! ( current_user_can( 'update_themes' ) && wp_is_auto_update_enabled_for_type( 'theme' ) ) ) {
 			wp_die( __( 'Sorry, you are not allowed to disable themes automatic updates.' ) );
 		}
@@ -285,7 +285,7 @@ if ( ! validate_current_theme() || isset( $_GET['broken'] ) ) {
 	?>
 	<div id="message5" class="updated notice is-dismissible"><p><?php _e( 'Theme resumed.' ); ?></p></div>
 	<?php
-} elseif ( isset( $_GET['error'] ) && 'resuming' === $_GET['error'] ) {
+} elseif ( isset( $_GET['error'] ) && $_GET['error'] === 'resuming' ) {
 	?>
 	<div id="message6" class="error"><p><?php _e( 'Theme could not be resumed because it triggered a <strong>fatal error</strong>.' ); ?></p></div>
 	<?php
@@ -323,7 +323,7 @@ if ( is_array( $submenu ) && isset( $submenu['themes.php'] ) ) {
 		}
 
 		// 0 = name, 1 = capability, 2 = file.
-		if ( 0 === strcmp( $self, $item[2] ) && empty( $parent_file )
+		if ( strcmp( $self, $item[2] ) === 0 && empty( $parent_file )
 			|| $parent_file && $item[2] === $parent_file
 		) {
 			$class = ' current';
@@ -342,15 +342,15 @@ if ( is_array( $submenu ) && isset( $submenu['themes.php'] ) ) {
 			$menu_file = $item[2];
 
 			if ( current_user_can( 'customize' ) ) {
-				if ( 'custom-header' === $menu_file ) {
+				if ( $menu_file === 'custom-header' ) {
 					$current_theme_actions[] = "<a class='button hide-if-no-customize$class' href='customize.php?autofocus[control]=header_image'>{$item[0]}</a>";
-				} elseif ( 'custom-background' === $menu_file ) {
+				} elseif ( $menu_file === 'custom-background' ) {
 					$current_theme_actions[] = "<a class='button hide-if-no-customize$class' href='customize.php?autofocus[control]=background_image'>{$item[0]}</a>";
 				}
 			}
 
 			$pos = strpos( $menu_file, '?' );
-			if ( false !== $pos ) {
+			if ( $pos !== false ) {
 				$menu_file = substr( $menu_file, 0, $pos );
 			}
 
@@ -617,7 +617,7 @@ if ( ! is_multisite() && $broken_themes ) {
 			<td><?php echo $broken_theme->errors()->get_error_message(); ?></td>
 			<?php
 			if ( $can_resume ) {
-				if ( 'theme_paused' === $broken_theme->errors()->get_error_code() ) {
+				if ( $broken_theme->errors()->get_error_code() === 'theme_paused' ) {
 					$stylesheet = $broken_theme->get_stylesheet();
 					$resume_url = add_query_arg(
 						array(
@@ -652,7 +652,7 @@ if ( ! is_multisite() && $broken_themes ) {
 				<?php
 			}
 
-			if ( $can_install && 'theme_no_parent' === $broken_theme->errors()->get_error_code() ) {
+			if ( $can_install && $broken_theme->errors()->get_error_code() === 'theme_no_parent' ) {
 				$parent_theme_name = $broken_theme->get( 'Template' );
 				$parent_theme      = themes_api( 'theme_information', array( 'slug' => urlencode( $parent_theme_name ) ) );
 

@@ -129,7 +129,7 @@ function wp_insert_category( $catarr, $wp_error = false ) {
 	);
 	$catarr       = wp_parse_args( $catarr, $cat_defaults );
 
-	if ( '' === trim( $catarr['cat_name'] ) ) {
+	if ( trim( $catarr['cat_name'] ) === '' ) {
 		if ( ! $wp_error ) {
 			return 0;
 		} else {
@@ -264,7 +264,7 @@ function get_terms_to_edit( $post_id, $taxonomy = 'post_tag' ) {
 	}
 
 	$terms = get_object_term_cache( $post_id, $taxonomy );
-	if ( false === $terms ) {
+	if ( $terms === false ) {
 		$terms = wp_get_object_terms( $post_id, $taxonomy );
 		wp_cache_add( $post_id, wp_list_pluck( $terms, 'term_id' ), $taxonomy . '_relationships' );
 	}

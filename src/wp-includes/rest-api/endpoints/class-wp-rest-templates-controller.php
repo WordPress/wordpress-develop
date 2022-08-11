@@ -161,7 +161,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		$id = urldecode( $id );
 
 		$last_slash_pos = strrpos( $id, '/' );
-		if ( false === $last_slash_pos ) {
+		if ( $last_slash_pos === false ) {
 			return $id;
 		}
 
@@ -238,7 +238,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_item( $request ) {
-		if ( isset( $request['source'] ) && 'theme' === $request['source'] ) {
+		if ( isset( $request['source'] ) && $request['source'] === 'theme' ) {
 			$template = get_block_file_template( $request['id'], $this->post_type );
 		} else {
 			$template = get_block_template( $request['id'], $this->post_type );
@@ -279,7 +279,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 		$post_before = get_post( $template->wp_id );
 
-		if ( isset( $request['source'] ) && 'theme' === $request['source'] ) {
+		if ( isset( $request['source'] ) && $request['source'] === 'theme' ) {
 			wp_delete_post( $template->wp_id, true );
 			$request->set_param( 'context', 'edit' );
 
@@ -295,7 +295,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			return $changes;
 		}
 
-		if ( 'custom' === $template->source ) {
+		if ( $template->source === 'custom' ) {
 			$update = true;
 			$result = wp_update_post( wp_slash( (array) $changes ), false );
 		} else {
@@ -305,7 +305,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		}
 
 		if ( is_wp_error( $result ) ) {
-			if ( 'db_update_error' === $result->get_error_code() ) {
+			if ( $result->get_error_code() === 'db_update_error' ) {
 				$result->add_data( array( 'status' => 500 ) );
 			} else {
 				$result->add_data( array( 'status' => 400 ) );
@@ -362,7 +362,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		$prepared_post->post_name = $request['slug'];
 		$post_id                  = wp_insert_post( wp_slash( (array) $prepared_post ), true );
 		if ( is_wp_error( $post_id ) ) {
-			if ( 'db_insert_error' === $post_id->get_error_code() ) {
+			if ( $post_id->get_error_code() === 'db_insert_error' ) {
 				$post_id->add_data( array( 'status' => 500 ) );
 			} else {
 				$post_id->add_data( array( 'status' => 400 ) );
@@ -421,7 +421,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		if ( ! $template ) {
 			return new WP_Error( 'rest_template_not_found', __( 'No templates exist with that id.' ), array( 'status' => 404 ) );
 		}
-		if ( 'custom' !== $template->source ) {
+		if ( $template->source !== 'custom' ) {
 			return new WP_Error( 'rest_invalid_template', __( 'Templates based on theme files can\'t be removed.' ), array( 'status' => 400 ) );
 		}
 
@@ -443,7 +443,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			);
 		} else {
 			// Otherwise, only trash if we haven't already.
-			if ( 'trash' === $template->status ) {
+			if ( $template->status === 'trash' ) {
 				return new WP_Error(
 					'rest_template_already_trashed',
 					__( 'The template has already been deleted.' ),
@@ -480,13 +480,13 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	protected function prepare_item_for_database( $request ) {
 		$template = $request['id'] ? get_block_template( $request['id'], $this->post_type ) : null;
 		$changes  = new stdClass();
-		if ( null === $template ) {
+		if ( $template === null ) {
 			$changes->post_type   = $this->post_type;
 			$changes->post_status = 'publish';
 			$changes->tax_input   = array(
 				'wp_theme' => isset( $request['theme'] ) ? $request['theme'] : wp_get_theme()->get_stylesheet(),
 			);
-		} elseif ( 'custom' !== $template->source ) {
+		} elseif ( $template->source !== 'custom' ) {
 			$changes->post_name   = $template->slug;
 			$changes->post_type   = $this->post_type;
 			$changes->post_status = 'publish';
@@ -507,7 +507,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			} elseif ( isset( $request['content']['raw'] ) ) {
 				$changes->post_content = $request['content']['raw'];
 			}
-		} elseif ( null !== $template && 'custom' !== $template->source ) {
+		} elseif ( $template !== null && $template->source !== 'custom' ) {
 			$changes->post_content = $template->content;
 		}
 		if ( isset( $request['title'] ) ) {
@@ -516,19 +516,19 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			} elseif ( ! empty( $request['title']['raw'] ) ) {
 				$changes->post_title = $request['title']['raw'];
 			}
-		} elseif ( null !== $template && 'custom' !== $template->source ) {
+		} elseif ( $template !== null && $template->source !== 'custom' ) {
 			$changes->post_title = $template->title;
 		}
 		if ( isset( $request['description'] ) ) {
 			$changes->post_excerpt = $request['description'];
-		} elseif ( null !== $template && 'custom' !== $template->source ) {
+		} elseif ( $template !== null && $template->source !== 'custom' ) {
 			$changes->post_excerpt = $template->description;
 		}
 
-		if ( 'wp_template_part' === $this->post_type ) {
+		if ( $this->post_type === 'wp_template_part' ) {
 			if ( isset( $request['area'] ) ) {
 				$changes->tax_input['wp_template_part_area'] = _filter_block_template_part_area( $request['area'] );
-			} elseif ( null !== $template && 'custom' !== $template->source && $template->area ) {
+			} elseif ( $template !== null && $template->source !== 'custom' && $template->area ) {
 				$changes->tax_input['wp_template_part_area'] = _filter_block_template_part_area( $template->area );
 			} elseif ( ! $template->area ) {
 				$changes->tax_input['wp_template_part_area'] = WP_TEMPLATE_PART_AREA_UNCATEGORIZED;
@@ -643,7 +643,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$data['has_theme_file'] = (bool) $template->has_theme_file;
 		}
 
-		if ( rest_is_field_included( 'is_custom', $fields ) && 'wp_template' === $template->type ) {
+		if ( rest_is_field_included( 'is_custom', $fields ) && $template->type === 'wp_template' ) {
 			$data['is_custom'] = $template->is_custom;
 		}
 
@@ -651,7 +651,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$data['author'] = (int) $template->author;
 		}
 
-		if ( rest_is_field_included( 'area', $fields ) && 'wp_template_part' === $template->type ) {
+		if ( rest_is_field_included( 'area', $fields ) && $template->type === 'wp_template_part' ) {
 			$data['area'] = $template->area;
 		}
 
@@ -878,7 +878,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			),
 		);
 
-		if ( 'wp_template' === $this->post_type ) {
+		if ( $this->post_type === 'wp_template' ) {
 			$schema['properties']['is_custom'] = array(
 				'description' => __( 'Whether a template is a custom template.' ),
 				'type'        => 'bool',
@@ -887,7 +887,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( 'wp_template_part' === $this->post_type ) {
+		if ( $this->post_type === 'wp_template_part' ) {
 			$schema['properties']['area'] = array(
 				'description' => __( 'Where the template part is intended for use (header, footer, etc.)' ),
 				'type'        => 'string',

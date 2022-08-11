@@ -47,7 +47,7 @@ class Tests_Basic extends WP_UnitTestCase {
 		list( $version ) = explode( '-', $GLOBALS['wp_version'] );
 
 		// package.json uses x.y.z, so fill cleaned $wp_version for .0 releases.
-		if ( 1 === substr_count( $version, '.' ) ) {
+		if ( substr_count( $version, '.' ) === 1 ) {
 			$version .= '.0';
 		}
 

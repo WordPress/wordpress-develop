@@ -19,7 +19,7 @@ function _add_template_loader_filters() {
 	$template_types = array_keys( get_default_block_template_types() );
 	foreach ( $template_types as $template_type ) {
 		// Skip 'embed' for now because it is not a regular template type.
-		if ( 'embed' === $template_type ) {
+		if ( $template_type === 'embed' ) {
 			continue;
 		}
 		add_filter( str_replace( '-', '', $template_type ) . '_template', 'locate_block_template', 20, 3 );
@@ -96,7 +96,7 @@ function locate_block_template( $template, $type, array $templates ) {
 			return $template;
 		}
 
-		if ( 'index' === $type ) {
+		if ( $type === 'index' ) {
 			if ( isset( $_GET['_wp-find-template'] ) ) {
 				wp_send_json_error( array( 'message' => __( 'No matching template found.' ) ) );
 			}
@@ -181,7 +181,7 @@ function resolve_block_template( $template_type, $template_hierarchy, $fallback_
 		if (
 			count( $templates ) &&
 			$fallback_template_slug === $templates[0]->slug &&
-			'theme' === $templates[0]->source
+			$templates[0]->source === 'theme'
 		) {
 			// Unfortunately, we cannot trust $templates[0]->theme, since it will always
 			// be set to the active theme's slug by _build_block_template_result_from_file(),
@@ -292,7 +292,7 @@ function _block_template_render_without_post_block_context( $context ) {
 	 * Templates are just the structure of a site, and they should not be available
 	 * as post context because blocks like Post Content would recurse infinitely.
 	 */
-	if ( isset( $context['postType'] ) && 'wp_template' === $context['postType'] ) {
+	if ( isset( $context['postType'] ) && $context['postType'] === 'wp_template' ) {
 		unset( $context['postId'] );
 		unset( $context['postType'] );
 	}
@@ -329,7 +329,7 @@ function _resolve_template_for_new_post( $wp_query ) {
 
 	if (
 		$post &&
-		'auto-draft' === $post->post_status &&
+		$post->post_status === 'auto-draft' &&
 		current_user_can( 'edit_post', $post->ID )
 	) {
 		$wp_query->set( 'post_status', 'auto-draft' );
@@ -348,7 +348,7 @@ function _resolve_home_block_template() {
 	$show_on_front = get_option( 'show_on_front' );
 	$front_page_id = get_option( 'page_on_front' );
 
-	if ( 'page' === $show_on_front && $front_page_id ) {
+	if ( $show_on_front === 'page' && $front_page_id ) {
 		return array(
 			'postType' => 'page',
 			'postId'   => $front_page_id,

@@ -25,16 +25,16 @@ if ( ! isset( $_GET['post_type'] ) ) {
 }
 $post_type_object = get_post_type_object( $post_type );
 
-if ( 'post' === $post_type ) {
+if ( $post_type === 'post' ) {
 	$parent_file  = 'edit.php';
 	$submenu_file = 'post-new.php';
-} elseif ( 'attachment' === $post_type ) {
+} elseif ( $post_type === 'attachment' ) {
 	if ( wp_redirect( admin_url( 'media-new.php' ) ) ) {
 		exit;
 	}
 } else {
 	$submenu_file = "post-new.php?post_type=$post_type";
-	if ( isset( $post_type_object ) && $post_type_object->show_in_menu && true !== $post_type_object->show_in_menu ) {
+	if ( isset( $post_type_object ) && $post_type_object->show_in_menu && $post_type_object->show_in_menu !== true ) {
 		$parent_file = $post_type_object->show_in_menu;
 		// What if there isn't a post-new.php item for this post type?
 		if ( ! isset( $_registered_pages[ get_plugin_page_hookname( "post-new.php?post_type=$post_type", $post_type_object->show_in_menu ) ] ) ) {

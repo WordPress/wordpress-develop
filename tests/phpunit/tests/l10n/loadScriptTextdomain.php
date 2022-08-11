@@ -125,7 +125,7 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 	}
 
 	public function relative_path_from_cdn( $relative, $src ) {
-		if ( 0 === strpos( $src, 'https://my-cdn.com/wordpress/' ) ) {
+		if ( strpos( $src, 'https://my-cdn.com/wordpress/' ) === 0 ) {
 			return substr( $src, strlen( 'https://my-cdn.com/wordpress/' ) );
 		}
 

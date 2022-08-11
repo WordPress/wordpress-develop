@@ -102,15 +102,15 @@ function permalink_anchor( $mode = 'id' ) {
  */
 function wp_force_plain_post_permalink( $post = null, $sample = null ) {
 	if (
-		null === $sample &&
+		$sample === null &&
 		is_object( $post ) &&
 		isset( $post->filter ) &&
-		'sample' === $post->filter
+		$post->filter === 'sample'
 	) {
 		$sample = true;
 	} else {
 		$post   = get_post( $post );
-		$sample = null !== $sample ? $sample : false;
+		$sample = $sample !== null ? $sample : false;
 	}
 
 	if ( ! $post ) {
@@ -182,7 +182,7 @@ function get_permalink( $post = 0, $leavename = false ) {
 		$leavename ? '' : '%pagename%',
 	);
 
-	if ( is_object( $post ) && isset( $post->filter ) && 'sample' === $post->filter ) {
+	if ( is_object( $post ) && isset( $post->filter ) && $post->filter === 'sample' ) {
 		$sample = true;
 	} else {
 		$post   = get_post( $post );
@@ -193,9 +193,9 @@ function get_permalink( $post = 0, $leavename = false ) {
 		return false;
 	}
 
-	if ( 'page' === $post->post_type ) {
+	if ( $post->post_type === 'page' ) {
 		return get_page_link( $post, $leavename, $sample );
-	} elseif ( 'attachment' === $post->post_type ) {
+	} elseif ( $post->post_type === 'attachment' ) {
 		return get_attachment_link( $post, $leavename );
 	} elseif ( in_array( $post->post_type, get_post_types( array( '_builtin' => false ) ), true ) ) {
 		return get_post_permalink( $post, $leavename, $sample );
@@ -387,7 +387,7 @@ function get_post_permalink( $post = 0, $leavename = false, $sample = false ) {
 function get_page_link( $post = false, $leavename = false, $sample = false ) {
 	$post = get_post( $post );
 
-	if ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' ) == $post->ID ) {
+	if ( get_option( 'show_on_front' ) === 'page' && get_option( 'page_on_front' ) == $post->ID ) {
 		$link = home_url( '/' );
 	} else {
 		$link = _get_page_link( $post, $leavename, $sample );
@@ -490,13 +490,13 @@ function get_attachment_link( $post = null, $leavename = false ) {
 	if ( $force_plain_link || ! $parent_valid ) {
 		$link = false;
 	} elseif ( $wp_rewrite->using_permalinks() && $parent ) {
-		if ( 'page' === $parent->post_type ) {
+		if ( $parent->post_type === 'page' ) {
 			$parentlink = _get_page_link( $post->post_parent ); // Ignores page_on_front.
 		} else {
 			$parentlink = get_permalink( $post->post_parent );
 		}
 
-		if ( is_numeric( $post->post_name ) || false !== strpos( get_option( 'permalink_structure' ), '%category%' ) ) {
+		if ( is_numeric( $post->post_name ) || strpos( get_option( 'permalink_structure' ), '%category%' ) !== false ) {
 			$name = 'attachment/' . $post->post_name; // <permalink>/<int>/ is paged so we use the explicit attachment marker.
 		} else {
 			$name = $post->post_name;
@@ -692,7 +692,7 @@ function get_feed_link( $feed = '' ) {
 	$permalink = $wp_rewrite->get_feed_permastruct();
 
 	if ( $permalink ) {
-		if ( false !== strpos( $feed, 'comments_' ) ) {
+		if ( strpos( $feed, 'comments_' ) !== false ) {
 			$feed      = str_replace( 'comments_', '', $feed );
 			$permalink = $wp_rewrite->get_comment_feed_permastruct();
 		}
@@ -709,7 +709,7 @@ function get_feed_link( $feed = '' ) {
 			$feed = get_default_feed();
 		}
 
-		if ( false !== strpos( $feed, 'comments_' ) ) {
+		if ( strpos( $feed, 'comments_' ) !== false ) {
 			$feed = str_replace( 'comments_', 'comments-', $feed );
 		}
 
@@ -756,10 +756,10 @@ function get_post_comments_feed_link( $post_id = 0, $feed = '' ) {
 		return '';
 	}
 
-	$unattached = 'attachment' === $post->post_type && 0 === (int) $post->post_parent;
+	$unattached = $post->post_type === 'attachment' && (int) $post->post_parent === 0;
 
 	if ( get_option( 'permalink_structure' ) ) {
-		if ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' ) == $post_id ) {
+		if ( get_option( 'show_on_front' ) === 'page' && get_option( 'page_on_front' ) == $post_id ) {
 			$url = _get_page_link( $post_id );
 		} else {
 			$url = get_permalink( $post_id );
@@ -787,7 +787,7 @@ function get_post_comments_feed_link( $post_id = 0, $feed = '' ) {
 				),
 				home_url( '/' )
 			);
-		} elseif ( 'page' === $post->post_type ) {
+		} elseif ( $post->post_type === 'page' ) {
 			$url = add_query_arg(
 				array(
 					'feed'    => $feed,
@@ -948,9 +948,9 @@ function get_term_feed_link( $term, $taxonomy = '', $feed = '' ) {
 	$permalink_structure = get_option( 'permalink_structure' );
 
 	if ( ! $permalink_structure ) {
-		if ( 'category' === $taxonomy ) {
+		if ( $taxonomy === 'category' ) {
 			$link = home_url( "?feed=$feed&amp;cat=$term->term_id" );
-		} elseif ( 'post_tag' === $taxonomy ) {
+		} elseif ( $taxonomy === 'post_tag' ) {
 			$link = home_url( "?feed=$feed&amp;tag=$term->slug" );
 		} else {
 			$t    = get_taxonomy( $taxonomy );
@@ -967,7 +967,7 @@ function get_term_feed_link( $term, $taxonomy = '', $feed = '' ) {
 		$link = trailingslashit( $link ) . user_trailingslashit( $feed_link, 'feed' );
 	}
 
-	if ( 'category' === $taxonomy ) {
+	if ( $taxonomy === 'category' ) {
 		/**
 		 * Filters the category feed link.
 		 *
@@ -977,7 +977,7 @@ function get_term_feed_link( $term, $taxonomy = '', $feed = '' ) {
 		 * @param string $feed Feed type. Possible values include 'rss2', 'atom'.
 		 */
 		$link = apply_filters( 'category_feed_link', $link, $feed );
-	} elseif ( 'post_tag' === $taxonomy ) {
+	} elseif ( $taxonomy === 'post_tag' ) {
 		/**
 		 * Filters the post tag feed link.
 		 *
@@ -1304,11 +1304,11 @@ function get_post_type_archive_link( $post_type ) {
 		return false;
 	}
 
-	if ( 'post' === $post_type ) {
+	if ( $post_type === 'post' ) {
 		$show_on_front  = get_option( 'show_on_front' );
 		$page_for_posts = get_option( 'page_for_posts' );
 
-		if ( 'page' === $show_on_front && $page_for_posts ) {
+		if ( $show_on_front === 'page' && $page_for_posts ) {
 			$link = get_permalink( $page_for_posts );
 		} else {
 			$link = get_home_url();
@@ -1322,7 +1322,7 @@ function get_post_type_archive_link( $post_type ) {
 	}
 
 	if ( get_option( 'permalink_structure' ) && is_array( $post_type_obj->rewrite ) ) {
-		$struct = ( true === $post_type_obj->has_archive ) ? $post_type_obj->rewrite['slug'] : $post_type_obj->has_archive;
+		$struct = ( $post_type_obj->has_archive === true ) ? $post_type_obj->rewrite['slug'] : $post_type_obj->has_archive;
 		if ( $post_type_obj->rewrite['with_front'] ) {
 			$struct = $wp_rewrite->front . $struct;
 		} else {
@@ -1451,9 +1451,9 @@ function get_edit_post_link( $post = 0, $context = 'display' ) {
 		return;
 	}
 
-	if ( 'revision' === $post->post_type ) {
+	if ( $post->post_type === 'revision' ) {
 		$action = '';
-	} elseif ( 'display' === $context ) {
+	} elseif ( $context === 'display' ) {
 		$action = '&amp;action=edit';
 	} else {
 		$action = '&action=edit';
@@ -1513,7 +1513,7 @@ function edit_post_link( $text = null, $before = '', $after = '', $post = 0, $cl
 		return;
 	}
 
-	if ( null === $text ) {
+	if ( $text === null ) {
 		$text = __( 'Edit This' );
 	}
 
@@ -1623,7 +1623,7 @@ function edit_comment_link( $text = null, $before = '', $after = '' ) {
 		return;
 	}
 
-	if ( null === $text ) {
+	if ( $text === null ) {
 		$text = __( 'Edit This' );
 	}
 
@@ -1810,7 +1810,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 
 	if ( ! empty( $excluded_terms ) && ! is_array( $excluded_terms ) ) {
 		// Back-compat, $excluded_terms used to be $excluded_categories with IDs separated by " and ".
-		if ( false !== strpos( $excluded_terms, ' and ' ) ) {
+		if ( strpos( $excluded_terms, ' and ' ) !== false ) {
 			_deprecated_argument(
 				__FUNCTION__,
 				'3.3.0',
@@ -1972,7 +1972,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	$query     = "SELECT p.ID FROM $wpdb->posts AS p $join $where $sort";
 	$query_key = 'adjacent_post_' . md5( $query );
 	$result    = wp_cache_get( $query_key, 'counts' );
-	if ( false !== $result ) {
+	if ( $result !== false ) {
 		if ( $result ) {
 			$result = get_post( $result );
 		}
@@ -1980,7 +1980,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	}
 
 	$result = $wpdb->get_var( $query );
-	if ( null === $result ) {
+	if ( $result === null ) {
 		$result = '';
 	}
 
@@ -2396,7 +2396,7 @@ function get_pagenum_link( $pagenum = 1, $escape = true ) {
 
 		$base = trailingslashit( get_bloginfo( 'url' ) );
 
-		if ( $wp_rewrite->using_index_permalinks() && ( $pagenum > 1 || '' !== $request ) ) {
+		if ( $wp_rewrite->using_index_permalinks() && ( $pagenum > 1 || $request !== '' ) ) {
 			$base .= $wp_rewrite->index . '/';
 		}
 
@@ -2495,7 +2495,7 @@ function get_next_posts_link( $label = null, $max_page = 0 ) {
 
 	$nextpage = (int) $paged + 1;
 
-	if ( null === $label ) {
+	if ( $label === null ) {
 		$label = __( 'Next Page &raquo;' );
 	}
 
@@ -2581,7 +2581,7 @@ function previous_posts( $echo = true ) {
 function get_previous_posts_link( $label = null ) {
 	global $paged;
 
-	if ( null === $label ) {
+	if ( $label === null ) {
 		$label = __( '&laquo; Previous Page' );
 	}
 
@@ -2871,7 +2871,7 @@ function get_the_posts_pagination( $args = array() ) {
 		);
 
 		// Make sure we get a string back. Plain is the next best thing.
-		if ( isset( $args['type'] ) && 'array' === $args['type'] ) {
+		if ( isset( $args['type'] ) && $args['type'] === 'array' ) {
 			$args['type'] = 'plain';
 		}
 
@@ -2969,7 +2969,7 @@ function get_comments_pagenum_link( $pagenum = 1, $max_page = 0 ) {
 
 	$result = get_permalink();
 
-	if ( 'newest' === get_option( 'default_comments_page' ) ) {
+	if ( get_option( 'default_comments_page' ) === 'newest' ) {
 		if ( $pagenum != $max_page ) {
 			if ( $wp_rewrite->using_permalinks() ) {
 				$result = user_trailingslashit( trailingslashit( $result ) . $wp_rewrite->comments_pagination_base . '-' . $pagenum, 'commentpaged' );
@@ -3149,7 +3149,7 @@ function paginate_comments_links( $args = array() ) {
 	$args       = wp_parse_args( $args, $defaults );
 	$page_links = paginate_links( $args );
 
-	if ( $args['echo'] && 'array' !== $args['type'] ) {
+	if ( $args['echo'] && $args['type'] !== 'array' ) {
 		echo $page_links;
 	} else {
 		return $page_links;
@@ -3262,7 +3262,7 @@ function get_the_comments_pagination( $args = array() ) {
 	$args['echo'] = false;
 
 	// Make sure we get a string back. Plain is the next best thing.
-	if ( isset( $args['type'] ) && 'array' === $args['type'] ) {
+	if ( isset( $args['type'] ) && $args['type'] === 'array' ) {
 		$args['type'] = 'plain';
 	}
 
@@ -3549,7 +3549,7 @@ function plugins_url( $path = '', $plugin = '' ) {
 	$plugin        = wp_normalize_path( $plugin );
 	$mu_plugin_dir = wp_normalize_path( WPMU_PLUGIN_DIR );
 
-	if ( ! empty( $plugin ) && 0 === strpos( $plugin, $mu_plugin_dir ) ) {
+	if ( ! empty( $plugin ) && strpos( $plugin, $mu_plugin_dir ) === 0 ) {
 		$url = WPMU_PLUGIN_URL;
 	} else {
 		$url = WP_PLUGIN_URL;
@@ -3559,7 +3559,7 @@ function plugins_url( $path = '', $plugin = '' ) {
 
 	if ( ! empty( $plugin ) && is_string( $plugin ) ) {
 		$folder = dirname( plugin_basename( $plugin ) );
-		if ( '.' !== $folder ) {
+		if ( $folder !== '.' ) {
 			$url .= '/' . ltrim( $folder, '/' );
 		}
 	}
@@ -3605,7 +3605,7 @@ function network_site_url( $path = '', $scheme = null ) {
 
 	$current_network = get_network();
 
-	if ( 'relative' === $scheme ) {
+	if ( $scheme === 'relative' ) {
 		$url = $current_network->path;
 	} else {
 		$url = set_url_scheme( 'http://' . $current_network->domain . $current_network->path, $scheme );
@@ -3655,7 +3655,7 @@ function network_home_url( $path = '', $scheme = null ) {
 		$scheme = is_ssl() ? 'https' : 'http';
 	}
 
-	if ( 'relative' === $scheme ) {
+	if ( $scheme === 'relative' ) {
 		$url = $current_network->path;
 	} else {
 		$url = set_url_scheme( 'http://' . $current_network->domain . $current_network->path, $scheme );
@@ -3794,9 +3794,9 @@ function set_url_scheme( $url, $scheme = null ) {
 
 	if ( ! $scheme ) {
 		$scheme = is_ssl() ? 'https' : 'http';
-	} elseif ( 'admin' === $scheme || 'login' === $scheme || 'login_post' === $scheme || 'rpc' === $scheme ) {
+	} elseif ( $scheme === 'admin' || $scheme === 'login' || $scheme === 'login_post' || $scheme === 'rpc' ) {
 		$scheme = is_ssl() || force_ssl_admin() ? 'https' : 'http';
-	} elseif ( 'http' !== $scheme && 'https' !== $scheme && 'relative' !== $scheme ) {
+	} elseif ( $scheme !== 'http' && $scheme !== 'https' && $scheme !== 'relative' ) {
 		$scheme = is_ssl() ? 'https' : 'http';
 	}
 
@@ -3805,9 +3805,9 @@ function set_url_scheme( $url, $scheme = null ) {
 		$url = 'http:' . $url;
 	}
 
-	if ( 'relative' === $scheme ) {
+	if ( $scheme === 'relative' ) {
 		$url = ltrim( preg_replace( '#^\w+://[^/]*#', '', $url ) );
-		if ( '' !== $url && '/' === $url[0] ) {
+		if ( $url !== '' && $url[0] === '/' ) {
 			$url = '/' . ltrim( $url, "/ \t\n\r\0\x0B" );
 		}
 	} else {
@@ -3934,7 +3934,7 @@ function wp_get_canonical_url( $post = null ) {
 		return false;
 	}
 
-	if ( 'publish' !== $post->post_status ) {
+	if ( $post->post_status !== 'publish' ) {
 		return false;
 	}
 
@@ -3981,7 +3981,7 @@ function rel_canonical() {
 
 	$id = get_queried_object_id();
 
-	if ( 0 === $id ) {
+	if ( $id === 0 ) {
 		return;
 	}
 
@@ -4028,15 +4028,15 @@ function wp_get_shortlink( $id = 0, $context = 'post', $allow_slugs = true ) {
 	 */
 	$shortlink = apply_filters( 'pre_get_shortlink', false, $id, $context, $allow_slugs );
 
-	if ( false !== $shortlink ) {
+	if ( $shortlink !== false ) {
 		return $shortlink;
 	}
 
 	$post_id = 0;
-	if ( 'query' === $context && is_singular() ) {
+	if ( $context === 'query' && is_singular() ) {
 		$post_id = get_queried_object_id();
 		$post    = get_post( $post_id );
-	} elseif ( 'post' === $context ) {
+	} elseif ( $context === 'post' ) {
 		$post = get_post( $id );
 		if ( ! empty( $post->ID ) ) {
 			$post_id = $post->ID;
@@ -4049,7 +4049,7 @@ function wp_get_shortlink( $id = 0, $context = 'post', $allow_slugs = true ) {
 	if ( ! empty( $post_id ) ) {
 		$post_type = get_post_type_object( $post->post_type );
 
-		if ( 'page' === $post->post_type && get_option( 'page_on_front' ) == $post->ID && 'page' === get_option( 'show_on_front' ) ) {
+		if ( $post->post_type === 'page' && get_option( 'page_on_front' ) == $post->ID && get_option( 'show_on_front' ) === 'page' ) {
 			$shortlink = home_url( '/' );
 		} elseif ( $post_type && $post_type->public ) {
 			$shortlink = home_url( '?p=' . $post_id );

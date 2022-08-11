@@ -342,7 +342,7 @@ class WP_Admin_Bar {
 		}
 
 		foreach ( $this->_get_nodes() as $node ) {
-			if ( 'root' === $node->id ) {
+			if ( $node->id === 'root' ) {
 				continue;
 			}
 
@@ -353,9 +353,9 @@ class WP_Admin_Bar {
 			}
 
 			// Generate the group class (we distinguish between top level and other level groups).
-			$group_class = ( 'root' === $node->parent ) ? 'ab-top-menu' : 'ab-submenu';
+			$group_class = ( $node->parent === 'root' ) ? 'ab-top-menu' : 'ab-submenu';
 
-			if ( 'group' === $node->type ) {
+			if ( $node->type === 'group' ) {
 				if ( empty( $node->meta['class'] ) ) {
 					$node->meta['class'] = $group_class;
 				} else {
@@ -364,7 +364,7 @@ class WP_Admin_Bar {
 			}
 
 			// Items in items aren't allowed. Wrap nested items in 'default' groups.
-			if ( 'item' === $parent->type && 'item' === $node->type ) {
+			if ( $parent->type === 'item' && $node->type === 'item' ) {
 				$default_id = $parent->id . '-default';
 				$default    = $this->_get_node( $default_id );
 
@@ -393,7 +393,7 @@ class WP_Admin_Bar {
 
 				// Groups in groups aren't allowed. Add a special 'container' node.
 				// The container will invisibly wrap both groups.
-			} elseif ( 'group' === $parent->type && 'group' === $node->type ) {
+			} elseif ( $parent->type === 'group' && $node->type === 'group' ) {
 				$container_id = $parent->id . '-container';
 				$container    = $this->_get_node( $container_id );
 
@@ -422,7 +422,7 @@ class WP_Admin_Bar {
 						$container->parent = $grandparent->id;
 
 						$index = array_search( $parent, $grandparent->children, true );
-						if ( false === $index ) {
+						if ( $index === false ) {
 							$grandparent->children[] = $container;
 						} else {
 							array_splice( $grandparent->children, $index, 1, array( $container ) );
@@ -486,7 +486,7 @@ class WP_Admin_Bar {
 	 * @param object $node
 	 */
 	final protected function _render_container( $node ) {
-		if ( 'container' !== $node->type || empty( $node->children ) ) {
+		if ( $node->type !== 'container' || empty( $node->children ) ) {
 			return;
 		}
 
@@ -503,11 +503,11 @@ class WP_Admin_Bar {
 	 * @param object $node
 	 */
 	final protected function _render_group( $node ) {
-		if ( 'container' === $node->type ) {
+		if ( $node->type === 'container' ) {
 			$this->_render_container( $node );
 			return;
 		}
-		if ( 'group' !== $node->type || empty( $node->children ) ) {
+		if ( $node->type !== 'group' || empty( $node->children ) ) {
 			return;
 		}
 
@@ -530,18 +530,18 @@ class WP_Admin_Bar {
 	 * @param object $node
 	 */
 	final protected function _render_item( $node ) {
-		if ( 'item' !== $node->type ) {
+		if ( $node->type !== 'item' ) {
 			return;
 		}
 
 		$is_parent             = ! empty( $node->children );
 		$has_link              = ! empty( $node->href );
-		$is_root_top_item      = 'root-default' === $node->parent;
-		$is_top_secondary_item = 'top-secondary' === $node->parent;
+		$is_root_top_item      = $node->parent === 'root-default';
+		$is_top_secondary_item = $node->parent === 'top-secondary';
 
 		// Allow only numeric values, then casted to integers, and allow a tabindex value of `0` for a11y.
 		$tabindex        = ( isset( $node->meta['tabindex'] ) && is_numeric( $node->meta['tabindex'] ) ) ? (int) $node->meta['tabindex'] : '';
-		$aria_attributes = ( '' !== $tabindex ) ? ' tabindex="' . $tabindex . '"' : '';
+		$aria_attributes = ( $tabindex !== '' ) ? ' tabindex="' . $tabindex . '"' : '';
 
 		$menuclass = '';
 		$arrow     = '';
@@ -579,7 +579,7 @@ class WP_Admin_Bar {
 				continue;
 			}
 
-			if ( 'onclick' === $attribute ) {
+			if ( $attribute === 'onclick' ) {
 				echo " $attribute='" . esc_js( $node->meta[ $attribute ] ) . "'";
 			} else {
 				echo " $attribute='" . esc_attr( $node->meta[ $attribute ] ) . "'";

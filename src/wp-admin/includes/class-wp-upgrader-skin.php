@@ -232,7 +232,7 @@ class WP_Upgrader_Skin {
 	 *                     'theme', 'translation', etc.
 	 */
 	protected function decrement_update_count( $type ) {
-		if ( ! $this->result || is_wp_error( $this->result ) || 'up_to_date' === $this->result ) {
+		if ( ! $this->result || is_wp_error( $this->result ) || $this->result === 'up_to_date' ) {
 			return;
 		}
 

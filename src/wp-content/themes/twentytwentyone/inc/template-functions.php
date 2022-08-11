@@ -180,7 +180,7 @@ if ( ! function_exists( 'twenty_twenty_one_post_title' ) ) {
 	 * @return string
 	 */
 	function twenty_twenty_one_post_title( $title ) {
-		return '' === $title ? esc_html_x( 'Untitled', 'Added to posts and pages that are missing titles', 'twentytwentyone' ) : $title;
+		return $title === '' ? esc_html_x( 'Untitled', 'Added to posts and pages that are missing titles', 'twentytwentyone' ) : $title;
 	}
 }
 add_filter( 'the_title', 'twenty_twenty_one_post_title' );
@@ -376,8 +376,8 @@ function twenty_twenty_one_print_first_instance_of_block( $block_name, $content 
 		$is_matching_block = false;
 
 		// If the block ends with *, try to match the first portion.
-		if ( '*' === $block_name[-1] ) {
-			$is_matching_block = 0 === strpos( $block['blockName'], rtrim( $block_name, '*' ) );
+		if ( $block_name[-1] === '*' ) {
+			$is_matching_block = strpos( $block['blockName'], rtrim( $block_name, '*' ) ) === 0;
 		} else {
 			$is_matching_block = $block_name === $block['blockName'];
 		}
@@ -445,7 +445,7 @@ function twenty_twenty_one_get_attachment_image_attributes( $attr, $attachment, 
 		return $attr;
 	}
 
-	if ( isset( $attr['class'] ) && false !== strpos( $attr['class'], 'custom-logo' ) ) {
+	if ( isset( $attr['class'] ) && strpos( $attr['class'], 'custom-logo' ) !== false ) {
 		return $attr;
 	}
 

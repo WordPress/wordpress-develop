@@ -13,7 +13,7 @@
 function twentynineteen_custom_colors_css() {
 
 	$primary_color = 199;
-	if ( 'default' !== get_theme_mod( 'primary_color', 'default' ) ) {
+	if ( get_theme_mod( 'primary_color', 'default' ) !== 'default' ) {
 		$primary_color = absint( get_theme_mod( 'primary_color_hue', 199 ) );
 	}
 

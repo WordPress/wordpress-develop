@@ -639,11 +639,11 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 * @return array Two-membered array of filename and full plugin path.
 	 */
 	private function _create_plugin( $data = "<?php\n/*\nPlugin Name: Test\n*/", $filename = false, $dir_path = false ) {
-		if ( false === $filename ) {
+		if ( $filename === false ) {
 			$filename = __FUNCTION__ . '.php';
 		}
 
-		if ( false === $dir_path ) {
+		if ( $dir_path === false ) {
 			$dir_path = WP_PLUGIN_DIR;
 		}
 

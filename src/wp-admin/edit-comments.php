@@ -24,7 +24,7 @@ $doaction = $wp_list_table->current_action();
 if ( $doaction ) {
 	check_admin_referer( 'bulk-comments' );
 
-	if ( 'delete_all' === $doaction && ! empty( $_REQUEST['pagegen_timestamp'] ) ) {
+	if ( $doaction === 'delete_all' && ! empty( $_REQUEST['pagegen_timestamp'] ) ) {
 		/**
 		 * @global wpdb $wpdb WordPress database abstraction object.
 		 */

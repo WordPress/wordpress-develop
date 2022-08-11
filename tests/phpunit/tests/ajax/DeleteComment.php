@@ -256,7 +256,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 		$this->_last_response = '';
 
 		// Force delete the comment.
-		if ( 'delete' === $action ) {
+		if ( $action === 'delete' ) {
 			wp_delete_comment( $comment->comment_ID, true );
 		}
 

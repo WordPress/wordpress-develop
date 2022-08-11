@@ -70,7 +70,7 @@ if ( ! $theme->exists() ) {
 	wp_die( __( 'The requested theme does not exist.' ) );
 }
 
-if ( $theme->errors() && 'theme_no_stylesheet' === $theme->errors()->get_error_code() ) {
+if ( $theme->errors() && $theme->errors()->get_error_code() === 'theme_no_stylesheet' ) {
 	wp_die( __( 'The requested theme does not exist.' ) . ' ' . $theme->errors()->get_error_message() );
 }
 
@@ -117,7 +117,7 @@ validate_file_to_edit( $file, $allowed_files );
 $edit_error     = null;
 $posted_content = null;
 
-if ( 'POST' === $_SERVER['REQUEST_METHOD'] ) {
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 	$r = wp_edit_theme_plugin_file( wp_unslash( $_POST ) );
 	if ( is_wp_error( $r ) ) {
 		$edit_error = $r;
@@ -161,7 +161,7 @@ if ( ! empty( $posted_content ) ) {
 	$f       = fopen( $file, 'r' );
 	$content = fread( $f, filesize( $file ) );
 
-	if ( '.php' === substr( $file, strrpos( $file, '.' ) ) ) {
+	if ( substr( $file, strrpos( $file, '.' ) ) === '.php' ) {
 		$functions = wp_doc_link_parse( $content );
 
 		if ( ! empty( $functions ) ) {
@@ -231,7 +231,7 @@ if ( $file_description !== $file_show ) {
 		<select name="theme" id="theme">
 		<?php
 		foreach ( wp_get_themes( array( 'errors' => null ) ) as $a_stylesheet => $a_theme ) {
-			if ( $a_theme->errors() && 'theme_no_stylesheet' === $a_theme->errors()->get_error_code() ) {
+			if ( $a_theme->errors() && $a_theme->errors()->get_error_code() === 'theme_no_stylesheet' ) {
 				continue;
 			}
 

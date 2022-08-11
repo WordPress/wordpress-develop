@@ -56,7 +56,7 @@ class WP_SimplePie_File extends SimplePie_File {
 				$args['headers'] = $this->headers;
 			}
 
-			if ( SIMPLEPIE_USERAGENT != $this->useragent ) { // Use default WP user agent unless custom has been specified.
+			if ( $this->useragent != SIMPLEPIE_USERAGENT ) { // Use default WP user agent unless custom has been specified.
 				$args['user-agent'] = $this->useragent;
 			}
 
@@ -84,7 +84,7 @@ class WP_SimplePie_File extends SimplePie_File {
 						continue;
 					}
 
-					if ( 'content-type' === $name ) {
+					if ( $name === 'content-type' ) {
 						$this->headers[ $name ] = array_pop( $value );
 					} else {
 						$this->headers[ $name ] = implode( ', ', $value );

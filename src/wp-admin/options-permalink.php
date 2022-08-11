@@ -87,7 +87,7 @@ if ( ! got_url_rewrite() ) {
  * base prefix, WordPress core can no longer account for the possible collision.
  */
 if ( is_multisite() && ! is_subdomain_install() && is_main_site()
-	&& 0 === strpos( $permalink_structure, '/blog/' )
+	&& strpos( $permalink_structure, '/blog/' ) === 0
 ) {
 	$blog_prefix = '/blog';
 }
@@ -102,7 +102,7 @@ if ( isset( $_POST['permalink_structure'] ) || isset( $_POST['category_base'] ) 
 	check_admin_referer( 'update-permalink' );
 
 	if ( isset( $_POST['permalink_structure'] ) ) {
-		if ( isset( $_POST['selection'] ) && 'custom' !== $_POST['selection'] ) {
+		if ( isset( $_POST['selection'] ) && $_POST['selection'] !== 'custom' ) {
 			$permalink_structure = $_POST['selection'];
 		} else {
 			$permalink_structure = $_POST['permalink_structure'];
@@ -231,7 +231,7 @@ printf(
 
 <?php
 if ( is_multisite() && ! is_subdomain_install() && is_main_site()
-	&& 0 === strpos( $permalink_structure, '/blog/' )
+	&& strpos( $permalink_structure, '/blog/' ) === 0
 ) {
 	$permalink_structure = preg_replace( '|^/?blog|', '', $permalink_structure );
 	$category_base       = preg_replace( '|^/?blog|', '', $category_base );

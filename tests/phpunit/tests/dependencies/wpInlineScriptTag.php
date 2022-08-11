@@ -81,7 +81,7 @@ JS;
 		add_filter(
 			'wp_inline_script_attributes',
 			static function ( $attributes ) {
-				if ( isset( $attributes['id'] ) && 'utils-js-extra' === $attributes['id'] ) {
+				if ( isset( $attributes['id'] ) && $attributes['id'] === 'utils-js-extra' ) {
 					$attributes['async'] = true;
 				}
 				return $attributes;

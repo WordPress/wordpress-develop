@@ -112,7 +112,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		$sticky_posts = get_option( 'sticky_posts' );
 
-		if ( 'post' === $post_type && $sticky_posts ) {
+		if ( $post_type === 'post' && $sticky_posts ) {
 			$sticky_posts = implode( ', ', array_map( 'absint', (array) $sticky_posts ) );
 
 			$this->sticky_posts_count = (int) $wpdb->get_var(
@@ -156,7 +156,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		global $mode, $avail_post_stati, $wp_query, $per_page;
 
 		if ( ! empty( $_REQUEST['mode'] ) ) {
-			$mode = 'excerpt' === $_REQUEST['mode'] ? 'excerpt' : 'list';
+			$mode = $_REQUEST['mode'] === 'excerpt' ? 'excerpt' : 'list';
 			set_user_setting( 'posts_list_mode', $mode );
 		} else {
 			$mode = get_user_setting( 'posts_list_mode', 'list' );
@@ -167,7 +167,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		$this->set_hierarchical_display(
 			is_post_type_hierarchical( $this->screen->post_type )
-			&& 'menu_order title' === $wp_query->query['orderby']
+			&& $wp_query->query['orderby'] === 'menu_order title'
 		);
 
 		$post_type = $this->screen->post_type;
@@ -199,7 +199,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			}
 		}
 
-		$this->is_trash = isset( $_REQUEST['post_status'] ) && 'trash' === $_REQUEST['post_status'];
+		$this->is_trash = isset( $_REQUEST['post_status'] ) && $_REQUEST['post_status'] === 'trash';
 
 		$this->set_pagination_args(
 			array(
@@ -219,7 +219,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	/**
 	 */
 	public function no_items() {
-		if ( isset( $_REQUEST['post_status'] ) && 'trash' === $_REQUEST['post_status'] ) {
+		if ( isset( $_REQUEST['post_status'] ) && $_REQUEST['post_status'] === 'trash' ) {
 			echo get_post_type_object( $this->screen->post_type )->labels->not_found_in_trash;
 		} else {
 			echo get_post_type_object( $this->screen->post_type )->labels->not_found;
@@ -239,11 +239,11 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		if ( empty( $vars ) ) {
 			return true;
-		} elseif ( 1 === count( $vars ) && ! empty( $vars['post_type'] ) ) {
+		} elseif ( count( $vars ) === 1 && ! empty( $vars['post_type'] ) ) {
 			return $this->screen->post_type === $vars['post_type'];
 		}
 
-		return 1 === count( $vars ) && ! empty( $vars['mode'] );
+		return count( $vars ) === 1 && ! empty( $vars['mode'] );
 	}
 
 	/**
@@ -268,7 +268,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				esc_attr( $css_class )
 			);
 
-			if ( 'current' === $css_class ) {
+			if ( $css_class === 'current' ) {
 				$aria_current = ' aria-current="page"';
 			}
 		}
@@ -461,7 +461,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		 * @param bool   $disable   Whether to disable the categories drop-down. Default false.
 		 * @param string $post_type Post type slug.
 		 */
-		if ( false !== apply_filters( 'disable_categories_dropdown', false, $post_type ) ) {
+		if ( apply_filters( 'disable_categories_dropdown', false, $post_type ) !== false ) {
 			return;
 		}
 
@@ -534,7 +534,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				$pretty_name = get_post_format_string( $slug );
 
 				// Skip the standard post format.
-				if ( 'standard' === $slug ) {
+				if ( $slug === 'standard' ) {
 					continue;
 				}
 				?>
@@ -553,7 +553,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		?>
 		<div class="alignleft actions">
 		<?php
-		if ( 'top' === $which ) {
+		if ( $which === 'top' ) {
 			ob_start();
 
 			$this->months_dropdown( $this->screen->post_type );
@@ -674,9 +674,9 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$taxonomies = array_filter( $taxonomies, 'taxonomy_exists' );
 
 		foreach ( $taxonomies as $taxonomy ) {
-			if ( 'category' === $taxonomy ) {
+			if ( $taxonomy === 'category' ) {
 				$column_key = 'categories';
-			} elseif ( 'post_tag' === $taxonomy ) {
+			} elseif ( $taxonomy === 'post_tag' ) {
 				$column_key = 'tags';
 			} else {
 				$column_key = 'taxonomy-' . $taxonomy;
@@ -699,7 +699,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		$posts_columns['date'] = __( 'Date' );
 
-		if ( 'page' === $post_type ) {
+		if ( $post_type === 'page' ) {
 
 			/**
 			 * Filters the columns displayed in the Pages list table.
@@ -1043,7 +1043,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		global $mode;
 
 		if ( $this->hierarchical_display ) {
-			if ( 0 === $this->current_level && (int) $post->post_parent > 0 ) {
+			if ( $this->current_level === 0 && (int) $post->post_parent > 0 ) {
 				// Sent level 0 by accident, by default, or because we don't know the actual level.
 				$find_main_page = (int) $post->post_parent;
 
@@ -1067,7 +1067,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		$can_edit_post = current_user_can( 'edit_post', $post->ID );
 
-		if ( $can_edit_post && 'trash' !== $post->post_status ) {
+		if ( $can_edit_post && $post->post_status !== 'trash' ) {
 			$lock_holder = wp_check_post_lock( $post->ID );
 
 			if ( $lock_holder ) {
@@ -1088,7 +1088,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		$title = _draft_or_post_title();
 
-		if ( $can_edit_post && 'trash' !== $post->post_status ) {
+		if ( $can_edit_post && $post->post_status !== 'trash' ) {
 			printf(
 				'<a class="row-title" href="%s" aria-label="%s">%s%s</a>',
 				get_edit_post_link( $post->ID ),
@@ -1113,7 +1113,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		echo "</strong>\n";
 
-		if ( 'excerpt' === $mode
+		if ( $mode === 'excerpt'
 			&& ! is_post_type_hierarchical( $this->screen->post_type )
 			&& current_user_can( 'read_post', $post->ID )
 		) {
@@ -1139,7 +1139,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	public function column_date( $post ) {
 		global $mode;
 
-		if ( '0000-00-00 00:00:00' === $post->post_date ) {
+		if ( $post->post_date === '0000-00-00 00:00:00' ) {
 			$t_time    = __( 'Unpublished' );
 			$time_diff = 0;
 		} else {
@@ -1156,9 +1156,9 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$time_diff = time() - $time;
 		}
 
-		if ( 'publish' === $post->post_status ) {
+		if ( $post->post_status === 'publish' ) {
 			$status = __( 'Published' );
-		} elseif ( 'future' === $post->post_status ) {
+		} elseif ( $post->post_status === 'future' ) {
 			if ( $time_diff > 0 ) {
 				$status = '<strong class="error-message">' . __( 'Missed schedule' ) . '</strong>';
 			} else {
@@ -1247,11 +1247,11 @@ class WP_Posts_List_Table extends WP_List_Table {
 		// Restores the more descriptive, specific name for use within this method.
 		$post = $item;
 
-		if ( 'categories' === $column_name ) {
+		if ( $column_name === 'categories' ) {
 			$taxonomy = 'category';
-		} elseif ( 'tags' === $column_name ) {
+		} elseif ( $column_name === 'tags' ) {
 			$taxonomy = 'post_tag';
-		} elseif ( 0 === strpos( $column_name, 'taxonomy-' ) ) {
+		} elseif ( strpos( $column_name, 'taxonomy-' ) === 0 ) {
 			$taxonomy = substr( $column_name, 9 );
 		} else {
 			$taxonomy = false;
@@ -1267,7 +1267,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				foreach ( $terms as $t ) {
 					$posts_in_term_qv = array();
 
-					if ( 'post' !== $post->post_type ) {
+					if ( $post->post_type !== 'post' ) {
 						$posts_in_term_qv['post_type'] = $post->post_type;
 					}
 
@@ -1421,7 +1421,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$actions          = array();
 		$title            = _draft_or_post_title();
 
-		if ( $can_edit_post && 'trash' !== $post->post_status ) {
+		if ( $can_edit_post && $post->post_status !== 'trash' ) {
 			$actions['edit'] = sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
 				get_edit_post_link( $post->ID ),
@@ -1430,7 +1430,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				__( 'Edit' )
 			);
 
-			if ( 'wp_block' !== $post->post_type ) {
+			if ( $post->post_type !== 'wp_block' ) {
 				$actions['inline hide-if-no-js'] = sprintf(
 					'<button type="button" class="button-link editinline" aria-label="%s" aria-expanded="false">%s</button>',
 					/* translators: %s: Post title. */
@@ -1441,7 +1441,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		}
 
 		if ( current_user_can( 'delete_post', $post->ID ) ) {
-			if ( 'trash' === $post->post_status ) {
+			if ( $post->post_status === 'trash' ) {
 				$actions['untrash'] = sprintf(
 					'<a href="%s" aria-label="%s">%s</a>',
 					wp_nonce_url( admin_url( sprintf( $post_type_object->_edit_link . '&amp;action=untrash', $post->ID ) ), 'untrash-post_' . $post->ID ),
@@ -1459,7 +1459,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				);
 			}
 
-			if ( 'trash' === $post->post_status || ! EMPTY_TRASH_DAYS ) {
+			if ( $post->post_status === 'trash' || ! EMPTY_TRASH_DAYS ) {
 				$actions['delete'] = sprintf(
 					'<a href="%s" class="submitdelete" aria-label="%s">%s</a>',
 					get_delete_post_link( $post->ID, '', true ),
@@ -1482,7 +1482,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 						__( 'Preview' )
 					);
 				}
-			} elseif ( 'trash' !== $post->post_status ) {
+			} elseif ( $post->post_status !== 'trash' ) {
 				$actions['view'] = sprintf(
 					'<a href="%s" rel="bookmark" aria-label="%s">%s</a>',
 					get_permalink( $post->ID ),
@@ -1493,7 +1493,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			}
 		}
 
-		if ( 'wp_block' === $post->post_type ) {
+		if ( $post->post_type === 'wp_block' ) {
 			$actions['export'] = sprintf(
 				'<button type="button" class="wp-list-reusable-blocks__export button-link" data-id="%s" aria-label="%s">%s</button>',
 				$post->ID,
@@ -1582,7 +1582,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			}
 		}
 
-		$m            = ( isset( $mode ) && 'excerpt' === $mode ) ? 'excerpt' : 'list';
+		$m            = ( isset( $mode ) && $mode === 'excerpt' ) ? 'excerpt' : 'list';
 		$can_publish  = current_user_can( $post_type_object->cap->publish_posts );
 		$core_columns = array(
 			'cb'         => true,
@@ -1738,7 +1738,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 					<?php foreach ( $hierarchical_taxonomies as $taxonomy ) : ?>
 
 						<span class="title inline-edit-categories-label"><?php echo esc_html( $taxonomy->labels->name ); ?></span>
-						<input type="hidden" name="<?php echo ( 'category' === $taxonomy->name ) ? 'post_category[]' : 'tax_input[' . esc_attr( $taxonomy->name ) . '][]'; ?>" value="0" />
+						<input type="hidden" name="<?php echo ( $taxonomy->name === 'category' ) ? 'post_category[]' : 'tax_input[' . esc_attr( $taxonomy->name ) . '][]'; ?>" value="0" />
 						<ul class="cat-checklist <?php echo esc_attr( $taxonomy->name ); ?>-checklist">
 							<?php wp_terms_checklist( 0, array( 'taxonomy' => $taxonomy->name ) ); ?>
 						</ul>
@@ -1931,7 +1931,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 							</select>
 						</label>
 
-						<?php if ( 'post' === $screen->post_type && $can_publish && current_user_can( $post_type_object->cap->edit_others_posts ) ) : ?>
+						<?php if ( $screen->post_type === 'post' && $can_publish && current_user_can( $post_type_object->cap->edit_others_posts ) ) : ?>
 
 							<?php if ( $bulk ) : ?>
 

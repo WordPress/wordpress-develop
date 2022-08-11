@@ -44,7 +44,7 @@ function wp_styles() {
 function wp_print_styles( $handles = false ) {
 	global $wp_styles;
 
-	if ( '' === $handles ) { // For 'wp_head'.
+	if ( $handles === '' ) { // For 'wp_head'.
 		$handles = false;
 	}
 
@@ -87,7 +87,7 @@ function wp_print_styles( $handles = false ) {
 function wp_add_inline_style( $handle, $data ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
-	if ( false !== stripos( $data, '</style>' ) ) {
+	if ( stripos( $data, '</style>' ) !== false ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(

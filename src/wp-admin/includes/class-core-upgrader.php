@@ -78,7 +78,7 @@ class Core_Upgrader extends WP_Upgrader {
 		$this->upgrade_strings();
 
 		// Is an update available?
-		if ( ! isset( $current->response ) || 'latest' === $current->response ) {
+		if ( ! isset( $current->response ) || $current->response === 'latest' ) {
 			return new WP_Error( 'up_to_date', $this->strings['up_to_date'] );
 		}
 
@@ -104,7 +104,7 @@ class Core_Upgrader extends WP_Upgrader {
 		 */
 		if ( $parsed_args['do_rollback'] && $current->packages->rollback ) {
 			$to_download = 'rollback';
-		} elseif ( $current->packages->partial && 'reinstall' !== $current->response && $wp_version === $current->partial_version && $partial ) {
+		} elseif ( $current->packages->partial && $current->response !== 'reinstall' && $wp_version === $current->partial_version && $partial ) {
 			$to_download = 'partial';
 		} elseif ( $current->packages->new_bundled && version_compare( $wp_version, $current->new_bundled, '<' )
 			&& ( ! defined( 'CORE_UPGRADE_SKIP_NEW_BUNDLED' ) || ! CORE_UPGRADE_SKIP_NEW_BUNDLED ) ) {
@@ -181,11 +181,11 @@ class Core_Upgrader extends WP_Upgrader {
 				 * mkdir_failed__copy_dir, copy_failed__copy_dir_retry, and disk_full.
 				 * do_rollback allows for update_core() to trigger a rollback if needed.
 				 */
-				if ( false !== strpos( $error_code, 'do_rollback' ) ) {
+				if ( strpos( $error_code, 'do_rollback' ) !== false ) {
 					$try_rollback = true;
-				} elseif ( false !== strpos( $error_code, '__copy_dir' ) ) {
+				} elseif ( strpos( $error_code, '__copy_dir' ) !== false ) {
 					$try_rollback = true;
-				} elseif ( 'disk_full' === $error_code ) {
+				} elseif ( $error_code === 'disk_full' ) {
 					$try_rollback = true;
 				}
 			}
@@ -285,19 +285,19 @@ class Core_Upgrader extends WP_Upgrader {
 
 		// WP_AUTO_UPDATE_CORE = true (all), 'beta', 'rc', 'development', 'branch-development', 'minor', false.
 		if ( defined( 'WP_AUTO_UPDATE_CORE' ) ) {
-			if ( false === WP_AUTO_UPDATE_CORE ) {
+			if ( WP_AUTO_UPDATE_CORE === false ) {
 				// Defaults to turned off, unless a filter allows it.
 				$upgrade_dev   = false;
 				$upgrade_minor = false;
 				$upgrade_major = false;
-			} elseif ( true === WP_AUTO_UPDATE_CORE
+			} elseif ( WP_AUTO_UPDATE_CORE === true
 				|| in_array( WP_AUTO_UPDATE_CORE, array( 'beta', 'rc', 'development', 'branch-development' ), true )
 			) {
 				// ALL updates for core.
 				$upgrade_dev   = true;
 				$upgrade_minor = true;
 				$upgrade_major = true;
-			} elseif ( 'minor' === WP_AUTO_UPDATE_CORE ) {
+			} elseif ( WP_AUTO_UPDATE_CORE === 'minor' ) {
 				// Only minor updates for core.
 				$upgrade_dev   = false;
 				$upgrade_minor = true;
@@ -323,7 +323,7 @@ class Core_Upgrader extends WP_Upgrader {
 			}
 
 			// Don't claim we can update on update-core.php if we have a non-critical failure logged.
-			if ( $wp_version === $failure_data['current'] && false !== strpos( $offered_ver, '.1.next.minor' ) ) {
+			if ( $wp_version === $failure_data['current'] && strpos( $offered_ver, '.1.next.minor' ) !== false ) {
 				return false;
 			}
 
@@ -405,7 +405,7 @@ class Core_Upgrader extends WP_Upgrader {
 
 		foreach ( $checksums as $file => $checksum ) {
 			// Skip files which get updated.
-			if ( 'wp-content' === substr( $file, 0, 10 ) ) {
+			if ( substr( $file, 0, 10 ) === 'wp-content' ) {
 				continue;
 			}
 			if ( ! file_exists( ABSPATH . $file ) || md5_file( ABSPATH . $file ) !== $checksum ) {

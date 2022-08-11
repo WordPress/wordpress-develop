@@ -55,7 +55,7 @@ function wp_register_tinymce_scripts( $scripts, $force_uncompressed = false ) {
 	script_concat_settings();
 
 	$compressed = $compress_scripts && $concatenate_scripts && isset( $_SERVER['HTTP_ACCEPT_ENCODING'] )
-		&& false !== stripos( $_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip' ) && ! $force_uncompressed;
+		&& stripos( $_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip' ) !== false && ! $force_uncompressed;
 
 	// Load tinymce.js when running from /src, otherwise load wp-tinymce.js.gz (in production)
 	// or tinymce.min.js (when SCRIPT_DEBUG is true).
@@ -182,7 +182,7 @@ function wp_get_script_polyfill( $scripts, $tests ) {
 		$src = $scripts->registered[ $handle ]->src;
 		$ver = $scripts->registered[ $handle ]->ver;
 
-		if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $scripts->content_url && 0 === strpos( $src, $scripts->content_url ) ) ) {
+		if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $scripts->content_url && strpos( $src, $scripts->content_url ) === 0 ) ) {
 			$src = $scripts->base_url . $src;
 		}
 
@@ -310,7 +310,7 @@ function wp_default_packages_scripts( $scripts ) {
 		 * which means, in the case of wp-i18n, that wp.i18n.setLocaleData()
 		 * is called before wp.i18n is defined.
 		 */
-		if ( 'wp-i18n' === $handle ) {
+		if ( $handle === 'wp-i18n' ) {
 			$ltr    = _x( 'ltr', 'text direction' );
 			$script = sprintf( "wp.i18n.setLocaleData( { 'text direction\u0004ltr': [ '%s' ] } );", $ltr );
 			$scripts->add_inline_script( $handle, $script, 'after' );
@@ -568,8 +568,8 @@ function wp_tinymce_inline_scripts() {
 			$init_obj .= $key . ':' . $val . ',';
 			continue;
 		} elseif ( ! empty( $value ) && is_string( $value ) && (
-			( '{' === $value[0] && '}' === $value[ strlen( $value ) - 1 ] ) ||
-			( '[' === $value[0] && ']' === $value[ strlen( $value ) - 1 ] ) ||
+			( $value[0] === '{' && $value[ strlen( $value ) - 1 ] === '}' ) ||
+			( $value[0] === '[' && $value[ strlen( $value ) - 1 ] === ']' ) ||
 			preg_match( '/^\(?function ?\(/', $value ) ) ) {
 			$init_obj .= $key . ':' . $value . ',';
 			continue;
@@ -621,11 +621,11 @@ function wp_default_packages( $scripts ) {
 function wp_scripts_get_suffix( $type = '' ) {
 	static $suffixes;
 
-	if ( null === $suffixes ) {
+	if ( $suffixes === null ) {
 		// Include an unmodified $wp_version.
 		require ABSPATH . WPINC . '/version.php';
 
-		$develop_src = false !== strpos( $wp_version, '-src' );
+		$develop_src = strpos( $wp_version, '-src' ) !== false;
 
 		if ( ! defined( 'SCRIPT_DEBUG' ) ) {
 			define( 'SCRIPT_DEBUG', $develop_src );
@@ -639,7 +639,7 @@ function wp_scripts_get_suffix( $type = '' ) {
 		);
 	}
 
-	if ( 'dev' === $type ) {
+	if ( $type === 'dev' ) {
 		return $suffixes['dev_suffix'];
 	}
 
@@ -680,7 +680,7 @@ function wp_default_scripts( $scripts ) {
 			'url'    => (string) SITECOOKIEPATH,
 			'uid'    => (string) get_current_user_id(),
 			'time'   => (string) time(),
-			'secure' => (string) ( 'https' === parse_url( site_url(), PHP_URL_SCHEME ) ),
+			'secure' => (string) ( parse_url( site_url(), PHP_URL_SCHEME ) === 'https' ),
 		)
 	);
 
@@ -1450,7 +1450,7 @@ function wp_default_styles( $styles ) {
 	require ABSPATH . WPINC . '/version.php';
 
 	if ( ! defined( 'SCRIPT_DEBUG' ) ) {
-		define( 'SCRIPT_DEBUG', false !== strpos( $wp_version, '-src' ) );
+		define( 'SCRIPT_DEBUG', strpos( $wp_version, '-src' ) !== false );
 	}
 
 	$guessurl = site_url();
@@ -1472,7 +1472,7 @@ function wp_default_styles( $styles ) {
 	 * translators: If there are characters in your language that are not supported
 	 * by Open Sans, translate this to 'off'. Do not translate into your own language.
 	 */
-	if ( 'off' !== _x( 'on', 'Open Sans font: on or off' ) ) {
+	if ( _x( 'on', 'Open Sans font: on or off' ) !== 'off' ) {
 		$subsets = 'latin,latin-ext';
 
 		/*
@@ -1481,11 +1481,11 @@ function wp_default_styles( $styles ) {
 		 */
 		$subset = _x( 'no-subset', 'Open Sans font: add new subset (greek, cyrillic, vietnamese)' );
 
-		if ( 'cyrillic' === $subset ) {
+		if ( $subset === 'cyrillic' ) {
 			$subsets .= ',cyrillic,cyrillic-ext';
-		} elseif ( 'greek' === $subset ) {
+		} elseif ( $subset === 'greek' ) {
 			$subsets .= ',greek,greek-ext';
-		} elseif ( 'vietnamese' === $subset ) {
+		} elseif ( $subset === 'vietnamese' ) {
 			$subsets .= ',vietnamese';
 		}
 
@@ -1563,7 +1563,7 @@ function wp_default_styles( $styles ) {
 	 * Set to 'off' to disable loading.
 	 */
 	$font_family = _x( 'Noto Serif:400,400i,700,700i', 'Google Font Name and Variants' );
-	if ( 'off' !== $font_family ) {
+	if ( $font_family !== 'off' ) {
 		$fonts_url = 'https://fonts.googleapis.com/css?family=' . urlencode( $font_family );
 	}
 	$styles->add( 'wp-editor-font', $fonts_url ); // No longer used in core as of 5.7.
@@ -1660,7 +1660,7 @@ function wp_default_styles( $styles ) {
 		$handle = 'wp-' . $package;
 		$path   = "/wp-includes/css/dist/$package/style$suffix.css";
 
-		if ( 'block-library' === $package && wp_should_load_separate_core_block_assets() ) {
+		if ( $package === 'block-library' && wp_should_load_separate_core_block_assets() ) {
 			$path = "/wp-includes/css/dist/$package/common$suffix.css";
 		}
 		$styles->add( $handle, $path, $dependencies );
@@ -1743,13 +1743,13 @@ function wp_default_styles( $styles ) {
 function wp_prototype_before_jquery( $js_array ) {
 	$prototype = array_search( 'prototype', $js_array, true );
 
-	if ( false === $prototype ) {
+	if ( $prototype === false ) {
 		return $js_array;
 	}
 
 	$jquery = array_search( 'jquery', $js_array, true );
 
-	if ( false === $jquery ) {
+	if ( $jquery === false ) {
 		return $js_array;
 	}
 
@@ -1940,7 +1940,7 @@ function wp_style_loader_src( $src, $handle ) {
 		return preg_replace( '#^wp-admin/#', './', $src );
 	}
 
-	if ( 'colors' === $handle ) {
+	if ( $handle === 'colors' ) {
 		$color = get_user_option( 'admin_color' );
 
 		if ( empty( $color ) || ! isset( $_wp_admin_css_colors[ $color ] ) ) {
@@ -2284,7 +2284,7 @@ function _print_styles() {
 function script_concat_settings() {
 	global $concatenate_scripts, $compress_scripts, $compress_css;
 
-	$compressed_output = ( ini_get( 'zlib.output_compression' ) || 'ob_gzhandler' === ini_get( 'output_handler' ) );
+	$compressed_output = ( ini_get( 'zlib.output_compression' ) || ini_get( 'output_handler' ) === 'ob_gzhandler' );
 
 	$can_compress_scripts = ! wp_installing() && get_site_option( 'can_compress_scripts' );
 
@@ -2851,7 +2851,7 @@ function _wp_normalize_relative_css_links( $css, $stylesheet_url ) {
 		// Loop through the URLs to find relative ones.
 		foreach ( $src_results[1] as $src_index => $src_result ) {
 			// Skip if this is an absolute URL.
-			if ( 0 === strpos( $src_result, 'http' ) || 0 === strpos( $src_result, '//' ) ) {
+			if ( strpos( $src_result, 'http' ) === 0 || strpos( $src_result, '//' ) === 0 ) {
 				continue;
 			}
 
@@ -3211,7 +3211,7 @@ function _wp_theme_json_webfonts_handler() {
 
 		// Validate the `src` property.
 		foreach ( (array) $webfont['src'] as $src ) {
-			if ( ! is_string( $src ) || '' === trim( $src ) ) {
+			if ( ! is_string( $src ) || trim( $src ) === '' ) {
 				trigger_error( __( 'Each webfont src must be a non-empty string.' ) );
 
 				return false;
@@ -3379,7 +3379,7 @@ function _wp_theme_json_webfonts_handler() {
 				$item['url'] = wp_make_link_relative( $item['url'] );
 			}
 
-			$src .= ( 'data' === $item['format'] )
+			$src .= ( $item['format'] === 'data' )
 				? ", url({$item['url']})"
 				: ", url('{$item['url']}') format('{$item['format']}')";
 		}
@@ -3433,17 +3433,17 @@ function _wp_theme_json_webfonts_handler() {
 			 * Skip "provider", since it's for internal API use,
 			 * and not a valid CSS property.
 			 */
-			if ( 'provider' === $key ) {
+			if ( $key === 'provider' ) {
 				continue;
 			}
 
 			// Compile the "src" parameter.
-			if ( 'src' === $key ) {
+			if ( $key === 'src' ) {
 				$value = $fn_compile_src( $webfont['font-family'], $value );
 			}
 
 			// If font-variation-settings is an array, convert it to a string.
-			if ( 'font-variation-settings' === $key && is_array( $value ) ) {
+			if ( $key === 'font-variation-settings' && is_array( $value ) ) {
 				$value = $fn_compile_variations( $value );
 			}
 
@@ -3492,7 +3492,7 @@ function _wp_theme_json_webfonts_handler() {
 		$styles = $fn_get_css();
 
 		// Bail out if there are no styles to enqueue.
-		if ( '' === $styles ) {
+		if ( $styles === '' ) {
 			return;
 		}
 
@@ -3516,7 +3516,7 @@ function _wp_theme_json_webfonts_handler() {
 		$styles = $fn_get_css();
 
 		// Bail out if there are no styles to enqueue.
-		if ( '' === $styles ) {
+		if ( $styles === '' ) {
 			return;
 		}
 

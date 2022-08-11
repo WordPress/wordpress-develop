@@ -113,12 +113,12 @@ function meta_box_prefs( $screen ) {
 			}
 
 			foreach ( $wp_meta_boxes[ $screen->id ][ $context ][ $priority ] as $box ) {
-				if ( false === $box || ! $box['title'] ) {
+				if ( $box === false || ! $box['title'] ) {
 					continue;
 				}
 
 				// Submit box cannot be hidden.
-				if ( 'submitdiv' === $box['id'] || 'linksubmitdiv' === $box['id'] ) {
+				if ( $box['id'] === 'submitdiv' || $box['id'] === 'linksubmitdiv' ) {
 					continue;
 				}
 
@@ -162,7 +162,7 @@ function get_hidden_meta_boxes( $screen ) {
 	if ( $use_defaults ) {
 		$hidden = array();
 
-		if ( 'post' === $screen->base ) {
+		if ( $screen->base === 'post' ) {
 			if ( in_array( $screen->post_type, array( 'post', 'page', 'attachment' ), true ) ) {
 				$hidden = array( 'slugdiv', 'trackbacksdiv', 'postcustom', 'postexcerpt', 'commentstatusdiv', 'commentsdiv', 'authordiv', 'revisionsdiv' );
 			} else {

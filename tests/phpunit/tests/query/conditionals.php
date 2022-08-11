@@ -1626,7 +1626,7 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	public function test_conditional_tags_trigger_doing_it_wrong_and_return_false_if_wp_query_is_not_set( $function_name ) {
 		unset( $GLOBALS['wp_query'] );
 
-		if ( 'is_comments_popup' === $function_name ) {
+		if ( $function_name === 'is_comments_popup' ) {
 			// `is_comments_popup()` is deprecated as of WP 4.5.
 			$this->setExpectedDeprecated( $function_name );
 		} else {

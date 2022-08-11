@@ -167,7 +167,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 			return $post;
 		}
 
-		if ( 'edit' === $request['context'] && $post && ! $this->check_update_permission( $post ) ) {
+		if ( $request['context'] === 'edit' && $post && ! $this->check_update_permission( $post ) ) {
 			return new WP_Error(
 				'rest_forbidden_context',
 				__( 'Sorry, you are not allowed to edit this global style.' ),
@@ -303,7 +303,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		if ( $post ) {
 			$existing_config     = json_decode( $post->post_content, true );
 			$json_decoding_error = json_last_error();
-			if ( JSON_ERROR_NONE !== $json_decoding_error || ! isset( $existing_config['isGlobalStylesUserThemeJSON'] ) ||
+			if ( $json_decoding_error !== JSON_ERROR_NONE || ! isset( $existing_config['isGlobalStylesUserThemeJSON'] ) ||
 				! $existing_config['isGlobalStylesUserThemeJSON'] ) {
 				$existing_config = array();
 			}
@@ -349,7 +349,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $post, $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 		$raw_config                       = json_decode( $post->post_content, true );
-		$is_global_styles_user_theme_json = isset( $raw_config['isGlobalStylesUserThemeJSON'] ) && true === $raw_config['isGlobalStylesUserThemeJSON'];
+		$is_global_styles_user_theme_json = isset( $raw_config['isGlobalStylesUserThemeJSON'] ) && $raw_config['isGlobalStylesUserThemeJSON'] === true;
 		$config                           = array();
 		if ( $is_global_styles_user_theme_json ) {
 			$config = ( new WP_Theme_JSON( $raw_config, 'custom' ) )->get_raw_data();

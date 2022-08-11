@@ -134,7 +134,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 						__( 'Sorry, you are not allowed to read the post for this comment.' ),
 						array( 'status' => rest_authorization_required_code() )
 					);
-				} elseif ( 0 === $post_id && ! current_user_can( 'moderate_comments' ) ) {
+				} elseif ( $post_id === 0 && ! current_user_can( 'moderate_comments' ) ) {
 					return new WP_Error(
 						'rest_cannot_read',
 						__( 'Sorry, you are not allowed to read comments without a post.' ),
@@ -144,7 +144,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'moderate_comments' ) ) {
+		if ( ! empty( $request['context'] ) && $request['context'] === 'edit' && ! current_user_can( 'moderate_comments' ) ) {
 			return new WP_Error(
 				'rest_forbidden_context',
 				__( 'Sorry, you are not allowed to edit comments.' ),
@@ -157,12 +157,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$forbidden_params = array();
 
 			foreach ( $protected_params as $param ) {
-				if ( 'status' === $param ) {
-					if ( 'approve' !== $request[ $param ] ) {
+				if ( $param === 'status' ) {
+					if ( $request[ $param ] !== 'approve' ) {
 						$forbidden_params[] = $param;
 					}
-				} elseif ( 'type' === $param ) {
-					if ( 'comment' !== $request[ $param ] ) {
+				} elseif ( $param === 'type' ) {
+					if ( $request[ $param ] !== 'comment' ) {
 						$forbidden_params[] = $param;
 					}
 				} elseif ( ! empty( $request[ $param ] ) ) {
@@ -383,7 +383,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return $comment;
 		}
 
-		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'moderate_comments' ) ) {
+		if ( ! empty( $request['context'] ) && $request['context'] === 'edit' && ! current_user_can( 'moderate_comments' ) ) {
 			return new WP_Error(
 				'rest_forbidden_context',
 				__( 'Sorry, you are not allowed to edit comments.' ),
@@ -521,7 +521,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( 'draft' === $post->post_status ) {
+		if ( $post->post_status === 'draft' ) {
 			return new WP_Error(
 				'rest_comment_draft_post',
 				__( 'Sorry, you are not allowed to create a comment on this post.' ),
@@ -529,7 +529,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( 'trash' === $post->post_status ) {
+		if ( $post->post_status === 'trash' ) {
 			return new WP_Error(
 				'rest_comment_trash_post',
 				__( 'Sorry, you are not allowed to create a comment on this post.' ),
@@ -574,7 +574,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		// Do not allow comments to be created with a non-default type.
-		if ( ! empty( $request['type'] ) && 'comment' !== $request['type'] ) {
+		if ( ! empty( $request['type'] ) && $request['type'] !== 'comment' ) {
 			return new WP_Error(
 				'rest_invalid_comment_type',
 				__( 'Cannot create a comment with that type.' ),
@@ -661,7 +661,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$error_code    = $prepared_comment['comment_approved']->get_error_code();
 			$error_message = $prepared_comment['comment_approved']->get_error_message();
 
-			if ( 'comment_duplicate' === $error_code ) {
+			if ( $error_code === 'comment_duplicate' ) {
 				return new WP_Error(
 					$error_code,
 					$error_message,
@@ -669,7 +669,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				);
 			}
 
-			if ( 'comment_flood' === $error_code ) {
+			if ( $error_code === 'comment_flood' ) {
 				return new WP_Error(
 					$error_code,
 					$error_message,
@@ -991,7 +991,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				);
 			}
 
-			if ( 'trash' === $comment->comment_approved ) {
+			if ( $comment->comment_approved === 'trash' ) {
 				return new WP_Error(
 					'rest_already_trashed',
 					__( 'The comment has already been trashed.' ),
@@ -1157,14 +1157,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			),
 		);
 
-		if ( 0 !== (int) $comment->user_id ) {
+		if ( (int) $comment->user_id !== 0 ) {
 			$links['author'] = array(
 				'href'       => rest_url( 'wp/v2/users/' . $comment->user_id ),
 				'embeddable' => true,
 			);
 		}
 
-		if ( 0 !== (int) $comment->comment_post_ID ) {
+		if ( (int) $comment->comment_post_ID !== 0 ) {
 			$post       = get_post( $comment->comment_post_ID );
 			$post_route = rest_get_route_for_post( $post );
 
@@ -1177,7 +1177,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( 0 !== (int) $comment->comment_parent ) {
+		if ( (int) $comment->comment_parent !== 0 ) {
 			$links['in-reply-to'] = array(
 				'href'       => rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->rest_base, $comment->comment_parent ) ),
 				'embeddable' => true,
@@ -1770,7 +1770,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$has_password_filter = false;
 
 		// Only check password if a specific post was queried for or a single comment
-		$requested_post    = ! empty( $request['post'] ) && ( ! is_array( $request['post'] ) || 1 === count( $request['post'] ) );
+		$requested_post    = ! empty( $request['post'] ) && ( ! is_array( $request['post'] ) || count( $request['post'] ) === 1 );
 		$requested_comment = ! empty( $request['id'] );
 		if ( ( $requested_post || $requested_comment ) && $posts_controller->can_access_password_content( $post, $request ) ) {
 			add_filter( 'post_password_required', '__return_false' );
@@ -1804,13 +1804,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( ! empty( $comment->comment_post_ID ) ) {
 			$post = get_post( $comment->comment_post_ID );
 			if ( $post ) {
-				if ( $this->check_read_post_permission( $post, $request ) && 1 === (int) $comment->comment_approved ) {
+				if ( $this->check_read_post_permission( $post, $request ) && (int) $comment->comment_approved === 1 ) {
 					return true;
 				}
 			}
 		}
 
-		if ( 0 === get_current_user_id() ) {
+		if ( get_current_user_id() === 0 ) {
 			return false;
 		}
 
@@ -1834,7 +1834,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return bool Whether the comment can be edited or deleted.
 	 */
 	protected function check_edit_permission( $comment ) {
-		if ( 0 === (int) get_current_user_id() ) {
+		if ( (int) get_current_user_id() === 0 ) {
 			return false;
 		}
 
@@ -1906,6 +1906,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 * Do not allow a comment to be created with missing or empty
 		 * comment_content. See wp_handle_comment_submission().
 		 */
-		return '' !== $check['comment_content'];
+		return $check['comment_content'] !== '';
 	}
 }

@@ -100,14 +100,14 @@ class File_Upload_Upgrader {
 		} else {
 			// Else, It's set to something, Back compat for plugins using the old (pre-3.3) File_Uploader handler.
 			$uploads = wp_upload_dir();
-			if ( ! ( $uploads && false === $uploads['error'] ) ) {
+			if ( ! ( $uploads && $uploads['error'] === false ) ) {
 				wp_die( $uploads['error'] );
 			}
 
 			$this->filename = sanitize_file_name( $_GET[ $urlholder ] );
 			$this->package  = $uploads['basedir'] . '/' . $this->filename;
 
-			if ( 0 !== strpos( realpath( $this->package ), realpath( $uploads['basedir'] ) ) ) {
+			if ( strpos( realpath( $this->package ), realpath( $uploads['basedir'] ) ) !== 0 ) {
 				wp_die( __( 'Please select a file' ) );
 			}
 		}

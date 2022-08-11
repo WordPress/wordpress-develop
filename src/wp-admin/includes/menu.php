@@ -44,7 +44,7 @@ if ( is_network_admin() ) {
 // Create list of page plugin hook names.
 foreach ( $menu as $menu_page ) {
 	$pos = strpos( $menu_page[2], '?' );
-	if ( false !== $pos ) {
+	if ( $pos !== false ) {
 		// Handle post_type=post|page|foo pages.
 		$hook_name = substr( $menu_page[2], 0, $pos );
 		$hook_args = substr( $menu_page[2], $pos + 1 );
@@ -168,7 +168,7 @@ foreach ( $menu as $id => $data ) {
 	 * If there is only one submenu and it is has same destination as the parent,
 	 * remove the submenu.
 	 */
-	if ( ! empty( $submenu[ $data[2] ] ) && 1 === count( $submenu[ $data[2] ] ) ) {
+	if ( ! empty( $submenu[ $data[2] ] ) && count( $submenu[ $data[2] ] ) === 1 ) {
 		$subs      = $submenu[ $data[2] ];
 		$first_sub = reset( $subs );
 		if ( $data[2] == $first_sub[2] ) {
@@ -222,13 +222,13 @@ function add_menu_classes( $menu ) {
 	foreach ( $menu as $order => $top ) {
 		$i++;
 
-		if ( 0 == $order ) { // Dashboard is always shown/single.
+		if ( $order == 0 ) { // Dashboard is always shown/single.
 			$menu[0][4] = add_cssclass( 'menu-top-first', $top[4] );
 			$last_order = 0;
 			continue;
 		}
 
-		if ( 0 === strpos( $top[2], 'separator' ) && false !== $last_order ) { // If separator.
+		if ( strpos( $top[2], 'separator' ) === 0 && $last_order !== false ) { // If separator.
 			$first_item             = true;
 			$classes                = $menu[ $last_order ][4];
 			$menu[ $last_order ][4] = add_cssclass( 'menu-top-last', $classes );
@@ -327,14 +327,14 @@ if ( apply_filters( 'custom_menu_order', false ) ) {
 // Prevent adjacent separators.
 $prev_menu_was_separator = false;
 foreach ( $menu as $id => $data ) {
-	if ( false === stristr( $data[4], 'wp-menu-separator' ) ) {
+	if ( stristr( $data[4], 'wp-menu-separator' ) === false ) {
 
 		// This item is not a separator, so falsey the toggler and do nothing.
 		$prev_menu_was_separator = false;
 	} else {
 
 		// The previous item was a separator, so unset this one.
-		if ( true === $prev_menu_was_separator ) {
+		if ( $prev_menu_was_separator === true ) {
 			unset( $menu[ $id ] );
 		}
 
@@ -347,7 +347,7 @@ unset( $id, $data, $prev_menu_was_separator );
 // Remove the last menu item if it is a separator.
 $last_menu_key = array_keys( $menu );
 $last_menu_key = array_pop( $last_menu_key );
-if ( ! empty( $menu ) && 'wp-menu-separator' === $menu[ $last_menu_key ][4] ) {
+if ( ! empty( $menu ) && $menu[ $last_menu_key ][4] === 'wp-menu-separator' ) {
 	unset( $menu[ $last_menu_key ] );
 }
 unset( $last_menu_key );

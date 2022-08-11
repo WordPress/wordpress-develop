@@ -34,7 +34,7 @@ if ( ! can_edit_network( $details->site_id ) ) {
 
 $is_main_site = is_main_site( $id );
 
-if ( isset( $_REQUEST['action'] ) && 'update-site' === $_REQUEST['action'] && is_array( $_POST['option'] ) ) {
+if ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] === 'update-site' && is_array( $_POST['option'] ) ) {
 	check_admin_referer( 'edit-site' );
 
 	switch_to_blog( $id );
@@ -43,7 +43,7 @@ if ( isset( $_REQUEST['action'] ) && 'update-site' === $_REQUEST['action'] && is
 	foreach ( (array) $_POST['option'] as $key => $val ) {
 		$key = wp_unslash( $key );
 		$val = wp_unslash( $val );
-		if ( 0 === $key || is_array( $val ) || in_array( $key, $skip_options, true ) ) {
+		if ( $key === 0 || is_array( $val ) || in_array( $key, $skip_options, true ) ) {
 			continue; // Avoids "0 is a protected WP option and may not be modified" error when editing blog options.
 		}
 		update_option( $key, $val );
@@ -74,7 +74,7 @@ if ( isset( $_REQUEST['action'] ) && 'update-site' === $_REQUEST['action'] && is
 
 if ( isset( $_GET['update'] ) ) {
 	$messages = array();
-	if ( 'updated' === $_GET['update'] ) {
+	if ( $_GET['update'] === 'updated' ) {
 		$messages[] = __( 'Site options updated.' );
 	}
 }
@@ -126,7 +126,7 @@ if ( ! empty( $messages ) ) {
 		$options     = $wpdb->get_results( $query );
 
 		foreach ( $options as $option ) {
-			if ( 'default_role' === $option->option_name ) {
+			if ( $option->option_name === 'default_role' ) {
 				$editblog_default_role = $option->option_value;
 			}
 

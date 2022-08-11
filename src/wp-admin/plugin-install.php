@@ -6,7 +6,7 @@
  * @subpackage Administration
  */
 // TODO: Route this page via a specific iframe handler instead of the do_action below.
-if ( ! defined( 'IFRAME_REQUEST' ) && isset( $_GET['tab'] ) && ( 'plugin-information' === $_GET['tab'] ) ) {
+if ( ! defined( 'IFRAME_REQUEST' ) && isset( $_GET['tab'] ) && ( $_GET['tab'] === 'plugin-information' ) ) {
 	define( 'IFRAME_REQUEST', true );
 }
 
@@ -52,7 +52,7 @@ $title       = __( 'Add Plugins' );
 $parent_file = 'plugins.php';
 
 wp_enqueue_script( 'plugin-install' );
-if ( 'plugin-information' !== $tab ) {
+if ( $tab !== 'plugin-information' ) {
 	add_thickbox();
 }
 
@@ -85,7 +85,7 @@ do_action( "install_plugins_pre_{$tab}" );
  * Call the pre upload action on every non-upload plugin installation screen
  * because the form is always displayed on these screens.
  */
-if ( 'upload' !== $tab ) {
+if ( $tab !== 'upload' ) {
 	/** This action is documented in wp-admin/plugin-install.php */
 	do_action( 'install_plugins_pre_upload' );
 }
@@ -146,7 +146,7 @@ echo esc_html( $title );
 if ( ! empty( $tabs['upload'] ) && current_user_can( 'upload_plugins' ) ) {
 	printf(
 		' <a href="%s" class="upload-view-toggle page-title-action"><span class="upload">%s</span><span class="browse">%s</span></a>',
-		( 'upload' === $tab ) ? self_admin_url( 'plugin-install.php' ) : self_admin_url( 'plugin-install.php?tab=upload' ),
+		( $tab === 'upload' ) ? self_admin_url( 'plugin-install.php' ) : self_admin_url( 'plugin-install.php?tab=upload' ),
 		__( 'Upload Plugin' ),
 		__( 'Browse Plugins' )
 	);
@@ -160,7 +160,7 @@ if ( ! empty( $tabs['upload'] ) && current_user_can( 'upload_plugins' ) ) {
  * Output the upload plugin form on every non-upload plugin installation screen, so it can be
  * displayed via JavaScript rather then opening up the devoted upload plugin page.
  */
-if ( 'upload' !== $tab ) {
+if ( $tab !== 'upload' ) {
 	?>
 	<div class="upload-plugin-wrap">
 		<?php

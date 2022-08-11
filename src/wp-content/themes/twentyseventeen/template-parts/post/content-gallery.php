@@ -20,7 +20,7 @@
 	?>
 	<header class="entry-header">
 		<?php
-		if ( 'post' === get_post_type() ) {
+		if ( get_post_type() === 'post' ) {
 			echo '<div class="entry-meta">';
 			if ( is_single() ) {
 				twentyseventeen_posted_on();
@@ -41,7 +41,7 @@
 		?>
 	</header><!-- .entry-header -->
 
-	<?php if ( '' !== get_the_post_thumbnail() && ! is_single() && ! get_post_gallery() ) : ?>
+	<?php if ( get_the_post_thumbnail() !== '' && ! is_single() && ! get_post_gallery() ) : ?>
 		<div class="post-thumbnail">
 			<a href="<?php the_permalink(); ?>">
 				<?php the_post_thumbnail( 'twentyseventeen-featured-image' ); ?>

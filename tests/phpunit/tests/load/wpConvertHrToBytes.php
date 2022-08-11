@@ -55,7 +55,7 @@ class Tests_Load_wpConvertHrToBytes extends WP_UnitTestCase {
 		);
 
 		// Test for running into maximum integer size limit on 32bit systems.
-		if ( 2147483647 === PHP_INT_MAX ) {
+		if ( PHP_INT_MAX === 2147483647 ) {
 			$array[] = array( '2G', 2147483647 );
 			$array[] = array( '4G', 2147483647 );
 		} else {

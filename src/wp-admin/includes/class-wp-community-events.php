@@ -112,7 +112,7 @@ class WP_Community_Events {
 
 		if ( is_wp_error( $response ) ) {
 			$response_error = $response;
-		} elseif ( 200 !== $response_code ) {
+		} elseif ( $response_code !== 200 ) {
 			$response_error = new WP_Error(
 				'api-error',
 				/* translators: %d: Numeric HTTP status code, e.g. 400, 403, 500, 504, etc. */
@@ -271,7 +271,7 @@ class WP_Community_Events {
 
 		$anon_ip = wp_privacy_anonymize_ip( $client_ip, true );
 
-		if ( '0.0.0.0' === $anon_ip || '::' === $anon_ip ) {
+		if ( $anon_ip === '0.0.0.0' || $anon_ip === '::' ) {
 			return false;
 		}
 
@@ -400,7 +400,7 @@ class WP_Community_Events {
 					$end_timestamp      = strtotime( $event['end_date'] );
 					$formatted_end_date = date_i18n( __( 'l, M j, Y' ), $end_timestamp );
 
-					if ( 'meetup' !== $event['type'] && $formatted_end_date !== $formatted_date ) {
+					if ( $event['type'] !== 'meetup' && $formatted_end_date !== $formatted_date ) {
 						/* translators: Upcoming events month format. See https://www.php.net/manual/datetime.format.php */
 						$start_month = date_i18n( _x( 'F', 'upcoming events month format' ), $timestamp );
 						$end_month   = date_i18n( _x( 'F', 'upcoming events month format' ), $end_timestamp );
@@ -479,7 +479,7 @@ class WP_Community_Events {
 		$future_wordcamps = array_filter(
 			$future_events,
 			static function( $wordcamp ) {
-				return 'wordcamp' === $wordcamp['type'];
+				return $wordcamp['type'] === 'wordcamp';
 			}
 		);
 

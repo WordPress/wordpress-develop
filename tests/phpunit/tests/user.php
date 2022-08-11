@@ -977,7 +977,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		foreach ( $user_ids as $i => $user_id ) {
 			$user = new WP_User( $user_id );
-			if ( 0 === $i ) {
+			if ( $i === 0 ) {
 				$expected = str_repeat( 'a', 50 );
 			} else {
 				$expected = str_repeat( 'a', 48 ) . '-' . ( $i + 1 );
@@ -1234,13 +1234,13 @@ class Tests_User extends WP_UnitTestCase {
 		 */
 		$first_recipient = $mailer->get_recipient( 'to' );
 		if ( $first_recipient ) {
-			$was_admin_email_sent = WP_TESTS_EMAIL === $first_recipient->address;
-			$was_user_email_sent  = 'blackburn@battlefield3.com' === $first_recipient->address;
+			$was_admin_email_sent = $first_recipient->address === WP_TESTS_EMAIL;
+			$was_user_email_sent  = $first_recipient->address === 'blackburn@battlefield3.com';
 		}
 
 		$second_recipient = $mailer->get_recipient( 'to', 1 );
 		if ( $second_recipient ) {
-			$was_user_email_sent = 'blackburn@battlefield3.com' === $second_recipient->address;
+			$was_user_email_sent = $second_recipient->address === 'blackburn@battlefield3.com';
 		}
 
 		$this->assertSame( $admin_email_sent_expected, $was_admin_email_sent, 'Admin email result was not as expected in test_wp_new_user_notification' );
@@ -1310,8 +1310,8 @@ class Tests_User extends WP_UnitTestCase {
 		 * post author `blackburn@battlefield3.com` and and site admin `admin@example.org`.
 		 */
 		if ( ! empty( $GLOBALS['phpmailer']->mock_sent ) ) {
-			$was_admin_email_sent = ( isset( $GLOBALS['phpmailer']->mock_sent[0] ) && WP_TESTS_EMAIL === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] );
-			$was_user_email_sent  = ( isset( $GLOBALS['phpmailer']->mock_sent[1] ) && 'blackburn@battlefield3.com' === $GLOBALS['phpmailer']->mock_sent[1]['to'][0][0] );
+			$was_admin_email_sent = ( isset( $GLOBALS['phpmailer']->mock_sent[0] ) && $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] === WP_TESTS_EMAIL );
+			$was_user_email_sent  = ( isset( $GLOBALS['phpmailer']->mock_sent[1] ) && $GLOBALS['phpmailer']->mock_sent[1]['to'][0][0] === 'blackburn@battlefield3.com' );
 		}
 
 		$this->assertTrue( $was_admin_email_sent );
@@ -1335,8 +1335,8 @@ class Tests_User extends WP_UnitTestCase {
 		 * post author `blackburn@battlefield3.com` and and site admin `admin@example.org`.
 		 */
 		if ( ! empty( $GLOBALS['phpmailer']->mock_sent ) ) {
-			$was_admin_email_sent = ( isset( $GLOBALS['phpmailer']->mock_sent[0] ) && WP_TESTS_EMAIL === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] );
-			$was_user_email_sent  = ( isset( $GLOBALS['phpmailer']->mock_sent[1] ) && 'blackburn@battlefield3.com' === $GLOBALS['phpmailer']->mock_sent[1]['to'][0][0] );
+			$was_admin_email_sent = ( isset( $GLOBALS['phpmailer']->mock_sent[0] ) && $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] === WP_TESTS_EMAIL );
+			$was_user_email_sent  = ( isset( $GLOBALS['phpmailer']->mock_sent[1] ) && $GLOBALS['phpmailer']->mock_sent[1]['to'][0][0] === 'blackburn@battlefield3.com' );
 		}
 
 		$this->assertTrue( $was_admin_email_sent );
@@ -1365,7 +1365,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		$mailer    = tests_retrieve_phpmailer_instance();
 		$recipient = $mailer->get_recipient( 'to' );
-		$actual    = $recipient ? WP_TESTS_EMAIL === $recipient->address : false;
+		$actual    = $recipient ? $recipient->address === WP_TESTS_EMAIL : false;
 
 		$this->assertSame( $expected, $actual, 'Admin email result was not as expected in test_wp_send_new_user_notification_to_admin_filter' );
 	}
@@ -1392,7 +1392,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		$mailer    = tests_retrieve_phpmailer_instance();
 		$recipient = $mailer->get_recipient( 'to' );
-		$actual    = $recipient ? 'blackburn@battlefield3.com' === $recipient->address : false;
+		$actual    = $recipient ? $recipient->address === 'blackburn@battlefield3.com' : false;
 
 		$this->assertSame( $expected, $actual, 'User email result was not as expected in test_wp_send_new_user_notification_to_user_filter' );
 	}
@@ -1710,7 +1710,7 @@ class Tests_User extends WP_UnitTestCase {
 		do_action( 'personal_options_update' );
 
 		if ( ! empty( $GLOBALS['phpmailer']->mock_sent ) ) {
-			$was_confirmation_email_sent = ( isset( $GLOBALS['phpmailer']->mock_sent[0] ) && 'after@example.com' === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] );
+			$was_confirmation_email_sent = ( isset( $GLOBALS['phpmailer']->mock_sent[0] ) && $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] === 'after@example.com' );
 		}
 
 		// A confirmation email is sent.
@@ -1747,7 +1747,7 @@ class Tests_User extends WP_UnitTestCase {
 		do_action( 'personal_options_update' );
 
 		if ( ! empty( $GLOBALS['phpmailer']->mock_sent ) ) {
-			$was_confirmation_email_sent = ( isset( $GLOBALS['phpmailer']->mock_sent[0] ) && 'after@example.com' === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] );
+			$was_confirmation_email_sent = ( isset( $GLOBALS['phpmailer']->mock_sent[0] ) && $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] === 'after@example.com' );
 		}
 
 		// No confirmation email is sent.

@@ -41,7 +41,7 @@ if ( empty( $load ) ) {
 	exit;
 }
 
-$rtl            = ( isset( $_GET['dir'] ) && 'rtl' === $_GET['dir'] );
+$rtl            = ( isset( $_GET['dir'] ) && $_GET['dir'] === 'rtl' );
 $expires_offset = 31536000; // 1 year.
 $out            = '';
 

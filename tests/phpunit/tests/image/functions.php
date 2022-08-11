@@ -66,7 +66,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$finfo     = new finfo();
 			$mime_type = $finfo->file( $filename, FILEINFO_MIME );
 		}
-		if ( false !== strpos( $mime_type, ';' ) ) {
+		if ( strpos( $mime_type, ';' ) !== false ) {
 			list( $mime_type, $charset ) = explode( ';', $mime_type, 2 );
 		}
 		return $mime_type;

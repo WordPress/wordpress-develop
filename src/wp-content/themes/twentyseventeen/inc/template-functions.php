@@ -30,7 +30,7 @@ function twentyseventeen_body_classes( $classes ) {
 	}
 
 	// Add class on front page.
-	if ( is_front_page() && 'posts' !== get_option( 'show_on_front' ) ) {
+	if ( is_front_page() && get_option( 'show_on_front' ) !== 'posts' ) {
 		$classes[] = 'twentyseventeen-front-page';
 	}
 
@@ -46,7 +46,7 @@ function twentyseventeen_body_classes( $classes ) {
 
 	// Add class for one or two column page layouts.
 	if ( is_page() || is_archive() ) {
-		if ( 'one-column' === get_theme_mod( 'page_layout' ) ) {
+		if ( get_theme_mod( 'page_layout' ) === 'one-column' ) {
 			$classes[] = 'page-one-column';
 		} else {
 			$classes[] = 'page-two-column';
@@ -54,7 +54,7 @@ function twentyseventeen_body_classes( $classes ) {
 	}
 
 	// Add class if the site title and tagline is hidden.
-	if ( 'blank' === get_header_textcolor() ) {
+	if ( get_header_textcolor() === 'blank' ) {
 		$classes[] = 'title-tagline-hidden';
 	}
 

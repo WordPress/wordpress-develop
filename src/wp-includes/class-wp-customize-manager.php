@@ -284,7 +284,7 @@ final class WP_Customize_Manager {
 		}
 
 		$this->original_stylesheet = get_stylesheet();
-		$this->theme               = wp_get_theme( 0 === validate_file( $args['theme'] ) ? $args['theme'] : null );
+		$this->theme               = wp_get_theme( validate_file( $args['theme'] ) === 0 ? $args['theme'] : null );
 		$this->messenger_channel   = $args['messenger_channel'];
 		$this->_changeset_uuid     = $args['changeset_uuid'];
 
@@ -506,7 +506,7 @@ final class WP_Customize_Manager {
 		global $pagenow;
 
 		// Check permissions for customize.php access since this method is called before customize.php can run any code.
-		if ( 'customize.php' === $pagenow && ! current_user_can( 'customize' ) ) {
+		if ( $pagenow === 'customize.php' && ! current_user_can( 'customize' ) ) {
 			if ( ! is_user_logged_in() ) {
 				auth_redirect();
 			} else {
@@ -520,7 +520,7 @@ final class WP_Customize_Manager {
 		}
 
 		// If a changeset was provided is invalid.
-		if ( isset( $this->_changeset_uuid ) && false !== $this->_changeset_uuid && ! wp_is_uuid( $this->_changeset_uuid ) ) {
+		if ( isset( $this->_changeset_uuid ) && $this->_changeset_uuid !== false && ! wp_is_uuid( $this->_changeset_uuid ) ) {
 			$this->wp_die( -1, __( 'Invalid changeset UUID' ) );
 		}
 
@@ -589,7 +589,7 @@ final class WP_Customize_Manager {
 		 * Import starter content at after_setup_theme:100 so that any
 		 * add_theme_support( 'starter-content' ) calls will have been made.
 		 */
-		if ( get_option( 'fresh_site' ) && 'customize.php' === $pagenow ) {
+		if ( get_option( 'fresh_site' ) && $pagenow === 'customize.php' ) {
 			add_action( 'after_setup_theme', array( $this, 'import_theme_starter_content' ), 100 );
 		}
 
@@ -640,7 +640,7 @@ final class WP_Customize_Manager {
 			$this->_changeset_uuid = $changeset_uuid;
 		}
 
-		if ( is_admin() && 'customize.php' === $pagenow ) {
+		if ( is_admin() && $pagenow === 'customize.php' ) {
 			$this->set_changeset_lock( $this->changeset_post_id() );
 		}
 	}
@@ -976,7 +976,7 @@ final class WP_Customize_Manager {
 	public function find_changeset_post_id( $uuid ) {
 		$cache_group       = 'customize_changeset_post';
 		$changeset_post_id = wp_cache_get( $uuid, $cache_group );
-		if ( $changeset_post_id && 'customize_changeset' === get_post_type( $changeset_post_id ) ) {
+		if ( $changeset_post_id && get_post_type( $changeset_post_id ) === 'customize_changeset' ) {
 			return $changeset_post_id;
 		}
 
@@ -1091,7 +1091,7 @@ final class WP_Customize_Manager {
 			}
 			$this->_changeset_post_id = $post_id;
 		}
-		if ( false === $this->_changeset_post_id ) {
+		if ( $this->_changeset_post_id === false ) {
 			return null;
 		}
 		return $this->_changeset_post_id;
@@ -1113,11 +1113,11 @@ final class WP_Customize_Manager {
 		if ( ! $changeset_post ) {
 			return new WP_Error( 'missing_post' );
 		}
-		if ( 'revision' === $changeset_post->post_type ) {
-			if ( 'customize_changeset' !== get_post_type( $changeset_post->post_parent ) ) {
+		if ( $changeset_post->post_type === 'revision' ) {
+			if ( get_post_type( $changeset_post->post_parent ) !== 'customize_changeset' ) {
 				return new WP_Error( 'wrong_post_type' );
 			}
-		} elseif ( 'customize_changeset' !== $changeset_post->post_type ) {
+		} elseif ( $changeset_post->post_type !== 'customize_changeset' ) {
 			return new WP_Error( 'wrong_post_type' );
 		}
 		$changeset_data = json_decode( $changeset_post->post_content, true );
@@ -1202,7 +1202,7 @@ final class WP_Customize_Manager {
 			 * flags, thus resulting in duplicates being created since they fail
 			 * to get re-used. See #40146.
 			 */
-			if ( 'auto-draft' !== get_post_status( $this->changeset_post_id() ) ) {
+			if ( get_post_status( $this->changeset_post_id() ) !== 'auto-draft' ) {
 				return;
 			}
 
@@ -1496,7 +1496,7 @@ final class WP_Customize_Manager {
 				$nav_menu_item['nav_menu_term_id'] = $nav_menu_term_id;
 
 				if ( isset( $nav_menu_item['object_id'] ) ) {
-					if ( 'post_type' === $nav_menu_item['type'] && preg_match( '/^{{(?P<symbol>.+)}}$/', $nav_menu_item['object_id'], $matches ) && isset( $posts[ $matches['symbol'] ] ) ) {
+					if ( $nav_menu_item['type'] === 'post_type' && preg_match( '/^{{(?P<symbol>.+)}}$/', $nav_menu_item['object_id'], $matches ) && isset( $posts[ $matches['symbol'] ] ) ) {
 						$nav_menu_item['object_id'] = $posts[ $matches['symbol'] ]['ID'];
 						if ( empty( $nav_menu_item['title'] ) ) {
 							$original_object        = get_post( $nav_menu_item['object_id'] );
@@ -1600,7 +1600,7 @@ final class WP_Customize_Manager {
 			$value = maybe_unserialize( $value );
 
 			// Handle header image as special case since setting has a legacy format.
-			if ( 'header_image' === $name ) {
+			if ( $name === 'header_image' ) {
 				$name     = 'header_image_data';
 				$metadata = wp_get_attachment_metadata( $value );
 				if ( empty( $metadata ) ) {
@@ -1612,7 +1612,7 @@ final class WP_Customize_Manager {
 					'height'        => $metadata['height'],
 					'width'         => $metadata['width'],
 				);
-			} elseif ( 'background_image' === $name ) {
+			} elseif ( $name === 'background_image' ) {
 				$value = wp_get_attachment_url( $value );
 			}
 
@@ -1767,7 +1767,7 @@ final class WP_Customize_Manager {
 				if ( ! array_key_exists( 'value', $setting_params ) ) {
 					continue;
 				}
-				if ( isset( $setting_params['type'] ) && 'theme_mod' === $setting_params['type'] ) {
+				if ( isset( $setting_params['type'] ) && $setting_params['type'] === 'theme_mod' ) {
 
 					// Ensure that theme mods values are only used if they were saved under the active theme.
 					$namespace_pattern = '/^(?P<stylesheet>.+?)::(?P<setting_id>.+)$/';
@@ -1980,7 +1980,7 @@ final class WP_Customize_Manager {
 				&&
 				$parsed_allowed_url['host'] === $parsed_original_url['host']
 				&&
-				0 === strpos( $parsed_original_url['path'], $parsed_allowed_url['path'] )
+				strpos( $parsed_original_url['path'], $parsed_allowed_url['path'] ) === 0
 			);
 			if ( $is_allowed ) {
 				break;
@@ -2375,7 +2375,7 @@ final class WP_Customize_Manager {
 					$validity = $value;
 				}
 			}
-			if ( false === $validity ) {
+			if ( $validity === false ) {
 				$validity = new WP_Error( 'invalid_value', __( 'Invalid value.' ) );
 			}
 			$validities[ $setting_id ] = $validity;
@@ -2466,7 +2466,7 @@ final class WP_Customize_Manager {
 			if ( ! get_post_status_object( $changeset_status ) || ! in_array( $changeset_status, array( 'draft', 'pending', 'publish', 'future' ), true ) ) {
 				wp_send_json_error( 'bad_customize_changeset_status', 400 );
 			}
-			$is_publish = ( 'publish' === $changeset_status || 'future' === $changeset_status );
+			$is_publish = ( $changeset_status === 'publish' || $changeset_status === 'future' );
 			if ( $is_publish && ! current_user_can( get_post_type_object( 'customize_changeset' )->cap->publish_posts ) ) {
 				wp_send_json_error( 'changeset_publish_unauthorized', 403 );
 			}
@@ -2562,19 +2562,19 @@ final class WP_Customize_Manager {
 
 			// Note that if the changeset status was publish, then it will get set to Trash if revisions are not supported.
 			$response['changeset_status'] = $changeset_post->post_status;
-			if ( $is_publish && 'trash' === $response['changeset_status'] ) {
+			if ( $is_publish && $response['changeset_status'] === 'trash' ) {
 				$response['changeset_status'] = 'publish';
 			}
 
-			if ( 'publish' !== $response['changeset_status'] ) {
+			if ( $response['changeset_status'] !== 'publish' ) {
 				$this->set_changeset_lock( $changeset_post->ID );
 			}
 
-			if ( 'future' === $response['changeset_status'] ) {
+			if ( $response['changeset_status'] === 'future' ) {
 				$response['changeset_date'] = $changeset_post->post_date;
 			}
 
-			if ( 'publish' === $response['changeset_status'] || 'trash' === $response['changeset_status'] ) {
+			if ( $response['changeset_status'] === 'publish' || $response['changeset_status'] === 'trash' ) {
 				$response['next_changeset_uuid'] = wp_generate_uuid4();
 			}
 		}
@@ -2645,7 +2645,7 @@ final class WP_Customize_Manager {
 		$existing_changeset_data = array();
 		if ( $changeset_post_id ) {
 			$existing_status = get_post_status( $changeset_post_id );
-			if ( 'publish' === $existing_status || 'trash' === $existing_status ) {
+			if ( $existing_status === 'publish' || $existing_status === 'trash' ) {
 				return new WP_Error(
 					'changeset_already_published',
 					__( 'The previous set of changes has already been published. Please try saving your current set of changes again.' ),
@@ -2662,7 +2662,7 @@ final class WP_Customize_Manager {
 		}
 
 		// Fail if attempting to publish but publish hook is missing.
-		if ( 'publish' === $args['status'] && false === has_action( 'transition_post_status', '_wp_customize_publish_changeset' ) ) {
+		if ( $args['status'] === 'publish' && has_action( 'transition_post_status', '_wp_customize_publish_changeset' ) === false ) {
 			return new WP_Error( 'missing_publish_callback' );
 		}
 
@@ -2674,14 +2674,14 @@ final class WP_Customize_Manager {
 				return new WP_Error( 'not_future_date', __( 'You must supply a future date to schedule.' ) ); // Only future dates are allowed.
 			}
 
-			if ( ! $this->is_theme_active() && ( 'future' === $args['status'] || $is_future_dated ) ) {
+			if ( ! $this->is_theme_active() && ( $args['status'] === 'future' || $is_future_dated ) ) {
 				return new WP_Error( 'cannot_schedule_theme_switches' ); // This should be allowed in the future, when theme is a regular setting.
 			}
-			$will_remain_auto_draft = ( ! $args['status'] && ( ! $changeset_post_id || 'auto-draft' === get_post_status( $changeset_post_id ) ) );
+			$will_remain_auto_draft = ( ! $args['status'] && ( ! $changeset_post_id || get_post_status( $changeset_post_id ) === 'auto-draft' ) );
 			if ( $will_remain_auto_draft ) {
 				return new WP_Error( 'cannot_supply_date_for_auto_draft_changeset' );
 			}
-		} elseif ( $changeset_post_id && 'future' === $args['status'] ) {
+		} elseif ( $changeset_post_id && $args['status'] === 'future' ) {
 
 			// Fail if the new status is future but the existing post's date is not in the future.
 			$changeset_post = get_post( $changeset_post_id );
@@ -2690,7 +2690,7 @@ final class WP_Customize_Manager {
 			}
 		}
 
-		if ( ! empty( $is_future_dated ) && 'publish' === $args['status'] ) {
+		if ( ! empty( $is_future_dated ) && $args['status'] === 'publish' ) {
 			$args['status'] = 'future';
 		}
 
@@ -2737,7 +2737,7 @@ final class WP_Customize_Manager {
 		foreach ( $post_values as $setting_id => $setting_value ) {
 			$setting = $this->get_setting( $setting_id );
 
-			if ( $setting && 'theme_mod' === $setting->type ) {
+			if ( $setting && $setting->type === 'theme_mod' ) {
 				$prefixed_setting_id = $this->get_stylesheet() . '::' . $setting->id;
 			} else {
 				$prefixed_setting_id = $setting_id;
@@ -2824,11 +2824,11 @@ final class WP_Customize_Manager {
 			}
 
 			$changeset_setting_id = $setting_id;
-			if ( 'theme_mod' === $setting->type ) {
+			if ( $setting->type === 'theme_mod' ) {
 				$changeset_setting_id = sprintf( '%s::%s', $this->get_stylesheet(), $setting_id );
 			}
 
-			if ( null === $setting_params ) {
+			if ( $setting_params === null ) {
 				// Remove setting from changeset entirely.
 				unset( $data[ $changeset_setting_id ] );
 			} else {
@@ -2894,7 +2894,7 @@ final class WP_Customize_Manager {
 		$data = apply_filters( 'customize_changeset_save_data', $data, $filter_context );
 
 		// Switch theme if publishing changes now.
-		if ( 'publish' === $args['status'] && ! $this->is_theme_active() ) {
+		if ( $args['status'] === 'publish' && ! $this->is_theme_active() ) {
 			// Temporarily stop previewing the theme to allow switch_themes() to operate properly.
 			$this->stop_previewing_theme();
 			switch_theme( $this->get_stylesheet() );
@@ -2922,13 +2922,13 @@ final class WP_Customize_Manager {
 		}
 
 		// Reset post date to now if we are publishing, otherwise pass post_date_gmt and translate for post_date.
-		if ( 'publish' === $args['status'] ) {
+		if ( $args['status'] === 'publish' ) {
 			$post_array['post_date_gmt'] = '0000-00-00 00:00:00';
 			$post_array['post_date']     = '0000-00-00 00:00:00';
 		} elseif ( $args['date_gmt'] ) {
 			$post_array['post_date_gmt'] = $args['date_gmt'];
 			$post_array['post_date']     = get_date_from_gmt( $args['date_gmt'] );
-		} elseif ( $changeset_post_id && 'auto-draft' === get_post_status( $changeset_post_id ) ) {
+		} elseif ( $changeset_post_id && get_post_status( $changeset_post_id ) === 'auto-draft' ) {
 			/*
 			 * Keep bumping the date for the auto-draft whenever it is modified;
 			 * this extends its life, preserving it from garbage-collection via
@@ -2948,7 +2948,7 @@ final class WP_Customize_Manager {
 		 */
 		add_filter( 'wp_insert_post_data', array( $this, 'preserve_insert_changeset_post_content' ), 5, 3 );
 		if ( $changeset_post_id ) {
-			if ( $args['autosave'] && 'auto-draft' !== get_post_status( $changeset_post_id ) ) {
+			if ( $args['autosave'] && get_post_status( $changeset_post_id ) !== 'auto-draft' ) {
 				// See _wp_translate_postdata() for why this is required as it will use the edit_post meta capability.
 				add_filter( 'map_meta_cap', array( $this, 'grant_edit_post_capability_for_changeset' ), 10, 4 );
 
@@ -3028,11 +3028,11 @@ final class WP_Customize_Manager {
 		if (
 			isset( $data['post_type'] ) &&
 			isset( $unsanitized_postarr['post_content'] ) &&
-			'customize_changeset' === $data['post_type'] ||
+			$data['post_type'] === 'customize_changeset' ||
 			(
-				'revision' === $data['post_type'] &&
+				$data['post_type'] === 'revision' &&
 				! empty( $data['post_parent'] ) &&
-				'customize_changeset' === get_post_type( $data['post_parent'] )
+				get_post_type( $data['post_parent'] ) === 'customize_changeset'
 			)
 		) {
 			$data['post_content'] = $unsanitized_postarr['post_content'];
@@ -3070,13 +3070,13 @@ final class WP_Customize_Manager {
 			return wp_delete_post( $post_id, true );
 		}
 
-		if ( 'trash' === get_post_status( $post ) ) {
+		if ( get_post_status( $post ) === 'trash' ) {
 			return false;
 		}
 
 		/** This filter is documented in wp-includes/post.php */
 		$check = apply_filters( 'pre_trash_post', null, $post );
-		if ( null !== $check ) {
+		if ( $check !== null ) {
 			return $check;
 		}
 
@@ -3177,7 +3177,7 @@ final class WP_Customize_Manager {
 			}
 		}
 
-		if ( 'trash' === get_post_status( $changeset_post_id ) ) {
+		if ( get_post_status( $changeset_post_id ) === 'trash' ) {
 			wp_send_json_error(
 				array(
 					'message' => __( 'Changes have already been trashed.' ),
@@ -3227,7 +3227,7 @@ final class WP_Customize_Manager {
 	 * @return array Capabilities.
 	 */
 	public function grant_edit_post_capability_for_changeset( $caps, $cap, $user_id, $args ) {
-		if ( 'edit_post' === $cap && ! empty( $args[0] ) && 'customize_changeset' === get_post_type( $args[0] ) ) {
+		if ( $cap === 'edit_post' && ! empty( $args[0] ) && get_post_type( $args[0] ) === 'customize_changeset' ) {
 			$post_type_obj = get_post_type_object( 'customize_changeset' );
 			$caps          = map_meta_cap( $post_type_obj->cap->$cap, $user_id );
 		}
@@ -3297,7 +3297,7 @@ final class WP_Customize_Manager {
 	public function add_customize_screen_to_heartbeat_settings( $settings ) {
 		global $pagenow;
 
-		if ( 'customize.php' === $pagenow ) {
+		if ( $pagenow === 'customize.php' ) {
 			$settings['screenId'] = 'customize';
 		}
 
@@ -3349,7 +3349,7 @@ final class WP_Customize_Manager {
 
 		if (
 			array_key_exists( 'check_changeset_lock', $data )
-			&& 'customize' === $screen_id
+			&& $screen_id === 'customize'
 			&& $changeset_post_id
 			&& current_user_can( get_post_type_object( 'customize_changeset' )->cap->edit_post, $changeset_post_id )
 		) {
@@ -3433,7 +3433,7 @@ final class WP_Customize_Manager {
 	 */
 	public function _filter_revision_post_has_changed( $post_has_changed, $latest_revision, $post ) {
 		unset( $latest_revision );
-		if ( 'customize_changeset' === $post->post_type ) {
+		if ( $post->post_type === 'customize_changeset' ) {
 			$post_has_changed = $this->store_changeset_revision;
 		}
 		return $post_has_changed;
@@ -3494,7 +3494,7 @@ final class WP_Customize_Manager {
 				&&
 				isset( $setting_params['type'] )
 				&&
-				'theme_mod' === $setting_params['type']
+				$setting_params['type'] === 'theme_mod'
 				&&
 				preg_match( $namespace_pattern, $raw_setting_id, $matches )
 			);
@@ -3609,7 +3609,7 @@ final class WP_Customize_Manager {
 		 */
 		$revisions = wp_get_post_revisions( $changeset_post_id, array( 'check_enabled' => false ) );
 		foreach ( $revisions as $revision ) {
-			if ( false !== strpos( $revision->post_name, "{$changeset_post_id}-autosave" ) ) {
+			if ( strpos( $revision->post_name, "{$changeset_post_id}-autosave" ) !== false ) {
 				$wpdb->update(
 					$wpdb->posts,
 					array(
@@ -3718,7 +3718,7 @@ final class WP_Customize_Manager {
 		}
 
 		if ( $dismiss_autosave ) {
-			if ( empty( $changeset_post_id ) || 'auto-draft' === get_post_status( $changeset_post_id ) ) {
+			if ( empty( $changeset_post_id ) || get_post_status( $changeset_post_id ) === 'auto-draft' ) {
 				$dismissed = $this->dismiss_user_auto_draft_changesets();
 				if ( $dismissed > 0 ) {
 					wp_send_json_success( 'auto_draft_dismissed' );
@@ -3819,7 +3819,7 @@ final class WP_Customize_Manager {
 			 * @param string      $setting_id   ID for dynamic setting, usually coming from `$_POST['customized']`.
 			 */
 			$setting_args = apply_filters( 'customize_dynamic_setting_args', $setting_args, $setting_id );
-			if ( false === $setting_args ) {
+			if ( $setting_args === false ) {
 				continue;
 			}
 
@@ -4696,7 +4696,7 @@ final class WP_Customize_Manager {
 		$return_url_basename = wp_basename( parse_url( $this->return_url, PHP_URL_PATH ) );
 		$return_url_query    = parse_url( $this->return_url, PHP_URL_QUERY );
 
-		if ( 'themes.php' === $return_url_basename && $return_url_query ) {
+		if ( $return_url_basename === 'themes.php' && $return_url_query ) {
 			parse_str( $return_url_query, $query_vars );
 
 			/*
@@ -4930,7 +4930,7 @@ final class WP_Customize_Manager {
 		ob_start();
 		$filesystem_credentials_are_stored = request_filesystem_credentials( self_admin_url() );
 		ob_end_clean();
-		if ( 'direct' !== $filesystem_method && ! $filesystem_credentials_are_stored ) {
+		if ( $filesystem_method !== 'direct' && ! $filesystem_credentials_are_stored ) {
 			$settings['theme']['_filesystemCredentialsNeeded'] = true;
 		}
 
@@ -5687,7 +5687,7 @@ final class WP_Customize_Manager {
 		$section_description .= '<li id="editor-keyboard-trap-help-4">' . __( 'Screen reader users: when in forms mode, you may need to press the Esc key twice.' ) . '</li>';
 		$section_description .= '</ul>';
 
-		if ( 'false' !== wp_get_current_user()->syntax_highlighting ) {
+		if ( wp_get_current_user()->syntax_highlighting !== 'false' ) {
 			$section_description .= '<p>';
 			$section_description .= sprintf(
 				/* translators: 1: Link to user profile, 2: Additional link attributes, 3: Accessibility text. */
@@ -5758,12 +5758,12 @@ final class WP_Customize_Manager {
 		$setting = $this->get_setting( 'nav_menus_created_posts' );
 		if ( $setting ) {
 			foreach ( $setting->value() as $post_id ) {
-				if ( 'page' === get_post_type( $post_id ) ) {
+				if ( get_post_type( $post_id ) === 'page' ) {
 					return true;
 				}
 			}
 		}
-		return 0 !== count( get_pages( array( 'number' => 1 ) ) );
+		return count( get_pages( array( 'number' => 1 ) ) ) !== 0;
 	}
 
 	/**
@@ -5818,7 +5818,7 @@ final class WP_Customize_Manager {
 
 		require_once ABSPATH . 'wp-admin/includes/theme.php';
 
-		if ( 'installed' === $theme_action ) {
+		if ( $theme_action === 'installed' ) {
 
 			// Load all installed themes from wp_prepare_themes_for_js().
 			$themes = array( 'themes' => array() );
@@ -5827,7 +5827,7 @@ final class WP_Customize_Manager {
 				$theme['active']    = ( isset( $_POST['customized_theme'] ) && $_POST['customized_theme'] === $theme['id'] );
 				$themes['themes'][] = $theme;
 			}
-		} elseif ( 'wporg' === $theme_action ) {
+		} elseif ( $theme_action === 'wporg' ) {
 
 			// Load WordPress.org themes from the .org API and normalize data to match installed theme objects.
 			if ( ! current_user_can( 'install_themes' ) ) {
@@ -5844,7 +5844,7 @@ final class WP_Customize_Manager {
 
 			$args = array_merge( $wporg_args, $args );
 
-			if ( '' === $args['search'] && '' === $args['tag'] ) {
+			if ( $args['search'] === '' && $args['tag'] === '' ) {
 				$args['browse'] = 'new'; // Sort by latest themes by default.
 			}
 
@@ -5959,7 +5959,7 @@ final class WP_Customize_Manager {
 	 * @return mixed
 	 */
 	public function _sanitize_header_textcolor( $color ) {
-		if ( 'blank' === $color ) {
+		if ( $color === 'blank' ) {
 			return 'blank';
 		}
 
@@ -5981,31 +5981,31 @@ final class WP_Customize_Manager {
 	 * @return string|WP_Error Background value or validation error.
 	 */
 	public function _sanitize_background_setting( $value, $setting ) {
-		if ( 'background_repeat' === $setting->id ) {
+		if ( $setting->id === 'background_repeat' ) {
 			if ( ! in_array( $value, array( 'repeat-x', 'repeat-y', 'repeat', 'no-repeat' ), true ) ) {
 				return new WP_Error( 'invalid_value', __( 'Invalid value for background repeat.' ) );
 			}
-		} elseif ( 'background_attachment' === $setting->id ) {
+		} elseif ( $setting->id === 'background_attachment' ) {
 			if ( ! in_array( $value, array( 'fixed', 'scroll' ), true ) ) {
 				return new WP_Error( 'invalid_value', __( 'Invalid value for background attachment.' ) );
 			}
-		} elseif ( 'background_position_x' === $setting->id ) {
+		} elseif ( $setting->id === 'background_position_x' ) {
 			if ( ! in_array( $value, array( 'left', 'center', 'right' ), true ) ) {
 				return new WP_Error( 'invalid_value', __( 'Invalid value for background position X.' ) );
 			}
-		} elseif ( 'background_position_y' === $setting->id ) {
+		} elseif ( $setting->id === 'background_position_y' ) {
 			if ( ! in_array( $value, array( 'top', 'center', 'bottom' ), true ) ) {
 				return new WP_Error( 'invalid_value', __( 'Invalid value for background position Y.' ) );
 			}
-		} elseif ( 'background_size' === $setting->id ) {
+		} elseif ( $setting->id === 'background_size' ) {
 			if ( ! in_array( $value, array( 'auto', 'contain', 'cover' ), true ) ) {
 				return new WP_Error( 'invalid_value', __( 'Invalid value for background size.' ) );
 			}
-		} elseif ( 'background_preset' === $setting->id ) {
+		} elseif ( $setting->id === 'background_preset' ) {
 			if ( ! in_array( $value, array( 'default', 'fill', 'fit', 'repeat', 'custom' ), true ) ) {
 				return new WP_Error( 'invalid_value', __( 'Invalid value for background size.' ) );
 			}
-		} elseif ( 'background_image' === $setting->id || 'background_image_thumb' === $setting->id ) {
+		} elseif ( $setting->id === 'background_image' || $setting->id === 'background_image_thumb' ) {
 			$value = empty( $value ) ? '' : sanitize_url( $value );
 		} else {
 			return new WP_Error( 'unrecognized_setting', __( 'Unrecognized background setting.' ) );
@@ -6052,7 +6052,7 @@ final class WP_Customize_Manager {
 					__( 'This video file is too large to use as a header video. Try a shorter video or optimize the compression settings and re-upload a file that is less than 8MB. Or, upload your video to YouTube and link it with the option below.' )
 				);
 			}
-			if ( '.mp4' !== substr( $video, -4 ) && '.mov' !== substr( $video, -4 ) ) { // Check for .mp4 or .mov format, which (assuming h.264 encoding) are the only cross-browser-supported formats.
+			if ( substr( $video, -4 ) !== '.mp4' && substr( $video, -4 ) !== '.mov' ) { // Check for .mp4 or .mov format, which (assuming h.264 encoding) are the only cross-browser-supported formats.
 				$validity->add(
 					'invalid_file_type',
 					sprintf(

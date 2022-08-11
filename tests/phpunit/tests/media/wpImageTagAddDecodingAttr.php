@@ -22,7 +22,7 @@ class Tests_Media_Wp_Img_Tag_Add_Decoding_Attr extends WP_UnitTestCase {
 	 */
 	public function test_should_add_decoding_attr( $image, $context, $decoding, $expected ) {
 		// Falsey values are allowed in the filter, cannot use `null` or `false` here.
-		if ( 'no value' !== $decoding ) {
+		if ( $decoding !== 'no value' ) {
 			add_filter(
 				'wp_img_tag_add_decoding_attr',
 				static function( $value ) use ( $decoding ) {
@@ -83,7 +83,7 @@ class Tests_Media_Wp_Img_Tag_Add_Decoding_Attr extends WP_UnitTestCase {
 	 */
 	public function test_should_not_add_decoding_attr( $image, $context, $decoding, $expected ) {
 		// Falsey values are allowed in the filter, cannot use `null` or `false` here.
-		if ( 'no value' !== $decoding ) {
+		if ( $decoding !== 'no value' ) {
 			add_filter(
 				'wp_img_tag_add_decoding_attr',
 				static function( $value ) use ( $decoding ) {

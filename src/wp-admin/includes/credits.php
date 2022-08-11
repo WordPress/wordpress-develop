@@ -32,7 +32,7 @@ function wp_credits( $version = '', $locale = '' ) {
 	$results = get_site_transient( 'wordpress_credits_' . $locale );
 
 	if ( ! is_array( $results )
-		|| false !== strpos( $version, '-' )
+		|| strpos( $version, '-' ) !== false
 		|| ( isset( $results['data']['version'] ) && strpos( $version, $results['data']['version'] ) !== 0 )
 	) {
 		$url     = "http://api.wordpress.org/core/credits/1.1/?version={$version}&locale={$locale}";
@@ -44,7 +44,7 @@ function wp_credits( $version = '', $locale = '' ) {
 
 		$response = wp_remote_get( $url, $options );
 
-		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+		if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
 			return false;
 		}
 
@@ -99,7 +99,7 @@ function wp_credits_section_title( $group_data = array() ) {
 	}
 
 	if ( $group_data['name'] ) {
-		if ( 'Translators' === $group_data['name'] ) {
+		if ( $group_data['name'] === 'Translators' ) {
 			// Considered a special slug in the API response. (Also, will never be returned for en_US.)
 			$title = _x( 'Translators', 'Translate this to be the equivalent of English Translators in your language for the credits page Translators section' );
 		} elseif ( isset( $group_data['placeholders'] ) ) {
@@ -143,7 +143,7 @@ function wp_credits_section_list( $credits = array(), $slug = '' ) {
 			echo '<p class="wp-credits-list">' . wp_sprintf( '%l.', $group_data['data'] ) . "</p>\n\n";
 			break;
 		default:
-			$compact = 'compact' === $group_data['type'];
+			$compact = $group_data['type'] === 'compact';
 			$classes = 'wp-people-group ' . ( $compact ? 'compact' : '' );
 			echo '<ul class="' . $classes . '" id="wp-people-group-' . $slug . '">' . "\n";
 			foreach ( $group_data['data'] as $person_data ) {

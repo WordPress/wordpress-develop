@@ -48,14 +48,14 @@
  * @return float Value in the range [0, 1].
  */
 function wp_tinycolor_bound01( $n, $max ) {
-	if ( 'string' === gettype( $n ) && false !== strpos( $n, '.' ) && 1 === (float) $n ) {
+	if ( gettype( $n ) === 'string' && strpos( $n, '.' ) !== false && (float) $n === 1 ) {
 		$n = '100%';
 	}
 
 	$n = min( $max, max( 0, (float) $n ) );
 
 	// Automatically convert percentage into number.
-	if ( 'string' === gettype( $n ) && false !== strpos( $n, '%' ) ) {
+	if ( gettype( $n ) === 'string' && strpos( $n, '%' ) !== false ) {
 		$n = (int) ( $n * $max ) / 100;
 	}
 
@@ -166,7 +166,7 @@ function wp_tinycolor_hsl_to_rgb( $hsl_color ) {
 	$s = wp_tinycolor_bound01( $hsl_color['s'], 100 );
 	$l = wp_tinycolor_bound01( $hsl_color['l'], 100 );
 
-	if ( 0 === $s ) {
+	if ( $s === 0 ) {
 		// Achromatic.
 		$r = $l;
 		$g = $l;
@@ -342,7 +342,7 @@ function wp_tinycolor_string_to_rgb( $color_str ) {
 	 * The JS color picker considers the string "transparent" to be a hex value,
 	 * so we need to handle it here as a special case.
 	 */
-	if ( 'transparent' === $color_str ) {
+	if ( $color_str === 'transparent' ) {
 		return array(
 			'r' => 0,
 			'g' => 0,

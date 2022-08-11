@@ -17,7 +17,7 @@
  */
 function remove_block_asset_path_prefix( $asset_handle_or_path ) {
 	$path_prefix = 'file:';
-	if ( 0 !== strpos( $asset_handle_or_path, $path_prefix ) ) {
+	if ( strpos( $asset_handle_or_path, $path_prefix ) !== 0 ) {
 		return $asset_handle_or_path;
 	}
 	$path = substr(
@@ -41,12 +41,12 @@ function remove_block_asset_path_prefix( $asset_handle_or_path ) {
  * @return string Generated asset name for the block's field.
  */
 function generate_block_asset_handle( $block_name, $field_name ) {
-	if ( 0 === strpos( $block_name, 'core/' ) ) {
+	if ( strpos( $block_name, 'core/' ) === 0 ) {
 		$asset_handle = str_replace( 'core/', 'wp-block-', $block_name );
-		if ( 0 === strpos( $field_name, 'editor' ) ) {
+		if ( strpos( $field_name, 'editor' ) === 0 ) {
 			$asset_handle .= '-editor';
 		}
-		if ( 0 === strpos( $field_name, 'view' ) ) {
+		if ( strpos( $field_name, 'view' ) === 0 ) {
 			$asset_handle .= '-view';
 		}
 		return $asset_handle;
@@ -110,8 +110,8 @@ function register_block_script_handle( $metadata, $field_name ) {
 	$wpinc_path_norm  = wp_normalize_path( realpath( ABSPATH . WPINC ) );
 	$theme_path_norm  = wp_normalize_path( get_theme_file_path() );
 	$script_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $script_path ) );
-	$is_core_block    = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
-	$is_theme_block   = 0 === strpos( $script_path_norm, $theme_path_norm );
+	$is_core_block    = isset( $metadata['file'] ) && strpos( $metadata['file'], $wpinc_path_norm ) === 0;
+	$is_theme_block   = strpos( $script_path_norm, $theme_path_norm ) === 0;
 
 	$script_uri = plugins_url( $script_path, $metadata['file'] );
 	if ( $is_core_block ) {
@@ -157,7 +157,7 @@ function register_block_style_handle( $metadata, $field_name ) {
 	}
 	$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
 	$theme_path_norm = wp_normalize_path( get_theme_file_path() );
-	$is_core_block   = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
+	$is_core_block   = isset( $metadata['file'] ) && strpos( $metadata['file'], $wpinc_path_norm ) === 0;
 	if ( $is_core_block && ! wp_should_load_separate_core_block_assets() ) {
 		return false;
 	}
@@ -179,7 +179,7 @@ function register_block_style_handle( $metadata, $field_name ) {
 	}
 
 	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
-	$is_theme_block  = 0 === strpos( $style_path_norm, $theme_path_norm );
+	$is_theme_block  = strpos( $style_path_norm, $theme_path_norm ) === 0;
 
 	if ( $is_theme_block ) {
 		$style_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $style_path_norm ) );
@@ -188,7 +188,7 @@ function register_block_style_handle( $metadata, $field_name ) {
 	$style_handle   = generate_block_asset_handle( $metadata['name'], $field_name );
 	$block_dir      = dirname( $metadata['file'] );
 	$style_file     = realpath( "$block_dir/$style_path" );
-	$has_style_file = false !== $style_file;
+	$has_style_file = $style_file !== false;
 	$version        = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
 	$style_uri      = $has_style_file ? $style_uri : false;
 	$result         = wp_register_style(
@@ -269,7 +269,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	$metadata = apply_filters( 'block_type_metadata', $metadata );
 
 	// Add `style` and `editor_style` for core blocks if missing.
-	if ( ! empty( $metadata['name'] ) && 0 === strpos( $metadata['name'], 'core/' ) ) {
+	if ( ! empty( $metadata['name'] ) && strpos( $metadata['name'], 'core/' ) === 0 ) {
 		$block_name = str_replace( 'core/', '', $metadata['name'] );
 
 		if ( ! isset( $metadata['style'] ) ) {
@@ -433,7 +433,7 @@ function has_blocks( $post = null ) {
 		$post = $wp_post->post_content;
 	}
 
-	return false !== strpos( (string) $post, '<!-- wp:' );
+	return strpos( (string) $post, '<!-- wp:' ) !== false;
 }
 
 /**
@@ -469,12 +469,12 @@ function has_block( $block_name, $post = null ) {
 	 * This matches behavior for WordPress 5.0.0 - 5.3.0 in matching blocks by
 	 * their serialized names.
 	 */
-	if ( false === strpos( $block_name, '/' ) ) {
+	if ( strpos( $block_name, '/' ) === false ) {
 		$block_name = 'core/' . $block_name;
 	}
 
 	// Test for existence of block by its fully qualified name.
-	$has_block = false !== strpos( $post, '<!-- wp:' . $block_name . ' ' );
+	$has_block = strpos( $post, '<!-- wp:' . $block_name . ' ' ) !== false;
 
 	if ( ! $has_block ) {
 		/*
@@ -483,7 +483,7 @@ function has_block( $block_name, $post = null ) {
 		 */
 		$serialized_block_name = strip_core_block_namespace( $block_name );
 		if ( $serialized_block_name !== $block_name ) {
-			$has_block = false !== strpos( $post, '<!-- wp:' . $serialized_block_name . ' ' );
+			$has_block = strpos( $post, '<!-- wp:' . $serialized_block_name . ' ' ) !== false;
 		}
 	}
 
@@ -549,7 +549,7 @@ function serialize_block_attributes( $block_attributes ) {
  * @return string Block name to use for serialization.
  */
 function strip_core_block_namespace( $block_name = null ) {
-	if ( is_string( $block_name ) && 0 === strpos( $block_name, 'core/' ) ) {
+	if ( is_string( $block_name ) && strpos( $block_name, 'core/' ) === 0 ) {
 		return substr( $block_name, 5 );
 	}
 
@@ -945,7 +945,7 @@ function do_blocks( $content ) {
 
 	// If there are blocks in this content, we shouldn't run wpautop() on it later.
 	$priority = has_filter( 'the_content', 'wpautop' );
-	if ( false !== $priority && doing_filter( 'the_content' ) && has_blocks( $content ) ) {
+	if ( $priority !== false && doing_filter( 'the_content' ) && has_blocks( $content ) ) {
 		remove_filter( 'the_content', 'wpautop', $priority );
 		add_filter( 'the_content', '_restore_wpautop_hook', $priority + 1 );
 	}
@@ -1030,7 +1030,7 @@ function block_has_support( $block_type, $feature, $default = false ) {
 		$block_support = _wp_array_get( $block_type->supports, $feature, $default );
 	}
 
-	return true === $block_support || is_array( $block_support );
+	return $block_support === true || is_array( $block_support );
 }
 
 /**
@@ -1062,7 +1062,7 @@ function wp_migrate_old_typography_shape( $metadata ) {
 	foreach ( $typography_keys as $typography_key ) {
 		$support_for_key = _wp_array_get( $metadata['supports'], array( $typography_key ), null );
 
-		if ( null !== $support_for_key ) {
+		if ( $support_for_key !== null ) {
 			_doing_it_wrong(
 				'register_block_type_from_metadata()',
 				sprintf(
@@ -1115,7 +1115,7 @@ function build_query_vars_from_query_block( $block, $page ) {
 		}
 		if ( isset( $block->context['query']['sticky'] ) && ! empty( $block->context['query']['sticky'] ) ) {
 			$sticky = get_option( 'sticky_posts' );
-			if ( 'only' === $block->context['query']['sticky'] ) {
+			if ( $block->context['query']['sticky'] === 'only' ) {
 				$query['post__in'] = $sticky;
 			} else {
 				$query['post__not_in'] = array_merge( $query['post__not_in'], $sticky );
@@ -1245,11 +1245,11 @@ function _wp_multiple_block_styles( $metadata ) {
 			$default_style = array_shift( $metadata[ $key ] );
 			foreach ( $metadata[ $key ] as $handle ) {
 				$args = array( 'handle' => $handle );
-				if ( 0 === strpos( $handle, 'file:' ) && isset( $metadata['file'] ) ) {
+				if ( strpos( $handle, 'file:' ) === 0 && isset( $metadata['file'] ) ) {
 					$style_path      = remove_block_asset_path_prefix( $handle );
 					$theme_path_norm = wp_normalize_path( get_theme_file_path() );
 					$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
-					$is_theme_block  = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $theme_path_norm );
+					$is_theme_block  = isset( $metadata['file'] ) && strpos( $metadata['file'], $theme_path_norm ) === 0;
 
 					$style_uri = plugins_url( $style_path, $metadata['file'] );
 
@@ -1325,17 +1325,17 @@ function build_comment_query_vars_from_block( $block ) {
 			$page = (int) get_query_var( 'cpage' );
 			if ( $page ) {
 				$comment_args['paged'] = $page;
-			} elseif ( 'oldest' === $default_page ) {
+			} elseif ( $default_page === 'oldest' ) {
 				$comment_args['paged'] = 1;
-			} elseif ( 'newest' === $default_page ) {
+			} elseif ( $default_page === 'newest' ) {
 				$max_num_pages = (int) ( new WP_Comment_Query( $comment_args ) )->max_num_pages;
-				if ( 0 !== $max_num_pages ) {
+				if ( $max_num_pages !== 0 ) {
 					$comment_args['paged'] = $max_num_pages;
 				}
 			}
 			// Set the `cpage` query var to ensure the previous and next pagination links are correct
 			// when inheriting the Discussion Settings.
-			if ( 0 === $page && isset( $comment_args['paged'] ) && $comment_args['paged'] > 0 ) {
+			if ( $page === 0 && isset( $comment_args['paged'] ) && $comment_args['paged'] > 0 ) {
 				set_query_var( 'cpage', $comment_args['paged'] );
 			}
 		}

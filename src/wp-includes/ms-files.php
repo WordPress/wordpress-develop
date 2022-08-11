@@ -18,7 +18,7 @@ if ( ! is_multisite() ) {
 
 ms_file_constants();
 
-if ( '1' == $current_blog->archived || '1' == $current_blog->spam || '1' == $current_blog->deleted ) {
+if ( $current_blog->archived == '1' || $current_blog->spam == '1' || $current_blog->deleted == '1' ) {
 	status_header( 404 );
 	die( '404 &#8212; File not found.' );
 }
@@ -30,7 +30,7 @@ if ( ! is_file( $file ) ) {
 }
 
 $mime = wp_check_filetype( $file );
-if ( false === $mime['type'] && function_exists( 'mime_content_type' ) ) {
+if ( $mime['type'] === false && function_exists( 'mime_content_type' ) ) {
 	$mime['type'] = mime_content_type( $file );
 }
 
@@ -41,7 +41,7 @@ if ( $mime['type'] ) {
 }
 
 header( 'Content-Type: ' . $mimetype ); // Always send this.
-if ( false === strpos( $_SERVER['SERVER_SOFTWARE'], 'Microsoft-IIS' ) ) {
+if ( strpos( $_SERVER['SERVER_SOFTWARE'], 'Microsoft-IIS' ) === false ) {
 	header( 'Content-Length: ' . filesize( $file ) );
 }
 

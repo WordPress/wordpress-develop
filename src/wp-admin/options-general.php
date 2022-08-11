@@ -166,7 +166,7 @@ if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) :
 
 $languages    = get_available_languages();
 $translations = wp_get_available_translations();
-if ( ! is_multisite() && defined( 'WPLANG' ) && '' !== WPLANG && 'en_US' !== WPLANG && ! in_array( WPLANG, $languages, true ) ) {
+if ( ! is_multisite() && defined( 'WPLANG' ) && WPLANG !== '' && WPLANG !== 'en_US' && ! in_array( WPLANG, $languages, true ) ) {
 	$languages[] = WPLANG;
 }
 if ( ! empty( $languages ) || ! empty( $translations ) ) {
@@ -192,7 +192,7 @@ if ( ! empty( $languages ) || ! empty( $translations ) ) {
 			);
 
 			// Add note about deprecated WPLANG constant.
-			if ( defined( 'WPLANG' ) && ( '' !== WPLANG ) && WPLANG !== $locale ) {
+			if ( defined( 'WPLANG' ) && ( WPLANG !== '' ) && $locale !== WPLANG ) {
 				_deprecated_argument(
 					'define()',
 					'4.0.0',
@@ -214,13 +214,13 @@ $tzstring       = get_option( 'timezone_string' );
 $check_zone_info = true;
 
 // Remove old Etc mappings. Fallback to gmt_offset.
-if ( false !== strpos( $tzstring, 'Etc/GMT' ) ) {
+if ( strpos( $tzstring, 'Etc/GMT' ) !== false ) {
 	$tzstring = '';
 }
 
 if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists.
 	$check_zone_info = false;
-	if ( 0 == $current_offset ) {
+	if ( $current_offset == 0 ) {
 		$tzstring = 'UTC+0';
 	} elseif ( $current_offset < 0 ) {
 		$tzstring = 'UTC' . $current_offset;

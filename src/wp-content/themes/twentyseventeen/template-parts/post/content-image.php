@@ -20,7 +20,7 @@
 	?>
 	<header class="entry-header">
 		<?php
-		if ( 'post' === get_post_type() ) {
+		if ( get_post_type() === 'post' ) {
 			echo '<div class="entry-meta">';
 			if ( is_single() ) {
 				twentyseventeen_posted_on();
@@ -41,7 +41,7 @@
 		?>
 	</header><!-- .entry-header -->
 
-	<?php if ( '' !== get_the_post_thumbnail() && ! is_single() ) : ?>
+	<?php if ( get_the_post_thumbnail() !== '' && ! is_single() ) : ?>
 		<div class="post-thumbnail">
 			<a href="<?php the_permalink(); ?>">
 				<?php the_post_thumbnail( 'twentyseventeen-featured-image' ); ?>
@@ -52,7 +52,7 @@
 	<div class="entry-content">
 
 		<?php
-		if ( is_single() || '' === get_the_post_thumbnail() ) {
+		if ( is_single() || get_the_post_thumbnail() === '' ) {
 
 			// Only show content if is a single post, or if there's no featured image.
 			the_content(

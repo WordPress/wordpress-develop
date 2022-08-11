@@ -242,7 +242,7 @@ abstract class WP_Image_Editor {
 		// Get the default quality setting for the mime type.
 		$default_quality = $this->get_default_quality( $mime_type );
 
-		if ( null === $quality ) {
+		if ( $quality === null ) {
 			/**
 			 * Filters the default image compression quality setting.
 			 *
@@ -258,7 +258,7 @@ abstract class WP_Image_Editor {
 			 */
 			$quality = apply_filters( 'wp_editor_set_quality', $default_quality, $mime_type );
 
-			if ( 'image/jpeg' === $mime_type ) {
+			if ( $mime_type === 'image/jpeg' ) {
 				/**
 				 * Filters the JPEG compression quality for backward-compatibility.
 				 *
@@ -284,7 +284,7 @@ abstract class WP_Image_Editor {
 		}
 
 		// Allow 0, but squash to 1 due to identical images in GD, and for backward compatibility.
-		if ( 0 === $quality ) {
+		if ( $quality === 0 ) {
 			$quality = 1;
 		}
 
@@ -448,7 +448,7 @@ abstract class WP_Image_Editor {
 	 */
 	public function generate_filename( $suffix = null, $dest_path = null, $extension = null ) {
 		// $suffix will be appended to the destination filename, just before the extension.
-		if ( null === $suffix ) {
+		if ( $suffix === null ) {
 			$suffix = $this->get_suffix();
 		}
 
@@ -512,7 +512,7 @@ abstract class WP_Image_Editor {
 	public function maybe_exif_rotate() {
 		$orientation = null;
 
-		if ( is_callable( 'exif_read_data' ) && 'image/jpeg' === $this->mime_type ) {
+		if ( is_callable( 'exif_read_data' ) && $this->mime_type === 'image/jpeg' ) {
 			$exif_data = @exif_read_data( $this->file );
 
 			if ( ! empty( $exif_data['Orientation'] ) ) {
@@ -530,7 +530,7 @@ abstract class WP_Image_Editor {
 		 */
 		$orientation = apply_filters( 'wp_image_maybe_exif_rotate', $orientation, $this->file );
 
-		if ( ! $orientation || 1 === $orientation ) {
+		if ( ! $orientation || $orientation === 1 ) {
 			return false;
 		}
 

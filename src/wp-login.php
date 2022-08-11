@@ -13,7 +13,7 @@ require __DIR__ . '/wp-load.php';
 
 // Redirect to HTTPS login if forced to use SSL.
 if ( force_ssl_admin() && ! is_ssl() ) {
-	if ( 0 === strpos( $_SERVER['REQUEST_URI'], 'http' ) ) {
+	if ( strpos( $_SERVER['REQUEST_URI'], 'http' ) === 0 ) {
 		wp_safe_redirect( set_url_scheme( $_SERVER['REQUEST_URI'], 'https' ) );
 		exit;
 	} else {
@@ -100,7 +100,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	 * This could be added by add_action('login_head'...) like wp_shake_js(),
 	 * but maybe better if it's not removable by plugins.
 	 */
-	if ( 'loggedout' === $wp_error->get_error_code() ) {
+	if ( $wp_error->get_error_code() === 'loggedout' ) {
 		?>
 		<script>if("sessionStorage" in window){try{for(var key in sessionStorage){if(key.indexOf("wp-autosave-")!=-1){sessionStorage.removeItem(key)}}}catch(e){}};</script>
 		<?php
@@ -173,7 +173,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 		<style type="text/css">html{background-color: transparent;}</style>
 		<?php
 
-		if ( 'success' === $interim_login ) {
+		if ( $interim_login === 'success' ) {
 			$classes[] = 'interim-login-success';
 		}
 	}
@@ -234,7 +234,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 		foreach ( $wp_error->get_error_codes() as $code ) {
 			$severity = $wp_error->get_error_data( $code );
 			foreach ( $wp_error->get_error_messages( $code ) as $error_message ) {
-				if ( 'message' === $severity ) {
+				if ( $severity === 'message' ) {
 					$messages .= '	' . $error_message . "<br />\n";
 				} else {
 					$errors .= '	' . $error_message . "<br />\n";
@@ -361,11 +361,11 @@ function login_footer( $input_id = '' ) {
 						<input type="hidden" name="interim-login" value="1" />
 					<?php } ?>
 
-					<?php if ( isset( $_GET['redirect_to'] ) && '' !== $_GET['redirect_to'] ) { ?>
+					<?php if ( isset( $_GET['redirect_to'] ) && $_GET['redirect_to'] !== '' ) { ?>
 						<input type="hidden" name="redirect_to" value="<?php echo sanitize_url( $_GET['redirect_to'] ); ?>" />
 					<?php } ?>
 
-					<?php if ( isset( $_GET['action'] ) && '' !== $_GET['action'] ) { ?>
+					<?php if ( isset( $_GET['action'] ) && $_GET['action'] !== '' ) { ?>
 						<input type="hidden" name="action" value="<?php echo esc_attr( $_GET['action'] ); ?>" />
 					<?php } ?>
 
@@ -455,7 +455,7 @@ $default_actions = array(
 );
 
 // Validate action so as to default to the login screen.
-if ( ! in_array( $action, $default_actions, true ) && false === has_filter( 'login_form_' . $action ) ) {
+if ( ! in_array( $action, $default_actions, true ) && has_filter( 'login_form_' . $action ) === false ) {
 	$action = 'login';
 }
 
@@ -476,7 +476,7 @@ if ( defined( 'RELOCATE' ) && RELOCATE ) { // Move flag is set.
 }
 
 // Set a cookie now to see if they are supported by the browser.
-$secure = ( 'https' === parse_url( wp_login_url(), PHP_URL_SCHEME ) );
+$secure = ( parse_url( wp_login_url(), PHP_URL_SCHEME ) === 'https' );
 setcookie( TEST_COOKIE, 'WP Cookie check', 0, COOKIEPATH, COOKIE_DOMAIN, $secure );
 
 if ( SITECOOKIEPATH !== COOKIEPATH ) {
@@ -519,7 +519,7 @@ do_action( 'login_init' );
  */
 do_action( "login_form_{$action}" );
 
-$http_post     = ( 'POST' === $_SERVER['REQUEST_METHOD'] );
+$http_post     = ( $_SERVER['REQUEST_METHOD'] === 'POST' );
 $interim_login = isset( $_REQUEST['interim-login'] );
 
 /**
@@ -732,7 +732,7 @@ switch ( $action ) {
 		$referer = wp_get_referer();
 
 		if ( $referer ) {
-			$secure = ( 'https' === parse_url( $referer, PHP_URL_SCHEME ) );
+			$secure = ( parse_url( $referer, PHP_URL_SCHEME ) === 'https' );
 		} else {
 			$secure = false;
 		}
@@ -791,9 +791,9 @@ switch ( $action ) {
 		}
 
 		if ( isset( $_GET['error'] ) ) {
-			if ( 'invalidkey' === $_GET['error'] ) {
+			if ( $_GET['error'] === 'invalidkey' ) {
 				$errors->add( 'invalidkey', __( '<strong>Error:</strong> Your password reset link appears to be invalid. Please request a new link below.' ) );
-			} elseif ( 'expiredkey' === $_GET['error'] ) {
+			} elseif ( $_GET['error'] === 'expiredkey' ) {
 				$errors->add( 'expiredkey', __( '<strong>Error:</strong> Your password reset link has expired. Please request a new link below.' ) );
 			}
 		}
@@ -1115,7 +1115,7 @@ switch ( $action ) {
 		$redirect_to = admin_url();
 		$errors      = new WP_Error();
 
-		if ( 'confirm' === $_GET['checkemail'] ) {
+		if ( $_GET['checkemail'] === 'confirm' ) {
 			$errors->add(
 				'confirm',
 				sprintf(
@@ -1125,7 +1125,7 @@ switch ( $action ) {
 				),
 				'message'
 			);
-		} elseif ( 'registered' === $_GET['checkemail'] ) {
+		} elseif ( $_GET['checkemail'] === 'registered' ) {
 			$errors->add(
 				'registered',
 				sprintf(
@@ -1211,7 +1211,7 @@ switch ( $action ) {
 		if ( isset( $_REQUEST['redirect_to'] ) ) {
 			$redirect_to = $_REQUEST['redirect_to'];
 			// Redirect to HTTPS if user wants SSL.
-			if ( $secure_cookie && false !== strpos( $redirect_to, 'wp-admin' ) ) {
+			if ( $secure_cookie && strpos( $redirect_to, 'wp-admin' ) !== false ) {
 				$redirect_to = preg_replace( '|^http://|', 'https://', $redirect_to );
 			}
 		} else {
@@ -1306,7 +1306,7 @@ switch ( $action ) {
 				}
 			}
 
-			if ( ( empty( $redirect_to ) || 'wp-admin/' === $redirect_to || admin_url() === $redirect_to ) ) {
+			if ( ( empty( $redirect_to ) || $redirect_to === 'wp-admin/' || admin_url() === $redirect_to ) ) {
 				// If the user doesn't belong to a blog, send them to user admin. If the user can't edit posts, send them to their profile.
 				if ( is_multisite() && ! get_active_blog_for_user( $user->ID ) && ! is_super_admin( $user->ID ) ) {
 					$redirect_to = user_admin_url();
@@ -1342,13 +1342,13 @@ switch ( $action ) {
 			// Some parts of this script use the main login form to display a message.
 			if ( isset( $_GET['loggedout'] ) && $_GET['loggedout'] ) {
 				$errors->add( 'loggedout', __( 'You are now logged out.' ), 'message' );
-			} elseif ( isset( $_GET['registration'] ) && 'disabled' === $_GET['registration'] ) {
+			} elseif ( isset( $_GET['registration'] ) && $_GET['registration'] === 'disabled' ) {
 				$errors->add( 'registerdisabled', __( '<strong>Error:</strong> User registration is currently not allowed.' ) );
 			} elseif ( strpos( $redirect_to, 'about.php?updated' ) ) {
 				$errors->add( 'updated', __( '<strong>You have successfully updated WordPress!</strong> Please log back in to see what&#8217;s new.' ), 'message' );
-			} elseif ( WP_Recovery_Mode_Link_Service::LOGIN_ACTION_ENTERED === $action ) {
+			} elseif ( $action === WP_Recovery_Mode_Link_Service::LOGIN_ACTION_ENTERED ) {
 				$errors->add( 'enter_recovery_mode', __( 'Recovery Mode Initialized. Please log in to continue.' ), 'message' );
-			} elseif ( isset( $_GET['redirect_to'] ) && false !== strpos( $_GET['redirect_to'], 'wp-admin/authorize-application.php' ) ) {
+			} elseif ( isset( $_GET['redirect_to'] ) && strpos( $_GET['redirect_to'], 'wp-admin/authorize-application.php' ) !== false ) {
 				$query_component = wp_parse_url( $_GET['redirect_to'], PHP_URL_QUERY );
 				$query           = array();
 				if ( $query_component ) {
@@ -1385,7 +1385,7 @@ switch ( $action ) {
 		login_header( __( 'Log In' ), '', $errors );
 
 		if ( isset( $_POST['log'] ) ) {
-			$user_login = ( 'incorrect_password' === $errors->get_error_code() || 'empty_password' === $errors->get_error_code() ) ? esc_attr( wp_unslash( $_POST['log'] ) ) : '';
+			$user_login = ( $errors->get_error_code() === 'incorrect_password' || $errors->get_error_code() === 'empty_password' ) ? esc_attr( wp_unslash( $_POST['log'] ) ) : '';
 		}
 
 		$rememberme = ! empty( $_POST['rememberme'] );
@@ -1397,7 +1397,7 @@ switch ( $action ) {
 			$aria_describedby = ' aria-describedby="login_error"';
 		}
 
-		if ( $has_errors && 'message' === $errors->get_error_data() ) {
+		if ( $has_errors && $errors->get_error_data() === 'message' ) {
 			$aria_describedby = ' aria-describedby="login-message"';
 		}
 

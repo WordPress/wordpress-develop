@@ -36,7 +36,7 @@ function ms_upload_constants() {
 		define( 'UPLOADS', UPLOADBLOGSDIR . '/' . $site_id . '/files/' );
 
 		// Uploads dir relative to ABSPATH.
-		if ( 'wp-content/blogs.dir' === UPLOADBLOGSDIR && ! defined( 'BLOGUPLOADDIR' ) ) {
+		if ( UPLOADBLOGSDIR === 'wp-content/blogs.dir' && ! defined( 'BLOGUPLOADDIR' ) ) {
 			define( 'BLOGUPLOADDIR', WP_CONTENT_DIR . '/blogs.dir/' . $site_id . '/files/' );
 		}
 	}
@@ -130,7 +130,7 @@ function ms_subdomain_constants() {
 	static $subdomain_error      = null;
 	static $subdomain_error_warn = null;
 
-	if ( false === $subdomain_error ) {
+	if ( $subdomain_error === false ) {
 		return;
 	}
 
@@ -163,7 +163,7 @@ function ms_subdomain_constants() {
 
 	if ( defined( 'SUBDOMAIN_INSTALL' ) && defined( 'VHOST' ) ) {
 		$subdomain_error = true;
-		if ( SUBDOMAIN_INSTALL !== ( 'yes' === VHOST ) ) {
+		if ( ( VHOST === 'yes' ) !== SUBDOMAIN_INSTALL ) {
 			$subdomain_error_warn = true;
 		}
 	} elseif ( defined( 'SUBDOMAIN_INSTALL' ) ) {
@@ -171,7 +171,7 @@ function ms_subdomain_constants() {
 		define( 'VHOST', SUBDOMAIN_INSTALL ? 'yes' : 'no' );
 	} elseif ( defined( 'VHOST' ) ) {
 		$subdomain_error = true;
-		define( 'SUBDOMAIN_INSTALL', 'yes' === VHOST );
+		define( 'SUBDOMAIN_INSTALL', VHOST === 'yes' );
 	} else {
 		$subdomain_error = false;
 		define( 'SUBDOMAIN_INSTALL', false );

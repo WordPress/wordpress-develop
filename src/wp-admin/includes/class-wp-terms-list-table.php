@@ -81,7 +81,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 
 		$tags_per_page = $this->get_items_per_page( "edit_{$taxonomy}_per_page" );
 
-		if ( 'post_tag' === $taxonomy ) {
+		if ( $taxonomy === 'post_tag' ) {
 			/**
 			 * Filters the number of terms displayed per page for the Tags list table.
 			 *
@@ -100,7 +100,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 			 * @param int $tags_per_page Number of tags to be displayed. Default 20.
 			 */
 			$tags_per_page = apply_filters_deprecated( 'tagsperpage', array( $tags_per_page ), '2.8.0', 'edit_tags_per_page' );
-		} elseif ( 'category' === $taxonomy ) {
+		} elseif ( $taxonomy === 'category' ) {
 			/**
 			 * Filters the number of terms displayed per page for the Categories list table.
 			 *
@@ -178,7 +178,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 * @return string
 	 */
 	public function current_action() {
-		if ( isset( $_REQUEST['action'] ) && isset( $_REQUEST['delete_tags'] ) && 'delete' === $_REQUEST['action'] ) {
+		if ( isset( $_REQUEST['action'] ) && isset( $_REQUEST['delete_tags'] ) && $_REQUEST['action'] === 'delete' ) {
 			return 'bulk-delete';
 		}
 
@@ -196,7 +196,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 			'slug'        => __( 'Slug' ),
 		);
 
-		if ( 'link_category' === $this->screen->taxonomy ) {
+		if ( $this->screen->taxonomy === 'link_category' ) {
 			$columns['links'] = __( 'Links' );
 		} else {
 			$columns['posts'] = _x( 'Count', 'Number/count of items' );
@@ -585,11 +585,11 @@ class WP_Terms_List_Table extends WP_List_Table {
 			);
 		}
 
-		if ( 'post' !== $this->screen->post_type ) {
+		if ( $this->screen->post_type !== 'post' ) {
 			$args['post_type'] = $this->screen->post_type;
 		}
 
-		if ( 'attachment' === $this->screen->post_type ) {
+		if ( $this->screen->post_type === 'attachment' ) {
 			return "<a href='" . esc_url( add_query_arg( $args, 'upload.php' ) ) . "'>$count</a>";
 		}
 

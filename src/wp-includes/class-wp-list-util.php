@@ -126,9 +126,9 @@ class WP_List_Util {
 				}
 			}
 
-			if ( ( 'AND' === $operator && $matched === $count )
-				|| ( 'OR' === $operator && $matched > 0 )
-				|| ( 'NOT' === $operator && 0 === $matched )
+			if ( ( $operator === 'AND' && $matched === $count )
+				|| ( $operator === 'OR' && $matched > 0 )
+				|| ( $operator === 'NOT' && $matched === 0 )
 			) {
 				$filtered[ $key ] = $obj;
 			}
@@ -222,7 +222,7 @@ class WP_List_Util {
 		}
 
 		foreach ( $orderby as $field => $direction ) {
-			$orderby[ $field ] = 'DESC' === strtoupper( $direction ) ? 'DESC' : 'ASC';
+			$orderby[ $field ] = strtoupper( $direction ) === 'DESC' ? 'DESC' : 'ASC';
 		}
 
 		$this->orderby = $orderby;
@@ -266,7 +266,7 @@ class WP_List_Util {
 				continue;
 			}
 
-			$results = 'DESC' === $direction ? array( 1, -1 ) : array( -1, 1 );
+			$results = $direction === 'DESC' ? array( 1, -1 ) : array( -1, 1 );
 
 			if ( is_numeric( $a[ $field ] ) && is_numeric( $b[ $field ] ) ) {
 				return ( $a[ $field ] < $b[ $field ] ) ? $results[0] : $results[1];

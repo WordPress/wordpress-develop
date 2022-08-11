@@ -371,7 +371,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	 * @return array|bool
 	 */
 	public function mock_http_request( $false, $arguments, $url ) {
-		if ( 'https://example.com' === $url ) {
+		if ( $url === 'https://example.com' ) {
 			return array(
 				'response' => array(
 					'code' => 200,

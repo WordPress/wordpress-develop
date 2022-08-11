@@ -51,17 +51,17 @@ function get_locale() {
 			$ms_locale = get_site_option( 'WPLANG' );
 		} else {
 			$ms_locale = get_option( 'WPLANG' );
-			if ( false === $ms_locale ) {
+			if ( $ms_locale === false ) {
 				$ms_locale = get_site_option( 'WPLANG' );
 			}
 		}
 
-		if ( false !== $ms_locale ) {
+		if ( $ms_locale !== false ) {
 			$locale = $ms_locale;
 		}
 	} else {
 		$db_locale = get_option( 'WPLANG' );
-		if ( false !== $db_locale ) {
+		if ( $db_locale !== false ) {
 			$locale = $db_locale;
 		}
 	}
@@ -94,7 +94,7 @@ function get_locale() {
 function get_user_locale( $user = 0 ) {
 	$user_object = false;
 
-	if ( 0 === $user && function_exists( 'wp_get_current_user' ) ) {
+	if ( $user === 0 && function_exists( 'wp_get_current_user' ) ) {
 		$user_object = wp_get_current_user();
 	} elseif ( $user instanceof WP_User ) {
 		$user_object = $user;
@@ -142,7 +142,7 @@ function determine_locale() {
 		$determined_locale = get_user_locale();
 	}
 
-	if ( isset( $_GET['_locale'] ) && 'user' === $_GET['_locale'] && wp_is_json_request() ) {
+	if ( isset( $_GET['_locale'] ) && $_GET['_locale'] === 'user' && wp_is_json_request() ) {
 		$determined_locale = get_user_locale();
 	}
 
@@ -154,7 +154,7 @@ function determine_locale() {
 		$wp_lang = sanitize_text_field( $_COOKIE['wp_lang'] );
 	}
 
-	if ( ! empty( $wp_lang ) && ! empty( $GLOBALS['pagenow'] ) && 'wp-login.php' === $GLOBALS['pagenow'] ) {
+	if ( ! empty( $wp_lang ) && ! empty( $GLOBALS['pagenow'] ) && $GLOBALS['pagenow'] === 'wp-login.php' ) {
 		$determined_locale = $wp_lang;
 	}
 
@@ -227,7 +227,7 @@ function translate( $text, $domain = 'default' ) {
  */
 function before_last_bar( $string ) {
 	$last_bar = strrpos( $string, '|' );
-	if ( false === $last_bar ) {
+	if ( $last_bar === false ) {
 		return $string;
 	} else {
 		return substr( $string, 0, $last_bar );
@@ -728,7 +728,7 @@ function load_textdomain( $domain, $mofile ) {
 	 */
 	$plugin_override = apply_filters( 'override_load_textdomain', false, $domain, $mofile );
 
-	if ( true === (bool) $plugin_override ) {
+	if ( (bool) $plugin_override === true ) {
 		unset( $l10n_unloaded[ $domain ] );
 
 		return true;
@@ -840,7 +840,7 @@ function unload_textdomain( $domain ) {
  * @return bool Whether the textdomain was loaded.
  */
 function load_default_textdomain( $locale = null ) {
-	if ( null === $locale ) {
+	if ( $locale === null ) {
 		$locale = determine_locale();
 	}
 
@@ -900,9 +900,9 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
 		return true;
 	}
 
-	if ( false !== $plugin_rel_path ) {
+	if ( $plugin_rel_path !== false ) {
 		$path = WP_PLUGIN_DIR . '/' . trim( $plugin_rel_path, '/' );
-	} elseif ( false !== $deprecated ) {
+	} elseif ( $deprecated !== false ) {
 		_deprecated_argument( __FUNCTION__, '2.7.0' );
 		$path = ABSPATH . trim( $deprecated, '/' );
 	} else {
@@ -1028,7 +1028,7 @@ function load_script_textdomain( $handle, $domain = 'default', $path = null ) {
 	$locale = determine_locale();
 
 	// If a path was given and the handle file exists simply return it.
-	$file_base       = 'default' === $domain ? $locale : $domain . '-' . $locale;
+	$file_base       = $domain === 'default' ? $locale : $domain . '-' . $locale;
 	$handle_filename = $file_base . '-' . $handle . '.json';
 
 	if ( $path ) {
@@ -1041,7 +1041,7 @@ function load_script_textdomain( $handle, $domain = 'default', $path = null ) {
 
 	$src = $wp_scripts->registered[ $handle ]->src;
 
-	if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $wp_scripts->content_url && 0 === strpos( $src, $wp_scripts->content_url ) ) ) {
+	if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $wp_scripts->content_url && strpos( $src, $wp_scripts->content_url ) === 0 ) ) {
 		$src = $wp_scripts->base_url . $src;
 	}
 
@@ -1109,7 +1109,7 @@ function load_script_textdomain( $handle, $domain = 'default', $path = null ) {
 	$relative = apply_filters( 'load_script_textdomain_relative_path', $relative, $src );
 
 	// If the source is not from WP.
-	if ( false === $relative ) {
+	if ( $relative === false ) {
 		return load_script_translations( false, $handle, $domain );
 	}
 
@@ -1163,7 +1163,7 @@ function load_script_translations( $file, $handle, $domain ) {
 	 */
 	$translations = apply_filters( 'pre_load_script_translations', null, $file, $handle, $domain );
 
-	if ( null !== $translations ) {
+	if ( $translations !== null ) {
 		return $translations;
 	}
 
@@ -1219,12 +1219,12 @@ function _load_textdomain_just_in_time( $domain ) {
 	$l10n_unloaded = (array) $l10n_unloaded;
 
 	// Short-circuit if domain is 'default' which is reserved for core.
-	if ( 'default' === $domain || isset( $l10n_unloaded[ $domain ] ) ) {
+	if ( $domain === 'default' || isset( $l10n_unloaded[ $domain ] ) ) {
 		return false;
 	}
 
 	$translation_path = _get_path_to_translation( $domain );
-	if ( false === $translation_path ) {
+	if ( $translation_path === false ) {
 		return false;
 	}
 
@@ -1248,7 +1248,7 @@ function _load_textdomain_just_in_time( $domain ) {
 function _get_path_to_translation( $domain, $reset = false ) {
 	static $available_translations = array();
 
-	if ( true === $reset ) {
+	if ( $reset === true ) {
 		$available_translations = array();
 	}
 
@@ -1275,7 +1275,7 @@ function _get_path_to_translation( $domain, $reset = false ) {
 function _get_path_to_translation_from_lang_dir( $domain ) {
 	static $cached_mofiles = null;
 
-	if ( null === $cached_mofiles ) {
+	if ( $cached_mofiles === null ) {
 		$cached_mofiles = array();
 
 		$locations = array(
@@ -1326,7 +1326,7 @@ function get_translations_for_domain( $domain ) {
 	}
 
 	static $noop_translations = null;
-	if ( null === $noop_translations ) {
+	if ( $noop_translations === null ) {
 		$noop_translations = new NOOP_Translations;
 	}
 
@@ -1391,8 +1391,8 @@ function get_available_languages( $dir = null ) {
 	if ( $lang_files ) {
 		foreach ( $lang_files as $lang_file ) {
 			$lang_file = basename( $lang_file, '.mo' );
-			if ( 0 !== strpos( $lang_file, 'continents-cities' ) && 0 !== strpos( $lang_file, 'ms-' ) &&
-				0 !== strpos( $lang_file, 'admin-' ) ) {
+			if ( strpos( $lang_file, 'continents-cities' ) !== 0 && strpos( $lang_file, 'ms-' ) !== 0 &&
+				strpos( $lang_file, 'admin-' ) !== 0 ) {
 				$languages[] = $lang_file;
 			}
 		}
@@ -1421,11 +1421,11 @@ function get_available_languages( $dir = null ) {
  * @return array Array of language data.
  */
 function wp_get_installed_translations( $type ) {
-	if ( 'themes' !== $type && 'plugins' !== $type && 'core' !== $type ) {
+	if ( $type !== 'themes' && $type !== 'plugins' && $type !== 'core' ) {
 		return array();
 	}
 
-	$dir = 'core' === $type ? '' : "/$type";
+	$dir = $type === 'core' ? '' : "/$type";
 
 	if ( ! is_dir( WP_LANG_DIR ) ) {
 		return array();
@@ -1443,7 +1443,7 @@ function wp_get_installed_translations( $type ) {
 	$language_data = array();
 
 	foreach ( $files as $file ) {
-		if ( '.' === $file[0] || is_dir( WP_LANG_DIR . "$dir/$file" ) ) {
+		if ( $file[0] === '.' || is_dir( WP_LANG_DIR . "$dir/$file" ) ) {
 			continue;
 		}
 		if ( substr( $file, -3 ) !== '.po' ) {
@@ -1457,7 +1457,7 @@ function wp_get_installed_translations( $type ) {
 		}
 
 		list( , $textdomain, $language ) = $match;
-		if ( '' === $textdomain ) {
+		if ( $textdomain === '' ) {
 			$textdomain = 'default';
 		}
 		$language_data[ $textdomain ][ $language ] = wp_get_pomo_file_data( WP_LANG_DIR . "$dir/$file" );
@@ -1546,7 +1546,7 @@ function wp_dropdown_languages( $args = array() ) {
 	}
 
 	// English (United States) uses an empty string for the value attribute.
-	if ( 'en_US' === $parsed_args['selected'] && ! $parsed_args['explicit_option_en_us'] ) {
+	if ( $parsed_args['selected'] === 'en_US' && ! $parsed_args['explicit_option_en_us'] ) {
 		$parsed_args['selected'] = '';
 	}
 

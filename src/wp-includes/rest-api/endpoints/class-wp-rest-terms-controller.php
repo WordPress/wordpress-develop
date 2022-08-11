@@ -159,7 +159,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			return false;
 		}
 
-		if ( 'edit' === $request['context'] && ! current_user_can( $tax_obj->cap->edit_terms ) ) {
+		if ( $request['context'] === 'edit' && ! current_user_can( $tax_obj->cap->edit_terms ) ) {
 			return new WP_Error(
 				'rest_forbidden_context',
 				__( 'Sorry, you are not allowed to edit terms in this taxonomy.' ),
@@ -232,7 +232,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$taxonomy_obj = get_taxonomy( $this->taxonomy );
 
 		if ( $taxonomy_obj->hierarchical && isset( $registered['parent'], $request['parent'] ) ) {
-			if ( 0 === $request['parent'] ) {
+			if ( $request['parent'] === 0 ) {
 				// Only query top-level terms.
 				$prepared_args['parent'] = 0;
 			} else {
@@ -370,7 +370,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			return $term;
 		}
 
-		if ( 'edit' === $request['context'] && ! current_user_can( 'edit_term', $term->term_id ) ) {
+		if ( $request['context'] === 'edit' && ! current_user_can( 'edit_term', $term->term_id ) ) {
 			return new WP_Error(
 				'rest_forbidden_context',
 				__( 'Sorry, you are not allowed to edit this term.' ),
@@ -958,7 +958,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
-			'title'      => 'post_tag' === $this->taxonomy ? 'tag' : $this->taxonomy,
+			'title'      => $this->taxonomy === 'post_tag' ? 'tag' : $this->taxonomy,
 			'type'       => 'object',
 			'properties' => array(
 				'id'          => array(

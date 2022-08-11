@@ -19,7 +19,7 @@ class Tests_Formatting_wpSpecialchars extends WP_UnitTestCase {
 
 		// Allowed entities should be unchanged.
 		foreach ( $allowedentitynames as $ent ) {
-			if ( 'apos' === $ent ) {
+			if ( $ent === 'apos' ) {
 				// But for some reason, PHP doesn't allow &apos;
 				continue;
 			}

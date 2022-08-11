@@ -104,7 +104,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		// WebP may not work with imagecreatefromstring().
 		if (
 			function_exists( 'imagecreatefromwebp' ) &&
-			( 'image/webp' === wp_get_image_mime( $this->file ) )
+			( wp_get_image_mime( $this->file ) === 'image/webp' )
 		) {
 			$this->image = @imagecreatefromwebp( $this->file );
 		} else {
@@ -476,11 +476,11 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			$filename = $this->generate_filename( null, null, $extension );
 		}
 
-		if ( 'image/gif' === $mime_type ) {
+		if ( $mime_type === 'image/gif' ) {
 			if ( ! $this->make_image( $filename, 'imagegif', array( $image, $filename ) ) ) {
 				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
 			}
-		} elseif ( 'image/png' === $mime_type ) {
+		} elseif ( $mime_type === 'image/png' ) {
 			// Convert from full colors to index colors, like original PNG.
 			if ( function_exists( 'imageistruecolor' ) && ! imageistruecolor( $image ) ) {
 				imagetruecolortopalette( $image, false, imagecolorstotal( $image ) );
@@ -489,11 +489,11 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			if ( ! $this->make_image( $filename, 'imagepng', array( $image, $filename ) ) ) {
 				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
 			}
-		} elseif ( 'image/jpeg' === $mime_type ) {
+		} elseif ( $mime_type === 'image/jpeg' ) {
 			if ( ! $this->make_image( $filename, 'imagejpeg', array( $image, $filename, $this->get_quality() ) ) ) {
 				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
 			}
-		} elseif ( 'image/webp' == $mime_type ) {
+		} elseif ( $mime_type == 'image/webp' ) {
 			if ( ! function_exists( 'imagewebp' ) || ! $this->make_image( $filename, 'imagewebp', array( $image, $filename, $this->get_quality() ) ) ) {
 				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
 			}

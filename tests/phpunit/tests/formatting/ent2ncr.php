@@ -25,7 +25,7 @@ class Tests_Formatting_Ent2ncr extends WP_UnitTestCase {
 		foreach ( $entities as $line ) {
 			// Comment.
 			$commentpos = strpos( $line, '###' );
-			if ( false !== $commentpos ) {
+			if ( $commentpos !== false ) {
 				$line = trim( substr( $line, 0, $commentpos ) );
 				if ( ! $line ) {
 					continue;

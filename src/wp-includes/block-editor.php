@@ -224,17 +224,17 @@ function get_default_block_editor_settings() {
 
 	// Theme settings.
 	$color_palette = current( (array) get_theme_support( 'editor-color-palette' ) );
-	if ( false !== $color_palette ) {
+	if ( $color_palette !== false ) {
 		$editor_settings['colors'] = $color_palette;
 	}
 
 	$font_sizes = current( (array) get_theme_support( 'editor-font-sizes' ) );
-	if ( false !== $font_sizes ) {
+	if ( $font_sizes !== false ) {
 		$editor_settings['fontSizes'] = $font_sizes;
 	}
 
 	$gradient_presets = current( (array) get_theme_support( 'editor-gradient-presets' ) );
-	if ( false !== $gradient_presets ) {
+	if ( $gradient_presets !== false ) {
 		$editor_settings['gradients'] = $gradient_presets;
 	}
 
@@ -316,7 +316,7 @@ function _wp_get_iframed_editor_assets() {
 		$style_handles[] = 'wp-block-library-theme';
 	}
 
-	if ( 'widgets.php' === $pagenow || 'customize.php' === $pagenow ) {
+	if ( $pagenow === 'widgets.php' || $pagenow === 'customize.php' ) {
 		$style_handles[] = 'wp-widgets';
 		$style_handles[] = 'wp-edit-widgets';
 	}
@@ -401,7 +401,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 	);
 	foreach ( $presets as $preset_style ) {
 		$actual_css = wp_get_global_stylesheet( array( $preset_style['css'] ) );
-		if ( '' !== $actual_css ) {
+		if ( $actual_css !== '' ) {
 			$preset_style['css'] = $actual_css;
 			$global_styles[]     = $preset_style;
 		}
@@ -414,7 +414,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 			'isGlobalStyles' => true,
 		);
 		$actual_css    = wp_get_global_stylesheet( array( $block_classes['css'] ) );
-		if ( '' !== $actual_css ) {
+		if ( $actual_css !== '' ) {
 			$block_classes['css'] = $actual_css;
 			$global_styles[]      = $block_classes;
 		}

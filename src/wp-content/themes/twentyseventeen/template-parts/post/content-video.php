@@ -20,7 +20,7 @@
 	?>
 	<header class="entry-header">
 		<?php
-		if ( 'post' === get_post_type() ) {
+		if ( get_post_type() === 'post' ) {
 			echo '<div class="entry-meta">';
 			if ( is_single() ) {
 				twentyseventeen_posted_on();
@@ -46,12 +46,12 @@
 		$video   = false;
 
 		// Only get video from the content if a playlist isn't present.
-	if ( false === strpos( $content, 'wp-playlist-script' ) ) {
+	if ( strpos( $content, 'wp-playlist-script' ) === false ) {
 		$video = get_media_embedded_in_content( $content, array( 'video', 'object', 'embed', 'iframe' ) );
 	}
 	?>
 
-	<?php if ( '' !== get_the_post_thumbnail() && ! is_single() && empty( $video ) ) : ?>
+	<?php if ( get_the_post_thumbnail() !== '' && ! is_single() && empty( $video ) ) : ?>
 		<div class="post-thumbnail">
 			<a href="<?php the_permalink(); ?>">
 				<?php the_post_thumbnail( 'twentyseventeen-featured-image' ); ?>

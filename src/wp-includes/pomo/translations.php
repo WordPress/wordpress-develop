@@ -26,7 +26,7 @@ if ( ! class_exists( 'Translations', false ) ) :
 				$entry = new Translation_Entry( $entry );
 			}
 			$key = $entry->key();
-			if ( false === $key ) {
+			if ( $key === false ) {
 				return false;
 			}
 			$this->entries[ $key ] = &$entry;
@@ -42,7 +42,7 @@ if ( ! class_exists( 'Translations', false ) ) :
 				$entry = new Translation_Entry( $entry );
 			}
 			$key = $entry->key();
-			if ( false === $key ) {
+			if ( $key === false ) {
 				return false;
 			}
 			if ( isset( $this->entries[ $key ] ) ) {
@@ -119,7 +119,7 @@ if ( ! class_exists( 'Translations', false ) ) :
 		 * @param int $count number of items
 		 */
 		public function select_plural_form( $count ) {
-			return 1 == $count ? 0 : 1;
+			return $count == 1 ? 0 : 1;
 		}
 
 		/**
@@ -151,7 +151,7 @@ if ( ! class_exists( 'Translations', false ) ) :
 				isset( $translated->translations[ $index ] ) ) {
 				return $translated->translations[ $index ];
 			} else {
-				return 1 == $count ? $singular : $plural;
+				return $count == 1 ? $singular : $plural;
 			}
 		}
 
@@ -286,7 +286,7 @@ if ( ! class_exists( 'Translations', false ) ) :
 		 */
 		public function set_header( $header, $value ) {
 			parent::set_header( $header, $value );
-			if ( 'Plural-Forms' === $header ) {
+			if ( $header === 'Plural-Forms' ) {
 				list( $nplurals, $expression )     = $this->nplurals_and_expression_from_header( $this->get_header( 'Plural-Forms' ) );
 				$this->_nplurals                   = $nplurals;
 				$this->_gettext_select_plural_form = $this->make_plural_form_function( $nplurals, $expression );
@@ -349,7 +349,7 @@ if ( ! class_exists( 'NOOP_Translations', false ) ) :
 		 * @return bool
 		 */
 		public function select_plural_form( $count ) {
-			return 1 == $count ? 0 : 1;
+			return $count == 1 ? 0 : 1;
 		}
 
 		/**
@@ -366,7 +366,7 @@ if ( ! class_exists( 'NOOP_Translations', false ) ) :
 		 * @param string $context
 		 */
 		public function translate_plural( $singular, $plural, $count, $context = null ) {
-			return 1 == $count ? $singular : $plural;
+			return $count == 1 ? $singular : $plural;
 		}
 
 		/**

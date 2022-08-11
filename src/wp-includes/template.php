@@ -477,7 +477,7 @@ function get_page_template() {
 	}
 
 	$templates = array();
-	if ( $template && 0 === validate_file( $template ) ) {
+	if ( $template && validate_file( $template ) === 0 ) {
 		$templates[] = $template;
 	}
 	if ( $pagename ) {
@@ -549,7 +549,7 @@ function get_single_template() {
 
 	if ( ! empty( $object->post_type ) ) {
 		$template = get_page_template_slug( $object );
-		if ( $template && 0 === validate_file( $template ) ) {
+		if ( $template && validate_file( $template ) === 0 ) {
 			$templates[] = $template;
 		}
 
@@ -660,7 +660,7 @@ function get_attachment_template() {
 	$templates = array();
 
 	if ( $attachment ) {
-		if ( false !== strpos( $attachment->post_mime_type, '/' ) ) {
+		if ( strpos( $attachment->post_mime_type, '/' ) !== false ) {
 			list( $type, $subtype ) = explode( '/', $attachment->post_mime_type );
 		} else {
 			list( $type, $subtype ) = array( $attachment->post_mime_type, '' );
@@ -712,7 +712,7 @@ function locate_template( $template_names, $load = false, $require_once = true, 
 		}
 	}
 
-	if ( $load && '' !== $located ) {
+	if ( $load && $located !== '' ) {
 		/**
 		 * Fires before a located template is loaded.
 		 *

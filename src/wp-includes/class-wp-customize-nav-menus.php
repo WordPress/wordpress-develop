@@ -140,7 +140,7 @@ final class WP_Customize_Nav_Menus {
 	public function load_available_items_query( $object_type = 'post_type', $object_name = 'page', $page = 0 ) {
 		$items = array();
 
-		if ( 'post_type' === $object_type ) {
+		if ( $object_type === 'post_type' ) {
 			$post_type = get_post_type_object( $object_name );
 			if ( ! $post_type ) {
 				return new WP_Error( 'nav_menus_invalid_post_type' );
@@ -152,9 +152,9 @@ final class WP_Customize_Nav_Menus {
 			 */
 			$important_pages   = array();
 			$suppress_page_ids = array();
-			if ( 0 === $page && 'page' === $object_name ) {
+			if ( $page === 0 && $object_name === 'page' ) {
 				// Insert Front Page or custom "Home" link.
-				$front_page = 'page' === get_option( 'show_on_front' ) ? (int) get_option( 'page_on_front' ) : 0;
+				$front_page = get_option( 'show_on_front' ) === 'page' ? (int) get_option( 'page_on_front' ) : 0;
 				if ( ! empty( $front_page ) ) {
 					$front_page_obj      = get_post( $front_page );
 					$important_pages[]   = $front_page_obj;
@@ -172,7 +172,7 @@ final class WP_Customize_Nav_Menus {
 				}
 
 				// Insert Posts Page.
-				$posts_page = 'page' === get_option( 'show_on_front' ) ? (int) get_option( 'page_for_posts' ) : 0;
+				$posts_page = get_option( 'show_on_front' ) === 'page' ? (int) get_option( 'page_for_posts' ) : 0;
 				if ( ! empty( $posts_page ) ) {
 					$posts_page_obj      = get_post( $posts_page );
 					$important_pages[]   = $posts_page_obj;
@@ -183,12 +183,12 @@ final class WP_Customize_Nav_Menus {
 				$privacy_policy_page_id = (int) get_option( 'wp_page_for_privacy_policy' );
 				if ( ! empty( $privacy_policy_page_id ) ) {
 					$privacy_policy_page = get_post( $privacy_policy_page_id );
-					if ( $privacy_policy_page instanceof WP_Post && 'publish' === $privacy_policy_page->post_status ) {
+					if ( $privacy_policy_page instanceof WP_Post && $privacy_policy_page->post_status === 'publish' ) {
 						$important_pages[]   = $privacy_policy_page;
 						$suppress_page_ids[] = $privacy_policy_page->ID;
 					}
 				}
-			} elseif ( 'post' !== $object_name && 0 === $page && $post_type->has_archive ) {
+			} elseif ( $object_name !== 'post' && $page === 0 && $post_type->has_archive ) {
 				// Add a post type archive link.
 				$items[] = array(
 					'id'         => $object_name . '-archive',
@@ -202,7 +202,7 @@ final class WP_Customize_Nav_Menus {
 
 			// Prepend posts with nav_menus_created_posts on first page.
 			$posts = array();
-			if ( 0 === $page && $this->manager->get_setting( 'nav_menus_created_posts' ) ) {
+			if ( $page === 0 && $this->manager->get_setting( 'nav_menus_created_posts' ) ) {
 				foreach ( $this->manager->get_setting( 'nav_menus_created_posts' )->value() as $post_id ) {
 					$auto_draft_post = get_post( $post_id );
 					if ( $post_type->name === $auto_draft_post->post_type ) {
@@ -232,7 +232,7 @@ final class WP_Customize_Nav_Menus {
 
 			foreach ( $posts as $post ) {
 				$post_title = $post->post_title;
-				if ( '' === $post_title ) {
+				if ( $post_title === '' ) {
 					/* translators: %d: ID of a post. */
 					$post_title = sprintf( __( '#%d (no title)' ), $post->ID );
 				}
@@ -253,7 +253,7 @@ final class WP_Customize_Nav_Menus {
 					'url'        => get_permalink( (int) $post->ID ),
 				);
 			}
-		} elseif ( 'taxonomy' === $object_type ) {
+		} elseif ( $object_type === 'taxonomy' ) {
 			$terms = get_terms(
 				array(
 					'taxonomy'     => $object_name,
@@ -372,7 +372,7 @@ final class WP_Customize_Nav_Menus {
 
 		// Prepend list of posts with nav_menus_created_posts search results on first page.
 		$nav_menus_created_posts_setting = $this->manager->get_setting( 'nav_menus_created_posts' );
-		if ( 1 === $args['pagenum'] && $nav_menus_created_posts_setting && count( $nav_menus_created_posts_setting->value() ) > 0 ) {
+		if ( $args['pagenum'] === 1 && $nav_menus_created_posts_setting && count( $nav_menus_created_posts_setting->value() ) > 0 ) {
 			$stub_post_query = new WP_Query(
 				array_merge(
 					$query,
@@ -393,7 +393,7 @@ final class WP_Customize_Nav_Menus {
 		// Create items for posts.
 		foreach ( $posts as $post ) {
 			$post_title = $post->post_title;
-			if ( '' === $post_title ) {
+			if ( $post_title === '' ) {
 				/* translators: %d: ID of a post. */
 				$post_title = sprintf( __( '#%d (no title)' ), $post->ID );
 			}
@@ -445,10 +445,10 @@ final class WP_Customize_Nav_Menus {
 		// Add "Home" link if search term matches. Treat as a page, but switch to custom on add.
 		if ( isset( $args['s'] ) ) {
 			// Only insert custom "Home" link if there's no Front Page
-			$front_page = 'page' === get_option( 'show_on_front' ) ? (int) get_option( 'page_on_front' ) : 0;
+			$front_page = get_option( 'show_on_front' ) === 'page' ? (int) get_option( 'page_on_front' ) : 0;
 			if ( empty( $front_page ) ) {
 				$title   = _x( 'Home', 'nav menu home label' );
-				$matches = function_exists( 'mb_stripos' ) ? false !== mb_stripos( $title, $args['s'] ) : false !== stripos( $title, $args['s'] );
+				$matches = function_exists( 'mb_stripos' ) ? mb_stripos( $title, $args['s'] ) !== false : stripos( $title, $args['s'] ) !== false;
 				if ( $matches ) {
 					$items[] = array(
 						'id'         => 'home',
@@ -489,7 +489,7 @@ final class WP_Customize_Nav_Menus {
 
 		$num_locations = count( get_registered_nav_menus() );
 
-		if ( 1 === $num_locations ) {
+		if ( $num_locations === 1 ) {
 			$locations_description = __( 'Your theme can display menus in one location.' );
 		} else {
 			/* translators: %s: Number of menu locations. */
@@ -507,7 +507,7 @@ final class WP_Customize_Nav_Menus {
 				'page_label'             => get_post_type_object( 'page' )->labels->singular_name,
 				/* translators: %s: Menu location. */
 				'menuLocation'           => _x( '(Currently set to: %s)', 'menu' ),
-				'locationsTitle'         => 1 === $num_locations ? __( 'Menu Location' ) : __( 'Menu Locations' ),
+				'locationsTitle'         => $num_locations === 1 ? __( 'Menu Location' ) : __( 'Menu Locations' ),
 				'locationsDescription'   => $locations_description,
 				'menuNameLabel'          => __( 'Menu Name' ),
 				'newMenuNameDescription' => __( 'If your theme has multiple menus, giving them clear names will help you manage them.' ),
@@ -610,9 +610,9 @@ final class WP_Customize_Nav_Menus {
 	public function filter_dynamic_setting_class( $setting_class, $setting_id, $setting_args ) {
 		unset( $setting_id );
 
-		if ( ! empty( $setting_args['type'] ) && WP_Customize_Nav_Menu_Setting::TYPE === $setting_args['type'] ) {
+		if ( ! empty( $setting_args['type'] ) && $setting_args['type'] === WP_Customize_Nav_Menu_Setting::TYPE ) {
 			$setting_class = 'WP_Customize_Nav_Menu_Setting';
-		} elseif ( ! empty( $setting_args['type'] ) && WP_Customize_Nav_Menu_Item_Setting::TYPE === $setting_args['type'] ) {
+		} elseif ( ! empty( $setting_args['type'] ) && $setting_args['type'] === WP_Customize_Nav_Menu_Item_Setting::TYPE ) {
 			$setting_class = 'WP_Customize_Nav_Menu_Item_Setting';
 		}
 		return $setting_class;
@@ -681,7 +681,7 @@ final class WP_Customize_Nav_Menus {
 		$locations     = get_registered_nav_menus();
 		$num_locations = count( $locations );
 
-		if ( 1 === $num_locations ) {
+		if ( $num_locations === 1 ) {
 			$description = '<p>' . __( 'Your theme can display menus in one location. Select which menu you would like to use.' ) . '</p>';
 		} else {
 			/* translators: %s: Number of menu locations. */
@@ -696,7 +696,7 @@ final class WP_Customize_Nav_Menus {
 		$this->manager->add_section(
 			'menu_locations',
 			array(
-				'title'       => 1 === $num_locations ? _x( 'View Location', 'menu locations' ) : _x( 'View All Locations', 'menu locations' ),
+				'title'       => $num_locations === 1 ? _x( 'View Location', 'menu locations' ) : _x( 'View All Locations', 'menu locations' ),
 				'panel'       => 'nav_menus',
 				'priority'    => 30,
 				'description' => $description,
@@ -903,7 +903,7 @@ final class WP_Customize_Nav_Menus {
 		$taxonomies = get_taxonomies( array( 'show_in_nav_menus' => true ), 'objects' );
 		if ( $taxonomies ) {
 			foreach ( $taxonomies as $slug => $taxonomy ) {
-				if ( 'post_format' === $taxonomy && ! current_theme_supports( 'post-formats' ) ) {
+				if ( $taxonomy === 'post_format' && ! current_theme_supports( 'post-formats' ) ) {
 					continue;
 				}
 				$item_types[] = array(
@@ -1026,7 +1026,7 @@ final class WP_Customize_Nav_Menus {
 		}
 
 		$params['post_title'] = trim( $params['post_title'] );
-		if ( '' === $params['post_title'] ) {
+		if ( $params['post_title'] === '' ) {
 			status_header( 400 );
 			wp_send_json_error( 'missing_post_title' );
 		}
@@ -1172,7 +1172,7 @@ final class WP_Customize_Nav_Menus {
 			$item_types     = $this->available_item_types();
 			$page_item_type = null;
 			foreach ( $item_types as $i => $item_type ) {
-				if ( isset( $item_type['object'] ) && 'page' === $item_type['object'] ) {
+				if ( isset( $item_type['object'] ) && $item_type['object'] === 'page' ) {
 					$page_item_type = $item_type;
 					unset( $item_types[ $i ] );
 				}
@@ -1219,7 +1219,7 @@ final class WP_Customize_Nav_Menus {
 				</button>
 			</h4>
 			<div class="accordion-section-content">
-				<?php if ( 'post_type' === $available_item_type['type'] ) : ?>
+				<?php if ( $available_item_type['type'] === 'post_type' ) : ?>
 					<?php $post_type_obj = get_post_type_object( $available_item_type['object'] ); ?>
 					<?php if ( current_user_can( $post_type_obj->cap->create_posts ) && current_user_can( $post_type_obj->cap->publish_posts ) ) : ?>
 						<div class="new-content-item">
@@ -1295,7 +1295,7 @@ final class WP_Customize_Nav_Menus {
 	public function customize_dynamic_partial_args( $partial_args, $partial_id ) {
 
 		if ( preg_match( '/^nav_menu_instance\[[0-9a-f]{32}\]$/', $partial_id ) ) {
-			if ( false === $partial_args ) {
+			if ( $partial_args === false ) {
 				$partial_args = array();
 			}
 			$partial_args = array_merge(
@@ -1353,7 +1353,7 @@ final class WP_Customize_Nav_Menus {
 				continue;
 			}
 			$post = get_post( $post_id );
-			if ( 'auto-draft' !== $post->post_status && 'draft' !== $post->post_status ) {
+			if ( $post->post_status !== 'auto-draft' && $post->post_status !== 'draft' ) {
 				continue;
 			}
 			$post_type_obj = get_post_type_object( $post->post_type );
@@ -1387,11 +1387,11 @@ final class WP_Customize_Nav_Menus {
 
 				// Prevent overriding the status that a user may have prematurely updated the post to.
 				$current_status = get_post_status( $post_id );
-				if ( 'auto-draft' !== $current_status && 'draft' !== $current_status ) {
+				if ( $current_status !== 'auto-draft' && $current_status !== 'draft' ) {
 					continue;
 				}
 
-				$target_status = 'attachment' === get_post_type( $post_id ) ? 'inherit' : 'publish';
+				$target_status = get_post_type( $post_id ) === 'attachment' ? 'inherit' : 'publish';
 				$args          = array(
 					'ID'          => $post_id,
 					'post_status' => $target_status,
@@ -1446,7 +1446,7 @@ final class WP_Customize_Nav_Menus {
 			(
 				! empty( $args['container'] )
 				||
-				( isset( $args['items_wrap'] ) && '<' === substr( $args['items_wrap'], 0, 1 ) )
+				( isset( $args['items_wrap'] ) && substr( $args['items_wrap'], 0, 1 ) === '<' )
 			)
 		);
 		$args['can_partial_refresh'] = $can_partial_refresh;

@@ -939,7 +939,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function grant_edit_term( $caps, $cap ) {
-		if ( 'edit_term' === $cap ) {
+		if ( $cap === 'edit_term' ) {
 			$caps = array( 'read' );
 		}
 		return $caps;
@@ -964,7 +964,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function revoke_edit_term( $caps, $cap ) {
-		if ( 'edit_term' === $cap ) {
+		if ( $cap === 'edit_term' ) {
 			$caps = array( 'do_not_allow' );
 		}
 		return $caps;
@@ -1165,7 +1165,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function grant_delete_term( $caps, $cap ) {
-		if ( 'delete_term' === $cap ) {
+		if ( $cap === 'delete_term' ) {
 			$caps = array( 'read' );
 		}
 		return $caps;
@@ -1190,7 +1190,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function revoke_delete_term( $caps, $cap ) {
-		if ( 'delete_term' === $cap ) {
+		if ( $cap === 'delete_term' ) {
 			$caps = array( 'do_not_allow' );
 		}
 		return $caps;
@@ -1397,7 +1397,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function additional_field_update_callback( $value, $tag ) {
-		if ( 'returnError' === $value ) {
+		if ( $value === 'returnError' ) {
 			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
 		}
 	}

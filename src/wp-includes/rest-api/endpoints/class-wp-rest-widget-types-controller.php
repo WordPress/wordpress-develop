@@ -571,7 +571,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 			$widget_object
 		);
 
-		if ( false !== $instance ) {
+		if ( $instance !== false ) {
 			$return = $widget_object->form( $instance );
 
 			/** This filter is documented in wp-includes/class-wp-widget.php */

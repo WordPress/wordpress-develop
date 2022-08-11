@@ -288,7 +288,7 @@ if ( ! $mysql_compat || ! $php_compat ) {
 	die( '<h1>' . __( 'Requirements Not Met' ) . '</h1><p>' . $compat . '</p></body></html>' );
 }
 
-if ( ! is_string( $wpdb->base_prefix ) || '' === $wpdb->base_prefix ) {
+if ( ! is_string( $wpdb->base_prefix ) || $wpdb->base_prefix === '' ) {
 	display_header();
 	die(
 		'<h1>' . __( 'Configuration Error' ) . '</h1>' .
@@ -410,7 +410,7 @@ switch ( $step ) {
 			$error = true;
 		}
 
-		if ( false === $error ) {
+		if ( $error === false ) {
 			$wpdb->show_errors();
 			$result = wp_install( $weblog_title, $user_name, $admin_email, $public, '', wp_slash( $admin_password ), $loaded_language );
 			?>

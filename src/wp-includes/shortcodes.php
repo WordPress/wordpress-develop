@@ -63,7 +63,7 @@ $shortcode_tags = array();
 function add_shortcode( $tag, $callback ) {
 	global $shortcode_tags;
 
-	if ( '' === trim( $tag ) ) {
+	if ( trim( $tag ) === '' ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			__( 'Invalid shortcode name: Empty name given.' ),
@@ -72,7 +72,7 @@ function add_shortcode( $tag, $callback ) {
 		return;
 	}
 
-	if ( 0 !== preg_match( '@[<>&/\[\]\x00-\x20=]@', $tag ) ) {
+	if ( preg_match( '@[<>&/\[\]\x00-\x20=]@', $tag ) !== 0 ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
@@ -147,7 +147,7 @@ function shortcode_exists( $tag ) {
  * @return bool Whether the passed content contains the given shortcode.
  */
 function has_shortcode( $content, $tag ) {
-	if ( false === strpos( $content, '[' ) ) {
+	if ( strpos( $content, '[' ) === false ) {
 		return false;
 	}
 
@@ -205,7 +205,7 @@ function apply_shortcodes( $content, $ignore_html = false ) {
 function do_shortcode( $content, $ignore_html = false ) {
 	global $shortcode_tags;
 
-	if ( false === strpos( $content, '[' ) ) {
+	if ( strpos( $content, '[' ) === false ) {
 		return $content;
 	}
 
@@ -315,7 +315,7 @@ function do_shortcode_tag( $m ) {
 	global $shortcode_tags;
 
 	// Allow [[foo]] syntax for escaping a tag.
-	if ( '[' === $m[1] && ']' === $m[6] ) {
+	if ( $m[1] === '[' && $m[6] === ']' ) {
 		return substr( $m[0], 1, -1 );
 	}
 
@@ -346,7 +346,7 @@ function do_shortcode_tag( $m ) {
 	 * @param array        $m      Regular expression match array.
 	 */
 	$return = apply_filters( 'pre_do_shortcode_tag', false, $tag, $attr, $m );
-	if ( false !== $return ) {
+	if ( $return !== false ) {
 		return $return;
 	}
 
@@ -398,12 +398,12 @@ function do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames ) {
 	$textarr = wp_html_split( $content );
 
 	foreach ( $textarr as &$element ) {
-		if ( '' === $element || '<' !== $element[0] ) {
+		if ( $element === '' || $element[0] !== '<' ) {
 			continue;
 		}
 
-		$noopen  = false === strpos( $element, '[' );
-		$noclose = false === strpos( $element, ']' );
+		$noopen  = strpos( $element, '[' ) === false;
+		$noclose = strpos( $element, ']' ) === false;
 		if ( $noopen || $noclose ) {
 			// This element does not contain shortcodes.
 			if ( $noopen xor $noclose ) {
@@ -413,16 +413,16 @@ function do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames ) {
 			continue;
 		}
 
-		if ( $ignore_html || '<!--' === substr( $element, 0, 4 ) || '<![CDATA[' === substr( $element, 0, 9 ) ) {
+		if ( $ignore_html || substr( $element, 0, 4 ) === '<!--' || substr( $element, 0, 9 ) === '<![CDATA[' ) {
 			// Encode all '[' and ']' chars.
 			$element = strtr( $element, $trans );
 			continue;
 		}
 
 		$attributes = wp_kses_attr_parse( $element );
-		if ( false === $attributes ) {
+		if ( $attributes === false ) {
 			// Some plugins are doing things like [name] <[email]>.
-			if ( 1 === preg_match( '%^<\s*\[\[?[^\[\]]+\]%', $element ) ) {
+			if ( preg_match( '%^<\s*\[\[?[^\[\]]+\]%', $element ) === 1 ) {
 				$element = preg_replace_callback( "/$pattern/", 'do_shortcode_tag', $element );
 			}
 
@@ -442,12 +442,12 @@ function do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames ) {
 		foreach ( $attributes as &$attr ) {
 			$open  = strpos( $attr, '[' );
 			$close = strpos( $attr, ']' );
-			if ( false === $open || false === $close ) {
+			if ( $open === false || $close === false ) {
 				continue; // Go to next attribute. Square braces will be escaped at end of loop.
 			}
 			$double = strpos( $attr, '"' );
 			$single = strpos( $attr, "'" );
-			if ( ( false === $single || $open < $single ) && ( false === $double || $open < $double ) ) {
+			if ( ( $single === false || $open < $single ) && ( $double === false || $open < $double ) ) {
 				/*
 				 * $attr like '[shortcode]' or 'name = [shortcode]' implies unfiltered_html.
 				 * In this specific situation we assume KSES did not run because the input
@@ -463,7 +463,7 @@ function do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames ) {
 				if ( $count > 0 ) {
 					// Sanitize the shortcode output using KSES.
 					$new_attr = wp_kses_one_attr( $new_attr, $elname );
-					if ( '' !== trim( $new_attr ) ) {
+					if ( trim( $new_attr ) !== '' ) {
 						// The shortcode is safe to use now.
 						$attr = $new_attr;
 					}
@@ -550,8 +550,8 @@ function shortcode_parse_atts( $text ) {
 
 		// Reject any unclosed HTML elements.
 		foreach ( $atts as &$value ) {
-			if ( false !== strpos( $value, '<' ) ) {
-				if ( 1 !== preg_match( '/^[^<]*+(?:<[^>]*+>[^<]*+)*+$/', $value ) ) {
+			if ( strpos( $value, '<' ) !== false ) {
+				if ( preg_match( '/^[^<]*+(?:<[^>]*+>[^<]*+)*+$/', $value ) !== 1 ) {
 					$value = '';
 				}
 			}
@@ -625,7 +625,7 @@ function shortcode_atts( $pairs, $atts, $shortcode = '' ) {
 function strip_shortcodes( $content ) {
 	global $shortcode_tags;
 
-	if ( false === strpos( $content, '[' ) ) {
+	if ( strpos( $content, '[' ) === false ) {
 		return $content;
 	}
 
@@ -675,7 +675,7 @@ function strip_shortcodes( $content ) {
  */
 function strip_shortcode_tag( $m ) {
 	// Allow [[foo]] syntax for escaping a tag.
-	if ( '[' === $m[1] && ']' === $m[6] ) {
+	if ( $m[1] === '[' && $m[6] === ']' ) {
 		return substr( $m[0], 1, -1 );
 	}
 

@@ -46,13 +46,13 @@ if ( $key ) {
 	}
 }
 
-if ( null === $result && isset( $_COOKIE[ $activate_cookie ] ) ) {
+if ( $result === null && isset( $_COOKIE[ $activate_cookie ] ) ) {
 	$key    = $_COOKIE[ $activate_cookie ];
 	$result = wpmu_activate_signup( $key );
 	setcookie( $activate_cookie, ' ', time() - YEAR_IN_SECONDS, $activate_path, COOKIE_DOMAIN, is_ssl(), true );
 }
 
-if ( null === $result || ( is_wp_error( $result ) && 'invalid_key' === $result->get_error_code() ) ) {
+if ( $result === null || ( is_wp_error( $result ) && $result->get_error_code() === 'invalid_key' ) ) {
 	status_header( 404 );
 } elseif ( is_wp_error( $result ) ) {
 	$error_code = $result->get_error_code();
@@ -145,7 +145,7 @@ $blog_details = get_blog_details();
 			<h2><?php _e( 'Your account is now active!' ); ?></h2>
 			<?php
 			echo '<p class="lead-in">';
-			if ( '' === $signup->domain . $signup->path ) {
+			if ( $signup->domain . $signup->path === '' ) {
 				printf(
 					/* translators: 1: Login URL, 2: Username, 3: User email address, 4: Lost password URL. */
 					__( 'Your account has been activated. You may now <a href="%1$s">log in</a> to the site using your chosen username of &#8220;%2$s&#8221;. Please check your email inbox at %3$s for your password and login instructions. If you do not receive an email, please check your junk or spam folder. If you still do not receive an email within an hour, you can <a href="%4$s">reset your password</a>.' ),
@@ -165,7 +165,7 @@ $blog_details = get_blog_details();
 				);
 			}
 			echo '</p>';
-		} elseif ( null === $result || is_wp_error( $result ) ) {
+		} elseif ( $result === null || is_wp_error( $result ) ) {
 			?>
 			<h2><?php _e( 'An error occurred during the activation' ); ?></h2>
 			<?php if ( is_wp_error( $result ) ) : ?>

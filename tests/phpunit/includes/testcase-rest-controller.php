@@ -45,7 +45,7 @@ abstract class WP_Test_REST_Controller_Testcase extends WP_Test_REST_TestCase {
 		}
 
 		// Make sure path for rest_url has a leading slash for proper resolution.
-		if ( 0 !== strpos( $path, '/' ) ) {
+		if ( strpos( $path, '/' ) !== 0 ) {
 			$this->fail(
 				sprintf(
 					'REST API URL "%s" should have a leading slash.',

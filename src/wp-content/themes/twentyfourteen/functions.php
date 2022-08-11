@@ -306,7 +306,7 @@ function twentyfourteen_font_url() {
 	 * translators: If there are characters in your language that are not supported
 	 * by Lato, translate this to 'off'. Do not translate into your own language.
 	 */
-	if ( 'off' !== _x( 'on', 'Lato font: on or off', 'twentyfourteen' ) ) {
+	if ( _x( 'on', 'Lato font: on or off', 'twentyfourteen' ) !== 'off' ) {
 		$query_args = array(
 			'family'  => urlencode( 'Lato:300,400,700,900,300italic,400italic,700italic' ),
 			'subset'  => urlencode( 'latin,latin-ext' ),
@@ -352,7 +352,7 @@ function twentyfourteen_scripts() {
 		wp_enqueue_script( 'jquery-masonry' );
 	}
 
-	if ( is_front_page() && 'slider' === get_theme_mod( 'featured_content_layout' ) ) {
+	if ( is_front_page() && get_theme_mod( 'featured_content_layout' ) === 'slider' ) {
 		wp_enqueue_script( 'twentyfourteen-slider', get_template_directory_uri() . '/js/slider.js', array( 'jquery' ), '20150120', true );
 		wp_localize_script(
 			'twentyfourteen-slider',
@@ -388,7 +388,7 @@ add_action( 'admin_print_scripts-appearance_page_custom-header', 'twentyfourteen
  * @return array URLs to print for resource hints.
  */
 function twentyfourteen_resource_hints( $urls, $relation_type ) {
-	if ( wp_style_is( 'twentyfourteen-lato', 'queue' ) && 'preconnect' === $relation_type ) {
+	if ( wp_style_is( 'twentyfourteen-lato', 'queue' ) && $relation_type === 'preconnect' ) {
 		if ( version_compare( $GLOBALS['wp_version'], '4.7-alpha', '>=' ) ) {
 			$urls[] = array(
 				'href' => 'https://fonts.gstatic.com',
@@ -594,7 +594,7 @@ function twentyfourteen_body_classes( $classes ) {
 		$classes[] = 'singular';
 	}
 
-	if ( is_front_page() && 'slider' === get_theme_mod( 'featured_content_layout' ) ) {
+	if ( is_front_page() && get_theme_mod( 'featured_content_layout' ) === 'slider' ) {
 		$classes[] = 'slider';
 	} elseif ( is_front_page() ) {
 		$classes[] = 'grid';
@@ -702,7 +702,7 @@ require get_template_directory() . '/inc/block-patterns.php';
  * To overwrite in a plugin, define your own Featured_Content class on or
  * before the 'setup_theme' hook.
  */
-if ( ! class_exists( 'Featured_Content' ) && 'plugins.php' !== $GLOBALS['pagenow'] ) {
+if ( ! class_exists( 'Featured_Content' ) && $GLOBALS['pagenow'] !== 'plugins.php' ) {
 	require get_template_directory() . '/inc/featured-content.php';
 }
 

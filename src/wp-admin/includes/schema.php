@@ -974,10 +974,10 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 	global $wpdb, $current_site, $wp_rewrite;
 
 	$errors = new WP_Error();
-	if ( '' === $domain ) {
+	if ( $domain === '' ) {
 		$errors->add( 'empty_domain', __( 'You must provide a domain name.' ) );
 	}
-	if ( '' === $site_name ) {
+	if ( $site_name === '' ) {
 		$errors->add( 'empty_sitename', __( 'You must provide a name for your network of sites.' ) );
 	}
 
@@ -1001,7 +1001,7 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 		return $errors;
 	}
 
-	if ( 1 == $network_id ) {
+	if ( $network_id == 1 ) {
 		$wpdb->insert(
 			$wpdb->site,
 			array(
@@ -1082,7 +1082,7 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 		);
 		if ( is_wp_error( $page ) ) {
 			$errstr = $page->get_error_message();
-		} elseif ( 200 == wp_remote_retrieve_response_code( $page ) ) {
+		} elseif ( wp_remote_retrieve_response_code( $page ) == 200 ) {
 				$vhost_ok = true;
 		}
 
@@ -1136,7 +1136,7 @@ function populate_network_meta( $network_id, array $meta = array() ) {
 
 	// If a user with the provided email does not exist, default to the current user as the new network admin.
 	$site_user = ! empty( $email ) ? get_user_by( 'email', $email ) : false;
-	if ( false === $site_user ) {
+	if ( $site_user === false ) {
 		$site_user = wp_get_current_user();
 	}
 
@@ -1152,7 +1152,7 @@ function populate_network_meta( $network_id, array $meta = array() ) {
 		$allowed_themes[ $template ] = true;
 	}
 
-	if ( WP_DEFAULT_THEME != $stylesheet && WP_DEFAULT_THEME != $template ) {
+	if ( $stylesheet != WP_DEFAULT_THEME && $template != WP_DEFAULT_THEME ) {
 		$allowed_themes[ WP_DEFAULT_THEME ] = true;
 	}
 

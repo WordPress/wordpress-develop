@@ -1255,7 +1255,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	public function test_get_subtype_meta_value( $post_type, $meta_key, $single, $in_post_type ) {
 		$post_id  = self::$post_id;
 		$endpoint = 'posts';
-		if ( 'cpt' === $post_type ) {
+		if ( $post_type === 'cpt' ) {
 			$post_id  = self::$cpt_post_id;
 			$endpoint = 'cpt';
 		}
@@ -1308,7 +1308,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	public function test_set_subtype_meta_value( $post_type, $meta_key, $single, $in_post_type, $can_write ) {
 		$post_id  = self::$post_id;
 		$endpoint = 'posts';
-		if ( 'cpt' === $post_type ) {
+		if ( $post_type === 'cpt' ) {
 			$post_id  = self::$cpt_post_id;
 			$endpoint = 'cpt';
 		}
@@ -1362,7 +1362,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			$can_write = true;
 
 			// This combination is not writable because of an auth callback of '__return_false'.
-			if ( 'cpt' === $dataset[0] && 'test_single' === $dataset[1] ) {
+			if ( $dataset[0] === 'cpt' && $dataset[1] === 'test_single' ) {
 				$can_write = false;
 			}
 

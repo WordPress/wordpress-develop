@@ -365,7 +365,7 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 
 		$file = str_replace( '\\', '/', $file ); // For Win32, occasional problems deleting files otherwise.
 
-		if ( 'f' === $type || $this->is_file( $file ) ) {
+		if ( $type === 'f' || $this->is_file( $file ) ) {
 			return @unlink( $file );
 		}
 
@@ -505,11 +505,11 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	 * @return bool True on success, false on failure.
 	 */
 	public function touch( $file, $time = 0, $atime = 0 ) {
-		if ( 0 === $time ) {
+		if ( $time === 0 ) {
 			$time = time();
 		}
 
-		if ( 0 === $atime ) {
+		if ( $atime === 0 ) {
 			$atime = time();
 		}
 
@@ -618,15 +618,15 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 
 		$ret = array();
 
-		while ( false !== ( $entry = $dir->read() ) ) {
+		while ( ( $entry = $dir->read() ) !== false ) {
 			$struc         = array();
 			$struc['name'] = $entry;
 
-			if ( '.' === $struc['name'] || '..' === $struc['name'] ) {
+			if ( $struc['name'] === '.' || $struc['name'] === '..' ) {
 				continue;
 			}
 
-			if ( ! $include_hidden && '.' === $struc['name'][0] ) {
+			if ( ! $include_hidden && $struc['name'][0] === '.' ) {
 				continue;
 			}
 
@@ -645,7 +645,7 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 			$struc['time']        = gmdate( 'h:i:s', $struc['lastmodunix'] );
 			$struc['type']        = $this->is_dir( $path . '/' . $entry ) ? 'd' : 'f';
 
-			if ( 'd' === $struc['type'] ) {
+			if ( $struc['type'] === 'd' ) {
 				if ( $recursive ) {
 					$struc['files'] = $this->dirlist( $path . '/' . $struc['name'], $include_hidden, $recursive );
 				} else {

@@ -56,10 +56,10 @@ class Comment_Callback_Test {
 	}
 
 	public function comment( $comment, $args, $depth ) {
-		if ( 1 === $depth ) {
+		if ( $depth === 1 ) {
 			$this->test_walker->assertTrue( $this->walker->has_children );
 			$this->test_walker->assertTrue( $args['has_children'] );  // Back compat.
-		} elseif ( 2 === $depth ) {
+		} elseif ( $depth === 2 ) {
 			$this->test_walker->assertFalse( $this->walker->has_children );
 			$this->test_walker->assertFalse( $args['has_children'] ); // Back compat.
 		}

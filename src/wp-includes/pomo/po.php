@@ -85,12 +85,12 @@ if ( ! class_exists( 'PO', false ) ) :
 		 */
 		public function export_to_file( $filename, $include_headers = true ) {
 			$fh = fopen( $filename, 'w' );
-			if ( false === $fh ) {
+			if ( $fh === false ) {
 				return false;
 			}
 			$export = $this->export( $include_headers );
 			$res    = fwrite( $fh, $export );
-			if ( false === $res ) {
+			if ( $res === false ) {
 				return false;
 			}
 			return fclose( $fh );
@@ -128,7 +128,7 @@ if ( ! class_exists( 'PO', false ) ) :
 
 			$po = $quote . implode( "${slash}n$quote$newline$quote", explode( $newline, $string ) ) . $quote;
 			// Add empty string on first line for readbility.
-			if ( false !== strpos( $string, $newline ) &&
+			if ( strpos( $string, $newline ) !== false &&
 				( substr_count( $string, $newline ) > 1 || substr( $string, -strlen( $newline ) ) !== $newline ) ) {
 				$po = "$quote$quote$newline$po";
 			}
@@ -159,7 +159,7 @@ if ( ! class_exists( 'PO', false ) ) :
 				$chars = $chars[0];
 				foreach ( $chars as $char ) {
 					if ( ! $previous_is_backslash ) {
-						if ( '\\' === $char ) {
+						if ( $char === '\\' ) {
 							$previous_is_backslash = true;
 						} else {
 							$unpoified .= $char;
@@ -187,7 +187,7 @@ if ( ! class_exists( 'PO', false ) ) :
 		public static function prepend_each_line( $string, $with ) {
 			$lines  = explode( "\n", $string );
 			$append = '';
-			if ( "\n" === substr( $string, -1 ) && '' === end( $lines ) ) {
+			if ( substr( $string, -1 ) === "\n" && end( $lines ) === '' ) {
 				/*
 				 * Last line might be empty because $string was terminated
 				 * with a newline, remove it from the $lines array,
@@ -225,7 +225,7 @@ if ( ! class_exists( 'PO', false ) ) :
 		 *  false if the entry is empty
 		 */
 		public static function export_entry( $entry ) {
-			if ( null === $entry->singular || '' === $entry->singular ) {
+			if ( $entry->singular === null || $entry->singular === '' ) {
 				return false;
 			}
 			$po = array();
@@ -261,14 +261,14 @@ if ( ! class_exists( 'PO', false ) ) :
 		}
 
 		public static function match_begin_and_end_newlines( $translation, $original ) {
-			if ( '' === $translation ) {
+			if ( $translation === '' ) {
 				return $translation;
 			}
 
-			$original_begin    = "\n" === substr( $original, 0, 1 );
-			$original_end      = "\n" === substr( $original, -1 );
-			$translation_begin = "\n" === substr( $translation, 0, 1 );
-			$translation_end   = "\n" === substr( $translation, -1 );
+			$original_begin    = substr( $original, 0, 1 ) === "\n";
+			$original_end      = substr( $original, -1 ) === "\n";
+			$translation_begin = substr( $translation, 0, 1 ) === "\n";
+			$translation_end   = substr( $translation, -1 ) === "\n";
 
 			if ( $original_begin ) {
 				if ( ! $translation_begin ) {
@@ -304,14 +304,14 @@ if ( ! class_exists( 'PO', false ) ) :
 				if ( ! $res ) {
 					break;
 				}
-				if ( '' === $res['entry']->singular ) {
+				if ( $res['entry']->singular === '' ) {
 					$this->set_headers( $this->make_headers( $res['entry']->translations[0] ) );
 				} else {
 					$this->add_entry( $res['entry'] );
 				}
 			}
 			PO::read_line( $f, 'clear' );
-			if ( false === $res ) {
+			if ( $res === false ) {
 				return false;
 			}
 			if ( ! $this->headers && ! $this->entries ) {
@@ -327,7 +327,7 @@ if ( ! class_exists( 'PO', false ) ) :
 		 * @return bool
 		 */
 		protected static function is_final( $context ) {
-			return ( 'msgstr' === $context ) || ( 'msgstr_plural' === $context );
+			return ( $context === 'msgstr' ) || ( $context === 'msgstr_plural' );
 		}
 
 		/**
@@ -357,7 +357,7 @@ if ( ! class_exists( 'PO', false ) ) :
 						return false;
 					}
 				}
-				if ( "\n" === $line ) {
+				if ( $line === "\n" ) {
 					continue;
 				}
 				$line = trim( $line );
@@ -369,7 +369,7 @@ if ( ! class_exists( 'PO', false ) ) :
 						break;
 					}
 					// Comments have to be at the beginning.
-					if ( $context && 'comment' !== $context ) {
+					if ( $context && $context !== 'comment' ) {
 						return false;
 					}
 					// Add comment.
@@ -380,7 +380,7 @@ if ( ! class_exists( 'PO', false ) ) :
 						$lineno--;
 						break;
 					}
-					if ( $context && 'comment' !== $context ) {
+					if ( $context && $context !== 'comment' ) {
 						return false;
 					}
 					$context         = 'msgctxt';
@@ -391,26 +391,26 @@ if ( ! class_exists( 'PO', false ) ) :
 						$lineno--;
 						break;
 					}
-					if ( $context && 'msgctxt' !== $context && 'comment' !== $context ) {
+					if ( $context && $context !== 'msgctxt' && $context !== 'comment' ) {
 						return false;
 					}
 					$context          = 'msgid';
 					$entry->singular .= PO::unpoify( $m[1] );
 				} elseif ( preg_match( '/^msgid_plural\s+(".*")/', $line, $m ) ) {
-					if ( 'msgid' !== $context ) {
+					if ( $context !== 'msgid' ) {
 						return false;
 					}
 					$context          = 'msgid_plural';
 					$entry->is_plural = true;
 					$entry->plural   .= PO::unpoify( $m[1] );
 				} elseif ( preg_match( '/^msgstr\s+(".*")/', $line, $m ) ) {
-					if ( 'msgid' !== $context ) {
+					if ( $context !== 'msgid' ) {
 						return false;
 					}
 					$context             = 'msgstr';
 					$entry->translations = array( PO::unpoify( $m[1] ) );
 				} elseif ( preg_match( '/^msgstr\[(\d+)\]\s+(".*")/', $line, $m ) ) {
-					if ( 'msgid_plural' !== $context && 'msgstr_plural' !== $context ) {
+					if ( $context !== 'msgid_plural' && $context !== 'msgstr_plural' ) {
 						return false;
 					}
 					$context                      = 'msgstr_plural';
@@ -444,12 +444,12 @@ if ( ! class_exists( 'PO', false ) ) :
 
 			$have_translations = false;
 			foreach ( $entry->translations as $t ) {
-				if ( $t || ( '0' === $t ) ) {
+				if ( $t || ( $t === '0' ) ) {
 					$have_translations = true;
 					break;
 				}
 			}
-			if ( false === $have_translations ) {
+			if ( $have_translations === false ) {
 				$entry->translations = array();
 			}
 
@@ -467,16 +467,16 @@ if ( ! class_exists( 'PO', false ) ) :
 		public function read_line( $f, $action = 'read' ) {
 			static $last_line     = '';
 			static $use_last_line = false;
-			if ( 'clear' === $action ) {
+			if ( $action === 'clear' ) {
 				$last_line = '';
 				return true;
 			}
-			if ( 'put-back' === $action ) {
+			if ( $action === 'put-back' ) {
 				$use_last_line = true;
 				return true;
 			}
 			$line          = $use_last_line ? $last_line : fgets( $f );
-			$line          = ( "\r\n" === substr( $line, -2 ) ) ? rtrim( $line, "\r\n" ) . "\n" : $line;
+			$line          = ( substr( $line, -2 ) === "\r\n" ) ? rtrim( $line, "\r\n" ) . "\n" : $line;
 			$last_line     = $line;
 			$use_last_line = false;
 			return $line;
@@ -489,11 +489,11 @@ if ( ! class_exists( 'PO', false ) ) :
 		public function add_comment_to_entry( &$entry, $po_comment_line ) {
 			$first_two = substr( $po_comment_line, 0, 2 );
 			$comment   = trim( substr( $po_comment_line, 2 ) );
-			if ( '#:' === $first_two ) {
+			if ( $first_two === '#:' ) {
 				$entry->references = array_merge( $entry->references, preg_split( '/\s+/', $comment ) );
-			} elseif ( '#.' === $first_two ) {
+			} elseif ( $first_two === '#.' ) {
 				$entry->extracted_comments = trim( $entry->extracted_comments . "\n" . $comment );
-			} elseif ( '#,' === $first_two ) {
+			} elseif ( $first_two === '#,' ) {
 				$entry->flags = array_merge( $entry->flags, preg_split( '/,\s*/', $comment ) );
 			} else {
 				$entry->translator_comments = trim( $entry->translator_comments . "\n" . $comment );
@@ -505,10 +505,10 @@ if ( ! class_exists( 'PO', false ) ) :
 		 * @return string
 		 */
 		public static function trim_quotes( $s ) {
-			if ( '"' === substr( $s, 0, 1 ) ) {
+			if ( substr( $s, 0, 1 ) === '"' ) {
 				$s = substr( $s, 1 );
 			}
-			if ( '"' === substr( $s, -1, 1 ) ) {
+			if ( substr( $s, -1, 1 ) === '"' ) {
 				$s = substr( $s, 0, -1 );
 			}
 			return $s;

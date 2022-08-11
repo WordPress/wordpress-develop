@@ -76,19 +76,19 @@ function extract_from_markers( $filename, $marker ) {
 	$state = false;
 
 	foreach ( $markerdata as $markerline ) {
-		if ( false !== strpos( $markerline, '# END ' . $marker ) ) {
+		if ( strpos( $markerline, '# END ' . $marker ) !== false ) {
 			$state = false;
 		}
 
 		if ( $state ) {
-			if ( '#' === substr( $markerline, 0, 1 ) ) {
+			if ( substr( $markerline, 0, 1 ) === '#' ) {
 				continue;
 			}
 
 			$result[] = $markerline;
 		}
 
-		if ( false !== strpos( $markerline, '# BEGIN ' . $marker ) ) {
+		if ( strpos( $markerline, '# BEGIN ' . $marker ) !== false ) {
 			$state = true;
 		}
 	}
@@ -194,10 +194,10 @@ Any changes to the directives between these markers will be overwritten.'
 	$found_end_marker = false;
 
 	foreach ( $lines as $line ) {
-		if ( ! $found_marker && false !== strpos( $line, $start_marker ) ) {
+		if ( ! $found_marker && strpos( $line, $start_marker ) !== false ) {
 			$found_marker = true;
 			continue;
-		} elseif ( ! $found_end_marker && false !== strpos( $line, $end_marker ) ) {
+		} elseif ( ! $found_end_marker && strpos( $line, $end_marker ) !== false ) {
 			$found_end_marker = true;
 			continue;
 		}
@@ -636,10 +636,10 @@ function wp_doc_link_parse( $content ) {
 			continue;
 		}
 
-		if ( T_STRING === $tokens[ $t ][0] && ( '(' === $tokens[ $t + 1 ] || '(' === $tokens[ $t + 2 ] ) ) {
+		if ( $tokens[ $t ][0] === T_STRING && ( $tokens[ $t + 1 ] === '(' || $tokens[ $t + 2 ] === '(' ) ) {
 			// If it's a function or class defined locally, there's not going to be any docs available.
 			if ( ( isset( $tokens[ $t - 2 ][1] ) && in_array( $tokens[ $t - 2 ][1], array( 'function', 'class' ), true ) )
-				|| ( isset( $tokens[ $t - 2 ][0] ) && T_OBJECT_OPERATOR === $tokens[ $t - 1 ][0] )
+				|| ( isset( $tokens[ $t - 2 ][0] ) && $tokens[ $t - 1 ][0] === T_OBJECT_OPERATOR )
 			) {
 				$ignore_functions[] = $tokens[ $t ][1];
 			}
@@ -740,7 +740,7 @@ function set_screen_options() {
 		default:
 			$screen_option = false;
 
-			if ( '_page' === substr( $option, -5 ) || 'layout_columns' === $option ) {
+			if ( substr( $option, -5 ) === '_page' || $option === 'layout_columns' ) {
 				/**
 				 * Filters a screen option value before it is set.
 				 *
@@ -781,7 +781,7 @@ function set_screen_options() {
 			 */
 			$value = apply_filters( "set_screen_option_{$option}", $screen_option, $option, $value );
 
-			if ( false === $value ) {
+			if ( $value === false ) {
 				return;
 			}
 
@@ -826,7 +826,7 @@ function iis7_rewrite_rule_exists( $filename ) {
 	$xpath = new DOMXPath( $doc );
 	$rules = $xpath->query( '/configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'wordpress\')] | /configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'WordPress\')]' );
 
-	if ( 0 === $rules->length ) {
+	if ( $rules->length === 0 ) {
 		return false;
 	}
 
@@ -1286,7 +1286,7 @@ function wp_refresh_heartbeat_nonces( $response ) {
 function wp_heartbeat_set_suspension( $settings ) {
 	global $pagenow;
 
-	if ( 'post.php' === $pagenow || 'post-new.php' === $pagenow ) {
+	if ( $pagenow === 'post.php' || $pagenow === 'post-new.php' ) {
 		$settings['suspension'] = 'disable';
 	}
 
@@ -1475,7 +1475,7 @@ All at ###SITENAME###
 	$content      = str_replace( '###SITENAME###', wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ), $content );
 	$content      = str_replace( '###SITEURL###', home_url(), $content );
 
-	if ( '' !== get_option( 'blogname' ) ) {
+	if ( get_option( 'blogname' ) !== '' ) {
 		$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 	} else {
 		$site_title = parse_url( home_url(), PHP_URL_HOST );
@@ -1508,7 +1508,7 @@ All at ###SITENAME###
  * @return string Page title.
  */
 function _wp_privacy_settings_filter_draft_page_titles( $title, $page ) {
-	if ( 'draft' === $page->post_status && 'privacy' === get_current_screen()->id ) {
+	if ( $page->post_status === 'draft' && get_current_screen()->id === 'privacy' ) {
 		/* translators: %s: Page title. */
 		$title = sprintf( __( '%s (Draft)' ), $title );
 	}
@@ -1530,7 +1530,7 @@ function wp_check_php_version() {
 
 	$response = get_site_transient( 'php_check_' . $key );
 
-	if ( false === $response ) {
+	if ( $response === false ) {
 		$url = 'http://api.wordpress.org/core/serve-happy/1.0/';
 
 		if ( wp_http_supports( array( 'ssl' ) ) ) {
@@ -1541,7 +1541,7 @@ function wp_check_php_version() {
 
 		$response = wp_remote_get( $url );
 
-		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+		if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
 			return false;
 		}
 

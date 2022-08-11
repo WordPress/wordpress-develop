@@ -70,7 +70,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 
 		$this->options['ssl'] = false;
 
-		if ( isset( $opt['connection_type'] ) && 'ftps' === $opt['connection_type'] ) {
+		if ( isset( $opt['connection_type'] ) && $opt['connection_type'] === 'ftps' ) {
 			$this->options['ssl'] = true;
 		}
 	}
@@ -350,7 +350,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 
 		$content = $this->get_contents( $source );
 
-		if ( false === $content ) {
+		if ( $content === false ) {
 			return false;
 		}
 
@@ -389,7 +389,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			return false;
 		}
 
-		if ( 'f' === $type || $this->is_file( $file ) ) {
+		if ( $type === 'f' || $this->is_file( $file ) ) {
 			return ftp_delete( $this->link, $file );
 		}
 
@@ -602,7 +602,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 				$lucifer[3] += 1900; // 4-digit year fix.
 			}
 
-			$b['isdir'] = ( '<DIR>' === $lucifer[7] );
+			$b['isdir'] = ( $lucifer[7] === '<DIR>' );
 
 			if ( $b['isdir'] ) {
 				$b['type'] = 'd';
@@ -631,8 +631,8 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 				}
 
 				$b           = array();
-				$b['isdir']  = 'd' === $lucifer[0][0];
-				$b['islink'] = 'l' === $lucifer[0][0];
+				$b['isdir']  = $lucifer[0][0] === 'd';
+				$b['islink'] = $lucifer[0][0] === 'l';
 
 				if ( $b['isdir'] ) {
 					$b['type'] = 'd';
@@ -649,7 +649,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 				$b['group']  = $lucifer[3];
 				$b['size']   = $lucifer[4];
 
-				if ( 8 === $lcount ) {
+				if ( $lcount === 8 ) {
 					sscanf( $lucifer[5], '%d-%d-%d', $b['year'], $b['month'], $b['day'] );
 					sscanf( $lucifer[6], '%d:%d', $b['hour'], $b['minute'] );
 
@@ -739,11 +739,11 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 				continue;
 			}
 
-			if ( '.' === $entry['name'] || '..' === $entry['name'] ) {
+			if ( $entry['name'] === '.' || $entry['name'] === '..' ) {
 				continue;
 			}
 
-			if ( ! $include_hidden && '.' === $entry['name'][0] ) {
+			if ( ! $include_hidden && $entry['name'][0] === '.' ) {
 				continue;
 			}
 
@@ -757,7 +757,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 		$ret = array();
 
 		foreach ( (array) $dirlist as $struc ) {
-			if ( 'd' === $struc['type'] ) {
+			if ( $struc['type'] === 'd' ) {
 				if ( $recursive ) {
 					$struc['files'] = $this->dirlist( $path . '/' . $struc['name'], $include_hidden, $recursive );
 				} else {

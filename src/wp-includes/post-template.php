@@ -140,7 +140,7 @@ function get_the_title( $post = 0 ) {
 			$protected_title_format = apply_filters( 'protected_title_format', $prepend, $post );
 
 			$post_title = sprintf( $protected_title_format, $post_title );
-		} elseif ( isset( $post->post_status ) && 'private' === $post->post_status ) {
+		} elseif ( isset( $post->post_status ) && $post->post_status === 'private' ) {
 
 			/* translators: %s: Private post title. */
 			$prepend = __( 'Private: %s' );
@@ -286,13 +286,13 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 
 	// Use the globals if the $post parameter was not specified,
 	// but only after they have been set up in setup_postdata().
-	if ( null === $post && did_action( 'the_post' ) ) {
+	if ( $post === null && did_action( 'the_post' ) ) {
 		$elements = compact( 'page', 'more', 'preview', 'pages', 'multipage' );
 	} else {
 		$elements = generate_postdata( $_post );
 	}
 
-	if ( null === $more_link_text ) {
+	if ( $more_link_text === null ) {
 		$more_link_text = sprintf(
 			'<span aria-label="%1$s">%2$s</span>',
 			sprintf(
@@ -342,7 +342,7 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 		$content = array( $content );
 	}
 
-	if ( false !== strpos( $_post->post_content, '<!--noteaser-->' ) && ( ! $elements['multipage'] || 1 == $elements['page'] ) ) {
+	if ( strpos( $_post->post_content, '<!--noteaser-->' ) !== false && ( ! $elements['multipage'] || $elements['page'] == 1 ) ) {
 		$strip_teaser = true;
 	}
 
@@ -560,7 +560,7 @@ function get_post_class( $class = '', $post = null ) {
 				}
 
 				// 'post_tag' uses the 'tag' prefix for backward compatibility.
-				if ( 'post_tag' === $taxonomy ) {
+				if ( $taxonomy === 'post_tag' ) {
 					$classes[] = 'tag-' . $term_class;
 				} else {
 					$classes[] = sanitize_html_class( $taxonomy . '-' . $term_class, $taxonomy . '-' . $term->term_id );
@@ -865,7 +865,7 @@ function post_password_required( $post = null ) {
 	$hasher = new PasswordHash( 8, true );
 
 	$hash = wp_unslash( $_COOKIE[ 'wp-postpass_' . COOKIEHASH ] );
-	if ( 0 !== strpos( $hash, '$P$B' ) ) {
+	if ( strpos( $hash, '$P$B' ) !== 0 ) {
 		$required = true;
 	} else {
 		$required = ! $hasher->CheckPassword( $post->post_password, $hash );
@@ -955,11 +955,11 @@ function wp_link_pages( $args = '' ) {
 
 	$output = '';
 	if ( $multipage ) {
-		if ( 'number' === $parsed_args['next_or_number'] ) {
+		if ( $parsed_args['next_or_number'] === 'number' ) {
 			$output .= $parsed_args['before'];
 			for ( $i = 1; $i <= $numpages; $i++ ) {
 				$link = $parsed_args['link_before'] . str_replace( '%', $i, $parsed_args['pagelink'] ) . $parsed_args['link_after'];
-				if ( $i != $page || ! $more && 1 == $page ) {
+				if ( $i != $page || ! $more && $page == 1 ) {
 					$link = _wp_link_page( $i ) . $link . '</a>';
 				} elseif ( $i === $page ) {
 					$link = '<span class="post-page-numbers current" aria-current="' . esc_attr( $parsed_args['aria_current'] ) . '">' . $link . '</span>';
@@ -975,7 +975,7 @@ function wp_link_pages( $args = '' ) {
 				$link = apply_filters( 'wp_link_pages_link', $link, $i );
 
 				// Use the custom links separator beginning with the second link.
-				$output .= ( 1 === $i ) ? ' ' : $parsed_args['separator'];
+				$output .= ( $i === 1 ) ? ' ' : $parsed_args['separator'];
 				$output .= $link;
 			}
 			$output .= $parsed_args['after'];
@@ -1035,12 +1035,12 @@ function _wp_link_page( $i ) {
 	$post       = get_post();
 	$query_args = array();
 
-	if ( 1 == $i ) {
+	if ( $i == 1 ) {
 		$url = get_permalink();
 	} else {
 		if ( ! get_option( 'permalink_structure' ) || in_array( $post->post_status, array( 'draft', 'pending' ), true ) ) {
 			$url = add_query_arg( 'page', $i, get_permalink() );
-		} elseif ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' ) == $post->ID ) {
+		} elseif ( get_option( 'show_on_front' ) === 'page' && get_option( 'page_on_front' ) == $post->ID ) {
 			$url = trailingslashit( get_permalink() ) . user_trailingslashit( "$wp_rewrite->pagination_base/" . $i, 'single_paged' );
 		} else {
 			$url = trailingslashit( get_permalink() ) . user_trailingslashit( $i, 'single_paged' );
@@ -1049,7 +1049,7 @@ function _wp_link_page( $i ) {
 
 	if ( is_preview() ) {
 
-		if ( ( 'draft' !== $post->post_status ) && isset( $_GET['preview_id'], $_GET['preview_nonce'] ) ) {
+		if ( ( $post->post_status !== 'draft' ) && isset( $_GET['preview_id'], $_GET['preview_nonce'] ) ) {
 			$query_args['preview_id']    = wp_unslash( $_GET['preview_id'] );
 			$query_args['preview_nonce'] = wp_unslash( $_GET['preview_nonce'] );
 		}
@@ -1078,7 +1078,7 @@ function post_custom( $key = '' ) {
 
 	if ( ! isset( $custom[ $key ] ) ) {
 		return false;
-	} elseif ( 1 === count( $custom[ $key ] ) ) {
+	} elseif ( count( $custom[ $key ] ) === 1 ) {
 		return $custom[ $key ][0];
 	} else {
 		return $custom[ $key ];
@@ -1410,7 +1410,7 @@ function wp_page_menu( $args = array() ) {
 		$args['item_spacing'] = $defaults['item_spacing'];
 	}
 
-	if ( 'preserve' === $args['item_spacing'] ) {
+	if ( $args['item_spacing'] === 'preserve' ) {
 		$t = "\t";
 		$n = "\n";
 	} else {
@@ -1436,7 +1436,7 @@ function wp_page_menu( $args = array() ) {
 
 	// Show Home in the menu.
 	if ( ! empty( $args['show_home'] ) ) {
-		if ( true === $args['show_home'] || '1' === $args['show_home'] || 1 === $args['show_home'] ) {
+		if ( $args['show_home'] === true || $args['show_home'] === '1' || $args['show_home'] === 1 ) {
 			$text = __( 'Home' );
 		} else {
 			$text = $args['show_home'];
@@ -1447,7 +1447,7 @@ function wp_page_menu( $args = array() ) {
 		}
 		$menu .= '<li ' . $class . '><a href="' . esc_url( home_url( '/' ) ) . '">' . $args['link_before'] . $text . $args['link_after'] . '</a></li>';
 		// If the front page is a page, add it to the exclude list.
-		if ( 'page' === get_option( 'show_on_front' ) ) {
+		if ( get_option( 'show_on_front' ) === 'page' ) {
 			if ( ! empty( $list_args['exclude'] ) ) {
 				$list_args['exclude'] .= ',';
 			} else {
@@ -1472,8 +1472,8 @@ function wp_page_menu( $args = array() ) {
 
 		// wp_nav_menu() doesn't set before and after.
 		if ( isset( $args['fallback_cb'] ) &&
-			'wp_page_menu' === $args['fallback_cb'] &&
-			'ul' !== $container ) {
+			$args['fallback_cb'] === 'wp_page_menu' &&
+			$container !== 'ul' ) {
 			$args['before'] = "<ul>{$n}";
 			$args['after']  = '</ul>';
 		}
@@ -1618,7 +1618,7 @@ function the_attachment_link( $post = 0, $fullsize = false, $deprecated = false,
 function wp_get_attachment_link( $post = 0, $size = 'thumbnail', $permalink = false, $icon = false, $text = false, $attr = '' ) {
 	$_post = get_post( $post );
 
-	if ( empty( $_post ) || ( 'attachment' !== $_post->post_type ) || ! wp_get_attachment_url( $_post->ID ) ) {
+	if ( empty( $_post ) || ( $_post->post_type !== 'attachment' ) || ! wp_get_attachment_url( $_post->ID ) ) {
 		return __( 'Missing Attachment' );
 	}
 
@@ -1630,17 +1630,17 @@ function wp_get_attachment_link( $post = 0, $size = 'thumbnail', $permalink = fa
 
 	if ( $text ) {
 		$link_text = $text;
-	} elseif ( $size && 'none' !== $size ) {
+	} elseif ( $size && $size !== 'none' ) {
 		$link_text = wp_get_attachment_image( $_post->ID, $size, $icon, $attr );
 	} else {
 		$link_text = '';
 	}
 
-	if ( '' === trim( $link_text ) ) {
+	if ( trim( $link_text ) === '' ) {
 		$link_text = $_post->post_title;
 	}
 
-	if ( '' === trim( $link_text ) ) {
+	if ( trim( $link_text ) === '' ) {
 		$link_text = esc_html( pathinfo( get_attached_file( $_post->ID ), PATHINFO_FILENAME ) );
 	}
 
@@ -1675,7 +1675,7 @@ function wp_get_attachment_link( $post = 0, $size = 'thumbnail', $permalink = fa
 function prepend_attachment( $content ) {
 	$post = get_post();
 
-	if ( empty( $post->post_type ) || 'attachment' !== $post->post_type ) {
+	if ( empty( $post->post_type ) || $post->post_type !== 'attachment' ) {
 		return $content;
 	}
 
@@ -1790,7 +1790,7 @@ function is_page_template( $template = '' ) {
 		}
 	}
 
-	return ( 'default' === $template && ! $page_template );
+	return ( $template === 'default' && ! $page_template );
 }
 
 /**
@@ -1812,7 +1812,7 @@ function get_page_template_slug( $post = null ) {
 
 	$template = get_post_meta( $post->ID, '_wp_page_template', true );
 
-	if ( ! $template || 'default' === $template ) {
+	if ( ! $template || $template === 'default' ) {
 		return '';
 	}
 
@@ -1963,7 +1963,7 @@ function wp_list_post_revisions( $post = 0, $type = 'all' ) {
 		}
 
 		$is_autosave = wp_is_post_autosave( $revision );
-		if ( ( 'revision' === $type && $is_autosave ) || ( 'autosave' === $type && ! $is_autosave ) ) {
+		if ( ( $type === 'revision' && $is_autosave ) || ( $type === 'autosave' && ! $is_autosave ) ) {
 			continue;
 		}
 

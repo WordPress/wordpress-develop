@@ -312,7 +312,7 @@ class Tests_Meta extends WP_UnitTestCase {
 			$meta = get_post_meta( $post_id, 'color' );
 			$this->assertSame( $meta, $colors );
 
-			if ( 0 === $i % 2 ) {
+			if ( $i % 2 === 0 ) {
 				wp_cache_delete( $post_id, 'post_meta' );
 			}
 		}

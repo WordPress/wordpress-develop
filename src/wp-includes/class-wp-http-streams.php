@@ -55,9 +55,9 @@ class WP_Http_Streams {
 
 		$connect_host = $parsed_url['host'];
 
-		$secure_transport = ( 'ssl' === $parsed_url['scheme'] || 'https' === $parsed_url['scheme'] );
+		$secure_transport = ( $parsed_url['scheme'] === 'ssl' || $parsed_url['scheme'] === 'https' );
 		if ( ! isset( $parsed_url['port'] ) ) {
-			if ( 'ssl' === $parsed_url['scheme'] || 'https' === $parsed_url['scheme'] ) {
+			if ( $parsed_url['scheme'] === 'ssl' || $parsed_url['scheme'] === 'https' ) {
 				$parsed_url['port'] = 443;
 				$secure_transport   = true;
 			} else {
@@ -84,7 +84,7 @@ class WP_Http_Streams {
 		 * to ::1, which fails when the server is not set up for it. For compatibility, always
 		 * connect to the IPv4 address.
 		 */
-		if ( 'localhost' === strtolower( $connect_host ) ) {
+		if ( strtolower( $connect_host ) === 'localhost' ) {
 			$connect_host = '127.0.0.1';
 		}
 
@@ -187,9 +187,9 @@ class WP_Http_Streams {
 			}
 		}
 
-		if ( false === $handle ) {
+		if ( $handle === false ) {
 			// SSL connection failed due to expired/invalid cert, or, OpenSSL configuration is broken.
-			if ( $secure_transport && 0 === $connection_error && '' === $connection_error_str ) {
+			if ( $secure_transport && $connection_error === 0 && $connection_error_str === '' ) {
 				return new WP_Error( 'http_request_failed', __( 'The SSL certificate for the host could not be verified.' ) );
 			}
 
@@ -215,8 +215,8 @@ class WP_Http_Streams {
 
 		$include_port_in_host_header = (
 			( $proxy->is_enabled() && $proxy->send_through_proxy( $url ) )
-			|| ( 'http' === $parsed_url['scheme'] && 80 != $parsed_url['port'] )
-			|| ( 'https' === $parsed_url['scheme'] && 443 != $parsed_url['port'] )
+			|| ( $parsed_url['scheme'] === 'http' && $parsed_url['port'] != 80 )
+			|| ( $parsed_url['scheme'] === 'https' && $parsed_url['port'] != 443 )
 		);
 
 		if ( $include_port_in_host_header ) {
@@ -373,20 +373,20 @@ class WP_Http_Streams {
 
 		// Handle redirects.
 		$redirect_response = WP_Http::handle_redirects( $url, $parsed_args, $response );
-		if ( false !== $redirect_response ) {
+		if ( $redirect_response !== false ) {
 			return $redirect_response;
 		}
 
 		// If the body was chunk encoded, then decode it.
 		if ( ! empty( $processed_response['body'] )
 			&& isset( $processed_headers['headers']['transfer-encoding'] )
-			&& 'chunked' === $processed_headers['headers']['transfer-encoding']
+			&& $processed_headers['headers']['transfer-encoding'] === 'chunked'
 		) {
 			$processed_response['body'] = WP_Http::chunkTransferDecode( $processed_response['body'] );
 		}
 
-		if ( true === $parsed_args['decompress']
-			&& true === WP_Http_Encoding::should_decode( $processed_headers['headers'] )
+		if ( $parsed_args['decompress'] === true
+			&& WP_Http_Encoding::should_decode( $processed_headers['headers'] ) === true
 		) {
 			$processed_response['body'] = WP_Http_Encoding::decompress( $processed_response['body'] );
 		}
@@ -456,7 +456,7 @@ class WP_Http_Streams {
 		}
 
 		// IP's can't be wildcards, Stop processing.
-		if ( 'ip' === $host_type ) {
+		if ( $host_type === 'ip' ) {
 			return false;
 		}
 

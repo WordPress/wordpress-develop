@@ -105,7 +105,7 @@ class WP_Customize_Date_Time_Control extends WP_Customize_Control {
 		$date_format = preg_replace( '/(?<!\\\\)[jd]/', '%3$s', $date_format );
 
 		// Fallback to ISO date format if year, month, or day are missing from the date format.
-		if ( 1 !== substr_count( $date_format, '%1$s' ) || 1 !== substr_count( $date_format, '%2$s' ) || 1 !== substr_count( $date_format, '%3$s' ) ) {
+		if ( substr_count( $date_format, '%1$s' ) !== 1 || substr_count( $date_format, '%2$s' ) !== 1 || substr_count( $date_format, '%3$s' ) !== 1 ) {
 			$date_format = '%1$s-%2$s-%3$s';
 		}
 		?>

@@ -430,7 +430,7 @@ final class WP_Customize_Widgets {
 			}
 
 			$is_registered_sidebar = is_registered_sidebar( $sidebar_id );
-			$is_inactive_widgets   = ( 'wp_inactive_widgets' === $sidebar_id );
+			$is_inactive_widgets   = ( $sidebar_id === 'wp_inactive_widgets' );
 			$is_active_sidebar     = ( $is_registered_sidebar && ! $is_inactive_widgets );
 
 			// Add setting for managing the sidebar's widgets.
@@ -768,7 +768,7 @@ final class WP_Customize_Widgets {
 			);
 		}
 
-		if ( 1 === $registered_sidebar_count ) {
+		if ( $registered_sidebar_count === 1 ) {
 			$no_areas_shown_message = html_entity_decode(
 				sprintf(
 					__( 'Your theme has 1 widget area, but this particular page does not display it.' )
@@ -1060,7 +1060,7 @@ final class WP_Customize_Widgets {
 			} else {
 				$args['_add'] = 'single';
 
-				if ( $sidebar && 'wp_inactive_widgets' !== $sidebar ) {
+				if ( $sidebar && $sidebar !== 'wp_inactive_widgets' ) {
 					$is_disabled = true;
 				}
 				$id_base = $widget['id'];
@@ -1081,7 +1081,7 @@ final class WP_Customize_Widgets {
 					'temp_id'      => isset( $args['_temp_id'] ) ? $args['_temp_id'] : null,
 					'is_multi'     => $is_multi_widget,
 					'control_tpl'  => $control_tpl,
-					'multi_number' => ( 'multi' === $args['_add'] ) ? $args['_multi_num'] : false,
+					'multi_number' => ( $args['_add'] === 'multi' ) ? $args['_multi_num'] : false,
 					'is_disabled'  => $is_disabled,
 					'id_base'      => $id_base,
 					'transport'    => $this->is_widget_selective_refreshable( $id_base ) ? 'postMessage' : 'refresh',
@@ -1417,14 +1417,14 @@ final class WP_Customize_Widgets {
 	public function sanitize_widget_instance( $value, $id_base = null ) {
 		global $wp_widget_factory;
 
-		if ( array() === $value ) {
+		if ( $value === array() ) {
 			return $value;
 		}
 
 		if ( isset( $value['raw_instance'] ) && $id_base && wp_use_widgets_block_editor() ) {
 			$widget_object = $wp_widget_factory->get_widget_object( $id_base );
 			if ( ! empty( $widget_object->widget_options['show_instance_in_rest'] ) ) {
-				if ( 'block' === $id_base && ! current_user_can( 'unfiltered_html' ) ) {
+				if ( $id_base === 'block' && ! current_user_can( 'unfiltered_html' ) ) {
 					/*
 					 * The content of the 'block' widget is not filtered on the fly while editing.
 					 * Filter the content here to prevent vulnerabilities.
@@ -1445,7 +1445,7 @@ final class WP_Customize_Widgets {
 		}
 
 		$decoded = base64_decode( $value['encoded_serialized_instance'], true );
-		if ( false === $decoded ) {
+		if ( $decoded === false ) {
 			return;
 		}
 
@@ -1454,7 +1454,7 @@ final class WP_Customize_Widgets {
 		}
 
 		$instance = unserialize( $decoded );
-		if ( false === $instance ) {
+		if ( $instance === false ) {
 			return;
 		}
 
@@ -1560,7 +1560,7 @@ final class WP_Customize_Widgets {
 		$added_input_vars = array();
 		if ( ! empty( $_POST['sanitized_widget_setting'] ) ) {
 			$sanitized_widget_setting = json_decode( $this->get_post_value( 'sanitized_widget_setting' ), true );
-			if ( false === $sanitized_widget_setting ) {
+			if ( $sanitized_widget_setting === false ) {
 				$this->stop_capturing_option_updates();
 				return new WP_Error( 'widget_setting_malformed' );
 			}
@@ -1604,7 +1604,7 @@ final class WP_Customize_Widgets {
 		}
 
 		// Make sure the expected option was updated.
-		if ( 0 !== $this->count_captured_options() ) {
+		if ( $this->count_captured_options() !== 0 ) {
 			if ( $this->count_captured_options() > 1 ) {
 				$this->stop_capturing_option_updates();
 				return new WP_Error( 'widget_setting_too_many_options' );
@@ -1619,7 +1619,7 @@ final class WP_Customize_Widgets {
 
 		// Obtain the widget instance.
 		$option = $this->get_captured_option( $option_name );
-		if ( null !== $parsed_id['number'] ) {
+		if ( $parsed_id['number'] !== null ) {
 			$instance = $option[ $parsed_id['number'] ];
 		} else {
 			$instance = $option;
@@ -1728,7 +1728,7 @@ final class WP_Customize_Widgets {
 		}
 
 		if ( preg_match( '/^widget\[(?P<widget_id>.+)\]$/', $partial_id, $matches ) ) {
-			if ( false === $partial_args ) {
+			if ( $partial_args === false ) {
 				$partial_args = array();
 			}
 			$partial_args = array_merge(
@@ -2038,7 +2038,7 @@ final class WP_Customize_Widgets {
 	 * @return bool Whether the option capture is ignored.
 	 */
 	protected function is_option_capture_ignored( $option_name ) {
-		return ( 0 === strpos( $option_name, '_transient_' ) );
+		return ( strpos( $option_name, '_transient_' ) === 0 );
 	}
 
 	/**

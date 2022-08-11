@@ -53,7 +53,7 @@ class Walker_Category extends Walker {
 	 *                       value is 'list'. See wp_list_categories(). Default empty array.
 	 */
 	public function start_lvl( &$output, $depth = 0, $args = array() ) {
-		if ( 'list' !== $args['style'] ) {
+		if ( $args['style'] !== 'list' ) {
 			return;
 		}
 
@@ -74,7 +74,7 @@ class Walker_Category extends Walker {
 	 *                       value is 'list'. See wp_list_categories(). Default empty array.
 	 */
 	public function end_lvl( &$output, $depth = 0, $args = array() ) {
-		if ( 'list' !== $args['style'] ) {
+		if ( $args['style'] !== 'list' ) {
 			return;
 		}
 
@@ -106,7 +106,7 @@ class Walker_Category extends Walker {
 		$cat_name = apply_filters( 'list_cats', esc_attr( $category->name ), $category );
 
 		// Don't generate an element if the category name is empty.
-		if ( '' === $cat_name ) {
+		if ( $cat_name === '' ) {
 			return;
 		}
 
@@ -145,8 +145,8 @@ class Walker_Category extends Walker {
 
 		$attributes = '';
 		foreach ( $atts as $attr => $value ) {
-			if ( is_scalar( $value ) && '' !== $value && false !== $value ) {
-				$value       = ( 'href' === $attr ) ? esc_url( $value ) : esc_attr( $value );
+			if ( is_scalar( $value ) && $value !== '' && $value !== false ) {
+				$value       = ( $attr === 'href' ) ? esc_url( $value ) : esc_attr( $value );
 				$attributes .= ' ' . $attr . '="' . $value . '"';
 			}
 		}
@@ -192,7 +192,7 @@ class Walker_Category extends Walker {
 		if ( ! empty( $args['show_count'] ) ) {
 			$link .= ' (' . number_format_i18n( $category->count ) . ')';
 		}
-		if ( 'list' === $args['style'] ) {
+		if ( $args['style'] === 'list' ) {
 			$output     .= "\t<li";
 			$css_classes = array(
 				'cat-item',
@@ -265,7 +265,7 @@ class Walker_Category extends Walker {
 	 *                            append to output. See wp_list_categories(). Default empty array.
 	 */
 	public function end_el( &$output, $data_object, $depth = 0, $args = array() ) {
-		if ( 'list' !== $args['style'] ) {
+		if ( $args['style'] !== 'list' ) {
 			return;
 		}
 

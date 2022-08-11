@@ -572,7 +572,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 	}
 
 	public function filter_get_object_subtype_for_customtype( $subtype, $object_id ) {
-		if ( 1 === ( $object_id % 2 ) ) {
+		if ( ( $object_id % 2 ) === 1 ) {
 			return 'odd';
 		}
 

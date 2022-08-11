@@ -22,16 +22,16 @@ if ( isset( $_POST['deletecomment'] ) ) {
 	$action = 'deletecomment';
 }
 
-if ( 'cdc' === $action ) {
+if ( $action === 'cdc' ) {
 	$action = 'delete';
-} elseif ( 'mac' === $action ) {
+} elseif ( $action === 'mac' ) {
 	$action = 'approve';
 }
 
 if ( isset( $_GET['dt'] ) ) {
-	if ( 'spam' === $_GET['dt'] ) {
+	if ( $_GET['dt'] === 'spam' ) {
 		$action = 'spam';
-	} elseif ( 'trash' === $_GET['dt'] ) {
+	} elseif ( $_GET['dt'] === 'trash' ) {
 		$action = 'trash';
 	}
 }
@@ -41,7 +41,7 @@ if ( isset( $_REQUEST['c'] ) ) {
 	$comment    = get_comment( $comment_id );
 
 	// Prevent actions on a comment associated with a trashed post.
-	if ( $comment && 'trash' === get_post_status( $comment->comment_post_ID ) ) {
+	if ( $comment && get_post_status( $comment->comment_post_ID ) === 'trash' ) {
 		wp_die(
 			__( 'You cannot edit this comment because the associated post is in the Trash. Please restore the post first, then try again.' )
 		);
@@ -83,7 +83,7 @@ switch ( $action ) {
 			comment_footer_die( __( 'Sorry, you are not allowed to edit this comment.' ) );
 		}
 
-		if ( 'trash' === $comment->comment_approved ) {
+		if ( $comment->comment_approved === 'trash' ) {
 			comment_footer_die( __( 'This comment is in the Trash. Please move it out of the Trash if you want to edit it.' ) );
 		}
 
@@ -119,7 +119,7 @@ switch ( $action ) {
 		require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		$formaction    = $action . 'comment';
-		$nonce_action  = ( 'approve' === $action ) ? 'approve-comment_' : 'delete-comment_';
+		$nonce_action  = ( $action === 'approve' ) ? 'approve-comment_' : 'delete-comment_';
 		$nonce_action .= $comment_id;
 
 		?>
@@ -147,7 +147,7 @@ switch ( $action ) {
 				break;
 		}
 
-		if ( '0' !== $comment->comment_approved ) { // If not unapproved.
+		if ( $comment->comment_approved !== '0' ) { // If not unapproved.
 			$message = '';
 			switch ( $comment->comment_approved ) {
 				case '1':
@@ -222,7 +222,7 @@ switch ( $action ) {
 			/* translators: Comment time format. See https://www.php.net/manual/datetime.format.php */
 			get_comment_date( __( 'g:i a' ), $comment )
 		);
-		if ( 'approved' === wp_get_comment_status( $comment ) && ! empty( $comment->comment_post_ID ) ) {
+		if ( wp_get_comment_status( $comment ) === 'approved' && ! empty( $comment->comment_post_ID ) ) {
 			echo '<a href="' . esc_url( get_comment_link( $comment ) ) . '">' . $submitted . '</a>';
 		} else {
 			echo $submitted;
@@ -282,7 +282,7 @@ switch ( $action ) {
 			comment_footer_die( __( 'Sorry, you are not allowed to edit comments on this post.' ) );
 		}
 
-		if ( wp_get_referer() && ! $noredir && false === strpos( wp_get_referer(), 'comment.php' ) ) {
+		if ( wp_get_referer() && ! $noredir && strpos( wp_get_referer(), 'comment.php' ) === false ) {
 			$redir = wp_get_referer();
 		} elseif ( wp_get_original_referer() && ! $noredir ) {
 			$redir = wp_get_original_referer();

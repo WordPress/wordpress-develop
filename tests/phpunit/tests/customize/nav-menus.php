@@ -471,7 +471,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'pagenum', $args );
 		$this->filter_count_customize_nav_menu_searched_items += 1;
 
-		if ( 'cat' === $args['s'] ) {
+		if ( $args['s'] === 'cat' ) {
 			array_unshift(
 				$items,
 				array(

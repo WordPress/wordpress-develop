@@ -107,7 +107,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		// Generic tests that should hold true for any theme.
 		foreach ( $themes as $k => $theme ) {
 			// Don't run these checks for custom themes.
-			if ( empty( $theme['Author'] ) || false === strpos( $theme['Author'], 'WordPress' ) ) {
+			if ( empty( $theme['Author'] ) || strpos( $theme['Author'], 'WordPress' ) === false ) {
 				continue;
 			}
 
@@ -195,7 +195,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 */
 	public function test_default_theme_in_default_theme_list() {
 		$latest_default_theme = WP_Theme::get_core_default_theme();
-		if ( ! $latest_default_theme->exists() || 'twenty' !== substr( $latest_default_theme->get_stylesheet(), 0, 6 ) ) {
+		if ( ! $latest_default_theme->exists() || substr( $latest_default_theme->get_stylesheet(), 0, 6 ) !== 'twenty' ) {
 			$this->fail( 'No Twenty* series default themes are installed.' );
 		}
 		$this->assertContains( $latest_default_theme->get_stylesheet(), $this->default_themes );
@@ -275,7 +275,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		for ( $i = 0; $i < 3; $i++ ) {
 			foreach ( $themes as $name => $theme ) {
 				// Switch to this theme.
-				if ( 2 === $i ) {
+				if ( $i === 2 ) {
 					switch_theme( $theme['Template'], $theme['Stylesheet'] );
 				} else {
 					switch_theme( $theme['Stylesheet'] );

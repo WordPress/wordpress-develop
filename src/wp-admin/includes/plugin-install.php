@@ -107,7 +107,7 @@ function plugins_api( $action, $args = array() ) {
 		$args = (object) $args;
 	}
 
-	if ( 'query_plugins' === $action ) {
+	if ( $action === 'query_plugins' ) {
 		if ( ! isset( $args->per_page ) ) {
 			$args->per_page = 24;
 		}
@@ -149,7 +149,7 @@ function plugins_api( $action, $args = array() ) {
 	 */
 	$res = apply_filters( 'plugins_api', false, $action, $args );
 
-	if ( false === $res ) {
+	if ( $res === false ) {
 
 		$url = 'http://api.wordpress.org/plugins/info/1.2/';
 		$url = add_query_arg(
@@ -202,7 +202,7 @@ function plugins_api( $action, $args = array() ) {
 			if ( is_array( $res ) ) {
 				// Object casting is required in order to match the info/1.0 format.
 				$res = (object) $res;
-			} elseif ( null === $res ) {
+			} elseif ( $res === null ) {
 				$res = new WP_Error(
 					'plugins_api_failed',
 					sprintf(
@@ -245,7 +245,7 @@ function plugins_api( $action, $args = array() ) {
 function install_popular_tags( $args = array() ) {
 	$key  = md5( serialize( $args ) );
 	$tags = get_site_transient( 'poptags_' . $key );
-	if ( false !== $tags ) {
+	if ( $tags !== false ) {
 		return $tags;
 	}
 
@@ -462,7 +462,7 @@ function install_plugin_install_status( $api, $loop = false ) {
 		}
 	}
 
-	if ( 'install' === $status ) {
+	if ( $status === 'install' ) {
 		if ( is_dir( WP_PLUGIN_DIR . '/' . $api->slug ) ) {
 			$installed_plugin = get_plugins( '/' . $api->slug );
 			if ( empty( $installed_plugin ) ) {
@@ -620,7 +620,7 @@ function install_plugin_information() {
 	echo "<div id='{$_tab}-tabs' class='{$_with_banner}'>\n";
 
 	foreach ( (array) $api->sections as $section_name => $content ) {
-		if ( 'reviews' === $section_name && ( empty( $api->ratings ) || 0 === array_sum( (array) $api->ratings ) ) ) {
+		if ( $section_name === 'reviews' && ( empty( $api->ratings ) || array_sum( (array) $api->ratings ) === 0 ) ) {
 			continue;
 		}
 

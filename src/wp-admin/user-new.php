@@ -29,12 +29,12 @@ if ( is_multisite() ) {
 	add_filter( 'wpmu_signup_user_notification_email', 'admin_created_user_email' );
 }
 
-if ( isset( $_REQUEST['action'] ) && 'adduser' === $_REQUEST['action'] ) {
+if ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] === 'adduser' ) {
 	check_admin_referer( 'add-user', '_wpnonce_add-user' );
 
 	$user_details = null;
 	$user_email   = wp_unslash( $_REQUEST['email'] );
-	if ( false !== strpos( $user_email, '@' ) ) {
+	if ( strpos( $user_email, '@' ) !== false ) {
 		$user_details = get_user_by( 'email', $user_email );
 	} else {
 		if ( current_user_can( 'manage_network_users' ) ) {
@@ -63,7 +63,7 @@ if ( isset( $_REQUEST['action'] ) && 'adduser' === $_REQUEST['action'] ) {
 	$redirect       = 'user-new.php';
 	$username       = $user_details->user_login;
 	$user_id        = $user_details->ID;
-	if ( null != $username && array_key_exists( $blog_id, get_blogs_of_user( $user_id ) ) ) {
+	if ( $username != null && array_key_exists( $blog_id, get_blogs_of_user( $user_id ) ) ) {
 		$redirect = add_query_arg( array( 'update' => 'addexisting' ), 'user-new.php' );
 	} else {
 		if ( isset( $_POST['noconfirmation'] ) && current_user_can( 'manage_network_users' ) ) {
@@ -112,7 +112,7 @@ if ( isset( $_REQUEST['action'] ) && 'adduser' === $_REQUEST['action'] ) {
 
 			$switched_locale = switch_to_locale( get_user_locale( $user_details ) );
 
-			if ( '' !== get_option( 'blogname' ) ) {
+			if ( get_option( 'blogname' ) !== '' ) {
 				$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 			} else {
 				$site_title = parse_url( home_url(), PHP_URL_HOST );
@@ -180,7 +180,7 @@ Please click the following link to confirm the invite:
 	}
 	wp_redirect( $redirect );
 	die();
-} elseif ( isset( $_REQUEST['action'] ) && 'createuser' === $_REQUEST['action'] ) {
+} elseif ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] === 'createuser' ) {
 	check_admin_referer( 'create-user', '_wpnonce_create-user' );
 
 	if ( ! current_user_can( 'create_users' ) ) {
@@ -364,7 +364,7 @@ if ( isset( $_GET['update'] ) ) {
 				break;
 		}
 	} else {
-		if ( 'add' === $_GET['update'] ) {
+		if ( $_GET['update'] === 'add' ) {
 			$messages[] = __( 'User added.' );
 		}
 	}

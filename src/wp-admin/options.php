@@ -70,7 +70,7 @@ if ( ! empty( $_GET['adminhash'] ) ) {
 
 	wp_redirect( admin_url( $redirect ) );
 	exit;
-} elseif ( ! empty( $_GET['dismiss'] ) && 'new_admin_email' === $_GET['dismiss'] ) {
+} elseif ( ! empty( $_GET['dismiss'] ) && $_GET['dismiss'] === 'new_admin_email' ) {
 	check_admin_referer( 'dismiss-' . get_current_blog_id() . '-new_admin_email' );
 	delete_option( 'adminhash' );
 	delete_option( 'new_admin_email' );
@@ -78,7 +78,7 @@ if ( ! empty( $_GET['adminhash'] ) ) {
 	exit;
 }
 
-if ( is_multisite() && ! current_user_can( 'manage_network_options' ) && 'update' !== $action ) {
+if ( is_multisite() && ! current_user_can( 'manage_network_options' ) && $action !== 'update' ) {
 	wp_die(
 		'<h1>' . __( 'You need a higher level of permission.' ) . '</h1>' .
 		'<p>' . __( 'Sorry, you are not allowed to delete these items.' ) . '</p>',
@@ -189,7 +189,7 @@ if ( ! is_multisite() ) {
 	 * they can be edited, otherwise they're locked.
 	 */
 	if ( get_option( 'upload_url_path' )
-		|| get_option( 'upload_path' ) && 'wp-content/uploads' !== get_option( 'upload_path' )
+		|| get_option( 'upload_path' ) && get_option( 'upload_path' ) !== 'wp-content/uploads'
 	) {
 		$allowed_options['media'][] = 'upload_path';
 		$allowed_options['media'][] = 'upload_url_path';
@@ -232,8 +232,8 @@ $allowed_options = apply_filters_deprecated(
  */
 $allowed_options = apply_filters( 'allowed_options', $allowed_options );
 
-if ( 'update' === $action ) { // We are saving settings sent from a settings page.
-	if ( 'options' === $option_page && ! isset( $_POST['option_page'] ) ) { // This is for back compat and will eventually be removed.
+if ( $action === 'update' ) { // We are saving settings sent from a settings page.
+	if ( $option_page === 'options' && ! isset( $_POST['option_page'] ) ) { // This is for back compat and will eventually be removed.
 		$unregistered = true;
 		check_admin_referer( 'update-options' );
 	} else {
@@ -251,7 +251,7 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 		);
 	}
 
-	if ( 'options' === $option_page ) {
+	if ( $option_page === 'options' ) {
 		if ( is_multisite() && ! current_user_can( 'manage_network_options' ) ) {
 			wp_die( __( 'Sorry, you are not allowed to modify unregistered settings for this site.' ) );
 		}
@@ -260,16 +260,16 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 		$options = $allowed_options[ $option_page ];
 	}
 
-	if ( 'general' === $option_page ) {
+	if ( $option_page === 'general' ) {
 		// Handle custom date/time formats.
 		if ( ! empty( $_POST['date_format'] ) && isset( $_POST['date_format_custom'] )
-			&& '\c\u\s\t\o\m' === wp_unslash( $_POST['date_format'] )
+			&& wp_unslash( $_POST['date_format'] ) === '\c\u\s\t\o\m'
 		) {
 			$_POST['date_format'] = $_POST['date_format_custom'];
 		}
 
 		if ( ! empty( $_POST['time_format'] ) && isset( $_POST['time_format_custom'] )
-			&& '\c\u\s\t\o\m' === wp_unslash( $_POST['time_format'] )
+			&& wp_unslash( $_POST['time_format'] ) === '\c\u\s\t\o\m'
 		) {
 			$_POST['time_format'] = $_POST['time_format_custom'];
 		}
@@ -373,7 +373,7 @@ $options = $wpdb->get_results( "SELECT * FROM $wpdb->options ORDER BY option_nam
 foreach ( (array) $options as $option ) :
 	$disabled = false;
 
-	if ( '' === $option->option_name ) {
+	if ( $option->option_name === '' ) {
 		continue;
 	}
 

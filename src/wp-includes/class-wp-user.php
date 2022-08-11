@@ -193,11 +193,11 @@ class WP_User {
 		global $wpdb;
 
 		// 'ID' is an alias of 'id'.
-		if ( 'ID' === $field ) {
+		if ( $field === 'ID' ) {
 			$field = 'id';
 		}
 
-		if ( 'id' === $field ) {
+		if ( $field === 'id' ) {
 			// Make sure the value is numeric to avoid casting objects, for example,
 			// to int 1.
 			if ( ! is_numeric( $value ) ) {
@@ -237,7 +237,7 @@ class WP_User {
 				return false;
 		}
 
-		if ( false !== $user_id ) {
+		if ( $user_id !== false ) {
 			$user = wp_cache_get( $user_id, 'users' );
 			if ( $user ) {
 				return $user;
@@ -268,7 +268,7 @@ class WP_User {
 	 * @return bool Whether the given user meta key is set.
 	 */
 	public function __isset( $key ) {
-		if ( 'id' === $key ) {
+		if ( $key === 'id' ) {
 			_deprecated_argument(
 				'WP_User->id',
 				'2.1.0',
@@ -301,7 +301,7 @@ class WP_User {
 	 * @return mixed Value of the given user meta key (if set). If `$key` is 'id', the user ID.
 	 */
 	public function __get( $key ) {
-		if ( 'id' === $key ) {
+		if ( $key === 'id' ) {
 			_deprecated_argument(
 				'WP_User->id',
 				'2.1.0',
@@ -342,7 +342,7 @@ class WP_User {
 	 * @param mixed  $value User meta value.
 	 */
 	public function __set( $key, $value ) {
-		if ( 'id' === $key ) {
+		if ( $key === 'id' ) {
 			_deprecated_argument(
 				'WP_User->id',
 				'2.1.0',
@@ -367,7 +367,7 @@ class WP_User {
 	 * @param string $key User meta key to unset.
 	 */
 	public function __unset( $key ) {
-		if ( 'id' === $key ) {
+		if ( $key === 'id' ) {
 			_deprecated_argument(
 				'WP_User->id',
 				'2.1.0',
@@ -448,7 +448,7 @@ class WP_User {
 	 * @return mixed|false Return value of the callback, false otherwise.
 	 */
 	public function __call( $name, $arguments ) {
-		if ( '_init_caps' === $name ) {
+		if ( $name === '_init_caps' ) {
 			return $this->_init_caps( ...$arguments );
 		}
 		return false;
@@ -602,7 +602,7 @@ class WP_User {
 	 * @param string $role Role name.
 	 */
 	public function set_role( $role ) {
-		if ( 1 === count( $this->roles ) && current( $this->roles ) == $role ) {
+		if ( count( $this->roles ) === 1 && current( $this->roles ) == $role ) {
 			return;
 		}
 

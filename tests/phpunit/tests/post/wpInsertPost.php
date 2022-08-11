@@ -141,7 +141,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$this->assertCount( 2, $term_cache );
 
 		$term_cache = wp_cache_get( $post_id, 'ctax_relationships' );
-		if ( 'cpt' === $post_type ) {
+		if ( $post_type === 'cpt' ) {
 			$this->assertIsArray( $term_cache );
 			$this->assertCount( 2, $term_cache );
 		} else {

@@ -127,7 +127,7 @@ add_filter( 'wp_get_attachment_image_attributes', 'twentynineteen_post_thumbnail
  */
 function twentynineteen_add_ellipses_to_nav( $nav_menu, $args ) {
 
-	if ( 'menu-1' === $args->theme_location ) :
+	if ( $args->theme_location === 'menu-1' ) :
 
 		$nav_menu .= '
 			<div class="main-menu-more">
@@ -187,7 +187,7 @@ add_filter( 'nav_menu_link_attributes', 'twentynineteen_nav_menu_link_attributes
  */
 function twentynineteen_add_mobile_parent_nav_menu_items( $sorted_menu_items, $args ) {
 	static $pseudo_id = 0;
-	if ( ! isset( $args->theme_location ) || 'menu-1' !== $args->theme_location ) {
+	if ( ! isset( $args->theme_location ) || $args->theme_location !== 'menu-1' ) {
 		return $sorted_menu_items;
 	}
 

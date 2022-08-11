@@ -57,7 +57,7 @@ if ( $action ) {
 
 			$result = activate_plugin( $plugin, self_admin_url( 'plugins.php?error=true&plugin=' . urlencode( $plugin ) ), is_network_admin() );
 			if ( is_wp_error( $result ) ) {
-				if ( 'unexpected_output' === $result->get_error_code() ) {
+				if ( $result->get_error_code() === 'unexpected_output' ) {
 					$redirect = self_admin_url( 'plugins.php?error=true&charsout=' . strlen( $result->get_error_data() ) . '&plugin=' . urlencode( $plugin ) . "&plugin_status=$status&paged=$page&s=$s" );
 					wp_redirect( add_query_arg( '_error_nonce', wp_create_nonce( 'plugin-activation-error_' . $plugin ), $redirect ) );
 					exit;
@@ -76,10 +76,10 @@ if ( $action ) {
 				update_site_option( 'recently_activated', $recent );
 			}
 
-			if ( isset( $_GET['from'] ) && 'import' === $_GET['from'] ) {
+			if ( isset( $_GET['from'] ) && $_GET['from'] === 'import' ) {
 				// Overrides the ?error=true one above and redirects to the Imports page, stripping the -importer suffix.
 				wp_redirect( self_admin_url( 'import.php?import=' . str_replace( '-importer', '', dirname( $plugin ) ) ) );
-			} elseif ( isset( $_GET['from'] ) && 'press-this' === $_GET['from'] ) {
+			} elseif ( isset( $_GET['from'] ) && $_GET['from'] === 'press-this' ) {
 				wp_redirect( self_admin_url( 'press-this.php' ) );
 			} else {
 				// Overrides the ?error=true one above.
@@ -310,7 +310,7 @@ if ( $action ) {
 				foreach ( (array) $plugins as $plugin ) {
 					$plugin_slug = dirname( $plugin );
 
-					if ( '.' === $plugin_slug ) {
+					if ( $plugin_slug === '.' ) {
 						$data = get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin );
 						if ( $data ) {
 							$plugin_info[ $plugin ]                     = $data;
@@ -337,7 +337,7 @@ if ( $action ) {
 				$plugins_to_delete = count( $plugin_info );
 
 				?>
-				<?php if ( 1 === $plugins_to_delete ) : ?>
+				<?php if ( $plugins_to_delete === 1 ) : ?>
 					<h1><?php _e( 'Delete Plugin' ); ?></h1>
 					<?php if ( $have_non_network_plugins && is_network_admin() ) : ?>
 						<div class="error"><p><strong><?php _e( 'Caution:' ); ?></strong> <?php _e( 'This plugin may be active on other sites in the network.' ); ?></p></div>
@@ -456,7 +456,7 @@ if ( $action ) {
 
 			$redirect = self_admin_url( "plugins.php?plugin_status={$status}&paged={$page}&s={$s}" );
 
-			if ( 'enable-auto-update' === $action || 'disable-auto-update' === $action ) {
+			if ( $action === 'enable-auto-update' || $action === 'disable-auto-update' ) {
 				if ( empty( $plugin ) ) {
 					wp_redirect( $redirect );
 					exit;
@@ -474,17 +474,17 @@ if ( $action ) {
 
 			$auto_updates = (array) get_site_option( 'auto_update_plugins', array() );
 
-			if ( 'enable-auto-update' === $action ) {
+			if ( $action === 'enable-auto-update' ) {
 				$auto_updates[] = $plugin;
 				$auto_updates   = array_unique( $auto_updates );
 				$redirect       = add_query_arg( array( 'enabled-auto-update' => 'true' ), $redirect );
-			} elseif ( 'disable-auto-update' === $action ) {
+			} elseif ( $action === 'disable-auto-update' ) {
 				$auto_updates = array_diff( $auto_updates, array( $plugin ) );
 				$redirect     = add_query_arg( array( 'disabled-auto-update' => 'true' ), $redirect );
 			} else {
 				$plugins = (array) wp_unslash( $_POST['checked'] );
 
-				if ( 'enable-auto-update-selected' === $action ) {
+				if ( $action === 'enable-auto-update-selected' ) {
 					$new_auto_updates = array_merge( $auto_updates, $plugins );
 					$new_auto_updates = array_unique( $new_auto_updates );
 					$query_args       = array( 'enabled-auto-update-multi' => 'true' );
@@ -633,7 +633,7 @@ if ( isset( $_GET['error'] ) ) :
 			$_GET['charsout']
 		);
 		$errmsg .= ' ' . __( 'If you notice &#8220;headers already sent&#8221; messages, problems with syndication feeds or other issues, try deactivating or removing this plugin.' );
-	} elseif ( 'resuming' === $_GET['error'] ) {
+	} elseif ( $_GET['error'] === 'resuming' ) {
 		$errmsg = __( 'Plugin could not be resumed because it triggered a <strong>fatal error</strong>.' );
 	} else {
 		$errmsg = __( 'Plugin could not be activated because it triggered a <strong>fatal error</strong>.' );
@@ -685,7 +685,7 @@ elseif ( isset( $_GET['deleted'] ) ) :
 		<div id="message" class="updated notice is-dismissible">
 			<p>
 				<?php
-				if ( 1 === (int) $_GET['deleted'] ) {
+				if ( (int) $_GET['deleted'] === 1 ) {
 					_e( 'The selected plugin has been deleted.' );
 				} else {
 					_e( 'The selected plugins have been deleted.' );
@@ -702,7 +702,7 @@ elseif ( isset( $_GET['deleted'] ) ) :
 	<div id="message" class="updated notice is-dismissible"><p><?php _e( 'Plugin deactivated.' ); ?></p></div>
 <?php elseif ( isset( $_GET['deactivate-multi'] ) ) : ?>
 	<div id="message" class="updated notice is-dismissible"><p><?php _e( 'Selected plugins deactivated.' ); ?></p></div>
-<?php elseif ( 'update-selected' === $action ) : ?>
+<?php elseif ( $action === 'update-selected' ) : ?>
 	<div id="message" class="updated notice is-dismissible"><p><?php _e( 'All selected plugins are up to date.' ); ?></p></div>
 <?php elseif ( isset( $_GET['resume'] ) ) : ?>
 	<div id="message" class="updated notice is-dismissible"><p><?php _e( 'Plugin resumed.' ); ?></p></div>

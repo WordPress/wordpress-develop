@@ -308,7 +308,7 @@ class WP_List_Table {
 	 * @return int Number of items that correspond to the given pagination argument.
 	 */
 	public function get_pagination_arg( $key ) {
-		if ( 'page' === $key ) {
+		if ( $key === 'page' ) {
 			return $this->get_pagenum();
 		}
 
@@ -496,13 +496,13 @@ class WP_List_Table {
 				echo "\t" . '<optgroup label="' . esc_attr( $key ) . '">' . "\n";
 
 				foreach ( $value as $name => $title ) {
-					$class = ( 'edit' === $name ) ? ' class="hide-if-no-js"' : '';
+					$class = ( $name === 'edit' ) ? ' class="hide-if-no-js"' : '';
 
 					echo "\t\t" . '<option value="' . esc_attr( $name ) . '"' . $class . '>' . $title . "</option>\n";
 				}
 				echo "\t" . "</optgroup>\n";
 			} else {
-				$class = ( 'edit' === $key ) ? ' class="hide-if-no-js"' : '';
+				$class = ( $key === 'edit' ) ? ' class="hide-if-no-js"' : '';
 
 				echo "\t" . '<option value="' . esc_attr( $key ) . '"' . $class . '>' . $value . "</option>\n";
 			}
@@ -526,7 +526,7 @@ class WP_List_Table {
 			return false;
 		}
 
-		if ( isset( $_REQUEST['action'] ) && -1 != $_REQUEST['action'] ) {
+		if ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] != -1 ) {
 			return $_REQUEST['action'];
 		}
 
@@ -551,7 +551,7 @@ class WP_List_Table {
 
 		$mode = get_user_setting( 'posts_list_mode', 'list' );
 
-		if ( 'excerpt' === $mode ) {
+		if ( $mode === 'excerpt' ) {
 			$always_visible = true;
 		}
 
@@ -611,7 +611,7 @@ class WP_List_Table {
 
 		if ( ! is_array( $months ) ) {
 			$extra_checks = "AND post_status != 'auto-draft'";
-			if ( ! isset( $_GET['post_status'] ) || 'trash' !== $_GET['post_status'] ) {
+			if ( ! isset( $_GET['post_status'] ) || $_GET['post_status'] !== 'trash' ) {
 				$extra_checks .= " AND post_status != 'trash'";
 			} elseif ( isset( $_GET['post_status'] ) ) {
 				$extra_checks = $wpdb->prepare( ' AND post_status = %s', $_GET['post_status'] );
@@ -643,7 +643,7 @@ class WP_List_Table {
 
 		$month_count = count( $months );
 
-		if ( ! $month_count || ( 1 == $month_count && 0 == $months[0]->month ) ) {
+		if ( ! $month_count || ( $month_count == 1 && $months[0]->month == 0 ) ) {
 			return;
 		}
 
@@ -654,7 +654,7 @@ class WP_List_Table {
 			<option<?php selected( $m, 0 ); ?> value="0"><?php _e( 'All dates' ); ?></option>
 		<?php
 		foreach ( $months as $arc_row ) {
-			if ( 0 == $arc_row->year ) {
+			if ( $arc_row->year == 0 ) {
 				continue;
 			}
 
@@ -745,7 +745,7 @@ class WP_List_Table {
 				'<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">%s</span>',
 				__( 'No comments' )
 			);
-		} elseif ( $approved_comments && 'trash' === get_post_status( $post_id ) ) {
+		} elseif ( $approved_comments && get_post_status( $post_id ) === 'trash' ) {
 			// Don't link the comment bubble for a trashed post.
 			printf(
 				'<span class="post-com-count post-com-count-approved"><span class="comment-count-approved" aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></span>',
@@ -879,7 +879,7 @@ class WP_List_Table {
 			$infinite_scroll = $this->_pagination_args['infinite_scroll'];
 		}
 
-		if ( 'top' === $which && $total_pages > 1 ) {
+		if ( $which === 'top' && $total_pages > 1 ) {
 			$this->screen->render_screen_reader_content( 'heading_pagination' );
 		}
 
@@ -906,7 +906,7 @@ class WP_List_Table {
 		$disable_prev  = false;
 		$disable_next  = false;
 
-		if ( 1 == $current ) {
+		if ( $current == 1 ) {
 			$disable_first = true;
 			$disable_prev  = true;
 		}
@@ -937,7 +937,7 @@ class WP_List_Table {
 			);
 		}
 
-		if ( 'bottom' === $which ) {
+		if ( $which === 'bottom' ) {
 			$html_current_page  = $current;
 			$total_pages_before = '<span class="screen-reader-text">' . __( 'Current Page' ) . '</span><span id="table-paging" class="paging-input"><span class="tablenav-paging-text">';
 		} else {
@@ -1043,7 +1043,7 @@ class WP_List_Table {
 		// We need a primary defined so responsive views show something,
 		// so let's fall back to the first non-checkbox column.
 		foreach ( $columns as $col => $column_name ) {
-			if ( 'cb' === $col ) {
+			if ( $col === 'cb' ) {
 				continue;
 			}
 
@@ -1201,7 +1201,7 @@ class WP_List_Table {
 			$current_orderby = '';
 		}
 
-		if ( isset( $_GET['order'] ) && 'desc' === $_GET['order'] ) {
+		if ( isset( $_GET['order'] ) && $_GET['order'] === 'desc' ) {
 			$current_order = 'desc';
 		} else {
 			$current_order = 'asc';
@@ -1221,7 +1221,7 @@ class WP_List_Table {
 				$class[] = 'hidden';
 			}
 
-			if ( 'cb' === $column_key ) {
+			if ( $column_key === 'cb' ) {
 				$class[] = 'check-column';
 			} elseif ( in_array( $column_key, array( 'posts', 'comments', 'links' ), true ) ) {
 				$class[] = 'num';
@@ -1235,7 +1235,7 @@ class WP_List_Table {
 				list( $orderby, $desc_first ) = $sortable[ $column_key ];
 
 				if ( $current_orderby === $orderby ) {
-					$order = 'asc' === $current_order ? 'desc' : 'asc';
+					$order = $current_order === 'asc' ? 'desc' : 'asc';
 
 					$class[] = 'sorted';
 					$class[] = $current_order;
@@ -1247,7 +1247,7 @@ class WP_List_Table {
 					}
 
 					$class[] = 'sortable';
-					$class[] = 'desc' === $order ? 'asc' : 'desc';
+					$class[] = $order === 'desc' ? 'asc' : 'desc';
 				}
 
 				$column_display_name = sprintf(
@@ -1257,8 +1257,8 @@ class WP_List_Table {
 				);
 			}
 
-			$tag   = ( 'cb' === $column_key ) ? 'td' : 'th';
-			$scope = ( 'th' === $tag ) ? 'scope="col"' : '';
+			$tag   = ( $column_key === 'cb' ) ? 'td' : 'th';
+			$scope = ( $tag === 'th' ) ? 'scope="col"' : '';
 			$id    = $with_id ? "id='$column_key'" : '';
 
 			if ( ! empty( $class ) ) {
@@ -1331,7 +1331,7 @@ class WP_List_Table {
 	 * @param string $which
 	 */
 	protected function display_tablenav( $which ) {
-		if ( 'top' === $which ) {
+		if ( $which === 'top' ) {
 			wp_nonce_field( 'bulk-' . $this->_args['plural'] );
 		}
 		?>
@@ -1437,7 +1437,7 @@ class WP_List_Table {
 
 			$attributes = "class='$classes' $data";
 
-			if ( 'cb' === $column_name ) {
+			if ( $column_name === 'cb' ) {
 				echo '<th scope="row" class="check-column">';
 				echo $this->column_cb( $item );
 				echo '</th>';

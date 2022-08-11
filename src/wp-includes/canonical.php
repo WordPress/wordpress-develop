@@ -48,7 +48,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 
 	// If we're not in wp-admin and the post has been published and preview nonce
 	// is non-existent or invalid then no need for preview in query.
-	if ( is_preview() && get_query_var( 'p' ) && 'publish' === get_post_status( get_query_var( 'p' ) ) ) {
+	if ( is_preview() && get_query_var( 'p' ) && get_post_status( get_query_var( 'p' ) ) === 'publish' ) {
 		if ( ! isset( $_GET['preview_id'] )
 			|| ! isset( $_GET['preview_nonce'] )
 			|| ! wp_verify_nonce( $_GET['preview_nonce'], 'post_preview_' . (int) $_GET['preview_id'] )
@@ -71,7 +71,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	}
 
 	$original = parse_url( $requested_url );
-	if ( false === $original ) {
+	if ( $original === false ) {
 		return;
 	}
 
@@ -123,7 +123,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		if ( ! empty( $vars[0] ) ) {
 			$vars = $vars[0];
 
-			if ( 'revision' === $vars->post_type && $vars->post_parent > 0 ) {
+			if ( $vars->post_type === 'revision' && $vars->post_parent > 0 ) {
 				$post_id = $vars->post_parent;
 			}
 
@@ -151,7 +151,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		if ( $redirect_post ) {
 			$post_type_obj = get_post_type_object( $redirect_post->post_type );
 
-			if ( $post_type_obj && $post_type_obj->public && 'auto-draft' !== $redirect_post->post_status ) {
+			if ( $post_type_obj && $post_type_obj->public && $redirect_post->post_status !== 'auto-draft' ) {
 				$redirect_url = get_permalink( $redirect_post );
 				$redirect_obj = get_post( $redirect_post );
 
@@ -259,11 +259,11 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 				$redirect['query'] = remove_query_arg( 'page_id', $redirect['query'] );
 			}
 		} elseif ( is_page() && ! is_feed() && ! $redirect_url
-			&& 'page' === get_option( 'show_on_front' ) && get_queried_object_id() === (int) get_option( 'page_on_front' )
+			&& get_option( 'show_on_front' ) === 'page' && get_queried_object_id() === (int) get_option( 'page_on_front' )
 		) {
 			$redirect_url = home_url( '/' );
 		} elseif ( is_home() && ! empty( $_GET['page_id'] ) && ! $redirect_url
-			&& 'page' === get_option( 'show_on_front' ) && get_query_var( 'page_id' ) === (int) get_option( 'page_for_posts' )
+			&& get_option( 'show_on_front' ) === 'page' && get_query_var( 'page_id' ) === (int) get_option( 'page_for_posts' )
 		) {
 			$redirect_url = get_permalink( get_option( 'page_for_posts' ) );
 			$redirect_obj = get_post( get_option( 'page_for_posts' ) );
@@ -317,7 +317,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		} elseif ( is_author() && ! empty( $_GET['author'] ) && preg_match( '|^[0-9]+$|', $_GET['author'] ) ) {
 			$author = get_userdata( get_query_var( 'author' ) );
 
-			if ( false !== $author
+			if ( $author !== false
 				&& $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE $wpdb->posts.post_author = %d AND $wpdb->posts.post_status = 'publish' LIMIT 1", $author->ID ) )
 			) {
 				$redirect_url = get_author_posts_url( $author->ID, $author->user_nicename );
@@ -353,7 +353,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 						} else {
 							// Custom taxonomies will have a custom query var, remove those too.
 							$tax_obj = get_taxonomy( $obj->taxonomy );
-							if ( false !== $tax_obj->query_var ) {
+							if ( $tax_obj->query_var !== false ) {
 								$qv_remove[] = $tax_obj->query_var;
 							}
 						}
@@ -455,16 +455,16 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 					$addl_path .= 'comments/';
 				}
 
-				if ( ( 'rss' === $default_feed && 'feed' === $feed ) || 'rss' === $feed ) {
-					$format = ( 'rss2' === $default_feed ) ? '' : 'rss2';
+				if ( ( $default_feed === 'rss' && $feed === 'feed' ) || $feed === 'rss' ) {
+					$format = ( $default_feed === 'rss2' ) ? '' : 'rss2';
 				} else {
-					$format = ( $default_feed === $feed || 'feed' === $feed ) ? '' : $feed;
+					$format = ( $default_feed === $feed || $feed === 'feed' ) ? '' : $feed;
 				}
 
 				$addl_path .= user_trailingslashit( 'feed/' . $format, 'feed' );
 
 				$redirect['query'] = remove_query_arg( 'feed', $redirect['query'] );
-			} elseif ( is_feed() && 'old' === $feed ) {
+			} elseif ( is_feed() && $feed === 'old' ) {
 				$old_feed_files = array(
 					'wp-atom.php'         => 'atom',
 					'wp-commentsrss2.php' => 'comments_rss2',
@@ -501,8 +501,8 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			$default_comments_page = get_option( 'default_comments_page' );
 
 			if ( get_option( 'page_comments' )
-				&& ( 'newest' === $default_comments_page && $cpage > 0
-					|| 'newest' !== $default_comments_page && $cpage > 1 )
+				&& ( $default_comments_page === 'newest' && $cpage > 0
+					|| $default_comments_page !== 'newest' && $cpage > 1 )
 			) {
 				$addl_path  = ( ! empty( $addl_path ) ? trailingslashit( $addl_path ) : '' );
 				$addl_path .= user_trailingslashit( $wp_rewrite->comments_pagination_base . '-' . $cpage, 'commentpaged' );
@@ -528,7 +528,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			$redirect_url = $redirect['scheme'] . '://' . $redirect['host'] . $redirect['path'];
 		}
 
-		if ( 'wp-register.php' === basename( $redirect['path'] ) ) {
+		if ( basename( $redirect['path'] ) === 'wp-register.php' ) {
 			if ( is_multisite() ) {
 				/** This filter is documented in wp-login.php */
 				$redirect_url = apply_filters( 'wp_signup_location', network_site_url( 'wp-signup.php' ) );
@@ -690,8 +690,8 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	// Ignore differences in host capitalization, as this can lead to infinite redirects.
 	// Only redirect no-www <=> yes-www.
 	if ( $original_host_low === $redirect_host_low
-		|| ( 'www.' . $original_host_low !== $redirect_host_low
-			&& 'www.' . $redirect_host_low !== $original_host_low )
+		|| ( $redirect_host_low !== 'www.' . $original_host_low
+			&& $original_host_low !== 'www.' . $redirect_host_low )
 	) {
 		$redirect['host'] = $original['host'];
 	}
@@ -735,7 +735,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	}
 
 	// Hex encoded octets are case-insensitive.
-	if ( false !== strpos( $requested_url, '%' ) ) {
+	if ( strpos( $requested_url, '%' ) !== false ) {
 		if ( ! function_exists( 'lowercase_octets' ) ) {
 			/**
 			 * Converts the first hex-encoded octet match to lowercase.
@@ -897,7 +897,7 @@ function redirect_guess_404_permalink() {
 	 * @param bool $do_redirect_guess Whether to attempt to guess a redirect URL
 	 *                                for a 404 request. Default true.
 	 */
-	if ( false === apply_filters( 'do_redirect_guess_404_permalink', true ) ) {
+	if ( apply_filters( 'do_redirect_guess_404_permalink', true ) === false ) {
 		return false;
 	}
 
@@ -913,7 +913,7 @@ function redirect_guess_404_permalink() {
 	 *                               Default null to continue with the URL guessing.
 	 */
 	$pre = apply_filters( 'pre_redirect_guess_404_permalink', null );
-	if ( null !== $pre ) {
+	if ( $pre !== null ) {
 		return $pre;
 	}
 

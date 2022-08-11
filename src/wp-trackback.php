@@ -62,7 +62,7 @@ if ( $charset ) {
 }
 
 // No valid uses for UTF-7.
-if ( false !== strpos( $charset, 'UTF-7' ) ) {
+if ( strpos( $charset, 'UTF-7' ) !== false ) {
 	die;
 }
 

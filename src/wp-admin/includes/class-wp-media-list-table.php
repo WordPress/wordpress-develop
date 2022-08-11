@@ -38,7 +38,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * @param array $args An associative array of arguments.
 	 */
 	public function __construct( $args = array() ) {
-		$this->detached = ( isset( $_REQUEST['attachment-filter'] ) && 'detached' === $_REQUEST['attachment-filter'] );
+		$this->detached = ( isset( $_REQUEST['attachment-filter'] ) && $_REQUEST['attachment-filter'] === 'detached' );
 
 		$this->modes = array(
 			'list' => __( 'List view' ),
@@ -102,7 +102,7 @@ class WP_Media_List_Table extends WP_List_Table {
 
 		list( $post_mime_types, $avail_post_mime_types ) = wp_edit_attachments_query( $_REQUEST );
 
-		$this->is_trash = isset( $_REQUEST['attachment-filter'] ) && 'trash' === $_REQUEST['attachment-filter'];
+		$this->is_trash = isset( $_REQUEST['attachment-filter'] ) && $_REQUEST['attachment-filter'] === 'trash';
 
 		$this->set_pagination_args(
 			array(
@@ -137,7 +137,7 @@ class WP_Media_List_Table extends WP_List_Table {
 			}
 
 			$selected = selected(
-				$filter && 0 === strpos( $filter, 'post_mime_type:' ) &&
+				$filter && strpos( $filter, 'post_mime_type:' ) === 0 &&
 					wp_match_mime_types( $mime_type, str_replace( 'post_mime_type:', '', $filter ) ),
 				true,
 				false
@@ -155,14 +155,14 @@ class WP_Media_List_Table extends WP_List_Table {
 
 		$type_links['mine'] = sprintf(
 			'<option value="mine"%s>%s</option>',
-			selected( 'mine' === $filter, true, false ),
+			selected( $filter === 'mine', true, false ),
 			_x( 'Mine', 'media items' )
 		);
 
 		if ( $this->is_trash || ( defined( 'MEDIA_TRASH' ) && MEDIA_TRASH ) ) {
 			$type_links['trash'] = sprintf(
 				'<option value="trash"%s>%s</option>',
-				selected( 'trash' === $filter, true, false ),
+				selected( $filter === 'trash', true, false ),
 				_x( 'Trash', 'attachment filter' )
 			);
 		}
@@ -198,7 +198,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * @param string $which
 	 */
 	protected function extra_tablenav( $which ) {
-		if ( 'bar' !== $which ) {
+		if ( $which !== 'bar' ) {
 			return;
 		}
 		?>
@@ -336,9 +336,9 @@ class WP_Media_List_Table extends WP_List_Table {
 		$taxonomies = array_filter( $taxonomies, 'taxonomy_exists' );
 
 		foreach ( $taxonomies as $taxonomy ) {
-			if ( 'category' === $taxonomy ) {
+			if ( $taxonomy === 'category' ) {
 				$column_key = 'categories';
-			} elseif ( 'post_tag' === $taxonomy ) {
+			} elseif ( $taxonomy === 'post_tag' ) {
 				$column_key = 'tags';
 			} else {
 				$column_key = 'taxonomy-' . $taxonomy;
@@ -499,7 +499,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * @param WP_Post $post The current WP_Post object.
 	 */
 	public function column_date( $post ) {
-		if ( '0000-00-00 00:00:00' === $post->post_date ) {
+		if ( $post->post_date === '0000-00-00 00:00:00' ) {
 			$h_time = __( 'Unpublished' );
 		} else {
 			$time      = get_post_timestamp( $post );
@@ -621,11 +621,11 @@ class WP_Media_List_Table extends WP_List_Table {
 		// Restores the more descriptive, specific name for use within this method.
 		$post = $item;
 
-		if ( 'categories' === $column_name ) {
+		if ( $column_name === 'categories' ) {
 			$taxonomy = 'category';
-		} elseif ( 'tags' === $column_name ) {
+		} elseif ( $column_name === 'tags' ) {
 			$taxonomy = 'post_tag';
-		} elseif ( 0 === strpos( $column_name, 'taxonomy-' ) ) {
+		} elseif ( strpos( $column_name, 'taxonomy-' ) === 0 ) {
 			$taxonomy = substr( $column_name, 9 );
 		} else {
 			$taxonomy = false;
@@ -684,8 +684,8 @@ class WP_Media_List_Table extends WP_List_Table {
 		while ( have_posts() ) :
 			the_post();
 
-			if ( $this->is_trash && 'trash' !== $post->post_status
-				|| ! $this->is_trash && 'trash' === $post->post_status
+			if ( $this->is_trash && $post->post_status !== 'trash'
+				|| ! $this->is_trash && $post->post_status === 'trash'
 			) {
 				continue;
 			}

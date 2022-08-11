@@ -86,13 +86,13 @@ class Plugin_Upgrader extends WP_Upgrader {
 		$this->strings['process_success_specific'] = __( 'Successfully installed the plugin <strong>%1$s %2$s</strong>.' );
 
 		if ( ! empty( $this->skin->overwrite ) ) {
-			if ( 'update-plugin' === $this->skin->overwrite ) {
+			if ( $this->skin->overwrite === 'update-plugin' ) {
 				$this->strings['installing_package'] = __( 'Updating the plugin&#8230;' );
 				$this->strings['process_failed']     = __( 'Plugin update failed.' );
 				$this->strings['process_success']    = __( 'Plugin updated successfully.' );
 			}
 
-			if ( 'downgrade-plugin' === $this->skin->overwrite ) {
+			if ( $this->skin->overwrite === 'downgrade-plugin' ) {
 				$this->strings['installing_package'] = __( 'Downgrading the plugin&#8230;' );
 				$this->strings['process_failed']     = __( 'Plugin downgrade failed.' );
 				$this->strings['process_success']    = __( 'Plugin downgraded successfully.' );
@@ -350,7 +350,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 			$results[ $plugin ] = $result;
 
 			// Prevent credentials auth screen from displaying multiple times.
-			if ( false === $result ) {
+			if ( $result === false ) {
 				break;
 			}
 		} // End foreach $plugins.

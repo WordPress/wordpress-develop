@@ -695,7 +695,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 
 		$id = $request['user_id'];
 
-		if ( 'me' === $id ) {
+		if ( $id === 'me' ) {
 			if ( ! is_user_logged_in() ) {
 				return new WP_Error(
 					'rest_not_logged_in',

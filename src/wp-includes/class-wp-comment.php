@@ -283,7 +283,7 @@ final class WP_Comment {
 			}
 		}
 
-		if ( 'flat' === $_args['format'] ) {
+		if ( $_args['format'] === 'flat' ) {
 			$children = array();
 			foreach ( $this->children as $child ) {
 				$child_args           = $_args;
@@ -354,7 +354,7 @@ final class WP_Comment {
 	 * @return bool
 	 */
 	public function __isset( $name ) {
-		if ( in_array( $name, $this->post_fields, true ) && 0 !== (int) $this->comment_post_ID ) {
+		if ( in_array( $name, $this->post_fields, true ) && (int) $this->comment_post_ID !== 0 ) {
 			$post = get_post( $this->comment_post_ID );
 			return property_exists( $post, $name );
 		}

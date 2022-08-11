@@ -161,7 +161,7 @@ function add_rewrite_rule( $regex, $query, $after = 'bottom' ) {
  */
 function add_rewrite_tag( $tag, $regex, $query = '' ) {
 	// Validate the tag's name.
-	if ( strlen( $tag ) < 3 || '%' !== $tag[0] || '%' !== $tag[ strlen( $tag ) - 1 ] ) {
+	if ( strlen( $tag ) < 3 || $tag[0] !== '%' || $tag[ strlen( $tag ) - 1 ] !== '%' ) {
 		return;
 	}
 
@@ -386,7 +386,7 @@ function wp_resolve_numeric_slug_conflicts( $query_vars = array() ) {
 	$permastructs   = array_values( array_filter( explode( '/', get_option( 'permalink_structure' ) ) ) );
 	$postname_index = array_search( '%postname%', $permastructs, true );
 
-	if ( false === $postname_index ) {
+	if ( $postname_index === false ) {
 		return $query_vars;
 	}
 
@@ -397,11 +397,11 @@ function wp_resolve_numeric_slug_conflicts( $query_vars = array() ) {
 	 * for month-slug clashes when `is_month` *or* `is_day`.
 	 */
 	$compare = '';
-	if ( 0 === $postname_index && ( isset( $query_vars['year'] ) || isset( $query_vars['monthnum'] ) ) ) {
+	if ( $postname_index === 0 && ( isset( $query_vars['year'] ) || isset( $query_vars['monthnum'] ) ) ) {
 		$compare = 'year';
-	} elseif ( $postname_index && '%year%' === $permastructs[ $postname_index - 1 ] && ( isset( $query_vars['monthnum'] ) || isset( $query_vars['day'] ) ) ) {
+	} elseif ( $postname_index && $permastructs[ $postname_index - 1 ] === '%year%' && ( isset( $query_vars['monthnum'] ) || isset( $query_vars['day'] ) ) ) {
 		$compare = 'monthnum';
-	} elseif ( $postname_index && '%monthnum%' === $permastructs[ $postname_index - 1 ] && isset( $query_vars['day'] ) ) {
+	} elseif ( $postname_index && $permastructs[ $postname_index - 1 ] === '%monthnum%' && isset( $query_vars['day'] ) ) {
 		$compare = 'day';
 	}
 
@@ -421,14 +421,14 @@ function wp_resolve_numeric_slug_conflicts( $query_vars = array() ) {
 	}
 
 	// If the date of the post doesn't match the date specified in the URL, resolve to the date archive.
-	if ( preg_match( '/^([0-9]{4})\-([0-9]{2})/', $post->post_date, $matches ) && isset( $query_vars['year'] ) && ( 'monthnum' === $compare || 'day' === $compare ) ) {
+	if ( preg_match( '/^([0-9]{4})\-([0-9]{2})/', $post->post_date, $matches ) && isset( $query_vars['year'] ) && ( $compare === 'monthnum' || $compare === 'day' ) ) {
 		// $matches[1] is the year the post was published.
 		if ( (int) $query_vars['year'] !== (int) $matches[1] ) {
 			return $query_vars;
 		}
 
 		// $matches[2] is the month the post was published.
-		if ( 'day' === $compare && isset( $query_vars['monthnum'] ) && (int) $query_vars['monthnum'] !== (int) $matches[2] ) {
+		if ( $compare === 'day' && isset( $query_vars['monthnum'] ) && (int) $query_vars['monthnum'] !== (int) $matches[2] ) {
 			return $query_vars;
 		}
 	}
@@ -438,9 +438,9 @@ function wp_resolve_numeric_slug_conflicts( $query_vars = array() ) {
 	 * intended as the page number. Verify that it's a valid page before resolving to it.
 	 */
 	$maybe_page = '';
-	if ( 'year' === $compare && isset( $query_vars['monthnum'] ) ) {
+	if ( $compare === 'year' && isset( $query_vars['monthnum'] ) ) {
 		$maybe_page = $query_vars['monthnum'];
-	} elseif ( 'monthnum' === $compare && isset( $query_vars['day'] ) ) {
+	} elseif ( $compare === 'monthnum' && isset( $query_vars['day'] ) ) {
 		$maybe_page = $query_vars['day'];
 	}
 	// Bug found in #11694 - 'page' was returning '/4'.
@@ -449,7 +449,7 @@ function wp_resolve_numeric_slug_conflicts( $query_vars = array() ) {
 	$post_page_count = substr_count( $post->post_content, '<!--nextpage-->' ) + 1;
 
 	// If the post doesn't have multiple pages, but a 'page' candidate is found, resolve to the date archive.
-	if ( 1 === $post_page_count && $maybe_page ) {
+	if ( $post_page_count === 1 && $maybe_page ) {
 		return $query_vars;
 	}
 
@@ -459,7 +459,7 @@ function wp_resolve_numeric_slug_conflicts( $query_vars = array() ) {
 	}
 
 	// If we've gotten to this point, we have a slug/date clash. First, adjust for nextpage.
-	if ( '' !== $maybe_page ) {
+	if ( $maybe_page !== '' ) {
 		$query_vars['page'] = (int) $maybe_page;
 	}
 
@@ -529,16 +529,16 @@ function url_to_postid( $url ) {
 	$url    = set_url_scheme( $url, $scheme );
 
 	// Add 'www.' if it is absent and should be there.
-	if ( false !== strpos( home_url(), '://www.' ) && false === strpos( $url, '://www.' ) ) {
+	if ( strpos( home_url(), '://www.' ) !== false && strpos( $url, '://www.' ) === false ) {
 		$url = str_replace( '://', '://www.', $url );
 	}
 
 	// Strip 'www.' if it is present and shouldn't be.
-	if ( false === strpos( home_url(), '://www.' ) ) {
+	if ( strpos( home_url(), '://www.' ) === false ) {
 		$url = str_replace( '://www.', '://', $url );
 	}
 
-	if ( trim( $url, '/' ) === home_url() && 'page' === get_option( 'show_on_front' ) ) {
+	if ( trim( $url, '/' ) === home_url() && get_option( 'show_on_front' ) === 'page' ) {
 		$page_on_front = get_option( 'page_on_front' );
 
 		if ( $page_on_front && get_post( $page_on_front ) instanceof WP_Post ) {
@@ -559,7 +559,7 @@ function url_to_postid( $url ) {
 		$url = str_replace( $wp_rewrite->index . '/', '', $url );
 	}
 
-	if ( false !== strpos( trailingslashit( $url ), home_url( '/' ) ) ) {
+	if ( strpos( trailingslashit( $url ), home_url( '/' ) ) !== false ) {
 		// Chop off http://domain.com/[path].
 		$url = str_replace( home_url(), '', $url );
 	} else {

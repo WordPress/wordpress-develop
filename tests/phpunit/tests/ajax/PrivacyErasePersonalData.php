@@ -207,7 +207,7 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 * @return array Erasers.
 	 */
 	public function filter_unset_eraser_index( $erasers ) {
-		if ( false === $this->key_to_unset ) {
+		if ( $this->key_to_unset === false ) {
 			$erasers[ self::$eraser_key ] = false;
 		} elseif ( ! empty( $this->key_to_unset ) ) {
 			unset( $erasers[ self::$eraser_key ][ $this->key_to_unset ] );
@@ -788,7 +788,7 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 * @return array Erase data.
 	 */
 	public function callback_personal_data_eraser( $email_address, $page = 1 ) {
-		if ( 1 === $page ) {
+		if ( $page === 1 ) {
 			return array(
 				'items_removed'  => true,
 				'items_retained' => true,

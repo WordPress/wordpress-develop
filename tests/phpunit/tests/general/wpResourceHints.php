@@ -54,7 +54,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 	}
 
 	public function add_dns_prefetch_domains( $hints, $method ) {
-		if ( 'dns-prefetch' === $method ) {
+		if ( $method === 'dns-prefetch' ) {
 			$hints[] = 'http://wordpress.org';
 			$hints[] = 'https://wordpress.org';
 			$hints[] = 'htps://wordpress.org'; // Invalid URLs should be skipped.
@@ -86,7 +86,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 	}
 
 	public function add_preconnect_domains( $hints, $method ) {
-		if ( 'preconnect' === $method ) {
+		if ( $method === 'preconnect' ) {
 			$hints[] = '//wordpress.org';
 			$hints[] = 'https://make.wordpress.org';
 			$hints[] = 'htps://example.com'; // Invalid URLs should be skipped.
@@ -113,7 +113,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 	}
 
 	public function add_prerender_urls( $hints, $method ) {
-		if ( 'prerender' === $method ) {
+		if ( $method === 'prerender' ) {
 			$hints[] = 'https://make.wordpress.org/great-again';
 			$hints[] = 'http://jobs.wordpress.net';
 			$hints[] = '//core.trac.wordpress.org';
@@ -137,7 +137,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 	}
 
 	public function add_dns_prefetch_long_urls( $hints, $method ) {
-		if ( 'dns-prefetch' === $method ) {
+		if ( $method === 'dns-prefetch' ) {
 			$hints[] = 'http://make.wordpress.org/wp-includes/css/editor.css';
 		}
 
@@ -231,7 +231,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 	}
 
 	public function add_malformed_url_errant_colon( $hints, $method ) {
-		if ( 'preconnect' === $method ) {
+		if ( $method === 'preconnect' ) {
 			$hints[] = '://core.trac.wordpress.org/ticket/37652';
 		}
 
@@ -239,7 +239,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 	}
 
 	public function add_malformed_url_unsupported_scheme( $hints, $method ) {
-		if ( 'preconnect' === $method ) {
+		if ( $method === 'preconnect' ) {
 			$hints[] = 'git://develop.git.wordpress.org/';
 		}
 
@@ -271,13 +271,13 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 			'rel' => 'foo',
 		);
 
-		if ( 'preconnect' === $method ) {
+		if ( $method === 'preconnect' ) {
 			// Should ignore rel attributes.
 			$hints[] = array(
 				'rel'  => 'foo',
 				'href' => 'https://make.wordpress.org/great-again',
 			);
-		} elseif ( 'prefetch' === $method ) {
+		} elseif ( $method === 'prefetch' ) {
 			$hints[] = array(
 				'crossorigin',
 				'as'   => 'image',
@@ -289,7 +289,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 				'as'          => 'style',
 				'href'        => 'https://example.com/foo.css',
 			);
-		} elseif ( 'prerender' === $method ) {
+		} elseif ( $method === 'prerender' ) {
 			// Ignore invalid attributes.
 			$hints[] = array(
 				'foo'  => 'bar',

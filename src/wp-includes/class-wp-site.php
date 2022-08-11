@@ -164,7 +164,7 @@ final class WP_Site {
 
 		$_site = wp_cache_get( $site_id, 'sites' );
 
-		if ( false === $_site ) {
+		if ( $_site === false ) {
 			$_site = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->blogs} WHERE blog_id = %d LIMIT 1", $site_id ) );
 
 			if ( empty( $_site ) || is_wp_error( $_site ) ) {
@@ -318,7 +318,7 @@ final class WP_Site {
 	private function get_details() {
 		$details = wp_cache_get( $this->blog_id, 'site-details' );
 
-		if ( false === $details ) {
+		if ( $details === false ) {
 
 			switch_to_blog( $this->blog_id );
 			// Create a raw copy of the object for backward compatibility with the filter below.

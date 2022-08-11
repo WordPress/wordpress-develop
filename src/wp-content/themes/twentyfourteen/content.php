@@ -30,7 +30,7 @@
 
 		<div class="entry-meta">
 			<?php
-			if ( 'post' === get_post_type() ) {
+			if ( get_post_type() === 'post' ) {
 				twentyfourteen_posted_on();
 			}
 

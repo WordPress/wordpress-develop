@@ -188,8 +188,8 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 
 		$expected = '';
 
-		if ( '' !== $title ) {
-			if ( 'post_type' === $type || 'search' === $type ) {
+		if ( $title !== '' ) {
+			if ( $type === 'post_type' || $type === 'search' ) {
 				$feed_link = $permalink . '&#038;feed=rss2';
 			} else {
 				$feed_link = str_replace( '?', '?feed=rss2&#038;', $permalink );
@@ -406,23 +406,23 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	 * @return string The permalink.
 	 */
 	private function helper_get_the_permalink( $type ) {
-		if ( 'category' === $type || 'tag' === $type ) {
+		if ( $type === 'category' || $type === 'tag' ) {
 			return get_term_link( self::${$type . '_id'} );
 		}
 
-		if ( 'tax' === $type ) {
+		if ( $type === 'tax' ) {
 			return get_term_link( 'tax_term', self::$tax_id );
 		}
 
-		if ( 'post_type' === $type ) {
+		if ( $type === 'post_type' ) {
 			return get_post_type_archive_link( self::$post_type );
 		}
 
-		if ( 'author' === $type ) {
+		if ( $type === 'author' ) {
 			return get_author_posts_url( self::$author_id );
 		}
 
-		if ( 'search' === $type ) {
+		if ( $type === 'search' ) {
 			return home_url( '?s=Search' );
 		}
 

@@ -101,7 +101,7 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 					'title' => wp_basename( $this->setting->default ),
 				);
 
-				if ( 'image' === $type ) {
+				if ( $type === 'image' ) {
 					$default_attachment['sizes'] = array(
 						'full' => array( 'url' => $this->setting->default ),
 					);

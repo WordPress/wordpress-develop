@@ -268,14 +268,14 @@ function twentythirteen_fonts_url() {
 	 */
 	$bitter = _x( 'on', 'Bitter font: on or off', 'twentythirteen' );
 
-	if ( 'off' !== $source_sans_pro || 'off' !== $bitter ) {
+	if ( $source_sans_pro !== 'off' || $bitter !== 'off' ) {
 		$font_families = array();
 
-		if ( 'off' !== $source_sans_pro ) {
+		if ( $source_sans_pro !== 'off' ) {
 			$font_families[] = 'Source Sans Pro:300,400,700,300italic,400italic,700italic';
 		}
 
-		if ( 'off' !== $bitter ) {
+		if ( $bitter !== 'off' ) {
 			$font_families[] = 'Bitter:400,700';
 		}
 
@@ -340,7 +340,7 @@ add_action( 'wp_enqueue_scripts', 'twentythirteen_scripts_styles' );
  * @return array URLs to print for resource hints.
  */
 function twentythirteen_resource_hints( $urls, $relation_type ) {
-	if ( wp_style_is( 'twentythirteen-fonts', 'queue' ) && 'preconnect' === $relation_type ) {
+	if ( wp_style_is( 'twentythirteen-fonts', 'queue' ) && $relation_type === 'preconnect' ) {
 		if ( version_compare( $GLOBALS['wp_version'], '4.7-alpha', '>=' ) ) {
 			$urls[] = array(
 				'href' => 'https://fonts.gstatic.com',
@@ -527,7 +527,7 @@ if ( ! function_exists( 'twentythirteen_entry_meta' ) ) :
 			echo '<span class="featured-post">' . esc_html__( 'Sticky', 'twentythirteen' ) . '</span>';
 		}
 
-		if ( ! has_post_format( 'link' ) && 'post' === get_post_type() ) {
+		if ( ! has_post_format( 'link' ) && get_post_type() === 'post' ) {
 			twentythirteen_entry_date();
 		}
 
@@ -542,7 +542,7 @@ if ( ! function_exists( 'twentythirteen_entry_meta' ) ) :
 		}
 
 		// Post author.
-		if ( 'post' === get_post_type() ) {
+		if ( get_post_type() === 'post' ) {
 			printf(
 				'<span class="author vcard"><a class="url fn n" href="%1$s" title="%2$s" rel="author">%3$s</a></span>',
 				esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ),
@@ -847,7 +847,7 @@ add_filter( 'widget_tag_cloud_args', 'twentythirteen_widget_tag_cloud_args' );
 function twentythirteen_author_bio_template( $template ) {
 	if ( is_author() ) {
 		$author = get_queried_object();
-		if ( $author instanceof WP_User && 'bio' === $author->user_nicename ) {
+		if ( $author instanceof WP_User && $author->user_nicename === 'bio' ) {
 			// Use author templates if exist, fall back to template hierarchy otherwise.
 			return locate_template( array( "author-{$author->ID}.php", 'author.php' ) );
 		}

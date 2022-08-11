@@ -155,7 +155,7 @@ abstract class WP_REST_Meta_Fields {
 			 *
 			 * Non-single meta can also be removed by passing an empty array.
 			 */
-			if ( is_null( $value ) || ( array() === $value && ! $args['single'] ) ) {
+			if ( is_null( $value ) || ( $value === array() && ! $args['single'] ) ) {
 				$args = $this->get_registered_fields()[ $meta_key ];
 
 				if ( $args['single'] ) {
@@ -234,7 +234,7 @@ abstract class WP_REST_Meta_Fields {
 			);
 		}
 
-		if ( null === get_metadata_raw( $meta_type, $object_id, wp_slash( $meta_key ) ) ) {
+		if ( get_metadata_raw( $meta_type, $object_id, wp_slash( $meta_key ) ) === null ) {
 			return true;
 		}
 
@@ -383,7 +383,7 @@ abstract class WP_REST_Meta_Fields {
 		$old_value = get_metadata( $meta_type, $object_id, $meta_key );
 		$subtype   = get_object_subtype( $meta_type, $object_id );
 
-		if ( is_array( $old_value ) && 1 === count( $old_value )
+		if ( is_array( $old_value ) && count( $old_value ) === 1
 			&& $this->is_meta_value_same_as_stored_value( $meta_key, $subtype, $old_value[0], $value )
 		) {
 			return true;
@@ -476,7 +476,7 @@ abstract class WP_REST_Meta_Fields {
 			$type = ! empty( $rest_args['type'] ) ? $rest_args['type'] : null;
 			$type = ! empty( $rest_args['schema']['type'] ) ? $rest_args['schema']['type'] : $type;
 
-			if ( null === $rest_args['schema']['default'] ) {
+			if ( $rest_args['schema']['default'] === null ) {
 				$rest_args['schema']['default'] = static::get_empty_value_for_type( $type );
 			}
 
@@ -547,7 +547,7 @@ abstract class WP_REST_Meta_Fields {
 			$schema = $args['schema']['items'];
 		}
 
-		if ( '' === $value && in_array( $schema['type'], array( 'boolean', 'integer', 'number' ), true ) ) {
+		if ( $value === '' && in_array( $schema['type'], array( 'boolean', 'integer', 'number' ), true ) ) {
 			$value = static::get_empty_value_for_type( $schema['type'] );
 		}
 

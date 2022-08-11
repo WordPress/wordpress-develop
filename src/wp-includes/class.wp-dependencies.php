@@ -122,7 +122,7 @@ class WP_Dependencies {
 		 * If nothing is passed, print the queue. If a string is passed,
 		 * print that item. If an array is passed, print those items.
 		 */
-		$handles = false === $handles ? $this->queue : (array) $handles;
+		$handles = $handles === false ? $this->queue : (array) $handles;
 		$this->all_deps( $handles );
 
 		foreach ( $this->to_do as $key => $handle ) {
@@ -381,7 +381,7 @@ class WP_Dependencies {
 			$handle = explode( '?', $handle );
 			$key    = array_search( $handle[0], $this->queue, true );
 
-			if ( false !== $key ) {
+			if ( $key !== false ) {
 				// Reset all dependencies so they must be recalculated in recurse_deps().
 				$this->all_queued_deps = null;
 

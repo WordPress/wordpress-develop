@@ -25,7 +25,7 @@ class TwentyNineteen_Walker_Comment extends Walker_Comment {
 	 */
 	protected function html5_comment( $comment, $depth, $args ) {
 
-		$tag = ( 'div' === $args['style'] ) ? 'div' : 'li';
+		$tag = ( $args['style'] === 'div' ) ? 'div' : 'li';
 
 		?>
 		<<?php echo $tag; ?> id="comment-<?php comment_ID(); ?>" <?php comment_class( $this->has_children ? 'parent' : '', $comment ); ?>>
@@ -36,7 +36,7 @@ class TwentyNineteen_Walker_Comment extends Walker_Comment {
 						$comment_author_url = get_comment_author_url( $comment );
 						$comment_author     = get_comment_author( $comment );
 						$avatar             = get_avatar( $comment, $args['avatar_size'] );
-						if ( 0 != $args['avatar_size'] ) {
+						if ( $args['avatar_size'] != 0 ) {
 							if ( empty( $comment_author_url ) ) {
 								echo $avatar;
 							} else {
@@ -99,7 +99,7 @@ class TwentyNineteen_Walker_Comment extends Walker_Comment {
 					}
 					?>
 
-					<?php if ( '0' == $comment->comment_approved ) : ?>
+					<?php if ( $comment->comment_approved == '0' ) : ?>
 					<p class="comment-awaiting-moderation"><?php echo $moderation_note; ?></p>
 					<?php endif; ?>
 

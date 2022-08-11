@@ -9,7 +9,7 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		$this->assertSame( $post->ID, $data['id'] );
 		$this->assertSame( $post->post_name, $data['slug'] );
 		$this->assertSame( get_permalink( $post->ID ), $data['link'] );
-		if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
+		if ( $post->post_date_gmt === '0000-00-00 00:00:00' ) {
 			$post_date_gmt = gmdate( 'Y-m-d H:i:s', strtotime( $post->post_date ) - ( get_option( 'gmt_offset' ) * 3600 ) );
 			$this->assertSame( mysql_to_rfc3339( $post_date_gmt ), $data['date_gmt'] );
 		} else {
@@ -17,7 +17,7 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		}
 		$this->assertSame( mysql_to_rfc3339( $post->post_date ), $data['date'] );
 
-		if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
+		if ( $post->post_modified_gmt === '0000-00-00 00:00:00' ) {
 			$post_modified_gmt = gmdate( 'Y-m-d H:i:s', strtotime( $post->post_modified ) - ( get_option( 'gmt_offset' ) * 3600 ) );
 			$this->assertSame( mysql_to_rfc3339( $post_modified_gmt ), $data['modified_gmt'] );
 		} else {
@@ -65,15 +65,15 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 			$this->assertArrayNotHasKey( 'ping_status', $data );
 		}
 
-		if ( 'post' === $post->post_type ) {
+		if ( $post->post_type === 'post' ) {
 			$this->assertSame( is_sticky( $post->ID ), $data['sticky'] );
 		}
 
-		if ( 'post' === $post->post_type && 'edit' === $context ) {
+		if ( $post->post_type === 'post' && $context === 'edit' ) {
 			$this->assertSame( $post->post_password, $data['password'] );
 		}
 
-		if ( 'page' === $post->post_type ) {
+		if ( $post->post_type === 'page' ) {
 			$this->assertSame( get_page_template_slug( $post->ID ), $data['template'] );
 		}
 
@@ -100,7 +100,7 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 			add_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
 			$this->assertSame( get_the_title( $post->ID ), $data['title']['rendered'] );
 			remove_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
-			if ( 'edit' === $context ) {
+			if ( $context === 'edit' ) {
 				$this->assertSame( $post->post_title, $data['title']['raw'] );
 			} else {
 				$this->assertArrayNotHasKey( 'raw', $data['title'] );
@@ -115,7 +115,7 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 				$this->assertSame( wpautop( $post->post_content ), $data['content']['rendered'] );
 			}
 
-			if ( 'edit' === $context ) {
+			if ( $context === 'edit' ) {
 				$this->assertSame( $post->post_content, $data['content']['raw'] );
 			} else {
 				$this->assertArrayNotHasKey( 'raw', $data['content'] );
@@ -131,7 +131,7 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 			} else {
 				// TODO: Better testing for excerpts for password protected posts.
 			}
-			if ( 'edit' === $context ) {
+			if ( $context === 'edit' ) {
 				$this->assertSame( $post->post_excerpt, $data['excerpt']['raw'] );
 			} else {
 				$this->assertArrayNotHasKey( 'raw', $data['excerpt'] );
@@ -143,7 +143,7 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		$this->assertSame( $post->post_status, $data['status'] );
 		$this->assertSame( $post->guid, $data['guid']['rendered'] );
 
-		if ( 'edit' === $context ) {
+		if ( $context === 'edit' ) {
 			$this->assertSame( $post->guid, $data['guid']['raw'] );
 		}
 

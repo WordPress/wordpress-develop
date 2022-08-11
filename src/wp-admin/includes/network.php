@@ -34,7 +34,7 @@ function network_domain_check() {
  */
 function allow_subdomain_install() {
 	$domain = preg_replace( '|https?://([^/]+)|', '$1', get_option( 'home' ) );
-	if ( parse_url( get_option( 'home' ), PHP_URL_PATH ) || 'localhost' === $domain || preg_match( '|^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$|', $domain ) ) {
+	if ( parse_url( get_option( 'home' ), PHP_URL_PATH ) || $domain === 'localhost' || preg_match( '|^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$|', $domain ) ) {
 		return false;
 	}
 
@@ -138,7 +138,7 @@ function network_step1( $errors = false ) {
 
 	$hostname  = get_clean_basedomain();
 	$has_ports = strstr( $hostname, ':' );
-	if ( ( false !== $has_ports && ! in_array( $has_ports, array( ':80', ':443' ), true ) ) ) {
+	if ( ( $has_ports !== false && ! in_array( $has_ports, array( ':80', ':443' ), true ) ) ) {
 		echo '<div class="error"><p><strong>' . __( 'Error:' ) . '</strong> ' . __( 'You cannot install a network of sites with your server address.' ) . '</p></div>';
 		echo '<p>' . sprintf(
 			/* translators: %s: Port number. */
@@ -259,11 +259,11 @@ function network_step1( $errors = false ) {
 		<?php
 	endif;
 
-	if ( WP_CONTENT_DIR !== ABSPATH . 'wp-content' && ( allow_subdirectory_install() || ! allow_subdomain_install() ) ) {
+	if ( ABSPATH . 'wp-content' !== WP_CONTENT_DIR && ( allow_subdirectory_install() || ! allow_subdomain_install() ) ) {
 		echo '<div class="error inline"><p><strong>' . __( 'Warning:' ) . '</strong> ' . __( 'Subdirectory networks may not be fully compatible with custom wp-content directories.' ) . '</p></div>';
 	}
 
-	$is_www = ( 0 === strpos( $hostname, 'www.' ) );
+	$is_www = ( strpos( $hostname, 'www.' ) === 0 );
 	if ( $is_www ) :
 		?>
 		<h3><?php esc_html_e( 'Server Address' ); ?></h3>
@@ -296,7 +296,7 @@ function network_step1( $errors = false ) {
 
 		<h3><?php esc_html_e( 'Network Details' ); ?></h3>
 		<table class="form-table" role="presentation">
-		<?php if ( 'localhost' === $hostname ) : ?>
+		<?php if ( $hostname === 'localhost' ) : ?>
 			<tr>
 				<th scope="row"><?php esc_html_e( 'Sub-directory Installation' ); ?></th>
 				<td>
@@ -394,7 +394,7 @@ function network_step2( $errors = false ) {
 	$base              = parse_url( $slashed_home, PHP_URL_PATH );
 	$document_root_fix = str_replace( '\\', '/', realpath( $_SERVER['DOCUMENT_ROOT'] ) );
 	$abspath_fix       = str_replace( '\\', '/', ABSPATH );
-	$home_path         = 0 === strpos( $abspath_fix, $document_root_fix ) ? $document_root_fix . $base : get_home_path();
+	$home_path         = strpos( $abspath_fix, $document_root_fix ) === 0 ? $document_root_fix . $base : get_home_path();
 	$wp_siteurl_subdir = preg_replace( '#^' . preg_quote( $home_path, '#' ) . '#', '', $abspath_fix );
 	$rewrite_base      = ! empty( $wp_siteurl_subdir ) ? ltrim( trailingslashit( $wp_siteurl_subdir ), '/' ) : '';
 
@@ -537,7 +537,7 @@ define( 'BLOG_ID_CURRENT_SITE', 1 );
 			?>
 		<p id="network-wpconfig-authentication-description">
 			<?php
-			if ( 1 === $num_keys_salts ) {
+			if ( $num_keys_salts === 1 ) {
 				printf(
 					/* translators: %s: wp-config.php */
 					__( 'This unique authentication key is also missing from your %s file.' ),
@@ -621,7 +621,7 @@ define( 'BLOG_ID_CURRENT_SITE', 1 );
 				'<code>' . $home_path . '</code>'
 			);
 		echo '</p>';
-		if ( ! $subdomain_install && WP_CONTENT_DIR !== ABSPATH . 'wp-content' ) {
+		if ( ! $subdomain_install && ABSPATH . 'wp-content' !== WP_CONTENT_DIR ) {
 			echo '<p><strong>' . __( 'Warning:' ) . ' ' . __( 'Subdirectory networks may not be fully compatible with custom wp-content directories.' ) . '</strong></p>';
 		}
 		?>
@@ -683,7 +683,7 @@ EOF;
 			'<code>' . $home_path . '</code>'
 		);
 		echo '</p>';
-		if ( ! $subdomain_install && WP_CONTENT_DIR !== ABSPATH . 'wp-content' ) {
+		if ( ! $subdomain_install && ABSPATH . 'wp-content' !== WP_CONTENT_DIR ) {
 			echo '<p><strong>' . __( 'Warning:' ) . ' ' . __( 'Subdirectory networks may not be fully compatible with custom wp-content directories.' ) . '</strong></p>';
 		}
 		?>

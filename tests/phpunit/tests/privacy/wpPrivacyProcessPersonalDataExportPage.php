@@ -581,25 +581,25 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 * @param string $exporter_key    The slug (key) of the exporter to pass.
 	 */
 	public function test_request_status_transitions_correctly( $expected_status, $response_page, $exporter_index, $page_index, $send_as_email, $exporter_key ) {
-		if ( 'first' === $response_page ) {
+		if ( $response_page === 'first' ) {
 			$response_page = self::$response_first_page;
 		} else {
 			$response_page = self::$response_last_page;
 		}
 
-		if ( 'first' === $exporter_index ) {
+		if ( $exporter_index === 'first' ) {
 			$exporter_index = self::$exporter_index_first;
 		} else {
 			$exporter_index = self::$exporter_index_last;
 		}
 
-		if ( 'first' === $page_index ) {
+		if ( $page_index === 'first' ) {
 			$page_index = self::$page_index_first;
 		} else {
 			$page_index = self::$page_index_last;
 		}
 
-		if ( 'first' === $exporter_key ) {
+		if ( $exporter_key === 'first' ) {
 			$exporter_key = self::$exporter_key_first;
 		} else {
 			$exporter_key = self::$exporter_key_last;

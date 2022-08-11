@@ -269,7 +269,7 @@ EOF;
 		);
 		foreach ( $bad as $k => $x ) {
 			$result = wp_kses_bad_protocol( wp_kses_normalize_entities( $x ), wp_allowed_protocols() );
-			if ( ! empty( $result ) && 'alert(1);' !== $result && 'alert(1)' !== $result ) {
+			if ( ! empty( $result ) && $result !== 'alert(1);' && $result !== 'alert(1)' ) {
 				switch ( $k ) {
 					case 6:
 						$this->assertSame( 'javascript&amp;#0000058alert(1);', $result );
@@ -315,7 +315,7 @@ EOF;
 		);
 		foreach ( $bad_not_normalized as $k => $x ) {
 			$result = wp_kses_bad_protocol( $x, wp_allowed_protocols() );
-			if ( ! empty( $result ) && 'alert(1);' !== $result && 'alert(1)' !== $result ) {
+			if ( ! empty( $result ) && $result !== 'alert(1);' && $result !== 'alert(1)' ) {
 				$this->fail( "wp_kses_bad_protocol failed on $k, $x. Result: $result" );
 			}
 		}
@@ -332,7 +332,7 @@ EOF;
 		);
 		foreach ( $safe as $x ) {
 			$result = wp_kses_bad_protocol( wp_kses_normalize_entities( $x ), array( 'http', 'https', 'dummy' ) );
-			if ( $result !== $x && 'http://example.org/' !== $result ) {
+			if ( $result !== $x && $result !== 'http://example.org/' ) {
 				$this->fail( "wp_kses_bad_protocol incorrectly blocked $x" );
 			}
 		}
@@ -347,7 +347,7 @@ EOF;
 
 			$code = (string) $attack->code;
 
-			if ( 'See Below' === $code ) {
+			if ( $code === 'See Below' ) {
 				continue;
 			}
 
@@ -473,7 +473,7 @@ EOF;
 	}
 
 	public function wp_kses_allowed_html_filter( $html, $context ) {
-		if ( 'post' === $context ) {
+		if ( $context === 'post' ) {
 			return array( 'a' => array( 'href' => true ) );
 		} else {
 			return array( 'a' => array( 'href' => false ) );
@@ -1694,7 +1694,7 @@ HTML;
 	}
 
 	function filter_wp_kses_object_added_in_html_filter( $tags, $context ) {
-		if ( 'post' === $context ) {
+		if ( $context === 'post' ) {
 			$tags['object'] = array(
 				'type' => true,
 				'data' => true,

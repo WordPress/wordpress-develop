@@ -30,7 +30,7 @@ if ( isset( $_GET['step'] ) ) {
 }
 
 // Do it. No output.
-if ( 'upgrade_db' === $step ) {
+if ( $step === 'upgrade_db' ) {
 	wp_upgrade();
 	die( '0' );
 }

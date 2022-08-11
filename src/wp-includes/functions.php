@@ -34,12 +34,12 @@ function mysql2date( $format, $date, $translate = true ) {
 
 	$datetime = date_create( $date, wp_timezone() );
 
-	if ( false === $datetime ) {
+	if ( $datetime === false ) {
 		return false;
 	}
 
 	// Returns a sum of timestamp with timezone offset. Ideally should never be used.
-	if ( 'G' === $format || 'U' === $format ) {
+	if ( $format === 'G' || $format === 'U' ) {
 		return $datetime->getTimestamp() + $datetime->getOffset();
 	}
 
@@ -71,11 +71,11 @@ function mysql2date( $format, $date, $translate = true ) {
  */
 function current_time( $type, $gmt = 0 ) {
 	// Don't use non-GMT timestamp, unless you know the difference and really need to.
-	if ( 'timestamp' === $type || 'U' === $type ) {
+	if ( $type === 'timestamp' || $type === 'U' ) {
 		return $gmt ? time() : time() + (int) ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
 	}
 
-	if ( 'mysql' === $type ) {
+	if ( $type === 'mysql' ) {
 		$type = 'Y-m-d H:i:s';
 	}
 
@@ -185,11 +185,11 @@ function date_i18n( $format, $timestamp_with_offset = false, $gmt = false ) {
 	 * This is a legacy implementation quirk that the returned timestamp is also with offset.
 	 * Ideally this function should never be used to produce a timestamp.
 	 */
-	if ( 'U' === $format ) {
+	if ( $format === 'U' ) {
 		$date = $timestamp;
-	} elseif ( $gmt && false === $timestamp_with_offset ) { // Current time in UTC.
+	} elseif ( $gmt && $timestamp_with_offset === false ) { // Current time in UTC.
 		$date = wp_date( $format, null, new DateTimeZone( 'UTC' ) );
-	} elseif ( false === $timestamp_with_offset ) { // Current time in site's timezone.
+	} elseif ( $timestamp_with_offset === false ) { // Current time in site's timezone.
 		$date = wp_date( $format );
 	} else {
 		/*
@@ -240,7 +240,7 @@ function date_i18n( $format, $timestamp_with_offset = false, $gmt = false ) {
 function wp_date( $format, $timestamp = null, $timezone = null ) {
 	global $wp_locale;
 
-	if ( null === $timestamp ) {
+	if ( $timestamp === null ) {
 		$timestamp = time();
 	} elseif ( ! is_numeric( $timestamp ) ) {
 		return false;
@@ -344,7 +344,7 @@ function wp_maybe_decline_date( $date, $format = '' ) {
 	 * translators: If months in your language require a genitive case,
 	 * translate this to 'on'. Do not translate into your own language.
 	 */
-	if ( 'on' === _x( 'off', 'decline months names: on or off' ) ) {
+	if ( _x( 'off', 'decline months names: on or off' ) === 'on' ) {
 
 		$months          = $wp_locale->month;
 		$months_genitive = $wp_locale->month_genitive;
@@ -399,7 +399,7 @@ function wp_maybe_decline_date( $date, $format = '' ) {
 	// Used for locale-specific rules.
 	$locale = get_locale();
 
-	if ( 'ca' === $locale ) {
+	if ( $locale === 'ca' ) {
 		// " de abril| de agost| de octubre..." -> " d'abril| d'agost| d'octubre..."
 		$date = preg_replace( '# de ([ao])#i', " d'\\1", $date );
 	}
@@ -483,7 +483,7 @@ function size_format( $bytes, $decimals = 0 ) {
 		_x( 'B', 'unit symbol' )  => 1,
 	);
 
-	if ( 0 === $bytes ) {
+	if ( $bytes === 0 ) {
 		/* translators: Unit symbol for byte. */
 		return number_format_i18n( 0, $decimals ) . ' ' . _x( 'B', 'unit symbol' );
 	}
@@ -514,7 +514,7 @@ function human_readable_duration( $duration = '' ) {
 	$duration = trim( $duration );
 
 	// Remove prepended negative sign.
-	if ( '-' === substr( $duration, 0, 1 ) ) {
+	if ( substr( $duration, 0, 1 ) === '-' ) {
 		$duration = substr( $duration, 1 );
 	}
 
@@ -526,14 +526,14 @@ function human_readable_duration( $duration = '' ) {
 	$minute = null;
 	$second = null;
 
-	if ( 3 === $duration_count ) {
+	if ( $duration_count === 3 ) {
 		// Validate HH:ii:ss duration format.
 		if ( ! ( (bool) preg_match( '/^([0-9]+):([0-5]?[0-9]):([0-5]?[0-9])$/', $duration ) ) ) {
 			return false;
 		}
 		// Three parts: hours, minutes & seconds.
 		list( $second, $minute, $hour ) = $duration_parts;
-	} elseif ( 2 === $duration_count ) {
+	} elseif ( $duration_count === 2 ) {
 		// Validate ii:ss duration format.
 		if ( ! ( (bool) preg_match( '/^([0-5]?[0-9]):([0-5]?[0-9])$/', $duration ) ) ) {
 			return false;
@@ -672,32 +672,32 @@ function is_serialized( $data, $strict = true ) {
 		return false;
 	}
 	$data = trim( $data );
-	if ( 'N;' === $data ) {
+	if ( $data === 'N;' ) {
 		return true;
 	}
 	if ( strlen( $data ) < 4 ) {
 		return false;
 	}
-	if ( ':' !== $data[1] ) {
+	if ( $data[1] !== ':' ) {
 		return false;
 	}
 	if ( $strict ) {
 		$lastc = substr( $data, -1 );
-		if ( ';' !== $lastc && '}' !== $lastc ) {
+		if ( $lastc !== ';' && $lastc !== '}' ) {
 			return false;
 		}
 	} else {
 		$semicolon = strpos( $data, ';' );
 		$brace     = strpos( $data, '}' );
 		// Either ; or } must exist.
-		if ( false === $semicolon && false === $brace ) {
+		if ( $semicolon === false && $brace === false ) {
 			return false;
 		}
 		// But neither must be in the first X characters.
-		if ( false !== $semicolon && $semicolon < 3 ) {
+		if ( $semicolon !== false && $semicolon < 3 ) {
 			return false;
 		}
-		if ( false !== $brace && $brace < 4 ) {
+		if ( $brace !== false && $brace < 4 ) {
 			return false;
 		}
 	}
@@ -705,10 +705,10 @@ function is_serialized( $data, $strict = true ) {
 	switch ( $token ) {
 		case 's':
 			if ( $strict ) {
-				if ( '"' !== substr( $data, -2, 1 ) ) {
+				if ( substr( $data, -2, 1 ) !== '"' ) {
 					return false;
 				}
-			} elseif ( false === strpos( $data, '"' ) ) {
+			} elseif ( strpos( $data, '"' ) === false ) {
 				return false;
 			}
 			// Or else fall through.
@@ -740,13 +740,13 @@ function is_serialized_string( $data ) {
 	$data = trim( $data );
 	if ( strlen( $data ) < 4 ) {
 		return false;
-	} elseif ( ':' !== $data[1] ) {
+	} elseif ( $data[1] !== ':' ) {
 		return false;
-	} elseif ( ';' !== substr( $data, -1 ) ) {
+	} elseif ( substr( $data, -1 ) !== ';' ) {
 		return false;
-	} elseif ( 's' !== $data[0] ) {
+	} elseif ( $data[0] !== 's' ) {
 		return false;
-	} elseif ( '"' !== substr( $data, -2, 1 ) ) {
+	} elseif ( substr( $data, -2, 1 ) !== '"' ) {
 		return false;
 	} else {
 		return true;
@@ -888,7 +888,7 @@ function do_enclose( $content, $post ) {
 		return false;
 	}
 
-	if ( null === $content ) {
+	if ( $content === null ) {
 		$content = $post->post_content;
 	}
 
@@ -912,12 +912,12 @@ function do_enclose( $content, $post ) {
 		// If we haven't pung it already.
 		if ( ! in_array( $link_test, $pung, true ) ) {
 			$test = parse_url( $link_test );
-			if ( false === $test ) {
+			if ( $test === false ) {
 				continue;
 			}
 			if ( isset( $test['query'] ) ) {
 				$post_links[] = $link_test;
-			} elseif ( isset( $test['path'] ) && ( '/' !== $test['path'] ) && ( '' !== $test['path'] ) ) {
+			} elseif ( isset( $test['path'] ) && ( $test['path'] !== '/' ) && ( $test['path'] !== '' ) ) {
 				$post_links[] = $link_test;
 			}
 		}
@@ -939,7 +939,7 @@ function do_enclose( $content, $post ) {
 	foreach ( (array) $post_links as $url ) {
 		$url = strip_fragment_from_url( $url );
 
-		if ( '' !== $url && ! $wpdb->get_var( $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta WHERE post_id = %d AND meta_key = 'enclosure' AND meta_value LIKE %s", $post->ID, $wpdb->esc_like( $url ) . '%' ) ) ) {
+		if ( $url !== '' && ! $wpdb->get_var( $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta WHERE post_id = %d AND meta_key = 'enclosure' AND meta_value LIKE %s", $post->ID, $wpdb->esc_like( $url ) . '%' ) ) ) {
 
 			$headers = wp_get_http_headers( $url );
 			if ( $headers ) {
@@ -949,7 +949,7 @@ function do_enclose( $content, $post ) {
 
 				// Check to see if we can figure out the mime type from the extension.
 				$url_parts = parse_url( $url );
-				if ( false !== $url_parts && ! empty( $url_parts['path'] ) ) {
+				if ( $url_parts !== false && ! empty( $url_parts['path'] ) ) {
 					$extension = pathinfo( $url_parts['path'], PATHINFO_EXTENSION );
 					if ( ! empty( $extension ) ) {
 						foreach ( wp_get_mime_types() as $exts => $mime ) {
@@ -1060,15 +1060,15 @@ function _http_build_query( $data, $prefix = null, $sep = null, $key = '', $urle
 		if ( $urlencode ) {
 			$k = urlencode( $k );
 		}
-		if ( is_int( $k ) && null != $prefix ) {
+		if ( is_int( $k ) && $prefix != null ) {
 			$k = $prefix . $k;
 		}
 		if ( ! empty( $key ) ) {
 			$k = $key . '%5B' . $k . '%5D';
 		}
-		if ( null === $v ) {
+		if ( $v === null ) {
 			continue;
-		} elseif ( false === $v ) {
+		} elseif ( $v === false ) {
 			$v = '0';
 		}
 
@@ -1081,7 +1081,7 @@ function _http_build_query( $data, $prefix = null, $sep = null, $key = '', $urle
 		}
 	}
 
-	if ( null === $sep ) {
+	if ( $sep === null ) {
 		$sep = ini_get( 'arg_separator.output' );
 	}
 
@@ -1127,13 +1127,13 @@ function _http_build_query( $data, $prefix = null, $sep = null, $key = '', $urle
  */
 function add_query_arg( ...$args ) {
 	if ( is_array( $args[0] ) ) {
-		if ( count( $args ) < 2 || false === $args[1] ) {
+		if ( count( $args ) < 2 || $args[1] === false ) {
 			$uri = $_SERVER['REQUEST_URI'];
 		} else {
 			$uri = $args[1];
 		}
 	} else {
-		if ( count( $args ) < 3 || false === $args[2] ) {
+		if ( count( $args ) < 3 || $args[2] === false ) {
 			$uri = $_SERVER['REQUEST_URI'];
 		} else {
 			$uri = $args[2];
@@ -1147,10 +1147,10 @@ function add_query_arg( ...$args ) {
 		$frag = '';
 	}
 
-	if ( 0 === stripos( $uri, 'http://' ) ) {
+	if ( stripos( $uri, 'http://' ) === 0 ) {
 		$protocol = 'http://';
 		$uri      = substr( $uri, 7 );
-	} elseif ( 0 === stripos( $uri, 'https://' ) ) {
+	} elseif ( stripos( $uri, 'https://' ) === 0 ) {
 		$protocol = 'https://';
 		$uri      = substr( $uri, 8 );
 	} else {
@@ -1179,7 +1179,7 @@ function add_query_arg( ...$args ) {
 	}
 
 	foreach ( $qs as $k => $v ) {
-		if ( false === $v ) {
+		if ( $v === false ) {
 			unset( $qs[ $k ] );
 		}
 	}
@@ -1572,7 +1572,7 @@ function get_num_queries() {
  * @return bool True if 'y', false on anything else.
  */
 function bool_from_yn( $yn ) {
-	return ( 'y' === strtolower( $yn ) );
+	return ( strtolower( $yn ) === 'y' );
 }
 
 /**
@@ -1595,7 +1595,7 @@ function do_feed() {
 	// Remove the pad, if present.
 	$feed = preg_replace( '/^_+/', '', $feed );
 
-	if ( '' === $feed || 'feed' === $feed ) {
+	if ( $feed === '' || $feed === 'feed' ) {
 		$feed = get_default_feed();
 	}
 
@@ -1798,17 +1798,17 @@ function is_blog_installed() {
 	$wp_tables = $wpdb->tables();
 	foreach ( $wp_tables as $table ) {
 		// The existence of custom user tables shouldn't suggest an unwise state or prevent a clean installation.
-		if ( defined( 'CUSTOM_USER_TABLE' ) && CUSTOM_USER_TABLE == $table ) {
+		if ( defined( 'CUSTOM_USER_TABLE' ) && $table == CUSTOM_USER_TABLE ) {
 			continue;
 		}
-		if ( defined( 'CUSTOM_USER_META_TABLE' ) && CUSTOM_USER_META_TABLE == $table ) {
+		if ( defined( 'CUSTOM_USER_META_TABLE' ) && $table == CUSTOM_USER_META_TABLE ) {
 			continue;
 		}
 
 		$described_table = $wpdb->get_results( "DESCRIBE $table;" );
 		if (
 			( ! $described_table && empty( $wpdb->last_error ) ) ||
-			( is_array( $described_table ) && 0 === count( $described_table ) )
+			( is_array( $described_table ) && count( $described_table ) === 0 )
 		) {
 			continue;
 		}
@@ -1929,7 +1929,7 @@ function wp_original_referer_field( $echo = true, $jump_back_to = 'current' ) {
 	$ref = wp_get_original_referer();
 
 	if ( ! $ref ) {
-		$ref = ( 'previous' === $jump_back_to ) ? wp_get_referer() : wp_unslash( $_SERVER['REQUEST_URI'] );
+		$ref = ( $jump_back_to === 'previous' ) ? wp_get_referer() : wp_unslash( $_SERVER['REQUEST_URI'] );
 	}
 
 	$orig_referer_field = '<input type="hidden" name="_wp_original_http_referer" value="' . esc_attr( $ref ) . '" />';
@@ -2020,7 +2020,7 @@ function wp_mkdir_p( $target ) {
 	$target = str_replace( '//', '/', $target );
 
 	// Put the wrapper back on the target.
-	if ( null !== $wrapper ) {
+	if ( $wrapper !== null ) {
 		$target = $wrapper . '://' . $target;
 	}
 
@@ -2038,13 +2038,13 @@ function wp_mkdir_p( $target ) {
 	}
 
 	// Do not allow path traversals.
-	if ( false !== strpos( $target, '../' ) || false !== strpos( $target, '..' . DIRECTORY_SEPARATOR ) ) {
+	if ( strpos( $target, '../' ) !== false || strpos( $target, '..' . DIRECTORY_SEPARATOR ) !== false ) {
 		return false;
 	}
 
 	// We need to find the permissions of the parent folder that exists and inherit that.
 	$target_parent = dirname( $target );
-	while ( '.' !== $target_parent && ! is_dir( $target_parent ) && dirname( $target_parent ) !== $target_parent ) {
+	while ( $target_parent !== '.' && ! is_dir( $target_parent ) && dirname( $target_parent ) !== $target_parent ) {
 		$target_parent = dirname( $target_parent );
 	}
 
@@ -2102,7 +2102,7 @@ function path_is_absolute( $path ) {
 		return true;
 	}
 
-	if ( strlen( $path ) == 0 || '.' === $path[0] ) {
+	if ( strlen( $path ) == 0 || $path[0] === '.' ) {
 		return false;
 	}
 
@@ -2112,7 +2112,7 @@ function path_is_absolute( $path ) {
 	}
 
 	// A path starting with / or \ is absolute; anything else is relative.
-	return ( '/' === $path[0] || '\\' === $path[0] );
+	return ( $path[0] === '/' || $path[0] === '\\' );
 }
 
 /**
@@ -2167,7 +2167,7 @@ function wp_normalize_path( $path ) {
 	$path = preg_replace( '|(?<=.)/+|', '/', $path );
 
 	// Windows paths should uppercase the drive letter.
-	if ( ':' === substr( $path, 1, 1 ) ) {
+	if ( substr( $path, 1, 1 ) === ':' ) {
 		$path = ucfirst( $path );
 	}
 
@@ -2232,7 +2232,7 @@ function get_temp_dir() {
  * @return bool Whether the path is writable.
  */
 function wp_is_writable( $path ) {
-	if ( 'WIN' === strtoupper( substr( PHP_OS, 0, 3 ) ) ) {
+	if ( strtoupper( substr( PHP_OS, 0, 3 ) ) === 'WIN' ) {
 		return win_is_writable( $path );
 	} else {
 		return @is_writable( $path );
@@ -2256,7 +2256,7 @@ function wp_is_writable( $path ) {
  * @return bool Whether the path is writable.
  */
 function win_is_writable( $path ) {
-	if ( '/' === $path[ strlen( $path ) - 1 ] ) {
+	if ( $path[ strlen( $path ) - 1 ] === '/' ) {
 		// If it looks like a directory, check a random file within the directory.
 		return win_is_writable( $path . uniqid( mt_rand() ) . '.tmp' );
 	} elseif ( is_dir( $path ) ) {
@@ -2268,7 +2268,7 @@ function win_is_writable( $path ) {
 	$should_delete_tmp_file = ! file_exists( $path );
 
 	$f = @fopen( $path, 'a' );
-	if ( false === $f ) {
+	if ( $f === false ) {
 		return false;
 	}
 	fclose( $f );
@@ -2368,7 +2368,7 @@ function wp_upload_dir( $time = null, $create_dir = true, $refresh_cache = false
 			$uploads['error'] = $tested_paths[ $path ];
 		} else {
 			if ( ! wp_mkdir_p( $path ) ) {
-				if ( 0 === strpos( $uploads['basedir'], ABSPATH ) ) {
+				if ( strpos( $uploads['basedir'], ABSPATH ) === 0 ) {
 					$error_path = str_replace( ABSPATH, '', $uploads['basedir'] ) . $uploads['subdir'];
 				} else {
 					$error_path = wp_basename( $uploads['basedir'] ) . $uploads['subdir'];
@@ -2401,9 +2401,9 @@ function _wp_upload_dir( $time = null ) {
 	$siteurl     = get_option( 'siteurl' );
 	$upload_path = trim( get_option( 'upload_path' ) );
 
-	if ( empty( $upload_path ) || 'wp-content/uploads' === $upload_path ) {
+	if ( empty( $upload_path ) || $upload_path === 'wp-content/uploads' ) {
 		$dir = WP_CONTENT_DIR . '/uploads';
-	} elseif ( 0 !== strpos( $upload_path, ABSPATH ) ) {
+	} elseif ( strpos( $upload_path, ABSPATH ) !== 0 ) {
 		// $dir is absolute, $upload_path is (maybe) relative to ABSPATH.
 		$dir = path_join( ABSPATH, $upload_path );
 	} else {
@@ -2412,7 +2412,7 @@ function _wp_upload_dir( $time = null ) {
 
 	$url = get_option( 'upload_url_path' );
 	if ( ! $url ) {
-		if ( empty( $upload_path ) || ( 'wp-content/uploads' === $upload_path ) || ( $upload_path == $dir ) ) {
+		if ( empty( $upload_path ) || ( $upload_path === 'wp-content/uploads' ) || ( $upload_path == $dir ) ) {
 			$url = WP_CONTENT_URL . '/uploads';
 		} else {
 			$url = trailingslashit( $siteurl ) . $upload_path;
@@ -2565,7 +2565,7 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 		$file_type = wp_check_filetype( $filename );
 		$mime_type = $file_type['type'];
 
-		$is_image    = ( ! empty( $mime_type ) && 0 === strpos( $mime_type, 'image/' ) );
+		$is_image    = ( ! empty( $mime_type ) && strpos( $mime_type, 'image/' ) === 0 );
 		$upload_dir  = wp_get_upload_dir();
 		$lc_filename = null;
 
@@ -2625,7 +2625,7 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 		$count = 10000;
 
 		// The (resized) image files would have name and extension, and will be in the uploads dir.
-		if ( $name && $ext && @is_dir( $dir ) && false !== strpos( $dir, $upload_dir['basedir'] ) ) {
+		if ( $name && $ext && @is_dir( $dir ) && strpos( $dir, $upload_dir['basedir'] ) !== false ) {
 			/**
 			 * Filters the file list used for calculating a unique filename for a newly added file.
 			 *
@@ -2641,7 +2641,7 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 			 */
 			$files = apply_filters( 'pre_wp_unique_filename_file_list', null, $dir, $filename );
 
-			if ( null === $files ) {
+			if ( $files === null ) {
 				// List of all files and directories contained in $dir.
 				$files = @scandir( $dir );
 			}
@@ -2872,7 +2872,7 @@ function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 
 	$upload = wp_upload_dir( $time );
 
-	if ( false !== $upload['error'] ) {
+	if ( $upload['error'] !== false ) {
 		return $upload;
 	}
 
@@ -2903,7 +2903,7 @@ function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 
 	$new_file = $upload['path'] . "/$filename";
 	if ( ! wp_mkdir_p( dirname( $new_file ) ) ) {
-		if ( 0 === strpos( $upload['basedir'], ABSPATH ) ) {
+		if ( strpos( $upload['basedir'], ABSPATH ) === 0 ) {
 			$error_path = str_replace( ABSPATH, '', $upload['basedir'] ) . $upload['subdir'];
 		} else {
 			$error_path = wp_basename( $upload['basedir'] ) . $upload['subdir'];
@@ -3070,7 +3070,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 	$real_mime = false;
 
 	// Validate image types.
-	if ( $type && 0 === strpos( $type, 'image/' ) ) {
+	if ( $type && strpos( $type, 'image/' ) === 0 ) {
 
 		// Attempt to figure out what type of image it actually is.
 		$real_mime = wp_get_image_mime( $file );
@@ -3141,7 +3141,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 				$type = false;
 				$ext  = false;
 			}
-		} elseif ( 0 === strpos( $real_mime, 'video/' ) || 0 === strpos( $real_mime, 'audio/' ) ) {
+		} elseif ( strpos( $real_mime, 'video/' ) === 0 || strpos( $real_mime, 'audio/' ) === 0 ) {
 			/*
 			 * For these types, only the major type must match the real value.
 			 * This means that common mismatches are forgiven: application/vnd.apple.numbers is often misidentified as application/zip,
@@ -3151,7 +3151,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 				$type = false;
 				$ext  = false;
 			}
-		} elseif ( 'text/plain' === $real_mime ) {
+		} elseif ( $real_mime === 'text/plain' ) {
 			// A few common file types are occasionally detected as text/plain; allow those.
 			if ( ! in_array(
 				$type,
@@ -3169,7 +3169,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 				$type = false;
 				$ext  = false;
 			}
-		} elseif ( 'application/csv' === $real_mime ) {
+		} elseif ( $real_mime === 'application/csv' ) {
 			// Special casing for CSV files.
 			if ( ! in_array(
 				$type,
@@ -3184,7 +3184,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 				$type = false;
 				$ext  = false;
 			}
-		} elseif ( 'text/rtf' === $real_mime ) {
+		} elseif ( $real_mime === 'text/rtf' ) {
 			// Special casing for RTF files.
 			if ( ! in_array(
 				$type,
@@ -3281,13 +3281,13 @@ function wp_get_image_mime( $file ) {
 			$mime = false;
 		}
 
-		if ( false !== $mime ) {
+		if ( $mime !== false ) {
 			return $mime;
 		}
 
 		$magic = file_get_contents( $file, false, null, 0, 12 );
 
-		if ( false === $magic ) {
+		if ( $magic === false ) {
 			return false;
 		}
 
@@ -3299,9 +3299,9 @@ function wp_get_image_mime( $file ) {
 		$magic = bin2hex( $magic );
 		if (
 			// RIFF.
-			( 0 === strpos( $magic, '52494646' ) ) &&
+			( strpos( $magic, '52494646' ) === 0 ) &&
 			// WEBP.
-			( 16 === strpos( $magic, '57454250' ) )
+			( strpos( $magic, '57454250' ) === 16 )
 		) {
 			$mime = 'image/webp';
 		}
@@ -3563,7 +3563,7 @@ function wp_nonce_ays( $action ) {
 	$title         = __( 'Something went wrong.' );
 	$response_code = 403;
 
-	if ( 'log-out' === $action ) {
+	if ( $action === 'log-out' ) {
 		$title = sprintf(
 			/* translators: %s: Site title. */
 			__( 'You are attempting to log out of %s' ),
@@ -3899,7 +3899,7 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 		}
 
 		<?php
-		if ( 'rtl' === $text_direction ) {
+		if ( $text_direction === 'rtl' ) {
 			echo 'body { font-family: Tahoma, Arial; }';
 		}
 		?>
@@ -3939,7 +3939,7 @@ function _ajax_wp_die_handler( $message, $title = '', $args = array() ) {
 
 	if ( ! headers_sent() ) {
 		// This is intentional. For backward-compatibility, support passing null here.
-		if ( null !== $args['response'] ) {
+		if ( $args['response'] !== null ) {
 			status_header( $parsed_args['response'] );
 		}
 		nocache_headers();
@@ -3984,7 +3984,7 @@ function _json_wp_die_handler( $message, $title = '', $args = array() ) {
 
 	if ( ! headers_sent() ) {
 		header( "Content-Type: application/json; charset={$parsed_args['charset']}" );
-		if ( null !== $parsed_args['response'] ) {
+		if ( $parsed_args['response'] !== null ) {
 			status_header( $parsed_args['response'] );
 		}
 		nocache_headers();
@@ -4024,7 +4024,7 @@ function _jsonp_wp_die_handler( $message, $title = '', $args = array() ) {
 		header( "Content-Type: application/javascript; charset={$parsed_args['charset']}" );
 		header( 'X-Content-Type-Options: nosniff' );
 		header( 'X-Robots-Tag: noindex' );
-		if ( null !== $parsed_args['response'] ) {
+		if ( $parsed_args['response'] !== null ) {
 			status_header( $parsed_args['response'] );
 		}
 		nocache_headers();
@@ -4102,7 +4102,7 @@ EOD;
 
 	if ( ! headers_sent() ) {
 		header( "Content-Type: text/xml; charset={$parsed_args['charset']}" );
-		if ( null !== $parsed_args['response'] ) {
+		if ( $parsed_args['response'] !== null ) {
 			status_header( $parsed_args['response'] );
 		}
 		nocache_headers();
@@ -4247,7 +4247,7 @@ function wp_json_encode( $data, $options = 0, $depth = 512 ) {
 	$json = json_encode( $data, $options, $depth );
 
 	// If json_encode() was successful, no need to do more sanity checking.
-	if ( false !== $json ) {
+	if ( $json !== false ) {
 		return $json;
 	}
 
@@ -4402,7 +4402,7 @@ function wp_send_json( $response, $status_code = null, $options = 0 ) {
 
 	if ( ! headers_sent() ) {
 		header( 'Content-Type: application/json; charset=' . get_option( 'blog_charset' ) );
-		if ( null !== $status_code ) {
+		if ( $status_code !== null ) {
 			status_header( $status_code );
 		}
 	}
@@ -4503,7 +4503,7 @@ function wp_check_jsonp_callback( $callback ) {
 
 	preg_replace( '/[^\w\.]/', '', $callback, -1, $illegal_char_count );
 
-	return 0 === $illegal_char_count;
+	return $illegal_char_count === 0;
 }
 
 /**
@@ -4539,7 +4539,7 @@ function wp_json_file_decode( $filename, $options = array() ) {
 	$options      = wp_parse_args( $options, array( 'associative' => false ) );
 	$decoded_file = json_decode( file_get_contents( $filename ), $options['associative'] );
 
-	if ( JSON_ERROR_NONE !== json_last_error() ) {
+	if ( json_last_error() !== JSON_ERROR_NONE ) {
 		trigger_error(
 			sprintf(
 				/* translators: 1: Path to the JSON file, 2: Error message. */
@@ -4758,7 +4758,7 @@ function smilies_init() {
 
 		// New subpattern?
 		if ( $firstchar != $subchar ) {
-			if ( '' !== $subchar ) {
+			if ( $subchar !== '' ) {
 				$wp_smiliessearch .= ')(?=' . $spaces . '|$)';  // End previous "subpattern".
 				$wp_smiliessearch .= '|(?<=' . $spaces . '|^)'; // Begin another "subpattern".
 			}
@@ -4900,7 +4900,7 @@ function wp_array_slice_assoc( $array, $keys ) {
  */
 function _wp_array_get( $array, $path, $default = null ) {
 	// Confirm $path is valid.
-	if ( ! is_array( $path ) || 0 === count( $path ) ) {
+	if ( ! is_array( $path ) || count( $path ) === 0 ) {
 		return $default;
 	}
 
@@ -4960,7 +4960,7 @@ function _wp_array_set( &$array, $path, $value = null ) {
 
 	$path_length = count( $path );
 
-	if ( 0 === $path_length ) {
+	if ( $path_length === 0 ) {
 		return;
 	}
 
@@ -5864,7 +5864,7 @@ function is_lighttpd_before_150() {
 	$server_parts    = explode( '/', isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : '' );
 	$server_parts[1] = isset( $server_parts[1] ) ? $server_parts[1] : '';
 
-	return ( 'lighttpd' === $server_parts[0] && -1 == version_compare( $server_parts[1], '1.5.0' ) );
+	return ( $server_parts[0] === 'lighttpd' && version_compare( $server_parts[1], '1.5.0' ) == -1 );
 }
 
 /**
@@ -5890,11 +5890,11 @@ function apache_mod_loaded( $mod, $default = false ) {
 		if ( in_array( $mod, $mods, true ) ) {
 			return true;
 		}
-	} elseif ( function_exists( 'phpinfo' ) && false === strpos( ini_get( 'disable_functions' ), 'phpinfo' ) ) {
+	} elseif ( function_exists( 'phpinfo' ) && strpos( ini_get( 'disable_functions' ), 'phpinfo' ) === false ) {
 			ob_start();
 			phpinfo( 8 );
 			$phpinfo = ob_get_clean();
-		if ( false !== strpos( $phpinfo, $mod ) ) {
+		if ( strpos( $phpinfo, $mod ) !== false ) {
 			return true;
 		}
 	}
@@ -5925,7 +5925,7 @@ function iis7_supports_permalinks() {
 		 * Lastly we make sure that PHP is running via FastCGI. This is important because if it runs
 		 * via ISAPI then pretty permalinks will not work.
 		 */
-		$supports_permalinks = class_exists( 'DOMDocument', false ) && isset( $_SERVER['IIS_UrlRewriteModule'] ) && ( 'cgi-fcgi' === PHP_SAPI );
+		$supports_permalinks = class_exists( 'DOMDocument', false ) && isset( $_SERVER['IIS_UrlRewriteModule'] ) && ( PHP_SAPI === 'cgi-fcgi' );
 	}
 
 	/**
@@ -5954,12 +5954,12 @@ function iis7_supports_permalinks() {
  * @return int 0 means nothing is wrong, greater than 0 means something was wrong.
  */
 function validate_file( $file, $allowed_files = array() ) {
-	if ( ! is_scalar( $file ) || '' === $file ) {
+	if ( ! is_scalar( $file ) || $file === '' ) {
 		return 0;
 	}
 
 	// `../` on its own is not allowed:
-	if ( '../' === $file ) {
+	if ( $file === '../' ) {
 		return 1;
 	}
 
@@ -5969,7 +5969,7 @@ function validate_file( $file, $allowed_files = array() ) {
 	}
 
 	// `../` which does not occur at the end of the path is not allowed:
-	if ( false !== strpos( $file, '../' ) && '../' !== mb_substr( $file, -3, 3 ) ) {
+	if ( strpos( $file, '../' ) !== false && mb_substr( $file, -3, 3 ) !== '../' ) {
 		return 1;
 	}
 
@@ -5979,7 +5979,7 @@ function validate_file( $file, $allowed_files = array() ) {
 	}
 
 	// Absolute Windows drive paths are not allowed:
-	if ( ':' === substr( $file, 1, 1 ) ) {
+	if ( substr( $file, 1, 1 ) === ':' ) {
 		return 2;
 	}
 
@@ -6017,7 +6017,7 @@ function force_ssl_admin( $force = null ) {
  * @return string The guessed URL.
  */
 function wp_guess_url() {
-	if ( defined( 'WP_SITEURL' ) && '' !== WP_SITEURL ) {
+	if ( defined( 'WP_SITEURL' ) && WP_SITEURL !== '' ) {
 		$url = WP_SITEURL;
 	} else {
 		$abspath_fix         = str_replace( '\\', '/', ABSPATH );
@@ -6033,12 +6033,12 @@ function wp_guess_url() {
 			$path = preg_replace( '#/[^/]*$#i', '', $_SERVER['PHP_SELF'] );
 
 		} else {
-			if ( false !== strpos( $_SERVER['SCRIPT_FILENAME'], $abspath_fix ) ) {
+			if ( strpos( $_SERVER['SCRIPT_FILENAME'], $abspath_fix ) !== false ) {
 				// Request is hitting a file inside ABSPATH.
 				$directory = str_replace( ABSPATH, '', $script_filename_dir );
 				// Strip off the subdirectory, and any file/query params.
 				$path = preg_replace( '#/' . preg_quote( $directory, '#' ) . '/[^/]*$#i', '', $_SERVER['REQUEST_URI'] );
-			} elseif ( false !== strpos( $abspath_fix, $script_filename_dir ) ) {
+			} elseif ( strpos( $abspath_fix, $script_filename_dir ) !== false ) {
 				// Request is hitting a file above ABSPATH.
 				$subdirectory = substr( $abspath_fix, strpos( $abspath_fix, $script_filename_dir ) + strlen( $script_filename_dir ) );
 				// Strip off any file/query params from the path, appending the subdirectory to the installation.
@@ -6163,7 +6163,7 @@ function is_main_network( $network_id = null ) {
 		return true;
 	}
 
-	if ( null === $network_id ) {
+	if ( $network_id === null ) {
 		$network_id = get_current_network_id();
 	}
 
@@ -6188,7 +6188,7 @@ function get_main_network_id() {
 
 	if ( defined( 'PRIMARY_NETWORK_ID' ) ) {
 		$main_network_id = PRIMARY_NETWORK_ID;
-	} elseif ( isset( $current_network->id ) && 1 === (int) $current_network->id ) {
+	} elseif ( isset( $current_network->id ) && (int) $current_network->id === 1 ) {
 		// If the current network has an ID of 1, assume it is the main network.
 		$main_network_id = 1;
 	} else {
@@ -6269,7 +6269,7 @@ function is_site_meta_supported() {
 	$network_id = get_main_network_id();
 
 	$supported = get_network_option( $network_id, 'site_meta_supported', false );
-	if ( false === $supported ) {
+	if ( $supported === false ) {
 		$supported = $wpdb->get_var( "SHOW TABLES LIKE '{$wpdb->blogmeta}'" ) ? 1 : 0;
 
 		update_network_option( $network_id, 'site_meta_supported', $supported );
@@ -6295,7 +6295,7 @@ function wp_timezone_override_offset() {
 
 	$timezone_object = timezone_open( $timezone_string );
 	$datetime_object = date_create();
-	if ( false === $timezone_object || false === $datetime_object ) {
+	if ( $timezone_object === false || $datetime_object === false ) {
 		return false;
 	}
 	return round( timezone_offset_get( $timezone_object, $datetime_object ) / HOUR_IN_SECONDS, 2 );
@@ -6313,19 +6313,19 @@ function wp_timezone_override_offset() {
  */
 function _wp_timezone_choice_usort_callback( $a, $b ) {
 	// Don't use translated versions of Etc.
-	if ( 'Etc' === $a['continent'] && 'Etc' === $b['continent'] ) {
+	if ( $a['continent'] === 'Etc' && $b['continent'] === 'Etc' ) {
 		// Make the order of these more like the old dropdown.
-		if ( 'GMT+' === substr( $a['city'], 0, 4 ) && 'GMT+' === substr( $b['city'], 0, 4 ) ) {
+		if ( substr( $a['city'], 0, 4 ) === 'GMT+' && substr( $b['city'], 0, 4 ) === 'GMT+' ) {
 			return -1 * ( strnatcasecmp( $a['city'], $b['city'] ) );
 		}
-		if ( 'UTC' === $a['city'] ) {
-			if ( 'GMT+' === substr( $b['city'], 0, 4 ) ) {
+		if ( $a['city'] === 'UTC' ) {
+			if ( substr( $b['city'], 0, 4 ) === 'GMT+' ) {
 				return 1;
 			}
 			return -1;
 		}
-		if ( 'UTC' === $b['city'] ) {
-			if ( 'GMT+' === substr( $a['city'], 0, 4 ) ) {
+		if ( $b['city'] === 'UTC' ) {
+			if ( substr( $a['city'], 0, 4 ) === 'GMT+' ) {
 				return -1;
 			}
 			return 1;
@@ -6339,10 +6339,10 @@ function _wp_timezone_choice_usort_callback( $a, $b ) {
 		return strnatcasecmp( $a['t_city'], $b['t_city'] );
 	} else {
 		// Force Etc to the bottom of the list.
-		if ( 'Etc' === $a['continent'] ) {
+		if ( $a['continent'] === 'Etc' ) {
 			return 1;
 		}
-		if ( 'Etc' === $b['continent'] ) {
+		if ( $b['continent'] === 'Etc' ) {
 			return -1;
 		}
 		return strnatcasecmp( $a['t_continent'], $b['t_continent'] );
@@ -6386,7 +6386,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 			1 => ( isset( $zone[1] ) && $zone[1] ),
 			2 => ( isset( $zone[2] ) && $zone[2] ),
 		);
-		$exists[3] = ( $exists[0] && 'Etc' !== $zone[0] );
+		$exists[3] = ( $exists[0] && $zone[0] !== 'Etc' );
 		$exists[4] = ( $exists[1] && $exists[3] );
 		$exists[5] = ( $exists[2] && $exists[3] );
 
@@ -6453,7 +6453,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 	// Do UTC.
 	$structure[] = '<optgroup label="' . esc_attr__( 'UTC' ) . '">';
 	$selected    = '';
-	if ( 'UTC' === $selected_zone ) {
+	if ( $selected_zone === 'UTC' ) {
 		$selected = 'selected="selected" ';
 	}
 	$structure[] = '<option ' . $selected . 'value="' . esc_attr( 'UTC' ) . '">' . __( 'UTC' ) . '</option>';
@@ -6581,7 +6581,7 @@ function wp_scheduled_delete() {
 
 		$del_post = get_post( $post_id );
 
-		if ( ! $del_post || 'trash' !== $del_post->post_status ) {
+		if ( ! $del_post || $del_post->post_status !== 'trash' ) {
 			delete_post_meta( $post_id, '_wp_trash_meta_status' );
 			delete_post_meta( $post_id, '_wp_trash_meta_time' );
 		} else {
@@ -6599,7 +6599,7 @@ function wp_scheduled_delete() {
 
 		$del_comment = get_comment( $comment_id );
 
-		if ( ! $del_comment || 'trash' !== $del_comment->comment_approved ) {
+		if ( ! $del_comment || $del_comment->comment_approved !== 'trash' ) {
 			delete_comment_meta( $comment_id, '_wp_trash_meta_time' );
 			delete_comment_meta( $comment_id, '_wp_trash_meta_status' );
 		} else {
@@ -6632,7 +6632,7 @@ function get_file_data( $file, $default_headers, $context = '' ) {
 	// Pull only the first 8 KB of the file in.
 	$file_data = file_get_contents( $file, false, null, 0, 8 * KB_IN_BYTES );
 
-	if ( false === $file_data ) {
+	if ( $file_data === false ) {
 		$file_data = '';
 	}
 
@@ -7034,7 +7034,7 @@ function _device_can_upload() {
 function wp_is_stream( $path ) {
 	$scheme_separator = strpos( $path, '://' );
 
-	if ( false === $scheme_separator ) {
+	if ( $scheme_separator === false ) {
 		// $path isn't a stream.
 		return false;
 	}
@@ -7218,12 +7218,12 @@ function get_tag_regex( $tag ) {
  * @return string The canonical form of the charset.
  */
 function _canonical_charset( $charset ) {
-	if ( 'utf-8' === strtolower( $charset ) || 'utf8' === strtolower( $charset ) ) {
+	if ( strtolower( $charset ) === 'utf-8' || strtolower( $charset ) === 'utf8' ) {
 
 		return 'UTF-8';
 	}
 
-	if ( 'iso-8859-1' === strtolower( $charset ) || 'iso8859-1' === strtolower( $charset ) ) {
+	if ( strtolower( $charset ) === 'iso-8859-1' || strtolower( $charset ) === 'iso8859-1' ) {
 
 		return 'ISO-8859-1';
 	}
@@ -7268,7 +7268,7 @@ function mbstring_binary_safe_encoding( $reset = false ) {
 		}
 	}
 
-	if ( false === $overloaded ) {
+	if ( $overloaded === false ) {
 		return;
 	}
 
@@ -7310,7 +7310,7 @@ function wp_validate_boolean( $var ) {
 		return $var;
 	}
 
-	if ( is_string( $var ) && 'false' === strtolower( $var ) ) {
+	if ( is_string( $var ) && strtolower( $var ) === 'false' ) {
 		return false;
 	}
 
@@ -7356,15 +7356,15 @@ function wp_delete_file_from_directory( $file, $directory ) {
 		$real_directory = realpath( wp_normalize_path( $directory ) );
 	}
 
-	if ( false !== $real_file ) {
+	if ( $real_file !== false ) {
 		$real_file = wp_normalize_path( $real_file );
 	}
 
-	if ( false !== $real_directory ) {
+	if ( $real_directory !== false ) {
 		$real_directory = wp_normalize_path( $real_directory );
 	}
 
-	if ( false === $real_file || false === $real_directory || strpos( $real_file, trailingslashit( $real_directory ) ) !== 0 ) {
+	if ( $real_file === false || $real_directory === false || strpos( $real_file, trailingslashit( $real_directory ) ) !== 0 ) {
 		return false;
 	}
 
@@ -7442,14 +7442,14 @@ function mysql_to_rfc3339( $date_string ) {
  */
 function wp_raise_memory_limit( $context = 'admin' ) {
 	// Exit early if the limit cannot be changed.
-	if ( false === wp_is_ini_value_changeable( 'memory_limit' ) ) {
+	if ( wp_is_ini_value_changeable( 'memory_limit' ) === false ) {
 		return false;
 	}
 
 	$current_limit     = ini_get( 'memory_limit' );
 	$current_limit_int = wp_convert_hr_to_bytes( $current_limit );
 
-	if ( -1 === $current_limit_int ) {
+	if ( $current_limit_int === -1 ) {
 		return false;
 	}
 
@@ -7517,14 +7517,14 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 
 	$filtered_limit_int = wp_convert_hr_to_bytes( $filtered_limit );
 
-	if ( -1 === $filtered_limit_int || ( $filtered_limit_int > $wp_max_limit_int && $filtered_limit_int > $current_limit_int ) ) {
-		if ( false !== ini_set( 'memory_limit', $filtered_limit ) ) {
+	if ( $filtered_limit_int === -1 || ( $filtered_limit_int > $wp_max_limit_int && $filtered_limit_int > $current_limit_int ) ) {
+		if ( ini_set( 'memory_limit', $filtered_limit ) !== false ) {
 			return $filtered_limit;
 		} else {
 			return false;
 		}
-	} elseif ( -1 === $wp_max_limit_int || $wp_max_limit_int > $current_limit_int ) {
-		if ( false !== ini_set( 'memory_limit', $wp_max_limit ) ) {
+	} elseif ( $wp_max_limit_int === -1 || $wp_max_limit_int > $current_limit_int ) {
+		if ( ini_set( 'memory_limit', $wp_max_limit ) !== false ) {
 			return $wp_max_limit;
 		} else {
 			return false;
@@ -7572,7 +7572,7 @@ function wp_is_uuid( $uuid, $version = null ) {
 	}
 
 	if ( is_numeric( $version ) ) {
-		if ( 4 !== (int) $version ) {
+		if ( (int) $version !== 4 ) {
 			_doing_it_wrong( __FUNCTION__, __( 'Only UUID V4 is supported at this time.' ), '4.9.0' );
 			return false;
 		}
@@ -7634,7 +7634,7 @@ function wp_site_admin_email_change_notification( $old_email, $new_email, $optio
 	$send = true;
 
 	// Don't send the notification to the default 'admin_email' value.
-	if ( 'you@example.com' === $old_email ) {
+	if ( $old_email === 'you@example.com' ) {
 		$send = false;
 	}
 
@@ -7736,7 +7736,7 @@ function wp_privacy_anonymize_ip( $ip_addr, $ipv6_fallback = false ) {
 	// Detect what kind of IP address this is.
 	$ip_prefix = '';
 	$is_ipv6   = substr_count( $ip_addr, ':' ) > 1;
-	$is_ipv4   = ( 3 === substr_count( $ip_addr, '.' ) );
+	$is_ipv4   = ( substr_count( $ip_addr, '.' ) === 3 );
 
 	if ( $is_ipv6 && $is_ipv4 ) {
 		// IPv6 compatibility mode, temporarily strip the IPv6 part, and treat it like IPv4.
@@ -7754,15 +7754,15 @@ function wp_privacy_anonymize_ip( $ip_addr, $ipv6_fallback = false ) {
 		$netmask       = 'ffff:ffff:ffff:ffff:0000:0000:0000:0000';
 
 		// Strip the port (and [] from IPv6 addresses), if they exist.
-		if ( false !== $left_bracket && false !== $right_bracket ) {
+		if ( $left_bracket !== false && $right_bracket !== false ) {
 			$ip_addr = substr( $ip_addr, $left_bracket + 1, $right_bracket - $left_bracket - 1 );
-		} elseif ( false !== $left_bracket || false !== $right_bracket ) {
+		} elseif ( $left_bracket !== false || $right_bracket !== false ) {
 			// The IP has one bracket, but not both, so it's malformed.
 			return '::';
 		}
 
 		// Strip the reachability scope.
-		if ( false !== $percent ) {
+		if ( $percent !== false ) {
 			$ip_addr = substr( $ip_addr, 0, $percent );
 		}
 
@@ -7774,7 +7774,7 @@ function wp_privacy_anonymize_ip( $ip_addr, $ipv6_fallback = false ) {
 		// Partially anonymize the IP by reducing it to the corresponding network ID.
 		if ( function_exists( 'inet_pton' ) && function_exists( 'inet_ntop' ) ) {
 			$ip_addr = inet_ntop( inet_pton( $ip_addr ) & inet_pton( $netmask ) );
-			if ( false === $ip_addr ) {
+			if ( $ip_addr === false ) {
 				return '::';
 			}
 		} elseif ( ! $ipv6_fallback ) {
@@ -7963,7 +7963,7 @@ function wp_get_update_php_url() {
 	$default_url = wp_get_default_update_php_url();
 
 	$update_url = $default_url;
-	if ( false !== getenv( 'WP_UPDATE_PHP_URL' ) ) {
+	if ( getenv( 'WP_UPDATE_PHP_URL' ) !== false ) {
 		$update_url = getenv( 'WP_UPDATE_PHP_URL' );
 	}
 
@@ -8063,7 +8063,7 @@ function wp_get_update_php_annotation() {
 function wp_get_direct_php_update_url() {
 	$direct_update_url = '';
 
-	if ( false !== getenv( 'WP_DIRECT_UPDATE_PHP_URL' ) ) {
+	if ( getenv( 'WP_DIRECT_UPDATE_PHP_URL' ) !== false ) {
 		$direct_update_url = getenv( 'WP_DIRECT_UPDATE_PHP_URL' );
 	}
 
@@ -8122,7 +8122,7 @@ function wp_get_update_https_url() {
 	$default_url = wp_get_default_update_https_url();
 
 	$update_url = $default_url;
-	if ( false !== getenv( 'WP_UPDATE_HTTPS_URL' ) ) {
+	if ( getenv( 'WP_UPDATE_HTTPS_URL' ) !== false ) {
 		$update_url = getenv( 'WP_UPDATE_HTTPS_URL' );
 	}
 
@@ -8175,7 +8175,7 @@ function wp_get_default_update_https_url() {
 function wp_get_direct_update_https_url() {
 	$direct_update_url = '';
 
-	if ( false !== getenv( 'WP_DIRECT_UPDATE_HTTPS_URL' ) ) {
+	if ( getenv( 'WP_DIRECT_UPDATE_HTTPS_URL' ) !== false ) {
 		$direct_update_url = getenv( 'WP_DIRECT_UPDATE_HTTPS_URL' );
 	}
 
@@ -8262,7 +8262,7 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 		return false;
 	}
 
-	if ( null === $max_execution_time ) {
+	if ( $max_execution_time === null ) {
 		// Keep the previous behavior but attempt to prevent fatal errors from timeout if possible.
 		if ( function_exists( 'ini_get' ) ) {
 			$max_execution_time = ini_get( 'max_execution_time' );
@@ -8294,14 +8294,14 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 	 */
 	$size = apply_filters( 'pre_recurse_dirsize', false, $directory, $exclude, $max_execution_time, $directory_cache );
 
-	if ( false === $size ) {
+	if ( $size === false ) {
 		$size = 0;
 
 		$handle = opendir( $directory );
 		if ( $handle ) {
 			while ( ( $file = readdir( $handle ) ) !== false ) {
 				$path = $directory . '/' . $file;
-				if ( '.' !== $file && '..' !== $file ) {
+				if ( $file !== '.' && $file !== '..' ) {
 					if ( is_file( $path ) ) {
 						$size += filesize( $path );
 					} elseif ( is_dir( $path ) ) {
@@ -8382,9 +8382,9 @@ function clean_dirsize_cache( $path ) {
 
 	while (
 		$last_path !== $path &&
-		DIRECTORY_SEPARATOR !== $path &&
-		'.' !== $path &&
-		'..' !== $path
+		$path !== DIRECTORY_SEPARATOR &&
+		$path !== '.' &&
+		$path !== '..'
 	) {
 		$last_path = $path;
 		$path      = dirname( $path );

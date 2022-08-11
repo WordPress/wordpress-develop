@@ -193,8 +193,8 @@ function get_comment_author_email_link( $linktext = '', $before = '', $after = '
 	 */
 	$email = apply_filters( 'comment_email', $comment->comment_author_email, $comment );
 
-	if ( ( ! empty( $email ) ) && ( '@' !== $email ) ) {
-		$display = ( '' !== $linktext ) ? $linktext : $email;
+	if ( ( ! empty( $email ) ) && ( $email !== '@' ) ) {
+		$display = ( $linktext !== '' ) ? $linktext : $email;
 		$return  = $before;
 		$return .= sprintf( '<a href="%1$s">%2$s</a>', esc_url( 'mailto:' . $email ), esc_html( $display ) );
 		$return .= $after;
@@ -222,7 +222,7 @@ function get_comment_author_link( $comment_ID = 0 ) {
 	$url     = get_comment_author_url( $comment );
 	$author  = get_comment_author( $comment );
 
-	if ( empty( $url ) || 'http://' === $url ) {
+	if ( empty( $url ) || $url === 'http://' ) {
 		$return = $author;
 	} else {
 		$return = "<a href='$url' rel='external nofollow ugc' class='url'>$author</a>";
@@ -310,7 +310,7 @@ function get_comment_author_url( $comment_ID = 0 ) {
 	$id      = 0;
 
 	if ( ! empty( $comment ) ) {
-		$author_url = ( 'http://' === $comment->comment_author_url ) ? '' : $comment->comment_author_url;
+		$author_url = ( $comment->comment_author_url === 'http://' ) ? '' : $comment->comment_author_url;
 		$url        = esc_url( $author_url, array( 'http', 'https' ) );
 		$id         = $comment->comment_ID;
 	}
@@ -378,11 +378,11 @@ function comment_author_url( $comment_ID = 0 ) {
  */
 function get_comment_author_url_link( $linktext = '', $before = '', $after = '', $comment = 0 ) {
 	$url     = get_comment_author_url( $comment );
-	$display = ( '' !== $linktext ) ? $linktext : $url;
+	$display = ( $linktext !== '' ) ? $linktext : $url;
 	$display = str_replace( 'http://www.', '', $display );
 	$display = str_replace( 'http://', '', $display );
 
-	if ( '/' === substr( $display, -1 ) ) {
+	if ( substr( $display, -1 ) === '/' ) {
 		$display = substr( $display, 0, -1 );
 	}
 
@@ -504,7 +504,7 @@ function get_comment_class( $css_class = '', $comment_id = null, $post = null ) 
 	$comment_alt++;
 
 	// Alt for top-level comments.
-	if ( 1 == $comment_depth ) {
+	if ( $comment_depth == 1 ) {
 		if ( $comment_thread_alt % 2 ) {
 			$classes[] = 'thread-odd';
 			$classes[] = 'thread-alt';
@@ -740,7 +740,7 @@ function get_comment_link( $comment = null, $args = array() ) {
 
 		// No 'cpage' is provided, so we calculate one.
 	} else {
-		if ( '' === $args['per_page'] && get_option( 'page_comments' ) ) {
+		if ( $args['per_page'] === '' && get_option( 'page_comments' ) ) {
 			$args['per_page'] = get_option( 'comments_per_page' );
 		}
 
@@ -751,7 +751,7 @@ function get_comment_link( $comment = null, $args = array() ) {
 
 		$cpage = $args['page'];
 
-		if ( '' == $cpage ) {
+		if ( $cpage == '' ) {
 			if ( ! empty( $in_comment_loop ) ) {
 				$cpage = get_query_var( 'cpage' );
 			} else {
@@ -764,7 +764,7 @@ function get_comment_link( $comment = null, $args = array() ) {
 		 * If the default page displays the oldest comments, the permalinks for comments on the default page
 		 * do not need a 'cpage' query var.
 		 */
-		if ( 'oldest' === get_option( 'default_comments_page' ) && 1 === $cpage ) {
+		if ( get_option( 'default_comments_page' ) === 'oldest' && $cpage === 1 ) {
 			$cpage = '';
 		}
 	}
@@ -901,7 +901,7 @@ function get_comments_number_text( $zero = false, $one = false, $more = false, $
 	$number = get_comments_number( $post );
 
 	if ( $number > 1 ) {
-		if ( false === $more ) {
+		if ( $more === false ) {
 			/* translators: %s: Number of comments. */
 			$output = sprintf( _n( '%s Comment', '%s Comments', $number ), number_format_i18n( $number ) );
 		} else {
@@ -910,19 +910,19 @@ function get_comments_number_text( $zero = false, $one = false, $more = false, $
 			 * translators: If comment number in your language requires declension,
 			 * translate this to 'on'. Do not translate into your own language.
 			 */
-			if ( 'on' === _x( 'off', 'Comment number declension: on or off' ) ) {
+			if ( _x( 'off', 'Comment number declension: on or off' ) === 'on' ) {
 				$text = preg_replace( '#<span class="screen-reader-text">.+?</span>#', '', $more );
 				$text = preg_replace( '/&.+?;/', '', $text ); // Kill entities.
 				$text = trim( strip_tags( $text ), '% ' );
 
 				// Replace '% Comments' with a proper plural form.
-				if ( $text && ! preg_match( '/[0-9]+/', $text ) && false !== strpos( $more, '%' ) ) {
+				if ( $text && ! preg_match( '/[0-9]+/', $text ) && strpos( $more, '%' ) !== false ) {
 					/* translators: %s: Number of comments. */
 					$new_text = _n( '%s Comment', '%s Comments', $number );
 					$new_text = trim( sprintf( $new_text, '' ) );
 
 					$more = str_replace( $text, $new_text, $more );
-					if ( false === strpos( $more, '%' ) ) {
+					if ( strpos( $more, '%' ) === false ) {
 						$more = '% ' . $more;
 					}
 				}
@@ -930,10 +930,10 @@ function get_comments_number_text( $zero = false, $one = false, $more = false, $
 
 			$output = str_replace( '%', number_format_i18n( $number ), $more );
 		}
-	} elseif ( 0 == $number ) {
-		$output = ( false === $zero ) ? __( 'No Comments' ) : $zero;
+	} elseif ( $number == 0 ) {
+		$output = ( $zero === false ) ? __( 'No Comments' ) : $zero;
 	} else { // Must be one.
-		$output = ( false === $one ) ? __( '1 Comment' ) : $one;
+		$output = ( $one === false ) ? __( '1 Comment' ) : $one;
 	}
 	/**
 	 * Filters the comments count for display.
@@ -1084,7 +1084,7 @@ function comment_time( $format = '' ) {
 function get_comment_type( $comment_ID = 0 ) {
 	$comment = get_comment( $comment_ID );
 
-	if ( '' === $comment->comment_type ) {
+	if ( $comment->comment_type === '' ) {
 		$comment->comment_type = 'comment';
 	}
 
@@ -1111,13 +1111,13 @@ function get_comment_type( $comment_ID = 0 ) {
  * @param string|false $pingbacktxt  Optional. String to display for pingback type. Default false.
  */
 function comment_type( $commenttxt = false, $trackbacktxt = false, $pingbacktxt = false ) {
-	if ( false === $commenttxt ) {
+	if ( $commenttxt === false ) {
 		$commenttxt = _x( 'Comment', 'noun' );
 	}
-	if ( false === $trackbacktxt ) {
+	if ( $trackbacktxt === false ) {
 		$trackbacktxt = __( 'Trackback' );
 	}
-	if ( false === $pingbacktxt ) {
+	if ( $pingbacktxt === false ) {
 		$pingbacktxt = __( 'Pingback' );
 	}
 	$type = get_comment_type();
@@ -1171,7 +1171,7 @@ function get_trackback_url() {
  *                     for the result instead.
  */
 function trackback_url( $deprecated_echo = true ) {
-	if ( true !== $deprecated_echo ) {
+	if ( $deprecated_echo !== true ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'2.5.0',
@@ -1204,7 +1204,7 @@ function trackback_rdf( $deprecated = '' ) {
 		_deprecated_argument( __FUNCTION__, '2.5.0' );
 	}
 
-	if ( isset( $_SERVER['HTTP_USER_AGENT'] ) && false !== stripos( $_SERVER['HTTP_USER_AGENT'], 'W3C_Validator' ) ) {
+	if ( isset( $_SERVER['HTTP_USER_AGENT'] ) && stripos( $_SERVER['HTTP_USER_AGENT'], 'W3C_Validator' ) !== false ) {
 		return;
 	}
 
@@ -1238,7 +1238,7 @@ function comments_open( $post = null ) {
 	$_post = get_post( $post );
 
 	$post_id = $_post ? $_post->ID : 0;
-	$open    = ( $_post && ( 'open' === $_post->comment_status ) );
+	$open    = ( $_post && ( $_post->comment_status === 'open' ) );
 
 	/**
 	 * Filters whether the current post is open for comments.
@@ -1267,7 +1267,7 @@ function pings_open( $post = null ) {
 	$_post = get_post( $post );
 
 	$post_id = $_post ? $_post->ID : 0;
-	$open    = ( $_post && ( 'open' === $_post->ping_status ) );
+	$open    = ( $_post && ( $_post->ping_status === 'open' ) );
 
 	/**
 	 * Filters whether the current post is open for pings.
@@ -1401,7 +1401,7 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 	$per_page = 0;
 	if ( get_option( 'page_comments' ) ) {
 		$per_page = (int) get_query_var( 'comments_per_page' );
-		if ( 0 === $per_page ) {
+		if ( $per_page === 0 ) {
 			$per_page = (int) get_option( 'comments_per_page' );
 		}
 
@@ -1410,7 +1410,7 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 
 		if ( $page ) {
 			$comment_args['offset'] = ( $page - 1 ) * $per_page;
-		} elseif ( 'oldest' === get_option( 'default_comments_page' ) ) {
+		} elseif ( get_option( 'default_comments_page' ) === 'oldest' ) {
 			$comment_args['offset'] = 0;
 		} else {
 			// If fetching the first page of 'newest', we need a top-level comment count.
@@ -1526,8 +1526,8 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 
 	$overridden_cpage = false;
 
-	if ( '' == get_query_var( 'cpage' ) && $wp_query->max_num_comment_pages > 1 ) {
-		set_query_var( 'cpage', 'newest' === get_option( 'default_comments_page' ) ? get_comment_pages_count() : 1 );
+	if ( get_query_var( 'cpage' ) == '' && $wp_query->max_num_comment_pages > 1 ) {
+		set_query_var( 'cpage', get_option( 'default_comments_page' ) === 'newest' ? get_comment_pages_count() : 1 );
 		$overridden_cpage = true;
 	}
 
@@ -1571,28 +1571,28 @@ function comments_popup_link( $zero = false, $one = false, $more = false, $css_c
 	$post_title = get_the_title();
 	$number     = get_comments_number( $post_id );
 
-	if ( false === $zero ) {
+	if ( $zero === false ) {
 		/* translators: %s: Post title. */
 		$zero = sprintf( __( 'No Comments<span class="screen-reader-text"> on %s</span>' ), $post_title );
 	}
 
-	if ( false === $one ) {
+	if ( $one === false ) {
 		/* translators: %s: Post title. */
 		$one = sprintf( __( '1 Comment<span class="screen-reader-text"> on %s</span>' ), $post_title );
 	}
 
-	if ( false === $more ) {
+	if ( $more === false ) {
 		/* translators: 1: Number of comments, 2: Post title. */
 		$more = _n( '%1$s Comment<span class="screen-reader-text"> on %2$s</span>', '%1$s Comments<span class="screen-reader-text"> on %2$s</span>', $number );
 		$more = sprintf( $more, number_format_i18n( $number ), $post_title );
 	}
 
-	if ( false === $none ) {
+	if ( $none === false ) {
 		/* translators: %s: Post title. */
 		$none = sprintf( __( 'Comments Off<span class="screen-reader-text"> on %s</span>' ), $post_title );
 	}
 
-	if ( 0 == $number && ! comments_open() && ! pings_open() ) {
+	if ( $number == 0 && ! comments_open() && ! pings_open() ) {
 		echo '<span' . ( ( ! empty( $css_class ) ) ? ' class="' . esc_attr( $css_class ) . '"' : '' ) . '>' . $none . '</span>';
 		return;
 	}
@@ -1603,7 +1603,7 @@ function comments_popup_link( $zero = false, $one = false, $more = false, $css_c
 	}
 
 	echo '<a href="';
-	if ( 0 == $number ) {
+	if ( $number == 0 ) {
 		$respond_link = get_permalink() . '#respond';
 		/**
 		 * Filters the respond link when a post has no comments.
@@ -1682,7 +1682,7 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 
 	$args = wp_parse_args( $args, $defaults );
 
-	if ( 0 == $args['depth'] || $args['max_depth'] <= $args['depth'] ) {
+	if ( $args['depth'] == 0 || $args['max_depth'] <= $args['depth'] ) {
 		return;
 	}
 
@@ -1993,18 +1993,18 @@ function comment_id_fields( $post_id = 0 ) {
 function comment_form_title( $no_reply_text = false, $reply_text = false, $link_to_parent = true ) {
 	global $comment;
 
-	if ( false === $no_reply_text ) {
+	if ( $no_reply_text === false ) {
 		$no_reply_text = __( 'Leave a Reply' );
 	}
 
-	if ( false === $reply_text ) {
+	if ( $reply_text === false ) {
 		/* translators: %s: Author of the comment being replied to. */
 		$reply_text = __( 'Leave a Reply to %s' );
 	}
 
 	$reply_to_id = isset( $_GET['replytocom'] ) ? (int) $_GET['replytocom'] : 0;
 
-	if ( 0 == $reply_to_id ) {
+	if ( $reply_to_id == 0 ) {
 		echo $no_reply_text;
 	} else {
 		// Sets the global so that template tags can be used in the comment form.
@@ -2102,12 +2102,12 @@ function wp_list_comments( $args = array(), $comments = null ) {
 	$parsed_args = apply_filters( 'wp_list_comments_args', $parsed_args );
 
 	// Figure out what comments we'll be looping through ($_comments).
-	if ( null !== $comments ) {
+	if ( $comments !== null ) {
 		$comments = (array) $comments;
 		if ( empty( $comments ) ) {
 			return;
 		}
-		if ( 'all' !== $parsed_args['type'] ) {
+		if ( $parsed_args['type'] !== 'all' ) {
 			$comments_by_type = separate_comments( $comments );
 			if ( empty( $comments_by_type[ $parsed_args['type'] ] ) ) {
 				return;
@@ -2124,7 +2124,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 		if ( $parsed_args['page'] || $parsed_args['per_page'] ) {
 			$current_cpage = get_query_var( 'cpage' );
 			if ( ! $current_cpage ) {
-				$current_cpage = 'newest' === get_option( 'default_comments_page' ) ? 1 : $wp_query->max_num_comment_pages;
+				$current_cpage = get_option( 'default_comments_page' ) === 'newest' ? 1 : $wp_query->max_num_comment_pages;
 			}
 
 			$current_per_page = get_query_var( 'comments_per_page' );
@@ -2148,7 +2148,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 
 				$comments = get_comments( $comment_args );
 
-				if ( 'all' !== $parsed_args['type'] ) {
+				if ( $parsed_args['type'] !== 'all' ) {
 					$comments_by_type = separate_comments( $comments );
 					if ( empty( $comments_by_type[ $parsed_args['type'] ] ) ) {
 						return;
@@ -2165,7 +2165,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 			if ( empty( $wp_query->comments ) ) {
 				return;
 			}
-			if ( 'all' !== $parsed_args['type'] ) {
+			if ( $parsed_args['type'] !== 'all' ) {
 				if ( empty( $wp_query->comments_by_type ) ) {
 					$wp_query->comments_by_type = separate_comments( $wp_query->comments );
 				}
@@ -2180,14 +2180,14 @@ function wp_list_comments( $args = array(), $comments = null ) {
 			if ( $wp_query->max_num_comment_pages ) {
 				$default_comments_page = get_option( 'default_comments_page' );
 				$cpage                 = get_query_var( 'cpage' );
-				if ( 'newest' === $default_comments_page ) {
+				if ( $default_comments_page === 'newest' ) {
 					$parsed_args['cpage'] = $cpage;
 
 					/*
 					* When first page shows oldest comments, post permalink is the same as
 					* the comment permalink.
 					*/
-				} elseif ( 1 == $cpage ) {
+				} elseif ( $cpage == 1 ) {
 					$parsed_args['cpage'] = '';
 				} else {
 					$parsed_args['cpage'] = $cpage;
@@ -2199,7 +2199,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 		}
 	}
 
-	if ( '' === $parsed_args['per_page'] && get_option( 'page_comments' ) ) {
+	if ( $parsed_args['per_page'] === '' && get_option( 'page_comments' ) ) {
 		$parsed_args['per_page'] = get_query_var( 'comments_per_page' );
 	}
 
@@ -2208,7 +2208,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 		$parsed_args['page']     = 0;
 	}
 
-	if ( '' === $parsed_args['max_depth'] ) {
+	if ( $parsed_args['max_depth'] === '' ) {
 		if ( get_option( 'thread_comments' ) ) {
 			$parsed_args['max_depth'] = get_option( 'thread_comments_depth' );
 		} else {
@@ -2216,23 +2216,23 @@ function wp_list_comments( $args = array(), $comments = null ) {
 		}
 	}
 
-	if ( '' === $parsed_args['page'] ) {
+	if ( $parsed_args['page'] === '' ) {
 		if ( empty( $overridden_cpage ) ) {
 			$parsed_args['page'] = get_query_var( 'cpage' );
 		} else {
-			$threaded            = ( -1 != $parsed_args['max_depth'] );
-			$parsed_args['page'] = ( 'newest' === get_option( 'default_comments_page' ) ) ? get_comment_pages_count( $_comments, $parsed_args['per_page'], $threaded ) : 1;
+			$threaded            = ( $parsed_args['max_depth'] != -1 );
+			$parsed_args['page'] = ( get_option( 'default_comments_page' ) === 'newest' ) ? get_comment_pages_count( $_comments, $parsed_args['per_page'], $threaded ) : 1;
 			set_query_var( 'cpage', $parsed_args['page'] );
 		}
 	}
 	// Validation check.
 	$parsed_args['page'] = (int) $parsed_args['page'];
-	if ( 0 == $parsed_args['page'] && 0 != $parsed_args['per_page'] ) {
+	if ( $parsed_args['page'] == 0 && $parsed_args['per_page'] != 0 ) {
 		$parsed_args['page'] = 1;
 	}
 
-	if ( null === $parsed_args['reverse_top_level'] ) {
-		$parsed_args['reverse_top_level'] = ( 'desc' === get_option( 'comment_order' ) );
+	if ( $parsed_args['reverse_top_level'] === null ) {
+		$parsed_args['reverse_top_level'] = ( get_option( 'comment_order' ) === 'desc' );
 	}
 
 	wp_queue_comments_for_comment_meta_lazyload( $_comments );
@@ -2348,7 +2348,7 @@ function comment_form( $args = array(), $post = null ) {
 	}
 
 	$req   = get_option( 'require_name_email' );
-	$html5 = 'html5' === $args['format'];
+	$html5 = $args['format'] === 'html5';
 
 	// Define attributes in HTML5 or XHTML syntax.
 	$required_attribute = ( $html5 ? ' required' : ' required="required"' );
@@ -2512,7 +2512,7 @@ function comment_form( $args = array(), $post = null ) {
 	$args = array_merge( $defaults, $args );
 
 	// Remove `aria-describedby` from the email field if there's no associated description.
-	if ( isset( $args['fields']['email'] ) && false === strpos( $args['comment_notes_before'], 'id="email-notes"' ) ) {
+	if ( isset( $args['fields']['email'] ) && strpos( $args['comment_notes_before'], 'id="email-notes"' ) === false ) {
 		$args['fields']['email'] = str_replace(
 			' aria-describedby="email-notes"',
 			'',
@@ -2625,7 +2625,7 @@ function comment_form( $args = array(), $post = null ) {
 
 			foreach ( $comment_fields as $name => $field ) {
 
-				if ( 'comment' === $name ) {
+				if ( $name === 'comment' ) {
 
 					/**
 					 * Filters the content of the comment textarea field for display.

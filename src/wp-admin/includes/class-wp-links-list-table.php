@@ -58,7 +58,7 @@ class WP_Links_List_Table extends WP_List_Table {
 			'hide_empty'     => 0,
 		);
 
-		if ( 'all' !== $cat_id ) {
+		if ( $cat_id !== 'all' ) {
 			$args['category'] = $cat_id;
 		}
 		if ( ! empty( $s ) ) {
@@ -97,7 +97,7 @@ class WP_Links_List_Table extends WP_List_Table {
 	protected function extra_tablenav( $which ) {
 		global $cat_id;
 
-		if ( 'top' !== $which ) {
+		if ( $which !== 'top' ) {
 			return;
 		}
 		?>
@@ -261,7 +261,7 @@ class WP_Links_List_Table extends WP_List_Table {
 	 * @param object $link The current link object.
 	 */
 	public function column_visible( $link ) {
-		if ( 'Y' === $link->link_visible ) {
+		if ( $link->link_visible === 'Y' ) {
 			_e( 'Yes' );
 		} else {
 			_e( 'No' );

@@ -500,23 +500,23 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 		add_action( 'customize_save_foo', array( $this, 'handle_customize_save_custom_foo_action' ), 10, 2 );
 
 		// Try saving before value set.
-		$this->assertTrue( 0 === did_action( 'customize_update_custom' ) );
-		$this->assertTrue( 0 === did_action( 'customize_save_foo' ) );
+		$this->assertTrue( did_action( 'customize_update_custom' ) === 0 );
+		$this->assertTrue( did_action( 'customize_save_foo' ) === 0 );
 		$this->assertFalse( $setting->save() );
-		$this->assertTrue( 0 === did_action( 'customize_update_custom' ) );
-		$this->assertTrue( 0 === did_action( 'customize_save_foo' ) );
+		$this->assertTrue( did_action( 'customize_update_custom' ) === 0 );
+		$this->assertTrue( did_action( 'customize_save_foo' ) === 0 );
 
 		// Try setting post value without user as admin.
 		$this->manager->set_post_value( $setting->id, 'hello world \\o/' );
 		$this->assertFalse( $setting->save() );
-		$this->assertTrue( 0 === did_action( 'customize_update_custom' ) );
-		$this->assertTrue( 0 === did_action( 'customize_save_foo' ) );
+		$this->assertTrue( did_action( 'customize_update_custom' ) === 0 );
+		$this->assertTrue( did_action( 'customize_save_foo' ) === 0 );
 
 		// Satisfy all requirements for save to happen.
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		$this->assertNotFalse( $setting->save() );
-		$this->assertTrue( 1 === did_action( 'customize_update_custom' ) );
-		$this->assertTrue( 1 === did_action( 'customize_save_foo' ) );
+		$this->assertTrue( did_action( 'customize_update_custom' ) === 1 );
+		$this->assertTrue( did_action( 'customize_save_foo' ) === 1 );
 	}
 
 	/**

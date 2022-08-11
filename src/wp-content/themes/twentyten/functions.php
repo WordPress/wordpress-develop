@@ -439,7 +439,7 @@ if ( ! function_exists( 'twentyten_comment' ) ) :
 				}
 				?>
 
-				<?php if ( '0' == $comment->comment_approved ) : ?>
+				<?php if ( $comment->comment_approved == '0' ) : ?>
 			<em class="comment-awaiting-moderation"><?php echo $moderation_note; ?></em>
 			<br />
 			<?php endif; ?>

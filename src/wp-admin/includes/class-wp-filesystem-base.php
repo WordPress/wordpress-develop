@@ -100,7 +100,7 @@ class WP_Filesystem_Base {
 		$theme_root = get_theme_root( $theme );
 
 		// Account for relative theme roots.
-		if ( '/themes' === $theme_root || ! is_dir( $theme_root ) ) {
+		if ( $theme_root === '/themes' || ! is_dir( $theme_root ) ) {
 			$theme_root = WP_CONTENT_DIR . $theme_root;
 		}
 
@@ -201,7 +201,7 @@ class WP_Filesystem_Base {
 					continue;
 				}
 
-				if ( 0 === stripos( $folder, $dir ) ) { // $folder starts with $dir.
+				if ( stripos( $folder, $dir ) === 0 ) { // $folder starts with $dir.
 					$potential_folder = preg_replace( '#^' . preg_quote( $dir, '#' ) . '/#i', trailingslashit( constant( $constant ) ), $folder );
 					$potential_folder = trailingslashit( $potential_folder );
 
@@ -212,7 +212,7 @@ class WP_Filesystem_Base {
 					}
 				}
 			}
-		} elseif ( 'direct' === $this->method ) {
+		} elseif ( $this->method === 'direct' ) {
 			$folder = str_replace( '\\', '/', $folder ); // Windows path sanitisation.
 
 			return trailingslashit( $folder );
@@ -254,7 +254,7 @@ class WP_Filesystem_Base {
 	 * @return string|false The location of the remote path, false to cease looping.
 	 */
 	public function search_for_folder( $folder, $base = '.', $loop = false ) {
-		if ( empty( $base ) || '.' === $base ) {
+		if ( empty( $base ) || $base === '.' ) {
 			$base = trailingslashit( $this->cwd() );
 		}
 
@@ -317,7 +317,7 @@ class WP_Filesystem_Base {
 
 		// Prevent this function from looping again.
 		// No need to proceed if we've just searched in `/`.
-		if ( $loop || '/' === $base ) {
+		if ( $loop || $base === '/' ) {
 			return false;
 		}
 

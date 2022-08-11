@@ -123,7 +123,7 @@ class WP_Comment_Query {
 	 * @return mixed|false Return value of the callback, false otherwise.
 	 */
 	public function __call( $name, $arguments ) {
-		if ( 'get_search_sql' === $name ) {
+		if ( $name === 'get_search_sql' ) {
 			return $this->get_search_sql( ...$arguments );
 		}
 		return false;
@@ -432,7 +432,7 @@ class WP_Comment_Query {
 		 */
 		$comment_data = apply_filters_ref_array( 'comments_pre_query', array( $comment_data, &$this ) );
 
-		if ( null !== $comment_data ) {
+		if ( $comment_data !== null ) {
 			if ( is_array( $comment_data ) && ! $this->query_vars['count'] ) {
 				$this->comments = $comment_data;
 			}
@@ -452,7 +452,7 @@ class WP_Comment_Query {
 
 		$cache_key   = "get_comments:$key:$last_changed";
 		$cache_value = wp_cache_get( $cache_key, 'comment' );
-		if ( false === $cache_value ) {
+		if ( $cache_value === false ) {
 			$comment_ids = $this->get_comment_ids();
 			if ( $comment_ids ) {
 				$this->set_found_comments();
@@ -480,7 +480,7 @@ class WP_Comment_Query {
 
 		$comment_ids = array_map( 'intval', $comment_ids );
 
-		if ( 'ids' === $this->query_vars['fields'] ) {
+		if ( $this->query_vars['fields'] === 'ids' ) {
 			$this->comments = $comment_ids;
 			return $this->comments;
 		}
@@ -604,14 +604,14 @@ class WP_Comment_Query {
 
 		// Collapse comment_approved clauses into a single OR-separated clause.
 		if ( ! empty( $approved_clauses ) ) {
-			if ( 1 === count( $approved_clauses ) ) {
+			if ( count( $approved_clauses ) === 1 ) {
 				$this->sql_clauses['where']['approved'] = $approved_clauses[0];
 			} else {
 				$this->sql_clauses['where']['approved'] = '( ' . implode( ' OR ', $approved_clauses ) . ' )';
 			}
 		}
 
-		$order = ( 'ASC' === strtoupper( $this->query_vars['order'] ) ) ? 'ASC' : 'DESC';
+		$order = ( strtoupper( $this->query_vars['order'] ) === 'ASC' ) ? 'ASC' : 'DESC';
 
 		// Disable ORDER BY with 'none', an empty array, or boolean false.
 		if ( in_array( $this->query_vars['orderby'], array( 'none', array(), false ), true ) ) {
@@ -646,7 +646,7 @@ class WP_Comment_Query {
 					continue;
 				}
 
-				if ( 'comment__in' === $_orderby ) {
+				if ( $_orderby === 'comment__in' ) {
 					$orderby_array[] = $parsed;
 					continue;
 				}
@@ -674,7 +674,7 @@ class WP_Comment_Query {
 				// If no date-related order is available, use the date from the first available clause.
 				if ( ! $comment_id_order ) {
 					foreach ( $orderby_array as $orderby_clause ) {
-						if ( false !== strpos( 'ASC', $orderby_clause ) ) {
+						if ( strpos( 'ASC', $orderby_clause ) !== false ) {
 							$comment_id_order = 'ASC';
 						} else {
 							$comment_id_order = 'DESC';
@@ -751,15 +751,15 @@ class WP_Comment_Query {
 			$this->sql_clauses['where']['post__not_in'] = 'comment_post_ID NOT IN ( ' . implode( ',', wp_parse_id_list( $this->query_vars['post__not_in'] ) ) . ' )';
 		}
 
-		if ( '' !== $this->query_vars['author_email'] ) {
+		if ( $this->query_vars['author_email'] !== '' ) {
 			$this->sql_clauses['where']['author_email'] = $wpdb->prepare( 'comment_author_email = %s', $this->query_vars['author_email'] );
 		}
 
-		if ( '' !== $this->query_vars['author_url'] ) {
+		if ( $this->query_vars['author_url'] !== '' ) {
 			$this->sql_clauses['where']['author_url'] = $wpdb->prepare( 'comment_author_url = %s', $this->query_vars['author_url'] );
 		}
 
-		if ( '' !== $this->query_vars['karma'] ) {
+		if ( $this->query_vars['karma'] !== '' ) {
 			$this->sql_clauses['where']['karma'] = $wpdb->prepare( 'comment_karma = %d', $this->query_vars['karma'] );
 		}
 
@@ -808,13 +808,13 @@ class WP_Comment_Query {
 			$parent = 0;
 		}
 
-		if ( '' !== $parent ) {
+		if ( $parent !== '' ) {
 			$this->sql_clauses['where']['parent'] = $wpdb->prepare( 'comment_parent = %d', $parent );
 		}
 
 		if ( is_array( $this->query_vars['user_id'] ) ) {
 			$this->sql_clauses['where']['user_id'] = 'user_id IN (' . implode( ',', array_map( 'absint', $this->query_vars['user_id'] ) ) . ')';
-		} elseif ( '' !== $this->query_vars['user_id'] ) {
+		} elseif ( $this->query_vars['user_id'] !== '' ) {
 			$this->sql_clauses['where']['user_id'] = $wpdb->prepare( 'user_id = %d', $this->query_vars['user_id'] );
 		}
 
@@ -1038,7 +1038,7 @@ class WP_Comment_Query {
 			foreach ( $_parent_ids as $parent_id ) {
 				$cache_key        = "get_comment_child_ids:$parent_id:$key:$last_changed";
 				$parent_child_ids = wp_cache_get( $cache_key, 'comment' );
-				if ( false !== $parent_child_ids ) {
+				if ( $parent_child_ids !== false ) {
 					$child_ids = array_merge( $child_ids, $parent_child_ids );
 				} else {
 					$uncached_parent_ids[] = $parent_id;
@@ -1093,7 +1093,7 @@ class WP_Comment_Query {
 		}
 
 		// If a threaded representation was requested, build the tree.
-		if ( 'threaded' === $this->query_vars['hierarchical'] ) {
+		if ( $this->query_vars['hierarchical'] === 'threaded' ) {
 			$threaded_comments = array();
 			$ref               = array();
 			foreach ( $all_comments as $k => $c ) {
@@ -1192,11 +1192,11 @@ class WP_Comment_Query {
 		}
 
 		$parsed = false;
-		if ( $this->query_vars['meta_key'] === $orderby || 'meta_value' === $orderby ) {
+		if ( $this->query_vars['meta_key'] === $orderby || $orderby === 'meta_value' ) {
 			$parsed = "$wpdb->commentmeta.meta_value";
-		} elseif ( 'meta_value_num' === $orderby ) {
+		} elseif ( $orderby === 'meta_value_num' ) {
 			$parsed = "$wpdb->commentmeta.meta_value+0";
-		} elseif ( 'comment__in' === $orderby ) {
+		} elseif ( $orderby === 'comment__in' ) {
 			$comment__in = implode( ',', array_map( 'absint', $this->query_vars['comment__in'] ) );
 			$parsed      = "FIELD( {$wpdb->comments}.comment_ID, $comment__in )";
 		} elseif ( in_array( $orderby, $allowed_keys, true ) ) {
@@ -1225,7 +1225,7 @@ class WP_Comment_Query {
 			return 'DESC';
 		}
 
-		if ( 'ASC' === strtoupper( $order ) ) {
+		if ( strtoupper( $order ) === 'ASC' ) {
 			return 'ASC';
 		} else {
 			return 'DESC';

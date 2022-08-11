@@ -45,7 +45,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 		if ( ! empty( $instance['title'] ) ) {
 			$title = $instance['title'];
 		} else {
-			if ( 'post_tag' === $current_taxonomy ) {
+			if ( $current_taxonomy === 'post_tag' ) {
 				$title = __( 'Tags' );
 			} else {
 				$tax   = get_taxonomy( $current_taxonomy );
@@ -98,7 +98,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 		/** This filter is documented in wp-includes/widgets/class-wp-nav-menu-widget.php */
 		$format = apply_filters( 'navigation_widgets_format', $format );
 
-		if ( 'html5' === $format ) {
+		if ( $format === 'html5' ) {
 			// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
 			$title      = trim( strip_tags( $title ) );
 			$aria_label = $title ? $title : $default_title;
@@ -111,7 +111,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 
 		echo "</div>\n";
 
-		if ( 'html5' === $format ) {
+		if ( $format === 'html5' ) {
 			echo '</nav>';
 		}
 

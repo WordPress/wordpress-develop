@@ -987,7 +987,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$data = rest_get_server()->response_to_data( $response, $embed );
 
-		if ( false === $expected ) {
+		if ( $expected === false ) {
 			$this->assertArrayNotHasKey( '_embedded', $data );
 		} else {
 			$this->assertSameSets( $expected, array_keys( $data['_embedded'] ) );
@@ -1464,7 +1464,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 * @param bool $has_nonce          Are we passing the nonce.
 	 */
 	public function test_rest_send_refreshed_nonce( $has_logged_in_user, $has_nonce ) {
-		if ( true === $has_logged_in_user ) {
+		if ( $has_logged_in_user === true ) {
 			$this->helper_setup_user_for_rest_send_refreshed_nonce_tests();
 		}
 
@@ -1783,7 +1783,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			'permission_callback' => '__return_true',
 		);
 
-		if ( null !== $allow_batch ) {
+		if ( $allow_batch !== null ) {
 			$args['allow_batch'] = $allow_batch;
 		}
 

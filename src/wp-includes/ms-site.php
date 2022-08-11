@@ -65,7 +65,7 @@ function wp_insert_site( array $data ) {
 		return $prepared_data;
 	}
 
-	if ( false === $wpdb->insert( $wpdb->blogs, $prepared_data ) ) {
+	if ( $wpdb->insert( $wpdb->blogs, $prepared_data ) === false ) {
 		return new WP_Error( 'db_insert_error', __( 'Could not insert site into the database.' ), $wpdb->last_error );
 	}
 
@@ -176,7 +176,7 @@ function wp_update_site( $site_id, array $data ) {
 		return $data;
 	}
 
-	if ( false === $wpdb->update( $wpdb->blogs, $data, array( 'blog_id' => $old_site->id ) ) ) {
+	if ( $wpdb->update( $wpdb->blogs, $data, array( 'blog_id' => $old_site->id ) ) === false ) {
 		return new WP_Error( 'db_update_error', __( 'Could not update site in the database.' ), $wpdb->last_error );
 	}
 
@@ -265,7 +265,7 @@ function wp_delete_site( $site_id ) {
 		}
 	}
 
-	if ( false === $wpdb->delete( $wpdb->blogs, array( 'blog_id' => $old_site->id ) ) ) {
+	if ( $wpdb->delete( $wpdb->blogs, array( 'blog_id' => $old_site->id ) ) === false ) {
 		return new WP_Error( 'db_delete_error', __( 'Could not delete site from the database.' ), $wpdb->last_error );
 	}
 
@@ -534,7 +534,7 @@ function wp_normalize_site_data( $data ) {
 			continue;
 		}
 
-		if ( empty( $data[ $date_field ] ) || '0000-00-00 00:00:00' === $data[ $date_field ] ) {
+		if ( empty( $data[ $date_field ] ) || $data[ $date_field ] === '0000-00-00 00:00:00' ) {
 			unset( $data[ $date_field ] );
 		}
 	}
@@ -579,7 +579,7 @@ function wp_validate_site_data( $errors, $data, $old_site = null ) {
 		}
 
 		// Allow '0000-00-00 00:00:00', although it be stripped out at this point.
-		if ( '0000-00-00 00:00:00' !== $data[ $date_field ] ) {
+		if ( $data[ $date_field ] !== '0000-00-00 00:00:00' ) {
 			$month      = substr( $data[ $date_field ], 5, 2 );
 			$day        = substr( $data[ $date_field ], 8, 2 );
 			$year       = substr( $data[ $date_field ], 0, 4 );
@@ -694,10 +694,10 @@ function wp_initialize_site( $site_id, array $args = array() ) {
 	$home_scheme    = 'http';
 	$siteurl_scheme = 'http';
 	if ( ! is_subdomain_install() ) {
-		if ( 'https' === parse_url( get_home_url( $network->site_id ), PHP_URL_SCHEME ) ) {
+		if ( parse_url( get_home_url( $network->site_id ), PHP_URL_SCHEME ) === 'https' ) {
 			$home_scheme = 'https';
 		}
-		if ( 'https' === parse_url( get_network_option( $network->id, 'siteurl' ), PHP_URL_SCHEME ) ) {
+		if ( parse_url( get_network_option( $network->id, 'siteurl' ), PHP_URL_SCHEME ) === 'https' ) {
 			$siteurl_scheme = 'https';
 		}
 	}
@@ -839,8 +839,8 @@ function wp_uninitialize_site( $site_id ) {
 		$dh = @opendir( $dir );
 		if ( $dh ) {
 			$file = @readdir( $dh );
-			while ( false !== $file ) {
-				if ( '.' === $file || '..' === $file ) {
+			while ( $file !== false ) {
+				if ( $file === '.' || $file === '..' ) {
 					$file = @readdir( $dh );
 					continue;
 				}
@@ -906,7 +906,7 @@ function wp_is_site_initialized( $site_id ) {
 	 * @param int       $site_id The site ID that is being checked.
 	 */
 	$pre = apply_filters( 'pre_wp_is_site_initialized', null, $site_id );
-	if ( null !== $pre ) {
+	if ( $pre !== null ) {
 		return (bool) $pre;
 	}
 
@@ -1103,7 +1103,7 @@ function delete_site_meta_by_key( $meta_key ) {
  *                               state of that site. Default null.
  */
 function wp_maybe_update_network_site_counts_on_update( $new_site, $old_site = null ) {
-	if ( null === $old_site ) {
+	if ( $old_site === null ) {
 		wp_maybe_update_network_site_counts( $new_site->network_id );
 		return;
 	}
@@ -1132,7 +1132,7 @@ function wp_maybe_transition_site_statuses_on_update( $new_site, $old_site = nul
 	}
 
 	if ( $new_site->spam != $old_site->spam ) {
-		if ( 1 == $new_site->spam ) {
+		if ( $new_site->spam == 1 ) {
 
 			/**
 			 * Fires when the 'spam' status is added to a site.
@@ -1156,7 +1156,7 @@ function wp_maybe_transition_site_statuses_on_update( $new_site, $old_site = nul
 	}
 
 	if ( $new_site->mature != $old_site->mature ) {
-		if ( 1 == $new_site->mature ) {
+		if ( $new_site->mature == 1 ) {
 
 			/**
 			 * Fires when the 'mature' status is added to a site.
@@ -1180,7 +1180,7 @@ function wp_maybe_transition_site_statuses_on_update( $new_site, $old_site = nul
 	}
 
 	if ( $new_site->archived != $old_site->archived ) {
-		if ( 1 == $new_site->archived ) {
+		if ( $new_site->archived == 1 ) {
 
 			/**
 			 * Fires when the 'archived' status is added to a site.
@@ -1204,7 +1204,7 @@ function wp_maybe_transition_site_statuses_on_update( $new_site, $old_site = nul
 	}
 
 	if ( $new_site->deleted != $old_site->deleted ) {
-		if ( 1 == $new_site->deleted ) {
+		if ( $new_site->deleted == 1 ) {
 
 			/**
 			 * Fires when the 'deleted' status is added to a site.

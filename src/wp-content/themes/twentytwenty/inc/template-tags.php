@@ -272,7 +272,7 @@ function twentytwenty_get_post_meta( $post_id = null, $location = 'single-top' )
 	$post_meta_classes         = '';
 
 	// Get the post meta settings for the location specified.
-	if ( 'single-top' === $location ) {
+	if ( $location === 'single-top' ) {
 		/**
 		 * Filters post meta info visibility.
 		 *
@@ -299,7 +299,7 @@ function twentytwenty_get_post_meta( $post_id = null, $location = 'single-top' )
 
 		$post_meta_wrapper_classes = ' post-meta-single post-meta-single-top';
 
-	} elseif ( 'single-bottom' === $location ) {
+	} elseif ( $location === 'single-bottom' ) {
 
 		/**
 		 * Filters post tags visibility.
@@ -585,7 +585,7 @@ function twentytwenty_add_sub_toggles_to_main_menu( $args, $item, $depth ) {
 		$args->after .= '</div><!-- .ancestor-wrapper -->';
 
 		// Add sub menu icons to the primary menu without toggles.
-	} elseif ( 'primary' === $args->theme_location ) {
+	} elseif ( $args->theme_location === 'primary' ) {
 		if ( in_array( 'menu-item-has-children', $item->classes, true ) ) {
 			$args->after = '<span class="icon"></span>';
 		} else {
@@ -612,7 +612,7 @@ add_filter( 'nav_menu_item_args', 'twentytwenty_add_sub_toggles_to_main_menu', 1
  */
 function twentytwenty_nav_menu_social_icons( $item_output, $item, $depth, $args ) {
 	// Change SVG icon inside social links menu if there is supported URL.
-	if ( 'social' === $args->theme_location ) {
+	if ( $args->theme_location === 'social' ) {
 		$svg = TwentyTwenty_SVG_Icons::get_social_link_svg( $item->url );
 		if ( empty( $svg ) ) {
 			$svg = twentytwenty_get_theme_svg( 'link' );
@@ -675,7 +675,7 @@ function twentytwenty_body_classes( $classes ) {
 	}
 
 	// Check for enabled search.
-	if ( true === get_theme_mod( 'enable_header_search', true ) ) {
+	if ( get_theme_mod( 'enable_header_search', true ) === true ) {
 		$classes[] = 'enable-search-modal';
 	}
 
@@ -699,7 +699,7 @@ function twentytwenty_body_classes( $classes ) {
 	}
 
 	// Check if we're showing comments.
-	if ( $post && ( ( 'post' === $post_type || comments_open() || get_comments_number() ) && ! post_password_required() ) ) {
+	if ( $post && ( ( $post_type === 'post' || comments_open() || get_comments_number() ) && ! post_password_required() ) ) {
 		$classes[] = 'showing-comments';
 	} else {
 		$classes[] = 'not-showing-comments';

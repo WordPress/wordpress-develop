@@ -169,7 +169,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return $value;
 		}
 
-		if ( empty( $value ) || false === $value || 'false' === $value ) {
+		if ( empty( $value ) || $value === false || $value === 'false' ) {
 			return false;
 		}
 
@@ -207,7 +207,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( 'edit' === $request['context'] && ! current_user_can( 'list_users' ) ) {
+		if ( $request['context'] === 'edit' && ! current_user_can( 'list_users' ) ) {
 			return new WP_Error(
 				'rest_forbidden_context',
 				__( 'Sorry, you are not allowed to list users.' ),
@@ -223,7 +223,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( 'authors' === $request['who'] ) {
+		if ( $request['who'] === 'authors' ) {
 			$types = get_post_types( array( 'show_in_rest' => true ), 'objects' );
 
 			foreach ( $types as $type ) {
@@ -305,14 +305,14 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			$prepared_args['orderby'] = $orderby_possibles[ $request['orderby'] ];
 		}
 
-		if ( isset( $registered['who'] ) && ! empty( $request['who'] ) && 'authors' === $request['who'] ) {
+		if ( isset( $registered['who'] ) && ! empty( $request['who'] ) && $request['who'] === 'authors' ) {
 			$prepared_args['who'] = 'authors';
 		} elseif ( ! current_user_can( 'list_users' ) ) {
 			$prepared_args['has_published_posts'] = get_post_types( array( 'show_in_rest' => true ), 'names' );
 		}
 
 		if ( ! empty( $request['has_published_posts'] ) ) {
-			$prepared_args['has_published_posts'] = ( true === $request['has_published_posts'] )
+			$prepared_args['has_published_posts'] = ( $request['has_published_posts'] === true )
 				? get_post_types( array( 'show_in_rest' => true ), 'names' )
 				: (array) $request['has_published_posts'];
 		}
@@ -436,7 +436,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return true;
 		}
 
-		if ( 'edit' === $request['context'] && ! current_user_can( 'list_users' ) ) {
+		if ( $request['context'] === 'edit' && ! current_user_can( 'list_users' ) ) {
 			return new WP_Error(
 				'rest_user_cannot_view',
 				__( 'Sorry, you are not allowed to list users.' ),
@@ -685,7 +685,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			sort( $request_params );
 			// If only 'id' and 'roles' are specified (we are only trying to
 			// edit roles), then only the 'promote_user' cap is required.
-			if ( array( 'id', 'roles' ) === $request_params ) {
+			if ( $request_params === array( 'id', 'roles' ) ) {
 				return true;
 			}
 		}
@@ -885,7 +885,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		$id       = $user->ID;
-		$reassign = false === $request['reassign'] ? null : absint( $request['reassign'] );
+		$reassign = $request['reassign'] === false ? null : absint( $request['reassign'] );
 		$force    = isset( $request['force'] ) ? (bool) $request['force'] : false;
 
 		// We don't support trashing for users.
@@ -1310,7 +1310,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( false !== strpos( $password, '\\' ) ) {
+		if ( strpos( $password, '\\' ) !== false ) {
 			return new WP_Error(
 				'rest_user_invalid_password',
 				sprintf(

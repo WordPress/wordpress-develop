@@ -70,7 +70,7 @@ function is_nav_menu( $menu ) {
 		$menu_obj &&
 		! is_wp_error( $menu_obj ) &&
 		! empty( $menu_obj->taxonomy ) &&
-		'nav_menu' === $menu_obj->taxonomy
+		$menu_obj->taxonomy === 'nav_menu'
 	) {
 		return true;
 	}
@@ -236,7 +236,7 @@ function wp_get_nav_menu_name( $location ) {
  * @return bool Whether the given ID is that of a nav menu item.
  */
 function is_nav_menu_item( $menu_item_id = 0 ) {
-	return ( ! is_wp_error( $menu_item_id ) && ( 'nav_menu_item' === get_post_type( $menu_item_id ) ) );
+	return ( ! is_wp_error( $menu_item_id ) && ( get_post_type( $menu_item_id ) === 'nav_menu_item' ) );
 }
 
 /**
@@ -429,7 +429,7 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 
 	$menu = wp_get_nav_menu_object( $menu_id );
 
-	if ( ! $menu && 0 !== $menu_id ) {
+	if ( ! $menu && $menu_id !== 0 ) {
 		return new WP_Error( 'invalid_menu_id', __( 'Invalid menu ID.' ) );
 	}
 
@@ -458,17 +458,17 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 
 	$args = wp_parse_args( $menu_item_data, $defaults );
 
-	if ( 0 == $menu_id ) {
+	if ( $menu_id == 0 ) {
 		$args['menu-item-position'] = 1;
-	} elseif ( 0 == (int) $args['menu-item-position'] ) {
-		$menu_items                 = 0 == $menu_id ? array() : (array) wp_get_nav_menu_items( $menu_id, array( 'post_status' => 'publish,draft' ) );
+	} elseif ( (int) $args['menu-item-position'] == 0 ) {
+		$menu_items                 = $menu_id == 0 ? array() : (array) wp_get_nav_menu_items( $menu_id, array( 'post_status' => 'publish,draft' ) );
 		$last_item                  = array_pop( $menu_items );
 		$args['menu-item-position'] = ( $last_item && isset( $last_item->menu_order ) ) ? 1 + $last_item->menu_order : count( $menu_items );
 	}
 
 	$original_parent = 0 < $menu_item_db_id ? get_post_field( 'post_parent', $menu_item_db_id ) : 0;
 
-	if ( 'custom' === $args['menu-item-type'] ) {
+	if ( $args['menu-item-type'] === 'custom' ) {
 		// If custom menu item, trim the URL.
 		$args['menu-item-url'] = trim( $args['menu-item-url'] );
 	} else {
@@ -481,15 +481,15 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 		$args['menu-item-url'] = '';
 
 		$original_title = '';
-		if ( 'taxonomy' === $args['menu-item-type'] ) {
+		if ( $args['menu-item-type'] === 'taxonomy' ) {
 			$original_parent = get_term_field( 'parent', $args['menu-item-object-id'], $args['menu-item-object'], 'raw' );
 			$original_title  = get_term_field( 'name', $args['menu-item-object-id'], $args['menu-item-object'], 'raw' );
-		} elseif ( 'post_type' === $args['menu-item-type'] ) {
+		} elseif ( $args['menu-item-type'] === 'post_type' ) {
 
 			$original_object = get_post( $args['menu-item-object-id'] );
 			$original_parent = (int) $original_object->post_parent;
 			$original_title  = $original_object->post_title;
-		} elseif ( 'post_type_archive' === $args['menu-item-type'] ) {
+		} elseif ( $args['menu-item-type'] === 'post_type_archive' ) {
 			$original_object = get_post_type_object( $args['menu-item-object'] );
 			if ( $original_object ) {
 				$original_title = $original_object->labels->archives;
@@ -501,7 +501,7 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 		}
 
 		// Hack to get wp to create a post object when too many properties are empty.
-		if ( '' === $args['menu-item-title'] && '' === $args['menu-item-description'] ) {
+		if ( $args['menu-item-title'] === '' && $args['menu-item-description'] === '' ) {
 			$args['menu-item-description'] = ' ';
 		}
 	}
@@ -522,12 +522,12 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 		$post['post_date'] = $post_date;
 	}
 
-	$update = 0 != $menu_item_db_id;
+	$update = $menu_item_db_id != 0;
 
 	// New menu item. Default is draft status.
 	if ( ! $update ) {
 		$post['ID']          = 0;
-		$post['post_status'] = 'publish' === $args['menu-item-status'] ? 'publish' : 'draft';
+		$post['post_status'] = $args['menu-item-status'] === 'publish' ? 'publish' : 'draft';
 		$menu_item_db_id     = wp_insert_post( $post, true, $fire_after_hooks );
 		if ( ! $menu_item_db_id || is_wp_error( $menu_item_db_id ) ) {
 			return $menu_item_db_id;
@@ -556,7 +556,7 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 		}
 	}
 
-	if ( 'custom' === $args['menu-item-type'] ) {
+	if ( $args['menu-item-type'] === 'custom' ) {
 		$args['menu-item-object-id'] = $menu_item_db_id;
 		$args['menu-item-object']    = 'custom';
 	}
@@ -575,7 +575,7 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 	update_post_meta( $menu_item_db_id, '_menu_item_xfn', $args['menu-item-xfn'] );
 	update_post_meta( $menu_item_db_id, '_menu_item_url', sanitize_url( $args['menu-item-url'] ) );
 
-	if ( 0 == $menu_id ) {
+	if ( $menu_id == 0 ) {
 		update_post_meta( $menu_item_db_id, '_menu_item_orphaned', (string) time() );
 	} elseif ( get_post_meta( $menu_item_db_id, '_menu_item_orphaned' ) ) {
 		delete_post_meta( $menu_item_db_id, '_menu_item_orphaned' );
@@ -584,7 +584,7 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 	// Update existing menu item. Default is publish status.
 	if ( $update ) {
 		$post['ID']          = $menu_item_db_id;
-		$post['post_status'] = ( 'draft' === $args['menu-item-status'] ) ? 'draft' : 'publish';
+		$post['post_status'] = ( $args['menu-item-status'] === 'draft' ) ? 'draft' : 'publish';
 
 		$update_post = wp_update_post( $post, true );
 		if ( is_wp_error( $update_post ) ) {
@@ -725,7 +725,7 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 		$items = array_filter( $items, '_is_valid_nav_menu_item' );
 	}
 
-	if ( ARRAY_A === $args['output'] ) {
+	if ( $args['output'] === ARRAY_A ) {
 		$items = wp_list_sort(
 			$items,
 			array(
@@ -764,16 +764,16 @@ function update_menu_item_cache( $menu_items ) {
 	$term_ids = array();
 
 	foreach ( $menu_items as $menu_item ) {
-		if ( 'nav_menu_item' !== $menu_item->post_type ) {
+		if ( $menu_item->post_type !== 'nav_menu_item' ) {
 			continue;
 		}
 
 		$object_id = get_post_meta( $menu_item->ID, '_menu_item_object_id', true );
 		$type      = get_post_meta( $menu_item->ID, '_menu_item_type', true );
 
-		if ( 'post_type' === $type ) {
+		if ( $type === 'post_type' ) {
 			$post_ids[] = (int) $object_id;
-		} elseif ( 'taxonomy' === $type ) {
+		} elseif ( $type === 'taxonomy' ) {
 			$term_ids[] = (int) $object_id;
 		}
 	}
@@ -816,14 +816,14 @@ function update_menu_item_cache( $menu_items ) {
  */
 function wp_setup_nav_menu_item( $menu_item ) {
 	if ( isset( $menu_item->post_type ) ) {
-		if ( 'nav_menu_item' === $menu_item->post_type ) {
+		if ( $menu_item->post_type === 'nav_menu_item' ) {
 			$menu_item->db_id            = (int) $menu_item->ID;
 			$menu_item->menu_item_parent = ! isset( $menu_item->menu_item_parent ) ? get_post_meta( $menu_item->ID, '_menu_item_menu_item_parent', true ) : $menu_item->menu_item_parent;
 			$menu_item->object_id        = ! isset( $menu_item->object_id ) ? get_post_meta( $menu_item->ID, '_menu_item_object_id', true ) : $menu_item->object_id;
 			$menu_item->object           = ! isset( $menu_item->object ) ? get_post_meta( $menu_item->ID, '_menu_item_object', true ) : $menu_item->object;
 			$menu_item->type             = ! isset( $menu_item->type ) ? get_post_meta( $menu_item->ID, '_menu_item_type', true ) : $menu_item->type;
 
-			if ( 'post_type' === $menu_item->type ) {
+			if ( $menu_item->type === 'post_type' ) {
 				$object = get_post_type_object( $menu_item->object );
 				if ( $object ) {
 					$menu_item->type_label = $object->labels->singular_name;
@@ -840,7 +840,7 @@ function wp_setup_nav_menu_item( $menu_item ) {
 					$menu_item->_invalid   = true;
 				}
 
-				if ( 'trash' === get_post_status( $menu_item->object_id ) ) {
+				if ( get_post_status( $menu_item->object_id ) === 'trash' ) {
 					$menu_item->_invalid = true;
 				}
 
@@ -856,17 +856,17 @@ function wp_setup_nav_menu_item( $menu_item ) {
 					$menu_item->_invalid = true;
 				}
 
-				if ( '' === $original_title ) {
+				if ( $original_title === '' ) {
 					/* translators: %d: ID of a post. */
 					$original_title = sprintf( __( '#%d (no title)' ), $menu_item->object_id );
 				}
 
-				$menu_item->title = ( '' === $menu_item->post_title ) ? $original_title : $menu_item->post_title;
+				$menu_item->title = ( $menu_item->post_title === '' ) ? $original_title : $menu_item->post_title;
 
-			} elseif ( 'post_type_archive' === $menu_item->type ) {
+			} elseif ( $menu_item->type === 'post_type_archive' ) {
 				$object = get_post_type_object( $menu_item->object );
 				if ( $object ) {
-					$menu_item->title      = ( '' === $menu_item->post_title ) ? $object->labels->archives : $menu_item->post_title;
+					$menu_item->title      = ( $menu_item->post_title === '' ) ? $object->labels->archives : $menu_item->post_title;
 					$post_type_description = $object->description;
 				} else {
 					$post_type_description = '';
@@ -875,10 +875,10 @@ function wp_setup_nav_menu_item( $menu_item ) {
 
 				$menu_item->type_label = __( 'Post Type Archive' );
 				$post_content          = wp_trim_words( $menu_item->post_content, 200 );
-				$post_type_description = ( '' === $post_content ) ? $post_type_description : $post_content;
+				$post_type_description = ( $post_content === '' ) ? $post_type_description : $post_content;
 				$menu_item->url        = get_post_type_archive_link( $menu_item->object );
 
-			} elseif ( 'taxonomy' === $menu_item->type ) {
+			} elseif ( $menu_item->type === 'taxonomy' ) {
 				$object = get_taxonomy( $menu_item->object );
 				if ( $object ) {
 					$menu_item->type_label = $object->labels->singular_name;
@@ -898,12 +898,12 @@ function wp_setup_nav_menu_item( $menu_item ) {
 					$menu_item->_invalid = true;
 				}
 
-				if ( '' === $original_title ) {
+				if ( $original_title === '' ) {
 					/* translators: %d: ID of a term. */
 					$original_title = sprintf( __( '#%d (no title)' ), $menu_item->object_id );
 				}
 
-				$menu_item->title = ( '' === $menu_item->post_title ) ? $original_title : $menu_item->post_title;
+				$menu_item->title = ( $menu_item->post_title === '' ) ? $original_title : $menu_item->post_title;
 
 			} else {
 				$menu_item->type_label = __( 'Custom Link' );
@@ -945,7 +945,7 @@ function wp_setup_nav_menu_item( $menu_item ) {
 			$menu_item->object     = $object->name;
 			$menu_item->type_label = $object->labels->singular_name;
 
-			if ( '' === $menu_item->post_title ) {
+			if ( $menu_item->post_title === '' ) {
 				/* translators: %d: ID of a post. */
 				$menu_item->post_title = sprintf( __( '#%d (no title)' ), $menu_item->ID );
 			}
@@ -1024,13 +1024,13 @@ function wp_get_associated_nav_menu_items( $object_id = 0, $object_type = 'post_
 		if ( isset( $menu_item->ID ) && is_nav_menu_item( $menu_item->ID ) ) {
 			$menu_item_type = get_post_meta( $menu_item->ID, '_menu_item_type', true );
 			if (
-				'post_type' === $object_type &&
-				'post_type' === $menu_item_type
+				$object_type === 'post_type' &&
+				$menu_item_type === 'post_type'
 			) {
 				$menu_item_ids[] = (int) $menu_item->ID;
 			} elseif (
-				'taxonomy' === $object_type &&
-				'taxonomy' === $menu_item_type &&
+				$object_type === 'taxonomy' &&
+				$menu_item_type === 'taxonomy' &&
 				get_post_meta( $menu_item->ID, '_menu_item_object', true ) == $taxonomy
 			) {
 				$menu_item_ids[] = (int) $menu_item->ID;
@@ -1090,7 +1090,7 @@ function _wp_delete_tax_menu_item( $object_id, $tt_id, $taxonomy ) {
  * @param WP_Post $post       The post object being transitioned from one status to another.
  */
 function _wp_auto_add_pages_to_menu( $new_status, $old_status, $post ) {
-	if ( 'publish' !== $new_status || 'publish' === $old_status || 'page' !== $post->post_type ) {
+	if ( $new_status !== 'publish' || $old_status === 'publish' || $post->post_type !== 'page' ) {
 		return;
 	}
 	if ( ! empty( $post->post_parent ) ) {
@@ -1137,7 +1137,7 @@ function _wp_auto_add_pages_to_menu( $new_status, $old_status, $post ) {
 function _wp_delete_customize_changeset_dependent_auto_drafts( $post_id ) {
 	$post = get_post( $post_id );
 
-	if ( ! $post || 'customize_changeset' !== $post->post_type ) {
+	if ( ! $post || $post->post_type !== 'customize_changeset' ) {
 		return;
 	}
 
@@ -1150,9 +1150,9 @@ function _wp_delete_customize_changeset_dependent_auto_drafts( $post_id ) {
 		if ( empty( $stub_post_id ) ) {
 			continue;
 		}
-		if ( 'auto-draft' === get_post_status( $stub_post_id ) ) {
+		if ( get_post_status( $stub_post_id ) === 'auto-draft' ) {
 			wp_delete_post( $stub_post_id, true );
-		} elseif ( 'draft' === get_post_status( $stub_post_id ) ) {
+		} elseif ( get_post_status( $stub_post_id ) === 'draft' ) {
 			wp_trash_post( $stub_post_id );
 			delete_post_meta( $stub_post_id, '_customize_changeset_uuid' );
 		}
@@ -1194,7 +1194,7 @@ function wp_map_nav_menu_locations( $new_nav_menu_locations, $old_nav_menu_locat
 	}
 
 	// If old and new theme have just one location, map it and we're done.
-	if ( 1 === count( $old_nav_menu_locations ) && 1 === count( $registered_nav_menus ) ) {
+	if ( count( $old_nav_menu_locations ) === 1 && count( $registered_nav_menus ) === 1 ) {
 		$new_nav_menu_locations[ key( $registered_nav_menus ) ] = array_pop( $old_nav_menu_locations );
 		return $new_nav_menu_locations;
 	}
@@ -1234,7 +1234,7 @@ function wp_map_nav_menu_locations( $new_nav_menu_locations, $old_nav_menu_locat
 			foreach ( $registered_nav_menus as $new_location => $name ) {
 
 				// ...actually match!
-				if ( is_string( $new_location ) && false === stripos( $new_location, $slug ) && false === stripos( $slug, $new_location ) ) {
+				if ( is_string( $new_location ) && stripos( $new_location, $slug ) === false && stripos( $slug, $new_location ) === false ) {
 					continue;
 				} elseif ( is_numeric( $new_location ) && $new_location !== $slug ) {
 					continue;
@@ -1247,7 +1247,7 @@ function wp_map_nav_menu_locations( $new_nav_menu_locations, $old_nav_menu_locat
 					foreach ( $slug_group as $slug ) {
 
 						// ... have a match as well.
-						if ( is_string( $location ) && false === stripos( $location, $slug ) && false === stripos( $slug, $location ) ) {
+						if ( is_string( $location ) && stripos( $location, $slug ) === false && stripos( $slug, $location ) === false ) {
 							continue;
 						} elseif ( is_numeric( $location ) && $location !== $slug ) {
 							continue;

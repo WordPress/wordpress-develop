@@ -166,7 +166,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		$text_widgets = array_filter(
 			$data,
 			static function( $widget ) {
-				return 'text' === $widget['id'];
+				return $widget['id'] === 'text';
 			}
 		);
 		$this->assertCount( 1, $text_widgets );

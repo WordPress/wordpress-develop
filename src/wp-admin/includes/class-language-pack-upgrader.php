@@ -188,7 +188,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 			return true;
 		}
 
-		if ( 'upgrader_process_complete' === current_filter() ) {
+		if ( current_filter() === 'upgrader_process_complete' ) {
 			$this->skin->feedback( 'starting_upgrade' );
 		}
 
@@ -232,9 +232,9 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 			$this->skin->language_update = $language_update;
 
 			$destination = WP_LANG_DIR;
-			if ( 'plugin' === $language_update->type ) {
+			if ( $language_update->type === 'plugin' ) {
 				$destination .= '/plugins';
-			} elseif ( 'theme' === $language_update->type ) {
+			} elseif ( $language_update->type === 'theme' ) {
 				$destination .= '/themes';
 			}
 
@@ -258,7 +258,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 			$results[] = $this->result;
 
 			// Prevent credentials auth screen from displaying multiple times.
-			if ( false === $result ) {
+			if ( $result === false ) {
 				break;
 			}
 
@@ -336,9 +336,9 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 		$po = false;
 		$mo = false;
 		foreach ( (array) $files as $file => $filedata ) {
-			if ( '.po' === substr( $file, -3 ) ) {
+			if ( substr( $file, -3 ) === '.po' ) {
 				$po = true;
-			} elseif ( '.mo' === substr( $file, -3 ) ) {
+			} elseif ( substr( $file, -3 ) === '.mo' ) {
 				$mo = true;
 			}
 		}
@@ -405,7 +405,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 		$language_update    = $this->skin->language_update;
 		$language_directory = WP_LANG_DIR . '/'; // Local path for use with glob().
 
-		if ( 'core' === $language_update->type ) {
+		if ( $language_update->type === 'core' ) {
 			$files = array(
 				$remote_destination . $language_update->language . '.po',
 				$remote_destination . $language_update->language . '.mo',

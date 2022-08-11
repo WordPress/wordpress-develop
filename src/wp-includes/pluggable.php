@@ -31,7 +31,7 @@ if ( ! function_exists( 'wp_set_current_user' ) ) :
 		if ( isset( $current_user )
 		&& ( $current_user instanceof WP_User )
 		&& ( $id == $current_user->ID )
-		&& ( null !== $id )
+		&& ( $id !== null )
 		) {
 			return $current_user;
 		}
@@ -220,7 +220,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		 */
 		$pre_wp_mail = apply_filters( 'pre_wp_mail', null, $atts );
 
-		if ( null !== $pre_wp_mail ) {
+		if ( $pre_wp_mail !== null ) {
 			return $pre_wp_mail;
 		}
 
@@ -287,7 +287,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 				// Iterate through the raw headers.
 				foreach ( (array) $tempheaders as $header ) {
 					if ( strpos( $header, ':' ) === false ) {
-						if ( false !== stripos( $header, 'boundary=' ) ) {
+						if ( stripos( $header, 'boundary=' ) !== false ) {
 							$parts    = preg_split( '/boundary=/i', trim( $header ) );
 							$boundary = trim( str_replace( array( "'", '"' ), '', $parts[1] ) );
 						}
@@ -304,7 +304,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 						// Mainly for legacy -- process a "From:" header if it's there.
 						case 'from':
 							$bracket_pos = strpos( $content, '<' );
-							if ( false !== $bracket_pos ) {
+							if ( $bracket_pos !== false ) {
 								// Text before the bracketed email is the "From" name.
 								if ( $bracket_pos > 0 ) {
 									$from_name = substr( $content, 0, $bracket_pos - 1 );
@@ -317,7 +317,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 								$from_email = trim( $from_email );
 
 								// Avoid setting an empty $from_email.
-							} elseif ( '' !== trim( $content ) ) {
+							} elseif ( trim( $content ) !== '' ) {
 								$from_email = trim( $content );
 							}
 							break;
@@ -325,15 +325,15 @@ if ( ! function_exists( 'wp_mail' ) ) :
 							if ( strpos( $content, ';' ) !== false ) {
 								list( $type, $charset_content ) = explode( ';', $content );
 								$content_type                   = trim( $type );
-								if ( false !== stripos( $charset_content, 'charset=' ) ) {
+								if ( stripos( $charset_content, 'charset=' ) !== false ) {
 									$charset = trim( str_replace( array( 'charset=', '"' ), '', $charset_content ) );
-								} elseif ( false !== stripos( $charset_content, 'boundary=' ) ) {
+								} elseif ( stripos( $charset_content, 'boundary=' ) !== false ) {
 									$boundary = trim( str_replace( array( 'BOUNDARY=', 'boundary=', '"' ), '', $charset_content ) );
 									$charset  = '';
 								}
 
 								// Avoid setting an empty $content_type.
-							} elseif ( '' !== trim( $content ) ) {
+							} elseif ( trim( $content ) !== '' ) {
 								$content_type = trim( $content );
 							}
 							break;
@@ -380,8 +380,8 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			$sitename   = wp_parse_url( network_home_url(), PHP_URL_HOST );
 			$from_email = 'wordpress@';
 
-			if ( null !== $sitename ) {
-				if ( 'www.' === substr( $sitename, 0, 4 ) ) {
+			if ( $sitename !== null ) {
+				if ( substr( $sitename, 0, 4 ) === 'www.' ) {
 					$sitename = substr( $sitename, 4 );
 				}
 
@@ -485,7 +485,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		$phpmailer->ContentType = $content_type;
 
 		// Set whether it's plaintext, depending on $content_type.
-		if ( 'text/html' === $content_type ) {
+		if ( $content_type === 'text/html' ) {
 			$phpmailer->isHTML( true );
 		}
 
@@ -516,7 +516,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 				}
 			}
 
-			if ( false !== stripos( $content_type, 'multipart' ) && ! empty( $boundary ) ) {
+			if ( stripos( $content_type, 'multipart' ) !== false && ! empty( $boundary ) ) {
 				$phpmailer->addCustomHeader( sprintf( 'Content-Type: %s; boundary="%s"', $content_type, $boundary ) );
 			}
 		}
@@ -618,7 +618,7 @@ if ( ! function_exists( 'wp_authenticate' ) ) :
 		 */
 		$user = apply_filters( 'authenticate', null, $username, $password );
 
-		if ( null == $user ) {
+		if ( $user == null ) {
 			// TODO: What should the error message be? (Or would these even happen?)
 			// Only needed if all authentication handlers fail to return anything.
 			$user = new WP_Error( 'authentication_failed', __( '<strong>Error:</strong> Invalid username, email address or incorrect password.' ) );
@@ -713,7 +713,7 @@ if ( ! function_exists( 'wp_validate_auth_cookie' ) ) :
 		$expiration = $cookie_elements['expiration'];
 
 		// Allow a grace period for POST and Ajax requests.
-		if ( wp_doing_ajax() || 'POST' === $_SERVER['REQUEST_METHOD'] ) {
+		if ( wp_doing_ajax() || $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 			$expired += HOUR_IN_SECONDS;
 		}
 
@@ -991,12 +991,12 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 			$expire     = 0;
 		}
 
-		if ( '' === $secure ) {
+		if ( $secure === '' ) {
 			$secure = is_ssl();
 		}
 
 		// Front-end cookie is secure when the auth cookie is secure and the site's home URL uses HTTPS.
-		$secure_logged_in_cookie = $secure && 'https' === parse_url( get_option( 'home' ), PHP_URL_SCHEME );
+		$secure_logged_in_cookie = $secure && parse_url( get_option( 'home' ), PHP_URL_SCHEME ) === 'https';
 
 		/**
 		 * Filters whether the auth cookie should only be sent over HTTPS.
@@ -1027,7 +1027,7 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 			$scheme           = 'auth';
 		}
 
-		if ( '' === $token ) {
+		if ( $token === '' ) {
 			$manager = WP_Session_Tokens::get_instance( $user_id );
 			$token   = $manager->create( $expiration );
 		}
@@ -1180,8 +1180,8 @@ if ( ! function_exists( 'auth_redirect' ) ) :
 		$secure = apply_filters( 'secure_auth_redirect', $secure );
 
 		// If https is required and request is http, redirect.
-		if ( $secure && ! is_ssl() && false !== strpos( $_SERVER['REQUEST_URI'], 'wp-admin' ) ) {
-			if ( 0 === strpos( $_SERVER['REQUEST_URI'], 'http' ) ) {
+		if ( $secure && ! is_ssl() && strpos( $_SERVER['REQUEST_URI'], 'wp-admin' ) !== false ) {
+			if ( strpos( $_SERVER['REQUEST_URI'], 'http' ) === 0 ) {
 				wp_redirect( set_url_scheme( $_SERVER['REQUEST_URI'], 'https' ) );
 				exit;
 			} else {
@@ -1211,8 +1211,8 @@ if ( ! function_exists( 'auth_redirect' ) ) :
 			do_action( 'auth_redirect', $user_id );
 
 			// If the user wants ssl but the session is not ssl, redirect.
-			if ( ! $secure && get_user_option( 'use_ssl', $user_id ) && false !== strpos( $_SERVER['REQUEST_URI'], 'wp-admin' ) ) {
-				if ( 0 === strpos( $_SERVER['REQUEST_URI'], 'http' ) ) {
+			if ( ! $secure && get_user_option( 'use_ssl', $user_id ) && strpos( $_SERVER['REQUEST_URI'], 'wp-admin' ) !== false ) {
+				if ( strpos( $_SERVER['REQUEST_URI'], 'http' ) === 0 ) {
 					wp_redirect( set_url_scheme( $_SERVER['REQUEST_URI'], 'https' ) );
 					exit;
 				} else {
@@ -1256,7 +1256,7 @@ if ( ! function_exists( 'check_admin_referer' ) ) :
 	 *                   False if the nonce is invalid.
 	 */
 	function check_admin_referer( $action = -1, $query_arg = '_wpnonce' ) {
-		if ( -1 === $action ) {
+		if ( $action === -1 ) {
 			_doing_it_wrong( __FUNCTION__, __( 'You should specify an action to be verified by using the first parameter.' ), '3.2.0' );
 		}
 
@@ -1275,7 +1275,7 @@ if ( ! function_exists( 'check_admin_referer' ) ) :
 		 */
 		do_action( 'check_admin_referer', $action, $result );
 
-		if ( ! $result && ! ( -1 === $action && strpos( $referer, $adminurl ) === 0 ) ) {
+		if ( ! $result && ! ( $action === -1 && strpos( $referer, $adminurl ) === 0 ) ) {
 			wp_nonce_ays( $action );
 			die();
 		}
@@ -1301,7 +1301,7 @@ if ( ! function_exists( 'check_ajax_referer' ) ) :
 	 *                   False if the nonce is invalid.
 	 */
 	function check_ajax_referer( $action = -1, $query_arg = false, $die = true ) {
-		if ( -1 == $action ) {
+		if ( $action == -1 ) {
 			_doing_it_wrong( __FUNCTION__, __( 'You should specify an action to be verified by using the first parameter.' ), '4.7.0' );
 		}
 
@@ -1328,7 +1328,7 @@ if ( ! function_exists( 'check_ajax_referer' ) ) :
 		 */
 		do_action( 'check_ajax_referer', $action, $result );
 
-		if ( $die && false === $result ) {
+		if ( $die && $result === false ) {
 			if ( wp_doing_ajax() ) {
 				wp_die( -1, 403 );
 			} else {
@@ -1401,7 +1401,7 @@ if ( ! function_exists( 'wp_redirect' ) ) :
 
 		$location = wp_sanitize_redirect( $location );
 
-		if ( ! $is_IIS && 'cgi-fcgi' !== PHP_SAPI ) {
+		if ( ! $is_IIS && PHP_SAPI !== 'cgi-fcgi' ) {
 			status_header( $status ); // This causes problems on IIS and some FastCGI setups.
 		}
 
@@ -1549,7 +1549,7 @@ if ( ! function_exists( 'wp_validate_redirect' ) ) :
 	function wp_validate_redirect( $location, $default = '' ) {
 		$location = wp_sanitize_redirect( trim( $location, " \t\n\r\0\x08\x0B" ) );
 		// Browsers will assume 'http' is your protocol, and will obey a redirect to a URL starting with '//'.
-		if ( '//' === substr( $location, 0, 2 ) ) {
+		if ( substr( $location, 0, 2 ) === '//' ) {
 			$location = 'http:' . $location;
 		}
 
@@ -1561,16 +1561,16 @@ if ( ! function_exists( 'wp_validate_redirect' ) ) :
 		$lp = parse_url( $test );
 
 		// Give up if malformed URL.
-		if ( false === $lp ) {
+		if ( $lp === false ) {
 			return $default;
 		}
 
 		// Allow only 'http' and 'https' schemes. No 'data:', etc.
-		if ( isset( $lp['scheme'] ) && ! ( 'http' === $lp['scheme'] || 'https' === $lp['scheme'] ) ) {
+		if ( isset( $lp['scheme'] ) && ! ( $lp['scheme'] === 'http' || $lp['scheme'] === 'https' ) ) {
 			return $default;
 		}
 
-		if ( ! isset( $lp['host'] ) && ! empty( $lp['path'] ) && '/' !== $lp['path'][0] ) {
+		if ( ! isset( $lp['host'] ) && ! empty( $lp['path'] ) && $lp['path'][0] !== '/' ) {
 			$path = '';
 			if ( ! empty( $_SERVER['REQUEST_URI'] ) ) {
 				$path = dirname( parse_url( 'http://placeholder' . $_SERVER['REQUEST_URI'], PHP_URL_PATH ) . '?' );
@@ -1623,7 +1623,7 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 	 * @return bool True on completion. False if no email addresses were specified.
 	 */
 	function wp_notify_postauthor( $comment_id, $deprecated = null ) {
-		if ( null !== $deprecated ) {
+		if ( $deprecated !== null ) {
 			_deprecated_argument( __FUNCTION__, '3.8.0' );
 		}
 
@@ -1781,14 +1781,14 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 
 		$wp_email = 'wordpress@' . preg_replace( '#^www\.#', '', wp_parse_url( network_home_url(), PHP_URL_HOST ) );
 
-		if ( '' === $comment->comment_author ) {
+		if ( $comment->comment_author === '' ) {
 			$from = "From: \"$blogname\" <$wp_email>";
-			if ( '' !== $comment->comment_author_email ) {
+			if ( $comment->comment_author_email !== '' ) {
 				$reply_to = "Reply-To: $comment->comment_author_email";
 			}
 		} else {
 			$from = "From: \"$comment->comment_author\" <$wp_email>";
-			if ( '' !== $comment->comment_author_email ) {
+			if ( $comment->comment_author_email !== '' ) {
 				$reply_to = "Reply-To: \"$comment->comment_author_email\" <$comment->comment_author_email>";
 			}
 		}
@@ -1881,7 +1881,7 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 		// Send to the administration and to the post author if the author can modify the comment.
 		$emails = array( get_option( 'admin_email' ) );
 		if ( $user && user_can( $user->ID, 'edit_comment', $comment_id ) && ! empty( $user->user_email ) ) {
-			if ( 0 !== strcasecmp( $user->user_email, get_option( 'admin_email' ) ) ) {
+			if ( strcasecmp( $user->user_email, get_option( 'admin_email' ) ) !== 0 ) {
 				$emails[] = $user->user_email;
 			}
 		}
@@ -2036,7 +2036,7 @@ if ( ! function_exists( 'wp_password_change_notification' ) ) :
 	function wp_password_change_notification( $user ) {
 		// Send a copy of password change notification to the admin,
 		// but check to see if it's the admin whose password we're changing, and skip this.
-		if ( 0 !== strcasecmp( $user->user_email, get_option( 'admin_email' ) ) ) {
+		if ( strcasecmp( $user->user_email, get_option( 'admin_email' ) ) !== 0 ) {
 			/* translators: %s: User name. */
 			$message = sprintf( __( 'Password changed for user: %s' ), $user->user_login ) . "\r\n";
 			// The blogname option is escaped with esc_html() on the way into the database in sanitize_option().
@@ -2096,7 +2096,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 	 *                           string (admin only), 'user', or 'both' (admin and user). Default empty.
 	 */
 	function wp_new_user_notification( $user_id, $deprecated = null, $notify = '' ) {
-		if ( null !== $deprecated ) {
+		if ( $deprecated !== null ) {
 			_deprecated_argument( __FUNCTION__, '4.3.1' );
 		}
 
@@ -2121,7 +2121,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		 */
 		$send_notification_to_admin = apply_filters( 'wp_send_new_user_notification_to_admin', true, $user );
 
-		if ( 'user' !== $notify && true === $send_notification_to_admin ) {
+		if ( $notify !== 'user' && $send_notification_to_admin === true ) {
 			$switched_locale = switch_to_locale( get_locale() );
 
 			/* translators: %s: Site title. */
@@ -2180,7 +2180,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		$send_notification_to_user = apply_filters( 'wp_send_new_user_notification_to_user', true, $user );
 
 		// `$deprecated` was pre-4.3 `$plaintext_pass`. An empty `$plaintext_pass` didn't sent a user notification.
-		if ( 'admin' === $notify || true !== $send_notification_to_user || ( empty( $deprecated ) && empty( $notify ) ) ) {
+		if ( $notify === 'admin' || $send_notification_to_user !== true || ( empty( $deprecated ) && empty( $notify ) ) ) {
 			return;
 		}
 
@@ -2403,7 +2403,7 @@ if ( ! function_exists( 'wp_salt' ) ) :
 		}
 
 		static $duplicated_keys;
-		if ( null === $duplicated_keys ) {
+		if ( $duplicated_keys === null ) {
 			$duplicated_keys = array( 'put your unique phrase here' => true );
 			foreach ( array( 'AUTH', 'SECURE_AUTH', 'LOGGED_IN', 'NONCE', 'SECRET' ) as $first ) {
 				foreach ( array( 'KEY', 'SALT' ) as $second ) {
@@ -2423,7 +2423,7 @@ if ( ! function_exists( 'wp_salt' ) ) :
 		if ( defined( 'SECRET_KEY' ) && SECRET_KEY && empty( $duplicated_keys[ SECRET_KEY ] ) ) {
 			$values['key'] = SECRET_KEY;
 		}
-		if ( 'auth' === $scheme && defined( 'SECRET_SALT' ) && SECRET_SALT && empty( $duplicated_keys[ SECRET_SALT ] ) ) {
+		if ( $scheme === 'auth' && defined( 'SECRET_SALT' ) && SECRET_SALT && empty( $duplicated_keys[ SECRET_SALT ] ) ) {
 			$values['salt'] = SECRET_SALT;
 		}
 
@@ -2633,11 +2633,11 @@ if ( ! function_exists( 'wp_rand' ) ) :
 		// truncate integers larger than PHP_INT_MAX to PHP_INT_MAX rather than overflowing them to floats.
 		$max_random_number = 3000000000 === 2147483647 ? (float) '4294967295' : 4294967295; // 4294967295 = 0xffffffff
 
-		if ( null === $min ) {
+		if ( $min === null ) {
 			$min = 0;
 		}
 
-		if ( null === $max ) {
+		if ( $max === null ) {
 			$max = $max_random_number;
 		}
 
@@ -2653,7 +2653,7 @@ if ( ! function_exists( 'wp_rand' ) ) :
 				$_max = max( $min, $max );
 				$_min = min( $min, $max );
 				$val  = random_int( $_min, $_max );
-				if ( false !== $val ) {
+				if ( $val !== false ) {
 					return absint( $val );
 				} else {
 					$use_random_int_functionality = false;

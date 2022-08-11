@@ -233,7 +233,7 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	 */
 	public function _block_comments( $sql ) {
 		global $wpdb;
-		if ( false !== strpos( $sql, $wpdb->comments ) && 0 === stripos( trim( $sql ), 'INSERT INTO' ) ) {
+		if ( strpos( $sql, $wpdb->comments ) !== false && stripos( trim( $sql ), 'INSERT INTO' ) === 0 ) {
 			return '';
 		}
 		return $sql;

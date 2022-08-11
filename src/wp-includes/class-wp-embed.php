@@ -154,7 +154,7 @@ class WP_Embed {
 			foreach ( $handlers as $id => $handler ) {
 				if ( preg_match( $handler['regex'], $url, $matches ) && is_callable( $handler['callback'] ) ) {
 					$return = call_user_func( $handler['callback'], $matches, $attr, $url, $rawattr );
-					if ( false !== $return ) {
+					if ( $return !== false ) {
 						/**
 						 * Filters the returned embed HTML.
 						 *
@@ -217,7 +217,7 @@ class WP_Embed {
 
 		// Look for known internal handlers.
 		$embed_handler_html = $this->get_embed_handler_html( $rawattr, $url );
-		if ( false !== $embed_handler_html ) {
+		if ( $embed_handler_html !== false ) {
 			return $embed_handler_html;
 		}
 
@@ -268,7 +268,7 @@ class WP_Embed {
 
 		if ( $this->usecache || $cached_recently ) {
 			// Failures are cached. Serve one if we're using the cache.
-			if ( '{{unknown}}' === $cache ) {
+			if ( $cache === '{{unknown}}' ) {
 				return $this->maybe_make_link( $url );
 			}
 
@@ -312,7 +312,7 @@ class WP_Embed {
 				update_post_meta( $post_ID, $cachekey, '{{unknown}}' );
 			}
 		} else {
-			$has_kses = false !== has_filter( 'content_save_pre', 'wp_filter_post_kses' );
+			$has_kses = has_filter( 'content_save_pre', 'wp_filter_post_kses' ) !== false;
 
 			if ( $has_kses ) {
 				// Prevent KSES from corrupting JSON in post_content.
@@ -387,7 +387,7 @@ class WP_Embed {
 		}
 
 		foreach ( $post_metas as $post_meta_key ) {
-			if ( '_oembed_' === substr( $post_meta_key, 0, 8 ) ) {
+			if ( substr( $post_meta_key, 0, 8 ) === '_oembed_' ) {
 				delete_post_meta( $post_ID, $post_meta_key );
 			}
 		}
@@ -502,7 +502,7 @@ class WP_Embed {
 		$cache_group    = 'oembed_cache_post';
 		$oembed_post_id = wp_cache_get( $cache_key, $cache_group );
 
-		if ( $oembed_post_id && 'oembed_cache' === get_post_type( $oembed_post_id ) ) {
+		if ( $oembed_post_id && get_post_type( $oembed_post_id ) === 'oembed_cache' ) {
 			return $oembed_post_id;
 		}
 

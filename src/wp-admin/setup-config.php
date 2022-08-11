@@ -353,7 +353,7 @@ switch ( $step ) {
 
 		$key = 0;
 		foreach ( $config_file as $line_num => $line ) {
-			if ( '$table_prefix =' === substr( $line, 0, 15 ) ) {
+			if ( substr( $line, 0, 15 ) === '$table_prefix =' ) {
 				$config_file[ $line_num ] = '$table_prefix = \'' . addcslashes( $prefix, "\\'" ) . "';\r\n";
 				continue;
 			}
@@ -373,7 +373,7 @@ switch ( $step ) {
 					$config_file[ $line_num ] = "define( '" . $constant . "'," . $padding . "'" . addcslashes( constant( $constant ), "\\'" ) . "' );\r\n";
 					break;
 				case 'DB_CHARSET':
-					if ( 'utf8mb4' === $wpdb->charset || ( ! $wpdb->charset && $wpdb->has_cap( 'utf8mb4' ) ) ) {
+					if ( $wpdb->charset === 'utf8mb4' || ( ! $wpdb->charset && $wpdb->has_cap( 'utf8mb4' ) ) ) {
 						$config_file[ $line_num ] = "define( '" . $constant . "'," . $padding . "'utf8mb4' );\r\n";
 					}
 					break;
@@ -449,7 +449,7 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 			 * To future-proof the check for when fopen returns object instead of resource, i.e. a known
 			 * change coming in PHP.
 			 */
-			if ( false !== $handle ) {
+			if ( $handle !== false ) {
 				foreach ( $config_file as $line ) {
 					fwrite( $handle, $line );
 				}
@@ -475,7 +475,7 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 			chmod( $path_to_wp_config, 0666 );
 			setup_config_display_header();
 
-			if ( false !== $handle ) :
+			if ( $handle !== false ) :
 				?>
 <h1 class="screen-reader-text"><?php _e( 'Successful database connection' ); ?></h1>
 <p><?php _e( 'All right, sparky! You&#8217;ve made it through this part of the installation. WordPress can now communicate with your database. If you are ready, time now to&hellip;' ); ?></p>

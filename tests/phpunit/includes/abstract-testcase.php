@@ -24,11 +24,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	protected static $ignore_files;
 
 	public function __isset( $name ) {
-		return 'factory' === $name;
+		return $name === 'factory';
 	}
 
 	public function __get( $name ) {
-		if ( 'factory' === $name ) {
+		if ( $name === 'factory' ) {
 			return self::factory();
 		}
 	}
@@ -220,7 +220,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			// We're on GitHub Actions.
 			$skipped = array( 'pull_request', 'pull_request_target' );
 
-			if ( in_array( $github_event_name, $skipped, true ) || 'refs/heads/trunk' !== $github_ref ) {
+			if ( in_array( $github_event_name, $skipped, true ) || $github_ref !== 'refs/heads/trunk' ) {
 				$this->markTestSkipped( 'For automated test runs, this test is only run on trunk' );
 			}
 		}
@@ -257,15 +257,15 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		if ( ! is_wp_error( $response ) ) {
 			return;
 		}
-		if ( 'connect() timed out!' === $response->get_error_message() ) {
+		if ( $response->get_error_message() === 'connect() timed out!' ) {
 			$this->markTestSkipped( 'HTTP timeout' );
 		}
 
-		if ( false !== strpos( $response->get_error_message(), 'timed out after' ) ) {
+		if ( strpos( $response->get_error_message(), 'timed out after' ) !== false ) {
 			$this->markTestSkipped( 'HTTP timeout' );
 		}
 
-		if ( 0 === strpos( $response->get_error_message(), 'stream_socket_client(): unable to connect to tcp://s.w.org:80' ) ) {
+		if ( strpos( $response->get_error_message(), 'stream_socket_client(): unable to connect to tcp://s.w.org:80' ) === 0 ) {
 			$this->markTestSkipped( 'HTTP timeout' );
 		}
 
@@ -452,7 +452,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @return string The altered query.
 	 */
 	public function _create_temporary_tables( $query ) {
-		if ( 0 === strpos( trim( $query ), 'CREATE TABLE' ) ) {
+		if ( strpos( trim( $query ), 'CREATE TABLE' ) === 0 ) {
 			return substr_replace( trim( $query ), 'CREATE TEMPORARY TABLE', 0, 12 );
 		}
 		return $query;
@@ -465,7 +465,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @return string The altered query.
 	 */
 	public function _drop_temporary_tables( $query ) {
-		if ( 0 === strpos( trim( $query ), 'DROP TABLE' ) ) {
+		if ( strpos( trim( $query ), 'DROP TABLE' ) === 0 ) {
 			return substr_replace( trim( $query ), 'DROP TEMPORARY TABLE', 0, 10 );
 		}
 		return $query;
@@ -666,11 +666,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	public function setExpectedException( $exception, $message = '', $code = null ) {
 		$this->expectException( $exception );
 
-		if ( '' !== $message ) {
+		if ( $message !== '' ) {
 			$this->expectExceptionMessage( $message );
 		}
 
-		if ( null !== $code ) {
+		if ( $code !== null ) {
 			$this->expectExceptionCode( $code );
 		}
 	}
@@ -885,7 +885,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string $message  Optional. Message to display when the assertion fails.
 	 */
 	public function assertSameIgnoreEOL( $expected, $actual, $message = '' ) {
-		if ( null !== $expected ) {
+		if ( $expected !== null ) {
 			$expected = map_deep(
 				$expected,
 				static function ( $value ) {
@@ -898,7 +898,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			);
 		}
 
-		if ( null !== $actual ) {
+		if ( $actual !== null ) {
 			$actual = map_deep(
 				$actual,
 				static function ( $value ) {
@@ -1445,7 +1445,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 */
 	public function scandir( $dir ) {
 		foreach ( scandir( $dir ) as $path ) {
-			if ( 0 !== strpos( $path, '.' ) && is_dir( $dir . '/' . $path ) ) {
+			if ( strpos( $path, '.' ) !== 0 && is_dir( $dir . '/' . $path ) ) {
 				$this->matched_dirs[] = $dir . '/' . $path;
 				$this->scandir( $dir . '/' . $path );
 			}

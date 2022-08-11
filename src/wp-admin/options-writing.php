@@ -201,7 +201,7 @@ if ( apply_filters( 'enable_update_services_configuration', true ) ) {
 	?>
 <h2 class="title"><?php _e( 'Update Services' ); ?></h2>
 
-	<?php if ( 1 == get_option( 'blog_public' ) ) : ?>
+	<?php if ( get_option( 'blog_public' ) == 1 ) : ?>
 
 	<p><label for="ping_sites">
 		<?php

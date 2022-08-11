@@ -19,7 +19,7 @@ function _wp_privacy_resend_request( $request_id ) {
 	$request_id = absint( $request_id );
 	$request    = get_post( $request_id );
 
-	if ( ! $request || 'user_request' !== $request->post_type ) {
+	if ( ! $request || $request->post_type !== 'user_request' ) {
 		return new WP_Error( 'privacy_request_error', __( 'Invalid personal data request.' ) );
 	}
 
@@ -165,11 +165,11 @@ function _wp_personal_data_handle_actions() {
 					break;
 				}
 
-				if ( 'pending' === $status ) {
+				if ( $status === 'pending' ) {
 					wp_send_user_request( $request_id );
 
 					$message = __( 'Confirmation request initiated successfully.' );
-				} elseif ( 'confirmed' === $status ) {
+				} elseif ( $status === 'confirmed' ) {
 					$message = __( 'Request added successfully.' );
 				}
 
@@ -275,7 +275,7 @@ function wp_privacy_generate_personal_data_export_group_html( $group_data, $grou
 		foreach ( (array) $group_item_data as $group_item_datum ) {
 			$value = $group_item_datum['value'];
 			// If it looks like a link, make it a link.
-			if ( false === strpos( $value, ' ' ) && ( 0 === strpos( $value, 'http://' ) || 0 === strpos( $value, 'https://' ) ) ) {
+			if ( strpos( $value, ' ' ) === false && ( strpos( $value, 'http://' ) === 0 || strpos( $value, 'https://' ) === 0 ) ) {
 				$value = '<a href="' . esc_url( $value ) . '">' . esc_html( $value ) . '</a>';
 			}
 
@@ -315,7 +315,7 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	// Get the request.
 	$request = wp_get_user_request( $request_id );
 
-	if ( ! $request || 'export_personal_data' !== $request->action_name ) {
+	if ( ! $request || $request->action_name !== 'export_personal_data' ) {
 		wp_send_json_error( __( 'Invalid request ID when generating personal data export file.' ) );
 	}
 
@@ -337,7 +337,7 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	$index_pathname = $exports_dir . 'index.php';
 	if ( ! file_exists( $index_pathname ) ) {
 		$file = fopen( $index_pathname, 'w' );
-		if ( false === $file ) {
+		if ( $file === false ) {
 			wp_send_json_error( __( 'Unable to protect personal data export folder from browsing.' ) );
 		}
 		fwrite( $file, "<?php\n// Silence is golden.\n" );
@@ -397,7 +397,7 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 		$groups       = array_merge( array( 'about' => $about_group ), $groups );
 		$groups_count = count( $groups );
 	} else {
-		if ( false !== $groups ) {
+		if ( $groups !== false ) {
 			_doing_it_wrong(
 				__FUNCTION__,
 				/* translators: %s: Post meta key. */
@@ -413,7 +413,7 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	// Convert the groups to JSON format.
 	$groups_json = wp_json_encode( $groups );
 
-	if ( false === $groups_json ) {
+	if ( $groups_json === false ) {
 		$error_message = sprintf(
 			/* translators: %s: Error message. */
 			__( 'Unable to encode the personal data for export. Error: %s' ),
@@ -428,7 +428,7 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	 */
 	$file = fopen( $json_report_pathname, 'w' );
 
-	if ( false === $file ) {
+	if ( $file === false ) {
 		wp_send_json_error( __( 'Unable to open personal data export file (JSON report) for writing.' ) );
 	}
 
@@ -443,7 +443,7 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	 */
 	$file = fopen( $html_report_pathname, 'w' );
 
-	if ( false === $file ) {
+	if ( $file === false ) {
 		wp_send_json_error( __( 'Unable to open personal data export (HTML report) for writing.' ) );
 	}
 
@@ -536,7 +536,7 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	}
 
 	$zip = new ZipArchive;
-	if ( true === $zip->open( $archive_pathname, ZipArchive::CREATE ) ) {
+	if ( $zip->open( $archive_pathname, ZipArchive::CREATE ) === true ) {
 		if ( ! $zip->addFile( $json_report_pathname, 'export.json' ) ) {
 			$error = __( 'Unable to archive the personal data export file (JSON format).' );
 		}
@@ -589,7 +589,7 @@ function wp_privacy_send_personal_data_export_email( $request_id ) {
 	// Get the request.
 	$request = wp_get_user_request( $request_id );
 
-	if ( ! $request || 'export_personal_data' !== $request->action_name ) {
+	if ( ! $request || $request->action_name !== 'export_personal_data' ) {
 		return new WP_Error( 'invalid_request', __( 'Invalid request ID when sending personal data export email.' ) );
 	}
 
@@ -791,14 +791,14 @@ function wp_privacy_process_personal_data_export_page( $response, $exporter_inde
 	// Get the request.
 	$request = wp_get_user_request( $request_id );
 
-	if ( ! $request || 'export_personal_data' !== $request->action_name ) {
+	if ( ! $request || $request->action_name !== 'export_personal_data' ) {
 		wp_send_json_error( __( 'Invalid request ID when merging personal data to export.' ) );
 	}
 
 	$export_data = array();
 
 	// First exporter, first page? Reset the report data accumulation array.
-	if ( 1 === $exporter_index && 1 === $page ) {
+	if ( $exporter_index === 1 && $page === 1 ) {
 		update_post_meta( $request_id, '_export_data_raw', $export_data );
 	} else {
 		$accumulated_data = get_post_meta( $request_id, '_export_data_raw', true );
@@ -942,7 +942,7 @@ function wp_privacy_process_personal_data_erasure_page( $response, $eraser_index
 	// Get the request.
 	$request = wp_get_user_request( $request_id );
 
-	if ( ! $request || 'remove_personal_data' !== $request->action_name ) {
+	if ( ! $request || $request->action_name !== 'remove_personal_data' ) {
 		wp_send_json_error( __( 'Invalid request ID when processing personal data to erase.' ) );
 	}
 

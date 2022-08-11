@@ -39,13 +39,13 @@ CAP;
 		$post_statuses = array( 'publish', 'future', 'draft', 'auto-draft', 'trash' );
 		foreach ( $post_statuses as $post_status ) {
 			$date = '';
-			if ( 'future' === $post_status ) {
+			if ( $post_status === 'future' ) {
 				date_format( date_create( '+1 year' ), 'Y-m-d H:i:s' );
 			}
 
 			self::$post_ids[ $post_status ] = $factory->post->create(
 				array(
-					'post_status' => 'trash' === $post_status ? 'publish' : $post_status,
+					'post_status' => $post_status === 'trash' ? 'publish' : $post_status,
 					'post_date'   => $date,
 					'post_name'   => "$post_status-post",
 				)
@@ -1421,7 +1421,7 @@ EOF;
 	 * @ticket 33016
 	 */
 	public function filter_wp_embed_shortcode_custom( $content, $url ) {
-		if ( 'https://www.example.com/?video=1' === $url ) {
+		if ( $url === 'https://www.example.com/?video=1' ) {
 			$content = '@embed URL was replaced@';
 		}
 		return $content;
@@ -1592,7 +1592,7 @@ EOF;
 		$array = false;
 
 		if ( is_array( $image_meta ) ) {
-			if ( 'full' === $size_name && isset( $image_meta['width'] ) && isset( $image_meta['height'] ) ) {
+			if ( $size_name === 'full' && isset( $image_meta['width'] ) && isset( $image_meta['height'] ) ) {
 				$array = array( $image_meta['width'], $image_meta['height'] );
 			} elseif ( isset( $image_meta['sizes'][ $size_name ]['width'] ) && isset( $image_meta['sizes'][ $size_name ]['height'] ) ) {
 				$array = array( $image_meta['sizes'][ $size_name ]['width'], $image_meta['sizes'][ $size_name ]['height'] );
@@ -1637,7 +1637,7 @@ EOF;
 
 		// Add any soft crop intermediate sizes.
 		foreach ( $_wp_additional_image_sizes as $name => $additional_size ) {
-			if ( ! $_wp_additional_image_sizes[ $name ]['crop'] || 0 === $_wp_additional_image_sizes[ $name ]['height'] ) {
+			if ( ! $_wp_additional_image_sizes[ $name ]['crop'] || $_wp_additional_image_sizes[ $name ]['height'] === 0 ) {
 				$intermediates[] = $name;
 			}
 		}
@@ -1657,7 +1657,7 @@ EOF;
 			$image_url  = wp_get_attachment_image_url( self::$large_id, $int );
 			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int );
 
-			if ( 'full' === $int ) {
+			if ( $int === 'full' ) {
 				// Add the full size image. Expected to be in the srcset when the full size image is used as src.
 				$_expected = $uploads_dir_url . $image_meta['file'] . ' ' . $image_meta['width'] . 'w, ' . $expected;
 			} else {
@@ -1690,7 +1690,7 @@ EOF;
 		$intermediates = array( 'medium', 'medium_large', 'large', 'full' );
 
 		foreach ( $_wp_additional_image_sizes as $name => $additional_size ) {
-			if ( ! $_wp_additional_image_sizes[ $name ]['crop'] || 0 === $_wp_additional_image_sizes[ $name ]['height'] ) {
+			if ( ! $_wp_additional_image_sizes[ $name ]['crop'] || $_wp_additional_image_sizes[ $name ]['height'] === 0 ) {
 				$intermediates[] = $name;
 			}
 		}
@@ -1710,7 +1710,7 @@ EOF;
 			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int );
 			$image_url  = wp_get_attachment_image_url( $id, $int );
 
-			if ( 'full' === $int ) {
+			if ( $int === 'full' ) {
 				// Add the full size image. Expected to be in the srcset when the full size image is used as src.
 				$_expected = $uploads_dir_url . $image_meta['file'] . ' ' . $image_meta['width'] . 'w, ' . $expected;
 			} else {
@@ -1776,7 +1776,7 @@ EOF;
 
 		// Add any soft crop intermediate sizes.
 		foreach ( $_wp_additional_image_sizes as $name => $additional_size ) {
-			if ( ! $_wp_additional_image_sizes[ $name ]['crop'] || 0 === $_wp_additional_image_sizes[ $name ]['height'] ) {
+			if ( ! $_wp_additional_image_sizes[ $name ]['crop'] || $_wp_additional_image_sizes[ $name ]['height'] === 0 ) {
 				$intermediates[] = $name;
 			}
 		}
@@ -1800,7 +1800,7 @@ EOF;
 			$image_url  = wp_get_attachment_image_url( self::$large_id, $int );
 			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int );
 
-			if ( 'full' === $int ) {
+			if ( $int === 'full' ) {
 				// Add the full size image. Expected to be in the srcset when the full size image is used as src.
 				$_expected = $uploads_dir_url . $full_size_file . ' ' . $image_meta['width'] . 'w, ' . $expected;
 			} else {
@@ -2077,7 +2077,7 @@ EOF;
 		$intermediates = array( 'medium', 'medium_large', 'large', 'full' );
 
 		foreach ( $_wp_additional_image_sizes as $name => $additional_size ) {
-			if ( ! $_wp_additional_image_sizes[ $name ]['crop'] || 0 === $_wp_additional_image_sizes[ $name ]['height'] ) {
+			if ( ! $_wp_additional_image_sizes[ $name ]['crop'] || $_wp_additional_image_sizes[ $name ]['height'] === 0 ) {
 				$intermediates[] = $name;
 			}
 		}

@@ -146,14 +146,14 @@ if ( ! function_exists( 'twentynineteen_setup' ) ) :
 			'editor-color-palette',
 			array(
 				array(
-					'name'  => 'default' === get_theme_mod( 'primary_color' ) ? __( 'Blue', 'twentynineteen' ) : null,
+					'name'  => get_theme_mod( 'primary_color' ) === 'default' ? __( 'Blue', 'twentynineteen' ) : null,
 					'slug'  => 'primary',
-					'color' => twentynineteen_hsl_hex( 'default' === get_theme_mod( 'primary_color' ) ? 199 : get_theme_mod( 'primary_color_hue', 199 ), 100, 33 ),
+					'color' => twentynineteen_hsl_hex( get_theme_mod( 'primary_color' ) === 'default' ? 199 : get_theme_mod( 'primary_color_hue', 199 ), 100, 33 ),
 				),
 				array(
-					'name'  => 'default' === get_theme_mod( 'primary_color' ) ? __( 'Dark Blue', 'twentynineteen' ) : null,
+					'name'  => get_theme_mod( 'primary_color' ) === 'default' ? __( 'Dark Blue', 'twentynineteen' ) : null,
 					'slug'  => 'secondary',
-					'color' => twentynineteen_hsl_hex( 'default' === get_theme_mod( 'primary_color' ) ? 199 : get_theme_mod( 'primary_color_hue', 199 ), 100, 23 ),
+					'color' => twentynineteen_hsl_hex( get_theme_mod( 'primary_color' ) === 'default' ? 199 : get_theme_mod( 'primary_color_hue', 199 ), 100, 23 ),
 				),
 				array(
 					'name'  => __( 'Dark Gray', 'twentynineteen' ),
@@ -303,7 +303,7 @@ function twentynineteen_editor_customizer_styles() {
 
 	wp_enqueue_style( 'twentynineteen-editor-customizer-styles', get_theme_file_uri( '/style-editor-customizer.css' ), false, '1.1', 'all' );
 
-	if ( 'custom' === get_theme_mod( 'primary_color' ) ) {
+	if ( get_theme_mod( 'primary_color' ) === 'custom' ) {
 		// Include color patterns.
 		require_once get_parent_theme_file_path( '/inc/color-patterns.php' );
 		wp_add_inline_style( 'twentynineteen-editor-customizer-styles', twentynineteen_custom_colors_css() );
@@ -317,14 +317,14 @@ add_action( 'enqueue_block_editor_assets', 'twentynineteen_editor_customizer_sty
 function twentynineteen_colors_css_wrap() {
 
 	// Only include custom colors in customizer or frontend.
-	if ( ( ! is_customize_preview() && 'default' === get_theme_mod( 'primary_color', 'default' ) ) || is_admin() ) {
+	if ( ( ! is_customize_preview() && get_theme_mod( 'primary_color', 'default' ) === 'default' ) || is_admin() ) {
 		return;
 	}
 
 	require_once get_parent_theme_file_path( '/inc/color-patterns.php' );
 
 	$primary_color = 199;
-	if ( 'default' !== get_theme_mod( 'primary_color', 'default' ) ) {
+	if ( get_theme_mod( 'primary_color', 'default' ) !== 'default' ) {
 		$primary_color = get_theme_mod( 'primary_color_hue', 199 );
 	}
 	?>

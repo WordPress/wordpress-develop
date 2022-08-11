@@ -597,7 +597,7 @@ abstract class WP_REST_Controller {
 			return $fields;
 		}
 		$requested_fields = wp_parse_list( $request['_fields'] );
-		if ( 0 === count( $requested_fields ) ) {
+		if ( count( $requested_fields ) === 0 ) {
 			return $fields;
 		}
 		// Trim off outside whitespace from the comma delimited list.

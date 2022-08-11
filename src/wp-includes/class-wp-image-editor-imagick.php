@@ -104,7 +104,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 
 		// setIteratorIndex is optional unless mime is an animated format.
 		// Here, we just say no if you are missing it and aren't loading a jpeg.
-		if ( ! method_exists( 'Imagick', 'setIteratorIndex' ) && 'image/jpeg' !== $mime_type ) {
+		if ( ! method_exists( 'Imagick', 'setIteratorIndex' ) && $mime_type !== 'image/jpeg' ) {
 				return false;
 		}
 
@@ -142,7 +142,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			$this->image    = new Imagick();
 			$file_extension = strtolower( pathinfo( $this->file, PATHINFO_EXTENSION ) );
 
-			if ( 'pdf' === $file_extension ) {
+			if ( $file_extension === 'pdf' ) {
 				$pdf_loaded = $this->pdf_load_source();
 
 				if ( is_wp_error( $pdf_loaded ) ) {
@@ -205,7 +205,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				case 'image/webp':
 					$webp_info = wp_get_webp_info( $this->file );
 
-					if ( 'lossless' === $webp_info['type'] ) {
+					if ( $webp_info['type'] === 'lossless' ) {
 						// Use WebP lossless settings.
 						$this->image->setImageCompressionQuality( 100 );
 						$this->image->setOption( 'webp:lossless', 'true' );
@@ -378,7 +378,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			}
 
 			// Set appropriate quality settings after resizing.
-			if ( 'image/jpeg' === $this->mime_type ) {
+			if ( $this->mime_type === 'image/jpeg' ) {
 				if ( is_callable( array( $this->image, 'unsharpMaskImage' ) ) ) {
 					$this->image->unsharpMaskImage( 0.25, 0.25, 8, 0.065 );
 				}
@@ -386,7 +386,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				$this->image->setOption( 'jpeg:fancy-upsampling', 'off' );
 			}
 
-			if ( 'image/png' === $this->mime_type ) {
+			if ( $this->mime_type === 'image/png' ) {
 				$this->image->setOption( 'png:compression-filter', '5' );
 				$this->image->setOption( 'png:compression-level', '9' );
 				$this->image->setOption( 'png:compression-strategy', '1' );

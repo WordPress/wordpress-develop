@@ -1140,7 +1140,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 	public function test_get_subtype_meta_value( $taxonomy, $meta_key, $single, $in_taxonomy ) {
 		$term_id  = self::$category_id;
 		$endpoint = 'categories';
-		if ( 'customtax' === $taxonomy ) {
+		if ( $taxonomy === 'customtax' ) {
 			$term_id  = self::$customtax_term_id;
 			$endpoint = 'customtax';
 		}
@@ -1192,7 +1192,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 	public function test_set_subtype_meta_value( $taxonomy, $meta_key, $single, $in_taxonomy, $can_write ) {
 		$term_id  = self::$category_id;
 		$endpoint = 'categories';
-		if ( 'customtax' === $taxonomy ) {
+		if ( $taxonomy === 'customtax' ) {
 			$term_id  = self::$customtax_term_id;
 			$endpoint = 'customtax';
 		}
@@ -1245,7 +1245,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 			$can_write = true;
 
 			// This combination is not writable because of an auth callback of '__return_false'.
-			if ( 'customtax' === $dataset[0] && 'test_single' === $dataset[1] ) {
+			if ( $dataset[0] === 'customtax' && $dataset[1] === 'test_single' ) {
 				$can_write = false;
 			}
 

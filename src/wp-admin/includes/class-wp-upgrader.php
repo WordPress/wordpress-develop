@@ -120,7 +120,7 @@ class WP_Upgrader {
 	 *                               instance.
 	 */
 	public function __construct( $skin = null ) {
-		if ( null === $skin ) {
+		if ( $skin === null ) {
 			$this->skin = new WP_Upgrader_Skin();
 		} else {
 			$this->skin = $skin;
@@ -186,7 +186,7 @@ class WP_Upgrader {
 		global $wp_filesystem;
 
 		$credentials = $this->skin->request_filesystem_credentials( false, $directories[0], $allow_relaxed_file_ownership );
-		if ( false === $credentials ) {
+		if ( $credentials === false ) {
 			return false;
 		}
 
@@ -267,7 +267,7 @@ class WP_Upgrader {
 		 * @param array       $hook_extra Extra arguments passed to hooked filters.
 		 */
 		$reply = apply_filters( 'upgrader_pre_download', false, $package, $this, $hook_extra );
-		if ( false !== $reply ) {
+		if ( $reply !== false ) {
 			return $reply;
 		}
 
@@ -335,7 +335,7 @@ class WP_Upgrader {
 
 		if ( is_wp_error( $result ) ) {
 			$wp_filesystem->delete( $working_dir, true );
-			if ( 'incompatible_archive' === $result->get_error_code() ) {
+			if ( $result->get_error_code() === 'incompatible_archive' ) {
 				return new WP_Error( 'incompatible_archive', $this->strings['incompatible_archive'], $result->get_error_data() );
 			}
 			return $result;
@@ -388,7 +388,7 @@ class WP_Upgrader {
 		$files = $wp_filesystem->dirlist( $remote_destination, true, true );
 
 		// False indicates that the $remote_destination doesn't exist.
-		if ( false === $files ) {
+		if ( $files === false ) {
 			return true;
 		}
 
@@ -402,7 +402,7 @@ class WP_Upgrader {
 		foreach ( $files as $filename => $file_details ) {
 			if ( ! $wp_filesystem->is_writable( $remote_destination . $filename ) ) {
 				// Attempt to alter permissions to allow writes and try again.
-				$wp_filesystem->chmod( $remote_destination . $filename, ( 'd' === $file_details['type'] ? FS_CHMOD_DIR : FS_CHMOD_FILE ) );
+				$wp_filesystem->chmod( $remote_destination . $filename, ( $file_details['type'] === 'd' ? FS_CHMOD_DIR : FS_CHMOD_FILE ) );
 				if ( ! $wp_filesystem->is_writable( $remote_destination . $filename ) ) {
 					$unwritable_files[] = $filename;
 				}
@@ -501,10 +501,10 @@ class WP_Upgrader {
 		$remote_destination = $wp_filesystem->find_folder( $local_destination );
 
 		// Locate which directory to copy to the new folder. This is based on the actual folder holding the files.
-		if ( 1 === count( $source_files ) && $wp_filesystem->is_dir( trailingslashit( $args['source'] ) . $source_files[0] . '/' ) ) {
+		if ( count( $source_files ) === 1 && $wp_filesystem->is_dir( trailingslashit( $args['source'] ) . $source_files[0] . '/' ) ) {
 			// Only one folder? Then we want its contents.
 			$source = trailingslashit( $args['source'] ) . trailingslashit( $source_files[0] );
-		} elseif ( 0 === count( $source_files ) ) {
+		} elseif ( count( $source_files ) === 0 ) {
 			// There are no files?
 			return new WP_Error( 'incompatible_archive_empty', $this->strings['incompatible_archive'], $this->strings['no_files'] );
 		} else {
@@ -623,7 +623,7 @@ class WP_Upgrader {
 		}
 
 		$destination_name = basename( str_replace( $local_destination, '', $destination ) );
-		if ( '.' === $destination_name ) {
+		if ( $destination_name === '.' ) {
 			$destination_name = '';
 		}
 
@@ -764,7 +764,7 @@ class WP_Upgrader {
 		if ( is_wp_error( $download ) && $download->get_error_data( 'softfail-filename' ) ) {
 
 			// Don't output the 'no signature could be found' failure message for now.
-			if ( 'signature_verification_no_signature' !== $download->get_error_code() || WP_DEBUG ) {
+			if ( $download->get_error_code() !== 'signature_verification_no_signature' || WP_DEBUG ) {
 				// Output the failure error as a normal feedback, and not as an error.
 				$this->skin->feedback( $download->get_error_message() );
 

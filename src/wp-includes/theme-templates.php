@@ -12,7 +12,7 @@
  */
 function wp_set_unique_slug_on_create_template_part( $post_id ) {
 	$post = get_post( $post_id );
-	if ( 'auto-draft' !== $post->post_status ) {
+	if ( $post->post_status !== 'auto-draft' ) {
 		return;
 	}
 
@@ -45,7 +45,7 @@ function wp_set_unique_slug_on_create_template_part( $post_id ) {
  * @return string The original, desired slug.
  */
 function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_ID, $post_status, $post_type ) {
-	if ( 'wp_template' !== $post_type && 'wp_template_part' !== $post_type ) {
+	if ( $post_type !== 'wp_template' && $post_type !== 'wp_template_part' ) {
 		return $override_slug;
 	}
 

@@ -172,7 +172,7 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 			// Link rel="alternate".
 			$link_alts = xml_find( $entries[ $key ]['child'], 'link' );
 			foreach ( $link_alts as $link_alt ) {
-				if ( 'alternate' === $link_alt['attributes']['rel'] ) {
+				if ( $link_alt['attributes']['rel'] === 'alternate' ) {
 					$this->assertSame( get_permalink( $post ), $link_alt['attributes']['href'] );
 				}
 			}
@@ -208,7 +208,7 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 			// Link rel="replies".
 			$link_replies = xml_find( $entries[ $key ]['child'], 'link' );
 			foreach ( $link_replies as $link_reply ) {
-				if ( 'replies' === $link_reply['attributes']['rel'] && 'application/atom+xml' === $link_reply['attributes']['type'] ) {
+				if ( $link_reply['attributes']['rel'] === 'replies' && $link_reply['attributes']['type'] === 'application/atom+xml' ) {
 					$this->assertSame( get_post_comments_feed_link( $post->ID, 'atom' ), $link_reply['attributes']['href'] );
 				}
 			}
@@ -281,7 +281,7 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 			$links = xml_find( $entries[ $key ]['child'], 'link' );
 			$i     = 0;
 			foreach ( (array) $links as $link ) {
-				if ( 'enclosure' === $link['attributes']['rel'] ) {
+				if ( $link['attributes']['rel'] === 'enclosure' ) {
 					$this->assertSame( $enclosures[ $i ]['expected']['href'], $link['attributes']['href'] );
 					$this->assertEquals( $enclosures[ $i ]['expected']['length'], $link['attributes']['length'] );
 					$this->assertSame( $enclosures[ $i ]['expected']['type'], $link['attributes']['type'] );

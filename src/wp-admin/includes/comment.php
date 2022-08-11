@@ -27,7 +27,7 @@ function comment_exists( $comment_author, $comment_date, $timezone = 'blog' ) {
 	global $wpdb;
 
 	$date_field = 'comment_date';
-	if ( 'gmt' === $timezone ) {
+	if ( $timezone === 'gmt' ) {
 		$date_field = 'comment_date_gmt';
 	}
 
@@ -202,7 +202,7 @@ function floated_admin_avatar( $name ) {
  * @since 2.7.0
  */
 function enqueue_comment_hotkeys_js() {
-	if ( 'true' === get_user_option( 'comment_shortcuts' ) ) {
+	if ( get_user_option( 'comment_shortcuts' ) === 'true' ) {
 		wp_enqueue_script( 'jquery-table-hotkeys' );
 	}
 }

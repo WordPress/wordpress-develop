@@ -189,7 +189,7 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
 
 		$blog_public_on_checked  = '';
 		$blog_public_off_checked = '';
-	if ( isset( $_POST['blog_public'] ) && '0' === $_POST['blog_public'] ) {
+	if ( isset( $_POST['blog_public'] ) && $_POST['blog_public'] === '0' ) {
 		$blog_public_off_checked = 'checked="checked"';
 	} else {
 		$blog_public_on_checked = 'checked="checked"';
@@ -610,9 +610,9 @@ function signup_user( $user_name = '', $user_email = '', $errors = '' ) {
 		<?php show_user_form( $user_name, $user_email, $errors ); ?>
 
 		<p>
-		<?php if ( 'blog' === $active_signup ) { ?>
+		<?php if ( $active_signup === 'blog' ) { ?>
 			<input id="signupblog" type="hidden" name="signup_for" value="blog" />
-		<?php } elseif ( 'user' === $active_signup ) { ?>
+		<?php } elseif ( $active_signup === 'user' ) { ?>
 			<input id="signupblog" type="hidden" name="signup_for" value="user" />
 		<?php } else { ?>
 			<input id="signupblog" type="radio" name="signup_for" value="blog" <?php checked( $signup_for, 'blog' ); ?> />
@@ -646,7 +646,7 @@ function validate_user_signup() {
 		return false;
 	}
 
-	if ( 'blog' === $_POST['signup_for'] ) {
+	if ( $_POST['signup_for'] === 'blog' ) {
 		signup_blog( $user_name, $user_email );
 		return false;
 	}
@@ -937,9 +937,9 @@ if ( current_user_can( 'manage_network' ) ) {
 $newblogname = isset( $_GET['new'] ) ? strtolower( preg_replace( '/^-|-$|[^-a-zA-Z0-9]/', '', $_GET['new'] ) ) : null;
 
 $current_user = wp_get_current_user();
-if ( 'none' === $active_signup ) {
+if ( $active_signup === 'none' ) {
 	_e( 'Registration has been disabled.' );
-} elseif ( 'blog' === $active_signup && ! is_user_logged_in() ) {
+} elseif ( $active_signup === 'blog' && ! is_user_logged_in() ) {
 	$login_url = wp_login_url( network_site_url( 'wp-signup.php' ) );
 	/* translators: %s: Login URL. */
 	printf( __( 'You must first <a href="%s">log in</a>, and then you can create a new site.' ), $login_url );
@@ -947,9 +947,9 @@ if ( 'none' === $active_signup ) {
 	$stage = isset( $_POST['stage'] ) ? $_POST['stage'] : 'default';
 	switch ( $stage ) {
 		case 'validate-user-signup':
-			if ( 'all' === $active_signup
-				|| ( 'blog' === $_POST['signup_for'] && 'blog' === $active_signup )
-				|| ( 'user' === $_POST['signup_for'] && 'user' === $active_signup )
+			if ( $active_signup === 'all'
+				|| ( $_POST['signup_for'] === 'blog' && $active_signup === 'blog' )
+				|| ( $_POST['signup_for'] === 'user' && $active_signup === 'user' )
 			) {
 				validate_user_signup();
 			} else {
@@ -957,7 +957,7 @@ if ( 'none' === $active_signup ) {
 			}
 			break;
 		case 'validate-blog-signup':
-			if ( 'all' === $active_signup || 'blog' === $active_signup ) {
+			if ( $active_signup === 'all' || $active_signup === 'blog' ) {
 				validate_blog_signup();
 			} else {
 				_e( 'Site registration has been disabled.' );
@@ -975,11 +975,11 @@ if ( 'none' === $active_signup ) {
 			 * @since 3.0.0
 			 */
 			do_action( 'preprocess_signup_form' );
-			if ( is_user_logged_in() && ( 'all' === $active_signup || 'blog' === $active_signup ) ) {
+			if ( is_user_logged_in() && ( $active_signup === 'all' || $active_signup === 'blog' ) ) {
 				signup_another_blog( $newblogname );
-			} elseif ( ! is_user_logged_in() && ( 'all' === $active_signup || 'user' === $active_signup ) ) {
+			} elseif ( ! is_user_logged_in() && ( $active_signup === 'all' || $active_signup === 'user' ) ) {
 				signup_user( $newblogname, $user_email );
-			} elseif ( ! is_user_logged_in() && ( 'blog' === $active_signup ) ) {
+			} elseif ( ! is_user_logged_in() && ( $active_signup === 'blog' ) ) {
 				_e( 'Sorry, new registrations are not allowed at this time.' );
 			} else {
 				_e( 'You are logged in already. No need to register again!' );
@@ -988,7 +988,7 @@ if ( 'none' === $active_signup ) {
 			if ( $newblogname ) {
 				$newblog = get_blogaddress_by_name( $newblogname );
 
-				if ( 'blog' === $active_signup || 'all' === $active_signup ) {
+				if ( $active_signup === 'blog' || $active_signup === 'all' ) {
 					printf(
 						/* translators: %s: Site address. */
 						'<p>' . __( 'The site you were looking for, %s, does not exist, but you can create it now!' ) . '</p>',

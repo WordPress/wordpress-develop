@@ -62,7 +62,7 @@ if ( is_multisite() ) :
 			$blog_id = self::factory()->blog->create();
 
 			// Set an initial value of '1' for the flag when '0' is the flag value being tested.
-			if ( '0' === $flag_value ) {
+			if ( $flag_value === '0' ) {
 				update_blog_details( $blog_id, array( $flag => '1' ) );
 			}
 

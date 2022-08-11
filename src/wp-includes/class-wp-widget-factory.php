@@ -113,7 +113,7 @@ class WP_Widget_Factory {
 	 */
 	public function get_widget_object( $id_base ) {
 		$key = $this->get_widget_key( $id_base );
-		if ( '' === $key ) {
+		if ( $key === '' ) {
 			return null;
 		}
 

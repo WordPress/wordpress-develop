@@ -82,7 +82,7 @@ function get_file_description( $file ) {
 	$dirname   = pathinfo( $file, PATHINFO_DIRNAME );
 	$file_path = $allowed_files[ $file ];
 
-	if ( isset( $wp_file_descriptions[ basename( $file ) ] ) && '.' === $dirname ) {
+	if ( isset( $wp_file_descriptions[ basename( $file ) ] ) && $dirname === '.' ) {
 		return $wp_file_descriptions[ basename( $file ) ];
 	} elseif ( file_exists( $file_path ) && is_file( $file_path ) ) {
 		$template_data = implode( '', file( $file_path ) );
@@ -107,7 +107,7 @@ function get_home_path() {
 	$home    = set_url_scheme( get_option( 'home' ), 'http' );
 	$siteurl = set_url_scheme( get_option( 'siteurl' ), 'http' );
 
-	if ( ! empty( $home ) && 0 !== strcasecmp( $home, $siteurl ) ) {
+	if ( ! empty( $home ) && strcasecmp( $home, $siteurl ) !== 0 ) {
 		$wp_path_rel_to_home = str_ireplace( $home, '', $siteurl ); /* $siteurl - $home */
 		$pos                 = strripos( str_replace( '\\', '/', $_SERVER['SCRIPT_FILENAME'] ), trailingslashit( $wp_path_rel_to_home ) );
 		$home_path           = substr( $_SERVER['SCRIPT_FILENAME'], 0, $pos );
@@ -155,7 +155,7 @@ function list_files( $folder = '', $levels = 100, $exclusions = array() ) {
 			}
 
 			// Skip hidden and excluded files.
-			if ( '.' === $file[0] || in_array( $file, $exclusions, true ) ) {
+			if ( $file[0] === '.' || in_array( $file, $exclusions, true ) ) {
 				continue;
 			}
 
@@ -371,7 +371,7 @@ function wp_edit_theme_plugin_file( $args ) {
 		return new WP_Error( 'missing_file' );
 	}
 
-	if ( 0 !== validate_file( $args['file'] ) ) {
+	if ( validate_file( $args['file'] ) !== 0 ) {
 		return new WP_Error( 'bad_file' );
 	}
 
@@ -405,7 +405,7 @@ function wp_edit_theme_plugin_file( $args ) {
 			return new WP_Error( 'invalid_plugin' );
 		}
 
-		if ( 0 !== validate_file( $file, get_plugin_files( $plugin ) ) ) {
+		if ( validate_file( $file, get_plugin_files( $plugin ) ) !== 0 ) {
 			return new WP_Error( 'bad_plugin_file_path', __( 'Sorry, that file cannot be edited.' ) );
 		}
 
@@ -422,7 +422,7 @@ function wp_edit_theme_plugin_file( $args ) {
 	} elseif ( ! empty( $args['theme'] ) ) {
 		$stylesheet = $args['theme'];
 
-		if ( 0 !== validate_file( $stylesheet ) ) {
+		if ( validate_file( $stylesheet ) !== 0 ) {
 			return new WP_Error( 'bad_theme_path' );
 		}
 
@@ -439,7 +439,7 @@ function wp_edit_theme_plugin_file( $args ) {
 			return new WP_Error( 'nonce_failure' );
 		}
 
-		if ( $theme->errors() && 'theme_no_stylesheet' === $theme->errors()->get_error_code() ) {
+		if ( $theme->errors() && $theme->errors()->get_error_code() === 'theme_no_stylesheet' ) {
 			return new WP_Error(
 				'theme_no_stylesheet',
 				__( 'The requested theme does not exist.' ) . ' ' . $theme->errors()->get_error_message()
@@ -466,7 +466,7 @@ function wp_edit_theme_plugin_file( $args ) {
 		}
 
 		// Compare based on relative paths.
-		if ( 0 !== validate_file( $file, array_keys( $allowed_files ) ) ) {
+		if ( validate_file( $file, array_keys( $allowed_files ) ) !== 0 ) {
 			return new WP_Error( 'disallowed_theme_file', __( 'Sorry, that file cannot be edited.' ) );
 		}
 
@@ -500,20 +500,20 @@ function wp_edit_theme_plugin_file( $args ) {
 
 	$f = fopen( $real_file, 'w+' );
 
-	if ( false === $f ) {
+	if ( $f === false ) {
 		return new WP_Error( 'file_not_writable' );
 	}
 
 	$written = fwrite( $f, $content );
 	fclose( $f );
 
-	if ( false === $written ) {
+	if ( $written === false ) {
 		return new WP_Error( 'unable_to_write', __( 'Unable to write to file.' ) );
 	}
 
 	wp_opcache_invalidate( $real_file, true );
 
-	if ( $is_active && 'php' === $extension ) {
+	if ( $is_active && $extension === 'php' ) {
 
 		$scrape_key   = md5( rand() );
 		$transient    = 'scrape_key_' . $scrape_key;
@@ -562,7 +562,7 @@ function wp_edit_theme_plugin_file( $args ) {
 			$url = admin_url();
 		}
 
-		if ( function_exists( 'session_status' ) && PHP_SESSION_ACTIVE === session_status() ) {
+		if ( function_exists( 'session_status' ) && session_status() === PHP_SESSION_ACTIVE ) {
 			// Close any active session to prevent HTTP requests from timing out
 			// when attempting to connect back to the site.
 			session_write_close();
@@ -583,7 +583,7 @@ function wp_edit_theme_plugin_file( $args ) {
 
 		$result = null;
 
-		if ( false === $scrape_result_position ) {
+		if ( $scrape_result_position === false ) {
 			$result = $loopback_request_failure;
 		} else {
 			$error_output = substr( $body, $scrape_result_position + strlen( $needle_start ) );
@@ -595,14 +595,14 @@ function wp_edit_theme_plugin_file( $args ) {
 		}
 
 		// Try making request to homepage as well to see if visitors have been whitescreened.
-		if ( true === $result ) {
+		if ( $result === true ) {
 			$url                    = home_url( '/' );
 			$url                    = add_query_arg( $scrape_params, $url );
 			$r                      = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
 			$body                   = wp_remote_retrieve_body( $r );
 			$scrape_result_position = strpos( $body, $needle_start );
 
-			if ( false === $scrape_result_position ) {
+			if ( $scrape_result_position === false ) {
 				$result = $loopback_request_failure;
 			} else {
 				$error_output = substr( $body, $scrape_result_position + strlen( $needle_start ) );
@@ -616,7 +616,7 @@ function wp_edit_theme_plugin_file( $args ) {
 
 		delete_transient( $transient );
 
-		if ( true !== $result ) {
+		if ( $result !== true ) {
 			// Roll-back file change.
 			file_put_contents( $real_file, $previous_content );
 			wp_opcache_invalidate( $real_file, true );
@@ -895,12 +895,12 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 	}
 
 	// A properly uploaded file will pass this test. There should be no reason to override this one.
-	$test_uploaded_file = 'wp_handle_upload' === $action ? is_uploaded_file( $file['tmp_name'] ) : @is_readable( $file['tmp_name'] );
+	$test_uploaded_file = $action === 'wp_handle_upload' ? is_uploaded_file( $file['tmp_name'] ) : @is_readable( $file['tmp_name'] );
 	if ( ! $test_uploaded_file ) {
 		return call_user_func_array( $upload_error_handler, array( &$file, __( 'Specified file failed upload test.' ) ) );
 	}
 
-	$test_file_size = 'wp_handle_upload' === $action ? $file['size'] : filesize( $file['tmp_name'] );
+	$test_file_size = $action === 'wp_handle_upload' ? $file['size'] : filesize( $file['tmp_name'] );
 	// A non-empty file will pass this test.
 	if ( $test_size && ! ( $test_file_size > 0 ) ) {
 		if ( is_multisite() ) {
@@ -946,7 +946,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 	 * overriding this one.
 	 */
 	$uploads = wp_upload_dir( $time );
-	if ( ! ( $uploads && false === $uploads['error'] ) ) {
+	if ( ! ( $uploads && $uploads['error'] === false ) ) {
 		return call_user_func_array( $upload_error_handler, array( &$file, $uploads['error'] ) );
 	}
 
@@ -978,8 +978,8 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 	 */
 	$move_new_file = apply_filters( 'pre_move_uploaded_file', null, $file, $new_file, $type );
 
-	if ( null === $move_new_file ) {
-		if ( 'wp_handle_upload' === $action ) {
+	if ( $move_new_file === null ) {
+		if ( $action === 'wp_handle_upload' ) {
 			$move_new_file = @move_uploaded_file( $file['tmp_name'], $new_file );
 		} else {
 			// Use copy and unlink because rename breaks streams.
@@ -988,8 +988,8 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 			unlink( $file['tmp_name'] );
 		}
 
-		if ( false === $move_new_file ) {
-			if ( 0 === strpos( $uploads['basedir'], ABSPATH ) ) {
+		if ( $move_new_file === false ) {
+			if ( strpos( $uploads['basedir'], ABSPATH ) === 0 ) {
 				$error_path = str_replace( ABSPATH, '', $uploads['basedir'] ) . $uploads['subdir'];
 			} else {
 				$error_path = basename( $uploads['basedir'] ) . $uploads['subdir'];
@@ -1039,7 +1039,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 			'url'  => $url,
 			'type' => $type,
 		),
-		'wp_handle_sideload' === $action ? 'sideload' : 'upload'
+		$action === 'wp_handle_sideload' ? 'sideload' : 'upload'
 	);
 }
 
@@ -1129,7 +1129,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 
 	$url_path     = parse_url( $url, PHP_URL_PATH );
 	$url_filename = '';
-	if ( is_string( $url_path ) && '' !== $url_path ) {
+	if ( is_string( $url_path ) && $url_path !== '' ) {
 		$url_filename = basename( $url_path );
 	}
 
@@ -1154,7 +1154,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 
 	$response_code = wp_remote_retrieve_response_code( $response );
 
-	if ( 200 !== $response_code ) {
+	if ( $response_code !== 200 ) {
 		$data = array(
 			'code' => $response_code,
 		);
@@ -1188,7 +1188,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 	if ( $content_disposition ) {
 		$content_disposition = strtolower( $content_disposition );
 
-		if ( 0 === strpos( $content_disposition, 'attachment; filename=' ) ) {
+		if ( strpos( $content_disposition, 'attachment; filename=' ) === 0 ) {
 			$tmpfname_disposition = sanitize_file_name( substr( $content_disposition, 21 ) );
 		} else {
 			$tmpfname_disposition = '';
@@ -1196,7 +1196,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 
 		// Potential file name must be valid string.
 		if ( $tmpfname_disposition && is_string( $tmpfname_disposition )
-			&& ( 0 === validate_file( $tmpfname_disposition ) )
+			&& ( validate_file( $tmpfname_disposition ) === 0 )
 		) {
 			$tmpfname_disposition = dirname( $tmpfname ) . '/' . $tmpfname_disposition;
 
@@ -1245,7 +1245,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 
 			$signature_url = false;
 
-			if ( is_string( $url_path ) && ( '.zip' === substr( $url_path, -4 ) || '.tar.gz' === substr( $url_path, -7 ) ) ) {
+			if ( is_string( $url_path ) && ( substr( $url_path, -4 ) === '.zip' || substr( $url_path, -7 ) === '.tar.gz' ) ) {
 				$signature_url = str_replace( $url_path, $url_path . '.sig', $url );
 			}
 
@@ -1267,7 +1267,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 					)
 				);
 
-				if ( ! is_wp_error( $signature_request ) && 200 === wp_remote_retrieve_response_code( $signature_request ) ) {
+				if ( ! is_wp_error( $signature_request ) && wp_remote_retrieve_response_code( $signature_request ) === 200 ) {
 					$signature = explode( "\n", wp_remote_retrieve_body( $signature_request ) );
 				}
 			}
@@ -1315,9 +1315,9 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
  *                       WP_Error on failure.
  */
 function verify_file_md5( $filename, $expected_md5 ) {
-	if ( 32 === strlen( $expected_md5 ) ) {
+	if ( strlen( $expected_md5 ) === 32 ) {
 		$expected_raw_md5 = pack( 'H*', $expected_md5 );
-	} elseif ( 24 === strlen( $expected_md5 ) ) {
+	} elseif ( strlen( $expected_md5 ) === 24 ) {
 		$expected_raw_md5 = base64_decode( $expected_md5 );
 	} else {
 		return false; // Unknown format.
@@ -1455,7 +1455,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 		$signature_raw = base64_decode( $signature );
 
 		// Ensure only valid-length signatures are considered.
-		if ( SODIUM_CRYPTO_SIGN_BYTES !== strlen( $signature_raw ) ) {
+		if ( strlen( $signature_raw ) !== SODIUM_CRYPTO_SIGN_BYTES ) {
 			$skipped_signature++;
 			continue;
 		}
@@ -1464,7 +1464,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 			$key_raw = base64_decode( $key );
 
 			// Only pass valid public keys through.
-			if ( SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES !== strlen( $key_raw ) ) {
+			if ( strlen( $key_raw ) !== SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES ) {
 				$skipped_key++;
 				continue;
 			}
@@ -1587,10 +1587,10 @@ function unzip_file( $file, $to ) {
 	 */
 	if ( class_exists( 'ZipArchive', false ) && apply_filters( 'unzip_file_use_ziparchive', true ) ) {
 		$result = _unzip_file_ziparchive( $file, $to, $needed_dirs );
-		if ( true === $result ) {
+		if ( $result === true ) {
 			return $result;
 		} elseif ( is_wp_error( $result ) ) {
-			if ( 'incompatible_archive' !== $result->get_error_code() ) {
+			if ( $result->get_error_code() !== 'incompatible_archive' ) {
 				return $result;
 			}
 		}
@@ -1625,7 +1625,7 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 
 	$zopen = $z->open( $file, ZIPARCHIVE::CHECKCONS );
 
-	if ( true !== $zopen ) {
+	if ( $zopen !== true ) {
 		return new WP_Error( 'incompatible_archive', __( 'Incompatible Archive.' ), array( 'ziparchive_error' => $zopen ) );
 	}
 
@@ -1638,12 +1638,12 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 			return new WP_Error( 'stat_failed_ziparchive', __( 'Could not retrieve file from archive.' ) );
 		}
 
-		if ( '__MACOSX/' === substr( $info['name'], 0, 9 ) ) { // Skip the OS X-created __MACOSX directory.
+		if ( substr( $info['name'], 0, 9 ) === '__MACOSX/' ) { // Skip the OS X-created __MACOSX directory.
 			continue;
 		}
 
 		// Don't extract invalid files:
-		if ( 0 !== validate_file( $info['name'] ) ) {
+		if ( validate_file( $info['name'] ) !== 0 ) {
 			continue;
 		}
 
@@ -1651,10 +1651,10 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 
 		$dirname = dirname( $info['name'] );
 
-		if ( '/' === substr( $info['name'], -1 ) ) {
+		if ( substr( $info['name'], -1 ) === '/' ) {
 			// Directory.
 			$needed_dirs[] = $to . untrailingslashit( $info['name'] );
-		} elseif ( '.' !== $dirname ) {
+		} elseif ( $dirname !== '.' ) {
 			// Path to a file.
 			$needed_dirs[] = $to . untrailingslashit( $dirname );
 		}
@@ -1718,22 +1718,22 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 			return new WP_Error( 'stat_failed_ziparchive', __( 'Could not retrieve file from archive.' ) );
 		}
 
-		if ( '/' === substr( $info['name'], -1 ) ) { // Directory.
+		if ( substr( $info['name'], -1 ) === '/' ) { // Directory.
 			continue;
 		}
 
-		if ( '__MACOSX/' === substr( $info['name'], 0, 9 ) ) { // Don't extract the OS X-created __MACOSX directory files.
+		if ( substr( $info['name'], 0, 9 ) === '__MACOSX/' ) { // Don't extract the OS X-created __MACOSX directory files.
 			continue;
 		}
 
 		// Don't extract invalid files:
-		if ( 0 !== validate_file( $info['name'] ) ) {
+		if ( validate_file( $info['name'] ) !== 0 ) {
 			continue;
 		}
 
 		$contents = $z->getFromIndex( $i );
 
-		if ( false === $contents ) {
+		if ( $contents === false ) {
 			return new WP_Error( 'extract_failed_ziparchive', __( 'Could not extract file from archive.' ), $info['name'] );
 		}
 
@@ -1784,7 +1784,7 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 		return new WP_Error( 'incompatible_archive', __( 'Incompatible Archive.' ), $archive->errorInfo( true ) );
 	}
 
-	if ( 0 === count( $archive_files ) ) {
+	if ( count( $archive_files ) === 0 ) {
 		return new WP_Error( 'empty_archive_pclzip', __( 'Empty archive.' ) );
 	}
 
@@ -1792,7 +1792,7 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 
 	// Determine any children directories needed (From within the archive).
 	foreach ( $archive_files as $file ) {
-		if ( '__MACOSX/' === substr( $file['filename'], 0, 9 ) ) { // Skip the OS X-created __MACOSX directory.
+		if ( substr( $file['filename'], 0, 9 ) === '__MACOSX/' ) { // Skip the OS X-created __MACOSX directory.
 			continue;
 		}
 
@@ -1858,12 +1858,12 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 			continue;
 		}
 
-		if ( '__MACOSX/' === substr( $file['filename'], 0, 9 ) ) { // Don't extract the OS X-created __MACOSX directory files.
+		if ( substr( $file['filename'], 0, 9 ) === '__MACOSX/' ) { // Don't extract the OS X-created __MACOSX directory files.
 			continue;
 		}
 
 		// Don't extract invalid files:
-		if ( 0 !== validate_file( $file['filename'] ) ) {
+		if ( validate_file( $file['filename'] ) !== 0 ) {
 			continue;
 		}
 
@@ -1895,7 +1895,7 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 
 	$dirlist = $wp_filesystem->dirlist( $from );
 
-	if ( false === $dirlist ) {
+	if ( $dirlist === false ) {
 		return new WP_Error( 'dirlist_failed_copy_dir', __( 'Directory listing failed.' ), basename( $to ) );
 	}
 
@@ -1907,7 +1907,7 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 			continue;
 		}
 
-		if ( 'f' === $fileinfo['type'] ) {
+		if ( $fileinfo['type'] === 'f' ) {
 			if ( ! $wp_filesystem->copy( $from . $filename, $to . $filename, true, FS_CHMOD_FILE ) ) {
 				// If copy failed, chmod file to 0644 and try again.
 				$wp_filesystem->chmod( $to . $filename, FS_CHMOD_FILE );
@@ -1918,7 +1918,7 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 			}
 
 			wp_opcache_invalidate( $to . $filename );
-		} elseif ( 'd' === $fileinfo['type'] ) {
+		} elseif ( $fileinfo['type'] === 'd' ) {
 			if ( ! $wp_filesystem->is_dir( $to . $filename ) ) {
 				if ( ! $wp_filesystem->mkdir( $to . $filename, FS_CHMOD_DIR ) ) {
 					return new WP_Error( 'mkdir_failed_copy_dir', __( 'Could not create directory.' ), $to . $filename );
@@ -1929,7 +1929,7 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 			$sub_skip_list = array();
 
 			foreach ( $skip_list as $skip_item ) {
-				if ( 0 === strpos( $skip_item, $filename . '/' ) ) {
+				if ( strpos( $skip_item, $filename . '/' ) === 0 ) {
 					$sub_skip_list[] = preg_replace( '!^' . preg_quote( $filename, '!' ) . '/!i', '', $skip_item );
 				}
 			}
@@ -2067,7 +2067,7 @@ function get_filesystem_method( $args = array(), $context = '', $allow_relaxed_f
 	}
 
 	// If the directory doesn't exist (wp-content/languages) then use the parent directory as we'll create it.
-	if ( WP_LANG_DIR === $context && ! is_dir( $context ) ) {
+	if ( $context === WP_LANG_DIR && ! is_dir( $context ) ) {
 		$context = dirname( $context );
 	}
 
@@ -2087,7 +2087,7 @@ function get_filesystem_method( $args = array(), $context = '', $allow_relaxed_f
 				$temp_file_owner = @fileowner( $temp_file_name );
 			}
 
-			if ( false !== $wp_file_owner && $wp_file_owner === $temp_file_owner ) {
+			if ( $wp_file_owner !== false && $wp_file_owner === $temp_file_owner ) {
 				/*
 				 * WordPress is creating files as the same owner as the WordPress files,
 				 * this means it's safe to modify & create new files via PHP.
@@ -2109,7 +2109,7 @@ function get_filesystem_method( $args = array(), $context = '', $allow_relaxed_f
 		}
 	}
 
-	if ( ! $method && isset( $args['connection_type'] ) && 'ssh' === $args['connection_type'] && extension_loaded( 'ssh2' ) ) {
+	if ( ! $method && isset( $args['connection_type'] ) && $args['connection_type'] === 'ssh' && extension_loaded( 'ssh2' ) ) {
 		$method = 'ssh2';
 	}
 	if ( ! $method && extension_loaded( 'ftp' ) ) {
@@ -2189,7 +2189,7 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 	 */
 	$req_cred = apply_filters( 'request_filesystem_credentials', '', $form_post, $type, $error, $context, $extra_fields, $allow_relaxed_file_ownership );
 
-	if ( '' !== $req_cred ) {
+	if ( $req_cred !== '' ) {
 		return $req_cred;
 	}
 
@@ -2197,7 +2197,7 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 		$type = get_filesystem_method( array(), $context, $allow_relaxed_file_ownership );
 	}
 
-	if ( 'direct' === $type ) {
+	if ( $type === 'direct' ) {
 		return true;
 	}
 
@@ -2259,9 +2259,9 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 		unset( $credentials['port'] );
 	}
 
-	if ( ( defined( 'FTP_SSH' ) && FTP_SSH ) || ( defined( 'FS_METHOD' ) && 'ssh2' === FS_METHOD ) ) {
+	if ( ( defined( 'FTP_SSH' ) && FTP_SSH ) || ( defined( 'FS_METHOD' ) && FS_METHOD === 'ssh2' ) ) {
 		$credentials['connection_type'] = 'ssh';
-	} elseif ( ( defined( 'FTP_SSL' ) && FTP_SSL ) && 'ftpext' === $type ) { // Only the FTP Extension understands SSL.
+	} elseif ( ( defined( 'FTP_SSL' ) && FTP_SSL ) && $type === 'ftpext' ) { // Only the FTP Extension understands SSL.
 		$credentials['connection_type'] = 'ftps';
 	} elseif ( ! empty( $submitted_form['connection_type'] ) ) {
 		$credentials['connection_type'] = $submitted_form['connection_type'];
@@ -2271,7 +2271,7 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 
 	if ( ! $error
 		&& ( ! empty( $credentials['hostname'] ) && ! empty( $credentials['username'] ) && ! empty( $credentials['password'] )
-			|| 'ssh' === $credentials['connection_type'] && ! empty( $credentials['public_key'] ) && ! empty( $credentials['private_key'] )
+			|| $credentials['connection_type'] === 'ssh' && ! empty( $credentials['public_key'] ) && ! empty( $credentials['private_key'] )
 		)
 	) {
 		$stored_credentials = $credentials;
@@ -2340,7 +2340,7 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 	<?php
 	// Print a H1 heading in the FTP credentials modal dialog, default is a H2.
 	$heading_tag = 'h2';
-	if ( 'plugins.php' === $pagenow || 'plugin-install.php' === $pagenow ) {
+	if ( $pagenow === 'plugins.php' || $pagenow === 'plugin-install.php' ) {
 		$heading_tag = 'h1';
 	}
 	echo "<$heading_tag id='request-filesystem-credentials-title'>" . __( 'Connection Information' ) . "</$heading_tag>";
@@ -2413,7 +2413,7 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 	<?php
 	if ( isset( $types['ssh'] ) ) {
 		$hidden_class = '';
-		if ( 'ssh' !== $connection_type || empty( $connection_type ) ) {
+		if ( $connection_type !== 'ssh' || empty( $connection_type ) ) {
 			$hidden_class = ' class="hidden"';
 		}
 		?>
@@ -2467,7 +2467,7 @@ function wp_print_request_filesystem_credentials_modal() {
 	$filesystem_credentials_are_stored = request_filesystem_credentials( self_admin_url() );
 	ob_end_clean();
 
-	$request_filesystem_credentials = ( 'direct' !== $filesystem_method && ! $filesystem_credentials_are_stored );
+	$request_filesystem_credentials = ( $filesystem_method !== 'direct' && ! $filesystem_credentials_are_stored );
 	if ( ! $request_filesystem_credentials ) {
 		return;
 	}
@@ -2523,7 +2523,7 @@ function wp_opcache_invalidate( $filepath, $force = false ) {
 	 * - https://www.php.net/manual/en/reserved.variables.server.php
 	 * - https://core.trac.wordpress.org/ticket/36455
 	 */
-	if ( null === $can_invalidate
+	if ( $can_invalidate === null
 		&& function_exists( 'opcache_invalidate' )
 		&& ( ! ini_get( 'opcache.restrict_api' )
 			|| stripos( realpath( $_SERVER['SCRIPT_FILENAME'] ), ini_get( 'opcache.restrict_api' ) ) === 0 )
@@ -2537,7 +2537,7 @@ function wp_opcache_invalidate( $filepath, $force = false ) {
 	}
 
 	// Verify that file to be invalidated has a PHP extension.
-	if ( '.php' !== strtolower( substr( $filepath, -4 ) ) ) {
+	if ( strtolower( substr( $filepath, -4 ) ) !== '.php' ) {
 		return false;
 	}
 

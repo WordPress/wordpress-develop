@@ -193,7 +193,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 */
 	#[ReturnTypeWillChange]
 	public function valid() {
-		return null !== key( $this->blocks );
+		return key( $this->blocks ) !== null;
 	}
 
 	/**

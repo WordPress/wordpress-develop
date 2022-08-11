@@ -271,10 +271,10 @@ When seeking help with this issue, you may be asked for some of the following in
 	 */
 	private function get_cause( $extension ) {
 
-		if ( 'plugin' === $extension['type'] ) {
+		if ( $extension['type'] === 'plugin' ) {
 			$plugin = $this->get_plugin( $extension );
 
-			if ( false === $plugin ) {
+			if ( $plugin === false ) {
 				$name = $extension['slug'];
 			} else {
 				$name = $plugin['Name'];
@@ -318,7 +318,7 @@ When seeking help with this issue, you may be asked for some of the following in
 			return $plugins[ "{$extension['slug']}/{$extension['slug']}.php" ];
 		} else {
 			foreach ( $plugins as $file => $plugin_data ) {
-				if ( 0 === strpos( $file, "{$extension['slug']}/" ) || $file === $extension['slug'] ) {
+				if ( strpos( $file, "{$extension['slug']}/" ) === 0 || $file === $extension['slug'] ) {
 					return $plugin_data;
 				}
 			}
@@ -364,7 +364,7 @@ When seeking help with this issue, you may be asked for some of the following in
 			),
 		);
 
-		if ( null !== $plugin ) {
+		if ( $plugin !== null ) {
 			$debug['plugin'] = sprintf(
 				/* translators: 1: The failing plugins name. 2: The failing plugins version. */
 				__( 'Current plugin: %1$s (version %2$s)' ),

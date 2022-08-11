@@ -99,13 +99,13 @@ jobs:
         run: echo "${PWD}/vendor/bin" >> $GITHUB_PATH
 
       - name: Log PHPCS debug information
-        run: phpcs -i
+        run: ./tools/phpcs/vendor/bin/phpcs --standard=./phpcs.xml.dist -i
 
       - name: Run PHPCS on all Core files
-        run: phpcs -q -n --report=checkstyle | cs2pr
+        run: ./tools/phpcs/vendor/bin/phpcs --standard=./phpcs.xml.dist -q -n --report=checkstyle | cs2pr
 
       - name: Check test suite files for warnings
-        run: phpcs tests -q --report=checkstyle | cs2pr
+        run: ./tools/phpcs/vendor/bin/phpcs --standard=./phpcs.xml.dist tests -q --report=checkstyle | cs2pr
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code

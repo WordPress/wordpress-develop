@@ -31,7 +31,7 @@ get_header(); ?>
 
 		<?php
 		// Get each of our panels and show the post data.
-		if ( 0 !== twentyseventeen_panel_count() || is_customize_preview() ) : // If we have pages to show.
+		if ( twentyseventeen_panel_count() !== 0 || is_customize_preview() ) : // If we have pages to show.
 
 			/**
 			 * Filters the number of front page sections in Twenty Seventeen.

@@ -37,7 +37,7 @@ if ( ! defined( 'WP_TEMPLATE_PART_AREA_UNCATEGORIZED' ) ) {
  * }
  */
 function get_block_theme_folders( $theme_stylesheet = null ) {
-	$theme_name = null === $theme_stylesheet ? get_stylesheet() : $theme_stylesheet;
+	$theme_name = $theme_stylesheet === null ? get_stylesheet() : $theme_stylesheet;
 	$root_dir   = get_theme_root( $theme_name );
 	$theme_dir  = "$root_dir/$theme_name";
 
@@ -252,7 +252,7 @@ function _get_block_templates_paths( $base_directory ) {
  * @return array|null Template.
  */
 function _get_block_template_file( $template_type, $slug ) {
-	if ( 'wp_template' !== $template_type && 'wp_template_part' !== $template_type ) {
+	if ( $template_type !== 'wp_template' && $template_type !== 'wp_template_part' ) {
 		return null;
 	}
 
@@ -271,11 +271,11 @@ function _get_block_template_file( $template_type, $slug ) {
 				'type'  => $template_type,
 			);
 
-			if ( 'wp_template_part' === $template_type ) {
+			if ( $template_type === 'wp_template_part' ) {
 				return _add_block_template_part_area_info( $new_template_item );
 			}
 
-			if ( 'wp_template' === $template_type ) {
+			if ( $template_type === 'wp_template' ) {
 				return _add_block_template_info( $new_template_item );
 			}
 
@@ -296,7 +296,7 @@ function _get_block_template_file( $template_type, $slug ) {
  * @return array Template.
  */
 function _get_block_templates_files( $template_type ) {
-	if ( 'wp_template' !== $template_type && 'wp_template_part' !== $template_type ) {
+	if ( $template_type !== 'wp_template' && $template_type !== 'wp_template_part' ) {
 		return null;
 	}
 
@@ -324,11 +324,11 @@ function _get_block_templates_files( $template_type ) {
 				'type'  => $template_type,
 			);
 
-			if ( 'wp_template_part' === $template_type ) {
+			if ( $template_type === 'wp_template_part' ) {
 				$template_files[] = _add_block_template_part_area_info( $new_template_item );
 			}
 
-			if ( 'wp_template' === $template_type ) {
+			if ( $template_type === 'wp_template' ) {
 				$template_files[] = _add_block_template_info( $new_template_item );
 			}
 		}
@@ -434,7 +434,7 @@ function _inject_theme_attribute_in_block_template_content( $template_content ) 
 	$blocks = _flatten_blocks( $template_blocks );
 	foreach ( $blocks as &$block ) {
 		if (
-			'core/template-part' === $block['blockName'] &&
+			$block['blockName'] === 'core/template-part' &&
 			! isset( $block['attrs']['theme'] )
 		) {
 			$block['attrs']['theme'] = wp_get_theme()->get_stylesheet();
@@ -469,7 +469,7 @@ function _remove_theme_attribute_in_block_template_content( $template_content ) 
 
 	$blocks = _flatten_blocks( $template_blocks );
 	foreach ( $blocks as $key => $block ) {
-		if ( 'core/template-part' === $block['blockName'] && isset( $block['attrs']['theme'] ) ) {
+		if ( $block['blockName'] === 'core/template-part' && isset( $block['attrs']['theme'] ) ) {
 			unset( $blocks[ $key ]['attrs']['theme'] );
 			$has_updated_content = true;
 		}
@@ -513,17 +513,17 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 	$template->has_theme_file = true;
 	$template->is_custom      = true;
 
-	if ( 'wp_template' === $template_type && isset( $default_template_types[ $template_file['slug'] ] ) ) {
+	if ( $template_type === 'wp_template' && isset( $default_template_types[ $template_file['slug'] ] ) ) {
 		$template->description = $default_template_types[ $template_file['slug'] ]['description'];
 		$template->title       = $default_template_types[ $template_file['slug'] ]['title'];
 		$template->is_custom   = false;
 	}
 
-	if ( 'wp_template' === $template_type && isset( $template_file['postTypes'] ) ) {
+	if ( $template_type === 'wp_template' && isset( $template_file['postTypes'] ) ) {
 		$template->post_types = $template_file['postTypes'];
 	}
 
-	if ( 'wp_template_part' === $template_type && isset( $template_file['area'] ) ) {
+	if ( $template_type === 'wp_template_part' && isset( $template_file['area'] ) ) {
 		$template->area = $template_file['area'];
 	}
 
@@ -553,7 +553,7 @@ function _build_block_template_result_from_post( $post ) {
 
 	$theme          = $terms[0]->name;
 	$has_theme_file = wp_get_theme()->get_stylesheet() === $theme &&
-		null !== _get_block_template_file( $post->post_type, $post->post_name );
+		_get_block_template_file( $post->post_type, $post->post_name ) !== null;
 
 	$origin = get_post_meta( $post->ID, 'origin', true );
 
@@ -573,13 +573,13 @@ function _build_block_template_result_from_post( $post ) {
 	$template->is_custom      = true;
 	$template->author         = $post->post_author;
 
-	if ( 'wp_template' === $post->post_type && isset( $default_template_types[ $template->slug ] ) ) {
+	if ( $post->post_type === 'wp_template' && isset( $default_template_types[ $template->slug ] ) ) {
 		$template->is_custom = false;
 	}
 
-	if ( 'wp_template_part' === $post->post_type ) {
+	if ( $post->post_type === 'wp_template_part' ) {
 		$type_terms = get_the_terms( $post, 'wp_template_part_area' );
-		if ( ! is_wp_error( $type_terms ) && false !== $type_terms ) {
+		if ( ! is_wp_error( $type_terms ) && $type_terms !== false ) {
 			$template->area = $type_terms[0]->name;
 		}
 	}
@@ -642,7 +642,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 		),
 	);
 
-	if ( 'wp_template_part' === $template_type && isset( $query['area'] ) ) {
+	if ( $template_type === 'wp_template_part' && isset( $query['area'] ) ) {
 		$wp_query_args['tax_query'][]           = array(
 			'taxonomy' => 'wp_template_part_area',
 			'field'    => 'name',
@@ -694,11 +694,11 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 				continue;
 			}
 
-			$is_not_custom   = false === array_search(
+			$is_not_custom   = array_search(
 				wp_get_theme()->get_stylesheet() . '//' . $template_file['slug'],
 				array_column( $query_result, 'id' ),
 				true
-			);
+			) === false;
 			$fits_slug_query =
 				! isset( $query['slug__in'] ) || in_array( $template_file['slug'], $query['slug__in'], true );
 			$fits_area_query =
@@ -840,7 +840,7 @@ function get_block_file_template( $id, $template_type = 'wp_template' ) {
 	}
 
 	$template_file = _get_block_template_file( $template_type, $slug );
-	if ( null === $template_file ) {
+	if ( $template_file === null ) {
 		/** This filter is documented in wp-includes/block-template-utils.php */
 		return apply_filters( 'get_block_file_template', null, $id, $template_type );
 	}
@@ -931,7 +931,7 @@ function wp_generate_block_templates_export_file() {
 	$filename   = get_temp_dir() . $theme_name . $obscura . '.zip';
 
 	$zip = new ZipArchive();
-	if ( true !== $zip->open( $filename, ZipArchive::CREATE | ZipArchive::OVERWRITE ) ) {
+	if ( $zip->open( $filename, ZipArchive::CREATE | ZipArchive::OVERWRITE ) !== true ) {
 		return new WP_Error( 'unable_to_create_zip', __( 'Unable to open export file (archive) for writing.' ) );
 	}
 

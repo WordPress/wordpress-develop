@@ -200,7 +200,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		}
 
 		$revision = get_post( (int) $id );
-		if ( empty( $revision ) || empty( $revision->ID ) || 'revision' !== $revision->post_type ) {
+		if ( empty( $revision ) || empty( $revision->ID ) || $revision->post_type !== 'revision' ) {
 			return $error;
 		}
 
@@ -222,7 +222,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		}
 
 		// Ensure a search string is set in case the orderby is set to 'relevance'.
-		if ( ! empty( $request['orderby'] ) && 'relevance' === $request['orderby'] && empty( $request['search'] ) ) {
+		if ( ! empty( $request['orderby'] ) && $request['orderby'] === 'relevance' && empty( $request['search'] ) ) {
 			return new WP_Error(
 				'rest_no_search_term_defined',
 				__( 'You need to define a search term to order by relevance.' ),
@@ -231,7 +231,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		}
 
 		// Ensure an include parameter is set in case the orderby is set to 'include'.
-		if ( ! empty( $request['orderby'] ) && 'include' === $request['orderby'] && empty( $request['include'] ) ) {
+		if ( ! empty( $request['orderby'] ) && $request['orderby'] === 'include' && empty( $request['include'] ) ) {
 			return new WP_Error(
 				'rest_orderby_include_missing_include',
 				__( 'You need to define an include parameter to order by include.' ),
@@ -269,7 +269,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			}
 
 			// For backward-compatibility, 'date' needs to resolve to 'date ID'.
-			if ( isset( $args['orderby'] ) && 'date' === $args['orderby'] ) {
+			if ( isset( $args['orderby'] ) && $args['orderby'] === 'date' ) {
 				$args['orderby'] = 'date ID';
 			}
 
@@ -648,7 +648,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @return string|null ISO8601/RFC3339 formatted datetime, otherwise null.
 	 */
 	protected function prepare_date_response( $date_gmt, $date = null ) {
-		if ( '0000-00-00 00:00:00' === $date_gmt ) {
+		if ( $date_gmt === '0000-00-00 00:00:00' ) {
 			return null;
 		}
 

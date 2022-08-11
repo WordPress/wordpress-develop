@@ -40,7 +40,7 @@ function wp_fix_server_vars() {
 	$_SERVER = array_merge( $default_server_values, $_SERVER );
 
 	// Fix for IIS when running with PHP ISAPI.
-	if ( empty( $_SERVER['REQUEST_URI'] ) || ( 'cgi-fcgi' !== PHP_SAPI && preg_match( '/^Microsoft-IIS\//', $_SERVER['SERVER_SOFTWARE'] ) ) ) {
+	if ( empty( $_SERVER['REQUEST_URI'] ) || ( PHP_SAPI !== 'cgi-fcgi' && preg_match( '/^Microsoft-IIS\//', $_SERVER['SERVER_SOFTWARE'] ) ) ) {
 
 		if ( isset( $_SERVER['HTTP_X_ORIGINAL_URL'] ) ) {
 			// IIS Mod-Rewrite.
@@ -221,7 +221,7 @@ function wp_get_environment_type() {
 	// Check if the environment variable has been set, if `getenv` is available on the system.
 	if ( function_exists( 'getenv' ) ) {
 		$has_env = getenv( 'WP_ENVIRONMENT_TYPE' );
-		if ( false !== $has_env ) {
+		if ( $has_env !== false ) {
 			$current_env = $has_env;
 		}
 	}
@@ -248,7 +248,7 @@ function wp_get_environment_type() {
  * @deprecated 5.4.0 Deprecated in favor of do_favicon().
  */
 function wp_favicon_request() {
-	if ( '/favicon.ico' === $_SERVER['REQUEST_URI'] ) {
+	if ( $_SERVER['REQUEST_URI'] === '/favicon.ico' ) {
 		header( 'Content-Type: image/vnd.microsoft.icon' );
 		exit;
 	}
@@ -461,7 +461,7 @@ function wp_debug_mode() {
 
 		if ( WP_DEBUG_DISPLAY ) {
 			ini_set( 'display_errors', 1 );
-		} elseif ( null !== WP_DEBUG_DISPLAY ) {
+		} elseif ( WP_DEBUG_DISPLAY !== null ) {
 			ini_set( 'display_errors', 0 );
 		}
 
@@ -647,7 +647,7 @@ function wp_set_wpdb_vars() {
 function wp_using_ext_object_cache( $using = null ) {
 	global $_wp_using_ext_object_cache;
 	$current_using = $_wp_using_ext_object_cache;
-	if ( null !== $using ) {
+	if ( $using !== null ) {
 		$_wp_using_ext_object_cache = $using;
 	}
 	return $current_using;
@@ -809,7 +809,7 @@ function wp_get_mu_plugins() {
 		return $mu_plugins;
 	}
 	while ( ( $plugin = readdir( $dh ) ) !== false ) {
-		if ( '.php' === substr( $plugin, -4 ) ) {
+		if ( substr( $plugin, -4 ) === '.php' ) {
 			$mu_plugins[] = WPMU_PLUGIN_DIR . '/' . $plugin;
 		}
 	}
@@ -851,8 +851,8 @@ function wp_get_active_and_valid_plugins() {
 
 	foreach ( $active_plugins as $plugin ) {
 		if ( ! validate_file( $plugin )                     // $plugin must validate as file.
-			&& '.php' === substr( $plugin, -4 )             // $plugin must end with '.php'.
-			&& file_exists( WP_PLUGIN_DIR . '/' . $plugin ) // $plugin must exist.
+			&& substr( $plugin, -4 )             // $plugin must end with '.php'.
+		=== '.php' && file_exists( WP_PLUGIN_DIR . '/' . $plugin ) // $plugin must exist.
 			// Not already included as a network plugin.
 			&& ( ! $network_plugins || ! in_array( WP_PLUGIN_DIR . '/' . $plugin, $network_plugins, true ) )
 			) {
@@ -917,7 +917,7 @@ function wp_get_active_and_valid_themes() {
 
 	$themes = array();
 
-	if ( wp_installing() && 'wp-activate.php' !== $pagenow ) {
+	if ( wp_installing() && $pagenow !== 'wp-activate.php' ) {
 		return $themes;
 	}
 
@@ -996,7 +996,7 @@ function wp_is_recovery_mode() {
  */
 function is_protected_endpoint() {
 	// Protect login pages.
-	if ( isset( $GLOBALS['pagenow'] ) && 'wp-login.php' === $GLOBALS['pagenow'] ) {
+	if ( isset( $GLOBALS['pagenow'] ) && $GLOBALS['pagenow'] === 'wp-login.php' ) {
 		return true;
 	}
 
@@ -1340,7 +1340,7 @@ function wp_load_translations_early() {
 
 	while ( true ) {
 		if ( defined( 'WPLANG' ) ) {
-			if ( '' === WPLANG ) {
+			if ( WPLANG === '' ) {
 				break;
 			}
 			$locales[] = WPLANG;
@@ -1433,14 +1433,14 @@ function wp_installing( $is_installing = null ) {
  */
 function is_ssl() {
 	if ( isset( $_SERVER['HTTPS'] ) ) {
-		if ( 'on' === strtolower( $_SERVER['HTTPS'] ) ) {
+		if ( strtolower( $_SERVER['HTTPS'] ) === 'on' ) {
 			return true;
 		}
 
-		if ( '1' == $_SERVER['HTTPS'] ) {
+		if ( $_SERVER['HTTPS'] == '1' ) {
 			return true;
 		}
-	} elseif ( isset( $_SERVER['SERVER_PORT'] ) && ( '443' == $_SERVER['SERVER_PORT'] ) ) {
+	} elseif ( isset( $_SERVER['SERVER_PORT'] ) && ( $_SERVER['SERVER_PORT'] == '443' ) ) {
 		return true;
 	}
 	return false;
@@ -1462,11 +1462,11 @@ function wp_convert_hr_to_bytes( $value ) {
 	$value = strtolower( trim( $value ) );
 	$bytes = (int) $value;
 
-	if ( false !== strpos( $value, 'g' ) ) {
+	if ( strpos( $value, 'g' ) !== false ) {
 		$bytes *= GB_IN_BYTES;
-	} elseif ( false !== strpos( $value, 'm' ) ) {
+	} elseif ( strpos( $value, 'm' ) !== false ) {
 		$bytes *= MB_IN_BYTES;
-	} elseif ( false !== strpos( $value, 'k' ) ) {
+	} elseif ( strpos( $value, 'k' ) !== false ) {
 		$bytes *= KB_IN_BYTES;
 	}
 
@@ -1496,7 +1496,7 @@ function wp_is_ini_value_changeable( $setting ) {
 	}
 
 	// Bit operator to workaround https://bugs.php.net/bug.php?id=44936 which changes access level to 63 in PHP 5.2.6 - 5.2.17.
-	if ( isset( $ini_all[ $setting ]['access'] ) && ( INI_ALL === ( $ini_all[ $setting ]['access'] & 7 ) || INI_USER === ( $ini_all[ $setting ]['access'] & 7 ) ) ) {
+	if ( isset( $ini_all[ $setting ]['access'] ) && ( ( $ini_all[ $setting ]['access'] & 7 ) === INI_ALL || ( $ini_all[ $setting ]['access'] & 7 ) === INI_USER ) ) {
 		return true;
 	}
 
@@ -1745,7 +1745,7 @@ function wp_is_xml_request() {
 
 	if ( isset( $_SERVER['HTTP_ACCEPT'] ) ) {
 		foreach ( $accepted as $type ) {
-			if ( false !== strpos( $_SERVER['HTTP_ACCEPT'], $type ) ) {
+			if ( strpos( $_SERVER['HTTP_ACCEPT'], $type ) !== false ) {
 				return true;
 			}
 		}
@@ -1780,7 +1780,7 @@ function wp_is_site_protected_by_basic_auth( $context = '' ) {
 	global $pagenow;
 
 	if ( ! $context ) {
-		if ( 'wp-login.php' === $pagenow ) {
+		if ( $pagenow === 'wp-login.php' ) {
 			$context = 'login';
 		} elseif ( is_admin() ) {
 			$context = 'admin';

@@ -117,7 +117,7 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 	}
 
 	public function enable_comment_number_declension( $translation, $text, $context, $domain ) {
-		if ( 'Comment number declension: on or off' === $context ) {
+		if ( $context === 'Comment number declension: on or off' ) {
 			$translation = 'on';
 		}
 

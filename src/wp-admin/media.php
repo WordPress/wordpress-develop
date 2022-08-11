@@ -29,14 +29,14 @@ switch ( $action ) {
 			$location = 'media.php';
 			$referer  = wp_get_original_referer();
 			if ( $referer ) {
-				if ( false !== strpos( $referer, 'upload.php' ) || ( url_to_postid( $referer ) === $attachment_id ) ) {
+				if ( strpos( $referer, 'upload.php' ) !== false || ( url_to_postid( $referer ) === $attachment_id ) ) {
 					$location = $referer;
 				}
 			}
-			if ( false !== strpos( $location, 'upload.php' ) ) {
+			if ( strpos( $location, 'upload.php' ) !== false ) {
 				$location = remove_query_arg( 'message', $location );
 				$location = add_query_arg( 'posted', $attachment_id, $location );
-			} elseif ( false !== strpos( $location, 'media.php' ) ) {
+			} elseif ( strpos( $location, 'media.php' ) !== false ) {
 				$location = add_query_arg( 'message', 'updated', $location );
 			}
 			wp_redirect( $location );
@@ -67,10 +67,10 @@ switch ( $action ) {
 		if ( empty( $att->ID ) ) {
 			wp_die( __( 'You attempted to edit an attachment that does not exist. Perhaps it was deleted?' ) );
 		}
-		if ( 'attachment' !== $att->post_type ) {
+		if ( $att->post_type !== 'attachment' ) {
 			wp_die( __( 'You attempted to edit an item that is not an attachment. Please go back and try again.' ) );
 		}
-		if ( 'trash' === $att->post_status ) {
+		if ( $att->post_status === 'trash' ) {
 			wp_die( __( 'You cannot edit this attachment because it is in the Trash. Please move it out of the Trash and try again.' ) );
 		}
 

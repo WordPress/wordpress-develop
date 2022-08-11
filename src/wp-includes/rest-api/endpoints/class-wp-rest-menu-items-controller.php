@@ -44,7 +44,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	public function get_items_permissions_check( $request ) {
 		$has_permission = parent::get_items_permissions_check( $request );
 
-		if ( true !== $has_permission ) {
+		if ( $has_permission !== true ) {
 			return $has_permission;
 		}
 
@@ -62,7 +62,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	public function get_item_permissions_check( $request ) {
 		$permission_check = parent::get_item_permissions_check( $request );
 
-		if ( true !== $permission_check ) {
+		if ( $permission_check !== true ) {
 			return $permission_check;
 		}
 
@@ -123,7 +123,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 
 		$nav_menu_item_id = wp_update_nav_menu_item( $prepared_nav_item['menu-id'], $prepared_nav_item['menu-item-db-id'], wp_slash( $prepared_nav_item ), false );
 		if ( is_wp_error( $nav_menu_item_id ) ) {
-			if ( 'db_insert_error' === $nav_menu_item_id->get_error_code() ) {
+			if ( $nav_menu_item_id->get_error_code() === 'db_insert_error' ) {
 				$nav_menu_item_id->add_data( array( 'status' => 500 ) );
 			} else {
 				$nav_menu_item_id->add_data( array( 'status' => 400 ) );
@@ -217,7 +217,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		$nav_menu_item_id = wp_update_nav_menu_item( $prepared_nav_item['menu-id'], $prepared_nav_item['menu-item-db-id'], wp_slash( $prepared_nav_item ), false );
 
 		if ( is_wp_error( $nav_menu_item_id ) ) {
-			if ( 'db_update_error' === $nav_menu_item_id->get_error_code() ) {
+			if ( $nav_menu_item_id->get_error_code() === 'db_update_error' ) {
 				$nav_menu_item_id->add_data( array( 'status' => 500 ) );
 			} else {
 				$nav_menu_item_id->add_data( array( 'status' => 400 ) );
@@ -331,7 +331,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		// Need to persist the menu item data. See https://core.trac.wordpress.org/ticket/28138
 		if ( ! is_wp_error( $menu_item_obj ) ) {
 			// Correct the menu position if this was the first item. See https://core.trac.wordpress.org/ticket/28140
-			$position = ( 0 === $menu_item_obj->menu_order ) ? 1 : $menu_item_obj->menu_order;
+			$position = ( $menu_item_obj->menu_order === 0 ) ? 1 : $menu_item_obj->menu_order;
 
 			$prepared_nav_item = array(
 				'menu-item-db-id'       => $menu_item_db_id,
@@ -416,7 +416,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		// Check if object id exists before saving.
 		if ( ! $prepared_nav_item['menu-item-object'] ) {
 			// If taxonomy, check if term exists.
-			if ( 'taxonomy' === $prepared_nav_item['menu-item-type'] ) {
+			if ( $prepared_nav_item['menu-item-type'] === 'taxonomy' ) {
 				$original = get_term( absint( $prepared_nav_item['menu-item-object-id'] ) );
 				if ( empty( $original ) || is_wp_error( $original ) ) {
 					$error->add( 'rest_term_invalid_id', __( 'Invalid term ID.' ), array( 'status' => 400 ) );
@@ -424,7 +424,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 					$prepared_nav_item['menu-item-object'] = get_term_field( 'taxonomy', $original );
 				}
 				// If post, check if post object exists.
-			} elseif ( 'post_type' === $prepared_nav_item['menu-item-type'] ) {
+			} elseif ( $prepared_nav_item['menu-item-type'] === 'post_type' ) {
 				$original = get_post( absint( $prepared_nav_item['menu-item-object-id'] ) );
 				if ( empty( $original ) ) {
 					$error->add( 'rest_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 400 ) );
@@ -435,7 +435,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		}
 
 		// If post type archive, check if post type exists.
-		if ( 'post_type_archive' === $prepared_nav_item['menu-item-type'] ) {
+		if ( $prepared_nav_item['menu-item-type'] === 'post_type_archive' ) {
 			$post_type = $prepared_nav_item['menu-item-object'] ? $prepared_nav_item['menu-item-object'] : false;
 			$original  = get_post_type_object( $post_type );
 			if ( ! $original ) {
@@ -444,8 +444,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		}
 
 		// Check if menu item is type custom, then title and url are required.
-		if ( 'custom' === $prepared_nav_item['menu-item-type'] ) {
-			if ( '' === $prepared_nav_item['menu-item-title'] ) {
+		if ( $prepared_nav_item['menu-item-type'] === 'custom' ) {
+			if ( $prepared_nav_item['menu-item-title'] === '' ) {
 				$error->add( 'rest_title_required', __( 'The title is required when using a custom menu item type.' ), array( 'status' => 400 ) );
 			}
 			if ( empty( $prepared_nav_item['menu-item-url'] ) ) {
@@ -463,7 +463,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		}
 
 		// Only draft / publish are valid post status for menu items.
-		if ( 'publish' !== $prepared_nav_item['menu-item-status'] ) {
+		if ( $prepared_nav_item['menu-item-status'] !== 'publish' ) {
 			$prepared_nav_item['menu-item-status'] = 'draft';
 		}
 
@@ -595,7 +595,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 					continue;
 				}
 				$term_ids = $terms ? array_values( wp_list_pluck( $terms, 'term_id' ) ) : array();
-				if ( 'nav_menu' === $taxonomy->name ) {
+				if ( $taxonomy->name === 'nav_menu' ) {
 					$data[ $base ] = $term_ids ? array_shift( $term_ids ) : 0;
 				} else {
 					$data[ $base ] = $term_ids;
@@ -656,10 +656,10 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		$path = '';
 		$type = '';
 		$key  = $menu_item->type;
-		if ( 'post_type' === $menu_item->type ) {
+		if ( $menu_item->type === 'post_type' ) {
 			$path = rest_get_route_for_post( $menu_item->object_id );
 			$type = get_post_type( $menu_item->object_id );
-		} elseif ( 'taxonomy' === $menu_item->type ) {
+		} elseif ( $menu_item->type === 'taxonomy' ) {
 			$path = rest_get_route_for_term( $menu_item->object_id );
 			$type = get_term_field( 'taxonomy', $menu_item->object_id );
 		}
@@ -849,7 +849,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			'context'     => array( 'view', 'edit', 'embed' ),
 			'arg_options' => array(
 				'validate_callback' => static function ( $url ) {
-					if ( '' === $url ) {
+					if ( $url === '' ) {
 						return true;
 					}
 
@@ -900,7 +900,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 				'context'     => array( 'view', 'edit' ),
 			);
 
-			if ( 'nav_menu' === $taxonomy->name ) {
+			if ( $taxonomy->name === 'nav_menu' ) {
 				$schema['properties'][ $base ]['type'] = 'integer';
 				unset( $schema['properties'][ $base ]['items'] );
 			}

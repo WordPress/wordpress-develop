@@ -253,7 +253,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 
 		$response = wp_safe_remote_get( $url, $args );
 
-		if ( WP_Http::OK !== wp_remote_retrieve_response_code( $response ) ) {
+		if ( wp_remote_retrieve_response_code( $response ) !== WP_Http::OK ) {
 			// Not saving the error response to cache since the error might be temporary.
 			return new WP_Error(
 				'no_response',
@@ -324,12 +324,12 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 
 		// If the icon is a data URL, return it.
 		$parsed_icon = parse_url( $icon );
-		if ( isset( $parsed_icon['scheme'] ) && 'data' === $parsed_icon['scheme'] ) {
+		if ( isset( $parsed_icon['scheme'] ) && $parsed_icon['scheme'] === 'data' ) {
 			return $icon;
 		}
 
 		// Attempt to convert relative URLs to absolute.
-		if ( ! is_string( $url ) || '' === $url ) {
+		if ( ! is_string( $url ) || $url === '' ) {
 			return $icon;
 		}
 		$parsed_url = parse_url( $url );
@@ -368,7 +368,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 		);
 
 		// Bail out if description not found.
-		if ( '' === $description ) {
+		if ( $description === '' ) {
 			return '';
 		}
 
@@ -400,7 +400,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 		);
 
 		// Bail out if image not found.
-		if ( '' === $image ) {
+		if ( $image === '' ) {
 			return '';
 		}
 
@@ -494,19 +494,19 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 
 		// Find the opening `<head>` tag.
 		$head_start = strpos( $html, '<head' );
-		if ( false === $head_start ) {
+		if ( $head_start === false ) {
 			// Didn't find it. Return the original HTML.
 			return $html;
 		}
 
 		// Find the closing `</head>` tag.
 		$head_end = strpos( $head_html, '</head>' );
-		if ( false === $head_end ) {
+		if ( $head_end === false ) {
 			// Didn't find it. Find the opening `<body>` tag.
 			$head_end = strpos( $head_html, '<body' );
 
 			// Didn't find it. Return the original HTML.
-			if ( false === $head_end ) {
+			if ( $head_end === false ) {
 				return $html;
 			}
 		}

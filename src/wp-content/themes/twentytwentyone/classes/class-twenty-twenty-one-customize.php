@@ -93,7 +93,7 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 					'capability'        => 'edit_theme_options',
 					'default'           => 'excerpt',
 					'sanitize_callback' => static function( $value ) {
-						return 'excerpt' === $value || 'full' === $value ? $value : 'excerpt';
+						return $value === 'excerpt' || $value === 'full' ? $value : 'excerpt';
 					},
 				)
 			);
@@ -152,7 +152,7 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 		 * @return bool
 		 */
 		public static function sanitize_checkbox( $checked = null ) {
-			return (bool) isset( $checked ) && true === $checked;
+			return (bool) isset( $checked ) && $checked === true;
 		}
 
 		/**

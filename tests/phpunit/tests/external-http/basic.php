@@ -98,7 +98,7 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 		$response_code = wp_remote_retrieve_response_code( $response );
 		$response_body = wp_remote_retrieve_body( $response );
 
-		if ( 200 !== $response_code ) {
+		if ( $response_code !== 200 ) {
 			$parsed_url = parse_url( $url );
 
 			$error_message = sprintf(
@@ -108,7 +108,7 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 				$response_body
 			);
 
-			if ( 503 === $response_code ) {
+			if ( $response_code === 503 ) {
 				$this->markTestSkipped( $error_message );
 			}
 

@@ -295,7 +295,7 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 
 	if ( $post ) {
 		// The post date doesn't usually matter for pages, so don't backdate this upload.
-		if ( 'page' !== $post->post_type && substr( $post->post_date, 0, 4 ) > 0 ) {
+		if ( $post->post_type !== 'page' && substr( $post->post_date, 0, 4 ) > 0 ) {
 			$time = $post->post_date;
 		}
 	}
@@ -385,7 +385,7 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 		}
 
 		// Use image exif/iptc data for title and caption defaults if possible.
-	} elseif ( 0 === strpos( $type, 'image/' ) ) {
+	} elseif ( strpos( $type, 'image/' ) === 0 ) {
 		$image_meta = wp_read_image_metadata( $file );
 
 		if ( $image_meta ) {
@@ -534,8 +534,8 @@ function wp_iframe( $content_func, ...$args ) {
 	wp_enqueue_style( 'colors' );
 	// Check callback name for 'media'.
 	if (
-		( is_array( $content_func ) && ! empty( $content_func[1] ) && 0 === strpos( (string) $content_func[1], 'media' ) ) ||
-		( ! is_array( $content_func ) && 0 === strpos( $content_func, 'media' ) )
+		( is_array( $content_func ) && ! empty( $content_func[1] ) && strpos( (string) $content_func[1], 'media' ) === 0 ) ||
+		( ! is_array( $content_func ) && strpos( $content_func, 'media' ) === 0 )
 	) {
 		wp_enqueue_style( 'deprecated-media' );
 	}
@@ -643,7 +643,7 @@ function media_buttons( $editor_id = 'content' ) {
 
 	$img = '<span class="wp-media-buttons-icon"></span> ';
 
-	$id_attribute = 1 === $instance ? ' id="insert-media-button"' : '';
+	$id_attribute = $instance === 1 ? ' id="insert-media-button"' : '';
 
 	printf(
 		'<button type="button"%s class="button insert-media add_media" data-editor="%s">%s</button>',
@@ -666,7 +666,7 @@ function media_buttons( $editor_id = 'content' ) {
 
 	if ( $legacy_filter ) {
 		// #WP22559. Close <a> if a plugin started by closing <a> to open their own <a> tag.
-		if ( 0 === stripos( trim( $legacy_filter ), '</a>' ) ) {
+		if ( stripos( trim( $legacy_filter ), '</a>' ) === 0 ) {
 			$legacy_filter .= '</a>';
 		}
 		echo $legacy_filter;
@@ -694,7 +694,7 @@ function get_upload_iframe_src( $type = null, $post_id = null, $tab = null ) {
 
 	$upload_iframe_src = add_query_arg( 'post_id', (int) $post_id, admin_url( 'media-upload.php' ) );
 
-	if ( $type && 'media' !== $type ) {
+	if ( $type && $type !== 'media' ) {
 		$upload_iframe_src = add_query_arg( 'type', $type, $upload_iframe_src );
 	}
 
@@ -884,7 +884,7 @@ function wp_media_upload_handler() {
 			$src = "http://$src";
 		}
 
-		if ( isset( $_POST['media_type'] ) && 'image' !== $_POST['media_type'] ) {
+		if ( isset( $_POST['media_type'] ) && $_POST['media_type'] !== 'image' ) {
 			$title = esc_html( wp_unslash( $_POST['title'] ) );
 			if ( empty( $title ) ) {
 				$title = esc_html( wp_basename( $src ) );
@@ -899,7 +899,7 @@ function wp_media_upload_handler() {
 
 			if ( $ext ) {
 				$ext_type = wp_ext2type( $ext );
-				if ( 'audio' === $ext_type || 'video' === $ext_type ) {
+				if ( $ext_type === 'audio' || $ext_type === 'video' ) {
 					$type = $ext_type;
 				}
 			}
@@ -971,7 +971,7 @@ function wp_media_upload_handler() {
 		}
 	}
 
-	if ( isset( $_GET['tab'] ) && 'type_url' === $_GET['tab'] ) {
+	if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'type_url' ) {
 		$type = 'image';
 
 		if ( isset( $_GET['type'] ) && in_array( $_GET['type'], array( 'video', 'audio', 'file' ), true ) ) {
@@ -1057,7 +1057,7 @@ function media_sideload_image( $file, $post_id = 0, $desc = null, $return_type =
 		add_post_meta( $id, '_source_url', $file );
 
 		// If attachment ID was requested, return it.
-		if ( 'id' === $return_type ) {
+		if ( $return_type === 'id' ) {
 			return $id;
 		}
 
@@ -1066,7 +1066,7 @@ function media_sideload_image( $file, $post_id = 0, $desc = null, $return_type =
 
 	// Finally, check to make sure the file has been saved, then return the HTML.
 	if ( ! empty( $src ) ) {
-		if ( 'src' === $return_type ) {
+		if ( $return_type === 'src' ) {
 			return $src;
 		}
 
@@ -1206,7 +1206,7 @@ function image_size_input_fields( $post, $check = '' ) {
 		$checked  = '';
 
 		// Is this size selectable?
-		$enabled = ( $downsize[3] || 'full' === $size );
+		$enabled = ( $downsize[3] || $size === 'full' );
 		$css_id  = "image-size-{$size}-{$post->ID}";
 
 		// If this size is the default but that's not available, don't select it.
@@ -1216,7 +1216,7 @@ function image_size_input_fields( $post, $check = '' ) {
 			} else {
 				$check = '';
 			}
-		} elseif ( ! $check && $enabled && 'thumbnail' !== $size ) {
+		} elseif ( ! $check && $enabled && $size !== 'thumbnail' ) {
 			/*
 			 * If $check is not enabled, default to the first available size
 			 * that's bigger than a thumbnail.
@@ -1265,9 +1265,9 @@ function image_link_input_fields( $post, $url_type = '' ) {
 
 	$url = '';
 
-	if ( 'file' === $url_type ) {
+	if ( $url_type === 'file' ) {
 		$url = $file;
-	} elseif ( 'post' === $url_type ) {
+	} elseif ( $url_type === 'post' ) {
 		$url = $link;
 	}
 
@@ -1348,7 +1348,7 @@ function media_post_single_attachment_fields_to_edit( $form_fields, $post ) {
 function image_media_send_to_editor( $html, $attachment_id, $attachment ) {
 	$post = get_post( $attachment_id );
 
-	if ( 'image' === substr( $post->post_mime_type, 0, 5 ) ) {
+	if ( substr( $post->post_mime_type, 0, 5 ) === 'image' ) {
 		$url   = $attachment['url'];
 		$align = ! empty( $attachment['align'] ) ? $attachment['align'] : 'none';
 		$size  = ! empty( $attachment['image-size'] ) ? $attachment['image-size'] : 'medium';
@@ -1435,7 +1435,7 @@ function get_attachment_fields_to_edit( $post, $errors = null ) {
 
 		$terms = get_object_term_cache( $post->ID, $taxonomy );
 
-		if ( false === $terms ) {
+		if ( $terms === false ) {
 			$terms = wp_get_object_terms( $post->ID, $taxonomy, $t['args'] );
 		}
 
@@ -1459,7 +1459,7 @@ function get_attachment_fields_to_edit( $post, $errors = null ) {
 	$form_fields = array_merge_recursive( $form_fields, (array) $errors );
 
 	// This was formerly in image_attachment_fields_to_edit().
-	if ( 'image' === substr( $post->post_mime_type, 0, 5 ) ) {
+	if ( substr( $post->post_mime_type, 0, 5 ) === 'image' ) {
 		$alt = get_post_meta( $post->ID, '_wp_attachment_image_alt', true );
 
 		if ( empty( $alt ) ) {
@@ -1520,7 +1520,7 @@ function get_media_items( $post_id, $errors ) {
 	if ( $post_id ) {
 		$post = get_post( $post_id );
 
-		if ( $post && 'attachment' === $post->post_type ) {
+		if ( $post && $post->post_type === 'attachment' ) {
 			$attachments = array( $post->ID => $post );
 		} else {
 			$attachments = get_children(
@@ -1542,7 +1542,7 @@ function get_media_items( $post_id, $errors ) {
 
 	$output = '';
 	foreach ( (array) $attachments as $id => $attachment ) {
-		if ( 'trash' === $attachment->post_status ) {
+		if ( $attachment->post_status === 'trash' ) {
 			continue;
 		}
 
@@ -1632,11 +1632,11 @@ function get_media_item( $attachment_id, $args = null ) {
 	$display_title = ( ! empty( $title ) ) ? $title : $filename; // $title shouldn't ever be empty, but just in case.
 	$display_title = $parsed_args['show_title'] ? "<div class='filename new'><span class='title'>" . wp_html_excerpt( $display_title, 60, '&hellip;' ) . '</span></div>' : '';
 
-	$gallery = ( ( isset( $_REQUEST['tab'] ) && 'gallery' === $_REQUEST['tab'] ) || ( isset( $redir_tab ) && 'gallery' === $redir_tab ) );
+	$gallery = ( ( isset( $_REQUEST['tab'] ) && $_REQUEST['tab'] === 'gallery' ) || ( isset( $redir_tab ) && $redir_tab === 'gallery' ) );
 	$order   = '';
 
 	foreach ( $form_fields as $key => $val ) {
-		if ( 'menu_order' === $key ) {
+		if ( $key === 'menu_order' ) {
 			if ( $gallery ) {
 				$order = "<div class='menu_order'> <input class='menu_order_input' type='text' id='attachments[$attachment_id][menu_order]' name='attachments[$attachment_id][menu_order]' value='" . esc_attr( $val['value'] ) . "' /></div>";
 			} else {
@@ -1747,7 +1747,7 @@ function get_media_item( $attachment_id, $args = null ) {
 		$calling_post_id = $post->post_parent;
 	}
 
-	if ( 'image' === $type && $calling_post_id
+	if ( $type === 'image' && $calling_post_id
 		&& current_theme_supports( 'post-thumbnails', get_post_type( $calling_post_id ) )
 		&& post_type_supports( get_post_type( $calling_post_id ), 'thumbnail' )
 		&& get_post_thumbnail_id( $calling_post_id ) != $attachment_id
@@ -1767,7 +1767,7 @@ function get_media_item( $attachment_id, $args = null ) {
 	$hidden_fields = array();
 
 	foreach ( $form_fields as $id => $field ) {
-		if ( '_' === $id[0] ) {
+		if ( $id[0] === '_' ) {
 			continue;
 		}
 
@@ -1779,7 +1779,7 @@ function get_media_item( $attachment_id, $args = null ) {
 		$field = array_merge( $defaults, $field );
 		$name  = "attachments[$attachment_id][$id]";
 
-		if ( 'hidden' === $field['input'] ) {
+		if ( $field['input'] === 'hidden' ) {
 			$hidden_fields[ $name ] = $field['value'];
 			continue;
 		}
@@ -1793,8 +1793,8 @@ function get_media_item( $attachment_id, $args = null ) {
 
 		if ( ! empty( $field[ $field['input'] ] ) ) {
 			$item .= $field[ $field['input'] ];
-		} elseif ( 'textarea' === $field['input'] ) {
-			if ( 'post_content' === $id && user_can_richedit() ) {
+		} elseif ( $field['input'] === 'textarea' ) {
+			if ( $id === 'post_content' && user_can_richedit() ) {
 				// Sanitize_post() skips the post_content when user_can_richedit.
 				$field['value'] = htmlspecialchars( $field['value'], ENT_QUOTES );
 			}
@@ -1894,7 +1894,7 @@ function get_compat_media_markup( $attachment_id, $args = null ) {
 
 			$terms = get_object_term_cache( $post->ID, $taxonomy );
 
-			if ( false === $terms ) {
+			if ( $terms === false ) {
 				$terms = wp_get_object_terms( $post->ID, $taxonomy, $t['args'] );
 			}
 
@@ -1951,7 +1951,7 @@ function get_compat_media_markup( $attachment_id, $args = null ) {
 	$item = '';
 
 	foreach ( $form_fields as $id => $field ) {
-		if ( '_' === $id[0] ) {
+		if ( $id[0] === '_' ) {
 			continue;
 		}
 
@@ -1969,7 +1969,7 @@ function get_compat_media_markup( $attachment_id, $args = null ) {
 			continue;
 		}
 
-		if ( 'hidden' === $field['input'] ) {
+		if ( $field['input'] === 'hidden' ) {
 			$hidden_fields[ $name ] = $field['value'];
 			continue;
 		}
@@ -1986,8 +1986,8 @@ function get_compat_media_markup( $attachment_id, $args = null ) {
 
 		if ( ! empty( $field[ $field['input'] ] ) ) {
 			$item .= $field[ $field['input'] ];
-		} elseif ( 'textarea' === $field['input'] ) {
-			if ( 'post_content' === $id && user_can_richedit() ) {
+		} elseif ( $field['input'] === 'textarea' ) {
+			if ( $id === 'post_content' && user_can_richedit() ) {
 				// sanitize_post() skips the post_content when user_can_richedit.
 				$field['value'] = htmlspecialchars( $field['value'], ENT_QUOTES );
 			}
@@ -2379,7 +2379,7 @@ function media_upload_type_form( $type = 'file', $errors = null, $id = null ) {
  * @param int     $id
  */
 function media_upload_type_url_form( $type = null, $errors = null, $id = null ) {
-	if ( null === $type ) {
+	if ( $type === null ) {
 		$type = 'image';
 	}
 
@@ -2752,7 +2752,7 @@ function media_upload_library_form( $errors ) {
 			$_GET['post_mime_type']                        = $type;
 			list($post_mime_types, $avail_post_mime_types) = wp_edit_attachments_query();
 		}
-		if ( empty( $_GET['post_mime_type'] ) || 'all' === $_GET['post_mime_type'] ) {
+		if ( empty( $_GET['post_mime_type'] ) || $_GET['post_mime_type'] === 'all' ) {
 			$class = ' class="current"';
 		} else {
 			$class = '';
@@ -2829,14 +2829,14 @@ function media_upload_library_form( $errors ) {
 		$month_count    = count( $arc_result );
 		$selected_month = isset( $_GET['m'] ) ? $_GET['m'] : 0;
 
-		if ( $month_count && ! ( 1 == $month_count && 0 == $arc_result[0]->mmonth ) ) {
+		if ( $month_count && ! ( $month_count == 1 && $arc_result[0]->mmonth == 0 ) ) {
 			?>
 			<select name='m'>
 			<option<?php selected( $selected_month, 0 ); ?> value='0'><?php _e( 'All dates' ); ?></option>
 			<?php
 
 			foreach ( $arc_result as $arc_row ) {
-				if ( 0 == $arc_row->yyear ) {
+				if ( $arc_row->yyear == 0 ) {
 					continue;
 				}
 
@@ -2918,7 +2918,7 @@ function wp_media_insert_url_form( $default_view = 'image' ) {
 		$default_align = 'none';
 	}
 
-	if ( 'image' === $default_view ) {
+	if ( $default_view === 'image' ) {
 		$view        = 'image-only';
 		$table_class = '';
 	} else {
@@ -2961,13 +2961,13 @@ function wp_media_insert_url_form( $default_view = 'image' ) {
 		<tr class="align image-only">
 			<th scope="row" class="label"><p><label for="align">' . __( 'Alignment' ) . '</label></p></th>
 			<td class="field">
-				<input name="align" id="align-none" value="none" onclick="addExtImage.align=\'align\'+this.value" type="radio"' . ( 'none' === $default_align ? ' checked="checked"' : '' ) . ' />
+				<input name="align" id="align-none" value="none" onclick="addExtImage.align=\'align\'+this.value" type="radio"' . ( $default_align === 'none' ? ' checked="checked"' : '' ) . ' />
 				<label for="align-none" class="align image-align-none-label">' . __( 'None' ) . '</label>
-				<input name="align" id="align-left" value="left" onclick="addExtImage.align=\'align\'+this.value" type="radio"' . ( 'left' === $default_align ? ' checked="checked"' : '' ) . ' />
+				<input name="align" id="align-left" value="left" onclick="addExtImage.align=\'align\'+this.value" type="radio"' . ( $default_align === 'left' ? ' checked="checked"' : '' ) . ' />
 				<label for="align-left" class="align image-align-left-label">' . __( 'Left' ) . '</label>
-				<input name="align" id="align-center" value="center" onclick="addExtImage.align=\'align\'+this.value" type="radio"' . ( 'center' === $default_align ? ' checked="checked"' : '' ) . ' />
+				<input name="align" id="align-center" value="center" onclick="addExtImage.align=\'align\'+this.value" type="radio"' . ( $default_align === 'center' ? ' checked="checked"' : '' ) . ' />
 				<label for="align-center" class="align image-align-center-label">' . __( 'Center' ) . '</label>
-				<input name="align" id="align-right" value="right" onclick="addExtImage.align=\'align\'+this.value" type="radio"' . ( 'right' === $default_align ? ' checked="checked"' : '' ) . ' />
+				<input name="align" id="align-right" value="right" onclick="addExtImage.align=\'align\'+this.value" type="radio"' . ( $default_align === 'right' ? ' checked="checked"' : '' ) . ' />
 				<label for="align-right" class="align image-align-right-label">' . __( 'Right' ) . '</label>
 			</td>
 		</tr>
@@ -3207,7 +3207,7 @@ function edit_form_image_editor( $post ) {
 	?>
 	</div>
 	<div class="wp_attachment_details edit-form-section">
-	<?php if ( 'image' === substr( $post->post_mime_type, 0, 5 ) ) : ?>
+	<?php if ( substr( $post->post_mime_type, 0, 5 ) === 'image' ) : ?>
 		<p class="attachment-alt-text">
 			<label for="attachment_alt"><strong><?php _e( 'Alternative Text' ); ?></strong></label><br />
 			<input type="text" class="widefat" name="_wp_attachment_image_alt" id="attachment_alt" aria-describedby="alt-text-description" value="<?php echo esc_attr( $alt_text ); ?>" />
@@ -3347,7 +3347,7 @@ function attachment_submitbox_metadata() {
 		if ( preg_match( '/^.*?\.(\w+)$/', get_attached_file( $post->ID ), $matches ) ) {
 			echo esc_html( strtoupper( $matches[1] ) );
 			list( $mime_type ) = explode( '/', $post->post_mime_type );
-			if ( 'image' !== $mime_type && ! empty( $meta['mime_type'] ) ) {
+			if ( $mime_type !== 'image' && ! empty( $meta['mime_type'] ) ) {
 				if ( "$mime_type/" . strtolower( $matches[1] ) !== $meta['mime_type'] ) {
 					echo ' (' . $meta['mime_type'] . ')';
 				}
@@ -3491,10 +3491,10 @@ function wp_add_id3_tag_data( &$metadata, $data ) {
 	foreach ( array( 'id3v2', 'id3v1' ) as $version ) {
 		if ( ! empty( $data[ $version ]['comments'] ) ) {
 			foreach ( $data[ $version ]['comments'] as $key => $list ) {
-				if ( 'length' !== $key && ! empty( $list ) ) {
+				if ( $key !== 'length' && ! empty( $list ) ) {
 					$metadata[ $key ] = wp_kses_post( reset( $list ) );
 					// Fix bug in byte stream analysis.
-					if ( 'terms_of_use' === $key && 0 === strpos( $metadata[ $key ], 'yright notice.' ) ) {
+					if ( $key === 'terms_of_use' && strpos( $metadata[ $key ], 'yright notice.' ) === 0 ) {
 						$metadata[ $key ] = 'Cop' . $metadata[ $key ];
 					}
 				}
@@ -3613,7 +3613,7 @@ function wp_read_video_metadata( $file ) {
 	if ( empty( $metadata['created_timestamp'] ) ) {
 		$created_timestamp = wp_get_media_creation_timestamp( $data );
 
-		if ( false !== $created_timestamp ) {
+		if ( $created_timestamp !== false ) {
 			$metadata['created_timestamp'] = $created_timestamp;
 		}
 	}
@@ -3696,7 +3696,7 @@ function wp_read_audio_metadata( $file ) {
 	if ( empty( $metadata['created_timestamp'] ) ) {
 		$created_timestamp = wp_get_media_creation_timestamp( $data );
 
-		if ( false !== $created_timestamp ) {
+		if ( $created_timestamp !== false ) {
 			$metadata['created_timestamp'] = $created_timestamp;
 		}
 	}
@@ -3807,7 +3807,7 @@ function wp_media_attach_action( $parent_id, $action = 'attach' ) {
 	if ( ! empty( $ids ) ) {
 		$ids_string = implode( ',', $ids );
 
-		if ( 'attach' === $action ) {
+		if ( $action === 'attach' ) {
 			$result = $wpdb->query( $wpdb->prepare( "UPDATE $wpdb->posts SET post_parent = %d WHERE post_type = 'attachment' AND ID IN ( $ids_string )", $parent_id ) );
 		} else {
 			$result = $wpdb->query( "UPDATE $wpdb->posts SET post_parent = 0 WHERE post_type = 'attachment' AND ID IN ( $ids_string )" );
@@ -3834,12 +3834,12 @@ function wp_media_attach_action( $parent_id, $action = 'attach' ) {
 		$referer  = wp_get_referer();
 
 		if ( $referer ) {
-			if ( false !== strpos( $referer, 'upload.php' ) ) {
+			if ( strpos( $referer, 'upload.php' ) !== false ) {
 				$location = remove_query_arg( array( 'attached', 'detach' ), $referer );
 			}
 		}
 
-		$key      = 'attach' === $action ? 'attached' : 'detach';
+		$key      = $action === 'attach' ? 'attached' : 'detach';
 		$location = add_query_arg( array( $key => $result ), $location );
 
 		wp_redirect( $location );

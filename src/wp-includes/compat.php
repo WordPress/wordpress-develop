@@ -28,11 +28,11 @@ if ( ! function_exists( '_' ) ) {
 function _wp_can_use_pcre_u( $set = null ) {
 	static $utf8_pcre = 'reset';
 
-	if ( null !== $set ) {
+	if ( $set !== null ) {
 		$utf8_pcre = $set;
 	}
 
-	if ( 'reset' === $utf8_pcre ) {
+	if ( $utf8_pcre === 'reset' ) {
 		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- intentional error generated to detect PCRE/u support.
 		$utf8_pcre = @preg_match( '/^./u', 'a' );
 	}
@@ -79,11 +79,11 @@ endif;
  * @return string Extracted substring.
  */
 function _mb_substr( $str, $start, $length = null, $encoding = null ) {
-	if ( null === $str ) {
+	if ( $str === null ) {
 		return '';
 	}
 
-	if ( null === $encoding ) {
+	if ( $encoding === null ) {
 		$encoding = get_option( 'blog_charset' );
 	}
 
@@ -168,7 +168,7 @@ endif;
  * @return int String length of `$str`.
  */
 function _mb_strlen( $str, $encoding = null ) {
-	if ( null === $encoding ) {
+	if ( $encoding === null ) {
 		$encoding = get_option( 'blog_charset' );
 	}
 
@@ -329,7 +329,7 @@ if ( ! function_exists( 'hash_equals' ) ) :
 			$result |= ord( $known_string[ $i ] ) ^ ord( $user_string[ $i ] );
 		}
 
-		return 0 === $result;
+		return $result === 0;
 	}
 endif;
 
@@ -438,7 +438,7 @@ if ( ! function_exists( 'str_contains' ) ) {
 	 * @return bool True if `$needle` is in `$haystack`, otherwise false.
 	 */
 	function str_contains( $haystack, $needle ) {
-		return ( '' === $needle || false !== strpos( $haystack, $needle ) );
+		return ( $needle === '' || strpos( $haystack, $needle ) !== false );
 	}
 }
 
@@ -456,11 +456,11 @@ if ( ! function_exists( 'str_starts_with' ) ) {
 	 * @return bool True if `$haystack` starts with `$needle`, otherwise false.
 	 */
 	function str_starts_with( $haystack, $needle ) {
-		if ( '' === $needle ) {
+		if ( $needle === '' ) {
 			return true;
 		}
 
-		return 0 === strpos( $haystack, $needle );
+		return strpos( $haystack, $needle ) === 0;
 	}
 }
 
@@ -478,13 +478,13 @@ if ( ! function_exists( 'str_ends_with' ) ) {
 	 * @return bool True if `$haystack` ends with `$needle`, otherwise false.
 	 */
 	function str_ends_with( $haystack, $needle ) {
-		if ( '' === $haystack && '' !== $needle ) {
+		if ( $haystack === '' && $needle !== '' ) {
 			return false;
 		}
 
 		$len = strlen( $needle );
 
-		return 0 === substr_compare( $haystack, $needle, -$len, $len );
+		return substr_compare( $haystack, $needle, -$len, $len ) === 0;
 	}
 }
 

@@ -60,7 +60,7 @@ function wp_apply_spacing_support( $block_type, $block_attributes ) {
 			foreach ( $padding_value as $key => $value ) {
 				$styles[] = sprintf( 'padding-%s: %s;', $key, $value );
 			}
-		} elseif ( null !== $padding_value ) {
+		} elseif ( $padding_value !== null ) {
 			$styles[] = sprintf( 'padding: %s;', $padding_value );
 		}
 	}
@@ -71,7 +71,7 @@ function wp_apply_spacing_support( $block_type, $block_attributes ) {
 			foreach ( $margin_value as $key => $value ) {
 				$styles[] = sprintf( 'margin-%s: %s;', $key, $value );
 			}
-		} elseif ( null !== $margin_value ) {
+		} elseif ( $margin_value !== null ) {
 			$styles[] = sprintf( 'margin: %s;', $margin_value );
 		}
 	}

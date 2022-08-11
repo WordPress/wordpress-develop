@@ -66,7 +66,7 @@ class WP_Privacy_Data_Export_Requests_List_Table extends WP_Privacy_Requests_Tab
 
 		$row_actions['download-data'] = $download_data_markup;
 
-		if ( 'request-completed' !== $status ) {
+		if ( $status !== 'request-completed' ) {
 			$complete_request_markup  = '<span>';
 			$complete_request_markup .= sprintf(
 				'<a href="%s" class="complete-request" aria-label="%s">%s</a>',

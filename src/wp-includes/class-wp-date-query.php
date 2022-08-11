@@ -149,7 +149,7 @@ class WP_Date_Query {
 			return;
 		}
 
-		if ( isset( $date_query['relation'] ) && 'OR' === strtoupper( $date_query['relation'] ) ) {
+		if ( isset( $date_query['relation'] ) && strtoupper( $date_query['relation'] ) === 'OR' ) {
 			$this->relation = 'OR';
 		} else {
 			$this->relation = 'AND';
@@ -488,7 +488,7 @@ class WP_Date_Query {
 		);
 
 		// Attempt to detect a table prefix.
-		if ( false === strpos( $column, '.' ) ) {
+		if ( strpos( $column, '.' ) === false ) {
 			/**
 			 * Filters the list of valid date query columns.
 			 *
@@ -621,7 +621,7 @@ class WP_Date_Query {
 		}
 
 		foreach ( $query as $key => $clause ) {
-			if ( 'relation' === $key ) {
+			if ( $key === 'relation' ) {
 				$relation = $query['relation'];
 			} elseif ( is_array( $clause ) ) {
 
@@ -632,7 +632,7 @@ class WP_Date_Query {
 					$where_count = count( $clause_sql['where'] );
 					if ( ! $where_count ) {
 						$sql_chunks['where'][] = '';
-					} elseif ( 1 === $where_count ) {
+					} elseif ( $where_count === 1 ) {
 						$sql_chunks['where'][] = $clause_sql['where'][0];
 					} else {
 						$sql_chunks['where'][] = '( ' . implode( ' AND ', $clause_sql['where'] ) . ' )';
@@ -823,7 +823,7 @@ class WP_Date_Query {
 
 			case 'BETWEEN':
 			case 'NOT BETWEEN':
-				if ( ! is_array( $value ) || 2 !== count( $value ) ) {
+				if ( ! is_array( $value ) || count( $value ) !== 2 ) {
 					$value = array( $value, $value );
 				} else {
 					$value = array_values( $value );
@@ -911,7 +911,7 @@ class WP_Date_Query {
 				// Assume local timezone if not provided.
 				$dt = date_create( $datetime, $wp_timezone );
 
-				if ( false === $dt ) {
+				if ( $dt === false ) {
 					return gmdate( 'Y-m-d H:i:s', false );
 				}
 
@@ -977,17 +977,17 @@ class WP_Date_Query {
 			$return = array();
 
 			$value = $this->build_value( $compare, $hour );
-			if ( false !== $value ) {
+			if ( $value !== false ) {
 				$return[] = "HOUR( $column ) $compare $value";
 			}
 
 			$value = $this->build_value( $compare, $minute );
-			if ( false !== $value ) {
+			if ( $value !== false ) {
 				$return[] = "MINUTE( $column ) $compare $value";
 			}
 
 			$value = $this->build_value( $compare, $second );
-			if ( false !== $value ) {
+			if ( $value !== false ) {
 				$return[] = "SECOND( $column ) $compare $value";
 			}
 
@@ -997,17 +997,17 @@ class WP_Date_Query {
 		// Cases where just one unit is set.
 		if ( isset( $hour ) && ! isset( $minute ) && ! isset( $second ) ) {
 			$value = $this->build_value( $compare, $hour );
-			if ( false !== $value ) {
+			if ( $value !== false ) {
 				return "HOUR( $column ) $compare $value";
 			}
 		} elseif ( ! isset( $hour ) && isset( $minute ) && ! isset( $second ) ) {
 			$value = $this->build_value( $compare, $minute );
-			if ( false !== $value ) {
+			if ( $value !== false ) {
 				return "MINUTE( $column ) $compare $value";
 			}
 		} elseif ( ! isset( $hour ) && ! isset( $minute ) && isset( $second ) ) {
 			$value = $this->build_value( $compare, $second );
-			if ( false !== $value ) {
+			if ( $value !== false ) {
 				return "SECOND( $column ) $compare $value";
 			}
 		}
@@ -1021,7 +1021,7 @@ class WP_Date_Query {
 		$time   = '';
 
 		// Hour.
-		if ( null !== $hour ) {
+		if ( $hour !== null ) {
 			$format .= '%H.';
 			$time   .= sprintf( '%02d', $hour ) . '.';
 		} else {

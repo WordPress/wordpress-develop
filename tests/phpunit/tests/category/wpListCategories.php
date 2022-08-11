@@ -106,7 +106,7 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 	}
 
 	public function list_cats_callback( $cat ) {
-		if ( 'Test Cat 1' === $cat ) {
+		if ( $cat === 'Test Cat 1' ) {
 			return '';
 		}
 

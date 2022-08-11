@@ -210,7 +210,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 
 		$bytes_written = fwrite( $temphandle, $contents );
 
-		if ( false === $bytes_written || strlen( $contents ) !== $bytes_written ) {
+		if ( $bytes_written === false || strlen( $contents ) !== $bytes_written ) {
 			fclose( $temphandle );
 			unlink( $tempfile );
 
@@ -360,7 +360,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 
 		$content = $this->get_contents( $source );
 
-		if ( false === $content ) {
+		if ( $content === false ) {
 			return false;
 		}
 
@@ -399,7 +399,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 			return false;
 		}
 
-		if ( 'f' === $type || $this->is_file( $file ) ) {
+		if ( $type === 'f' || $this->is_file( $file ) ) {
 			return $this->ftp->delete( $file );
 		}
 
@@ -641,11 +641,11 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 
 		foreach ( $list as $struc ) {
 
-			if ( '.' === $struc['name'] || '..' === $struc['name'] ) {
+			if ( $struc['name'] === '.' || $struc['name'] === '..' ) {
 				continue;
 			}
 
-			if ( ! $include_hidden && '.' === $struc['name'][0] ) {
+			if ( ! $include_hidden && $struc['name'][0] === '.' ) {
 				continue;
 			}
 
@@ -653,7 +653,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 				continue;
 			}
 
-			if ( 'd' === $struc['type'] ) {
+			if ( $struc['type'] === 'd' ) {
 				if ( $recursive ) {
 					$struc['files'] = $this->dirlist( $path . '/' . $struc['name'], $include_hidden, $recursive );
 				} else {

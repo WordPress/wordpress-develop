@@ -554,7 +554,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	public function map_meta_cap_grant_create_users( $caps, $cap ) {
-		if ( 'create_users' === $cap ) {
+		if ( $cap === 'create_users' ) {
 			$caps = array( 'exist' );
 		}
 
@@ -562,7 +562,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	public function map_meta_cap_deny_create_users( $caps, $cap ) {
-		if ( 'create_users' === $cap ) {
+		if ( $cap === 'create_users' ) {
 			$caps = array( 'do_not_allow' );
 		}
 
@@ -570,7 +570,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	public function map_meta_cap_grant_promote_users( $caps, $cap ) {
-		if ( 'promote_users' === $cap ) {
+		if ( $cap === 'promote_users' ) {
 			$caps = array( 'exist' );
 		}
 
@@ -578,7 +578,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	public function map_meta_cap_deny_promote_users( $caps, $cap ) {
-		if ( 'promote_users' === $cap ) {
+		if ( $cap === 'promote_users' ) {
 			$caps = array( 'do_not_allow' );
 		}
 

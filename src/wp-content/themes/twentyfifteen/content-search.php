@@ -21,7 +21,7 @@
 		<?php the_excerpt(); ?>
 	</div><!-- .entry-summary -->
 
-	<?php if ( 'post' === get_post_type() ) : ?>
+	<?php if ( get_post_type() === 'post' ) : ?>
 
 		<footer class="entry-footer">
 			<?php twentyfifteen_entry_meta(); ?>

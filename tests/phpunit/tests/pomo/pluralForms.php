@@ -60,7 +60,7 @@ class PluralFormsTest extends WP_UnitTestCase {
 		$plural_expressions = array();
 		foreach ( $locales as $slug => $locale ) {
 			$plural_expression = $locale->plural_expression;
-			if ( 'n != 1' !== $plural_expression ) {
+			if ( $plural_expression !== 'n != 1' ) {
 				$plural_expressions[] = array( $slug, $locale->nplurals, $plural_expression );
 			}
 		}

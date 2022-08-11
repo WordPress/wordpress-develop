@@ -215,7 +215,7 @@ class WP_Widget {
 	public function get_field_name( $field_name ) {
 		$pos = strpos( $field_name, '[' );
 
-		if ( false !== $pos ) {
+		if ( $pos !== false ) {
 			// Replace the first occurrence of '[' with ']['.
 			$field_name = '[' . substr_replace( $field_name, '][', $pos, strlen( '[' ) );
 		} else {
@@ -381,7 +381,7 @@ class WP_Widget {
 			 */
 			$instance = apply_filters( 'widget_display_callback', $instance, $this, $args );
 
-			if ( false === $instance ) {
+			if ( $instance === false ) {
 				return;
 			}
 
@@ -474,7 +474,7 @@ class WP_Widget {
 				 */
 				$instance = apply_filters( 'widget_update_callback', $instance, $new_instance, $old_instance, $this );
 
-				if ( false !== $instance ) {
+				if ( $instance !== false ) {
 					$all_instances[ $number ] = $instance;
 				}
 
@@ -507,7 +507,7 @@ class WP_Widget {
 		$widget_args   = wp_parse_args( $widget_args, array( 'number' => -1 ) );
 		$all_instances = $this->get_settings();
 
-		if ( -1 == $widget_args['number'] ) {
+		if ( $widget_args['number'] == -1 ) {
 			// We echo out a form where 'number' can be set later.
 			$this->_set( '__i__' );
 			$instance = array();
@@ -530,7 +530,7 @@ class WP_Widget {
 
 		$return = null;
 
-		if ( false !== $instance ) {
+		if ( $instance !== false ) {
 			$return = $this->form( $instance );
 
 			/**
@@ -611,7 +611,7 @@ class WP_Widget {
 
 		$settings = get_option( $this->option_name );
 
-		if ( false === $settings ) {
+		if ( $settings === false ) {
 			if ( isset( $this->alt_option_name ) ) {
 				$settings = get_option( $this->alt_option_name );
 			} else {

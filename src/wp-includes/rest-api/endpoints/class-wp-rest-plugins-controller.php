@@ -247,7 +247,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( 'inactive' !== $request['status'] && ! current_user_can( 'activate_plugins' ) ) {
+		if ( $request['status'] !== 'inactive' && ! current_user_can( 'activate_plugins' ) ) {
 			return new WP_Error(
 				'rest_cannot_activate_plugin',
 				__( 'Sorry, you are not allowed to activate plugins.' ),
@@ -298,7 +298,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 		);
 
 		if ( is_wp_error( $api ) ) {
-			if ( false !== strpos( $api->get_error_message(), 'Plugin not found.' ) ) {
+			if ( strpos( $api->get_error_message(), 'Plugin not found.' ) !== false ) {
 				$api->add_data( array( 'status' => 404 ) );
 			} else {
 				$api->add_data( array( 'status' => 500 ) );
@@ -361,7 +361,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( 'inactive' !== $request['status'] ) {
+		if ( $request['status'] !== 'inactive' ) {
 			$can_change_status = $this->plugin_status_permission_check( $file, $request['status'], 'inactive' );
 
 			if ( is_wp_error( $can_change_status ) ) {
@@ -694,7 +694,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error
 	 */
 	protected function plugin_status_permission_check( $plugin, $new_status, $current_status ) {
-		if ( is_multisite() && ( 'network-active' === $current_status || 'network-active' === $new_status ) && ! current_user_can( 'manage_network_plugins' ) ) {
+		if ( is_multisite() && ( $current_status === 'network-active' || $new_status === 'network-active' ) && ! current_user_can( 'manage_network_plugins' ) ) {
 			return new WP_Error(
 				'rest_cannot_manage_network_plugins',
 				__( 'Sorry, you are not allowed to manage network plugins.' ),
@@ -702,7 +702,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( ( 'active' === $new_status || 'network-active' === $new_status ) && ! current_user_can( 'activate_plugin', $plugin ) ) {
+		if ( ( $new_status === 'active' || $new_status === 'network-active' ) && ! current_user_can( 'activate_plugin', $plugin ) ) {
 			return new WP_Error(
 				'rest_cannot_activate_plugin',
 				__( 'Sorry, you are not allowed to activate this plugin.' ),
@@ -710,7 +710,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( 'inactive' === $new_status && ! current_user_can( 'deactivate_plugin', $plugin ) ) {
+		if ( $new_status === 'inactive' && ! current_user_can( 'deactivate_plugin', $plugin ) ) {
 			return new WP_Error(
 				'rest_cannot_deactivate_plugin',
 				__( 'Sorry, you are not allowed to deactivate this plugin.' ),
@@ -732,17 +732,17 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error
 	 */
 	protected function handle_plugin_status( $plugin, $new_status, $current_status ) {
-		if ( 'inactive' === $new_status ) {
-			deactivate_plugins( $plugin, false, 'network-active' === $current_status );
+		if ( $new_status === 'inactive' ) {
+			deactivate_plugins( $plugin, false, $current_status === 'network-active' );
 
 			return true;
 		}
 
-		if ( 'active' === $new_status && 'network-active' === $current_status ) {
+		if ( $new_status === 'active' && $current_status === 'network-active' ) {
 			return true;
 		}
 
-		$network_activate = 'network-active' === $new_status;
+		$network_activate = $new_status === 'network-active';
 
 		if ( is_multisite() && ! $network_activate && is_network_only_plugin( $plugin ) ) {
 			return new WP_Error(
@@ -778,7 +778,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 
 		$validated = validate_file( plugin_basename( $file ) );
 
-		return 0 === $validated;
+		return $validated === 0;
 	}
 
 	/**
@@ -809,7 +809,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 			$matched_search = false;
 
 			foreach ( $item as $field ) {
-				if ( is_string( $field ) && false !== strpos( strip_tags( $field ), $search ) ) {
+				if ( is_string( $field ) && strpos( strip_tags( $field ), $search ) !== false ) {
 					$matched_search = true;
 					break;
 				}
@@ -853,7 +853,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 	protected function is_filesystem_available() {
 		$filesystem_method = get_filesystem_method();
 
-		if ( 'direct' === $filesystem_method ) {
+		if ( $filesystem_method === 'direct' ) {
 			return true;
 		}
 

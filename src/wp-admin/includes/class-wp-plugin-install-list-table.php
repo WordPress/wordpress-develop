@@ -102,11 +102,11 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		// These are the tabs which are shown on the page.
 		$tabs = array();
 
-		if ( 'search' === $tab ) {
+		if ( $tab === 'search' ) {
 			$tabs['search'] = __( 'Search Results' );
 		}
 
-		if ( 'beta' === $tab || false !== strpos( get_bloginfo( 'version' ), '-' ) ) {
+		if ( $tab === 'beta' || strpos( get_bloginfo( 'version' ), '-' ) !== false ) {
 			$tabs['beta'] = _x( 'Beta Testing', 'Plugin Installer' );
 		}
 
@@ -385,11 +385,11 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 * @param string $which
 	 */
 	protected function display_tablenav( $which ) {
-		if ( 'featured' === $GLOBALS['tab'] ) {
+		if ( $GLOBALS['tab'] === 'featured' ) {
 			return;
 		}
 
-		if ( 'top' === $which ) {
+		if ( $which === 'top' ) {
 			wp_referer_field();
 			?>
 			<div class="tablenav top">
@@ -447,7 +447,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			return 0;
 		}
 
-		if ( 'DESC' === $this->order ) {
+		if ( $this->order === 'DESC' ) {
 			return ( $a < $b ) ? 1 : -1;
 		} else {
 			return ( $a < $b ) ? -1 : 1;
@@ -781,7 +781,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 							_nx( '%s+ Million', '%s+ Million', $active_installs_millions, 'Active plugin installations' ),
 							number_format_i18n( $active_installs_millions )
 						);
-					} elseif ( 0 === $plugin['active_installs'] ) {
+					} elseif ( $plugin['active_installs'] === 0 ) {
 						$active_installs_text = _x( 'Less Than 10', 'Active plugin installations' );
 					} else {
 						$active_installs_text = number_format_i18n( $plugin['active_installs'] ) . '+';

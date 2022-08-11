@@ -180,7 +180,7 @@ if ( is_multisite() ) :
 				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$result = $wpdb->get_results( "SELECT * FROM $prefix$table LIMIT 1" );
 
-				if ( 'commentmeta' === $table || 'termmeta' === $table || 'links' === $table ) {
+				if ( $table === 'commentmeta' || $table === 'termmeta' || $table === 'links' ) {
 					$this->assertEmpty( $result );
 				} else {
 					$this->assertNotEmpty( $result );
@@ -900,7 +900,7 @@ if ( is_multisite() ) :
 		 * the testing of the filter and for a test which does not need the database.
 		 */
 		public function domain_exists_cb( $exists, $domain, $path, $site_id ) {
-			if ( 'foo' === $domain && 'bar/' === $path ) {
+			if ( $domain === 'foo' && $path === 'bar/' ) {
 				return 1234;
 			} else {
 				return null;
@@ -1154,7 +1154,7 @@ if ( is_multisite() ) :
 
 			$key = str_replace( array_keys( $replacements ), array_values( $replacements ), $key );
 
-			if ( 'sites' === $group ) { // This needs to be actual data for get_site() lookups.
+			if ( $group === 'sites' ) { // This needs to be actual data for get_site() lookups.
 				wp_cache_set( $key, (object) $site->to_array(), $group );
 			} else {
 				wp_cache_set( $key, 'something', $group );
@@ -1180,7 +1180,7 @@ if ( is_multisite() ) :
 
 			$key = str_replace( array_keys( $replacements ), array_values( $replacements ), $key );
 
-			if ( 'sites' === $group ) { // This needs to be actual data for get_site() lookups.
+			if ( $group === 'sites' ) { // This needs to be actual data for get_site() lookups.
 				wp_cache_set( $key, (object) $site->to_array(), $group );
 			} else {
 				wp_cache_set( $key, 'something', $group );
@@ -1276,7 +1276,7 @@ if ( is_multisite() ) :
 
 			$key = str_replace( array_keys( $replacements ), array_values( $replacements ), $key );
 
-			if ( 'sites' === $group ) { // This needs to be actual data for get_site() lookups.
+			if ( $group === 'sites' ) { // This needs to be actual data for get_site() lookups.
 				wp_cache_set( $key, (object) $site->to_array(), $group );
 			} else {
 				wp_cache_set( $key, 'something', $group );
@@ -1471,7 +1471,7 @@ if ( is_multisite() ) :
 			foreach ( $new_site->to_array() as $key => $value ) {
 				if ( isset( $expected_data[ $key ] ) ) {
 					$this->assertEquals( $expected_data[ $key ], $value );
-				} elseif ( 'last_updated' === $key ) {
+				} elseif ( $key === 'last_updated' ) {
 					$this->assertTrue( $old_site->last_updated <= $value );
 				} else {
 					$this->assertSame( $old_site->$key, $value );

@@ -96,13 +96,13 @@ function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
 		_deprecated_argument( __FUNCTION__, '3.0.0', sprintf( __( 'The %1$s plugin header is deprecated. Use %2$s instead.' ), '<code>Site Wide Only: true</code>', '<code>Network: true</code>' ) );
 		$plugin_data['Network'] = $plugin_data['_sitewide'];
 	}
-	$plugin_data['Network'] = ( 'true' === strtolower( $plugin_data['Network'] ) );
+	$plugin_data['Network'] = ( strtolower( $plugin_data['Network'] ) === 'true' );
 	unset( $plugin_data['_sitewide'] );
 
 	// If no text domain is defined fall back to the plugin slug.
 	if ( ! $plugin_data['TextDomain'] ) {
 		$plugin_slug = dirname( plugin_basename( $plugin_file ) );
-		if ( '.' !== $plugin_slug && false === strpos( $plugin_slug, '/' ) ) {
+		if ( $plugin_slug !== '.' && strpos( $plugin_slug, '/' ) === false ) {
 			$plugin_data['TextDomain'] = $plugin_slug;
 		}
 	}
@@ -150,7 +150,7 @@ function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup 
 					load_plugin_textdomain( $textdomain, false, dirname( $plugin_file ) );
 				}
 			}
-		} elseif ( 'hello.php' === basename( $plugin_file ) ) {
+		} elseif ( basename( $plugin_file ) === 'hello.php' ) {
 			$textdomain = 'default';
 		}
 		if ( $textdomain ) {
@@ -230,7 +230,7 @@ function get_plugin_files( $plugin ) {
 
 	$plugin_files = array( plugin_basename( $plugin_file ) );
 
-	if ( is_dir( $dir ) && WP_PLUGIN_DIR !== $dir ) {
+	if ( is_dir( $dir ) && $dir !== WP_PLUGIN_DIR ) {
 
 		/**
 		 * Filters the array of excluded directories and files while scanning the folder.
@@ -294,7 +294,7 @@ function get_plugins( $plugin_folder = '' ) {
 
 	if ( $plugins_dir ) {
 		while ( ( $file = readdir( $plugins_dir ) ) !== false ) {
-			if ( '.' === substr( $file, 0, 1 ) ) {
+			if ( substr( $file, 0, 1 ) === '.' ) {
 				continue;
 			}
 
@@ -303,11 +303,11 @@ function get_plugins( $plugin_folder = '' ) {
 
 				if ( $plugins_subdir ) {
 					while ( ( $subfile = readdir( $plugins_subdir ) ) !== false ) {
-						if ( '.' === substr( $subfile, 0, 1 ) ) {
+						if ( substr( $subfile, 0, 1 ) === '.' ) {
 							continue;
 						}
 
-						if ( '.php' === substr( $subfile, -4 ) ) {
+						if ( substr( $subfile, -4 ) === '.php' ) {
 							$plugin_files[] = "$file/$subfile";
 						}
 					}
@@ -315,7 +315,7 @@ function get_plugins( $plugin_folder = '' ) {
 					closedir( $plugins_subdir );
 				}
 			} else {
-				if ( '.php' === substr( $file, -4 ) ) {
+				if ( substr( $file, -4 ) === '.php' ) {
 					$plugin_files[] = $file;
 				}
 			}
@@ -371,7 +371,7 @@ function get_mu_plugins() {
 	$plugins_dir = @opendir( WPMU_PLUGIN_DIR );
 	if ( $plugins_dir ) {
 		while ( ( $file = readdir( $plugins_dir ) ) !== false ) {
-			if ( '.php' === substr( $file, -4 ) ) {
+			if ( substr( $file, -4 ) === '.php' ) {
 				$plugin_files[] = $file;
 			}
 		}
@@ -757,7 +757,7 @@ function deactivate_plugins( $plugins, $silent = false, $network_wide = null ) {
 			continue;
 		}
 
-		$network_deactivating = ( false !== $network_wide ) && is_plugin_active_for_network( $plugin );
+		$network_deactivating = ( $network_wide !== false ) && is_plugin_active_for_network( $plugin );
 
 		if ( ! $silent ) {
 			/**
@@ -775,7 +775,7 @@ function deactivate_plugins( $plugins, $silent = false, $network_wide = null ) {
 			do_action( 'deactivate_plugin', $plugin, $network_deactivating );
 		}
 
-		if ( false !== $network_wide ) {
+		if ( $network_wide !== false ) {
 			if ( is_plugin_active_for_network( $plugin ) ) {
 				$do_network = true;
 				unset( $network_current[ $plugin ] );
@@ -784,9 +784,9 @@ function deactivate_plugins( $plugins, $silent = false, $network_wide = null ) {
 			}
 		}
 
-		if ( true !== $network_wide ) {
+		if ( $network_wide !== true ) {
 			$key = array_search( $plugin, $current, true );
-			if ( false !== $key ) {
+			if ( $key !== false ) {
 				$do_blog = true;
 				unset( $current[ $key ] );
 			}
@@ -907,7 +907,7 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 	$credentials = request_filesystem_credentials( $url );
 	$data        = ob_get_clean();
 
-	if ( false === $credentials ) {
+	if ( $credentials === false ) {
 		if ( ! empty( $data ) ) {
 			require_once ABSPATH . 'wp-admin/admin-header.php';
 			echo $data;
@@ -994,12 +994,12 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 
 		$plugin_slug = dirname( $plugin_file );
 
-		if ( 'hello.php' === $plugin_file ) {
+		if ( $plugin_file === 'hello.php' ) {
 			$plugin_slug = 'hello-dolly';
 		}
 
 		// Remove language files, silently.
-		if ( '.' !== $plugin_slug && ! empty( $plugin_translations[ $plugin_slug ] ) ) {
+		if ( $plugin_slug !== '.' && ! empty( $plugin_translations[ $plugin_slug ] ) ) {
 			$translations = $plugin_translations[ $plugin_slug ];
 
 			foreach ( $translations as $translation => $data ) {
@@ -1028,7 +1028,7 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 	}
 
 	if ( ! empty( $errors ) ) {
-		if ( 1 === count( $errors ) ) {
+		if ( count( $errors ) === 1 ) {
 			/* translators: %s: Plugin filename. */
 			$message = __( 'Could not fully remove the plugin %s.' );
 		} else {
@@ -1325,7 +1325,7 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $call
 
 	$new_menu = array( $menu_title, $capability, $menu_slug, $page_title, 'menu-top ' . $icon_class . $hookname, $hookname, $icon_url );
 
-	if ( null !== $position && ! is_numeric( $position ) ) {
+	if ( $position !== null && ! is_numeric( $position ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
@@ -1338,7 +1338,7 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $call
 		$position = null;
 	}
 
-	if ( null === $position || ! is_numeric( $position ) ) {
+	if ( $position === null || ! is_numeric( $position ) ) {
 		$menu[] = $new_menu;
 	} elseif ( isset( $menu[ (string) $position ] ) ) {
 		$collision_avoider = base_convert( substr( md5( $menu_slug . $menu_title ), -4 ), 16, 10 ) * 0.00001;
@@ -1429,7 +1429,7 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 
 	$new_sub_menu = array( $menu_title, $capability, $menu_slug, $page_title );
 
-	if ( null !== $position && ! is_numeric( $position ) ) {
+	if ( $position !== null && ! is_numeric( $position ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
@@ -1443,14 +1443,14 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 	}
 
 	if (
-		null === $position ||
+		$position === null ||
 		( ! isset( $submenu[ $parent_slug ] ) || $position >= count( $submenu[ $parent_slug ] ) )
 	) {
 		$submenu[ $parent_slug ][] = $new_sub_menu;
 	} else {
 		// Test for a negative position.
 		$position = max( $position, 0 );
-		if ( 0 === $position ) {
+		if ( $position === 0 ) {
 			// For negative or `0` positions, prepend the submenu.
 			array_unshift( $submenu[ $parent_slug ], $new_sub_menu );
 		} else {
@@ -1480,7 +1480,7 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 	 * Backward-compatibility for plugins using add_management_page().
 	 * See wp-admin/admin.php for redirect from edit.php to tools.php.
 	 */
-	if ( 'tools.php' === $parent_slug ) {
+	if ( $parent_slug === 'tools.php' ) {
 		$_registered_pages[ get_plugin_page_hookname( $menu_slug, 'edit.php' ) ] = true;
 	}
 
@@ -1884,7 +1884,7 @@ function get_admin_page_parent( $parent_page = '' ) {
 	global $parent_file, $menu, $submenu, $pagenow, $typenow,
 		$plugin_page, $_wp_real_parent_file, $_wp_menu_nopriv, $_wp_submenu_nopriv;
 
-	if ( ! empty( $parent_page ) && 'admin.php' !== $parent_page ) {
+	if ( ! empty( $parent_page ) && $parent_page !== 'admin.php' ) {
 		if ( isset( $_wp_real_parent_file[ $parent_page ] ) ) {
 			$parent_page = $_wp_real_parent_file[ $parent_page ];
 		}
@@ -1892,7 +1892,7 @@ function get_admin_page_parent( $parent_page = '' ) {
 		return $parent_page;
 	}
 
-	if ( 'admin.php' === $pagenow && isset( $plugin_page ) ) {
+	if ( $pagenow === 'admin.php' && isset( $plugin_page ) ) {
 		foreach ( (array) $menu as $parent_menu ) {
 			if ( $parent_menu[2] === $plugin_page ) {
 				$parent_file = $plugin_page;
@@ -1935,7 +1935,7 @@ function get_admin_page_parent( $parent_page = '' ) {
 				$parent_file = $parent_page;
 				return $parent_page;
 			} elseif ( empty( $typenow ) && $pagenow === $submenu_array[2]
-				&& ( empty( $parent_file ) || false === strpos( $parent_file, '?' ) )
+				&& ( empty( $parent_file ) || strpos( $parent_file, '?' ) === false )
 			) {
 				$parent_file = $parent_page;
 				return $parent_page;
@@ -2001,7 +2001,7 @@ function get_admin_page_title() {
 					&& ( $pagenow === $parent
 						|| $plugin_page === $parent
 						|| $plugin_page === $hook
-						|| 'admin.php' === $pagenow && $parent1 !== $submenu_array[2]
+						|| $pagenow === 'admin.php' && $parent1 !== $submenu_array[2]
 						|| ! empty( $typenow ) && "$pagenow?post_type=$typenow" === $parent )
 					) {
 						$title = $submenu_array[3];
@@ -2025,7 +2025,7 @@ function get_admin_page_title() {
 			foreach ( $menu as $menu_array ) {
 				if ( isset( $plugin_page )
 					&& $plugin_page === $menu_array[2]
-					&& 'admin.php' === $pagenow
+					&& $pagenow === 'admin.php'
 					&& $parent1 === $menu_array[2]
 				) {
 						$title = $menu_array[3];
@@ -2075,7 +2075,7 @@ function get_plugin_page_hookname( $plugin_page, $parent_page ) {
 	$parent = get_admin_page_parent( $parent_page );
 
 	$page_type = 'admin';
-	if ( empty( $parent_page ) || 'admin.php' === $parent_page || isset( $admin_page_hooks[ $plugin_page ] ) ) {
+	if ( empty( $parent_page ) || $parent_page === 'admin.php' || isset( $admin_page_hooks[ $plugin_page ] ) ) {
 		if ( isset( $admin_page_hooks[ $plugin_page ] ) ) {
 			$page_type = 'toplevel';
 		} elseif ( isset( $admin_page_hooks[ $parent ] ) ) {
@@ -2214,7 +2214,7 @@ function option_update_filter( $options ) {
  * @return array
  */
 function add_allowed_options( $new_options, $options = '' ) {
-	if ( '' === $options ) {
+	if ( $options === '' ) {
 		global $allowed_options;
 	} else {
 		$allowed_options = $options;
@@ -2227,7 +2227,7 @@ function add_allowed_options( $new_options, $options = '' ) {
 				$allowed_options[ $page ][] = $key;
 			} else {
 				$pos = array_search( $key, $allowed_options[ $page ], true );
-				if ( false === $pos ) {
+				if ( $pos === false ) {
 					$allowed_options[ $page ][] = $key;
 				}
 			}
@@ -2249,7 +2249,7 @@ function add_allowed_options( $new_options, $options = '' ) {
  * @return array
  */
 function remove_allowed_options( $del_options, $options = '' ) {
-	if ( '' === $options ) {
+	if ( $options === '' ) {
 		global $allowed_options;
 	} else {
 		$allowed_options = $options;
@@ -2259,7 +2259,7 @@ function remove_allowed_options( $del_options, $options = '' ) {
 		foreach ( $keys as $key ) {
 			if ( isset( $allowed_options[ $page ] ) && is_array( $allowed_options[ $page ] ) ) {
 				$pos = array_search( $key, $allowed_options[ $page ], true );
-				if ( false !== $pos ) {
+				if ( $pos !== false ) {
 					unset( $allowed_options[ $page ][ $pos ] );
 				}
 			}
@@ -2481,7 +2481,7 @@ function resume_plugin( $plugin, $redirect = '' ) {
  * @global string $pagenow The filename of the current screen.
  */
 function paused_plugins_notice() {
-	if ( 'plugins.php' === $GLOBALS['pagenow'] ) {
+	if ( $GLOBALS['pagenow'] === 'plugins.php' ) {
 		return;
 	}
 
@@ -2515,7 +2515,7 @@ function paused_plugins_notice() {
  * @global string $wp_version The WordPress version string.
  */
 function deactivated_plugins_notice() {
-	if ( 'plugins.php' === $GLOBALS['pagenow'] ) {
+	if ( $GLOBALS['pagenow'] === 'plugins.php' ) {
 		return;
 	}
 
@@ -2526,14 +2526,14 @@ function deactivated_plugins_notice() {
 	$blog_deactivated_plugins = get_option( 'wp_force_deactivated_plugins' );
 	$site_deactivated_plugins = array();
 
-	if ( false === $blog_deactivated_plugins ) {
+	if ( $blog_deactivated_plugins === false ) {
 		// Option not in database, add an empty array to avoid extra DB queries on subsequent loads.
 		update_option( 'wp_force_deactivated_plugins', array() );
 	}
 
 	if ( is_multisite() ) {
 		$site_deactivated_plugins = get_site_option( 'wp_force_deactivated_plugins' );
-		if ( false === $site_deactivated_plugins ) {
+		if ( $site_deactivated_plugins === false ) {
 			// Option not in database, add an empty array to avoid extra DB queries on subsequent loads.
 			update_site_option( 'wp_force_deactivated_plugins', array() );
 		}

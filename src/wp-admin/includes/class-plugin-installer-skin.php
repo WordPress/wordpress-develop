@@ -70,8 +70,8 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	 */
 	public function hide_process_failed( $wp_error ) {
 		if (
-			'upload' === $this->type &&
-			'' === $this->overwrite &&
+			$this->type === 'upload' &&
+			$this->overwrite === '' &&
 			$wp_error->get_error_code() === 'folder_exists'
 		) {
 			return true;
@@ -97,13 +97,13 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 
 		$from = isset( $_GET['from'] ) ? wp_unslash( $_GET['from'] ) : 'plugins';
 
-		if ( 'import' === $from ) {
+		if ( $from === 'import' ) {
 			$install_actions['activate_plugin'] = sprintf(
 				'<a class="button button-primary" href="%s" target="_parent">%s</a>',
 				wp_nonce_url( 'plugins.php?action=activate&amp;from=import&amp;plugin=' . urlencode( $plugin_file ), 'activate-plugin_' . $plugin_file ),
 				__( 'Activate Plugin &amp; Run Importer' )
 			);
-		} elseif ( 'press-this' === $from ) {
+		} elseif ( $from === 'press-this' ) {
 			$install_actions['activate_plugin'] = sprintf(
 				'<a class="button button-primary" href="%s" target="_parent">%s</a>',
 				wp_nonce_url( 'plugins.php?action=activate&amp;from=press-this&amp;plugin=' . urlencode( $plugin_file ), 'activate-plugin_' . $plugin_file ),
@@ -126,19 +126,19 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			unset( $install_actions['activate_plugin'] );
 		}
 
-		if ( 'import' === $from ) {
+		if ( $from === 'import' ) {
 			$install_actions['importers_page'] = sprintf(
 				'<a href="%s" target="_parent">%s</a>',
 				admin_url( 'import.php' ),
 				__( 'Go to Importers' )
 			);
-		} elseif ( 'web' === $this->type ) {
+		} elseif ( $this->type === 'web' ) {
 			$install_actions['plugins_page'] = sprintf(
 				'<a href="%s" target="_parent">%s</a>',
 				self_admin_url( 'plugin-install.php' ),
 				__( 'Go to Plugin Installer' )
 			);
-		} elseif ( 'upload' === $this->type && 'plugins' === $from ) {
+		} elseif ( $this->type === 'upload' && $from === 'plugins' ) {
 			$install_actions['plugins_page'] = sprintf(
 				'<a href="%s">%s</a>',
 				self_admin_url( 'plugin-install.php' ),
@@ -184,7 +184,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	 * @return bool Whether the plugin can be overwritten and HTML was outputted.
 	 */
 	private function do_overwrite() {
-		if ( 'upload' !== $this->type || ! is_wp_error( $this->result ) || 'folder_exists' !== $this->result->get_error_code() ) {
+		if ( $this->type !== 'upload' || ! is_wp_error( $this->result ) || $this->result->get_error_code() !== 'folder_exists' ) {
 			return false;
 		}
 
@@ -232,8 +232,8 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 
 			$is_same_plugin = $is_same_plugin && ( $old_value === $new_value );
 
-			$diff_field   = ( 'Version' !== $field && $new_value !== $old_value );
-			$diff_version = ( 'Version' === $field && $this->is_downgrading );
+			$diff_field   = ( $field !== 'Version' && $new_value !== $old_value );
+			$diff_version = ( $field === 'Version' && $this->is_downgrading );
 
 			$table .= '<tr><td class="name-label">' . $label . '</td><td>' . wp_strip_all_tags( $old_value ) . '</td>';
 			$table .= ( $diff_field || $diff_version ) ? '<td class="warning">' : '<td>';

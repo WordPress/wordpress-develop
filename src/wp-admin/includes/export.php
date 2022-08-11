@@ -97,7 +97,7 @@ function export_wp( $args = array() ) {
 	header( 'Content-Disposition: attachment; filename=' . $filename );
 	header( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ), true );
 
-	if ( 'all' !== $args['content'] && post_type_exists( $args['content'] ) ) {
+	if ( $args['content'] !== 'all' && post_type_exists( $args['content'] ) ) {
 		$ptype = get_post_type_object( $args['content'] );
 		if ( ! $ptype->can_export ) {
 			$args['content'] = 'post';
@@ -112,14 +112,14 @@ function export_wp( $args = array() ) {
 		$where = $wpdb->prepare( "{$wpdb->posts}.post_type IN (" . implode( ',', $esses ) . ')', $post_types );
 	}
 
-	if ( $args['status'] && ( 'post' === $args['content'] || 'page' === $args['content'] ) ) {
+	if ( $args['status'] && ( $args['content'] === 'post' || $args['content'] === 'page' ) ) {
 		$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_status = %s", $args['status'] );
 	} else {
 		$where .= " AND {$wpdb->posts}.post_status != 'auto-draft'";
 	}
 
 	$join = '';
-	if ( $args['category'] && 'post' === $args['content'] ) {
+	if ( $args['category'] && $args['content'] === 'post' ) {
 		$term = term_exists( $args['category'], 'category' );
 		if ( $term ) {
 			$join   = "INNER JOIN {$wpdb->term_relationships} ON ({$wpdb->posts}.ID = {$wpdb->term_relationships}.object_id)";
@@ -155,7 +155,7 @@ function export_wp( $args = array() ) {
 		$cat  = get_term( $term['term_id'], 'category' );
 		$cats = array( $cat->term_id => $cat );
 		unset( $term, $cat );
-	} elseif ( 'all' === $args['content'] ) {
+	} elseif ( $args['content'] === 'all' ) {
 		$categories = (array) get_categories( array( 'get' => 'all' ) );
 		$tags       = (array) get_tags( array( 'get' => 'all' ) );
 
@@ -433,7 +433,7 @@ function export_wp( $args = array() ) {
 	 * @return bool
 	 */
 	function wxr_filter_postmeta( $return_me, $meta_key ) {
-		if ( '_edit_lock' === $meta_key ) {
+		if ( $meta_key === '_edit_lock' ) {
 			$return_me = true;
 		}
 		return $return_me;
@@ -518,7 +518,7 @@ function export_wp( $args = array() ) {
 	</wp:term>
 	<?php endforeach; ?>
 	<?php
-	if ( 'all' === $args['content'] ) {
+	if ( $args['content'] === 'all' ) {
 		wxr_nav_menu_terms();}
 	?>
 
@@ -598,7 +598,7 @@ function export_wp( $args = array() ) {
 		<wp:post_type><?php echo wxr_cdata( $post->post_type ); ?></wp:post_type>
 		<wp:post_password><?php echo wxr_cdata( $post->post_password ); ?></wp:post_password>
 		<wp:is_sticky><?php echo (int) $is_sticky; ?></wp:is_sticky>
-				<?php	if ( 'attachment' === $post->post_type ) : ?>
+				<?php	if ( $post->post_type === 'attachment' ) : ?>
 		<wp:attachment_url><?php echo wxr_cdata( wp_get_attachment_url( $post->ID ) ); ?></wp:attachment_url>
 	<?php endif; ?>
 				<?php wxr_post_taxonomy(); ?>

@@ -210,7 +210,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		$response = wp_remote_post( $http_url, $options );
 	}
 
-	if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+	if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
 		return;
 	}
 
@@ -225,12 +225,12 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 
 	foreach ( $offers as &$offer ) {
 		foreach ( $offer as $offer_key => $value ) {
-			if ( 'packages' === $offer_key ) {
+			if ( $offer_key === 'packages' ) {
 				$offer['packages'] = (object) array_intersect_key(
 					array_map( 'esc_url', $offer['packages'] ),
 					array_fill_keys( array( 'full', 'no_content', 'new_bundled', 'partial', 'rollback' ), '' )
 				);
-			} elseif ( 'download' === $offer_key ) {
+			} elseif ( $offer_key === 'download' ) {
 				$offer['download'] = esc_url( $value );
 			} else {
 				$offer[ $offer_key ] = esc_html( $value );
@@ -448,7 +448,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 		$raw_response = wp_remote_post( $http_url, $options );
 	}
 
-	if ( is_wp_error( $raw_response ) || 200 !== wp_remote_retrieve_response_code( $raw_response ) ) {
+	if ( is_wp_error( $raw_response ) || wp_remote_retrieve_response_code( $raw_response ) !== 200 ) {
 		return;
 	}
 
@@ -728,7 +728,7 @@ function wp_update_themes( $extra_stats = array() ) {
 		$raw_response = wp_remote_post( $http_url, $options );
 	}
 
-	if ( is_wp_error( $raw_response ) || 200 !== wp_remote_retrieve_response_code( $raw_response ) ) {
+	if ( is_wp_error( $raw_response ) || wp_remote_retrieve_response_code( $raw_response ) !== 200 ) {
 		return;
 	}
 

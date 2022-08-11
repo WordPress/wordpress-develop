@@ -220,7 +220,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		$prepared_post->ID = $post->ID;
 		$user_id           = get_current_user_id();
 
-		if ( ( 'draft' === $post->post_status || 'auto-draft' === $post->post_status ) && $post->post_author == $user_id ) {
+		if ( ( $post->post_status === 'draft' || $post->post_status === 'auto-draft' ) && $post->post_author == $user_id ) {
 			// Draft posts for the same author: autosaving updates the post and does not create a revision.
 			// Convert the post object to an array and add slashes, wp_update_post() expects escaped array.
 			$autosave_id = wp_update_post( wp_slash( (array) $prepared_post ), true );
@@ -296,7 +296,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		$revisions = wp_get_post_revisions( $parent_id, array( 'check_enabled' => false ) );
 
 		foreach ( $revisions as $revision ) {
-			if ( false !== strpos( $revision->post_name, "{$parent_id}-autosave" ) ) {
+			if ( strpos( $revision->post_name, "{$parent_id}-autosave" ) !== false ) {
 				$data       = $this->prepare_item_for_response( $revision, $request );
 				$response[] = $this->prepare_response_for_collection( $data );
 			}
@@ -411,10 +411,10 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 
 		if ( in_array( 'preview_link', $fields, true ) ) {
 			$parent_id          = wp_is_post_autosave( $post );
-			$preview_post_id    = false === $parent_id ? $post->ID : $parent_id;
+			$preview_post_id    = $parent_id === false ? $post->ID : $parent_id;
 			$preview_query_args = array();
 
-			if ( false !== $parent_id ) {
+			if ( $parent_id !== false ) {
 				$preview_query_args['preview_id']    = $parent_id;
 				$preview_query_args['preview_nonce'] = wp_create_nonce( 'post_preview_' . $parent_id );
 			}

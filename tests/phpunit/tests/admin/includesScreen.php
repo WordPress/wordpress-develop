@@ -494,7 +494,7 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		$_REQUEST['post_type']  = 'type_shows_in_rest';
 		$GLOBALS['hook_suffix'] = $hook;
 
-		if ( 'post.php' === $hook ) {
+		if ( $hook === 'post.php' ) {
 			$post_id      = $this->factory->post->create(
 				array(
 					'post_type' => 'type_shows_in_rest',
@@ -609,7 +609,7 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		$this->assertSame( 'post', $screen->base );
 		$this->assertSame( 'type_shows_in_rest', $screen->post_type );
 
-		if ( 'post.php' === $hook ) {
+		if ( $hook === 'post.php' ) {
 			$this->assertEmpty( $screen->action );
 		} else {
 			$this->assertSame( 'add', $screen->action );

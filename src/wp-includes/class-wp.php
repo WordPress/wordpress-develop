@@ -175,7 +175,7 @@ class WP {
 
 			$home_path       = parse_url( home_url(), PHP_URL_PATH );
 			$home_path_regex = '';
-			if ( is_string( $home_path ) && '' !== $home_path ) {
+			if ( is_string( $home_path ) && $home_path !== '' ) {
 				$home_path       = trim( $home_path, '/' );
 				$home_path_regex = sprintf( '|^%s|i', preg_quote( $home_path, '|' ) );
 			}
@@ -267,7 +267,7 @@ class WP {
 				parse_str( $query, $perma_query_vars );
 
 				// If we're processing a 404 request, clear the error var since we found something.
-				if ( '404' == $error ) {
+				if ( $error == '404' ) {
 					unset( $error, $_GET['error'] );
 				}
 			}
@@ -429,7 +429,7 @@ class WP {
 		}
 		if ( ! empty( $this->query_vars['error'] ) ) {
 			$status = (int) $this->query_vars['error'];
-			if ( 404 === $status ) {
+			if ( $status === 404 ) {
 				if ( ! is_user_logged_in() ) {
 					$headers = array_merge( $headers, wp_get_nocache_headers() );
 				}
@@ -442,14 +442,14 @@ class WP {
 		} else {
 			// Set the correct content type for feeds.
 			$type = $this->query_vars['feed'];
-			if ( 'feed' === $this->query_vars['feed'] ) {
+			if ( $this->query_vars['feed'] === 'feed' ) {
 				$type = get_default_feed();
 			}
 			$headers['Content-Type'] = feed_content_type( $type ) . '; charset=' . get_option( 'blog_charset' );
 
 			// We're showing a feed, so WP is indeed the only thing that last changed.
 			if ( ! empty( $this->query_vars['withcomments'] )
-				|| false !== strpos( $this->query_vars['feed'], 'comments-' )
+				|| strpos( $this->query_vars['feed'], 'comments-' ) !== false
 				|| ( empty( $this->query_vars['withoutcomments'] )
 					&& ( ! empty( $this->query_vars['p'] )
 						|| ! empty( $this->query_vars['name'] )
@@ -518,7 +518,7 @@ class WP {
 		}
 
 		// If Last-Modified is set to false, it should not be sent (no-cache situation).
-		if ( isset( $headers['Last-Modified'] ) && false === $headers['Last-Modified'] ) {
+		if ( isset( $headers['Last-Modified'] ) && $headers['Last-Modified'] === false ) {
 			unset( $headers['Last-Modified'] );
 
 			if ( ! headers_sent() ) {
@@ -557,7 +557,7 @@ class WP {
 	public function build_query_string() {
 		$this->query_string = '';
 		foreach ( (array) array_keys( $this->query_vars ) as $wpvar ) {
-			if ( '' != $this->query_vars[ $wpvar ] ) {
+			if ( $this->query_vars[ $wpvar ] != '' ) {
 				$this->query_string .= ( strlen( $this->query_string ) < 1 ) ? '' : '&';
 				if ( ! is_scalar( $this->query_vars[ $wpvar ] ) ) { // Discard non-scalars.
 					continue;
@@ -679,7 +679,7 @@ class WP {
 		 * @param bool     $preempt  Whether to short-circuit default header status handling. Default false.
 		 * @param WP_Query $wp_query WordPress Query object.
 		 */
-		if ( false !== apply_filters( 'pre_handle_404', false, $wp_query ) ) {
+		if ( apply_filters( 'pre_handle_404', false, $wp_query ) !== false ) {
 			return;
 		}
 
@@ -710,7 +710,7 @@ class WP {
 				$next = '<!--nextpage-->';
 				if ( $post && ! empty( $this->query_vars['page'] ) ) {
 					// Check if content is actually intended to be paged.
-					if ( false !== strpos( $post->post_content, $next ) ) {
+					if ( strpos( $post->post_content, $next ) !== false ) {
 						$page          = trim( $this->query_vars['page'], '/' );
 						$content_found = (int) $page <= ( substr_count( $post->post_content, $next ) + 1 );
 					} else {

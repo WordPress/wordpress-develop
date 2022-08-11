@@ -153,7 +153,7 @@ final class WP_Recovery_Mode_Cookie_Service {
 		$cookie = base64_decode( $cookie );
 		$parts  = explode( '|', $cookie );
 
-		if ( 4 !== count( $parts ) ) {
+		if ( count( $parts ) !== 4 ) {
 			return new WP_Error( 'invalid_format', __( 'Invalid cookie format.' ) );
 		}
 
@@ -212,7 +212,7 @@ final class WP_Recovery_Mode_Cookie_Service {
 			$auth_key = AUTH_KEY;
 		}
 
-		if ( ! defined( 'AUTH_SALT' ) || AUTH_SALT === 'put your unique phrase here' || AUTH_SALT === $auth_key ) {
+		if ( ! defined( 'AUTH_SALT' ) || AUTH_SALT === 'put your unique phrase here' || $auth_key === AUTH_SALT ) {
 			$auth_salt = get_site_option( 'recovery_mode_auth_salt' );
 
 			if ( ! $auth_salt ) {

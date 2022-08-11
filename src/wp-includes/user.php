@@ -66,7 +66,7 @@ function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 	 */
 	do_action_ref_array( 'wp_authenticate', array( &$credentials['user_login'], &$credentials['user_password'] ) );
 
-	if ( '' === $secure_cookie ) {
+	if ( $secure_cookie === '' ) {
 		$secure_cookie = is_ssl();
 	}
 
@@ -822,11 +822,11 @@ function wp_list_users( $args = array() ) {
 	foreach ( $users as $user_id ) {
 		$user = get_userdata( $user_id );
 
-		if ( $args['exclude_admin'] && 'admin' === $user->display_name ) {
+		if ( $args['exclude_admin'] && $user->display_name === 'admin' ) {
 			continue;
 		}
 
-		if ( $args['show_fullname'] && '' !== $user->first_name && '' !== $user->last_name ) {
+		if ( $args['show_fullname'] && $user->first_name !== '' && $user->last_name !== '' ) {
 			$name = sprintf(
 				/* translators: 1: User's first name, 2: Last name. */
 				_x( '%1$s %2$s', 'Display name based on first name and last name' ),
@@ -843,7 +843,7 @@ function wp_list_users( $args = array() ) {
 			continue; // No need to go further to process HTML.
 		}
 
-		if ( 'list' === $args['style'] ) {
+		if ( $args['style'] === 'list' ) {
 			$return .= '<li>';
 		}
 
@@ -879,7 +879,7 @@ function wp_list_users( $args = array() ) {
 		}
 
 		$return .= $row;
-		$return .= ( 'list' === $args['style'] ) ? '</li>' : ', ';
+		$return .= ( $args['style'] === 'list' ) ? '</li>' : ', ';
 	}
 
 	$return = rtrim( $return, ', ' );
@@ -929,7 +929,7 @@ function get_blogs_of_user( $user_id, $all = false ) {
 	 */
 	$sites = apply_filters( 'pre_get_blogs_of_user', null, $user_id, $all );
 
-	if ( null !== $sites ) {
+	if ( $sites !== null ) {
 		return $sites;
 	}
 
@@ -963,10 +963,10 @@ function get_blogs_of_user( $user_id, $all = false ) {
 	$keys = array_keys( $keys );
 
 	foreach ( $keys as $key ) {
-		if ( 'capabilities' !== substr( $key, -12 ) ) {
+		if ( substr( $key, -12 ) !== 'capabilities' ) {
 			continue;
 		}
-		if ( $wpdb->base_prefix && 0 !== strpos( $key, $wpdb->base_prefix ) ) {
+		if ( $wpdb->base_prefix && strpos( $key, $wpdb->base_prefix ) !== 0 ) {
 			continue;
 		}
 		$site_id = str_replace( array( $wpdb->base_prefix, '_capabilities' ), '', $key );
@@ -1077,7 +1077,7 @@ function is_user_member_of_blog( $user_id = 0, $blog_id = 0 ) {
 	$base_capabilities_key = $wpdb->base_prefix . 'capabilities';
 	$site_capabilities_key = $wpdb->base_prefix . $blog_id . '_capabilities';
 
-	if ( isset( $keys[ $base_capabilities_key ] ) && 1 == $blog_id ) {
+	if ( isset( $keys[ $base_capabilities_key ] ) && $blog_id == 1 ) {
 		return true;
 	}
 
@@ -1220,14 +1220,14 @@ function count_users( $strategy = 'time', $site_id = null ) {
 	 */
 	$pre = apply_filters( 'pre_count_users', null, $strategy, $site_id );
 
-	if ( null !== $pre ) {
+	if ( $pre !== null ) {
 		return $pre;
 	}
 
 	$blog_prefix = $wpdb->get_blog_prefix( $site_id );
 	$result      = array();
 
-	if ( 'time' === $strategy ) {
+	if ( $strategy === 'time' ) {
 		if ( is_multisite() && get_current_blog_id() != $site_id ) {
 			switch_to_blog( $site_id );
 			$avail_roles = wp_roles()->get_names();
@@ -1323,7 +1323,7 @@ function count_users( $strategy = 'time', $site_id = null ) {
  * @return int Number of active users on the network.
  */
 function get_user_count( $network_id = null ) {
-	if ( ! is_multisite() && null !== $network_id ) {
+	if ( ! is_multisite() && $network_id !== null ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
@@ -1347,7 +1347,7 @@ function get_user_count( $network_id = null ) {
  * @return bool Whether the update was successful.
  */
 function wp_maybe_update_user_counts( $network_id = null ) {
-	if ( ! is_multisite() && null !== $network_id ) {
+	if ( ! is_multisite() && $network_id !== null ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
@@ -1380,7 +1380,7 @@ function wp_maybe_update_user_counts( $network_id = null ) {
 function wp_update_user_counts( $network_id = null ) {
 	global $wpdb;
 
-	if ( ! is_multisite() && null !== $network_id ) {
+	if ( ! is_multisite() && $network_id !== null ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
@@ -1428,7 +1428,7 @@ function wp_schedule_update_user_counts() {
  * @return bool Whether the site has a large number of users.
  */
 function wp_is_large_user_count( $network_id = null ) {
-	if ( ! is_multisite() && null !== $network_id ) {
+	if ( ! is_multisite() && $network_id !== null ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
@@ -1619,7 +1619,7 @@ function wp_dropdown_users( $args = '' ) {
 	$fields = array( 'ID', 'user_login' );
 
 	$show = ! empty( $parsed_args['show'] ) ? $parsed_args['show'] : 'display_name';
-	if ( 'display_name_with_login' === $show ) {
+	if ( $show === 'display_name_with_login' ) {
 		$fields[] = 'display_name';
 	} else {
 		$fields[] = $show;
@@ -1682,7 +1682,7 @@ function wp_dropdown_users( $args = '' ) {
 		}
 
 		foreach ( (array) $users as $user ) {
-			if ( 'display_name_with_login' === $show ) {
+			if ( $show === 'display_name_with_login' ) {
 				/* translators: 1: User's display name, 2: User login. */
 				$display = sprintf( _x( '%1$s (%2$s)', 'user dropdown' ), $user->display_name, $user->user_login );
 			} elseif ( ! empty( $user->$show ) ) {
@@ -1735,7 +1735,7 @@ function sanitize_user_field( $field, $value, $user_id, $context ) {
 		$value = (int) $value;
 	}
 
-	if ( 'raw' === $context ) {
+	if ( $context === 'raw' ) {
 		return $value;
 	}
 
@@ -1743,9 +1743,9 @@ function sanitize_user_field( $field, $value, $user_id, $context ) {
 		return $value;
 	}
 
-	$prefixed = false !== strpos( $field, 'user_' );
+	$prefixed = strpos( $field, 'user_' ) !== false;
 
-	if ( 'edit' === $context ) {
+	if ( $context === 'edit' ) {
 		if ( $prefixed ) {
 
 			/** This filter is documented in wp-includes/post.php */
@@ -1766,12 +1766,12 @@ function sanitize_user_field( $field, $value, $user_id, $context ) {
 			$value = apply_filters( "edit_user_{$field}", $value, $user_id );
 		}
 
-		if ( 'description' === $field ) {
+		if ( $field === 'description' ) {
 			$value = esc_html( $value ); // textarea_escaped?
 		} else {
 			$value = esc_attr( $value );
 		}
-	} elseif ( 'db' === $context ) {
+	} elseif ( $context === 'db' ) {
 		if ( $prefixed ) {
 			/** This filter is documented in wp-includes/post.php */
 			$value = apply_filters( "pre_{$field}", $value );
@@ -1813,13 +1813,13 @@ function sanitize_user_field( $field, $value, $user_id, $context ) {
 		}
 	}
 
-	if ( 'user_url' === $field ) {
+	if ( $field === 'user_url' ) {
 		$value = esc_url( $value );
 	}
 
-	if ( 'attribute' === $context ) {
+	if ( $context === 'attribute' ) {
 		$value = esc_attr( $value );
-	} elseif ( 'js' === $context ) {
+	} elseif ( $context === 'js' ) {
 		$value = esc_js( $value );
 	}
 
@@ -2181,7 +2181,7 @@ function wp_insert_user( $userdata ) {
 	 * check if current email and new email are the same, and check `email_exists`
 	 * accordingly.
 	 */
-	if ( ( ! $update || ( ! empty( $old_user_data ) && 0 !== strcasecmp( $user_email, $old_user_data->user_email ) ) )
+	if ( ( ! $update || ( ! empty( $old_user_data ) && strcasecmp( $user_email, $old_user_data->user_email ) !== 0 ) )
 		&& ! defined( 'WP_IMPORTING' )
 		&& email_exists( $user_email )
 	) {
@@ -2294,7 +2294,7 @@ function wp_insert_user( $userdata ) {
 
 	$meta['syntax_highlighting'] = empty( $userdata['syntax_highlighting'] ) ? 'true' : $userdata['syntax_highlighting'];
 
-	$meta['comment_shortcuts'] = empty( $userdata['comment_shortcuts'] ) || 'false' === $userdata['comment_shortcuts'] ? 'false' : 'true';
+	$meta['comment_shortcuts'] = empty( $userdata['comment_shortcuts'] ) || $userdata['comment_shortcuts'] === 'false' ? 'false' : 'true';
 
 	$admin_color         = empty( $userdata['admin_color'] ) ? 'fresh' : $userdata['admin_color'];
 	$meta['admin_color'] = preg_replace( '|[^a-z0-9 _.\-@]|i', '', $admin_color );
@@ -2447,7 +2447,7 @@ function wp_insert_user( $userdata ) {
 		do_action( 'profile_update', $user_id, $old_user_data, $userdata );
 
 		if ( isset( $userdata['spam'] ) && $userdata['spam'] != $old_user_data->spam ) {
-			if ( 1 == $userdata['spam'] ) {
+			if ( $userdata['spam'] == 1 ) {
 				/**
 				 * Fires after the user is marked as a SPAM user.
 				 *
@@ -2712,7 +2712,7 @@ All at ###SITENAME###
 			/** This filter is documented in wp-includes/pluggable.php */
 			$default_cookie_life = apply_filters( 'auth_cookie_expiration', ( 2 * DAY_IN_SECONDS ), $user_id, false );
 			$remember            = false;
-			if ( false !== $logged_in_cookie && ( $logged_in_cookie['expiration'] - time() ) > $default_cookie_life ) {
+			if ( $logged_in_cookie !== false && ( $logged_in_cookie['expiration'] - time() ) > $default_cookie_life ) {
 				$remember = true;
 			}
 
@@ -2975,7 +2975,7 @@ function check_password_reset_key( $key, $login ) {
 	 */
 	$expiration_duration = apply_filters( 'password_reset_expiration', DAY_IN_SECONDS );
 
-	if ( false !== strpos( $user->user_activation_key, ':' ) ) {
+	if ( strpos( $user->user_activation_key, ':' ) !== false ) {
 		list( $pass_request_time, $pass_key ) = explode( ':', $user->user_activation_key, 2 );
 		$expiration_time                      = $pass_request_time + $expiration_duration;
 	} else {
@@ -3312,7 +3312,7 @@ function register_new_user( $user_login, $user_email ) {
 	$user_email = apply_filters( 'user_registration_email', $user_email );
 
 	// Check the username.
-	if ( '' === $sanitized_user_login ) {
+	if ( $sanitized_user_login === '' ) {
 		$errors->add( 'empty_username', __( '<strong>Error:</strong> Please enter a username.' ) );
 	} elseif ( ! validate_username( $user_login ) ) {
 		$errors->add( 'invalid_username', __( '<strong>Error:</strong> This username is invalid because it uses illegal characters. Please enter a valid username.' ) );
@@ -3329,7 +3329,7 @@ function register_new_user( $user_login, $user_email ) {
 	}
 
 	// Check the email address.
-	if ( '' === $user_email ) {
+	if ( $user_email === '' ) {
 		$errors->add( 'empty_email', __( '<strong>Error:</strong> Please type your email address.' ) );
 	} elseif ( ! is_email( $user_email ) ) {
 		$errors->add( 'invalid_email', __( '<strong>Error:</strong> The email address is not correct.' ) );
@@ -3728,7 +3728,7 @@ All at ###SITENAME###
 function new_user_email_admin_notice() {
 	global $pagenow;
 
-	if ( 'profile.php' === $pagenow && isset( $_GET['updated'] ) ) {
+	if ( $pagenow === 'profile.php' && isset( $_GET['updated'] ) ) {
 		$email = get_user_meta( get_current_user_id(), '_new_email', true );
 		if ( $email ) {
 			/* translators: %s: New email address. */
@@ -4008,7 +4008,7 @@ function _wp_privacy_account_request_confirmed( $request_id ) {
 function _wp_privacy_send_request_confirmation_notification( $request_id ) {
 	$request = wp_get_user_request( $request_id );
 
-	if ( ! is_a( $request, 'WP_User_Request' ) || 'request-confirmed' !== $request->status ) {
+	if ( ! is_a( $request, 'WP_User_Request' ) || $request->status !== 'request-confirmed' ) {
 		return;
 	}
 
@@ -4018,9 +4018,9 @@ function _wp_privacy_send_request_confirmation_notification( $request_id ) {
 		return;
 	}
 
-	if ( 'export_personal_data' === $request->action_name ) {
+	if ( $request->action_name === 'export_personal_data' ) {
 		$manage_url = admin_url( 'export-personal-data.php' );
-	} elseif ( 'remove_personal_data' === $request->action_name ) {
+	} elseif ( $request->action_name === 'remove_personal_data' ) {
 		$manage_url = admin_url( 'erase-personal-data.php' );
 	}
 	$action_description = wp_user_request_action_description( $request->action_name );
@@ -4220,7 +4220,7 @@ All at ###SITENAME###
 function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 	$request = wp_get_user_request( $request_id );
 
-	if ( ! is_a( $request, 'WP_User_Request' ) || 'request-completed' !== $request->status ) {
+	if ( ! is_a( $request, 'WP_User_Request' ) || $request->status !== 'request-completed' ) {
 		return;
 	}
 
@@ -4497,10 +4497,10 @@ function _wp_privacy_account_request_confirmed_message( $request_id ) {
 	$message .= '<p>' . __( 'The site administrator has been notified and will fulfill your request as soon as possible.' ) . '</p>';
 
 	if ( $request && in_array( $request->action_name, _wp_privacy_action_request_types(), true ) ) {
-		if ( 'export_personal_data' === $request->action_name ) {
+		if ( $request->action_name === 'export_personal_data' ) {
 			$message  = '<p class="success">' . __( 'Thanks for confirming your export request.' ) . '</p>';
 			$message .= '<p>' . __( 'The site administrator has been notified. You will receive a link to download your export via email when they fulfill your request.' ) . '</p>';
-		} elseif ( 'remove_personal_data' === $request->action_name ) {
+		} elseif ( $request->action_name === 'remove_personal_data' ) {
 			$message  = '<p class="success">' . __( 'Thanks for confirming your erasure request.' ) . '</p>';
 			$message .= '<p>' . __( 'The site administrator has been notified. You will receive an email confirmation when they erase your data.' ) . '</p>';
 		}
@@ -4875,7 +4875,7 @@ function wp_get_user_request( $request_id ) {
 	$request_id = absint( $request_id );
 	$post       = get_post( $request_id );
 
-	if ( ! $post || 'user_request' !== $post->post_type ) {
+	if ( ! $post || $post->post_type !== 'user_request' ) {
 		return false;
 	}
 
@@ -4893,7 +4893,7 @@ function wp_get_user_request( $request_id ) {
  * @return bool
  */
 function wp_is_application_passwords_supported() {
-	return is_ssl() || 'local' === wp_get_environment_type();
+	return is_ssl() || wp_get_environment_type() === 'local';
 }
 
 /**

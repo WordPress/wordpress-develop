@@ -1105,7 +1105,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 		}
 
 		// Both should return 200 for the HTTP response.
-		$should_200 = 'success' === $result_type || 'empty_body' === $result_type;
+		$should_200 = $result_type === 'success' || $result_type === 'empty_body';
 
 		return array(
 			'headers'     => array(),
@@ -1114,7 +1114,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 			'response'    => array( 'code' => ( $should_200 ? 200 : 404 ) ),
 			'status_code' => $should_200 ? 200 : 404,
 			'success'     => $should_200 ? 1 : 0,
-			'body'        => 'success' === $result_type ? $this->get_example_website() : '',
+			'body'        => $result_type === 'success' ? $this->get_example_website() : '',
 		);
 	}
 

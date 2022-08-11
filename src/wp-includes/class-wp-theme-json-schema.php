@@ -46,7 +46,7 @@ class WP_Theme_JSON_Schema {
 			);
 		}
 
-		if ( 1 === $theme_json['version'] ) {
+		if ( $theme_json['version'] === 1 ) {
 			$theme_json = self::migrate_v1_to_v2( $theme_json );
 		}
 
@@ -123,7 +123,7 @@ class WP_Theme_JSON_Schema {
 			$renamed_path  = explode( '.', $renamed );
 			$current_value = _wp_array_get( $settings, $original_path, null );
 
-			if ( null !== $current_value ) {
+			if ( $current_value !== null ) {
 				_wp_array_set( $settings, $renamed_path, $current_value );
 				self::unset_setting_by_path( $settings, $original_path );
 			}

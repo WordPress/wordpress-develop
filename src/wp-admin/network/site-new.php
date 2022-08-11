@@ -33,7 +33,7 @@ get_current_screen()->set_help_sidebar(
 	'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support Forums</a>' ) . '</p>'
 );
 
-if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
+if ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] === 'add-site' ) {
 	check_admin_referer( 'add-blog', '_wpnonce_add-blog' );
 
 	if ( ! is_array( $_POST['blog'] ) ) {
@@ -71,7 +71,7 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 
 	// Handle translation installation for the new site.
 	if ( isset( $_POST['WPLANG'] ) ) {
-		if ( '' === $_POST['WPLANG'] ) {
+		if ( $_POST['WPLANG'] === '' ) {
 			$meta['WPLANG'] = ''; // en_US
 		} elseif ( in_array( $_POST['WPLANG'], get_available_languages(), true ) ) {
 			$meta['WPLANG'] = $_POST['WPLANG'];
@@ -87,7 +87,7 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 		wp_die( __( 'Missing or invalid site address.' ) );
 	}
 
-	if ( isset( $blog['email'] ) && '' === trim( $blog['email'] ) ) {
+	if ( isset( $blog['email'] ) && trim( $blog['email'] ) === '' ) {
 		wp_die( __( 'Missing email address.' ) );
 	}
 
@@ -122,7 +122,7 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 		}
 		$password = wp_generate_password( 12, false );
 		$user_id  = wpmu_create_user( $domain, $password, $email );
-		if ( false === $user_id ) {
+		if ( $user_id === false ) {
 			wp_die( __( 'There was an error creating the user.' ) );
 		}
 
@@ -164,7 +164,7 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 
 if ( isset( $_GET['update'] ) ) {
 	$messages = array();
-	if ( 'added' === $_GET['update'] ) {
+	if ( $_GET['update'] === 'added' ) {
 		$messages[] = sprintf(
 			/* translators: 1: Dashboard URL, 2: Network admin edit URL. */
 			__( 'Site added. <a href="%1$s">Visit Dashboard</a> or <a href="%2$s">Edit Site</a>' ),

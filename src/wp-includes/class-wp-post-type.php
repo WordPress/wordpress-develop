@@ -502,49 +502,49 @@ final class WP_Post_Type {
 		$args['name'] = $this->name;
 
 		// If not set, default to the setting for 'public'.
-		if ( null === $args['publicly_queryable'] ) {
+		if ( $args['publicly_queryable'] === null ) {
 			$args['publicly_queryable'] = $args['public'];
 		}
 
 		// If not set, default to the setting for 'public'.
-		if ( null === $args['show_ui'] ) {
+		if ( $args['show_ui'] === null ) {
 			$args['show_ui'] = $args['public'];
 		}
 
 		// If not set, default rest_namespace to wp/v2 if show_in_rest is true.
-		if ( false === $args['rest_namespace'] && ! empty( $args['show_in_rest'] ) ) {
+		if ( $args['rest_namespace'] === false && ! empty( $args['show_in_rest'] ) ) {
 			$args['rest_namespace'] = 'wp/v2';
 		}
 
 		// If not set, default to the setting for 'show_ui'.
-		if ( null === $args['show_in_menu'] || ! $args['show_ui'] ) {
+		if ( $args['show_in_menu'] === null || ! $args['show_ui'] ) {
 			$args['show_in_menu'] = $args['show_ui'];
 		}
 
 		// If not set, default to the setting for 'show_in_menu'.
-		if ( null === $args['show_in_admin_bar'] ) {
+		if ( $args['show_in_admin_bar'] === null ) {
 			$args['show_in_admin_bar'] = (bool) $args['show_in_menu'];
 		}
 
 		// If not set, default to the setting for 'public'.
-		if ( null === $args['show_in_nav_menus'] ) {
+		if ( $args['show_in_nav_menus'] === null ) {
 			$args['show_in_nav_menus'] = $args['public'];
 		}
 
 		// If not set, default to true if not public, false if public.
-		if ( null === $args['exclude_from_search'] ) {
+		if ( $args['exclude_from_search'] === null ) {
 			$args['exclude_from_search'] = ! $args['public'];
 		}
 
 		// Back compat with quirky handling in version 3.0. #14122.
 		if ( empty( $args['capabilities'] )
-			&& null === $args['map_meta_cap'] && in_array( $args['capability_type'], array( 'post', 'page' ), true )
+			&& $args['map_meta_cap'] === null && in_array( $args['capability_type'], array( 'post', 'page' ), true )
 		) {
 			$args['map_meta_cap'] = true;
 		}
 
 		// If not set, default to false.
-		if ( null === $args['map_meta_cap'] ) {
+		if ( $args['map_meta_cap'] === null ) {
 			$args['map_meta_cap'] = false;
 		}
 
@@ -560,15 +560,15 @@ final class WP_Post_Type {
 			$args['capability_type'] = $args['capability_type'][0];
 		}
 
-		if ( false !== $args['query_var'] ) {
-			if ( true === $args['query_var'] ) {
+		if ( $args['query_var'] !== false ) {
+			if ( $args['query_var'] === true ) {
 				$args['query_var'] = $this->name;
 			} else {
 				$args['query_var'] = sanitize_title_with_dashes( $args['query_var'] );
 			}
 		}
 
-		if ( false !== $args['rewrite'] && ( is_admin() || get_option( 'permalink_structure' ) ) ) {
+		if ( $args['rewrite'] !== false && ( is_admin() || get_option( 'permalink_structure' ) ) ) {
 			if ( ! is_array( $args['rewrite'] ) ) {
 				$args['rewrite'] = array();
 			}
@@ -616,7 +616,7 @@ final class WP_Post_Type {
 				}
 			}
 			unset( $this->supports );
-		} elseif ( false !== $this->supports ) {
+		} elseif ( $this->supports !== false ) {
 			// Add default features.
 			add_post_type_support( $this->name, array( 'title', 'editor' ) );
 		}
@@ -633,11 +633,11 @@ final class WP_Post_Type {
 	public function add_rewrite_rules() {
 		global $wp_rewrite, $wp;
 
-		if ( false !== $this->query_var && $wp && is_post_type_viewable( $this ) ) {
+		if ( $this->query_var !== false && $wp && is_post_type_viewable( $this ) ) {
 			$wp->add_query_var( $this->query_var );
 		}
 
-		if ( false !== $this->rewrite && ( is_admin() || get_option( 'permalink_structure' ) ) ) {
+		if ( $this->rewrite !== false && ( is_admin() || get_option( 'permalink_structure' ) ) ) {
 			if ( $this->hierarchical ) {
 				add_rewrite_tag( "%$this->name%", '(.+?)', $this->query_var ? "{$this->query_var}=" : "post_type=$this->name&pagename=" );
 			} else {
@@ -645,7 +645,7 @@ final class WP_Post_Type {
 			}
 
 			if ( $this->has_archive ) {
-				$archive_slug = true === $this->has_archive ? $this->rewrite['slug'] : $this->has_archive;
+				$archive_slug = $this->has_archive === true ? $this->rewrite['slug'] : $this->has_archive;
 				if ( $this->rewrite['with_front'] ) {
 					$archive_slug = substr( $wp_rewrite->front, 1 ) . $archive_slug;
 				} else {
@@ -726,16 +726,16 @@ final class WP_Post_Type {
 		global $wp, $wp_rewrite, $post_type_meta_caps;
 
 		// Remove query var.
-		if ( false !== $this->query_var ) {
+		if ( $this->query_var !== false ) {
 			$wp->remove_query_var( $this->query_var );
 		}
 
 		// Remove any rewrite rules, permastructs, and rules.
-		if ( false !== $this->rewrite ) {
+		if ( $this->rewrite !== false ) {
 			remove_rewrite_tag( "%$this->name%" );
 			remove_permastruct( $this->name );
 			foreach ( $wp_rewrite->extra_rules_top as $regex => $query ) {
-				if ( false !== strpos( $query, "index.php?post_type=$this->name" ) ) {
+				if ( strpos( $query, "index.php?post_type=$this->name" ) !== false ) {
 					unset( $wp_rewrite->extra_rules_top[ $regex ] );
 				}
 			}

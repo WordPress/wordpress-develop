@@ -81,7 +81,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
-		if ( 'edit' === $request['context'] ) {
+		if ( $request['context'] === 'edit' ) {
 			$types = get_post_types( array( 'show_in_rest' => true ), 'objects' );
 
 			foreach ( $types as $type ) {
@@ -113,7 +113,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 		$types = get_post_types( array( 'show_in_rest' => true ), 'objects' );
 
 		foreach ( $types as $type ) {
-			if ( 'edit' === $request['context'] && ! current_user_can( $type->cap->edit_posts ) ) {
+			if ( $request['context'] === 'edit' && ! current_user_can( $type->cap->edit_posts ) ) {
 				continue;
 			}
 
@@ -151,7 +151,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( 'edit' === $request['context'] && ! current_user_can( $obj->cap->edit_posts ) ) {
+		if ( $request['context'] === 'edit' && ! current_user_can( $obj->cap->edit_posts ) ) {
 			return new WP_Error(
 				'rest_forbidden_context',
 				__( 'Sorry, you are not allowed to edit posts in this post type.' ),

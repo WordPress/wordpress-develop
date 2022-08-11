@@ -381,7 +381,7 @@ function xml_find( $tree, ...$elements ) {
 		#       var_dump( $tree[$i]['name'], $elements[0] );
 		if ( $tree[ $i ]['name'] === $elements[0] ) {
 			#           echo "n == {$n}\n";
-			if ( 1 === $n ) {
+			if ( $n === 1 ) {
 				$out[] = $tree[ $i ];
 			} else {
 				$subtree =& $tree[ $i ]['child'];

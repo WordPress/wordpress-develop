@@ -27,7 +27,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	public function get_items_permissions_check( $request ) {
 		$has_permission = parent::get_items_permissions_check( $request );
 
-		if ( true !== $has_permission ) {
+		if ( $has_permission !== true ) {
 			return $has_permission;
 		}
 
@@ -45,7 +45,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	public function get_item_permissions_check( $request ) {
 		$has_permission = parent::get_item_permissions_check( $request );
 
-		if ( true !== $has_permission ) {
+		if ( $has_permission !== true ) {
 			return $has_permission;
 		}
 
@@ -438,9 +438,9 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 
 		$i = array_search( $menu_id, $nav_menu_option['auto_add'], true );
 
-		if ( $auto_add && false === $i ) {
+		if ( $auto_add && $i === false ) {
 			$nav_menu_option['auto_add'][] = $menu_id;
-		} elseif ( ! $auto_add && false !== $i ) {
+		} elseif ( ! $auto_add && $i !== false ) {
 			array_splice( $nav_menu_option['auto_add'], $i, 1 );
 		}
 
@@ -537,7 +537,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 				'validate_callback' => function ( $locations, $request, $param ) {
 					$valid = rest_validate_request_arg( $locations, $request, $param );
 
-					if ( true !== $valid ) {
+					if ( $valid !== true ) {
 						return $valid;
 					}
 

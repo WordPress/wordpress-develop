@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Back compat hooks.
-if ( 'category' === $taxonomy ) {
+if ( $taxonomy === 'category' ) {
 	/**
 	 * Fires before the Edit Category form.
 	 *
@@ -22,7 +22,7 @@ if ( 'category' === $taxonomy ) {
 	 * @param WP_Term $tag Current category term object.
 	 */
 	do_action_deprecated( 'edit_category_form_pre', array( $tag ), '3.0.0', '{$taxonomy}_pre_edit_form' );
-} elseif ( 'link_category' === $taxonomy ) {
+} elseif ( $taxonomy === 'link_category' ) {
 	/**
 	 * Fires before the Edit Link Category form.
 	 *
@@ -76,7 +76,7 @@ do_action( "{$taxonomy}_pre_edit_form", $tag, $taxonomy ); ?>
 <h1><?php echo $tax->labels->edit_item; ?></h1>
 
 <?php
-$class = ( isset( $msg ) && 5 === $msg ) ? 'error' : 'success';
+$class = ( isset( $msg ) && $msg === 5 ) ? 'error' : 'success';
 
 if ( $message ) {
 	?>
@@ -192,7 +192,7 @@ if ( isset( $tag->name ) ) {
 				$dropdown_args = apply_filters( 'taxonomy_parent_dropdown_args', $dropdown_args, $taxonomy, 'edit' );
 				wp_dropdown_categories( $dropdown_args );
 				?>
-				<?php if ( 'category' === $taxonomy ) : ?>
+				<?php if ( $taxonomy === 'category' ) : ?>
 					<p class="description"><?php _e( 'Categories, unlike tags, can have a hierarchy. You might have a Jazz category, and under that have children categories for Bebop and Big Band. Totally optional.' ); ?></p>
 				<?php else : ?>
 					<p class="description"><?php echo $tax->labels->parent_field_description; ?></p>
@@ -207,7 +207,7 @@ if ( isset( $tag->name ) ) {
 		</tr>
 		<?php
 		// Back compat hooks.
-		if ( 'category' === $taxonomy ) {
+		if ( $taxonomy === 'category' ) {
 			/**
 			 * Fires after the Edit Category form fields are displayed.
 			 *
@@ -217,7 +217,7 @@ if ( isset( $tag->name ) ) {
 			 * @param WP_Term $tag Current category term object.
 			 */
 			do_action_deprecated( 'edit_category_form_fields', array( $tag ), '3.0.0', '{$taxonomy}_edit_form_fields' );
-		} elseif ( 'link_category' === $taxonomy ) {
+		} elseif ( $taxonomy === 'link_category' ) {
 			/**
 			 * Fires after the Edit Link Category form fields are displayed.
 			 *
@@ -259,10 +259,10 @@ if ( isset( $tag->name ) ) {
 	</table>
 <?php
 // Back compat hooks.
-if ( 'category' === $taxonomy ) {
+if ( $taxonomy === 'category' ) {
 	/** This action is documented in wp-admin/edit-tags.php */
 	do_action_deprecated( 'edit_category_form', array( $tag ), '3.0.0', '{$taxonomy}_add_form' );
-} elseif ( 'link_category' === $taxonomy ) {
+} elseif ( $taxonomy === 'link_category' ) {
 	/** This action is documented in wp-admin/edit-tags.php */
 	do_action_deprecated( 'edit_link_category_form', array( $tag ), '3.0.0', '{$taxonomy}_add_form' );
 } else {

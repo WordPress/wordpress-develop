@@ -81,7 +81,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
-		if ( 'edit' === $request['context'] ) {
+		if ( $request['context'] === 'edit' ) {
 			if ( ! empty( $request['type'] ) ) {
 				$taxonomies = get_object_taxonomies( $request['type'], 'objects' );
 			} else {
@@ -126,7 +126,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		$data = array();
 
 		foreach ( $taxonomies as $tax_type => $value ) {
-			if ( empty( $value->show_in_rest ) || ( 'edit' === $request['context'] && ! current_user_can( $value->cap->assign_terms ) ) ) {
+			if ( empty( $value->show_in_rest ) || ( $request['context'] === 'edit' && ! current_user_can( $value->cap->assign_terms ) ) ) {
 				continue;
 			}
 
@@ -160,7 +160,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 				return false;
 			}
 
-			if ( 'edit' === $request['context'] && ! current_user_can( $tax_obj->cap->assign_terms ) ) {
+			if ( $request['context'] === 'edit' && ! current_user_can( $tax_obj->cap->assign_terms ) ) {
 				return new WP_Error(
 					'rest_forbidden_context',
 					__( 'Sorry, you are not allowed to manage terms in this taxonomy.' ),

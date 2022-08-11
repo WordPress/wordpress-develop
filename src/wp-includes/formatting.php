@@ -55,7 +55,7 @@ function wptexturize( $text, $reset = false ) {
 		$apos_flag                       = '<!--apos-->';
 
 	// If there's nothing to do, just stop.
-	if ( empty( $text ) || false === $run_texturize ) {
+	if ( empty( $text ) || $run_texturize === false ) {
 		return $text;
 	}
 
@@ -76,7 +76,7 @@ function wptexturize( $text, $reset = false ) {
 		 * @param bool $run_texturize Whether to short-circuit wptexturize().
 		 */
 		$run_texturize = apply_filters( 'run_wptexturize', $run_texturize );
-		if ( false === $run_texturize ) {
+		if ( $run_texturize === false ) {
 			return $text;
 		}
 
@@ -152,30 +152,30 @@ function wptexturize( $text, $reset = false ) {
 		$spaces               = wp_spaces_regexp();
 
 		// '99' and '99" are ambiguous among other patterns; assume it's an abbreviated year at the end of a quotation.
-		if ( "'" !== $apos || "'" !== $closing_single_quote ) {
+		if ( $apos !== "'" || $closing_single_quote !== "'" ) {
 			$dynamic[ '/\'(\d\d)\'(?=\Z|[.,:;!?)}\-\]]|&gt;|' . $spaces . ')/' ] = $apos_flag . '$1' . $closing_single_quote;
 		}
-		if ( "'" !== $apos || '"' !== $closing_quote ) {
+		if ( $apos !== "'" || $closing_quote !== '"' ) {
 			$dynamic[ '/\'(\d\d)"(?=\Z|[.,:;!?)}\-\]]|&gt;|' . $spaces . ')/' ] = $apos_flag . '$1' . $closing_quote;
 		}
 
 		// '99 '99s '99's (apostrophe)  But never '9 or '99% or '999 or '99.0.
-		if ( "'" !== $apos ) {
+		if ( $apos !== "'" ) {
 			$dynamic['/\'(?=\d\d(?:\Z|(?![%\d]|[.,]\d)))/'] = $apos_flag;
 		}
 
 		// Quoted numbers like '0.42'.
-		if ( "'" !== $opening_single_quote && "'" !== $closing_single_quote ) {
+		if ( $opening_single_quote !== "'" && $closing_single_quote !== "'" ) {
 			$dynamic[ '/(?<=\A|' . $spaces . ')\'(\d[.,\d]*)\'/' ] = $open_sq_flag . '$1' . $closing_single_quote;
 		}
 
 		// Single quote at start, or preceded by (, {, <, [, ", -, or spaces.
-		if ( "'" !== $opening_single_quote ) {
+		if ( $opening_single_quote !== "'" ) {
 			$dynamic[ '/(?<=\A|[([{"\-]|&lt;|' . $spaces . ')\'/' ] = $open_sq_flag;
 		}
 
 		// Apostrophe in a word. No spaces, double apostrophes, or other punctuation.
-		if ( "'" !== $apos ) {
+		if ( $apos !== "'" ) {
 			$dynamic[ '/(?<!' . $spaces . ')\'(?!\Z|[.,:;!?"\'(){}[\]\-]|&[lg]t;|' . $spaces . ')/' ] = $apos_flag;
 		}
 
@@ -184,12 +184,12 @@ function wptexturize( $text, $reset = false ) {
 		$dynamic                      = array();
 
 		// Quoted numbers like "42".
-		if ( '"' !== $opening_quote && '"' !== $closing_quote ) {
+		if ( $opening_quote !== '"' && $closing_quote !== '"' ) {
 			$dynamic[ '/(?<=\A|' . $spaces . ')"(\d[.,\d]*)"/' ] = $open_q_flag . '$1' . $closing_quote;
 		}
 
 		// Double quote at start, or preceded by (, {, <, [, -, or spaces, and not followed by spaces.
-		if ( '"' !== $opening_quote ) {
+		if ( $opening_quote !== '"' ) {
 			$dynamic[ '/(?<=\A|[([{\-]|&lt;|' . $spaces . ')"(?!' . $spaces . ')/' ] = $open_q_flag;
 		}
 
@@ -241,8 +241,8 @@ function wptexturize( $text, $reset = false ) {
 	foreach ( $textarr as &$curl ) {
 		// Only call _wptexturize_pushpop_element if $curl is a delimiter.
 		$first = $curl[0];
-		if ( '<' === $first ) {
-			if ( '<!--' === substr( $curl, 0, 4 ) ) {
+		if ( $first === '<' ) {
+			if ( substr( $curl, 0, 4 ) === '<!--' ) {
 				// This is an HTML comment delimiter.
 				continue;
 			} else {
@@ -253,14 +253,14 @@ function wptexturize( $text, $reset = false ) {
 
 				_wptexturize_pushpop_element( $curl, $no_texturize_tags_stack, $no_texturize_tags );
 			}
-		} elseif ( '' === trim( $curl ) ) {
+		} elseif ( trim( $curl ) === '' ) {
 			// This is a newline between delimiters. Performance improves when we check this.
 			continue;
 
-		} elseif ( '[' === $first && $found_shortcodes && 1 === preg_match( '/^' . $shortcode_regex . '$/', $curl ) ) {
+		} elseif ( $first === '[' && $found_shortcodes && preg_match( '/^' . $shortcode_regex . '$/', $curl ) === 1 ) {
 			// This is a shortcode delimiter.
 
-			if ( '[[' !== substr( $curl, 0, 2 ) && ']]' !== substr( $curl, -2 ) ) {
+			if ( substr( $curl, 0, 2 ) !== '[[' && substr( $curl, -2 ) !== ']]' ) {
 				// Looks like a normal shortcode.
 				_wptexturize_pushpop_element( $curl, $no_texturize_shortcodes_stack, $no_texturize_shortcodes );
 			} else {
@@ -272,23 +272,23 @@ function wptexturize( $text, $reset = false ) {
 
 			$curl = str_replace( $static_characters, $static_replacements, $curl );
 
-			if ( false !== strpos( $curl, "'" ) ) {
+			if ( strpos( $curl, "'" ) !== false ) {
 				$curl = preg_replace( $dynamic_characters['apos'], $dynamic_replacements['apos'], $curl );
 				$curl = wptexturize_primes( $curl, "'", $prime, $open_sq_flag, $closing_single_quote );
 				$curl = str_replace( $apos_flag, $apos, $curl );
 				$curl = str_replace( $open_sq_flag, $opening_single_quote, $curl );
 			}
-			if ( false !== strpos( $curl, '"' ) ) {
+			if ( strpos( $curl, '"' ) !== false ) {
 				$curl = preg_replace( $dynamic_characters['quote'], $dynamic_replacements['quote'], $curl );
 				$curl = wptexturize_primes( $curl, '"', $double_prime, $open_q_flag, $closing_quote );
 				$curl = str_replace( $open_q_flag, $opening_quote, $curl );
 			}
-			if ( false !== strpos( $curl, '-' ) ) {
+			if ( strpos( $curl, '-' ) !== false ) {
 				$curl = preg_replace( $dynamic_characters['dash'], $dynamic_replacements['dash'], $curl );
 			}
 
 			// 9x9 (times), but never 0x9999.
-			if ( 1 === preg_match( '/(?<=\d)x\d/', $curl ) ) {
+			if ( preg_match( '/(?<=\d)x\d/', $curl ) === 1 ) {
 				// Searching for a digit is 10 times more expensive than for the x, so we avoid doing this one!
 				$curl = preg_replace( '/\b(\d(?(?<=0)[\d\.,]+|[\d\.,]*))x(\d[\d\.,]*)\b/', '$1&#215;$2', $curl );
 			}
@@ -326,14 +326,14 @@ function wptexturize_primes( $haystack, $needle, $prime, $open_quote, $close_quo
 	$sentences = explode( $open_quote, $haystack );
 
 	foreach ( $sentences as $key => &$sentence ) {
-		if ( false === strpos( $sentence, $needle ) ) {
+		if ( strpos( $sentence, $needle ) === false ) {
 			continue;
-		} elseif ( 0 !== $key && 0 === substr_count( $sentence, $close_quote ) ) {
+		} elseif ( $key !== 0 && substr_count( $sentence, $close_quote ) === 0 ) {
 			$sentence = preg_replace( $quote_pattern, $flag, $sentence, -1, $count );
 			if ( $count > 1 ) {
 				// This sentence appears to have multiple closing quotes. Attempt Vulcan logic.
 				$sentence = preg_replace( $flag_no_digit, $close_quote, $sentence, -1, $count2 );
-				if ( 0 === $count2 ) {
+				if ( $count2 === 0 ) {
 					// Try looking for a quote followed by a period.
 					$count2 = substr_count( $sentence, "$flag." );
 					if ( $count2 > 0 ) {
@@ -350,7 +350,7 @@ function wptexturize_primes( $haystack, $needle, $prime, $open_quote, $close_quo
 				$sentence = preg_replace( $prime_pattern, $prime, $sentence );
 				$sentence = preg_replace( $flag_after_digit, $prime, $sentence );
 				$sentence = str_replace( $flag, $close_quote, $sentence );
-			} elseif ( 1 == $count ) {
+			} elseif ( $count == 1 ) {
 				// Found only one closing quote candidate, so give it priority over primes.
 				$sentence = str_replace( $flag, $close_quote, $sentence );
 				$sentence = preg_replace( $prime_pattern, $prime, $sentence );
@@ -362,7 +362,7 @@ function wptexturize_primes( $haystack, $needle, $prime, $open_quote, $close_quo
 			$sentence = preg_replace( $prime_pattern, $prime, $sentence );
 			$sentence = preg_replace( $quote_pattern, $close_quote, $sentence );
 		}
-		if ( '"' === $needle && false !== strpos( $sentence, '"' ) ) {
+		if ( $needle === '"' && strpos( $sentence, '"' ) !== false ) {
 			$sentence = str_replace( '"', $close_quote, $sentence );
 		}
 	}
@@ -386,10 +386,10 @@ function wptexturize_primes( $haystack, $needle, $prime, $open_quote, $close_quo
  */
 function _wptexturize_pushpop_element( $text, &$stack, $disabled_elements ) {
 	// Is it an opening tag or closing tag?
-	if ( isset( $text[1] ) && '/' !== $text[1] ) {
+	if ( isset( $text[1] ) && $text[1] !== '/' ) {
 		$opening_tag = true;
 		$name_offset = 1;
-	} elseif ( 0 === count( $stack ) ) {
+	} elseif ( count( $stack ) === 0 ) {
 		// Stack is empty. Just stop.
 		return;
 	} else {
@@ -399,7 +399,7 @@ function _wptexturize_pushpop_element( $text, &$stack, $disabled_elements ) {
 
 	// Parse out the tag name.
 	$space = strpos( $text, ' ' );
-	if ( false === $space ) {
+	if ( $space === false ) {
 		$space = -1;
 	} else {
 		$space -= $name_offset;
@@ -463,7 +463,7 @@ function wpautop( $text, $br = true ) {
 			$start = strpos( $text_part, '<pre' );
 
 			// Malformed HTML?
-			if ( false === $start ) {
+			if ( $start === false ) {
 				$text .= $text_part;
 				continue;
 			}
@@ -593,7 +593,7 @@ function wpautop( $text, $br = true ) {
 	}
 
 	// Restore newlines in all elements.
-	if ( false !== strpos( $text, '<!-- wpnl -->' ) ) {
+	if ( strpos( $text, '<!-- wpnl -->' ) !== false ) {
 		$text = str_replace( array( ' <!-- wpnl --> ', '<!-- wpnl -->' ), "\n", $text );
 	}
 
@@ -756,14 +756,14 @@ function wp_replace_in_html_tags( $haystack, $replace_pairs ) {
 	$changed = false;
 
 	// Optimize when searching for one item.
-	if ( 1 === count( $replace_pairs ) ) {
+	if ( count( $replace_pairs ) === 1 ) {
 		// Extract $needle and $replace.
 		foreach ( $replace_pairs as $needle => $replace ) {
 		}
 
 		// Loop through delimiters (elements) only.
 		for ( $i = 1, $c = count( $textarr ); $i < $c; $i += 2 ) {
-			if ( false !== strpos( $textarr[ $i ], $needle ) ) {
+			if ( strpos( $textarr[ $i ], $needle ) !== false ) {
 				$textarr[ $i ] = str_replace( $needle, $replace, $textarr[ $i ] );
 				$changed       = true;
 			}
@@ -775,7 +775,7 @@ function wp_replace_in_html_tags( $haystack, $replace_pairs ) {
 		// Loop through delimiters (elements) only.
 		for ( $i = 1, $c = count( $textarr ); $i < $c; $i += 2 ) {
 			foreach ( $needles as $needle ) {
-				if ( false !== strpos( $textarr[ $i ], $needle ) ) {
+				if ( strpos( $textarr[ $i ], $needle ) !== false ) {
 					$textarr[ $i ] = strtr( $textarr[ $i ], $replace_pairs );
 					$changed       = true;
 					// After one strtr() break out of the foreach loop and look at next element.
@@ -934,7 +934,7 @@ function seems_utf8( $str ) {
 function _wp_specialchars( $string, $quote_style = ENT_NOQUOTES, $charset = false, $double_encode = false ) {
 	$string = (string) $string;
 
-	if ( 0 === strlen( $string ) ) {
+	if ( strlen( $string ) === 0 ) {
 		return '';
 	}
 
@@ -946,7 +946,7 @@ function _wp_specialchars( $string, $quote_style = ENT_NOQUOTES, $charset = fals
 	// Account for the previous behaviour of the function when the $quote_style is not an accepted value.
 	if ( empty( $quote_style ) ) {
 		$quote_style = ENT_NOQUOTES;
-	} elseif ( ENT_XML1 === $quote_style ) {
+	} elseif ( $quote_style === ENT_XML1 ) {
 		$quote_style = ENT_QUOTES | ENT_XML1;
 	} elseif ( ! in_array( $quote_style, array( ENT_NOQUOTES, ENT_COMPAT, ENT_QUOTES, 'single', 'double' ), true ) ) {
 		$quote_style = ENT_QUOTES;
@@ -968,10 +968,10 @@ function _wp_specialchars( $string, $quote_style = ENT_NOQUOTES, $charset = fals
 
 	$_quote_style = $quote_style;
 
-	if ( 'double' === $quote_style ) {
+	if ( $quote_style === 'double' ) {
 		$quote_style  = ENT_COMPAT;
 		$_quote_style = ENT_COMPAT;
-	} elseif ( 'single' === $quote_style ) {
+	} elseif ( $quote_style === 'single' ) {
 		$quote_style = ENT_NOQUOTES;
 	}
 
@@ -984,7 +984,7 @@ function _wp_specialchars( $string, $quote_style = ENT_NOQUOTES, $charset = fals
 	$string = htmlspecialchars( $string, $quote_style, $charset, $double_encode );
 
 	// Back-compat.
-	if ( 'single' === $_quote_style ) {
+	if ( $_quote_style === 'single' ) {
 		$string = str_replace( "'", '&#039;', $string );
 	}
 
@@ -1014,7 +1014,7 @@ function _wp_specialchars( $string, $quote_style = ENT_NOQUOTES, $charset = fals
 function wp_specialchars_decode( $string, $quote_style = ENT_NOQUOTES ) {
 	$string = (string) $string;
 
-	if ( 0 === strlen( $string ) ) {
+	if ( strlen( $string ) === 0 ) {
 		return '';
 	}
 
@@ -1064,16 +1064,16 @@ function wp_specialchars_decode( $string, $quote_style = ENT_NOQUOTES ) {
 		'/&#x0*26;/i' => '&#x26;',
 	);
 
-	if ( ENT_QUOTES === $quote_style ) {
+	if ( $quote_style === ENT_QUOTES ) {
 		$translation      = array_merge( $single, $double, $others );
 		$translation_preg = array_merge( $single_preg, $double_preg, $others_preg );
-	} elseif ( ENT_COMPAT === $quote_style || 'double' === $quote_style ) {
+	} elseif ( $quote_style === ENT_COMPAT || $quote_style === 'double' ) {
 		$translation      = array_merge( $double, $others );
 		$translation_preg = array_merge( $double_preg, $others_preg );
-	} elseif ( 'single' === $quote_style ) {
+	} elseif ( $quote_style === 'single' ) {
 		$translation      = array_merge( $single, $others );
 		$translation_preg = array_merge( $single_preg, $others_preg );
-	} elseif ( ENT_NOQUOTES === $quote_style ) {
+	} elseif ( $quote_style === ENT_NOQUOTES ) {
 		$translation      = $others;
 		$translation_preg = $others_preg;
 	}
@@ -1097,7 +1097,7 @@ function wp_specialchars_decode( $string, $quote_style = ENT_NOQUOTES ) {
 function wp_check_invalid_utf8( $string, $strip = false ) {
 	$string = (string) $string;
 
-	if ( 0 === strlen( $string ) ) {
+	if ( strlen( $string ) === 0 ) {
 		return '';
 	}
 
@@ -1122,7 +1122,7 @@ function wp_check_invalid_utf8( $string, $strip = false ) {
 	}
 
 	// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- preg_match fails when it encounters invalid UTF8 in $string.
-	if ( 1 === @preg_match( '/^./us', $string ) ) {
+	if ( @preg_match( '/^./us', $string ) === 1 ) {
 		return $string;
 	}
 
@@ -1954,16 +1954,16 @@ function remove_accents( $string, $locale = '' ) {
 			$chars['Ü'] = 'Ue';
 			$chars['ü'] = 'ue';
 			$chars['ß'] = 'ss';
-		} elseif ( 'da_DK' === $locale ) {
+		} elseif ( $locale === 'da_DK' ) {
 			$chars['Æ'] = 'Ae';
 			$chars['æ'] = 'ae';
 			$chars['Ø'] = 'Oe';
 			$chars['ø'] = 'oe';
 			$chars['Å'] = 'Aa';
 			$chars['å'] = 'aa';
-		} elseif ( 'ca' === $locale ) {
+		} elseif ( $locale === 'ca' ) {
 			$chars['l·l'] = 'll';
-		} elseif ( 'sr_RS' === $locale || 'bs_BA' === $locale ) {
+		} elseif ( $locale === 'sr_RS' || $locale === 'bs_BA' ) {
 			$chars['Đ'] = 'DJ';
 			$chars['đ'] = 'dj';
 		}
@@ -2048,7 +2048,7 @@ function sanitize_file_name( $filename ) {
 	$filename = preg_replace( '/[\r\n\t -]+/', '-', $filename );
 	$filename = trim( $filename, '.-_' );
 
-	if ( false === strpos( $filename, '.' ) ) {
+	if ( strpos( $filename, '.' ) === false ) {
 		$mime_types = wp_get_mime_types();
 		$filetype   = wp_check_filetype( 'test.' . $filename, $mime_types );
 		if ( $filetype['ext'] === $filename ) {
@@ -2201,7 +2201,7 @@ function sanitize_key( $key ) {
 function sanitize_title( $title, $fallback_title = '', $context = 'save' ) {
 	$raw_title = $title;
 
-	if ( 'save' === $context ) {
+	if ( $context === 'save' ) {
 		$title = remove_accents( $title );
 	}
 
@@ -2216,7 +2216,7 @@ function sanitize_title( $title, $fallback_title = '', $context = 'save' ) {
 	 */
 	$title = apply_filters( 'sanitize_title', $title, $raw_title, $context );
 
-	if ( '' === $title || false === $title ) {
+	if ( $title === '' || $title === false ) {
 		$title = $fallback_title;
 	}
 
@@ -2270,7 +2270,7 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 
 	$title = strtolower( $title );
 
-	if ( 'save' === $context ) {
+	if ( $context === 'save' ) {
 		// Convert &nbsp, &ndash, and &mdash to hyphens.
 		$title = str_replace( array( '%c2%a0', '%e2%80%93', '%e2%80%94' ), '-', $title );
 		// Convert &nbsp, &ndash, and &mdash HTML entities to hyphens.
@@ -2414,7 +2414,7 @@ function sanitize_html_class( $class, $fallback = '' ) {
 	// Limit to A-Z, a-z, 0-9, '_', '-'.
 	$sanitized = preg_replace( '/[^A-Za-z0-9_-]/', '', $sanitized );
 
-	if ( '' === $sanitized && $fallback ) {
+	if ( $sanitized === '' && $fallback ) {
 		return sanitize_html_class( $fallback );
 	}
 	/**
@@ -2596,7 +2596,7 @@ function force_balance_tags( $text ) {
 		$is_single_tag     = in_array( $tag, $single_tags, true );
 		$pre_attribute_ws  = isset( $regex[4] ) ? $regex[4] : '';
 		$attributes        = trim( isset( $regex[5] ) ? $regex[5] : $regex[3] );
-		$has_self_closer   = '/' === substr( $attributes, -1 );
+		$has_self_closer   = substr( $attributes, -1 ) === '/';
 
 		$newtext .= $tagqueue;
 
@@ -2867,11 +2867,11 @@ function antispambot( $email_address, $hex_encoding = 0 ) {
 	$email_no_spam_address = '';
 	for ( $i = 0, $len = strlen( $email_address ); $i < $len; $i++ ) {
 		$j = rand( 0, 1 + $hex_encoding );
-		if ( 0 == $j ) {
+		if ( $j == 0 ) {
 			$email_no_spam_address .= '&#' . ord( $email_address[ $i ] ) . ';';
-		} elseif ( 1 == $j ) {
+		} elseif ( $j == 1 ) {
 			$email_no_spam_address .= $email_address[ $i ];
-		} elseif ( 2 == $j ) {
+		} elseif ( $j == 2 ) {
 			$email_no_spam_address .= '%' . zeroise( dechex( ord( $email_address[ $i ] ) ), 2 );
 		}
 	}
@@ -2893,7 +2893,7 @@ function antispambot( $email_address, $hex_encoding = 0 ) {
 function _make_url_clickable_cb( $matches ) {
 	$url = $matches[2];
 
-	if ( ')' === $matches[3] && strpos( $url, '(' ) ) {
+	if ( $matches[3] === ')' && strpos( $url, '(' ) ) {
 		// If the trailing character is a closing parethesis, and the URL has an opening parenthesis in it,
 		// add the closing parenthesis to the URL. Then we can let the parenthesis balancer do its thing below.
 		$url   .= $matches[3];
@@ -2913,7 +2913,7 @@ function _make_url_clickable_cb( $matches ) {
 		return $matches[0];
 	}
 
-	if ( 'comment_text' === current_filter() ) {
+	if ( current_filter() === 'comment_text' ) {
 		$rel = 'nofollow ugc';
 	} else {
 		$rel = 'nofollow';
@@ -2961,7 +2961,7 @@ function _make_web_ftp_clickable_cb( $matches ) {
 		return $matches[0];
 	}
 
-	if ( 'comment_text' === current_filter() ) {
+	if ( current_filter() === 'comment_text' ) {
 		$rel = 'nofollow ugc';
 	} else {
 		$rel = 'nofollow';
@@ -3009,11 +3009,11 @@ function make_clickable( $text ) {
 
 		if ( preg_match( '|^<code[\s>]|i', $piece ) || preg_match( '|^<pre[\s>]|i', $piece ) || preg_match( '|^<script[\s>]|i', $piece ) || preg_match( '|^<style[\s>]|i', $piece ) ) {
 			$nested_code_pre++;
-		} elseif ( $nested_code_pre && ( '</code>' === strtolower( $piece ) || '</pre>' === strtolower( $piece ) || '</script>' === strtolower( $piece ) || '</style>' === strtolower( $piece ) ) ) {
+		} elseif ( $nested_code_pre && ( strtolower( $piece ) === '</code>' || strtolower( $piece ) === '</pre>' || strtolower( $piece ) === '</script>' || strtolower( $piece ) === '</style>' ) ) {
 			$nested_code_pre--;
 		}
 
-		if ( $nested_code_pre || empty( $piece ) || ( '<' === $piece[0] && ! preg_match( '|^<\s*[\w]{1,20}+://|', $piece ) ) ) {
+		if ( $nested_code_pre || empty( $piece ) || ( $piece[0] === '<' && ! preg_match( '|^<\s*[\w]{1,20}+://|', $piece ) ) ) {
 			$r .= $piece;
 			continue;
 		}
@@ -3099,9 +3099,9 @@ function _split_str_by_whitespace( $string, $goal ) {
 	while ( $goal < strlen( $string_nullspace ) ) {
 		$pos = strrpos( substr( $string_nullspace, 0, $goal + 1 ), "\000" );
 
-		if ( false === $pos ) {
+		if ( $pos === false ) {
 			$pos = strpos( $string_nullspace, "\000", $goal + 1 );
-			if ( false === $pos ) {
+			if ( $pos === false ) {
 				break;
 			}
 		}
@@ -3150,7 +3150,7 @@ function wp_rel_callback( $matches, $rel ) {
 
 		$html = '';
 		foreach ( $atts as $name => $value ) {
-			if ( isset( $value['vless'] ) && 'y' === $value['vless'] ) {
+			if ( isset( $value['vless'] ) && $value['vless'] === 'y' ) {
 				$html .= $name . ' ';
 			} else {
 				$html .= "{$name}=\"" . esc_attr( $value['value'] ) . '" ';
@@ -3429,17 +3429,17 @@ function convert_smilies( $text ) {
 			$content = $textarr[ $i ];
 
 			// If we're in an ignore block, wait until we find its closing tag.
-			if ( '' === $ignore_block_element && preg_match( '/^<(' . $tags_to_ignore . ')[^>]*>/', $content, $matches ) ) {
+			if ( $ignore_block_element === '' && preg_match( '/^<(' . $tags_to_ignore . ')[^>]*>/', $content, $matches ) ) {
 				$ignore_block_element = $matches[1];
 			}
 
 			// If it's not a tag and not in ignore block.
-			if ( '' === $ignore_block_element && strlen( $content ) > 0 && '<' !== $content[0] ) {
+			if ( $ignore_block_element === '' && strlen( $content ) > 0 && $content[0] !== '<' ) {
 				$content = preg_replace_callback( $wp_smiliessearch, 'translate_smiley', $content );
 			}
 
 			// Did we exit ignore block?
-			if ( '' !== $ignore_block_element && '</' . $ignore_block_element . '>' === $content ) {
+			if ( $ignore_block_element !== '' && $content === '</' . $ignore_block_element . '>' ) {
 				$ignore_block_element = '';
 			}
 
@@ -3590,7 +3590,7 @@ function _wp_iso_convert( $match ) {
 function get_gmt_from_date( $string, $format = 'Y-m-d H:i:s' ) {
 	$datetime = date_create( $string, wp_timezone() );
 
-	if ( false === $datetime ) {
+	if ( $datetime === false ) {
 		return gmdate( $format, 0 );
 	}
 
@@ -3612,7 +3612,7 @@ function get_gmt_from_date( $string, $format = 'Y-m-d H:i:s' ) {
 function get_date_from_gmt( $string, $format = 'Y-m-d H:i:s' ) {
 	$datetime = date_create( $string, new DateTimeZone( 'UTC' ) );
 
-	if ( false === $datetime ) {
+	if ( $datetime === false ) {
 		return gmdate( $format, 0 );
 	}
 
@@ -3629,10 +3629,10 @@ function get_date_from_gmt( $string, $format = 'Y-m-d H:i:s' ) {
  */
 function iso8601_timezone_to_offset( $timezone ) {
 	// $timezone is either 'Z' or '[+|-]hhmm'.
-	if ( 'Z' === $timezone ) {
+	if ( $timezone === 'Z' ) {
 		$offset = 0;
 	} else {
-		$sign    = ( '+' === substr( $timezone, 0, 1 ) ) ? 1 : -1;
+		$sign    = ( substr( $timezone, 0, 1 ) === '+' ) ? 1 : -1;
 		$hours   = (int) substr( $timezone, 1, 2 );
 		$minutes = (int) substr( $timezone, 3, 4 ) / 60;
 		$offset  = $sign * HOUR_IN_SECONDS * ( $hours + $minutes );
@@ -3654,15 +3654,15 @@ function iso8601_to_datetime( $date_string, $timezone = 'user' ) {
 	$wp_timezone = wp_timezone();
 	$datetime    = date_create( $date_string, $wp_timezone ); // Timezone is ignored if input has one.
 
-	if ( false === $datetime ) {
+	if ( $datetime === false ) {
 		return false;
 	}
 
-	if ( 'gmt' === $timezone ) {
+	if ( $timezone === 'gmt' ) {
 		return $datetime->setTimezone( new DateTimeZone( 'UTC' ) )->format( 'Y-m-d H:i:s' );
 	}
 
-	if ( 'user' === $timezone ) {
+	if ( $timezone === 'user' ) {
 		return $datetime->setTimezone( $wp_timezone )->format( 'Y-m-d H:i:s' );
 	}
 
@@ -3708,7 +3708,7 @@ function sanitize_email( $email ) {
 	// LOCAL PART
 	// Test for invalid characters.
 	$local = preg_replace( '/[^a-zA-Z0-9!#$%&\'*+\/=?^_`{|}~\.-]/', '', $local );
-	if ( '' === $local ) {
+	if ( $local === '' ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'sanitize_email', '', $email, 'local_invalid_chars' );
 	}
@@ -3716,14 +3716,14 @@ function sanitize_email( $email ) {
 	// DOMAIN PART
 	// Test for sequences of periods.
 	$domain = preg_replace( '/\.{2,}/', '', $domain );
-	if ( '' === $domain ) {
+	if ( $domain === '' ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'sanitize_email', '', $email, 'domain_period_sequence' );
 	}
 
 	// Test for leading and trailing periods and whitespace.
 	$domain = trim( $domain, " \t\n\r\0\x0B." );
-	if ( '' === $domain ) {
+	if ( $domain === '' ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'sanitize_email', '', $email, 'domain_period_limits' );
 	}
@@ -3749,7 +3749,7 @@ function sanitize_email( $email ) {
 		$sub = preg_replace( '/[^a-z0-9-]+/i', '', $sub );
 
 		// If there's anything left, add it to the valid subs.
-		if ( '' !== $sub ) {
+		if ( $sub !== '' ) {
 			$new_subs[] = $sub;
 		}
 	}
@@ -3873,7 +3873,7 @@ function human_time_diff( $from, $to = 0 ) {
 function wp_trim_excerpt( $text = '', $post = null ) {
 	$raw_excerpt = $text;
 
-	if ( '' === trim( $text ) ) {
+	if ( trim( $text ) === '' ) {
 		$post = get_post( $post );
 		$text = get_the_content( '', false, $post );
 
@@ -3933,7 +3933,7 @@ function wp_trim_excerpt( $text = '', $post = null ) {
  * @return string Trimmed text.
  */
 function wp_trim_words( $text, $num_words = 55, $more = null ) {
-	if ( null === $more ) {
+	if ( $more === null ) {
 		$more = __( '&hellip;' );
 	}
 
@@ -3998,7 +3998,7 @@ function ent2ncr( $text ) {
 	 * @param string      $text           The text prior to entity conversion.
 	 */
 	$filtered = apply_filters( 'pre_ent2ncr', null, $text );
-	if ( null !== $filtered ) {
+	if ( $filtered !== null ) {
 		return $filtered;
 	}
 
@@ -4369,18 +4369,18 @@ function esc_sql( $data ) {
 function esc_url( $url, $protocols = null, $_context = 'display' ) {
 	$original_url = $url;
 
-	if ( '' === $url ) {
+	if ( $url === '' ) {
 		return $url;
 	}
 
 	$url = str_replace( ' ', '%20', ltrim( $url ) );
 	$url = preg_replace( '|[^a-z0-9-~+_.?#=!&;,/:%@$\|*\'()\[\]\\x80-\\xff]|i', '', $url );
 
-	if ( '' === $url ) {
+	if ( $url === '' ) {
 		return $url;
 	}
 
-	if ( 0 !== stripos( $url, 'mailto:' ) ) {
+	if ( stripos( $url, 'mailto:' ) !== 0 ) {
 		$strip = array( '%0d', '%0a', '%0D', '%0A' );
 		$url   = _deep_replace( $strip, $url );
 	}
@@ -4397,20 +4397,20 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
 	}
 
 	// Replace ampersands and single quotes only when displaying.
-	if ( 'display' === $_context ) {
+	if ( $_context === 'display' ) {
 		$url = wp_kses_normalize_entities( $url );
 		$url = str_replace( '&amp;', '&#038;', $url );
 		$url = str_replace( "'", '&#039;', $url );
 	}
 
-	if ( ( false !== strpos( $url, '[' ) ) || ( false !== strpos( $url, ']' ) ) ) {
+	if ( ( strpos( $url, '[' ) !== false ) || ( strpos( $url, ']' ) !== false ) ) {
 
 		$parsed = wp_parse_url( $url );
 		$front  = '';
 
 		if ( isset( $parsed['scheme'] ) ) {
 			$front .= $parsed['scheme'] . '://';
-		} elseif ( '/' === $url[0] ) {
+		} elseif ( $url[0] === '/' ) {
 			$front .= '//';
 		}
 
@@ -4440,7 +4440,7 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
 
 	}
 
-	if ( '/' === $url[0] ) {
+	if ( $url[0] === '/' ) {
 		$good_protocol_url = $url;
 	} else {
 		if ( ! is_array( $protocols ) ) {
@@ -4787,7 +4787,7 @@ function sanitize_option( $option, $value ) {
 		case 'default_ping_status':
 		case 'default_comment_status':
 			// Options that if not there have 0 value but need to be something like "closed".
-			if ( '0' == $value || '' === $value ) {
+			if ( $value == '0' || $value === '' ) {
 				$value = 'closed';
 			}
 			break;
@@ -4812,7 +4812,7 @@ function sanitize_option( $option, $value ) {
 
 		case 'blog_public':
 			// This is the value if the settings checkbox is not checked on POST. Don't rely on this.
-			if ( null === $value ) {
+			if ( $value === null ) {
 				$value = 1;
 			} else {
 				$value = (int) $value;
@@ -4873,7 +4873,7 @@ function sanitize_option( $option, $value ) {
 
 		case 'WPLANG':
 			$allowed = get_available_languages();
-			if ( ! is_multisite() && defined( 'WPLANG' ) && '' !== WPLANG && 'en_US' !== WPLANG ) {
+			if ( ! is_multisite() && defined( 'WPLANG' ) && WPLANG !== '' && WPLANG !== 'en_US' ) {
 				$allowed[] = WPLANG;
 			}
 			if ( ! in_array( $value, $allowed, true ) && ! empty( $value ) ) {
@@ -4940,8 +4940,8 @@ function sanitize_option( $option, $value ) {
 				$value = str_replace( 'http://', '', $value );
 			}
 
-			if ( 'permalink_structure' === $option && null === $error
-				&& '' !== $value && ! preg_match( '/%[^\/%]+%/', $value )
+			if ( $option === 'permalink_structure' && $error === null
+				&& $value !== '' && ! preg_match( '/%[^\/%]+%/', $value )
 			) {
 				$error = sprintf(
 					/* translators: %s: Documentation URL. */
@@ -4971,8 +4971,8 @@ function sanitize_option( $option, $value ) {
 			break;
 	}
 
-	if ( null !== $error ) {
-		if ( '' === $error && is_wp_error( $value ) ) {
+	if ( $error !== null ) {
+		if ( $error === '' && is_wp_error( $value ) ) {
 			/* translators: 1: Option name, 2: Error code. */
 			$error = sprintf( __( 'Could not sanitize the %1$s option. Error code: %2$s' ), $option, $value->get_error_code() );
 		}
@@ -5068,7 +5068,7 @@ function wp_pre_kses_less_than( $text ) {
  * @return string The text returned after esc_html if needed.
  */
 function wp_pre_kses_less_than_callback( $matches ) {
-	if ( false === strpos( $matches[0], '>' ) ) {
+	if ( strpos( $matches[0], '>' ) === false ) {
 		return esc_html( $matches[0] );
 	}
 	return $matches[0];
@@ -5125,7 +5125,7 @@ function wp_sprintf( $pattern, ...$args ) {
 		}
 
 		// Literal %: append and continue.
-		if ( '%%' === substr( $pattern, $start, 2 ) ) {
+		if ( substr( $pattern, $start, 2 ) === '%%' ) {
 			$start  += 2;
 			$result .= '%';
 			continue;
@@ -5133,13 +5133,13 @@ function wp_sprintf( $pattern, ...$args ) {
 
 		// Get fragment before next %.
 		$end = strpos( $pattern, '%', $start + 1 );
-		if ( false === $end ) {
+		if ( $end === false ) {
 			$end = $len;
 		}
 		$fragment = substr( $pattern, $start, $end - $start );
 
 		// Fragment has a specifier.
-		if ( '%' === $pattern[ $start ] ) {
+		if ( $pattern[ $start ] === '%' ) {
 			// Find numbered arguments or take the next one in order.
 			if ( preg_match( '/^%(\d+)\$/', $fragment, $matches ) ) {
 				$index    = $matches[1] - 1; // 0-based array vs 1-based sprintf() arguments.
@@ -5191,7 +5191,7 @@ function wp_sprintf( $pattern, ...$args ) {
  */
 function wp_sprintf_l( $pattern, $args ) {
 	// Not a match.
-	if ( '%l' !== substr( $pattern, 0, 2 ) ) {
+	if ( substr( $pattern, 0, 2 ) !== '%l' ) {
 		return $pattern;
 	}
 
@@ -5234,7 +5234,7 @@ function wp_sprintf_l( $pattern, $args ) {
 	while ( $i ) {
 		$arg = array_shift( $args );
 		$i--;
-		if ( 0 == $i ) {
+		if ( $i == 0 ) {
 			$result .= $l['between_last_two'] . $arg;
 		} else {
 			$result .= $l['between'] . $arg;
@@ -5259,7 +5259,7 @@ function wp_sprintf_l( $pattern, $args ) {
  * @return string The excerpt.
  */
 function wp_html_excerpt( $str, $count, $more = null ) {
-	if ( null === $more ) {
+	if ( $more === null ) {
 		$more = '';
 	}
 
@@ -5535,12 +5535,12 @@ function wp_basename( $path, $suffix = '' ) {
 function capital_P_dangit( $text ) {
 	// Simple replacement for titles.
 	$current_filter = current_filter();
-	if ( 'the_title' === $current_filter || 'wp_title' === $current_filter ) {
+	if ( $current_filter === 'the_title' || $current_filter === 'wp_title' ) {
 		return str_replace( 'Wordpress', 'WordPress', $text );
 	}
 	// Still here? Use the more judicious replacement.
 	static $dblq = false;
-	if ( false === $dblq ) {
+	if ( $dblq === false ) {
 		$dblq = _x( '&#8220;', 'opening curly double quote' );
 	}
 	return str_replace(
@@ -5828,7 +5828,7 @@ function wp_encode_emoji( $content ) {
 
 	foreach ( $emoji as $emojum ) {
 		$emoji_char = html_entity_decode( $emojum );
-		if ( false !== strpos( $content, $emoji_char ) ) {
+		if ( strpos( $content, $emoji_char ) !== false ) {
 			$content = preg_replace( "/$emoji_char/", $emojum, $content );
 		}
 	}
@@ -5845,7 +5845,7 @@ function wp_encode_emoji( $content ) {
  * @return string The encoded content.
  */
 function wp_staticize_emoji( $text ) {
-	if ( false === strpos( $text, '&#x' ) ) {
+	if ( strpos( $text, '&#x' ) === false ) {
 		if ( ( function_exists( 'mb_check_encoding' ) && mb_check_encoding( $text, 'ASCII' ) ) || ! preg_match( '/[^\x00-\x7F]/', $text ) ) {
 			// The text doesn't contain anything that might be emoji, so we can return early.
 			return $text;
@@ -5864,7 +5864,7 @@ function wp_staticize_emoji( $text ) {
 	// Quickly narrow down the list of emoji that might be in the text and need replacing.
 	$possible_emoji = array();
 	foreach ( $emoji as $emojum ) {
-		if ( false !== strpos( $text, $emojum ) ) {
+		if ( strpos( $text, $emojum ) !== false ) {
 			$possible_emoji[ $emojum ] = html_entity_decode( $emojum );
 		}
 	}
@@ -5897,14 +5897,14 @@ function wp_staticize_emoji( $text ) {
 		$content = $textarr[ $i ];
 
 		// If we're in an ignore block, wait until we find its closing tag.
-		if ( '' === $ignore_block_element && preg_match( '/^<(' . $tags_to_ignore . ')>/', $content, $matches ) ) {
+		if ( $ignore_block_element === '' && preg_match( '/^<(' . $tags_to_ignore . ')>/', $content, $matches ) ) {
 			$ignore_block_element = $matches[1];
 		}
 
 		// If it's not a tag and not in ignore block.
-		if ( '' === $ignore_block_element && strlen( $content ) > 0 && '<' !== $content[0] && false !== strpos( $content, '&#x' ) ) {
+		if ( $ignore_block_element === '' && strlen( $content ) > 0 && $content[0] !== '<' && strpos( $content, '&#x' ) !== false ) {
 			foreach ( $possible_emoji as $emojum => $emoji_char ) {
-				if ( false === strpos( $content, $emojum ) ) {
+				if ( strpos( $content, $emojum ) === false ) {
 					continue;
 				}
 
@@ -5918,7 +5918,7 @@ function wp_staticize_emoji( $text ) {
 		}
 
 		// Did we exit ignore block?
-		if ( '' !== $ignore_block_element && '</' . $ignore_block_element . '>' === $content ) {
+		if ( $ignore_block_element !== '' && $content === '</' . $ignore_block_element . '>' ) {
 			$ignore_block_element = '';
 		}
 
@@ -5972,7 +5972,7 @@ function wp_staticize_emoji_for_email( $mail ) {
 		$name    = trim( $name );
 		$content = trim( $content );
 
-		if ( 'content-type' === strtolower( $name ) ) {
+		if ( strtolower( $name ) === 'content-type' ) {
 			if ( strpos( $content, ';' ) !== false ) {
 				list( $type, $charset ) = explode( ';', $content );
 				$content_type           = trim( $type );
@@ -5991,7 +5991,7 @@ function wp_staticize_emoji_for_email( $mail ) {
 	/** This filter is documented in wp-includes/pluggable.php */
 	$content_type = apply_filters( 'wp_mail_content_type', $content_type );
 
-	if ( 'text/html' === $content_type ) {
+	if ( $content_type === 'text/html' ) {
 		$mail['message'] = wp_staticize_emoji( $mail['message'] );
 	}
 
@@ -6018,7 +6018,7 @@ function _wp_emoji_list( $type = 'entities' ) {
 	$partials = array( '&#x1f004;', '&#x1f0cf;', '&#x1f170;', '&#x1f171;', '&#x1f17e;', '&#x1f17f;', '&#x1f18e;', '&#x1f191;', '&#x1f192;', '&#x1f193;', '&#x1f194;', '&#x1f195;', '&#x1f196;', '&#x1f197;', '&#x1f198;', '&#x1f199;', '&#x1f19a;', '&#x1f1e6;', '&#x1f1e8;', '&#x1f1e9;', '&#x1f1ea;', '&#x1f1eb;', '&#x1f1ec;', '&#x1f1ee;', '&#x1f1f1;', '&#x1f1f2;', '&#x1f1f4;', '&#x1f1f6;', '&#x1f1f7;', '&#x1f1f8;', '&#x1f1f9;', '&#x1f1fa;', '&#x1f1fc;', '&#x1f1fd;', '&#x1f1ff;', '&#x1f1e7;', '&#x1f1ed;', '&#x1f1ef;', '&#x1f1f3;', '&#x1f1fb;', '&#x1f1fe;', '&#x1f1f0;', '&#x1f1f5;', '&#x1f201;', '&#x1f202;', '&#x1f21a;', '&#x1f22f;', '&#x1f232;', '&#x1f233;', '&#x1f234;', '&#x1f235;', '&#x1f236;', '&#x1f237;', '&#x1f238;', '&#x1f239;', '&#x1f23a;', '&#x1f250;', '&#x1f251;', '&#x1f300;', '&#x1f301;', '&#x1f302;', '&#x1f303;', '&#x1f304;', '&#x1f305;', '&#x1f306;', '&#x1f307;', '&#x1f308;', '&#x1f309;', '&#x1f30a;', '&#x1f30b;', '&#x1f30c;', '&#x1f30d;', '&#x1f30e;', '&#x1f30f;', '&#x1f310;', '&#x1f311;', '&#x1f312;', '&#x1f313;', '&#x1f314;', '&#x1f315;', '&#x1f316;', '&#x1f317;', '&#x1f318;', '&#x1f319;', '&#x1f31a;', '&#x1f31b;', '&#x1f31c;', '&#x1f31d;', '&#x1f31e;', '&#x1f31f;', '&#x1f320;', '&#x1f321;', '&#x1f324;', '&#x1f325;', '&#x1f326;', '&#x1f327;', '&#x1f328;', '&#x1f329;', '&#x1f32a;', '&#x1f32b;', '&#x1f32c;', '&#x1f32d;', '&#x1f32e;', '&#x1f32f;', '&#x1f330;', '&#x1f331;', '&#x1f332;', '&#x1f333;', '&#x1f334;', '&#x1f335;', '&#x1f336;', '&#x1f337;', '&#x1f338;', '&#x1f339;', '&#x1f33a;', '&#x1f33b;', '&#x1f33c;', '&#x1f33d;', '&#x1f33e;', '&#x1f33f;', '&#x1f340;', '&#x1f341;', '&#x1f342;', '&#x1f343;', '&#x1f344;', '&#x1f345;', '&#x1f346;', '&#x1f347;', '&#x1f348;', '&#x1f349;', '&#x1f34a;', '&#x1f34b;', '&#x1f34c;', '&#x1f34d;', '&#x1f34e;', '&#x1f34f;', '&#x1f350;', '&#x1f351;', '&#x1f352;', '&#x1f353;', '&#x1f354;', '&#x1f355;', '&#x1f356;', '&#x1f357;', '&#x1f358;', '&#x1f359;', '&#x1f35a;', '&#x1f35b;', '&#x1f35c;', '&#x1f35d;', '&#x1f35e;', '&#x1f35f;', '&#x1f360;', '&#x1f361;', '&#x1f362;', '&#x1f363;', '&#x1f364;', '&#x1f365;', '&#x1f366;', '&#x1f367;', '&#x1f368;', '&#x1f369;', '&#x1f36a;', '&#x1f36b;', '&#x1f36c;', '&#x1f36d;', '&#x1f36e;', '&#x1f36f;', '&#x1f370;', '&#x1f371;', '&#x1f372;', '&#x1f373;', '&#x1f374;', '&#x1f375;', '&#x1f376;', '&#x1f377;', '&#x1f378;', '&#x1f379;', '&#x1f37a;', '&#x1f37b;', '&#x1f37c;', '&#x1f37d;', '&#x1f37e;', '&#x1f37f;', '&#x1f380;', '&#x1f381;', '&#x1f382;', '&#x1f383;', '&#x1f384;', '&#x1f385;', '&#x1f3fb;', '&#x1f3fc;', '&#x1f3fd;', '&#x1f3fe;', '&#x1f3ff;', '&#x1f386;', '&#x1f387;', '&#x1f388;', '&#x1f389;', '&#x1f38a;', '&#x1f38b;', '&#x1f38c;', '&#x1f38d;', '&#x1f38e;', '&#x1f38f;', '&#x1f390;', '&#x1f391;', '&#x1f392;', '&#x1f393;', '&#x1f396;', '&#x1f397;', '&#x1f399;', '&#x1f39a;', '&#x1f39b;', '&#x1f39e;', '&#x1f39f;', '&#x1f3a0;', '&#x1f3a1;', '&#x1f3a2;', '&#x1f3a3;', '&#x1f3a4;', '&#x1f3a5;', '&#x1f3a6;', '&#x1f3a7;', '&#x1f3a8;', '&#x1f3a9;', '&#x1f3aa;', '&#x1f3ab;', '&#x1f3ac;', '&#x1f3ad;', '&#x1f3ae;', '&#x1f3af;', '&#x1f3b0;', '&#x1f3b1;', '&#x1f3b2;', '&#x1f3b3;', '&#x1f3b4;', '&#x1f3b5;', '&#x1f3b6;', '&#x1f3b7;', '&#x1f3b8;', '&#x1f3b9;', '&#x1f3ba;', '&#x1f3bb;', '&#x1f3bc;', '&#x1f3bd;', '&#x1f3be;', '&#x1f3bf;', '&#x1f3c0;', '&#x1f3c1;', '&#x1f3c2;', '&#x1f3c3;', '&#x200d;', '&#x2640;', '&#xfe0f;', '&#x2642;', '&#x1f3c4;', '&#x1f3c5;', '&#x1f3c6;', '&#x1f3c7;', '&#x1f3c8;', '&#x1f3c9;', '&#x1f3ca;', '&#x1f3cb;', '&#x1f3cc;', '&#x1f3cd;', '&#x1f3ce;', '&#x1f3cf;', '&#x1f3d0;', '&#x1f3d1;', '&#x1f3d2;', '&#x1f3d3;', '&#x1f3d4;', '&#x1f3d5;', '&#x1f3d6;', '&#x1f3d7;', '&#x1f3d8;', '&#x1f3d9;', '&#x1f3da;', '&#x1f3db;', '&#x1f3dc;', '&#x1f3dd;', '&#x1f3de;', '&#x1f3df;', '&#x1f3e0;', '&#x1f3e1;', '&#x1f3e2;', '&#x1f3e3;', '&#x1f3e4;', '&#x1f3e5;', '&#x1f3e6;', '&#x1f3e7;', '&#x1f3e8;', '&#x1f3e9;', '&#x1f3ea;', '&#x1f3eb;', '&#x1f3ec;', '&#x1f3ed;', '&#x1f3ee;', '&#x1f3ef;', '&#x1f3f0;', '&#x1f3f3;', '&#x26a7;', '&#x1f3f4;', '&#x2620;', '&#xe0067;', '&#xe0062;', '&#xe0065;', '&#xe006e;', '&#xe007f;', '&#xe0073;', '&#xe0063;', '&#xe0074;', '&#xe0077;', '&#xe006c;', '&#x1f3f5;', '&#x1f3f7;', '&#x1f3f8;', '&#x1f3f9;', '&#x1f3fa;', '&#x1f400;', '&#x1f401;', '&#x1f402;', '&#x1f403;', '&#x1f404;', '&#x1f405;', '&#x1f406;', '&#x1f407;', '&#x1f408;', '&#x2b1b;', '&#x1f409;', '&#x1f40a;', '&#x1f40b;', '&#x1f40c;', '&#x1f40d;', '&#x1f40e;', '&#x1f40f;', '&#x1f410;', '&#x1f411;', '&#x1f412;', '&#x1f413;', '&#x1f414;', '&#x1f415;', '&#x1f9ba;', '&#x1f416;', '&#x1f417;', '&#x1f418;', '&#x1f419;', '&#x1f41a;', '&#x1f41b;', '&#x1f41c;', '&#x1f41d;', '&#x1f41e;', '&#x1f41f;', '&#x1f420;', '&#x1f421;', '&#x1f422;', '&#x1f423;', '&#x1f424;', '&#x1f425;', '&#x1f426;', '&#x1f427;', '&#x1f428;', '&#x1f429;', '&#x1f42a;', '&#x1f42b;', '&#x1f42c;', '&#x1f42d;', '&#x1f42e;', '&#x1f42f;', '&#x1f430;', '&#x1f431;', '&#x1f432;', '&#x1f433;', '&#x1f434;', '&#x1f435;', '&#x1f436;', '&#x1f437;', '&#x1f438;', '&#x1f439;', '&#x1f43a;', '&#x1f43b;', '&#x2744;', '&#x1f43c;', '&#x1f43d;', '&#x1f43e;', '&#x1f43f;', '&#x1f440;', '&#x1f441;', '&#x1f5e8;', '&#x1f442;', '&#x1f443;', '&#x1f444;', '&#x1f445;', '&#x1f446;', '&#x1f447;', '&#x1f448;', '&#x1f449;', '&#x1f44a;', '&#x1f44b;', '&#x1f44c;', '&#x1f44d;', '&#x1f44e;', '&#x1f44f;', '&#x1f450;', '&#x1f451;', '&#x1f452;', '&#x1f453;', '&#x1f454;', '&#x1f455;', '&#x1f456;', '&#x1f457;', '&#x1f458;', '&#x1f459;', '&#x1f45a;', '&#x1f45b;', '&#x1f45c;', '&#x1f45d;', '&#x1f45e;', '&#x1f45f;', '&#x1f460;', '&#x1f461;', '&#x1f462;', '&#x1f463;', '&#x1f464;', '&#x1f465;', '&#x1f466;', '&#x1f467;', '&#x1f468;', '&#x1f4bb;', '&#x1f4bc;', '&#x1f527;', '&#x1f52c;', '&#x1f680;', '&#x1f692;', '&#x1f91d;', '&#x1f9af;', '&#x1f9b0;', '&#x1f9b1;', '&#x1f9b2;', '&#x1f9b3;', '&#x1f9bc;', '&#x1f9bd;', '&#x2695;', '&#x2696;', '&#x2708;', '&#x2764;', '&#x1f48b;', '&#x1f469;', '&#x1f46a;', '&#x1f46b;', '&#x1f46c;', '&#x1f46d;', '&#x1f46e;', '&#x1f46f;', '&#x1f470;', '&#x1f471;', '&#x1f472;', '&#x1f473;', '&#x1f474;', '&#x1f475;', '&#x1f476;', '&#x1f477;', '&#x1f478;', '&#x1f479;', '&#x1f47a;', '&#x1f47b;', '&#x1f47c;', '&#x1f47d;', '&#x1f47e;', '&#x1f47f;', '&#x1f480;', '&#x1f481;', '&#x1f482;', '&#x1f483;', '&#x1f484;', '&#x1f485;', '&#x1f486;', '&#x1f487;', '&#x1f488;', '&#x1f489;', '&#x1f48a;', '&#x1f48c;', '&#x1f48d;', '&#x1f48e;', '&#x1f48f;', '&#x1f490;', '&#x1f491;', '&#x1f492;', '&#x1f493;', '&#x1f494;', '&#x1f495;', '&#x1f496;', '&#x1f497;', '&#x1f498;', '&#x1f499;', '&#x1f49a;', '&#x1f49b;', '&#x1f49c;', '&#x1f49d;', '&#x1f49e;', '&#x1f49f;', '&#x1f4a0;', '&#x1f4a1;', '&#x1f4a2;', '&#x1f4a3;', '&#x1f4a4;', '&#x1f4a5;', '&#x1f4a6;', '&#x1f4a7;', '&#x1f4a8;', '&#x1f4a9;', '&#x1f4aa;', '&#x1f4ab;', '&#x1f4ac;', '&#x1f4ad;', '&#x1f4ae;', '&#x1f4af;', '&#x1f4b0;', '&#x1f4b1;', '&#x1f4b2;', '&#x1f4b3;', '&#x1f4b4;', '&#x1f4b5;', '&#x1f4b6;', '&#x1f4b7;', '&#x1f4b8;', '&#x1f4b9;', '&#x1f4ba;', '&#x1f4bd;', '&#x1f4be;', '&#x1f4bf;', '&#x1f4c0;', '&#x1f4c1;', '&#x1f4c2;', '&#x1f4c3;', '&#x1f4c4;', '&#x1f4c5;', '&#x1f4c6;', '&#x1f4c7;', '&#x1f4c8;', '&#x1f4c9;', '&#x1f4ca;', '&#x1f4cb;', '&#x1f4cc;', '&#x1f4cd;', '&#x1f4ce;', '&#x1f4cf;', '&#x1f4d0;', '&#x1f4d1;', '&#x1f4d2;', '&#x1f4d3;', '&#x1f4d4;', '&#x1f4d5;', '&#x1f4d6;', '&#x1f4d7;', '&#x1f4d8;', '&#x1f4d9;', '&#x1f4da;', '&#x1f4db;', '&#x1f4dc;', '&#x1f4dd;', '&#x1f4de;', '&#x1f4df;', '&#x1f4e0;', '&#x1f4e1;', '&#x1f4e2;', '&#x1f4e3;', '&#x1f4e4;', '&#x1f4e5;', '&#x1f4e6;', '&#x1f4e7;', '&#x1f4e8;', '&#x1f4e9;', '&#x1f4ea;', '&#x1f4eb;', '&#x1f4ec;', '&#x1f4ed;', '&#x1f4ee;', '&#x1f4ef;', '&#x1f4f0;', '&#x1f4f1;', '&#x1f4f2;', '&#x1f4f3;', '&#x1f4f4;', '&#x1f4f5;', '&#x1f4f6;', '&#x1f4f7;', '&#x1f4f8;', '&#x1f4f9;', '&#x1f4fa;', '&#x1f4fb;', '&#x1f4fc;', '&#x1f4fd;', '&#x1f4ff;', '&#x1f500;', '&#x1f501;', '&#x1f502;', '&#x1f503;', '&#x1f504;', '&#x1f505;', '&#x1f506;', '&#x1f507;', '&#x1f508;', '&#x1f509;', '&#x1f50a;', '&#x1f50b;', '&#x1f50c;', '&#x1f50d;', '&#x1f50e;', '&#x1f50f;', '&#x1f510;', '&#x1f511;', '&#x1f512;', '&#x1f513;', '&#x1f514;', '&#x1f515;', '&#x1f516;', '&#x1f517;', '&#x1f518;', '&#x1f519;', '&#x1f51a;', '&#x1f51b;', '&#x1f51c;', '&#x1f51d;', '&#x1f51e;', '&#x1f51f;', '&#x1f520;', '&#x1f521;', '&#x1f522;', '&#x1f523;', '&#x1f524;', '&#x1f525;', '&#x1f526;', '&#x1f528;', '&#x1f529;', '&#x1f52a;', '&#x1f52b;', '&#x1f52d;', '&#x1f52e;', '&#x1f52f;', '&#x1f530;', '&#x1f531;', '&#x1f532;', '&#x1f533;', '&#x1f534;', '&#x1f535;', '&#x1f536;', '&#x1f537;', '&#x1f538;', '&#x1f539;', '&#x1f53a;', '&#x1f53b;', '&#x1f53c;', '&#x1f53d;', '&#x1f549;', '&#x1f54a;', '&#x1f54b;', '&#x1f54c;', '&#x1f54d;', '&#x1f54e;', '&#x1f550;', '&#x1f551;', '&#x1f552;', '&#x1f553;', '&#x1f554;', '&#x1f555;', '&#x1f556;', '&#x1f557;', '&#x1f558;', '&#x1f559;', '&#x1f55a;', '&#x1f55b;', '&#x1f55c;', '&#x1f55d;', '&#x1f55e;', '&#x1f55f;', '&#x1f560;', '&#x1f561;', '&#x1f562;', '&#x1f563;', '&#x1f564;', '&#x1f565;', '&#x1f566;', '&#x1f567;', '&#x1f56f;', '&#x1f570;', '&#x1f573;', '&#x1f574;', '&#x1f575;', '&#x1f576;', '&#x1f577;', '&#x1f578;', '&#x1f579;', '&#x1f57a;', '&#x1f587;', '&#x1f58a;', '&#x1f58b;', '&#x1f58c;', '&#x1f58d;', '&#x1f590;', '&#x1f595;', '&#x1f596;', '&#x1f5a4;', '&#x1f5a5;', '&#x1f5a8;', '&#x1f5b1;', '&#x1f5b2;', '&#x1f5bc;', '&#x1f5c2;', '&#x1f5c3;', '&#x1f5c4;', '&#x1f5d1;', '&#x1f5d2;', '&#x1f5d3;', '&#x1f5dc;', '&#x1f5dd;', '&#x1f5de;', '&#x1f5e1;', '&#x1f5e3;', '&#x1f5ef;', '&#x1f5f3;', '&#x1f5fa;', '&#x1f5fb;', '&#x1f5fc;', '&#x1f5fd;', '&#x1f5fe;', '&#x1f5ff;', '&#x1f600;', '&#x1f601;', '&#x1f602;', '&#x1f603;', '&#x1f604;', '&#x1f605;', '&#x1f606;', '&#x1f607;', '&#x1f608;', '&#x1f609;', '&#x1f60a;', '&#x1f60b;', '&#x1f60c;', '&#x1f60d;', '&#x1f60e;', '&#x1f60f;', '&#x1f610;', '&#x1f611;', '&#x1f612;', '&#x1f613;', '&#x1f614;', '&#x1f615;', '&#x1f616;', '&#x1f617;', '&#x1f618;', '&#x1f619;', '&#x1f61a;', '&#x1f61b;', '&#x1f61c;', '&#x1f61d;', '&#x1f61e;', '&#x1f61f;', '&#x1f620;', '&#x1f621;', '&#x1f622;', '&#x1f623;', '&#x1f624;', '&#x1f625;', '&#x1f626;', '&#x1f627;', '&#x1f628;', '&#x1f629;', '&#x1f62a;', '&#x1f62b;', '&#x1f62c;', '&#x1f62d;', '&#x1f62e;', '&#x1f62f;', '&#x1f630;', '&#x1f631;', '&#x1f632;', '&#x1f633;', '&#x1f634;', '&#x1f635;', '&#x1f636;', '&#x1f637;', '&#x1f638;', '&#x1f639;', '&#x1f63a;', '&#x1f63b;', '&#x1f63c;', '&#x1f63d;', '&#x1f63e;', '&#x1f63f;', '&#x1f640;', '&#x1f641;', '&#x1f642;', '&#x1f643;', '&#x1f644;', '&#x1f645;', '&#x1f646;', '&#x1f647;', '&#x1f648;', '&#x1f649;', '&#x1f64a;', '&#x1f64b;', '&#x1f64c;', '&#x1f64d;', '&#x1f64e;', '&#x1f64f;', '&#x1f681;', '&#x1f682;', '&#x1f683;', '&#x1f684;', '&#x1f685;', '&#x1f686;', '&#x1f687;', '&#x1f688;', '&#x1f689;', '&#x1f68a;', '&#x1f68b;', '&#x1f68c;', '&#x1f68d;', '&#x1f68e;', '&#x1f68f;', '&#x1f690;', '&#x1f691;', '&#x1f693;', '&#x1f694;', '&#x1f695;', '&#x1f696;', '&#x1f697;', '&#x1f698;', '&#x1f699;', '&#x1f69a;', '&#x1f69b;', '&#x1f69c;', '&#x1f69d;', '&#x1f69e;', '&#x1f69f;', '&#x1f6a0;', '&#x1f6a1;', '&#x1f6a2;', '&#x1f6a3;', '&#x1f6a4;', '&#x1f6a5;', '&#x1f6a6;', '&#x1f6a7;', '&#x1f6a8;', '&#x1f6a9;', '&#x1f6aa;', '&#x1f6ab;', '&#x1f6ac;', '&#x1f6ad;', '&#x1f6ae;', '&#x1f6af;', '&#x1f6b0;', '&#x1f6b1;', '&#x1f6b2;', '&#x1f6b3;', '&#x1f6b4;', '&#x1f6b5;', '&#x1f6b6;', '&#x1f6b7;', '&#x1f6b8;', '&#x1f6b9;', '&#x1f6ba;', '&#x1f6bb;', '&#x1f6bc;', '&#x1f6bd;', '&#x1f6be;', '&#x1f6bf;', '&#x1f6c0;', '&#x1f6c1;', '&#x1f6c2;', '&#x1f6c3;', '&#x1f6c4;', '&#x1f6c5;', '&#x1f6cb;', '&#x1f6cc;', '&#x1f6cd;', '&#x1f6ce;', '&#x1f6cf;', '&#x1f6d0;', '&#x1f6d1;', '&#x1f6d2;', '&#x1f6d5;', '&#x1f6d6;', '&#x1f6d7;', '&#x1f6dd;', '&#x1f6de;', '&#x1f6df;', '&#x1f6e0;', '&#x1f6e1;', '&#x1f6e2;', '&#x1f6e3;', '&#x1f6e4;', '&#x1f6e5;', '&#x1f6e9;', '&#x1f6eb;', '&#x1f6ec;', '&#x1f6f0;', '&#x1f6f3;', '&#x1f6f4;', '&#x1f6f5;', '&#x1f6f6;', '&#x1f6f7;', '&#x1f6f8;', '&#x1f6f9;', '&#x1f6fa;', '&#x1f6fb;', '&#x1f6fc;', '&#x1f7e0;', '&#x1f7e1;', '&#x1f7e2;', '&#x1f7e3;', '&#x1f7e4;', '&#x1f7e5;', '&#x1f7e6;', '&#x1f7e7;', '&#x1f7e8;', '&#x1f7e9;', '&#x1f7ea;', '&#x1f7eb;', '&#x1f7f0;', '&#x1f90c;', '&#x1f90d;', '&#x1f90e;', '&#x1f90f;', '&#x1f910;', '&#x1f911;', '&#x1f912;', '&#x1f913;', '&#x1f914;', '&#x1f915;', '&#x1f916;', '&#x1f917;', '&#x1f918;', '&#x1f919;', '&#x1f91a;', '&#x1f91b;', '&#x1f91c;', '&#x1f91e;', '&#x1f91f;', '&#x1f920;', '&#x1f921;', '&#x1f922;', '&#x1f923;', '&#x1f924;', '&#x1f925;', '&#x1f926;', '&#x1f927;', '&#x1f928;', '&#x1f929;', '&#x1f92a;', '&#x1f92b;', '&#x1f92c;', '&#x1f92d;', '&#x1f92e;', '&#x1f92f;', '&#x1f930;', '&#x1f931;', '&#x1f932;', '&#x1f933;', '&#x1f934;', '&#x1f935;', '&#x1f936;', '&#x1f937;', '&#x1f938;', '&#x1f939;', '&#x1f93a;', '&#x1f93c;', '&#x1f93d;', '&#x1f93e;', '&#x1f93f;', '&#x1f940;', '&#x1f941;', '&#x1f942;', '&#x1f943;', '&#x1f944;', '&#x1f945;', '&#x1f947;', '&#x1f948;', '&#x1f949;', '&#x1f94a;', '&#x1f94b;', '&#x1f94c;', '&#x1f94d;', '&#x1f94e;', '&#x1f94f;', '&#x1f950;', '&#x1f951;', '&#x1f952;', '&#x1f953;', '&#x1f954;', '&#x1f955;', '&#x1f956;', '&#x1f957;', '&#x1f958;', '&#x1f959;', '&#x1f95a;', '&#x1f95b;', '&#x1f95c;', '&#x1f95d;', '&#x1f95e;', '&#x1f95f;', '&#x1f960;', '&#x1f961;', '&#x1f962;', '&#x1f963;', '&#x1f964;', '&#x1f965;', '&#x1f966;', '&#x1f967;', '&#x1f968;', '&#x1f969;', '&#x1f96a;', '&#x1f96b;', '&#x1f96c;', '&#x1f96d;', '&#x1f96e;', '&#x1f96f;', '&#x1f970;', '&#x1f971;', '&#x1f972;', '&#x1f973;', '&#x1f974;', '&#x1f975;', '&#x1f976;', '&#x1f977;', '&#x1f978;', '&#x1f979;', '&#x1f97a;', '&#x1f97b;', '&#x1f97c;', '&#x1f97d;', '&#x1f97e;', '&#x1f97f;', '&#x1f980;', '&#x1f981;', '&#x1f982;', '&#x1f983;', '&#x1f984;', '&#x1f985;', '&#x1f986;', '&#x1f987;', '&#x1f988;', '&#x1f989;', '&#x1f98a;', '&#x1f98b;', '&#x1f98c;', '&#x1f98d;', '&#x1f98e;', '&#x1f98f;', '&#x1f990;', '&#x1f991;', '&#x1f992;', '&#x1f993;', '&#x1f994;', '&#x1f995;', '&#x1f996;', '&#x1f997;', '&#x1f998;', '&#x1f999;', '&#x1f99a;', '&#x1f99b;', '&#x1f99c;', '&#x1f99d;', '&#x1f99e;', '&#x1f99f;', '&#x1f9a0;', '&#x1f9a1;', '&#x1f9a2;', '&#x1f9a3;', '&#x1f9a4;', '&#x1f9a5;', '&#x1f9a6;', '&#x1f9a7;', '&#x1f9a8;', '&#x1f9a9;', '&#x1f9aa;', '&#x1f9ab;', '&#x1f9ac;', '&#x1f9ad;', '&#x1f9ae;', '&#x1f9b4;', '&#x1f9b5;', '&#x1f9b6;', '&#x1f9b7;', '&#x1f9b8;', '&#x1f9b9;', '&#x1f9bb;', '&#x1f9be;', '&#x1f9bf;', '&#x1f9c0;', '&#x1f9c1;', '&#x1f9c2;', '&#x1f9c3;', '&#x1f9c4;', '&#x1f9c5;', '&#x1f9c6;', '&#x1f9c7;', '&#x1f9c8;', '&#x1f9c9;', '&#x1f9ca;', '&#x1f9cb;', '&#x1f9cc;', '&#x1f9cd;', '&#x1f9ce;', '&#x1f9cf;', '&#x1f9d0;', '&#x1f9d1;', '&#x1f9d2;', '&#x1f9d3;', '&#x1f9d4;', '&#x1f9d5;', '&#x1f9d6;', '&#x1f9d7;', '&#x1f9d8;', '&#x1f9d9;', '&#x1f9da;', '&#x1f9db;', '&#x1f9dc;', '&#x1f9dd;', '&#x1f9de;', '&#x1f9df;', '&#x1f9e0;', '&#x1f9e1;', '&#x1f9e2;', '&#x1f9e3;', '&#x1f9e4;', '&#x1f9e5;', '&#x1f9e6;', '&#x1f9e7;', '&#x1f9e8;', '&#x1f9e9;', '&#x1f9ea;', '&#x1f9eb;', '&#x1f9ec;', '&#x1f9ed;', '&#x1f9ee;', '&#x1f9ef;', '&#x1f9f0;', '&#x1f9f1;', '&#x1f9f2;', '&#x1f9f3;', '&#x1f9f4;', '&#x1f9f5;', '&#x1f9f6;', '&#x1f9f7;', '&#x1f9f8;', '&#x1f9f9;', '&#x1f9fa;', '&#x1f9fb;', '&#x1f9fc;', '&#x1f9fd;', '&#x1f9fe;', '&#x1f9ff;', '&#x1fa70;', '&#x1fa71;', '&#x1fa72;', '&#x1fa73;', '&#x1fa74;', '&#x1fa78;', '&#x1fa79;', '&#x1fa7a;', '&#x1fa7b;', '&#x1fa7c;', '&#x1fa80;', '&#x1fa81;', '&#x1fa82;', '&#x1fa83;', '&#x1fa84;', '&#x1fa85;', '&#x1fa86;', '&#x1fa90;', '&#x1fa91;', '&#x1fa92;', '&#x1fa93;', '&#x1fa94;', '&#x1fa95;', '&#x1fa96;', '&#x1fa97;', '&#x1fa98;', '&#x1fa99;', '&#x1fa9a;', '&#x1fa9b;', '&#x1fa9c;', '&#x1fa9d;', '&#x1fa9e;', '&#x1fa9f;', '&#x1faa0;', '&#x1faa1;', '&#x1faa2;', '&#x1faa3;', '&#x1faa4;', '&#x1faa5;', '&#x1faa6;', '&#x1faa7;', '&#x1faa8;', '&#x1faa9;', '&#x1faaa;', '&#x1faab;', '&#x1faac;', '&#x1fab0;', '&#x1fab1;', '&#x1fab2;', '&#x1fab3;', '&#x1fab4;', '&#x1fab5;', '&#x1fab6;', '&#x1fab7;', '&#x1fab8;', '&#x1fab9;', '&#x1faba;', '&#x1fac0;', '&#x1fac1;', '&#x1fac2;', '&#x1fac3;', '&#x1fac4;', '&#x1fac5;', '&#x1fad0;', '&#x1fad1;', '&#x1fad2;', '&#x1fad3;', '&#x1fad4;', '&#x1fad5;', '&#x1fad6;', '&#x1fad7;', '&#x1fad8;', '&#x1fad9;', '&#x1fae0;', '&#x1fae1;', '&#x1fae2;', '&#x1fae3;', '&#x1fae4;', '&#x1fae5;', '&#x1fae6;', '&#x1fae7;', '&#x1faf0;', '&#x1faf1;', '&#x1faf2;', '&#x1faf3;', '&#x1faf4;', '&#x1faf5;', '&#x1faf6;', '&#x203c;', '&#x2049;', '&#x2122;', '&#x2139;', '&#x2194;', '&#x2195;', '&#x2196;', '&#x2197;', '&#x2198;', '&#x2199;', '&#x21a9;', '&#x21aa;', '&#x20e3;', '&#x231a;', '&#x231b;', '&#x2328;', '&#x23cf;', '&#x23e9;', '&#x23ea;', '&#x23eb;', '&#x23ec;', '&#x23ed;', '&#x23ee;', '&#x23ef;', '&#x23f0;', '&#x23f1;', '&#x23f2;', '&#x23f3;', '&#x23f8;', '&#x23f9;', '&#x23fa;', '&#x24c2;', '&#x25aa;', '&#x25ab;', '&#x25b6;', '&#x25c0;', '&#x25fb;', '&#x25fc;', '&#x25fd;', '&#x25fe;', '&#x2600;', '&#x2601;', '&#x2602;', '&#x2603;', '&#x2604;', '&#x260e;', '&#x2611;', '&#x2614;', '&#x2615;', '&#x2618;', '&#x261d;', '&#x2622;', '&#x2623;', '&#x2626;', '&#x262a;', '&#x262e;', '&#x262f;', '&#x2638;', '&#x2639;', '&#x263a;', '&#x2648;', '&#x2649;', '&#x264a;', '&#x264b;', '&#x264c;', '&#x264d;', '&#x264e;', '&#x264f;', '&#x2650;', '&#x2651;', '&#x2652;', '&#x2653;', '&#x265f;', '&#x2660;', '&#x2663;', '&#x2665;', '&#x2666;', '&#x2668;', '&#x267b;', '&#x267e;', '&#x267f;', '&#x2692;', '&#x2693;', '&#x2694;', '&#x2697;', '&#x2699;', '&#x269b;', '&#x269c;', '&#x26a0;', '&#x26a1;', '&#x26aa;', '&#x26ab;', '&#x26b0;', '&#x26b1;', '&#x26bd;', '&#x26be;', '&#x26c4;', '&#x26c5;', '&#x26c8;', '&#x26ce;', '&#x26cf;', '&#x26d1;', '&#x26d3;', '&#x26d4;', '&#x26e9;', '&#x26ea;', '&#x26f0;', '&#x26f1;', '&#x26f2;', '&#x26f3;', '&#x26f4;', '&#x26f5;', '&#x26f7;', '&#x26f8;', '&#x26f9;', '&#x26fa;', '&#x26fd;', '&#x2702;', '&#x2705;', '&#x2709;', '&#x270a;', '&#x270b;', '&#x270c;', '&#x270d;', '&#x270f;', '&#x2712;', '&#x2714;', '&#x2716;', '&#x271d;', '&#x2721;', '&#x2728;', '&#x2733;', '&#x2734;', '&#x2747;', '&#x274c;', '&#x274e;', '&#x2753;', '&#x2754;', '&#x2755;', '&#x2757;', '&#x2763;', '&#x2795;', '&#x2796;', '&#x2797;', '&#x27a1;', '&#x27b0;', '&#x27bf;', '&#x2934;', '&#x2935;', '&#x2b05;', '&#x2b06;', '&#x2b07;', '&#x2b1c;', '&#x2b50;', '&#x2b55;', '&#x3030;', '&#x303d;', '&#x3297;', '&#x3299;', '&#xe50a;' );
 	// END: emoji arrays
 
-	if ( 'entities' === $type ) {
+	if ( $type === 'entities' ) {
 		return $entities;
 	}
 
@@ -6057,7 +6057,7 @@ function url_shorten( $url, $length = 35 ) {
  * @return string|void
  */
 function sanitize_hex_color( $color ) {
-	if ( '' === $color ) {
+	if ( $color === '' ) {
 		return '';
 	}
 
@@ -6084,7 +6084,7 @@ function sanitize_hex_color( $color ) {
 function sanitize_hex_color_no_hash( $color ) {
 	$color = ltrim( $color, '#' );
 
-	if ( '' === $color ) {
+	if ( $color === '' ) {
 		return '';
 	}
 

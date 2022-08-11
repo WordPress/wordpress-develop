@@ -88,7 +88,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 		global $mode, $post_id, $comment_status, $comment_type, $search;
 
 		if ( ! empty( $_REQUEST['mode'] ) ) {
-			$mode = 'excerpt' === $_REQUEST['mode'] ? 'excerpt' : 'list';
+			$mode = $_REQUEST['mode'] === 'excerpt' ? 'excerpt' : 'list';
 			set_user_setting( 'posts_list_mode', $mode );
 		} else {
 			$mode = get_user_setting( 'posts_list_mode', 'list' );
@@ -218,9 +218,9 @@ class WP_Comments_List_Table extends WP_List_Table {
 	public function no_items() {
 		global $comment_status;
 
-		if ( 'moderated' === $comment_status ) {
+		if ( $comment_status === 'moderated' ) {
 			_e( 'No comments awaiting moderation.' );
-		} elseif ( 'trash' === $comment_status ) {
+		} elseif ( $comment_status === 'trash' ) {
 			_e( 'No comments found in Trash.' );
 		} else {
 			_e( 'No comments found.' );
@@ -288,7 +288,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		$link = admin_url( 'edit-comments.php' );
 
-		if ( ! empty( $comment_type ) && 'all' !== $comment_type ) {
+		if ( ! empty( $comment_type ) && $comment_type !== 'all' ) {
 			$link = add_query_arg( 'comment_type', $comment_type, $link );
 		}
 
@@ -299,7 +299,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 				$current_link_attributes = ' class="current" aria-current="page"';
 			}
 
-			if ( 'mine' === $status ) {
+			if ( $status === 'mine' ) {
 				$current_user_id    = get_current_user_id();
 				$num_comments->mine = get_comments(
 					array(
@@ -333,7 +333,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 				translate_nooped_plural( $label, $num_comments->$status ),
 				sprintf(
 					'<span class="%s-count">%s</span>',
-					( 'moderated' === $status ) ? 'pending' : $status,
+					( $status === 'moderated' ) ? 'pending' : $status,
 					number_format_i18n( $num_comments->$status )
 				)
 			) . '</a>';
@@ -373,9 +373,9 @@ class WP_Comments_List_Table extends WP_List_Table {
 			$actions['spam'] = _x( 'Mark as spam', 'comment' );
 		}
 
-		if ( 'trash' === $comment_status ) {
+		if ( $comment_status === 'trash' ) {
 			$actions['untrash'] = __( 'Restore' );
-		} elseif ( 'spam' === $comment_status ) {
+		} elseif ( $comment_status === 'spam' ) {
 			$actions['unspam'] = _x( 'Not spam', 'comment' );
 		}
 
@@ -404,7 +404,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		echo '<div class="alignleft actions">';
 
-		if ( 'top' === $which ) {
+		if ( $which === 'top' ) {
 			ob_start();
 
 			$this->comment_type_dropdown( $comment_type );
@@ -424,11 +424,11 @@ class WP_Comments_List_Table extends WP_List_Table {
 			}
 		}
 
-		if ( ( 'spam' === $comment_status || 'trash' === $comment_status ) && $has_items
+		if ( ( $comment_status === 'spam' || $comment_status === 'trash' ) && $has_items
 			&& current_user_can( 'moderate_comments' )
 		) {
 			wp_nonce_field( 'bulk-destroy', '_destroy_nonce' );
-			$title = ( 'spam' === $comment_status ) ? esc_attr__( 'Empty Spam' ) : esc_attr__( 'Empty Trash' );
+			$title = ( $comment_status === 'spam' ) ? esc_attr__( 'Empty Spam' ) : esc_attr__( 'Empty Trash' );
 			submit_button( $title, 'apply', 'delete_all', false );
 		}
 
@@ -707,8 +707,8 @@ class WP_Comments_List_Table extends WP_List_Table {
 		);
 
 		// Not looking at all comments.
-		if ( $comment_status && 'all' !== $comment_status ) {
-			if ( 'approved' === $the_comment_status ) {
+		if ( $comment_status && $comment_status !== 'all' ) {
+			if ( $the_comment_status === 'approved' ) {
 				$actions['unapprove'] = sprintf(
 					'<a href="%s" data-wp-lists="%s" class="vim-u vim-destructive aria-button-if-js" aria-label="%s">%s</a>',
 					$unapprove_url,
@@ -716,7 +716,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 					esc_attr__( 'Unapprove this comment' ),
 					__( 'Unapprove' )
 				);
-			} elseif ( 'unapproved' === $the_comment_status ) {
+			} elseif ( $the_comment_status === 'unapproved' ) {
 				$actions['approve'] = sprintf(
 					'<a href="%s" data-wp-lists="%s" class="vim-a vim-destructive aria-button-if-js" aria-label="%s">%s</a>',
 					$approve_url,
@@ -743,7 +743,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 			);
 		}
 
-		if ( 'spam' !== $the_comment_status ) {
+		if ( $the_comment_status !== 'spam' ) {
 			$actions['spam'] = sprintf(
 				'<a href="%s" data-wp-lists="%s" class="vim-s vim-destructive aria-button-if-js" aria-label="%s">%s</a>',
 				$spam_url,
@@ -752,7 +752,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 				/* translators: "Mark as spam" link. */
 				_x( 'Spam', 'verb' )
 			);
-		} elseif ( 'spam' === $the_comment_status ) {
+		} elseif ( $the_comment_status === 'spam' ) {
 			$actions['unspam'] = sprintf(
 				'<a href="%s" data-wp-lists="%s" class="vim-z vim-destructive aria-button-if-js" aria-label="%s">%s</a>',
 				$unspam_url,
@@ -762,7 +762,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 			);
 		}
 
-		if ( 'trash' === $the_comment_status ) {
+		if ( $the_comment_status === 'trash' ) {
 			$actions['untrash'] = sprintf(
 				'<a href="%s" data-wp-lists="%s" class="vim-z vim-destructive aria-button-if-js" aria-label="%s">%s</a>',
 				$untrash_url,
@@ -772,7 +772,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 			);
 		}
 
-		if ( 'spam' === $the_comment_status || 'trash' === $the_comment_status || ! EMPTY_TRASH_DAYS ) {
+		if ( $the_comment_status === 'spam' || $the_comment_status === 'trash' || ! EMPTY_TRASH_DAYS ) {
 			$actions['delete'] = sprintf(
 				'<a href="%s" data-wp-lists="%s" class="delete vim-d vim-destructive aria-button-if-js" aria-label="%s">%s</a>',
 				$delete_url,
@@ -790,7 +790,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 			);
 		}
 
-		if ( 'spam' !== $the_comment_status && 'trash' !== $the_comment_status ) {
+		if ( $the_comment_status !== 'spam' && $the_comment_status !== 'trash' ) {
 			$actions['edit'] = sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
 				"comment.php?action=editcomment&amp;c={$comment->comment_ID}",
@@ -828,7 +828,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		$mode = get_user_setting( 'posts_list_mode', 'list' );
 
-		if ( 'excerpt' === $mode ) {
+		if ( $mode === 'excerpt' ) {
 			$always_visible = true;
 		}
 
@@ -839,8 +839,8 @@ class WP_Comments_List_Table extends WP_List_Table {
 		foreach ( $actions as $action => $link ) {
 			++$i;
 
-			if ( ( ( 'approve' === $action || 'unapprove' === $action ) && 2 === $i )
-				|| 1 === $i
+			if ( ( ( $action === 'approve' || $action === 'unapprove' ) && $i === 2 )
+				|| $i === 1
 			) {
 				$sep = '';
 			} else {
@@ -848,12 +848,12 @@ class WP_Comments_List_Table extends WP_List_Table {
 			}
 
 			// Reply and quickedit need a hide-if-no-js span when not added with Ajax.
-			if ( ( 'reply' === $action || 'quickedit' === $action ) && ! wp_doing_ajax() ) {
+			if ( ( $action === 'reply' || $action === 'quickedit' ) && ! wp_doing_ajax() ) {
 				$action .= ' hide-if-no-js';
-			} elseif ( ( 'untrash' === $action && 'trash' === $the_comment_status )
-				|| ( 'unspam' === $action && 'spam' === $the_comment_status )
+			} elseif ( ( $action === 'untrash' && $the_comment_status === 'trash' )
+				|| ( $action === 'unspam' && $the_comment_status === 'spam' )
 			) {
-				if ( '1' === get_comment_meta( $comment->comment_ID, '_wp_trash_meta_status', true ) ) {
+				if ( get_comment_meta( $comment->comment_ID, '_wp_trash_meta_status', true ) === '1' ) {
 					$action .= ' approve';
 				} else {
 					$action .= ' unapprove';
@@ -960,7 +960,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 				/** This filter is documented in wp-includes/comment-template.php */
 				$email = apply_filters( 'comment_email', $comment->comment_author_email, $comment );
 
-				if ( ! empty( $email ) && '@' !== $email ) {
+				if ( ! empty( $email ) && $email !== '@' ) {
 					printf( '<a href="%1$s">%2$s</a><br />', esc_url( 'mailto:' . $email ), esc_html( $email ) );
 				}
 			}
@@ -976,7 +976,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 					admin_url( 'edit-comments.php' )
 				);
 
-				if ( 'spam' === $comment_status ) {
+				if ( $comment_status === 'spam' ) {
 					$author_ip_url = add_query_arg( 'comment_status', 'spam', $author_ip_url );
 				}
 
@@ -1000,7 +1000,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		echo '<div class="submitted-on">';
 
-		if ( 'approved' === wp_get_comment_status( $comment ) && ! empty( $comment->comment_post_ID ) ) {
+		if ( wp_get_comment_status( $comment ) === 'approved' && ! empty( $comment->comment_post_ID ) ) {
 			printf(
 				'<a href="%s">%s</a>',
 				esc_url( get_comment_link( $comment ) ),
@@ -1040,7 +1040,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		echo '<div class="response-links">';
 
-		if ( 'attachment' === $post->post_type ) {
+		if ( $post->post_type === 'attachment' ) {
 			$thumb = wp_get_attachment_image( $post->ID, array( 80, 60 ), true );
 			if ( $thumb ) {
 				echo $thumb;

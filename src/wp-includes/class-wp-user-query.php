@@ -306,14 +306,14 @@ class WP_User_Query {
 
 			$this->query_fields = array();
 			foreach ( $qv['fields'] as $field ) {
-				$field                = 'id' === $field ? 'ID' : sanitize_key( $field );
+				$field                = $field === 'id' ? 'ID' : sanitize_key( $field );
 				$this->query_fields[] = "$wpdb->users.$field";
 			}
 			$this->query_fields = implode( ',', $this->query_fields );
-		} elseif ( 'all_with_meta' === $qv['fields'] || 'all' === $qv['fields'] || ! in_array( $qv['fields'], $allowed_fields, true ) ) {
+		} elseif ( $qv['fields'] === 'all_with_meta' || $qv['fields'] === 'all' || ! in_array( $qv['fields'], $allowed_fields, true ) ) {
 			$this->query_fields = "$wpdb->users.ID";
 		} else {
-			$field              = 'id' === strtolower( $qv['fields'] ) ? 'ID' : sanitize_key( $qv['fields'] );
+			$field              = strtolower( $qv['fields'] ) === 'id' ? 'ID' : sanitize_key( $qv['fields'] );
 			$this->query_fields = "$wpdb->users.$field";
 		}
 
@@ -337,7 +337,7 @@ class WP_User_Query {
 		}
 
 		if ( $qv['has_published_posts'] && $blog_id ) {
-			if ( true === $qv['has_published_posts'] ) {
+			if ( $qv['has_published_posts'] === true ) {
 				$post_types = get_post_types( array( 'public' => true ) );
 			} else {
 				$post_types = (array) $qv['has_published_posts'];
@@ -352,7 +352,7 @@ class WP_User_Query {
 		}
 
 		// nicename
-		if ( '' !== $qv['nicename'] ) {
+		if ( $qv['nicename'] !== '' ) {
 			$this->query_where .= $wpdb->prepare( ' AND user_nicename = %s', $qv['nicename'] );
 		}
 
@@ -369,7 +369,7 @@ class WP_User_Query {
 		}
 
 		// login
-		if ( '' !== $qv['login'] ) {
+		if ( $qv['login'] !== '' ) {
 			$this->query_where .= $wpdb->prepare( ' AND user_login = %s', $qv['login'] );
 		}
 
@@ -389,7 +389,7 @@ class WP_User_Query {
 		$this->meta_query = new WP_Meta_Query();
 		$this->meta_query->parse_query_vars( $qv );
 
-		if ( isset( $qv['who'] ) && 'authors' === $qv['who'] && $blog_id ) {
+		if ( isset( $qv['who'] ) && $qv['who'] === 'authors' && $blog_id ) {
 			_deprecated_argument(
 				'WP_User_Query',
 				'5.9.0',
@@ -661,7 +661,7 @@ class WP_User_Query {
 				continue;
 			}
 
-			if ( 'nicename__in' === $_orderby || 'login__in' === $_orderby ) {
+			if ( $_orderby === 'nicename__in' || $_orderby === 'login__in' ) {
 				$orderby_array[] = $parsed;
 			} else {
 				$orderby_array[] = $parsed . ' ' . $this->parse_order( $_order );
@@ -710,7 +710,7 @@ class WP_User_Query {
 				$search_columns = array_intersect( $qv['search_columns'], array( 'ID', 'user_login', 'user_email', 'user_url', 'user_nicename', 'display_name' ) );
 			}
 			if ( ! $search_columns ) {
-				if ( false !== strpos( $search, '@' ) ) {
+				if ( strpos( $search, '@' ) !== false ) {
 					$search_columns = array( 'user_email' );
 				} elseif ( is_numeric( $search ) ) {
 					$search_columns = array( 'user_login', 'ID' );
@@ -797,7 +797,7 @@ class WP_User_Query {
 		 */
 		$this->results = apply_filters_ref_array( 'users_pre_query', array( null, &$this ) );
 
-		if ( null === $this->results ) {
+		if ( $this->results === null ) {
 			$this->request = "
 				SELECT {$this->query_fields}
 				{$this->query_from}
@@ -840,12 +840,12 @@ class WP_User_Query {
 			foreach ( $this->results as $result ) {
 				$result->id = $result->ID;
 			}
-		} elseif ( 'all_with_meta' === $qv['fields'] || 'all' === $qv['fields'] ) {
+		} elseif ( $qv['fields'] === 'all_with_meta' || $qv['fields'] === 'all' ) {
 			cache_users( $this->results );
 
 			$r = array();
 			foreach ( $this->results as $userid ) {
-				if ( 'all_with_meta' === $qv['fields'] ) {
+				if ( $qv['fields'] === 'all_with_meta' ) {
 					$r[ $userid ] = new WP_User( $userid, '', $qv['blog_id'] );
 				} else {
 					$r[] = new WP_User( $userid, '', $qv['blog_id'] );
@@ -901,12 +901,12 @@ class WP_User_Query {
 		global $wpdb;
 
 		$searches      = array();
-		$leading_wild  = ( 'leading' === $wild || 'both' === $wild ) ? '%' : '';
-		$trailing_wild = ( 'trailing' === $wild || 'both' === $wild ) ? '%' : '';
+		$leading_wild  = ( $wild === 'leading' || $wild === 'both' ) ? '%' : '';
+		$trailing_wild = ( $wild === 'trailing' || $wild === 'both' ) ? '%' : '';
 		$like          = $leading_wild . $wpdb->esc_like( $search ) . $trailing_wild;
 
 		foreach ( $columns as $column ) {
-			if ( 'ID' === $column ) {
+			if ( $column === 'ID' ) {
 				$searches[] = $wpdb->prepare( "$column = %s", $search );
 			} else {
 				$searches[] = $wpdb->prepare( "$column LIKE %s", $like );
@@ -958,9 +958,9 @@ class WP_User_Query {
 			$_orderby = 'user_' . $orderby;
 		} elseif ( in_array( $orderby, array( 'user_login', 'user_nicename', 'user_email', 'user_url', 'user_registered' ), true ) ) {
 			$_orderby = $orderby;
-		} elseif ( 'name' === $orderby || 'display_name' === $orderby ) {
+		} elseif ( $orderby === 'name' || $orderby === 'display_name' ) {
 			$_orderby = 'display_name';
-		} elseif ( 'post_count' === $orderby ) {
+		} elseif ( $orderby === 'post_count' ) {
 			// @todo Avoid the JOIN.
 			$where             = get_posts_by_author_sql( 'post' );
 			$this->query_from .= " LEFT OUTER JOIN (
@@ -971,21 +971,21 @@ class WP_User_Query {
 			) p ON ({$wpdb->users}.ID = p.post_author)
 			";
 			$_orderby          = 'post_count';
-		} elseif ( 'ID' === $orderby || 'id' === $orderby ) {
+		} elseif ( $orderby === 'ID' || $orderby === 'id' ) {
 			$_orderby = 'ID';
-		} elseif ( 'meta_value' === $orderby || $this->get( 'meta_key' ) == $orderby ) {
+		} elseif ( $orderby === 'meta_value' || $this->get( 'meta_key' ) == $orderby ) {
 			$_orderby = "$wpdb->usermeta.meta_value";
-		} elseif ( 'meta_value_num' === $orderby ) {
+		} elseif ( $orderby === 'meta_value_num' ) {
 			$_orderby = "$wpdb->usermeta.meta_value+0";
-		} elseif ( 'include' === $orderby && ! empty( $this->query_vars['include'] ) ) {
+		} elseif ( $orderby === 'include' && ! empty( $this->query_vars['include'] ) ) {
 			$include     = wp_parse_id_list( $this->query_vars['include'] );
 			$include_sql = implode( ',', $include );
 			$_orderby    = "FIELD( $wpdb->users.ID, $include_sql )";
-		} elseif ( 'nicename__in' === $orderby ) {
+		} elseif ( $orderby === 'nicename__in' ) {
 			$sanitized_nicename__in = array_map( 'esc_sql', $this->query_vars['nicename__in'] );
 			$nicename__in           = implode( "','", $sanitized_nicename__in );
 			$_orderby               = "FIELD( user_nicename, '$nicename__in' )";
-		} elseif ( 'login__in' === $orderby ) {
+		} elseif ( $orderby === 'login__in' ) {
 			$sanitized_login__in = array_map( 'esc_sql', $this->query_vars['login__in'] );
 			$login__in           = implode( "','", $sanitized_login__in );
 			$_orderby            = "FIELD( user_login, '$login__in' )";
@@ -1010,7 +1010,7 @@ class WP_User_Query {
 			return 'DESC';
 		}
 
-		if ( 'ASC' === strtoupper( $order ) ) {
+		if ( strtoupper( $order ) === 'ASC' ) {
 			return 'ASC';
 		} else {
 			return 'DESC';
@@ -1083,7 +1083,7 @@ class WP_User_Query {
 	 * @return mixed Return value of the callback, false otherwise.
 	 */
 	public function __call( $name, $arguments ) {
-		if ( 'get_search_sql' === $name ) {
+		if ( $name === 'get_search_sql' ) {
 			return $this->get_search_sql( ...$arguments );
 		}
 		return false;

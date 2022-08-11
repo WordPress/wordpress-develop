@@ -158,9 +158,9 @@ class WP_Sitemaps_Renderer {
 
 			// Add each element as a child node to the <sitemap> entry.
 			foreach ( $entry as $name => $value ) {
-				if ( 'loc' === $name ) {
+				if ( $name === 'loc' ) {
 					$sitemap->addChild( $name, esc_url( $value ) );
-				} elseif ( 'lastmod' === $name ) {
+				} elseif ( $name === 'lastmod' ) {
 					$sitemap->addChild( $name, esc_xml( $value ) );
 				} else {
 					_doing_it_wrong(
@@ -223,7 +223,7 @@ class WP_Sitemaps_Renderer {
 
 			// Add each element as a child node to the <url> entry.
 			foreach ( $url_item as $name => $value ) {
-				if ( 'loc' === $name ) {
+				if ( $name === 'loc' ) {
 					$url->addChild( $name, esc_url( $value ) );
 				} elseif ( in_array( $name, array( 'lastmod', 'changefreq', 'priority' ), true ) ) {
 					$url->addChild( $name, esc_xml( $value ) );

@@ -189,9 +189,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * @return int The changed quality.
 	 */
 	public function image_editor_change_quality( $quality, $mime_type ) {
-		if ( 'image/jpeg' === $mime_type ) {
+		if ( $mime_type === 'image/jpeg' ) {
 			return 56;
-		} elseif ( 'image/webp' === $mime_type ) {
+		} elseif ( $mime_type === 'image/webp' ) {
 			return 42;
 		} else {
 			return 30;

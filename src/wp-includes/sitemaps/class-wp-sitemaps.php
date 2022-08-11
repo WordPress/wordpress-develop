@@ -188,7 +188,7 @@ class WP_Sitemaps {
 		}
 
 		// Render the index.
-		if ( 'index' === $sitemap ) {
+		if ( $sitemap === 'index' ) {
 			$sitemap_list = $this->index->get_sitemap_list();
 
 			$this->renderer->render_index( $sitemap_list );
@@ -234,8 +234,8 @@ class WP_Sitemaps {
 		}
 
 		// 'pagename' is for most permalink types, name is for when the %postname% is used as a top-level field.
-		if ( 'sitemap-xml' === $query->get( 'pagename' )
-			|| 'sitemap-xml' === $query->get( 'name' )
+		if ( $query->get( 'pagename' ) === 'sitemap-xml'
+			|| $query->get( 'name' ) === 'sitemap-xml'
 		) {
 			wp_safe_redirect( $this->index->get_index_url() );
 			exit();

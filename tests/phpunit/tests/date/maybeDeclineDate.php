@@ -62,7 +62,7 @@ class Tests_Date_MaybeDeclineDate extends WP_UnitTestCase {
 	}
 
 	public function filter__enable_months_names_declension( $translation, $text, $context ) {
-		if ( 'decline months names: on or off' === $context ) {
+		if ( $context === 'decline months names: on or off' ) {
 			$translation = 'on';
 		}
 
