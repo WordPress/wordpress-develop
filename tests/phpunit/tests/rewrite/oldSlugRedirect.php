@@ -9,8 +9,8 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 
 	protected $post_id;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->post_id = self::factory()->post->create(
 			array(
@@ -29,12 +29,10 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 		flush_rewrite_rules();
 	}
 
-	public function tearDown() {
-		parent::tearDown();
-
+	public function tear_down() {
 		$this->old_slug_redirect_url = null;
 
-		remove_filter( 'old_slug_redirect_url', array( $this, 'filter_old_slug_redirect_url' ), 10 );
+		parent::tear_down();
 	}
 
 	public function test_old_slug_redirect() {

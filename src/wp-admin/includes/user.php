@@ -280,7 +280,7 @@ function get_editable_roles() {
  * @since 2.0.5
  *
  * @param int $user_id User ID.
- * @return WP_User|bool WP_User object on success, false on failure.
+ * @return WP_User|false WP_User object on success, false on failure.
  */
 function get_user_to_edit( $user_id ) {
 	$user = get_userdata( $user_id );
@@ -482,7 +482,7 @@ function default_password_nag_handler( $errors = false ) {
 		|| isset( $_GET['default_password_nag'] ) && '0' == $_GET['default_password_nag']
 	) {
 		delete_user_setting( 'default_password_nag' );
-		update_user_option( $user_ID, 'default_password_nag', false, true );
+		update_user_meta( $user_ID, 'default_password_nag', false );
 	}
 }
 
@@ -503,7 +503,7 @@ function default_password_nag_edit_user( $user_ID, $old_data ) {
 	// Remove the nag if the password has been changed.
 	if ( $new_data->user_pass != $old_data->user_pass ) {
 		delete_user_setting( 'default_password_nag' );
-		update_user_option( $user_ID, 'default_password_nag', false, true );
+		update_user_meta( $user_ID, 'default_password_nag', false );
 	}
 }
 
@@ -604,9 +604,9 @@ Please click the following link to activate your user account:
  *     The array of request data. All arguments are optional and may be empty.
  *
  *     @type string $app_name    The suggested name of the application.
- *     @type string $app_id      A uuid provided by the application to uniquely identify it.
- *     @type string $success_url The url the user will be redirected to after approving the application.
- *     @type string $reject_url  The url the user will be redirected to after rejecting the application.
+ *     @type string $app_id      A UUID provided by the application to uniquely identify it.
+ *     @type string $success_url The URL the user will be redirected to after approving the application.
+ *     @type string $reject_url  The URL the user will be redirected to after rejecting the application.
  * }
  * @param WP_User $user The user authorizing the application.
  * @return true|WP_Error True if the request is valid, a WP_Error object contains errors if not.
@@ -620,7 +620,7 @@ function wp_is_authorize_application_password_request_valid( $request, $user ) {
 		if ( 'http' === $scheme ) {
 			$error->add(
 				'invalid_redirect_scheme',
-				__( 'The success url must be served over a secure connection.' )
+				__( 'The success URL must be served over a secure connection.' )
 			);
 		}
 	}
@@ -631,7 +631,7 @@ function wp_is_authorize_application_password_request_valid( $request, $user ) {
 		if ( 'http' === $scheme ) {
 			$error->add(
 				'invalid_redirect_scheme',
-				__( 'The rejection url must be served over a secure connection.' )
+				__( 'The rejection URL must be served over a secure connection.' )
 			);
 		}
 	}
@@ -639,7 +639,7 @@ function wp_is_authorize_application_password_request_valid( $request, $user ) {
 	if ( ! empty( $request['app_id'] ) && ! wp_is_uuid( $request['app_id'] ) ) {
 		$error->add(
 			'invalid_app_id',
-			__( 'The app id must be a uuid.' )
+			__( 'The application ID must be a UUID.' )
 		);
 	}
 

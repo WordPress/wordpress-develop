@@ -23,19 +23,9 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	 *
 	 * @since 5.3.0
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		add_filter( 'pre_http_request', array( $this, 'fake_http_request' ), 10, 3 );
-	}
-
-	/**
-	 * Cleanup after each test method.
-	 *
-	 * @since 5.3.0
-	 */
-	public function tearDown() {
-		parent::tearDown();
-		remove_filter( 'pre_http_request', array( $this, 'fake_http_request' ) );
 	}
 
 	/**
@@ -290,7 +280,7 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 
 		$path = parse_url( $url, PHP_URL_PATH );
 
-		if ( false !== $path ) {
+		if ( is_string( $path ) ) {
 			$extension = pathinfo( $path, PATHINFO_EXTENSION );
 			if ( isset( $fake_headers[ $extension ] ) ) {
 				return $fake_headers[ $extension ];

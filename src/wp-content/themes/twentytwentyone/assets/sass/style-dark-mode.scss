@@ -12,16 +12,13 @@
 		--button--color-background-active: var(--global--color-background);
 		--global--color-border: #9ea1a7;
 
-		.site a:focus:not(.wp-block-button__link):not(.wp-block-file__button),
-		.site a:focus:not(.wp-block-button__link):not(.wp-block-file__button) .meta-nav {
-			background: #000;
-			color: #fff;
-			text-decoration: none;
-		}
+		/* Block: Table */
+		--table--stripes-border-color: rgba(240, 240, 240, 0.15);
+		--table--stripes-background-color: rgba(240, 240, 240, 0.15);
+	}
 
-		img {
-			filter: brightness(.85) contrast(1.1);
-		}
+	.is-dark-theme img {
+		filter: brightness(.85) contrast(1.1);
 	}
 
 	.respect-color-scheme-preference.is-dark-theme body {

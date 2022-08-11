@@ -125,6 +125,9 @@ class Tests_Ajax_Delete_Plugin extends WP_Ajax_UnitTestCase {
 		$this->assertSameSets( $expected, $response );
 	}
 
+	/**
+	 * @group ms-excluded
+	 */
 	public function test_delete_plugin() {
 		$this->_setRole( 'administrator' );
 

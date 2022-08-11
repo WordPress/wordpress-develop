@@ -129,6 +129,9 @@ class Tests_Ajax_Update_Plugin extends WP_Ajax_UnitTestCase {
 		$this->assertSameSets( $expected, $response );
 	}
 
+	/**
+	 * @group ms-excluded
+	 */
 	public function test_update_plugin() {
 		$this->_setRole( 'administrator' );
 

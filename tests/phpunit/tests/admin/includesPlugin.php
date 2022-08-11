@@ -3,8 +3,16 @@
  * @group plugins
  * @group admin
  */
-class Tests_Admin_includesPlugin extends WP_UnitTestCase {
-	function test_get_plugin_data() {
+class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
+	public static function wpSetUpBeforeClass( $factory ) {
+		self::_back_up_mu_plugins();
+	}
+
+	public static function wpTearDownAfterClass() {
+		self::_restore_mu_plugins();
+	}
+
+	public function test_get_plugin_data() {
 		$data = get_plugin_data( DIR_TESTDATA . '/plugins/hello.php' );
 
 		$default_headers = array(
@@ -19,15 +27,15 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 			'DomainPath'  => '',
 		);
 
-		$this->assertTrue( is_array( $data ) );
+		$this->assertIsArray( $data );
 
 		foreach ( $default_headers as $name => $value ) {
-			$this->assertTrue( isset( $data[ $name ] ) );
+			$this->assertArrayHasKey( $name, $data );
 			$this->assertSame( $value, $data[ $name ] );
 		}
 	}
 
-	function test_menu_page_url() {
+	public function test_menu_page_url() {
 		$current_user = get_current_user_id();
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		update_option( 'siteurl', 'http://example.com' );
@@ -69,7 +77,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_submenu_position
 	 */
-	function test_submenu_position( $position, $expected_position ) {
+	public function test_submenu_position( $position, $expected_position ) {
 		global $submenu;
 		global $menu;
 		$current_user = get_current_user_id();
@@ -117,7 +125,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_submenu_position
 	 */
-	function test_submenu_helpers_position( $position, $expected_position ) {
+	public function test_submenu_helpers_position( $position, $expected_position ) {
 		global $submenu;
 		global $menu;
 
@@ -219,7 +227,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	function submenus_to_add() {
+	private function submenus_to_add() {
 		return array(
 			array( 'Submenu Position', 'Submenu Position', 'manage_options', 'sub-page', '' ),
 			array( 'Submenu Position 2', 'Submenu Position 2', 'manage_options', 'sub-page2', '' ),
@@ -241,7 +249,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	function data_submenu_position() {
+	public function data_submenu_position() {
 		$menu_count = count( $this->submenus_to_add() );
 		return array(
 			array( null, $menu_count ),        // Insert at the end of the menu if null is passed. Default behavior.
@@ -260,7 +268,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 *
 	 * @ticket 48599
 	 */
-	function test_position_when_parent_slug_child_slug_are_the_same() {
+	public function test_position_when_parent_slug_child_slug_are_the_same() {
 		global $submenu, $menu;
 
 		// Reset menus.
@@ -292,7 +300,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 *
 	 * @ticket 48599
 	 */
-	function test_passing_string_as_position_fires_doing_it_wrong() {
+	public function test_passing_string_as_position_fires_doing_it_wrong() {
 		$this->setExpectedIncorrectUsage( 'add_submenu_page' );
 		global $submenu, $menu;
 
@@ -316,7 +324,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		$this->assertSame( 'submenu_page_1', $submenu['main_slug'][1][2] );
 	}
 
-	function test_is_plugin_active_true() {
+	public function test_is_plugin_active_true() {
 		activate_plugin( 'hello.php' );
 		$test = is_plugin_active( 'hello.php' );
 		$this->assertTrue( $test );
@@ -324,19 +332,19 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		deactivate_plugins( 'hello.php' );
 	}
 
-	function test_is_plugin_active_false() {
+	public function test_is_plugin_active_false() {
 		deactivate_plugins( 'hello.php' );
 		$test = is_plugin_active( 'hello.php' );
 		$this->assertFalse( $test );
 	}
 
-	function test_is_plugin_inactive_true() {
+	public function test_is_plugin_inactive_true() {
 		deactivate_plugins( 'hello.php' );
 		$test = is_plugin_inactive( 'hello.php' );
 		$this->assertTrue( $test );
 	}
 
-	function test_is_plugin_inactive_false() {
+	public function test_is_plugin_inactive_false() {
 		activate_plugin( 'hello.php' );
 		$test = is_plugin_inactive( 'hello.php' );
 		$this->assertFalse( $test );
@@ -358,7 +366,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	public function test_get_plugin_files_folder() {
 		$plugin_dir = WP_PLUGIN_DIR . '/list_files_test_plugin';
 		@mkdir( $plugin_dir );
-		$plugin = $this->_create_plugin( null, 'list_files_test_plugin.php', $plugin_dir );
+		$plugin = $this->_create_plugin( '', 'list_files_test_plugin.php', $plugin_dir );
 
 		$sub_dir = trailingslashit( dirname( $plugin[1] ) ) . 'subdir';
 		mkdir( $sub_dir );
@@ -369,130 +377,83 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 			'list_files_test_plugin/list_files_test_plugin.php',
 			'list_files_test_plugin/subdir/subfile.php',
 		);
-		$this->assertSame( $expected, $plugin_files );
 
 		unlink( $sub_dir . '/subfile.php' );
 		unlink( $plugin[1] );
 		rmdir( $sub_dir );
 		rmdir( $plugin_dir );
+
+		$this->assertSame( $expected, $plugin_files );
 	}
 
 	/**
 	 * @covers ::get_mu_plugins
 	 */
 	public function test_get_mu_plugins_when_mu_plugins_exists_but_is_empty() {
-		if ( is_dir( WPMU_PLUGIN_DIR ) ) {
-			$exists = true;
-			$this->_back_up_mu_plugins();
-		} else {
-			$exists = false;
-			mkdir( WPMU_PLUGIN_DIR );
-		}
+		mkdir( WPMU_PLUGIN_DIR );
 
-		$this->assertSame( array(), get_mu_plugins() );
+		$mu_plugins = get_mu_plugins();
 
-		// Clean up.
-		if ( $exists ) {
-			$this->_restore_mu_plugins();
-		} else {
-			rmdir( WPMU_PLUGIN_DIR );
-		}
+		rmdir( WPMU_PLUGIN_DIR );
+
+		$this->assertSame( array(), $mu_plugins );
 	}
 
 	/**
 	 * @covers ::get_mu_plugins
 	 */
 	public function test_get_mu_plugins_when_mu_plugins_directory_does_not_exist() {
-		$exists = false;
-		if ( is_dir( WPMU_PLUGIN_DIR ) ) {
-			$exists = true;
-			$this->_back_up_mu_plugins();
-			rmdir( WPMU_PLUGIN_DIR );
-		}
-
+		$this->assertFileDoesNotExist( WPMU_PLUGIN_DIR );
 		$this->assertSame( array(), get_mu_plugins() );
-
-		// Clean up.
-		if ( $exists ) {
-			mkdir( WPMU_PLUGIN_DIR );
-			$this->_restore_mu_plugins();
-		}
 	}
 
 	/**
 	 * @covers ::get_mu_plugins
 	 */
 	public function test_get_mu_plugins_should_ignore_index_php_containing_silence_is_golden() {
-		if ( is_dir( WPMU_PLUGIN_DIR ) ) {
-			$exists = true;
-			$this->_back_up_mu_plugins();
-		} else {
-			$exists = false;
-			mkdir( WPMU_PLUGIN_DIR );
-		}
+		mkdir( WPMU_PLUGIN_DIR );
 
 		$this->_create_plugin( '<?php\n//Silence is golden.', 'index.php', WPMU_PLUGIN_DIR );
-		$this->assertSame( array(), get_mu_plugins() );
 
-		// Clean up.
+		$mu_plugins = get_mu_plugins();
+
 		unlink( WPMU_PLUGIN_DIR . '/index.php' );
-		if ( $exists ) {
-			$this->_restore_mu_plugins();
-		} else {
-			rmdir( WPMU_PLUGIN_DIR );
-		}
+		rmdir( WPMU_PLUGIN_DIR );
+
+		$this->assertSame( array(), $mu_plugins );
 	}
 
 	/**
 	 * @covers ::get_mu_plugins
 	 */
 	public function test_get_mu_plugins_should_not_ignore_index_php_containing_something_other_than_silence_is_golden() {
-		if ( is_dir( WPMU_PLUGIN_DIR ) ) {
-			$exists = true;
-			$this->_back_up_mu_plugins();
-		} else {
-			$exists = false;
-			mkdir( WPMU_PLUGIN_DIR );
-		}
+		mkdir( WPMU_PLUGIN_DIR );
 
 		$this->_create_plugin( '<?php\n//Silence is not golden.', 'index.php', WPMU_PLUGIN_DIR );
 		$found = get_mu_plugins();
-		$this->assertSame( array( 'index.php' ), array_keys( $found ) );
 
 		// Clean up.
 		unlink( WPMU_PLUGIN_DIR . '/index.php' );
-		if ( $exists ) {
-			$this->_restore_mu_plugins();
-		} else {
-			rmdir( WPMU_PLUGIN_DIR );
-		}
+		rmdir( WPMU_PLUGIN_DIR );
+
+		$this->assertSame( array( 'index.php' ), array_keys( $found ) );
 	}
 
 	/**
 	 * @covers ::get_mu_plugins
 	 */
 	public function test_get_mu_plugins_should_ignore_files_without_php_extensions() {
-		if ( is_dir( WPMU_PLUGIN_DIR ) ) {
-			$exists = true;
-			$this->_back_up_mu_plugins();
-		} else {
-			$exists = false;
-			mkdir( WPMU_PLUGIN_DIR );
-		}
+		mkdir( WPMU_PLUGIN_DIR );
 
 		$this->_create_plugin( '<?php\n//Test', 'foo.php', WPMU_PLUGIN_DIR );
 		$this->_create_plugin( '<?php\n//Test 2', 'bar.txt', WPMU_PLUGIN_DIR );
 		$found = get_mu_plugins();
-		$this->assertSame( array( 'foo.php' ), array_keys( $found ) );
 
 		// Clean up.
 		unlink( WPMU_PLUGIN_DIR . '/foo.php' );
 		unlink( WPMU_PLUGIN_DIR . '/bar.txt' );
-		if ( $exists ) {
-			$this->_restore_mu_plugins();
-		} else {
-			rmdir( WPMU_PLUGIN_DIR );
-		}
+
+		$this->assertSame( array( 'foo.php' ), array_keys( $found ) );
 	}
 
 	/**
@@ -583,7 +544,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		unlink( $plugin[1] );
 
 		$result = validate_active_plugins();
-		$this->assertTrue( isset( $result[ $plugin[0] ] ) );
+		$this->assertArrayHasKey( $plugin[0], $result );
 	}
 
 	/**
@@ -651,34 +612,16 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Move existing mu-plugins to wp-content/mu-plugin/backup.
+	 * Move existing mu-plugins to wp-content/mu-plugin-backup.
 	 *
 	 * @since 4.2.0
 	 *
 	 * @access private
 	 */
-	private function _back_up_mu_plugins() {
+	private static function _back_up_mu_plugins() {
 		if ( is_dir( WPMU_PLUGIN_DIR ) ) {
 			$mu_bu_dir = WP_CONTENT_DIR . '/mu-plugin-backup';
-			if ( ! is_dir( $mu_bu_dir ) ) {
-				mkdir( $mu_bu_dir );
-			}
-
-			$files_to_move = array();
-			$mu_plugins    = opendir( WPMU_PLUGIN_DIR );
-			if ( $mu_plugins ) {
-				while ( false !== $plugin = readdir( $mu_plugins ) ) {
-					if ( 0 !== strpos( $plugin, '.' ) ) {
-						$files_to_move[] = $plugin;
-					}
-				}
-			}
-
-			closedir( $mu_plugins );
-
-			foreach ( $files_to_move as $file_to_move ) {
-				$f = rename( WPMU_PLUGIN_DIR . '/' . $file_to_move, $mu_bu_dir . '/' . $file_to_move );
-			}
+			rename( WPMU_PLUGIN_DIR, $mu_bu_dir );
 		}
 	}
 
@@ -689,26 +632,15 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 *
 	 * @access private
 	 */
-	private function _restore_mu_plugins() {
-		$mu_bu_dir     = WP_CONTENT_DIR . '/mu-plugin-backup';
-		$files_to_move = array();
-		$mu_plugins    = @opendir( $mu_bu_dir );
-		if ( $mu_plugins ) {
-			while ( false !== $plugin = readdir( $mu_plugins ) ) {
-				if ( 0 !== strpos( $plugin, '.' ) ) {
-					$files_to_move[] = $plugin;
-				}
-			}
-		}
+	private static function _restore_mu_plugins() {
+		$mu_bu_dir = WP_CONTENT_DIR . '/mu-plugin-backup';
 
-		closedir( $mu_plugins );
-
-		foreach ( $files_to_move as $file_to_move ) {
-			rename( $mu_bu_dir . '/' . $file_to_move, WPMU_PLUGIN_DIR . '/' . $file_to_move );
+		if ( is_dir( WPMU_PLUGIN_DIR ) ) {
+			rmdir( WPMU_PLUGIN_DIR );
 		}
 
 		if ( is_dir( $mu_bu_dir ) ) {
-			rmdir( $mu_bu_dir );
+			rename( $mu_bu_dir, WPMU_PLUGIN_DIR );
 		}
 	}
 

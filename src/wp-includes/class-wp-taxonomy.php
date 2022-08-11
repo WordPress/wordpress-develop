@@ -200,6 +200,14 @@ final class WP_Taxonomy {
 	public $rest_base;
 
 	/**
+	 * The namespace for this taxonomy's REST API endpoints.
+	 *
+	 * @since 5.9.0
+	 * @var string|bool $rest_namespace
+	 */
+	public $rest_namespace;
+
+	/**
 	 * The controller for this taxonomy's REST API endpoints.
 	 *
 	 * Custom controllers must extend WP_REST_Controller.
@@ -208,6 +216,16 @@ final class WP_Taxonomy {
 	 * @var string|bool $rest_controller_class
 	 */
 	public $rest_controller_class;
+
+	/**
+	 * The controller instance for this taxonomy's REST API endpoints.
+	 *
+	 * Lazily computed. Should be accessed using {@see WP_Taxonomy::get_rest_controller()}.
+	 *
+	 * @since 5.5.0
+	 * @var WP_REST_Controller $rest_controller
+	 */
+	public $rest_controller;
 
 	/**
 	 * The default term name for this taxonomy. If you pass an array you have
@@ -219,14 +237,22 @@ final class WP_Taxonomy {
 	public $default_term;
 
 	/**
-	 * The controller instance for this taxonomy's REST API endpoints.
+	 * Whether terms in this taxonomy should be sorted in the order they are provided to `wp_set_object_terms()`.
 	 *
-	 * Lazily computed. Should be accessed using {@see WP_Taxonomy::get_rest_controller()}.
+	 * Use this in combination with `'orderby' => 'term_order'` when fetching terms.
 	 *
-	 * @since 5.5.0
-	 * @var WP_REST_Controller $rest_controller
+	 * @since 2.5.0
+	 * @var bool|null
 	 */
-	public $rest_controller;
+	public $sort = null;
+
+	/**
+	 * Array of arguments to automatically use inside `wp_get_object_terms()` for this taxonomy.
+	 *
+	 * @since 2.6.0
+	 * @var array|null
+	 */
+	public $args = null;
 
 	/**
 	 * Whether it is a built-in taxonomy.
@@ -301,8 +327,11 @@ final class WP_Taxonomy {
 			'update_count_callback' => '',
 			'show_in_rest'          => false,
 			'rest_base'             => false,
+			'rest_namespace'        => false,
 			'rest_controller_class' => false,
 			'default_term'          => null,
+			'sort'                  => null,
+			'args'                  => null,
 			'_builtin'              => false,
 		);
 
@@ -362,6 +391,11 @@ final class WP_Taxonomy {
 		// If not set, default to the setting for 'show_ui'.
 		if ( null === $args['show_in_quick_edit'] ) {
 			$args['show_in_quick_edit'] = $args['show_ui'];
+		}
+
+		// If not set, default rest_namespace to wp/v2 if show_in_rest is true.
+		if ( false === $args['rest_namespace'] && ! empty( $args['show_in_rest'] ) ) {
+			$args['rest_namespace'] = 'wp/v2';
 		}
 
 		$default_caps = array(

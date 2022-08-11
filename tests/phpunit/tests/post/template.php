@@ -5,7 +5,7 @@
  */
 class Tests_Post_Template extends WP_UnitTestCase {
 
-	function test_wp_link_pages() {
+	public function test_wp_link_pages() {
 		$contents = array( 'One', 'Two', 'Three' );
 		$content  = implode( '<!--nextpage-->', $contents );
 		$post_id  = self::factory()->post->create( array( 'post_content' => $content ) );
@@ -131,7 +131,7 @@ class Tests_Post_Template extends WP_UnitTestCase {
 		$this->assertSame( $pagelink, $output );
 	}
 
-	function test_wp_dropdown_pages() {
+	public function test_wp_dropdown_pages() {
 		$none = wp_dropdown_pages( array( 'echo' => 0 ) );
 		$this->assertEmpty( $none );
 
@@ -237,7 +237,7 @@ NO;
 		);
 
 		// Should contain page ID by default.
-		$this->assertContains( 'value="' . $p . '"', $found );
+		$this->assertStringContainsString( 'value="' . $p . '"', $found );
 	}
 
 	/**
@@ -257,7 +257,7 @@ NO;
 			)
 		);
 
-		$this->assertContains( 'value="' . $p . '"', $found );
+		$this->assertStringContainsString( 'value="' . $p . '"', $found );
 	}
 
 	/**
@@ -278,7 +278,7 @@ NO;
 			)
 		);
 
-		$this->assertContains( 'value="foo"', $found );
+		$this->assertStringContainsString( 'value="foo"', $found );
 	}
 
 	/**
@@ -299,7 +299,7 @@ NO;
 			)
 		);
 
-		$this->assertContains( 'value="' . $p . '"', $found );
+		$this->assertStringContainsString( 'value="' . $p . '"', $found );
 	}
 
 	/**
@@ -319,7 +319,7 @@ NO;
 			)
 		);
 
-		$this->assertNotRegExp( '/<select[^>]+class=\'/', $found );
+		$this->assertDoesNotMatchRegularExpression( '/<select[^>]+class=\'/', $found );
 	}
 
 	/**
@@ -340,7 +340,7 @@ NO;
 			)
 		);
 
-		$this->assertRegExp( '/<select[^>]+class=\'bar\'/', $found );
+		$this->assertMatchesRegularExpression( '/<select[^>]+class=\'bar\'/', $found );
 	}
 
 	/**
@@ -419,14 +419,14 @@ NO;
 		$menu = wp_nav_menu( array( 'echo' => false ) );
 
 		// After falling back, the 'before' argument should be set and output as '<ul>'.
-		$this->assertRegExp( '/<div class="menu"><ul>/', $menu );
+		$this->assertMatchesRegularExpression( '/<div class="menu"><ul>/', $menu );
 
 		// After falling back, the 'after' argument should be set and output as '</ul>'.
-		$this->assertRegExp( '/<\/ul><\/div>/', $menu );
+		$this->assertMatchesRegularExpression( '/<\/ul><\/div>/', $menu );
 
 		// After falling back, the markup should include whitespace around <li>'s.
-		$this->assertRegExp( '/\s<li.*>|<\/li>\s/U', $menu );
-		$this->assertNotRegExp( '/><li.*>|<\/li></U', $menu );
+		$this->assertMatchesRegularExpression( '/\s<li.*>|<\/li>\s/U', $menu );
+		$this->assertDoesNotMatchRegularExpression( '/><li.*>|<\/li></U', $menu );
 
 		// No menus + wp_nav_menu() falls back to wp_page_menu(), this time without a container.
 		$menu = wp_nav_menu(
@@ -437,7 +437,7 @@ NO;
 		);
 
 		// After falling back, the empty 'container' argument should still return a container element.
-		$this->assertRegExp( '/<div class="menu">/', $menu );
+		$this->assertMatchesRegularExpression( '/<div class="menu">/', $menu );
 
 		// No menus + wp_nav_menu() falls back to wp_page_menu(), this time without white-space.
 		$menu = wp_nav_menu(
@@ -448,8 +448,69 @@ NO;
 		);
 
 		// After falling back, the markup should not include whitespace around <li>'s.
-		$this->assertNotRegExp( '/\s<li.*>|<\/li>\s/U', $menu );
-		$this->assertRegExp( '/><li.*>|<\/li></U', $menu );
+		$this->assertDoesNotMatchRegularExpression( '/\s<li.*>|<\/li>\s/U', $menu );
+		$this->assertMatchesRegularExpression( '/><li.*>|<\/li></U', $menu );
 
+	}
+
+	/**
+	 * @ticket 33045
+	 */
+	public function test_get_parent_post() {
+		$post = array(
+			'post_status' => 'publish',
+			'post_type'   => 'page',
+		);
+
+		// Insert two initial posts.
+		$parent_id = self::factory()->post->create( $post );
+		$child_id  = self::factory()->post->create( $post );
+
+		// Test if child get_parent_post() post returns Null by default.
+		$parent = get_post_parent( $child_id );
+		$this->assertNull( $parent );
+
+		// Update child post with a parent.
+		wp_update_post(
+			array(
+				'ID'          => $child_id,
+				'post_parent' => $parent_id,
+			)
+		);
+
+		// Test if child get_parent_post() post returns the parent object.
+		$parent = get_post_parent( $child_id );
+		$this->assertNotNull( $parent );
+		$this->assertSame( $parent_id, $parent->ID );
+	}
+
+	/**
+	 * @ticket 33045
+	 */
+	public function test_has_parent_post() {
+		$post = array(
+			'post_status' => 'publish',
+			'post_type'   => 'page',
+		);
+
+		// Insert two initial posts.
+		$parent_id = self::factory()->post->create( $post );
+		$child_id  = self::factory()->post->create( $post );
+
+		// Test if child has_parent_post() post returns False by default.
+		$parent = has_post_parent( $child_id );
+		$this->assertFalse( $parent );
+
+		// Update child post with a parent.
+		wp_update_post(
+			array(
+				'ID'          => $child_id,
+				'post_parent' => $parent_id,
+			)
+		);
+
+		// Test if child has_parent_post() returns True.
+		$parent = has_post_parent( $child_id );
+		$this->assertTrue( $parent );
 	}
 }

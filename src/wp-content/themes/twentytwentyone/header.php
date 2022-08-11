@@ -8,7 +8,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty_One
- * @since 1.0.0
+ * @since Twenty Twenty-One 1.0
  */
 
 ?>
@@ -29,4 +29,4 @@
 
 	<div id="content" class="site-content">
 		<div id="primary" class="content-area">
-			<main id="main" class="site-main" role="main">
+			<main id="main" class="site-main">

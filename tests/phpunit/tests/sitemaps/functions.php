@@ -3,7 +3,8 @@
 /**
  * @group sitemaps
  */
-class Test_Sitemaps_Functions extends WP_UnitTestCase {
+class Tests_Sitemaps_Functions extends WP_UnitTestCase {
+
 	/**
 	 * Test getting the correct number of URLs for a sitemap.
 	 */
@@ -55,16 +56,16 @@ class Test_Sitemaps_Functions extends WP_UnitTestCase {
 		$this->assertSame( array_keys( $expected ), array_keys( $sitemaps ), 'Unable to confirm default sitemap types are registered.' );
 
 		foreach ( $expected as $name => $provider ) {
-			$this->assertTrue( is_a( $sitemaps[ $name ], $provider ), "Default $name sitemap is not a $provider object." );
+			$this->assertInstanceOf( $provider, $sitemaps[ $name ], "Default $name sitemap is not a $provider object." );
 		}
 	}
 
 	/**
-	 * Test get_sitemap_url() with ugly permalinks.
+	 * Test get_sitemap_url() with plain permalinks.
 	 *
-	 * @dataProvider ugly_permalinks_provider
+	 * @dataProvider plain_permalinks_provider
 	 */
-	public function test_get_sitemap_url_ugly_permalinks( $name, $subtype_name, $page, $expected ) {
+	public function test_get_sitemap_url_plain_permalinks( $name, $subtype_name, $page, $expected ) {
 		$actual = get_sitemap_url( $name, $subtype_name, $page );
 
 		$this->assertSame( $expected, $actual );
@@ -84,7 +85,7 @@ class Test_Sitemaps_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_get_sitemap_url_ugly_permalinks.
+	 * Data provider for test_get_sitemap_url_plain_permalinks.
 	 *
 	 * @return array[] {
 	 *     Data to test with.
@@ -95,28 +96,28 @@ class Test_Sitemaps_Functions extends WP_UnitTestCase {
 	 *     @type string|false $4 Sitemap URL.
 	 * }
 	 */
-	function ugly_permalinks_provider() {
+	public function plain_permalinks_provider() {
 		return array(
 			array( 'posts', 'post', 1, home_url( '/?sitemap=posts&sitemap-subtype=post&paged=1' ) ),
 			array( 'posts', 'post', 0, home_url( '/?sitemap=posts&sitemap-subtype=post&paged=1' ) ),
 			array( 'posts', 'page', 1, home_url( '/?sitemap=posts&sitemap-subtype=page&paged=1' ) ),
 			array( 'posts', 'page', 5, home_url( '/?sitemap=posts&sitemap-subtype=page&paged=5' ) ),
-			// post_type doesn't exist.
+			// Post type doesn't exist.
 			array( 'posts', 'foo', 5, false ),
 			array( 'taxonomies', 'category', 1, home_url( '/?sitemap=taxonomies&sitemap-subtype=category&paged=1' ) ),
 			array( 'taxonomies', 'post_tag', 1, home_url( '/?sitemap=taxonomies&sitemap-subtype=post_tag&paged=1' ) ),
+			// Negative paged, gets converted to its absolute value.
 			array( 'taxonomies', 'post_tag', -1, home_url( '/?sitemap=taxonomies&sitemap-subtype=post_tag&paged=1' ) ),
-			// negative paged, gets converted to it's absolute value.
 			array( 'users', '', 4, home_url( '/?sitemap=users&paged=4' ) ),
-			// users provider doesn't allow subtypes.
+			// Users provider doesn't allow subtypes.
 			array( 'users', 'foo', 4, false ),
-			// provider doesn't exist.
+			// Provider doesn't exist.
 			array( 'foo', '', 4, false ),
 		);
 	}
 
 	/**
-	 * Data provider for test_get_sitemap_url_pretty_permalinks
+	 * Data provider for test_get_sitemap_url_pretty_permalinks.
 	 *
 	 * @return array[] {
 	 *     Data to test with.
@@ -127,22 +128,22 @@ class Test_Sitemaps_Functions extends WP_UnitTestCase {
 	 *     @type string|false $4 Sitemap URL.
 	 * }
 	 */
-	function pretty_permalinks_provider() {
+	public function pretty_permalinks_provider() {
 		return array(
 			array( 'posts', 'post', 1, home_url( '/wp-sitemap-posts-post-1.xml' ) ),
 			array( 'posts', 'post', 0, home_url( '/wp-sitemap-posts-post-1.xml' ) ),
 			array( 'posts', 'page', 1, home_url( '/wp-sitemap-posts-page-1.xml' ) ),
 			array( 'posts', 'page', 5, home_url( '/wp-sitemap-posts-page-5.xml' ) ),
-			// post_type doesn't exist.
+			// Post type doesn't exist.
 			array( 'posts', 'foo', 5, false ),
 			array( 'taxonomies', 'category', 1, home_url( '/wp-sitemap-taxonomies-category-1.xml' ) ),
 			array( 'taxonomies', 'post_tag', 1, home_url( '/wp-sitemap-taxonomies-post_tag-1.xml' ) ),
-			// negative paged, gets converted to it's absolute value.
+			// Negative paged, gets converted to its absolute value.
 			array( 'taxonomies', 'post_tag', -1, home_url( '/wp-sitemap-taxonomies-post_tag-1.xml' ) ),
 			array( 'users', '', 4, home_url( '/wp-sitemap-users-4.xml' ) ),
-			// users provider doesn't allow subtypes.
+			// Users provider doesn't allow subtypes.
 			array( 'users', 'foo', 4, false ),
-			// provider doesn't exist.
+			// Provider doesn't exist.
 			array( 'foo', '', 4, false ),
 		);
 	}

@@ -13,15 +13,16 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 	public $editor_engine = 'WP_Image_Editor_Imagick';
 
-	public function setUp() {
+	public function set_up() {
 		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 		require_once ABSPATH . WPINC . '/class-wp-image-editor-imagick.php';
 		require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
 
-		parent::setUp();
+		// This needs to come after the mock image editor class is loaded.
+		parent::set_up();
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		$folder = DIR_TESTDATA . '/images/waffles-*.jpg';
 
 		foreach ( glob( $folder ) as $file ) {
@@ -30,7 +31,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$this->remove_added_uploads();
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -82,7 +83,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$resized = $imagick_image_editor->multi_resize( $sizes_array );
 
-		# First, check to see if returned array is as expected
+		// First, check to see if returned array is as expected.
 		$expected_array = array(
 			array(
 				'file'      => 'waffles-50x33.jpg',
@@ -210,7 +211,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			 * By aspect, should be 30x20 output.
 			 */
 			array(
-				'width'  => 9999, # Arbitrary High Value
+				'width'  => 9999, // Arbitrary high value.
 				'height' => 20,
 				'crop'   => false,
 			),
@@ -221,7 +222,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			 */
 			array(
 				'width'  => 45,
-				'height' => 9999, # Arbitrary High Value
+				'height' => 9999, // Arbitrary high value.
 				'crop'   => true,
 			),
 
@@ -264,7 +265,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			 * By aspect, should be 105x70 output.
 			 */
 			array(
-				'width'  => -9999, # Arbitrary Negative Value
+				'width'  => -9999, // Arbitrary negative value.
 				'height' => 70,
 			),
 
@@ -274,7 +275,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			 */
 			array(
 				'width'  => 200,
-				'height' => -9999, # Arbitrary Negative Value
+				'height' => -9999, // Arbitrary negative value.
 			),
 		);
 
@@ -606,7 +607,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$directory = realpath( DIR_TESTDATA ) . '/images/nonexistent-directory';
 		$editor    = new WP_Image_Editor_Imagick( $file );
 
-		$this->assertFileNotExists( $directory );
+		$this->assertFileDoesNotExist( $directory );
 
 		$loaded = $editor->load();
 		$this->assertNotWPError( $loaded );

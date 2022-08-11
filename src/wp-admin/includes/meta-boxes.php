@@ -87,7 +87,8 @@ function post_submit_meta_box( $post, $args = array() ) {
 		endif;
 
 		/**
-		 * Fires before the post time/date setting in the Publish meta box.
+		 * Fires after the Save Draft (or Save as Pending) and Preview (or Preview Changes) buttons
+		 * in the Publish meta box.
 		 *
 		 * @since 4.4.0
 		 *
@@ -638,7 +639,7 @@ function post_categories_meta_box( $post, $box ) {
 				</a>
 				<p id="<?php echo $tax_name; ?>-add" class="category-add wp-hidden-child">
 					<label class="screen-reader-text" for="new<?php echo $tax_name; ?>"><?php echo $taxonomy->labels->add_new_item; ?></label>
-					<input type="text" name="new<?php echo $tax_name; ?>" id="new<?php echo $tax_name; ?>" class="form-required form-input-tip" value="<?php echo esc_attr( $taxonomy->labels->new_item_name ); ?>" aria-required="true"/>
+					<input type="text" name="new<?php echo $tax_name; ?>" id="new<?php echo $tax_name; ?>" class="form-required form-input-tip" value="<?php echo esc_attr( $taxonomy->labels->new_item_name ); ?>" aria-required="true" />
 					<label class="screen-reader-text" for="new<?php echo $tax_name; ?>_parent">
 						<?php echo $taxonomy->labels->parent_item_colon; ?>
 					</label>
@@ -902,12 +903,14 @@ function post_slug_meta_box( $post ) {
  */
 function post_author_meta_box( $post ) {
 	global $user_ID;
+
+	$post_type_object = get_post_type_object( $post->post_type );
 	?>
 <label class="screen-reader-text" for="post_author_override"><?php _e( 'Author' ); ?></label>
 	<?php
 	wp_dropdown_users(
 		array(
-			'who'              => 'authors',
+			'capability'       => array( $post_type_object->cap->edit_posts ),
 			'name'             => 'post_author_override',
 			'selected'         => empty( $post->ID ) ? $user_ID : $post->post_author,
 			'include_selected' => true,
@@ -1580,7 +1583,13 @@ function register_and_do_post_meta_boxes( $post ) {
 	/**
 	 * Fires after all built-in meta boxes have been added, contextually for the given post type.
 	 *
-	 * The dynamic portion of the hook, `$post_type`, refers to the post type of the post.
+	 * The dynamic portion of the hook name, `$post_type`, refers to the post type of the post.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `add_meta_boxes_post`
+	 *  - `add_meta_boxes_page`
+	 *  - `add_meta_boxes_attachment`
 	 *
 	 * @since 3.0.0
 	 *

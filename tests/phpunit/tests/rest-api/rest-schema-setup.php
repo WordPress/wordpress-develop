@@ -15,8 +15,8 @@
 class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 	const YOUTUBE_VIDEO_ID = 'i_cVJgIz_Cs';
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
@@ -26,14 +26,12 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		add_filter( 'pre_http_request', array( $this, 'mock_embed_request' ), 10, 3 );
 	}
 
-	public function tearDown() {
-		parent::tearDown();
-
+	public function tear_down() {
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = null;
 
-		remove_filter( 'pre_http_request', array( $this, 'mock_embed_request' ), 10, 3 );
+		parent::tear_down();
 	}
 
 	public function mock_embed_request( $preempt, $r, $url ) {
@@ -74,8 +72,8 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 	public function test_expected_routes_in_schema() {
 		$routes = rest_get_server()->get_routes();
 
-		$this->assertTrue( is_array( $routes ), '`get_routes` should return an array.' );
-		$this->assertTrue( ! empty( $routes ), 'Routes should not be empty.' );
+		$this->assertIsArray( $routes, '`get_routes` should return an array.' );
+		$this->assertNotEmpty( $routes, 'Routes should not be empty.' );
 
 		$routes = array_filter( array_keys( $routes ), array( $this, 'is_builtin_route' ) );
 
@@ -97,6 +95,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/pages/(?P<parent>[\\d]+)/revisions/(?P<id>[\\d]+)',
 			'/wp/v2/pages/(?P<id>[\\d]+)/autosaves',
 			'/wp/v2/pages/(?P<parent>[\\d]+)/autosaves/(?P<id>[\\d]+)',
+			'/wp/v2/pattern-directory/patterns',
 			'/wp/v2/media',
 			'/wp/v2/media/(?P<id>[\\d]+)',
 			'/wp/v2/media/(?P<id>[\\d]+)/post-process',
@@ -105,6 +104,8 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/blocks/(?P<id>[\d]+)',
 			'/wp/v2/blocks/(?P<id>[\d]+)/autosaves',
 			'/wp/v2/blocks/(?P<parent>[\d]+)/autosaves/(?P<id>[\d]+)',
+			'/wp/v2/blocks/(?P<parent>[\d]+)/revisions',
+			'/wp/v2/blocks/(?P<parent>[\d]+)/revisions/(?P<id>[\d]+)',
 			'/wp/v2/types',
 			'/wp/v2/types/(?P<type>[\\w-]+)',
 			'/wp/v2/statuses',
@@ -119,6 +120,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/users/(?P<id>[\\d]+)',
 			'/wp/v2/users/me',
 			'/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords',
+			'/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords/introspect',
 			'/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords/(?P<uuid>[\\w\\-]+)',
 			'/wp/v2/comments',
 			'/wp/v2/comments/(?P<id>[\\d]+)',
@@ -128,13 +130,28 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/block-types/(?P<namespace>[a-zA-Z0-9_-]+)',
 			'/wp/v2/block-types/(?P<namespace>[a-zA-Z0-9_-]+)/(?P<name>[a-zA-Z0-9_-]+)',
 			'/wp/v2/settings',
+			'/wp/v2/templates',
+			'/wp/v2/templates/(?P<id>[\/\w-]+)',
+			'/wp/v2/templates/(?P<id>[\d]+)/autosaves',
+			'/wp/v2/templates/(?P<parent>[\d]+)/autosaves/(?P<id>[\d]+)',
+			'/wp/v2/templates/(?P<parent>[\d]+)/revisions',
+			'/wp/v2/templates/(?P<parent>[\d]+)/revisions/(?P<id>[\d]+)',
 			'/wp/v2/themes',
+			'/wp/v2/themes/(?P<stylesheet>[^.\/]+(?:\/[^.\/]+)?)',
 			'/wp/v2/plugins',
 			'/wp/v2/plugins/(?P<plugin>[^.\/]+(?:\/[^.\/]+)?)',
 			'/wp/v2/block-directory/search',
+			'/wp/v2/sidebars',
+			'/wp/v2/sidebars/(?P<id>[\w-]+)',
+			'/wp/v2/widget-types',
+			'/wp/v2/widget-types/(?P<id>[a-zA-Z0-9_-]+)',
+			'/wp/v2/widget-types/(?P<id>[a-zA-Z0-9_-]+)/encode',
+			'/wp/v2/widgets',
+			'/wp/v2/widgets/(?P<id>[\w\-]+)',
 			'/wp-site-health/v1',
 			'/wp-site-health/v1/tests/background-updates',
 			'/wp-site-health/v1/tests/loopback-requests',
+			'/wp-site-health/v1/tests/https-status',
 			'/wp-site-health/v1/tests/dotorg-communication',
 			'/wp-site-health/v1/tests/authorization-header',
 			'/wp-site-health/v1/directory-sizes',
@@ -455,7 +472,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 				$response->get_status(),
 				"HTTP $status from $route[route]: " . json_encode( $data )
 			);
-			$this->assertTrue( ! empty( $data ), $route['name'] . ' route should return data.' );
+			$this->assertNotEmpty( $data, $route['name'] . ' route should return data.' );
 
 			$fixture           = $this->normalize_fixture( $data, $route['name'] );
 			$mocked_responses .= "\nmockedApiResponse." . $route['name'] . ' = '

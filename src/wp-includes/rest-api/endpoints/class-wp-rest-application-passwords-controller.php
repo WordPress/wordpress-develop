@@ -59,6 +59,22 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 
 		register_rest_route(
 			$this->namespace,
+			'/' . $this->rest_base . '/introspect',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_current_item' ),
+					'permission_callback' => array( $this, 'get_current_item_permissions_check' ),
+					'args'                => array(
+						'context' => $this->get_context_param( array( 'default' => 'view' ) ),
+					),
+				),
+				'schema' => array( $this, 'get_public_item_schema' ),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
 			'/' . $this->rest_base . '/(?P<uuid>[\w\-]+)',
 			array(
 				array(
@@ -94,7 +110,21 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
-		return $this->do_permissions_check( $request );
+		$user = $this->get_user( $request );
+
+		if ( is_wp_error( $user ) ) {
+			return $user;
+		}
+
+		if ( ! current_user_can( 'list_app_passwords', $user->ID ) ) {
+			return new WP_Error(
+				'rest_cannot_list_application_passwords',
+				__( 'Sorry, you are not allowed to list application passwords for this user.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return true;
 	}
 
 	/**
@@ -133,7 +163,21 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
-		return $this->do_permissions_check( $request );
+		$user = $this->get_user( $request );
+
+		if ( is_wp_error( $user ) ) {
+			return $user;
+		}
+
+		if ( ! current_user_can( 'read_app_password', $user->ID, $request['uuid'] ) ) {
+			return new WP_Error(
+				'rest_cannot_read_application_password',
+				__( 'Sorry, you are not allowed to read this application password.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return true;
 	}
 
 	/**
@@ -163,7 +207,21 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has access to create items, WP_Error object otherwise.
 	 */
 	public function create_item_permissions_check( $request ) {
-		return $this->do_permissions_check( $request );
+		$user = $this->get_user( $request );
+
+		if ( is_wp_error( $user ) ) {
+			return $user;
+		}
+
+		if ( ! current_user_can( 'create_app_password', $user->ID ) ) {
+			return new WP_Error(
+				'rest_cannot_create_application_passwords',
+				__( 'Sorry, you are not allowed to create application passwords for this user.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return true;
 	}
 
 	/**
@@ -232,7 +290,21 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has access to create items, WP_Error object otherwise.
 	 */
 	public function update_item_permissions_check( $request ) {
-		return $this->do_permissions_check( $request );
+		$user = $this->get_user( $request );
+
+		if ( is_wp_error( $user ) ) {
+			return $user;
+		}
+
+		if ( ! current_user_can( 'edit_app_password', $user->ID, $request['uuid'] ) ) {
+			return new WP_Error(
+				'rest_cannot_edit_application_password',
+				__( 'Sorry, you are not allowed to edit this application password.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return true;
 	}
 
 	/**
@@ -284,7 +356,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Checks if a given request has access to delete all application passwords.
+	 * Checks if a given request has access to delete all application passwords for a user.
 	 *
 	 * @since 5.6.0
 	 *
@@ -292,11 +364,25 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has access to delete the item, WP_Error object otherwise.
 	 */
 	public function delete_items_permissions_check( $request ) {
-		return $this->do_permissions_check( $request );
+		$user = $this->get_user( $request );
+
+		if ( is_wp_error( $user ) ) {
+			return $user;
+		}
+
+		if ( ! current_user_can( 'delete_app_passwords', $user->ID ) ) {
+			return new WP_Error(
+				'rest_cannot_delete_application_passwords',
+				__( 'Sorry, you are not allowed to delete application passwords for this user.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return true;
 	}
 
 	/**
-	 * Deletes all application passwords.
+	 * Deletes all application passwords for a user.
 	 *
 	 * @since 5.6.0
 	 *
@@ -325,7 +411,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Checks if a given request has access to delete a specific application password.
+	 * Checks if a given request has access to delete a specific application password for a user.
 	 *
 	 * @since 5.6.0
 	 *
@@ -333,11 +419,25 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has access to delete the item, WP_Error object otherwise.
 	 */
 	public function delete_item_permissions_check( $request ) {
-		return $this->do_permissions_check( $request );
+		$user = $this->get_user( $request );
+
+		if ( is_wp_error( $user ) ) {
+			return $user;
+		}
+
+		if ( ! current_user_can( 'delete_app_password', $user->ID, $request['uuid'] ) ) {
+			return new WP_Error(
+				'rest_cannot_delete_application_password',
+				__( 'Sorry, you are not allowed to delete this application password.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return true;
 	}
 
 	/**
-	 * Deletes one application password.
+	 * Deletes an application password for a user.
 	 *
 	 * @since 5.6.0
 	 *
@@ -374,14 +474,81 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Checks if a given request has access to get the currently used application password for a user.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
+	 */
+	public function get_current_item_permissions_check( $request ) {
+		$user = $this->get_user( $request );
+
+		if ( is_wp_error( $user ) ) {
+			return $user;
+		}
+
+		if ( get_current_user_id() !== $user->ID ) {
+			return new WP_Error(
+				'rest_cannot_introspect_app_password_for_non_authenticated_user',
+				__( 'The authenticated application password can only be introspected for the current user.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Retrieves the application password being currently used for authentication of a user.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+	 */
+	public function get_current_item( $request ) {
+		$user = $this->get_user( $request );
+
+		if ( is_wp_error( $user ) ) {
+			return $user;
+		}
+
+		$uuid = rest_get_authenticated_app_password();
+
+		if ( ! $uuid ) {
+			return new WP_Error(
+				'rest_no_authenticated_app_password',
+				__( 'Cannot introspect application password.' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		$password = WP_Application_Passwords::get_user_application_password( $user->ID, $uuid );
+
+		if ( ! $password ) {
+			return new WP_Error(
+				'rest_application_password_not_found',
+				__( 'Application password not found.' ),
+				array( 'status' => 500 )
+			);
+		}
+
+		return $this->prepare_item_for_response( $password, $request );
+	}
+
+	/**
 	 * Performs a permissions check for the request.
 	 *
 	 * @since 5.6.0
+	 * @deprecated 5.7.0 Use `edit_user` directly or one of the specific meta capabilities introduced in 5.7.0.
 	 *
 	 * @param WP_REST_Request $request
 	 * @return true|WP_Error
 	 */
 	protected function do_permissions_check( $request ) {
+		_deprecated_function( __METHOD__, '5.7.0' );
+
 		$user = $this->get_user( $request );
 
 		if ( is_wp_error( $user ) ) {
@@ -475,7 +642,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Prepares links for the object.
+	 * Prepares links for the request.
 	 *
 	 * @since 5.6.0
 	 *
@@ -556,7 +723,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Gets the requested application password.
+	 * Gets the requested application password for a user.
 	 *
 	 * @since 5.6.0
 	 *
@@ -621,7 +788,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 				),
 				'app_id'    => array(
-					'description' => __( 'A uuid provided by the application to uniquely identify it. It is recommended to use an UUID v5 with the URL or DNS namespace.' ),
+					'description' => __( 'A UUID provided by the application to uniquely identify it. It is recommended to use an UUID v5 with the URL or DNS namespace.' ),
 					'type'        => 'string',
 					'format'      => 'uuid',
 					'context'     => array( 'view', 'edit', 'embed' ),
@@ -631,6 +798,8 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'required'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
+					'minLength'   => 1,
+					'pattern'     => '.*\S.*',
 				),
 				'password'  => array(
 					'description' => __( 'The generated password. Only available after adding an application.' ),

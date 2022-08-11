@@ -7,8 +7,8 @@ class Tests_Category_GetCategoryParents extends WP_UnitTestCase {
 	protected $c1;
 	protected $c2;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->c1 = self::factory()->category->create_and_get();
 		$this->c2 = self::factory()->category->create_and_get(

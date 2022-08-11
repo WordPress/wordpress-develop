@@ -50,17 +50,17 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	/**
 	 * Set up the test fixture.
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 	}
 
 	/**
 	 * Tear down.
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
 		$_REQUEST = array();
+		parent::tear_down();
 	}
 
 	/**
@@ -94,7 +94,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * @param array $allcaps An array of all the user's capabilities.
 	 * @return array All caps.
 	 */
-	function filter_user_has_cap( $allcaps ) {
+	public function filter_user_has_cap( $allcaps ) {
 		$allcaps = array_merge( $allcaps, $this->overridden_caps );
 		return $allcaps;
 	}
@@ -105,7 +105,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * @ticket 30937
 	 * @covers WP_Customize_Manager::save
 	 */
-	function test_save_failures() {
+	public function test_save_failures() {
 		global $wp_customize;
 		$wp_customize = new WP_Customize_Manager();
 		$wp_customize->register_controls();
@@ -272,7 +272,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * @ticket 30937
 	 * @covers WP_Customize_Manager::save
 	 */
-	function test_save_success_publish_create() {
+	public function test_save_success_publish_create() {
 		$wp_customize = $this->set_up_valid_state();
 
 		$_POST['customize_changeset_status'] = 'publish';
@@ -286,7 +286,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 		);
 		$this->make_ajax_call( 'customize_save' );
 		$this->assertTrue( $this->_last_response_parsed['success'] );
-		$this->assertInternalType( 'array', $this->_last_response_parsed['data'] );
+		$this->assertIsArray( $this->_last_response_parsed['data'] );
 
 		$this->assertSame( 'publish', $this->_last_response_parsed['data']['changeset_status'] );
 		$this->assertArrayHasKey( 'next_changeset_uuid', $this->_last_response_parsed['data'] );
@@ -301,7 +301,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * @ticket 30937
 	 * @covers WP_Customize_Manager::save
 	 */
-	function test_save_success_publish_edit() {
+	public function test_save_success_publish_edit() {
 		$uuid = wp_generate_uuid4();
 
 		$post_id      = $this->factory()->post->create(
@@ -325,7 +325,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 		$_POST['customize_changeset_title']  = 'Published';
 		$this->make_ajax_call( 'customize_save' );
 		$this->assertTrue( $this->_last_response_parsed['success'] );
-		$this->assertInternalType( 'array', $this->_last_response_parsed['data'] );
+		$this->assertIsArray( $this->_last_response_parsed['data'] );
 
 		$this->assertSame( 'publish', $this->_last_response_parsed['data']['changeset_status'] );
 		$this->assertArrayHasKey( 'next_changeset_uuid', $this->_last_response_parsed['data'] );
@@ -340,7 +340,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * @ticket 38943
 	 * @covers WP_Customize_Manager::save
 	 */
-	function test_success_save_post_date() {
+	public function test_success_save_post_date() {
 		$uuid         = wp_generate_uuid4();
 		$post_id      = $this->factory()->post->create(
 			array(
@@ -474,8 +474,8 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 		$autosave_revision = wp_get_post_autosave( $post_id );
 		$this->assertInstanceOf( 'WP_Post', $autosave_revision );
 
-		$this->assertContains( 'New Site Title', get_post( $post_id )->post_content );
-		$this->assertContains( 'Autosaved Site Title', $autosave_revision->post_content );
+		$this->assertStringContainsString( 'New Site Title', get_post( $post_id )->post_content );
+		$this->assertStringContainsString( 'Autosaved Site Title', $autosave_revision->post_content );
 	}
 
 	/**
@@ -679,7 +679,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 		$_REQUEST['dismiss_autosave'] = true;
 		$this->assertNotWPError( $r );
 		$this->assertFalse( wp_get_post_autosave( $wp_customize->changeset_post_id() ) );
-		$this->assertContains( 'Foo', get_post( $wp_customize->changeset_post_id() )->post_content );
+		$this->assertStringContainsString( 'Foo', get_post( $wp_customize->changeset_post_id() )->post_content );
 
 		// Since no autosave yet, confirm no action.
 		$this->make_ajax_call( 'customize_dismiss_autosave_or_lock' );
@@ -700,8 +700,8 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 		$this->assertNotWPError( $r );
 		$autosave_revision = wp_get_post_autosave( $wp_customize->changeset_post_id() );
 		$this->assertInstanceOf( 'WP_Post', $autosave_revision );
-		$this->assertContains( 'Foo', get_post( $wp_customize->changeset_post_id() )->post_content );
-		$this->assertContains( 'Bar', $autosave_revision->post_content );
+		$this->assertStringContainsString( 'Foo', get_post( $wp_customize->changeset_post_id() )->post_content );
+		$this->assertStringContainsString( 'Bar', $autosave_revision->post_content );
 
 		// Confirm autosave gets deleted.
 		$this->make_ajax_call( 'customize_dismiss_autosave_or_lock' );

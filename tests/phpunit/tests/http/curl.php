@@ -11,6 +11,8 @@ class Tests_HTTP_curl extends WP_HTTP_UnitTestCase {
 
 	/**
 	 * @ticket 39783
+	 *
+	 * @covers ::wp_remote_request
 	 */
 	public function test_http_api_curl_stream_parameter_is_a_reference() {
 		add_action( 'http_api_curl', array( $this, '_action_test_http_api_curl_stream_parameter_is_a_reference' ), 10, 3 );

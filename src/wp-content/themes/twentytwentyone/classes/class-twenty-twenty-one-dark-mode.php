@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty_One
- * @since 1.0.0
+ * @since Twenty Twenty-One 1.0
  */
 
 /**
@@ -15,9 +15,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	/**
 	 * Instantiate the object.
 	 *
-	 * @access public
-	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 */
 	public function __construct() {
 
@@ -49,9 +47,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	/**
 	 * Editor custom color variables & scripts.
 	 *
-	 * @access public
-	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
@@ -65,7 +61,7 @@ class Twenty_Twenty_One_Dark_Mode {
 			// Add Dark Mode variable overrides.
 			wp_add_inline_style(
 				'twenty-twenty-one-custom-color-overrides',
-				'.is-dark-theme.is-dark-theme .editor-styles-wrapper { --global--color-background: var(--global--color-dark-gray); --global--color-primary: var(--global--color-light-gray); --global--color-secondary: var(--global--color-light-gray); --button--color-text: var(--global--color-background); --button--color-text-hover: var(--global--color-secondary); --button--color-text-active: var(--global--color-secondary); --button--color-background: var(--global--color-secondary); --button--color-background-active: var(--global--color-background); --global--color-border: #9ea1a7; }'
+				'.is-dark-theme.is-dark-theme .editor-styles-wrapper { --global--color-background: var(--global--color-dark-gray); --global--color-primary: var(--global--color-light-gray); --global--color-secondary: var(--global--color-light-gray); --button--color-text: var(--global--color-background); --button--color-text-hover: var(--global--color-secondary); --button--color-text-active: var(--global--color-secondary); --button--color-background: var(--global--color-secondary); --button--color-background-active: var(--global--color-background); --global--color-border: #9ea1a7; --table--stripes-border-color: rgba(240, 240, 240, 0.15); --table--stripes-background-color: rgba(240, 240, 240, 0.15); }'
 			);
 		}
 		wp_enqueue_script(
@@ -88,9 +84,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	/**
 	 * Enqueue scripts and styles.
 	 *
-	 * @access public
-	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
@@ -108,9 +102,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	/**
 	 * Enqueue scripts for the customizer.
 	 *
-	 * @access public
-	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
@@ -130,12 +122,9 @@ class Twenty_Twenty_One_Dark_Mode {
 	/**
 	 * Register customizer options.
 	 *
-	 * @access public
-	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @param WP_Customize_Manager $wp_customize Theme Customizer object.
-	 *
 	 * @return void
 	 */
 	public function customizer_controls( $wp_customize ) {
@@ -164,7 +153,7 @@ class Twenty_Twenty_One_Dark_Mode {
 				array(
 					'section'         => 'colors',
 					'priority'        => 100,
-					'active_callback' => function() {
+					'active_callback' => static function() {
 						return 127 >= Twenty_Twenty_One_Custom_Colors::get_relative_luminance_from_hex( get_theme_mod( 'background_color', 'D1E4DD' ) );
 					},
 				)
@@ -176,7 +165,7 @@ class Twenty_Twenty_One_Dark_Mode {
 			array(
 				'capability'        => 'edit_theme_options',
 				'default'           => false,
-				'sanitize_callback' => function( $value ) {
+				'sanitize_callback' => static function( $value ) {
 					return (bool) $value;
 				},
 			)
@@ -199,7 +188,7 @@ class Twenty_Twenty_One_Dark_Mode {
 				'label'           => esc_html__( 'Dark Mode support', 'twentytwentyone' ),
 				'priority'        => 110,
 				'description'     => $description,
-				'active_callback' => function( $value ) {
+				'active_callback' => static function( $value ) {
 					return 127 < Twenty_Twenty_One_Custom_Colors::get_relative_luminance_from_hex( get_theme_mod( 'background_color', 'D1E4DD' ) );
 				},
 			)
@@ -222,12 +211,9 @@ class Twenty_Twenty_One_Dark_Mode {
 	/**
 	 * Calculate classes for the main <html> element.
 	 *
-	 * @access public
-	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @param string $classes The classes for <html> element.
-	 *
 	 * @return string
 	 */
 	public function html_classes( $classes ) {
@@ -247,12 +233,9 @@ class Twenty_Twenty_One_Dark_Mode {
 	/**
 	 * Adds a class to the <body> element in the editor to accommodate dark-mode.
 	 *
-	 * @access public
-	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @param string $classes The admin body-classes.
-	 *
 	 * @return string
 	 */
 	public function admin_body_classes( $classes ) {
@@ -280,9 +263,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	/**
 	 * Determine if we want to print the dark-mode switch or not.
 	 *
-	 * @access public
-	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return bool
 	 */
@@ -298,9 +279,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	/**
 	 * Add night/day switch.
 	 *
-	 * @access public
-	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
@@ -317,12 +296,9 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * Inspired from https://codepen.io/aaroniker/pen/KGpXZo (MIT-licensed)
 	 *
-	 * @access public
-	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @param array $attrs The attributes to add to our <button> element.
-	 *
 	 * @return void
 	 */
 	public function the_html( $attrs = array() ) {
@@ -378,9 +354,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	/**
 	 * Print the dark-mode switch script.
 	 *
-	 * @access public
-	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
@@ -393,9 +367,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	/**
 	 * Adds information to the privacy policy.
 	 *
-	 * @access public
-	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */

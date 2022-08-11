@@ -5,7 +5,7 @@
  */
 class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 
-	function test_invalid_username_password() {
+	public function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getPosts( array( 1, 'username', 'password' ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
@@ -14,7 +14,7 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 	/**
 	 * @ticket 20991
 	 */
-	function test_incapable_user() {
+	public function test_incapable_user() {
 		$this->make_user_by_role( 'subscriber' );
 
 		$result = $this->myxmlrpcserver->wp_getPosts( array( 1, 'subscriber', 'subscriber' ) );
@@ -27,14 +27,14 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( 401, $result->code );
 	}
 
-	function test_capable_user() {
+	public function test_capable_user() {
 		$this->make_user_by_role( 'editor' );
 
 		$result = $this->myxmlrpcserver->wp_getPosts( array( 1, 'editor', 'editor' ) );
 		$this->assertNotIXRError( $result );
 	}
 
-	function test_invalid_post_type() {
+	public function test_invalid_post_type() {
 		$this->make_user_by_role( 'editor' );
 
 		$filter = array( 'post_type' => 'invalid_post_type_name' );
@@ -42,7 +42,7 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 		$this->assertIXRError( $result );
 	}
 
-	function test_filters() {
+	public function test_filters() {
 		$this->make_user_by_role( 'editor' );
 
 		$cpt_name = 'test_wp_getposts_cpt';
@@ -71,7 +71,7 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 		);
 		$results = $this->myxmlrpcserver->wp_getPosts( array( 1, 'editor', 'editor', $filter ) );
 		$this->assertNotIXRError( $results );
-		$this->assertSame( $num_posts, count( $results ) );
+		$this->assertCount( $num_posts, $results );
 
 		// Page through results.
 		$posts_found      = array();
@@ -83,7 +83,7 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 			$filter['offset'] += $filter['number'];
 		} while ( count( $presults ) > 0 );
 		// Verify that $post_ids matches $posts_found.
-		$this->assertSame( 0, count( array_diff( $post_ids, $posts_found ) ) );
+		$this->assertCount( 0, array_diff( $post_ids, $posts_found ) );
 
 		// Add comments to some of the posts.
 		foreach ( $post_ids as $key => $post_id ) {
@@ -117,13 +117,13 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 		);
 		$results3 = $this->myxmlrpcserver->wp_getPosts( array( 1, 'editor', 'editor', $filter3 ) );
 		$this->assertNotIXRError( $results3 );
-		$this->assertSame( 1, count( $results3 ) );
+		$this->assertCount( 1, $results3 );
 		$this->assertEquals( $post->ID, $results3[0]['post_id'] );
 
 		_unregister_post_type( $cpt_name );
 	}
 
-	function test_fields() {
+	public function test_fields() {
 		$this->make_user_by_role( 'editor' );
 		self::factory()->post->create();
 
@@ -149,7 +149,7 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 	/**
 	 * @ticket 21623
 	 */
-	function test_search() {
+	public function test_search() {
 		$this->make_user_by_role( 'editor' );
 
 		$post_ids[] = self::factory()->post->create( array( 'post_title' => 'First: Hello, World!' ) );
@@ -159,13 +159,13 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 		$filter  = array( 's' => 'Third' );
 		$results = $this->myxmlrpcserver->wp_getPosts( array( 1, 'editor', 'editor', $filter ) );
 		$this->assertNotIXRError( $results );
-		$this->assertSame( 0, count( $results ) );
+		$this->assertCount( 0, $results );
 
 		// Search for one of them.
 		$filter  = array( 's' => 'First:' );
 		$results = $this->myxmlrpcserver->wp_getPosts( array( 1, 'editor', 'editor', $filter ) );
 		$this->assertNotIXRError( $results );
-		$this->assertSame( 1, count( $results ) );
+		$this->assertCount( 1, $results );
 	}
 
 }

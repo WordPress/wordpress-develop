@@ -12,7 +12,7 @@ require_once __DIR__ . '/admin.php';
 $error        = null;
 $new_password = '';
 
-// This is the no-js fallback script.  Generally this will all be handled by `auth-app.js`
+// This is the no-js fallback script. Generally this will all be handled by `auth-app.js`.
 if ( isset( $_POST['action'] ) && 'authorize_application_password' === $_POST['action'] ) {
 	check_admin_referer( 'authorize_application_password' );
 
@@ -62,6 +62,7 @@ if ( isset( $_POST['action'] ) && 'authorize_application_password' === $_POST['a
 	}
 }
 
+// Used in the HTML title tag.
 $title = __( 'Authorize Application' );
 
 $app_name    = ! empty( $_REQUEST['app_name'] ) ? $_REQUEST['app_name'] : '';
@@ -88,9 +89,9 @@ if ( is_wp_error( $is_valid ) ) {
 	);
 }
 
-if ( ! empty( $_SERVER['PHP_AUTH_USER'] ) || ! empty( $_SERVER['PHP_AUTH_PW'] ) ) {
+if ( wp_is_site_protected_by_basic_auth( 'front' ) ) {
 	wp_die(
-		__( 'Your website appears to use Basic Authentication, which is not currently compatible with Application Passwords.' ),
+		__( 'Your website appears to use Basic Authentication, which is not currently compatible with application passwords.' ),
 		__( 'Cannot Authorize Application' ),
 		array(
 			'response'  => 501,
@@ -141,19 +142,19 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<?php endif; ?>
 
 	<div class="card auth-app-card">
-		<h2 class="title"><?php __( 'An application would like to connect to your account.' ); ?></h2>
+		<h2 class="title"><?php _e( 'An application would like to connect to your account.' ); ?></h2>
 		<?php if ( $app_name ) : ?>
 			<p>
 				<?php
 				printf(
 					/* translators: %s: Application name. */
-					__( 'Would you like to give the application identifying itself as %s access to your account? You should only do this if you trust the app in question.' ),
+					__( 'Would you like to give the application identifying itself as %s access to your account? You should only do this if you trust the application in question.' ),
 					'<strong>' . esc_html( $app_name ) . '</strong>'
 				);
 				?>
 			</p>
 		<?php else : ?>
-			<p><?php _e( 'Would you like to give this application access to your account? You should only do this if you trust the app in question.' ); ?></p>
+			<p><?php _e( 'Would you like to give this application access to your account? You should only do this if you trust the application in question.' ); ?></p>
 		<?php endif; ?>
 
 		<?php
@@ -165,10 +166,10 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
-						/* translators: 1: URL to my-sites.php, 2: Number of blogs the user has. */
+						/* translators: 1: URL to my-sites.php, 2: Number of sites the user has. */
 						_n(
-							'This will grant access to <a href="%1$s">the %2$s blog in this installation that you have permissions on</a>.',
-							'This will grant access to <a href="%1$s">all %2$s blogs in this installation that you have permissions on</a>.',
+							'This will grant access to <a href="%1$s">the %2$s site in this installation that you have permissions on</a>.',
+							'This will grant access to <a href="%1$s">all %2$s sites in this installation that you have permissions on</a>.',
 							$blogs_count
 						),
 						admin_url( 'my-sites.php' ),
@@ -200,15 +201,19 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 			<?php
 			/**
-			 * Fires in the Authorize Application Password new password section.
+			 * Fires in the Authorize Application Password new password section in the no-JS version.
+			 *
+			 * In most cases, this should be used in combination with the {@see 'wp_application_passwords_approve_app_request_success'}
+			 * action to ensure that both the JS and no-JS variants are handled.
 			 *
 			 * @since 5.6.0
+			 * @since 5.6.1 Corrected action name and signature.
 			 *
 			 * @param string  $new_password The newly generated application password.
 			 * @param array   $request      The array of request data. All arguments are optional and may be empty.
 			 * @param WP_User $user         The user authorizing the application.
 			 */
-			do_action( 'wp_authorize_application_password_form', $request, $user );
+			do_action( 'wp_authorize_application_password_form_approved_no_js', $new_password, $request, $user );
 			?>
 		<?php else : ?>
 			<form action="<?php echo esc_url( admin_url( 'authorize-application.php' ) ); ?>" method="post" class="form-wrap">
@@ -220,7 +225,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 				<div class="form-field">
 					<label for="app_name"><?php _e( 'New Application Password Name' ); ?></label>
-					<input type="text" id="app_name" name="app_name" value="<?php echo esc_attr( $app_name ); ?>" placeholder="<?php esc_attr_e( 'WordPress App on My Phone' ); ?>" required />
+					<input type="text" id="app_name" name="app_name" value="<?php echo esc_attr( $app_name ); ?>" required />
 				</div>
 
 				<?php
@@ -243,7 +248,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 				<?php
 				submit_button(
-					__( 'Yes, I approve of this connection.' ),
+					__( 'Yes, I approve of this connection' ),
 					'primary',
 					'approve',
 					false,
@@ -258,7 +263,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						printf(
 							/* translators: %s: The URL the user is being redirected to. */
 							__( 'You will be sent to %s' ),
-							'<strong><kbd>' . esc_html(
+							'<strong><code>' . esc_html(
 								add_query_arg(
 									array(
 										'site_url'   => site_url(),
@@ -267,7 +272,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 									),
 									$success_url
 								)
-							) . '</kbd></strong>'
+							) . '</code></strong>'
 						);
 					} else {
 						_e( 'You will be given a password to manually enter into the application in question.' );
@@ -277,7 +282,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 				<?php
 				submit_button(
-					__( 'No, I do not approve of this connection.' ),
+					__( 'No, I do not approve of this connection' ),
 					'secondary',
 					'reject',
 					false,
@@ -292,7 +297,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						printf(
 							/* translators: %s: The URL the user is being redirected to. */
 							__( 'You will be sent to %s' ),
-							'<strong><kbd>' . esc_html( $reject_url ) . '</kbd></strong>'
+							'<strong><code>' . esc_html( $reject_url ) . '</code></strong>'
 						);
 					} else {
 						_e( 'You will be returned to the WordPress Dashboard, and no changes will be made.' );

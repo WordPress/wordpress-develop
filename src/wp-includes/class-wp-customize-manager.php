@@ -346,7 +346,7 @@ final class WP_Customize_Manager {
 		 * @see WP_Customize_Manager::__construct()
 		 *
 		 * @param string[]             $components Array of core components to load.
-		 * @param WP_Customize_Manager $this       WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager   WP_Customize_Manager instance.
 		 */
 		$components = apply_filters( 'customize_loaded_components', $this->components, $this );
 
@@ -691,7 +691,7 @@ final class WP_Customize_Manager {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param WP_Customize_Manager $this WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager WP_Customize_Manager instance.
 		 */
 		do_action( 'start_previewing_theme', $this );
 	}
@@ -729,7 +729,7 @@ final class WP_Customize_Manager {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param WP_Customize_Manager $this WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager WP_Customize_Manager instance.
 		 */
 		do_action( 'stop_previewing_theme', $this );
 	}
@@ -928,7 +928,7 @@ final class WP_Customize_Manager {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param WP_Customize_Manager $this WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager WP_Customize_Manager instance.
 		 */
 		do_action( 'customize_register', $this );
 
@@ -1185,7 +1185,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @param array $starter_content Starter content. Defaults to `get_theme_starter_content()`.
 	 */
-	function import_theme_starter_content( $starter_content = array() ) {
+	public function import_theme_starter_content( $starter_content = array() ) {
 		if ( empty( $starter_content ) ) {
 			$starter_content = get_theme_starter_content();
 		}
@@ -1859,8 +1859,8 @@ final class WP_Customize_Manager {
 		 *
 		 * @since 4.4.0
 		 *
-		 * @param mixed                $value Unsanitized setting post value.
-		 * @param WP_Customize_Manager $this  WP_Customize_Manager instance.
+		 * @param mixed                $value   Unsanitized setting post value.
+		 * @param WP_Customize_Manager $manager WP_Customize_Manager instance.
 		 */
 		do_action( "customize_post_value_set_{$setting_id}", $value, $this );
 
@@ -1876,7 +1876,7 @@ final class WP_Customize_Manager {
 		 *
 		 * @param string               $setting_id Setting ID.
 		 * @param mixed                $value      Unsanitized setting post value.
-		 * @param WP_Customize_Manager $this       WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager    WP_Customize_Manager instance.
 		 */
 		do_action( 'customize_post_value_set', $setting_id, $value, $this );
 	}
@@ -1900,7 +1900,7 @@ final class WP_Customize_Manager {
 			nocache_headers();
 			header( 'X-Robots: noindex, nofollow, noarchive' );
 		}
-		add_action( 'wp_head', 'wp_no_robots' );
+		add_filter( 'wp_robots', 'wp_robots_no_robots' );
 		add_filter( 'wp_headers', array( $this, 'filter_iframe_security_headers' ) );
 
 		/*
@@ -1937,7 +1937,7 @@ final class WP_Customize_Manager {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param WP_Customize_Manager $this WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager WP_Customize_Manager instance.
 		 */
 		do_action( 'customize_preview_init', $this );
 	}
@@ -2592,7 +2592,7 @@ final class WP_Customize_Manager {
 		 *
 		 * @param array                $response Additional information passed back to the 'saved'
 		 *                                       event on `wp.customize`.
-		 * @param WP_Customize_Manager $this     WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager  WP_Customize_Manager instance.
 		 */
 		$response = apply_filters( 'customize_save_response', $response, $this );
 
@@ -2622,7 +2622,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @return array|WP_Error Returns array on success and WP_Error with array data on error.
 	 */
-	function save_changeset_post( $args = array() ) {
+	public function save_changeset_post( $args = array() ) {
 
 		$args = array_merge(
 			array(
@@ -2760,7 +2760,7 @@ final class WP_Customize_Manager {
 		 *
 		 * @since 4.6.0
 		 *
-		 * @param WP_Customize_Manager $this WP_Customize_Manager instance.
+		 * @param WP_Customize_Manager $manager WP_Customize_Manager instance.
 		 */
 		do_action( 'customize_save_validation_before', $this );
 
@@ -3907,18 +3907,20 @@ final class WP_Customize_Manager {
 	public function remove_panel( $id ) {
 		// Removing core components this way is _doing_it_wrong().
 		if ( in_array( $id, $this->components, true ) ) {
-			$message = sprintf(
-				/* translators: 1: Panel ID, 2: Link to 'customize_loaded_components' filter reference. */
-				__( 'Removing %1$s manually will cause PHP warnings. Use the %2$s filter instead.' ),
-				$id,
+			_doing_it_wrong(
+				__METHOD__,
 				sprintf(
-					'<a href="%1$s">%2$s</a>',
-					esc_url( 'https://developer.wordpress.org/reference/hooks/customize_loaded_components/' ),
-					'<code>customize_loaded_components</code>'
-				)
+					/* translators: 1: Panel ID, 2: Link to 'customize_loaded_components' filter reference. */
+					__( 'Removing %1$s manually will cause PHP warnings. Use the %2$s filter instead.' ),
+					$id,
+					sprintf(
+						'<a href="%1$s">%2$s</a>',
+						esc_url( 'https://developer.wordpress.org/reference/hooks/customize_loaded_components/' ),
+						'<code>customize_loaded_components</code>'
+					)
+				),
+				'4.5.0'
 			);
-
-			_doing_it_wrong( __METHOD__, $message, '4.5.0' );
 		}
 		unset( $this->panels[ $id ] );
 	}
@@ -4686,7 +4688,7 @@ final class WP_Customize_Manager {
 
 			/*
 			 * If the return URL is a page added by a theme to the Appearance menu via add_submenu_page(),
-			 * verify that belongs to the active theme, otherwise fall back to the Themes screen.
+			 * verify that it belongs to the active theme, otherwise fall back to the Themes screen.
 			 */
 			if ( isset( $query_vars['page'] ) && ! isset( $_registered_pages[ "appearance_page_{$query_vars['page']}" ] ) ) {
 				$return_url = admin_url( 'themes.php' );
@@ -4752,9 +4754,9 @@ final class WP_Customize_Manager {
 		 *
 		 * @since 4.2.0
 		 *
-		 * @param string[]             $nonces Array of refreshed nonces for save and
-		 *                                     preview actions.
-		 * @param WP_Customize_Manager $this   WP_Customize_Manager instance.
+		 * @param string[]             $nonces  Array of refreshed nonces for save and
+		 *                                      preview actions.
+		 * @param WP_Customize_Manager $manager WP_Customize_Manager instance.
 		 */
 		$nonces = apply_filters( 'customize_refresh_nonces', $nonces, $this );
 

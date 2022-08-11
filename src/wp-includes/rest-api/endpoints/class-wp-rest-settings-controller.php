@@ -27,7 +27,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Registers the routes for the objects of the controller.
+	 * Registers the routes for the site's settings.
 	 *
 	 * @since 4.7.0
 	 *
@@ -154,7 +154,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 			}
 
 			/**
-			 * Filters whether to preempt a setting value update.
+			 * Filters whether to preempt a setting value update via the REST API.
 			 *
 			 * Allows hijacking the setting update logic and overriding the built-in behavior by
 			 * returning true.

@@ -25,17 +25,17 @@ require_once ABSPATH . 'wp-admin/includes/class-wp-internal-pointers.php';
  *
  * @see wp_terms_checklist()
  *
- * @param int    $post_id              Optional. Post to generate a categories checklist for. Default 0.
- *                                     $selected_cats must not be an array. Default 0.
- * @param int    $descendants_and_self Optional. ID of the category to output along with its descendants.
- *                                     Default 0.
- * @param int[]  $selected_cats        Optional. Array of category IDs to mark as checked. Default false.
- * @param int[]  $popular_cats         Optional. Array of category IDs to receive the "popular-category" class.
- *                                     Default false.
- * @param Walker $walker               Optional. Walker object to use to build the output.
- *                                     Default is a Walker_Category_Checklist instance.
- * @param bool   $checked_ontop        Optional. Whether to move checked items out of the hierarchy and to
- *                                     the top of the list. Default true.
+ * @param int         $post_id              Optional. Post to generate a categories checklist for. Default 0.
+ *                                          $selected_cats must not be an array. Default 0.
+ * @param int         $descendants_and_self Optional. ID of the category to output along with its descendants.
+ *                                          Default 0.
+ * @param int[]|false $selected_cats        Optional. Array of category IDs to mark as checked. Default false.
+ * @param int[]|false $popular_cats         Optional. Array of category IDs to receive the "popular-category" class.
+ *                                          Default false.
+ * @param Walker      $walker               Optional. Walker object to use to build the output.
+ *                                          Default is a Walker_Category_Checklist instance.
+ * @param bool        $checked_ontop        Optional. Whether to move checked items out of the hierarchy and to
+ *                                          the top of the list. Default true.
  */
 function wp_category_checklist( $post_id = 0, $descendants_and_self = 0, $selected_cats = false, $popular_cats = false, $walker = null, $checked_ontop = true ) {
 	wp_terms_checklist(
@@ -972,7 +972,7 @@ function wp_import_upload_form( $action ) {
 		?>
 		<div class="error"><p><?php _e( 'Before you can upload your import file, you will need to fix the following error:' ); ?></p>
 		<p><strong><?php echo $upload_dir['error']; ?></strong></p></div>
-								<?php
+		<?php
 	else :
 		?>
 <form enctype="multipart/form-data" id="import-upload-form" method="post" class="wp-upload-form" action="<?php echo esc_url( wp_nonce_url( $action, 'import-upload' ) ); ?>">
@@ -1148,17 +1148,23 @@ function do_block_editor_incompatible_meta_box( $object, $box ) {
 
 	if ( empty( $plugins['classic-editor/classic-editor.php'] ) ) {
 		if ( current_user_can( 'install_plugins' ) ) {
-			echo '<p>';
-			printf(
-				/* translators: %s: A link to install the Classic Editor plugin. */
-				__( 'Please install the <a href="%s">Classic Editor plugin</a> to use this meta box.' ),
-				esc_url( wp_nonce_url( self_admin_url( 'plugin-install.php?tab=favorites&user=wordpressdotorg&save=0' ), 'save_wporg_username_' . get_current_user_id() ) )
+			$install_url = wp_nonce_url(
+				self_admin_url( 'plugin-install.php?tab=favorites&user=wordpressdotorg&save=0' ),
+				'save_wporg_username_' . get_current_user_id()
 			);
+
+			echo '<p>';
+			/* translators: %s: A link to install the Classic Editor plugin. */
+			printf( __( 'Please install the <a href="%s">Classic Editor plugin</a> to use this meta box.' ), esc_url( $install_url ) );
 			echo '</p>';
 		}
 	} elseif ( is_plugin_inactive( 'classic-editor/classic-editor.php' ) ) {
 		if ( current_user_can( 'activate_plugins' ) ) {
-			$activate_url = wp_nonce_url( self_admin_url( 'plugins.php?action=activate&plugin=classic-editor/classic-editor.php' ), 'activate-plugin_classic-editor/classic-editor.php' );
+			$activate_url = wp_nonce_url(
+				self_admin_url( 'plugins.php?action=activate&plugin=classic-editor/classic-editor.php' ),
+				'activate-plugin_classic-editor/classic-editor.php'
+			);
+
 			echo '<p>';
 			/* translators: %s: A link to activate the Classic Editor plugin. */
 			printf( __( 'Please activate the <a href="%s">Classic Editor plugin</a> to use this meta box.' ), esc_url( $activate_url ) );
@@ -1592,7 +1598,7 @@ function add_settings_section( $id, $title, $callback, $page ) {
  *
  * Part of the Settings API. Use this to define a settings field that will show
  * as part of a settings section inside a settings page. The fields are shown using
- * do_settings_fields() in do_settings-sections()
+ * do_settings_fields() in do_settings_sections().
  *
  * The $callback argument should be the name of a function that echoes out the
  * HTML input tags for this setting field. Use get_option() to retrieve existing
@@ -2025,7 +2031,7 @@ function iframe_header( $title = '', $deprecated = false ) {
 	wp_enqueue_style( 'colors' );
 	?>
 <script type="text/javascript">
-addLoadEvent = function(func){if(typeof jQuery!="undefined")jQuery(document).ready(func);else if(typeof wpOnload!='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
+addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(document).ready(func);else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
 function tb_close(){var win=window.dialogArguments||opener||parent||top;win.tb_remove();}
 var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>',
 	pagenow = '<?php echo esc_js( $current_screen->id ); ?>',
@@ -2115,7 +2121,7 @@ function iframe_footer() {
 	do_action( 'admin_print_footer_scripts' );
 	?>
 	</div>
-<script type="text/javascript">if(typeof wpOnload=="function")wpOnload();</script>
+<script type="text/javascript">if(typeof wpOnload==='function')wpOnload();</script>
 </body>
 </html>
 	<?php
@@ -2139,12 +2145,15 @@ function _post_states( $post, $echo = true ) {
 
 	if ( ! empty( $post_states ) ) {
 		$state_count = count( $post_states );
-		$i           = 0;
+
+		$i = 0;
 
 		$post_states_string .= ' &mdash; ';
 
 		foreach ( $post_states as $state ) {
-			$sep = ( ++$i === $state_count ) ? '' : ', ';
+			++$i;
+
+			$sep = ( $i < $state_count ) ? ', ' : '';
 
 			$post_states_string .= "<span class='post-state'>$state$sep</span>";
 		}
@@ -2249,12 +2258,15 @@ function _media_states( $post, $echo = true ) {
 
 	if ( ! empty( $media_states ) ) {
 		$state_count = count( $media_states );
-		$i           = 0;
+
+		$i = 0;
 
 		$media_states_string .= ' &mdash; ';
 
 		foreach ( $media_states as $state ) {
-			$sep = ( ++$i === $state_count ) ? '' : ', ';
+			++$i;
+
+			$sep = ( $i < $state_count ) ? ', ' : '';
 
 			$media_states_string .= "<span class='post-state'>$state$sep</span>";
 		}
@@ -2345,7 +2357,7 @@ function get_media_states( $post ) {
 	 *                               'Background Image', 'Site Icon', 'Logo'.
 	 * @param WP_Post  $post         The current attachment object.
 	 */
-	 return apply_filters( 'display_media_states', $media_states, $post );
+	return apply_filters( 'display_media_states', $media_states, $post );
 }
 
 /**
@@ -2660,11 +2672,31 @@ function wp_star_rating( $args = array() ) {
 }
 
 /**
- * Output a notice when editing the page for posts (internal use only).
+ * Outputs a notice when editing the page for posts (internal use only).
  *
  * @ignore
  * @since 4.2.0
  */
 function _wp_posts_page_notice() {
-	echo '<div class="notice notice-warning inline"><p>' . __( 'You are currently editing the page that shows your latest posts.' ) . '</p></div>';
+	printf(
+		'<div class="notice notice-warning inline"><p>%s</p></div>',
+		__( 'You are currently editing the page that shows your latest posts.' )
+	);
+}
+
+/**
+ * Outputs a notice when editing the page for posts in the block editor (internal use only).
+ *
+ * @ignore
+ * @since 5.8.0
+ */
+function _wp_block_editor_posts_page_notice() {
+	wp_add_inline_script(
+		'wp-notices',
+		sprintf(
+			'wp.data.dispatch( "core/notices" ).createWarningNotice( "%s", { isDismissible: false } )',
+			__( 'You are currently editing the page that shows your latest posts.' )
+		),
+		'after'
+	);
 }

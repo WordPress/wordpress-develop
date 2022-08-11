@@ -1,6 +1,6 @@
 <?php
 /**
- * Sitemaps: Sitemaps_Tests class
+ * Sitemaps: Tests_Sitemaps_Sitemaps class
  *
  * Main test class.
  *
@@ -15,7 +15,7 @@
  *
  * @group sitemaps
  */
-class Test_Sitemaps extends WP_UnitTestCase {
+class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 
 	/**
 	 * List of user IDs.
@@ -453,7 +453,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		$robots_text    = apply_filters( 'robots_txt', '', true );
 		$sitemap_string = 'Sitemap: http://' . WP_TESTS_DOMAIN . '/?sitemap=index';
 
-		$this->assertContains( $sitemap_string, $robots_text, 'Sitemap URL not included in robots text.' );
+		$this->assertStringContainsString( $sitemap_string, $robots_text, 'Sitemap URL not included in robots text.' );
 	}
 
 	/**
@@ -463,7 +463,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		$robots_text    = apply_filters( 'robots_txt', '', false );
 		$sitemap_string = 'Sitemap: http://' . WP_TESTS_DOMAIN . '/?sitemap=index';
 
-		$this->assertNotContains( $sitemap_string, $robots_text );
+		$this->assertStringNotContainsString( $sitemap_string, $robots_text );
 	}
 
 	/**
@@ -480,7 +480,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		// Clean up permalinks.
 		$this->set_permalink_structure();
 
-		$this->assertContains( $sitemap_string, $robots_text, 'Sitemap URL not included in robots text.' );
+		$this->assertStringContainsString( $sitemap_string, $robots_text, 'Sitemap URL not included in robots text.' );
 	}
 
 	/**
@@ -491,7 +491,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		$robots_text    = apply_filters( 'robots_txt', '', true );
 		$sitemap_string = "\nSitemap: ";
 
-		$this->assertContains( $sitemap_string, $robots_text, 'Sitemap URL not prefixed with "\n".' );
+		$this->assertStringContainsString( $sitemap_string, $robots_text, 'Sitemap URL not prefixed with "\n".' );
 	}
 
 	/**

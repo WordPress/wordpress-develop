@@ -14,7 +14,7 @@ class Tests_Functions_wpAuthCheck extends WP_UnitTestCase {
 	 *
 	 * @ticket 41860
 	 */
-	function test_wp_auth_check_user_not_logged_in() {
+	public function test_wp_auth_check_user_not_logged_in() {
 		$expected = array(
 			'wp-auth-check' => false,
 		);
@@ -28,7 +28,7 @@ class Tests_Functions_wpAuthCheck extends WP_UnitTestCase {
 	 *
 	 * @ticket 41860
 	 */
-	function test_wp_auth_check_user_logged_in() {
+	public function test_wp_auth_check_user_logged_in() {
 		// Log user in.
 		wp_set_current_user( 1 );
 
@@ -45,7 +45,7 @@ class Tests_Functions_wpAuthCheck extends WP_UnitTestCase {
 	 *
 	 * @ticket 41860
 	 */
-	function test_wp_auth_check_user_logged_in_login_grace_period_set() {
+	public function test_wp_auth_check_user_logged_in_login_grace_period_set() {
 		// Log user in.
 		wp_set_current_user( 1 );
 

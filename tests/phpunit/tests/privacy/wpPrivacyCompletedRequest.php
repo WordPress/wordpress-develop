@@ -8,14 +8,14 @@
  */
 
 /**
- * Tests_WpPrivacyCompletedRequest class.
+ * Tests_Privacy_wpPrivacyCompletedRequest class.
  *
  * @group privacy
  * @covers ::_wp_privacy_completed_request
  *
  * @since 4.9.6
  */
-class Tests_WpPrivacyCompletedRequest extends WP_UnitTestCase {
+class Tests_Privacy_wpPrivacyCompletedRequest extends WP_UnitTestCase {
 	/**
 	 * Request ID
 	 *

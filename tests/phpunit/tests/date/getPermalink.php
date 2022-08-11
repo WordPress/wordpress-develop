@@ -4,16 +4,17 @@
  * @group date
  * @group datetime
  * @group post
+ * @covers ::get_permalink
  */
-class Tests_Date_Get_Permalink extends WP_UnitTestCase {
+class Tests_Date_GetPermalink extends WP_UnitTestCase {
 
-	function tearDown() {
+	public function tear_down() {
 		delete_option( 'permalink_structure' );
 		update_option( 'timezone_string', 'UTC' );
 		// phpcs:ignore WordPress.DateTime.RestrictedFunctions.timezone_change_date_default_timezone_set
 		date_default_timezone_set( 'UTC' );
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**

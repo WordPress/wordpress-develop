@@ -4,8 +4,8 @@
  * @group taxonomy
  */
 class Tests_Term_getTerms extends WP_UnitTestCase {
-	function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		_clean_term_filters();
 		wp_cache_delete( 'last_changed', 'terms' );
@@ -115,7 +115,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// last_changed and num_queries should bump.
 		$terms = get_terms( 'post_tag', array( 'update_term_meta_cache' => false ) );
-		$this->assertSame( 3, count( $terms ) );
+		$this->assertCount( 3, $terms );
 		$time1 = wp_cache_get( 'last_changed', 'terms' );
 		$this->assertNotEmpty( $time1 );
 		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
@@ -124,7 +124,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// Again. last_changed and num_queries should remain the same.
 		$terms = get_terms( 'post_tag', array( 'update_term_meta_cache' => false ) );
-		$this->assertSame( 3, count( $terms ) );
+		$this->assertCount( 3, $terms );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'terms' ) );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}
@@ -144,7 +144,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// num_queries should bump, last_changed should remain the same.
 		$terms = get_terms( 'post_tag', array( 'number' => 2 ) );
-		$this->assertSame( 2, count( $terms ) );
+		$this->assertCount( 2, $terms );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'terms' ) );
 		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 
@@ -152,7 +152,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// Again. last_changed and num_queries should remain the same.
 		$terms = get_terms( 'post_tag', array( 'number' => 2 ) );
-		$this->assertSame( 2, count( $terms ) );
+		$this->assertCount( 2, $terms );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'terms' ) );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}
@@ -179,7 +179,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// last_changed and num_queries should bump after a term is deleted.
 		$terms = get_terms( 'post_tag' );
-		$this->assertSame( 2, count( $terms ) );
+		$this->assertCount( 2, $terms );
 		$this->assertSame( $time2, wp_cache_get( 'last_changed', 'terms' ) );
 		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 
@@ -187,7 +187,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// Again. last_changed and num_queries should remain the same.
 		$terms = get_terms( 'post_tag' );
-		$this->assertSame( 2, count( $terms ) );
+		$this->assertCount( 2, $terms );
 		$this->assertSame( $time2, wp_cache_get( 'last_changed', 'terms' ) );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
@@ -197,7 +197,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	/**
 	 * @ticket 23506
 	 */
-	function test_get_terms_should_allow_arbitrary_indexed_taxonomies_array() {
+	public function test_get_terms_should_allow_arbitrary_indexed_taxonomies_array() {
 		$term_id = self::factory()->tag->create();
 		$terms   = get_terms( array( '111' => 'post_tag' ), array( 'hide_empty' => false ) );
 		$this->assertSame( $term_id, reset( $terms )->term_id );
@@ -206,7 +206,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	/**
 	 * @ticket 13661
 	 */
-	function test_get_terms_fields() {
+	public function test_get_terms_fields() {
 		$term_id1 = self::factory()->tag->create(
 			array(
 				'slug' => 'woo',
@@ -288,7 +288,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	/**
 	 * @ticket 11823
 	 */
-	function test_get_terms_include_exclude() {
+	public function test_get_terms_include_exclude() {
 		global $wpdb;
 
 		$term_id1  = self::factory()->tag->create();
@@ -371,7 +371,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	/**
 	 * @ticket 25710
 	 */
-	function test_get_terms_exclude_tree() {
+	public function test_get_terms_exclude_tree() {
 
 		$term_id_uncategorized = get_option( 'default_category' );
 
@@ -406,7 +406,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	/**
 	 * @ticket 13992
 	 */
-	function test_get_terms_search() {
+	public function test_get_terms_search() {
 		$term_id1 = self::factory()->tag->create( array( 'slug' => 'burrito' ) );
 		$term_id2 = self::factory()->tag->create( array( 'name' => 'Wilbur' ) );
 		$term_id3 = self::factory()->tag->create( array( 'name' => 'Foo' ) );
@@ -425,7 +425,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	/**
 	 * @ticket 8214
 	 */
-	function test_get_terms_like() {
+	public function test_get_terms_like() {
 		$term_id1 = self::factory()->tag->create(
 			array(
 				'name'        => 'burrito',
@@ -523,7 +523,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	/**
 	 * @ticket 26903
 	 */
-	function test_get_terms_parent_zero() {
+	public function test_get_terms_parent_zero() {
 		$tax = 'food';
 		register_taxonomy( $tax, 'post', array( 'hierarchical' => true ) );
 
@@ -617,14 +617,14 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'cache_domain' => $tax,
 			)
 		);
-		$this->assertSame( 2, count( $terms ) );
+		$this->assertCount( 2, $terms );
 		$this->assertSame( wp_list_pluck( $terms, 'name' ), array( 'Cheese', 'Crackers' ) );
 	}
 
 	/**
 	 * @ticket 26903
 	 */
-	function test_get_terms_grandparent_zero() {
+	public function test_get_terms_grandparent_zero() {
 		$tax = 'food';
 		register_taxonomy( $tax, 'post', array( 'hierarchical' => true ) );
 
@@ -660,7 +660,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'cache_domain' => $tax,
 			)
 		);
-		$this->assertSame( 1, count( $terms ) );
+		$this->assertCount( 1, $terms );
 		$this->assertSame( array( 'Cheese' ), wp_list_pluck( $terms, 'name' ) );
 
 		_unregister_taxonomy( $tax );
@@ -669,7 +669,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	/**
 	 * @ticket 26903
 	 */
-	function test_get_terms_seven_levels_deep() {
+	public function test_get_terms_seven_levels_deep() {
 		$tax = 'deep';
 		register_taxonomy( $tax, 'post', array( 'hierarchical' => true ) );
 		$parent = 0;
@@ -696,7 +696,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'cache_domain' => $tax,
 			)
 		);
-		$this->assertSame( 1, count( $terms ) );
+		$this->assertCount( 1, $terms );
 		$this->assertSame( array( 'term1' ), wp_list_pluck( $terms, 'name' ) );
 
 		_unregister_taxonomy( $tax );
@@ -705,7 +705,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	/**
 	 * @ticket 27123
 	 */
-	function test_get_terms_child_of() {
+	public function test_get_terms_child_of() {
 		$parent = self::factory()->category->create();
 		$child  = self::factory()->category->create( array( 'parent' => $parent ) );
 
@@ -716,13 +716,13 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'hide_empty' => false,
 			)
 		);
-		$this->assertSame( 1, count( $terms ) );
+		$this->assertCount( 1, $terms );
 	}
 
 	/**
 	 * @ticket 46768
 	 */
-	function test_get_terms_child_of_fields_id_name() {
+	public function test_get_terms_child_of_fields_id_name() {
 		$parent = self::factory()->category->create();
 		$child  = self::factory()->category->create(
 			array(
@@ -761,7 +761,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	/**
 	 * @ticket 46768
 	 */
-	function test_get_terms_child_of_fields_id_slug() {
+	public function test_get_terms_child_of_fields_id_slug() {
 		$parent = self::factory()->category->create();
 		$child  = self::factory()->category->create(
 			array(
@@ -851,7 +851,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	/**
 	 * @ticket 27123
 	 */
-	function test_get_term_children_recursion() {
+	public function test_get_term_children_recursion() {
 		// Assume there is a way to insert a term with the parent pointing to itself.
 		// See: https://core.trac.wordpress.org/changeset/15806
 		remove_filter( 'wp_update_term_parent', 'wp_check_term_hierarchy_for_loops', 10 );
@@ -861,7 +861,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$term = get_term( $term['term_id'], 'category' );
 
 		$this->assertSame( $term->term_id, $term->parent );
-		$this->assertInternalType( 'array', get_term_children( $term->term_id, 'category' ) );
+		$this->assertIsArray( get_term_children( $term->term_id, 'category' ) );
 
 		add_filter( 'wp_update_term_parent', 'wp_check_term_hierarchy_for_loops', 10, 3 );
 	}
@@ -2308,7 +2308,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		// Verify that there are no children.
-		$this->assertSame( 0, count( $terms ) );
+		$this->assertCount( 0, $terms );
 	}
 
 	/**
@@ -2374,7 +2374,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		// Verify that there are no children.
-		$this->assertSame( 0, count( $terms ) );
+		$this->assertCount( 0, $terms );
 	}
 
 	public function test_hierarchical_true_with_child_of_should_return_grandchildren() {
@@ -2487,7 +2487,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		// 'hierarchical=false' means that descendants are not fetched.
-		$this->assertSame( 0, count( $terms ) );
+		$this->assertCount( 0, $terms );
 	}
 
 	/**

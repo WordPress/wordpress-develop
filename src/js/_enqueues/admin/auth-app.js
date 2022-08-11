@@ -15,7 +15,7 @@
 			rejectUrl: authApp.reject
 		};
 
-	$approveBtn.click( function( e ) {
+	$approveBtn.on( 'click', function( e ) {
 		var name = $appNameField.val(),
 			appId = $( 'input[name="app_id"]', $form ).val();
 
@@ -26,7 +26,7 @@
 		}
 
 		if ( 0 === name.length ) {
-			$appNameField.focus();
+			$appNameField.trigger( 'focus' );
 			return;
 		}
 
@@ -62,6 +62,9 @@
 			/**
 			 * Fires when an Authorize Application Password request has been successfully approved.
 			 *
+			 * In most cases, this should be used in combination with the {@see 'wp_authorize_application_password_form_approved_no_js'}
+			 * action to ensure that both the JS and no-JS variants are handled.
+			 *
 			 * @since 5.6.0
 			 *
 			 * @param {Object} response          The response from the REST API.
@@ -95,11 +98,11 @@
 					.append( '<p>' + wp.i18n.__( 'Be sure to save this in a safe location. You will not be able to retrieve it.' ) + '</p>' );
 
 				// We're using .text() to write the variables to avoid any chance of XSS.
-				$( 'strong', $notice ).text( name );
+				$( 'strong', $notice ).text( response.name );
 				$( 'input', $notice ).val( response.password );
 
 				$form.replaceWith( $notice );
-				$notice.focus();
+				$notice.trigger( 'focus' );
 			}
 		} ).fail( function( jqXHR, textStatus, errorThrown ) {
 			var errorMessage = errorThrown,
@@ -126,17 +129,18 @@
 			 * Fires when an Authorize Application Password request encountered an error when trying to approve the request.
 			 *
 			 * @since 5.6.0
+			 * @since 5.6.1 Corrected action name and signature.
 			 *
 			 * @param {Object|null} error       The error from the REST API. May be null if the server did not send proper JSON.
 			 * @param {string}      textStatus  The status of the request.
 			 * @param {string}      errorThrown The error message associated with the response status code.
 			 * @param {jqXHR}       jqXHR       The underlying jqXHR object that made the request.
 			 */
-			wp.hooks.doAction( 'wp_application_passwords_approve_app_request_success', error, textStatus, jqXHR );
+			wp.hooks.doAction( 'wp_application_passwords_approve_app_request_error', error, textStatus, errorThrown, jqXHR );
 		} );
 	} );
 
-	$rejectBtn.click( function( e ) {
+	$rejectBtn.on( 'click', function( e ) {
 		e.preventDefault();
 
 		/**

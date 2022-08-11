@@ -50,7 +50,7 @@ abstract class WP_REST_Controller {
 			'WP_REST_Controller::register_routes',
 			/* translators: %s: register_routes() */
 			sprintf( __( "Method '%s' must be overridden." ), __METHOD__ ),
-			'4.7'
+			'4.7.0'
 		);
 	}
 
@@ -443,7 +443,7 @@ abstract class WP_REST_Controller {
 	 *
 	 * @param object          $object  Data model like WP_Term or WP_Post.
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error True on success, WP_Error object if a field cannot be updated.
+	 * @return true|WP_Error True on success, WP_Error object if a field cannot be updated.
 	 */
 	protected function update_additional_fields_for_object( $object, $request ) {
 		$additional_fields = $this->get_additional_fields();
@@ -504,11 +504,14 @@ abstract class WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
+	 * @global array $wp_rest_additional_fields Holds registered fields, organized by object type.
+	 *
 	 * @param string $object_type Optional. The object type.
-	 * @return array Registered additional fields (if any), empty array if none or if the object type could
-	 *               not be inferred.
+	 * @return array Registered additional fields (if any), empty array if none or if the object type
+	 *               could not be inferred.
 	 */
 	protected function get_additional_fields( $object_type = null ) {
+		global $wp_rest_additional_fields;
 
 		if ( ! $object_type ) {
 			$object_type = $this->get_object_type();
@@ -517,8 +520,6 @@ abstract class WP_REST_Controller {
 		if ( ! $object_type ) {
 			return array();
 		}
-
-		global $wp_rest_additional_fields;
 
 		if ( ! $wp_rest_additional_fields || ! isset( $wp_rest_additional_fields[ $object_type ] ) ) {
 			return array();
@@ -596,7 +597,7 @@ abstract class WP_REST_Controller {
 		// Return the list of all requested fields which appear in the schema.
 		return array_reduce(
 			$requested_fields,
-			function( $response_fields, $field ) use ( $fields ) {
+			static function( $response_fields, $field ) use ( $fields ) {
 				if ( in_array( $field, $fields, true ) ) {
 					$response_fields[] = $field;
 					return $response_fields;

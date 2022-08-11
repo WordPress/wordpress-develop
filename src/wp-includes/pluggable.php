@@ -91,16 +91,25 @@ if ( ! function_exists( 'get_user_by' ) ) :
 	 *
 	 * @since 2.8.0
 	 * @since 4.4.0 Added 'ID' as an alias of 'id' for the `$field` parameter.
+	 * @since 5.8.0 Returns the global `$current_user` if it's the user being fetched.
+	 *
+	 * @global WP_User $current_user The current user object which holds the user data.
 	 *
 	 * @param string     $field The field to retrieve the user with. id | ID | slug | email | login.
 	 * @param int|string $value A value for $field. A user ID, slug, email address, or login name.
 	 * @return WP_User|false WP_User object on success, false on failure.
 	 */
 	function get_user_by( $field, $value ) {
+		global $current_user;
+
 		$userdata = WP_User::get_data_by( $field, $value );
 
 		if ( ! $userdata ) {
 			return false;
+		}
+
+		if ( $current_user instanceof WP_User && $current_user->ID === (int) $userdata->ID ) {
+			return $current_user;
 		}
 
 		$user = new WP_User;
@@ -158,15 +167,17 @@ if ( ! function_exists( 'wp_mail' ) ) :
 	 * be set using the {@see 'wp_mail_charset'} filter.
 	 *
 	 * @since 1.2.1
+	 * @since 5.5.0 is_email() is used for email validation,
+	 *              instead of PHPMailer's default validator.
 	 *
 	 * @global PHPMailer\PHPMailer\PHPMailer $phpmailer
 	 *
-	 * @param string|array $to          Array or comma-separated list of email addresses to send message.
-	 * @param string       $subject     Email subject
-	 * @param string       $message     Message contents
-	 * @param string|array $headers     Optional. Additional headers.
-	 * @param string|array $attachments Optional. Paths to files to attach.
-	 * @return bool Whether the email contents were sent successfully.
+	 * @param string|string[] $to          Array or comma-separated list of email addresses to send message.
+	 * @param string          $subject     Email subject.
+	 * @param string          $message     Message contents.
+	 * @param string|string[] $headers     Optional. Additional headers.
+	 * @param string|string[] $attachments Optional. Paths to files to attach.
+	 * @return bool Whether the email was sent successfully.
 	 */
 	function wp_mail( $to, $subject, $message, $headers = '', $attachments = array() ) {
 		// Compact the input, apply the filters, and extract them back out.
@@ -187,6 +198,32 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		 * }
 		 */
 		$atts = apply_filters( 'wp_mail', compact( 'to', 'subject', 'message', 'headers', 'attachments' ) );
+
+		/**
+		 * Filters whether to preempt sending an email.
+		 *
+		 * Returning a non-null value will short-circuit {@see wp_mail()}, returning
+		 * that value instead. A boolean return value should be used to indicate whether
+		 * the email was successfully sent.
+		 *
+		 * @since 5.7.0
+		 *
+		 * @param null|bool $return Short-circuit return value.
+		 * @param array     $atts {
+		 *     Array of the `wp_mail()` arguments.
+		 *
+		 *     @type string|string[] $to          Array or comma-separated list of email addresses to send message.
+		 *     @type string          $subject     Email subject.
+		 *     @type string          $message     Message contents.
+		 *     @type string|string[] $headers     Additional headers.
+		 *     @type string|string[] $attachments Paths to files to attach.
+		 * }
+		 */
+		$pre_wp_mail = apply_filters( 'pre_wp_mail', null, $atts );
+
+		if ( null !== $pre_wp_mail ) {
+			return $pre_wp_mail;
+		}
 
 		if ( isset( $atts['to'] ) ) {
 			$to = $atts['to'];
@@ -1139,7 +1176,7 @@ if ( ! function_exists( 'check_admin_referer' ) ) :
 	 */
 	function check_admin_referer( $action = -1, $query_arg = '_wpnonce' ) {
 		if ( -1 === $action ) {
-			_doing_it_wrong( __FUNCTION__, __( 'You should specify a nonce action to be verified by using the first parameter.' ), '3.2.0' );
+			_doing_it_wrong( __FUNCTION__, __( 'You should specify an action to be verified by using the first parameter.' ), '3.2.0' );
 		}
 
 		$adminurl = strtolower( admin_url() );
@@ -1184,7 +1221,7 @@ if ( ! function_exists( 'check_ajax_referer' ) ) :
 	 */
 	function check_ajax_referer( $action = -1, $query_arg = false, $die = true ) {
 		if ( -1 == $action ) {
-			_doing_it_wrong( __FUNCTION__, __( 'You should specify a nonce action to be verified by using the first parameter.' ), '4.7' );
+			_doing_it_wrong( __FUNCTION__, __( 'You should specify an action to be verified by using the first parameter.' ), '4.7.0' );
 		}
 
 		$nonce = '';
@@ -2748,8 +2785,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 		 * @param int    $size        Square avatar width and height in pixels to retrieve.
 		 * @param string $default     URL for the default image or a default type. Accepts '404', 'retro', 'monsterid',
 		 *                            'wavatar', 'indenticon', 'mystery', 'mm', 'mysteryman', 'blank', or 'gravatar_default'.
-		 *                            Default is the value of the 'avatar_default' option, with a fallback of 'mystery'.
-		 * @param string $alt         Alternative text to use in the avatar image tag. Default empty.
+		 * @param string $alt         Alternative text to use in the avatar image tag.
 		 * @param array  $args        Arguments passed to get_avatar_data(), after processing.
 		 */
 		return apply_filters( 'get_avatar', $avatar, $id_or_email, $args['size'], $args['default'], $args['alt'], $args );
@@ -2812,27 +2848,32 @@ if ( ! function_exists( 'wp_text_diff' ) ) :
 			return '';
 		}
 
-		$r = "<table class='diff'>\n";
+		$is_split_view       = ! empty( $args['show_split_view'] );
+		$is_split_view_class = $is_split_view ? ' is-split-view' : '';
 
-		if ( ! empty( $args['show_split_view'] ) ) {
-			$r .= "<col class='content diffsplit left' /><col class='content diffsplit middle' /><col class='content diffsplit right' />";
-		} else {
-			$r .= "<col class='content' />";
+		$r = "<table class='diff$is_split_view_class'>\n";
+
+		if ( $args['title'] ) {
+			$r .= "<caption class='diff-title'>$args[title]</caption>\n";
 		}
 
-		if ( $args['title'] || $args['title_left'] || $args['title_right'] ) {
+		if ( $args['title_left'] || $args['title_right'] ) {
 			$r .= '<thead>';
 		}
-		if ( $args['title'] ) {
-			$r .= "<tr class='diff-title'><th colspan='4'>$args[title]</th></tr>\n";
-		}
+
 		if ( $args['title_left'] || $args['title_right'] ) {
+			$th_or_td_left  = empty( $args['title_left'] ) ? 'td' : 'th';
+			$th_or_td_right = empty( $args['title_right'] ) ? 'td' : 'th';
+
 			$r .= "<tr class='diff-sub-title'>\n";
-			$r .= "\t<td></td><th>$args[title_left]</th>\n";
-			$r .= "\t<td></td><th>$args[title_right]</th>\n";
+			$r .= "\t<$th_or_td_left>$args[title_left]</$th_or_td_left>\n";
+			if ( $is_split_view ) {
+				$r .= "\t<$th_or_td_right>$args[title_right]</$th_or_td_right>\n";
+			}
 			$r .= "</tr>\n";
 		}
-		if ( $args['title'] || $args['title_left'] || $args['title_right'] ) {
+
+		if ( $args['title_left'] || $args['title_right'] ) {
 			$r .= "</thead>\n";
 		}
 

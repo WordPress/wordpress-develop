@@ -28,7 +28,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 
 		$expected = "<option value='$u'>Foo Person</option>";
 
-		$this->assertContains( $expected, $found );
+		$this->assertStringContainsString( $expected, $found );
 	}
 
 	/**
@@ -54,7 +54,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 
 		$expected = "<option value='$u'>Foo Person</option>";
 
-		$this->assertContains( $expected, $found );
+		$this->assertStringContainsString( $expected, $found );
 	}
 
 	/**
@@ -80,7 +80,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 
 		$expected = "<option value='$u'>foo</option>";
 
-		$this->assertContains( $expected, $found );
+		$this->assertStringContainsString( $expected, $found );
 	}
 
 	/**
@@ -106,7 +106,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 
 		$expected = "<option value='$u'>Foo Person (foo)</option>";
 
-		$this->assertContains( $expected, $found );
+		$this->assertStringContainsString( $expected, $found );
 	}
 
 	/**
@@ -126,7 +126,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 		);
 
 		$user1 = get_userdata( $users[1] );
-		$this->assertContains( $user1->user_login, $found );
+		$this->assertStringContainsString( $user1->user_login, $found );
 	}
 
 	/**
@@ -142,7 +142,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotContains( (string) PHP_INT_MAX, $found );
+		$this->assertStringNotContainsString( (string) PHP_INT_MAX, $found );
 	}
 
 	/**
@@ -160,8 +160,8 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotContains( $u1->user_login, $found );
-		$this->assertContains( $u2->user_login, $found );
+		$this->assertStringNotContainsString( $u1->user_login, $found );
+		$this->assertStringContainsString( $u2->user_login, $found );
 	}
 
 	/**
@@ -179,8 +179,8 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotContains( $u1->user_login, $found );
-		$this->assertContains( $u2->user_login, $found );
+		$this->assertStringNotContainsString( $u1->user_login, $found );
+		$this->assertStringContainsString( $u2->user_login, $found );
 	}
 
 	/**
@@ -198,7 +198,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotContains( $u1->user_login, $found );
-		$this->assertContains( $u2->user_login, $found );
+		$this->assertStringNotContainsString( $u1->user_login, $found );
+		$this->assertStringContainsString( $u2->user_login, $found );
 	}
 }

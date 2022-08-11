@@ -4,8 +4,9 @@
  * @group date
  * @group datetime
  * @group post
+ * @covers ::get_the_date
  */
-class Tests_Date_Get_The_Date extends WP_UnitTestCase {
+class Tests_Date_GetTheDate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 13771
