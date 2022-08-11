@@ -1122,8 +1122,8 @@ EOF;
 			),
 			// Custom CSS properties.
 			array(
-				'css'      => '--wp--medium-width: 100px;--background-color-2: #cccccc;--CAPS:red;--underscore_allowed:red;--_:?><.%-not-allowed:red;',
-				'expected' => '--wp--medium-width: 100px;--background-color-2: #cccccc;--CAPS:red;--underscore_allowed:red;',
+				'css'      => '--wp--medium-width: 100px; --var_with_underscores: #cccccc; --miXeD-CAse: red; --with-numbers-3_56: red; --_:?><.%-not-allowed: red; --with-url-value: url("https://example.com"); --with-gradient: repeating-linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);',
+				'expected' => '--wp--medium-width: 100px; --var_with_underscores: #cccccc; --miXeD-CAse: red; --with-numbers-3_56: red; --with-url-value: url("https://example.com"); --with-gradient: repeating-linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);',
 			),
 		);
 	}
