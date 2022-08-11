@@ -2334,7 +2334,6 @@ class WP_Site_Health {
 
 		$result['status']         = 'recommended';
 		$result['label']          = __( 'You should use a persistent object cache' );
-		$result['badge']['color'] = 'orange';
 		$result['description']   .= sprintf(
 			'<p>%s</p>',
 			wp_kses(
@@ -3016,12 +3015,8 @@ class WP_Site_Health {
 		// With InnoDB the `TABLE_ROWS` are estimates, which are accurate enough and faster to retrieve than individual `COUNT()` queries.
 		$results = $wpdb->get_results(
 			$wpdb->prepare(
-			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				"SELECT TABLE_NAME AS 'table', TABLE_ROWS AS 'rows', SUM(data_length + index_length) as 'bytes'
-			FROM information_schema.TABLES
-			WHERE TABLE_SCHEMA = %s
-			AND TABLE_NAME IN ('$table_names')
-			GROUP BY TABLE_NAME;",
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- This query cannot use interpolation.
+				"SELECT TABLE_NAME AS 'table', TABLE_ROWS AS 'rows', SUM(data_length + index_length) as 'bytes' FROM information_schema.TABLES WHERE TABLE_SCHEMA = %s AND TABLE_NAME IN ('$table_names') GROUP BY TABLE_NAME;",
 				DB_NAME
 			),
 			OBJECT_K
