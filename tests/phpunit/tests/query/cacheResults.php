@@ -220,8 +220,6 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query2 = new WP_Query();
 		$query2->query( $args );
 
-		remove_filter( 'posts_request', array( $this, 'filter_posts_request' ) );
-
 		$queries_after = get_num_queries();
 
 		$this->assertNotSame( $queries_before, $queries_after );
