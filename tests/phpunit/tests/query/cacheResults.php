@@ -362,6 +362,19 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $stuck_ids );
 
+		// Ignore sticky posts.
+		$ignore_stuck     = new WP_Query(
+			array(
+				'posts_per_page'      => 5,
+				'ignore_sticky_posts' => true,
+			)
+		);
+		$ignore_stuck_ids = wp_list_pluck( $ignore_stuck->posts, 'ID' );
+
+		$expected = array_reverse( self::$posts );
+
+		$this->assertSame( $expected, $ignore_stuck_ids );
+
 		// Just to make sure everything has changed.
 		$this->assertNotSame( $unstuck, $stuck );
 	}
@@ -392,6 +405,19 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		array_unshift( $expected, $middle_post );
 
 		$this->assertSame( $expected, $stuck_ids );
+
+		// Ignore sticky posts.
+		$ignore_stuck     = new WP_Query(
+			array(
+				'posts_per_page'      => 5,
+				'ignore_sticky_posts' => true,
+			)
+		);
+		$ignore_stuck_ids = wp_list_pluck( $ignore_stuck->posts, 'ID' );
+
+		$expected = array_reverse( self::$posts );
+
+		$this->assertSame( $expected, $ignore_stuck_ids );
 
 		// Just to make sure everything has changed.
 		$this->assertNotSame( $unstuck, $stuck );
