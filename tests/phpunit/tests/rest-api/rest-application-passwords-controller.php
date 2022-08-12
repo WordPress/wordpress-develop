@@ -410,6 +410,32 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 	}
 
 	/**
+	 * @ticket 53224
+	 * @group ms-required
+	 */
+	public function test_create_item_for_super_admin_on_site_where_they_are_not_a_member() {
+		wp_set_current_user( self::$admin );
+
+		// Create a site where the Super Admin is not a member.
+		$blog_id = self::factory()->blog->create(
+			array(
+				'user_id' => self::$subscriber_id,
+			)
+		);
+
+		switch_to_blog( $blog_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users/me/application-passwords' );
+		$request->set_body_params( array( 'name' => 'App' ) );
+		$response = rest_do_request( $request );
+
+		restore_current_blog();
+
+		$this->assertNotWPError( $response );
+		$this->assertSame( 201, $response->get_status() );
+	}
+
+	/**
 	 * @ticket 51939
 	 */
 	public function test_create_item_records_app_passwords_in_use() {
