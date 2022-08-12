@@ -3056,7 +3056,13 @@ class WP_Query {
 		 */
 		$this->posts = apply_filters_ref_array( 'posts_pre_query', array( null, &$this ) );
 
-		if ( $q['cache_results'] ) {
+		/*
+		 * Ensure the ID database query is able to be cached.
+		 *
+		 * Random queries are expected to have unpredictable results and cannot be cached.
+		 */
+		$id_query_is_cacheable = ! preg_match( '/\\sRAND\\(\\d*\\)(\\s|$)/i', $orderby );
+		if ( $q['cache_results'] && $id_query_is_cacheable ) {
 			$cache_args = $q;
 
 			unset(
@@ -3128,7 +3134,7 @@ class WP_Query {
 			$this->post_count = count( $this->posts );
 			$this->set_found_posts( $q, $limits );
 
-			if ( $q['cache_results'] ) {
+			if ( $q['cache_results'] && $id_query_is_cacheable ) {
 				$cache_value = array(
 					'posts'         => $this->posts,
 					'found_posts'   => $this->found_posts,
@@ -3161,7 +3167,7 @@ class WP_Query {
 				$post_ids[]                      = (int) $post->ID;
 			}
 
-			if ( $q['cache_results'] ) {
+			if ( $q['cache_results'] && $id_query_is_cacheable ) {
 				$cache_value = array(
 					'posts'         => $post_ids,
 					'found_posts'   => $this->found_posts,
@@ -3234,7 +3240,7 @@ class WP_Query {
 			$this->posts = array_map( 'get_post', $this->posts );
 		}
 
-		if ( $q['cache_results'] ) {
+		if ( $q['cache_results'] && $id_query_is_cacheable ) {
 			$post_ids = wp_list_pluck( $this->posts, 'ID' );
 
 			$cache_value = array(

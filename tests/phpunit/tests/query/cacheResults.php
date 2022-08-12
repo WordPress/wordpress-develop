@@ -214,6 +214,48 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	/**
 	 * @ticket 22176
 	 */
+	public function test_seeded_random_queries_only_cache_post_objects() {
+		$args   = array(
+			'cache_results' => true,
+			'fields'        => 'ids',
+			'orderby'       => 'rand(6)',
+		);
+		$query1 = new WP_Query();
+		$query1->query( $args );
+		$queries_before = get_num_queries();
+
+		$query2 = new WP_Query();
+		$query2->query( $args );
+
+		$queries_after = get_num_queries();
+
+		$this->assertNotSame( $queries_before, $queries_after );
+	}
+
+	/**
+	 * @ticket 22176
+	 */
+	public function test_unseeded_random_queries_only_cache_post_objects() {
+		$args   = array(
+			'cache_results' => true,
+			'fields'        => 'ids',
+			'orderby'       => 'rand',
+		);
+		$query1 = new WP_Query();
+		$query1->query( $args );
+		$queries_before = get_num_queries();
+
+		$query2 = new WP_Query();
+		$query2->query( $args );
+
+		$queries_after = get_num_queries();
+
+		$this->assertNotSame( $queries_before, $queries_after );
+	}
+
+	/**
+	 * @ticket 22176
+	 */
 	public function test_query_cache_filter_request() {
 		$args   = array(
 			'cache_results' => true,
