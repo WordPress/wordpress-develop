@@ -69,18 +69,26 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$posts2         = $query2->query( $args );
 		$queries_after  = get_num_queries();
 
+		add_filter( 'split_the_query', '__return_false' );
+		$split_query = new WP_Query();
+		$split_posts = $split_query->query( $args );
+		remove_filter( 'split_the_query', '__return_false' );
+
 		if ( isset( $args['fields'] ) ) {
 			if ( 'all' !== $args['fields'] ) {
-				$this->assertSameSets( $posts1, $posts2 );
+				$this->assertSameSets( $posts1, $posts2, 'Second query produces different set of posts to first.' );
+				$this->assertSameSets( $posts1, $split_posts, 'Split query produces different set of posts to first.' );
 			}
 			if ( 'id=>parent' !== $args['fields'] ) {
-				$this->assertSame( $queries_after, $queries_before );
+				$this->assertSame( $queries_after, $queries_before, 'Second query produces unexpected DB queries.' );
 			}
 		} else {
-			$this->assertSame( $queries_after, $queries_before );
+			$this->assertSame( $queries_after, $queries_before, 'Second query produces unexpected DB queries.' );
 		}
-		$this->assertSame( $query1->found_posts, $query2->found_posts );
-		$this->assertSame( $query1->max_num_pages, $query2->max_num_pages );
+		$this->assertSame( $query1->found_posts, $query2->found_posts, 'Second query has a different number of found posts to first.' );
+		$this->assertSame( $query1->found_posts, $split_query->found_posts, 'Split query has a different number of found posts to first.' );
+		$this->assertSame( $query1->max_num_pages, $query2->max_num_pages, 'Second query has a different number of total to first.' );
+		$this->assertSame( $query1->max_num_pages, $split_query->max_num_pages, 'Split query has a different number of total to first.' );
 
 		if ( ! $query1->query_vars['no_found_rows'] ) {
 			wp_delete_post( self::$posts[0], true );
