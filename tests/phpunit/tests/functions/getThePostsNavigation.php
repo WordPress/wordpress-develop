@@ -30,7 +30,11 @@ class Tests_Functions_GetThePostsNavigation extends WP_UnitTestCase {
 	 * @param bool   $assert_newer_posts Assert newer posts nav string.
 	 * @param bool   $assert_empty       Assert empty posts nav string.
 	 */
-	public function test_get_the_posts_navigation( $post_per_page, $paged_num, $assert_older_posts, $assert_newer_posts, $assert_empty ) {
+	public function test_get_the_posts_navigation(
+		$post_per_page, $paged_num,
+		$assert_older_posts,
+		$assert_newer_posts,
+		$assert_empty ) {
 		global $wp_query, $paged;
 		$paged    = $paged_num;
 		$wp_query = new WP_Query(
@@ -44,15 +48,26 @@ class Tests_Functions_GetThePostsNavigation extends WP_UnitTestCase {
 		$actual = get_the_posts_navigation();
 
 		if ( $assert_older_posts ) {
-			$this->assertStringContainsString( 'Older posts', $actual, 'Posts navigation must contain string Older posts.' );
+			$this->assertStringContainsString(
+				'Older posts',
+				$actual,
+				'Posts navigation must contain string Older posts.'
+			);
 		}
 
 		if ( $assert_newer_posts ) {
-			$this->assertStringContainsString( 'Newer posts', $actual, 'Posts navigation must contain string Newer posts.' );
+			$this->assertStringContainsString(
+				'Newer posts',
+				$actual,
+				'Posts navigation must contain string Newer posts.'
+			);
 		}
 
 		if ( $assert_empty ) {
-			$this->assertEmpty( $actual, 'Posts navigation must return empty string.' );
+			$this->assertEmpty(
+				$actual,
+				'Posts navigation must return empty string.'
+			);
 		}
 
 	}
