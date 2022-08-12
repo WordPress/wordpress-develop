@@ -1745,7 +1745,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 	public function test_tax_query_with_tax_slug_in_main_query() {
 		register_taxonomy( 'foo', 'post' );
 
-		$foo_term = self::factory()->term->create(
+		$foo_term   = self::factory()->term->create(
 			array(
 				'taxonomy' => 'foo',
 				'slug'     => 'foo-term',
@@ -1795,7 +1795,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array(
-			'tax_query'              => array(
+			'tax_query' => array(
 				'relation' => 'AND',
 				array(
 					'taxonomy'         => 'foo',
