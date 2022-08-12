@@ -110,10 +110,6 @@ foreach ( array( 'user_register', 'deleted_user' ) as $action ) {
 	add_action( $action, 'wp_maybe_update_user_counts', 10, 0 );
 }
 
-// Sticky posts
-add_action( 'post_stuck', 'wp_cache_set_posts_last_changed' );
-add_action( 'post_unstuck', 'wp_cache_set_posts_last_changed' );
-
 // Post meta.
 add_action( 'added_post_meta', 'wp_cache_set_posts_last_changed' );
 add_action( 'updated_post_meta', 'wp_cache_set_posts_last_changed' );
