@@ -307,6 +307,36 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	/**
 	 * @ticket 22176
 	 */
+	public function test_main_query_in_query_sticky_posts_change() {
+		add_action( 'parse_query', array( $this, 'set_cache_results' ) );
+		update_option( 'posts_per_page', 5 );
+
+		$middle_post = self::$posts[2];
+
+		// Post is unstuck.
+		$this->go_to( '/' );
+		$unstuck     = $GLOBALS['wp_query']->posts;
+		$unstuck_ids = wp_list_pluck( $unstuck, 'ID' );
+
+		$expected = array_reverse( self::$posts );
+		$this->assertSame( $expected, $unstuck_ids );
+
+		// Stick the post.
+		stick_post( $middle_post );
+
+		$this->go_to( '/' );
+		$stuck     = $GLOBALS['wp_query']->posts;
+		$stuck_ids = wp_list_pluck( $stuck, 'ID' );
+
+		$expected = array_diff( array_reverse( self::$posts ), array( $middle_post ) );
+		array_unshift( $expected, $middle_post );
+
+		$this->assertSame( $expected, $stuck_ids );
+	}
+
+	/**
+	 * @ticket 22176
+	 */
 	public function test_query_sticky_posts_change() {
 		add_action( 'parse_query', array( $this, 'set_cache_results' ) );
 
@@ -329,6 +359,37 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 
 		$expected = array_reverse( self::$posts );
 		array_unshift( $expected, $old_post );
+
+		$this->assertSame( $expected, $stuck_ids );
+
+		// Just to make sure everything has changed.
+		$this->assertNotSame( $unstuck, $stuck );
+	}
+
+	/**
+	 * @ticket 22176
+	 */
+	public function test_query_in_query_sticky_posts_change() {
+		add_action( 'parse_query', array( $this, 'set_cache_results' ) );
+
+		$middle_post = self::$posts[2];
+
+		// Post is unstuck.
+		$unstuck     = ( new WP_Query( array( 'posts_per_page' => 5 ) ) )->posts;
+		$unstuck_ids = wp_list_pluck( $unstuck, 'ID' );
+
+		$expected = array_reverse( self::$posts );
+
+		$this->assertSame( $expected, $unstuck_ids );
+
+		// Stick the post.
+		stick_post( $middle_post );
+
+		$stuck     = ( new WP_Query( array( 'posts_per_page' => 5 ) ) )->posts;
+		$stuck_ids = wp_list_pluck( $stuck, 'ID' );
+
+		$expected = array_diff( array_reverse( self::$posts ), array( $middle_post ) );
+		array_unshift( $expected, $middle_post );
 
 		$this->assertSame( $expected, $stuck_ids );
 
