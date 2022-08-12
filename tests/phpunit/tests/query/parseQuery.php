@@ -176,15 +176,14 @@ class Tests_Query_ParseQuery extends WP_UnitTestCase {
 	 * @ticket 17737
 	 */
 	public function test_parse_query_subpost_scalar() {
-		$subpost = 1;
 		$q = new WP_Query();
 		$q->parse_query(
 			array(
-				'subpost' => $subpost,
+				'subpost' => 1,
 			)
 		);
 
-		$this->assertSame( $subpost, $q->query_vars['attachment'] );
+		$this->assertSame( 1, $q->query_vars['attachment'] );
 	}
 
 	/**
