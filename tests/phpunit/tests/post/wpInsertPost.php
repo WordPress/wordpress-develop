@@ -877,6 +877,51 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 19954
+	 */
+	function test_updating_a_post_should_not_trash_categories() {
+		// Create a category and attach it to a new post.
+		$term_id = self::factory()->term->create(
+			array(
+				'name'     => 'Term',
+				'taxonomy' => 'category',
+			)
+		);
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'     => 'post',
+				'post_title'    => 'Post with categories',
+				'post_status'   => 'publish',
+				'post_category' => array( $term_id ),
+			)
+		);
+
+		// Validate that the term got assigned.
+		$assigned_terms = wp_get_object_terms( array( $post_id ), array( 'category' ), array() );
+		$this->assertCount( 1, $assigned_terms );
+		$this->assertEquals( $term_id, $assigned_terms[0]->term_id );
+
+		// Update the post with no changes.
+		$post = get_post( $post_id );
+		wp_insert_post( $post );
+
+		// Validate the term is still assigned.
+		$assigned_terms = wp_get_object_terms( array( $post_id ), array( 'category' ), array() );
+		$this->assertCount( 1, $assigned_terms );
+		$this->assertEquals( $term_id, $assigned_terms[0]->term_id );
+
+		// Remove the term from the post.
+		$post->post_category = array();
+		wp_insert_post( $post );
+		$assigned_terms = wp_get_object_terms( array( $post_id ), array( 'category' ), array() );
+
+		// Validate that the post has had the default category assigned again.
+		$this->assertCount( 1, $assigned_terms );
+		$this->assertEquals( get_option( 'default_category' ), $assigned_terms[0]->term_id );
+	}
+
+	/**
 	 * @ticket 48113
 	 */
 	public function test_insert_post_should_respect_date_floating_post_status_arg() {

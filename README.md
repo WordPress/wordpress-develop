@@ -51,13 +51,13 @@ To stop the watcher, press `ctrl+c`.
 #### To run a [WP-CLI](https://make.wordpress.org/cli/handbook/) command
 
 ```
-npm run env:cli <command>
+npm run env:cli -- <command>
 ```
 
-WP-CLI has a lot of [useful commands](https://developer.wordpress.org/cli/commands/) you can use to work on your WordPress site. Where the documentation mentions running `wp`, run `npm run env:cli` instead. For example:
+WP-CLI has [many useful commands](https://developer.wordpress.org/cli/commands/) you can use to work on your WordPress site. Where the documentation mentions running `wp`, run `npm run env:cli --` instead. For example:
 
 ```
-npm run env:cli help
+npm run env:cli -- help
 ```
 
 #### To run the tests
