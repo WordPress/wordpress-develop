@@ -1777,16 +1777,16 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 				'fields'                 => 'ids',
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
-				'foo' => 'foo-term',
+				'foo'                    => 'foo-term',
 				'tax_query'              => array(
 					'relation' => 'OR',
 					array(
-						'taxonomy' => 'foo',
+						'taxonomy' => 'category',
 						'terms'    => array( $cat_term_1 ),
 						'field'    => 'term_id',
 					),
 					array(
-						'taxonomy' => 'bar',
+						'taxonomy' => 'category',
 						'terms'    => array( $cat_term_2 ),
 						'field'    => 'term_id',
 					),
