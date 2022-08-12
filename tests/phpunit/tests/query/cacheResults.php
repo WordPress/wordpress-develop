@@ -344,8 +344,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$old_post = self::factory()->post->create( array( 'post_date' => $old_date->format( 'Y-m-d H:i:s' ) ) );
 
 		// Post is unstuck.
-		$unstuck     = ( new WP_Query( array( 'posts_per_page' => 5 ) ) )->posts;
-		$unstuck_ids = wp_list_pluck( $unstuck, 'ID' );
+		$unstuck     = new WP_Query( array( 'posts_per_page' => 5 ) );
+		$unstuck_ids = wp_list_pluck( $unstuck->posts, 'ID' );
 
 		$expected = array_reverse( self::$posts );
 
@@ -354,8 +354,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		// Stick the post.
 		stick_post( $old_post );
 
-		$stuck     = ( new WP_Query( array( 'posts_per_page' => 5 ) ) )->posts;
-		$stuck_ids = wp_list_pluck( $stuck, 'ID' );
+		$stuck     = new WP_Query( array( 'posts_per_page' => 5 ) );
+		$stuck_ids = wp_list_pluck( $stuck->posts, 'ID' );
 
 		$expected = array_reverse( self::$posts );
 		array_unshift( $expected, $old_post );
@@ -388,8 +388,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$middle_post = self::$posts[2];
 
 		// Post is unstuck.
-		$unstuck     = ( new WP_Query( array( 'posts_per_page' => 5 ) ) )->posts;
-		$unstuck_ids = wp_list_pluck( $unstuck, 'ID' );
+		$unstuck     = new WP_Query( array( 'posts_per_page' => 5 ) );
+		$unstuck_ids = wp_list_pluck( $unstuck->posts, 'ID' );
 
 		$expected = array_reverse( self::$posts );
 
@@ -398,8 +398,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		// Stick the post.
 		stick_post( $middle_post );
 
-		$stuck     = ( new WP_Query( array( 'posts_per_page' => 5 ) ) )->posts;
-		$stuck_ids = wp_list_pluck( $stuck, 'ID' );
+		$stuck     = new WP_Query( array( 'posts_per_page' => 5 ) );
+		$stuck_ids = wp_list_pluck( $stuck->posts, 'ID' );
 
 		$expected = array_diff( array_reverse( self::$posts ), array( $middle_post ) );
 		array_unshift( $expected, $middle_post );
