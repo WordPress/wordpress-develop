@@ -1312,7 +1312,7 @@ function wp_default_scripts( $scripts ) {
 
 	$scripts->add( 'wp-api', "/wp-includes/js/wp-api$suffix.js", array( 'jquery', 'backbone', 'underscore', 'wp-api-request' ), false, 1 );
 
-	$scripts->add( 'webp-shim', "/wp-includes/js/webp-fallback$dev_suffix.js", array(), '1.0.0', 1 );
+	$scripts->add( 'webp-shim', "/wp-includes/js/webp-fallback$suffix.js", array(), '1.0.0', 1 );
 
 	if ( is_admin() ) {
 		$scripts->add( 'admin-tags', "/wp-admin/js/tags$suffix.js", array( 'jquery', 'wp-ajax-response' ), false, 1 );
