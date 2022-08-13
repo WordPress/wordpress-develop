@@ -31,7 +31,7 @@ class Tests_Functions_IsSerializedString extends WP_UnitTestCase {
 				'data'     => array(),
 				'expected' => false,
 			),
-			'a class'                                 => array(
+			'an object'                               => array(
 				'data'     => new stdClass(),
 				'expected' => false,
 			),

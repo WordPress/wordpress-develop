@@ -1,28 +1,56 @@
 <?php
 
 /**
- * Tests for `is_serialized()`.
- *
- * @ticket 53299
+ * Tests for `maybe_serialize()` and `maybe_unserialize()`.
  *
  * @group functions.php
- * @covers ::is_serialized
+ * @covers ::maybe_serialize
+ * @covers ::maybe_unserialize
  */
-class Tests_Functions_IsSerialized extends WP_UnitTestCase {
+class Tests_Functions_MaybeSerialize extends WP_UnitTestCase {
+
+	/**
+	 * @dataProvider data_is_not_serialized
+	 */
+	public function test_maybe_serialize( $value ) {
+		if ( is_array( $value ) || is_object( $value ) ) {
+			$expected = serialize( $value );
+		} else {
+			$expected = $value;
+		}
+
+		$this->assertSame( $expected, maybe_serialize( $value ) );
+	}
+
+	/**
+	 * @dataProvider data_is_serialized
+	 */
+	public function test_maybe_serialize_with_double_serialization( $value ) {
+		$expected = serialize( $value );
+
+		$this->assertSame( $expected, maybe_serialize( $value ) );
+	}
 
 	/**
 	 * @dataProvider data_is_serialized
 	 * @dataProvider data_is_not_serialized
-	 *
-	 * @param mixed $data     Data value to test.
-	 * @param bool  $expected Expected function result.
 	 */
-	public function test_is_serialized( $data, $expected ) {
-		$this->assertSame( $expected, is_serialized( $data ) );
+	public function test_maybe_unserialize( $value, $is_serialized ) {
+		if ( $is_serialized ) {
+			$expected = unserialize( trim( $value ) );
+		} else {
+			$expected = $value;
+		}
+
+		if ( is_object( $expected ) ) {
+			$this->assertEquals( $expected, maybe_unserialize( $value ) );
+		} else {
+			$this->assertSame( $expected, maybe_unserialize( $value ) );
+		}
 	}
 
 	/**
-	 * Data provider for `test_is_serialized()`.
+	 * Data provider for `test_maybe_unserialize()`.
 	 *
 	 * @return array
 	 */
@@ -86,15 +114,11 @@ class Tests_Functions_IsSerialized extends WP_UnitTestCase {
 				'data'     => '   s:25:"this string is serialized";   ',
 				'expected' => true,
 			),
-			'serialized enum'                   => array(
-				'data'     => 'E:7:"Foo:bar";',
-				'expected' => true,
-			),
 		);
 	}
 
 	/**
-	 * Data provider for `test_is_serialized()`.
+	 * Data provider for `test_maybe_serialize()`.
 	 *
 	 * @return array
 	 */
@@ -184,24 +208,39 @@ class Tests_Functions_IsSerialized extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 46570
-	 * @dataProvider data_is_serialized_should_return_true_for_large_floats
+	 * @dataProvider data_serialize_deserialize_objects
 	 */
-	public function test_is_serialized_should_return_true_for_large_floats( $value ) {
-		$this->assertTrue( is_serialized( $value ) );
-	}
+	public function test_deserialize_request_utility_filtered_iterator_objects( $value ) {
+		$serialized = maybe_serialize( $value );
 
-	public function data_is_serialized_should_return_true_for_large_floats() {
-		return array(
-			array( serialize( 1.7976931348623157E+308 ) ),
-			array( serialize( array( 1.7976931348623157E+308, 1.23e50 ) ) ),
-		);
+		if ( get_class( $value ) === 'Requests_Utility_FilteredIterator' ) {
+			$new_value = unserialize( $serialized );
+			$property  = ( new ReflectionClass( 'Requests_Utility_FilteredIterator' ) )->getProperty( 'callback' );
+			$property->setAccessible( true );
+			$callback_value = $property->getValue( $new_value );
+
+			$this->assertSame( null, $callback_value );
+		} else {
+			$this->assertSame( $value->count(), unserialize( $serialized )->count() );
+		}
 	}
 
 	/**
-	 * @ticket 17375
+	 * Data provider for test_deserialize_request_utility_filtered_iterator_objects().
+	 *
+	 * @return array
 	 */
-	public function test_no_new_serializable_types() {
-		$this->assertFalse( is_serialized( 'C:16:"Serialized_Class":6:{a:0:{}}' ) );
+	public function data_serialize_deserialize_objects() {
+		return array(
+			'filtered iterator using md5'  => array(
+				new Requests_Utility_FilteredIterator( array( 1 ), 'md5' ),
+			),
+			'filtered iterator using sha1' => array(
+				new Requests_Utility_FilteredIterator( array( 1, 2 ), 'sha1' ),
+			),
+			'array iterator'               => array(
+				new ArrayIterator( array( 1, 2, 3 ) ),
+			),
+		);
 	}
 }
