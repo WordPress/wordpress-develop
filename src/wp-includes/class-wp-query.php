@@ -3054,6 +3054,7 @@ class WP_Query implements JsonSerializable, Serializable {
 
 		if ( ! empty( $groupby ) ) {
 			$count_field = $groupby;
+
 			$groupby = 'GROUP BY ' . $groupby;
 		}
 		if ( ! empty( $orderby ) ) {
