@@ -647,9 +647,9 @@ class wpdb {
 	/**
 	 * Backward compatibility, where wpdb::prepare() has not quoted formatted/argnum placeholders.
 	 *
-	 * Historically this could be used for table/field names, or for some string formatting, e.g.
+	 * This is often used for table/field names (before %i was supported), and sometimes string formatting, e.g.
 	 *
-	 *     $wpdb->prepare( 'WHERE `%1s` = "%1s something %1s" OR %1$s = "%-10s"', 'field_1', 'a', 'b', 'c' );
+	 *     $wpdb->prepare( 'WHERE `%1$s` = "%2$s something %3$s" OR %1$s = "%4$-10s"', 'field_1', 'a', 'b', 'c' );
 	 *
 	 * But it's risky, e.g. forgetting to add quotes, resulting in SQL Injection vulnerabilities:
 	 *
@@ -657,19 +657,23 @@ class wpdb {
 	 *
 	 * This feature is preserved while plugin authors update their code to use safer approaches:
 	 *
-	 *     $wpdb->prepare( 'WHERE %1s = %s', $_GET['key'], $_GET['value'] );
-	 *     $wpdb->prepare( 'WHERE %i  = %s', $_GET['key'], $_GET['value'] );
+	 *     $_GET['key'] = 'a`b';
+	 *
+	 *     $wpdb->prepare( 'WHERE %1s = %s',        $_GET['key'], $_GET['value'] ); // WHERE a`b = 'value'
+	 *     $wpdb->prepare( 'WHERE `%1$s` = "%2$s"', $_GET['key'], $_GET['value'] ); // WHERE `a`b` = "value"
+	 *
+	 *     $wpdb->prepare( 'WHERE %i = %s',         $_GET['key'], $_GET['value'] ); // WHERE `a``b` = 'value'
 	 *
 	 * While changing to false will be fine for queries not using formatted/argnum placeholders,
 	 * any remaining cases are most likely going to result in SQL errors (good, in a way):
 	 *
-	 *     $wpdb->prepare( 'WHERE %1s = "%-10s"', 'my_field', 'my_value' );
+	 *     $wpdb->prepare( 'WHERE %1$s = "%2$-10s"', 'my_field', 'my_value' );
 	 *     true  = WHERE my_field = "my_value  "
 	 *     false = WHERE 'my_field' = "'my_value  '"
 	 *
 	 * But there may be some queries that result in an SQL Injection vulnerability:
 	 *
-	 *     $wpdb->prepare( 'WHERE id = %1s', $_GET['id'] ); // ?id=id
+	 *     $wpdb->prepare( 'WHERE id = %1$s', $_GET['id'] ); // ?id=id
 	 *
 	 * So there may need to be a `_doing_it_wrong()` phase, after we know everyone can use
 	 * identifier placeholders (%i), but before this feature is disabled or removed.
