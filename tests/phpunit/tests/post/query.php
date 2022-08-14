@@ -1502,7 +1502,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		add_post_meta( $ids[4], 'field_2', 'bar' );
 
 		// This query results in a `GROUP BY wp_posts.ID` clause, which means the
-		// count query must count DISTINCT post IDs to eliminate duplicate posts.
+		// count query must count `DISTINCT wp_posts.ID` to eliminate duplicates.
 		$q = new WP_Query(
 			array(
 				'fields'         => $fields,
@@ -1522,6 +1522,51 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
 		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
 		$this->assertEquals( 3, $q->max_num_pages, self::get_count_message( $q ) );
+	}
+
+	/**
+	 * @ticket 47280
+	 * @dataProvider data_fields
+	 *
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
+	 */
+	public function test_found_posts_are_correct_for_group_by_queries( $fields ) {
+		$user1 = self::factory()->user->create();
+		$user2 = self::factory()->user->create();
+
+		self::factory()->post->create_many(
+			5,
+			array(
+				'post_author' => $user1,
+			)
+		);
+		self::factory()->post->create_many(
+			5,
+			array(
+				'post_author' => $user2,
+			)
+		);
+
+		/**
+		 * Adds a GROUP BY clause to the query.
+		 */
+		add_filter( 'posts_groupby_request', function() {
+			return "{$GLOBALS['wpdb']->posts}.post_author";
+		} );
+
+		// This query results in a `GROUP BY wp_posts.post_author` clause, which means the
+		// count query must count `DISTINCT wp_posts.post_author` to eliminate duplicates.
+		$q = new WP_Query(
+			array(
+				'fields'         => $fields,
+				'posts_per_page' => 2,
+			)
+		);
+
+		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
+		// There is a total of two distinct authors in the results.
+		$this->assertSame( 2, $q->found_posts, self::get_count_message( $q ) );
+		$this->assertEquals( 1, $q->max_num_pages, self::get_count_message( $q ) );
 	}
 
 	/**

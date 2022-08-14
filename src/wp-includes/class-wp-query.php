@@ -3050,7 +3050,10 @@ class WP_Query implements JsonSerializable, Serializable {
 			$limits   = isset( $clauses['limits'] ) ? $clauses['limits'] : '';
 		}
 
+		$count_field = "{$wpdb->posts}.ID";
+
 		if ( ! empty( $groupby ) ) {
+			$count_field = $groupby;
 			$groupby = 'GROUP BY ' . $groupby;
 		}
 		if ( ! empty( $orderby ) ) {
@@ -3068,7 +3071,7 @@ class WP_Query implements JsonSerializable, Serializable {
 
 		$this->request = $old_request;
 		$this->count_request = "
-			SELECT COUNT(DISTINCT {$wpdb->posts}.ID)
+			SELECT COUNT(DISTINCT {$count_field})
 			FROM {$wpdb->posts} $join
 			WHERE 1=1 $where
 		";
