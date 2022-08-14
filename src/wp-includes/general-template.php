@@ -5030,8 +5030,27 @@ function __checked_selected_helper( $helper, $current, $echo, $type ) { // phpcs
  */
 function wp_required_field_indicator() {
 	/* translators: Character to identify required form fields. */
-	$glyph     = __( '*' );
+	$glyph = __( '*' );
+
+	/**
+	 * Filters the visual indicator for required form fields.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param string $glyph Character to identify required form fields.
+	 */
+	$glyph = apply_filters( 'wp_required_field_glyph', $glyph );
+
 	$indicator = '<span class="required" aria-hidden="true">' . esc_html( $glyph ) . '</span>';
+
+	/**
+	 * Filters the markup for visual indicator for required form fields.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param string $indicator Markup for the indicator element.
+	 */
+	$indicator = apply_filters( 'wp_required_field_indictor', $indicator );
 
 	return $indicator;
 }
@@ -5049,6 +5068,15 @@ function wp_required_field_message() {
 		/* translators: %s: Asterisk symbol (*). */
 		sprintf( __( 'Required fields are marked %s' ), wp_required_field_indicator() )
 	);
+
+	/**
+	 * Filters the message to explain required form fields.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param string $message Message text and glyph wrapped in a `span` tag.
+	 */
+	$message = apply_filters( 'wp_required_field_message', $message );
 
 	return $message;
 }
