@@ -1550,9 +1550,12 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		/**
 		 * Adds a GROUP BY clause to the query.
 		 */
-		add_filter( 'posts_groupby_request', function() {
-			return "{$GLOBALS['wpdb']->posts}.post_author";
-		} );
+		add_filter(
+			'posts_groupby_request',
+			function() {
+				return "{$GLOBALS['wpdb']->posts}.post_author";
+			}
+		);
 
 		// This query results in a `GROUP BY wp_posts.post_author` clause, which means the
 		// count query must count `DISTINCT wp_posts.post_author` to eliminate duplicates.
