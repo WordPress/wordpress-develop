@@ -1406,7 +1406,6 @@ class wpdb {
 	 * - To quote the identifier itself, you need to double the character, e.g. `a``b`.
 	 *
 	 * @since 6.1.0
-	 * @access private
 	 *
 	 * @link https://dev.mysql.com/doc/refman/8.0/en/identifiers.html
 	 *
