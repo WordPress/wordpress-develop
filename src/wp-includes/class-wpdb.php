@@ -792,6 +792,7 @@ class wpdb {
 			'col_meta',
 			'table_charset',
 			'check_current_query',
+			'allow_unsafe_unquoted_parameters',
 		);
 		if ( in_array( $name, $protected_members, true ) ) {
 			return;
