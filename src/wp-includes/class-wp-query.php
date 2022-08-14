@@ -3071,9 +3071,12 @@ class WP_Query {
 		/*
 		 * Ensure the ID database query is able to be cached.
 		 *
-		 * Random queries are expected to have unpredictable results and cannot be cached.
+		 * Random queries are expected to have unpredictable results and
+		 * cannot be cached. Note the space before `RAND` in the string
+		 * search, that to ensure against a collision with another
+		 * function.
 		 */
-		$id_query_is_cacheable = ! preg_match( '/\\sRAND\\(\\d*\\)(\\s|$)/i', $orderby );
+		$id_query_is_cacheable = ! str_contains( strtoupper( $orderby ), ' RAND(' );
 		if ( $q['cache_results'] && $id_query_is_cacheable ) {
 			$cache_args = $q;
 
