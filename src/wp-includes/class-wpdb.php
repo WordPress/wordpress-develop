@@ -1595,7 +1595,7 @@ class wpdb {
 				'wpdb::prepare',
 				sprintf(
 					/* translators: %s: A comma-separated list of arguments found to be a problem. */
-					__( 'Arguments (%s) cannot be used for both String and Identifier escaping.' ),
+					__( 'The arguments (%s) cannot be prepared as both an Identifier, and as a value.' ),
 					implode( ', ', $dual_use )
 				),
 				'6.1.0'
