@@ -1485,6 +1485,47 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47280
+	 * @dataProvider data_fields
+	 *
+	 * @param string $fields Value of the `fields` argument for `WP_Query`.
+	 */
+	public function test_found_posts_are_correct_for_OR_meta_queries( $fields ) {
+		self::factory()->post->create_many( 5 );
+		$ids = self::factory()->post->create_many( 5 );
+
+		// Add a mixture of meta values so all 5 posts match the meta query.
+		add_post_meta( $ids[0], 'field_1', 'foo' );
+		add_post_meta( $ids[0], 'field_2', 'bar' );
+		add_post_meta( $ids[1], 'field_1', 'foo' );
+		add_post_meta( $ids[2], 'field_1', 'foo' );
+		add_post_meta( $ids[3], 'field_2', 'bar' );
+		add_post_meta( $ids[4], 'field_2', 'bar' );
+
+		// This query results in a `GROUP BY wp_posts.ID` clause, which means the
+		// count query must count DISTINCT post IDs to eliminate duplicate posts.
+		$q = new WP_Query(
+			array(
+				'fields'         => $fields,
+				'posts_per_page' => 2,
+				'meta_query'     => array(
+					'relation' => 'OR',
+					array(
+						'key' => 'field_1',
+					),
+					array(
+						'key' => 'field_2',
+					),
+				),
+			)
+		);
+
+		$this->assertSame( 2, $q->post_count, self::get_count_message( $q ) );
+		$this->assertSame( 5, $q->found_posts, self::get_count_message( $q ) );
+		$this->assertEquals( 3, $q->max_num_pages, self::get_count_message( $q ) );
+	}
+
+	/**
+	 * @ticket 47280
 	 * @group ms-required
 	 * @dataProvider data_fields
 	 *
