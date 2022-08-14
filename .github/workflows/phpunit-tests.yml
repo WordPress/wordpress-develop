@@ -7,8 +7,8 @@ on:
       - '3.[7-9]'
       - '[4-9].[0-9]'
     tags:
-      - '3.[7-9]*'
-      - '[4-9].[0-9]*'
+      - '[0-9]+.[0-9]'
+      - '[0-9]+.[0-9].[0-9]+'
   pull_request:
     branches:
       - trunk
@@ -46,7 +46,6 @@ jobs:
   # - Installs Composer dependencies.
   # - Logs Docker debug information (about the Docker installation within the runner).
   # - Starts the WordPress Docker container.
-  # - Starts the Memcached server after the Docker network has been created (if desired).
   # - Logs general debug information about the runner.
   # - Logs the running Docker containers.
   # - Logs debug information from inside the WordPress Docker container.
@@ -158,13 +157,6 @@ jobs:
       - name: Start Docker environment
         run: |
           npm run env:start
-
-      # The memcached server needs to start after the Docker network has been set up with `npm run env:start`.
-      - name: Start the Memcached server.
-        if: ${{ matrix.memcached }}
-        run: |
-          cp tests/phpunit/includes/object-cache.php src/wp-content/object-cache.php
-          docker run --name memcached --net $(basename "$PWD")_wpdevnet -d memcached
 
       - name: General debug information
         run: |

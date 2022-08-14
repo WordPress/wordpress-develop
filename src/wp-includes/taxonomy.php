@@ -337,7 +337,7 @@ function get_taxonomy( $taxonomy ) {
 function taxonomy_exists( $taxonomy ) {
 	global $wp_taxonomies;
 
-	return isset( $wp_taxonomies[ $taxonomy ] );
+	return is_string( $taxonomy ) && isset( $wp_taxonomies[ $taxonomy ] );
 }
 
 /**
@@ -390,7 +390,8 @@ function is_taxonomy_hierarchical( $taxonomy ) {
  *
  * @global WP_Taxonomy[] $wp_taxonomies Registered taxonomies.
  *
- * @param string       $taxonomy    Taxonomy key, must not exceed 32 characters.
+ * @param string       $taxonomy    Taxonomy key, must not exceed 32 characters and may only contain lowercase alphanumeric
+ *                                  characters, dashes, and underscores. See sanitize_key().
  * @param array|string $object_type Object type or array of object types with which the taxonomy should be associated.
  * @param array|string $args        {
  *     Optional. Array or query string of arguments for registering a taxonomy.
@@ -557,7 +558,7 @@ function register_taxonomy( $taxonomy, $object_type, $args = array() ) {
  *
  * @since 4.5.0
  *
- * @global WP    $wp            Current WordPress environment instance.
+ * @global WP            $wp            Current WordPress environment instance.
  * @global WP_Taxonomy[] $wp_taxonomies List of taxonomies.
  *
  * @param string $taxonomy Taxonomy name.
@@ -579,11 +580,6 @@ function unregister_taxonomy( $taxonomy ) {
 
 	$taxonomy_object->remove_rewrite_rules();
 	$taxonomy_object->remove_hooks();
-
-	// Remove custom taxonomy default term option.
-	if ( ! empty( $taxonomy_object->default_term ) ) {
-		delete_option( 'default_term_' . $taxonomy_object->name );
-	}
 
 	// Remove the taxonomy.
 	unset( $wp_taxonomies[ $taxonomy ] );
@@ -1860,8 +1856,8 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
  *
  * @internal The `$deprecated` parameter is parsed for backward compatibility only.
  *
- * @param array|string $args       Optional. Array of arguments that get passed to get_terms().
- *                                 Default empty array.
+ * @param array|string $args       Optional. Array or string of arguments. See WP_Term_Query::__construct()
+ *                                 for information on accepted arguments. Default empty array.
  * @param array|string $deprecated Optional. Argument array, when using the legacy function parameter format.
  *                                 If present, this parameter will be interpreted as `$args`, and the first
  *                                 function parameter will be parsed as a taxonomy or array of taxonomies.
@@ -2164,7 +2160,8 @@ function wp_delete_term( $term, $taxonomy, $args = array() ) {
  *
  * @param int $cat_ID Category term ID.
  * @return bool|int|WP_Error Returns true if completes delete action; false if term doesn't exist;
- *  Zero on attempted deletion of default Category; WP_Error object is also a possibility.
+ *                           Zero on attempted deletion of default Category; WP_Error object is
+ *                           also a possibility.
  */
 function wp_delete_category( $cat_ID ) {
 	return wp_delete_term( $cat_ID, 'category' );
@@ -3110,8 +3107,8 @@ function wp_unique_term_slug( $slug, $term ) {
  *
  * @param int          $term_id  The ID of the term.
  * @param string       $taxonomy The taxonomy of the term.
- * @param array|string $args {
- *     Optional. Array or string of arguments for updating a term.
+ * @param array        $args {
+ *     Optional. Array of arguments for updating a term.
  *
  *     @type string $alias_of    Slug of the term to make this term an alias of.
  *                               Default empty string. Accepts a term slug.
@@ -4703,7 +4700,7 @@ function the_taxonomies( $args = array() ) {
  *     @type string $term_template Template for displaying a single term in the list. Default is the term name
  *                                 linked to its archive.
  * }
- * @return array List of taxonomies.
+ * @return string[] List of taxonomies.
  */
 function get_the_taxonomies( $post = 0, $args = array() ) {
 	$post = get_post( $post );
@@ -4993,6 +4990,26 @@ function is_taxonomy_viewable( $taxonomy ) {
 	}
 
 	return $taxonomy->publicly_queryable;
+}
+
+/**
+ * Determines whether a term is publicly viewable.
+ *
+ * A term is considered publicly viewable if its taxonomy is viewable.
+ *
+ * @since 6.1.0
+ *
+ * @param int|WP_Term $term Term ID or term object.
+ * @return bool Whether the term is publicly viewable.
+ */
+function is_term_publicly_viewable( $term ) {
+	$term = get_term( $term );
+
+	if ( ! $term ) {
+		return false;
+	}
+
+	return is_taxonomy_viewable( $term->taxonomy );
 }
 
 /**

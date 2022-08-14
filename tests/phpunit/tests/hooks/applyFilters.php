@@ -12,12 +12,12 @@ class Tests_Hooks_ApplyFilters extends WP_UnitTestCase {
 		$a             = new MockAction();
 		$callback      = array( $a, 'filter' );
 		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
+		$hook_name     = __FUNCTION__;
 		$priority      = 1;
 		$accepted_args = 2;
 		$arg           = __FUNCTION__ . '_arg';
 
-		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
+		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
 
 		$returned = $hook->apply_filters( $arg, array( $arg ) );
 
@@ -29,12 +29,12 @@ class Tests_Hooks_ApplyFilters extends WP_UnitTestCase {
 		$a             = new MockAction();
 		$callback      = array( $a, 'filter' );
 		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
+		$hook_name     = __FUNCTION__;
 		$priority      = 1;
 		$accepted_args = 2;
 		$arg           = __FUNCTION__ . '_arg';
 
-		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
+		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
 
 		$returned_one = $hook->apply_filters( $arg, array( $arg ) );
 		$returned_two = $hook->apply_filters( $returned_one, array( $returned_one ) );
