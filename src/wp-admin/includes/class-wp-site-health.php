@@ -2473,12 +2473,6 @@ class WP_Site_Health {
 					'has_rest'          => true,
 					'async_direct_test' => array( WP_Site_Health::get_instance(), 'get_test_https_status' ),
 				),
-				'page_cache'           => array(
-					'label'             => __( 'Page caching' ),
-					'test'              => rest_url( 'wp-site-health/v1/tests/page-cache' ),
-					'has_rest'          => true,
-					'async_direct_test' => array( WP_Site_Health::get_instance(), 'get_test_page_cache' ),
-				),
 			),
 		);
 
@@ -2490,6 +2484,16 @@ class WP_Site_Health {
 				'has_rest'  => true,
 				'headers'   => array( 'Authorization' => 'Basic ' . base64_encode( 'user:pwd' ) ),
 				'skip_cron' => true,
+			);
+		}
+
+		// Only check for Full Page Cache in production environments.
+		if ( 'production' === wp_get_environment_type() ) {
+			$tests['async']['page_cache'] = array(
+				'label'             => __( 'Page caching' ),
+				'test'              => rest_url( 'wp-site-health/v1/tests/page-cache' ),
+				'has_rest'          => true,
+				'async_direct_test' => array( WP_Site_Health::get_instance(), 'get_test_page_cache' ),
 			);
 		}
 
