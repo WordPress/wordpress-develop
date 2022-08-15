@@ -3446,7 +3446,7 @@ function wp_resource_hints() {
  *     }
  * }
  */
-function wp_add_preload_links( $preload_resources ){
+function wp_add_preload_links( $preload_resources ) {
 	global $wp_preload_resources;
 
 	if ( ! is_array( $wp_preload_resources ) ) {
