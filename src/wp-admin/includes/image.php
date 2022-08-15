@@ -732,7 +732,7 @@ function _wp_make_additional_mime_types( $new_mime_types, $file, $image_meta, $a
 	$original_file_size = isset( $image_meta['filesize'] ) ? $image_meta['filesize'] : wp_filesize( $file );
 
 	foreach ( $new_mime_types as $mime_type ) {
-		/** This filter is documented in wp-includes/image.php. */
+		/** This filter is documented in wp-admin/includes/image.php. */
 		$image_meta = apply_filters( 'wp_content_pre_generate_additional_image_source', $image_meta, $file, $attachment_id, 'full', $mime_type );
 
 		if ( false === $image_meta ) {
