@@ -139,7 +139,7 @@ class Tests_Site_Health extends WP_UnitTestCase {
 		$threshold = 10;
 		if ( $delay_the_response ) {
 			add_filter(
-				'page_cache_good_response_time_threshold',
+				'site_status_page_cache_good_response_time_threshold',
 				static function () use ( $threshold ) {
 					return $threshold;
 				}
@@ -314,37 +314,6 @@ class Tests_Site_Health extends WP_UnitTestCase {
 				'expected_label'  => $good_label,
 				'good_basic_auth' => true,
 			),
-			'cf-cache-status'                          => array(
-				'responses'       => array_fill(
-					0,
-					3,
-					array( 'cf-cache-status' => 'HIT: 1' )
-				),
-				'expected_status' => 'good',
-				'expected_label'  => $good_label,
-			),
-			'cf-cache-status-without-header-and-delay' => array(
-				'responses'          => array_fill(
-					0,
-					3,
-					array( 'cf-cache-status' => 'MISS' )
-				),
-				'expected_status'    => 'recommended',
-				'expected_label'     => $recommended_label,
-				'good_basic_auth'    => null,
-				'delay_the_response' => false,
-			),
-			'cf-cache-status-with-delay'               => array(
-				'responses'          => array_fill(
-					0,
-					3,
-					array( 'cf-cache-status' => 'MISS' )
-				),
-				'expected_status'    => 'critical',
-				'expected_label'     => $critical_label,
-				'good_basic_auth'    => null,
-				'delay_the_response' => true,
-			),
 			'x-cache-enabled'                          => array(
 				'responses'       => array_fill(
 					0,
@@ -370,24 +339,6 @@ class Tests_Site_Health extends WP_UnitTestCase {
 					0,
 					3,
 					array( 'x-cache-disabled' => 'off' )
-				),
-				'expected_status' => 'good',
-				'expected_label'  => $good_label,
-			),
-			'cf-apo-via'                               => array(
-				'responses'       => array_fill(
-					0,
-					3,
-					array( 'cf-apo-via' => 'tcache' )
-				),
-				'expected_status' => 'good',
-				'expected_label'  => $good_label,
-			),
-			'cf-edge-cache'                            => array(
-				'responses'       => array_fill(
-					0,
-					3,
-					array( 'cf-edge-cache' => 'cache' )
 				),
 				'expected_status' => 'good',
 				'expected_label'  => $good_label,
