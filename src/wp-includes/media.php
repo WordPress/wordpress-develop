@@ -288,7 +288,9 @@ function image_downsize( $id, $size = 'medium' ) {
  *                                     Array values must be in the format: array( x_crop_position, y_crop_position ) where:
  *                                         - x_crop_position accepts: 'left', 'center', or 'right'.
  *                                         - y_crop_position accepts: 'top', 'center', or 'bottom'.
- * @param bool       $additional_mimes Optional. Whether to output secondary mimes for this image size. Default is null.
+ * @param bool       $additional_mimes Optional. Whether to output secondary mimes for this image size. Default is null
+ *                                     but may change to true in future versions. Sizes should be registered with false
+ *                                     only if they are not intended for use in a front-end context.
  */
 function add_image_size( $name, $width = 0, $height = 0, $crop = false, $additional_mimes = null ) {
 	global $_wp_additional_image_sizes;
