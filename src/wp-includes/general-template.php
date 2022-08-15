@@ -3446,7 +3446,7 @@ function wp_resource_hints() {
  *     }
  * }
  */
-function wp_add_preload_links( $preload_resources ) {
+function wp_add_preload_resources( $preload_resources ) {
 	global $wp_preload_resources;
 
 	if ( ! is_array( $wp_preload_resources ) ) {
@@ -3497,7 +3497,6 @@ function wp_preload_resources() {
 	 * }
 	 */
 	$preload_resources = apply_filters( 'wp_preload_resources', is_array( $wp_preload_resources ) ? $wp_preload_resources : array() );
-
 	if ( ! is_array( $preload_resources ) ) {
 		return;
 	}
