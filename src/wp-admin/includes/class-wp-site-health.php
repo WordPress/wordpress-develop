@@ -1689,9 +1689,9 @@ class WP_Site_Health {
 		$page_cache_detail = $this->get_page_cache_detail();
 
 		if ( is_wp_error( $page_cache_detail ) ) {
-			$result['label']          = __( 'Unable to detect the presence of page caching' );
-			$result['status']         = 'recommended';
-			$error_info               = sprintf(
+			$result['label']  = __( 'Unable to detect the presence of page caching' );
+			$result['status'] = 'recommended';
+			$error_info       = sprintf(
 			/* translators: 1 is error message, 2 is error code */
 				__( 'Unable to detect page caching due to possible loopback request problem. Please verify that the loopback request test is passing. Error: %1$s (Code: %2$s)' ),
 				$page_cache_detail->get_error_message(),
@@ -1705,10 +1705,10 @@ class WP_Site_Health {
 
 		switch ( $page_cache_detail['status'] ) {
 			case 'recommended':
-				$result['label']          = __( 'Page caching is not detected but the server response time is OK' );
+				$result['label'] = __( 'Page caching is not detected but the server response time is OK' );
 				break;
 			case 'good':
-				$result['label']          = __( 'Page caching is detected and the server response time is good' );
+				$result['label'] = __( 'Page caching is detected and the server response time is good' );
 				break;
 			default:
 				if ( empty( $page_cache_detail['headers'] ) && ! $page_cache_detail['advanced_cache_present'] ) {
@@ -2996,25 +2996,14 @@ class WP_Site_Health {
 			},
 			'last-modified'          => '',
 			'etag'                   => '',
-			'x-cache'                => $cache_hit_callback,
-			'x-proxy-cache'          => $cache_hit_callback,
-			'cf-cache-status'        => $cache_hit_callback,
-			'x-kinsta-cache'         => $cache_hit_callback,
-			'x-aruba-cache'          => $cache_hit_callback,
 			'x-cache-enabled'        => static function ( $header_value ) {
 				return 'true' === strtolower( $header_value );
 			},
 			'x-cache-disabled'       => static function ( $header_value ) {
 				return ( 'on' !== strtolower( $header_value ) );
 			},
-			'cf-apo-via'             => static function ( $header_value ) {
-				return false !== strpos( strtolower( $header_value ), 'tcache' );
-			},
 			'x-srcache-store-status' => $cache_hit_callback,
 			'x-srcache-fetch-status' => $cache_hit_callback,
-			'cf-edge-cache'          => static function ( $header_value ) {
-				return false !== strpos( strtolower( $header_value ), 'cache' );
-			},
 		);
 
 		/**
@@ -3023,7 +3012,7 @@ class WP_Site_Health {
 		 * @since 6.1.0
 		 * @param int $cache_headers Array of supported cache headers.
 		 */
-		return apply_filters( 'page_cache_supported_cache_headers', $cache_headers );
+		return apply_filters( 'site_status_page_cache_supported_cache_headers', $cache_headers );
 	}
 
 	/**
@@ -3039,7 +3028,7 @@ class WP_Site_Health {
 	 *     @type float[] $response_timing               Response timings.
 	 * }
 	 */
-	public function check_for_page_caching() {
+	private function check_for_page_caching() {
 
 		/** This filter is documented in wp-includes/class-wp-http-streams.php */
 		$sslverify = apply_filters( 'https_local_ssl_verify', false );
@@ -3117,7 +3106,7 @@ class WP_Site_Health {
 	 *    @type float    $response_time          Response time of site.
 	 * }
 	 */
-	public function get_page_cache_detail() {
+	private function get_page_cache_detail() {
 		$page_cache_detail = $this->check_for_page_caching();
 		if ( is_wp_error( $page_cache_detail ) ) {
 			return $page_cache_detail;
@@ -3159,14 +3148,14 @@ class WP_Site_Health {
 	 *
 	 * @return int Threshold in milliseconds.
 	 */
-	public function get_good_response_time_threshold() {
+	private function get_good_response_time_threshold() {
 		/**
 		 * Filters the threshold below which a response time is considered good.
 		 *
 		 * @since 6.1.0
 		 * @param int $threshold Threshold in milliseconds. Default 600.
 		 */
-		return (int) apply_filters( 'page_cache_good_response_time_threshold', 600 );
+		return (int) apply_filters( 'site_status_page_cache_good_response_time_threshold', 600 );
 	}
 
 }
