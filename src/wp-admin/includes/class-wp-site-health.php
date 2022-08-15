@@ -2254,13 +2254,15 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Tests persistent_object_cache health check.
+	 * Tests if sites uses persistent object cache.
+	 *
+	 * Checks if site uses persistent object cache or recommends to use it if not.
 	 *
 	 * @since 6.1.0
 	 *
-	 * @return array The health check result suggesting persistent object caching.
+	 * @return array The test result.
 	 */
-	public function get_test_health_persistent_object_cache() {
+	public function get_test_persistent_object_cache() {
 		/**
 		 * Filters the action URL for the persistent object cache health check.
 		 *
@@ -2332,9 +2334,9 @@ class WP_Site_Health {
 		 */
 		$notes = apply_filters( 'site_status_persistent_object_cache_notes', $notes, $available_services );
 
-		$result['status']         = 'recommended';
-		$result['label']          = __( 'You should use a persistent object cache' );
-		$result['description']   .= sprintf(
+		$result['status']       = 'recommended';
+		$result['label']        = __( 'You should use a persistent object cache' );
+		$result['description'] .= sprintf(
 			'<p>%s</p>',
 			wp_kses(
 				$notes,
@@ -2474,7 +2476,7 @@ class WP_Site_Health {
 		if ( 'production' === wp_get_environment_type() ) {
 			$tests['direct']['persistent_object_cache'] = array(
 				'label' => __( 'Persistent object cache' ),
-				'test'  => 'health_persistent_object_cache',
+				'test'  => 'persistent_object_cache',
 			);
 		}
 
@@ -3046,7 +3048,7 @@ class WP_Site_Health {
 	 *
 	 * @return array The list of available persistent object cache services.
 	 */
-	function available_object_cache_services() {
+	private function available_object_cache_services() {
 		$extensions = array_map(
 			'extension_loaded',
 			array(
