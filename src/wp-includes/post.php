@@ -3089,6 +3089,17 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 function wp_count_attachments( $mime_type = '' ) {
 	global $wpdb;
 
+	$cache_key = sprintf(
+		'attachments%s',
+		! empty( $mime_type ) ? ':' . str_replace( '/', '_', implode( '-', (array) $mime_type ) ) : ''
+	);
+
+	$counts = wp_cache_get( $cache_key, 'counts' );
+	if ( false !== $counts ) {
+		/** This filter is documented in wp-includes/post.php */
+		return apply_filters( 'wp_count_attachments', $counts, $mime_type );
+	}
+
 	$and   = wp_post_mime_type_where( $mime_type );
 	$count = $wpdb->get_results( "SELECT post_mime_type, COUNT( * ) AS num_posts FROM $wpdb->posts WHERE post_type = 'attachment' AND post_status != 'trash' $and GROUP BY post_mime_type", ARRAY_A );
 
@@ -3097,6 +3108,9 @@ function wp_count_attachments( $mime_type = '' ) {
 		$counts[ $row['post_mime_type'] ] = $row['num_posts'];
 	}
 	$counts['trash'] = $wpdb->get_var( "SELECT COUNT( * ) FROM $wpdb->posts WHERE post_type = 'attachment' AND post_status = 'trash' $and" );
+
+	$counts = (object) $counts;
+	wp_cache_set( $cache_key, $counts, 'counts' );
 
 	/**
 	 * Modifies returned attachment counts by mime type.
@@ -3107,7 +3121,7 @@ function wp_count_attachments( $mime_type = '' ) {
 	 *                                   mime type.
 	 * @param string|string[] $mime_type Array or comma-separated list of MIME patterns.
 	 */
-	return apply_filters( 'wp_count_attachments', (object) $counts, $mime_type );
+	return apply_filters( 'wp_count_attachments', $counts, $mime_type );
 }
 
 /**
