@@ -58,6 +58,20 @@ function _get_list_table( $class_name, $args = array() ) {
 			$args['screen'] = null;
 		}
 
+		/**
+		 * Filters the list table class to instantiate.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param string $class_name The list table class to use.
+		 * @param array  $args       An array containing _get_list_table() arguments.
+		 */
+		$class_name = apply_filters( 'wp_list_table_class_name', $class_name, $args );
+
+		if ( ! class_exists( $class ) ) {
+			return false;
+		}
+
 		return new $class_name( $args );
 	}
 
