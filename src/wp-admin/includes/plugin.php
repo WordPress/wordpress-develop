@@ -2107,13 +2107,13 @@ function get_plugin_page_hookname( $plugin_page, $parent_page ) {
  */
 function user_can_access_admin_page() {
 	global $pagenow, $menu, $submenu, $_wp_menu_nopriv, $_wp_submenu_nopriv,
-		$typenow, $_custom_post_type_pages,
+		$typenow, $_post_type_pages,
 		$plugin_page, $_registered_pages;
 
-	// Early check for custom_post_type_pages
+	// Early check for post_type pages
 	if (
-		isset( $_custom_post_type_pages[ "$pagenow?post_type=$typenow" ] ) &&
-		current_user_can( $_custom_post_type_pages[ "$pagenow?post_type=$typenow" ] )
+		isset( $_post_type_pages[ "$pagenow?post_type=$typenow" ] ) &&
+		current_user_can( $_post_type_pages[ "$pagenow?post_type=$typenow" ] )
 	) {
 		return true;
 	}

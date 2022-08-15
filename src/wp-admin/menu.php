@@ -118,7 +118,7 @@ $types   = (array) get_post_types(
 	)
 );
 
-$_custom_post_type_pages = array();
+$_post_type_pages = array();
 
 $builtin = array( 'post', 'page' );
 foreach ( array_merge( $builtin, $types ) as $ptype ) {
@@ -151,8 +151,8 @@ foreach ( array_merge( $builtin, $types ) as $ptype ) {
 		$edit_tags_file = "edit-tags.php?taxonomy=%s&amp;post_type=$ptype";
 	}
 
-	$_custom_post_type_pages[ $ptype_file ]    = $ptype_obj->cap->edit_posts;
-	$_custom_post_type_pages[ $post_new_file ] = $ptype_obj->cap->create_posts;
+	$_post_type_pages[ $ptype_file ]    = $ptype_obj->cap->edit_posts;
+	$_post_type_pages[ $post_new_file ] = $ptype_obj->cap->create_posts;
 
 	// Check if it should be a submenu.
 	if ( true !== $ptype_obj->show_in_menu ) {
