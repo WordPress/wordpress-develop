@@ -216,7 +216,7 @@ class Tests_Site_Health extends WP_UnitTestCase {
 		$error_label       = 'Unable to detect the presence of page caching';
 
 		return array(
-			'basic-auth-fail'                          => array(
+			'basic-auth-fail'                        => array(
 				'responses'       => array(
 					'unauthorized',
 				),
@@ -224,31 +224,31 @@ class Tests_Site_Health extends WP_UnitTestCase {
 				'expected_label'  => $error_label,
 				'good_basic_auth' => false,
 			),
-			'no-cache-control'                         => array(
+			'no-cache-control'                       => array(
 				'responses'          => array_fill( 0, 3, array() ),
 				'expected_status'    => 'critical',
 				'expected_label'     => $critical_label,
 				'good_basic_auth'    => null,
 				'delay_the_response' => true,
 			),
-			'no-cache'                                 => array(
+			'no-cache'                               => array(
 				'responses'       => array_fill( 0, 3, array( 'cache-control' => 'no-cache' ) ),
 				'expected_status' => 'recommended',
 				'expected_label'  => $recommended_label,
 			),
-			'no-cache-arrays'                          => array(
+			'no-cache-arrays'                        => array(
 				'responses'       => array_fill( 0, 3, array( 'cache-control' => array( 'no-cache', 'no-store' ) ) ),
 				'expected_status' => 'recommended',
 				'expected_label'  => $recommended_label,
 			),
-			'no-cache-with-delayed-response'           => array(
+			'no-cache-with-delayed-response'         => array(
 				'responses'          => array_fill( 0, 3, array( 'cache-control' => 'no-cache' ) ),
 				'expected_status'    => 'critical',
 				'expected_label'     => $critical_label,
 				'good_basic_auth'    => null,
 				'delay_the_response' => true,
 			),
-			'age'                                      => array(
+			'age'                                    => array(
 				'responses'       => array_fill(
 					0,
 					3,
@@ -257,7 +257,7 @@ class Tests_Site_Health extends WP_UnitTestCase {
 				'expected_status' => 'good',
 				'expected_label'  => $good_label,
 			),
-			'cache-control-max-age'                    => array(
+			'cache-control-max-age'                  => array(
 				'responses'       => array_fill(
 					0,
 					3,
@@ -266,7 +266,7 @@ class Tests_Site_Health extends WP_UnitTestCase {
 				'expected_status' => 'good',
 				'expected_label'  => $good_label,
 			),
-			'etag'                                     => array(
+			'etag'                                   => array(
 				'responses'       => array_fill(
 					0,
 					3,
@@ -275,7 +275,7 @@ class Tests_Site_Health extends WP_UnitTestCase {
 				'expected_status' => 'good',
 				'expected_label'  => $good_label,
 			),
-			'cache-control-max-age-after-2-requests'   => array(
+			'cache-control-max-age-after-2-requests' => array(
 				'responses'       => array(
 					array(),
 					array(),
@@ -284,7 +284,7 @@ class Tests_Site_Health extends WP_UnitTestCase {
 				'expected_status' => 'good',
 				'expected_label'  => $good_label,
 			),
-			'cache-control-with-future-expires'        => array(
+			'cache-control-with-future-expires'      => array(
 				'responses'       => array_fill(
 					0,
 					3,
@@ -293,7 +293,7 @@ class Tests_Site_Health extends WP_UnitTestCase {
 				'expected_status' => 'good',
 				'expected_label'  => $good_label,
 			),
-			'cache-control-with-past-expires'          => array(
+			'cache-control-with-past-expires'        => array(
 				'responses'          => array_fill(
 					0,
 					3,
@@ -304,7 +304,7 @@ class Tests_Site_Health extends WP_UnitTestCase {
 				'good_basic_auth'    => null,
 				'delay_the_response' => true,
 			),
-			'cache-control-with-basic-auth'            => array(
+			'cache-control-with-basic-auth'          => array(
 				'responses'       => array_fill(
 					0,
 					3,
@@ -314,7 +314,7 @@ class Tests_Site_Health extends WP_UnitTestCase {
 				'expected_label'  => $good_label,
 				'good_basic_auth' => true,
 			),
-			'x-cache-enabled'                          => array(
+			'x-cache-enabled'                        => array(
 				'responses'       => array_fill(
 					0,
 					3,
@@ -323,7 +323,7 @@ class Tests_Site_Health extends WP_UnitTestCase {
 				'expected_status' => 'good',
 				'expected_label'  => $good_label,
 			),
-			'x-cache-enabled-with-delay'               => array(
+			'x-cache-enabled-with-delay'             => array(
 				'responses'          => array_fill(
 					0,
 					3,
@@ -334,7 +334,7 @@ class Tests_Site_Health extends WP_UnitTestCase {
 				'good_basic_auth'    => null,
 				'delay_the_response' => true,
 			),
-			'x-cache-disabled'                         => array(
+			'x-cache-disabled'                       => array(
 				'responses'       => array_fill(
 					0,
 					3,
