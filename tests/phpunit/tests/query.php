@@ -771,11 +771,13 @@ class Tests_Query extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that is_post_type_archive() returns false for an undefined post type.
+	 * Tests that is_post_type_archive() returns false for an undefined post type.
 	 *
 	 * @ticket 56287
+	 *
+	 * @covers ::is_post_type_archive
 	 */
-	public function test_is_post_type_archive_handles_null_post_type() {
+	public function test_is_post_type_archive_should_return_false_for_an_undefined_post_type() {
 		global $wp_query;
 
 		$post_type = '56287-post-type';
