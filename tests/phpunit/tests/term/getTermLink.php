@@ -22,6 +22,33 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 		self::register_custom_taxonomy();
 	}
 
+	/**
+	 * Helper to register a custom taxonomy for use in tests.
+	 *
+	 * @since 5.9.0
+	 */
+	private static function register_custom_taxonomy() {
+		register_taxonomy( 'wptests_tax', 'post' );
+	}
+
+	/**
+	 * Helper to get the term for the given taxonomy.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $taxonomy Taxonomy being tested (used for index of term keys).
+	 * @param bool   $use_id   When true, pass term ID. Else, pass term object.
+	 * @return WP_Term|int If $use_id is true, term ID is returned; else instance of WP_Term.
+	 */
+	private function get_term( $taxonomy, $use_id ) {
+		$term = self::$terms[ $taxonomy ];
+		if ( $use_id ) {
+			$term = $term->term_id;
+		}
+
+		return $term;
+	}
+
 	public function test_integer_should_be_interpreted_as_term_id() {
 		$t1 = self::factory()->term->create(
 			array(
@@ -294,58 +321,30 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 	 */
 	public function data_get_term_link() {
 		return array(
-			'category passing term_id'          => array(
-				'taxonomy' => 'category',
-				'use_id'   => false,
-			),
-			'category passing term object'      => array(
+			'category passing term_id'              => array(
 				'taxonomy' => 'category',
 				'use_id'   => true,
 			),
-			'post_tag passing term_id'          => array(
-				'taxonomy' => 'post_tag',
+			'category passing term object'          => array(
+				'taxonomy' => 'category',
 				'use_id'   => false,
 			),
-			'post_tag passing term object'      => array(
+			'post_tag passing term_id'              => array(
 				'taxonomy' => 'post_tag',
 				'use_id'   => true,
 			),
-			'a custom taxonomy passing term_id' => array(
-				'taxonomy' => 'wptests_tax',
+			'post_tag passing term object'          => array(
+				'taxonomy' => 'post_tag',
 				'use_id'   => false,
 			),
-			'a custom taxonomy passing term_id' => array(
+			'a custom taxonomy passing term_id'     => array(
 				'taxonomy' => 'wptests_tax',
 				'use_id'   => true,
-				'expected' => 'term.php?taxonomy=custom_taxonomy&tag_ID=%ID%&post_type=post',
+			),
+			'a custom taxonomy passing term object' => array(
+				'taxonomy' => 'wptests_tax',
+				'use_id'   => false,
 			),
 		);
-	}
-
-	/**
-	 * Helper to register a custom taxonomy for use in tests.
-	 *
-	 * @since 5.9.0
-	 */
-	private static function register_custom_taxonomy() {
-		register_taxonomy( 'wptests_tax', 'post' );
-	}
-
-	/**
-	 * Helper to get the term for the given taxonomy.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param string $taxonomy Taxonomy being tested (used for index of term keys).
-	 * @param bool   $use_id   When true, pass term ID. Else, pass term object.
-	 * @return WP_Term|int If $use_id is true, term ID is returned; else instance of WP_Term.
-	 */
-	private function get_term( $taxonomy, $use_id ) {
-		$term = self::$terms[ $taxonomy ];
-		if ( $use_id ) {
-			$term = $term->term_id;
-		}
-
-		return $term;
 	}
 }
