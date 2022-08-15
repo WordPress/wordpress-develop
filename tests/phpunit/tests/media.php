@@ -1176,6 +1176,8 @@ VIDEO;
 	 * @ticket 56288
 	 */
 	public function test__wp_filter_image_sizes_additional_mime_type_support_with_add_image_size() {
+		$default_sizes = wp_get_registered_image_subsizes();
+
 		add_image_size( 'test-size-with-additional-mimes', 200, 600, false, true );
 		add_image_size( 'test-size-without-additional-mimes', 200, 600, false, false );
 
@@ -1185,9 +1187,10 @@ VIDEO;
 		remove_image_size( 'test-size-with-additional-mimes' );
 		remove_image_size( 'test-size-without-additional-mimes' );
 
-		$this->assertArrayHasKey( 'test-size-with-additional-mimes', $filtered_sizes );
-		$this->assertArrayNotHasKey( 'test-size-without-additional-mimes', $filtered_sizes );
+		$expected_size_names   = array_keys( $default_sizes );
+		$expected_size_names[] = 'test-size-with-additional-mimes';
 
+		$this->assertSame( $expected_size_names, array_keys( $filtered_sizes ) );
 	}
 
 	/**
