@@ -901,7 +901,17 @@ function block_footer_area() {
  * @return Bool Whether this file is in an ignored directory.
  */
 function wp_is_theme_directory_ignored( $path ) {
-	$directories_to_ignore = array( '.svn', '.git', '.hg', '.bzr', 'node_modules', 'vendor' );
+	$default_directories_to_ignore = array( '.svn', '.git', '.hg', '.bzr', 'node_modules', 'vendor' );
+
+	/**
+	 * Filters the list of theme directories to ignore during export.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param array $default_directories_to_ignore An array of directory names.
+	 */
+	$directories_to_ignore = apply_filters( 'ignored_theme_directory', $default_directories_to_ignore );
+
 	foreach ( $directories_to_ignore as $directory ) {
 		if ( strpos( $path, $directory ) === 0 ) {
 			return true;
