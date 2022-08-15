@@ -657,7 +657,6 @@ function _wp_filter_image_sizes_additional_mime_type_support( $sizes, $attachmen
 		'medium'         => true,
 		'medium_large'   => true,
 		'large'          => true,
-		'post-thumbnail' => true,
 	);
 
 	// Include any sizes that were added with `add_image_size`.
