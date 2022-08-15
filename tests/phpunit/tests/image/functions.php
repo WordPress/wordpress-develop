@@ -1033,7 +1033,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'test-150x150.jpg', $image );
 
 		$context        = 'the_content';
-		$filtered_image = wp_image_use_alternate_mime_types( $image, $context, $attachment_id, );
+		$filtered_image = wp_image_use_alternate_mime_types( $image, $context, $attachment_id );
 
 		// Before the filter, the image is not replaced.
 		$this->assertStringNotContainsString( 'replaced-image-thumbnail.webp', $filtered_image );
