@@ -1142,7 +1142,7 @@ VIDEO;
 		remove_image_size( 'test-size' );
 
 		$this->assertArrayNotHasKey( 'test-size', $_wp_additional_image_sizes );
-		add_image_size( 'test-size', 200, 600 );
+		add_image_size( 'test-size', 200, 600, false, false );
 
 		$sizes = wp_get_additional_image_sizes();
 
@@ -1197,7 +1197,7 @@ VIDEO;
 	 * @ticket 26768
 	 */
 	public function test_remove_image_size() {
-		add_image_size( 'test-size', 200, 600 );
+		add_image_size( 'test-size', 200, 600, false, false );
 		$this->assertTrue( has_image_size( 'test-size' ) );
 		remove_image_size( 'test-size' );
 		$this->assertFalse( has_image_size( 'test-size' ) );
@@ -1207,7 +1207,7 @@ VIDEO;
 	 * @ticket 26951
 	 */
 	public function test_has_image_size() {
-		add_image_size( 'test-size', 200, 600 );
+		add_image_size( 'test-size', 200, 600, false, false );
 		$this->assertTrue( has_image_size( 'test-size' ) );
 
 		// Clean up.
