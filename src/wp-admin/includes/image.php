@@ -661,17 +661,16 @@ function _wp_filter_image_sizes_additional_mime_type_support( $sizes, $attachmen
 	);
 
 	// Include any sizes that were added with `add_image_size`.
-	$additional_image_sizes = wp_get_additional_image_sizes();
-	$additional_image_sizes = array_filter(
-		$additional_image_sizes,
-		function( $size ) {
-			return isset( $size['additional_mimes'] ) && $size['additional_mimes'];
-		}
+	$additional_image_sizes = array_map(
+		'__return_true',
+		array_filter(
+			wp_get_additional_image_sizes(),
+			function( $size ) {
+				return isset( $size['additional_mimes'] ) && $size['additional_mimes'];
+			}
+		)
 	);
-
-	foreach ( array_keys( $additional_image_sizes ) as $size_name ) {
-		$enabled_sizes[ $size_name ] = true;
-	}
+	$enabled_sizes          = array_merge( $enabled_sizes, $additional_image_sizes );
 
 	/**
 	 * Filter the sizes that support secondary mime type output. Developers can use this
