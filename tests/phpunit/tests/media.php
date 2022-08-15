@@ -1180,7 +1180,7 @@ VIDEO;
 		add_image_size( 'test-size-with-additional-mimes', 200, 600, false, true );
 		add_image_size( 'test-size-without-additional-mimes', 200, 600, false, false );
 
-		$all_sizes      = wp_get_additional_image_sizes();
+		$all_sizes      = wp_get_registered_image_subsizes();
 		$filtered_sizes = _wp_filter_image_sizes_additional_mime_type_support( $all_sizes, $this->large_id );
 
 		remove_image_size( 'test-size-with-additional-mimes' );
