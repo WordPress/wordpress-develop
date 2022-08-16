@@ -3830,6 +3830,12 @@ EOF;
 			)
 		);
 
+		// `wp_print_image_mime_fallback_script()` assumes `wp-includes/js/wp-image-mime-fallback-loader.js` is present:
+		copy(
+			ABSPATH . 'js/_enqueues/wp/wp-image-mime-fallback-loader.js',
+			ABSPATH . WPINC . '/js/wp-image-mime-fallback-loader.js'
+		);
+
 		$this->assertStringContainsString( 'data:image/webp;base64,UklGR', get_echo( 'wp_footer' ) );
 	}
 
@@ -3844,6 +3850,12 @@ EOF;
 
 		$GLOBALS['_wp_image_mime_fallback_should_load'] = false;
 		apply_filters( 'the_content', '<p>no image</p>' );
+
+		// `wp_print_image_mime_fallback_script()` assumes `wp-includes/js/wp-image-mime-fallback-loader.js` is present:
+		copy(
+			ABSPATH . 'js/_enqueues/wp/wp-image-mime-fallback-loader.js',
+			ABSPATH . WPINC . '/js/wp-image-mime-fallback-loader.js'
+		);
 
 		$this->assertStringNotContainsString( 'data:image/webp;base64,UklGR', get_echo( 'wp_footer' ) );
 	}
