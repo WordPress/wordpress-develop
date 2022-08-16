@@ -1110,6 +1110,31 @@ EOF;
 				'css'      => 'height: expression( body.scrollTop + 50 + "px" )',
 				'expected' => '',
 			),
+			// RGBA background color are allowed.
+			array(
+				'css'      => 'background-color: rgba(0,0,0,0)',
+				'expected' => 'background-color: rgba(0,0,0,0)',
+			),
+			array(
+				'css'      => 'background-color: rgba(0, 0, 0, 0)',
+				'expected' => 'background-color: rgba(0, 0, 0, 0)',
+			),
+			array(
+				'css'      => 'background-color: rgba(100, 100, 100, 0)',
+				'expected' => 'background-color: rgba(100, 100, 100, 0)',
+			),
+			array(
+				'css'      => 'background-color: rgba(10%, 10%, 10%, 0)',
+				'expected' => 'background-color: rgba(10%, 10%, 10%, 0)',
+			),
+			array(
+				'css'      => 'background-color: rgba(0, 0, 0, 0.1)',
+				'expected' => 'background-color: rgba(0, 0, 0, 0.1)',
+			),
+			array(
+				'css'      => 'background-color: rgba(0, 0, 0, .1)',
+				'expected' => 'background-color: rgba(0, 0, 0, .1)',
+			),
 			// RGB color values are not allowed.
 			array(
 				'css'      => 'color: rgb( 100, 100, 100 )',
