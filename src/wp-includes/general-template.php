@@ -5030,17 +5030,7 @@ function __checked_selected_helper( $helper, $current, $echo, $type ) { // phpcs
  */
 function wp_required_field_indicator() {
 	/* translators: Character to identify required form fields. */
-	$glyph = __( '*' );
-
-	/**
-	 * Filters the visual indicator for required form fields.
-	 *
-	 * @since 6.1.0
-	 *
-	 * @param string $glyph Character to identify required form fields.
-	 */
-	$glyph = apply_filters( 'wp_required_field_glyph', $glyph );
-
+	$glyph     = __( '*' );
 	$indicator = '<span class="required" aria-hidden="true">' . esc_html( $glyph ) . '</span>';
 
 	/**
@@ -5050,7 +5040,7 @@ function wp_required_field_indicator() {
 	 *
 	 * @param string $indicator Markup for the indicator element.
 	 */
-	$indicator = apply_filters( 'wp_required_field_indictor', $indicator );
+	$indicator = apply_filters( 'wp_required_field_indicator', $indicator );
 
 	return $indicator;
 }
