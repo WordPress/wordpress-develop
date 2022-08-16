@@ -3830,8 +3830,6 @@ EOF;
 			)
 		);
 
-		$this->assertTrue( has_action( 'wp_footer', 'wp_wepb_fallback' ) === 10 );
-
 		ob_start();
 			wp_footer();
 		$footer = ob_get_clean();
@@ -3848,8 +3846,6 @@ EOF;
 		}
 
 		apply_filters( 'the_content', '<p>no image</p>' );
-
-		$this->assertFalse( has_action( 'wp_footer', 'wp_wepb_fallback' ) );
 
 		ob_start();
 			wp_footer();

@@ -11,7 +11,7 @@
 		image.src = image_src + 'h4AAABXRUJQVlA4TBEAAAAvAQAAAAfQ//73v/+BiOh/AAA=';
 	};
 	image.onerror = function() {
-		script_src = settings.imagemimefallback || {};
+		var script_src = settings.imagemimefallback || {};
 		if ( script_src ) {
 			var script = document.createElement( 'script' );
 
