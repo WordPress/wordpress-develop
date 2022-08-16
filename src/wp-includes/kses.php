@@ -2443,7 +2443,6 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			}
 		}
 
-
 		if ( $found && $url_attr ) {
 			// Simplified: matches the sequence `url(*)`.
 			preg_match_all( '/url\([^)]+\)/', $parts[1], $url_matches );
