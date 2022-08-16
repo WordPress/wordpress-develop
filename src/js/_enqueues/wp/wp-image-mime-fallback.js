@@ -1,11 +1,12 @@
 /**
- * @output wp-includes/js/webp-fallback.js
+ * @output wp-includes/js/wp-image-mime-fallback.js
  */
 
-window.media = window.media || {};
+window.wp = window.wp || {};
 
-( function( document ) {
-	window.media.wpFallbackWebpImages = function( media ) {
+( function( document, settings ) {
+	settings = settings || {};
+	window.wp.imageMimeFallback = function( media ) {
 		for ( var i = 0; i < media.length; i++ ) {
 			try {
 				var image         = media[ i ],
@@ -71,7 +72,7 @@ window.media = window.media || {};
 		}
 	};
 
-	var restApi = document.getElementById( 'wpFallbackWebpImages' ).getAttribute( 'data-rest-api' );
+	var restApi = settings.restApi;
 
 	var loadMediaDetails = function( nodes ) {
 		var ids = [];
@@ -99,7 +100,7 @@ window.media = window.media || {};
 			}
 
 			var jsonp    = document.createElement( 'script' ),
-				restPath = 'wp/v2/media/?_fields=id,media_details&_jsonp=media.wpFallbackWebpImages&per_page=100&include=' + pageIds.join( ',' );
+				restPath = 'wp/v2/media/?_fields=id,media_details&_jsonp=wp.imageMimeFallback&per_page=100&include=' + pageIds.join( ',' );
 
 			if ( -1 !== restApi.indexOf( '?' ) ) {
 				restPath = restPath.replace( '?', '&' );
@@ -127,4 +128,4 @@ window.media = window.media || {};
 		} );
 	} catch ( e ) {
 	}
-} )( document );
+} )( document, window._wpImageMimeFallbackSettings );

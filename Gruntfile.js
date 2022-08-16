@@ -329,6 +329,8 @@ module.exports = function(grunt) {
 					[ WORKING_DIR + 'wp-includes/js/wp-embed.js' ]: [ './src/js/_enqueues/wp/embed.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wp-emoji-loader.js' ]: [ './src/js/_enqueues/lib/emoji-loader.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wp-emoji.js' ]: [ './src/js/_enqueues/wp/emoji.js' ],
+					[ WORKING_DIR + 'wp-includes/js/wp-image-mime-fallback-loader.js' ]: [ './src/js/_enqueues/wp/wp-image-mime-fallback-loader.js' ],
+					[ WORKING_DIR + 'wp-includes/js/wp-image-mime-fallback.js' ]: [ './src/js/_enqueues/wp/wp-image-mime-fallback.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wp-list-revisions.js' ]: [ './src/js/_enqueues/lib/list-revisions.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wp-lists.js' ]: [ './src/js/_enqueues/lib/lists.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wp-pointer.js' ]: [ './src/js/_enqueues/lib/pointer.js' ],
@@ -336,8 +338,7 @@ module.exports = function(grunt) {
 					[ WORKING_DIR + 'wp-includes/js/wp-util.js' ]: [ './src/js/_enqueues/wp/util.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wpdialog.js' ]: [ './src/js/_enqueues/lib/dialog.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wplink.js' ]: [ './src/js/_enqueues/lib/link.js' ],
-					[ WORKING_DIR + 'wp-includes/js/zxcvbn-async.js' ]: [ './src/js/_enqueues/lib/zxcvbn-async.js' ],
-					[ WORKING_DIR + 'wp-includes/js/webp-fallback.js' ]: [ './src/js/_enqueues/wp/webp-fallback.js' ]
+					[ WORKING_DIR + 'wp-includes/js/zxcvbn-async.js' ]: [ './src/js/_enqueues/lib/zxcvbn-async.js' ]
 				}
 			},
 			'wp-admin-css-compat-rtl': {

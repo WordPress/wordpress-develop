@@ -1854,14 +1854,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 
 			// Use alternate mime types when specified and available.
 			if ( $attachment_id > 0 && _wp_in_front_end_context() ) {
-				$original_image = $filtered_image;
 				$filtered_image = wp_image_use_alternate_mime_types( $filtered_image, $context, $attachment_id );
-				if (
-					! has_action( 'wp_footer', 'wp_wepb_fallback' ) &&
-					$original_image !== $filtered_image
-				) {
-					add_action( 'wp_footer', 'wp_wepb_fallback' );
-				}
 			}
 
 			/**
@@ -1911,40 +1904,30 @@ function wp_filter_content_tags( $content, $context = null ) {
 }
 
 /**
- * Adds a fallback mechanism to replace webp images with jpeg alternatives on older browsers.
+ * Adds a fallback mechanism to replace webp images with alternative mime types on older browsers.
  *
  * @since 6.1.0
+ *
+ * @global bool $_wp_image_mime_fallback_should_load
  */
-function wp_wepb_fallback() {
+function wp_print_image_mime_fallback_script() {
+	global $_wp_image_mime_fallback_should_load;
 
-	ob_start();
-	$suffix     = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
-	$script_src = includes_url( "js/webp-fallback$suffix.js" );
+	// Bail early if an image has no additional mime.
+	if ( true !== $_wp_image_mime_fallback_should_load ) {
+		return;
+	}
 
-	?>
-	( function( d, i, s, p ) {
-		s = d.createElement( s );
-		s.src = '<?php echo esc_url_raw( $script_src ); ?>';
+	$suffix   = wp_scripts_get_suffix();
+	$version  = 'ver=' . get_bloginfo( 'version' );
+	$settings = array(
+		'restApi'           => esc_url_raw( trailingslashit( get_rest_url() ) ),
+		'imagemimefallback' => apply_filters( 'script_loader_src', includes_url( "js/wp-image-mime-fallback$suffix.js?$version" ), 'imagemimefallback' ),
+	);
 
-		i = d.createElement( i );
-		i.src = p + 'jIAAABXRUJQVlA4ICYAAACyAgCdASoCAAEALmk0mk0iIiIiIgBoSygABc6zbAAA/v56QAAAAA==';
-		i.onload = function() {
-			i.onload = undefined;
-			i.src = p + 'h4AAABXRUJQVlA4TBEAAAAvAQAAAAfQ//73v/+BiOh/AAA=';
-		};
-
-		i.onerror = function() {
-			d.body.appendChild( s );
-		};
-	} )( document, 'img', 'script', 'data:image/webp;base64,UklGR' );
-	<?php
-	$javascript = ob_get_clean();
 	wp_print_inline_script_tag(
-		preg_replace( '/\s+/', '', $javascript ),
-		array(
-			'id'            => 'wpFallbackWebpImages',
-			'data-rest-api' => esc_url_raw( trailingslashit( get_rest_url() ) ),
-		)
+		sprintf( 'window._wpImageMimeFallbackSettings = %s;', wp_json_encode( $settings ) ) . "\n" .
+			file_get_contents( sprintf( ABSPATH . WPINC . '/js/wp-image-mime-fallback-loader' . $suffix . '.js' ) )
 	);
 }
 
@@ -1953,12 +1936,16 @@ function wp_wepb_fallback() {
  *
  * @since 6.1.0
  *
+ * @global bool $_wp_image_mime_fallback_should_load
+ *
  * @param string $image         The HTML `img` tag where the attribute should be added.
  * @param string $context       Additional context to pass to the filters.
  * @param int    $attachment_id The attachment ID.
  * @return string Converted `img` tag with `loading` attribute added.
  */
 function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
+	global $_wp_image_mime_fallback_should_load;
+
 	$metadata = wp_get_attachment_metadata( $attachment_id );
 	if ( empty( $metadata['file'] ) ) {
 		return $image;
@@ -2003,6 +1990,10 @@ function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
 
 			$image = str_replace( $src_filename, $metadata['sources'][ $target_mime ]['file'], $image );
 
+			if ( true !== $_wp_image_mime_fallback_should_load ) {
+				$_wp_image_mime_fallback_should_load = true;
+			}
+
 			// The full size was replaced, so unset this entirely here so that in the next iteration it is no longer
 			// considered, simply for a small performance optimization.
 			unset( $metadata['sources'] );
@@ -2030,6 +2021,10 @@ function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
 
 			// Found a match, replace with the new filename.
 			$image = str_replace( $src_filename, $size_data['sources'][ $target_mime ]['file'], $image );
+
+			if ( true !== $_wp_image_mime_fallback_should_load ) {
+				$_wp_image_mime_fallback_should_load = true;
+			}
 
 			// This size was replaced, so unset this entirely here so that in the next iteration it is no longer
 			// considered, simply for a small performance optimization.
