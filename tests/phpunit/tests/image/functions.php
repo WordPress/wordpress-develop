@@ -410,6 +410,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	public function test_backup_the_image_when_all_images_except_the_thumbnail_are_updated() {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
 		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
 		$metadata      = wp_get_attachment_metadata( $attachment_id );
 
