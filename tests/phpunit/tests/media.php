@@ -3802,7 +3802,7 @@ EOF;
 	/**
 	 * @ticket 55443
 	 */
-	public function test_wp_wepb_fallback_if_content_has_updated_images() {
+	public function test_wp_print_image_mime_fallback_script_if_content_has_updated_images() {
 
 		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
 			$this->markTestSkipped( 'This test requires WebP support.' );
@@ -3830,27 +3830,22 @@ EOF;
 			)
 		);
 
-		ob_start();
-			wp_footer();
-		$footer = ob_get_clean();
-		$this->assertStringContainsString( 'data:image/webp;base64,UklGR', $footer );
+		$this->assertStringContainsString( 'data:image/webp;base64,UklGR', get_echo( 'wp_footer' ) );
 	}
 
 	/**
 	 * @ticket 55443
 	 */
-	public function test_wp_wepb_fallback_if_content_has_no_updated_images() {
+	public function test_wp_print_image_mime_fallback_script_if_content_has_no_updated_images() {
 
 		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
 			$this->markTestSkipped( 'This test requires WebP support.' );
 		}
 
+		$GLOBALS['_wp_image_mime_fallback_should_load'] = false;
 		apply_filters( 'the_content', '<p>no image</p>' );
 
-		ob_start();
-			wp_footer();
-		$footer = ob_get_clean();
-		$this->assertStringNotContainsString( 'data:image/webp;base64,UklGR', $footer );
+		$this->assertStringNotContainsString( 'data:image/webp;base64,UklGR', get_echo( 'wp_footer' ) );
 	}
 }
 
