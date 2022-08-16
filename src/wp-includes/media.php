@@ -275,7 +275,7 @@ function image_downsize( $id, $size = 'medium' ) {
  * Register a new image size.
  *
  * @since 2.9.0
- * @since 6.1.0 Add the $output_mimes parameter.
+ * @since 6.1.0 Add the $additional_mimes parameter.
  *
  * @global array $_wp_additional_image_sizes Associative array of additional image sizes.
  *
