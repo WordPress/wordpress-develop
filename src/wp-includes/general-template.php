@@ -5040,9 +5040,7 @@ function wp_required_field_indicator() {
 	 *
 	 * @param string $indicator Markup for the indicator element.
 	 */
-	$indicator = apply_filters( 'wp_required_field_indicator', $indicator );
-
-	return $indicator;
+	return apply_filters( 'wp_required_field_indicator', $indicator );
 }
 
 /**
@@ -5066,9 +5064,7 @@ function wp_required_field_message() {
 	 *
 	 * @param string $message Message text and glyph wrapped in a `span` tag.
 	 */
-	$message = apply_filters( 'wp_required_field_message', $message );
-
-	return $message;
+	return apply_filters( 'wp_required_field_message', $message );
 }
 
 /**
