@@ -731,7 +731,7 @@ function update_user_status( $id, $pref, $value, $deprecated = null ) {
 	return $value;
 }
 /**
- * Determine whether global terms are enabled.
+ * Determines whether global terms are enabled.
  *
  * @since 3.0.0
  * @since 6.1.0 This function now always returns false.
