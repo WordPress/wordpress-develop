@@ -5757,14 +5757,15 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string       $page_title Page title.
- * @param string       $output     Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
- *                                 correspond to a WP_Post object, an associative array, or a numeric array,
- *                                 respectively. Default OBJECT.
- * @param string|array $post_type  Optional. Post type or array of post types. Default 'page'.
+ * @param string       $page_title  Page title.
+ * @param string       $output      Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+ *                                  correspond to a WP_Post object, an associative array, or a numeric array,
+ *                                  respectively. Default OBJECT.
+ * @param string|array $post_type   Optional. Post type or array of post types. Default 'page'.
+ * @param string|array $post_status Optional. Post status or array of post statuses. Default 'publish'.
  * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
  */
-function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' ) {
+function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page', $post_status = 'publish' ) {
 	global $wpdb;
 
 	if ( is_array( $post_type ) ) {
@@ -5790,6 +5791,15 @@ function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' )
 			$page_title,
 			$post_type
 		);
+	}
+
+	if ( is_array( $post_status ) ) {
+		$post_status           = esc_sql( $post_status );
+		$post_status_in_string = "'" . implode( "','", $post_status ) . "'";
+
+		$sql .= $wpdb->prepare( " AND post_status IN ($post_status_in_string)", null );
+	} else {
+		$sql .= $wpdb->prepare( " AND post_status = %s", $post_status );
 	}
 
 	$page = $wpdb->get_var( $sql );
