@@ -5799,7 +5799,7 @@ function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page', 
 
 		$sql .= $wpdb->prepare( " AND post_status IN ($post_status_in_string)", null );
 	} else {
-		$sql .= $wpdb->prepare( " AND post_status = %s", $post_status );
+		$sql .= $wpdb->prepare( ' AND post_status = %s', $post_status );
 	}
 
 	$page = $wpdb->get_var( $sql );
