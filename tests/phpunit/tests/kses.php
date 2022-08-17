@@ -1110,39 +1110,86 @@ EOF;
 				'css'      => 'height: expression( body.scrollTop + 50 + "px" )',
 				'expected' => '',
 			),
-			// RGBA background color are allowed.
+			// Allowed RGBA color.
 			array(
-				'css'      => 'background-color: rgba(0,0,0,0)',
-				'expected' => 'background-color: rgba(0,0,0,0)',
+				'css'      => 'color: rgb(0,0,0,0)',
+				'expected' => 'color: rgb(0,0,0,0)',
 			),
 			array(
-				'css'      => 'background-color: rgba(0, 0, 0, 0)',
-				'expected' => 'background-color: rgba(0, 0, 0, 0)',
+				'css'      => 'border-color: rgba(0,0,0,0)',
+				'expected' => 'border-color: rgba(0,0,0,0)',
 			),
 			array(
-				'css'      => 'background-color: rgba(100, 100, 100, 0)',
-				'expected' => 'background-color: rgba(100, 100, 100, 0)',
+				'css'      => 'border-right-color: rgba(0, 0, 0, 0)',
+				'expected' => 'border-right-color: rgba(0, 0, 0, 0)',
 			),
 			array(
-				'css'      => 'background-color: rgba(10%, 10%, 10%, 0)',
-				'expected' => 'background-color: rgba(10%, 10%, 10%, 0)',
+				'css'      => 'border-bottom-color: rgba(100, 100, 100, 0)',
+				'expected' => 'border-bottom-color: rgba(100, 100, 100, 0)',
 			),
 			array(
-				'css'      => 'background-color: rgba(0, 0, 0, 0.1)',
-				'expected' => 'background-color: rgba(0, 0, 0, 0.1)',
+				'css'      => 'border-left-color: rgba(10%, 10%, 10%, 0)',
+				'expected' => 'border-left-color: rgba(10%, 10%, 10%, 0)',
+			),
+			array(
+				'css'      => 'border-top-color: rgba(0, 0, 0, 0.1)',
+				'expected' => 'border-top-color: rgba(0, 0, 0, 0.1)',
 			),
 			array(
 				'css'      => 'background-color: rgba(0, 0, 0, .1)',
 				'expected' => 'background-color: rgba(0, 0, 0, .1)',
 			),
-			// RGB color values are not allowed.
 			array(
-				'css'      => 'color: rgb( 100, 100, 100 )',
+				'css'      => 'color: rgba(0, 0, 0,.1)',
+				'expected' => 'color: rgba(0, 0, 0,.1)',
+			),
+			array(
+				'css'      => 'border-color: rgba(0, 0, 0 / 0.1)',
+				'expected' => 'border-color: rgba(0, 0, 0 / 0.1)',
+			),
+			// Invalid RGBA color.
+			array(
+				'css'      => 'color: rg(0, 0, 0, 0)',
 				'expected' => '',
 			),
-			// RGBA color values are not allowed.
 			array(
-				'css'      => 'color: rgb( 100, 100, 100, .4 )',
+				'css'      => 'text-decoration-color : rgba(0, 0, 0, 0)',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'border-color: rgba(0 , 0, 0, 0)',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'border-right-color: rgba(0,  0, 0, 0)',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'border-bottom-color: rgba(0, 0, 0/ 0.1 )',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'border-left-color: rgba(0, 0, 0 /0.1 )',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'border-top-color: rgba(0, 0, 0  / 0.1 )',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'background-color: rgba(red, 0, 0, 0)',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'color: rgba(100px, 0, 0, 0)',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'border-right-color: "rgba(0, 0, 0, 0)',
+				'expected' => '',
+			),
+			array(
+				'css'      => "border-bottom-color: 'rgba(0, 0, 0, 0)",
 				'expected' => '',
 			),
 		);

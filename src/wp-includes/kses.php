@@ -2396,10 +2396,18 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 	);
 
 	/*
-	 * CSS attributes that accept rgba color data types.
+	 * CSS attributes that accept rgb(a) color data types.
 	 *
 	 */
-	$css_rgba_color_data_types = array(
+	$css_color_data_types = array(
+		'color',
+
+		'border-color',
+		'border-right-color',
+		'border-bottom-color',
+		'border-left-color',
+		'border-top-color',
+
 		'background-color',
 	);
 
@@ -2426,7 +2434,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		$css_test_string = $css_item;
 		$found           = false;
 		$url_attr        = false;
-		$rgba_attr       = false;
+		$color_attr      = false;
 		$gradient_attr   = false;
 
 		if ( strpos( $css_item, ':' ) === false ) {
@@ -2439,7 +2447,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 				$found         = true;
 				$url_attr      = in_array( $css_selector, $css_url_data_types, true );
 				$gradient_attr = in_array( $css_selector, $css_gradient_data_types, true );
-				$rgba_attr     = in_array( $css_selector, $css_rgba_color_data_types, true );
+				$color_attr    = in_array( $css_selector, $css_color_data_types, true );
 			}
 		}
 
@@ -2476,9 +2484,9 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			}
 		}
 
-		if ( $found && $rgba_attr ) {
+		if ( $found && $color_attr ) {
 			$css_value = trim( $parts[1] );
-			if ( preg_match( '/^rgba\((\d{1,3}%?),\s*(\d{1,3}%?),\s*(\d{1,3}%?),\s*(\d*(?:\.\d+)?)\)$/', $css_value ) ) {
+			if ( preg_match( '/^rgb[a]?\((\d{1,3}%?),\s?(\d{1,3}%?),\s?(\d{1,3}%?)(,\s?|\s\/\s)(\d*(?:\.\d+)?)\)$/', $css_value ) ) {
 				$css_test_string = str_replace( $css_value, '', $css_test_string );
 			}
 		}
