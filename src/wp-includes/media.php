@@ -295,17 +295,8 @@ function image_downsize( $id, $size = 'medium' ) {
 function add_image_size( $name, $width = 0, $height = 0, $crop = false, $additional_mimes = null ) {
 	global $_wp_additional_image_sizes;
 
-	// Trigger a warning if the size was registered without providing an `additional_mimes` parameter.
 	if ( null === $additional_mimes ) {
-		_doing_it_wrong(
-			__FUNCTION__,
-			sprintf(
-				/* translators: %s: additional_mimes variable */
-				__( 'You should provide a boolean value for the %s parameter.' ),
-				'<code>$additional_mimes</code>'
-			),
-			'6.1.0'
-		);
+		// In 6.20, trigger a warning if the size was registered without providing an `additional_mimes` parameter.
 		$additional_mimes = false;
 	}
 
