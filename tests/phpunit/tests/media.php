@@ -2828,13 +2828,13 @@ EOF;
 		$video    = DIR_TESTDATA . '/uploads/rotated-video-180.mov';
 		$metadata = wp_read_video_metadata( $video );
 
-		$this->assertArrayHasKey('rotate', $metadata );
+		$this->assertArrayHasKey( 'rotate', $metadata );
 		$this->assertEquals( 180, $metadata['rotate'] );
 
 		$video    = DIR_TESTDATA . '/uploads/rotated-video-270.mov';
 		$metadata = wp_read_video_metadata( $video );
 
-		$this->assertArrayHasKey('rotate', $metadata );
+		$this->assertArrayHasKey( 'rotate', $metadata );
 		$this->assertEquals( 270, $metadata['rotate'] );
 
 	}
