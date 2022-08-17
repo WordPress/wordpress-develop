@@ -538,9 +538,6 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 
 		add_settings_section( 'test-section', 'Section title', '__return_false', 'test-page', $args );
-
-		//https://make.wordpress.org/core/handbook/testing/automated-testing/writing-phpunit-tests/
-
 	}
 
 	public function assertTemplateHierarchy( $url, array $expected, $message = '' ) {
