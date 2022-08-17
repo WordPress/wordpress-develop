@@ -38,7 +38,7 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 	public function testCropImageThumbnail() {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
-		$id     = $this->_upload_file_and_make_attachment( DIR_TESTDATA . '/images/canola.jpg' );
+		$id = $this->_upload_file_and_make_attachment( DIR_TESTDATA . '/images/canola.jpg' );
 
 		$_REQUEST['action']  = 'image-editor';
 		$_REQUEST['context'] = 'edit-attachment';
@@ -69,7 +69,7 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
-		$id     = $this->_make_attachment( DIR_TESTDATA . '/images/canola.jpg' );
+		$id = $this->_make_attachment( DIR_TESTDATA . '/images/canola.jpg' );
 
 		$_REQUEST['action']  = 'image-editor';
 		$_REQUEST['context'] = 'edit-attachment';
