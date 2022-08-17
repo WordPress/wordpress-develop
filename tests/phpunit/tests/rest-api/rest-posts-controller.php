@@ -523,6 +523,87 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 'Search Result', $data[0]['title']['rendered'] );
 	}
 
+	/**
+	 * @ticket 56350
+	 *
+	 * @covers ::?
+	 *
+	 * @dataProvider data_get_items_exact_search_query
+	 *
+	 * @param string $search_term The term to search for.
+	 * @param array  $posts       An array of post data.
+	 * @param int    $expected    The expected number of results.
+	 */
+	public function test_get_items_exact_search_query( $search_term, $posts, $expected ) {
+		foreach ( $posts as $post ) {
+			$this->factory->post->create( $post );
+		}
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'search', $search_term );
+		$request->set_param( 'exact_search', '1' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertCount( $expected, $data );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_get_items_exact_search_query() {
+		return array(
+			'no results'                => array(
+				'search_term' => 'Exact Search Result',
+				'posts'       => array(
+					array(
+						'post_title'  => 'Exact Search Results',
+						'post_status' => 'publish',
+					),
+				),
+				'expected'    => 0,
+			),
+			'one exact and one partial' => array(
+				'search_term' => 'Exact Search Result',
+				'posts'       => array(
+					array(
+						'post_title'  => 'Exact Search Results',
+						'post_status' => 'publish',
+					),
+					array(
+						'post_title'  => 'Exact Search Result',
+						'post_status' => 'publish',
+					),
+				),
+				'expected'    => 1,
+			),
+		);
+	}
+
+	/**
+	 * @ticket 56350
+	 *
+	 * @covers ::?
+	 */
+	public function test_get_items_exact_search() {
+		$this->factory->post->create(
+			array(
+				'post_title'  => 'Exact Search No Results',
+				'post_status' => 'publish',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'search', 'Exact Search No Result' );
+		$request->set_param( 'exact', true );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertCount( 0, $data );
+	}
+
 	public function test_get_items_slug_query() {
 		$this->factory->post->create(
 			array(
