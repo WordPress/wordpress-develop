@@ -22,11 +22,7 @@ class Tests_Ajax_wpAjaxSendAttachmentToEditor extends WP_Ajax_UnitTestCase {
 		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		$filename = DIR_TESTDATA . '/images/canola.jpg';
-		$contents = file_get_contents( $filename );
-
-		$upload     = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$attachment = $this->_make_attachment( $upload );
+		$attachment = $this->_upload_file_and_make_attachment( DIR_TESTDATA . '/images/canola.jpg' );
 
 		// Set up a default request.
 		$_POST['nonce']      = wp_create_nonce( 'media-send-to-editor' );
@@ -65,11 +61,7 @@ class Tests_Ajax_wpAjaxSendAttachmentToEditor extends WP_Ajax_UnitTestCase {
 		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		$filename = DIR_TESTDATA . '/formatting/entities.txt';
-		$contents = file_get_contents( $filename );
-
-		$upload     = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$attachment = $this->_make_attachment( $upload );
+		$attachment = $this->_upload_file_and_make_attachment( DIR_TESTDATA . '/formatting/entities.txt' );
 
 		// Set up a default request.
 		$_POST['nonce']      = wp_create_nonce( 'media-send-to-editor' );

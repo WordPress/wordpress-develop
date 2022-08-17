@@ -38,11 +38,7 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 	public function testCropImageThumbnail() {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
-		$filename = DIR_TESTDATA . '/images/canola.jpg';
-		$contents = file_get_contents( $filename );
-
-		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$id     = $this->_make_attachment( $upload );
+		$id     = $this->_upload_file_and_make_attachment( DIR_TESTDATA . '/images/canola.jpg' );
 
 		$_REQUEST['action']  = 'image-editor';
 		$_REQUEST['context'] = 'edit-attachment';
@@ -73,11 +69,7 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
-		$filename = DIR_TESTDATA . '/images/canola.jpg';
-		$contents = file_get_contents( $filename );
-
-		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$id     = $this->_make_attachment( $upload );
+		$id     = $this->_make_attachment( DIR_TESTDATA . '/images/canola.jpg' );
 
 		$_REQUEST['action']  = 'image-editor';
 		$_REQUEST['context'] = 'edit-attachment';

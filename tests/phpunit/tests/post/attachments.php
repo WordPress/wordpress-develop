@@ -441,11 +441,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	}
 
 	public function test_wp_attachment_is() {
-		$filename = DIR_TESTDATA . '/images/test-image.jpg';
-		$contents = file_get_contents( $filename );
-
-		$upload        = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$attachment_id = $this->_make_attachment( $upload );
+		$attachment_id = $this->_upload_file_and_make_attachment( DIR_TESTDATA . '/images/test-image.jpg' );
 
 		$this->assertTrue( wp_attachment_is_image( $attachment_id ) );
 		$this->assertTrue( wp_attachment_is( 'image', $attachment_id ) );
@@ -459,11 +455,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 			add_filter( 'upload_mimes', array( $this, 'allow_psd_mime_type' ), 10, 2 );
 		}
 
-		$filename = DIR_TESTDATA . '/images/test-image.psd';
-		$contents = file_get_contents( $filename );
-
-		$upload        = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$attachment_id = $this->_make_attachment( $upload );
+		$attachment_id = $this->_upload_file_and_make_attachment( DIR_TESTDATA . '/images/test-image.psd' );
 
 		$this->assertFalse( wp_attachment_is_image( $attachment_id ) );
 		$this->assertTrue( wp_attachment_is( 'psd', $attachment_id ) );
