@@ -17,14 +17,14 @@ class Tests_Editor_EnableContentEditorForNavigationPostType extends WP_UnitTestC
 	/**
 	 * @ticket 56266
 	 *
-	 * @dataProvider data_test_it_correctly_handles_different_post_types
+	 * @dataProvider data_test_should_only_enable_content_editor_for_navigation_post_types
 	 *
 	 * @param string $post_type             The post type.
 	 * @param bool   $enable_editor_support Whether to enable editor support.
 	 * @param bool   $expected              The expected result.
 	 * @param string $message               The message to display if the test fails.
 	 */
-	public function test_it_correctly_handles_different_post_types( $post_type, $enable_editor_support, $expected, $message ) {
+	public function test_should_only_enable_content_editor_for_navigation_post_types( $post_type, $enable_editor_support, $expected, $message ) {
 		$post = $this->create_post( $post_type );
 		if ( $enable_editor_support ) {
 			$this->enable_editor_support();
@@ -40,11 +40,11 @@ class Tests_Editor_EnableContentEditorForNavigationPostType extends WP_UnitTestC
 	}
 
 	/**
-	 * Data provider for test_it_correctly_handles_different_post_types().
+	 * Data provider for test_should_only_enable_content_editor_for_navigation_post_types().
 	 *
 	 * @return array
 	 */
-	public function data_test_it_correctly_handles_different_post_types() {
+	public function data_test_should_only_enable_content_editor_for_navigation_post_types() {
 		return array(
 			'non-navigation post type and false' => array(
 				'post_type'             => static::NON_NAVIGATION_POST_TYPE,
