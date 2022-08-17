@@ -456,6 +456,92 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 17851
+	 * @covers ::add_settings_section
+	 */
+	public function test_add_settings_section() {
+		add_settings_section( 'test-section', 'Section title', '__return_false', 'test-page' );
+
+		global $wp_settings_sections;
+		$this->assertIsArray( $wp_settings_sections );
+		$this->assertArrayHasKey( 'test-page', $wp_settings_sections );
+		$this->assertIsArray( $wp_settings_sections['test-page'] );
+		$this->assertArrayHasKey( 'test-section', $wp_settings_sections['test-page'] );
+
+		$this->assertEqualSetsWithIndex(
+			array(
+				'id'             => 'test-section',
+				'title'          => 'Section title',
+				'callback'       => '__return_false',
+				'before_section' => '',
+				'after_section'  => '',
+				'section_class'  => '',
+			),
+			$wp_settings_sections['test-page']['test-section']
+		);
+	}
+
+	/**
+	 * @ticket 17851
+	 * @covers ::add_settings_section
+	 * @covers ::do_settings_sections
+	 */
+	public function test_add_settings_section_with_extra_args() {
+		$args = array(
+			'before_section' => '<div class="%s">',
+			'after_section'  => '</div><!-- end of the test section -->',
+			'section_class'  => 'test-section-wrap',
+		);
+
+		add_settings_section( 'test-section', 'Section title', '__return_false', 'test-page', $args );
+		add_settings_field( 'test-field', 'Field title', '__return_false', 'test-page', 'test-section' );
+
+		global $wp_settings_sections;
+		$this->assertIsArray( $wp_settings_sections );
+		$this->assertArrayHasKey( 'test-page', $wp_settings_sections );
+		$this->assertIsArray( $wp_settings_sections['test-page'] );
+		$this->assertArrayHasKey( 'test-section', $wp_settings_sections['test-page'] );
+
+		$this->assertEqualSetsWithIndex(
+			array(
+				'id'             => 'test-section',
+				'title'          => 'Section title',
+				'callback'       => '__return_false',
+				'before_section' => '<div class="%s">',
+				'after_section'  => '</div><!-- end of the test section -->',
+				'section_class'  => 'test-section-wrap',
+			),
+			$wp_settings_sections['test-page']['test-section']
+		);
+
+		ob_start();
+		do_settings_sections( 'test-page' );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( '<div class="test-section-wrap">', $output );
+		$this->assertStringContainsString( '</div><!-- end of the test section -->', $output );
+
+	}
+
+	/**
+	 * @ticket 17851
+	 * @covers ::add_settings_section
+	 *
+	 * @expectedIncorrectUsage add_settings_section
+	 */
+	public function test_add_settings_section_missing_section_class_placeholder() {
+		$args = array(
+			'before_section' => '<div class="test-section-wrapper">',
+			'after_section'  => '</div><!-- end of the test section -->',
+			'section_class'  => 'test-section-wrap',
+		);
+
+		add_settings_section( 'test-section', 'Section title', '__return_false', 'test-page', $args );
+
+		//https://make.wordpress.org/core/handbook/testing/automated-testing/writing-phpunit-tests/
+
+	}
 
 	public function assertTemplateHierarchy( $url, array $expected, $message = '' ) {
 		$this->go_to( $url );
