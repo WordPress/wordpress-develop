@@ -4,16 +4,13 @@
  *
  * @covers ::get_post_galleries
  */
-class Tests_Functions_getPostGalleries extends WP_UnitTestCase {
+class Tests_Media_GetPostGalleries extends WP_UnitTestCase {
 
-	public function set_up() {
-		parent::set_up();
-		$this->img_meta = array(
-			'width'  => 100,
-			'height' => 100,
-			'sizes'  => '',
-		);
-	}
+	const IMG_META = array(
+		'width'  => 100,
+		'height' => 100,
+		'sizes'  => '',
+	);
 
 	/**
 	 * Tests that an empty array is returned for a post that does not exist.
@@ -569,7 +566,7 @@ BLOB;
 					'post_type'      => 'attachment',
 				)
 			);
-			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), self::IMG_META );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$ids[]      = $attachment_id;
 			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
@@ -658,7 +655,7 @@ BLOB;
 				'post_type'      => 'attachment',
 			)
 		);
-		$metadata       = array_merge( array( 'file' => 'image1.jpg' ), $this->img_meta );
+		$metadata       = array_merge( array( 'file' => 'image1.jpg' ), self::IMG_META );
 		$url            = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . 'image1.jpg';
 		$global_post_id = $this->factory->post->create(
 			array(
@@ -838,7 +835,7 @@ BLOB;
 					'post_type'      => 'attachment',
 				)
 			);
-			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), self::IMG_META );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$ids[]      = $attachment_id;
 			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
@@ -902,7 +899,7 @@ BLOB;
 					'post_type'      => 'attachment',
 				)
 			);
-			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), self::IMG_META );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$ids[]      = $attachment_id;
 			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";

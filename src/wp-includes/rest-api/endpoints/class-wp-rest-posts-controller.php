@@ -167,7 +167,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Override the result of the post password check for REST requested posts.
+	 * Overrides the result of the post password check for REST requested posts.
 	 *
 	 * Allow users to read the content of password protected posts if they have
 	 * previously passed a permission check or if they have the `edit_post` capability
@@ -441,7 +441,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Get the post, if the ID is valid.
+	 * Gets the post, if the ID is valid.
 	 *
 	 * @since 4.7.2
 	 *
@@ -653,6 +653,26 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$prepared_post->post_type = $this->post_type;
 
+		if ( ! empty( $prepared_post->post_name )
+			&& ! empty( $prepared_post->post_status )
+			&& in_array( $prepared_post->post_status, array( 'draft', 'pending' ), true )
+		) {
+			/*
+			 * `wp_unique_post_slug()` returns the same
+			 * slug for 'draft' or 'pending' posts.
+			 *
+			 * To ensure that a unique slug is generated,
+			 * pass the post data with the 'publish' status.
+			 */
+			$prepared_post->post_name = wp_unique_post_slug(
+				$prepared_post->post_name,
+				$prepared_post->id,
+				'publish',
+				$prepared_post->post_type,
+				$prepared_post->post_parent
+			);
+		}
+
 		$post_id = wp_insert_post( wp_slash( (array) $prepared_post ), true, false );
 
 		if ( is_wp_error( $post_id ) ) {
@@ -832,6 +852,24 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( is_wp_error( $post ) ) {
 			return $post;
+		}
+
+		if ( ! empty( $post->post_status ) ) {
+			$post_status = $post->post_status;
+		} else {
+			$post_status = $post_before->post_status;
+		}
+
+		/*
+		 * `wp_unique_post_slug()` returns the same
+		 * slug for 'draft' or 'pending' posts.
+		 *
+		 * To ensure that a unique slug is generated,
+		 * pass the post data with the 'publish' status.
+		 */
+		if ( ! empty( $post->post_name ) && in_array( $post_status, array( 'draft', 'pending' ), true ) ) {
+			$post_parent     = ! empty( $post->post_parent ) ? $post->post_parent : 0;
+			$post->post_name = wp_unique_post_slug( $post->post_name, $post->ID, 'publish', $post->post_type, $post_parent );
 		}
 
 		// Convert the post object to an array, otherwise wp_update_post() will expect non-escaped input.
@@ -1454,7 +1492,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Check whether the template is valid for the given post.
+	 * Checks whether the template is valid for the given post.
 	 *
 	 * @since 4.9.0
 	 *
@@ -2026,8 +2064,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( in_array( $post->post_type, array( 'post', 'page' ), true ) || post_type_supports( $post->post_type, 'revisions' ) ) {
-			$revision        = wp_get_latest_revision_id_and_total_count( $post->ID );
-			$revisions_count = ! is_wp_error( $revision ) ? $revision['count'] : 0;
+			$revisions       = wp_get_latest_revision_id_and_total_count( $post->ID );
+			$revisions_count = ! is_wp_error( $revisions ) ? $revisions['count'] : 0;
 
 			$links['version-history'] = array(
 				'href'  => rest_url( trailingslashit( $base ) . $post->ID . '/revisions' ),
@@ -2035,11 +2073,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 
 			if ( $revisions_count > 0 ) {
-				$latest_revision = $revision['revision'];
-
 				$links['predecessor-version'] = array(
-					'href' => rest_url( trailingslashit( $base ) . $post->ID . '/revisions/' . $latest_revision ),
-					'id'   => $latest_revision,
+					'href' => rest_url( trailingslashit( $base ) . $post->ID . '/revisions/' . $revisions['latest_id'] ),
+					'id'   => $revisions['latest_id'],
 				);
 			}
 		}
@@ -2103,7 +2139,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Get the link relations available for the post and current user.
+	 * Gets the link relations available for the post and current user.
 	 *
 	 * @since 4.9.8
 	 *
@@ -2591,7 +2627,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Retrieve Link Description Objects that should be added to the Schema for the posts collection.
+	 * Retrieves Link Description Objects that should be added to the Schema for the posts collection.
 	 *
 	 * @since 4.9.8
 	 *

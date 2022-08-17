@@ -1841,7 +1841,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param array|string $excluded_terms Array of excluded term IDs. Empty string if none were provided.
+	 * @param int[]|string $excluded_terms Array of excluded term IDs. Empty string if none were provided.
 	 */
 	$excluded_terms = apply_filters( "get_{$adjacent}_post_excluded_terms", $excluded_terms );
 
@@ -1918,11 +1918,11 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 * @since 2.5.0
 	 * @since 4.4.0 Added the `$taxonomy` and `$post` parameters.
 	 *
-	 * @param string  $join           The JOIN clause in the SQL.
-	 * @param bool    $in_same_term   Whether post should be in a same taxonomy term.
-	 * @param array   $excluded_terms Array of excluded term IDs.
-	 * @param string  $taxonomy       Taxonomy. Used to identify the term used when `$in_same_term` is true.
-	 * @param WP_Post $post           WP_Post object.
+	 * @param string       $join           The JOIN clause in the SQL.
+	 * @param bool         $in_same_term   Whether post should be in a same taxonomy term.
+	 * @param int[]|string $excluded_terms Array of excluded term IDs. Empty string if none were provided.
+	 * @param string       $taxonomy       Taxonomy. Used to identify the term used when `$in_same_term` is true.
+	 * @param WP_Post      $post           WP_Post object.
 	 */
 	$join = apply_filters( "get_{$adjacent}_post_join", $join, $in_same_term, $excluded_terms, $taxonomy, $post );
 
@@ -1940,11 +1940,11 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 * @since 2.5.0
 	 * @since 4.4.0 Added the `$taxonomy` and `$post` parameters.
 	 *
-	 * @param string  $where          The `WHERE` clause in the SQL.
-	 * @param bool    $in_same_term   Whether post should be in a same taxonomy term.
-	 * @param array   $excluded_terms Array of excluded term IDs.
-	 * @param string  $taxonomy       Taxonomy. Used to identify the term used when `$in_same_term` is true.
-	 * @param WP_Post $post           WP_Post object.
+	 * @param string       $where          The `WHERE` clause in the SQL.
+	 * @param bool         $in_same_term   Whether post should be in a same taxonomy term.
+	 * @param int[]|string $excluded_terms Array of excluded term IDs. Empty string if none were provided.
+	 * @param string       $taxonomy       Taxonomy. Used to identify the term used when `$in_same_term` is true.
+	 * @param WP_Post      $post           WP_Post object.
 	 */
 	$where = apply_filters( "get_{$adjacent}_post_where", $wpdb->prepare( "WHERE p.post_date $op %s AND p.post_type = %s $where", $current_post_date, $post->post_type ), $in_same_term, $excluded_terms, $taxonomy, $post );
 
@@ -4016,7 +4016,7 @@ function wp_get_shortlink( $id = 0, $context = 'post', $allow_slugs = true ) {
 	/**
 	 * Filters whether to preempt generating a shortlink for the given post.
 	 *
-	 * Returning a truthy value from the filter will effectively short-circuit
+	 * Returning a value other than false from the filter will short-circuit
 	 * the shortlink generation process, returning that value instead.
 	 *
 	 * @since 3.0.0
@@ -4161,7 +4161,7 @@ function the_shortlink( $text = '', $title = '', $before = '', $after = '' ) {
  * @param mixed $id_or_email The Gravatar to retrieve a URL for. Accepts a user_id, gravatar md5 hash,
  *                           user email, WP_User object, WP_Post object, or WP_Comment object.
  * @param array $args {
- *     Optional. Arguments to return instead of the default arguments.
+ *     Optional. Arguments to use instead of the default arguments.
  *
  *     @type int    $size           Height and width of the avatar in pixels. Default 96.
  *     @type string $default        URL for the default image or a default type. Accepts '404' (return
@@ -4213,10 +4213,10 @@ function is_avatar_comment_type( $comment_type ) {
  *
  * @since 4.2.0
  *
- * @param mixed $id_or_email The Gravatar to retrieve. Accepts a user ID, Gravatar MD5 hash,
+ * @param mixed $id_or_email The avatar to retrieve. Accepts a user ID, Gravatar MD5 hash,
  *                           user email, WP_User object, WP_Post object, or WP_Comment object.
  * @param array $args {
- *     Optional. Arguments to return instead of the default arguments.
+ *     Optional. Arguments to use instead of the default arguments.
  *
  *     @type int    $size           Height and width of the avatar image file in pixels. Default 96.
  *     @type int    $height         Display height of the avatar in pixels. Defaults to $size.
@@ -4239,9 +4239,9 @@ function is_avatar_comment_type( $comment_type ) {
  * @return array {
  *     Along with the arguments passed in `$args`, this will contain a couple of extra arguments.
  *
- *     @type bool   $found_avatar True if we were able to find an avatar for this user,
- *                                false or not set if we couldn't.
- *     @type string $url          The URL of the avatar we found.
+ *     @type bool         $found_avatar True if an avatar was found for this user,
+ *                                      false or not set if none was found.
+ *     @type string|false $url          The URL of the avatar that was found, or false.
  * }
  */
 function get_avatar_data( $id_or_email, $args = null ) {
@@ -4318,7 +4318,7 @@ function get_avatar_data( $id_or_email, $args = null ) {
 	 * @since 4.2.0
 	 *
 	 * @param array $args        Arguments passed to get_avatar_data(), after processing.
-	 * @param mixed $id_or_email The Gravatar to retrieve. Accepts a user ID, Gravatar MD5 hash,
+	 * @param mixed $id_or_email The avatar to retrieve. Accepts a user ID, Gravatar MD5 hash,
 	 *                           user email, WP_User object, WP_Post object, or WP_Comment object.
 	 */
 	$args = apply_filters( 'pre_get_avatar_data', $args, $id_or_email );
@@ -4409,7 +4409,7 @@ function get_avatar_data( $id_or_email, $args = null ) {
 	 * @since 4.2.0
 	 *
 	 * @param string $url         The URL of the avatar.
-	 * @param mixed  $id_or_email The Gravatar to retrieve. Accepts a user ID, Gravatar MD5 hash,
+	 * @param mixed  $id_or_email The avatar to retrieve. Accepts a user ID, Gravatar MD5 hash,
 	 *                            user email, WP_User object, WP_Post object, or WP_Comment object.
 	 * @param array  $args        Arguments passed to get_avatar_data(), after processing.
 	 */
@@ -4421,7 +4421,7 @@ function get_avatar_data( $id_or_email, $args = null ) {
 	 * @since 4.2.0
 	 *
 	 * @param array $args        Arguments passed to get_avatar_data(), after processing.
-	 * @param mixed $id_or_email The Gravatar to retrieve. Accepts a user ID, Gravatar MD5 hash,
+	 * @param mixed $id_or_email The avatar to retrieve. Accepts a user ID, Gravatar MD5 hash,
 	 *                           user email, WP_User object, WP_Post object, or WP_Comment object.
 	 */
 	return apply_filters( 'get_avatar_data', $args, $id_or_email );
