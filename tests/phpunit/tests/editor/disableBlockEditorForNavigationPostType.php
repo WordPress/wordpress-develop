@@ -12,7 +12,7 @@ class Tests_Editor_DisableBlockEditorForNavigationPostType extends WP_UnitTestCa
 	/**
 	 * @ticket 56266
 	 *
-	 * @dataProvider data_data_test_should_only_disable_block_editor_for_navigation_post_types
+	 * @dataProvider data_test_should_only_disable_block_editor_for_navigation_post_types
 	 *
 	 * @param string $post_type The post type.
 	 * @param bool   $value     Whether to disable the block editor.
