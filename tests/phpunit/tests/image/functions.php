@@ -780,6 +780,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->assertArrayHasKey( 'file', $size );
 			$this->assertArrayHasKey( 'sources', $size );
 			$this->assertSame( $size['file'], $size['sources'][ $size['mime-type'] ]['file'] );
+
+			$this->assertArrayHasKey( 'image/jpeg', $size['sources'] );
+			$this->assertArrayHasKey( 'image/webp', $size['sources'] );
 		}
 
 		unlink( $test_file );
