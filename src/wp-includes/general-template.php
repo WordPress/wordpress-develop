@@ -5034,7 +5034,7 @@ function wp_required_field_indicator() {
 	$indicator = '<span class="required" aria-hidden="true">' . esc_html( $glyph ) . '</span>';
 
 	/**
-	 * Filters the markup for visual indicator for required form fields.
+	 * Filters the markup for a visual indicator of required form fields.
 	 *
 	 * @since 6.1.0
 	 *
