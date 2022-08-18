@@ -3832,7 +3832,7 @@ EOF;
 
 		// `wp_print_image_mime_fallback_script()` assumes `wp-includes/js/wp-image-mime-fallback-loader.js` is present:
 		copy(
-			ABSPATH . 'js/_enqueues/wp/wp-image-mime-fallback-loader.js',
+			ABSPATH . 'js/_enqueues/wp/image-mime-fallback-loader.js',
 			ABSPATH . WPINC . '/js/wp-image-mime-fallback-loader.js'
 		);
 
