@@ -44,7 +44,8 @@ nocache_headers();
 /** This action is documented in wp-admin/admin.php */
 do_action( 'admin_init' );
 
-$core_actions_get = array(
+/** This list core actions get */
+$core_actions_get = [
 	'fetch-list',
 	'ajax-tag-search',
 	'wp-compression-test',
@@ -54,9 +55,10 @@ $core_actions_get = array(
 	'dashboard-widgets',
 	'logged-in',
 	'rest-nonce',
-);
+];
 
-$core_actions_post = array(
+/** This list core actions post */
+$core_actions_post = [
 	'oembed-cache',
 	'image-editor',
 	'delete-comment',
@@ -141,10 +143,10 @@ $core_actions_post = array(
 	'health-check-get-sizes',
 	'toggle-auto-updates',
 	'send-password-reset',
-);
+];
 
 // Deprecated.
-$core_actions_post_deprecated = array(
+$core_actions_post_deprecated = [
 	'wp-fullscreen-save-post',
 	'press-this-save-post',
 	'press-this-add-category',
@@ -152,7 +154,7 @@ $core_actions_post_deprecated = array(
 	'health-check-is-in-debug-mode',
 	'health-check-background-updates',
 	'health-check-loopback-requests',
-);
+];
 
 $core_actions_post = array_merge( $core_actions_post, $core_actions_post_deprecated );
 
