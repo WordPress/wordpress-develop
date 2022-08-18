@@ -17,7 +17,7 @@ class Tests_Editor_DisableContentEditorForNavigationPostType extends WP_UnitTest
 	/**
 	 * @ticket 56266
 	 *
-	 * @dataProvider data_test_should_only_disable_content_editor_for_navigation_post_types
+	 * @dataProvider data_should_only_disable_content_editor_for_navigation_post_types
 	 *
 	 * @param string $post_type             The post type.
 	 * @param bool   $enable_editor_support Whether to enable editor support.
@@ -44,7 +44,7 @@ class Tests_Editor_DisableContentEditorForNavigationPostType extends WP_UnitTest
 	 *
 	 * @return array
 	 */
-	public function data_test_should_only_disable_content_editor_for_navigation_post_types() {
+	public function data_should_only_disable_content_editor_for_navigation_post_types() {
 		return array(
 			'non-navigation post type and false' => array(
 				'post_type'             => static::NON_NAVIGATION_POST_TYPE,

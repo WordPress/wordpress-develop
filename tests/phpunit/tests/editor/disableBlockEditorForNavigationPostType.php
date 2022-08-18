@@ -12,7 +12,7 @@ class Tests_Editor_DisableBlockEditorForNavigationPostType extends WP_UnitTestCa
 	/**
 	 * @ticket 56266
 	 *
-	 * @dataProvider data_test_should_only_disable_block_editor_for_navigation_post_types
+	 * @dataProvider data_should_only_disable_block_editor_for_navigation_post_types
 	 *
 	 * @param string $post_type The post type.
 	 * @param bool   $value     Whether to disable the block editor.
@@ -28,7 +28,7 @@ class Tests_Editor_DisableBlockEditorForNavigationPostType extends WP_UnitTestCa
 	 *
 	 * @return array
 	 */
-	public function data_test_should_only_disable_block_editor_for_navigation_post_types() {
+	public function data_should_only_disable_block_editor_for_navigation_post_types() {
 		return array(
 			'non-navigation post type and false' => array(
 				'post_type' => static::NON_NAVIGATION_POST_TYPE,

@@ -47,9 +47,9 @@ class Tests_Kses_WpFilterGlobalStylesPost extends WP_UnitTestCase {
 	 * This is a helper method.
 	 * It filters JSON theme data and returns it as an array.
 	 *
-	 * @param $theme_data Theme data to filter.
+	 * @param  array $theme_data Theme data to filter.
 	 *
-	 * @return array Filtered theme data.
+	 * @return array             Filtered theme data.
 	 */
 	private function filter_global_styles( $theme_data ) {
 		$user_theme_json          = wp_slash( wp_json_encode( $theme_data ) );
