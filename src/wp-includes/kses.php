@@ -2402,12 +2402,18 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 	$css_color_data_types = array(
 		'color',
 
+		'border',
 		'border-color',
+		'border-right',
 		'border-right-color',
+		'border-bottom',
 		'border-bottom-color',
+		'border-left',
 		'border-left-color',
+		'border-top',
 		'border-top-color',
 
+		'background',
 		'background-color',
 	);
 
