@@ -2,6 +2,8 @@
 /**
  * @group taxonomy
  * @group walker
+ *
+ * @covers Walker_Category::start_el
  */
 class Tests_Category_Walker_Category extends WP_UnitTestCase {
 
