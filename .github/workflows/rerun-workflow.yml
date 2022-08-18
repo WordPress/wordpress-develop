@@ -1,0 +1,41 @@
+##
+# Automatically attempts to rerun a workflow.
+##
+name: Rerun Workflow
+
+on:
+  workflow_call:
+
+jobs:
+  # Reruns the current workflow.
+  #
+  # Performs the following steps:
+  # - Retrieves the current workflow run.
+  # - Restarts all failed jobs when a workflow fails for the first time.
+  rerun-workflow:
+    name: Rerun Workflow
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event.workflow_run.event != 'pull_request' }}
+
+    steps:
+      - name: Fetch the current workflow
+        uses: actions/github-script@d50f485531ba88479582bc2da03ff424389af5c1 # v6.1.1
+        with:
+          script: |
+            const workflow_run = await github.rest.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.run_id }},
+            });
+
+            // Only automatically rerun after the first run attempt.
+            if ( workflow_run.data.run_attempt > 1 ) {
+              return;
+            }
+
+            const rerun = await github.rest.actions.reRunWorkflowFailedJobs({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.run_id }},
+            });

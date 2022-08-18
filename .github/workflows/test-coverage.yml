@@ -193,3 +193,9 @@ jobs:
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+
+  maybe-rerun-workflow:
+    name: Maybe Rerun Workflow
+    uses: WordPress/wordpress-develop/.github/workflows/rerun-workflow.yml@trunk
+    needs: [ test-coverage-report, slack-notifications ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && ( needs.test-coverage-report.result == 'cancelled' || needs.test-coverage-report.result == 'failure' ) && always() }}
