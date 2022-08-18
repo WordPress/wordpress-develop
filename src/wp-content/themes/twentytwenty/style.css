@@ -3040,6 +3040,7 @@ h2.entry-title {
 
 .is-style-outline .wp-block-button__link {
 	padding: calc(1.1em - 0.2rem) calc(1.44em - 0.2rem);
+	border: 2px solid;
 }
 
 /* Block: Columns ---------------------------- */
