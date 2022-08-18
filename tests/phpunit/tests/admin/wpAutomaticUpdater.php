@@ -25,6 +25,8 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	 * Sets up shared fixtures.
 	 */
 	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
 		require_once ABSPATH . 'wp-admin/includes/class-wp-automatic-updater.php';
 		self::$updater = new WP_Automatic_Updater();
 
