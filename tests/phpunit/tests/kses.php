@@ -1116,40 +1116,60 @@ EOF;
 				'expected' => 'color: rgb(0,0,0,0)',
 			),
 			array(
-				'css'      => 'border-color: rgba(0,0,0,0)',
-				'expected' => 'border-color: rgba(0,0,0,0)',
+				'css'      => 'border: rgba(0,0,0,0)',
+				'expected' => 'border: rgba(0,0,0,0)',
 			),
 			array(
-				'css'      => 'border-right-color: rgba(0, 0, 0, 0)',
-				'expected' => 'border-right-color: rgba(0, 0, 0, 0)',
+				'css'      => 'border-color: rgba(0, 0, 0, 0)',
+				'expected' => 'border-color: rgba(0, 0, 0, 0)',
 			),
 			array(
-				'css'      => 'border-bottom-color: rgba(100, 100, 100, 0)',
-				'expected' => 'border-bottom-color: rgba(100, 100, 100, 0)',
+				'css'      => 'border-right: rgba(100, 100, 100, 0)',
+				'expected' => 'border-right: rgba(100, 100, 100, 0)',
 			),
 			array(
-				'css'      => 'border-left-color: rgba(10%, 10%, 10%, 0)',
-				'expected' => 'border-left-color: rgba(10%, 10%, 10%, 0)',
+				'css'      => 'border-right-color: rgba(10%, 10%, 10%, 0)',
+				'expected' => 'border-right-color: rgba(10%, 10%, 10%, 0)',
 			),
 			array(
-				'css'      => 'border-top-color: rgba(0, 0, 0, 0.1)',
-				'expected' => 'border-top-color: rgba(0, 0, 0, 0.1)',
+				'css'      => 'border-bottom: rgba(0, 0, 0, 0.1)',
+				'expected' => 'border-bottom: rgba(0, 0, 0, 0.1)',
 			),
 			array(
-				'css'      => 'background-color: rgba(0, 0, 0, .1)',
-				'expected' => 'background-color: rgba(0, 0, 0, .1)',
+				'css'      => 'border-bottom-color: rgba(0, 0, 0, .1)',
+				'expected' => 'border-bottom-color: rgba(0, 0, 0, .1)',
 			),
 			array(
-				'css'      => 'color: rgba(0, 0, 0,.1)',
-				'expected' => 'color: rgba(0, 0, 0,.1)',
+				'css'      => 'border-left: rgba(0, 0, 0,.1)',
+				'expected' => 'border-left: rgba(0, 0, 0,.1)',
 			),
 			array(
-				'css'      => 'border-color: rgba(0, 0, 0 / 0.1)',
-				'expected' => 'border-color: rgba(0, 0, 0 / 0.1)',
+				'css'      => 'border-left-color: rgba(0, 0, 0 / 0.1)',
+				'expected' => 'border-left-color: rgba(0, 0, 0 / 0.1)',
+			),
+			array(
+				'css'      => 'border-top: rgba(0 , 0, 0, 0)',
+				'expected' => 'border-top: rgba(0 , 0, 0, 0)',
+			),
+			array(
+				'css'      => 'border-top-color: rgba(0,  0, 0, 0)',
+				'expected' => 'border-top-color: rgba(0,  0, 0, 0)',
+			),
+			array(
+				'css'      => 'background: rgba(0, 0, 0/ 0.1 )',
+				'expected' => 'background: rgba(0, 0, 0/ 0.1 )',
+			),
+			array(
+				'css'      => 'background-color: rgba(0, 0, 0 /0.1 )',
+				'expected' => 'background-color: rgba(0, 0, 0 /0.1 )',
+			),
+			array(
+				'css'      => 'color: rgba(0, 0, 0  / 0.1 )',
+				'expected' => 'color: rgba(0, 0, 0  / 0.1 )',
 			),
 			// Invalid RGBA color.
 			array(
-				'css'      => 'color: rg(0, 0, 0, 0)',
+				'css'      => 'border: rg(0, 0, 0, 0)',
 				'expected' => '',
 			),
 			array(
@@ -1157,31 +1177,11 @@ EOF;
 				'expected' => '',
 			),
 			array(
-				'css'      => 'border-color: rgba(0 , 0, 0, 0)',
+				'css'      => 'border-color: rgba(red, 0, 0, 0)',
 				'expected' => '',
 			),
 			array(
-				'css'      => 'border-right-color: rgba(0,  0, 0, 0)',
-				'expected' => '',
-			),
-			array(
-				'css'      => 'border-bottom-color: rgba(0, 0, 0/ 0.1 )',
-				'expected' => '',
-			),
-			array(
-				'css'      => 'border-left-color: rgba(0, 0, 0 /0.1 )',
-				'expected' => '',
-			),
-			array(
-				'css'      => 'border-top-color: rgba(0, 0, 0  / 0.1 )',
-				'expected' => '',
-			),
-			array(
-				'css'      => 'background-color: rgba(red, 0, 0, 0)',
-				'expected' => '',
-			),
-			array(
-				'css'      => 'color: rgba(100px, 0, 0, 0)',
+				'css'      => 'border-right: rgba(100px, 0, 0, 0)',
 				'expected' => '',
 			),
 			array(
@@ -1189,7 +1189,7 @@ EOF;
 				'expected' => '',
 			),
 			array(
-				'css'      => "border-bottom-color: 'rgba(0, 0, 0, 0)",
+				'css'      => "border-bottom: 'rgba(0, 0, 0, 0)",
 				'expected' => '',
 			),
 		);
