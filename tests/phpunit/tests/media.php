@@ -3853,6 +3853,25 @@ EOF;
 
 		$this->assertStringNotContainsString( 'data:image/webp;base64,UklGR', get_echo( 'wp_footer' ) );
 	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test_wp_print_image_mime_fallback_script_empty() {
+		$GLOBALS['_wp_image_mime_fallback_should_load'] = false;
+		$this->assertSame( '', get_echo( 'wp_print_image_mime_fallback_script' ) );
+	}
+
+	/**
+	 * @ticket 55443
+	 */
+	public function test_wp_print_image_mime_fallback_script_return_fallback_script() {
+		$GLOBALS['_wp_image_mime_fallback_should_load'] = true;
+
+		$output = get_echo( 'wp_print_image_mime_fallback_script' );
+		$this->assertNotSame( '', $output );
+		$this->assertStringContainsString( 'data:image/webp;base64,UklGR', $output );
+	}
 }
 
 /**

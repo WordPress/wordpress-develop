@@ -608,7 +608,7 @@ add_action( 'customize_controls_enqueue_scripts', 'wp_plupload_default_settings'
 add_action( 'plugins_loaded', '_wp_add_additional_image_sizes', 0 );
 add_filter( 'plupload_default_settings', 'wp_show_heic_upload_error' );
 
-// WebP fallback.
+// Image mime fallback.
 add_action( 'wp_footer', 'wp_print_image_mime_fallback_script' );
 
 // Nav menu.

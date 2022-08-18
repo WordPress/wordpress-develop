@@ -1904,7 +1904,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 }
 
 /**
- * Adds a fallback mechanism to replace webp images with alternative mime types on older browsers.
+ * Adds a fallback script to replace images in modern mime types with alternative mime types on older browsers.
  *
  * @since 6.1.0
  *
@@ -1921,8 +1921,9 @@ function wp_print_image_mime_fallback_script() {
 	$suffix   = wp_scripts_get_suffix();
 	$version  = 'ver=' . get_bloginfo( 'version' );
 	$settings = array(
-		'restApi'           => esc_url_raw( trailingslashit( get_rest_url() ) ),
-		'imagemimefallback' => apply_filters( 'script_loader_src', includes_url( "js/wp-image-mime-fallback$suffix.js?$version" ), 'imagemimefallback' ),
+		'restApi'                 => esc_url_raw( trailingslashit( get_rest_url() ) ),
+		/** This filter is documented in wp-includes/class.wp-scripts.php */
+		'imageMimeFallbackScript' => apply_filters( 'script_loader_src', includes_url( "js/wp-image-mime-fallback$suffix.js?$version" ), 'wp-image-mime-fallback' ),
 	);
 
 	wp_print_inline_script_tag(
@@ -1990,7 +1991,7 @@ function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
 
 			$image = str_replace( $src_filename, $metadata['sources'][ $target_mime ]['file'], $image );
 
-			if ( true !== $_wp_image_mime_fallback_should_load ) {
+			if ( 'the_content' === $context && 'image/webp' === $target_mime ) {
 				$_wp_image_mime_fallback_should_load = true;
 			}
 
@@ -2022,7 +2023,7 @@ function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
 			// Found a match, replace with the new filename.
 			$image = str_replace( $src_filename, $size_data['sources'][ $target_mime ]['file'], $image );
 
-			if ( true !== $_wp_image_mime_fallback_should_load ) {
+			if ( 'the_content' === $context && 'image/webp' === $target_mime ) {
 				$_wp_image_mime_fallback_should_load = true;
 			}
 
