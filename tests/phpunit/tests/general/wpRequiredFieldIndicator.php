@@ -2,8 +2,6 @@
 /**
  * Test wp_required_field_indicator().
  *
- * @ticket 56389
- *
  * @group general
  * @group template
  *
