@@ -3868,6 +3868,12 @@ EOF;
 	public function test_wp_print_image_mime_fallback_script_return_fallback_script() {
 		$GLOBALS['_wp_image_mime_fallback_should_load'] = true;
 
+		// `wp_print_image_mime_fallback_script()` assumes `wp-includes/js/wp-image-mime-fallback-loader.js` is present:
+		copy(
+			ABSPATH . 'js/_enqueues/wp/image-mime-fallback-loader.js',
+			ABSPATH . WPINC . '/js/wp-image-mime-fallback-loader.js'
+		);
+
 		$output = get_echo( 'wp_print_image_mime_fallback_script' );
 		$this->assertNotSame( '', $output );
 		$this->assertStringContainsString( 'data:image/webp;base64,UklGR', $output );
