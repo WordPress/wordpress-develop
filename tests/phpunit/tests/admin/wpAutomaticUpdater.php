@@ -32,7 +32,10 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 
 		self::$send_plugin_theme_email = new ReflectionMethod( self::$updater, 'send_plugin_theme_email' );
 		self::$send_plugin_theme_email->setAccessible( true );
+	}
 
+	public function set_up() {
+		parent::set_up();
 		add_filter( 'pre_wp_mail', '__return_false' );
 	}
 
