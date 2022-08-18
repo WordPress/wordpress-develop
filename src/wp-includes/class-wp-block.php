@@ -261,15 +261,21 @@ class WP_Block {
 		}
 
 		if ( ! empty( $this->block_type->script ) ) {
-			wp_enqueue_script( $this->block_type->script );
+			foreach ( (array) $this->block_type->script as $single_script ) {
+				wp_enqueue_script( $single_script );
+			}
 		}
 
 		if ( ! empty( $this->block_type->view_script ) && empty( $this->block_type->render_callback ) ) {
-			wp_enqueue_script( $this->block_type->view_script );
+			foreach ( (array) $this->block_type->view_script as $single_view_script ) {
+				wp_enqueue_script( $single_view_script );
+			}
 		}
 
 		if ( ! empty( $this->block_type->style ) ) {
-			wp_enqueue_style( $this->block_type->style );
+			foreach ( (array) $this->block_type->style as $single_style ) {
+				wp_enqueue_style( $single_style );
+			}
 		}
 
 		/**

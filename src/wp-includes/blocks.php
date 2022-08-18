@@ -35,12 +35,15 @@ function remove_block_asset_path_prefix( $asset_handle_or_path ) {
  * and the field name provided.
  *
  * @since 5.5.0
+ * @since 6.1.0 Added `$index` parameter.
  *
  * @param string $block_name Name of the block.
  * @param string $field_name Name of the metadata field.
+ * @param int    $index      Optional. Index of the asset when multiple items passed.
+ *                           Default 0.
  * @return string Generated asset name for the block's field.
  */
-function generate_block_asset_handle( $block_name, $field_name ) {
+function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
 	if ( 0 === strpos( $block_name, 'core/' ) ) {
 		$asset_handle = str_replace( 'core/', 'wp-block-', $block_name );
 		if ( 0 === strpos( $field_name, 'editor' ) ) {
@@ -48,6 +51,9 @@ function generate_block_asset_handle( $block_name, $field_name ) {
 		}
 		if ( 0 === strpos( $field_name, 'view' ) ) {
 			$asset_handle .= '-view';
+		}
+		if ( $index > 0 ) {
+			$asset_handle .= '-' . ( $index + 1 );
 		}
 		return $asset_handle;
 	}
@@ -59,8 +65,12 @@ function generate_block_asset_handle( $block_name, $field_name ) {
 		'editorStyle'  => 'editor-style',
 		'style'        => 'style',
 	);
-	return str_replace( '/', '-', $block_name ) .
+	$asset_handle   = str_replace( '/', '-', $block_name ) .
 		'-' . $field_mappings[ $field_name ];
+	if ( $index > 0 ) {
+		$asset_handle .= '-' . ( $index + 1 );
+	}
+	return $asset_handle;
 }
 
 /**
@@ -70,23 +80,34 @@ function generate_block_asset_handle( $block_name, $field_name ) {
  * generated handle name. It returns unprocessed script handle otherwise.
  *
  * @since 5.5.0
+ * @since 6.1.0 Added `$index` parameter.
  *
  * @param array  $metadata   Block metadata.
  * @param string $field_name Field name to pick from metadata.
+ * @param int    $index      Optional. Index of the script to register when multiple items passed.
+ *                           Default 0.
  * @return string|false Script handle provided directly or created through
  *                      script's registration, or false on failure.
  */
-function register_block_script_handle( $metadata, $field_name ) {
+function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
 		return false;
 	}
+
 	$script_handle = $metadata[ $field_name ];
-	$script_path   = remove_block_asset_path_prefix( $metadata[ $field_name ] );
+	if ( is_array( $script_handle ) ) {
+		if ( empty( $script_handle[ $index ] ) ) {
+			return false;
+		}
+		$script_handle = $script_handle[ $index ];
+	}
+
+	$script_path = remove_block_asset_path_prefix( $script_handle );
 	if ( $script_handle === $script_path ) {
 		return $script_handle;
 	}
 
-	$script_handle     = generate_block_asset_handle( $metadata['name'], $field_name );
+	$script_handle     = generate_block_asset_handle( $metadata['name'], $field_name, $index );
 	$script_asset_path = wp_normalize_path(
 		realpath(
 			dirname( $metadata['file'] ) . '/' .
@@ -140,21 +161,25 @@ function register_block_script_handle( $metadata, $field_name ) {
 }
 
 /**
- * Finds a style handle for the block metadata field. It detects when a path
+ * Finds a style handles for the block metadata field. It detects when a path
  * to file was provided and registers the style under automatically
  * generated handle name. It returns unprocessed style handle otherwise.
  *
  * @since 5.5.0
+ * @since 6.1.0 Added `$index` parameter.
  *
  * @param array  $metadata   Block metadata.
  * @param string $field_name Field name to pick from metadata.
+ * @param int    $index      Optional. Index of the style to register when multiple items passed.
+ *                           Default 0.
  * @return string|false Style handle provided directly or created through
  *                      style's registration, or false on failure.
  */
-function register_block_style_handle( $metadata, $field_name ) {
+function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
 		return false;
 	}
+
 	$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
 	$theme_path_norm = wp_normalize_path( get_theme_file_path() );
 	$is_core_block   = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
@@ -162,16 +187,21 @@ function register_block_style_handle( $metadata, $field_name ) {
 		return false;
 	}
 
-	// Check whether styles should have a ".min" suffix or not.
-	$suffix = SCRIPT_DEBUG ? '' : '.min';
-
 	$style_handle = $metadata[ $field_name ];
-	$style_path   = remove_block_asset_path_prefix( $metadata[ $field_name ] );
+	if ( is_array( $style_handle ) ) {
+		if ( empty( $style_handle[ $index ] ) ) {
+			return false;
+		}
+		$style_handle = $style_handle[ $index ];
+	}
 
+	$style_path = remove_block_asset_path_prefix( $style_handle );
 	if ( $style_handle === $style_path && ! $is_core_block ) {
 		return $style_handle;
 	}
 
+	// Check whether styles should have a ".min" suffix or not.
+	$suffix    = SCRIPT_DEBUG ? '' : '.min';
 	$style_uri = plugins_url( $style_path, $metadata['file'] );
 	if ( $is_core_block ) {
 		$style_path = "style$suffix.css";
@@ -185,7 +215,7 @@ function register_block_style_handle( $metadata, $field_name ) {
 		$style_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $style_path_norm ) );
 	}
 
-	$style_handle   = generate_block_asset_handle( $metadata['name'], $field_name );
+	$style_handle   = generate_block_asset_handle( $metadata['name'], $field_name, $index );
 	$block_dir      = dirname( $metadata['file'] );
 	$style_file     = realpath( "$block_dir/$style_path" );
 	$has_style_file = false !== $style_file;
@@ -311,39 +341,63 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		}
 	}
 
-	if ( ! empty( $metadata['editorScript'] ) ) {
-		$settings['editor_script'] = register_block_script_handle(
-			$metadata,
-			'editorScript'
-		);
+	$script_fields = array(
+		'editorScript' => 'editor_script',
+		'script'       => 'script',
+		'viewScript'   => 'view_script',
+	);
+	foreach ( $script_fields as $metadata_field_name => $settings_field_name ) {
+		if ( ! empty( $metadata[ $metadata_field_name ] ) ) {
+			$scripts = $metadata[ $metadata_field_name ];
+			if ( is_array( $scripts ) ) {
+				$processed_scripts = array();
+				for ( $index = 0; $index < count( $scripts ); $index++ ) {
+					$result = register_block_script_handle(
+						$metadata,
+						$metadata_field_name,
+						$index
+					);
+					if ( $result ) {
+						$processed_scripts[] = $result;
+					}
+				}
+				$settings[ $settings_field_name ] = $processed_scripts;
+			} else {
+				$settings[ $settings_field_name ] = register_block_script_handle(
+					$metadata,
+					$metadata_field_name
+				);
+			}
+		}
 	}
 
-	if ( ! empty( $metadata['script'] ) ) {
-		$settings['script'] = register_block_script_handle(
-			$metadata,
-			'script'
-		);
-	}
-
-	if ( ! empty( $metadata['viewScript'] ) ) {
-		$settings['view_script'] = register_block_script_handle(
-			$metadata,
-			'viewScript'
-		);
-	}
-
-	if ( ! empty( $metadata['editorStyle'] ) ) {
-		$settings['editor_style'] = register_block_style_handle(
-			$metadata,
-			'editorStyle'
-		);
-	}
-
-	if ( ! empty( $metadata['style'] ) ) {
-		$settings['style'] = register_block_style_handle(
-			$metadata,
-			'style'
-		);
+	$style_fields = array(
+		'editorStyle' => 'editor_style',
+		'style'       => 'style',
+	);
+	foreach ( $style_fields as $metadata_field_name => $settings_field_name ) {
+		if ( ! empty( $metadata[ $metadata_field_name ] ) ) {
+			$styles = $metadata[ $metadata_field_name ];
+			if ( is_array( $styles ) ) {
+				$processed_styles = array();
+				for ( $index = 0; $index < count( $styles ); $index++ ) {
+					$result = register_block_style_handle(
+						$metadata,
+						$metadata_field_name,
+						$index
+					);
+					if ( $result ) {
+						$processed_styles[] = $result;
+					}
+				}
+				$settings[ $settings_field_name ] = $processed_styles;
+			} else {
+				$settings[ $settings_field_name ] = register_block_style_handle(
+					$metadata,
+					$metadata_field_name
+				);
+			}
+		}
 	}
 
 	if ( ! empty( $metadata['render'] ) ) {
@@ -1260,49 +1314,6 @@ function get_query_pagination_arrow( $block, $is_next ) {
 	}
 	return null;
 }
-
-/**
- * Allows multiple block styles.
- *
- * @since 5.9.0
- *
- * @param array $metadata Metadata for registering a block type.
- * @return array Metadata for registering a block type.
- */
-function _wp_multiple_block_styles( $metadata ) {
-	foreach ( array( 'style', 'editorStyle' ) as $key ) {
-		if ( ! empty( $metadata[ $key ] ) && is_array( $metadata[ $key ] ) ) {
-			$default_style = array_shift( $metadata[ $key ] );
-			foreach ( $metadata[ $key ] as $handle ) {
-				$args = array( 'handle' => $handle );
-				if ( 0 === strpos( $handle, 'file:' ) && isset( $metadata['file'] ) ) {
-					$style_path      = remove_block_asset_path_prefix( $handle );
-					$theme_path_norm = wp_normalize_path( get_theme_file_path() );
-					$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
-					$is_theme_block  = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $theme_path_norm );
-
-					$style_uri = plugins_url( $style_path, $metadata['file'] );
-
-					if ( $is_theme_block ) {
-						$style_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $style_path_norm ) );
-					}
-
-					$args = array(
-						'handle' => sanitize_key( "{$metadata['name']}-{$style_path}" ),
-						'src'    => $style_uri,
-					);
-				}
-
-				wp_enqueue_block_style( $metadata['name'], $args );
-			}
-
-			// Only return the 1st item in the array.
-			$metadata[ $key ] = $default_style;
-		}
-	}
-	return $metadata;
-}
-add_filter( 'block_type_metadata', '_wp_multiple_block_styles' );
 
 /**
  * Helper function that constructs a comment query vars array from the passed

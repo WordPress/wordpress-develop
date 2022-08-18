@@ -166,42 +166,42 @@ class WP_Block_Type {
 	public $provides_context = null;
 
 	/**
-	 * Block type editor only script handle.
+	 * Block type editor only script handles.
 	 *
 	 * @since 5.0.0
-	 * @var string|null
+	 * @var string[]|string|null
 	 */
 	public $editor_script = null;
 
 	/**
-	 * Block type front end and editor script handle.
+	 * Block type front end and editor script handles.
 	 *
 	 * @since 5.0.0
-	 * @var string|null
+	 * @var string[]|string|null
 	 */
 	public $script = null;
 
 	/**
-	 * Block type front end only script handle.
+	 * Block type front end only script handles.
 	 *
 	 * @since 5.9.0
-	 * @var string|null
+	 * @var string[]|string|null
 	 */
 	public $view_script = null;
 
 	/**
-	 * Block type editor only style handle.
+	 * Block type editor only style handles.
 	 *
 	 * @since 5.0.0
-	 * @var string|null
+	 * @var string[]|string|null
 	 */
 	public $editor_style = null;
 
 	/**
-	 * Block type front end and editor style handle.
+	 * Block type front end and editor style handles.
 	 *
 	 * @since 5.0.0
-	 * @var string|null
+	 * @var string[]|string|null
 	 */
 	public $style = null;
 
@@ -228,6 +228,8 @@ class WP_Block_Type {
 	 * @since 5.8.0 Added the `variations` property.
 	 * @since 5.9.0 Added the `view_script` property.
 	 * @since 6.0.0 Added the `ancestor` property.
+	 * @since 6.1.0 Accept the array type for the `editor_style`, `style`,
+	 *              `editor_script`, `script` and `view_script` properties.
 	 *
 	 * @see register_block_type()
 	 *
@@ -236,32 +238,32 @@ class WP_Block_Type {
 	 *     Optional. Array or string of arguments for registering a block type. Any arguments may be defined,
 	 *     however the ones described below are supported by default. Default empty array.
 	 *
-	 *     @type string        $api_version      Block API version.
-	 *     @type string        $title            Human-readable block type label.
-	 *     @type string|null   $category         Block type category classification, used in
-	 *                                           search interfaces to arrange block types by category.
-	 *     @type string[]|null $parent           Setting parent lets a block require that it is only
-	 *                                           available when nested within the specified blocks.
-	 *     @type string[]|null $ancestor         Setting ancestor makes a block available only inside the specified
-	 *                                           block types at any position of the ancestor's block subtree.
-	 *     @type string|null   $icon             Block type icon.
-	 *     @type string        $description      A detailed block type description.
-	 *     @type string[]      $keywords         Additional keywords to produce block type as
-	 *                                           result in search interfaces.
-	 *     @type string|null   $textdomain       The translation textdomain.
-	 *     @type array[]       $styles           Alternative block styles.
-	 *     @type array[]       $variations       Block variations.
-	 *     @type array|null    $supports         Supported features.
-	 *     @type array|null    $example          Structured data for the block preview.
-	 *     @type callable|null $render_callback  Block type render callback.
-	 *     @type array|null    $attributes       Block type attributes property schemas.
-	 *     @type string[]      $uses_context     Context values inherited by blocks of this type.
-	 *     @type string[]|null $provides_context Context provided by blocks of this type.
-	 *     @type string|null   $editor_script    Block type editor only script handle.
-	 *     @type string|null   $script           Block type front end and editor script handle.
-	 *     @type string|null   $view_script      Block type front end only script handle.
-	 *     @type string|null   $editor_style     Block type editor only style handle.
-	 *     @type string|null   $style            Block type front end and editor style handle.
+	 *     @type string               $api_version      Block API version.
+	 *     @type string               $title            Human-readable block type label.
+	 *     @type string|null          $category         Block type category classification, used in
+	 *                                                  search interfaces to arrange block types by category.
+	 *     @type string[]|null        $parent           Setting parent lets a block require that it is only
+	 *                                                  available when nested within the specified blocks.
+	 *     @type string[]|null        $ancestor         Setting ancestor makes a block available only inside the specified
+	 *                                                  block types at any position of the ancestor's block subtree.
+	 *     @type string|null          $icon             Block type icon.
+	 *     @type string               $description      A detailed block type description.
+	 *     @type string[]             $keywords         Additional keywords to produce block type as
+	 *                                                  result in search interfaces.
+	 *     @type string|null          $textdomain       The translation textdomain.
+	 *     @type array[]              $styles           Alternative block styles.
+	 *     @type array[]              $variations       Block variations.
+	 *     @type array|null           $supports         Supported features.
+	 *     @type array|null           $example          Structured data for the block preview.
+	 *     @type callable|null        $render_callback  Block type render callback.
+	 *     @type array|null           $attributes       Block type attributes property schemas.
+	 *     @type string[]             $uses_context     Context values inherited by blocks of this type.
+	 *     @type string[]|null        $provides_context Context provided by blocks of this type.
+	 *     @type string[]|string|null $editor_script    Block type editor only script handles.
+	 *     @type string[]|string|null $script           Block type front end and editor script handles.
+	 *     @type string[]|string|null $view_script      Block type front end only script handles.
+	 *     @type string[]|string|null $editor_style     Block type editor only style handles.
+	 *     @type string[]|string|null $style            Block type front end and editor style handles.
 	 * }
 	 */
 	public function __construct( $block_type, $args = array() ) {

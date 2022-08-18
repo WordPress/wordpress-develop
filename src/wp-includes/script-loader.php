@@ -2537,22 +2537,30 @@ function wp_enqueue_registered_block_scripts_and_styles() {
 	foreach ( $block_registry->get_all_registered() as $block_name => $block_type ) {
 		// Front-end styles.
 		if ( ! empty( $block_type->style ) ) {
-			wp_enqueue_style( $block_type->style );
+			foreach ( (array) $block_type->style as $single_style  ) {
+				wp_enqueue_style( $single_style );
+			}
 		}
 
-		// Front-end script.
+		// Front-end scripts.
 		if ( ! empty( $block_type->script ) ) {
-			wp_enqueue_script( $block_type->script );
+			foreach ( (array) $block_type->script as $single_script  ) {
+				wp_enqueue_script( $single_script );
+			}
 		}
 
 		// Editor styles.
 		if ( $load_editor_scripts && ! empty( $block_type->editor_style ) ) {
-			wp_enqueue_style( $block_type->editor_style );
+			foreach ( (array) $block_type->editor_style as $single_editor_style  ) {
+				wp_enqueue_style( $single_editor_style );
+			}
 		}
 
-		// Editor script.
+		// Editor scripts.
 		if ( $load_editor_scripts && ! empty( $block_type->editor_script ) ) {
-			wp_enqueue_script( $block_type->editor_script );
+			foreach ( (array) $block_type->editor_script as $single_editor_script  ) {
+				wp_enqueue_script( $single_editor_script );
+			}
 		}
 	}
 }
