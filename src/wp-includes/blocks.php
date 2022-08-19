@@ -363,10 +363,13 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 				}
 				$settings[ $settings_field_name ] = $processed_scripts;
 			} else {
-				$settings[ $settings_field_name ] = register_block_script_handle(
+				$result = register_block_script_handle(
 					$metadata,
 					$metadata_field_name
 				);
+				if ( $result ) {
+					$settings[ $settings_field_name ] = $result;
+				}
 			}
 		}
 	}
@@ -392,10 +395,13 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 				}
 				$settings[ $settings_field_name ] = $processed_styles;
 			} else {
-				$settings[ $settings_field_name ] = register_block_style_handle(
+				$result = register_block_style_handle(
 					$metadata,
 					$metadata_field_name
 				);
+				if ( $result ) {
+					$settings[ $settings_field_name ] = $result;
+				}
 			}
 		}
 	}

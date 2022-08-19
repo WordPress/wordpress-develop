@@ -237,11 +237,11 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( '1', $data['title'] );
 		$this->assertSame( '1', $data['description'] );
 		$this->assertNull( $data['icon'] );
-		$this->assertNull( $data['editor_script'] );
-		$this->assertNull( $data['script'] );
-		$this->assertNull( $data['view_script'] );
-		$this->assertNull( $data['editor_style'] );
-		$this->assertNull( $data['style'] );
+		$this->assertSameSets( array( '1' ), $data['editor_script'] );
+		$this->assertSameSets( array( '1' ), $data['script'] );
+		$this->assertSameSets( array( '1' ), $data['view_script'] );
+		$this->assertSameSets( array( '1' ), $data['editor_style'] );
+		$this->assertSameSets( array( '1' ), $data['style'] );
 		$this->assertSameSets( array(), $data['provides_context'] );
 		$this->assertSameSetsWithIndex(
 			array(
@@ -299,11 +299,11 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( '', $data['title'] );
 		$this->assertSame( '', $data['description'] );
 		$this->assertNull( $data['icon'] );
-		$this->assertNull( $data['editor_script'] );
-		$this->assertNull( $data['script'] );
-		$this->assertNull( $data['view_script'] );
-		$this->assertNull( $data['editor_style'] );
-		$this->assertNull( $data['style'] );
+		$this->assertSameSets( array(), $data['editor_script'] );
+		$this->assertSameSets( array(), $data['script'] );
+		$this->assertSameSets( array(), $data['view_script'] );
+		$this->assertSameSets( array(), $data['editor_style'] );
+		$this->assertSameSets( array(), $data['style'] );
 		$this->assertSameSetsWithIndex(
 			array(
 				'lock' => array( 'type' => 'object' ),
