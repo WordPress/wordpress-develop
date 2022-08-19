@@ -161,7 +161,7 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 }
 
 /**
- * Finds a style handles for the block metadata field. It detects when a path
+ * Finds a style handle for the block metadata field. It detects when a path
  * to file was provided and registers the style under automatically
  * generated handle name. It returns unprocessed style handle otherwise.
  *
