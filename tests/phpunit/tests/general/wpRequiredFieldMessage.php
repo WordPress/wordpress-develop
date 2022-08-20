@@ -7,7 +7,7 @@
  *
  * @covers ::wp_required_field_message
  */
-class Tests_General_WpRequiredFieldMessage extends WP_UnitTestCase {
+class Tests_General_wpRequiredFieldMessage extends WP_UnitTestCase {
 
 	/**
 	 * Tests that `wp_required_field_message()` returns the expected default value.

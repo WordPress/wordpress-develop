@@ -7,7 +7,7 @@
  *
  * @covers ::wp_required_field_indicator
  */
-class Tests_General_WpRequiredFieldIndicator extends WP_UnitTestCase {
+class Tests_General_wpRequiredFieldIndicator extends WP_UnitTestCase {
 
 	/**
 	 * Tests that `wp_required_field_indicator()` returns the expected default value.
