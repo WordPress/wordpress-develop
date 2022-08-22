@@ -3799,9 +3799,11 @@ EOF;
 	}
 
 	/**
+	 * Test creating the original image mime type when the image is uploaded.
+	 *
 	 * @ticket 55443
 	 *
-	 * @dataProvider provider_image_with_default_behaviors_during_upload
+	 * @dataProvider data_image_with_default_behaviors_during_upload
 	 */
 	public function test_it_should_create_the_original_mime_type_as_well_with_all_the_available_sources_for_the_specified_mime( $file_location, $expected_mime, $targeted_mime ) {
 		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
@@ -3830,24 +3832,45 @@ EOF;
 		}
 	}
 
-	public function provider_image_with_default_behaviors_during_upload() {
-		yield 'JPEG image' => array(
-			DIR_TESTDATA . '/images/33772.jpg',
-			'image/jpeg',
-			'image/webp',
+	public function data_image_with_default_behaviors_during_upload() {
+		return array(
+			'JPEG image' => array(
+				DIR_TESTDATA . '/images/33772.jpg',
+				'image/jpeg',
+				'image/webp',
+			),
+			'WebP image' => array(
+				DIR_TESTDATA . '/images/webp-lossless.webp',
+				'image/webp',
+				'image/jpeg',
+			),
+		);
+	}
+
+	/**
+	 * Test Do not create the sources property if no transform is provided.
+	 *
+	 * @ticket 55443
+	 */
+	public function test_it_should_not_create_the_sources_property_if_no_transform_is_provided() {
+		add_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
+
+		$attachment_id = $this->factory->attachment->create_upload_object(
+			DIR_TESTDATA . '/images/test-image.jpg'
 		);
 
-		yield 'WebP image' => array(
-			DIR_TESTDATA . '/images/webp-lossless.webp',
-			'image/webp',
-			'image/jpeg',
-		);
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+
+		$this->assertIsArray( $metadata );
+		foreach ( $metadata['sizes'] as $size_name => $properties ) {
+			$this->assertArrayNotHasKey( 'sources', $properties );
+		}
 	}
 
 	/**
 	 * @ticket 55443
 	 *
-	 * @dataProvider provider_image_with_default_behaviors_during_upload
+	 * @dataProvider data_image_with_default_behaviors_during_upload
 	 */
 	public function test_it_should_create_the_sources_property_when_no_transform_is_available( $file_location, $expected_mime, $targeted_mime ) {
 		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
@@ -3877,6 +3900,35 @@ EOF;
 	}
 
 	/**
+	 * Test not creating the sources property if the mime is not specified on the transforms images.
+	 *
+	 * @ticket 55443
+	 */
+	public function test_it_should_not_create_the_sources_property_if_the_mime_is_not_specified_on_the_transforms_images() {
+		add_filter(
+			'wp_upload_image_mime_transforms',
+			function () {
+				return array( 'image/jpeg' => array() );
+			}
+		);
+
+		$attachment_id = $this->factory->attachment->create_upload_object(
+			DIR_TESTDATA . '/images/webp-lossy.webp'
+		);
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+
+		$this->assertIsArray( $metadata );
+		$this->assertArrayHasKey( 'sources', $metadata );
+		foreach ( $metadata['sizes'] as $properties ) {
+			$this->assertArrayHasKey( 'sources', $properties );
+			$this->assertIsArray( $properties['sources'] );
+			$this->assertArrayHasKey( 'image/webp', $properties['sources'] );
+		}
+	}
+
+	/**
+	 * Test creating a WebP version with all the required properties.
+	 *
 	 * @ticket 55443
 	 */
 	public function test_it_should_create_a_webp_version_with_all_the_required_properties() {
@@ -3904,6 +3956,8 @@ EOF;
 	}
 
 	/**
+	 * Test removing `scaled` suffix from the generated filename.
+	 *
 	 * @ticket 55443
 	 */
 	public function test_it_should_remove_scaled_suffix_from_the_generated_filename() {
@@ -3930,6 +3984,8 @@ EOF;
 	}
 
 	/**
+	 * Test removing the generated webp images when the attachment is deleted.
+	 *
 	 * @ticket 55443
 	 */
 	public function test_it_should_remove_the_generated_webp_images_when_the_attachment_is_deleted() {
@@ -3968,14 +4024,15 @@ EOF;
 	}
 
 	/**
+	 * Test removing the attached WebP version if the attachment is force deleted but empty trash day is not defined.
+	 *
 	 * @ticket 55443
 	 */
-	public function test_it_should_remove_the_attached_webp_version_if_the_attachment_is_force_deleted() {
+	public function test_it_should_remove_the_attached_webp_version_if_the_attachment_is_force_deleted_but_empty_trash_day_is_not_defined() {
 		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
 			$this->markTestSkipped( 'This test requires WebP support.' );
 		}
 
-		// Make sure no editor is available.
 		$attachment_id = $this->factory->attachment->create_upload_object(
 			DIR_TESTDATA . '/images/canola.jpg'
 		);
@@ -4000,6 +4057,39 @@ EOF;
 	}
 
 	/**
+	 * Remove the attached WebP version if the attachment is force deleted
+	 *
+	 * @ticket 55443
+	 */
+	public function test_it_should_remove_the_attached_webp_version_if_the_attachment_is_force_deleted() {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->markTestSkipped( 'This test requires WebP support.' );
+		}
+
+		$attachment_id = $this->factory->attachment->create_upload_object(
+			DIR_TESTDATA . '/images/canola.jpg'
+		);
+
+		$file    = get_attached_file( $attachment_id, true );
+		$dirname = pathinfo( $file, PATHINFO_DIRNAME );
+
+		$this->assertIsString( $file );
+		$this->assertFileExists( $file );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+
+		$this->assertFileExists( path_join( $dirname, $metadata['sources']['image/webp']['file'] ) );
+		$this->assertFileExists( path_join( $dirname, $metadata['sizes']['thumbnail']['sources']['image/webp']['file'] ) );
+
+		wp_delete_attachment( $attachment_id, true );
+
+		$this->assertFileDoesNotExist( path_join( $dirname, $metadata['sizes']['thumbnail']['sources']['image/webp']['file'] ) );
+		$this->assertFileDoesNotExist( path_join( $dirname, $metadata['sources']['image/webp']['file'] ) );
+	}
+
+	/**
+	 * Test avoiding the change of URLs of images that are not part of the media library.
+	 *
 	 * @ticket 55443
 	 */
 	public function test_it_should_avoid_the_change_of_urls_of_images_that_are_not_part_of_the_media_library() {
@@ -4010,6 +4100,8 @@ EOF;
 	}
 
 	/**
+	 * Test avoiding replacing not existing attachment IDs.
+	 *
 	 * @ticket 55443
 	 */
 	public function test_it_should_avoid_replacing_not_existing_attachment_i_ds() {
@@ -4020,6 +4112,8 @@ EOF;
 	}
 
 	/**
+	 * Test preventing replacing a WebP image.
+	 *
 	 * @ticket 55443
 	 */
 	public function test_it_should_test_preventing_replacing_a_webp_image() {
@@ -4037,6 +4131,8 @@ EOF;
 	}
 
 	/**
+	 * Test preventing replacing a jpg image if the image does not have the target class name.
+	 *
 	 * @ticket 55443
 	 */
 	public function test_it_should_test_preventing_replacing_a_jpg_image_if_the_image_does_not_have_the_target_class_name() {
@@ -4048,8 +4144,45 @@ EOF;
 
 		$this->assertSame( $tag, wp_filter_content_tags( $tag ) );
 	}
+	
+	/**
+	 * Test replacing the references to a JPG image to a WebP version.
+	 *
+	 * @dataProvider data_it_should_replace_the_references_to_a_jpg_image_to_a_webp_version
+	 *
+	 * @ticket 55443
+	 */
+	public function test_it_should_replace_the_references_to_a_jpg_image_to_a_webp_version( $image_path ) {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->markTestSkipped( 'This test requires WebP support.' );
+		}
+
+		$attachment_id = $this->factory->attachment->create_upload_object( $image_path );
+
+		$tag          = wp_get_attachment_image( $attachment_id, 'full', false, array( 'class' => "wp-image-{$attachment_id}" ) );
+		$expected_tag = $tag;
+		$metadata     = wp_get_attachment_metadata( $attachment_id );
+		foreach ( $metadata['sizes'] as $size => $properties ) {
+			$expected_tag = str_replace( $properties['sources']['image/jpeg']['file'], $properties['sources']['image/webp']['file'], $expected_tag );
+		}
+
+		$expected_tag = str_replace( $metadata['sources']['image/jpeg']['file'], $metadata['sources']['image/webp']['file'], $expected_tag );
+
+		$this->assertNotEmpty( $expected_tag );
+		$this->assertNotSame( $tag, $expected_tag );
+		$this->assertSame( $expected_tag, wp_image_use_alternate_mime_types( $tag, 'the_content', $attachment_id ) );
+	}
+
+	public function data_it_should_replace_the_references_to_a_jpg_image_to_a_webp_version() {
+		return array(
+			'An image with a .jpg extension' => array( DIR_TESTDATA . '/images/canola.jpg' ),
+			'An image with a .jpeg extension' => array( DIR_TESTDATA . '/images/car.jpeg' ),
+		);
+	}
 
 	/**
+	 * Test the full image size from the original mime type.
+	 *
 	 * @ticket 55443
 	 */
 	public function test_it_should_contain_the_full_image_size_from_the_original_mime() {
@@ -4074,19 +4207,25 @@ EOF;
 	}
 
 	/**
+	 * Test preventing replacing an image with no available sources.
+	 *
 	 * @ticket 55443
 	 */
 	public function test_it_should_prevent_replacing_an_image_with_no_available_sources() {
 		add_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
 
-		$attachment_id = $this->factory->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
+		$attachment_id = $this->factory->attachment->create_upload_object(
+			DIR_TESTDATA . '/images/test-image.jpg'
+		);
 
 		$tag = wp_get_attachment_image( $attachment_id, 'full', false, array( 'class' => "wp-image-{$attachment_id}" ) );
 		$this->assertSame( $tag, wp_image_use_alternate_mime_types( $tag, 'the_content', $attachment_id ) );
 	}
 
 	/**
-	 * @dataProvider provider_it_should_prevent_update_not_supported_images_with_no_available_sources
+	 * Test preventing update not supported images with no available sources.
+	 *
+	 * @dataProvider data_it_should_prevent_update_not_supported_images_with_no_available_sources
 	 *
 	 * @ticket 55443
 	 */
@@ -4102,9 +4241,11 @@ EOF;
 	/**
 	 * Data provider for it_should_prevent_update_not_supported_images_with_no_available_sources.
 	 */
-	public function provider_it_should_prevent_update_not_supported_images_with_no_available_sources() {
-		yield 'PNG image' => array( DIR_TESTDATA . '/images/test-image.png' );
-		yield 'GIFT image' => array( DIR_TESTDATA . '/images/test-image.gif' );
+	public function data_it_should_prevent_update_not_supported_images_with_no_available_sources() {
+		return array(
+			'PNG image' => array( DIR_TESTDATA . '/images/test-image.png' ),
+			'GIFT image' => array( DIR_TESTDATA . '/images/test-image.gif' ),
+		);
 	}
 }
 
