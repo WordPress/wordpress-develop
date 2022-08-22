@@ -2,6 +2,7 @@
 
 /**
  * @group comment
+ *
  * @covers ::get_page_of_comment
  */
 class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
