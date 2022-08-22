@@ -270,7 +270,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	}
 
 	public function test_delete_item() {
-		// Doesn't exist.
+		$this->markTestSkipped( 'Controller does not implement delete_item().' );
 	}
 
 	public function test_prepare_item() {
