@@ -4144,7 +4144,7 @@ EOF;
 
 		$this->assertSame( $tag, wp_filter_content_tags( $tag ) );
 	}
-	
+
 	/**
 	 * Test replacing the references to a JPG image to a WebP version.
 	 *
