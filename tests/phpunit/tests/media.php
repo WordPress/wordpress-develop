@@ -3915,6 +3915,7 @@ EOF;
 		$attachment_id = $this->factory->attachment->create_upload_object(
 			DIR_TESTDATA . '/images/webp-lossy.webp'
 		);
+
 		$metadata = wp_get_attachment_metadata( $attachment_id );
 
 		$this->assertIsArray( $metadata );
@@ -4175,7 +4176,7 @@ EOF;
 
 	public function data_it_should_replace_the_references_to_a_jpg_image_to_a_webp_version() {
 		return array(
-			'An image with a .jpg extension' => array( DIR_TESTDATA . '/images/canola.jpg' ),
+			'An image with a .jpg extension'  => array( DIR_TESTDATA . '/images/canola.jpg' ),
 			'An image with a .jpeg extension' => array( DIR_TESTDATA . '/images/car.jpeg' ),
 		);
 	}
@@ -4243,7 +4244,7 @@ EOF;
 	 */
 	public function data_it_should_prevent_update_not_supported_images_with_no_available_sources() {
 		return array(
-			'PNG image' => array( DIR_TESTDATA . '/images/test-image.png' ),
+			'PNG image'  => array( DIR_TESTDATA . '/images/test-image.png' ),
 			'GIFT image' => array( DIR_TESTDATA . '/images/test-image.gif' ),
 		);
 	}
