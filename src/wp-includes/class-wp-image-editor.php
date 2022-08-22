@@ -300,7 +300,7 @@ abstract class WP_Image_Editor {
 	 * Returns the default compression quality setting.
 	 *
 	 * @since 5.8.1
-	 * @since 6.1.0, the `$mime_type` parameter is deprecated: all mime types use the same default quality.
+	 * @since 6.1.0 Deprecated the `$mime_type` parameter. All mime types use the same default quality.
 	 *
 	 * @param string $mime_type Deprecated.
 	 * @return int The default quality setting.
