@@ -240,7 +240,7 @@ abstract class WP_Image_Editor {
 		// Use the output mime type if present. If not, fall back to the input/initial mime type.
 		$mime_type = ! empty( $this->output_mime_type ) ? $this->output_mime_type : $this->mime_type;
 		// Get the default quality setting for the mime type.
-		$default_quality = $this->get_default_quality( $mime_type );
+		$default_quality = $this->get_default_quality();
 
 		if ( null === $quality ) {
 			/**
@@ -297,24 +297,16 @@ abstract class WP_Image_Editor {
 	}
 
 	/**
-	 * Returns the default compression quality setting for the mime type.
+	 * Returns the default compression quality setting.
 	 *
 	 * @since 5.8.1
+	 * @since 6.1.0, the `$mime_type` parameter is deprecated: all mime types use the same default quality.
 	 *
-	 * @param string $mime_type
-	 * @return int The default quality setting for the mime type.
+	 * @param string $mime_type Deprecated.
+	 * @return int The default quality setting.
 	 */
 	protected function get_default_quality( $mime_type ) {
-		switch ( $mime_type ) {
-			case 'image/webp':
-				$quality = 86;
-				break;
-			case 'image/jpeg':
-			default:
-				$quality = $this->default_quality;
-		}
-
-		return $quality;
+		return $this->default_quality;
 	}
 
 	/**
