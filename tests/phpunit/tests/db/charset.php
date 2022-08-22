@@ -46,6 +46,15 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 		self::$db_version     = self::$_wpdb->db_version();
 		self::$db_server_info = self::$_wpdb->db_server_info();
 
+		// Account for MariaDB version being prefixed with '5.5.5-' on older PHP versions.
+		if ( str_contains( self::$db_server_info, 'MariaDB' ) && '5.5.5' === self::$db_version
+			&& PHP_VERSION_ID < 80016 // PHP 8.0.15 or older.
+		) {
+			// Strip the '5.5.5-' prefix and set the version to the correct value.
+			self::$db_server_info = preg_replace( '/^5\.5\.5-(.*)/', '$1', self::$db_server_info );
+			self::$db_version     = preg_replace( '/[^0-9.].*/', '', self::$db_server_info );
+		}
+
 		/*
 		 * MariaDB 10.6.1 or later and MySQL 8.0.30 or later
 		 * use utf8mb3 instead of utf8 in various commands output.
