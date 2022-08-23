@@ -21,7 +21,7 @@ class Tests_Functions__wp_check_existing_file_names extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for test_wp_check_existing_file_names().
 	 *
 	 * @return array[]
 	 */
