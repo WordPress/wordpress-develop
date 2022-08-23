@@ -190,11 +190,12 @@ function get_option( $option, $default = false ) {
 			$value = wp_cache_get( $option, 'options' );
 
 			if ( false === $value ) {
-				$row = $wpdb->get_row( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
+				$row = $wpdb->get_row( $wpdb->prepare( "SELECT option_value, option_type FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
 
 				// Has to be get_row() instead of get_var() because of funkiness with 0, false, null values.
 				if ( is_object( $row ) ) {
-					$value = $row->option_value;
+					$value_type = ! empty( $row->option_type ) ? $row->option_type : wp_get_database_default_type();
+					$value      = wp_format_value_from_db( $value_type, $row->option_value );
 					wp_cache_add( $option, $value, 'options' );
 				} else { // Option does not exist, so we must cache its non-existence.
 					if ( ! is_array( $notoptions ) ) {
@@ -211,11 +212,12 @@ function get_option( $option, $default = false ) {
 		}
 	} else {
 		$suppress = $wpdb->suppress_errors();
-		$row      = $wpdb->get_row( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
+		$row      = $wpdb->get_row( $wpdb->prepare( "SELECT option_value, option_type FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
 		$wpdb->suppress_errors( $suppress );
 
 		if ( is_object( $row ) ) {
-			$value = $row->option_value;
+			$value_type = ! empty( $row->option_type ) ? $row->option_type : wp_get_database_default_type();
+			$value      = wp_format_value_from_db( $value_type, $row->option_value );
 		} else {
 			/** This filter is documented in wp-includes/option.php */
 			return apply_filters( "default_option_{$option}", $default, $option, $passed_default );
@@ -244,7 +246,7 @@ function get_option( $option, $default = false ) {
 	 *                       unserialized prior to being returned.
 	 * @param string $option Option name.
 	 */
-	return apply_filters( "option_{$option}", maybe_unserialize( $value ), $option );
+	return apply_filters( "option_{$option}", $value, $option );
 }
 
 /**
@@ -303,15 +305,17 @@ function wp_load_alloptions( $force_cache = false ) {
 
 	if ( ! $alloptions ) {
 		$suppress      = $wpdb->suppress_errors();
-		$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload = 'yes'" );
+		$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value, option_type FROM $wpdb->options WHERE autoload = 'yes'" );
 		if ( ! $alloptions_db ) {
-			$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options" );
+			$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value, option_type FROM $wpdb->options" );
 		}
 		$wpdb->suppress_errors( $suppress );
 
 		$alloptions = array();
 		foreach ( (array) $alloptions_db as $o ) {
-			$alloptions[ $o->option_name ] = $o->option_value;
+			$value_type = ! empty( $o->option_type ) ? $o->option_type : wp_get_database_default_type();
+			$value = wp_format_value_from_db( $value_type, $o->option_value );
+			$alloptions[ $o->option_name ] = $value;
 		}
 
 		if ( ! wp_installing() || ! is_multisite() ) {
@@ -474,7 +478,8 @@ function update_option( $option, $value, $autoload = null ) {
 		return add_option( $option, $value, '', $autoload );
 	}
 
-	$serialized_value = maybe_serialize( $value );
+	$value_type      = wp_get_database_type_for_value( $value );
+	$formatted_value = wp_prepare_value_for_db( $value );
 
 	/**
 	 * Fires immediately before an option value is updated.
@@ -488,7 +493,8 @@ function update_option( $option, $value, $autoload = null ) {
 	do_action( 'update_option', $option, $old_value, $value );
 
 	$update_args = array(
-		'option_value' => $serialized_value,
+		'option_value' => $formatted_value,
+		'option_type'  => $value_type,
 	);
 
 	if ( null !== $autoload ) {
@@ -510,10 +516,10 @@ function update_option( $option, $value, $autoload = null ) {
 	if ( ! wp_installing() ) {
 		$alloptions = wp_load_alloptions( true );
 		if ( isset( $alloptions[ $option ] ) ) {
-			$alloptions[ $option ] = $serialized_value;
+			$alloptions[ $option ] = $value;
 			wp_cache_set( 'alloptions', $alloptions, 'options' );
 		} else {
-			wp_cache_set( $option, $serialized_value, 'options' );
+			wp_cache_set( $option, $value, 'options' );
 		}
 	}
 
@@ -626,8 +632,9 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' )
 		}
 	}
 
-	$serialized_value = maybe_serialize( $value );
-	$autoload         = ( 'no' === $autoload || false === $autoload ) ? 'no' : 'yes';
+	$value_type      = wp_get_database_type_for_value( $value );
+	$formatted_value = wp_prepare_value_for_db( $value );
+	$autoload        = ( 'no' === $autoload || false === $autoload ) ? 'no' : 'yes';
 
 	/**
 	 * Fires before an option is added.
@@ -639,7 +646,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' )
 	 */
 	do_action( 'add_option', $option, $value );
 
-	$result = $wpdb->query( $wpdb->prepare( "INSERT INTO `$wpdb->options` (`option_name`, `option_value`, `autoload`) VALUES (%s, %s, %s) ON DUPLICATE KEY UPDATE `option_name` = VALUES(`option_name`), `option_value` = VALUES(`option_value`), `autoload` = VALUES(`autoload`)", $option, $serialized_value, $autoload ) );
+	$result = $wpdb->query( $wpdb->prepare( "INSERT INTO `$wpdb->options` (`option_name`, `option_value`, `option_type`, `autoload`) VALUES (%s, %s, %s, %s) ON DUPLICATE KEY UPDATE `option_name` = VALUES(`option_name`), `option_value` = VALUES(`option_value`), `option_type` = VALUES(`option_type`), `autoload` = VALUES(`autoload`)", $option, $formatted_value, $value_type, $autoload ) );
 	if ( ! $result ) {
 		return false;
 	}
@@ -647,10 +654,10 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' )
 	if ( ! wp_installing() ) {
 		if ( 'yes' === $autoload ) {
 			$alloptions            = wp_load_alloptions( true );
-			$alloptions[ $option ] = $serialized_value;
+			$alloptions[ $option ] = $value;
 			wp_cache_set( 'alloptions', $alloptions, 'options' );
 		} else {
-			wp_cache_set( $option, $serialized_value, 'options' );
+			wp_cache_set( $option, $value, 'options' );
 		}
 	}
 

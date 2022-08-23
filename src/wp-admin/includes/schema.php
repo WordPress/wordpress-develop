@@ -604,19 +604,18 @@ function populate_options( array $options = array() ) {
 			$autoload = 'yes';
 		}
 
-		if ( is_array( $value ) ) {
-			$value = serialize( $value );
-		}
+		$value_type = wp_get_database_type_for_value( $value );
+		$value      = wp_prepare_value_for_db( $value );
 
 		if ( ! empty( $insert ) ) {
 			$insert .= ', ';
 		}
 
-		$insert .= $wpdb->prepare( '(%s, %s, %s)', $option, $value, $autoload );
+		$insert .= $wpdb->prepare( '(%s, %s, %s, %s)', $option, $value, $value_type, $autoload );
 	}
 
 	if ( ! empty( $insert ) ) {
-		$wpdb->query( "INSERT INTO $wpdb->options (option_name, option_value, autoload) VALUES " . $insert ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$wpdb->query( "INSERT INTO $wpdb->options (option_name, option_value, option_type, autoload) VALUES " . $insert ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	}
 
 	// In case it is set, but blank, update "home".
@@ -1350,16 +1349,15 @@ function populate_site_meta( $site_id, array $meta = array() ) {
 
 	$insert = '';
 	foreach ( $site_meta as $meta_key => $meta_value ) {
-		if ( is_array( $meta_value ) ) {
-			$meta_value = serialize( $meta_value );
-		}
+		$value_type = wp_get_database_type_for_value( $meta_value );
+		$meta_value = wp_prepare_value_for_db( $meta_value );
 		if ( ! empty( $insert ) ) {
 			$insert .= ', ';
 		}
-		$insert .= $wpdb->prepare( '( %d, %s, %s)', $site_id, $meta_key, $meta_value );
+		$insert .= $wpdb->prepare( '( %d, %s, %s, %s)', $site_id, $meta_key, $meta_value, $value_type );
 	}
 
-	$wpdb->query( "INSERT INTO $wpdb->blogmeta ( blog_id, meta_key, meta_value ) VALUES " . $insert ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$wpdb->query( "INSERT INTO $wpdb->blogmeta ( blog_id, meta_key, meta_value, meta_type ) VALUES " . $insert ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 	wp_cache_delete( $site_id, 'blog_meta' );
 	wp_cache_set_sites_last_changed();

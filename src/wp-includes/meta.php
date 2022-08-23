@@ -90,8 +90,9 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
 		return false;
 	}
 
-	$_meta_value = $meta_value;
-	$meta_value  = maybe_serialize( $meta_value );
+	$meta_value_type = wp_get_database_type_for_value( $meta_value );
+	$_meta_value     = $meta_value;
+	$meta_value      = wp_prepare_metadata_value_for_db( $meta_type, $meta_value );
 
 	/**
 	 * Fires immediately before meta of a specific type is added.
@@ -114,13 +115,19 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
 	 */
 	do_action( "add_{$meta_type}_meta", $object_id, $meta_key, $_meta_value );
 
+	$data = array(
+		$column      => $object_id,
+		'meta_key'   => $meta_key,
+		'meta_value' => $meta_value,
+	);
+
+	if ( wp_check_object_support_meta_value_type( $meta_type ) ) {
+		$data['meta_type'] = $meta_value_type;
+	}
+
 	$result = $wpdb->insert(
 		$table,
-		array(
-			$column      => $object_id,
-			'meta_key'   => $meta_key,
-			'meta_value' => $meta_value,
-		)
+		$data
 	);
 
 	if ( ! $result ) {
@@ -250,18 +257,28 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 		return add_metadata( $meta_type, $object_id, $raw_meta_key, $passed_value );
 	}
 
-	$_meta_value = $meta_value;
-	$meta_value  = maybe_serialize( $meta_value );
+	$meta_value_type = wp_get_database_type_for_value( $meta_value );
+	$_meta_value     = $meta_value;
+	$meta_value      = wp_prepare_metadata_value_for_db( $meta_type, $meta_value );
 
-	$data  = compact( 'meta_value' );
+	$data = compact( 'meta_value' );
+	if ( wp_check_object_support_meta_value_type( $meta_type ) ) {
+		$data['meta_type'] = $meta_value_type;
+	}
+
 	$where = array(
 		$column    => $object_id,
 		'meta_key' => $meta_key,
 	);
 
 	if ( ! empty( $prev_value ) ) {
-		$prev_value          = maybe_serialize( $prev_value );
+		$prev_meta_value_type = wp_get_database_type_for_value( $prev_value );
+		$prev_value           = wp_prepare_metadata_value_for_db( $meta_type, $prev_value );
+
 		$where['meta_value'] = $prev_value;
+		if ( in_array( $meta_type, [ 'post', 'comment', 'term', 'user' ], true ) ) {
+			$where['meta_type'] = $prev_meta_value_type;
+		}
 	}
 
 	foreach ( $meta_ids as $meta_id ) {
@@ -650,14 +667,21 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
 	}
 
 	if ( ! $meta_key ) {
+		// back-compat : historically get_metadata_raw should return values as saved in
+		if ( is_array( $meta_cache ) ) {
+			foreach( $meta_cache as $mkey => $mval ) {
+				$meta_cache[ $mkey ] = array_map( 'wp_prepare_value_for_db', $mval );
+			}
+		}
+
 		return $meta_cache;
 	}
 
 	if ( isset( $meta_cache[ $meta_key ] ) ) {
 		if ( $single ) {
-			return maybe_unserialize( $meta_cache[ $meta_key ][0] );
+			return $meta_cache[ $meta_key ][0];
 		} else {
-			return array_map( 'maybe_unserialize', $meta_cache[ $meta_key ] );
+			return $meta_cache[ $meta_key ];
 		}
 	}
 
@@ -834,7 +858,8 @@ function get_metadata_by_mid( $meta_type, $meta_id ) {
 	}
 
 	if ( isset( $meta->meta_value ) ) {
-		$meta->meta_value = maybe_unserialize( $meta->meta_value );
+		$meta_value_type  = ! empty( $meta->meta_type ) ? $meta->meta_type : wp_get_database_default_type();
+		$meta->meta_value = wp_format_metadata_from_db( $meta_type, $meta->meta_value, $meta_value_type );
 	}
 
 	return $meta;
@@ -918,14 +943,16 @@ function update_metadata_by_mid( $meta_type, $meta_id, $meta_value, $meta_key = 
 		$meta_subtype = get_object_subtype( $meta_type, $object_id );
 
 		// Sanitize the meta.
-		$_meta_value = $meta_value;
-		$meta_value  = sanitize_meta( $meta_key, $meta_value, $meta_type, $meta_subtype );
-		$meta_value  = maybe_serialize( $meta_value );
+		$meta_value_type = wp_get_database_type_for_value( $meta_value );
+		$_meta_value     = $meta_value;
+		$meta_value      = sanitize_meta( $meta_key, $meta_value, $meta_type, $meta_subtype );
+		$meta_value      = wp_prepare_metadata_value_for_db( $meta_type, $meta_value );
 
 		// Format the data query arguments.
 		$data = array(
 			'meta_key'   => $meta_key,
 			'meta_value' => $meta_value,
+			'meta_type'  => $meta_value_type,
 		);
 
 		// Format the where query arguments.
@@ -1169,13 +1196,18 @@ function update_meta_cache( $meta_type, $object_ids ) {
 	$id_list   = implode( ',', $non_cached_ids );
 	$id_column = ( 'user' === $meta_type ) ? 'umeta_id' : 'meta_id';
 
-	$meta_list = $wpdb->get_results( "SELECT $column, meta_key, meta_value FROM $table WHERE $column IN ($id_list) ORDER BY $id_column ASC", ARRAY_A );
+	$fields = "$column, meta_key, meta_value";
+	if ( wp_check_object_support_meta_value_type( $meta_type ) ) {
+		$fields .= ', meta_type';
+	}
+	$meta_list = $wpdb->get_results( "SELECT $fields FROM $table WHERE $column IN ($id_list) ORDER BY $id_column ASC", ARRAY_A );
 
 	if ( ! empty( $meta_list ) ) {
 		foreach ( $meta_list as $metarow ) {
-			$mpid = (int) $metarow[ $column ];
-			$mkey = $metarow['meta_key'];
-			$mval = $metarow['meta_value'];
+			$mpid     = (int) $metarow[ $column ];
+			$mkey     = $metarow['meta_key'];
+			$mval     = $metarow['meta_value'];
+			$mvaltype = ! empty( $metarow['meta_type'] ) ? $metarow['meta_type'] : wp_get_database_default_type();
 
 			// Force subkeys to be array type.
 			if ( ! isset( $cache[ $mpid ] ) || ! is_array( $cache[ $mpid ] ) ) {
@@ -1186,7 +1218,7 @@ function update_meta_cache( $meta_type, $object_ids ) {
 			}
 
 			// Add a value to the current pid/key.
-			$cache[ $mpid ][ $mkey ][] = $mval;
+			$cache[ $mpid ][ $mkey ][] = wp_format_metadata_from_db( $meta_type, $mval, $mvaltype );
 		}
 	}
 
@@ -1797,4 +1829,70 @@ function get_object_subtype( $object_type, $object_id ) {
 	 * @param int    $object_id      ID of the object to get the subtype for.
 	 */
 	return apply_filters( "get_object_subtype_{$object_type}", $object_subtype, $object_id );
+}
+
+/**
+ * Check if the object support database type.
+ *
+ * @since n.e.x.t
+ *
+ * @param string $object_type Type of object.
+ *
+ * @return bool True mean the object support database type, false otherwise.
+ */
+function wp_check_object_support_meta_value_type( $object_type ) {
+	$object_type_supported = in_array( $object_type, array( 'post', 'comment', 'term', 'user' ), true );
+
+	/**
+	 * Filters if the object type support database type.
+	 *
+	 * Any object type declaring support database type must have the corresponding column in its meta table.
+	 *
+	 * @since n.e.x.t
+	 *
+	 * @param bool $object_type_supported Support flag for the object type.
+	 * @param string $object_type Type of object.
+	 */
+	return apply_filters( '', $object_type_supported, $object_type );
+}
+
+/**
+ * Prepare metadata value for the database.
+ *
+ * Check if the object supports database type and default back to using `maybe_serialize` otherwise.
+ *
+ * @since n.e.x.t
+ *
+ * @param string $object_type Type of object.
+ * @param mixed $meta_value Metadata value.
+ *
+ * @return mixed
+ */
+function wp_prepare_metadata_value_for_db( $object_type, $meta_value ) {
+	if ( ! wp_check_object_support_meta_value_type( $object_type ) ) {
+		return maybe_serialize( $meta_value );
+	}
+
+	return wp_prepare_value_for_db( $meta_value );
+}
+
+/**
+ * Format a metadata value from the database.
+ *
+ * Check if the object supports database type and default back to using `maybe_unserialize` otherwise.
+ *
+ * @since n.e.x.t
+ *
+ * @param string $object_type Type of object.
+ * @param mixed $meta_value Raw metadata value from database.
+ * @param string $meta_value_type Metadata value type from database.
+ *
+ * @return mixed
+ */
+function wp_format_metadata_from_db( $object_type, $meta_value, $meta_value_type ) {
+	if ( ! wp_check_object_support_meta_value_type( $object_type ) ) {
+		return maybe_unserialize( $meta_value );
+	}
+
+	return wp_format_value_from_db( $meta_value_type, $meta_value );
 }
