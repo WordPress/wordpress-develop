@@ -2,6 +2,7 @@
 
 /**
  * @group functions.php
+ *
  * @covers ::_wp_check_existing_file_names
  */
 class Tests_Functions__wp_check_existing_file_names extends WP_UnitTestCase {
