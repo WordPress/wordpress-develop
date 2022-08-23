@@ -614,7 +614,7 @@ class WP_Widget {
 		if ( false === $settings ) {
 			$settings = array();
 			if ( isset( $this->alt_option_name ) ) {
-				// Get from legacy (alternative) option name.
+				// Get settings from legacy (alternative) option.
 				$settings = get_option( $this->alt_option_name, array() );
 
 				// Delete the legacy option as the new option will be created.
