@@ -25,7 +25,7 @@ class Tests_Functions__wp_check_existing_file_names extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data__wp_check_existing_file_names() {
+	public function data_wp_check_existing_file_names() {
 		return array(
 			'no size'        => array(
 				'filename' => 'filename.php',
