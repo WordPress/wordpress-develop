@@ -73,6 +73,8 @@ function wpmu_signup_stylesheet() {
 		.mu_register label,
 			.mu_register legend,
 			.mu_register .label-heading { font-weight: 600; font-size: 15px; display: block; margin: 10px 0; }
+		.mu_register legend + p,
+			.mu_register input + p { margin-top: 0; }
 		.mu_register label.checkbox { display: inline; }
 		.mu_register .mu_alert { font-weight: 600; padding: 10px; color: #333; background: #ffffe0; border: 1px solid #e6db55; }
 		.mu_register .mu_alert a { color: inherit; text-decoration: underline; }
