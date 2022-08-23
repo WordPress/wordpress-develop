@@ -60,8 +60,7 @@ function wpmu_signup_stylesheet() {
 		.mu_register { width: 90%; margin: 0 auto; }
 		.mu_register form { margin-top: 2em; }
 		.mu_register fieldset,
-			.mu_register legend,
-			.mu_register legend p { margin: 0; padding: 0; border: none; }
+			.mu_register legend { margin: 0; padding: 0; border: none; }
 		.mu_register .error { font-weight: 600; padding: 10px; color: #333; background: #ffebe8; border: 1px solid #c00; }
 		.mu_register input[type="submit"],
 			.mu_register #blog_title,
@@ -72,6 +71,7 @@ function wpmu_signup_stylesheet() {
 		.mu_register .prefix_address,
 			.mu_register .suffix_address { font-size: 18px; display: inline-block; direction: ltr; }
 		.mu_register label,
+			.mu_register legend,
 			.mu_register .label-heading { font-weight: 600; font-size: 15px; display: block; margin: 10px 0; }
 		.mu_register label.checkbox { display: inline; }
 		.mu_register .mu_alert { font-weight: 600; padding: 10px; color: #333; background: #ffffe0; border: 1px solid #e6db55; }
@@ -206,10 +206,8 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
 	<div id="privacy">
 		<fieldset class="privacy-intro">
 			<legend>
-				<p>
-					<span class="label-heading"><?php _e( 'Privacy:' ); ?></span>
-					<?php _e( 'Allow search engines to index this site.' ); ?>
-				</p>
+				<span class="label-heading"><?php _e( 'Privacy:' ); ?></span>
+				<?php _e( 'Allow search engines to index this site.' ); ?>
 			</legend>
 			<p class="wp-signup-radio-buttons">
 				<span class="wp-signup-radio-button">
@@ -635,7 +633,7 @@ function signup_user( $user_name = '', $user_email = '', $errors = '' ) {
 			<input id="signupblog" type="hidden" name="signup_for" value="user" />
 		<?php else : ?>
 			<fieldset class="signup-options">
-				<legend class="label-heading"><p><?php _e( 'Create a site or only a username:' ); ?></p></legend>
+				<legend><?php _e( 'Create a site or only a username:' ); ?></legend>
 				<p class="wp-signup-radio-buttons">
 					<span class="wp-signup-radio-button">
 						<input id="signupblog" type="radio" name="signup_for" value="blog" <?php checked( $signup_for, 'blog' ); ?> />
