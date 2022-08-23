@@ -469,7 +469,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 		 * }
 		 * @param array       $plugin_data      Plugin headers.
 		 * @param string      $plugin_file      Plugin filename.
-		 * @param array       $locales          Installed locales to look translations for.
+		 * @param array       $locales          Installed locales to look up translations for.
 		 */
 		$update = apply_filters( "update_plugins_{$hostname}", false, $plugin_data, $plugin_file, $locales );
 
@@ -766,7 +766,7 @@ function wp_update_themes( $extra_stats = array() ) {
 			continue;
 		}
 
-		// These should remain constant.
+		// This should remain constant.
 		$update->id = $theme_data['UpdateURI'];
 
 		// WordPress needs the version field specified as 'new_version'.

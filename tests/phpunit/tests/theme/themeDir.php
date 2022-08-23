@@ -149,7 +149,6 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 
 		$theme_names = array_keys( $themes );
 		$expected    = array(
-			'A theme with the Update URI header.',
 			'WordPress Default',
 			'Sandbox',
 			'Stylesheet Only',
@@ -168,6 +167,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'Block Theme [1.0.0] in subdirectory',
 			'Webfonts theme',
 			'Empty `fontFace` in theme.json - no webfonts defined',
+			'A theme with the Update URI header',
 		);
 
 		sort( $theme_names );
