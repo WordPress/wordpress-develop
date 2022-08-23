@@ -16,7 +16,6 @@ class Tests_Functions__wp_check_existing_file_names extends WP_UnitTestCase {
 	 * @param boolean $expected Expected result.
 	 */
 	public function test__wp_check_existing_file_names( $filename, $files, $expected ) {
-
 		$this->assertSame( $expected, _wp_check_existing_file_names( $filename, $files ) );
 	}
 
