@@ -52,12 +52,16 @@ function wp_get_db_schema( $scope = 'all', $blog_id = null ) {
 	 */
 	$max_index_length = 191;
 
+	$enum_col     = "'" . implode( "', '", array_map( 'esc_sql', wp_get_database_types() ) ) . "'";
+	$default_enum = esc_sql( wp_get_database_default_type() );
+
 	// Blog-specific tables.
 	$blog_tables = "CREATE TABLE $wpdb->termmeta (
 	meta_id bigint(20) unsigned NOT NULL auto_increment,
 	term_id bigint(20) unsigned NOT NULL default '0',
 	meta_key varchar(255) default NULL,
 	meta_value longtext,
+	meta_type enum($enum_col) default '$default_enum',
 	PRIMARY KEY  (meta_id),
 	KEY term_id (term_id),
 	KEY meta_key (meta_key($max_index_length))
@@ -94,6 +98,7 @@ CREATE TABLE $wpdb->commentmeta (
 	comment_id bigint(20) unsigned NOT NULL default '0',
 	meta_key varchar(255) default NULL,
 	meta_value longtext,
+	meta_type enum($enum_col) default '$default_enum',
 	PRIMARY KEY  (meta_id),
 	KEY comment_id (comment_id),
 	KEY meta_key (meta_key($max_index_length))
@@ -142,6 +147,7 @@ CREATE TABLE $wpdb->options (
 	option_id bigint(20) unsigned NOT NULL auto_increment,
 	option_name varchar(191) NOT NULL default '',
 	option_value longtext NOT NULL,
+	option_type enum($enum_col) default '$default_enum',
 	autoload varchar(20) NOT NULL default 'yes',
 	PRIMARY KEY  (option_id),
 	UNIQUE KEY option_name (option_name),
@@ -152,6 +158,7 @@ CREATE TABLE $wpdb->postmeta (
 	post_id bigint(20) unsigned NOT NULL default '0',
 	meta_key varchar(255) default NULL,
 	meta_value longtext,
+	meta_type enum($enum_col) default '$default_enum',
 	PRIMARY KEY  (meta_id),
 	KEY post_id (post_id),
 	KEY meta_key (meta_key($max_index_length))
@@ -231,6 +238,7 @@ CREATE TABLE $wpdb->posts (
 	user_id bigint(20) unsigned NOT NULL default '0',
 	meta_key varchar(255) default NULL,
 	meta_value longtext,
+	meta_type enum($enum_col) default '$default_enum',
 	PRIMARY KEY  (umeta_id),
 	KEY user_id (user_id),
 	KEY meta_key (meta_key($max_index_length))
@@ -266,6 +274,7 @@ CREATE TABLE $wpdb->blogmeta (
 	blog_id bigint(20) NOT NULL default '0',
 	meta_key varchar(255) default NULL,
 	meta_value longtext,
+	meta_type enum($enum_col) default '$default_enum',
 	PRIMARY KEY  (meta_id),
 	KEY meta_key (meta_key($max_index_length)),
 	KEY blog_id (blog_id)
@@ -291,6 +300,7 @@ CREATE TABLE $wpdb->sitemeta (
 	site_id bigint(20) NOT NULL default '0',
 	meta_key varchar(255) default NULL,
 	meta_value longtext,
+	meta_type enum($enum_col) default '$default_enum',
 	PRIMARY KEY  (meta_id),
 	KEY meta_key (meta_key($max_index_length)),
 	KEY site_id (site_id)

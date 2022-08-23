@@ -27,6 +27,8 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 
 		$charset_collate  = $wpdb->get_charset_collate();
 		$max_index_length = 191;
+		$enum_col = "'" . implode( "', '", array_map( 'esc_sql', wp_get_database_types() ) ) . "'";
+		$default_enum = esc_sql( wp_get_database_default_type() );
 
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query(
@@ -35,6 +37,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 				option_id bigint(20) unsigned NOT NULL auto_increment,
 				option_name varchar(191) NOT NULL default '',
 				option_value longtext NOT NULL,
+				option_type enum($enum_col) default '$default_enum',
 				autoload varchar(20) NOT NULL default 'yes',
 				PRIMARY KEY  (option_id),
 				UNIQUE KEY option_name (option_name)
@@ -48,6 +51,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 				blog_id bigint(20) unsigned NOT NULL default '0',
 				meta_key varchar(255) default NULL,
 				meta_value longtext,
+				meta_type enum($enum_col) default '$default_enum',
 				PRIMARY KEY  (meta_id),
 				KEY meta_key (meta_key({$max_index_length})),
 				KEY blog_id (blog_id)
@@ -61,6 +65,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 				site_id bigint(20) unsigned NOT NULL default '0',
 				meta_key varchar(255) default NULL,
 				meta_value longtext,
+				meta_type enum($enum_col) default '$default_enum',
 				PRIMARY KEY  (meta_id),
 				KEY meta_key (meta_key({$max_index_length})),
 				KEY site_id (site_id)
