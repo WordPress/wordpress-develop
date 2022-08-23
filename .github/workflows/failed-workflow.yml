@@ -1,0 +1,45 @@
+##
+# Performs follow-up tasks when a workflow fails or is cancelled.
+##
+name: Failed Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'ID of the GitHub Action workflow run to rerun'
+        required: true
+        type: 'string'
+
+jobs:
+  # Attempts to rerun a workflow.
+  #
+  # Performs the following steps:
+  # - Retrieves the workflow run that dispatched this workflow.
+  # - Restarts all failed jobs when the workflow fails or is cancelled for the first time.
+  failed-workflow:
+    name: Rerun a workflow
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Rerun a workflow
+        uses: desrosj/github-script@update/plugin-rest-endpoint-methods # v6.1.1
+        with:
+          script: |
+            const workflow_run = await github.rest.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ inputs.run_id }},
+            });
+
+            // Only rerun after the first run attempt.
+            if ( workflow_run.data.run_attempt > 1 ) {
+              return;
+            }
+
+            const rerun = await github.rest.actions.reRunWorkflowFailedJobs({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ inputs.run_id }},
+            });

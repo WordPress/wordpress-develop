@@ -172,8 +172,32 @@ jobs:
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
 
-  maybe-rerun-workflow:
-    name: Maybe Rerun Workflow
-    uses: WordPress/wordpress-develop/.github/workflows/rerun-workflow.yml@trunk
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-latest
     needs: [ test-npm, test-npm-macos, slack-notifications ]
-    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && ( needs.test-npm.result == 'cancelled' || needs.test-npm.result == 'failure' || needs.test-npm-macos.result == 'cancelled' || needs.test-npm-macos.result == 'failure' ) && always() }}
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_number < 2 &&
+      (
+        needs.test-npm.result == 'cancelled' || needs.test-npm.result == 'failure' ||
+        needs.test-npm-macos.result == 'cancelled' || needs.test-npm-macos.result == 'failure'
+      )
+
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@d50f485531ba88479582bc2da03ff424389af5c1 # v6.1.1
+        with:
+          github-token: ${{ secrets.GHA_WORKFLOW_DISPATCH }}
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: '${{ github.ref_name }}',
+              inputs: {
+                run_id: '${{ github.run_id }}'
+              }
+            });
