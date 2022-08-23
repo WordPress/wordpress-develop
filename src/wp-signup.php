@@ -80,6 +80,7 @@ function wpmu_signup_stylesheet() {
 		.mu_register .mu_alert a { color: inherit; text-decoration: underline; }
 		.mu_register .signup-options .wp-signup-radio-button { display: block; }
 		.mu_register .privacy-intro .wp-signup-radio-button { margin-right: 0.5em; }
+		.rtl .mu_register .wp-signup-blogname { direction: ltr; text-align: right; }
 	</style>
 	<?php
 }
