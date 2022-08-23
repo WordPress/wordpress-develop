@@ -95,7 +95,7 @@ function get_option( $option, $default = false ) {
 		'comment_whitelist' => 'comment_previously_approved',
 	);
 
-	if ( ! wp_installing() && isset( $deprecated_keys[ $option ] ) ) {
+	if ( isset( $deprecated_keys[ $option ] ) && ! wp_installing() ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'5.5.0',
@@ -114,8 +114,8 @@ function get_option( $option, $default = false ) {
 	 *
 	 * The dynamic portion of the hook name, `$option`, refers to the option name.
 	 *
-	 * Returning a truthy value from the filter will effectively short-circuit retrieval
-	 * and return the passed value instead.
+	 * Returning a value other than false from the filter will short-circuit retrieval
+	 * and return that value instead.
 	 *
 	 * @since 1.5.0
 	 * @since 4.4.0 The `$option` parameter was added.
@@ -401,7 +401,7 @@ function update_option( $option, $value, $autoload = null ) {
 		'comment_whitelist' => 'comment_previously_approved',
 	);
 
-	if ( ! wp_installing() && isset( $deprecated_keys[ $option ] ) ) {
+	if ( isset( $deprecated_keys[ $option ] ) && ! wp_installing() ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'5.5.0',
@@ -591,7 +591,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' )
 		'comment_whitelist' => 'comment_previously_approved',
 	);
 
-	if ( ! wp_installing() && isset( $deprecated_keys[ $option ] ) ) {
+	if ( isset( $deprecated_keys[ $option ] ) && ! wp_installing() ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'5.5.0',
@@ -832,8 +832,8 @@ function get_transient( $transient ) {
 	 *
 	 * The dynamic portion of the hook name, `$transient`, refers to the transient name.
 	 *
-	 * Returning a truthy value from the filter will effectively short-circuit retrieval
-	 * and return the passed value instead.
+	 * Returning a value other than false from the filter will short-circuit retrieval
+	 * and return that value instead.
 	 *
 	 * @since 2.8.0
 	 * @since 4.4.0 The `$transient` parameter was added
@@ -1004,6 +1004,8 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 /**
  * Deletes all expired transients.
  *
+ * Note that this function won't do anything if an external object cache is in use.
+ *
  * The multi-table delete syntax is used to delete the transient record
  * from table a, and the corresponding transient_timeout record from table b.
  *
@@ -1132,9 +1134,9 @@ function get_user_setting( $name, $default = false ) {
 /**
  * Adds or updates user interface setting.
  *
- * Both $name and $value can contain only ASCII letters, numbers, hyphens, and underscores.
+ * Both `$name` and `$value` can contain only ASCII letters, numbers, hyphens, and underscores.
  *
- * This function has to be used before any output has started as it calls setcookie().
+ * This function has to be used before any output has started as it calls `setcookie()`.
  *
  * @since 2.8.0
  *
@@ -1159,7 +1161,7 @@ function set_user_setting( $name, $value ) {
  *
  * Deleting settings would reset them to the defaults.
  *
- * This function has to be used before any output has started as it calls setcookie().
+ * This function has to be used before any output has started as it calls `setcookie()`.
  *
  * @since 2.7.0
  *
@@ -1389,8 +1391,8 @@ function get_network_option( $network_id, $option, $default = false ) {
 	 *
 	 * The dynamic portion of the hook name, `$option`, refers to the option name.
 	 *
-	 * Returning a truthy value from the filter will effectively short-circuit retrieval
-	 * and return the passed value instead.
+	 * Returning a value other than false from the filter will short-circuit retrieval
+	 * and return that value instead.
 	 *
 	 * @since 2.9.0 As 'pre_site_option_' . $key
 	 * @since 3.0.0
@@ -1420,7 +1422,7 @@ function get_network_option( $network_id, $option, $default = false ) {
 	if ( is_array( $notoptions ) && isset( $notoptions[ $option ] ) ) {
 
 		/**
-		 * Filters a specific default network option.
+		 * Filters the value of a specific default network option.
 		 *
 		 * The dynamic portion of the hook name, `$option`, refers to the option name.
 		 *
