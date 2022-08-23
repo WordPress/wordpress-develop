@@ -147,6 +147,22 @@ function wp_initial_constants() {
 	define( 'MONTH_IN_SECONDS', 30 * DAY_IN_SECONDS );
 	define( 'YEAR_IN_SECONDS', 365 * DAY_IN_SECONDS );
 	/**#@-*/
+
+	/**#@+
+	 * Constants for declaring data types for metadata and option tables.
+	 *
+	 * @since n.e.x.t
+	 */
+	define( 'WP_TYPE_BOOLEAN', 'boolean' );
+	define( 'WP_TYPE_INTEGER', 'integer' );
+	define( 'WP_TYPE_FLOAT', 'float' );
+	define( 'WP_TYPE_STRING', 'string' );
+	define( 'WP_TYPE_ARRAY', 'array' );
+	define( 'WP_TYPE_OBJECT', 'object' );
+	define( 'WP_TYPE_UNKNOWN', 'unknown' );
+	/**#@-*/
+
+	define( 'WP_DEFAULT_TYPE', WP_TYPE_UNKNOWN );
 }
 
 /**

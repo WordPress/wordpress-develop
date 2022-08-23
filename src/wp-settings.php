@@ -114,6 +114,7 @@ require ABSPATH . WPINC . '/class-wp-matchesmapregex.php';
 require ABSPATH . WPINC . '/class-wp.php';
 require ABSPATH . WPINC . '/class-wp-error.php';
 require ABSPATH . WPINC . '/pomo/mo.php';
+require ABSPATH . WPINC . '/database-types.php';
 
 /**
  * @global wpdb $wpdb WordPress database abstraction object.
