@@ -220,7 +220,6 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 		$found   = get_term_by( 'name', 'burrito', 'post_tag' );
 		$this->assertSame( $term_id, $found->term_id );
 		$this->assertStringContainsString( 'LIMIT 1', $wpdb->last_query );
-
 	}
 
 	/**
