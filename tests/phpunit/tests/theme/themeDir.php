@@ -182,6 +182,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'Block Theme Deprecated Path',
 			'Webfonts theme',
 			'Empty `fontFace` in theme.json - no webfonts defined',
+			'A theme with the Update URI header',
 		);
 
 		$this->assertSameSets( $expected, $theme_names );
