@@ -20,6 +20,7 @@ class Tests_Functions_wpRefererField extends WP_UnitTestCase {
 
 		$this->assertSame( '<input type="hidden" name="_wp_http_referer" value="" />', $actual );
 	}
+
 	/**
 	 * @ticket 54106
 	 */
