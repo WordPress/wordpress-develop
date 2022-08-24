@@ -372,7 +372,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * @dataProvider provider_image_with_default_behaviors_during_upload
 	 */
 	public function it_should_create_the_original_image_mime_type_when_the_image_is_uploaded( $file_location, $expected_mime, $targeted_mime ) {
-		$attachment_id = $this->factory->attachment->create_upload_object( $file_location );
+		$attachment_id = self::factory()->attachment->create_upload_object( $file_location );
 
 		$metadata = wp_get_attachment_metadata( $attachment_id );
 
@@ -414,7 +414,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	public function it_should_not_create_the_sources_property_if_no_transform_is_provided() {
 		add_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
 
-		$attachment_id = $this->factory->attachment->create_upload_object(
+		$attachment_id = self::factory()->attachment->create_upload_object(
 			DIR_TESTDATA . '/images/test-image.jpg'
 		);
 
@@ -439,7 +439,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 			}
 		);
 
-		$attachment_id = $this->factory->attachment->create_upload_object(
+		$attachment_id = self::factory()->attachment->create_upload_object(
 			DIR_TESTDATA . '/images/test-image.jpg'
 		);
 
@@ -469,7 +469,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 			}
 		);
 
-		$attachment_id = $this->factory->attachment->create_upload_object(
+		$attachment_id = self::factory()->attachment->create_upload_object(
 			DIR_TESTDATA . '/images/webp-lossy.webp'
 		);
 
@@ -488,7 +488,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * @ticket 55443
 	 */
 	public function it_should_create_a_webp_version_with_all_the_required_properties() {
-		$attachment_id = $this->factory->attachment->create_upload_object(
+		$attachment_id = self::factory()->attachment->create_upload_object(
 			DIR_TESTDATA . '/images/test-image.jpg'
 		);
 
@@ -518,7 +518,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 			}
 		);
 
-		$attachment_id = $this->factory->attachment->create_upload_object(
+		$attachment_id = self::factory()->attachment->create_upload_object(
 			DIR_TESTDATA . '/images/test-image.jpg'
 		);
 		$metadata      = wp_get_attachment_metadata( $attachment_id );
@@ -535,7 +535,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 */
 	public function it_should_remove_the_generated_webp_images_when_the_attachment_is_deleted() {
 		// Make sure no editor is available.
-		$attachment_id = $this->factory->attachment->create_upload_object(
+		$attachment_id = self::factory()->attachment->create_upload_object(
 			DIR_TESTDATA . '/images/test-image.jpg'
 		);
 
@@ -572,7 +572,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 */
 	public function it_should_remove_the_attached_webp_version_if_the_attachment_is_force_deleted_but_empty_trash_day_is_not_defined() {
 		// Make sure no editor is available.
-		$attachment_id = $this->factory->attachment->create_upload_object(
+		$attachment_id = self::factory()->attachment->create_upload_object(
 			DIR_TESTDATA . '/images/test-image.jpg'
 		);
 
@@ -602,7 +602,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 */
 	public function it_should_remove_the_webp_version_of_the_image_if_the_image_is_force_deleted_and_empty_trash_days_is_set_to_zero() {
 		// Make sure no editor is available.
-		$attachment_id = $this->factory->attachment->create_upload_object(
+		$attachment_id = self::factory()->attachment->create_upload_object(
 			DIR_TESTDATA . '/images/test-image.jpg'
 		);
 
@@ -655,7 +655,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * @ticket 55443
 	 */
 	public function it_should_test_preventing_replacing_a_webp_image() {
-		$attachment_id = $this->factory->attachment->create_upload_object(
+		$attachment_id = self::factory()->attachment->create_upload_object(
 			DIR_TESTDATA . '/images/webp-lossy.webp'
 		);
 
@@ -670,7 +670,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * @ticket 55443
 	 */
 	public function it_should_test_preventing_replacing_a_jpg_image_if_the_image_does_not_have_the_target_class_name() {
-		$attachment_id = $this->factory->attachment->create_upload_object(
+		$attachment_id = self::factory()->attachment->create_upload_object(
 			DIR_TESTDATA . '/images/test-image.jpg'
 		);
 
@@ -687,7 +687,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * @ticket 55443
 	 */
 	public function it_should_replace_the_references_to_a_jpg_image_to_a_webp_version( $image_path ) {
-		$attachment_id = $this->factory->attachment->create_upload_object( $image_path );
+		$attachment_id = self::factory()->attachment->create_upload_object( $image_path );
 
 		$tag          = wp_get_attachment_image( $attachment_id, 'medium', false, array( 'class' => "wp-image-{$attachment_id}" ) );
 		$expected_tag = $tag;
@@ -712,7 +712,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * @ticket 55443
 	 */
 	public function it_should_contain_the_full_image_size_from_the_original_mime() {
-		$attachment_id = $this->factory->attachment->create_upload_object(
+		$attachment_id = self::factory()->attachment->create_upload_object(
 			DIR_TESTDATA . '/images/test-image.jpg'
 		);
 
@@ -734,7 +734,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	public function it_should_prevent_replacing_an_image_with_no_available_sources() {
 		add_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
 
-		$attachment_id = $this->factory->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
 
 		$tag = wp_get_attachment_image( $attachment_id, 'full', false, array( 'class' => "wp-image-{$attachment_id}" ) );
 		$this->assertSame( $tag, webp_uploads_img_tag_update_mime_type( $tag, 'the_content', $attachment_id ) );
@@ -748,7 +748,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * @ticket 55443
 	 */
 	public function it_should_prevent_update_not_supported_images_with_no_available_sources( $image_path ) {
-		$attachment_id = $this->factory->attachment->create_upload_object( $image_path );
+		$attachment_id = self::factory()->attachment->create_upload_object( $image_path );
 
 		$this->assertIsNumeric( $attachment_id );
 		$tag = wp_get_attachment_image( $attachment_id, 'full', false, array( 'class' => "wp-image-{$attachment_id}" ) );

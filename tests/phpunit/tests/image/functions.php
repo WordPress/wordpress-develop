@@ -651,7 +651,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( $editor->get_error_message() );
 		}
 
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$test_file,
 			0,
 			array(
@@ -750,7 +750,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( $editor->get_error_message() );
 		}
 
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$test_file,
 			0,
 			array(
@@ -847,7 +847,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( $editor->get_error_message() );
 		}
 
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$test_file,
 			0,
 			array(
@@ -928,7 +928,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( $editor->get_error_message() );
 		}
 
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$pdf_path,
 			0,
 			array(
@@ -1392,7 +1392,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		}
 
 		$attributes    = array( 'post_mime_type' => $mime_type );
-		$attachment_id = $this->factory->attachment->create_object( $file, 0, $attributes );
+		$attachment_id = self::factory()->attachment->create_object( $file, 0, $attributes );
 		$exif_meta     = wp_read_image_metadata( $file );
 
 		list( $editor, $resized, $rotated ) = _wp_maybe_scale_and_rotate_image( $file, $attachment_id, $imagesize, $exif_meta, $mime_type );
