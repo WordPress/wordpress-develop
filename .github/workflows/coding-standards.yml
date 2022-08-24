@@ -67,7 +67,7 @@ jobs:
         uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@3eda58347216592f618bb1dff277810b6698e4ca # v2.19.1
+        uses: shivammathur/setup-php@e04e1d97f0c0481c6e1ba40f8a538454fe5d7709 # v2.21.2
         with:
           php-version: '7.4'
           coverage: none
@@ -85,7 +85,7 @@ jobs:
         run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
 
       - name: Cache PHPCS scan cache
-        uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d # v3.0.4
+        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 # v3.0.8
         with:
           path: .cache/phpcs.json
           key: ${{ runner.os }}-date-${{ steps.get-date.outputs.date }}-phpcs-cache-${{ hashFiles('**/composer.json', 'phpcs.xml.dist') }}
@@ -142,7 +142,7 @@ jobs:
           svn --version
 
       - name: Install NodeJS
-        uses: actions/setup-node@eeb10cff27034e7acf239c5d29f62154018672fd # v3.3.0
+        uses: actions/setup-node@2fddd8803e2f5c9604345a0b591c3020ee971a93 # v3.4.1
         with:
           node-version-file: '.nvmrc'
           cache: npm
