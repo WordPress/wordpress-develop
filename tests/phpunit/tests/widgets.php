@@ -687,27 +687,29 @@ class Tests_Widgets extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers WP_Widget::get_settings
 	 * @ticket 54677
+	 *
+	 * @covers WP_Widget::get_settings
 	 */
-	public function test_wp_widget_initiates_widget_with_alt_option() {
+	public function test_wp_widget_initializes_widget_with_alt_option() {
 		/*
 		 * Pretend the recent posts widget is new.
 		 *
-		 * The widget contains an alt (legacy) option so both the
-		 * new and the old option need to be deleted.
+		 * The widget contains an alternative (legacy) option so both the
+		 * current and the alternative option need to be deleted.
 		 */
 		delete_option( 'widget_recent-posts' );
 		delete_option( 'widget_recent_entries' );
 
 		wp_widgets_init();
-		$this->assertSameSetsWithIndex( array( '_multiwidget' => 1 ), get_option( 'widget_recent-posts' ) );
-		$this->assertFalse( get_option( 'widget_recent_entries' ) );
+		$this->assertSameSetsWithIndex( array( '_multiwidget' => 1 ), get_option( 'widget_recent-posts' ), 'Option failed to be initialized.' );
+		$this->assertFalse( get_option( 'widget_recent_entries' ), 'Alternative option is set.' );
 	}
 
 	/**
-	 * @covers WP_Widget::get_settings
 	 * @ticket 54677
+	 *
+	 * @covers WP_Widget::get_settings
 	 */
 	public function test_wp_widget_migrates_widget_with_alt_option() {
 		$option = array(
@@ -720,17 +722,17 @@ class Tests_Widgets extends WP_UnitTestCase {
 		);
 
 		/*
-		 * Pretend the recent posts widget has a legacy option.
+		 * Pretend the recent posts widget has an alternative option.
 		 *
-		 * The widget contains an alt (legacy) option so both the
-		 * new option is deleted while the legacy option is created.
+		 * The widget contains an alternative (legacy) option so the
+		 * current option is deleted while the alternative option is created.
 		 */
 		delete_option( 'widget_recent-posts' );
 		update_option( 'widget_recent_entries', $option );
 
 		wp_widgets_init();
-		$this->assertSameSetsWithIndex( $option, get_option( 'widget_recent-posts' ) );
-		$this->assertFalse( get_option( 'widget_recent_entries' ) );
+		$this->assertSameSetsWithIndex( $option, get_option( 'widget_recent-posts' ), 'Option failed to be converted to new name.' );
+		$this->assertFalse( get_option( 'widget_recent_entries' ), 'Alternative option was not deleted.' );
 	}
 
 	/**
