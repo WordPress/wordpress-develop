@@ -194,6 +194,28 @@ class Tests_Mail extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 19847
+	 */
+	public function test_wp_mail_with_from_header_missing_space() {
+		$to        = 'address@tld.com';
+		$subject   = 'Testing';
+		$message   = 'Test Message';
+		$from      = 'bar@example.com';
+		$from_name = 'Foo';
+		$headers   = "From: {$from_name}<{$from}>";
+		$corrected = "From: {$from_name} <{$from}>";
+
+		wp_mail( $to, $subject, $message, $headers );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+		// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+		$this->assertSame( $from, $mailer->From );
+		$this->assertSame( $from_name, $mailer->FromName );
+		// phpcs:enable
+		$this->assertStringContainsString( $corrected, $mailer->get_sent()->header );
+	}
+
+	/**
 	 * @ticket 30266
 	 */
 	public function test_wp_mail_with_empty_from_header() {

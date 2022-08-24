@@ -125,7 +125,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	}
 
 	public function test_context_param() {
-		$this->markTestSkipped( 'Controller does not implement context_param().' );
+		$this->markTestSkipped( 'Controller does not use get_context_param().' );
 	}
 
 	public function test_get_items() {

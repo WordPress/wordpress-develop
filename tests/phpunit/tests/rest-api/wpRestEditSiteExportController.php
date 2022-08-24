@@ -102,7 +102,7 @@ class Tests_REST_WpRestEditSiteExportController extends WP_Test_REST_Controller_
 	 * @ticket 54448
 	 */
 	public function test_context_param() {
-		$this->markTestSkipped( 'Controller does not implement context_param().' );
+		$this->markTestSkipped( 'Controller does not use get_context_param().' );
 	}
 
 	/**
