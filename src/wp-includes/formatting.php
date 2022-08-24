@@ -5394,13 +5394,17 @@ function normalize_whitespace( $str ) {
  * @return string The processed string.
  */
 function wp_strip_all_tags( $text, $remove_breaks = false ) {
+	if ( is_null( $text ) ) {
+		return '';
+	}
+
 	if ( ! is_string( $text ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
 				/* translators: %s: The `$string` argument. */
 				__( 'The %s argument must be a string' ),
-				'$string'
+				'$text'
 			),
 			'6.1.0'
 		);
