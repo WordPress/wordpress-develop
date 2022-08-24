@@ -140,7 +140,7 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 		$time = '2014-02-01 00:00:00';
 		wp_update_post(
 			array(
-				'ID'            => $this->post_id,
+				'ID'            => self::$post_id,
 				'post_date'     => $time,
 				'post_date_gmt' => get_gmt_from_date( $time ),
 				'post_name'     => 'bar-baz',
