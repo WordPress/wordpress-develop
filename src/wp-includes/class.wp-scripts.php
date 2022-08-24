@@ -515,7 +515,7 @@ class WP_Scripts extends WP_Dependencies {
 			}
 		}
 
-		$script = "var $object_name = " . wp_json_encode( $l10n ) . ';';
+		$script = "const $object_name = " . wp_json_encode( $l10n ) . "; Object.freeze( $object_name );";
 
 		if ( ! empty( $after ) ) {
 			$script .= "\n$after;";
