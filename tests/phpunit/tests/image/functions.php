@@ -962,7 +962,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @ticket 55443
 	 */
-	public function test_wp_content_pre_generate_additional_image_source() {
+	public function test_wp_pre_generate_additional_image_mime() {
 		$temp_dir = get_temp_dir();
 		$img_path = $temp_dir . 'test.jpg';
 		copy( DIR_TESTDATA . '/images/33772.jpg', $img_path );
@@ -973,7 +973,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( $editor->get_error_message() );
 		}
 
-		add_filter( 'wp_content_pre_generate_additional_image_source', array( $this, 'filter_pre_generate_additional_image_source' ), 10, 5 );
+		add_filter( 'wp_pre_generate_additional_image_mime', array( $this, 'filter_pre_generate_additional_image_mime' ), 10, 5 );
 
 		$attachment_id = $this->factory->attachment->create_object(
 			$img_path,
@@ -989,7 +989,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->assertSame( "filter-image-{$size_meta['width']}x{$size_meta['height']}.webp", $size_meta['sources']['image/webp']['file'] );
 		}
 
-		remove_filter( 'wp_content_pre_generate_additional_image_source', array( $this, 'filter_pre_generate_additional_image_source' ), 10, 5 );
+		remove_filter( 'wp_pre_generate_additional_image_mime', array( $this, 'filter_pre_generate_additional_image_mime' ), 10, 5 );
 	}
 
 	public function filter_pre_generate_additional_image_source( $size_meta, $file, $attachment_id, $size_name, $mime_type ) {

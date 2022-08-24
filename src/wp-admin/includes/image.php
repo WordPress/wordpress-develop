@@ -559,7 +559,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 			 *
 			 * @return array|false Can be array with updated meta information or false.
 			 */
-			$size_meta = apply_filters( 'wp_content_pre_generate_additional_image_source', $size_meta, $file, $attachment_id, $size_name, $mime_type );
+			$size_meta = apply_filters( 'wp_pre_generate_additional_image_mime', $size_meta, $file, $attachment_id, $size_name, $mime_type );
 
 			if ( false === $size_meta ) {
 				unset( $new_sizes[ $size_name ] );
@@ -733,7 +733,7 @@ function _wp_make_additional_mime_types( $new_mime_types, $file, $image_meta, $a
 
 	foreach ( $new_mime_types as $mime_type ) {
 		/** This filter is documented in wp-admin/includes/image.php. */
-		$image_meta = apply_filters( 'wp_content_pre_generate_additional_image_source', $image_meta, $file, $attachment_id, 'full', $mime_type );
+		$image_meta = apply_filters( 'wp_pre_generate_additional_image_mime', $image_meta, $file, $attachment_id, 'full', $mime_type );
 
 		if ( false === $image_meta ) {
 			continue;
