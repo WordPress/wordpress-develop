@@ -147,10 +147,12 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 			)
 		);
 
+		$new_permalink = user_trailingslashit( get_permalink( self::$post_id ) );
+
 		$num_queries = get_num_queries();
 		$this->go_to( $permalink );
 		wp_old_slug_redirect();
-		$this->assertSame( $permalink, $this->old_date_redirect_url );
+		$this->assertSame( $new_permalink, $this->old_date_redirect_url );
 		$this->assertGreaterThan( $num_queries, get_num_queries() );
 	}
 
