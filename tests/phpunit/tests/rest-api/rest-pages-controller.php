@@ -410,7 +410,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_item() {
-
+		$this->markTestSkipped( 'Controller does not implement get_item().' );
 	}
 
 	public function test_get_item_invalid_post_type() {
@@ -421,7 +421,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_create_item() {
-
+		$this->markTestSkipped( 'Controller does not implement create_item().' );
 	}
 
 	public function test_create_item_with_template() {
@@ -486,7 +486,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_update_item() {
-
+		$this->markTestSkipped( 'Controller does not implement update_item().' );
 	}
 
 	public function test_delete_item() {
@@ -509,7 +509,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_prepare_item() {
-
+		$this->markTestSkipped( 'Controller does not implement prepare_item().' );
 	}
 
 	public function test_prepare_item_limit_fields() {
