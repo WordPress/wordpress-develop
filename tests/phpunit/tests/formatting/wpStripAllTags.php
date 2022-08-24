@@ -31,5 +31,38 @@ class Tests_Formatting_wpStripAllTags extends WP_UnitTestCase {
 		$text = "lorem<style>* { display: 'none' }<script>alert( document.cookie )</script></style>ipsum";
 		$this->assertSame( 'loremipsum', wp_strip_all_tags( $text ) );
 	}
+
+	/**
+	 * Tests that `wp_strip_all_tags()` throws a `_doing_it_wrong()` and returns
+	 * an empty string when passed a non-string `$string` argument.
+	 *
+	 * @ticket 56434
+	 *
+	 * @expectedIncorrectUsage wp_strip_all_tags
+	 *
+	 * @dataProvider data_wp_strip_all_tags_should_throw_doing_it_wrong_for_non_string
+	 *
+	 * @param mixed $non_string A non-string value.
+	 */
+	public function test_wp_strip_all_tags_should_return_empty_string_and_throw_doing_it_wrong_for_non_string_arg( $non_string ) {
+		$this->assertSame( '', wp_strip_all_tags( $non_string ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_wp_strip_all_tags_should_throw_doing_it_wrong_for_non_string() {
+		return array(
+			'(int) 0'           => array( 'non_string' => 0 ),
+			'(int) 1'           => array( 'non_string' => 1 ),
+			'(bool) false'      => array( 'non_string' => false ),
+			'(bool) true'       => array( 'non_string' => true ),
+			'an empty array'    => array( 'non_string' => array() ),
+			'a non-empty array' => array( 'non_string' => array( 'a string' ) ),
+			'an object'         => array( 'non_string' => new stdClass() ),
+		);
+	}
 }
 
