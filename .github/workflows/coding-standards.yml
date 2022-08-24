@@ -194,7 +194,7 @@ jobs:
         with:
           github-token: ${{ secrets.GHA_WORKFLOW_DISPATCH }}
           script: |
-            const result = await github.rest.actions.createWorkflowDispatch({
+            github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: 'failed-workflow.yml',
