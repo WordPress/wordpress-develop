@@ -162,7 +162,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 	 */
 	public function test_get_items_forbidden() {
 		// Set current user without `edit_posts` capability.
-		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'subscriber' ) ) );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
 
 		$request  = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
 		$response = rest_do_request( $request );

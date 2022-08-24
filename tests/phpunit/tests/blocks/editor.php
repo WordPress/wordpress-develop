@@ -28,7 +28,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 			'post_title' => 'Example',
 		);
 
-		$post = $this->factory()->post->create_and_get( $args );
+		$post = self::factory()->post->create_and_get( $args );
 
 		global $wp_rest_server;
 		$wp_rest_server = new Spy_REST_Server;

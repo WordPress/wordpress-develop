@@ -5256,7 +5256,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 */
 	public function test_draft_post_does_not_have_the_same_slug_as_existing_post() {
 		wp_set_current_user( self::$editor_id );
-		$this->factory()->post->create( array( 'post_name' => 'sample-slug' ) );
+		self::factory()->post->create( array( 'post_name' => 'sample-slug' ) );
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 		$params  = $this->set_post_data(
