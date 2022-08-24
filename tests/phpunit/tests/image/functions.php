@@ -992,7 +992,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		remove_filter( 'wp_pre_generate_additional_image_mime', array( $this, 'filter_pre_generate_additional_image_mime' ), 10, 5 );
 	}
 
-	public function filter_pre_generate_additional_image_source( $size_meta, $file, $attachment_id, $size_name, $mime_type ) {
+	public function filter_pre_generate_additional_image_mime( $size_meta, $file, $attachment_id, $size_name, $mime_type ) {
 		if ( 'image/webp' === $mime_type ) {
 			$size_meta['sources'][ $mime_type ] = array(
 				'file'     => "filter-image-{$size_meta['width']}x{$size_meta['height']}.webp",
