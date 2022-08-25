@@ -641,10 +641,10 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	}
 
 	/**
-	 * The context_param() method does not exist for block rendering.
+	 * The get_context_param() method is not used for block rendering.
 	 */
 	public function test_context_param() {
-		$this->markTestSkipped( 'Controller does not implement context_param().' );
+		$this->markTestSkipped( 'Controller does not use get_context_param().' );
 	}
 
 	/**

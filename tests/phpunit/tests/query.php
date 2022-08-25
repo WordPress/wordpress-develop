@@ -719,4 +719,54 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_User', get_queried_object() );
 		$this->assertSame( get_queried_object_id(), $user_id );
 	}
+
+	/**
+	 * Tests that the `posts_clauses` filter receives an array of clauses
+	 * with the other `posts_*` filters applied, e.g. `posts_join_paged`.
+	 *
+	 * @ticket 55699
+	 * @covers WP_Query::get_posts
+	 */
+	public function test_posts_clauses_filter_should_receive_filtered_clauses() {
+		add_filter(
+			'posts_join_paged',
+			static function() {
+				return '/* posts_join_paged */';
+			}
+		);
+
+		$filter = new MockAction();
+		add_filter( 'posts_clauses', array( $filter, 'filter' ), 10, 2 );
+		$this->go_to( '/' );
+		$filter_args   = $filter->get_args();
+		$posts_clauses = $filter_args[0][0];
+
+		$this->assertArrayHasKey( 'join', $posts_clauses );
+		$this->assertSame( '/* posts_join_paged */', $posts_clauses['join'] );
+	}
+
+	/**
+	 * Tests that the `posts_clauses_request` filter receives an array of clauses
+	 * with the other `posts_*_request` filters applied, e.g. `posts_join_request`.
+	 *
+	 * @ticket 55699
+	 * @covers WP_Query::get_posts
+	 */
+	public function test_posts_clauses_request_filter_should_receive_filtered_clauses() {
+		add_filter(
+			'posts_join_request',
+			static function() {
+				return '/* posts_join_request */';
+			}
+		);
+
+		$filter = new MockAction();
+		add_filter( 'posts_clauses_request', array( $filter, 'filter' ), 10, 2 );
+		$this->go_to( '/' );
+		$filter_args           = $filter->get_args();
+		$posts_clauses_request = $filter_args[0][0];
+
+		$this->assertArrayHasKey( 'join', $posts_clauses_request );
+		$this->assertSame( '/* posts_join_request */', $posts_clauses_request['join'] );
+	}
 }

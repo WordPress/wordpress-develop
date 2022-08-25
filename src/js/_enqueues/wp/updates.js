@@ -34,6 +34,7 @@
 		__ = wp.i18n.__,
 		_x = wp.i18n._x,
 		_n = wp.i18n._n,
+		_nx = wp.i18n._nx,
 		sprintf = wp.i18n.sprintf;
 
 	wp = wp || {};
@@ -970,6 +971,8 @@
 			var $form            = $( '#bulk-action-form' ),
 				$views           = $( '.subsubsub' ),
 				$pluginRow       = $( this ),
+				$currentView     = $views.find( '[aria-current="page"]' ),
+				$itemsCount      = $( '.displaying-num' ),
 				columnCount      = $form.find( 'thead th:not(.hidden), thead td' ).length,
 				pluginDeletedRow = wp.template( 'item-deleted-row' ),
 				/**
@@ -977,7 +980,8 @@
 				 *
 				 * @type {Object}
 				 */
-				plugins          = settings.plugins;
+				plugins          = settings.plugins,
+				remainingCount;
 
 			// Add a success message after deleting a plugin.
 			if ( ! $pluginRow.hasClass( 'plugin-update-tr' ) ) {
@@ -1056,6 +1060,17 @@
 				if ( ! $form.find( 'tr.no-items' ).length ) {
 					$form.find( '#the-list' ).append( '<tr class="no-items"><td class="colspanchange" colspan="' + columnCount + '">' + __( 'No plugins are currently available.' ) + '</td></tr>' );
 				}
+			}
+
+			if ( $itemsCount.length && $currentView.length ) {
+				remainingCount = plugins[ $currentView.parent( 'li' ).attr('class') ].length;
+				$itemsCount.text(
+					sprintf(
+						/* translators: %s: The remaining number of plugins. */
+						_nx( '%s item', '%s items', 'plugin/plugins', remainingCount ),
+						remainingCount
+					)
+				);
 			}
 		} );
 
@@ -2520,7 +2535,7 @@
 
 			data = {
 				_ajax_nonce: wp.updates.ajaxNonce,
-				s:           event.target.value,
+				s:           encodeURIComponent( event.target.value ),
 				tab:         'search',
 				type:        $( '#typeselector' ).val(),
 				pagenow:     pagenow
@@ -2597,7 +2612,7 @@
 		$pluginSearch.on( 'keyup input', _.debounce( function( event ) {
 			var data = {
 				_ajax_nonce:   wp.updates.ajaxNonce,
-				s:             event.target.value,
+				s:             encodeURIComponent( event.target.value ),
 				pagenow:       pagenow,
 				plugin_status: 'all'
 			},

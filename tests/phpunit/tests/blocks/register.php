@@ -253,6 +253,23 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 55513
+	 */
+	public function test_success_register_block_script_handle_in_theme() {
+		switch_theme( 'block-theme' );
+
+		$metadata = array(
+			'file'       => wp_normalize_path( get_theme_file_path( 'blocks/example-block/block.json' ) ),
+			'name'       => 'block-theme/example-block',
+			'viewScript' => 'file:./view.js',
+		);
+		$result   = register_block_script_handle( $metadata, 'viewScript' );
+
+		$expected_script_handle = 'block-theme-example-block-view-script';
+		$this->assertSame( $expected_script_handle, $result );
+	}
+
+	/**
 	 * @ticket 50263
 	 */
 	public function test_field_not_found_register_block_style_handle() {
@@ -306,6 +323,24 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 55513
+	 */
+	public function test_success_register_block_style_handle_in_theme() {
+		switch_theme( 'block-theme' );
+
+		$metadata = array(
+			'file'        => wp_normalize_path( get_theme_file_path( 'blocks/example-block/block.json' ) ),
+			'name'        => 'block-theme/example-block',
+			'editorStyle' => 'file:./editor-style.css',
+		);
+		$result   = register_block_style_handle( $metadata, 'editorStyle' );
+
+		$expected_style_handle = 'block-theme-example-block-editor-style';
+		$this->assertSame( $expected_style_handle, $result );
+		$this->assertSame( 'replace', wp_styles()->get_data( $expected_style_handle, 'rtl' ) );
+	}
+
+	/**
 	 * Tests that the function returns false when the `block.json` is not found
 	 * in the WordPress core.
 	 *
@@ -346,7 +381,8 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$this->assertSame( 'tests/notice', $result->name );
 		$this->assertSame( 'Notice', $result->title );
 		$this->assertSame( 'common', $result->category );
-		$this->assertSameSets( array( 'core/group' ), $result->parent );
+		$this->assertSameSets( array( 'tests/group' ), $result->parent );
+		$this->assertSameSets( array( 'tests/section' ), $result->ancestor );
 		$this->assertSame( 'star', $result->icon );
 		$this->assertSame( 'Shows warning, error or success notices…', $result->description );
 		$this->assertSameSets( array( 'alert', 'message' ), $result->keywords );
@@ -357,6 +393,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 					'source'   => 'html',
 					'selector' => '.message',
 				),
+				'lock'    => array( 'type' => 'object' ),
 			),
 			$result->attributes
 		);
@@ -513,6 +550,21 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		// Test string (without blocks).
 		$content = file_get_contents( DIR_TESTDATA . '/blocks/do-blocks-expected.html' );
 		$this->assertFalse( has_blocks( $content ) );
+	}
+
+	/**
+	 * Tests that `has_blocks()` returns `false` with an invalid post.
+	 *
+	 * @ticket 55705
+	 *
+	 * @covers ::has_blocks
+	 */
+	public function test_has_blocks_with_invalid_post() {
+		$a_post = (object) array(
+			'ID'     => 55705,
+			'filter' => 'display',
+		);
+		$this->assertFalse( has_blocks( $a_post ) );
 	}
 
 	/**

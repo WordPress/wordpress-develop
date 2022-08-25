@@ -18,11 +18,11 @@ if ( ! defined( 'WP_ADMIN' ) ) {
  * @global string    $hook_suffix
  * @global WP_Screen $current_screen     WordPress current screen object.
  * @global WP_Locale $wp_locale          WordPress date and time locale object.
- * @global string    $pagenow
+ * @global string    $pagenow            The filename of the current screen.
  * @global string    $update_title
  * @global int       $total_update_count
  * @global string    $parent_file
- * @global string    $typenow
+ * @global string    $typenow            The post type of the current screen.
  */
 global $title, $hook_suffix, $current_screen, $wp_locale, $pagenow,
 	$update_title, $total_update_count, $parent_file, $typenow;

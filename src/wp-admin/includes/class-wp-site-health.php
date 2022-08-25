@@ -381,10 +381,9 @@ class WP_Site_Health {
 		$plugins        = get_plugins();
 		$plugin_updates = get_plugin_updates();
 
-		$plugins_have_updates = false;
-		$plugins_active       = 0;
-		$plugins_total        = 0;
-		$plugins_need_update  = 0;
+		$plugins_active      = 0;
+		$plugins_total       = 0;
+		$plugins_need_update = 0;
 
 		// Loop over the available plugins and check their versions and active state.
 		foreach ( $plugins as $plugin_path => $plugin ) {
@@ -394,11 +393,8 @@ class WP_Site_Health {
 				$plugins_active++;
 			}
 
-			$plugin_version = $plugin['Version'];
-
 			if ( array_key_exists( $plugin_path, $plugin_updates ) ) {
 				$plugins_need_update++;
-				$plugins_have_updates = true;
 			}
 		}
 
@@ -432,7 +428,7 @@ class WP_Site_Health {
 					'<p>%s</p>',
 					__( 'Your site has 1 active plugin, and it is up to date.' )
 				);
-			} else {
+			} elseif ( $plugins_active > 0 ) {
 				$result['description'] .= sprintf(
 					'<p>%s</p>',
 					sprintf(
@@ -444,6 +440,11 @@ class WP_Site_Health {
 						),
 						$plugins_active
 					)
+				);
+			} else {
+				$result['description'] .= sprintf(
+					'<p>%s</p>',
+					__( 'Your site does not have any active plugins.' )
 				);
 			}
 		}
@@ -467,7 +468,7 @@ class WP_Site_Health {
 					),
 					$unused_plugins
 				),
-				__( 'Inactive plugins are tempting targets for attackers. If you&#8217;re not going to use a plugin, you should consider removing it.' )
+				__( 'Inactive plugins are tempting targets for attackers. If you are not going to use a plugin, you should consider removing it.' )
 			);
 
 			$result['actions'] .= sprintf(
@@ -595,7 +596,7 @@ class WP_Site_Health {
 					'<p>%s</p>',
 					__( 'Your site has 1 installed theme, and it is up to date.' )
 				);
-			} else {
+			} elseif ( $themes_total > 0 ) {
 				$result['description'] .= sprintf(
 					'<p>%s</p>',
 					sprintf(
@@ -607,6 +608,11 @@ class WP_Site_Health {
 						),
 						$themes_total
 					)
+				);
+			} else {
+				$result['description'] .= sprintf(
+					'<p>%s</p>',
+					__( 'Your site does not have any installed themes.' )
 				);
 			}
 		}
@@ -634,7 +640,7 @@ class WP_Site_Health {
 						),
 						sprintf(
 							/* translators: 1: The currently active theme. 2: The active theme's parent theme. */
-							__( 'To enhance your site&#8217;s security, you should consider removing any themes you&#8217;re not using. You should keep your active theme, %1$s, and %2$s, its parent theme.' ),
+							__( 'To enhance your site&#8217;s security, you should consider removing any themes you are not using. You should keep your active theme, %1$s, and %2$s, its parent theme.' ),
 							$active_theme->name,
 							$active_theme->parent()->name
 						)
@@ -653,7 +659,7 @@ class WP_Site_Health {
 						),
 						sprintf(
 							/* translators: 1: The default theme for WordPress. 2: The currently active theme. 3: The active theme's parent theme. */
-							__( 'To enhance your site&#8217;s security, you should consider removing any themes you&#8217;re not using. You should keep %1$s, the default WordPress theme, %2$s, your active theme, and %3$s, its parent theme.' ),
+							__( 'To enhance your site&#8217;s security, you should consider removing any themes you are not using. You should keep %1$s, the default WordPress theme, %2$s, your active theme, and %3$s, its parent theme.' ),
 							$default_theme ? $default_theme->name : WP_DEFAULT_THEME,
 							$active_theme->name,
 							$active_theme->parent()->name
@@ -802,30 +808,33 @@ class WP_Site_Health {
 	 * Make the check for available PHP modules into a simple boolean operator for a cleaner test runner.
 	 *
 	 * @since 5.2.0
-	 * @since 5.3.0 The `$constant` and `$class` parameters were added.
+	 * @since 5.3.0 The `$constant_name` and `$class_name` parameters were added.
 	 *
-	 * @param string $extension Optional. The extension name to test. Default null.
-	 * @param string $function  Optional. The function name to test. Default null.
-	 * @param string $constant  Optional. The constant name to test for. Default null.
-	 * @param string $class     Optional. The class name to test for. Default null.
+	 * @param string $extension_name Optional. The extension name to test. Default null.
+	 * @param string $function_name  Optional. The function name to test. Default null.
+	 * @param string $constant_name  Optional. The constant name to test for. Default null.
+	 * @param string $class_name     Optional. The class name to test for. Default null.
 	 * @return bool Whether or not the extension and function are available.
 	 */
-	private function test_php_extension_availability( $extension = null, $function = null, $constant = null, $class = null ) {
+	private function test_php_extension_availability( $extension_name = null, $function_name = null, $constant_name = null, $class_name = null ) {
 		// If no extension or function is passed, claim to fail testing, as we have nothing to test against.
-		if ( ! $extension && ! $function && ! $constant && ! $class ) {
+		if ( ! $extension_name && ! $function_name && ! $constant_name && ! $class_name ) {
 			return false;
 		}
 
-		if ( $extension && ! extension_loaded( $extension ) ) {
+		if ( $extension_name && ! extension_loaded( $extension_name ) ) {
 			return false;
 		}
-		if ( $function && ! function_exists( $function ) ) {
+
+		if ( $function_name && ! function_exists( $function_name ) ) {
 			return false;
 		}
-		if ( $constant && ! defined( $constant ) ) {
+
+		if ( $constant_name && ! defined( $constant_name ) ) {
 			return false;
 		}
-		if ( $class && ! class_exists( $class ) ) {
+
+		if ( $class_name && ! class_exists( $class_name ) ) {
 			return false;
 		}
 
@@ -994,10 +1003,10 @@ class WP_Site_Health {
 		$failures = array();
 
 		foreach ( $modules as $library => $module ) {
-			$extension  = ( isset( $module['extension'] ) ? $module['extension'] : null );
-			$function   = ( isset( $module['function'] ) ? $module['function'] : null );
-			$constant   = ( isset( $module['constant'] ) ? $module['constant'] : null );
-			$class_name = ( isset( $module['class'] ) ? $module['class'] : null );
+			$extension_name = ( isset( $module['extension'] ) ? $module['extension'] : null );
+			$function_name  = ( isset( $module['function'] ) ? $module['function'] : null );
+			$constant_name  = ( isset( $module['constant'] ) ? $module['constant'] : null );
+			$class_name     = ( isset( $module['class'] ) ? $module['class'] : null );
 
 			// If this module is a fallback for another function, check if that other function passed.
 			if ( isset( $module['fallback_for'] ) ) {
@@ -1012,7 +1021,10 @@ class WP_Site_Health {
 				}
 			}
 
-			if ( ! $this->test_php_extension_availability( $extension, $function, $constant, $class_name ) && ( ! isset( $module['php_bundled_version'] ) || version_compare( PHP_VERSION, $module['php_bundled_version'], '<' ) ) ) {
+			if ( ! $this->test_php_extension_availability( $extension_name, $function_name, $constant_name, $class_name )
+				&& ( ! isset( $module['php_bundled_version'] )
+					|| version_compare( PHP_VERSION, $module['php_bundled_version'], '<' ) )
+			) {
 				if ( $module['required'] ) {
 					$result['status'] = 'critical';
 

@@ -99,4 +99,17 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 		$this->assertFalse( $has_action_after );
 
 	}
+
+	public function test_applies_registration_args_filters() {
+		$taxonomy = 'taxonomy5';
+		$action   = new MockAction();
+
+		add_filter( 'register_taxonomy_args', array( $action, 'filter' ) );
+		add_filter( "register_{$taxonomy}_taxonomy_args", array( $action, 'filter' ) );
+
+		new WP_Taxonomy( $taxonomy, 'post' );
+		new WP_Taxonomy( 'random', 'post' );
+
+		$this->assertSame( 3, $action->get_call_count() );
+	}
 }

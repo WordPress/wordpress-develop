@@ -322,7 +322,7 @@ function edit_post( $post_data = null ) {
 	foreach ( $format_meta_urls as $format_meta_url ) {
 		$keyed = '_format_' . $format_meta_url;
 		if ( isset( $post_data[ $keyed ] ) ) {
-			update_post_meta( $post_ID, $keyed, wp_slash( esc_url_raw( wp_unslash( $post_data[ $keyed ] ) ) ) );
+			update_post_meta( $post_ID, $keyed, wp_slash( sanitize_url( wp_unslash( $post_data[ $keyed ] ) ) ) );
 		}
 	}
 
@@ -597,8 +597,14 @@ function bulk_edit_posts( $post_data = null ) {
 
 		$post      = get_post( $post_ID );
 		$tax_names = get_object_taxonomies( $post );
+
 		foreach ( $tax_names as $tax_name ) {
 			$taxonomy_obj = get_taxonomy( $tax_name );
+
+			if ( ! $taxonomy_obj->show_in_quick_edit ) {
+				continue;
+			}
+
 			if ( isset( $tax_input[ $tax_name ] ) && current_user_can( $taxonomy_obj->cap->assign_terms ) ) {
 				$new_terms = $tax_input[ $tax_name ];
 			} else {
@@ -1069,7 +1075,7 @@ function update_meta( $meta_id, $meta_key, $meta_value ) {
 //
 
 /**
- * Replace hrefs of attachment anchors with up-to-date permalinks.
+ * Replaces hrefs of attachment anchors with up-to-date permalinks.
  *
  * @since 2.3.0
  * @access private
@@ -1361,6 +1367,7 @@ function postbox_classes( $box_id, $screen_id ) {
 	 * @param string[] $classes An array of postbox classes.
 	 */
 	$classes = apply_filters( "postbox_classes_{$screen_id}_{$box_id}", $classes );
+
 	return implode( ' ', $classes );
 }
 
@@ -1369,7 +1376,7 @@ function postbox_classes( $box_id, $screen_id ) {
  *
  * @since 2.5.0
  *
- * @param int|WP_Post $id    Post ID or post object.
+ * @param int|WP_Post $post  Post ID or post object.
  * @param string|null $title Optional. Title to override the post's current title
  *                           when generating the post name. Default null.
  * @param string|null $name  Optional. Name to override the post name. Default null.
@@ -1380,8 +1387,9 @@ function postbox_classes( $box_id, $screen_id ) {
  *     @type string $1 The post name.
  * }
  */
-function get_sample_permalink( $id, $title = null, $name = null ) {
-	$post = get_post( $id );
+function get_sample_permalink( $post, $title = null, $name = null ) {
+	$post = get_post( $post );
+
 	if ( ! $post ) {
 		return array( '', '' );
 	}
@@ -1461,13 +1469,14 @@ function get_sample_permalink( $id, $title = null, $name = null ) {
  *
  * @since 2.5.0
  *
- * @param int|WP_Post $id        Post ID or post object.
+ * @param int|WP_Post $post      Post ID or post object.
  * @param string|null $new_title Optional. New title. Default null.
  * @param string|null $new_slug  Optional. New slug. Default null.
  * @return string The HTML of the sample permalink slug editor.
  */
-function get_sample_permalink_html( $id, $new_title = null, $new_slug = null ) {
-	$post = get_post( $id );
+function get_sample_permalink_html( $post, $new_title = null, $new_slug = null ) {
+	$post = get_post( $post );
+
 	if ( ! $post ) {
 		return '';
 	}
@@ -1504,9 +1513,9 @@ function get_sample_permalink_html( $id, $new_title = null, $new_slug = null ) {
 
 		// Encourage a pretty permalink setting.
 		if ( ! get_option( 'permalink_structure' ) && current_user_can( 'manage_options' )
-			&& ! ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' ) == $id )
+			&& ! ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' ) == $post->ID )
 		) {
-			$return .= '<span id="change-permalinks"><a href="options-permalink.php" class="button button-small" target="_blank">' . __( 'Change Permalinks' ) . "</a></span>\n";
+			$return .= '<span id="change-permalinks"><a href="options-permalink.php" class="button button-small">' . __( 'Change Permalink Structure' ) . "</a></span>\n";
 		}
 	} else {
 		if ( mb_strlen( $post_name ) > 34 ) {
@@ -1621,17 +1630,19 @@ function _wp_post_thumbnail_html( $thumbnail_id = null, $post = null ) {
  *
  * @since 2.5.0
  *
- * @param int|WP_Post $post_id ID or object of the post to check for editing.
+ * @param int|WP_Post $post ID or object of the post to check for editing.
  * @return int|false ID of the user with lock. False if the post does not exist, post is not locked,
  *                   the user with lock does not exist, or the post is locked by current user.
  */
-function wp_check_post_lock( $post_id ) {
-	$post = get_post( $post_id );
+function wp_check_post_lock( $post ) {
+	$post = get_post( $post );
+
 	if ( ! $post ) {
 		return false;
 	}
 
 	$lock = get_post_meta( $post->ID, '_edit_lock', true );
+
 	if ( ! $lock ) {
 		return false;
 	}
@@ -1659,17 +1670,24 @@ function wp_check_post_lock( $post_id ) {
  *
  * @since 2.5.0
  *
- * @param int|WP_Post $post_id ID or object of the post being edited.
- * @return array|false Array of the lock time and user ID. False if the post does not exist, or
- *                     there is no current user.
+ * @param int|WP_Post $post ID or object of the post being edited.
+ * @return array|false {
+ *     Array of the lock time and user ID. False if the post does not exist, or there
+ *     is no current user.
+ *
+ *     @type int $0 The current time as a Unix timestamp.
+ *     @type int $1 The ID of the current user.
+ * }
  */
-function wp_set_post_lock( $post_id ) {
-	$post = get_post( $post_id );
+function wp_set_post_lock( $post ) {
+	$post = get_post( $post );
+
 	if ( ! $post ) {
 		return false;
 	}
 
 	$user_id = get_current_user_id();
+
 	if ( 0 == $user_id ) {
 		return false;
 	}
@@ -1689,12 +1707,14 @@ function wp_set_post_lock( $post_id ) {
  */
 function _admin_notice_post_locked() {
 	$post = get_post();
+
 	if ( ! $post ) {
 		return;
 	}
 
 	$user    = null;
 	$user_id = wp_check_post_lock( $post->ID );
+
 	if ( $user_id ) {
 		$user = get_userdata( $user_id );
 	}
@@ -1924,6 +1944,7 @@ function post_preview() {
 	$_POST['ID'] = $post_ID;
 
 	$post = get_post( $post_ID );
+
 	if ( ! $post ) {
 		wp_die( __( 'Sorry, you are not allowed to edit this post.' ) );
 	}
@@ -2136,76 +2157,6 @@ function taxonomy_meta_box_sanitize_cb_input( $taxonomy, $terms ) {
 }
 
 /**
- * Returns whether the post can be edited in the block editor.
- *
- * @since 5.0.0
- *
- * @param int|WP_Post $post Post ID or WP_Post object.
- * @return bool Whether the post can be edited in the block editor.
- */
-function use_block_editor_for_post( $post ) {
-	$post = get_post( $post );
-
-	if ( ! $post ) {
-		return false;
-	}
-
-	// We're in the meta box loader, so don't use the block editor.
-	if ( isset( $_GET['meta-box-loader'] ) ) {
-		check_admin_referer( 'meta-box-loader', 'meta-box-loader-nonce' );
-		return false;
-	}
-
-	$use_block_editor = use_block_editor_for_post_type( $post->post_type );
-
-	/**
-	 * Filters whether a post is able to be edited in the block editor.
-	 *
-	 * @since 5.0.0
-	 *
-	 * @param bool    $use_block_editor Whether the post can be edited or not.
-	 * @param WP_Post $post             The post being checked.
-	 */
-	return apply_filters( 'use_block_editor_for_post', $use_block_editor, $post );
-}
-
-/**
- * Returns whether a post type is compatible with the block editor.
- *
- * The block editor depends on the REST API, and if the post type is not shown in the
- * REST API, then it won't work with the block editor.
- *
- * @since 5.0.0
- *
- * @param string $post_type The post type.
- * @return bool Whether the post type can be edited with the block editor.
- */
-function use_block_editor_for_post_type( $post_type ) {
-	if ( ! post_type_exists( $post_type ) ) {
-		return false;
-	}
-
-	if ( ! post_type_supports( $post_type, 'editor' ) ) {
-		return false;
-	}
-
-	$post_type_object = get_post_type_object( $post_type );
-	if ( $post_type_object && ! $post_type_object->show_in_rest ) {
-		return false;
-	}
-
-	/**
-	 * Filters whether a post is able to be edited in the block editor.
-	 *
-	 * @since 5.0.0
-	 *
-	 * @param bool   $use_block_editor  Whether the post type can be edited or not. Default true.
-	 * @param string $post_type         The post type being checked.
-	 */
-	return apply_filters( 'use_block_editor_for_post_type', true, $post_type );
-}
-
-/**
  * Prepares server-registered blocks for the block editor.
  *
  * Returns an associative array of registered block data keyed by block name. Data includes properties
@@ -2231,6 +2182,7 @@ function get_block_editor_server_block_settings() {
 		'styles'           => 'styles',
 		'textdomain'       => 'textdomain',
 		'parent'           => 'parent',
+		'ancestor'         => 'ancestor',
 		'keywords'         => 'keywords',
 		'example'          => 'example',
 		'variations'       => 'variations',
@@ -2336,12 +2288,12 @@ function the_block_editor_meta_boxes() {
 		}
 	}
 
-	/**
-	 * Sadly we probably can not add this data directly into editor settings.
+	/*
+	 * Sadly we probably cannot add this data directly into editor settings.
 	 *
-	 * Some meta boxes need admin_head to fire for meta box registry.
-	 * admin_head fires after admin_enqueue_scripts, which is where we create our
-	 * editor instance.
+	 * Some meta boxes need `admin_head` to fire for meta box registry.
+	 * `admin_head` fires after `admin_enqueue_scripts`, which is where we create
+	 * our editor instance.
 	 */
 	$script = 'window._wpLoadBlockEditor.then( function() {
 		wp.data.dispatch( \'core/edit-post\' ).setAvailableMetaBoxesPerLocation( ' . wp_json_encode( $meta_boxes_per_location ) . ' );
@@ -2349,19 +2301,21 @@ function the_block_editor_meta_boxes() {
 
 	wp_add_inline_script( 'wp-edit-post', $script );
 
-	/**
-	 * When `wp-edit-post` is output in the `<head>`, the inline script needs to be manually printed. Otherwise,
-	 * meta boxes will not display because inline scripts for `wp-edit-post` will not be printed again after this point.
+	/*
+	 * When `wp-edit-post` is output in the `<head>`, the inline script needs to be manually printed.
+	 * Otherwise, meta boxes will not display because inline scripts for `wp-edit-post`
+	 * will not be printed again after this point.
 	 */
 	if ( wp_script_is( 'wp-edit-post', 'done' ) ) {
 		printf( "<script type='text/javascript'>\n%s\n</script>\n", trim( $script ) );
 	}
 
-	/**
-	 * If the 'postcustom' meta box is enabled, then we need to perform some
-	 * extra initialization on it.
+	/*
+	 * If the 'postcustom' meta box is enabled, then we need to perform
+	 * some extra initialization on it.
 	 */
 	$enable_custom_fields = (bool) get_user_meta( get_current_user_id(), 'enable_custom_fields', true );
+
 	if ( $enable_custom_fields ) {
 		$script = "( function( $ ) {
 			if ( $('#postcustom').length ) {
@@ -2405,8 +2359,9 @@ function the_block_editor_meta_box_post_form_hidden_fields( $post ) {
 	wp_nonce_field( $nonce_action );
 
 	/*
-	 * Some meta boxes hook into these actions to add hidden input fields in the classic post form. For backwards
-	 * compatibility, we can capture the output from these actions, and extract the hidden input fields.
+	 * Some meta boxes hook into these actions to add hidden input fields in the classic post form.
+	 * For backward compatibility, we can capture the output from these actions,
+	 * and extract the hidden input fields.
 	 */
 	ob_start();
 	/** This filter is documented in wp-admin/edit-form-advanced.php */
