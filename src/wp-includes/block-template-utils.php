@@ -552,10 +552,8 @@ function _build_block_template_result_from_post( $post ) {
 	}
 
 	$theme          = $terms[0]->name;
-	$template_file = null;
-	if ( wp_get_theme()->get_stylesheet() === $theme ) {
-		$template_file = _get_block_template_file( $post->post_type, $post->post_name );
-	}
+	$template_file = _get_block_template_file( $post->post_type, $post->post_name );
+	$has_theme_file = wp_get_theme()->get_stylesheet() === $theme && null !== $template_file;
 
 	$origin = get_post_meta( $post->ID, 'origin', true );
 
@@ -571,11 +569,11 @@ function _build_block_template_result_from_post( $post ) {
 	$template->description    = $post->post_excerpt;
 	$template->title          = $post->post_title;
 	$template->status         = $post->post_status;
-	$template->has_theme_file = null !== $template_file;
+	$template->has_theme_file = $has_theme_file;
 	$template->is_custom      = true;
 	$template->author         = $post->post_author;
 
-	if ( null !== $template_file && isset( $template_file['postTypes'] ) ) {
+	if ( 'wp_template' === $post->post_type && $has_theme_file && isset( $template_file['postTypes'] ) ) {
 		$template->post_types = $template_file['postTypes'];
 	}
 
