@@ -93,7 +93,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	 * @requires function imagejpeg
 	 */
 	public function test_get_intermediate_sizes_by_name() {
-		add_image_size( 'test-size', 330, 220, true );
+		add_image_size( 'test-size', 330, 220, true, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
 		$id   = $this->_make_attachment( $file, 0 );
@@ -115,9 +115,9 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	 */
 	public function test_get_intermediate_sizes_by_array_exact() {
 		// Only one dimention match shouldn't return false positive (see: #17626).
-		add_image_size( 'test-size', 330, 220, true );
-		add_image_size( 'false-height', 330, 400, true );
-		add_image_size( 'false-width', 600, 220, true );
+		add_image_size( 'test-size', 330, 220, true, true );
+		add_image_size( 'false-height', 330, 400, true, true );
+		add_image_size( 'false-width', 600, 220, true, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
 		$id   = $this->_make_attachment( $file, 0 );
@@ -138,9 +138,9 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	public function test_get_intermediate_sizes_by_array_nearest() {
 		// If an exact size is not found, it should be returned.
 		// If not, find nearest size that is larger (see: #17626).
-		add_image_size( 'test-size', 450, 300, true );
-		add_image_size( 'false-height', 330, 100, true );
-		add_image_size( 'false-width', 150, 220, true );
+		add_image_size( 'test-size', 450, 300, true, true );
+		add_image_size( 'false-height', 330, 100, true, true );
+		add_image_size( 'false-width', 150, 220, true, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
 		$id   = $this->_make_attachment( $file, 0 );
@@ -161,8 +161,8 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	public function test_get_intermediate_sizes_by_array_nearest_false() {
 		// If an exact size is not found, it should be returned.
 		// If not, find nearest size that is larger, otherwise return false (see: #17626).
-		add_image_size( 'false-height', 330, 100, true );
-		add_image_size( 'false-width', 150, 220, true );
+		add_image_size( 'false-height', 330, 100, true, true );
+		add_image_size( 'false-width', 150, 220, true, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
 		$id   = $this->_make_attachment( $file, 0 );
@@ -185,8 +185,8 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		$width = 300;
 
 		// Only one dimention match shouldn't return false positive (see: #17626).
-		add_image_size( 'test-size', $width, 0, false );
-		add_image_size( 'false-height', $width, 100, true );
+		add_image_size( 'test-size', $width, 0, false, true );
+		add_image_size( 'false-height', $width, 100, true, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
 		$id   = $this->_make_attachment( $file, 0 );
@@ -214,8 +214,8 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		$height = 202;
 
 		// Only one dimention match shouldn't return false positive (see: #17626).
-		add_image_size( 'test-size', 0, $height, false );
-		add_image_size( 'false-height', 300, $height, true );
+		add_image_size( 'test-size', 0, $height, false, true );
+		add_image_size( 'false-height', 300, $height, true, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
 		$id   = $this->_make_attachment( $file, 0 );
@@ -242,7 +242,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		// Original is 600x400. 300x201 is close enough to match.
 		$width  = 300;
 		$height = 201;
-		add_image_size( 'off-by-one', $width, $height, true );
+		add_image_size( 'off-by-one', $width, $height, true, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
 		$id   = $this->_make_attachment( $file, 0 );
@@ -264,7 +264,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	 */
 	public function test_get_intermediate_size_with_small_size_array() {
 		// Add a hard cropped size that matches the aspect ratio we're going to test.
-		add_image_size( 'test-size', 200, 100, true );
+		add_image_size( 'test-size', 200, 100, true, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
 		$id   = $this->_make_attachment( $file, 0 );

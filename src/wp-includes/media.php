@@ -275,26 +275,29 @@ function image_downsize( $id, $size = 'medium' ) {
  * Register a new image size.
  *
  * @since 2.9.0
+ * @since 6.1.0 Add the $output_mimes parameter.
  *
  * @global array $_wp_additional_image_sizes Associative array of additional image sizes.
  *
- * @param string     $name   Image size identifier.
- * @param int        $width  Optional. Image width in pixels. Default 0.
- * @param int        $height Optional. Image height in pixels. Default 0.
- * @param bool|array $crop   Optional. Image cropping behavior. If false, the image will be scaled (default),
- *                           If true, image will be cropped to the specified dimensions using center positions.
- *                           If an array, the image will be cropped using the array to specify the crop location.
- *                           Array values must be in the format: array( x_crop_position, y_crop_position ) where:
- *                               - x_crop_position accepts: 'left', 'center', or 'right'.
- *                               - y_crop_position accepts: 'top', 'center', or 'bottom'.
+ * @param string     $name         Image size identifier.
+ * @param int        $width        Optional. Image width in pixels. Default 0.
+ * @param int        $height       Optional. Image height in pixels. Default 0.
+ * @param bool|array $crop         Optional. Image cropping behavior. If false, the image will be scaled (default),
+ *                                 If true, image will be cropped to the specified dimensions using center positions.
+ *                                 If an array, the image will be cropped using the array to specify the crop location.
+ *                                 Array values must be in the format: array( x_crop_position, y_crop_position ) where:
+ *                                     - x_crop_position accepts: 'left', 'center', or 'right'.
+ *                                     - y_crop_position accepts: 'top', 'center', or 'bottom'.
+ * @param bool       $output_mimes Whether to output secondary mimes for this image size. Default is false.
  */
-function add_image_size( $name, $width = 0, $height = 0, $crop = false ) {
+function add_image_size( $name, $width = 0, $height = 0, $crop = false, $output_mimes = false ) {
 	global $_wp_additional_image_sizes;
 
 	$_wp_additional_image_sizes[ $name ] = array(
-		'width'  => absint( $width ),
-		'height' => absint( $height ),
-		'crop'   => $crop,
+		'width'        => absint( $width ),
+		'height'       => absint( $height ),
+		'crop'         => $crop,
+		'output_mimes' => $output_mimes,
 	);
 }
 
@@ -343,9 +346,10 @@ function remove_image_size( $name ) {
  * @param int        $height Image height in pixels.
  * @param bool|array $crop   Optional. Whether to crop images to specified width and height or resize.
  *                           An array can specify positioning of the crop area. Default false.
+ * @param bool       $output_mimes Whether to output secondary mimes for the post thumbnail. Default is true.
  */
-function set_post_thumbnail_size( $width = 0, $height = 0, $crop = false ) {
-	add_image_size( 'post-thumbnail', $width, $height, $crop );
+function set_post_thumbnail_size( $width = 0, $height = 0, $crop = false, $output_mimes = true ) {
+	add_image_size( 'post-thumbnail', $width, $height, $crop, true );
 }
 
 /**
@@ -923,6 +927,10 @@ function wp_get_registered_image_subsizes() {
 
 		if ( ! is_array( $size_data['crop'] ) || empty( $size_data['crop'] ) ) {
 			$size_data['crop'] = (bool) $size_data['crop'];
+		}
+
+		if ( isset( $additional_sizes[ $size_name ]['output_mimes'] ) ) {
+			$size_data['output_mimes'] = $additional_sizes[ $size_name ]['output_mimes'];
 		}
 
 		$all_sizes[ $size_name ] = $size_data;
@@ -5316,9 +5324,9 @@ function wp_media_personal_data_exporter( $email_address, $page = 1 ) {
  */
 function _wp_add_additional_image_sizes() {
 	// 2x medium_large size.
-	add_image_size( '1536x1536', 1536, 1536 );
+	add_image_size( '1536x1536', 1536, 1536, false, true );
 	// 2x large size.
-	add_image_size( '2048x2048', 2048, 2048 );
+	add_image_size( '2048x2048', 2048, 2048, false, true );
 }
 
 /**
