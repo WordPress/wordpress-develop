@@ -83,6 +83,7 @@ class Tests_Formatting_wpStripAllTags extends WP_UnitTestCase {
 	 */
 	public function data_non_scalar_values() {
 		return array(
+			'null'               => array( 'non_scalar' => null ),
 			'an empty array'     => array( 'non_scalar' => array() ),
 			'a non-empty array'  => array( 'non_scalar' => array( 'howdy', 'admin' ) ),
 			'an empty object'    => array( 'non_scalar' => new stdClass() ),
