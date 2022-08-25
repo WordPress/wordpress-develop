@@ -5390,6 +5390,16 @@ function normalize_whitespace( $str ) {
  * @return string The processed string.
  */
 function wp_strip_all_tags( $string, $remove_breaks = false ) {
+	// Skip processing for non-string values.
+	if ( ! is_string( $string ) ) {
+		return is_scalar( $string ) ? (string) $string : '';
+	}
+
+	// Skip processing for empty strings.
+	if ( '' === trim( $string ) ) {
+		return '';
+	}
+
 	$string = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $string );
 	$string = strip_tags( $string );
 
