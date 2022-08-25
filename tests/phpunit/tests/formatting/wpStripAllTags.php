@@ -54,8 +54,10 @@ class Tests_Formatting_wpStripAllTags extends WP_UnitTestCase {
 		return array(
 			'(int) 0'      => array( 'scalar' => 0 ),
 			'(int) 1'      => array( 'scalar' => 1 ),
+			'(int) -1'     => array( 'scalar' => -1 ),
 			'(float) 0.0'  => array( 'scalar' => 0.0 ),
 			'(float) 1.0'  => array( 'scalar' => 1.0 ),
+			'(float) -1.0' => array( 'scalar' => -1.0 ),
 			'(bool) false' => array( 'scalar' => false ),
 			'(bool) true'  => array( 'scalar' => true ),
 		);
