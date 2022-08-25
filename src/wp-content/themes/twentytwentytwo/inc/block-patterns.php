@@ -45,6 +45,7 @@ function twentytwentytwo_register_block_patterns() {
 	}
 
 	$block_patterns = array(
+		'comments',
 		'footer-default',
 		'footer-dark',
 		'footer-logo',
