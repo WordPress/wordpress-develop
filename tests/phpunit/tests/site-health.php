@@ -210,10 +210,10 @@ class Tests_Site_Health extends WP_UnitTestCase {
 	 * @return array[]
 	 */
 	public function data_page_cache_test() {
-		$recommended_label = 'Page caching is not detected but the server response time is OK';
-		$good_label        = 'Page caching is detected and the server response time is good';
-		$critical_label    = 'Page caching is not detected and the server response time is slow';
-		$error_label       = 'Unable to detect the presence of page caching';
+		$recommended_label = 'Page cache is not detected but the server response time is OK';
+		$good_label        = 'Page cache is detected and the server response time is good';
+		$critical_label    = 'Page cache is not detected and the server response time is slow';
+		$error_label       = 'Unable to detect the presence of page cache';
 
 		return array(
 			'basic-auth-fail'                        => array(

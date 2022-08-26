@@ -266,7 +266,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @return array
+	 * @return array The test result.
 	 */
 	public function test_page_cache() {
 		$this->load_admin_textdomain();

@@ -1657,15 +1657,15 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Tests if Full Page Cache is available.
+	 * Tests if a full page cache is available.
 	 *
 	 * @since 6.1.0
 	 *
 	 * @return array The test results.
 	 */
 	public function get_test_page_cache() {
-		$description  = '<p>' . __( 'Page caching enhances the speed and performance of your site by saving and serving static pages instead of calling for a page every time a user visits.' ) . '</p>';
-		$description .= '<p>' . __( 'Page caching is detected by looking for an active page caching plugin as well as making three requests to the homepage and looking for one or more of the following HTTP client caching response headers:' ) . '</p>';
+		$description  = '<p>' . __( 'Page cache enhances the speed and performance of your site by saving and serving static pages instead of calling for a page every time a user visits.' ) . '</p>';
+		$description .= '<p>' . __( 'Page cache is detected by looking for an active page cache plugin as well as making three requests to the homepage and looking for one or more of the following HTTP client caching response headers:' ) . '</p>';
 		$description .= '<code>' . implode( '</code>, <code>', array_keys( $this->get_page_cache_headers() ) ) . '.</code>';
 
 		$result = array(
@@ -1680,7 +1680,7 @@ class WP_Site_Health {
 			'actions'     => sprintf(
 				'<p><a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				__( 'https://wordpress.org/support/article/optimization/#Caching' ),
-				__( 'Learn more about page caching' ),
+				__( 'Learn more about page cache' ),
 				/* translators: Accessibility text. */
 				__( '(opens in a new tab)' )
 			),
@@ -1689,11 +1689,11 @@ class WP_Site_Health {
 		$page_cache_detail = $this->get_page_cache_detail();
 
 		if ( is_wp_error( $page_cache_detail ) ) {
-			$result['label']  = __( 'Unable to detect the presence of page caching' );
+			$result['label']  = __( 'Unable to detect the presence of page cache' );
 			$result['status'] = 'recommended';
 			$error_info       = sprintf(
 			/* translators: 1 is error message, 2 is error code */
-				__( 'Unable to detect page caching due to possible loopback request problem. Please verify that the loopback request test is passing. Error: %1$s (Code: %2$s)' ),
+				__( 'Unable to detect page cache due to possible loopback request problem. Please verify that the loopback request test is passing. Error: %1$s (Code: %2$s)' ),
 				$page_cache_detail->get_error_message(),
 				$page_cache_detail->get_error_code()
 			);
@@ -1705,16 +1705,16 @@ class WP_Site_Health {
 
 		switch ( $page_cache_detail['status'] ) {
 			case 'recommended':
-				$result['label'] = __( 'Page caching is not detected but the server response time is OK' );
+				$result['label'] = __( 'Page cache is not detected but the server response time is OK' );
 				break;
 			case 'good':
-				$result['label'] = __( 'Page caching is detected and the server response time is good' );
+				$result['label'] = __( 'Page cache is detected and the server response time is good' );
 				break;
 			default:
 				if ( empty( $page_cache_detail['headers'] ) && ! $page_cache_detail['advanced_cache_present'] ) {
-					$result['label'] = __( 'Page caching is not detected and the server response time is slow' );
+					$result['label'] = __( 'Page cache is not detected and the server response time is slow' );
 				} else {
-					$result['label'] = __( 'Page caching is detected but the server response time is still slow' );
+					$result['label'] = __( 'Page cache is detected but the server response time is still slow' );
 				}
 		}
 
@@ -1760,10 +1760,10 @@ class WP_Site_Health {
 		}
 
 		if ( $page_cache_detail['advanced_cache_present'] ) {
-			$page_cache_test_summary[] = '<span class="dashicons dashicons-yes-alt"></span> ' . __( 'A page caching plugin was detected.' );
+			$page_cache_test_summary[] = '<span class="dashicons dashicons-yes-alt"></span> ' . __( 'A page cache plugin was detected.' );
 		} elseif ( ! ( is_array( $page_cache_detail ) && ! empty( $page_cache_detail['headers'] ) ) ) {
 			// Note: This message is not shown if client caching response headers were present since an external caching layer may be employed.
-			$page_cache_test_summary[] = '<span class="dashicons dashicons-warning"></span> ' . __( 'A page caching plugin was not detected.' );
+			$page_cache_test_summary[] = '<span class="dashicons dashicons-warning"></span> ' . __( 'A page cache plugin was not detected.' );
 		}
 
 		$result['description'] .= '<ul><li>' . implode( '</li><li>', $page_cache_test_summary ) . '</li></ul>';
@@ -1775,7 +1775,7 @@ class WP_Site_Health {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @return array The test results.
+	 * @return array The test result.
 	 */
 	public function get_test_ssl_support() {
 		$result = array(
@@ -2490,7 +2490,7 @@ class WP_Site_Health {
 		// Only check for Full Page Cache in production environments.
 		if ( 'production' === wp_get_environment_type() ) {
 			$tests['async']['page_cache'] = array(
-				'label'             => __( 'Page caching' ),
+				'label'             => __( 'Page cache' ),
 				'test'              => rest_url( 'wp-site-health/v1/tests/page-cache' ),
 				'has_rest'          => true,
 				'async_direct_test' => array( WP_Site_Health::get_instance(), 'get_test_page_cache' ),
@@ -3014,6 +3014,7 @@ class WP_Site_Health {
 		 * Filters the list of cache headers supported by core.
 		 *
 		 * @since 6.1.0
+		 *
 		 * @param int $cache_headers Array of supported cache headers.
 		 */
 		return apply_filters( 'site_status_page_cache_supported_cache_headers', $cache_headers );
@@ -3025,9 +3026,9 @@ class WP_Site_Health {
 	 * @since 6.1.0
 	 *
 	 * @return WP_Error|array {
-	 *     Page caching detection details or else error information.
+	 *     Page cache detection details or else error information.
 	 *
-	 *     @type bool    $advanced_cache_present        Whether a page caching plugin is present.
+	 *     @type bool    $advanced_cache_present        Whether a page cache plugin is present.
 	 *     @type array[] $page_caching_response_headers Sets of client caching headers for the responses.
 	 *     @type float[] $response_timing               Response timings.
 	 * }
@@ -3128,7 +3129,7 @@ class WP_Site_Health {
 		}
 		$headers = array_unique( $headers );
 
-		// Page caching is detected if there are response headers or a page caching plugin is present.
+		// Page cache is detected if there are response headers or a page cache plugin is present.
 		$has_page_caching = ( count( $headers ) > 0 || $page_cache_detail['advanced_cache_present'] );
 
 		if ( $page_speed && $page_speed < $this->get_good_response_time_threshold() ) {
