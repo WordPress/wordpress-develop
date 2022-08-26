@@ -32,7 +32,7 @@ class Tests_Kses_WpFilterGlobalStylesPost extends WP_UnitTestCase {
 	 */
 	public function test_should_not_remove_safe_global_style_rules() {
 		$filtered_user_theme_json = $this->filter_global_styles( $this->user_theme_data );
-		$this->assertArrayNotHasKey( 'nonSchemaRule', $filtered_user_theme_json, 'Filtered json data must not contain unsafe global style rules.' );
+		$this->assertArrayHasKey( 'styles', $filtered_user_theme_json, 'Filtered json data must contain safe global style rules.' );
 	}
 
 	/**
@@ -40,7 +40,7 @@ class Tests_Kses_WpFilterGlobalStylesPost extends WP_UnitTestCase {
 	 */
 	public function test_should_remove_unsafe_global_style_rules() {
 		$filtered_user_theme_json = $this->filter_global_styles( $this->user_theme_data );
-		$this->assertArrayHasKey( 'styles', $filtered_user_theme_json, 'Filtered json data must contain safe global style rules.' );
+		$this->assertArrayNotHasKey( 'nonSchemaRule', $filtered_user_theme_json, 'Filtered json data must not contain unsafe global style rules.' );
 	}
 
 	/**
