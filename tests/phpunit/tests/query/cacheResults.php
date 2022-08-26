@@ -914,11 +914,11 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		);
 
 		$post_ids_q1 = get_posts( $args );
-		$this->assertNotContains( $post_id, $post_ids_q1, 'Post is not excluded from first query.' );
+		$this->assertNotContains( $post_id, $post_ids_q1, 'First query includes the post ID.' );
 
 		$num_queries = get_num_queries();
 		$post_ids_q2 = get_posts( $args );
-		$this->assertNotContains( $post_id, $post_ids_q2, 'Post is not excluded from second query.' );
+		$this->assertNotContains( $post_id, $post_ids_q2, 'Second query includes the post ID.' );
 
 		$this->assertSame( $num_queries, get_num_queries(), 'Second query is not cached.' );
 	}
@@ -943,13 +943,13 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		);
 
 		$post_ids = get_posts( $args );
-		$this->assertContains( $post_id, $post_ids, 'Initial query does not include expected post ID.' );
+		$this->assertContains( $post_id, $post_ids, 'First query does not include the post ID.' );
 
 		wp_set_object_terms( $post_id, array( $term_id ), 'category' );
 
 		$num_queries = get_num_queries();
 		$post_ids    = get_posts( $args );
-		$this->assertNotContains( $post_id, $post_ids, 'Applying term does not exclude post as expected.' );
+		$this->assertNotContains( $post_id, $post_ids, 'Second query includes the post ID.' );
 		$this->assertNotSame( $num_queries, get_num_queries(), 'Applying term does not invalidate previous cache.' );
 	}
 
@@ -981,6 +981,6 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$num_queries = get_num_queries();
 		$post_ids    = get_posts( $args );
 		$this->assertContains( $post_id, $post_ids, 'Second query does not include the post ID.' );
-		$this->assertNotSame( $num_queries, get_num_queries(), 'Applying term does not invalidate previous cache.' );
+		$this->assertNotSame( $num_queries, get_num_queries(), 'Removing term does not invalidate previous cache.' );
 	}
 }
