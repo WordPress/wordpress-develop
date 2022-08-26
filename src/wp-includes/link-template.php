@@ -262,7 +262,10 @@ function get_permalink( $post = 0, $leavename = false ) {
 		$author = '';
 		if ( strpos( $permalink, '%author%' ) !== false ) {
 			$authordata = get_userdata( $post->post_author );
-			$author     = $authordata->user_nicename;
+
+			if ( false !== $authordata ) {
+				$author = $authordata->user_nicename;
+			}
 		}
 
 		// This is not an API call because the permalink is based on the stored post_date value,
