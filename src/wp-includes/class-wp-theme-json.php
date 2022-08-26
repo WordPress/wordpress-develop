@@ -1477,7 +1477,7 @@ class WP_Theme_JSON {
 
 		if ( isset( $theme_json['styles']['elements'] ) ) {
 			foreach ( $theme_json['styles']['elements'] as $element => $node ) {
-				if ( ! isset( $theme_json['styles']['elements'][ $element ] ) || empty( static::ELEMENTS[ $element ] ) ) {
+				if ( ! isset( $theme_json['styles']['elements'][ $element ] ) || ! array_key_exists( $element, static::ELEMENTS ) ) {
 					continue;
 				}
 				$nodes[] = array(
