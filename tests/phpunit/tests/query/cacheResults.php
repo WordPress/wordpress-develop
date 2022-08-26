@@ -903,14 +903,14 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$post_id = self::$posts[0];
 
 		$args = array(
-				'fields'    => 'ids',
-				'tax_query' => array(
-						array(
-								'taxonomy' => 'category',
-								'terms'    => array( $term_id ),
-								'operator' => 'NOT IN',
-						),
+			'fields'    => 'ids',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'category',
+					'terms'    => array( $term_id ),
+					'operator' => 'NOT IN',
 				),
+			),
 		);
 
 		$post_ids_q1 = get_posts( $args );
@@ -932,14 +932,14 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$post_id = self::$posts[1];
 
 		$args = array(
-				'fields'    => 'ids',
-				'tax_query' => array(
-						array(
-								'taxonomy' => 'category',
-								'terms'    => array( $term_id ),
-								'operator' => 'NOT IN',
-						),
+			'fields' => 'ids',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'category',
+					'terms'    => array( $term_id ),
+					'operator' => 'NOT IN',
 				),
+			),
 		);
 
 		$post_ids = get_posts( $args );
