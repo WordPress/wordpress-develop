@@ -7,9 +7,27 @@
 class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 	private $taxonomy = 'wptests_tax';
 
+	/**
+	 * Temporary storage for taxonomies for tests using filter callbacks.
+	 *
+	 * Used in the `test_taxonomies_passed_to_wp_get_object_terms_filter_should_be_quoted()` method.
+	 *
+	 * @var array
+	 */
+	private $taxonomies;
+
 	public function set_up() {
 		parent::set_up();
 		register_taxonomy( 'wptests_tax', 'post' );
+	}
+
+	/**
+	 * Clean up after each test.
+	 */
+	public function tear_down() {
+		unset( $this->taxonomies );
+
+		parent::tear_down();
 	}
 
 	public function test_get_object_terms_by_slug() {
