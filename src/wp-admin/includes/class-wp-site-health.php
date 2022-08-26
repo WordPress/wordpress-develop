@@ -2309,7 +2309,7 @@ class WP_Site_Health {
 
 		$available_services = $this->available_object_cache_services();
 
-		$notes = __( 'Your hosting provider can tell you if persistent object caches are able to be enabled on your site.' );
+		$notes = __( 'Your hosting provider can tell you if persistent object cache can be enabled on your site.' );
 
 		if ( ! empty( $available_services ) ) {
 			$notes .= ' ' . sprintf(
