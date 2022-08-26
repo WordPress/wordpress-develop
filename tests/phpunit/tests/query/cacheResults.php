@@ -932,7 +932,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$post_id = self::$posts[1];
 
 		$args = array(
-			'fields' => 'ids',
+			'fields'    => 'ids',
 			'tax_query' => array(
 				array(
 					'taxonomy' => 'category',
@@ -948,7 +948,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		wp_set_object_terms( $post_id, array( $term_id ), 'category' );
 
 		$num_queries = get_num_queries();
-		$post_ids = get_posts( $args );
+		$post_ids    = get_posts( $args );
 		$this->assertNotContains( $post_id, $post_ids, 'Applying term does not exclude post as expected.' );
 		$this->assertNotSame( $num_queries, get_num_queries(), 'Applying term does not invalidate previous cache.' );
 	}
