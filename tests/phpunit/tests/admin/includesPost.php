@@ -686,6 +686,41 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertSame( 'child-page', $actual[1] );
 	}
 
+	/**
+	 * Test if get_sample_permalink preserves the WP_Post properties.
+	 *
+	 * @ticket 54736
+	 */
+	public function test_get_sample_permalink_should_preserve_the_original_post_properties() {
+		$post_test_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_date'   => '2022-08-27 00:00:00',
+				'post_name'   => 'foo',
+				'filter'      => 'raw',
+			)
+		);
+
+		add_filter(
+			'get_sample_permalink',
+			function( $permalink, $post_id, $title, $name, $post ) {
+				$this->assertTrue( isset( $post->post_status ), 'Failed asserting that object of class "WP_Post" has attribute "post_status".' );
+				$this->assertTrue( isset( $post->post_date ), 'Failed asserting that object of class "WP_Post" has attribute "post_date".' );
+				$this->assertTrue( isset( $post->post_name ), 'Failed asserting that object of class "WP_Post" has attribute "post_name".' );
+				$this->assertTrue( isset( $post->filter ), 'Failed asserting that object of class "WP_Post" has attribute "filter".' );
+
+				$this->assertSame( 'publish', $post->post_status );
+				$this->assertSame( '2022-08-27 00:00:00', $post->post_date );
+				$this->assertSame( 'foo', $post->post_name );
+				$this->assertSame( 'raw', $post->filter );
+			},
+			10,
+			5
+		);
+
+		get_sample_permalink( $post_test_id );
+	}
+
 	public function test_post_exists_should_match_title() {
 		$p = self::factory()->post->create(
 			array(
