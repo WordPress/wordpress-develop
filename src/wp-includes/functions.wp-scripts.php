@@ -340,10 +340,12 @@ function wp_deregister_script( $handle ) {
  *                                    as a query string for cache busting purposes. If version is set to false, a version
  *                                    number is automatically added equal to current installed WordPress version.
  *                                    If set to null, no version is added.
+ *  @param array           $attr      Optional. For adding custom attributes to script tag. Allowed attributes ('async', 'crossorigin',
+ *                                    'defer', 'integrity', 'nonce', 'referrerpolicy', 'type')
  * @param bool             $in_footer Optional. Whether to enqueue the script before `</body>` instead of in the `<head>`.
  *                                    Default 'false'.
  */
-function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $in_footer = false ) {
+function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $in_footer = false, $attr = array() ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
 	$wp_scripts = wp_scripts();
@@ -352,7 +354,7 @@ function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $
 		$_handle = explode( '?', $handle );
 
 		if ( $src ) {
-			$wp_scripts->add( $_handle[0], $src, $deps, $ver );
+			$wp_scripts->add( $_handle[0], $src, $deps, $ver, null, $attr );
 		}
 
 		if ( $in_footer ) {

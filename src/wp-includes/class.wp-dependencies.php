@@ -250,13 +250,15 @@ class WP_Dependencies {
 	 *                                 If set to null, no version is added.
 	 * @param mixed            $args   Optional. Custom property of the item. NOT the class property $args.
 	 *                                 Examples: $media, $in_footer.
+	 * @param array            $attr   Optional. For adding custom attributes to script tag. Allowed attributes ('async', 'crossorigin',
+	 *                                    'defer', 'integrity', 'nonce', 'referrerpolicy', 'type')
 	 * @return bool Whether the item has been registered. True on success, false on failure.
 	 */
-	public function add( $handle, $src, $deps = array(), $ver = false, $args = null ) {
+	public function add( $handle, $src, $deps = array(), $ver = false, $args = null, $attr = array() ) {
 		if ( isset( $this->registered[ $handle ] ) ) {
 			return false;
 		}
-		$this->registered[ $handle ] = new _WP_Dependency( $handle, $src, $deps, $ver, $args );
+		$this->registered[ $handle ] = new _WP_Dependency( $handle, $src, $deps, $ver, $args, $attr );
 
 		// If the item was enqueued before the details were registered, enqueue it now.
 		if ( array_key_exists( $handle, $this->queued_before_register ) ) {

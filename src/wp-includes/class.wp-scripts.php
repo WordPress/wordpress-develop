@@ -285,6 +285,7 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		$src         = $obj->src;
+		$attributes  = $obj->attr;
 		$cond_before = '';
 		$cond_after  = '';
 		$conditional = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
@@ -390,8 +391,48 @@ class WP_Scripts extends WP_Dependencies {
 			return true;
 		}
 
+		/** process custom attributes */
+		$allowed_attributes = array( 'async', 'crossorigin', 'defer', 'integrity', 'nonce', 'referrerpolicy', 'type' );
+
+		$attributes_string = '';
+		$type_attribute_exist    = false;
+
+		foreach ( $attributes as $key => $value ) {
+			if ( in_array( $key, $allowed_attributes ) ) {
+				if ( esc_attr( $value ) ) {
+					$attributes_string .= sprintf( " %s='%s' ", $key, $value );
+
+					if ( 'type' === $key ) {
+						$type_attribute_exist = true;
+					}
+				} else {
+					_doing_it_wrong(
+						__METHOD__,
+						sprintf(
+							__( 'This %s value is not valid for attribute' ),
+							'<code>$value</code>'
+						),
+						'5.8.2'
+					);
+				}
+			} else {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						__( 'This %s attribute is not supported with script tag' ),
+						'<code>$key</code>'
+					),
+					'5.8.2'
+				);
+			}
+		}
+
+		if ( true === $type_attribute_exist ) {
+			$this->type_attr = '';
+		}
+
 		$tag  = $translations . $cond_before . $before_handle;
-		$tag .= sprintf( "<script%s src='%s' id='%s-js'></script>\n", $this->type_attr, $src, esc_attr( $handle ) );
+		$tag .= sprintf( "<script%s src='%s' id='%s-js' %s></script>\n", $this->type_attr, $src, esc_attr( $handle ), $attributes_string );
 		$tag .= $after_handle . $cond_after;
 
 		/**
