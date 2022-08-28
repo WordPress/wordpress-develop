@@ -95,9 +95,12 @@ if ( is_multisite() ) :
 		 * @covers WP_MS_Users_List_Table::get_views
 		 */
 		public function test_get_views_should_return_views_by_default() {
+			$all   = get_user_count();
+			$super = count( get_super_admins() );
+
 			$expected = array(
-				'all'   => '<a href="http://example.org/wp-admin/network/users.php" class="current" aria-current="page">All <span class="count">(1)</span></a>',
-				'super' => '<a href="http://example.org/wp-admin/network/users.php?role=super">Super Admin <span class="count">(1)</span></a>',
+				'all'   => '<a href="http://example.org/wp-admin/network/users.php" class="current" aria-current="page">All <span class="count">(' . $all . ')</span></a>',
+				'super' => '<a href="http://example.org/wp-admin/network/users.php?role=super">Super Admin <span class="count">(' . $super . ')</span></a>',
 			);
 
 			$this->assertSame( $expected, $this->table->get_views() );
