@@ -124,23 +124,23 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	}
 
 	/**
-		 * Tests the "get_views_links()" method.
-		 *
-		 * @ticket 42066
-		 *
-		 * @covers WP_List_Table::get_views_links
-		 *
-		 * @dataProvider data_get_views_links
-		 *
-		 * @param array $link_data {
-		 *     An array of link data.
-		 *
-		 *     @type string $url     The link URL.
-		 *     @type string $label   The link label.
-		 *     @type bool   $current Optional. Whether this is the currently selected view.
-		 * }
-		 * @param array $expected
-		 */
+	 * Tests the "get_views_links()" method.
+	 *
+	 * @ticket 42066
+	 *
+	 * @covers WP_List_Table::get_views_links
+	 *
+	 * @dataProvider data_get_views_links
+	 *
+	 * @param array $link_data {
+	 *     An array of link data.
+	 *
+	 *     @type string $url     The link URL.
+	 *     @type string $label   The link label.
+	 *     @type bool   $current Optional. Whether this is the currently selected view.
+	 * }
+	 * @param array $expected
+	 */
 	public function test_get_views_links( $link_data, $expected ) {
 		$get_views_links = new ReflectionMethod( self::$list_table, 'get_views_links' );
 		$get_views_links->setAccessible( true );
