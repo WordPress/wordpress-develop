@@ -107,4 +107,75 @@ class Tests_Site_Health extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @group ms-excluded
+	 * @ticket 56040
+	 */
+	public function test_object_cache_default_thresholds() {
+		$wp_site_health = new WP_Site_Health();
+
+		$this->assertFalse(
+			$wp_site_health->should_suggest_persistent_object_cache()
+		);
+	}
+
+
+	/**
+	 * @group ms-required
+	 * @ticket 56040
+	 */
+	public function test_object_cache_default_thresholds_on_multisite() {
+		$wp_site_health = new WP_Site_Health();
+		$this->assertTrue(
+			$wp_site_health->should_suggest_persistent_object_cache()
+		);
+	}
+
+	/**
+	 * @ticket 56040
+	 */
+	public function test_object_cache_thresholds_check_can_be_bypassed() {
+		$wp_site_health = new WP_Site_Health();
+		add_filter( 'site_status_should_suggest_persistent_object_cache', '__return_true' );
+
+		$this->assertTrue(
+			$wp_site_health->should_suggest_persistent_object_cache()
+		);
+	}
+
+	/**
+	 * @dataProvider thresholds
+	 * @ticket 56040
+	 */
+	public function test_object_cache_thresholds( $threshold, $count ) {
+		$wp_site_health = new WP_Site_Health();
+		add_filter(
+			'site_status_persistent_object_cache_thresholds',
+			function ( $thresholds ) use ( $threshold, $count ) {
+				return array_merge( $thresholds, array( $threshold => $count ) );
+			}
+		);
+
+		$this->assertTrue(
+			$wp_site_health->should_suggest_persistent_object_cache()
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @ticket 56040
+	 */
+	public function thresholds() {
+		return array(
+			array( 'comments_count', 0 ),
+			array( 'posts_count', 0 ),
+			array( 'terms_count', 1 ),
+			array( 'options_count', 100 ),
+			array( 'users_count', 0 ),
+			array( 'alloptions_count', 100 ),
+			array( 'alloptions_bytes', 1000 ),
+		);
+	}
 }
