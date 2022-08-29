@@ -192,7 +192,7 @@ function export_date_options( $post_type = 'post' ) {
 	<li>
 		<label><span class="label-responsive"><?php _e( 'Authors:' ); ?></span>
 		<?php
-		$authors = $wpdb->get_col( "SELECT DISTINCT post_author FROM {$wpdb->posts} WHERE post_type = 'post'" );
+		$authors = $wpdb->get_col( $wpdb->prepare( 'SELECT DISTINCT post_author FROM %i WHERE post_type = "post"', $wpdb->posts ) );
 		wp_dropdown_users(
 			array(
 				'include'         => $authors,
@@ -239,7 +239,7 @@ function export_date_options( $post_type = 'post' ) {
 	<li>
 		<label><span class="label-responsive"><?php _e( 'Authors:' ); ?></span>
 		<?php
-		$authors = $wpdb->get_col( "SELECT DISTINCT post_author FROM {$wpdb->posts} WHERE post_type = 'page'" );
+		$authors = $wpdb->get_col( $wpdb->prepare( 'SELECT DISTINCT post_author FROM %i WHERE post_type = "page"', $wpdb->posts ) );
 		wp_dropdown_users(
 			array(
 				'include'         => $authors,

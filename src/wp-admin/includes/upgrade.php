@@ -160,7 +160,7 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 		$cat_slug = sanitize_title( _x( 'Uncategorized', 'Default category slug' ) );
 
 		if ( global_terms_enabled() ) {
-			$cat_id = $wpdb->get_var( $wpdb->prepare( "SELECT cat_ID FROM {$wpdb->sitecategories} WHERE category_nicename = %s", $cat_slug ) );
+			$cat_id = $wpdb->get_var( $wpdb->prepare( 'SELECT cat_ID FROM %i WHERE category_nicename = %s', $wpdb->sitecategories, $cat_slug ) );
 			if ( null == $cat_id ) {
 				$wpdb->insert(
 					$wpdb->sitecategories,
@@ -2252,7 +2252,8 @@ function upgrade_560() {
 	if ( $wp_current_db_version < 49752 ) {
 		$results = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT 1 FROM {$wpdb->usermeta} WHERE meta_key = %s LIMIT 1",
+				'SELECT 1 FROM %i WHERE meta_key = %s LIMIT 1',
+				$wpdb->usermeta,
 				WP_Application_Passwords::USERMETA_KEY_APPLICATION_PASSWORDS
 			)
 		);
@@ -2665,7 +2666,7 @@ function __get_option( $setting ) { // phpcs:ignore WordPress.NamingConventions.
 		return untrailingslashit( WP_SITEURL );
 	}
 
-	$option = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name = %s", $setting ) );
+	$option = $wpdb->get_var( $wpdb->prepare( 'SELECT option_value FROM %i WHERE option_name = %s', $wpdb->options, $setting ) );
 
 	if ( 'home' === $setting && ! $option ) {
 		return __get_option( 'siteurl' );
@@ -2806,7 +2807,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 
 		// Fetch the table column structure from the database.
 		$suppress    = $wpdb->suppress_errors();
-		$tablefields = $wpdb->get_results( "DESCRIBE {$table};" );
+		$tablefields = $wpdb->get_results( $wpdb->prepare( 'DESCRIBE %i', $table ) );
 		$wpdb->suppress_errors( $suppress );
 
 		if ( ! $tablefields ) {
@@ -3053,7 +3054,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 		}
 
 		// Index stuff goes here. Fetch the table index structure from the database.
-		$tableindices = $wpdb->get_results( "SHOW INDEX FROM {$table};" );
+		$tableindices = $wpdb->get_results( $wpdb->prepare( 'SHOW INDEX FROM %i', $table ) );
 
 		if ( $tableindices ) {
 			// Clear the index array.

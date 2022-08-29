@@ -2044,7 +2044,7 @@ function wp_delete_term( $term, $taxonomy, $args = array() ) {
 	// Get the term before deleting it or its term relationships so we can pass to actions below.
 	$deleted_term = get_term( $term, $taxonomy );
 
-	$object_ids = (array) $wpdb->get_col( $wpdb->prepare( "SELECT object_id FROM $wpdb->term_relationships WHERE term_taxonomy_id = %d", $tt_id ) );
+	$object_ids = (array) $wpdb->get_col( $wpdb->prepare( 'SELECT object_id FROM %i WHERE term_taxonomy_id = %d', $wpdb->term_relationships, $tt_id ) );
 
 	foreach ( $object_ids as $object_id ) {
 		if ( ! isset( $default ) ) {
@@ -2080,7 +2080,7 @@ function wp_delete_term( $term, $taxonomy, $args = array() ) {
 		clean_object_term_cache( $object_ids, $object_type );
 	}
 
-	$term_meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->termmeta WHERE term_id = %d ", $term ) );
+	$term_meta_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT meta_id FROM %i WHERE term_id = %d', $wpdb->termmeta, $term ) );
 	foreach ( $term_meta_ids as $mid ) {
 		delete_metadata_by_mid( 'term', $mid );
 	}
@@ -2106,7 +2106,7 @@ function wp_delete_term( $term, $taxonomy, $args = array() ) {
 	do_action( 'deleted_term_taxonomy', $tt_id );
 
 	// Delete the term if no taxonomies use it.
-	if ( ! $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_taxonomy WHERE term_id = %d", $term ) ) ) {
+	if ( ! $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE term_id = %d', $wpdb->term_taxonomy, $term ) ) ) {
 		$wpdb->delete( $wpdb->terms, array( 'term_id' => $term ) );
 	}
 
@@ -2774,7 +2774,7 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 		$tt_id      = $term_info['term_taxonomy_id'];
 		$tt_ids[]   = $tt_id;
 
-		if ( $wpdb->get_var( $wpdb->prepare( "SELECT term_taxonomy_id FROM $wpdb->term_relationships WHERE object_id = %d AND term_taxonomy_id = %d", $object_id, $tt_id ) ) ) {
+		if ( $wpdb->get_var( $wpdb->prepare( 'SELECT term_taxonomy_id FROM %i WHERE object_id = %d AND term_taxonomy_id = %d', $wpdb->term_relationships, $object_id, $tt_id ) ) ) {
 			continue;
 		}
 
@@ -4165,7 +4165,7 @@ function _split_shared_term( $term_id, $term_taxonomy_id, $record = true ) {
 	}
 
 	// If there are no shared term_taxonomy rows, there's nothing to do here.
-	$shared_tt_count = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_taxonomy tt WHERE tt.term_id = %d AND tt.term_taxonomy_id != %d", $term_id, $term_taxonomy_id ) );
+	$shared_tt_count = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i tt WHERE tt.term_id = %d AND tt.term_taxonomy_id != %d', $wpdb->term_taxonomy, $term_id, $term_taxonomy_id ) );
 
 	if ( ! $shared_tt_count ) {
 		return $term_id;
@@ -4175,14 +4175,14 @@ function _split_shared_term( $term_id, $term_taxonomy_id, $record = true ) {
 	 * Verify that the term_taxonomy_id passed to the function is actually associated with the term_id.
 	 * If there's a mismatch, it may mean that the term is already split. Return the actual term_id from the db.
 	 */
-	$check_term_id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT term_id FROM $wpdb->term_taxonomy WHERE term_taxonomy_id = %d", $term_taxonomy_id ) );
+	$check_term_id = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT term_id FROM %i WHERE term_taxonomy_id = %d', $wpdb->term_taxonomy, $term_taxonomy_id ) );
 	if ( $check_term_id !== $term_id ) {
 		return $check_term_id;
 	}
 
 	// Pull up data about the currently shared slug, which we'll use to populate the new one.
 	if ( empty( $shared_term ) ) {
-		$shared_term = $wpdb->get_row( $wpdb->prepare( "SELECT t.* FROM $wpdb->terms t WHERE t.term_id = %d", $term_id ) );
+		$shared_term = $wpdb->get_row( $wpdb->prepare( 'SELECT t.* FROM %i t WHERE t.term_id = %d', $wpdb->terms, $term_id ) );
 	}
 
 	$new_term_data = array(
@@ -4206,10 +4206,9 @@ function _split_shared_term( $term_id, $term_taxonomy_id, $record = true ) {
 
 	// Reassign child terms to the new parent.
 	if ( empty( $term_taxonomy ) ) {
-		$term_taxonomy = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->term_taxonomy WHERE term_taxonomy_id = %d", $term_taxonomy_id ) );
+		$term_taxonomy = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE term_taxonomy_id = %d', $wpdb->term_taxonomy, $term_taxonomy_id ) );
 	}
-
-	$children_tt_ids = $wpdb->get_col( $wpdb->prepare( "SELECT term_taxonomy_id FROM $wpdb->term_taxonomy WHERE parent = %d AND taxonomy = %s", $term_id, $term_taxonomy->taxonomy ) );
+	$children_tt_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT term_taxonomy_id FROM %i WHERE parent = %d AND taxonomy = %s', $wpdb->term_taxonomy, $term_id, $term_taxonomy->taxonomy ) );
 	if ( ! empty( $children_tt_ids ) ) {
 		foreach ( $children_tt_ids as $child_tt_id ) {
 			$wpdb->update(
@@ -4233,7 +4232,7 @@ function _split_shared_term( $term_id, $term_taxonomy_id, $record = true ) {
 	$taxonomies_to_clean = array( $term_taxonomy->taxonomy );
 
 	// Clean the cache for term taxonomies formerly shared with the current term.
-	$shared_term_taxonomies = $wpdb->get_col( $wpdb->prepare( "SELECT taxonomy FROM $wpdb->term_taxonomy WHERE term_id = %d", $term_id ) );
+	$shared_term_taxonomies = $wpdb->get_col( $wpdb->prepare( 'SELECT taxonomy FROM %i WHERE term_id = %d', $wpdb->term_taxonomy, $term_id ) );
 	$taxonomies_to_clean    = array_merge( $taxonomies_to_clean, $shared_term_taxonomies );
 
 	foreach ( $taxonomies_to_clean as $taxonomy_to_clean ) {

@@ -1772,7 +1772,7 @@ function is_blog_installed() {
 	}
 	// If siteurl is not set to autoload, check it specifically.
 	if ( ! isset( $alloptions['siteurl'] ) ) {
-		$installed = $wpdb->get_var( "SELECT option_value FROM $wpdb->options WHERE option_name = 'siteurl'" );
+		$installed = $wpdb->get_var( $wpdb->prepare( 'SELECT option_value FROM %i WHERE option_name = "siteurl"', $wpdb->options ) );
 	} else {
 		$installed = $alloptions['siteurl'];
 	}
@@ -1807,7 +1807,7 @@ function is_blog_installed() {
 			continue;
 		}
 
-		$described_table = $wpdb->get_results( "DESCRIBE $table;" );
+		$described_table = $wpdb->get_results( $wpdb->prepare( 'DESCRIBE %i', $table ) );
 		if (
 			( ! $described_table && empty( $wpdb->last_error ) ) ||
 			( is_array( $described_table ) && 0 === count( $described_table ) )

@@ -172,7 +172,7 @@ function get_option( $option, $default = false ) {
 			$value = wp_cache_get( $option, 'options' );
 
 			if ( false === $value ) {
-				$row = $wpdb->get_row( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
+				$row = $wpdb->get_row( $wpdb->prepare( 'SELECT option_value FROM %i WHERE option_name = %s LIMIT 1', $wpdb->options, $option ) );
 
 				// Has to be get_row() instead of get_var() because of funkiness with 0, false, null values.
 				if ( is_object( $row ) ) {
@@ -193,7 +193,7 @@ function get_option( $option, $default = false ) {
 		}
 	} else {
 		$suppress = $wpdb->suppress_errors();
-		$row      = $wpdb->get_row( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
+		$row      = $wpdb->get_row( $wpdb->prepare( 'SELECT option_value FROM %i WHERE option_name = %s LIMIT 1', $wpdb->options, $option ) );
 		$wpdb->suppress_errors( $suppress );
 
 		if ( is_object( $row ) ) {
@@ -710,7 +710,7 @@ function delete_option( $option ) {
 	wp_protect_special_option( $option );
 
 	// Get the ID, if no ID then return.
-	$row = $wpdb->get_row( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", $option ) );
+	$row = $wpdb->get_row( $wpdb->prepare( 'SELECT autoload FROM %i WHERE option_name = %s', $wpdb->options, $option ) );
 	if ( is_null( $row ) ) {
 		return false;
 	}
@@ -1661,7 +1661,7 @@ function delete_network_option( $network_id, $option ) {
 	if ( ! is_multisite() ) {
 		$result = delete_option( $option );
 	} else {
-		$row = $wpdb->get_row( $wpdb->prepare( "SELECT meta_id FROM {$wpdb->sitemeta} WHERE meta_key = %s AND site_id = %d", $option, $network_id ) );
+		$row = $wpdb->get_row( $wpdb->prepare( 'SELECT meta_id FROM %i WHERE meta_key = %s AND site_id = %d', $wpdb->sitemeta, $option, $network_id ) );
 		if ( is_null( $row ) || ! $row->meta_id ) {
 			return false;
 		}

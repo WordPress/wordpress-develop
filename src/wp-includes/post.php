@@ -3354,7 +3354,7 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
 function wp_delete_post( $postid = 0, $force_delete = false ) {
 	global $wpdb;
 
-	$post = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->posts WHERE ID = %d", $postid ) );
+	$post = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE ID = %d', $wpdb->posts, $postid ) );
 
 	if ( ! $post ) {
 		return $post;
@@ -3415,7 +3415,7 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 	}
 
 	// Do raw query. wp_get_post_revisions() is filtered.
-	$revision_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_parent = %d AND post_type = 'revision'", $postid ) );
+	$revision_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT ID FROM %i WHERE post_parent = %d AND post_type = "revision"', $wpdb->posts, $postid ) );
 	// Use wp_delete_post (via wp_delete_post_revision) again. Ensures any meta/misplaced data gets cleaned up.
 	foreach ( $revision_ids as $revision_id ) {
 		wp_delete_post_revision( $revision_id );
@@ -3426,14 +3426,14 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 
 	wp_defer_comment_counting( true );
 
-	$comment_ids = $wpdb->get_col( $wpdb->prepare( "SELECT comment_ID FROM $wpdb->comments WHERE comment_post_ID = %d ORDER BY comment_ID DESC", $postid ) );
+	$comment_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT comment_ID FROM %i WHERE comment_post_ID = %d ORDER BY comment_ID DESC', $wpdb->comments, $postid ) );
 	foreach ( $comment_ids as $comment_id ) {
 		wp_delete_comment( $comment_id, true );
 	}
 
 	wp_defer_comment_counting( false );
 
-	$post_meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->postmeta WHERE post_id = %d ", $postid ) );
+	$post_meta_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT meta_id FROM %i WHERE post_id = %d', $wpdb->postmeta, $postid ) );
 	foreach ( $post_meta_ids as $mid ) {
 		delete_metadata_by_mid( 'post', $mid );
 	}
@@ -3731,7 +3731,7 @@ function wp_trash_post_comments( $post = null ) {
 	 */
 	do_action( 'trash_post_comments', $post_id );
 
-	$comments = $wpdb->get_results( $wpdb->prepare( "SELECT comment_ID, comment_approved FROM $wpdb->comments WHERE comment_post_ID = %d", $post_id ) );
+	$comments = $wpdb->get_results( $wpdb->prepare( 'SELECT comment_ID, comment_approved FROM %i WHERE comment_post_ID = %d', $wpdb->comments, $post_id ) );
 
 	if ( ! $comments ) {
 		return;
@@ -6418,14 +6418,14 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
 
 	wp_defer_comment_counting( true );
 
-	$comment_ids = $wpdb->get_col( $wpdb->prepare( "SELECT comment_ID FROM $wpdb->comments WHERE comment_post_ID = %d ORDER BY comment_ID DESC", $post_id ) );
+	$comment_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT comment_ID FROM %i WHERE comment_post_ID = %d ORDER BY comment_ID DESC', $wpdb->comments, $post_id ) );
 	foreach ( $comment_ids as $comment_id ) {
 		wp_delete_comment( $comment_id, true );
 	}
 
 	wp_defer_comment_counting( false );
 
-	$post_meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->postmeta WHERE post_id = %d ", $post_id ) );
+	$post_meta_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT meta_id FROM %i WHERE post_id = %d', $wpdb->postmeta, $post_id ) );
 	foreach ( $post_meta_ids as $mid ) {
 		delete_metadata_by_mid( 'post', $mid );
 	}

@@ -395,7 +395,7 @@ function wp_delete_user( $id, $reassign = null ) {
 		}
 
 		// Clean links.
-		$link_ids = $wpdb->get_col( $wpdb->prepare( "SELECT link_id FROM $wpdb->links WHERE link_owner = %d", $id ) );
+		$link_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT link_id FROM %i WHERE link_owner = %d', $wpdb->links, $id ) );
 
 		if ( $link_ids ) {
 			foreach ( $link_ids as $link_id ) {
@@ -403,14 +403,14 @@ function wp_delete_user( $id, $reassign = null ) {
 			}
 		}
 	} else {
-		$post_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_author = %d", $id ) );
+		$post_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT ID FROM %i WHERE post_author = %d', $wpdb->posts, $id ) );
 		$wpdb->update( $wpdb->posts, array( 'post_author' => $reassign ), array( 'post_author' => $id ) );
 		if ( ! empty( $post_ids ) ) {
 			foreach ( $post_ids as $post_id ) {
 				clean_post_cache( $post_id );
 			}
 		}
-		$link_ids = $wpdb->get_col( $wpdb->prepare( "SELECT link_id FROM $wpdb->links WHERE link_owner = %d", $id ) );
+		$link_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT link_id FROM %i WHERE link_owner = %d', $wpdb->links, $id ) );
 		$wpdb->update( $wpdb->links, array( 'link_owner' => $reassign ), array( 'link_owner' => $id ) );
 		if ( ! empty( $link_ids ) ) {
 			foreach ( $link_ids as $link_id ) {
@@ -423,7 +423,7 @@ function wp_delete_user( $id, $reassign = null ) {
 	if ( is_multisite() ) {
 		remove_user_from_blog( $id, get_current_blog_id() );
 	} else {
-		$meta = $wpdb->get_col( $wpdb->prepare( "SELECT umeta_id FROM $wpdb->usermeta WHERE user_id = %d", $id ) );
+		$meta = $wpdb->get_col( $wpdb->prepare( 'SELECT umeta_id FROM %i WHERE user_id = %d', $wpdb->usermeta, $id ) );
 		foreach ( $meta as $mid ) {
 			delete_metadata_by_mid( 'user', $mid );
 		}

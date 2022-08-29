@@ -2151,7 +2151,7 @@ function wp_insert_user( $userdata ) {
 		return new WP_Error( 'user_nicename_too_long', __( 'Nicename may not be longer than 50 characters.' ) );
 	}
 
-	$user_nicename_check = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->users WHERE user_nicename = %s AND user_login != %s LIMIT 1", $user_nicename, $user_login ) );
+	$user_nicename_check = $wpdb->get_var( $wpdb->prepare( 'SELECT ID FROM %i WHERE user_nicename = %s AND user_login != %s LIMIT 1', $wpdb->users, $user_nicename, $user_login ) );
 
 	if ( $user_nicename_check ) {
 		$suffix = 2;
@@ -2159,7 +2159,7 @@ function wp_insert_user( $userdata ) {
 			// user_nicename allows 50 chars. Subtract one for a hyphen, plus the length of the suffix.
 			$base_length         = 49 - mb_strlen( $suffix );
 			$alt_user_nicename   = mb_substr( $user_nicename, 0, $base_length ) . "-$suffix";
-			$user_nicename_check = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->users WHERE user_nicename = %s AND user_login != %s LIMIT 1", $alt_user_nicename, $user_login ) );
+			$user_nicename_check = $wpdb->get_var( $wpdb->prepare( 'SELECT ID FROM %i WHERE user_nicename = %s AND user_login != %s LIMIT 1', $wpdb->users, $alt_user_nicename, $user_login ) );
 			$suffix++;
 		}
 		$user_nicename = $alt_user_nicename;

@@ -102,7 +102,7 @@ class WP_Network {
 		$_network = wp_cache_get( $network_id, 'networks' );
 
 		if ( false === $_network ) {
-			$_network = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->site} WHERE id = %d LIMIT 1", $network_id ) );
+			$_network = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE id = %d LIMIT 1', $wpdb->site, $network_id ) );
 
 			if ( empty( $_network ) || is_wp_error( $_network ) ) {
 				$_network = -1;

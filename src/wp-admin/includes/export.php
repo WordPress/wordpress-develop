@@ -323,7 +323,7 @@ function export_wp( $args = array() ) {
 	function wxr_term_meta( $term ) {
 		global $wpdb;
 
-		$termmeta = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->termmeta WHERE term_id = %d", $term->term_id ) );
+		$termmeta = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i WHERE term_id = %d', $wpdb->termmeta, $term->term_id ) );
 
 		foreach ( $termmeta as $meta ) {
 			/**
@@ -603,7 +603,7 @@ function export_wp( $args = array() ) {
 	<?php endif; ?>
 				<?php wxr_post_taxonomy(); ?>
 				<?php
-				$postmeta = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->postmeta WHERE post_id = %d", $post->ID ) );
+				$postmeta = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i WHERE post_id = %d', $wpdb->postmeta, $post->ID ) );
 				foreach ( $postmeta as $meta ) :
 					/**
 					 * Filters whether to selectively skip post meta used for WXR exports.
@@ -628,7 +628,7 @@ function export_wp( $args = array() ) {
 					<?php
 	endforeach;
 
-				$_comments = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved <> 'spam'", $post->ID ) );
+				$_comments = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i WHERE comment_post_ID = %d AND comment_approved <> "spam"', $wpdb->comments, $post->ID ) );
 				$comments  = array_map( 'get_comment', $_comments );
 				foreach ( $comments as $c ) :
 					?>
@@ -646,7 +646,7 @@ function export_wp( $args = array() ) {
 			<wp:comment_parent><?php echo (int) $c->comment_parent; ?></wp:comment_parent>
 			<wp:comment_user_id><?php echo (int) $c->user_id; ?></wp:comment_user_id>
 					<?php
-					$c_meta = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->commentmeta WHERE comment_id = %d", $c->comment_ID ) );
+					$c_meta = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i WHERE comment_id = %d', $wpdb->commentmeta, $c->comment_ID ) );
 					foreach ( $c_meta as $meta ) :
 						/**
 						 * Filters whether to selectively skip comment meta used for WXR exports.

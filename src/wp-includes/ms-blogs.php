@@ -799,7 +799,7 @@ function get_blog_status( $id, $pref ) {
 		return $details->$pref;
 	}
 
-	return $wpdb->get_var( $wpdb->prepare( "SELECT %s FROM {$wpdb->blogs} WHERE blog_id = %d", $pref, $id ) );
+	return $wpdb->get_var( $wpdb->prepare( 'SELECT %s FROM %i WHERE blog_id = %d', $pref, $wpdb->blogs, $id ) );
 }
 
 /**

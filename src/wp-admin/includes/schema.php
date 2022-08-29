@@ -596,7 +596,7 @@ function populate_options( array $options = array() ) {
 	}
 
 	if ( ! empty( $insert ) ) {
-		$wpdb->query( "INSERT INTO $wpdb->options (option_name, option_value, autoload) VALUES " . $insert ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$wpdb->query( $wpdb->prepare( 'INSERT INTO %i (option_name, option_value, autoload) VALUES ', $wpdb->options ) . $insert );
 	}
 
 	// In case it is set, but blank, update "home".

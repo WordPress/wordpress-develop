@@ -82,7 +82,8 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
 
 	if ( $unique && $wpdb->get_var(
 		$wpdb->prepare(
-			"SELECT COUNT(*) FROM $table WHERE meta_key = %s AND $column = %d",
+			"SELECT COUNT(*) FROM %i WHERE meta_key = %s AND $column = %d",
+			$table,
 			$meta_key,
 			$object_id
 		)
@@ -827,7 +828,7 @@ function get_metadata_by_mid( $meta_type, $meta_id ) {
 
 	$id_column = ( 'user' === $meta_type ) ? 'umeta_id' : 'meta_id';
 
-	$meta = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE $id_column = %d", $meta_id ) );
+	$meta = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE %i = %d', $table, $id_column, $meta_id ) );
 
 	if ( empty( $meta ) ) {
 		return false;

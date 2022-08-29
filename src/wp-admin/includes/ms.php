@@ -179,13 +179,13 @@ function wpmu_delete_user( $id ) {
 			switch_to_blog( $blog->userblog_id );
 			remove_user_from_blog( $id, $blog->userblog_id );
 
-			$post_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_author = %d", $id ) );
+			$post_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT ID FROM %i WHERE post_author = %d', $wpdb->posts, $id ) );
 			foreach ( (array) $post_ids as $post_id ) {
 				wp_delete_post( $post_id );
 			}
 
 			// Clean links.
-			$link_ids = $wpdb->get_col( $wpdb->prepare( "SELECT link_id FROM $wpdb->links WHERE link_owner = %d", $id ) );
+			$link_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT link_id FROM %i WHERE link_owner = %d', $wpdb->links, $id ) );
 
 			if ( $link_ids ) {
 				foreach ( $link_ids as $link_id ) {
@@ -197,7 +197,7 @@ function wpmu_delete_user( $id ) {
 		}
 	}
 
-	$meta = $wpdb->get_col( $wpdb->prepare( "SELECT umeta_id FROM $wpdb->usermeta WHERE user_id = %d", $id ) );
+	$meta = $wpdb->get_col( $wpdb->prepare( 'SELECT umeta_id FROM %i WHERE user_id = %d', $wpdb->usermeta, $id ) );
 	foreach ( $meta as $mid ) {
 		delete_metadata_by_mid( 'user', $mid );
 	}
