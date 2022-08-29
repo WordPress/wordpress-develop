@@ -6,6 +6,8 @@
  * @subpackage UnitTests
  * @since      3.5.0
  * @group      ajax
+ *
+ * @covers WP_Ajax_Response::send
  */
 class Tests_Ajax_Response extends WP_UnitTestCase {
 

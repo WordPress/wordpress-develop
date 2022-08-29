@@ -8,8 +8,10 @@ on:
       - '5.[5-9]'
       - '[6-9].[0-9]'
     tags:
-      - '5.[5-9]*'
-      - '[6-9].[0-9]*'
+      - '[0-9]+.[0-9]'
+      - '[0-9]+.[0-9].[0-9]+'
+      - '![34].[0-9].[0-9]+'
+      - '!5.[0-4].[0-9]+'
   pull_request:
     branches:
       - trunk
@@ -57,10 +59,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@d37cc3048580de06099c81ded417530716a0d7ab # v2.18.0
+        uses: shivammathur/setup-php@e04e1d97f0c0481c6e1ba40f8a538454fe5d7709 # v2.21.2
         with:
           php-version: '7.4'
           coverage: none
@@ -78,7 +80,7 @@ jobs:
         run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
 
       - name: Cache PHP compatibility scan cache
-        uses: actions/cache@136d96b4aee02b1f0de3ba493b1d47135042d9c0 # v3.0.1
+        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 # v3.0.8
         with:
           path: .cache/phpcompat.json
           key: ${{ runner.os }}-date-${{ steps.get-date.outputs.date }}-phpcompat-cache-${{ hashFiles('**/composer.json', 'phpcompat.xml.dist') }}

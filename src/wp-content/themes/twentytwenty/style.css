@@ -2806,6 +2806,8 @@ h2.entry-title {
 }
 
 .has-text-align-right {
+
+	/*rtl:ignore*/
 	text-align: right;
 }
 
@@ -3929,19 +3931,6 @@ div.comment:first-of-type {
 	line-height: 1.4;
 	margin: -3rem 0 4rem 0;
 	text-align: center;
-}
-
-.comment-respond .comment-notes a,
-.comment-respond .logged-in-as a {
-	color: inherit;
-	text-decoration: none;
-}
-
-.comment-respond .comment-notes a:focus,
-.comment-respond .comment-notes a:hover,
-.comment-respond .logged-in-as a:focus,
-.comment-respond .logged-in-as a:hover {
-	text-decoration: underline;
 }
 
 .comment-respond p {
@@ -6376,7 +6365,7 @@ a.to-the-top > * {
 
 	.wp-block-separator.is-style-wide {
 		max-width: 120rem;
-		width: 120rem;
+		width: 100%;
 	}
 
 	/* Entry Content ------------------------- */

@@ -3,7 +3,7 @@
 /**
  * @group option
  */
-class Tests_Sanitize_Option extends WP_UnitTestCase {
+class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 
 	/**
 	 * Data provider to test all of the sanitize_option() case
@@ -81,6 +81,8 @@ class Tests_Sanitize_Option extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider sanitize_option_provider
+	 *
+	 * @covers ::sanitize_option
 	 */
 	public function test_sanitize_option( $option_name, $sanitized, $original ) {
 		$this->assertSame( $sanitized, sanitize_option( $option_name, $original ) );
@@ -97,6 +99,8 @@ class Tests_Sanitize_Option extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider upload_path_provider
+	 *
+	 * @covers ::sanitize_option
 	 */
 	public function test_sanitize_option_upload_path( $provided, $expected ) {
 		$this->assertSame( $expected, sanitize_option( 'upload_path', $provided ) );
@@ -104,6 +108,8 @@ class Tests_Sanitize_Option extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36122
+	 *
+	 * @covers ::sanitize_option
 	 */
 	public function test_emoji_in_blogname_and_description() {
 		global $wpdb;
@@ -122,6 +128,9 @@ class Tests_Sanitize_Option extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider permalink_structure_provider
+	 *
+	 * @covers ::sanitize_option
+	 * @covers ::get_settings_errors
 	 */
 	public function test_sanitize_permalink_structure( $provided, $expected, $valid ) {
 		global $wp_settings_errors;

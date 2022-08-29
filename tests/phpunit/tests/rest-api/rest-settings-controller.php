@@ -71,6 +71,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_context_param() {
+		$this->markTestSkipped( 'Controller does not use get_context_param().' );
 	}
 
 	public function test_get_item_is_not_public_not_authenticated() {
@@ -106,6 +107,9 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 			'default_category',
 			'default_post_format',
 			'posts_per_page',
+			'show_on_front',
+			'page_on_front',
+			'page_for_posts',
 			'default_ping_status',
 			'default_comment_status',
 			'site_icon', // Registered in wp-includes/blocks/site-logo.php
@@ -376,6 +380,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 
 
 	public function test_create_item() {
+		$this->markTestSkipped( 'Controller does not implement create_item().' );
 	}
 
 	public function test_update_item() {
@@ -656,9 +661,11 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_prepare_item() {
+		$this->markTestSkipped( 'Controller does not implement prepare_item().' );
 	}
 
 	public function test_get_item_schema() {
+		$this->markTestSkipped( 'Controller does not implement get_item_schema().' );
 	}
 
 	/**

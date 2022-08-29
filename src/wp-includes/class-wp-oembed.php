@@ -75,7 +75,6 @@ class WP_oEmbed {
 			'#https?://(.+?\.)?slideshare\.net/.*#i'       => array( 'https://www.slideshare.net/api/oembed/2', true ),
 			'#https?://(open|play)\.spotify\.com/.*#i'     => array( 'https://embed.spotify.com/oembed/', true ),
 			'#https?://(.+\.)?imgur\.com/.*#i'             => array( 'https://api.imgur.com/oembed', true ),
-			'#https?://(www\.)?meetu(\.ps|p\.com)/.*#i'    => array( 'https://api.meetup.com/oembed', true ),
 			'#https?://(www\.)?issuu\.com/.+/docs/.+#i'    => array( 'https://issuu.com/oembed_wp', true ),
 			'#https?://(www\.)?mixcloud\.com/.*#i'         => array( 'https://www.mixcloud.com/oembed', true ),
 			'#https?://(www\.|embed\.)?ted\.com/talks/.*#i' => array( 'https://www.ted.com/services/v1/oembed.{format}', true ),
@@ -105,6 +104,7 @@ class WP_oEmbed {
 			'#https?://(www\.)?tiktok\.com/.*/video/.*#i'  => array( 'https://www.tiktok.com/oembed', true ),
 			'#https?://([a-z]{2}|www)\.pinterest\.com(\.(au|mx))?/.*#i' => array( 'https://www.pinterest.com/oembed.json', true ),
 			'#https?://(www\.)?wolframcloud\.com/obj/.+#i' => array( 'https://www.wolframcloud.com/oembed', true ),
+			'#https?://pca\.st/.+#i'                       => array( 'https://pca.st/oembed.json', true ),
 		);
 
 		if ( ! empty( self::$early_providers['add'] ) ) {
@@ -148,8 +148,6 @@ class WP_oEmbed {
 		 * | Flickr       | flic.kr                                   | 3.6.0   |
 		 * | Spotify      | spotify.com                               | 3.6.0   |
 		 * | Imgur        | imgur.com                                 | 3.9.0   |
-		 * | Meetup.com   | meetup.com                                | 3.9.0   |
-		 * | Meetup.com   | meetu.ps                                  | 3.9.0   |
 		 * | Animoto      | animoto.com                               | 4.0.0   |
 		 * | Animoto      | video214.com                              | 4.0.0   |
 		 * | Issuu        | issuu.com                                 | 4.0.0   |
@@ -184,6 +182,7 @@ class WP_oEmbed {
 		 * | TikTok       | tiktok.com                                | 5.4.0   |
 		 * | Pinterest    | pinterest.com                             | 5.9.0   |
 		 * | WolframCloud | wolframcloud.com                          | 5.9.0   |
+		 * | Pocket Casts | pocketcasts.com                           | 6.1.0   |
 		 *
 		 * No longer supported providers:
 		 *
@@ -205,6 +204,8 @@ class WP_oEmbed {
 		 * | Instagram TV | instagram.com        | 5.1.0     | 5.5.2     |
 		 * | Instagram TV | instagr.am           | 5.1.0     | 5.5.2     |
 		 * | Facebook     | facebook.com         | 4.7.0     | 5.5.2     |
+		 * | Meetup.com   | meetup.com           | 3.9.0     | 6.0.1     |
+		 * | Meetup.com   | meetu.ps             | 3.9.0     | 6.0.1     |
 		 *
 		 * @see wp_oembed_add_provider()
 		 *

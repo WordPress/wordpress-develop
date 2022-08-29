@@ -827,7 +827,12 @@ function wp_list_users( $args = array() ) {
 		}
 
 		if ( $args['show_fullname'] && '' !== $user->first_name && '' !== $user->last_name ) {
-			$name = "$user->first_name $user->last_name";
+			$name = sprintf(
+				/* translators: 1: User's first name, 2: Last name. */
+				_x( '%1$s %2$s', 'Display name based on first name and last name' ),
+				$user->first_name,
+				$user->last_name
+			);
 		} else {
 			$name = $user->display_name;
 		}
@@ -1208,10 +1213,10 @@ function count_users( $strategy = 'time', $site_id = null ) {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @param null|string $result   The value to return instead. Default null to continue with the query.
-	 * @param string      $strategy Optional. The computational strategy to use when counting the users.
-	 *                              Accepts either 'time' or 'memory'. Default 'time'.
-	 * @param int|null    $site_id  Optional. The site ID to count users for. Defaults to the current site.
+	 * @param null|array $result   The value to return instead. Default null to continue with the query.
+	 * @param string     $strategy Optional. The computational strategy to use when counting the users.
+	 *                             Accepts either 'time' or 'memory'. Default 'time'.
+	 * @param int        $site_id  The site ID to count users for.
 	 */
 	$pre = apply_filters( 'pre_count_users', null, $strategy, $site_id );
 
@@ -1845,8 +1850,11 @@ function update_user_caches( $user ) {
 
 	wp_cache_add( $user->ID, $user, 'users' );
 	wp_cache_add( $user->user_login, $user->ID, 'userlogins' );
-	wp_cache_add( $user->user_email, $user->ID, 'useremail' );
 	wp_cache_add( $user->user_nicename, $user->ID, 'userslugs' );
+
+	if ( ! empty( $user->user_email ) ) {
+		wp_cache_add( $user->user_email, $user->ID, 'useremail' );
+	}
 }
 
 /**
@@ -1873,8 +1881,11 @@ function clean_user_cache( $user ) {
 
 	wp_cache_delete( $user->ID, 'users' );
 	wp_cache_delete( $user->user_login, 'userlogins' );
-	wp_cache_delete( $user->user_email, 'useremail' );
 	wp_cache_delete( $user->user_nicename, 'userslugs' );
+
+	if ( ! empty( $user->user_email ) ) {
+		wp_cache_delete( $user->user_email, 'useremail' );
+	}
 
 	/**
 	 * Fires immediately after the given user's cache is cleaned.
@@ -2242,8 +2253,12 @@ function wp_insert_user( $userdata ) {
 		if ( $update ) {
 			$display_name = $user_login;
 		} elseif ( $meta['first_name'] && $meta['last_name'] ) {
-			/* translators: 1: User's first name, 2: Last name. */
-			$display_name = sprintf( _x( '%1$s %2$s', 'Display name based on first name and last name' ), $meta['first_name'], $meta['last_name'] );
+			$display_name = sprintf(
+				/* translators: 1: User's first name, 2: Last name. */
+				_x( '%1$s %2$s', 'Display name based on first name and last name' ),
+				$meta['first_name'],
+				$meta['last_name']
+			);
 		} elseif ( $meta['first_name'] ) {
 			$display_name = $meta['first_name'];
 		} elseif ( $meta['last_name'] ) {
@@ -3728,7 +3743,7 @@ function new_user_email_admin_notice() {
  * @since 4.9.6
  * @access private
  *
- * @return array List of core privacy action types.
+ * @return string[] List of core privacy action types.
  */
 function _wp_privacy_action_request_types() {
 	return array(
@@ -3742,8 +3757,8 @@ function _wp_privacy_action_request_types() {
  *
  * @since 4.9.6
  *
- * @param array $exporters  An array of personal data exporters.
- * @return array An array of personal data exporters.
+ * @param array[] $exporters An array of personal data exporters.
+ * @return array[] An array of personal data exporters.
  */
 function wp_register_user_personal_data_exporter( $exporters ) {
 	$exporters['wordpress-user'] = array(

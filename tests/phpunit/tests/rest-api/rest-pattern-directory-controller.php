@@ -111,6 +111,9 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		$this->assertGreaterThan( 0, count( $patterns ) );
 
 		array_walk( $patterns, array( $this, 'assertPatternMatchesSchema' ) );
+		$this->assertSame( array( 'blog post' ), $patterns[0]['keywords'] );
+		$this->assertSame( array( 'header', 'hero' ), $patterns[1]['keywords'] );
+		$this->assertSame( array( 'call to action', 'hero section' ), $patterns[2]['keywords'] );
 	}
 
 	/**
@@ -157,10 +160,6 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		$this->assertGreaterThan( 0, count( $patterns ) );
 
 		array_walk( $patterns, array( $this, 'assertPatternMatchesSchema' ) );
-
-		foreach ( $patterns as $pattern ) {
-			$this->assertContains( 'core', $pattern['keywords'] );
-		}
 	}
 
 	/**
@@ -312,19 +311,19 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	}
 
 	public function test_get_item() {
-		$this->markTestSkipped( 'Controller does not have get_item route.' );
+		$this->markTestSkipped( 'Controller does not implement get_item().' );
 	}
 
 	public function test_create_item() {
-		$this->markTestSkipped( 'Controller does not have create_item route.' );
+		$this->markTestSkipped( 'Controller does not implement create_item().' );
 	}
 
 	public function test_update_item() {
-		$this->markTestSkipped( 'Controller does not have update_item route.' );
+		$this->markTestSkipped( 'Controller does not implement update_item().' );
 	}
 
 	public function test_delete_item() {
-		$this->markTestSkipped( 'Controller does not have delete_item route.' );
+		$this->markTestSkipped( 'Controller does not implement delete_item().' );
 	}
 
 	/**
