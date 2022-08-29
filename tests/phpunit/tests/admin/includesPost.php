@@ -695,7 +695,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$post_test_id = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
-				'post_date'   => '2022-08-27 00:00:00',
+				'post_date'   => '2022-08-28 00:00:00',
 				'post_name'   => 'foo',
 				'filter'      => 'raw',
 			)
@@ -710,7 +710,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 				$this->assertTrue( isset( $post->filter ), 'Failed asserting that object of class "WP_Post" has attribute "filter".' );
 
 				$this->assertSame( 'publish', $post->post_status );
-				$this->assertSame( '2022-08-27 00:00:00', $post->post_date );
+				$this->assertSame( '2022-08-28 00:00:00', $post->post_date );
 				$this->assertSame( 'foo', $post->post_name );
 				$this->assertSame( 'raw', $post->filter );
 			},
