@@ -21,6 +21,16 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->q = new WP_Date_Query( array( 'm' => 2 ) );
 	}
 
+	/**
+	 * Cleans up.
+	 */
+	public function tear_down() {
+		// Reset the timezone option to the default value.
+		update_option( 'timezone_string', '' );
+
+		parent::tear_down();
+	}
+
 	public function test_construct_date_query_empty() {
 		$q = new WP_Date_Query( array() );
 		$this->assertSame( 'AND', $q->relation );

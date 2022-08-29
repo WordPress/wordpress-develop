@@ -9,6 +9,17 @@
 class Tests_Date_wpTimezone extends WP_UnitTestCase {
 
 	/**
+	 * Cleans up.
+	 */
+	public function tear_down() {
+		// Reset changed options to their default value.
+		update_option( 'gmt_offset', 0 );
+		update_option( 'timezone_string', '' );
+
+		parent::tear_down();
+	}
+
+	/**
 	 * @ticket 24730
 	 *
 	 * @dataProvider timezone_offset_provider
