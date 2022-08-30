@@ -111,7 +111,7 @@ function clean_network_cache( $ids ) {
  * @since 6.1.0 Introduced the `$update_meta_cache` parameter.
  *
  * @param array $networks          Array of network row objects.
- * @param bool  $update_meta_cache Whether to update sitemeta cache. Default true.
+ * @param bool  $update_meta_cache Whether to update site meta cache. Default true.
  */
 function update_network_cache( $networks, $update_meta_cache = true ) {
 	$data = array();
