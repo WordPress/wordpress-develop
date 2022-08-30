@@ -10,7 +10,7 @@ class Tests_Functions__wp_check_existing_file_names extends WP_UnitTestCase {
 	/**
 	 * @ticket 55192
 	 *
-	 * @dataProvider data__wp_check_existing_file_names
+	 * @dataProvider data_wp_check_existing_file_names
 	 *
 	 * @param string $filename filename looked for.
 	 * @param array $files files check against.
