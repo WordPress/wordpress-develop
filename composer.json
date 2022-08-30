@@ -13,6 +13,11 @@
 		"dealerdirect/phpcodesniffer-composer-installer": "~0.4.4",
 		"wp-coding-standards/wpcs": "~1.0.0"
 	},
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	},
 	"scripts": {
 		"format": "phpcbf --standard=phpcs.xml.dist --report-summary --report-source",
 		"lint": "phpcs --standard=phpcs.xml.dist --report-summary --report-source"
