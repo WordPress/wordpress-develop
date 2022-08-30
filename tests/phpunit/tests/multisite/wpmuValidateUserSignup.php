@@ -18,12 +18,10 @@ if ( is_multisite() ) :
 			return array(
 				array( 'contains spaces', 'User names with spaces are not allowed.' ),
 				array( 'ContainsCaps', 'User names with capital letters are not allowed.' ),
-				array( 'contains_underscores', 'User names with underscores are not allowed.' ),
 				array( 'contains%^*()junk', 'User names with non-alphanumeric characters are not allowed.' ),
 				array( '', 'Empty user names are not allowed.' ),
 				array( 'foo', 'User names of 3 characters are not allowed.' ),
 				array( 'fo', 'User names of 2 characters are not allowed.' ),
-				array( 'f', 'User names of 1 characters are not allowed.' ),
 				array( 'f', 'User names of 1 characters are not allowed.' ),
 				array( '12345', 'User names consisting only of numbers are not allowed.' ),
 				array( 'thisusernamecontainsenoughcharacterstobelongerthan60characters', 'User names longer than 60 characters are not allowed.' ),

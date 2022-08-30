@@ -739,7 +739,8 @@ class Tests_User extends WP_UnitTestCase {
 
 		$response = register_new_user( $user_login, $user_email );
 		$this->assertInstanceOf( 'WP_Error', $response );
-		$this->assertSame( 'invalid_username', $response->get_error_code() );
+		$expected = is_multisite() ? 'user_name' : 'invalid_username';
+		$this->assertSame( $expected, $response->get_error_code() );
 
 		remove_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
 
