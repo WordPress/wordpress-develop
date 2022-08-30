@@ -15,6 +15,11 @@
 		"phpunit/phpunit": "^5.7.21 || ^6.5 || ^7.5",
 		"yoast/phpunit-polyfills": "^1.0.1"
 	},
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	},
 	"scripts": {
 		"format": "phpcbf --standard=phpcs.xml.dist --report-summary --report-source",
 		"lint": "phpcs --standard=phpcs.xml.dist --report-summary --report-source"
