@@ -2025,13 +2025,70 @@ function email_exists( $email ) {
  *
  * @since 2.0.1
  * @since 4.4.0 Empty sanitized usernames are now considered invalid.
+ * @since n.e.x.t New argument $wp_error has been added.
  *
- * @param string $username Username.
- * @return bool Whether username given is valid.
+ * @param string $username Username to validate.
+ * @param bool $wp_error Whether to return a WP_Error if the username is invalid.
+ *
+ * @return bool|WP_Error Whether username given is valid. True is the username is valid, false or WP_Error otherwise.
  */
-function validate_username( $username ) {
-	$sanitized = sanitize_user( $username, true );
-	$valid     = ( $sanitized === $username && ! empty( $sanitized ) );
+function validate_username( $username, $wp_error = false ) {
+	$original_username = $username;
+
+	$errors = new WP_Error();
+
+	// User login cannot be empty
+	if ( empty( $username ) ) {
+		$errors->add( 'user_name', __( 'Please enter a username.' ) );
+	}
+
+	// User login must be more than 4 characters
+	if ( strlen( $username ) < 4 ) {
+		$errors->add( 'user_name', __( 'Username must be at least 4 characters.' ) );
+	}
+
+	// User login must be less than 60 characters
+	if ( strlen( $username ) > 60 ) {
+		$errors->add( 'user_name', __( 'Username may not be longer than 60 characters.' ) );
+	}
+
+	// Strip any whitespace and then match against case insensitive characters a-z 0-9 _ . - @
+	$username = preg_replace( '/\s+/', '', sanitize_user( $username, true ) );
+
+	// If the previous operation generated a different value, the username is invalid
+	if ( $username !== $original_username ) {
+		$errors->add( 'user_name', __( '<strong>Error:</strong> This username is invalid because it uses illegal characters. Please enter a valid username.' ) );
+	}
+
+	if ( is_multisite() ) {
+		// Check the user_login against an array of illegal names
+		$illegal_names = get_site_option( 'illegal_names' );
+		if ( false === is_array( $illegal_names ) ) {
+			$illegal_names = array( 'www', 'web', 'root', 'admin', 'main', 'invite', 'administrator' );
+			add_site_option( 'illegal_names', $illegal_names );
+		}
+		if ( in_array( $username, $illegal_names, true ) ) {
+			$errors->add( 'user_name', __( 'Sorry, that username is not allowed.' ) );
+		}
+	}
+
+	/** This filter is documented in wp-includes/user.php */
+	$illegal_logins = (array) apply_filters( 'illegal_user_logins', array() );
+
+	if ( in_array( strtolower( $username ), array_map( 'strtolower', $illegal_logins ), true ) ) {
+		if ( is_multisite() ) {
+			$errors->add( 'user_name', __( 'Sorry, that username is not allowed.' ) );
+		} else {
+			$errors->add( 'invalid_username', __( 'Sorry, that username is not allowed.' ) );
+		}
+	}
+
+	if ( is_multisite() ) {
+		// User login must have at least one letter
+		if ( ! preg_match( '/[a-zA-Z]+/', $username ) ) {
+			$errors->add( 'user_name', __( 'Sorry, usernames must have letters too!' ) );
+		}
+	}
 
 	/**
 	 * Filters whether the provided username is valid.
@@ -2041,7 +2098,16 @@ function validate_username( $username ) {
 	 * @param bool   $valid    Whether given username is valid.
 	 * @param string $username Username to check.
 	 */
-	return apply_filters( 'validate_username', $valid, $username );
+	$valid = apply_filters( 'validate_username', true, $username );
+	if ( ! $valid ) {
+		$errors->add( 'user_name', __( 'Sorry, that username is invalid.' ) );
+	}
+
+	if ( $errors->has_errors() && $wp_error ) {
+		return $errors;
+	}
+
+	return ! $errors->has_errors();
 }
 
 /**
