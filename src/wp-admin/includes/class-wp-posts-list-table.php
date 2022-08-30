@@ -1123,8 +1123,6 @@ class WP_Posts_List_Table extends WP_List_Table {
 				echo esc_html( get_the_excerpt() );
 			}
 		}
-
-		get_inline_data( $post );
 	}
 
 	/**
@@ -1533,6 +1531,10 @@ class WP_Posts_List_Table extends WP_List_Table {
 			 * @param WP_Post  $post    The post object.
 			 */
 			$actions = apply_filters( 'post_row_actions', $actions, $post );
+		}
+
+		if ( isset( $actions['inline hide-if-no-js'] ) ) {
+			echo get_inline_data( $post );
 		}
 
 		return $this->row_actions( $actions );
