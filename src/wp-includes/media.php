@@ -1080,8 +1080,9 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 				}
 			}
 		}
-
-		$attr = dominant_color_update_attachment_image_attributes( $attr, $attachment );
+		if( current_theme_supports('dominant-color' ) ) {
+			$attr = dominant_color_update_attachment_image_attributes( $attr, $attachment );
+		}
 
 		/**
 		 * Filters the list of attachment image attributes.
@@ -1859,7 +1860,9 @@ function wp_filter_content_tags( $content, $context = null ) {
 				$filtered_image = wp_image_use_alternate_mime_types( $filtered_image, $context, $attachment_id );
 			}
 
-			$filtered_image = img_tag_add_dominant_color( $filtered_image, $context, $attachment_id );
+			if( current_theme_supports('dominant-color' ) ) {
+				$filtered_image = img_tag_add_dominant_color( $filtered_image, $context, $attachment_id );
+			}
 
 			/**
 			 * Filters an img tag within the content for a given context.
@@ -5701,6 +5704,9 @@ function img_tag_add_dominant_color( $filtered_image, $context, $attachment_id )
  * @since 6.1
  */
 function dominant_color_add_inline_style() {
+	if ( ! current_theme_supports( 'dominant-color', 'inline-css' ) ) {
+		return;
+	}
 	$handle = 'dominant-color-styles';
 	wp_register_style( $handle, false );
 	wp_enqueue_style( $handle );

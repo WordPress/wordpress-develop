@@ -3058,14 +3058,15 @@ function _remove_theme_support( $feature ) {
 function current_theme_supports( $feature, ...$args ) {
 	global $_wp_theme_features;
 
+
 	if ( 'custom-header-uploads' === $feature ) {
 		return current_theme_supports( 'custom-header', 'uploads' );
 	}
-
+//	var_dump($args);
+//	var_dump($_wp_theme_features);
 	if ( ! isset( $_wp_theme_features[ $feature ] ) ) {
 		return false;
 	}
-
 	// If no args passed then no extra checks need to be performed.
 	if ( ! $args ) {
 		/** This filter is documented in wp-includes/theme.php */
@@ -3087,6 +3088,7 @@ function current_theme_supports( $feature, ...$args ) {
 
 		case 'html5':
 		case 'post-formats':
+		case 'dominant-color':
 			/*
 			 * Specific post formats can be registered by passing an array of types
 			 * to add_theme_support().
@@ -3094,6 +3096,7 @@ function current_theme_supports( $feature, ...$args ) {
 			 * Specific areas of HTML5 support *must* be passed via an array to add_theme_support().
 			 */
 			$type = $args[0];
+		//	var_dump($type);
 			return in_array( $type, $_wp_theme_features[ $feature ][0], true );
 
 		case 'custom-logo':
