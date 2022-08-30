@@ -2111,6 +2111,52 @@ function validate_username( $username, $wp_error = false ) {
 }
 
 /**
+ * Check whether the given username is reserved or not.
+ *
+ * In multisite this check if a signup with the username already exist. If the signup has been registered more than two
+ * days ago it'll be deleted and the username considered available again.
+ *
+ * @since n.e.x.t
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param string $username Username to check.
+ *
+ * @return bool True is the username is available, false otherwise.
+ */
+function is_username_reserved( $username ) {
+	global $wpdb;
+
+	$reserved = false;
+	if ( is_multisite() ) {
+		$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE user_login = %s", $username ) );
+		if ( null !== $signup ) {
+			$registered_at = mysql2date( 'U', $signup->registered );
+			$now           = current_time( 'timestamp', true );
+			$diff          = $now - $registered_at;
+			// If registered more than two days ago, cancel registration and let this signup go through.
+			if ( $diff > 2 * DAY_IN_SECONDS ) {
+				$wpdb->delete( $wpdb->signups, array( 'user_login' => $username ) );
+			} else {
+				$reserved = true;
+			}
+		}
+	} else {
+		/**
+		 * Filters whether the username is reserved or not.
+		 *
+		 * @since n.e.x.t
+		 *
+		 * @param bool $reserved Whether given username is reserved.
+		 * @param string $username Username to check.
+		 */
+		$reserved = apply_filters( 'is_username_reserved', $reserved, $username );
+	}
+
+	return $reserved;
+}
+
+/**
  * Inserts a user into the database.
  *
  * Most of the `$userdata` array fields have filters associated with the values. Exceptions are
