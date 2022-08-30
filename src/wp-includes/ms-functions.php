@@ -460,52 +460,14 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 	$errors = new WP_Error();
 
 	$orig_username = $user_name;
-	$user_name     = preg_replace( '/\s+/', '', sanitize_user( $user_name, true ) );
-
-	if ( $user_name != $orig_username || preg_match( '/[^a-z0-9]/', $user_name ) ) {
-		$errors->add( 'user_name', __( 'Usernames can only contain lowercase letters (a-z) and numbers.' ) );
-		$user_name = $orig_username;
-	}
+	wp_validate_user_login( $user_name, $errors );
 
 	$user_email = sanitize_email( $user_email );
-
-	if ( empty( $user_name ) ) {
-		$errors->add( 'user_name', __( 'Please enter a username.' ) );
-	}
-
-	$illegal_names = get_site_option( 'illegal_names' );
-	if ( ! is_array( $illegal_names ) ) {
-		$illegal_names = array( 'www', 'web', 'root', 'admin', 'main', 'invite', 'administrator' );
-		add_site_option( 'illegal_names', $illegal_names );
-	}
-	if ( in_array( $user_name, $illegal_names, true ) ) {
-		$errors->add( 'user_name', __( 'Sorry, that username is not allowed.' ) );
-	}
-
-	/** This filter is documented in wp-includes/user.php */
-	$illegal_logins = (array) apply_filters( 'illegal_user_logins', array() );
-
-	if ( in_array( strtolower( $user_name ), array_map( 'strtolower', $illegal_logins ), true ) ) {
-		$errors->add( 'user_name', __( 'Sorry, that username is not allowed.' ) );
-	}
 
 	if ( ! is_email( $user_email ) ) {
 		$errors->add( 'user_email', __( 'Please enter a valid email address.' ) );
 	} elseif ( is_email_address_unsafe( $user_email ) ) {
 		$errors->add( 'user_email', __( 'You cannot use that email address to signup. There are problems with them blocking some emails from WordPress. Please use another email provider.' ) );
-	}
-
-	if ( strlen( $user_name ) < 4 ) {
-		$errors->add( 'user_name', __( 'Username must be at least 4 characters.' ) );
-	}
-
-	if ( strlen( $user_name ) > 60 ) {
-		$errors->add( 'user_name', __( 'Username may not be longer than 60 characters.' ) );
-	}
-
-	// All numeric?
-	if ( preg_match( '/^[0-9]*$/', $user_name ) ) {
-		$errors->add( 'user_name', __( 'Sorry, usernames must have letters too!' ) );
 	}
 
 	$limited_email_domains = get_site_option( 'limited_email_domains' );
@@ -515,11 +477,6 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 		if ( ! in_array( $emaildomain, $limited_email_domains, true ) ) {
 			$errors->add( 'user_email', __( 'Sorry, that email address is not allowed!' ) );
 		}
-	}
-
-	// Check if the username has been used already.
-	if ( username_exists( $user_name ) ) {
-		$errors->add( 'user_name', __( 'Sorry, that username already exists!' ) );
 	}
 
 	// Check if the email address has been used already.
@@ -532,20 +489,6 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 				wp_login_url()
 			)
 		);
-	}
-
-	// Has someone already signed up for this username?
-	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE user_login = %s", $user_name ) );
-	if ( $signup instanceof stdClass ) {
-		$registered_at = mysql2date( 'U', $signup->registered );
-		$now           = time();
-		$diff          = $now - $registered_at;
-		// If registered more than two days ago, cancel registration and let this signup go through.
-		if ( $diff > 2 * DAY_IN_SECONDS ) {
-			$wpdb->delete( $wpdb->signups, array( 'user_login' => $user_name ) );
-		} else {
-			$errors->add( 'user_name', __( 'That username is currently reserved but may be available in a couple of days.' ) );
-		}
 	}
 
 	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE user_email = %s", $user_email ) );
