@@ -615,7 +615,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	}
 
 	public function test_prepare_item() {
-		// TODO: Implement test_prepare_item() method.
+		$this->markTestSkipped( 'Controller does not implement prepare_item().' );
 	}
 
 	public function test_prepare_item_limit_fields() {

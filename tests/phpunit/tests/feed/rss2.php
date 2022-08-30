@@ -14,6 +14,9 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	public static $category;
 	public static $post_date;
 
+	private $post_count;
+	private $excerpt_only;
+
 	/**
 	 * Setup a new user and attribute some posts.
 	 */
@@ -58,6 +61,10 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		foreach ( self::$posts as $post ) {
 			wp_set_object_terms( $post, self::$category->slug, 'category' );
 		}
+
+		// Assign a tagline option.
+		update_option( 'blogdescription', 'Just another WordPress site' );
+
 	}
 
 	/**
@@ -73,6 +80,13 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 		create_initial_taxonomies();
+	}
+
+	/**
+	 * Tear down.
+	 */
+	public static function wpTearDownAfterClass() {
+		delete_option( 'blogdescription' );
 	}
 
 	/**

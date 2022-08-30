@@ -17,7 +17,7 @@
  * @param array|WP_Post $post       Optional. A post array or a WP_Post object being processed
  *                                  for insertion as a post revision. Default empty array.
  * @param bool          $deprecated Not used.
- * @return array Array of fields that can be versioned.
+ * @return string[] Array of fields that can be versioned.
  */
 function _wp_post_revision_fields( $post = array(), $deprecated = false ) {
 	static $fields = null;
@@ -47,9 +47,9 @@ function _wp_post_revision_fields( $post = array(), $deprecated = false ) {
 	 * @since 2.6.0
 	 * @since 4.5.0 The `$post` parameter was added.
 	 *
-	 * @param array $fields List of fields to revision. Contains 'post_title',
-	 *                      'post_content', and 'post_excerpt' by default.
-	 * @param array $post   A post array being processed for insertion as a post revision.
+	 * @param string[] $fields List of fields to revision. Contains 'post_title',
+	 *                         'post_content', and 'post_excerpt' by default.
+	 * @param array    $post   A post array being processed for insertion as a post revision.
 	 */
 	$fields = apply_filters( '_wp_post_revision_fields', $fields, $post );
 
@@ -136,16 +136,16 @@ function wp_save_post_revision( $post_id ) {
 	 */
 	$revisions = wp_get_post_revisions( $post_id );
 	if ( $revisions ) {
-		// Grab the last revision, but not an autosave.
+		// Grab the latest revision, but not an autosave.
 		foreach ( $revisions as $revision ) {
 			if ( false !== strpos( $revision->post_name, "{$revision->post_parent}-revision" ) ) {
-				$last_revision = $revision;
+				$latest_revision = $revision;
 				break;
 			}
 		}
 
 		/**
-		 * Filters whether the post has changed since the last revision.
+		 * Filters whether the post has changed since the latest revision.
 		 *
 		 * By default a revision is saved only if one of the revisioned fields has changed.
 		 * This filter can override that so a revision is saved even if nothing has changed.
@@ -154,14 +154,14 @@ function wp_save_post_revision( $post_id ) {
 		 *
 		 * @param bool    $check_for_changes Whether to check for changes before saving a new revision.
 		 *                                   Default true.
-		 * @param WP_Post $last_revision     The last revision post object.
+		 * @param WP_Post $latest_revision   The latest revision post object.
 		 * @param WP_Post $post              The post object.
 		 */
-		if ( isset( $last_revision ) && apply_filters( 'wp_save_post_revision_check_for_changes', true, $last_revision, $post ) ) {
+		if ( isset( $latest_revision ) && apply_filters( 'wp_save_post_revision_check_for_changes', true, $latest_revision, $post ) ) {
 			$post_has_changed = false;
 
 			foreach ( array_keys( _wp_post_revision_fields( $post ) ) as $field ) {
-				if ( normalize_whitespace( $post->$field ) !== normalize_whitespace( $last_revision->$field ) ) {
+				if ( normalize_whitespace( $post->$field ) !== normalize_whitespace( $latest_revision->$field ) ) {
 					$post_has_changed = true;
 					break;
 				}
@@ -176,10 +176,10 @@ function wp_save_post_revision( $post_id ) {
 			 * @since 4.1.0
 			 *
 			 * @param bool    $post_has_changed Whether the post has changed.
-			 * @param WP_Post $last_revision    The last revision post object.
+			 * @param WP_Post $latest_revision  The latest revision post object.
 			 * @param WP_Post $post             The post object.
 			 */
-			$post_has_changed = (bool) apply_filters( 'wp_save_post_revision_post_has_changed', $post_has_changed, $last_revision, $post );
+			$post_has_changed = (bool) apply_filters( 'wp_save_post_revision_post_has_changed', $post_has_changed, $latest_revision, $post );
 
 			// Don't save revision if post unchanged.
 			if ( ! $post_has_changed ) {
@@ -489,7 +489,7 @@ function wp_delete_post_revision( $revision ) {
  *
  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global `$post`.
  * @param array|null  $args Optional. Arguments for retrieving post revisions. Default null.
- * @return array An array of revisions, or an empty array if none.
+ * @return WP_Post[]|int[] Array of revision objects or IDs, or an empty array if none.
  */
 function wp_get_post_revisions( $post = 0, $args = null ) {
 	$post = get_post( $post );
@@ -528,12 +528,64 @@ function wp_get_post_revisions( $post = 0, $args = null ) {
 }
 
 /**
+ * Returns the latest revision ID and count of revisions for a post.
+ *
+ * @since 6.1.0
+ *
+ * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
+ * @return array|WP_Error {
+ *     Returns associative array with latest revision ID and total count,
+ *     or a WP_Error if the post does not exist or revisions are not enabled.
+ *
+ *     @type int $latest_id The latest revision post ID or 0 if no revisions exist.
+ *     @type int $count     The total count of revisions for the given post.
+ * }
+ */
+function wp_get_latest_revision_id_and_total_count( $post = 0 ) {
+	$post = get_post( $post );
+
+	if ( ! $post ) {
+		return new WP_Error( 'invalid_post', __( 'Invalid post.' ) );
+	}
+
+	if ( ! wp_revisions_enabled( $post ) ) {
+		return new WP_Error( 'revisions_not_enabled', __( 'Revisions not enabled.' ) );
+	}
+
+	$args = array(
+		'post_parent'         => $post->ID,
+		'fields'              => 'ids',
+		'post_type'           => 'revision',
+		'post_status'         => 'inherit',
+		'order'               => 'DESC',
+		'orderby'             => 'date ID',
+		'posts_per_page'      => 1,
+		'ignore_sticky_posts' => true,
+	);
+
+	$revision_query = new WP_Query();
+	$revisions      = $revision_query->query( $args );
+
+	if ( ! $revisions ) {
+		return array(
+			'latest_id' => 0,
+			'count'     => 0,
+		);
+	}
+
+	return array(
+		'latest_id' => $revisions[0],
+		'count'     => $revision_query->found_posts,
+	);
+}
+
+/**
  * Returns the url for viewing and potentially restoring revisions of a given post.
  *
  * @since 5.9.0
  *
  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global `$post`.
- * @return null|string The URL for editing revisions on the given post, otherwise null.
+ * @return string|null The URL for editing revisions on the given post, otherwise null.
  */
 function wp_get_post_revisions_url( $post = 0 ) {
 	$post = get_post( $post );
@@ -551,14 +603,13 @@ function wp_get_post_revisions_url( $post = 0 ) {
 		return null;
 	}
 
-	$revisions = wp_get_post_revisions( $post->ID, array( 'posts_per_page' => 1 ) );
+	$revisions = wp_get_latest_revision_id_and_total_count( $post->ID );
 
-	if ( 0 === count( $revisions ) ) {
+	if ( is_wp_error( $revisions ) || 0 === $revisions['count'] ) {
 		return null;
 	}
 
-	$revision = reset( $revisions );
-	return get_edit_post_link( $revision );
+	return get_edit_post_link( $revisions['latest_id'] );
 }
 
 /**

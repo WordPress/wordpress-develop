@@ -128,6 +128,41 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertFalse( taxonomy_exists( null ) );
 	}
 
+	/**
+	 * Tests that `taxonomy_exists()` returns `false` when the `$taxonomy`
+	 * argument is not a string.
+	 *
+	 * @ticket 56338
+	 *
+	 * @covers :taxonomy_exists
+	 *
+	 * @dataProvider data_taxonomy_exists_should_return_false_with_non_string_taxonomy
+	 *
+	 * @param mixed $taxonomy The non-string taxonomy.
+	 */
+	public function test_taxonomy_exists_should_return_false_with_non_string_taxonomy( $taxonomy ) {
+		$this->assertFalse( taxonomy_exists( $taxonomy ) );
+	}
+
+	/**
+	 * Data provider with non-string values.
+	 *
+	 * @return array
+	 */
+	public function data_taxonomy_exists_should_return_false_with_non_string_taxonomy() {
+		return array(
+			'array'        => array( array() ),
+			'object'       => array( new stdClass() ),
+			'bool (true)'  => array( true ),
+			'bool (false)' => array( false ),
+			'null'         => array( null ),
+			'integer (0)'  => array( 0 ),
+			'integer (1)'  => array( 1 ),
+			'float (0.0)'  => array( 0.0 ),
+			'float (1.1)'  => array( 1.1 ),
+		);
+	}
+
 	public function test_is_taxonomy_hierarchical() {
 		$this->assertTrue( is_taxonomy_hierarchical( 'category' ) );
 		$this->assertFalse( is_taxonomy_hierarchical( 'post_tag' ) );
