@@ -2157,6 +2157,48 @@ function is_username_reserved( $username ) {
 }
 
 /**
+ * Check if a user login is valid.
+ *
+ * This function combine various check that are run on the provided user login :
+ * - {@see validate_username}
+ * - {@see username_exists}
+ * - {@see is_username_reserved}
+ *
+ * @since n.e.x.t
+ *
+ * @param string $user_login User login to validate.
+ * @param WP_Error $errors Existing WP_Error object to use. If null a new WP_Error object will be created and returned.
+ *
+ * @return bool|WP_Error True is the login is valid, WP_Error otherwise.
+ */
+function wp_validate_user_login( $user_login = '', $errors = null ) {
+	if ( null === $errors ) {
+		$errors = new WP_Error();
+	}
+
+	$validate_username = validate_username( $user_login, true );
+	if ( is_wp_error( $validate_username ) ) {
+		$errors->merge_from( $validate_username );
+	}
+
+	// Check if the username has been used already.
+	if ( username_exists( $user_login ) ) {
+		$errors->add( 'user_name', __( 'Sorry, that username already exists!' ) );
+	}
+
+	// Check if the username is reserved.
+	if ( is_username_reserved( $user_login ) ) {
+		$errors->add( 'user_name', __( 'That username is currently reserved but may be available in a couple of days.' ) );
+	}
+
+	if ( $errors->has_errors() ) {
+		return $errors;
+	}
+
+	return true;
+}
+
+/**
  * Inserts a user into the database.
  *
  * Most of the `$userdata` array fields have filters associated with the values. Exceptions are
