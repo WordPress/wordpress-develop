@@ -19,6 +19,11 @@
 		"phpunit/phpunit": "^5.7.21 || ^6.5 || ^7.5",
 		"yoast/phpunit-polyfills": "^1.0.1"
 	},
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	},
 	"scripts": {
 		"compat": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --standard=phpcompat.xml.dist --report=summary,source",
 		"format": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcbf --report=summary,source",
