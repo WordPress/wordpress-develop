@@ -42,13 +42,13 @@ class Tests_Date_wpTimezone extends WP_UnitTestCase {
 	 * @ticket 24730
 	 */
 	public function test_should_return_timezone_string() {
-		update_option( 'timezone_string', 'Europe/Kiev' );
+		update_option( 'timezone_string', 'Europe/Helsinki' );
 
-		$this->assertSame( 'Europe/Kiev', wp_timezone_string() );
+		$this->assertSame( 'Europe/Helsinki', wp_timezone_string() );
 
 		$timezone = wp_timezone();
 
-		$this->assertSame( 'Europe/Kiev', $timezone->getName() );
+		$this->assertSame( 'Europe/Helsinki', $timezone->getName() );
 	}
 
 	/**
