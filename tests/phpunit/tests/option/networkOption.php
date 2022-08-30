@@ -152,7 +152,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$classy->stringy = 'I love slashes\\\\ more';
 		$funky_meta[]    = $classy;
 
-		// Add a network meta item
+		// Add a network meta item.
 		$this->assertIsInt( add_metadata( 'site', $network_id, $option, $funky_meta, true ) );
 
 		//Check they exists
