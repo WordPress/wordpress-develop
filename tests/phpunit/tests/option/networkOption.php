@@ -155,7 +155,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		// Add a network meta item.
 		$this->assertIsInt( add_metadata( 'site', $network_id, $option, $funky_meta, true ) );
 
-		//Check they exists
+		// Check they exists.
 		$this->assertEquals( $funky_meta, get_network_option( $network_id, $option ) );
 	}
 
