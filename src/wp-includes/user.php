@@ -2132,7 +2132,7 @@ function is_username_reserved( $username ) {
 		$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE user_login = %s", $username ) );
 		if ( null !== $signup ) {
 			$registered_at = mysql2date( 'U', $signup->registered );
-			$now           = current_time( 'timestamp', true );
+			$now           = time();
 			$diff          = $now - $registered_at;
 			// If registered more than two days ago, cancel registration and let this signup go through.
 			if ( $diff > 2 * DAY_IN_SECONDS ) {
