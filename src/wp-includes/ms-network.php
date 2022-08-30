@@ -137,7 +137,7 @@ function update_network_cache( $networks, $update_meta_cache = true ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param array $network_ids       Array of network IDs.
- * @param bool  $update_meta_cache Whether to update sitemeta cache. Default true.
+ * @param bool  $update_meta_cache Whether to update site meta cache. Default true.
  */
 function _prime_network_caches( $network_ids, $update_meta_cache = true ) {
 	global $wpdb;
