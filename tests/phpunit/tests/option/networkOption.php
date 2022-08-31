@@ -324,9 +324,11 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_slashed_options
-	 * @covers ::delete_network_option()
 	 * @ticket 37181
+	 *
+	 * @Covers ::delete_network_option()
+	 *
+	 * @dataProvider data_slashed_options
 	 */
 	public function test_slash_delete_network_option( $name, $value ) {
 		$result = add_network_option( null, $name, $value );
