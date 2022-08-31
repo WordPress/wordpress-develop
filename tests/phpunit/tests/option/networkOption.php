@@ -259,6 +259,8 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * @covers ::update_network_option
 	 */
 	public function test_update_network_option_array_with_object() {
+		$network_id     = self::factory()->network->create();
+		$option         = __FUNCTION__;
 		$array_w_object = array(
 			'url'       => 'http://src.wordpress-develop.dev/wp-content/uploads/2016/10/cropped-Blurry-Lights.jpg',
 			'meta_data' => (object) array(
@@ -268,8 +270,8 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 			),
 		);
 
-		add_metadata( 'site', $network_id, $option, 'monday', true );
-		$this->assertSame( 'monday', get_network_option( $network_id, $option ) );
+		add_metadata( 'site', $network_id, $option, $array_w_object, true );
+		$this->assertSame( $array_w_object, get_network_option( $network_id, $option ) );
 	}
 
 	/**
