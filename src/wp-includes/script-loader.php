@@ -2899,6 +2899,7 @@ function wp_enqueue_global_styles_css_custom_properties() {
  * in the proper place, depending on the theme in use.
  *
  * @since 5.9.1
+ * @since 6.1.0 Added the `$priority` parameter.
  *
  * For block themes, it's loaded in the head.
  * For classic ones, it's loaded in the body
@@ -2908,8 +2909,9 @@ function wp_enqueue_global_styles_css_custom_properties() {
  * @link https://core.trac.wordpress.org/ticket/53494.
  *
  * @param string $style String containing the CSS styles to be added.
+ * @param int    $priority To set the priority for the add_action.
  */
-function wp_enqueue_block_support_styles( $style ) {
+function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
 	$action_hook_name = 'wp_footer';
 	if ( wp_is_block_theme() ) {
 		$action_hook_name = 'wp_head';
@@ -2918,7 +2920,8 @@ function wp_enqueue_block_support_styles( $style ) {
 		$action_hook_name,
 		static function () use ( $style ) {
 			echo "<style>$style</style>\n";
-		}
+		},
+		$priority
 	);
 }
 
