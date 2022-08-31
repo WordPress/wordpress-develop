@@ -156,6 +156,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37181
+	 *
 	 * @group ms-required
 	 */
 	function test_funky_network_meta() {
