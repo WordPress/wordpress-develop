@@ -279,10 +279,13 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_types_options
-	 * @covers ::add_network_option
 	 * @ticket 37181
+	 *
 	 * @group ms-required
+	 *
+	 * @Covers ::add_network_option
+	 *
+	 * @dataProvider data_types_options
 	 */
 	public function test_type_add_network_option( $name, $value, $expected ) {
 		$result = add_network_option( null, $name, $value );
