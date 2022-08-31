@@ -136,6 +136,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/comments',
 			'/wp/v2/comments/(?P<id>[\\d]+)',
 			'/wp/v2/global-styles/(?P<id>[\/\w-]+)',
+			'/wp/v2/global-styles/themes/(?P<stylesheet>[\/\s%\w\.\(\)\[\]\@_\-]+)/variations',
 			'/wp/v2/global-styles/themes/(?P<stylesheet>[^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)',
 			'/wp/v2/search',
 			'/wp/v2/block-renderer/(?P<name>[a-z0-9-]+/[a-z0-9-]+)',
@@ -160,6 +161,8 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/plugins',
 			'/wp/v2/plugins/(?P<plugin>[^.\/]+(?:\/[^.\/]+)?)',
 			'/wp/v2/block-directory/search',
+			'/wp/v2/block-patterns/categories',
+			'/wp/v2/block-patterns/patterns',
 			'/wp/v2/sidebars',
 			'/wp/v2/sidebars/(?P<id>[\w-]+)',
 			'/wp/v2/widget-types',
@@ -517,7 +520,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		wp_delete_post( $post_id, true );
 		wp_delete_post( $page_id, true );
 		wp_delete_term( $tag_id, 'tags' );
-		wp_delete_attachment( $media_id );
+		wp_delete_attachment( $media_id, true );
 		wp_delete_comment( $comment_id );
 	}
 

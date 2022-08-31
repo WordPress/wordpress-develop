@@ -514,7 +514,19 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 
 			// Remove any HTML from the description.
 			$description = strip_tags( $plugin['short_description'] );
-			$version     = wp_kses( $plugin['version'], $plugins_allowedtags );
+
+			/**
+			 * Filters the plugin card description on the Add Plugins screen.
+			 *
+			 * @since 6.0.0
+			 *
+			 * @param string $description Plugin card description.
+			 * @param array  $plugin      An array of plugin data. See {@see plugins_api()}
+			 *                            for the list of possible values.
+			 */
+			$description = apply_filters( 'plugin_install_description', $description, $plugin );
+
+			$version = wp_kses( $plugin['version'], $plugins_allowedtags );
 
 			$name = strip_tags( $title . ' ' . $version );
 
@@ -659,8 +671,10 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			 *
 			 * @since 2.7.0
 			 *
-			 * @param string[] $action_links An array of plugin action links. Defaults are links to Details and Install Now.
-			 * @param array    $plugin       The plugin currently being listed.
+			 * @param string[] $action_links An array of plugin action links.
+			 *                               Defaults are links to Details and Install Now.
+			 * @param array    $plugin       An array of plugin data. See {@see plugins_api()}
+			 *                               for the list of possible values.
 			 */
 			$action_links = apply_filters( 'plugin_install_action_links', $action_links, $plugin );
 
@@ -671,7 +685,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			if ( ! $compatible_php || ! $compatible_wp ) {
 				echo '<div class="notice inline notice-error notice-alt"><p>';
 				if ( ! $compatible_php && ! $compatible_wp ) {
-					_e( 'This plugin doesn&#8217;t work with your versions of WordPress and PHP.' );
+					_e( 'This plugin does not work with your versions of WordPress and PHP.' );
 					if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
 						printf(
 							/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
@@ -695,7 +709,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 						wp_update_php_annotation( '</p><p><em>', '</em>' );
 					}
 				} elseif ( ! $compatible_wp ) {
-					_e( 'This plugin doesn&#8217;t work with your version of WordPress.' );
+					_e( 'This plugin does not work with your version of WordPress.' );
 					if ( current_user_can( 'update_core' ) ) {
 						printf(
 							/* translators: %s: URL to WordPress Updates screen. */
@@ -704,7 +718,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 						);
 					}
 				} elseif ( ! $compatible_php ) {
-					_e( 'This plugin doesn&#8217;t work with your version of PHP.' );
+					_e( 'This plugin does not work with your version of PHP.' );
 					if ( current_user_can( 'update_php' ) ) {
 						printf(
 							/* translators: %s: URL to Update PHP page. */

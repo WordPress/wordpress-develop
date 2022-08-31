@@ -26,6 +26,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	protected $forbidden_cat;
 	protected $posts_clauses;
 
+	private $attachments_created = false;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
 
@@ -115,13 +117,24 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		add_filter( 'posts_clauses', array( $this, 'save_posts_clauses' ), 10, 2 );
 	}
 
+	public function tear_down() {
+		if ( true === $this->attachments_created ) {
+			$this->remove_added_uploads();
+			$this->attachments_created = false;
+		}
+
+		parent::tear_down();
+	}
+
 	public function wpSetUpBeforeRequest( $result, $server, $request ) {
 		$this->posts_clauses = array();
 		return $result;
 	}
 
 	public function save_posts_clauses( $orderby, $query ) {
-		array_push( $this->posts_clauses, $orderby );
+		if ( 'revision' !== $query->query_vars['post_type'] ) {
+			array_push( $this->posts_clauses, $orderby );
+		}
 		return $orderby;
 	}
 
@@ -1385,8 +1398,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( 0, $response->get_data() );
 
-		// FIXME Since this request returns zero posts, the query is executed twice.
-		$this->assertCount( 2, $this->posts_clauses );
+		$this->assertCount( 1, $this->posts_clauses );
 		$this->posts_clauses = array_slice( $this->posts_clauses, 0, 1 );
 
 		$this->assertPostsWhere( " AND {posts}.ID IN (0) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
@@ -1417,8 +1429,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( 0, $response->get_data() );
 
-		// FIXME Since this request returns zero posts, the query is executed twice.
-		$this->assertCount( 2, $this->posts_clauses );
+		$this->assertCount( 1, $this->posts_clauses );
 		$this->posts_clauses = array_slice( $this->posts_clauses, 0, 1 );
 
 		$this->assertPostsWhere( " AND {posts}.ID IN (0) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
@@ -1436,8 +1447,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( 0, $response->get_data() );
 
-		// FIXME Since this request returns zero posts, the query is executed twice.
-		$this->assertCount( 2, $this->posts_clauses );
+		$this->assertCount( 1, $this->posts_clauses );
 		$this->posts_clauses = array_slice( $this->posts_clauses, 0, 1 );
 
 		$this->assertPostsWhere( " AND {posts}.ID IN (0) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
@@ -1515,6 +1525,87 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertNotContains( $id3, $ids );
 
 		$this->assertPostsWhere( " AND {posts}.ID NOT IN ($id3) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
+	}
+
+	/**
+	 * @ticket 55592
+	 * @covers WP_REST_Posts_Controller::get_items
+	 * @covers ::update_post_thumbnail_cache
+	 */
+	public function test_get_items_primes_thumbnail_cache_for_featured_media() {
+		$file           = DIR_TESTDATA . '/images/canola.jpg';
+		$attachment_ids = array();
+		$post_ids       = array();
+		for ( $i = 0; $i < 3; $i++ ) {
+			$post_ids[ $i ]       = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+			$attachment_ids[ $i ] = self::factory()->attachment->create_object(
+				$file,
+				$post_ids[ $i ],
+				array(
+					'post_mime_type' => 'image/jpeg',
+				)
+			);
+			set_post_thumbnail( $post_ids[ $i ], $attachment_ids[ $i ] );
+		}
+
+		// Attachment creation warms thumbnail IDs. Needs clean up for test.
+		wp_cache_delete_multiple( $attachment_ids, 'posts' );
+
+		$filter = new MockAction();
+		add_filter( 'update_post_metadata_cache', array( $filter, 'filter' ), 10, 2 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'include', $post_ids );
+		rest_get_server()->dispatch( $request );
+
+		$args = $filter->get_args();
+		$last = end( $args );
+		$this->assertIsArray( $last, 'The last value is not an array' );
+		$this->assertSameSets( $attachment_ids, $last[1] );
+	}
+
+	/**
+	 * @ticket 55593
+	 * @covers WP_REST_Posts_Controller::get_items
+	 * @covers ::update_post_parent_caches
+	 */
+	public function test_get_items_primes_parent_post_caches() {
+		$parent_id1       = self::$post_ids[0];
+		$parent_id2       = self::$post_ids[1];
+		$parent_ids       = array( $parent_id1, $parent_id2 );
+		$attachment_ids   = array();
+		$attachment_ids[] = $this->factory->attachment->create_object(
+			DIR_TESTDATA . '/images/canola.jpg',
+			$parent_id1,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption 1',
+			)
+		);
+
+		$attachment_ids[] = $this->factory->attachment->create_object(
+			DIR_TESTDATA . '/images/canola.jpg',
+			$parent_id2,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption 2',
+			)
+		);
+
+		// Attachment creation warms parent IDs. Needs clean up for test.
+		wp_cache_delete_multiple( $parent_ids, 'posts' );
+		wp_cache_delete_multiple( $attachment_ids, 'posts' );
+
+		$filter = new MockAction();
+		add_filter( 'update_post_metadata_cache', array( $filter, 'filter' ), 10, 2 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		rest_get_server()->dispatch( $request );
+
+		$args = $filter->get_args();
+		$last = end( $args );
+		$this->assertIsArray( $last, 'The last value is not an array' );
+		$this->assertSameSets( $parent_ids, $last[1] );
 	}
 
 	public function test_get_items_pagination_headers() {
@@ -2691,8 +2782,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function test_create_update_post_with_featured_media() {
 
-		$file                = DIR_TESTDATA . '/images/canola.jpg';
-		$this->attachment_id = $this->factory->attachment->create_object(
+		$file          = DIR_TESTDATA . '/images/canola.jpg';
+		$attachment_id = $this->factory->attachment->create_object(
 			$file,
 			0,
 			array(
@@ -2701,20 +2792,22 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			)
 		);
 
+		$this->attachments_created = true;
+
 		wp_set_current_user( self::$editor_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
 		$params  = $this->set_post_data(
 			array(
-				'featured_media' => $this->attachment_id,
+				'featured_media' => $attachment_id,
 			)
 		);
 		$request->set_body_params( $params );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$new_post = get_post( $data['id'] );
-		$this->assertSame( $this->attachment_id, $data['featured_media'] );
-		$this->assertSame( $this->attachment_id, (int) get_post_thumbnail_id( $new_post->ID ) );
+		$this->assertSame( $attachment_id, $data['featured_media'] );
+		$this->assertSame( $attachment_id, (int) get_post_thumbnail_id( $new_post->ID ) );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $new_post->ID );
 		$params  = $this->set_post_data(
@@ -5156,12 +5249,45 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$GLOBALS['wp_rest_server']->override_by_default = false;
 	}
 
-	public function tear_down() {
-		if ( isset( $this->attachment_id ) ) {
-			$this->remove_added_uploads();
-		}
+	/**
+	 * @ticket 52422
+	 *
+	 * @covers WP_REST_Request::create_item
+	 */
+	public function test_draft_post_do_not_have_the_same_slug_as_existing_post() {
+		wp_set_current_user( self::$editor_id );
+		$this->factory()->post->create( array( 'post_name' => 'sample-slug' ) );
 
-		parent::tear_down();
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$params  = $this->set_post_data(
+			array(
+				'status' => 'draft',
+				'slug'   => 'sample-slug',
+			)
+		);
+		$request->set_body_params( $params );
+		$response = rest_get_server()->dispatch( $request );
+
+		$new_data = $response->get_data();
+		$this->assertSame(
+			'sample-slug-2',
+			$new_data['slug'],
+			'The slug from the REST response did not match'
+		);
+
+		$post = get_post( $new_data['id'] );
+
+		$this->assertSame(
+			'draft',
+			$post->post_status,
+			'The post status is not draft'
+		);
+
+		$this->assertSame(
+			'sample-slug-2',
+			$post->post_name,
+			'The post slug was not set to "sample-slug-2"'
+		);
 	}
 
 	/**

@@ -655,7 +655,7 @@ class WP_Http {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param string $str_response The full response string.
+	 * @param string $response The full response string.
 	 * @return array {
 	 *     Array with response headers and body.
 	 *
@@ -663,8 +663,8 @@ class WP_Http {
 	 *     @type string $body    HTTP response body.
 	 * }
 	 */
-	public static function processResponse( $str_response ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
-		$response = explode( "\r\n\r\n", $str_response, 2 );
+	public static function processResponse( $response ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+		$response = explode( "\r\n\r\n", $response, 2 );
 
 		return array(
 			'headers' => $response[0],
@@ -687,8 +687,8 @@ class WP_Http {
 	 *     then a numbered array is returned as the value of that header-key.
 	 *
 	 *     @type array            $response {
-	 *          @type int    $code    The response status code. Default 0.
-	 *          @type string $message The response message. Default empty.
+	 *         @type int    $code    The response status code. Default 0.
+	 *         @type string $message The response message. Default empty.
 	 *     }
 	 *     @type array            $newheaders The processed header data as a multidimensional array.
 	 *     @type WP_Http_Cookie[] $cookies    If the original headers contain the 'Set-Cookie' key,

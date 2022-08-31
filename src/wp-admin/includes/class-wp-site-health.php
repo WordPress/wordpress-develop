@@ -381,10 +381,9 @@ class WP_Site_Health {
 		$plugins        = get_plugins();
 		$plugin_updates = get_plugin_updates();
 
-		$plugins_have_updates = false;
-		$plugins_active       = 0;
-		$plugins_total        = 0;
-		$plugins_need_update  = 0;
+		$plugins_active      = 0;
+		$plugins_total       = 0;
+		$plugins_need_update = 0;
 
 		// Loop over the available plugins and check their versions and active state.
 		foreach ( $plugins as $plugin_path => $plugin ) {
@@ -394,11 +393,8 @@ class WP_Site_Health {
 				$plugins_active++;
 			}
 
-			$plugin_version = $plugin['Version'];
-
 			if ( array_key_exists( $plugin_path, $plugin_updates ) ) {
 				$plugins_need_update++;
-				$plugins_have_updates = true;
 			}
 		}
 
@@ -432,7 +428,7 @@ class WP_Site_Health {
 					'<p>%s</p>',
 					__( 'Your site has 1 active plugin, and it is up to date.' )
 				);
-			} else {
+			} elseif ( $plugins_active > 0 ) {
 				$result['description'] .= sprintf(
 					'<p>%s</p>',
 					sprintf(
@@ -444,6 +440,11 @@ class WP_Site_Health {
 						),
 						$plugins_active
 					)
+				);
+			} else {
+				$result['description'] .= sprintf(
+					'<p>%s</p>',
+					__( 'Your site does not have any active plugins.' )
 				);
 			}
 		}
@@ -467,7 +468,7 @@ class WP_Site_Health {
 					),
 					$unused_plugins
 				),
-				__( 'Inactive plugins are tempting targets for attackers. If you&#8217;re not going to use a plugin, you should consider removing it.' )
+				__( 'Inactive plugins are tempting targets for attackers. If you are not going to use a plugin, you should consider removing it.' )
 			);
 
 			$result['actions'] .= sprintf(
@@ -595,7 +596,7 @@ class WP_Site_Health {
 					'<p>%s</p>',
 					__( 'Your site has 1 installed theme, and it is up to date.' )
 				);
-			} else {
+			} elseif ( $themes_total > 0 ) {
 				$result['description'] .= sprintf(
 					'<p>%s</p>',
 					sprintf(
@@ -607,6 +608,11 @@ class WP_Site_Health {
 						),
 						$themes_total
 					)
+				);
+			} else {
+				$result['description'] .= sprintf(
+					'<p>%s</p>',
+					__( 'Your site does not have any installed themes.' )
 				);
 			}
 		}
@@ -634,7 +640,7 @@ class WP_Site_Health {
 						),
 						sprintf(
 							/* translators: 1: The currently active theme. 2: The active theme's parent theme. */
-							__( 'To enhance your site&#8217;s security, you should consider removing any themes you&#8217;re not using. You should keep your active theme, %1$s, and %2$s, its parent theme.' ),
+							__( 'To enhance your site&#8217;s security, you should consider removing any themes you are not using. You should keep your active theme, %1$s, and %2$s, its parent theme.' ),
 							$active_theme->name,
 							$active_theme->parent()->name
 						)
@@ -653,7 +659,7 @@ class WP_Site_Health {
 						),
 						sprintf(
 							/* translators: 1: The default theme for WordPress. 2: The currently active theme. 3: The active theme's parent theme. */
-							__( 'To enhance your site&#8217;s security, you should consider removing any themes you&#8217;re not using. You should keep %1$s, the default WordPress theme, %2$s, your active theme, and %3$s, its parent theme.' ),
+							__( 'To enhance your site&#8217;s security, you should consider removing any themes you are not using. You should keep %1$s, the default WordPress theme, %2$s, your active theme, and %3$s, its parent theme.' ),
 							$default_theme ? $default_theme->name : WP_DEFAULT_THEME,
 							$active_theme->name,
 							$active_theme->parent()->name
@@ -802,30 +808,33 @@ class WP_Site_Health {
 	 * Make the check for available PHP modules into a simple boolean operator for a cleaner test runner.
 	 *
 	 * @since 5.2.0
-	 * @since 5.3.0 The `$constant` and `$class` parameters were added.
+	 * @since 5.3.0 The `$constant_name` and `$class_name` parameters were added.
 	 *
-	 * @param string $extension Optional. The extension name to test. Default null.
-	 * @param string $function  Optional. The function name to test. Default null.
-	 * @param string $constant  Optional. The constant name to test for. Default null.
-	 * @param string $class     Optional. The class name to test for. Default null.
+	 * @param string $extension_name Optional. The extension name to test. Default null.
+	 * @param string $function_name  Optional. The function name to test. Default null.
+	 * @param string $constant_name  Optional. The constant name to test for. Default null.
+	 * @param string $class_name     Optional. The class name to test for. Default null.
 	 * @return bool Whether or not the extension and function are available.
 	 */
-	private function test_php_extension_availability( $extension = null, $function = null, $constant = null, $class = null ) {
+	private function test_php_extension_availability( $extension_name = null, $function_name = null, $constant_name = null, $class_name = null ) {
 		// If no extension or function is passed, claim to fail testing, as we have nothing to test against.
-		if ( ! $extension && ! $function && ! $constant && ! $class ) {
+		if ( ! $extension_name && ! $function_name && ! $constant_name && ! $class_name ) {
 			return false;
 		}
 
-		if ( $extension && ! extension_loaded( $extension ) ) {
+		if ( $extension_name && ! extension_loaded( $extension_name ) ) {
 			return false;
 		}
-		if ( $function && ! function_exists( $function ) ) {
+
+		if ( $function_name && ! function_exists( $function_name ) ) {
 			return false;
 		}
-		if ( $constant && ! defined( $constant ) ) {
+
+		if ( $constant_name && ! defined( $constant_name ) ) {
 			return false;
 		}
-		if ( $class && ! class_exists( $class ) ) {
+
+		if ( $class_name && ! class_exists( $class_name ) ) {
 			return false;
 		}
 
@@ -994,10 +1003,10 @@ class WP_Site_Health {
 		$failures = array();
 
 		foreach ( $modules as $library => $module ) {
-			$extension  = ( isset( $module['extension'] ) ? $module['extension'] : null );
-			$function   = ( isset( $module['function'] ) ? $module['function'] : null );
-			$constant   = ( isset( $module['constant'] ) ? $module['constant'] : null );
-			$class_name = ( isset( $module['class'] ) ? $module['class'] : null );
+			$extension_name = ( isset( $module['extension'] ) ? $module['extension'] : null );
+			$function_name  = ( isset( $module['function'] ) ? $module['function'] : null );
+			$constant_name  = ( isset( $module['constant'] ) ? $module['constant'] : null );
+			$class_name     = ( isset( $module['class'] ) ? $module['class'] : null );
 
 			// If this module is a fallback for another function, check if that other function passed.
 			if ( isset( $module['fallback_for'] ) ) {
@@ -1012,7 +1021,10 @@ class WP_Site_Health {
 				}
 			}
 
-			if ( ! $this->test_php_extension_availability( $extension, $function, $constant, $class_name ) && ( ! isset( $module['php_bundled_version'] ) || version_compare( PHP_VERSION, $module['php_bundled_version'], '<' ) ) ) {
+			if ( ! $this->test_php_extension_availability( $extension_name, $function_name, $constant_name, $class_name )
+				&& ( ! isset( $module['php_bundled_version'] )
+					|| version_compare( PHP_VERSION, $module['php_bundled_version'], '<' ) )
+			) {
 				if ( $module['required'] ) {
 					$result['status'] = 'critical';
 
@@ -2252,6 +2264,105 @@ class WP_Site_Health {
 	}
 
 	/**
+	 * Tests if sites uses persistent object cache.
+	 *
+	 * Checks if site uses persistent object cache or recommends to use it if not.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @return array The test result.
+	 */
+	public function get_test_persistent_object_cache() {
+		/**
+		 * Filters the action URL for the persistent object cache health check.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param string $action_url Learn more link for persistent object cache health check.
+		 */
+		$action_url = apply_filters(
+			'site_status_persistent_object_cache_url',
+			/* translators: Localized Support reference. */
+			__( 'https://wordpress.org/support/article/optimization/#object-caching' )
+		);
+
+		$result = array(
+			'test'        => 'persistent_object_cache',
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			'label'       => __( 'A persistent object cache is being used' ),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( "A persistent object cache makes your site's database more efficient, resulting in faster load times because WordPress can retrieve your site's content and settings much more quickly." )
+			),
+			'actions'     => sprintf(
+				'<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				esc_url( $action_url ),
+				__( 'Learn more about persistent object caching.' ),
+				/* translators: Accessibility text. */
+				__( '(opens in a new tab)' )
+			),
+		);
+
+		if ( wp_using_ext_object_cache() ) {
+			return $result;
+		}
+
+		if ( ! $this->should_suggest_persistent_object_cache() ) {
+			$result['label'] = __( 'A persistent object cache is not required' );
+
+			return $result;
+		}
+
+		$available_services = $this->available_object_cache_services();
+
+		$notes = __( 'Your hosting provider can tell you if a persistent object cache can be enabled on your site.' );
+
+		if ( ! empty( $available_services ) ) {
+			$notes .= ' ' . sprintf(
+				/* translators: Available object caching services. */
+				__( 'Your host appears to support the following object caching services: %s.' ),
+				implode( ', ', $available_services )
+			);
+		}
+
+		/**
+		 * Filters the second paragraph of the health check's description
+		 * when suggesting the use of a persistent object cache.
+		 *
+		 * Hosts may want to replace the notes to recommend their preferred object caching solution.
+		 *
+		 * Plugin authors may want to append notes (not replace) on why object caching is recommended for their plugin.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param string $notes              The notes appended to the health check description.
+		 * @param array  $available_services The list of available persistent object cache services.
+		 */
+		$notes = apply_filters( 'site_status_persistent_object_cache_notes', $notes, $available_services );
+
+		$result['status']       = 'recommended';
+		$result['label']        = __( 'You should use a persistent object cache' );
+		$result['description'] .= sprintf(
+			'<p>%s</p>',
+			wp_kses(
+				$notes,
+				array(
+					'a'      => array( 'href' => true ),
+					'code'   => true,
+					'em'     => true,
+					'strong' => true,
+				)
+			)
+		);
+
+		return $result;
+	}
+
+	/**
 	 * Return a set of tests that belong to the site status page.
 	 *
 	 * Each site status test is defined here, they may be `direct` tests, that run on page load, or `async` tests
@@ -2368,6 +2479,14 @@ class WP_Site_Health {
 				'has_rest'  => true,
 				'headers'   => array( 'Authorization' => 'Basic ' . base64_encode( 'user:pwd' ) ),
 				'skip_cron' => true,
+			);
+		}
+
+		// Only check for a persistent object cache in production environments to not unnecessarily promote complicated setups.
+		if ( 'production' === wp_get_environment_type() ) {
+			$tests['direct']['persistent_object_cache'] = array(
+				'label' => __( 'Persistent object cache' ),
+				'test'  => 'persistent_object_cache',
 			);
 		}
 
@@ -2844,6 +2963,129 @@ class WP_Site_Health {
 	 */
 	public function is_development_environment() {
 		return in_array( wp_get_environment_type(), array( 'development', 'local' ), true );
+	}
+
+	/**
+	 * Determines whether to suggest using a persistent object cache.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @return bool Whether to suggest using a persistent object cache.
+	 */
+	public function should_suggest_persistent_object_cache() {
+		global $wpdb;
+
+		if ( is_multisite() ) {
+			return true;
+		}
+
+		/**
+		 * Filters whether to suggest use of a persistent object cache and bypass default threshold checks.
+		 *
+		 * Using this filter allows to override the default logic, effectively short-circuiting the method.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param bool|null $suggest Boolean to short-circuit, for whether to suggest using a persistent object cache.
+		 *                           Default null.
+		 */
+		$short_circuit = apply_filters( 'site_status_should_suggest_persistent_object_cache', null );
+		if ( is_bool( $short_circuit ) ) {
+			return $short_circuit;
+		}
+
+		/**
+		 * Filters the thresholds used to determine whether to suggest the use of a persistent object cache.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param array $thresholds The list of threshold names and numbers.
+		 */
+		$thresholds = apply_filters(
+			'site_status_persistent_object_cache_thresholds',
+			array(
+				'alloptions_count' => 500,
+				'alloptions_bytes' => 100000,
+				'comments_count'   => 1000,
+				'options_count'    => 1000,
+				'posts_count'      => 1000,
+				'terms_count'      => 1000,
+				'users_count'      => 1000,
+			)
+		);
+
+		$alloptions = wp_load_alloptions();
+
+		if ( $thresholds['alloptions_count'] < count( $alloptions ) ) {
+			return true;
+		}
+
+		if ( $thresholds['alloptions_bytes'] < strlen( serialize( $alloptions ) ) ) {
+			return true;
+		}
+
+		$table_names = implode( "','", array( $wpdb->comments, $wpdb->options, $wpdb->posts, $wpdb->terms, $wpdb->users ) );
+
+		// With InnoDB the `TABLE_ROWS` are estimates, which are accurate enough and faster to retrieve than individual `COUNT()` queries.
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- This query cannot use interpolation.
+				"SELECT TABLE_NAME AS 'table', TABLE_ROWS AS 'rows', SUM(data_length + index_length) as 'bytes' FROM information_schema.TABLES WHERE TABLE_SCHEMA = %s AND TABLE_NAME IN ('$table_names') GROUP BY TABLE_NAME;",
+				DB_NAME
+			),
+			OBJECT_K
+		);
+
+		$threshold_map = array(
+			'comments_count' => $wpdb->comments,
+			'options_count'  => $wpdb->options,
+			'posts_count'    => $wpdb->posts,
+			'terms_count'    => $wpdb->terms,
+			'users_count'    => $wpdb->users,
+		);
+
+		foreach ( $threshold_map as $threshold => $table ) {
+			if ( $thresholds[ $threshold ] <= $results[ $table ]->rows ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Returns a list of available persistent object cache services.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @return array The list of available persistent object cache services.
+	 */
+	private function available_object_cache_services() {
+		$extensions = array_map(
+			'extension_loaded',
+			array(
+				'APCu'      => 'apcu',
+				'Redis'     => 'redis',
+				'Relay'     => 'relay',
+				'Memcache'  => 'memcache',
+				'Memcached' => 'memcached',
+			)
+		);
+
+		$services = array_keys( array_filter( $extensions ) );
+
+		/**
+		 * Filters the persistent object cache services available to the user.
+		 *
+		 * This can be useful to hide or add services not included in the defaults.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param array $services The list of available persistent object cache services.
+		 */
+		return apply_filters( 'site_status_available_object_cache_services', $services );
 	}
 
 }

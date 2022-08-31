@@ -152,6 +152,7 @@ if ( SHORTINIT ) {
 
 // Load the L10n library.
 require_once ABSPATH . WPINC . '/l10n.php';
+require_once ABSPATH . WPINC . '/class-wp-textdomain-registry.php';
 require_once ABSPATH . WPINC . '/class-wp-locale.php';
 require_once ABSPATH . WPINC . '/class-wp-locale-switcher.php';
 
@@ -277,6 +278,8 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-plugins-controller.
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-block-directory-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-edit-site-export-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-pattern-directory-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-block-patterns-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-block-pattern-categories-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-application-passwords-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-site-health-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-sidebars-controller.php';
@@ -317,6 +320,7 @@ require ABSPATH . WPINC . '/blocks/index.php';
 require ABSPATH . WPINC . '/block-editor.php';
 require ABSPATH . WPINC . '/block-patterns.php';
 require ABSPATH . WPINC . '/class-wp-block-supports.php';
+require ABSPATH . WPINC . '/block-supports/utils.php';
 require ABSPATH . WPINC . '/block-supports/align.php';
 require ABSPATH . WPINC . '/block-supports/border.php';
 require ABSPATH . WPINC . '/block-supports/colors.php';
@@ -330,6 +334,17 @@ require ABSPATH . WPINC . '/block-supports/spacing.php';
 require ABSPATH . WPINC . '/block-supports/typography.php';
 
 $GLOBALS['wp_embed'] = new WP_Embed();
+
+/**
+ * WordPress Textdomain Registry object.
+ *
+ * Used to support just-in-time translations for manually loaded text domains.
+ *
+ * @since 6.1.0
+ *
+ * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
+ */
+$GLOBALS['wp_textdomain_registry'] = new WP_Textdomain_Registry();
 
 // Load multisite-specific files.
 if ( is_multisite() ) {
@@ -346,7 +361,9 @@ $GLOBALS['wp_plugin_paths'] = array();
 
 // Load must-use plugins.
 foreach ( wp_get_mu_plugins() as $mu_plugin ) {
+	$_wp_plugin_file = $mu_plugin;
 	include_once $mu_plugin;
+	$mu_plugin = $_wp_plugin_file; // Avoid stomping of the $mu_plugin variable in a plugin.
 
 	/**
 	 * Fires once a single must-use plugin has loaded.
@@ -357,13 +374,16 @@ foreach ( wp_get_mu_plugins() as $mu_plugin ) {
 	 */
 	do_action( 'mu_plugin_loaded', $mu_plugin );
 }
-unset( $mu_plugin );
+unset( $mu_plugin, $_wp_plugin_file );
 
 // Load network activated plugins.
 if ( is_multisite() ) {
 	foreach ( wp_get_active_network_plugins() as $network_plugin ) {
 		wp_register_plugin_realpath( $network_plugin );
+
+		$_wp_plugin_file = $network_plugin;
 		include_once $network_plugin;
+		$network_plugin = $_wp_plugin_file; // Avoid stomping of the $network_plugin variable in a plugin.
 
 		/**
 		 * Fires once a single network-activated plugin has loaded.
@@ -374,7 +394,7 @@ if ( is_multisite() ) {
 		 */
 		do_action( 'network_plugin_loaded', $network_plugin );
 	}
-	unset( $network_plugin );
+	unset( $network_plugin, $_wp_plugin_file );
 }
 
 /**
@@ -415,7 +435,10 @@ if ( ! is_multisite() ) {
 // Load active plugins.
 foreach ( wp_get_active_and_valid_plugins() as $plugin ) {
 	wp_register_plugin_realpath( $plugin );
+
+	$_wp_plugin_file = $plugin;
 	include_once $plugin;
+	$plugin = $_wp_plugin_file; // Avoid stomping of the $plugin variable in a plugin.
 
 	/**
 	 * Fires once a single activated plugin has loaded.
@@ -426,7 +449,7 @@ foreach ( wp_get_active_and_valid_plugins() as $plugin ) {
 	 */
 	do_action( 'plugin_loaded', $plugin );
 }
-unset( $plugin );
+unset( $plugin, $_wp_plugin_file );
 
 // Load pluggable functions.
 require ABSPATH . WPINC . '/pluggable.php';

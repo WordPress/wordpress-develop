@@ -401,8 +401,7 @@ function populate_options( array $options = array() ) {
 		'siteurl'                         => $guessurl,
 		'home'                            => $guessurl,
 		'blogname'                        => __( 'My Site' ),
-		/* translators: Site tagline. */
-		'blogdescription'                 => __( 'Just another WordPress site' ),
+		'blogdescription'                 => '',
 		'users_can_register'              => 0,
 		'admin_email'                     => 'you@example.com',
 		/* translators: Default start of the week. 0 = Sunday, 1 = Monday. */
@@ -555,8 +554,6 @@ function populate_options( array $options = array() ) {
 
 	// 3.0.0 multisite.
 	if ( is_multisite() ) {
-		/* translators: %s: Network title. */
-		$defaults['blogdescription']     = sprintf( __( 'Just another %s site' ), get_network()->site_name );
 		$defaults['permalink_structure'] = '/%year%/%monthnum%/%day%/%postname%/';
 	}
 
@@ -1173,8 +1170,6 @@ function populate_network_meta( $network_id, array $meta = array() ) {
 		wp_cache_delete( $network_id, 'networks' );
 	}
 
-	wp_cache_delete( 'networks_have_paths', 'site-options' );
-
 	if ( ! is_multisite() ) {
 		$site_admins = array( $site_user->user_login );
 		$users       = get_users(
@@ -1267,6 +1262,7 @@ We hope you enjoy your new site. Thanks!
 		'subdomain_install'           => $subdomain_install,
 		'global_terms_enabled'        => global_terms_enabled() ? '1' : '0',
 		'ms_files_rewriting'          => is_multisite() ? get_site_option( 'ms_files_rewriting' ) : '0',
+		'user_count'                  => get_site_option( 'user_count' ),
 		'initial_db_version'          => get_option( 'initial_db_version' ),
 		'active_sitewide_plugins'     => array(),
 		'WPLANG'                      => get_locale(),
