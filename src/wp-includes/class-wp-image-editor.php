@@ -367,14 +367,14 @@ abstract class WP_Image_Editor {
 		 *
 		 * @param string[] $output_format {
 		 *     An array of mime type mappings. Maps a source mime type to a new
-		 *     destination mime type. Default empty array.
+		 *     destination mime type. Default is array( 'image/jpeg' => 'image/webp' ).
 		 *
 		 *     @type string ...$0 The new mime type.
 		 * }
 		 * @param string $filename  Path to the image.
 		 * @param string $mime_type The source image mime type.
 		 */
-		$output_format = apply_filters( 'image_editor_output_format', array(), $filename, $mime_type );
+		$output_format = apply_filters( 'image_editor_output_format', array( 'image/jpeg' => 'image/webp' ), $filename, $mime_type );
 
 		if ( isset( $output_format[ $mime_type ] )
 			&& $this->supports_mime_type( $output_format[ $mime_type ] )
