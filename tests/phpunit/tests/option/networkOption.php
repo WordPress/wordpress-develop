@@ -181,6 +181,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37181
+	 *
 	 * @group ms-required
 	 */
 	public function test_meta_api_multiple_values_in_network_option() {
