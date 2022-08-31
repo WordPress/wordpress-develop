@@ -109,6 +109,9 @@ function display_setup_form( $error = null ) {
 <p class="message"><?php echo $error; ?></p>
 <?php } ?>
 <form id="setup" method="post" action="install.php?step=2" novalidate="novalidate">
+	
+	<?php wp_nonce_field( 'wordpress_setup', 'installation_field' ); ?>
+	
 	<table class="form-table" role="presentation">
 		<tr>
 			<th scope="row"><label for="weblog_title"><?php _e( 'Site Title' ); ?></label></th>
@@ -407,6 +410,10 @@ switch ( $step ) {
 		} elseif ( ! is_email( $admin_email ) ) {
 			// TODO: Poka-yoke.
 			display_setup_form( __( 'Sorry, that is not a valid email address. Email addresses look like <code>username@example.com</code>.' ) );
+			$error = true;
+		}elseif ( ! isset( $_POST['installation_field'] ) || ! wp_verify_nonce( $_POST['installation_field'], 'wordpress_setup' ) ) {
+			// TODO: Poka-yoke.
+			display_setup_form( __( 'Sorry, you are not allowed to process of installation due to security reasons please try again.' ) );
 			$error = true;
 		}
 
