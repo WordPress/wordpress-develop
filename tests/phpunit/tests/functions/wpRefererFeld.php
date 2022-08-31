@@ -3,7 +3,7 @@
 /**
  * @group functions.php
  *
- * @Covers ::wp_referer_field
+ * @covers ::wp_referer_field
  */
 class Tests_Functions_wpRefererField extends WP_UnitTestCase {
 
