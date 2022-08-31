@@ -14,6 +14,8 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 
 	/**
 	 * @group ms-required
+	 *
+	 * @covers ::add_site_option
 	 */
 	public function test_add_network_option_not_available_on_other_network() {
 		$id     = self::factory()->network->create();
@@ -26,6 +28,8 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 
 	/**
 	 * @group ms-required
+	 *
+	 * @covers ::add_network_option
 	 */
 	public function test_add_network_option_available_on_same_network() {
 		$id     = self::factory()->network->create();
@@ -38,6 +42,8 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 
 	/**
 	 * @group ms-required
+	 *
+	 * @covers ::delete_site_option
 	 */
 	public function test_delete_network_option_on_only_one_network() {
 		$id     = self::factory()->network->create();
@@ -53,6 +59,8 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	/**
 	 * @ticket 22846
 	 * @group ms-excluded
+	 *
+	 * @covers ::add_network_option
 	 */
 	public function test_add_network_option_is_not_stored_as_autoload_option() {
 		$key = __FUNCTION__;
@@ -67,6 +75,8 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	/**
 	 * @ticket 22846
 	 * @group ms-excluded
+	 *
+	 * @covers ::update_network_option
 	 */
 	public function test_update_network_option_is_not_stored_as_autoload_option() {
 		$key = __FUNCTION__;
@@ -83,6 +93,8 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 *
 	 * @param $network_id
 	 * @param $expected_response
+	 *
+	 * @covers ::add_network_option
 	 */
 	public function test_add_network_option_network_id_parameter( $network_id, $expected_response ) {
 		$option = rand_str();
@@ -96,6 +108,8 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 *
 	 * @param $network_id
 	 * @param $expected_response
+	 *
+	 * @covers ::get_network_option
 	 */
 	public function test_get_network_option_network_id_parameter( $network_id, $expected_response ) {
 		$option = rand_str();
@@ -125,6 +139,10 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	/**
 	 * @ticket 37181
 	 * @group ms-required
+	 *
+	 * @covers ::get_network_option
+	 * @covers ::wp_cache_get
+	 * @covers ::wp_cache_delete
 	 */
 	public function test_meta_api_use_values_in_network_option() {
 		$network_id = self::factory()->network->create();
@@ -175,6 +193,9 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	/**
 	 * @ticket 37181
 	 * @group ms-required
+	 *
+	 * @covers ::get_network_option
+	 * @covers ::wp_cache_get
 	 */
 	public function test_network_option_count_queries_on_non_existing() {
 		$network_id = self::factory()->network->create();
@@ -231,21 +252,20 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 37181
-	 * @group ms-required
+	 * Ensure updating network options containing an object do not result in unneeded database calls.
+	 *
+	 * @ticket 44956
+	 *
+	 * @covers ::update_network_option
 	 */
-	public function test_register_meta_network_option_value() {
-		$network_id = self::factory()->network->create();
-		$option     = __FUNCTION__;
-		$value      = __FUNCTION__;
-		register_meta(
-			'site',
-			$option,
-			array(
-				'type'    => 'string',
-				'default' => $value,
-				'single'  => true,
-			)
+	public function test_update_network_option_array_with_object() {
+		$array_w_object = array(
+			'url'       => 'http://src.wordpress-develop.dev/wp-content/uploads/2016/10/cropped-Blurry-Lights.jpg',
+			'meta_data' => (object) array(
+				'attachment_id' => 292,
+				'height'        => 708,
+				'width'         => 1260,
+			),
 		);
 
 		add_metadata( 'site', $network_id, $option, 'monday', true );

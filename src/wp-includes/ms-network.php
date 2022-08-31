@@ -131,7 +131,7 @@ function update_network_cache( $networks, $update_meta_cache = true ) {
  *
  * @since 4.6.0
  * @since 6.1.0 Introduced the `$update_meta_cache` parameter.
- * @access private
+ * @since 6.1.0 This function is no longer marked as "private".
  *
  * @see update_network_cache()
  * @global wpdb $wpdb WordPress database abstraction object.

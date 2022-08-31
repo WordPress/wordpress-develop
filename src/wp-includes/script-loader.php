@@ -106,7 +106,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'react'                       => '17.0.1',
 		'react-dom'                   => '17.0.1',
 		'regenerator-runtime'         => '0.13.9',
-		'moment'                      => '2.29.3',
+		'moment'                      => '2.29.4',
 		'lodash'                      => '4.17.19',
 		'wp-polyfill-fetch'           => '3.6.2',
 		'wp-polyfill-formdata'        => '4.0.10',
@@ -416,7 +416,7 @@ function wp_default_packages_inline_scripts( $scripts ) {
 						'datetimeAbbreviated' => __( 'M j, Y g:i a' ),
 					),
 					'timezone' => array(
-						'offset' => get_option( 'gmt_offset', 0 ),
+						'offset' => (float) get_option( 'gmt_offset', 0 ),
 						'string' => $timezone_string,
 						'abbr'   => $timezone_abbr,
 					),
