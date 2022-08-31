@@ -262,7 +262,9 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 *
 	 * @ticket 44956
 	 *
-	 * @covers ::update_network_option
+	 * @group ms-required
+         *
+	 * @Covers ::update_network_option
 	 */
 	public function test_update_network_option_array_with_object() {
 		$network_id     = self::factory()->network->create();
