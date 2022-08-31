@@ -182,7 +182,7 @@ jobs:
       always() &&
       github.repository == 'WordPress/wordpress-develop' &&
       github.event_name != 'pull_request' &&
-      github.run_number < 2 &&
+      github.run_attempt < 2 &&
       (
         needs.phpcs.result == 'cancelled' || needs.phpcs.result == 'failure' ||
         needs.jshint.result == 'cancelled' || needs.jshint.result == 'failure'
