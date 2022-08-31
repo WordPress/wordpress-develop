@@ -138,6 +138,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37181
+	 *
 	 * @group ms-required
 	 *
 	 * @covers ::get_network_option
