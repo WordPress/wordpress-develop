@@ -1674,8 +1674,8 @@ function wp_ajax_add_meta() {
 		}
 
 		if ( $meta->meta_value != $value || $meta->meta_key != $key ) {
-			$u = update_metadata_by_mid( 'post', $mid, $value, $key );
-			if ( ! $u ) {
+			$update_result = update_metadata_by_mid( 'post', $mid, $value, $key );
+			if ( ! $update_result ) {
 				wp_die( 0 ); // We know meta exists; we also know it's unchanged (or DB error, in which case there are bigger problems).
 			}
 		}
