@@ -601,15 +601,15 @@ function _wp_ajax_add_hierarchical_term() {
 			continue;
 		}
 
-		$cat_id = wp_insert_term( $category_name, $taxonomy->name, array( 'parent' => $parent ) );
+		$category_id = wp_insert_term( $category_name, $taxonomy->name, array( 'parent' => $parent ) );
 
-		if ( ! $cat_id || is_wp_error( $cat_id ) ) {
+		if ( ! $category_id || is_wp_error( $category_id ) ) {
 			continue;
 		} else {
-			$cat_id = $cat_id['term_id'];
+			$category_id = $category_id['term_id'];
 		}
 
-		$checked_categories[] = $cat_id;
+		$checked_categories[] = $category_id;
 
 		if ( $parent ) { // Do these all at once in a second.
 			continue;
@@ -621,7 +621,7 @@ function _wp_ajax_add_hierarchical_term() {
 			0,
 			array(
 				'taxonomy'             => $taxonomy->name,
-				'descendants_and_self' => $cat_id,
+				'descendants_and_self' => $category_id,
 				'selected_cats'        => $checked_categories,
 				'popular_cats'         => $popular_ids,
 			)
@@ -631,7 +631,7 @@ function _wp_ajax_add_hierarchical_term() {
 
 		$add = array(
 			'what'     => $taxonomy->name,
-			'id'       => $cat_id,
+			'id'       => $category_id,
 			'data'     => str_replace( array( "\n", "\t" ), '', $data ),
 			'position' => -1,
 		);
@@ -1033,18 +1033,18 @@ function wp_ajax_add_link_category( $action ) {
 
 	foreach ( $names as $category_name ) {
 		$category_name = trim( $category_name );
-		$slug     = sanitize_title( $category_name );
+		$slug          = sanitize_title( $category_name );
 
 		if ( '' === $slug ) {
 			continue;
 		}
 
-		$cat_id = wp_insert_term( $category_name, 'link_category' );
+		$category_id = wp_insert_term( $category_name, 'link_category' );
 
-		if ( ! $cat_id || is_wp_error( $cat_id ) ) {
+		if ( ! $category_id || is_wp_error( $category_id ) ) {
 			continue;
 		} else {
-			$cat_id = $cat_id['term_id'];
+			$category_id = $category_id['term_id'];
 		}
 
 		$category_name = esc_html( $category_name );
@@ -1052,8 +1052,8 @@ function wp_ajax_add_link_category( $action ) {
 		$response->add(
 			array(
 				'what'     => 'link-category',
-				'id'       => $cat_id,
-				'data'     => "<li id='link-category-$cat_id'><label for='in-link-category-$cat_id' class='selectit'><input value='" . esc_attr( $cat_id ) . "' type='checkbox' checked='checked' name='link_category[]' id='in-link-category-$cat_id'/> $category_name</label></li>",
+				'id'       => $category_id,
+				'data'     => "<li id='link-category-$category_id'><label for='in-link-category-$category_id' class='selectit'><input value='" . esc_attr( $category_id ) . "' type='checkbox' checked='checked' name='link_category[]' id='in-link-category-$category_id'/> $category_name</label></li>",
 				'position' => -1,
 			)
 		);
