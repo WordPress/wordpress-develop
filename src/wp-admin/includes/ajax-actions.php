@@ -3394,9 +3394,9 @@ function wp_ajax_send_link_to_editor() {
 	$type      = 'file';
 	$extension = preg_replace( '/^.+?\.([^.]+)$/', '$1', $src );
 	if ( $extension ) {
-		$ext_type = wp_ext2type( $extension );
-		if ( 'audio' === $ext_type || 'video' === $ext_type ) {
-			$type = $ext_type;
+		$extension_type = wp_ext2type( $extension );
+		if ( 'audio' === $extension_type || 'video' === $extension_type ) {
+			$type = $extension_type;
 		}
 	}
 
