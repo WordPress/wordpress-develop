@@ -102,7 +102,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @covers WP_REST_URL_Details_Controller::get_routes
+	 * @covers WP_REST_Server::get_routes
 	 *
 	 * @ticket 54358
 	 */
