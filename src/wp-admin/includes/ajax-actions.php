@@ -593,15 +593,15 @@ function _wp_ajax_add_hierarchical_term() {
 	$checked_categories = array_map( 'absint', (array) $post_category );
 	$popular_ids        = wp_popular_terms_checklist( $taxonomy->name, 0, 10, false );
 
-	foreach ( $names as $cat_name ) {
-		$cat_name          = trim( $cat_name );
-		$category_nicename = sanitize_title( $cat_name );
+	foreach ( $names as $category_name ) {
+		$category_name     = trim( $category_name );
+		$category_nicename = sanitize_title( $category_name );
 
 		if ( '' === $category_nicename ) {
 			continue;
 		}
 
-		$cat_id = wp_insert_term( $cat_name, $taxonomy->name, array( 'parent' => $parent ) );
+		$cat_id = wp_insert_term( $category_name, $taxonomy->name, array( 'parent' => $parent ) );
 
 		if ( ! $cat_id || is_wp_error( $cat_id ) ) {
 			continue;
@@ -1031,15 +1031,15 @@ function wp_ajax_add_link_category( $action ) {
 	$names    = explode( ',', wp_unslash( $_POST['newcat'] ) );
 	$response = new WP_Ajax_Response();
 
-	foreach ( $names as $cat_name ) {
-		$cat_name = trim( $cat_name );
-		$slug     = sanitize_title( $cat_name );
+	foreach ( $names as $category_name ) {
+		$category_name = trim( $category_name );
+		$slug     = sanitize_title( $category_name );
 
 		if ( '' === $slug ) {
 			continue;
 		}
 
-		$cat_id = wp_insert_term( $cat_name, 'link_category' );
+		$cat_id = wp_insert_term( $category_name, 'link_category' );
 
 		if ( ! $cat_id || is_wp_error( $cat_id ) ) {
 			continue;
@@ -1047,13 +1047,13 @@ function wp_ajax_add_link_category( $action ) {
 			$cat_id = $cat_id['term_id'];
 		}
 
-		$cat_name = esc_html( $cat_name );
+		$category_name = esc_html( $category_name );
 
 		$response->add(
 			array(
 				'what'     => 'link-category',
 				'id'       => $cat_id,
-				'data'     => "<li id='link-category-$cat_id'><label for='in-link-category-$cat_id' class='selectit'><input value='" . esc_attr( $cat_id ) . "' type='checkbox' checked='checked' name='link_category[]' id='in-link-category-$cat_id'/> $cat_name</label></li>",
+				'data'     => "<li id='link-category-$cat_id'><label for='in-link-category-$cat_id' class='selectit'><input value='" . esc_attr( $cat_id ) . "' type='checkbox' checked='checked' name='link_category[]' id='in-link-category-$cat_id'/> $category_name</label></li>",
 				'position' => -1,
 			)
 		);
