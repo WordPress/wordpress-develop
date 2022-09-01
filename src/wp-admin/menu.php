@@ -68,14 +68,14 @@ $menu[10]                     = array( __( 'Media' ), 'upload_files', 'upload.ph
 	/* translators: Add new file. */
 	$submenu['upload.php'][10] = array( _x( 'Add New', 'file' ), 'upload_files', 'media-new.php' );
 	$submenu_index             = 15;
-foreach ( get_taxonomies_for_attachments( 'objects' ) as $tax ) {
-	if ( ! $tax->show_ui || ! $tax->show_in_menu ) {
+foreach ( get_taxonomies_for_attachments( 'objects' ) as $taxonomy ) {
+	if ( ! $taxonomy->show_ui || ! $taxonomy->show_in_menu ) {
 		continue;
 	}
 
-	$submenu['upload.php'][ $submenu_index++ ] = array( esc_attr( $tax->labels->menu_name ), $tax->cap->manage_terms, 'edit-tags.php?taxonomy=' . $tax->name . '&amp;post_type=attachment' );
+	$submenu['upload.php'][ $submenu_index++ ] = array( esc_attr( $taxonomy->labels->menu_name ), $taxonomy->cap->manage_terms, 'edit-tags.php?taxonomy=' . $taxonomy->name . '&amp;post_type=attachment' );
 }
-	unset( $tax, $submenu_index );
+	unset( $taxonomy, $submenu_index );
 
 $menu[15]                           = array( __( 'Links' ), 'manage_links', 'link-manager.php', '', 'menu-top menu-icon-links', 'menu-links', 'dashicons-admin-links' );
 	$submenu['link-manager.php'][5] = array( _x( 'All Links', 'admin menu' ), 'manage_links', 'link-manager.php' );
