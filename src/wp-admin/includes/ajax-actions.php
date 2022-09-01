@@ -1107,14 +1107,14 @@ function wp_ajax_add_tag() {
 
 	$wp_list_table = _get_list_table( 'WP_Terms_List_Table', array( 'screen' => $_POST['screen'] ) );
 
-	$level     = 0;
-	$noparents = '';
+	$level      = 0;
+	$no_parents = '';
 
 	if ( is_taxonomy_hierarchical( $taxonomy ) ) {
 		$level = count( get_ancestors( $tag->term_id, $taxonomy, 'taxonomy' ) );
 		ob_start();
 		$wp_list_table->single_row( $tag, $level );
-		$noparents = ob_get_clean();
+		$no_parents = ob_get_clean();
 	}
 
 	ob_start();
@@ -1136,7 +1136,7 @@ function wp_ajax_add_tag() {
 			'data'         => $message,
 			'supplemental' => array(
 				'parents'   => $parents,
-				'noparents' => $noparents,
+				'noparents' => $no_parents,
 				'notice'    => $message,
 			),
 		)
