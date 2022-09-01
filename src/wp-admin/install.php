@@ -413,7 +413,7 @@ switch ( $step ) {
 			$error = true;
 		} elseif ( ! isset( $_POST['installation_field'] ) || ! wp_verify_nonce( $_POST['installation_field'], 'wordpress_setup' ) ) {
 			// TODO: Poka-yoke.
-			display_setup_form( __( 'Sorry, you are not allowed to process of installation due to security reasons please try again.' ) );
+			display_setup_form( __( 'Sorry, you are not allowed to continue with the installation.' ) );
 			$error = true;
 		}
 
