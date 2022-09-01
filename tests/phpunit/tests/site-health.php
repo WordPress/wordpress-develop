@@ -362,8 +362,24 @@ class Tests_Site_Health extends WP_UnitTestCase {
 	 * @group ms-excluded
 	 * @ticket 56040
 	 */
-	public function test_object_cache_default_thresholds() {
+	public function test_object_cache_default_thresholds_non_multisite() {
 		$wp_site_health = new WP_Site_Health();
+
+		// Set thresholds so high they should never be exceeded.
+		add_filter(
+			'site_status_persistent_object_cache_thresholds',
+			function() {
+				return array(
+					'alloptions_count' => PHP_INT_MAX,
+					'alloptions_bytes' => PHP_INT_MAX,
+					'comments_count'   => PHP_INT_MAX,
+					'options_count'    => PHP_INT_MAX,
+					'posts_count'      => PHP_INT_MAX,
+					'terms_count'      => PHP_INT_MAX,
+					'users_count'      => PHP_INT_MAX,
+				);
+			}
+		);
 
 		$this->assertFalse(
 			$wp_site_health->should_suggest_persistent_object_cache()
@@ -387,9 +403,14 @@ class Tests_Site_Health extends WP_UnitTestCase {
 	 */
 	public function test_object_cache_thresholds_check_can_be_bypassed() {
 		$wp_site_health = new WP_Site_Health();
-		add_filter( 'site_status_should_suggest_persistent_object_cache', '__return_true' );
 
+		add_filter( 'site_status_should_suggest_persistent_object_cache', '__return_true' );
 		$this->assertTrue(
+			$wp_site_health->should_suggest_persistent_object_cache()
+		);
+
+		add_filter( 'site_status_should_suggest_persistent_object_cache', '__return_false', 11 );
+		$this->assertFalse(
 			$wp_site_health->should_suggest_persistent_object_cache()
 		);
 	}
