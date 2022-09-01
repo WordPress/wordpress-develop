@@ -263,8 +263,8 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * @ticket 44956
 	 *
 	 * @group ms-required
-         *
-	 * @Covers ::update_network_option
+	 *
+	 * @covers ::update_network_option
 	 */
 	public function test_update_network_option_array_with_object() {
 		$network_id     = self::factory()->network->create();
@@ -279,7 +279,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		);
 
 		add_metadata( 'site', $network_id, $option, $array_w_object, true );
-		$this->assertSame( $array_w_object, get_network_option( $network_id, $option ) );
+		$this->assertEquals( $array_w_object, get_network_option( $network_id, $option ) );
 	}
 
 	/**
@@ -287,7 +287,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 *
 	 * @group ms-required
 	 *
-	 * @Covers ::add_network_option
+	 * @covers ::add_network_option
 	 *
 	 * @dataProvider data_types_options
 	 */
@@ -302,7 +302,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	/**
 	 * @ticket 37181
 	 *
-	 * @Covers ::add_network_option
+	 * @covers ::add_network_option
 	 *
 	 * @dataProvider data_slashed_options
 	 */
@@ -315,7 +315,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	/**
 	 * @ticket 37181
 	 *
-	 * @Covers ::update_network_option
+	 * @covers ::update_network_option
 	 *
 	 * @dataProvider data_slashed_options
 	 */
@@ -328,7 +328,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	/**
 	 * @ticket 37181
 	 *
-	 * @Covers ::delete_network_option()
+	 * @covers ::delete_network_option()
 	 *
 	 * @dataProvider data_slashed_options
 	 */
