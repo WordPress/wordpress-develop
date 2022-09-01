@@ -392,8 +392,8 @@ class Theme_Upgrader extends WP_Upgrader {
 		$this->skin->header();
 
 		// Connect to the filesystem first.
-		$res = $this->fs_connect( array( WP_CONTENT_DIR ) );
-		if ( ! $res ) {
+		$connected = $this->fs_connect( array( WP_CONTENT_DIR ) );
+		if ( ! $connected ) {
 			$this->skin->footer();
 			return false;
 		}
