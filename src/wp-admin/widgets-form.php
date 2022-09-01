@@ -298,25 +298,25 @@ if ( isset( $_GET['editwidget'] ) && $_GET['editwidget'] ) {
 	<div class="widget-position">
 	<table class="widefat"><thead><tr><th><?php _e( 'Sidebar' ); ?></th><th><?php _e( 'Position' ); ?></th></tr></thead><tbody>
 	<?php
-	foreach ( $wp_registered_sidebars as $sbname => $sbvalue ) {
-		echo "\t\t<tr><td><label><input type='radio' name='sidebar' value='" . esc_attr( $sbname ) . "'" . checked( $sbname, $sidebar, false ) . " /> $sbvalue[name]</label></td><td>";
-		if ( 'wp_inactive_widgets' === $sbname || 'orphaned_widgets' === substr( $sbname, 0, 16 ) ) {
+	foreach ( $wp_registered_sidebars as $sidebar_name => $sbvalue ) {
+		echo "\t\t<tr><td><label><input type='radio' name='sidebar' value='" . esc_attr( $sidebar_name ) . "'" . checked( $sidebar_name, $sidebar, false ) . " /> $sbvalue[name]</label></td><td>";
+		if ( 'wp_inactive_widgets' === $sidebar_name || 'orphaned_widgets' === substr( $sidebar_name, 0, 16 ) ) {
 			echo '&nbsp;';
 		} else {
-			if ( ! isset( $sidebars_widgets[ $sbname ] ) || ! is_array( $sidebars_widgets[ $sbname ] ) ) {
+			if ( ! isset( $sidebars_widgets[ $sidebar_name ] ) || ! is_array( $sidebars_widgets[ $sidebar_name ] ) ) {
 				$j                           = 1;
-				$sidebars_widgets[ $sbname ] = array();
+				$sidebars_widgets[ $sidebar_name ] = array();
 			} else {
-				$j = count( $sidebars_widgets[ $sbname ] );
-				if ( isset( $_GET['addnew'] ) || ! in_array( $widget_id, $sidebars_widgets[ $sbname ], true ) ) {
+				$j = count( $sidebars_widgets[ $sidebar_name ] );
+				if ( isset( $_GET['addnew'] ) || ! in_array( $widget_id, $sidebars_widgets[ $sidebar_name ], true ) ) {
 					$j++;
 				}
 			}
 			$selected = '';
-			echo "\t\t<select name='{$sbname}_position'>\n";
+			echo "\t\t<select name='{$sidebar_name}_position'>\n";
 			echo "\t\t<option value=''>" . __( '&mdash; Select &mdash;' ) . "</option>\n";
 			for ( $i = 1; $i <= $j; $i++ ) {
-				if ( in_array( $widget_id, $sidebars_widgets[ $sbname ], true ) ) {
+				if ( in_array( $widget_id, $sidebars_widgets[ $sidebar_name ], true ) ) {
 					$selected = selected( $i, $key + 1, false );
 				}
 				echo "\t\t<option value='$i'$selected> $i </option>\n";
