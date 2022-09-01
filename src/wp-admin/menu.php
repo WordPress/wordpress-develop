@@ -183,9 +183,9 @@ unset( $post_type, $post_type_obj, $post_type_for_id, $post_type_menu_position, 
 
 $menu[59] = array( '', 'read', 'separator2', '', 'wp-menu-separator' );
 
-$appearance_cap = current_user_can( 'switch_themes' ) ? 'switch_themes' : 'edit_theme_options';
+$appearance_capability = current_user_can( 'switch_themes' ) ? 'switch_themes' : 'edit_theme_options';
 
-$menu[60] = array( __( 'Appearance' ), $appearance_cap, 'themes.php', '', 'menu-top menu-icon-appearance', 'menu-appearance', 'dashicons-admin-appearance' );
+$menu[60] = array( __( 'Appearance' ), $appearance_capability, 'themes.php', '', 'menu-top menu-icon-appearance', 'menu-appearance', 'dashicons-admin-appearance' );
 
 $count = '';
 if ( ! is_multisite() && current_user_can( 'update_themes' ) ) {
@@ -200,7 +200,7 @@ if ( ! is_multisite() && current_user_can( 'update_themes' ) ) {
 }
 
 	/* translators: %s: Number of available theme updates. */
-	$submenu['themes.php'][5] = array( sprintf( __( 'Themes %s' ), $count ), $appearance_cap, 'themes.php' );
+	$submenu['themes.php'][5] = array( sprintf( __( 'Themes %s' ), $count ), $appearance_capability, 'themes.php' );
 
 if ( wp_is_block_theme() ) {
 	$submenu['themes.php'][6] = array(
@@ -230,17 +230,17 @@ if ( current_theme_supports( 'menus' ) || current_theme_supports( 'widgets' ) ) 
 
 if ( current_theme_supports( 'custom-header' ) && current_user_can( 'customize' ) ) {
 	$customize_header_url      = add_query_arg( array( 'autofocus' => array( 'control' => 'header_image' ) ), $customize_url );
-	$submenu['themes.php'][15] = array( __( 'Header' ), $appearance_cap, esc_url( $customize_header_url ), '', 'hide-if-no-customize' );
+	$submenu['themes.php'][15] = array( __( 'Header' ), $appearance_capability, esc_url( $customize_header_url ), '', 'hide-if-no-customize' );
 }
 
 if ( current_theme_supports( 'custom-background' ) && current_user_can( 'customize' ) ) {
 	$customize_background_url  = add_query_arg( array( 'autofocus' => array( 'control' => 'background_image' ) ), $customize_url );
-	$submenu['themes.php'][20] = array( __( 'Background' ), $appearance_cap, esc_url( $customize_background_url ), '', 'hide-if-no-customize' );
+	$submenu['themes.php'][20] = array( __( 'Background' ), $appearance_capability, esc_url( $customize_background_url ), '', 'hide-if-no-customize' );
 }
 
 unset( $customize_url );
 
-unset( $appearance_cap );
+unset( $appearance_capability );
 
 // Add 'Theme File Editor' to the bottom of the Appearance (non-block themes) or Tools (block themes) menu.
 if ( ! is_multisite() ) {
