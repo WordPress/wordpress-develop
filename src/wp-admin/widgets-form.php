@@ -304,18 +304,18 @@ if ( isset( $_GET['editwidget'] ) && $_GET['editwidget'] ) {
 			echo '&nbsp;';
 		} else {
 			if ( ! isset( $sidebars_widgets[ $sidebar_name ] ) || ! is_array( $sidebars_widgets[ $sidebar_name ] ) ) {
-				$j                           = 1;
+				$widget_count                      = 1;
 				$sidebars_widgets[ $sidebar_name ] = array();
 			} else {
-				$j = count( $sidebars_widgets[ $sidebar_name ] );
+				$widget_count = count( $sidebars_widgets[ $sidebar_name ] );
 				if ( isset( $_GET['addnew'] ) || ! in_array( $widget_id, $sidebars_widgets[ $sidebar_name ], true ) ) {
-					$j++;
+					$widget_count++;
 				}
 			}
 			$selected = '';
 			echo "\t\t<select name='{$sidebar_name}_position'>\n";
 			echo "\t\t<option value=''>" . __( '&mdash; Select &mdash;' ) . "</option>\n";
-			for ( $i = 1; $i <= $j; $i++ ) {
+			for ( $i = 1; $i <= $widget_count; $i++ ) {
 				if ( in_array( $widget_id, $sidebars_widgets[ $sidebar_name ], true ) ) {
 					$selected = selected( $i, $key + 1, false );
 				}
