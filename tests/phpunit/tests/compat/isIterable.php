@@ -2,8 +2,6 @@
 
 /**
  * @group compat
- *
- * @covers ::is_iterable
  */
 class Tests_Compat_isIterable extends WP_UnitTestCase {
 
