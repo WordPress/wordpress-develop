@@ -452,13 +452,13 @@ function get_privacy_policy_template() {
  * 4. page.php
  *
  * The template hierarchy and template path are filterable via the {@see '$type_template_hierarchy'}
- * and {@see '$type_template'} dynamic hooks, where `$type` is 'page'.
+ * and {@see '$type_template'} dynamic hooks, where `$type` is 'page'. 
+ * For block themes, use locate_block_template function instead.
  *
  * @since 1.5.0
  * @since 4.7.0 The decoded form of `page-{page_name}.php` was added to the top of the
  *              template hierarchy when the page name contains multibyte characters.
- * @since 6.0.0 For block themes, use locate_block_template function instead.
- *
+ * 
  * @see get_query_template()
  *
  * @return string Full path to page template file.
