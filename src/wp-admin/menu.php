@@ -35,13 +35,13 @@ if ( ! is_multisite() || current_user_can( 'update_core' ) ) {
 
 if ( ! is_multisite() ) {
 	if ( current_user_can( 'update_core' ) ) {
-		$cap = 'update_core';
+		$capability = 'update_core';
 	} elseif ( current_user_can( 'update_plugins' ) ) {
-		$cap = 'update_plugins';
+		$capability = 'update_plugins';
 	} elseif ( current_user_can( 'update_themes' ) ) {
-		$cap = 'update_themes';
+		$capability = 'update_themes';
 	} else {
-		$cap = 'update_languages';
+		$capability = 'update_languages';
 	}
 	$submenu['index.php'][10] = array(
 		sprintf(
@@ -53,10 +53,10 @@ if ( ! is_multisite() ) {
 				number_format_i18n( $update_data['counts']['total'] )
 			)
 		),
-		$cap,
+		$capability,
 		'update-core.php',
 	);
-	unset( $cap );
+	unset( $capability );
 }
 
 $menu[4] = array( '', 'read', 'separator1', '', 'wp-menu-separator' );
