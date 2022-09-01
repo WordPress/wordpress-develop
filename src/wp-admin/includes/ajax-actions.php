@@ -2285,7 +2285,7 @@ function wp_ajax_widgets_order() {
 		$sidebars = array();
 
 		foreach ( wp_unslash( $_POST['sidebars'] ) as $key => $val ) {
-			$sb = array();
+			$sidebar = array();
 
 			if ( ! empty( $val ) ) {
 				$val = explode( ',', $val );
@@ -2295,10 +2295,10 @@ function wp_ajax_widgets_order() {
 						continue;
 					}
 
-					$sb[ $k ] = substr( $v, strpos( $v, '_' ) + 1 );
+					$sidebar[ $k ] = substr( $v, strpos( $v, '_' ) + 1 );
 				}
 			}
-			$sidebars[ $key ] = $sb;
+			$sidebars[ $key ] = $sidebar;
 		}
 
 		wp_set_sidebars_widgets( $sidebars );
