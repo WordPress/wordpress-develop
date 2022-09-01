@@ -2651,33 +2651,33 @@ function wp_ajax_image_editor() {
 	check_ajax_referer( "image_editor-$attachment_id" );
 	include_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
-	$msg = false;
+	$message = false;
 
 	switch ( $_POST['do'] ) {
 		case 'save':
-			$msg = wp_save_image( $attachment_id );
-			if ( ! empty( $msg->error ) ) {
-				wp_send_json_error( $msg );
+			$message = wp_save_image( $attachment_id );
+			if ( ! empty( $message->error ) ) {
+				wp_send_json_error( $message );
 			}
 
-			wp_send_json_success( $msg );
+			wp_send_json_success( $message );
 			break;
 		case 'scale':
-			$msg = wp_save_image( $attachment_id );
+			$message = wp_save_image( $attachment_id );
 			break;
 		case 'restore':
-			$msg = wp_restore_image( $attachment_id );
+			$message = wp_restore_image( $attachment_id );
 			break;
 	}
 
 	ob_start();
-	wp_image_editor( $attachment_id, $msg );
+	wp_image_editor( $attachment_id, $message );
 	$html = ob_get_clean();
 
-	if ( ! empty( $msg->error ) ) {
+	if ( ! empty( $message->error ) ) {
 		wp_send_json_error(
 			array(
-				'message' => $msg,
+				'message' => $message,
 				'html'    => $html,
 			)
 		);
@@ -2685,7 +2685,7 @@ function wp_ajax_image_editor() {
 
 	wp_send_json_success(
 		array(
-			'message' => $msg,
+			'message' => $message,
 			'html'    => $html,
 		)
 	);
