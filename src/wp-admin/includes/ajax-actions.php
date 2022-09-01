@@ -3120,23 +3120,23 @@ function wp_ajax_save_attachment() {
 	}
 
 	if ( wp_attachment_is( 'audio', $post['ID'] ) ) {
-		$changed = false;
-		$id3data = wp_get_attachment_metadata( $post['ID'] );
+		$changed  = false;
+		$id3_data = wp_get_attachment_metadata( $post['ID'] );
 
-		if ( ! is_array( $id3data ) ) {
-			$changed = true;
-			$id3data = array();
+		if ( ! is_array( $id3_data ) ) {
+			$changed  = true;
+			$id3_data = array();
 		}
 
 		foreach ( wp_get_attachment_id3_keys( (object) $post, 'edit' ) as $key => $label ) {
 			if ( isset( $changes[ $key ] ) ) {
-				$changed         = true;
-				$id3data[ $key ] = sanitize_text_field( wp_unslash( $changes[ $key ] ) );
+				$changed          = true;
+				$id3_data[ $key ] = sanitize_text_field( wp_unslash( $changes[ $key ] ) );
 			}
 		}
 
 		if ( $changed ) {
-			wp_update_attachment_metadata( $id, $id3data );
+			wp_update_attachment_metadata( $id, $id3_data );
 		}
 	}
 
