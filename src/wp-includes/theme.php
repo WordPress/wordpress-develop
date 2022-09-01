@@ -3058,7 +3058,6 @@ function _remove_theme_support( $feature ) {
 function current_theme_supports( $feature, ...$args ) {
 	global $_wp_theme_features;
 
-
 	if ( 'custom-header-uploads' === $feature ) {
 		return current_theme_supports( 'custom-header', 'uploads' );
 	}
