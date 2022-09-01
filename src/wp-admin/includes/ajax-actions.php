@@ -2998,9 +2998,9 @@ function wp_ajax_query_attachments() {
 		'monthnum',
 	);
 
-	foreach ( get_taxonomies_for_attachments( 'objects' ) as $t ) {
-		if ( $t->query_var && isset( $query[ $t->query_var ] ) ) {
-			$keys[] = $t->query_var;
+	foreach ( get_taxonomies_for_attachments( 'objects' ) as $taxonomy ) {
+		if ( $taxonomy->query_var && isset( $query[ $taxonomy->query_var ] ) ) {
+			$keys[] = $taxonomy->query_var;
 		}
 	}
 
