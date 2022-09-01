@@ -206,7 +206,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 		}
 
 		// Get the URL to the zip file.
-		$r = $current->response[ $plugin ];
+		$upgrade_data = $current->response[ $plugin ];
 
 		add_filter( 'upgrader_pre_install', array( $this, 'deactivate_plugin_before_upgrade' ), 10, 2 );
 		add_filter( 'upgrader_pre_install', array( $this, 'active_before' ), 10, 2 );
@@ -221,7 +221,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 
 		$this->run(
 			array(
-				'package'           => $r->package,
+				'package'           => $upgrade_data->package,
 				'destination'       => WP_PLUGIN_DIR,
 				'clear_destination' => true,
 				'clear_working'     => true,
@@ -330,13 +330,13 @@ class Plugin_Upgrader extends WP_Upgrader {
 			}
 
 			// Get the URL to the zip file.
-			$r = $current->response[ $plugin ];
+			$upgrade_data = $current->response[ $plugin ];
 
 			$this->skin->plugin_active = is_plugin_active( $plugin );
 
 			$result = $this->run(
 				array(
-					'package'           => $r->package,
+					'package'           => $upgrade_data->package,
 					'destination'       => WP_PLUGIN_DIR,
 					'clear_destination' => true,
 					'clear_working'     => true,
