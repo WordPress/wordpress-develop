@@ -187,9 +187,9 @@ if ( isset( $_POST['savewidget'] ) || isset( $_POST['removewidget'] ) ) {
 
 	// Remove old position.
 	if ( ! isset( $_POST['delete_widget'] ) ) {
-		foreach ( $sidebars_widgets as $key => $sb ) {
-			if ( is_array( $sb ) ) {
-				$sidebars_widgets[ $key ] = array_diff( $sb, array( $widget_id ) );
+		foreach ( $sidebars_widgets as $key => $sidebar ) {
+			if ( is_array( $sidebar ) ) {
+				$sidebars_widgets[ $key ] = array_diff( $sidebar, array( $widget_id ) );
 			}
 		}
 		array_splice( $sidebars_widgets[ $sidebar_id ], $position, 0, $widget_id );
