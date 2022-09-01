@@ -684,9 +684,9 @@ function _wp_ajax_add_hierarchical_term() {
 		)
 	);
 
-	$sup = ob_get_clean();
+	$supplemental = ob_get_clean();
 
-	$add['supplemental'] = array( 'newcat_parent' => $sup );
+	$add['supplemental'] = array( 'newcat_parent' => $supplemental );
 
 	$response = new WP_Ajax_Response( $add );
 	$response->send();
