@@ -428,9 +428,9 @@ class Plugin_Upgrader extends WP_Upgrader {
 		$files = glob( $working_directory . '*.php' );
 		if ( $files ) {
 			foreach ( $files as $file ) {
-				$info = get_plugin_data( $file, false, false );
-				if ( ! empty( $info['Name'] ) ) {
-					$this->new_plugin_data = $info;
+				$new_plugin_data = get_plugin_data( $file, false, false );
+				if ( ! empty( $new_plugin_data['Name'] ) ) {
+					$this->new_plugin_data = $new_plugin_data;
 					break;
 				}
 			}
@@ -440,8 +440,8 @@ class Plugin_Upgrader extends WP_Upgrader {
 			return new WP_Error( 'incompatible_archive_no_plugins', $this->strings['incompatible_archive'], __( 'No valid plugins were found.' ) );
 		}
 
-		$requires_php = isset( $info['RequiresPHP'] ) ? $info['RequiresPHP'] : null;
-		$requires_wp  = isset( $info['RequiresWP'] ) ? $info['RequiresWP'] : null;
+		$requires_php = isset( $new_plugin_data['RequiresPHP'] ) ? $new_plugin_data['RequiresPHP'] : null;
+		$requires_wp  = isset( $new_plugin_data['RequiresWP'] ) ? $new_plugin_data['RequiresWP'] : null;
 
 		if ( ! is_php_version_compatible( $requires_php ) ) {
 			$error = sprintf(
