@@ -452,7 +452,7 @@ function get_privacy_policy_template() {
  * 4. page.php
  *
  * The template hierarchy and template path are filterable via the {@see '$type_template_hierarchy'}
- * and {@see '$type_template'} dynamic hooks, where `$type` is 'page'. 
+ * and {@see '$type_template'} dynamic hooks, where `$type` is 'page'.
  * For block themes, use locate_block_template function instead.
  *
  * @since 1.5.0
