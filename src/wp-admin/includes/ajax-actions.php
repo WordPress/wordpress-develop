@@ -1586,7 +1586,7 @@ function wp_ajax_add_menu_item() {
  */
 function wp_ajax_add_meta() {
 	check_ajax_referer( 'add-meta', '_ajax_nonce-add-meta' );
-	$c       = 0;
+	$count   = 0;
 	$post_id = (int) $_POST['post_id'];
 	$post    = get_post( $post_id );
 
@@ -1645,7 +1645,7 @@ function wp_ajax_add_meta() {
 			array(
 				'what'         => 'meta',
 				'id'           => $mid,
-				'data'         => _list_meta_row( $meta, $c ),
+				'data'         => _list_meta_row( $meta, $count ),
 				'position'     => 1,
 				'supplemental' => array( 'postid' => $post_id ),
 			)
