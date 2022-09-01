@@ -492,9 +492,9 @@ class Plugin_Upgrader extends WP_Upgrader {
 		}
 
 		// Assume the requested plugin is the first in the list.
-		$pluginfiles = array_keys( $plugin );
+		$plugin_files = array_keys( $plugin );
 
-		return $this->result['destination_name'] . '/' . $pluginfiles[0];
+		return $this->result['destination_name'] . '/' . $plugin_files[0];
 	}
 
 	/**
