@@ -492,7 +492,7 @@ foreach ( $wp_registered_sidebars as $sidebar => $registered_sidebar ) {
 </div>
 <?php
 
-$i                    = 0;
+$sidebar_index        = 0;
 $split                = 0;
 $single_sidebar_class = '';
 $sidebars_count       = count( $theme_sidebars );
@@ -515,11 +515,11 @@ foreach ( $theme_sidebars as $sidebar => $registered_sidebar ) {
 		$wrap_class .= ' sidebar-' . $registered_sidebar['class'];
 	}
 
-	if ( $i > 0 ) {
+	if ( $sidebar_index > 0 ) {
 		$wrap_class .= ' closed';
 	}
 
-	if ( $split && $i === $split ) {
+	if ( $split && $sidebar_index === $split ) {
 		?>
 		</div><div class="sidebars-column-2">
 		<?php
@@ -534,7 +534,7 @@ foreach ( $theme_sidebars as $sidebar => $registered_sidebar ) {
 	</div>
 	<?php
 
-	$i++;
+	$sidebar_index++;
 }
 
 ?>
