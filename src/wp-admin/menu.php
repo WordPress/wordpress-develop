@@ -110,76 +110,76 @@ $submenu['edit-comments.php'][0] = array( __( 'All Comments' ), 'edit_posts', 'e
 
 $_wp_last_object_menu = 25; // The index of the last top-level menu in the object menu group.
 
-$types   = (array) get_post_types(
+$post_types = (array) get_post_types(
 	array(
 		'show_ui'      => true,
 		'_builtin'     => false,
 		'show_in_menu' => true,
 	)
 );
-$builtin = array( 'post', 'page' );
-foreach ( array_merge( $builtin, $types ) as $ptype ) {
-	$ptype_obj = get_post_type_object( $ptype );
+$builtin    = array( 'post', 'page' );
+foreach ( array_merge( $builtin, $post_types ) as $post_type ) {
+	$post_type_obj = get_post_type_object( $post_type );
 	// Check if it should be a submenu.
-	if ( true !== $ptype_obj->show_in_menu ) {
+	if ( true !== $post_type_obj->show_in_menu ) {
 		continue;
 	}
-	$ptype_menu_position = is_int( $ptype_obj->menu_position ) ? $ptype_obj->menu_position : ++$_wp_last_object_menu; // If we're to use $_wp_last_object_menu, increment it first.
-	$ptype_for_id        = sanitize_html_class( $ptype );
+	$post_type_menu_position = is_int( $post_type_obj->menu_position ) ? $post_type_obj->menu_position : ++$_wp_last_object_menu; // If we're to use $_wp_last_object_menu, increment it first.
+	$post_type_for_id        = sanitize_html_class( $post_type );
 
 	$menu_icon = 'dashicons-admin-post';
-	if ( is_string( $ptype_obj->menu_icon ) ) {
+	if ( is_string( $post_type_obj->menu_icon ) ) {
 		// Special handling for data:image/svg+xml and Dashicons.
-		if ( 0 === strpos( $ptype_obj->menu_icon, 'data:image/svg+xml;base64,' ) || 0 === strpos( $ptype_obj->menu_icon, 'dashicons-' ) ) {
-			$menu_icon = $ptype_obj->menu_icon;
+		if ( 0 === strpos( $post_type_obj->menu_icon, 'data:image/svg+xml;base64,' ) || 0 === strpos( $post_type_obj->menu_icon, 'dashicons-' ) ) {
+			$menu_icon = $post_type_obj->menu_icon;
 		} else {
-			$menu_icon = esc_url( $ptype_obj->menu_icon );
+			$menu_icon = esc_url( $post_type_obj->menu_icon );
 		}
-	} elseif ( in_array( $ptype, $builtin, true ) ) {
-		$menu_icon = 'dashicons-admin-' . $ptype;
+	} elseif ( in_array( $post_type, $builtin, true ) ) {
+		$menu_icon = 'dashicons-admin-' . $post_type;
 	}
 
-	$menu_class = 'menu-top menu-icon-' . $ptype_for_id;
+	$menu_class = 'menu-top menu-icon-' . $post_type_for_id;
 	// 'post' special case.
-	if ( 'post' === $ptype ) {
+	if ( 'post' === $post_type ) {
 		$menu_class    .= ' open-if-no-js';
-		$ptype_file     = 'edit.php';
+		$post_type_file = 'edit.php';
 		$post_new_file  = 'post-new.php';
 		$edit_tags_file = 'edit-tags.php?taxonomy=%s';
 	} else {
-		$ptype_file     = "edit.php?post_type=$ptype";
-		$post_new_file  = "post-new.php?post_type=$ptype";
-		$edit_tags_file = "edit-tags.php?taxonomy=%s&amp;post_type=$ptype";
+		$post_type_file = "edit.php?post_type=$post_type";
+		$post_new_file  = "post-new.php?post_type=$post_type";
+		$edit_tags_file = "edit-tags.php?taxonomy=%s&amp;post_type=$post_type";
 	}
 
-	if ( in_array( $ptype, $builtin, true ) ) {
-		$ptype_menu_id = 'menu-' . $ptype_for_id . 's';
+	if ( in_array( $post_type, $builtin, true ) ) {
+		$post_type_menu_id = 'menu-' . $post_type_for_id . 's';
 	} else {
-		$ptype_menu_id = 'menu-posts-' . $ptype_for_id;
+		$post_type_menu_id = 'menu-posts-' . $post_type_for_id;
 	}
 	/*
-	 * If $ptype_menu_position is already populated or will be populated
+	 * If $post_type_menu_position is already populated or will be populated
 	 * by a hard-coded value below, increment the position.
 	 */
 	$core_menu_positions = array( 59, 60, 65, 70, 75, 80, 85, 99 );
-	while ( isset( $menu[ $ptype_menu_position ] ) || in_array( $ptype_menu_position, $core_menu_positions, true ) ) {
-		$ptype_menu_position++;
+	while ( isset( $menu[ $post_type_menu_position ] ) || in_array( $post_type_menu_position, $core_menu_positions, true ) ) {
+		$post_type_menu_position++;
 	}
 
-	$menu[ $ptype_menu_position ] = array( esc_attr( $ptype_obj->labels->menu_name ), $ptype_obj->cap->edit_posts, $ptype_file, '', $menu_class, $ptype_menu_id, $menu_icon );
-	$submenu[ $ptype_file ][5]    = array( $ptype_obj->labels->all_items, $ptype_obj->cap->edit_posts, $ptype_file );
-	$submenu[ $ptype_file ][10]   = array( $ptype_obj->labels->add_new, $ptype_obj->cap->create_posts, $post_new_file );
+	$menu[ $post_type_menu_position ] = array( esc_attr( $post_type_obj->labels->menu_name ), $post_type_obj->cap->edit_posts, $post_type_file, '', $menu_class, $post_type_menu_id, $menu_icon );
+	$submenu[ $post_type_file ][5]    = array( $post_type_obj->labels->all_items, $post_type_obj->cap->edit_posts, $post_type_file );
+	$submenu[ $post_type_file ][10]   = array( $post_type_obj->labels->add_new, $post_type_obj->cap->create_posts, $post_new_file );
 
 	$submenu_index = 15;
 	foreach ( get_taxonomies( array(), 'objects' ) as $tax ) {
-		if ( ! $tax->show_ui || ! $tax->show_in_menu || ! in_array( $ptype, (array) $tax->object_type, true ) ) {
+		if ( ! $tax->show_ui || ! $tax->show_in_menu || ! in_array( $post_type, (array) $tax->object_type, true ) ) {
 			continue;
 		}
 
-		$submenu[ $ptype_file ][ $submenu_index++ ] = array( esc_attr( $tax->labels->menu_name ), $tax->cap->manage_terms, sprintf( $edit_tags_file, $tax->name ) );
+		$submenu[ $post_type_file ][ $submenu_index++ ] = array( esc_attr( $tax->labels->menu_name ), $tax->cap->manage_terms, sprintf( $edit_tags_file, $tax->name ) );
 	}
 }
-unset( $ptype, $ptype_obj, $ptype_for_id, $ptype_menu_position, $menu_icon, $submenu_index, $tax, $post_new_file );
+unset( $post_type, $post_type_obj, $post_type_for_id, $post_type_menu_position, $menu_icon, $submenu_index, $tax, $post_new_file );
 
 $menu[59] = array( '', 'read', 'separator2', '', 'wp-menu-separator' );
 
