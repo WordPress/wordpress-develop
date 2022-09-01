@@ -475,7 +475,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 }
 
 /**
- * Generate attachment meta data and create image sub-sizes for images.
+ * Generates attachment meta data and create image sub-sizes for images.
  *
  * @since 2.1.0
  * @since 6.0.0 The `$filesize` value was added to the returned array.
