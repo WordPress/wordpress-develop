@@ -109,6 +109,99 @@ class Tests_Site_Health extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 56041
+	 * @dataProvider data_page_cache_test
+	 * @covers ::get_test_page_cache()
+	 * @covers ::get_page_cache_detail()
+	 * @covers ::get_page_cache_headers()
+	 * @covers ::check_for_page_caching()
+	 */
+	public function test_get_page_cache( $responses, $expected_status, $expected_label, $good_basic_auth = null, $delay_the_response = false ) {
+		$wp_site_health = new WP_Site_Health();
+
+		$expected_props = array(
+			'badge'  => array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			'test'   => 'page_cache',
+			'status' => $expected_status,
+			'label'  => $expected_label,
+		);
+
+		if ( null !== $good_basic_auth ) {
+			$_SERVER['PHP_AUTH_USER'] = 'admin';
+			$_SERVER['PHP_AUTH_PW']   = 'password';
+		}
+
+		$threshold = 10;
+		if ( $delay_the_response ) {
+			add_filter(
+				'site_status_good_response_time_threshold',
+				static function () use ( $threshold ) {
+					return $threshold;
+				}
+			);
+		}
+
+		add_filter(
+			'pre_http_request',
+			function ( $r, $parsed_args ) use ( &$responses, &$is_unauthorized, $good_basic_auth, $delay_the_response, $threshold ) {
+
+				$expected_response = array_shift( $responses );
+
+				if ( $delay_the_response ) {
+					usleep( $threshold * 1000 + 1 );
+				}
+
+				if ( 'unauthorized' === $expected_response ) {
+					$is_unauthorized = true;
+
+					return array(
+						'response' => array(
+							'code'    => 401,
+							'message' => 'Unauthorized',
+						),
+					);
+				}
+
+				if ( null !== $good_basic_auth ) {
+					$this->assertArrayHasKey(
+						'Authorization',
+						$parsed_args['headers']
+					);
+				}
+
+				$this->assertIsArray( $expected_response );
+
+				return array(
+					'headers'  => $expected_response,
+					'response' => array(
+						'code'    => 200,
+						'message' => 'OK',
+					),
+				);
+			},
+			20,
+			2
+		);
+
+		$actual = $wp_site_health->get_test_page_cache();
+		$this->assertArrayHasKey( 'description', $actual );
+		$this->assertArrayHasKey( 'actions', $actual );
+		if ( $is_unauthorized ) {
+			$this->assertStringContainsString( 'Unauthorized', $actual['description'] );
+		} else {
+			$this->assertStringNotContainsString( 'Unauthorized', $actual['description'] );
+		}
+
+		$this->assertEquals(
+			$expected_props,
+			wp_array_slice_assoc( $actual, array_keys( $expected_props ) )
+		);
+	}
+
+	/**
 	 * @group ms-excluded
 	 * @ticket 56040
 	 */
@@ -159,6 +252,158 @@ class Tests_Site_Health extends WP_UnitTestCase {
 
 		$this->assertTrue(
 			$wp_site_health->should_suggest_persistent_object_cache()
+		);
+	}
+
+	/**
+	 * Gets response data for get_test_page_cache().
+	 * @ticket 56041
+	 *
+	 * @return array[]
+	 */
+	public function data_page_cache_test() {
+		$recommended_label = 'Page cache is not detected but the server response time is OK';
+		$good_label        = 'Page cache is detected and the server response time is good';
+		$critical_label    = 'Page cache is not detected and the server response time is slow';
+		$error_label       = 'Unable to detect the presence of page cache';
+
+		return array(
+			'basic-auth-fail'                        => array(
+				'responses'       => array(
+					'unauthorized',
+				),
+				'expected_status' => 'recommended',
+				'expected_label'  => $error_label,
+				'good_basic_auth' => false,
+			),
+			'no-cache-control'                       => array(
+				'responses'          => array_fill( 0, 3, array() ),
+				'expected_status'    => 'critical',
+				'expected_label'     => $critical_label,
+				'good_basic_auth'    => null,
+				'delay_the_response' => true,
+			),
+			'no-cache'                               => array(
+				'responses'       => array_fill( 0, 3, array( 'cache-control' => 'no-cache' ) ),
+				'expected_status' => 'recommended',
+				'expected_label'  => $recommended_label,
+			),
+			'no-cache-arrays'                        => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array(
+						'cache-control' => array(
+							'no-cache',
+							'no-store',
+						),
+					)
+				),
+				'expected_status' => 'recommended',
+				'expected_label'  => $recommended_label,
+			),
+			'no-cache-with-delayed-response'         => array(
+				'responses'          => array_fill( 0, 3, array( 'cache-control' => 'no-cache' ) ),
+				'expected_status'    => 'critical',
+				'expected_label'     => $critical_label,
+				'good_basic_auth'    => null,
+				'delay_the_response' => true,
+			),
+			'age'                                    => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array( 'age' => '1345' )
+				),
+				'expected_status' => 'good',
+				'expected_label'  => $good_label,
+			),
+			'cache-control-max-age'                  => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array( 'cache-control' => 'public; max-age=600' )
+				),
+				'expected_status' => 'good',
+				'expected_label'  => $good_label,
+			),
+			'etag'                                   => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array( 'etag' => '"1234567890"' )
+				),
+				'expected_status' => 'good',
+				'expected_label'  => $good_label,
+			),
+			'cache-control-max-age-after-2-requests' => array(
+				'responses'       => array(
+					array(),
+					array(),
+					array( 'cache-control' => 'public; max-age=600' ),
+				),
+				'expected_status' => 'good',
+				'expected_label'  => $good_label,
+			),
+			'cache-control-with-future-expires'      => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array( 'expires' => gmdate( 'r', time() + HOUR_IN_SECONDS ) )
+				),
+				'expected_status' => 'good',
+				'expected_label'  => $good_label,
+			),
+			'cache-control-with-past-expires'        => array(
+				'responses'          => array_fill(
+					0,
+					3,
+					array( 'expires' => gmdate( 'r', time() - HOUR_IN_SECONDS ) )
+				),
+				'expected_status'    => 'critical',
+				'expected_label'     => $critical_label,
+				'good_basic_auth'    => null,
+				'delay_the_response' => true,
+			),
+			'cache-control-with-basic-auth'          => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array( 'cache-control' => 'public; max-age=600' )
+				),
+				'expected_status' => 'good',
+				'expected_label'  => $good_label,
+				'good_basic_auth' => true,
+			),
+			'x-cache-enabled'                        => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array( 'x-cache-enabled' => 'true' )
+				),
+				'expected_status' => 'good',
+				'expected_label'  => $good_label,
+			),
+			'x-cache-enabled-with-delay'             => array(
+				'responses'          => array_fill(
+					0,
+					3,
+					array( 'x-cache-enabled' => 'false' )
+				),
+				'expected_status'    => 'critical',
+				'expected_label'     => $critical_label,
+				'good_basic_auth'    => null,
+				'delay_the_response' => true,
+			),
+			'x-cache-disabled'                       => array(
+				'responses'       => array_fill(
+					0,
+					3,
+					array( 'x-cache-disabled' => 'off' )
+				),
+				'expected_status' => 'good',
+				'expected_label'  => $good_label,
+			),
 		);
 	}
 
