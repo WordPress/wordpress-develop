@@ -18,6 +18,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 
 		require_once DIR_TESTDATA . '/../includes/mock-image-editor.php';
+		add_filter( 'image_editor_output_format', '__return_empty_array' );
 
 		// This needs to come after the mock image editor class is loaded.
 		parent::set_up();
