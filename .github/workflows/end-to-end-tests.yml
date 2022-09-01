@@ -139,7 +139,7 @@ jobs:
       always() &&
       github.repository == 'WordPress/wordpress-develop' &&
       github.event_name != 'pull_request' &&
-      github.run_number < 2 &&
+      github.run_attempt < 2 &&
       (
         needs.e2e-tests.result == 'cancelled' || needs.e2e-tests.result == 'failure'
       )
