@@ -3391,10 +3391,10 @@ function wp_ajax_send_link_to_editor() {
 	}
 
 	// Figure out what filter to run:
-	$type = 'file';
-	$ext  = preg_replace( '/^.+?\.([^.]+)$/', '$1', $src );
-	if ( $ext ) {
-		$ext_type = wp_ext2type( $ext );
+	$type      = 'file';
+	$extension = preg_replace( '/^.+?\.([^.]+)$/', '$1', $src );
+	if ( $extension ) {
+		$ext_type = wp_ext2type( $extension );
 		if ( 'audio' === $ext_type || 'video' === $ext_type ) {
 			$type = $ext_type;
 		}
