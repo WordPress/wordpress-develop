@@ -311,7 +311,7 @@ class Theme_Upgrader extends WP_Upgrader {
 			return false;
 		}
 
-		$r = $current->response[ $theme ];
+		$upgrade_data = $current->response[ $theme ];
 
 		add_filter( 'upgrader_pre_install', array( $this, 'current_before' ), 10, 2 );
 		add_filter( 'upgrader_post_install', array( $this, 'current_after' ), 10, 2 );
@@ -323,7 +323,7 @@ class Theme_Upgrader extends WP_Upgrader {
 
 		$this->run(
 			array(
-				'package'           => $r['package'],
+				'package'           => $upgrade_data['package'],
 				'destination'       => get_theme_root( $theme ),
 				'clear_destination' => true,
 				'clear_working'     => true,
@@ -433,11 +433,11 @@ class Theme_Upgrader extends WP_Upgrader {
 			}
 
 			// Get the URL to the zip file.
-			$r = $current->response[ $theme ];
+			$upgrade_data = $current->response[ $theme ];
 
 			$result = $this->run(
 				array(
-					'package'           => $r['package'],
+					'package'           => $upgrade_data['package'],
 					'destination'       => get_theme_root( $theme ),
 					'clear_destination' => true,
 					'clear_working'     => true,
