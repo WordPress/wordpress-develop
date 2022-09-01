@@ -542,7 +542,7 @@ class Theme_Upgrader extends WP_Upgrader {
 		}
 
 		// All these headers are needed on Theme_Installer_Skin::do_overwrite().
-		$info = get_file_data(
+		$new_theme_data = get_file_data(
 			$working_directory . 'style.css',
 			array(
 				'Name'        => 'Theme Name',
@@ -554,7 +554,7 @@ class Theme_Upgrader extends WP_Upgrader {
 			)
 		);
 
-		if ( empty( $info['Name'] ) ) {
+		if ( empty( $new_theme_data['Name'] ) ) {
 			return new WP_Error(
 				'incompatible_archive_theme_no_name',
 				$this->strings['incompatible_archive'],
@@ -572,7 +572,7 @@ class Theme_Upgrader extends WP_Upgrader {
 		 * - block themes require /templates/index.html or block-templates/index.html (deprecated 5.9.0).
 		 */
 		if (
-			empty( $info['Template'] ) &&
+			empty( $new_theme_data['Template'] ) &&
 			! file_exists( $working_directory . 'index.php' ) &&
 			! file_exists( $working_directory . 'templates/index.html' ) &&
 			! file_exists( $working_directory . 'block-templates/index.html' )
@@ -592,8 +592,8 @@ class Theme_Upgrader extends WP_Upgrader {
 			);
 		}
 
-		$requires_php = isset( $info['RequiresPHP'] ) ? $info['RequiresPHP'] : null;
-		$requires_wp  = isset( $info['RequiresWP'] ) ? $info['RequiresWP'] : null;
+		$requires_php = isset( $new_theme_data['RequiresPHP'] ) ? $new_theme_data['RequiresPHP'] : null;
+		$requires_wp  = isset( $new_theme_data['RequiresWP'] ) ? $new_theme_data['RequiresWP'] : null;
 
 		if ( ! is_php_version_compatible( $requires_php ) ) {
 			$error = sprintf(
@@ -616,7 +616,7 @@ class Theme_Upgrader extends WP_Upgrader {
 			return new WP_Error( 'incompatible_wp_required_version', $this->strings['incompatible_archive'], $error );
 		}
 
-		$this->new_theme_data = $info;
+		$this->new_theme_data = $new_theme_data;
 
 		return $source;
 	}
