@@ -171,15 +171,15 @@ foreach ( array_merge( $builtin, $post_types ) as $post_type ) {
 	$submenu[ $post_type_file ][10]   = array( $post_type_obj->labels->add_new, $post_type_obj->cap->create_posts, $post_new_file );
 
 	$submenu_index = 15;
-	foreach ( get_taxonomies( array(), 'objects' ) as $tax ) {
-		if ( ! $tax->show_ui || ! $tax->show_in_menu || ! in_array( $post_type, (array) $tax->object_type, true ) ) {
+	foreach ( get_taxonomies( array(), 'objects' ) as $taxonomy ) {
+		if ( ! $taxonomy->show_ui || ! $taxonomy->show_in_menu || ! in_array( $post_type, (array) $taxonomy->object_type, true ) ) {
 			continue;
 		}
 
-		$submenu[ $post_type_file ][ $submenu_index++ ] = array( esc_attr( $tax->labels->menu_name ), $tax->cap->manage_terms, sprintf( $edit_tags_file, $tax->name ) );
+		$submenu[ $post_type_file ][ $submenu_index++ ] = array( esc_attr( $taxonomy->labels->menu_name ), $taxonomy->cap->manage_terms, sprintf( $edit_tags_file, $taxonomy->name ) );
 	}
 }
-unset( $post_type, $post_type_obj, $post_type_for_id, $post_type_menu_position, $menu_icon, $submenu_index, $tax, $post_new_file );
+unset( $post_type, $post_type_obj, $post_type_for_id, $post_type_menu_position, $menu_icon, $submenu_index, $taxonomy, $post_new_file );
 
 $menu[59] = array( '', 'read', 'separator2', '', 'wp-menu-separator' );
 
