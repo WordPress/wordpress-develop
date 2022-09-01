@@ -349,7 +349,7 @@ class Tests_Site_Health extends WP_UnitTestCase {
 				'responses'       => array_fill(
 					0,
 					3,
-					array( 'expires' => gmdate( 'r', time() + MINUTE_IN_SECONDS * 10 ) )
+					array( 'expires' => gmdate( 'r', time() + HOUR_IN_SECONDS ) )
 				),
 				'expected_status' => 'good',
 				'expected_label'  => $good_label,
@@ -358,7 +358,7 @@ class Tests_Site_Health extends WP_UnitTestCase {
 				'responses'          => array_fill(
 					0,
 					3,
-					array( 'expires' => gmdate( 'r', time() - MINUTE_IN_SECONDS * 10 ) )
+					array( 'expires' => gmdate( 'r', time() - HOUR_IN_SECONDS ) )
 				),
 				'expected_status'    => 'critical',
 				'expected_label'     => $critical_label,
