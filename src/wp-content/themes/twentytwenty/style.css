@@ -4107,8 +4107,8 @@ div.comment:first-of-type {
 	margin: 0 0 2rem;
 }
 
-.widget li:not(.wp-social-link) {
-	margin: 2rem 0 0 0;
+.widget .wp-block-social-links li {
+	margin-top: 0;
 }
 
 .widget li:first-child,
