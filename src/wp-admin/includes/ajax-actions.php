@@ -1547,13 +1547,13 @@ function wp_ajax_add_menu_item() {
 	$menu_items = array();
 
 	foreach ( (array) $item_ids as $menu_item_id ) {
-		$menu_obj = get_post( $menu_item_id );
+		$menu_object = get_post( $menu_item_id );
 
-		if ( ! empty( $menu_obj->ID ) ) {
-			$menu_obj        = wp_setup_nav_menu_item( $menu_obj );
-			$menu_obj->title = empty( $menu_obj->title ) ? __( 'Menu Item' ) : $menu_obj->title;
-			$menu_obj->label = $menu_obj->title; // Don't show "(pending)" in ajax-added items.
-			$menu_items[]    = $menu_obj;
+		if ( ! empty( $menu_object->ID ) ) {
+			$menu_object        = wp_setup_nav_menu_item( $menu_object );
+			$menu_object->title = empty( $menu_object->title ) ? __( 'Menu Item' ) : $menu_object->title;
+			$menu_object->label = $menu_object->title; // Don't show "(pending)" in ajax-added items.
+			$menu_items[]       = $menu_object;
 		}
 	}
 
