@@ -461,7 +461,7 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 
 		$counts = wp_count_comments();
 
-		$x = new WP_Ajax_Response(
+		$response = new WP_Ajax_Response(
 			array(
 				'what'         => 'comment',
 				// Here for completeness - not used.
@@ -485,7 +485,7 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 				),
 			)
 		);
-		$x->send();
+		$response->send();
 	}
 
 	$total += $delta;
@@ -533,7 +533,7 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 	$comment = get_comment( $comment_id );
 	$counts  = wp_count_comments();
 
-	$x = new WP_Ajax_Response(
+	$response = new WP_Ajax_Response(
 		array(
 			'what'         => 'comment',
 			'id'           => $comment_id,
@@ -555,7 +555,7 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 			),
 		)
 	);
-	$x->send();
+	$response->send();
 }
 
 //
@@ -688,8 +688,8 @@ function _wp_ajax_add_hierarchical_term() {
 
 	$add['supplemental'] = array( 'newcat_parent' => $sup );
 
-	$x = new WP_Ajax_Response( $add );
-	$x->send();
+	$response = new WP_Ajax_Response( $add );
+	$response->send();
 }
 
 /**
@@ -962,7 +962,7 @@ function wp_ajax_dim_comment() {
 	$comment = get_comment( $id );
 
 	if ( ! $comment ) {
-		$x = new WP_Ajax_Response(
+		$response = new WP_Ajax_Response(
 			array(
 				'what' => 'comment',
 				'id'   => new WP_Error(
@@ -972,7 +972,7 @@ function wp_ajax_dim_comment() {
 				),
 			)
 		);
-		$x->send();
+		$response->send();
 	}
 
 	if ( ! current_user_can( 'edit_comment', $comment->comment_ID ) && ! current_user_can( 'moderate_comments' ) ) {
@@ -994,13 +994,13 @@ function wp_ajax_dim_comment() {
 	}
 
 	if ( is_wp_error( $result ) ) {
-		$x = new WP_Ajax_Response(
+		$response = new WP_Ajax_Response(
 			array(
 				'what' => 'comment',
 				'id'   => $result,
 			)
 		);
-		$x->send();
+		$response->send();
 	}
 
 	// Decide if we need to send back '1' or a more complicated response including page links and comment counts.
@@ -1028,8 +1028,8 @@ function wp_ajax_add_link_category( $action ) {
 		wp_die( -1 );
 	}
 
-	$names = explode( ',', wp_unslash( $_POST['newcat'] ) );
-	$x     = new WP_Ajax_Response();
+	$names    = explode( ',', wp_unslash( $_POST['newcat'] ) );
+	$response = new WP_Ajax_Response();
 
 	foreach ( $names as $cat_name ) {
 		$cat_name = trim( $cat_name );
@@ -1049,7 +1049,7 @@ function wp_ajax_add_link_category( $action ) {
 
 		$cat_name = esc_html( $cat_name );
 
-		$x->add(
+		$response->add(
 			array(
 				'what'     => 'link-category',
 				'id'       => $cat_id,
@@ -1058,7 +1058,7 @@ function wp_ajax_add_link_category( $action ) {
 			)
 		);
 	}
-	$x->send();
+	$response->send();
 }
 
 /**
@@ -1076,7 +1076,7 @@ function wp_ajax_add_tag() {
 		wp_die( -1 );
 	}
 
-	$x = new WP_Ajax_Response();
+	$response = new WP_Ajax_Response();
 
 	$tag = wp_insert_term( $_POST['tag-name'], $taxonomy, $_POST );
 
@@ -1096,13 +1096,13 @@ function wp_ajax_add_tag() {
 			$error_code = $tag->get_error_code();
 		}
 
-		$x->add(
+		$response->add(
 			array(
 				'what' => 'taxonomy',
 				'data' => new WP_Error( $error_code, $message ),
 			)
 		);
-		$x->send();
+		$response->send();
 	}
 
 	$wp_list_table = _get_list_table( 'WP_Terms_List_Table', array( 'screen' => $_POST['screen'] ) );
@@ -1130,7 +1130,7 @@ function wp_ajax_add_tag() {
 		$message = $messages['_item'][1];
 	}
 
-	$x->add(
+	$response->add(
 		array(
 			'what'         => 'taxonomy',
 			'data'         => $message,
@@ -1142,7 +1142,7 @@ function wp_ajax_add_tag() {
 		)
 	);
 
-	$x->add(
+	$response->add(
 		array(
 			'what'         => 'term',
 			'position'     => $level,
@@ -1150,7 +1150,7 @@ function wp_ajax_add_tag() {
 		)
 	);
 
-	$x->send();
+	$response->send();
 }
 
 /**
@@ -1254,7 +1254,7 @@ function wp_ajax_get_comments( $action ) {
 		wp_die( 1 );
 	}
 
-	$x = new WP_Ajax_Response();
+	$response = new WP_Ajax_Response();
 
 	ob_start();
 	foreach ( $wp_list_table->items as $comment ) {
@@ -1266,14 +1266,14 @@ function wp_ajax_get_comments( $action ) {
 	}
 	$comment_list_item = ob_get_clean();
 
-	$x->add(
+	$response->add(
 		array(
 			'what' => 'comments',
 			'data' => $comment_list_item,
 		)
 	);
 
-	$x->send();
+	$response->send();
 }
 
 /**
@@ -1404,7 +1404,7 @@ function wp_ajax_replyto_comment( $action ) {
 	}
 	$comment_list_item = ob_get_clean();
 
-	$response = array(
+	$response_data = array(
 		'what'     => 'comment',
 		'id'       => $comment->comment_ID,
 		'data'     => $comment_list_item,
@@ -1412,7 +1412,7 @@ function wp_ajax_replyto_comment( $action ) {
 	);
 
 	$counts                   = wp_count_comments();
-	$response['supplemental'] = array(
+	$response_data['supplemental'] = array(
 		'in_moderation'        => $counts->moderated,
 		'i18n_comments_text'   => sprintf(
 			/* translators: %s: Number of comments. */
@@ -1427,13 +1427,13 @@ function wp_ajax_replyto_comment( $action ) {
 	);
 
 	if ( $comment_auto_approved ) {
-		$response['supplemental']['parent_approved'] = $parent->comment_ID;
-		$response['supplemental']['parent_post_id']  = $parent->comment_post_ID;
+		$response_data['supplemental']['parent_approved'] = $parent->comment_ID;
+		$response_data['supplemental']['parent_post_id']  = $parent->comment_post_ID;
 	}
 
-	$x = new WP_Ajax_Response();
-	$x->add( $response );
-	$x->send();
+	$response = new WP_Ajax_Response();
+	$response->add( $response_data );
+	$response->send();
 }
 
 /**
@@ -1477,9 +1477,9 @@ function wp_ajax_edit_comment() {
 	$wp_list_table->single_row( $comment );
 	$comment_list_item = ob_get_clean();
 
-	$x = new WP_Ajax_Response();
+	$response = new WP_Ajax_Response();
 
-	$x->add(
+	$response->add(
 		array(
 			'what'     => 'edit_comment',
 			'id'       => $comment->comment_ID,
@@ -1488,7 +1488,7 @@ function wp_ajax_edit_comment() {
 		)
 	);
 
-	$x->send();
+	$response->send();
 }
 
 /**
@@ -1614,13 +1614,13 @@ function wp_ajax_add_meta() {
 
 			if ( $pid ) {
 				if ( is_wp_error( $pid ) ) {
-					$x = new WP_Ajax_Response(
+					$response = new WP_Ajax_Response(
 						array(
 							'what' => 'meta',
 							'data' => $pid,
 						)
 					);
-					$x->send();
+					$response->send();
 				}
 
 				$mid = add_meta( $pid );
@@ -1641,7 +1641,7 @@ function wp_ajax_add_meta() {
 		$pid  = (int) $meta->post_id;
 		$meta = get_object_vars( $meta );
 
-		$x = new WP_Ajax_Response(
+		$response = new WP_Ajax_Response(
 			array(
 				'what'         => 'meta',
 				'id'           => $mid,
@@ -1680,7 +1680,7 @@ function wp_ajax_add_meta() {
 			}
 		}
 
-		$x = new WP_Ajax_Response(
+		$response = new WP_Ajax_Response(
 			array(
 				'what'         => 'meta',
 				'id'           => $mid,
@@ -1698,7 +1698,7 @@ function wp_ajax_add_meta() {
 			)
 		);
 	}
-	$x->send();
+	$response->send();
 }
 
 /**
@@ -1724,13 +1724,13 @@ function wp_ajax_add_user( $action ) {
 	if ( ! $user_id ) {
 		wp_die( 0 );
 	} elseif ( is_wp_error( $user_id ) ) {
-		$x = new WP_Ajax_Response(
+		$response = new WP_Ajax_Response(
 			array(
 				'what' => 'user',
 				'id'   => $user_id,
 			)
 		);
-		$x->send();
+		$response->send();
 	}
 
 	$user_object   = get_userdata( $user_id );
@@ -1738,7 +1738,7 @@ function wp_ajax_add_user( $action ) {
 
 	$role = current( $user_object->roles );
 
-	$x = new WP_Ajax_Response(
+	$response = new WP_Ajax_Response(
 		array(
 			'what'         => 'user',
 			'id'           => $user_id,
@@ -1753,7 +1753,7 @@ function wp_ajax_add_user( $action ) {
 			),
 		)
 	);
-	$x->send();
+	$response->send();
 }
 
 /**
