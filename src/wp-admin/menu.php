@@ -67,15 +67,15 @@ $menu[10]                     = array( __( 'Media' ), 'upload_files', 'upload.ph
 	$submenu['upload.php'][5] = array( __( 'Library' ), 'upload_files', 'upload.php' );
 	/* translators: Add new file. */
 	$submenu['upload.php'][10] = array( _x( 'Add New', 'file' ), 'upload_files', 'media-new.php' );
-	$i                         = 15;
+	$submenu_index             = 15;
 foreach ( get_taxonomies_for_attachments( 'objects' ) as $tax ) {
 	if ( ! $tax->show_ui || ! $tax->show_in_menu ) {
 		continue;
 	}
 
-	$submenu['upload.php'][ $i++ ] = array( esc_attr( $tax->labels->menu_name ), $tax->cap->manage_terms, 'edit-tags.php?taxonomy=' . $tax->name . '&amp;post_type=attachment' );
+	$submenu['upload.php'][ $submenu_index++ ] = array( esc_attr( $tax->labels->menu_name ), $tax->cap->manage_terms, 'edit-tags.php?taxonomy=' . $tax->name . '&amp;post_type=attachment' );
 }
-	unset( $tax, $i );
+	unset( $tax, $submenu_index );
 
 $menu[15]                           = array( __( 'Links' ), 'manage_links', 'link-manager.php', '', 'menu-top menu-icon-links', 'menu-links', 'dashicons-admin-links' );
 	$submenu['link-manager.php'][5] = array( _x( 'All Links', 'admin menu' ), 'manage_links', 'link-manager.php' );
@@ -170,16 +170,16 @@ foreach ( array_merge( $builtin, $types ) as $ptype ) {
 	$submenu[ $ptype_file ][5]    = array( $ptype_obj->labels->all_items, $ptype_obj->cap->edit_posts, $ptype_file );
 	$submenu[ $ptype_file ][10]   = array( $ptype_obj->labels->add_new, $ptype_obj->cap->create_posts, $post_new_file );
 
-	$i = 15;
+	$submenu_index = 15;
 	foreach ( get_taxonomies( array(), 'objects' ) as $tax ) {
 		if ( ! $tax->show_ui || ! $tax->show_in_menu || ! in_array( $ptype, (array) $tax->object_type, true ) ) {
 			continue;
 		}
 
-		$submenu[ $ptype_file ][ $i++ ] = array( esc_attr( $tax->labels->menu_name ), $tax->cap->manage_terms, sprintf( $edit_tags_file, $tax->name ) );
+		$submenu[ $ptype_file ][ $submenu_index++ ] = array( esc_attr( $tax->labels->menu_name ), $tax->cap->manage_terms, sprintf( $edit_tags_file, $tax->name ) );
 	}
 }
-unset( $ptype, $ptype_obj, $ptype_for_id, $ptype_menu_position, $menu_icon, $i, $tax, $post_new_file );
+unset( $ptype, $ptype_obj, $ptype_for_id, $ptype_menu_position, $menu_icon, $submenu_index, $tax, $post_new_file );
 
 $menu[59] = array( '', 'read', 'separator2', '', 'wp-menu-separator' );
 
