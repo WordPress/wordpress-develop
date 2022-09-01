@@ -1586,12 +1586,12 @@ function wp_ajax_add_menu_item() {
  */
 function wp_ajax_add_meta() {
 	check_ajax_referer( 'add-meta', '_ajax_nonce-add-meta' );
-	$c    = 0;
-	$pid  = (int) $_POST['post_id'];
-	$post = get_post( $pid );
+	$c       = 0;
+	$post_id = (int) $_POST['post_id'];
+	$post    = get_post( $post_id );
 
 	if ( isset( $_POST['metakeyselect'] ) || isset( $_POST['metakeyinput'] ) ) {
-		if ( ! current_user_can( 'edit_post', $pid ) ) {
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
 			wp_die( -1 );
 		}
 
@@ -1603,27 +1603,27 @@ function wp_ajax_add_meta() {
 		if ( 'auto-draft' === $post->post_status ) {
 			$post_data                = array();
 			$post_data['action']      = 'draft'; // Warning fix.
-			$post_data['post_ID']     = $pid;
+			$post_data['post_ID']     = $post_id;
 			$post_data['post_type']   = $post->post_type;
 			$post_data['post_status'] = 'draft';
 			$now                      = time();
 			/* translators: 1: Post creation date, 2: Post creation time. */
 			$post_data['post_title'] = sprintf( __( 'Draft created on %1$s at %2$s' ), gmdate( __( 'F j, Y' ), $now ), gmdate( __( 'g:i a' ), $now ) );
 
-			$pid = edit_post( $post_data );
+			$post_id = edit_post( $post_data );
 
-			if ( $pid ) {
-				if ( is_wp_error( $pid ) ) {
+			if ( $post_id ) {
+				if ( is_wp_error( $post_id ) ) {
 					$response = new WP_Ajax_Response(
 						array(
 							'what' => 'meta',
-							'data' => $pid,
+							'data' => $post_id,
 						)
 					);
 					$response->send();
 				}
 
-				$mid = add_meta( $pid );
+				$mid = add_meta( $post_id );
 				if ( ! $mid ) {
 					wp_die( __( 'Please provide a custom field value.' ) );
 				}
@@ -1631,15 +1631,15 @@ function wp_ajax_add_meta() {
 				wp_die( 0 );
 			}
 		} else {
-			$mid = add_meta( $pid );
+			$mid = add_meta( $post_id );
 			if ( ! $mid ) {
 				wp_die( __( 'Please provide a custom field value.' ) );
 			}
 		}
 
-		$meta = get_metadata_by_mid( 'post', $mid );
-		$pid  = (int) $meta->post_id;
-		$meta = get_object_vars( $meta );
+		$meta    = get_metadata_by_mid( 'post', $mid );
+		$post_id = (int) $meta->post_id;
+		$meta    = get_object_vars( $meta );
 
 		$response = new WP_Ajax_Response(
 			array(
@@ -1647,7 +1647,7 @@ function wp_ajax_add_meta() {
 				'id'           => $mid,
 				'data'         => _list_meta_row( $meta, $c ),
 				'position'     => 1,
-				'supplemental' => array( 'postid' => $pid ),
+				'supplemental' => array( 'postid' => $post_id ),
 			)
 		);
 	} else { // Update?
