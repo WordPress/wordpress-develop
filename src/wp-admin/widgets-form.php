@@ -298,8 +298,8 @@ if ( isset( $_GET['editwidget'] ) && $_GET['editwidget'] ) {
 	<div class="widget-position">
 	<table class="widefat"><thead><tr><th><?php _e( 'Sidebar' ); ?></th><th><?php _e( 'Position' ); ?></th></tr></thead><tbody>
 	<?php
-	foreach ( $wp_registered_sidebars as $sidebar_name => $sbvalue ) {
-		echo "\t\t<tr><td><label><input type='radio' name='sidebar' value='" . esc_attr( $sidebar_name ) . "'" . checked( $sidebar_name, $sidebar, false ) . " /> $sbvalue[name]</label></td><td>";
+	foreach ( $wp_registered_sidebars as $sidebar_name => $sidebar_data ) {
+		echo "\t\t<tr><td><label><input type='radio' name='sidebar' value='" . esc_attr( $sidebar_name ) . "'" . checked( $sidebar_name, $sidebar, false ) . " /> $sidebar_data[name]</label></td><td>";
 		if ( 'wp_inactive_widgets' === $sidebar_name || 'orphaned_widgets' === substr( $sidebar_name, 0, 16 ) ) {
 			echo '&nbsp;';
 		} else {
