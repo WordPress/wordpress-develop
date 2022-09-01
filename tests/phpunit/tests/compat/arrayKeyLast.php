@@ -2,8 +2,6 @@
 
 /**
  * @group compat
- *
- * @covers ::array_key_last
  */
 class Tests_Compat_ArrayKeyLast extends WP_UnitTestCase {
 
