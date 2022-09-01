@@ -4823,16 +4823,16 @@ function wp_ajax_search_install_plugins() {
  * @see wp_edit_theme_plugin_file()
  */
 function wp_ajax_edit_theme_plugin_file() {
-	$r = wp_edit_theme_plugin_file( wp_unslash( $_POST ) ); // Validation of args is done in wp_edit_theme_plugin_file().
+	$edit_result = wp_edit_theme_plugin_file( wp_unslash( $_POST ) ); // Validation of args is done in wp_edit_theme_plugin_file().
 
-	if ( is_wp_error( $r ) ) {
+	if ( is_wp_error( $edit_result ) ) {
 		wp_send_json_error(
 			array_merge(
 				array(
-					'code'    => $r->get_error_code(),
-					'message' => $r->get_error_message(),
+					'code'    => $edit_result->get_error_code(),
+					'message' => $edit_result->get_error_message(),
 				),
-				(array) $r->get_error_data()
+				(array) $edit_result->get_error_data()
 			)
 		);
 	} else {
