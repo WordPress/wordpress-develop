@@ -3846,6 +3846,8 @@ function wp_media_attach_action( $parent_id, $action = 'attach' ) {
 
 /**
  * Set the default image output mapping.
+ *
+ * @since 6.1.0
  */
 function wp_default_image_output_mapping() {
 	return array( 'mime/jpeg' => 'image/webp' );
