@@ -33,7 +33,7 @@ CAP;
 		self::$_sizes                          = wp_get_additional_image_sizes();
 		$GLOBALS['_wp_additional_image_sizes'] = array();
 
-		$filename       = DIR_TESTDATA . '/images/' . self::$large_filename;
+		$filename = DIR_TESTDATA . '/images/' . self::$large_filename;
 		remove_filter( 'image_editor_output_format', 'wp_default_image_output_mapping' );
 		self::$large_id = $factory->attachment->create_upload_object( $filename );
 
