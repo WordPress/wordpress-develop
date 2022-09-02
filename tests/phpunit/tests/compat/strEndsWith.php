@@ -2,6 +2,8 @@
 
 /**
  * @group compat
+ *
+ * @coversNothing
  */
 class Tests_Compat_StrEndsWith extends WP_UnitTestCase {
 
