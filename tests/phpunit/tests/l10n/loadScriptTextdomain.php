@@ -131,4 +131,17 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 
 		return $relative;
 	}
+
+	/**
+	 * @ticket 55656
+	 */
+	public function test_no_php81_notices_when_optional_params_not_passed() {
+		$handle = 'test-example-root';
+		$src    = '/wp-includes/js/script.js';
+
+		wp_enqueue_script( $handle, $src );
+
+		$expected = file_get_contents( DIR_TESTDATA . '/languages/en_US-813e104eb47e13dd4cc5af844c618754.json' );
+		$this->assertSame( $expected, load_script_textdomain( $handle ) );
+	}
 }
