@@ -15,6 +15,15 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
+	/**
+	 * Set up the test fixture.
+	 */
+	public function set_up() {
+		remove_filter( 'image_editor_output_format', 'wp_default_image_output_mapping' );
+
+		parent::set_up();
+	}
+
 	public function _make_attachment( $file, $parent_post_id = 0 ) {
 		$contents = file_get_contents( $file );
 		$upload   = wp_upload_bits( wp_basename( $file ), null, $contents );

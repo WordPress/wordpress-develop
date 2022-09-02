@@ -34,6 +34,7 @@ CAP;
 		$GLOBALS['_wp_additional_image_sizes'] = array();
 
 		$filename       = DIR_TESTDATA . '/images/' . self::$large_filename;
+		remove_filter( 'image_editor_output_format', 'wp_default_image_output_mapping' );
 		self::$large_id = $factory->attachment->create_upload_object( $filename );
 
 		$post_statuses = array( 'publish', 'future', 'draft', 'auto-draft', 'trash' );
@@ -68,15 +69,6 @@ CAP;
 
 	public static function wpTearDownAfterClass() {
 		$GLOBALS['_wp_additional_image_sizes'] = self::$_sizes;
-	}
-
-	/**
-	 * Set up the test fixture.
-	 */
-	public function set_up() {
-		remove_filter( 'image_editor_output_format', 'wp_default_image_output_mapping' );
-
-		parent::set_up();
 	}
 
 	public static function tear_down_after_class() {

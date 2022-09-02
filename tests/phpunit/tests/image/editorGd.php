@@ -17,7 +17,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 		require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
 
-		add_filter( 'image_editor_output_format', '__return_empty_array' );
+		remove_filter( 'image_editor_output_format', 'wp_default_image_output_mapping' );
 
 		// This needs to come after the mock image editor class is loaded.
 		parent::set_up();
