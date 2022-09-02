@@ -3038,14 +3038,14 @@ function rest_filter_response_by_context( $data, $schema, $context ) {
  * @param array $types  The list of types.
  * @return array The modified schema.
  */
-function _rest_default_additional_properties_to_false( $schema, $types = [] ) {
+function _rest_default_additional_properties_to_false( $schema, $types = array() ) {
 	if ( isset( $schema['type'] ) ) {
 		$types = (array) $schema['type'];
 	}
 
 	// Forest part
 
-	foreach ( [ 'allOf', 'anyOf', 'oneOf' ] as $key ) {
+	foreach ( array( 'allOf', 'anyOf', 'oneOf' ) as $key ) {
 		if ( isset( $schema[ $key ] ) ) {
 			foreach ( $schema[ $key ] as $index => $child_schema ) {
 				$schema[ $key ][ $index ] = _rest_default_additional_properties_to_false( $child_schema, $types );
@@ -3062,7 +3062,7 @@ function _rest_default_additional_properties_to_false( $schema, $types = [] ) {
 	// Tree part
 
 	if ( in_array( 'object', $types, true ) ) {
-		foreach ( [ 'properties', 'patternProperties' ] as $key ) {
+		foreach ( array( 'properties', 'patternProperties' ) as $key ) {
 			if ( isset( $schema[ $key ] ) ) {
 				foreach ( $schema[ $key ] as $child_key => $child_schema ) {
 					$schema[ $key ][ $child_key ] = _rest_default_additional_properties_to_false( $child_schema );
