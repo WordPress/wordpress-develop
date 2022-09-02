@@ -3617,6 +3617,15 @@ EOF;
 		// Clean up the above filter.
 		remove_filter( 'wp_omit_loading_attr_threshold', '__return_null', 100 );
 	}
+
+	/**
+	 * Test the wp_default_image_output_mapping function.
+	 *
+	 * @ticket 55443
+	 */
+	public function test_wp_default_image_output_mapping() {
+		$mapping = wp_default_image_output_mapping();
+		$this->assertSame( array( 'image/jpeg' => 'image/webp' ), $mapping );
 }
 
 /**
