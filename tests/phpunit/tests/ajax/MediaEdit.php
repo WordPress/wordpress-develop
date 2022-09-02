@@ -67,6 +67,7 @@ class Tests_Ajax_MediaEdit extends WP_Ajax_UnitTestCase {
 	 */
 	public function testImageEditOverwriteConstant() {
 		define( 'IMAGE_EDIT_OVERWRITE', true );
+		$files_that_shouldnt_exist = array();
 
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
