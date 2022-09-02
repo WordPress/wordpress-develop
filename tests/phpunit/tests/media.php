@@ -70,6 +70,15 @@ CAP;
 		$GLOBALS['_wp_additional_image_sizes'] = self::$_sizes;
 	}
 
+	/**
+	 * Set up the test fixture.
+	 */
+	public function set_up() {
+		add_filter( 'image_editor_output_format', '__return_empty_array' );
+
+		parent::set_up();
+	}
+
 	public static function tear_down_after_class() {
 		wp_delete_attachment( self::$large_id, true );
 		parent::tear_down_after_class();
