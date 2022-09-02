@@ -1097,7 +1097,7 @@ function wpmu_signup_user_notification( $user_login, $user_email, $key, $meta = 
 	 * @param string $key        Activation key created in wpmu_signup_user().
 	 * @param array  $meta       Signup meta data. Default empty array.
 	 */
-	$message        = apply_filters(
+	$message = apply_filters(
 		'wpmu_signup_user_notification_email',
 		$message,
 		$user_login,
@@ -1125,12 +1125,12 @@ function wpmu_signup_user_notification( $user_login, $user_email, $key, $meta = 
 	* @param array  $meta       Signup meta data. Default empty array.
 	*/
 	$subject = apply_filters(
-	    'wpmu_signup_user_notification_subject',
-	    $subject,
-	    $user_login,
-	    $user_email,
-	    $key,
-	    $meta
+		'wpmu_signup_user_notification_subject',
+		$subject,
+		$user_login,
+		$user_email,
+		$key,
+		$meta
 	);
 
 	wp_mail( $user_email, wp_specialchars_decode( $subject ), $message, $message_headers );
