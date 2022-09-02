@@ -3626,6 +3626,7 @@ EOF;
 	public function test_wp_default_image_output_mapping() {
 		$mapping = wp_default_image_output_mapping();
 		$this->assertSame( array( 'image/jpeg' => 'image/webp' ), $mapping );
+	}
 }
 
 /**
