@@ -3845,7 +3845,7 @@ function wp_media_attach_action( $parent_id, $action = 'attach' ) {
 }
 
 /**
- * Set the default image output mapping.
+ * Returns the default image output mapping.
  *
  * @since 6.1.0
  */
