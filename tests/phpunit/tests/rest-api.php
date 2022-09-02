@@ -2520,7 +2520,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket
+	 * @ticket 56494
 	 *
 	 * @dataProvider data_rest_default_additional_properties_to_false
 	 */
@@ -3339,7 +3339,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 						array(
 							'type'                 => 'object',
 							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
-							'anyOf' => array(
+							'anyOf'                => array(
 								array(
 									'properties'           => array( 'aa' => array( 'type' => 'string' ) ),
 									'additionalProperties' => false,
@@ -3360,7 +3360,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 							'type'                 => array( 'array', 'object' ),
 							'items'                => array( 'type' => 'string' ),
 							'properties'           => array( 'b' => array( 'type' => 'string' ) ),
-							'anyOf' => array(
+							'anyOf'                => array(
 								array(
 									'items'                => array( 'type' => 'string' ),
 									'additionalProperties' => false,
@@ -3381,7 +3381,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 						array(
 							'type'                 => 'object',
 							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
-							'anyOf' => array(
+							'anyOf'                => array(
 								array(
 									'properties'           => array( 'aa' => array( 'type' => 'string' ) ),
 								),
@@ -3400,7 +3400,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 							'type'                 => array( 'array', 'object' ),
 							'items'                => array( 'type' => 'string' ),
 							'properties'           => array( 'b' => array( 'type' => 'string' ) ),
-							'anyOf' => array(
+							'anyOf'                => array(
 								array(
 									'items'                => array( 'type' => 'string' ),
 								),
