@@ -3850,5 +3850,5 @@ function wp_media_attach_action( $parent_id, $action = 'attach' ) {
  * @since 6.1.0
  */
 function wp_default_image_output_mapping() {
-	return array( 'mime/jpeg' => 'image/webp' );
+	return array( 'image/jpeg' => 'image/webp' );
 }
