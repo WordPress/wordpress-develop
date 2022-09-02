@@ -2530,22 +2530,22 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 	public function data_rest_default_additional_properties_to_false() {
 		return array(
-			'scalar'                                          => array(
+			'scalar'                                       => array(
 				array( 'type' => 'boolean' ),
 				array( 'type' => 'boolean' ),
 			),
-			'object one level'                                => array(
+			'object one level'                             => array(
 				array(
 					'type'                 => 'object',
 					'properties'           => array( 'a' => array( 'type' => 'string' ) ),
 					'additionalProperties' => false,
 				),
 				array(
-					'type'                 => 'object',
-					'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+					'type'       => 'object',
+					'properties' => array( 'a' => array( 'type' => 'string' ) ),
 				),
 			),
-			'object two levels'                               => array(
+			'object two levels'                            => array(
 				array(
 					'type'                 => 'object',
 					'properties'           => array(
@@ -2558,16 +2558,16 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'additionalProperties' => false,
 				),
 				array(
-					'type'                 => 'object',
-					'properties'           => array(
+					'type'       => 'object',
+					'properties' => array(
 						'a' => array(
-							'type'                 => 'object',
-							'properties'           => array( 'aa' => array( 'type' => 'string' )),
+							'type'       => 'object',
+							'properties' => array( 'aa' => array( 'type' => 'string' ) ),
 						),
 					),
 				),
 			),
-			'object three levels'                             => array(
+			'object three levels'                          => array(
 				array(
 					'type'                 => 'object',
 					'properties'           => array(
@@ -2586,21 +2586,21 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'additionalProperties' => false,
 				),
 				array(
-					'type'                 => 'object',
-					'properties'           => array(
+					'type'       => 'object',
+					'properties' => array(
 						'a' => array(
-							'type'                 => 'object',
-							'properties'           => array(
+							'type'       => 'object',
+							'properties' => array(
 								'aa' => array(
-									'type'                 => 'object',
-									'properties'           => array( 'aaa' => array( 'type' => 'string' ) ),
+									'type'       => 'object',
+									'properties' => array( 'aaa' => array( 'type' => 'string' ) ),
 								),
 							),
 						),
 					),
 				),
 			),
-			'array of scalars'                                => array(
+			'array of scalars'                             => array(
 				array(
 					'type'  => 'array',
 					'items' => array( 'type' => 'boolean' ),
@@ -2610,7 +2610,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'items' => array( 'type' => 'boolean' ),
 				),
 			),
-			'array of objects'                                => array(
+			'array of objects'                             => array(
 				array(
 					'type'  => 'array',
 					'items' => array(
@@ -2622,17 +2622,17 @@ class Tests_REST_API extends WP_UnitTestCase {
 				array(
 					'type'  => 'array',
 					'items' => array(
-						'type'                 => 'object',
-						'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+						'type'       => 'object',
+						'properties' => array( 'a' => array( 'type' => 'string' ) ),
 					),
 				),
 			),
-			'array of arrays of objects'                      => array(
+			'array of arrays of objects'                   => array(
 				array(
 					'type'  => 'array',
 					'items' => array(
 						'type'  => 'array',
-						'items' => array( 
+						'items' => array(
 							'type'                 => 'object',
 							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
 							'additionalProperties' => false,
@@ -2643,14 +2643,14 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'type'  => 'array',
 					'items' => array(
 						'type'  => 'array',
-						'items' => array( 
-							'type'                 => 'object',
-							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+						'items' => array(
+							'type'       => 'object',
+							'properties' => array( 'a' => array( 'type' => 'string' ) ),
 						),
 					),
 				),
 			),
-			'array with only the first item having schema'    => array(
+			'array with only the first item having schema' => array(
 				array(
 					'type'  => 'array',
 					'items' => array(
@@ -2665,8 +2665,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'type'  => 'array',
 					'items' => array(
 						array(
-							'type'                 => 'object',
-							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+							'type'       => 'object',
+							'properties' => array( 'a' => array( 'type' => 'string' ) ),
 						),
 					),
 				),
@@ -2676,7 +2676,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'type'  => 'array',
 					'items' => array(
 						array(
-							'type'                 => 'boolean',
+							'type' => 'boolean',
 						),
 						array(
 							'type'                 => 'object',
@@ -2689,7 +2689,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'type'  => 'array',
 					'items' => array(
 						array(
-							'type'                 => 'boolean',
+							'type' => 'boolean',
 						),
 						array(
 							'type'                 => 'object',
@@ -2699,12 +2699,12 @@ class Tests_REST_API extends WP_UnitTestCase {
 					),
 				),
 			),
-			'different kind of properties'                    => array(
+			'different kind of properties'                 => array(
 				array(
 					'type'                 => 'object',
 					'properties'           => array(
 						'a' => array(
-							'type'                 => 'string',
+							'type' => 'string',
 						),
 						'b' => array(
 							'type'                 => 'object',
@@ -2712,16 +2712,16 @@ class Tests_REST_API extends WP_UnitTestCase {
 							'additionalProperties' => false,
 						),
 						'c' => array(
-							'type'                 => 'array',
-							'items'                => array(
+							'type'  => 'array',
+							'items' => array(
 								'type'                 => 'object',
 								'properties'           => array( 'cc' => array( 'type' => 'string' ) ),
 								'additionalProperties' => false,
 							),
 						),
 						'd' => array(
-							'type'                 => 'array',
-							'items'                => array(
+							'type'  => 'array',
+							'items' => array(
 								array(
 									'type'                 => 'object',
 									'properties'           => array( 'dd' => array( 'type' => 'string' ) ),
@@ -2733,44 +2733,44 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'additionalProperties' => false,
 				),
 				array(
-					'type'                 => 'object',
-					'properties'           => array(
+					'type'       => 'object',
+					'properties' => array(
 						'a' => array(
-							'type'                 => 'string',
+							'type' => 'string',
 						),
 						'b' => array(
-							'type'                 => 'object',
-							'properties'           => array( 'bb' => array( 'type' => 'string' ) ),
+							'type'       => 'object',
+							'properties' => array( 'bb' => array( 'type' => 'string' ) ),
 						),
 						'c' => array(
-							'type'                 => 'array',
-							'items'                => array(
-								'type'                 => 'object',
-								'properties'           => array( 'cc' => array( 'type' => 'string' ) ),
+							'type'  => 'array',
+							'items' => array(
+								'type'       => 'object',
+								'properties' => array( 'cc' => array( 'type' => 'string' ) ),
 							),
 						),
 						'd' => array(
-							'type'                 => 'array',
-							'items'                => array(
+							'type'  => 'array',
+							'items' => array(
 								array(
-									'type'                 => 'object',
-									'properties'           => array( 'dd' => array( 'type' => 'string' ) ),
+									'type'       => 'object',
+									'properties' => array( 'dd' => array( 'type' => 'string' ) ),
 								),
 							),
 						),
 					),
 				),
 			),
-			'multiple types'                                  => array(
+			'multiple types'                               => array(
 				array(
 					'type'                 => 'object',
 					'properties'           => array(
 						'a' => array(
-							'type'                 => array( 'boolean', 'integer', 'null', 'number', 'string' ),
+							'type' => array( 'boolean', 'integer', 'null', 'number', 'string' ),
 						),
 						'b' => array(
-							'type'                 => array( 'boolean', 'array' ),
-							'items'                => array( 'type' => 'string' ),
+							'type'  => array( 'boolean', 'array' ),
+							'items' => array( 'type' => 'string' ),
 						),
 						'c' => array(
 							'type'                 => array( 'boolean', 'object' ),
@@ -2806,98 +2806,98 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'additionalProperties' => false,
 				),
 				array(
-					'type'                 => 'object',
-					'properties'           => array(
+					'type'       => 'object',
+					'properties' => array(
 						'a' => array(
-							'type'                 => array( 'boolean', 'integer', 'null', 'number', 'string' ),
+							'type' => array( 'boolean', 'integer', 'null', 'number', 'string' ),
 						),
 						'b' => array(
-							'type'                 => array( 'boolean', 'array' ),
-							'items'                => array( 'type' => 'string' ),
+							'type'  => array( 'boolean', 'array' ),
+							'items' => array( 'type' => 'string' ),
 						),
 						'c' => array(
-							'type'                 => array( 'boolean', 'object' ),
-							'properties'           => array( 'cc' => array( 'type' => 'string' ) ),
+							'type'       => array( 'boolean', 'object' ),
+							'properties' => array( 'cc' => array( 'type' => 'string' ) ),
 						),
 						'd' => array(
-							'type'                 => array( 'array', 'object' ),
-							'items'                => array(
-								'type'                 => 'object',
-								'properties'           => array( 'ddd' => array( 'type' => 'string' ) ),
+							'type'       => array( 'array', 'object' ),
+							'items'      => array(
+								'type'       => 'object',
+								'properties' => array( 'ddd' => array( 'type' => 'string' ) ),
 							),
-							'properties'           => array( 'dd' => array( 'type' => 'string' ) ),
+							'properties' => array( 'dd' => array( 'type' => 'string' ) ),
 						),
 						'e' => array(
-							'type'                 => array( 'boolean', 'array', 'object' ),
-							'items'                => array(
-								'type'                 => array( 'array', 'object' ),
-								'items'                => array(
-									'type'                 => 'object',
-									'properties'           => array( 'eeee' => array( 'type' => 'string' ) ),
+							'type'       => array( 'boolean', 'array', 'object' ),
+							'items'      => array(
+								'type'       => array( 'array', 'object' ),
+								'items'      => array(
+									'type'       => 'object',
+									'properties' => array( 'eeee' => array( 'type' => 'string' ) ),
 								),
-								'properties'           => array( 'eee' => array( 'type' => 'string' ) ),
+								'properties' => array( 'eee' => array( 'type' => 'string' ) ),
 							),
-							'properties'           => array( 'ee' => array( 'type' => 'string' ) ),
+							'properties' => array( 'ee' => array( 'type' => 'string' ) ),
 						),
 					),
 				),
 			),
-			'pattern properties'                              => array(
+			'pattern properties'                           => array(
 				array(
 					'type'                 => 'object',
-					'properties'           => array( 'a' => array( 'type' => 'string', ) ),
+					'properties'           => array( 'a' => array( 'type' => 'string' ) ),
 					'patternProperties'    => array(
 						'^s_' => array(
-							'type'                 => 'string'
+							'type' => 'string',
 						),
 						'^i_' => array(
-							'type'                 => 'integer'
+							'type' => 'integer',
 						),
 						'^a_' => array(
-							'type'                 => 'array',
-							'items'                => array( 'type' => 'string', ),
+							'type'  => 'array',
+							'items' => array( 'type' => 'string' ),
 						),
 						'^o_' => array(
 							'type'                 => 'object',
-							'properties'           => array( 'a' => array( 'type' => 'string', ) ),
+							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
 							'additionalProperties' => false,
 						),
 						'^x_' => array(
 							'type'                 => array( 'array', 'object' ),
-							'items'                => array( 'type' => 'string', ),
-							'properties'           => array( 'b' => array( 'type' => 'string', ) ),
+							'items'                => array( 'type' => 'string' ),
+							'properties'           => array( 'b' => array( 'type' => 'string' ) ),
 							'additionalProperties' => false,
 						),
 					),
 					'additionalProperties' => false,
 				),
 				array(
-					'type'                 => 'object',
-					'properties'           => array( 'a' => array( 'type' => 'string', ) ),
-					'patternProperties'    => array(
+					'type'              => 'object',
+					'properties'        => array( 'a' => array( 'type' => 'string' ) ),
+					'patternProperties' => array(
 						'^s_' => array(
-							'type'                 => 'string'
+							'type' => 'string',
 						),
 						'^i_' => array(
-							'type'                 => 'integer'
+							'type' => 'integer',
 						),
 						'^a_' => array(
-							'type'                 => 'array',
-							'items'                => array( 'type' => 'string', ),
+							'type'  => 'array',
+							'items' => array( 'type' => 'string' ),
 						),
 						'^o_' => array(
-							'type'                 => 'object',
-							'properties'           => array( 'a' => array( 'type' => 'string', ) ),
+							'type'       => 'object',
+							'properties' => array( 'a' => array( 'type' => 'string' ) ),
 						),
 						'^x_' => array(
-							'type'                 => array( 'array', 'object' ),
-							'items'                => array( 'type' => 'string', ),
-							'properties'           => array( 'b' => array( 'type' => 'string', ) ),
+							'type'       => array( 'array', 'object' ),
+							'items'      => array( 'type' => 'string' ),
+							'properties' => array( 'b' => array( 'type' => 'string' ) ),
 						),
 					),
 				),
 			),
-			'additional properties boolean'                   => array(
+			'additional properties boolean'                => array(
 				array(
 					'type'                 => 'object',
 					'properties'           => array(
@@ -2921,7 +2921,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'additionalProperties' => true,
 				),
 			),
-			'additional properties object'                    => array(
+			'additional properties object'                 => array(
 				array(
 					'type'                 => 'object',
 					'properties'           => array(
@@ -2938,20 +2938,20 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'additionalProperties' => false,
 				),
 				array(
-					'type'                 => 'object',
-					'properties'           => array(
+					'type'       => 'object',
+					'properties' => array(
 						'a' => array(
 							'type'                 => 'object',
 							'properties'           => array( 'b' => array( 'type' => 'string' ) ),
 							'additionalProperties' => array(
-								'type'                 => 'object',
-								'properties'           => array( 'c' => array( 'type' => 'string' ) ),
+								'type'       => 'object',
+								'properties' => array( 'c' => array( 'type' => 'string' ) ),
 							),
 						),
 					),
 				),
 			),
-			'additional properties nested'                    => array(
+			'additional properties nested'                 => array(
 				array(
 					'type'                 => 'object',
 					'properties'           => array(
@@ -2999,26 +2999,26 @@ class Tests_REST_API extends WP_UnitTestCase {
 							'type'                 => 'object',
 							'properties'           => array( 'f' => array( 'type' => 'string' ) ),
 							'additionalProperties' => array(
-								'type'                 => 'object',
-								'properties'           => array( 'g' => array( 'type' => 'string' ) ),
+								'type'       => 'object',
+								'properties' => array( 'g' => array( 'type' => 'string' ) ),
 							),
 						),
 					),
 				),
 			),
-			'anyOf on array'                                  => array(
+			'anyOf on array'                               => array(
 				array(
 					'type'  => 'array',
 					'anyOf' => array(
 						array(
 							'items' => array(
-								'type'                 => 'boolean'
+								'type' => 'boolean',
 							),
 						),
-						array( 
+						array(
 							'items' => array(
-								'type'                 => 'array',
-								'items'                => array( 'type' => 'string' ),
+								'type'  => 'array',
+								'items' => array( 'type' => 'string' ),
 							),
 						),
 						array(
@@ -3043,42 +3043,42 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'anyOf' => array(
 						array(
 							'items' => array(
-								'type'                 => 'boolean'
-							),
-						),
-						array( 
-							'items' => array(
-								'type'                 => 'array',
-								'items'                => array( 'type' => 'string' ),
+								'type' => 'boolean',
 							),
 						),
 						array(
 							'items' => array(
-								'type'                 => 'object',
-								'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+								'type'  => 'array',
+								'items' => array( 'type' => 'string' ),
 							),
 						),
 						array(
 							'items' => array(
-								'type'                 => array( 'array', 'object' ),
-								'items'                => array( 'type' => 'string' ),
-								'properties'           => array( 'b' => array( 'type' => 'string' ) ),
+								'type'       => 'object',
+								'properties' => array( 'a' => array( 'type' => 'string' ) ),
+							),
+						),
+						array(
+							'items' => array(
+								'type'       => array( 'array', 'object' ),
+								'items'      => array( 'type' => 'string' ),
+								'properties' => array( 'b' => array( 'type' => 'string' ) ),
 							),
 						),
 					),
 				),
 			),
-			'anyOf on items'                                  => array(
+			'anyOf on items'                               => array(
 				array(
 					'type'  => 'array',
 					'items' => array(
 						'anyOf' => array(
 							array(
-								'type'                 => 'boolean'
+								'type' => 'boolean',
 							),
 							array(
-								'type'                 => 'array',
-								'items'                => array( 'type' => 'string' ),
+								'type'  => 'array',
+								'items' => array( 'type' => 'string' ),
 							),
 							array(
 								'type'                 => 'object',
@@ -3099,26 +3099,26 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'items' => array(
 						'anyOf' => array(
 							array(
-								'type'                 => 'boolean'
+								'type' => 'boolean',
 							),
 							array(
-								'type'                 => 'array',
-								'items'                => array( 'type' => 'string' ),
+								'type'  => 'array',
+								'items' => array( 'type' => 'string' ),
 							),
 							array(
-								'type'                 => 'object',
-								'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+								'type'       => 'object',
+								'properties' => array( 'a' => array( 'type' => 'string' ) ),
 							),
 							array(
-								'type'                 => array( 'array', 'object' ),
-								'items'                => array( 'type' => 'string' ),
-								'properties'           => array( 'b' => array( 'type' => 'string' ) ),
+								'type'       => array( 'array', 'object' ),
+								'items'      => array( 'type' => 'string' ),
+								'properties' => array( 'b' => array( 'type' => 'string' ) ),
 							),
 						),
 					),
 				),
 			),
-			'anyOf on object'                                 => array(
+			'anyOf on object'                              => array(
 				array(
 					'type'                 => 'object',
 					'anyOf'                => array(
@@ -3129,8 +3129,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 						array(
 							'properties'           => array(
 								'b' => array(
-									'type'                 => 'array',
-									'items'                => array( 'type' => 'string' ),
+									'type'  => 'array',
+									'items' => array( 'type' => 'string' ),
 								),
 							),
 							'additionalProperties' => false,
@@ -3160,45 +3160,45 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'additionalProperties' => false,
 				),
 				array(
-					'type'                 => 'object',
-					'anyOf'                => array(
+					'type'  => 'object',
+					'anyOf' => array(
 						array(
-							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+							'properties' => array( 'a' => array( 'type' => 'string' ) ),
 						),
 						array(
-							'properties'           => array(
+							'properties' => array(
 								'b' => array(
-									'type'                 => 'array',
-									'items'                => array( 'type' => 'string' ),
+									'type'  => 'array',
+									'items' => array( 'type' => 'string' ),
 								),
 							),
 						),
 						array(
-							'properties'           => array(
+							'properties' => array(
 								'c' => array(
-									'type'                 => 'object',
-									'properties'           => array( 'cc' => array( 'type' => 'string' ) ),
+									'type'       => 'object',
+									'properties' => array( 'cc' => array( 'type' => 'string' ) ),
 								),
 							),
 						),
 						array(
-							'properties'           => array(
+							'properties' => array(
 								'd' => array(
-									'type'                 => array( 'array', 'object' ),
-									'items'                => array( 'type' => 'string' ),
-									'properties'           => array( 'dd' => array( 'type' => 'string' ) ),
+									'type'       => array( 'array', 'object' ),
+									'items'      => array( 'type' => 'string' ),
+									'properties' => array( 'dd' => array( 'type' => 'string' ) ),
 								),
 							),
 						),
 					),
 				),
 			),
-			'anyOf array or object'                           => array(
+			'anyOf array or object'                        => array(
 				array(
-					'anyOf'                => array(
-						array( 
-							'type'                 => 'array',
-							'items'                => array( 'type' => 'string' ),
+					'anyOf' => array(
+						array(
+							'type'  => 'array',
+							'items' => array( 'type' => 'string' ),
 						),
 						array(
 							'type'                 => 'object',
@@ -3208,19 +3208,19 @@ class Tests_REST_API extends WP_UnitTestCase {
 					),
 				),
 				array(
-					'anyOf'                => array(
-						array( 
-							'type'                 => 'array',
-							'items'                => array( 'type' => 'string' ),
+					'anyOf' => array(
+						array(
+							'type'  => 'array',
+							'items' => array( 'type' => 'string' ),
 						),
 						array(
-							'type'                 => 'object',
-							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+							'type'       => 'object',
+							'properties' => array( 'a' => array( 'type' => 'string' ) ),
 						),
 					),
 				),
 			),
-			'anyOf on multiple types'                         => array(
+			'anyOf on multiple types'                      => array(
 				array(
 					'type'                 => array( 'array', 'object' ),
 					'anyOf'                => array(
@@ -3249,36 +3249,36 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'additionalProperties' => false,
 				),
 				array(
-					'type'                 => array( 'array', 'object' ),
-					'anyOf'                => array(
+					'type'  => array( 'array', 'object' ),
+					'anyOf' => array(
 						array(
-							'items'                => array(
-								'type'                 => 'object',
-								'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+							'items' => array(
+								'type'       => 'object',
+								'properties' => array( 'a' => array( 'type' => 'string' ) ),
 							),
 						),
 						array(
-							'properties'           => array( 'b' => array( 'type' => 'string' ) ),
+							'properties' => array( 'b' => array( 'type' => 'string' ) ),
 						),
 						array(
-							'items'                => array(
-								'type'                 => 'object',
-								'properties'           => array( 'c' => array( 'type' => 'string' ) ),
+							'items'      => array(
+								'type'       => 'object',
+								'properties' => array( 'c' => array( 'type' => 'string' ) ),
 							),
-							'properties'           => array( 'd' => array( 'type' => 'string' ) ),
+							'properties' => array( 'd' => array( 'type' => 'string' ) ),
 						),
 					),
 				),
 			),
-			'anyOf nested with oneOf / allOf'                 => array(
+			'anyOf nested with oneOf / allOf'              => array(
 				array(
 					'type'  => 'array',
 					'anyOf' => array(
 						array(
 							'oneOf' => array(
 								array(
-									'type'                 => 'array',
-									'items'                => array( 'type' => 'string' ),
+									'type'  => 'array',
+									'items' => array( 'type' => 'string' ),
 								),
 								array(
 									'type'                 => 'object',
@@ -3290,8 +3290,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 						array(
 							'allOf' => array(
 								array(
-									'type'                 => 'array',
-									'items'                => array( 'type' => 'string' ),
+									'type'  => 'array',
+									'items' => array( 'type' => 'string' ),
 								),
 								array(
 									'type'                 => 'object',
@@ -3308,31 +3308,31 @@ class Tests_REST_API extends WP_UnitTestCase {
 						array(
 							'oneOf' => array(
 								array(
-									'type'                 => 'array',
-									'items'                => array( 'type' => 'string' ),
+									'type'  => 'array',
+									'items' => array( 'type' => 'string' ),
 								),
 								array(
-									'type'                 => 'object',
-									'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+									'type'       => 'object',
+									'properties' => array( 'a' => array( 'type' => 'string' ) ),
 								),
 							),
 						),
 						array(
 							'allOf' => array(
 								array(
-									'type'                 => 'array',
-									'items'                => array( 'type' => 'string' ),
+									'type'  => 'array',
+									'items' => array( 'type' => 'string' ),
 								),
 								array(
-									'type'                 => 'object',
-									'properties'           => array( 'b' => array( 'type' => 'string' ) ),
+									'type'       => 'object',
+									'properties' => array( 'b' => array( 'type' => 'string' ) ),
 								),
 							),
 						),
 					),
 				),
 			),
-			'anyOf with base items / properties'              => array(
+			'anyOf with base items / properties'           => array(
 				array(
 					'type'                 => 'object',
 					'oneOf'                => array(
@@ -3348,11 +3348,11 @@ class Tests_REST_API extends WP_UnitTestCase {
 							'additionalProperties' => false,
 						),
 						array(
-							'type'                 => 'array',
-							'items'                => array( 'type' => 'string' ),
-							'anyOf'                => array(
+							'type'  => 'array',
+							'items' => array( 'type' => 'string' ),
+							'anyOf' => array(
 								array(
-									'items'                => array( 'type' => 'string' ),
+									'items' => array( 'type' => 'string' ),
 								),
 							),
 						),
@@ -3376,43 +3376,43 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'additionalProperties' => false,
 				),
 				array(
-					'type'                 => 'object',
-					'oneOf'                => array(
+					'type'  => 'object',
+					'oneOf' => array(
 						array(
-							'type'                 => 'object',
-							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
-							'anyOf'                => array(
+							'type'       => 'object',
+							'properties' => array( 'a' => array( 'type' => 'string' ) ),
+							'anyOf'      => array(
 								array(
-									'properties'           => array( 'aa' => array( 'type' => 'string' ) ),
+									'properties' => array( 'aa' => array( 'type' => 'string' ) ),
 								),
 							),
 						),
 						array(
-							'type'                 => 'array',
-							'items'                => array( 'type' => 'string' ),
-							'anyOf'                => array(
+							'type'  => 'array',
+							'items' => array( 'type' => 'string' ),
+							'anyOf' => array(
 								array(
-									'items'                => array( 'type' => 'string' ),
+									'items' => array( 'type' => 'string' ),
 								),
 							),
 						),
 						array(
-							'type'                 => array( 'array', 'object' ),
-							'items'                => array( 'type' => 'string' ),
-							'properties'           => array( 'b' => array( 'type' => 'string' ) ),
-							'anyOf'                => array(
+							'type'       => array( 'array', 'object' ),
+							'items'      => array( 'type' => 'string' ),
+							'properties' => array( 'b' => array( 'type' => 'string' ) ),
+							'anyOf'      => array(
 								array(
-									'items'                => array( 'type' => 'string' ),
+									'items' => array( 'type' => 'string' ),
 								),
 								array(
-									'properties'           => array( 'bb' => array( 'type' => 'string' ) ),
+									'properties' => array( 'bb' => array( 'type' => 'string' ) ),
 								),
 							),
 						),
 					),
 				),
 			),
-			'anyOf with additional properties'                => array(
+			'anyOf with additional properties'             => array(
 				array(
 					'type'                 => 'object',
 					'anyOf'                => array(
@@ -3444,13 +3444,13 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'additionalProperties' => false,
 				),
 				array(
-					'type'                 => 'object',
-					'anyOf'                => array(
+					'type'  => 'object',
+					'anyOf' => array(
 						array(
 							'properties'           => array(
 								'a' => array(
-									'type'                 => 'object',
-									'properties'           => array( 'aa' => array( 'type' => 'string' ) ),
+									'type'       => 'object',
+									'properties' => array( 'aa' => array( 'type' => 'string' ) ),
 								),
 								'b' => array(
 									'type'                 => 'object',
@@ -3464,8 +3464,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 								),
 							),
 							'additionalProperties' => array(
-								'type'                 => 'object',
-								'properties'           => array( 'c' => array( 'type' => 'string' ) ),
+								'type'       => 'object',
+								'properties' => array( 'c' => array( 'type' => 'string' ) ),
 							),
 						),
 					),
