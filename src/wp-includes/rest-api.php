@@ -3030,7 +3030,6 @@ function rest_filter_response_by_context( $data, $schema, $context ) {
  *
  * The "Tree part" of the recursion runs on associative arrays such as:
  *     "properties", "patternProperties", "additionalProperties", and "items".
- * The meta-schema describes these keywords as they have { "$ref": "#" } type.
  *
  * @since x.y.z
  *
