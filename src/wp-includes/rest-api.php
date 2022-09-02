@@ -3021,41 +3021,86 @@ function rest_filter_response_by_context( $data, $schema, $context ) {
 
 /**
  * Sets the "additionalProperties" to false by default for all object definitions in the schema.
+ * 
+ * Mutual recursion is used for schema traversal.
+ * 
+ * The "Forest part" of the recursion runs on indexed arrays such as:
+ *     "allOf", "anyOf", "oneOf", and "items".
+ * The meta-schema describes these keywords as they have { "$ref": "#/definitions/schemaArray" } type.
+ * 
+ * The "Tree part" of the recursion runs on associative arrays such as:
+ *     "properties", "patternProperties", "additionalProperties", and "items".
+ * The meta-schema describes these keywords as they have { "$ref": "#" } type.
  *
- * @since 5.5.0
- * @since 5.6.0 Support the "patternProperties" keyword.
+ * @since x.y.z
  *
  * @param array $schema The schema to modify.
+ * @param array $types  The list of types.
  * @return array The modified schema.
  */
-function rest_default_additional_properties_to_false( $schema ) {
-	$type = (array) $schema['type'];
+function _rest_default_additional_properties_to_false( $schema, $types = [] ) {
+	if ( isset( $schema['type'] ) ) {
+		$types = (array) $schema['type'];
+	}
 
-	if ( in_array( 'object', $type, true ) ) {
-		if ( isset( $schema['properties'] ) ) {
-			foreach ( $schema['properties'] as $key => $child_schema ) {
-				$schema['properties'][ $key ] = rest_default_additional_properties_to_false( $child_schema );
+	// Forest part
+
+	foreach ( ['allOf', 'anyOf', 'oneOf'] as $key ) {
+		if ( isset( $schema[ $key ] ) ) {
+			foreach ( $schema[ $key ] as $index => $child_schema ) {
+				$schema[ $key ][ $index ] = _rest_default_additional_properties_to_false( $child_schema, $types );
+			}
+		}
+	}
+
+	if ( isset( $schema['items'] ) && wp_is_numeric_array( $schema['items'] ) ) {
+		foreach ( $schema['items'] as $index => $child_schema ) {
+			$schema['items'][ $index ] = _rest_default_additional_properties_to_false( $child_schema, $types );
+		}
+	}
+
+	// Tree part
+
+	if ( in_array( 'object', $types, true ) ) {
+		foreach( ['properties', 'patternProperties'] as $key ) {
+			if ( isset( $schema[ $key ] ) ) {
+				foreach ( $schema[ $key ] as $child_key => $child_schema ) {
+					$schema[ $key ][ $child_key ] = _rest_default_additional_properties_to_false( $child_schema );
+				}
 			}
 		}
 
-		if ( isset( $schema['patternProperties'] ) ) {
-			foreach ( $schema['patternProperties'] as $key => $child_schema ) {
-				$schema['patternProperties'][ $key ] = rest_default_additional_properties_to_false( $child_schema );
-			}
+		if ( isset( $schema['additionalProperties'] ) && is_array( $schema['additionalProperties'] ) ) {
+			$schema['additionalProperties'] = _rest_default_additional_properties_to_false( $schema['additionalProperties'] );
 		}
-
+		
 		if ( ! isset( $schema['additionalProperties'] ) ) {
 			$schema['additionalProperties'] = false;
 		}
 	}
 
-	if ( in_array( 'array', $type, true ) ) {
+	if ( in_array( 'array', $types, true ) ) {
 		if ( isset( $schema['items'] ) ) {
-			$schema['items'] = rest_default_additional_properties_to_false( $schema['items'] );
+			$schema['items'] = _rest_default_additional_properties_to_false( $schema['items'] );
 		}
 	}
 
 	return $schema;
+}
+
+/**
+ * Sets the "additionalProperties" to false by default for all object definitions in the schema.
+ *
+ * @since 5.5.0
+ * @since 5.6.0 Support the "patternProperties" keyword.
+ * @since x.y.z Support schema defined by mutual recursion.
+ *              Supoort the "allOf", "anyOf", "oneOf", and "items" keywords.
+ *
+ * @param array $schema The schema to modify.
+ * @return array The modified schema.
+ */
+function rest_default_additional_properties_to_false( $schema ) {
+	return _rest_default_additional_properties_to_false( $schema );
 }
 
 /**

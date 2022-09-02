@@ -2518,4 +2518,959 @@ class Tests_REST_API extends WP_UnitTestCase {
 			array( 'description', '_links' )
 		);
 	}
+
+	/**
+	 * @ticket
+	 *
+	 * @dataProvider data_rest_default_additional_properties_to_false
+	 */
+	public function test_rest_default_additional_properties_to_false( $expected, $schema ) {
+		$this->assertSame( $expected, rest_default_additional_properties_to_false( $schema ) );
+	}
+
+	public function data_rest_default_additional_properties_to_false() {
+		return array(
+			'scalar'                                          => array(
+				array( 'type' => 'boolean' ),
+				array( 'type' => 'boolean' ),
+			),
+			'object one level'                                => array(
+				array(
+					'type'                 => 'object',
+					'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+					'additionalProperties' => false,
+				),
+				array(
+					'type'                 => 'object',
+					'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+				),
+			),
+			'object two levels'                               => array(
+				array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'a' => array(
+							'type'                 => 'object',
+							'properties'           => array( 'aa' => array( 'type' => 'string' ) ),
+							'additionalProperties' => false,
+						),
+					),
+					'additionalProperties' => false,
+				),
+				array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'a' => array(
+							'type'                 => 'object',
+							'properties'           => array( 'aa' => array( 'type' => 'string' )),
+						),
+					),
+				),
+			),
+			'object three levels'                             => array(
+				array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'a' => array(
+							'type'                 => 'object',
+							'properties'           => array(
+								'aa' => array(
+									'type'                 => 'object',
+									'properties'           => array( 'aaa' => array( 'type' => 'string' ) ),
+									'additionalProperties' => false,
+								),
+							),
+							'additionalProperties' => false,
+						),
+					),
+					'additionalProperties' => false,
+				),
+				array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'a' => array(
+							'type'                 => 'object',
+							'properties'           => array(
+								'aa' => array(
+									'type'                 => 'object',
+									'properties'           => array( 'aaa' => array( 'type' => 'string' ) ),
+								),
+							),
+						),
+					),
+				),
+			),
+			'array of scalars'                                => array(
+				array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'boolean' ),
+				),
+				array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'boolean' ),
+				),
+			),
+			'array of objects'                                => array(
+				array(
+					'type'  => 'array',
+					'items' => array(
+						'type'                 => 'object',
+						'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+						'additionalProperties' => false,
+					),
+				),
+				array(
+					'type'  => 'array',
+					'items' => array(
+						'type'                 => 'object',
+						'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+					),
+				),
+			),
+			'array of arrays of objects'                      => array(
+				array(
+					'type'  => 'array',
+					'items' => array(
+						'type'  => 'array',
+						'items' => array( 
+							'type'                 => 'object',
+							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+							'additionalProperties' => false,
+						),
+					),
+				),
+				array(
+					'type'  => 'array',
+					'items' => array(
+						'type'  => 'array',
+						'items' => array( 
+							'type'                 => 'object',
+							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+						),
+					),
+				),
+			),
+			'array with only the first item having schema'    => array(
+				array(
+					'type'  => 'array',
+					'items' => array(
+						array(
+							'type'                 => 'object',
+							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+							'additionalProperties' => false,
+						),
+					),
+				),
+				array(
+					'type'  => 'array',
+					'items' => array(
+						array(
+							'type'                 => 'object',
+							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+						),
+					),
+				),
+			),
+			'array with first and second items having schema' => array(
+				array(
+					'type'  => 'array',
+					'items' => array(
+						array(
+							'type'                 => 'boolean',
+						),
+						array(
+							'type'                 => 'object',
+							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+							'additionalProperties' => false,
+						),
+					),
+				),
+				array(
+					'type'  => 'array',
+					'items' => array(
+						array(
+							'type'                 => 'boolean',
+						),
+						array(
+							'type'                 => 'object',
+							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+							'additionalProperties' => false,
+						),
+					),
+				),
+			),
+			'different kind of properties'                    => array(
+				array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'a' => array(
+							'type'                 => 'string',
+						),
+						'b' => array(
+							'type'                 => 'object',
+							'properties'           => array( 'bb' => array( 'type' => 'string' ) ),
+							'additionalProperties' => false,
+						),
+						'c' => array(
+							'type'                 => 'array',
+							'items'                => array(
+								'type'                 => 'object',
+								'properties'           => array( 'cc' => array( 'type' => 'string' ) ),
+								'additionalProperties' => false,
+							),
+						),
+						'd' => array(
+							'type'                 => 'array',
+							'items'                => array(
+								array(
+									'type'                 => 'object',
+									'properties'           => array( 'dd' => array( 'type' => 'string' ) ),
+									'additionalProperties' => false,
+								),
+							),
+						),
+					),
+					'additionalProperties' => false,
+				),
+				array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'a' => array(
+							'type'                 => 'string',
+						),
+						'b' => array(
+							'type'                 => 'object',
+							'properties'           => array( 'bb' => array( 'type' => 'string' ) ),
+						),
+						'c' => array(
+							'type'                 => 'array',
+							'items'                => array(
+								'type'                 => 'object',
+								'properties'           => array( 'cc' => array( 'type' => 'string' ) ),
+							),
+						),
+						'd' => array(
+							'type'                 => 'array',
+							'items'                => array(
+								array(
+									'type'                 => 'object',
+									'properties'           => array( 'dd' => array( 'type' => 'string' ) ),
+								),
+							),
+						),
+					),
+				),
+			),
+			'multiple types'                                  => array(
+				array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'a' => array(
+							'type'                 => array( 'boolean', 'integer', 'null', 'number', 'string' ),
+						),
+						'b' => array(
+							'type'                 => array( 'boolean', 'array' ),
+							'items'                => array( 'type' => 'string' ),
+						),
+						'c' => array(
+							'type'                 => array( 'boolean', 'object' ),
+							'properties'           => array( 'cc' => array( 'type' => 'string' ) ),
+							'additionalProperties' => false,
+						),
+						'd' => array(
+							'type'                 => array( 'array', 'object' ),
+							'items'                => array(
+								'type'                 => 'object',
+								'properties'           => array( 'ddd' => array( 'type' => 'string' ) ),
+								'additionalProperties' => false,
+							),
+							'properties'           => array( 'dd' => array( 'type' => 'string' ) ),
+							'additionalProperties' => false,
+						),
+						'e' => array(
+							'type'                 => array( 'boolean', 'array', 'object' ),
+							'items'                => array(
+								'type'                 => array( 'array', 'object' ),
+								'items'                => array(
+									'type'                 => 'object',
+									'properties'           => array( 'eeee' => array( 'type' => 'string' ) ),
+									'additionalProperties' => false,
+								),
+								'properties'           => array( 'eee' => array( 'type' => 'string' ) ),
+								'additionalProperties' => false,
+							),
+							'properties'           => array( 'ee' => array( 'type' => 'string' ) ),
+							'additionalProperties' => false,
+						),
+					),
+					'additionalProperties' => false,
+				),
+				array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'a' => array(
+							'type'                 => array( 'boolean', 'integer', 'null', 'number', 'string' ),
+						),
+						'b' => array(
+							'type'                 => array( 'boolean', 'array' ),
+							'items'                => array( 'type' => 'string' ),
+						),
+						'c' => array(
+							'type'                 => array( 'boolean', 'object' ),
+							'properties'           => array( 'cc' => array( 'type' => 'string' ) ),
+						),
+						'd' => array(
+							'type'                 => array( 'array', 'object' ),
+							'items'                => array(
+								'type'                 => 'object',
+								'properties'           => array( 'ddd' => array( 'type' => 'string' ) ),
+							),
+							'properties'           => array( 'dd' => array( 'type' => 'string' ) ),
+						),
+						'e' => array(
+							'type'                 => array( 'boolean', 'array', 'object' ),
+							'items'                => array(
+								'type'                 => array( 'array', 'object' ),
+								'items'                => array(
+									'type'                 => 'object',
+									'properties'           => array( 'eeee' => array( 'type' => 'string' ) ),
+								),
+								'properties'           => array( 'eee' => array( 'type' => 'string' ) ),
+							),
+							'properties'           => array( 'ee' => array( 'type' => 'string' ) ),
+						),
+					),
+				),
+			),
+			'pattern properties'                              => array(
+				array(
+					'type'                 => 'object',
+					'properties'           => array( 'a' => array( 'type' => 'string', ) ),
+					'patternProperties'    => array(
+						'^s_' => array(
+							'type'                 => 'string'
+						),
+						'^i_' => array(
+							'type'                 => 'integer'
+						),
+						'^a_' => array(
+							'type'                 => 'array',
+							'items'                => array( 'type' => 'string', ),
+						),
+						'^o_' => array(
+							'type'                 => 'object',
+							'properties'           => array( 'a' => array( 'type' => 'string', ) ),
+							'additionalProperties' => false,
+						),
+						'^x_' => array(
+							'type'                 => array( 'array', 'object' ),
+							'items'                => array( 'type' => 'string', ),
+							'properties'           => array( 'b' => array( 'type' => 'string', ) ),
+							'additionalProperties' => false,
+						),
+					),
+					'additionalProperties' => false,
+				),
+				array(
+					'type'                 => 'object',
+					'properties'           => array( 'a' => array( 'type' => 'string', ) ),
+					'patternProperties'    => array(
+						'^s_' => array(
+							'type'                 => 'string'
+						),
+						'^i_' => array(
+							'type'                 => 'integer'
+						),
+						'^a_' => array(
+							'type'                 => 'array',
+							'items'                => array( 'type' => 'string', ),
+						),
+						'^o_' => array(
+							'type'                 => 'object',
+							'properties'           => array( 'a' => array( 'type' => 'string', ) ),
+						),
+						'^x_' => array(
+							'type'                 => array( 'array', 'object' ),
+							'items'                => array( 'type' => 'string', ),
+							'properties'           => array( 'b' => array( 'type' => 'string', ) ),
+						),
+					),
+				),
+			),
+			'additional properties boolean'                   => array(
+				array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'a' => array(
+							'type'                 => 'object',
+							'properties'           => array( 'b' => array( 'type' => 'string' ) ),
+							'additionalProperties' => true,
+						),
+					),
+					'additionalProperties' => true,
+				),
+				array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'a' => array(
+							'type'                 => 'object',
+							'properties'           => array( 'b' => array( 'type' => 'string' ) ),
+							'additionalProperties' => true,
+						),
+					),
+					'additionalProperties' => true,
+				),
+			),
+			'additional properties object'                    => array(
+				array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'a' => array(
+							'type'                 => 'object',
+							'properties'           => array( 'b' => array( 'type' => 'string' ) ),
+							'additionalProperties' => array(
+								'type'                 => 'object',
+								'properties'           => array( 'c' => array( 'type' => 'string' ) ),
+								'additionalProperties' => false,
+							),
+						),
+					),
+					'additionalProperties' => false,
+				),
+				array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'a' => array(
+							'type'                 => 'object',
+							'properties'           => array( 'b' => array( 'type' => 'string' ) ),
+							'additionalProperties' => array(
+								'type'                 => 'object',
+								'properties'           => array( 'c' => array( 'type' => 'string' ) ),
+							),
+						),
+					),
+				),
+			),
+			'additional properties nested'                    => array(
+				array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'a' => array(
+							'type'                 => 'object',
+							'properties'           => array( 'b' => array( 'type' => 'string' ) ),
+							'additionalProperties' => array(
+								'type'                 => 'object',
+								'properties'           => array( 'c' => array( 'type' => 'string' ) ),
+								'additionalProperties' => array( 'd' => array( 'type' => 'string' ) ),
+							),
+						),
+					),
+					'additionalProperties' => array(
+						'type'                 => 'object',
+						'properties'           => array( 'e' => array( 'type' => 'string' ) ),
+						'additionalProperties' => array(
+							'type'                 => 'object',
+							'properties'           => array( 'f' => array( 'type' => 'string' ) ),
+							'additionalProperties' => array(
+								'type'                 => 'object',
+								'properties'           => array( 'g' => array( 'type' => 'string' ) ),
+								'additionalProperties' => false,
+							),
+						),
+					),
+				),
+				array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'a' => array(
+							'type'                 => 'object',
+							'properties'           => array( 'b' => array( 'type' => 'string' ) ),
+							'additionalProperties' => array(
+								'type'                 => 'object',
+								'properties'           => array( 'c' => array( 'type' => 'string' ) ),
+								'additionalProperties' => array( 'd' => array( 'type' => 'string' ) ),
+							),
+						),
+					),
+					'additionalProperties' => array(
+						'type'                 => 'object',
+						'properties'           => array( 'e' => array( 'type' => 'string' ) ),
+						'additionalProperties' => array(
+							'type'                 => 'object',
+							'properties'           => array( 'f' => array( 'type' => 'string' ) ),
+							'additionalProperties' => array(
+								'type'                 => 'object',
+								'properties'           => array( 'g' => array( 'type' => 'string' ) ),
+							),
+						),
+					),
+				),
+			),
+			'anyOf on array'                                  => array(
+				array(
+					'type'  => 'array',
+					'anyOf' => array(
+						array(
+							'items' => array(
+								'type'                 => 'boolean'
+							),
+						),
+						array( 
+							'items' => array(
+								'type'                 => 'array',
+								'items'                => array( 'type' => 'string' ),
+							),
+						),
+						array(
+							'items' => array(
+								'type'                 => 'object',
+								'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+								'additionalProperties' => false,
+							),
+						),
+						array(
+							'items' => array(
+								'type'                 => array( 'array', 'object' ),
+								'items'                => array( 'type' => 'string' ),
+								'properties'           => array( 'b' => array( 'type' => 'string' ) ),
+								'additionalProperties' => false,
+							),
+						),
+					),
+				),
+				array(
+					'type'  => 'array',
+					'anyOf' => array(
+						array(
+							'items' => array(
+								'type'                 => 'boolean'
+							),
+						),
+						array( 
+							'items' => array(
+								'type'                 => 'array',
+								'items'                => array( 'type' => 'string' ),
+							),
+						),
+						array(
+							'items' => array(
+								'type'                 => 'object',
+								'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+							),
+						),
+						array(
+							'items' => array(
+								'type'                 => array( 'array', 'object' ),
+								'items'                => array( 'type' => 'string' ),
+								'properties'           => array( 'b' => array( 'type' => 'string' ) ),
+							),
+						),
+					),
+				),
+			),
+			'anyOf on items'                                  => array(
+				array(
+					'type'  => 'array',
+					'items' => array(
+						'anyOf' => array(
+							array(
+								'type'                 => 'boolean'
+							),
+							array(
+								'type'                 => 'array',
+								'items'                => array( 'type' => 'string' ),
+							),
+							array(
+								'type'                 => 'object',
+								'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+								'additionalProperties' => false,
+							),
+							array(
+								'type'                 => array( 'array', 'object' ),
+								'items'                => array( 'type' => 'string' ),
+								'properties'           => array( 'b' => array( 'type' => 'string' ) ),
+								'additionalProperties' => false,
+							),
+						),
+					),
+				),
+				array(
+					'type'  => 'array',
+					'items' => array(
+						'anyOf' => array(
+							array(
+								'type'                 => 'boolean'
+							),
+							array(
+								'type'                 => 'array',
+								'items'                => array( 'type' => 'string' ),
+							),
+							array(
+								'type'                 => 'object',
+								'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+							),
+							array(
+								'type'                 => array( 'array', 'object' ),
+								'items'                => array( 'type' => 'string' ),
+								'properties'           => array( 'b' => array( 'type' => 'string' ) ),
+							),
+						),
+					),
+				),
+			),
+			'anyOf on object'                                 => array(
+				array(
+					'type'                 => 'object',
+					'anyOf'                => array(
+						array(
+							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+							'additionalProperties' => false,
+						),
+						array(
+							'properties'           => array(
+								'b' => array(
+									'type'                 => 'array',
+									'items'                => array( 'type' => 'string' ),
+								),
+							),
+							'additionalProperties' => false,
+						),
+						array(
+							'properties'           => array(
+								'c' => array(
+									'type'                 => 'object',
+									'properties'           => array( 'cc' => array( 'type' => 'string' ) ),
+									'additionalProperties' => false,
+								),
+							),
+							'additionalProperties' => false,
+						),
+						array(
+							'properties'           => array(
+								'd' => array(
+									'type'                 => array( 'array', 'object' ),
+									'items'                => array( 'type' => 'string' ),
+									'properties'           => array( 'dd' => array( 'type' => 'string' ) ),
+									'additionalProperties' => false,
+								),
+							),
+							'additionalProperties' => false,
+						),
+					),
+					'additionalProperties' => false,
+				),
+				array(
+					'type'                 => 'object',
+					'anyOf'                => array(
+						array(
+							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+						),
+						array(
+							'properties'           => array(
+								'b' => array(
+									'type'                 => 'array',
+									'items'                => array( 'type' => 'string' ),
+								),
+							),
+						),
+						array(
+							'properties'           => array(
+								'c' => array(
+									'type'                 => 'object',
+									'properties'           => array( 'cc' => array( 'type' => 'string' ) ),
+								),
+							),
+						),
+						array(
+							'properties'           => array(
+								'd' => array(
+									'type'                 => array( 'array', 'object' ),
+									'items'                => array( 'type' => 'string' ),
+									'properties'           => array( 'dd' => array( 'type' => 'string' ) ),
+								),
+							),
+						),
+					),
+				),
+			),
+			'anyOf array or object'                           => array(
+				array(
+					'anyOf'                => array(
+						array( 
+							'type'                 => 'array',
+							'items'                => array( 'type' => 'string' ),
+						),
+						array(
+							'type'                 => 'object',
+							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+							'additionalProperties' => false,
+						),
+					),
+				),
+				array(
+					'anyOf'                => array(
+						array( 
+							'type'                 => 'array',
+							'items'                => array( 'type' => 'string' ),
+						),
+						array(
+							'type'                 => 'object',
+							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+						),
+					),
+				),
+			),
+			'anyOf on multiple types'                         => array(
+				array(
+					'type'                 => array( 'array', 'object' ),
+					'anyOf'                => array(
+						array(
+							'items'                => array(
+								'type'                 => 'object',
+								'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+								'additionalProperties' => false,
+							),
+							'additionalProperties' => false,
+						),
+						array(
+							'properties'           => array( 'b' => array( 'type' => 'string' ) ),
+							'additionalProperties' => false,
+						),
+						array(
+							'items'                => array(
+								'type'                 => 'object',
+								'properties'           => array( 'c' => array( 'type' => 'string' ) ),
+								'additionalProperties' => false,
+							),
+							'properties'           => array( 'd' => array( 'type' => 'string' ) ),
+							'additionalProperties' => false,
+						),
+					),
+					'additionalProperties' => false,
+				),
+				array(
+					'type'                 => array( 'array', 'object' ),
+					'anyOf'                => array(
+						array(
+							'items'                => array(
+								'type'                 => 'object',
+								'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+							),
+						),
+						array(
+							'properties'           => array( 'b' => array( 'type' => 'string' ) ),
+						),
+						array(
+							'items'                => array(
+								'type'                 => 'object',
+								'properties'           => array( 'c' => array( 'type' => 'string' ) ),
+							),
+							'properties'           => array( 'd' => array( 'type' => 'string' ) ),
+						),
+					),
+				),
+			),
+			'anyOf nested with oneOf / allOf'                 => array(
+				array(
+					'type'  => 'array',
+					'anyOf' => array(
+						array(
+							'oneOf' => array(
+								array(
+									'type'                 => 'array',
+									'items'                => array( 'type' => 'string' ),
+								),
+								array(
+									'type'                 => 'object',
+									'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+									'additionalProperties' => false,
+								),
+							),
+						),
+						array(
+							'allOf' => array(
+								array(
+									'type'                 => 'array',
+									'items'                => array( 'type' => 'string' ),
+								),
+								array(
+									'type'                 => 'object',
+									'properties'           => array( 'b' => array( 'type' => 'string' ) ),
+									'additionalProperties' => false,
+								),
+							),
+						),
+					),
+				),
+				array(
+					'type'  => 'array',
+					'anyOf' => array(
+						array(
+							'oneOf' => array(
+								array(
+									'type'                 => 'array',
+									'items'                => array( 'type' => 'string' ),
+								),
+								array(
+									'type'                 => 'object',
+									'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+								),
+							),
+						),
+						array(
+							'allOf' => array(
+								array(
+									'type'                 => 'array',
+									'items'                => array( 'type' => 'string' ),
+								),
+								array(
+									'type'                 => 'object',
+									'properties'           => array( 'b' => array( 'type' => 'string' ) ),
+								),
+							),
+						),
+					),
+				),
+			),
+			'anyOf with base items / properties'              => array(
+				array(
+					'type'                 => 'object',
+					'oneOf'                => array(
+						array(
+							'type'                 => 'object',
+							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+							'anyOf' => array(
+								array(
+									'properties'           => array( 'aa' => array( 'type' => 'string' ) ),
+									'additionalProperties' => false,
+								),
+							),
+							'additionalProperties' => false,
+						),
+						array(
+							'type'                 => 'array',
+							'items'                => array( 'type' => 'string' ),
+							'anyOf'                => array(
+								array(
+									'items'                => array( 'type' => 'string' ),
+								),
+							),
+						),
+						array(
+							'type'                 => array( 'array', 'object' ),
+							'items'                => array( 'type' => 'string' ),
+							'properties'           => array( 'b' => array( 'type' => 'string' ) ),
+							'anyOf' => array(
+								array(
+									'items'                => array( 'type' => 'string' ),
+									'additionalProperties' => false,
+								),
+								array(
+									'properties'           => array( 'bb' => array( 'type' => 'string' ) ),
+									'additionalProperties' => false,
+								),
+							),
+							'additionalProperties' => false,
+						),
+					),
+					'additionalProperties' => false,
+				),
+				array(
+					'type'                 => 'object',
+					'oneOf'                => array(
+						array(
+							'type'                 => 'object',
+							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+							'anyOf' => array(
+								array(
+									'properties'           => array( 'aa' => array( 'type' => 'string' ) ),
+								),
+							),
+						),
+						array(
+							'type'                 => 'array',
+							'items'                => array( 'type' => 'string' ),
+							'anyOf'                => array(
+								array(
+									'items'                => array( 'type' => 'string' ),
+								),
+							),
+						),
+						array(
+							'type'                 => array( 'array', 'object' ),
+							'items'                => array( 'type' => 'string' ),
+							'properties'           => array( 'b' => array( 'type' => 'string' ) ),
+							'anyOf' => array(
+								array(
+									'items'                => array( 'type' => 'string' ),
+								),
+								array(
+									'properties'           => array( 'bb' => array( 'type' => 'string' ) ),
+								),
+							),
+						),
+					),
+				),
+			),
+			'anyOf with additional properties'                => array(
+				array(
+					'type'                 => 'object',
+					'anyOf'                => array(
+						array(
+							'properties'           => array(
+								'a' => array(
+									'type'                 => 'object',
+									'properties'           => array( 'aa' => array( 'type' => 'string' ) ),
+									'additionalProperties' => false,
+								),
+								'b' => array(
+									'type'                 => 'object',
+									'properties'           => array( 'bb' => array( 'type' => 'string' ) ),
+									'additionalProperties' => array(
+										'anyOf' => array(
+											array( 'type' => 'boolean' ),
+											array( 'type' => 'string' ),
+										),
+									),
+								),
+							),
+							'additionalProperties' => array(
+								'type'                 => 'object',
+								'properties'           => array( 'c' => array( 'type' => 'string' ) ),
+								'additionalProperties' => false,
+							),
+						),
+					),
+					'additionalProperties' => false,
+				),
+				array(
+					'type'                 => 'object',
+					'anyOf'                => array(
+						array(
+							'properties'           => array(
+								'a' => array(
+									'type'                 => 'object',
+									'properties'           => array( 'aa' => array( 'type' => 'string' ) ),
+								),
+								'b' => array(
+									'type'                 => 'object',
+									'properties'           => array( 'bb' => array( 'type' => 'string' ) ),
+									'additionalProperties' => array(
+										'anyOf' => array(
+											array( 'type' => 'boolean' ),
+											array( 'type' => 'string' ),
+										),
+									),
+								),
+							),
+							'additionalProperties' => array(
+								'type'                 => 'object',
+								'properties'           => array( 'c' => array( 'type' => 'string' ) ),
+							),
+						),
+					),
+				),
+			),
+		);
+	}
 }
