@@ -3845,7 +3845,9 @@ function wp_media_attach_action( $parent_id, $action = 'attach' ) {
 }
 
 /**
- * Returns the default image output mapping.
+ * Filters the default image output mapping.
+ *
+ * With this filter callback, WebP image files will be generated for certain JPEG source files.
  *
  * @since 6.1.0
  */
