@@ -1080,7 +1080,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_excerpt'   => 'A sample caption',
-				'post_author'    => $this->editor_id,
+				'post_author'    => self::$editor_id,
 			)
 		);
 

@@ -4,7 +4,6 @@
  * @group compat
  * @group security-153
  *
- * @covers ::mb_strlen
  * @covers ::_mb_strlen
  */
 class Tests_Compat_mbStrlen extends WP_UnitTestCase {

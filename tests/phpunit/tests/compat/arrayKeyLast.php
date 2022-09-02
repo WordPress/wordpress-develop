@@ -3,7 +3,7 @@
 /**
  * @group compat
  *
- * @covers ::array_key_last
+ * @coversNothing
  */
 class Tests_Compat_ArrayKeyLast extends WP_UnitTestCase {
 

@@ -134,7 +134,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 *
 	 * @ticket 56338
 	 *
-	 * @covers :taxonomy_exists
+	 * @covers ::taxonomy_exists
 	 *
 	 * @dataProvider data_taxonomy_exists_should_return_false_with_non_string_taxonomy
 	 *
