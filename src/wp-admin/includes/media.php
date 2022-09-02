@@ -3843,3 +3843,10 @@ function wp_media_attach_action( $parent_id, $action = 'attach' ) {
 		exit;
 	}
 }
+
+/**
+ * Set the default image output mapping.
+ */
+function wp_default_image_output_mapping() {
+	return array( 'mime/jpeg' => 'image/webp' );
+}
