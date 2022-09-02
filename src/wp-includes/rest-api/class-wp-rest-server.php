@@ -1222,7 +1222,6 @@ class WP_REST_Server {
 			'home'            => home_url(),
 			'gmt_offset'      => get_option( 'gmt_offset' ),
 			'timezone_string' => get_option( 'timezone_string' ),
-			'site_icon_url'   => get_site_icon_url(),
 			'namespaces'      => array_keys( $this->namespaces ),
 			'authentication'  => array(),
 			'routes'          => $this->get_data_for_routes( $this->get_routes(), $request['context'] ),
@@ -1306,6 +1305,8 @@ class WP_REST_Server {
 	 * @param WP_REST_Response $response REST API response.
 	 */
 	protected function add_site_icon_to_index( WP_REST_Response $response ) {
+		$response->data['site_icon_url'] = get_site_icon_url();
+
 		$site_icon_id = get_option( 'site_icon', 0 );
 
 		$this->add_image_to_index( $response, $site_icon_id, 'site_icon' );
