@@ -3021,13 +3021,13 @@ function rest_filter_response_by_context( $data, $schema, $context ) {
 
 /**
  * Sets the "additionalProperties" to false by default for all object definitions in the schema.
- * 
+ *
  * Mutual recursion is used for schema traversal.
- * 
+ *
  * The "Forest part" of the recursion runs on indexed arrays such as:
  *     "allOf", "anyOf", "oneOf", and "items".
  * The meta-schema describes these keywords as they have { "$ref": "#/definitions/schemaArray" } type.
- * 
+ *
  * The "Tree part" of the recursion runs on associative arrays such as:
  *     "properties", "patternProperties", "additionalProperties", and "items".
  * The meta-schema describes these keywords as they have { "$ref": "#" } type.
@@ -3045,7 +3045,7 @@ function _rest_default_additional_properties_to_false( $schema, $types = [] ) {
 
 	// Forest part
 
-	foreach ( ['allOf', 'anyOf', 'oneOf'] as $key ) {
+	foreach ( [ 'allOf', 'anyOf', 'oneOf' ] as $key ) {
 		if ( isset( $schema[ $key ] ) ) {
 			foreach ( $schema[ $key ] as $index => $child_schema ) {
 				$schema[ $key ][ $index ] = _rest_default_additional_properties_to_false( $child_schema, $types );
@@ -3062,7 +3062,7 @@ function _rest_default_additional_properties_to_false( $schema, $types = [] ) {
 	// Tree part
 
 	if ( in_array( 'object', $types, true ) ) {
-		foreach( ['properties', 'patternProperties'] as $key ) {
+		foreach ( [ 'properties', 'patternProperties' ] as $key ) {
 			if ( isset( $schema[ $key ] ) ) {
 				foreach ( $schema[ $key ] as $child_key => $child_schema ) {
 					$schema[ $key ][ $child_key ] = _rest_default_additional_properties_to_false( $child_schema );
@@ -3073,7 +3073,7 @@ function _rest_default_additional_properties_to_false( $schema, $types = [] ) {
 		if ( isset( $schema['additionalProperties'] ) && is_array( $schema['additionalProperties'] ) ) {
 			$schema['additionalProperties'] = _rest_default_additional_properties_to_false( $schema['additionalProperties'] );
 		}
-		
+
 		if ( ! isset( $schema['additionalProperties'] ) ) {
 			$schema['additionalProperties'] = false;
 		}
