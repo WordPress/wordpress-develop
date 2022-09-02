@@ -74,7 +74,7 @@ CAP;
 	 * Set up the test fixture.
 	 */
 	public function set_up() {
-		add_filter( 'image_editor_output_format', '__return_empty_array' );
+		remove_filter( 'image_editor_output_format', 'wp_default_image_output_mapping' );
 
 		parent::set_up();
 	}
