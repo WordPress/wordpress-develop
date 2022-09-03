@@ -3,7 +3,7 @@
 /**
  * @group compat
  *
- * @coversNothing
+ * @covers ::str_starts_with
  */
 class Tests_Compat_StrStartsWith extends WP_UnitTestCase {
 

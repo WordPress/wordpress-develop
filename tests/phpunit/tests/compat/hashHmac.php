@@ -3,6 +3,7 @@
 /**
  * @group compat
  *
+ * @covers ::hash_hmac
  * @covers ::_hash_hmac
  */
 class Tests_Compat_hashHmac extends WP_UnitTestCase {
