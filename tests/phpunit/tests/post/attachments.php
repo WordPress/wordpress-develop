@@ -10,7 +10,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	 * Set up the test fixture.
 	 */
 	public function set_up() {
-		remove_filter( 'image_editor_output_format', 'wp_default_image_output_mapping' );
+		add_filter( 'image_editor_output_format', '__return_empty_array' );
 
 		parent::set_up();
 	}
@@ -18,6 +18,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	public function tear_down() {
 		// Remove all uploads.
 		$this->remove_added_uploads();
+		remove_filter( 'image_editor_output_format', '__return_empty_array' );
 		parent::tear_down();
 	}
 

@@ -18,7 +18,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		require_once ABSPATH . WPINC . '/class-wp-image-editor-imagick.php';
 		require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
 
-		remove_filter( 'image_editor_output_format', 'wp_default_image_output_mapping' );
+		add_filter( 'image_editor_output_format', '__return_empty_array' );
 
 		// This needs to come after the mock image editor class is loaded.
 		parent::set_up();
@@ -32,6 +32,8 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		}
 
 		$this->remove_added_uploads();
+
+		remove_filter( 'image_editor_output_format', '__return_empty_array' );
 
 		parent::tear_down();
 	}

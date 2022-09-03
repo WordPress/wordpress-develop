@@ -26,7 +26,14 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			unlink( $file );
 		}
 
-		remove_filter( 'image_editor_output_format', 'wp_default_image_output_mapping' );
+		add_filter( 'image_editor_output_format', '__return_empty_array' );	}
+
+	/**
+	 * Tear down the class.
+	 */
+	public function tear_down() {
+		remove_filter( 'image_editor_output_format', '__return_empty_array' );
+		parent::tear_down();
 	}
 
 	/**

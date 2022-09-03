@@ -34,7 +34,7 @@ CAP;
 		$GLOBALS['_wp_additional_image_sizes'] = array();
 
 		$filename = DIR_TESTDATA . '/images/' . self::$large_filename;
-		remove_filter( 'image_editor_output_format', 'wp_default_image_output_mapping' );
+		add_filter( 'image_editor_output_format', '__return_empty_array' );
 		self::$large_id = $factory->attachment->create_upload_object( $filename );
 
 		$post_statuses = array( 'publish', 'future', 'draft', 'auto-draft', 'trash' );
@@ -69,6 +69,7 @@ CAP;
 
 	public static function wpTearDownAfterClass() {
 		$GLOBALS['_wp_additional_image_sizes'] = self::$_sizes;
+		remove_filter( 'image_editor_output_format', '__return_empty_array' );
 	}
 
 	public static function tear_down_after_class() {
@@ -3625,7 +3626,7 @@ EOF;
 	 * @ticket 55443
 	 */
 	public function test_wp_default_image_output_mapping() {
-		$mapping = wp_default_image_output_mapping();
+		$mapping = wp_default_image_output_mapping( array() );
 		$this->assertSame( array( 'image/jpeg' => 'image/webp' ), $mapping );
 	}
 }

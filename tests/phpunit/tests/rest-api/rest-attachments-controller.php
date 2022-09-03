@@ -93,7 +93,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		add_filter( 'rest_pre_dispatch', array( $this, 'wpSetUpBeforeRequest' ), 10, 3 );
 		add_filter( 'posts_clauses', array( $this, 'save_posts_clauses' ), 10, 2 );
-		remove_filter( 'image_editor_output_format', 'wp_default_image_output_mapping' );
+		add_filter( 'image_editor_output_format', '__return_empty_array' );
 	}
 
 	public function wpSetUpBeforeRequest( $result ) {
@@ -121,6 +121,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			WP_Image_Editor_Mock::$edit_return = array();
 			WP_Image_Editor_Mock::$size_return = null;
 		}
+
+		remove_filter( 'image_editor_output_format', '__return_empty_array' );
 
 		parent::tear_down();
 	}
