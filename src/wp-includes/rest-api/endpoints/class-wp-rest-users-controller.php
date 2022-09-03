@@ -717,7 +717,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$id = $user->ID;
 
-		if ( ! $user ) {
+		if ( ! $id ) {
 			return new WP_Error(
 				'rest_user_invalid_id',
 				__( 'Invalid user ID.' ),
