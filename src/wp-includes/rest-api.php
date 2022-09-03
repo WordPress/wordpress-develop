@@ -3026,7 +3026,7 @@ function rest_filter_response_by_context( $data, $schema, $context ) {
  *
  * The "Forest part" of the recursion runs on indexed arrays such as:
  *     "allOf", "anyOf", "oneOf", and "items".
- * The meta-schema describes these keywords as they have { "$ref": "#/definitions/schemaArray" } type.
+ * The meta-schema describes these keywords as "schemaArray".
  *
  * The "Tree part" of the recursion runs on associative arrays such as:
  *     "properties", "patternProperties", "additionalProperties", and "items".
@@ -3093,7 +3093,7 @@ function _rest_default_additional_properties_to_false( $schema, $types = array()
  * @since 5.5.0
  * @since 5.6.0 Support the "patternProperties" keyword.
  * @since x.y.z Support schema defined by mutual recursion.
- *              Supoort the "allOf", "anyOf", "oneOf", and "items" keywords.
+ *              Support the "allOf", "anyOf", "oneOf", and "items" keywords.
  *
  * @param array $schema The schema to modify.
  * @return array The modified schema.
