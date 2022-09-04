@@ -3629,6 +3629,23 @@ EOF;
 		$mapping = wp_default_image_output_mapping( array() );
 		$this->assertSame( array( 'image/jpeg' => 'image/webp' ), $mapping );
 	}
+
+	/**
+	 * Test that wp_default_image_output_mapping doesn't overwrite existing mappings.
+	 *
+	 * @ticket 55443
+	 */
+	public function test_wp_default_image_output_mapping_existing() {
+		$mapping = array( 'mime/png' => 'mime/webp' );
+		$mapping = wp_default_image_output_mapping( $mapping );
+		$this->assertSame(
+			array(
+				'mime/png'   => 'mime/webp',
+				'image/jpeg' => 'image/webp',
+			),
+			$mapping
+		);
+	}
 }
 
 /**
