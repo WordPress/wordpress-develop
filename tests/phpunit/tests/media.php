@@ -3646,6 +3646,36 @@ EOF;
 			$mapping
 		);
 	}
+
+	/**
+	 * Test that the image editor default output for JPEGs is WebP
+	 *
+	 * @ticket 55443
+	 */
+	public function test_wp_image_editor_default_output_maps_to_webp() {
+		remove_filter( 'image_editor_output_format', '__return_empty_array' );
+
+		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
+		if ( is_wp_error( $editor ) ) {
+			$this->markTestSkipped( $editor->get_error_message() );
+		}
+		$resized = $editor->resize( 100, 100, false );
+
+		if ( is_wp_error( $resized ) ) {
+			$this->markTestSkipped( $resized->get_error_message() );
+		}
+
+		$dest_file = $editor->generate_filename();
+		$saved     = $editor->save( $dest_file );
+
+		if ( is_wp_error( $saved ) ) {
+			$this->markTestSkipped( $saved->get_error_message() );
+		}
+		add_filter( 'image_editor_output_format', '__return_empty_array' );
+
+		$this->assertSame( 'image/webp', $saved['mime-type'] );
+		$this->assertSame( 'canola-100x75.webp', $saved['file'] );
+	}
 }
 
 /**
