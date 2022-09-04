@@ -66,7 +66,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		// Force last_changed to increment.
 		clean_post_cache( $pages[0]->ID );
 		$this->assertNotEquals( $time1, $time2 = wp_cache_get( 'last_changed', 'posts' ) );
-
+		get_post( $pages[0]->ID );
 		$num_queries = $wpdb->num_queries;
 
 		// last_changed bumped so num_queries should increment.
@@ -718,5 +718,76 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$pages = get_pages(); // Database should not get queried.
 
 		$this->assertSame( $num_queries, $wpdb->num_queries );
+	}
+
+	public function test_orderby() {
+		global $wpdb;
+		// 'rand' is a valid value.
+		get_pages( array( 'sort_column' => 'rand' ) );
+		$this->assertStringContainsString( 'ORDER BY RAND()', $wpdb->last_query );
+		$this->assertStringNotContainsString( 'ASC', $wpdb->last_query );
+		$this->assertStringNotContainsString( 'DESC', $wpdb->last_query );
+
+		// This isn't allowed.
+		get_pages( array( 'sort_order' => 'rand' ) );
+		$this->assertStringContainsString( 'ORDER BY', $wpdb->last_query );
+		$this->assertStringNotContainsString( 'RAND()', $wpdb->last_query);
+		$this->assertStringContainsString( 'DESC',$wpdb->last_query );
+
+		// 'none' is a valid value.
+		get_pages( array( 'sort_column' => 'none' ) );
+		$this->assertStringNotContainsString( 'ORDER BY', $wpdb->last_query );
+		$this->assertStringNotContainsString( 'DESC', $wpdb->last_query );
+		$this->assertStringNotContainsString( 'ASC', $wpdb->last_query );
+
+		// False is a valid value.
+		get_pages( array( 'sort_column' => false ) );
+		$this->assertStringNotContainsString( 'ORDER BY', $wpdb->last_query );
+		$this->assertStringNotContainsString( 'DESC', $wpdb->last_query);
+		$this->assertStringNotContainsString( 'ASC', $wpdb->last_query );
+
+		// Empty array() is a valid value.
+		get_pages( array( 'sort_column' => array() ) );
+		$this->assertStringNotContainsString( 'ORDER BY', $wpdb->last_query );
+		$this->assertStringNotContainsString( 'DESC', $wpdb->last_query);
+		$this->assertStringNotContainsString( 'ASC', $wpdb->last_query );
+	}
+
+	public function test_order() {
+		global $wpdb;
+
+		get_pages(
+			array(
+				'sort_column' => array(
+					'post_type' => 'foo',
+				),
+			)
+		);
+		$this->assertStringContainsString(
+			"ORDER BY $wpdb->posts.post_type DESC",
+			$wpdb->last_query
+		);
+
+		get_pages(
+			array(
+				'sort_column' => 'title',
+				'sort_order'  => 'foo',
+			)
+		);
+		$this->assertStringContainsString(
+			"ORDER BY $wpdb->posts.post_title DESC",
+			$wpdb->last_query
+		);
+
+		get_pages(
+			array(
+				'sort_order' => 'asc',
+				'sort_column' => 'date',
+			)
+		);
+		$this->assertStringContainsString(
+			"ORDER BY $wpdb->posts.post_date ASC",
+			$wpdb->last_query
+		);
 	}
 }

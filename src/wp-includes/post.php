@@ -6001,13 +6001,8 @@ function get_pages( $args = array() ) {
 
 	$parsed_args = wp_parse_args( $args, $defaults );
 
-	$number       = (int) $parsed_args['number'];
-	$offset       = (int) $parsed_args['offset'];
 	$child_of     = (int) $parsed_args['child_of'];
 	$hierarchical = $parsed_args['hierarchical'];
-	$exclude      = $parsed_args['exclude'];
-	$meta_key     = $parsed_args['meta_key'];
-	$meta_value   = $parsed_args['meta_value'];
 	$parent       = $parsed_args['parent'];
 	$post_status  = $parsed_args['post_status'];
 
@@ -6029,192 +6024,40 @@ function get_pages( $args = array() ) {
 		return false;
 	}
 
-	// $args can be whatever, only use the args defined in defaults to compute the key.
-	$key          = md5( serialize( wp_array_slice_assoc( $parsed_args, array_keys( $defaults ) ) ) );
-	$last_changed = wp_cache_get_last_changed( 'posts' );
+	$query_args = array();
 
-	$cache_key = "get_pages:$key:$last_changed";
-	$cache     = wp_cache_get( $cache_key, 'posts' );
-	if ( false !== $cache ) {
-		_prime_post_caches( $cache, false, false );
-
-		// Convert to WP_Post instances.
-		$pages = array_map( 'get_post', $cache );
-		/** This filter is documented in wp-includes/post.php */
-		$pages = apply_filters( 'get_pages', $pages, $parsed_args );
-
-		return $pages;
-	}
-
-	$inclusions = '';
-	if ( ! empty( $parsed_args['include'] ) ) {
-		$child_of     = 0; // Ignore child_of, parent, exclude, meta_key, and meta_value params if using include.
-		$parent       = -1;
-		$exclude      = '';
-		$meta_key     = '';
-		$meta_value   = '';
-		$hierarchical = false;
-		$incpages     = wp_parse_id_list( $parsed_args['include'] );
-		if ( ! empty( $incpages ) ) {
-			$inclusions = ' AND ID IN (' . implode( ',', $incpages ) . ')';
-		}
-	}
-
-	$exclusions = '';
-	if ( ! empty( $exclude ) ) {
-		$expages = wp_parse_id_list( $exclude );
-		if ( ! empty( $expages ) ) {
-			$exclusions = ' AND ID NOT IN (' . implode( ',', $expages ) . ')';
-		}
-	}
-
-	$author_query = '';
-	if ( ! empty( $parsed_args['authors'] ) ) {
-		$post_authors = wp_parse_list( $parsed_args['authors'] );
-
-		if ( ! empty( $post_authors ) ) {
-			foreach ( $post_authors as $post_author ) {
-				// Do we have an author id or an author login?
-				if ( 0 == (int) $post_author ) {
-					$post_author = get_user_by( 'login', $post_author );
-					if ( empty( $post_author ) ) {
-						continue;
-					}
-					if ( empty( $post_author->ID ) ) {
-						continue;
-					}
-					$post_author = $post_author->ID;
-				}
-
-				if ( '' === $author_query ) {
-					$author_query = $wpdb->prepare( ' post_author = %d ', $post_author );
-				} else {
-					$author_query .= $wpdb->prepare( ' OR post_author = %d ', $post_author );
-				}
-			}
-			if ( '' !== $author_query ) {
-				$author_query = " AND ($author_query)";
-			}
-		}
-	}
-
-	$join  = '';
-	$where = "$exclusions $inclusions ";
-	if ( '' !== $meta_key || '' !== $meta_value ) {
-		$join = " LEFT JOIN $wpdb->postmeta ON ( $wpdb->posts.ID = $wpdb->postmeta.post_id )";
-
-		// meta_key and meta_value might be slashed.
-		$meta_key   = wp_unslash( $meta_key );
-		$meta_value = wp_unslash( $meta_value );
-		if ( '' !== $meta_key ) {
-			$where .= $wpdb->prepare( " AND $wpdb->postmeta.meta_key = %s", $meta_key );
-		}
-		if ( '' !== $meta_value ) {
-			$where .= $wpdb->prepare( " AND $wpdb->postmeta.meta_value = %s", $meta_value );
-		}
-	}
-
-	if ( is_array( $parent ) ) {
-		$post_parent__in = implode( ',', array_map( 'absint', (array) $parent ) );
-		if ( ! empty( $post_parent__in ) ) {
-			$where .= " AND post_parent IN ($post_parent__in)";
-		}
-	} elseif ( $parent >= 0 ) {
-		$where .= $wpdb->prepare( ' AND post_parent = %d ', $parent );
-	}
-
-	if ( 1 === count( $post_status ) ) {
-		$where_post_type = $wpdb->prepare( 'post_type = %s AND post_status = %s', $parsed_args['post_type'], reset( $post_status ) );
-	} else {
-		$post_status     = implode( "', '", $post_status );
-		$where_post_type = $wpdb->prepare( "post_type = %s AND post_status IN ('$post_status')", $parsed_args['post_type'] );
-	}
-
-	$orderby_array = array();
-	$allowed_keys  = array(
-		'author',
-		'post_author',
-		'date',
-		'post_date',
-		'title',
-		'post_title',
-		'name',
-		'post_name',
-		'modified',
-		'post_modified',
-		'modified_gmt',
-		'post_modified_gmt',
-		'menu_order',
-		'parent',
-		'post_parent',
-		'ID',
-		'rand',
-		'comment_count',
+	$defaults = array(
+		'order'                  => $parsed_args['sort_order'],
+		'orderby'                => $parsed_args['sort_column'],
+		'post__not_in'           => wp_parse_id_list( $parsed_args['exclude'] ),
+		'post__in'               => wp_parse_id_list( $parsed_args['include'] ),
+		'meta_key'               => $parsed_args['meta_key'],
+		'meta_value'             => $parsed_args['meta_value'],
+		'author__in'             => wp_parse_list( $parsed_args['authors'] ),
+		'posts_per_page'         => -1,
+		'offset'                 => (int) $parsed_args['offset'],
+		'post_type'              => $parsed_args['post_type'],
+		'post_status'            => $parsed_args['post_status'],
+		'update_post_term_cache' => false,
+		'update_post_meta_cache' => false,
+		'ignore_sticky_posts'    => true,
+		'no_found_rows'          => true,
 	);
 
-	foreach ( explode( ',', $parsed_args['sort_column'] ) as $orderby ) {
-		$orderby = trim( $orderby );
-		if ( ! in_array( $orderby, $allowed_keys, true ) ) {
-			continue;
+	$query_args = wp_parse_args( $query_args, $defaults );
+
+	if ( is_array( $parent ) ) {
+		$post_parent__in = array_map( 'absint', (array) $parent );
+		if ( ! empty( $post_parent__in ) ) {
+			$query_args['post_parent__in'] = $post_parent__in;
 		}
-
-		switch ( $orderby ) {
-			case 'menu_order':
-				break;
-			case 'ID':
-				$orderby = "$wpdb->posts.ID";
-				break;
-			case 'rand':
-				$orderby = 'RAND()';
-				break;
-			case 'comment_count':
-				$orderby = "$wpdb->posts.comment_count";
-				break;
-			default:
-				if ( 0 === strpos( $orderby, 'post_' ) ) {
-					$orderby = "$wpdb->posts." . $orderby;
-				} else {
-					$orderby = "$wpdb->posts.post_" . $orderby;
-				}
-		}
-
-		$orderby_array[] = $orderby;
-
-	}
-	$sort_column = ! empty( $orderby_array ) ? implode( ',', $orderby_array ) : "$wpdb->posts.post_title";
-
-	$sort_order = strtoupper( $parsed_args['sort_order'] );
-	if ( '' !== $sort_order && ! in_array( $sort_order, array( 'ASC', 'DESC' ), true ) ) {
-		$sort_order = 'ASC';
+	} elseif ( $parent >= 0 ) {
+		$query_args['post_parent'] = $parent;
 	}
 
-	$query  = "SELECT * FROM $wpdb->posts $join WHERE ($where_post_type) $where ";
-	$query .= $author_query;
-	$query .= ' ORDER BY ' . $sort_column . ' ' . $sort_order;
 
-	if ( ! empty( $number ) ) {
-		$query .= ' LIMIT ' . $offset . ',' . $number;
-	}
-
-	$pages = $wpdb->get_results( $query );
-
-	if ( empty( $pages ) ) {
-		wp_cache_set( $cache_key, array(), 'posts' );
-
-		/** This filter is documented in wp-includes/post.php */
-		$pages = apply_filters( 'get_pages', array(), $parsed_args );
-
-		return $pages;
-	}
-
-	// Sanitize before caching so it'll only get done once.
-	$num_pages = count( $pages );
-	for ( $i = 0; $i < $num_pages; $i++ ) {
-		$pages[ $i ] = sanitize_post( $pages[ $i ], 'raw' );
-	}
-
-	// Update cache.
-	update_post_cache( $pages );
+	$query = new WP_Query( $query_args );
+	$pages = $query->get_posts();
 
 	if ( $child_of || $hierarchical ) {
 		$pages = get_page_children( $child_of, $pages );
@@ -6237,12 +6080,6 @@ function get_pages( $args = array() ) {
 		}
 	}
 
-	$page_structure = array();
-	foreach ( $pages as $page ) {
-		$page_structure[] = $page->ID;
-	}
-
-	wp_cache_set( $cache_key, $page_structure, 'posts' );
 
 	// Convert to WP_Post instances.
 	$pages = array_map( 'get_post', $pages );
