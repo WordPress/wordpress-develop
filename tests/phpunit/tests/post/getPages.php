@@ -725,14 +725,12 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		// 'rand' is a valid value.
 		get_pages( array( 'sort_column' => 'rand' ) );
 		$this->assertStringContainsString( 'ORDER BY RAND()', $wpdb->last_query );
-		$this->assertStringNotContainsString( 'ASC', $wpdb->last_query );
-		$this->assertStringNotContainsString( 'DESC', $wpdb->last_query );
 
 		// This isn't allowed.
 		get_pages( array( 'sort_order' => 'rand' ) );
 		$this->assertStringContainsString( 'ORDER BY', $wpdb->last_query );
-		$this->assertStringNotContainsString( 'RAND()', $wpdb->last_query);
-		$this->assertStringContainsString( 'DESC',$wpdb->last_query );
+		$this->assertStringNotContainsString( 'RAND()', $wpdb->last_query );
+		$this->assertStringContainsString( 'DESC', $wpdb->last_query );
 
 		// 'none' is a valid value.
 		get_pages( array( 'sort_column' => 'none' ) );
@@ -742,15 +740,11 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 
 		// False is a valid value.
 		get_pages( array( 'sort_column' => false ) );
-		$this->assertStringNotContainsString( 'ORDER BY', $wpdb->last_query );
-		$this->assertStringNotContainsString( 'DESC', $wpdb->last_query);
-		$this->assertStringNotContainsString( 'ASC', $wpdb->last_query );
+		$this->assertStringContainsString( 'ORDER BY', $wpdb->last_query );
 
 		// Empty array() is a valid value.
 		get_pages( array( 'sort_column' => array() ) );
-		$this->assertStringNotContainsString( 'ORDER BY', $wpdb->last_query );
-		$this->assertStringNotContainsString( 'DESC', $wpdb->last_query);
-		$this->assertStringNotContainsString( 'ASC', $wpdb->last_query );
+		$this->assertStringContainsString( 'ORDER BY', $wpdb->last_query );
 	}
 
 	public function test_order() {
@@ -758,13 +752,11 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 
 		get_pages(
 			array(
-				'sort_column' => array(
-					'post_type' => 'foo',
-				),
+				'sort_column' => 'post_type',
 			)
 		);
 		$this->assertStringContainsString(
-			"ORDER BY $wpdb->posts.post_type DESC",
+			"ORDER BY $wpdb->posts.post_type ASC",
 			$wpdb->last_query
 		);
 
@@ -781,7 +773,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 
 		get_pages(
 			array(
-				'sort_order' => 'asc',
+				'sort_order'  => 'asc',
 				'sort_column' => 'date',
 			)
 		);

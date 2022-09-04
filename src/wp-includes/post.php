@@ -5937,8 +5937,6 @@ function get_page_uri( $page = 0 ) {
 /**
  * Retrieves an array of pages (or hierarchical post type items).
  *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
  * @since 1.5.0
  *
  * @param array|string $args {
@@ -5979,8 +5977,6 @@ function get_page_uri( $page = 0 ) {
  *                         supported by the post type.
  */
 function get_pages( $args = array() ) {
-	global $wpdb;
-
 	$defaults = array(
 		'child_of'     => 0,
 		'sort_order'   => 'ASC',
@@ -6002,6 +5998,7 @@ function get_pages( $args = array() ) {
 	$parsed_args = wp_parse_args( $args, $defaults );
 
 	$child_of     = (int) $parsed_args['child_of'];
+	$number       = (int) $parsed_args['number'];
 	$hierarchical = $parsed_args['hierarchical'];
 	$parent       = $parsed_args['parent'];
 	$post_status  = $parsed_args['post_status'];
@@ -6026,9 +6023,8 @@ function get_pages( $args = array() ) {
 
 	$query_args = array();
 
-	$defaults = array(
-		'order'                  => $parsed_args['sort_order'],
-		'orderby'                => $parsed_args['sort_column'],
+	$query_defaults = array(
+		'orderby'                => 'post_title',
 		'post__not_in'           => wp_parse_id_list( $parsed_args['exclude'] ),
 		'post__in'               => wp_parse_id_list( $parsed_args['include'] ),
 		'meta_key'               => $parsed_args['meta_key'],
@@ -6037,14 +6033,29 @@ function get_pages( $args = array() ) {
 		'posts_per_page'         => -1,
 		'offset'                 => (int) $parsed_args['offset'],
 		'post_type'              => $parsed_args['post_type'],
-		'post_status'            => $parsed_args['post_status'],
+		'post_status'            => $post_status,
 		'update_post_term_cache' => false,
 		'update_post_meta_cache' => false,
 		'ignore_sticky_posts'    => true,
 		'no_found_rows'          => true,
 	);
 
-	$query_args = wp_parse_args( $query_args, $defaults );
+	$query_args = wp_parse_args( $query_args, $query_defaults );
+
+	$orderby = wp_parse_list( $parsed_args['sort_column'] );
+	$orderby = array_map( 'trim', $orderby );
+	if ( $orderby ) {
+		$query_args['orderby'] = array_fill_keys( $orderby, $parsed_args['sort_order'] );
+	}
+
+	$order = $parsed_args['sort_order'];
+	if ( $order ) {
+		$query_args['order'] = $order;
+	}
+
+	if ( ! empty( $number ) ) {
+		$query_args['posts_per_page'] = $number;
+	}
 
 	if ( is_array( $parent ) ) {
 		$post_parent__in = array_map( 'absint', (array) $parent );
@@ -6054,7 +6065,6 @@ function get_pages( $args = array() ) {
 	} elseif ( $parent >= 0 ) {
 		$query_args['post_parent'] = $parent;
 	}
-
 
 	$query = new WP_Query( $query_args );
 	$pages = $query->get_posts();
@@ -6079,10 +6089,6 @@ function get_pages( $args = array() ) {
 			}
 		}
 	}
-
-
-	// Convert to WP_Post instances.
-	$pages = array_map( 'get_post', $pages );
 
 	/**
 	 * Filters the retrieved list of pages.
