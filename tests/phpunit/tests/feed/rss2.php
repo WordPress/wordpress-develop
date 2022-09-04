@@ -14,6 +14,9 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	public static $category;
 	public static $post_date;
 
+	private $post_count;
+	private $excerpt_only;
+
 	/**
 	 * Setup a new user and attribute some posts.
 	 */
@@ -512,7 +515,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	 *
 	 * @ticket 47968
 	 *
-	 * @covers ::send_headers
+	 * @covers WP::send_headers
 	 */
 	public function test_feed_last_modified_should_be_a_post_date_when_withcomments_is_not_passed() {
 		$last_week = gmdate( 'Y-m-d H:i:s', strtotime( '-1 week' ) );
@@ -551,7 +554,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	 *
 	 * @ticket 47968
 	 *
-	 * @covers ::send_headers
+	 * @covers WP::send_headers
 	 */
 	public function test_feed_last_modified_should_be_the_date_of_a_comment_that_is_the_latest_update_when_withcomments_is_passed() {
 		$last_week = gmdate( 'Y-m-d H:i:s', strtotime( '-1 week' ) );
@@ -590,7 +593,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	 *
 	 * @ticket 47968
 	 *
-	 * @covers ::send_headers
+	 * @covers WP::send_headers
 	 */
 	public function test_feed_last_modified_should_be_the_date_of_a_post_that_is_the_latest_update_when_withcomments_is_passed() {
 		$last_week = gmdate( 'Y-m-d H:i:s', strtotime( '-1 week' ) );

@@ -26,6 +26,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	protected $forbidden_cat;
 	protected $posts_clauses;
 
+	private $attachments_created = false;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
 
@@ -113,6 +115,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		add_filter( 'rest_pre_dispatch', array( $this, 'wpSetUpBeforeRequest' ), 10, 3 );
 		add_filter( 'posts_clauses', array( $this, 'save_posts_clauses' ), 10, 2 );
+	}
+
+	public function tear_down() {
+		if ( true === $this->attachments_created ) {
+			$this->remove_added_uploads();
+			$this->attachments_created = false;
+		}
+
+		parent::tear_down();
 	}
 
 	public function wpSetUpBeforeRequest( $result, $server, $request ) {
@@ -2771,8 +2782,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function test_create_update_post_with_featured_media() {
 
-		$file                = DIR_TESTDATA . '/images/canola.jpg';
-		$this->attachment_id = $this->factory->attachment->create_object(
+		$file          = DIR_TESTDATA . '/images/canola.jpg';
+		$attachment_id = $this->factory->attachment->create_object(
 			$file,
 			0,
 			array(
@@ -2781,20 +2792,22 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			)
 		);
 
+		$this->attachments_created = true;
+
 		wp_set_current_user( self::$editor_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
 		$params  = $this->set_post_data(
 			array(
-				'featured_media' => $this->attachment_id,
+				'featured_media' => $attachment_id,
 			)
 		);
 		$request->set_body_params( $params );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$new_post = get_post( $data['id'] );
-		$this->assertSame( $this->attachment_id, $data['featured_media'] );
-		$this->assertSame( $this->attachment_id, (int) get_post_thumbnail_id( $new_post->ID ) );
+		$this->assertSame( $attachment_id, $data['featured_media'] );
+		$this->assertSame( $attachment_id, (int) get_post_thumbnail_id( $new_post->ID ) );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $new_post->ID );
 		$params  = $this->set_post_data(
@@ -5239,9 +5252,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	/**
 	 * @ticket 52422
 	 *
-	 * @covers WP_REST_Request::create_item
+	 * @covers WP_REST_Posts_Controller::create_item
 	 */
-	public function test_draft_post_do_not_have_the_same_slug_as_existing_post() {
+	public function test_draft_post_does_not_have_the_same_slug_as_existing_post() {
 		wp_set_current_user( self::$editor_id );
 		$this->factory()->post->create( array( 'post_name' => 'sample-slug' ) );
 
@@ -5275,14 +5288,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			$post->post_name,
 			'The post slug was not set to "sample-slug-2"'
 		);
-	}
-
-	public function tear_down() {
-		if ( isset( $this->attachment_id ) ) {
-			$this->remove_added_uploads();
-		}
-
-		parent::tear_down();
 	}
 
 	/**

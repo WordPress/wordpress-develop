@@ -117,7 +117,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		// Set up comments for pagination tests.
 		for ( $i = 0; $i < self::$total_comments - 1; $i++ ) {
-			$comment_ids[] = $factory->comment->create(
+			self::$comment_ids[] = $factory->comment->create(
 				array(
 					'comment_content' => "Comment {$i}",
 					'comment_post_ID' => self::$post_id,
