@@ -6025,6 +6025,7 @@ function get_pages( $args = array() ) {
 
 	$query_defaults = array(
 		'orderby'                => 'post_title',
+		'order'                  => 'ASC',
 		'post__not_in'           => wp_parse_id_list( $parsed_args['exclude'] ),
 		'post__in'               => wp_parse_id_list( $parsed_args['include'] ),
 		'meta_key'               => $parsed_args['meta_key'],
