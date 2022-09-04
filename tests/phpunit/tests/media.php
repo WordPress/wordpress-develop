@@ -3648,7 +3648,7 @@ EOF;
 	}
 
 	/**
-	 * Test that the image editor default output for JPEGs is WebP
+	 * Test that the image editor default output for JPEGs is WebP.
 	 *
 	 * @ticket 55443
 	 */
@@ -3671,10 +3671,16 @@ EOF;
 		if ( is_wp_error( $saved ) ) {
 			$this->markTestSkipped( $saved->get_error_message() );
 		}
-		add_filter( 'image_editor_output_format', '__return_empty_array' );
 
-		$this->assertSame( 'image/webp', $saved['mime-type'] );
-		$this->assertSame( 'canola-100x75.webp', $saved['file'] );
+		if ( $editor->supports_mime_type( 'image/webp' ) ) {
+			$this->assertSame( 'image/webp', $saved['mime-type'] );
+			$this->assertSame( 'canola-100x75.webp', $saved['file'] );
+		} else {
+			$this->assertSame( 'image/jpeg', $saved['mime-type'] );
+			$this->assertSame( 'canola-100x75.jpg', $saved['file'] );
+		}
+
+		add_filter( 'image_editor_output_format', '__return_empty_array' );
 	}
 }
 
