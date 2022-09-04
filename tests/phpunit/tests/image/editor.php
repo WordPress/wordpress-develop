@@ -25,6 +25,14 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * Tear down the class.
+	 */
+	public function tear_down() {
+		remove_filter( 'image_editor_output_format', '__return_empty_array' );
+		parent::tear_down();
+	}
+
+	/**
 	 * Test wp_get_image_editor() where load returns true
 	 *
 	 * @ticket 6821
