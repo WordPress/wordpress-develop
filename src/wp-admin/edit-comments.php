@@ -377,6 +377,5 @@ if ( isset( $_REQUEST['approved'] ) || isset( $_REQUEST['deleted'] ) || isset( $
 <div id="ajax-response"></div>
 
 <?php
-wp_comment_reply( '-1', true, 'detail' );
 wp_comment_trashnotice();
 require_once ABSPATH . 'wp-admin/admin-footer.php'; ?>

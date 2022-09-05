@@ -867,6 +867,10 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		$out .= '<button type="button" class="toggle-row"><span class="screen-reader-text">' . __( 'Show more details' ) . '</span></button>';
 
+		ob_start();
+			wp_comment_reply( '-1', true, 'detail' );
+		$out .= ob_get_clean();
+
 		return $out;
 	}
 
