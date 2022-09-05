@@ -2035,7 +2035,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// Entity meta.
 		$links = array(
 			'self'       => array(
-				'href' => rest_url( trailingslashit( $base ) . $post->ID ),
+				'href' => rest_url( rest_get_route_for_post( $post->ID ) ),
 			),
 			'collection' => array(
 				'href' => rest_url( $base ),
@@ -2066,15 +2066,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( in_array( $post->post_type, array( 'post', 'page' ), true ) || post_type_supports( $post->post_type, 'revisions' ) ) {
 			$revisions       = wp_get_latest_revision_id_and_total_count( $post->ID );
 			$revisions_count = ! is_wp_error( $revisions ) ? $revisions['count'] : 0;
+			$revisions_url   = rest_url( rest_get_route_for_post( $post->ID ) . '/revisions' );
 
 			$links['version-history'] = array(
-				'href'  => rest_url( trailingslashit( $base ) . $post->ID . '/revisions' ),
+				'href'  => $revisions_url,
 				'count' => $revisions_count,
 			);
 
 			if ( $revisions_count > 0 ) {
 				$links['predecessor-version'] = array(
-					'href' => rest_url( trailingslashit( $base ) . $post->ID . '/revisions/' . $revisions['latest_id'] ),
+					'href' => sprintf('%s/%s', $revisions_url, $revisions['latest_id'] ),
 					'id'   => $revisions['latest_id'],
 				);
 			}
