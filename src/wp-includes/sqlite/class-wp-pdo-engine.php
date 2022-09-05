@@ -344,14 +344,12 @@ class WP_PDO_Engine extends PDO {
 		$this->queries[] = "Raw query:\n$statement";
 		$res             = $this->determine_query_type( $statement );
 		if ( ! $res && defined( 'PDO_DEBUG' ) && PDO_DEBUG ) {
-			$bailoutString = sprintf(
-				__(
-					'<h1>Unknown query type</h1><p>Sorry, we cannot determine the type of query that is requested.</p><p>The query is %s</p>',
-					'sqlite-integration'
-				),
+			$bailout_string = sprintf(
+				/* translators: %s: SQL statement */
+				'<h1>' . __( 'Unknown query type' ) . '</h1><p>' . __( 'Sorry, we cannot determine the type of query that is requested (%s).' ) . '</p>',
 				$statement
 			);
-			$this->set_error( __LINE__, __FUNCTION__, $bailoutString );
+			$this->set_error( __LINE__, __FUNCTION__, $bailout_string );
 		}
 		switch ( strtolower( $this->query_type ) ) {
 			case 'set':
@@ -829,10 +827,10 @@ class WP_PDO_Engine extends PDO {
 		$param = trim( $param );
 
 		//remove the quotes at the end and the beginning
-		if ( in_array( $param[ strlen( $param ) - 1 ], array( "'", '"' ) ) ) {
+		if ( in_array( $param[ strlen( $param ) - 1 ], array( "'", '"' ), true ) ) {
 			$param = substr( $param, 0, -1 );//end
 		}
-		if ( in_array( $param[0], array( "'", '"' ) ) ) {
+		if ( in_array( $param[0], array( "'", '"' ), true ) ) {
 			$param = substr( $param, 1 ); //start
 		}
 		//$this->extracted_variables[] = $param;
@@ -1103,7 +1101,7 @@ class WP_PDO_Engine extends PDO {
 				$this->rollBack();
 			}
 		}
-		if ( '' != $re_query ) {
+		if ( '' !== $re_query ) {
 			$this->query( $re_query );
 		}
 		if ( $reason > 0 ) {
@@ -1199,11 +1197,11 @@ class WP_PDO_Engine extends PDO {
 	 * @param string $engine
 	 */
 	private function process_results( $engine ) {
-		if ( in_array( $this->query_type, array( 'describe', 'desc', 'showcolumns' ) ) ) {
+		if ( in_array( $this->query_type, array( 'describe', 'desc', 'showcolumns' ), true ) ) {
 			$this->convert_to_columns_object();
 		} elseif ( 'showindex' === $this->query_type ) {
 			$this->convert_to_index_object();
-		} elseif ( in_array( $this->query_type, array( 'check', 'analyze' ) ) ) {
+		} elseif ( in_array( $this->query_type, array( 'check', 'analyze' ), true ) ) {
 			$this->convert_result_check_or_analyze();
 		} else {
 			$this->results = $this->_results;
@@ -1316,7 +1314,7 @@ class WP_PDO_Engine extends PDO {
 			'Index_type'   => '', // BTREE, FULLTEXT, HASH, RTREE
 			'Comment'      => '',
 		);
-		if ( count( $this->_results ) == 0 ) {
+		if ( 0 === count( $this->_results ) ) {
 			echo $this->get_error_message();
 		} else {
 			foreach ( $this->_results as $row ) {

@@ -600,7 +600,7 @@ class WP_PDO_SQLite_Driver {
 						$counter          = count( $unique_key_array );
 						for ( $i = 0; $i < $counter; ++$i ) {
 							$col = trim( $unique_key_array[ $i ] );
-							if ( isset( $ins_data_assoc[ $col ] ) && $i == $counter - 1 ) {
+							if ( isset( $ins_data_assoc[ $col ] ) && $i === $counter - 1 ) {
 								$condition .= $col . '=' . $ins_data_assoc[ $col ] . ' OR ';
 							} elseif ( isset( $ins_data_assoc[ $col ] ) ) {
 								$condition .= $col . '=' . $ins_data_assoc[ $col ] . ' AND ';
@@ -623,54 +623,53 @@ class WP_PDO_SQLite_Driver {
 				$_wpdb      = null;
 				if ( 0 == $results ) {
 					$this->_query = "INSERT INTO $table_name $insert_data";
-
 					return;
-				} else {
-					$ins_array_assoc = array();
-
-					if ( preg_match( '/^\((.*)\)\\s*VALUES\\s*\((.*)\)$/im', $insert_data, $match_2 ) ) {
-						$col_array = explode( ',', $match_2[1] );
-						$ins_array = explode( ',', $match_2[2] );
-						$count     = count( $col_array );
-						for ( $i = 0; $i < $count; $i++ ) {
-							$col                     = trim( $col_array[ $i ] );
-							$val                     = trim( $ins_array[ $i ] );
-							$ins_array_assoc[ $col ] = $val;
-						}
-					}
-					$update_data = rtrim( $update_data, ';' );
-					$tmp_array   = explode( ',', $update_data );
-					foreach ( $tmp_array as $pair ) {
-						list($col, $value)          = explode( '=', $pair );
-						$col                        = trim( $col );
-						$value                      = trim( $value );
-						$update_array_assoc[ $col ] = $value;
-					}
-					foreach ( $update_array_assoc as $key => &$value ) {
-						if ( preg_match( '/^VALUES\\s*\((.*)\)$/im', $value, $match_3 ) ) {
-							$col   = trim( $match_3[1] );
-							$value = $ins_array_assoc[ $col ];
-						}
-					}
-					foreach ( $ins_array_assoc as $key => $val ) {
-						if ( in_array( $key, $unique_keys_for_check ) ) {
-							$where_array[] = $key . '=' . $val;
-						}
-					}
-					$update_strings = '';
-					foreach ( $update_array_assoc as $key => $val ) {
-						if ( in_array( $key, $unique_keys_for_check ) ) {
-							$where_array[] = $key . '=' . $val;
-						} else {
-							$update_strings .= $key . '=' . $val . ',';
-						}
-					}
-					$update_strings = rtrim( $update_strings, ',' );
-					$unique_where   = array_unique( $where_array, SORT_REGULAR );
-					$where_string   = ' WHERE ' . implode( ' AND ', $unique_where );
-					$update_query   = 'UPDATE ' . $table_name . ' SET ' . $update_strings . $where_string;
-					$this->_query   = $update_query;
 				}
+
+				$ins_array_assoc = array();
+
+				if ( preg_match( '/^\((.*)\)\\s*VALUES\\s*\((.*)\)$/im', $insert_data, $match_2 ) ) {
+					$col_array = explode( ',', $match_2[1] );
+					$ins_array = explode( ',', $match_2[2] );
+					$count     = count( $col_array );
+					for ( $i = 0; $i < $count; $i++ ) {
+						$col                     = trim( $col_array[ $i ] );
+						$val                     = trim( $ins_array[ $i ] );
+						$ins_array_assoc[ $col ] = $val;
+					}
+				}
+				$update_data = rtrim( $update_data, ';' );
+				$tmp_array   = explode( ',', $update_data );
+				foreach ( $tmp_array as $pair ) {
+					list($col, $value)          = explode( '=', $pair );
+					$col                        = trim( $col );
+					$value                      = trim( $value );
+					$update_array_assoc[ $col ] = $value;
+				}
+				foreach ( $update_array_assoc as $key => &$value ) {
+					if ( preg_match( '/^VALUES\\s*\((.*)\)$/im', $value, $match_3 ) ) {
+						$col   = trim( $match_3[1] );
+						$value = $ins_array_assoc[ $col ];
+					}
+				}
+				foreach ( $ins_array_assoc as $key => $val ) {
+					if ( in_array( $key, $unique_keys_for_check, true ) ) {
+						$where_array[] = $key . '=' . $val;
+					}
+				}
+				$update_strings = '';
+				foreach ( $update_array_assoc as $key => $val ) {
+					if ( in_array( $key, $unique_keys_for_check, true ) ) {
+						$where_array[] = $key . '=' . $val;
+					} else {
+						$update_strings .= $key . '=' . $val . ',';
+					}
+				}
+				$update_strings = rtrim( $update_strings, ',' );
+				$unique_where   = array_unique( $where_array, SORT_REGULAR );
+				$where_string   = ' WHERE ' . implode( ' AND ', $unique_where );
+				$update_query   = 'UPDATE ' . $table_name . ' SET ' . $update_strings . $where_string;
+				$this->_query   = $update_query;
 			}
 		}
 	}
@@ -728,7 +727,7 @@ class WP_PDO_SQLite_Driver {
 			$tbl_name = substr( $tbl_col, 0, strpos( $tbl_col, '.' ) );
 			$tbl_name = str_replace( $wpdb->prefix, '', $tbl_name );
 
-			if ( $tbl_name && in_array( $tbl_name, $wpdb->tables ) ) {
+			if ( $tbl_name && in_array( $tbl_name, $wpdb->tables, true ) ) {
 				$query   = str_replace( $match[0], '', $this->_query );
 				$_wpdb   = new WP_SQLite_DB();
 				$results = $_wpdb->get_results( $query );

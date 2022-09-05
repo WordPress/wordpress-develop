@@ -540,7 +540,7 @@ class WP_PDO_SQLite_User_Defined_Functions {
 		$search_string = array_shift( $arg_list );
 		$str_to_check  = substr( $search_string, 0, strpos( $search_string, '.' ) );
 		$str_to_check  = str_replace( $wpdb->prefix, '', $str_to_check );
-		if ( $str_to_check && in_array( trim( $str_to_check ), $wpdb->tables ) ) {
+		if ( $str_to_check && in_array( trim( $str_to_check ), $wpdb->tables, true ) ) {
 			return 0;
 		}
 		for ( $i = 0; $i < $num_args - 1; $i++ ) {
@@ -575,12 +575,12 @@ class WP_PDO_SQLite_User_Defined_Functions {
 	 */
 	public function log() {
 		$num_args = func_num_args();
-		if ( 1 == $num_args ) {
+		if ( 1 === $num_args ) {
 			$arg1 = func_get_arg( 0 );
 
 			return log( $arg1 );
 		}
-		if ( 2 == $num_args ) {
+		if ( 2 === $num_args ) {
 			$arg1 = func_get_arg( 0 );
 			$arg2 = func_get_arg( 1 );
 

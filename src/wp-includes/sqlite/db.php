@@ -145,7 +145,7 @@ function make_db_sqlite() {
 			foreach ( $index_queries as $index_query ) {
 				preg_match( $pattern, $index_query, $match );
 				$index_name = trim( $match[2] );
-				if ( in_array( $index_name, $index_array ) ) {
+				if ( in_array( $index_name, $index_array, true ) ) {
 					$r           = rand( 0, 50 );
 					$replacement = $index_name . "_$r";
 					$index_query = str_ireplace(

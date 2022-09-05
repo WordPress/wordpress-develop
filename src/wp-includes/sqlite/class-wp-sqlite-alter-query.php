@@ -74,7 +74,7 @@ class WP_SQLite_Alter_Query {
 			} else {
 				$this->_query = $tmp_query;
 			}
-			if ( '' != $re_command ) {
+			if ( '' !== $re_command ) {
 				$this->_query = array_merge( $this->_query, array( 'recursion' => $re_command ) );
 			}
 		} else {
@@ -105,7 +105,7 @@ class WP_SQLite_Alter_Query {
 			$match_3  = isset( $match[3] ) ? trim( $match[3] ) : '';
 			switch ( strtolower( $match_1 ) ) {
 				case 'add':
-					if ( in_array( strtolower( $match_2 ), array( 'fulltext', 'constraint', 'foreign' ) ) ) {
+					if ( in_array( strtolower( $match_2 ), array( 'fulltext', 'constraint', 'foreign' ), true ) ) {
 						break;
 					} elseif ( stripos( 'column', $match_2 ) !== false ) {
 						$tokens['command']     = $match_1 . ' ' . $match_2;
@@ -125,9 +125,9 @@ class WP_SQLite_Alter_Query {
 						$tokens['command']           = $match_1 . ' ' . $match_3;
 						$tokens['index_name']        = trim( $index_name );
 						$tokens['column_name']       = '(' . trim( $col_name ) . ')';
-					} elseif ( in_array( strtolower( $match_2 ), array( 'index', 'key' ) ) ) {
+					} elseif ( in_array( strtolower( $match_2 ), array( 'index', 'key' ), true ) ) {
 						$tokens['command'] = $match_1 . ' ' . $match_2;
-						if ( '' == $match_3 ) {
+						if ( '' === $match_3 ) {
 							$tokens['index_name'] = str_replace( array( '(', ')' ), '', $the_rest );
 						} else {
 							$tokens['index_name'] = $match_3;
@@ -145,7 +145,7 @@ class WP_SQLite_Alter_Query {
 						$tokens['column_name'] = trim( $match_3 );
 					} elseif ( stripos( 'primary', $match_2 ) !== false ) {
 						$tokens['command'] = $match_1 . ' ' . $match_2 . ' ' . $match_3;
-					} elseif ( in_array( strtolower( $match_2 ), array( 'index', 'key' ) ) ) {
+					} elseif ( in_array( strtolower( $match_2 ), array( 'index', 'key' ), true ) ) {
 						$tokens['command']    = $match_1 . ' ' . $match_2;
 						$tokens['index_name'] = $match_3;
 					} elseif ( stripos( 'primary', $match_2 ) !== false ) {
@@ -411,7 +411,7 @@ class WP_SQLite_Alter_Query {
 			}
 			$old_fields .= $col->Field . ',';
 		}
-		if ( false == $col_check ) {
+		if ( false === $col_check ) {
 			$_wpdb = null;
 
 			return 'SELECT 1=1';
