@@ -11,9 +11,10 @@
  * Tests_Comment_IsAvatarCommentType class.
  *
  * @group comment
- * @covers ::is_avatar_comment_type
  *
  * @since 5.1.0
+ *
+ * @covers ::is_avatar_comment_type
  */
 class Tests_Comment_IsAvatarCommentType extends WP_UnitTestCase {
 	/**

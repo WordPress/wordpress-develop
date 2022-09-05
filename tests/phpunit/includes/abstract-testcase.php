@@ -366,16 +366,41 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 */
 	public static function flush_cache() {
 		global $wp_object_cache;
+
 		$wp_object_cache->group_ops      = array();
 		$wp_object_cache->stats          = array();
 		$wp_object_cache->memcache_debug = array();
 		$wp_object_cache->cache          = array();
+
 		if ( method_exists( $wp_object_cache, '__remoteset' ) ) {
 			$wp_object_cache->__remoteset();
 		}
+
 		wp_cache_flush();
-		wp_cache_add_global_groups( array( 'users', 'userlogins', 'usermeta', 'user_meta', 'useremail', 'userslugs', 'site-transient', 'site-options', 'blog-lookup', 'blog-details', 'rss', 'global-posts', 'blog-id-cache', 'networks', 'sites', 'site-details', 'blog_meta' ) );
-		wp_cache_add_non_persistent_groups( array( 'comment', 'counts', 'plugins' ) );
+
+		wp_cache_add_global_groups(
+			array(
+				'blog-details',
+				'blog-id-cache',
+				'blog-lookup',
+				'blog_meta',
+				'global-posts',
+				'networks',
+				'sites',
+				'site-details',
+				'site-options',
+				'site-transient',
+				'rss',
+				'users',
+				'useremail',
+				'userlogins',
+				'usermeta',
+				'user_meta',
+				'userslugs',
+			)
+		);
+
+		wp_cache_add_non_persistent_groups( array( 'counts', 'plugins' ) );
 	}
 
 	/**
@@ -1396,35 +1421,51 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string $path Path to the directory to scan.
 	 */
 	public function delete_folders( $path ) {
-		$this->matched_dirs = array();
 		if ( ! is_dir( $path ) ) {
 			return;
 		}
 
-		$this->scandir( $path );
-		foreach ( array_reverse( $this->matched_dirs ) as $dir ) {
+		$matched_dirs = $this->scandir( $path );
+
+		foreach ( array_reverse( $matched_dirs ) as $dir ) {
 			rmdir( $dir );
 		}
+
 		rmdir( $path );
 	}
 
 	/**
-	 * Retrieves all directories contained inside a directory and stores them in the `$matched_dirs` property.
+	 * Retrieves all directories contained inside a directory.
 	 * Hidden directories are ignored.
 	 *
 	 * This is a helper for the `delete_folders()` method.
 	 *
 	 * @since 4.1.0
+	 * @since 6.1.0 No longer sets a (dynamic) property to keep track of the directories,
+	 *              but returns an array of the directories instead.
 	 *
 	 * @param string $dir Path to the directory to scan.
+	 * @return string[] List of directories.
 	 */
 	public function scandir( $dir ) {
+		$matched_dirs = array();
+
 		foreach ( scandir( $dir ) as $path ) {
 			if ( 0 !== strpos( $path, '.' ) && is_dir( $dir . '/' . $path ) ) {
-				$this->matched_dirs[] = $dir . '/' . $path;
-				$this->scandir( $dir . '/' . $path );
+				$matched_dirs[] = array( $dir . '/' . $path );
+				$matched_dirs[] = $this->scandir( $dir . '/' . $path );
 			}
 		}
+
+		/*
+		 * Compatibility check for PHP < 7.4, where array_merge() expects at least one array.
+		 * See: https://3v4l.org/BIQMA
+		 */
+		if ( array() === $matched_dirs ) {
+			return array();
+		}
+
+		return array_merge( ...$matched_dirs );
 	}
 
 	/**

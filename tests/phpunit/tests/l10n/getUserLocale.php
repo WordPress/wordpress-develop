@@ -3,6 +3,8 @@
 /**
  * @group l10n
  * @group i18n
+ *
+ * @covers ::get_user_locale
  */
 class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 	protected $user_id;

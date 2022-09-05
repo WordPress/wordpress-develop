@@ -274,7 +274,7 @@ function get_comment_author_IP( $comment_ID = 0 ) { // phpcs:ignore WordPress.Na
 	 * @since 1.5.0
 	 * @since 4.1.0 The `$comment_ID` and `$comment` parameters were added.
 	 *
-	 * @param string     $comment_author_IP The comment author's IP address, or an empty string if it's not available.
+	 * @param string     $comment_author_ip The comment author's IP address, or an empty string if it's not available.
 	 * @param string     $comment_ID        The comment ID as a numeric string.
 	 * @param WP_Comment $comment           The comment object.
 	 */
@@ -1146,9 +1146,9 @@ function comment_type( $commenttxt = false, $trackbacktxt = false, $pingbacktxt 
  */
 function get_trackback_url() {
 	if ( get_option( 'permalink_structure' ) ) {
-		$tb_url = trailingslashit( get_permalink() ) . user_trailingslashit( 'trackback', 'single_trackback' );
+		$trackback_url = trailingslashit( get_permalink() ) . user_trailingslashit( 'trackback', 'single_trackback' );
 	} else {
-		$tb_url = get_option( 'siteurl' ) . '/wp-trackback.php?p=' . get_the_ID();
+		$trackback_url = get_option( 'siteurl' ) . '/wp-trackback.php?p=' . get_the_ID();
 	}
 
 	/**
@@ -1156,9 +1156,9 @@ function get_trackback_url() {
 	 *
 	 * @since 2.2.0
 	 *
-	 * @param string $tb_url The trackback URL.
+	 * @param string $trackback_url The trackback URL.
 	 */
-	return apply_filters( 'trackback_url', $tb_url );
+	return apply_filters( 'trackback_url', $trackback_url );
 }
 
 /**
@@ -2288,7 +2288,8 @@ function wp_list_comments( $args = array(), $comments = null ) {
  *     }
  *     @type string $comment_field        The comment textarea field HTML.
  *     @type string $must_log_in          HTML element for a 'must be logged in to comment' message.
- *     @type string $logged_in_as         HTML element for a 'logged in as [user]' message.
+ *     @type string $logged_in_as         The HTML for the 'logged in as [user]' message, the Edit profile link,
+ *                                        and the Log out link.
  *     @type string $comment_notes_before HTML element for a message displayed before the comment fields
  *                                        if the user is not logged in.
  *                                        Default 'Your email address will not be published.'.
@@ -2353,8 +2354,9 @@ function comment_form( $args = array(), $post = null ) {
 	$required_attribute = ( $html5 ? ' required' : ' required="required"' );
 	$checked_attribute  = ( $html5 ? ' checked' : ' checked="checked"' );
 
-	// Identify required fields visually.
-	$required_indicator = ' <span class="required" aria-hidden="true">*</span>';
+	// Identify required fields visually and create a message about the indicator.
+	$required_indicator = ' ' . wp_required_field_indicator();
+	$required_text      = ' ' . wp_required_field_message();
 
 	$fields = array(
 		'author' => sprintf(
@@ -2419,12 +2421,6 @@ function comment_form( $args = array(), $post = null ) {
 		}
 	}
 
-	$required_text = sprintf(
-		/* translators: %s: Asterisk symbol (*). */
-		' <span class="required-field-message" aria-hidden="true">' . __( 'Required fields are marked %s' ) . '</span>',
-		trim( $required_indicator )
-	);
-
 	/**
 	 * Filters the default comment form fields.
 	 *
@@ -2457,12 +2453,10 @@ function comment_form( $args = array(), $post = null ) {
 		'logged_in_as'         => sprintf(
 			'<p class="logged-in-as">%s%s</p>',
 			sprintf(
-				/* translators: 1: Edit user link, 2: Accessibility text, 3: User name, 4: Logout URL. */
-				__( '<a href="%1$s" aria-label="%2$s">Logged in as %3$s</a>. <a href="%4$s">Log out?</a>' ),
-				get_edit_user_link(),
-				/* translators: %s: User name. */
-				esc_attr( sprintf( __( 'Logged in as %s. Edit your profile.' ), $user_identity ) ),
+				/* translators: 1: User name, 2: Edit user link, 3: Logout URL. */
+				__( 'Logged in as %1$s. <a href="%2$s">Edit your profile</a>. <a href="%3$s">Log out?</a>' ),
 				$user_identity,
+				get_edit_user_link(),
 				/** This filter is documented in wp-includes/link-template.php */
 				wp_logout_url( apply_filters( 'the_permalink', get_permalink( $post_id ), $post_id ) )
 			),
@@ -2578,7 +2572,8 @@ function comment_form( $args = array(), $post = null ) {
 				 *
 				 * @since 3.0.0
 				 *
-				 * @param string $args_logged_in The logged-in-as HTML-formatted message.
+				 * @param string $args_logged_in The HTML for the 'logged in as [user]' message,
+				 *                               the Edit profile link, and the Log out link.
 				 * @param array  $commenter      An array containing the comment author's
 				 *                               username, email, and URL.
 				 * @param string $user_identity  If the commenter is a registered user,
