@@ -12,6 +12,52 @@ class Tests_Site_Health extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 55791
+	 * @covers ::prepare_sql_data()
+	 * @covers ::get_test_sql_server()
+	 */
+	public function test_mysql_recommended_version_matches_readme_html() {
+		// This test is designed to only run on trunk.
+		$this->skipOnAutomatedBranches();
+
+		$wp_site_health = new WP_Site_Health();
+		$wp_site_health->get_test_sql_server();
+
+		$reflection          = new ReflectionClass( $wp_site_health );
+		$reflection_property = $reflection->getProperty( 'mysql_recommended_version' );
+		$reflection_property->setAccessible( true );
+
+		$readme = file_get_contents( ABSPATH . 'readme.html' );
+
+		preg_match( '#Recommendations.*MySQL</a> version <strong>([0-9.]*)#s', $readme, $matches );
+
+		$this->assertSame( $matches[1], $reflection_property->getValue( $wp_site_health ) );
+	}
+
+	/**
+	 * @ticket 55791
+	 * @covers ::prepare_sql_data()
+	 * @covers ::get_test_sql_server()
+	 */
+	public function test_mariadb_recommended_version_matches_readme_html() {
+		// This test is designed to only run on trunk.
+		$this->skipOnAutomatedBranches();
+
+		$wp_site_health = new WP_Site_Health();
+		$wp_site_health->get_test_sql_server();
+
+		$reflection          = new ReflectionClass( $wp_site_health );
+		$reflection_property = $reflection->getProperty( 'mariadb_recommended_version' );
+		$reflection_property->setAccessible( true );
+
+		$readme = file_get_contents( ABSPATH . 'readme.html' );
+
+		preg_match( '#Recommendations.*MariaDB</a> version <strong>([0-9.]*)#s', $readme, $matches );
+
+		$this->assertSame( $matches[1], $reflection_property->getValue( $wp_site_health ) );
+	}
+
+	/**
 	 * Ensure Site Health reports correctly cron job reports.
 	 *
 	 * @ticket 47223
