@@ -464,10 +464,10 @@ class Tests_Template extends WP_UnitTestCase {
 		add_settings_section( 'test-section', 'Section title', '__return_false', 'test-page' );
 
 		global $wp_settings_sections;
-		$this->assertIsArray( $wp_settings_sections );
-		$this->assertArrayHasKey( 'test-page', $wp_settings_sections );
-		$this->assertIsArray( $wp_settings_sections['test-page'] );
-		$this->assertArrayHasKey( 'test-section', $wp_settings_sections['test-page'] );
+		$this->assertIsArray( $wp_settings_sections, 'List of sections is not initialized.' );
+		$this->assertArrayHasKey( 'test-page', $wp_settings_sections, 'List of sections for the test page has not been added to sections list.' );
+		$this->assertIsArray( $wp_settings_sections['test-page'], 'List of sections for the test page is not initialized.' );
+		$this->assertArrayHasKey( 'test-section', $wp_settings_sections['test-page'], 'Test section has not been added to the list of sections for the test page.' );
 
 		$this->assertEqualSetsWithIndex(
 			array(
@@ -478,7 +478,8 @@ class Tests_Template extends WP_UnitTestCase {
 				'after_section'  => '',
 				'section_class'  => '',
 			),
-			$wp_settings_sections['test-page']['test-section']
+			$wp_settings_sections['test-page']['test-section'],
+			'Test section data does not match the expected dataset.'
 		);
 	}
 
@@ -498,10 +499,10 @@ class Tests_Template extends WP_UnitTestCase {
 		add_settings_field( 'test-field', 'Field title', '__return_false', 'test-page', 'test-section' );
 
 		global $wp_settings_sections;
-		$this->assertIsArray( $wp_settings_sections );
-		$this->assertArrayHasKey( 'test-page', $wp_settings_sections );
-		$this->assertIsArray( $wp_settings_sections['test-page'] );
-		$this->assertArrayHasKey( 'test-section', $wp_settings_sections['test-page'] );
+		$this->assertIsArray( $wp_settings_sections, 'List of sections is not initialized.' );
+		$this->assertArrayHasKey( 'test-page', $wp_settings_sections, 'List of sections for the test page has not been added to sections list.' );
+		$this->assertIsArray( $wp_settings_sections['test-page'], 'List of sections for the test page is not initialized.' );
+		$this->assertArrayHasKey( 'test-section', $wp_settings_sections['test-page'], 'Test section has not been added to the list of sections for the test page.' );
 
 		$this->assertEqualSetsWithIndex(
 			array(
@@ -512,15 +513,16 @@ class Tests_Template extends WP_UnitTestCase {
 				'after_section'  => '</div><!-- end of the test section -->',
 				'section_class'  => 'test-section-wrap',
 			),
-			$wp_settings_sections['test-page']['test-section']
+			$wp_settings_sections['test-page']['test-section'],
+			'Test section data does not match the expected dataset.'
 		);
 
 		ob_start();
 		do_settings_sections( 'test-page' );
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( '<div class="test-section-wrap">', $output );
-		$this->assertStringContainsString( '</div><!-- end of the test section -->', $output );
+		$this->assertStringContainsString( '<div class="test-section-wrap">', $output, 'Test page output does not contain the custom markup to be placed before the section.' );
+		$this->assertStringContainsString( '</div><!-- end of the test section -->', $output, 'Test page output does not contain the custom markup to be placed before the section.' );
 
 	}
 
