@@ -152,10 +152,9 @@ class WP_PDO_SQLite_Driver {
 			default:
 				if ( defined( WP_DEBUG ) && WP_DEBUG ) {
 					break;
-				} else {
-					$this->return_true();
-					break;
 				}
+				$this->return_true();
+				break;
 		}
 
 		return $this->_query;
@@ -610,11 +609,10 @@ class WP_PDO_SQLite_Driver {
 						}
 					} else {
 						$col = trim( $unique_key );
-						if ( isset( $ins_data_assoc[ $col ] ) ) {
-							$condition .= $col . '=' . $ins_data_assoc[ $col ] . ' OR ';
-						} else {
+						if ( ! isset( $ins_data_assoc[ $col ] ) ) {
 							continue;
 						}
+						$condition .= $col . '=' . $ins_data_assoc[ $col ] . ' OR ';
 					}
 				}
 				$condition  = rtrim( $condition, ' OR ' );

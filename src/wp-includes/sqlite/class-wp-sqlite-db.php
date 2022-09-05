@@ -246,7 +246,7 @@ class WP_SQLite_DB extends wpdb {
 		$this->last_error = $this->dbh->get_error_message();
 		if ( $this->last_error ) {
 			if ( defined( 'WP_INSTALLING' ) && WP_INSTALLING ) {
-				//$this->suppress_errors();
+				// $this->suppress_errors();
 			} else {
 				$this->print_error( $this->last_error );
 

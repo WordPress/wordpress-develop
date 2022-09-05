@@ -57,10 +57,10 @@ class WP_SQLite_Create_Query {
 			// FULLTEXT index creation is simply ignored.
 			if ( isset( $match[1] ) && stripos( $match[1], 'fulltext' ) !== false ) {
 				return 'SELECT 1=1';
-			} else {
-				return $this->_query;
 			}
-		} elseif ( preg_match( '/^CREATE\\s*(TEMP|TEMPORARY|)\\s*TRIGGER\\s*/im', $this->_query ) ) {
+			return $this->_query;
+		}
+		if ( preg_match( '/^CREATE\\s*(TEMP|TEMPORARY|)\\s*TRIGGER\\s*/im', $this->_query ) ) {
 			// if WordPress comes to use foreign key constraint, trigger will be needed.
 			// we don't use it for now.
 			return $this->_query;
@@ -156,7 +156,7 @@ class WP_SQLite_Create_Query {
 			}
 			$pattern = "/\\b(?<!')$o\\b\\s*(\([^\)]*\)*)?\\s*/ims";
 			if ( preg_match( "/^\\s*.*?\\s*\(.*?$o.*?\)/im", $this->_query ) ) {
-				;
+				// ;
 			} else {
 				$this->_query = preg_replace( $pattern, " $r ", $this->_query );
 			}
@@ -290,7 +290,7 @@ class WP_SQLite_Create_Query {
 		$_wpdb   = null;
 		if ( $results ) {
 			foreach ( $results as $result ) {
-				if ( $result->name == $index_name ) {
+				if ( $result->name === $index_name ) {
 					$r          = rand( 0, 50 );
 					$index_name = $index_name . "_$r";
 					break;
@@ -378,7 +378,7 @@ class WP_SQLite_Create_Query {
 		$_wpdb    = null;
 		if ( $results ) {
 			foreach ( $results as $result ) {
-				if ( $result->name == $index_name ) {
+				if ( $result->name === $index_name ) {
 					$r          = rand( 0, 50 );
 					$index_name = $index_name . "_$r";
 					break;

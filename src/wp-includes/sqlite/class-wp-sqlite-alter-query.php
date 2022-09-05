@@ -126,11 +126,10 @@ class WP_SQLite_Alter_Query {
 						$tokens['index_name']        = trim( $index_name );
 						$tokens['column_name']       = '(' . trim( $col_name ) . ')';
 					} elseif ( in_array( strtolower( $match_2 ), array( 'index', 'key' ), true ) ) {
-						$tokens['command'] = $match_1 . ' ' . $match_2;
+						$tokens['command']    = $match_1 . ' ' . $match_2;
+						$tokens['index_name'] = $match_3;
 						if ( '' === $match_3 ) {
 							$tokens['index_name'] = str_replace( array( '(', ')' ), '', $the_rest );
-						} else {
-							$tokens['index_name'] = $match_3;
 						}
 						$tokens['column_name'] = trim( $the_rest );
 					} else {
@@ -202,6 +201,7 @@ class WP_SQLite_Alter_Query {
 					}
 					break;
 				case 'alter':
+					$tokens['default_command'] = 'DROP DEFAULT';
 					if ( stripos( 'column', $match_2 ) !== false ) {
 						$tokens['command']     = $match_1 . ' ' . $match_2;
 						$tokens['column_name'] = $match_3;
@@ -210,8 +210,6 @@ class WP_SQLite_Alter_Query {
 							$tokens['default_command'] = 'SET DEFAULT';
 							$default_value             = str_ireplace( 'set default', '', $the_rest );
 							$tokens['default_value']   = trim( $default_value );
-						} else {
-							$tokens['default_command'] = 'DROP DEFAULT';
 						}
 					} else {
 						$tokens['command']     = $match_1 . ' COLUMN';
@@ -220,8 +218,6 @@ class WP_SQLite_Alter_Query {
 							$tokens['default_command'] = 'SET DEFAULT';
 							$default_value             = str_ireplace( 'default', '', $the_rest );
 							$tokens['default_value']   = trim( $default_value );
-						} else {
-							$tokens['default_command'] = 'DROP DEFAULT';
 						}
 					}
 					break;
@@ -244,6 +240,7 @@ class WP_SQLite_Alter_Query {
 	 */
 	private function handle_single_command( $queries ) {
 		$tokenized_query = $queries;
+		$query           = 'SELECT 1=1';
 		if ( stripos( $tokenized_query['command'], 'add column' ) !== false ) {
 			$column_def = $this->convert_field_types( $tokenized_query['column_name'], $tokenized_query['column_def'] );
 			$query      = "ALTER TABLE {$tokenized_query['table_name']} ADD COLUMN {$tokenized_query['column_name']} $column_def";
@@ -254,8 +251,6 @@ class WP_SQLite_Alter_Query {
 			$query  = "CREATE $unique INDEX IF NOT EXISTS {$tokenized_query['index_name']} ON {$tokenized_query['table_name']} {$tokenized_query['column_name']}";
 		} elseif ( stripos( $tokenized_query['command'], 'drop index' ) !== false ) {
 			$query = "DROP INDEX IF EXISTS {$tokenized_query['index_name']}";
-		} else {
-			$query = 'SELECT 1=1';
 		}
 
 		return $query;
@@ -397,10 +392,9 @@ class WP_SQLite_Alter_Query {
 		$old_fields      = '';
 		$tokenized_query = $queries;
 		$temp_table      = 'temp_' . $tokenized_query['table_name'];
+		$column_name     = $tokenized_query['old_column'];
 		if ( isset( $tokenized_query['new_column'] ) ) {
 			$column_name = $tokenized_query['new_column'];
-		} else {
-			$column_name = $tokenized_query['old_column'];
 		}
 		$column_def = $this->convert_field_types( $column_name, $tokenized_query['column_def'] );
 		$_wpdb      = new WP_SQLite_DB();
@@ -428,25 +422,23 @@ class WP_SQLite_Alter_Query {
 		if ( preg_match( "/\\b{$tokenized_query['old_column']}\\s*(.+?)(?=,)/ims", $create_query, $match ) ) {
 			if ( stripos( trim( $match[1] ), $column_def ) !== false ) {
 				return 'SELECT 1=1';
-			} else {
-				$create_query = preg_replace(
-					"/\\b{$tokenized_query['old_column']}\\s*.+?(?=,)/ims",
-					"{$column_name} {$column_def}",
-					$create_query,
-					1
-				);
 			}
+			$create_query = preg_replace(
+				"/\\b{$tokenized_query['old_column']}\\s*.+?(?=,)/ims",
+				"{$column_name} {$column_def}",
+				$create_query,
+				1
+			);
 		} elseif ( preg_match( "/\\b{$tokenized_query['old_column']}\\s*(.+?)(?=\))/ims", $create_query, $match ) ) {
 			if ( stripos( trim( $match[1] ), $column_def ) !== false ) {
 				return 'SELECT 1=1';
-			} else {
-				$create_query = preg_replace(
-					"/\\b{$tokenized_query['old_column']}\\s*.*(?=\))/ims",
-					"{$column_name} {$column_def}",
-					$create_query,
-					1
-				);
 			}
+			$create_query = preg_replace(
+				"/\\b{$tokenized_query['old_column']}\\s*.*(?=\))/ims",
+				"{$column_name} {$column_def}",
+				$create_query,
+				1
+			);
 		}
 		$query[] = $create_query;
 		$query[] = "INSERT INTO $temp_table ($new_fields) SELECT $old_fields FROM {$tokenized_query['table_name']}";
@@ -471,11 +463,10 @@ class WP_SQLite_Alter_Query {
 	private function handle_alter_command( $queries ) {
 		$tokenized_query = $queries;
 		$temp_table      = 'temp_' . $tokenized_query['table_name'];
+		$def_value       = null;
 		if ( isset( $tokenized_query['default_value'] ) ) {
 			$def_value = $this->convert_field_types( $tokenized_query['column_name'], $tokenized_query['default_value'] );
 			$def_value = 'DEFAULT ' . $def_value;
-		} else {
-			$def_value = null;
 		}
 		$_wpdb     = new WP_SQLite_DB();
 		$query_obj = $_wpdb->get_results( "SELECT sql FROM sqlite_master WHERE tbl_name='{$tokenized_query['table_name']}'" );
@@ -498,10 +489,9 @@ class WP_SQLite_Alter_Query {
 			$checked_col_def = $this->convert_field_types( $col_name, $col_def );
 			$old_default     = trim( $match[3] );
 			$pattern         = "/$col_name\\s*$col_def_esc\\s*$old_default/im";
-			if ( is_null( $def_value ) ) {
-				$replacement = $col_name . ' ' . $checked_col_def;
-			} else {
-				$replacement = $col_name . ' ' . $checked_col_def . ' ' . $def_value;
+			$replacement     = $col_name . ' ' . $checked_col_def;
+			if ( ! is_null( $def_value ) ) {
+				$replacement .= ' ' . $def_value;
 			}
 			$create_query = preg_replace( $pattern, $replacement, $create_query );
 			$create_query = str_ireplace( $tokenized_query['table_name'], $temp_table, $create_query );
@@ -511,10 +501,9 @@ class WP_SQLite_Alter_Query {
 			$col_def_esc     = str_replace( array( '(', ')' ), array( '\(', '\)' ), $col_def );
 			$checked_col_def = $this->convert_field_types( $col_name, $col_def );
 			$pattern         = "/$col_name\\s*$col_def_esc/im";
-			if ( is_null( $def_value ) ) {
-				$replacement = $col_name . ' ' . $checked_col_def;
-			} else {
-				$replacement = $col_name . ' ' . $checked_col_def . ' ' . $def_value;
+			$replacement     = $col_name . ' ' . $checked_col_def;
+			if ( ! is_null( $def_value ) ) {
+				$replacement .= ' ' . $def_value;
 			}
 			$create_query = preg_replace( $pattern, $replacement, $create_query );
 			$create_query = str_ireplace( $tokenized_query['table_name'], $temp_table, $create_query );

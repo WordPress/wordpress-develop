@@ -717,11 +717,10 @@ class WP_PDO_Engine extends PDO {
 		if ( $reason > 0 ) {
 			$err_message = sprintf( 'Error while executing query! Error message was: %s', $message );
 			$this->set_error( __LINE__, __FUNCTION__, $err_message );
-
 			return false;
-		} else {
-			$this->_results = $statement->fetchAll( PDO::FETCH_OBJ );
 		}
+		$this->_results = $statement->fetchAll( PDO::FETCH_OBJ );
+
 		//generate the results that $wpdb will want to see
 		switch ( $this->query_type ) {
 			case 'insert':
@@ -791,14 +790,13 @@ class WP_PDO_Engine extends PDO {
 				if ( $limit > 10000000 ) {
 					$this->set_error( __LINE__, __FUNCTION__, 'The query is too big to parse properly' );
 					break; //no point in continuing execution, would get into a loop
-				} else {
-					ini_set( 'pcre.backtrack_limit', $limit );
-					$query = preg_replace_callback(
-						$pattern,
-						array( $this, 'replace_variables_with_placeholders' ),
-						$this->rewritten_query
-					);
 				}
+				ini_set( 'pcre.backtrack_limit', $limit );
+				$query = preg_replace_callback(
+					$pattern,
+					array( $this, 'replace_variables_with_placeholders' ),
+					$this->rewritten_query
+				);
 				$limit = $limit * 10;
 			} while ( is_null( $query ) );
 
@@ -1157,11 +1155,10 @@ class WP_PDO_Engine extends PDO {
 	 * @return bool
 	 */
 	private function show_status_workaround( $query ) {
-		$pattern = '/^SHOW\\s*TABLE\\s*STATUS\\s*LIKE\\s*(.*?)$/im';
+		$pattern    = '/^SHOW\\s*TABLE\\s*STATUS\\s*LIKE\\s*(.*?)$/im';
+		$table_name = '';
 		if ( preg_match( $pattern, $query, $match ) ) {
 			$table_name = str_replace( "'", '', $match[1] );
-		} else {
-			$table_name = '';
 		}
 		$dummy_data         = array(
 			'Name'            => $table_name,
