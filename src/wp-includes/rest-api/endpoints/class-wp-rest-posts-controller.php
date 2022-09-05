@@ -2075,7 +2075,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 			if ( $revisions_count > 0 ) {
 				$links['predecessor-version'] = array(
-					'href' => sprintf('%s/%s', $revisions_url, $revisions['latest_id'] ),
+					'href' => sprintf( '%s/%s', $revisions_url, $revisions['latest_id'] ),
 					'id'   => $revisions['latest_id'],
 				);
 			}
