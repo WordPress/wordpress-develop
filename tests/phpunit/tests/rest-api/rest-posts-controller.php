@@ -5252,9 +5252,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	/**
 	 * @ticket 52422
 	 *
-	 * @covers WP_REST_Request::create_item
+	 * @covers WP_REST_Posts_Controller::create_item
 	 */
-	public function test_draft_post_do_not_have_the_same_slug_as_existing_post() {
+	public function test_draft_post_does_not_have_the_same_slug_as_existing_post() {
 		wp_set_current_user( self::$editor_id );
 		$this->factory()->post->create( array( 'post_name' => 'sample-slug' ) );
 
