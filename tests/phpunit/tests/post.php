@@ -302,6 +302,8 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_excerpt' => 'foo&#x1f610;bat',
 		);
 
+		wp_set_current_user( self::$editor_id );
+
 		edit_post( $data );
 
 		$post = get_post( $post_id );
