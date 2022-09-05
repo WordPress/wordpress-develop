@@ -537,6 +537,10 @@ class WP_Terms_List_Table extends WP_List_Table {
 		 */
 		$actions = apply_filters( "{$taxonomy}_row_actions", $actions, $tag );
 
+		if ( isset( $actions['inline hide-if-no-js'] ) ) {
+			echo $this->inline_edit();
+		}
+
 		return $this->row_actions( $actions );
 	}
 

@@ -688,6 +688,4 @@ try{document.forms.addtag['tag-name'].focus();}catch(e){}
 	<?php
 endif;
 
-$wp_list_table->inline_edit();
-
 require_once ABSPATH . 'wp-admin/admin-footer.php';
