@@ -564,7 +564,7 @@ class WP_PDO_SQLite_Driver {
 			$indexes = $_wpdb->get_results( "SHOW INDEX FROM {$table_name}" );
 			if ( ! empty( $indexes ) ) {
 				foreach ( $indexes as $index ) {
-					if ( 0 == $index->Non_unique ) {
+					if ( 0 === $index->Non_unique ) {
 						$unique_keys_for_cond[] = $index->Column_name;
 						if ( strpos( $index->Column_name, ',' ) !== false ) {
 							$unique_keys_for_check = array_merge(

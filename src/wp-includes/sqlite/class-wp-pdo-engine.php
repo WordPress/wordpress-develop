@@ -180,7 +180,7 @@ class WP_PDO_Engine extends PDO {
 					$GLOBALS['@pdo'] = $this->pdo;
 				} catch ( PDOException $ex ) {
 					$status = $ex->getCode();
-					if ( 5 == $status || 6 == $status ) {
+					if ( 5 == $status || 6 == $status ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 						$locked = true;
 					} else {
 						$err_message = $ex->getMessage();
@@ -256,7 +256,7 @@ class WP_PDO_Engine extends PDO {
 			$this->can_insert_multiple_rows = true;
 		}
 		$statement = $this->pdo->query( 'PRAGMA foreign_keys' );
-		if ( $statement->fetchColumn( 0 ) == '0' ) {
+		if ( $statement->fetchColumn( 0 ) == '0' ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			$this->pdo->query( 'PRAGMA foreign_keys = ON' );
 		}
 	}
@@ -480,7 +480,7 @@ class WP_PDO_Engine extends PDO {
 				'blob'         => 0,  // 1 if column is blob
 				'type'         => '', // type of the column
 				'unsigned'     => 0,  // 1 if column is unsigned integer
-				'zerofill'     => 0,   // 1 if column is zero-filled
+				'zerofill'     => 0,  // 1 if column is zero-filled
 			);
 			$table_name  = '';
 			if ( preg_match( '/\s*FROM\s*(.*)?\s*/i', $this->rewritten_query, $match ) ) {
@@ -489,9 +489,9 @@ class WP_PDO_Engine extends PDO {
 			foreach ( $this->results[0] as $key => $value ) {
 				$data['name']  = $key;
 				$data['table'] = $table_name;
-				if ( in_array( $key, $primary_key ) ) {
+				if ( in_array( $key, $primary_key, true ) ) {
 					$data['primary_key'] = 1;
-				} elseif ( in_array( $key, $unique_key ) ) {
+				} elseif ( in_array( $key, $unique_key, true ) ) {
 					$data['unique_key'] = 1;
 				} else {
 					$data['multiple_key'] = 1;
@@ -642,7 +642,7 @@ class WP_PDO_Engine extends PDO {
 				$reason  = $err->getCode();
 				$message = $err->getMessage();
 			}
-		} while ( 5 == $reason || 6 == $reason );
+		} while ( 5 == $reason || 6 == $reason ); // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 
 		if ( $reason > 0 ) {
 			$err_message = sprintf( 'Problem preparing the PDO SQL Statement.  Error was: %s', $message );
@@ -690,7 +690,7 @@ class WP_PDO_Engine extends PDO {
 						$message = $err->getMessage();
 					}
 				}
-			} while ( 5 == $reason || 6 == $reason );
+			} while ( 5 == $reason || 6 == $reason ); // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 		} else {
 			$this->queries[] = 'Executing: (no parameters)';
 			do {
@@ -712,7 +712,7 @@ class WP_PDO_Engine extends PDO {
 						$message = $err->getMessage();
 					}
 				}
-			} while ( 5 == $reason || 6 == $reason );
+			} while ( 5 == $reason || 6 == $reason ); // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 		}
 		if ( $reason > 0 ) {
 			$err_message = sprintf( 'Error while executing query! Error message was: %s', $message );
@@ -1041,7 +1041,7 @@ class WP_PDO_Engine extends PDO {
 		} catch ( PDOException $err ) {
 			$reason  = $err->getCode();
 			$message = $err->getMessage();
-			if ( 5 == $reason || 6 == $reason ) {
+			if ( 5 == $reason || 6 == $reason ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 				$this->commit();
 			} else {
 				$this->rollBack();
@@ -1094,7 +1094,7 @@ class WP_PDO_Engine extends PDO {
 		} catch ( PDOException $err ) {
 			$reason  = $err->getCode();
 			$message = $err->getMessage();
-			if ( 5 == $reason || 6 == $reason ) {
+			if ( 5 == $reason || 6 == $reason ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 				$this->commit();
 				usleep( 10000 );
 			} else {
