@@ -4,6 +4,7 @@
  * @group compat
  * @group security-153
  *
+ * @covers ::mb_substr
  * @covers ::_mb_substr
  */
 class Tests_Compat_mbSubstr extends WP_UnitTestCase {
