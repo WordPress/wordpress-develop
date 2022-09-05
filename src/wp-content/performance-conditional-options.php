@@ -52,7 +52,10 @@ function performance_conditional_options_options_preload( $pre, $force_cache ) {
 
 	return $pre;
 }
-add_filter( 'pre_get_alloptions', 'performance_conditional_options_options_preload', 1, 2 );
+if( ! isset( $_REQUEST['dco'] ) ){
+	add_filter( 'pre_get_alloptions', 'performance_conditional_options_options_preload', 1, 2 );
+}
+
 
 /**
  * @param $option_name
@@ -123,7 +126,7 @@ function performance_conditional_options_stats() {
 	$options_count = count( $alloptions );
 
 	echo "<center>$keys_count options loaded/used instead of an all options count of $options_count</center>";
-	echo "<center>Pluss the $keys_count included $diff_count options that were not set to be autoload</center>";
+	echo "<center>Pluss the $keys_count included $diff_count options that were not set to be autoload or not in options </center>";
 }
 add_action( 'shutdown', 'performance_conditional_options_stats', 99 );
 
@@ -152,7 +155,7 @@ function performance_conditional_options_get_context() {
 	}
 
 	$coc = md5( $queried_name );
-	return md5( $coc );
+	return $coc;
 }
 
 function performance_conditional_has_persistent_caching() {
