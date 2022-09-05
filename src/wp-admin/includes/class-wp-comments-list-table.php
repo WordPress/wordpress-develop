@@ -654,6 +654,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 * @since 5.9.0 Renamed `$comment` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
 	 * @global string $comment_status Status for the current listed comments.
+	 * @global string $hook_suffix
 	 *
 	 * @param WP_Comment $item        The comment object.
 	 * @param string     $column_name Current column name.
@@ -663,7 +664,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 *                or if the current user cannot edit the comment.
 	 */
 	protected function handle_row_actions( $item, $column_name, $primary ) {
-		global $comment_status;
+		global $comment_status, $hook_suffix;
 
 		if ( $primary !== $column_name ) {
 			return '';
@@ -867,7 +868,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		$out .= '<button type="button" class="toggle-row"><span class="screen-reader-text">' . __( 'Show more details' ) . '</span></button>';
 
-		if ( isset( $actions['quickedit'] ) ) {
+		if ( isset( $actions['quickedit'] ) || isset( $actions['quickedit hide-if-no-js'] ) ) {
 			ob_start();
 				wp_comment_reply( '-1', true, 'detail' );
 			$out .= ob_get_clean();
