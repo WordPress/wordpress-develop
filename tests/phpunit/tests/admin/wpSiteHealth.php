@@ -34,14 +34,11 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55791
-	 * @covers ::prepare_sql_data()
-	 * @covers ::get_test_sql_server()
+	 * @covers ::__construct()
 	 */
 	public function test_mysql_recommended_version_matches_readme_html() {
 		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
-
-		$this->instance->get_test_sql_server();
 
 		$reflection          = new ReflectionClass( $this->instance );
 		$reflection_property = $reflection->getProperty( 'mysql_recommended_version' );
@@ -56,14 +53,11 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55791
-	 * @covers ::prepare_sql_data()
-	 * @covers ::get_test_sql_server()
+	 * @covers ::__construct()
 	 */
 	public function test_mariadb_recommended_version_matches_readme_html() {
 		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
-
-		$this->instance->get_test_sql_server();
 
 		$reflection          = new ReflectionClass( $this->instance );
 		$reflection_property = $reflection->getProperty( 'mariadb_recommended_version' );
