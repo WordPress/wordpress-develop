@@ -8,7 +8,7 @@
  */
 
 /**
- * Output the markup for a audio tag to be used in an Underscore template
+ * Outputs the markup for a audio tag to be used in an Underscore template
  * when data.model is passed.
  *
  * @since 3.9.0
@@ -48,7 +48,7 @@ function wp_underscore_audio_template() {
 }
 
 /**
- * Output the markup for a video tag to be used in an Underscore template
+ * Outputs the markup for a video tag to be used in an Underscore template
  * when data.model is passed.
  *
  * @since 3.9.0
@@ -438,8 +438,10 @@ function wp_print_media_templates() {
 					<# } #>
 
 					<# if ( data.originalImageURL && data.originalImageName ) { #>
-						<?php _e( 'Original image:' ); ?>
-						<a href="{{ data.originalImageURL }}">{{data.originalImageName}}</a>
+						<div class="word-wrap-break-word">
+							<?php _e( 'Original image:' ); ?>
+							<a href="{{ data.originalImageURL }}">{{data.originalImageName}}</a>
+						</div>
 					<# } #>
 				<# } #>
 
@@ -662,8 +664,10 @@ function wp_print_media_templates() {
 					<# } #>
 
 					<# if ( data.originalImageURL && data.originalImageName ) { #>
-						<?php _e( 'Original image:' ); ?>
-						<a href="{{ data.originalImageURL }}">{{data.originalImageName}}</a>
+						<div class="word-wrap-break-word">
+							<?php _e( 'Original image:' ); ?>
+							<a href="{{ data.originalImageURL }}">{{data.originalImageName}}</a>
+						</div>
 					<# } #>
 
 					<# if ( data.can.save && data.sizes ) { #>
@@ -1435,7 +1439,7 @@ function wp_print_media_templates() {
 							);
 						?>
 						</span>
-						<button type="button" class="button-link remove-setting remove-track"><?php _ex( 'Remove video track', 'media' ); ?></button><br/>
+						<button type="button" class="button-link remove-setting remove-track"><?php _ex( 'Remove video track', 'media' ); ?></button><br />
 						<# } ); #>
 					<# } else { #>
 					<span class="name"><?php _e( 'Tracks (subtitles, captions, descriptions, chapters, or metadata)' ); ?></span><br />
@@ -1467,7 +1471,7 @@ function wp_print_media_templates() {
 						<# } #>
 					</dl>
 					<# if ( index % data.columns === data.columns - 1 ) { #>
-						<br style="clear: both;">
+						<br style="clear: both;" />
 					<# } #>
 				<# } ); #>
 			</div>
