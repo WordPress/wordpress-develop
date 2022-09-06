@@ -275,26 +275,36 @@ function image_downsize( $id, $size = 'medium' ) {
  * Register a new image size.
  *
  * @since 2.9.0
+ * @since 6.1.0 Add the $additional_mimes parameter.
  *
  * @global array $_wp_additional_image_sizes Associative array of additional image sizes.
  *
- * @param string     $name   Image size identifier.
- * @param int        $width  Optional. Image width in pixels. Default 0.
- * @param int        $height Optional. Image height in pixels. Default 0.
- * @param bool|array $crop   Optional. Image cropping behavior. If false, the image will be scaled (default),
- *                           If true, image will be cropped to the specified dimensions using center positions.
- *                           If an array, the image will be cropped using the array to specify the crop location.
- *                           Array values must be in the format: array( x_crop_position, y_crop_position ) where:
- *                               - x_crop_position accepts: 'left', 'center', or 'right'.
- *                               - y_crop_position accepts: 'top', 'center', or 'bottom'.
+ * @param string     $name             Image size identifier.
+ * @param int        $width            Optional. Image width in pixels. Default 0.
+ * @param int        $height           Optional. Image height in pixels. Default 0.
+ * @param bool|array $crop             Optional. Image cropping behavior. If false, the image will be scaled (default),
+ *                                     If true, image will be cropped to the specified dimensions using center positions.
+ *                                     If an array, the image will be cropped using the array to specify the crop location.
+ *                                     Array values must be in the format: array( x_crop_position, y_crop_position ) where:
+ *                                         - x_crop_position accepts: 'left', 'center', or 'right'.
+ *                                         - y_crop_position accepts: 'top', 'center', or 'bottom'.
+ * @param bool|null  $additional_mimes Optional. Whether to output secondary mimes for this image size. If not passed,
+ *                                     WordPres core will determine whether true or false. Sizes should be registered
+ *                                     with false only if they are not intended for use in a front-end context.
  */
-function add_image_size( $name, $width = 0, $height = 0, $crop = false ) {
+function add_image_size( $name, $width = 0, $height = 0, $crop = false, $additional_mimes = null ) {
 	global $_wp_additional_image_sizes;
 
+	if ( null === $additional_mimes ) {
+		// In 6.20, trigger a warning if the size was registered without providing an `additional_mimes` parameter.
+		$additional_mimes = false;
+	}
+
 	$_wp_additional_image_sizes[ $name ] = array(
-		'width'  => absint( $width ),
-		'height' => absint( $height ),
-		'crop'   => $crop,
+		'width'            => absint( $width ),
+		'height'           => absint( $height ),
+		'crop'             => $crop,
+		'additional_mimes' => $additional_mimes,
 	);
 }
 
@@ -345,7 +355,7 @@ function remove_image_size( $name ) {
  *                           An array can specify positioning of the crop area. Default false.
  */
 function set_post_thumbnail_size( $width = 0, $height = 0, $crop = false ) {
-	add_image_size( 'post-thumbnail', $width, $height, $crop );
+	add_image_size( 'post-thumbnail', $width, $height, $crop, true );
 }
 
 /**
@@ -5316,9 +5326,9 @@ function wp_media_personal_data_exporter( $email_address, $page = 1 ) {
  */
 function _wp_add_additional_image_sizes() {
 	// 2x medium_large size.
-	add_image_size( '1536x1536', 1536, 1536 );
+	add_image_size( '1536x1536', 1536, 1536, false, true );
 	// 2x large size.
-	add_image_size( '2048x2048', 2048, 2048 );
+	add_image_size( '2048x2048', 2048, 2048, false, true );
 }
 
 /**

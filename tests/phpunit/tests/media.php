@@ -1155,6 +1155,45 @@ VIDEO;
 	}
 
 	/**
+	 * @ticket 56288
+	 */
+	public function test_add_image_size_additional_mimes() {
+		add_image_size( 'test-size-with-additional-mimes', 200, 600, false, true );
+		add_image_size( 'test-size-without-additional-mimes', 200, 600, false, false );
+
+		$sizes = wp_get_additional_image_sizes();
+
+		remove_image_size( 'test-size-with-additional-mimes' );
+		remove_image_size( 'test-size-without-additional-mimes' );
+
+		$this->assertArrayHasKey( 'test-size-with-additional-mimes', $sizes );
+		$this->assertArrayHasKey( 'test-size-without-additional-mimes', $sizes );
+		$this->assertTrue( $sizes['test-size-with-additional-mimes']['additional_mimes'] );
+		$this->assertFalse( $sizes['test-size-without-additional-mimes']['additional_mimes'] );
+	}
+
+	/**
+	 * @ticket 56288
+	 */
+	public function test__wp_filter_image_sizes_additional_mime_type_support_with_add_image_size() {
+		$default_sizes = wp_get_registered_image_subsizes();
+
+		add_image_size( 'test-size-with-additional-mimes', 200, 600, false, true );
+		add_image_size( 'test-size-without-additional-mimes', 200, 600, false, false );
+
+		$all_sizes      = wp_get_registered_image_subsizes();
+		$filtered_sizes = _wp_filter_image_sizes_additional_mime_type_support( $all_sizes, $this->large_id );
+
+		remove_image_size( 'test-size-with-additional-mimes' );
+		remove_image_size( 'test-size-without-additional-mimes' );
+
+		$expected_size_names   = array_keys( $default_sizes );
+		$expected_size_names[] = 'test-size-with-additional-mimes';
+
+		$this->assertSame( $expected_size_names, array_keys( $filtered_sizes ) );
+	}
+
+	/**
 	 * @ticket 26768
 	 */
 	public function test_remove_image_size() {
