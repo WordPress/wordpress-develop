@@ -701,6 +701,9 @@ class Tests_Widgets extends WP_UnitTestCase {
 		delete_option( 'widget_recent-posts' );
 		delete_option( 'widget_recent_entries' );
 
+		$this->assertSame( false, get_option( 'widget_recent-posts' ), 'The option widget_recent-posts was not deleted.' );
+		$this->assertSame( false, get_option( 'widget_recent_entries' ), 'The option widget_recent_entries was not deleted.' );
+
 		wp_widgets_init();
 		$this->assertSameSetsWithIndex( array( '_multiwidget' => 1 ), get_option( 'widget_recent-posts' ), 'Option failed to be initialized.' );
 		$this->assertFalse( get_option( 'widget_recent_entries' ), 'Alternative option is set.' );
@@ -729,6 +732,9 @@ class Tests_Widgets extends WP_UnitTestCase {
 		 */
 		delete_option( 'widget_recent-posts' );
 		update_option( 'widget_recent_entries', $option );
+
+		$this->assertSame( false, get_option( 'widget_recent-posts' ), 'The option widget_recent-posts was not deleted.' );
+		$this->assertSameSets( $option, get_option( 'widget_recent_entries' ), 'The option widget_recent_entries was not set to the default.' );
 
 		wp_widgets_init();
 		$this->assertSameSetsWithIndex( $option, get_option( 'widget_recent-posts' ), 'Option failed to be converted to new name.' );
