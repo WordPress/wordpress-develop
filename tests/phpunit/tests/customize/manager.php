@@ -34,6 +34,20 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	protected static $subscriber_user_id;
 
 	/**
+	 * Path to test file 1.
+	 *
+	 * @var string
+	 */
+	private $test_file;
+
+	/**
+	 * Path to test file 2.
+	 *
+	 * @var string
+	 */
+	private $test_file2;
+
+	/**
 	 * Set up before class.
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory.

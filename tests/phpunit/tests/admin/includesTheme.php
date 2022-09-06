@@ -4,12 +4,25 @@
  */
 class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 
+	/**
+	 * Theme root directory.
+	 *
+	 * @var string
+	 */
+	const THEME_ROOT = DIR_TESTDATA . '/themedir1';
+
+	/**
+	 * Original theme directory.
+	 *
+	 * @var string
+	 */
+	private $orig_theme_dir;
+
 	public function set_up() {
 		parent::set_up();
-		$this->theme_root = DIR_TESTDATA . '/themedir1';
 
 		$this->orig_theme_dir            = $GLOBALS['wp_theme_directories'];
-		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', $this->theme_root );
+		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', self::THEME_ROOT );
 
 		add_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
 		add_filter( 'stylesheet_root', array( $this, 'filter_theme_root' ) );
@@ -33,7 +46,7 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 
 	// Replace the normal theme root directory with our premade test directory.
 	public function filter_theme_root( $dir ) {
-		return $this->theme_root;
+		return self::THEME_ROOT;
 	}
 
 	/**

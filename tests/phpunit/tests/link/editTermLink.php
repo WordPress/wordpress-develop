@@ -42,8 +42,8 @@ class Tests_Link_EditTermLink extends WP_UnitTestCase {
 	 * @since 5.9.0
 	 *
 	 * @param string $taxonomy Taxonomy being tested (used for index of term keys).
-	 * @param bool   $use_id   When true, pass term ID. Else, pass term object.
-	 * @return WP_Term|int If $use_id is true, term ID is returned; else instance of WP_Term.
+	 * @param bool   $use_id   Whether to return term ID or term object.
+	 * @return WP_Term|int Term ID if `$use_id` is true, WP_Term instance otherwise.
 	 */
 	private function get_term( $taxonomy, $use_id ) {
 		$term = self::$terms[ $taxonomy ];
@@ -59,11 +59,11 @@ class Tests_Link_EditTermLink extends WP_UnitTestCase {
 	 *
 	 * @ticket 50225
 	 *
-	 * @param string $taxonomy Taxonomy being tested (used for index of term keys).
-	 * @param bool   $use_id   When true, pass term ID. Else, pass term object.
-	 * @param string $expected Expected URL within admin of edit link.
+	 * @param string $taxonomy Taxonomy being tested.
+	 * @param bool   $use_id   Whether to pass term ID or term object to `edit_term_link()`.
+	 * @param string $expected Expected part of admin URL for the edit link.
 	 */
-	public function test_edit_term_link_for_permitted_user( $taxonomy, $use_id, $expected ) {
+	public function test_edit_term_link_should_return_the_link_for_permitted_user( $taxonomy, $use_id, $expected ) {
 		$term = $this->get_term( $taxonomy, $use_id );
 
 		// Term IDs are not known by the data provider so need to be replaced.
@@ -71,7 +71,6 @@ class Tests_Link_EditTermLink extends WP_UnitTestCase {
 		$expected = '"' . admin_url( $expected ) . '"';
 
 		$this->assertStringContainsString( $expected, edit_term_link( '', '', '', $term, false ) );
-		$this->assertStringContainsString( $expected, edit_term_link( '', '', '', get_term( $term, $taxonomy ), false ) );
 	}
 
 	/**
@@ -79,15 +78,14 @@ class Tests_Link_EditTermLink extends WP_UnitTestCase {
 	 *
 	 * @ticket 50225
 	 *
-	 * @param string $taxonomy Taxonomy being tested (used for index of term keys).
-	 * @param bool   $use_id   When true, pass term ID. Else, pass term object.
+	 * @param string $taxonomy Taxonomy being tested.
+	 * @param bool   $use_id   Whether to pass term ID or term object to `edit_term_link()`.
 	 */
-	public function test_edit_term_link_for_denied_user( $taxonomy, $use_id ) {
+	public function test_edit_term_link_should_return_null_for_denied_user( $taxonomy, $use_id ) {
 		wp_set_current_user( self::$user_ids['subscriber'] );
 		$term = $this->get_term( $taxonomy, $use_id );
 
 		$this->assertNull( edit_term_link( '', '', '', $term, false ) );
-		$this->assertNull( edit_term_link( '', '', '', get_term( $term, $taxonomy ), false ) );
 	}
 
 	/**
@@ -95,10 +93,10 @@ class Tests_Link_EditTermLink extends WP_UnitTestCase {
 	 *
 	 * @ticket 50225
 	 *
-	 * @param string $taxonomy Taxonomy being tested (used for index of term keys).
-	 * @param bool   $use_id   When true, pass term ID. Else, pass term object.
+	 * @param string $taxonomy Taxonomy being tested.
+	 * @param bool   $use_id   Whether to pass term ID or term object to `edit_term_link()`.
 	 */
-	public function test_edit_term_link_filter_is_int_by_term_id( $taxonomy, $use_id ) {
+	public function test_edit_term_link_filter_should_receive_term_id( $taxonomy, $use_id ) {
 		$term = $this->get_term( $taxonomy, $use_id );
 
 		add_filter(
@@ -111,29 +109,6 @@ class Tests_Link_EditTermLink extends WP_UnitTestCase {
 		);
 
 		edit_term_link( '', '', '', $term, false );
-	}
-
-	/**
-	 * @dataProvider data_edit_term_link
-	 *
-	 * @ticket 50225
-	 *
-	 * @param string $taxonomy Taxonomy being tested (used for index of term keys).
-	 * @param bool   $use_id   When true, pass term ID. Else, pass term object.
-	 */
-	public function test_edit_term_link_filter_is_int_by_term_object( $taxonomy, $use_id ) {
-		$term = $this->get_term( $taxonomy, $use_id );
-
-		add_filter(
-			'edit_term_link',
-			function( $location, $term ) {
-				$this->assertIsInt( $term );
-			},
-			10,
-			2
-		);
-
-		edit_term_link( '', '', '', get_term( $term, $taxonomy ), false );
 	}
 
 	/**

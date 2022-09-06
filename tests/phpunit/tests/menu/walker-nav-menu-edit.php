@@ -5,6 +5,12 @@
  * @group walker
  */
 class Tests_Menu_Walker_Nav_Menu_Edit extends WP_UnitTestCase {
+
+	/**
+	 * @var \Walker_Nav_Menu_Edit
+	 */
+	private $walker;
+
 	protected $_wp_nav_menu_max_depth;
 
 	public function set_up() {

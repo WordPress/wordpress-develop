@@ -2083,6 +2083,7 @@ function wp_mkdir_p( $target ) {
  * For example, '/foo/bar', or 'c:\windows'.
  *
  * @since 2.5.0
+ * @since 6.1.0 Allows normalized Windows paths (forward slashes).
  *
  * @param string $path File path.
  * @return bool True if path is absolute, false is not absolute.
@@ -2100,16 +2101,21 @@ function path_is_absolute( $path ) {
 	 * This is definitive if true but fails if $path does not exist or contains
 	 * a symbolic link.
 	 */
-	if ( realpath( $path ) == $path ) {
+	if ( realpath( $path ) === $path ) {
 		return true;
 	}
 
-	if ( strlen( $path ) == 0 || '.' === $path[0] ) {
+	if ( strlen( $path ) === 0 || '.' === $path[0] ) {
 		return false;
 	}
 
 	// Windows allows absolute paths like this.
 	if ( preg_match( '#^[a-zA-Z]:\\\\#', $path ) ) {
+		return true;
+	}
+
+	// Normalized Windows paths for local filesystem and network shares (forward slashes).
+	if ( preg_match( '#(^[a-zA-Z]+:/|^//[\w!@\#\$%\^\(\)\-\'{}\.~]{1,15})#', $path ) ) {
 		return true;
 	}
 
@@ -6982,7 +6988,7 @@ function wp_debug_backtrace_summary( $ignore_class = null, $skip_frames = 0, $pr
  * Retrieves IDs that are not already present in the cache.
  *
  * @since 3.4.0
- * @access private
+ * @since 6.1.0 This function is no longer marked as "private".
  *
  * @param int[]  $object_ids Array of IDs.
  * @param string $cache_key  The cache bucket to check against.
