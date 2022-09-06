@@ -1317,7 +1317,7 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 					break;
 				}
 
-				if ( preg_match( '/^\s+/', $attr ) ) { // Valueless.
+				if ( preg_match( '/^(\s+|\/$)/', $attr ) ) { // Valueless.
 					$working = 1;
 					$mode    = 0;
 					if ( false === array_key_exists( $attrname, $attrarr ) ) {
