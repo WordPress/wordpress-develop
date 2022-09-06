@@ -27,7 +27,6 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function set_up() {
 		parent::set_up();
-		$this->has_setup_template = false;
 		add_filter( 'theme_page_templates', array( $this, 'filter_theme_page_templates' ) );
 		// Re-register the route as we now have a template available.
 		$GLOBALS['wp_rest_server']->override_by_default = true;
@@ -409,8 +408,11 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( $post2, $data[0]['id'] );
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_get_item() {
-
+		// Controller does not implement get_item().
 	}
 
 	public function test_get_item_invalid_post_type() {
@@ -420,8 +422,11 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 404, $response->get_status() );
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_create_item() {
-
+		// Controller does not implement create_item().
 	}
 
 	public function test_create_item_with_template() {
@@ -485,8 +490,11 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 400 );
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_update_item() {
-
+		// Controller does not implement update_item().
 	}
 
 	public function test_delete_item() {
@@ -508,8 +516,11 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 'trash', $data['status'] );
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_prepare_item() {
-
+		// Controller does not implement prepare_item().
 	}
 
 	public function test_prepare_item_limit_fields() {
