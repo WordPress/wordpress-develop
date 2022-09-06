@@ -693,7 +693,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 	 */
 	public function test_wp_widget_initializes_widget_with_alt_option() {
 		/*
-		 * Pretend the recent posts widget is new.
+		 * Emulate a new the recent posts widget.
 		 *
 		 * The widget contains an alternative (legacy) option so both the
 		 * current and the alternative option need to be deleted.
@@ -725,7 +725,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		);
 
 		/*
-		 * Pretend the recent posts widget has an alternative option.
+		 * Emulate the recent posts widget with an alternative option.
 		 *
 		 * The widget contains an alternative (legacy) option so the
 		 * current option is deleted while the alternative option is created.
