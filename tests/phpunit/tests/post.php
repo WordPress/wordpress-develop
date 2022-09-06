@@ -302,6 +302,8 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_excerpt' => 'foo&#x1f610;bat',
 		);
 
+		wp_set_current_user( self::$editor_id );
+
 		edit_post( $data );
 
 		$post = get_post( $post_id );
@@ -312,19 +314,12 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
-	 * If a post is sticky and is updated by a user that does not have the publish_post capability,
-	 * it should _stay_ sticky.
+	 * If a sticky post is updated via `wp_update_post()` by a user
+	 * without the `publish_posts` capability, it should stay sticky.
 	 *
 	 * @ticket 24153
 	 */
-	public function test_user_without_publish_cannot_affect_sticky() {
-		wp_set_current_user( self::$grammarian_id );
-
-		// Sanity check.
-		$this->assertFalse( current_user_can( 'publish_posts' ) );
-		$this->assertTrue( current_user_can( 'edit_others_posts' ) );
-		$this->assertTrue( current_user_can( 'edit_published_posts' ) );
-
+	public function test_user_without_publish_posts_cannot_affect_sticky() {
 		// Create a sticky post.
 		$post = self::factory()->post->create_and_get(
 			array(
@@ -336,6 +331,13 @@ class Tests_Post extends WP_UnitTestCase {
 
 		// Sanity check.
 		$this->assertTrue( is_sticky( $post->ID ) );
+
+		wp_set_current_user( self::$grammarian_id );
+
+		// Sanity check.
+		$this->assertFalse( current_user_can( 'publish_posts' ) );
+		$this->assertTrue( current_user_can( 'edit_others_posts' ) );
+		$this->assertTrue( current_user_can( 'edit_published_posts' ) );
 
 		// Edit the post.
 		$post->post_title   = 'Updated';
@@ -350,12 +352,12 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
-	 * If the `edit_post()` method is invoked by a user without publish_posts permission,
-	 * the sticky status of the post should not be changed.
+	 * If a sticky post is updated via `edit_post()` by a user
+	 * without the `publish_posts` capability, it should stay sticky.
 	 *
 	 * @ticket 24153
 	 */
-	public function test_user_without_publish_cannot_affect_sticky_with_edit_post() {
+	public function test_user_without_publish_posts_cannot_affect_sticky_with_edit_post() {
 		// Create a sticky post.
 		$post = self::factory()->post->create_and_get(
 			array(
