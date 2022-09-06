@@ -3661,13 +3661,12 @@ EOF;
 		$resized = $editor->resize( 100, 100, false );
 		$this->assertNotWPError( $resized );
 
-		$dest_file = $editor->generate_filename();
-		$saved     = $editor->save( $dest_file );
+		$saved = $editor->save();
 		$this->assertNotWPError( $saved );
 
 		if ( $editor->supports_mime_type( 'image/webp' ) ) {
 			$this->assertSame( 'image/webp', $saved['mime-type'] );
-			$this->assertSame( 'canola-100x75.webp', $saved['file'] );
+			$this->assertSame( 'canola-100x75-jpg.webp', $saved['file'] );
 		} else {
 			$this->assertSame( 'image/jpeg', $saved['mime-type'] );
 			$this->assertSame( 'canola-100x75.jpg', $saved['file'] );
