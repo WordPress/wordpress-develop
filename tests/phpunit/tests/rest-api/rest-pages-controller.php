@@ -51,7 +51,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 		// Single.
-		$page_id  = $this->factory->post->create( array( 'post_type' => 'page' ) );
+		$page_id  = self::factory()->post->create( array( 'post_type' => 'page' ) );
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/pages/' . $page_id );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
@@ -94,13 +94,13 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items() {
-		$id1      = $this->factory->post->create(
+		$id1      = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_type'   => 'page',
 			)
 		);
-		$id2      = $this->factory->post->create(
+		$id2      = self::factory()->post->create(
 			array(
 				'post_status' => 'draft',
 				'post_type'   => 'page',
@@ -114,13 +114,13 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_parent_query() {
-		$id1 = $this->factory->post->create(
+		$id1 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_type'   => 'page',
 			)
 		);
-		$id2 = $this->factory->post->create(
+		$id2 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_type'   => 'page',
@@ -148,26 +148,26 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_parents_query() {
-		$id1 = $this->factory->post->create(
+		$id1 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_type'   => 'page',
 			)
 		);
-		$id2 = $this->factory->post->create(
+		$id2 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_type'   => 'page',
 				'post_parent' => $id1,
 			)
 		);
-		$id3 = $this->factory->post->create(
+		$id3 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_type'   => 'page',
 			)
 		);
-		$id4 = $this->factory->post->create(
+		$id4 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_type'   => 'page',
@@ -190,13 +190,13 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_parent_exclude_query() {
-		$id1 = $this->factory->post->create(
+		$id1 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_type'   => 'page',
 			)
 		);
-		$this->factory->post->create(
+		self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_type'   => 'page',
@@ -224,27 +224,27 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_menu_order_query() {
-		$id1 = $this->factory->post->create(
+		$id1 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_type'   => 'page',
 			)
 		);
-		$id2 = $this->factory->post->create(
+		$id2 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_type'   => 'page',
 				'menu_order'  => 2,
 			)
 		);
-		$id3 = $this->factory->post->create(
+		$id3 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_type'   => 'page',
 				'menu_order'  => 3,
 			)
 		);
-		$id4 = $this->factory->post->create(
+		$id4 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_type'   => 'page',
@@ -302,13 +302,13 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_get_items_private_filter_query_var() {
 		// Private query vars inaccessible to unauthorized users.
 		wp_set_current_user( 0 );
-		$page_id  = $this->factory->post->create(
+		$page_id  = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_type'   => 'page',
 			)
 		);
-		$draft_id = $this->factory->post->create(
+		$draft_id = self::factory()->post->create(
 			array(
 				'post_status' => 'draft',
 				'post_type'   => 'page',
@@ -336,19 +336,19 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_valid_date() {
-		$post1   = $this->factory->post->create(
+		$post1   = self::factory()->post->create(
 			array(
 				'post_date' => '2016-01-15T00:00:00Z',
 				'post_type' => 'page',
 			)
 		);
-		$post2   = $this->factory->post->create(
+		$post2   = self::factory()->post->create(
 			array(
 				'post_date' => '2016-01-16T00:00:00Z',
 				'post_type' => 'page',
 			)
 		);
-		$post3   = $this->factory->post->create(
+		$post3   = self::factory()->post->create(
 			array(
 				'post_date' => '2016-01-17T00:00:00Z',
 				'post_type' => 'page',
@@ -378,19 +378,19 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 * @ticket 50617
 	 */
 	public function test_get_items_valid_modified_date() {
-		$post1 = $this->factory->post->create(
+		$post1 = self::factory()->post->create(
 			array(
 				'post_date' => '2016-01-01 00:00:00',
 				'post_type' => 'page',
 			)
 		);
-		$post2 = $this->factory->post->create(
+		$post2 = self::factory()->post->create(
 			array(
 				'post_date' => '2016-01-02 00:00:00',
 				'post_type' => 'page',
 			)
 		);
-		$post3 = $this->factory->post->create(
+		$post3 = self::factory()->post->create(
 			array(
 				'post_date' => '2016-01-03 00:00:00',
 				'post_type' => 'page',
@@ -416,7 +416,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_item_invalid_post_type() {
-		$post_id  = $this->factory->post->create();
+		$post_id  = self::factory()->post->create();
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/pages/' . $post_id );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 404, $response->get_status() );
@@ -448,7 +448,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_create_page_with_parent() {
-		$page_id = $this->factory->post->create(
+		$page_id = self::factory()->post->create(
 			array(
 				'type' => 'page',
 			)
@@ -498,7 +498,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_delete_item() {
-		$page_id = $this->factory->post->create(
+		$page_id = self::factory()->post->create(
 			array(
 				'post_type'  => 'page',
 				'post_title' => 'Deleted page',
@@ -525,7 +525,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function test_prepare_item_limit_fields() {
 		wp_set_current_user( self::$editor_id );
-		$page_id  = $this->factory->post->create(
+		$page_id  = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_type'   => 'page',
@@ -547,7 +547,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_pages_params() {
-		$this->factory->post->create_many(
+		self::factory()->post->create_many(
 			8,
 			array(
 				'post_type' => 'page',
@@ -578,7 +578,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function test_update_page_menu_order() {
 
-		$page_id = $this->factory->post->create(
+		$page_id = self::factory()->post->create(
 			array(
 				'post_type' => 'page',
 			)
@@ -601,7 +601,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function test_update_page_menu_order_to_zero() {
 
-		$page_id = $this->factory->post->create(
+		$page_id = self::factory()->post->create(
 			array(
 				'post_type'  => 'page',
 				'menu_order' => 1,
@@ -624,12 +624,12 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_update_page_parent_non_zero() {
-		$page_id1 = $this->factory->post->create(
+		$page_id1 = self::factory()->post->create(
 			array(
 				'post_type' => 'page',
 			)
 		);
-		$page_id2 = $this->factory->post->create(
+		$page_id2 = self::factory()->post->create(
 			array(
 				'post_type' => 'page',
 			)
@@ -647,12 +647,12 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_update_page_parent_zero() {
-		$page_id1 = $this->factory->post->create(
+		$page_id1 = self::factory()->post->create(
 			array(
 				'post_type' => 'page',
 			)
 		);
-		$page_id2 = $this->factory->post->create(
+		$page_id2 = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
 				'post_parent' => $page_id1,
@@ -671,7 +671,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_page_with_password() {
-		$page_id = $this->factory->post->create(
+		$page_id = self::factory()->post->create(
 			array(
 				'post_type'     => 'page',
 				'post_password' => '$inthebananastand',
@@ -689,7 +689,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_page_with_password_using_password() {
-		$page_id = $this->factory->post->create(
+		$page_id = self::factory()->post->create(
 			array(
 				'post_type'     => 'page',
 				'post_password' => '$inthebananastand',
@@ -711,7 +711,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_page_with_password_using_incorrect_password() {
-		$page_id = $this->factory->post->create(
+		$page_id = self::factory()->post->create(
 			array(
 				'post_type'     => 'page',
 				'post_password' => '$inthebananastand',
@@ -727,7 +727,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_page_with_password_without_permission() {
-		$page_id  = $this->factory->post->create(
+		$page_id  = self::factory()->post->create(
 			array(
 				'post_type'     => 'page',
 				'post_password' => '$inthebananastand',
