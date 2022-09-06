@@ -73,6 +73,7 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 		wp_old_slug_redirect();
 		$num_queries = get_num_queries();
 		$this->assertSame( $permalink, $this->old_slug_redirect_url );
+
 		wp_old_slug_redirect();
 		$this->assertSame( $permalink, $this->old_slug_redirect_url );
 		$this->assertSame( $num_queries, get_num_queries() );
@@ -101,9 +102,12 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 		wp_update_post(
 			array(
 				'ID'        => $this->post_id,
-				'post_name' => 'foo-bar',
+				'post_name' => 'foo-bar-baz',
 			)
 		);
+
+		$permalink = user_trailingslashit( get_permalink( $this->post_id ) );
+
 		$num_queries = get_num_queries();
 		wp_old_slug_redirect();
 		$this->assertSame( $permalink, $this->old_slug_redirect_url );
