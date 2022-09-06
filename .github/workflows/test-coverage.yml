@@ -202,7 +202,7 @@ jobs:
       always() &&
       github.repository == 'WordPress/wordpress-develop' &&
       github.event_name != 'pull_request' &&
-      github.run_number < 2 &&
+      github.run_attempt < 2 &&
       (
         needs.test-coverage-report.result == 'cancelled' || needs.test-coverage-report.result == 'failure'
       )
