@@ -17,8 +17,6 @@ class WP_Admin_Bar {
 	private $bound = false;
 	public $user;
 
-	public $menu = array();
-
 	/**
 	 * Initializes the admin bar.
 	 *
