@@ -898,7 +898,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	/**
 	 * @ticket 22176
 	 */
-	public function test_query_cache_exclude_term() {
+	public function test_query_cache_should_exclude_post_with_excluded_term() {
 		$term_id = self::$t1;
 		// Post 0 has the term applied
 		$post_id = self::$posts[0];
@@ -927,7 +927,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	/**
 	 * @ticket 22176
 	 */
-	public function test_query_cache_exclude_term_adding_term_to_post() {
+	public function test_query_cache_should_exclude_post_when_excluded_term_is_added_after_caching() {
 		$term_id = self::$t1;
 		// Post 1 does not have the term applied.
 		$post_id = self::$posts[1];
@@ -957,7 +957,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	/**
 	 * @ticket 22176
 	 */
-	public function test_query_cache_exclude_term_removing_term_from_post() {
+	public function test_query_cache_should_not_exclude_post_when_excluded_term_is_removed_after_caching() {
 		$term_id = self::$t1;
 		// Post 0 has the term applied.
 		$post_id = self::$posts[0];
