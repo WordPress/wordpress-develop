@@ -528,12 +528,16 @@ class WP_Style_Engine {
 	 * @since 6.1.0
 	 *
 	 * @param WP_Style_Engine_CSS_Rule[] $css_rules An array of WP_Style_Engine_CSS_Rule objects from a store or otherwise.
+	 * @param array                      $options array(
+	 *    'optimize' => (boolean) Whether to optimize the CSS output, e.g., combine rules.
+	 *    'prettify' => (boolean) Whether to add new lines to output.
+	 * );.
 	 *
 	 * @return string A compiled stylesheet from stored CSS rules.
 	 */
-	public static function compile_stylesheet_from_css_rules( $css_rules ) {
+	public static function compile_stylesheet_from_css_rules( $css_rules, $options = array() ) {
 		$processor = new WP_Style_Engine_Processor();
 		$processor->add_rules( $css_rules );
-		return $processor->get_css();
+		return $processor->get_css( $options );
 	}
 }
