@@ -375,29 +375,6 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 54736
-	 * @covers ::get_sample_permalink
-	 */
-	public function test_get_sample_permalink_should_not_modify_the_filter_property() {
-		$permalink_structure = '%postname%';
-		$this->set_permalink_structure( "/$permalink_structure/" );
-
-		$future_date = gmdate( 'Y-m-d H:i:s', time() + 100 );
-		$post        = self::factory()->post->create_and_get(
-			array(
-				'post_status' => 'future',
-				'post_name'   => 'foo',
-				'post_date'   => $future_date,
-			)
-		);
-
-		$expected = $post->filter;
-		get_sample_permalink( $post );
-		$actual = $post->filter;
-		$this->assertSame( $expected, $actual );
-	}
-
-	/**
 	 * @ticket 30910
 	 * @ticket 18306
 	 */
@@ -715,33 +692,26 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 54736
 	 */
 	public function test_get_sample_permalink_should_preserve_the_original_post_properties() {
-		$post_test_id = self::factory()->post->create(
+		$post = self::factory()->post->create_and_get(
 			array(
-				'post_status' => 'publish',
-				'post_date'   => '2022-08-28 00:00:00',
-				'post_name'   => 'foo',
-				'filter'      => 'raw',
+				'post_status' => 'draft',
 			)
 		);
 
+		$post_original = clone $post;
+
 		add_filter(
 			'get_sample_permalink',
-			function( $permalink, $post_id, $title, $name, $post ) {
-				$this->assertTrue( isset( $post->post_status ), 'Failed asserting that object of class "WP_Post" has attribute "post_status".' );
-				$this->assertTrue( isset( $post->post_date ), 'Failed asserting that object of class "WP_Post" has attribute "post_date".' );
-				$this->assertTrue( isset( $post->post_name ), 'Failed asserting that object of class "WP_Post" has attribute "post_name".' );
-				$this->assertTrue( isset( $post->filter ), 'Failed asserting that object of class "WP_Post" has attribute "filter".' );
-
-				$this->assertSame( 'publish', $post->post_status );
-				$this->assertSame( '2022-08-28 00:00:00', $post->post_date );
-				$this->assertSame( 'foo', $post->post_name );
-				$this->assertSame( 'raw', $post->filter );
+			function( $permalink, $post_id, $title, $name, $post ) use ( $post_original ) {
+				$this->assertEquals( $post_original, $post, 'Modified post object passed to get_sample_permalink filter.' );
+				return $permalink;
 			},
 			10,
 			5
 		);
 
-		get_sample_permalink( $post_test_id );
+		get_sample_permalink( $post );
+		$this->assertEquals( $post_original, $post, 'get_sample_permalink() modifies the post object.' );
 	}
 
 	public function test_post_exists_should_match_title() {
