@@ -375,6 +375,29 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 54736
+	 * @covers ::get_sample_permalink
+	 */
+	public function test_get_sample_permalink_should_not_modify_the_filter_property() {
+		$permalink_structure = '%postname%';
+		$this->set_permalink_structure( "/$permalink_structure/" );
+
+		$future_date = gmdate( 'Y-m-d H:i:s', time() + 100 );
+		$post        = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'future',
+				'post_name'   => 'foo',
+				'post_date'   => $future_date,
+			)
+		);
+
+		$expected = $post->filter;
+		get_sample_permalink( $post );
+		$actual = $post->filter;
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
 	 * @ticket 30910
 	 * @ticket 18306
 	 */
