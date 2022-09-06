@@ -1,5 +1,6 @@
 {
 	"version": 1,
+	"title": "Block theme",
 	"settings": {
 		"color": {
 			"palette": [
@@ -36,9 +37,7 @@
 			"customLineHeight": true
 		},
 		"spacing": {
-			"units": [
-				"rem"
-			],
+			"units": ["rem"],
 			"customPadding": true
 		},
 		"blocks": {

@@ -25,6 +25,11 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 	protected static $site;
 
+	/**
+	 * @var WP_REST_Users_Controller
+	 */
+	private $endpoint;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$superadmin   = $factory->user->create(
 			array(
