@@ -33,7 +33,8 @@ CAP;
 		self::$_sizes                          = wp_get_additional_image_sizes();
 		$GLOBALS['_wp_additional_image_sizes'] = array();
 
-		$filename       = DIR_TESTDATA . '/images/' . self::$large_filename;
+		$filename = DIR_TESTDATA . '/images/' . self::$large_filename;
+		add_filter( 'image_editor_output_format', '__return_empty_array' );
 		self::$large_id = $factory->attachment->create_upload_object( $filename );
 
 		$post_statuses = array( 'publish', 'future', 'draft', 'auto-draft', 'trash' );
@@ -68,6 +69,7 @@ CAP;
 
 	public static function wpTearDownAfterClass() {
 		$GLOBALS['_wp_additional_image_sizes'] = self::$_sizes;
+		remove_filter( 'image_editor_output_format', '__return_empty_array' );
 	}
 
 	public static function tear_down_after_class() {
@@ -3616,6 +3618,59 @@ EOF;
 
 		// Clean up the above filter.
 		remove_filter( 'wp_omit_loading_attr_threshold', '__return_null', 100 );
+	}
+
+	/**
+	 * Test the wp_default_image_output_mapping function.
+	 *
+	 * @ticket 55443
+	 */
+	public function test_wp_default_image_output_mapping() {
+		$mapping = wp_default_image_output_mapping( array() );
+		$this->assertSame( array( 'image/jpeg' => 'image/webp' ), $mapping );
+	}
+
+	/**
+	 * Test that wp_default_image_output_mapping doesn't overwrite existing mappings.
+	 *
+	 * @ticket 55443
+	 */
+	public function test_wp_default_image_output_mapping_existing() {
+		$mapping = array( 'mime/png' => 'mime/webp' );
+		$mapping = wp_default_image_output_mapping( $mapping );
+		$this->assertSame(
+			array(
+				'mime/png'   => 'mime/webp',
+				'image/jpeg' => 'image/webp',
+			),
+			$mapping
+		);
+	}
+
+	/**
+	 * Test that the image editor default output for JPEGs is WebP.
+	 *
+	 * @ticket 55443
+	 */
+	public function test_wp_image_editor_default_output_maps_to_webp() {
+		remove_filter( 'image_editor_output_format', '__return_empty_array' );
+
+		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
+		$this->assertNotWPError( $editor );
+
+		$resized = $editor->resize( 100, 100, false );
+		$this->assertNotWPError( $resized );
+
+		$saved = $editor->save();
+		$this->assertNotWPError( $saved );
+
+		if ( $editor->supports_mime_type( 'image/webp' ) ) {
+			$this->assertSame( 'image/webp', $saved['mime-type'] );
+			$this->assertSame( 'canola-100x75-jpg.webp', $saved['file'] );
+		} else {
+			$this->assertSame( 'image/jpeg', $saved['mime-type'] );
+			$this->assertSame( 'canola-100x75.jpg', $saved['file'] );
+		}
 	}
 }
 
