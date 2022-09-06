@@ -68,7 +68,7 @@ function _get_list_table( $class_name, $args = array() ) {
 		 */
 		$class_name = apply_filters( 'wp_list_table_class_name', $class_name, $args );
 
-		if ( ! class_exists( $class_name ) ) {
+		if ( ! is_string( $class_name ) || ! class_exists( $class_name ) ) {
 			return false;
 		}
 
