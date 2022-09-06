@@ -552,9 +552,43 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id, $mim
 				// within sources.
 				if ( $size_meta['mime-type'] === $mime_type || isset( $size_meta['sources'][ $mime_type ] ) ) {
 					unset( $new_sizes[ $size_name ] );
+					continue;
 				}
 			}
+
+			/**
+			 * Short-circuits the image generation process.
+			 *
+			 * Developers can use this filter to update $size_meta with custom information for the
+			 * target mime_type.
+			 *
+			 * Returning `false` will skip generating image sub sizes and updating metadata.
+			 *
+			 * @since 6.1.0
+			 *
+			 * @param array  $size_meta     Image meta information.
+			 * @param string $file          File name.
+			 * @param string $attachment_id Attachment ID.
+			 * @param string $size_name     Image size - e.g. 'full', 'medium', 'small' etc.
+			 * @param string $mime_type     Image mime type.
+			 *
+			 * @return array|false Can be array with updated meta information or false.
+			 */
+			$size_meta = apply_filters( 'wp_pre_generate_additional_image_mime', $size_meta, $file, $attachment_id, $size_name, $mime_type );
+
+			if ( false === $size_meta ) {
+				unset( $new_sizes[ $size_name ] );
+				continue;
+			}
+
+			if ( isset( $size_meta['sources'][ $mime_type ] ) ) {
+				$image_meta['sizes'][ $size_name ] = $size_meta;
+
+				// Unset the size since it already exists.
+				unset( $new_sizes[ $size_name ] );
+			}
 		}
+		wp_update_attachment_metadata( $attachment_id, $image_meta );
 	} else {
 		$image_meta['sizes'] = array();
 	}
@@ -713,6 +747,18 @@ function _wp_make_additional_mime_types( $new_mime_types, $file, $image_meta, $a
 	$original_file_size = isset( $image_meta['filesize'] ) ? $image_meta['filesize'] : wp_filesize( $file );
 
 	foreach ( $new_mime_types as $mime_type ) {
+		/** This filter is documented in wp-admin/includes/image.php. */
+		$image_meta = apply_filters( 'wp_pre_generate_additional_image_mime', $image_meta, $file, $attachment_id, 'full', $mime_type );
+
+		if ( false === $image_meta ) {
+			continue;
+		}
+
+		if ( isset( $image_meta['sources'][ $mime_type ] ) ) {
+			wp_update_attachment_metadata( $attachment_id, $image_meta );
+			continue;
+		}
+
 		list( $editor, $resized, $rotated ) = _wp_maybe_scale_and_rotate_image( $file, $attachment_id, $imagesize, $exif_meta, $mime_type );
 		if ( is_wp_error( $editor ) ) {
 			// The image cannot be edited.

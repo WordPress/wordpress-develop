@@ -958,6 +958,103 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test short-circuiting of additional image source generation for mime type.
+	 *
+	 * @ticket 55443
+	 */
+	public function test_wp_pre_generate_additional_image_mime() {
+		$temp_dir = get_temp_dir();
+		$img_path = $temp_dir . 'test.jpg';
+		copy( DIR_TESTDATA . '/images/33772.jpg', $img_path );
+
+		$editor = wp_get_image_editor( $img_path );
+
+		if ( is_wp_error( $editor ) ) {
+			$this->markTestSkipped( $editor->get_error_message() );
+		}
+
+		add_filter( 'wp_pre_generate_additional_image_mime', array( $this, 'filter_pre_generate_additional_image_mime' ), 10, 5 );
+
+		$attachment_id = $this->factory->attachment->create_object(
+			$img_path,
+			0,
+			array(
+				'post_mime_type' => 'image/jpg',
+			)
+		);
+
+		$metadata = wp_generate_attachment_metadata( $attachment_id, $img_path );
+
+		foreach ( $metadata['sizes'] as $size_name => $size_meta ) {
+			$this->assertSame( "filter-image-{$size_meta['width']}x{$size_meta['height']}.webp", $size_meta['sources']['image/webp']['file'] );
+		}
+
+		remove_filter( 'wp_pre_generate_additional_image_mime', array( $this, 'filter_pre_generate_additional_image_mime' ), 10, 5 );
+	}
+
+	public function filter_pre_generate_additional_image_mime( $size_meta, $file, $attachment_id, $size_name, $mime_type ) {
+		if ( 'image/webp' === $mime_type ) {
+			$size_meta['sources'][ $mime_type ] = array(
+				'file'     => "filter-image-{$size_meta['width']}x{$size_meta['height']}.webp",
+				'filesize' => 1000,
+			);
+		}
+
+		return $size_meta;
+	}
+
+	/**
+	 * Test replacing of image filename in the desired context.
+	 *
+	 * @ticket 55443
+	 */
+	public function test_wp_content_pre_replace_additional_image_source_for_size_thumbnail() {
+		$temp_dir = get_temp_dir();
+		$img_path = $temp_dir . 'test.jpg';
+		copy( DIR_TESTDATA . '/images/33772.jpg', $img_path );
+
+		$editor = wp_get_image_editor( $img_path );
+
+		if ( is_wp_error( $editor ) ) {
+			$this->markTestSkipped( $editor->get_error_message() );
+		}
+
+		$attachment_id = $this->factory->attachment->create_object(
+			$img_path,
+			0,
+			array(
+				'post_mime_type' => 'image/jpg',
+			)
+		);
+
+		$metadata = wp_generate_attachment_metadata( $attachment_id, $img_path );
+		$image    = wp_get_attachment_image( $attachment_id );
+
+		$this->assertStringContainsString( 'test-150x150.jpg', $image );
+
+		$context        = 'the_content';
+		$filtered_image = wp_image_use_alternate_mime_types( $image, $context, $attachment_id );
+
+		// Before the filter, the image is not replaced.
+		$this->assertStringNotContainsString( 'replaced-image-thumbnail.webp', $filtered_image );
+
+		// Adding the filter results in the file name changing.
+		add_filter( 'wp_content_pre_replace_additional_image_source', array( $this, 'filter_pre_replace_additional_image_source' ), 10, 6 );
+		$filtered_image = wp_image_use_alternate_mime_types( $image, $context, $attachment_id );
+		$this->assertStringContainsString( 'replaced-image-thumbnail.webp', $filtered_image );
+
+		remove_filter( 'wp_content_pre_replace_additional_image_source', array( $this, 'filter_pre_replace_additional_image_source' ), 10, 6 );
+	}
+
+	public function filter_pre_replace_additional_image_source( $image, $attachment_id, $size_meta, $size_name, $mime_type, $context ) {
+		if ( 'image/webp' === $mime_type ) {
+			$image = str_replace( $size_meta['file'], 'replaced-image-thumbnail.webp', $image );
+		}
+
+		return $image;
+	}
+
+	/**
 	 * Tests that wp_exif_frac2dec() properly handles edge cases
 	 * and always returns an int or float, or 0 for failures.
 	 *

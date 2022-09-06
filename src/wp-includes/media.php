@@ -1956,6 +1956,31 @@ function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
 				break;
 			}
 
+			/**
+			 * Filters the image HTML tag.
+			 *
+			 * This filter can be used to replace target mime_type image filename for different sizes
+			 * in the generated <img> HTML tag.
+			 *
+			 * @since 6.1.0
+			 *
+			 * @param array  $image         The HTML `img` tag.
+			 * @param string $attachment_id The attachment ID.
+			 * @param string $metadata      Image size metadata.
+			 * @param string $name          Size identifier - e.g. 'full', 'medium', 'small' etc.
+			 * @param string $target_mime   Image mime type.
+			 * @param string $context       Additional context, like the current filter name or the function name from where this was called.
+			 *
+			 * @return string Updated <img> HTML tag.
+			 */
+			$filtered_image = apply_filters( 'wp_content_pre_replace_additional_image_source', $image, $attachment_id, $metadata, 'full', $target_mime, $context );
+
+			if ( $filtered_image !== $image ) {
+				$image = $filtered_image;
+				unset( $metadata['sources'] );
+				continue;
+			}
+
 			$image = str_replace( $src_filename, $metadata['sources'][ $target_mime ]['file'], $image );
 
 			// The full size was replaced, so unset this entirely here so that in the next iteration it is no longer
@@ -1981,6 +2006,15 @@ function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
 			// Since it is already the preferred MIME type, the entire loop can be cancelled.
 			if ( $size_data['sources'][ $target_mime ]['file'] === $src_filename ) {
 				break 2;
+			}
+
+			/** This filter is documented in wp-includes/media.php. */
+			$filtered_image = apply_filters( 'wp_content_pre_replace_additional_image_source', $image, $attachment_id, $size_data, $name, $target_mime, $context );
+
+			if ( $filtered_image !== $image ) {
+				$image = $filtered_image;
+				unset( $metadata['sizes'][ $name ] );
+				continue;
 			}
 
 			// Found a match, replace with the new filename.
