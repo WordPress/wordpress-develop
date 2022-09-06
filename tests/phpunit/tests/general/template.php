@@ -180,7 +180,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 */
 	public function test_customize_preview_wp_site_icon_empty() {
 		global $wp_customize;
-		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$wp_customize = new WP_Customize_Manager();
@@ -198,7 +198,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 */
 	public function test_customize_preview_wp_site_icon_dirty() {
 		global $wp_customize;
-		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$wp_customize = new WP_Customize_Manager();
@@ -598,18 +598,18 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::get_the_archive_title
 	 */
 	public function test_get_the_archive_title_is_correct_for_author_queries() {
-		$user_with_posts    = $this->factory()->user->create_and_get(
+		$user_with_posts    = self::factory()->user->create_and_get(
 			array(
 				'role' => 'author',
 			)
 		);
-		$user_with_no_posts = $this->factory()->user->create_and_get(
+		$user_with_no_posts = self::factory()->user->create_and_get(
 			array(
 				'role' => 'author',
 			)
 		);
 
-		$this->factory()->post->create(
+		self::factory()->post->create(
 			array(
 				'post_author' => $user_with_posts->ID,
 			)
