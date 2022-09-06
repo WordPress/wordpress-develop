@@ -454,7 +454,7 @@ class Tests_Post extends WP_UnitTestCase {
 	public function test_pre_wp_unique_post_slug_filter() {
 		add_filter( 'pre_wp_unique_post_slug', array( $this, 'filter_pre_wp_unique_post_slug' ), 10, 6 );
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'title'       => 'An example',
 				'post_status' => 'publish',

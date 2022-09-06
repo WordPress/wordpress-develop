@@ -417,7 +417,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 			)
 		);
 
-		$term_id = $this->factory->term->create(
+		$term_id = self::factory()->term->create(
 			array(
 				'taxonomy' => 'wptests_tax',
 				'name'     => 'foobar',

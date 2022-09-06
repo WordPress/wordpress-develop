@@ -146,7 +146,7 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 		);
 
 		// Make sure comment author has an approved comment.
-		$this->factory->comment->create(
+		self::factory()->comment->create(
 			array(
 				'user_id'              => $subscriber_id,
 				'comment_approved'     => '1',

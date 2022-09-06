@@ -40,7 +40,7 @@ class Tests_Menu_Walker_Nav_Menu_Edit extends WP_UnitTestCase {
 	public function test_original_title_prefix_should_not_be_shown_if_empty() {
 		$expected = '';
 
-		$post_id = $this->factory->post->create();
+		$post_id = self::factory()->post->create();
 
 		$item = array(
 			'classes'          => array(),

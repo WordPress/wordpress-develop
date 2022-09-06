@@ -407,7 +407,7 @@ class Tests_Auth extends WP_UnitTestCase {
 			'user_email' => 'mail@example.com',
 			'user_pass'  => 'password',
 		);
-		$this->factory->user->create( $user_args );
+		self::factory()->user->create( $user_args );
 
 		$this->assertInstanceOf( 'WP_User', wp_authenticate( $user_args['user_email'], $user_args['user_pass'] ) );
 		$this->assertInstanceOf( 'WP_User', wp_authenticate( $user_args['user_login'], $user_args['user_pass'] ) );
