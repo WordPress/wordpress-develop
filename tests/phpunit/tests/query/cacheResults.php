@@ -2,6 +2,7 @@
 
 /**
  * @group query
+ * @covers WP_Query::get_posts
  */
 class Test_Query_CacheResults extends WP_UnitTestCase {
 	/**
