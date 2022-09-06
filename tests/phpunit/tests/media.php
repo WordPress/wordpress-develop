@@ -3672,8 +3672,6 @@ EOF;
 			$this->assertSame( 'image/jpeg', $saved['mime-type'] );
 			$this->assertSame( 'canola-100x75.jpg', $saved['file'] );
 		}
-
-		add_filter( 'image_editor_output_format', '__return_empty_array' );
 	}
 }
 
