@@ -799,9 +799,9 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 			if ( ( ( 'approve' === $action || 'unapprove' === $action ) && 2 === $i )
 				|| 1 === $i
 			) {
-				$sep = '';
+				$separator = '';
 			} else {
-				$sep = ' | ';
+				$separator = ' | ';
 			}
 
 			// Reply and quickedit need a hide-if-no-js span.
@@ -813,7 +813,7 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 				$action .= ' hidden';
 			}
 
-			$actions_string .= "<span class='$action'>$sep$link</span>";
+			$actions_string .= "<span class='$action'>{$separator}{$link}</span>";
 		}
 	}
 	?>
@@ -1729,7 +1729,7 @@ function wp_dashboard_browser_nag() {
 	 *
 	 * @param string      $notice   The notice content.
 	 * @param array|false $response An array containing web browser information, or
-	 *                              false on failure. See `wp_check_browser_version()`.
+	 *                              false on failure. See wp_check_browser_version().
 	 */
 	echo apply_filters( 'browse-happy-notice', $notice, $response ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 }
@@ -1996,6 +1996,9 @@ function wp_welcome_panel() {
 	?>
 	<div class="welcome-panel-content">
 	<div class="welcome-panel-header">
+		<div class="welcome-panel-header-image">
+			<?php echo file_get_contents( dirname( __DIR__ ) . '/images/about-header-about.svg' ); ?>
+		</div>
 		<h2><?php _e( 'Welcome to WordPress!' ); ?></h2>
 		<p>
 			<a href="<?php echo esc_url( admin_url( 'about.php' ) ); ?>">

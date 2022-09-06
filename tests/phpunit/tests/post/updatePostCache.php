@@ -1,12 +1,12 @@
 <?php
 /**
- * Test `wp_update_cache()`.
+ * Test `update_post_cache()`.
  *
  * @package WordPress
  */
 
 /**
- * Test class for `wp_update_cache()`.
+ * Test class for `update_post_cache()`.
  *
  * @group post
  * @group query
@@ -18,7 +18,7 @@ class Tests_Post_UpdatePostCache extends WP_UnitTestCase {
 	/**
 	 * Post IDs from the shared fixture.
 	 *
-	 * @var array
+	 * @var int[]
 	 */
 	public static $post_ids;
 

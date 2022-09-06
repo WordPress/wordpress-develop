@@ -59,7 +59,7 @@ function list_core_update( $update ) {
 
 	$message       = '';
 	$form_action   = 'update-core.php?action=do-core-upgrade';
-	$php_version   = phpversion();
+	$php_version   = PHP_VERSION;
 	$mysql_version = $wpdb->db_version();
 	$show_buttons  = true;
 
@@ -185,7 +185,7 @@ function list_core_update( $update ) {
 		// Partial builds don't need language-specific warnings.
 		echo '<p class="hint">' . sprintf(
 			/* translators: %s: WordPress version. */
-			__( 'You are about to install WordPress %s <strong>in English (US).</strong> There is a chance this update will break your translation. You may prefer to wait for the localized version to be released.' ),
+			__( 'You are about to install WordPress %s <strong>in English (US)</strong>. There is a chance this update will break your translation. You may prefer to wait for the localized version to be released.' ),
 			'development' !== $update->response ? $update->current : ''
 		) . '</p>';
 	}
@@ -686,7 +686,7 @@ function list_theme_updates() {
 				$compat .= sprintf(
 					/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
 					__( '<a href="%1$s">Please update WordPress</a>, and then <a href="%2$s">learn more about updating PHP</a>.' ),
-					self_admin_url( 'update-core.php' ),
+					esc_url( self_admin_url( 'update-core.php' ) ),
 					esc_url( wp_get_update_php_url() )
 				);
 
@@ -699,7 +699,7 @@ function list_theme_updates() {
 				$compat .= sprintf(
 					/* translators: %s: URL to WordPress Updates screen. */
 					__( '<a href="%s">Please update WordPress</a>.' ),
-					self_admin_url( 'update-core.php' )
+					esc_url( self_admin_url( 'update-core.php' ) )
 				);
 			} elseif ( current_user_can( 'update_php' ) ) {
 				$compat .= sprintf(
@@ -720,7 +720,7 @@ function list_theme_updates() {
 				$compat .= sprintf(
 					/* translators: %s: URL to WordPress Updates screen. */
 					__( '<a href="%s">Please update WordPress</a>.' ),
-					self_admin_url( 'update-core.php' )
+					esc_url( self_admin_url( 'update-core.php' ) )
 				);
 			}
 		} elseif ( ! $compatible_php ) {
@@ -917,7 +917,7 @@ function do_core_upgrade( $reinstall = false ) {
 	?>
 	</div>
 	<script type="text/javascript">
-	window.location = '<?php echo self_admin_url( 'about.php?updated' ); ?>';
+	window.location = '<?php echo esc_url( self_admin_url( 'about.php?updated' ) ); ?>';
 	</script>
 	<?php
 }

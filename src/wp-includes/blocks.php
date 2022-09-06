@@ -286,6 +286,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'title'           => 'title',
 		'category'        => 'category',
 		'parent'          => 'parent',
+		'ancestor'        => 'ancestor',
 		'icon'            => 'icon',
 		'description'     => 'description',
 		'keywords'        => 'keywords',
@@ -424,9 +425,12 @@ function unregister_block_type( $name ) {
 function has_blocks( $post = null ) {
 	if ( ! is_string( $post ) ) {
 		$wp_post = get_post( $post );
-		if ( $wp_post instanceof WP_Post ) {
-			$post = $wp_post->post_content;
+
+		if ( ! $wp_post instanceof WP_Post ) {
+			return false;
 		}
+
+		$post = $wp_post->post_content;
 	}
 
 	return false !== strpos( (string) $post, '<!-- wp:' );
@@ -595,7 +599,7 @@ function get_comment_delimited_block_content( $block_name, $block_attributes, $b
  *
  * @since 5.3.1
  *
- * @param WP_Block_Parser_Block $block A single parsed block object.
+ * @param array $block A representative array of a single parsed block object. See WP_Block_Parser_Block.
  * @return string String of rendered HTML.
  */
 function serialize_block( $block ) {
@@ -623,7 +627,7 @@ function serialize_block( $block ) {
  *
  * @since 5.3.1
  *
- * @param WP_Block_Parser_Block[] $blocks Parsed block objects.
+ * @param array[] $blocks An array of representative arrays of parsed block objects. See serialize_block().
  * @return string String of rendered HTML.
  */
 function serialize_blocks( $blocks ) {
@@ -799,7 +803,7 @@ function excerpt_remove_blocks( $content ) {
 }
 
 /**
- * Render inner blocks from the allowed wrapper blocks
+ * Renders inner blocks from the allowed wrapper blocks
  * for generating an excerpt.
  *
  * @since 5.8.0
@@ -832,7 +836,7 @@ function _excerpt_render_inner_blocks( $parsed_block, $allowed_blocks ) {
  *
  * @since 5.0.0
  *
- * @global WP_Post  $post     The post to edit.
+ * @global WP_Post $post The post to edit.
  *
  * @param array $parsed_block A single parsed block object.
  * @return string String of rendered HTML.
@@ -911,7 +915,7 @@ function render_block( $parsed_block ) {
  */
 function parse_blocks( $content ) {
 	/**
-	 * Filter to allow plugins to replace the server-side block parser
+	 * Filter to allow plugins to replace the server-side block parser.
 	 *
 	 * @since 5.0.0
 	 *
@@ -987,6 +991,8 @@ function block_version( $content ) {
  *
  * @since 5.3.0
  *
+ * @link https://developer.wordpress.org/block-editor/reference-guides/block-api/block-styles/
+ *
  * @param string $block_name       Block type name including namespace.
  * @param array  $style_properties Array containing the properties of the style name,
  *                                 label, style (name of the stylesheet to be enqueued),
@@ -1016,7 +1022,7 @@ function unregister_block_style( $block_name, $block_style_name ) {
  * @since 5.8.0
  *
  * @param WP_Block_Type $block_type Block type to check for support.
- * @param string        $feature    Name of the feature to check support for.
+ * @param array         $feature    Path to a specific feature to check support for.
  * @param mixed         $default    Optional. Fallback value for feature support. Default false.
  * @return bool Whether the feature is supported.
  */
@@ -1193,7 +1199,7 @@ function build_query_vars_from_query_block( $block, $page ) {
 }
 
 /**
- * Helper function that returns the proper pagination arrow html for
+ * Helper function that returns the proper pagination arrow HTML for
  * `QueryPaginationNext` and `QueryPaginationPrevious` blocks based
  * on the provided `paginationArrow` from `QueryPagination` context.
  *
@@ -1202,9 +1208,8 @@ function build_query_vars_from_query_block( $block, $page ) {
  * @since 5.9.0
  *
  * @param WP_Block $block   Block instance.
- * @param boolean  $is_next Flag for handling `next/previous` blocks.
- *
- * @return string|null Returns the constructed WP_Query arguments.
+ * @param bool     $is_next Flag for handling `next/previous` blocks.
+ * @return string|null The pagination arrow HTML or null if there is none.
  */
 function get_query_pagination_arrow( $block, $is_next ) {
 	$arrow_map = array(
@@ -1282,16 +1287,26 @@ add_filter( 'block_type_metadata', '_wp_multiple_block_styles' );
  * @param WP_Block $block Block instance.
  *
  * @return array Returns the comment query parameters to use with the
- * WP_Comment_Query constructor.
+ *               WP_Comment_Query constructor.
  */
 function build_comment_query_vars_from_block( $block ) {
 
 	$comment_args = array(
-		'orderby'                   => 'comment_date_gmt',
-		'order'                     => 'ASC',
-		'status'                    => 'approve',
-		'no_found_rows'             => false,
+		'orderby'       => 'comment_date_gmt',
+		'order'         => 'ASC',
+		'status'        => 'approve',
+		'no_found_rows' => false,
 	);
+
+	if ( is_user_logged_in() ) {
+		$comment_args['include_unapproved'] = array( get_current_user_id() );
+	} else {
+		$unapproved_email = wp_get_unapproved_comment_author_email();
+
+		if ( $unapproved_email ) {
+			$comment_args['include_unapproved'] = array( $unapproved_email );
+		}
+	}
 
 	if ( ! empty( $block->context['postId'] ) ) {
 		$comment_args['post_id'] = (int) $block->context['postId'];
@@ -1315,7 +1330,10 @@ function build_comment_query_vars_from_block( $block ) {
 			} elseif ( 'oldest' === $default_page ) {
 				$comment_args['paged'] = 1;
 			} elseif ( 'newest' === $default_page ) {
-				$comment_args['paged'] = (int) ( new WP_Comment_Query( $comment_args ) )->max_num_pages;
+				$max_num_pages = (int) ( new WP_Comment_Query( $comment_args ) )->max_num_pages;
+				if ( 0 !== $max_num_pages ) {
+					$comment_args['paged'] = $max_num_pages;
+				}
 			}
 			// Set the `cpage` query var to ensure the previous and next pagination links are correct
 			// when inheriting the Discussion Settings.
@@ -1329,7 +1347,7 @@ function build_comment_query_vars_from_block( $block ) {
 }
 
 /**
- * Helper function that returns the proper pagination arrow html for
+ * Helper function that returns the proper pagination arrow HTML for
  * `CommentsPaginationNext` and `CommentsPaginationPrevious` blocks based on the
  * provided `paginationArrow` from `CommentsPagination` context.
  *
@@ -1341,7 +1359,7 @@ function build_comment_query_vars_from_block( $block ) {
  * @param string   $pagination_type Type of the arrow we will be rendering.
  *                                  Default 'next'. Accepts 'next' or 'previous'.
  *
- * @return string|null Returns the constructed WP_Query arguments.
+ * @return string|null The pagination arrow HTML or null if there is none.
  */
 function get_comments_pagination_arrow( $block, $pagination_type = 'next' ) {
 	$arrow_map = array(

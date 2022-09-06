@@ -30,6 +30,15 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 */
 	protected static $block_id;
 
+	/**
+	 * Temporary storage for roles for tests using filter callbacks.
+	 *
+	 * Used in the `test_wp_roles_init_action()` method.
+	 *
+	 * @var array
+	 */
+	private $role_test_wp_roles_init;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$users       = array(
 			'anonymous'     => new WP_User( 0 ),
@@ -58,6 +67,15 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		// Keep track of users we create.
 		$this->flush_roles();
 
+	}
+
+	/**
+	 * Clean up after each test.
+	 */
+	public function tear_down() {
+		unset( $this->role_test_wp_roles_init );
+
+		parent::tear_down();
 	}
 
 	public static function wpTearDownAfterClass() {
@@ -1595,6 +1613,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$editor = self::$users['editor'];
 
+		$this->setExpectedIncorrectUsage( 'map_meta_cap' );
 		foreach ( $caps as $cap ) {
 			// `null` represents a non-existent term ID.
 			$this->assertFalse( user_can( $editor->ID, $cap, null ) );
@@ -1995,13 +2014,11 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	}
 
-
-	protected $_role_test_wp_roles_role;
 	/**
 	 * @ticket 23016
 	 */
 	public function test_wp_roles_init_action() {
-		$this->_role_test_wp_roles_init = array(
+		$this->role_test_wp_roles_init = array(
 			'role' => 'test_wp_roles_init',
 			'info' => array(
 				'name'         => 'Test WP Roles Init',
@@ -2014,16 +2031,16 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		remove_action( 'wp_roles_init', array( $this, '_hook_wp_roles_init' ) );
 
-		$expected = new WP_Role( $this->_role_test_wp_roles_init['role'], $this->_role_test_wp_roles_init['info']['capabilities'] );
+		$expected = new WP_Role( $this->role_test_wp_roles_init['role'], $this->role_test_wp_roles_init['info']['capabilities'] );
 
-		$role = $wp_roles->get_role( $this->_role_test_wp_roles_init['role'] );
+		$role = $wp_roles->get_role( $this->role_test_wp_roles_init['role'] );
 
 		$this->assertEquals( $expected, $role );
-		$this->assertContains( $this->_role_test_wp_roles_init['info']['name'], $wp_roles->role_names );
+		$this->assertContains( $this->role_test_wp_roles_init['info']['name'], $wp_roles->role_names );
 	}
 
 	public function _hook_wp_roles_init( $wp_roles ) {
-		$wp_roles->add_role( $this->_role_test_wp_roles_init['role'], $this->_role_test_wp_roles_init['info']['name'], $this->_role_test_wp_roles_init['info']['capabilities'] );
+		$wp_roles->add_role( $this->role_test_wp_roles_init['role'], $this->role_test_wp_roles_init['info']['name'], $this->role_test_wp_roles_init['info']['capabilities'] );
 	}
 
 	/**

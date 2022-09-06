@@ -476,7 +476,12 @@ function wp_list_authors( $args = '' ) {
 		}
 
 		if ( $args['show_fullname'] && $author->first_name && $author->last_name ) {
-			$name = "$author->first_name $author->last_name";
+			$name = sprintf(
+				/* translators: 1: User's first name, 2: Last name. */
+				_x( '%1$s %2$s', 'Display name based on first name and last name' ),
+				$author->first_name,
+				$author->last_name
+			);
 		} else {
 			$name = $author->display_name;
 		}

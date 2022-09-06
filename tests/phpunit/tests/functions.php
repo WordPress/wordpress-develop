@@ -105,6 +105,13 @@ class Tests_Functions extends WP_UnitTestCase {
 			'C:\\',
 			'C:\\WINDOWS',
 			'\\\\sambashare\\foo',
+			'c:/',
+			'c://',
+			'//',
+			'c:/FOO',
+			'//FOO',
+			'C:/WWW/Sites/demo/htdocs/wordpress/wp-content/uploads/2016/03/example.jpg',
+			'//ComputerName/ShareName/SubfolderName/example.txt',
 		);
 		foreach ( $absolute_paths as $path ) {
 			$this->assertTrue( path_is_absolute( $path ), "path_is_absolute('$path') should return true" );
@@ -119,14 +126,80 @@ class Tests_Functions extends WP_UnitTestCase {
 			'../foo',
 			'../',
 			'../foo.bar',
+			'foo.bar',
 			'foo/bar',
 			'foo',
 			'FOO',
 			'..\\WINDOWS',
+			'..//WINDOWS',
+			'c:',
+			'C:',
 		);
 		foreach ( $relative_paths as $path ) {
 			$this->assertFalse( path_is_absolute( $path ), "path_is_absolute('$path') should return false" );
 		}
+	}
+
+	/**
+	 * Tests path_join().
+	 *
+	 * @ticket 55897
+	 * @dataProvider path_join_data_provider
+	 */
+	public function test_path_join( $base, $path, $expected ) {
+		$this->assertSame( $expected, path_join( $base, $path ) );
+	}
+
+	/**
+	 * Data provider for test_path_join().
+	 *
+	 * @return string[][]
+	 */
+	public function path_join_data_provider() {
+		return array(
+			// Absolute paths.
+			'absolute path should return path' => array(
+				'base'     => 'base',
+				'path'     => '/path',
+				'expected' => '/path',
+			),
+			'windows path with slashes'        => array(
+				'base'     => 'base',
+				'path'     => '//path',
+				'expected' => '//path',
+			),
+			'windows path with backslashes'    => array(
+				'base'     => 'base',
+				'path'     => '\\\\path',
+				'expected' => '\\\\path',
+			),
+			// Non-absolute paths.
+			'join base and path'               => array(
+				'base'     => 'base',
+				'path'     => 'path',
+				'expected' => 'base/path',
+			),
+			'strip trailing slashes in base'   => array(
+				'base'     => 'base///',
+				'path'     => 'path',
+				'expected' => 'base/path',
+			),
+			'empty path'                       => array(
+				'base'     => 'base',
+				'path'     => '',
+				'expected' => 'base/',
+			),
+			'empty base'                       => array(
+				'base'     => '',
+				'path'     => 'path',
+				'expected' => '/path',
+			),
+			'empty path and base'              => array(
+				'base'     => '',
+				'path'     => '',
+				'expected' => '/',
+			),
+		);
 	}
 
 	/**
@@ -309,152 +382,6 @@ class Tests_Functions extends WP_UnitTestCase {
 		$formats['image/pct'] = 'image/bmp';
 
 		return $formats;
-	}
-
-	/**
-	 * @dataProvider data_is_not_serialized
-	 */
-	public function test_maybe_serialize( $value ) {
-		if ( is_array( $value ) || is_object( $value ) ) {
-			$expected = serialize( $value );
-		} else {
-			$expected = $value;
-		}
-
-		$this->assertSame( $expected, maybe_serialize( $value ) );
-	}
-
-	/**
-	 * @dataProvider data_is_serialized
-	 */
-	public function test_maybe_serialize_with_double_serialization( $value ) {
-		$expected = serialize( $value );
-
-		$this->assertSame( $expected, maybe_serialize( $value ) );
-	}
-
-	/**
-	 * @dataProvider data_is_serialized
-	 * @dataProvider data_is_not_serialized
-	 */
-	public function test_maybe_unserialize( $value, $is_serialized ) {
-		if ( $is_serialized ) {
-			$expected = unserialize( trim( $value ) );
-		} else {
-			$expected = $value;
-		}
-
-		if ( is_object( $expected ) ) {
-			$this->assertEquals( $expected, maybe_unserialize( $value ) );
-		} else {
-			$this->assertSame( $expected, maybe_unserialize( $value ) );
-		}
-	}
-
-	/**
-	 * @dataProvider data_is_serialized
-	 * @dataProvider data_is_not_serialized
-	 */
-	public function test_is_serialized( $value, $expected ) {
-		$this->assertSame( $expected, is_serialized( $value ) );
-	}
-
-	/**
-	 * @dataProvider data_serialize_deserialize_objects
-	 */
-	public function test_deserialize_request_utility_filtered_iterator_objects( $value ) {
-		$serialized = maybe_serialize( $value );
-		if ( get_class( $value ) === 'Requests_Utility_FilteredIterator' ) {
-			$new_value = unserialize( $serialized );
-			$property  = ( new ReflectionClass( 'Requests_Utility_FilteredIterator' ) )->getProperty( 'callback' );
-			$property->setAccessible( true );
-			$callback_value = $property->getValue( $new_value );
-			$this->assertSame( null, $callback_value );
-		} else {
-			$this->assertSame( $value->count(), unserialize( $serialized )->count() );
-		}
-	}
-
-	public function data_serialize_deserialize_objects() {
-		return array(
-			array( new Requests_Utility_FilteredIterator( array( 1 ), 'md5' ) ),
-			array( new Requests_Utility_FilteredIterator( array( 1, 2 ), 'sha1' ) ),
-			array( new ArrayIterator( array( 1, 2, 3 ) ) ),
-		);
-	}
-
-	public function data_is_serialized() {
-		return array(
-			array( serialize( null ), true ),
-			array( serialize( true ), true ),
-			array( serialize( false ), true ),
-			array( serialize( -25 ), true ),
-			array( serialize( 25 ), true ),
-			array( serialize( 1.1 ), true ),
-			array( serialize( 'this string will be serialized' ), true ),
-			array( serialize( "a\nb" ), true ),
-			array( serialize( array() ), true ),
-			array( serialize( array( 1, 1, 2, 3, 5, 8, 13 ) ), true ),
-			array(
-				serialize(
-					(object) array(
-						'test' => true,
-						'3',
-						4,
-					)
-				),
-				true,
-			),
-			array( '   s:25:"this string is serialized";   ', true ),
-		);
-	}
-
-	public function data_is_not_serialized() {
-		return array(
-			array( null, false ),
-			array( true, false ),
-			array( false, false ),
-			array( -25, false ),
-			array( 25, false ),
-			array( 1.1, false ),
-			array( 'this string will be serialized', false ),
-			array( "a\nb", false ),
-			array( array(), false ),
-			array( array( 1, 1, 2, 3, 5, 8, 13 ), false ),
-			array(
-				(object) array(
-					'test' => true,
-					'3',
-					4,
-				),
-				false,
-			),
-			array( 'a string', false ),
-			array( 'garbage:a:0:garbage;', false ),
-			array( 's:4:test;', false ),
-		);
-	}
-
-	/**
-	 * @ticket 46570
-	 * @dataProvider data_is_serialized_should_return_true_for_large_floats
-	 */
-	public function test_is_serialized_should_return_true_for_large_floats( $value ) {
-		$this->assertTrue( is_serialized( $value ) );
-	}
-
-	public function data_is_serialized_should_return_true_for_large_floats() {
-		return array(
-			array( serialize( 1.7976931348623157E+308 ) ),
-			array( serialize( array( 1.7976931348623157E+308, 1.23e50 ) ) ),
-		);
-	}
-
-	/**
-	 * @ticket 17375
-	 */
-	public function test_no_new_serializable_types() {
-		$this->assertFalse( is_serialized( 'C:16:"Serialized_Class":6:{a:0:{}}' ) );
 	}
 
 	/**

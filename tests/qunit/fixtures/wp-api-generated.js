@@ -7,7 +7,7 @@ var mockedApiResponse = {};
 
 mockedApiResponse.Schema = {
     "name": "Test Blog",
-    "description": "Just another WordPress site",
+    "description": "",
     "url": "http://example.org",
     "home": "http://example.org",
     "gmt_offset": "0",
@@ -9628,6 +9628,21 @@ mockedApiResponse.Schema = {
                             "type": "integer",
                             "required": false
                         },
+                        "show_on_front": {
+                            "description": "What to show on the front page",
+                            "type": "string",
+                            "required": false
+                        },
+                        "page_on_front": {
+                            "description": "The ID of the page that should be displayed on the front page",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "page_for_posts": {
+                            "description": "The ID of the page that should display the latest posts",
+                            "type": "integer",
+                            "required": false
+                        },
                         "default_ping_status": {
                             "description": "Allow link notifications from other blogs (pingbacks and trackbacks) on new articles.",
                             "type": "string",
@@ -10385,6 +10400,11 @@ mockedApiResponse.Schema = {
                             "type": "integer",
                             "minimum": 1,
                             "required": false
+                        },
+                        "slug": {
+                            "description": "Limit results to those matching a pattern (slug).",
+                            "type": "array",
+                            "required": false
                         }
                     }
                 }
@@ -10591,6 +10611,27 @@ mockedApiResponse.Schema = {
                 "self": [
                     {
                         "href": "http://example.org/index.php?rest_route=/wp-site-health/v1/directory-sizes"
+                    }
+                ]
+            }
+        },
+        "/wp-site-health/v1/tests/page-cache": {
+            "namespace": "wp-site-health/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": []
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-site-health/v1/tests/page-cache"
                     }
                 ]
             }
@@ -12266,7 +12307,7 @@ mockedApiResponse.CommentModel = {
 
 mockedApiResponse.settings = {
     "title": "Test Blog",
-    "description": "Just another WordPress site",
+    "description": "",
     "url": "http://example.org",
     "email": "admin@example.org",
     "timezone": "",
@@ -12278,6 +12319,9 @@ mockedApiResponse.settings = {
     "default_category": 1,
     "default_post_format": "0",
     "posts_per_page": 10,
+    "show_on_front": "posts",
+    "page_on_front": 0,
+    "page_for_posts": 0,
     "default_ping_status": "open",
     "default_comment_status": "open",
     "site_logo": null,

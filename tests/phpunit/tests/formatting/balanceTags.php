@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::balanceTags
  */
 class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 
@@ -78,7 +80,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	/**
 	 * These are valid custom elements but we don't support them yet.
 	 *
-	 * @see https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
+	 * @see https://w3c.github.io/webcomponents/spec/custom/#valid-custom-element-name
 	 */
 	public function unsupported_valid_tag_names() {
 		return array(

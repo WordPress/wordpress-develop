@@ -555,23 +555,23 @@ class WP_List_Table {
 			$always_visible = true;
 		}
 
-		$out = '<div class="' . ( $always_visible ? 'row-actions visible' : 'row-actions' ) . '">';
+		$output = '<div class="' . ( $always_visible ? 'row-actions visible' : 'row-actions' ) . '">';
 
 		$i = 0;
 
 		foreach ( $actions as $action => $link ) {
 			++$i;
 
-			$sep = ( $i < $action_count ) ? ' | ' : '';
+			$separator = ( $i < $action_count ) ? ' | ' : '';
 
-			$out .= "<span class='$action'>$link$sep</span>";
+			$output .= "<span class='$action'>{$link}{$separator}</span>";
 		}
 
-		$out .= '</div>';
+		$output .= '</div>';
 
-		$out .= '<button type="button" class="toggle-row"><span class="screen-reader-text">' . __( 'Show more details' ) . '</span></button>';
+		$output .= '<button type="button" class="toggle-row"><span class="screen-reader-text">' . __( 'Show more details' ) . '</span></button>';
 
-		return $out;
+		return $output;
 	}
 
 	/**
@@ -600,7 +600,7 @@ class WP_List_Table {
 		}
 
 		/**
-		 * Filters to short-circuit performing the months dropdown query.
+		 * Filters whether to short-circuit performing the months dropdown query.
 		 *
 		 * @since 5.7.0
 		 *
@@ -1108,7 +1108,10 @@ class WP_List_Table {
 	 */
 	protected function get_column_info() {
 		// $_column_headers is already set / cached.
-		if ( isset( $this->_column_headers ) && is_array( $this->_column_headers ) ) {
+		if (
+			isset( $this->_column_headers ) &&
+			is_array( $this->_column_headers )
+		) {
 			/*
 			 * Backward compatibility for `$_column_headers` format prior to WordPress 4.3.
 			 *
@@ -1116,12 +1119,18 @@ class WP_List_Table {
 			 * column headers property. This ensures the primary column name is included
 			 * in plugins setting the property directly in the three item format.
 			 */
+			if ( 4 === count( $this->_column_headers ) ) {
+				return $this->_column_headers;
+			}
+
 			$column_headers = array( array(), array(), array(), $this->get_primary_column_name() );
 			foreach ( $this->_column_headers as $key => $value ) {
 				$column_headers[ $key ] = $value;
 			}
 
-			return $column_headers;
+			$this->_column_headers = $column_headers;
+
+			return $this->_column_headers;
 		}
 
 		$columns = get_column_headers( $this->screen );

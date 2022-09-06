@@ -25,6 +25,11 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 	protected static $site;
 
+	/**
+	 * @var WP_REST_Users_Controller
+	 */
+	private $endpoint;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$superadmin   = $factory->user->create(
 			array(
@@ -192,7 +197,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$keys     = array_keys( $data['endpoints'][0]['args'] );
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'context',
 				'exclude',
@@ -1109,27 +1114,27 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_item_published_author_post() {
-		$this->author_id = $this->factory->user->create(
+		$author_id = $this->factory->user->create(
 			array(
 				'role' => 'author',
 			)
 		);
 
-		$this->post_id = $this->factory->post->create(
+		$post_id = $this->factory->post->create(
 			array(
-				'post_author' => $this->author_id,
+				'post_author' => $author_id,
 			)
 		);
 
 		wp_set_current_user( 0 );
 
-		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', $this->author_id ) );
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', $author_id ) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->check_get_user_response( $response, 'embed' );
 	}
 
 	public function test_get_item_published_author_pages() {
-		$this->author_id = $this->factory->user->create(
+		$author_id = $this->factory->user->create(
 			array(
 				'role' => 'author',
 			)
@@ -1137,13 +1142,13 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		wp_set_current_user( 0 );
 
-		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', $this->author_id ) );
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', $author_id ) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 401, $response->get_status() );
 
-		$this->post_id = $this->factory->post->create(
+		$post_id = $this->factory->post->create(
 			array(
-				'post_author' => $this->author_id,
+				'post_author' => $author_id,
 				'post_type'   => 'page',
 			)
 		);
@@ -1164,21 +1169,21 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_item_published_author_wrong_context() {
-		$this->author_id = $this->factory->user->create(
+		$author_id = $this->factory->user->create(
 			array(
 				'role' => 'author',
 			)
 		);
 
-		$this->post_id = $this->factory->post->create(
+		$post_id = $this->factory->post->create(
 			array(
-				'post_author' => $this->author_id,
+				'post_author' => $author_id,
 			)
 		);
 
 		wp_set_current_user( 0 );
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', $this->author_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', $author_id ) );
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 401 );
