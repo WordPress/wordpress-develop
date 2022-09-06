@@ -17,18 +17,7 @@ class WP_Admin_Bar {
 	private $bound = false;
 	public $user;
 
-	/**
-	 * @since 3.3.0
-	 *
-	 * @param string $name
-	 * @return string|array|void
-	 */
-	public function __get( $name ) {
-		if ( 'menu' === $name ) {
-			_deprecated_argument( 'WP_Admin_Bar', '3.3.0', 'Modify admin bar nodes with WP_Admin_Bar::get_node(), WP_Admin_Bar::add_node(), and WP_Admin_Bar::remove_node(), not the <code>menu</code> property.' );
-			return array(); // Sorry, folks.
-		}
-	}
+	public $menu = array();
 
 	/**
 	 * Initializes the admin bar.
