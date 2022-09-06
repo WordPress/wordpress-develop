@@ -3656,21 +3656,14 @@ EOF;
 		remove_filter( 'image_editor_output_format', '__return_empty_array' );
 
 		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
-		if ( is_wp_error( $editor ) ) {
-			$this->markTestSkipped( $editor->get_error_message() );
-		}
-		$resized = $editor->resize( 100, 100, false );
+		$this->assertNotWPError( $editor );
 
-		if ( is_wp_error( $resized ) ) {
-			$this->markTestSkipped( $resized->get_error_message() );
-		}
+		$resized = $editor->resize( 100, 100, false );
+		$this->assertNotWPError( $resized );
 
 		$dest_file = $editor->generate_filename();
 		$saved     = $editor->save( $dest_file );
-
-		if ( is_wp_error( $saved ) ) {
-			$this->markTestSkipped( $saved->get_error_message() );
-		}
+		$this->assertNotWPError( $saved );
 
 		if ( $editor->supports_mime_type( 'image/webp' ) ) {
 			$this->assertSame( 'image/webp', $saved['mime-type'] );
