@@ -376,6 +376,7 @@ class WP_Theme_JSON {
 
 	const __EXPERIMENTAL_ELEMENT_CLASS_NAMES = array(
 		'button' => 'wp-element-button',
+		'caption' => 'wp-element-caption',
 	);
 
 	/**
