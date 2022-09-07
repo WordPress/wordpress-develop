@@ -334,11 +334,6 @@ abstract class WP_Image_Editor {
 	protected function get_output_format( $filename = null, $mime_type = null ) {
 		$new_ext = null;
 
-		// If no mime type is passed but output mime type is set, use that.
-		if ( ! $mime_type && ! empty( $this->output_mime_type ) ) {
-			$mime_type = $this->output_mime_type;
-		}
-
 		// By default, assume specified type takes priority.
 		if ( $mime_type ) {
 			$new_ext = $this->get_extension( $mime_type );
@@ -429,7 +424,7 @@ abstract class WP_Image_Editor {
 		return array( $filename, $new_ext, $mime_type );
 	}
 
-	/**
+		/**
 	 * Builds an output filename based on current file, and adding proper suffix.
 	 *
 	 * @since 3.5.0
@@ -663,28 +658,5 @@ abstract class WP_Image_Editor {
 
 		return wp_get_default_extension_for_mime_type( $mime_type );
 	}
-
-	/**
-	 * Set the editor output mime type, useful when outputting alternate mime types.
-	 *
-	 * Track that the mime type is set with the mime type set flag.
-	 *
-	 * @since 6.1.0
-	 *
-	 * @param string $output_mime_type The mime type to set.
-	 */
-	public function set_output_mime_type( $output_mime_type ) {
-		$this->output_mime_type = $output_mime_type;
-	}
-
-	/**
-	 * Reset the mime type to the original file mime type.
-	 *
-	 * Reset the mime type set flag.
-	 *
-	 * @since 6.1.0
-	 */
-	public function reset_output_mime_type() {
-		$this->output_mime_type = $this->mime_type;
-	}
 }
+

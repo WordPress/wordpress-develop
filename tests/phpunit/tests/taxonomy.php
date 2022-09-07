@@ -134,7 +134,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 *
 	 * @ticket 56338
 	 *
-	 * @covers :taxonomy_exists
+	 * @covers ::taxonomy_exists
 	 *
 	 * @dataProvider data_taxonomy_exists_should_return_false_with_non_string_taxonomy
 	 *
@@ -681,13 +681,13 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 				'publicly_queryable' => false,
 			)
 		);
-		$t = $this->factory->term->create_and_get(
+		$t = self::factory()->term->create_and_get(
 			array(
 				'taxonomy' => 'wptests_tax',
 			)
 		);
 
-		$p = $this->factory->post->create();
+		$p = self::factory()->post->create();
 		wp_set_object_terms( $p, $t->slug, 'wptests_tax' );
 
 		add_filter( 'do_parse_request', array( $this, 'register_query_var' ) );

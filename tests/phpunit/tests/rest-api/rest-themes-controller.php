@@ -1200,13 +1200,21 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * The create_item() method does not exist for themes.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_create_item() {}
+	public function test_create_item() {
+		// Controller does not implement create_item().
+	}
 
 	/**
 	 * The update_item() method does not exist for themes.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_update_item() {}
+	public function test_update_item() {
+		// Controller does not implement update_item().
+	}
 
 	/**
 	 * Test single theme.
@@ -1394,11 +1402,19 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * The delete_item() method does not exist for themes.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_delete_item() {}
+	public function test_delete_item() {
+		// Controller does not implement delete_item().
+	}
 
 	/**
 	 * Context is not supported for themes.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_context_param() {}
+	public function test_context_param() {
+		// Controller does not use get_context_param().
+	}
 }
