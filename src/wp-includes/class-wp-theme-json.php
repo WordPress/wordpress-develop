@@ -360,7 +360,7 @@ class WP_Theme_JSON {
 	 * @var string[]
 	 */
 	const ELEMENTS = array(
-		'link'    => 'a',
+		'link'    => 'a:where(:not(.wp-element-button))', // The where is needed to lower the specificity.
 		'heading' => 'h1, h2, h3, h4, h5, h6',
 		'h1'      => 'h1',
 		'h2'      => 'h2',

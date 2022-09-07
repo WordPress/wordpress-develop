@@ -760,7 +760,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$base_styles = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }';
 
-		$element_styles = 'a:not(.wp-element-button){background-color: red;color: green;}a:not(.wp-element-button):hover{background-color: green;color: red;font-size: 10em;text-transform: uppercase;}a:not(.wp-element-button):focus{background-color: black;color: yellow;}';
+		$element_styles = 'a:where(:not(.wp-element-button)){background-color: red;color: green;}a:where(:not(.wp-element-button)):hover{background-color: green;color: red;font-size: 10em;text-transform: uppercase;}a:where(:not(.wp-element-button)):focus{background-color: black;color: yellow;}';
 
 		$expected = $base_styles . $element_styles;
 
@@ -768,7 +768,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEquals( $expected, $theme_json->get_stylesheet( array( 'styles' ) ) );
 	}
 
-	function test_get_stylesheet_handles_only_psuedo_selector_rules_for_given_property() {
+	function test_get_stylesheet_handles_only_pseudo_selector_rules_for_given_property() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version' => WP_Theme_JSON::LATEST_SCHEMA,
@@ -799,7 +799,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$base_styles = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }';
 
-		$element_styles = 'a:not(.wp-element-button){background-color: red;color: green;}a:not(.wp-element-button):hover{background-color: green;color: red;}';
+		$element_styles = 'a:where(:not(.wp-element-button)):hover{background-color: green;color: red;font-size: 10em;text-transform: uppercase;}a:where(:not(.wp-element-button)):focus{background-color: black;color: yellow;}';
 
 		$expected = $base_styles . $element_styles;
 
@@ -877,7 +877,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$base_styles = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }';
 
-		$element_styles = 'a:not(.wp-element-button){background-color: red;color: green;}a:not(.wp-element-button):hover{background-color: green;color: red;}';
+		$element_styles = 'a:where(:not(.wp-element-button)){background-color: red;color: green;}a:where(:not(.wp-element-button)):hover{background-color: green;color: red;}';
 
 		$expected = $base_styles . $element_styles;
 
@@ -925,7 +925,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$base_styles = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }';
 
-		$element_styles = '.wp-block-group a:not(.wp-element-button){background-color: red;color: green;}.wp-block-group a:not(.wp-element-button):hover{background-color: green;color: red;font-size: 10em;text-transform: uppercase;}.wp-block-group a:not(.wp-element-button):focus{background-color: black;color: yellow;}';
+		$element_styles = '.wp-block-group a:where(:not(.wp-element-button)){background-color: red;color: green;}.wp-block-group a:where(:not(.wp-element-button)):hover{background-color: green;color: red;font-size: 10em;text-transform: uppercase;}.wp-block-group a:where(:not(.wp-element-button)):focus{background-color: black;color: yellow;}';
 
 		$expected = $base_styles . $element_styles;
 
@@ -972,7 +972,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$base_styles = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }';
 
-		$element_styles = 'a:not(.wp-element-button){background-color: red;color: green;}a:not(.wp-element-button):hover{background-color: green;color: red;}.wp-block-group a:not(.wp-element-button):hover{background-color: black;color: yellow;}';
+		$element_styles = 'a:where(:not(.wp-element-button)){background-color: red;color: green;}a:where(:not(.wp-element-button)):hover{background-color: green;color: red;}.wp-block-group a:where(:not(.wp-element-button)):hover{background-color: black;color: yellow;}';
 
 		$expected = $base_styles . $element_styles;
 
