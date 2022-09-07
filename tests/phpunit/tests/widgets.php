@@ -733,7 +733,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		delete_option( 'widget_recent-posts' );
 		update_option( 'widget_recent_entries', $option );
 
-		$this->assertSame( false, get_option( 'widget_recent-posts' ), 'The option widget_recent-posts was not deleted.' );
+		$this->assertFalse( get_option( 'widget_recent-posts' ), 'The option widget_recent-posts was not deleted.' );
 		$this->assertSameSets( $option, get_option( 'widget_recent_entries' ), 'The option widget_recent_entries was not set to the default.' );
 
 		wp_widgets_init();
