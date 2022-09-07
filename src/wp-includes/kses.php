@@ -2228,6 +2228,7 @@ function kses_init() {
  * @since 5.3.1 Added support for gradient backgrounds.
  * @since 5.7.1 Added support for `object-position`.
  * @since 5.8.0 Added support for `calc()` and `var()` values.
+ * @since 6.1.0 Added support for `min()`, `max()`, `minmax()`, and `clamp()` values.
  *
  * @param string $css        A string of CSS rules.
  * @param string $deprecated Not used.
