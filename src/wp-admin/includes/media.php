@@ -3854,10 +3854,10 @@ function wp_media_attach_action( $parent_id, $action = 'attach' ) {
  * @param array $output_mapping Map of mime type to output format.
  * @param string $filename  Path to the image.
  * @param string $mime_type The source image mime type.
- * @param string $size_name The image size name to create, or empty string if not set.
+ * @param string $size_name Optional. The image size name to create, or empty string if not set. Default empty string.
  * @return array The adjusted default output mapping.
  */
-function wp_default_image_output_mapping( $output_mapping, $filename, $mime_type, $size_name ) {
+function wp_default_image_output_mapping( $output_mapping, $filename, $mime_type, $size_name = '' ) {
 	// If size name is specified, check whether the size supports additional MIME types like WebP.
 	if ( $size_name ) {
 		// Include only the core sizes that do not rely on add_image_size(). Additional image sizes are opt-in.
