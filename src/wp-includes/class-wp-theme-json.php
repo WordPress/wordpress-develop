@@ -1046,29 +1046,6 @@ class WP_Theme_JSON {
 	}
 
 	/**
-	 * Function that appends a sub-selector to a existing one.
-	 *
-	 * Given the compounded $selector "h1, h2, h3"
-	 * and the $to_append selector ".some-class" the result will be
-	 * "h1.some-class, h2.some-class, h3.some-class".
-	 *
-	 * @since 5.8.0
-	 *
-	 * @param string $selector  Original selector.
-	 * @param string $to_append Selector to append.
-	 * @return string
-	 */
-	protected static function append_to_selector( $selector, $to_append ) {
-		$new_selectors = array();
-		$selectors     = explode( ',', $selector );
-		foreach ( $selectors as $sel ) {
-			$new_selectors[] = $sel . $to_append;
-		}
-
-		return implode( ',', $new_selectors );
-	}
-
-	/**
 	 * Given a settings array, it returns the generated rulesets
 	 * for the preset classes.
 	 *
