@@ -349,7 +349,7 @@ class WP_Theme_JSON {
 	 * Note: this will effect both top level and block level elements.
 	 */
 	const VALID_ELEMENT_PSEUDO_SELECTORS = array(
-		'link' => array( ':hover', ':focus', ':active' ),
+		'link' => array( ':hover', ':focus', ':active', ':visited' ),
 	);
 
 	/**
