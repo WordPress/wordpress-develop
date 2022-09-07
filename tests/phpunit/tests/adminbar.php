@@ -745,22 +745,33 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	private function data_should_not_use_dynamic_properties()
 	{
 		return array(
-			'proto',
-			'menu',
+			'property_name' => array(
+				'proto' => 'proto',
+				'menu' => 'menu',
+			)
 		);
 	}
 
+	/**
+	 * @param $property_name
+	 *
+	 * @dataProvider data_should_not_use_dynamic_properties
+	 *
+	 * @return void
+	 */
 	public function test_should_not_use_dynamic_properties($property_name)
 	{
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$this->assertFalse(property_exists($wp_admin_bar, $property_name), sprintf('The "%s" property is deprecated and must not be used.', $property_name));
-		$this->assertFalse(isset($wp_admin_bar->$property_name), sprintf('The "%s" property is deprecated and must not be used.', $property_name));
+
+		// Assert that the property is not being used in the __isset method.
+		$this->assertFalse(isset($wp_admin_bar->$property_name), sprintf('The "%s" property is deprecated and must not be used in the __isset method.', $property_name));
 
 		$property_defined = true;
 
 		try {
-			// This code should run without exceptions on PHP 8.1 and below.
-			$property_defined = null !== $wp_admin_bar->proto;
+			// Assert that the property is not being used in the __get method.
+			$property_defined = null !== $wp_admin_bar->$property_name;
 		} catch (Exception $e) {
 			// Catching the exception as dynamic properties
 			// generate PHP warnings on PHP >= 8.2.
