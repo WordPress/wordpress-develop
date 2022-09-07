@@ -3626,7 +3626,7 @@ EOF;
 	 * @ticket 55443
 	 */
 	public function test_wp_default_image_output_mapping() {
-		$mapping = wp_default_image_output_mapping( array() );
+		$mapping = wp_default_image_output_mapping( array(), 'test.jpg', 'image/jpeg', '' );
 		$this->assertSame( array( 'image/jpeg' => 'image/webp' ), $mapping );
 	}
 
@@ -3637,7 +3637,7 @@ EOF;
 	 */
 	public function test_wp_default_image_output_mapping_existing() {
 		$mapping = array( 'mime/png' => 'mime/webp' );
-		$mapping = wp_default_image_output_mapping( $mapping );
+		$mapping = wp_default_image_output_mapping( $mapping, 'test.jpg', 'image/jpeg', '' );
 		$this->assertSame(
 			array(
 				'mime/png'   => 'mime/webp',
