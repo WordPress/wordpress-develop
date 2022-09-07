@@ -480,10 +480,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @param array $size_data {
 	 *     Array of size data.
 	 *
-	 *     @type int  $width  The maximum width in pixels.
-	 *     @type int  $height The maximum height in pixels.
-	 *     @type bool $crop   Whether to crop the image to exact dimensions.
-	 *     @type string $name Image size name.
+	 *     @type int    $width  The maximum width in pixels.
+	 *     @type int    $height The maximum height in pixels.
+	 *     @type bool   $crop   Whether to crop the image to exact dimensions.
+	 *     @type string $name   Image size name.
 	 * }
 	 * @return array|WP_Error The image data array for inclusion in the `sizes` array in the image meta,
 	 *                        WP_Error object on error.
