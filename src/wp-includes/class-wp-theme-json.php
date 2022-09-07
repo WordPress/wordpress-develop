@@ -343,6 +343,8 @@ class WP_Theme_JSON {
 		),
 	);
 
+	const __EXPERIMENTAL_ELEMENT_BUTTON_CLASS_NAME = 'wp-element-button';
+
 	/**
 	 * The valid elements that can be found under styles.
 	 *
