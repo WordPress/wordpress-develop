@@ -344,6 +344,15 @@ class WP_Theme_JSON {
 	);
 
 	/**
+	 * Whitelist which defines which pseudo selectors are enabled for
+	 * which elements.
+	 * Note: this will effect both top level and block level elements.
+	 */
+	const VALID_ELEMENT_PSEUDO_SELECTORS = array(
+		'link' => array( ':hover', ':focus', ':active' ),
+	);
+
+	/**
 	 * The valid elements that can be found under styles.
 	 *
 	 * @since 5.8.0
@@ -505,14 +514,17 @@ class WP_Theme_JSON {
 	 * @return array The sanitized output.
 	 */
 	protected static function sanitize( $input, $valid_block_names, $valid_element_names ) {
+
 		$output = array();
 
 		if ( ! is_array( $input ) ) {
 			return $output;
 		}
 
+		// Preserve only the top most level keys.
 		$output = array_intersect_key( $input, array_flip( static::VALID_TOP_LEVEL_KEYS ) );
 
+		// Remove any rules that are annotated as "top" in VALID_STYLES constant.
 		// Some styles are only meant to be available at the top-level (e.g.: blockGap),
 		// hence, the schema for blocks & elements should not have them.
 		$styles_non_top_level = static::VALID_STYLES;
@@ -527,9 +539,22 @@ class WP_Theme_JSON {
 		// Build the schema based on valid block & element names.
 		$schema                 = array();
 		$schema_styles_elements = array();
+
+		// Set allowed element pseudo selectors based on per element allow list.
+		// Target data structure in schema:
+		// e.g.
+		// - top level elements: `$schema['styles']['elements']['link'][':hover']`.
+		// - block level elements: `$schema['styles']['blocks']['core/button']['elements']['link'][':hover']`.
 		foreach ( $valid_element_names as $element ) {
 			$schema_styles_elements[ $element ] = $styles_non_top_level;
+
+			if ( array_key_exists( $element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
+				foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
+					$schema_styles_elements[ $element ][ $pseudo_selector ] = $styles_non_top_level;
+				}
+			}
 		}
+
 		$schema_styles_blocks   = array();
 		$schema_settings_blocks = array();
 		foreach ( $valid_block_names as $block ) {
@@ -537,6 +562,7 @@ class WP_Theme_JSON {
 			$schema_styles_blocks[ $block ]             = $styles_non_top_level;
 			$schema_styles_blocks[ $block ]['elements'] = $schema_styles_elements;
 		}
+
 		$schema['styles']             = static::VALID_STYLES;
 		$schema['styles']['blocks']   = $schema_styles_blocks;
 		$schema['styles']['elements'] = $schema_styles_elements;
@@ -1516,6 +1542,19 @@ class WP_Theme_JSON {
 					'path'     => array( 'styles', 'elements', $element ),
 					'selector' => static::ELEMENTS[ $element ],
 				);
+
+				// Handle any pseudo selectors for the element.
+				if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] ) ) {
+					foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
+
+						if ( isset( $theme_json['styles']['elements'][ $element ][ $pseudo_selector ] ) ) {
+							$nodes[] = array(
+								'path'     => array( 'styles', 'elements', $element ),
+								'selector' => static::ELEMENTS[ $element ] . $pseudo_selector,
+							);
+						}
+					}
+				}
 			}
 		}
 
@@ -1582,6 +1621,18 @@ class WP_Theme_JSON {
 						'path'     => array( 'styles', 'blocks', $name, 'elements', $element ),
 						'selector' => $selectors[ $name ]['elements'][ $element ],
 					);
+
+					// Handle any psuedo selectors for the element.
+					if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] ) ) {
+						foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
+							if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'][ $element ][ $pseudo_selector ] ) ) {
+								$nodes[] = array(
+									'path'     => array( 'styles', 'blocks', $name, 'elements', $element ),
+									'selector' => $selectors[ $name ]['elements'][ $element ] . $pseudo_selector,
+								);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -1597,11 +1648,38 @@ class WP_Theme_JSON {
 	 * @return array Styles for the block.
 	 */
 	public function get_styles_for_block( $block_metadata ) {
-		$node         = _wp_array_get( $this->theme_json, $block_metadata['path'], array() );
-		$selector     = $block_metadata['selector'];
-		$settings     = _wp_array_get( $this->theme_json, array( 'settings' ) );
-		$declarations = static::compute_style_properties( $node, $settings );
-		$block_rules  = static::to_ruleset( $selector, $declarations );
+		
+		$node = _wp_array_get( $this->theme_json, $block_metadata['path'], array() );
+
+		$selector = $block_metadata['selector'];
+		$settings = _wp_array_get( $this->theme_json, array( 'settings' ) );
+
+		// Attempt to parse a pseudo selector (e.g. ":hover") from the $selector ("a:hover").
+		$pseudo_matches = array();
+		preg_match( '/:[a-z]+/', $selector, $pseudo_matches );
+		$pseudo_selector = isset( $pseudo_matches[0] ) ? $pseudo_matches[0] : null;
+
+		// Get a reference to element name from path.
+		// $block_metadata['path'] = array('styles','elements','link');
+		// Make sure that $block_metadata['path'] describes an element node, like ['styles', 'element', 'link'].
+		// Skip non-element paths like just ['styles'].
+		$is_processing_element = in_array( 'elements', $block_metadata['path'], true );
+
+		$current_element = $is_processing_element ? $block_metadata['path'][ count( $block_metadata['path'] ) - 1 ] : null;
+
+		// If the current selector is a pseudo selector that's defined in the allow list for the current
+		// element then compute the style properties for it.
+		// Otherwise just compute the styles for the default selector as normal.
+		if ( $pseudo_selector && isset( $node[ $pseudo_selector ] ) && isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] ) && in_array( $pseudo_selector, static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ], true ) ) {
+			$declarations = static::compute_style_properties( $node[ $pseudo_selector ], $settings );
+		} else {
+			$declarations = static::compute_style_properties( $node, $settings );
+		}
+
+		$block_rules = '';
+
+		$block_rules .= static::to_ruleset( $selector, $declarations );
+		
 		return $block_rules;
 	}
 
@@ -1914,10 +1992,12 @@ class WP_Theme_JSON {
 
 		$valid_block_names   = array_keys( static::get_blocks_metadata() );
 		$valid_element_names = array_keys( static::ELEMENTS );
-		$theme_json          = static::sanitize( $theme_json, $valid_block_names, $valid_element_names );
+
+		$theme_json = static::sanitize( $theme_json, $valid_block_names, $valid_element_names );
 
 		$blocks_metadata = static::get_blocks_metadata();
 		$style_nodes     = static::get_style_nodes( $theme_json, $blocks_metadata );
+
 		foreach ( $style_nodes as $metadata ) {
 			$input = _wp_array_get( $theme_json, $metadata['path'], array() );
 			if ( empty( $input ) ) {
@@ -1925,6 +2005,22 @@ class WP_Theme_JSON {
 			}
 
 			$output = static::remove_insecure_styles( $input );
+
+			// Get a reference to element name from path.
+			// $metadata['path'] = array('styles','elements','link');.
+			$current_element = $metadata['path'][ count( $metadata['path'] ) - 1 ];
+
+			// $output is stripped of pseudo selectors. Readd and process them
+			// for insecure styles here.
+			if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] ) ) {
+
+				foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] as $pseudo_selector ) {
+					if ( isset( $input[ $pseudo_selector ] ) ) {
+						$output[ $pseudo_selector ] = static::remove_insecure_styles( $input[ $pseudo_selector ] );
+					}
+				}
+			}
+
 			if ( ! empty( $output ) ) {
 				_wp_array_set( $sanitized, $metadata['path'], $output );
 			}
