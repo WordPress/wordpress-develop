@@ -1673,7 +1673,7 @@ class WP_Theme_JSON {
 	 * @return array Styles for the block.
 	 */
 	public function get_styles_for_block( $block_metadata ) {
-		
+
 		$node = _wp_array_get( $this->theme_json, $block_metadata['path'], array() );
 
 		$selector = $block_metadata['selector'];
