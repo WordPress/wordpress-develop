@@ -58,7 +58,7 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 	 */
 	public function test_get_comments_number_text_with_post_id() {
 		$post_id = self::$post_id;
-		$this->factory->comment->create_post_comments( $post_id, 6 );
+		self::factory()->comment->create_post_comments( $post_id, 6 );
 
 		$comments_number_text = get_comments_number_text( false, false, false, $post_id );
 
@@ -84,12 +84,12 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 
 		$this->assertSame( __( 'No Comments' ), get_comments_number_text() );
 
-		$this->factory->comment->create_post_comments( $post_id, 1 );
+		self::factory()->comment->create_post_comments( $post_id, 1 );
 		$this->go_to( $permalink );
 
 		$this->assertSame( __( '1 Comment' ), get_comments_number_text() );
 
-		$this->factory->comment->create_post_comments( $post_id, 1 );
+		self::factory()->comment->create_post_comments( $post_id, 1 );
 		$this->go_to( $permalink );
 
 		$this->assertSame( sprintf( _n( '%s Comment', '%s Comments', 2 ), '2' ), get_comments_number_text() );
@@ -106,7 +106,7 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 		$post_id   = self::$post_id;
 		$permalink = get_permalink( $post_id );
 
-		$this->factory->comment->create_post_comments( $post_id, $number );
+		self::factory()->comment->create_post_comments( $post_id, $number );
 		$this->go_to( $permalink );
 
 		add_filter( 'gettext_with_context', array( $this, 'enable_comment_number_declension' ), 10, 4 );

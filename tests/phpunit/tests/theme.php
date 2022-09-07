@@ -366,7 +366,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * @covers ::_wp_keep_alive_customize_changeset_dependent_auto_drafts
 	 */
 	public function test_wp_keep_alive_customize_changeset_dependent_auto_drafts() {
-		$nav_created_post_ids = $this->factory()->post->create_many(
+		$nav_created_post_ids = self::factory()->post->create_many(
 			2,
 			array(
 				'post_status' => 'auto-draft',

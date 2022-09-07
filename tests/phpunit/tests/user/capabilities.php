@@ -1828,7 +1828,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$contributor = self::$users['contributor'];
 
 		// Give them a scheduled post.
-		$post = $this->factory->post->create_and_get(
+		$post = self::factory()->post->create_and_get(
 			array(
 				'post_author' => $contributor->ID,
 				'post_status' => 'future',
