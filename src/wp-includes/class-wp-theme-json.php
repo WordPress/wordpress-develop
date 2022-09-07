@@ -1502,6 +1502,40 @@ class WP_Theme_JSON {
 			return $nodes;
 		}
 
+		$nodes = array_merge( $nodes, static::get_block_nodes( $theme_json ) );
+
+		// This filter allows us to modify the output of WP_Theme_JSON so that we can do things like loading block CSS independently.
+		return apply_filters( 'get_style_nodes', $nodes );
+	}
+
+	/**
+	 * A public helper to get the block nodes from a theme.json file.
+	 *
+	 * @return array The block nodes in theme.json.
+	 */
+	public function get_styles_block_nodes() {
+		return static::get_block_nodes( $this->theme_json );
+	}
+
+	/**
+	 * An internal method to get the block nodes from a theme.json file.
+	 *
+	 * @param array $theme_json The theme.json converted to an array.
+	 *
+	 * @return array The block nodes in theme.json.
+	 */
+	private static function get_block_nodes( $theme_json ) {
+		$selectors = static::get_blocks_metadata();
+		$nodes     = array();
+		if ( ! isset( $theme_json['styles'] ) ) {
+			return $nodes;
+		}
+
+		// Blocks.
+		if ( ! isset( $theme_json['styles']['blocks'] ) ) {
+			return $nodes;
+		}
+
 		foreach ( $theme_json['styles']['blocks'] as $name => $node ) {
 			$selector = null;
 			if ( isset( $selectors[ $name ]['selector'] ) ) {
@@ -1514,6 +1548,7 @@ class WP_Theme_JSON {
 			}
 
 			$nodes[] = array(
+				'name'     => $name,
 				'path'     => array( 'styles', 'blocks', $name ),
 				'selector' => $selector,
 				'duotone'  => $duotone_selector,
@@ -1530,6 +1565,22 @@ class WP_Theme_JSON {
 		}
 
 		return $nodes;
+	}
+
+	/**
+	 * Gets the CSS rules for a particular block from theme.json.
+	 *
+	 * @param array $block_metadata Meta data about the block to get styles for.
+	 *
+	 * @return array Styles for the block.
+	 */
+	public function get_styles_for_block( $block_metadata ) {
+		$node         = _wp_array_get( $this->theme_json, $block_metadata['path'], array() );
+		$selector     = $block_metadata['selector'];
+		$settings     = _wp_array_get( $this->theme_json, array( 'settings' ) );
+		$declarations = static::compute_style_properties( $node, $settings );
+		$block_rules  = static::to_ruleset( $selector, $declarations );
+		return $block_rules;
 	}
 
 	/**
