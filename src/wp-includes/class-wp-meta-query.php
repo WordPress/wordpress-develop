@@ -102,7 +102,7 @@ class WP_Meta_Query {
 	 * @since 5.1.0 Introduced `$compare_key` clause parameter, which enables LIKE key matches.
 	 * @since 5.3.0 Increased the number of operators available to `$compare_key`. Introduced `$type_key`,
 	 *              which enables the `$key` to be cast to a new data type for comparisons.
-	 * @since 6.0.0 Introduced `$compare_key_like_mode` and `$compare_like_mode` to `LIKE` queries.
+	 * @since 6.1.0 Introduced `$compare_key_like_mode` and `$compare_like_mode` to `LIKE` queries.
 	 *
 	 * @param array $meta_query {
 	 *     Array of meta query clauses. When first-order clauses or sub-clauses use strings as
