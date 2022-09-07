@@ -4,6 +4,7 @@
  *
  * @package WordPress
  */
+defined( 'ABSPATH' ) || exit;
 
 define( 'BLOCKS_PATH', ABSPATH . WPINC . '/blocks/' );
 
