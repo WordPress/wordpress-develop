@@ -2467,10 +2467,11 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		}
 
 		if ( $found ) {
-			// Allow CSS calc().
-			$css_test_string = preg_replace( '/calc\(((?:\([^()]*\)?|[^()])*)\)/', '', $css_test_string );
+			// Allow some CSS functions.
+			$css_test_string = preg_replace( '/\b(?:calc|min|max|minmax|clamp)\(((?:\([^()]*\)?|[^()])*)\)/', '', $css_test_string );
+
 			// Allow CSS var().
-			$css_test_string = preg_replace( '/\(?var\(--[a-zA-Z0-9_-]*\)/', '', $css_test_string );
+			$css_test_string = preg_replace( '/\(?var\(--[\w\-\()[\]\,\s]*\)/', '', $css_test_string );
 
 			// Check for any CSS containing \ ( & } = or comments,
 			// except for url(), calc(), or var() usage checked above.
