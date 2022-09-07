@@ -2,6 +2,8 @@
 
 /**
  * @group compat
+ *
+ * @covers ::str_contains
  */
 class Tests_Compat_strContains extends WP_UnitTestCase {
 

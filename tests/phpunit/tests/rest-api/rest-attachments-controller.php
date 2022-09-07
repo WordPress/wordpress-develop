@@ -93,6 +93,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		add_filter( 'rest_pre_dispatch', array( $this, 'wpSetUpBeforeRequest' ), 10, 3 );
 		add_filter( 'posts_clauses', array( $this, 'save_posts_clauses' ), 10, 2 );
+		add_filter( 'image_editor_output_format', '__return_empty_array' );
 	}
 
 	public function wpSetUpBeforeRequest( $result ) {
@@ -120,6 +121,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			WP_Image_Editor_Mock::$edit_return = array();
 			WP_Image_Editor_Mock::$size_return = null;
 		}
+
+		remove_filter( 'image_editor_output_format', '__return_empty_array' );
 
 		parent::tear_down();
 	}
@@ -182,7 +185,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 		// Single.
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -243,7 +246,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function test_registered_get_item_params() {
-		$id1      = $this->factory->attachment->create_object(
+		$id1      = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -263,7 +266,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 43701
 	 */
 	public function test_allow_header_sent_on_options_request() {
-		$id1      = $this->factory->attachment->create_object(
+		$id1      = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -291,7 +294,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	public function test_get_items() {
 		wp_set_current_user( 0 );
-		$id1            = $this->factory->attachment->create_object(
+		$id1            = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -299,8 +302,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				'post_excerpt'   => 'A sample caption',
 			)
 		);
-		$draft_post     = $this->factory->post->create( array( 'post_status' => 'draft' ) );
-		$id2            = $this->factory->attachment->create_object(
+		$draft_post     = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+		$id2            = self::factory()->attachment->create_object(
 			$this->test_file,
 			$draft_post,
 			array(
@@ -308,8 +311,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				'post_excerpt'   => 'A sample caption',
 			)
 		);
-		$published_post = $this->factory->post->create( array( 'post_status' => 'publish' ) );
-		$id3            = $this->factory->attachment->create_object(
+		$published_post = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$id3            = self::factory()->attachment->create_object(
 			$this->test_file,
 			$published_post,
 			array(
@@ -331,7 +334,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	public function test_get_items_logged_in_editor() {
 		wp_set_current_user( self::$editor_id );
-		$id1            = $this->factory->attachment->create_object(
+		$id1            = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -339,8 +342,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				'post_excerpt'   => 'A sample caption',
 			)
 		);
-		$draft_post     = $this->factory->post->create( array( 'post_status' => 'draft' ) );
-		$id2            = $this->factory->attachment->create_object(
+		$draft_post     = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+		$id2            = self::factory()->attachment->create_object(
 			$this->test_file,
 			$draft_post,
 			array(
@@ -348,8 +351,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				'post_excerpt'   => 'A sample caption',
 			)
 		);
-		$published_post = $this->factory->post->create( array( 'post_status' => 'publish' ) );
-		$id3            = $this->factory->attachment->create_object(
+		$published_post = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$id3            = self::factory()->attachment->create_object(
 			$this->test_file,
 			$published_post,
 			array(
@@ -369,7 +372,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function test_get_items_media_type() {
-		$id1      = $this->factory->attachment->create_object(
+		$id1      = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -392,7 +395,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function test_get_items_mime_type() {
-		$id1      = $this->factory->attachment->create_object(
+		$id1      = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -415,8 +418,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function test_get_items_parent() {
-		$post_id        = $this->factory->post->create( array( 'post_title' => 'Test Post' ) );
-		$attachment_id  = $this->factory->attachment->create_object(
+		$post_id        = self::factory()->post->create( array( 'post_title' => 'Test Post' ) );
+		$attachment_id  = self::factory()->attachment->create_object(
 			$this->test_file,
 			$post_id,
 			array(
@@ -424,7 +427,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				'post_excerpt'   => 'A sample caption',
 			)
 		);
-		$attachment_id2 = $this->factory->attachment->create_object(
+		$attachment_id2 = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -460,7 +463,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	public function test_get_items_invalid_status_param_is_error_response() {
 		wp_set_current_user( self::$editor_id );
-		$this->factory->attachment->create_object(
+		self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -478,7 +481,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	public function test_get_items_private_status() {
 		// Logged out users can't make the request.
 		wp_set_current_user( 0 );
-		$attachment_id1 = $this->factory->attachment->create_object(
+		$attachment_id1 = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -502,7 +505,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	public function test_get_items_multiple_statuses() {
 		// Logged out users can't make the request.
 		wp_set_current_user( 0 );
-		$attachment_id1 = $this->factory->attachment->create_object(
+		$attachment_id1 = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -511,7 +514,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				'post_status'    => 'private',
 			)
 		);
-		$attachment_id2 = $this->factory->attachment->create_object(
+		$attachment_id2 = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -547,7 +550,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function test_get_items_valid_date() {
-		$id1     = $this->factory->attachment->create_object(
+		$id1     = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -556,7 +559,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				'post_excerpt'   => 'A sample caption',
 			)
 		);
-		$id2     = $this->factory->attachment->create_object(
+		$id2     = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -565,7 +568,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				'post_excerpt'   => 'A sample caption',
 			)
 		);
-		$id3     = $this->factory->attachment->create_object(
+		$id3     = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -598,7 +601,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 50617
 	 */
 	public function test_get_items_valid_modified_date() {
-		$id1 = $this->factory->attachment->create_object(
+		$id1 = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -607,7 +610,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				'post_excerpt'   => 'A sample caption',
 			)
 		);
-		$id2 = $this->factory->attachment->create_object(
+		$id2 = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -616,7 +619,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				'post_excerpt'   => 'A sample caption',
 			)
 		);
-		$id3 = $this->factory->attachment->create_object(
+		$id3 = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -658,7 +661,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 55677
 	 */
 	public function test_get_items_with_empty_page_runs_count_query_after() {
-		$this->factory->attachment->create_object(
+		self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -680,7 +683,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function test_get_item() {
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -700,7 +703,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @requires function imagejpeg
 	 */
 	public function test_get_item_sizes() {
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -731,7 +734,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @requires function imagejpeg
 	 */
 	public function test_get_item_sizes_with_no_url() {
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -758,8 +761,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	public function test_get_item_private_post_not_authenticated() {
 		wp_set_current_user( 0 );
-		$draft_post = $this->factory->post->create( array( 'post_status' => 'draft' ) );
-		$id1        = $this->factory->attachment->create_object(
+		$draft_post = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+		$id1        = self::factory()->attachment->create_object(
 			$this->test_file,
 			$draft_post,
 			array(
@@ -773,7 +776,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function test_get_item_inherit_status_with_invalid_parent() {
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$this->test_file,
 			REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
 			array(
@@ -790,7 +793,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function test_get_item_auto_status_with_invalid_parent_not_authenticated_returns_error() {
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$this->test_file,
 			REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
 			array(
@@ -960,7 +963,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function test_create_item_invalid_edit_permissions() {
-		$post_id = $this->factory->post->create( array( 'post_author' => self::$editor_id ) );
+		$post_id = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
 		wp_set_current_user( self::$author_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_param( 'post', $post_id );
@@ -969,7 +972,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function test_create_item_invalid_upload_permissions() {
-		$post_id = $this->factory->post->create( array( 'post_author' => self::$editor_id ) );
+		$post_id = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
 		wp_set_current_user( self::$uploader_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_param( 'post', $post_id );
@@ -978,7 +981,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function test_create_item_invalid_post_type() {
-		$attachment_id = $this->factory->post->create(
+		$attachment_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'attachment',
 				'post_status' => 'inherit',
@@ -1043,7 +1046,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	public function test_update_item() {
 		wp_set_current_user( self::$editor_id );
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -1072,8 +1075,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	public function test_update_item_parent() {
 		wp_set_current_user( self::$editor_id );
-		$original_parent = $this->factory->post->create( array() );
-		$attachment_id   = $this->factory->attachment->create_object(
+		$original_parent = self::factory()->post->create( array() );
+		$attachment_id   = self::factory()->attachment->create_object(
 			$this->test_file,
 			$original_parent,
 			array(
@@ -1086,7 +1089,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$attachment = get_post( $attachment_id );
 		$this->assertSame( $original_parent, $attachment->post_parent );
 
-		$new_parent = $this->factory->post->create( array() );
+		$new_parent = self::factory()->post->create( array() );
 		$request    = new WP_REST_Request( 'POST', '/wp/v2/media/' . $attachment_id );
 		$request->set_param( 'post', $new_parent );
 		rest_get_server()->dispatch( $request );
@@ -1097,7 +1100,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	public function test_update_item_invalid_permissions() {
 		wp_set_current_user( self::$author_id );
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -1113,7 +1116,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function test_update_item_invalid_post_type() {
-		$attachment_id = $this->factory->post->create(
+		$attachment_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'attachment',
 				'post_status' => 'inherit',
@@ -1121,7 +1124,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			)
 		);
 		wp_set_current_user( self::$editor_id );
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -1445,7 +1448,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	public function test_delete_item() {
 		wp_set_current_user( self::$editor_id );
-		$attachment_id    = $this->factory->attachment->create_object(
+		$attachment_id    = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -1461,7 +1464,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	public function test_delete_item_no_trash() {
 		wp_set_current_user( self::$editor_id );
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -1486,7 +1489,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	public function test_delete_item_invalid_delete_permissions() {
 		wp_set_current_user( self::$author_id );
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -1501,7 +1504,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function test_prepare_item() {
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -1520,7 +1523,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function test_prepare_item_limit_fields() {
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -1611,7 +1614,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayHasKey( 'my_custom_int', $data['schema']['properties'] );
 		$this->assertSame( $schema, $data['schema']['properties']['my_custom_int'] );
 
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -1648,7 +1651,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		);
 
 		wp_set_current_user( self::$editor_id );
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -1674,14 +1677,14 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function test_search_item_by_filename() {
-		$id1 = $this->factory->attachment->create_object(
+		$id1 = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
 				'post_mime_type' => 'image/jpeg',
 			)
 		);
-		$id2 = $this->factory->attachment->create_object(
+		$id2 = self::factory()->attachment->create_object(
 			$this->test_file2,
 			0,
 			array(
@@ -1932,7 +1935,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		add_action( 'rest_after_insert_attachment', array( $this, 'filter_rest_after_insert_attachment' ) );
 
 		wp_set_current_user( self::$editor_id );
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$this->test_file,
 			0,
 			array(
@@ -2261,47 +2264,5 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				return array( 'WP_Image_Editor_Mock' );
 			}
 		);
-	}
-
-	/**
-	 * @ticket 55443
-	 */
-	public function test_image_sources_to_rest_response() {
-
-		$attachment_id = self::factory()->attachment->create_upload_object( $this->test_file );
-		$metadata      = wp_get_attachment_metadata( $attachment_id );
-		$request       = new WP_REST_Request();
-		$request['id'] = $attachment_id;
-		$controller    = new WP_REST_Attachments_Controller( 'attachment' );
-		$response      = $controller->get_item( $request );
-
-		$this->assertNotWPError( $response );
-
-		$data       = $response->get_data();
-		$mime_types = array(
-			'image/jpeg',
-		);
-
-		if ( wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
-			array_push( $mime_types, 'image/webp' );
-		}
-
-		foreach ( $data['media_details']['sizes'] as $size_name => $properties ) {
-			if ( ! isset( $metadata['sizes'][ $size_name ]['sources'] ) ) {
-				continue;
-			}
-
-			$this->assertArrayHasKey( 'sources', $properties );
-			$this->assertIsArray( $properties['sources'] );
-
-			foreach ( $mime_types as $mime_type ) {
-				$this->assertArrayHasKey( $mime_type, $properties['sources'] );
-				$this->assertArrayHasKey( 'filesize', $properties['sources'][ $mime_type ] );
-				$this->assertArrayHasKey( 'file', $properties['sources'][ $mime_type ] );
-				$this->assertArrayHasKey( 'source_url', $properties['sources'][ $mime_type ] );
-				$this->assertNotFalse( filter_var( $properties['sources'][ $mime_type ]['source_url'], FILTER_VALIDATE_URL ) );
-			}
-		}
-		$this->assertArrayNotHasKey( 'sources', $data['media_details'] );
 	}
 }
