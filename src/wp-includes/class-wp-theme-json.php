@@ -349,7 +349,7 @@ class WP_Theme_JSON {
 	 * Note: this will effect both top level and block level elements.
 	 */
 	const VALID_ELEMENT_PSEUDO_SELECTORS = array(
-		'link' => array( ':hover', ':focus', ':active', ':visited' ),
+		'link'   => array( ':hover', ':focus', ':active', ':visited' ),
 		'button' => array( ':hover', ':focus', ':active', ':visited' ),
 	);
 
@@ -376,7 +376,7 @@ class WP_Theme_JSON {
 	);
 
 	const __EXPERIMENTAL_ELEMENT_CLASS_NAMES = array(
-		'button' => 'wp-element-button',
+		'button'  => 'wp-element-button',
 		'caption' => 'wp-element-caption',
 	);
 
