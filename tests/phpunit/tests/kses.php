@@ -1141,6 +1141,16 @@ EOF;
 				'css'      => 'width: clamp(100px, 50%, 100vw)',
 				'expected' => 'width: clamp(100px, 50%, 100vw)',
 			),
+			// Allow two functions in the same CSS.
+			array(
+				'css'      => 'width: clamp(min(100px, 350px), 50%, 500px), 600px)',
+				'expected' => 'width: clamp(min(100px, 350px), 50%, 500px), 600px)',
+			),
+			// Allow gradient() function.
+			array(
+				'css'      => 'background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(0,212,255,1) 100%)',
+				'expected' => 'background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(0,212,255,1) 100%)',
+			),
 			// Combined CSS function names.
 			array(
 				'css'      => 'width: calcmax(100px + 50%)',
@@ -1161,15 +1171,30 @@ EOF;
 				'css'      => 'padding: var(--wp-var1, 10px)',
 				'expected' => 'padding: var(--wp-var1, 10px)',
 			),
+			// Allow var() with fallback (percentage).
+			array(
+				'css'      => 'padding: var(--wp-var1, 50%)',
+				'expected' => 'padding: var(--wp-var1, 50%)',
+			),
 			// Allow var() with fallback var().
 			array(
 				'css'      => 'background-color: var(--wp-var, var(--wp-var-fallback, pink))',
 				'expected' => 'background-color: var(--wp-var, var(--wp-var-fallback, pink))',
 			),
+			// Allow var() with square brackets.
+			array(
+				'css'      => 'background-color: var(--wp-var, [pink])',
+				'expected' => 'background-color: var(--wp-var, [pink])',
+			),
 			// Allow calc() with var().
 			array(
 				'css'      => 'margin-top: calc(var(--wp-var1) * 3 + 2em)',
 				'expected' => 'margin-top: calc(var(--wp-var1) * 3 + 2em)',
+			),
+			// Malformed var() with fallback.
+			array(
+				'css'      => 'padding: var(--wp-var1, 50$)',
+				'expected' => '',
 			),
 			// Malformed min, no closing `)`.
 			array(
