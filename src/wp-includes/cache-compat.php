@@ -2,7 +2,7 @@
 /**
  * Object Cache API functions missing from 3rd party object caches.
  *
- * @link https://codex.wordpress.org/Class_Reference/WP_Object_Cache
+ * @link https://developer.wordpress.org/reference/classes/wp_object_cache/
  *
  * @package WordPress
  * @subpackage Cache
@@ -139,5 +139,52 @@ if ( ! function_exists( 'wp_cache_flush_runtime' ) ) :
 	 */
 	function wp_cache_flush_runtime() {
 		return wp_using_ext_object_cache() ? false : wp_cache_flush();
+	}
+endif;
+
+if ( ! function_exists( 'wp_cache_flush_group' ) ) :
+	/**
+	 * Removes all cache items in a group, if the object cache implementation supports it.
+	 *
+	 * Before calling this function, always check for group flushing support using the
+	 * `wp_cache_supports_group_flush()` function.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @see WP_Object_Cache::flush_group()
+	 * @global WP_Object_Cache $wp_object_cache Object cache global instance.
+	 *
+	 * @param string $group Name of group to remove from cache.
+	 * @return bool True if group was flushed, false otherwise.
+	 */
+	function wp_cache_flush_group( $group ) {
+		global $wp_object_cache;
+
+		if ( ! wp_cache_supports_group_flush() ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				__( 'Your object cache implementation does not support flushing individual groups.' ),
+				'6.1.0'
+			);
+
+			return false;
+		}
+
+		return $wp_object_cache->flush_group( $group );
+	}
+endif;
+
+if ( ! function_exists( 'wp_cache_supports_group_flush' ) ) :
+	/**
+	 * Determines whether the object cache implementation supports flushing individual cache groups.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @see WP_Object_Cache::flush_group()
+	 *
+	 * @return bool True if group flushing is supported, false otherwise.
+	 */
+	function wp_cache_supports_group_flush() {
+		return false;
 	}
 endif;

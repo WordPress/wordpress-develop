@@ -115,7 +115,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 
 		$install_actions = array();
 
-		if ( current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) {
+		if ( current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) && ! $theme_info->is_block_theme() ) {
 			$customize_url = add_query_arg(
 				array(
 					'theme'  => urlencode( $stylesheet ),
@@ -301,7 +301,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 			$error = sprintf(
 				/* translators: 1: Current PHP version, 2: Version required by the uploaded theme. */
 				__( 'The PHP version on your server is %1$s, however the uploaded theme requires %2$s.' ),
-				phpversion(),
+				PHP_VERSION,
 				$requires_php
 			);
 

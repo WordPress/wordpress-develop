@@ -14,6 +14,11 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	protected static $administrator;
 	protected static $author;
 
+	/**
+	 * @var WP_REST_Settings_Controller
+	 */
+	private $endpoint;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$administrator = $factory->user->create(
 			array(
@@ -70,7 +75,11 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 404, $response->get_status() );
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_context_param() {
+		// Controller does not use get_context_param().
 	}
 
 	public function test_get_item_is_not_public_not_authenticated() {
@@ -106,6 +115,9 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 			'default_category',
 			'default_post_format',
 			'posts_per_page',
+			'show_on_front',
+			'page_on_front',
+			'page_for_posts',
 			'default_ping_status',
 			'default_comment_status',
 			'site_icon', // Registered in wp-includes/blocks/site-logo.php
@@ -374,8 +386,11 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertNull( $data['mycustomsettinginrest'] );
 	}
 
-
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_create_item() {
+		// Controller does not implement create_item().
 	}
 
 	public function test_update_item() {
@@ -655,10 +670,18 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 404, $response->get_status() );
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_prepare_item() {
+		// Controller does not implement prepare_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_get_item_schema() {
+		// Controller does not implement get_item_schema().
 	}
 
 	/**

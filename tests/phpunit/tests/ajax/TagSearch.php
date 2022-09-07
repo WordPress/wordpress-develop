@@ -12,6 +12,8 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
  * @subpackage UnitTests
  * @since      3.4.0
  * @group      ajax
+ *
+ * @covers ::wp_ajax_ajax_tag_search
  */
 class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 
@@ -156,4 +158,38 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 		$this->_handleAjax( 'ajax-tag-search' );
 	}
 
+	/**
+	 * Test the ajax_term_search_results filter
+	 *
+	 * @ticket 55606
+	 */
+	public function test_ajax_term_search_results_filter() {
+
+		// Become an administrator.
+		$this->_setRole( 'administrator' );
+
+		// Set up a default request.
+		$_GET['tax'] = 'post_tag';
+		$_GET['q']   = 'chat';
+
+		// Add the ajax_term_search_results filter.
+		add_filter(
+			'ajax_term_search_results',
+			static function( $results, $tax, $s ) {
+				return array( 'ajax_term_search_results was applied' );
+			},
+			10,
+			3
+		);
+
+		// Make the request.
+		try {
+			$this->_handleAjax( 'ajax-tag-search', $_GET['tax'], $_GET['q'] );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+
+		// Ensure we found the right match.
+		$this->assertSame( 'ajax_term_search_results was applied', $this->_last_response );
+	}
 }

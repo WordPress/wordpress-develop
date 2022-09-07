@@ -547,7 +547,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Get the name of the default primary column.
+	 * Gets the name of the default primary column.
 	 *
 	 * @since 4.3.0
 	 *
@@ -648,7 +648,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Generate and display row actions links.
+	 * Generates and displays row actions links.
 	 *
 	 * @since 4.3.0
 	 * @since 5.9.0 Renamed `$comment` to `$item` to match parent class for PHP 8 named parameter support.
@@ -677,7 +677,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 		$comment            = $item;
 		$the_comment_status = wp_get_comment_status( $comment );
 
-		$out = '';
+		$output = '';
 
 		$del_nonce     = esc_html( '_wpnonce=' . wp_create_nonce( "delete-comment_$comment->comment_ID" ) );
 		$approve_nonce = esc_html( '_wpnonce=' . wp_create_nonce( "approve-comment_$comment->comment_ID" ) );
@@ -832,7 +832,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 			$always_visible = true;
 		}
 
-		$out .= '<div class="' . ( $always_visible ? 'row-actions visible' : 'row-actions' ) . '">';
+		$output .= '<div class="' . ( $always_visible ? 'row-actions visible' : 'row-actions' ) . '">';
 
 		$i = 0;
 
@@ -842,9 +842,9 @@ class WP_Comments_List_Table extends WP_List_Table {
 			if ( ( ( 'approve' === $action || 'unapprove' === $action ) && 2 === $i )
 				|| 1 === $i
 			) {
-				$sep = '';
+				$separator = '';
 			} else {
-				$sep = ' | ';
+				$separator = ' | ';
 			}
 
 			// Reply and quickedit need a hide-if-no-js span when not added with Ajax.
@@ -860,14 +860,14 @@ class WP_Comments_List_Table extends WP_List_Table {
 				}
 			}
 
-			$out .= "<span class='$action'>$sep$link</span>";
+			$output .= "<span class='$action'>{$separator}{$link}</span>";
 		}
 
-		$out .= '</div>';
+		$output .= '</div>';
 
-		$out .= '<button type="button" class="toggle-row"><span class="screen-reader-text">' . __( 'Show more details' ) . '</span></button>';
+		$output .= '<button type="button" class="toggle-row"><span class="screen-reader-text">' . __( 'Show more details' ) . '</span></button>';
 
-		return $out;
+		return $output;
 	}
 
 	/**
@@ -917,9 +917,9 @@ class WP_Comments_List_Table extends WP_List_Table {
 			?>
 		<div id="inline-<?php echo $comment->comment_ID; ?>" class="hidden">
 			<textarea class="comment" rows="1" cols="1"><?php echo esc_textarea( $comment_content ); ?></textarea>
-			<div class="author-email"><?php echo esc_attr( $comment->comment_author_email ); ?></div>
-			<div class="author"><?php echo esc_attr( $comment->comment_author ); ?></div>
-			<div class="author-url"><?php echo esc_attr( $comment->comment_author_url ); ?></div>
+			<div class="author-email"><?php echo esc_html( $comment->comment_author_email ); ?></div>
+			<div class="author"><?php echo esc_html( $comment->comment_author ); ?></div>
+			<div class="author-url"><?php echo esc_url( $comment->comment_author_url ); ?></div>
 			<div class="comment_status"><?php echo $comment->comment_approved; ?></div>
 		</div>
 			<?php

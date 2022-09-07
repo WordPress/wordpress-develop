@@ -123,7 +123,7 @@ function wp_insert_site( array $data ) {
 		 * Fires immediately after a new site is created.
 		 *
 		 * @since MU (3.0.0)
-		 * @deprecated 5.1.0 Use {@see 'wp_insert_site'} instead.
+		 * @deprecated 5.1.0 Use {@see 'wp_initialize_site'} instead.
 		 *
 		 * @param int    $site_id    Site ID.
 		 * @param int    $user_id    User ID.
@@ -136,7 +136,7 @@ function wp_insert_site( array $data ) {
 			'wpmu_new_blog',
 			array( $new_site->id, $user_id, $new_site->domain, $new_site->path, $new_site->network_id, $meta ),
 			'5.1.0',
-			'wp_insert_site'
+			'wp_initialize_site'
 		);
 	}
 
@@ -339,7 +339,7 @@ function get_site( $site = null ) {
  *
  * @since 4.6.0
  * @since 5.1.0 Introduced the `$update_meta_cache` parameter.
- * @access private
+ * @since 6.1.0 This function is no longer marked as "private".
  *
  * @see update_site_cache()
  * @global wpdb $wpdb WordPress database abstraction object.
@@ -1247,7 +1247,7 @@ function wp_maybe_transition_site_statuses_on_update( $new_site, $old_site = nul
  * @since 5.1.0
  *
  * @param WP_Site $new_site The site object after the update.
- * @param WP_Site $old_site The site obejct prior to the update.
+ * @param WP_Site $old_site The site object prior to the update.
  */
 function wp_maybe_clean_new_site_cache_on_update( $new_site, $old_site ) {
 	if ( $old_site->domain !== $new_site->domain || $old_site->path !== $new_site->path ) {

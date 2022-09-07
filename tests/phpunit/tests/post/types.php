@@ -163,6 +163,23 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		$this->assertSame( $public, $args->show_in_admin_bar );
 	}
 
+	/**
+	 * @ticket 53212
+	 * @covers ::register_post_type
+	 */
+	public function test_fires_registered_post_type_actions() {
+		$post_type = 'cpt';
+		$action    = new MockAction();
+
+		add_action( 'registered_post_type', array( $action, 'action' ) );
+		add_action( "registered_post_type_{$post_type}", array( $action, 'action' ) );
+
+		register_post_type( $post_type );
+		register_post_type( $this->post_type );
+
+		$this->assertSame( 3, $action->get_call_count() );
+	}
+
 	public function test_register_taxonomy_for_object_type() {
 		global $wp_taxonomies;
 
