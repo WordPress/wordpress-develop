@@ -2621,4 +2621,18 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$this->assertEqualSetsWithIndex( $expected, $actual );
 	}
+
+	function test_get_element_class_name_button() {
+		$expected = 'wp-element-button';
+		$actual   = WP_Theme_JSON::get_element_class_name( 'button' );
+
+		$this->assertEquals( $expected, $actual );
+	}
+
+	function test_get_element_class_name_invalid() {
+		$expected = '';
+		$actual   = WP_Theme_JSON::get_element_class_name( 'unknown-element' );
+
+		$this->assertEquals( $expected, $actual );
+	}
 }

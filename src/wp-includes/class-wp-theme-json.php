@@ -343,8 +343,6 @@ class WP_Theme_JSON {
 		),
 	);
 
-	const __EXPERIMENTAL_ELEMENT_BUTTON_CLASS_NAME = 'wp-element-button';
-
 	/**
 	 * The valid elements that can be found under styles.
 	 *
@@ -366,6 +364,23 @@ class WP_Theme_JSON {
 		// The block classes are necessary to target older content that won't use the new class names.
 		'caption' => '.wp-element-caption, .wp-block-audio figcaption, .wp-block-embed figcaption, .wp-block-gallery figcaption, .wp-block-image figcaption, .wp-block-table figcaption, .wp-block-video figcaption',
 	);
+
+	const __EXPERIMENTAL_ELEMENT_CLASS_NAMES = array(
+		'button' => 'wp-element-button',
+	);
+
+	/**
+	 * Given an element name, returns a class name.
+	 *
+	 * @param string $element The name of the element.
+	 *
+	 * @return string The name of the class.
+	 *
+	 * @since 6.1.0
+	 */
+	public static function get_element_class_name( $element ) {
+		return array_key_exists( $element, static::__EXPERIMENTAL_ELEMENT_CLASS_NAMES ) ? static::__EXPERIMENTAL_ELEMENT_CLASS_NAMES[ $element ] : '';
+	}
 
 	/**
 	 * Options that settings.appearanceTools enables.
