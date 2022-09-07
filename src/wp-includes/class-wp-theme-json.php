@@ -1368,9 +1368,10 @@ class WP_Theme_JSON {
 	 * @param array $styles    Styles to process.
 	 * @param array $settings  Theme settings.
 	 * @param array $properties Properties metadata.
+	 * @param array $theme_json Theme JSON array.
 	 * @return array Returns the modified $declarations.
 	 */
-	protected static function compute_style_properties( $styles, $settings = array(), $properties = null ) {
+	protected static function compute_style_properties( $styles, $settings = array(), $properties = null, $theme_json = null ) {
 		if ( null === $properties ) {
 			$properties = static::PROPERTIES_METADATA;
 		}
@@ -1381,7 +1382,7 @@ class WP_Theme_JSON {
 		}
 
 		foreach ( $properties as $css_property => $value_path ) {
-			$value = static::get_property_value( $styles, $value_path );
+			$value = static::get_property_value( $styles, $value_path, $theme_json );
 
 			// Look up protected properties, keyed by value path.
 			// Skip protected properties that are explicitly set to `null`.
@@ -1417,20 +1418,44 @@ class WP_Theme_JSON {
 	 * "var:preset|color|secondary" to the form
 	 * "--wp--preset--color--secondary".
 	 *
+	 * It also converts references to a path to the value
+	 * stored at that location, e.g.
+	 * { "ref": "style.color.background" } => "#fff".
+	 *
 	 * @since 5.8.0
 	 * @since 5.9.0 Added support for values of array type, which are returned as is.
 	 *
 	 * @param array $styles Styles subtree.
 	 * @param array $path   Which property to process.
+	 * @param array $theme_json Theme JSON array.
 	 * @return string|array Style property value.
 	 */
-	protected static function get_property_value( $styles, $path ) {
+	protected static function get_property_value( $styles, $path, $theme_json = null ) {
 		$value = _wp_array_get( $styles, $path, '' );
+
+		// This converts references to a path to the value at that path
+		// where the values is an array with a "ref" key, pointing to a path.
+		// For example: { "ref": "style.color.background" } => "#fff".
+		if ( is_array( $value ) && array_key_exists( 'ref', $value ) ) {
+			$value_path = explode( '.', $value['ref'] );
+			$ref_value  = _wp_array_get( $theme_json, $value_path );
+			// Only use the ref value if we find anything.
+			if ( ! empty( $ref_value ) && is_string( $ref_value ) ) {
+				$value = $ref_value;
+			}
+
+			if ( is_array( $ref_value ) && array_key_exists( 'ref', $ref_value ) ) {
+				$path_string      = json_encode( $path );
+				$ref_value_string = json_encode( $ref_value );
+				_doing_it_wrong( 'get_property_value', "Your theme.json file uses a dynamic value (${ref_value_string}) for the path at ${path_string}. However, the value at ${path_string} is also a dynamic value (pointing to ${ref_value['ref']}) and pointing to another dynamic value is not supported. Please update ${path_string} to point directly to ${ref_value['ref']}.", '6.1.0' );
+			}
+		}
 
 		if ( '' === $value || is_array( $value ) ) {
 			return $value;
 		}
 
+		// Convert custom CSS properties.
 		$prefix     = 'var:';
 		$prefix_len = strlen( $prefix );
 		$token_in   = '|';
@@ -1671,15 +1696,15 @@ class WP_Theme_JSON {
 		// element then compute the style properties for it.
 		// Otherwise just compute the styles for the default selector as normal.
 		if ( $pseudo_selector && isset( $node[ $pseudo_selector ] ) && isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] ) && in_array( $pseudo_selector, static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ], true ) ) {
-			$declarations = static::compute_style_properties( $node[ $pseudo_selector ], $settings );
+			$declarations = static::compute_style_properties( $node[ $pseudo_selector ], $settings, null, $this->theme_json );
 		} else {
-			$declarations = static::compute_style_properties( $node, $settings );
+			$declarations = static::compute_style_properties( $node, $settings, null, $this->theme_json );
 		}
 
 		$block_rules = '';
 
 		$block_rules .= static::to_ruleset( $selector, $declarations );
-		
+
 		return $block_rules;
 	}
 

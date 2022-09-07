@@ -726,9 +726,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	function test_get_stylesheet_handles_whitelisted_element_pseudo_selectors() {
-		$theme_json = new WP_Theme_JSON_Gutenberg(
+		$theme_json = new WP_Theme_JSON(
 			array(
-				'version' => WP_Theme_JSON_Gutenberg::LATEST_SCHEMA,
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 				'styles'  => array(
 					'elements' => array(
 						'link' => array(
@@ -769,9 +769,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	function test_get_stylesheet_handles_only_psuedo_selector_rules_for_given_property() {
-		$theme_json = new WP_Theme_JSON_Gutenberg(
+		$theme_json = new WP_Theme_JSON(
 			array(
-				'version' => WP_Theme_JSON_Gutenberg::LATEST_SCHEMA,
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 				'styles'  => array(
 					'elements' => array(
 						'link' => array(
@@ -808,9 +808,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	function test_get_stylesheet_ignores_pseudo_selectors_on_non_whitelisted_elements() {
-		$theme_json = new WP_Theme_JSON_Gutenberg(
+		$theme_json = new WP_Theme_JSON(
 			array(
-				'version' => WP_Theme_JSON_Gutenberg::LATEST_SCHEMA,
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 				'styles'  => array(
 					'elements' => array(
 						'h4' => array(
@@ -847,9 +847,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	function test_get_stylesheet_ignores_non_whitelisted_pseudo_selectors() {
-		$theme_json = new WP_Theme_JSON_Gutenberg(
+		$theme_json = new WP_Theme_JSON(
 			array(
-				'version' => WP_Theme_JSON_Gutenberg::LATEST_SCHEMA,
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 				'styles'  => array(
 					'elements' => array(
 						'link' => array(
@@ -887,9 +887,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	function test_get_stylesheet_handles_priority_of_elements_vs_block_elements_pseudo_selectors() {
-		$theme_json = new WP_Theme_JSON_Gutenberg(
+		$theme_json = new WP_Theme_JSON(
 			array(
-				'version' => WP_Theme_JSON_Gutenberg::LATEST_SCHEMA,
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 				'styles'  => array(
 					'blocks' => array(
 						'core/group' => array(
@@ -934,9 +934,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	function test_get_stylesheet_handles_whitelisted_block_level_element_pseudo_selectors() {
-		$theme_json = new WP_Theme_JSON_Gutenberg(
+		$theme_json = new WP_Theme_JSON(
 			array(
-				'version' => WP_Theme_JSON_Gutenberg::LATEST_SCHEMA,
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 				'styles'  => array(
 					'elements' => array(
 						'link' => array(
@@ -2342,9 +2342,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	function test_remove_invalid_element_pseudo_selectors() {
-		$actual = WP_Theme_JSON_Gutenberg::remove_insecure_properties(
+		$actual = WP_Theme_JSON::remove_insecure_properties(
 			array(
-				'version' => WP_Theme_JSON_Gutenberg::LATEST_SCHEMA,
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 				'styles'  => array(
 					'elements' => array(
 						'link' => array(
@@ -2366,7 +2366,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$expected = array(
-			'version' => WP_Theme_JSON_Gutenberg::LATEST_SCHEMA,
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
 			'styles'  => array(
 				'elements' => array(
 					'link' => array(
@@ -2937,4 +2937,120 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$this->assertEquals( $expected, $actual );
 	}
+
+	/**
+	 * Testing that dynamic properties in theme.json return the value they refrence, e.g.
+	 * array( 'ref' => 'styles.color.background' ) => "#ffffff".
+	 */
+	function test_get_property_value_valid() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => 2,
+				'styles'  => array(
+					'color'    => array(
+						'background' => '#ffffff',
+						'text'       => '#000000',
+					),
+					'elements' => array(
+						'button' => array(
+							'color' => array(
+								'background' => array( 'ref' => 'styles.color.text' ),
+								'text'       => array( 'ref' => 'styles.color.background' ),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = 'body { margin: 0; }body{background-color: #ffffff;color: #000000;}.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-element-button, .wp-block-button__link{background-color: #000000;color: #ffffff;}';
+		$this->assertEquals( $expected, $theme_json->get_stylesheet() );
+	}
+
+	/**
+	 * Testing that dynamic properties in theme.json that
+	 * refer to other dynamic properties in a loop
+	 * then they should be left untouched.
+	 *
+	 * @expectedIncorrectUsage get_property_value
+	 */
+	function test_get_property_value_loop() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => 2,
+				'styles'  => array(
+					'color'    => array(
+						'background' => '#ffffff',
+						'text'       => array( 'ref' => 'styles.elements.button.color.background' ),
+					),
+					'elements' => array(
+						'button' => array(
+							'color' => array(
+								'background' => array( 'ref' => 'styles.color.text' ),
+								'text'       => array( 'ref' => 'styles.color.background' ),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = 'body { margin: 0; }body{background-color: #ffffff;}.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-element-button, .wp-block-button__link{color: #ffffff;}';
+		$this->assertSame( $expected, $theme_json->get_stylesheet() );
+	}
+
+	/**
+	 * Testing that dynamic properties in theme.json that
+	 * refer to other dynamic properties then they should be left unprocessed.
+	 *
+	 * @expectedIncorrectUsage get_property_value
+	 */
+	function test_get_property_value_recursion() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => 2,
+				'styles'  => array(
+					'color'    => array(
+						'background' => '#ffffff',
+						'text'       => array( 'ref' => 'styles.color.background' ),
+					),
+					'elements' => array(
+						'button' => array(
+							'color' => array(
+								'background' => array( 'ref' => 'styles.color.text' ),
+								'text'       => array( 'ref' => 'styles.color.background' ),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = 'body { margin: 0; }body{background-color: #ffffff;color: #ffffff;}.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-element-button, .wp-block-button__link{color: #ffffff;}';
+		$this->assertEquals( $expected, $theme_json->get_stylesheet() );
+	}
+
+	/**
+	 * Testing that dynamic properties in theme.json that
+	 * refer to themselves then they should be left unprocessed.
+	 *
+	 * @expectedIncorrectUsage get_property_value
+	 */
+	function test_get_property_value_self() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => 2,
+				'styles'  => array(
+					'color' => array(
+						'background' => '#ffffff',
+						'text'       => array( 'ref' => 'styles.color.text' ),
+					),
+				),
+			)
+		);
+
+		$expected = 'body { margin: 0; }body{background-color: #ffffff;}.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }';
+		$this->assertEquals( $expected, $theme_json->get_stylesheet() );
+	}
+
 }
