@@ -611,6 +611,10 @@ class WP_Theme_JSON {
 			foreach ( static::ELEMENTS as $el_name => $el_selector ) {
 				$element_selector = array();
 				foreach ( $block_selectors as $selector ) {
+					if ( $selector === $el_selector ) {
+						$element_selector = array( $el_selector );
+						break;
+					}
 					$element_selector[] = $selector . ' ' . $el_selector;
 				}
 				static::$blocks_metadata[ $block_name ]['elements'][ $el_name ] = implode( ',', $element_selector );
