@@ -4,10 +4,6 @@ const { execSync } = require( 'child_process' );
 
 dotenvExpand.expand( dotenv.config() );
 
-if ( process.arch === 'arm64' ) {
-	process.env.LOCAL_DB_TYPE = `amd64/${process.env.LOCAL_DB_TYPE}`;
-}
-
 // Start the local-env containers.
 const containers = ( process.env.LOCAL_PHP_MEMCACHED === 'true' )
 	? 'wordpress-develop memcached'
