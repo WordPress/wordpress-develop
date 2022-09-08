@@ -20,7 +20,7 @@
 class WP_Style_Engine_Processor {
 
 	/**
-	 * The Style-Engine Store objects
+	 * A collection of Style Engine Store objects.
 	 *
 	 * @since 6.1.0
 	 * @var WP_Style_Engine_CSS_Rules_Store[]
