@@ -37,7 +37,7 @@ class Tests_Style_Engine_wpStyleEngineCSSRule extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that declaration properties are deduplicated.
+	 * Tests that declaration properties are deduplicated.
 	 *
 	 * @ticket 56467
 	 * @covers ::add_declarations
@@ -59,7 +59,7 @@ class Tests_Style_Engine_wpStyleEngineCSSRule extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that declarations can be added to existing rules.
+	 * Tests that declarations can be added to existing rules.
 	 *
 	 * @ticket 56467
 	 * @covers ::add_declarations
@@ -78,7 +78,7 @@ class Tests_Style_Engine_wpStyleEngineCSSRule extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test setting a selector to a rule.
+	 * Tests setting a selector to a rule.
 	 *
 	 * @ticket 56467
 	 * @covers ::set_selector

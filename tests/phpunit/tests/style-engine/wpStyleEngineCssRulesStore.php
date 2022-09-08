@@ -24,7 +24,7 @@ class Tests_Style_Engine_wpStyleEngineCSSRulesStore extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test creating a new store on instantiation.
+	 * Tests creating a new store on instantiation.
 	 *
 	 * @ticket 56467
 	 * @covers ::__construct
