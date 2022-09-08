@@ -66,10 +66,10 @@ function _get_list_table( $class_name, $args = array() ) {
 		 * @param string $class_name The list table class to use.
 		 * @param array  $args       An array containing _get_list_table() arguments.
 		 */
-		$class_name = apply_filters( 'wp_list_table_class_name', $class_name, $args );
+		$custom_class_name = apply_filters( 'wp_list_table_class_name', $class_name, $args );
 
-		if ( ! is_string( $class_name ) || ! class_exists( $class_name ) ) {
-			return false;
+		if ( is_string( $custom_class_name ) && class_exists( $custom_class_name ) ) {
+			$class_name = $custom_class_name;
 		}
 
 		return new $class_name( $args );
