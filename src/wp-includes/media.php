@@ -3934,6 +3934,11 @@ function wp_default_image_output_mapping( $output_mapping, $filename, $mime_type
 		);
 
 		// Add any custom sizes that have secondarly mime output enabled.
+		foreach( $__wp_additional_image_sizes as $size => $size_data ) {
+			if ( ! empty( $size_data['additional_mime_types'] ) ) {
+				$enabled_sizes[ $size ] = true;
+			}
+		}
 
 		/**
 		 * Filters the sizes that support secondary mime type output. Developers can use this
