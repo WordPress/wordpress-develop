@@ -1,8 +1,6 @@
 <?php
 /**
  * @group block-supports
- *
- * @covers ::wp_apply_typography_support
  */
 class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	/**
@@ -18,13 +16,16 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	function tear_down() {
 		unregister_block_type( $this->test_block_name );
 		$this->test_block_name = null;
-		parent::set_up();
+		parent::tear_down();
 	}
 
 	/**
+	 * Tests whether slugs with numbers are kebab cased.
+	 *
 	 * @ticket 54337
+	 * @covers ::wp_apply_typography_support
 	 */
-	function test_font_size_slug_with_numbers_is_kebab_cased_properly() {
+	function test_should_kebab_case_font_size_slug_with_numbers() {
 		$this->test_block_name = 'test/font-size-slug-with-numbers';
 		register_block_type(
 			$this->test_block_name,
@@ -52,10 +53,14 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $actual );
 	}
+
 	/**
+	 * Tests legacy inline styles for font family.
+	 *
 	 * @ticket 54337
+	 * @covers ::wp_apply_typography_support
 	 */
-	function test_font_family_with_legacy_inline_styles_using_a_value() {
+	function test_should_generate_font_family_with_legacy_inline_styles_using_a_value() {
 		$this->test_block_name = 'test/font-family-with-inline-styles-using-value';
 		register_block_type(
 			$this->test_block_name,
@@ -84,9 +89,12 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests skipping serialization.
+	 *
 	 * @ticket 55505
+	 * @covers ::wp_apply_typography_support
 	 */
-	function test_typography_with_skipped_serialization_block_supports() {
+	function test_should_skip_serialization_for_typography_block_supports() {
 		$this->test_block_name = 'test/typography-with-skipped-serialization-block-supports';
 		register_block_type(
 			$this->test_block_name,
@@ -128,9 +136,12 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests skipping serialization of individual block supports properties.
+	 *
 	 * @ticket 55505
+	 * @covers ::wp_apply_typography_support
 	 */
-	function test_letter_spacing_with_individual_skipped_serialization_block_supports() {
+	function test_should_skip_serialization_for_letter_spacing_block_supports() {
 		$this->test_block_name = 'test/letter-spacing-with-individual-skipped-serialization-block-supports';
 		register_block_type(
 			$this->test_block_name,
@@ -160,10 +171,14 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $actual );
 	}
+
 	/**
+	 * Tests legacy css var inline styles for font family.
+	 *
 	 * @ticket 54337
+	 * @covers ::wp_apply_typography_support
 	 */
-	function test_font_family_with_legacy_inline_styles_using_a_css_var() {
+	function test_should_generate_css_var_for_font_family_with_legacy_inline_styles() {
 		$this->test_block_name = 'test/font-family-with-inline-styles-using-css-var';
 		register_block_type(
 			$this->test_block_name,
@@ -190,10 +205,14 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $actual );
 	}
+
 	/**
+	 * Tests that a classname is generated for font family.
+	 *
 	 * @ticket 54337
+	 * @covers ::wp_apply_typography_support
 	 */
-	function test_font_family_with_class() {
+	function test_should_generate_classname_for_font_family() {
 		$this->test_block_name = 'test/font-family-with-class';
 		register_block_type(
 			$this->test_block_name,
@@ -225,8 +244,21 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * Tests generating font size values, including fluid formulae, from fontSizes preset.
 	 *
 	 * @ticket 56467
+	 * @covers ::wp_get_typography_font_size_value
+	 * @covers ::wp_get_typography_value_and_unit
+	 * @covers ::wp_get_computed_fluid_typography_value
 	 *
 	 * @dataProvider data_generate_font_size_preset_fixtures
+	 *
+	 * @param array  $font_size_preset                     {
+	 *      Required. fontSizes preset value as seen in theme.json.
+	 *
+	 *     @type string $name Name of the font size preset.
+	 *     @type string $slug Kebab-case unique identifier for the font size preset.
+	 *     @type string $size CSS font-size value, including units where applicable.
+	 * }
+	 * @param bool   $should_use_fluid_typography An override to switch fluid typography "on". Can be used for unit testing.
+	 * @param string $expected_output Expected output of gutenberg_get_typography_font_size_value().
 	 */
 	function test_wp_get_typography_font_size_value( $font_size_preset, $should_use_fluid_typography, $expected_output ) {
 		$actual = wp_get_typography_font_size_value( $font_size_preset, $should_use_fluid_typography );
@@ -235,7 +267,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for test_wp_get_typography_font_size_value.
 	 *
 	 * @return array
 	 */
