@@ -2468,14 +2468,16 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		}
 
 		if ( $found ) {
-			// Allow some CSS functions.
-			$css_test_string = preg_replace( '/\b(?:calc|min|max|minmax|clamp)\(((?:\([^()]*\)?|[^()])*)\)/', '', $css_test_string );
+			// Allow specific CSS functions and any nested ()s within them,
+			// provided that all ()s are balanced.
+			$css_test_string = preg_replace(
+				'/(?(R)(?<ident>\b(?:var|calc|min|max|minmax|clamp))?|(?&ident))\(([^)(]|(?R))*\)/',
+				'',
+				$css_test_string
+			);
 
-			// Allow CSS var().
-			$css_test_string = preg_replace( '/\(?var\(--[\w|%\-\()[\]\,\s]*\)/', '', $css_test_string );
-
-			// Check for any CSS containing \ ( & } = or comments,
-			// except for url(), calc(), or var() usage checked above.
+			// Disallow CSS containing \ ( & } = or comments, except for within
+			// url(), var(), calc(), etc. which were removed above.
 			$allow_css = ! preg_match( '%[\\\(&=}]|/\*%', $css_test_string );
 
 			/**

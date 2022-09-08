@@ -1161,6 +1161,11 @@ EOF;
 				'css'      => 'width: calc(2em + 3px)',
 				'expected' => 'width: calc(2em + 3px)',
 			),
+			// Allow calc() with nested brackets.
+			array(
+				'css'      => 'width: calc(3em + (10px * 2))',
+				'expected' => 'width: calc(3em + (10px * 2))',
+			),
 			// Allow var().
 			array(
 				'css'      => 'padding: var(--wp-var1) var(--wp-var2)',
@@ -1191,11 +1196,6 @@ EOF;
 				'css'      => 'margin-top: calc(var(--wp-var1) * 3 + 2em)',
 				'expected' => 'margin-top: calc(var(--wp-var1) * 3 + 2em)',
 			),
-			// Malformed var() with fallback.
-			array(
-				'css'      => 'padding: var(--wp-var1, 50$)',
-				'expected' => '',
-			),
 			// Malformed min, no closing `)`.
 			array(
 				'css'      => 'width: min(3em + 10px',
@@ -1219,6 +1219,21 @@ EOF;
 			// Malformed var, no closing `)`.
 			array(
 				'css'      => 'width: var(--wp-var1',
+				'expected' => '',
+			),
+			// Malformed calc, mismatching brackets.
+			array(
+				'css'      => 'width: calc(3em + (10px * 2)',
+				'expected' => '',
+			),
+			// Malformed var, mismatching brackets.
+			array(
+				'css'      => 'background-color: var(--wp-var, var(--wp-var-fallback, pink)',
+				'expected' => '',
+			),
+			// Don't allow expressions outside of a calc().
+			array(
+				'css'      => 'width: (3em + (10px * 2))',
 				'expected' => '',
 			),
 		);
