@@ -11,42 +11,41 @@ window.wp = window.wp || {};
 			try {
 				var image         = media[ i ],
 					media_details = image.media_details,
-					media_sources = media_details.sources,
 					sizes         = media_details.sizes,
 					sizes_keys    = Object.keys( sizes );
 
 				// If the full image has no JPEG version available, no sub-size will have JPEG available either.
-				if ( sizes.full && ! sizes.full.sources['image/jpeg'] ) {
+				if ( sizes.full && 'image/jpeg' !== sizes.full.mime_type ) {
 					continue;
 				}
 
 				var images = document.querySelectorAll( 'img.wp-image-' + image.id );
-
 				for ( var j = 0; j < images.length; j++ ) {
 
 					var src = images[ j ].src;
 
-					// If there are sources but no sizes, then attempt to replace src through sources. In that case, there is nothing more to replace.
-					if ( media_sources && ! sizes_keys.length ) {
-						// Only modify src if available and the relevant sources are set.
-						if ( src && media_sources['image/webp'] && media_sources['image/jpeg'] ) {
-							src = src.replace( media_sources['image/webp'].file, media_sources['image/jpeg'].file );
-							images[ j ].setAttribute( 'src', src );
-						}
+					// If there are no sizes, there is nothing more to replace.
+					if ( ! sizes_keys.length ) {
 						continue;
 					}
 
 					var srcset = images[ j ].getAttribute( 'srcset' );
 
 					for ( var k = 0; k < sizes_keys.length; k++ ) {
-						var media_sizes_sources = sizes[ sizes_keys[ k ] ].sources;
-						if ( ! media_sizes_sources || ! media_sizes_sources['image/webp'] || ! media_sizes_sources['image/jpeg'] ) {
+						var original_size_key  = sizes_keys[ k ],
+							original_sizes     = sizes[ original_size_key ],
+							original_mime_type = original_sizes.mime_type;
+
+						if ( ! original_mime_type || 'image/webp' !== original_mime_type ) {
 							continue;
 						}
 
+						var original_filesize     = original_sizes.filesize,
+							original_aspect_ratio = original_sizes.width / original_sizes.height;
+
 						// Check to see if the image src has any size set, then update it.
-						if ( media_sizes_sources['image/webp'].source_url === src ) {
-							src = media_sizes_sources['image/jpeg'].source_url;
+						if ( original_sizes.source_url === src ) {
+							src = replaceImageUrl( sizes, sizes_keys, original_size_key, original_aspect_ratio, original_filesize );
 
 							// If there is no srcset and the src has been replaced, there is nothing more to replace.
 							if ( ! srcset ) {
@@ -55,7 +54,8 @@ window.wp = window.wp || {};
 						}
 
 						if ( srcset ) {
-							srcset = srcset.replace( media_sizes_sources['image/webp'].source_url, media_sizes_sources['image/jpeg'].source_url );
+							var replaceimage = replaceImageUrl( sizes, sizes_keys, original_size_key, original_aspect_ratio, original_filesize ),
+								srcset       = srcset.replace( original_sizes.source_url, replaceimage );
 						}
 					}
 
@@ -69,6 +69,28 @@ window.wp = window.wp || {};
 				}
 			} catch ( e ) {
 			}
+		}
+	};
+
+	var replaceImageUrl = function( sizes, sizes_keys, original_size_key, original_aspect_ratio, original_filesize ) {
+		for ( var i = 0; i < sizes_keys.length; i++ ) {
+			var src = sizes.full.source_url,
+				size_key = sizes_keys[ i ],
+				size = sizes[ size_key ],
+				mime_type = size.mime_type;
+
+			if ( size_key !== original_size_key ) {
+				if ( 'image/jpeg' !== mime_type ) {
+					continue;
+				}
+
+				var filesize = size.filesize,
+					aspect_ratio = size.width / size.height;
+				if ( aspect_ratio === original_aspect_ratio && filesize > original_filesize ) {
+					src = size.source_url;
+				}
+			}
+			return src;
 		}
 	};
 

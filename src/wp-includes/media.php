@@ -1763,6 +1763,8 @@ function wp_lazy_loading_enabled( $tag_name, $context ) {
  * @since 5.5.0
  * @since 5.7.0 Now supports adding `loading` attributes to `iframe` tags.
  *
+ * @global bool $_wp_image_mime_fallback_should_load
+ *
  * @see wp_img_tag_add_width_and_height_attr()
  * @see wp_img_tag_add_srcset_and_sizes_attr()
  * @see wp_img_tag_add_loading_attr()
@@ -1774,6 +1776,8 @@ function wp_lazy_loading_enabled( $tag_name, $context ) {
  * @return string Converted content with images modified.
  */
 function wp_filter_content_tags( $content, $context = null ) {
+	global $_wp_image_mime_fallback_should_load;
+
 	if ( null === $context ) {
 		$context = current_filter();
 	}
@@ -1850,6 +1854,10 @@ function wp_filter_content_tags( $content, $context = null ) {
 			// Add 'decoding=async' attribute unless a 'decoding' attribute is already present.
 			if ( ! str_contains( $filtered_image, ' decoding=' ) ) {
 				$filtered_image = wp_img_tag_add_decoding_attr( $filtered_image, $context );
+			}
+
+			if ( strpos( $filtered_image, '.webp' ) ) {
+				$_wp_image_mime_fallback_should_load = true;
 			}
 
 			/**
