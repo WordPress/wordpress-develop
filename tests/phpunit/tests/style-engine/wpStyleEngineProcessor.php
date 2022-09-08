@@ -153,7 +153,8 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 		$an_excellent_processor->add_rules( $another_excellent_rule );
 		$this->assertEquals(
 			'.an-excellent-rule{color:var(--excellent-color);border-style:dotted;border-color:brown;}',
-			$an_excellent_processor->get_css( array( 'prettify' => false ) )
+			$an_excellent_processor->get_css( array( 'prettify' => false ) ),
+			'Return value of get_css() does not match expectations with new, deduped and merged declarations.'
 		);
 
 		$yet_another_excellent_rule = new WP_Style_Engine_CSS_Rule( '.an-excellent-rule' );
@@ -167,7 +168,8 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 		$an_excellent_processor->add_rules( $yet_another_excellent_rule );
 		$this->assertEquals(
 			'.an-excellent-rule{color:var(--excellent-color);border-style:dashed;border-color:brown;border-width:2px;}',
-			$an_excellent_processor->get_css( array( 'prettify' => false ) )
+			$an_excellent_processor->get_css( array( 'prettify' => false ) ),
+			'Return value of get_css() does not match expectations with deduped and merged declarations.'
 		);
 	}
 
@@ -270,7 +272,11 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 			)
 		);
 		$a_lovely_processor->add_rules( $a_lovelier_rule );
-		$this->assertEquals( '.a-lovely-rule,.a-lovelier-rule{border-color:purple;}', $a_lovely_processor->get_css( array( 'prettify' => false ) ) );
+		$this->assertEquals(
+			'.a-lovely-rule,.a-lovelier-rule{border-color:purple;}',
+			$a_lovely_processor->get_css( array( 'prettify' => false ) ),
+			'Return value of get_css() does not match expectations when combining 2 CSS rules'
+		);
 
 		$a_most_lovely_rule = new WP_Style_Engine_CSS_Rule(
 			'.a-most-lovely-rule',
@@ -290,7 +296,8 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 
 		$this->assertEquals(
 			'.a-lovely-rule,.a-lovelier-rule,.a-most-lovely-rule,.a-perfectly-lovely-rule{border-color:purple;}',
-			$a_lovely_processor->get_css( array( 'prettify' => false ) )
+			$a_lovely_processor->get_css( array( 'prettify' => false ) ),
+			'Return value of get_css() does not match expectations when combining 4 CSS rules'
 		);
 	}
 }
