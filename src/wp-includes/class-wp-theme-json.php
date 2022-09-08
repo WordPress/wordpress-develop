@@ -1560,15 +1560,17 @@ class WP_Theme_JSON {
 	 *
 	 * @since 5.8.0
 	 * @since 5.9.0 Added the `$settings` and `$properties` parameters.
-	 * @since 6.1.0 Added the `$theme_json` parameter.
+	 * @since 6.1.0 Added `$theme_json`, `$selector`, and `$use_root_padding` parameters.
 	 *
-	 * @param array $styles    Styles to process.
-	 * @param array $settings  Theme settings.
-	 * @param array $properties Properties metadata.
-	 * @param array $theme_json Theme JSON array.
-	 * @return array Returns the modified $declarations.
+	 * @param array   $styles Styles to process.
+	 * @param array   $settings Theme settings.
+	 * @param array   $properties Properties metadata.
+	 * @param array   $theme_json Theme JSON array.
+	 * @param string  $selector The style block selector.
+	 * @param boolean $use_root_padding Whether to add custom properties at root level.
+	 * @return array  Returns the modified $declarations.
 	 */
-	protected static function compute_style_properties( $styles, $settings = array(), $properties = null, $theme_json = null ) {
+	protected static function compute_style_properties( $styles, $settings = array(), $properties = null, $theme_json = null, $selector = null, $use_root_padding = null ) {
 		if ( null === $properties ) {
 			$properties = static::PROPERTIES_METADATA;
 		}
@@ -1578,8 +1580,23 @@ class WP_Theme_JSON {
 			return $declarations;
 		}
 
+		$root_variable_duplicates = array();
+
 		foreach ( $properties as $css_property => $value_path ) {
 			$value = static::get_property_value( $styles, $value_path, $theme_json );
+
+			if ( str_starts_with( $css_property, '--wp--style--root--' ) && ( static::ROOT_BLOCK_SELECTOR !== $selector || ! $use_root_padding ) ) {
+				continue;
+			}
+			// Root-level padding styles don't currently support strings with CSS shorthand values.
+			// This may change: https://github.com/WordPress/gutenberg/issues/40132.
+			if ( '--wp--style--root--padding' === $css_property && is_string( $value ) ) {
+				continue;
+			}
+
+			if ( str_starts_with( $css_property, '--wp--style--root--' ) && $use_root_padding ) {
+				$root_variable_duplicates[] = substr( $css_property, strlen( '--wp--style--root--' ) );
+			}
 
 			// Look up protected properties, keyed by value path.
 			// Skip protected properties that are explicitly set to `null`.
@@ -1603,6 +1620,14 @@ class WP_Theme_JSON {
 				'name'  => $css_property,
 				'value' => $value,
 			);
+		}
+
+		// If a variable value is added to the root, the corresponding property should be removed.
+		foreach ( $root_variable_duplicates as $duplicate ) {
+			$discard = array_search( $duplicate, array_column( $declarations, 'name' ), true );
+			if ( is_numeric( $discard ) ) {
+				array_splice( $declarations, $discard, 1 );
+			}
 		}
 
 		return $declarations;
