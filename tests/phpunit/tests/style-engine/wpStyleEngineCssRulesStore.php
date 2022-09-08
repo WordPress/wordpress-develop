@@ -10,28 +10,37 @@
  */
 
 /**
- * Tests for registering, storing and retrieving CSS Rules.
+ * Tests for registering, storing and retrieving a collection of CSS Rules (a store).
+ *
+ * @coversDefaultClass WP_Style_Engine_CSS_Rules_Store
  */
-class WP_Style_Engine_CSS_Rules_Store_Test extends WP_UnitTestCase {
+class Tests_Style_Engine_wpStyleEngineCSSRulesStore extends WP_UnitTestCase {
 	/**
 	 * Tear down after each test.
 	 */
 	public function tear_down() {
-		parent::tear_down();
 		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
+		parent::tear_down();
 	}
+
 	/**
-	 * Should create a new store.
+	 * Test creating a new store on instantiation.
+	 *
+	 * @ticket 56467
+	 * @covers ::__construct
 	 */
-	public function test_create_new_store() {
+	public function test_should_create_new_store_on_instantiation() {
 		$new_pancakes_store = WP_Style_Engine_CSS_Rules_Store::get_store( 'pancakes-with-strawberries' );
 		$this->assertInstanceOf( 'WP_Style_Engine_CSS_Rules_Store', $new_pancakes_store );
 	}
 
 	/**
-	 * Should not create a new store with invalid $store_name.
+	 * Tests that a `$store_name` argument is required and no store will be created without one.
+	 *
+	 * @ticket 56467
+	 * @covers ::get_store
 	 */
-	public function test_store_name_required() {
+	public function test_should_not_create_store_without_a_store_name() {
 		$not_a_store = WP_Style_Engine_CSS_Rules_Store::get_store( '' );
 		$this->assertEmpty( $not_a_store );
 
@@ -43,9 +52,12 @@ class WP_Style_Engine_CSS_Rules_Store_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Should return previously created store when the same selector key is passed.
+	 * Tests returning a previously created store when the same selector key is passed.
+	 *
+	 * @ticket 56467
+	 * @covers ::get_store
 	 */
-	public function test_get_store() {
+	public function test_should_return_existing_store() {
 		$new_fish_store = WP_Style_Engine_CSS_Rules_Store::get_store( 'fish-n-chips' );
 		$selector       = '.haddock';
 
@@ -57,9 +69,12 @@ class WP_Style_Engine_CSS_Rules_Store_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Should return all previously created stores.
+	 * Tests returning all previously created stores.
+	 *
+	 * @ticket 56467
+	 * @covers ::get_stores
 	 */
-	public function test_get_stores() {
+	public function test_should_get_all_existing_stores() {
 		$burrito_store    = WP_Style_Engine_CSS_Rules_Store::get_store( 'burrito' );
 		$quesadilla_store = WP_Style_Engine_CSS_Rules_Store::get_store( 'quesadilla' );
 		$this->assertEquals(
@@ -72,9 +87,12 @@ class WP_Style_Engine_CSS_Rules_Store_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Should delete all previously created stores.
+	 * Tests that all previously created stores are deleted.
+	 *
+	 * @ticket 56467
+	 * @covers ::remove_all_stores
 	 */
-	public function test_remove_all_stores() {
+	public function test_should_remove_all_stores() {
 		$dolmades_store = WP_Style_Engine_CSS_Rules_Store::get_store( 'dolmades' );
 		$tzatziki_store = WP_Style_Engine_CSS_Rules_Store::get_store( 'tzatziki' );
 		$this->assertEquals(
@@ -92,9 +110,12 @@ class WP_Style_Engine_CSS_Rules_Store_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Should return a stored rule.
+	 * Tests adding rules to an existing store.
+	 *
+	 * @ticket 56467
+	 * @covers ::add_rule
 	 */
-	public function test_add_rule() {
+	public function test_should_add_rule_to_existing_store() {
 		$new_pie_store = WP_Style_Engine_CSS_Rules_Store::get_store( 'meat-pie' );
 		$selector      = '.wp-block-sauce a:hover';
 		$store_rule    = $new_pie_store->add_rule( $selector );
@@ -115,9 +136,12 @@ class WP_Style_Engine_CSS_Rules_Store_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Should return all stored rules.
+	 * Tests that all stored rule objects are returned.
+	 *
+	 * @ticket 56467
+	 * @covers ::get_all_rules
 	 */
-	public function test_get_all_rules() {
+	public function test_should_get_all_rule_objects_for_a_store() {
 		$new_pizza_store = WP_Style_Engine_CSS_Rules_Store::get_store( 'pizza-with-mozzarella' );
 		$selector        = '.wp-block-anchovies a:hover';
 		$store_rule      = $new_pizza_store->add_rule( $selector );

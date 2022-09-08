@@ -63,6 +63,7 @@ class WP_Style_Engine_Processor {
 		if ( ! is_array( $css_rules ) ) {
 			$css_rules = array( $css_rules );
 		}
+
 		foreach ( $css_rules as $rule ) {
 			$selector = $rule->get_selector();
 			if ( isset( $this->css_rules[ $selector ] ) ) {
@@ -80,10 +81,12 @@ class WP_Style_Engine_Processor {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param array $options array(
-	 *    'optimize' => (boolean) Whether to optimize the CSS output, e.g., combine rules.
-	 *    'prettify' => (boolean) Whether to add new lines to output.
-	 * );.
+	 * @param array $options   {
+	 *     Optional. An array of options. Default empty array.
+	 *
+	 *     @type boolean $optimize Whether to optimize the CSS output, e.g., combine rules. Default is `false`.
+	 *     @type boolean $prettify Whether to add new lines and indents to output. Default is the test of whether the global constant `SCRIPT_DEBUG` is defined.
+	 * }
 	 *
 	 * @return string The computed CSS.
 	 */

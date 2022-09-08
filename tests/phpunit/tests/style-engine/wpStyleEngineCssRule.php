@@ -10,13 +10,18 @@
  */
 
 /**
- * Tests for registering, storing and generating CSS declarations.
+ * Tests for registering, storing and generating CSS rules.
+ *
+ * @coversDefaultClass WP_Style_Engine_CSS_Rule
  */
-class WP_Style_Engine_CSS_Rule_Test extends WP_UnitTestCase {
+class Tests_Style_Engine_wpStyleEngineCSSRule extends WP_UnitTestCase {
 	/**
-	 * Should set declarations on instantiation.
+	 * Tests that declarations are set on instantiation.
+	 *
+	 * @ticket 56467
+	 * @covers ::__construct
 	 */
-	public function test_instantiate_with_selector_and_rules() {
+	public function test_should_instantiate_with_selector_and_rules() {
 		$selector           = '.law-and-order';
 		$input_declarations = array(
 			'margin-top' => '10px',
@@ -32,9 +37,13 @@ class WP_Style_Engine_CSS_Rule_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test dedupe declaration properties.
+	 * Test that declaration properties are deduplicated.
+	 *
+	 * @ticket 56467
+	 * @covers ::add_declarations
+	 * @covers ::get_css
 	 */
-	public function test_dedupe_properties_in_rules() {
+	public function test_should_dedupe_properties_in_rules() {
 		$selector                    = '.taggart';
 		$first_declaration           = array(
 			'font-size' => '2rem',
@@ -50,9 +59,13 @@ class WP_Style_Engine_CSS_Rule_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Should add declarations.
+	 * Test that declarations can be added to existing rules.
+	 *
+	 * @ticket 56467
+	 * @covers ::add_declarations
+	 * @covers ::get_css
 	 */
-	public function test_add_declarations() {
+	public function test_should_add_declarations_to_existing_rules() {
 		// Declarations using a WP_Style_Engine_CSS_Declarations object.
 		$some_css_declarations = new WP_Style_Engine_CSS_Declarations( array( 'margin-top' => '10px' ) );
 		// Declarations using a property => value array.
@@ -65,9 +78,12 @@ class WP_Style_Engine_CSS_Rule_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Should set selector.
+	 * Test setting a selector to a rule.
+	 *
+	 * @ticket 56467
+	 * @covers ::set_selector
 	 */
-	public function test_set_selector() {
+	public function test_should_set_selector() {
 		$selector = '.taggart';
 		$css_rule = new WP_Style_Engine_CSS_Rule( $selector );
 
@@ -79,9 +95,12 @@ class WP_Style_Engine_CSS_Rule_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Should generate CSS rules.
+	 * Tests generating a CSS rule string.
+	 *
+	 * @ticket 56467
+	 * @covers ::get_css
 	 */
-	public function test_get_css() {
+	public function test_should_generate_css_rule_string() {
 		$selector           = '.chips';
 		$input_declarations = array(
 			'margin-top' => '10px',
@@ -95,9 +114,12 @@ class WP_Style_Engine_CSS_Rule_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Should return empty string with no declarations.
+	 * Tests that an empty string will be returned where there are no declarations in a CSS rule.
+	 *
+	 * @ticket 56467
+	 * @covers ::get_css
 	 */
-	public function test_get_css_no_declarations() {
+	public function test_should_return_empty_string_with_no_declarations() {
 		$selector           = '.holmes';
 		$input_declarations = array();
 		$css_declarations   = new WP_Style_Engine_CSS_Declarations( $input_declarations );
@@ -107,9 +129,12 @@ class WP_Style_Engine_CSS_Rule_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Should generate prettified CSS rules.
+	 * Tests that CSS rules are prettified.
+	 *
+	 * @ticket 56467
+	 * @covers ::get_css
 	 */
-	public function test_get_prettified_css() {
+	public function test_should_prettify_css_rule_output() {
 		$selector           = '.baptiste';
 		$input_declarations = array(
 			'margin-left' => '0',

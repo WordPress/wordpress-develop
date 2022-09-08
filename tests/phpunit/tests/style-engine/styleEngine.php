@@ -17,19 +17,20 @@ class WP_Style_Engine_Test extends WP_UnitTestCase {
 	 * Tear down after each test.
 	 */
 	public function tear_down() {
-		parent::tear_down();
 		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
+		parent::tear_down();
 	}
 
 	/**
 	 * Tests generating block styles and classnames based on various manifestations of the $block_styles argument.
 	 *
+	 * @ticket 56467
 	 * @covers ::wp_style_engine_get_styles
 	 *
 	 * @dataProvider data_get_styles_fixtures
 	 *
-	 * @param array  $block_styles The incoming block styles object.
-	 * @param array  $options Style engine options.
+	 * @param array  $block_styles    The incoming block styles object.
+	 * @param array  $options         Style engine options.
 	 * @param string $expected_output The expected output.
 	 */
 	public function test_wp_style_engine_get_styles( $block_styles, $options, $expected_output ) {
@@ -494,9 +495,10 @@ class WP_Style_Engine_Test extends WP_UnitTestCase {
 	/**
 	 * Tests adding rules to a store and retrieving a generated stylesheet.
 	 *
+	 * @ticket 56467
 	 * @covers ::wp_style_engine_get_styles
 	 */
-	public function test_wp_style_engine_get_styles_and_store_using_context() {
+	public function test_should_store_block_styles_using_context() {
 		$block_styles = array(
 			'spacing' => array(
 				'padding' => array(
@@ -521,11 +523,12 @@ class WP_Style_Engine_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests adding rules to a store and retrieving a generated stylesheet.
+	 * Tests that passing no context does not store styles.
 	 *
+	 * @ticket 56467
 	 * @covers ::wp_style_engine_get_styles
 	 */
-	public function test_wp_style_engine_get_styles_without_context() {
+	public function test_should_not_store_block_styles_without_context() {
 		$block_styles = array(
 			'typography' => array(
 				'fontSize' => '999px',
@@ -547,9 +550,10 @@ class WP_Style_Engine_Test extends WP_UnitTestCase {
 	/**
 	 * Tests adding rules to a store and retrieving a generated stylesheet.
 	 *
+	 * @ticket 56467
 	 * @covers ::wp_style_engine_get_stylesheet_from_context
 	 */
-	public function test_wp_style_engine_get_stylesheet_from_context() {
+	public function test_should_get_stored_stylesheet_from_context() {
 		$css_rules           = array(
 			array(
 				'selector'     => '.frodo',
@@ -581,11 +585,12 @@ class WP_Style_Engine_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests retrieving a generated stylesheet from any rules.
+	 * Tests returning a generated stylesheet from a set of rules.
 	 *
+	 * @ticket 56467
 	 * @covers ::wp_style_engine_get_stylesheet_from_css_rules
 	 */
-	public function test_wp_style_engine_get_stylesheet_from_css_rules() {
+	public function test_should_return_stylesheet_from_css_rules() {
 		$css_rules = array(
 			array(
 				'selector'     => '.saruman',
@@ -623,9 +628,10 @@ class WP_Style_Engine_Test extends WP_UnitTestCase {
 	/**
 	 * Tests that incoming styles are deduped and merged.
 	 *
+	 * @ticket 56467
 	 * @covers ::wp_style_engine_get_stylesheet_from_css_rules
 	 */
-	public function test_wp_style_engine_get_stylesheet_from_css_rules_dedupes_and_merges() {
+	public function test_should_dedupe_and_merge_css_rules() {
 		$css_rules = array(
 			array(
 				'selector'     => '.gandalf',
