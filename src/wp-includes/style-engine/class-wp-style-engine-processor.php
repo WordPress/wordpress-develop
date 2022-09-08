@@ -36,7 +36,7 @@ class WP_Style_Engine_Processor {
 	protected $css_rules = array();
 
 	/**
-	 * Add a store to the processor.
+	 * Adds a store to the processor.
 	 *
 	 * @since 6.1.0
 	 *
@@ -44,7 +44,16 @@ class WP_Style_Engine_Processor {
 	 *
 	 * @return WP_Style_Engine_Processor Returns the object to allow chaining methods.
 	 */
-	public function add_store( WP_Style_Engine_CSS_Rules_Store $store ) {
+	public function add_store( $store ) {
+		if ( ! $store instanceof WP_Style_Engine_CSS_Rules_Store ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( '$store must be an instance of WP_Style_Engine_CSS_Rules_Store' ),
+				'6.1.0'
+			);
+			return $this;
+		}
+
 		$this->stores[ $store->get_name() ] = $store;
 
 		return $this;
@@ -53,7 +62,7 @@ class WP_Style_Engine_Processor {
 	/**
 	 * Adds rules to be processed.
 	 *
-	 * @since 6.1.0
+	 * @since 6.1.0 a store to t
 	 *
 	 * @param WP_Style_Engine_CSS_Rule|WP_Style_Engine_CSS_Rule[] $css_rules A single, or an array of, WP_Style_Engine_CSS_Rule objects from a store or otherwise.
 	 *
@@ -77,15 +86,15 @@ class WP_Style_Engine_Processor {
 	}
 
 	/**
-	 * Get the CSS rules as a string.
+	 * Gets the CSS rules as a string.
 	 *
 	 * @since 6.1.0
 	 *
 	 * @param array $options   {
 	 *     Optional. An array of options. Default empty array.
 	 *
-	 *     @type boolean $optimize Whether to optimize the CSS output, e.g., combine rules. Default is `false`.
-	 *     @type boolean $prettify Whether to add new lines and indents to output. Default is the test of whether the global constant `SCRIPT_DEBUG` is defined.
+	 *     @type bool $optimize Whether to optimize the CSS output, e.g., combine rules. Default is `false`.
+	 *     @type bool $prettify Whether to add new lines and indents to output. Default is the test of whether the global constant `SCRIPT_DEBUG` is defined.
 	 * }
 	 *
 	 * @return string The computed CSS.
