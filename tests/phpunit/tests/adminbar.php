@@ -742,22 +742,27 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * Data provider for test_should_not_use_dynamic_properties().
+	 *
+	 * @return array
+	 */
 	private function data_should_not_use_dynamic_properties()
 	{
 		return array(
 			'property_name' => array(
-				'proto' => 'proto',
-				'menu' => 'menu',
+				'$wp_admin_bar->proto' => 'proto',
+				'$wp_admin_bar->menu' => 'menu',
 			)
 		);
 	}
 
 	/**
-	 * @param $property_name
+	 * @ticket 56535
 	 *
 	 * @dataProvider data_should_not_use_dynamic_properties
 	 *
-	 * @return void
+	 * @param string $property_name Name of the property.
 	 */
 	public function test_should_not_use_dynamic_properties($property_name)
 	{
@@ -773,8 +778,8 @@ class Tests_AdminBar extends WP_UnitTestCase {
 			// Assert that the property is not being used in the __get method.
 			$property_defined = null !== $wp_admin_bar->$property_name;
 		} catch (Exception $e) {
-			// Catching the exception as dynamic properties
-			// generate PHP warnings on PHP >= 8.2.
+			// Catch the exception as dynamic properties
+			// generate warnings on PHP >= 8.2.
 			$property_defined = false;
 		}
 
