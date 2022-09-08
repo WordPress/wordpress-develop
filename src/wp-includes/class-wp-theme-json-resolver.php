@@ -244,7 +244,7 @@ class WP_Theme_JSON_Resolver {
 		$config   = array( 'version' => 1 );
 		foreach ( $blocks as $block_name => $block_type ) {
 			if ( isset( $block_type->supports['__experimentalStyle'] ) ) {
-				$config['styles']['blocks'][ $block_name ] = static::remove_JSON_comments( $block_type->supports['__experimentalStyle'] );
+				$config['styles']['blocks'][ $block_name ] = static::remove_json_comments( $block_type->supports['__experimentalStyle'] );
 			}
 
 			if (
@@ -268,11 +268,11 @@ class WP_Theme_JSON_Resolver {
 	 * @param array $array The array to filter.
 	 * @return array The filtered array.
 	 */
-	private static function remove_JSON_comments( $array ) {
+	private static function remove_json_comments( $array ) {
 		unset( $array['//'] );
 		foreach ( $array as $k => $v ) {
 			if ( is_array( $v ) ) {
-				$array[ $k ] = static::remove_JSON_comments( $v );
+				$array[ $k ] = static::remove_json_comments( $v );
 			}
 		}
 

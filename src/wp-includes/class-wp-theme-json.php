@@ -999,7 +999,7 @@ class WP_Theme_JSON {
 
 			$below_sizes[] = array(
 				/* translators: %s: Multiple of t-shirt sizing, eg. 2X-Small */
-				'name' => $x === $steps_mid_point - 1 ? __( 'Small' ) : sprintf( __( '%sX-Small', ), strval( $x_small_count ) ),
+				'name' => $x === $steps_mid_point - 1 ? __( 'Small' ) : sprintf( __( '%sX-Small' ), strval( $x_small_count ) ),
 				'slug' => (string) $slug,
 				'size' => round( $current_step, 2 ) . $unit,
 			);
