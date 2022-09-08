@@ -1852,11 +1852,6 @@ function wp_filter_content_tags( $content, $context = null ) {
 				$filtered_image = wp_img_tag_add_decoding_attr( $filtered_image, $context );
 			}
 
-			// Use alternate mime types when specified and available.
-			if ( $attachment_id > 0 && _wp_in_front_end_context() ) {
-				$filtered_image = wp_image_use_alternate_mime_types( $filtered_image, $context, $attachment_id );
-			}
-
 			/**
 			 * Filters an img tag within the content for a given context.
 			 *
@@ -1930,129 +1925,6 @@ function wp_print_image_mime_fallback_script() {
 		sprintf( 'window._wpImageMimeFallbackSettings = %s;', wp_json_encode( $settings ) ) . "\n" .
 			file_get_contents( sprintf( ABSPATH . WPINC . '/js/wp-image-mime-fallback-loader' . $suffix . '.js' ) )
 	);
-}
-
-/**
- * Use alternate mime type images in the front end content output when available.
- *
- * @since 6.1.0
- *
- * @global bool $_wp_image_mime_fallback_should_load
- *
- * @param string $image         The HTML `img` tag where the attribute should be added.
- * @param string $context       Additional context to pass to the filters.
- * @param int    $attachment_id The attachment ID.
- * @return string Converted `img` tag with `loading` attribute added.
- */
-function wp_image_use_alternate_mime_types( $image, $context, $attachment_id ) {
-	global $_wp_image_mime_fallback_should_load;
-
-	$metadata = wp_get_attachment_metadata( $attachment_id );
-	if ( empty( $metadata['file'] ) ) {
-		return $image;
-	}
-
-	// Only alter images with a `sources` attribute
-	if ( empty( $metadata['sources'] ) ) {
-		return $image;
-	};
-
-	$target_mimes = array( 'image/webp', 'image/jpeg' );
-
-	/**
-	 * Filter the content image mime type output selection and order.
-	 *
-	 * When outputting images in the content, the first mime type available will be used.
-	 *
-	 * @since 6.1.0
-	 *
-	 * @param array  $target_mimes  The image output mime type and order. Default is array( 'image/webp', 'image/jpeg' ).
-	 * @param int    $attachment_id The attachment ID.
-	 * @param string $context       Additional context to pass to the filters.
-	 * @return array The filtered output mime type and order. Return an empty array to skip mime type substitution.
-	 */
-	$target_mimes = apply_filters( 'wp_content_image_mimes', $target_mimes, $attachment_id, $context );
-
-	if ( false === $target_mimes ) {
-		return $image;
-	}
-
-	// Find the appropriate size for the provided URL in the first available mime type.
-	foreach ( $target_mimes as $target_mime ) {
-		// Handle full size image replacement.
-		if ( ! empty( $metadata['sources'][ $target_mime ]['file'] ) ) {
-			$src_filename = wp_basename( $metadata['file'] );
-
-			// This is the same MIME type as the original, so the entire $target_mime can be skipped.
-			// Since it is already the preferred MIME type, the entire loop can be cancelled.
-			if ( $metadata['sources'][ $target_mime ]['file'] === $src_filename ) {
-				break;
-			}
-
-			$image = str_replace( $src_filename, $metadata['sources'][ $target_mime ]['file'], $image );
-
-			if ( 'the_content' === $context && 'image/webp' === $target_mime ) {
-				$_wp_image_mime_fallback_should_load = true;
-			}
-
-			// The full size was replaced, so unset this entirely here so that in the next iteration it is no longer
-			// considered, simply for a small performance optimization.
-			unset( $metadata['sources'] );
-		}
-
-		// Go through each image size and replace with the first available mime type version.
-		foreach ( $metadata['sizes'] as $name => $size_data ) {
-			// Check if size has an original file.
-			if ( empty( $size_data['file'] ) ) {
-				continue;
-			}
-
-			// Check if size has a source in the desired mime type.
-			if ( empty( $size_data['sources'][ $target_mime ]['file'] ) ) {
-				continue;
-			}
-
-			$src_filename = wp_basename( $size_data['file'] );
-
-			// This is the same MIME type as the original, so the entire $target_mime can be skipped.
-			// Since it is already the preferred MIME type, the entire loop can be cancelled.
-			if ( $size_data['sources'][ $target_mime ]['file'] === $src_filename ) {
-				break 2;
-			}
-
-			// Found a match, replace with the new filename.
-			$image = str_replace( $src_filename, $size_data['sources'][ $target_mime ]['file'], $image );
-
-			if ( 'the_content' === $context && 'image/webp' === $target_mime ) {
-				$_wp_image_mime_fallback_should_load = true;
-			}
-
-			// This size was replaced, so unset this entirely here so that in the next iteration it is no longer
-			// considered, simply for a small performance optimization.
-			unset( $metadata['sizes'][ $name ] );
-		}
-	}
-	return $image;
-}
-
-/**
- * Check if execution is currently in the front end content context, outside of <head>.
- *
- * @since 6.1.0
- * @access private
- *
- * @return bool True if in the front end content context, false otherwise.
- */
-function _wp_in_front_end_context() {
-	global $wp_query;
-
-	// Check if this request is generally outside (or before) any frontend context.
-	if ( ! isset( $wp_query ) || defined( 'XMLRPC_REQUEST' ) || defined( 'REST_REQUEST' ) || is_feed() ) {
-		return false;
-	}
-
-	// Check if we're anywhere before the 'wp_head' action has completed.
-	return did_action( 'template_redirect' ) && ! doing_action( 'wp_head' );
 }
 
 /**
@@ -4062,6 +3934,51 @@ function _wp_image_editor_choose( $args = array() ) {
 }
 
 /**
+ * Filters the default image output mapping.
+ *
+ * With this filter callback, WebP image files will be generated for certain JPEG source files.
+ *
+ * @since 6.1.0
+ *
+ * @param array $output_mapping Map of mime type to output format.
+ * @param string $filename  Path to the image.
+ * @param string $mime_type The source image mime type.
+ * @param string $size_name Optional. The image size name to create, or empty string if not set. Default empty string.
+ * @return array The adjusted default output mapping.
+ */
+function wp_default_image_output_mapping( $output_mapping, $filename, $mime_type, $size_name = '' ) {
+	// If size name is specified, check whether the size supports additional MIME types like WebP.
+	if ( $size_name ) {
+		// Include only the core sizes that do not rely on add_image_size(). Additional image sizes are opt-in.
+		$enabled_sizes = array(
+			'thumbnail'      => true,
+			'medium'         => true,
+			'medium_large'   => true,
+			'large'          => true,
+			'post-thumbnail' => true,
+		);
+
+		/**
+		 * Filters the sizes that support secondary mime type output. Developers can use this
+		 * to control the generation of additional mime type sub-sized images.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param array $enabled_sizes Map of size names and whether they support secondary mime type output.
+		 */
+		$enabled_sizes = apply_filters( 'wp_image_sizes_with_additional_mime_type_support', $enabled_sizes );
+
+		// Bail early if the size does not support additional MIME types.
+		if ( empty( $enabled_sizes[ $size_name ] ) ) {
+			return $output_mapping;
+		}
+	}
+
+	$output_mapping['image/jpeg'] = 'image/webp';
+	return $output_mapping;
+}
+
+/**
  * Prints default Plupload arguments.
  *
  * @since 3.4.0
@@ -4576,9 +4493,8 @@ function wp_enqueue_media( $args = array() ) {
 	 *
 	 * @link https://core.trac.wordpress.org/ticket/31071
 	 *
-	 * @param array|null $months An array of objects with `month` and `year`
-	 *                           properties, or `null` (or any other non-array value)
-	 *                           for default behavior.
+	 * @param stdClass[]|null $months An array of objects with `month` and `year`
+	 *                                properties, or `null` for default behavior.
 	 */
 	$months = apply_filters( 'media_library_months_with_files', null );
 	if ( ! is_array( $months ) ) {

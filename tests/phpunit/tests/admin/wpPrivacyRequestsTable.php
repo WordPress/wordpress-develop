@@ -16,6 +16,25 @@
  * @since 5.1.0
  */
 class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
+
+	/**
+	 * Temporary storage for SQL to allow a filter to access it.
+	 *
+	 * Used in the `test_columns_should_be_sortable()` test method.
+	 *
+	 * @var string
+	 */
+	private $sql;
+
+	/**
+	 * Clean up after each test.
+	 */
+	public function tear_down() {
+		unset( $this->sql );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Get instance for mocked class.
 	 *
