@@ -1122,8 +1122,20 @@ EOF;
 			),
 			// Custom CSS properties.
 			array(
-				'css'      => '--wp--medium-width: 100px; --var_with_underscores: #cccccc; --miXeD-CAse: red; --with-numbers-3_56: red; --?><.%-not-allowed: red; --with-url-value: url("foo.jpg"); --with-gradient: repeating-linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);',
-				'expected' => '--wp--medium-width: 100px;--var_with_underscores: #cccccc;--miXeD-CAse: red;--with-numbers-3_56: red;--with-url-value: url("foo.jpg");--with-gradient: repeating-linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%)',
+				'css'      => '--wp--medium-width: 100px; --var_with_underscores: #cccccc;',
+				'expected' => '--wp--medium-width: 100px;--var_with_underscores: #cccccc',
+			),
+			array(
+				'css'      => '--miXeD-CAse: red; --with-numbers-3_56: red; --with-url-value: url("foo.jpg");',
+				'expected' => '--miXeD-CAse: red;--with-numbers-3_56: red;--with-url-value: url("foo.jpg")',
+			),
+			array(
+				'css'      => '--with-gradient: repeating-linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);',
+				'expected' => '--with-gradient: repeating-linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%)',
+			),
+			array(
+				'css'      => '--?><.%-not-allowed: red;',
+				'expected' => '',
 			),
 		);
 	}
