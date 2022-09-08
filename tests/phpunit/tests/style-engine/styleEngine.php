@@ -531,7 +531,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 			)
 		);
 
-		$all_stores = WP_Style_Engine_CSS_Rules_Store_Gutenberg::get_stores();
+		$all_stores = WP_Style_Engine_CSS_Rules_Store::get_stores();
 
 		$this->assertEmpty( $all_stores );
 	}
