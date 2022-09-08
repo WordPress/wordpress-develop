@@ -952,110 +952,6 @@ class WP_Theme_JSON {
 	}
 
 	/**
-	 * Transform spacing scale values into an array of spacing scale presets.
-	 *
-	 * @since 6.1.0
-	 */
-	public function set_spacing_sizes() {
-		$spacing_scale = _wp_array_get( $this->theme_json, array( 'settings', 'spacing', 'spacingScale' ), array() );
-
-		if ( ! is_numeric( $spacing_scale['steps'] )
-			|| ! isset( $spacing_scale['mediumStep'] )
-			|| ! isset( $spacing_scale['unit'] )
-			|| ! isset( $spacing_scale['operator'] )
-			|| ! isset( $spacing_scale['increment'] )
-			|| ! isset( $spacing_scale['steps'] )
-			|| ! is_numeric( $spacing_scale['increment'] )
-			|| ! is_numeric( $spacing_scale['mediumStep'] )
-			|| ( '+' !== $spacing_scale['operator'] && '*' !== $spacing_scale['operator'] ) ) {
-			if ( ! empty( $spacing_scale ) ) {
-				trigger_error( __( 'Some of the theme.json settings.spacing.spacingScale values are invalid' ), E_USER_NOTICE );
-			}
-			return null;
-		}
-
-		// If theme authors want to prevent the generation of the core spacing scale they can set their theme.json spacingScale.steps to 0.
-		if ( 0 === $spacing_scale['steps'] ) {
-			return null;
-		}
-
-		$unit            = '%' === $spacing_scale['unit'] ? '%' : sanitize_title( $spacing_scale['unit'] );
-		$current_step    = $spacing_scale['mediumStep'];
-		$steps_mid_point = round( ( ( $spacing_scale['steps'] ) / 2 ), 0 );
-		$x_small_count   = null;
-		$below_sizes     = array();
-		$slug            = 40;
-		$remainder       = 0;
-
-		for ( $x = $steps_mid_point - 1; $spacing_scale['steps'] > 1 && $slug > 0 && $x > 0; $x-- ) {
-			$current_step = '+' === $spacing_scale['operator']
-				? $current_step - $spacing_scale['increment']
-				: ( $spacing_scale['increment'] > 1 ? $current_step / $spacing_scale['increment'] : $current_step * $spacing_scale['increment'] );
-
-			if ( $current_step <= 0 ) {
-				$remainder = $x;
-				break;
-			}
-
-			$below_sizes[] = array(
-				/* translators: %s: Multiple of t-shirt sizing, eg. 2X-Small */
-				'name' => $x === $steps_mid_point - 1 ? __( 'Small' ) : sprintf( __( '%sX-Small' ), strval( $x_small_count ) ),
-				'slug' => (string) $slug,
-				'size' => round( $current_step, 2 ) . $unit,
-			);
-
-			if ( $x === $steps_mid_point - 2 ) {
-				$x_small_count = 2;
-			}
-
-			if ( $x < $steps_mid_point - 2 ) {
-				$x_small_count++;
-			}
-
-			$slug = $slug - 10;
-		}
-
-		$below_sizes = array_reverse( $below_sizes );
-
-		$below_sizes[] = array(
-			'name' => __( 'Medium' ),
-			'slug' => '50',
-			'size' => $spacing_scale['mediumStep'] . $unit,
-		);
-
-		$current_step  = $spacing_scale['mediumStep'];
-		$x_large_count = null;
-		$above_sizes   = array();
-		$slug          = 60;
-		$steps_above   = ( $spacing_scale['steps'] - $steps_mid_point ) + $remainder;
-
-		for ( $x = 0; $x < $steps_above; $x++ ) {
-			$current_step = '+' === $spacing_scale['operator']
-				? $current_step + $spacing_scale['increment']
-				: ( $spacing_scale['increment'] >= 1 ? $current_step * $spacing_scale['increment'] : $current_step / $spacing_scale['increment'] );
-
-			$above_sizes[] = array(
-				/* translators: %s: Multiple of t-shirt sizing, eg. 2X-Large */
-				'name' => 0 === $x ? __( 'Large' ) : sprintf( __( '%sX-Large' ), strval( $x_large_count ) ),
-				'slug' => (string) $slug,
-				'size' => round( $current_step, 2 ) . $unit,
-			);
-
-			if ( 1 === $x ) {
-				$x_large_count = 2;
-			}
-
-			if ( $x > 1 ) {
-				$x_large_count++;
-			}
-
-			$slug = $slug + 10;
-		}
-
-		_wp_array_set( $this->theme_json, array( 'settings', 'spacing', 'spacingSizes', 'default' ), array_merge( $below_sizes, $above_sizes ) );
-	}
-
-	/**
 	 * Get the CSS layout rules for a particular block from theme.json layout definitions.
 	 *
 	 * @since 6.1.0
@@ -1992,171 +1888,171 @@ class WP_Theme_JSON {
 	}
 
 	/**
-	 * Gets the CSS rules for a particular block from theme.json.
-	 *
-	 * @since 6.1.0
-	 *
-	 * @param array $block_metadata Metadata about the block to get styles for.
-	 *
-	 * @return string Styles for the block.
-	 */
-	public function get_styles_for_block( $block_metadata ) {
-		$node             = _wp_array_get( $this->theme_json, $block_metadata['path'], array() );
-		$use_root_padding = isset( $this->theme_json['settings']['useRootPaddingAwareAlignments'] ) && true === $this->theme_json['settings']['useRootPaddingAwareAlignments'];
-		$selector         = $block_metadata['selector'];
-		$settings         = _wp_array_get( $this->theme_json, array( 'settings' ) );
+	* Gets the CSS rules for a particular block from theme.json.
+	*
+	* @since 6.1.0
+	*
+	* @param array $block_metadata Metadata about the block to get styles for.
+	*
+	* @return string Styles for the block.
+	*/
+   public function get_styles_for_block( $block_metadata ) {
+	   $node             = _wp_array_get( $this->theme_json, $block_metadata['path'], array() );
+	   $use_root_padding = isset( $this->theme_json['settings']['useRootPaddingAwareAlignments'] ) && true === $this->theme_json['settings']['useRootPaddingAwareAlignments'];
+	   $selector         = $block_metadata['selector'];
+	   $settings         = _wp_array_get( $this->theme_json, array( 'settings' ) );
 
-		// Process style declarations for block support features the current
-		// block contains selectors for. Values for a feature with a custom
-		// selector are filtered from the theme.json node before it is
-		// processed as normal.
-		$feature_declarations = array();
+	   // Process style declarations for block support features the current
+	   // block contains selectors for. Values for a feature with a custom
+	   // selector are filtered from the theme.json node before it is
+	   // processed as normal.
+	   $feature_declarations = array();
 
-		if ( ! empty( $block_metadata['features'] ) ) {
-			foreach ( $block_metadata['features'] as $feature_name => $feature_selector ) {
-				if ( ! empty( $node[ $feature_name ] ) ) {
-					// Create temporary node containing only the feature data
-					// to leverage existing `compute_style_properties` function.
-					$feature = array( $feature_name => $node[ $feature_name ] );
-					// Generate the feature's declarations only.
-					$new_feature_declarations = static::compute_style_properties( $feature, $settings, null, $this->theme_json );
+	   if ( ! empty( $block_metadata['features'] ) ) {
+		   foreach ( $block_metadata['features'] as $feature_name => $feature_selector ) {
+			   if ( ! empty( $node[ $feature_name ] ) ) {
+				   // Create temporary node containing only the feature data
+				   // to leverage existing `compute_style_properties` function.
+				   $feature = array( $feature_name => $node[ $feature_name ] );
+				   // Generate the feature's declarations only.
+				   $new_feature_declarations = static::compute_style_properties( $feature, $settings, null, $this->theme_json );
 
-					// Merge new declarations with any that already exist for
-					// the feature selector. This may occur when multiple block
-					// support features use the same custom selector.
-					if ( isset( $feature_declarations[ $feature_selector ] ) ) {
-						$feature_declarations[ $feature_selector ] = array_merge( $feature_declarations[ $feature_selector ], $new_feature_declarations );
-					} else {
-						$feature_declarations[ $feature_selector ] = $new_feature_declarations;
-					}
+				   // Merge new declarations with any that already exist for
+				   // the feature selector. This may occur when multiple block
+				   // support features use the same custom selector.
+				   if ( isset( $feature_declarations[ $feature_selector ] ) ) {
+					   $feature_declarations[ $feature_selector ] = array_merge( $feature_declarations[ $feature_selector ], $new_feature_declarations );
+				   } else {
+					   $feature_declarations[ $feature_selector ] = $new_feature_declarations;
+				   }
 
-					// Remove the feature from the block's node now the
-					// styles will be included under the feature level selector.
-					unset( $node[ $feature_name ] );
-				}
-			}
-		}
+				   // Remove the feature from the block's node now the
+				   // styles will be included under the feature level selector.
+				   unset( $node[ $feature_name ] );
+			   }
+		   }
+	   }
 
-		// Get a reference to element name from path.
-		// $block_metadata['path'] = array('styles','elements','link');
-		// Make sure that $block_metadata['path'] describes an element node, like ['styles', 'element', 'link'].
-		// Skip non-element paths like just ['styles'].
-		$is_processing_element = in_array( 'elements', $block_metadata['path'], true );
+	   // Get a reference to element name from path.
+	   // $block_metadata['path'] = array('styles','elements','link');
+	   // Make sure that $block_metadata['path'] describes an element node, like ['styles', 'element', 'link'].
+	   // Skip non-element paths like just ['styles'].
+	   $is_processing_element = in_array( 'elements', $block_metadata['path'], true );
 
-		$current_element = $is_processing_element ? $block_metadata['path'][ count( $block_metadata['path'] ) - 1 ] : null;
+	   $current_element = $is_processing_element ? $block_metadata['path'][ count( $block_metadata['path'] ) - 1 ] : null;
 
-		$element_pseudo_allowed = array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ? static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] : array();
+	   $element_pseudo_allowed = array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ? static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] : array();
 
-		// Check for allowed pseudo classes (e.g. ":hover") from the $selector ("a:hover").
-		// This also resets the array keys.
-		$pseudo_matches = array_values(
-			array_filter(
-				$element_pseudo_allowed,
-				function( $pseudo_selector ) use ( $selector ) {
-					return str_contains( $selector, $pseudo_selector );
-				}
-			)
-		);
+	   // Check for allowed pseudo classes (e.g. ":hover") from the $selector ("a:hover").
+	   // This also resets the array keys.
+	   $pseudo_matches = array_values(
+		   array_filter(
+			   $element_pseudo_allowed,
+			   function( $pseudo_selector ) use ( $selector ) {
+				   return str_contains( $selector, $pseudo_selector );
+			   }
+		   )
+	   );
 
-		$pseudo_selector = isset( $pseudo_matches[0] ) ? $pseudo_matches[0] : null;
+	   $pseudo_selector = isset( $pseudo_matches[0] ) ? $pseudo_matches[0] : null;
 
-		// If the current selector is a pseudo selector that's defined in the allow list for the current
-		// element then compute the style properties for it.
-		// Otherwise just compute the styles for the default selector as normal.
-		if ( $pseudo_selector && isset( $node[ $pseudo_selector ] ) && array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) && in_array( $pseudo_selector, static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ], true ) ) {
-			$declarations = static::compute_style_properties( $node[ $pseudo_selector ], $settings, null, $this->theme_json, $selector, $use_root_padding );
-		} else {
-			$declarations = static::compute_style_properties( $node, $settings, null, $this->theme_json, $selector, $use_root_padding );
-		}
+	   // If the current selector is a pseudo selector that's defined in the allow list for the current
+	   // element then compute the style properties for it.
+	   // Otherwise just compute the styles for the default selector as normal.
+	   if ( $pseudo_selector && isset( $node[ $pseudo_selector ] ) && array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) && in_array( $pseudo_selector, static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ], true ) ) {
+		   $declarations = static::compute_style_properties( $node[ $pseudo_selector ], $settings, null, $this->theme_json, $selector, $use_root_padding );
+	   } else {
+		   $declarations = static::compute_style_properties( $node, $settings, null, $this->theme_json, $selector, $use_root_padding );
+	   }
 
-		$block_rules = '';
+	   $block_rules = '';
 
-		// 1. Separate the ones who use the general selector
-		// and the ones who use the duotone selector.
-		$declarations_duotone = array();
-		foreach ( $declarations as $index => $declaration ) {
-			if ( 'filter' === $declaration['name'] ) {
-				unset( $declarations[ $index ] );
-				$declarations_duotone[] = $declaration;
-			}
-		}
+	   // 1. Separate the ones who use the general selector
+	   // and the ones who use the duotone selector.
+	   $declarations_duotone = array();
+	   foreach ( $declarations as $index => $declaration ) {
+		   if ( 'filter' === $declaration['name'] ) {
+			   unset( $declarations[ $index ] );
+			   $declarations_duotone[] = $declaration;
+		   }
+	   }
 
-		// 2. Generate and append the rules that use the general selector.
-		$block_rules .= static::to_ruleset( $selector, $declarations );
+	   // 2. Generate and append the rules that use the general selector.
+	   $block_rules .= static::to_ruleset( $selector, $declarations );
 
-		// 3. Generate and append the rules that use the duotone selector.
-		if ( isset( $block_metadata['duotone'] ) && ! empty( $declarations_duotone ) ) {
-			$selector_duotone = static::scope_selector( $block_metadata['selector'], $block_metadata['duotone'] );
-			$block_rules     .= static::to_ruleset( $selector_duotone, $declarations_duotone );
-		}
+	   // 3. Generate and append the rules that use the duotone selector.
+	   if ( isset( $block_metadata['duotone'] ) && ! empty( $declarations_duotone ) ) {
+		   $selector_duotone = static::scope_selector( $block_metadata['selector'], $block_metadata['duotone'] );
+		   $block_rules     .= static::to_ruleset( $selector_duotone, $declarations_duotone );
+	   }
 
-		// 4. Generate Layout block gap styles.
-		if (
-			static::ROOT_BLOCK_SELECTOR !== $selector &&
-			! empty( $block_metadata['name'] )
-		) {
-			$block_rules .= $this->get_layout_styles( $block_metadata );
-		}
+	   // 4. Generate Layout block gap styles.
+	   if (
+		   static::ROOT_BLOCK_SELECTOR !== $selector &&
+		   ! empty( $block_metadata['name'] )
+	   ) {
+		   $block_rules .= $this->get_layout_styles( $block_metadata );
+	   }
 
-		// 5. Generate and append the feature level rulesets.
-		foreach ( $feature_declarations as $feature_selector => $individual_feature_declarations ) {
-			$block_rules .= static::to_ruleset( $feature_selector, $individual_feature_declarations );
-		}
+	   // 5. Generate and append the feature level rulesets.
+	   foreach ( $feature_declarations as $feature_selector => $individual_feature_declarations ) {
+		   $block_rules .= static::to_ruleset( $feature_selector, $individual_feature_declarations );
+	   }
 
-		if ( static::ROOT_BLOCK_SELECTOR === $selector ) {
-			/*
-			* Reset default browser margin on the root body element.
-			* This is set on the root selector **before** generating the ruleset
-			* from the `theme.json`. This is to ensure that if the `theme.json` declares
-			* `margin` in its `spacing` declaration for the `body` element then these
-			* user-generated values take precedence in the CSS cascade.
-			* @link https://github.com/WordPress/gutenberg/issues/36147.
-			*/
-			$block_rules .= 'body { margin: 0;';
+	   if ( static::ROOT_BLOCK_SELECTOR === $selector ) {
+		   /*
+		   * Reset default browser margin on the root body element.
+		   * This is set on the root selector **before** generating the ruleset
+		   * from the `theme.json`. This is to ensure that if the `theme.json` declares
+		   * `margin` in its `spacing` declaration for the `body` element then these
+		   * user-generated values take precedence in the CSS cascade.
+		   * @link https://github.com/WordPress/gutenberg/issues/36147.
+		   */
+		   $block_rules .= 'body { margin: 0;';
 
-			/*
-			* If there are content and wide widths in theme.json, output them
-			* as custom properties on the body element so all blocks can use them.
-			*/
-			if ( isset( $settings['layout']['contentSize'] ) || isset( $settings['layout']['wideSize'] ) ) {
-				$content_size = isset( $settings['layout']['contentSize'] ) ? $settings['layout']['contentSize'] : $settings['layout']['wideSize'];
-				$content_size = static::is_safe_css_declaration( 'max-width', $content_size ) ? $content_size : 'initial';
-				$wide_size    = isset( $settings['layout']['wideSize'] ) ? $settings['layout']['wideSize'] : $settings['layout']['contentSize'];
-				$wide_size    = static::is_safe_css_declaration( 'max-width', $wide_size ) ? $wide_size : 'initial';
-				$block_rules .= '--wp--style--global--content-size: ' . $content_size . ';';
-				$block_rules .= '--wp--style--global--wide-size: ' . $wide_size . ';';
-			}
+		   /*
+		   * If there are content and wide widths in theme.json, output them
+		   * as custom properties on the body element so all blocks can use them.
+		   */
+		   if ( isset( $settings['layout']['contentSize'] ) || isset( $settings['layout']['wideSize'] ) ) {
+			   $content_size = isset( $settings['layout']['contentSize'] ) ? $settings['layout']['contentSize'] : $settings['layout']['wideSize'];
+			   $content_size = static::is_safe_css_declaration( 'max-width', $content_size ) ? $content_size : 'initial';
+			   $wide_size    = isset( $settings['layout']['wideSize'] ) ? $settings['layout']['wideSize'] : $settings['layout']['contentSize'];
+			   $wide_size    = static::is_safe_css_declaration( 'max-width', $wide_size ) ? $wide_size : 'initial';
+			   $block_rules .= '--wp--style--global--content-size: ' . $content_size . ';';
+			   $block_rules .= '--wp--style--global--wide-size: ' . $wide_size . ';';
+		   }
 
-			$block_rules .= '}';
-		}
+		   $block_rules .= ' }';
+	   }
 
-		if ( static::ROOT_BLOCK_SELECTOR === $selector ) {
+	   if ( static::ROOT_BLOCK_SELECTOR === $selector ) {
 
-			if ( $use_root_padding ) {
-				$block_rules .= '.wp-site-blocks { padding-top: var(--wp--style--root--padding-top); padding-bottom: var(--wp--style--root--padding-bottom); }';
-				$block_rules .= '.has-global-padding { padding-right: var(--wp--style--root--padding-right); padding-left: var(--wp--style--root--padding-left); }';
-				$block_rules .= '.has-global-padding > .alignfull { margin-right: calc(var(--wp--style--root--padding-right) * -1); margin-left: calc(var(--wp--style--root--padding-left) * -1); }';
-				$block_rules .= '.has-global-padding > .alignfull > :where([class*="wp-block-"]:not(.alignfull):not(.alignfull):not([class*="__"]),p,h1,h2,h3,h4,h5,h6,ul,ol) { padding-right: var(--wp--style--root--padding-right); padding-left: var(--wp--style--root--padding-left); }';
-			}
+		   if ( $use_root_padding ) {
+			   $block_rules .= '.wp-site-blocks { padding-top: var(--wp--style--root--padding-top); padding-bottom: var(--wp--style--root--padding-bottom); }';
+			   $block_rules .= '.has-global-padding { padding-right: var(--wp--style--root--padding-right); padding-left: var(--wp--style--root--padding-left); }';
+			   $block_rules .= '.has-global-padding > .alignfull { margin-right: calc(var(--wp--style--root--padding-right) * -1); margin-left: calc(var(--wp--style--root--padding-left) * -1); }';
+			   $block_rules .= '.has-global-padding > .alignfull > :where([class*="wp-block-"]:not(.alignfull):not(.alignfull):not([class*="__"]),p,h1,h2,h3,h4,h5,h6,ul,ol) { padding-right: var(--wp--style--root--padding-right); padding-left: var(--wp--style--root--padding-left); }';
+		   }
 
-			$block_rules .= '.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }';
-			$block_rules .= '.wp-site-blocks > .alignright { float: right; margin-left: 2em; }';
-			$block_rules .= '.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }';
+		   $block_rules .= '.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }';
+		   $block_rules .= '.wp-site-blocks > .alignright { float: right; margin-left: 2em; }';
+		   $block_rules .= '.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }';
 
-			$block_gap_value       = _wp_array_get( $this->theme_json, array( 'styles', 'spacing', 'blockGap' ), '0.5em' );
-			$has_block_gap_support = _wp_array_get( $this->theme_json, array( 'settings', 'spacing', 'blockGap' ) ) !== null;
-			if ( $has_block_gap_support ) {
-				$block_gap_value = static::get_property_value( $this->theme_json, array( 'styles', 'spacing', 'blockGap' ) );
-				$block_rules    .= '.wp-site-blocks > * { margin-block-start: 0; margin-block-end: 0; }';
-				$block_rules    .= ".wp-site-blocks > * + * { margin-block-start: $block_gap_value; }";
+		   $block_gap_value       = _wp_array_get( $this->theme_json, array( 'styles', 'spacing', 'blockGap' ), '0.5em' );
+		   $has_block_gap_support = _wp_array_get( $this->theme_json, array( 'settings', 'spacing', 'blockGap' ) ) !== null;
+		   if ( $has_block_gap_support ) {
+			   $block_gap_value = static::get_property_value( $this->theme_json, array( 'styles', 'spacing', 'blockGap' ) );
+			   $block_rules    .= '.wp-site-blocks > * { margin-block-start: 0; margin-block-end: 0; }';
+			   $block_rules    .= ".wp-site-blocks > * + * { margin-block-start: $block_gap_value; }";
 
-				// For backwards compatibility, ensure the legacy block gap CSS variable is still available.
-				$block_rules .= "$selector { --wp--style--block-gap: $block_gap_value; }";
-			}
-			$block_rules .= $this->get_layout_styles( $block_metadata );
-		}
+			   // For backwards compatibility, ensure the legacy block gap CSS variable is still available.
+			   $block_rules .= "$selector { --wp--style--block-gap: $block_gap_value; }";
+		   }
+		   $block_rules .= $this->get_layout_styles( $block_metadata );
+	   }
 
-		return $block_rules;
+	   return $block_rules;
 	}
 
 	/**
