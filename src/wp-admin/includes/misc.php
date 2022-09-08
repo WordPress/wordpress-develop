@@ -663,17 +663,17 @@ function wp_doc_link_parse( $content ) {
 
 	$ignore_functions = array_unique( $ignore_functions );
 
-	$out = array();
+	$output = array();
 
 	foreach ( $functions as $function ) {
 		if ( in_array( $function, $ignore_functions, true ) ) {
 			continue;
 		}
 
-		$out[] = $function;
+		$output[] = $function;
 	}
 
-	return $out;
+	return $output;
 }
 
 /**
@@ -1190,6 +1190,7 @@ function wp_refresh_post_lock( $response, $data, $screen_id ) {
 
 		if ( $user ) {
 			$error = array(
+				'name' => $user->display_name,
 				/* translators: %s: User's display name. */
 				'text' => sprintf( __( '%s has taken over and is currently editing.' ), $user->display_name ),
 			);

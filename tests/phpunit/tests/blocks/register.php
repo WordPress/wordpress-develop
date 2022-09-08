@@ -381,7 +381,8 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$this->assertSame( 'tests/notice', $result->name );
 		$this->assertSame( 'Notice', $result->title );
 		$this->assertSame( 'common', $result->category );
-		$this->assertSameSets( array( 'core/group' ), $result->parent );
+		$this->assertSameSets( array( 'tests/group' ), $result->parent );
+		$this->assertSameSets( array( 'tests/section' ), $result->ancestor );
 		$this->assertSame( 'star', $result->icon );
 		$this->assertSame( 'Shows warning, error or success notices…', $result->description );
 		$this->assertSameSets( array( 'alert', 'message' ), $result->keywords );
@@ -549,6 +550,21 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		// Test string (without blocks).
 		$content = file_get_contents( DIR_TESTDATA . '/blocks/do-blocks-expected.html' );
 		$this->assertFalse( has_blocks( $content ) );
+	}
+
+	/**
+	 * Tests that `has_blocks()` returns `false` with an invalid post.
+	 *
+	 * @ticket 55705
+	 *
+	 * @covers ::has_blocks
+	 */
+	public function test_has_blocks_with_invalid_post() {
+		$a_post = (object) array(
+			'ID'     => 55705,
+			'filter' => 'display',
+		);
+		$this->assertFalse( has_blocks( $a_post ) );
 	}
 
 	/**

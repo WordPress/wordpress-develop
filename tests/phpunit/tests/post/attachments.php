@@ -6,10 +6,19 @@
  * @group upload
  */
 class Tests_Post_Attachments extends WP_UnitTestCase {
+	/**
+	 * Set up the test fixture.
+	 */
+	public function set_up() {
+		add_filter( 'image_editor_output_format', '__return_empty_array' );
+
+		parent::set_up();
+	}
 
 	public function tear_down() {
 		// Remove all uploads.
 		$this->remove_added_uploads();
+		remove_filter( 'image_editor_output_format', '__return_empty_array' );
 		parent::tear_down();
 	}
 

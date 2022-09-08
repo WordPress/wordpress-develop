@@ -25,6 +25,16 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		foreach ( glob( $folder ) as $file ) {
 			unlink( $file );
 		}
+
+		add_filter( 'image_editor_output_format', '__return_empty_array' );
+	}
+
+	/**
+	 * Tear down the class.
+	 */
+	public function tear_down() {
+		remove_filter( 'image_editor_output_format', '__return_empty_array' );
+		parent::tear_down();
 	}
 
 	/**
@@ -648,7 +658,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( $editor->get_error_message() );
 		}
 
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$test_file,
 			0,
 			array(
@@ -725,7 +735,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( $editor->get_error_message() );
 		}
 
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$test_file,
 			0,
 			array(
@@ -798,7 +808,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( $editor->get_error_message() );
 		}
 
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$test_file,
 			0,
 			array(
@@ -872,7 +882,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( $editor->get_error_message() );
 		}
 
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$pdf_path,
 			0,
 			array(

@@ -238,20 +238,20 @@ function image_downsize( $id, $size = 'medium' ) {
 		$width           = $intermediate['width'];
 		$height          = $intermediate['height'];
 		$is_intermediate = true;
-	} elseif ( 'thumbnail' === $size ) {
+	} elseif ( 'thumbnail' === $size && ! empty( $meta['thumb'] ) && is_string( $meta['thumb'] ) ) {
 		// Fall back to the old thumbnail.
-		$thumb_file = wp_get_attachment_thumb_file( $id );
-		$info       = null;
+		$imagefile = get_attached_file( $id );
+		$thumbfile = str_replace( wp_basename( $imagefile ), wp_basename( $meta['thumb'] ), $imagefile );
 
-		if ( $thumb_file ) {
-			$info = wp_getimagesize( $thumb_file );
-		}
+		if ( file_exists( $thumbfile ) ) {
+			$info = wp_getimagesize( $thumbfile );
 
-		if ( $thumb_file && $info ) {
-			$img_url         = str_replace( $img_url_basename, wp_basename( $thumb_file ), $img_url );
-			$width           = $info[0];
-			$height          = $info[1];
-			$is_intermediate = true;
+			if ( $info ) {
+				$img_url         = str_replace( $img_url_basename, wp_basename( $thumbfile ), $img_url );
+				$width           = $info[0];
+				$height          = $info[1];
+				$is_intermediate = true;
+			}
 		}
 	}
 
@@ -3905,6 +3905,51 @@ function _wp_image_editor_choose( $args = array() ) {
 }
 
 /**
+ * Filters the default image output mapping.
+ *
+ * With this filter callback, WebP image files will be generated for certain JPEG source files.
+ *
+ * @since 6.1.0
+ *
+ * @param array $output_mapping Map of mime type to output format.
+ * @param string $filename  Path to the image.
+ * @param string $mime_type The source image mime type.
+ * @param string $size_name Optional. The image size name to create, or empty string if not set. Default empty string.
+ * @return array The adjusted default output mapping.
+ */
+function wp_default_image_output_mapping( $output_mapping, $filename, $mime_type, $size_name = '' ) {
+	// If size name is specified, check whether the size supports additional MIME types like WebP.
+	if ( $size_name ) {
+		// Include only the core sizes that do not rely on add_image_size(). Additional image sizes are opt-in.
+		$enabled_sizes = array(
+			'thumbnail'      => true,
+			'medium'         => true,
+			'medium_large'   => true,
+			'large'          => true,
+			'post-thumbnail' => true,
+		);
+
+		/**
+		 * Filters the sizes that support secondary mime type output. Developers can use this
+		 * to control the generation of additional mime type sub-sized images.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param array $enabled_sizes Map of size names and whether they support secondary mime type output.
+		 */
+		$enabled_sizes = apply_filters( 'wp_image_sizes_with_additional_mime_type_support', $enabled_sizes );
+
+		// Bail early if the size does not support additional MIME types.
+		if ( empty( $enabled_sizes[ $size_name ] ) ) {
+			return $output_mapping;
+		}
+	}
+
+	$output_mapping['image/jpeg'] = 'image/webp';
+	return $output_mapping;
+}
+
+/**
  * Prints default Plupload arguments.
  *
  * @since 3.4.0
@@ -4299,7 +4344,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
  * @param array $args {
  *     Arguments for enqueuing media scripts.
  *
- *     @type int|WP_Post $post A post object or ID.
+ *     @type int|WP_Post $post Post ID or post object.
  * }
  */
 function wp_enqueue_media( $args = array() ) {
@@ -4419,9 +4464,8 @@ function wp_enqueue_media( $args = array() ) {
 	 *
 	 * @link https://core.trac.wordpress.org/ticket/31071
 	 *
-	 * @param array|null $months An array of objects with `month` and `year`
-	 *                           properties, or `null` (or any other non-array value)
-	 *                           for default behavior.
+	 * @param stdClass[]|null $months An array of objects with `month` and `year`
+	 *                                properties, or `null` for default behavior.
 	 */
 	$months = apply_filters( 'media_library_months_with_files', null );
 	if ( ! is_array( $months ) ) {

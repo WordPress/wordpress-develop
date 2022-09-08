@@ -106,7 +106,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'react'                       => '17.0.1',
 		'react-dom'                   => '17.0.1',
 		'regenerator-runtime'         => '0.13.9',
-		'moment'                      => '2.29.2',
+		'moment'                      => '2.29.4',
 		'lodash'                      => '4.17.19',
 		'wp-polyfill-fetch'           => '3.6.2',
 		'wp-polyfill-formdata'        => '4.0.10',
@@ -404,6 +404,7 @@ function wp_default_packages_inline_scripts( $scripts ) {
 							/* translators: %s: Duration. */
 							'past'   => __( '%s ago' ),
 						),
+						'startOfWeek'   => (int) get_option( 'start_of_week', 0 ),
 					),
 					'formats'  => array(
 						/* translators: Time format, see https://www.php.net/manual/datetime.format.php */
@@ -416,7 +417,7 @@ function wp_default_packages_inline_scripts( $scripts ) {
 						'datetimeAbbreviated' => __( 'M j, Y g:i a' ),
 					),
 					'timezone' => array(
-						'offset' => get_option( 'gmt_offset', 0 ),
+						'offset' => (float) get_option( 'gmt_offset', 0 ),
 						'string' => $timezone_string,
 						'abbr'   => $timezone_abbr,
 					),
@@ -968,7 +969,7 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'json2', "/wp-includes/js/json2$suffix.js", array(), '2015-05-03' );
 	did_action( 'init' ) && $scripts->add_data( 'json2', 'conditional', 'lt IE 8' );
 
-	$scripts->add( 'underscore', "/wp-includes/js/underscore$dev_suffix.js", array(), '1.13.3', 1 );
+	$scripts->add( 'underscore', "/wp-includes/js/underscore$dev_suffix.js", array(), '1.13.4', 1 );
 	$scripts->add( 'backbone', "/wp-includes/js/backbone$dev_suffix.js", array( 'underscore', 'jquery' ), '1.4.1', 1 );
 
 	$scripts->add( 'wp-util', "/wp-includes/js/wp-util$suffix.js", array( 'underscore', 'jquery' ), false, 1 );
@@ -2895,21 +2896,20 @@ function wp_enqueue_global_styles_css_custom_properties() {
 }
 
 /**
- * This function takes care of adding inline styles
- * in the proper place, depending on the theme in use.
+ * Hooks inline styles in the proper place, depending on the active theme.
  *
  * @since 5.9.1
+ * @since 6.1.0 Added the `$priority` parameter.
  *
- * For block themes, it's loaded in the head.
- * For classic ones, it's loaded in the body
- * because the wp_head action happens before
- * the render_block.
+ * For block themes, styles are loaded in the head.
+ * For classic ones, styles are loaded in the body because the wp_head action happens before render_block.
  *
  * @link https://core.trac.wordpress.org/ticket/53494.
  *
- * @param string $style String containing the CSS styles to be added.
+ * @param string $style    String containing the CSS styles to be added.
+ * @param int    $priority To set the priority for the add_action.
  */
-function wp_enqueue_block_support_styles( $style ) {
+function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
 	$action_hook_name = 'wp_footer';
 	if ( wp_is_block_theme() ) {
 		$action_hook_name = 'wp_head';
@@ -2918,7 +2918,8 @@ function wp_enqueue_block_support_styles( $style ) {
 		$action_hook_name,
 		static function () use ( $style ) {
 			echo "<style>$style</style>\n";
-		}
+		},
+		$priority
 	);
 }
 

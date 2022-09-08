@@ -438,12 +438,12 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 			foreach ( $actions as $action => $link ) {
 				++$i;
 
-				$sep = ( $i < $action_count ) ? ' | ' : '';
+				$separator = ( $i < $action_count ) ? ' | ' : '';
 
-				echo "<span class='$action'>$link$sep</span>";
+				echo "<span class='$action'>{$link}{$separator}</span>";
 			}
 
-			echo '</small></span><br/>';
+			echo '</small></span><br />';
 		}
 	}
 
