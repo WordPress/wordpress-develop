@@ -1063,7 +1063,7 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 			array(
 				'site_id'    => $network_id,
 				'meta_key'   => 'main_site',
-				'meta_value' => $wpdb->insert_id,
+				'meta_value' => $current_site->blog_id,
 			)
 		);
 
