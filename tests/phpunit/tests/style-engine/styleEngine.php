@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests the Style Engine class and associated functionality.
+ * Tests the Style Engine global functions that interact with the WP_Style_Engine class.
  *
  * @package WordPress
  * @subpackage StyleEngine
@@ -12,7 +12,7 @@
 /**
  * Tests for registering, storing and generating styles.
  */
-class WP_Style_Engine_Test extends WP_UnitTestCase {
+class Tests_wpStyleEngine extends WP_UnitTestCase {
 	/**
 	 * Tear down after each test.
 	 */
@@ -26,6 +26,8 @@ class WP_Style_Engine_Test extends WP_UnitTestCase {
 	 *
 	 * @ticket 56467
 	 * @covers ::wp_style_engine_get_styles
+	 * @covers WP_Style_Engine::parse_block_styles
+	 * @covers WP_Style_Engine::compile_css
 	 *
 	 * @dataProvider data_wp_style_engine_get_styles
 	 *
@@ -116,28 +118,6 @@ class WP_Style_Engine_Test extends WP_UnitTestCase {
 						'margin'       => '111px',
 					),
 					'classnames'   => 'has-text-color has-texas-flood-color has-border-color has-cool-caramel-border-color',
-				),
-			),
-
-			'valid_inline_css_and_classnames_with_context' => array(
-				'block_styles'    => array(
-					'color'   => array(
-						'text' => 'var:preset|color|little-lamb',
-					),
-					'spacing' => array(
-						'margin' => '20px',
-					),
-				),
-				'options'         => array(
-					'convert_vars_to_classnames' => true,
-					'context'                    => 'block-supports',
-				),
-				'expected_output' => array(
-					'css'          => 'margin:20px;',
-					'declarations' => array(
-						'margin' => '20px',
-					),
-					'classnames'   => 'has-text-color has-little-lamb-color',
 				),
 			),
 
@@ -505,6 +485,7 @@ class WP_Style_Engine_Test extends WP_UnitTestCase {
 	 *
 	 * @ticket 56467
 	 * @covers ::wp_style_engine_get_styles
+	 * @covers WP_Style_Engine::store_css_rule
 	 */
 	public function test_should_store_block_styles_using_context() {
 		$block_styles = array(
@@ -560,6 +541,8 @@ class WP_Style_Engine_Test extends WP_UnitTestCase {
 	 *
 	 * @ticket 56467
 	 * @covers ::wp_style_engine_get_stylesheet_from_context
+	 * @covers WP_Style_Engine::store_css_rule
+	 * @covers WP_Style_Engine::compile_stylesheet_from_css_rules
 	 */
 	public function test_should_get_stored_stylesheet_from_context() {
 		$css_rules           = array(
@@ -597,6 +580,7 @@ class WP_Style_Engine_Test extends WP_UnitTestCase {
 	 *
 	 * @ticket 56467
 	 * @covers ::wp_style_engine_get_stylesheet_from_css_rules
+	 * @covers WP_Style_Engine::compile_stylesheet_from_css_rules
 	 */
 	public function test_should_return_stylesheet_from_css_rules() {
 		$css_rules = array(
