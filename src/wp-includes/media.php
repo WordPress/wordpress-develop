@@ -278,23 +278,25 @@ function image_downsize( $id, $size = 'medium' ) {
  *
  * @global array $_wp_additional_image_sizes Associative array of additional image sizes.
  *
- * @param string     $name   Image size identifier.
- * @param int        $width  Optional. Image width in pixels. Default 0.
- * @param int        $height Optional. Image height in pixels. Default 0.
- * @param bool|array $crop   Optional. Image cropping behavior. If false, the image will be scaled (default),
- *                           If true, image will be cropped to the specified dimensions using center positions.
- *                           If an array, the image will be cropped using the array to specify the crop location.
- *                           Array values must be in the format: array( x_crop_position, y_crop_position ) where:
- *                               - x_crop_position accepts: 'left', 'center', or 'right'.
- *                               - y_crop_position accepts: 'top', 'center', or 'bottom'.
+ * @param string     $name                  Image size identifier.
+ * @param int        $width                 Optional. Image width in pixels. Default 0.
+ * @param int        $height                Optional. Image height in pixels. Default 0.
+ * @param bool|array $crop                  Optional. Image cropping behavior. If false, the image will be scaled (default),
+ *                                          If true, image will be cropped to the specified dimensions using center positions.
+ *                                          If an array, the image will be cropped using the array to specify the crop location.
+ *                                          Array values must be in the format: array( x_crop_position, y_crop_position ) where:
+ *                                              - x_crop_position accepts: 'left', 'center', or 'right'.
+ *                                              - y_crop_position accepts: 'top', 'center', or 'bottom'.
+ * @param bool       $additional_mime_types Optional. Whether to output mapped mapping. Default null.
  */
-function add_image_size( $name, $width = 0, $height = 0, $crop = false ) {
+function add_image_size( $name, $width = 0, $height = 0, $crop = false, $additional_mime_types = null ) {
 	global $_wp_additional_image_sizes;
 
 	$_wp_additional_image_sizes[ $name ] = array(
-		'width'  => absint( $width ),
-		'height' => absint( $height ),
-		'crop'   => $crop,
+		'width'                 => absint( $width ),
+		'height'                => absint( $height ),
+		'crop'                  => $crop,
+		'additional_mime_types' => ! empty( $additional_mime_types ),
 	);
 }
 
@@ -3918,6 +3920,8 @@ function _wp_image_editor_choose( $args = array() ) {
  * @return array The adjusted default output mapping.
  */
 function wp_default_image_output_mapping( $output_mapping, $filename, $mime_type, $size_name = '' ) {
+	global $__wp_additional_image_sizes;
+
 	// If size name is specified, check whether the size supports additional MIME types like WebP.
 	if ( $size_name ) {
 		// Include only the core sizes that do not rely on add_image_size(). Additional image sizes are opt-in.
@@ -3928,6 +3932,8 @@ function wp_default_image_output_mapping( $output_mapping, $filename, $mime_type
 			'large'          => true,
 			'post-thumbnail' => true,
 		);
+
+		// Add any custom sizes that have secondarly mime output enabled.
 
 		/**
 		 * Filters the sizes that support secondary mime type output. Developers can use this
