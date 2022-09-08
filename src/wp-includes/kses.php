@@ -2471,7 +2471,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			// Allow specific CSS functions and any nested ()s within them,
 			// provided that all ()s are balanced.
 			$css_test_string = preg_replace(
-				'/(?(R)(?<ident>\b(?:var|calc|min|max|minmax|clamp))?|(?&ident))\(([^)(]|(?R))*\)/',
+				'/(?(R)(?<ident>\b(?:var|calc|min|max|minmax|clamp))?|(?&ident))\((?:[^)(]|(?R))*\)/',
 				'',
 				$css_test_string
 			);
