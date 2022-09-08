@@ -936,6 +936,7 @@ EOF;
 	 * @ticket 42729
 	 * @ticket 48376
 	 * @ticket 55966
+	 * @ticket 56122
 	 * @dataProvider data_test_safecss_filter_attr
 	 *
 	 * @param string $css      A string of CSS rules.
@@ -1034,8 +1035,8 @@ EOF;
 			),
 			// `flex` and related attributes introduced in 5.3.
 			array(
-				'css'      => 'flex: 0 1 auto;flex-basis: 75%;flex-direction: row-reverse;flex-flow: row-reverse nowrap;flex-grow: 2;flex-shrink: 1',
-				'expected' => 'flex: 0 1 auto;flex-basis: 75%;flex-direction: row-reverse;flex-flow: row-reverse nowrap;flex-grow: 2;flex-shrink: 1',
+				'css'      => 'flex: 0 1 auto;flex-basis: 75%;flex-direction: row-reverse;flex-flow: row-reverse nowrap;flex-grow: 2;flex-shrink: 1;flex-wrap: nowrap',
+				'expected' => 'flex: 0 1 auto;flex-basis: 75%;flex-direction: row-reverse;flex-flow: row-reverse nowrap;flex-grow: 2;flex-shrink: 1;flex-wrap: nowrap',
 			),
 			// `grid` and related attributes introduced in 5.3.
 			array(
@@ -1235,6 +1236,16 @@ EOF;
 			array(
 				'css'      => 'width: (3em + (10px * 2))',
 				'expected' => '',
+			),
+			// Gap introduced in 6.1.
+			array(
+				'css'      => 'gap: 10px;column-gap: 5px;row-gap: 20px',
+				'expected' => 'gap: 10px;column-gap: 5px;row-gap: 20px',
+			),
+			// Margin and padding logical properties introduced in 6.1.
+			array(
+				'css'      => 'margin-block-start: 1px;margin-block-end: 2px;margin-inline-start: 3px;margin-inline-end: 4px;padding-block-start: 1px;padding-block-end: 2px;padding-inline-start: 3px;padding-inline-end: 4px',
+				'expected' => 'margin-block-start: 1px;margin-block-end: 2px;margin-inline-start: 3px;margin-inline-end: 4px;padding-block-start: 1px;padding-block-end: 2px;padding-inline-start: 3px;padding-inline-end: 4px',
 			),
 		);
 	}
