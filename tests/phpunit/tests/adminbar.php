@@ -747,14 +747,13 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	private function data_should_not_use_dynamic_properties()
-	{
-		return array(
-			'property_name' => array(
-				'$wp_admin_bar->proto' => 'proto',
-				'$wp_admin_bar->menu' => 'menu',
-			)
-		);
+	private function data_should_not_use_dynamic_properties() {
+		 return array(
+			 'property_name' => array(
+				 '$wp_admin_bar->proto' => 'proto',
+				 '$wp_admin_bar->menu'  => 'menu',
+			 ),
+		 );
 	}
 
 	/**
@@ -764,27 +763,26 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 *
 	 * @param string $property_name Name of the property.
 	 */
-	public function test_should_not_use_dynamic_properties($property_name)
-	{
+	public function test_should_not_use_dynamic_properties( $property_name ) {
 		$wp_admin_bar = $this->get_standard_admin_bar();
-		$this->assertFalse(property_exists($wp_admin_bar, $property_name), sprintf('The "%s" property is deprecated and must not be used.', $property_name));
+		$this->assertFalse( property_exists( $wp_admin_bar, $property_name ), sprintf( 'The "%s" property is deprecated and must not be used.', $property_name ) );
 
 		// Assert that the property is not being used in the __isset method.
-		$this->assertFalse(isset($wp_admin_bar->$property_name), sprintf('The "%s" property is deprecated and must not be used in the __isset method.', $property_name));
+		$this->assertFalse( isset( $wp_admin_bar->$property_name ), sprintf( 'The "%s" property is deprecated and must not be used in the __isset method.', $property_name ) );
 
 		$property_defined = true;
 
 		try {
 			// Assert that the property is not being used in the __get method.
 			$property_defined = null !== $wp_admin_bar->$property_name;
-		} catch (Exception $e) {
+		} catch ( Exception $e ) {
 			// Catch the exception as dynamic properties
 			// generate warnings on PHP >= 8.2.
 			$property_defined = false;
 		}
 
-		if ($property_defined) {
-			$this->fail('The magic methods of the WP_Admin_Bar class should not be used to define dynamic properties.');
+		if ( $property_defined ) {
+			$this->fail( 'The magic methods of the WP_Admin_Bar class should not be used to define dynamic properties.' );
 		}
 	}
 
