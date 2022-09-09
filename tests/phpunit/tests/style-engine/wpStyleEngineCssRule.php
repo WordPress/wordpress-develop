@@ -6,7 +6,7 @@
  * @subpackage StyleEngine
  * @since 6.1.0
  *
- * @group styleEngine
+ * @group style-engine
  */
 
 /**
