@@ -347,6 +347,7 @@ class WP_Theme_JSON {
 	 * Define which defines which pseudo selectors are enabled for
 	 * which elements.
 	 * Note: this will effect both top level and block level elements.
+	 * @since 6.1.0
 	 */
 	const VALID_ELEMENT_PSEUDO_SELECTORS = array(
 		'link'   => array( ':hover', ':focus', ':active', ':visited' ),
@@ -357,7 +358,7 @@ class WP_Theme_JSON {
 	 * The valid elements that can be found under styles.
 	 *
 	 * @since 5.8.0
-	 * @since 6.1.0 Added `heading`, `button`, and `caption` to the elements.
+	 * @since 6.1.0 Added heading, button and caption elements
 	 * @var string[]
 	 */
 	const ELEMENTS = array(
@@ -1315,6 +1316,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 5.8.0
 	 * @since 5.9.0 Added the `$settings` and `$properties` parameters.
+	 * @since 6.1.0 Added the `$theme_json` parameter.
 	 *
 	 * @param array $styles    Styles to process.
 	 * @param array $settings  Theme settings.
@@ -1375,6 +1377,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 5.8.0
 	 * @since 5.9.0 Added support for values of array type, which are returned as is.
+	 * @since 6.1.0 Added the `$theme_json` parameter.
 	 *
 	 * @param array $styles Styles subtree.
 	 * @param array $path   Which property to process.
@@ -1618,6 +1621,8 @@ class WP_Theme_JSON {
 
 	/**
 	 * Gets the CSS rules for a particular block from theme.json.
+	 *
+	 * @since 6.1.0
 	 *
 	 * @param array $block_metadata Meta data about the block to get styles for.
 	 *

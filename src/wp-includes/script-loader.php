@@ -2361,7 +2361,7 @@ function wp_common_block_scripts_and_styles() {
  * This filter allows us to modify the output of WP_Theme_JSON depending on whether or not we are loading separate assets,
  * without making the class aware of that detail.
  *
- * @since 6.1
+ * @since 6.1.0
  *
  * @param array $nodes The nodes to filter.
  * @return array A filtered array of style nodes.

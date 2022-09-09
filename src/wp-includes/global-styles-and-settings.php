@@ -195,9 +195,9 @@ function wp_get_global_styles_svg_filters() {
 
 /**
  * Adds global style rules to the inline style for each block.
- * 
+ *
  * @since 6.1.0
- * 
+ *
  */
 function wp_add_global_styles_for_blocks() {
 	$tree        = WP_Theme_JSON_Resolver::get_merged_data();
