@@ -2367,7 +2367,7 @@ function wp_common_block_scripts_and_styles() {
  * @param array $nodes The nodes to filter.
  * @return array A filtered array of style nodes.
  */
-function filter_out_block_nodes( $nodes ) {
+function wp_filter_out_block_nodes( $nodes ) {
 	return array_filter(
 		$nodes,
 		function( $node ) {
@@ -2406,7 +2406,7 @@ function wp_enqueue_global_styles() {
 	 * This removes the CSS from the global-styles stylesheet and adds it to the inline CSS for each block.
 	 */
 	if ( $separate_assets ) {
-		add_filter( 'get_style_nodes', 'filter_out_block_nodes' );
+		add_filter( 'get_style_nodes', 'wp_filter_out_block_nodes' );
 		// Add each block as an inline css.
 		wp_add_global_styles_for_blocks();
 	}
