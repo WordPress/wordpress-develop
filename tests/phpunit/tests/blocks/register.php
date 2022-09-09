@@ -390,8 +390,6 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			array(
 				'message' => array(
 					'type'     => 'string',
-					'source'   => 'html',
-					'selector' => '.message',
 				),
 				'lock'    => array( 'type' => 'object' ),
 			),
@@ -455,6 +453,9 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block.css' ) ),
 			wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-style', 'path' ) )
 		);
+
+		// @ticket 53148
+		$this->assertIsCallable( $result->render_callback );
 	}
 
 	/**
