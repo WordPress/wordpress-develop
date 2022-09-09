@@ -922,7 +922,7 @@ class WP_Debug_Data {
 			);
 		} elseif ( 'sqlite' === $database_type ) {
 			$info['wp-database']['fields']['database_version'] = array(
-				'label' => __( 'Database version' ),
+				'label' => __( 'SQLite version' ),
 				'value' => class_exists( 'SQLite3' ) ? SQLite3::version()['versionString'] : null,
 			);
 
