@@ -665,7 +665,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 */
 	protected function handle_row_actions( $item, $column_name, $primary ) {
 		global $comment_status, $hook_suffix;
-		
+
 		$hook_suffix = 'comments-row-actions';
 
 		if ( $primary !== $column_name ) {
