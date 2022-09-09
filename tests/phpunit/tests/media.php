@@ -3579,19 +3579,6 @@ EOF;
 		$content_expected   = $img1 . $iframe1 . $lazy_img2 . $lazy_img3 . $lazy_iframe2;
 		$content_expected   = wp_img_tag_add_decoding_attr( $content_expected, 'the_content' );
 
-		// add dominant color markup
-//		$content_expected = str_replace(
-//			array(
-//				'<img decoding="async" ',
-//				'class="align',
-//			),
-//			array(
-//				'<img data-dominant-color="dadada" data-has-transparency="false" style="--dominant-color: #dadada;" decoding="async" ',
-//				'class="not-transparent align',
-//			),
-//			$content_expected
-//		);
-
 		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
 		$wp_the_query = $wp_query;
 		$this->reset_content_media_count();

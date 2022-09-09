@@ -1080,7 +1080,7 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 				}
 			}
 		}
-		if ( current_theme_supports('dominant-color' ) ) {
+		if ( current_theme_supports( 'dominant-color' ) ) {
 			$attr = dominant_color_update_attachment_image_attributes( $attr, $attachment );
 		}
 
@@ -1860,7 +1860,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 				$filtered_image = wp_image_use_alternate_mime_types( $filtered_image, $context, $attachment_id );
 			}
 
-			if ( current_theme_supports('dominant-color' ) ) {
+			if ( current_theme_supports( 'dominant-color' ) ) {
 				$filtered_image = img_tag_add_dominant_color( $filtered_image, $context, $attachment_id );
 			}
 
@@ -5577,7 +5577,7 @@ function dominant_color_update_attachment_image_attributes( $attr, $attachment )
  * @param int    $attachment_id  The attachment ID.
  * @return string image tag
  */
-function img_tag_add_dominant_color( $filtered_image, $context, $attachment_id ) {
+function dominant_color_img_tag_add_dominant_color( $filtered_image, $context, $attachment_id ) {
 
 	// Only apply this in `the_content` for now, since otherwise it can result in duplicate runs due to a problem with full site editing logic.
 	if ( 'the_content' !== $context ) {
