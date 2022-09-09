@@ -4951,3 +4951,42 @@ function wp_is_application_passwords_available_for_user( $user ) {
 	 */
 	return apply_filters( 'wp_is_application_passwords_available_for_user', true, $user );
 }
+
+/**
+ * Register the user meta for persisted preferences.
+ *
+ * @since 6.1.0
+ * @access private
+ */
+function wp_register_persisted_preferences_meta() {
+	// Create a meta key that incorporates the blog prefix so that each site
+	// on a multisite can have distinct user preferences.
+	global $wpdb;
+	$meta_key = $wpdb->get_blog_prefix() . 'persisted_preferences';
+
+	register_meta(
+		'user',
+		$meta_key,
+		array(
+			'type'         => 'object',
+			'single'       => true,
+			'show_in_rest' => array(
+				'name'    => 'persisted_preferences',
+				'type'    => 'object',
+				'context' => array( 'edit' ),
+				'schema'  => array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'_modified' => array(
+							'description' => __( 'The date and time the preferences were updated.', 'default' ),
+							'type'        => 'string',
+							'format'      => 'date-time',
+							'readonly'    => false,
+						),
+					),
+					'additionalProperties' => true,
+				),
+			),
+		)
+	);
+}

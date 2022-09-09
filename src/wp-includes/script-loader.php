@@ -294,6 +294,9 @@ function wp_default_packages_scripts( $scripts ) {
 			case 'wp-edit-post':
 				array_push( $dependencies, 'media-models', 'media-views', 'postbox', 'wp-dom-ready' );
 				break;
+			case 'wp-preferences':
+				array_push( $dependencies, 'wp-preferences-persistence' );
+				break;
 		}
 
 		$scripts->add( $handle, $path, $dependencies, $package_data['version'], 1 );
@@ -328,7 +331,7 @@ function wp_default_packages_scripts( $scripts ) {
  * @param WP_Scripts $scripts WP_Scripts object.
  */
 function wp_default_packages_inline_scripts( $scripts ) {
-	global $wp_locale;
+	global $wp_locale, $wpdb;
 
 	if ( isset( $scripts->registered['wp-api-fetch'] ) ) {
 		$scripts->registered['wp-api-fetch']->deps[] = 'wp-hooks';
@@ -374,6 +377,25 @@ function wp_default_packages_inline_scripts( $scripts ) {
 				'} )();',
 			)
 		)
+	);
+
+	$meta_key     = $wpdb->get_blog_prefix() . 'persisted_preferences';
+	$user_id      = get_current_user_ID();
+	$preload_data = get_user_meta( $user_id, $meta_key, true );
+	$scripts->add_inline_script(
+		'wp-preferences',
+		sprintf(
+			'( function() {
+				var serverData = %s;
+				var userId = "%s";
+				var persistenceLayer = wp.preferencesPersistence.__unstableCreatePersistenceLayer( serverData, userId );
+				var preferencesStore = wp.preferences.store;
+				wp.data.dispatch( preferencesStore ).setPersistenceLayer( persistenceLayer );
+			} ) ();',
+			wp_json_encode( $preload_data ),
+			wp_json_encode( $user_id )
+		),
+		'after'
 	);
 
 	// Calculate the timezone abbr (EDT, PST) if possible.
