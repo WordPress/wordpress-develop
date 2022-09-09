@@ -14,7 +14,6 @@
  *
  * Holds, sanitizes, processes and prints CSS declarations for the style engine.
  *
- * @access private
  * @since 6.1.0
  */
 class WP_Style_Engine_CSS_Declarations {

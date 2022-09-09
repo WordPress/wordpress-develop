@@ -14,7 +14,6 @@
  *
  * Compiles styles from stores or collection of CSS rules.
  *
- * @access private
  * @since 6.1.0
  */
 class WP_Style_Engine_Processor {
