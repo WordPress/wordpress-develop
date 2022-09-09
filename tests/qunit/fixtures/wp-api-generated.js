@@ -10615,6 +10615,27 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
+        "/wp-site-health/v1/tests/page-cache": {
+            "namespace": "wp-site-health/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": []
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-site-health/v1/tests/page-cache"
+                    }
+                ]
+            }
+        },
         "/wp-block-editor/v1": {
             "namespace": "wp-block-editor/v1",
             "methods": [
@@ -10760,7 +10781,8 @@ mockedApiResponse.Schema = {
         }
     },
     "site_logo": 0,
-    "site_icon": 0
+    "site_icon": 0,
+    "site_icon_url": ""
 };
 
 mockedApiResponse.oembed = {

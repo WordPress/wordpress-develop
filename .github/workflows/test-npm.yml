@@ -180,7 +180,7 @@ jobs:
       always() &&
       github.repository == 'WordPress/wordpress-develop' &&
       github.event_name != 'pull_request' &&
-      github.run_number < 2 &&
+      github.run_attempt < 2 &&
       (
         needs.test-npm.result == 'cancelled' || needs.test-npm.result == 'failure' ||
         needs.test-npm-macos.result == 'cancelled' || needs.test-npm-macos.result == 'failure'
@@ -190,7 +190,6 @@ jobs:
       - name: Dispatch workflow run
         uses: actions/github-script@c713e510dbd7d213d92d41b7a7805a986f4c5c66 # v6.2.0
         with:
-          github-token: ${{ secrets.GHA_WORKFLOW_DISPATCH }}
           script: |
             github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
