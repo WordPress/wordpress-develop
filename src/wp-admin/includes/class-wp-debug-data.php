@@ -278,6 +278,11 @@ class WP_Debug_Data {
 					'label' => 'WP_MAX_MEMORY_LIMIT',
 					'value' => WP_MAX_MEMORY_LIMIT,
 				),
+				'DATABASE_TYPE'       => array(
+					'label' => 'DATABASE_TYPE',
+					'value' => ( defined( 'DATABASE_TYPE' ) ? DATABASE_TYPE : __( 'Undefined' ) ),
+					'debug' => ( defined( 'DATABASE_TYPE' ) ? DATABASE_TYPE : 'undefined' ),
+				),
 				'WP_DEBUG'            => array(
 					'label' => 'WP_DEBUG',
 					'value' => WP_DEBUG ? __( 'Enabled' ) : __( 'Disabled' ),
