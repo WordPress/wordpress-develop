@@ -4957,6 +4957,8 @@ function wp_is_application_passwords_available_for_user( $user ) {
  *
  * @since 6.1.0
  * @access private
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  */
 function wp_register_persisted_preferences_meta() {
 	// Create a meta key that incorporates the blog prefix so that each site
