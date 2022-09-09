@@ -344,9 +344,9 @@ class WP_Theme_JSON {
 	);
 
 	/**
-	 * Define which defines which pseudo selectors are enabled for
-	 * which elements.
-	 * Note: this will effect both top level and block level elements.
+	 * Defines which pseudo selectors are enabled for which elements.
+	 * Note: this will effect both top-level and block-level elements.
+	 *
 	 * @since 6.1.0
 	 */
 	const VALID_ELEMENT_PSEUDO_SELECTORS = array(
@@ -358,11 +358,11 @@ class WP_Theme_JSON {
 	 * The valid elements that can be found under styles.
 	 *
 	 * @since 5.8.0
-	 * @since 6.1.0 Added heading, button and caption elements
+	 * @since 6.1.0 Added `heading`, `button`. and `caption` elements.
 	 * @var string[]
 	 */
 	const ELEMENTS = array(
-		'link'    => 'a:where(:not(.wp-element-button))', // The where is needed to lower the specificity.
+		'link'    => 'a:where(:not(.wp-element-button))', // The `where` is needed to lower the specificity.
 		'heading' => 'h1, h2, h3, h4, h5, h6',
 		'h1'      => 'h1',
 		'h2'      => 'h2',
@@ -382,16 +382,21 @@ class WP_Theme_JSON {
 	);
 
 	/**
-	 * Given an element name, returns a class name.
-	 *
-	 * @param string $element The name of the element.
-	 *
-	 * @return string The name of the class.
+	 * Returns a class name by an element name.
 	 *
 	 * @since 6.1.0
+	 *
+	 * @param string $element The name of the element.
+	 * @return string The name of the class.
 	 */
 	public static function get_element_class_name( $element ) {
-		return array_key_exists( $element, static::__EXPERIMENTAL_ELEMENT_CLASS_NAMES ) ? static::__EXPERIMENTAL_ELEMENT_CLASS_NAMES[ $element ] : '';
+		$class_name = '';
+
+		if ( array_key_exists( $element, static::__EXPERIMENTAL_ELEMENT_CLASS_NAMES ) ) {
+			$class_name = static::__EXPERIMENTAL_ELEMENT_CLASS_NAMES[ $element ];
+		}
+
+		return $class_name;
 	}
 
 	/**
@@ -527,9 +532,11 @@ class WP_Theme_JSON {
 		// Preserve only the top most level keys.
 		$output = array_intersect_key( $input, array_flip( static::VALID_TOP_LEVEL_KEYS ) );
 
-		// Remove any rules that are annotated as "top" in VALID_STYLES constant.
-		// Some styles are only meant to be available at the top-level (e.g.: blockGap),
-		// hence, the schema for blocks & elements should not have them.
+		/*
+		 * Remove any rules that are annotated as "top" in VALID_STYLES constant.
+		 * Some styles are only meant to be available at the top-level (e.g.: blockGap),
+		 * hence, the schema for blocks & elements should not have them.
+		 */
 		$styles_non_top_level = static::VALID_STYLES;
 		foreach ( array_keys( $styles_non_top_level ) as $section ) {
 			foreach ( array_keys( $styles_non_top_level[ $section ] ) as $prop ) {
@@ -543,11 +550,13 @@ class WP_Theme_JSON {
 		$schema                 = array();
 		$schema_styles_elements = array();
 
-		// Set allowed element pseudo selectors based on per element allow list.
-		// Target data structure in schema:
-		// e.g.
-		// - top level elements: `$schema['styles']['elements']['link'][':hover']`.
-		// - block level elements: `$schema['styles']['blocks']['core/button']['elements']['link'][':hover']`.
+		/*
+		 * Set allowed element pseudo selectors based on per element allow list.
+		 * Target data structure in schema:
+		 * e.g.
+		 * - top level elements: `$schema['styles']['elements']['link'][':hover']`.
+		 * - block level elements: `$schema['styles']['blocks']['core/button']['elements']['link'][':hover']`.
+		 */
 		foreach ( $valid_element_names as $element ) {
 			$schema_styles_elements[ $element ] = $styles_non_top_level;
 
@@ -596,7 +605,7 @@ class WP_Theme_JSON {
 	}
 
 	/**
-	 * Function that appends a sub-selector to a existing one.
+	 * Appends a sub-selector to an existing one.
 	 *
 	 * Given the compounded $selector "h1, h2, h3"
 	 * and the $to_append selector ".some-class" the result will be
@@ -607,7 +616,7 @@ class WP_Theme_JSON {
 	 *
 	 * @param string $selector  Original selector.
 	 * @param string $to_append Selector to append.
-	 * @param string $position  A position sub-selector should be appended. Default: 'right'.
+	 * @param string $position  A position sub-selector should be appended. Default 'right'.
 	 * @return string
 	 */
 	protected static function append_to_selector( $selector, $to_append, $position = 'right' ) {
@@ -1387,9 +1396,11 @@ class WP_Theme_JSON {
 	protected static function get_property_value( $styles, $path, $theme_json = null ) {
 		$value = _wp_array_get( $styles, $path, '' );
 
-		// This converts references to a path to the value at that path
-		// where the values is an array with a "ref" key, pointing to a path.
-		// For example: { "ref": "style.color.background" } => "#fff".
+		/*
+		 * This converts references to a path to the value at that path
+		 * where the values is an array with a "ref" key, pointing to a path.
+		 * For example: { "ref": "style.color.background" } => "#fff".
+		 */
 		if ( is_array( $value ) && array_key_exists( 'ref', $value ) ) {
 			$value_path = explode( '.', $value['ref'] );
 			$ref_value  = _wp_array_get( $theme_json, $value_path );
@@ -1401,7 +1412,11 @@ class WP_Theme_JSON {
 			if ( is_array( $ref_value ) && array_key_exists( 'ref', $ref_value ) ) {
 				$path_string      = json_encode( $path );
 				$ref_value_string = json_encode( $ref_value );
-				_doing_it_wrong( 'get_property_value', "Your theme.json file uses a dynamic value (${ref_value_string}) for the path at ${path_string}. However, the value at ${path_string} is also a dynamic value (pointing to ${ref_value['ref']}) and pointing to another dynamic value is not supported. Please update ${path_string} to point directly to ${ref_value['ref']}.", '6.1.0' );
+				_doing_it_wrong(
+					'get_property_value',
+					"Your theme.json file uses a dynamic value (${ref_value_string}) for the path at ${path_string}. However, the value at ${path_string} is also a dynamic value (pointing to ${ref_value['ref']}) and pointing to another dynamic value is not supported. Please update ${path_string} to point directly to ${ref_value['ref']}.",
+					'6.1.0'
+				);
 			}
 		}
 
@@ -1544,12 +1559,22 @@ class WP_Theme_JSON {
 
 		$nodes = array_merge( $nodes, static::get_block_nodes( $theme_json ) );
 
-		// This filter allows us to modify the output of WP_Theme_JSON so that we can do things like loading block CSS independently.
+		/**
+		 * Filters the list of style nodes with metadata.
+		 *
+		 * This allows for things like loading block CSS independently.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param array $nodes Style nodes with metadata.
+		 */
 		return apply_filters( 'get_style_nodes', $nodes );
 	}
 
 	/**
 	 * A public helper to get the block nodes from a theme.json file.
+	 *
+	 * @since 6.1.0
 	 *
 	 * @return array The block nodes in theme.json.
 	 */
@@ -1560,8 +1585,9 @@ class WP_Theme_JSON {
 	/**
 	 * An internal method to get the block nodes from a theme.json file.
 	 *
-	 * @param array $theme_json The theme.json converted to an array.
+	 * @since 6.1.0
 	 *
+	 * @param array $theme_json The theme.json converted to an array.
 	 * @return array The block nodes in theme.json.
 	 */
 	private static function get_block_nodes( $theme_json ) {
@@ -1625,7 +1651,6 @@ class WP_Theme_JSON {
 	 * @since 6.1.0
 	 *
 	 * @param array $block_metadata Meta data about the block to get styles for.
-	 *
 	 * @return array Styles for the block.
 	 */
 	public function get_styles_for_block( $block_metadata ) {
@@ -1635,10 +1660,12 @@ class WP_Theme_JSON {
 		$selector = $block_metadata['selector'];
 		$settings = _wp_array_get( $this->theme_json, array( 'settings' ) );
 
-		// Get a reference to element name from path.
-		// $block_metadata['path'] = array('styles','elements','link');
-		// Make sure that $block_metadata['path'] describes an element node, like ['styles', 'element', 'link'].
-		// Skip non-element paths like just ['styles'].
+		/*
+		 * Get a reference to element name from path.
+		 * $block_metadata['path'] = array( 'styles','elements','link' );
+		 * Make sure that $block_metadata['path'] describes an element node, like [ 'styles', 'element', 'link' ].
+		 * Skip non-element paths like just ['styles'].
+		 */
 		$is_processing_element = in_array( 'elements', $block_metadata['path'], true );
 
 		$current_element = $is_processing_element ? $block_metadata['path'][ count( $block_metadata['path'] ) - 1 ] : null;
@@ -1649,8 +1676,10 @@ class WP_Theme_JSON {
 			$element_pseudo_allowed = static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ];
 		}
 
-		// Check for allowed pseudo classes (e.g. ":hover") from the $selector ("a:hover").
-		// This also resets the array keys.
+		/*
+		 * Check for allowed pseudo classes (e.g. ":hover") from the $selector ("a:hover").
+		 * This also resets the array keys.
+		 */
 		$pseudo_matches = array_values(
 			array_filter(
 				$element_pseudo_allowed,
@@ -1662,9 +1691,11 @@ class WP_Theme_JSON {
 
 		$pseudo_selector = isset( $pseudo_matches[0] ) ? $pseudo_matches[0] : null;
 
-		// If the current selector is a pseudo selector that's defined in the allow list for the current
-		// element then compute the style properties for it.
-		// Otherwise just compute the styles for the default selector as normal.
+		/*
+		 * If the current selector is a pseudo selector that's defined in the allow list for the current
+		 * element then compute the style properties for it.
+		 * Otherwise just compute the styles for the default selector as normal.
+		 */
 		if ( $pseudo_selector && isset( $node[ $pseudo_selector ] ) &&
 			array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS )
 			&& in_array( $pseudo_selector, static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ], true )
@@ -1676,8 +1707,10 @@ class WP_Theme_JSON {
 
 		$block_rules = '';
 
-		// 1. Separate the ones who use the general selector
-		// and the ones who use the duotone selector.
+		/*
+		 * 1. Separate the ones who use the general selector
+		 * and the ones who use the duotone selector.
+		 */
 		$declarations_duotone = array();
 		foreach ( $declarations as $index => $declaration ) {
 			if ( 'filter' === $declaration['name'] ) {
@@ -2045,12 +2078,16 @@ class WP_Theme_JSON {
 
 			$output = static::remove_insecure_styles( $input );
 
-			// Get a reference to element name from path.
-			// $metadata['path'] = array('styles','elements','link');.
+			/*
+			 * Get a reference to element name from path.
+			 * $metadata['path'] = array( 'styles', 'elements', 'link' );
+			 */
 			$current_element = $metadata['path'][ count( $metadata['path'] ) - 1 ];
 
-			// $output is stripped of pseudo selectors. Readd and process them
-			// for insecure styles here.
+			/*
+			 * $output is stripped of pseudo selectors. Re-add and process them
+			 * or insecure styles here.
+			 */
 			if ( array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
 				foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] as $pseudo_selector ) {
 					if ( isset( $input[ $pseudo_selector ] ) ) {

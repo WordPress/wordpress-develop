@@ -197,7 +197,6 @@ function wp_get_global_styles_svg_filters() {
  * Adds global style rules to the inline style for each block.
  *
  * @since 6.1.0
- *
  */
 function wp_add_global_styles_for_blocks() {
 	$tree        = WP_Theme_JSON_Resolver::get_merged_data();
@@ -207,9 +206,11 @@ function wp_add_global_styles_for_blocks() {
 
 		if ( isset( $metadata['name'] ) ) {
 			$block_name = str_replace( 'core/', '', $metadata['name'] );
-			// These block styles are added on block_render.
-			// This hooks inline CSS to them so that they are loaded conditionally
-			// based on whether or not the block is used on the page.
+			/*
+			 * These block styles are added on block_render.
+			 * This hooks inline CSS to them so that they are loaded conditionally
+			 * based on whether or not the block is used on the page.
+			 */
 			wp_add_inline_style( 'wp-block-' . $block_name, $block_css );
 		}
 

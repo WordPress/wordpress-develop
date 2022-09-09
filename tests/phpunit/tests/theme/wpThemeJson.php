@@ -722,7 +722,10 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 	}
 
-	function test_get_stylesheet_handles_whitelisted_element_pseudo_selectors() {
+	/**
+	 * @ticket 56467
+	 */
+	public function test_get_stylesheet_handles_whitelisted_element_pseudo_selectors() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version' => WP_Theme_JSON::LATEST_SCHEMA,
@@ -765,7 +768,10 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEquals( $expected, $theme_json->get_stylesheet( array( 'styles' ) ) );
 	}
 
-	function test_get_stylesheet_handles_only_pseudo_selector_rules_for_given_property() {
+	/**
+	 * @ticket 56467
+	 */
+	public function test_get_stylesheet_handles_only_pseudo_selector_rules_for_given_property() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version' => WP_Theme_JSON::LATEST_SCHEMA,
@@ -804,7 +810,10 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEquals( $expected, $theme_json->get_stylesheet( array( 'styles' ) ) );
 	}
 
-	function test_get_stylesheet_ignores_pseudo_selectors_on_non_whitelisted_elements() {
+	/**
+	 * @ticket 56467
+	 */
+	public function test_get_stylesheet_ignores_pseudo_selectors_on_non_whitelisted_elements() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version' => WP_Theme_JSON::LATEST_SCHEMA,
@@ -843,7 +852,10 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEquals( $expected, $theme_json->get_stylesheet( array( 'styles' ) ) );
 	}
 
-	function test_get_stylesheet_ignores_non_whitelisted_pseudo_selectors() {
+	/**
+	 * @ticket 56467
+	 */
+	public function test_get_stylesheet_ignores_non_whitelisted_pseudo_selectors() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version' => WP_Theme_JSON::LATEST_SCHEMA,
@@ -883,7 +895,10 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'a:levitate{', $theme_json->get_stylesheet( array( 'styles' ) ) );
 	}
 
-	function test_get_stylesheet_handles_priority_of_elements_vs_block_elements_pseudo_selectors() {
+	/**
+	 * @ticket 56467
+	 */
+	public function test_get_stylesheet_handles_priority_of_elements_vs_block_elements_pseudo_selectors() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version' => WP_Theme_JSON::LATEST_SCHEMA,
@@ -930,7 +945,10 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEquals( $expected, $theme_json->get_stylesheet( array( 'styles' ) ) );
 	}
 
-	function test_get_stylesheet_handles_whitelisted_block_level_element_pseudo_selectors() {
+	/**
+	 * @ticket 56467
+	 */
+	public function test_get_stylesheet_handles_whitelisted_block_level_element_pseudo_selectors() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version' => WP_Theme_JSON::LATEST_SCHEMA,
@@ -2338,7 +2356,10 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected, $actual );
 	}
 
-	function test_remove_invalid_element_pseudo_selectors() {
+	/**
+	 * @ticket 56467
+	 */
+	public function test_remove_invalid_element_pseudo_selectors() {
 		$actual = WP_Theme_JSON::remove_insecure_properties(
 			array(
 				'version' => WP_Theme_JSON::LATEST_SCHEMA,
@@ -2921,14 +2942,20 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected, $actual );
 	}
 
-	function test_get_element_class_name_button() {
+	/**
+	 * @ticket 56467
+	 */
+	public function test_get_element_class_name_button() {
 		$expected = 'wp-element-button';
 		$actual   = WP_Theme_JSON::get_element_class_name( 'button' );
 
 		$this->assertEquals( $expected, $actual );
 	}
 
-	function test_get_element_class_name_invalid() {
+	/**
+	 * @ticket 56467
+	 */
+	public function test_get_element_class_name_invalid() {
 		$expected = '';
 		$actual   = WP_Theme_JSON::get_element_class_name( 'unknown-element' );
 
@@ -2936,10 +2963,12 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Testing that dynamic properties in theme.json return the value they refrence, e.g.
-	 * array( 'ref' => 'styles.color.background' ) => "#ffffff".
+	 * Testing that dynamic properties in theme.json return the value they refrence,
+	 * e.g. array( 'ref' => 'styles.color.background' ) => "#ffffff".
+	 *
+	 * @ticket 56467
 	 */
-	function test_get_property_value_valid() {
+	public function test_get_property_value_valid() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version' => 2,
@@ -2965,10 +2994,10 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Testing that dynamic properties in theme.json that
-	 * refer to other dynamic properties in a loop
-	 * then they should be left untouched.
+	 * Testing that dynamic properties in theme.json that refer to other dynamic properties in a loop
+	 * should be left untouched.
 	 *
+	 * @ticket 56467
 	 * @expectedIncorrectUsage get_property_value
 	 */
 	function test_get_property_value_loop() {
@@ -2997,9 +3026,10 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Testing that dynamic properties in theme.json that
-	 * refer to other dynamic properties then they should be left unprocessed.
+	 * Testing that dynamic properties in theme.json that refer to other dynamic properties
+	 * should be left unprocessed.
 	 *
+	 * @ticket 56467
 	 * @expectedIncorrectUsage get_property_value
 	 */
 	function test_get_property_value_recursion() {
@@ -3028,9 +3058,10 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Testing that dynamic properties in theme.json that
-	 * refer to themselves then they should be left unprocessed.
+	 * Testing that dynamic properties in theme.json that refer to themselves
+	 * should be left unprocessed.
 	 *
+	 * @ticket 56467
 	 * @expectedIncorrectUsage get_property_value
 	 */
 	function test_get_property_value_self() {
