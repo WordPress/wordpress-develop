@@ -685,9 +685,9 @@ class WP_Theme_JSON {
 						$element_selector = array( $el_selector );
 						break;
 					}
-					$element_selector = static::append_to_selector( $el_selector, $selector . ' ', 'left' );
+					$element_selector[] = static::append_to_selector( $el_selector, $selector . ' ', 'left' );
 				}
-				static::$blocks_metadata[ $block_name ]['elements'][ $el_name ] = $element_selector;
+				static::$blocks_metadata[ $block_name ]['elements'][ $el_name ] = implode( ',', $element_selector );
 			}
 		}
 
