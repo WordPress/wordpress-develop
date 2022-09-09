@@ -17,7 +17,6 @@ class Dominant_Color_Test extends DominantColorTestCase {
 	 */
 	public function test_dominant_color_metadata( $image_path, $expected_color, $expected_transparency ) {
 
-
 		foreach ( $this->editor_engines as $editor ) {
 			$this->editor_engine = $editor;
 			// Non existing attachment.

@@ -1080,6 +1080,9 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 				}
 			}
 		}
+		if ( current_theme_supports('dominant-color' ) ) {
+			$attr = dominant_color_update_attachment_image_attributes( $attr, $attachment );
+		}
 
 		/**
 		 * Filters the list of attachment image attributes.
@@ -1850,6 +1853,15 @@ function wp_filter_content_tags( $content, $context = null ) {
 			// Add 'decoding=async' attribute unless a 'decoding' attribute is already present.
 			if ( ! str_contains( $filtered_image, ' decoding=' ) ) {
 				$filtered_image = wp_img_tag_add_decoding_attr( $filtered_image, $context );
+			}
+
+			// Use alternate mime types when specified and available.
+			if ( $attachment_id > 0 && _wp_in_front_end_context() ) {
+				$filtered_image = wp_image_use_alternate_mime_types( $filtered_image, $context, $attachment_id );
+			}
+
+			if ( current_theme_supports('dominant-color' ) ) {
+				$filtered_image = img_tag_add_dominant_color( $filtered_image, $context, $attachment_id );
 			}
 
 			/**
@@ -5517,7 +5529,6 @@ function dominant_color_metadata( $metadata, $attachment_id ) {
 
 	return $metadata;
 }
-add_filter( 'wp_generate_attachment_metadata', 'dominant_color_metadata', 10, 2 );
 
 /**
  * Filter various image attributes to add the dominant color to the image
@@ -5555,7 +5566,6 @@ function dominant_color_update_attachment_image_attributes( $attr, $attachment )
 
 	return $attr;
 }
-add_filter( 'wp_get_attachment_image_attributes', 'dominant_color_update_attachment_image_attributes', 10, 2 );
 
 /**
  * Filter image tags in content to add the dominant color to the image.
@@ -5621,7 +5631,6 @@ function img_tag_add_dominant_color( $filtered_image, $context, $attachment_id )
 
 	return $filtered_image;
 }
-add_filter( 'wp_content_img_tag', 'img_tag_add_dominant_color', 20, 3 );
 
 /**
  * Add CSS needed for to show the dominant color as an image background.
@@ -5629,6 +5638,9 @@ add_filter( 'wp_content_img_tag', 'img_tag_add_dominant_color', 20, 3 );
  * @since 6.1
  */
 function dominant_color_add_inline_style() {
+	if ( ! current_theme_supports( 'dominant-color', 'inline-css' ) ) {
+		return;
+	}
 	$handle = 'dominant-color-styles';
 	wp_register_style( $handle, false );
 	wp_enqueue_style( $handle );
@@ -5665,6 +5677,7 @@ function _dominant_color_get_dominant_color_data( $attachment_id ) {
 			),
 		)
 	);
+
 	if ( is_wp_error( $editor ) ) {
 		return $editor;
 	}
