@@ -1414,7 +1414,14 @@ class WP_Theme_JSON {
 				$ref_value_string = json_encode( $ref_value );
 				_doing_it_wrong(
 					'get_property_value',
-					"Your theme.json file uses a dynamic value (${ref_value_string}) for the path at ${path_string}. However, the value at ${path_string} is also a dynamic value (pointing to ${ref_value['ref']}) and pointing to another dynamic value is not supported. Please update ${path_string} to point directly to ${ref_value['ref']}.",
+					sprintf(
+						/* translators: 1: theme.json, 2: Value name, 3: Value path, 4: Another value name. */
+						__( 'Your %1$s file uses a dynamic value (%2$s) for the path at %3$s. However, the value at %3$s is also a dynamic value (pointing to %4$s) and pointing to another dynamic value is not supported. Please update %3$s to point directly to %4$s.' ),
+						'theme.json',
+						$ref_value_string,
+						$path_string,
+						$ref_value['ref']
+					),
 					'6.1.0'
 				);
 			}
