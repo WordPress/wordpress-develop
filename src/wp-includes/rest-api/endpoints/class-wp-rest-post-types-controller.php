@@ -221,6 +221,10 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 			$data['slug'] = $post_type->name;
 		}
 
+		if ( in_array( 'icon', $fields, true ) ) {
+			$data['icon'] = $post_type->menu_icon;
+		}
+
 		if ( in_array( 'supports', $fields, true ) ) {
 			$data['supports'] = $supports;
 		}
@@ -287,6 +291,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 * @since 4.8.0 The `supports` property was added.
 	 * @since 5.9.0 The `visibility` and `rest_namespace` properties were added.
+	 * @since 6.1.0 The `icon` property was added.
 	 *
 	 * @return array Item schema data.
 	 */
@@ -384,6 +389,12 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 							'type'        => 'boolean',
 						),
 					),
+				),
+				'icon'           => array(
+					'description' => __( 'The icon for the post type.' ),
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit', 'embed' ),
+					'readonly'    => true,
 				),
 			),
 		);
