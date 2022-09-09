@@ -52,7 +52,7 @@ function performance_conditional_options_options_preload( $pre, $force_cache ) {
 
 	return $pre;
 }
-if( ! isset( $_REQUEST['dco'] ) ){
+if ( ! isset( $_REQUEST['dco'] ) ){
 	add_filter( 'pre_get_alloptions', 'performance_conditional_options_options_preload', 1, 2 );
 }
 
