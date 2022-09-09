@@ -270,7 +270,7 @@ function core_upgrade_preamble() {
 		);
 		echo '</p></div>';
 
-		if ( ! empty( $wp_version ) && $wp_version <= 4.0 ) {
+		if ( version_compare( $wp_version, '4.1.0', '<' ) ) {
 			echo '<div class="notice notice-warning inline"><p>';
 			printf(
 				/* translators: 1: Documentation on WordPress backups, 2: Documentation on updating WordPress. */
