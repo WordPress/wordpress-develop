@@ -352,6 +352,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @covers WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles
 	 */
 	function test_get_user_data_from_wp_global_styles_does_not_use_uncached_queries() {
+		WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( wp_get_theme() );
 		add_filter( 'query', array( $this, 'filter_db_query' ) );
 		$query_count = count( $this->queries );
 		for ( $i = 0; $i < 3; $i++ ) {
