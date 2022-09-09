@@ -42,6 +42,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * Registers the controllers routes.
 	 *
 	 * @since 5.8.0
+	 * @since 6.1.0 Endpoint for fallback template content.
 	 */
 	public function register_routes() {
 		// Lists all templates.
@@ -115,6 +116,55 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
 		);
+
+		// Get fallback template content.
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/lookup',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_template_fallback' ),
+					'permission_callback' => array( $this, 'get_items_permissions_check' ),
+					'args'                => array(
+						'slug'            => array(
+							'description' => __( 'The slug of the template to get the fallback for' ),
+							'type'        => 'string',
+						),
+						'is_custom'       => array(
+							'description' => __( ' Indicates if a template is custom or part of the template hierarchy' ),
+							'type'        => 'boolean',
+						),
+						'template_prefix' => array(
+							'description' => __( 'The template prefix for the created template. This is used to extract the main template type ex. in `taxonomy-books` we extract the `taxonomy`' ),
+							'type'        => 'string',
+						),
+					),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Returns the fallback template for a given slug.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param WP_REST_Request $request The request instance.
+	 *
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function get_template_fallback( $request ) {
+		if ( empty( $request['slug'] ) ) {
+			return new WP_Error(
+				'rest_invalid_param',
+				__( 'Invalid slug.', 'gutenberg' ),
+				array( 'status' => 400 )
+			);
+		}
+		$hierarchy         = get_template_hierarchy( $request['slug'], $request['is_custom'], $request['template_prefix'] );
+		$fallback_template = resolve_block_template( $request['slug'], $hierarchy, '' );
+		return rest_ensure_response( $fallback_template );
 	}
 
 	/**
@@ -523,6 +573,17 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$changes->post_excerpt = $request['description'];
 		} elseif ( null !== $template && 'custom' !== $template->source ) {
 			$changes->post_excerpt = $template->description;
+		}
+
+		if ( 'wp_template' === $this->post_type ) {
+			if ( isset( $request['is_wp_suggestion'] ) ) {
+				$changes->meta_input     = wp_parse_args(
+					array(
+						'is_wp_suggestion' => $request['is_wp_suggestion'],
+					),
+					$changes->meta_input = array()
+				);
+			}
 		}
 
 		if ( 'wp_template_part' === $this->post_type ) {

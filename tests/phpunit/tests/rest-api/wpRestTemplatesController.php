@@ -56,6 +56,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	/**
 	 * @covers WP_REST_Templates_Controller::register_routes
 	 * @ticket 54596
+	 * @ticket 56467
 	 */
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
@@ -68,6 +69,11 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 			'/wp/v2/templates/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w-]+)',
 			$routes,
 			'Single template based on the given ID route does not exist'
+		);
+		$this->assertArrayHasKey(
+			'/wp/v2/templates/lookup',
+			$routes,
+			'Get template fallback content route does not exist'
 		);
 	}
 
@@ -678,4 +684,39 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		return null;
 	}
 
+	/**
+	 * @ticket 56467
+	 * @covers WP_REST_Templates_Controller::get_template_fallback
+	 */
+	// TODO: check how to make this test work..
+	// https://github.com/WordPress/gutenberg/pull/42520/files#diff-5dcd7f0ba0e053098e93f6907913da73787fb7487e05d37e3249fb1c0ec434d6
+	// public function test_get_template_fallback() {
+	// 	$base_path = gutenberg_dir_path() . 'test/emptytheme/block-templates/';
+	// 	wp_set_current_user( self::$admin_id );
+	// 	$request = new WP_REST_Request( 'GET', '/wp/v2/templates/lookup' );
+	// 	// Should match `category.html`.
+	// 	$request->set_param( 'slug', 'category-fruits' );
+	// 	$request->set_param( 'is_custom', false );
+	// 	$request->set_param( 'template_prefix', 'category' );
+	// 	$response = rest_get_server()->dispatch( $request );
+	// 	$data     = $response->get_data()->content;
+	// 	$expected = file_get_contents( $base_path . 'category.html' );
+	// 	$this->assertEquals( $expected, $data );
+	// 	// Should fallback to `index.html` .
+	// 	$request->set_param( 'slug', 'tag-status' );
+	// 	$request->set_param( 'is_custom', false );
+	// 	$request->set_param( 'template_prefix', 'tag' );
+	// 	$response = rest_get_server()->dispatch( $request );
+	// 	$data     = $response->get_data()->content;
+	// 	$expected = file_get_contents( $base_path . 'index.html' );
+	// 	$this->assertEquals( $expected, $data );
+	// 	// Should fallback to `singular.html` .
+	// 	$request->set_param( 'slug', 'page-hello' );
+	// 	$request->set_param( 'is_custom', false );
+	// 	$request->set_param( 'template_prefix', 'page' );
+	// 	$response = rest_get_server()->dispatch( $request );
+	// 	$data     = $response->get_data()->content;
+	// 	$expected = file_get_contents( $base_path . 'singular.html' );
+	// 	$this->assertEquals( $expected, $data );
+	// }
 }
