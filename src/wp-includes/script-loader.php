@@ -363,21 +363,6 @@ function wp_default_packages_inline_scripts( $scripts ) {
 		),
 		'after'
 	);
-	$scripts->add_inline_script(
-		'wp-data',
-		implode(
-			"\n",
-			array(
-				'( function() {',
-				'	var userId = ' . get_current_user_ID() . ';',
-				'	var storageKey = "WP_DATA_USER_" + userId;',
-				'	wp.data',
-				'		.use( wp.data.plugins.persistence, { storageKey: storageKey } );',
-				'	wp.data.plugins.persistence.__unstableMigrate( { storageKey: storageKey } );',
-				'} )();',
-			)
-		)
-	);
 
 	$meta_key     = $wpdb->get_blog_prefix() . 'persisted_preferences';
 	$user_id      = get_current_user_ID();
