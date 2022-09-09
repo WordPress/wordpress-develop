@@ -720,13 +720,13 @@ class Tests_Comment extends WP_UnitTestCase {
 		/**
 		 * Set up a comment for testing.
 		 */
-		$post = $this->factory->post->create(
+		$post = self::factory()->post->create(
 			array(
 				'post_author' => self::$user_id,
 			)
 		);
 
-		$comment = $this->factory->comment->create(
+		$comment = self::factory()->comment->create(
 			array(
 				'comment_post_ID' => $post,
 			)
