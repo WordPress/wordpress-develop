@@ -686,6 +686,72 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 56467
+	 * @covers WP_REST_Templates_Controller::create_item
+	 */
+	public function test_create_item_with_is_wp_suggestion() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/templates' );
+		// `is_wp_suggestion` true.
+		$body_params = array(
+			'slug'             => 'page-rigas',
+			'description'      => 'Just a description',
+			'title'            => 'My Template',
+			'content'          => 'Content',
+			'is_wp_suggestion' => true,
+			'author'           => self::$admin_id,
+		);
+		$request->set_body_params( $body_params );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		unset( $data['_links'] );
+		unset( $data['wp_id'] );
+		$expected = array(
+			'id'             => 'default//page-rigas',
+			'theme'          => 'default',
+			'content'        => array(
+				'raw' => 'Content',
+			),
+			'slug'           => 'page-rigas',
+			'source'         => 'custom',
+			'origin'         => null,
+			'type'           => 'wp_template',
+			'description'    => 'Just a description',
+			'title'          => array(
+				'raw'      => 'My Template',
+				'rendered' => 'My Template',
+			),
+			'status'         => 'publish',
+			'has_theme_file' => false,
+			'is_custom'      => false,
+			'author'         => self::$admin_id,
+		);
+		$this->assertSame( $expected, $data );
+		// `is_wp_suggestion` false.
+		$body_params = wp_parse_args(
+			array(
+				'slug'             => 'page-hi',
+				'is_wp_suggestion' => false,
+			),
+			$body_params
+		);
+		$request->set_body_params( $body_params );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		unset( $data['_links'] );
+		unset( $data['wp_id'] );
+		$expected = wp_parse_args(
+			array(
+				'id'        => 'default//page-hi',
+				'slug'      => 'page-hi',
+				'is_custom' => true,
+			),
+			$expected
+		);
+		$this->assertSame( $expected, $data );
+	}
+
+	/**
+	 * @ticket 56467
 	 * @covers WP_REST_Templates_Controller::get_template_fallback
 	 */
 	public function test_get_template_fallback() {
