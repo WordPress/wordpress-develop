@@ -261,11 +261,11 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertFalse( $data['is_dynamic'] );
 		$this->assertSameSets( array( array() ), $data['variations'] );
 		// Deprecated properties.
-		$this->assertNull(  $data['editor_script'] );
-		$this->assertNull(  $data['script'] );
-		$this->assertNull(  $data['view_script'] );
-		$this->assertNull(  $data['editor_style'] );
-		$this->assertNull(  $data['style'] );
+		$this->assertNull( $data['editor_script'] );
+		$this->assertNull( $data['script'] );
+		$this->assertNull( $data['view_script'] );
+		$this->assertNull( $data['editor_style'] );
+		$this->assertNull( $data['style'] );
 
 	}
 
@@ -333,9 +333,9 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		// Deprecated properties.
 		$this->assertNull( $data['editor_script'] );
 		$this->assertNull( $data['script'] );
-		$this->assertNull(  $data['view_script'] );
-		$this->assertNull(  $data['editor_style'] );
-		$this->assertNull(  $data['style'] );
+		$this->assertNull( $data['view_script'] );
+		$this->assertNull( $data['editor_style'] );
+		$this->assertNull( $data['style'] );
 	}
 
 	public function test_get_variation() {

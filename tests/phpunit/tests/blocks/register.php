@@ -494,16 +494,25 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			),
 			$result->example
 		);
-		$this->assertSame( 'tests-notice-editor-script', $result->editor_script );
-		$this->assertSame( 'tests-notice-script', $result->script );
+		$this->assertSameSets(
+			array( 'tests-notice-editor-script' ),
+			$result->editor_script_handles
+		);
+		$this->assertSameSets(
+			array( 'tests-notice-script' ),
+			$result->script_handles
+		);
 		$this->assertSameSets(
 			array( 'tests-notice-view-script', 'tests-notice-view-script-2' ),
-			$result->view_script
+			$result->view_script_handles
 		);
-		$this->assertSame( 'tests-notice-editor-style', $result->editor_style );
+		$this->assertSameSets(
+			array( 'tests-notice-editor-style' ),
+			$result->editor_style_handles
+		);
 		$this->assertSameSets(
 			array( 'tests-notice-style', 'tests-notice-style-2' ),
-			$result->style
+			$result->style_handles
 		);
 
 		// @ticket 50328

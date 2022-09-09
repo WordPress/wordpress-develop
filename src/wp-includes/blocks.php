@@ -342,15 +342,15 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	}
 
 	$script_fields = array(
-		'editorScript' => 'editor_script',
-		'script'       => 'script',
-		'viewScript'   => 'view_script',
+		'editorScript' => 'editor_script_handles',
+		'script'       => 'script_handles',
+		'viewScript'   => 'view_script_handles',
 	);
 	foreach ( $script_fields as $metadata_field_name => $settings_field_name ) {
 		if ( ! empty( $metadata[ $metadata_field_name ] ) ) {
-			$scripts = $metadata[ $metadata_field_name ];
+			$scripts           = $metadata[ $metadata_field_name ];
+			$processed_scripts = array();
 			if ( is_array( $scripts ) ) {
-				$processed_scripts = array();
 				for ( $index = 0; $index < count( $scripts ); $index++ ) {
 					$result = register_block_script_handle(
 						$metadata,
@@ -361,28 +361,28 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 						$processed_scripts[] = $result;
 					}
 				}
-				$settings[ $settings_field_name ] = $processed_scripts;
 			} else {
 				$result = register_block_script_handle(
 					$metadata,
 					$metadata_field_name
 				);
 				if ( $result ) {
-					$settings[ $settings_field_name ] = $result;
+					$processed_scripts[] = $result;
 				}
 			}
+			$settings[ $settings_field_name ] = $processed_scripts;
 		}
 	}
 
 	$style_fields = array(
-		'editorStyle' => 'editor_style',
-		'style'       => 'style',
+		'editorStyle' => 'editor_style_handles',
+		'style'       => 'style_handles',
 	);
 	foreach ( $style_fields as $metadata_field_name => $settings_field_name ) {
 		if ( ! empty( $metadata[ $metadata_field_name ] ) ) {
-			$styles = $metadata[ $metadata_field_name ];
+			$styles           = $metadata[ $metadata_field_name ];
+			$processed_styles = array();
 			if ( is_array( $styles ) ) {
-				$processed_styles = array();
 				for ( $index = 0; $index < count( $styles ); $index++ ) {
 					$result = register_block_style_handle(
 						$metadata,
@@ -393,16 +393,16 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 						$processed_styles[] = $result;
 					}
 				}
-				$settings[ $settings_field_name ] = $processed_styles;
 			} else {
 				$result = register_block_style_handle(
 					$metadata,
 					$metadata_field_name
 				);
 				if ( $result ) {
-					$settings[ $settings_field_name ] = $result;
+					$processed_styles[] = $result;
 				}
 			}
+			$settings[ $settings_field_name ] = $processed_styles;
 		}
 	}
 
