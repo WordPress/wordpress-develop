@@ -24,8 +24,6 @@ class Tests_Script_Loader extends WP_UnitTestCase {
 	 * @covers ::wp_enqueue_stored_styles
 	 */
 	public function test_should_enqueue_stored_styles() {
-		global $wp_styles;
-
 		$core_styles_to_enqueue = array(
 			array(
 				'selector'     => '.saruman',
