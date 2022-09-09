@@ -1523,7 +1523,7 @@ class WP_Theme_JSON {
 				);
 
 				// Handle any pseudo selectors for the element.
-				if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] ) ) {
+				if ( array_key_exists( $element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
 					foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
 
 						if ( isset( $theme_json['styles']['elements'][ $element ][ $pseudo_selector ] ) ) {
@@ -1602,7 +1602,7 @@ class WP_Theme_JSON {
 					);
 
 					// Handle any pseudo selectors for the element.
-					if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] ) ) {
+					if ( array_key_exists( $element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
 						foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
 							if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'][ $element ][ $pseudo_selector ] ) ) {
 								$nodes[] = array(
@@ -1643,7 +1643,11 @@ class WP_Theme_JSON {
 
 		$current_element = $is_processing_element ? $block_metadata['path'][ count( $block_metadata['path'] ) - 1 ] : null;
 
-		$element_pseudo_allowed = isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] ) ? static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] : array();
+		$element_pseudo_allowed = array();
+
+		if ( array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
+			$element_pseudo_allowed = static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ];
+		}
 
 		// Check for allowed pseudo classes (e.g. ":hover") from the $selector ("a:hover").
 		// This also resets the array keys.
@@ -1661,7 +1665,10 @@ class WP_Theme_JSON {
 		// If the current selector is a pseudo selector that's defined in the allow list for the current
 		// element then compute the style properties for it.
 		// Otherwise just compute the styles for the default selector as normal.
-		if ( $pseudo_selector && isset( $node[ $pseudo_selector ] ) && isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] ) && in_array( $pseudo_selector, static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ], true ) ) {
+		if ( $pseudo_selector && isset( $node[ $pseudo_selector ] ) &&
+			array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS )
+			&& in_array( $pseudo_selector, static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ], true )
+		) {
 			$declarations = static::compute_style_properties( $node[ $pseudo_selector ], $settings, null, $this->theme_json );
 		} else {
 			$declarations = static::compute_style_properties( $node, $settings, null, $this->theme_json );
@@ -2044,8 +2051,7 @@ class WP_Theme_JSON {
 
 			// $output is stripped of pseudo selectors. Readd and process them
 			// for insecure styles here.
-			if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] ) ) {
-
+			if ( array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
 				foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] as $pseudo_selector ) {
 					if ( isset( $input[ $pseudo_selector ] ) ) {
 						$output[ $pseudo_selector ] = static::remove_insecure_styles( $input[ $pseudo_selector ] );
