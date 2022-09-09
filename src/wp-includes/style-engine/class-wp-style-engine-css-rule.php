@@ -42,9 +42,9 @@ class WP_Style_Engine_CSS_Rule {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param string                                 $selector     The CSS selector.
-	 * @param array|WP_Style_Engine_CSS_Declarations $declarations An array of declarations (property => value pairs),
-	 *                                                             or a WP_Style_Engine_CSS_Declarations object.
+	 * @param string                                    $selector     The CSS selector.
+	 * @param string[]|WP_Style_Engine_CSS_Declarations $declarations An associative array of CSS definitions, e.g., array( "$property" => "$value", "$property" => "$value" ),
+	 *                                                                or a WP_Style_Engine_CSS_Declarations object.
 	 */
 	public function __construct( $selector = '', $declarations = array() ) {
 		$this->set_selector( $selector );
@@ -52,7 +52,7 @@ class WP_Style_Engine_CSS_Rule {
 	}
 
 	/**
-	 * Set the selector.
+	 * Sets the selector.
 	 *
 	 * @since 6.1.0
 	 *
@@ -66,7 +66,7 @@ class WP_Style_Engine_CSS_Rule {
 	}
 
 	/**
-	 * Set the declarations.
+	 * Sets the declarations.
 	 *
 	 * @since 6.1.0
 	 *
@@ -92,18 +92,18 @@ class WP_Style_Engine_CSS_Rule {
 	}
 
 	/**
-	 * Get the declarations object.
+	 * Gets the declarations object.
 	 *
 	 * @since 6.1.0
 	 *
-	 * @return WP_Style_Engine_CSS_Declarations
+	 * @return WP_Style_Engine_CSS_Declarations The declarations object.
 	 */
 	public function get_declarations() {
 		return $this->declarations;
 	}
 
 	/**
-	 * Get the full selector.
+	 * Gets the full selector.
 	 *
 	 * @since 6.1.0
 	 *
@@ -114,7 +114,7 @@ class WP_Style_Engine_CSS_Rule {
 	}
 
 	/**
-	 * Get the CSS.
+	 * Gets the CSS.
 	 *
 	 * @since 6.1.0
 	 *
@@ -126,8 +126,8 @@ class WP_Style_Engine_CSS_Rule {
 	public function get_css( $should_prettify = false, $indent_count = 0 ) {
 		$rule_indent         = $should_prettify ? str_repeat( "\t", $indent_count ) : '';
 		$declarations_indent = $should_prettify ? $indent_count + 1 : 0;
-		$new_line            = $should_prettify ? "\n" : '';
-		$space               = $should_prettify ? ' ' : '';
+		$suffix              = $should_prettify ? "\n" : '';
+		$spacer              = $should_prettify ? ' ' : '';
 		$selector            = $should_prettify ? str_replace( ',', ",\n", $this->get_selector() ) : $this->get_selector();
 		$css_declarations    = $this->declarations->get_declarations_string( $should_prettify, $declarations_indent );
 
@@ -135,6 +135,6 @@ class WP_Style_Engine_CSS_Rule {
 			return '';
 		}
 
-		return "{$rule_indent}{$selector}{$space}{{$new_line}{$css_declarations}{$new_line}{$rule_indent}}";
+		return "{$rule_indent}{$selector}{$spacer}{{$suffix}{$css_declarations}{$suffix}{$rule_indent}}";
 	}
 }

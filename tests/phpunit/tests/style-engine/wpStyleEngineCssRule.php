@@ -33,6 +33,7 @@ class Tests_Style_Engine_wpStyleEngineCSSRule extends WP_UnitTestCase {
 		$this->assertSame( $selector, $css_rule->get_selector(), 'Return value of get_selector() does not match value passed to constructor.' );
 
 		$expected = "$selector{{$css_declarations->get_declarations_string()}}";
+
 		$this->assertSame( $expected, $css_rule->get_css(), 'Value returned by get_css() does not match expected declarations string.' );
 	}
 
@@ -40,6 +41,7 @@ class Tests_Style_Engine_wpStyleEngineCSSRule extends WP_UnitTestCase {
 	 * Tests that declaration properties are deduplicated.
 	 *
 	 * @ticket 56467
+	 *
 	 * @covers ::add_declarations
 	 * @covers ::get_css
 	 */
@@ -55,6 +57,7 @@ class Tests_Style_Engine_wpStyleEngineCSSRule extends WP_UnitTestCase {
 		$css_rule->add_declarations( new WP_Style_Engine_CSS_Declarations( $overwrite_first_declaration ) );
 
 		$expected = '.taggart{font-size:4px;}';
+
 		$this->assertSame( $expected, $css_rule->get_css() );
 	}
 
@@ -62,6 +65,7 @@ class Tests_Style_Engine_wpStyleEngineCSSRule extends WP_UnitTestCase {
 	 * Tests that declarations can be added to existing rules.
 	 *
 	 * @ticket 56467
+	 *
 	 * @covers ::add_declarations
 	 * @covers ::get_css
 	 */
@@ -74,6 +78,7 @@ class Tests_Style_Engine_wpStyleEngineCSSRule extends WP_UnitTestCase {
 		$css_rule->add_declarations( $some_more_css_declarations );
 
 		$expected = '.hill-street-blues{margin-top:10px;font-size:1rem;}';
+
 		$this->assertSame( $expected, $css_rule->get_css() );
 	}
 
@@ -81,6 +86,7 @@ class Tests_Style_Engine_wpStyleEngineCSSRule extends WP_UnitTestCase {
 	 * Tests setting a selector to a rule.
 	 *
 	 * @ticket 56467
+	 *
 	 * @covers ::set_selector
 	 */
 	public function test_should_set_selector() {
@@ -98,6 +104,7 @@ class Tests_Style_Engine_wpStyleEngineCSSRule extends WP_UnitTestCase {
 	 * Tests generating a CSS rule string.
 	 *
 	 * @ticket 56467
+	 *
 	 * @covers ::get_css
 	 */
 	public function test_should_generate_css_rule_string() {
@@ -117,6 +124,7 @@ class Tests_Style_Engine_wpStyleEngineCSSRule extends WP_UnitTestCase {
 	 * Tests that an empty string will be returned where there are no declarations in a CSS rule.
 	 *
 	 * @ticket 56467
+	 *
 	 * @covers ::get_css
 	 */
 	public function test_should_return_empty_string_with_no_declarations() {
@@ -132,6 +140,7 @@ class Tests_Style_Engine_wpStyleEngineCSSRule extends WP_UnitTestCase {
 	 * Tests that CSS rules are prettified.
 	 *
 	 * @ticket 56467
+	 *
 	 * @covers ::get_css
 	 */
 	public function test_should_prettify_css_rule_output() {

@@ -62,7 +62,7 @@ class WP_Style_Engine_Processor {
 	/**
 	 * Adds rules to be processed.
 	 *
-	 * @since 6.1.0 a store to t
+	 * @since 6.1.0
 	 *
 	 * @param WP_Style_Engine_CSS_Rule|WP_Style_Engine_CSS_Rule[] $css_rules A single, or an array of, WP_Style_Engine_CSS_Rule objects from a store or otherwise.
 	 *

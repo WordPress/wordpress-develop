@@ -19,6 +19,7 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 	 * Tests adding rules and returning compiled CSS rules.
 	 *
 	 * @ticket 56467
+	 *
 	 * @covers ::add_rules
 	 * @covers ::get_css
 	 */
@@ -40,7 +41,8 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 		);
 		$a_nice_processor = new WP_Style_Engine_Processor();
 		$a_nice_processor->add_rules( array( $a_nice_css_rule, $a_nicer_css_rule ) );
-		$this->assertEquals(
+
+		$this->assertSame(
 			'.a-nice-rule{color:var(--nice-color);background-color:purple;}.a-nicer-rule{font-family:Nice sans;font-size:1em;background-color:purple;}',
 			$a_nice_processor->get_css( array( 'prettify' => false ) )
 		);
@@ -50,6 +52,7 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 	 * Tests compiling CSS rules and formatting them with new lines and indents.
 	 *
 	 * @ticket 56467
+	 *
 	 * @covers ::get_css
 	 */
 	public function test_should_return_prettified_css_rules() {
@@ -89,7 +92,7 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 	background-color: orange;
 }
 ';
-		$this->assertEquals(
+		$this->assertSame(
 			$expected,
 			$a_wonderful_processor->get_css( array( 'prettify' => true ) )
 		);
@@ -99,6 +102,7 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 	 * Tests adding a store and compiling CSS rules from that store.
 	 *
 	 * @ticket 56467
+	 *
 	 * @covers ::add_store
 	 */
 	public function test_should_return_store_rules_as_css() {
@@ -118,7 +122,8 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 		);
 		$a_nice_renderer = new WP_Style_Engine_Processor();
 		$a_nice_renderer->add_store( $a_nice_store );
-		$this->assertEquals(
+
+		$this->assertSame(
 			'.a-nice-rule{color:var(--nice-color);background-color:purple;}.a-nicer-rule{font-family:Nice sans;font-size:1em;background-color:purple;}',
 			$a_nice_renderer->get_css( array( 'prettify' => false ) )
 		);
@@ -128,6 +133,7 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 	 * Tests that CSS declarations are merged and deduped in the final CSS rules output.
 	 *
 	 * @ticket 56467
+	 *
 	 * @covers ::add_rules
 	 * @covers ::get_css
 	 */
@@ -151,7 +157,8 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 			)
 		);
 		$an_excellent_processor->add_rules( $another_excellent_rule );
-		$this->assertEquals(
+
+		$this->assertSame(
 			'.an-excellent-rule{color:var(--excellent-color);border-style:dotted;border-color:brown;}',
 			$an_excellent_processor->get_css( array( 'prettify' => false ) ),
 			'Return value of get_css() does not match expectations with new, deduped and merged declarations.'
@@ -166,7 +173,8 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 			)
 		);
 		$an_excellent_processor->add_rules( $yet_another_excellent_rule );
-		$this->assertEquals(
+
+		$this->assertSame(
 			'.an-excellent-rule{color:var(--excellent-color);border-style:dashed;border-color:brown;border-width:2px;}',
 			$an_excellent_processor->get_css( array( 'prettify' => false ) ),
 			'Return value of get_css() does not match expectations with deduped and merged declarations.'
@@ -177,6 +185,7 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 	 * Tests printing out 'unoptimized' CSS, that is, uncombined selectors and duplicate CSS rules.
 	 *
 	 * @ticket 56467
+	 *
 	 * @covers ::get_css
 	 */
 	public function test_should_not_optimize_css_output() {
@@ -207,7 +216,7 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 		$a_sweet_processor = new WP_Style_Engine_Processor();
 		$a_sweet_processor->add_rules( array( $a_sweet_rule, $a_sweeter_rule, $the_sweetest_rule ) );
 
-		$this->assertEquals(
+		$this->assertSame(
 			'.a-sweet-rule{color:var(--sweet-color);background-color:purple;}#an-even-sweeter-rule > marquee{color:var(--sweet-color);background-color:purple;}.the-sweetest-rule-of-all a{color:var(--sweet-color);background-color:purple;}',
 			$a_sweet_processor->get_css(
 				array(
@@ -222,6 +231,7 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 	 * Tests that 'optimized' CSS is output, that is, that duplicate CSS rules are combined under their corresponding selectors.
 	 *
 	 * @ticket 56467
+	 *
 	 * @covers ::get_css
 	 */
 	public function test_should_optimize_css_output_by_default() {
@@ -244,7 +254,7 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 		$a_sweet_processor = new WP_Style_Engine_Processor();
 		$a_sweet_processor->add_rules( array( $a_sweet_rule, $a_sweeter_rule ) );
 
-		$this->assertEquals(
+		$this->assertSame(
 			'.a-sweet-rule,#an-even-sweeter-rule > marquee{color:var(--sweet-color);background-color:purple;}',
 			$a_sweet_processor->get_css( array( 'prettify' => false ) )
 		);
@@ -254,6 +264,7 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 	 * Tests that incoming CSS rules are merged with existing CSS rules.
 	 *
 	 * @ticket 56467
+	 *
 	 * @covers ::add_rules
 	 */
 	public function test_should_combine_previously_added_css_rules() {
@@ -272,7 +283,8 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 			)
 		);
 		$a_lovely_processor->add_rules( $a_lovelier_rule );
-		$this->assertEquals(
+
+		$this->assertSame(
 			'.a-lovely-rule,.a-lovelier-rule{border-color:purple;}',
 			$a_lovely_processor->get_css( array( 'prettify' => false ) ),
 			'Return value of get_css() does not match expectations when combining 2 CSS rules'
@@ -294,7 +306,7 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 		);
 		$a_lovely_processor->add_rules( $a_perfectly_lovely_rule );
 
-		$this->assertEquals(
+		$this->assertSame(
 			'.a-lovely-rule,.a-lovelier-rule,.a-most-lovely-rule,.a-perfectly-lovely-rule{border-color:purple;}',
 			$a_lovely_processor->get_css( array( 'prettify' => false ) ),
 			'Return value of get_css() does not match expectations when combining 4 CSS rules'

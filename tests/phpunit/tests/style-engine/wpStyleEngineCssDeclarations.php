@@ -19,6 +19,7 @@ class Tests_Style_Engine_wpStyleEngineCSSDeclarations extends WP_UnitTestCase {
 	 * Tests setting declarations on instantiation.
 	 *
 	 * @ticket 56467
+	 *
 	 * @covers ::__construct
 	 */
 	public function test_should_set_declarations_on_instantiation() {
@@ -27,6 +28,7 @@ class Tests_Style_Engine_wpStyleEngineCSSDeclarations extends WP_UnitTestCase {
 			'font-size'  => '2rem',
 		);
 		$css_declarations   = new WP_Style_Engine_CSS_Declarations( $input_declarations );
+
 		$this->assertSame( $input_declarations, $css_declarations->get_declarations() );
 	}
 
@@ -34,6 +36,7 @@ class Tests_Style_Engine_wpStyleEngineCSSDeclarations extends WP_UnitTestCase {
 	 * Tests that declarations are added.
 	 *
 	 * @ticket 56467
+	 *
 	 * @covers ::add_declarations
 	 * @covers ::add_declaration
 	 */
@@ -44,6 +47,7 @@ class Tests_Style_Engine_wpStyleEngineCSSDeclarations extends WP_UnitTestCase {
 		);
 		$css_declarations   = new WP_Style_Engine_CSS_Declarations();
 		$css_declarations->add_declarations( $input_declarations );
+
 		$this->assertSame( $input_declarations, $css_declarations->get_declarations() );
 	}
 
@@ -51,6 +55,7 @@ class Tests_Style_Engine_wpStyleEngineCSSDeclarations extends WP_UnitTestCase {
 	 * Tests that new declarations are added to existing declarations.
 	 *
 	 * @ticket 56467
+	 *
 	 * @covers ::add_declarations
 	 * @covers ::add_declaration
 	 */
@@ -64,6 +69,7 @@ class Tests_Style_Engine_wpStyleEngineCSSDeclarations extends WP_UnitTestCase {
 			'letter-spacing' => '1.5px',
 		);
 		$css_declarations->add_declarations( $extra_declaration );
+
 		$this->assertSame( array_merge( $input_declarations, $extra_declaration ), $css_declarations->get_declarations() );
 	}
 
@@ -71,6 +77,7 @@ class Tests_Style_Engine_wpStyleEngineCSSDeclarations extends WP_UnitTestCase {
 	 * Tests that properties are sanitized before storing.
 	 *
 	 * @ticket 56467
+	 *
 	 * @covers ::sanitize_property
 	 */
 	public function test_should_sanitize_properties() {
@@ -93,6 +100,7 @@ class Tests_Style_Engine_wpStyleEngineCSSDeclarations extends WP_UnitTestCase {
 	 * Test that values with HTML tags are escaped, and CSS properties are run through safecss_filter_attr().
 	 *
 	 * @ticket 56467
+	 *
 	 * @covers ::get_declarations_string
 	 * @covers ::filter_declaration
 	 */
@@ -128,6 +136,7 @@ class Tests_Style_Engine_wpStyleEngineCSSDeclarations extends WP_UnitTestCase {
 	 * Tests that calc, clamp, min, max, and minmax CSS functions are allowed.
 	 *
 	 * @ticket 56467
+	 *
 	 * @covers ::get_declarations_string
 	 * @covers ::filter_declaration
 	 */
@@ -183,6 +192,7 @@ class Tests_Style_Engine_wpStyleEngineCSSDeclarations extends WP_UnitTestCase {
 			'text-decoration'        => 'underline',
 		);
 		$css_declarations   = new WP_Style_Engine_CSS_Declarations( $input_declarations );
+
 		$this->assertSame(
 			$expected,
 			$css_declarations->get_declarations_string( $should_prettify, $indent_count )
@@ -225,6 +235,7 @@ class Tests_Style_Engine_wpStyleEngineCSSDeclarations extends WP_UnitTestCase {
 	 * Tests removing a single declaration.
 	 *
 	 * @ticket 56467
+	 *
 	 * @covers ::remove_declaration
 	 */
 	public function test_should_remove_single_declaration() {
@@ -242,6 +253,7 @@ class Tests_Style_Engine_wpStyleEngineCSSDeclarations extends WP_UnitTestCase {
 		);
 
 		$css_declarations->remove_declaration( 'color' );
+
 		$this->assertSame(
 			'margin:10em 10em 20em 1px;font-family:Happy Font serif;',
 			$css_declarations->get_declarations_string(),
@@ -253,6 +265,7 @@ class Tests_Style_Engine_wpStyleEngineCSSDeclarations extends WP_UnitTestCase {
 	 * Tests that multiple declarations are removed.
 	 *
 	 * @ticket 56467
+	 *
 	 * @covers ::remove_declarations
 	 */
 	public function test_should_remove_multiple_declarations() {
@@ -270,6 +283,7 @@ class Tests_Style_Engine_wpStyleEngineCSSDeclarations extends WP_UnitTestCase {
 		);
 
 		$css_declarations->remove_declarations( array( 'color', 'margin' ) );
+
 		$this->assertSame(
 			'font-family:Happy Font serif;',
 			$css_declarations->get_declarations_string(),

@@ -46,7 +46,7 @@ class WP_Style_Engine_CSS_Rules_Store {
 	protected $rules = array();
 
 	/**
-	 * Get an instance of the store.
+	 * Gets an instance of the store.
 	 *
 	 * @since 6.1.0
 	 *
@@ -67,7 +67,7 @@ class WP_Style_Engine_CSS_Rules_Store {
 	}
 
 	/**
-	 * Get an array of all available stores.
+	 * Gets an array of all available stores.
 	 *
 	 * @since 6.1.0
 	 *
@@ -89,7 +89,7 @@ class WP_Style_Engine_CSS_Rules_Store {
 	}
 
 	/**
-	 * Set the store name.
+	 * Sets the store name.
 	 *
 	 * @since 6.1.0
 	 *
@@ -102,7 +102,7 @@ class WP_Style_Engine_CSS_Rules_Store {
 	}
 
 	/**
-	 * Get the store name.
+	 * Gets the store name.
 	 *
 	 * @since 6.1.0
 	 *
@@ -113,7 +113,7 @@ class WP_Style_Engine_CSS_Rules_Store {
 	}
 
 	/**
-	 * Get an array of all rules.
+	 * Gets an array of all rules.
 	 *
 	 * @since 6.1.0
 	 *
@@ -124,7 +124,7 @@ class WP_Style_Engine_CSS_Rules_Store {
 	}
 
 	/**
-	 * Get a WP_Style_Engine_CSS_Rule object by its selector.
+	 * Gets a WP_Style_Engine_CSS_Rule object by its selector.
 	 * If the rule does not exist, it will be created.
 	 *
 	 * @since 6.1.0
@@ -150,7 +150,7 @@ class WP_Style_Engine_CSS_Rules_Store {
 	}
 
 	/**
-	 * Remove a selector from the store.
+	 * Removes a selector from the store.
 	 *
 	 * @since 6.1.0
 	 *

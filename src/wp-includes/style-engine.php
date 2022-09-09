@@ -37,16 +37,12 @@
  * }
  *
  * @return array {
- *     @type string                $css          A CSS ruleset or declarations block formatted to be placed in an HTML `style` attribute or tag.
- *     @type array<string, string> $declarations An array of property/value pairs representing parsed CSS declarations.
- *     @type string                $classnames   Classnames separated by a space.
+ *     @type string   $css          A CSS ruleset or declarations block formatted to be placed in an HTML `style` attribute or tag.
+ *     @type string[] $declarations An associative array of CSS definitions, e.g., array( "$property" => "$value", "$property" => "$value" ).
+ *     @type string   $classnames   Classnames separated by a space.
  * }
  */
 function wp_style_engine_get_styles( $block_styles, $options = array() ) {
-	if ( ! class_exists( 'WP_Style_Engine' ) ) {
-		return array();
-	}
-
 	$options = wp_parse_args(
 		$options,
 		array(
@@ -85,15 +81,14 @@ function wp_style_engine_get_styles( $block_styles, $options = array() ) {
  * $css       = wp_style_engine_get_stylesheet_from_css_rules( $css_rules );
  * // Returns `.elephant-are-cool{color:gray;width:3em}`.
  *
- * @access public
  * @since 6.1.0
  *
  * @param array $css_rules {
  *     Required. A collection of CSS rules.
  *
  *     @type array ...$0 {
- *         @type string                $selector     A CSS selector.
- *         @type array<string, string> $declarations An associative array of CSS definitions, e.g., array( "$property" => "$value", "$property" => "$value" ).
+ *         @type string   $selector     A CSS selector.
+ *         @type string[] $declarations An associative array of CSS definitions, e.g., array( "$property" => "$value", "$property" => "$value" ).
  *     }
  * }
  * @param array $options {
@@ -105,10 +100,10 @@ function wp_style_engine_get_styles( $block_styles, $options = array() ) {
  *     @type bool        $prettify Whether to add new lines and indents to output. Default is the test of whether the global constant `SCRIPT_DEBUG` is defined.
  * }
  *
- * @return string A compiled CSS string.
+ * @return string A string of compiled CSS declarations, or empty string.
  */
 function wp_style_engine_get_stylesheet_from_css_rules( $css_rules, $options = array() ) {
-	if ( ! class_exists( 'WP_Style_Engine' ) || empty( $css_rules ) ) {
+	if ( empty( $css_rules ) ) {
 		return '';
 	}
 
@@ -142,7 +137,6 @@ function wp_style_engine_get_stylesheet_from_css_rules( $css_rules, $options = a
 /**
  * Returns compiled CSS from a store, if found.
  *
- * @access public
  * @since 6.1.0
  *
  * @param string $context A valid context name, corresponding to an existing store key.
@@ -156,9 +150,5 @@ function wp_style_engine_get_stylesheet_from_css_rules( $css_rules, $options = a
  * @return string A compiled CSS string.
  */
 function wp_style_engine_get_stylesheet_from_context( $context, $options = array() ) {
-	if ( ! class_exists( 'WP_Style_Engine' ) || empty( $context ) ) {
-		return '';
-	}
-
 	return WP_Style_Engine::compile_stylesheet_from_css_rules( WP_Style_Engine::get_store( $context )->get_all_rules(), $options );
 }
