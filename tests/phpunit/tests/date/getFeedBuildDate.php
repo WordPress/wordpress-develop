@@ -55,7 +55,7 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 
 		$this->assertFalse( get_feed_build_date( DATE_RFC3339 ), 'False when unable to determine valid time' );
 
-		$this->factory->post->create(
+		self::factory()->post->create(
 			array(
 				'post_date' => $datetime->format( 'Y-m-d H:i:s' ),
 			)
@@ -68,7 +68,7 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 			'Fall back to time of last post modified with no posts'
 		);
 
-		$post_id_broken = $this->factory->post->create();
+		$post_id_broken = self::factory()->post->create();
 		$post_broken    = get_post( $post_id_broken );
 
 		$post_broken->post_modified_gmt = 0;

@@ -7,8 +7,8 @@ on:
       - '3.[7-9]'
       - '[4-9].[0-9]'
     tags:
-      - '3.[7-9]*'
-      - '[4-9].[0-9]*'
+      - '[0-9]+.[0-9]'
+      - '[0-9]+.[0-9].[0-9]+'
   pull_request:
     branches:
       - trunk
@@ -34,8 +34,8 @@ env:
 jobs:
   # Runs the PHPUnit tests for WordPress.
   #
-  # Note: Steps running tests for PHP 8.1 jobs are allowed to "continue-on-error".
-  # This prevents workflow runs from being marked as "failed" when only PHP 8.1 fails.
+  # Note: Steps running tests on PHP 8.1 + 8.2 are allowed to "continue-on-error" (for now).
+  # This prevents workflow runs from being marked as "failed" when only PHP 8.1/8.2 fails.
   #
   # Performs the following steps:
   # - Sets environment variables.
@@ -46,7 +46,6 @@ jobs:
   # - Installs Composer dependencies.
   # - Logs Docker debug information (about the Docker installation within the runner).
   # - Starts the WordPress Docker container.
-  # - Starts the Memcached server after the Docker network has been created (if desired).
   # - Logs general debug information about the runner.
   # - Logs the running Docker containers.
   # - Logs debug information from inside the WordPress Docker container.
@@ -65,7 +64,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ '5.6', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1' ]
+        php: [ '5.6', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1', '8.2' ]
         os: [ ubuntu-latest ]
         memcached: [ false ]
         split_slow: [ false ]
@@ -113,7 +112,7 @@ jobs:
         uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
 
       - name: Install NodeJS
-        uses: actions/setup-node@eeb10cff27034e7acf239c5d29f62154018672fd # v3.3.0
+        uses: actions/setup-node@2fddd8803e2f5c9604345a0b591c3020ee971a93 # v3.4.1
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -132,7 +131,7 @@ jobs:
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Cache Composer dependencies
-        uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d # v3.0.4
+        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 # v3.0.8
         env:
           cache-name: cache-composer-dependencies
         with:
@@ -144,8 +143,8 @@ jobs:
           docker-compose run --rm php composer --version
 
           # Install using `composer update` as there is no `composer.lock` file.
-          if [ ${{ env.LOCAL_PHP }} == '8.1-fpm' ]; then
-            docker-compose run --rm php composer update --ignore-platform-reqs
+          if [ ${{ env.LOCAL_PHP }} == '8.2-fpm' ]; then
+            docker-compose run --rm php composer update --ignore-platform-req=php+
           else
             docker-compose run --rm php composer update
           fi
@@ -158,13 +157,6 @@ jobs:
       - name: Start Docker environment
         run: |
           npm run env:start
-
-      # The memcached server needs to start after the Docker network has been set up with `npm run env:start`.
-      - name: Start the Memcached server.
-        if: ${{ matrix.memcached }}
-        run: |
-          cp tests/phpunit/includes/object-cache.php src/wp-content/object-cache.php
-          docker run --name memcached --net $(basename "$PWD")_wpdevnet -d memcached
 
       - name: General debug information
         run: |
@@ -202,28 +194,27 @@ jobs:
 
       - name: Run PHPUnit tests
         if: ${{ matrix.php >= '7.0' }}
-        continue-on-error: ${{ matrix.php == '8.1' }}
+        continue-on-error: ${{ matrix.php == '8.1' || matrix.php == '8.2'  }}
         run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }}
 
       - name: Run AJAX tests
         if: ${{ ! matrix.split_slow }}
-        continue-on-error: ${{ matrix.php == '8.1' }}
+        continue-on-error: ${{ matrix.php == '8.2' }}
         run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ajax
 
       - name: Run ms-files tests as a multisite install
         if: ${{ matrix.multisite && ! matrix.split_slow }}
-        continue-on-error: ${{ matrix.php == '8.1' }}
+        continue-on-error: ${{ matrix.php == '8.2' }}
         run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c tests/phpunit/multisite.xml --group ms-files
 
       - name: Run external HTTP tests
         if: ${{ ! matrix.multisite && ! matrix.split_slow }}
-        continue-on-error: ${{ matrix.php == '8.1' }}
+        continue-on-error: ${{ matrix.php == '8.2' }}
         run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c phpunit.xml.dist --group external-http
 
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
-      - name: Run (xDebug) tests
-        if: ${{ ! matrix.split_slow }}
-        continue-on-error: ${{ matrix.php == '8.1' }}
+      - name: Run (Xdebug) tests
+        if: ${{ ! matrix.split_slow && matrix.php != '8.2' }}
         run: LOCAL_PHP_XDEBUG=true node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit -v --group xdebug --exclude-group __fakegroup__
 
       - name: Ensure version-controlled files are not modified or deleted
@@ -254,3 +245,31 @@ jobs:
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-latest
+    needs: [ test-php, slack-notifications ]
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_attempt < 2 &&
+      (
+        needs.test-php.result == 'cancelled' || needs.test-php.result == 'failure'
+      )
+
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@c713e510dbd7d213d92d41b7a7805a986f4c5c66 # v6.2.0
+        with:
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: '${{ github.ref_name }}',
+              inputs: {
+                run_id: '${{ github.run_id }}'
+              }
+            });

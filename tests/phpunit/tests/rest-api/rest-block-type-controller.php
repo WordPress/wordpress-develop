@@ -551,17 +551,29 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * The test_create_item() method does not exist for block types.
+	 * The create_item() method does not exist for block types.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_create_item() {}
+	public function test_create_item() {
+		// Controller does not implement create_item().
+	}
 
 	/**
-	 * The test_update_item() method does not exist for block types.
+	 * The update_item() method does not exist for block types.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_update_item() {}
+	public function test_update_item() {
+		// Controller does not implement create_item().
+	}
 
 	/**
-	 * The test_delete_item() method does not exist for block types.
+	 * The delete_item() method does not exist for block types.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_delete_item() {}
+	public function test_delete_item() {
+		// Controller does not implement delete_item().
+	}
 }
