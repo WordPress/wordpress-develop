@@ -1,13 +1,13 @@
 <?php
 
 /**
- * Test functions and classes for widgets and sidebars.
+ * Tests functions and classes for widgets and sidebars.
  *
  * @group script-loader
  */
 class Tests_Script_Loader extends WP_UnitTestCase {
 	/**
-	 * Clean up global scope.
+	 * Cleans up global scope.
 	 *
 	 * @global WP_Scripts $wp_scripts
 	 * @global WP_Styles $wp_styles
@@ -21,6 +21,7 @@ class Tests_Script_Loader extends WP_UnitTestCase {
 	 * Tests that stored CSS is enqueued.
 	 *
 	 * @ticket 56467
+	 *
 	 * @covers ::wp_enqueue_stored_styles
 	 */
 	public function test_should_enqueue_stored_styles() {
@@ -35,7 +36,7 @@ class Tests_Script_Loader extends WP_UnitTestCase {
 			),
 		);
 
-		// Enqueue a block supports (core styles).
+		// Enqueues a block supports (core styles).
 		wp_style_engine_get_stylesheet_from_css_rules(
 			$core_styles_to_enqueue,
 			array(
