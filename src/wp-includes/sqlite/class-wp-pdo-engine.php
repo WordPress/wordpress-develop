@@ -422,8 +422,9 @@ class WP_PDO_Engine extends PDO {
 				}
 				break;
 		}
-		if ( defined( 'PDO_DEBUG' ) && PDO_DEBUG === true ) {
-			file_put_contents( FQDBDIR . 'debug.txt', $this->get_debug_info(), FILE_APPEND );
+		$debug_string = $this->get_debug_info();
+		if ( defined( 'PDO_DEBUG' ) && PDO_DEBUG === true && $debug_string ) {
+			error_log( $debug_string );
 		}
 
 		return $this->return_value;
@@ -1231,7 +1232,7 @@ class WP_PDO_Engine extends PDO {
 		if ( ! $wpdb->show_errors ) {
 			return false;
 		}
-		file_put_contents( FQDBDIR . 'debug.txt', "Line $line, Function: $function, Message: $message \n", FILE_APPEND );
+		error_log( "Line $line, Function: $function, Message: $message" );
 	}
 
 	/**
