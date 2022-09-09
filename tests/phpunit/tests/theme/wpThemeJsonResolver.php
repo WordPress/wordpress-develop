@@ -154,14 +154,15 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 			),
 			$theme_data->get_settings()
 		);
-		$this->assertSameSets(
+
+		$custom_templates = $theme_data->get_custom_templates();
+		$this->assertArrayHasKey( 'page-home', $custom_templates );
+		$this->assertSame(
+			$custom_templates['page-home'],
 			array(
-				'page-home' => array(
-					'title'     => 'Szablon strony głównej',
-					'postTypes' => array( 'page' ),
-				),
-			),
-			$theme_data->get_custom_templates()
+				'title'     => 'Szablon strony głównej',
+				'postTypes' => array( 'page' ),
+			)
 		);
 		$this->assertSameSets(
 			array(
@@ -340,9 +341,13 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$this->assertSame(
 			WP_Theme_JSON_Resolver::get_theme_data()->get_custom_templates(),
 			array(
-				'page-home' => array(
+				'page-home'                   => array(
 					'title'     => 'Homepage',
 					'postTypes' => array( 'page' ),
+				),
+				'custom-single-post-template' => array(
+					'title'     => 'Custom Single Post template',
+					'postTypes' => array( 'post' ),
 				),
 			)
 		);

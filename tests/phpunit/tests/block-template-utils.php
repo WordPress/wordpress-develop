@@ -12,6 +12,7 @@
  */
 class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	private static $post;
+	private static $custom_single_post_template_post;
 	private static $template_part_post;
 	private static $test_theme = 'block-theme';
 
@@ -50,6 +51,22 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		self::$post = self::factory()->post->create_and_get( $args );
 		wp_set_post_terms( self::$post->ID, self::$test_theme, 'wp_theme' );
 
+		// Set up template post.
+		$args                                   = array(
+			'post_type'    => 'wp_template',
+			'post_name'    => 'custom-single-post-template',
+			'post_title'   => 'Custom Single Post template (modified)',
+			'post_content' => 'Content',
+			'post_excerpt' => 'Description of custom single post template',
+			'tax_input'    => array(
+				'wp_theme' => array(
+					self::$test_theme,
+				),
+			),
+		);
+		self::$custom_single_post_template_post = self::factory()->post->create_and_get( $args );
+		wp_set_post_terms( self::$custom_single_post_template_post->ID, self::$test_theme, 'wp_theme' );
+
 		// Set up template part post.
 		$template_part_args       = array(
 			'post_type'    => 'wp_template_part',
@@ -78,6 +95,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 	public static function wpTearDownAfterClass() {
 		wp_delete_post( self::$post->ID );
+		wp_delete_post( self::$custom_single_post_template_post->ID );
 	}
 
 	public function test_build_block_template_result_from_post() {
@@ -319,6 +337,27 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			$template_ids
 		);
 		*/
+
+		// Filter by post type.
+		$templates    = get_block_templates( array( 'post_type' => 'post' ), 'wp_template' );
+		$template_ids = get_template_ids( $templates );
+		$this->assertSame(
+			array(
+				get_stylesheet() . '//' . 'my_template',
+				get_stylesheet() . '//' . 'custom-single-post-template',
+			),
+			$template_ids
+		);
+
+		$templates    = get_block_templates( array( 'post_type' => 'page' ), 'wp_template' );
+		$template_ids = get_template_ids( $templates );
+		$this->assertSame(
+			array(
+				get_stylesheet() . '//' . 'my_template',
+				get_stylesheet() . '//' . 'page-home',
+			),
+			$template_ids
+		);
 	}
 
 	/**
