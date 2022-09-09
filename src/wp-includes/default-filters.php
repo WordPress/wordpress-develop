@@ -683,7 +683,7 @@ add_action( 'wp_footer', 'the_block_template_skip_link' );
 add_action( 'setup_theme', 'wp_enable_block_templates' );
 add_action( 'wp_loaded', '_add_template_loader_filters' );
 
-// Use preferences.
+// User preferences.
 add_action( 'init', 'wp_register_persisted_preferences_meta' );
 
 unset( $filter, $action );
