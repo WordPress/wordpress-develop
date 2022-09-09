@@ -10,13 +10,14 @@
 class WP_Site_Health {
 	private static $instance = null;
 
-	private $mysql_min_version_check;
-	private $mysql_rec_version_check;
+	private $is_acceptable_mysql_version;
+	private $is_recommended_mysql_version;
 
-	public $is_mariadb                           = false;
-	private $mysql_server_version                = '';
-	private $health_check_mysql_required_version = '5.5';
-	private $health_check_mysql_rec_version      = '';
+	public $is_mariadb                   = false;
+	private $mysql_server_version        = '';
+	private $mysql_required_version      = '5.5';
+	private $mysql_recommended_version   = '5.7';
+	private $mariadb_recommended_version = '10.3';
 
 	public $php_memory_limit;
 
@@ -55,7 +56,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Output the content of a tab in the Site Health screen.
+	 * Outputs the content of a tab in the Site Health screen.
 	 *
 	 * @since 5.8.0
 	 *
@@ -68,7 +69,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Return an instance of the WP_Site_Health class, or create one if none exist yet.
+	 * Returns an instance of the WP_Site_Health class, or create one if none exist yet.
 	 *
 	 * @since 5.4.0
 	 *
@@ -160,7 +161,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Run a Site Health test directly.
+	 * Runs a Site Health test directly.
 	 *
 	 * @since 5.4.0
 	 *
@@ -193,7 +194,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Run the SQL version checks.
+	 * Runs the SQL version checks.
 	 *
 	 * These values are used in later tests, but the part of preparing them is more easily managed
 	 * early in the class for ease of access and discovery.
@@ -205,29 +206,21 @@ class WP_Site_Health {
 	private function prepare_sql_data() {
 		global $wpdb;
 
-		if ( $wpdb->use_mysqli ) {
-			// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_get_server_info
-			$mysql_server_type = mysqli_get_server_info( $wpdb->dbh );
-		} else {
-			// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysql_get_server_info,PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved
-			$mysql_server_type = mysql_get_server_info( $wpdb->dbh );
-		}
+		$mysql_server_type = $wpdb->db_server_info();
 
 		$this->mysql_server_version = $wpdb->get_var( 'SELECT VERSION()' );
 
-		$this->health_check_mysql_rec_version = '5.6';
-
 		if ( stristr( $mysql_server_type, 'mariadb' ) ) {
-			$this->is_mariadb                     = true;
-			$this->health_check_mysql_rec_version = '10.0';
+			$this->is_mariadb                = true;
+			$this->mysql_recommended_version = $this->mariadb_recommended_version;
 		}
 
-		$this->mysql_min_version_check = version_compare( '5.5', $this->mysql_server_version, '<=' );
-		$this->mysql_rec_version_check = version_compare( $this->health_check_mysql_rec_version, $this->mysql_server_version, '<=' );
+		$this->is_acceptable_mysql_version  = version_compare( $this->mysql_required_version, $this->mysql_server_version, '<=' );
+		$this->is_recommended_mysql_version = version_compare( $this->mysql_recommended_version, $this->mysql_server_version, '<=' );
 	}
 
 	/**
-	 * Test if `wp_version_check` is blocked.
+	 * Tests whether `wp_version_check` is blocked.
 	 *
 	 * It's possible to block updates with the `wp_version_check` filter, but this can't be checked
 	 * during an Ajax call, as the filter is never introduced then.
@@ -349,9 +342,9 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if plugins are outdated, or unnecessary.
+	 * Tests if plugins are outdated, or unnecessary.
 	 *
-	 * The tests checks if your plugins are up to date, and encourages you to remove any
+	 * The test checks if your plugins are up to date, and encourages you to remove any
 	 * that are not in use.
 	 *
 	 * @since 5.2.0
@@ -482,7 +475,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if themes are outdated, or unnecessary.
+	 * Tests if themes are outdated, or unnecessary.
 	 *
 	 * Сhecks if your site has a default theme (to fall back on if there is a need),
 	 * if your themes are up to date and, finally, encourages you to remove any themes
@@ -723,7 +716,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if the supplied PHP version is supported.
+	 * Tests if the supplied PHP version is supported.
 	 *
 	 * @since 5.2.0
 	 *
@@ -803,7 +796,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Check if the passed extension or function are available.
+	 * Checks if the passed extension or function are available.
 	 *
 	 * Make the check for available PHP modules into a simple boolean operator for a cleaner test runner.
 	 *
@@ -842,7 +835,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if required PHP modules are installed on the host.
+	 * Tests if required PHP modules are installed on the host.
 	 *
 	 * This test builds on the recommendations made by the WordPress Hosting Team
 	 * as seen at https://make.wordpress.org/hosting/handbook/handbook/server-environment/#php-extensions
@@ -977,7 +970,7 @@ class WP_Site_Health {
 		);
 
 		/**
-		 * An array representing all the modules we wish to test for.
+		 * Filters the array representing all the modules we wish to test for.
 		 *
 		 * @since 5.2.0
 		 * @since 5.3.0 The `$constant` and `$class` parameters were added.
@@ -1081,7 +1074,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if the PHP default timezone is set to UTC.
+	 * Tests if the PHP default timezone is set to UTC.
 	 *
 	 * @since 5.3.1
 	 *
@@ -1122,7 +1115,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if there's an active PHP session that can affect loopback requests.
+	 * Tests if there's an active PHP session that can affect loopback requests.
 	 *
 	 * @since 5.5.0
 	 *
@@ -1168,7 +1161,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if the SQL server is up to date.
+	 * Tests if the SQL server is up to date.
 	 *
 	 * @since 5.2.0
 	 *
@@ -1203,7 +1196,7 @@ class WP_Site_Health {
 
 		$db_dropin = file_exists( WP_CONTENT_DIR . '/db.php' );
 
-		if ( ! $this->mysql_rec_version_check ) {
+		if ( ! $this->is_recommended_mysql_version ) {
 			$result['status'] = 'recommended';
 
 			$result['label'] = __( 'Outdated SQL server' );
@@ -1214,12 +1207,12 @@ class WP_Site_Health {
 					/* translators: 1: The database engine in use (MySQL or MariaDB). 2: Database server recommended version number. */
 					__( 'For optimal performance and security reasons, you should consider running %1$s version %2$s or higher. Contact your web hosting company to correct this.' ),
 					( $this->is_mariadb ? 'MariaDB' : 'MySQL' ),
-					$this->health_check_mysql_rec_version
+					$this->mysql_recommended_version
 				)
 			);
 		}
 
-		if ( ! $this->mysql_min_version_check ) {
+		if ( ! $this->is_acceptable_mysql_version ) {
 			$result['status'] = 'critical';
 
 			$result['label']          = __( 'Severely outdated SQL server' );
@@ -1231,7 +1224,7 @@ class WP_Site_Health {
 					/* translators: 1: The database engine in use (MySQL or MariaDB). 2: Database server minimum version number. */
 					__( 'WordPress requires %1$s version %2$s or higher. Contact your web hosting company to correct this.' ),
 					( $this->is_mariadb ? 'MariaDB' : 'MySQL' ),
-					$this->health_check_mysql_required_version
+					$this->mysql_required_version
 				)
 			);
 		}
@@ -1257,7 +1250,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if the database server is capable of using utf8mb4.
+	 * Tests if the database server is capable of using utf8mb4.
 	 *
 	 * @since 5.2.0
 	 *
@@ -1378,7 +1371,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if the site can communicate with WordPress.org.
+	 * Tests if the site can communicate with WordPress.org.
 	 *
 	 * @since 5.2.0
 	 *
@@ -1441,7 +1434,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if debug information is enabled.
+	 * Tests if debug information is enabled.
 	 *
 	 * When WP_DEBUG is enabled, errors and information may be disclosed to site visitors,
 	 * or logged to a publicly accessible file.
@@ -1518,7 +1511,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if your site is serving content over HTTPS.
+	 * Tests if the site is serving content over HTTPS.
 	 *
 	 * Many sites have varying degrees of HTTPS support, the most common of which is sites that have it
 	 * enabled, but only if you visit the right site address.
@@ -1667,121 +1660,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Tests if a full page cache is available.
-	 *
-	 * @since 6.1.0
-	 *
-	 * @return array The test result.
-	 */
-	public function get_test_page_cache() {
-		$description  = '<p>' . __( 'Page cache enhances the speed and performance of your site by saving and serving static pages instead of calling for a page every time a user visits.' ) . '</p>';
-		$description .= '<p>' . __( 'Page cache is detected by looking for an active page cache plugin as well as making three requests to the homepage and looking for one or more of the following HTTP client caching response headers:' ) . '</p>';
-		$description .= '<code>' . implode( '</code>, <code>', array_keys( $this->get_page_cache_headers() ) ) . '.</code>';
-
-		$result = array(
-			'badge'       => array(
-				'label' => __( 'Performance' ),
-				'color' => 'blue',
-			),
-			'description' => wp_kses_post( $description ),
-			'test'        => 'page_cache',
-			'status'      => 'good',
-			'label'       => '',
-			'actions'     => sprintf(
-				'<p><a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
-				__( 'https://wordpress.org/support/article/optimization/#Caching' ),
-				__( 'Learn more about page cache' ),
-				/* translators: Accessibility text. */
-				__( '(opens in a new tab)' )
-			),
-		);
-
-		$page_cache_detail = $this->get_page_cache_detail();
-
-		if ( is_wp_error( $page_cache_detail ) ) {
-			$result['label']  = __( 'Unable to detect the presence of page cache' );
-			$result['status'] = 'recommended';
-			$error_info       = sprintf(
-			/* translators: 1: Error message, 2: Error code. */
-				__( 'Unable to detect page cache due to possible loopback request problem. Please verify that the loopback request test is passing. Error: %1$s (Code: %2$s)' ),
-				$page_cache_detail->get_error_message(),
-				$page_cache_detail->get_error_code()
-			);
-			$result['description'] = wp_kses_post( "<p>$error_info</p>" ) . $result['description'];
-			return $result;
-		}
-
-		$result['status'] = $page_cache_detail['status'];
-
-		switch ( $page_cache_detail['status'] ) {
-			case 'recommended':
-				$result['label'] = __( 'Page cache is not detected but the server response time is OK' );
-				break;
-			case 'good':
-				$result['label'] = __( 'Page cache is detected and the server response time is good' );
-				break;
-			default:
-				if ( empty( $page_cache_detail['headers'] ) && ! $page_cache_detail['advanced_cache_present'] ) {
-					$result['label'] = __( 'Page cache is not detected and the server response time is slow' );
-				} else {
-					$result['label'] = __( 'Page cache is detected but the server response time is still slow' );
-				}
-		}
-
-		$page_cache_test_summary = array();
-
-		if ( empty( $page_cache_detail['response_time'] ) ) {
-			$page_cache_test_summary[] = '<span class="dashicons dashicons-dismiss"></span> ' . __( 'Server response time could not be determined. Verify that loopback requests are working.' );
-		} else {
-
-			$threshold = $this->get_good_response_time_threshold();
-			if ( $page_cache_detail['response_time'] < $threshold ) {
-				$page_cache_test_summary[] = '<span class="dashicons dashicons-yes-alt"></span> ' . sprintf(
-					/* translators: 1: The response time in milliseconds, 2: The recommended threshold in milliseconds. */
-					__( 'Median server response time was %1$s milliseconds. This is less than the recommended %2$s milliseconds threshold.' ),
-					number_format_i18n( $page_cache_detail['response_time'] ),
-					number_format_i18n( $threshold )
-				);
-			} else {
-				$page_cache_test_summary[] = '<span class="dashicons dashicons-warning"></span> ' . sprintf(
-					/* translators: 1: The response time in milliseconds, 2: The recommended threshold in milliseconds. */
-					__( 'Median server response time was %1$s milliseconds. It should be less than the recommended %2$s milliseconds threshold.' ),
-					number_format_i18n( $page_cache_detail['response_time'] ),
-					number_format_i18n( $threshold )
-				);
-			}
-
-			if ( empty( $page_cache_detail['headers'] ) ) {
-				$page_cache_test_summary[] = '<span class="dashicons dashicons-warning"></span> ' . __( 'No client caching response headers were detected.' );
-			} else {
-				$headers_summary  = '<span class="dashicons dashicons-yes-alt"></span>';
-				$headers_summary .= ' ' . sprintf(
-					/* translators: %d: Number of caching headers. */
-					_n(
-						'There was %d client caching response header detected:',
-						'There were %d client caching response headers detected:',
-						count( $page_cache_detail['headers'] )
-					),
-					count( $page_cache_detail['headers'] )
-				);
-				$headers_summary          .= ' <code>' . implode( '</code>, <code>', $page_cache_detail['headers'] ) . '</code>.';
-				$page_cache_test_summary[] = $headers_summary;
-			}
-		}
-
-		if ( $page_cache_detail['advanced_cache_present'] ) {
-			$page_cache_test_summary[] = '<span class="dashicons dashicons-yes-alt"></span> ' . __( 'A page cache plugin was detected.' );
-		} elseif ( ! ( is_array( $page_cache_detail ) && ! empty( $page_cache_detail['headers'] ) ) ) {
-			// Note: This message is not shown if client caching response headers were present since an external caching layer may be employed.
-			$page_cache_test_summary[] = '<span class="dashicons dashicons-warning"></span> ' . __( 'A page cache plugin was not detected.' );
-		}
-
-		$result['description'] .= '<ul><li>' . implode( '</li><li>', $page_cache_test_summary ) . '</li></ul>';
-		return $result;
-	}
-
-	/**
-	 * Check if the HTTP API can handle SSL/TLS requests.
+	 * Checks if the HTTP API can handle SSL/TLS requests.
 	 *
 	 * @since 5.2.0
 	 *
@@ -1824,7 +1703,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if scheduled events run as intended.
+	 * Tests if scheduled events run as intended.
 	 *
 	 * If scheduled events are not running, this may indicate something with WP_Cron is not working
 	 * as intended, or that there are orphaned events hanging around from older code.
@@ -1896,7 +1775,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if WordPress can run automated background updates.
+	 * Tests if WordPress can run automated background updates.
 	 *
 	 * Background updates in WordPress are primarily used for minor releases and security updates.
 	 * It's important to either have these working, or be aware that they are intentionally disabled
@@ -1970,7 +1849,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if plugin and theme auto-updates appear to be configured correctly.
+	 * Tests if plugin and theme auto-updates appear to be configured correctly.
 	 *
 	 * @since 5.5.0
 	 *
@@ -2009,7 +1888,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if loopbacks work as expected.
+	 * Tests if loopbacks work as expected.
 	 *
 	 * A loopback is when WordPress queries itself, for example to start a new WP_Cron instance,
 	 * or when editing a plugin or theme. This has shown itself to be a recurring issue,
@@ -2052,7 +1931,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if HTTP requests are blocked.
+	 * Tests if HTTP requests are blocked.
 	 *
 	 * It's possible to block all outgoing communication (with the possibility of allowing certain
 	 * hosts) via the HTTP API. This may create problems for users as many features are running as
@@ -2124,7 +2003,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if the REST API is accessible.
+	 * Tests if the REST API is accessible.
 	 *
 	 * Various security measures may block the REST API from working, or it may have been disabled in general.
 	 * This is required for the new block editor to work, so we explicitly test for this.
@@ -2150,7 +2029,7 @@ class WP_Site_Health {
 		);
 
 		$cookies = wp_unslash( $_COOKIE );
-		$timeout = 10;
+		$timeout = 10; // 10 seconds.
 		$headers = array(
 			'Cache-Control' => 'no-cache',
 			'X-WP-Nonce'    => wp_create_nonce( 'wp_rest' ),
@@ -2230,7 +2109,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if 'file_uploads' directive in PHP.ini is turned off.
+	 * Tests if 'file_uploads' directive in PHP.ini is turned off.
 	 *
 	 * @since 5.5.0
 	 *
@@ -2378,9 +2257,121 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Tests if sites uses persistent object cache.
+	 * Tests if a full page cache is available.
 	 *
-	 * Checks if site uses persistent object cache or recommends to use it if not.
+	 * @since 6.1.0
+	 *
+	 * @return array The test result.
+	 */
+	public function get_test_page_cache() {
+		$description  = '<p>' . __( 'Page cache enhances the speed and performance of your site by saving and serving static pages instead of calling for a page every time a user visits.' ) . '</p>';
+		$description .= '<p>' . __( 'Page cache is detected by looking for an active page cache plugin as well as making three requests to the homepage and looking for one or more of the following HTTP client caching response headers:' ) . '</p>';
+		$description .= '<code>' . implode( '</code>, <code>', array_keys( $this->get_page_cache_headers() ) ) . '.</code>';
+
+		$result = array(
+			'badge'       => array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			'description' => wp_kses_post( $description ),
+			'test'        => 'page_cache',
+			'status'      => 'good',
+			'label'       => '',
+			'actions'     => sprintf(
+				'<p><a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				__( 'https://wordpress.org/support/article/optimization/#Caching' ),
+				__( 'Learn more about page cache' ),
+				/* translators: Accessibility text. */
+				__( '(opens in a new tab)' )
+			),
+		);
+
+		$page_cache_detail = $this->get_page_cache_detail();
+
+		if ( is_wp_error( $page_cache_detail ) ) {
+			$result['label']  = __( 'Unable to detect the presence of page cache' );
+			$result['status'] = 'recommended';
+			$error_info       = sprintf(
+			/* translators: 1: Error message, 2: Error code. */
+				__( 'Unable to detect page cache due to possible loopback request problem. Please verify that the loopback request test is passing. Error: %1$s (Code: %2$s)' ),
+				$page_cache_detail->get_error_message(),
+				$page_cache_detail->get_error_code()
+			);
+			$result['description'] = wp_kses_post( "<p>$error_info</p>" ) . $result['description'];
+			return $result;
+		}
+
+		$result['status'] = $page_cache_detail['status'];
+
+		switch ( $page_cache_detail['status'] ) {
+			case 'recommended':
+				$result['label'] = __( 'Page cache is not detected but the server response time is OK' );
+				break;
+			case 'good':
+				$result['label'] = __( 'Page cache is detected and the server response time is good' );
+				break;
+			default:
+				if ( empty( $page_cache_detail['headers'] ) && ! $page_cache_detail['advanced_cache_present'] ) {
+					$result['label'] = __( 'Page cache is not detected and the server response time is slow' );
+				} else {
+					$result['label'] = __( 'Page cache is detected but the server response time is still slow' );
+				}
+		}
+
+		$page_cache_test_summary = array();
+
+		if ( empty( $page_cache_detail['response_time'] ) ) {
+			$page_cache_test_summary[] = '<span class="dashicons dashicons-dismiss"></span> ' . __( 'Server response time could not be determined. Verify that loopback requests are working.' );
+		} else {
+
+			$threshold = $this->get_good_response_time_threshold();
+			if ( $page_cache_detail['response_time'] < $threshold ) {
+				$page_cache_test_summary[] = '<span class="dashicons dashicons-yes-alt"></span> ' . sprintf(
+					/* translators: 1: The response time in milliseconds, 2: The recommended threshold in milliseconds. */
+					__( 'Median server response time was %1$s milliseconds. This is less than the recommended %2$s milliseconds threshold.' ),
+					number_format_i18n( $page_cache_detail['response_time'] ),
+					number_format_i18n( $threshold )
+				);
+			} else {
+				$page_cache_test_summary[] = '<span class="dashicons dashicons-warning"></span> ' . sprintf(
+					/* translators: 1: The response time in milliseconds, 2: The recommended threshold in milliseconds. */
+					__( 'Median server response time was %1$s milliseconds. It should be less than the recommended %2$s milliseconds threshold.' ),
+					number_format_i18n( $page_cache_detail['response_time'] ),
+					number_format_i18n( $threshold )
+				);
+			}
+
+			if ( empty( $page_cache_detail['headers'] ) ) {
+				$page_cache_test_summary[] = '<span class="dashicons dashicons-warning"></span> ' . __( 'No client caching response headers were detected.' );
+			} else {
+				$headers_summary  = '<span class="dashicons dashicons-yes-alt"></span>';
+				$headers_summary .= ' ' . sprintf(
+					/* translators: %d: Number of caching headers. */
+					_n(
+						'There was %d client caching response header detected:',
+						'There were %d client caching response headers detected:',
+						count( $page_cache_detail['headers'] )
+					),
+					count( $page_cache_detail['headers'] )
+				);
+				$headers_summary          .= ' <code>' . implode( '</code>, <code>', $page_cache_detail['headers'] ) . '</code>.';
+				$page_cache_test_summary[] = $headers_summary;
+			}
+		}
+
+		if ( $page_cache_detail['advanced_cache_present'] ) {
+			$page_cache_test_summary[] = '<span class="dashicons dashicons-yes-alt"></span> ' . __( 'A page cache plugin was detected.' );
+		} elseif ( ! ( is_array( $page_cache_detail ) && ! empty( $page_cache_detail['headers'] ) ) ) {
+			// Note: This message is not shown if client caching response headers were present since an external caching layer may be employed.
+			$page_cache_test_summary[] = '<span class="dashicons dashicons-warning"></span> ' . __( 'A page cache plugin was not detected.' );
+		}
+
+		$result['description'] .= '<ul><li>' . implode( '</li><li>', $page_cache_test_summary ) . '</li></ul>';
+		return $result;
+	}
+
+	/**
+	 * Tests if the site uses persistent object cache and recommends to use it if not.
 	 *
 	 * @since 6.1.0
 	 *
@@ -2477,7 +2468,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Return a set of tests that belong to the site status page.
+	 * Returns a set of tests that belong to the site status page.
 	 *
 	 * Each site status test is defined here, they may be `direct` tests, that run on page load, or `async` tests
 	 * which will run later down the line via JavaScript calls to improve page performance and hopefully also user
@@ -2612,7 +2603,7 @@ class WP_Site_Health {
 		}
 
 		/**
-		 * Add or modify which site status tests are run on a site.
+		 * Filters which site status tests are run on a site.
 		 *
 		 * The site health is determined by a set of tests based on best practices from
 		 * both the WordPress Hosting Team and web standards in general.
@@ -2678,7 +2669,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Add a class to the body HTML tag.
+	 * Adds a class to the body HTML tag.
 	 *
 	 * Filters the body class string for admin pages and adds our own class for easier styling.
 	 *
@@ -2699,7 +2690,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Initiate the WP_Cron schedule test cases.
+	 * Initiates the WP_Cron schedule test cases.
 	 *
 	 * @since 5.2.0
 	 */
@@ -2709,7 +2700,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Populate our list of cron events and store them to a class-wide variable.
+	 * Populates the list of cron events and store them to a class-wide variable.
 	 *
 	 * @since 5.2.0
 	 */
@@ -2742,7 +2733,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Check if any scheduled tasks have been missed.
+	 * Checks if any scheduled tasks have been missed.
 	 *
 	 * Returns a boolean value of `true` if a scheduled task has been missed and ends processing.
 	 *
@@ -2768,7 +2759,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Check if any scheduled tasks are late.
+	 * Checks if any scheduled tasks are late.
 	 *
 	 * Returns a boolean value of `true` if a scheduled task is late and ends processing.
 	 *
@@ -2798,7 +2789,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Check for potential issues with plugin and theme auto-updates.
+	 * Checks for potential issues with plugin and theme auto-updates.
 	 *
 	 * Though there is no way to 100% determine if plugin and theme auto-updates are configured
 	 * correctly, a few educated guesses could be made to flag any conditions that would
@@ -2882,7 +2873,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Run a loopback test on our site.
+	 * Runs a loopback test on the site.
 	 *
 	 * Loopbacks are what WordPress uses to communicate with itself to start up WP_Cron, scheduled posts,
 	 * make sure plugin or theme edits don't cause site failures and similar.
@@ -2894,7 +2885,7 @@ class WP_Site_Health {
 	public function can_perform_loopback() {
 		$body    = array( 'site-health' => 'loopback-test' );
 		$cookies = wp_unslash( $_COOKIE );
-		$timeout = 10;
+		$timeout = 10; // 10 seconds.
 		$headers = array(
 			'Cache-Control' => 'no-cache',
 		);
@@ -2954,7 +2945,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Create a weekly cron event, if one does not already exist.
+	 * Creates a weekly cron event, if one does not already exist.
 	 *
 	 * @since 5.4.0
 	 */
@@ -2965,7 +2956,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Run our scheduled event to check and update the latest site health status for the website.
+	 * Runs the scheduled event to check and update the latest site health status for the website.
 	 *
 	 * @since 5.4.0
 	 */
@@ -3212,7 +3203,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Get page cache details.
+	 * Gets page cache details.
 	 *
 	 * @since 6.1.0
 	 *
@@ -3261,7 +3252,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Get the threshold below which a response time is considered good.
+	 * Gets the threshold below which a response time is considered good.
 	 *
 	 * @since 6.1.0
 	 *
@@ -3292,10 +3283,6 @@ class WP_Site_Health {
 	public function should_suggest_persistent_object_cache() {
 		global $wpdb;
 
-		if ( is_multisite() ) {
-			return true;
-		}
-
 		/**
 		 * Filters whether to suggest use of a persistent object cache and bypass default threshold checks.
 		 *
@@ -3309,6 +3296,10 @@ class WP_Site_Health {
 		$short_circuit = apply_filters( 'site_status_should_suggest_persistent_object_cache', null );
 		if ( is_bool( $short_circuit ) ) {
 			return $short_circuit;
+		}
+
+		if ( is_multisite() ) {
+			return true;
 		}
 
 		/**

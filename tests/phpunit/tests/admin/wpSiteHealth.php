@@ -2,11 +2,72 @@
 
 /**
  * @group site-health
+ *
+ * @coversDefaultClass WP_Site_Health
  */
-class Tests_Site_Health extends WP_UnitTestCase {
+class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
+
+	/**
+	 * An instance of the class to test.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @var WP_Site_Health
+	 */
+	private $instance;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Include the `WP_Site_Health` file.
 		require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
+	}
+
+	/**
+	 * Performs setup tasks for every test.
+	 *
+	 * @since 6.1.0
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		$this->instance = new WP_Site_Health();
+	}
+
+	/**
+	 * @ticket 55791
+	 * @covers ::__construct()
+	 */
+	public function test_mysql_recommended_version_matches_readme_html() {
+		// This test is designed to only run on trunk.
+		$this->skipOnAutomatedBranches();
+
+		$reflection          = new ReflectionClass( $this->instance );
+		$reflection_property = $reflection->getProperty( 'mysql_recommended_version' );
+		$reflection_property->setAccessible( true );
+
+		$readme = file_get_contents( ABSPATH . 'readme.html' );
+
+		preg_match( '#Recommendations.*MySQL</a> version <strong>([0-9.]*)#s', $readme, $matches );
+
+		$this->assertSame( $matches[1], $reflection_property->getValue( $this->instance ) );
+	}
+
+	/**
+	 * @ticket 55791
+	 * @covers ::__construct()
+	 */
+	public function test_mariadb_recommended_version_matches_readme_html() {
+		// This test is designed to only run on trunk.
+		$this->skipOnAutomatedBranches();
+
+		$reflection          = new ReflectionClass( $this->instance );
+		$reflection_property = $reflection->getProperty( 'mariadb_recommended_version' );
+		$reflection_property->setAccessible( true );
+
+		$readme = file_get_contents( ABSPATH . 'readme.html' );
+
+		preg_match( '#Recommendations.*MariaDB</a> version <strong>([0-9.]*)#s', $readme, $matches );
+
+		$this->assertSame( $matches[1], $reflection_property->getValue( $this->instance ) );
 	}
 
 	/**
@@ -15,17 +76,15 @@ class Tests_Site_Health extends WP_UnitTestCase {
 	 * @ticket 47223
 	 */
 	public function test_cron_health_checks_critical() {
-		$wp_site_health = new WP_Site_Health();
-
 		// Clear the cron array.
 		_set_cron_array( array() );
 
-		$cron_health = $wp_site_health->get_test_scheduled_events();
+		$cron_health = $this->instance->get_test_scheduled_events();
 
 		$this->assertSame( 'critical', $cron_health['status'] );
 		$this->assertSame( __( 'It was not possible to check your scheduled events' ), $cron_health['label'] );
-		$this->assertWPError( $wp_site_health->has_late_cron() );
-		$this->assertWPError( $wp_site_health->has_missed_cron() );
+		$this->assertWPError( $this->instance->has_late_cron() );
+		$this->assertWPError( $this->instance->has_missed_cron() );
 	}
 
 	/**
@@ -35,8 +94,6 @@ class Tests_Site_Health extends WP_UnitTestCase {
 	 * @ticket 47223
 	 */
 	public function test_cron_health_checks( $times, $expected_status, $expected_label, $expected_late, $expected_missed ) {
-		$wp_site_health = new WP_Site_Health();
-
 		/*
 		 * Clear the cron array.
 		 *
@@ -45,18 +102,19 @@ class Tests_Site_Health extends WP_UnitTestCase {
 		 * reported based on the jobs set in the test.
 		 */
 		_set_cron_array( array() );
+
 		$times = (array) $times;
 		foreach ( $times as $job => $time ) {
 			$timestamp = strtotime( $time );
 			wp_schedule_event( $timestamp, 'daily', __FUNCTION__ . "_{$job}" );
 		}
 
-		$cron_health = $wp_site_health->get_test_scheduled_events();
+		$cron_health = $this->instance->get_test_scheduled_events();
 
 		$this->assertSame( $expected_status, $cron_health['status'] );
 		$this->assertSame( $expected_label, $cron_health['label'] );
-		$this->assertSame( $expected_late, $wp_site_health->has_late_cron() );
-		$this->assertSame( $expected_missed, $wp_site_health->has_missed_cron() );
+		$this->assertSame( $expected_late, $this->instance->has_late_cron() );
+		$this->assertSame( $expected_missed, $this->instance->has_missed_cron() );
 	}
 
 	/**
@@ -110,15 +168,13 @@ class Tests_Site_Health extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 56041
-	 * @dataProvider data_page_cache_test
+	 * @dataProvider data_get_page_cache
 	 * @covers ::get_test_page_cache()
 	 * @covers ::get_page_cache_detail()
 	 * @covers ::get_page_cache_headers()
 	 * @covers ::check_for_page_caching()
 	 */
 	public function test_get_page_cache( $responses, $expected_status, $expected_label, $good_basic_auth = null, $delay_the_response = false ) {
-		$wp_site_health = new WP_Site_Health();
-
 		$expected_props = array(
 			'badge'  => array(
 				'label' => __( 'Performance' ),
@@ -186,82 +242,32 @@ class Tests_Site_Health extends WP_UnitTestCase {
 			2
 		);
 
-		$actual = $wp_site_health->get_test_page_cache();
+		$actual = $this->instance->get_test_page_cache();
 		$this->assertArrayHasKey( 'description', $actual );
 		$this->assertArrayHasKey( 'actions', $actual );
+
 		if ( $is_unauthorized ) {
 			$this->assertStringContainsString( 'Unauthorized', $actual['description'] );
 		} else {
 			$this->assertStringNotContainsString( 'Unauthorized', $actual['description'] );
 		}
 
-		$this->assertEquals(
+		$this->assertSame(
 			$expected_props,
 			wp_array_slice_assoc( $actual, array_keys( $expected_props ) )
 		);
 	}
 
 	/**
-	 * @group ms-excluded
-	 * @ticket 56040
-	 */
-	public function test_object_cache_default_thresholds() {
-		$wp_site_health = new WP_Site_Health();
-
-		$this->assertFalse(
-			$wp_site_health->should_suggest_persistent_object_cache()
-		);
-	}
-
-
-	/**
-	 * @group ms-required
-	 * @ticket 56040
-	 */
-	public function test_object_cache_default_thresholds_on_multisite() {
-		$wp_site_health = new WP_Site_Health();
-		$this->assertTrue(
-			$wp_site_health->should_suggest_persistent_object_cache()
-		);
-	}
-
-	/**
-	 * @ticket 56040
-	 */
-	public function test_object_cache_thresholds_check_can_be_bypassed() {
-		$wp_site_health = new WP_Site_Health();
-		add_filter( 'site_status_should_suggest_persistent_object_cache', '__return_true' );
-
-		$this->assertTrue(
-			$wp_site_health->should_suggest_persistent_object_cache()
-		);
-	}
-
-	/**
-	 * @dataProvider thresholds
-	 * @ticket 56040
-	 */
-	public function test_object_cache_thresholds( $threshold, $count ) {
-		$wp_site_health = new WP_Site_Health();
-		add_filter(
-			'site_status_persistent_object_cache_thresholds',
-			function ( $thresholds ) use ( $threshold, $count ) {
-				return array_merge( $thresholds, array( $threshold => $count ) );
-			}
-		);
-
-		$this->assertTrue(
-			$wp_site_health->should_suggest_persistent_object_cache()
-		);
-	}
-
-	/**
-	 * Gets response data for get_test_page_cache().
+	 * Data provider for test_get_page_cache().
+	 *
+	 * Gets response data for WP_Site_Health::get_test_page_cache().
+	 *
 	 * @ticket 56041
 	 *
 	 * @return array[]
 	 */
-	public function data_page_cache_test() {
+	public function data_get_page_cache() {
 		$recommended_label = 'Page cache is not detected but the server response time is OK';
 		$good_label        = 'Page cache is detected and the server response time is good';
 		$critical_label    = 'Page cache is not detected and the server response time is slow';
@@ -408,11 +414,80 @@ class Tests_Site_Health extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * @group ms-excluded
+	 * @ticket 56040
+	 */
+	public function test_object_cache_default_thresholds_non_multisite() {
+		// Set thresholds so high they should never be exceeded.
+		add_filter(
+			'site_status_persistent_object_cache_thresholds',
+			function() {
+				return array(
+					'alloptions_count' => PHP_INT_MAX,
+					'alloptions_bytes' => PHP_INT_MAX,
+					'comments_count'   => PHP_INT_MAX,
+					'options_count'    => PHP_INT_MAX,
+					'posts_count'      => PHP_INT_MAX,
+					'terms_count'      => PHP_INT_MAX,
+					'users_count'      => PHP_INT_MAX,
+				);
+			}
+		);
+
+		$this->assertFalse(
+			$this->instance->should_suggest_persistent_object_cache()
+		);
+	}
+
+
+	/**
+	 * @group ms-required
+	 * @ticket 56040
+	 */
+	public function test_object_cache_default_thresholds_on_multisite() {
+		$this->assertTrue(
+			$this->instance->should_suggest_persistent_object_cache()
+		);
+	}
+
+	/**
+	 * @ticket 56040
+	 */
+	public function test_object_cache_thresholds_check_can_be_bypassed() {
+		add_filter( 'site_status_should_suggest_persistent_object_cache', '__return_true' );
+		$this->assertTrue(
+			$this->instance->should_suggest_persistent_object_cache()
+		);
+
+		add_filter( 'site_status_should_suggest_persistent_object_cache', '__return_false', 11 );
+		$this->assertFalse(
+			$this->instance->should_suggest_persistent_object_cache()
+		);
+	}
+
+	/**
+	 * @dataProvider data_object_cache_thresholds
+	 * @ticket 56040
+	 */
+	public function test_object_cache_thresholds( $threshold, $count ) {
+		add_filter(
+			'site_status_persistent_object_cache_thresholds',
+			function ( $thresholds ) use ( $threshold, $count ) {
+				return array_merge( $thresholds, array( $threshold => $count ) );
+			}
+		);
+
+		$this->assertTrue(
+			$this->instance->should_suggest_persistent_object_cache()
+		);
+	}
+
+	/**
+	 * Data provider for test_object_cache_thresholds().
 	 *
 	 * @ticket 56040
 	 */
-	public function thresholds() {
+	public function data_object_cache_thresholds() {
 		return array(
 			array( 'comments_count', 0 ),
 			array( 'posts_count', 0 ),

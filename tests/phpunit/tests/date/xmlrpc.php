@@ -221,7 +221,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 		$datetimeutc = $datetime->setTimezone( new DateTimeZone( 'UTC' ) );
 
 		$this->make_user_by_role( 'administrator' );
-		$post_id = $this->factory->post->create();
+		$post_id = self::factory()->post->create();
 
 		$comment_data = array(
 			'comment_post_ID'      => $post_id,

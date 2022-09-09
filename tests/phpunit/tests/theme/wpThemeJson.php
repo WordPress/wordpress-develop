@@ -1602,7 +1602,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						),
 						'core/cover'  => array(
 							'filter' => array(
-								'duotone' => 'var(--wp--preset--duotone--blue-red, var(--fallback-unsafe))',
+								'duotone' => 'var(--invalid',
 							),
 						),
 						'core/group'  => array(
@@ -1676,7 +1676,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					'border'   => array(
 						'radius' => array(
 							'topLeft'     => '6px',
-							'topRight'    => 'var(--top-right, var(--unsafe-fallback))',
+							'topRight'    => 'var(--invalid',
 							'bottomRight' => '6px',
 							'bottomLeft'  => '6px',
 						),
@@ -1685,7 +1685,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'padding' => array(
 							'top'    => '1px',
 							'right'  => '1px',
-							'bottom' => 'var(--bottom, var(--unsafe-fallback))',
+							'bottom' => 'var(--invalid',
 							'left'   => '1px',
 						),
 					),
@@ -1695,7 +1695,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 								'padding' => array(
 									'top'    => '2px',
 									'right'  => '2px',
-									'bottom' => 'var(--bottom, var(--unsafe-fallback))',
+									'bottom' => 'var(--invalid',
 									'left'   => '2px',
 								),
 							),
@@ -1706,7 +1706,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 							'border'   => array(
 								'radius' => array(
 									'topLeft'     => '5px',
-									'topRight'    => 'var(--top-right, var(--unsafe-fallback))',
+									'topRight'    => 'var(--invalid',
 									'bottomRight' => '5px',
 									'bottomLeft'  => '5px',
 								),
@@ -1715,7 +1715,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 								'padding' => array(
 									'top'    => '3px',
 									'right'  => '3px',
-									'bottom' => 'var(bottom, var(--unsafe-fallback))',
+									'bottom' => 'var(--invalid',
 									'left'   => '3px',
 								),
 							),
@@ -1725,7 +1725,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 										'padding' => array(
 											'top'    => '4px',
 											'right'  => '4px',
-											'bottom' => 'var(--bottom, var(--unsafe-fallback))',
+											'bottom' => 'var(--invalid',
 											'left'   => '4px',
 										),
 									),
@@ -1944,7 +1944,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 								array(
 									'name'  => 'Blue',
 									'slug'  => 'blue',
-									'color' => 'var(--color, var(--unsafe-fallback))',
+									'color' => 'var(--invalid',
 								),
 								array(
 									'name'  => 'Pink',
@@ -1975,7 +1975,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 								array(
 									'name'       => 'Helvetica Arial',
 									'slug'       => 'helvetica-arial',
-									'fontFamily' => 'var(--fontFamily, var(--unsafe-fallback))',
+									'fontFamily' => 'var(--invalid',
 								),
 							),
 						),
@@ -1998,7 +1998,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 										array(
 											'name'  => 'Blue',
 											'slug'  => 'blue',
-											'color' => 'var(--color, var(--unsafe--fallback))',
+											'color' => 'var(--invalid',
 										),
 										array(
 											'name'  => 'Pink',
