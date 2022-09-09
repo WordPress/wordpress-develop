@@ -2229,7 +2229,7 @@ function kses_init() {
  * @since 5.7.1 Added support for `object-position`.
  * @since 5.8.0 Added support for `calc()` and `var()` values.
  * @since 6.1.0 Added support for `min()`, `max()`, `minmax()`, `clamp()`,
- *              and nested `var()` values.
+ *              nested `var()` values, and assigning values to CSS variables.
  *              Added support for `gap`, `column-gap`, `row-gap`, and `flex-wrap`.
  *              Extended `margin-*` and `padding-*` support for logical properties.
  *
@@ -2392,6 +2392,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'overflow',
 			'vertical-align',
 
+			// Custom CSS properties.
 			'--*',
 		)
 	);
@@ -2446,6 +2447,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			$parts        = explode( ':', $css_item, 2 );
 			$css_selector = trim( $parts[0] );
 
+			// Allow assigning values to CSS variables.
 			if ( in_array( '--*', $allowed_attr, true ) && preg_match( '/^--[a-zA-Z0-9-_]+$/', $css_selector ) ) {
 				$allowed_attr[] = $css_selector;
 				$is_custom_var  = true;

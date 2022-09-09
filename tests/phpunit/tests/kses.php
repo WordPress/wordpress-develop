@@ -1247,7 +1247,7 @@ EOF;
 				'css'      => 'margin-block-start: 1px;margin-block-end: 2px;margin-inline-start: 3px;margin-inline-end: 4px;padding-block-start: 1px;padding-block-end: 2px;padding-inline-start: 3px;padding-inline-end: 4px',
 				'expected' => 'margin-block-start: 1px;margin-block-end: 2px;margin-inline-start: 3px;margin-inline-end: 4px;padding-block-start: 1px;padding-block-end: 2px;padding-inline-start: 3px;padding-inline-end: 4px',
 			),
-			// Custom CSS properties introduced in 6.1.
+			// Assigning values to CSS variables introduced in 6.1.
 			array(
 				'css'      => '--wp--medium-width: 100px; --var_with_underscores: #cccccc;',
 				'expected' => '--wp--medium-width: 100px;--var_with_underscores: #cccccc',
