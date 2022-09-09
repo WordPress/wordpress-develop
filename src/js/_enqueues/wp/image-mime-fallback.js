@@ -35,13 +35,14 @@ window.wp = window.wp || {};
 							continue;
 						}
 
-						var original_file         = original_sizes.file,
+						var get_update_image      = '',
+							original_file         = original_sizes.file,
 							original_filesize     = original_sizes.filesize,
 							original_aspect_ratio = original_sizes.width / original_sizes.height;
 
 						// Check to see if the image src has any size set, then update it.
 						if ( original_url === src ) {
-							var get_update_image = replaceImageUrl( media_details, original_size_key, original_aspect_ratio, original_filesize );
+							get_update_image = replaceImageUrl( media_details, original_size_key, original_aspect_ratio, original_filesize );
 
 							src = src.replace( original_file, get_update_image );
 
@@ -52,7 +53,7 @@ window.wp = window.wp || {};
 						}
 
 						if ( srcset ) {
-							var get_update_image = replaceImageUrl( media_details, original_size_key, original_aspect_ratio, original_filesize );
+							get_update_image = replaceImageUrl( media_details, original_size_key, original_aspect_ratio, original_filesize );
 
 							srcset = srcset.replace( original_file, get_update_image );
 						}
