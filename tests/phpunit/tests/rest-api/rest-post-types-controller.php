@@ -161,7 +161,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 12, $properties );
+		$this->assertCount( 13, $properties );
 		$this->assertArrayHasKey( 'capabilities', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'hierarchical', $properties );
@@ -174,6 +174,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertArrayHasKey( 'rest_base', $properties );
 		$this->assertArrayHasKey( 'rest_namespace', $properties );
 		$this->assertArrayHasKey( 'visibility', $properties );
+		$this->assertArrayHasKey( 'icon', $properties );
 	}
 
 	public function test_get_additional_field_registration() {

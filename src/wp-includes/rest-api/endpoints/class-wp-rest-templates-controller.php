@@ -66,6 +66,33 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			)
 		);
 
+		// Get fallback template content.
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/lookup',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_template_fallback' ),
+					'permission_callback' => array( $this, 'get_items_permissions_check' ),
+					'args'                => array(
+						'slug'            => array(
+							'description' => __( 'The slug of the template to get the fallback for' ),
+							'type'        => 'string',
+						),
+						'is_custom'       => array(
+							'description' => __( ' Indicates if a template is custom or part of the template hierarchy' ),
+							'type'        => 'boolean',
+						),
+						'template_prefix' => array(
+							'description' => __( 'The template prefix for the created template. This is used to extract the main template type ex. in `taxonomy-books` we extract the `taxonomy`' ),
+							'type'        => 'string',
+						),
+					),
+				),
+			)
+		);
+
 		// Lists/updates a single template based on the given id.
 		register_rest_route(
 			$this->namespace,
@@ -114,33 +141,6 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					),
 				),
 				'schema' => array( $this, 'get_public_item_schema' ),
-			)
-		);
-
-		// Get fallback template content.
-		register_rest_route(
-			$this->namespace,
-			'/' . $this->rest_base . '/lookup',
-			array(
-				array(
-					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'get_template_fallback' ),
-					'permission_callback' => array( $this, 'get_items_permissions_check' ),
-					'args'                => array(
-						'slug'            => array(
-							'description' => __( 'The slug of the template to get the fallback for' ),
-							'type'        => 'string',
-						),
-						'is_custom'       => array(
-							'description' => __( ' Indicates if a template is custom or part of the template hierarchy' ),
-							'type'        => 'boolean',
-						),
-						'template_prefix' => array(
-							'description' => __( 'The template prefix for the created template. This is used to extract the main template type ex. in `taxonomy-books` we extract the `taxonomy`' ),
-							'type'        => 'string',
-						),
-					),
-				),
 			)
 		);
 	}
