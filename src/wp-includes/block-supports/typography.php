@@ -283,8 +283,7 @@ function wp_get_computed_fluid_typography_value( $args = array() ) {
 	// Grab the minimum font size and normalize it in order to use the value for calculations.
 	$minimum_font_size = wp_get_typography_value_and_unit( $minimum_font_size_raw );
 
-	// We get a 'preferred' unit to keep units consistent when calculating,
-	// otherwise the result will not be accurate.
+	// We get a 'preferred' unit to keep units consistent when calculating, otherwise the result will not be accurate.
 	$font_size_unit = isset( $minimum_font_size['unit'] ) ? $minimum_font_size['unit'] : 'rem';
 
 	// Grab the maximum font size and normalize it in order to use the value for calculations.
@@ -321,9 +320,10 @@ function wp_get_computed_fluid_typography_value( $args = array() ) {
 			'coerce_to' => $font_size_unit,
 		)
 	);
-
-	// Build CSS rule.
-	// Borrowed from https://websemantics.uk/tools/responsive-font-calculator/.
+	/*
+	 * Build CSS rule.
+	 * Borrowed from https://websemantics.uk/tools/responsive-font-calculator/.
+	 */
 	$view_port_width_offset = round( $minimum_viewport_width['value'] / 100, 3 ) . $font_size_unit;
 	$linear_factor          = 100 * ( ( $maximum_font_size['value'] - $minimum_font_size['value'] ) / ( $maximum_viewport_width['value'] - $minimum_viewport_width['value'] ) );
 	$linear_factor          = round( $linear_factor, 3 ) * $scale_factor;
@@ -350,7 +350,7 @@ function wp_get_computed_fluid_typography_value( $args = array() ) {
  * @return string Font-size value.
  */
 function wp_get_typography_font_size_value( $preset, $should_use_fluid_typography = false ) {
-	// Check if fluid font sizes are activated.
+	// Checks if fluid font sizes are activated.
 	$typography_settings         = wp_get_global_settings( array( 'typography' ) );
 	$should_use_fluid_typography = isset( $typography_settings['fluid'] ) && true === $typography_settings['fluid'] ? true : $should_use_fluid_typography;
 
