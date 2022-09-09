@@ -106,7 +106,7 @@ function wp_apply_border_support( $block_type, $block_attributes ) {
 		$border_block_styles['color'] = $preset_border_color ? $preset_border_color : $custom_border_color;
 	}
 
-	// Generate styles for individual border sides.
+	// Generates styles for individual border sides.
 	if ( $has_border_color_support || $has_border_width_support ) {
 		foreach ( array( 'top', 'right', 'bottom', 'left' ) as $side ) {
 			$border                       = _wp_array_get( $block_attributes, array( 'style', 'border', $side ), null );
@@ -119,7 +119,7 @@ function wp_apply_border_support( $block_type, $block_attributes ) {
 		}
 	}
 
-	// Collect classes and styles.
+	// Collects classes and styles.
 	$attributes = array();
 	$styles     = wp_style_engine_get_styles( array( 'border' => $border_block_styles ) );
 

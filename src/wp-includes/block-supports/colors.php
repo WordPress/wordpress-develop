@@ -85,7 +85,6 @@ function wp_apply_colors_support( $block_type, $block_attributes ) {
 	$color_block_styles            = array();
 
 	// Text colors.
-	// Check support for text colors.
 	if ( $has_text_colors_support && ! wp_should_skip_block_supports_serialization( $block_type, 'color', 'text' ) ) {
 		$preset_text_color          = array_key_exists( 'textColor', $block_attributes ) ? "var:preset|color|{$block_attributes['textColor']}" : null;
 		$custom_text_color          = _wp_array_get( $block_attributes, array( 'style', 'color', 'text' ), null );
@@ -100,7 +99,6 @@ function wp_apply_colors_support( $block_type, $block_attributes ) {
 	}
 
 	// Gradients.
-
 	if ( $has_gradients_support && ! wp_should_skip_block_supports_serialization( $block_type, 'color', 'gradients' ) ) {
 		$preset_gradient_color          = array_key_exists( 'gradient', $block_attributes ) ? "var:preset|gradient|{$block_attributes['gradient']}" : null;
 		$custom_gradient_color          = _wp_array_get( $block_attributes, array( 'style', 'color', 'gradient' ), null );
