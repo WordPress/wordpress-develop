@@ -3747,6 +3747,8 @@ EOF;
 
 	/**
 	 * @ticket 56529
+	 *
+	 * @covers ::wp_print_image_mime_fallback_script
 	 */
 	public function test_wp_print_image_mime_fallback_script_if_content_has_the_webp_images() {
 
@@ -3778,6 +3780,8 @@ EOF;
 
 	/**
 	 * @ticket 56529
+	 *
+	 * @covers ::wp_print_image_mime_fallback_script
 	 */
 	public function test_wp_print_image_mime_fallback_script_if_content_has_no_webp_images() {
 
@@ -3793,6 +3797,8 @@ EOF;
 
 	/**
 	 * @ticket 56529
+	 *
+	 * @covers ::wp_print_image_mime_fallback_script
 	 */
 	public function test_wp_print_image_mime_fallback_script_do_not_print_fallback_script_if_global_is_false() {
 		$GLOBALS['_wp_image_mime_fallback_should_load'] = false;
@@ -3801,6 +3807,8 @@ EOF;
 
 	/**
 	 * @ticket 56529
+	 *
+	 * @covers ::wp_print_image_mime_fallback_script
 	 */
 	public function test_wp_print_image_mime_fallback_script_print_fallback_script_if_global_is_true() {
 		$GLOBALS['_wp_image_mime_fallback_should_load'] = true;

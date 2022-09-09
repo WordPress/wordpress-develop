@@ -14,11 +14,6 @@ window.wp = window.wp || {};
 					sizes         = media_details.sizes,
 					sizes_keys    = Object.keys( sizes );
 
-				// If the full image has no JPEG version available, no sub-size will have JPEG available either.
-				if ( sizes.full && 'image/jpeg' !== sizes.full.mime_type ) {
-					continue;
-				}
-
 				var images = document.querySelectorAll( 'img.wp-image-' + image.id );
 				for ( var j = 0; j < images.length; j++ ) {
 
@@ -34,18 +29,21 @@ window.wp = window.wp || {};
 					for ( var k = 0; k < sizes_keys.length; k++ ) {
 						var original_size_key  = sizes_keys[ k ],
 							original_sizes     = sizes[ original_size_key ],
-							original_mime_type = original_sizes.mime_type;
+							original_url       = original_sizes.source_url;
 
-						if ( ! original_mime_type || 'image/webp' !== original_mime_type ) {
+						if ( original_url.match(/\.(jpeg|jpg|jpe)$/) ) {
 							continue;
 						}
 
-						var original_filesize     = original_sizes.filesize,
+						var original_file         = original_sizes.file,
+							original_filesize     = original_sizes.filesize,
 							original_aspect_ratio = original_sizes.width / original_sizes.height;
 
 						// Check to see if the image src has any size set, then update it.
-						if ( original_sizes.source_url === src ) {
-							src = replaceImageUrl( sizes, sizes_keys, original_size_key, original_aspect_ratio, original_filesize );
+						if ( original_url === src ) {
+							var get_update_image = replaceImageUrl( media_details, original_size_key, original_aspect_ratio, original_filesize );
+
+							src = src.replace( original_file, get_update_image );
 
 							// If there is no srcset and the src has been replaced, there is nothing more to replace.
 							if ( ! srcset ) {
@@ -54,8 +52,9 @@ window.wp = window.wp || {};
 						}
 
 						if ( srcset ) {
-							var replaceimage = replaceImageUrl( sizes, sizes_keys, original_size_key, original_aspect_ratio, original_filesize ),
-								srcset       = srcset.replace( original_sizes.source_url, replaceimage );
+							var get_update_image = replaceImageUrl( media_details, original_size_key, original_aspect_ratio, original_filesize );
+
+							srcset = srcset.replace( original_file, get_update_image );
 						}
 					}
 
@@ -72,22 +71,21 @@ window.wp = window.wp || {};
 		}
 	};
 
-	var replaceImageUrl = function( sizes, sizes_keys, original_size_key, original_aspect_ratio, original_filesize ) {
+	var replaceImageUrl = function( media_details, original_size_key, original_aspect_ratio, original_filesize ) {
+		var sizes      = media_details.sizes,
+			sizes_keys = Object.keys( sizes );
+
 		for ( var i = 0; i < sizes_keys.length; i++ ) {
-			var src = sizes.full.source_url,
+			var src      = media_details.original_image ? media_details.original_image : sizes.full.file,
 				size_key = sizes_keys[ i ],
-				size = sizes[ size_key ],
-				mime_type = size.mime_type;
+				size     = sizes[ size_key ];
 
 			if ( size_key !== original_size_key ) {
-				if ( 'image/jpeg' !== mime_type ) {
-					continue;
-				}
-
-				var filesize = size.filesize,
+				var filesize     = size.filesize,
 					aspect_ratio = size.width / size.height;
+
 				if ( aspect_ratio === original_aspect_ratio && filesize > original_filesize ) {
-					src = size.source_url;
+					src = size.file;
 				}
 			}
 			return src;
