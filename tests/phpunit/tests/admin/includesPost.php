@@ -690,6 +690,8 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * Test if get_sample_permalink preserves the WP_Post properties.
 	 *
 	 * @ticket 54736
+	 * 
+	 * @covers ::get_sample_permalink
 	 */
 	public function test_get_sample_permalink_should_preserve_the_original_post_properties() {
 		$post = self::factory()->post->create_and_get(
