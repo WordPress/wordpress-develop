@@ -389,7 +389,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				'message' => array(
-					'type'     => 'string',
+					'type' => 'string',
 				),
 				'lock'    => array( 'type' => 'object' ),
 			),
