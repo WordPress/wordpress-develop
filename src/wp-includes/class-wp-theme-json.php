@@ -1715,8 +1715,8 @@ class WP_Theme_JSON {
 		$block_rules = '';
 
 		/*
-		 * 1. Separate the ones who use the general selector
-		 * and the ones who use the duotone selector.
+		 * 1. Separate the declarations that use the general selector
+		 * from the ones using the duotone selector.
 		 */
 		$declarations_duotone = array();
 		foreach ( $declarations as $index => $declaration ) {
