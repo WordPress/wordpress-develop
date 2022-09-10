@@ -345,7 +345,8 @@ class WP_Theme_JSON {
 
 	/**
 	 * Defines which pseudo selectors are enabled for which elements.
-	 * Note: this will effect both top-level and block-level elements.
+	 *
+	 * Note: this will affect both top-level and block-level elements.
 	 *
 	 * @since 6.1.0
 	 */
