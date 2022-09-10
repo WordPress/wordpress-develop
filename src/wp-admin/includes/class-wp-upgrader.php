@@ -527,7 +527,10 @@ class WP_Upgrader {
 			set_time_limit( 300 );
 		}
 
-		if ( empty( $source ) || empty( $destination ) ) {
+		if (
+			( ! is_string( $source ) || '' === trim( $source ) ) ||
+			( ! is_string( $destination ) || '' === trim( $destination ) )
+		) {
 			return new WP_Error( 'bad_request', $this->strings['bad_request'] );
 		}
 		$this->skin->feedback( 'installing_package' );
