@@ -3000,7 +3000,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 56467
 	 * @expectedIncorrectUsage get_property_value
 	 */
-	function test_get_property_value_loop() {
+	public function test_get_property_value_loop() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version' => 2,
@@ -3032,7 +3032,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 56467
 	 * @expectedIncorrectUsage get_property_value
 	 */
-	function test_get_property_value_recursion() {
+	public function test_get_property_value_recursion() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version' => 2,
@@ -3064,7 +3064,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 56467
 	 * @expectedIncorrectUsage get_property_value
 	 */
-	function test_get_property_value_self() {
+	public function test_get_property_value_self() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version' => 2,
