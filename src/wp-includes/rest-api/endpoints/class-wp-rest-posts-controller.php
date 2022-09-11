@@ -2064,16 +2064,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( in_array( $post->post_type, array( 'post', 'page' ), true ) || post_type_supports( $post->post_type, 'revisions' ) ) {
 			$revisions       = wp_get_latest_revision_id_and_total_count( $post->ID );
 			$revisions_count = ! is_wp_error( $revisions ) ? $revisions['count'] : 0;
-			$revisions_url   = rest_url( sprintf( '%s/%s', rest_get_route_for_post( $post->ID ), 'revisions' ) );
+			$revisions_base  = sprintf( '/%s/%s/%d/revisions', $this->namespace, $this->rest_base, $post->ID );
 
 			$links['version-history'] = array(
-				'href'  => $revisions_url,
+				'href'  => rest_url( $revisions_base ),
 				'count' => $revisions_count,
 			);
 
 			if ( $revisions_count > 0 ) {
 				$links['predecessor-version'] = array(
-					'href' => sprintf( '%s/%s', $revisions_url, $revisions['latest_id'] ),
+					'href' => rest_url( $revisions_base . '/' . $revisions['latest_id'] ),
 					'id'   => $revisions['latest_id'],
 				);
 			}
