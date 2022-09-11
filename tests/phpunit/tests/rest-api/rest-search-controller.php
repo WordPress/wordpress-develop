@@ -831,7 +831,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSameSets(
-			[ self::$my_title_post_ids[1], self::$my_title_post_ids[2] ],
+			array( self::$my_title_post_ids[1], self::$my_title_post_ids[2] ),
 			wp_list_pluck( $response->get_data(), 'id' )
 		);
 	}
@@ -869,7 +869,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSameSets(
-			[ self::$my_tag_id ],
+			array( self::$my_tag_id ),
 			wp_list_pluck( $response->get_data(), 'id' )
 		);
 	}
@@ -881,14 +881,14 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = $this->do_request_with_params(
 			array(
 				// "1" is the default category.
-				'exclude' => [ 1, self::$my_tag_id ],
+				'exclude' => array( 1, self::$my_tag_id ),
 				'type'    => 'term',
 			)
 		);
 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSameSets(
-			[ self::$my_category_id ],
+			array( self::$my_category_id ),
 			wp_list_pluck( $response->get_data(), 'id' )
 		);
 	}
