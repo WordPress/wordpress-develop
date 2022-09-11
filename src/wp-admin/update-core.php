@@ -273,7 +273,7 @@ function core_upgrade_preamble() {
 		if ( ! empty ( $wp_version ) && $wp_version <= 4.0 ) {
 			echo '<div class="notice notice-warning inline"><p>';
 			printf(
-				/* translators: 1: Documentation on WordPress backups, 2: Documentation on updating WordPress. */
+				/* translators: 1: WordPress version, 2: Documentation on updating WordPress. */
 				__( '<strong>Important:</strong> Your version of WordPress (%1$s) will stop receiving security updates in the near future. To keep your site secure, your site should use WordPress 4.1 or later. However, it\'s recommended to <a href="%2$s">update to the latest version</a> of WordPress.' ),
 				__( $wp_version ),
 				__( 'https://wordpress.org/support/article/updating-wordpress/' )
