@@ -2172,7 +2172,7 @@ class WP_Site_Health {
 			);
 			$result['status'] = 'recommended';
 
-			if ( 0 === wp_ini_parse_quantity( $post_max_size ) ) {
+			if ( PHP_INI_LIMIT_MISSING === wp_ini_parse_quantity( $post_max_size ) ) {
 				$result['description'] = sprintf(
 					'<p>%s</p>',
 					sprintf(

@@ -7456,7 +7456,8 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 
 	$current_limit = ini_get( 'memory_limit' );
 
-	if ( 0 === wp_ini_parse_quantity( $current_limit ) ) {
+	// If we're already set to an unlimited value there's no higher limit to set.
+	if ( wp_ini_quantity_cmp( $current_limit, PHP_INI_LIMIT_UNLIMITED ) >= 0 ) {
 		return false;
 	}
 
@@ -7521,22 +7522,19 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 			break;
 	}
 
-	if (
-		wp_ini_quantity_cmp( $filtered_limit, WP_MAX_MEMORY_LIMIT ) > 0 &&
-		wp_ini_quantity_cmp( $filtered_limit, $current_limit ) > 0
-	) {
-		return false !== ini_set( 'memory_limit', $filtered_limit )
-			? $filtered_limit
-			: false;
-	} elseif (
-		wp_ini_quantity_cmp( WP_MAX_MEMORY_LIMIT, $current_limit ) > 0
-	) {
-		return false !== ini_set( 'memory_limit', WP_MAX_MEMORY_LIMIT )
-			? WP_MAX_MEMORY_LIMIT
-			: false;
+	// Set the memory limit to the greatest of all the filtered value, the MAX limit, and the current limit.
+	$new_limit = wp_ini_greater_quantity( $current_limit, WP_MAX_MEMORY_LIMIT );
+	$new_limit = wp_ini_greater_quantity( $filtered_limit, $new_limit );
+
+	// If we're already set at the greatest limit we don't need to change it.
+	if ( 0 === wp_ini_quantity_cmp( $new_limit, $current_limit ) ) {
+		return false;
 	}
 
-	return false;
+	// Otherwise attempt to set the new limit and return the new value if it succeeded.
+	return false !== ini_set( 'memory_limit', $new_limit )
+		? $new_limit
+		: false;
 }
 
 /**
