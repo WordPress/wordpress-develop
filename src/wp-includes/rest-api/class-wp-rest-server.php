@@ -246,7 +246,15 @@ class WP_REST_Server {
 			$options |= JSON_PRETTY_PRINT;
 		}
 
-		return apply_filters( 'wp_rest_api_json_encode_options', $options, $request );
+		/**
+		 * Filters the JSON encoding options used to send the REST API response.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param int $options             JSON encoding options {@see json_encode()}.
+		 * @param WP_REST_Request $request Current request object.
+		 */
+		return apply_filters( 'rest_api_json_encode_options', $options, $request );
 	}
 
 	/**
