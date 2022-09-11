@@ -3,6 +3,8 @@
 defined( 'IS_32_BIT_SYSTEM' ) || define( 'IS_32_BIT_SYSTEM', 2147483647 === PHP_INT_MAX );
 defined( 'PHP_INT_MAX' ) || define( 'PHP_INT_MAX', IS_32_BIT_SYSTEM ? 2147483647 : 9223372036854775807 );
 defined( 'PHP_INT_MIN' ) || define( 'PHP_INT_MIN', IS_32_BIT_SYSTEM ? -2147483648 : -9223372036854775808 );
+defined( 'PHP_INI_LIMIT_MISSING' ) || define( 'PHP_INI_LIMIT_MISSING', 0 );
+defined( 'PHP_INI_LIMIT_UNLIMITED' ) || define( 'PHP_INI_LIMIT_UNLIMITED', -1 );
 
 /*
  * Returns byte size represented in a numeric php.ini directive.
@@ -12,26 +14,25 @@ defined( 'PHP_INT_MIN' ) || define( 'PHP_INT_MIN', IS_32_BIT_SYSTEM ? -214748364
  * It will return the value which PHP interprets from the "shorthand"
  * syntax, such as "128m" being 128 MiB and "128mb" being 128 B.
  *
+ * Since PHP 8.2 this may return inaccurate results if passed the value
+ * for the `memory_limit` INI directive as it uses the new unsigned
+ * parser.
+ *
  * @param false|int|string $value
  * @return int
  */
 function wp_ini_parse_quantity( $value ) {
 	// A missing value is an implicit lack of limit, thus we return `0`, meaning "no limit."
 	if ( false === $value ) {
-		return 0;
+		return PHP_INI_LIMIT_MISSING;
 	}
 
 	/*
 	 * Directly return pre-parsed values so we can repeatedly call
-	 * this without worrying if we already have for a given value.
+	 * this without tracking if we've already parsed a given value.
 	 */
 	if ( is_int( $value ) ) {
-		/*
-		 * All negative values imply no limit, so instead of
-		 * returning the negative, return the real "no limit"
-		 * value instead.
-		 */
-		return max( 0, $value );
+		return $value;
 	}
 
 	/*
@@ -39,7 +40,7 @@ function wp_ini_parse_quantity( $value ) {
 	 * no limit we could ascribe to this invalid value.
 	 */
 	if ( ! is_string( $value ) ) {
-		return 0;
+		return PHP_INI_LIMIT_MISSING;
 	}
 
 	return ini_parse_quantity( $value );
@@ -49,15 +50,15 @@ function wp_ini_parse_quantity( $value ) {
  * Returns larger of two php.ini directive quantity values.
  *
  * Example:
- *     wp_ini_quantity_max( '256m', -1 ) === -1
- *     wp_ini_quantity_max( '64K', '64') === '64K'
- *     wp_ini_quantity_max( 1000, 2000 ) === 2000
+ *     wp_ini_greater_quantity( '256m', -1 ) === -1
+ *     wp_ini_greater_quantity( '64K', '64') === '64K'
+ *     wp_ini_greater_quantity( 1000, 2000 ) === 2000
  *
  * @param int|string|false $a Quantity value.
  * @param int|string|false $b Quantity value.
  * @return int|string|false   Larger quantity value.
  */
-function wp_ini_quantity_max( $a, $b ) {
+function wp_ini_greater_quantity( $a, $b ) {
 	return wp_ini_quantity_cmp( $a, $b ) >= 0 ? $a : $b;
 }
 
@@ -65,15 +66,15 @@ function wp_ini_quantity_max( $a, $b ) {
  * Returns smaller of two php.ini directive quantity values.
  *
  * Example:
- *     wp_ini_quantity_min( '256m', -1 ) === '256m'
- *     wp_ini_quantity_min( '64K', '64') === '64'
- *     wp_ini_quantity_min( 1000, 2000 ) === 1000
+ *     wp_ini_lesser_quantity( '256m', -1 ) === '256m'
+ *     wp_ini_lesser_quantity( '64K', '64') === '64'
+ *     wp_ini_lesser_quantity( 1000, 2000 ) === 1000
  *
  * @param int|string|false $a Quantity value.
  * @param int|string|false $b Quantity value.
  * @return int|string|false   Smaller quantity value.
  */
-function wp_ini_quantity_min( $a, $b ) {
+function wp_ini_lesser_quantity( $a, $b ) {
 	return wp_ini_quantity_cmp( $a, $b ) <= 0 ? $a : $b;
 }
 
@@ -98,19 +99,30 @@ function wp_ini_quantity_cmp( $a, $b ) {
 		return 0;
 	}
 
-	// No limit on $a means it's at least as big as $b.
-	if ( 0 === $a_scalar ) {
+	// No limit on $a means $b provides our only known limit.
+	if ( PHP_INI_LIMIT_MISSING === $a_scalar ) {
 		return 1;
 	}
 
-	// Any limit on $a means it's smaller than a no-limit $b.
-	if ( 0 === $b_scalar ) {
+	// No limit on $b means $a provides our only known limit.
+	if ( PHP_INI_LIMIT_MISSING === $b_scalar ) {
+		return -1;
+	}
+
+	// An explicit unlimited on $a is at least as great as all other limits.
+	if ( PHP_INI_LIMIT_UNLIMITED === $a_scalar ) {
+		return 1;
+	}
+
+	// An explicit unlimited on $b is at least as great as all other limits.
+	if ( PHP_INI_LIMIT_UNLIMITED === $b_scalar ) {
 		return -1;
 	}
 
 	return $a_scalar > $b_scalar ? 1 : -1;
 }
 
+// ini_parse_quantity added to PHP in PHP 8.2
 if ( ! function_exists( 'ini_parse_quantity' ) ) :
 	/**
 	 * Returns quantity represented by a php.ini directive's "byte size shorthand."
@@ -140,6 +152,9 @@ if ( ! function_exists( 'ini_parse_quantity' ) ) :
 	 *  - This function does not fail on invalid input; it returns `0` in such cses.
 	 *  - As noted in the PHP documentation, overflow behavior is unspecified and
 	 *    platform-dependant. Values that trigger overflow are likely wrong
+	 *  - In PHP 8.2+ this function may return an invalid count for shorthand values
+	 *    parsed with the new unsigned parser. Currently only affects "memory_limit"
+	 *    and only when the value overflows an unsigned integer on the platform.
 	 *
 	 * @since 6.1.
 	 *

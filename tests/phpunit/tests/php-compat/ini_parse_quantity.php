@@ -12,7 +12,33 @@ class Tests_PHP_Compat_wpIniParseQuantity extends WP_UnitTestCase {
 	}
 
 	public function test_absent_limit_is_no_limit() {
-		$this->assertEquals( 0, wp_ini_parse_quantity( -1 ) );
+		$this->assertEquals( 0, wp_ini_parse_quantity( '' ) );
+	}
+
+	public function test_unlimited_is_unlimited() {
+		$this->assertEquals( -1, wp_ini_parse_quantity( '-1' ) );
+	}
+
+	public function test_unlimited_is_greater_than_missing_limit() {
+		$this->assertEqual( -1, wp_ini_greater_quantity( '', '-1' ) );
+	}
+
+	public function test_missing_limit_is_lesser_than_unlimited() {
+		$this->assertEqual( '', wp_ini_lesser_quantity( '', '-1' ) );
+	}
+
+	public function test_unlimited_is_greater_than_hard_limit() {
+		$this->assertEqual( 1, wp_ini_quantity_cmp( -1, 1348 ) );
+		$this->assertEqual( 1, wp_ini_quantity_cmp( -1, '1348g' ) );
+	}
+
+	public function test_missing_limit_is_lesser_than_hard_limit() {
+		$this->assertEqual( -1, wp_ini_quantity_cmp( '', 1348 ) );
+		$this->assertEqual( -1, wp_ini_quantity_cmp( '', '1348g' ) );
+		$this->assertEqual( -1, wp_ini_quantity_cmp( 0, 1348 ) );
+		$this->assertEqual( -1, wp_ini_quantity_cmp( 0, '1348g' ) );
+		$this->assertEqual( -1, wp_ini_quantity_cmp( false, 1348 ) );
+		$this->assertEqual( -1, wp_ini_quantity_cmp( false, '1348g' ) );
 	}
 
 	public function test_invalid_data_is_no_limit() {
