@@ -240,7 +240,7 @@ class WP_REST_Server {
 	 * @return int The JSON encode options.
 	 */
 	protected function get_json_encode_options( WP_REST_Request $request ) {
-		$options = defined( 'REST_JSON_ENCODE_OPTIONS' ) ? REST_JSON_ENCODE_OPTIONS : 0;
+		$options = 0;
 
 		if ( $request->has_param( '_pretty' ) ) {
 			$options |= JSON_PRETTY_PRINT;
