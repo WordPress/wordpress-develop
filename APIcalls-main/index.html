@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Couriermanager Form</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style>
+
+        #priceShow{
+            padding: 12px 12px 12px 20px;
+        }
+        form{
+            padding-top: 30px;
+        }
+        #title{
+            padding-bottom: 16px;
+        }
+        .jumbotron{
+            border-radius: 60px;
+        }
+        #info{
+            display: none;
+            justify-content: center;
+            width: 50%;
+            height: auto;
+            margin: 0 auto;
+            padding: 10px;
+            position: relative;
+            background: #d1cbcb center no-repeat;
+            border-radius: 20px;
+            border: transparent;
+        }
+        #infoMessage{
+            color: #ff0000;
+            font-size: 18px;
+        }
+        ul{
+            color: red;
+            border-radius: 25px;
+        }
+        .loading{
+            display: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 999;
+            background: rgba(255,255,255,0.8) url("https://media.giphy.com/media/xTk9ZvMnbIiIew7IpW/giphy.gif") center no-repeat;
+        }
+        .form-control{
+            padding: 8px 2px 8px 8px;
+            border-radius: 10px;
+        }
+        input:focus{
+            border-radius:10px;
+            border: 1px solid #eee;
+            transition: .3s border-color;
+            background-color: red;
+        }
+        .btn-primary, .btn-success{
+            margin-top: 25px;
+            width: 150px;
+            height: 45px;
+            border-radius: 10px;
+        }
+    </style>
+
+</head>
+<body>
+    <div class="container align-items-center p-5">
+        <div class="jumbotron">
+            <div class="form-group">
+                <div class="d-flex justify-content-center">
+                    <h3 id="title">Delivery details</h3>
+                    <br>
+                </div>
+                <div class="jumbotron" id="info">
+                    <ul id="infoMessage"></ul>
+                </div>
+                <form action="ajax.php" method="post" id="awbForm">
+                    <div class="row">
+                        <div class="form-group col-md-4">
+                            <label for="contactName" class="form-label">Contact Name</label>
+                            <input type="text" class="form-control" name="contactName" id="contactName" required>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="toCountry" class="form-label">Country</label>
+                            <input type="text" class="form-control" name="toCountry" id="toCountry" required>
+                        </div>
+
+                        <div class="form-group col-md-4">
+                            <label for="toCounty" class="form-label">County</label>
+                            <input type="text" class="form-control" name="toCounty" id="toCounty" required>
+                        </div>
+                    </div>
+                    <div class="row">
+
+                        <div class="form-group col-md-4">
+                            <label for="toCity" class="form-label">City</label>
+                            <input type="text" class="form-control" name="toCity" id="toCity" required>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="toAddress" class="form-label">Address</label>
+                            <input type="text" class="form-control" name="toAddress" id="toAddress" required>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="zipCode" class="form-label">Zip code</label>
+                            <input type="text" class="form-control" name="zipCode" id="zipCode" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-md-4">
+                            <label for="phone" class="form-label">Phone</label>
+                            <input type="tel" class="form-control" name="phone" id="phone" required>
+                        </div>
+
+                        <div class="form-group col-md-4">
+                            <label for="email" class="form-label">Email address</label>
+                            <input type="email" class="form-control" name="email" id="email" required>
+                        </div>
+
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group col-md-4">
+                            <label for="packageType" class="form-label">Package type</label>
+                            <select class="form-control" id="packageType" name="packageType" required>
+                                <option selected>Please select package type</option>
+                                <option value="envelope">Envelope</option>
+                                <option value="package">Package</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="quantity" class="form-label">Number of packages</label>
+                            <input type="text" class="form-control" name="quantity" id="quantity" required>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="weight" class="form-label">Weight (in KG)</label>
+                            <input type="text" class="form-control" name="weight" id="weight" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group col-md-4">
+                            <label for="serviceType" class="form-label">Service type</label>
+                            <select class="form-control" id="serviceType" name="serviceType" aria-label="Default select example" required>
+                                <option selected>Please select service method</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group col-md-4">
+                            <label for="cashOnDelivery" class="form-label">Cash on delivery (in <span class="currency"></span>)</label>
+                            <input type="text" class="form-control" name="cashOnDelivery" id="cashOnDelivery" required>
+                        </div>
+                        <div class="mb-3 col-md-4">
+                            <label for="cashOnDeliveryType" class="form-label">How do you want to be paid?</label>
+                            <select class="form-control" id="cashOnDeliveryType" name="cashOnDeliveryType" required>
+                                <option selected>Please select a method</option>
+                                <option value="cash">Cash</option>
+                                <option value="cont">Cont</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="mb-3 col-md-6" id="priceShow" style="display: none" >
+                            <h4 class="pt-4">Your delivery price is <span id="price"> </span> <span class="currency"></span></h4>
+                            <p class="pt-3" style="display: none" id="awbSucceeded" >Awb is: <b id="awb"></b> </p>
+                        </div>
+                    </div>
+                    <div class="form-inline d-flex justify-content-between">
+                        <button type="button" name="submit" class="btn btn-primary" id="showPrice">Send</button>
+                        <div class="float-right" id="succeeded" style="display: none">
+                            <div class="form-inline">
+                                <div class="col">
+                                    <button type="button" class="btn btn-success" id="showAwb">Generate awb</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="loading" >
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+    <script>
+        $(document).ready(function () {
+
+            $('#showPrice').click(function () {
+                let formData = $('form').serialize();
+
+                $.ajax({
+                    type: 'POST',
+                    data: formData,
+                    url: 'ajax.php?type=getPrice',
+                    dataType: 'json',
+                    beforeSend: function (){
+                        $('.loading').show();
+                    },
+                    success: function (data) {
+                        $('#price').html(data.price)
+                        $('#priceShow,#succeeded').show();
+                        $('#showPrice,#info').hide();
+                    },
+                    error: function (e){
+                        var errors = JSON.parse(e.responseText);
+                        $('#info').show().css("background-color","#d1cbcb")
+                        $('#infoMessage').empty().css('color','#ff0000');
+                        $('#priceShow, #succeeded').slideUp();
+                        $.each(errors, function (index, value) {
+                            $('#infoMessage').append($("<li></li>").text(value));
+                            $('#info').show();
+                        })
+                    },
+                    complete: function (){
+                        $('.loading').hide();
+                    }
+                });
+            });
+
+            $('#showAwb').click(function (){
+                let formData = $('form').serialize();
+
+                $.ajax({
+                    type: 'POST',
+                    data: formData,
+                    url: 'ajax.php?type=getAwb',
+                    dataType: 'json',
+                    beforeSend: function (){
+                        $('.loading').show();
+                    },
+                    success: function (data){
+                        $('#priceShow, #succeeded').hide();
+                        $('#showPrice').show();
+                        window.location.href="ajax.php?type=printAwb&id=" + data.id + "&hash=" + data.hash;
+                    },
+                    error:function (e){
+                        let errors = JSON.parse(e.responseText);
+                        $('#priceShow, #showAwb').slideUp();
+                        $('#info').show().css("background-color","#d1cbcb")
+                        $('#infoMessage').empty().css('color','#ff0000');
+                        $.each(errors, function (index, value) {
+                            $('#infoMessage').append($("<li></li>").text(value));
+                            $('#info').show();
+                        })
+                    },
+                    complete: function (){
+                        $('.loading').hide();
+                    }
+                });
+            });
+
+            $.ajax({
+                type: "GET",
+                url: 'ajax.php?type=bootstrap',
+                dataType: 'json',
+                beforeSend: function (){
+                    $('.loading').show();
+                },
+                success: function (data){
+                    data.services.forEach((service) => {
+                        $('#serviceType')
+                            .append($("<option></option>")
+                                .attr("value", service.value)
+                                .text(service.name));
+                    });
+                    $('.currency').text(data.currency);
+                },
+                complete:function (){
+                    $('.loading').hide();
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>

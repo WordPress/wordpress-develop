@@ -1,0 +1,2 @@
+# APIcalls
+For ecommerce software (Magento, Prestashop, WooCommerce, Opencart) see the pre-made plugins. The Shopify app can be added from here. All plugins need an API key and a base url which will be provided by the courier company.   To add an order form in your website, where customers can create shipments without logging in, you can adapt this PHP example.   To integrate shipment tracking and client registration/login in your courier company website, use the Settings/Integrations menu, then copy and adapt the links and forms there.
