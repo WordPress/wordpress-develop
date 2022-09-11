@@ -322,8 +322,8 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Recursively add additionalProperties = false to all objects in a schema if no additionalProperties setting
-	 * is specified.
+	 * Recursively add additionalProperties = false to all objects in a schema
+	 * if no additionalProperties setting is specified.
 	 *
 	 * This is needed to restrict properties of objects in settings values to only
 	 * registered items, as the REST API will allow additional properties by
