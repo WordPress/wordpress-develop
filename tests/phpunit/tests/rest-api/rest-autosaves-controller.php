@@ -606,7 +606,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	/**
 	 * Test ensuring that autosave from the original author doesn't overwrite changes after it has been taken over by a 2nd author.
 	 *
-	 * @return void
+	 * @ticket 55659
 	 */
 	public function test_rest_autosave_draft_post_locked_to_different_author() {
 
