@@ -418,7 +418,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
 
 		$request_params = $request->get_query_params();
-		$base           = add_query_arg( urlencode_deep( $request_params ), rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ) );
+		$collection_url = rest_url( rest_get_route_for_post_type_items( $this->post_type ) );
+		$base           = add_query_arg( urlencode_deep( $request_params ), $collection_url );
 
 		if ( $page > 1 ) {
 			$prev_page = $page - 1;
@@ -777,7 +778,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$response = rest_ensure_response( $response );
 
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->rest_base, $post_id ) ) );
+		$response->header( 'Location', rest_url( rest_get_route_for_post( $post ) ) );
 
 		return $response;
 	}
