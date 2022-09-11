@@ -9,6 +9,9 @@
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
+/** WordPress Translation Installation API */
+require_once ABSPATH . 'wp-admin/includes/translation-install.php';
+
 wp_reset_vars( array( 'action', 'user_id', 'wp_http_referer' ) );
 
 $user_id      = (int) $user_id;
@@ -364,12 +367,12 @@ switch ( $action ) {
 
 							wp_dropdown_languages(
 								array(
-									'name'      => 'locale',
-									'id'        => 'locale',
-									'selected'  => $user_locale,
-									'languages' => $languages,
-									'show_available_translations' => false,
-									'show_option_site_default' => true,
+									'name'                        => 'locale',
+									'id'                          => 'locale',
+									'selected'                    => $user_locale,
+									'languages'                   => $languages,
+									'show_available_translations' => current_user_can( 'install_languages' ) && wp_can_install_language_pack(),
+									'show_option_site_default'    => true,
 								)
 							);
 							?>
