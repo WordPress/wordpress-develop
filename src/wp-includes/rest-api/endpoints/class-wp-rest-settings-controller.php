@@ -330,13 +330,13 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	 * default.
 	 *
 	 * @since 4.9.0
-	 * @deprecated x.y.z Use rest_default_additional_properties_to_false() instead.
+	 * @deprecated 6.1.0 Use {@see rest_default_additional_properties_to_false()} instead.
 	 *
 	 * @param array $schema The schema array.
 	 * @return array
 	 */
 	protected function set_additional_properties_to_false( $schema ) {
-		_deprecated_function( __METHOD__, 'x.y.z', 'rest_default_additional_properties_to_false()' );
+		_deprecated_function( __METHOD__, '6.1.0', 'rest_default_additional_properties_to_false()' );
 
 		return rest_default_additional_properties_to_false( $schema );
 	}
