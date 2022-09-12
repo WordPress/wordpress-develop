@@ -88,7 +88,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 		$block_atts = array( 'style' => array( 'typography' => array( 'fontFamily' => 'serif' ) ) );
 
 		$actual   = wp_apply_typography_support( $block_type, $block_atts );
-		$expected = array( 'style' => 'font-family: serif;' );
+		$expected = array( 'style' => 'font-family:serif;' );
 
 		$this->assertSame( $expected, $actual );
 	}
@@ -209,7 +209,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 		$block_atts = array( 'style' => array( 'typography' => array( 'fontFamily' => 'var:preset|font-family|h1' ) ) );
 
 		$actual   = wp_apply_typography_support( $block_type, $block_atts );
-		$expected = array( 'style' => 'font-family: var(--wp--preset--font-family--h-1);' );
+		$expected = array( 'style' => 'font-family:var(--wp--preset--font-family--h-1);' );
 
 		$this->assertSame( $expected, $actual );
 	}
