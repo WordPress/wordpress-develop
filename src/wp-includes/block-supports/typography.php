@@ -347,7 +347,6 @@ function wp_get_computed_fluid_typography_value( $args = array() ) {
  *     @type string $size CSS font-size value, including units where applicable.
  * }
  * @param bool  $should_use_fluid_typography An override to switch fluid typography "on". Can be used for unit testing. Default is `false`.
- *
  * @return string Font-size value.
  */
 function wp_get_typography_font_size_value( $preset, $should_use_fluid_typography = false ) {
