@@ -4465,6 +4465,7 @@ function _get_path_to_translation_from_lang_dir( $domain ) {
  * @access private
  * @deprecated 6.1.0 No longer used for parsing typography values.
  *             Use wp_style_engine_get_styles().
+ * @see wp_style_engine_get_styles()
  *
  * @param array  $attributes   Block's attributes.
  * @param string $feature      Key for the feature within the typography styles.
