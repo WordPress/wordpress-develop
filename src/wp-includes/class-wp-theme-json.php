@@ -1047,10 +1047,11 @@ class WP_Theme_JSON {
 				}
 			}
 
-			if ( null !== $block_gap_value ) {
+			// If the block should have custom gap, add the gap styles.
+			if ( null !== $block_gap_value && false !== $block_gap_value && '' !== $block_gap_value ) {
 				foreach ( $layout_definitions as $layout_definition_key => $layout_definition ) {
-					// Allow skipping default layout for themes that opt-in to block styles, but opt-out of blockGap.
-					if ( ! $has_block_gap_support && 'default' === $layout_definition_key ) {
+					// Allow outputting fallback gap styles for flex layout type when block gap support isn't available.
+					if ( ! $has_block_gap_support && 'flex' !== $layout_definition_key ) {
 						continue;
 					}
 
@@ -1692,7 +1693,7 @@ class WP_Theme_JSON {
 	 * @return string|array Style property value.
 	 */
 	protected static function get_property_value( $styles, $path, $theme_json = null ) {
-		$value = _wp_array_get( $styles, $path, '' );
+		$value = _wp_array_get( $styles, $path );
 
 		/*
 		 * This converts references to a path to the value at that path
@@ -1725,7 +1726,7 @@ class WP_Theme_JSON {
 			}
 		}
 
-		if ( '' === $value || is_array( $value ) ) {
+		if ( is_array( $value ) ) {
 			return $value;
 		}
 
