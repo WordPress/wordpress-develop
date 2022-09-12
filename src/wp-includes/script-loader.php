@@ -373,13 +373,13 @@ function wp_default_packages_inline_scripts( $scripts ) {
 		sprintf(
 			'( function() {
 				var serverData = %s;
-				var userId = "%s";
+				var userId = "%d";
 				var persistenceLayer = wp.preferencesPersistence.__unstableCreatePersistenceLayer( serverData, userId );
 				var preferencesStore = wp.preferences.store;
 				wp.data.dispatch( preferencesStore ).setPersistenceLayer( persistenceLayer );
 			} ) ();',
 			wp_json_encode( $preload_data ),
-			wp_json_encode( $user_id )
+			$user_id
 		),
 		'after'
 	);
