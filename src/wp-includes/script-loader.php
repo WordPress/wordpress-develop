@@ -380,8 +380,7 @@ function wp_default_packages_inline_scripts( $scripts ) {
 			} ) ();',
 			wp_json_encode( $preload_data ),
 			$user_id
-		),
-		'after'
+		)
 	);
 
 	// Calculate the timezone abbr (EDT, PST) if possible.
