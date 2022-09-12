@@ -175,7 +175,7 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
  *
  * @since 6.1.0
  *
- * @param string $style_value A raw style value for a single typography feature from a block's style attribute.
+ * @param string $style_value  A raw style value for a single typography feature from a block's style attribute.
  * @param string $css_property Slug for the CSS property the inline style sets.
  * @return string A CSS inline style value.
  */
