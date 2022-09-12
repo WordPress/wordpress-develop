@@ -4953,7 +4953,11 @@ function wp_is_application_passwords_available_for_user( $user ) {
 }
 
 /**
- * Register the user meta for persisted preferences.
+ * Register the user meta property for persisted preferences.
+ *
+ * This property is used to store user preferences across page reloads and is
+ * currently used by the block editor for preferences like 'fullscreenMode' and
+ * 'fixedToolbar'.
  *
  * @since 6.1.0
  * @access private
