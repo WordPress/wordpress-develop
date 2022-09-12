@@ -2531,35 +2531,29 @@ function wp_enqueue_registered_block_scripts_and_styles() {
 		return;
 	}
 
-	$load_editor_scripts = is_admin() && wp_should_load_block_editor_scripts_and_styles();
+	$load_editor_scripts_and_styles = is_admin() && wp_should_load_block_editor_scripts_and_styles();
 
 	$block_registry = WP_Block_Type_Registry::get_instance();
 	foreach ( $block_registry->get_all_registered() as $block_name => $block_type ) {
-		// Front-end styles.
-		if ( ! empty( $block_type->style ) ) {
-			foreach ( (array) $block_type->style as $single_style ) {
-				wp_enqueue_style( $single_style );
-			}
+		// Front-end and editor styles.
+		foreach ( $block_type->style_handles as $style_handle ) {
+			wp_enqueue_style( $style_handle );
 		}
 
-		// Front-end scripts.
-		if ( ! empty( $block_type->script ) ) {
-			foreach ( (array) $block_type->script as $single_script ) {
-				wp_enqueue_script( $single_script );
-			}
+		// Front-end and editor scripts.
+		foreach ( $block_type->script_handles as $script_handle ) {
+			wp_enqueue_script( $script_handle );
 		}
 
-		// Editor styles.
-		if ( $load_editor_scripts && ! empty( $block_type->editor_style ) ) {
-			foreach ( (array) $block_type->editor_style as $single_editor_style ) {
-				wp_enqueue_style( $single_editor_style );
+		if ( $load_editor_scripts_and_styles ) {
+			// Editor styles.
+			foreach ( $block_type->editor_style_handles as $editor_style_handle ) {
+				wp_enqueue_style( $editor_style_handle );
 			}
-		}
 
-		// Editor scripts.
-		if ( $load_editor_scripts && ! empty( $block_type->editor_script ) ) {
-			foreach ( (array) $block_type->editor_script as $single_editor_script ) {
-				wp_enqueue_script( $single_editor_script );
+			// Editor scripts.
+			foreach ( $block_type->editor_script_handles as $editor_script_handle ) {
+				wp_enqueue_script( $editor_script_handle );
 			}
 		}
 	}

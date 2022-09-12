@@ -183,6 +183,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
 	$theme_path_norm = wp_normalize_path( get_theme_file_path() );
 	$is_core_block   = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
+	// Skip registering individual styles for each core block when a bundled version provided.
 	if ( $is_core_block && ! wp_should_load_separate_core_block_assets() ) {
 		return false;
 	}
@@ -195,8 +196,14 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		$style_handle = $style_handle[ $index ];
 	}
 
-	$style_path = remove_block_asset_path_prefix( $style_handle );
-	if ( $style_handle === $style_path && ! $is_core_block ) {
+	$style_path      = remove_block_asset_path_prefix( $style_handle );
+	$is_style_handle = $style_handle === $style_path;
+	// Allow only passing style handles for core blocks.
+	if ( $is_core_block && ! $is_style_handle ) {
+		return false;
+	}
+	// Return the style handle unless it's the first item for every core block that requires special treatment.
+	if ( $is_style_handle && ! ( $is_core_block && 0 === $index ) ) {
 		return $style_handle;
 	}
 
@@ -217,7 +224,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 
 	$style_handle   = generate_block_asset_handle( $metadata['name'], $field_name, $index );
 	$block_dir      = dirname( $metadata['file'] );
-	$style_file     = realpath( "$block_dir/$style_path" );
+	$style_file     = wp_normalize_path( realpath( "$block_dir/$style_path" ) );
 	$has_style_file = false !== $style_file;
 	$version        = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
 	$style_uri      = $has_style_file ? $style_uri : false;
