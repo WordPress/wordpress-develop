@@ -15,8 +15,8 @@ class Tests_General_wpRequiredFieldMessage extends WP_UnitTestCase {
 	 * @ticket 56389
 	 */
 	public function test_wp_required_field_message_should_return_default_value() {
-		$expected  = '<span class="required-field-message" aria-hidden="true">';
-		$expected .= 'Required fields are marked <span class="required" aria-hidden="true">*</span>';
+		$expected  = '<span class="required-field-message">';
+		$expected .= 'Required fields are marked <span class="required">*</span>';
 		$expected .= '</span>';
 		$this->assertSame( $expected, wp_required_field_message() );
 	}
