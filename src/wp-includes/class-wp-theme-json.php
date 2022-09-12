@@ -273,18 +273,19 @@ class WP_Theme_JSON {
 	 *              added new properties for `border`, `color`, `spacing`,
 	 *              and `typography`, and renamed others according to the new schema.
 	 * @since 6.0.0 Added `color.defaultDuotone`.
-	 * @since 6.1.0 Added `layout.definitions`.
+	 * @since 6.1.0 Added `layout.definitions` and `useRootPaddingAwareAlignments`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
-		'appearanceTools' => null,
-		'border'          => array(
+		'appearanceTools'               => null,
+		'useRootPaddingAwareAlignments' => null,
+		'border'                        => array(
 			'color'  => null,
 			'radius' => null,
 			'style'  => null,
 			'width'  => null,
 		),
-		'color'           => array(
+		'color'                         => array(
 			'background'       => null,
 			'custom'           => null,
 			'customDuotone'    => null,
@@ -298,19 +299,19 @@ class WP_Theme_JSON {
 			'palette'          => null,
 			'text'             => null,
 		),
-		'custom'          => null,
-		'layout'          => array(
+		'custom'                        => null,
+		'layout'                        => array(
 			'contentSize' => null,
 			'definitions' => null,
 			'wideSize'    => null,
 		),
-		'spacing'         => array(
+		'spacing'                       => array(
 			'blockGap' => null,
 			'margin'   => null,
 			'padding'  => null,
 			'units'    => null,
 		),
-		'typography'      => array(
+		'typography'                    => array(
 			'customFontSize' => null,
 			'dropCap'        => null,
 			'fontFamilies'   => null,
@@ -410,6 +411,20 @@ class WP_Theme_JSON {
 	const __EXPERIMENTAL_ELEMENT_CLASS_NAMES = array(
 		'button'  => 'wp-element-button',
 		'caption' => 'wp-element-caption',
+	);
+
+	/**
+	 * List of block support features that can have their related styles
+	 * generated under their own feature level selector rather than the block's.
+	 *
+	 * @since 6.1.0
+	 * @var string[]
+	 */
+	const BLOCK_SUPPORT_FEATURE_LEVEL_SELECTORS = array(
+		'__experimentalBorder' => 'border',
+		'color'                => 'color',
+		'spacing'              => 'spacing',
+		'typography'           => 'typography',
 	);
 
 	/**
@@ -687,6 +702,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 5.8.0
 	 * @since 5.9.0 Added `duotone` key with CSS selector.
+	 * @since 6.1.0 Added `features` key with block support feature level selectors.
 	 *
 	 * @return array Block metadata.
 	 */
@@ -714,6 +730,25 @@ class WP_Theme_JSON {
 				is_string( $block_type->supports['color']['__experimentalDuotone'] )
 			) {
 				static::$blocks_metadata[ $block_name ]['duotone'] = $block_type->supports['color']['__experimentalDuotone'];
+			}
+
+			// Generate block support feature level selectors if opted into
+			// for the current block.
+			$features = array();
+			foreach ( static::BLOCK_SUPPORT_FEATURE_LEVEL_SELECTORS as $key => $feature ) {
+				if (
+					isset( $block_type->supports[ $key ]['__experimentalSelector'] ) &&
+					$block_type->supports[ $key ]['__experimentalSelector']
+				) {
+					$features[ $feature ] = static::scope_selector(
+						static::$blocks_metadata[ $block_name ]['selector'],
+						$block_type->supports[ $key ]['__experimentalSelector']
+					);
+				}
+			}
+
+			if ( ! empty( $features ) ) {
+				static::$blocks_metadata[ $block_name ]['features'] = $features;
 			}
 
 			// Assign defaults, then overwrite those that the block sets by itself.
@@ -1885,11 +1920,17 @@ class WP_Theme_JSON {
 				$duotone_selector = $selectors[ $name ]['duotone'];
 			}
 
+			$feature_selectors = null;
+			if ( isset( $selectors[ $name ]['features'] ) ) {
+				$feature_selectors = $selectors[ $name ]['features'];
+			}
+
 			$nodes[] = array(
 				'name'     => $name,
 				'path'     => array( 'styles', 'blocks', $name ),
 				'selector' => $selector,
 				'duotone'  => $duotone_selector,
+				'features' => $feature_selectors,
 			);
 
 			if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'] ) ) {
@@ -1932,10 +1973,12 @@ class WP_Theme_JSON {
 		$selector         = $block_metadata['selector'];
 		$settings         = _wp_array_get( $this->theme_json, array( 'settings' ) );
 
-		// Process style declarations for block support features the current
-		// block contains selectors for. Values for a feature with a custom
-		// selector are filtered from the theme.json node before it is
-		// processed as normal.
+		/*
+		 * Process style declarations for block support features the current
+		 * block contains selectors for. Values for a feature with a custom
+		 * selector are filtered from the theme.json node before it is
+		 * processed as normal.
+		*/
 		$feature_declarations = array();
 
 		if ( ! empty( $block_metadata['features'] ) ) {
@@ -1963,18 +2006,26 @@ class WP_Theme_JSON {
 			}
 		}
 
-		// Get a reference to element name from path.
-		// $block_metadata['path'] = array('styles','elements','link');
-		// Make sure that $block_metadata['path'] describes an element node, like ['styles', 'element', 'link'].
-		// Skip non-element paths like just ['styles'].
+		/*
+		 * Get a reference to element name from path.
+		 * $block_metadata['path'] = array( 'styles','elements','link' );
+		 * Make sure that $block_metadata['path'] describes an element node, like [ 'styles', 'element', 'link' ].
+		 * Skip non-element paths like just ['styles'].
+		 */
 		$is_processing_element = in_array( 'elements', $block_metadata['path'], true );
 
 		$current_element = $is_processing_element ? $block_metadata['path'][ count( $block_metadata['path'] ) - 1 ] : null;
 
-		$element_pseudo_allowed = array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ? static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] : array();
+		$element_pseudo_allowed = array();
 
-		// Check for allowed pseudo classes (e.g. ":hover") from the $selector ("a:hover").
-		// This also resets the array keys.
+		if ( array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
+			$element_pseudo_allowed = static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ];
+		}
+
+		/*
+		 * Check for allowed pseudo classes (e.g. ":hover") from the $selector ("a:hover").
+		 * This also resets the array keys.
+		 */
 		$pseudo_matches = array_values(
 			array_filter(
 				$element_pseudo_allowed,
@@ -1986,10 +2037,15 @@ class WP_Theme_JSON {
 
 		$pseudo_selector = isset( $pseudo_matches[0] ) ? $pseudo_matches[0] : null;
 
-		// If the current selector is a pseudo selector that's defined in the allow list for the current
-		// element then compute the style properties for it.
-		// Otherwise just compute the styles for the default selector as normal.
-		if ( $pseudo_selector && isset( $node[ $pseudo_selector ] ) && array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) && in_array( $pseudo_selector, static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ], true ) ) {
+		/*
+		 * If the current selector is a pseudo selector that's defined in the allow list for the current
+		 * element then compute the style properties for it.
+		 * Otherwise just compute the styles for the default selector as normal.
+		 */
+		if ( $pseudo_selector && isset( $node[ $pseudo_selector ] ) &&
+				array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) &&
+				in_array( $pseudo_selector, static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ], true )
+		) {
 			$declarations = static::compute_style_properties( $node[ $pseudo_selector ], $settings, null, $this->theme_json, $selector, $use_root_padding );
 		} else {
 			$declarations = static::compute_style_properties( $node, $settings, null, $this->theme_json, $selector, $use_root_padding );
@@ -1997,8 +2053,10 @@ class WP_Theme_JSON {
 
 		$block_rules = '';
 
-		// 1. Separate the ones who use the general selector
-		// and the ones who use the duotone selector.
+		/*
+		 * 1. Separate the declarations that use the general selector
+		 * from the ones using the duotone selector.
+		 */
 		$declarations_duotone = array();
 		foreach ( $declarations as $index => $declaration ) {
 			if ( 'filter' === $declaration['name'] ) {
@@ -2069,7 +2127,7 @@ class WP_Theme_JSON {
 			$css         .= '--wp--style--global--wide-size: ' . $wide_size . ';';
 		}
 
-		$css .= '}';
+		$css .= ' }';
 
 		if ( $use_root_padding ) {
 			// Top and bottom padding are applied to the outer block container.
