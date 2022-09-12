@@ -585,11 +585,9 @@ class WP_Theme_JSON {
 		 */
 		$styles_non_top_level = static::VALID_STYLES;
 		foreach ( array_keys( $styles_non_top_level ) as $section ) {
-			if ( array_key_exists( $section, $styles_non_top_level ) && is_array( $styles_non_top_level[ $section ] ) ) {
-				foreach ( array_keys( $styles_non_top_level[ $section ] ) as $prop ) {
-					if ( 'top' === $styles_non_top_level[ $section ][ $prop ] ) {
-						unset( $styles_non_top_level[ $section ][ $prop ] );
-					}
+			foreach ( array_keys( $styles_non_top_level[ $section ] ) as $prop ) {
+				if ( 'top' === $styles_non_top_level[ $section ][ $prop ] ) {
+					unset( $styles_non_top_level[ $section ][ $prop ] );
 				}
 			}
 		}
