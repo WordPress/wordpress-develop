@@ -15,7 +15,7 @@ class Tests_General_wpRequiredFieldIndicator extends WP_UnitTestCase {
 	 * @ticket 56389
 	 */
 	public function test_wp_required_field_indicator_should_return_default_value() {
-		$this->assertSame( '<span class="required" aria-hidden="true">*</span>', wp_required_field_indicator() );
+		$this->assertSame( '<span class="required">*</span>', wp_required_field_indicator() );
 	}
 
 	/**
