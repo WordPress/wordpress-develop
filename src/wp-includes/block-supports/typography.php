@@ -185,10 +185,12 @@ function wp_typography_get_preset_inline_style_value( $style_value, $css_propert
 		return $style_value;
 	}
 
-	// For backwards compatibility.
-	// Presets were removed in WordPress/gutenberg#27555.
-	// We have a preset CSS variable as the style.
-	// Get the style value from the string and return CSS style.
+	/*
+	 * For backwards compatibility.
+	 * Presets were removed in WordPress/gutenberg#27555.
+	 * We have a preset CSS variable as the style.
+	 * Get the style value from the string and return CSS style.
+	 */
 	$index_to_splice = strrpos( $style_value, '|' ) + 1;
 	$slug            = _wp_to_kebab_case( substr( $style_value, $index_to_splice ) );
 
