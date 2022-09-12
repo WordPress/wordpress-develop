@@ -4485,8 +4485,10 @@ function wp_typography_get_css_variable_inline_style( $attributes, $feature, $cs
 		return sprintf( '%s:%s;', $css_property, $style_value );
 	}
 
-	// We have a preset CSS variable as the style.
-	// Get the style value from the string and return CSS style.
+	/*
+	 * We have a preset CSS variable as the style.
+	 * Get the style value from the string and return CSS style.
+	 */
 	$index_to_splice = strrpos( $style_value, '|' ) + 1;
 	$slug            = substr( $style_value, $index_to_splice );
 
