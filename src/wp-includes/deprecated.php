@@ -4463,8 +4463,8 @@ function _get_path_to_translation_from_lang_dir( $domain ) {
  *
  * @since 5.8.0
  * @access private
- *
- * @deprecated since 6.1.0 The style engine parses and generates CSS vars.
+ * @deprecated 6.1.0 No longer used for parsing typography values.
+ *             Use wp_style_engine_get_styles().
  *
  * @param array  $attributes   Block's attributes.
  * @param string $feature      Key for the feature within the typography styles.
