@@ -4984,7 +4984,7 @@ function wp_register_persisted_preferences_meta() {
 					'type'                 => 'object',
 					'properties'           => array(
 						'_modified' => array(
-							'description' => __( 'The date and time the preferences were updated.', 'default' ),
+							'description' => __( 'The date and time the preferences were updated.' ),
 							'type'        => 'string',
 							'format'      => 'date-time',
 							'readonly'    => false,
