@@ -4462,7 +4462,6 @@ function _get_path_to_translation_from_lang_dir( $domain ) {
  * text transform, and font style.
  *
  * @since 5.8.0
- * @since 6.1.0 No longer used for parsing typography values. Use the style engine.
  * @access private
  *
  * @deprecated since 6.1.0 The style engine parses and generates CSS vars.
