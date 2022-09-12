@@ -332,8 +332,7 @@ class WP_Theme_JSON {
 	 * @since 5.9.0 Renamed from `ALLOWED_STYLES` to `VALID_STYLES`,
 	 *              added new properties for `border`, `filter`, `spacing`,
 	 *              and `typography`.
-	 * @since 6.1.0 Added new property for `shadow`,
-	 *              new side properties for `border`,
+	 * @since 6.1.0 Added new side properties for `border`,
 	 *              updated `blockGap` to be allowed at any level.
 	 * @var array
 	 */
@@ -353,7 +352,6 @@ class WP_Theme_JSON {
 			'gradient'   => null,
 			'text'       => null,
 		),
-		'shadow'     => null,
 		'filter'     => array(
 			'duotone' => null,
 		),
