@@ -4953,7 +4953,7 @@ function wp_is_application_passwords_available_for_user( $user ) {
 }
 
 /**
- * Register the user meta property for persisted preferences.
+ * Registers the user meta property for persisted preferences.
  *
  * This property is used to store user preferences across page reloads and is
  * currently used by the block editor for preferences like 'fullscreenMode' and
@@ -4965,8 +4965,10 @@ function wp_is_application_passwords_available_for_user( $user ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  */
 function wp_register_persisted_preferences_meta() {
-	// Create a meta key that incorporates the blog prefix so that each site
-	// on a multisite can have distinct user preferences.
+	/*
+	 * Create a meta key that incorporates the blog prefix so that each site
+	 * on a multisite can have distinct user preferences.
+	 */
 	global $wpdb;
 	$meta_key = $wpdb->get_blog_prefix() . 'persisted_preferences';
 
