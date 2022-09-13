@@ -118,7 +118,7 @@ class Tests_Option_wpLoadAlloptions extends WP_UnitTestCase {
 		add_filter( 'pre_wp_load_alloptions', array( $this, 'pre_wp_load_alloptions_filter' ) );
 
 		// Filter was called.
-		$this->assertEquals( array( 'filtered' => 'true' ), wp_load_alloptions() );
+		$this->assertSame( array( 'filtered' => 'true' ), wp_load_alloptions() );
 	}
 
 	public function pre_wp_load_alloptions_filter() {
