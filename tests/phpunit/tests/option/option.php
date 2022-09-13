@@ -297,4 +297,19 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			array( 'autoload_false', false, 'no' ),
 		);
 	}
+
+	/**
+	 * @ticket 37930
+	 *
+	 * @covers ::get_option
+	 */
+	public function test_filter_pre_option_all_filter_is_called() {
+		$filter = new MockAction();
+
+		add_filter( 'pre_option', array( $filter, 'filter' ) );
+
+		get_option( 'ignored' );
+
+		$this->assertSame( 1, $filter->get_call_count() );
+	}
 }
