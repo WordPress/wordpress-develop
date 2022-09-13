@@ -388,6 +388,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'align-wide', $theme_supports );
 		$this->assertArrayHasKey( 'automatic-feed-links', $theme_supports );
 		$this->assertArrayHasKey( 'block-templates', $theme_supports );
+		$this->assertArrayHasKey( 'block-template-parts', $theme_supports );
 		$this->assertArrayHasKey( 'custom-header', $theme_supports );
 		$this->assertArrayHasKey( 'custom-background', $theme_supports );
 		$this->assertArrayHasKey( 'custom-logo', $theme_supports );
@@ -406,7 +407,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'responsive-embeds', $theme_supports );
 		$this->assertArrayHasKey( 'title-tag', $theme_supports );
 		$this->assertArrayHasKey( 'wp-block-styles', $theme_supports );
-		$this->assertCount( 21, $theme_supports );
+		$this->assertCount( 22, $theme_supports );
 	}
 
 	/**
