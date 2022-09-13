@@ -307,7 +307,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 							if ( false !== $bracket_pos ) {
 								// Text before the bracketed email is the "From" name.
 								if ( $bracket_pos > 0 ) {
-									$from_name = substr( $content, 0, $bracket_pos - 1 );
+									$from_name = substr( $content, 0, $bracket_pos );
 									$from_name = str_replace( '"', '', $from_name );
 									$from_name = trim( $from_name );
 								}
@@ -895,6 +895,7 @@ if ( ! function_exists( 'wp_parse_auth_cookie' ) ) :
 	 * Parses a cookie into its components.
 	 *
 	 * @since 2.7.0
+	 * @since 4.0.0 The `$token` element was added to the return value.
 	 *
 	 * @param string $cookie Authentication cookie.
 	 * @param string $scheme Optional. The cookie scheme to use: 'auth', 'secure_auth', or 'logged_in'.

@@ -389,9 +389,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				'message' => array(
-					'type'     => 'string',
-					'source'   => 'html',
-					'selector' => '.message',
+					'type' => 'string',
 				),
 				'lock'    => array( 'type' => 'object' ),
 			),
@@ -455,6 +453,9 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block.css' ) ),
 			wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-style', 'path' ) )
 		);
+
+		// @ticket 53148
+		$this->assertIsCallable( $result->render_callback );
 	}
 
 	/**
@@ -550,6 +551,21 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		// Test string (without blocks).
 		$content = file_get_contents( DIR_TESTDATA . '/blocks/do-blocks-expected.html' );
 		$this->assertFalse( has_blocks( $content ) );
+	}
+
+	/**
+	 * Tests that `has_blocks()` returns `false` with an invalid post.
+	 *
+	 * @ticket 55705
+	 *
+	 * @covers ::has_blocks
+	 */
+	public function test_has_blocks_with_invalid_post() {
+		$a_post = (object) array(
+			'ID'     => 55705,
+			'filter' => 'display',
+		);
+		$this->assertFalse( has_blocks( $a_post ) );
 	}
 
 	/**

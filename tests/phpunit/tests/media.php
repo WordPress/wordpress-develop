@@ -33,7 +33,8 @@ CAP;
 		self::$_sizes                          = wp_get_additional_image_sizes();
 		$GLOBALS['_wp_additional_image_sizes'] = array();
 
-		$filename       = DIR_TESTDATA . '/images/' . self::$large_filename;
+		$filename = DIR_TESTDATA . '/images/' . self::$large_filename;
+		add_filter( 'image_editor_output_format', '__return_empty_array' );
 		self::$large_id = $factory->attachment->create_upload_object( $filename );
 
 		$post_statuses = array( 'publish', 'future', 'draft', 'auto-draft', 'trash' );
@@ -68,6 +69,7 @@ CAP;
 
 	public static function wpTearDownAfterClass() {
 		$GLOBALS['_wp_additional_image_sizes'] = self::$_sizes;
+		remove_filter( 'image_editor_output_format', '__return_empty_array' );
 	}
 
 	public static function tear_down_after_class() {
@@ -157,14 +159,14 @@ CAP;
 			)
 		);
 
-		$this->assertSame( 2, preg_match_all( '/wp-caption/', $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( '/alignnone/', $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( '/' . self::CAPTION . '/', $result, $_r ) );
+		$this->assertSame( 2, substr_count( $result, 'wp-caption' ) );
+		$this->assertSame( 1, substr_count( $result, 'alignnone' ) );
+		$this->assertSame( 1, substr_count( $result, self::CAPTION ) );
 
 		if ( current_theme_supports( 'html5', 'caption' ) ) {
-			$this->assertSame( 1, preg_match_all( '/width: 20/', $result, $_r ) );
+			$this->assertSame( 1, substr_count( $result, 'width: 20' ) );
 		} else {
-			$this->assertSame( 1, preg_match_all( '/width: 30/', $result, $_r ) );
+			$this->assertSame( 1, substr_count( $result, 'width: 30' ) );
 		}
 	}
 
@@ -177,9 +179,9 @@ CAP;
 				'align'   => '&myAlignment',
 			)
 		);
-		$this->assertSame( 1, preg_match_all( '/wp-caption &amp;myAlignment/', $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( '/id="myId"/', $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( '/' . self::CAPTION . '/', $result, $_r ) );
+		$this->assertSame( 1, substr_count( $result, 'wp-caption &amp;myAlignment' ) );
+		$this->assertSame( 1, substr_count( $result, 'id="myId"' ) );
+		$this->assertSame( 1, substr_count( $result, self::CAPTION ) );
 	}
 
 	public function test_img_caption_shortcode_with_old_format_and_class() {
@@ -190,20 +192,19 @@ CAP;
 				'caption' => self::CAPTION,
 			)
 		);
-		$this->assertSame( 1, preg_match_all( '/wp-caption alignnone some-class another-class/', $result, $_r ) );
+		$this->assertSame( 1, substr_count( $result, 'wp-caption alignnone some-class another-class' ) );
 
 	}
 
 	public function test_new_img_caption_shortcode_with_html_caption() {
-		$result   = img_caption_shortcode(
+		$result = img_caption_shortcode(
 			array(
 				'width'   => 20,
 				'caption' => self::HTML_CONTENT,
 			)
 		);
-		$our_preg = preg_quote( self::HTML_CONTENT );
 
-		$this->assertSame( 1, preg_match_all( "~{$our_preg}~", $result, $_r ) );
+		$this->assertSame( 1, substr_count( $result, self::HTML_CONTENT ) );
 	}
 
 	public function test_new_img_caption_shortcode_new_format() {
@@ -214,8 +215,8 @@ CAP;
 		$img_preg     = preg_quote( self::IMG_CONTENT );
 		$content_preg = preg_quote( self::HTML_CONTENT );
 
-		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result, $_r ) );
+		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result ) );
+		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result ) );
 	}
 
 	public function test_new_img_caption_shortcode_new_format_and_linked_image() {
@@ -227,8 +228,8 @@ CAP;
 		$img_preg     = preg_quote( $linked_image );
 		$content_preg = preg_quote( self::HTML_CONTENT );
 
-		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result, $_r ) );
+		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result ) );
+		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result ) );
 	}
 
 	public function test_new_img_caption_shortcode_new_format_and_linked_image_with_newline() {
@@ -240,8 +241,8 @@ CAP;
 		$img_preg     = preg_quote( $linked_image );
 		$content_preg = preg_quote( self::HTML_CONTENT );
 
-		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result, $_r ) );
+		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result ) );
+		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result ) );
 	}
 
 	/**
@@ -256,7 +257,7 @@ CAP;
 			self::IMG_CONTENT . self::HTML_CONTENT
 		);
 
-		$this->assertSame( 1, preg_match_all( '/aria-describedby="caption-myId"/', $result, $_r ) );
+		$this->assertSame( 1, substr_count( $result, 'aria-describedby="caption-myId"' ) );
 	}
 
 	public function test_add_remove_oembed_provider() {
@@ -1022,6 +1023,7 @@ VIDEO;
 
 	/**
 	 * @ticket 35367
+	 * @ticket 54788
 	 * @depends test_video_shortcode_body
 	 */
 	public function test_wp_video_shortcode_attributes() {
@@ -1034,6 +1036,7 @@ VIDEO;
 		$this->assertStringContainsString( 'src="https://example.com/foo.mp4', $actual );
 		$this->assertStringNotContainsString( 'loop', $actual );
 		$this->assertStringNotContainsString( 'autoplay', $actual );
+		$this->assertStringNotContainsString( 'muted', $actual );
 		$this->assertStringContainsString( 'preload="metadata"', $actual );
 		$this->assertStringContainsString( 'width="640"', $actual );
 		$this->assertStringContainsString( 'height="360"', $actual );
@@ -1045,6 +1048,7 @@ VIDEO;
 				'poster'   => 'https://example.com/foo.png',
 				'loop'     => true,
 				'autoplay' => true,
+				'muted'    => true,
 				'preload'  => true,
 				'width'    => 123,
 				'height'   => 456,
@@ -1056,6 +1060,7 @@ VIDEO;
 		$this->assertStringContainsString( 'poster="https://example.com/foo.png', $actual );
 		$this->assertStringContainsString( 'loop="1"', $actual );
 		$this->assertStringContainsString( 'autoplay="1"', $actual );
+		$this->assertStringContainsString( 'muted', $actual );
 		$this->assertStringContainsString( 'preload="1"', $actual );
 		$this->assertStringContainsString( 'width="123"', $actual );
 		$this->assertStringContainsString( 'height="456"', $actual );
@@ -1654,11 +1659,11 @@ EOF;
 
 		$expected = trim( $expected, ' ,' );
 
-		foreach ( $intermediates as $int ) {
-			$image_url  = wp_get_attachment_image_url( self::$large_id, $int );
-			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int );
+		foreach ( $intermediates as $int_size ) {
+			$image_url  = wp_get_attachment_image_url( self::$large_id, $int_size );
+			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int_size );
 
-			if ( 'full' === $int ) {
+			if ( 'full' === $int_size ) {
 				// Add the full size image. Expected to be in the srcset when the full size image is used as src.
 				$_expected = $uploads_dir_url . $image_meta['file'] . ' ' . $image_meta['width'] . 'w, ' . $expected;
 			} else {
@@ -1707,11 +1712,19 @@ EOF;
 
 		$expected = trim( $expected, ' ,' );
 
-		foreach ( $intermediates as $int ) {
-			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int );
-			$image_url  = wp_get_attachment_image_url( $id, $int );
+		foreach ( $intermediates as $int_size ) {
+			$image_urls[ $int_size ] = wp_get_attachment_image_url( $id, $int_size );
+		}
 
-			if ( 'full' === $int ) {
+		// Remove the attachment.
+		wp_delete_attachment( $id, true );
+		remove_filter( 'upload_dir', '_upload_dir_no_subdir' );
+
+		foreach ( $intermediates as $int_size ) {
+			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int_size );
+			$image_url  = $image_urls[ $int_size ];
+
+			if ( 'full' === $int_size ) {
 				// Add the full size image. Expected to be in the srcset when the full size image is used as src.
 				$_expected = $uploads_dir_url . $image_meta['file'] . ' ' . $image_meta['width'] . 'w, ' . $expected;
 			} else {
@@ -1722,9 +1735,6 @@ EOF;
 			$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 		}
 
-		// Remove the attachment.
-		wp_delete_attachment( $id, true );
-		remove_filter( 'upload_dir', '_upload_dir_no_subdir' );
 	}
 
 	/**
@@ -1797,11 +1807,11 @@ EOF;
 		// Prepend an absolute path to simulate a pre-2.7 upload.
 		$image_meta['file'] = 'H:\home\wordpress\trunk/wp-content/uploads/' . $image_meta['file'];
 
-		foreach ( $intermediates as $int ) {
-			$image_url  = wp_get_attachment_image_url( self::$large_id, $int );
-			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int );
+		foreach ( $intermediates as $int_size ) {
+			$image_url  = wp_get_attachment_image_url( self::$large_id, $int_size );
+			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int_size );
 
-			if ( 'full' === $int ) {
+			if ( 'full' === $int_size ) {
 				// Add the full size image. Expected to be in the srcset when the full size image is used as src.
 				$_expected = $uploads_dir_url . $full_size_file . ' ' . $image_meta['width'] . 'w, ' . $expected;
 			} else {
@@ -2251,14 +2261,11 @@ EOF;
 		// Do not add width, height, and loading.
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
-		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
 
 		$this->assertSame( $content_filtered, wp_filter_content_tags( $content_unfiltered ) );
 
 		remove_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
 		remove_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
-		remove_filter( 'wp_content_image_mimes', '__return_empty_array' );
-
 	}
 
 	/**
@@ -2292,12 +2299,9 @@ EOF;
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
 		$img = wp_img_tag_add_decoding_attr( $img, 'the_content' );
 		$img = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . 'srcset="image2x.jpg 2x" />', $img );
-		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
 
 		// The content filter should return the image unchanged.
 		$this->assertSame( $img, wp_filter_content_tags( $img ) );
-
-		remove_filter( 'wp_content_image_mimes', '__return_empty_array' );
 	}
 
 	/**
@@ -2367,7 +2371,6 @@ EOF;
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
-		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
 
 		add_filter(
 			'wp_content_img_tag',
@@ -2430,7 +2433,6 @@ EOF;
 	 * @requires function imagejpeg
 	 */
 	public function test_wp_filter_content_tags_schemes() {
-		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
 		$size_array = $this->get_image_size_array_from_meta( $image_meta, 'medium' );
 
@@ -2476,7 +2478,6 @@ EOF;
 		$actual = wp_filter_content_tags( $unfiltered );
 
 		$this->assertSame( $expected, $actual );
-		remove_filter( 'wp_content_image_mimes', '__return_empty_array' );
 	}
 
 	/**
@@ -2970,13 +2971,11 @@ EOF;
 		// Do not add loading, srcset, and sizes.
 		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
-		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
 
 		$this->assertSame( $content_filtered, wp_filter_content_tags( $content_unfiltered ) );
 
 		remove_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
 		remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
-		remove_filter( 'wp_content_image_mimes', '__return_empty_array' );
 	}
 
 	/**
@@ -3052,13 +3051,11 @@ EOF;
 		// Do not add width, height, srcset, and sizes.
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
-		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
 
 		$this->assertSame( $content_filtered, wp_filter_content_tags( $content_unfiltered ) );
 
 		remove_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
 		remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
-		remove_filter( 'wp_content_image_mimes', '__return_empty_array' );
 	}
 
 	/**
@@ -3087,13 +3084,9 @@ EOF;
 		// Enable globally for all tags.
 		add_filter( 'wp_lazy_loading_enabled', '__return_true' );
 
-		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
-
 		$this->assertSame( $content_filtered, wp_filter_content_tags( $content_unfiltered ) );
 		remove_filter( 'wp_lazy_loading_enabled', '__return_true' );
 		remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
-		remove_filter( 'wp_content_image_mimes', '__return_empty_array' );
-
 	}
 
 	/**
@@ -3118,12 +3111,9 @@ EOF;
 		// Disable globally for all tags.
 		add_filter( 'wp_lazy_loading_enabled', '__return_false' );
 
-		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
-
 		$this->assertSame( $content, wp_filter_content_tags( $content ) );
 		remove_filter( 'wp_lazy_loading_enabled', '__return_false' );
 		remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
-		remove_filter( 'wp_content_image_mimes', '__return_empty_array' );
 	}
 
 	/**
@@ -3549,7 +3539,6 @@ EOF;
 	 */
 	function test_wp_filter_content_tags_with_wp_get_loading_attr_default() {
 		global $wp_query, $wp_the_query;
-		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
 
 		$img1         = get_image_tag( self::$large_id, '', '', '', 'large' );
 		$iframe1      = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
@@ -3585,7 +3574,6 @@ EOF;
 			$content_filtered = wp_filter_content_tags( $content_unfiltered, 'the_content' );
 			remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
 		}
-		remove_filter( 'wp_content_image_mimes', '__return_empty_array' );
 
 		// After filtering, the first image should not be lazy-loaded while the other ones should be.
 		$this->assertSame( $content_expected, $content_filtered );
@@ -3637,166 +3625,128 @@ EOF;
 	}
 
 	/**
+	 * Test the wp_default_image_output_mapping function.
+	 *
 	 * @ticket 55443
 	 */
-	public function test_wp_image_use_alternate_mime_types_replaces_jpg_with_webp_where_available() {
-		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
-			$this->markTestSkipped( 'This test requires WebP support.' );
-		}
-
-		// The attachment $large_id is a JPEG image, so it gets WebP files generated by default.
-		$tag          = wp_get_attachment_image( self::$large_id, 'full' );
-		$expected_tag = $tag;
-
-		$metadata = wp_get_attachment_metadata( self::$large_id );
-		foreach ( $metadata['sizes'] as $size => $properties ) {
-			// Some sizes may not have WebP if the WebP file is larger than the JPEG for the size.
-			if ( ! isset( $properties['sources']['image/webp'] ) ) {
-				continue;
-			}
-			$expected_tag = str_replace( $properties['sources']['image/jpeg']['file'], $properties['sources']['image/webp']['file'], $expected_tag );
-		}
-		// Same applies to the full size.
-		if ( isset( $metadata['sources']['image/webp'] ) ) {
-			$expected_tag = str_replace( $metadata['sources']['image/jpeg']['file'], $metadata['sources']['image/webp']['file'], $expected_tag );
-		}
-
-		$this->assertNotSame( $tag, $expected_tag );
-		$this->assertSame( $expected_tag, wp_image_use_alternate_mime_types( $tag, 'the_content', self::$large_id ) );
+	public function test_wp_default_image_output_mapping() {
+		$mapping = wp_default_image_output_mapping( array(), 'test.jpg', 'image/jpeg', '' );
+		$this->assertSame( array( 'image/jpeg' => 'image/webp' ), $mapping );
 	}
 
 	/**
+	 * Test that wp_default_image_output_mapping doesn't overwrite existing mappings.
+	 *
 	 * @ticket 55443
 	 */
-	public function test_wp_image_use_alternate_mime_types_does_not_replace_jpg_when_webp_is_not_available() {
-		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
-			$this->markTestSkipped( 'This test requires WebP support.' );
-		}
-
-		// The attachment $large_id is a JPEG image, so it gets WebP files generated by default.
-		$tag = wp_get_attachment_image( self::$large_id, 'full' );
-
-		// Update attachment metadata as if the image had no WebP available for any sub-sizes and the full size.
-		$metadata = wp_get_attachment_metadata( self::$large_id );
-		foreach ( $metadata['sizes'] as $size => $properties ) {
-			unset( $metadata['sizes'][ $size ]['sources']['image/webp'] );
-		}
-		unset( $metadata['sources']['image/webp'] );
-		wp_update_attachment_metadata( self::$large_id, $metadata );
-
-		$this->assertSame( $tag, wp_image_use_alternate_mime_types( $tag, 'the_content', self::$large_id ) );
-	}
-
-	/**
-	 * @ticket 55443
-	 */
-	public function test_wp_image_use_alternate_mime_types_still_replaces_jpg_subsizes_when_webp_is_not_available_for_full_size() {
-		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
-			$this->markTestSkipped( 'This test requires WebP support.' );
-		}
-
-		// The attachment $large_id is a JPEG image, so it gets WebP files generated by default.
-		$tag          = wp_get_attachment_image( self::$large_id, 'full' );
-		$expected_tag = $tag;
-
-		// Update attachment metadata as if the image had no WebP available for the full size.
-		$metadata = wp_get_attachment_metadata( self::$large_id );
-		unset( $metadata['sources']['image/webp'] );
-		wp_update_attachment_metadata( self::$large_id, $metadata );
-
-		foreach ( $metadata['sizes'] as $size => $properties ) {
-			// Some sizes may not have WebP if the WebP file is larger than the JPEG for the size.
-			if ( ! isset( $properties['sources']['image/webp'] ) ) {
-				continue;
-			}
-			$expected_tag = str_replace( $properties['sources']['image/jpeg']['file'], $properties['sources']['image/webp']['file'], $expected_tag );
-		}
-
-		$this->assertNotSame( $tag, $expected_tag );
-		$this->assertSame( $expected_tag, wp_image_use_alternate_mime_types( $tag, 'the_content', self::$large_id ) );
-	}
-
-	/**
-	 * @ticket 55443
-	 */
-	public function test_wp_image_use_alternate_mime_types_respects_wp_content_image_mimes_filter() {
-		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
-			$this->markTestSkipped( 'This test requires WebP support.' );
-		}
-
-		// The attachment $large_id is a JPEG image, so it gets WebP files generated by default.
-		$tag = wp_get_attachment_image( self::$large_id, 'full' );
-
-		// Invalid filter value results in no changes to content.
-		add_filter( 'wp_content_image_mimes', '__return_false' );
-		$this->assertSame( $tag, wp_image_use_alternate_mime_types( $tag, 'the_content', self::$large_id ) );
-
-		// Empty array results in no changes to content.
-		add_filter( 'wp_content_image_mimes', '__return_empty_array' );
-		$this->assertSame( $tag, wp_image_use_alternate_mime_types( $tag, 'the_content', self::$large_id ) );
-
-		// Preferring JPEG over WebP results in no changes to content.
-		add_filter(
-			'wp_content_image_mimes',
-			function() {
-				return array( 'image/jpeg', 'image/webp' );
-			}
+	public function test_wp_default_image_output_mapping_existing() {
+		$mapping = array( 'mime/png' => 'mime/webp' );
+		$mapping = wp_default_image_output_mapping( $mapping, 'test.jpg', 'image/jpeg', '' );
+		$this->assertSame(
+			array(
+				'mime/png'   => 'mime/webp',
+				'image/jpeg' => 'image/webp',
+			),
+			$mapping
 		);
-		$this->assertSame( $tag, wp_image_use_alternate_mime_types( $tag, 'the_content', self::$large_id ) );
 	}
 
 	/**
+	 * Test that the image editor default output for JPEGs is WebP.
+	 *
 	 * @ticket 55443
 	 */
-	public function test__wp_in_front_end_context_without_wp_query() {
-		unset( $GLOBALS['wp_query'] );
+	public function test_wp_image_editor_default_output_maps_to_webp() {
+		remove_filter( 'image_editor_output_format', '__return_empty_array' );
 
-		$this->assertFalse( _wp_in_front_end_context() );
+		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
+		$this->assertNotWPError( $editor );
+
+		$resized = $editor->resize( 100, 100, false );
+		$this->assertNotWPError( $resized );
+
+		$saved = $editor->save();
+		$this->assertNotWPError( $saved );
+
+		if ( $editor->supports_mime_type( 'image/webp' ) ) {
+			$this->assertSame( 'image/webp', $saved['mime-type'] );
+			$this->assertSame( 'canola-100x75-jpg.webp', $saved['file'] );
+		} else {
+			$this->assertSame( 'image/jpeg', $saved['mime-type'] );
+			$this->assertSame( 'canola-100x75.jpg', $saved['file'] );
+		}
 	}
 
 	/**
-	 * @ticket 55443
+	 * @ticket 56526
+	 * @dataProvider data_wp_default_image_output_mapping_size_filter
 	 */
-	public function test__wp_in_front_end_context_with_feed() {
-		remove_all_actions( 'template_redirect' );
-		do_action( 'template_redirect' );
-		$GLOBALS['wp_query']->is_feed = true;
+	public function test_wp_default_image_output_mapping_size_filter( $size_name, $filter_callback, $expects_webp ) {
+		remove_all_filters( 'wp_image_sizes_with_additional_mime_type_support' );
+		if ( $filter_callback ) {
+			add_filter( 'wp_image_sizes_with_additional_mime_type_support', $filter_callback );
+		}
 
-		$this->assertFalse( _wp_in_front_end_context() );
+		$mapping = wp_default_image_output_mapping( array(), 'test.jpg', 'image/jpeg', $size_name );
+		if ( $expects_webp ) {
+			$this->assertSame( array( 'image/jpeg' => 'image/webp' ), $mapping );
+		} else {
+			$this->assertSame( array(), $mapping );
+		}
 	}
 
-	/**
-	 * @ticket 55443
-	 */
-	public function test__wp_in_front_end_context_before_and_after_template_redirect() {
-		$result = _wp_in_front_end_context();
-
-		remove_all_actions( 'template_redirect' );
-		do_action( 'template_redirect' );
-
-		$this->assertFalse( $result );
-		$this->assertTrue( _wp_in_front_end_context() );
-	}
-
-	/**
-	 * @ticket 55443
-	 */
-	public function test__wp_in_front_end_context_within_wp_head() {
-		remove_all_actions( 'template_redirect' );
-		do_action( 'template_redirect' );
-
-		// Call function within a 'wp_head' callback.
-		remove_all_actions( 'wp_head' );
-		$result = null;
-		add_action(
-			'wp_head',
-			function() use ( &$result ) {
-				$result = _wp_in_front_end_context();
-			}
+	public function data_wp_default_image_output_mapping_size_filter() {
+		return array(
+			'default size thumbnail'    => array(
+				'thumbnail',
+				null,
+				true,
+			),
+			'default size medium'       => array(
+				'medium',
+				null,
+				true,
+			),
+			'default size medium_large' => array(
+				'medium_large',
+				null,
+				true,
+			),
+			'default size large'        => array(
+				'large',
+				null,
+				true,
+			),
+			'default size unset'        => array(
+				'medium',
+				function( $enabled_sizes ) {
+					unset( $enabled_sizes['medium'] );
+					return $enabled_sizes;
+				},
+				false,
+			),
+			'default size set to false' => array(
+				'medium',
+				function( $enabled_sizes ) {
+					$enabled_sizes['medium'] = false;
+					return $enabled_sizes;
+				},
+				false,
+			),
+			'custom size'               => array(
+				'custom',
+				null,
+				false,
+			),
+			'custom size opted in'      => array(
+				'custom',
+				function( $enabled_sizes ) {
+					$enabled_sizes['custom'] = true;
+					return $enabled_sizes;
+				},
+				true,
+			),
 		);
-		do_action( 'wp_head' );
-
-		$this->assertFalse( $result );
 	}
 }
 
