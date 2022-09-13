@@ -1026,6 +1026,7 @@ VIDEO;
 
 	/**
 	 * @ticket 35367
+	 * @ticket 54788
 	 * @depends test_video_shortcode_body
 	 */
 	public function test_wp_video_shortcode_attributes() {
@@ -1038,6 +1039,7 @@ VIDEO;
 		$this->assertStringContainsString( 'src="https://example.com/foo.mp4', $actual );
 		$this->assertStringNotContainsString( 'loop', $actual );
 		$this->assertStringNotContainsString( 'autoplay', $actual );
+		$this->assertStringNotContainsString( 'muted', $actual );
 		$this->assertStringContainsString( 'preload="metadata"', $actual );
 		$this->assertStringContainsString( 'width="640"', $actual );
 		$this->assertStringContainsString( 'height="360"', $actual );
@@ -1049,6 +1051,7 @@ VIDEO;
 				'poster'   => 'https://example.com/foo.png',
 				'loop'     => true,
 				'autoplay' => true,
+				'muted'    => true,
 				'preload'  => true,
 				'width'    => 123,
 				'height'   => 456,
@@ -1060,6 +1063,7 @@ VIDEO;
 		$this->assertStringContainsString( 'poster="https://example.com/foo.png', $actual );
 		$this->assertStringContainsString( 'loop="1"', $actual );
 		$this->assertStringContainsString( 'autoplay="1"', $actual );
+		$this->assertStringContainsString( 'muted', $actual );
 		$this->assertStringContainsString( 'preload="1"', $actual );
 		$this->assertStringContainsString( 'width="123"', $actual );
 		$this->assertStringContainsString( 'height="456"', $actual );

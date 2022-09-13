@@ -12,6 +12,7 @@
  *
  * @since 4.4.0
  */
+#[AllowDynamicProperties]
 class WP_REST_Server {
 
 	/**
@@ -228,6 +229,33 @@ class WP_REST_Server {
 		$error = compact( 'code', 'message' );
 
 		return wp_json_encode( $error );
+	}
+
+	/**
+	 * Gets the encoding options passed to {@see wp_json_encode}.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param \WP_REST_Request $request The current request object.
+	 *
+	 * @return int The JSON encode options.
+	 */
+	protected function get_json_encode_options( WP_REST_Request $request ) {
+		$options = 0;
+
+		if ( $request->has_param( '_pretty' ) ) {
+			$options |= JSON_PRETTY_PRINT;
+		}
+
+		/**
+		 * Filters the JSON encoding options used to send the REST API response.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param int $options             JSON encoding options {@see json_encode()}.
+		 * @param WP_REST_Request $request Current request object.
+		 */
+		return apply_filters( 'rest_json_encode_options', $options, $request );
 	}
 
 	/**
@@ -493,7 +521,7 @@ class WP_REST_Server {
 				return null;
 			}
 
-			$result = wp_json_encode( $result );
+			$result = wp_json_encode( $result, $this->get_json_encode_options( $request ) );
 
 			$json_error_message = $this->get_json_last_error();
 
@@ -506,7 +534,7 @@ class WP_REST_Server {
 				);
 
 				$result = $this->error_to_response( $json_error_obj );
-				$result = wp_json_encode( $result->data );
+				$result = wp_json_encode( $result->data, $this->get_json_encode_options( $request ) );
 			}
 
 			if ( $jsonp_callback ) {
