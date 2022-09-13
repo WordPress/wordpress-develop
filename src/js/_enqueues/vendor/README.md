@@ -10,7 +10,6 @@ In this directory you'll find vendor JavaScript packages that cannot be installe
 - jcrop: https://github.com/tapmodo/Jcrop
 - mediaelement: https://github.com/mediaelement/mediaelement
 - plupload: https://github.com/moxiecode/plupload
-- swfupload: https://github.com/WordPress/secure-swfupload
 - thickbox: http://codylindley.com/thickbox/
 - tinymce: https://www.tiny.cloud/get-tiny/self-hosted/
   - Download "TinyMCE Dev Package". This package is needed because it includes
@@ -70,6 +69,5 @@ In this directory you'll find vendor JavaScript packages that cannot be installe
 - jquery/jquery.serializeobject: https://github.com/cowboy/jquery-misc/blob/master/jquery.ba-serializeobject.js
 - jquery/jquery.table-hotkeys: WP version can be downloaded at https://code.google.com/archive/p/js-hotkeys/downloads?page=2. A newer version is available at https://github.com/jeresig/jquery.hotkeys.
 - jquery/jquery.ui.touch-punch.js https://github.com/furf/jquery-ui-touch-punch/blob/master/jquery.ui.touch-punch.js
-- swfobject: https://github.com/swfobject/swfobject
 - tw-sack: https://github.com/abritinthebay/simpleajaxcodekit
 - zxcvbn: https://github.com/dropbox/zxcvbn cannot automatically be installed as the frequency lists need to be manually ROT13 transformed.
