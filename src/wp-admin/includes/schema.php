@@ -52,7 +52,7 @@ function wp_get_db_schema( $scope = 'all', $blog_id = null ) {
 	 */
 	$max_index_length = 191;
 
-	$enum_col     = "'" . implode( "', '", array_map( 'esc_sql', wp_get_database_types() ) ) . "'";
+	$enum_col     = "'" . implode( "','", array_map( 'esc_sql', wp_get_database_types() ) ) . "'";
 	$default_enum = esc_sql( wp_get_database_default_type() );
 
 	// Blog-specific tables.
