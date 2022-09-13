@@ -14,6 +14,9 @@ window.wp = window.wp || {};
 					sizes         = media_details.sizes,
 					sizes_keys    = Object.keys( sizes );
 
+				// Sort the key by the image width.
+				sizes_keys = sizes_keys.sort( sortSizesKey( sizes ) );
+
 				var images = document.querySelectorAll( 'img.wp-image-' + image.id );
 				for ( var j = 0; j < images.length; j++ ) {
 
@@ -37,12 +40,11 @@ window.wp = window.wp || {};
 
 						var get_update_image      = '',
 							original_file         = original_sizes.file,
-							original_filesize     = original_sizes.filesize,
 							original_aspect_ratio = original_sizes.width / original_sizes.height;
 
 						// Check to see if the image src has any size set, then update it.
 						if ( original_url === src ) {
-							get_update_image = replaceImageUrl( media_details, original_size_key, original_aspect_ratio, original_filesize );
+							get_update_image = getReplaceImageSrc( media_details, sizes_keys, original_size_key, original_aspect_ratio );
 
 							src = src.replace( original_file, get_update_image );
 
@@ -53,7 +55,7 @@ window.wp = window.wp || {};
 						}
 
 						if ( srcset ) {
-							get_update_image = replaceImageUrl( media_details, original_size_key, original_aspect_ratio, original_filesize );
+							get_update_image = getReplaceImageSrc( media_details, sizes_keys, original_size_key, original_aspect_ratio );
 
 							srcset = srcset.replace( original_file, get_update_image );
 						}
@@ -72,25 +74,35 @@ window.wp = window.wp || {};
 		}
 	};
 
-	var replaceImageUrl = function( media_details, original_size_key, original_aspect_ratio, original_filesize ) {
-		var sizes      = media_details.sizes,
-			sizes_keys = Object.keys( sizes );
+	var sortSizesKey = function( sizes ) {
+		return function innerSort(a, b) {
+			return sizes[a].width - sizes[b].width;
+		};
+	};
+
+	var getReplaceImageSrc = function( media_details, sizes_keys, original_size_key, original_aspect_ratio ) {
+		var sizes = media_details.sizes,
+			src   = media_details.original_image ? media_details.original_image : sizes.full.file;
 
 		for ( var i = 0; i < sizes_keys.length; i++ ) {
-			var src      = media_details.original_image ? media_details.original_image : sizes.full.file,
-				size_key = sizes_keys[ i ],
-				size     = sizes[ size_key ];
+			var size_key     = sizes_keys[ i ],
+				size         = sizes[ size_key ],
+				aspect_ratio = size.width / size.height,
+				file         = size.file;
 
-			if ( size_key !== original_size_key ) {
-				var filesize     = size.filesize,
-					aspect_ratio = size.width / size.height;
+			if ( aspect_ratio === original_aspect_ratio && file.match(/\.(jpeg|jpg|jpe)$/) ) {
+				src = file;
 
-				if ( aspect_ratio === original_aspect_ratio && filesize > original_filesize ) {
-					src = size.file;
-				}
+				// There is nothing more to replace once we find a replacement.
+				break;
 			}
-			return src;
+
+			// If size key matches, there is nothing more to check fob bigger size.
+			if ( size_key === original_size_key ) {
+				break;
+			}
 		}
+		return src;
 	};
 
 	var restApi = settings.restApi;
