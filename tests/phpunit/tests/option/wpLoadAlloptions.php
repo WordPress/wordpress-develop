@@ -114,15 +114,13 @@ class Tests_Option_wpLoadAlloptions extends WP_UnitTestCase {
 	 * @ticket 56045
 	 */
 	public function test_filter_pre_wp_load_alloptions_filter_is_called() {
-
-		add_filter( 'pre_wp_load_alloptions', array( $this, 'pre_wp_load_alloptions_filter' ) );
-
-		// Filter was called.
-		$this->assertSame( array( 'filtered' => 'true' ), wp_load_alloptions() );
+		$filter = new MockAction();
+		
+		add_filter( 'pre_wp_load_alloptions', array( &$filter, 'filter' ) );
+		
+		 wp_load_alloptions();
+		 
+		$this->assertSame( 1, $filter->get_call_count() );
+                $this->assertSame( array( 'pre_wp_load_alloptions' ), $filter->get_hook_names() );
 	}
-
-	public function pre_wp_load_alloptions_filter() {
-		return array( 'filtered' => 'true' );
-	}
-
 }
