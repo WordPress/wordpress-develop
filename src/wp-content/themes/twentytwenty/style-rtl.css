@@ -3019,6 +3019,7 @@ h2.entry-title {
 }
 
 .is-style-outline .wp-block-button__link {
+	border: 2px solid;
 	padding: calc(1.1em - 0.2rem) calc(1.44em - 0.2rem);
 }
 
@@ -3895,6 +3896,10 @@ div.comment:first-of-type {
 	line-height: 1.4;
 	margin: -3rem 0 4rem 0;
 	text-align: center;
+}
+
+.comment-respond .required-field-message {
+	display: inline-block;
 }
 
 .comment-respond p {

@@ -24,9 +24,7 @@
 	"textdomain": "notice",
 	"attributes": {
 		"message": {
-			"type": "string",
-			"source": "html",
-			"selector": ".message"
+			"type": "string"
 		}
 	},
 	"supports": {
@@ -61,5 +59,6 @@
 	"script": "tests-notice-script",
 	"viewScript": "tests-notice-view-script",
 	"editorStyle": "tests-notice-editor-style",
-	"style": "tests-notice-style"
+	"style": "tests-notice-style",
+	"render": "file:./render.php"
 }

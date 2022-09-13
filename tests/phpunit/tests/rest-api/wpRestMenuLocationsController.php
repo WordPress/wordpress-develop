@@ -141,30 +141,38 @@ class Tests_REST_WpRestMenuLocationsController extends WP_Test_REST_Controller_T
 
 	/**
 	 * The create_item() method does not exist for menu locations.
+	 *
+	 * @doesNotPerformAssertions
 	 */
 	public function test_create_item() {
-		$this->markTestSkipped( 'Controller does not implement create_item().' );
+		// Controller does not implement create_item().
 	}
 
 	/**
 	 * The update_item() method does not exist for menu locations.
+	 *
+	 * @doesNotPerformAssertions
 	 */
 	public function test_update_item() {
-		$this->markTestSkipped( 'Controller does not implement update_item().' );
+		// Controller does not implement update_item().
 	}
 
 	/**
 	 * The delete_item() method does not exist for menu locations.
+	 *
+	 * @doesNotPerformAssertions
 	 */
 	public function test_delete_item() {
-		$this->markTestSkipped( 'Controller does not implement delete_item().' );
+		// Controller does not implement delete_item().
 	}
 
 	/**
 	 * The prepare_item() method does not exist for menu locations.
+	 *
+	 * @doesNotPerformAssertions
 	 */
 	public function test_prepare_item() {
-		$this->markTestSkipped( 'Controller does not implement prepare_item().' );
+		// Controller does not implement prepare_item().
 	}
 
 	/**

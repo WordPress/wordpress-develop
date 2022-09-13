@@ -663,17 +663,17 @@ function wp_doc_link_parse( $content ) {
 
 	$ignore_functions = array_unique( $ignore_functions );
 
-	$out = array();
+	$output = array();
 
 	foreach ( $functions as $function ) {
 		if ( in_array( $function, $ignore_functions, true ) ) {
 			continue;
 		}
 
-		$out[] = $function;
+		$output[] = $function;
 	}
 
-	return $out;
+	return $output;
 }
 
 /**
@@ -1251,6 +1251,41 @@ function wp_refresh_post_nonces( $response, $data, $screen_id ) {
 			),
 		);
 	}
+
+	return $response;
+}
+
+/**
+ * Refresh nonces used with meta boxes in the block editor.
+ *
+ * @since 6.1.0
+ *
+ * @param array  $response  The Heartbeat response.
+ * @param array  $data      The $_POST data sent.
+ * @return array The Heartbeat response.
+ */
+function wp_refresh_metabox_loader_nonces( $response, $data ) {
+	if ( empty( $data['wp-refresh-metabox-loader-nonces'] ) ) {
+		return $response;
+	}
+
+	$received = $data['wp-refresh-metabox-loader-nonces'];
+	$post_id  = (int) $received['post_id'];
+
+	if ( ! $post_id ) {
+		return $response;
+	}
+
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return $response;
+	}
+
+	$response['wp-refresh-metabox-loader-nonces'] = array(
+		'replace' => array(
+			'metabox_loader_nonce' => wp_create_nonce( 'meta-box-loader' ),
+			'_wpnonce'             => wp_create_nonce( 'update-post_' . $post_id ),
+		),
+	);
 
 	return $response;
 }

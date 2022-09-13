@@ -14,6 +14,9 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	public static $category;
 	public static $post_date;
 
+	private $post_count;
+	private $excerpt_only;
+
 	/**
 	 * Setup a new user and attribute some posts.
 	 */
@@ -512,17 +515,17 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	 *
 	 * @ticket 47968
 	 *
-	 * @covers ::send_headers
+	 * @covers WP::send_headers
 	 */
 	public function test_feed_last_modified_should_be_a_post_date_when_withcomments_is_not_passed() {
 		$last_week = gmdate( 'Y-m-d H:i:s', strtotime( '-1 week' ) );
 		$yesterday = gmdate( 'Y-m-d H:i:s', strtotime( '-1 day' ) );
 
 		// Create a post dated last week.
-		$post_id = $this->factory()->post->create( array( 'post_date' => $last_week ) );
+		$post_id = self::factory()->post->create( array( 'post_date' => $last_week ) );
 
 		// Create a comment dated yesterday.
-		$this->factory()->comment->create(
+		self::factory()->comment->create(
 			array(
 				'comment_post_ID' => $post_id,
 				'comment_date'    => $yesterday,
@@ -551,17 +554,17 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	 *
 	 * @ticket 47968
 	 *
-	 * @covers ::send_headers
+	 * @covers WP::send_headers
 	 */
 	public function test_feed_last_modified_should_be_the_date_of_a_comment_that_is_the_latest_update_when_withcomments_is_passed() {
 		$last_week = gmdate( 'Y-m-d H:i:s', strtotime( '-1 week' ) );
 		$yesterday = gmdate( 'Y-m-d H:i:s', strtotime( '-1 day' ) );
 
 		// Create a post dated last week.
-		$post_id = $this->factory()->post->create( array( 'post_date' => $last_week ) );
+		$post_id = self::factory()->post->create( array( 'post_date' => $last_week ) );
 
 		// Create a comment dated yesterday.
-		$this->factory()->comment->create(
+		self::factory()->comment->create(
 			array(
 				'comment_post_ID' => $post_id,
 				'comment_date'    => $yesterday,
@@ -590,7 +593,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	 *
 	 * @ticket 47968
 	 *
-	 * @covers ::send_headers
+	 * @covers WP::send_headers
 	 */
 	public function test_feed_last_modified_should_be_the_date_of_a_post_that_is_the_latest_update_when_withcomments_is_passed() {
 		$last_week = gmdate( 'Y-m-d H:i:s', strtotime( '-1 week' ) );
@@ -598,10 +601,10 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		$today     = gmdate( 'Y-m-d H:i:s' );
 
 		// Create a post dated last week.
-		$post_id = $this->factory()->post->create( array( 'post_date' => $last_week ) );
+		$post_id = self::factory()->post->create( array( 'post_date' => $last_week ) );
 
 		// Create a comment dated yesterday.
-		$this->factory()->comment->create(
+		self::factory()->comment->create(
 			array(
 				'comment_post_ID' => $post_id,
 				'comment_date'    => $yesterday,
@@ -609,7 +612,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		);
 
 		// Create a post dated today.
-		$this->factory()->post->create( array( 'post_date' => $today ) );
+		self::factory()->post->create( array( 'post_date' => $today ) );
 
 		// The Last-Modified header should have the date from today's post when it is the latest update.
 		add_filter(
