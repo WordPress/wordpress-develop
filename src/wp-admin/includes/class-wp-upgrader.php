@@ -48,6 +48,7 @@ require_once ABSPATH . 'wp-admin/includes/class-wp-ajax-upgrader-skin.php';
  *
  * @since 2.8.0
  */
+#[AllowDynamicProperties]
 class WP_Upgrader {
 
 	/**
@@ -162,7 +163,7 @@ class WP_Upgrader {
 		$this->strings['folder_exists']        = __( 'Destination folder already exists.' );
 		$this->strings['mkdir_failed']         = __( 'Could not create directory.' );
 		$this->strings['incompatible_archive'] = __( 'The package could not be installed.' );
-		$this->strings['files_not_writable']   = __( 'The update cannot be installed because we will be unable to copy some files. This is usually due to inconsistent file permissions.' );
+		$this->strings['files_not_writable']   = __( 'The update cannot be installed because some files could not be copied. This is usually due to inconsistent file permissions.' );
 
 		$this->strings['maintenance_start'] = __( 'Enabling Maintenance mode&#8230;' );
 		$this->strings['maintenance_end']   = __( 'Disabling Maintenance mode&#8230;' );
@@ -593,7 +594,23 @@ class WP_Upgrader {
 		}
 
 		// Copy new version of item into place.
-		$result = copy_dir( $source, $remote_destination );
+		if ( class_exists( 'Rollback_Update_Failure\WP_Upgrader' )
+			&& function_exists( '\Rollback_Update_Failure\move_dir' )
+		) {
+			/*
+			 * If the {@link https://wordpress.org/plugins/rollback-update-failure/ Rollback Update Failure}
+			 * feature plugin is installed, use the move_dir() function from there for better performance.
+			 * Instead of copying a directory from one location to another, it uses the rename() PHP function
+			 * to speed up the process. If the renaming failed, it falls back to copy_dir().
+			 *
+			 * This condition aims to facilitate broader testing of the Rollbacks (temp backups) feature project.
+			 * It is temporary, until the plugin is merged into core.
+			 */
+			$result = \Rollback_Update_Failure\move_dir( $source, $remote_destination );
+		} else {
+			$result = copy_dir( $source, $remote_destination );
+		}
+
 		if ( is_wp_error( $result ) ) {
 			if ( $args['clear_working'] ) {
 				$wp_filesystem->delete( $remote_source, true );

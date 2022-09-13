@@ -158,7 +158,7 @@ switch ( $step ) {
 		}
 		?>
 <h1 class="screen-reader-text"><?php _e( 'Before getting started' ); ?></h1>
-<p><?php _e( 'Welcome to WordPress. Before getting started, we need some information on the database. You will need to know the following items before proceeding.' ); ?></p>
+<p><?php _e( 'Welcome to WordPress. Before getting started, you will need to know the following items.' ); ?></p>
 <ol>
 	<li><?php _e( 'Database name' ); ?></li>
 	<li><?php _e( 'Database username' ); ?></li>
@@ -170,7 +170,7 @@ switch ( $step ) {
 		<?php
 		printf(
 			/* translators: %s: wp-config.php */
-			__( 'We are going to use this information to create a %s file.' ),
+			__( 'This information is being used to create a %s file.' ),
 			'<code>wp-config.php</code>'
 		);
 		?>
@@ -186,9 +186,10 @@ switch ( $step ) {
 	</strong>
 		<?php
 		printf(
-			/* translators: %s: Documentation URL. */
-			__( 'Need more help? <a href="%s">We got it</a>.' ),
-			__( 'https://wordpress.org/support/article/editing-wp-config-php/' )
+			/* translators: 1: Documentation URL, 2: wp-config.php */
+			__( 'Need more help? <a href="%1$s">Read the support article on %2$s</a>.' ),
+			__( 'https://wordpress.org/support/article/editing-wp-config-php/' ),
+			'<code>wp-config.php</code>'
 		);
 		?>
 </p>
@@ -277,12 +278,12 @@ switch ( $step ) {
 		$tryagain_link = '</p><p class="step"><a href="' . $step_1 . '" onclick="javascript:history.go(-1);return false;" class="button button-large">' . __( 'Try Again' ) . '</a>';
 
 		if ( empty( $prefix ) ) {
-			wp_die( __( '<strong>Error</strong>: "Table Prefix" must not be empty.' ) . $tryagain_link );
+			wp_die( __( '<strong>Error:</strong> "Table Prefix" must not be empty.' ) . $tryagain_link );
 		}
 
 		// Validate $prefix: it can only contain letters, numbers and underscores.
 		if ( preg_match( '|[^a-z0-9_]|i', $prefix ) ) {
-			wp_die( __( '<strong>Error</strong>: "Table Prefix" can only contain numbers, letters, and underscores.' ) . $tryagain_link );
+			wp_die( __( '<strong>Error:</strong> "Table Prefix" can only contain numbers, letters, and underscores.' ) . $tryagain_link );
 		}
 
 		// Test the DB connection.
@@ -310,12 +311,13 @@ switch ( $step ) {
 			wp_die( $wpdb->error->get_error_message() . $tryagain_link );
 		}
 
-		$errors = $wpdb->hide_errors();
+		$errors = $wpdb->suppress_errors();
 		$wpdb->query( "SELECT $prefix" );
-		$wpdb->show_errors( $errors );
+		$wpdb->suppress_errors( $errors );
+
 		if ( ! $wpdb->last_error ) {
 			// MySQL was able to parse the prefix as a value, which we don't want. Bail.
-			wp_die( __( '<strong>Error</strong>: "Table Prefix" is invalid.' ) );
+			wp_die( __( '<strong>Error:</strong> "Table Prefix" is invalid.' ) );
 		}
 
 		// Generate keys and salts using secure CSPRNG; fallback to API if enabled; further fallback to original wp_generate_password().
@@ -392,13 +394,13 @@ switch ( $step ) {
 		if ( ! is_writable( ABSPATH ) ) :
 			setup_config_display_header();
 			?>
-	<p>
+<p>
 			<?php
 			/* translators: %s: wp-config.php */
 			printf( __( 'Unable to write to %s file.' ), '<code>wp-config.php</code>' );
 			?>
 </p>
-<p>
+<p id="wp-config-description">
 			<?php
 			/* translators: %s: wp-config.php */
 			printf( __( 'You can create the %s file manually and paste the following text into it.' ), '<code>wp-config.php</code>' );
@@ -410,7 +412,13 @@ switch ( $step ) {
 			}
 			?>
 </p>
-<textarea id="wp-config" cols="98" rows="15" class="code" readonly="readonly"><?php echo $config_text; ?></textarea>
+<p class="configuration-rules-label"><label for="wp-config">
+			<?php
+			/* translators: %s: wp-config.php */
+			printf( __( 'Configuration rules for %s:' ), '<code>wp-config.php</code>' );
+			?>
+	</label></p>
+<textarea id="wp-config" cols="98" rows="15" class="code" readonly="readonly" aria-describedby="wp-config-description"><?php echo $config_text; ?></textarea>
 <p><?php _e( 'After you&#8217;ve done that, click &#8220;Run the installation&#8221;.' ); ?></p>
 <p class="step"><a href="<?php echo $install; ?>" class="button button-large"><?php _e( 'Run the installation' ); ?></a></p>
 <script>

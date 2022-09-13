@@ -2,6 +2,9 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::sanitize_text_field
+ * @covers ::sanitize_textarea_field
  */
 class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 	public function data_sanitize_text_field() {

@@ -438,13 +438,13 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @since 3.5.0
 	 *
 	 * @param array $sizes {
-	 *     An array of image size data arrays.
+	 *     Associative array of image size names and their data.
 	 *
 	 *     Either a height or width must be provided.
 	 *     If one of the two is set to null, the resize will
 	 *     maintain aspect ratio according to the provided dimension.
 	 *
-	 *     @type array $size {
+	 *     @type array ...$0 {
 	 *         Array of height, width values, and whether to crop.
 	 *
 	 *         @type int  $width  Image width. Optional if `$height` is specified.
@@ -458,6 +458,9 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		$metadata = array();
 
 		foreach ( $sizes as $size => $size_data ) {
+			// Include size name in the data.
+			$size_data['name'] = $size;
+
 			$meta = $this->make_subsize( $size_data );
 
 			if ( ! is_wp_error( $meta ) ) {
@@ -472,13 +475,15 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * Create an image sub-size and return the image meta data value for it.
 	 *
 	 * @since 5.3.0
+	 * @since 6.1.0 The $sizes parameter may now include a $name key for each entry.
 	 *
 	 * @param array $size_data {
 	 *     Array of size data.
 	 *
-	 *     @type int  $width  The maximum width in pixels.
-	 *     @type int  $height The maximum height in pixels.
-	 *     @type bool $crop   Whether to crop the image to exact dimensions.
+	 *     @type int    $width  The maximum width in pixels.
+	 *     @type int    $height The maximum height in pixels.
+	 *     @type bool   $crop   Whether to crop the image to exact dimensions.
+	 *     @type string $name   Image size name.
 	 * }
 	 * @return array|WP_Error The image data array for inclusion in the `sizes` array in the image meta,
 	 *                        WP_Error object on error.
@@ -488,8 +493,9 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			return new WP_Error( 'image_subsize_create_error', __( 'Cannot resize the image. Both width and height are not set.' ) );
 		}
 
-		$orig_size  = $this->size;
-		$orig_image = $this->image->getImage();
+		$orig_size      = $this->size;
+		$orig_size_name = $this->size_name;
+		$orig_image     = $this->image->getImage();
 
 		if ( ! isset( $size_data['width'] ) ) {
 			$size_data['width'] = null;
@@ -501,6 +507,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 
 		if ( ! isset( $size_data['crop'] ) ) {
 			$size_data['crop'] = false;
+		}
+
+		if ( isset( $size_data['name'] ) ) {
+			$this->update_size_name( $size_data['name'] );
 		}
 
 		$resized = $this->resize( $size_data['width'], $size_data['height'], $size_data['crop'] );
@@ -515,8 +525,9 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			$this->image = null;
 		}
 
-		$this->size  = $orig_size;
-		$this->image = $orig_image;
+		$this->size      = $orig_size;
+		$this->size_name = $orig_size_name;
+		$this->image     = $orig_image;
 
 		if ( ! is_wp_error( $saved ) ) {
 			unset( $saved['path'] );
@@ -661,10 +672,20 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * Saves current image to file.
 	 *
 	 * @since 3.5.0
+	 * @since 6.0.0 The `$filesize` value was added to the returned array.
 	 *
 	 * @param string $destfilename Optional. Destination filename. Default null.
 	 * @param string $mime_type    Optional. The mime-type. Default null.
-	 * @return array|WP_Error {'path'=>string, 'file'=>string, 'width'=>int, 'height'=>int, 'mime-type'=>string}
+	 * @return array|WP_Error {
+	 *     Array on success or WP_Error if the file failed to save.
+	 *
+	 *     @type string $path      Path to the image file.
+	 *     @type string $file      Name of the image file.
+	 *     @type int    $width     Image width.
+	 *     @type int    $height    Image height.
+	 *     @type string $mime-type The mime type of the image.
+	 *     @type int    $filesize  File size of the image.
+	 * }
 	 */
 	public function save( $destfilename = null, $mime_type = null ) {
 		$saved = $this->_save( $this->image, $destfilename, $mime_type );
@@ -684,10 +705,22 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	}
 
 	/**
+	 * @since 3.5.0
+	 * @since 6.0.0 The `$filesize` value was added to the returned array.
+	 *
 	 * @param Imagick $image
 	 * @param string  $filename
 	 * @param string  $mime_type
-	 * @return array|WP_Error
+	 * @return array|WP_Error {
+	 *     Array on success or WP_Error if the file failed to save.
+	 *
+	 *     @type string $path      Path to the image file.
+	 *     @type string $file      Name of the image file.
+	 *     @type int    $width     Image width.
+	 *     @type int    $height    Image height.
+	 *     @type string $mime-type The mime type of the image.
+	 *     @type int    $filesize  File size of the image.
+	 * }
 	 */
 	protected function _save( $image, $filename = null, $mime_type = null ) {
 		list( $filename, $extension, $mime_type ) = $this->get_output_format( $filename, $mime_type );

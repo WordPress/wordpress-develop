@@ -67,7 +67,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Return a list of slugs of installed plugins, if known.
+	 * Returns a list of slugs of installed plugins, if known.
 	 *
 	 * Uses the transient data from the updates API to determine the slugs of
 	 * known installed plugins. This might be better elsewhere, perhaps even
@@ -321,7 +321,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Override parent views so we can use the filter bar display.
+	 * Overrides parent views so we can use the filter bar display.
 	 */
 	public function views() {
 		$views = $this->get_views();
@@ -514,7 +514,19 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 
 			// Remove any HTML from the description.
 			$description = strip_tags( $plugin['short_description'] );
-			$version     = wp_kses( $plugin['version'], $plugins_allowedtags );
+
+			/**
+			 * Filters the plugin card description on the Add Plugins screen.
+			 *
+			 * @since 6.0.0
+			 *
+			 * @param string $description Plugin card description.
+			 * @param array  $plugin      An array of plugin data. See {@see plugins_api()}
+			 *                            for the list of possible values.
+			 */
+			$description = apply_filters( 'plugin_install_description', $description, $plugin );
+
+			$version = wp_kses( $plugin['version'], $plugins_allowedtags );
 
 			$name = strip_tags( $title . ' ' . $version );
 
@@ -659,8 +671,10 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			 *
 			 * @since 2.7.0
 			 *
-			 * @param string[] $action_links An array of plugin action links. Defaults are links to Details and Install Now.
-			 * @param array    $plugin       The plugin currently being listed.
+			 * @param string[] $action_links An array of plugin action links.
+			 *                               Defaults are links to Details and Install Now.
+			 * @param array    $plugin       An array of plugin data. See {@see plugins_api()}
+			 *                               for the list of possible values.
 			 */
 			$action_links = apply_filters( 'plugin_install_action_links', $action_links, $plugin );
 

@@ -712,7 +712,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 			$customize_action = esc_url(
 				add_query_arg(
 					array(
-						'return' => urlencode( esc_url_raw( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ),
+						'return' => urlencode( sanitize_url( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ),
 					),
 					wp_customize_url( $slug )
 				)
@@ -1185,7 +1185,7 @@ function resume_theme( $theme, $redirect = '' ) {
  *
  * @since 5.2.0
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  */
 function paused_themes_notice() {
 	if ( 'themes.php' === $GLOBALS['pagenow'] ) {

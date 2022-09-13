@@ -561,7 +561,7 @@ if ( is_multisite() ) :
 			$new_network_id = $this->_get_next_network_id();
 			$this->assertNull( get_network( $new_network_id ) );
 
-			$new_network = $this->factory()->network->create_and_get();
+			$new_network = self::factory()->network->create_and_get();
 
 			// Double-check we got the ID of the new network correct.
 			$this->assertSame( $new_network_id, $new_network->id );

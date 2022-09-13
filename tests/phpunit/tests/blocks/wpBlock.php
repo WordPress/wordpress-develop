@@ -82,8 +82,14 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$block        = new WP_Block( $parsed_block, $context, $this->registry );
 
 		$this->assertInstanceOf( WP_Block_Type::class, $block->block_type );
-		$this->assertSame(
-			$block_type_settings['attributes'],
+		$this->assertSameSetsWithIndex(
+			array(
+				'defaulted' => array(
+					'type'    => 'number',
+					'default' => 10,
+				),
+				'lock'      => array( 'type' => 'object' ),
+			),
 			$block->block_type->attributes
 		);
 	}
@@ -443,8 +449,18 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 				'order'        => 'DESC',
 				'orderby'      => 'title',
 				'post__not_in' => array( 1, 2 ),
-				'category__in' => array( 56 ),
-				'tag__in'      => array( 3, 11, 10 ),
+				'tax_query'    => array(
+					array(
+						'taxonomy'         => 'category',
+						'terms'            => array( 56 ),
+						'include_children' => false,
+					),
+					array(
+						'taxonomy'         => 'post_tag',
+						'terms'            => array( 3, 11, 10 ),
+						'include_children' => false,
+					),
+				),
 			)
 		);
 	}

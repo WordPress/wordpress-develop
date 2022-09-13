@@ -11,9 +11,11 @@
  *
  * @since 3.5.0
  */
+#[AllowDynamicProperties]
 abstract class WP_Image_Editor {
 	protected $file              = null;
 	protected $size              = null;
+	protected $size_name         = '';
 	protected $mime_type         = null;
 	protected $output_mime_type  = null;
 	protected $default_mime_type = 'image/jpeg';
@@ -75,11 +77,21 @@ abstract class WP_Image_Editor {
 	 * Saves current image to file.
 	 *
 	 * @since 3.5.0
+	 * @since 6.0.0 The `$filesize` value was added to the returned array.
 	 * @abstract
 	 *
 	 * @param string $destfilename Optional. Destination filename. Default null.
 	 * @param string $mime_type    Optional. The mime-type. Default null.
-	 * @return array|WP_Error {'path'=>string, 'file'=>string, 'width'=>int, 'height'=>int, 'mime-type'=>string}
+	 * @return array|WP_Error {
+	 *     Array on success or WP_Error if the file failed to save.
+	 *
+	 *     @type string $path      Path to the image file.
+	 *     @type string $file      Name of the image file.
+	 *     @type int    $width     Image width.
+	 *     @type int    $height    Image height.
+	 *     @type string $mime-type The mime type of the image.
+	 *     @type int    $filesize  File size of the image.
+	 * }
 	 */
 	abstract public function save( $destfilename = null, $mime_type = null );
 
@@ -107,9 +119,9 @@ abstract class WP_Image_Editor {
 	 * @abstract
 	 *
 	 * @param array $sizes {
-	 *     An array of image size arrays. Default sizes are 'small', 'medium', 'large'.
+	 *     Associative array of image size names and their data. Default sizes are 'small', 'medium', 'large'.
 	 *
-	 *     @type array $size {
+	 *     @type array ...$0 {
 	 *         @type int  $width  Image width.
 	 *         @type int  $height Image height.
 	 *         @type bool $crop   Optional. Whether to crop the image. Default false.
@@ -175,7 +187,7 @@ abstract class WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @return int[] {
+	 * @return array {
 	 *     Dimensions of the image.
 	 *
 	 *     @type int $width  The image width.
@@ -191,9 +203,9 @@ abstract class WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param int $width
-	 * @param int $height
-	 * @return true
+	 * @param int $width  The image width.
+	 * @param int $height The image height.
+	 * @return true True on success, false on failure.
 	 */
 	protected function update_size( $width = null, $height = null ) {
 		$this->size = array(
@@ -201,6 +213,28 @@ abstract class WP_Image_Editor {
 			'height' => (int) $height,
 		);
 		return true;
+	}
+
+	/**
+	 * Gets the current image size name.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @return string Image size name, or empty string if none set.
+	 */
+	public function get_size_name() {
+		return $this->size_name;
+	}
+
+	/**
+	 * Sets the current image size name.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param string $size_name The image size name.
+	 */
+	protected function update_size_name( $size_name ) {
+		$this->size_name = (string) $size_name;
 	}
 
 	/**
@@ -354,6 +388,7 @@ abstract class WP_Image_Editor {
 		 * @see WP_Image_Editor::get_output_format()
 		 *
 		 * @since 5.8.0
+		 * @since 6.1.0 The $size_name parameter was added.
 		 *
 		 * @param string[] $output_format {
 		 *     An array of mime type mappings. Maps a source mime type to a new
@@ -363,8 +398,9 @@ abstract class WP_Image_Editor {
 		 * }
 		 * @param string $filename  Path to the image.
 		 * @param string $mime_type The source image mime type.
+		 * @param string $size_name The image size name to create, or empty string if not set.
 		 */
-		$output_format = apply_filters( 'image_editor_output_format', array(), $filename, $mime_type );
+		$output_format = apply_filters( 'image_editor_output_format', array(), $filename, $mime_type, $this->size_name );
 
 		if ( isset( $output_format[ $mime_type ] )
 			&& $this->supports_mime_type( $output_format[ $mime_type ] )
@@ -414,19 +450,26 @@ abstract class WP_Image_Editor {
 		return array( $filename, $new_ext, $mime_type );
 	}
 
-	/**
-	 * Builds an output filename based on current file, and adding proper suffix
+		/**
+	 * Builds an output filename based on current file, and adding proper suffix.
 	 *
 	 * @since 3.5.0
+	 * @since 6.1.0 Skips adding a suffix when set to an empty string. When the
+	 *              file extension being generated doesn't match the image file extension,
+	 *              add the extension to the suffix
 	 *
-	 * @param string $suffix
-	 * @param string $dest_path
-	 * @param string $extension
-	 * @return string filename
+	 * @param string $suffix    Optional. Suffix to add to the filename. The default null
+	 *                          will result in a 'widthxheight' suffix. Passing
+	 *                          an empty string will result in no suffix.
+	 * @param string $dest_path Optional. The path to save the file to. The default null
+	 *                          will use the image file path.
+	 * @param string $extension Optional. The file extension to use. The default null
+	 *                          will use the image file extension.
+	 * @return string filename The generated file name.
 	 */
 	public function generate_filename( $suffix = null, $dest_path = null, $extension = null ) {
 		// $suffix will be appended to the destination filename, just before the extension.
-		if ( ! $suffix ) {
+		if ( null === $suffix ) {
 			$suffix = $this->get_suffix();
 		}
 
@@ -447,7 +490,21 @@ abstract class WP_Image_Editor {
 			}
 		}
 
-		return trailingslashit( $dir ) . "{$name}-{$suffix}.{$new_ext}";
+		if ( empty( $suffix ) ) {
+			$suffix = '';
+		} else {
+			$suffix = "-{$suffix}";
+		}
+
+		// When the file extension being generated doesn't match the image file extension,
+		// add the extension to the suffix to ensure a unique file name. Prevents
+		// name conflicts when a single image type can have multiple extensions,
+		// eg. .jpg, .jpeg and .jpe are all valid JPEG extensions.
+		if ( ! empty( $extension ) && $extension !== $ext ) {
+			$suffix .= "-{$ext}";
+		}
+
+		return trailingslashit( $dir ) . "{$name}{$suffix}.{$new_ext}";
 	}
 
 	/**
@@ -549,11 +606,11 @@ abstract class WP_Image_Editor {
 	 * @since 3.5.0
 	 *
 	 * @param string   $filename
-	 * @param callable $function
+	 * @param callable $callback
 	 * @param array    $arguments
 	 * @return bool
 	 */
-	protected function make_image( $filename, $function, $arguments ) {
+	protected function make_image( $filename, $callback, $arguments ) {
 		$stream = wp_is_stream( $filename );
 		if ( $stream ) {
 			ob_start();
@@ -562,7 +619,7 @@ abstract class WP_Image_Editor {
 			wp_mkdir_p( dirname( $filename ) );
 		}
 
-		$result = call_user_func_array( $function, $arguments );
+		$result = call_user_func_array( $callback, $arguments );
 
 		if ( $result && $stream ) {
 			$contents = ob_get_contents();

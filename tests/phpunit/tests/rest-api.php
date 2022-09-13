@@ -2490,4 +2490,32 @@ class Tests_REST_API extends WP_UnitTestCase {
 			array( '', array(), array() ),
 		);
 	}
+
+	/**
+	 * @ticket 55213
+	 */
+	public function test_rest_preload_api_request_fields() {
+		$preload_paths = array(
+			'/',
+			'/?_fields=description',
+		);
+
+		$preload_data = array_reduce(
+			$preload_paths,
+			'rest_preload_api_request',
+			array()
+		);
+
+		$this->assertSame( array_keys( $preload_data ), array( '/', '/?_fields=description' ) );
+
+		// Unfiltered request has all fields
+		$this->assertArrayHasKey( 'description', $preload_data['/']['body'] );
+		$this->assertArrayHasKey( 'routes', $preload_data['/']['body'] );
+
+		// Filtered request only has the desired fields + links
+		$this->assertSame(
+			array_keys( $preload_data['/?_fields=description']['body'] ),
+			array( 'description', '_links' )
+		);
+	}
 }

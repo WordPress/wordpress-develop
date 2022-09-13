@@ -29,7 +29,7 @@ get_current_screen()->add_help_tab(
 		'content' =>
 				'<p>' . __( 'You can use the theme file editor to edit the individual CSS and PHP files which make up your theme.' ) . '</p>' .
 				'<p>' . __( 'Begin by choosing a theme to edit from the dropdown menu and clicking the Select button. A list then appears of the theme&#8217;s template files. Clicking once on any file name causes the file to appear in the large Editor box.' ) . '</p>' .
-				'<p>' . __( 'For PHP files, you can use the Documentation dropdown to select from functions recognized in that file. Look Up takes you to a web page with reference material about that particular function.' ) . '</p>' .
+				'<p>' . __( 'For PHP files, you can use the documentation dropdown to select from functions recognized in that file. Look Up takes you to a web page with reference material about that particular function.' ) . '</p>' .
 				'<p id="editor-keyboard-trap-help-1">' . __( 'When using a keyboard to navigate:' ) . '</p>' .
 				'<ul>' .
 				'<li id="editor-keyboard-trap-help-2">' . __( 'In the editing area, the Tab key enters a tab character.' ) . '</li>' .
@@ -164,12 +164,16 @@ if ( ! empty( $posted_content ) ) {
 	if ( '.php' === substr( $file, strrpos( $file, '.' ) ) ) {
 		$functions = wp_doc_link_parse( $content );
 
-		$docs_select  = '<select name="docs-list" id="docs-list">';
-		$docs_select .= '<option value="">' . esc_attr__( 'Function Name&hellip;' ) . '</option>';
-		foreach ( $functions as $function ) {
-			$docs_select .= '<option value="' . esc_attr( urlencode( $function ) ) . '">' . htmlspecialchars( $function ) . '()</option>';
+		if ( ! empty( $functions ) ) {
+			$docs_select  = '<select name="docs-list" id="docs-list">';
+			$docs_select .= '<option value="">' . esc_html__( 'Function Name&hellip;' ) . '</option>';
+
+			foreach ( $functions as $function ) {
+				$docs_select .= '<option value="' . esc_attr( $function ) . '">' . esc_html( $function ) . '()</option>';
+			}
+
+			$docs_select .= '</select>';
 		}
-		$docs_select .= '</select>';
 	}
 
 	$content = esc_textarea( $content );

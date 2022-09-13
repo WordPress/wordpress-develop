@@ -5,6 +5,25 @@
  * @group shortcode
  */
 class Tests_Media extends WP_UnitTestCase {
+
+	const CAPTION           = 'A simple caption.';
+	const ALTERNATE_CAPTION = 'Alternate caption.';
+
+	const HTML_CONTENT = <<<'CAP'
+A <strong class='classy'>bolded</strong> <em>caption</em> with a <a href="#">link</a>.
+CAP;
+	const IMG_CONTENT  = <<<'CAP'
+<img src="pic.jpg" id='anId' alt="pic"/>
+CAP;
+
+	const IMG_NAME = 'image.jpg';
+	const IMG_URL  = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . self::IMG_NAME;
+	const IMG_META = array(
+		'width'  => 100,
+		'height' => 100,
+		'sizes'  => '',
+	);
+
 	protected static $large_id;
 	protected static $_sizes;
 	protected static $large_filename = 'test-image-large.jpg';
@@ -14,7 +33,8 @@ class Tests_Media extends WP_UnitTestCase {
 		self::$_sizes                          = wp_get_additional_image_sizes();
 		$GLOBALS['_wp_additional_image_sizes'] = array();
 
-		$filename       = DIR_TESTDATA . '/images/' . self::$large_filename;
+		$filename = DIR_TESTDATA . '/images/' . self::$large_filename;
+		add_filter( 'image_editor_output_format', '__return_empty_array' );
 		self::$large_id = $factory->attachment->create_upload_object( $filename );
 
 		$post_statuses = array( 'publish', 'future', 'draft', 'auto-draft', 'trash' );
@@ -49,31 +69,12 @@ class Tests_Media extends WP_UnitTestCase {
 
 	public static function wpTearDownAfterClass() {
 		$GLOBALS['_wp_additional_image_sizes'] = self::$_sizes;
+		remove_filter( 'image_editor_output_format', '__return_empty_array' );
 	}
 
 	public static function tear_down_after_class() {
-		wp_delete_post( self::$large_id, true );
+		wp_delete_attachment( self::$large_id, true );
 		parent::tear_down_after_class();
-	}
-
-	public function set_up() {
-		parent::set_up();
-		$this->caption           = 'A simple caption.';
-		$this->alternate_caption = 'Alternate caption.';
-		$this->html_content      = <<<CAP
-A <strong class='classy'>bolded</strong> <em>caption</em> with a <a href="#">link</a>.
-CAP;
-		$this->img_content       = <<<CAP
-<img src="pic.jpg" id='anId' alt="pic"/>
-CAP;
-		$this->img_name          = 'image.jpg';
-		$this->img_url           = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $this->img_name;
-		$this->img_html          = '<img src="' . $this->img_url . '"/>';
-		$this->img_meta          = array(
-			'width'  => 100,
-			'height' => 100,
-			'sizes'  => '',
-		);
 	}
 
 	public function test_img_caption_shortcode_added() {
@@ -91,8 +92,8 @@ CAP;
 	 * @ticket 33981
 	 */
 	public function test_img_caption_shortcode_with_empty_params_but_content() {
-		$result = img_caption_shortcode( array(), $this->caption );
-		$this->assertSame( $this->caption, $result );
+		$result = img_caption_shortcode( array(), self::CAPTION );
+		$this->assertSame( self::CAPTION, $result );
 	}
 
 	/**
@@ -101,15 +102,15 @@ CAP;
 	public function test_img_caption_shortcode_short_circuit_filter() {
 		add_filter( 'img_caption_shortcode', array( $this, 'return_alt_caption' ) );
 
-		$result = img_caption_shortcode( array(), $this->caption );
-		$this->assertSame( $this->alternate_caption, $result );
+		$result = img_caption_shortcode( array(), self::CAPTION );
+		$this->assertSame( self::ALTERNATE_CAPTION, $result );
 	}
 
 	/**
 	 * Filter used in test_img_caption_shortcode_short_circuit_filter()
 	 */
 	public function return_alt_caption() {
-		return $this->alternate_caption;
+		return self::ALTERNATE_CAPTION;
 	}
 
 	/**
@@ -120,9 +121,9 @@ CAP;
 			array(
 				'width' => 0,
 			),
-			$this->caption
+			self::CAPTION
 		);
-		$this->assertSame( $this->caption, $result );
+		$this->assertSame( self::CAPTION, $result );
 	}
 
 	/**
@@ -145,27 +146,27 @@ CAP;
 			array(
 				'caption' => '',
 			),
-			$this->caption
+			self::CAPTION
 		);
-		$this->assertSame( $this->caption, $result );
+		$this->assertSame( self::CAPTION, $result );
 	}
 
 	public function test_img_caption_shortcode_with_old_format() {
 		$result = img_caption_shortcode(
 			array(
 				'width'   => 20,
-				'caption' => $this->caption,
+				'caption' => self::CAPTION,
 			)
 		);
 
-		$this->assertSame( 2, preg_match_all( '/wp-caption/', $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( '/alignnone/', $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( "/{$this->caption}/", $result, $_r ) );
+		$this->assertSame( 2, substr_count( $result, 'wp-caption' ) );
+		$this->assertSame( 1, substr_count( $result, 'alignnone' ) );
+		$this->assertSame( 1, substr_count( $result, self::CAPTION ) );
 
 		if ( current_theme_supports( 'html5', 'caption' ) ) {
-			$this->assertSame( 1, preg_match_all( '/width: 20/', $result, $_r ) );
+			$this->assertSame( 1, substr_count( $result, 'width: 20' ) );
 		} else {
-			$this->assertSame( 1, preg_match_all( '/width: 30/', $result, $_r ) );
+			$this->assertSame( 1, substr_count( $result, 'width: 30' ) );
 		}
 	}
 
@@ -173,14 +174,14 @@ CAP;
 		$result = img_caption_shortcode(
 			array(
 				'width'   => 20,
-				'caption' => $this->caption,
+				'caption' => self::CAPTION,
 				'id'      => '"myId',
 				'align'   => '&myAlignment',
 			)
 		);
-		$this->assertSame( 1, preg_match_all( '/wp-caption &amp;myAlignment/', $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( '/id="myId"/', $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( "/{$this->caption}/", $result, $_r ) );
+		$this->assertSame( 1, substr_count( $result, 'wp-caption &amp;myAlignment' ) );
+		$this->assertSame( 1, substr_count( $result, 'id="myId"' ) );
+		$this->assertSame( 1, substr_count( $result, self::CAPTION ) );
 	}
 
 	public function test_img_caption_shortcode_with_old_format_and_class() {
@@ -188,61 +189,60 @@ CAP;
 			array(
 				'width'   => 20,
 				'class'   => 'some-class another-class',
-				'caption' => $this->caption,
+				'caption' => self::CAPTION,
 			)
 		);
-		$this->assertSame( 1, preg_match_all( '/wp-caption alignnone some-class another-class/', $result, $_r ) );
+		$this->assertSame( 1, substr_count( $result, 'wp-caption alignnone some-class another-class' ) );
 
 	}
 
 	public function test_new_img_caption_shortcode_with_html_caption() {
-		$result   = img_caption_shortcode(
+		$result = img_caption_shortcode(
 			array(
 				'width'   => 20,
-				'caption' => $this->html_content,
+				'caption' => self::HTML_CONTENT,
 			)
 		);
-		$our_preg = preg_quote( $this->html_content );
 
-		$this->assertSame( 1, preg_match_all( "~{$our_preg}~", $result, $_r ) );
+		$this->assertSame( 1, substr_count( $result, self::HTML_CONTENT ) );
 	}
 
 	public function test_new_img_caption_shortcode_new_format() {
 		$result       = img_caption_shortcode(
 			array( 'width' => 20 ),
-			$this->img_content . $this->html_content
+			self::IMG_CONTENT . self::HTML_CONTENT
 		);
-		$img_preg     = preg_quote( $this->img_content );
-		$content_preg = preg_quote( $this->html_content );
+		$img_preg     = preg_quote( self::IMG_CONTENT );
+		$content_preg = preg_quote( self::HTML_CONTENT );
 
-		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result, $_r ) );
+		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result ) );
+		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result ) );
 	}
 
 	public function test_new_img_caption_shortcode_new_format_and_linked_image() {
-		$linked_image = "<a href='#'>{$this->img_content}</a>";
+		$linked_image = "<a href='#'>" . self::IMG_CONTENT . '</a>';
 		$result       = img_caption_shortcode(
 			array( 'width' => 20 ),
-			$linked_image . $this->html_content
+			$linked_image . self::HTML_CONTENT
 		);
 		$img_preg     = preg_quote( $linked_image );
-		$content_preg = preg_quote( $this->html_content );
+		$content_preg = preg_quote( self::HTML_CONTENT );
 
-		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result, $_r ) );
+		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result ) );
+		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result ) );
 	}
 
 	public function test_new_img_caption_shortcode_new_format_and_linked_image_with_newline() {
-		$linked_image = "<a href='#'>{$this->img_content}</a>";
+		$linked_image = "<a href='#'>" . self::IMG_CONTENT . '</a>';
 		$result       = img_caption_shortcode(
 			array( 'width' => 20 ),
-			$linked_image . "\n\n" . $this->html_content
+			$linked_image . "\n\n" . self::HTML_CONTENT
 		);
 		$img_preg     = preg_quote( $linked_image );
-		$content_preg = preg_quote( $this->html_content );
+		$content_preg = preg_quote( self::HTML_CONTENT );
 
-		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result, $_r ) );
+		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result ) );
+		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result ) );
 	}
 
 	/**
@@ -254,10 +254,10 @@ CAP;
 				'width' => 20,
 				'id'    => 'myId',
 			),
-			$this->img_content . $this->html_content
+			self::IMG_CONTENT . self::HTML_CONTENT
 		);
 
-		$this->assertSame( 1, preg_match_all( '/aria-describedby="caption-myId"/', $result, $_r ) );
+		$this->assertSame( 1, substr_count( $result, 'aria-describedby="caption-myId"' ) );
 	}
 
 	public function test_add_remove_oembed_provider() {
@@ -494,7 +494,7 @@ https://w.org</a>',
 	public function test_get_attached_images() {
 		$post_id       = self::factory()->post->create();
 		$attachment_id = self::factory()->attachment->create_object(
-			$this->img_name,
+			self::IMG_NAME,
 			$post_id,
 			array(
 				'post_mime_type' => 'image/jpeg',
@@ -521,7 +521,7 @@ https://w.org</a>',
 					'post_type'      => 'attachment',
 				)
 			);
-			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), self::IMG_META );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$ids1[]      = $attachment_id;
 			$ids1_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
@@ -538,7 +538,7 @@ https://w.org</a>',
 					'post_type'      => 'attachment',
 				)
 			);
-			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), self::IMG_META );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$ids2[]      = $attachment_id;
 			$ids2_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
@@ -572,7 +572,7 @@ BLOB;
 					'post_type'      => 'attachment',
 				)
 			);
-			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), self::IMG_META );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$ids1[]      = $attachment_id;
 			$ids1_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
@@ -589,7 +589,7 @@ BLOB;
 					'post_type'      => 'attachment',
 				)
 			);
-			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), self::IMG_META );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$ids2[]      = $attachment_id;
 			$ids2_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
@@ -622,7 +622,7 @@ BLOB;
 				"image$i.jpg",
 				0
 			);
-			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), self::IMG_META );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$ids[]      = $attachment_id;
 			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
@@ -660,7 +660,7 @@ BLOB;
 				"image$i.jpg",
 				0
 			);
-			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), self::IMG_META );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$ids[]      = $attachment_id;
 			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
@@ -702,7 +702,7 @@ BLOB;
 					'post_type'      => 'attachment',
 				)
 			);
-			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), self::IMG_META );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$ids[]      = $attachment_id;
 			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
@@ -745,7 +745,7 @@ BLOB;
 					'post_type'      => 'attachment',
 				)
 			);
-			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), self::IMG_META );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$ids[]      = $attachment_id;
 			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
@@ -788,7 +788,7 @@ BLOB;
 					'post_type'      => 'attachment',
 				)
 			);
-			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), $this->img_meta );
+			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), self::IMG_META );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$ids[]      = $attachment_id;
 			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
@@ -1023,6 +1023,7 @@ VIDEO;
 
 	/**
 	 * @ticket 35367
+	 * @ticket 54788
 	 * @depends test_video_shortcode_body
 	 */
 	public function test_wp_video_shortcode_attributes() {
@@ -1035,6 +1036,7 @@ VIDEO;
 		$this->assertStringContainsString( 'src="https://example.com/foo.mp4', $actual );
 		$this->assertStringNotContainsString( 'loop', $actual );
 		$this->assertStringNotContainsString( 'autoplay', $actual );
+		$this->assertStringNotContainsString( 'muted', $actual );
 		$this->assertStringContainsString( 'preload="metadata"', $actual );
 		$this->assertStringContainsString( 'width="640"', $actual );
 		$this->assertStringContainsString( 'height="360"', $actual );
@@ -1046,6 +1048,7 @@ VIDEO;
 				'poster'   => 'https://example.com/foo.png',
 				'loop'     => true,
 				'autoplay' => true,
+				'muted'    => true,
 				'preload'  => true,
 				'width'    => 123,
 				'height'   => 456,
@@ -1057,6 +1060,7 @@ VIDEO;
 		$this->assertStringContainsString( 'poster="https://example.com/foo.png', $actual );
 		$this->assertStringContainsString( 'loop="1"', $actual );
 		$this->assertStringContainsString( 'autoplay="1"', $actual );
+		$this->assertStringContainsString( 'muted', $actual );
 		$this->assertStringContainsString( 'preload="1"', $actual );
 		$this->assertStringContainsString( 'width="123"', $actual );
 		$this->assertStringContainsString( 'height="456"', $actual );
@@ -1181,7 +1185,7 @@ VIDEO;
 	 * @ticket 30346
 	 */
 	public function test_attachment_url_to_postid() {
-		$image_path    = '2014/11/' . $this->img_name;
+		$image_path    = '2014/11/' . self::IMG_NAME;
 		$attachment_id = self::factory()->attachment->create_object(
 			$image_path,
 			0,
@@ -1199,7 +1203,7 @@ VIDEO;
 	 * @ticket 33109
 	 */
 	public function test_attachment_url_to_postid_with_different_scheme() {
-		$image_path    = '2014/11/' . $this->img_name;
+		$image_path    = '2014/11/' . self::IMG_NAME;
 		$attachment_id = self::factory()->attachment->create_object(
 			$image_path,
 			0,
@@ -1217,7 +1221,7 @@ VIDEO;
 	 * @ticket 39768
 	 */
 	public function test_attachment_url_to_postid_should_be_case_sensitive() {
-		$image_path_lower_case    = '2014/11/' . $this->img_name;
+		$image_path_lower_case    = '2014/11/' . self::IMG_NAME;
 		$attachment_id_lower_case = self::factory()->attachment->create_object(
 			$image_path_lower_case,
 			0,
@@ -1227,7 +1231,7 @@ VIDEO;
 			)
 		);
 
-		$image_path_upper_case    = '2014/11/' . ucfirst( $this->img_name );
+		$image_path_upper_case    = '2014/11/' . ucfirst( self::IMG_NAME );
 		$attachment_id_upper_case = self::factory()->attachment->create_object(
 			$image_path_upper_case,
 			0,
@@ -1242,7 +1246,7 @@ VIDEO;
 	}
 
 	public function test_attachment_url_to_postid_filtered() {
-		$image_path    = '2014/11/' . $this->img_name;
+		$image_path    = '2014/11/' . self::IMG_NAME;
 		$attachment_id = self::factory()->attachment->create_object(
 			$image_path,
 			0,
@@ -1306,7 +1310,7 @@ VIDEO;
 		$post = get_post( $post_id );
 
 		// Clean up.
-		wp_delete_attachment( $post_id );
+		wp_delete_attachment( $post_id, true );
 
 		$this->assertSame( 'This is a comment. / Это комментарий. / Βλέπετε ένα σχόλιο.', $post->post_excerpt );
 	}
@@ -1345,7 +1349,7 @@ VIDEO;
 		$post = get_post( $post_id );
 
 		// Clean up.
-		wp_delete_attachment( $post_id );
+		wp_delete_attachment( $post_id, true );
 
 		$this->assertSame( 'This is a test', $post->post_title );
 	}
@@ -1474,7 +1478,7 @@ EOF;
 	public function test_wp_get_attachment_image_defaults() {
 		$image    = image_downsize( self::$large_id, 'thumbnail' );
 		$expected = sprintf(
-			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="" loading="lazy" />',
+			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="" decoding="async" loading="lazy" />',
 			$image[1],
 			$image[2],
 			$image[0]
@@ -1512,7 +1516,7 @@ EOF;
 
 		$image    = image_downsize( self::$large_id, 'thumbnail' );
 		$expected = sprintf(
-			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="Some very clever alt text" loading="lazy" />',
+			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="Some very clever alt text" decoding="async" loading="lazy" />',
 			$image[1],
 			$image[2],
 			$image[0]
@@ -1532,7 +1536,7 @@ EOF;
 
 		$post_id       = self::factory()->post->create();
 		$attachment_id = self::factory()->attachment->create_object(
-			$this->img_name,
+			self::IMG_NAME,
 			$post_id,
 			array(
 				'post_mime_type' => 'image/jpeg',
@@ -1555,7 +1559,7 @@ EOF;
 
 		$post_id       = self::factory()->post->create();
 		$attachment_id = self::factory()->attachment->create_object(
-			$this->img_name,
+			self::IMG_NAME,
 			$post_id,
 			array(
 				'post_mime_type' => 'image/jpeg',
@@ -1575,7 +1579,7 @@ EOF;
 	public function test_wp_get_attachment_caption_empty() {
 		$post_id       = self::factory()->post->create();
 		$attachment_id = self::factory()->attachment->create_object(
-			$this->img_name,
+			self::IMG_NAME,
 			$post_id,
 			array(
 				'post_mime_type' => 'image/jpeg',
@@ -1655,11 +1659,11 @@ EOF;
 
 		$expected = trim( $expected, ' ,' );
 
-		foreach ( $intermediates as $int ) {
-			$image_url  = wp_get_attachment_image_url( self::$large_id, $int );
-			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int );
+		foreach ( $intermediates as $int_size ) {
+			$image_url  = wp_get_attachment_image_url( self::$large_id, $int_size );
+			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int_size );
 
-			if ( 'full' === $int ) {
+			if ( 'full' === $int_size ) {
 				// Add the full size image. Expected to be in the srcset when the full size image is used as src.
 				$_expected = $uploads_dir_url . $image_meta['file'] . ' ' . $image_meta['width'] . 'w, ' . $expected;
 			} else {
@@ -1708,11 +1712,19 @@ EOF;
 
 		$expected = trim( $expected, ' ,' );
 
-		foreach ( $intermediates as $int ) {
-			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int );
-			$image_url  = wp_get_attachment_image_url( $id, $int );
+		foreach ( $intermediates as $int_size ) {
+			$image_urls[ $int_size ] = wp_get_attachment_image_url( $id, $int_size );
+		}
 
-			if ( 'full' === $int ) {
+		// Remove the attachment.
+		wp_delete_attachment( $id, true );
+		remove_filter( 'upload_dir', '_upload_dir_no_subdir' );
+
+		foreach ( $intermediates as $int_size ) {
+			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int_size );
+			$image_url  = $image_urls[ $int_size ];
+
+			if ( 'full' === $int_size ) {
 				// Add the full size image. Expected to be in the srcset when the full size image is used as src.
 				$_expected = $uploads_dir_url . $image_meta['file'] . ' ' . $image_meta['width'] . 'w, ' . $expected;
 			} else {
@@ -1723,9 +1735,6 @@ EOF;
 			$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 		}
 
-		// Remove the attachment.
-		wp_delete_attachment( $id );
-		remove_filter( 'upload_dir', '_upload_dir_no_subdir' );
 	}
 
 	/**
@@ -1798,11 +1807,11 @@ EOF;
 		// Prepend an absolute path to simulate a pre-2.7 upload.
 		$image_meta['file'] = 'H:\home\wordpress\trunk/wp-content/uploads/' . $image_meta['file'];
 
-		foreach ( $intermediates as $int ) {
-			$image_url  = wp_get_attachment_image_url( self::$large_id, $int );
-			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int );
+		foreach ( $intermediates as $int_size ) {
+			$image_url  = wp_get_attachment_image_url( self::$large_id, $int_size );
+			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int_size );
 
-			if ( 'full' === $int ) {
+			if ( 'full' === $int_size ) {
 				// Add the full size image. Expected to be in the srcset when the full size image is used as src.
 				$_expected = $uploads_dir_url . $full_size_file . ' ' . $image_meta['width'] . 'w, ' . $expected;
 			} else {
@@ -1829,9 +1838,8 @@ EOF;
 	 * @requires function imagejpeg
 	 */
 	public function test_wp_calculate_image_srcset_no_width() {
-		$file       = get_attached_file( self::$large_id );
 		$image_url  = wp_get_attachment_image_url( self::$large_id, 'medium' );
-		$image_meta = wp_generate_attachment_metadata( self::$large_id, $file );
+		$image_meta = wp_get_attachment_metadata( self::$large_id );
 
 		$size_array = array( 0, 0 );
 
@@ -2248,6 +2256,7 @@ EOF;
 			$respimg_xhtml,
 			$respimg_html5
 		);
+		$content_filtered = wp_img_tag_add_decoding_attr( $content_filtered, 'the_content' );
 
 		// Do not add width, height, and loading.
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
@@ -2273,6 +2282,7 @@ EOF;
 	public function test_wp_filter_content_tags_srcset_sizes_wrong() {
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
+		$img = wp_img_tag_add_decoding_attr( $img, 'the_content' );
 
 		// Replace the src URL.
 		$image_wrong_src = preg_replace( '|src="[^"]+"|', 'src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/foo.jpg"', $img );
@@ -2287,6 +2297,7 @@ EOF;
 		// Generate HTML and add a dummy srcset attribute.
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
+		$img = wp_img_tag_add_decoding_attr( $img, 'the_content' );
 		$img = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . 'srcset="image2x.jpg 2x" />', $img );
 
 		// The content filter should return the image unchanged.
@@ -2304,6 +2315,74 @@ EOF;
 		wp_filter_content_tags( $img_tag_1 );
 		$this->assertSame( 1, $filter->get_call_count() );
 	}
+
+	/**
+	 * @ticket 55510
+	 * @covers ::wp_filter_content_tags
+	 */
+	public function test_wp_filter_content_tags_handles_duplicate_img_and_iframe_tags_once() {
+		$img     = get_image_tag( self::$large_id, '', '', '', 'large' );
+		$iframe  = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
+		$content = "$img\n$img\n$iframe\n$iframe";
+
+		// Record how often one of the available img and iframe filters is run.
+		// Both images and iframes support lazy-loading, so that's why this is used here.
+		$img_filter = new MockAction();
+		add_filter( 'wp_img_tag_add_loading_attr', array( &$img_filter, 'filter' ) );
+		$iframe_filter = new MockAction();
+		add_filter( 'wp_iframe_tag_add_loading_attr', array( &$iframe_filter, 'filter' ) );
+
+		// Ensure the img and iframe filters only ran once because the content is a single duplicated img tag and a
+		// single duplicate iframe tag.
+		wp_filter_content_tags( $content );
+		$this->assertSame( 1, $img_filter->get_call_count() );
+		$this->assertSame( 1, $iframe_filter->get_call_count() );
+	}
+
+	/**
+	 * @ticket 55510
+	 * @covers ::wp_filter_content_tags
+	 */
+	public function test_wp_filter_content_tags_filter_with_identical_image_tags_custom_attributes() {
+		$img     = get_image_tag( self::$large_id, '', '', '', 'large' );
+		$img     = str_replace( '<img ', '<img srcset="custom" sizes="custom" loading="custom" decoding="custom"', $img );
+		$content = "$img\n$img";
+
+		add_filter(
+			'wp_content_img_tag',
+			function( $filtered_image ) {
+				return "<span>$filtered_image</span>";
+			}
+		);
+
+		// Ensure there is no duplicate <span> wrapping the image.
+		$this->assertStringNotContainsString( '<span><span><img ', wp_filter_content_tags( $content ) );
+	}
+
+	/**
+	 * @ticket 55510
+	 * @covers ::wp_filter_content_tags
+	 */
+	public function test_wp_filter_content_tags_filter_with_identical_image_tags_disabled_core_filters() {
+		$img     = get_image_tag( self::$large_id, '', '', '', 'large' );
+		$content = "$img\n$img";
+
+		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
+		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
+		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
+
+		add_filter(
+			'wp_content_img_tag',
+			function( $filtered_image ) {
+				return "<span>$filtered_image</span>";
+			}
+		);
+
+		// Ensure the output has both instances of the image wrapped with a single <span>.
+		$this->assertSame( "<span>$img</span>\n<span>$img</span>", wp_filter_content_tags( $content ) );
+	}
+
 	/**
 	 * @ticket 33641
 	 * @ticket 34528
@@ -2394,6 +2473,7 @@ EOF;
 			$respimg_https,
 			$respimg_relative
 		);
+		$expected = wp_img_tag_add_decoding_attr( $expected, 'the_content' );
 
 		$actual = wp_filter_content_tags( $unfiltered );
 
@@ -2459,7 +2539,14 @@ EOF;
 		$attachment = wp_get_attachment_image_src( $id, 'medium' );
 
 		$html     = '<img src="%1$s" alt="" width="%2$d" height="%3$d" class="align%4$s size-medium wp-image-%5$d" />';
-		$expected = sprintf( $html, $attachment[0], $attachment[1], $attachment[2], $align, $id );
+		$expected = sprintf(
+			$html,
+			$attachment[0],
+			$attachment[1],
+			$attachment[2],
+			$align,
+			$id
+		);
 
 		$this->assertSame( $expected, get_image_send_to_editor( $id, $caption, $title, $align ) );
 
@@ -2485,7 +2572,19 @@ EOF;
 		$html = '<a href="%1$s" rel="%2$s"><img src="%3$s" alt="%4$s" width="%5$d" height="%6$d" class="size-%8$s wp-image-%9$d" /></a>';
 		$html = '[caption id="attachment_%9$d" align="align%7$s" width="%5$d"]' . $html . ' %10$s[/caption]';
 
-		$expected = sprintf( $html, $url, 'attachment wp-att-' . $id, $attachment[0], $alt, $attachment[1], $attachment[2], $align, $size, $id, $caption );
+		$expected = sprintf(
+			$html,
+			$url,
+			'attachment wp-att-' . $id,
+			$attachment[0],
+			$alt,
+			$attachment[1],
+			$attachment[2],
+			$align,
+			$size,
+			$id,
+			$caption
+		);
 
 		$this->assertSame( $expected, get_image_send_to_editor( $id, $caption, $title, $align, $url, $rel, $size, $alt ) );
 	}
@@ -2508,7 +2607,17 @@ EOF;
 
 		$html = '<a href="%1$s"><img src="%2$s" alt="%3$s" width="%4$d" height="%5$d" class="align%6$s size-%7$s wp-image-%8$d" /></a>';
 
-		$expected = sprintf( $html, $url, $attachment[0], $alt, $attachment[1], $attachment[2], $align, $size, $id );
+		$expected = sprintf(
+			$html,
+			$url,
+			$attachment[0],
+			$alt,
+			$attachment[1],
+			$attachment[2],
+			$align,
+			$size,
+			$id
+		);
 
 		$this->assertSame( $expected, get_image_send_to_editor( $id, $caption, $title, $align, $url, $rel, $size, $alt ) );
 	}
@@ -2536,7 +2645,7 @@ EOF;
 
 		$expected = '<img width="999" height="999" ' .
 			'src="' . $uploads_url . 'test-image-testsize-999x999.jpg" ' .
-			'class="attachment-testsize size-testsize" alt="" loading="lazy" ' .
+			'class="attachment-testsize size-testsize" alt="" decoding="async" loading="lazy" ' .
 			'srcset="' . $uploads_url . 'test-image-testsize-999x999.jpg 999w, ' . $uploads_url . $basename . '-150x150.jpg 150w" ' .
 			'sizes="(max-width: 999px) 100vw, 999px" />';
 
@@ -2752,8 +2861,8 @@ EOF;
 		$expected = $uploads_dir['url'] . '/test-image-iptc.jpg';
 
 		// Clean up.
-		wp_delete_attachment( $post_id );
-		wp_delete_post( $parent_id );
+		wp_delete_attachment( $post_id, true );
+		wp_delete_post( $parent_id, true );
 
 		$this->assertSame( $expected, $url );
 	}
@@ -2804,8 +2913,8 @@ EOF;
 		$expected = $uploads_dir['url'] . '/test-image-iptc.jpg';
 
 		// Clean up.
-		wp_delete_attachment( $post_id );
-		wp_delete_post( $parent_id );
+		wp_delete_attachment( $post_id, true );
+		wp_delete_post( $parent_id, true );
 
 		$this->assertSame( $expected, $url );
 	}
@@ -2842,8 +2951,22 @@ EOF;
 			<p>Image, no height but width attribute. Should NOT be modified.</p>
 			%4$s';
 
-		$content_unfiltered = sprintf( $content, $img, $img_no_width_height, $img_no_width, $img_no_height );
-		$content_filtered   = sprintf( $content, $img, $respimg_no_width_height, $img_no_width, $img_no_height );
+		$content_unfiltered = sprintf(
+			$content,
+			$img,
+			$img_no_width_height,
+			$img_no_width,
+			$img_no_height
+		);
+
+		$content_filtered = sprintf(
+			$content,
+			$img,
+			$respimg_no_width_height,
+			$img_no_width,
+			$img_no_height
+		);
+		$content_filtered = wp_img_tag_add_decoding_attr( $content_filtered, 'the_content' );
 
 		// Do not add loading, srcset, and sizes.
 		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
@@ -2900,8 +3023,30 @@ EOF;
 			<p>Iframe, without dimension attributes. Should not be modified.</p>
 			%8$s';
 
-		$content_unfiltered = sprintf( $content, $img, $img_xhtml, $img_html5, $img_eager, $img_no_width_height, $iframe, $iframe_eager, $iframe_no_width_height );
-		$content_filtered   = sprintf( $content, $lazy_img, $lazy_img_xhtml, $lazy_img_html5, $img_eager, $img_no_width_height, $lazy_iframe, $iframe_eager, $iframe_no_width_height );
+		$content_unfiltered = sprintf(
+			$content,
+			$img,
+			$img_xhtml,
+			$img_html5,
+			$img_eager,
+			$img_no_width_height,
+			$iframe,
+			$iframe_eager,
+			$iframe_no_width_height
+		);
+
+		$content_filtered = sprintf(
+			$content,
+			$lazy_img,
+			$lazy_img_xhtml,
+			$lazy_img_html5,
+			$img_eager,
+			$img_no_width_height,
+			$lazy_iframe,
+			$iframe_eager,
+			$iframe_no_width_height
+		);
+		$content_filtered = wp_img_tag_add_decoding_attr( $content_filtered, 'the_content' );
 
 		// Do not add width, height, srcset, and sizes.
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
@@ -2920,6 +3065,7 @@ EOF;
 	public function test_wp_filter_content_tags_loading_lazy_opted_in() {
 		$img         = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$lazy_img    = wp_img_tag_add_loading_attr( $img, 'test' );
+		$lazy_img    = wp_img_tag_add_decoding_attr( $lazy_img, 'the_content' );
 		$iframe      = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 		$lazy_iframe = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
 
@@ -2949,6 +3095,7 @@ EOF;
 	 */
 	public function test_wp_filter_content_tags_loading_lazy_opted_out() {
 		$img    = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$img    = wp_img_tag_add_decoding_attr( $img, 'the_content' );
 		$iframe = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 
 		$content = '
@@ -3195,7 +3342,7 @@ EOF;
 	 */
 	public function test_wp_image_file_matches_image_meta_invalid_meta() {
 		$image_meta = ''; // Attachment is not an image.
-		$image_src  = $this->img_url;
+		$image_src  = self::IMG_URL;
 
 		$this->assertFalse( wp_image_file_matches_image_meta( $image_src, $image_meta ) );
 	}
@@ -3205,7 +3352,7 @@ EOF;
 	 */
 	public function test_wp_image_file_matches_image_meta_different_meta() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
-		$image_src  = $this->img_url; // Different image.
+		$image_src  = self::IMG_URL; // Different image.
 
 		$this->assertFalse( wp_image_file_matches_image_meta( $image_src, $image_meta ) );
 	}
@@ -3413,6 +3560,7 @@ EOF;
 		// Following the threshold of 2, the first two content media elements should not be lazy-loaded.
 		$content_unfiltered = $img1 . $iframe1 . $img2 . $img3 . $iframe2;
 		$content_expected   = $img1 . $iframe1 . $lazy_img2 . $lazy_img3 . $lazy_iframe2;
+		$content_expected   = wp_img_tag_add_decoding_attr( $content_expected, 'the_content' );
 
 		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
 		$wp_the_query = $wp_query;
@@ -3474,6 +3622,131 @@ EOF;
 
 		// Clean up the above filter.
 		remove_filter( 'wp_omit_loading_attr_threshold', '__return_null', 100 );
+	}
+
+	/**
+	 * Test the wp_default_image_output_mapping function.
+	 *
+	 * @ticket 55443
+	 */
+	public function test_wp_default_image_output_mapping() {
+		$mapping = wp_default_image_output_mapping( array(), 'test.jpg', 'image/jpeg', '' );
+		$this->assertSame( array( 'image/jpeg' => 'image/webp' ), $mapping );
+	}
+
+	/**
+	 * Test that wp_default_image_output_mapping doesn't overwrite existing mappings.
+	 *
+	 * @ticket 55443
+	 */
+	public function test_wp_default_image_output_mapping_existing() {
+		$mapping = array( 'mime/png' => 'mime/webp' );
+		$mapping = wp_default_image_output_mapping( $mapping, 'test.jpg', 'image/jpeg', '' );
+		$this->assertSame(
+			array(
+				'mime/png'   => 'mime/webp',
+				'image/jpeg' => 'image/webp',
+			),
+			$mapping
+		);
+	}
+
+	/**
+	 * Test that the image editor default output for JPEGs is WebP.
+	 *
+	 * @ticket 55443
+	 */
+	public function test_wp_image_editor_default_output_maps_to_webp() {
+		remove_filter( 'image_editor_output_format', '__return_empty_array' );
+
+		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
+		$this->assertNotWPError( $editor );
+
+		$resized = $editor->resize( 100, 100, false );
+		$this->assertNotWPError( $resized );
+
+		$saved = $editor->save();
+		$this->assertNotWPError( $saved );
+
+		if ( $editor->supports_mime_type( 'image/webp' ) ) {
+			$this->assertSame( 'image/webp', $saved['mime-type'] );
+			$this->assertSame( 'canola-100x75-jpg.webp', $saved['file'] );
+		} else {
+			$this->assertSame( 'image/jpeg', $saved['mime-type'] );
+			$this->assertSame( 'canola-100x75.jpg', $saved['file'] );
+		}
+	}
+
+	/**
+	 * @ticket 56526
+	 * @dataProvider data_wp_default_image_output_mapping_size_filter
+	 */
+	public function test_wp_default_image_output_mapping_size_filter( $size_name, $filter_callback, $expects_webp ) {
+		remove_all_filters( 'wp_image_sizes_with_additional_mime_type_support' );
+		if ( $filter_callback ) {
+			add_filter( 'wp_image_sizes_with_additional_mime_type_support', $filter_callback );
+		}
+
+		$mapping = wp_default_image_output_mapping( array(), 'test.jpg', 'image/jpeg', $size_name );
+		if ( $expects_webp ) {
+			$this->assertSame( array( 'image/jpeg' => 'image/webp' ), $mapping );
+		} else {
+			$this->assertSame( array(), $mapping );
+		}
+	}
+
+	public function data_wp_default_image_output_mapping_size_filter() {
+		return array(
+			'default size thumbnail'    => array(
+				'thumbnail',
+				null,
+				true,
+			),
+			'default size medium'       => array(
+				'medium',
+				null,
+				true,
+			),
+			'default size medium_large' => array(
+				'medium_large',
+				null,
+				true,
+			),
+			'default size large'        => array(
+				'large',
+				null,
+				true,
+			),
+			'default size unset'        => array(
+				'medium',
+				function( $enabled_sizes ) {
+					unset( $enabled_sizes['medium'] );
+					return $enabled_sizes;
+				},
+				false,
+			),
+			'default size set to false' => array(
+				'medium',
+				function( $enabled_sizes ) {
+					$enabled_sizes['medium'] = false;
+					return $enabled_sizes;
+				},
+				false,
+			),
+			'custom size'               => array(
+				'custom',
+				null,
+				false,
+			),
+			'custom size opted in'      => array(
+				'custom',
+				function( $enabled_sizes ) {
+					$enabled_sizes['custom'] = true;
+					return $enabled_sizes;
+				},
+				true,
+			),
+		);
 	}
 }
 
