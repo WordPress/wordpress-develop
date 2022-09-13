@@ -326,7 +326,7 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		$site_locale = get_locale();
 
-		$user_id = $this->factory()->user->create(
+		$user_id = self::factory()->user->create(
 			array(
 				'role'   => 'administrator',
 				'locale' => 'de_DE',
@@ -378,7 +378,7 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		$site_locale = get_locale();
 
-		$user_id = $this->factory()->user->create(
+		$user_id = self::factory()->user->create(
 			array(
 				'role'   => 'administrator',
 				'locale' => 'de_DE',
@@ -430,7 +430,7 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		$site_locale = get_locale();
 
-		$user_id = $this->factory()->user->create(
+		$user_id = self::factory()->user->create(
 			array(
 				'role'   => 'administrator',
 				'locale' => 'en_GB',
