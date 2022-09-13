@@ -355,6 +355,7 @@ class WP_PDO_Engine extends PDO {
 			case 'set':
 				$this->return_value = false;
 				break;
+
 			case 'foundrows':
 				$_column = array( 'FOUND_ROWS()' => '' );
 				$column  = array();
@@ -369,6 +370,7 @@ class WP_PDO_Engine extends PDO {
 					$this->found_rows_result = null;
 				}
 				break;
+
 			case 'insert':
 				if ( $this->can_insert_multiple_rows ) {
 					$this->execute_insert_query_new( $statement );
@@ -376,6 +378,7 @@ class WP_PDO_Engine extends PDO {
 					$this->execute_insert_query( $statement );
 				}
 				break;
+
 			case 'create':
 				$this->return_value = $this->execute_create_query( $statement );
 				break;
@@ -616,14 +619,12 @@ class WP_PDO_Engine extends PDO {
 	 */
 	private function prepare_engine( $query_type = null ) {
 		if ( stripos( $query_type, 'create' ) !== false ) {
-			$engine = new WP_SQLite_Create_Query();
-		} elseif ( stripos( $query_type, 'alter' ) !== false ) {
-			$engine = new WP_SQLite_Alter_Query();
-		} else {
-			$engine = new WP_PDO_SQLite_Driver();
+			return new WP_SQLite_Create_Query();
 		}
-
-		return $engine;
+		if ( stripos( $query_type, 'alter' ) !== false ) {
+			return new WP_SQLite_Alter_Query();
+		}
+		return new WP_PDO_SQLite_Driver();
 	}
 
 	/**
@@ -771,7 +772,6 @@ class WP_PDO_Engine extends PDO {
 	private function extract_variables() {
 		if ( 'create' === $this->query_type ) {
 			$this->prepared_query = $this->rewritten_query;
-
 			return;
 		}
 
@@ -997,13 +997,16 @@ class WP_PDO_Engine extends PDO {
 						$part .= $token;
 					}
 					break;
+
 				case "'":
 					$literal = ! $literal;
 					$part   .= $token;
 					break;
+
 				default:
 					$part .= $token;
 					break;
+
 			}
 		}
 		if ( ! empty( $part ) ) {
@@ -1226,10 +1229,7 @@ class WP_PDO_Engine extends PDO {
 		);
 		$this->error_messages[] = $message;
 		$this->is_error         = true;
-		if ( $wpdb->suppress_errors ) {
-			return false;
-		}
-		if ( ! $wpdb->show_errors ) {
+		if ( $wpdb->suppress_errors || ! $wpdb->show_errors ) {
 			return false;
 		}
 		error_log( "Line $line, Function: $function, Message: $message" );
@@ -1338,6 +1338,7 @@ class WP_PDO_Engine extends PDO {
 							$_columns['Column_name'] = $col_name;
 						}
 						break;
+
 					case 'index':
 						$_columns['Non_unique'] = 1;
 						if ( stripos( $row->sql, 'unique' ) !== false ) {
@@ -1349,6 +1350,7 @@ class WP_PDO_Engine extends PDO {
 						}
 						$_columns['Key_name'] = $row->name;
 						break;
+
 				}
 				$_columns['Table']       = $row->tbl_name;
 				$_columns['Collation']   = null;
@@ -1364,8 +1366,7 @@ class WP_PDO_Engine extends PDO {
 				preg_match( '/WHERE\\s*(.*)$/im', $this->queries[0], $match );
 				list($key, $value) = explode( '=', $match[1] );
 				$key               = trim( $key );
-				$value             = preg_replace( "/[\';]/", '', $value );
-				$value             = trim( $value );
+				$value             = trim( preg_replace( "/[\';]/", '', $value ) );
 				foreach ( $_results as $result ) {
 					if ( ! empty( $result->$key ) && is_scalar( $result->$key ) && stripos( $value, $result->$key ) !== false ) {
 						unset( $_results );
@@ -1375,6 +1376,7 @@ class WP_PDO_Engine extends PDO {
 				}
 			}
 		}
+
 		$this->results = $_results;
 	}
 
@@ -1384,22 +1386,15 @@ class WP_PDO_Engine extends PDO {
 	 * @access private
 	 */
 	private function convert_result_check_or_analyze() {
-		$results  = array();
-		$_columns = array(
-			'Table'    => '',
-			'Op'       => 'analyze',
-			'Msg_type' => 'status',
-			'Msg_text' => 'Table is already up to date',
-		);
-		if ( 'check' === $this->query_type ) {
-			$_columns = array(
+		$is_check      = 'check' === $this->query_type;
+		$_results[]    = new WP_SQLite_Object_Array(
+			array(
 				'Table'    => '',
-				'Op'       => 'check',
+				'Op'       => $is_check ? 'check' : 'analyze',
 				'Msg_type' => 'status',
-				'Msg_text' => 'OK',
-			);
-		}
-		$_results[]    = new WP_SQLite_Object_Array( $_columns );
+				'Msg_text' => $is_check ? 'OK' : __( 'Table is already up to date' ),
+			)
+		);
 		$this->results = $_results;
 	}
 
