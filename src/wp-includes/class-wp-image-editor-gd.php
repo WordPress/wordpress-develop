@@ -610,7 +610,6 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		return $hex;
 	}
 
-
 	/**
 	 * Looks for transparent pixels in the image.
 	 * If there are none, it returns false.
