@@ -352,7 +352,9 @@ if ( $tab ) {
 		</p></div>
 	<# } #>
 
-	<span class="more-details"><?php _ex( 'Details &amp; Preview', 'theme' ); ?></span>
+	<# if ( data.compatible_wp && data.compatible_php ) { #>
+		<span class="more-details"><?php _ex( 'Details &amp; Preview', 'theme' ); ?></span>
+	<# } #>
 	<div class="theme-author">
 		<?php
 		/* translators: %s: Theme author name. */
@@ -416,7 +418,7 @@ if ( $tab ) {
 					$aria_label = sprintf( _x( 'Cannot Install %s', 'theme' ), '{{ data.name }}' );
 					?>
 					<a class="button button-primary disabled" data-name="{{ data.name }}" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _ex( 'Cannot Install', 'theme' ); ?></a>
-					<button class="button disabled"><?php _e( 'Preview' ); ?></button>
+					<button class="button disabled"><?php _e( 'Cannot Preview' ); ?></button>
 				<# } #>
 			<# } #>
 		</div>
