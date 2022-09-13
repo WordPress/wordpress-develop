@@ -32,7 +32,6 @@ class Dominant_Color_Test extends DominantColorTestCase {
 			$this->assertContains( $dominant_color_metadata['dominant_color'], $expected_color );
 
 		}
-
 	}
 
 	/**

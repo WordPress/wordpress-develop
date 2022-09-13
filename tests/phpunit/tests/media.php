@@ -3565,7 +3565,6 @@ EOF;
 		$lazy_img3    = wp_img_tag_add_loading_attr( $img3, 'the_content' );
 		$lazy_iframe2 = wp_iframe_tag_add_loading_attr( $iframe2, 'the_content' );
 
-
 		// Use a threshold of 2.
 		add_filter(
 			'wp_omit_loading_attr_threshold',
