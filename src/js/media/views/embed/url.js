@@ -48,7 +48,7 @@ EmbedUrl = View.extend(/** @lends wp.media.view.EmbedUrl.prototype */{
 			return;
 		}
 
-		this.input.value = this.model.get('url') || 'http://';
+		this.input.value = this.model.get('url') || 'https://';
 		/**
 		 * Call `render` directly on parent class with passed arguments
 		 */
