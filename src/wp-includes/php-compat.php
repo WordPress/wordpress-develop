@@ -3,8 +3,6 @@
 defined( 'IS_32_BIT_SYSTEM' ) || define( 'IS_32_BIT_SYSTEM', 2147483647 === PHP_INT_MAX );
 defined( 'PHP_INT_MAX' ) || define( 'PHP_INT_MAX', IS_32_BIT_SYSTEM ? 2147483647 : 9223372036854775807 );
 defined( 'PHP_INT_MIN' ) || define( 'PHP_INT_MIN', IS_32_BIT_SYSTEM ? -2147483648 : -9223372036854775808 );
-defined( 'PHP_INI_LIMIT_MISSING' ) || define( 'PHP_INI_LIMIT_MISSING', 0 );
-defined( 'PHP_INI_LIMIT_UNLIMITED' ) || define( 'PHP_INI_LIMIT_UNLIMITED', -1 );
 
 /*
  * Returns byte size represented in a numeric php.ini directive.
@@ -24,7 +22,7 @@ defined( 'PHP_INI_LIMIT_UNLIMITED' ) || define( 'PHP_INI_LIMIT_UNLIMITED', -1 );
 function wp_ini_parse_quantity( $value ) {
 	// A missing value is an implicit lack of limit, thus we return `0`, meaning "no limit."
 	if ( false === $value ) {
-		return PHP_INI_LIMIT_MISSING;
+		return 0;
 	}
 
 	/*
@@ -40,7 +38,7 @@ function wp_ini_parse_quantity( $value ) {
 	 * no limit we could ascribe to this invalid value.
 	 */
 	if ( ! is_string( $value ) ) {
-		return PHP_INI_LIMIT_MISSING;
+		return 0;
 	}
 
 	return ini_parse_quantity( $value );
@@ -99,23 +97,13 @@ function wp_ini_quantity_cmp( $a, $b ) {
 		return 0;
 	}
 
-	// No limit on $a means $b provides our only known limit.
-	if ( PHP_INI_LIMIT_MISSING === $a_scalar ) {
+	// No limit on $a means it's at least as large as any $b value.
+	if ( $a_scalar <= 0 ) {
 		return 1;
 	}
 
-	// No limit on $b means $a provides our only known limit.
-	if ( PHP_INI_LIMIT_MISSING === $b_scalar ) {
-		return -1;
-	}
-
-	// An explicit unlimited on $a is at least as great as all other limits.
-	if ( PHP_INI_LIMIT_UNLIMITED === $a_scalar ) {
-		return 1;
-	}
-
-	// An explicit unlimited on $b is at least as great as all other limits.
-	if ( PHP_INI_LIMIT_UNLIMITED === $b_scalar ) {
+	// No limit on $b means it's at least as large as any $a value.
+	if ( $b_scalar <= 0 ) {
 		return -1;
 	}
 

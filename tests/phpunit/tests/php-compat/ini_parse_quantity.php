@@ -19,26 +19,22 @@ class Tests_PHP_Compat_wpIniParseQuantity extends WP_UnitTestCase {
 		$this->assertEquals( -1, wp_ini_parse_quantity( '-1' ) );
 	}
 
-	public function test_unlimited_is_greater_than_missing_limit() {
-		$this->assertEqual( -1, wp_ini_greater_quantity( '', '-1' ) );
-	}
-
-	public function test_missing_limit_is_lesser_than_unlimited() {
+	public function test_unlimited_is_same_as_missing_limit() {
+		$this->assertEqual( '', wp_ini_greater_quantity( '', '-1' ) );
+		$this->assertEqual( '-1', wp_ini_greater_quantity( '-1', '' ) );
 		$this->assertEqual( '', wp_ini_lesser_quantity( '', '-1' ) );
+		$this->assertEqual( '-1', wp_ini_lesser_quantity( '-1', '' ) );
 	}
 
 	public function test_unlimited_is_greater_than_hard_limit() {
 		$this->assertEqual( 1, wp_ini_quantity_cmp( -1, 1348 ) );
 		$this->assertEqual( 1, wp_ini_quantity_cmp( -1, '1348g' ) );
-	}
-
-	public function test_missing_limit_is_lesser_than_hard_limit() {
-		$this->assertEqual( -1, wp_ini_quantity_cmp( '', 1348 ) );
-		$this->assertEqual( -1, wp_ini_quantity_cmp( '', '1348g' ) );
-		$this->assertEqual( -1, wp_ini_quantity_cmp( 0, 1348 ) );
-		$this->assertEqual( -1, wp_ini_quantity_cmp( 0, '1348g' ) );
-		$this->assertEqual( -1, wp_ini_quantity_cmp( false, 1348 ) );
-		$this->assertEqual( -1, wp_ini_quantity_cmp( false, '1348g' ) );
+		$this->assertEqual( 1, wp_ini_quantity_cmp( '', 1348 ) );
+		$this->assertEqual( 1, wp_ini_quantity_cmp( '', '1348g' ) );
+		$this->assertEqual( 1, wp_ini_quantity_cmp( 0, 1348 ) );
+		$this->assertEqual( 1, wp_ini_quantity_cmp( 0, '1348g' ) );
+		$this->assertEqual( 1, wp_ini_quantity_cmp( false, 1348 ) );
+		$this->assertEqual( 1, wp_ini_quantity_cmp( false, '1348g' ) );
 	}
 
 	public function test_invalid_data_is_no_limit() {
@@ -50,6 +46,7 @@ class Tests_PHP_Compat_wpIniParseQuantity extends WP_UnitTestCase {
 
 	public function test_returns_already_parsed_values() {
 		$this->assertEquals( 15, wp_ini_parse_quantity( 15 ) );
+		$this->assertEquals( -1543, wp_ini_parse_quantity( -1543 ) );
 	}
 
 	public function test_clamped_to_max_int_before_suffix() {
