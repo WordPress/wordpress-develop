@@ -485,17 +485,19 @@ class Tests_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 17851
+	 *
+	 * @param array  $extra_args                   Extra arguments to pass to function `add_settings_section()`.
+	 * @param array  $expected_section_data        Expected set of section data.
+	 * @param string $expected_before_section_html Expected HTML markup to be rendered before the settings section.
+	 * @param string $expected_after_section_html  Expected HTML markup to be rendered after the settings section.
+	 *
 	 * @covers ::add_settings_section
 	 * @covers ::do_settings_sections
+	 *
+	 * @dataProvider data_extra_args_for_add_settings_section
 	 */
-	public function test_add_settings_section_with_extra_args() {
-		$args = array(
-			'before_section' => '<div class="%s">',
-			'after_section'  => '</div><!-- end of the test section -->',
-			'section_class'  => 'test-section-wrap',
-		);
-
-		add_settings_section( 'test-section', 'Section title', '__return_false', 'test-page', $args );
+	public function test_add_settings_section_with_extra_args( $extra_args, $expected_section_data, $expected_before_section_html, $expected_after_section_html ) {
+		add_settings_section( 'test-section', 'Section title', '__return_false', 'test-page', $extra_args );
 		add_settings_field( 'test-field', 'Field title', '__return_false', 'test-page', 'test-section' );
 
 		global $wp_settings_sections;
@@ -505,14 +507,7 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'test-section', $wp_settings_sections['test-page'], 'Test section has not been added to the list of sections for the test page.' );
 
 		$this->assertEqualSetsWithIndex(
-			array(
-				'id'             => 'test-section',
-				'title'          => 'Section title',
-				'callback'       => '__return_false',
-				'before_section' => '<div class="%s">',
-				'after_section'  => '</div><!-- end of the test section -->',
-				'section_class'  => 'test-section-wrap',
-			),
+			$expected_section_data,
 			$wp_settings_sections['test-page']['test-section'],
 			'Test section data does not match the expected dataset.'
 		);
@@ -521,134 +516,117 @@ class Tests_Template extends WP_UnitTestCase {
 		do_settings_sections( 'test-page' );
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( '<div class="test-section-wrap">', $output, 'Test page output does not contain the custom markup to be placed before the section.' );
-		$this->assertStringContainsString( '</div><!-- end of the test section -->', $output, 'Test page output does not contain the custom markup to be placed before the section.' );
-
+		$this->assertStringContainsString( $expected_before_section_html, $output, 'Test page output does not contain the custom markup to be placed before the section.' );
+		$this->assertStringContainsString( $expected_after_section_html, $output, 'Test page output does not contain the custom markup to be placed after the section.' );
 	}
 
 	/**
-	 * @ticket 17851
-	 * @covers ::add_settings_section
-	 * @covers ::do_settings_sections
+	 * Data provider for `test_add_settings_section_with_extra_args()`.
+	 *
+	 * @return array
 	 */
-	public function test_add_settings_section_missing_section_class_placeholder() {
-		$args = array(
-			'before_section' => '<div class="test-section-wrapper">',
-			'after_section'  => '</div><!-- end of the test section -->',
-			'section_class'  => 'test-section-wrap',
-		);
-
-		add_settings_section( 'test-section', 'Section title', '__return_false', 'test-page', $args );
-		add_settings_field( 'test-field', 'Field title', '__return_false', 'test-page', 'test-section' );
-
-		global $wp_settings_sections;
-		$this->assertIsArray( $wp_settings_sections, 'List of sections is not initialized.' );
-		$this->assertArrayHasKey( 'test-page', $wp_settings_sections, 'List of sections for the test page has not been added to sections list.' );
-		$this->assertIsArray( $wp_settings_sections['test-page'], 'List of sections for the test page is not initialized.' );
-		$this->assertArrayHasKey( 'test-section', $wp_settings_sections['test-page'], 'Test section has not been added to the list of sections for the test page.' );
-
-		$this->assertEqualSetsWithIndex(
-			array(
-				'id'             => 'test-section',
-				'title'          => 'Section title',
-				'callback'       => '__return_false',
-				'before_section' => '<div class="test-section-wrapper">',
-				'after_section'  => '</div><!-- end of the test section -->',
-				'section_class'  => 'test-section-wrap',
+	public function data_extra_args_for_add_settings_section() {
+		return array(
+			'class placeholder section_class present' => array(
+				array(
+					'before_section' => '<div class="%s">',
+					'after_section'  => '</div><!-- end of the test section -->',
+					'section_class'  => 'test-section-wrap',
+				),
+				array(
+					'id'             => 'test-section',
+					'title'          => 'Section title',
+					'callback'       => '__return_false',
+					'before_section' => '<div class="%s">',
+					'after_section'  => '</div><!-- end of the test section -->',
+					'section_class'  => 'test-section-wrap',
+				),
+				'<div class="test-section-wrap">',
+				'</div><!-- end of the test section -->',
 			),
-			$wp_settings_sections['test-page']['test-section'],
-			'Test section data does not match the expected dataset.'
-		);
-
-		ob_start();
-		do_settings_sections( 'test-page' );
-		$output = ob_get_clean();
-
-		$this->assertStringContainsString( '<div class="test-section-wrapper">', $output, 'Test page output does not contain the custom markup to be placed before the section.' );
-		$this->assertStringContainsString( '</div><!-- end of the test section -->', $output, 'Test page output does not contain the custom markup to be placed before the section.' );
-	}
-
-	/**
-	 * @ticket 17851
-	 * @covers ::add_settings_section
-	 * @covers ::do_settings_sections
-	 */
-	public function test_add_settings_section_empty_section_class() {
-		$args = array(
-			'before_section' => '<div class="test-section-wrapper">',
-			'after_section'  => '</div><!-- end of the test section -->',
-			'section_class'  => '',
-		);
-
-		add_settings_section( 'test-section', 'Section title', '__return_false', 'test-page', $args );
-		add_settings_field( 'test-field', 'Field title', '__return_false', 'test-page', 'test-section' );
-
-		global $wp_settings_sections;
-		$this->assertIsArray( $wp_settings_sections, 'List of sections is not initialized.' );
-		$this->assertArrayHasKey( 'test-page', $wp_settings_sections, 'List of sections for the test page has not been added to sections list.' );
-		$this->assertIsArray( $wp_settings_sections['test-page'], 'List of sections for the test page is not initialized.' );
-		$this->assertArrayHasKey( 'test-section', $wp_settings_sections['test-page'], 'Test section has not been added to the list of sections for the test page.' );
-
-		$this->assertEqualSetsWithIndex(
-			array(
-				'id'             => 'test-section',
-				'title'          => 'Section title',
-				'callback'       => '__return_false',
-				'before_section' => '<div class="test-section-wrapper">',
-				'after_section'  => '</div><!-- end of the test section -->',
-				'section_class'  => '',
+			'missing class placeholder section_class' => array(
+				array(
+					'before_section' => '<div class="testing-section-wrapper">',
+					'after_section'  => '</div><!-- end of the test section -->',
+					'section_class'  => 'test-section-wrap',
+				),
+				array(
+					'id'             => 'test-section',
+					'title'          => 'Section title',
+					'callback'       => '__return_false',
+					'before_section' => '<div class="testing-section-wrapper">',
+					'after_section'  => '</div><!-- end of the test section -->',
+					'section_class'  => 'test-section-wrap',
+				),
+				'<div class="testing-section-wrapper">',
+				'</div><!-- end of the test section -->',
 			),
-			$wp_settings_sections['test-page']['test-section'],
-			'Test section data does not match the expected dataset.'
-		);
-
-		ob_start();
-		do_settings_sections( 'test-page' );
-		$output = ob_get_clean();
-
-		$this->assertStringContainsString( '<div class="test-section-wrapper">', $output, 'Test page output does not contain the custom markup to be placed before the section.' );
-		$this->assertStringContainsString( '</div><!-- end of the test section -->', $output, 'Test page output does not contain the custom markup to be placed before the section.' );
-	}
-
-	/**
-	 * @ticket 17851
-	 * @covers ::add_settings_section
-	 * @covers ::do_settings_sections
-	 */
-	public function test_add_settings_section_missing_section_class() {
-		$args = array(
-			'before_section' => '<div class="test-section-wrapper">',
-			'after_section'  => '</div><!-- end of the test section -->',
-		);
-
-		add_settings_section( 'test-section', 'Section title', '__return_false', 'test-page', $args );
-		add_settings_field( 'test-field', 'Field title', '__return_false', 'test-page', 'test-section' );
-
-		global $wp_settings_sections;
-		$this->assertIsArray( $wp_settings_sections, 'List of sections is not initialized.' );
-		$this->assertArrayHasKey( 'test-page', $wp_settings_sections, 'List of sections for the test page has not been added to sections list.' );
-		$this->assertIsArray( $wp_settings_sections['test-page'], 'List of sections for the test page is not initialized.' );
-		$this->assertArrayHasKey( 'test-section', $wp_settings_sections['test-page'], 'Test section has not been added to the list of sections for the test page.' );
-
-		$this->assertEqualSetsWithIndex(
-			array(
-				'id'             => 'test-section',
-				'title'          => 'Section title',
-				'callback'       => '__return_false',
-				'before_section' => '<div class="test-section-wrapper">',
-				'after_section'  => '</div><!-- end of the test section -->',
-				'section_class'  => '',
+			'empty section_class'                     => array(
+				array(
+					'before_section' => '<div class="test-section-container">',
+					'after_section'  => '</div><!-- end of the test section -->',
+					'section_class'  => '',
+				),
+				array(
+					'id'             => 'test-section',
+					'title'          => 'Section title',
+					'callback'       => '__return_false',
+					'before_section' => '<div class="test-section-container">',
+					'after_section'  => '</div><!-- end of the test section -->',
+					'section_class'  => '',
+				),
+				'<div class="test-section-container">',
+				'</div><!-- end of the test section -->',
 			),
-			$wp_settings_sections['test-page']['test-section'],
-			'Test section data does not match the expected dataset.'
+			'section_class missing'                   => array(
+				array(
+					'before_section' => '<div class="wp-whitelabel-section">',
+					'after_section'  => '</div><!-- end of the test section -->',
+				),
+				array(
+					'id'             => 'test-section',
+					'title'          => 'Section title',
+					'callback'       => '__return_false',
+					'before_section' => '<div class="wp-whitelabel-section">',
+					'after_section'  => '</div><!-- end of the test section -->',
+					'section_class'  => '',
+				),
+				'<div class="wp-whitelabel-section">',
+				'</div><!-- end of the test section -->',
+			),
+			'disallowed tag in before_section'        => array(
+				array(
+					'before_section' => '<div class="video-settings-section"><iframe src="https://www.wordpress.org/" />',
+					'after_section'  => '</div><!-- end of the test section -->',
+				),
+				array(
+					'id'             => 'test-section',
+					'title'          => 'Section title',
+					'callback'       => '__return_false',
+					'before_section' => '<div class="video-settings-section"><iframe src="https://www.wordpress.org/" />',
+					'after_section'  => '</div><!-- end of the test section -->',
+					'section_class'  => '',
+				),
+				'<div class="video-settings-section">',
+				'</div><!-- end of the test section -->',
+			),
+			'disallowed tag in after_section'         => array(
+				array(
+					'before_section' => '<div class="video-settings-section">',
+					'after_section'  => '</div><iframe src="https://www.wordpress.org/" />',
+				),
+				array(
+					'id'             => 'test-section',
+					'title'          => 'Section title',
+					'callback'       => '__return_false',
+					'before_section' => '<div class="video-settings-section">',
+					'after_section'  => '</div><iframe src="https://www.wordpress.org/" />',
+					'section_class'  => '',
+				),
+				'<div class="video-settings-section">',
+				'</div>',
+			),
 		);
-
-		ob_start();
-		do_settings_sections( 'test-page' );
-		$output = ob_get_clean();
-
-		$this->assertStringContainsString( '<div class="test-section-wrapper">', $output, 'Test page output does not contain the custom markup to be placed before the section.' );
-		$this->assertStringContainsString( '</div><!-- end of the test section -->', $output, 'Test page output does not contain the custom markup to be placed before the section.' );
 	}
 
 	public function assertTemplateHierarchy( $url, array $expected, $message = '' ) {
