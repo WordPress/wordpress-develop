@@ -4213,7 +4213,7 @@ function wp_is_block_theme() {
  *
  * @return string The name of the class.
  */
-function wp_theme_element_class_name( $element ) {
+function wp_theme_get_element_class_name( $element ) {
 	return WP_Theme_JSON::get_element_class_name( $element );
 }
 
