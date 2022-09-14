@@ -780,16 +780,12 @@ function rest_handle_options_request( $response, $handler, $request ) {
  *
  * @since 4.4.0
  *
- * @param WP_REST_Response|WP_Error $response Current response being served.
+ * @param WP_REST_Response $response Current response being served.
  * @param WP_REST_Server   $server   ResponseHandler instance (usually WP_REST_Server).
  * @param WP_REST_Request  $request  The request that was used to make current response.
  * @return WP_REST_Response Response to be served, with "Allow" header if route has allowed methods.
  */
 function rest_send_allow_header( $response, $server, $request ) {
-	if ( is_wp_error( $response ) ) {
-		return $response;
-	}
-	
 	$matched_route = $response->get_matched_route();
 
 	if ( ! $matched_route ) {
@@ -850,16 +846,12 @@ function _rest_array_intersect_key_recursive( $array1, $array2 ) {
  *
  * @since 4.8.0
  *
- * @param WP_REST_Response|WP_Error $response Current response being served.
+ * @param WP_REST_Response $response Current response being served.
  * @param WP_REST_Server   $server   ResponseHandler instance (usually WP_REST_Server).
  * @param WP_REST_Request  $request  The request that was used to make current response.
  * @return WP_REST_Response Response to be served, trimmed down to contain a subset of fields.
  */
 function rest_filter_response_fields( $response, $server, $request ) {
-	if ( is_wp_error( $response ) ) {
-		return $response;
-	}
-
 	if ( ! isset( $request['_fields'] ) || $response->is_error() ) {
 		return $response;
 	}
