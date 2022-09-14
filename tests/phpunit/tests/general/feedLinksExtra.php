@@ -581,7 +581,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_links_extra_should_output_nothing_when_filters_return_false
+	 * @dataProvider data_feed_links_extra_should_output_nothing_when_filters_return_false
 	 *
 	 * @ticket 55904
 	 *
@@ -602,7 +602,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_links_extra_should_output_nothing_when_filters_return_false() {
+	public function data_feed_links_extra_should_output_nothing_when_filters_return_false() {
 		return array(
 			'a post with a comment' => array(
 				'type'   => 'post_with_comment',
