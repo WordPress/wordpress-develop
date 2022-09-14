@@ -151,6 +151,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		entry: {
 			'file/view': join( baseDir, `node_modules/@wordpress/block-library/build-module/file/view` ),
 			'navigation/view': join( baseDir, `node_modules/@wordpress/block-library/build-module/navigation/view` ),
+			'navigation/view-modal': join( baseDir, `node_modules/@wordpress/block-library/build-module/navigation/view-modal` ),
 		},
 		output: {
 			devtoolNamespace: 'wp',
