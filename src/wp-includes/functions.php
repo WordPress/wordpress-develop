@@ -945,8 +945,8 @@ function do_enclose( $content, $post ) {
 
 			$headers = wp_get_http_headers( $url );
 			if ( $headers ) {
-				$len           = isset( $headers['content-length'] ) ? (int) $headers['content-length'] : 0;
-				$type          = isset( $headers['content-type'] ) ? $headers['content-type'] : '';
+				$len           = isset( $headers['Content-Length'] ) ? (int) $headers['Content-Length'] : 0;
+				$type          = isset( $headers['Content-Type'] ) ? $headers['Content-Type'] : '';
 				$allowed_types = array( 'video', 'audio' );
 
 				// Check to see if we can figure out the mime type from the extension.
@@ -978,7 +978,7 @@ function do_enclose( $content, $post ) {
  *
  * @param string $url        URL to retrieve HTTP headers from.
  * @param bool   $deprecated Not Used.
- * @return string|false Headers on success, false on failure.
+ * @return false|Requests_Utility_CaseInsensitiveDictionary Headers on success, false on failure.
  */
 function wp_get_http_headers( $url, $deprecated = false ) {
 	if ( ! empty( $deprecated ) ) {
