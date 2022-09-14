@@ -606,31 +606,31 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 		return array(
 			'a post with a comment' => array(
 				'type'   => 'post_with_comment',
-				'filter' => 'feed_links_show_post_comments_feed',
+				'filter' => 'feed_links_extra_show_post_comments_feed',
 			),
 			'a custom post type'    => array(
 				'type'   => 'post_type',
-				'filter' => 'feed_links_show_post_type_archive_feed',
+				'filter' => 'feed_links_extra_show_post_type_archive_feed',
 			),
 			'a category'            => array(
 				'type'   => 'category',
-				'filter' => 'feed_links_show_category_feed',
+				'filter' => 'feed_links_extra_show_category_feed',
 			),
 			'a tag'                 => array(
 				'type'   => 'tag',
-				'filter' => 'feed_links_show_tag_feed',
+				'filter' => 'feed_links_extra_show_tag_feed',
 			),
 			'a taxonomy'            => array(
 				'type'   => 'tax',
-				'filter' => 'feed_links_show_tax_feed',
+				'filter' => 'feed_links_extra_show_tax_feed',
 			),
 			'an author'             => array(
 				'type'   => 'author',
-				'filter' => 'feed_links_show_author_feed',
+				'filter' => 'feed_links_extra_show_author_feed',
 			),
 			'search results'        => array(
 				'type'   => 'search',
-				'filter' => 'feed_links_show_search_feed',
+				'filter' => 'feed_links_extra_show_search_feed',
 			),
 		);
 	}

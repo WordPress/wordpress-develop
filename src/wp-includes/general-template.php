@@ -3179,7 +3179,7 @@ function feed_links_extra( $args = array() ) {
 		 * @param bool $show_comments_feed Whether to display the post comments feed link. Defaults to
 		 *                                 the {@see 'feed_links_show_comments_feed'} filter result.
 		 */
-		$show_post_comments_feed = apply_filters( 'feed_links_show_post_comments_feed', $show_comments_feed );
+		$show_post_comments_feed = apply_filters( 'feed_links_extra_show_post_comments_feed', $show_comments_feed );
 
 		if ( $show_post_comments_feed && ( comments_open() || pings_open() || $post->comment_count > 0 ) ) {
 			$title = sprintf(
@@ -3203,7 +3203,7 @@ function feed_links_extra( $args = array() ) {
 		 *
 		 * @param bool $show Whether to display the post type archive feed link. Default true.
 		 */
-		$show_post_type_archive_feed = apply_filters( 'feed_links_show_post_type_archive_feed', true );
+		$show_post_type_archive_feed = apply_filters( 'feed_links_extra_show_post_type_archive_feed', true );
 
 		if ( $show_post_type_archive_feed ) {
 			$post_type = get_query_var( 'post_type' );
@@ -3231,7 +3231,7 @@ function feed_links_extra( $args = array() ) {
 		 *
 		 * @param bool $show Whether to display the category feed link. Default true.
 		 */
-		$show_category_feed = apply_filters( 'feed_links_show_category_feed', true );
+		$show_category_feed = apply_filters( 'feed_links_extra_show_category_feed', true );
 
 		if ( $show_category_feed ) {
 			$term = get_queried_object();
@@ -3255,7 +3255,7 @@ function feed_links_extra( $args = array() ) {
 		 *
 		 * @param bool $show Whether to display the tag feed link. Default true.
 		 */
-		$show_tag_feed = apply_filters( 'feed_links_show_tag_feed', true );
+		$show_tag_feed = apply_filters( 'feed_links_extra_show_tag_feed', true );
 
 		if ( $show_tag_feed ) {
 			$term = get_queried_object();
@@ -3279,7 +3279,7 @@ function feed_links_extra( $args = array() ) {
 		 *
 		 * @param bool $show Whether to display the custom taxonomy feed link. Default true.
 		 */
-		$show_tax_feed = apply_filters( 'feed_links_show_tax_feed', true );
+		$show_tax_feed = apply_filters( 'feed_links_extra_show_tax_feed', true );
 
 		if ( $show_tax_feed ) {
 			$term = get_queried_object();
@@ -3306,7 +3306,7 @@ function feed_links_extra( $args = array() ) {
 		 *
 		 * @param bool $show Whether to display the author feed link. Default true.
 		 */
-		$show_author_feed = apply_filters( 'feed_links_show_author_feed', true );
+		$show_author_feed = apply_filters( 'feed_links_extra_show_author_feed', true );
 
 		if ( $show_author_feed ) {
 			$author_id = (int) get_query_var( 'author' );
@@ -3328,7 +3328,7 @@ function feed_links_extra( $args = array() ) {
 		 *
 		 * @param bool $show Whether to display the search results feed link. Default true.
 		 */
-		$show_search_feed = apply_filters( 'feed_links_show_search_feed', true );
+		$show_search_feed = apply_filters( 'feed_links_extra_show_search_feed', true );
 
 		if ( $show_search_feed ) {
 			$title = sprintf(
