@@ -547,6 +547,21 @@ function get_post_class( $class = '', $post = null ) {
 
 	// All public taxonomies.
 	$taxonomies = get_taxonomies( array( 'public' => true ) );
+
+	/**
+	 * Filters the taxonomies to generate classes for each individual term.
+	 *
+	 * Default is all public taxonomies registered to the post type.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param array    $taxonomies List of all public taxonomies to generate classes for.
+	 * @param int      $post_id    The post ID.
+	 * @param string[] $classes    An array of post class names.
+	 * @param string[] $class      An array of additional class names added to the post.
+	*/
+	$taxonomies = apply_filters( 'wp_post_class_taxonomies', $taxonomies, $post->ID, $classes, $class );
+
 	foreach ( (array) $taxonomies as $taxonomy ) {
 		if ( is_object_in_taxonomy( $post->post_type, $taxonomy ) ) {
 			foreach ( (array) get_the_terms( $post->ID, $taxonomy ) as $term ) {
@@ -1090,9 +1105,10 @@ function post_custom( $key = '' ) {
  *
  * @since 1.2.0
  *
- * @internal This will probably change at some point...
+ * @deprecated 6.0.2 Use get_post_meta() to retrieve post meta and render manually.
  */
 function the_meta() {
+	_deprecated_function( __FUNCTION__, '6.0.2', 'get_post_meta()' );
 	$keys = get_post_custom_keys();
 	if ( $keys ) {
 		$li_html = '';
@@ -1108,8 +1124,8 @@ function the_meta() {
 			$html = sprintf(
 				"<li><span class='post-meta-key'>%s</span> %s</li>\n",
 				/* translators: %s: Post custom field name. */
-				sprintf( _x( '%s:', 'Post custom field name' ), $key ),
-				$value
+				esc_html( sprintf( _x( '%s:', 'Post custom field name' ), $key ) ),
+				esc_html( $value )
 			);
 
 			/**
