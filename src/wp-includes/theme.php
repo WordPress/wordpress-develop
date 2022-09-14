@@ -4212,7 +4212,6 @@ function wp_is_block_theme() {
  * @param string $element The name of the element.
  *
  * @return string The name of the class.
- *
  */
 function wp_theme_element_class_name( $element ) {
 	return WP_Theme_JSON::get_element_class_name( $element );
