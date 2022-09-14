@@ -3834,8 +3834,6 @@ EOF;
 	 * @return int The changed quality.
 	 */
 	public function image_editor_change_quality_low_jpeg( $quality, $mime_type ) {
-		error_log( "image_editor_change_quality_low_jpeg:" . json_encode( $mime_type, JSON_PRETTY_PRINT ) );
-
 		if ( 'image/jpeg' === $mime_type ) {
 			return 5;
 		} elseif ( 'image/webp' === $mime_type ) {
