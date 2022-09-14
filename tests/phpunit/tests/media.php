@@ -3748,6 +3748,103 @@ EOF;
 			),
 		);
 	}
+
+
+	/**
+	 * Test that generated files with the `image_editor_output_format` applied use the correct
+	 * quality level based on the ir mime type.
+	 *
+	 * @ticket 56442
+	 */
+	public function test_quality_with_image_conversion_file_sizes() {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->markTestSkipped( 'WebP is not supported on this system.' );
+		}
+		$temp_dir = get_temp_dir();
+		$file = $temp_dir . '/33772.jpg';
+		copy( DIR_TESTDATA . '/images/33772.jpg', $file );
+
+		$editor = wp_get_image_editor( $file );
+
+		// Set JPEG output quality low and WebP quality high
+		add_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low_jpeg' ), 10, 2 );
+
+		$attachment_id = self::factory()->attachment->create_object(
+			$file,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
+
+		add_filter( 'big_image_size_threshold', array( $this, 'add_big_image_size_threshold' ) );
+
+		// Generate subsizes as JPEGs.
+		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_jpeg' ) );
+		$jpeg_sizes = wp_generate_attachment_metadata( $attachment_id, $file );
+		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_jpeg' ) );
+
+		// Generate subsizes as WebP.
+		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_webp' ) );
+		$webp_sizes = wp_generate_attachment_metadata( $attachment_id, $file );
+		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_webp' ) );
+
+		// The main size should be a scaled image, smaller for JPEG.
+		$this->assertLessThan( $webp_sizes['filesize'], $jpeg_sizes['filesize'] );
+
+		// All JPEGs (quality 5) should be smaller than the WebPs (quality 95)
+		$sizes_to_compare = array_intersect_key( $jpeg_sizes['sizes'], $webp_sizes['sizes'] );
+		foreach ( $sizes_to_compare as $size => $size_data ) {
+			$this->assertLessThan( $webp_sizes['sizes'][ $size ]['filesize'], $jpeg_sizes['sizes'][ $size ]['filesize'] );
+		}
+
+		// Cleanup.
+		remove_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low_jpeg' ), 10, 2 );
+		remove_filter( 'big_image_size_threshold', array( $this, 'add_big_image_size_threshold' ) );
+
+	}
+
+	/**
+	 * Create a `-scaled` output image for testing.
+	 */
+	public function add_big_image_size_threshold() {
+		return 1000;
+	}
+
+	/**
+	 * Output JPEG files.
+	 */
+	public function image_editor_output_jpeg() {
+		return array( 'image/jpeg' => 'image/jpeg' );
+	}
+
+	/**
+	 * Output WebP files.
+	 */
+	public function image_editor_output_webp() {
+		return array( 'image/jpeg' => 'image/webp' );
+	}
+
+	/**
+	 * Changes the quality using very low quality for JPEGs and very high quality
+	 * for WebPs, used to verify the filter is applying correctly.
+	 *
+	 * @param int    $quality   Default quality.
+	 * @param string $mime_type Image mime-type.
+	 * @return int The changed quality.
+	 */
+	public function image_editor_change_quality_low_jpeg( $quality, $mime_type ) {
+		error_log( "image_editor_change_quality_low_jpeg:" . json_encode( $mime_type, JSON_PRETTY_PRINT ) );
+
+		if ( 'image/jpeg' === $mime_type ) {
+			return 5;
+		} elseif ( 'image/webp' === $mime_type ) {
+			return 95;
+		} else {
+			return 30;
+		}
+	}
+
 }
 
 /**

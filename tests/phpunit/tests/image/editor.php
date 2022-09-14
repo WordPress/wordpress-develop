@@ -160,7 +160,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		// Quality should change to the output format's value as filtered above.
 		// A JPEG image will be converted to WEBP whose quialty should be 42.
 		$editor->save();
-		$this->assertSame( 42, $editor->get_quality(), 'Image conversion from JPEG to WEBP. Filtered WEBP quality shoild be 42.' );
+		$this->assertSame( 42, $editor->get_quality(), 'Image conversion from JPEG to WEBP. Filtered WEBP quality should be 42.' );
 
 		// After removing the conversion the quality setting should reset to the filtered value for the original image type, JPEG.
 		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_formats' ) );
