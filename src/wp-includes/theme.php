@@ -4205,7 +4205,7 @@ function wp_is_block_theme() {
 
 /**
  * Given an element name, returns a class name.
- * Alias from WP_Theme_JSON::get_element_class_name.
+ * Alias of WP_Theme_JSON::get_element_class_name.
  *
  * @param string $element The name of the element.
  *
