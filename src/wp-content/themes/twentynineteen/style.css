@@ -2471,7 +2471,6 @@ a:hover {
 
 a:focus {
   text-decoration: underline;
-  text-decoration-skip-ink: auto;
   text-decoration-thickness: 2px;
 }
 
@@ -2514,7 +2513,6 @@ a:focus {
   outline: thin;
   outline-style: dotted;
   text-decoration: underline;
-  text-decoration-skip-ink: auto;
   text-decoration-thickness: 2px;
 }
 
@@ -2764,7 +2762,6 @@ a:active {
 a:focus {
   outline: thin dotted;
   text-decoration: underline;
-  text-decoration-skip-ink: auto;
   text-decoration-thickness: 2px;
 }
 
@@ -4435,7 +4432,6 @@ body.page .main-navigation {
 
 .entry .entry-content a {
   text-decoration: underline;
-  text-decoration-skip-ink: auto;
   text-decoration-thickness: 2px;
 }
 
@@ -4914,7 +4910,6 @@ body.page .main-navigation {
 
 .comment .comment-content a {
   text-decoration: underline;
-  text-decoration-skip-ink: auto;
   text-decoration-thickness: 2px;
 }
 
@@ -5241,7 +5236,6 @@ body.page .main-navigation {
 
 .widget_calendar .calendar_wrap a {
   text-decoration: underline;
-  text-decoration-skip-ink: auto;
   text-decoration-thickness: 2px;
 }
 
