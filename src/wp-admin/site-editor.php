@@ -23,6 +23,11 @@ if ( ! ( current_theme_supports( 'block-template-parts' ) || wp_is_block_theme()
 	wp_die( __( 'The theme you are currently using is not compatible with Full Site Editing.' ) );
 }
 
+$is_template_part_editor = isset( $_GET['postType'] ) && 'wp_template_part' === sanitize_key( $_GET['postType'] );
+if ( ! wp_is_block_theme() && ! $is_template_part_editor ) {
+	wp_die( __( 'The theme you are currently using is not compatible with the Site Editor.' ) );
+}
+
 /**
  * Do a server-side redirection if missing `postType` and `postId`
  * query args when visiting Site Editor.
