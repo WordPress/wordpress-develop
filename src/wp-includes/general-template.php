@@ -3169,9 +3169,9 @@ function feed_links_extra( $args = array() ) {
 		/**
 		 * Filters whether to display the post comments feed link.
 		 *
-		 * This filter allows to enable/disable the feed link for a singular post
+		 * This filter allows to enable or disable the feed link for a singular post
 		 * in a way that is independent of {@see 'feed_links_show_comments_feed'}
-		 * (which disables the global comments feed). The result of that filter
+		 * (which controls the global comments feed). The result of that filter
 		 * is accepted as a parameter.
 		 *
 		 * @since 6.1.0
