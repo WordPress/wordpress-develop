@@ -3761,7 +3761,7 @@ EOF;
 			$this->markTestSkipped( 'WebP is not supported on this system.' );
 		}
 		$temp_dir = get_temp_dir();
-		$file = $temp_dir . '/33772.jpg';
+		$file     = $temp_dir . '/33772.jpg';
 		copy( DIR_TESTDATA . '/images/33772.jpg', $file );
 
 		$editor = wp_get_image_editor( $file );
