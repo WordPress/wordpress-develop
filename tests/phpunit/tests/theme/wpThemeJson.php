@@ -423,7 +423,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-site-blocks > * { margin-block-start: 0; margin-block-end: 0; }.wp-site-blocks > * + * { margin-block-start: 1em; }body { --wp--style--block-gap: 1em; }';
+		$expected = 'body { margin: 0; }body{--wp--style--block-gap: 1em;}.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-site-blocks > * { margin-block-start: 0; margin-block-end: 0; }.wp-site-blocks > * + * { margin-block-start: var( --wp--style--block-gap ); }';
 		$this->assertSame( $expected, $theme_json->get_stylesheet() );
 		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ) ) );
 	}
@@ -544,16 +544,13 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 							),
 						),
 					),
-					'spacing'  => array(
-						'blockGap' => '24px',
-					),
 				),
 				'misc'     => 'value',
 			)
 		);
 
 		$variables = 'body{--wp--preset--color--grey: grey;--wp--preset--font-family--small: 14px;--wp--preset--font-family--big: 41px;}.wp-block-group{--wp--custom--base-font: 16;--wp--custom--line-height--small: 1.2;--wp--custom--line-height--medium: 1.4;--wp--custom--line-height--large: 1.8;}';
-		$styles    = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }body{color: var(--wp--preset--color--grey);}a:where(:not(.wp-element-button)){background-color: #333;color: #111;}.wp-block-group{border-radius: 10px;padding: 24px;}.wp-block-group a:where(:not(.wp-element-button)){color: #111;}h1,h2,h3,h4,h5,h6{color: #123456;}h1 a:where(:not(.wp-element-button)),h2 a:where(:not(.wp-element-button)),h3 a:where(:not(.wp-element-button)),h4 a:where(:not(.wp-element-button)),h5 a:where(:not(.wp-element-button)),h6 a:where(:not(.wp-element-button)){background-color: #333;color: #111;font-size: 60px;}.wp-block-post-date{color: #123456;}.wp-block-post-date a:where(:not(.wp-element-button)){background-color: #777;color: #555;}.wp-block-image{border-top-left-radius: 10px;border-bottom-right-radius: 1em;margin-bottom: 30px;}';
+		$styles    = 'body { margin: 0; }body{color: var(--wp--preset--color--grey);}.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }a:where(:not(.wp-element-button)){background-color: #333;color: #111;}.wp-block-group{border-radius: 10px;padding: 24px;}.wp-block-group a:where(:not(.wp-element-button)){color: #111;}h1,h2,h3,h4,h5,h6{color: #123456;}h1 a:where(:not(.wp-element-button)),h2 a:where(:not(.wp-element-button)),h3 a:where(:not(.wp-element-button)),h4 a:where(:not(.wp-element-button)),h5 a:where(:not(.wp-element-button)),h6 a:where(:not(.wp-element-button)){background-color: #333;color: #111;font-size: 60px;}.wp-block-post-date{color: #123456;}.wp-block-post-date a:where(:not(.wp-element-button)){background-color: #777;color: #555;}.wp-block-image{border-top-left-radius: 10px;border-bottom-right-radius: 1em;margin-bottom: 30px;}';
 		$presets   = '.has-grey-color{color: var(--wp--preset--color--grey) !important;}.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}.has-grey-border-color{border-color: var(--wp--preset--color--grey) !important;}.has-small-font-family{font-family: var(--wp--preset--font-family--small) !important;}.has-big-font-family{font-family: var(--wp--preset--font-family--big) !important;}';
 		$all       = $variables . $styles . $presets;
 		$this->assertSame( $all, $theme_json->get_stylesheet() );
@@ -2678,8 +2675,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					'blocks'  => array(
 						'core/group' => array(
 							'spacing' => array(
-								'margin'  => 'valid value',
-								'display' => 'none',
+								'margin'   => 'valid value',
+								'blockGap' => 'invalid value',
 							),
 						),
 					),
@@ -2992,7 +2989,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }body{background-color: #ffffff;color: #000000;}.wp-element-button, .wp-block-button__link{background-color: #000000;color: #ffffff;}';
+		$expected = 'body { margin: 0; }body{background-color: #ffffff;color: #000000;}.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-element-button, .wp-block-button__link{background-color: #000000;color: #ffffff;}';
 		$this->assertSame( $expected, $theme_json->get_stylesheet() );
 	}
 
@@ -3024,7 +3021,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }body{background-color: #ffffff;}.wp-element-button, .wp-block-button__link{color: #ffffff;}';
+		$expected = 'body { margin: 0; }body{background-color: #ffffff;}.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-element-button, .wp-block-button__link{color: #ffffff;}';
 		$this->assertSame( $expected, $theme_json->get_stylesheet() );
 	}
 
@@ -3056,7 +3053,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }body{background-color: #ffffff;color: #ffffff;}.wp-element-button, .wp-block-button__link{color: #ffffff;}';
+		$expected = 'body { margin: 0; }body{background-color: #ffffff;color: #ffffff;}.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-element-button, .wp-block-button__link{color: #ffffff;}';
 		$this->assertSame( $expected, $theme_json->get_stylesheet() );
 	}
 
@@ -3080,416 +3077,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }body{background-color: #ffffff;}';
+		$expected = 'body { margin: 0; }body{background-color: #ffffff;}.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }';
 		$this->assertSame( $expected, $theme_json->get_stylesheet() );
 	}
 
-	/**
-	 * @dataProvider data_get_layout_definitions
-	 *
-	 * @ticket 56467
-	 *
-	 * @param array $layout_definitions Layout definitions as stored in core theme.json.
-	 */
-	public function test_get_stylesheet_generates_layout_styles( $layout_definitions ) {
-		$theme_json = new WP_Theme_JSON(
-			array(
-				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
-				'settings' => array(
-					'layout'  => array(
-						'definitions' => $layout_definitions,
-					),
-					'spacing' => array(
-						'blockGap' => true,
-					),
-				),
-				'styles'   => array(
-					'spacing' => array(
-						'blockGap' => '1em',
-					),
-				),
-			),
-			'default'
-		);
-
-		// Results also include root site blocks styles.
-		$this->assertSame(
-			'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-site-blocks > * { margin-block-start: 0; margin-block-end: 0; }.wp-site-blocks > * + * { margin-block-start: 1em; }body { --wp--style--block-gap: 1em; }body .is-layout-flow > *{margin-block-start: 0;margin-block-end: 0;}body .is-layout-flow > * + *{margin-block-start: 1em;margin-block-end: 0;}body .is-layout-flex{gap: 1em;}body .is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}body .is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}body .is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}',
-			$theme_json->get_stylesheet( array( 'styles' ) )
-		);
-	}
-
-	/**
-	 * @dataProvider data_get_layout_definitions
-	 *
-	 * @ticket 56467
-	 *
-	 * @param array $layout_definitions Layout definitions as stored in core theme.json.
-	 */
-	public function test_get_stylesheet_generates_layout_styles_with_spacing_presets( $layout_definitions ) {
-		$theme_json = new WP_Theme_JSON(
-			array(
-				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
-				'settings' => array(
-					'layout'  => array(
-						'definitions' => $layout_definitions,
-					),
-					'spacing' => array(
-						'blockGap' => true,
-					),
-				),
-				'styles'   => array(
-					'spacing' => array(
-						'blockGap' => 'var:preset|spacing|60',
-					),
-				),
-			),
-			'default'
-		);
-
-		// Results also include root site blocks styles.
-		$this->assertSame(
-			'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-site-blocks > * { margin-block-start: 0; margin-block-end: 0; }.wp-site-blocks > * + * { margin-block-start: var(--wp--preset--spacing--60); }body { --wp--style--block-gap: var(--wp--preset--spacing--60); }body .is-layout-flow > *{margin-block-start: 0;margin-block-end: 0;}body .is-layout-flow > * + *{margin-block-start: var(--wp--preset--spacing--60);margin-block-end: 0;}body .is-layout-flex{gap: var(--wp--preset--spacing--60);}body .is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}body .is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}body .is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}',
-			$theme_json->get_stylesheet( array( 'styles' ) )
-		);
-	}
-
-	/**
-	 * @dataProvider data_get_layout_definitions
-	 *
-	 * @ticket 56467
-	 *
-	 * @param array $layout_definitions Layout definitions as stored in core theme.json.
-	 */
-	public function test_get_stylesheet_generates_fallback_gap_layout_styles( $layout_definitions ) {
-		$theme_json = new WP_Theme_JSON(
-			array(
-				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
-				'settings' => array(
-					'layout'  => array(
-						'definitions' => $layout_definitions,
-					),
-					'spacing' => array(
-						'blockGap' => null,
-					),
-				),
-				'styles'   => array(
-					'spacing' => array(
-						'blockGap' => '1em',
-					),
-				),
-			),
-			'default'
-		);
-		$stylesheet = $theme_json->get_stylesheet( array( 'styles' ) );
-
-		// Results also include root site blocks styles.
-		$this->assertSame(
-			'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }:where(.is-layout-flex){gap: 0.5em;}body .is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}body .is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}body .is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}',
-			$stylesheet
-		);
-	}
-
-	/**
-	 * @dataProvider data_get_layout_definitions
-	 *
-	 * @ticket 56467
-	 *
-	 * @param array $layout_definitions Layout definitions as stored in core theme.json.
-	 */
-	public function test_get_stylesheet_generates_base_fallback_gap_layout_styles( $layout_definitions ) {
-		$theme_json = new WP_Theme_JSON(
-			array(
-				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
-				'settings' => array(
-					'layout'  => array(
-						'definitions' => $layout_definitions,
-					),
-					'spacing' => array(
-						'blockGap' => null,
-					),
-				),
-			),
-			'default'
-		);
-		$stylesheet = $theme_json->get_stylesheet( array( 'base-layout-styles' ) );
-
-		// Note the `base-layout-styles` includes a fallback gap for the Columns block for backwards compatibility.
-		$this->assertSame(
-			':where(.is-layout-flex){gap: 0.5em;}body .is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}body .is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}body .is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}',
-			$stylesheet
-		);
-	}
-
-	/**
-	 * @dataProvider data_get_layout_definitions
-	 *
-	 * @ticket 56467
-	 *
-	 * @param array $layout_definitions Layout definitions as stored in core theme.json.
-	 */
-	public function test_get_stylesheet_skips_layout_styles( $layout_definitions ) {
-		add_theme_support( 'disable-layout-styles' );
-		$theme_json = new WP_Theme_JSON(
-			array(
-				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
-				'settings' => array(
-					'layout'  => array(
-						'definitions' => $layout_definitions,
-					),
-					'spacing' => array(
-						'blockGap' => null,
-					),
-				),
-			),
-			'default'
-		);
-		$stylesheet = $theme_json->get_stylesheet( array( 'base-layout-styles' ) );
-		remove_theme_support( 'disable-layout-styles' );
-
-		// All Layout styles should be skipped.
-		$this->assertSame(
-			'',
-			$stylesheet
-		);
-	}
-
-	/**
-	 * @dataProvider data_get_layout_definitions
-	 *
-	 * @ticket 56467
-	 *
-	 * @param array $layout_definitions Layout definitions as stored in core theme.json.
-	 */
-	public function test_get_stylesheet_generates_valid_block_gap_values_and_skips_null_or_false_values( $layout_definitions ) {
-		$theme_json = new WP_Theme_JSON(
-			array(
-				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
-				'settings' => array(
-					'layout'  => array(
-						'definitions' => $layout_definitions,
-					),
-					'spacing' => array(
-						'blockGap' => true,
-					),
-				),
-				'styles'   => array(
-					'spacing' => array(
-						'blockGap' => '1rem',
-					),
-					'blocks'  => array(
-						'core/post-content' => array(
-							'color' => array(
-								'text' => 'gray', // This value should not render block layout styles.
-							),
-						),
-						'core/social-links' => array(
-							'spacing' => array(
-								'blockGap' => '0', // This value should render block layout gap as zero.
-							),
-						),
-						'core/buttons'      => array(
-							'spacing' => array(
-								'blockGap' => 0, // This value should render block layout gap as zero.
-							),
-						),
-						'core/columns'      => array(
-							'spacing' => array(
-								'blockGap' => false, // This value should be ignored. The block will use the global layout value.
-							),
-						),
-					),
-				),
-			),
-			'default'
-		);
-
-		$this->assertEquals(
-			'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-site-blocks > * { margin-block-start: 0; margin-block-end: 0; }.wp-site-blocks > * + * { margin-block-start: 1rem; }body { --wp--style--block-gap: 1rem; }body .is-layout-flow > *{margin-block-start: 0;margin-block-end: 0;}body .is-layout-flow > * + *{margin-block-start: 1rem;margin-block-end: 0;}body .is-layout-flex{gap: 1rem;}body .is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}body .is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}body .is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}.wp-block-post-content{color: gray;}.wp-block-social-links.is-layout-flow > *{margin-block-start: 0;margin-block-end: 0;}.wp-block-social-links.is-layout-flow > * + *{margin-block-start: 0;margin-block-end: 0;}.wp-block-social-links.is-layout-flex{gap: 0;}.wp-block-buttons.is-layout-flow > *{margin-block-start: 0;margin-block-end: 0;}.wp-block-buttons.is-layout-flow > * + *{margin-block-start: 0;margin-block-end: 0;}.wp-block-buttons.is-layout-flex{gap: 0;}',
-			$theme_json->get_stylesheet()
-		);
-	}
-
-	/**
-	 * Data provider for layout tests.
-	 *
-	 * @ticket 56467
-	 *
-	 * @return array
-	 */
-	public function data_get_layout_definitions() {
-		return array(
-			'layout definitions' => array(
-				array(
-					'default' => array(
-						'name'          => 'default',
-						'slug'          => 'flow',
-						'className'     => 'is-layout-flow',
-						'baseStyles'    => array(
-							array(
-								'selector' => ' > .alignleft',
-								'rules'    => array(
-									'float'               => 'left',
-									'margin-inline-start' => '0',
-									'margin-inline-end'   => '2em',
-								),
-							),
-							array(
-								'selector' => ' > .alignright',
-								'rules'    => array(
-									'float'               => 'right',
-									'margin-inline-start' => '2em',
-									'margin-inline-end'   => '0',
-								),
-							),
-							array(
-								'selector' => ' > .aligncenter',
-								'rules'    => array(
-									'margin-left'  => 'auto !important',
-									'margin-right' => 'auto !important',
-								),
-							),
-						),
-						'spacingStyles' => array(
-							array(
-								'selector' => ' > *',
-								'rules'    => array(
-									'margin-block-start' => '0',
-									'margin-block-end'   => '0',
-								),
-							),
-							array(
-								'selector' => ' > * + *',
-								'rules'    => array(
-									'margin-block-start' => null,
-									'margin-block-end'   => '0',
-								),
-							),
-						),
-					),
-					'flex'    => array(
-						'name'          => 'flex',
-						'slug'          => 'flex',
-						'className'     => 'is-layout-flex',
-						'displayMode'   => 'flex',
-						'baseStyles'    => array(
-							array(
-								'selector' => '',
-								'rules'    => array(
-									'flex-wrap'   => 'wrap',
-									'align-items' => 'center',
-								),
-							),
-						),
-						'spacingStyles' => array(
-							array(
-								'selector' => '',
-								'rules'    => array(
-									'gap' => null,
-								),
-							),
-						),
-					),
-				),
-			),
-		);
-	}
-
-	/**
-	 * @ticket 56467
-	 */
-	function test_get_styles_for_block_with_padding_aware_alignments() {
-		$theme_json = new WP_Theme_JSON(
-			array(
-				'version'  => 2,
-				'styles'   => array(
-					'spacing' => array(
-						'padding' => array(
-							'top'    => '10px',
-							'right'  => '12px',
-							'bottom' => '10px',
-							'left'   => '12px',
-						),
-					),
-				),
-				'settings' => array(
-					'useRootPaddingAwareAlignments' => true,
-				),
-			)
-		);
-
-		$metadata = array(
-			'path'     => array(
-				'0' => 'styles',
-			),
-			'selector' => 'body',
-		);
-
-		$expected    = 'body { margin: 0; }.wp-site-blocks { padding-top: var(--wp--style--root--padding-top); padding-bottom: var(--wp--style--root--padding-bottom); }.has-global-padding { padding-right: var(--wp--style--root--padding-right); padding-left: var(--wp--style--root--padding-left); }.has-global-padding :where(.has-global-padding) { padding-right: 0; padding-left: 0; }.has-global-padding > .alignfull { margin-right: calc(var(--wp--style--root--padding-right) * -1); margin-left: calc(var(--wp--style--root--padding-left) * -1); }.has-global-padding :where(.has-global-padding) > .alignfull { margin-right: 0; margin-left: 0; }.has-global-padding > .alignfull:where(:not(.has-global-padding)) > :where([class*="wp-block-"]:not(.alignfull):not([class*="__"]),p,h1,h2,h3,h4,h5,h6,ul,ol) { padding-right: var(--wp--style--root--padding-right); padding-left: var(--wp--style--root--padding-left); }.has-global-padding :where(.has-global-padding) > .alignfull:where(:not(.has-global-padding)) > :where([class*="wp-block-"]:not(.alignfull):not([class*="__"]),p,h1,h2,h3,h4,h5,h6,ul,ol) { padding-right: 0; padding-left: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }body{--wp--style--root--padding-top: 10px;--wp--style--root--padding-right: 12px;--wp--style--root--padding-bottom: 10px;--wp--style--root--padding-left: 12px;}';
-		$root_rules  = $theme_json->get_root_layout_rules( WP_Theme_JSON::ROOT_BLOCK_SELECTOR, $metadata );
-		$style_rules = $theme_json->get_styles_for_block( $metadata );
-		$this->assertSame( $expected, $root_rules . $style_rules );
-	}
-
-	/**
-	 * @ticket 56467
-	 */
-	function test_get_styles_for_block_without_padding_aware_alignments() {
-		$theme_json = new WP_Theme_JSON(
-			array(
-				'version' => 2,
-				'styles'  => array(
-					'spacing' => array(
-						'padding' => array(
-							'top'    => '10px',
-							'right'  => '12px',
-							'bottom' => '10px',
-							'left'   => '12px',
-						),
-					),
-				),
-			)
-		);
-
-		$metadata = array(
-			'path'     => array(
-				'0' => 'styles',
-			),
-			'selector' => 'body',
-		);
-
-		$expected    = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }body{padding-top: 10px;padding-right: 12px;padding-bottom: 10px;padding-left: 12px;}';
-		$root_rules  = $theme_json->get_root_layout_rules( WP_Theme_JSON::ROOT_BLOCK_SELECTOR, $metadata );
-		$style_rules = $theme_json->get_styles_for_block( $metadata );
-		$this->assertSame( $expected, $root_rules . $style_rules );
-	}
-
-	/**
-	 * @ticket 56467
-	 */
-	function test_get_styles_for_block_with_content_width() {
-		$theme_json = new WP_Theme_JSON(
-			array(
-				'version'  => 2,
-				'settings' => array(
-					'layout' => array(
-						'contentSize' => '800px',
-						'wideSize'    => '1000px',
-					),
-				),
-			)
-		);
-
-		$metadata = array(
-			'path'     => array(
-				'0' => 'settings',
-			),
-			'selector' => 'body',
-		);
-
-		$expected    = 'body { margin: 0;--wp--style--global--content-size: 800px;--wp--style--global--wide-size: 1000px; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }';
-		$root_rules  = $theme_json->get_root_layout_rules( WP_Theme_JSON::ROOT_BLOCK_SELECTOR, $metadata );
-		$style_rules = $theme_json->get_styles_for_block( $metadata );
-		$this->assertSame( $expected, $root_rules . $style_rules );
-	}
 }
