@@ -7457,7 +7457,7 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 	$current_limit = ini_get( 'memory_limit' );
 
 	// If we're already set to an unlimited value there's no higher limit to set.
-	if ( wp_ini_quantity_cmp( $current_limit, PHP_INI_LIMIT_UNLIMITED ) >= 0 ) {
+	if ( wp_ini_parse_quantity( $current_limit ) <= 0 ) {
 		return false;
 	}
 
