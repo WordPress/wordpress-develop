@@ -3,7 +3,7 @@
 /**
  * @group user
  *
- * @covers wp_register_persisted_preferences_meta
+ * @covers ::wp_register_persisted_preferences_meta
  */
 class Tests_User_wpRegisterPersistedPreferencesMeta extends WP_UnitTestCase {
 
