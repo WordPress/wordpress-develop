@@ -1748,6 +1748,10 @@ div.action-links,
 		margin-top: 25px;
 	}
 
+	.tablenav.bottom .actions {
+		margin-bottom: 10px;
+	}
+
 	.tablenav.top .tablenav-pages.one-page {
 		display: none;
 	}
