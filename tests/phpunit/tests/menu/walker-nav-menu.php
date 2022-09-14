@@ -49,7 +49,7 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	 */
 	public function test_noopener_no_referrer_for_target_blank() {
 		$actual     = '';
-		$post_id    = $this->factory->post->create();
+		$post_id    = self::factory()->post->create();
 		$post_title = get_the_title( $post_id );
 
 		$item = array(
@@ -80,7 +80,7 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	 */
 	public function test_start_el_with_empty_attributes( $value, $expected ) {
 		$output     = '';
-		$post_id    = $this->factory->post->create();
+		$post_id    = self::factory()->post->create();
 		$post_title = get_the_title( $post_id );
 
 		$item = array(

@@ -454,7 +454,7 @@ class Tests_Post extends WP_UnitTestCase {
 	public function test_pre_wp_unique_post_slug_filter() {
 		add_filter( 'pre_wp_unique_post_slug', array( $this, 'filter_pre_wp_unique_post_slug' ), 10, 6 );
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'title'       => 'An example',
 				'post_status' => 'publish',
@@ -726,7 +726,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 */
 	public function test_use_block_editor_for_post() {
 		$this->assertFalse( use_block_editor_for_post( -1 ) );
-		$bogus_post_id = $this->factory()->post->create(
+		$bogus_post_id = self::factory()->post->create(
 			array(
 				'post_type' => 'bogus',
 			)
@@ -739,14 +739,14 @@ class Tests_Post extends WP_UnitTestCase {
 				'show_in_rest' => false,
 			)
 		);
-		$restless_post_id = $this->factory()->post->create(
+		$restless_post_id = self::factory()->post->create(
 			array(
 				'post_type' => 'restless',
 			)
 		);
 		$this->assertFalse( use_block_editor_for_post( $restless_post_id ) );
 
-		$generic_post_id = $this->factory()->post->create();
+		$generic_post_id = self::factory()->post->create();
 
 		add_filter( 'use_block_editor_for_post', '__return_false' );
 		$this->assertFalse( use_block_editor_for_post( $generic_post_id ) );

@@ -115,7 +115,7 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 	 * @ticket 44192
 	 */
 	public function test_function_should_return_empty_string_when_privacy_page_title_empty() {
-		$nameless_page_id = $this->factory->post->create(
+		$nameless_page_id = self::factory()->post->create(
 			array(
 				'post_type'  => 'page',
 				'post_title' => '',
