@@ -4,6 +4,7 @@
  * Tests for wp_is_ini_value_changeable().
  *
  * @group load.php
+ *
  * @covers ::wp_is_ini_value_changeable
  */
 class Tests_Load_wpIsIniValueChangeable extends WP_UnitTestCase {

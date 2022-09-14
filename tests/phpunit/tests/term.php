@@ -138,10 +138,10 @@ class Tests_Term extends WP_UnitTestCase {
 		$this->assertIsArray( $t );
 		$t2 = wp_insert_term( $term, 'category', array( 'parent' => $t['term_id'] ) );
 		$this->assertIsArray( $t2 );
-		if ( function_exists( 'term_is_ancestor_of' ) ) {
-			$this->assertTrue( term_is_ancestor_of( $t['term_id'], $t2['term_id'], 'category' ) );
-			$this->assertFalse( term_is_ancestor_of( $t2['term_id'], $t['term_id'], 'category' ) );
-		}
+
+		$this->assertTrue( term_is_ancestor_of( $t['term_id'], $t2['term_id'], 'category' ) );
+		$this->assertFalse( term_is_ancestor_of( $t2['term_id'], $t['term_id'], 'category' ) );
+
 		$this->assertTrue( cat_is_ancestor_of( $t['term_id'], $t2['term_id'] ) );
 		$this->assertFalse( cat_is_ancestor_of( $t2['term_id'], $t['term_id'] ) );
 

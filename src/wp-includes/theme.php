@@ -1179,6 +1179,20 @@ function get_header_image() {
 		$url = get_random_header_image();
 	}
 
+	/**
+	 * Filters the header image URL.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param string $url Header image URL.
+	 */
+	$url = apply_filters( 'get_header_image', $url );
+
+	if ( ! is_string( $url ) ) {
+		return false;
+	}
+
+	$url = trim( $url );
 	return sanitize_url( set_url_scheme( $url ) );
 }
 
@@ -2054,7 +2068,8 @@ function wp_update_custom_css_post( $css, $args = array() ) {
 			}
 
 			// Trigger creation of a revision. This should be removed once #30854 is resolved.
-			if ( 0 === count( wp_get_post_revisions( $r ) ) ) {
+			$revisions = wp_get_latest_revision_id_and_total_count( $r );
+			if ( ! is_wp_error( $revisions ) && 0 === $revisions['count'] ) {
 				wp_save_post_revision( $r );
 			}
 		}
@@ -4008,6 +4023,13 @@ function create_initial_theme_features() {
 		'disable-custom-gradients',
 		array(
 			'description'  => __( 'Whether the theme disables custom gradients.' ),
+			'show_in_rest' => true,
+		)
+	);
+	register_theme_feature(
+		'disable-layout-styles',
+		array(
+			'description'  => __( 'Whether the theme disables generated layout styles.' ),
 			'show_in_rest' => true,
 		)
 	);

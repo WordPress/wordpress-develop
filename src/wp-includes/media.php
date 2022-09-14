@@ -3219,6 +3219,7 @@ function wp_get_video_extensions() {
  *     @type string $poster   The 'poster' attribute for the `<video>` element. Default empty.
  *     @type string $loop     The 'loop' attribute for the `<video>` element. Default empty.
  *     @type string $autoplay The 'autoplay' attribute for the `<video>` element. Default empty.
+ *     @type string $muted    The 'muted' attribute for the `<video>` element. Default false.
  *     @type string $preload  The 'preload' attribute for the `<video>` element.
  *                            Default 'metadata'.
  *     @type string $class    The 'class' attribute for the `<video>` element.
@@ -3263,6 +3264,7 @@ function wp_video_shortcode( $attr, $content = '' ) {
 		'poster'   => '',
 		'loop'     => '',
 		'autoplay' => '',
+		'muted'    => 'false',
 		'preload'  => 'metadata',
 		'width'    => 640,
 		'height'   => 360,
@@ -3390,11 +3392,12 @@ function wp_video_shortcode( $attr, $content = '' ) {
 		'poster'   => esc_url( $atts['poster'] ),
 		'loop'     => wp_validate_boolean( $atts['loop'] ),
 		'autoplay' => wp_validate_boolean( $atts['autoplay'] ),
+		'muted'    => wp_validate_boolean( $atts['muted'] ),
 		'preload'  => $atts['preload'],
 	);
 
 	// These ones should just be omitted altogether if they are blank.
-	foreach ( array( 'poster', 'loop', 'autoplay', 'preload' ) as $a ) {
+	foreach ( array( 'poster', 'loop', 'autoplay', 'preload', 'muted' ) as $a ) {
 		if ( empty( $html_atts[ $a ] ) ) {
 			unset( $html_atts[ $a ] );
 		}
@@ -3902,6 +3905,51 @@ function _wp_image_editor_choose( $args = array() ) {
 	}
 
 	return false;
+}
+
+/**
+ * Filters the default image output mapping.
+ *
+ * With this filter callback, WebP image files will be generated for certain JPEG source files.
+ *
+ * @since 6.1.0
+ *
+ * @param array $output_mapping Map of mime type to output format.
+ * @param string $filename  Path to the image.
+ * @param string $mime_type The source image mime type.
+ * @param string $size_name Optional. The image size name to create, or empty string if not set. Default empty string.
+ * @return array The adjusted default output mapping.
+ */
+function wp_default_image_output_mapping( $output_mapping, $filename, $mime_type, $size_name = '' ) {
+	// If size name is specified, check whether the size supports additional MIME types like WebP.
+	if ( $size_name ) {
+		// Include only the core sizes that do not rely on add_image_size(). Additional image sizes are opt-in.
+		$enabled_sizes = array(
+			'thumbnail'      => true,
+			'medium'         => true,
+			'medium_large'   => true,
+			'large'          => true,
+			'post-thumbnail' => true,
+		);
+
+		/**
+		 * Filters the sizes that support secondary mime type output. Developers can use this
+		 * to control the generation of additional mime type sub-sized images.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param array $enabled_sizes Map of size names and whether they support secondary mime type output.
+		 */
+		$enabled_sizes = apply_filters( 'wp_image_sizes_with_additional_mime_type_support', $enabled_sizes );
+
+		// Bail early if the size does not support additional MIME types.
+		if ( empty( $enabled_sizes[ $size_name ] ) ) {
+			return $output_mapping;
+		}
+	}
+
+	$output_mapping['image/jpeg'] = 'image/webp';
+	return $output_mapping;
 }
 
 /**
@@ -4419,9 +4467,8 @@ function wp_enqueue_media( $args = array() ) {
 	 *
 	 * @link https://core.trac.wordpress.org/ticket/31071
 	 *
-	 * @param array|null $months An array of objects with `month` and `year`
-	 *                           properties, or `null` (or any other non-array value)
-	 *                           for default behavior.
+	 * @param stdClass[]|null $months An array of objects with `month` and `year`
+	 *                                properties, or `null` for default behavior.
 	 */
 	$months = apply_filters( 'media_library_months_with_files', null );
 	if ( ! is_array( $months ) ) {
