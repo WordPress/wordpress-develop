@@ -529,8 +529,7 @@ class Tests_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 17851
 	 * @covers ::add_settings_section
-	 *
-	 * @expectedIncorrectUsage add_settings_section
+	 * @covers ::do_settings_sections
 	 */
 	public function test_add_settings_section_missing_section_class_placeholder() {
 		$args = array(
@@ -540,6 +539,116 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 
 		add_settings_section( 'test-section', 'Section title', '__return_false', 'test-page', $args );
+		add_settings_field( 'test-field', 'Field title', '__return_false', 'test-page', 'test-section' );
+
+		global $wp_settings_sections;
+		$this->assertIsArray( $wp_settings_sections, 'List of sections is not initialized.' );
+		$this->assertArrayHasKey( 'test-page', $wp_settings_sections, 'List of sections for the test page has not been added to sections list.' );
+		$this->assertIsArray( $wp_settings_sections['test-page'], 'List of sections for the test page is not initialized.' );
+		$this->assertArrayHasKey( 'test-section', $wp_settings_sections['test-page'], 'Test section has not been added to the list of sections for the test page.' );
+
+		$this->assertEqualSetsWithIndex(
+			array(
+				'id'             => 'test-section',
+				'title'          => 'Section title',
+				'callback'       => '__return_false',
+				'before_section' => '<div class="test-section-wrapper">',
+				'after_section'  => '</div><!-- end of the test section -->',
+				'section_class'  => 'test-section-wrap',
+			),
+			$wp_settings_sections['test-page']['test-section'],
+			'Test section data does not match the expected dataset.'
+		);
+
+		ob_start();
+		do_settings_sections( 'test-page' );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( '<div class="test-section-wrapper">', $output, 'Test page output does not contain the custom markup to be placed before the section.' );
+		$this->assertStringContainsString( '</div><!-- end of the test section -->', $output, 'Test page output does not contain the custom markup to be placed before the section.' );
+	}
+
+	/**
+	 * @ticket 17851
+	 * @covers ::add_settings_section
+	 * @covers ::do_settings_sections
+	 */
+	public function test_add_settings_section_empty_section_class() {
+		$args = array(
+			'before_section' => '<div class="test-section-wrapper">',
+			'after_section'  => '</div><!-- end of the test section -->',
+			'section_class'  => '',
+		);
+
+		add_settings_section( 'test-section', 'Section title', '__return_false', 'test-page', $args );
+		add_settings_field( 'test-field', 'Field title', '__return_false', 'test-page', 'test-section' );
+
+		global $wp_settings_sections;
+		$this->assertIsArray( $wp_settings_sections, 'List of sections is not initialized.' );
+		$this->assertArrayHasKey( 'test-page', $wp_settings_sections, 'List of sections for the test page has not been added to sections list.' );
+		$this->assertIsArray( $wp_settings_sections['test-page'], 'List of sections for the test page is not initialized.' );
+		$this->assertArrayHasKey( 'test-section', $wp_settings_sections['test-page'], 'Test section has not been added to the list of sections for the test page.' );
+
+		$this->assertEqualSetsWithIndex(
+			array(
+				'id'             => 'test-section',
+				'title'          => 'Section title',
+				'callback'       => '__return_false',
+				'before_section' => '<div class="test-section-wrapper">',
+				'after_section'  => '</div><!-- end of the test section -->',
+				'section_class'  => '',
+			),
+			$wp_settings_sections['test-page']['test-section'],
+			'Test section data does not match the expected dataset.'
+		);
+
+		ob_start();
+		do_settings_sections( 'test-page' );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( '<div class="test-section-wrapper">', $output, 'Test page output does not contain the custom markup to be placed before the section.' );
+		$this->assertStringContainsString( '</div><!-- end of the test section -->', $output, 'Test page output does not contain the custom markup to be placed before the section.' );
+	}
+
+	/**
+	 * @ticket 17851
+	 * @covers ::add_settings_section
+	 * @covers ::do_settings_sections
+	 */
+	public function test_add_settings_section_missing_section_class() {
+		$args = array(
+			'before_section' => '<div class="test-section-wrapper">',
+			'after_section'  => '</div><!-- end of the test section -->',
+		);
+
+		add_settings_section( 'test-section', 'Section title', '__return_false', 'test-page', $args );
+		add_settings_field( 'test-field', 'Field title', '__return_false', 'test-page', 'test-section' );
+
+		global $wp_settings_sections;
+		$this->assertIsArray( $wp_settings_sections, 'List of sections is not initialized.' );
+		$this->assertArrayHasKey( 'test-page', $wp_settings_sections, 'List of sections for the test page has not been added to sections list.' );
+		$this->assertIsArray( $wp_settings_sections['test-page'], 'List of sections for the test page is not initialized.' );
+		$this->assertArrayHasKey( 'test-section', $wp_settings_sections['test-page'], 'Test section has not been added to the list of sections for the test page.' );
+
+		$this->assertEqualSetsWithIndex(
+			array(
+				'id'             => 'test-section',
+				'title'          => 'Section title',
+				'callback'       => '__return_false',
+				'before_section' => '<div class="test-section-wrapper">',
+				'after_section'  => '</div><!-- end of the test section -->',
+				'section_class'  => '',
+			),
+			$wp_settings_sections['test-page']['test-section'],
+			'Test section data does not match the expected dataset.'
+		);
+
+		ob_start();
+		do_settings_sections( 'test-page' );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( '<div class="test-section-wrapper">', $output, 'Test page output does not contain the custom markup to be placed before the section.' );
+		$this->assertStringContainsString( '</div><!-- end of the test section -->', $output, 'Test page output does not contain the custom markup to be placed before the section.' );
 	}
 
 	public function assertTemplateHierarchy( $url, array $expected, $message = '' ) {

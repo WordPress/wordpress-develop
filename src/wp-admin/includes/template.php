@@ -1594,23 +1594,6 @@ function add_settings_section( $id, $title, $callback, $page, $args = array() ) 
 
 	$section = wp_parse_args( $args, $defaults );
 
-	if ( array_key_exists( 'before_section', $section )
-		&& is_string( $section['before_section'] )
-		&& strlen( $section['before_section'] ) > 0
-		&& 1 !== preg_match( '/%s/', $section['before_section'] )
-	) {
-		_doing_it_wrong(
-			'add_settings_section',
-			sprintf(
-				/* translators: before_section */
-				__( '%s argument must contain a placeholder for the section CSS class.' ),
-				'<code>before_section</code>'
-			),
-			'6.1.0'
-		);
-		return;
-	}
-
 	if ( 'misc' === $page ) {
 		_deprecated_argument(
 			__FUNCTION__,
@@ -1734,7 +1717,11 @@ function do_settings_sections( $page ) {
 
 	foreach ( (array) $wp_settings_sections[ $page ] as $section ) {
 		if ( '' !== $section['before_section'] ) {
-			echo sprintf( $section['before_section'], $section['section_class'] );
+			if ( '' !== $section['section_class'] ) {
+				echo wp_kses_post( sprintf( $section['before_section'], esc_attr( $section['section_class'] ) ) );
+			} else {
+				echo wp_kses_post( $section['before_section'] );
+			}
 		}
 
 		if ( $section['title'] ) {
@@ -1753,7 +1740,7 @@ function do_settings_sections( $page ) {
 		echo '</table>';
 
 		if ( '' !== $section['after_section'] ) {
-			echo $section['after_section'];
+			echo wp_kses_post( $section['after_section'] );
 		}
 	}
 }
