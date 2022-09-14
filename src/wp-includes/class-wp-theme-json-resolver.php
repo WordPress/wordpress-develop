@@ -142,7 +142,7 @@ class WP_Theme_JSON_Resolver {
 		 *
 		 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
 		 */
-		$theme_json   = apply_filters( 'global_styles_default', new WP_Theme_JSON_Data( $config, 'default' ) );
+		$theme_json   = apply_filters( 'theme_json_default', new WP_Theme_JSON_Data( $config, 'default' ) );
 		$config       = $theme_json->get_data();
 		static::$core = new WP_Theme_JSON( $config, 'default' );
 
@@ -184,7 +184,7 @@ class WP_Theme_JSON_Resolver {
 			 *
 			 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
 			 */
-			$theme_json      = apply_filters( 'global_styles_theme', new WP_Theme_JSON_Data( $theme_json_data, 'theme' ) );
+			$theme_json      = apply_filters( 'theme_json_theme', new WP_Theme_JSON_Data( $theme_json_data, 'theme' ) );
 			$theme_json_data = $theme_json->get_data();
 			static::$theme   = new WP_Theme_JSON( $theme_json_data );
 
@@ -277,7 +277,7 @@ class WP_Theme_JSON_Resolver {
 		 *
 		 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
 		 */
-		$theme_json = apply_filters( 'global_styles_blocks', new WP_Theme_JSON_Data( $config, 'core' ) );
+		$theme_json = apply_filters( 'theme_json_blocks', new WP_Theme_JSON_Data( $config, 'core' ) );
 		$config     = $theme_json->get_data();
 
 		// Core here means it's the lower level part of the styles chain.
@@ -404,7 +404,7 @@ class WP_Theme_JSON_Resolver {
 				 *
 				 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
 				 */
-				$theme_json = apply_filters( 'global_styles_user', new WP_Theme_JSON_Data( $config, 'custom' ) );
+				$theme_json = apply_filters( 'theme_json_user', new WP_Theme_JSON_Data( $config, 'custom' ) );
 				$config     = $theme_json->get_data();
 				return new WP_Theme_JSON( $config, 'custom' );
 			}
@@ -426,7 +426,7 @@ class WP_Theme_JSON_Resolver {
 		 *
 		 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
 		 */
-		$theme_json   = apply_filters( 'global_styles_user', new WP_Theme_JSON_Data( $config, 'custom' ) );
+		$theme_json   = apply_filters( 'theme_json_user', new WP_Theme_JSON_Data( $config, 'custom' ) );
 		$config       = $theme_json->get_data();
 		static::$user = new WP_Theme_JSON( $config, 'custom' );
 
