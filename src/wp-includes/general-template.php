@@ -3105,7 +3105,12 @@ function feed_links( $args = array() ) {
 	 * @param bool $show Whether to display the posts feed link. Default true.
 	 */
 	if ( apply_filters( 'feed_links_show_posts_feed', true ) ) {
-		echo '<link rel="alternate" type="' . feed_content_type() . '" title="' . esc_attr( sprintf( $args['feedtitle'], get_bloginfo( 'name' ), $args['separator'] ) ) . '" href="' . esc_url( get_feed_link() ) . "\" />\n";
+		printf(
+			'<link rel="alternate" type="%s" title="%s" href="%s" />' . "\n",
+			feed_content_type(),
+			esc_attr( sprintf( $args['feedtitle'], get_bloginfo( 'name' ), $args['separator'] ) ),
+			esc_url( get_feed_link() )
+		);
 	}
 
 	/**
@@ -3116,7 +3121,12 @@ function feed_links( $args = array() ) {
 	 * @param bool $show Whether to display the comments feed link. Default true.
 	 */
 	if ( apply_filters( 'feed_links_show_comments_feed', true ) ) {
-		echo '<link rel="alternate" type="' . feed_content_type() . '" title="' . esc_attr( sprintf( $args['comstitle'], get_bloginfo( 'name' ), $args['separator'] ) ) . '" href="' . esc_url( get_feed_link( 'comments_' . get_default_feed() ) ) . "\" />\n";
+		printf(
+			'<link rel="alternate" type="%s" title="%s" href="%s" />' . "\n",
+			feed_content_type(),
+			esc_attr( sprintf( $args['comstitle'], get_bloginfo( 'name' ), $args['separator'] ) ),
+			esc_url( get_feed_link( 'comments_' . get_default_feed() ) )
+		);
 	}
 }
 
@@ -3154,22 +3164,31 @@ function feed_links_extra( $args = array() ) {
 		$post = get_post( $id );
 
 		/** This filter is documented in wp-includes/general-template.php */
-		$show_global_comments_feed = apply_filters( 'feed_links_show_comments_feed', true );
+		$show_comments_feed = apply_filters( 'feed_links_show_comments_feed', true );
 
 		/**
 		 * Filters whether to display the post comments feed link.
 		 *
-		 * This filter allows to enable/disable the feed link for a singular post in a way which is independent of `feed_links_show_comments_feed` (which disables the global comments feed).
-		 * It accepts as parameter the output of the `feed_links_show_comments_feed` filter itself (`true` by default).
+		 * This filter allows to enable/disable the feed link for a singular post
+		 * in a way that is independent of {@see 'feed_links_show_comments_feed'}
+		 * (which disables the global comments feed). The result of that filter
+		 * is accepted as a parameter.
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param bool $show_global_comments_feed Whether to display the post comments feed link. Default to the output of the `feed_links_show_comments_feed` filter.
+		 * @param bool $show_comments_feed Whether to display the post comments feed link. Defaults to
+		 *                                 the {@see 'feed_links_show_comments_feed'} filter result.
 		 */
-		$show_comments_feed = apply_filters( 'feed_links_show_post_comments_feed', $show_global_comments_feed );
+		$show_post_comments_feed = apply_filters( 'feed_links_show_post_comments_feed', $show_comments_feed );
 
-		if ( $show_comments_feed && ( comments_open() || pings_open() || $post->comment_count > 0 ) ) {
-			$title     = sprintf( $args['singletitle'], get_bloginfo( 'name' ), $args['separator'], the_title_attribute( array( 'echo' => false ) ) );
+		if ( $show_post_comments_feed && ( comments_open() || pings_open() || $post->comment_count > 0 ) ) {
+			$title = sprintf(
+				$args['singletitle'],
+				get_bloginfo( 'name' ),
+				$args['separator'],
+				the_title_attribute( array( 'echo' => false ) )
+			);
+
 			$feed_link = get_post_comments_feed_link( $post->ID );
 
 			if ( $feed_link ) {
@@ -3188,13 +3207,21 @@ function feed_links_extra( $args = array() ) {
 
 		if ( $show_post_type_archive_feed ) {
 			$post_type = get_query_var( 'post_type' );
+
 			if ( is_array( $post_type ) ) {
 				$post_type = reset( $post_type );
 			}
 
 			$post_type_obj = get_post_type_object( $post_type );
-			$title         = sprintf( $args['posttypetitle'], get_bloginfo( 'name' ), $args['separator'], $post_type_obj->labels->name );
-			$href          = get_post_type_archive_feed_link( $post_type_obj->name );
+
+			$title = sprintf(
+				$args['posttypetitle'],
+				get_bloginfo( 'name' ),
+				$args['separator'],
+				$post_type_obj->labels->name
+			);
+
+			$href = get_post_type_archive_feed_link( $post_type_obj->name );
 		}
 	} elseif ( is_category() ) {
 		/**
@@ -3210,8 +3237,14 @@ function feed_links_extra( $args = array() ) {
 			$term = get_queried_object();
 
 			if ( $term ) {
-				$title = sprintf( $args['cattitle'], get_bloginfo( 'name' ), $args['separator'], $term->name );
-				$href  = get_category_feed_link( $term->term_id );
+				$title = sprintf(
+					$args['cattitle'],
+					get_bloginfo( 'name' ),
+					$args['separator'],
+					$term->name
+				);
+
+				$href = get_category_feed_link( $term->term_id );
 			}
 		}
 	} elseif ( is_tag() ) {
@@ -3228,8 +3261,14 @@ function feed_links_extra( $args = array() ) {
 			$term = get_queried_object();
 
 			if ( $term ) {
-				$title = sprintf( $args['tagtitle'], get_bloginfo( 'name' ), $args['separator'], $term->name );
-				$href  = get_tag_feed_link( $term->term_id );
+				$title = sprintf(
+					$args['tagtitle'],
+					get_bloginfo( 'name' ),
+					$args['separator'],
+					$term->name
+				);
+
+				$href = get_tag_feed_link( $term->term_id );
 			}
 		}
 	} elseif ( is_tax() ) {
@@ -3246,9 +3285,17 @@ function feed_links_extra( $args = array() ) {
 			$term = get_queried_object();
 
 			if ( $term ) {
-				$tax   = get_taxonomy( $term->taxonomy );
-				$title = sprintf( $args['taxtitle'], get_bloginfo( 'name' ), $args['separator'], $term->name, $tax->labels->singular_name );
-				$href  = get_term_feed_link( $term->term_id, $term->taxonomy );
+				$tax = get_taxonomy( $term->taxonomy );
+
+				$title = sprintf(
+					$args['taxtitle'],
+					get_bloginfo( 'name' ),
+					$args['separator'],
+					$term->name,
+					$tax->labels->singular_name
+				);
+
+				$href = get_term_feed_link( $term->term_id, $term->taxonomy );
 			}
 		}
 	} elseif ( is_author() ) {
@@ -3264,8 +3311,14 @@ function feed_links_extra( $args = array() ) {
 		if ( $show_author_feed ) {
 			$author_id = (int) get_query_var( 'author' );
 
-			$title = sprintf( $args['authortitle'], get_bloginfo( 'name' ), $args['separator'], get_the_author_meta( 'display_name', $author_id ) );
-			$href  = get_author_feed_link( $author_id );
+			$title = sprintf(
+				$args['authortitle'],
+				get_bloginfo( 'name' ),
+				$args['separator'],
+				get_the_author_meta( 'display_name', $author_id )
+			);
+
+			$href = get_author_feed_link( $author_id );
 		}
 	} elseif ( is_search() ) {
 		/**
@@ -3278,13 +3331,24 @@ function feed_links_extra( $args = array() ) {
 		$show_search_feed = apply_filters( 'feed_links_show_search_feed', true );
 
 		if ( $show_search_feed ) {
-			$title = sprintf( $args['searchtitle'], get_bloginfo( 'name' ), $args['separator'], get_search_query( false ) );
-			$href  = get_search_feed_link();
+			$title = sprintf(
+				$args['searchtitle'],
+				get_bloginfo( 'name' ),
+				$args['separator'],
+				get_search_query( false )
+			);
+
+			$href = get_search_feed_link();
 		}
 	}
 
 	if ( isset( $title ) && isset( $href ) ) {
-		echo '<link rel="alternate" type="' . feed_content_type() . '" title="' . esc_attr( $title ) . '" href="' . esc_url( $href ) . '" />' . "\n";
+		printf(
+			'<link rel="alternate" type="%s" title="%s" href="%s" />' . "\n",
+			feed_content_type(),
+			esc_attr( $title ),
+			esc_url( $href )
+		);
 	}
 }
 
@@ -3295,7 +3359,10 @@ function feed_links_extra( $args = array() ) {
  * @since 2.0.0
  */
 function rsd_link() {
-	echo '<link rel="EditURI" type="application/rsd+xml" title="RSD" href="' . esc_url( site_url( 'xmlrpc.php?rsd', 'rpc' ) ) . '" />' . "\n";
+	printf(
+		'<link rel="EditURI" type="application/rsd+xml" title="RSD" href="%s" />' . "\n",
+		esc_url( site_url( 'xmlrpc.php?rsd', 'rpc' ) )
+	);
 }
 
 /**
@@ -3305,7 +3372,10 @@ function rsd_link() {
  * @since 2.3.1
  */
 function wlwmanifest_link() {
-	echo '<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="' . includes_url( 'wlwmanifest.xml' ) . '" /> ' . "\n";
+	printf(
+		'<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="%s" />' . "\n",
+		includes_url( 'wlwmanifest.xml' )
+	);
 }
 
 /**

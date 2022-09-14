@@ -581,14 +581,14 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_links_extra_should_output_nothing_when_filters_are_false
+	 * @dataProvider data_links_extra_should_output_nothing_when_filters_return_false
 	 *
 	 * @ticket 55904
 	 *
 	 * @param string $type   The name of the test class property containing the object ID.
 	 * @param string $filter The name of the filter to set to false.
 	 */
-	public function test_feed_links_extra_should_output_nothing_when_filters_are_false( $type, $filter ) {
+	public function test_feed_links_extra_should_output_nothing_when_filters_return_false( $type, $filter ) {
 		$permalink = $this->helper_get_the_permalink( $type );
 		$this->go_to( $permalink );
 
@@ -602,7 +602,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_links_extra_should_output_nothing_when_filters_are_false() {
+	public function data_links_extra_should_output_nothing_when_filters_return_false() {
 		return array(
 			'a post with a comment' => array(
 				'type'   => 'post_with_comment',
