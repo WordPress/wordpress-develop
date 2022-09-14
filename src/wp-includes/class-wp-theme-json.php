@@ -2040,8 +2040,8 @@ class WP_Theme_JSON {
 		 * Otherwise just compute the styles for the default selector as normal.
 		 */
 		if ( $pseudo_selector && isset( $node[ $pseudo_selector ] ) &&
-				array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) &&
-				in_array( $pseudo_selector, static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ], true )
+			array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS )
+			&& in_array( $pseudo_selector, static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ], true )
 		) {
 			$declarations = static::compute_style_properties( $node[ $pseudo_selector ], $settings, null, $this->theme_json, $selector, $use_root_padding );
 		} else {
