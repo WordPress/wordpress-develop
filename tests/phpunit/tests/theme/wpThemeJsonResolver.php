@@ -381,9 +381,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles
-	 *
 	 * @ticket 55392
+	 * @covers WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles
 	 */
 	function test_get_user_data_from_wp_global_styles_does_exist() {
 		$theme = wp_get_theme();
@@ -397,9 +396,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles
-	 *
 	 * @ticket 55392
+	 * @covers WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles
 	 */
 	function test_get_user_data_from_wp_global_styles_create_post() {
 		$theme = wp_get_theme( 'testing' );
@@ -415,9 +413,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles
-	 *
 	 * @ticket 55392
+	 * @covers WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles
 	 */
 	function test_get_user_data_from_wp_global_styles_filter_state() {
 		$theme = wp_get_theme( 'foo' );

@@ -333,8 +333,8 @@ class WP_Theme_JSON_Resolver {
 			return get_post( $post_id, ARRAY_A );
 		}
 
-		$gs_query     = new WP_Query();
-		$recent_posts = $gs_query->query( $args );
+		$global_style_query = new WP_Query();
+		$recent_posts       = $global_style_query->query( $args );
 		if ( count( $recent_posts ) === 1 ) {
 			$user_cpt = get_post( $recent_posts[0], ARRAY_A );
 		} elseif ( $create_post ) {
