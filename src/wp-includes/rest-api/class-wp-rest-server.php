@@ -728,7 +728,7 @@ class WP_REST_Server {
 					$response = $this->dispatch( $request );
 
 					// Normalize to either WP_Error or WP_REST_Response...
-					$result = rest_ensure_response( $result );
+					$response = rest_ensure_response( $response );
 
 					// ...then convert WP_Error across.
 					if ( is_wp_error( $response ) ) {
