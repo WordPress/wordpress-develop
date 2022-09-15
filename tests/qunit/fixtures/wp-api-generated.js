@@ -5162,7 +5162,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "template_prefix": {
-                            "description": "The template prefix for the created template. This is used to extract the main template type ex. in `taxonomy-books` we extract the `taxonomy`",
+                            "description": "The template prefix for the created template. This is used to extract the main template type, e.g. in `taxonomy-books` extracts the `taxonomy`",
                             "type": "string",
                             "required": false
                         }
@@ -5851,7 +5851,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "template_prefix": {
-                            "description": "The template prefix for the created template. This is used to extract the main template type ex. in `taxonomy-books` we extract the `taxonomy`",
+                            "description": "The template prefix for the created template. This is used to extract the main template type, e.g. in `taxonomy-books` extracts the `taxonomy`",
                             "type": "string",
                             "required": false
                         }
