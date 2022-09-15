@@ -146,12 +146,11 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Returns the fallback template for a given slug.
+	 * Returns the fallback template for the given slug.
 	 *
 	 * @since 6.1.0
 	 *
 	 * @param WP_REST_Request $request The request instance.
-	 *
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_template_fallback( $request ) {
