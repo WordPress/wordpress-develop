@@ -14,9 +14,11 @@ $color__background_selection: mix( $color__background-body, $color__background-b
 $color__text-main: #111;
 $color__text-light: #767676;
 $color__text-hover: lighten( #111, 22.5% );
+$color__text-button-hover: #fff;
 $color__text-screen: #21759b;
 $color__text-input: #666;
 $color__text-input-focus: #111;
+
 
 // Links
 $color__link: #0073aa;
