@@ -80,8 +80,8 @@ $custom_settings      = array(
 );
 
 /**
- * We don't need home template resolution when block template parts are supported.
- * Set the value to true to satisfy the editor initialization guard clause.
+ * Home template resolution is not needed when block template parts are supported.
+ * Set the value to `true` to satisfy the editor initialization guard clause.
  */
 if ( $custom_settings['supportsTemplatePartsMode'] ) {
 	$custom_settings['__unstableHomeTemplate'] = true;
