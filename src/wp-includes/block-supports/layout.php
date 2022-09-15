@@ -46,7 +46,7 @@ function wp_register_layout_support( $block_type ) {
  * @param array   $block_spacing                 Custom spacing set on the block.
  * @return string CSS style.
  */
-function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false, $gap_value = null, $should_skip_gap_serialization = false, $fallback_gap_value = '0.5em' ) {
+function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false, $gap_value = null, $should_skip_gap_serialization = false, $fallback_gap_value = '0.5em', $block_spacing = null ) {
 	$layout_type   = isset( $layout['type'] ) ? $layout['type'] : 'default';
 	$layout_styles = array();
 	if ( 'default' === $layout_type ) {
@@ -277,7 +277,8 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 		return wp_style_engine_get_stylesheet_from_css_rules(
 			$layout_styles,
 			array(
-				'context' => 'block-supports',
+				'context'  => 'block-supports',
+				'prettify' => false,
 			)
 		);
 	}
