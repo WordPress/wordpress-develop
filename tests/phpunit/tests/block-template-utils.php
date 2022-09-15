@@ -337,26 +337,61 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			$template_ids
 		);
 		*/
+	}
 
-		// Filter by post type.
-		$templates    = get_block_templates( array( 'post_type' => 'post' ), 'wp_template' );
-		$template_ids = get_template_ids( $templates );
+	/**
+	 * @dataProvider data_get_block_template_should_respect_posttypes_property
+	 * @ticket 55881
+	 * @covers ::get_block_templates
+	 *
+	 * @param string $post_type Post type for query.
+	 * @param array  $expected  Expected template IDs.
+	 */
+	public function test_get_block_template_should_respect_posttypes_property( $post_type, $expected ) {
+		$templates = get_block_templates( array( 'post_type' => $post_type ) );
+
 		$this->assertSame(
-			array(
-				get_stylesheet() . '//' . 'my_template',
-				get_stylesheet() . '//' . 'custom-single-post-template',
-			),
-			$template_ids
+			$expected,
+			$this->get_template_ids( $templates )
 		);
+	}
 
-		$templates    = get_block_templates( array( 'post_type' => 'page' ), 'wp_template' );
-		$template_ids = get_template_ids( $templates );
-		$this->assertSame(
-			array(
-				get_stylesheet() . '//' . 'my_template',
-				get_stylesheet() . '//' . 'page-home',
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_get_block_template_should_respect_posttypes_property() {
+		return array(
+			'post' => array(
+				'post_type' => 'post',
+				'expected'  => array(
+					'block-theme//my_template',
+					'block-theme//custom-single-post-template',
+				),
 			),
-			$template_ids
+			'page' => array(
+				'post_type' => 'page',
+				'expected'  => array(
+					'block-theme//my_template',
+					'block-theme//page-home',
+				),
+			),
+		);
+	}
+
+	/**
+	 * Gets the template IDs from the given array.
+	 *
+	 * @param object[] $templates Array of template objects to parse.
+	 * @return string[] The template IDs.
+	 */
+	private function get_template_ids( $templates ) {
+		return array_map(
+			static function( $template ) {
+				return $template->id;
+			},
+			$templates
 		);
 	}
 
