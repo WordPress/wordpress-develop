@@ -35,12 +35,15 @@ function remove_block_asset_path_prefix( $asset_handle_or_path ) {
  * and the field name provided.
  *
  * @since 5.5.0
+ * @since 6.1.0 Added `$index` parameter.
  *
  * @param string $block_name Name of the block.
  * @param string $field_name Name of the metadata field.
+ * @param int    $index      Optional. Index of the asset when multiple items passed.
+ *                           Default 0.
  * @return string Generated asset name for the block's field.
  */
-function generate_block_asset_handle( $block_name, $field_name ) {
+function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
 	if ( 0 === strpos( $block_name, 'core/' ) ) {
 		$asset_handle = str_replace( 'core/', 'wp-block-', $block_name );
 		if ( 0 === strpos( $field_name, 'editor' ) ) {
@@ -48,6 +51,9 @@ function generate_block_asset_handle( $block_name, $field_name ) {
 		}
 		if ( 0 === strpos( $field_name, 'view' ) ) {
 			$asset_handle .= '-view';
+		}
+		if ( $index > 0 ) {
+			$asset_handle .= '-' . ( $index + 1 );
 		}
 		return $asset_handle;
 	}
@@ -59,8 +65,12 @@ function generate_block_asset_handle( $block_name, $field_name ) {
 		'editorStyle'  => 'editor-style',
 		'style'        => 'style',
 	);
-	return str_replace( '/', '-', $block_name ) .
+	$asset_handle   = str_replace( '/', '-', $block_name ) .
 		'-' . $field_mappings[ $field_name ];
+	if ( $index > 0 ) {
+		$asset_handle .= '-' . ( $index + 1 );
+	}
+	return $asset_handle;
 }
 
 /**
@@ -70,23 +80,34 @@ function generate_block_asset_handle( $block_name, $field_name ) {
  * generated handle name. It returns unprocessed script handle otherwise.
  *
  * @since 5.5.0
+ * @since 6.1.0 Added `$index` parameter.
  *
  * @param array  $metadata   Block metadata.
  * @param string $field_name Field name to pick from metadata.
+ * @param int    $index      Optional. Index of the script to register when multiple items passed.
+ *                           Default 0.
  * @return string|false Script handle provided directly or created through
  *                      script's registration, or false on failure.
  */
-function register_block_script_handle( $metadata, $field_name ) {
+function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
 		return false;
 	}
+
 	$script_handle = $metadata[ $field_name ];
-	$script_path   = remove_block_asset_path_prefix( $metadata[ $field_name ] );
+	if ( is_array( $script_handle ) ) {
+		if ( empty( $script_handle[ $index ] ) ) {
+			return false;
+		}
+		$script_handle = $script_handle[ $index ];
+	}
+
+	$script_path = remove_block_asset_path_prefix( $script_handle );
 	if ( $script_handle === $script_path ) {
 		return $script_handle;
 	}
 
-	$script_handle     = generate_block_asset_handle( $metadata['name'], $field_name );
+	$script_handle     = generate_block_asset_handle( $metadata['name'], $field_name, $index );
 	$script_asset_path = wp_normalize_path(
 		realpath(
 			dirname( $metadata['file'] ) . '/' .
@@ -145,33 +166,49 @@ function register_block_script_handle( $metadata, $field_name ) {
  * generated handle name. It returns unprocessed style handle otherwise.
  *
  * @since 5.5.0
+ * @since 6.1.0 Added `$index` parameter.
  *
  * @param array  $metadata   Block metadata.
  * @param string $field_name Field name to pick from metadata.
+ * @param int    $index      Optional. Index of the style to register when multiple items passed.
+ *                           Default 0.
  * @return string|false Style handle provided directly or created through
  *                      style's registration, or false on failure.
  */
-function register_block_style_handle( $metadata, $field_name ) {
+function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
 		return false;
 	}
+
 	$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
 	$theme_path_norm = wp_normalize_path( get_theme_file_path() );
 	$is_core_block   = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
+	// Skip registering individual styles for each core block when a bundled version provided.
 	if ( $is_core_block && ! wp_should_load_separate_core_block_assets() ) {
 		return false;
 	}
 
-	// Check whether styles should have a ".min" suffix or not.
-	$suffix = SCRIPT_DEBUG ? '' : '.min';
-
 	$style_handle = $metadata[ $field_name ];
-	$style_path   = remove_block_asset_path_prefix( $metadata[ $field_name ] );
+	if ( is_array( $style_handle ) ) {
+		if ( empty( $style_handle[ $index ] ) ) {
+			return false;
+		}
+		$style_handle = $style_handle[ $index ];
+	}
 
-	if ( $style_handle === $style_path && ! $is_core_block ) {
+	$style_path      = remove_block_asset_path_prefix( $style_handle );
+	$is_style_handle = $style_handle === $style_path;
+	// Allow only passing style handles for core blocks.
+	if ( $is_core_block && ! $is_style_handle ) {
+		return false;
+	}
+	// Return the style handle unless it's the first item for every core block that requires special treatment.
+	if ( $is_style_handle && ! ( $is_core_block && 0 === $index ) ) {
 		return $style_handle;
 	}
 
+	// Check whether styles should have a ".min" suffix or not.
+	$suffix    = SCRIPT_DEBUG ? '' : '.min';
 	$style_uri = plugins_url( $style_path, $metadata['file'] );
 	if ( $is_core_block ) {
 		$style_path = "style$suffix.css";
@@ -185,9 +222,9 @@ function register_block_style_handle( $metadata, $field_name ) {
 		$style_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $style_path_norm ) );
 	}
 
-	$style_handle   = generate_block_asset_handle( $metadata['name'], $field_name );
+	$style_handle   = generate_block_asset_handle( $metadata['name'], $field_name, $index );
 	$block_dir      = dirname( $metadata['file'] );
-	$style_file     = realpath( "$block_dir/$style_path" );
+	$style_file     = wp_normalize_path( realpath( "$block_dir/$style_path" ) );
 	$has_style_file = false !== $style_file;
 	$version        = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
 	$style_uri      = $has_style_file ? $style_uri : false;
@@ -235,6 +272,7 @@ function get_block_metadata_i18n_schema() {
  * @since 5.5.0
  * @since 5.7.0 Added support for `textdomain` field and i18n handling for all translatable fields.
  * @since 5.9.0 Added support for `variations` and `viewScript` fields.
+ * @since 6.1.0 Added support for `render` field.
  *
  * @param string $file_or_folder Path to the JSON file with metadata definition for
  *                               the block or path to the folder where the `block.json` file is located.
@@ -310,39 +348,96 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		}
 	}
 
-	if ( ! empty( $metadata['editorScript'] ) ) {
-		$settings['editor_script'] = register_block_script_handle(
-			$metadata,
-			'editorScript'
-		);
+	$script_fields = array(
+		'editorScript' => 'editor_script_handles',
+		'script'       => 'script_handles',
+		'viewScript'   => 'view_script_handles',
+	);
+	foreach ( $script_fields as $metadata_field_name => $settings_field_name ) {
+		if ( ! empty( $metadata[ $metadata_field_name ] ) ) {
+			$scripts           = $metadata[ $metadata_field_name ];
+			$processed_scripts = array();
+			if ( is_array( $scripts ) ) {
+				for ( $index = 0; $index < count( $scripts ); $index++ ) {
+					$result = register_block_script_handle(
+						$metadata,
+						$metadata_field_name,
+						$index
+					);
+					if ( $result ) {
+						$processed_scripts[] = $result;
+					}
+				}
+			} else {
+				$result = register_block_script_handle(
+					$metadata,
+					$metadata_field_name
+				);
+				if ( $result ) {
+					$processed_scripts[] = $result;
+				}
+			}
+			$settings[ $settings_field_name ] = $processed_scripts;
+		}
 	}
 
-	if ( ! empty( $metadata['script'] ) ) {
-		$settings['script'] = register_block_script_handle(
-			$metadata,
-			'script'
-		);
+	$style_fields = array(
+		'editorStyle' => 'editor_style_handles',
+		'style'       => 'style_handles',
+	);
+	foreach ( $style_fields as $metadata_field_name => $settings_field_name ) {
+		if ( ! empty( $metadata[ $metadata_field_name ] ) ) {
+			$styles           = $metadata[ $metadata_field_name ];
+			$processed_styles = array();
+			if ( is_array( $styles ) ) {
+				for ( $index = 0; $index < count( $styles ); $index++ ) {
+					$result = register_block_style_handle(
+						$metadata,
+						$metadata_field_name,
+						$index
+					);
+					if ( $result ) {
+						$processed_styles[] = $result;
+					}
+				}
+			} else {
+				$result = register_block_style_handle(
+					$metadata,
+					$metadata_field_name
+				);
+				if ( $result ) {
+					$processed_styles[] = $result;
+				}
+			}
+			$settings[ $settings_field_name ] = $processed_styles;
+		}
 	}
 
-	if ( ! empty( $metadata['viewScript'] ) ) {
-		$settings['view_script'] = register_block_script_handle(
-			$metadata,
-			'viewScript'
+	if ( ! empty( $metadata['render'] ) ) {
+		$template_path = wp_normalize_path(
+			realpath(
+				dirname( $metadata['file'] ) . '/' .
+				remove_block_asset_path_prefix( $metadata['render'] )
+			)
 		);
-	}
-
-	if ( ! empty( $metadata['editorStyle'] ) ) {
-		$settings['editor_style'] = register_block_style_handle(
-			$metadata,
-			'editorStyle'
-		);
-	}
-
-	if ( ! empty( $metadata['style'] ) ) {
-		$settings['style'] = register_block_style_handle(
-			$metadata,
-			'style'
-		);
+		if ( file_exists( $template_path ) ) {
+			/**
+			 * Renders the block on the server.
+			 *
+			 * @since 6.1.0
+			 *
+			 * @param array    $attributes Block attributes.
+			 * @param string   $content    Block default content.
+			 * @param WP_Block $block      Block instance.
+			 *
+			 * @return string Returns the block content.
+			 */
+			$settings['render_callback'] = function( $attributes, $content, $block ) use ( $template_path ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+				ob_start();
+				require $template_path;
+				return ob_get_clean();
+			};
+		}
 	}
 
 	/**
@@ -1094,6 +1189,7 @@ function wp_migrate_old_typography_shape( $metadata ) {
  * It's used in Query Loop, Query Pagination Numbers and Query Pagination Next blocks.
  *
  * @since 5.8.0
+ * @since 6.1.0 Added `query_loop_block_query_vars` filter and `parents` support in query.
  *
  * @param WP_Block $block Block instance.
  * @param int      $page  Current query's page.
@@ -1194,8 +1290,32 @@ function build_query_vars_from_query_block( $block, $page ) {
 		if ( ! empty( $block->context['query']['search'] ) ) {
 			$query['s'] = $block->context['query']['search'];
 		}
+		if ( ! empty( $block->context['query']['parents'] ) && is_post_type_hierarchical( $query['post_type'] ) ) {
+			$query['post_parent__in'] = array_filter( array_map( 'intval', $block->context['query']['parents'] ) );
+		}
 	}
-	return $query;
+
+	/**
+	 * Filters the arguments which will be passed to `WP_Query` for the Query Loop Block.
+	 *
+	 * Anything to this filter should be compatible with the `WP_Query` API to form
+	 * the query context which will be passed down to the Query Loop Block's children.
+	 * This can help, for example, to include additional settings or meta queries not
+	 * directly supported by the core Query Loop Block, and extend its capabilities.
+	 *
+	 * Please note that this will only influence the query that will be rendered on the
+	 * front-end. The editor preview is not affected by this filter. Also, worth noting
+	 * that the editor preview uses the REST API, so, ideally, one should aim to provide
+	 * attributes which are also compatible with the REST API, in order to be able to
+	 * implement identical queries on both sides.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param array    $query Array containing parameters for `WP_Query` as parsed by the block context.
+	 * @param WP_Block $block Block instance.
+	 * @param int      $page  Current query's page.
+	 */
+	return apply_filters( 'query_loop_block_query_vars', $query, $block, $page );
 }
 
 /**
@@ -1228,53 +1348,10 @@ function get_query_pagination_arrow( $block, $is_next ) {
 		$arrow_attribute = $block->context['paginationArrow'];
 		$arrow           = $arrow_map[ $block->context['paginationArrow'] ][ $pagination_type ];
 		$arrow_classes   = "wp-block-query-pagination-$pagination_type-arrow is-arrow-$arrow_attribute";
-		return "<span class='$arrow_classes'>$arrow</span>";
+		return "<span class='$arrow_classes' aria-hidden='true'>$arrow</span>";
 	}
 	return null;
 }
-
-/**
- * Allows multiple block styles.
- *
- * @since 5.9.0
- *
- * @param array $metadata Metadata for registering a block type.
- * @return array Metadata for registering a block type.
- */
-function _wp_multiple_block_styles( $metadata ) {
-	foreach ( array( 'style', 'editorStyle' ) as $key ) {
-		if ( ! empty( $metadata[ $key ] ) && is_array( $metadata[ $key ] ) ) {
-			$default_style = array_shift( $metadata[ $key ] );
-			foreach ( $metadata[ $key ] as $handle ) {
-				$args = array( 'handle' => $handle );
-				if ( 0 === strpos( $handle, 'file:' ) && isset( $metadata['file'] ) ) {
-					$style_path      = remove_block_asset_path_prefix( $handle );
-					$theme_path_norm = wp_normalize_path( get_theme_file_path() );
-					$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
-					$is_theme_block  = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $theme_path_norm );
-
-					$style_uri = plugins_url( $style_path, $metadata['file'] );
-
-					if ( $is_theme_block ) {
-						$style_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $style_path_norm ) );
-					}
-
-					$args = array(
-						'handle' => sanitize_key( "{$metadata['name']}-{$style_path}" ),
-						'src'    => $style_uri,
-					);
-				}
-
-				wp_enqueue_block_style( $metadata['name'], $args );
-			}
-
-			// Only return the 1st item in the array.
-			$metadata[ $key ] = $default_style;
-		}
-	}
-	return $metadata;
-}
-add_filter( 'block_type_metadata', '_wp_multiple_block_styles' );
 
 /**
  * Helper function that constructs a comment query vars array from the passed
@@ -1377,7 +1454,7 @@ function get_comments_pagination_arrow( $block, $pagination_type = 'next' ) {
 		$arrow_attribute = $block->context['comments/paginationArrow'];
 		$arrow           = $arrow_map[ $block->context['comments/paginationArrow'] ][ $pagination_type ];
 		$arrow_classes   = "wp-block-comments-pagination-$pagination_type-arrow is-arrow-$arrow_attribute";
-		return "<span class='$arrow_classes'>$arrow</span>";
+		return "<span class='$arrow_classes' aria-hidden='true'>$arrow</span>";
 	}
 	return null;
 }
