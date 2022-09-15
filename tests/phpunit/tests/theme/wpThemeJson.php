@@ -3496,11 +3496,11 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_generate_spacing_scale_fixtures
-	 * 
+	 *
 	 * Tests generating the spacing presets array based on the spacing scale provided.
 	 */
 	function test_set_spacing_sizes( $spacing_scale, $expected_output ) {
-		$theme_json = new WP_Theme_JSON_Gutenberg(
+		$theme_json = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
 				'settings' => array(
@@ -3742,7 +3742,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->expectNotice();
 		$this->expectNoticeMessage( 'Some of the theme.json settings.spacing.spacingScale values are invalid' );
 
-		$theme_json = new WP_Theme_JSON_Gutenberg(
+		$theme_json = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
 				'settings' => array(
