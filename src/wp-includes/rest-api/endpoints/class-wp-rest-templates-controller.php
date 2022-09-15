@@ -158,7 +158,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		if ( empty( $request['slug'] ) ) {
 			return new WP_Error(
 				'rest_invalid_param',
-				__( 'Invalid slug.', 'gutenberg' ),
+				__( 'Invalid slug.' ),
 				array( 'status' => 400 )
 			);
 		}
