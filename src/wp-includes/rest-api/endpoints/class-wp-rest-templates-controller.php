@@ -85,7 +85,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 							'type'        => 'boolean',
 						),
 						'template_prefix' => array(
-							'description' => __( 'The template prefix for the created template. This is used to extract the main template type ex. in `taxonomy-books` we extract the `taxonomy`' ),
+							'description' => __( 'The template prefix for the created template. This is used to extract the main template type, e.g. in `taxonomy-books` extracts the `taxonomy`' ),
 							'type'        => 'string',
 						),
 					),
