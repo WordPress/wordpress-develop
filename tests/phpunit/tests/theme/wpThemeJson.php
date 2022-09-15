@@ -3772,7 +3772,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 */
 	function data_set_spacing_sizes_when_invalid() {
 		return array(
-			'spacing scale is missing operator value' => array(
+			'spacing scale is missing operator value'   => array(
 				'spacingScale'    => array(
 					'operator'   => '',
 					'increment'  => 1.5,
@@ -3782,7 +3782,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 				'expected_output' => null,
 			),
-			'spacing scale has non numeric increment' => array(
+			'spacing scale has non numeric increment'   => array(
 				'spacingScale'    => array(
 					'operator'   => '+',
 					'increment'  => 'add two to previous value',
@@ -3792,7 +3792,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 				'expected_output' => null,
 			),
-			'spacing scale has non numeric steps' => array(
+			'spacing scale has non numeric steps'       => array(
 				'spacingScale'    => array(
 					'operator'   => '+',
 					'increment'  => 1.5,
@@ -3812,7 +3812,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 				'expected_output' => null,
 			),
-			'spacing scale is missing unit value' => array(
+			'spacing scale is missing unit value'       => array(
 				'spacingScale'    => array(
 					'operator'   => '+',
 					'increment'  => 1.5,
