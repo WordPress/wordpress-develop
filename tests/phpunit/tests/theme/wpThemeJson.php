@@ -3496,6 +3496,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_generate_spacing_scale_fixtures
+	 * 
+	 * @ticket 56467
 	 *
 	 * Tests generating the spacing presets array based on the spacing scale provided.
 	 */
@@ -3735,6 +3737,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_set_spacing_sizes_when_invalid
+	 * 
+	 * @ticket 56467
 	 *
 	 * Tests generating the spacing presets array based on the spacing scale provided.
 	 */
