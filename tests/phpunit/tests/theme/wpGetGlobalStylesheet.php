@@ -54,6 +54,18 @@ class Tests_Theme_wpGetGlobalStylesheet extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
+	/**
+	 * Cleans up global scope.
+	 *
+	 * @global WP_Scripts $wp_scripts
+	 * @global WP_Styles $wp_styles
+	 */
+	public function clean_up_global_scope() {
+		global $wp_styles;
+		parent::clean_up_global_scope();
+		$wp_styles = null;
+	}
+
 	public function filter_set_theme_root() {
 		return $this->theme_root;
 	}
@@ -199,4 +211,64 @@ class Tests_Theme_wpGetGlobalStylesheet extends WP_UnitTestCase {
 		remove_theme_support( 'editor-font-sizes' );
 	}
 
+	/**
+	 * Tests that stored CSS is enqueued.
+	 *
+	 * @ticket 56467
+	 *
+	 * @covers ::wp_enqueue_stored_styles
+	 */
+	public function test_should_enqueue_stored_styles() {
+		$core_styles_to_enqueue = array(
+			array(
+				'selector'     => '.saruman',
+				'declarations' => array(
+					'color'        => 'white',
+					'height'       => '100px',
+					'border-style' => 'solid',
+				),
+			),
+		);
+
+		// Enqueues a block supports (core styles).
+		wp_style_engine_get_stylesheet_from_css_rules(
+			$core_styles_to_enqueue,
+			array(
+				'context' => 'block-supports',
+			)
+		);
+
+		$my_styles_to_enqueue = array(
+			array(
+				'selector'     => '.gandalf',
+				'declarations' => array(
+					'color'        => 'grey',
+					'height'       => '90px',
+					'border-style' => 'dotted',
+				),
+			),
+		);
+
+		// Enqueue some other styles.
+		wp_style_engine_get_stylesheet_from_css_rules(
+			$my_styles_to_enqueue,
+			array(
+				'context' => 'my-styles',
+			)
+		);
+
+		wp_enqueue_stored_styles();
+
+		$this->assertEquals(
+			array( '.saruman{color:white;height:100px;border-style:solid;}' ),
+			wp_styles()->registered['core-block-supports']->extra['after'],
+			'Registered styles with handle of "core-block-supports" do not match expected value from Style Engine store.'
+		);
+
+		$this->assertEquals(
+			array( '.gandalf{color:grey;height:90px;border-style:dotted;}' ),
+			wp_styles()->registered['wp-style-engine-my-styles']->extra['after'],
+			'Registered styles with handle of "wp-style-engine-my-styles" do not match expected value from the Style Engine store.'
+		);
+	}
 }
