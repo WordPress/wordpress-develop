@@ -2927,7 +2927,7 @@ class WP_Theme_JSON {
 			|| ! is_numeric( $spacing_scale['mediumStep'] )
 			|| ( '+' !== $spacing_scale['operator'] && '*' !== $spacing_scale['operator'] ) ) {
 			if ( ! empty( $spacing_scale ) ) {
-				trigger_error( __( 'Some of the theme.json settings.spacing.spacingScale values are invalid', 'gutenberg' ), E_USER_NOTICE );
+				trigger_error( __( 'Some of the theme.json settings.spacing.spacingScale values are invalid' ), E_USER_NOTICE );
 			}
 			return null;
 		}
@@ -2957,7 +2957,7 @@ class WP_Theme_JSON {
 
 			$below_sizes[] = array(
 				/* translators: %s: Multiple of t-shirt sizing, eg. 2X-Small */
-				'name' => $x === $steps_mid_point - 1 ? __( 'Small', 'gutenberg' ) : sprintf( __( '%sX-Small', 'gutenberg' ), strval( $x_small_count ) ),
+				'name' => $x === $steps_mid_point - 1 ? __( 'Small' ) : sprintf( __( '%sX-Small' ), strval( $x_small_count ) ),
 				'slug' => (string) $slug,
 				'size' => round( $current_step, 2 ) . $unit,
 			);
@@ -2976,7 +2976,7 @@ class WP_Theme_JSON {
 		$below_sizes = array_reverse( $below_sizes );
 
 		$below_sizes[] = array(
-			'name' => __( 'Medium', 'gutenberg' ),
+			'name' => __( 'Medium' ),
 			'slug' => '50',
 			'size' => $spacing_scale['mediumStep'] . $unit,
 		);
@@ -2994,7 +2994,7 @@ class WP_Theme_JSON {
 
 			$above_sizes[] = array(
 				/* translators: %s: Multiple of t-shirt sizing, eg. 2X-Large */
-				'name' => 0 === $x ? __( 'Large', 'gutenberg' ) : sprintf( __( '%sX-Large', 'gutenberg' ), strval( $x_large_count ) ),
+				'name' => 0 === $x ? __( 'Large' ) : sprintf( __( '%sX-Large' ), strval( $x_large_count ) ),
 				'slug' => (string) $slug,
 				'size' => round( $current_step, 2 ) . $unit,
 			);
