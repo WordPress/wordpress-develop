@@ -408,7 +408,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'responsive-embeds', $theme_supports );
 		$this->assertArrayHasKey( 'title-tag', $theme_supports );
 		$this->assertArrayHasKey( 'wp-block-styles', $theme_supports );
-		$this->assertCount( 22, $theme_supports );
+		$this->assertCount( 23, $theme_supports );
 	}
 
 	/**
