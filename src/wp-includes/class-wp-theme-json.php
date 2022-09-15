@@ -2960,7 +2960,7 @@ class WP_Theme_JSON {
 			}
 
 			$below_sizes[] = array(
-				/* translators: %s: Multiple of t-shirt sizing, eg. 2X-Small. */
+				/* translators: %s: Digit to indicate multiple of sizing, eg. 2X-Small. */
 				'name' => $below_midpoint_count === $steps_mid_point - 1 ? __( 'Small' ) : sprintf( __( '%sX-Small' ), strval( $x_small_count ) ),
 				'slug' => (string) $slug,
 				'size' => round( $current_step, 2 ) . $unit,
@@ -2997,7 +2997,7 @@ class WP_Theme_JSON {
 				: ( $spacing_scale['increment'] >= 1 ? $current_step * $spacing_scale['increment'] : $current_step / $spacing_scale['increment'] );
 
 			$above_sizes[] = array(
-				/* translators: %s: Multiple of t-shirt sizing, eg. 2X-Large. */
+				/* translators: %s: Digit to indicate multiple of sizing, eg. 2X-Large. */
 				'name' => 0 === $above_midpoint_count ? __( 'Large' ) : sprintf( __( '%sX-Large' ), strval( $x_large_count ) ),
 				'slug' => (string) $slug,
 				'size' => round( $current_step, 2 ) . $unit,
