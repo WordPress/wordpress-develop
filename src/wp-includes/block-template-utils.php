@@ -1020,18 +1020,21 @@ function wp_generate_block_templates_export_file() {
 }
 
 /**
- * Helper function to get the Template Hierarchy for a given slug.
- * We need to Handle special cases here like `front-page`, `singular` and `archive` templates.
+ * Helper function to get the Template Hierarchy for the given slug.
+ * Handles special cases like `front-page`, `singular` and `archive` templates.
  *
- * Noting that we always add `index` as the last fallback template.
+ * Note: Always add `index` as the last fallback template.
  *
  * @since 6.1.0
  *
- * @param string  $slug            The template slug to be created.
- * @param boolean $is_custom       Indicates if a template is custom or part of the template hierarchy.
- * @param string  $template_prefix The template prefix for the created template. This is used to extract the main template type ex. in `taxonomy-books` we extract the `taxonomy`.
- *
- * @return array<string> The template hierarchy.
+ * @param string  $slug           The template slug to be created.
+ * @param boolean $is_custom      Optional. Indicates if a template is custom or
+ *                                part of the template hierarchy. Default false.
+ * @param string $template_prefix The template prefix for the created template.
+ *                                Used to extract the main template type, e.g.
+ *                                in `taxonomy-books` the `taxonomy` is extracted.
+ *                                Default empty string.
+ * @return string[] The template hierarchy.
  */
 function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '' ) {
 	if ( 'index' === $slug ) {
