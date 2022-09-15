@@ -9269,6 +9269,24 @@ mockedApiResponse.Schema = {
                                 "type": "string"
                             },
                             "required": false
+                        },
+                        "exclude": {
+                            "description": "Ensure result set excludes specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "include": {
+                            "description": "Limit result set to specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
                         }
                     }
                 }
@@ -10781,7 +10799,8 @@ mockedApiResponse.Schema = {
         }
     },
     "site_logo": 0,
-    "site_icon": 0
+    "site_icon": 0,
+    "site_icon_url": ""
 };
 
 mockedApiResponse.oembed = {

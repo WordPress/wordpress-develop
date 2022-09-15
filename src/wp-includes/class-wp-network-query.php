@@ -14,6 +14,7 @@
  *
  * @see WP_Network_Query::__construct() for accepted arguments.
  */
+#[AllowDynamicProperties]
 class WP_Network_Query {
 
 	/**
@@ -85,6 +86,7 @@ class WP_Network_Query {
 	 * Sets up the network query, based on the query vars passed.
 	 *
 	 * @since 4.6.0
+	 * @since 6.1.0 Introduced the 'update_network_meta_cache' parameter.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or query string of network query parameters. Default empty.
@@ -245,7 +247,7 @@ class WP_Network_Query {
 		// $args can include anything. Only use the args defined in the query_var_defaults to compute the key.
 		$_args = wp_array_slice_assoc( $this->query_vars, array_keys( $this->query_var_defaults ) );
 
-		// Ignore the $fields, $update_network_cache, and $update_network_meta_cache arguments as the queried result will be the same regardless.
+		// Ignore these arguments, as the queried result will be the same regardless.
 		unset( $_args['fields'], $_args['update_network_cache'], $_args['update_network_meta_cache'] );
 
 		$key          = md5( serialize( $_args ) );
