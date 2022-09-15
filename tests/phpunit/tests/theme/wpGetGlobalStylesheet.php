@@ -57,7 +57,6 @@ class Tests_Theme_wpGetGlobalStylesheet extends WP_UnitTestCase {
 	/**
 	 * Cleans up global scope.
 	 *
-	 * @global WP_Scripts $wp_scripts
 	 * @global WP_Styles $wp_styles
 	 */
 	public function clean_up_global_scope() {
