@@ -5765,18 +5765,20 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
  */
 function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' ) {
 	$args  = array(
-		'title'                  => $page_title,
+		'post_title'             => $page_title,
 		'post_type'              => $post_type,
-		'post_status'            => 'any',
+		'post_status'            => get_post_stati(),
 		'posts_per_page'         => 1,
 		'update_post_term_cache' => false,
 		'update_post_meta_cache' => false,
 		'no_found_rows'          => true,
+		'orderby'                => 'ID',
+		'order'                  => 'ASC',
 	);
 	$query = new WP_Query( $args );
 	$pages = $query->get_posts();
 
-	if ( ! $pages ) {
+	if ( empty( $pages ) ) {
 		return null;
 	}
 
