@@ -5,7 +5,7 @@
  *
  * @covers ::wp_register_persisted_preferences_meta
  */
-class Tests_User_wpRegisterPersistedPreferencesMeta extends WP_UnitTestCase {
+class Tests_User_WpRegisterPersistedPreferencesMeta extends WP_UnitTestCase {
 
 	/**
 	 * Test that user persisted preferences meta is registered.
@@ -28,8 +28,6 @@ class Tests_User_wpRegisterPersistedPreferencesMeta extends WP_UnitTestCase {
 		);
 
 		// Test to detect changes in meta key structure.
-		$structure = $wp_meta_keys['user'][''][ $meta_key ];
-
 		$this->assertSame(
 			array(
 				'type'              => 'object',
@@ -55,7 +53,7 @@ class Tests_User_wpRegisterPersistedPreferencesMeta extends WP_UnitTestCase {
 					),
 				),
 			),
-			$structure,
+			$wp_meta_keys['user'][''][ $meta_key ],
 			'The registered metadata did not have the expected structure'
 		);
 	}
