@@ -789,7 +789,7 @@ function filter_block_kses( $block, $allowed_html, $allowed_protocols = array() 
  * @param array[]|string  $allowed_html      An array of allowed HTML elements
  *                                           and attributes, or a context name
  *                                           such as 'post'.
- * @param string[]        $allowed_protocols Array of allowed URL protocols.
+ * @param string[]        $allowed_protocols Array of allowed URL protocols. Default empty array.
  * @return string[]|string The filtered and sanitized result.
  */
 function filter_block_kses_value( $value, $allowed_html, $allowed_protocols = array() ) {
