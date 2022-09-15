@@ -3735,7 +3735,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_set_spacing_sizes_when_invalid
-	 * 
+	 *
 	 * Tests generating the spacing presets array based on the spacing scale provided.
 	 */
 	public function test_set_spacing_sizes_when_invalid( $spacing_scale, $expected_output ) {
