@@ -175,42 +175,48 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Generates the CSS corresponding to the provided layout.
+	 * Tests the generation of CSS corresponding to the provided layout.
 	 *
 	 * @ticket 56467
 	 *
-	 * @dataProvider data_wp_get_layout_style
-	 *
 	 * @covers ::wp_get_layout_style
+	 *
+	 * @dataProvider data_wp_get_layout_style
 	 *
 	 * @param array  $args {
 	 *       Arguments for the test function.
 	 *
 	 *      @type string  $selector                      CSS selector.
 	 *      @type array   $layout                        Layout object. The one that is passed has already checked the existence of default block layout.
-	 *      @type boolean $has_block_gap_support         Whether the theme has support for the block gap.
+	 *      @type bool    $has_block_gap_support         Whether the theme has support for the block gap.
 	 *      @type string  $gap_value                     The block gap value to apply.
-	 *      @type boolean $should_skip_gap_serialization Whether to skip applying the user-defined value set in the editor.
+	 *      @type bool    $should_skip_gap_serialization Whether to skip applying the user-defined value set in the editor.
 	 *      @type string  $fallback_gap_value            The block gap value to apply.
 	 *      @type array   $block_spacing                 Custom spacing set on the block.
 	 * }
 	 * @param string $expected_output The expected output.
 	 */
 	function test_wp_get_layout_style( $args, $expected_output ) {
-		$layout_styles = wp_get_layout_style( $args['selector'], $args['layout'], $args['has_block_gap_support'], $args['gap_value'], $args['should_skip_gap_serialization'], $args['fallback_gap_value'], $args['block_spacing'] );
+		$layout_styles = wp_get_layout_style(
+			$args['selector'],
+			$args['layout'],
+			$args['has_block_gap_support'],
+			$args['gap_value'],
+			$args['should_skip_gap_serialization'],
+			$args['fallback_gap_value'],
+			$args['block_spacing']
+		);
 		$this->assertSame( $expected_output, $layout_styles );
 	}
 
 	/**
 	 * Data provider for test_wp_get_layout_style().
 	 *
-	 * @ticket 56467
-	 *
 	 * @return array
 	 */
 	public function data_wp_get_layout_style() {
 		return array(
-			'should_return_empty_value_with_no_args'       => array(
+			'no args should return empty value' => array(
 				'args'            => array(
 					'selector'                      => null,
 					'layout'                        => null,
@@ -222,7 +228,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 				),
 				'expected_output' => '',
 			),
-			'should_return_empty_value_with_only_selector' => array(
+			'only selector should return empty value' => array(
 				'args'            => array(
 					'selector'                      => '.wp-layout',
 					'layout'                        => null,
@@ -234,7 +240,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 				),
 				'expected_output' => '',
 			),
-			'should_return_default_layout_with_block_gap_support' => array(
+			'default layout and block gap support' => array(
 				'args'            => array(
 					'selector'                      => '.wp-layout',
 					'layout'                        => null,
@@ -246,7 +252,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 				),
 				'expected_output' => '.wp-layout > *{margin-block-start:0;margin-block-end:0;}.wp-layout.wp-layout > * + *{margin-block-start:1em;margin-block-end:0;}',
 			),
-			'should_return_empty_value_with_block_gap_support_and_skip_serialization' => array(
+			'skip serialization should return empty value' => array(
 				'args'            => array(
 					'selector'                      => '.wp-layout',
 					'layout'                        => null,
@@ -258,7 +264,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 				),
 				'expected_output' => '',
 			),
-			'should_return_default_layout_with_axial_block_gap_support' => array(
+			'default layout and axial block gap support' => array(
 				'args'            => array(
 					'selector'                      => '.wp-layout',
 					'layout'                        => null,
@@ -270,7 +276,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 				),
 				'expected_output' => '.wp-layout > *{margin-block-start:0;margin-block-end:0;}.wp-layout.wp-layout > * + *{margin-block-start:1em;margin-block-end:0;}',
 			),
-			'should_return_constrained_layout_with_sizes'  => array(
+			'constrained layout with sizes' => array(
 				'args'            => array(
 					'selector'                      => '.wp-layout',
 					'layout'                        => array(
@@ -286,7 +292,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 				),
 				'expected_output' => '.wp-layout > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width:800px;margin-left:auto !important;margin-right:auto !important;}.wp-layout > .alignwide{max-width:1200px;}.wp-layout .alignfull{max-width:none;}',
 			),
-			'should_return_constrained_layout_with_sizes_and_block_spacing' => array(
+			'constrained layout with sizes and block spacing' => array(
 				'args'            => array(
 					'selector'                      => '.wp-layout',
 					'layout'                        => array(
@@ -307,7 +313,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 				),
 				'expected_output' => '.wp-layout > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width:800px;margin-left:auto !important;margin-right:auto !important;}.wp-layout > .alignwide{max-width:1200px;}.wp-layout .alignfull{max-width:none;}.wp-layout > .alignfull{margin-right:calc(10px * -1);margin-left:calc(20px * -1);}',
 			),
-			'should_return_constrained_layout_with_block_gap_support' => array(
+			'constrained layout with block gap support' => array(
 				'args'            => array(
 					'selector'                      => '.wp-layout',
 					'layout'                        => array(
@@ -321,7 +327,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 				),
 				'expected_output' => '.wp-layout > *{margin-block-start:0;margin-block-end:0;}.wp-layout.wp-layout > * + *{margin-block-start:2.5rem;margin-block-end:0;}',
 			),
-			'should_return_constrained_layout_with_axial_block_gap_support' => array(
+			'constrained layout with axial block gap support' => array(
 				'args'            => array(
 					'selector'                      => '.wp-layout',
 					'layout'                        => array(
@@ -335,7 +341,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 				),
 				'expected_output' => '.wp-layout > *{margin-block-start:0;margin-block-end:0;}.wp-layout.wp-layout > * + *{margin-block-start:2.5rem;margin-block-end:0;}',
 			),
-			'should_return_constrained_layout_with_block_gap_support_and_spacing' => array(
+			'constrained layout with block gap support and spacing preset' => array(
 				'args'            => array(
 					'selector'                      => '.wp-layout',
 					'layout'                        => array(
@@ -349,7 +355,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 				),
 				'expected_output' => '.wp-layout > *{margin-block-start:0;margin-block-end:0;}.wp-layout.wp-layout > * + *{margin-block-start:var(--wp--preset--spacing--50);margin-block-end:0;}',
 			),
-			'should_return_empty_value_for_flex_layout_with_no_args' => array(
+			'flex layout with no args should return empty value' => array(
 				'args'            => array(
 					'selector'                      => '.wp-layout',
 					'layout'                        => array(
@@ -363,7 +369,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 				),
 				'expected_output' => '',
 			),
-			'should_return_empty_value_for_horizontal_flex_layout_with_orientation_only' => array(
+			'horizontal flex layout should return empty value' => array(
 				'args'            => array(
 					'selector'                      => '.wp-layout',
 					'layout'                        => array(
@@ -378,7 +384,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 				),
 				'expected_output' => '',
 			),
-			'should_return_rule_horizontal_flex_layout_with_flex_properties' => array(
+			'flex layout with properties' => array(
 				'args'            => array(
 					'selector'                      => '.wp-layout',
 					'layout'                        => array(
@@ -396,7 +402,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 				),
 				'expected_output' => '.wp-layout{flex-wrap:nowrap;justify-content:flex-start;align-items:flex-end;}',
 			),
-			'should_return_rule_for_horizontal_flex_layout_with_flex_properties_and_gap' => array(
+			'flex layout with properties and block gap' => array(
 				'args'            => array(
 					'selector'                      => '.wp-layout',
 					'layout'                        => array(
@@ -414,7 +420,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 				),
 				'expected_output' => '.wp-layout{flex-wrap:nowrap;gap:29px;justify-content:flex-start;align-items:flex-end;}',
 			),
-			'should_return_rule_for_horizontal_flex_layout_with_flex_properties_and_axial_gap' => array(
+			'flex layout with properties and axial block gap' => array(
 				'args'            => array(
 					'selector'                      => '.wp-layout',
 					'layout'                        => array(
@@ -435,7 +441,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 				),
 				'expected_output' => '.wp-layout{flex-wrap:nowrap;gap:1px 2px;justify-content:flex-start;align-items:flex-end;}',
 			),
-			'should_return_rule_for_horizontal_flex_layout_with_flex_properties_gap_fallback_and_spacing' => array(
+			'flex layout with properties and axial block gap using spacing preset' => array(
 				'args'            => array(
 					'selector'                      => '.wp-layout',
 					'layout'                        => array(
@@ -455,7 +461,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 				),
 				'expected_output' => '.wp-layout{flex-wrap:nowrap;gap:11px var(--wp--preset--spacing--40);justify-content:flex-start;align-items:flex-end;}',
 			),
-			'should_return_rule_for_vertical_flex_layout_with_flex_properties' => array(
+			'vertical flex layout with properties' => array(
 				'args'            => array(
 					'selector'                      => '.wp-layout',
 					'layout'                        => array(

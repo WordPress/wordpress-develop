@@ -39,9 +39,9 @@ function wp_register_layout_support( $block_type ) {
  * @param string  $selector                      CSS selector.
  * @param array   $layout                        Layout object. The one that is passed has already checked
  *                                               the existence of default block layout.
- * @param boolean $has_block_gap_support         Whether the theme has support for the block gap.
+ * @param bool    $has_block_gap_support         Whether the theme has support for the block gap.
  * @param string  $gap_value                     The block gap value to apply.
- * @param boolean $should_skip_gap_serialization Whether to skip applying the user-defined value set in the editor.
+ * @param bool    $should_skip_gap_serialization Whether to skip applying the user-defined value set in the editor.
  * @param string  $fallback_gap_value            The block gap value to apply.
  * @param array   $block_spacing                 Custom spacing set on the block.
  * @return string CSS style.
@@ -83,9 +83,8 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 		$wide_max_width_value = $wide_size ? $wide_size : $content_size;
 
 		// Make sure there is a single CSS rule, and all tags are stripped for security.
-		// TODO: Use `safecss_filter_attr` instead - once https://core.trac.wordpress.org/ticket/46197 is patched.
-		$all_max_width_value  = wp_strip_all_tags( explode( ';', $all_max_width_value )[0] );
-		$wide_max_width_value = wp_strip_all_tags( explode( ';', $wide_max_width_value )[0] );
+		$all_max_width_value  = safecss_filter_attr( explode( ';', $all_max_width_value )[0] );
+		$wide_max_width_value = safecss_filter_attr( explode( ';', $wide_max_width_value )[0] );
 
 		$margin_left  = 'left' === $justify_content ? '0 !important' : 'auto !important';
 		$margin_right = 'right' === $justify_content ? '0 !important' : 'auto !important';
@@ -118,8 +117,10 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 					)
 				);
 
-				// Handle negative margins for alignfull children of blocks with custom padding set.
-				// They're added separately because padding might only be set on one side.
+				/*
+				 * Handle negative margins for alignfull children of blocks with custom padding set.
+				 * They're added separately because padding might only be set on one side.
+				 */
 				if ( isset( $block_spacing_values['declarations']['padding-right'] ) ) {
 					$padding_right   = $block_spacing_values['declarations']['padding-right'];
 					$layout_styles[] = array(
@@ -233,7 +234,7 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 		}
 
 		if ( 'horizontal' === $layout_orientation ) {
-			/**
+			/*
 			 * Add this style only if is not empty for backwards compatibility,
 			 * since we intend to convert blocks that had flex layout implemented
 			 * by custom css.
@@ -271,9 +272,12 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 	}
 
 	if ( ! empty( $layout_styles ) ) {
-		// Add to the style engine store to enqueue and render layout styles.
-		// Return compiled layout styles to retain backwards compatibility.
-		// Since https://github.com/WordPress/gutenberg/pull/42452 we no longer call wp_enqueue_block_support_styles in this block supports file.
+		/*
+		 * Add to the style engine store to enqueue and render layout styles.
+		 * Return compiled layout styles to retain backwards compatibility.
+		 * Since https://github.com/WordPress/gutenberg/pull/42452,
+		 * wp_enqueue_block_support_styles is no longer called in this block supports file.
+		 */
 		return wp_style_engine_get_stylesheet_from_css_rules(
 			$layout_styles,
 			array(
@@ -335,10 +339,12 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		$class_names[] = 'has-global-padding';
 	}
 
-	// The following section was added to reintroduce a small set of layout classnames that were
-	// removed in the 5.9 release (https://github.com/WordPress/gutenberg/issues/38719). It is
-	// not intended to provide an extended set of classes to match all block layout attributes
-	// here.
+	/*
+	 * The following section was added to reintroduce a small set of layout classnames that were
+	 * removed in the 5.9 release (https://github.com/WordPress/gutenberg/issues/38719). It is
+	 * not intended to provide an extended set of classes to match all block layout attributes
+	 * here.
+	 */
 	if ( ! empty( $block['attrs']['layout']['orientation'] ) ) {
 		$class_names[] = 'is-' . sanitize_title( $block['attrs']['layout']['orientation'] );
 	}
@@ -362,14 +368,18 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		$class_names[] = sanitize_title( $layout_classname );
 	}
 
-	// Only generate Layout styles if the theme has not opted-out.
-	// Attribute-based Layout classnames are output in all cases.
+	/*
+	 * Only generate Layout styles if the theme has not opted-out.
+	 * Attribute-based Layout classnames are output in all cases.
+	 */
 	if ( ! current_theme_supports( 'disable-layout-styles' ) ) {
 
 		$gap_value = _wp_array_get( $block, array( 'attrs', 'style', 'spacing', 'blockGap' ) );
-		// Skip if gap value contains unsupported characters.
-		// Regex for CSS value borrowed from `safecss_filter_attr`, and used here
-		// because we only want to match against the value, not the CSS attribute.
+		/*
+		 * Skip if gap value contains unsupported characters.
+		 * Regex for CSS value borrowed from `safecss_filter_attr`, and used here
+		 * to only match against the value, not the CSS attribute.
+		 */
 		if ( is_array( $gap_value ) ) {
 			foreach ( $gap_value as $key => $value ) {
 				$gap_value[ $key ] = $value && preg_match( '%[\\\(&=}]|/\*%', $value ) ? null : $value;
@@ -381,8 +391,10 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		$fallback_gap_value = _wp_array_get( $block_type->supports, array( 'spacing', 'blockGap', '__experimentalDefault' ), '0.5em' );
 		$block_spacing      = _wp_array_get( $block, array( 'attrs', 'style', 'spacing' ), null );
 
-		// If a block's block.json skips serialization for spacing or spacing.blockGap,
-		// don't apply the user-defined value to the styles.
+		/*
+		 * If a block's block.json skips serialization for spacing or spacing.blockGap,
+		 * don't apply the user-defined value to the styles.
+		 */
 		$should_skip_gap_serialization = wp_should_skip_block_supports_serialization( $block_type, 'spacing', 'blockGap' );
 		$style                         = wp_get_layout_style( ".$block_classname.$container_class", $used_layout, $has_block_gap_support, $gap_value, $should_skip_gap_serialization, $fallback_gap_value, $block_spacing );
 
@@ -392,8 +404,10 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		}
 	}
 
-	// This assumes the hook only applies to blocks with a single wrapper.
-	// I think this is a reasonable limitation for that particular hook.
+	/*
+	 * This assumes the hook only applies to blocks with a single wrapper.
+	 * A limitation of this hook is that nested inner blocks wrappers are not yet supported.
+	 */
 	$content = preg_replace(
 		'/' . preg_quote( 'class="', '/' ) . '/',
 		'class="' . esc_attr( implode( ' ', $class_names ) ) . ' ',
