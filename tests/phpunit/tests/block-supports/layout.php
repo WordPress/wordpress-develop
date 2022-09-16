@@ -384,7 +384,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 				),
 				'expected_output' => '',
 			),
-			'flex layout with properties' => array(
+			'flex layout with properties' =>                  array(
 				'args'            => array(
 					'selector'                      => '.wp-layout',
 					'layout'                        => array(
