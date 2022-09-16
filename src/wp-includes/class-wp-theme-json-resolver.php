@@ -140,6 +140,8 @@ class WP_Theme_JSON_Resolver {
 		/**
 		 * Filters the default data provided by WordPress for global styles & settings.
 		 *
+		 * @since 6.1.0
+		 *
 		 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
 		 */
 		$theme_json   = apply_filters( 'theme_json_default', new WP_Theme_JSON_Data( $config, 'default' ) );
@@ -181,6 +183,8 @@ class WP_Theme_JSON_Resolver {
 			$theme_json_data = static::translate( $theme_json_data, wp_get_theme()->get( 'TextDomain' ) );
 			/**
 			 * Filters the data provided by the theme for global styles & settings.
+			 *
+			 * @since 6.1.0
 			 *
 			 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
 			 */
@@ -274,6 +278,8 @@ class WP_Theme_JSON_Resolver {
 
 		/**
 		 * Filters the data provided by the blocks for global styles & settings.
+		 *
+		 * @since 6.1.0
 		 *
 		 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
 		 */
@@ -402,6 +408,8 @@ class WP_Theme_JSON_Resolver {
 				/**
 				 * Filters the data provided by the user for global styles & settings.
 				 *
+				 * @since 6.1.0
+				 *
 				 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
 				 */
 				$theme_json = apply_filters( 'theme_json_user', new WP_Theme_JSON_Data( $config, 'custom' ) );
@@ -423,6 +431,8 @@ class WP_Theme_JSON_Resolver {
 
 		/**
 		 * Filters the data provided by the user for global styles & settings.
+		 *
+		 * @since 6.1.0
 		 *
 		 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
 		 */
