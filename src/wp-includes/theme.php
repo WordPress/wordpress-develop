@@ -3844,6 +3844,13 @@ function create_initial_theme_features() {
 		)
 	);
 	register_theme_feature(
+		'block-template-parts',
+		array(
+			'description'  => __( 'Whether a theme uses block-based template parts.' ),
+			'show_in_rest' => true,
+		)
+	);
+	register_theme_feature(
 		'custom-background',
 		array(
 			'description'  => __( 'Custom background if defined by the theme.' ),
@@ -4208,6 +4215,21 @@ function create_initial_theme_features() {
  */
 function wp_is_block_theme() {
 	return wp_get_theme()->is_block_theme();
+}
+
+/**
+ * Given an element name, returns a class name.
+ *
+ * Alias of WP_Theme_JSON::get_element_class_name.
+ *
+ * @since 6.1.0
+ *
+ * @param string $element The name of the element.
+ *
+ * @return string The name of the class.
+ */
+function wp_theme_get_element_class_name( $element ) {
+	return WP_Theme_JSON::get_element_class_name( $element );
 }
 
 /**
