@@ -21,7 +21,7 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 		self::factory()->post->create_many(
 			3,
 			array(
-				'post_type' => 'attachment',
+				'post_type'      => 'attachment',
 				'post_mime_type' => $mime_type,
 			)
 		);
