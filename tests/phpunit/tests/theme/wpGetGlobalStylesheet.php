@@ -275,11 +275,11 @@ class Tests_Theme_wpGetGlobalStylesheet extends WP_UnitTestCase {
 							"	border-style: solid;\n",
 							"}\n",
 						)
-					)
+					),
 				),
 				wp_styles()->registered['core-block-supports']->extra['after'],
 				'Registered styles with handle of "core-block-supports" do not match expected value from Style Engine store.'
-			);			
+			);
 		} else {
 			// In production versions of WordPress, `defaults-constants.php` will set SCRIPT_DEBUG to false.
 			$this->assertEquals(
@@ -300,13 +300,13 @@ class Tests_Theme_wpGetGlobalStylesheet extends WP_UnitTestCase {
 							"	color: grey;\n",
 							"	height: 90px;\n",
 							"	border-style: dotted;\n",
-							"}\n"
+							"}\n",
 						)
-					)
+					),
 				),
 				wp_styles()->registered['wp-style-engine-my-styles']->extra['after'],
 				'Registered styles with handle of "core-block-supports" do not match expected value from Style Engine store.'
-			);			
+			);
 		} else {
 			// In production versions of WordPress, `defaults-constants.php` will set SCRIPT_DEBUG to false.
 			$this->assertEquals(
