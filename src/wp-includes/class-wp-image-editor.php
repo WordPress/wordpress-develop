@@ -261,6 +261,8 @@ abstract class WP_Image_Editor {
 	 * @return true|WP_Error True if set successfully; WP_Error on failure.
 	 */
 	public function set_quality( $quality = null ) {
+		$this->get_output_format( $this->file, $this->mime_type );
+
 		// Use the output mime type if present. If not, fall back to the input/initial mime type.
 		$mime_type = ! empty( $this->output_mime_type ) ? $this->output_mime_type : $this->mime_type;
 		// Get the default quality setting for the mime type.
