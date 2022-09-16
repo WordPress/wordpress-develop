@@ -8,7 +8,7 @@
 	},
 	"engines": {
 		"node": ">=14.15.0",
-		"npm": ">=6.14.8"
+		"npm": ">=6.14.8 <7"
 	},
 	"author": "The WordPress Contributors",
 	"license": "GPL-2.0-or-later",
@@ -116,7 +116,8 @@
 		"@wordpress/notices": "3.6.1",
 		"@wordpress/nux": "5.4.5",
 		"@wordpress/plugins": "4.4.3",
-		"@wordpress/preferences": "1.2.5",
+		"@wordpress/preferences": "2.8.0",
+		"@wordpress/preferences-persistence": "1.8.0",
 		"@wordpress/primitives": "3.4.1",
 		"@wordpress/priority-queue": "2.6.1",
 		"@wordpress/redux-routine": "4.6.1",

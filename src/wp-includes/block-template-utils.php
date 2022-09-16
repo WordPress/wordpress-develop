@@ -130,8 +130,8 @@ function get_default_block_template_types() {
 			'description' => __( 'Displays a single post or page.' ),
 		),
 		'single'         => array(
-			'title'       => _x( 'Single Post', 'Template name' ),
-			'description' => __( 'Displays a single post.' ),
+			'title'       => _x( 'Single', 'Template name' ),
+			'description' => __( 'The default template for displaying any single post or attachment.' ),
 		),
 		'page'           => array(
 			'title'       => _x( 'Page', 'Template name' ),
@@ -552,8 +552,8 @@ function _build_block_template_result_from_post( $post ) {
 	}
 
 	$theme          = $terms[0]->name;
-	$has_theme_file = wp_get_theme()->get_stylesheet() === $theme &&
-		null !== _get_block_template_file( $post->post_type, $post->post_name );
+	$template_file = _get_block_template_file( $post->post_type, $post->post_name );
+	$has_theme_file = wp_get_theme()->get_stylesheet() === $theme && null !== $template_file;
 
 	$origin = get_post_meta( $post->ID, 'origin', true );
 
@@ -572,6 +572,10 @@ function _build_block_template_result_from_post( $post ) {
 	$template->has_theme_file = $has_theme_file;
 	$template->is_custom      = true;
 	$template->author         = $post->post_author;
+
+	if ( 'wp_template' === $post->post_type && $has_theme_file && isset( $template_file['postTypes'] ) ) {
+		$template->post_types = $template_file['postTypes'];
+	}
 
 	if ( 'wp_template' === $post->post_type && isset( $default_template_types[ $template->slug ] ) ) {
 		$template->is_custom = false;
@@ -672,6 +676,13 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 		}
 
 		if ( $post_type && ! $template->is_custom ) {
+			continue;
+		}
+
+		if ( $post_type &&
+			isset( $template->post_types ) &&
+			! in_array( $post_type, $template->post_types, true )
+		) {
 			continue;
 		}
 

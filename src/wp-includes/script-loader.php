@@ -294,6 +294,9 @@ function wp_default_packages_scripts( $scripts ) {
 			case 'wp-edit-post':
 				array_push( $dependencies, 'media-models', 'media-views', 'postbox', 'wp-dom-ready' );
 				break;
+			case 'wp-preferences':
+				array_push( $dependencies, 'wp-preferences-persistence' );
+				break;
 		}
 
 		$scripts->add( $handle, $path, $dependencies, $package_data['version'], 1 );
@@ -324,11 +327,12 @@ function wp_default_packages_scripts( $scripts ) {
  * @since 5.0.0
  *
  * @global WP_Locale $wp_locale WordPress date and time locale object.
+ * @global wpdb      $wpdb      WordPress database abstraction object.
  *
  * @param WP_Scripts $scripts WP_Scripts object.
  */
 function wp_default_packages_inline_scripts( $scripts ) {
-	global $wp_locale;
+	global $wp_locale, $wpdb;
 
 	if ( isset( $scripts->registered['wp-api-fetch'] ) ) {
 		$scripts->registered['wp-api-fetch']->deps[] = 'wp-hooks';
@@ -360,19 +364,22 @@ function wp_default_packages_inline_scripts( $scripts ) {
 		),
 		'after'
 	);
+
+	$meta_key     = $wpdb->get_blog_prefix() . 'persisted_preferences';
+	$user_id      = get_current_user_ID();
+	$preload_data = get_user_meta( $user_id, $meta_key, true );
 	$scripts->add_inline_script(
-		'wp-data',
-		implode(
-			"\n",
-			array(
-				'( function() {',
-				'	var userId = ' . get_current_user_ID() . ';',
-				'	var storageKey = "WP_DATA_USER_" + userId;',
-				'	wp.data',
-				'		.use( wp.data.plugins.persistence, { storageKey: storageKey } );',
-				'	wp.data.plugins.persistence.__unstableMigrate( { storageKey: storageKey } );',
-				'} )();',
-			)
+		'wp-preferences',
+		sprintf(
+			'( function() {
+				var serverData = %s;
+				var userId = "%d";
+				var persistenceLayer = wp.preferencesPersistence.__unstableCreatePersistenceLayer( serverData, userId );
+				var preferencesStore = wp.preferences.store;
+				wp.data.dispatch( preferencesStore ).setPersistenceLayer( persistenceLayer );
+			} ) ();',
+			wp_json_encode( $preload_data ),
+			$user_id
 		)
 	);
 
@@ -2354,6 +2361,30 @@ function wp_common_block_scripts_and_styles() {
 }
 
 /**
+ * Applies a filter to the list of style nodes that comes from WP_Theme_JSON::get_style_nodes().
+ *
+ * This particular filter removes all of the blocks from the array.
+ *
+ * We want WP_Theme_JSON to be ignorant of the implementation details of how the CSS is being used.
+ * This filter allows us to modify the output of WP_Theme_JSON depending on whether or not we are
+ * loading separate assets, without making the class aware of that detail.
+ *
+ * @since 6.1.0
+ *
+ * @param array $nodes The nodes to filter.
+ * @return array A filtered array of style nodes.
+ */
+function wp_filter_out_block_nodes( $nodes ) {
+	return array_filter(
+		$nodes,
+		function( $node ) {
+			return ! in_array( 'blocks', $node['path'], true );
+		},
+		ARRAY_FILTER_USE_BOTH
+	);
+}
+
+/**
  * Enqueues the global styles defined via theme.json.
  *
  * @since 5.8.0
@@ -2375,6 +2406,16 @@ function wp_enqueue_global_styles() {
 		( $is_classic_theme && doing_action( 'wp_enqueue_scripts' ) && $separate_assets )
 	) {
 		return;
+	}
+
+	/*
+	 * If we are loading CSS for each block separately, then we can load the theme.json CSS conditionally.
+	 * This removes the CSS from the global-styles stylesheet and adds it to the inline CSS for each block.
+	 */
+	if ( $separate_assets ) {
+		add_filter( 'theme_json_get_style_nodes', 'wp_filter_out_block_nodes' );
+		// Add each block as an inline css.
+		wp_add_global_styles_for_blocks();
 	}
 
 	$stylesheet = wp_get_global_stylesheet();
@@ -2497,28 +2538,30 @@ function wp_enqueue_registered_block_scripts_and_styles() {
 		return;
 	}
 
-	$load_editor_scripts = is_admin() && wp_should_load_block_editor_scripts_and_styles();
+	$load_editor_scripts_and_styles = is_admin() && wp_should_load_block_editor_scripts_and_styles();
 
 	$block_registry = WP_Block_Type_Registry::get_instance();
 	foreach ( $block_registry->get_all_registered() as $block_name => $block_type ) {
-		// Front-end styles.
-		if ( ! empty( $block_type->style ) ) {
-			wp_enqueue_style( $block_type->style );
+		// Front-end and editor styles.
+		foreach ( $block_type->style_handles as $style_handle ) {
+			wp_enqueue_style( $style_handle );
 		}
 
-		// Front-end script.
-		if ( ! empty( $block_type->script ) ) {
-			wp_enqueue_script( $block_type->script );
+		// Front-end and editor scripts.
+		foreach ( $block_type->script_handles as $script_handle ) {
+			wp_enqueue_script( $script_handle );
 		}
 
-		// Editor styles.
-		if ( $load_editor_scripts && ! empty( $block_type->editor_style ) ) {
-			wp_enqueue_style( $block_type->editor_style );
-		}
+		if ( $load_editor_scripts_and_styles ) {
+			// Editor styles.
+			foreach ( $block_type->editor_style_handles as $editor_style_handle ) {
+				wp_enqueue_style( $editor_style_handle );
+			}
 
-		// Editor script.
-		if ( $load_editor_scripts && ! empty( $block_type->editor_script ) ) {
-			wp_enqueue_script( $block_type->editor_script );
+			// Editor scripts.
+			foreach ( $block_type->editor_script_handles as $editor_script_handle ) {
+				wp_enqueue_script( $editor_script_handle );
+			}
 		}
 	}
 }

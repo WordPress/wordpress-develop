@@ -1023,6 +1023,7 @@ VIDEO;
 
 	/**
 	 * @ticket 35367
+	 * @ticket 54788
 	 * @depends test_video_shortcode_body
 	 */
 	public function test_wp_video_shortcode_attributes() {
@@ -1035,6 +1036,7 @@ VIDEO;
 		$this->assertStringContainsString( 'src="https://example.com/foo.mp4', $actual );
 		$this->assertStringNotContainsString( 'loop', $actual );
 		$this->assertStringNotContainsString( 'autoplay', $actual );
+		$this->assertStringNotContainsString( 'muted', $actual );
 		$this->assertStringContainsString( 'preload="metadata"', $actual );
 		$this->assertStringContainsString( 'width="640"', $actual );
 		$this->assertStringContainsString( 'height="360"', $actual );
@@ -1046,6 +1048,7 @@ VIDEO;
 				'poster'   => 'https://example.com/foo.png',
 				'loop'     => true,
 				'autoplay' => true,
+				'muted'    => true,
 				'preload'  => true,
 				'width'    => 123,
 				'height'   => 456,
@@ -1057,6 +1060,7 @@ VIDEO;
 		$this->assertStringContainsString( 'poster="https://example.com/foo.png', $actual );
 		$this->assertStringContainsString( 'loop="1"', $actual );
 		$this->assertStringContainsString( 'autoplay="1"', $actual );
+		$this->assertStringContainsString( 'muted', $actual );
 		$this->assertStringContainsString( 'preload="1"', $actual );
 		$this->assertStringContainsString( 'width="123"', $actual );
 		$this->assertStringContainsString( 'height="456"', $actual );
@@ -3626,7 +3630,7 @@ EOF;
 	 * @ticket 55443
 	 */
 	public function test_wp_default_image_output_mapping() {
-		$mapping = wp_default_image_output_mapping( array() );
+		$mapping = wp_default_image_output_mapping( array(), 'test.jpg', 'image/jpeg', '' );
 		$this->assertSame( array( 'image/jpeg' => 'image/webp' ), $mapping );
 	}
 
@@ -3637,7 +3641,7 @@ EOF;
 	 */
 	public function test_wp_default_image_output_mapping_existing() {
 		$mapping = array( 'mime/png' => 'mime/webp' );
-		$mapping = wp_default_image_output_mapping( $mapping );
+		$mapping = wp_default_image_output_mapping( $mapping, 'test.jpg', 'image/jpeg', '' );
 		$this->assertSame(
 			array(
 				'mime/png'   => 'mime/webp',
@@ -3671,6 +3675,78 @@ EOF;
 			$this->assertSame( 'image/jpeg', $saved['mime-type'] );
 			$this->assertSame( 'canola-100x75.jpg', $saved['file'] );
 		}
+	}
+
+	/**
+	 * @ticket 56526
+	 * @dataProvider data_wp_default_image_output_mapping_size_filter
+	 */
+	public function test_wp_default_image_output_mapping_size_filter( $size_name, $filter_callback, $expects_webp ) {
+		remove_all_filters( 'wp_image_sizes_with_additional_mime_type_support' );
+		if ( $filter_callback ) {
+			add_filter( 'wp_image_sizes_with_additional_mime_type_support', $filter_callback );
+		}
+
+		$mapping = wp_default_image_output_mapping( array(), 'test.jpg', 'image/jpeg', $size_name );
+		if ( $expects_webp ) {
+			$this->assertSame( array( 'image/jpeg' => 'image/webp' ), $mapping );
+		} else {
+			$this->assertSame( array(), $mapping );
+		}
+	}
+
+	public function data_wp_default_image_output_mapping_size_filter() {
+		return array(
+			'default size thumbnail'    => array(
+				'thumbnail',
+				null,
+				true,
+			),
+			'default size medium'       => array(
+				'medium',
+				null,
+				true,
+			),
+			'default size medium_large' => array(
+				'medium_large',
+				null,
+				true,
+			),
+			'default size large'        => array(
+				'large',
+				null,
+				true,
+			),
+			'default size unset'        => array(
+				'medium',
+				function( $enabled_sizes ) {
+					unset( $enabled_sizes['medium'] );
+					return $enabled_sizes;
+				},
+				false,
+			),
+			'default size set to false' => array(
+				'medium',
+				function( $enabled_sizes ) {
+					$enabled_sizes['medium'] = false;
+					return $enabled_sizes;
+				},
+				false,
+			),
+			'custom size'               => array(
+				'custom',
+				null,
+				false,
+			),
+			'custom size opted in'      => array(
+				'custom',
+				function( $enabled_sizes ) {
+					$enabled_sizes['custom'] = true;
+					return $enabled_sizes;
+				},
+				true,
+			),
+		);
 	}
 }
 
