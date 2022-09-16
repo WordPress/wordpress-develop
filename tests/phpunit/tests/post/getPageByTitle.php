@@ -213,18 +213,24 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 
 		// Prime cache.
 		$found = get_page_by_title( 'foo' );
+
+		$num_queries = get_num_queries();
 		$this->assertSame( $page, $found->ID, 'Should find a page.' );
 
 		$object = get_page_by_title( 'foo', OBJECT );
 		$this->assertIsObject( $object, 'Should be an object.' );
 		$this->assertSame( $page, $object->ID, 'Should match post id.' );
+		$this->assertSame( $num_queries, get_num_queries(), 'Should not result in another database query.' );
 
 		$array_n = get_page_by_title( 'foo', ARRAY_N );
+		$num_queries++; // Add one database query for loading of post metadata.
 		$this->assertIsArray( $array_n, 'Should be numbric array.' );
 		$this->assertSame( $page, $array_n[0], 'Should match post id.' );
+		$this->assertSame( $num_queries, get_num_queries(), 'Should not result in another database query.' );
 
 		$array_a = get_page_by_title( 'foo', ARRAY_A );
 		$this->assertIsArray( $array_a, 'Should be associative array.' );
 		$this->assertSame( $page, $array_a['ID'], 'Should match post id.' );
+		$this->assertSame( $num_queries, get_num_queries(), 'Should not result in another database query.' );
 	}
 }
