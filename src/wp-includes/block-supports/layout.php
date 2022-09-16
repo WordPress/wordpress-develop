@@ -396,7 +396,16 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		 * don't apply the user-defined value to the styles.
 		 */
 		$should_skip_gap_serialization = wp_should_skip_block_supports_serialization( $block_type, 'spacing', 'blockGap' );
-		$style                         = wp_get_layout_style( ".$block_classname.$container_class", $used_layout, $has_block_gap_support, $gap_value, $should_skip_gap_serialization, $fallback_gap_value, $block_spacing );
+
+		$style = wp_get_layout_style(
+			".$block_classname.$container_class",
+			$used_layout,
+			$has_block_gap_support,
+			$gap_value,
+			$should_skip_gap_serialization,
+			$fallback_gap_value,
+			$block_spacing
+		);
 
 		// Only add container class and enqueue block support styles if unique styles were generated.
 		if ( ! empty( $style ) ) {
