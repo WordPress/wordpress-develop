@@ -3765,7 +3765,8 @@ EOF;
 		$file     = $temp_dir . '/33772.jpg';
 		copy( DIR_TESTDATA . '/images/33772.jpg', $file );
 
-		// Set JPEG output quality low and WebP quality high
+		// Set JPEG output quality very low and WebP quality very high, this should force all generated WebP images to
+		// be larger than the the matching generated JPEGs.
 		add_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low_jpeg' ), 10, 2 );
 
 		$editor = wp_get_image_editor( $file );
@@ -3780,33 +3781,31 @@ EOF;
 
 		add_filter( 'big_image_size_threshold', array( $this, 'add_big_image_size_threshold' ) );
 
-		// Generate subsizes as JPEGs.
+		// Generate all sizes as JPEGs.
 		$jpeg_sizes = wp_generate_attachment_metadata( $attachment_id, $file );
 		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_jpeg' ) );
 
-		// Generate subsizes as WebP.
+		// Generate all sizes as WebP.
 		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_webp' ) );
 		$webp_sizes = wp_generate_attachment_metadata( $attachment_id, $file );
 		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_webp' ) );
 
-		// The main size should be a scaled image, and the JPEG should be smaller.
+		// The main (scaled) image: the JPEG should be smaller than the WebP.
 		$this->assertLessThan( $webp_sizes['filesize'], $jpeg_sizes['filesize'] );
 
-		// All JPEGs (quality 5) should be smaller than the WebPs (quality 95)
+		// Sub-sizes: for each size, the JPEGs should be smaller than the WebP.
 		$sizes_to_compare = array_intersect_key( $jpeg_sizes['sizes'], $webp_sizes['sizes'] );
 		foreach ( $sizes_to_compare as $size => $size_data ) {
-			// For each size, the JPEG should be smaller than the WebP since the quality is set very low for JPEG.
 			$this->assertLessThan( $webp_sizes['sizes'][ $size ]['filesize'], $jpeg_sizes['sizes'][ $size ]['filesize'] );
 		}
 
 		// Cleanup.
 		remove_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low_jpeg' ), 10, 2 );
 		remove_filter( 'big_image_size_threshold', array( $this, 'add_big_image_size_threshold' ) );
-
 	}
 
 	/**
-	 * Create a `-scaled` output image for testing.
+	 * Add threshold to create a `-scaled` output image for testing.
 	 */
 	public function add_big_image_size_threshold() {
 		return 1000;
