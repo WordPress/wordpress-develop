@@ -4,7 +4,7 @@
  * @group post
  * @group media
  * @group upload
- * 
+ *
  * @covers ::wp_count_attachments
  */
 class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
