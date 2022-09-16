@@ -176,6 +176,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		if ( is_wp_error( $updated_size ) ) {
 			return $updated_size;
 		}
+		$this->get_output_format( $this->file, $this->mime_type );
 
 		return $this->set_quality();
 	}
