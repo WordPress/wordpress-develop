@@ -1696,7 +1696,7 @@ class Tests_User extends WP_UnitTestCase {
 		reset_phpmailer_instance();
 		$was_confirmation_email_sent = false;
 
-		$user = $this->factory()->user->create_and_get(
+		$user = self::factory()->user->create_and_get(
 			array(
 				'user_email' => 'before@example.com',
 			)
@@ -1733,7 +1733,7 @@ class Tests_User extends WP_UnitTestCase {
 		reset_phpmailer_instance();
 		$was_confirmation_email_sent = false;
 
-		$user = $this->factory()->user->create_and_get(
+		$user = self::factory()->user->create_and_get(
 			array(
 				'user_email' => 'before@example.com',
 			)

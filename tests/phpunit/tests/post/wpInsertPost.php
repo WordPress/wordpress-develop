@@ -1425,7 +1425,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	public function test_contributor_cannot_set_post_slug( $post_type ) {
 		wp_set_current_user( self::$user_ids['contributor'] );
 
-		$post_id = $this->factory()->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_title'   => 'Jefferson claim: nice to have Washington on your side.',
 				'post_content' => "I’m in the cabinet. I am complicit in watching him grabbin’ at power and kiss it.\n\nIf Washington isn’t gon’ listen to disciplined dissidents, this is the difference: this kid is out!",
@@ -1464,7 +1464,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	public function test_administrator_can_set_post_slug( $post_type ) {
 		wp_set_current_user( self::$user_ids['administrator'] );
 
-		$post_id = $this->factory()->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_title'   => 'What is the Conner Project?',
 				'post_content' => 'Evan Hansen’s last link to his friend Conner is a signature on his broken arm.',
@@ -1505,7 +1505,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	public function test_administrator_cannot_set_post_slug_on_post_type_they_cannot_publish() {
 		wp_set_current_user( self::$user_ids['administrator'] );
 
-		$post_id = $this->factory()->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_title'   => 'Everything is legal in New Jersey',
 				'post_content' => 'Shortly before his death, Philip Hamilton was heard to claim everything was legal in the garden state.',
@@ -1542,7 +1542,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		$now = new DateTimeImmutable( 'now', new DateTimeZone( 'UTC' ) );
 
-		$post_id = $this->factory()->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_date_gmt' => $now->modify( '-1 year' )->format( 'Y-m-d H:i:s' ),
 				'post_status'   => 'future',
@@ -1551,7 +1551,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		$this->assertSame( 'publish', get_post_status( $post_id ) );
 
-		$post_id = $this->factory()->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_date_gmt' => $now->modify( '+50 years' )->format( 'Y-m-d H:i:s' ),
 				'post_status'   => 'future',

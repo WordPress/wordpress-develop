@@ -12,6 +12,7 @@
  */
 class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	private static $post;
+	private static $custom_single_post_template_post;
 	private static $template_part_post;
 	private static $test_theme = 'block-theme';
 
@@ -50,6 +51,22 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		self::$post = self::factory()->post->create_and_get( $args );
 		wp_set_post_terms( self::$post->ID, self::$test_theme, 'wp_theme' );
 
+		// Set up template post.
+		$args                                   = array(
+			'post_type'    => 'wp_template',
+			'post_name'    => 'custom-single-post-template',
+			'post_title'   => 'Custom Single Post template (modified)',
+			'post_content' => 'Content',
+			'post_excerpt' => 'Description of custom single post template',
+			'tax_input'    => array(
+				'wp_theme' => array(
+					self::$test_theme,
+				),
+			),
+		);
+		self::$custom_single_post_template_post = self::factory()->post->create_and_get( $args );
+		wp_set_post_terms( self::$custom_single_post_template_post->ID, self::$test_theme, 'wp_theme' );
+
 		// Set up template part post.
 		$template_part_args       = array(
 			'post_type'    => 'wp_template_part',
@@ -78,6 +95,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 	public static function wpTearDownAfterClass() {
 		wp_delete_post( self::$post->ID );
+		wp_delete_post( self::$custom_single_post_template_post->ID );
 	}
 
 	public function test_build_block_template_result_from_post() {
@@ -127,8 +145,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( 'single', $template->slug );
 		$this->assertSame( 'publish', $template->status );
 		$this->assertSame( 'theme', $template->source );
-		$this->assertSame( 'Single Post', $template->title );
-		$this->assertSame( 'Displays a single post.', $template->description );
+		$this->assertSame( 'Single', $template->title );
+		$this->assertSame( 'The default template for displaying any single post or attachment.', $template->description );
 		$this->assertSame( 'wp_template', $template->type );
 
 		// Test template parts.
@@ -319,6 +337,62 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			$template_ids
 		);
 		*/
+	}
+
+	/**
+	 * @dataProvider data_get_block_template_should_respect_posttypes_property
+	 * @ticket 55881
+	 * @covers ::get_block_templates
+	 *
+	 * @param string $post_type Post type for query.
+	 * @param array  $expected  Expected template IDs.
+	 */
+	public function test_get_block_template_should_respect_posttypes_property( $post_type, $expected ) {
+		$templates = get_block_templates( array( 'post_type' => $post_type ) );
+
+		$this->assertSame(
+			$expected,
+			$this->get_template_ids( $templates )
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_get_block_template_should_respect_posttypes_property() {
+		return array(
+			'post' => array(
+				'post_type' => 'post',
+				'expected'  => array(
+					'block-theme//my_template',
+					'block-theme//custom-single-post-template',
+				),
+			),
+			'page' => array(
+				'post_type' => 'page',
+				'expected'  => array(
+					'block-theme//my_template',
+					'block-theme//page-home',
+				),
+			),
+		);
+	}
+
+	/**
+	 * Gets the template IDs from the given array.
+	 *
+	 * @param object[] $templates Array of template objects to parse.
+	 * @return string[] The template IDs.
+	 */
+	private function get_template_ids( $templates ) {
+		return array_map(
+			static function( $template ) {
+				return $template->id;
+			},
+			$templates
+		);
 	}
 
 	/**

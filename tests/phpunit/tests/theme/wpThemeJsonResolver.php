@@ -12,6 +12,27 @@
  */
 class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
+	/**
+	 * Theme root directory.
+	 *
+	 * @var string
+	 */
+	private $theme_root;
+
+	/**
+	 * Original theme directory.
+	 *
+	 * @var string
+	 */
+	private $orig_theme_dir;
+
+	/**
+	 * Queries.
+	 *
+	 * @var array
+	 */
+	private $queries = array();
+
 	public function set_up() {
 		parent::set_up();
 		$this->theme_root = realpath( DIR_TESTDATA . '/themedir1' );
@@ -61,13 +82,15 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		load_textdomain( 'block-theme', realpath( DIR_TESTDATA . '/languages/themes/block-theme-pl_PL.mo' ) );
 
 		switch_theme( 'block-theme' );
-		$actual = WP_Theme_JSON_Resolver::get_theme_data();
+		$theme_data       = WP_Theme_JSON_Resolver::get_theme_data();
+		$style_variations = WP_Theme_JSON_Resolver::get_style_variations();
 
 		unload_textdomain( 'block-theme' );
 		remove_filter( 'locale', array( $this, 'filter_set_locale_to_polish' ) );
 
-		$this->assertSame( wp_get_theme()->get( 'TextDomain' ), 'block-theme' );
-		$this->assertSame(
+		$this->assertSame( 'block-theme', wp_get_theme()->get( 'TextDomain' ) );
+		$this->assertSame( 'Motyw blokowy', $theme_data->get_data()['title'] );
+		$this->assertSameSets(
 			array(
 				'color'      => array(
 					'custom'         => false,
@@ -129,25 +152,30 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 					),
 				),
 			),
-			$actual->get_settings()
+			$theme_data->get_settings()
 		);
+
+		$custom_templates = $theme_data->get_custom_templates();
+		$this->assertArrayHasKey( 'page-home', $custom_templates );
 		$this->assertSame(
-			$actual->get_custom_templates(),
+			$custom_templates['page-home'],
 			array(
-				'page-home' => array(
-					'title'     => 'Szablon strony głównej',
-					'postTypes' => array( 'page' ),
-				),
+				'title'     => 'Szablon strony głównej',
+				'postTypes' => array( 'page' ),
 			)
 		);
-		$this->assertSame(
-			$actual->get_template_parts(),
+		$this->assertSameSets(
 			array(
 				'small-header' => array(
 					'title' => 'Mały nagłówek',
 					'area'  => 'header',
 				),
-			)
+			),
+			$theme_data->get_template_parts()
+		);
+		$this->assertSame(
+			'Wariant motywu blokowego',
+			$style_variations[0]['title']
 		);
 	}
 
@@ -313,9 +341,13 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$this->assertSame(
 			WP_Theme_JSON_Resolver::get_theme_data()->get_custom_templates(),
 			array(
-				'page-home' => array(
+				'page-home'                   => array(
 					'title'     => 'Homepage',
 					'postTypes' => array( 'page' ),
+				),
+				'custom-single-post-template' => array(
+					'title'     => 'Custom Single Post template',
+					'postTypes' => array( 'post' ),
 				),
 			)
 		);
