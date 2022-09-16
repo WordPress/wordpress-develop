@@ -22,11 +22,9 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 			)
 		);
 
-		// get_page_by_title() should return a post of the requested type before returning an attachment.
-		$this->assertEquals( $page, get_page_by_title( 'some-page' ) );
+		$this->assertEquals( $page, get_page_by_title( 'some-page' ), 'should return a post of the requested type before returning an attachment.' );
 
-		// Make sure get_page_by_title() will still select an attachment when a post of the requested type doesn't exist.
-		$this->assertEquals( $attachment, get_page_by_title( 'some-other-page', OBJECT, 'attachment' ) );
+		$this->assertEquals( $attachment, get_page_by_title( 'some-other-page', OBJECT, 'attachment' ), "will still select an attachment when a post of the requested type doesn't exist." );
 	}
 
 	/**
@@ -76,10 +74,10 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 		);
 
 		$found = get_page_by_title( 'foo' );
-		$this->assertNull( $found );
+		$this->assertNull( $found, 'Should return null, as post type does not match' );
 
 		$found = get_page_by_title( 'foo', OBJECT, 'wptests_pt' );
-		$this->assertSame( $page, $found->ID );
+		$this->assertSame( $page, $found->ID, 'Should return find post, as post type does do match' );
 	}
 
 
@@ -96,34 +94,34 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 
 		// Prime cache.
 		$found = get_page_by_title( 'foo' );
-		$this->assertSame( $page, $found->ID );
+		$this->assertSame( $page, $found->ID, 'Should return find page.' );
 
 		$num_queries = get_num_queries();
 
 		$found = get_page_by_title( 'foo' );
-		$this->assertSame( $page, $found->ID );
-		$this->assertSame( $num_queries, get_num_queries() );
+		$this->assertSame( $page, $found->ID, 'Should return find page on second run.' );
+		$this->assertSame( $num_queries, get_num_queries(), 'Should not result in another database query.' );
 	}
 
 	/**
 	 * @ticket 36905
 	 */
-	public function test_bad_path_should_be_cached() {
+	public function test_bad_title_should_be_cached() {
 		// Prime cache.
 		$found = get_page_by_title( 'foo' );
-		$this->assertNull( $found );
+		$this->assertNull( $found, 'Should return not find a page.' );
 
 		$num_queries = get_num_queries();
 
 		$found = get_page_by_title( 'foo' );
-		$this->assertNull( $found );
-		$this->assertSame( $num_queries, get_num_queries() );
+		$this->assertNull( $found, 'Should return not find a page on second run.' );
+		$this->assertSame( $num_queries, get_num_queries(), 'Should not result in another database query.' );
 	}
 
 	/**
 	 * @ticket 36905
 	 */
-	public function test_bad_path_served_from_cache_should_not_fall_back_on_current_post() {
+	public function test_bad_title_served_from_cache_should_not_fall_back_on_current_post() {
 		global $post;
 
 		// Fake the global.
@@ -131,19 +129,19 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 
 		// Prime cache.
 		$found = get_page_by_title( 'foo' );
-		$this->assertNull( $found );
+		$this->assertNull( $found, 'Should return not find a page.' );
 
 		$num_queries = get_num_queries();
 
 		$found = get_page_by_title( 'foo' );
-		$this->assertNull( $found );
-		$this->assertSame( $num_queries, get_num_queries() );
+		$this->assertNull( $found, 'Should return not find a page on second run.' );
+		$this->assertSame( $num_queries, get_num_queries(), 'Should not result in another database query.' );
 	}
 
 	/**
 	 * @ticket 36905
 	 */
-	public function test_cache_should_not_match_post_in_different_post_type_with_same_path() {
+	public function test_cache_should_not_match_post_in_different_post_type_with_same_title() {
 		register_post_type( 'wptests_pt' );
 
 		$p1 = self::factory()->post->create(
@@ -162,20 +160,20 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 
 		// Prime cache for the page.
 		$found = get_page_by_title( 'foo' );
-		$this->assertSame( $p1, $found->ID );
+		$this->assertSame( $p1, $found->ID, 'Should find a page.' );
 
 		$num_queries = get_num_queries();
 
 		$found = get_page_by_title( 'foo', OBJECT, 'wptests_pt' );
-		$this->assertSame( $p2, $found->ID );
+		$this->assertSame( $p2, $found->ID, 'Should find a post with post type wptests_pt.' );
 		$num_queries ++;
-		$this->assertSame( $num_queries, get_num_queries() );
+		$this->assertSame( $num_queries, get_num_queries(), 'Should result in another database query.' );
 	}
 
 	/**
 	 * @ticket 36905
 	 */
-	public function test_cache_should_be_invalidated_when_post_name_is_edited() {
+	public function test_cache_should_be_invalidated_when_post_title_is_edited() {
 		$page = self::factory()->post->create(
 			array(
 				'post_type'  => 'page',
@@ -185,7 +183,7 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 
 		// Prime cache.
 		$found = get_page_by_title( 'foo' );
-		$this->assertSame( $page, $found->ID );
+		$this->assertSame( $page, $found->ID, 'Should find a page.' );
 
 		wp_update_post(
 			array(
@@ -197,9 +195,9 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 		$num_queries = get_num_queries();
 
 		$found = get_page_by_title( 'bar' );
-		$this->assertSame( $page, $found->ID );
-		$num_queries ++;
-		$this->assertSame( $num_queries, get_num_queries() );
+		$this->assertSame( $page, $found->ID, 'Should find a page with the new title.' );
+		$num_queries++;
+		$this->assertSame( $num_queries, get_num_queries(), 'Should result in another database query.' );
 	}
 
 	/**
@@ -215,18 +213,18 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 
 		// Prime cache.
 		$found = get_page_by_title( 'foo' );
-		$this->assertSame( $page, $found->ID );
+		$this->assertSame( $page, $found->ID, 'Should find a page.' );
 
 		$object = get_page_by_title( 'foo', OBJECT );
-		$this->assertIsObject( $object );
-		$this->assertSame( $page, $object->ID );
+		$this->assertIsObject( $object, 'Should be an object.' );
+		$this->assertSame( $page, $object->ID, 'Should match post id.' );
 
 		$array_n = get_page_by_title( 'foo', ARRAY_N );
-		$this->assertIsArray( $array_n );
-		$this->assertSame( $page, $array_n[0] );
+		$this->assertIsArray( $array_n, 'Should be numbric array.' );
+		$this->assertSame( $page, $array_n[0], 'Should match post id.' );
 
 		$array_a = get_page_by_title( 'foo', ARRAY_A );
-		$this->assertIsArray( $array_a );
-		$this->assertSame( $page, $array_a['ID'] );
+		$this->assertIsArray( $array_a, 'Should be associative array.' );
+		$this->assertSame( $page, $array_a['ID'], 'Should match post id.' );
 	}
 }
