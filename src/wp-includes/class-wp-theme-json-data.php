@@ -56,7 +56,8 @@ class WP_Theme_JSON_Data {
 	}
 
 	/**
-	 * Returns the underlying data.
+	 * Returns an array containing the underlying data
+	 * following the theme.json specification.
 	 *
 	 * @since 6.1.0
 	 *
