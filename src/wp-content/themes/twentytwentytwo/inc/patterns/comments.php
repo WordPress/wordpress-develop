@@ -45,5 +45,5 @@ if ( WP_Block_Type_Registry::get_instance()->is_registered( 'core/comments' ) ) 
 }
 return array(
 	'title'      => __( 'Post Comments block', 'twentytwentytwo' ),
-	'content'    => '<!-- wp:post-comments /-->',
+	'content'    => '<!-- wp:heading --><h2>' . __( 'Comments', 'twentytwentytwo' ) . '</h2><!-- /wp:heading --><!-- wp:post-comments /-->',
 );
