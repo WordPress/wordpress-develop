@@ -3760,14 +3760,15 @@ EOF;
 		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
 			$this->markTestSkipped( 'WebP is not supported on this system.' );
 		}
+		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_jpeg' ) );
 		$temp_dir = get_temp_dir();
 		$file     = $temp_dir . '/33772.jpg';
 		copy( DIR_TESTDATA . '/images/33772.jpg', $file );
 
-		$editor = wp_get_image_editor( $file );
-
 		// Set JPEG output quality low and WebP quality high
 		add_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low_jpeg' ), 10, 2 );
+
+		$editor = wp_get_image_editor( $file );
 
 		$attachment_id = self::factory()->attachment->create_object(
 			$file,
@@ -3780,7 +3781,6 @@ EOF;
 		add_filter( 'big_image_size_threshold', array( $this, 'add_big_image_size_threshold' ) );
 
 		// Generate subsizes as JPEGs.
-		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_jpeg' ) );
 		$jpeg_sizes = wp_generate_attachment_metadata( $attachment_id, $file );
 		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_jpeg' ) );
 
@@ -3789,12 +3789,13 @@ EOF;
 		$webp_sizes = wp_generate_attachment_metadata( $attachment_id, $file );
 		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_webp' ) );
 
-		// The main size should be a scaled image, smaller for JPEG.
+		// The main size should be a scaled image, and the JPEG should be smaller.
 		$this->assertLessThan( $webp_sizes['filesize'], $jpeg_sizes['filesize'] );
 
 		// All JPEGs (quality 5) should be smaller than the WebPs (quality 95)
 		$sizes_to_compare = array_intersect_key( $jpeg_sizes['sizes'], $webp_sizes['sizes'] );
 		foreach ( $sizes_to_compare as $size => $size_data ) {
+			// For each size, the JPEG should be smaller than the WebP since the quality is set very low for JPEG.
 			$this->assertLessThan( $webp_sizes['sizes'][ $size ]['filesize'], $jpeg_sizes['sizes'][ $size ]['filesize'] );
 		}
 
@@ -3835,9 +3836,9 @@ EOF;
 	 */
 	public function image_editor_change_quality_low_jpeg( $quality, $mime_type ) {
 		if ( 'image/jpeg' === $mime_type ) {
-			return 5;
+			return 1;
 		} elseif ( 'image/webp' === $mime_type ) {
-			return 95;
+			return 100;
 		} else {
 			return 30;
 		}
