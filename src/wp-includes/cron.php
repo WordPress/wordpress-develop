@@ -1122,23 +1122,20 @@ function wp_get_ready_cron_jobs() {
 	 *                          to continue using results from _get_cron_array().
 	 */
 	$pre = apply_filters( 'pre_get_ready_cron_jobs', null );
+
 	if ( null !== $pre ) {
 		return $pre;
 	}
 
 	$crons = _get_cron_array();
-
 	$gmt_time = microtime( true );
-	$keys     = array_keys( $crons );
-	if ( isset( $keys[0] ) && $keys[0] > $gmt_time ) {
-		return array();
-	}
-
 	$results = array();
+
 	foreach ( $crons as $timestamp => $cronhooks ) {
 		if ( $timestamp > $gmt_time ) {
 			break;
 		}
+
 		$results[ $timestamp ] = $cronhooks;
 	}
 
@@ -1205,15 +1202,15 @@ function _set_cron_array( $cron, $wp_error = false ) {
 }
 
 /**
- * Upgrade a Cron info array.
+ * Upgrade a cron info array.
  *
- * This function upgrades the Cron info array to version 2.
+ * This function upgrades the cron info array to version 2.
  *
  * @since 2.1.0
  * @access private
  *
  * @param array $cron Cron info array from _get_cron_array().
- * @return array An upgraded Cron info array.
+ * @return array An upgraded cron info array.
  */
 function _upgrade_cron_array( $cron ) {
 	if ( isset( $cron['version'] ) && 2 == $cron['version'] ) {

@@ -183,6 +183,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp-site-health/v1/tests/https-status',
 			'/wp-site-health/v1/tests/dotorg-communication',
 			'/wp-site-health/v1/tests/authorization-header',
+			'/wp-site-health/v1/tests/page-cache',
 			'/wp-site-health/v1/directory-sizes',
 		);
 
@@ -204,7 +205,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		// fixture file will be different between runs of PHPUnit tests, which
 		// is not desirable.
 
-		$administrator_id = $this->factory->user->create(
+		$administrator_id = self::factory()->user->create(
 			array(
 				'role'          => 'administrator',
 				'display_name'  => 'REST API Client Fixture: User',
@@ -214,7 +215,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		);
 		wp_set_current_user( $administrator_id );
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_name'    => 'restapi-client-fixture-post',
 				'post_title'   => 'REST API Client Fixture: Post',
@@ -242,7 +243,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			)
 		);
 
-		$page_id = $this->factory->post->create(
+		$page_id = self::factory()->post->create(
 			array(
 				'post_type'     => 'page',
 				'post_name'     => 'restapi-client-fixture-page',
@@ -272,7 +273,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			)
 		);
 
-		$tag_id = $this->factory->tag->create(
+		$tag_id = self::factory()->tag->create(
 			array(
 				'name'        => 'REST API Client Fixture: Tag',
 				'slug'        => 'restapi-client-fixture-tag',
@@ -280,7 +281,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			)
 		);
 
-		$media_id = $this->factory->attachment->create_object(
+		$media_id = self::factory()->attachment->create_object(
 			get_temp_dir() . 'canola.jpg',
 			0,
 			array(
@@ -294,7 +295,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			)
 		);
 
-		$comment_id = $this->factory->comment->create(
+		$comment_id = self::factory()->comment->create(
 			array(
 				'comment_approved'     => 1,
 				'comment_post_ID'      => $post_id,

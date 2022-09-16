@@ -9,6 +9,12 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		return 'foo';
 	}
 
+	/**
+	 * @covers ::get_option
+	 * @covers ::add_option
+	 * @covers ::update_option
+	 * @covers ::delete_option
+	 */
 	public function test_the_basics() {
 		$key    = 'key1';
 		$key2   = 'key2';
@@ -34,7 +40,12 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		$this->assertFalse( get_option( $key2 ) );
 	}
 
-	public function test_default_filter() {
+	/**
+	 * @covers ::get_option
+	 * @covers ::add_option
+	 * @covers ::delete_option
+	 */
+	public function test_default_option_filter() {
 		$value = 'value';
 
 		$this->assertFalse( get_option( 'doesnotexist' ) );
@@ -61,6 +72,9 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 31047
+	 *
+	 * @covers ::get_option
+	 * @covers ::add_option
 	 */
 	public function test_add_option_should_respect_default_option_filter() {
 		add_filter( 'default_option_doesnotexist', array( $this, '__return_foo' ) );
@@ -71,6 +85,27 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		$this->assertSame( 'bar', get_option( 'doesnotexist' ) );
 	}
 
+	/**
+	 * @ticket 37930
+	 *
+	 * @covers ::get_option
+	 */
+	public function test_get_option_should_call_pre_option_filter() {
+		$filter = new MockAction();
+
+		add_filter( 'pre_option', array( $filter, 'filter' ) );
+
+		get_option( 'ignored' );
+
+		$this->assertSame( 1, $filter->get_call_count() );
+	}
+
+	/**
+	 * @covers ::get_option
+	 * @covers ::add_option
+	 * @covers ::delete_option
+	 * @covers ::update_option
+	 */
 	public function test_serialized_data() {
 		$key   = __FUNCTION__;
 		$value = array(
@@ -93,6 +128,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @dataProvider data_bad_option_names
 	 *
 	 * @param mixed $option_name Option name.
+	 *
+	 * @covers ::get_option
 	 */
 	public function test_get_option_bad_option_name( $option_name ) {
 		$this->assertFalse( get_option( $option_name ) );
@@ -104,6 +141,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @dataProvider data_bad_option_names
 	 *
 	 * @param mixed $option_name Option name.
+	 *
+	 * @covers ::add_option
 	 */
 	public function test_add_option_bad_option_name( $option_name ) {
 		$this->assertFalse( add_option( $option_name, '' ) );
@@ -115,6 +154,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @dataProvider data_bad_option_names
 	 *
 	 * @param mixed $option_name Option name.
+	 *
+	 * @covers ::update_option
 	 */
 	public function test_update_option_bad_option_name( $option_name ) {
 		$this->assertFalse( update_option( $option_name, '' ) );
@@ -126,6 +167,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @dataProvider data_bad_option_names
 	 *
 	 * @param mixed $option_name Option name.
+	 *
+	 * @covers ::delete_option
 	 */
 	public function test_delete_option_bad_option_name( $option_name ) {
 		$this->assertFalse( delete_option( $option_name ) );
@@ -154,6 +197,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @dataProvider data_valid_but_undesired_option_names
 	 *
 	 * @param mixed $option_name Option name.
+	 *
+	 * @covers ::get_option
 	 */
 	public function test_get_option_valid_but_undesired_option_names( $option_name ) {
 		$this->assertFalse( get_option( $option_name ) );
@@ -165,6 +210,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @dataProvider data_valid_but_undesired_option_names
 	 *
 	 * @param mixed $option_name Option name.
+	 *
+	 * @covers ::add_option
 	 */
 	public function test_add_option_valid_but_undesired_option_names( $option_name ) {
 		$this->assertTrue( add_option( $option_name, '' ) );
@@ -176,6 +223,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @dataProvider data_valid_but_undesired_option_names
 	 *
 	 * @param mixed $option_name Option name.
+	 *
+	 * @covers ::update_option
 	 */
 	public function test_update_option_valid_but_undesired_option_names( $option_name ) {
 		$this->assertTrue( update_option( $option_name, '' ) );
@@ -187,6 +236,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @dataProvider data_valid_but_undesired_option_names
 	 *
 	 * @param mixed $option_name Option name.
+	 *
+	 * @covers ::delete_option
 	 */
 	public function test_delete_option_valid_but_undesired_option_names( $option_name ) {
 		$this->assertFalse( delete_option( $option_name ) );
@@ -210,6 +261,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23289
+	 *
+	 * @covers ::delete_option
 	 */
 	public function test_special_option_name_alloption() {
 		$this->expectException( 'WPDieException' );
@@ -218,6 +271,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23289
+	 *
+	 * @covers ::delete_option
 	 */
 	public function test_special_option_name_notoptions() {
 		$this->expectException( 'WPDieException' );
@@ -229,6 +284,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 *
 	 * @ticket 31119
 	 * @dataProvider data_option_autoloading
+	 *
+	 * @covers ::add_option
 	 */
 	public function test_option_autoloading( $name, $autoload_value, $expected ) {
 		global $wpdb;

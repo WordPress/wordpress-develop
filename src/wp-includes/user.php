@@ -1213,10 +1213,10 @@ function count_users( $strategy = 'time', $site_id = null ) {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @param null|string $result   The value to return instead. Default null to continue with the query.
-	 * @param string      $strategy Optional. The computational strategy to use when counting the users.
-	 *                              Accepts either 'time' or 'memory'. Default 'time'.
-	 * @param int|null    $site_id  Optional. The site ID to count users for. Defaults to the current site.
+	 * @param null|array $result   The value to return instead. Default null to continue with the query.
+	 * @param string     $strategy Optional. The computational strategy to use when counting the users.
+	 *                             Accepts either 'time' or 'memory'. Default 'time'.
+	 * @param int        $site_id  The site ID to count users for.
 	 */
 	$pre = apply_filters( 'pre_count_users', null, $strategy, $site_id );
 
@@ -1850,8 +1850,11 @@ function update_user_caches( $user ) {
 
 	wp_cache_add( $user->ID, $user, 'users' );
 	wp_cache_add( $user->user_login, $user->ID, 'userlogins' );
-	wp_cache_add( $user->user_email, $user->ID, 'useremail' );
 	wp_cache_add( $user->user_nicename, $user->ID, 'userslugs' );
+
+	if ( ! empty( $user->user_email ) ) {
+		wp_cache_add( $user->user_email, $user->ID, 'useremail' );
+	}
 }
 
 /**
@@ -1878,8 +1881,11 @@ function clean_user_cache( $user ) {
 
 	wp_cache_delete( $user->ID, 'users' );
 	wp_cache_delete( $user->user_login, 'userlogins' );
-	wp_cache_delete( $user->user_email, 'useremail' );
 	wp_cache_delete( $user->user_nicename, 'userslugs' );
+
+	if ( ! empty( $user->user_email ) ) {
+		wp_cache_delete( $user->user_email, 'useremail' );
+	}
 
 	/**
 	 * Fires immediately after the given user's cache is cleaned.
@@ -3737,7 +3743,7 @@ function new_user_email_admin_notice() {
  * @since 4.9.6
  * @access private
  *
- * @return array List of core privacy action types.
+ * @return string[] List of core privacy action types.
  */
 function _wp_privacy_action_request_types() {
 	return array(
@@ -3751,8 +3757,8 @@ function _wp_privacy_action_request_types() {
  *
  * @since 4.9.6
  *
- * @param array $exporters  An array of personal data exporters.
- * @return array An array of personal data exporters.
+ * @param array[] $exporters An array of personal data exporters.
+ * @return array[] An array of personal data exporters.
  */
 function wp_register_user_personal_data_exporter( $exporters ) {
 	$exporters['wordpress-user'] = array(
@@ -4944,4 +4950,51 @@ function wp_is_application_passwords_available_for_user( $user ) {
 	 * @param WP_User $user      The user to check.
 	 */
 	return apply_filters( 'wp_is_application_passwords_available_for_user', true, $user );
+}
+
+/**
+ * Registers the user meta property for persisted preferences.
+ *
+ * This property is used to store user preferences across page reloads and is
+ * currently used by the block editor for preferences like 'fullscreenMode' and
+ * 'fixedToolbar'.
+ *
+ * @since 6.1.0
+ * @access private
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ */
+function wp_register_persisted_preferences_meta() {
+	/*
+	 * Create a meta key that incorporates the blog prefix so that each site
+	 * on a multisite can have distinct user preferences.
+	 */
+	global $wpdb;
+	$meta_key = $wpdb->get_blog_prefix() . 'persisted_preferences';
+
+	register_meta(
+		'user',
+		$meta_key,
+		array(
+			'type'         => 'object',
+			'single'       => true,
+			'show_in_rest' => array(
+				'name'    => 'persisted_preferences',
+				'type'    => 'object',
+				'context' => array( 'edit' ),
+				'schema'  => array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'_modified' => array(
+							'description' => __( 'The date and time the preferences were updated.' ),
+							'type'        => 'string',
+							'format'      => 'date-time',
+							'readonly'    => false,
+						),
+					),
+					'additionalProperties' => true,
+				),
+			),
+		)
+	);
 }
