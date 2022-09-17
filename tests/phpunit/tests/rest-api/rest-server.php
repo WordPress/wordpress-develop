@@ -934,13 +934,16 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		};
 		add_filter( 'rest_pre_dispatch', $return_wp_error );
 
+		$mock = new MockAction();
+		add_filter( 'rest_post_dispatch', array( $mock, 'filter' ) );
+
 		$response = new WP_REST_Response();
 		$response->add_link( 'author', rest_url( 'test' ), array( 'embeddable' => true ) );
 
 		$data = rest_get_server()->response_to_data( $response, true );
 
 		$this->assertArrayHasKey( '_links', $data );
-		$this->assertSame( 1, did_filter( 'rest_post_dispatch' ) );
+		$this->assertCount( 1, $mock->get_events() );
 		$this->assertSame( 'some-error', $data['_embedded']['author'][0]['code'] );
 	}
 
