@@ -913,12 +913,10 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 * Ensure embedding is a no-op without links in the data.
 	 */
 	public function test_link_embedding_without_links() {
-		$data   = new WP_REST_Response(
-			array(
-				'untouched' => 'data',
-			)
+		$data   = array(
+			'untouched' => 'data',
 		);
-		$result = rest_get_server()->response_to_data( $data, true );
+		$result = rest_get_server()->embed_links( $data, true );
 
 		$this->assertArrayNotHasKey( '_links', $result );
 		$this->assertArrayNotHasKey( '_embedded', $result );
