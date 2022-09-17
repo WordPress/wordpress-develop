@@ -944,8 +944,6 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertArrayHasKey( '_links', $data );
 		$this->assertSame( 1, did_filter( 'rest_post_dispatch' ) );
 		$this->assertSame( 'some-error', $data['_embedded']['author'][0]['code'] );
-
-		remove_filter( 'rest_pre_dispatch', $return_wp_error );
 	}
 
 	public function embedded_response_callback( $request ) {
