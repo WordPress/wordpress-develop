@@ -261,7 +261,6 @@ abstract class WP_Image_Editor {
 	 * @return true|WP_Error True if set successfully; WP_Error on failure.
 	 */
 	public function set_quality( $quality = null ) {
-		$this->get_output_format( $this->file, $this->mime_type );
 
 		// Use the output mime type if present. If not, fall back to the input/initial mime type.
 		$mime_type = ! empty( $this->output_mime_type ) ? $this->output_mime_type : $this->mime_type;
@@ -441,8 +440,8 @@ abstract class WP_Image_Editor {
 			// The image will be converted when saving. Set the quality for the new mime-type if not already set.
 			if ( $mime_type !== $this->output_mime_type ) {
 				$this->output_mime_type = $mime_type;
-				$this->set_quality();
 			}
+			$this->set_quality();
 		} elseif ( ! empty( $this->output_mime_type ) ) {
 			// Reset output_mime_type and quality.
 			$this->output_mime_type = null;
