@@ -11,7 +11,7 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	/**
 	 * @var WP_Post
 	 */
-	private static $template;
+	private static $index_template;
 
 	/**
 	 * @var WP_Post
@@ -21,30 +21,28 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	/**
 	 * @var WP_Post
 	 */
-	private static $template_part;
+	private static $small_header_template_part;
 
-	public static function set_up_before_class() {
-		parent::set_up_before_class();
-
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		/*
 		 * This template has to have the same ID ("block-theme/index") as the template
 		 * that is shipped with the "block-theme" theme. This is needed for testing purposes.
 		 */
-		static::$template = self::factory()->post->create_and_get(
+		self::$index_template = $factory->post->create_and_get(
 			array(
 				'post_type' => 'wp_template',
 				'post_name' => 'index',
 				'tax_input' => array(
 					'wp_theme' => array(
-						static::TEST_THEME,
+						self::TEST_THEME,
 					),
 				),
 			)
 		);
 
-		wp_set_post_terms( static::$template->ID, static::TEST_THEME, 'wp_theme' );
+		wp_set_post_terms( self::$index_template->ID, self::TEST_THEME, 'wp_theme' );
 
-		static::$custom_single_post_template = self::factory()->post->create_and_get(
+		self::$custom_single_post_template = $factory->post->create_and_get(
 			array(
 				'post_type'    => 'wp_template',
 				'post_name'    => 'custom-single-post-template',
@@ -53,25 +51,25 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 				'post_excerpt' => 'Description of custom single post template',
 				'tax_input'    => array(
 					'wp_theme' => array(
-						static::TEST_THEME,
+						self::TEST_THEME,
 					),
 				),
 			)
 		);
 
-		wp_set_post_terms( static::$custom_single_post_template->ID, static::TEST_THEME, 'wp_theme' );
+		wp_set_post_terms( self::$custom_single_post_template->ID, self::TEST_THEME, 'wp_theme' );
 
 		/*
 		 * This template part has to have the same ID ("block-theme/small-header") as the template part
 		 * that is shipped with the "block-theme" theme. This is needed for testing purposes.
 		 */
-		self::$template_part = self::factory()->post->create_and_get(
+		self::$small_header_template_part = $factory->post->create_and_get(
 			array(
 				'post_type' => 'wp_template_part',
 				'post_name' => 'small-header',
 				'tax_input' => array(
 					'wp_theme'              => array(
-						static::TEST_THEME,
+						self::TEST_THEME,
 					),
 					'wp_template_part_area' => array(
 						WP_TEMPLATE_PART_AREA_HEADER,
@@ -80,21 +78,70 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 			)
 		);
 
-		wp_set_post_terms( self::$template_part->ID, WP_TEMPLATE_PART_AREA_HEADER, 'wp_template_part_area' );
-		wp_set_post_terms( self::$template_part->ID, static::TEST_THEME, 'wp_theme' );
+		wp_set_post_terms( self::$small_header_template_part->ID, WP_TEMPLATE_PART_AREA_HEADER, 'wp_template_part_area' );
+		wp_set_post_terms( self::$small_header_template_part->ID, self::TEST_THEME, 'wp_theme' );
 	}
 
-	public static function tear_down_after_class() {
-		wp_delete_post( static::$template->ID );
-		wp_delete_post( static::$custom_single_post_template->ID );
-		wp_delete_post( static::$template_part->ID );
-
-		parent::tear_down_after_class();
+	public static function wpTearDownAfterClass() {
+		wp_delete_post( self::$index_template->ID );
+		wp_delete_post( self::$custom_single_post_template->ID );
+		wp_delete_post( self::$small_header_template_part->ID );
 	}
 
 	public function set_up() {
 		parent::set_up();
-		switch_theme( static::TEST_THEME );
+		switch_theme( self::TEST_THEME );
+	}
+
+	/**
+	 * Gets the template IDs from the given array.
+	 *
+	 * @param object[] $templates Array of template objects to parse.
+	 * @return string[] The template IDs.
+	 */
+	private function get_template_ids( $templates ) {
+		return array_map(
+			static function( $template ) {
+				return $template->id;
+			},
+			$templates
+		);
+	}
+
+	/**
+	 * Should retrieve block templates (file and CPT)
+	 */
+	public function test_get_block_templates() {
+		// All results.
+		$templates    = get_block_templates( array(), 'wp_template' );
+		$template_ids = $this->get_template_ids( $templates );
+
+		// Avoid testing the entire array because the theme might add/remove templates.
+		$this->assertContains( get_stylesheet() . '//' . 'custom-single-post-template', $template_ids );
+
+		// The result might change in a block theme.
+		$this->assertContains( get_stylesheet() . '//' . 'index', $template_ids );
+
+		// Filter by slug.
+		$templates    = get_block_templates( array( 'slug__in' => array( 'custom-single-post-template' ) ), 'wp_template' );
+		$template_ids = $this->get_template_ids( $templates );
+		$this->assertSame( array( get_stylesheet() . '//' . 'custom-single-post-template' ), $template_ids );
+
+		// Filter by CPT ID.
+		$templates    = get_block_templates( array( 'wp_id' => self::$custom_single_post_template->ID ), 'wp_template' );
+		$template_ids = $this->get_template_ids( $templates );
+		$this->assertSame( array( get_stylesheet() . '//' . 'custom-single-post-template' ), $template_ids );
+
+		// Filter template part by area.
+		// Requires a block theme.
+		$templates    = get_block_templates( array( 'area' => WP_TEMPLATE_PART_AREA_HEADER ), 'wp_template_part' );
+		$template_ids = $this->get_template_ids( $templates );
+		$this->assertSame(
+			array(
+				get_stylesheet() . '//' . 'small-header',
+			),
+			$template_ids
+		);
 	}
 
 	/**
@@ -172,21 +219,6 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 					'block-theme//page-home',
 				),
 			),
-		);
-	}
-
-	/**
-	 * Gets the template IDs from the given array.
-	 *
-	 * @param object[] $templates Array of template objects to parse.
-	 * @return string[] The template IDs.
-	 */
-	private function get_template_ids( $templates ) {
-		return array_map(
-			static function( $template ) {
-				return $template->id;
-			},
-			$templates
 		);
 	}
 }
