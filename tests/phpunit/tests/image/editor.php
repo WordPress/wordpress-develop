@@ -125,8 +125,13 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * @ticket 6821
 	 */
 	public function test_set_quality_with_image_conversion() {
+		remove_filter( 'image_editor_output_format', 'wp_default_image_output_mapping' );
+
 		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/test-image.png' );
 		$editor->set_mime_type( 'image/png' ); // Ensure mime-specific filters act properly.
+
+		// Quality setting for the source image. For PNG the fallback default of 82 is used.
+		$this->assertSame( 82, $editor->get_quality(), 'Default quality setting is 82.' );
 
 		// Set conversions for uploaded images.
 		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_formats' ) );
@@ -134,8 +139,12 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		// Quality setting for the source image. For PNG the fallback default of 82 is used.
 		$this->assertSame( 82, $editor->get_quality(), 'Default quality setting is 82.' );
 
-		// Quality should change to the output format's value.
-		// A PNG image will be converted to WEBP whose quialty should be 86.
+		// When saving, quality should change to the output format's value.
+		// A PNG image will be converted to WEBP whose quality should be 86.
+		$editor->save();
+		$this->assertSame( 86, $editor->get_quality(), 'Output image format is WEBP. Quality setting for it should be 86.' );
+
+		// Saving again should not change the quality.
 		$editor->save();
 		$this->assertSame( 86, $editor->get_quality(), 'Output image format is WEBP. Quality setting for it should be 86.' );
 
