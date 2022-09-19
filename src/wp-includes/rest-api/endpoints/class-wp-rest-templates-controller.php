@@ -574,15 +574,13 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$changes->post_excerpt = $template->description;
 		}
 
-		if ( 'wp_template' === $this->post_type ) {
-			if ( isset( $request['is_wp_suggestion'] ) ) {
-				$changes->meta_input     = wp_parse_args(
-					array(
-						'is_wp_suggestion' => $request['is_wp_suggestion'],
-					),
-					$changes->meta_input = array()
-				);
-			}
+		if ( 'wp_template' === $this->post_type && isset( $request['is_wp_suggestion'] ) ) {
+			$changes->meta_input     = wp_parse_args(
+				array(
+					'is_wp_suggestion' => $request['is_wp_suggestion'],
+				),
+				$changes->meta_input = array()
+			);
 		}
 
 		if ( 'wp_template_part' === $this->post_type ) {

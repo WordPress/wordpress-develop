@@ -725,7 +725,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 			'is_custom'      => false,
 			'author'         => self::$admin_id,
 		);
-		$this->assertSame( $expected, $data );
+		$this->assertSame( $expected, $data, 'Incorrect response when `is_wp_suggestion:true` is set.' );
 		// `is_wp_suggestion` false.
 		$body_params = wp_parse_args(
 			array(
@@ -747,7 +747,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 			),
 			$expected
 		);
-		$this->assertSame( $expected, $data );
+		$this->assertSame( $expected, $data, 'Incorrect response when `is_wp_suggestion:false` is set.' );
 	}
 
 	/**
@@ -758,17 +758,17 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		wp_set_current_user( self::$admin_id );
 		switch_theme( 'block-theme' );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/templates/lookup' );
-		// Should fallback to `index.html` .
+		// Should fallback to `index.html`.
 		$request->set_param( 'slug', 'tag-status' );
 		$request->set_param( 'is_custom', false );
 		$request->set_param( 'template_prefix', 'tag' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 'index', $response->get_data()->slug );
-		// Should fallback to `page.html` .
+		$this->assertSame( 'index', $response->get_data()->slug, 'Should fallback to `index.html`.' );
+		// Should fallback to `page.html`.
 		$request->set_param( 'slug', 'page-hello' );
 		$request->set_param( 'is_custom', false );
 		$request->set_param( 'template_prefix', 'page' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 'page', $response->get_data()->slug );
+		$this->assertSame( 'page', $response->get_data()->slug, 'Should fallback to `page.html`.' );
 	}
 }
