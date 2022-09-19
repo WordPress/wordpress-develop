@@ -36,7 +36,7 @@
 
 var controlgroupCornerRegex = /ui-corner-([a-z]){2,6}/g;
 
-var widgetsControlgroup = $.widget( "ui.controlgroup", {
+$.widget( "ui.controlgroup", {
 	version: "1.13.2",
 	defaultElement: "<div>",
 	options: {
