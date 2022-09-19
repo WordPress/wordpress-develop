@@ -3003,7 +3003,7 @@ function wp_enqueue_stored_styles( $options = array() ) {
 	$style_tag_id             = 'core';
 	foreach ( $core_styles_keys as $style_key ) {
 		// Adds comment if code is prettified to identify core styles sections in debugging.
-		$should_prettify = isset( $options['prettify'] ) ? $options['prettify'] : defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG;
+		$should_prettify = isset( $options['prettify'] ) ? true === $options['prettify'] : defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG;
 		if ( $should_prettify ) {
 			$compiled_core_stylesheet .= "/**\n * Core styles: $style_key\n */\n";
 		}
