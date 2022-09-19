@@ -235,17 +235,18 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 */
 	protected function is_base_request() {
 		$vars = $_GET;
-		unset( $vars['paged'] );
+		unset( $vars['paged'], $vars['mode'] );
 
 		if ( empty( $vars ) ) {
 			return true;
-		} elseif ( 1 === count( $vars ) && ! empty( $vars['post_type'] ) ) {
+		}
+
+		if ( 1 === count( $vars ) && ! empty( $vars['post_type'] ) ) {
 			return $this->screen->post_type === $vars['post_type'];
 		}
 
-		return 1 === count( $vars ) && ! empty( $vars['mode'] );
+		return false;
 	}
-
 	/**
 	 * Helper to create links to edit.php with params.
 	 *
