@@ -8,6 +8,17 @@
 class Tests_Date_CurrentTime extends WP_UnitTestCase {
 
 	/**
+	 * Cleans up.
+	 */
+	public function tear_down() {
+		// Reset changed options to their default value.
+		update_option( 'gmt_offset', 0 );
+		update_option( 'timezone_string', '' );
+
+		parent::tear_down();
+	}
+
+	/**
 	 * @ticket 34378
 	 */
 	public function test_current_time_with_date_format_string() {

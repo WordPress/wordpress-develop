@@ -64,7 +64,7 @@ class Test_Block_Supports_Border extends WP_UnitTestCase {
 		$actual   = wp_apply_border_support( $block_type, $block_atts );
 		$expected = array(
 			'class' => 'has-border-color has-red-border-color',
-			'style' => 'border-radius: 10px; border-style: dashed; border-width: 1px;',
+			'style' => 'border-radius:10px;border-style:dashed;border-width:1px;',
 		);
 
 		$this->assertSame( $expected, $actual );
@@ -154,7 +154,7 @@ class Test_Block_Supports_Border extends WP_UnitTestCase {
 
 		$actual   = wp_apply_border_support( $block_type, $block_atts );
 		$expected = array(
-			'style' => 'border-style: dotted; border-width: 1px;',
+			'style' => 'border-style:dotted;border-width:1px;',
 		);
 
 		$this->assertSame( $expected, $actual );

@@ -10,6 +10,16 @@
 class Tests_Date_GetPostTime extends WP_UnitTestCase {
 
 	/**
+	 * Cleans up.
+	 */
+	public function tear_down() {
+		// Reset the timezone option to the default value.
+		update_option( 'timezone_string', '' );
+
+		parent::tear_down();
+	}
+
+	/**
 	 * @ticket 28310
 	 */
 	public function test_get_post_time_returns_correct_time_with_post_id() {
