@@ -2970,7 +2970,7 @@ function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
  * Fetches, processes and compiles stored core styles, then combines and renders them to the page.
  * Styles are stored via the style engine API.
  *
- * See: https://developer.wordpress.org/block-editor/reference-guides/packages/packages-style-engine/
+ * @link https://developer.wordpress.org/block-editor/reference-guides/packages/packages-style-engine/
  *
  * @since 6.1.0
  *
