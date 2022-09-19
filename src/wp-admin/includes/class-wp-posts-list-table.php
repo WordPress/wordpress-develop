@@ -234,8 +234,12 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @return bool Whether the current view is the "All" view.
 	 */
 	protected function is_base_request() {
-		$vars = $_GET;
-		unset( $vars['paged'], $vars['mode'] );
+		$vars = array_diff_key( $_GET, array_flip( array(
+			'order',
+			'orderby',
+			'paged',
+			'mode',
+		) ) );
 
 		if ( empty( $vars ) ) {
 			return true;
