@@ -63,6 +63,22 @@ class Tests_Date_mysql2date extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that deprecated timezone strings are handled correctly.
+	 *
+	 * @ticket 56468
+	 */
+	public function test_mysql2date_should_format_time_with_deprecated_time_zone() {
+		$timezone = 'America/Buenos_Aires'; // This timezone was deprecated pre-PHP 5.6.
+		update_option( 'timezone_string', $timezone );
+		$datetime = new DateTime( 'now', new DateTimeZone( $timezone ) );
+		$rfc3339  = $datetime->format( DATE_RFC3339 );
+		$mysql    = $datetime->format( 'Y-m-d H:i:s' );
+
+		$this->assertSame( $rfc3339, mysql2date( DATE_RFC3339, $mysql ) );
+		$this->assertSame( $rfc3339, mysql2date( DATE_RFC3339, $mysql, false ) );
+	}
+
+	/**
 	 * @ticket 28992
 	 */
 	public function test_mysql2date_should_return_wp_timestamp() {

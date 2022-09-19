@@ -240,6 +240,11 @@ class Tests_Formatting_Date extends WP_UnitTestCase {
 				'timezone_string' => '',
 				'gmt_offset'      => 3,
 			),
+			// @ticket 56468.
+			'deprecated timezone string and no GMT offset set' => array(
+				'timezone_string' => 'America/Buenos_Aires',
+				'gmt_offset'      => 0,
+			),
 		);
 	}
 }

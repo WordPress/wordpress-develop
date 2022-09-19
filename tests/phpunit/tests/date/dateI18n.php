@@ -109,6 +109,23 @@ class Tests_Date_DateI18n extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that deprecated timezone strings are handled correctly.
+	 *
+	 * @ticket 56468
+	 */
+	public function test_adjusts_format_based_on_deprecated_timezone_string() {
+		update_option( 'timezone_string', 'America/Buenos_Aires' ); // This timezone was deprecated pre-PHP 5.6.
+
+		$expected = '2022-08-01 00:00:00 -03 -03:00 America/Buenos_Aires';
+		if ( PHP_VERSION_ID < 70000 ) {
+			// PHP 5.6.
+			$expected = '2022-08-01 00:00:00 ART -03:00 America/Buenos_Aires';
+		}
+
+		$this->assertSame( $expected, date_i18n( 'Y-m-d H:i:s T P e', strtotime( '2022-08-01 00:00:00' ) ) );
+	}
+
+	/**
 	 * @ticket 34835
 	 */
 	public function test_gmt_offset_should_output_correct_timezone() {

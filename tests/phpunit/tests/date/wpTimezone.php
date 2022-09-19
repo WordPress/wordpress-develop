@@ -52,6 +52,22 @@ class Tests_Date_wpTimezone extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that deprecated timezone strings are handled correctly.
+	 *
+	 * @ticket 56468
+	 */
+	public function test_should_return_deprecated_timezone_string() {
+		$tz_string = 'America/Buenos_Aires'; // This timezone was deprecated pre-PHP 5.6.
+		update_option( 'timezone_string', $tz_string );
+
+		$this->assertSame( $tz_string, wp_timezone_string() );
+
+		$timezone = wp_timezone();
+
+		$this->assertSame( $tz_string, $timezone->getName() );
+	}
+
+	/**
 	 * Data provider to test numeric offset conversion.
 	 *
 	 * @return array
