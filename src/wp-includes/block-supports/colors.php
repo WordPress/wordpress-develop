@@ -61,7 +61,7 @@ function wp_register_colors_support( $block_type ) {
  * This will be applied to the block markup in the front-end.
  *
  * @since 5.6.0
- * @since 6.1.0 Using the style engine to generate CSS and classnames.
+ * @since 6.1.0 Use the style engine to generate CSS and classnames.
  * @access private
  *
  * @param  WP_Block_Type $block_type       Block type.
