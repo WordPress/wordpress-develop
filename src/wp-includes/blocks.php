@@ -640,7 +640,7 @@ function serialize_block_attributes( $block_attributes ) {
  *
  * @since 5.3.1
  *
- * @param string $block_name Original block name.
+ * @param string $block_name Original block name. By default block name is null
  * @return string Block name to use for serialization.
  */
 function strip_core_block_namespace( $block_name = null ) {
