@@ -201,7 +201,7 @@ class Tests_Pluggable extends WP_UnitTestCase {
 				'deprecated' => null,
 				'notify'     => '',
 			),
-			'wp_nonce_tick'                   => array(),
+			'wp_nonce_tick'                   => array( 'action' => -1 ),
 			'wp_verify_nonce'                 => array(
 				'nonce',
 				'action' => -1,
