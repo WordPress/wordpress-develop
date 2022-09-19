@@ -30,8 +30,7 @@
 			"./controlgroup",
 			"./checkboxradio",
 
-			"../keycode",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 

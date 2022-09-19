@@ -23,8 +23,7 @@
 			"jquery",
 			"./draggable",
 			"./mouse",
-			"../version",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 

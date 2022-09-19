@@ -28,15 +28,7 @@
 			"./draggable",
 			"./mouse",
 			"./resizable",
-			"../focusable",
-			"../keycode",
-			"../position",
-			"../safe-active-element",
-			"../safe-blur",
-			"../tabbable",
-			"../unique-id",
-			"../version",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 

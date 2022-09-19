@@ -23,11 +23,7 @@
 		define( [
 			"jquery",
 			"./mouse",
-			"../data",
-			"../ie",
-			"../scroll-parent",
-			"../version",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 

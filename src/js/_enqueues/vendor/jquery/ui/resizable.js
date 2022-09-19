@@ -25,10 +25,7 @@
 		define( [
 			"jquery",
 			"./mouse",
-			"../disable-selection",
-			"../plugin",
-			"../version",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 

@@ -25,9 +25,7 @@
 		// AMD. Register as an anonymous module.
 		define( [
 			"jquery",
-			"../form-reset-mixin",
-			"../labels",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 

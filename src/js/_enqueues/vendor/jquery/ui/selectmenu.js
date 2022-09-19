@@ -27,13 +27,7 @@
 		define( [
 			"jquery",
 			"./menu",
-			"../form-reset-mixin",
-			"../keycode",
-			"../labels",
-			"../position",
-			"../unique-id",
-			"../version",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 

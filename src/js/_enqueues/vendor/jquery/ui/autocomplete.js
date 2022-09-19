@@ -25,11 +25,7 @@
 		define( [
 			"jquery",
 			"./menu",
-			"../keycode",
-			"../position",
-			"../safe-active-element",
-			"../version",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 
