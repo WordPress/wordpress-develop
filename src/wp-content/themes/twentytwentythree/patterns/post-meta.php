@@ -19,26 +19,52 @@
 		<div class="wp-block-column">
 			<!-- wp:group {"style":{"spacing":{"blockGap":"1ch"}},"layout":{"type":"flex"}} -->
 			<div class="wp-block-group">
-				<!-- wp:paragraph --><p><?php echo esc_html_x( 'Posted', 'Verb to explain the publication status of a post', 'twentytwentythree' ); ?></p><!-- /wp:paragraph --><!-- wp:post-date {"format":"<?php echo esc_html_x( 'F j, Y', 'Date format for publication date of post', 'twentytwentythree' ); ?>"} /-->
-				<!-- wp:paragraph --><p><?php echo esc_html_x( 'in', 'Preposition to show the relationship between the post and its categories', 'twentytwentythree' ); ?></p><!-- /wp:paragraph --><!-- wp:post-terms {"term":"category"} /-->
+				<!-- wp:paragraph -->
+				<p>
+					<?php echo esc_html_x( 'Posted', 'Verb to explain the publication status of a post', 'twentytwentythree' ); ?>
+				</p>
+				<!-- /wp:paragraph -->
+
+				<!-- wp:post-date {"format":"<?php echo esc_html_x( 'F j, Y', 'Date format for publication date of post', 'twentytwentythree' ); ?>"} /-->
+
+				<!-- wp:paragraph -->
+				<p>
+					<?php echo esc_html_x( 'in', 'Preposition to show the relationship between the post and its categories', 'twentytwentythree' ); ?>
+				</p>
+				<!-- /wp:paragraph -->
+
+				<!-- wp:post-terms {"term":"category"} /-->
 			</div>
 			<!-- /wp:group -->
+
 			<!-- wp:group {"style":{"spacing":{"blockGap":"1ch"}},"layout":{"type":"flex"}} -->
 			<div class="wp-block-group">
-				<!-- wp:paragraph --><p><?php echo esc_html_x( 'by', 'Preposition to show the relationship between the post and its author', 'twentytwentythree' ); ?></p><!-- /wp:paragraph -->
+				<!-- wp:paragraph -->
+				<p>
+					<?php echo esc_html_x( 'by', 'Preposition to show the relationship between the post and its author', 'twentytwentythree' ); ?>
+				</p>
+				<!-- /wp:paragraph -->
+
 				<!-- wp:post-author-name {"isLink":true} /-->
 			</div>
 			<!-- /wp:group -->
 		</div>
 		<!-- /wp:column -->
+
 		<!-- wp:column {"style":{"spacing":{"blockGap":"0px"}}} -->
 		<div class="wp-block-column">
 			<!-- wp:group {"style":{"spacing":{"blockGap":"1ch"}},"layout":{"type":"flex","orientation":"vertical"}} -->
 			<div class="wp-block-group">
-				<!-- wp:paragraph --><p><?php echo esc_html_x( 'Tags:', 'Label for a list of post tags', 'twentytwentythree' ); ?></p><!-- /wp:paragraph -->
-				<!-- wp:post-terms {"term":"post_tag"} /--></div>
-			<!-- /wp:group -->
+				<!-- wp:paragraph -->
+				<p>
+					<?php echo esc_html_x( 'Tags:', 'Label for a list of post tags', 'twentytwentythree' ); ?>
+				</p>
+				<!-- /wp:paragraph -->
+
+				<!-- wp:post-terms {"term":"post_tag"} /-->
 			</div>
+			<!-- /wp:group -->
+		</div>
 		<!-- /wp:column -->
 	</div>
 	<!-- /wp:columns -->

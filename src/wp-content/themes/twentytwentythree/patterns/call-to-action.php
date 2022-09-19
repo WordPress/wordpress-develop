@@ -17,13 +17,19 @@
 		<!-- /wp:paragraph -->
 
 		<!-- wp:buttons -->
-		<div class="wp-block-buttons"><!-- wp:button {"fontSize":"small"} -->
-		<div class="wp-block-button has-custom-font-size has-small-font-size"><a class="wp-block-button__link wp-element-button">
-			<?php echo esc_html_x( 'Get In Touch', 'sample content for call to action button', 'twentytwentythree' ); ?>
-		</a></div>
-		<!-- /wp:button --></div>
-		<!-- /wp:buttons --></div>
+		<div class="wp-block-buttons">
+			<!-- wp:button {"fontSize":"small"} -->
+			<div class="wp-block-button has-custom-font-size has-small-font-size">
+				<a class="wp-block-button__link wp-element-button">
+				<?php echo esc_html_x( 'Get In Touch', 'sample content for call to action button', 'twentytwentythree' ); ?>
+				</a>
+			</div>
+			<!-- /wp:button -->
+		</div>
+		<!-- /wp:buttons -->
+	</div>
 	<!-- /wp:column -->
+
 	<!-- wp:column -->
 	<div class="wp-block-column">
 		<!-- wp:separator -->
