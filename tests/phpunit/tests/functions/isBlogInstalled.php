@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @since 6.0.0
+ * @since 6.1.0
  *
  * @group functions.php
  * @covers ::is_blog_installed
