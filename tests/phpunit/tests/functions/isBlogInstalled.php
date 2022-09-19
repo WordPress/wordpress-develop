@@ -33,7 +33,7 @@ class Tests_Functions_IsBlogInstalled extends WP_UnitTestCase {
 		wp_cache_set( 'is_blog_installed', false );
 		$this->assertTrue( is_blog_installed(), 'cache set to false' );
 
-		// empty the siteurl
+		// Skip an early return when `siteurl` is set.
 		$options            = wp_cache_get( 'alloptions', 'options' );
 		$options['siteurl'] = '';
 		wp_cache_set( 'alloptions', $options, 'options' );
