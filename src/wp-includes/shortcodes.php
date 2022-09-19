@@ -21,7 +21,7 @@
  *
  * To apply shortcode tags to content:
  *
- *     $out = do_shortcode( $content );
+ *     $out = apply_shortcodes( $content );
  *
  * @link https://developer.wordpress.org/plugins/shortcodes/
  *
@@ -299,7 +299,7 @@ function get_shortcode_regex( $tagnames = null ) {
 }
 
 /**
- * Regular Expression callable for do_shortcode() for calling shortcode hook.
+ * Regular Expression callable for apply_shortcodes() for calling shortcode hook.
  *
  * @see get_shortcode_regex() for details of the match array contents.
  *
