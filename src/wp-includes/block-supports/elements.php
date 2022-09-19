@@ -89,7 +89,7 @@ function wp_render_elements_support( $block_content, $block ) {
  * we want the descendant style to take priority, and this is done by loading it after, in DOM order.
  *
  * @since 6.0.0
- * @since 6.1.0 Using the style engine to generate CSS and classnames.
+ * @since 6.1.0 Implemented the style engine to generate CSS and classnames.
  * @access private
  *
  * @param string|null $pre_render   The pre-rendered content. Default null.
