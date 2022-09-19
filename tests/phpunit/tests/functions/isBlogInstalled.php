@@ -37,7 +37,7 @@ class Tests_Functions_IsBlogInstalled extends WP_UnitTestCase {
 		$options            = wp_cache_get( 'alloptions', 'options' );
 		$options['siteurl'] = '';
 		wp_cache_set( 'alloptions', $options, 'options' );
-		// still true as it now look for the Tables
+		// `is_blog_installed()` should still return `true` as it then looks at the value in options table.
 		$this->assertTrue( is_blog_installed() );
 	}
 
