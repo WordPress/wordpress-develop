@@ -40,7 +40,7 @@ function wp_register_border_support( $block_type ) {
  * attributes array. This will be applied to the block markup in the front-end.
  *
  * @since 5.8.0
- * @since 6.1.0 Using the style engine to generate CSS and classnames.
+ * @since 6.1.0 Implemented the style engine to generate CSS and classnames.
  * @access private
  *
  * @param WP_Block_Type $block_type       Block type.
