@@ -1,8 +1,8 @@
 /*!
- * jQuery UI Progressbar 1.13.1
+ * jQuery UI Progressbar @VERSION
  * http://jqueryui.com
  *
- * Copyright jQuery Foundation and other contributors
+ * Copyright OpenJS Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  */
@@ -26,7 +26,8 @@
 		// AMD. Register as an anonymous module.
 		define( [
 			"jquery",
-			"./core"
+			"../version",
+			"../widget"
 		], factory );
 	} else {
 
@@ -37,7 +38,7 @@
 "use strict";
 
 return $.widget( "ui.progressbar", {
-	version: "1.13.1",
+	version: "@VERSION",
 	options: {
 		classes: {
 			"ui-progressbar": "ui-corner-all",

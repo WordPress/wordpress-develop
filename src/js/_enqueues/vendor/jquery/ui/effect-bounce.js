@@ -1,8 +1,8 @@
 /*!
- * jQuery UI Effects Bounce 1.13.1
+ * jQuery UI Effects Bounce @VERSION
  * http://jqueryui.com
  *
- * Copyright jQuery Foundation and other contributors
+ * Copyright OpenJS Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  */
@@ -21,7 +21,8 @@
 		// AMD. Register as an anonymous module.
 		define( [
 			"jquery",
-			"./effect"
+			"../version",
+			"../effect"
 		], factory );
 	} else {
 

@@ -1,8 +1,8 @@
 /*!
- * jQuery UI Dialog 1.13.1
+ * jQuery UI Dialog @VERSION
  * http://jqueryui.com
  *
- * Copyright jQuery Foundation and other contributors
+ * Copyright OpenJS Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
  */
@@ -28,7 +28,15 @@
 			"./draggable",
 			"./mouse",
 			"./resizable",
-			"./core"
+			"../focusable",
+			"../keycode",
+			"../position",
+			"../safe-active-element",
+			"../safe-blur",
+			"../tabbable",
+			"../unique-id",
+			"../version",
+			"../widget"
 		], factory );
 	} else {
 
@@ -39,7 +47,7 @@
 "use strict";
 
 $.widget( "ui.dialog", {
-	version: "1.13.1",
+	version: "@VERSION",
 	options: {
 		appendTo: "body",
 		autoOpen: true,
@@ -354,7 +362,7 @@ $.widget( "ui.dialog", {
 		this._on( this.uiDialog, {
 			keydown: function( event ) {
 				if ( this.options.closeOnEscape && !event.isDefaultPrevented() && event.keyCode &&
-					event.keyCode === $.ui.keyCode.ESCAPE ) {
+						event.keyCode === $.ui.keyCode.ESCAPE ) {
 					event.preventDefault();
 					this.close( event );
 					return;
@@ -369,13 +377,13 @@ $.widget( "ui.dialog", {
 					last = tabbables.last();
 
 				if ( ( event.target === last[ 0 ] || event.target === this.uiDialog[ 0 ] ) &&
-					!event.shiftKey ) {
+						!event.shiftKey ) {
 					this._delay( function() {
 						first.trigger( "focus" );
 					} );
 					event.preventDefault();
 				} else if ( ( event.target === first[ 0 ] ||
-					event.target === this.uiDialog[ 0 ] ) && event.shiftKey ) {
+						event.target === this.uiDialog[ 0 ] ) && event.shiftKey ) {
 					this._delay( function() {
 						last.trigger( "focus" );
 					} );

@@ -1,4 +1,4 @@
-/*! jQuery UI - v1.13.1 - 2022-01-20
+/*! jQuery UI - v1.13.2 - 2022-07-14
 * http://jqueryui.com
 * Includes: data.js, disable-selection.js, escape-selector.js, focusable.js, form-reset-mixin.js, form.js, ie.js, jquery-1-7.js, keycode.js, labels.js, plugin.js, position.js, safe-active-element.js, safe-blur.js, scroll-parent.js, tabbable.js, unique-id.js, version.js, widget.js
 * Copyright jQuery Foundation and other contributors; Licensed  */
@@ -20,11 +20,11 @@
 // Source: version.js
 $.ui = $.ui || {};
 
-$.ui.version = "1.13.1";
+$.ui.version = "1.13.2";
 
 // Source: data.js
 /*!
- * jQuery UI :data 1.13.1
+ * jQuery UI :data 1.13.2
  * http://jqueryui.com
  *
  * Copyright jQuery Foundation and other contributors
@@ -53,7 +53,7 @@ $.extend( $.expr.pseudos, {
 
 // Source: disable-selection.js
 /*!
- * jQuery UI Disable Selection 1.13.1
+ * jQuery UI Disable Selection 1.13.2
  * http://jqueryui.com
  *
  * Copyright jQuery Foundation and other contributors
@@ -87,7 +87,7 @@ $.fn.extend( {
 
 // Source: focusable.js
 /*!
- * jQuery UI Focusable 1.13.1
+ * jQuery UI Focusable 1.13.2
  * http://jqueryui.com
  *
  * Copyright jQuery Foundation and other contributors
@@ -164,7 +164,7 @@ $.fn._form = function() {
 
 // Source: form-reset-mixin.js
 /*!
- * jQuery UI Form Reset Mixin 1.13.1
+ * jQuery UI Form Reset Mixin 1.13.2
  * http://jqueryui.com
  *
  * Copyright jQuery Foundation and other contributors
@@ -303,7 +303,7 @@ if ( !$.fn.even || !$.fn.odd ) {
 
 // Source: keycode.js
 /*!
- * jQuery UI Keycode 1.13.1
+ * jQuery UI Keycode 1.13.2
  * http://jqueryui.com
  *
  * Copyright jQuery Foundation and other contributors
@@ -337,7 +337,7 @@ $.ui.keyCode = {
 
 // Source: labels.js
 /*!
- * jQuery UI Labels 1.13.1
+ * jQuery UI Labels 1.13.2
  * http://jqueryui.com
  *
  * Copyright jQuery Foundation and other contributors
@@ -423,7 +423,7 @@ $.ui.plugin = {
 
 // Source: position.js
 /*!
- * jQuery UI Position 1.13.1
+ * jQuery UI Position 1.13.2
  * http://jqueryui.com
  *
  * Copyright jQuery Foundation and other contributors
@@ -956,7 +956,7 @@ $.ui.safeBlur = function( element ) {
 
 // Source: scroll-parent.js
 /*!
- * jQuery UI Scroll Parent 1.13.1
+ * jQuery UI Scroll Parent 1.13.2
  * http://jqueryui.com
  *
  * Copyright jQuery Foundation and other contributors
@@ -989,7 +989,7 @@ $.fn.scrollParent = function( includeHidden ) {
 
 // Source: tabbable.js
 /*!
- * jQuery UI Tabbable 1.13.1
+ * jQuery UI Tabbable 1.13.2
  * http://jqueryui.com
  *
  * Copyright jQuery Foundation and other contributors
@@ -1012,7 +1012,7 @@ $.extend( $.expr.pseudos, {
 
 // Source: unique-id.js
 /*!
- * jQuery UI Unique ID 1.13.1
+ * jQuery UI Unique ID 1.13.2
  * http://jqueryui.com
  *
  * Copyright jQuery Foundation and other contributors
@@ -1049,7 +1049,7 @@ $.fn.extend( {
 
 // Source: widget.js
 /*!
- * jQuery UI Widget 1.13.1
+ * jQuery UI Widget 1.13.2
  * http://jqueryui.com
  *
  * Copyright jQuery Foundation and other contributors
