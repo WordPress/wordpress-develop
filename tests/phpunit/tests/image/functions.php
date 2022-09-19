@@ -25,16 +25,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		foreach ( glob( $folder ) as $file ) {
 			unlink( $file );
 		}
-
-		add_filter( 'image_editor_output_format', '__return_empty_array' );
-	}
-
-	/**
-	 * Tear down the class.
-	 */
-	public function tear_down() {
-		remove_filter( 'image_editor_output_format', '__return_empty_array' );
-		parent::tear_down();
 	}
 
 	/**
