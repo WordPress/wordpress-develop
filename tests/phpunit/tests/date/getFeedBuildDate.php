@@ -46,7 +46,7 @@ class Tests_Date_Get_Feed_Build_Date extends WP_UnitTestCase {
 	public function test_should_fall_back_to_last_post_modified() {
 		global $wp_query;
 
-		update_option( 'timezone_string', 'Europe/Kiev' );
+		update_option( 'timezone_string', 'Europe/Helsinki' );
 		$datetime     = new DateTimeImmutable( 'now', wp_timezone() );
 		$datetime_utc = $datetime->setTimezone( new DateTimeZone( 'UTC' ) );
 
