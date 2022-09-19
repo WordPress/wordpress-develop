@@ -11,7 +11,7 @@
  * types that support borders.
  *
  * @since 5.8.0
- * @since 6.1.0 Optimizing conditional blocks.
+ * @since 6.1.0 Improved conditional blocks optimization.
  * @access private
  *
  * @param WP_Block_Type $block_type Block Type.
