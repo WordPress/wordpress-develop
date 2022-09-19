@@ -26,8 +26,10 @@ class Tests_Functions_IsBlogInstalled extends WP_UnitTestCase {
 		// Prime the cache with true.
 		wp_cache_set( 'is_blog_installed', true );
 		$this->assertTrue( is_blog_installed(), 'cache set to true' );
-		// Prime the cache with false.
-		// we still get true as it then looks at the value in options table.
+		/*
+		 * Prime the cache with false.
+		 * `is_blog_installed()` should still return true as it then looks at the value in the options table.
+		 */
 		wp_cache_set( 'is_blog_installed', false );
 		$this->assertTrue( is_blog_installed(), 'cache set to false' );
 
