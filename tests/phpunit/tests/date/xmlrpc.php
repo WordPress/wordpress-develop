@@ -9,6 +9,16 @@
 class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 
 	/**
+	 * Cleans up.
+	 */
+	public function tear_down() {
+		// Reset the timezone option to the default value.
+		update_option( 'timezone_string', '' );
+
+		parent::tear_down();
+	}
+
+	/**
 	 * @ticket 30429
 	 *
 	 * @covers wp_xmlrpc_server::mw_newPost

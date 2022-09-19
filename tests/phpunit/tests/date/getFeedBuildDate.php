@@ -11,7 +11,7 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	public function tear_down() {
 		global $wp_query;
 
-		update_option( 'timezone_string', 'UTC' );
+		update_option( 'timezone_string', '' );
 
 		unset( $wp_query );
 
