@@ -2353,7 +2353,7 @@ if ( ! function_exists( 'wp_create_nonce' ) ) :
 		}
 
 		$token = wp_get_session_token( $action );
-		$i     = wp_nonce_tick();
+		$i     = wp_nonce_tick( $action );
 
 		return substr( wp_hash( $i . '|' . $action . '|' . $uid . '|' . $token, 'nonce' ), -12, 10 );
 	}
