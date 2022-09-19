@@ -69,7 +69,7 @@ class WP_Embed {
 		add_shortcode( 'embed', array( $this, 'shortcode' ) );
 
 		// Do the shortcode (only the [embed] one is registered).
-		$content = do_shortcode( $content, true );
+		$content = apply_shortcodes( $content, true );
 
 		// Put the original shortcodes back.
 		$shortcode_tags = $orig_shortcode_tags;

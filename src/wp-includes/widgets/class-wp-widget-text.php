@@ -312,7 +312,7 @@ class WP_Widget_Text extends WP_Widget {
 				if ( ! empty( $instance['filter'] ) ) {
 					$text = shortcode_unautop( $text );
 				}
-				$text = do_shortcode( $text );
+				$text = apply_shortcodes( $text );
 			}
 		}
 
