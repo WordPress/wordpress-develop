@@ -14,7 +14,8 @@
 #[AllowDynamicProperties]
 final class WP_Recovery_Mode_Email_Service {
 
-	const RATE_LIMIT_OPTION = 'recovery_mode_email_last_sent';
+	const RATE_LIMIT_OPTION         = 'recovery_mode_email_last_sent';
+	const RECOVERY_RECIPIENT_OPTION = 'recovery_mode_email_last_recipient';
 
 	/**
 	 * Service to generate recovery mode URLs.
@@ -51,10 +52,17 @@ final class WP_Recovery_Mode_Email_Service {
 	 * @return true|WP_Error True if email sent, WP_Error otherwise.
 	 */
 	public function maybe_send_recovery_mode_email( $rate_limit, $error, $extension ) {
+		/*
+		 * Check if the current recovery mode email recipient is the same as the previous recipient.
+		 * If not, the rate limit is ignored and a new email is sent.
+		 */
+		$last_recipient     = get_option( self::RECOVERY_RECIPIENT_OPTION );
+		$current_recipient  = $this->get_recovery_mode_email_address();
+		$has_same_recipient = ( $last_recipient === $current_recipient );
 
 		$last_sent = get_option( self::RATE_LIMIT_OPTION );
 
-		if ( ! $last_sent || time() > $last_sent + $rate_limit ) {
+		if ( ! $has_same_recipient || ! $last_sent || time() > $last_sent + $rate_limit ) {
 			if ( ! update_option( self::RATE_LIMIT_OPTION, time() ) ) {
 				return new WP_Error( 'storage_error', __( 'Could not update the email last sent time.' ) );
 			}
@@ -234,6 +242,9 @@ When seeking help with this issue, you may be asked for some of the following in
 			$email['headers'],
 			$email['attachments']
 		);
+
+		// Store the email address of the last recipient of the recovery mode email.
+		update_option( self::RECOVERY_RECIPIENT_OPTION, $email['to'], false );
 
 		if ( $switched_locale ) {
 			restore_previous_locale();
