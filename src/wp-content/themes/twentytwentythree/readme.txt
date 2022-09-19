@@ -8,7 +8,7 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 == Description ==
 
-
+Twenty Twenty-Three is a stripped-back and minimal base theme, and includes a diverse collection of style variations designed by members of the community.
 
 == Changelog ==
 
