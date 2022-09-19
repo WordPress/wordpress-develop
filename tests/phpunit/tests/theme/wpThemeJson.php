@@ -3530,7 +3530,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	function data_generate_spacing_scale_fixtures() {
 		return array(
 			'only one value when single step in spacing scale' => array(
-				'spacingScale'    => array(
+				'spacing_scale'    => array(
 					'operator'   => '+',
 					'increment'  => 1.5,
 					'steps'      => 1,
@@ -3546,7 +3546,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 			),
 			'one step above medium when two steps in spacing scale' => array(
-				'spacingScale'    => array(
+				'spacing_scale'    => array(
 					'operator'   => '+',
 					'increment'  => 1.5,
 					'steps'      => 2,
@@ -3567,7 +3567,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 			),
 			'one step above medium and one below when three steps in spacing scale' => array(
-				'spacingScale'    => array(
+				'spacing_scale'    => array(
 					'operator'   => '+',
 					'increment'  => 1.5,
 					'steps'      => 3,
@@ -3593,7 +3593,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 			),
 			'extra step added above medium when an even number of steps > 2 specified' => array(
-				'spacingScale'    => array(
+				'spacing_scale'    => array(
 					'operator'   => '+',
 					'increment'  => 1.5,
 					'steps'      => 4,
@@ -3624,7 +3624,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 			),
 			'extra steps above medium if bottom end will go below zero' => array(
-				'spacingScale'    => array(
+				'spacing_scale'    => array(
 					'operator'   => '+',
 					'increment'  => 2.5,
 					'steps'      => 5,
@@ -3660,7 +3660,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 			),
 			'multiplier correctly calculated above and below medium' => array(
-				'spacingScale'    => array(
+				'spacing_scale'    => array(
 					'operator'   => '*',
 					'increment'  => 1.5,
 					'steps'      => 5,
@@ -3696,7 +3696,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 			),
 			'increment < 1 combined showing * operator acting as divisor above and below medium' => array(
-				'spacingScale'    => array(
+				'spacing_scale'    => array(
 					'operator'   => '*',
 					'increment'  => 0.25,
 					'steps'      => 5,
@@ -3744,7 +3744,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @param array $spacing_scale   Example spacing scale definitions from the data provider.
 	 * @param array $expected_output Expected output from data provider.
 	 */
-	public function test_set_spacing_sizes_validation( $spacing_scale, $expected_output ) {
+	public function test_set_spacing_sizes_should_detect_invalid_spacing_scale( $spacing_scale, $expected_output ) {
 		$this->expectNotice();
 		$this->expectNoticeMessage( 'Some of the theme.json settings.spacing.spacingScale values are invalid' );
 
@@ -3772,8 +3772,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 */
 	function data_set_spacing_sizes_when_invalid() {
 		return array(
-			'spacing scale is missing operator value'   => array(
-				'spacingScale'    => array(
+			'missing operator value'  => array(
+				'spacing_scale'    => array(
 					'operator'   => '',
 					'increment'  => 1.5,
 					'steps'      => 1,
@@ -3782,8 +3782,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 				'expected_output' => null,
 			),
-			'spacing scale has non numeric increment'   => array(
-				'spacingScale'    => array(
+			'non numeric increment'   => array(
+				'spacing_scale'    => array(
 					'operator'   => '+',
 					'increment'  => 'add two to previous value',
 					'steps'      => 1,
@@ -3792,8 +3792,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 				'expected_output' => null,
 			),
-			'spacing scale has non numeric steps'       => array(
-				'spacingScale'    => array(
+			'non numeric steps'       => array(
+				'spacing_scale'    => array(
 					'operator'   => '+',
 					'increment'  => 1.5,
 					'steps'      => 'spiral staircase preferred',
@@ -3802,8 +3802,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 				'expected_output' => null,
 			),
-			'spacing scale has non numeric medium step' => array(
-				'spacingScale'    => array(
+			'non numeric medium step' => array(
+				'spacing_scale'    => array(
 					'operator'   => '+',
 					'increment'  => 1.5,
 					'steps'      => 5,
@@ -3812,8 +3812,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 				'expected_output' => null,
 			),
-			'spacing scale is missing unit value'       => array(
-				'spacingScale'    => array(
+			'missing unit value'      => array(
+				'spacing_scale'    => array(
 					'operator'   => '+',
 					'increment'  => 1.5,
 					'steps'      => 5,
