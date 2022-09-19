@@ -61,7 +61,7 @@ class Tests_Date_GetPostTime extends WP_UnitTestCase {
 	 * @ticket 25002
 	 */
 	public function test_should_return_wp_timestamp() {
-		$timezone = 'Europe/Kiev';
+		$timezone = 'Europe/Helsinki';
 		update_option( 'timezone_string', $timezone );
 
 		$datetime     = new DateTimeImmutable( 'now', new DateTimeZone( $timezone ) );
@@ -90,7 +90,7 @@ class Tests_Date_GetPostTime extends WP_UnitTestCase {
 	 * @ticket 25002
 	 */
 	public function test_should_return_time() {
-		$timezone = 'Europe/Kiev';
+		$timezone = 'Europe/Helsinki';
 		update_option( 'timezone_string', $timezone );
 
 		$datetime    = new DateTimeImmutable( 'now', new DateTimeZone( $timezone ) );
@@ -131,7 +131,7 @@ class Tests_Date_GetPostTime extends WP_UnitTestCase {
 			)
 		);
 
-		update_option( 'timezone_string', 'Europe/Kiev' );
+		update_option( 'timezone_string', 'Europe/Helsinki' );
 
 		$this->assertSame( $rfc3339, get_post_time( DATE_RFC3339, true, $post_id ) );
 		$this->assertSame( $rfc3339, get_post_modified_time( DATE_RFC3339, true, $post_id ) );
