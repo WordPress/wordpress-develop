@@ -589,25 +589,36 @@ class WP_Meta_Query {
 			$clause['compare_key'] = '=';
 		}
 
-		$meta_compare     = $clause['compare'];
-		$meta_compare_key = $clause['compare_key'];
+		$meta_compare               = $clause['compare'];
+		$meta_compare_key           = $clause['compare_key'];
+		$meta_compare_key_like_mode = 'contains';
+		$meta_compare_like_mode     = 'contains';
 
 		// LIKE and NOT LIKE supports three search modes. Startswith, Endswith and Contains.
-		// Default to 'contains' for backward compat
-		if ( 'LIKE' === $meta_compare_key || 'NOT LIKE' === $meta_compare_key ) {
-			// Key compares
-			if ( empty( $clause['compare_key_like_mode'] ) ) {
-				$clause['compare_key_like_mode'] = 'contains';
-			}
+		// Key compare.
+		if (
+			! empty( $clause['compare_key_like_mode'] ) &&
+			(
+				'LIKE' === $meta_compare_key ||
+				'NOT LIKE' === $meta_compare_key
+			) &&
+			in_array( $clause['compare_key_like_mode'], array( 'startswith', 'endswith' ), true )
+		) {
 			$meta_compare_key_like_mode = $clause['compare_key_like_mode'];
 		}
-		if ( 'LIKE' === $meta_compare || 'NOT LIKE' === $meta_compare ) {
-			// Value compares
-			if ( empty( $clause['compare_like_mode'] ) ) {
-				$clause['compare_like_mode'] = 'contains';
-			}
+
+		// Value compare.
+		if (
+			! empty( $clause['compare_like_mode'] ) &&
+			(
+				'LIKE' === $meta_compare ||
+				'NOT LIKE' === $meta_compare
+			) &&
+			in_array( $clause['compare_like_mode'], array( 'startswith', 'endswith' ), true )
+		) {
 			$meta_compare_like_mode = $clause['compare_like_mode'];
 		}
+
 		// Query templates for LIKE / NOT LIKE queries
 		$meta_compare_like_value_tpl['startswith'] = '%s%%';
 		$meta_compare_like_value_tpl['endswith']   = '%%%s';
