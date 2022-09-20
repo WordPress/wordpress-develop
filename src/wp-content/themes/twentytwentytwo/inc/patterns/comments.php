@@ -3,7 +3,7 @@
  * Comments block (for WP >= 6.1), or legacy Post Comments block.
  */
 
-if ( WP_Block_Type_Registry::get_instance()->is_registered( 'core/comments' ) ) {
+if ( WP_Block_Type_Registry::get_instance()->is_registered( 'core/comments' ) && version_compare( $GLOBALS['wp_version'], '6.1', '>=' ) ) {
 	return array(
 		'title'      => __( 'Comments block', 'twentytwentytwo' ),
 		'content'    => '<!-- wp:comments -->
