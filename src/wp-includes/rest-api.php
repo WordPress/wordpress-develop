@@ -3022,10 +3022,10 @@ function rest_filter_response_by_context( $data, $schema, $context ) {
 /**
  * Sets the "additionalProperties" to false by default for all object definitions in the schema.
  *
- * Mutual recursion is used for schema traversal.
+ * The schema is defined by mutual recursion.
  *
  * The "Forest part" of the recursion runs on indexed arrays such as:
- *     "allOf", "anyOf", "oneOf", and "items".
+ *     "allOf", "anyOf", "oneOf".
  * The meta-schema describes these keywords as "schemaArray".
  *
  * The "Tree part" of the recursion runs on associative arrays such as:
@@ -3049,12 +3049,6 @@ function _rest_default_additional_properties_to_false( $schema, $types = array()
 			foreach ( $schema[ $key ] as $index => $child_schema ) {
 				$schema[ $key ][ $index ] = _rest_default_additional_properties_to_false( $child_schema, $types );
 			}
-		}
-	}
-
-	if ( isset( $schema['items'] ) && wp_is_numeric_array( $schema['items'] ) ) {
-		foreach ( $schema['items'] as $index => $child_schema ) {
-			$schema['items'][ $index ] = _rest_default_additional_properties_to_false( $child_schema, $types );
 		}
 	}
 
@@ -3092,8 +3086,7 @@ function _rest_default_additional_properties_to_false( $schema, $types = array()
  *
  * @since 5.5.0
  * @since 5.6.0 Support the "patternProperties" keyword.
- * @since x.y.z Support schema defined by mutual recursion.
- *              Support the "allOf", "anyOf", "oneOf", and "items" keywords.
+ * @since x.y.z Support the "allOf", "anyOf", "oneOf" keywords.
  *
  * @param array $schema The schema to modify.
  * @return array The modified schema.
