@@ -345,6 +345,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * Helper function to get the Template Hierarchy for a given slug.
 	 *
 	 * @ticket 56467
+	 *
+	 * @covers ::get_template_hierarchy
 	 */
 	public function test_get_template_hierarchy() {
 		$hierarchy = get_template_hierarchy( 'front-page' );

@@ -74,12 +74,13 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_template_fallback' ),
-					'permission_callback' => array( $this, 'get_items_permissions_check' ),
+					'permission_callback' => array( $this, 'get_item_permissions_check' ),
 					'args'                => array(
 						'slug'            => array(
 							'description' => __( 'The slug of the template to get the fallback for' ),
 							'required' => true,
 							'type'        => 'string',
+							'required'    => true,
 						),
 						'is_custom'       => array(
 							'description' => __( ' Indicates if a template is custom or part of the template hierarchy' ),
@@ -155,16 +156,10 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_template_fallback( $request ) {
-		if ( empty( $request['slug'] ) ) {
-			return new WP_Error(
-				'rest_invalid_param',
-				__( 'Invalid slug.' ),
-				array( 'status' => 400 )
-			);
-		}
 		$hierarchy         = get_template_hierarchy( $request['slug'], $request['is_custom'], $request['template_prefix'] );
 		$fallback_template = resolve_block_template( $request['slug'], $hierarchy, '' );
-		return rest_ensure_response( $fallback_template );
+		$response          = $this->prepare_item_for_response( $fallback_template, $request );
+		return rest_ensure_response( $response );
 	}
 
 	/**
