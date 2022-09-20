@@ -685,26 +685,35 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
+	 * @dataProvider data_create_item_with_is_wp_suggestion
 	 * @ticket 56467
 	 * @covers WP_REST_Templates_Controller::create_item
+	 *
+	 * @param array $body_params Data set to test.
+	 * @param array $expected    Expected results.
 	 */
-	public function test_create_item_with_is_wp_suggestion() {
+	public function test_create_item_with_is_wp_suggestion( array $body_params, array $expected ) {
+		// Set up the user.
+		$body_params['author'] = self::$admin_id;
+		$expected['author']    = self::$admin_id;
 		wp_set_current_user( self::$admin_id );
+
 		$request = new WP_REST_Request( 'POST', '/wp/v2/templates' );
-		// `is_wp_suggestion` true.
-		$body_params = array(
-			'slug'             => 'page-rigas',
-			'description'      => 'Just a description',
-			'title'            => 'My Template',
-			'content'          => 'Content',
-			'is_wp_suggestion' => true,
-			'author'           => self::$admin_id,
-		);
 		$request->set_body_params( $body_params );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		unset( $data['_links'] );
 		unset( $data['wp_id'] );
+
+		$this->assertSame( $expected, $data );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_create_item_with_is_wp_suggestion() {
 		$expected = array(
 			'id'             => 'default//page-rigas',
 			'theme'          => 'default',
@@ -723,31 +732,40 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 			'status'         => 'publish',
 			'has_theme_file' => false,
 			'is_custom'      => false,
-			'author'         => self::$admin_id,
+			'author'         => null,
 		);
-		$this->assertSame( $expected, $data, 'Incorrect response when `is_wp_suggestion:true` is set.' );
-		// `is_wp_suggestion` false.
-		$body_params = wp_parse_args(
-			array(
-				'slug'             => 'page-hi',
-				'is_wp_suggestion' => false,
+
+		return array(
+			'is_wp_suggestion: true'  => array(
+				'body_params' => array(
+					'slug'             => 'page-rigas',
+					'description'      => 'Just a description',
+					'title'            => 'My Template',
+					'content'          => 'Content',
+					'is_wp_suggestion' => true,
+					'author'           => null,
+				),
+				'expected'    => $expected,
 			),
-			$body_params
-		);
-		$request->set_body_params( $body_params );
-		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
-		unset( $data['_links'] );
-		unset( $data['wp_id'] );
-		$expected = wp_parse_args(
-			array(
-				'id'        => 'default//page-hi',
-				'slug'      => 'page-hi',
-				'is_custom' => true,
+			'is_wp_suggestion: false' => array(
+				'body_params' => array(
+					'slug'             => 'page-hi',
+					'description'      => 'Just a description',
+					'title'            => 'My Template',
+					'content'          => 'Content',
+					'is_wp_suggestion' => false,
+					'author'           => null,
+				),
+				'expected'    => array_merge(
+					$expected,
+					array(
+						'id'        => 'default//page-hi',
+						'slug'      => 'page-hi',
+						'is_custom' => true,
+					)
+				),
 			),
-			$expected
 		);
-		$this->assertSame( $expected, $data, 'Incorrect response when `is_wp_suggestion:false` is set.' );
 	}
 
 	/**
