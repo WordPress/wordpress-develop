@@ -1856,19 +1856,23 @@ class Tests_DB extends WP_UnitTestCase {
 
 		$default = $wpdb->allow_unsafe_unquoted_parameters;
 
-		$wpdb->allow_unsafe_unquoted_parameters = true;
+		$property = new ReflectionProperty( $wpdb, 'allow_unsafe_unquoted_parameters' );
+		$property->setAccessible( true );
+
+		$property->setValue( $wpdb, true );
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		$part = $wpdb->prepare( $sql, $values );
 		$this->assertSame( 'WHERE (`field_a` = \'string_a\') OR (`   field_b` =   string_b) OR (`field_c` = string_c)', $part ); // Unsafe, unquoted parameters.
 
-		$wpdb->allow_unsafe_unquoted_parameters = false;
+		$property->setValue( $wpdb, false );
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		$part = $wpdb->prepare( $sql, $values );
 		$this->assertSame( 'WHERE (`field_a` = \'string_a\') OR (`   field_b` = \'  string_b\') OR (`field_c` = \'string_c\')', $part );
 
-		$wpdb->allow_unsafe_unquoted_parameters = $default;
+		$property->setValue( $wpdb, $default );
+		$property->setAccessible( false );
 
 	}
 
