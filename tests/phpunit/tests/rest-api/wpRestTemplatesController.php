@@ -763,12 +763,12 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$request->set_param( 'is_custom', false );
 		$request->set_param( 'template_prefix', 'tag' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 'index', $response->get_data()->slug, 'Should fallback to `index.html`.' );
+		$this->assertSame( 'index', $response->get_data()['slug'], 'Should fallback to `index.html`.' );
 		// Should fallback to `page.html`.
 		$request->set_param( 'slug', 'page-hello' );
 		$request->set_param( 'is_custom', false );
 		$request->set_param( 'template_prefix', 'page' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 'page', $response->get_data()->slug, 'Should fallback to `page.html`.' );
+		$this->assertSame( 'page', $response->get_data()['slug'], 'Should fallback to `page.html`.' );
 	}
 }

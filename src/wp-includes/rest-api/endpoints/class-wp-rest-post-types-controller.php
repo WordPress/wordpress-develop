@@ -392,7 +392,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 				),
 				'icon'           => array(
 					'description' => __( 'The icon for the post type.' ),
-					'type'        => 'string',
+					'type'        => array( 'string', 'null' ),
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
