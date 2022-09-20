@@ -9,6 +9,16 @@
 class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 
 	/**
+	 * Cleans up.
+	 */
+	public function tear_down() {
+		// Reset the timezone option to the default value.
+		update_option( 'timezone_string', '' );
+
+		parent::tear_down();
+	}
+
+	/**
 	 * @ticket 30429
 	 *
 	 * @covers wp_xmlrpc_server::mw_newPost
@@ -24,7 +34,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
 		}
 
-		$timezone = 'Europe/Kiev';
+		$timezone = 'Europe/Helsinki';
 		update_option( 'timezone_string', $timezone );
 
 		$datetime    = new DateTimeImmutable( 'now', new DateTimeZone( $timezone ) );
@@ -144,7 +154,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 	 * @covers wp_xmlrpc_server::mw_editPost
 	 */
 	public function test_date_edit_post() {
-		$timezone = 'Europe/Kiev';
+		$timezone = 'Europe/Helsinki';
 		update_option( 'timezone_string', $timezone );
 
 		$datetime    = new DateTimeImmutable( 'now', new DateTimeZone( $timezone ) );
@@ -213,7 +223,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 	 * @covers wp_xmlrpc_server::wp_editComment
 	 */
 	public function test_date_edit_comment() {
-		$timezone = 'Europe/Kiev';
+		$timezone = 'Europe/Helsinki';
 		update_option( 'timezone_string', $timezone );
 
 		$datetime    = new DateTimeImmutable( 'now', new DateTimeZone( $timezone ) );
