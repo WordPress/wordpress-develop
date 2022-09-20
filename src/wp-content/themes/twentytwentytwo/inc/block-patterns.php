@@ -45,7 +45,6 @@ function twentytwentytwo_register_block_patterns() {
 	}
 
 	$block_patterns = array(
-		'comments',
 		'footer-default',
 		'footer-dark',
 		'footer-logo',
@@ -133,4 +132,21 @@ function twentytwentytwo_register_block_patterns() {
 		);
 	}
 }
-add_action( 'init', 'twentytwentytwo_register_block_patterns', 21 );
+add_action( 'init', 'twentytwentytwo_register_block_patterns', 9 );
+
+/**
+ * Registers comment block pattern.
+ *
+ * @since Twenty Twenty-Two 1.2
+ *
+ * @return void
+ */
+function twentytwentytwo_register_comments_patterns() {
+
+	register_block_pattern(
+		'twentytwentytwo/comments',
+		require get_theme_file_path( '/inc/patterns/comments.php' )
+	);
+
+}
+add_action( 'init', 'twentytwentytwo_register_comments_patterns', 21 );
