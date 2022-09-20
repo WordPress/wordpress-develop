@@ -2961,7 +2961,7 @@ class WP_Theme_JSON {
 
 			$below_sizes[] = array(
 				/* translators: %s: Digit to indicate multiple of sizing, eg. 2X-Small. */
-				'name' => $below_midpoint_count === $steps_mid_point - 1 ? __( 'Small' ) : sprintf( __( '%sX-Small' ), strval( $x_small_count ) ),
+				'name' => $below_midpoint_count === $steps_mid_point - 1 ? __( 'Small' ) : sprintf( __( '%sX-Small' ), (string) $x_small_count ),
 				'slug' => (string) $slug,
 				'size' => round( $current_step, 2 ) . $unit,
 			);
@@ -2998,7 +2998,7 @@ class WP_Theme_JSON {
 
 			$above_sizes[] = array(
 				/* translators: %s: Digit to indicate multiple of sizing, eg. 2X-Large. */
-				'name' => 0 === $above_midpoint_count ? __( 'Large' ) : sprintf( __( '%sX-Large' ), strval( $x_large_count ) ),
+				'name' => 0 === $above_midpoint_count ? __( 'Large' ) : sprintf( __( '%sX-Large' ), (string) $x_large_count ),
 				'slug' => (string) $slug,
 				'size' => round( $current_step, 2 ) . $unit,
 			);
@@ -3019,7 +3019,7 @@ class WP_Theme_JSON {
 		// If there are 7 or less steps in the scale revert to numbers for labels instead of t-shirt sizes.
 		if ( $spacing_scale['steps'] <= 7 ) {
 			for ( $spacing_sizes_count = 0; $spacing_sizes_count < count( $spacing_sizes ); $spacing_sizes_count++ ) {
-				$spacing_sizes[ $spacing_sizes_count ]['name'] = strval( $spacing_sizes_count + 1 );
+				$spacing_sizes[ $spacing_sizes_count ]['name'] = (string) $spacing_sizes_count + 1;
 			}
 		}
 

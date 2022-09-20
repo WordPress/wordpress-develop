@@ -3539,7 +3539,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 				'expected_output' => array(
 					array(
-						'name' => 'Medium',
+						'name' => '1',
 						'slug' => '50',
 						'size' => '4rem',
 					),
@@ -3555,12 +3555,12 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 				'expected_output' => array(
 					array(
-						'name' => 'Medium',
+						'name' => '1',
 						'slug' => '50',
 						'size' => '4rem',
 					),
 					array(
-						'name' => 'Large',
+						'name' => '2',
 						'slug' => '60',
 						'size' => '5.5rem',
 					),
@@ -3576,17 +3576,17 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 				'expected_output' => array(
 					array(
-						'name' => 'Small',
+						'name' => '1',
 						'slug' => '40',
 						'size' => '2.5rem',
 					),
 					array(
-						'name' => 'Medium',
+						'name' => '2',
 						'slug' => '50',
 						'size' => '4rem',
 					),
 					array(
-						'name' => 'Large',
+						'name' => '3',
 						'slug' => '60',
 						'size' => '5.5rem',
 					),
@@ -3602,22 +3602,22 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 				'expected_output' => array(
 					array(
-						'name' => 'Small',
+						'name' => '1',
 						'slug' => '40',
 						'size' => '2.5rem',
 					),
 					array(
-						'name' => 'Medium',
+						'name' => '2',
 						'slug' => '50',
 						'size' => '4rem',
 					),
 					array(
-						'name' => 'Large',
+						'name' => '3',
 						'slug' => '60',
 						'size' => '5.5rem',
 					),
 					array(
-						'name' => 'X-Large',
+						'name' => '4',
 						'slug' => '70',
 						'size' => '7rem',
 					),
@@ -3633,27 +3633,27 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 				'expected_output' => array(
 					array(
-						'name' => 'Small',
+						'name' => '1',
 						'slug' => '40',
 						'size' => '2.5rem',
 					),
 					array(
-						'name' => 'Medium',
+						'name' => '2',
 						'slug' => '50',
 						'size' => '5rem',
 					),
 					array(
-						'name' => 'Large',
+						'name' => '3',
 						'slug' => '60',
 						'size' => '7.5rem',
 					),
 					array(
-						'name' => 'X-Large',
+						'name' => '4',
 						'slug' => '70',
 						'size' => '10rem',
 					),
 					array(
-						'name' => '2X-Large',
+						'name' => '5',
 						'slug' => '80',
 						'size' => '12.5rem',
 					),
@@ -3668,6 +3668,83 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					'unit'       => 'rem',
 				),
 				'expected_output' => array(
+					array(
+						'name' => '1',
+						'slug' => '30',
+						'size' => '0.67rem',
+					),
+					array(
+						'name' => '2',
+						'slug' => '40',
+						'size' => '1rem',
+					),
+					array(
+						'name' => '3',
+						'slug' => '50',
+						'size' => '1.5rem',
+					),
+					array(
+						'name' => '4',
+						'slug' => '60',
+						'size' => '2.25rem',
+					),
+					array(
+						'name' => '5',
+						'slug' => '70',
+						'size' => '3.38rem',
+					),
+				),
+			),
+			'increment < 1 combined showing * operator acting as divisor above and below medium' => array(
+				'spacing_scale'   => array(
+					'operator'   => '*',
+					'increment'  => 0.25,
+					'steps'      => 5,
+					'mediumStep' => 1.5,
+					'unit'       => 'rem',
+				),
+				'expected_output' => array(
+					array(
+						'name' => '1',
+						'slug' => '30',
+						'size' => '0.09rem',
+					),
+					array(
+						'name' => '2',
+						'slug' => '40',
+						'size' => '0.38rem',
+					),
+					array(
+						'name' => 'Medium',
+						'slug' => '3',
+						'size' => '1.5rem',
+					),
+					array(
+						'name' => 'Large',
+						'slug' => '4',
+						'size' => '6rem',
+					),
+					array(
+						'name' => 'X-Large',
+						'slug' => '5',
+						'size' => '24rem',
+					),
+				),
+			),
+			't-shirt sizing used if more than 7 steps in scale' => array(
+				'spacing_scale'   => array(
+					'operator'   => '*',
+					'increment'  => 1.5,
+					'steps'      => 8,
+					'mediumStep' => 1.5,
+					'unit'       => 'rem',
+				),
+				'expected_output' => array(
+					array(
+						'name' => '2X-Small',
+						'slug' => '20',
+						'size' => '0.44rem',
+					),
 					array(
 						'name' => 'X-Small',
 						'slug' => '30',
@@ -3693,41 +3770,10 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'slug' => '70',
 						'size' => '3.38rem',
 					),
-				),
-			),
-			'increment < 1 combined showing * operator acting as divisor above and below medium' => array(
-				'spacing_scale'   => array(
-					'operator'   => '*',
-					'increment'  => 0.25,
-					'steps'      => 5,
-					'mediumStep' => 1.5,
-					'unit'       => 'rem',
-				),
-				'expected_output' => array(
 					array(
-						'name' => 'X-Small',
-						'slug' => '30',
-						'size' => '0.09rem',
-					),
-					array(
-						'name' => 'Small',
-						'slug' => '40',
-						'size' => '0.38rem',
-					),
-					array(
-						'name' => 'Medium',
-						'slug' => '50',
-						'size' => '1.5rem',
-					),
-					array(
-						'name' => 'Large',
-						'slug' => '60',
-						'size' => '6rem',
-					),
-					array(
-						'name' => 'X-Large',
-						'slug' => '70',
-						'size' => '24rem',
+						'name' => '2X-Large',
+						'slug' => '80',
+						'size' => '5.06rem',
 					),
 				),
 			),
