@@ -5,7 +5,7 @@
  * @package WordPress
  */
 
-define( 'BLOCKS_PATH', ABSPATH . WPINC . '/blocks/' );
+define( 'BLOCKS_PATH', 'ABSPATH' . 'WPINC' . '/blocks/' );
 
 // Include files required for core blocks registration.
 require BLOCKS_PATH . 'legacy-widget.php';
