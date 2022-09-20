@@ -271,6 +271,9 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		$this->assertSameSets( $expected, $query->posts );
 	}
 
+	/**
+	 * @ticket 53450
+	 */
 	public function test_meta_query_single_query_compare_startswith() {
 		$posts = self::factory()->post->create_many( 5 );
 
@@ -300,6 +303,9 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		$this->assertSameSets( $expected, $query->posts );
 	}
 
+	/**
+	 * @ticket 53450
+	 */
 	public function test_meta_query_single_query_compare_not_startswith() {
 		$posts = self::factory()->post->create_many( 5 );
 
@@ -329,6 +335,9 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		$this->assertSameSets( $expected, $query->posts );
 	}
 
+	/**
+	 * @ticket 53450
+	 */
 	public function test_meta_query_single_query_compare_endswith() {
 		$posts = self::factory()->post->create_many( 5 );
 
@@ -358,6 +367,9 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		$this->assertSameSets( $expected, $query->posts );
 	}
 
+	/**
+	 * @ticket 53450
+	 */
 	public function test_meta_query_single_query_compare_not_endswith() {
 		$posts = self::factory()->post->create_many( 5 );
 
@@ -1994,6 +2006,9 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		$this->assertSameSets( array( $posts[0], $posts[2] ), $q->posts );
 	}
 
+	/**
+	 * @ticket 53450
+	 */
 	public function test_compare_key_like_startswith() {
 		$posts = self::factory()->post->create_many( 3 );
 
@@ -2018,6 +2033,9 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		$this->assertSameSets( $expected, $query->posts );
 	}
 
+	/**
+	 * @ticket 53450
+	 */
 	public function test_compare_key_like_endswith() {
 		$posts = self::factory()->post->create_many( 3 );
 
@@ -2042,6 +2060,9 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		$this->assertSameSets( $expected, $query->posts );
 	}
 
+	/**
+	 * @ticket 53450
+	 */
 	public function test_compare_key_like_explicit_contains() {
 		$posts = self::factory()->post->create_many( 3 );
 
@@ -2066,6 +2087,9 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		$this->assertSameSets( $expected, $query->posts );
 	}
 
+	/**
+	 * @ticket 53450
+	 */
 	public function test_compare_key_like_and_value_like() {
 		$posts = self::factory()->post->create_many( 3 );
 
