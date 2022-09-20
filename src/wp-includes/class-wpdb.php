@@ -1395,7 +1395,7 @@ class wpdb {
 	 * @param string $identifier Identifier to escape.
 	 * @return string Escaped identifier.
 	 */
-	public function escape_identifier( $identifier ) {
+	public function quote_identifier( $identifier ) {
 		return '`' . $this->_escape_identifier_value( $identifier ) . '`';
 	}
 
