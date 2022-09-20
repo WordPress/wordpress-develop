@@ -266,7 +266,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *     @type string $size CSS font-size value, including units where applicable.
 	 * }
 	 * @param bool   $should_use_fluid_typography An override to switch fluid typography "on". Can be used for unit testing.
-	 * @param string $expected_output             Expected output of gutenberg_get_typography_font_size_value().
+	 * @param string $expected_output             Expected output.
 	 */
 	function test_wp_get_typography_font_size_value( $font_size_preset, $should_use_fluid_typography, $expected_output ) {
 		$actual = wp_get_typography_font_size_value( $font_size_preset, $should_use_fluid_typography );
@@ -275,7 +275,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_wp_get_typography_font_size_value.
+	 * Data provider.
 	 *
 	 * @return array
 	 */
