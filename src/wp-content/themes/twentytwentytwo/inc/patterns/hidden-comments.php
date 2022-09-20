@@ -5,8 +5,9 @@
 
 if ( WP_Block_Type_Registry::get_instance()->is_registered( 'core/comments' ) && version_compare( $GLOBALS['wp_version'], '6.1', '>=' ) ) {
 	return array(
-		'title'      => __( 'Comments block', 'twentytwentytwo' ),
-		'content'    => '<!-- wp:comments -->
+		'title'    => __( 'Comments block', 'twentytwentytwo' ),
+		'inserter' => false,
+		'content'  => '<!-- wp:comments -->
 						<div class="wp-block-comments"><!-- wp:comments-title /-->
 
 						<!-- wp:comment-template -->
@@ -44,6 +45,7 @@ if ( WP_Block_Type_Registry::get_instance()->is_registered( 'core/comments' ) &&
 	);
 }
 return array(
-	'title'      => __( 'Post Comments block', 'twentytwentytwo' ),
-	'content'    => '<!-- wp:heading --><h2>' . __( 'Comments', 'twentytwentytwo' ) . '</h2><!-- /wp:heading --><!-- wp:post-comments /-->',
+	'title'    => __( 'Post Comments block', 'twentytwentytwo' ),
+	'inserter' => false,
+	'content'  => '<!-- wp:post-comments /-->',
 );

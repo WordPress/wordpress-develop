@@ -145,7 +145,7 @@ function twentytwentytwo_register_comments_patterns() {
 
 	register_block_pattern(
 		'twentytwentytwo/comments',
-		require get_theme_file_path( '/inc/patterns/comments.php' )
+		require get_theme_file_path( '/inc/patterns/hidden-comments.php' )
 	);
 
 }
