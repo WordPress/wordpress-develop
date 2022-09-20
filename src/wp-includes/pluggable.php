@@ -132,6 +132,8 @@ if ( ! function_exists( 'cache_users' ) ) :
 	function cache_users( $user_ids ) {
 		global $wpdb;
 
+		update_meta_cache( 'user', $user_ids );
+
 		$clean = _get_non_cached_ids( $user_ids, 'users' );
 
 		if ( empty( $clean ) ) {
@@ -142,12 +144,9 @@ if ( ! function_exists( 'cache_users' ) ) :
 
 		$users = $wpdb->get_results( "SELECT * FROM $wpdb->users WHERE ID IN ($list)" );
 
-		$ids = array();
 		foreach ( $users as $user ) {
 			update_user_caches( $user );
-			$ids[] = $user->ID;
 		}
-		update_meta_cache( 'user', $ids );
 	}
 endif;
 
@@ -308,7 +307,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 							if ( false !== $bracket_pos ) {
 								// Text before the bracketed email is the "From" name.
 								if ( $bracket_pos > 0 ) {
-									$from_name = substr( $content, 0, $bracket_pos - 1 );
+									$from_name = substr( $content, 0, $bracket_pos );
 									$from_name = str_replace( '"', '', $from_name );
 									$from_name = trim( $from_name );
 								}
@@ -896,6 +895,7 @@ if ( ! function_exists( 'wp_parse_auth_cookie' ) ) :
 	 * Parses a cookie into its components.
 	 *
 	 * @since 2.7.0
+	 * @since 4.0.0 The `$token` element was added to the return value.
 	 *
 	 * @param string $cookie Authentication cookie.
 	 * @param string $scheme Optional. The cookie scheme to use: 'auth', 'secure_auth', or 'logged_in'.
@@ -2111,7 +2111,17 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		// We want to reverse this for the plain text arena of emails.
 		$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 
-		if ( 'user' !== $notify ) {
+		/**
+		 * Filters whether the admin is notified of a new user registration.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param bool    $send Whether to send the email. Default true.
+		 * @param WP_User $user User object for new user.
+		 */
+		$send_notification_to_admin = apply_filters( 'wp_send_new_user_notification_to_admin', true, $user );
+
+		if ( 'user' !== $notify && true === $send_notification_to_admin ) {
 			$switched_locale = switch_to_locale( get_locale() );
 
 			/* translators: %s: Site title. */
@@ -2159,8 +2169,18 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 			}
 		}
 
+		/**
+		 * Filters whether the user is notified of their new user registration.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param bool    $send Whether to send the email. Default true.
+		 * @param WP_User $user User object for new user.
+		 */
+		$send_notification_to_user = apply_filters( 'wp_send_new_user_notification_to_user', true, $user );
+
 		// `$deprecated` was pre-4.3 `$plaintext_pass`. An empty `$plaintext_pass` didn't sent a user notification.
-		if ( 'admin' === $notify || ( empty( $deprecated ) && empty( $notify ) ) ) {
+		if ( 'admin' === $notify || true !== $send_notification_to_user || ( empty( $deprecated ) && empty( $notify ) ) ) {
 			return;
 		}
 
@@ -2225,18 +2245,22 @@ if ( ! function_exists( 'wp_nonce_tick' ) ) :
 	 * updated, e.g. by autosave.
 	 *
 	 * @since 2.5.0
+	 * @since 6.1.0 Added `action` argument.
 	 *
+	 * @param string|int $action Optional. The current nonce action. Default -1.
 	 * @return float Float value rounded up to the next highest integer.
 	 */
-	function wp_nonce_tick() {
+	function wp_nonce_tick( $action = -1 ) {
 		/**
 		 * Filters the lifespan of nonces in seconds.
 		 *
 		 * @since 2.5.0
+		 * @since 6.1.0 Added `action` argument to allow for more targeted filters.
 		 *
-		 * @param int $lifespan Lifespan of nonces in seconds. Default 86,400 seconds, or one day.
+		 * @param int        $lifespan Lifespan of nonces in seconds. Default 86,400 seconds, or one day.
+		 * @param string|int $action   The current nonce action.
 		 */
-		$nonce_life = apply_filters( 'nonce_life', DAY_IN_SECONDS );
+		$nonce_life = apply_filters( 'nonce_life', DAY_IN_SECONDS, $action );
 
 		return ceil( time() / ( $nonce_life / 2 ) );
 	}
@@ -2277,7 +2301,7 @@ if ( ! function_exists( 'wp_verify_nonce' ) ) :
 		}
 
 		$token = wp_get_session_token();
-		$i     = wp_nonce_tick();
+		$i     = wp_nonce_tick( $action );
 
 		// Nonce generated 0-12 hours ago.
 		$expected = substr( wp_hash( $i . '|' . $action . '|' . $uid . '|' . $token, 'nonce' ), -12, 10 );
@@ -2327,8 +2351,8 @@ if ( ! function_exists( 'wp_create_nonce' ) ) :
 			$uid = apply_filters( 'nonce_user_logged_out', $uid, $action );
 		}
 
-		$token = wp_get_session_token();
-		$i     = wp_nonce_tick();
+		$token = wp_get_session_token( $action );
+		$i     = wp_nonce_tick( $action );
 
 		return substr( wp_hash( $i . '|' . $action . '|' . $uid . '|' . $token, 'nonce' ), -12, 10 );
 	}
@@ -2600,7 +2624,7 @@ endif;
 
 if ( ! function_exists( 'wp_rand' ) ) :
 	/**
-	 * Generates a random number.
+	 * Generates a random non-negative number.
 	 *
 	 * @since 2.6.2
 	 * @since 4.4.0 Uses PHP7 random_int() or the random_compat library if available.
@@ -2612,7 +2636,7 @@ if ( ! function_exists( 'wp_rand' ) ) :
 	 *                 Accepts positive integers or zero. Defaults to 0.
 	 * @param int $max Optional. Upper limit for the generated number.
 	 *                 Accepts positive integers. Defaults to 4294967295.
-	 * @return int A random number between min and max.
+	 * @return int A random non-negative number between min and max.
 	 */
 	function wp_rand( $min = null, $max = null ) {
 		global $rnd_value;
@@ -2772,6 +2796,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			'force_display' => false,
 			'loading'       => null,
 			'extra_attr'    => '',
+			'decoding'      => 'async',
 		);
 
 		if ( wp_lazy_loading_enabled( 'img', 'get_avatar' ) ) {
@@ -2857,6 +2882,13 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			}
 
 			$extra_attr .= "loading='{$loading}'";
+		}
+
+		if ( in_array( $args['decoding'], array( 'async', 'sync', 'auto' ) ) && ! preg_match( '/\bdecoding\s*=/', $extra_attr ) ) {
+			if ( ! empty( $extra_attr ) ) {
+				$extra_attr .= ' ';
+			}
+			$extra_attr .= "decoding='{$args['decoding']}'";
 		}
 
 		$avatar = sprintf(

@@ -14,6 +14,7 @@
  *
  * @see WP_Site_Query::__construct() for accepted arguments.
  */
+#[AllowDynamicProperties]
 class WP_Site_Query {
 
 	/**
@@ -350,7 +351,7 @@ class WP_Site_Query {
 		// $args can include anything. Only use the args defined in the query_var_defaults to compute the key.
 		$_args = wp_array_slice_assoc( $this->query_vars, array_keys( $this->query_var_defaults ) );
 
-		// Ignore the $fields, $update_site_cache, $update_site_meta_cache argument as the queried result will be the same regardless.
+		// Ignore these arguments, as the queried result will be the same regardless.
 		unset( $_args['fields'], $_args['update_site_cache'], $_args['update_site_meta_cache'] );
 
 		$key          = md5( serialize( $_args ) );
@@ -626,7 +627,9 @@ class WP_Site_Query {
 
 		$date_query = $this->query_vars['date_query'];
 		if ( ! empty( $date_query ) && is_array( $date_query ) ) {
-			$this->date_query                         = new WP_Date_Query( $date_query, 'registered' );
+			$this->date_query = new WP_Date_Query( $date_query, 'registered' );
+
+			// Strip leading 'AND'.
 			$this->sql_clauses['where']['date_query'] = preg_replace( '/^\s*AND\s*/', '', $this->date_query->get_sql() );
 		}
 

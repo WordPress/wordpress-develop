@@ -747,6 +747,27 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 55837
+	 * @covers ::get_terms
+	 */
+	public function test_get_terms_child_of_cache() {
+		$parent = self::factory()->category->create();
+		self::factory()->category->create( array( 'parent' => $parent ) );
+
+		$args  = array(
+			'fields'     => 'ids',
+			'child_of'   => $parent,
+			'hide_empty' => false,
+		);
+		$terms = get_terms( 'category', $args );
+		$this->assertCount( 1, $terms, 'The first call to get_terms() did not return 1 term' );
+
+		$terms2 = get_terms( 'category', $args );
+		$this->assertCount( 1, $terms2, 'The second call to get_terms() did not return 1 term' );
+		$this->assertSameSets( $terms, $terms2, 'Results are not the same after caching' );
+	}
+
+	/**
 	 * @ticket 46768
 	 */
 	public function test_get_terms_child_of_fields_id_name() {
@@ -2590,6 +2611,76 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 55837
+	 * @covers ::get_terms
+	 */
+	public function test_pad_counts_cached() {
+		register_taxonomy( 'wptests_tax_1', 'post', array( 'hierarchical' => true ) );
+
+		$posts = self::factory()->post->create_many( 3 );
+
+		$t1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax_1',
+			)
+		);
+		$t2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax_1',
+				'parent'   => $t1,
+			)
+		);
+		$t3 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax_1',
+				'parent'   => $t2,
+			)
+		);
+
+		wp_set_object_terms( $posts[0], array( $t1 ), 'wptests_tax_1' );
+		wp_set_object_terms( $posts[1], array( $t2 ), 'wptests_tax_1' );
+		wp_set_object_terms( $posts[2], array( $t3 ), 'wptests_tax_1' );
+
+		$found = get_terms(
+			'wptests_tax_1',
+			array(
+				'pad_counts' => true,
+			)
+		);
+
+		$this->assertSameSets( array( $t1, $t2, $t3 ), wp_list_pluck( $found, 'term_id' ), 'Check to see if results are as expected' );
+
+		foreach ( $found as $f ) {
+			if ( $t1 === $f->term_id ) {
+				$this->assertSame( 3, $f->count, 'Check to see if term 1, has the correct count' );
+			} elseif ( $t2 === $f->term_id ) {
+				$this->assertSame( 2, $f->count, 'Check to see if term 2, has the correct count' );
+			} else {
+				$this->assertSame( 1, $f->count, 'Check to see if term 3, has the correct count' );
+			}
+		}
+
+		$found = get_terms(
+			'wptests_tax_1',
+			array(
+				'pad_counts' => true,
+			)
+		);
+
+		$this->assertSameSets( array( $t1, $t2, $t3 ), wp_list_pluck( $found, 'term_id' ), 'Check to see if results are as expected on second run' );
+
+		foreach ( $found as $f ) {
+			if ( $t1 === $f->term_id ) {
+				$this->assertSame( 3, $f->count, 'Check to see if term 1, has the correct count on second run' );
+			} elseif ( $t2 === $f->term_id ) {
+				$this->assertSame( 2, $f->count, 'Check to see if term 2, has the correct count on second run' );
+			} else {
+				$this->assertSame( 1, $f->count, 'Check to see if term 3, has the correct count on second run' );
+			}
+		}
+	}
+
+	/**
 	 * @ticket 20635
 	 */
 	public function test_pad_counts_should_not_recurse_infinitely_when_term_hierarchy_has_a_loop() {
@@ -3097,17 +3188,6 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				array(
 					'taxonomy' => self::$taxonomy,
 					'fields'   => 'slugs',
-				),
-			),
-			'meta cache off, pad count on  vs meta cache on, pad count off' => array(
-				array(
-					'taxonomy'               => self::$taxonomy,
-					'pad_counts'             => true,
-					'update_term_meta_cache' => false,
-				),
-				array(
-					'taxonomy' => self::$taxonomy,
-					'fields'   => 'ids',
 				),
 			),
 			'array slug vs string slug'                => array(

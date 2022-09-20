@@ -25,6 +25,8 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	protected static $child_page_id;
 	protected static $child_draft_page_id;
 
+	private $post_autosave;
+
 	protected function set_post_data( $args = array() ) {
 		$defaults = array(
 			'title'   => 'Post Title',
@@ -269,8 +271,11 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$this->assertErrorResponse( 'rest_post_invalid_parent', $response, 404 );
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_delete_item() {
-		// Doesn't exist.
+		// Controller does not implement delete_item().
 	}
 
 	public function test_prepare_item() {
@@ -601,5 +606,72 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertNotEquals( 'garbage', get_post( self::$draft_page_id )->comment_status );
+	}
+
+	/**
+	 * Test ensuring that autosave from the original author doesn't overwrite changes after it has been taken over by a 2nd author.
+	 *
+	 * @ticket 55659
+	 */
+	public function test_rest_autosave_draft_post_locked_to_different_author() {
+
+		// Create a post by the editor.
+		$post_data = array(
+			'post_content' => 'Test post content',
+			'post_title'   => 'Test post title',
+			'post_excerpt' => 'Test post excerpt',
+			'post_author'  => self::$editor_id,
+			'post_status'  => 'draft',
+		);
+		$post_id   = wp_insert_post( $post_data );
+
+		// Set the post lock to the contributor, simulating a takeover of the post.
+		wp_set_current_user( self::$contributor_id );
+		wp_set_post_lock( $post_id );
+
+		// Update the post with new data from the contributor.
+		$updated_post_data = array(
+			'ID'           => $post_id,
+			'post_content' => 'New post content from the contributor',
+			'post_title'   => 'New post title',
+		);
+		wp_update_post( $updated_post_data );
+
+		// Set the current user to the editor and initiate an autosave with some new data.
+		wp_set_current_user( self::$editor_id );
+		$autosave_data = array(
+			'id'      => $post_id,
+			'content' => 'Updated post content',
+			'excerpt' => 'A new excerpt to test',
+			'title'   => $post_data['post_title'],
+		);
+
+		// Initiate an autosave via the REST API as Gutenberg does.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $autosave_data ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$new_data = $response->get_data();
+
+		// The current version of our test post.
+		$current_post = get_post( $post_id );
+
+		// The new data from the autosave should have its parent ID set to the original post ID.
+		$this->assertSame( $post_id, $new_data['parent'] );
+
+		// The post title and content should still be the updated versions from the contributor.
+		$this->assertSame( $current_post->post_title, $updated_post_data['post_title'] );
+		$this->assertSame( $current_post->post_content, $updated_post_data['post_content'] );
+
+		// The excerpt should have stayed the same.
+		$this->assertSame( $current_post->post_excerpt, $post_data['post_excerpt'] );
+
+		$autosave_post = wp_get_post_autosave( $post_id );
+
+		// Has changes.
+		$this->assertSame( $autosave_data['content'], $autosave_post->post_content );
+
+		wp_delete_post( $post_id );
 	}
 }

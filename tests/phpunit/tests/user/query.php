@@ -156,6 +156,26 @@ class Tests_User_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 55594
+	 */
+	public function test_get_all_primed_users() {
+		$filter = new MockAction();
+		add_filter( 'update_user_metadata_cache', array( $filter, 'filter' ), 10, 2 );
+
+		new WP_User_Query(
+			array(
+				'include' => self::$author_ids,
+				'fields'  => 'all',
+			)
+		);
+
+		$args      = $filter->get_args();
+		$last_args = end( $args );
+		$this->assertIsArray( $last_args[1] );
+		$this->assertSameSets( self::$author_ids, $last_args[1], 'Ensure that user meta is primed' );
+	}
+
+	/**
 	 * @ticket 39297
 	 */
 	public function test_get_total_is_int() {
@@ -1645,7 +1665,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 */
 	public function test_search_by_display_name_only() {
 
-		$new_user1          = $this->factory->user->create(
+		$new_user1          = self::factory()->user->create(
 			array(
 				'user_login'   => 'name1',
 				'display_name' => 'Sophia Andresen',
@@ -1673,7 +1693,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 */
 	public function test_search_by_display_name_only_ignore_others() {
 
-		$new_user1          = $this->factory->user->create(
+		$new_user1          = self::factory()->user->create(
 			array(
 				'user_login'   => 'Sophia Andresen',
 				'display_name' => 'name1',

@@ -201,7 +201,7 @@ class Tests_Pluggable extends WP_UnitTestCase {
 				'deprecated' => null,
 				'notify'     => '',
 			),
-			'wp_nonce_tick'                   => array(),
+			'wp_nonce_tick'                   => array( 'action' => -1 ),
 			'wp_verify_nonce'                 => array(
 				'nonce',
 				'action' => -1,
@@ -327,6 +327,8 @@ class Tests_Pluggable extends WP_UnitTestCase {
 					),
 					'wp_cache_flush'                     => array(),
 					'wp_cache_flush_runtime'             => array(),
+					'wp_cache_flush_group'               => array( 'group' ),
+					'wp_cache_supports_group_flush'      => array(),
 					'wp_cache_close'                     => array(),
 					'wp_cache_add_global_groups'         => array( 'groups' ),
 					'wp_cache_add_non_persistent_groups' => array( 'groups' ),
@@ -337,115 +339,5 @@ class Tests_Pluggable extends WP_UnitTestCase {
 		}
 
 		return $signatures;
-	}
-
-	/**
-	 * @ticket 28020
-	 */
-	public function test_get_user_by_should_return_same_instance_as_wp_get_current_user() {
-		// Create a test user.
-		$new_user = self::factory()->user->create( array( 'role' => 'subscriber' ) );
-
-		// Set the test user as the current user.
-		$current_user = wp_set_current_user( $new_user );
-
-		// Get the test user using get_user_by().
-		$from_get_user_by = get_user_by( 'id', $new_user );
-
-		$this->assertSame( $current_user, $from_get_user_by );
-	}
-
-	/**
-	 * Tests that wp_rand() returns zero.
-	 *
-	 * @ticket 55194
-	 * @dataProvider data_wp_rand_should_return_zero
-	 * @covers ::wp_rand
-	 *
-	 * @param mixed $min Lower limit for the generated number.
-	 * @param mixed $max Upper limit for the generated number.
-	 */
-	public function test_wp_rand_should_return_zero( $min, $max ) {
-		$this->assertSame( 0, wp_rand( $min, $max ) );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array
-	 */
-	public function data_wp_rand_should_return_zero() {
-		return array(
-			'min and max as 0'      => array(
-				'min' => 0,
-				'max' => 0,
-			),
-			'min and max as 0.0'    => array(
-				'min' => 0.0,
-				'max' => 0.0,
-			),
-			'min as null, max as 0' => array(
-				'min' => null,
-				'max' => 0,
-			),
-		);
-	}
-
-	/**
-	 * Tests that wp_rand() returns a value between 1 and 99.
-	 *
-	 * @ticket 55194
-	 * @dataProvider data_wp_rand_should_return_between_1_and_99
-	 * @covers ::wp_rand
-	 *
-	 * @param int $min Lower limit for the generated number.
-	 * @param int $max Upper limit for the generated number.
-	 */
-	public function test_wp_rand_should_return_between_1_and_99( $min, $max ) {
-		$this->assertGreaterThan(
-			0,
-			wp_rand( $min, $max ),
-			'The value was not greater than 0'
-		);
-
-		$this->assertLessThan(
-			100,
-			wp_rand( $min, $max ),
-			'The value was not less than 100'
-		);
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array
-	 */
-	public function data_wp_rand_should_return_between_1_and_99() {
-		return array(
-			'1 and 99'       => array(
-				'min' => 1,
-				'max' => 99,
-			),
-			'-1 and 99'      => array(
-				'min' => -1,
-				'max' => 99,
-			),
-			'1 and -99'      => array(
-				'min' => 1,
-				'max' => -99,
-			),
-			'-1 and -99'     => array(
-				'min' => -1,
-				'max' => -99,
-			),
-			'1.0 and 99.0'   => array(
-				'min' => 1.0,
-				'max' => 99.0,
-			),
-			'-1.0 and -99.0' => array(
-				'min' => -1.0,
-				'max' => -99.0,
-			),
-		);
 	}
 }

@@ -7,7 +7,7 @@ var mockedApiResponse = {};
 
 mockedApiResponse.Schema = {
     "name": "Test Blog",
-    "description": "Just another WordPress site",
+    "description": "",
     "url": "http://example.org",
     "home": "http://example.org",
     "gmt_offset": "0",
@@ -9269,6 +9269,24 @@ mockedApiResponse.Schema = {
                                 "type": "string"
                             },
                             "required": false
+                        },
+                        "exclude": {
+                            "description": "Ensure result set excludes specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "include": {
+                            "description": "Limit result set to specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
                         }
                     }
                 }
@@ -9625,6 +9643,21 @@ mockedApiResponse.Schema = {
                         },
                         "posts_per_page": {
                             "description": "Blog pages show at most.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "show_on_front": {
+                            "description": "What to show on the front page",
+                            "type": "string",
+                            "required": false
+                        },
+                        "page_on_front": {
+                            "description": "The ID of the page that should be displayed on the front page",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "page_for_posts": {
+                            "description": "The ID of the page that should display the latest posts",
                             "type": "integer",
                             "required": false
                         },
@@ -10600,6 +10633,27 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
+        "/wp-site-health/v1/tests/page-cache": {
+            "namespace": "wp-site-health/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": []
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-site-health/v1/tests/page-cache"
+                    }
+                ]
+            }
+        },
         "/wp-block-editor/v1": {
             "namespace": "wp-block-editor/v1",
             "methods": [
@@ -10745,7 +10799,8 @@ mockedApiResponse.Schema = {
         }
     },
     "site_logo": 0,
-    "site_icon": 0
+    "site_icon": 0,
+    "site_icon_url": ""
 };
 
 mockedApiResponse.oembed = {
@@ -12271,7 +12326,7 @@ mockedApiResponse.CommentModel = {
 
 mockedApiResponse.settings = {
     "title": "Test Blog",
-    "description": "Just another WordPress site",
+    "description": "",
     "url": "http://example.org",
     "email": "admin@example.org",
     "timezone": "",
@@ -12283,6 +12338,9 @@ mockedApiResponse.settings = {
     "default_category": 1,
     "default_post_format": "0",
     "posts_per_page": 10,
+    "show_on_front": "posts",
+    "page_on_front": 0,
+    "page_for_posts": 0,
     "default_ping_status": "open",
     "default_comment_status": "open",
     "site_logo": null,
