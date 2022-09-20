@@ -55,6 +55,7 @@ wp-tests-config.php
 !/src/wp-content/themes/twentytwenty
 !/src/wp-content/themes/twentytwentyone
 !/src/wp-content/themes/twentytwentytwo
+!/src/wp-content/themes/twentytwentythree
 /src/wp-content/upgrade
 /src/wp-content/uploads
 /src/wp-content/advanced-cache.php
