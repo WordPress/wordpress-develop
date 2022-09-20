@@ -2912,6 +2912,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 					),
 				),
 				array(
+
 					'type'                 => 'object',
 					'properties'           => array(
 						'a' => array(
@@ -2935,6 +2936,113 @@ class Tests_REST_API extends WP_UnitTestCase {
 								'properties' => array( 'g' => array( 'type' => 'string' ) ),
 							),
 						),
+					),
+				),
+			),
+			'anyOf with local type'              => array(
+				array(
+					'anyOf' => array(
+						array(
+							'type'                 => 'object',
+							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+							'additionalProperties' => false,
+						),
+						array( 'type' => 'integer' ),
+					),
+				),
+				array(
+					'anyOf' => array(
+						array(
+							'type'       => 'object',
+							'properties' => array( 'a' => array( 'type' => 'string' ) ),
+						),
+						array( 'type' => 'integer' ),
+					),
+				),
+			),
+			'anyOf with base type'               => array(
+				array(
+					'type'                 => 'object',
+					'anyOf'                => array(
+						array(
+							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+							'additionalProperties' => false,
+						),
+						array( 'type' => 'integer' ),
+					),
+					'additionalProperties' => false,
+				),
+				array(
+					'type'  => 'object',
+					'anyOf' => array(
+						array(
+							'properties' => array( 'a' => array( 'type' => 'string' ) ),
+						),
+						array( 'type' => 'integer' ),
+					),
+				),
+			),
+			'anyOf nested with local type'       => array(
+				array(
+					'anyOf' => array(
+						array(
+							'anyOf' => array(
+								array(
+									'type'                 => 'object',
+									'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+									'additionalProperties' => false,
+								),
+								array( 'type' => 'integer' ),
+							),
+						),
+						array( 'type' => 'integer' ),
+					),
+				),
+				array(
+					'anyOf' => array(
+						array(
+							'anyOf' => array(
+								array(
+									'type'       => 'object',
+									'properties' => array( 'a' => array( 'type' => 'string' ) ),
+								),
+								array( 'type' => 'integer' ),
+							),
+						),
+						array( 'type' => 'integer' ),
+					),
+				),
+			),
+			'anyOf nested with base type'        => array(
+				array(
+					'type'                 => 'object',
+					'anyOf'                => array(
+						array(
+							'anyOf'                => array(
+								array(
+									'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+									'additionalProperties' => false,
+								),
+								array( 'type' => 'integer' ),
+							),
+							'additionalProperties' => false,
+						),
+						array( 'type' => 'integer' ),
+					),
+					'additionalProperties' => false,
+				),
+				array(
+					'type'  => 'object',
+					'anyOf' => array(
+						array(
+							'anyOf' => array(
+								array(
+									'properties' => array( 'a' => array( 'type' => 'string' ) ),
+								),
+								array( 'type' => 'integer' ),
+							),
+						),
+						array( 'type' => 'integer' ),
 					),
 				),
 			),
