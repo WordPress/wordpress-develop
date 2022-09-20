@@ -2090,19 +2090,13 @@ HTML;
 	 * @return array
 	 */
 	public function data_kses_globals_are_defined() {
-		return array(
-			'allowedposttags'       => array(
-				'global' => 'allowedposttags',
-			),
-			'allowedtags'           => array(
-				'global' => 'allowedtags',
-			),
-			'allowedentitynames'    => array(
-				'global' => 'allowedentitynames',
-			),
-			'allowedxmlentitynames' => array(
-				'global' => 'allowedxmlentitynames',
-			),
+		$globals = array(
+			'allowedposttags',
+			'allowedtags',
+			'allowedentitynames',
+			'allowedxmlentitynames',
 		);
+
+		return $this->text_array_to_dataprovider( $globals );
 	}
 }

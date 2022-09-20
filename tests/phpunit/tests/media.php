@@ -33,8 +33,7 @@ CAP;
 		self::$_sizes                          = wp_get_additional_image_sizes();
 		$GLOBALS['_wp_additional_image_sizes'] = array();
 
-		$filename = DIR_TESTDATA . '/images/' . self::$large_filename;
-		add_filter( 'image_editor_output_format', '__return_empty_array' );
+		$filename       = DIR_TESTDATA . '/images/' . self::$large_filename;
 		self::$large_id = $factory->attachment->create_upload_object( $filename );
 
 		$post_statuses = array( 'publish', 'future', 'draft', 'auto-draft', 'trash' );
@@ -69,7 +68,6 @@ CAP;
 
 	public static function wpTearDownAfterClass() {
 		$GLOBALS['_wp_additional_image_sizes'] = self::$_sizes;
-		remove_filter( 'image_editor_output_format', '__return_empty_array' );
 	}
 
 	public static function tear_down_after_class() {
@@ -3622,33 +3620,6 @@ EOF;
 
 		// Clean up the above filter.
 		remove_filter( 'wp_omit_loading_attr_threshold', '__return_null', 100 );
-	}
-
-	/**
-	 * Test the wp_default_image_output_mapping function.
-	 *
-	 * @ticket 55443
-	 */
-	public function test_wp_default_image_output_mapping() {
-		$mapping = wp_default_image_output_mapping( array(), 'test.jpg', 'image/jpeg', '' );
-		$this->assertSame( array( 'image/jpeg' => 'image/webp' ), $mapping );
-	}
-
-	/**
-	 * Test that wp_default_image_output_mapping doesn't overwrite existing mappings.
-	 *
-	 * @ticket 55443
-	 */
-	public function test_wp_default_image_output_mapping_existing() {
-		$mapping = array( 'mime/png' => 'mime/webp' );
-		$mapping = wp_default_image_output_mapping( $mapping, 'test.jpg', 'image/jpeg', '' );
-		$this->assertSame(
-			array(
-				'mime/png'   => 'mime/webp',
-				'image/jpeg' => 'image/webp',
-			),
-			$mapping
-		);
 	}
 
 	/**

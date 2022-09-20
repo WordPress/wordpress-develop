@@ -3090,14 +3090,24 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 function wp_count_attachments( $mime_type = '' ) {
 	global $wpdb;
 
-	$and   = wp_post_mime_type_where( $mime_type );
-	$count = $wpdb->get_results( "SELECT post_mime_type, COUNT( * ) AS num_posts FROM $wpdb->posts WHERE post_type = 'attachment' AND post_status != 'trash' $and GROUP BY post_mime_type", ARRAY_A );
+	$cache_key = sprintf(
+		'attachments%s',
+		! empty( $mime_type ) ? ':' . str_replace( '/', '_', implode( '-', (array) $mime_type ) ) : ''
+	);
 
-	$counts = array();
-	foreach ( (array) $count as $row ) {
-		$counts[ $row['post_mime_type'] ] = $row['num_posts'];
+	$counts = wp_cache_get( $cache_key, 'counts' );
+	if ( false == $counts ) {
+		$and   = wp_post_mime_type_where( $mime_type );
+		$count = $wpdb->get_results( "SELECT post_mime_type, COUNT( * ) AS num_posts FROM $wpdb->posts WHERE post_type = 'attachment' AND post_status != 'trash' $and GROUP BY post_mime_type", ARRAY_A );
+
+		$counts = array();
+		foreach ( (array) $count as $row ) {
+			$counts[ $row['post_mime_type'] ] = $row['num_posts'];
+		}
+		$counts['trash'] = $wpdb->get_var( "SELECT COUNT( * ) FROM $wpdb->posts WHERE post_type = 'attachment' AND post_status = 'trash' $and" );
+
+		wp_cache_set( $cache_key, (object) $counts, 'counts' );
 	}
-	$counts['trash'] = $wpdb->get_var( "SELECT COUNT( * ) FROM $wpdb->posts WHERE post_type = 'attachment' AND post_status = 'trash' $and" );
 
 	/**
 	 * Modifies returned attachment counts by mime type.
@@ -5756,8 +5766,6 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
  * @since 2.1.0
  * @since 3.0.0 The `$post_type` parameter was added.
  *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
  * @param string       $page_title Page title.
  * @param string       $output     Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
  *                                 correspond to a WP_Post object, an associative array, or a numeric array,
@@ -5766,40 +5774,25 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
  * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
  */
 function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' ) {
-	global $wpdb;
+	$args  = array(
+		'post_title'             => $page_title,
+		'post_type'              => $post_type,
+		'post_status'            => get_post_stati(),
+		'posts_per_page'         => 1,
+		'update_post_term_cache' => false,
+		'update_post_meta_cache' => false,
+		'no_found_rows'          => true,
+		'orderby'                => 'ID',
+		'order'                  => 'ASC',
+	);
+	$query = new WP_Query( $args );
+	$pages = $query->get_posts();
 
-	if ( is_array( $post_type ) ) {
-		$post_type           = esc_sql( $post_type );
-		$post_type_in_string = "'" . implode( "','", $post_type ) . "'";
-		$sql                 = $wpdb->prepare(
-			"
-			SELECT ID
-			FROM $wpdb->posts
-			WHERE post_title = %s
-			AND post_type IN ($post_type_in_string)
-		",
-			$page_title
-		);
-	} else {
-		$sql = $wpdb->prepare(
-			"
-			SELECT ID
-			FROM $wpdb->posts
-			WHERE post_title = %s
-			AND post_type = %s
-		",
-			$page_title,
-			$post_type
-		);
+	if ( empty( $pages ) ) {
+		return null;
 	}
 
-	$page = $wpdb->get_var( $sql );
-
-	if ( $page ) {
-		return get_post( $page, $output );
-	}
-
-	return null;
+	return get_post( $pages[0], $output );
 }
 
 /**
