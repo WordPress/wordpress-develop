@@ -1030,7 +1030,7 @@ function wp_generate_block_templates_export_file() {
  * @param string  $slug           The template slug to be created.
  * @param boolean $is_custom      Optional. Indicates if a template is custom or
  *                                part of the template hierarchy. Default false.
- * @param string $template_prefix The template prefix for the created template.
+ * @param string $template_prefix Optional. The template prefix for the created template.
  *                                Used to extract the main template type, e.g.
  *                                in `taxonomy-books` the `taxonomy` is extracted.
  *                                Default empty string.
@@ -1046,11 +1046,13 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
 	if ( 'front-page' === $slug ) {
 		return array( 'front-page', 'home', 'index' );
 	}
+
 	$template_hierarchy = array( $slug );
+
 	// Most default templates don't have `$template_prefix` assigned.
 	if ( $template_prefix ) {
-		list($type) = explode( '-', $template_prefix );
-		// We need these checks because we always add the `$slug` above.
+		list( $type ) = explode( '-', $template_prefix );
+		// These checks are needed because the `$slug` above is always added.
 		if ( ! in_array( $template_prefix, array( $slug, $type ), true ) ) {
 			$template_hierarchy[] = $template_prefix;
 		}
@@ -1058,6 +1060,7 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
 			$template_hierarchy[] = $type;
 		}
 	}
+
 	// Handle `archive` template.
 	if (
 		str_starts_with( $slug, 'author' ) ||
@@ -1072,6 +1075,7 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
 	if ( 'attachment' === $slug ) {
 		$template_hierarchy[] = 'single';
 	}
+
 	// Handle `singular` template.
 	if (
 		str_starts_with( $slug, 'single' ) ||
@@ -1080,6 +1084,8 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
 	) {
 		$template_hierarchy[] = 'singular';
 	}
+
 	$template_hierarchy[] = 'index';
+
 	return $template_hierarchy;
 };
