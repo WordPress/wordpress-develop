@@ -547,14 +547,6 @@ class WP_Upgrader {
 			return $res;
 		}
 
-		if ( ! empty( $args['hook_extra']['temp_backup'] ) ) {
-			$temp_backup = $this->move_to_temp_backup_dir( $args['hook_extra']['temp_backup'] );
-			if ( is_wp_error( $temp_backup ) ) {
-				return $temp_backup;
-			}
-			$this->temp_backups[] = $args['hook_extra']['temp_backup'];
-		}
-
 		// Retain the original source and destinations.
 		$remote_source     = $args['source'];
 		$local_destination = $destination;
@@ -590,6 +582,14 @@ class WP_Upgrader {
 
 		if ( is_wp_error( $source ) ) {
 			return $source;
+		}
+
+		if ( ! empty( $args['hook_extra']['temp_backup'] ) ) {
+			$temp_backup = $this->move_to_temp_backup_dir( $args['hook_extra']['temp_backup'] );
+			if ( is_wp_error( $temp_backup ) ) {
+				return $temp_backup;
+			}
+			$this->temp_backups[] = $args['hook_extra']['temp_backup'];
 		}
 
 		// Has the source location changed? If so, we need a new source_files list.
@@ -1104,7 +1104,7 @@ class WP_Upgrader {
 	 * @return bool|WP_Error
 	 */
 	public function restore_temp_backup() {
-		global $wp_filesystem;
+		 global $wp_filesystem;
 
 		$errors = new WP_Error();
 
