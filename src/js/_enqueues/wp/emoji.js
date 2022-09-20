@@ -52,6 +52,86 @@
 			return true;
 		}
 
+	/**
+	 * The callback for the MutationObserver instance.
+	 * @param {Array<MutationRecord>} mutationRecords
+	 * @returns
+	 */
+	function observerCallback( mutationRecords ) {
+		var i = mutationRecords.length,
+			addedNodes, removedNodes, ii, node;
+
+		while ( i-- ) {
+			addedNodes = mutationRecords[ i ].addedNodes;
+			removedNodes = mutationRecords[ i ].removedNodes;
+			ii = addedNodes.length;
+
+			/*
+				* Checks if an image has been replaced by a text element
+				* with the same text as the alternate description of the replaced image.
+				* (presumably because the image could not be loaded).
+				* If it is, do absolutely nothing.
+				*
+				* Node type 3 is a TEXT_NODE.
+				*
+				* @link https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
+				*/
+			if (
+				ii === 1 && removedNodes.length === 1 &&
+				addedNodes[0].nodeType === 3 &&
+				removedNodes[0].nodeName === 'IMG' &&
+				addedNodes[0].data === removedNodes[0].alt &&
+				'load-failed' === removedNodes[0].getAttribute( 'data-error' )
+			) {
+				return;
+			}
+
+			// Loop through all the added nodes.
+			while ( ii-- ) {
+				node = addedNodes[ ii ];
+
+				// Node type 3 is a TEXT_NODE.
+				if ( node.nodeType === 3 ) {
+					if ( ! node.parentNode ) {
+						continue;
+					}
+
+					if ( ie11 ) {
+						/*
+							* IE 11's implementation of MutationObserver is buggy.
+							* It unnecessarily splits text nodes when it encounters a HTML
+							* template interpolation symbol ( "{{", for example ). So, we
+							* join the text nodes back together as a work-around.
+							*
+							* Node type 3 is a TEXT_NODE.
+							*/
+						while( node.nextSibling && 3 === node.nextSibling.nodeType ) {
+							node.nodeValue = node.nodeValue + node.nextSibling.nodeValue;
+							node.parentNode.removeChild( node.nextSibling );
+						}
+					}
+
+					node = node.parentNode;
+				}
+
+				/*
+					* If the class name of a non-element node contains 'wp-exclude-emoji' ignore it.
+					*
+					* Node type 1 is an ELEMENT_NODE.
+					*/
+				if ( ! node || node.nodeType !== 1 ||
+					( node.className && typeof node.className === 'string' && node.className.indexOf( 'wp-exclude-emoji' ) !== -1 ) ) {
+
+					continue;
+				}
+
+				if ( test( node.textContent ) ) {
+					parse( node );
+				}
+			}
+		}
+	}
+
 		/**
 		 * Runs when the document load event is fired, so we can do our first parse of
 		 * the page.
@@ -62,7 +142,7 @@
 		 * @since 4.2.0
 		 * @private
 		 */
-		function load() {
+		const load = () => {
 			if ( loaded ) {
 				return;
 			}
@@ -88,86 +168,28 @@
 			// Initialize the mutation observer, which checks all added nodes for
 			// replaceable emoji characters.
 			if ( MutationObserver ) {
-				new MutationObserver( function( mutationRecords ) {
-					var i = mutationRecords.length,
-						addedNodes, removedNodes, ii, node;
-
-					while ( i-- ) {
-						addedNodes = mutationRecords[ i ].addedNodes;
-						removedNodes = mutationRecords[ i ].removedNodes;
-						ii = addedNodes.length;
-
-						/*
-						 * Checks if an image has been replaced by a text element
-						 * with the same text as the alternate description of the replaced image.
-						 * (presumably because the image could not be loaded).
-						 * If it is, do absolutely nothing.
-						 *
-						 * Node type 3 is a TEXT_NODE.
-						 *
-						 * @link https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
-						 */
-						if (
-							ii === 1 && removedNodes.length === 1 &&
-							addedNodes[0].nodeType === 3 &&
-							removedNodes[0].nodeName === 'IMG' &&
-							addedNodes[0].data === removedNodes[0].alt &&
-							'load-failed' === removedNodes[0].getAttribute( 'data-error' )
-						) {
-							return;
-						}
-
-						// Loop through all the added nodes.
-						while ( ii-- ) {
-							node = addedNodes[ ii ];
-
-							// Node type 3 is a TEXT_NODE.
-							if ( node.nodeType === 3 ) {
-								if ( ! node.parentNode ) {
-									continue;
-								}
-
-								if ( ie11 ) {
-									/*
-									 * IE 11's implementation of MutationObserver is buggy.
-									 * It unnecessarily splits text nodes when it encounters a HTML
-									 * template interpolation symbol ( "{{", for example ). So, we
-									 * join the text nodes back together as a work-around.
-									 *
-									 * Node type 3 is a TEXT_NODE.
-									 */
-									while( node.nextSibling && 3 === node.nextSibling.nodeType ) {
-										node.nodeValue = node.nodeValue + node.nextSibling.nodeValue;
-										node.parentNode.removeChild( node.nextSibling );
-									}
-								}
-
-								node = node.parentNode;
-							}
-
-							/*
-							 * If the class name of a non-element node contains 'wp-exclude-emoji' ignore it.
-							 *
-							 * Node type 1 is an ELEMENT_NODE.
-							 */
-							if ( ! node || node.nodeType !== 1 ||
-								( node.className && typeof node.className === 'string' && node.className.indexOf( 'wp-exclude-emoji' ) !== -1 ) ) {
-
-								continue;
-							}
-
-							if ( test( node.textContent ) ) {
-								parse( node );
-							}
-						}
-					}
-				} ).observe( document.body, {
+				this.observer = new MutationObserver( observerCallback );
+				this.observer.observe( document.body, {
 					childList: true,
 					subtree: true
 				} );
 			}
 
 			parse( document.body );
+		}
+
+		/**
+		 * Get the MutationObserver instance.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @memberOf wp.emoji
+		 *
+		 *
+		 * @return {MutationObserver|null} Either the mutation observer instance or null.
+		 */
+		const getObserver = () => {
+			return this.observer || null;
 		}
 
 		/**
@@ -288,7 +310,9 @@
 
 		return {
 			parse: parse,
-			test: test
+			test: test,
+			getObserver: getObserver,
+			observerCallback: observerCallback
 		};
 	}
 
