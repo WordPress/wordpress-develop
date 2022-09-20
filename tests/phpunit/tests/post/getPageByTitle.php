@@ -166,7 +166,7 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 
 		$found = get_page_by_title( 'foo', OBJECT, 'wptests_pt' );
 		$this->assertSame( $p2, $found->ID, 'Should find a post with post type wptests_pt.' );
-		$num_queries ++;
+		++$num_queries;
 		$this->assertSame( $num_queries, get_num_queries(), 'Should result in another database query.' );
 	}
 
@@ -196,7 +196,7 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 
 		$found = get_page_by_title( 'bar' );
 		$this->assertSame( $page, $found->ID, 'Should find a page with the new title.' );
-		$num_queries++;
+		++$num_queries;
 		$this->assertSame( $num_queries, get_num_queries(), 'Should result in another database query.' );
 	}
 
@@ -223,7 +223,7 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 		$this->assertSame( $num_queries, get_num_queries(), 'Should not result in another database query.' );
 
 		$array_n = get_page_by_title( 'foo', ARRAY_N );
-		$num_queries++; // Add one database query for loading of post metadata.
+		++$num_queries; // Add one database query for loading of post metadata.
 		$this->assertIsArray( $array_n, 'Should be numbric array.' );
 		$this->assertSame( $page, $array_n[0], 'Should match post id.' );
 		$this->assertSame( $num_queries, get_num_queries(), 'Should not result in another database query.' );
