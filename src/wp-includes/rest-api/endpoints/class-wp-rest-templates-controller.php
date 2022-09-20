@@ -78,6 +78,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					'args'                => array(
 						'slug'            => array(
 							'description' => __( 'The slug of the template to get the fallback for' ),
+							'required' => true,
 							'type'        => 'string',
 						),
 						'is_custom'       => array(
