@@ -4463,8 +4463,8 @@ function _get_path_to_translation_from_lang_dir( $domain ) {
  *
  * @since 5.8.0
  * @access private
- * @deprecated 6.1.0 No longer used for parsing typography values.
- *             Use wp_style_engine_get_styles().
+ * @deprecated 6.1.0 Use wp_style_engine_get_styles() introduced in 6.1.0.
+ *
  * @see wp_style_engine_get_styles()
  *
  * @param array  $attributes   Block's attributes.
@@ -4473,7 +4473,8 @@ function _get_path_to_translation_from_lang_dir( $domain ) {
  * @return string CSS inline style.
  */
 function wp_typography_get_css_variable_inline_style( $attributes, $feature, $css_property ) {
-	_deprecated_function( __FUNCTION__, '6.1.0' );
+	_deprecated_function( __FUNCTION__, '6.1.0', 'wp_style_engine_get_styles()' );
+
 	// Retrieve current attribute value or skip if not found.
 	$style_value = _wp_array_get( $attributes, array( 'style', 'typography', $feature ), false );
 	if ( ! $style_value ) {
