@@ -427,7 +427,7 @@ class WP_Media_List_Table extends WP_List_Table {
 
 		$attachment_id = $post->ID;
 
-		if ( wp_attachment_is( 'video', $post ) ||  wp_attachment_is( 'audio', $post ) ) {
+		if ( wp_attachment_is( 'video', $post ) || wp_attachment_is( 'audio', $post ) ) {
 			$thumbnail_id = get_post_thumbnail_id( $attachment_id );
 
 			if ( ! empty( $thumbnail_id ) ) {
