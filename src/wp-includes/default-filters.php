@@ -575,6 +575,10 @@ add_action( 'admin_head', 'wp_check_widget_editor_deps' );
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles' );
 add_action( 'wp_footer', 'wp_enqueue_global_styles', 1 );
 
+// Block supports, and other styles parsed and stored in the Style Engine.
+add_action( 'wp_enqueue_scripts', 'wp_enqueue_stored_styles' );
+add_action( 'wp_footer', 'wp_enqueue_stored_styles', 1 );
+
 // SVG filters like duotone have to be loaded at the beginning of the body in both admin and the front-end.
 add_action( 'wp_body_open', 'wp_global_styles_render_svg_filters' );
 add_action( 'in_admin_header', 'wp_global_styles_render_svg_filters' );
@@ -632,8 +636,6 @@ add_action( 'media_buttons', 'media_buttons' );
 add_filter( 'image_send_to_editor', 'image_add_caption', 20, 8 );
 add_filter( 'media_send_to_editor', 'image_media_send_to_editor', 10, 3 );
 
-add_filter( 'image_editor_output_format', 'wp_default_image_output_mapping', 10, 4 );
-
 // Embeds.
 add_action( 'rest_api_init', 'wp_oembed_register_route' );
 add_filter( 'rest_pre_serve_request', '_oembed_rest_pre_serve_request', 10, 4 );
@@ -682,5 +684,8 @@ add_action( 'save_post_wp_template_part', 'wp_set_unique_slug_on_create_template
 add_action( 'wp_footer', 'the_block_template_skip_link' );
 add_action( 'setup_theme', 'wp_enable_block_templates' );
 add_action( 'wp_loaded', '_add_template_loader_filters' );
+
+// User preferences.
+add_action( 'init', 'wp_register_persisted_preferences_meta' );
 
 unset( $filter, $action );
