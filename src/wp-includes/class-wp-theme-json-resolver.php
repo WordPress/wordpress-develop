@@ -17,6 +17,7 @@
  *
  * @access private
  */
+#[AllowDynamicProperties]
 class WP_Theme_JSON_Resolver {
 
 	/**
@@ -232,6 +233,54 @@ class WP_Theme_JSON_Resolver {
 	}
 
 	/**
+	 * Gets the styles for blocks from the block.json file.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @return WP_Theme_JSON
+	 */
+	public static function get_block_data() {
+		$registry = WP_Block_Type_Registry::get_instance();
+		$blocks   = $registry->get_all_registered();
+		$config   = array( 'version' => 1 );
+		foreach ( $blocks as $block_name => $block_type ) {
+			if ( isset( $block_type->supports['__experimentalStyle'] ) ) {
+				$config['styles']['blocks'][ $block_name ] = static::remove_json_comments( $block_type->supports['__experimentalStyle'] );
+			}
+
+			if (
+				isset( $block_type->supports['spacing']['blockGap']['__experimentalDefault'] ) &&
+				null === _wp_array_get( $config, array( 'styles', 'blocks', $block_name, 'spacing', 'blockGap' ), null )
+			) {
+				// Ensure an empty placeholder value exists for the block, if it provides a default blockGap value.
+				// The real blockGap value to be used will be determined when the styles are rendered for output.
+				$config['styles']['blocks'][ $block_name ]['spacing']['blockGap'] = null;
+			}
+		}
+
+		// Core here means it's the lower level part of the styles chain.
+		// It can be a core or a third-party block.
+		return new WP_Theme_JSON( $config, 'core' );
+	}
+
+	/**
+	 * When given an array, this will remove any keys with the name `//`.
+	 *
+	 * @param array $array The array to filter.
+	 * @return array The filtered array.
+	 */
+	private static function remove_json_comments( $array ) {
+		unset( $array['//'] );
+		foreach ( $array as $k => $v ) {
+			if ( is_array( $v ) ) {
+				$array[ $k ] = static::remove_json_comments( $v );
+			}
+		}
+
+		return $array;
+	}
+
+	/**
 	 * Returns the custom post type that contains the user's origin config
 	 * for the active theme or a void array if none are found.
 	 *
@@ -255,54 +304,59 @@ class WP_Theme_JSON_Resolver {
 		}
 		$user_cpt         = array();
 		$post_type_filter = 'wp_global_styles';
+		$stylesheet       = $theme->get_stylesheet();
 		$args             = array(
-			'numberposts' => 1,
-			'orderby'     => 'date',
-			'order'       => 'desc',
-			'post_type'   => $post_type_filter,
-			'post_status' => $post_status_filter,
-			'tax_query'   => array(
+			'posts_per_page'      => 1,
+			'orderby'             => 'post_date',
+			'order'               => 'desc',
+			'post_type'           => $post_type_filter,
+			'post_status'         => $post_status_filter,
+			'ignore_sticky_posts' => true,
+			'no_found_rows'       => true,
+			'tax_query'           => array(
 				array(
 					'taxonomy' => 'wp_theme',
 					'field'    => 'name',
-					'terms'    => $theme->get_stylesheet(),
+					'terms'    => $stylesheet,
 				),
 			),
 		);
 
 		$cache_key = sprintf( 'wp_global_styles_%s', md5( serialize( $args ) ) );
-		$post_id   = wp_cache_get( $cache_key );
-
-		if ( (int) $post_id > 0 ) {
-			return get_post( $post_id, ARRAY_A );
-		}
-
+		$post_id   = (int) get_transient( $cache_key );
 		// Special case: '-1' is a results not found.
 		if ( -1 === $post_id && ! $create_post ) {
 			return $user_cpt;
 		}
 
-		$recent_posts = wp_get_recent_posts( $args );
-		if ( is_array( $recent_posts ) && ( count( $recent_posts ) === 1 ) ) {
-			$user_cpt = $recent_posts[0];
+		if ( $post_id > 0 && in_array( get_post_status( $post_id ), (array) $post_status_filter, true ) ) {
+			return get_post( $post_id, ARRAY_A );
+		}
+
+		$global_style_query = new WP_Query();
+		$recent_posts       = $global_style_query->query( $args );
+		if ( count( $recent_posts ) === 1 ) {
+			$user_cpt = get_post( $recent_posts[0], ARRAY_A );
 		} elseif ( $create_post ) {
 			$cpt_post_id = wp_insert_post(
 				array(
 					'post_content' => '{"version": ' . WP_Theme_JSON::LATEST_SCHEMA . ', "isGlobalStylesUserThemeJSON": true }',
 					'post_status'  => 'publish',
-					'post_title'   => 'Custom Styles',
+					'post_title'   => __( 'Custom Styles' ),
 					'post_type'    => $post_type_filter,
-					'post_name'    => 'wp-global-styles-' . urlencode( wp_get_theme()->get_stylesheet() ),
+					'post_name'    => sprintf( 'wp-global-styles-%s', urlencode( $stylesheet ) ),
 					'tax_input'    => array(
-						'wp_theme' => array( wp_get_theme()->get_stylesheet() ),
+						'wp_theme' => array( $stylesheet ),
 					),
 				),
 				true
 			);
-			$user_cpt    = get_post( $cpt_post_id, ARRAY_A );
+			if ( ! is_wp_error( $cpt_post_id ) ) {
+				$user_cpt = get_post( $cpt_post_id, ARRAY_A );
+			}
 		}
 		$cache_expiration = $user_cpt ? DAY_IN_SECONDS : HOUR_IN_SECONDS;
-		wp_cache_set( $cache_key, $user_cpt ? $user_cpt['ID'] : -1, '', $cache_expiration );
+		set_transient( $cache_key, $user_cpt ? $user_cpt['ID'] : -1, $cache_expiration );
 
 		return $user_cpt;
 	}
@@ -369,6 +423,7 @@ class WP_Theme_JSON_Resolver {
 	 * @since 5.8.0
 	 * @since 5.9.0 Added user data, removed the `$settings` parameter,
 	 *              added the `$origin` parameter.
+	 * @since 6.1.0 Added block data.
 	 *
 	 * @param string $origin Optional. To what level should we merge data.
 	 *                       Valid values are 'theme' or 'custom'. Default 'custom'.
@@ -381,6 +436,7 @@ class WP_Theme_JSON_Resolver {
 
 		$result = new WP_Theme_JSON();
 		$result->merge( static::get_core_data() );
+		$result->merge( static::get_block_data() );
 		$result->merge( static::get_theme_data() );
 
 		if ( 'custom' === $origin ) {
