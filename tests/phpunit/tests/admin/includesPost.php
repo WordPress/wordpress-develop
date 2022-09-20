@@ -687,7 +687,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test if get_sample_permalink preserves the WP_Post properties.
+	 * Tests if get_sample_permalink() preserves the WP_Post properties.
 	 *
 	 * @ticket 54736
 	 *
