@@ -1590,14 +1590,43 @@ class wpdb {
 
 		$dual_use = array_intersect( $arg_identifiers, $arg_strings );
 
-		if ( count( $dual_use ) ) {
+		if ( count( $dual_use ) > 0 ) {
 			wp_load_translations_early();
+
+			$used_placeholders = array();
+
+			$key    = 2;
+			$arg_id = 0;
+			while ( $key < $split_query_count ) { // Parse again (only used when there is an error).
+				$placeholder = $split_query[ $key ];
+
+				$format = substr( $placeholder, 1, -1 );
+
+				$argnum_pos = strpos( $format, '$' );
+
+				if ( false !== $argnum_pos ) {
+					$arg_pos = ( intval( substr( $format, 0, $argnum_pos ) ) - 1 );
+				} else {
+					$arg_pos = $arg_id;
+				}
+
+				$used_placeholders[ $arg_pos ][] = $placeholder;
+
+				$key += 3;
+				$arg_id++;
+			}
+
+			$conflicts = array();
+			foreach ( $dual_use as $arg_pos ) {
+				$conflicts[] = implode( ' and ', $used_placeholders[ $arg_pos ] );
+			}
+
 			_doing_it_wrong(
 				'wpdb::prepare',
 				sprintf(
-					/* translators: %s: A comma-separated list of arguments found to be a problem. */
-					__( 'The arguments (%s) cannot be prepared as both an Identifier, and as a value.' ),
-					implode( ', ', $dual_use )
+					/* translators: %s: A list of placeholders found to be a problem. */
+					__( 'Arguments cannot be prepared as both an Identifier and Value. Found the following conflicts: %s' ),
+					implode( ', ', $conflicts )
 				),
 				'6.1.0'
 			);

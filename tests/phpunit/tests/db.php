@@ -1517,7 +1517,7 @@ class Tests_DB extends WP_UnitTestCase {
 	public function test_prepare_with_placeholders_and_individual_args( $sql, $values, $incorrect_usage, $expected ) {
 		global $wpdb;
 
-		if ( $incorrect_usage ) {
+		if ( is_string( $incorrect_usage ) || true === $incorrect_usage ) {
 			$this->setExpectedIncorrectUsage( 'wpdb::prepare' );
 		}
 
@@ -1528,6 +1528,10 @@ class Tests_DB extends WP_UnitTestCase {
 		// phpcs:ignore WordPress.DB.PreparedSQL
 		$sql = $wpdb->prepare( $sql, ...$values );
 		$this->assertSame( $expected, $sql );
+
+		if ( is_string( $incorrect_usage ) && array_key_exists( 'wpdb::prepare', $this->caught_doing_it_wrong ) ) {
+			$this->assertStringContainsString( $incorrect_usage, $this->caught_doing_it_wrong['wpdb::prepare'] );
+		}
 	}
 
 	/**
@@ -1536,7 +1540,7 @@ class Tests_DB extends WP_UnitTestCase {
 	public function test_prepare_with_placeholders_and_array_args( $sql, $values, $incorrect_usage, $expected ) {
 		global $wpdb;
 
-		if ( $incorrect_usage ) {
+		if ( is_string( $incorrect_usage ) || true === $incorrect_usage ) {
 			$this->setExpectedIncorrectUsage( 'wpdb::prepare' );
 		}
 
@@ -1547,6 +1551,10 @@ class Tests_DB extends WP_UnitTestCase {
 		// phpcs:ignore WordPress.DB.PreparedSQL
 		$sql = $wpdb->prepare( $sql, $values );
 		$this->assertSame( $expected, $sql );
+
+		if ( is_string( $incorrect_usage ) && array_key_exists( 'wpdb::prepare', $this->caught_doing_it_wrong ) ) {
+			$this->assertStringContainsString( $incorrect_usage, $this->caught_doing_it_wrong['wpdb::prepare'] );
+		}
 	}
 
 	public function data_prepare_with_placeholders() {
@@ -1810,8 +1818,26 @@ class Tests_DB extends WP_UnitTestCase {
 			array(
 				'WHERE id = %d AND %i LIKE %2$s LIMIT 1',
 				array( 123, 'field -- ', false ),
-				true, // Incorrect usage.
+				'Arguments cannot be prepared as both an Identifier and Value. Found the following conflicts: %i and %2$s',
 				null, // Should be rejected, otherwise the `%1$s` could use Identifier escaping, e.g. 'WHERE `field -- ` LIKE field --  LIMIT 1' (thanks @vortfu).
+			),
+			array(
+				'WHERE %1$i = %1$s',
+				array( 'a', 'b' ),
+				'Arguments cannot be prepared as both an Identifier and Value. Found the following conflicts: %1$i and %1$s',
+				null,
+			),
+			array(
+				'WHERE %1$i = %1$s OR %2$i = %2$s',
+				array( 'a', 'b' ),
+				'Arguments cannot be prepared as both an Identifier and Value. Found the following conflicts: %1$i and %1$s, %2$i and %2$s',
+				null,
+			),
+			array(
+				'WHERE %1$i = %1$s OR %2$i = %1$s',
+				array( 'a', 'b' ),
+				'Arguments cannot be prepared as both an Identifier and Value. Found the following conflicts: %1$i and %1$s and %1$s',
+				null,
 			),
 			array(
 				'WHERE %i LIKE %s LIMIT 1',
