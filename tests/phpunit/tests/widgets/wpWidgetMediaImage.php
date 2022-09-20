@@ -453,7 +453,7 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'title="', $output );
 		// Default image classes.
 		$this->assertStringContainsString( 'class="image wp-image-' . $attachment_id, $output );
-		$this->assertStringContainsString( 'style="max-width: 100%; height: auto;"', $output );
+		$this->assertStringContainsString( 'style="max-width: 100%; height: auto;', $output );
 		$this->assertStringContainsString( 'alt=""', $output );
 
 		ob_start();
