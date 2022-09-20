@@ -1028,8 +1028,8 @@ function wp_generate_block_templates_export_file() {
 }
 
 /**
- * Helper function to get the Template Hierarchy for the given slug.
- * Handles special cases like `front-page`, `singular` and `archive` templates.
+ * Gets the template hierarchy for the given template slug to be created.
+ *
  *
  * Note: Always add `index` as the last fallback template.
  *
