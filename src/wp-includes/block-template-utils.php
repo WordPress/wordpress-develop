@@ -813,7 +813,7 @@ function get_block_template( $id, $template_type = 'wp_template' ) {
 /**
  * Retrieves a unified template object based on a theme file.
  *
- * This is a fallback of {@see get_block_template()}, used when no templates are found in the database.
+ * This is a fallback of get_block_template(), used when no templates are found in the database.
  *
  * @since 5.9.0
  *
