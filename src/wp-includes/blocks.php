@@ -304,7 +304,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 
 	// Try to get metadata from the static cache for core blocks.
 	$metadata = false;
-	if ( 0 === strpos( $file_or_folder, ABSPATH . WPINC ) ) {
+	if ( str_starts_with( $file_or_folder, ABSPATH . WPINC ) ) {
 		$core_block_name = str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
 		if ( ! empty( $core_blocks_meta[ $core_block_name ] ) ) {
 			$metadata = $core_blocks_meta[ $core_block_name ];
