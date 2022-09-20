@@ -95,6 +95,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'heading',
 		'html',
 		'list',
+		'list-item',
 		'media-text',
 		'missing',
 		'more',
