@@ -3,7 +3,7 @@
 /**
  * @group compat
  *
- * @coversNothing
+ * @covers ::is_countable
  */
 class Tests_Compat_isCountable extends WP_UnitTestCase {
 

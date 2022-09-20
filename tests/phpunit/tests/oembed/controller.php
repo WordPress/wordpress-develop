@@ -290,7 +290,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	}
 
 	public function test_request_invalid_format() {
-		$post_id = $this->factory()->post->create();
+		$post_id = self::factory()->post->create();
 
 		$request = new WP_REST_Request( 'GET', '/oembed/1.0/embed' );
 		$request->set_param( 'url', get_permalink( $post_id ) );
@@ -461,12 +461,12 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	}
 
 	public function test_rest_pre_serve_request() {
-		$user = $this->factory()->user->create_and_get(
+		$user = self::factory()->user->create_and_get(
 			array(
 				'display_name' => 'John Doe',
 			)
 		);
-		$post = $this->factory()->post->create_and_get(
+		$post = self::factory()->post->create_and_get(
 			array(
 				'post_author' => $user->ID,
 				'post_title'  => 'Hello World',
@@ -485,7 +485,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	}
 
 	public function test_rest_pre_serve_request_wrong_format() {
-		$post = $this->factory()->post->create_and_get();
+		$post = self::factory()->post->create_and_get();
 
 		$request = new WP_REST_Request( 'GET', '/oembed/1.0/embed' );
 		$request->set_param( 'url', get_permalink( $post->ID ) );
@@ -497,7 +497,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	}
 
 	public function test_rest_pre_serve_request_wrong_method() {
-		$post = $this->factory()->post->create_and_get();
+		$post = self::factory()->post->create_and_get();
 
 		$request = new WP_REST_Request( 'HEAD', '/oembed/1.0/embed' );
 		$request->set_param( 'url', get_permalink( $post->ID ) );
@@ -513,7 +513,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( home_url() . '/index.php?rest_route=/oembed/1.0/embed', get_oembed_endpoint_url( '', 'json' ) );
 		$this->assertSame( home_url() . '/index.php?rest_route=/oembed/1.0/embed', get_oembed_endpoint_url( '', 'xml' ) );
 
-		$post_id     = $this->factory()->post->create();
+		$post_id     = self::factory()->post->create();
 		$url         = get_permalink( $post_id );
 		$url_encoded = urlencode( $url );
 
@@ -527,7 +527,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( home_url() . '/wp-json/oembed/1.0/embed', get_oembed_endpoint_url() );
 		$this->assertSame( home_url() . '/wp-json/oembed/1.0/embed', get_oembed_endpoint_url( '', 'xml' ) );
 
-		$post_id     = $this->factory()->post->create();
+		$post_id     = self::factory()->post->create();
 		$url         = get_permalink( $post_id );
 		$url_encoded = urlencode( $url );
 
