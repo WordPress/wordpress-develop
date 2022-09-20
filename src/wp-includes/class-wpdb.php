@@ -1570,6 +1570,8 @@ class wpdb {
 
 				if ( false !== $argnum_pos ) {
 					$arg_strings[] = ( intval( substr( $format, 0, $argnum_pos ) ) - 1 );
+				} else {
+					$arg_strings[] = $arg_id;
 				}
 
 				// Unquoted strings for backward compatibility (dangerous).

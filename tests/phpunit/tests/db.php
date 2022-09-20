@@ -1822,6 +1822,12 @@ class Tests_DB extends WP_UnitTestCase {
 				null, // Should be rejected, otherwise the `%1$s` could use Identifier escaping, e.g. 'WHERE `field -- ` LIKE field --  LIMIT 1' (thanks @vortfu).
 			),
 			array(
+				'WHERE %2$i IN ( %s , %s ) LIMIT 1',
+				array( 'a', 'b' ),
+				'Arguments cannot be prepared as both an Identifier and Value. Found the following conflicts: %2$i and %s',
+				null,
+			),
+			array(
 				'WHERE %1$i = %1$s',
 				array( 'a', 'b' ),
 				'Arguments cannot be prepared as both an Identifier and Value. Found the following conflicts: %1$i and %1$s',
