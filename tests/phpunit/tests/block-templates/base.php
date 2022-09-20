@@ -76,6 +76,7 @@ abstract class WP_Block_Templates_UnitTestCase extends WP_UnitTestCase {
 
 	public static function wpTearDownAfterClass() {
 		wp_delete_post( self::$template_post->ID );
+		wp_delete_post( self::$template_part_post->ID );
 	}
 
 	public function set_up() {
