@@ -2052,7 +2052,7 @@ class WP_Site_Health {
 			),
 			'description' => sprintf(
 				'<p>%s</p>',
-				__( 'The REST API is one way WordPress, and other applications, communicate with the server. One example is the block editor screen, which relies on this to display, and save, your posts and pages.' )
+				__( 'The REST API is one way that WordPress and other applications communicate with the server. For example, the block editor screen relies on the REST API to display and save your posts and pages.' )
 			),
 			'actions'     => '',
 			'test'        => 'rest_availability',
@@ -2090,16 +2090,18 @@ class WP_Site_Health {
 			$result['label'] = __( 'The REST API encountered an error' );
 
 			$result['description'] .= sprintf(
-				'<p>%s</p>',
+				'<p>%s</p><p>%s<br>%s</p>',
+				__( 'When testing the REST API, an error was encountered:' ),
 				sprintf(
-					'%s<br>%s',
-					__( 'The REST API request failed due to an error.' ),
-					sprintf(
-						/* translators: 1: The WordPress error message. 2: The WordPress error code. */
-						__( 'Error: %1$s (%2$s)' ),
-						$r->get_error_message(),
-						$r->get_error_code()
-					)
+					// translators: %s: The REST API URL.
+					__( 'REST API Endpoint: %s' ),
+					$url
+				),
+				sprintf(
+					// translators: 1: The WordPress error code. 2: The WordPress error message.
+					__( 'REST API Response: (%1$s) %2$s' ),
+					$r->get_error_code(),
+					$r->get_error_message()
 				)
 			);
 		} elseif ( 200 !== wp_remote_retrieve_response_code( $r ) ) {
@@ -2108,12 +2110,18 @@ class WP_Site_Health {
 			$result['label'] = __( 'The REST API encountered an unexpected result' );
 
 			$result['description'] .= sprintf(
-				'<p>%s</p>',
+				'<p>%s</p><p>%s<br>%s</p>',
+				__( 'When testing the REST API, an unexpected result was returned:' ),
 				sprintf(
-					/* translators: 1: The HTTP error code. 2: The HTTP error message. */
-					__( 'The REST API call gave the following unexpected result: (%1$d) %2$s.' ),
+					// translators: %s: The REST API URL.
+					__( 'REST API Endpoint: %s' ),
+					$url
+				),
+				sprintf(
+					// translators: 1: The WordPress error code. 2: The HTTP status code error message.
+					__( 'REST API Response: (%1$s) %2$s' ),
 					wp_remote_retrieve_response_code( $r ),
-					esc_html( wp_remote_retrieve_body( $r ) )
+					wp_remote_retrieve_response_message( $r )
 				)
 			);
 		} else {
@@ -2247,7 +2255,7 @@ class WP_Site_Health {
 			),
 			'description' => sprintf(
 				'<p>%s</p>',
-				__( 'The Authorization header comes from the third-party applications you approve. Without it, those apps cannot connect to your site.' )
+				__( 'The Authorization header is used by third-party applications you have approved for this site. Without this header, those apps cannot connect to your site.' )
 			),
 			'actions'     => '',
 			'test'        => 'authorization_header',
@@ -2261,7 +2269,11 @@ class WP_Site_Health {
 			return $result;
 		}
 
-		$result['status'] = 'recommended';
+		$result['status']       = 'recommended';
+		$result['description'] .= sprintf(
+			'<p>%s</p>',
+			__( 'If you are still seeing this warning after having tried the actions below, you may need to contact your hosting provider for further assistance.' )
+		);
 
 		if ( ! function_exists( 'got_mod_rewrite' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/misc.php';
