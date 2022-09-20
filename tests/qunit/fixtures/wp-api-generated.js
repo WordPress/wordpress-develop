@@ -5154,7 +5154,7 @@ mockedApiResponse.Schema = {
                         "slug": {
                             "description": "The slug of the template to get the fallback for",
                             "type": "string",
-                            "required": false
+                            "required": true
                         },
                         "is_custom": {
                             "description": " Indicates if a template is custom or part of the template hierarchy",
@@ -5843,7 +5843,7 @@ mockedApiResponse.Schema = {
                         "slug": {
                             "description": "The slug of the template to get the fallback for",
                             "type": "string",
-                            "required": false
+                            "required": true
                         },
                         "is_custom": {
                             "description": " Indicates if a template is custom or part of the template hierarchy",
