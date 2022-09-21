@@ -2829,7 +2829,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 					),
 				),
 			),
-			'additional properties boolean'      => array(
+			'additional properties true'         => array(
 				array(
 					'type'                 => 'object',
 					'properties'           => array(
@@ -2893,26 +2893,25 @@ class Tests_REST_API extends WP_UnitTestCase {
 							'additionalProperties' => array(
 								'type'                 => 'object',
 								'properties'           => array( 'c' => array( 'type' => 'string' ) ),
-								'additionalProperties' => array( 'd' => array( 'type' => 'string' ) ),
+								'additionalProperties' => array( 'type' => 'integer' ),
 							),
 						),
 					),
 					'additionalProperties' => array(
 						'type'                 => 'object',
-						'properties'           => array( 'e' => array( 'type' => 'string' ) ),
+						'properties'           => array( 'd' => array( 'type' => 'string' ) ),
 						'additionalProperties' => array(
 							'type'                 => 'object',
-							'properties'           => array( 'f' => array( 'type' => 'string' ) ),
+							'properties'           => array( 'e' => array( 'type' => 'string' ) ),
 							'additionalProperties' => array(
 								'type'                 => 'object',
-								'properties'           => array( 'g' => array( 'type' => 'string' ) ),
+								'properties'           => array( 'f' => array( 'type' => 'string' ) ),
 								'additionalProperties' => false,
 							),
 						),
 					),
 				),
 				array(
-
 					'type'                 => 'object',
 					'properties'           => array(
 						'a' => array(
@@ -2921,19 +2920,19 @@ class Tests_REST_API extends WP_UnitTestCase {
 							'additionalProperties' => array(
 								'type'                 => 'object',
 								'properties'           => array( 'c' => array( 'type' => 'string' ) ),
-								'additionalProperties' => array( 'd' => array( 'type' => 'string' ) ),
+								'additionalProperties' => array( 'type' => 'integer' ),
 							),
 						),
 					),
 					'additionalProperties' => array(
 						'type'                 => 'object',
-						'properties'           => array( 'e' => array( 'type' => 'string' ) ),
+						'properties'           => array( 'd' => array( 'type' => 'string' ) ),
 						'additionalProperties' => array(
 							'type'                 => 'object',
-							'properties'           => array( 'f' => array( 'type' => 'string' ) ),
+							'properties'           => array( 'e' => array( 'type' => 'string' ) ),
 							'additionalProperties' => array(
 								'type'       => 'object',
-								'properties' => array( 'g' => array( 'type' => 'string' ) ),
+								'properties' => array( 'f' => array( 'type' => 'string' ) ),
 							),
 						),
 					),
