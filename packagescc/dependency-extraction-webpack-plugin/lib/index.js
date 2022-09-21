@@ -104,9 +104,14 @@ class DependencyExtractionWebpackPlugin {
 
 	stringify( asset ) {
 		if ( this.options.outputFormat === 'php' ) {
-			return `<?php return ${ json2php(
+			let result = `<?php return ${ json2php(
 				JSON.parse( JSON.stringify( asset ) )
-			) };\n`;
+			) };`;
+
+			result = result.replace( /\s+/g, ' ' );
+			result = result + '\n';
+
+			return result;
 		}
 
 		return JSON.stringify( asset );
