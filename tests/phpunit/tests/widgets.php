@@ -687,6 +687,61 @@ class Tests_Widgets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 54677
+	 *
+	 * @covers WP_Widget::get_settings
+	 */
+	public function test_wp_widget_initializes_widget_with_alt_option() {
+		/*
+		 * Emulate a new the recent posts widget.
+		 *
+		 * The widget contains an alternative (legacy) option so both the
+		 * current and the alternative option need to be deleted.
+		 */
+		delete_option( 'widget_recent-posts' );
+		delete_option( 'widget_recent_entries' );
+
+		$this->assertFalse( get_option( 'widget_recent-posts' ), 'The option widget_recent-posts was not deleted.' );
+		$this->assertFalse( get_option( 'widget_recent_entries' ), 'The option widget_recent_entries was not deleted.' );
+
+		wp_widgets_init();
+		$this->assertSameSetsWithIndex( array( '_multiwidget' => 1 ), get_option( 'widget_recent-posts' ), 'Option failed to be initialized.' );
+		$this->assertFalse( get_option( 'widget_recent_entries' ), 'Alternative option is set.' );
+	}
+
+	/**
+	 * @ticket 54677
+	 *
+	 * @covers WP_Widget::get_settings
+	 */
+	public function test_wp_widget_migrates_widget_with_alt_option() {
+		$option = array(
+			2              => array(
+				'title'     => 'Recent Posts',
+				'number'    => 5,
+				'show_date' => false,
+			),
+			'_multiwidget' => 1,
+		);
+
+		/*
+		 * Emulate the recent posts widget with an alternative option.
+		 *
+		 * The widget contains an alternative (legacy) option so the
+		 * current option is deleted while the alternative option is created.
+		 */
+		delete_option( 'widget_recent-posts' );
+		update_option( 'widget_recent_entries', $option );
+
+		$this->assertFalse( get_option( 'widget_recent-posts' ), 'The option widget_recent-posts was not deleted.' );
+		$this->assertSameSetsWithIndex( $option, get_option( 'widget_recent_entries' ), 'The option widget_recent_entries was not set to the default.' );
+
+		wp_widgets_init();
+		$this->assertSameSetsWithIndex( $option, get_option( 'widget_recent-posts' ), 'Option failed to be converted to new name.' );
+		$this->assertFalse( get_option( 'widget_recent_entries' ), 'Alternative option was not deleted.' );
+	}
+
+	/**
 	 * @see WP_Widget::save_settings()
 	 */
 	public function test_wp_widget_save_settings() {

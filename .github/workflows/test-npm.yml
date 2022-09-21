@@ -55,6 +55,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    continue-on-error: ${{ matrix.os == 'windows-latest' }}
     strategy:
       fail-fast: false
       matrix:
@@ -190,7 +191,6 @@ jobs:
       - name: Dispatch workflow run
         uses: actions/github-script@c713e510dbd7d213d92d41b7a7805a986f4c5c66 # v6.2.0
         with:
-          github-token: ${{ secrets.GHA_WORKFLOW_DISPATCH }}
           script: |
             github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,

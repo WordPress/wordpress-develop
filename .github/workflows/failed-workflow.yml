@@ -42,4 +42,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               run_id: ${{ inputs.run_id }},
+              enable_debug_logging: true
             });

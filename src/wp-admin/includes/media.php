@@ -1155,16 +1155,16 @@ function image_align_input_fields( $post, $checked = '' ) {
 		$checked = 'none';
 	}
 
-	$out = array();
+	$output = array();
 
 	foreach ( $alignments as $name => $label ) {
-		$name  = esc_attr( $name );
-		$out[] = "<input type='radio' name='attachments[{$post->ID}][align]' id='image-align-{$name}-{$post->ID}' value='$name'" .
+		$name     = esc_attr( $name );
+		$output[] = "<input type='radio' name='attachments[{$post->ID}][align]' id='image-align-{$name}-{$post->ID}' value='$name'" .
 			( $checked == $name ? " checked='checked'" : '' ) .
 			" /><label for='image-align-{$name}-{$post->ID}' class='align image-align-{$name}-label'>$label</label>";
 	}
 
-	return implode( "\n", $out );
+	return implode( "\n", $output );
 }
 
 /**
@@ -1199,7 +1199,7 @@ function image_size_input_fields( $post, $check = '' ) {
 		$check = get_user_setting( 'imgsize', 'medium' );
 	}
 
-	$out = array();
+	$output = array();
 
 	foreach ( $size_names as $size => $label ) {
 		$downsize = image_downsize( $post->ID, $size );
@@ -1235,13 +1235,13 @@ function image_size_input_fields( $post, $check = '' ) {
 		}
 		$html .= '</div>';
 
-		$out[] = $html;
+		$output[] = $html;
 	}
 
 	return array(
 		'label' => __( 'Size' ),
 		'input' => 'html',
-		'html'  => implode( "\n", $out ),
+		'html'  => implode( "\n", $output ),
 	);
 }
 
@@ -3207,7 +3207,7 @@ function edit_form_image_editor( $post ) {
 	<?php if ( 'image' === substr( $post->post_mime_type, 0, 5 ) ) : ?>
 		<p class="attachment-alt-text">
 			<label for="attachment_alt"><strong><?php _e( 'Alternative Text' ); ?></strong></label><br />
-			<input type="text" class="widefat" name="_wp_attachment_image_alt" id="attachment_alt" aria-describedby="alt-text-description" value="<?php echo esc_attr( $alt_text ); ?>" />
+			<textarea class="widefat" name="_wp_attachment_image_alt" id="attachment_alt" aria-describedby="alt-text-description"><?php echo esc_attr( $alt_text ); ?></textarea>
 		</p>
 		<p class="attachment-alt-text-description" id="alt-text-description">
 		<?php
