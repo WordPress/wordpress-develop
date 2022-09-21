@@ -76,6 +76,7 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36905
+	 * @ticket 56609
 	 */
 	public function test_should_be_case_insensitive_match() {
 		$page = self::factory()->post->create(
@@ -97,6 +98,7 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 	 * it will check the oldest publication date, not the smallest ID.
 	 *
 	 * @ticket 36905
+	 * @ticket 56609
 	 */
 	public function test_should_match_oldest_published_date_when_titles_match() {
 		self::factory()->post->create(
