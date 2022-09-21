@@ -283,7 +283,7 @@ function get_block_metadata_i18n_schema() {
  * @return WP_Block_Type|false The registered block type on success, or false on failure.
  */
 function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
-	/**
+	/*
 	 * Get an array of metadata from a PHP file.
 	 * This improves performance for core blocks as it's only necessary to read a single PHP file
 	 * instead of reading a JSON file per-block, and then decoding from JSON to PHP.
@@ -294,9 +294,10 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		$core_blocks_meta = include_once ABSPATH . WPINC . '/blocks/blocks-json.php';
 	}
 
-	$metadata_file = ( substr( $file_or_folder, -10 ) !== 'block.json' ) ? // 10 is the string-length of 'block.json'.
+	$metadata_file = ( substr( $file_or_folder, -10 ) !== 'block.json' ) ? // 10 is the string length of 'block.json'.
 		trailingslashit( $file_or_folder ) . 'block.json' :
 		$file_or_folder;
+
 	if ( ! file_exists( $metadata_file ) ) {
 		return false;
 	}
