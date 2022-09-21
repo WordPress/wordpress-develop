@@ -2912,7 +2912,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @return void
+	 * @return null|void
 	 */
 	public function set_spacing_sizes() {
 		$spacing_scale = _wp_array_get( $this->theme_json, array( 'settings', 'spacing', 'spacingScale' ), array() );
