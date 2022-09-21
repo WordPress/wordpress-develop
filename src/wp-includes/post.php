@@ -5775,7 +5775,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
  */
 function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' ) {
 	$args  = array(
-		'post_title'             => $page_title,
+		'title'                  => $page_title,
 		'post_type'              => $post_type,
 		'post_status'            => get_post_stati(),
 		'posts_per_page'         => 1,
