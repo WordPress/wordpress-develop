@@ -1,0 +1,75 @@
+{
+  "_args": [
+    [
+      "@wordpress/dependency-extraction-webpack-plugin@4.0.2",
+      "/Users/peterwilson/Sites/wp-dev/wordpress-develop"
+    ]
+  ],
+  "_development": true,
+  "_from": "@wordpress/dependency-extraction-webpack-plugin@4.0.2",
+  "_id": "@wordpress/dependency-extraction-webpack-plugin@4.0.2",
+  "_inBundle": false,
+  "_integrity": "sha512-pbB7Za3rljnCMDnu9HYGeyX/OQfgKnCyD3bIHZAD1GgtiuJOOeW91rXDa1uA+/HWMqDzf8xGqYiS84otszsksg==",
+  "_location": "/@wordpress/dependency-extraction-webpack-plugin",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "version",
+    "registry": true,
+    "raw": "@wordpress/dependency-extraction-webpack-plugin@4.0.2",
+    "name": "@wordpress/dependency-extraction-webpack-plugin",
+    "escapedName": "@wordpress%2fdependency-extraction-webpack-plugin",
+    "scope": "@wordpress",
+    "rawSpec": "4.0.2",
+    "saveSpec": null,
+    "fetchSpec": "4.0.2"
+  },
+  "_requiredBy": [
+    "#DEV:/",
+    "/@wordpress/scripts"
+  ],
+  "_resolved": "https://registry.npmjs.org/@wordpress/dependency-extraction-webpack-plugin/-/dependency-extraction-webpack-plugin-4.0.2.tgz",
+  "_spec": "4.0.2",
+  "_where": "/Users/peterwilson/Sites/wp-dev/wordpress-develop",
+  "author": {
+    "name": "The WordPress Contributors"
+  },
+  "bugs": {
+    "url": "https://github.com/WordPress/gutenberg/issues"
+  },
+  "dependencies": {
+    "json2php": "^0.0.4",
+    "webpack-sources": "^3.2.2"
+  },
+  "description": "Extract WordPress script dependencies from webpack bundles.",
+  "engines": {
+    "node": ">=14"
+  },
+  "files": [
+    "lib",
+    "build-types"
+  ],
+  "gitHead": "f6021282457317c7e12dcc3a3f02c9ac28e16a30",
+  "homepage": "https://github.com/WordPress/gutenberg/tree/HEAD/packages/dependency-extraction-webpack-plugin/README.md",
+  "keywords": [
+    "wordpress",
+    "gutenberg",
+    "webpack",
+    "dependency"
+  ],
+  "license": "GPL-2.0-or-later",
+  "main": "lib/index.js",
+  "name": "@wordpress/dependency-extraction-webpack-plugin",
+  "peerDependencies": {
+    "webpack": "^4.8.3 || ^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WordPress/gutenberg.git",
+    "directory": "packages/dependency-extraction-webpack-plugin"
+  },
+  "types": "lib/types.d.ts",
+  "version": "4.0.2"
+}
