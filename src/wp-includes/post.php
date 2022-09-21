@@ -5782,7 +5782,7 @@ function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' )
 		'update_post_term_cache' => false,
 		'update_post_meta_cache' => false,
 		'no_found_rows'          => true,
-		'orderby'                => 'date ID',
+		'orderby'                => 'post_date ID',
 		'order'                  => 'ASC',
 	);
 	$query = new WP_Query( $args );
