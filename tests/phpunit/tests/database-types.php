@@ -58,27 +58,53 @@ class Tests_Database_Types extends WP_UnitTestCase {
 	}
 
 	public function test_get_value_type_array() {
-		$obj = new \stdClass();
+		$obj       = new \stdClass();
 		$obj->test = 'test';
 		$this->assertEquals( WP_TYPE_ARRAY, wp_get_database_type_for_value( array() ) );
-		$this->assertEquals( WP_TYPE_ARRAY, wp_get_database_type_for_value( array( 'test' => 1, 'test2' => 'value' ) ) );
+		$this->assertEquals(
+			WP_TYPE_ARRAY,
+			wp_get_database_type_for_value(
+				array(
+					'test'  => 1,
+					'test2' => 'value',
+				)
+			)
+		);
 		$this->assertNotEquals( WP_TYPE_ARRAY, wp_get_database_type_for_value( $obj ) );
 		$this->assertNotEquals( WP_TYPE_ARRAY, wp_get_database_type_for_value( (object) array( 'test' => 'value' ) ) );
-		$this->assertNotEquals( WP_TYPE_ARRAY, wp_get_database_type_for_value( serialize( array( 'test' => 1, 'test2' => 'value' ) ) ) );
+		$this->assertNotEquals(
+			WP_TYPE_ARRAY,
+			wp_get_database_type_for_value(
+				serialize(
+					array(
+						'test'  => 1,
+						'test2' => 'value',
+					)
+				)
+			)
+		);
 	}
 
 	public function test_get_value_type_object() {
-		$obj = new \stdClass();
+		$obj       = new \stdClass();
 		$obj->test = 'test';
 		$this->assertEquals( WP_TYPE_OBJECT, wp_get_database_type_for_value( $obj ) );
 		$this->assertEquals( WP_TYPE_OBJECT, wp_get_database_type_for_value( (object) array( 'test' => 'value' ) ) );
 		$this->assertNotEquals( WP_TYPE_OBJECT, wp_get_database_type_for_value( array() ) );
-		$this->assertNotEquals( WP_TYPE_OBJECT, wp_get_database_type_for_value( array( 'test' => 1, 'test2' => 'value' ) ) );
+		$this->assertNotEquals(
+			WP_TYPE_OBJECT,
+			wp_get_database_type_for_value(
+				array(
+					'test'  => 1,
+					'test2' => 'value',
+				)
+			)
+		);
 		$this->assertNotEquals( WP_TYPE_OBJECT, wp_get_database_type_for_value( serialize( $obj ) ) );
 	}
 
 	public function test_prepare_value_for_db() {
-		$obj = new \stdClass();
+		$obj       = new \stdClass();
 		$obj->test = 'value';
 		$this->assertEquals( true, wp_prepare_value_for_db( true ) );
 		$this->assertEquals( 12, wp_prepare_value_for_db( 12 ) );

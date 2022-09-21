@@ -669,7 +669,7 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
 	if ( ! $meta_key ) {
 		// back-compat : historically get_metadata_raw should return values as saved in
 		if ( is_array( $meta_cache ) ) {
-			foreach( $meta_cache as $mkey => $mval ) {
+			foreach ( $meta_cache as $mkey => $mval ) {
 				$meta_cache[ $mkey ] = array_map( 'wp_prepare_value_for_db', $mval );
 			}
 		}
