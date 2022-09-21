@@ -286,7 +286,7 @@ function wp_load_alloptions( $force_cache = false ) {
 	 * @param bool       $force_cache Whether to force an update of the local cache from the persistent cache. Default false.
 	 */
 	$pre = apply_filters( 'pre_wp_load_alloptions', null, $force_cache );
-	if ( is_array( $pre ) ) {
+	if ( $pre !== null ) {
 		return $pre;
 	}
 
