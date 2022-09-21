@@ -154,7 +154,7 @@
 		"twemoji": "14.0.2",
 		"underscore": "1.13.4",
 		"whatwg-fetch": "3.6.2",
-		"json2php": "^0.0.4"
+		"json2php": "^0.0.5"
 	},
 	"scripts": {
 		"build": "grunt build",
