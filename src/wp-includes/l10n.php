@@ -1243,7 +1243,7 @@ function load_script_translations( $file, $handle, $domain ) {
  *
  * When a textdomain is encountered for the first time, we try to load
  * the translation file from `wp-content/languages`, removing the need
- * to call load_plugin_texdomain() or load_theme_texdomain().
+ * to call load_plugin_textdomain() or load_theme_textdomain().
  *
  * @since 4.6.0
  * @access private
@@ -1270,7 +1270,7 @@ function _load_textdomain_just_in_time( $domain ) {
 	}
 
 	$locale = determine_locale();
-	$path = $wp_textdomain_registry->get( $domain, $locale );
+	$path   = $wp_textdomain_registry->get( $domain, $locale );
 	if ( ! $path ) {
 		return false;
 	}

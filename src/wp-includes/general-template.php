@@ -629,7 +629,7 @@ function wp_login_form( $args = array() ) {
 }
 
 /**
- * Returns the URL that allows the user to retrieve the lost password.
+ * Returns the URL that allows the user to reset the lost password.
  *
  * @since 2.8.0
  *
@@ -4338,6 +4338,7 @@ function the_search_query() {
  * @since 4.3.0
  *
  * @param string $doctype Optional. The type of HTML document. Accepts 'xhtml' or 'html'. Default 'html'.
+ * @return string A space-separated list of language attributes.
  */
 function get_language_attributes( $doctype = 'html' ) {
 	$attributes = array();

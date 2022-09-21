@@ -871,19 +871,20 @@ $_old_files = array(
 global $_new_bundled_files;
 
 $_new_bundled_files = array(
-	'plugins/akismet/'        => '2.0',
-	'themes/twentyten/'       => '3.0',
-	'themes/twentyeleven/'    => '3.2',
-	'themes/twentytwelve/'    => '3.5',
-	'themes/twentythirteen/'  => '3.6',
-	'themes/twentyfourteen/'  => '3.8',
-	'themes/twentyfifteen/'   => '4.1',
-	'themes/twentysixteen/'   => '4.4',
-	'themes/twentyseventeen/' => '4.7',
-	'themes/twentynineteen/'  => '5.0',
-	'themes/twentytwenty/'    => '5.3',
-	'themes/twentytwentyone/' => '5.6',
-	'themes/twentytwentytwo/' => '5.9',
+	'plugins/akismet/'          => '2.0',
+	'themes/twentyten/'         => '3.0',
+	'themes/twentyeleven/'      => '3.2',
+	'themes/twentytwelve/'      => '3.5',
+	'themes/twentythirteen/'    => '3.6',
+	'themes/twentyfourteen/'    => '3.8',
+	'themes/twentyfifteen/'     => '4.1',
+	'themes/twentysixteen/'     => '4.4',
+	'themes/twentyseventeen/'   => '4.7',
+	'themes/twentynineteen/'    => '5.0',
+	'themes/twentytwenty/'      => '5.3',
+	'themes/twentytwentyone/'   => '5.6',
+	'themes/twentytwentytwo/'   => '5.9',
+	'themes/twentytwentythree/' => '6.1',
 );
 
 /**
@@ -1168,7 +1169,7 @@ function update_core( $from, $to ) {
 			if ( $files_not_writable ) {
 				return new WP_Error(
 					'files_not_writable',
-					__( 'The update cannot be installed because we will be unable to copy some files. This is usually due to inconsistent file permissions.' ),
+					__( 'The update cannot be installed because your site is unable to copy some files. This is usually due to inconsistent file permissions.' ),
 					implode( ', ', $error_data )
 				);
 			}
@@ -1204,7 +1205,7 @@ function update_core( $from, $to ) {
 			$wp_filesystem->delete( $from, true );
 			$result = new WP_Error(
 				'copy_failed_for_version_file',
-				__( 'The update cannot be installed because we will be unable to copy some files. This is usually due to inconsistent file permissions.' ),
+				__( 'The update cannot be installed because your site is unable to copy some files. This is usually due to inconsistent file permissions.' ),
 				'wp-includes/version.php'
 			);
 		}

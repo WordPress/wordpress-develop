@@ -428,7 +428,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		$actual_css    = wp_get_global_stylesheet( array( $block_classes['css'] ) );
 		if ( '' !== $actual_css ) {
 			$block_classes['css'] = $actual_css;
-			$global_styles[]  = $block_classes;
+			$global_styles[]      = $block_classes;
 		}
 	}
 
@@ -488,12 +488,12 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		unset( $editor_settings['__experimentalFeatures']['spacing']['padding'] );
 	}
 	if ( isset( $editor_settings['__experimentalFeatures']['spacing']['customSpacingSize'] ) ) {
-		$editor_settings['disableCustomSpacingSizes'] = ! $editor_ettings['__experimentalFeatures']['spacing']['customSpacingSize'];
+		$editor_settings['disableCustomSpacingSizes'] = ! $editor_settings['__experimentalFeatures']['spacing']['customSpacingSize'];
 		unset( $editor_settings['__experimentalFeatures']['spacing']['customSpacingSize'] );
 	}
 
 	if ( isset( $editor_settings['__experimentalFeatures']['spacing']['spacingSizes'] ) ) {
-		$spacing_sizes_by_origin  = $editor_settings['__experimentalFeatures']['spacing']['spacingSizes'];
+		$spacing_sizes_by_origin         = $editor_settings['__experimentalFeatures']['spacing']['spacingSizes'];
 		$editor_settings['spacingSizes'] = isset( $spacing_sizes_by_origin['custom'] ) ?
 			$spacing_sizes_by_origin['custom'] : (
 				isset( $spacing_sizes_by_origin['theme'] ) ?

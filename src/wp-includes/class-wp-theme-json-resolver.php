@@ -137,6 +137,15 @@ class WP_Theme_JSON_Resolver {
 
 		$config       = static::read_json_file( __DIR__ . '/theme.json' );
 		$config       = static::translate( $config );
+		/**
+		 * Filters the default data provided by WordPress for global styles & settings.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
+		 */
+		$theme_json   = apply_filters( 'theme_json_default', new WP_Theme_JSON_Data( $config, 'default' ) );
+		$config       = $theme_json->get_data();
 		static::$core = new WP_Theme_JSON( $config, 'default' );
 
 		return static::$core;
@@ -172,6 +181,15 @@ class WP_Theme_JSON_Resolver {
 		if ( null === static::$theme ) {
 			$theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json' ) );
 			$theme_json_data = static::translate( $theme_json_data, wp_get_theme()->get( 'TextDomain' ) );
+			/**
+			 * Filters the data provided by the theme for global styles & settings.
+			 *
+			 * @since 6.1.0
+			 *
+			 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
+			 */
+			$theme_json      = apply_filters( 'theme_json_theme', new WP_Theme_JSON_Data( $theme_json_data, 'theme' ) );
+			$theme_json_data = $theme_json->get_data();
 			static::$theme   = new WP_Theme_JSON( $theme_json_data );
 
 			if ( wp_get_theme()->parent() ) {
@@ -258,6 +276,16 @@ class WP_Theme_JSON_Resolver {
 			}
 		}
 
+		/**
+		 * Filters the data provided by the blocks for global styles & settings.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
+		 */
+		$theme_json = apply_filters( 'theme_json_blocks', new WP_Theme_JSON_Data( $config, 'core' ) );
+		$config     = $theme_json->get_data();
+
 		// Core here means it's the lower level part of the styles chain.
 		// It can be a core or a third-party block.
 		return new WP_Theme_JSON( $config, 'core' );
@@ -342,7 +370,7 @@ class WP_Theme_JSON_Resolver {
 				array(
 					'post_content' => '{"version": ' . WP_Theme_JSON::LATEST_SCHEMA . ', "isGlobalStylesUserThemeJSON": true }',
 					'post_status'  => 'publish',
-					'post_title'   => __( 'Custom Styles' ),
+					'post_title'   => 'Custom Styles', // Do not make string translatable, see https://core.trac.wordpress.org/ticket/54518.
 					'post_type'    => $post_type_filter,
 					'post_name'    => sprintf( 'wp-global-styles-%s', urlencode( $stylesheet ) ),
 					'tax_input'    => array(
@@ -382,6 +410,15 @@ class WP_Theme_JSON_Resolver {
 			$json_decoding_error = json_last_error();
 			if ( JSON_ERROR_NONE !== $json_decoding_error ) {
 				trigger_error( 'Error when decoding a theme.json schema for user data. ' . json_last_error_msg() );
+				/**
+				 * Filters the data provided by the user for global styles & settings.
+				 *
+				 * @since 6.1.0
+				 *
+				 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
+				 */
+				$theme_json = apply_filters( 'theme_json_user', new WP_Theme_JSON_Data( $config, 'custom' ) );
+				$config     = $theme_json->get_data();
 				return new WP_Theme_JSON( $config, 'custom' );
 			}
 
@@ -396,6 +433,16 @@ class WP_Theme_JSON_Resolver {
 				$config = $decoded_data;
 			}
 		}
+
+		/**
+		 * Filters the data provided by the user for global styles & settings.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
+		 */
+		$theme_json   = apply_filters( 'theme_json_user', new WP_Theme_JSON_Data( $config, 'custom' ) );
+		$config       = $theme_json->get_data();
 		static::$user = new WP_Theme_JSON( $config, 'custom' );
 
 		return static::$user;
@@ -423,7 +470,7 @@ class WP_Theme_JSON_Resolver {
 	 * @since 5.8.0
 	 * @since 5.9.0 Added user data, removed the `$settings` parameter,
 	 *              added the `$origin` parameter.
-	 * @since 6.1.0 Added block data.
+	 * @since 6.1.0 Added block data and generation of spacingSizes array.
 	 *
 	 * @param string $origin Optional. To what level should we merge data.
 	 *                       Valid values are 'theme' or 'custom'. Default 'custom'.
@@ -442,6 +489,9 @@ class WP_Theme_JSON_Resolver {
 		if ( 'custom' === $origin ) {
 			$result->merge( static::get_user_data() );
 		}
+
+		// Generate the default spacingSizes array based on the merged spacingScale settings.
+		$result->set_spacing_sizes();
 
 		return $result;
 	}
