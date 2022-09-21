@@ -287,7 +287,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	 * Get an array of metadata from a PHP file.
 	 * This improves performance for core blocks as it's only necessary to read a single PHP file
 	 * instead of reading a JSON file per-block, and then decoding from JSON to PHP.
-	 * Using a static var ensures that the metadata is read only once per request.
+	 * Using a static variable ensures that the metadata is only read once per request.
 	 */
 	static $core_blocks_meta;
 	if ( ! $core_blocks_meta ) {
