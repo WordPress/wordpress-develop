@@ -11663,6 +11663,7 @@ mockedApiResponse.TypesCollection = {
     "post": {
         "description": "",
         "hierarchical": false,
+        "has_archive": false,
         "name": "Posts",
         "slug": "post",
         "icon": "dashicons-admin-post",
@@ -11695,6 +11696,7 @@ mockedApiResponse.TypesCollection = {
     "page": {
         "description": "",
         "hierarchical": true,
+        "has_archive": false,
         "name": "Pages",
         "slug": "page",
         "icon": "dashicons-admin-page",
@@ -11724,6 +11726,7 @@ mockedApiResponse.TypesCollection = {
     "attachment": {
         "description": "",
         "hierarchical": false,
+        "has_archive": false,
         "name": "Media",
         "slug": "attachment",
         "icon": "dashicons-admin-media",
@@ -11753,6 +11756,7 @@ mockedApiResponse.TypesCollection = {
     "nav_menu_item": {
         "description": "",
         "hierarchical": false,
+        "has_archive": false,
         "name": "Navigation Menu Items",
         "slug": "nav_menu_item",
         "icon": null,
@@ -11784,6 +11788,7 @@ mockedApiResponse.TypesCollection = {
     "wp_block": {
         "description": "",
         "hierarchical": false,
+        "has_archive": false,
         "name": "Reusable blocks",
         "slug": "wp_block",
         "icon": null,
@@ -11813,6 +11818,7 @@ mockedApiResponse.TypesCollection = {
     "wp_template": {
         "description": "Templates to include in your theme.",
         "hierarchical": false,
+        "has_archive": false,
         "name": "Templates",
         "slug": "wp_template",
         "icon": null,
@@ -11842,6 +11848,7 @@ mockedApiResponse.TypesCollection = {
     "wp_template_part": {
         "description": "Template parts to include in your templates.",
         "hierarchical": false,
+        "has_archive": false,
         "name": "Template Parts",
         "slug": "wp_template_part",
         "icon": null,
@@ -11871,6 +11878,7 @@ mockedApiResponse.TypesCollection = {
     "wp_navigation": {
         "description": "Navigation menus that can be inserted into your site.",
         "hierarchical": false,
+        "has_archive": false,
         "name": "Navigation Menus",
         "slug": "wp_navigation",
         "icon": null,
@@ -11902,6 +11910,7 @@ mockedApiResponse.TypesCollection = {
 mockedApiResponse.TypeModel = {
     "description": "",
     "hierarchical": false,
+    "has_archive": false,
     "name": "Posts",
     "slug": "post",
     "icon": "dashicons-admin-post",
