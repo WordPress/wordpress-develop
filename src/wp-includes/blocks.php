@@ -294,9 +294,8 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		$core_blocks_meta = include_once ABSPATH . WPINC . '/blocks/blocks-json.php';
 	}
 
-	$filename      = 'block.json';
-	$metadata_file = ( substr( $file_or_folder, -strlen( $filename ) ) !== $filename ) ?
-		trailingslashit( $file_or_folder ) . $filename :
+	$metadata_file = ( substr( $file_or_folder, -10 ) !== 'block.json' ) ? // 10 is the string-length of 'block.json'.
+		trailingslashit( $file_or_folder ) . 'block.json' :
 		$file_or_folder;
 	if ( ! file_exists( $metadata_file ) ) {
 		return false;
