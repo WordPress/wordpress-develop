@@ -143,6 +143,7 @@
 		"jquery-color": "2.2.0",
 		"jquery-form": "4.3.0",
 		"jquery-hoverintent": "1.10.2",
+		"json2php": "^0.0.5",
 		"lodash": "4.17.21",
 		"masonry-layout": "4.2.2",
 		"moment": "2.29.4",
@@ -153,8 +154,7 @@
 		"regenerator-runtime": "0.13.9",
 		"twemoji": "14.0.2",
 		"underscore": "1.13.4",
-		"whatwg-fetch": "3.6.2",
-		"json2php": "^0.0.5"
+		"whatwg-fetch": "3.6.2"
 	},
 	"scripts": {
 		"build": "grunt build",
