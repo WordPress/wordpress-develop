@@ -8,6 +8,10 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 
 	/**
 	 * Generate shared fixtures.
+	 *
+	 * These are not used in the tests but are rather used to populate the
+	 * posts table and ensure that the tests return the correct post object
+	 * by design rather than through chance.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Fill the database with some pages.
