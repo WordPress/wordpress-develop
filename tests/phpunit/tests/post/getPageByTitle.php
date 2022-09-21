@@ -91,6 +91,35 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test the oldest published post is matched first.
+	 *
+	 * Per the docs: in case of more than one post having the same title,
+	 * it will check the oldest publication date, not the smallest ID.
+	 *
+	 * @ticket 36905
+	 */
+	public function test_should_match_oldest_published_date_when_titles_match() {
+		self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'foo',
+			)
+		);
+
+		$old_page = self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'foo',
+				'post_date'  => '1984-01-11 05:00:00',
+			)
+		);
+
+		$found = get_page_by_title( 'foo' );
+
+		$this->assertSame( $old_page, $found->ID );
+	}
+
+	/**
 	 * @ticket 36905
 	 */
 	public function test_inherit() {
