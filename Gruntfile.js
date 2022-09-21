@@ -51,6 +51,7 @@ module.exports = function(grunt) {
 	require('matchdep').filterDev(['grunt-*', '!grunt-legacy-util']).forEach( grunt.loadNpmTasks );
 	// Load legacy utils.
 	grunt.util = require('grunt-legacy-util');
+	grunt.util.linefeed = "\n";
 
 	// Project configuration.
 	grunt.initConfig({
