@@ -77,6 +77,22 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 	/**
 	 * @ticket 36905
 	 */
+	public function test_should_be_case_insensitive_match() {
+		$page = self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'Foo',
+			)
+		);
+
+		$found = get_page_by_title( 'foo' );
+
+		$this->assertSame( $page, $found->ID );
+	}
+
+	/**
+	 * @ticket 36905
+	 */
 	public function test_inherit() {
 		$page = self::factory()->post->create(
 			array(
