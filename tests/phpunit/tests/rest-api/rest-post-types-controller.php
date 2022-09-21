@@ -167,7 +167,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
 
-		$this->assertCount( 13, $properties, 'Schema should have 13 properties' );
+		$this->assertCount( 14, $properties, 'Schema should have 14 properties' );
 		$this->assertArrayHasKey( 'capabilities', $properties, '`capabilities` should be included in the schema' );
 		$this->assertArrayHasKey( 'description', $properties, '`description` should be included in the schema' );
 		$this->assertArrayHasKey( 'hierarchical', $properties, '`hierarchical` should be included in the schema' );
@@ -176,6 +176,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertArrayHasKey( 'name', $properties, '`name` should be included in the schema' );
 		$this->assertArrayHasKey( 'slug', $properties, '`slug` should be included in the schema' );
 		$this->assertArrayHasKey( 'supports', $properties, '`supports` should be included in the schema' );
+		$this->assertArrayHasKey( 'has_archive', $properties, '`has_archive` should be included in the schema' );
 		$this->assertArrayHasKey( 'taxonomies', $properties, '`taxonomies` should be included in the schema' );
 		$this->assertArrayHasKey( 'rest_base', $properties, '`rest_base` should be included in the schema' );
 		$this->assertArrayHasKey( 'rest_namespace', $properties, '`rest_namespace` should be included in the schema' );
@@ -230,6 +231,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( $post_type_obj->hierarchical, $data['hierarchical'] );
 		$this->assertSame( $post_type_obj->rest_base, $data['rest_base'] );
 		$this->assertSame( $post_type_obj->rest_namespace, $data['rest_namespace'] );
+		$this->assertSame( $post_type_obj->has_archive, $data['has_archive'] );
 
 		$links = test_rest_expand_compact_links( $links );
 		$this->assertSame( rest_url( 'wp/v2/types' ), $links['collection'][0]['href'] );
