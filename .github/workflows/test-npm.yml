@@ -88,7 +88,7 @@ jobs:
         run: npm run grunt clean
 
       - name: Ensure version-controlled files are white space equivalent.
-        run: git diff --ignore-space-change  --exit-code
+        run: git diff --ignore-all-space --exit-code
 
       - name: Ensure version-controlled files are not modified or deleted during building and cleaning
         run: git diff --exit-code
@@ -100,7 +100,7 @@ jobs:
         run: npm run grunt clean -- --dev
 
       - name: Ensure version-controlled files are white space equivalent.
-        run: git diff --ignore-space-change  --exit-code
+        run: git diff --ignore-all-space --exit-code
 
       - name: Ensure version-controlled files are not modified or deleted during building and cleaning
         run: git diff --exit-code
@@ -154,7 +154,7 @@ jobs:
         run: npm run grunt clean
 
       - name: Ensure version-controlled files are white space equivalent.
-        run: git diff --ignore-space-change  --exit-code
+        run: git diff --ignore-all-space --exit-code
 
       - name: Ensure version-controlled files are not modified or deleted during building and cleaning
         run: git diff --exit-code
@@ -166,7 +166,7 @@ jobs:
         run: npm run grunt clean -- --dev
 
       - name: Ensure version-controlled files are white space equivalent.
-        run: git diff --ignore-space-change  --exit-code
+        run: git diff --ignore-all-space --exit-code
 
       - name: Ensure version-controlled files are not modified or deleted during building and cleaning
         run: git diff --exit-code
