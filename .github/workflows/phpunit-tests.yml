@@ -195,7 +195,7 @@ jobs:
           path: ${{ env.GUTENBERG_DIRECTORY }}
 
       - name: Install Gutenberg dependencies
-        if: ${{ github.repository == 'WordPress/wordpress-develop' matrix.gutenberg }}
+        if: ${{ github.repository == 'WordPress/wordpress-develop' && matrix.gutenberg }}
         run: npm install
         working-directory: ${{ env.GUTENBERG_DIRECTORY }}
 
