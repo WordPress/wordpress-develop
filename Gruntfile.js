@@ -1404,7 +1404,7 @@ module.exports = function(grunt) {
 		}
 	} );
 
-	grunt.registerTask( 'blockJson2PHP', 'Copies block.json file contents to block-json.php.', function() {
+	grunt.registerTask( 'copy:block-json', 'Copies block.json file contents to block-json.php.', function() {
 		var blocks = {};
 		grunt.file.recurse( SOURCE_DIR + 'wp-includes/blocks', function( abspath, rootdir, subdir, filename ) {
 			if ( /^block\.json$/.test( filename ) ) {
@@ -1465,8 +1465,8 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'build:files', [
 		'clean:files',
 		'copy:files',
+		'copy:block-json',
 		'copy:version',
-		'blockJson2PHP',
 	] );
 
 	/**
