@@ -143,6 +143,7 @@
 		"jquery-color": "2.2.0",
 		"jquery-form": "4.3.0",
 		"jquery-hoverintent": "1.10.2",
+		"json2php": "^0.0.5",
 		"lodash": "4.17.21",
 		"masonry-layout": "4.2.2",
 		"moment": "2.29.4",
