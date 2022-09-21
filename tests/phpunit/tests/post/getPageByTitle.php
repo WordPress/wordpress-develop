@@ -5,6 +5,37 @@
  * @covers ::get_page_by_title
  */
 class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
+
+	/**
+	 * Generate shared fixtures.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		// Fill the database with some pages.
+		$factory->post->create_many(
+			2,
+			array(
+				'post_type' => 'page',
+			)
+		);
+
+		// Fill the database with some attachments.
+		$factory->post->create_many(
+			2,
+			array(
+				'post_type' => 'attachment',
+			)
+		);
+
+		// Fill the database with some test post types.
+		register_post_type( 'wptests_pt' );
+		$factory->post->create_many(
+			2,
+			array(
+				'post_type' => 'wptests_pt',
+			)
+		);
+	}
+
 	/**
 	 * @ticket 36905
 	 */
