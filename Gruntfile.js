@@ -45,9 +45,6 @@ module.exports = function(grunt) {
 		);
 	}
 
-	// First do `npm install` if package.json has changed.
-	installChanged.watchPackage();
-
 	// Load tasks.
 	require('matchdep').filterDev(['grunt-*', '!grunt-legacy-util']).forEach( grunt.loadNpmTasks );
 	// Load legacy utils.
