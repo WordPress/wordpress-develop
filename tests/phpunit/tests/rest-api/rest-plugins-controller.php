@@ -89,6 +89,9 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		if ( file_exists( DIR_TESTDATA . '/link-manager.zip' ) ) {
 			unlink( DIR_TESTDATA . '/link-manager.zip' );
 		}
+		if ( isset( get_plugins()['link-manager/link-manager.php'] ) ) {
+			delete_plugins( array( 'link-manager/link-manager.php' ) );
+		}
 
 		parent::tear_down();
 	}
