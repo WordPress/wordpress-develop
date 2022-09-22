@@ -69,7 +69,7 @@ const stylesTransform = ( mode ) => ( content ) => {
 	return content;
 };
 
-const normalizeJoin = ( baseDir, path ) => join( baseDir, path ).replace( /\\/g, '/' );
+const normalizeJoin = ( ...paths ) => join( ...paths ).replace( /\\/g, '/' );
 
 
 module.exports = {
