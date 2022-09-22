@@ -147,7 +147,15 @@ class WP_Plugin_Dependencies {
 					$sanitized_slugs[] = $slug;
 				}
 			}
-			$sanitized_slugs                          = array_unique( $sanitized_slugs );
+			$sanitized_slugs = array_unique( $sanitized_slugs );
+
+			/**
+			 * Filter slugs to allow for slug switching between non-premium and premium plugins.
+			 *
+			 * @param array
+			 */
+			$sanitized_slugs = apply_filters( 'wp_plugin_dependencies_slugs', $sanitized_slugs );
+
 			$this->plugins[ $key ]['RequiresPlugins'] = $sanitized_slugs;
 			$all_slugs                                = array_merge( $all_slugs, $sanitized_slugs );
 		}
