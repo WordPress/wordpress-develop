@@ -53,6 +53,7 @@ class WP_Theme_JSON {
 	 */
 	const VALID_ORIGINS = array(
 		'default',
+		'blocks',
 		'theme',
 		'custom',
 	);
