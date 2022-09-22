@@ -3,7 +3,6 @@
  */
 const { DefinePlugin } = require( 'webpack' );
 const CopyWebpackPlugin = require( 'copy-webpack-plugin' );
-const { join } = require( 'path' );
 
 /**
  * WordPress dependencies
@@ -13,7 +12,7 @@ const DependencyExtractionPlugin = require( '@wordpress/dependency-extraction-we
 /**
  * Internal dependencies
  */
-const { stylesTransform, baseConfig, baseDir } = require( './shared' );
+const { normalizeJoin, stylesTransform, baseConfig, baseDir } = require( './shared' );
 
 module.exports = function( env = { environment: 'production', watch: false, buildTarget: false } ) {
 	const mode = env.environment;
@@ -131,18 +130,18 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	};
 
 	const blockPHPCopies = Object.keys( blockPHPFiles ).map( ( filename ) => ( {
-		from: join( baseDir, `node_modules/@wordpress/${ filename }` ),
-		to: join( baseDir, `src/${ blockPHPFiles[ filename ] }` ),
+		from: normalizeJoin(baseDir, `node_modules/@wordpress/${ filename }` ),
+		to: normalizeJoin(baseDir, `src/${ blockPHPFiles[ filename ] }` ),
 	} ) );
 
 	const blockMetadataCopies = Object.keys( blockMetadataFiles ).map( ( filename ) => ( {
-		from: join( baseDir, `node_modules/@wordpress/${ filename }` ),
-		to: join( baseDir, `src/${ blockMetadataFiles[ filename ] }` ),
+		from: normalizeJoin(baseDir, `node_modules/@wordpress/${ filename }` ),
+		to: normalizeJoin(baseDir, `src/${ blockMetadataFiles[ filename ] }` ),
 	} ) );
 
 	const blockStylesheetCopies = blockFolders.map( ( blockName ) => ( {
-		from: join( baseDir, `node_modules/@wordpress/block-library/build-style/${ blockName }/*.css` ),
-		to: join( baseDir, `${ buildTarget }/blocks/${ blockName }/[name]${ suffix }.css` ),
+		from: normalizeJoin(baseDir, `node_modules/@wordpress/block-library/build-style/${ blockName }/*.css` ),
+		to: normalizeJoin(baseDir, `${ buildTarget }/blocks/${ blockName }/[name]${ suffix }.css` ),
 		transform: stylesTransform( mode ),
 		noErrorOnMissing: true,
 	} ) );
@@ -150,14 +149,14 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	const config = {
 		...baseConfig( env ),
 		entry: {
-			'file/view': join( baseDir, `node_modules/@wordpress/block-library/build-module/file/view` ),
-			'navigation/view': join( baseDir, `node_modules/@wordpress/block-library/build-module/navigation/view` ),
-			'navigation/view-modal': join( baseDir, `node_modules/@wordpress/block-library/build-module/navigation/view-modal` ),
+			'file/view': normalizeJoin(baseDir, `node_modules/@wordpress/block-library/build-module/file/view` ),
+			'navigation/view': normalizeJoin(baseDir, `node_modules/@wordpress/block-library/build-module/navigation/view` ),
+			'navigation/view-modal': normalizeJoin(baseDir, `node_modules/@wordpress/block-library/build-module/navigation/view-modal` ),
 		},
 		output: {
 			devtoolNamespace: 'wp',
 			filename: `[name]${ suffix }.js`,
-			path: join( baseDir, `${ buildTarget }/blocks` ),
+			path: normalizeJoin(baseDir, `${ buildTarget }/blocks` ),
 		},
 		plugins: [
 			new DefinePlugin( {
