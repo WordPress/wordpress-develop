@@ -77,7 +77,7 @@ class WP_Site_Health_Auto_Updates {
 					/* translators: 1: Name of the constant used. 2: Value of the constant used. */
 					__( 'The %1$s constant is defined as %2$s' ),
 					"<code>$constant</code>",
-					'<code>' . esc_html( constant( $constant ) ) . '</code>'
+					'<code>' . esc_html( var_export( constant( $constant ), true ) ) . '</code>'
 				),
 				'severity'    => 'fail',
 			);
