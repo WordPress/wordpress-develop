@@ -235,6 +235,11 @@ class WP_Plugin_Dependencies {
 				set_site_transient( "wp_plugin_dependencies_plugin_timeout_{$slug}", true, 12 * HOUR_IN_SECONDS );
 			}
 
+			// Check plugins API if generic data present.
+			if ( empty( $this->plugin_data[ $slug ]['last_updated'] ) ) {
+				unset( $this->plugin_data[ $slug ] );
+			}
+
 			// Don't hit plugins API if data exists.
 			if ( array_key_exists( $slug, (array) $this->plugin_data ) ) {
 				continue;
@@ -251,7 +256,7 @@ class WP_Plugin_Dependencies {
 			);
 			$response = plugins_api( 'plugin_information', $args );
 
-			// If a proper slug is present but has no plugin data, generic data will be returned.
+			// If a proper slug is present but has incomplete plugin data, generic data will be returned.
 			$response = $this->get_empty_plugins_api_response( $response, $args );
 
 			if ( is_wp_error( $response ) ) {
@@ -623,7 +628,7 @@ class WP_Plugin_Dependencies {
 	 * @return \stdClass
 	 */
 	private function get_empty_plugins_api_response( $response, $args ) {
-		if ( is_wp_error( $response ) ) {
+		if ( is_wp_error( $response ) || property_exists( $response, 'error' ) ) {
 			$response = array(
 				'name'              => $args['slug'],
 				'slug'              => $args['slug'],
