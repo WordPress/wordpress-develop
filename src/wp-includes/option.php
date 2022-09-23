@@ -165,8 +165,9 @@ function get_option( $option, $default = false ) {
 		$notoptions = wp_cache_get( 'notoptions', 'options' );
 
 		// Prevent non-existent `notoptions` key from triggering multiple key lookups.
-		if ( $notoptions === false ) {
-			wp_cache_set( 'notoptions', [], 'options' );
+		if ( ! is_array( $notoptions ) ) {
+			$notoptions = array();
+			wp_cache_set( 'notoptions', $notoptions, 'options' );
 		}
 
 		if ( isset( $notoptions[ $option ] ) ) {
