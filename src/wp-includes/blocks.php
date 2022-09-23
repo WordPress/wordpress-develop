@@ -215,7 +215,8 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		$style_uri  = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . "/style$suffix.css" );
 	}
 
-	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
+	$block_dir       = dirname( $metadata['file'] );
+	$style_path_norm = wp_normalize_path( realpath( $block_dir . '/' . $style_path ) );
 	$is_theme_block  = 0 === strpos( $style_path_norm, $theme_path_norm );
 
 	if ( $is_theme_block ) {
@@ -223,7 +224,6 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	}
 
 	$style_handle   = generate_block_asset_handle( $metadata['name'], $field_name, $index );
-	$block_dir      = dirname( $metadata['file'] );
 	$has_style_file = false !== $style_path_norm;
 	$version        = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
 	$style_uri      = $has_style_file ? $style_uri : false;
