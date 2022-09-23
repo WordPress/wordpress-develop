@@ -32,11 +32,11 @@ class Tests_Kses_WpFilterGlobalStylesPost extends WP_UnitTestCase {
 	 *
 	 * @param string $rule A rule to test.
 	 */
-	public function test_should_not_remove_safe_global_style_rules($rule) {
-		$theme_data = wp_parse_args( $this->user_theme_data, array( $rule => 'someValue' ) );
+	public function test_should_not_remove_safe_global_style_rules( $rule ) {
+		$theme_data               = wp_parse_args( $this->user_theme_data, array( $rule => 'someValue' ) );
 		$filtered_user_theme_json = $this->filter_global_styles( $theme_data );
-		$safe_rules = array_keys($theme_data);
-		foreach ($safe_rules as $safe_rule) {
+		$safe_rules               = array_keys( $theme_data );
+		foreach ( $safe_rules as $safe_rule ) {
 			$this->assertArrayHasKey( $safe_rule, $filtered_user_theme_json, sprintf( 'wp_filter_global_styles_post() must not remove the "%s" rule as it\'s considered safe.', $safe_rule ) );
 		}
 	}
@@ -47,10 +47,8 @@ class Tests_Kses_WpFilterGlobalStylesPost extends WP_UnitTestCase {
 	 * @return array
 	 */
 	public function data_should_not_remove_safe_global_style_rules() {
-		$safe_rules = array_diff( WP_Theme_JSON::VALID_TOP_LEVEL_KEYS, array_keys( $this->user_theme_data ) );
-
 		$result = array();
-		foreach ( $safe_rules as $safe_rule ) {
+		foreach ( WP_Theme_JSON::VALID_TOP_LEVEL_KEYS as $safe_rule ) {
 			$result[ $safe_rule ] = array( $safe_rule );
 		}
 
@@ -59,8 +57,6 @@ class Tests_Kses_WpFilterGlobalStylesPost extends WP_UnitTestCase {
 
 		return $result;
 	}
-
-
 
 	/**
 	 * @ticket 56266
@@ -81,7 +77,6 @@ class Tests_Kses_WpFilterGlobalStylesPost extends WP_UnitTestCase {
 	private function filter_global_styles( $theme_data ) {
 		$user_theme_json          = wp_slash( wp_json_encode( $theme_data ) );
 		$filtered_user_theme_json = wp_filter_global_styles_post( $user_theme_json );
-
 
 		return json_decode( wp_unslash( $filtered_user_theme_json ), true );
 	}
