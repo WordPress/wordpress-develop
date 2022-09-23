@@ -168,7 +168,7 @@ if ( ! function_exists( 'twentytwelve_fonts_urls' ) ) :
 		* by Open Sans, translate this to 'off'. Do not translate into your own language.
 		*/
 		if ( 'off' !== _x( 'on', 'Open Sans font: on or off', 'twentytwelve' ) ) {
-			$font_urls['open-sans'] = get_stylesheet_directory_uri() . '/fonts/open-sans/font-open-sans.css';
+			$font_urls['open-sans'] = get_template_directory_uri() . '/fonts/open-sans/font-open-sans.css';
 		}
 
 		/**
