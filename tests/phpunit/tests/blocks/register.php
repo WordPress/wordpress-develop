@@ -148,15 +148,15 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		);
 		$this->assertSame(
 			'unit-tests-my-block-script',
-			generate_block_asset_handle( $block_name, 'script' )
+			generate_block_asset_handle( $block_name, 'script', 0 )
 		);
 		$this->assertSame(
-			'unit-tests-my-block-view-script',
-			generate_block_asset_handle( $block_name, 'viewScript' )
+			'unit-tests-my-block-view-script-100',
+			generate_block_asset_handle( $block_name, 'viewScript', 99 )
 		);
 		$this->assertSame(
-			'unit-tests-my-block-editor-style',
-			generate_block_asset_handle( $block_name, 'editorStyle' )
+			'unit-tests-my-block-editor-style-2',
+			generate_block_asset_handle( $block_name, 'editorStyle', 1 )
 		);
 		$this->assertSame(
 			'unit-tests-my-block-style',
@@ -176,15 +176,15 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		);
 		$this->assertSame(
 			'wp-block-paragraph',
-			generate_block_asset_handle( $block_name, 'script' )
+			generate_block_asset_handle( $block_name, 'script', 0 )
 		);
 		$this->assertSame(
-			'wp-block-paragraph-view',
-			generate_block_asset_handle( $block_name, 'viewScript' )
+			'wp-block-paragraph-view-100',
+			generate_block_asset_handle( $block_name, 'viewScript', 99 )
 		);
 		$this->assertSame(
-			'wp-block-paragraph-editor',
-			generate_block_asset_handle( $block_name, 'editorStyle' )
+			'wp-block-paragraph-editor-2',
+			generate_block_asset_handle( $block_name, 'editorStyle', 1 )
 		);
 		$this->assertSame(
 			'wp-block-paragraph',
@@ -204,9 +204,23 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	/**
 	 * @ticket 50263
 	 */
-	public function test_empty_value_register_block_script_handle() {
+	public function test_empty_string_value_do_not_register_block_script_handle() {
 		$metadata = array( 'script' => '' );
 		$result   = register_block_script_handle( $metadata, 'script' );
+
+		$this->assertFalse( $result );
+	}
+
+	public function test_empty_array_value_do_not_register_block_script_handle() {
+		$metadata = array( 'script' => array() );
+		$result   = register_block_script_handle( $metadata, 'script' );
+
+		$this->assertFalse( $result );
+	}
+
+	public function test_wrong_array_index_do_not_register_block_script_handle() {
+		$metadata = array( 'script' => array( 'test-script-handle' ) );
+		$result   = register_block_script_handle( $metadata, 'script', 1 );
 
 		$this->assertFalse( $result );
 	}
@@ -231,11 +245,23 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 */
 	public function test_handle_passed_register_block_script_handle() {
 		$metadata = array(
-			'editorScript' => 'test-script-handle',
+			'script' => 'test-script-handle',
 		);
-		$result   = register_block_script_handle( $metadata, 'editorScript' );
+		$result   = register_block_script_handle( $metadata, 'script' );
 
 		$this->assertSame( 'test-script-handle', $result );
+	}
+
+	public function test_handles_passed_register_block_script_handles() {
+		$metadata = array(
+			'script' => array( 'test-script-handle', 'test-script-handle-2' ),
+		);
+
+		$result = register_block_script_handle( $metadata, 'script' );
+		$this->assertSame( 'test-script-handle', $result );
+
+		$result = register_block_script_handle( $metadata, 'script', 1 );
+		$this->assertSame( 'test-script-handle-2', $result, 1 );
 	}
 
 	/**
@@ -281,9 +307,23 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	/**
 	 * @ticket 50263
 	 */
-	public function test_empty_value_found_register_block_style_handle() {
+	public function test_empty_string_value_do_not_register_block_style_handle() {
 		$metadata = array( 'style' => '' );
 		$result   = register_block_style_handle( $metadata, 'style' );
+
+		$this->assertFalse( $result );
+	}
+
+	public function test_empty_array_value_do_not_register_block_style_handle() {
+		$metadata = array( 'style' => array() );
+		$result   = register_block_style_handle( $metadata, 'style' );
+
+		$this->assertFalse( $result );
+	}
+
+	public function test_wrong_array_index_do_not_register_block_style_handle() {
+		$metadata = array( 'style' => array( 'test-style-handle' ) );
+		$result   = register_block_style_handle( $metadata, 'style', 1 );
 
 		$this->assertFalse( $result );
 	}
@@ -298,6 +338,18 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$result   = register_block_style_handle( $metadata, 'style' );
 
 		$this->assertSame( 'test-style-handle', $result );
+	}
+
+	public function test_handles_passed_register_block_style_handles() {
+		$metadata = array(
+			'style' => array( 'test-style-handle', 'test-style-handle-2' ),
+		);
+
+		$result = register_block_style_handle( $metadata, 'style' );
+		$this->assertSame( 'test-style-handle', $result );
+
+		$result = register_block_style_handle( $metadata, 'style', 1 );
+		$this->assertSame( 'test-style-handle-2', $result, 1 );
 	}
 
 	/**
@@ -442,11 +494,26 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			),
 			$result->example
 		);
-		$this->assertSame( 'tests-notice-editor-script', $result->editor_script );
-		$this->assertSame( 'tests-notice-script', $result->script );
-		$this->assertSame( 'tests-notice-view-script', $result->view_script );
-		$this->assertSame( 'tests-notice-editor-style', $result->editor_style );
-		$this->assertSame( 'tests-notice-style', $result->style );
+		$this->assertSameSets(
+			array( 'tests-notice-editor-script' ),
+			$result->editor_script_handles
+		);
+		$this->assertSameSets(
+			array( 'tests-notice-script' ),
+			$result->script_handles
+		);
+		$this->assertSameSets(
+			array( 'tests-notice-view-script', 'tests-notice-view-script-2' ),
+			$result->view_script_handles
+		);
+		$this->assertSameSets(
+			array( 'tests-notice-editor-style' ),
+			$result->editor_style_handles
+		);
+		$this->assertSameSets(
+			array( 'tests-notice-style', 'tests-notice-style-2' ),
+			$result->style_handles
+		);
 
 		// @ticket 50328
 		$this->assertSame(

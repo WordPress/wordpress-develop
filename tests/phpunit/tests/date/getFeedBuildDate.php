@@ -11,7 +11,7 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	public function tear_down() {
 		global $wp_query;
 
-		update_option( 'timezone_string', 'UTC' );
+		update_option( 'timezone_string', '' );
 
 		unset( $wp_query );
 
@@ -47,7 +47,7 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	public function test_should_fall_back_to_last_post_modified() {
 		global $wp_query;
 
-		update_option( 'timezone_string', 'Europe/Kiev' );
+		update_option( 'timezone_string', 'Europe/Helsinki' );
 		$datetime     = new DateTimeImmutable( 'now', wp_timezone() );
 		$datetime_utc = $datetime->setTimezone( new DateTimeZone( 'UTC' ) );
 
