@@ -118,7 +118,7 @@ jobs:
   test-npm-macos:
     name: Test NPM on MacOS
     runs-on: macos-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     steps:
       - name: Checkout repository
