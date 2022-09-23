@@ -274,7 +274,7 @@ if ( ! function_exists( 'twentythirteen_fonts_urls' ) ) :
 		* by Source Sans Pro, translate this to 'off'. Do not translate into your own language.
 		*/
 		if ( 'off' !== _x( 'on', 'Source Sans Pro font: on or off', 'twentythirteen' ) ) {
-			$font_urls['source-sans-pro'] = get_stylesheet_directory_uri() . '/fonts/source-sans-pro/font-source-sans-pro.css';
+			$font_urls['source-sans-pro'] = get_template_directory_uri() . '/fonts/source-sans-pro/font-source-sans-pro.css';
 		}
 
 		/*
@@ -282,7 +282,7 @@ if ( ! function_exists( 'twentythirteen_fonts_urls' ) ) :
 		* by Bitter, translate this to 'off'. Do not translate into your own language.
 		*/
 		if ( 'off' !== _x( 'on', 'Bitter font: on or off', 'twentythirteen' ) ) {
-			$font_urls['bitter'] = get_stylesheet_directory_uri() . '/fonts/bitter/font-bitter.css';
+			$font_urls['bitter'] = get_template_directory_uri() . '/fonts/bitter/font-bitter.css';
 		}
 
 		/**
