@@ -51,6 +51,7 @@ define( 'ARRAY_N', 'ARRAY_N' );
  *
  * @since 0.71
  */
+#[AllowDynamicProperties]
 class wpdb {
 
 	/**
@@ -339,9 +340,18 @@ class wpdb {
 		'signups',
 		'site',
 		'sitemeta',
-		'sitecategories',
 		'registration_log',
 	);
+
+	/**
+	 * List of deprecated WordPress Multisite global tables.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @see wpdb::tables()
+	 * @var string[]
+	 */
+	public $old_ms_global_tables = array( 'sitecategories' );
 
 	/**
 	 * WordPress Comments table.
@@ -1122,11 +1132,13 @@ class wpdb {
 	 * - 'old' - returns tables which are deprecated.
 	 *
 	 * @since 3.0.0
+	 * @since 6.1.0 `old` now includes deprecated multisite global tables only on multisite.
 	 *
 	 * @uses wpdb::$tables
 	 * @uses wpdb::$old_tables
 	 * @uses wpdb::$global_tables
 	 * @uses wpdb::$ms_global_tables
+	 * @uses wpdb::$old_ms_global_tables
 	 *
 	 * @param string $scope   Optional. Possible values include 'all', 'global', 'ms_global', 'blog',
 	 *                        or 'old' tables. Default 'all'.
@@ -1158,6 +1170,9 @@ class wpdb {
 				break;
 			case 'old':
 				$tables = $this->old_tables;
+				if ( is_multisite() ) {
+					$tables = array_merge( $tables, $this->old_ms_global_tables );
+				}
 				break;
 			default:
 				return array();
@@ -3376,12 +3391,21 @@ class wpdb {
 		}
 
 		// If any of the columns don't have one of these collations, it needs more sanity checking.
+		$safe_collations = array(
+			'utf8_bin',
+			'utf8_general_ci',
+			'utf8mb3_bin',
+			'utf8mb3_general_ci',
+			'utf8mb4_bin',
+			'utf8mb4_general_ci',
+		);
+
 		foreach ( $this->col_meta[ $table ] as $col ) {
 			if ( empty( $col->Collation ) ) {
 				continue;
 			}
 
-			if ( ! in_array( $col->Collation, array( 'utf8_general_ci', 'utf8_bin', 'utf8mb4_general_ci', 'utf8mb4_bin' ), true ) ) {
+			if ( ! in_array( $col->Collation, $safe_collations, true ) ) {
 				return false;
 			}
 		}

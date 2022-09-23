@@ -663,17 +663,17 @@ function wp_doc_link_parse( $content ) {
 
 	$ignore_functions = array_unique( $ignore_functions );
 
-	$out = array();
+	$output = array();
 
 	foreach ( $functions as $function ) {
 		if ( in_array( $function, $ignore_functions, true ) ) {
 			continue;
 		}
 
-		$out[] = $function;
+		$output[] = $function;
 	}
 
-	return $out;
+	return $output;
 }
 
 /**
@@ -1256,6 +1256,41 @@ function wp_refresh_post_nonces( $response, $data, $screen_id ) {
 }
 
 /**
+ * Refresh nonces used with meta boxes in the block editor.
+ *
+ * @since 6.1.0
+ *
+ * @param array  $response  The Heartbeat response.
+ * @param array  $data      The $_POST data sent.
+ * @return array The Heartbeat response.
+ */
+function wp_refresh_metabox_loader_nonces( $response, $data ) {
+	if ( empty( $data['wp-refresh-metabox-loader-nonces'] ) ) {
+		return $response;
+	}
+
+	$received = $data['wp-refresh-metabox-loader-nonces'];
+	$post_id  = (int) $received['post_id'];
+
+	if ( ! $post_id ) {
+		return $response;
+	}
+
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return $response;
+	}
+
+	$response['wp-refresh-metabox-loader-nonces'] = array(
+		'replace' => array(
+			'metabox_loader_nonce' => wp_create_nonce( 'meta-box-loader' ),
+			'_wpnonce'             => wp_create_nonce( 'update-post_' . $post_id ),
+		),
+	);
+
+	return $response;
+}
+
+/**
  * Adds the latest Heartbeat and REST-API nonce to the Heartbeat response.
  *
  * @since 5.0.0
@@ -1550,7 +1585,8 @@ function wp_check_php_version() {
 		 *  'recommended_version' - string - The PHP version recommended by WordPress.
 		 *  'is_supported' - boolean - Whether the PHP version is actively supported.
 		 *  'is_secure' - boolean - Whether the PHP version receives security updates.
-		 *  'is_acceptable' - boolean - Whether the PHP version is still acceptable for WordPress.
+		 *  'is_acceptable' - boolean - Whether the PHP version is still acceptable or warnings
+		 *                              should be shown and an update recommended.
 		 */
 		$response = json_decode( wp_remote_retrieve_body( $response ), true );
 
@@ -1576,6 +1612,16 @@ function wp_check_php_version() {
 		 * @param string $version       PHP version checked.
 		 */
 		$response['is_acceptable'] = (bool) apply_filters( 'wp_is_php_version_acceptable', true, $version );
+	}
+
+	$response['is_lower_than_future_minimum'] = false;
+
+	// The minimum supported PHP version will be updated to 7.2. Check if the current version is lower.
+	if ( version_compare( $version, '7.2', '<' ) ) {
+		$response['is_lower_than_future_minimum'] = true;
+
+		// Force showing of warnings.
+		$response['is_acceptable'] = false;
 	}
 
 	return $response;

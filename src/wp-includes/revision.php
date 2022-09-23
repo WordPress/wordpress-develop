@@ -17,7 +17,7 @@
  * @param array|WP_Post $post       Optional. A post array or a WP_Post object being processed
  *                                  for insertion as a post revision. Default empty array.
  * @param bool          $deprecated Not used.
- * @return array Array of fields that can be versioned.
+ * @return string[] Array of fields that can be versioned.
  */
 function _wp_post_revision_fields( $post = array(), $deprecated = false ) {
 	static $fields = null;
@@ -47,9 +47,9 @@ function _wp_post_revision_fields( $post = array(), $deprecated = false ) {
 	 * @since 2.6.0
 	 * @since 4.5.0 The `$post` parameter was added.
 	 *
-	 * @param array $fields List of fields to revision. Contains 'post_title',
-	 *                      'post_content', and 'post_excerpt' by default.
-	 * @param array $post   A post array being processed for insertion as a post revision.
+	 * @param string[] $fields List of fields to revision. Contains 'post_title',
+	 *                         'post_content', and 'post_excerpt' by default.
+	 * @param array    $post   A post array being processed for insertion as a post revision.
 	 */
 	$fields = apply_filters( '_wp_post_revision_fields', $fields, $post );
 
@@ -489,7 +489,7 @@ function wp_delete_post_revision( $revision ) {
  *
  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global `$post`.
  * @param array|null  $args Optional. Arguments for retrieving post revisions. Default null.
- * @return array An array of revisions, or an empty array if none.
+ * @return WP_Post[]|int[] Array of revision objects or IDs, or an empty array if none.
  */
 function wp_get_post_revisions( $post = 0, $args = null ) {
 	$post = get_post( $post );
@@ -533,11 +533,12 @@ function wp_get_post_revisions( $post = 0, $args = null ) {
  * @since 6.1.0
  *
  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
- * @return WP_Error|array {
- *     Returns associative array with latest revision ID and total count.
+ * @return array|WP_Error {
+ *     Returns associative array with latest revision ID and total count,
+ *     or a WP_Error if the post does not exist or revisions are not enabled.
  *
- *     @type int $revision The latest revision post ID or 0 if no revisions exist.
- *     @type int $count    The total count of revisions for the given post.
+ *     @type int $latest_id The latest revision post ID or 0 if no revisions exist.
+ *     @type int $count     The total count of revisions for the given post.
  * }
  */
 function wp_get_latest_revision_id_and_total_count( $post = 0 ) {
@@ -567,14 +568,14 @@ function wp_get_latest_revision_id_and_total_count( $post = 0 ) {
 
 	if ( ! $revisions ) {
 		return array(
-			'revision' => 0,
-			'count'    => 0,
+			'latest_id' => 0,
+			'count'     => 0,
 		);
 	}
 
 	return array(
-		'revision' => $revisions[0],
-		'count'    => $revision_query->found_posts,
+		'latest_id' => $revisions[0],
+		'count'     => $revision_query->found_posts,
 	);
 }
 
@@ -602,14 +603,13 @@ function wp_get_post_revisions_url( $post = 0 ) {
 		return null;
 	}
 
-	$revisions = wp_get_post_revisions( $post->ID, array( 'posts_per_page' => 1 ) );
+	$revisions = wp_get_latest_revision_id_and_total_count( $post->ID );
 
-	if ( 0 === count( $revisions ) ) {
+	if ( is_wp_error( $revisions ) || 0 === $revisions['count'] ) {
 		return null;
 	}
 
-	$revision = reset( $revisions );
-	return get_edit_post_link( $revision );
+	return get_edit_post_link( $revisions['latest_id'] );
 }
 
 /**
