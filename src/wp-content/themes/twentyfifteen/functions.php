@@ -376,7 +376,7 @@ if ( ! function_exists( 'twentyfifteen_fonts_urls' ) ) :
 		 * by Noto Sans, translate this to 'off'. Do not translate into your own language.
 		 */
 		if ( 'off' !== _x( 'on', 'Noto Sans font: on or off', 'twentyfifteen' ) ) {
-			$font_urls['noto-sans'] = get_stylesheet_directory_uri() . '/assets/fonts/noto-sans/font-noto-sans.css';
+			$font_urls['noto-sans'] = get_template_directory_uri() . '/assets/fonts/noto-sans/font-noto-sans.css';
 		}
 
 		/*
@@ -384,7 +384,7 @@ if ( ! function_exists( 'twentyfifteen_fonts_urls' ) ) :
 		 * by Noto Serif, translate this to 'off'. Do not translate into your own language.
 		 */
 		if ( 'off' !== _x( 'on', 'Noto Serif font: on or off', 'twentyfifteen' ) ) {
-			$font_urls['noto-serif'] = get_stylesheet_directory_uri() . '/assets/fonts/noto-serif/font-noto-serif.css';
+			$font_urls['noto-serif'] = get_template_directory_uri() . '/assets/fonts/noto-serif/font-noto-serif.css';
 		}
 
 		/*
@@ -392,7 +392,7 @@ if ( ! function_exists( 'twentyfifteen_fonts_urls' ) ) :
 		 * by Inconsolata, translate this to 'off'. Do not translate into your own language.
 		 */
 		if ( 'off' !== _x( 'on', 'Inconsolata font: on or off', 'twentyfifteen' ) ) {
-			$font_urls['inconsolata'] = get_stylesheet_directory_uri() . '/assets/fonts/inconsolata/font-inconsolata.css';
+			$font_urls['inconsolata'] = get_template_directory_uri() . '/assets/fonts/inconsolata/font-inconsolata.css';
 		}
 
 		/**
