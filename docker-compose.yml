@@ -101,6 +101,13 @@ services:
     # The init directive ensures the command runs with a PID > 1, so Ctrl+C works correctly.
     init: true
 
+    command: docker-compose run --rm cli config create \
+      --dbname=wordpress_develop \
+      --dbuser=root \
+      --dbpass=password \
+      --dbhost=mysql \
+      --dbprefix=wp_
+
     extra_hosts:
       - localhost:host-gateway
 
