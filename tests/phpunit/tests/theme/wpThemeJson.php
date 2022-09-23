@@ -366,7 +366,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$styles = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-block-group{border-radius: 10px;margin: 1em;padding: 24px;}.wp-block-image{border-top-left-radius: 10px;border-bottom-right-radius: 1em;margin-bottom: 30px;padding-top: 15px;}';
+		$styles = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-block-group{border-radius: 10px;margin: 1em;padding: 24px;}.wp-block-image{margin-bottom: 30px;padding-top: 15px;}.wp-block-image img, .wp-block-image .wp-block-image__crop-area{border-top-left-radius: 10px;border-bottom-right-radius: 1em;}';
 		$this->assertSame( $styles, $theme_json->get_stylesheet() );
 		$this->assertSame( $styles, $theme_json->get_stylesheet( array( 'styles' ) ) );
 	}
@@ -553,7 +553,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$variables = 'body{--wp--preset--color--grey: grey;--wp--preset--font-family--small: 14px;--wp--preset--font-family--big: 41px;}.wp-block-group{--wp--custom--base-font: 16;--wp--custom--line-height--small: 1.2;--wp--custom--line-height--medium: 1.4;--wp--custom--line-height--large: 1.8;}';
-		$styles    = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }body{color: var(--wp--preset--color--grey);}a:where(:not(.wp-element-button)){background-color: #333;color: #111;}.wp-block-group{border-radius: 10px;padding: 24px;}.wp-block-group a:where(:not(.wp-element-button)){color: #111;}h1,h2,h3,h4,h5,h6{color: #123456;}h1 a:where(:not(.wp-element-button)),h2 a:where(:not(.wp-element-button)),h3 a:where(:not(.wp-element-button)),h4 a:where(:not(.wp-element-button)),h5 a:where(:not(.wp-element-button)),h6 a:where(:not(.wp-element-button)){background-color: #333;color: #111;font-size: 60px;}.wp-block-post-date{color: #123456;}.wp-block-post-date a:where(:not(.wp-element-button)){background-color: #777;color: #555;}.wp-block-image{border-top-left-radius: 10px;border-bottom-right-radius: 1em;margin-bottom: 30px;}';
+		$styles    = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }body{color: var(--wp--preset--color--grey);}a:where(:not(.wp-element-button)){background-color: #333;color: #111;}.wp-block-group{border-radius: 10px;padding: 24px;}.wp-block-group a:where(:not(.wp-element-button)){color: #111;}h1,h2,h3,h4,h5,h6{color: #123456;}h1 a:where(:not(.wp-element-button)),h2 a:where(:not(.wp-element-button)),h3 a:where(:not(.wp-element-button)),h4 a:where(:not(.wp-element-button)),h5 a:where(:not(.wp-element-button)),h6 a:where(:not(.wp-element-button)){background-color: #333;color: #111;font-size: 60px;}.wp-block-post-date{color: #123456;}.wp-block-post-date a:where(:not(.wp-element-button)){background-color: #777;color: #555;}.wp-block-image{margin-bottom: 30px;}.wp-block-image img, .wp-block-image .wp-block-image__crop-area{border-top-left-radius: 10px;border-bottom-right-radius: 1em;}';
 		$presets   = '.has-grey-color{color: var(--wp--preset--color--grey) !important;}.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}.has-grey-border-color{border-color: var(--wp--preset--color--grey) !important;}.has-small-font-family{font-family: var(--wp--preset--font-family--small) !important;}.has-big-font-family{font-family: var(--wp--preset--font-family--big) !important;}';
 		$all       = $variables . $styles . $presets;
 		$this->assertSame( $all, $theme_json->get_stylesheet() );
@@ -3492,5 +3492,386 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$root_rules  = $theme_json->get_root_layout_rules( WP_Theme_JSON::ROOT_BLOCK_SELECTOR, $metadata );
 		$style_rules = $theme_json->get_styles_for_block( $metadata );
 		$this->assertSame( $expected, $root_rules . $style_rules );
+	}
+
+	/**
+	 * Tests generating the spacing presets array based on the spacing scale provided.
+	 *
+	 * @ticket 56467
+	 *
+	 * @dataProvider data_generate_spacing_scale_fixtures
+	 *
+	 * @param array $spacing_scale   Example spacing scale definitions from the data provider.
+	 * @param array $expected_output Expected output from data provider.
+	 */
+	function test_should_set_spacing_sizes( $spacing_scale, $expected_output ) {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => 2,
+				'settings' => array(
+					'spacing' => array(
+						'spacingScale' => $spacing_scale,
+					),
+				),
+			)
+		);
+
+		$theme_json->set_spacing_sizes();
+		$this->assertSame( $expected_output, _wp_array_get( $theme_json->get_raw_data(), array( 'settings', 'spacing', 'spacingSizes', 'default' ) ) );
+	}
+
+	/**
+	 * Data provider for spacing scale tests.
+	 *
+	 * @ticket 56467
+	 *
+	 * @return array
+	 */
+	function data_generate_spacing_scale_fixtures() {
+		return array(
+			'only one value when single step in spacing scale' => array(
+				'spacing_scale'   => array(
+					'operator'   => '+',
+					'increment'  => 1.5,
+					'steps'      => 1,
+					'mediumStep' => 4,
+					'unit'       => 'rem',
+				),
+				'expected_output' => array(
+					array(
+						'name' => '1',
+						'slug' => '50',
+						'size' => '4rem',
+					),
+				),
+			),
+			'one step above medium when two steps in spacing scale' => array(
+				'spacing_scale'   => array(
+					'operator'   => '+',
+					'increment'  => 1.5,
+					'steps'      => 2,
+					'mediumStep' => 4,
+					'unit'       => 'rem',
+				),
+				'expected_output' => array(
+					array(
+						'name' => '1',
+						'slug' => '50',
+						'size' => '4rem',
+					),
+					array(
+						'name' => '2',
+						'slug' => '60',
+						'size' => '5.5rem',
+					),
+				),
+			),
+			'one step above medium and one below when three steps in spacing scale' => array(
+				'spacing_scale'   => array(
+					'operator'   => '+',
+					'increment'  => 1.5,
+					'steps'      => 3,
+					'mediumStep' => 4,
+					'unit'       => 'rem',
+				),
+				'expected_output' => array(
+					array(
+						'name' => '1',
+						'slug' => '40',
+						'size' => '2.5rem',
+					),
+					array(
+						'name' => '2',
+						'slug' => '50',
+						'size' => '4rem',
+					),
+					array(
+						'name' => '3',
+						'slug' => '60',
+						'size' => '5.5rem',
+					),
+				),
+			),
+			'extra step added above medium when an even number of steps > 2 specified' => array(
+				'spacing_scale'   => array(
+					'operator'   => '+',
+					'increment'  => 1.5,
+					'steps'      => 4,
+					'mediumStep' => 4,
+					'unit'       => 'rem',
+				),
+				'expected_output' => array(
+					array(
+						'name' => '1',
+						'slug' => '40',
+						'size' => '2.5rem',
+					),
+					array(
+						'name' => '2',
+						'slug' => '50',
+						'size' => '4rem',
+					),
+					array(
+						'name' => '3',
+						'slug' => '60',
+						'size' => '5.5rem',
+					),
+					array(
+						'name' => '4',
+						'slug' => '70',
+						'size' => '7rem',
+					),
+				),
+			),
+			'extra steps above medium if bottom end will go below zero' => array(
+				'spacing_scale'   => array(
+					'operator'   => '+',
+					'increment'  => 2.5,
+					'steps'      => 5,
+					'mediumStep' => 5,
+					'unit'       => 'rem',
+				),
+				'expected_output' => array(
+					array(
+						'name' => '1',
+						'slug' => '40',
+						'size' => '2.5rem',
+					),
+					array(
+						'name' => '2',
+						'slug' => '50',
+						'size' => '5rem',
+					),
+					array(
+						'name' => '3',
+						'slug' => '60',
+						'size' => '7.5rem',
+					),
+					array(
+						'name' => '4',
+						'slug' => '70',
+						'size' => '10rem',
+					),
+					array(
+						'name' => '5',
+						'slug' => '80',
+						'size' => '12.5rem',
+					),
+				),
+			),
+			'multiplier correctly calculated above and below medium' => array(
+				'spacing_scale'   => array(
+					'operator'   => '*',
+					'increment'  => 1.5,
+					'steps'      => 5,
+					'mediumStep' => 1.5,
+					'unit'       => 'rem',
+				),
+				'expected_output' => array(
+					array(
+						'name' => '1',
+						'slug' => '30',
+						'size' => '0.67rem',
+					),
+					array(
+						'name' => '2',
+						'slug' => '40',
+						'size' => '1rem',
+					),
+					array(
+						'name' => '3',
+						'slug' => '50',
+						'size' => '1.5rem',
+					),
+					array(
+						'name' => '4',
+						'slug' => '60',
+						'size' => '2.25rem',
+					),
+					array(
+						'name' => '5',
+						'slug' => '70',
+						'size' => '3.38rem',
+					),
+				),
+			),
+			'increment < 1 combined showing * operator acting as divisor above and below medium' => array(
+				'spacing_scale'   => array(
+					'operator'   => '*',
+					'increment'  => 0.25,
+					'steps'      => 5,
+					'mediumStep' => 1.5,
+					'unit'       => 'rem',
+				),
+				'expected_output' => array(
+					array(
+						'name' => '1',
+						'slug' => '30',
+						'size' => '0.09rem',
+					),
+					array(
+						'name' => '2',
+						'slug' => '40',
+						'size' => '0.38rem',
+					),
+					array(
+						'name' => '3',
+						'slug' => '50',
+						'size' => '1.5rem',
+					),
+					array(
+						'name' => '4',
+						'slug' => '60',
+						'size' => '6rem',
+					),
+					array(
+						'name' => '5',
+						'slug' => '70',
+						'size' => '24rem',
+					),
+				),
+			),
+			't-shirt sizing used if more than 7 steps in scale' => array(
+				'spacing_scale'   => array(
+					'operator'   => '*',
+					'increment'  => 1.5,
+					'steps'      => 8,
+					'mediumStep' => 1.5,
+					'unit'       => 'rem',
+				),
+				'expected_output' => array(
+					array(
+						'name' => '2X-Small',
+						'slug' => '20',
+						'size' => '0.44rem',
+					),
+					array(
+						'name' => 'X-Small',
+						'slug' => '30',
+						'size' => '0.67rem',
+					),
+					array(
+						'name' => 'Small',
+						'slug' => '40',
+						'size' => '1rem',
+					),
+					array(
+						'name' => 'Medium',
+						'slug' => '50',
+						'size' => '1.5rem',
+					),
+					array(
+						'name' => 'Large',
+						'slug' => '60',
+						'size' => '2.25rem',
+					),
+					array(
+						'name' => 'X-Large',
+						'slug' => '70',
+						'size' => '3.38rem',
+					),
+					array(
+						'name' => '2X-Large',
+						'slug' => '80',
+						'size' => '5.06rem',
+					),
+					array(
+						'name' => '3X-Large',
+						'slug' => '90',
+						'size' => '7.59rem',
+					),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Tests generating the spacing presets array based on the spacing scale provided.
+	 *
+	 * @ticket 56467
+	 *
+	 * @dataProvider data_set_spacing_sizes_when_invalid
+	 *
+	 * @param array $spacing_scale   Example spacing scale definitions from the data provider.
+	 * @param array $expected_output Expected output from data provider.
+	 */
+	public function test_set_spacing_sizes_should_detect_invalid_spacing_scale( $spacing_scale, $expected_output ) {
+		$this->expectNotice();
+		$this->expectNoticeMessage( 'Some of the theme.json settings.spacing.spacingScale values are invalid' );
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => 2,
+				'settings' => array(
+					'spacing' => array(
+						'spacingScale' => $spacing_scale,
+					),
+				),
+			)
+		);
+
+		$theme_json->set_spacing_sizes();
+		$this->assertSame( $expected_output, _wp_array_get( $theme_json->get_raw_data(), array( 'settings', 'spacing', 'spacingSizes', 'default' ) ) );
+	}
+
+	/**
+	 * Data provider for spacing scale tests.
+	 *
+	 * @ticket 56467
+	 *
+	 * @return array
+	 */
+	function data_set_spacing_sizes_when_invalid() {
+		return array(
+			'missing operator value'  => array(
+				'spacing_scale'   => array(
+					'operator'   => '',
+					'increment'  => 1.5,
+					'steps'      => 1,
+					'mediumStep' => 4,
+					'unit'       => 'rem',
+				),
+				'expected_output' => null,
+			),
+			'non numeric increment'   => array(
+				'spacing_scale'   => array(
+					'operator'   => '+',
+					'increment'  => 'add two to previous value',
+					'steps'      => 1,
+					'mediumStep' => 4,
+					'unit'       => 'rem',
+				),
+				'expected_output' => null,
+			),
+			'non numeric steps'       => array(
+				'spacing_scale'   => array(
+					'operator'   => '+',
+					'increment'  => 1.5,
+					'steps'      => 'spiral staircase preferred',
+					'mediumStep' => 4,
+					'unit'       => 'rem',
+				),
+				'expected_output' => null,
+			),
+			'non numeric medium step' => array(
+				'spacing_scale'   => array(
+					'operator'   => '+',
+					'increment'  => 1.5,
+					'steps'      => 5,
+					'mediumStep' => 'That which is just right',
+					'unit'       => 'rem',
+				),
+				'expected_output' => null,
+			),
+			'missing unit value'      => array(
+				'spacing_scale'   => array(
+					'operator'   => '+',
+					'increment'  => 1.5,
+					'steps'      => 5,
+					'mediumStep' => 4,
+				),
+				'expected_output' => null,
+			),
+		);
 	}
 }
