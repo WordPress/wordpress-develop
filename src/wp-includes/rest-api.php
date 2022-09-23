@@ -3044,10 +3044,10 @@ function _rest_default_additional_properties_to_false( $schema, $types = array()
 
 	// Forest part
 
-	foreach ( array( 'allOf', 'anyOf', 'oneOf' ) as $key ) {
-		if ( isset( $schema[ $key ] ) ) {
-			foreach ( $schema[ $key ] as $index => $child_schema ) {
-				$schema[ $key ][ $index ] = _rest_default_additional_properties_to_false( $child_schema, $types );
+	foreach ( array( 'allOf', 'anyOf', 'oneOf' ) as $keyword ) {
+		if ( isset( $schema[ $keyword ] ) ) {
+			foreach ( $schema[ $keyword ] as $index => $child_schema ) {
+				$schema[ $keyword ][ $index ] = _rest_default_additional_properties_to_false( $child_schema, $types );
 			}
 		}
 	}
@@ -3055,10 +3055,10 @@ function _rest_default_additional_properties_to_false( $schema, $types = array()
 	// Tree part
 
 	if ( in_array( 'object', $types, true ) ) {
-		foreach ( array( 'properties', 'patternProperties' ) as $key ) {
-			if ( isset( $schema[ $key ] ) ) {
-				foreach ( $schema[ $key ] as $child_key => $child_schema ) {
-					$schema[ $key ][ $child_key ] = _rest_default_additional_properties_to_false( $child_schema );
+		foreach ( array( 'properties', 'patternProperties' ) as $keyword ) {
+			if ( isset( $schema[ $keyword ] ) ) {
+				foreach ( $schema[ $keyword ] as $property_key => $child_schema ) {
+					$schema[ $keyword ][ $property_key ] = _rest_default_additional_properties_to_false( $child_schema );
 				}
 			}
 		}
