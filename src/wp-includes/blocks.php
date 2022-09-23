@@ -215,8 +215,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		$style_uri  = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . "/style$suffix.css" );
 	}
 
-	$block_dir       = dirname( $metadata['file'] );
-	$style_path_norm = wp_normalize_path( realpath( $block_dir . '/' . $style_path ) );
+	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
 	$is_theme_block  = 0 === strpos( $style_path_norm, $theme_path_norm );
 
 	if ( $is_theme_block ) {
