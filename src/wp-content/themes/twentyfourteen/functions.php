@@ -323,7 +323,7 @@ if ( ! function_exists( 'twentyfourteen_fonts_urls' ) ) :
 		 * by Lato, translate this to 'off'. Do not translate into your own language.
 		 */
 		if ( 'off' !== _x( 'on', 'Lato font: on or off', 'twentyfourteen' ) ) {
-			$font_urls['lato'] = get_stylesheet_directory_uri() . '/fonts/lato/font-lato.css';
+			$font_urls['lato'] = get_template_directory_uri() . '/fonts/lato/font-lato.css';
 		}
 
 		/**
