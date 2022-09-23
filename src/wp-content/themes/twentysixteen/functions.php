@@ -330,7 +330,7 @@ if ( ! function_exists( 'twentysixteen_fonts_urls' ) ) :
 		 * by Merriweather, translate this to 'off'. Do not translate into your own language.
 		 */
 		if ( 'off' !== _x( 'on', 'Merriweather font: on or off', 'twentysixteen' ) ) {
-			$font_urls['merriweather'] = get_stylesheet_directory_uri() . '/fonts/merriweather/font-merriweather.css';
+			$font_urls['merriweather'] = get_template_directory_uri() . '/fonts/merriweather/font-merriweather.css';
 		}
 
 		/*
@@ -338,7 +338,7 @@ if ( ! function_exists( 'twentysixteen_fonts_urls' ) ) :
 		 * by Montserrat, translate this to 'off'. Do not translate into your own language.
 		 */
 		if ( 'off' !== _x( 'on', 'Montserrat font: on or off', 'twentysixteen' ) ) {
-			$font_urls['montserrat'] = get_stylesheet_directory_uri() . '/fonts/montserrat/font-montserrat.css';
+			$font_urls['montserrat'] = get_template_directory_uri() . '/fonts/montserrat/font-montserrat.css';
 		}
 
 		/*
@@ -346,7 +346,7 @@ if ( ! function_exists( 'twentysixteen_fonts_urls' ) ) :
 		 * by Inconsolata, translate this to 'off'. Do not translate into your own language.
 		 */
 		if ( 'off' !== _x( 'on', 'Inconsolata font: on or off', 'twentysixteen' ) ) {
-			$font_urls['inconsolata'] = get_stylesheet_directory_uri() . '/fonts/inconsolata/font-inconsolata.css';
+			$font_urls['inconsolata'] = get_template_directory_uri() . '/fonts/inconsolata/font-inconsolata.css';
 		}
 
 		/**
