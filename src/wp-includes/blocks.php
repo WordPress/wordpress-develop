@@ -234,7 +234,10 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		array(),
 		$version
 	);
-	if ( file_exists( str_replace( '.css', '-rtl.css', $style_file ) ) ) {
+	
+	wp_style_add_data( $style_handle, 'suffix', $suffix );
+	
+	if ( file_exists( str_replace( "$suffix.css", "-rtl$suffix.css", $style_file ) ) ) {
 		wp_style_add_data( $style_handle, 'rtl', 'replace' );
 	}
 	if ( $has_style_file ) {
