@@ -1355,6 +1355,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string $path Directory path.
 	 */
 	public function rmdir( $path ) {
+		if ( ! is_dir( $path ) ) {
+			return;
+		}
+
 		$files = $this->files_in_dir( $path );
 		foreach ( $files as $file ) {
 			if ( ! in_array( $file, self::$ignore_files, true ) ) {
@@ -1362,9 +1366,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			}
 		}
 
-		// If there were no ignored files, remove the empty directory.
+		/*
+		 * If there were no ignored files, remove the empty directory.
+		 * If there are any nested empty directories, remove them too.
+		 */
 		if ( ! array_intersect( $files, self::$ignore_files ) ) {
-			rmdir( $path );
+			$this->delete_folders( $path );
 		}
 	}
 
