@@ -1349,6 +1349,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * Does not delete files if their paths are set in the `$ignore_files` property.
 	 *
+	 * @since 4.0.0
+	 * @since 6.1.0 Removes the empty directory if there are no files left.
+	 *
 	 * @param string $path Directory path.
 	 */
 	public function rmdir( $path ) {
@@ -1357,6 +1360,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			if ( ! in_array( $file, self::$ignore_files, true ) ) {
 				$this->unlink( $file );
 			}
+		}
+
+		// If there were no ignored files, remove the empty directory.
+		if ( ! array_intersect( $files, self::$ignore_files ) ) {
+			rmdir( $path );
 		}
 	}
 
