@@ -91,7 +91,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			unlink( DIR_TESTDATA . '/link-manager.zip' );
 		}
 
- 		if ( file_exists( WP_PLUGIN_DIR . '/link-manager/link-manager.php' ) ) {
+		if ( file_exists( WP_PLUGIN_DIR . '/link-manager/link-manager.php' ) ) {
 			$this->rmdir( WP_PLUGIN_DIR . '/link-manager' );
 		}
 
