@@ -84,7 +84,10 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	public function tear_down() {
 		if ( file_exists( WP_PLUGIN_DIR . '/test-plugin/test-plugin.php' ) ) {
+			// Remove plugin files.
 			$this->rmdir( WP_PLUGIN_DIR . '/test-plugin' );
+			// Delete empty directory.
+			rmdir( WP_PLUGIN_DIR . '/test-plugin' );
 		}
 
 		if ( file_exists( DIR_TESTDATA . '/link-manager.zip' ) ) {
@@ -92,7 +95,10 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		}
 
 		if ( file_exists( WP_PLUGIN_DIR . '/link-manager/link-manager.php' ) ) {
+			// Remove plugin files.
 			$this->rmdir( WP_PLUGIN_DIR . '/link-manager' );
+			// Delete empty directory.
+			rmdir( WP_PLUGIN_DIR . '/link-manager' );
 		}
 
 		parent::tear_down();

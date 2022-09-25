@@ -295,6 +295,8 @@ if ( is_multisite() ) :
 
 			// Cleanup.
 			$this->remove_added_uploads();
+			rmdir( $upload_dir['basedir'] . '/2/1' );
+
 			restore_current_blog();
 		}
 
