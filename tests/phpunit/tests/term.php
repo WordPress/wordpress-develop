@@ -262,7 +262,7 @@ class Tests_Term extends WP_UnitTestCase {
 		$post_id  = self::$post_ids[0];
 		$expected = wp_set_object_terms( $post_id, $name, 'category', false );
 		$actual   = wp_set_object_terms( $post_id, $name, 'category', false );
-		$this->assertArrayEqualsWithObject( $expected, $actual );
+		$this->assertEqualSets( $expected, $actual );
 	}
 
 	/**

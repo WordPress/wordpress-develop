@@ -424,7 +424,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 			)
 		);
 		// Confirm the defaults.
-		$this->assertArrayEqualsWithObject( $pages, $pages_default_args );
+		$this->assertEqualSets( $pages, $pages_default_args );
 
 		/*
 		 * Here's the tree we are testing:
@@ -468,7 +468,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertArrayEqualsWithObject( $pages, $default_args );
+		$this->assertEqualSets( $pages, $default_args );
 
 		/*
 		 * Page tree:

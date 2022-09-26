@@ -3584,7 +3584,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$query2 = new WP_Comment_Query( array( 'status' => 'all' ) );
 		$this->assertNotEmpty( $query2->query_vars );
 		$this->assertNotEmpty( $query2->comments );
-		$this->assertArrayEqualsWithObject( $query2->comments, $query1->get_comments() );
+		$this->assertEqualSets( $query2->comments, $query1->get_comments() );
 	}
 
 	/**
