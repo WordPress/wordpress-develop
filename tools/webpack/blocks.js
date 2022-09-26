@@ -13,112 +13,28 @@ const DependencyExtractionPlugin = require( '@wordpress/dependency-extraction-we
  * Internal dependencies
  */
 const { normalizeJoin, stylesTransform, baseConfig, baseDir } = require( './shared' );
+const {
+	isDynamic,
+	toDirectoryName,
+	getStableBlocksMetadata,
+} = require( '../release/sync-stable-blocks' );
 
 module.exports = function( env = { environment: 'production', watch: false, buildTarget: false } ) {
 	const mode = env.environment;
 	const suffix = mode === 'production' ? '.min' : '';
 	let buildTarget = env.buildTarget ? env.buildTarget : ( mode === 'production' ? 'build' : 'src' );
-	buildTarget = buildTarget  + '/wp-includes';
+	buildTarget = buildTarget + '/wp-includes';
 
-	const dynamicBlockFolders = [
-		'archives',
-		'avatar',
-		'block',
-		'calendar',
-		'categories',
-		'comment-author-name',
-		'comment-content',
-		'comment-date',
-		'comment-edit-link',
-		'comment-reply-link',
-		'comment-template',
-		'comments',
-		'comments-pagination',
-		'comments-pagination-next',
-		'comments-pagination-numbers',
-		'comments-pagination-previous',
-		'comments-title',
-		'cover',
-		'file',
-		'gallery',
-		'home-link',
-		'image',
-		'latest-comments',
-		'latest-posts',
-		'loginout',
-		'navigation',
-		'navigation-link',
-		'navigation-submenu',
-		'page-list',
-		'pattern',
-		'post-author',
-		'post-author-biography',
-		'post-comments-form',
-		'post-content',
-		'post-date',
-		'post-excerpt',
-		'post-featured-image',
-		'post-navigation-link',
-		'post-template',
-		'post-terms',
-		'post-title',
-		'query',
-		'query-no-results',
-		'query-pagination',
-		'query-pagination-next',
-		'query-pagination-numbers',
-		'query-pagination-previous',
-		'query-title',
-		'read-more',
-		'rss',
-		'search',
-		'shortcode',
-		'site-logo',
-		'site-tagline',
-		'site-title',
-		'social-link',
-		'tag-cloud',
-		'template-part',
-		'term-description',
-	];
-	const blockFolders = [
-		'audio',
-		'button',
-		'buttons',
-		'code',
-		'column',
-		'columns',
-		'embed',
-		'freeform',
-		'group',
-		'heading',
-		'html',
-		'list',
-		'list-item',
-		'media-text',
-		'missing',
-		'more',
-		'nextpage',
-		'paragraph',
-		'preformatted',
-		'pullquote',
-		'quote',
-		'separator',
-		'social-links',
-		'spacer',
-		'table',
-		'text-columns',
-		'verse',
-		'video',
-		...dynamicBlockFolders,
-	];
+	const blocks = getStableBlocksMetadata();
+	const dynamicBlockFolders = blocks.filter( isDynamic ).map( toDirectoryName );
+	const blockFolders = blocks.map( toDirectoryName );
 	const blockPHPFiles = {
 		'widgets/src/blocks/legacy-widget/index.php': 'wp-includes/blocks/legacy-widget.php',
 		'widgets/src/blocks/widget-group/index.php': 'wp-includes/blocks/widget-group.php',
 		...dynamicBlockFolders.reduce( ( files, blockName ) => {
 			files[ `block-library/src/${ blockName }/index.php` ] = `wp-includes/blocks/${ blockName }.php`;
 			return files;
-		} , {} ),
+		}, {} ),
 	};
 	const blockMetadataFiles = {
 		'widgets/src/blocks/legacy-widget/block.json': 'wp-includes/blocks/legacy-widget/block.json',
@@ -126,7 +42,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		...blockFolders.reduce( ( files, blockName ) => {
 			files[ `block-library/src/${ blockName }/block.json` ] = `wp-includes/blocks/${ blockName }/block.json`;
 			return files;
-		} , {} ),
+		}, {} ),
 	};
 
 	const blockPHPCopies = Object.keys( blockPHPFiles ).map( ( filename ) => ( {
@@ -163,7 +79,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 				// Inject the `IS_GUTENBERG_PLUGIN` global, used for feature flagging.
 				'process.env.IS_GUTENBERG_PLUGIN': false,
 				'process.env.FORCE_REDUCED_MOTION': JSON.stringify(
-					process.env.FORCE_REDUCED_MOTION
+					process.env.FORCE_REDUCED_MOTION,
 				),
 			} ),
 			new DependencyExtractionPlugin( {
