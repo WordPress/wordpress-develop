@@ -1127,23 +1127,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	}
 
 	/**
-	 * A wrapper method for assertEquals() to indicate known, acceptable usage of assertEquals()
-	 * when comparing arrays that contain an object.
-	 *
-	 * This gives a more accurate picture of `assertEquals()` usage that needs to be reviewed with
-	 * each release.
-	 *
-	 * @since 6.1.0
-	 *
-	 * @param array  $expected Expected array containing an object.
-	 * @param array  $actual   Array to check containing an object.
-	 * @param string $message  Optional. Message to display when the assertion fails.
-	 */
-	public function assertArrayEqualsWithObject( $expected, $actual, $message = '' ) {
-		$this->assertEquals( $expected, $actual, $message );
-	}
-
-	/**
 	 * Helper function to convert a single-level array containing text strings to a named data provider.
 	 *
 	 * The value of the data set will also be used as the name of the data set.
