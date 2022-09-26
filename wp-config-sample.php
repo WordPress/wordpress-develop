@@ -83,7 +83,8 @@ define( 'WP_DEBUG', false );
 
 /* Add any custom values between this line and the "stop editing" line. */
 
-
+define( 'WP_HOME', 'https://valterlorran-test-org-wordpress-develop-g46wjp7rq63ppx9-80.githubpreview.dev/' );
+define( 'WP_SITEURL', 'https://valterlorran-test-org-wordpress-develop-g46wjp7rq63ppx9-80.githubpreview.dev/' );
 
 /* That's all, stop editing! Happy publishing. */
 
