@@ -3640,3 +3640,19 @@ function _wp_theme_json_webfonts_handler() {
 	add_action( 'wp_enqueue_scripts', $fn_generate_and_enqueue_styles );
 	add_action( 'admin_init', $fn_generate_and_enqueue_editor_styles );
 }
+
+/**
+ * Loads classic theme styles on classic themes.
+ *
+ * This is needed for backwards compatibility for button blocks specifically.
+ */
+function gutenberg_enqueue_classic_theme_styles() {
+	if ( ! wp_is_block_theme() ) {
+		wp_register_style( 'classic-theme-styles', "/wp-includes/css/dist/block-library/classic.css", array(), true );
+		wp_enqueue_style( 'classic-theme-styles' );
+	}
+}
+// To load classic theme styles on the frontend.
+add_action( 'wp_enqueue_scripts', 'gutenberg_enqueue_classic_theme_styles' );
+// To load classic theme styles in the the editor.
+add_action( 'admin_enqueue_scripts', 'gutenberg_enqueue_classic_theme_styles' );
