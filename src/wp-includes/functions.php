@@ -5332,7 +5332,7 @@ function absint( $maybeint ) {
 /**
  * Marks a function as deprecated and inform when it has been used.
  *
- * There is a {@see 'hook deprecated_function_run'} that will be called that can be used
+ * There is a hook {@see 'deprecated_function_run'} that will be called that can be used
  * to get the backtrace up to what file and function called the deprecated
  * function.
  *
@@ -5888,15 +5888,24 @@ function apache_mod_loaded( $mod, $default = false ) {
 		return false;
 	}
 
+	$loaded_mods = array();
+
 	if ( function_exists( 'apache_get_modules' ) ) {
-		$mods = apache_get_modules();
-		if ( in_array( $mod, $mods, true ) ) {
+		$loaded_mods = apache_get_modules();
+
+		if ( in_array( $mod, $loaded_mods, true ) ) {
 			return true;
 		}
-	} elseif ( function_exists( 'phpinfo' ) && false === strpos( ini_get( 'disable_functions' ), 'phpinfo' ) ) {
-			ob_start();
-			phpinfo( 8 );
-			$phpinfo = ob_get_clean();
+	}
+
+	if ( empty( $loaded_mods )
+		&& function_exists( 'phpinfo' )
+		&& false === strpos( ini_get( 'disable_functions' ), 'phpinfo' )
+	) {
+		ob_start();
+		phpinfo( INFO_MODULES );
+		$phpinfo = ob_get_clean();
+
 		if ( false !== strpos( $phpinfo, $mod ) ) {
 			return true;
 		}

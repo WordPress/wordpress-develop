@@ -55,7 +55,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
-    continue-on-error: ${{ matrix.os == 'windows-latest' }}
     strategy:
       fail-fast: false
       matrix:
@@ -82,20 +81,20 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Build WordPress
-        run: npm run build
-
-      - name: Clean after building
-        run: npm run grunt clean
-
-      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
-        run: git diff --exit-code
-
       - name: Build WordPress in /src
         run: npm run build:dev
 
       - name: Clean after building in /src
         run: npm run grunt clean -- --dev
+
+      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
+        run: git diff --exit-code
+
+      - name: Build WordPress
+        run: npm run build
+
+      - name: Clean after building
+        run: npm run grunt clean
 
       - name: Ensure version-controlled files are not modified or deleted during building and cleaning
         run: git diff --exit-code
@@ -119,7 +118,7 @@ jobs:
   test-npm-macos:
     name: Test NPM on MacOS
     runs-on: macos-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     steps:
       - name: Checkout repository
@@ -142,20 +141,20 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Build WordPress
-        run: npm run build
-
-      - name: Clean after building
-        run: npm run grunt clean
-
-      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
-        run: git diff --exit-code
-
       - name: Build WordPress in /src
         run: npm run build:dev
 
       - name: Clean after building in /src
         run: npm run grunt clean -- --dev
+
+      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
+        run: git diff --exit-code
+
+      - name: Build WordPress
+        run: npm run build
+
+      - name: Clean after building
+        run: npm run grunt clean
 
       - name: Ensure version-controlled files are not modified or deleted during building and cleaning
         run: git diff --exit-code
