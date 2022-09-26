@@ -86,6 +86,11 @@ function get_option( $option, $default = false ) {
 		return false;
 	}
 
+	static $queried_options = array();
+	if ( isset( $queried_options[ $option ] ) ) {
+		return $queried_options[ $option ];
+	}
+
 	/*
 	 * Until a proper _deprecated_option() function can be introduced,
 	 * redirect requests to deprecated keys to the new, correct ones.
@@ -179,7 +184,8 @@ function get_option( $option, $default = false ) {
 			 * @param string $option  Option name.
 			 * @param bool   $passed_default Was `get_option()` passed a default value?
 			 */
-			return apply_filters( "default_option_{$option}", $default, $option, $passed_default );
+			$queried_options[ $option ] = apply_filters( "default_option_{$option}", $default, $option, $passed_default );
+			return $queried_options[ $option ];
 		}
 
 		$alloptions = wp_load_alloptions();
@@ -205,7 +211,8 @@ function get_option( $option, $default = false ) {
 					wp_cache_set( 'notoptions', $notoptions, 'options' );
 
 					/** This filter is documented in wp-includes/option.php */
-					return apply_filters( "default_option_{$option}", $default, $option, $passed_default );
+					$queried_options[ $option ] = apply_filters( "default_option_{$option}", $default, $option, $passed_default );
+					return $queried_options[ $option ];
 				}
 			}
 		}
@@ -218,7 +225,8 @@ function get_option( $option, $default = false ) {
 			$value = $row->option_value;
 		} else {
 			/** This filter is documented in wp-includes/option.php */
-			return apply_filters( "default_option_{$option}", $default, $option, $passed_default );
+			$queried_options[ $option ] = apply_filters( "default_option_{$option}", $default, $option, $passed_default );
+			return $queried_options[ $option ];
 		}
 	}
 
@@ -244,7 +252,8 @@ function get_option( $option, $default = false ) {
 	 *                       unserialized prior to being returned.
 	 * @param string $option Option name.
 	 */
-	return apply_filters( "option_{$option}", maybe_unserialize( $value ), $option );
+	$queried_options[ $option ] = apply_filters( "option_{$option}", maybe_unserialize( $value ), $option );
+	return $queried_options[ $option ];
 }
 
 /**
