@@ -3054,28 +3054,26 @@ function _rest_default_additional_properties_to_false( $schema, $types = array()
 
 	// Tree part
 
-	if ( in_array( 'object', $types, true ) ) {
-		foreach ( array( 'properties', 'patternProperties' ) as $keyword ) {
-			if ( isset( $schema[ $keyword ] ) ) {
-				foreach ( $schema[ $keyword ] as $property_key => $child_schema ) {
-					$schema[ $keyword ][ $property_key ] = _rest_default_additional_properties_to_false( $child_schema );
-				}
+	foreach ( array( 'properties', 'patternProperties' ) as $keyword ) {
+		if ( isset( $schema[ $keyword ] ) ) {
+			foreach ( $schema[ $keyword ] as $property_key => $child_schema ) {
+				$schema[ $keyword ][ $property_key ] = _rest_default_additional_properties_to_false( $child_schema );
 			}
-		}
-
-		if ( isset( $schema['additionalProperties'] ) && is_array( $schema['additionalProperties'] ) ) {
-			$schema['additionalProperties'] = _rest_default_additional_properties_to_false( $schema['additionalProperties'] );
-		}
-
-		if ( ! isset( $schema['additionalProperties'] ) ) {
-			$schema['additionalProperties'] = false;
 		}
 	}
 
-	if ( in_array( 'array', $types, true ) ) {
-		if ( isset( $schema['items'] ) ) {
-			$schema['items'] = _rest_default_additional_properties_to_false( $schema['items'] );
-		}
+	if ( isset( $schema['additionalProperties'] ) && is_array( $schema['additionalProperties'] ) ) {
+		$schema['additionalProperties'] = _rest_default_additional_properties_to_false( $schema['additionalProperties'] );
+	}
+
+	if ( isset( $schema['items'] ) ) {
+		$schema['items'] = _rest_default_additional_properties_to_false( $schema['items'] );
+	}
+
+	// The task to perform on each node in MR tree
+
+	if ( in_array( 'object', $types, true ) && ! isset( $schema['additionalProperties'] ) ) {
+		$schema['additionalProperties'] = false;
 	}
 
 	return $schema;
