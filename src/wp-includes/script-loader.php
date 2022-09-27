@@ -3646,7 +3646,7 @@ function _wp_theme_json_webfonts_handler() {
  *
  * This is needed for backwards compatibility for button blocks specifically.
  */
-function gutenberg_enqueue_classic_theme_styles() {
+function wp_enqueue_classic_theme_styles() {
 	if ( ! wp_is_block_theme() ) {
 		wp_register_style( 'classic-theme-styles', "/wp-includes/css/dist/block-library/classic.css", array(), true );
 		wp_enqueue_style( 'classic-theme-styles' );
