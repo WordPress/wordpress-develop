@@ -37,6 +37,11 @@ if ( ! defined( 'WP_ALLOW_REPAIR' ) || ! WP_ALLOW_REPAIR ) {
 	);
 	echo "</p><p><code>define('WP_ALLOW_REPAIR', true);</code></p>";
 
+	/*
+	 * translators: This string should only be translated if wp-config-sample.php is localized.
+	 * You can check the localized release package or
+	 * https://i18n.svn.wordpress.org/<locale code>/branches/<wp version>/dist/wp-config-sample.php
+	 */
 	$default_key     = __( 'put your unique phrase here' );
 	$missing_key     = false;
 	$duplicated_keys = array();
