@@ -15,9 +15,10 @@ You will need Node and npm installed on your computer. Node is a JavaScript runt
 
 * macOS: `brew install node@14`
 * Windows: `choco install nodejs --version=14.20.1`
-* Ubuntu: 01.` sudo apt install curl `
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;02. `curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -`
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;03. `sudo apt install nodejs`
+* Ubuntu: 
+	* `sudo apt install curl`
+	* `curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -`
+	* `sudo apt install nodejs`
 
 **Note:** WordPress currently only supports up to NodeJS 14.x and npm < 7.
 
