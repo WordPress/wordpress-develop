@@ -285,7 +285,7 @@ function wp_cache_flush_runtime() {
  * Removes all cache items in a group, if the object cache implementation supports it.
  *
  * Before calling this function, always check for group flushing support using the
- * `wp_cache_supports_group_flush()` function.
+ * `wp_cache_supports( 'flush_group' )` function.
  *
  * @since 6.1.0
  *
@@ -302,15 +302,15 @@ function wp_cache_flush_group( $group ) {
 }
 
 /**
- * Determines whether the object cache implementation supports flushing individual cache groups.
+ * Determines whether the object cache implementation supports a particular feature.
  *
  * @since 6.1.0
  *
- * @see WP_Object_Cache::flush_group()
- *
- * @return bool True if group flushing is supported, false otherwise.
+ * @param string $feature Name of the feature to check for.
+ *                        Possible values include: 'flush_group'.
+ * @return bool True if the feature is supported, false otherwise.
  */
-function wp_cache_supports_group_flush() {
+function wp_cache_supports( $feature ) {
 	return true;
 }
 
