@@ -223,7 +223,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	}
 
 	$style_handle   = generate_block_asset_handle( $metadata['name'], $field_name, $index );
-	$has_style_file = false !== $style_path_norm;
+	$has_style_file = '' !== $style_path_norm;
 	$version        = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
 	$style_uri      = $has_style_file ? $style_uri : false;
 	$result         = wp_register_style(
