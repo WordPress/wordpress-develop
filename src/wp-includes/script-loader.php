@@ -227,7 +227,6 @@ function wp_register_development_scripts( $scripts ) {
 	if (
 		! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG
 		|| empty( $scripts->registered['react'] )
-		|| defined( 'WP_RUN_CORE_TESTS' )
 	) {
 		return;
 	}
@@ -238,7 +237,11 @@ function wp_register_development_scripts( $scripts ) {
 	);
 
 	foreach ( $development_scripts as $script_name ) {
-		$assets = include ABSPATH . WPINC . '/assets/script-loader-' . $script_name . '.php';
+		$script_path = ABSPATH . WPINC . '/assets/script-loader-' . $script_name . '.php';
+		if ( ! is_readable( $script_path ) ) {
+			return;
+		}
+		$assets = include $script_path;
 		if ( ! is_array( $assets ) ) {
 			return;
 		}
@@ -265,7 +268,15 @@ function wp_register_development_scripts( $scripts ) {
  * @param WP_Scripts $scripts WP_Scripts object.
  */
 function wp_default_packages_scripts( $scripts ) {
-	$suffix = defined( 'WP_RUN_CORE_TESTS' ) ? '.min' : wp_scripts_get_suffix();
+	$suffix      = wp_scripts_get_suffix();
+	$assets_path = ABSPATH . WPINC . "/assets/script-loader-packages{$suffix}.php";
+	// In the case when the development files are missing (e.g. when running unit tests),
+	// we fallback to the production version of assets that are always present.
+	if ( ! $suffix && ! is_readable( $assets_path ) ) {
+		$suffix      = '.min';
+		$assets_path = ABSPATH . WPINC . '/assets/script-loader-packages.min.php';
+	}
+
 	/*
 	 * Expects multidimensional array like:
 	 *
@@ -273,7 +284,7 @@ function wp_default_packages_scripts( $scripts ) {
 	 *     'annotations.js' => array('dependencies' => array(...), 'version' => '...'),
 	 *     'api-fetch.js' => array(...
 	 */
-	$assets = include ABSPATH . WPINC . "/assets/script-loader-packages{$suffix}.php";
+	$assets = include $assets_path;
 
 	foreach ( $assets as $file_name => $package_data ) {
 		$basename = str_replace( $suffix . '.js', '', basename( $file_name ) );
