@@ -216,7 +216,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	$has_style_file  = '' !== $style_path_norm;
 	if ( $has_style_file ) {
 		$style_uri      = plugins_url( $style_path, $metadata['file'] );
-		$is_theme_block = 0 === strpos( $style_path_norm, $theme_path_norm );
+		$is_theme_block = str_starts_with( $style_path_norm, $theme_path_norm );
 		if ( $is_theme_block ) {
 			$style_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $style_path_norm ) );
 		} elseif ( $is_core_block ) {
