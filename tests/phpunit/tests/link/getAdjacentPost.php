@@ -70,20 +70,20 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		// Test normal boundary post.
 		$this->go_to( get_permalink( $post_two->ID ) );
 
-		$this->assertSimilarObject( array( $post_one ), get_boundary_post( false, '', true ) );
-		$this->assertSimilarObject( array( $post_four ), get_boundary_post( false, '', false ) );
+		$this->assertEqualSets( array( $post_one ), get_boundary_post( false, '', true ) );
+		$this->assertEqualSets( array( $post_four ), get_boundary_post( false, '', false ) );
 
 		// Test category boundary post.
 		$this->go_to( get_permalink( $post_one->ID ) );
 
-		$this->assertSimilarObject( array( $post_one ), get_boundary_post( true, '', true, 'category' ) );
-		$this->assertSimilarObject( array( $post_three ), get_boundary_post( true, '', false, 'category' ) );
+		$this->assertEqualSets( array( $post_one ), get_boundary_post( true, '', true, 'category' ) );
+		$this->assertEqualSets( array( $post_three ), get_boundary_post( true, '', false, 'category' ) );
 
 		// Test tag boundary post.
 		$this->go_to( get_permalink( $post_two->ID ) );
 
-		$this->assertSimilarObject( array( $post_two ), get_boundary_post( true, '', true, 'post_tag' ) );
-		$this->assertSimilarObject( array( $post_four ), get_boundary_post( true, '', false, 'post_tag' ) );
+		$this->assertEqualSets( array( $post_two ), get_boundary_post( true, '', true, 'post_tag' ) );
+		$this->assertEqualSets( array( $post_four ), get_boundary_post( true, '', false, 'post_tag' ) );
 	}
 
 	/**
