@@ -53,7 +53,7 @@ jobs:
     steps:
       - name: Determine the status of the previous attempt
         id: previous-attempt-result
-        uses: actions/github-script@c713e510dbd7d213d92d41b7a7805a986f4c5c66 # v6.2.0
+        uses: actions/github-script@d4560e157075e2d93aa3022b5b51a42a880f1f93 # v6.2.0
         with:
           script: |
             const workflow_run = await github.rest.actions.getWorkflowRun({
@@ -116,7 +116,7 @@ jobs:
 
       - name: Get the commit message
         id: current-commit-message
-        uses: actions/github-script@c713e510dbd7d213d92d41b7a7805a986f4c5c66 # v6.2.0
+        uses: actions/github-script@d4560e157075e2d93aa3022b5b51a42a880f1f93 # v6.2.0
         if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
         with:
           script: |

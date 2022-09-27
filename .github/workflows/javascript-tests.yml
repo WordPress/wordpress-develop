@@ -114,7 +114,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@c713e510dbd7d213d92d41b7a7805a986f4c5c66 # v6.2.0
+        uses: actions/github-script@d4560e157075e2d93aa3022b5b51a42a880f1f93 # v6.2.0
         with:
           script: |
             github.rest.actions.createWorkflowDispatch({

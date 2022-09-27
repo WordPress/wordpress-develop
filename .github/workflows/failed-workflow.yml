@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: Rerun a workflow
-        uses: actions/github-script@c713e510dbd7d213d92d41b7a7805a986f4c5c66 # v6.2.0
+        uses: actions/github-script@d4560e157075e2d93aa3022b5b51a42a880f1f93 # v6.2.0
         with:
           script: |
             const workflow_run = await github.rest.actions.getWorkflowRun({
