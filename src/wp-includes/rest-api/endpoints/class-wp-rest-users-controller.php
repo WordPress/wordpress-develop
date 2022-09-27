@@ -715,17 +715,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return $user;
 		}
 
-		$id = $user->ID;
-
-		if ( ! $id ) {
-			return new WP_Error(
-				'rest_user_invalid_id',
-				__( 'Invalid user ID.' ),
-				array( 'status' => 404 )
-			);
-		}
-
+		$id       = $user->ID;
 		$owner_id = false;
+
 		if ( is_string( $request['email'] ) ) {
 			$owner_id = email_exists( $request['email'] );
 		}
