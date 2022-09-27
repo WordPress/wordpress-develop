@@ -13,9 +13,11 @@ You will need a basic understanding of how to use the command line on your compu
 
 You will need Node and npm installed on your computer. Node is a JavaScript runtime used for developer tooling, and npm is the package manager included with Node. If you have a package manager installed for your operating system, setup can be as straightforward as:
 
-* macOS: `brew install node`
-* Windows: `choco install nodejs`
+* macOS: `brew install node@14`
+* Windows: `choco install nodejs --version=14.20.1`
 * Ubuntu: `apt install nodejs npm`
+
+**Note:** WordPress currently only supports up to NodeJS 14.x and npm < 7.
 
 If you are not using a package manager, see the [Node.js download page](https://nodejs.org/en/download/) for installers and binaries.
 
