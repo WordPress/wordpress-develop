@@ -181,8 +181,13 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	}
 
 	$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
-	$theme_path_norm = wp_normalize_path( get_theme_file_path() );
-	$is_core_block   = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
+
+	// Cache $theme_path_norm to avoid calling get_theme_file_path() multiple times.
+	static $theme_path_norm = '';
+	if ( ! $theme_path_norm ) {
+		$theme_path_norm = wp_normalize_path( get_theme_file_path() );
+	}
+	$is_core_block = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
 	// Skip registering individual styles for each core block when a bundled version provided.
 	if ( $is_core_block && ! wp_should_load_separate_core_block_assets() ) {
 		return false;
@@ -220,7 +225,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		if ( $is_theme_block ) {
 			$style_uri = get_theme_file_uri( str_replace( $theme_path_norm, '', $style_path_norm ) );
 		} elseif ( $is_core_block ) {
-			$style_uri  = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . "/style$suffix.css" );
+			$style_uri = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . "/style$suffix.css" );
 		}
 	} else {
 		$style_uri = false;
