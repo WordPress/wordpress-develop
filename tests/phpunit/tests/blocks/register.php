@@ -380,13 +380,13 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	public function test_register_nonexistent_stylesheet() {
 		$metadata = array(
 			'file'  => DIR_TESTDATA . '/blocks/notice/block.json',
-			'name'  => 'unit-tests/test-block',
+			'name'  => 'unit-tests/test-block-nonexistent',
 			'style' => 'file:./nonexistent.css',
 		);
 		register_block_style_handle( $metadata, 'style' );
 
 		global $wp_styles;
-		$this->assertFalse( $wp_styles->registered['unit-tests-test-block-style']->src );
+		$this->assertFalse( $wp_styles->registered['unit-tests-test-block-nonexistent-style']->src );
 	}
 
 	/**
