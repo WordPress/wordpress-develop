@@ -264,7 +264,6 @@ jobs:
         uses: actions/github-script@d4560e157075e2d93aa3022b5b51a42a880f1f93 # v6.3.0
         with:
           retries: 2
-          retryAfter: 10
           retry-exempt-status-codes: 418
           script: |
             github.rest.actions.createWorkflowDispatch({
