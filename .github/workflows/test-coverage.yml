@@ -213,6 +213,7 @@ jobs:
         with:
           retries: 2
           retryAfter: 10
+          retry-exempt-status-codes: 418
           script: |
             github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,

@@ -28,6 +28,7 @@ jobs:
         with:
           retries: 2
           retryAfter: 10
+          retry-exempt-status-codes: 418
           script: |
             const workflow_run = await github.rest.actions.getWorkflowRun({
               owner: context.repo.owner,
