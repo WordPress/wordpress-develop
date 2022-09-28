@@ -733,8 +733,9 @@ class WP_Theme_JSON {
 		$blocks   = $registry->get_all_registered();
 
 		if ( null !== static::$blocks_metadata ) {
-			$missing_blocks = array_diff_key( $blocks, static::$blocks_metadata );
-			if ( count( $missing_blocks ) === 0 ) {
+			// Do we have metadata for all currently registered blocks?
+			$blocks = array_diff_key( $blocks, static::$blocks_metadata );
+			if ( count( $blocks ) === 0 ) {
 				return static::$blocks_metadata;
 			}
 		}
