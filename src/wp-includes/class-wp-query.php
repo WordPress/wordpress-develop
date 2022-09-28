@@ -3100,7 +3100,7 @@ class WP_Query {
 			}
 
 			$cache_key   = "wp_query:$key:$last_changed";
-			$cache_found = false;
+			$cache_found = '';
 			if ( null === $this->posts ) {
 				$cache_found = wp_cache_get( $cache_key, 'posts', false, $cache_found );
 
