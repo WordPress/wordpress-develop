@@ -2520,6 +2520,25 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 51986
+	 */
+	public function test_route_args_is_array_of_arrays() {
+		$this->setExpectedIncorrectUsage( 'register_rest_route' );
+
+		$registered = register_rest_route(
+			'my-ns/v1',
+			'/my-route',
+			array(
+				'callback'            => '__return_true',
+				'permission_callback' => '__return_true',
+				'args'                => array( 'pattern' ),
+			)
+		);
+
+		$this->assertTrue( $registered );
+	}
+
+	/**
 	 * @ticket 56494
 	 *
 	 * @dataProvider data_rest_default_additional_properties_to_false
@@ -3059,6 +3078,42 @@ class Tests_REST_API extends WP_UnitTestCase {
 					),
 				),
 			),
+			'oneOf local & base type'                      => array(
+				array(
+					'type'                 => array( 'boolean', 'array', 'object' ),
+					'oneOf'                => array(
+						array(
+							'type' => 'boolean',
+						),
+						array(
+							'type'  => 'array',
+							'items' => array( 'type' => 'string' ),
+						),
+						array(
+							'type'                 => 'object',
+							'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+							'additionalProperties' => false,
+						),
+					),
+					'additionalProperties' => false,
+				),
+				array(
+					'type'  => array( 'boolean', 'array', 'object' ),
+					'oneOf' => array(
+						array(
+							'type' => 'boolean',
+						),
+						array(
+							'type'  => 'array',
+							'items' => array( 'type' => 'string' ),
+						),
+						array(
+							'type'       => 'object',
+							'properties' => array( 'a' => array( 'type' => 'string' ) ),
+						),
+					),
+				),
+			),
 			'oneOf base object type'                       => array(
 				array(
 					'type'                 => 'object',
@@ -3373,5 +3428,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 			),
 		);
+
+		$this->assertTrue( $registered );
 	}
 }

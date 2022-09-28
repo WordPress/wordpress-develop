@@ -103,6 +103,18 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 				'5.5.0'
 			);
 		}
+
+		if ( count( array_filter( $arg_group['args'], 'is_array' ) ) !== count( $arg_group['args'] ) ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				sprintf(
+				/* translators: %s: The REST API route being registered. */
+					__( 'REST API $args should be an array of arrays. Non-array value detected for %s.' ),
+					'<code>' . $clean_namespace . '/' . trim( $route, '/' ) . '</code>'
+				),
+				'6.1.0'
+			);
+		}
 	}
 
 	$full_route = '/' . $clean_namespace . '/' . trim( $route, '/' );
@@ -3043,6 +3055,9 @@ function _rest_default_additional_properties_to_false( $schema, $types = array()
 	}
 
 	// Forest part
+	// If we set a base schema with 'type' on 'allOf', 'anyOf', 'oneOf', then we do not need to set the 'type' on the child schemas.
+	// Instead we need to propagate the base schema's 'type' to the child schemas, in order to perform the "Task" on them too.
+	// Hence we make the recursive call with '$types' parameter passed to the function.
 
 	foreach ( array( 'allOf', 'anyOf', 'oneOf' ) as $keyword ) {
 		if ( isset( $schema[ $keyword ] ) ) {
@@ -3070,7 +3085,7 @@ function _rest_default_additional_properties_to_false( $schema, $types = array()
 		$schema['items'] = _rest_default_additional_properties_to_false( $schema['items'] );
 	}
 
-	// The task to perform on each node in MR tree
+	// Task to be performed on $schema
 
 	if ( in_array( 'object', $types, true ) && ! isset( $schema['additionalProperties'] ) ) {
 		$schema['additionalProperties'] = false;
