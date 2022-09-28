@@ -168,12 +168,10 @@ class WP_List_Util {
 					$newlist[ $key ] = $value->$field;
 				} elseif ( is_array( $value ) ) {
 					$newlist[ $key ] = $value[ $field ];
-				}
-
-				if ( ! ( is_object( $value ) || is_array( $value ) ) ) {
+				} else {
 					_doing_it_wrong(
 						__FUNCTION__,
-						__( 'Value for `$this->output` must be either an object or an array for this function.' ),
+						__( 'Values for the input array must be either objects or arrays.' ),
 						'6.1.0'
 					);
 				}
@@ -201,12 +199,10 @@ class WP_List_Util {
 				} else {
 					$newlist[] = $value[ $field ];
 				}
-			}
-
-			if ( ! ( is_object( $value ) || is_array( $value ) ) ) {
+			} else {
 				_doing_it_wrong(
 					__FUNCTION__,
-					__( 'Value for `$this->output` must be either an object or an array for this function.' ),
+					__( 'Values for the input array must be either objects or arrays.' ),
 					'6.1.0'
 				);
 			}
