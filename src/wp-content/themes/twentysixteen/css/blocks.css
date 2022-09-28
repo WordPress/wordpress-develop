@@ -160,7 +160,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 }
 
 .wp-block-pullquote blockquote {
-	color: #686868;
+	color: inherit;
 	border-left: 4px solid #1a1a1a;
 	margin: 0;
 	padding: 0 0 0 24px;
@@ -178,7 +178,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 }
 
 .wp-block-pullquote cite {
-	color: #1a1a1a;
+	color: inherit;
 	display: block;
 	font-size: 16px;
 	font-size: 1rem;
