@@ -3454,8 +3454,8 @@ class WP_Query {
 			/** @var WP_Post[] */
 			$this->posts = array_map( 'get_post', $this->posts );
 
-			if ( $q['cache_results'] ) {
-				_prime_post_caches( $post_ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+			if ( $q['cache_results'] && ! wp_using_ext_object_cache() ) {
+				update_post_caches( $this->posts, $post_type, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 			}
 
 			/** @var WP_Post */
