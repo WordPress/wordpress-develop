@@ -103,6 +103,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * Test WP_Customize_Manager::save().
 	 *
 	 * @ticket 30937
+	 *
 	 * @covers WP_Customize_Manager::save
 	 */
 	public function test_save_failures() {
@@ -270,6 +271,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * Test WP_Customize_Manager::save().
 	 *
 	 * @ticket 30937
+	 *
 	 * @covers WP_Customize_Manager::save
 	 */
 	public function test_save_success_publish_create() {
@@ -299,12 +301,13 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * Test WP_Customize_Manager::save().
 	 *
 	 * @ticket 30937
+	 *
 	 * @covers WP_Customize_Manager::save
 	 */
 	public function test_save_success_publish_edit() {
 		$uuid = wp_generate_uuid4();
 
-		$post_id      = $this->factory()->post->create(
+		$post_id      = self::factory()->post->create(
 			array(
 				'post_name'    => $uuid,
 				'post_title'   => 'Original',
@@ -338,11 +341,12 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * Test WP_Customize_Manager::save().
 	 *
 	 * @ticket 38943
+	 *
 	 * @covers WP_Customize_Manager::save
 	 */
 	public function test_success_save_post_date() {
 		$uuid         = wp_generate_uuid4();
-		$post_id      = $this->factory()->post->create(
+		$post_id      = self::factory()->post->create(
 			array(
 				'post_name'    => $uuid,
 				'post_title'   => 'Original',
@@ -436,12 +440,13 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * Test WP_Customize_Manager::save().
 	 *
 	 * @ticket 39896
+	 *
 	 * @covers WP_Customize_Manager::save
 	 */
 	public function test_save_autosave() {
 		$uuid = wp_generate_uuid4();
 
-		$post_id = $this->factory()->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_name'    => $uuid,
 				'post_type'    => 'customize_changeset',
@@ -482,6 +487,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * Test request for trashing a changeset.
 	 *
 	 * @ticket 39896
+	 *
 	 * @covers WP_Customize_Manager::handle_changeset_trash_request
 	 */
 	public function test_handle_changeset_trash_request() {
@@ -608,12 +614,12 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 		$this->assertFalse( $this->_last_response_parsed['success'] );
 		$this->assertSame( 'no_auto_draft_to_delete', $this->_last_response_parsed['data'] );
 
-		$other_user_id = $this->factory()->user->create();
+		$other_user_id = self::factory()->user->create();
 
 		// Create auto-drafts.
 		$user_auto_draft_ids = array();
 		for ( $i = 0; $i < 3; $i++ ) {
-			$user_auto_draft_ids[] = $this->factory()->post->create(
+			$user_auto_draft_ids[] = self::factory()->post->create(
 				array(
 					'post_name'    => wp_generate_uuid4(),
 					'post_type'    => 'customize_changeset',
@@ -625,7 +631,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 		}
 		$other_user_auto_draft_ids = array();
 		for ( $i = 0; $i < 3; $i++ ) {
-			$other_user_auto_draft_ids[] = $this->factory()->post->create(
+			$other_user_auto_draft_ids[] = self::factory()->post->create(
 				array(
 					'post_name'    => wp_generate_uuid4(),
 					'post_type'    => 'customize_changeset',

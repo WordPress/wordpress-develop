@@ -295,8 +295,6 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 	/**
 	 * Helper method retrieve the created terms.
 	 *
-	 * @uses get_terms
-	 *
 	 * @param array $get_terms_args Options passed to get_terms()
 	 *
 	 * @return array

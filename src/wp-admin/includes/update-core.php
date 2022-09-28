@@ -843,6 +843,8 @@ $_old_files = array(
 	'wp-includes/blocks/tag-cloud/editor.min.css',
 	'wp-includes/blocks/tag-cloud/editor-rtl.css',
 	'wp-includes/blocks/tag-cloud/editor-rtl.min.css',
+	// 6.0
+	'wp-content/themes/twentytwentytwo/assets/fonts/LICENSE.md',
 );
 
 /**
@@ -869,19 +871,20 @@ $_old_files = array(
 global $_new_bundled_files;
 
 $_new_bundled_files = array(
-	'plugins/akismet/'        => '2.0',
-	'themes/twentyten/'       => '3.0',
-	'themes/twentyeleven/'    => '3.2',
-	'themes/twentytwelve/'    => '3.5',
-	'themes/twentythirteen/'  => '3.6',
-	'themes/twentyfourteen/'  => '3.8',
-	'themes/twentyfifteen/'   => '4.1',
-	'themes/twentysixteen/'   => '4.4',
-	'themes/twentyseventeen/' => '4.7',
-	'themes/twentynineteen/'  => '5.0',
-	'themes/twentytwenty/'    => '5.3',
-	'themes/twentytwentyone/' => '5.6',
-	'themes/twentytwentytwo/' => '5.9',
+	'plugins/akismet/'          => '2.0',
+	'themes/twentyten/'         => '3.0',
+	'themes/twentyeleven/'      => '3.2',
+	'themes/twentytwelve/'      => '3.5',
+	'themes/twentythirteen/'    => '3.6',
+	'themes/twentyfourteen/'    => '3.8',
+	'themes/twentyfifteen/'     => '4.1',
+	'themes/twentysixteen/'     => '4.4',
+	'themes/twentyseventeen/'   => '4.7',
+	'themes/twentynineteen/'    => '5.0',
+	'themes/twentytwenty/'      => '5.3',
+	'themes/twentytwentyone/'   => '5.6',
+	'themes/twentytwentytwo/'   => '5.9',
+	'themes/twentytwentythree/' => '6.1',
 );
 
 /**
@@ -1012,7 +1015,7 @@ function update_core( $from, $to ) {
 	require WP_CONTENT_DIR . '/upgrade/version-current.php';
 	$wp_filesystem->delete( $versions_file );
 
-	$php_version       = phpversion();
+	$php_version       = PHP_VERSION;
 	$mysql_version     = $wpdb->db_version();
 	$old_wp_version    = $GLOBALS['wp_version']; // The version of WordPress we're updating from.
 	$development_build = ( false !== strpos( $old_wp_version . $wp_version, '-' ) ); // A dash in the version indicates a development release.
@@ -1166,7 +1169,7 @@ function update_core( $from, $to ) {
 			if ( $files_not_writable ) {
 				return new WP_Error(
 					'files_not_writable',
-					__( 'The update cannot be installed because we will be unable to copy some files. This is usually due to inconsistent file permissions.' ),
+					__( 'The update cannot be installed because your site is unable to copy some files. This is usually due to inconsistent file permissions.' ),
 					implode( ', ', $error_data )
 				);
 			}
@@ -1186,7 +1189,7 @@ function update_core( $from, $to ) {
 	apply_filters( 'update_feedback', __( 'Copying the required files&#8230;' ) );
 
 	// Copy new versions of WP files into place.
-	$result = _copy_dir( $from . $distro, $to, $skip );
+	$result = copy_dir( $from . $distro, $to, $skip );
 
 	if ( is_wp_error( $result ) ) {
 		$result = new WP_Error(
@@ -1202,7 +1205,7 @@ function update_core( $from, $to ) {
 			$wp_filesystem->delete( $from, true );
 			$result = new WP_Error(
 				'copy_failed_for_version_file',
-				__( 'The update cannot be installed because we will be unable to copy some files. This is usually due to inconsistent file permissions.' ),
+				__( 'The update cannot be installed because your site is unable to copy some files. This is usually due to inconsistent file permissions.' ),
 				'wp-includes/version.php'
 			);
 		}
@@ -1264,7 +1267,7 @@ function update_core( $from, $to ) {
 		if ( $available_space && $total_size >= $available_space ) {
 			$result = new WP_Error( 'disk_full', __( 'There is not enough free disk space to complete the update.' ) );
 		} else {
-			$result = _copy_dir( $from . $distro, $to, $skip );
+			$result = copy_dir( $from . $distro, $to, $skip );
 
 			if ( is_wp_error( $result ) ) {
 				$result = new WP_Error(
@@ -1455,95 +1458,6 @@ function update_core( $from, $to ) {
 	}
 
 	return $wp_version;
-}
-
-/**
- * Copies a directory from one location to another via the WordPress Filesystem Abstraction.
- *
- * Assumes that WP_Filesystem() has already been called and setup.
- *
- * This is a standalone copy of the `copy_dir()` function that is used to
- * upgrade the core files. It is placed here so that the version of this
- * function from the *new* WordPress version will be called.
- *
- * It was initially added for the 3.1 -> 3.2 upgrade.
- *
- * @ignore
- * @since 3.2.0
- * @since 3.7.0 Updated not to use a regular expression for the skip list.
- *
- * @see copy_dir()
- * @link https://core.trac.wordpress.org/ticket/17173
- *
- * @global WP_Filesystem_Base $wp_filesystem
- *
- * @param string   $from      Source directory.
- * @param string   $to        Destination directory.
- * @param string[] $skip_list Array of files/folders to skip copying.
- * @return true|WP_Error True on success, WP_Error on failure.
- */
-function _copy_dir( $from, $to, $skip_list = array() ) {
-	global $wp_filesystem;
-
-	$dirlist = $wp_filesystem->dirlist( $from );
-
-	if ( false === $dirlist ) {
-		return new WP_Error( 'dirlist_failed__copy_dir', __( 'Directory listing failed.' ), basename( $to ) );
-	}
-
-	$from = trailingslashit( $from );
-	$to   = trailingslashit( $to );
-
-	foreach ( (array) $dirlist as $filename => $fileinfo ) {
-		if ( in_array( $filename, $skip_list, true ) ) {
-			continue;
-		}
-
-		if ( 'f' === $fileinfo['type'] ) {
-			if ( ! $wp_filesystem->copy( $from . $filename, $to . $filename, true, FS_CHMOD_FILE ) ) {
-				// If copy failed, chmod file to 0644 and try again.
-				$wp_filesystem->chmod( $to . $filename, FS_CHMOD_FILE );
-
-				if ( ! $wp_filesystem->copy( $from . $filename, $to . $filename, true, FS_CHMOD_FILE ) ) {
-					return new WP_Error( 'copy_failed__copy_dir', __( 'Could not copy file.' ), $to . $filename );
-				}
-			}
-
-			/*
-			 * `wp_opcache_invalidate()` only exists in WordPress 5.5 or later,
-			 * so don't run it when upgrading from older versions.
-			 */
-			if ( function_exists( 'wp_opcache_invalidate' ) ) {
-				wp_opcache_invalidate( $to . $filename );
-			}
-		} elseif ( 'd' === $fileinfo['type'] ) {
-			if ( ! $wp_filesystem->is_dir( $to . $filename ) ) {
-				if ( ! $wp_filesystem->mkdir( $to . $filename, FS_CHMOD_DIR ) ) {
-					return new WP_Error( 'mkdir_failed__copy_dir', __( 'Could not create directory.' ), $to . $filename );
-				}
-			}
-
-			/*
-			 * Generate the $sub_skip_list for the subdirectory as a sub-set
-			 * of the existing $skip_list.
-			 */
-			$sub_skip_list = array();
-
-			foreach ( $skip_list as $skip_item ) {
-				if ( 0 === strpos( $skip_item, $filename . '/' ) ) {
-					$sub_skip_list[] = preg_replace( '!^' . preg_quote( $filename, '!' ) . '/!i', '', $skip_item );
-				}
-			}
-
-			$result = _copy_dir( $from . $filename, $to . $filename, $sub_skip_list );
-
-			if ( is_wp_error( $result ) ) {
-				return $result;
-			}
-		}
-	}
-
-	return true;
 }
 
 /**

@@ -5,6 +5,7 @@
  * @package WordPress
  * @since 2.0.0
  */
+#[AllowDynamicProperties]
 class WP {
 	/**
 	 * Public query variables.
@@ -407,12 +408,14 @@ class WP {
 	 * If showing a feed, it will also send Last-Modified, ETag, and 304 status if needed.
 	 *
 	 * @since 2.0.0
-	 * @since 4.4.0 `X-Pingback` header is added conditionally after posts have been queried in handle_404().
+	 * @since 4.4.0 `X-Pingback` header is added conditionally for single posts that allow pings.
+	 * @since 6.1.0 Runs after posts have been queried.
 	 */
 	public function send_headers() {
 		$headers       = array();
 		$status        = null;
 		$exit_required = false;
+		$date_format   = 'D, d M Y H:i:s';
 
 		if ( is_user_logged_in() ) {
 			$headers = array_merge( $headers, wp_get_nocache_headers() );
@@ -420,7 +423,7 @@ class WP {
 			// Unmoderated comments are only visible for 10 minutes via the moderation hash.
 			$expires = 10 * MINUTE_IN_SECONDS;
 
-			$headers['Expires']       = gmdate( 'D, d M Y H:i:s', time() + $expires );
+			$headers['Expires']       = gmdate( $date_format, time() + $expires );
 			$headers['Cache-Control'] = sprintf(
 				'max-age=%d, must-revalidate',
 				$expires
@@ -459,13 +462,19 @@ class WP {
 					)
 				)
 			) {
-				$wp_last_modified = mysql2date( 'D, d M Y H:i:s', get_lastcommentmodified( 'GMT' ), false );
+				$wp_last_modified_post    = mysql2date( $date_format, get_lastpostmodified( 'GMT' ), false );
+				$wp_last_modified_comment = mysql2date( $date_format, get_lastcommentmodified( 'GMT' ), false );
+				if ( strtotime( $wp_last_modified_post ) > strtotime( $wp_last_modified_comment ) ) {
+					$wp_last_modified = $wp_last_modified_post;
+				} else {
+					$wp_last_modified = $wp_last_modified_comment;
+				}
 			} else {
-				$wp_last_modified = mysql2date( 'D, d M Y H:i:s', get_lastpostmodified( 'GMT' ), false );
+				$wp_last_modified = mysql2date( $date_format, get_lastpostmodified( 'GMT' ), false );
 			}
 
 			if ( ! $wp_last_modified ) {
-				$wp_last_modified = gmdate( 'D, d M Y H:i:s' );
+				$wp_last_modified = gmdate( $date_format );
 			}
 
 			$wp_last_modified .= ' GMT';
@@ -493,6 +502,15 @@ class WP {
 					( ( $client_modified_timestamp >= $wp_modified_timestamp ) || ( $client_etag == $wp_etag ) ) ) {
 				$status        = 304;
 				$exit_required = true;
+			}
+		}
+
+		if ( is_singular() ) {
+			$post = isset( $wp_query->post ) ? $wp_query->post : null;
+
+			// Only set X-Pingback for single posts that allow pings.
+			if ( $post && pings_open( $post ) ) {
+				$headers['X-Pingback'] = get_bloginfo( 'pingback_url', 'display' );
 			}
 		}
 
@@ -693,14 +711,9 @@ class WP {
 
 			if ( is_singular() ) {
 				$post = isset( $wp_query->post ) ? $wp_query->post : null;
-
-				// Only set X-Pingback for single posts that allow pings.
-				if ( $post && pings_open( $post ) && ! headers_sent() ) {
-					header( 'X-Pingback: ' . get_bloginfo( 'pingback_url', 'display' ) );
-				}
+				$next = '<!--nextpage-->';
 
 				// Check for paged content that exceeds the max number of pages.
-				$next = '<!--nextpage-->';
 				if ( $post && ! empty( $this->query_vars['page'] ) ) {
 					// Check if content is actually intended to be paged.
 					if ( false !== strpos( $post->post_content, $next ) ) {
@@ -762,13 +775,13 @@ class WP {
 
 		$parsed = $this->parse_request( $query_args );
 
-		$this->send_headers();
-
 		if ( $parsed ) {
 			$this->query_posts();
 			$this->handle_404();
 			$this->register_globals();
 		}
+
+		$this->send_headers();
 
 		/**
 		 * Fires once the WordPress environment has been set up.

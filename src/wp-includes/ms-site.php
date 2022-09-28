@@ -339,7 +339,7 @@ function get_site( $site = null ) {
  *
  * @since 4.6.0
  * @since 5.1.0 Introduced the `$update_meta_cache` parameter.
- * @access private
+ * @since 6.1.0 This function is no longer marked as "private".
  *
  * @see update_site_cache()
  * @global wpdb $wpdb WordPress database abstraction object.
@@ -1247,7 +1247,7 @@ function wp_maybe_transition_site_statuses_on_update( $new_site, $old_site = nul
  * @since 5.1.0
  *
  * @param WP_Site $new_site The site object after the update.
- * @param WP_Site $old_site The site obejct prior to the update.
+ * @param WP_Site $old_site The site object prior to the update.
  */
 function wp_maybe_clean_new_site_cache_on_update( $new_site, $old_site ) {
 	if ( $old_site->domain !== $new_site->domain || $old_site->path !== $new_site->path ) {

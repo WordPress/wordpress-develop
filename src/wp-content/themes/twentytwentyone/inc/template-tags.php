@@ -88,7 +88,7 @@ if ( ! function_exists( 'twenty_twenty_one_entry_meta_footer' ) ) {
 			// Edit post link.
 			edit_post_link(
 				sprintf(
-					/* translators: %s: Name of current post. Only visible to screen readers. */
+					/* translators: %s: Post title. Only visible to screen readers. */
 					esc_html__( 'Edit %s', 'twentytwentyone' ),
 					'<span class="screen-reader-text">' . get_the_title() . '</span>'
 				),
@@ -129,7 +129,7 @@ if ( ! function_exists( 'twenty_twenty_one_entry_meta_footer' ) ) {
 			// Edit post link.
 			edit_post_link(
 				sprintf(
-					/* translators: %s: Name of current post. Only visible to screen readers. */
+					/* translators: %s: Post title. Only visible to screen readers. */
 					esc_html__( 'Edit %s', 'twentytwentyone' ),
 					'<span class="screen-reader-text">' . get_the_title() . '</span>'
 				),
@@ -203,7 +203,7 @@ if ( ! function_exists( 'twenty_twenty_one_post_thumbnail' ) ) {
 				<?php if ( wp_get_attachment_caption( get_post_thumbnail_id() ) ) : ?>
 					<figcaption class="wp-caption-text"><?php echo wp_kses_post( wp_get_attachment_caption( get_post_thumbnail_id() ) ); ?></figcaption>
 				<?php endif; ?>
-			</figure>
+			</figure><!-- .post-thumbnail -->
 
 		<?php endif; ?>
 		<?php

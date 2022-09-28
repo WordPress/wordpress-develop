@@ -1584,6 +1584,7 @@ function utf8_uri_encode( $utf8_string, $length = 0, $encode_ascii_characters = 
  * @since 4.8.0 Added locale support for `bs_BA`.
  * @since 5.7.0 Added locale support for `de_AT`.
  * @since 6.0.0 Added the `$locale` parameter.
+ * @since 6.1.0 Added Unicode NFC encoding normalization support.
  *
  * @param string $string Text that might have accent characters.
  * @param string $locale Optional. The locale to use for accent removal. Some character
@@ -1597,6 +1598,15 @@ function remove_accents( $string, $locale = '' ) {
 	}
 
 	if ( seems_utf8( $string ) ) {
+
+		// Unicode sequence normalization from NFD (Normalization Form Decomposed)
+		// to NFC (Normalization Form [Pre]Composed), the encoding used in this function.
+		if ( function_exists( 'normalizer_normalize' ) ) {
+			if ( ! normalizer_is_normalized( $string, Normalizer::FORM_C ) ) {
+				$string = normalizer_normalize( $string, Normalizer::FORM_C );
+			}
+		}
+
 		$chars = array(
 			// Decompositions for Latin-1 Supplement.
 			'ª' => 'a',
@@ -2774,9 +2784,6 @@ function untrailingslashit( $string ) {
 
 /**
  * Adds slashes to a string or recursively adds slashes to strings within an array.
- *
- * Slashes will first be removed if magic_quotes_gpc is set, see {@link
- * https://www.php.net/magic_quotes} for more details.
  *
  * @since 0.71
  *
@@ -4334,8 +4341,8 @@ function _deep_replace( $search, $subject ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string|array $data Unescaped data
- * @return string|array Escaped data
+ * @param string|array $data Unescaped data.
+ * @return string|array Escaped data, in the same type as supplied.
  */
 function esc_sql( $data ) {
 	global $wpdb;
@@ -4354,7 +4361,7 @@ function esc_sql( $data ) {
  * @param string   $url       The URL to be cleaned.
  * @param string[] $protocols Optional. An array of acceptable protocols.
  *                            Defaults to return value of wp_allowed_protocols().
- * @param string   $_context  Private. Use esc_url_raw() for database usage.
+ * @param string   $_context  Private. Use sanitize_url() for database usage.
  * @return string The cleaned URL after the {@see 'clean_url'} filter is applied.
  *                An empty string is returned if `$url` specifies a protocol other than
  *                those in `$protocols`, or if `$url` contains an empty string.
@@ -4458,9 +4465,30 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
 }
 
 /**
- * Performs esc_url() for database or redirect usage.
+ * Sanitizes a URL for database or redirect usage.
+ *
+ * This function is an alias for sanitize_url().
  *
  * @since 2.8.0
+ * @since 6.1.0 Turned into an alias for sanitize_url().
+ *
+ * @see sanitize_url()
+ *
+ * @param string   $url       The URL to be cleaned.
+ * @param string[] $protocols Optional. An array of acceptable protocols.
+ *                            Defaults to return value of wp_allowed_protocols().
+ * @return string The cleaned URL after sanitize_url() is run.
+ */
+function esc_url_raw( $url, $protocols = null ) {
+	return sanitize_url( $url, $protocols );
+}
+
+/**
+ * Sanitizes a URL for database or redirect usage.
+ *
+ * @since 2.3.1
+ * @since 2.8.0 Deprecated in favor of esc_url_raw().
+ * @since 5.9.0 Restored (un-deprecated).
  *
  * @see esc_url()
  *
@@ -4469,28 +4497,8 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
  *                            Defaults to return value of wp_allowed_protocols().
  * @return string The cleaned URL after esc_url() is run with the 'db' context.
  */
-function esc_url_raw( $url, $protocols = null ) {
-	return esc_url( $url, $protocols, 'db' );
-}
-
-/**
- * Performs esc_url() for database or redirect usage.
- *
- * This function is an alias for esc_url_raw().
- *
- * @since 2.3.1
- * @since 2.8.0 Deprecated in favor of esc_url_raw().
- * @since 5.9.0 Restored (un-deprecated).
- *
- * @see esc_url_raw()
- *
- * @param string   $url       The URL to be cleaned.
- * @param string[] $protocols Optional. An array of acceptable protocols.
- *                            Defaults to return value of wp_allowed_protocols().
- * @return string The cleaned URL after esc_url() is run with the 'db' context.
- */
 function sanitize_url( $url, $protocols = null ) {
-	return esc_url_raw( $url, $protocols );
+	return esc_url( $url, $protocols, 'db' );
 }
 
 /**
@@ -4829,7 +4837,7 @@ function sanitize_option( $option, $value ) {
 		case 'ping_sites':
 			$value = explode( "\n", $value );
 			$value = array_filter( array_map( 'trim', $value ) );
-			$value = array_filter( array_map( 'esc_url_raw', $value ) );
+			$value = array_filter( array_map( 'sanitize_url', $value ) );
 			$value = implode( "\n", $value );
 			break;
 
@@ -4843,7 +4851,7 @@ function sanitize_option( $option, $value ) {
 				$error = $value->get_error_message();
 			} else {
 				if ( preg_match( '#http(s?)://(.+)#i', $value ) ) {
-					$value = esc_url_raw( $value );
+					$value = sanitize_url( $value );
 				} else {
 					$error = __( 'The WordPress address you entered did not appear to be a valid URL. Please enter a valid URL.' );
 				}
@@ -4856,7 +4864,7 @@ function sanitize_option( $option, $value ) {
 				$error = $value->get_error_message();
 			} else {
 				if ( preg_match( '#http(s?)://(.+)#i', $value ) ) {
-					$value = esc_url_raw( $value );
+					$value = sanitize_url( $value );
 				} else {
 					$error = __( 'The Site address you entered did not appear to be a valid URL. Please enter a valid URL.' );
 				}
@@ -4915,7 +4923,7 @@ function sanitize_option( $option, $value ) {
 			break;
 
 		case 'timezone_string':
-			$allowed_zones = timezone_identifiers_list();
+			$allowed_zones = timezone_identifiers_list( DateTimeZone::ALL_WITH_BC );
 			if ( ! in_array( $value, $allowed_zones, true ) && ! empty( $value ) ) {
 				$error = __( 'The timezone you have entered is not valid. Please select a valid timezone.' );
 			}
@@ -4928,7 +4936,7 @@ function sanitize_option( $option, $value ) {
 			if ( is_wp_error( $value ) ) {
 				$error = $value->get_error_message();
 			} else {
-				$value = esc_url_raw( $value );
+				$value = sanitize_url( $value );
 				$value = str_replace( 'http://', '', $value );
 			}
 
@@ -5579,7 +5587,7 @@ function sanitize_trackback_urls( $to_ping ) {
 			unset( $urls_to_ping[ $k ] );
 		}
 	}
-	$urls_to_ping = array_map( 'esc_url_raw', $urls_to_ping );
+	$urls_to_ping = array_map( 'sanitize_url', $urls_to_ping );
 	$urls_to_ping = implode( "\n", $urls_to_ping );
 	/**
 	 * Filters a list of trackback URLs following sanitization.
@@ -5605,7 +5613,7 @@ function sanitize_trackback_urls( $to_ping ) {
  * @since 5.5.0 Non-string values are left untouched.
  *
  * @param string|array $value String or array of data to slash.
- * @return string|array Slashed `$value`.
+ * @return string|array Slashed `$value`, in the same type as supplied.
  */
 function wp_slash( $value ) {
 	if ( is_array( $value ) ) {
@@ -5628,7 +5636,7 @@ function wp_slash( $value ) {
  * @since 3.6.0
  *
  * @param string|array $value String or array of data to unslash.
- * @return string|array Unslashed `$value`.
+ * @return string|array Unslashed `$value`, in the same type as supplied.
  */
 function wp_unslash( $value ) {
 	return stripslashes_deep( $value );
@@ -5648,7 +5656,7 @@ function get_url_in_content( $content ) {
 	}
 
 	if ( preg_match( '/<a\s[^>]*?href=([\'"])(.+?)\1/is', $content, $matches ) ) {
-		return esc_url_raw( $matches[2] );
+		return sanitize_url( $matches[2] );
 	}
 
 	return false;
@@ -5787,14 +5795,14 @@ function _print_emoji_detection_script() {
 
 	if ( SCRIPT_DEBUG ) {
 		$settings['source'] = array(
-			/** This filter is documented in wp-includes/class.wp-scripts.php */
+			/** This filter is documented in wp-includes/class-wp-scripts.php */
 			'wpemoji' => apply_filters( 'script_loader_src', includes_url( "js/wp-emoji.js?$version" ), 'wpemoji' ),
-			/** This filter is documented in wp-includes/class.wp-scripts.php */
+			/** This filter is documented in wp-includes/class-wp-scripts.php */
 			'twemoji' => apply_filters( 'script_loader_src', includes_url( "js/twemoji.js?$version" ), 'twemoji' ),
 		);
 	} else {
 		$settings['source'] = array(
-			/** This filter is documented in wp-includes/class.wp-scripts.php */
+			/** This filter is documented in wp-includes/class-wp-scripts.php */
 			'concatemoji' => apply_filters( 'script_loader_src', includes_url( "js/wp-emoji-release.min.js?$version" ), 'concatemoji' ),
 		);
 	}
