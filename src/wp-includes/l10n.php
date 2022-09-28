@@ -1064,10 +1064,10 @@ function load_script_textdomain( $handle, $domain = 'default', $path = null ) {
 	if ( ! isset( $wp_scripts->registered[ $handle ] ) ) {
 		return false;
 	}
-	if(!is_null($path)) {
+	if ( ! is_null( $path ) ) {
 		//removing slashes from null doesn't make sense
+		$path   = untrailingslashit( $path );
 	}
-	$path   = untrailingslashit( $path );
 	$locale = determine_locale();
 
 	// If a path was given and the handle file exists simply return it.
