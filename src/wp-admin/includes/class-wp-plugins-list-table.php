@@ -576,16 +576,15 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			}
 
 			if ( 'search' !== $type ) {
-				$status_links[ $type ] = sprintf(
-					"<a href='%s'%s>%s</a>",
-					add_query_arg( 'plugin_status', $type, 'plugins.php' ),
-					( $type === $status ) ? ' class="current" aria-current="page"' : '',
-					sprintf( $text, number_format_i18n( $count ) )
+				$status_links[ $type ] = array(
+					'url'     => add_query_arg( 'plugin_status', $type, 'plugins.php' ),
+					'label'   => sprintf( $text, number_format_i18n( $count ) ),
+					'current' => $type === $status,
 				);
 			}
 		}
 
-		return $status_links;
+		return $this->get_views_links( $status_links );
 	}
 
 	/**
@@ -752,7 +751,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$plugin_name = $plugin_file;
 
 			if ( $plugin_file !== $plugin_data['Name'] ) {
-				$plugin_name .= '<br/>' . $plugin_data['Name'];
+				$plugin_name .= '<br />' . $plugin_data['Name'];
 			}
 
 			if ( true === ( $dropins[ $plugin_file ][1] ) ) { // Doesn't require a constant.

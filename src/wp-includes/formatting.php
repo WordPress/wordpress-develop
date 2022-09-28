@@ -4923,7 +4923,7 @@ function sanitize_option( $option, $value ) {
 			break;
 
 		case 'timezone_string':
-			$allowed_zones = timezone_identifiers_list();
+			$allowed_zones = timezone_identifiers_list( DateTimeZone::ALL_WITH_BC );
 			if ( ! in_array( $value, $allowed_zones, true ) && ! empty( $value ) ) {
 				$error = __( 'The timezone you have entered is not valid. Please select a valid timezone.' );
 			}
@@ -5795,14 +5795,14 @@ function _print_emoji_detection_script() {
 
 	if ( SCRIPT_DEBUG ) {
 		$settings['source'] = array(
-			/** This filter is documented in wp-includes/class.wp-scripts.php */
+			/** This filter is documented in wp-includes/class-wp-scripts.php */
 			'wpemoji' => apply_filters( 'script_loader_src', includes_url( "js/wp-emoji.js?$version" ), 'wpemoji' ),
-			/** This filter is documented in wp-includes/class.wp-scripts.php */
+			/** This filter is documented in wp-includes/class-wp-scripts.php */
 			'twemoji' => apply_filters( 'script_loader_src', includes_url( "js/twemoji.js?$version" ), 'twemoji' ),
 		);
 	} else {
 		$settings['source'] = array(
-			/** This filter is documented in wp-includes/class.wp-scripts.php */
+			/** This filter is documented in wp-includes/class-wp-scripts.php */
 			'concatemoji' => apply_filters( 'script_loader_src', includes_url( "js/wp-emoji-release.min.js?$version" ), 'concatemoji' ),
 		);
 	}

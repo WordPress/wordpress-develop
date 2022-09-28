@@ -23,15 +23,14 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	protected static $hooks_saved = array();
 	protected static $ignore_files;
 
-	public function __isset( $name ) {
-		return 'factory' === $name;
-	}
-
-	public function __get( $name ) {
-		if ( 'factory' === $name ) {
-			return self::factory();
-		}
-	}
+	/**
+	 * Fixture factory.
+	 *
+	 * @deprecated 6.1.0 Use the WP_UnitTestCase_Base::factory() method instead.
+	 *
+	 * @var WP_UnitTest_Factory
+	 */
+	protected $factory;
 
 	/**
 	 * Fetches the factory object for generating WordPress fixtures.
@@ -102,6 +101,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 */
 	public function set_up() {
 		set_time_limit( 0 );
+
+		$this->factory = self::factory();
 
 		if ( ! self::$ignore_files ) {
 			self::$ignore_files = $this->scan_user_uploads();
@@ -1347,6 +1348,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Selectively deletes files from a directory.
 	 *
 	 * Does not delete files if their paths are set in the `$ignore_files` property.
+	 *
+	 * @since 4.0.0
 	 *
 	 * @param string $path Directory path.
 	 */
