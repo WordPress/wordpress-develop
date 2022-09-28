@@ -73,14 +73,14 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 	 * We escape the menu & submenu title with wp_kses.
 	 */
 	$allowed_html = array(
-	    'a' => array(
-	        'href' => array(),
-	        'title' => array(),
+			'a' => array(
+					'href' => array(),
+					'title' => array(),
 					'class' => array()
-	    ),
-	    'br' => array(),
-	    'em' => array(),
-	    'strong' => array(),
+			),
+			'br' => array(),
+			'em' => array(),
+			'strong' => array(),
 			'span' => array(
 				'class' => array()
 			),
