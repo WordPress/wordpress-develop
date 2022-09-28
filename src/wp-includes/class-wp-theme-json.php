@@ -739,6 +739,7 @@ class WP_Theme_JSON {
 			}
 		}
 
+		static::$blocks_metadata = array();
 		foreach ( $blocks as $block_name => $block_type ) {
 			if (
 				isset( $block_type->supports['__experimentalSelector'] ) &&
