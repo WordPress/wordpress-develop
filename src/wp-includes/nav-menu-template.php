@@ -219,7 +219,7 @@ function wp_nav_menu( $args = array() ) {
 	if ( $menu_items_with_children ) {
 		foreach ( $sorted_menu_items as &$menu_item ) {
 			if (
-				isset( $menu_items_with_children[ $menu_item->ID ] ) && 
+				isset( $menu_items_with_children[ $menu_item->ID ] ) &&
 				( $args->depth <= 0 || $menu_items_with_children[ $menu_item->ID ] < $args->depth )
 			) {
 				$menu_item->classes[] = 'menu-item-has-children';
