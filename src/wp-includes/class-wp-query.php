@@ -3099,24 +3099,24 @@ class WP_Query {
 				$last_changed .= wp_cache_get_last_changed( 'terms' );
 			}
 
-			$cache_key = "wp_query:$key:$last_changed";
-
+			$cache_key   = "wp_query:$key:$last_changed";
+			$cache_found = false;
 			if ( null === $this->posts ) {
-				$cached_results = wp_cache_get( $cache_key, 'posts' );
+				$cache_found = wp_cache_get( $cache_key, 'posts', false, $cache_found );
 
-				if ( $cached_results ) {
+				if ( $cache_found ) {
 					if ( 'ids' === $q['fields'] ) {
 						/** @var int[] */
-						$this->posts = array_map( 'intval', $cached_results['posts'] );
+						$this->posts = array_map( 'intval', $cache_found['posts'] );
 					} else {
-						_prime_post_caches( $cached_results['posts'], $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+						_prime_post_caches( $cache_found['posts'], $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 						/** @var WP_Post[] */
-						$this->posts = array_map( 'get_post', $cached_results['posts'] );
+						$this->posts = array_map( 'get_post', $cache_found['posts'] );
 					}
 
 					$this->post_count    = count( $this->posts );
-					$this->found_posts   = $cached_results['found_posts'];
-					$this->max_num_pages = $cached_results['max_num_pages'];
+					$this->found_posts   = $cache_found['found_posts'];
+					$this->max_num_pages = $cache_found['max_num_pages'];
 
 					if ( 'ids' === $q['fields'] ) {
 						return $this->posts;
@@ -3256,7 +3256,7 @@ class WP_Query {
 			$this->posts = array_map( 'get_post', $this->posts );
 		}
 
-		if ( $q['cache_results'] && $id_query_is_cacheable ) {
+		if ( $q['cache_results'] && $id_query_is_cacheable && ! $cache_found ) {
 			$post_ids = wp_list_pluck( $this->posts, 'ID' );
 
 			$cache_value = array(
@@ -3455,7 +3455,7 @@ class WP_Query {
 			$this->posts = array_map( 'get_post', $this->posts );
 
 			if ( $q['cache_results'] ) {
-				update_post_caches( $this->posts, $post_type, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+				_prime_post_caches( $post_ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 			}
 
 			/** @var WP_Post */
