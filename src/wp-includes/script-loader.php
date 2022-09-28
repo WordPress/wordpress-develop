@@ -34,6 +34,10 @@ require ABSPATH . WPINC . '/class-wp-styles.php';
 /** WordPress Styles Functions */
 require ABSPATH . WPINC . '/functions.wp-styles.php';
 
+if ( ! defined( 'WP_ASSET_SUFFIX_MIN' ) ) {
+	define( 'WP_ASSET_SUFFIX_MIN', '.min' );
+}
+
 /**
  * Registers TinyMCE scripts.
  *
@@ -273,8 +277,8 @@ function wp_default_packages_scripts( $scripts ) {
 	// In the case when the development files are missing (e.g. when running unit tests),
 	// we fallback to the production version of assets that are always present.
 	if ( ! $suffix && ! is_readable( $assets_path ) ) {
-		$suffix      = '.min';
-		$assets_path = ABSPATH . WPINC . '/assets/script-loader-packages.min.php';
+		$suffix      = WP_ASSET_SUFFIX_MIN;
+		$assets_path = ABSPATH . WPINC . "/assets/script-loader-packages{$suffix}.php";
 	}
 
 	/*
@@ -665,8 +669,8 @@ function wp_scripts_get_suffix( $type = '' ) {
 		if ( ! defined( 'SCRIPT_DEBUG' ) ) {
 			define( 'SCRIPT_DEBUG', $develop_src );
 		}
-		$suffix     = SCRIPT_DEBUG ? '' : '.min';
-		$dev_suffix = $develop_src ? '' : '.min';
+		$suffix     = SCRIPT_DEBUG ? '' : WP_ASSET_SUFFIX_MIN;
+		$dev_suffix = $develop_src ? '' : WP_ASSET_SUFFIX_MIN;
 
 		$suffixes = array(
 			'suffix'     => $suffix,
@@ -1531,7 +1535,7 @@ function wp_default_styles( $styles ) {
 	// Register a stylesheet for the selected admin color scheme.
 	$styles->add( 'colors', true, array( 'wp-admin', 'buttons' ) );
 
-	$suffix = SCRIPT_DEBUG ? '' : '.min';
+	$suffix = SCRIPT_DEBUG ? '' : WP_ASSET_SUFFIX_MIN;
 
 	// Admin CSS.
 	$styles->add( 'common', "/wp-admin/css/common$suffix.css" );
