@@ -225,6 +225,15 @@ function build_template_part_block_instance_variations() {
 			),
 		);
 	}
+
+	/*
+	 * Clear Theme JSON block cache so that subsequent block registrations are
+	 * respected when it is next accessed. This is required because `get_block_templates`
+	 * has a side effect of caching the list of currently registered blocks.
+	 */
+	WP_Theme_JSON_Resolver::clean_cached_data();
+	WP_Theme_JSON::clean_cached_data();
+
 	return $variations;
 }
 

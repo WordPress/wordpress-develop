@@ -450,6 +450,15 @@ class WP_Theme_JSON {
 	);
 
 	/**
+	 * Cleans the cached data so it can be recalculated.
+	 *
+	 * @since 6.1.0
+	 */
+	public static function clean_cached_data() {
+		static::$blocks_metadata = null;
+	}
+
+	/**
 	 * Returns a class name by an element name.
 	 *
 	 * @since 6.1.0
