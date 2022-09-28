@@ -74,18 +74,18 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 	 */
 	$allowed_html = array(
 		'a' => array(
-				'href' => array(),
-				'title' => array(),
-				'class' => array()
+			'href' => array(),
+			'title' => array(),
+			'class' => array(),
 		),
 		'br' => array(),
 		'em' => array(),
 		'strong' => array(),
 		'span' => array(
-			'class' => array()
+			'class' => array(),
 		),
 		'i' => array(
-			'class' => array()
+			'class' => array(),
 		),
 	);
 
