@@ -169,6 +169,14 @@ class WP_List_Util {
 				} elseif ( is_array( $value ) ) {
 					$newlist[ $key ] = $value[ $field ];
 				}
+
+				if ( ! ( is_object( $value ) || is_array( $value ) ) ) {
+					_doing_it_wrong(
+						__FUNCTION__,
+						__( 'Value for `$this->output` must be either an object or an array for this function.' ),
+						'6.1.0'
+					);
+				}
 			}
 
 			$this->output = $newlist;
@@ -187,12 +195,20 @@ class WP_List_Util {
 				} else {
 					$newlist[] = $value->$field;
 				}
-			} else {
+			} elseif ( is_array( $value ) ) {
 				if ( isset( $value[ $index_key ] ) ) {
 					$newlist[ $value[ $index_key ] ] = $value[ $field ];
 				} else {
 					$newlist[] = $value[ $field ];
 				}
+			}
+
+			if ( ! ( is_object( $value ) || is_array( $value ) ) ) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					__( 'Value for `$this->output` must be either an object or an array for this function.' ),
+					'6.1.0'
+				);
 			}
 		}
 
