@@ -2096,17 +2096,14 @@ function wp_update_custom_css_post( $css, $args = array() ) {
  * Since version 3.4 the TinyMCE body has .rtl CSS class.
  * It is a better option to use that class and add any RTL styles to the main stylesheet.
  *
- * @param array|string $stylesheet Optional. Stylesheet name or array thereof, relative to theme root.
- *                                 Defaults to 'editor-style.css'
+ * @param array|string $stylesheet Optional. Stylesheet name or array thereof, relative to theme root. Defaults to 'editor-style.css'.
  *
- * @param string $rtl_mode Optional. Whether if the site in RTL mode. Should the RTL style replace the default sheet or be added as well'.
- *                         Set to 'replace' to replace the sheet.
- *                         Defaults to 'add'. @sine 5.9.0
+ * @param string $rtl_mode Optional. Whether if the site in RTL mode. Should the RTL style replace the default sheet or be added as well. Set to 'replace' to replace the sheet.
  *
  * @return void
  *
- *
  * @since 3.0.0
+ * @since 5.9.0 Defaults to 'add'.
  *
  * @global array $editor_styles
  *
