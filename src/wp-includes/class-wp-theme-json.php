@@ -729,14 +729,16 @@ class WP_Theme_JSON {
 	 * @return array Block metadata.
 	 */
 	protected static function get_blocks_metadata() {
-		if ( null !== static::$blocks_metadata ) {
-			return static::$blocks_metadata;
-		}
-
-		static::$blocks_metadata = array();
-
 		$registry = WP_Block_Type_Registry::get_instance();
 		$blocks   = $registry->get_all_registered();
+
+		if ( null !== static::$blocks_metadata ) {
+			$missing_blocks = array_diff_key( $blocks, static::$blocks_metadata );
+			if ( count( $missing_blocks ) === 0 ) {
+				return static::$blocks_metadata;
+			}
+		}
+
 		foreach ( $blocks as $block_name => $block_type ) {
 			if (
 				isset( $block_type->supports['__experimentalSelector'] ) &&
