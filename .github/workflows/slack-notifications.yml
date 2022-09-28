@@ -56,7 +56,6 @@ jobs:
         uses: actions/github-script@d4560e157075e2d93aa3022b5b51a42a880f1f93 # v6.3.0
         with:
           retries: 2
-          retryAfter: 10
           retry-exempt-status-codes: 418
           script: |
             const workflow_run = await github.rest.actions.getWorkflowRun({
@@ -123,7 +122,6 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
         with:
           retries: 2
-          retryAfter: 10
           retry-exempt-status-codes: 418
           script: |
             const commit_details = await github.rest.repos.getCommit({
