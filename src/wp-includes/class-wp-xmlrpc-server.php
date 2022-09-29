@@ -1412,19 +1412,19 @@ class wp_xmlrpc_server extends IXR_Server {
 		$defaults = array(
 			'post_status'    => 'draft',
 			'post_type'      => 'post',
-			'post_author'    => null,
-			'post_password'  => null,
-			'post_excerpt'   => null,
-			'post_content'   => null,
-			'post_title'     => null,
-			'post_date'      => null,
-			'post_date_gmt'  => null,
+			'post_author'    => 0,
+			'post_password'  => '',
+			'post_excerpt'   => '',
+			'post_content'   => '',
+			'post_title'     => '',
+			'post_date'      => '',
+			'post_date_gmt'  => '',
 			'post_format'    => null,
 			'post_name'      => null,
 			'post_thumbnail' => null,
-			'post_parent'    => null,
-			'ping_status'    => null,
-			'comment_status' => null,
+			'post_parent'    => 0,
+			'ping_status'    => '',
+			'comment_status' => '',
 			'custom_fields'  => null,
 			'terms_names'    => null,
 			'terms'          => null,
@@ -1499,11 +1499,11 @@ class wp_xmlrpc_server extends IXR_Server {
 			$post_data['post_author'] = $user->ID;
 		}
 
-		if ( isset( $post_data['comment_status'] ) && 'open' !== $post_data['comment_status'] && 'closed' !== $post_data['comment_status'] ) {
+		if ( 'open' !== $post_data['comment_status'] && 'closed' !== $post_data['comment_status'] ) {
 			unset( $post_data['comment_status'] );
 		}
 
-		if ( isset( $post_data['ping_status'] ) && 'open' !== $post_data['ping_status'] && 'closed' !== $post_data['ping_status'] ) {
+		if ( 'open' !== $post_data['ping_status'] && 'closed' !== $post_data['ping_status'] ) {
 			unset( $post_data['ping_status'] );
 		}
 
@@ -1680,6 +1680,14 @@ class wp_xmlrpc_server extends IXR_Server {
 		 * @param array $content_struct Post data array.
 		 */
 		$post_data = apply_filters( 'xmlrpc_wp_insert_post_data', $post_data, $content_struct );
+
+		// Remove all null values to allow for using the insert/update post default values for those keys instead.
+		$post_data = array_filter(
+			$post_data,
+			static function ( $value ) {
+				return null !== $value;
+			}
+		);
 
 		$post_ID = $update ? wp_update_post( $post_data, true ) : wp_insert_post( $post_data, true );
 		if ( is_wp_error( $post_ID ) ) {
@@ -5399,30 +5407,27 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		// Let WordPress generate the 'post_name' (slug) unless
 		// one has been provided.
-		$post_name = '';
+		$post_name = null;
 		if ( isset( $content_struct['wp_slug'] ) ) {
 			$post_name = $content_struct['wp_slug'];
 		}
 
 		// Only use a password if one was given.
+		$post_password = '';
 		if ( isset( $content_struct['wp_password'] ) ) {
 			$post_password = $content_struct['wp_password'];
-		} else {
-			$post_password = '';
 		}
 
 		// Only set a post parent if one was given.
+		$post_parent = 0;
 		if ( isset( $content_struct['wp_page_parent_id'] ) ) {
 			$post_parent = $content_struct['wp_page_parent_id'];
-		} else {
-			$post_parent = 0;
 		}
 
 		// Only set the 'menu_order' if it was given.
+		$menu_order = 0;
 		if ( isset( $content_struct['wp_page_order'] ) ) {
 			$menu_order = $content_struct['wp_page_order'];
-		} else {
-			$menu_order = 0;
 		}
 
 		$post_author = $user->ID;
@@ -5450,8 +5455,8 @@ class wp_xmlrpc_server extends IXR_Server {
 			$post_author = $content_struct['wp_author_id'];
 		}
 
-		$post_title   = isset( $content_struct['title'] ) ? $content_struct['title'] : null;
-		$post_content = isset( $content_struct['description'] ) ? $content_struct['description'] : null;
+		$post_title   = isset( $content_struct['title'] ) ? $content_struct['title'] : '';
+		$post_content = isset( $content_struct['description'] ) ? $content_struct['description'] : '';
 
 		$post_status = $publish ? 'publish' : 'draft';
 
@@ -5464,15 +5469,15 @@ class wp_xmlrpc_server extends IXR_Server {
 					$post_status = $content_struct[ "{$post_type}_status" ];
 					break;
 				default:
-					$post_status = $publish ? 'publish' : 'draft';
+					// Deliberably left empty.
 					break;
 			}
 		}
 
-		$post_excerpt = isset( $content_struct['mt_excerpt'] ) ? $content_struct['mt_excerpt'] : null;
-		$post_more    = isset( $content_struct['mt_text_more'] ) ? $content_struct['mt_text_more'] : null;
+		$post_excerpt = isset( $content_struct['mt_excerpt'] ) ? $content_struct['mt_excerpt'] : '';
+		$post_more    = isset( $content_struct['mt_text_more'] ) ? $content_struct['mt_text_more'] : '';
 
-		$tags_input = isset( $content_struct['mt_keywords'] ) ? $content_struct['mt_keywords'] : null;
+		$tags_input = isset( $content_struct['mt_keywords'] ) ? $content_struct['mt_keywords'] : array();
 
 		if ( isset( $content_struct['mt_allow_comments'] ) ) {
 			if ( ! is_numeric( $content_struct['mt_allow_comments'] ) ) {
@@ -5536,10 +5541,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		}
 
 		if ( $post_more ) {
-			$post_content = $post_content . '<!--more-->' . $post_more;
+			$post_content .= '<!--more-->' . $post_more;
 		}
 
-		$to_ping = null;
+		$to_ping = '';
 		if ( isset( $content_struct['mt_tb_ping_urls'] ) ) {
 			$to_ping = $content_struct['mt_tb_ping_urls'];
 			if ( is_array( $to_ping ) ) {
@@ -5555,12 +5560,11 @@ class wp_xmlrpc_server extends IXR_Server {
 			$dateCreated = $content_struct['dateCreated']->getIso();
 		}
 
+		$post_date     = '';
+		$post_date_gmt = '';
 		if ( ! empty( $dateCreated ) ) {
 			$post_date     = iso8601_to_datetime( $dateCreated );
 			$post_date_gmt = iso8601_to_datetime( $dateCreated, 'gmt' );
-		} else {
-			$post_date     = '';
-			$post_date_gmt = '';
 		}
 
 		$post_category = array();
@@ -5786,7 +5790,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			$menu_order = $content_struct['wp_page_order'];
 		}
 
-		$page_template = null;
+		$page_template = '';
 		if ( ! empty( $content_struct['wp_page_template'] ) && 'page' === $post_type ) {
 			$page_template = $content_struct['wp_page_template'];
 		}
@@ -5894,7 +5898,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			$post_excerpt = $content_struct['mt_excerpt'];
 		}
 
-		$post_more = isset( $content_struct['mt_text_more'] ) ? $content_struct['mt_text_more'] : null;
+		$post_more = isset( $content_struct['mt_text_more'] ) ? $content_struct['mt_text_more'] : '';
 
 		$post_status = $publish ? 'publish' : 'draft';
 		if ( isset( $content_struct[ "{$post_type}_status" ] ) ) {
@@ -5911,7 +5915,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			}
 		}
 
-		$tags_input = isset( $content_struct['mt_keywords'] ) ? $content_struct['mt_keywords'] : null;
+		$tags_input = isset( $content_struct['mt_keywords'] ) ? $content_struct['mt_keywords'] : array();
 
 		if ( 'publish' === $post_status || 'private' === $post_status ) {
 			if ( 'page' === $post_type && ! current_user_can( 'publish_pages' ) ) {
@@ -5925,7 +5929,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			$post_content = $post_content . '<!--more-->' . $post_more;
 		}
 
-		$to_ping = null;
+		$to_ping = '';
 		if ( isset( $content_struct['mt_tb_ping_urls'] ) ) {
 			$to_ping = $content_struct['mt_tb_ping_urls'];
 			if ( is_array( $to_ping ) ) {
