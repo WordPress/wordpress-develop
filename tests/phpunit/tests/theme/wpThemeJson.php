@@ -3874,4 +3874,19 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Tests that get_property_value static method returns an empty string
+	 * if the path is invalid.
+	 *
+	 * @ticket 56620
+	 */
+	public function test_get_property_value_should_return_string_with_invalid_path() {
+		$reflection_class = new ReflectionClass( WP_Theme_JSON::class );
+
+		$get_property_value_method = $reflection_class->getMethod( 'get_property_value' );
+		$get_property_value_method->setAccessible( true );
+		$result = $get_property_value_method->invoke( null, array(), array( 'non_existent_path' ) );
+		$this->assertSame( '', $result );
+	}
 }
