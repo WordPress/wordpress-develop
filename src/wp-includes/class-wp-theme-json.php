@@ -1720,7 +1720,7 @@ class WP_Theme_JSON {
 		$value = _wp_array_get( $styles, $path, '' );
 
 		// It doesn't make sense to process the value further.
-		if ( in_array( $value, array( '', null ), true ) ) {
+		if ( ( '' === $value ) || ( null === $value ) ) {
 			return '';
 		}
 
