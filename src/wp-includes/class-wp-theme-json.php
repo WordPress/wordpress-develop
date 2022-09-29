@@ -334,6 +334,7 @@ class WP_Theme_JSON {
 			'units'             => null,
 		),
 		'typography'                    => array(
+			'fluid'          => null,
 			'customFontSize' => null,
 			'dropCap'        => null,
 			'fontFamilies'   => null,
