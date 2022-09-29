@@ -984,4 +984,46 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$this->assertContains( $post_id, $post_ids_q2, 'Second query does not include the post ID.' );
 		$this->assertNotSame( $num_queries, get_num_queries(), 'Removing term does not invalidate previous cache.' );
 	}
+	
+	/**
+	 * @ticket 22176
+	 * @dataProvider data_query_cache_with_empty_result_set
+	*/
+	public function test_query_cache_with_empty_result_set( $fields_q1, $fields_q2 ) {
+		_delete_all_posts();
+
+		$args_q1 = array(
+			'fields' => $fields_q1,
+		);
+
+		$query_1  = new WP_Query();
+		$posts_q1 = $query_1->query( $args_q1 );
+		$this->assertEmpty( $posts_q1, 'First query does not return an empty result set.' );
+
+		$args_q2 = array(
+			'fields' => $fields_q2,
+		);
+
+		$num_queries = get_num_queries();
+		$query_2     = new WP_Query();
+		$posts_q2    = $query_2->query( $args_q2 );
+		$this->assertEmpty( $posts_q2, 'Second query does not return an empty result set.' );
+		$this->assertSame( $num_queries, get_num_queries(), 'Second query is not cached.' );
+	}
+
+	public function data_query_cache_with_empty_result_set() {
+		return array(
+			array( '', '' ),
+			array( '', 'ids' ),
+			array( '', 'id=>parent' ),
+
+			array( 'ids', '' ),
+			array( 'ids', 'ids' ),
+			array( 'ids', 'id=>parent' ),
+
+			array( 'id=>parent', '' ),
+			array( 'id=>parent', 'ids' ),
+			array( 'id=>parent', 'id=>parent' ),
+		);
+	}
 }
