@@ -3896,6 +3896,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$get_property_value_method = $reflection_class->getMethod( 'get_property_value' );
 		$get_property_value_method->setAccessible( true );
 		$result = $get_property_value_method->invoke( null, $styles, $path );
+		$get_property_value_method->setAccessible( false );
 		$this->assertSame( '', $result );
 	}
 
