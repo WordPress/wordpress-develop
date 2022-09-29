@@ -3878,6 +3878,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * Tests that get_property_value static method returns an empty string
 	 * if the path is invalid or the value is null.
+	 * Also, this test checks that no "strncmp(): Passing null to parameter #1 ($string1) of type string is deprecated"
+	 * error is thrown on PHP 8.1 and above.
 	 *
 	 * @dataProvider data_get_property_value_should_return_string_for_invalid_paths_or_null_values
 	 * @ticket       56620
