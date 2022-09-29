@@ -248,6 +248,20 @@ class Tests_Block_Supports_WpGetLayoutStyle extends WP_UnitTestCase {
 				),
 				'expected_output' => '.wp-layout{flex-wrap:nowrap;flex-direction:column;align-items:flex-start;}',
 			),
+			'default layout with blockGap to verify converting gap value into valid CSS' => array(
+				'args'            => array(
+					'selector'              => '.wp-block-group.wp-container-6',
+					'layout'                => array(
+						'type' => 'default',
+					),
+					'has_block_gap_support' => true,
+					'gap_value'             => 'var:preset|spacing|70',
+					'block_spacing'         => array(
+						'blockGap' => 'var(--wp--preset--spacing--70)',
+					),
+				),
+				'expected_output' => '.wp-block-group.wp-container-6 > *{margin-block-start:0;margin-block-end:0;}.wp-block-group.wp-container-6.wp-block-group.wp-container-6 > * + *{margin-block-start:var(--wp--preset--spacing--70);margin-block-end:0;}',
+			),
 		);
 	}
 }
