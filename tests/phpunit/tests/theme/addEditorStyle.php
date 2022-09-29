@@ -6,7 +6,7 @@
  * @covers ::add_editor_style
  */
 
-class Test_Add_Editor_Style extends WP_UnitTestCase {
+class Tests_Theme_addEditorStyle extends WP_UnitTestCase {
 	/**
 	 * Reset the editor styles to an empty array.
 	 */
