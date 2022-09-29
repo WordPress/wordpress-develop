@@ -17,7 +17,7 @@ class Tests_Functions_wpRefererField extends WP_UnitTestCase {
 	 * @param mixed $echo Whether to echo or return the referer field.
 	 */
 	public function test_wp_referer_field_should_respect_echo_arg( $echo ) {
-		$actual = $echo ? get_echo( 'wp_referer_field' ) ? wp_referer_field( false );
+		$actual = $echo ? get_echo( 'wp_referer_field' ) : wp_referer_field( false );
 
 		$this->assertSame( '<input type="hidden" name="_wp_http_referer" value="" />', $actual );
 	}
