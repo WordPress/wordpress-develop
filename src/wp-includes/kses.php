@@ -708,9 +708,10 @@ if ( ! CUSTOM_TAGS ) {
  *                                          for the list of accepted context names.
  * @param string[]       $allowed_protocols Optional. Array of allowed URL protocols.
  *                                          Defaults to the result of wp_allowed_protocols().
+ * @param bool           $allowed_comments  Whether or not the HTML comments are allowed.
  * @return string Filtered content containing only the allowed HTML.
  */
-function wp_kses( $string, $allowed_html, $allowed_protocols = array() ) {
+function wp_kses( $string, $allowed_html, $allowed_protocols = array(), $allowed_comments = true ) {
 	if ( empty( $allowed_protocols ) ) {
 		$allowed_protocols = wp_allowed_protocols();
 	}
@@ -719,7 +720,7 @@ function wp_kses( $string, $allowed_html, $allowed_protocols = array() ) {
 	$string = wp_kses_normalize_entities( $string );
 	$string = wp_kses_hook( $string, $allowed_html, $allowed_protocols );
 
-	return wp_kses_split( $string, $allowed_html, $allowed_protocols );
+	return wp_kses_split( $string, $allowed_html, $allowed_protocols, $allowed_comments );
 }
 
 /**
@@ -931,19 +932,22 @@ function wp_kses_version() {
  * @global array[]|string $pass_allowed_html      An array of allowed HTML elements and attributes,
  *                                                or a context name such as 'post'.
  * @global string[]       $pass_allowed_protocols Array of allowed URL protocols.
+ * @global bool           $pass_allowed_comments  Whether or not the HTML comments are allowed.
  *
  * @param string         $string            Content to filter.
  * @param array[]|string $allowed_html      An array of allowed HTML elements and attributes,
  *                                          or a context name such as 'post'. See wp_kses_allowed_html()
  *                                          for the list of accepted context names.
  * @param string[]       $allowed_protocols Array of allowed URL protocols.
+ * @param bool           $allowed_comments  Whether or not the HTML comments are allowed.
  * @return string Content with fixed HTML tags
  */
-function wp_kses_split( $string, $allowed_html, $allowed_protocols ) {
-	global $pass_allowed_html, $pass_allowed_protocols;
+function wp_kses_split( $string, $allowed_html, $allowed_protocols, $allowed_comments ) {
+	global $pass_allowed_html, $pass_allowed_protocols, $pass_allowed_comments;
 
 	$pass_allowed_html      = $allowed_html;
 	$pass_allowed_protocols = $allowed_protocols;
+	$pass_allowed_comments  = $allowed_comments;
 
 	return preg_replace_callback( '%(<!--.*?(-->|$))|(<[^>]*(>|$)|>)%', '_wp_kses_split_callback', $string );
 }
@@ -1008,14 +1012,15 @@ function wp_kses_uri_attributes() {
  * @global array[]|string $pass_allowed_html      An array of allowed HTML elements and attributes,
  *                                                or a context name such as 'post'.
  * @global string[]       $pass_allowed_protocols Array of allowed URL protocols.
+ * @global bool           $pass_allowed_comments  Whether or not the HTML comments are allowed.
  *
  * @param array $match preg_replace regexp matches
  * @return string
  */
 function _wp_kses_split_callback( $match ) {
-	global $pass_allowed_html, $pass_allowed_protocols;
+	global $pass_allowed_html, $pass_allowed_protocols, $pass_allowed_comments;
 
-	return wp_kses_split2( $match[0], $pass_allowed_html, $pass_allowed_protocols );
+	return wp_kses_split2( $match[0], $pass_allowed_html, $pass_allowed_protocols, $pass_allowed_comments );
 }
 
 /**
@@ -1039,9 +1044,10 @@ function _wp_kses_split_callback( $match ) {
  *                                          or a context name such as 'post'. See wp_kses_allowed_html()
  *                                          for the list of accepted context names.
  * @param string[]       $allowed_protocols Array of allowed URL protocols.
+ * @param bool           $allowed_comments  Whether or not the HTML comments are allowed.
  * @return string Fixed HTML element
  */
-function wp_kses_split2( $string, $allowed_html, $allowed_protocols ) {
+function wp_kses_split2( $string, $allowed_html, $allowed_protocols, $allowed_comments ) {
 	$string = wp_kses_stripslashes( $string );
 
 	// It matched a ">" character.
@@ -1049,8 +1055,11 @@ function wp_kses_split2( $string, $allowed_html, $allowed_protocols ) {
 		return '&gt;';
 	}
 
-	// Allow HTML comments.
+	// Detect HTML comments.
 	if ( '<!--' === substr( $string, 0, 4 ) ) {
+		if ( ! $allowed_comments ) {
+			return '';
+		}
 		$string = str_replace( array( '<!--', '-->' ), '', $string );
 		while ( ( $newstring = wp_kses( $string, $allowed_html, $allowed_protocols ) ) != $string ) {
 			$string = $newstring;
@@ -2133,7 +2142,7 @@ function wp_kses_post_deep( $data ) {
  * @return string Filtered content without any HTML.
  */
 function wp_filter_nohtml_kses( $data ) {
-	return addslashes( wp_kses( stripslashes( $data ), 'strip' ) );
+	return addslashes( wp_kses( stripslashes( $data ), 'strip', array(), false ) );
 }
 
 /**
