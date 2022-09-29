@@ -3231,8 +3231,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'type'                 => array( 'array', 'object' ),
 					'oneOf'                => array(
 						array(
-							'items'                => array( 'type' => 'boolean' ),
-							'additionalProperties' => false,
+							'items' => array( 'type' => 'boolean' ),
 						),
 						array(
 							'items'                => array( 'type' => 'null' ),
@@ -3427,38 +3426,24 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'additionalProperties' => true,
 				),
 			),
-		);
-
-		$this->assertTrue( $registered );
-	}
-
-	/**
-	 * @ticket 56494
-	 *
-	 * @dataProvider data_rest_default_additional_properties_to_false_doing_it_wrong
-	 */
-	public function test_rest_default_additional_properties_to_false_doing_it_wrong( $expected, $schema ) {
-		$this->setExpectedIncorrectUsage( '_rest_default_additional_properties_to_false' );
-		$this->assertSame( $expected, rest_default_additional_properties_to_false( $schema ) );
-	}
-
-	public function data_rest_default_additional_properties_to_false_doing_it_wrong() {
-		return array(
-			'missing top level type'   => array(
+			'missing top level type'                       => array(
 				array(
-					'properties' => array(
+					'properties'           => array(
 						'a' => array(
-							'type'       => 'object',
-							'properties' => array( 'aa' => array( 'type' => 'string' ) ),
+							'type'                 => 'object',
+							'properties'           => array( 'aa' => array( 'type' => 'string' ) ),
+							'additionalProperties' => false,
 						),
 						'b' => array(
 							'type'  => 'array',
 							'items' => array(
-								'type'       => 'object',
-								'properties' => array( 'bb' => array( 'type' => 'string' ) ),
+								'type'                 => 'object',
+								'properties'           => array( 'bb' => array( 'type' => 'string' ) ),
+								'additionalProperties' => false,
 							),
 						),
 					),
+					'additionalProperties' => false,
 				),
 				array(
 					'properties' => array(
@@ -3476,7 +3461,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 					),
 				),
 			),
-			'missing inner level type' => array(
+			'missing inner level type'                     => array(
 				array(
 					'type'                 => 'object',
 					'properties'           => array(
@@ -3486,11 +3471,13 @@ class Tests_REST_API extends WP_UnitTestCase {
 							'additionalProperties' => false,
 						),
 						'b' => array(
-							'properties' => array( 'bb' => array( 'type' => 'string' ) ),
+							'properties'           => array( 'bb' => array( 'type' => 'string' ) ),
+							'additionalProperties' => false,
 						),
 						'c' => array(
 							'items' => array(
-								'properties' => array( 'cc' => array( 'type' => 'string' ) ),
+								'properties'           => array( 'cc' => array( 'type' => 'string' ) ),
+								'additionalProperties' => false,
 							),
 						),
 					),
@@ -3515,5 +3502,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 			),
 		);
+
+		$this->assertTrue( $registered );
 	}
 }

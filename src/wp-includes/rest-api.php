@@ -3044,74 +3044,6 @@ function rest_filter_response_by_context( $data, $schema, $context ) {
  * The "Tree part" of the recursion runs on associative arrays such as:
  *     "properties", "patternProperties", "additionalProperties", and "items".
  *
- * @since x.y.z
- *
- * @param array $schema The schema to modify.
- * @param array $types  The list of types.
- * @return array The modified schema.
- */
-function _rest_default_additional_properties_to_false( $schema, $types = array() ) {
-	if ( ! isset( $schema['type'] ) && empty( $types ) ) {
-		foreach ( array( 'items', 'properties', 'patternProperties', 'additionalProperties' ) as $keyword ) {
-			if ( isset( $schema[ $keyword ] ) ) {
-				/* translators: %s: Keyword. */
-				_doing_it_wrong( __FUNCTION__, sprintf( __( 'The "type" schema keyword is required next to the "%s" keyword.' ), $keyword ), 'x.y.z' );
-				return $schema;
-			}
-		}
-	}
-
-	if ( isset( $schema['type'] ) ) {
-		$types = (array) $schema['type'];
-	}
-
-	// Forest part
-	// If we set a base schema with 'type' on 'allOf', 'anyOf', 'oneOf', then we do not need to set the 'type' on the child schemas.
-	// Instead we need to inherit the base schema's 'type' to the children, in order to perform the "Task" on them too.
-	// Hence we make the recursive call with '$types' parameter passed to the function.
-
-	foreach ( array( 'allOf', 'anyOf', 'oneOf' ) as $keyword ) {
-		if ( isset( $schema[ $keyword ] ) ) {
-			foreach ( $schema[ $keyword ] as $index => $child_schema ) {
-				$schema[ $keyword ][ $index ] = _rest_default_additional_properties_to_false( $child_schema, $types );
-			}
-		}
-	}
-
-	// Tree part
-
-	if ( in_array( 'array', $types, true ) ) {
-		if ( isset( $schema['items'] ) ) {
-			$schema['items'] = _rest_default_additional_properties_to_false( $schema['items'] );
-		}
-	}
-
-	if ( in_array( 'object', $types, true ) ) {
-		foreach ( array( 'properties', 'patternProperties' ) as $keyword ) {
-			if ( isset( $schema[ $keyword ] ) ) {
-				foreach ( $schema[ $keyword ] as $property_key => $child_schema ) {
-					$schema[ $keyword ][ $property_key ] = _rest_default_additional_properties_to_false( $child_schema );
-				}
-			}
-		}
-
-		if ( isset( $schema['additionalProperties'] ) && is_array( $schema['additionalProperties'] ) ) {
-			$schema['additionalProperties'] = _rest_default_additional_properties_to_false( $schema['additionalProperties'] );
-		}
-
-		// Task
-
-		if ( ! isset( $schema['additionalProperties'] ) ) {
-			$schema['additionalProperties'] = false;
-		}
-	}
-
-	return $schema;
-}
-
-/**
- * Sets the "additionalProperties" to false by default for all object definitions in the schema.
- *
  * @since 5.5.0
  * @since 5.6.0 Support the "patternProperties" keyword.
  * @since x.y.z Support the "allOf", "anyOf", "oneOf" keywords.
@@ -3120,7 +3052,48 @@ function _rest_default_additional_properties_to_false( $schema, $types = array()
  * @return array The modified schema.
  */
 function rest_default_additional_properties_to_false( $schema ) {
-	return _rest_default_additional_properties_to_false( $schema );
+	if ( isset( $schema['type'] ) ) {
+		$types = (array) $schema['type'];
+	} else {
+		$types = array();
+	}
+
+	// Forest part
+
+	foreach ( array( 'allOf', 'anyOf', 'oneOf' ) as $keyword ) {
+		if ( isset( $schema[ $keyword ] ) ) {
+			foreach ( $schema[ $keyword ] as $index => $child_schema ) {
+				$schema[ $keyword ][ $index ] = rest_default_additional_properties_to_false( $child_schema );
+			}
+		}
+	}
+
+	// Tree part
+
+	if ( isset( $schema['items'] ) ) {
+		$schema['items'] = rest_default_additional_properties_to_false( $schema['items'] );
+	}
+
+	foreach ( array( 'properties', 'patternProperties' ) as $keyword ) {
+		if ( isset( $schema[ $keyword ] ) ) {
+			foreach ( $schema[ $keyword ] as $property_key => $child_schema ) {
+				$schema[ $keyword ][ $property_key ] = rest_default_additional_properties_to_false( $child_schema );
+			}
+		}
+	}
+
+	if ( isset( $schema['additionalProperties'] ) && is_array( $schema['additionalProperties'] ) ) {
+		$schema['additionalProperties'] = rest_default_additional_properties_to_false( $schema['additionalProperties'] );
+	}
+
+	// Task
+
+	if ( ! isset( $schema['additionalProperties'] ) &&
+		( in_array( 'object', $types, true ) || isset( $schema['properties'] ) || isset( $schema['patternProperties'] ) ) ) {
+		$schema['additionalProperties'] = false;
+	}
+
+	return $schema;
 }
 
 /**
