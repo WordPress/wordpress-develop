@@ -18,8 +18,8 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		$this->option_page_comments = get_option( 'page_comments' );
-		$this->comments_per_page = get_option( 'comments_per_page' );
-		$this->thread_comments = get_option( 'thread_comments' );
+		$this->comments_per_page    = get_option( 'comments_per_page' );
+		$this->thread_comments      = get_option( 'thread_comments' );
 		$this->option_posts_per_rss = get_option( 'posts_per_rss' );
 
 		update_option( 'page_comments', true );
