@@ -356,8 +356,8 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertStringEndsWith( '</script>', trim( $actual ) );
 	}
 
-	/** 
-	 * @covers ::wp_oembed_add_host_js() 
+	/**
+	 * @covers ::wp_oembed_add_host_js()
 	 */
 	public function test_add_host_js() {
 		remove_all_filters( 'embed_oembed_html' );
