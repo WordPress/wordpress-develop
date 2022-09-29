@@ -5686,7 +5686,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 		'post_name__in'          => $parts,
 		'post_type'              => $post_types,
 		'post_status'            => get_post_stati(),
-		'posts_per_page'         => - 1,
+		'posts_per_page'         => -1,
 		'update_post_term_cache' => false,
 		'update_post_meta_cache' => false,
 		'no_found_rows'          => true,
@@ -5715,7 +5715,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 			 * ensuring each matches the post ancestry.
 			 */
 			while ( 0 != $p->post_parent && isset( $pages[ $p->post_parent ] ) ) {
-				$count ++;
+				$count++;
 				$parent = $pages[ $p->post_parent ];
 				if ( ! isset( $revparts[ $count ] ) || $parent->post_name != $revparts[ $count ] ) {
 					break;
