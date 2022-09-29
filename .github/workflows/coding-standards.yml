@@ -102,10 +102,18 @@ jobs:
         run: phpcs -i
 
       - name: Run PHPCS on all Core files
-        run: phpcs -q -n --report=checkstyle | cs2pr
+        continue-on-error: true
+        run: phpcs -n --report-full --report-checkstyle=./.cache/phpcs-report.xml
+
+      - name: Show PHPCS results in PR
+        run: cs2pr ./.cache/phpcs-report.xml
 
       - name: Check test suite files for warnings
-        run: phpcs tests -q --report=checkstyle | cs2pr
+        continue-on-error: true
+        run: phpcs tests --report-full --report-checkstyle=./.cache/phpcs-tests-report.xml
+
+      - name: Show test suite scan results in PR
+        run: cs2pr ./.cache/phpcs-tests-report.xml
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code

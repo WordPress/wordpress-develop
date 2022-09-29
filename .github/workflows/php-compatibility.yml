@@ -97,7 +97,11 @@ jobs:
         run: phpcs -i
 
       - name: Run PHP compatibility tests
-        run: phpcs --standard=phpcompat.xml.dist -q --report=checkstyle | cs2pr
+        continue-on-error: true
+        run: phpcs --standard=phpcompat.xml.dist --report-full --report-checkstyle=./.cache/phpcs-compat-report.xml
+
+      - name: Show PHPCompatibility results in PR
+        run: cs2pr ./.cache/phpcs-compat-report.xml
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code
