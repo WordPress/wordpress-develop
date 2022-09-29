@@ -984,7 +984,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$this->assertContains( $post_id, $post_ids_q2, 'Second query does not include the post ID.' );
 		$this->assertNotSame( $num_queries, get_num_queries(), 'Removing term does not invalidate previous cache.' );
 	}
-	
+
 	/**
 	 * @ticket 22176
 	 * @dataProvider data_query_cache_with_empty_result_set
