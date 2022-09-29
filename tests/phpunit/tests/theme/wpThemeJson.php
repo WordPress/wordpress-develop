@@ -3876,29 +3876,13 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_get_property_value_should_return_string_for_invalid_paths_or_null_values().
-	 *
-	 * @return array
-	 */
-	public function data_get_property_value_should_return_string_for_invalid_paths_or_null_values() {
-		return array(
-			'null'         => array(
-				'styles' => array(),
-				'path'   => array('non_existent_path'),
-			),
-			'empty string' => array(
-				'styles' => array( 'some_null_value' => null ),
-				'path'   => array( 'some_null_value' ),
-			),
-		);
-	}
-
-	/**
 	 * Tests that get_property_value static method returns an empty string
 	 * if the path is invalid or the value is null.
 	 *
 	 * @dataProvider data_get_property_value_should_return_string_for_invalid_paths_or_null_values
 	 * @ticket       56620
+	 *
+	 * @covers WP_Theme_JSON::get_property_value
 	 *
 	 * @param array $styles An array with style definitions.
 	 * @param array $path   Path to the desired properties.
@@ -3911,5 +3895,23 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$get_property_value_method->setAccessible( true );
 		$result = $get_property_value_method->invoke( null, $styles, $path );
 		$this->assertSame( '', $result );
+	}
+
+	/**
+	 * Data provider for test_get_property_value_should_return_string_for_invalid_paths_or_null_values().
+	 *
+	 * @return array
+	 */
+	public function data_get_property_value_should_return_string_for_invalid_paths_or_null_values() {
+		return array(
+			'null'         => array(
+				'styles' => array(),
+				'path'   => array( 'non_existent_path' ),
+			),
+			'empty string' => array(
+				'styles' => array( 'some_null_value' => null ),
+				'path'   => array( 'some_null_value' ),
+			),
+		);
 	}
 }
