@@ -176,14 +176,14 @@ CAP;
 			)
 		);
 
-		$this->assertSame( 2, preg_match_all( '/wp-caption/', $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( '/alignnone/', $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( '/' . self::CAPTION . '/', $result, $_r ) );
+		$this->assertSame( 2, substr_count( $result, 'wp-caption' ) );
+		$this->assertSame( 1, substr_count( $result, 'alignnone' ) );
+		$this->assertSame( 1, substr_count( $result, self::CAPTION ) );
 
 		if ( current_theme_supports( 'html5', 'caption' ) ) {
-			$this->assertSame( 1, preg_match_all( '/width: 20/', $result, $_r ) );
+			$this->assertSame( 1, substr_count( $result, 'width: 20' ) );
 		} else {
-			$this->assertSame( 1, preg_match_all( '/width: 30/', $result, $_r ) );
+			$this->assertSame( 1, substr_count( $result, 'width: 30' ) );
 		}
 	}
 
@@ -199,9 +199,9 @@ CAP;
 				'align'   => '&myAlignment',
 			)
 		);
-		$this->assertSame( 1, preg_match_all( '/wp-caption &amp;myAlignment/', $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( '/id="myId"/', $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( '/' . self::CAPTION . '/', $result, $_r ) );
+		$this->assertSame( 1, substr_count( $result, 'wp-caption &amp;myAlignment' ) );
+		$this->assertSame( 1, substr_count( $result, 'id="myId"' ) );
+		$this->assertSame( 1, substr_count( $result, self::CAPTION ) );
 	}
 
 	/**
@@ -215,7 +215,7 @@ CAP;
 				'caption' => self::CAPTION,
 			)
 		);
-		$this->assertSame( 1, preg_match_all( '/wp-caption alignnone some-class another-class/', $result, $_r ) );
+		$this->assertSame( 1, substr_count( $result, 'wp-caption alignnone some-class another-class' ) );
 
 	}
 
@@ -223,15 +223,14 @@ CAP;
 	 * @covers ::img_caption_shortcode
 	 */
 	public function test_new_img_caption_shortcode_with_html_caption() {
-		$result   = img_caption_shortcode(
+		$result = img_caption_shortcode(
 			array(
 				'width'   => 20,
 				'caption' => self::HTML_CONTENT,
 			)
 		);
-		$our_preg = preg_quote( self::HTML_CONTENT );
 
-		$this->assertSame( 1, preg_match_all( "~{$our_preg}~", $result, $_r ) );
+		$this->assertSame( 1, substr_count( $result, self::HTML_CONTENT ) );
 	}
 
 	/**
@@ -245,8 +244,8 @@ CAP;
 		$img_preg     = preg_quote( self::IMG_CONTENT );
 		$content_preg = preg_quote( self::HTML_CONTENT );
 
-		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result, $_r ) );
+		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result ) );
+		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result ) );
 	}
 
 	/**
@@ -261,8 +260,8 @@ CAP;
 		$img_preg     = preg_quote( $linked_image );
 		$content_preg = preg_quote( self::HTML_CONTENT );
 
-		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result, $_r ) );
+		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result ) );
+		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result ) );
 	}
 
 	/**
@@ -277,8 +276,8 @@ CAP;
 		$img_preg     = preg_quote( $linked_image );
 		$content_preg = preg_quote( self::HTML_CONTENT );
 
-		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result, $_r ) );
+		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result ) );
+		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result ) );
 	}
 
 	/**
@@ -295,7 +294,7 @@ CAP;
 			self::IMG_CONTENT . self::HTML_CONTENT
 		);
 
-		$this->assertSame( 1, preg_match_all( '/aria-describedby="caption-myId"/', $result, $_r ) );
+		$this->assertSame( 1, substr_count( $result, 'aria-describedby="caption-myId"' ) );
 	}
 
 	/**
@@ -1106,6 +1105,7 @@ VIDEO;
 
 	/**
 	 * @ticket 35367
+	 * @ticket 54788
 	 * @depends test_video_shortcode_body
 	 *
 	 * @covers ::wp_video_shortcode
@@ -1120,6 +1120,7 @@ VIDEO;
 		$this->assertStringContainsString( 'src="https://example.com/foo.mp4', $actual );
 		$this->assertStringNotContainsString( 'loop', $actual );
 		$this->assertStringNotContainsString( 'autoplay', $actual );
+		$this->assertStringNotContainsString( 'muted', $actual );
 		$this->assertStringContainsString( 'preload="metadata"', $actual );
 		$this->assertStringContainsString( 'width="640"', $actual );
 		$this->assertStringContainsString( 'height="360"', $actual );
@@ -1131,6 +1132,7 @@ VIDEO;
 				'poster'   => 'https://example.com/foo.png',
 				'loop'     => true,
 				'autoplay' => true,
+				'muted'    => true,
 				'preload'  => true,
 				'width'    => 123,
 				'height'   => 456,
@@ -1142,6 +1144,7 @@ VIDEO;
 		$this->assertStringContainsString( 'poster="https://example.com/foo.png', $actual );
 		$this->assertStringContainsString( 'loop="1"', $actual );
 		$this->assertStringContainsString( 'autoplay="1"', $actual );
+		$this->assertStringContainsString( 'muted', $actual );
 		$this->assertStringContainsString( 'preload="1"', $actual );
 		$this->assertStringContainsString( 'width="123"', $actual );
 		$this->assertStringContainsString( 'height="456"', $actual );
@@ -1789,11 +1792,11 @@ EOF;
 
 		$expected = trim( $expected, ' ,' );
 
-		foreach ( $intermediates as $int ) {
-			$image_url  = wp_get_attachment_image_url( self::$large_id, $int );
-			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int );
+		foreach ( $intermediates as $int_size ) {
+			$image_url  = wp_get_attachment_image_url( self::$large_id, $int_size );
+			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int_size );
 
-			if ( 'full' === $int ) {
+			if ( 'full' === $int_size ) {
 				// Add the full size image. Expected to be in the srcset when the full size image is used as src.
 				$_expected = $uploads_dir_url . $image_meta['file'] . ' ' . $image_meta['width'] . 'w, ' . $expected;
 			} else {
@@ -1844,11 +1847,19 @@ EOF;
 
 		$expected = trim( $expected, ' ,' );
 
-		foreach ( $intermediates as $int ) {
-			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int );
-			$image_url  = wp_get_attachment_image_url( $id, $int );
+		foreach ( $intermediates as $int_size ) {
+			$image_urls[ $int_size ] = wp_get_attachment_image_url( $id, $int_size );
+		}
 
-			if ( 'full' === $int ) {
+		// Remove the attachment.
+		wp_delete_attachment( $id, true );
+		remove_filter( 'upload_dir', '_upload_dir_no_subdir' );
+
+		foreach ( $intermediates as $int_size ) {
+			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int_size );
+			$image_url  = $image_urls[ $int_size ];
+
+			if ( 'full' === $int_size ) {
 				// Add the full size image. Expected to be in the srcset when the full size image is used as src.
 				$_expected = $uploads_dir_url . $image_meta['file'] . ' ' . $image_meta['width'] . 'w, ' . $expected;
 			} else {
@@ -1859,9 +1870,6 @@ EOF;
 			$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 		}
 
-		// Remove the attachment.
-		wp_delete_attachment( $id, true );
-		remove_filter( 'upload_dir', '_upload_dir_no_subdir' );
 	}
 
 	/**
@@ -1938,11 +1946,11 @@ EOF;
 		// Prepend an absolute path to simulate a pre-2.7 upload.
 		$image_meta['file'] = 'H:\home\wordpress\trunk/wp-content/uploads/' . $image_meta['file'];
 
-		foreach ( $intermediates as $int ) {
-			$image_url  = wp_get_attachment_image_url( self::$large_id, $int );
-			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int );
+		foreach ( $intermediates as $int_size ) {
+			$image_url  = wp_get_attachment_image_url( self::$large_id, $int_size );
+			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int_size );
 
-			if ( 'full' === $int ) {
+			if ( 'full' === $int_size ) {
 				// Add the full size image. Expected to be in the srcset when the full size image is used as src.
 				$_expected = $uploads_dir_url . $full_size_file . ' ' . $image_meta['width'] . 'w, ' . $expected;
 			} else {

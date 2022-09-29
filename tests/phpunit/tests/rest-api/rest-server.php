@@ -1116,6 +1116,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		// Check site logo and icon.
 		$this->assertArrayHasKey( 'site_logo', $data );
 		$this->assertArrayHasKey( 'site_icon', $data );
+		$this->assertArrayHasKey( 'site_icon_url', $data );
 	}
 
 	/**

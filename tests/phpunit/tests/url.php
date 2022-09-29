@@ -212,8 +212,6 @@ class Tests_URL extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::home_url
-	 *
-	 * @uses ::get_option
 	 */
 	public function test_home_url_from_admin() {
 		// Pretend to be in the site admin.

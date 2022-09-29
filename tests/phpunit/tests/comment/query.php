@@ -9,10 +9,29 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	protected static $post_id;
 	protected $comment_id;
 
+	/**
+	 * Temporary storage for comment exclusions to allow a filter to access these.
+	 *
+	 * Used in the following tests:
+	 * - `test_comment_clauses_prepend_callback_should_be_respected_when_filling_descendants()`
+	 * - `test_comment_clauses_append_callback_should_be_respected_when_filling_descendants()`
+	 *
+	 * @var array
+	 */
+	private $to_exclude;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
 	}
 
+	public function tear_down() {
+		unset( $this->to_exclude );
+		parent::tear_down();
+	}
+
+	/**
+	 * @covers WP_Comment_Query::query
+	 */
 	/**
 	 * @covers WP_Comment_Query::query
 	 */
@@ -4302,8 +4321,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 		remove_filter( 'comments_clauses', array( $this, 'prepend_exclusions' ) );
 
-		unset( $this->to_exclude );
-
 		$this->assertEqualSets( array( $top_level_0, $child1_of_0, $top_level_comments[0], $top_level_comments[2] ), wp_list_pluck( $q->comments, 'comment_ID' ) );
 	}
 
@@ -4360,8 +4377,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 		remove_filter( 'comments_clauses', array( $this, 'append_exclusions' ) );
-
-		unset( $this->to_exclude );
 
 		$this->assertEqualSets( array( $top_level_0, $child1_of_0, $top_level_comments[0], $top_level_comments[2] ), wp_list_pluck( $q->comments, 'comment_ID' ) );
 	}

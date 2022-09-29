@@ -6,6 +6,14 @@ class Tests_Shortcode extends WP_UnitTestCase {
 
 	protected $shortcodes = array( 'test-shortcode-tag', 'footag', 'bartag', 'baztag', 'dumptag', 'hyphen', 'hyphen-foo', 'hyphen-foo-bar', 'url', 'img' );
 
+	private $atts    = null;
+	private $content = null;
+	private $tagname = null;
+
+	private $filter_atts_out   = null;
+	private $filter_atts_pairs = null;
+	private $filter_atts_atts  = null;
+
 	public function set_up() {
 		parent::set_up();
 
@@ -13,10 +21,12 @@ class Tests_Shortcode extends WP_UnitTestCase {
 			add_shortcode( $shortcode, array( $this, 'shortcode_' . str_replace( '-', '_', $shortcode ) ) );
 		}
 
-		$this->atts    = null;
-		$this->content = null;
-		$this->tagname = null;
-
+		$this->atts              = null;
+		$this->content           = null;
+		$this->tagname           = null;
+		$this->filter_atts_out   = null;
+		$this->filter_atts_pairs = null;
+		$this->filter_atts_atts  = null;
 	}
 
 	public function tear_down() {

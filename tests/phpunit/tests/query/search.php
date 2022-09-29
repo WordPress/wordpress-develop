@@ -268,7 +268,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 	 * @ticket 31025
 	 */
 	public function test_s_zero() {
-		$p1 = $this->factory->post->create(
+		$p1 = self::factory()->post->create(
 			array(
 				'post_status'  => 'publish',
 				'post_title'   => '1',
@@ -277,7 +277,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 			)
 		);
 
-		$p2 = $this->factory->post->create(
+		$p2 = self::factory()->post->create(
 			array(
 				'post_status'  => 'publish',
 				'post_title'   => '0',

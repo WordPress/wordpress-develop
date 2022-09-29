@@ -214,10 +214,10 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * @ticket 41683
-	 * @covers ::get_context_param
+	 * @doesNotPerformAssertions
 	 */
 	public function test_context_param() {
+		// Controller does not use get_context_param().
 	}
 
 	/**
@@ -1537,9 +1537,12 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * The test_prepare_item() method does not exist for sidebar.
+	 * The prepare_item() method does not exist for sidebar.
+	 *
+	 * @doesNotPerformAssertions
 	 */
 	public function test_prepare_item() {
+		// Controller does not implement prepare_item().
 	}
 
 	/**

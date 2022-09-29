@@ -779,17 +779,17 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 * @covers ::_wp_delete_customize_changeset_dependent_auto_drafts
 	 */
 	public function test_wp_delete_customize_changeset_dependent_auto_drafts() {
-		$auto_draft_post_id = $this->factory()->post->create(
+		$auto_draft_post_id = self::factory()->post->create(
 			array(
 				'post_status' => 'auto-draft',
 			)
 		);
-		$draft_post_id      = $this->factory()->post->create(
+		$draft_post_id      = self::factory()->post->create(
 			array(
 				'post_status' => 'draft',
 			)
 		);
-		$private_post_id    = $this->factory()->post->create(
+		$private_post_id    = self::factory()->post->create(
 			array(
 				'post_status' => 'private',
 			)

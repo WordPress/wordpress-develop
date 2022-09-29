@@ -155,6 +155,7 @@ if ( is_multisite() ) :
 		/**
 		 * @group multisite
 		 *
+		 * @covers ::users_can_register_signup_filter
 		 * @covers ::get_site_option
 		 */
 		public function test_site_notoptions() {

@@ -21,7 +21,7 @@ class Tests_Date_GetTheModifiedDate extends WP_UnitTestCase {
 			'post_date'     => '2016-01-21 15:34:36',
 			'post_date_gmt' => '2016-01-21 15:34:36',
 		);
-		$post_id  = $this->factory->post->create( $details );
+		$post_id  = self::factory()->post->create( $details );
 		$format   = 'Y-m-d';
 		$expected = '2016-01-21';
 		$actual   = get_the_modified_date( $format, $post_id );
@@ -42,7 +42,7 @@ class Tests_Date_GetTheModifiedDate extends WP_UnitTestCase {
 			'post_date'     => '2016-01-21 15:34:36',
 			'post_date_gmt' => '2016-01-21 15:34:36',
 		);
-		$post_id = $this->factory->post->create( $details );
+		$post_id = self::factory()->post->create( $details );
 		$post    = get_post( $post_id );
 
 		$GLOBALS['post'] = $post;
@@ -122,7 +122,7 @@ class Tests_Date_GetTheModifiedDate extends WP_UnitTestCase {
 			'post_date'     => '2016-01-21 15:34:36',
 			'post_date_gmt' => '2016-01-21 15:34:36',
 		);
-		$post_id  = $this->factory->post->create( $details );
+		$post_id  = self::factory()->post->create( $details );
 		$format   = 'G';
 		$expected = 1453390476;
 		$actual   = get_the_modified_time( $format, $post_id );
@@ -143,7 +143,7 @@ class Tests_Date_GetTheModifiedDate extends WP_UnitTestCase {
 			'post_date'     => '2016-01-21 15:34:36',
 			'post_date_gmt' => '2016-01-21 15:34:36',
 		);
-		$post_id = $this->factory->post->create( $details );
+		$post_id = self::factory()->post->create( $details );
 		$post    = get_post( $post_id );
 
 		$GLOBALS['post'] = $post;

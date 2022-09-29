@@ -8,8 +8,6 @@ class Tests_Cache extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		// Create two cache objects with a shared cache directory.
-		// This simulates a typical cache situation, two separate requests interacting.
 		$this->cache =& $this->init_cache();
 	}
 
@@ -20,10 +18,60 @@ class Tests_Cache extends WP_UnitTestCase {
 
 	private function &init_cache() {
 		global $wp_object_cache;
+
 		$cache_class = get_class( $wp_object_cache );
 		$cache       = new $cache_class();
-		$cache->add_global_groups( array( 'global-cache-test', 'users', 'userlogins', 'usermeta', 'user_meta', 'useremail', 'userslugs', 'site-transient', 'site-options', 'blog-lookup', 'blog-details', 'rss', 'global-posts', 'blog-id-cache', 'networks', 'sites', 'site-details' ) );
+
+		$cache->add_global_groups( array( 'global-cache-test' ) );
+
 		return $cache;
+	}
+
+	/**
+	 * @ticket 56198
+	 *
+	 * @covers WP_Object_Cache::is_valid_key
+	 * @dataProvider data_is_valid_key
+	 */
+	public function test_is_valid_key( $key, $valid ) {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
+		$val = 'val';
+
+		if ( $valid ) {
+			$this->assertTrue( $this->cache->add( $key, $val ), 'WP_Object_Cache:add() should return true for valid keys.' );
+			$this->assertSame( $val, $this->cache->get( $key ), 'The retrieved value should match the added value.' );
+		} else {
+			$this->setExpectedIncorrectUsage( 'WP_Object_Cache::add' );
+			$this->assertFalse( $this->cache->add( $key, $val ), 'WP_Object_Cache:add() should return false for invalid keys.' );
+		}
+	}
+
+	/**
+	 * Data provider for test_is_valid_key().
+	 *
+	 * @return array[] Test parameters {
+	 *     @type mixed $key   Cache key value.
+	 *     @type bool  $valid Whether the key should be considered valid.
+	 * }
+	 */
+	public function data_is_valid_key() {
+		return array(
+			'false'          => array( false, false ),
+			'null'           => array( null, false ),
+			'line break'     => array( "\n", false ),
+			'null character' => array( "\0", false ),
+			'empty string'   => array( '', false ),
+			'single space'   => array( ' ', false ),
+			'two spaces'     => array( '  ', false ),
+			'float 0'        => array( 0.0, false ),
+			'int 0'          => array( 0, true ),
+			'int 1'          => array( 1, true ),
+			'string 0'       => array( '0', true ),
+			'string'         => array( 'key', true ),
+		);
 	}
 
 	/**
@@ -120,6 +168,32 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertTrue( $this->cache->replace( $key, $val2 ) );
 		$this->assertSame( $val2, $this->cache->get( $key ) );
 	}
+	/**
+	 * @covers WP_Object_Cache::set
+	 * @covers WP_Object_Cache::replace
+	 * @covers WP_Object_Cache::get
+	 */
+	public function test_wp_cache_replace() {
+		$key  = 'my-key';
+		$val1 = 'first-val';
+		$val2 = 'second-val';
+
+		$fake_key = 'my-fake-key';
+
+		// Save the first value to cache and verify.
+		wp_cache_set( $key, $val1 );
+		$this->assertSame( $val1, wp_cache_get( $key ) );
+
+		// Replace the value and verify.
+		wp_cache_replace( $key, $val2 );
+		$this->assertSame( $val2, wp_cache_get( $key ) );
+
+		// Non-existent key should fail.
+		$this->assertFalse( wp_cache_replace( $fake_key, $val1 ) );
+
+		// Make sure $fake_key is not stored.
+		$this->assertFalse( wp_cache_get( $fake_key ) );
+	}
 
 	/**
 	 * @covers WP_Object_Cache::set
@@ -144,9 +218,7 @@ class Tests_Cache extends WP_UnitTestCase {
 	 * @covers WP_Object_Cache::get
 	 */
 	public function test_flush() {
-		global $_wp_using_ext_object_cache;
-
-		if ( $_wp_using_ext_object_cache ) {
+		if ( wp_using_ext_object_cache() ) {
 			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
 		}
 
@@ -161,6 +233,37 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertFalse( $this->cache->get( $key ) );
 	}
 
+	/**
+	 * @ticket 4476
+	 * @ticket 9773
+	 *
+	 * @covers ::wp_cache_flush_group
+	 */
+	public function test_wp_cache_flush_group() {
+		$key = 'my-key';
+		$val = 'my-val';
+
+		wp_cache_set( $key, $val, 'group-test' );
+		wp_cache_set( $key, $val, 'group-kept' );
+
+		$this->assertSame( $val, wp_cache_get( $key, 'group-test' ), 'group-test should contain my-val' );
+
+		if ( wp_using_ext_object_cache() ) {
+			$this->setExpectedIncorrectUsage( 'wp_cache_flush_group' );
+		}
+
+		$results = wp_cache_flush_group( 'group-test' );
+
+		if ( wp_using_ext_object_cache() ) {
+			$this->assertFalse( $results );
+		} else {
+			$this->assertTrue( $results );
+			$this->assertFalse( wp_cache_get( $key, 'group-test' ), 'group-test should return false' );
+			$this->assertSame( $val, wp_cache_get( $key, 'group-kept' ), 'group-kept should still contain my-val' );
+		}
+	}
+
+	// Make sure objects are cloned going to and from the cache.
 	/**
 	 * Make sure objects are cloned going to and from the cache.
 	 *
@@ -376,33 +479,6 @@ class Tests_Cache extends WP_UnitTestCase {
 		} else {
 			$this->assertEquals( $wp_object_cache, $new_blank_cache_object );
 		}
-	}
-
-	/**
-	 * @covers ::wp_cache_replace
-	 * @covers ::wp_cache_set
-	 * @covers ::wp_cache_get
-	 */
-	public function test_wp_cache_replace() {
-		$key  = 'my-key';
-		$val1 = 'first-val';
-		$val2 = 'second-val';
-
-		$fake_key = 'my-fake-key';
-
-		// Save the first value to cache and verify.
-		wp_cache_set( $key, $val1 );
-		$this->assertSame( $val1, wp_cache_get( $key ) );
-
-		// Replace the value and verify.
-		wp_cache_replace( $key, $val2 );
-		$this->assertSame( $val2, wp_cache_get( $key ) );
-
-		// Non-existent key should fail.
-		$this->assertFalse( wp_cache_replace( $fake_key, $val1 ) );
-
-		// Make sure $fake_key is not stored.
-		$this->assertFalse( wp_cache_get( $fake_key ) );
 	}
 
 	/**

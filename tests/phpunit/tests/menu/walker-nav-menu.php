@@ -13,6 +13,13 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	public $walker;
 
 	/**
+	 * Original nav menu max depth.
+	 *
+	 * @var int
+	 */
+	private $orig_wp_nav_menu_max_depth;
+
+	/**
 	 * Setup.
 	 */
 	public function set_up() {
@@ -24,7 +31,7 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 		require_once ABSPATH . 'wp-includes/class-walker-nav-menu.php';
 		$this->walker = new Walker_Nav_Menu();
 
-		$this->_wp_nav_menu_max_depth = $_wp_nav_menu_max_depth;
+		$this->orig_wp_nav_menu_max_depth = $_wp_nav_menu_max_depth;
 	}
 
 	/**
@@ -33,7 +40,7 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	public function tear_down() {
 		global $_wp_nav_menu_max_depth;
 
-		$_wp_nav_menu_max_depth = $this->_wp_nav_menu_max_depth;
+		$_wp_nav_menu_max_depth = $this->orig_wp_nav_menu_max_depth;
 		parent::tear_down();
 	}
 
@@ -44,7 +51,7 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	 */
 	public function test_noopener_no_referrer_for_target_blank() {
 		$actual     = '';
-		$post_id    = $this->factory->post->create();
+		$post_id    = self::factory()->post->create();
 		$post_title = get_the_title( $post_id );
 
 		$item = array(
@@ -75,7 +82,7 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	 */
 	public function test_start_el_with_empty_attributes( $value, $expected ) {
 		$output     = '';
-		$post_id    = $this->factory->post->create();
+		$post_id    = self::factory()->post->create();
 		$post_title = get_the_title( $post_id );
 
 		$item = array(

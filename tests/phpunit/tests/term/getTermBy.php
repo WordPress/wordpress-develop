@@ -198,7 +198,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 	public function test_query_should_not_contain_order_by_clause() {
 		global $wpdb;
 
-		$term_id = $this->factory->term->create(
+		$term_id = self::factory()->term->create(
 			array(
 				'name'     => 'burrito',
 				'taxonomy' => 'post_tag',
@@ -213,7 +213,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 	 * @ticket 21760
 	 */
 	public function test_query_should_contain_limit_clause() {
-		$term_id = $this->factory->term->create(
+		$term_id = self::factory()->term->create(
 			array(
 				'name'     => 'burrito',
 				'taxonomy' => 'post_tag',
@@ -244,7 +244,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 	public function test_get_term_by_name_with_string_0() {
 		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
 
-		$term_id = $this->factory->term->create(
+		$term_id = self::factory()->term->create(
 			array(
 				'name'     => '0',
 				'taxonomy' => 'wptests_tax',
@@ -261,7 +261,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 	public function test_get_term_by_slug_with_string_0() {
 		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
 
-		$term_id = $this->factory->term->create(
+		$term_id = self::factory()->term->create(
 			array(
 				'taxonomy' => 'wptests_tax',
 				'name'     => '0',

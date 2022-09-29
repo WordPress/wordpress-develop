@@ -21,6 +21,16 @@ class Tests_Date_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Cleans up.
+	 */
+	public function tear_down() {
+		// Reset the timezone option to the default value.
+		update_option( 'timezone_string', '' );
+
+		parent::tear_down();
+	}
+
+	/**
 	* Test WP_Date_Query handling of empty query
 	*
 	* @covers WP_Date_Query::__construct
@@ -738,7 +748,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 	 * @covers WP_Date_Query::build_mysql_datetime
 	 */
 	public function test_build_mysql_datetime_with_custom_timezone( $datetime, $expected, $default_to_max = false ) {
-		update_option( 'timezone_string', 'Europe/Kiev' );
+		update_option( 'timezone_string', 'Europe/Helsinki' );
 
 		$q = new WP_Date_Query( array() );
 
@@ -762,7 +772,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 	 * @covers WP_Date_Query::build_mysql_datetime
 	 */
 	public function test_build_mysql_datetime_with_relative_date() {
-		update_option( 'timezone_string', 'Europe/Kiev' );
+		update_option( 'timezone_string', 'Europe/Helsinki' );
 
 		$q = new WP_Date_Query( array() );
 
