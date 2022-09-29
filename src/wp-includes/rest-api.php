@@ -3088,8 +3088,7 @@ function _rest_default_additional_properties_to_false( $schema, $types = array()
 
 	// Task
 
-	if ( ! isset( $schema['additionalProperties'] ) &&
-		( in_array( 'object', $types, true ) || isset( $schema['properties'] ) || isset( $schema['patternProperties'] ) ) ) {
+	if ( in_array( 'object', $types, true ) && ! isset( $schema['additionalProperties'] ) ) {
 		$schema['additionalProperties'] = false;
 	}
 
