@@ -116,6 +116,6 @@ class Tests_Theme_addEditorStyle extends WP_UnitTestCase {
 		unset( $_wp_theme_features['editor-style'] );
 		add_editor_style();
 
-		$this->AssertContains( 'editor-style', array_keys( $_wp_theme_features ) );
+		$this->assertContains( 'editor-style', array_keys( $_wp_theme_features ) );
 	}
 }
