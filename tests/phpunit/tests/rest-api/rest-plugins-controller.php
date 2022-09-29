@@ -417,6 +417,28 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 50321
 	 */
+	public function test_create_item_from_url_and_activate() {
+		wp_set_current_user( self::$super_admin );
+		$this->setup_plugin_download();
+
+		$request = new WP_REST_Request( 'POST', self::BASE );
+		$request->set_body_params(
+			array(
+				'url'    => 'https://downloads.wordpress.org/plugin/link-manager.zip',
+				'status' => 'active',
+			)
+		);
+
+		$response = rest_do_request( $request );
+		$this->assertNotWPError( $response->as_error() );
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( 'Link Manager', $response->get_data()['name'] );
+		$this->assertTrue( is_plugin_active( 'link-manager/link-manager.php' ) );
+	}
+
+	/**
+	 * @ticket 50321
+	 */
 	public function test_create_item_and_activate_errors_if_no_permission_to_activate_plugin() {
 		wp_set_current_user( self::$super_admin );
 		$this->setup_plugin_download();
