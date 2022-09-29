@@ -5157,7 +5157,7 @@ mockedApiResponse.Schema = {
                             "required": true
                         },
                         "is_custom": {
-                            "description": " Indicates if a template is custom or part of the template hierarchy",
+                            "description": "Indicates if a template is custom or part of the template hierarchy",
                             "type": "boolean",
                             "required": false
                         },
@@ -5846,7 +5846,7 @@ mockedApiResponse.Schema = {
                             "required": true
                         },
                         "is_custom": {
-                            "description": " Indicates if a template is custom or part of the template hierarchy",
+                            "description": "Indicates if a template is custom or part of the template hierarchy",
                             "type": "boolean",
                             "required": false
                         },
