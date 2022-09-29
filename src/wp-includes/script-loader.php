@@ -3648,7 +3648,8 @@ function _wp_theme_json_webfonts_handler() {
  */
 function gutenberg_enqueue_classic_theme_styles() {
 	if ( ! wp_is_block_theme() ) {
-		wp_register_style( 'classic-theme-styles', "/wp-includes/css/dist/block-library/classic.css", array(), true );
+		$suffix = wp_scripts_get_suffix();
+		wp_register_style( 'classic-theme-styles', "/wp-includes/css/dist/block-library/classic$suffix.css", array(), true );
 		wp_enqueue_style( 'classic-theme-styles' );
 	}
 }
