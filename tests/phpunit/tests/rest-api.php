@@ -3429,7 +3429,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 			),
 			'missing top level type'                       => array(
 				array(
-					'properties' => array(
+					'properties'           => array(
 						'a' => array(
 							'type'                 => 'object',
 							'properties'           => array( 'aa' => array( 'type' => 'string' ) ),
@@ -3444,6 +3444,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 							),
 						),
 					),
+					'additionalProperties' => false,
 				),
 				array(
 					'properties' => array(
@@ -3471,11 +3472,13 @@ class Tests_REST_API extends WP_UnitTestCase {
 							'additionalProperties' => false,
 						),
 						'b' => array(
-							'properties' => array( 'bb' => array( 'type' => 'string' ) ),
+							'properties'           => array( 'bb' => array( 'type' => 'string' ) ),
+							'additionalProperties' => false,
 						),
 						'c' => array(
 							'items' => array(
-								'properties' => array( 'cc' => array( 'type' => 'string' ) ),
+								'properties'           => array( 'cc' => array( 'type' => 'string' ) ),
+								'additionalProperties' => false,
 							),
 						),
 					),
