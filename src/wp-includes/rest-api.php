@@ -3051,6 +3051,16 @@ function rest_filter_response_by_context( $data, $schema, $context ) {
  * @return array The modified schema.
  */
 function _rest_default_additional_properties_to_false( $schema, $types = array() ) {
+	if ( ! isset( $schema['type'] ) && empty( $types ) ) {
+		foreach ( array( 'items', 'properties', 'patternProperties', 'additionalProperties' ) as $keyword ) {
+			if ( isset( $schema[ $keyword ] ) ) {
+				/* translators: %s: Keyword. */
+				_doing_it_wrong( __FUNCTION__, sprintf( __( 'The "type" schema keyword is required next to the "%s" keyword.' ), $keyword ), 'x.y.z' );
+				return $schema;
+			}
+		}
+	}
+
 	if ( isset( $schema['type'] ) ) {
 		$types = (array) $schema['type'];
 	}
@@ -3070,26 +3080,30 @@ function _rest_default_additional_properties_to_false( $schema, $types = array()
 
 	// Tree part
 
-	if ( isset( $schema['items'] ) ) {
-		$schema['items'] = _rest_default_additional_properties_to_false( $schema['items'] );
-	}
-
-	foreach ( array( 'properties', 'patternProperties' ) as $keyword ) {
-		if ( isset( $schema[ $keyword ] ) ) {
-			foreach ( $schema[ $keyword ] as $property_key => $child_schema ) {
-				$schema[ $keyword ][ $property_key ] = _rest_default_additional_properties_to_false( $child_schema );
-			}
+	if ( in_array( 'array', $types, true ) ) {
+		if ( isset( $schema['items'] ) ) {
+			$schema['items'] = _rest_default_additional_properties_to_false( $schema['items'] );
 		}
 	}
 
-	if ( isset( $schema['additionalProperties'] ) && is_array( $schema['additionalProperties'] ) ) {
-		$schema['additionalProperties'] = _rest_default_additional_properties_to_false( $schema['additionalProperties'] );
-	}
+	if ( in_array( 'object', $types, true ) ) {
+		foreach ( array( 'properties', 'patternProperties' ) as $keyword ) {
+			if ( isset( $schema[ $keyword ] ) ) {
+				foreach ( $schema[ $keyword ] as $property_key => $child_schema ) {
+					$schema[ $keyword ][ $property_key ] = _rest_default_additional_properties_to_false( $child_schema );
+				}
+			}
+		}
 
-	// Task
+		if ( isset( $schema['additionalProperties'] ) && is_array( $schema['additionalProperties'] ) ) {
+			$schema['additionalProperties'] = _rest_default_additional_properties_to_false( $schema['additionalProperties'] );
+		}
 
-	if ( in_array( 'object', $types, true ) && ! isset( $schema['additionalProperties'] ) ) {
-		$schema['additionalProperties'] = false;
+		// Task
+
+		if ( ! isset( $schema['additionalProperties'] ) ) {
+			$schema['additionalProperties'] = false;
+		}
 	}
 
 	return $schema;
