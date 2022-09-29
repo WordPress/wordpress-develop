@@ -31,7 +31,7 @@ require_once $config_file_path;
 require_once __DIR__ . '/functions.php';
 
 if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && ! is_dir( ABSPATH ) ) {
-	if ( substr( ABSPATH, -7 ) !== '/build/' ) {
+	if ( substr( ABSPATH, -7 ) != '/build/' ) {
 		printf(
 			'Error: The ABSPATH constant in the `wp-tests-config.php` file is set to a non-existent path "%s". Please verify.' . PHP_EOL,
 			ABSPATH

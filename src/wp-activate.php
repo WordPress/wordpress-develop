@@ -6,7 +6,7 @@
  * @package WordPress
  */
 
-define( 'WP_INSTALLING', true );
+define('WP_INSTALLING', true);
 
 /** Sets up the WordPress Environment. */
 require __DIR__ . '/wp-load.php';
@@ -20,8 +20,8 @@ if ( ! is_multisite() ) {
 
 $valid_error_codes = array( 'already_active', 'blog_taken' );
 
-list( $activate_path ) = explode( '?', wp_unslash( $_SERVER['REQUEST_URI'] ) );
-$activate_cookie       = 'wp-activate-' . COOKIEHASH;
+[ $activate_path ] = explode( '?', wp_unslash( $_SERVER['REQUEST_URI'] ) );
+$activate_cookie   = 'wp-activate-' . COOKIEHASH;
 
 $key    = '';
 $result = null;
