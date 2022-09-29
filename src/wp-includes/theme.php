@@ -2103,7 +2103,7 @@ function wp_update_custom_css_post( $css, $args = array() ) {
  * @return void
  *
  * @since 3.0.0
- * @since 5.9.0 Defaults to 'add'.
+ * @since 6.1.0 Added the `$rtl_mode` parameter. Defaults to 'add'.
  *
  * @global array $editor_styles
  *
