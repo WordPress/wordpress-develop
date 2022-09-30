@@ -6,6 +6,12 @@ require_once __DIR__ . '/base.php';
  * @group import
  */
 class Tests_Import_Parser extends WP_Import_UnitTestCase {
+
+	protected $expected_deprecated = [
+		'wp_slash_strings_only',
+		'addslashes_strings_only'
+	];
+
 	public function set_up() {
 		parent::set_up();
 
