@@ -49,6 +49,14 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	protected $total_terms;
 
 	/**
+	 * Whether the controller supports batching.
+	 *
+	 * @since 5.9.0
+	 * @var array
+	 */
+	protected $allow_batch = array( 'v1' => true );
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 4.7.0
@@ -89,7 +97,8 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 					'permission_callback' => array( $this, 'create_item_permissions_check' ),
 					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
 				),
-				'schema' => array( $this, 'get_public_item_schema' ),
+				'allow_batch' => $this->allow_batch,
+				'schema'      => array( $this, 'get_public_item_schema' ),
 			)
 		);
 
@@ -97,7 +106,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			$this->namespace,
 			'/' . $this->rest_base . '/(?P<id>[\d]+)',
 			array(
-				'args'   => array(
+				'args'        => array(
 					'id' => array(
 						'description' => __( 'Unique identifier for the term.' ),
 						'type'        => 'integer',
@@ -129,7 +138,8 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 						),
 					),
 				),
-				'schema' => array( $this, 'get_public_item_schema' ),
+				'allow_batch' => $this->allow_batch,
+				'schema'      => array( $this, 'get_public_item_schema' ),
 			)
 		);
 	}
@@ -293,7 +303,10 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
 
-		$base = add_query_arg( urlencode_deep( $request->get_query_params() ), rest_url( $this->namespace . '/' . $this->rest_base ) );
+		$request_params = $request->get_query_params();
+		$collection_url = rest_url( rest_get_route_for_taxonomy_items( $this->taxonomy ) );
+		$base           = add_query_arg( urlencode_deep( $request_params ), $collection_url );
+
 		if ( $page > 1 ) {
 			$prev_page = $page - 1;
 
@@ -849,7 +862,9 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$response = rest_ensure_response( $data );
 
-		$response->add_links( $this->prepare_links( $item ) );
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$response->add_links( $this->prepare_links( $item ) );
+		}
 
 		/**
 		 * Filters the term data for a REST API response.
@@ -881,13 +896,12 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return array Links for the given term.
 	 */
 	protected function prepare_links( $term ) {
-		$base  = $this->namespace . '/' . $this->rest_base;
 		$links = array(
 			'self'       => array(
-				'href' => rest_url( trailingslashit( $base ) . $term->term_id ),
+				'href' => rest_url( rest_get_route_for_term( $term ) ),
 			),
 			'collection' => array(
-				'href' => rest_url( $base ),
+				'href' => rest_url( rest_get_route_for_taxonomy_items( $this->taxonomy ) ),
 			),
 			'about'      => array(
 				'href' => rest_url( sprintf( 'wp/v2/taxonomies/%s', $this->taxonomy ) ),
@@ -899,7 +913,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 			if ( $parent_term ) {
 				$links['up'] = array(
-					'href'       => rest_url( trailingslashit( $base ) . $parent_term->term_id ),
+					'href'       => rest_url( rest_get_route_for_term( $parent_term ) ),
 					'embeddable' => true,
 				);
 			}

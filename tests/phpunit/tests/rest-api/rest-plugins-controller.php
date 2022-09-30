@@ -84,10 +84,21 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	public function tear_down() {
 		if ( file_exists( WP_PLUGIN_DIR . '/test-plugin/test-plugin.php' ) ) {
+			// Remove plugin files.
 			$this->rmdir( WP_PLUGIN_DIR . '/test-plugin' );
+			// Delete empty directory.
+			rmdir( WP_PLUGIN_DIR . '/test-plugin' );
 		}
+
 		if ( file_exists( DIR_TESTDATA . '/link-manager.zip' ) ) {
 			unlink( DIR_TESTDATA . '/link-manager.zip' );
+		}
+
+		if ( file_exists( WP_PLUGIN_DIR . '/link-manager/link-manager.php' ) ) {
+			// Remove plugin files.
+			$this->rmdir( WP_PLUGIN_DIR . '/link-manager' );
+			// Delete empty directory.
+			rmdir( WP_PLUGIN_DIR . '/link-manager' );
 		}
 
 		parent::tear_down();
@@ -369,10 +380,6 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 50321
 	 */
 	public function test_create_item() {
-		if ( isset( get_plugins()['link-manager/link-manager.php'] ) ) {
-			delete_plugins( array( 'link-manager/link-manager.php' ) );
-		}
-
 		wp_set_current_user( self::$super_admin );
 		$this->setup_plugin_download();
 
@@ -389,10 +396,6 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 50321
 	 */
 	public function test_create_item_and_activate() {
-		if ( isset( get_plugins()['link-manager/link-manager.php'] ) ) {
-			delete_plugins( array( 'link-manager/link-manager.php' ) );
-		}
-
 		wp_set_current_user( self::$super_admin );
 		$this->setup_plugin_download();
 
@@ -415,10 +418,6 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 50321
 	 */
 	public function test_create_item_and_activate_errors_if_no_permission_to_activate_plugin() {
-		if ( isset( get_plugins()['link-manager/link-manager.php'] ) ) {
-			delete_plugins( array( 'link-manager/link-manager.php' ) );
-		}
-
 		wp_set_current_user( self::$super_admin );
 		$this->setup_plugin_download();
 		$this->disable_activate_permission( 'link-manager/link-manager.php' );
@@ -441,10 +440,6 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 50321
 	 */
 	public function test_create_item_and_network_activate_rejected_if_not_multisite() {
-		if ( isset( get_plugins()['link-manager/link-manager.php'] ) ) {
-			delete_plugins( array( 'link-manager/link-manager.php' ) );
-		}
-
 		wp_set_current_user( self::$super_admin );
 		$this->setup_plugin_download();
 
@@ -465,10 +460,6 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 50321
 	 */
 	public function test_create_item_and_network_activate() {
-		if ( isset( get_plugins()['link-manager/link-manager.php'] ) ) {
-			delete_plugins( array( 'link-manager/link-manager.php' ) );
-		}
-
 		wp_set_current_user( self::$super_admin );
 		$this->setup_plugin_download();
 
@@ -546,8 +537,26 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_create_item_unknown_plugin() {
 		wp_set_current_user( self::$super_admin );
+		add_filter(
+			'pre_http_request',
+			static function() {
+				/*
+				 * Mocks the request to:
+				 * https://api.wordpress.org/plugins/info/1.2/?action=plugin_information&request%5Bslug%5D=alex-says-this-block-definitely-doesnt-exist&request%5Bfields%5D%5Bsections%5D=0&request%5Bfields%5D%5Blanguage_packs%5D=1&request%5Blocale%5D=en_US&request%5Bwp_version%5D=5.9
+				 */
+				return array(
+					'headers'  => array(),
+					'response' => array(
+						'code'    => 404,
+						'message' => 'Not Found',
+					),
+					'body'     => '{"error":"Plugin not found."}',
+					'cookies'  => array(),
+					'filename' => null,
+				);
+			}
+		);
 
-		// This will hit the live API.
 		$request = new WP_REST_Request( 'POST', self::BASE );
 		$request->set_body_params( array( 'slug' => 'alex-says-this-block-definitely-doesnt-exist' ) );
 		$response = rest_do_request( $request );

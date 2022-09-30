@@ -55,7 +55,7 @@ class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 				'administrator',
 				self::$posts['publish']->ID,
 				array(
-					'content' => rand_str( 100 ),
+					'content' => 'Content',
 				),
 			)
 		);
@@ -155,7 +155,7 @@ class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 				'administrator',
 				$post->ID,
 				array(
-					'content' => rand_str( 100 ),
+					'content' => 'Content',
 				),
 			)
 		);
@@ -171,7 +171,7 @@ class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 			'administrator',
 			self::$posts['publish']->ID,
 			array(
-				'content' => rand_str( 100 ),
+				'content' => 'Content',
 			),
 		);
 

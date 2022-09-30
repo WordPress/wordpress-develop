@@ -399,11 +399,11 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	 *
 	 * @since 2.5.0
 	 *
-	 * @param string $file Path to file or directory.
-	 * @return bool Whether $file exists or not.
+	 * @param string $path Path to file or directory.
+	 * @return bool Whether $path exists or not.
 	 */
-	public function exists( $file ) {
-		return @file_exists( $file );
+	public function exists( $path ) {
+		return @file_exists( $path );
 	}
 
 	/**
@@ -447,11 +447,11 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	 *
 	 * @since 2.5.0
 	 *
-	 * @param string $file Path to file or directory.
-	 * @return bool Whether $file is writable.
+	 * @param string $path Path to file or directory.
+	 * @return bool Whether $path is writable.
 	 */
-	public function is_writable( $file ) {
-		return @is_writable( $file );
+	public function is_writable( $path ) {
+		return @is_writable( $path );
 	}
 
 	/**
@@ -595,7 +595,7 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	 *     @type mixed  $lastmod     Last modified month (3 letter) and day (without leading 0).
 	 *     @type int    $time        Last modified time.
 	 *     @type string $type        Type of resource. 'f' for file, 'd' for directory.
-	 *     @type mixed  $files       If a directory and $recursive is true, contains another array of files.
+	 *     @type mixed  $files       If a directory and `$recursive` is true, contains another array of files.
 	 * }
 	 */
 	public function dirlist( $path, $include_hidden = true, $recursive = false ) {

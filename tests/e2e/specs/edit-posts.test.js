@@ -62,7 +62,7 @@ describe( 'Edit Posts', () => {
 
 		// Expect to now be in the editor with the correct post title shown.
 		const editorPostTitleInput = await page.$x(
-			`//textarea[contains(@class, "editor-post-title__input")][contains(text(), "${ title }")]`
+			`//h1[contains(@class, "editor-post-title__input")][contains(text(), "${ title }")]`
 		);
 		expect( editorPostTitleInput.length ).toBe( 1 );
 	} );

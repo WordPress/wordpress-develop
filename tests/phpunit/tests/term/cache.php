@@ -244,7 +244,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	public function test_get_term_by_slug_cache() {
 		global $wpdb;
 
-		$term_id = $this->factory->term->create(
+		$term_id = self::factory()->term->create(
 			array(
 				'slug'     => 'burrito',
 				'name'     => 'Taco',
@@ -255,8 +255,8 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		clean_term_cache( $term_id, 'post_tag' );
 		$num_queries = $wpdb->num_queries;
 
-		$term = get_term_by( 'slug', 'burrito', 'post_tag' );
-		$num_queries++;
+		$term        = get_term_by( 'slug', 'burrito', 'post_tag' );
+		$num_queries = $num_queries + 2;
 		$this->assertSame( 'Taco', $term->name );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
@@ -275,7 +275,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	public function test_get_term_by_slug_cache_update() {
 		global $wpdb;
 
-		$term_id = $this->factory->term->create(
+		$term_id = self::factory()->term->create(
 			array(
 				'slug'     => 'burrito',
 				'name'     => 'Taco',
@@ -286,8 +286,8 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		clean_term_cache( $term_id, 'post_tag' );
 		$num_queries = $wpdb->num_queries;
 
-		$term = get_term_by( 'slug', 'burrito', 'post_tag' );
-		$num_queries++;
+		$term        = get_term_by( 'slug', 'burrito', 'post_tag' );
+		$num_queries = $num_queries + 2;
 		$this->assertSame( 'Taco', $term->name );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
@@ -301,8 +301,8 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		$num_queries = $wpdb->num_queries;
 
 		// This should not hit cache.
-		$term = get_term_by( 'slug', 'burrito', 'post_tag' );
-		$num_queries++;
+		$term        = get_term_by( 'slug', 'burrito', 'post_tag' );
+		$num_queries = $num_queries + 2;
 		$this->assertSame( 'No Taco', $term->name );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}
@@ -313,7 +313,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	public function test_get_term_by_name_cache() {
 		global $wpdb;
 
-		$term_id = $this->factory->term->create(
+		$term_id = self::factory()->term->create(
 			array(
 				'name'     => 'Burrito',
 				'slug'     => 'noburrito',
@@ -325,7 +325,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		$num_queries = $wpdb->num_queries;
 
 		get_term_by( 'name', 'Burrito', 'post_tag' );
-		$num_queries++;
+		$num_queries = $num_queries + 2;
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
 		// This should now hit cache.
@@ -342,7 +342,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	public function test_get_term_by_name_cache_update() {
 		global $wpdb;
 
-		$term_id = $this->factory->term->create(
+		$term_id = self::factory()->term->create(
 			array(
 				'name'     => 'Burrito',
 				'slug'     => 'noburrito',
@@ -354,7 +354,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		$num_queries = $wpdb->num_queries;
 
 		get_term_by( 'name', 'Burrito', 'post_tag' );
-		$num_queries++;
+		$num_queries = $num_queries + 2;
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
 		// This should now hit cache.
@@ -367,7 +367,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 
 		// This should not hit cache.
 		get_term_by( 'name', 'burrito', 'post_tag' );
-		$num_queries++;
+		$num_queries = $num_queries + 2;
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}
 
@@ -377,7 +377,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	public function test_invalidating_term_caches_should_fail_when_invalidation_is_suspended() {
 		global $wpdb;
 
-		$term_id = $this->factory->term->create(
+		$term_id = self::factory()->term->create(
 			array(
 				'name'     => 'Burrito',
 				'taxonomy' => 'post_tag',
@@ -388,8 +388,8 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		$num_queries  = $wpdb->num_queries;
 		$last_changed = wp_cache_get( 'last_changed', 'terms' );
 
-		$term1 = get_term_by( 'name', 'Burrito', 'post_tag' );
-		$num_queries++;
+		$term1       = get_term_by( 'name', 'Burrito', 'post_tag' );
+		$num_queries = $num_queries + 2;
 
 		// Verify the term is cached.
 		$term2 = get_term_by( 'name', 'Burrito', 'post_tag' );
@@ -420,7 +420,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	public function test_get_term_by_does_not_prime_term_meta_cache() {
 		global $wpdb;
 
-		$term_id = $this->factory->term->create(
+		$term_id = self::factory()->term->create(
 			array(
 				'name'     => 'Burrito',
 				'taxonomy' => 'post_tag',
@@ -431,8 +431,8 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		clean_term_cache( $term_id, 'post_tag' );
 		$num_queries = $wpdb->num_queries;
 
-		$term = get_term_by( 'name', 'Burrito', 'post_tag' );
-		$num_queries++;
+		$term        = get_term_by( 'name', 'Burrito', 'post_tag' );
+		$num_queries = $num_queries + 2;
 		$this->assertInstanceOf( 'WP_Term', $term );
 		$this->assertSame( $term_id, $term->term_id );
 		$this->assertSame( $num_queries, $wpdb->num_queries );

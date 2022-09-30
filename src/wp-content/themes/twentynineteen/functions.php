@@ -182,6 +182,20 @@ if ( ! function_exists( 'twentynineteen_setup' ) ) :
 endif;
 add_action( 'after_setup_theme', 'twentynineteen_setup' );
 
+if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
+	/**
+	 * Retrieves the list item separator based on the locale.
+	 *
+	 * Added for backward compatibility to support pre-6.0.0 WordPress versions.
+	 *
+	 * @since 6.0.0
+	 */
+	function wp_get_list_item_separator() {
+		/* translators: Used between list items, there is a space after the comma. */
+		return __( ', ', 'twentynineteen' );
+	}
+endif;
+
 /**
  * Register widget area.
  *
@@ -221,7 +235,7 @@ function twentynineteen_excerpt_more( $link ) {
 	$link = sprintf(
 		'<p class="link-more"><a href="%1$s" class="more-link">%2$s</a></p>',
 		esc_url( get_permalink( get_the_ID() ) ),
-		/* translators: %s: Post title. */
+		/* translators: %s: Post title. Only visible to screen readers. */
 		sprintf( __( 'Continue reading<span class="screen-reader-text"> "%s"</span>', 'twentynineteen' ), get_the_title( get_the_ID() ) )
 	);
 	return ' &hellip; ' . $link;

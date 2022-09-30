@@ -214,9 +214,10 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * @ticket 41683
+	 * @doesNotPerformAssertions
 	 */
 	public function test_context_param() {
+		// Controller does not use get_context_param().
 	}
 
 	/**
@@ -1508,9 +1509,12 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * The test_prepare_item() method does not exist for sidebar.
+	 * The prepare_item() method does not exist for sidebar.
+	 *
+	 * @doesNotPerformAssertions
 	 */
 	public function test_prepare_item() {
+		// Controller does not implement prepare_item().
 	}
 
 	/**
@@ -1522,6 +1526,8 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
+
+		$this->assertSame( array( 'v1' => true ), $data['endpoints'][0]['allow_batch'] );
 
 		$this->assertCount( 7, $properties );
 		$this->assertArrayHasKey( 'id', $properties );

@@ -26,7 +26,7 @@ define( 'WP_DEFAULT_THEME', 'default' );
 // Test with WordPress debug mode (default).
 define( 'WP_DEBUG', true );
 
-// ** MySQL settings ** //
+// ** Database settings ** //
 
 /*
  * This configuration file will be used by the copy of WordPress being tested.

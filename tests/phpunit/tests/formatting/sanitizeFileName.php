@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::sanitize_file_name
  */
 class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 	public function test_munges_extensions() {
