@@ -1955,6 +1955,12 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_post_draft_edit_context() {
+		/*
+		 * For an analysis of why this test is considered broken, see:
+		 * https://core.trac.wordpress.org/ticket/56681#comment:3
+		 */
+		$this->markTestSkipped( 'This test is broken and needs to be fixed before reactivating.' );
+
 		$post_content = 'Hello World!';
 		self::factory()->post->create(
 			array(
