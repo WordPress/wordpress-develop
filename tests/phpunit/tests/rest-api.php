@@ -3427,6 +3427,27 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'additionalProperties' => true,
 				),
 			),
+			'mismatched type array with properties'        => array(
+				array(
+					'type'       => 'array',
+					'properties' => array( 'a' => array( 'type' => 'string' ) ),
+				),
+				array(
+					'type'       => 'array',
+					'properties' => array( 'a' => array( 'type' => 'string' ) ),
+				),
+			),
+			'mismatched type object with items'            => array(
+				array(
+					'type'                 => 'object',
+					'items'                => array( 'type' => 'string' ),
+					'additionalProperties' => false,
+				),
+				array(
+					'type'  => 'object',
+					'items' => array( 'type' => 'string' ),
+				),
+			),
 		);
 
 		$this->assertTrue( $registered );
