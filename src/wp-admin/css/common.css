@@ -3030,7 +3030,7 @@ div.action-links {
 
 .plugin-details-modal #TB_closeWindowButton:hover,
 .plugin-details-modal #TB_closeWindowButton:focus {
-	color: #135e96;
+	color: #f0f0f1;
 	outline: none;
 	box-shadow: none;
 }
