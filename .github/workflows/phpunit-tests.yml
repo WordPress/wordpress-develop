@@ -121,7 +121,8 @@ jobs:
         # total tests were found.
         # assertions were made.
         run: |
-          echo "::set-output name=php-${{ matrix.php }}::${{ matrix.php }}"
+          echo '### PHP Results Summary Table :rocket:' >> $GITHUB_STEP_SUMMARY
+          echo '::set-output name=php-${{ matrix.php }}::${{ matrix.php }}' >> $GITHUB_STEP_SUMMARY
 
       - name: Configure environment variables
         run: |
@@ -136,6 +137,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: npm
+          writeToJobSummary: true
 
       - name: Install Dependencies
         run: npm ci
