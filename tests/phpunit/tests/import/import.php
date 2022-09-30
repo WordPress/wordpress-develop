@@ -249,6 +249,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 	}
 
 	public function test_ordering_of_importers() {
+		$this->expected_deprecated = array();
 		global $wp_importers;
 		$_wp_importers = $wp_importers; // Preserve global state.
 		$wp_importers  = array(
