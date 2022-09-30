@@ -263,7 +263,7 @@ function get_permalink( $post = 0, $leavename = false ) {
 		if ( strpos( $permalink, '%author%' ) !== false ) {
 			$authordata = get_userdata( $post->post_author );
 
-			if ( false !== $authordata ) {
+			if ( $authordata instanceof WP_User ) {
 				$author = $authordata->user_nicename;
 			}
 		}
