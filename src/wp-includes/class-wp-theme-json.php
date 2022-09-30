@@ -38,6 +38,15 @@ class WP_Theme_JSON {
 	protected static $blocks_metadata = null;
 
 	/**
+	 * Holds a cache key string, to determine when
+	 * to generate fresh block data.
+	 *
+	 * @since 6.1.0
+	 * @var string
+	 */
+	protected static $blocks_cache_key = null;
+
+	/**
 	 * The CSS selector for the top-level styles.
 	 *
 	 * @since 5.8.0
@@ -691,6 +700,25 @@ class WP_Theme_JSON {
 	}
 
 	/**
+	 * Generates a new cache key to determine when to clear blocks cache.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @return string A cache key.
+	 */
+	protected static function get_new_blocks_cache_key() {
+		$registry = WP_Block_Type_Registry::get_instance();
+		$blocks   = $registry->get_all_registered();
+
+		/*
+		 * Generate the key based on the current number of blocks registered.
+		 * This ensures that Theme JSON data accessed at registration time
+		 * does not result in stale block data.
+		 */
+		return 'registered-blocks-' . count( $blocks );
+	}
+
+	/**
 	 * Returns the metadata for each block.
 	 *
 	 * Example:
@@ -721,11 +749,13 @@ class WP_Theme_JSON {
 	 * @return array Block metadata.
 	 */
 	protected static function get_blocks_metadata() {
-		if ( null !== static::$blocks_metadata ) {
+		$new_cache_key = static::get_new_blocks_cache_key();
+		if ( null !== static::$blocks_metadata && $new_cache_key === static::$blocks_cache_key ) {
 			return static::$blocks_metadata;
 		}
 
-		static::$blocks_metadata = array();
+		static::$blocks_cache_key = $new_cache_key;
+		static::$blocks_metadata  = array();
 
 		$registry = WP_Block_Type_Registry::get_instance();
 		$blocks   = $registry->get_all_registered();

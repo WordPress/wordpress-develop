@@ -37,6 +37,15 @@ class WP_Theme_JSON_Resolver {
 	protected static $theme = null;
 
 	/**
+	 * Holds a cache key string, to determine when
+	 * to generate fresh theme data.
+	 *
+	 * @since 6.1.0
+	 * @var string
+	 */
+	protected static $theme_cache_key = null;
+
+	/**
 	 * Whether or not the theme supports theme.json.
 	 *
 	 * @since 5.8.0
@@ -88,6 +97,25 @@ class WP_Theme_JSON_Resolver {
 			}
 		}
 		return $config;
+	}
+
+	/**
+	 * Generates a new cache key to determine when to clear theme cache.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @return string A cache key.
+	 */
+	protected static function get_new_theme_cache_key() {
+		$registry = WP_Block_Type_Registry::get_instance();
+		$blocks   = $registry->get_all_registered();
+
+		/*
+		 * Generate the key based on the current number of blocks registered.
+		 * This ensures that Theme JSON data accessed at registration time
+		 * does not result in stale block data.
+		 */
+		return 'registered-blocks-' . count( $blocks );
 	}
 
 	/**
@@ -162,6 +190,7 @@ class WP_Theme_JSON_Resolver {
 	 * @since 5.8.0
 	 * @since 5.9.0 Theme supports have been inlined and the `$theme_support_data` argument removed.
 	 * @since 6.0.0 Added an `$options` parameter to allow the theme data to be returned without theme supports.
+	 * @since 6.1.0 Clear `$theme` cache if number of registered blocks has changed.
 	 *
 	 * @param array $deprecated Deprecated. Not used.
 	 * @param array $options {
@@ -176,11 +205,13 @@ class WP_Theme_JSON_Resolver {
 			_deprecated_argument( __METHOD__, '5.9.0' );
 		}
 
-		$options = wp_parse_args( $options, array( 'with_supports' => true ) );
+		$options       = wp_parse_args( $options, array( 'with_supports' => true ) );
+		$new_cache_key = static::get_new_theme_cache_key();
 
-		if ( null === static::$theme ) {
-			$theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json' ) );
-			$theme_json_data = static::translate( $theme_json_data, wp_get_theme()->get( 'TextDomain' ) );
+		if ( null === static::$theme || $new_cache_key !== static::$theme_cache_key ) {
+			static::$theme_cache_key = $new_cache_key;
+			$theme_json_data   = static::read_json_file( static::get_file_path_from_theme( 'theme.json' ) );
+			$theme_json_data   = static::translate( $theme_json_data, wp_get_theme()->get( 'TextDomain' ) );
 			/**
 			 * Filters the data provided by the theme for global styles & settings.
 			 *
@@ -560,6 +591,7 @@ class WP_Theme_JSON_Resolver {
 	public static function clean_cached_data() {
 		static::$core                     = null;
 		static::$theme                    = null;
+		static::$theme_cache_key          = null;
 		static::$user                     = null;
 		static::$user_custom_post_type_id = null;
 		static::$theme_has_support        = null;
