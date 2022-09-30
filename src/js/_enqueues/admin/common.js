@@ -617,7 +617,7 @@ window.screenMeta = {
 		 * @return {void}
 		 */
 		panel.slideDown( 'fast', function() {
-			panel.trigger( 'focus' );
+			panel.removeClass( 'hidden' ).trigger( 'focus' );
 			button.addClass( 'screen-meta-active' ).attr( 'aria-expanded', true );
 		});
 
@@ -646,6 +646,7 @@ window.screenMeta = {
 			button.removeClass( 'screen-meta-active' ).attr( 'aria-expanded', false );
 			$('.screen-meta-toggle').css('visibility', '');
 			panel.parent().hide();
+			panel.addClass( 'hidden' );
 		});
 
 		$document.trigger( 'screen:options:close' );
@@ -751,8 +752,14 @@ $availableStructureTags.on( 'click', function() {
 	    selectionStart          = $permalinkStructure[ 0 ].selectionStart,
 	    selectionEnd            = $permalinkStructure[ 0 ].selectionEnd,
 	    textToAppend            = $( this ).text().trim(),
-	    textToAnnounce          = $( this ).attr( 'data-added' ),
+	    textToAnnounce,
 	    newSelectionStart;
+
+	if ( $( this ).hasClass( 'active' ) ) {
+		textToAnnounce = $( this ).attr( 'data-removed' );
+	} else {
+		textToAnnounce = $( this ).attr( 'data-added' );
+	}
 
 	// Remove structure tag if already part of the structure.
 	if ( -1 !== permalinkStructureValue.indexOf( textToAppend ) ) {
@@ -1693,25 +1700,6 @@ $( function() {
 				} else {
 					$(this).find('a').attr( 'aria-expanded', 'false' );
 				}
-			} );
-
-			// Close sidebar when focus moves outside of toggle and sidebar.
-			$( '#wp-admin-bar-menu-toggle, #adminmenumain' ).on( 'focusout', function() {
-				var focusIsInToggle, focusIsInSidebar;
-
-				if ( ! $wpwrap.hasClass( 'wp-responsive-open' ) ) {
-					return;
-				}
-
-				// A brief delay is required to allow focus to switch to another element.
-				setTimeout( function() {
-					focusIsInToggle  = $.contains( $( '#wp-admin-bar-menu-toggle' )[0], $( ':focus' )[0] );
-					focusIsInSidebar = $.contains( $( '#adminmenumain' )[0], $( ':focus' )[0] );
-
-					if ( ! focusIsInToggle && ! focusIsInSidebar ) {
-						$( '#wp-admin-bar-menu-toggle' ).trigger( 'click.wp-responsive' );
-					}
-				}, 10 );
 			} );
 
 			// Add menu events.

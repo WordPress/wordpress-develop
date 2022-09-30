@@ -7,7 +7,7 @@
  */
 
 /**
- * Defines the default media upload tabs
+ * Defines the default media upload tabs.
  *
  * @since 2.5.0
  *
@@ -32,7 +32,7 @@ function media_upload_tabs() {
 }
 
 /**
- * Adds the gallery tab back to the tabs array if post has image attachments
+ * Adds the gallery tab back to the tabs array if post has image attachments.
  *
  * @since 2.5.0
  *
@@ -145,7 +145,7 @@ function get_image_send_to_editor( $id, $caption, $title, $align, $url = '', $re
 	}
 
 	if ( $url ) {
-		$html = '<a href="' . esc_attr( $url ) . '"' . $rel . '>' . $html . '</a>';
+		$html = '<a href="' . esc_url( $url ) . '"' . $rel . '>' . $html . '</a>';
 	}
 
 	/**
@@ -361,12 +361,21 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 		if ( ! empty( $meta['track_number'] ) ) {
 			$track_number = explode( '/', $meta['track_number'] );
 
-			if ( isset( $track_number[1] ) ) {
-				/* translators: Audio file track information. 1: Audio track number, 2: Total audio tracks. */
-				$content .= ' ' . sprintf( __( 'Track %1$s of %2$s.' ), number_format_i18n( $track_number[0] ), number_format_i18n( $track_number[1] ) );
-			} else {
-				/* translators: Audio file track information. %s: Audio track number. */
-				$content .= ' ' . sprintf( __( 'Track %s.' ), number_format_i18n( $track_number[0] ) );
+			if ( is_numeric( $track_number[0] ) ) {
+				if ( isset( $track_number[1] ) && is_numeric( $track_number[1] ) ) {
+					$content .= ' ' . sprintf(
+						/* translators: Audio file track information. 1: Audio track number, 2: Total audio tracks. */
+						__( 'Track %1$s of %2$s.' ),
+						number_format_i18n( $track_number[0] ),
+						number_format_i18n( $track_number[1] )
+					);
+				} else {
+					$content .= ' ' . sprintf(
+						/* translators: Audio file track information. %s: Audio track number. */
+						__( 'Track %s.' ),
+						number_format_i18n( $track_number[0] )
+					);
+				}
 			}
 		}
 
@@ -612,7 +621,7 @@ function wp_iframe( $content_func, ...$args ) {
 }
 
 /**
- * Adds the media button to the editor
+ * Adds the media button to the editor.
  *
  * @since 2.5.0
  *
@@ -665,11 +674,16 @@ function media_buttons( $editor_id = 'content' ) {
 }
 
 /**
+ * Retrieves the upload iframe source URL.
+ *
+ * @since 3.0.0
+ *
  * @global int $post_ID
- * @param string $type
- * @param int    $post_id
- * @param string $tab
- * @return string
+ *
+ * @param string $type    Media type.
+ * @param int    $post_id Post ID.
+ * @param string $tab     Media upload tab.
+ * @return string Upload iframe source URL.
  */
 function get_upload_iframe_src( $type = null, $post_id = null, $tab = null ) {
 	global $post_ID;
@@ -908,7 +922,7 @@ function wp_media_upload_handler() {
 			 * @param string $src   Media source URL.
 			 * @param string $title Media title.
 			 */
-			$html = apply_filters( "{$type}_send_to_editor_url", $html, esc_url_raw( $src ), $title );
+			$html = apply_filters( "{$type}_send_to_editor_url", $html, sanitize_url( $src ), $title );
 		} else {
 			$align = '';
 			$alt   = esc_attr( wp_unslash( $_POST['alt'] ) );
@@ -933,7 +947,7 @@ function wp_media_upload_handler() {
 			 * @param string $align The image alignment. Default 'alignnone'. Possible values include
 			 *                      'alignleft', 'aligncenter', 'alignright', 'alignnone'.
 			 */
-			$html = apply_filters( 'image_send_to_editor_url', $html, esc_url_raw( $src ), $alt, $align );
+			$html = apply_filters( 'image_send_to_editor_url', $html, sanitize_url( $src ), $alt, $align );
 		}
 
 		return media_send_to_editor( $html );
@@ -974,21 +988,21 @@ function wp_media_upload_handler() {
  * Downloads an image from the specified URL, saves it as an attachment, and optionally attaches it to a post.
  *
  * @since 2.6.0
- * @since 4.2.0 Introduced the `$return` parameter.
- * @since 4.8.0 Introduced the 'id' option for the `$return` parameter.
+ * @since 4.2.0 Introduced the `$return_type` parameter.
+ * @since 4.8.0 Introduced the 'id' option for the `$return_type` parameter.
  * @since 5.3.0 The `$post_id` parameter was made optional.
  * @since 5.4.0 The original URL of the attachment is stored in the `_source_url`
  *              post meta value.
  *
- * @param string $file    The URL of the image to download.
- * @param int    $post_id Optional. The post ID the media is to be associated with.
- * @param string $desc    Optional. Description of the image.
- * @param string $return  Optional. Accepts 'html' (image tag html) or 'src' (URL),
- *                        or 'id' (attachment ID). Default 'html'.
+ * @param string $file        The URL of the image to download.
+ * @param int    $post_id     Optional. The post ID the media is to be associated with.
+ * @param string $desc        Optional. Description of the image.
+ * @param string $return_type Optional. Accepts 'html' (image tag html) or 'src' (URL),
+ *                            or 'id' (attachment ID). Default 'html'.
  * @return string|int|WP_Error Populated HTML img tag, attachment ID, or attachment source
  *                             on success, WP_Error object otherwise.
  */
-function media_sideload_image( $file, $post_id = 0, $desc = null, $return = 'html' ) {
+function media_sideload_image( $file, $post_id = 0, $desc = null, $return_type = 'html' ) {
 	if ( ! empty( $file ) ) {
 
 		$allowed_extensions = array( 'jpg', 'jpeg', 'jpe', 'png', 'gif', 'webp' );
@@ -1043,7 +1057,7 @@ function media_sideload_image( $file, $post_id = 0, $desc = null, $return = 'htm
 		add_post_meta( $id, '_source_url', $file );
 
 		// If attachment ID was requested, return it.
-		if ( 'id' === $return ) {
+		if ( 'id' === $return_type ) {
 			return $id;
 		}
 
@@ -1052,7 +1066,7 @@ function media_sideload_image( $file, $post_id = 0, $desc = null, $return = 'htm
 
 	// Finally, check to make sure the file has been saved, then return the HTML.
 	if ( ! empty( $src ) ) {
-		if ( 'src' === $return ) {
+		if ( 'src' === $return_type ) {
 			return $src;
 		}
 
@@ -1116,7 +1130,7 @@ function media_upload_library() {
 }
 
 /**
- * Retrieve HTML for the image alignment radio buttons with the specified one checked.
+ * Retrieves HTML for the image alignment radio buttons with the specified one checked.
  *
  * @since 2.7.0
  *
@@ -1141,20 +1155,20 @@ function image_align_input_fields( $post, $checked = '' ) {
 		$checked = 'none';
 	}
 
-	$out = array();
+	$output = array();
 
 	foreach ( $alignments as $name => $label ) {
-		$name  = esc_attr( $name );
-		$out[] = "<input type='radio' name='attachments[{$post->ID}][align]' id='image-align-{$name}-{$post->ID}' value='$name'" .
+		$name     = esc_attr( $name );
+		$output[] = "<input type='radio' name='attachments[{$post->ID}][align]' id='image-align-{$name}-{$post->ID}' value='$name'" .
 			( $checked == $name ? " checked='checked'" : '' ) .
 			" /><label for='image-align-{$name}-{$post->ID}' class='align image-align-{$name}-label'>$label</label>";
 	}
 
-	return implode( "\n", $out );
+	return implode( "\n", $output );
 }
 
 /**
- * Retrieve HTML for the size radio buttons with the specified one checked.
+ * Retrieves HTML for the size radio buttons with the specified one checked.
  *
  * @since 2.7.0
  *
@@ -1185,7 +1199,7 @@ function image_size_input_fields( $post, $check = '' ) {
 		$check = get_user_setting( 'imgsize', 'medium' );
 	}
 
-	$out = array();
+	$output = array();
 
 	foreach ( $size_names as $size => $label ) {
 		$downsize = image_downsize( $post->ID, $size );
@@ -1221,18 +1235,18 @@ function image_size_input_fields( $post, $check = '' ) {
 		}
 		$html .= '</div>';
 
-		$out[] = $html;
+		$output[] = $html;
 	}
 
 	return array(
 		'label' => __( 'Size' ),
 		'input' => 'html',
-		'html'  => implode( "\n", $out ),
+		'html'  => implode( "\n", $output ),
 	);
 }
 
 /**
- * Retrieve HTML for the Link URL buttons with the default link type as specified.
+ * Retrieves HTML for the Link URL buttons with the default link type as specified.
  *
  * @since 2.7.0
  *
@@ -1260,13 +1274,13 @@ function image_link_input_fields( $post, $url_type = '' ) {
 	return "
 	<input type='text' class='text urlfield' name='attachments[$post->ID][url]' value='" . esc_attr( $url ) . "' /><br />
 	<button type='button' class='button urlnone' data-link-url=''>" . __( 'None' ) . "</button>
-	<button type='button' class='button urlfile' data-link-url='" . esc_attr( $file ) . "'>" . __( 'File URL' ) . "</button>
-	<button type='button' class='button urlpost' data-link-url='" . esc_attr( $link ) . "'>" . __( 'Attachment Post URL' ) . '</button>
+	<button type='button' class='button urlfile' data-link-url='" . esc_url( $file ) . "'>" . __( 'File URL' ) . "</button>
+	<button type='button' class='button urlpost' data-link-url='" . esc_url( $link ) . "'>" . __( 'Attachment Post URL' ) . '</button>
 ';
 }
 
 /**
- * Output a textarea element for inputting an attachment caption.
+ * Outputs a textarea element for inputting an attachment caption.
  *
  * @since 3.4.0
  *
@@ -1319,31 +1333,6 @@ function media_single_attachment_fields_to_edit( $form_fields, $post ) {
 function media_post_single_attachment_fields_to_edit( $form_fields, $post ) {
 	unset( $form_fields['image_url'] );
 	return $form_fields;
-}
-
-/**
- * Filters input from media_upload_form_handler() and assigns a default
- * post_title from the file name if none supplied.
- *
- * Illustrates the use of the {@see 'attachment_fields_to_save'} filter
- * which can be used to add default values to any field before saving to DB.
- *
- * @since 2.5.0
- *
- * @param array $post       The WP_Post attachment object converted to an array.
- * @param array $attachment An array of attachment metadata.
- * @return array Filtered attachment post object.
- */
-function image_attachment_fields_to_save( $post, $attachment ) {
-	if ( 'image' === substr( $post['post_mime_type'], 0, 5 ) ) {
-		if ( strlen( trim( $post['post_title'] ) ) == 0 ) {
-			$attachment_url                           = ( isset( $post['attachment_url'] ) ) ? $post['attachment_url'] : $post['guid'];
-			$post['post_title']                       = preg_replace( '/\.\w+$/', '', wp_basename( $attachment_url ) );
-			$post['errors']['post_title']['errors'][] = __( 'Empty Title filled from filename.' );
-		}
-	}
-
-	return $post;
 }
 
 /**
@@ -1511,7 +1500,7 @@ function get_attachment_fields_to_edit( $post, $errors = null ) {
 }
 
 /**
- * Retrieve HTML for media items of post gallery.
+ * Retrieves HTML for media items of post gallery.
  *
  * The HTML markup retrieved will be created for the progress of SWF Upload
  * component. Will also create link for showing and hiding the form to modify
@@ -1523,7 +1512,7 @@ function get_attachment_fields_to_edit( $post, $errors = null ) {
  *
  * @param int   $post_id Post ID.
  * @param array $errors  Errors for attachment, if any.
- * @return string
+ * @return string HTML content for media items of post gallery.
  */
 function get_media_items( $post_id, $errors ) {
 	$attachments = array();
@@ -1568,7 +1557,7 @@ function get_media_items( $post_id, $errors ) {
 }
 
 /**
- * Retrieve HTML form for modifying the image attachment.
+ * Retrieves HTML form for modifying the image attachment.
  *
  * @since 2.5.0
  *
@@ -1714,8 +1703,7 @@ function get_media_item( $attachment_id, $args = null ) {
 		<tr><td colspan='2' class='imgedit-response' id='imgedit-response-$post->ID'></td></tr>\n
 		<tr><td style='display:none' colspan='2' class='image-editor' id='image-editor-$post->ID'></td></tr>\n
 		<tr><td colspan='2'><p class='media-types media-types-required-info'>" .
-			/* translators: %s: Asterisk symbol (*). */
-			sprintf( __( 'Required fields are marked %s' ), '<span class="required">*</span>' ) .
+			wp_required_field_message() .
 		"</p></td></tr>\n";
 
 	$defaults = array(
@@ -1795,7 +1783,7 @@ function get_media_item( $attachment_id, $args = null ) {
 			continue;
 		}
 
-		$required      = $field['required'] ? '<span class="required">*</span>' : '';
+		$required      = $field['required'] ? ' ' . wp_required_field_indicator() : '';
 		$required_attr = $field['required'] ? ' required' : '';
 		$class         = $id;
 		$class        .= $field['required'] ? ' form-required' : '';
@@ -1986,7 +1974,7 @@ function get_compat_media_markup( $attachment_id, $args = null ) {
 		}
 
 		$readonly      = ! $user_can_edit && ! empty( $field['taxonomy'] ) ? " readonly='readonly' " : '';
-		$required      = $field['required'] ? '<span class="required">*</span>' : '';
+		$required      = $field['required'] ? ' ' . wp_required_field_indicator() : '';
 		$required_attr = $field['required'] ? ' required' : '';
 		$class         = 'compat-field-' . $id;
 		$class        .= $field['required'] ? ' form-required' : '';
@@ -2042,8 +2030,7 @@ function get_compat_media_markup( $attachment_id, $args = null ) {
 
 	if ( $item ) {
 		$item = '<p class="media-types media-types-required-info">' .
-			/* translators: %s: Asterisk symbol (*). */
-			sprintf( __( 'Required fields are marked %s' ), '<span class="required">*</span>' ) .
+			wp_required_field_message() .
 			'</p>' .
 			'<table class="compat-attachment-fields">' . $item . '</table>';
 	}
@@ -2528,7 +2515,7 @@ function media_upload_type_url_form( $type = null, $errors = null, $id = null ) 
 }
 
 /**
- * Adds gallery form to upload iframe
+ * Adds gallery form to upload iframe.
  *
  * @since 2.5.0
  *
@@ -2902,12 +2889,12 @@ function media_upload_library_form( $errors ) {
 }
 
 /**
- * Creates the form for external url
+ * Creates the form for external url.
  *
  * @since 2.7.0
  *
  * @param string $default_view
- * @return string the form html
+ * @return string HTML content of the form.
  */
 function wp_media_insert_url_form( $default_view = 'image' ) {
 	/** This filter is documented in wp-admin/includes/media.php */
@@ -2940,13 +2927,12 @@ function wp_media_insert_url_form( $default_view = 'image' ) {
 	return '
 	<p class="media-types"><label><input type="radio" name="media_type" value="image" id="image-only"' . checked( 'image-only', $view, false ) . ' /> ' . __( 'Image' ) . '</label> &nbsp; &nbsp; <label><input type="radio" name="media_type" value="generic" id="not-image"' . checked( 'not-image', $view, false ) . ' /> ' . __( 'Audio, Video, or Other File' ) . '</label></p>
 	<p class="media-types media-types-required-info">' .
-		/* translators: %s: Asterisk symbol (*). */
-		sprintf( __( 'Required fields are marked %s' ), '<span class="required">*</span>' ) .
+		wp_required_field_message() .
 	'</p>
 	<table class="describe ' . $table_class . '"><tbody>
 		<tr>
 			<th scope="row" class="label" style="width:130px;">
-				<label for="src"><span class="alignleft">' . __( 'URL' ) . '</span> <span class="required">*</span></label>
+				<label for="src"><span class="alignleft">' . __( 'URL' ) . '</span> ' . wp_required_field_indicator() . '</label>
 				<span class="alignright" id="status_img"></span>
 			</th>
 			<td class="field"><input id="src" name="src" value="" type="text" required onblur="addExtImage.getImageData()" /></td>
@@ -2954,7 +2940,7 @@ function wp_media_insert_url_form( $default_view = 'image' ) {
 
 		<tr>
 			<th scope="row" class="label">
-				<label for="title"><span class="alignleft">' . __( 'Title' ) . '</span> <span class="required">*</span></label>
+				<label for="title"><span class="alignleft">' . __( 'Title' ) . '</span> ' . wp_required_field_indicator() . '</label>
 			</th>
 			<td class="field"><input id="title" name="title" value="" type="text" required /></td>
 		</tr>
@@ -2963,7 +2949,7 @@ function wp_media_insert_url_form( $default_view = 'image' ) {
 
 		<tr class="image-only">
 			<th scope="row" class="label">
-				<label for="alt"><span class="alignleft">' . __( 'Alternative Text' ) . '</span></label>
+				<label for="alt"><span class="alignleft">' . __( 'Alternative Text' ) . '</span> ' . wp_required_field_indicator() . '</label>
 			</th>
 			<td class="field"><input id="alt" name="alt" value="" type="text" required />
 			<p class="help">' . __( 'Alt text for the image, e.g. &#8220;The Mona Lisa&#8221;' ) . '</p></td>
@@ -3221,7 +3207,7 @@ function edit_form_image_editor( $post ) {
 	<?php if ( 'image' === substr( $post->post_mime_type, 0, 5 ) ) : ?>
 		<p class="attachment-alt-text">
 			<label for="attachment_alt"><strong><?php _e( 'Alternative Text' ); ?></strong></label><br />
-			<input type="text" class="widefat" name="_wp_attachment_image_alt" id="attachment_alt" aria-describedby="alt-text-description" value="<?php echo esc_attr( $alt_text ); ?>" />
+			<textarea class="widefat" name="_wp_attachment_image_alt" id="attachment_alt" aria-describedby="alt-text-description"><?php echo esc_attr( $alt_text ); ?></textarea>
 		</p>
 		<p class="attachment-alt-text-description" id="alt-text-description">
 		<?php
@@ -3378,7 +3364,7 @@ function attachment_submitbox_metadata() {
 	if ( isset( $meta['filesize'] ) ) {
 		$file_size = $meta['filesize'];
 	} elseif ( file_exists( $file ) ) {
-		$file_size = filesize( $file );
+		$file_size = wp_filesize( $file );
 	}
 
 	if ( ! empty( $file_size ) ) {
@@ -3480,7 +3466,7 @@ function attachment_submitbox_metadata() {
 
 	if ( ! empty( $meta['original_image'] ) ) {
 		?>
-		<div class="misc-pub-section misc-pub-original-image">
+		<div class="misc-pub-section misc-pub-original-image word-wrap-break-word">
 			<?php _e( 'Original image:' ); ?>
 			<a href="<?php echo esc_url( wp_get_original_image_url( $attachment_id ) ); ?>">
 				<?php echo esc_html( wp_basename( wp_get_original_image_path( $attachment_id ) ) ); ?>
@@ -3491,12 +3477,12 @@ function attachment_submitbox_metadata() {
 }
 
 /**
- * Parse ID3v2, ID3v1, and getID3 comments to extract usable data
+ * Parses ID3v2, ID3v1, and getID3 comments to extract usable data.
  *
  * @since 3.6.0
  *
- * @param array $metadata An existing array with data
- * @param array $data Data supplied by ID3 tags
+ * @param array $metadata An existing array with data.
+ * @param array $data Data supplied by ID3 tags.
  */
 function wp_add_id3_tag_data( &$metadata, $data ) {
 	foreach ( array( 'id3v2', 'id3v1' ) as $version ) {
@@ -3536,7 +3522,7 @@ function wp_add_id3_tag_data( &$metadata, $data ) {
 }
 
 /**
- * Retrieve metadata from a video file's ID3 tags
+ * Retrieves metadata from a video file's ID3 tags.
  *
  * @since 3.6.0
  *
@@ -3641,16 +3627,17 @@ function wp_read_video_metadata( $file ) {
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param array  $metadata       Filtered Video metadata.
-	 * @param string $file           Path to video file.
-	 * @param string $file_format    File format of video, as analyzed by getID3.
-	 * @param array  $data           Raw metadata from getID3.
+	 * @param array       $metadata    Filtered video metadata.
+	 * @param string      $file        Path to video file.
+	 * @param string|null $file_format File format of video, as analyzed by getID3.
+	 *                                 Null if unknown.
+	 * @param array       $data        Raw metadata from getID3.
 	 */
 	return apply_filters( 'wp_read_video_metadata', $metadata, $file, $file_format, $data );
 }
 
 /**
- * Retrieve metadata from an audio file's ID3 tags.
+ * Retrieves metadata from an audio file's ID3 tags.
  *
  * @since 3.6.0
  *
@@ -3713,11 +3700,27 @@ function wp_read_audio_metadata( $file ) {
 
 	wp_add_id3_tag_data( $metadata, $data );
 
-	return $metadata;
+	$file_format = isset( $metadata['fileformat'] ) ? $metadata['fileformat'] : null;
+
+	/**
+	 * Filters the array of metadata retrieved from an audio file.
+	 *
+	 * In core, usually this selection is what is stored.
+	 * More complete data can be parsed from the `$data` parameter.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param array       $metadata    Filtered audio metadata.
+	 * @param string      $file        Path to audio file.
+	 * @param string|null $file_format File format of audio, as analyzed by getID3.
+	 *                                 Null if unknown.
+	 * @param array       $data        Raw metadata from getID3.
+	 */
+	return apply_filters( 'wp_read_audio_metadata', $metadata, $file, $file_format, $data );
 }
 
 /**
- * Parse creation date from media metadata.
+ * Parses creation date from media metadata.
  *
  * The getID3 library doesn't have a standard method for getting creation dates,
  * so the location of this data can vary based on the MIME type.

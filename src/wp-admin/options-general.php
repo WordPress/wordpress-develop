@@ -28,7 +28,7 @@ $options_help = '<p>' . __( 'The fields on this screen determine some of the bas
 	'<p>' . __( 'Most themes display the site title at the top of every page, in the title bar of the browser, and as the identifying name for syndicated feeds. The tagline is also displayed by many themes.' ) . '</p>';
 
 if ( ! is_multisite() ) {
-	$options_help .= '<p>' . __( 'The WordPress URL and the Site URL can be the same (example.com) or different; for example, having the WordPress core files (example.com/wordpress) in a subdirectory instead of the root directory.' ) . '</p>' .
+	$options_help .= '<p>' . __( 'The WordPress URL and the site URL can be the same (example.com) or different; for example, having the WordPress core files (example.com/wordpress) in a subdirectory instead of the root directory.' ) . '</p>' .
 		'<p>' . __( 'If you want site visitors to be able to register themselves, as opposed to by the site administrator, check the membership box. A default user role can be set for all new users, whether self-registered or registered by the site admin.' ) . '</p>';
 }
 
@@ -66,9 +66,17 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <td><input name="blogname" type="text" id="blogname" value="<?php form_option( 'blogname' ); ?>" class="regular-text" /></td>
 </tr>
 
+<?php
+/* translators: Site tagline. */
+$sample_tagline = __( 'Just another WordPress site' );
+if ( is_multisite() ) {
+	/* translators: %s: Network title. */
+	$sample_tagline = sprintf( __( 'Just another %s site' ), get_network()->site_name );
+}
+?>
 <tr>
 <th scope="row"><label for="blogdescription"><?php _e( 'Tagline' ); ?></label></th>
-<td><input name="blogdescription" type="text" id="blogdescription" aria-describedby="tagline-description" value="<?php form_option( 'blogdescription' ); ?>" class="regular-text" />
+<td><input name="blogdescription" type="text" id="blogdescription" aria-describedby="tagline-description" value="<?php form_option( 'blogdescription' ); ?>" class="regular-text" placeholder="<?php echo $sample_tagline; ?>" />
 <p class="description" id="tagline-description"><?php _e( 'In a few words, explain what this site is about.' ); ?></p></td>
 </tr>
 
@@ -111,7 +119,7 @@ if ( ! is_multisite() ) {
 <tr>
 <th scope="row"><label for="new_admin_email"><?php _e( 'Administration Email Address' ); ?></label></th>
 <td><input name="new_admin_email" type="email" id="new_admin_email" aria-describedby="new-admin-email-description" value="<?php form_option( 'admin_email' ); ?>" class="regular-text ltr" />
-<p class="description" id="new-admin-email-description"><?php _e( 'This address is used for admin purposes. If you change this, we will send you an email at your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?></p>
+<p class="description" id="new-admin-email-description"><?php _e( 'This address is used for admin purposes. If you change this, an email will be sent to your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?></p>
 <?php
 $new_admin_email = get_option( 'new_admin_email' );
 if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) :
@@ -277,7 +285,7 @@ if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists.
 	?>
 	<br />
 	<?php
-	if ( in_array( $tzstring, timezone_identifiers_list(), true ) ) {
+	if ( in_array( $tzstring, timezone_identifiers_list( DateTimeZone::ALL_WITH_BC ), true ) ) {
 		$transitions = timezone_transitions_get( timezone_open( $tzstring ), time() );
 
 		// 0 index is the state at current time, 1 index is the next transition, if any.

@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::make_clickable
  */
 class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 	public function test_mailto_xss() {

@@ -28,7 +28,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 			'post_title' => 'Example',
 		);
 
-		$post = $this->factory()->post->create_and_get( $args );
+		$post = self::factory()->post->create_and_get( $args );
 
 		global $wp_rest_server;
 		$wp_rest_server = new Spy_REST_Server;
@@ -80,6 +80,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	public function test_block_editor_context_no_settings() {
 		$context = new WP_Block_Editor_Context();
 
+		$this->assertSame( 'core/edit-post', $context->name );
 		$this->assertNull( $context->post );
 	}
 
@@ -89,7 +90,38 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	public function test_block_editor_context_post() {
 		$context = new WP_Block_Editor_Context( array( 'post' => get_post() ) );
 
+		$this->assertSame( 'core/edit-post', $context->name );
 		$this->assertSame( get_post(), $context->post );
+	}
+
+	/**
+	 * @ticket 55301
+	 */
+	public function test_block_editor_context_widgets() {
+		$context = new WP_Block_Editor_Context( array( 'name' => 'core/edit-widgets' ) );
+
+		$this->assertSame( 'core/edit-widgets', $context->name );
+		$this->assertNull( $context->post );
+	}
+
+	/**
+	 * @ticket 55301
+	 */
+	public function test_block_editor_context_widgets_customizer() {
+		$context = new WP_Block_Editor_Context( array( 'name' => 'core/customize-widgets' ) );
+
+		$this->assertSame( 'core/customize-widgets', $context->name );
+		$this->assertNull( $context->post );
+	}
+
+	/**
+	 * @ticket 55301
+	 */
+	public function test_block_editor_context_site() {
+		$context = new WP_Block_Editor_Context( array( 'name' => 'core/edit-site' ) );
+
+		$this->assertSame( 'core/edit-site', $context->name );
+		$this->assertNull( $context->post );
 	}
 
 	/**
@@ -170,7 +202,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	public function test_get_default_block_editor_settings() {
 		$settings = get_default_block_editor_settings();
 
-		$this->assertCount( 18, $settings );
+		$this->assertCount( 19, $settings );
 		$this->assertFalse( $settings['alignWide'] );
 		$this->assertIsArray( $settings['allowedMimeTypes'] );
 		$this->assertTrue( $settings['allowedBlockTypes'] );
@@ -217,6 +249,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$this->assertFalse( $settings['disableCustomColors'] );
 		$this->assertFalse( $settings['disableCustomFontSizes'] );
 		$this->assertFalse( $settings['disableCustomGradients'] );
+		$this->assertFalse( $settings['disableLayoutStyles'] );
 		$this->assertFalse( $settings['enableCustomLineHeight'] );
 		$this->assertFalse( $settings['enableCustomSpacing'] );
 		$this->assertFalse( $settings['enableCustomUnits'] );

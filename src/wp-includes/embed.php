@@ -328,7 +328,7 @@ function wp_oembed_register_route() {
 }
 
 /**
- * Adds oEmbed discovery links in the website <head>.
+ * Adds oEmbed discovery links in the head element of the website.
  *
  * @since 4.4.0
  */
@@ -356,11 +356,23 @@ function wp_oembed_add_discovery_links() {
 /**
  * Adds the necessary JavaScript to communicate with the embedded iframes.
  *
+ * This function is no longer used directly. For back-compat it exists exclusively as a way to indicate that the oEmbed
+ * host JS _should_ be added. In `default-filters.php` there remains this code:
+ *
+ *     add_action( 'wp_head', 'wp_oembed_add_host_js' )
+ *
+ * Historically a site has been able to disable adding the oEmbed host script by doing:
+ *
+ *     remove_action( 'wp_head', 'wp_oembed_add_host_js' )
+ *
+ * In order to ensure that such code still works as expected, this function remains. There is now a `has_action()` check
+ * in `wp_maybe_enqueue_oembed_host_js()` to see if `wp_oembed_add_host_js()` has not been unhooked from running at the
+ * `wp_head` action.
+ *
  * @since 4.4.0
+ * @deprecated 5.9.0 Use {@see wp_maybe_enqueue_oembed_host_js()} instead.
  */
-function wp_oembed_add_host_js() {
-	add_filter( 'embed_oembed_html', 'wp_maybe_enqueue_oembed_host_js' );
-}
+function wp_oembed_add_host_js() {}
 
 /**
  * Enqueue the wp-embed script if the provided oEmbed HTML contains a post embed.
@@ -374,7 +386,11 @@ function wp_oembed_add_host_js() {
  * @return string Embed markup (without modifications).
  */
 function wp_maybe_enqueue_oembed_host_js( $html ) {
-	if ( preg_match( '/<blockquote\s[^>]*?wp-embedded-content/', $html ) ) {
+	if (
+		has_action( 'wp_head', 'wp_oembed_add_host_js' )
+		&&
+		preg_match( '/<blockquote\s[^>]*?wp-embedded-content/', $html )
+	) {
 		wp_enqueue_script( 'wp-embed' );
 	}
 	return $html;
@@ -410,7 +426,7 @@ function get_post_embed_url( $post = null ) {
 	 * @param string  $embed_url The post embed URL.
 	 * @param WP_Post $post      The corresponding post object.
 	 */
-	return esc_url_raw( apply_filters( 'post_embed_url', $embed_url, $post ) );
+	return sanitize_url( apply_filters( 'post_embed_url', $embed_url, $post ) );
 }
 
 /**
@@ -521,7 +537,7 @@ function get_post_embed_html( $width, $height, $post = null ) {
  *
  * @since 4.4.0
  *
- * @param WP_Post|int $post  Post object or ID.
+ * @param WP_Post|int $post  Post ID or post object.
  * @param int         $width The requested width.
  * @return array|false Response data on success, false if post doesn't exist
  *                     or is not publicly viewable.
@@ -1135,29 +1151,35 @@ function print_embed_sharing_dialog() {
 	if ( is_404() ) {
 		return;
 	}
+
+	$unique_suffix            = get_the_ID() . '-' . wp_rand();
+	$share_tab_wordpress_id   = 'wp-embed-share-tab-wordpress-' . $unique_suffix;
+	$share_tab_html_id        = 'wp-embed-share-tab-html-' . $unique_suffix;
+	$description_wordpress_id = 'wp-embed-share-description-wordpress-' . $unique_suffix;
+	$description_html_id      = 'wp-embed-share-description-html-' . $unique_suffix;
 	?>
 	<div class="wp-embed-share-dialog hidden" role="dialog" aria-label="<?php esc_attr_e( 'Sharing options' ); ?>">
 		<div class="wp-embed-share-dialog-content">
 			<div class="wp-embed-share-dialog-text">
 				<ul class="wp-embed-share-tabs" role="tablist">
 					<li class="wp-embed-share-tab-button wp-embed-share-tab-button-wordpress" role="presentation">
-						<button type="button" role="tab" aria-controls="wp-embed-share-tab-wordpress" aria-selected="true" tabindex="0"><?php esc_html_e( 'WordPress Embed' ); ?></button>
+						<button type="button" role="tab" aria-controls="<?php echo $share_tab_wordpress_id; ?>" aria-selected="true" tabindex="0"><?php esc_html_e( 'WordPress Embed' ); ?></button>
 					</li>
 					<li class="wp-embed-share-tab-button wp-embed-share-tab-button-html" role="presentation">
-						<button type="button" role="tab" aria-controls="wp-embed-share-tab-html" aria-selected="false" tabindex="-1"><?php esc_html_e( 'HTML Embed' ); ?></button>
+						<button type="button" role="tab" aria-controls="<?php echo $share_tab_html_id; ?>" aria-selected="false" tabindex="-1"><?php esc_html_e( 'HTML Embed' ); ?></button>
 					</li>
 				</ul>
-				<div id="wp-embed-share-tab-wordpress" class="wp-embed-share-tab" role="tabpanel" aria-hidden="false">
-					<input type="text" value="<?php the_permalink(); ?>" class="wp-embed-share-input" aria-describedby="wp-embed-share-description-wordpress" tabindex="0" readonly/>
+				<div id="<?php echo $share_tab_wordpress_id; ?>" class="wp-embed-share-tab" role="tabpanel" aria-hidden="false">
+					<input type="text" value="<?php the_permalink(); ?>" class="wp-embed-share-input" aria-label="<?php esc_attr_e( 'URL' ); ?>" aria-describedby="<?php echo $description_wordpress_id; ?>" tabindex="0" readonly/>
 
-					<p class="wp-embed-share-description" id="wp-embed-share-description-wordpress">
+					<p class="wp-embed-share-description" id="<?php echo $description_wordpress_id; ?>">
 						<?php _e( 'Copy and paste this URL into your WordPress site to embed' ); ?>
 					</p>
 				</div>
-				<div id="wp-embed-share-tab-html" class="wp-embed-share-tab" role="tabpanel" aria-hidden="true">
-					<textarea class="wp-embed-share-input" aria-describedby="wp-embed-share-description-html" tabindex="0" readonly><?php echo esc_textarea( get_post_embed_html( 600, 400 ) ); ?></textarea>
+				<div id="<?php echo $share_tab_html_id; ?>" class="wp-embed-share-tab" role="tabpanel" aria-hidden="true">
+					<textarea class="wp-embed-share-input" aria-label="<?php esc_attr_e( 'HTML' ); ?>" aria-describedby="<?php echo $description_html_id; ?>" tabindex="0" readonly><?php echo esc_textarea( get_post_embed_html( 600, 400 ) ); ?></textarea>
 
-					<p class="wp-embed-share-description" id="wp-embed-share-description-html">
+					<p class="wp-embed-share-description" id="<?php echo $description_html_id; ?>">
 						<?php _e( 'Copy and paste this code into your site to embed' ); ?>
 					</p>
 				</div>

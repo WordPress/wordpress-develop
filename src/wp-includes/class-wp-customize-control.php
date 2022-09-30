@@ -12,6 +12,7 @@
  *
  * @since 3.4.0
  */
+#[AllowDynamicProperties]
 class WP_Customize_Control {
 
 	/**
@@ -167,7 +168,7 @@ class WP_Customize_Control {
 	 *
 	 * Supplied `$args` override class property defaults.
 	 *
-	 * If `$args['settings']` is not defined, use the $id as the setting ID.
+	 * If `$args['settings']` is not defined, use the `$id` as the setting ID.
 	 *
 	 * @since 3.4.0
 	 *
