@@ -138,7 +138,7 @@
 		"element-closest": "^2.0.2",
 		"formdata-polyfill": "4.0.10",
 		"hoverintent": "2.2.1",
-		"imagesloaded": "4.1.4",
+		"imagesloaded": "5.0.0",
 		"jquery": "3.6.1",
 		"jquery-color": "2.2.0",
 		"jquery-form": "4.3.0",
