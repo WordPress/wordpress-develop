@@ -2028,40 +2028,39 @@ function email_exists( $email ) {
  * @since n.e.x.t New argument $wp_error has been added.
  *
  * @param string $username Username to validate.
- * @param bool $wp_error Whether to return a WP_Error if the username is invalid.
- *
- * @return bool|WP_Error Whether username given is valid. True is the username is valid, false or WP_Error otherwise.
+ * @param bool   $wp_error Whether to return a WP_Error if the username is invalid.
+ * @return bool|WP_Error Whether provided username is valid. True if the username is valid, false or WP_Error otherwise.
  */
 function validate_username( $username, $wp_error = false ) {
 	$original_username = $username;
 
 	$errors = new WP_Error();
 
-	// User login cannot be empty
+	// User login cannot be empty.
 	if ( empty( $username ) ) {
 		$errors->add( 'user_name', __( 'Please enter a username.' ) );
 	}
 
-	// User login must be more than 4 characters
+	// User login must be more than 4 characters.
 	if ( strlen( $username ) < 4 ) {
 		$errors->add( 'user_name', __( 'Username must be at least 4 characters.' ) );
 	}
 
-	// User login must be less than 60 characters
+	// User login must be less than 60 characters.
 	if ( strlen( $username ) > 60 ) {
 		$errors->add( 'user_name', __( 'Username may not be longer than 60 characters.' ) );
 	}
 
-	// Strip any whitespace and then match against case insensitive characters a-z 0-9 _ . - @
+	// Strip any whitespace and then match against case insensitive characters a-z, 0-9, _, ., -, @.
 	$username = preg_replace( '/\s+/', '', sanitize_user( $username, true ) );
 
-	// If the previous operation generated a different value, the username is invalid
+	// If the previous operation generated a different value, the username is invalid.
 	if ( $username !== $original_username ) {
 		$errors->add( 'user_name', __( '<strong>Error:</strong> This username is invalid because it uses illegal characters. Please enter a valid username.' ) );
 	}
 
 	if ( is_multisite() ) {
-		// Check the user_login against an array of illegal names
+		// Check the user_login against an array of illegal names.
 		$illegal_names = get_site_option( 'illegal_names' );
 		if ( false === is_array( $illegal_names ) ) {
 			$illegal_names = array( 'www', 'web', 'root', 'admin', 'main', 'invite', 'administrator' );
@@ -2084,7 +2083,7 @@ function validate_username( $username, $wp_error = false ) {
 	}
 
 	if ( is_multisite() ) {
-		// User login must have at least one letter
+		// User login must have at least one letter.
 		if ( ! preg_match( '/[a-zA-Z]+/', $username ) ) {
 			$errors->add( 'user_name', __( 'Sorry, usernames must have letters too!' ) );
 		}
@@ -2113,16 +2112,15 @@ function validate_username( $username, $wp_error = false ) {
 /**
  * Check whether the given username is reserved or not.
  *
- * In multisite this check if a signup with the username already exist. If the signup has been registered more than two
- * days ago it'll be deleted and the username considered available again.
+ * In multisite, this checks if a signup with the provided username already exists. If the signup has been registered 
+ * more than two days ago, it'll be deleted and the username considered available again.
  *
  * @since n.e.x.t
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $username Username to check.
- *
- * @return bool True is the username is available, false otherwise.
+ * @return bool True if the username is available, false otherwise.
  */
 function is_username_reserved( $username ) {
 	global $wpdb;
@@ -2159,17 +2157,17 @@ function is_username_reserved( $username ) {
 /**
  * Check if a user login is valid.
  *
- * This function combine various check that are run on the provided user login :
+ * This function combines various checks that are run on the provided user login:
  * - {@see validate_username}
  * - {@see username_exists}
  * - {@see is_username_reserved}
  *
  * @since n.e.x.t
  *
- * @param string $user_login User login to validate.
- * @param WP_Error $errors Existing WP_Error object to use. If null a new WP_Error object will be created and returned.
+ * @param string   $user_login User login to validate.
+ * @param WP_Error $errors    Existing WP_Error object to use. If null, a new WP_Error object will be created and returned.
  *
- * @return bool|WP_Error True is the login is valid, WP_Error otherwise.
+ * @return bool|WP_Error True if the login is valid, WP_Error otherwise.
  */
 function wp_validate_user_login( $user_login = '', $errors = null ) {
 	if ( null === $errors ) {
@@ -2181,14 +2179,14 @@ function wp_validate_user_login( $user_login = '', $errors = null ) {
 		$errors->merge_from( $validate_username );
 	}
 
-	// Check if the username has been used already.
+	// Check if the username is already in use.
 	if ( username_exists( $user_login ) ) {
 		$errors->add( 'user_name', __( 'Sorry, that username already exists!' ) );
 	}
 
 	// Check if the username is reserved.
 	if ( is_username_reserved( $user_login ) ) {
-		$errors->add( 'user_name', __( 'That username is currently reserved but may be available in a couple of days.' ) );
+		$errors->add( 'user_name', __( 'That username is currently reserved, but it may be available in a couple of days.' ) );
 	}
 
 	if ( $errors->has_errors() ) {
@@ -3543,7 +3541,7 @@ function register_new_user( $user_login, $user_email ) {
 	 */
 	$user_email = apply_filters( 'user_registration_email', $user_email );
 
-	// Validate the username
+	// Validate the username.
 	wp_validate_user_login( $user_login, $errors );
 
 	// Check the email address.
