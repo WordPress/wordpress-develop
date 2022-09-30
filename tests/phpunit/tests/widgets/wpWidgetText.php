@@ -81,7 +81,7 @@ class Tests_Widgets_wpWidgetText extends WP_UnitTestCase {
 	public function test__register_in_customize_preview() {
 		global $wp_customize;
 		wp_set_current_user(
-			$this->factory()->user->create(
+			self::factory()->user->create(
 				array(
 					'role' => 'administrator',
 				)
@@ -315,7 +315,7 @@ class Tests_Widgets_wpWidgetText extends WP_UnitTestCase {
 	 */
 	public function test_widget_shortcodes() {
 		global $post;
-		$post_id = $this->factory()->post->create();
+		$post_id = self::factory()->post->create();
 		$post    = get_post( $post_id );
 
 		$args   = array(
@@ -716,7 +716,7 @@ class Tests_Widgets_wpWidgetText extends WP_UnitTestCase {
 		);
 
 		wp_set_current_user(
-			$this->factory()->user->create(
+			self::factory()->user->create(
 				array(
 					'role' => 'administrator',
 				)
