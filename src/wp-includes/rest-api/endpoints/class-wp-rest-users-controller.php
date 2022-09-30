@@ -1280,17 +1280,17 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		if ( is_wp_error( $valid_username ) ) {
 			$error_message = '';
 
-			// Check for `illegal_user_logins` error message for the username on single install.
+			// Check for a `illegal_user_logins` error message for the username on a single install.
 			if ( ! is_multisite() ) {
 				$error_message = $valid_username->get_error_message( 'invalid_username' );
 			}
 
-			// Check for other error message for the username on single/multisite install.
+			// Check for other error messages concerning the username on single/multisite installs.
 			if ( empty( $error_message ) ) {
 				$error_message = $valid_username->get_error_message( 'user_name' );
 			}
 
-			// Use the correct error message for username with illegal characters in REST response.
+			// Use the correct error message for username with illegal characters in the REST response.
 			if ( __( '<strong>Error:</strong> This username is invalid because it uses illegal characters. Please enter a valid username.' ) === $error_message ) {
 				$error_message = __( 'This username is invalid because it uses illegal characters. Please enter a valid username.' );
 			}
