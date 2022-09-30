@@ -360,7 +360,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			return $post;
 		}
 
-		// If the autosave content matches the post content, do not create an autosave and delete any existing autosave.
+		// If the autosave content ($post_data) revisioned fields matches the post content, do not create an autosave.
 		$autosave_is_different = false;
 		$new_autosave          = _wp_post_revision_data( $post_data, true );
 
@@ -369,6 +369,14 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 				$autosave_is_different = true;
 				break;
 			}
+		}
+
+		if ( ! $autosave_is_different ) {
+			return new WP_Error(
+				'rest_autosave_no_changes',
+				__( 'There is nothing to save. The autosave and the post content are the same.' ),
+				array( 'status' => 400 )
+			);
 		}
 
 		$user_id = get_current_user_id();
@@ -380,28 +388,11 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			$new_autosave['ID']          = $old_autosave->ID;
 			$new_autosave['post_author'] = $user_id;
 
-			if ( ! $autosave_is_different ) {
-				wp_delete_post_revision( $old_autosave->ID );
-				return new WP_Error(
-					'rest_autosave_no_changes',
-					__( 'There is nothing to save. The autosave and the post content are the same.' ),
-					array( 'status' => 400 )
-				);
-			}
-
 			/** This filter is documented in wp-admin/post.php */
 			do_action( 'wp_creating_autosave', $new_autosave );
 
 			// wp_update_post() expects escaped array.
 			return wp_update_post( wp_slash( $new_autosave ) );
-		}
-
-		if ( ! $autosave_is_different ) {
-			return new WP_Error(
-				'rest_autosave_no_changes',
-				__( 'There is nothing to save. The autosave and the post content are the same.' ),
-				array( 'status' => 400 )
-			);
 		}
 
 		// Create the new autosave as a special post revision.
