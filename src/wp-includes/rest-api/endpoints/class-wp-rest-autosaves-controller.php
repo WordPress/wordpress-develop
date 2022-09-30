@@ -371,8 +371,9 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			}
 		}
 
-		// Store one autosave per author. If there is already an autosave for the current author, overwrite it.
-		$user_id      = get_current_user_id();
+		$user_id = get_current_user_id();
+
+		// Store one autosave per author. If there is already an autosave, overwrite it.
 		$old_autosave = wp_get_post_autosave( $post_id, $user_id );
 
 		if ( $old_autosave ) {
