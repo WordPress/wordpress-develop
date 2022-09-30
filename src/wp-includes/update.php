@@ -138,6 +138,10 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		);
 	}
 
+	if ( class_exists( 'SQLite3' ) ) {
+		$query['sqlite'] = SQLite3::version()['versionString'];
+	}
+
 	/**
 	 * Filters the query arguments sent as part of the core version check.
 	 *
