@@ -289,6 +289,24 @@ class WP_Scripts extends WP_Dependencies {
 		$cond_after  = '';
 		$conditional = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
 
+		// Add extra attributes based on the strategy.
+		$extra_atts = '';
+		$strategy   = $this->get_strategy( $handle );
+		switch ( $strategy ) {
+			case 'defer':
+				// Scripts can only use defer if all scripts that depend on them ("dependents") are also deferred.
+				if ( $this->_all_dependents_are_deferred( $obj ) ) {
+					$extra_atts .= ' defer';
+				}
+				break;
+			case 'async':
+				// Scripts can only use async if no other scripts depend on them.
+				if ( ! $this->_get_dependents( $handle ) ) {
+					$extra_atts .= ' async';
+				}
+				break;
+		}
+
 		if ( $conditional ) {
 			$cond_before = "<!--[if {$conditional}]>\n";
 			$cond_after  = "<![endif]-->\n";
@@ -391,7 +409,7 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		$tag  = $translations . $cond_before . $before_handle;
-		$tag .= sprintf( "<script%s src='%s' id='%s-js'></script>\n", $this->type_attr, $src, esc_attr( $handle ) );
+ 		$tag .= sprintf( "<script%s src='%s' id='%s-js'%s></script>\n", $this->type_attr, $src, esc_attr( $handle ), $extra_atts );
 		$tag .= $after_handle . $cond_after;
 
 		/**
@@ -412,6 +430,76 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Check if all of a scripts dependents are deferred.
+	 *
+	 * Iterate through all registered scripts for each script that depends on the given script, check if it uses a defer strategy.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param string $handle The script handle.
+	 * @return bool True if all dependents are deferred, false otherwise.
+	 */
+	private function _all_dependents_are_deferred( $handle ) {
+		$dependents = $this->_get_dependents( $handle );
+		foreach( $dependents as $dependent ) {
+			if ( ! $this->is_deferred( $dependent ) ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Get all of the scripts that depend on a script.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param string $handle The script handle.
+	 * @return array Array of script handles.
+	 */
+	private function _get_dependents( $handle ) {
+		$dependents = array();
+
+		// Iterate over all registered scripts, finding ones that depend on the script.
+		foreach( $this->registered as $registered_handle => $args ) {
+			if ( in_array( $handle, $args->deps ) ) {
+				$dependents[] = $registered_handle;
+			}
+		}
+
+		return $dependents;
+	}
+
+	/**
+	 * Check if a script supports a strategy of 'defer'.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param string $handle The script handle.
+	 * @return bool Whether the script is deferred.
+	 */
+	public function is_deferred( $handle ) {
+		$obj      = $this->registered[ $handle ];
+		$strategy = $this->_get_strategy( $handle );
+		return 'defer' === $strategy;
+	}
+
+	/**
+	 * Get a scripts strategy, or false if no strategy is set.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param string $handle The script handle.
+	 * @return string|false The script strategy. False if not set.
+	 */
+	private function _get_strategy( $handle ) {
+		$obj      = $this->registered[ $handle ];
+		$strategy = isset ( $obj->args['strategy'] ) ? $obj->args['strategy'] : false;
+
+		return $strategy;
 	}
 
 	/**
