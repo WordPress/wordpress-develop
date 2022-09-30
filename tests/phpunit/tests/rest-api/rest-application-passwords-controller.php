@@ -410,6 +410,32 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 	}
 
 	/**
+	 * @ticket 53224
+	 * @group ms-required
+	 */
+	public function test_create_item_for_super_admin_on_site_where_they_are_not_a_member() {
+		wp_set_current_user( self::$admin );
+
+		// Create a site where the Super Admin is not a member.
+		$blog_id = self::factory()->blog->create(
+			array(
+				'user_id' => self::$subscriber_id,
+			)
+		);
+
+		switch_to_blog( $blog_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users/me/application-passwords' );
+		$request->set_body_params( array( 'name' => 'App' ) );
+		$response = rest_do_request( $request );
+
+		restore_current_blog();
+
+		$this->assertNotWPError( $response );
+		$this->assertSame( 201, $response->get_status() );
+	}
+
+	/**
 	 * @ticket 51939
 	 */
 	public function test_create_item_records_app_passwords_in_use() {
@@ -944,6 +970,86 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 		$response = rest_do_request( '/wp/v2/users/me/application-passwords/introspect' );
 		$this->assertErrorResponse( 'rest_application_password_not_found', $response, 500 );
+	}
+
+	/**
+	 * @ticket 53658
+	 *
+	 * @covers ::wp_is_application_passwords_supported
+	 */
+	public function test_wp_is_application_passwords_supported_with_https_only() {
+		$_SERVER['HTTPS'] = 'on';
+		$this->assertTrue( wp_is_application_passwords_supported() );
+	}
+
+	/**
+	 * @ticket 53658
+	 *
+	 * @covers ::wp_is_application_passwords_supported
+	 */
+	public function test_wp_is_application_passwords_supported_with_local_environment_only() {
+		putenv( 'WP_ENVIRONMENT_TYPE=local' );
+
+		$actual = wp_is_application_passwords_supported();
+
+		// Revert to default behaviour so that other tests are not affected.
+		putenv( 'WP_ENVIRONMENT_TYPE' );
+
+		$this->assertTrue( $actual );
+	}
+
+	/**
+	 * @dataProvider data_wp_is_application_passwords_available
+	 *
+	 * @ticket 53658
+	 *
+	 * @covers ::wp_is_application_passwords_available
+	 *
+	 * @param bool|string $expected The expected value.
+	 * @param string|null $callback Optional. The callback for the `wp_is_application_passwords_available` hook.
+	 *                              Default: null.
+	 */
+	public function test_wp_is_application_passwords_available( $expected, $callback = null ) {
+		remove_filter( 'wp_is_application_passwords_available', '__return_true' );
+
+		if ( $callback ) {
+			add_filter( 'wp_is_application_passwords_available', $callback );
+		}
+
+		if ( 'default' === $expected ) {
+			putenv( 'WP_ENVIRONMENT_TYPE=local' );
+			$expected = wp_is_application_passwords_supported();
+		}
+
+		$actual = wp_is_application_passwords_available();
+
+		if ( 'default' === $expected ) {
+			// Revert to default behaviour so that other tests are not affected.
+			putenv( 'WP_ENVIRONMENT_TYPE' );
+		}
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_wp_is_application_passwords_available() {
+		return array(
+			'availability not forced'   => array(
+				'expected' => 'default',
+			),
+			'availability forced true'  => array(
+				'expected' => true,
+				'callback' => '__return_true',
+			),
+			'availability forced false' => array(
+				'expected' => false,
+				'callback' => '__return_false',
+			),
+		);
 	}
 
 	/**

@@ -93,7 +93,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 		add_filter( 'pre_http_request', array( $this, 'mock_success_request_to_remote_url' ), 10, 3 );
 
 		// Disables usage of cache during major of tests.
-		add_filter( 'pre_transient_' . $this->get_transient_name(), '__return_null' );
+		add_filter( 'pre_site_transient_' . $this->get_transient_name(), '__return_null' );
 	}
 
 	public function tear_down() {
@@ -102,7 +102,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @covers WP_REST_URL_Details_Controller::get_routes
+	 * @covers WP_REST_URL_Details_Controller::register_routes
 	 *
 	 * @ticket 54358
 	 */
@@ -341,11 +341,11 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	 */
 	public function test_will_return_from_cache_if_populated() {
 		$transient_name = $this->get_transient_name();
-		remove_filter( "pre_transient_{$transient_name}", '__return_null' );
+		remove_filter( "pre_site_transient_{$transient_name}", '__return_null' );
 
 		// Force cache to return a known value as the remote URL http response body.
 		add_filter(
-			"pre_transient_{$transient_name}",
+			"pre_site_transient_{$transient_name}",
 			static function() {
 				return '<html><head><title>This value from cache.</title></head><body></body></html>';
 			}
@@ -1048,28 +1048,46 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 		);
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_context_param() {
-		$this->markTestSkipped( 'Controller does not use context_param.' );
+		// Controller does not use get_context_param().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_get_item() {
-		$this->markTestSkipped( 'Controller does not have get_item route.' );
+		// Controller does not implement get_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_create_item() {
-		$this->markTestSkipped( 'Controller does not have create_item route.' );
+		// Controller does not implement create_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_update_item() {
-		$this->markTestSkipped( 'Controller does not have update_item route.' );
+		// Controller does not implement update_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_delete_item() {
-		$this->markTestSkipped( 'Controller does not have delete_item route.' );
+		// Controller does not implement delete_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_prepare_item() {
-		$this->markTestSkipped( 'Controller does not have prepare_item route.' );
+		// Controller does not implement prepare_item().
 	}
 
 	/**

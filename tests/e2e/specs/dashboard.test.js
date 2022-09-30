@@ -57,20 +57,20 @@ describe( 'Quick Draft', () => {
 		await saveDraftButton.click();
 
 		// Check that new draft appears in Your Recent Drafts section
-		const newDraft = await page.waitForSelector( '.drafts .draft-title' );
+		const newDraft = await page.waitForSelector( '.drafts .draft-title a' );
 
 		expect(
 			await newDraft.evaluate( ( element ) => element.innerText )
-		).toContain( 'Untitled' );
+		).toContain( '(no title)' );
 
 		// Check that new draft appears in Posts page
 		await visitAdminPage( '/edit.php' );
 		const postsListDraft = await page.waitForSelector(
-			'.type-post.status-draft .title'
+			'.type-post.status-draft .title a'
 		);
 
 		expect(
 			await postsListDraft.evaluate( ( element ) => element.innerText )
-		).toContain( 'Untitled' );
+		).toContain( '(no title)' );
 	} );
 } );

@@ -10,7 +10,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$this->post_type = rand_str( 12 );
+		$this->post_type = 'foo1';
 		register_post_type( $this->post_type );
 
 		$this->q = new WP_Query();
@@ -36,7 +36,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 		foreach ( range( 1, 7 ) as $i ) {
 			self::factory()->post->create(
 				array(
-					'post_content' => $i . rand_str() . ' about',
+					'post_content' => "{$i} about",
 					'post_type'    => $this->post_type,
 				)
 			);
@@ -266,7 +266,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 	 * @ticket 31025
 	 */
 	public function test_s_zero() {
-		$p1 = $this->factory->post->create(
+		$p1 = self::factory()->post->create(
 			array(
 				'post_status'  => 'publish',
 				'post_title'   => '1',
@@ -275,7 +275,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 			)
 		);
 
-		$p2 = $this->factory->post->create(
+		$p2 = self::factory()->post->create(
 			array(
 				'post_status'  => 'publish',
 				'post_title'   => '0',

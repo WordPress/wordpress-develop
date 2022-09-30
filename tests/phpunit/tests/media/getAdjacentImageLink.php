@@ -32,7 +32,7 @@ class Tests_Media_GetAdjacentImageLink extends WP_Test_Adjacent_Image_Link_TestC
 			'when has previous link'           => array(
 				'current_attachment_index'  => 3,
 				'expected_attachment_index' => 2,
-				'expected'                  => '<a href=\'http://example.org/?attachment_id=%%ID%%\'><img width="1" height="1" src="http://example.org/wp-content/uploads/image2.jpg" class="attachment-thumbnail size-thumbnail" alt="" loading="lazy" /></a>',
+				'expected'                  => '<a href=\'http://example.org/?attachment_id=%%ID%%\'><img width="1" height="1" src="' . WP_CONTENT_URL . '/uploads/image2.jpg" class="attachment-thumbnail size-thumbnail" alt="" decoding="async" loading="lazy" /></a>',
 			),
 			'with text when has previous link' => array(
 				'current_attachment_index'  => 3,
@@ -43,7 +43,7 @@ class Tests_Media_GetAdjacentImageLink extends WP_Test_Adjacent_Image_Link_TestC
 			'when has next link'               => array(
 				'current_attachment_index'  => 4,
 				'expected_attachment_index' => 5,
-				'expected'                  => '<a href=\'http://example.org/?attachment_id=%%ID%%\'><img width="1" height="1" src="http://example.org/wp-content/uploads/image5.jpg" class="attachment-thumbnail size-thumbnail" alt="" loading="lazy" /></a>',
+				'expected'                  => '<a href=\'http://example.org/?attachment_id=%%ID%%\'><img width="1" height="1" src="' . WP_CONTENT_URL . '/uploads/image5.jpg" class="attachment-thumbnail size-thumbnail" alt="" decoding="async" loading="lazy" /></a>',
 				'args'                      => array( 'prev' => false ),
 			),
 			'with text when has next link'     => array(
