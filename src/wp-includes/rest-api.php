@@ -3035,37 +3035,62 @@ function rest_filter_response_by_context( $data, $schema, $context ) {
 /**
  * Sets the "additionalProperties" to false by default for all object definitions in the schema.
  *
+ * The schema is defined by mutual recursion.
+ *
+ * The "Forest part" of the recursion runs on indexed arrays such as:
+ *     "allOf", "anyOf", "oneOf".
+ * The meta-schema describes these keywords as "schemaArray".
+ *
+ * The "Tree part" of the recursion runs on associative arrays such as:
+ *     "properties", "patternProperties", "additionalProperties", and "items".
+ *
  * @since 5.5.0
  * @since 5.6.0 Support the "patternProperties" keyword.
+ * @since x.y.z Support the "allOf", "anyOf", "oneOf" keywords.
  *
  * @param array $schema The schema to modify.
  * @return array The modified schema.
  */
 function rest_default_additional_properties_to_false( $schema ) {
-	$type = (array) $schema['type'];
+	if ( isset( $schema['type'] ) ) {
+		$types = (array) $schema['type'];
+	} else {
+		$types = array();
+	}
 
-	if ( in_array( 'object', $type, true ) ) {
-		if ( isset( $schema['properties'] ) ) {
-			foreach ( $schema['properties'] as $key => $child_schema ) {
-				$schema['properties'][ $key ] = rest_default_additional_properties_to_false( $child_schema );
+	// Forest part
+
+	foreach ( array( 'allOf', 'anyOf', 'oneOf' ) as $keyword ) {
+		if ( isset( $schema[ $keyword ] ) ) {
+			foreach ( $schema[ $keyword ] as $index => $child_schema ) {
+				$schema[ $keyword ][ $index ] = rest_default_additional_properties_to_false( $child_schema );
 			}
-		}
-
-		if ( isset( $schema['patternProperties'] ) ) {
-			foreach ( $schema['patternProperties'] as $key => $child_schema ) {
-				$schema['patternProperties'][ $key ] = rest_default_additional_properties_to_false( $child_schema );
-			}
-		}
-
-		if ( ! isset( $schema['additionalProperties'] ) ) {
-			$schema['additionalProperties'] = false;
 		}
 	}
 
-	if ( in_array( 'array', $type, true ) ) {
-		if ( isset( $schema['items'] ) ) {
-			$schema['items'] = rest_default_additional_properties_to_false( $schema['items'] );
+	// Tree part
+
+	if ( isset( $schema['items'] ) ) {
+		$schema['items'] = rest_default_additional_properties_to_false( $schema['items'] );
+	}
+
+	foreach ( array( 'properties', 'patternProperties' ) as $keyword ) {
+		if ( isset( $schema[ $keyword ] ) ) {
+			foreach ( $schema[ $keyword ] as $property_key => $child_schema ) {
+				$schema[ $keyword ][ $property_key ] = rest_default_additional_properties_to_false( $child_schema );
+			}
 		}
+	}
+
+	if ( isset( $schema['additionalProperties'] ) && is_array( $schema['additionalProperties'] ) ) {
+		$schema['additionalProperties'] = rest_default_additional_properties_to_false( $schema['additionalProperties'] );
+	}
+
+	// Task
+
+	if ( ! isset( $schema['additionalProperties'] ) &&
+		( in_array( 'object', $types, true ) || isset( $schema['properties'] ) || isset( $schema['patternProperties'] ) ) ) {
+		$schema['additionalProperties'] = false;
 	}
 
 	return $schema;
