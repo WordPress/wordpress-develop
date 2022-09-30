@@ -10,7 +10,6 @@
 /**
  * Fetches an instance of a WP_List_Table class.
  *
- * @access private
  * @since 3.1.0
  *
  * @global string $hook_suffix
