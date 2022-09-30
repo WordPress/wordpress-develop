@@ -60,7 +60,7 @@ class Tests_Block_Supports_Colors extends WP_UnitTestCase {
 		);
 
 		$actual   = wp_apply_colors_support( $block_type, $block_atts );
-		$expected = array( 'class' => 'has-text-color has-fg-1-color has-background has-bg-2-background-color has-background has-gr-3-gradient-background' );
+		$expected = array( 'class' => 'has-text-color has-fg-1-color has-background has-bg-2-background-color has-gr-3-gradient-background' );
 
 		$this->assertSame( $expected, $actual );
 	}
@@ -143,7 +143,7 @@ class Tests_Block_Supports_Colors extends WP_UnitTestCase {
 		$actual   = wp_apply_colors_support( $block_type, $block_atts );
 		$expected = array(
 			'class' => 'has-text-color',
-			'style' => 'color: #d92828;',
+			'style' => 'color:#d92828;',
 		);
 
 		$this->assertSame( $expected, $actual );

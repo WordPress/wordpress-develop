@@ -388,6 +388,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'align-wide', $theme_supports );
 		$this->assertArrayHasKey( 'automatic-feed-links', $theme_supports );
 		$this->assertArrayHasKey( 'block-templates', $theme_supports );
+		$this->assertArrayHasKey( 'block-template-parts', $theme_supports, "Theme supports should have 'block-template-parts' key" );
 		$this->assertArrayHasKey( 'custom-header', $theme_supports );
 		$this->assertArrayHasKey( 'custom-background', $theme_supports );
 		$this->assertArrayHasKey( 'custom-logo', $theme_supports );
@@ -396,6 +397,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'dark-editor-style', $theme_supports );
 		$this->assertArrayHasKey( 'disable-custom-font-sizes', $theme_supports );
 		$this->assertArrayHasKey( 'disable-custom-gradients', $theme_supports );
+		$this->assertArrayHasKey( 'disable-layout-styles', $theme_supports );
 		$this->assertArrayHasKey( 'editor-color-palette', $theme_supports );
 		$this->assertArrayHasKey( 'editor-font-sizes', $theme_supports );
 		$this->assertArrayHasKey( 'editor-gradient-presets', $theme_supports );
@@ -406,7 +408,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'responsive-embeds', $theme_supports );
 		$this->assertArrayHasKey( 'title-tag', $theme_supports );
 		$this->assertArrayHasKey( 'wp-block-styles', $theme_supports );
-		$this->assertCount( 21, $theme_supports );
+		$this->assertCount( 23, $theme_supports, 'There should be 23 theme supports' );
 	}
 
 	/**

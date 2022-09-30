@@ -2,6 +2,7 @@
 
 /**
  * @group query
+ * @covers WP_Query::get_posts
  */
 class Test_Query_CacheResults extends WP_UnitTestCase {
 	/**
@@ -892,5 +893,137 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$this->assertContains( $p1, $posts1 );
 		$this->assertEmpty( $posts2 );
 		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
+	}
+
+	/**
+	 * @ticket 22176
+	 */
+	public function test_query_cache_should_exclude_post_with_excluded_term() {
+		$term_id = self::$t1;
+		// Post 0 has the term applied
+		$post_id = self::$posts[0];
+
+		$args = array(
+			'fields'    => 'ids',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'category',
+					'terms'    => array( $term_id ),
+					'operator' => 'NOT IN',
+				),
+			),
+		);
+
+		$post_ids_q1 = get_posts( $args );
+		$this->assertNotContains( $post_id, $post_ids_q1, 'First query includes the post ID.' );
+
+		$num_queries = get_num_queries();
+		$post_ids_q2 = get_posts( $args );
+		$this->assertNotContains( $post_id, $post_ids_q2, 'Second query includes the post ID.' );
+
+		$this->assertSame( $num_queries, get_num_queries(), 'Second query is not cached.' );
+	}
+
+	/**
+	 * @ticket 22176
+	 */
+	public function test_query_cache_should_exclude_post_when_excluded_term_is_added_after_caching() {
+		$term_id = self::$t1;
+		// Post 1 does not have the term applied.
+		$post_id = self::$posts[1];
+
+		$args = array(
+			'fields'    => 'ids',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'category',
+					'terms'    => array( $term_id ),
+					'operator' => 'NOT IN',
+				),
+			),
+		);
+
+		$post_ids_q1 = get_posts( $args );
+		$this->assertContains( $post_id, $post_ids_q1, 'First query does not include the post ID.' );
+
+		wp_set_object_terms( $post_id, array( $term_id ), 'category' );
+
+		$num_queries = get_num_queries();
+		$post_ids_q2 = get_posts( $args );
+		$this->assertNotContains( $post_id, $post_ids_q2, 'Second query includes the post ID.' );
+		$this->assertNotSame( $num_queries, get_num_queries(), 'Applying term does not invalidate previous cache.' );
+	}
+
+	/**
+	 * @ticket 22176
+	 */
+	public function test_query_cache_should_not_exclude_post_when_excluded_term_is_removed_after_caching() {
+		$term_id = self::$t1;
+		// Post 0 has the term applied.
+		$post_id = self::$posts[0];
+
+		$args = array(
+			'fields'    => 'ids',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'category',
+					'terms'    => array( $term_id ),
+					'operator' => 'NOT IN',
+				),
+			),
+		);
+
+		$post_ids_q1 = get_posts( $args );
+		$this->assertNotContains( $post_id, $post_ids_q1, 'First query includes the post ID.' );
+
+		// Clear the post of terms.
+		wp_set_object_terms( $post_id, array(), 'category' );
+
+		$num_queries = get_num_queries();
+		$post_ids_q2 = get_posts( $args );
+		$this->assertContains( $post_id, $post_ids_q2, 'Second query does not include the post ID.' );
+		$this->assertNotSame( $num_queries, get_num_queries(), 'Removing term does not invalidate previous cache.' );
+	}
+
+	/**
+	 * @ticket 22176
+	 * @dataProvider data_query_cache_with_empty_result_set
+	 */
+	public function test_query_cache_with_empty_result_set( $fields_q1, $fields_q2 ) {
+		_delete_all_posts();
+
+		$args_q1 = array(
+			'fields' => $fields_q1,
+		);
+
+		$query_1  = new WP_Query();
+		$posts_q1 = $query_1->query( $args_q1 );
+		$this->assertEmpty( $posts_q1, 'First query does not return an empty result set.' );
+
+		$args_q2 = array(
+			'fields' => $fields_q2,
+		);
+
+		$num_queries = get_num_queries();
+		$query_2     = new WP_Query();
+		$posts_q2    = $query_2->query( $args_q2 );
+		$this->assertEmpty( $posts_q2, 'Second query does not return an empty result set.' );
+		$this->assertSame( $num_queries, get_num_queries(), 'Second query is not cached.' );
+	}
+
+	public function data_query_cache_with_empty_result_set() {
+		return array(
+			array( '', '' ),
+			array( '', 'ids' ),
+			array( '', 'id=>parent' ),
+
+			array( 'ids', '' ),
+			array( 'ids', 'ids' ),
+			array( 'ids', 'id=>parent' ),
+
+			array( 'id=>parent', '' ),
+			array( 'id=>parent', 'ids' ),
+			array( 'id=>parent', 'id=>parent' ),
+		);
 	}
 }
