@@ -247,7 +247,7 @@ class WP_Locale {
 		 */
 		$word_count_type = _x( 'words', 'Word count type. Do not translate!' );
 
-		if ( 'characters_excluding_spaces' === $word_count_type || 'characters_including_spaces' === $word_count_type) {
+		if ( 'characters_excluding_spaces' === $word_count_type || 'characters_including_spaces' === $word_count_type ) {
 			$this->word_count_type = $word_count_type;
 		}
 	}
