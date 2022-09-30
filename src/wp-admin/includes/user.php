@@ -143,7 +143,7 @@ function edit_user( $user_id = 0 ) {
 
 	$errors = new WP_Error();
 
-	/* Validate the user_login when not updating the user */
+	// Validate the user_login when not updating the user.
 	if ( ! $update ) {
 		$user->user_login = '';
 		if ( isset( $_POST['user_login'] ) ) {
