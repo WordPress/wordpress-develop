@@ -173,15 +173,6 @@ class WP_Theme_JSON {
 			'classes'           => array(),
 			'properties'        => array( 'padding', 'margin' ),
 		),
-		array(
-			'path'              => array( 'spacing', 'spacingScale' ),
-			'prevent_override'  => false,
-			'use_default_names' => true,
-			'value_key'         => 'size',
-			'css_vars'          => '--wp--preset--spacing--$slug',
-			'classes'           => array(),
-			'properties'        => array( 'padding', 'margin' ),
-		),
 	);
 
 	/**
@@ -334,6 +325,7 @@ class WP_Theme_JSON {
 			'units'             => null,
 		),
 		'typography'                    => array(
+			'fluid'          => null,
 			'customFontSize' => null,
 			'dropCap'        => null,
 			'fontFamilies'   => null,
@@ -1717,7 +1709,12 @@ class WP_Theme_JSON {
 	 * @return string|array Style property value.
 	 */
 	protected static function get_property_value( $styles, $path, $theme_json = null ) {
-		$value = _wp_array_get( $styles, $path );
+		$value = _wp_array_get( $styles, $path, '' );
+
+		if ( '' === $value || null === $value ) {
+			// No need to process the value further.
+			return '';
+		}
 
 		/*
 		 * This converts references to a path to the value at that path
