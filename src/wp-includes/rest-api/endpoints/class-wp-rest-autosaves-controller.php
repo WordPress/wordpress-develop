@@ -360,7 +360,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			return $post;
 		}
 
-		// If the autosave content ($post_data) revisioned fields matches the post content, do not create an autosave.
+		// Only create an autosave when the it is different than the saved post.
 		$autosave_is_different = false;
 		$new_autosave          = _wp_post_revision_data( $post_data, true );
 
