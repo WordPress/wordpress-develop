@@ -431,6 +431,18 @@ class Tests_L10n extends WP_UnitTestCase {
 	 * @covers ::wp_dashboard_recent_drafts
 	 */
 	public function test_length_of_draft_should_be_counted_by_words() {
+		/*
+		 * The recent drafts list is only displayed on the Dashboard screen for users
+		 * with the 'edit_posts' capability.
+		 *
+		 * This means the current user needs to be set to Editor as a prerequisite
+		 * for the call to the wp_dashboard_recent_drafts() function.
+		 * This allows the subsequent call to get_edit_post_link() call to work
+		 * as expected and return a string instead of null (which would otherwise cause
+		 * a PHP 8.1 "passing null to non-nullable" deprecation notice).
+		 */
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+
 		require_once ABSPATH . 'wp-admin/includes/dashboard.php';
 
 		switch_to_locale( 'en_US' );
@@ -457,6 +469,18 @@ class Tests_L10n extends WP_UnitTestCase {
 	 * @covers ::wp_dashboard_recent_drafts
 	 */
 	public function test_length_of_draft_should_be_counted_by_chars() {
+		/*
+		 * The recent drafts list is only displayed on the Dashboard screen for users
+		 * with the 'edit_posts' capability.
+		 *
+		 * This means the current user needs to be set to Editor as a prerequisite
+		 * for the call to the wp_dashboard_recent_drafts() function.
+		 * This allows the subsequent call to get_edit_post_link() call to work
+		 * as expected and return a string instead of null (which would otherwise cause
+		 * a PHP 8.1 "passing null to non-nullable" deprecation notice).
+		 */
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+
 		require_once ABSPATH . 'wp-admin/includes/dashboard.php';
 
 		switch_to_locale( 'ja_JP' );
@@ -483,6 +507,18 @@ class Tests_L10n extends WP_UnitTestCase {
 	 * @covers ::wp_dashboard_recent_drafts
 	 */
 	public function test_length_of_draft_should_be_counted_by_chars_in_japanese() {
+		/*
+		 * The recent drafts list is only displayed on the Dashboard screen for users
+		 * with the 'edit_posts' capability.
+		 *
+		 * This means the current user needs to be set to Editor as a prerequisite
+		 * for the call to the wp_dashboard_recent_drafts() function.
+		 * This allows the subsequent call to get_edit_post_link() call to work
+		 * as expected and return a string instead of null (which would otherwise cause
+		 * a PHP 8.1 "passing null to non-nullable" deprecation notice).
+		 */
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+
 		require_once ABSPATH . 'wp-admin/includes/dashboard.php';
 
 		switch_to_locale( 'ja_JP' );
