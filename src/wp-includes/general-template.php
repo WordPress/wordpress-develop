@@ -3051,12 +3051,22 @@ function wp_head() {
  * @since 1.5.1
  */
 function wp_footer() {
+	// footer output buffering
+	ob_start();
+
 	/**
 	 * Prints scripts or data before the closing body tag on the front end.
 	 *
 	 * @since 1.5.1
 	 */
 	do_action( 'wp_footer' );
+
+	$footer_content = ob_get_contents();
+	ob_end_clean();
+
+	$footer_content = apply_filters( 'footer_content', $footer_content );
+
+	echo $footer_content;
 }
 
 /**
