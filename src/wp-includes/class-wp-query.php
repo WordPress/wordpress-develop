@@ -4465,7 +4465,7 @@ class WP_Query {
 		$post_obj = $this->get_queried_object();
 
 		if ( null === $post_obj ) {
-			return (bool) $this->is_singular;
+			return false;
 		}
 
 		return in_array( $post_obj->post_type, (array) $post_types, true );
