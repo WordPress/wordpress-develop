@@ -3060,10 +3060,14 @@ function wp_footer() {
 	 * @since 1.5.1
 	 */
 	do_action( 'wp_footer' );
-
 	$footer_content = ob_get_contents();
 	ob_end_clean();
 
+	/**
+	 * Filters the footer content.
+	 *
+	 * @param string $footer_content
+	 */
 	$footer_content = apply_filters( 'footer_content', $footer_content );
 
 	echo $footer_content;
