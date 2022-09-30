@@ -20,7 +20,7 @@ class WP_Site_Health_Auto_Updates {
 
 
 	/**
-	 * Run tests to determine if auto-updates can run.
+	 * Runs tests to determine if auto-updates can run.
 	 *
 	 * @since 5.2.0
 	 *
@@ -58,7 +58,7 @@ class WP_Site_Health_Auto_Updates {
 	}
 
 	/**
-	 * Test if auto-updates related constants are set correctly.
+	 * Tests if auto-updates related constants are set correctly.
 	 *
 	 * @since 5.2.0
 	 * @since 5.5.1 The `$value` parameter can accept an array.
@@ -74,9 +74,10 @@ class WP_Site_Health_Auto_Updates {
 		if ( defined( $constant ) && ! in_array( constant( $constant ), $acceptable_values, true ) ) {
 			return array(
 				'description' => sprintf(
-					/* translators: %s: Name of the constant used. */
-					__( 'The %s constant is defined and enabled.' ),
-					"<code>$constant</code>"
+					/* translators: 1: Name of the constant used. 2: Value of the constant used. */
+					__( 'The %1$s constant is defined as %2$s' ),
+					"<code>$constant</code>",
+					'<code>' . esc_html( var_export( constant( $constant ), true ) ) . '</code>'
 				),
 				'severity'    => 'fail',
 			);
@@ -84,7 +85,7 @@ class WP_Site_Health_Auto_Updates {
 	}
 
 	/**
-	 * Check if updates are intercepted by a filter.
+	 * Checks if updates are intercepted by a filter.
 	 *
 	 * @since 5.2.0
 	 *
@@ -106,7 +107,7 @@ class WP_Site_Health_Auto_Updates {
 	}
 
 	/**
-	 * Check if automatic updates are disabled by a filter.
+	 * Checks if automatic updates are disabled by a filter.
 	 *
 	 * @since 5.2.0
 	 *
@@ -127,7 +128,7 @@ class WP_Site_Health_Auto_Updates {
 	}
 
 	/**
-	 * Check if automatic updates are disabled.
+	 * Checks if automatic updates are disabled.
 	 *
 	 * @since 5.3.0
 	 *
@@ -151,7 +152,7 @@ class WP_Site_Health_Auto_Updates {
 	}
 
 	/**
-	 * Check if automatic updates have tried to run, but failed, previously.
+	 * Checks if automatic updates have tried to run, but failed, previously.
 	 *
 	 * @since 5.2.0
 	 *
@@ -197,7 +198,7 @@ class WP_Site_Health_Auto_Updates {
 	}
 
 	/**
-	 * Check if WordPress is controlled by a VCS (Git, Subversion etc).
+	 * Checks if WordPress is controlled by a VCS (Git, Subversion etc).
 	 *
 	 * @since 5.2.0
 	 *
@@ -267,7 +268,7 @@ class WP_Site_Health_Auto_Updates {
 	}
 
 	/**
-	 * Check if we can access files without providing credentials.
+	 * Checks if we can access files without providing credentials.
 	 *
 	 * @since 5.2.0
 	 *
@@ -299,7 +300,7 @@ class WP_Site_Health_Auto_Updates {
 	}
 
 	/**
-	 * Check if core files are writable by the web user/group.
+	 * Checks if core files are writable by the web user/group.
 	 *
 	 * @since 5.2.0
 	 *
@@ -386,7 +387,7 @@ class WP_Site_Health_Auto_Updates {
 	}
 
 	/**
-	 * Check if the install is using a development branch and can use nightly packages.
+	 * Checks if the install is using a development branch and can use nightly packages.
 	 *
 	 * @since 5.2.0
 	 *
@@ -424,7 +425,7 @@ class WP_Site_Health_Auto_Updates {
 	}
 
 	/**
-	 * Check if the site supports automatic minor updates.
+	 * Checks if the site supports automatic minor updates.
 	 *
 	 * @since 5.2.0
 	 *

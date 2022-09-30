@@ -2997,6 +2997,54 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that get_property_value() static method returns an empty string
+	 * if the path is invalid or the value is null.
+	 *
+	 * Also, tests that PHP 8.1 "passing null to non-nullable" deprecation notice
+	 * is not thrown when passing the value to strncmp() in the method.
+	 *
+	 * The notice that we should not see:
+	 * `Deprecated: strncmp(): Passing null to parameter #1 ($string1) of type string is deprecated`.
+	 *
+	 * @dataProvider data_get_property_value_should_return_string_for_invalid_paths_or_null_values
+	 *
+	 * @ticket 56620
+	 *
+	 * @covers WP_Theme_JSON::get_property_value
+	 *
+	 * @param array $styles An array with style definitions.
+	 * @param array $path   Path to the desired properties.
+	 *
+	 */
+	public function test_get_property_value_should_return_string_for_invalid_paths_or_null_values( $styles, $path ) {
+		$reflection_class = new ReflectionClass( WP_Theme_JSON::class );
+
+		$get_property_value_method = $reflection_class->getMethod( 'get_property_value' );
+		$get_property_value_method->setAccessible( true );
+		$result = $get_property_value_method->invoke( null, $styles, $path );
+
+		$this->assertSame( '', $result );
+	}
+
+	/**
+	 * Data provider for test_get_property_value_should_return_string_for_invalid_paths_or_null_values().
+	 *
+	 * @return array
+	 */
+	public function data_get_property_value_should_return_string_for_invalid_paths_or_null_values() {
+		return array(
+			'empty string' => array(
+				'styles' => array(),
+				'path'   => array( 'non_existent_path' ),
+			),
+			'null'         => array(
+				'styles' => array( 'some_null_value' => null ),
+				'path'   => array( 'some_null_value' ),
+			),
+		);
+	}
+
+	/**
 	 * Testing that dynamic properties in theme.json that refer to other dynamic properties in a loop
 	 * should be left untouched.
 	 *
@@ -3083,7 +3131,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$expected = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }body{background-color: #ffffff;}';
 		$this->assertSame( $expected, $theme_json->get_stylesheet() );
 	}
-
 
 	/**
 	 * @dataProvider data_get_layout_definitions
@@ -3492,5 +3539,386 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$root_rules  = $theme_json->get_root_layout_rules( WP_Theme_JSON::ROOT_BLOCK_SELECTOR, $metadata );
 		$style_rules = $theme_json->get_styles_for_block( $metadata );
 		$this->assertSame( $expected, $root_rules . $style_rules );
+	}
+
+	/**
+	 * Tests generating the spacing presets array based on the spacing scale provided.
+	 *
+	 * @ticket 56467
+	 *
+	 * @dataProvider data_generate_spacing_scale_fixtures
+	 *
+	 * @param array $spacing_scale   Example spacing scale definitions from the data provider.
+	 * @param array $expected_output Expected output from data provider.
+	 */
+	function test_should_set_spacing_sizes( $spacing_scale, $expected_output ) {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => 2,
+				'settings' => array(
+					'spacing' => array(
+						'spacingScale' => $spacing_scale,
+					),
+				),
+			)
+		);
+
+		$theme_json->set_spacing_sizes();
+		$this->assertSame( $expected_output, _wp_array_get( $theme_json->get_raw_data(), array( 'settings', 'spacing', 'spacingSizes', 'default' ) ) );
+	}
+
+	/**
+	 * Data provider for spacing scale tests.
+	 *
+	 * @ticket 56467
+	 *
+	 * @return array
+	 */
+	function data_generate_spacing_scale_fixtures() {
+		return array(
+			'only one value when single step in spacing scale' => array(
+				'spacing_scale'   => array(
+					'operator'   => '+',
+					'increment'  => 1.5,
+					'steps'      => 1,
+					'mediumStep' => 4,
+					'unit'       => 'rem',
+				),
+				'expected_output' => array(
+					array(
+						'name' => '1',
+						'slug' => '50',
+						'size' => '4rem',
+					),
+				),
+			),
+			'one step above medium when two steps in spacing scale' => array(
+				'spacing_scale'   => array(
+					'operator'   => '+',
+					'increment'  => 1.5,
+					'steps'      => 2,
+					'mediumStep' => 4,
+					'unit'       => 'rem',
+				),
+				'expected_output' => array(
+					array(
+						'name' => '1',
+						'slug' => '50',
+						'size' => '4rem',
+					),
+					array(
+						'name' => '2',
+						'slug' => '60',
+						'size' => '5.5rem',
+					),
+				),
+			),
+			'one step above medium and one below when three steps in spacing scale' => array(
+				'spacing_scale'   => array(
+					'operator'   => '+',
+					'increment'  => 1.5,
+					'steps'      => 3,
+					'mediumStep' => 4,
+					'unit'       => 'rem',
+				),
+				'expected_output' => array(
+					array(
+						'name' => '1',
+						'slug' => '40',
+						'size' => '2.5rem',
+					),
+					array(
+						'name' => '2',
+						'slug' => '50',
+						'size' => '4rem',
+					),
+					array(
+						'name' => '3',
+						'slug' => '60',
+						'size' => '5.5rem',
+					),
+				),
+			),
+			'extra step added above medium when an even number of steps > 2 specified' => array(
+				'spacing_scale'   => array(
+					'operator'   => '+',
+					'increment'  => 1.5,
+					'steps'      => 4,
+					'mediumStep' => 4,
+					'unit'       => 'rem',
+				),
+				'expected_output' => array(
+					array(
+						'name' => '1',
+						'slug' => '40',
+						'size' => '2.5rem',
+					),
+					array(
+						'name' => '2',
+						'slug' => '50',
+						'size' => '4rem',
+					),
+					array(
+						'name' => '3',
+						'slug' => '60',
+						'size' => '5.5rem',
+					),
+					array(
+						'name' => '4',
+						'slug' => '70',
+						'size' => '7rem',
+					),
+				),
+			),
+			'extra steps above medium if bottom end will go below zero' => array(
+				'spacing_scale'   => array(
+					'operator'   => '+',
+					'increment'  => 2.5,
+					'steps'      => 5,
+					'mediumStep' => 5,
+					'unit'       => 'rem',
+				),
+				'expected_output' => array(
+					array(
+						'name' => '1',
+						'slug' => '40',
+						'size' => '2.5rem',
+					),
+					array(
+						'name' => '2',
+						'slug' => '50',
+						'size' => '5rem',
+					),
+					array(
+						'name' => '3',
+						'slug' => '60',
+						'size' => '7.5rem',
+					),
+					array(
+						'name' => '4',
+						'slug' => '70',
+						'size' => '10rem',
+					),
+					array(
+						'name' => '5',
+						'slug' => '80',
+						'size' => '12.5rem',
+					),
+				),
+			),
+			'multiplier correctly calculated above and below medium' => array(
+				'spacing_scale'   => array(
+					'operator'   => '*',
+					'increment'  => 1.5,
+					'steps'      => 5,
+					'mediumStep' => 1.5,
+					'unit'       => 'rem',
+				),
+				'expected_output' => array(
+					array(
+						'name' => '1',
+						'slug' => '30',
+						'size' => '0.67rem',
+					),
+					array(
+						'name' => '2',
+						'slug' => '40',
+						'size' => '1rem',
+					),
+					array(
+						'name' => '3',
+						'slug' => '50',
+						'size' => '1.5rem',
+					),
+					array(
+						'name' => '4',
+						'slug' => '60',
+						'size' => '2.25rem',
+					),
+					array(
+						'name' => '5',
+						'slug' => '70',
+						'size' => '3.38rem',
+					),
+				),
+			),
+			'increment < 1 combined showing * operator acting as divisor above and below medium' => array(
+				'spacing_scale'   => array(
+					'operator'   => '*',
+					'increment'  => 0.25,
+					'steps'      => 5,
+					'mediumStep' => 1.5,
+					'unit'       => 'rem',
+				),
+				'expected_output' => array(
+					array(
+						'name' => '1',
+						'slug' => '30',
+						'size' => '0.09rem',
+					),
+					array(
+						'name' => '2',
+						'slug' => '40',
+						'size' => '0.38rem',
+					),
+					array(
+						'name' => '3',
+						'slug' => '50',
+						'size' => '1.5rem',
+					),
+					array(
+						'name' => '4',
+						'slug' => '60',
+						'size' => '6rem',
+					),
+					array(
+						'name' => '5',
+						'slug' => '70',
+						'size' => '24rem',
+					),
+				),
+			),
+			't-shirt sizing used if more than 7 steps in scale' => array(
+				'spacing_scale'   => array(
+					'operator'   => '*',
+					'increment'  => 1.5,
+					'steps'      => 8,
+					'mediumStep' => 1.5,
+					'unit'       => 'rem',
+				),
+				'expected_output' => array(
+					array(
+						'name' => '2X-Small',
+						'slug' => '20',
+						'size' => '0.44rem',
+					),
+					array(
+						'name' => 'X-Small',
+						'slug' => '30',
+						'size' => '0.67rem',
+					),
+					array(
+						'name' => 'Small',
+						'slug' => '40',
+						'size' => '1rem',
+					),
+					array(
+						'name' => 'Medium',
+						'slug' => '50',
+						'size' => '1.5rem',
+					),
+					array(
+						'name' => 'Large',
+						'slug' => '60',
+						'size' => '2.25rem',
+					),
+					array(
+						'name' => 'X-Large',
+						'slug' => '70',
+						'size' => '3.38rem',
+					),
+					array(
+						'name' => '2X-Large',
+						'slug' => '80',
+						'size' => '5.06rem',
+					),
+					array(
+						'name' => '3X-Large',
+						'slug' => '90',
+						'size' => '7.59rem',
+					),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Tests generating the spacing presets array based on the spacing scale provided.
+	 *
+	 * @ticket 56467
+	 *
+	 * @dataProvider data_set_spacing_sizes_when_invalid
+	 *
+	 * @param array $spacing_scale   Example spacing scale definitions from the data provider.
+	 * @param array $expected_output Expected output from data provider.
+	 */
+	public function test_set_spacing_sizes_should_detect_invalid_spacing_scale( $spacing_scale, $expected_output ) {
+		$this->expectNotice();
+		$this->expectNoticeMessage( 'Some of the theme.json settings.spacing.spacingScale values are invalid' );
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => 2,
+				'settings' => array(
+					'spacing' => array(
+						'spacingScale' => $spacing_scale,
+					),
+				),
+			)
+		);
+
+		$theme_json->set_spacing_sizes();
+		$this->assertSame( $expected_output, _wp_array_get( $theme_json->get_raw_data(), array( 'settings', 'spacing', 'spacingSizes', 'default' ) ) );
+	}
+
+	/**
+	 * Data provider for spacing scale tests.
+	 *
+	 * @ticket 56467
+	 *
+	 * @return array
+	 */
+	function data_set_spacing_sizes_when_invalid() {
+		return array(
+			'missing operator value'  => array(
+				'spacing_scale'   => array(
+					'operator'   => '',
+					'increment'  => 1.5,
+					'steps'      => 1,
+					'mediumStep' => 4,
+					'unit'       => 'rem',
+				),
+				'expected_output' => null,
+			),
+			'non numeric increment'   => array(
+				'spacing_scale'   => array(
+					'operator'   => '+',
+					'increment'  => 'add two to previous value',
+					'steps'      => 1,
+					'mediumStep' => 4,
+					'unit'       => 'rem',
+				),
+				'expected_output' => null,
+			),
+			'non numeric steps'       => array(
+				'spacing_scale'   => array(
+					'operator'   => '+',
+					'increment'  => 1.5,
+					'steps'      => 'spiral staircase preferred',
+					'mediumStep' => 4,
+					'unit'       => 'rem',
+				),
+				'expected_output' => null,
+			),
+			'non numeric medium step' => array(
+				'spacing_scale'   => array(
+					'operator'   => '+',
+					'increment'  => 1.5,
+					'steps'      => 5,
+					'mediumStep' => 'That which is just right',
+					'unit'       => 'rem',
+				),
+				'expected_output' => null,
+			),
+			'missing unit value'      => array(
+				'spacing_scale'   => array(
+					'operator'   => '+',
+					'increment'  => 1.5,
+					'steps'      => 5,
+					'mediumStep' => 4,
+				),
+				'expected_output' => null,
+			),
+		);
 	}
 }

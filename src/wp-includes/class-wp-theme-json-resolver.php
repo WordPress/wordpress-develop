@@ -135,8 +135,8 @@ class WP_Theme_JSON_Resolver {
 			return static::$core;
 		}
 
-		$config       = static::read_json_file( __DIR__ . '/theme.json' );
-		$config       = static::translate( $config );
+		$config = static::read_json_file( __DIR__ . '/theme.json' );
+		$config = static::translate( $config );
 		/**
 		 * Filters the default data provided by WordPress for global styles & settings.
 		 *
@@ -434,13 +434,7 @@ class WP_Theme_JSON_Resolver {
 			}
 		}
 
-		/**
-		 * Filters the data provided by the user for global styles & settings.
-		 *
-		 * @since 6.1.0
-		 *
-		 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
-		 */
+		/** This filter is documented in wp-includes/class-wp-theme-json-resolver.php */
 		$theme_json   = apply_filters( 'theme_json_user', new WP_Theme_JSON_Data( $config, 'custom' ) );
 		$config       = $theme_json->get_data();
 		static::$user = new WP_Theme_JSON( $config, 'custom' );
@@ -470,7 +464,7 @@ class WP_Theme_JSON_Resolver {
 	 * @since 5.8.0
 	 * @since 5.9.0 Added user data, removed the `$settings` parameter,
 	 *              added the `$origin` parameter.
-	 * @since 6.1.0 Added block data.
+	 * @since 6.1.0 Added block data and generation of spacingSizes array.
 	 *
 	 * @param string $origin Optional. To what level should we merge data.
 	 *                       Valid values are 'theme' or 'custom'. Default 'custom'.
@@ -489,6 +483,9 @@ class WP_Theme_JSON_Resolver {
 		if ( 'custom' === $origin ) {
 			$result->merge( static::get_user_data() );
 		}
+
+		// Generate the default spacingSizes array based on the merged spacingScale settings.
+		$result->set_spacing_sizes();
 
 		return $result;
 	}
