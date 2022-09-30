@@ -2101,8 +2101,10 @@ function wp_update_custom_css_post( $css, $args = array() ) {
  *
  * @global array $editor_styles
  *
- * @param array|string $stylesheet Optional. Stylesheet name or array thereof, relative to theme root. Defaults to 'editor-style.css'.
- * @param string $rtl_mode Optional. Whether if the site in RTL mode. Should the RTL style replace the default sheet or be added as well. Set to 'replace' to replace the sheet.
+ * @param array|string $stylesheet Optional. Stylesheet name or array thereof, relative to theme root.
+ *                                 Defaults to 'editor-style.css'.
+ * @param string       $rtl_mode   Optional. When the site is in RTL mode, whether the RTL stylesheet should replace the default stylesheet, or be added as well.
+ *                                 Accepts 'replace' or 'add'. Defaults to 'add'.
  */
 function add_editor_style( $stylesheet = 'editor-style.css', $rtl_mode = 'add' ) {
 	global $editor_styles;
