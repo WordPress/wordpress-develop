@@ -2112,7 +2112,7 @@ function validate_username( $username, $wp_error = false ) {
 /**
  * Check whether the given username is reserved or not.
  *
- * In multisite, this checks if a signup with the provided username already exists. If the signup has been registered 
+ * In multisite, this checks if a signup with the provided username already exists. If the signup has been registered
  * more than two days ago, it'll be deleted and the username considered available again.
  *
  * @since n.e.x.t
