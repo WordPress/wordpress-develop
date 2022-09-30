@@ -249,4 +249,8 @@ function register_block_core_template_part() {
 		)
 	);
 }
-add_action( 'init', 'register_block_core_template_part', 22 );
+/*
+ * This block relies on generated styles from previously registered blocks, so
+ * it should be registered last.
+ */
+add_action( 'init', 'register_block_core_template_part', 29 );
