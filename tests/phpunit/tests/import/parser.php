@@ -9,7 +9,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 
 	protected $expected_deprecated = array(
 		'wp_slash_strings_only',
-		'addslashes_strings_only'
+		'addslashes_strings_only',
 	);
 
 	public function set_up() {
