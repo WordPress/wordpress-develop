@@ -906,7 +906,6 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 		$this->assertSame( '', $commentdata['comment_author_email'], 'Comment author email should default to an empty string.' );
 		$this->assertSame( '', $commentdata['comment_author_url'], 'Comment author URL should default to an empty string.' );
 		$this->assertSame( '', $commentdata['comment_content'], 'Comment content should default to an empty string.' );
-
 	}
 
 	public function filter_preprocess_comment( $commentdata ) {
