@@ -18,7 +18,7 @@ Whether you’re building a single-page website, a blog, a business website, or 
 == Changelog ==
 
 = 1.3 =
-* Released: October 25, 2022
+* Released: November 1, 2022
 
 https://wordpress.org/support/article/twenty-twenty-two-changelog#Version_1.3
 

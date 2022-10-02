@@ -23,7 +23,7 @@ you pick, ensuring a high, accessible color contrast for your visitors.
 == Changelog ==
 
 = 2.1 =
-* Released: October 25, 2022
+* Released: November 1, 2022
 
 https://wordpress.org/support/article/twenty-twenty-changelog/#Version_2.1
 

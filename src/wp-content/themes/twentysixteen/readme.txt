@@ -56,7 +56,7 @@ Image used in screenshot.png: A photo by Austin Schmid (https://unsplash.com/sch
 == Changelog ==
 
 = 2.8 =
-* Released: October 25, 2022
+* Released: November 1, 2022
 
 https://codex.wordpress.org/Twenty_Sixteen_Theme_Changelog#Version_2.8
 

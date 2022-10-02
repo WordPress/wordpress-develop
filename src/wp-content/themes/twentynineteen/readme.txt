@@ -40,7 +40,7 @@ GNU General Public License for more details.
 == Changelog ==
 
 = 2.4 =
-* Released: October 25, 2022
+* Released: November 1, 2022
 
 https://codex.wordpress.org/Twenty_Nineteen_Theme_Changelog#Version_2.4
 

@@ -48,7 +48,7 @@ Images
 == Changelog ==
 
 = 4.2 =
-* Released: October 25, 2022
+* Released: November 1, 2022
 
 https://codex.wordpress.org/Twenty_Eleven_Theme_Changelog#Version_4.2
 

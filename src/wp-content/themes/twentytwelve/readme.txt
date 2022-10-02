@@ -47,7 +47,7 @@ Source: https://github.com/aFarkas/html5shiv
 == Changelog ==
 
 = 3.8 =
-* Released: October 25, 2022
+* Released: November 1, 2022
 
 https://codex.wordpress.org/Twenty_Twelve_Theme_Changelog#Version_3.8
 

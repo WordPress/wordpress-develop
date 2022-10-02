@@ -31,7 +31,7 @@ No data is saved in the database or transferred.
 == Changelog ==
 
 = 1.7 =
-* Released: October 25, 2022
+* Released: November 1, 2022
 
 https://wordpress.org/support/article/twenty-twenty-one-changelog#Version_1.7
 

@@ -62,7 +62,7 @@ Source: https://stocksnap.io/photo/purple-yellow-ACF0693B9C
 == Changelog ==
 
 = 3.3 =
-* Released: October 25, 2022
+* Released: November 1, 2022
 
 https://codex.wordpress.org/Twenty_Fifteen_Theme_Changelog#Version_3.3
 

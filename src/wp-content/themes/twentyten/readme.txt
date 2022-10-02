@@ -43,7 +43,7 @@ Images
 == Changelog ==
 
 = 3.7 =
-* Released: October 25, 2022
+* Released: November 1, 2022
 
 https://codex.wordpress.org/Twenty_Ten_Theme_Changelog#Version_3.7
 
