@@ -500,11 +500,11 @@ function url_to_postid( $url ) {
 	$url_host = parse_url( $url, PHP_URL_HOST );
 
 	// Safeguard for parse_url return value.
-	if ( ! is_string( $url_host ) ) {
+	if ( is_string( $url_host ) ) {
+		$url_host = str_replace( 'www.', '', $url_host );
+	} else {
 		$url_host = '';
 	}
-
-	$url_host      = str_replace( 'www.', '', $url_host );
 	$home_url_host = str_replace( 'www.', '', parse_url( home_url(), PHP_URL_HOST ) );
 
 	// Bail early if the URL does not belong to this site.
