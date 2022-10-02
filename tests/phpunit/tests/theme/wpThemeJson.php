@@ -2997,6 +2997,54 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that get_property_value() static method returns an empty string
+	 * if the path is invalid or the value is null.
+	 *
+	 * Also, tests that PHP 8.1 "passing null to non-nullable" deprecation notice
+	 * is not thrown when passing the value to strncmp() in the method.
+	 *
+	 * The notice that we should not see:
+	 * `Deprecated: strncmp(): Passing null to parameter #1 ($string1) of type string is deprecated`.
+	 *
+	 * @dataProvider data_get_property_value_should_return_string_for_invalid_paths_or_null_values
+	 *
+	 * @ticket 56620
+	 *
+	 * @covers WP_Theme_JSON::get_property_value
+	 *
+	 * @param array $styles An array with style definitions.
+	 * @param array $path   Path to the desired properties.
+	 *
+	 */
+	public function test_get_property_value_should_return_string_for_invalid_paths_or_null_values( $styles, $path ) {
+		$reflection_class = new ReflectionClass( WP_Theme_JSON::class );
+
+		$get_property_value_method = $reflection_class->getMethod( 'get_property_value' );
+		$get_property_value_method->setAccessible( true );
+		$result = $get_property_value_method->invoke( null, $styles, $path );
+
+		$this->assertSame( '', $result );
+	}
+
+	/**
+	 * Data provider for test_get_property_value_should_return_string_for_invalid_paths_or_null_values().
+	 *
+	 * @return array
+	 */
+	public function data_get_property_value_should_return_string_for_invalid_paths_or_null_values() {
+		return array(
+			'empty string' => array(
+				'styles' => array(),
+				'path'   => array( 'non_existent_path' ),
+			),
+			'null'         => array(
+				'styles' => array( 'some_null_value' => null ),
+				'path'   => array( 'some_null_value' ),
+			),
+		);
+	}
+
+	/**
 	 * Testing that dynamic properties in theme.json that refer to other dynamic properties in a loop
 	 * should be left untouched.
 	 *
@@ -3083,7 +3131,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$expected = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }body{background-color: #ffffff;}';
 		$this->assertSame( $expected, $theme_json->get_stylesheet() );
 	}
-
 
 	/**
 	 * @dataProvider data_get_layout_definitions
