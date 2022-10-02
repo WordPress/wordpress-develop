@@ -31,7 +31,7 @@ class Tests_Media_GetPreviousImageLink extends WP_Test_Adjacent_Image_Link_TestC
 			'when has previous link'           => array(
 				'current_attachment_index'  => 3,
 				'expected_attachment_index' => 2,
-				'expected'                  => '<a href=\'http://example.org/?attachment_id=%%ID%%\'><img width="1" height="1" src="http://example.org/wp-content/uploads/image2.jpg" class="attachment-thumbnail size-thumbnail" alt="" loading="lazy" /></a>',
+				'expected'                  => '<a href=\'http://example.org/?attachment_id=%%ID%%\'><img width="1" height="1" src="' . WP_CONTENT_URL . '/uploads/image2.jpg" class="attachment-thumbnail size-thumbnail" alt="" decoding="async" loading="lazy" /></a>',
 			),
 			'with text when has previous link' => array(
 				'current_attachment_index'  => 3,

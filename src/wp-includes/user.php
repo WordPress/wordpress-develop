@@ -811,75 +811,91 @@ function wp_list_users( $args = array() ) {
 		'include'       => '',
 	);
 
-	$args = wp_parse_args( $args, $defaults );
+	$parsed_args = wp_parse_args( $args, $defaults );
 
 	$return = '';
 
-	$query_args           = wp_array_slice_assoc( $args, array( 'orderby', 'order', 'number', 'exclude', 'include' ) );
+	$query_args           = wp_array_slice_assoc( $parsed_args, array( 'orderby', 'order', 'number', 'exclude', 'include' ) );
 	$query_args['fields'] = 'ids';
-	$users                = get_users( $query_args );
+
+	/**
+	 * Filters the query arguments for the list of all users of the site.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param array $query_args  The query arguments for get_users().
+	 * @param array $parsed_args The arguments passed to wp_list_users() combined with the defaults.
+	 */
+	$query_args = apply_filters( 'wp_list_users_args', $query_args, $parsed_args );
+
+	$users = get_users( $query_args );
 
 	foreach ( $users as $user_id ) {
 		$user = get_userdata( $user_id );
 
-		if ( $args['exclude_admin'] && 'admin' === $user->display_name ) {
+		if ( $parsed_args['exclude_admin'] && 'admin' === $user->display_name ) {
 			continue;
 		}
 
-		if ( $args['show_fullname'] && '' !== $user->first_name && '' !== $user->last_name ) {
-			$name = "$user->first_name $user->last_name";
+		if ( $parsed_args['show_fullname'] && '' !== $user->first_name && '' !== $user->last_name ) {
+			$name = sprintf(
+				/* translators: 1: User's first name, 2: Last name. */
+				_x( '%1$s %2$s', 'Display name based on first name and last name' ),
+				$user->first_name,
+				$user->last_name
+			);
 		} else {
 			$name = $user->display_name;
 		}
 
-		if ( ! $args['html'] ) {
+		if ( ! $parsed_args['html'] ) {
 			$return .= $name . ', ';
 
 			continue; // No need to go further to process HTML.
 		}
 
-		if ( 'list' === $args['style'] ) {
+		if ( 'list' === $parsed_args['style'] ) {
 			$return .= '<li>';
 		}
 
 		$row = $name;
 
-		if ( ! empty( $args['feed_image'] ) || ! empty( $args['feed'] ) ) {
+		if ( ! empty( $parsed_args['feed_image'] ) || ! empty( $parsed_args['feed'] ) ) {
 			$row .= ' ';
-			if ( empty( $args['feed_image'] ) ) {
+			if ( empty( $parsed_args['feed_image'] ) ) {
 				$row .= '(';
 			}
 
-			$row .= '<a href="' . get_author_feed_link( $user->ID, $args['feed_type'] ) . '"';
+			$row .= '<a href="' . get_author_feed_link( $user->ID, $parsed_args['feed_type'] ) . '"';
 
 			$alt = '';
-			if ( ! empty( $args['feed'] ) ) {
-				$alt  = ' alt="' . esc_attr( $args['feed'] ) . '"';
-				$name = $args['feed'];
+			if ( ! empty( $parsed_args['feed'] ) ) {
+				$alt  = ' alt="' . esc_attr( $parsed_args['feed'] ) . '"';
+				$name = $parsed_args['feed'];
 			}
 
 			$row .= '>';
 
-			if ( ! empty( $args['feed_image'] ) ) {
-				$row .= '<img src="' . esc_url( $args['feed_image'] ) . '" style="border: none;"' . $alt . ' />';
+			if ( ! empty( $parsed_args['feed_image'] ) ) {
+				$row .= '<img src="' . esc_url( $parsed_args['feed_image'] ) . '" style="border: none;"' . $alt . ' />';
 			} else {
 				$row .= $name;
 			}
 
 			$row .= '</a>';
 
-			if ( empty( $args['feed_image'] ) ) {
+			if ( empty( $parsed_args['feed_image'] ) ) {
 				$row .= ')';
 			}
 		}
 
 		$return .= $row;
-		$return .= ( 'list' === $args['style'] ) ? '</li>' : ', ';
+		$return .= ( 'list' === $parsed_args['style'] ) ? '</li>' : ', ';
 	}
 
 	$return = rtrim( $return, ', ' );
 
-	if ( ! $args['echo'] ) {
+	if ( ! $parsed_args['echo'] ) {
 		return $return;
 	}
 	echo $return;
@@ -1208,10 +1224,10 @@ function count_users( $strategy = 'time', $site_id = null ) {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @param null|string $result   The value to return instead. Default null to continue with the query.
-	 * @param string      $strategy Optional. The computational strategy to use when counting the users.
-	 *                              Accepts either 'time' or 'memory'. Default 'time'.
-	 * @param int|null    $site_id  Optional. The site ID to count users for. Defaults to the current site.
+	 * @param null|array $result   The value to return instead. Default null to continue with the query.
+	 * @param string     $strategy Optional. The computational strategy to use when counting the users.
+	 *                             Accepts either 'time' or 'memory'. Default 'time'.
+	 * @param int        $site_id  The site ID to count users for.
 	 */
 	$pre = apply_filters( 'pre_count_users', null, $strategy, $site_id );
 
@@ -1845,8 +1861,11 @@ function update_user_caches( $user ) {
 
 	wp_cache_add( $user->ID, $user, 'users' );
 	wp_cache_add( $user->user_login, $user->ID, 'userlogins' );
-	wp_cache_add( $user->user_email, $user->ID, 'useremail' );
 	wp_cache_add( $user->user_nicename, $user->ID, 'userslugs' );
+
+	if ( ! empty( $user->user_email ) ) {
+		wp_cache_add( $user->user_email, $user->ID, 'useremail' );
+	}
 }
 
 /**
@@ -1873,8 +1892,11 @@ function clean_user_cache( $user ) {
 
 	wp_cache_delete( $user->ID, 'users' );
 	wp_cache_delete( $user->user_login, 'userlogins' );
-	wp_cache_delete( $user->user_email, 'useremail' );
 	wp_cache_delete( $user->user_nicename, 'userslugs' );
+
+	if ( ! empty( $user->user_email ) ) {
+		wp_cache_delete( $user->user_email, 'useremail' );
+	}
 
 	/**
 	 * Fires immediately after the given user's cache is cleaned.
@@ -2242,8 +2264,12 @@ function wp_insert_user( $userdata ) {
 		if ( $update ) {
 			$display_name = $user_login;
 		} elseif ( $meta['first_name'] && $meta['last_name'] ) {
-			/* translators: 1: User's first name, 2: Last name. */
-			$display_name = sprintf( _x( '%1$s %2$s', 'Display name based on first name and last name' ), $meta['first_name'], $meta['last_name'] );
+			$display_name = sprintf(
+				/* translators: 1: User's first name, 2: Last name. */
+				_x( '%1$s %2$s', 'Display name based on first name and last name' ),
+				$meta['first_name'],
+				$meta['last_name']
+			);
 		} elseif ( $meta['first_name'] ) {
 			$display_name = $meta['first_name'];
 		} elseif ( $meta['last_name'] ) {
@@ -3728,7 +3754,7 @@ function new_user_email_admin_notice() {
  * @since 4.9.6
  * @access private
  *
- * @return array List of core privacy action types.
+ * @return string[] List of core privacy action types.
  */
 function _wp_privacy_action_request_types() {
 	return array(
@@ -3742,8 +3768,8 @@ function _wp_privacy_action_request_types() {
  *
  * @since 4.9.6
  *
- * @param array $exporters  An array of personal data exporters.
- * @return array An array of personal data exporters.
+ * @param array[] $exporters An array of personal data exporters.
+ * @return array[] An array of personal data exporters.
  */
 function wp_register_user_personal_data_exporter( $exporters ) {
 	$exporters['wordpress-user'] = array(
@@ -4935,4 +4961,51 @@ function wp_is_application_passwords_available_for_user( $user ) {
 	 * @param WP_User $user      The user to check.
 	 */
 	return apply_filters( 'wp_is_application_passwords_available_for_user', true, $user );
+}
+
+/**
+ * Registers the user meta property for persisted preferences.
+ *
+ * This property is used to store user preferences across page reloads and is
+ * currently used by the block editor for preferences like 'fullscreenMode' and
+ * 'fixedToolbar'.
+ *
+ * @since 6.1.0
+ * @access private
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ */
+function wp_register_persisted_preferences_meta() {
+	/*
+	 * Create a meta key that incorporates the blog prefix so that each site
+	 * on a multisite can have distinct user preferences.
+	 */
+	global $wpdb;
+	$meta_key = $wpdb->get_blog_prefix() . 'persisted_preferences';
+
+	register_meta(
+		'user',
+		$meta_key,
+		array(
+			'type'         => 'object',
+			'single'       => true,
+			'show_in_rest' => array(
+				'name'   => 'persisted_preferences',
+				'type'   => 'object',
+				'schema' => array(
+					'type'                 => 'object',
+					'context'              => array( 'edit' ),
+					'properties'           => array(
+						'_modified' => array(
+							'description' => __( 'The date and time the preferences were updated.' ),
+							'type'        => 'string',
+							'format'      => 'date-time',
+							'readonly'    => false,
+						),
+					),
+					'additionalProperties' => true,
+				),
+			),
+		)
+	);
 }
