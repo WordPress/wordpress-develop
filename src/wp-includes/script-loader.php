@@ -34,10 +34,6 @@ require ABSPATH . WPINC . '/class-wp-styles.php';
 /** WordPress Styles Functions */
 require ABSPATH . WPINC . '/functions.wp-styles.php';
 
-if ( ! defined( 'WP_ASSET_SUFFIX_MIN' ) ) {
-	define( 'WP_ASSET_SUFFIX_MIN', '.min' );
-}
-
 /**
  * Registers TinyMCE scripts.
  *
