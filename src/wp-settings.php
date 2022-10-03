@@ -172,6 +172,7 @@ require ABSPATH . WPINC . '/class-wp-date-query.php';
 require ABSPATH . WPINC . '/theme.php';
 require ABSPATH . WPINC . '/class-wp-theme.php';
 require ABSPATH . WPINC . '/class-wp-theme-json-schema.php';
+require ABSPATH . WPINC . '/class-wp-theme-json-data.php';
 require ABSPATH . WPINC . '/class-wp-theme-json.php';
 require ABSPATH . WPINC . '/class-wp-theme-json-resolver.php';
 require ABSPATH . WPINC . '/global-styles-and-settings.php';
@@ -332,6 +333,12 @@ require ABSPATH . WPINC . '/block-supports/generated-classname.php';
 require ABSPATH . WPINC . '/block-supports/layout.php';
 require ABSPATH . WPINC . '/block-supports/spacing.php';
 require ABSPATH . WPINC . '/block-supports/typography.php';
+require ABSPATH . WPINC . '/style-engine.php';
+require ABSPATH . WPINC . '/style-engine/class-wp-style-engine.php';
+require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-css-declarations.php';
+require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-css-rule.php';
+require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-css-rules-store.php';
+require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-processor.php';
 
 $GLOBALS['wp_embed'] = new WP_Embed();
 

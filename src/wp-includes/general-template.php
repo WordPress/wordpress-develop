@@ -629,7 +629,7 @@ function wp_login_form( $args = array() ) {
 }
 
 /**
- * Returns the URL that allows the user to retrieve the lost password.
+ * Returns the URL that allows the user to reset the lost password.
  *
  * @since 2.8.0
  *
@@ -3106,7 +3106,12 @@ function feed_links( $args = array() ) {
 	 * @param bool $show Whether to display the posts feed link. Default true.
 	 */
 	if ( apply_filters( 'feed_links_show_posts_feed', true ) ) {
-		echo '<link rel="alternate" type="' . feed_content_type() . '" title="' . esc_attr( sprintf( $args['feedtitle'], get_bloginfo( 'name' ), $args['separator'] ) ) . '" href="' . esc_url( get_feed_link() ) . "\" />\n";
+		printf(
+			'<link rel="alternate" type="%s" title="%s" href="%s" />' . "\n",
+			feed_content_type(),
+			esc_attr( sprintf( $args['feedtitle'], get_bloginfo( 'name' ), $args['separator'] ) ),
+			esc_url( get_feed_link() )
+		);
 	}
 
 	/**
@@ -3117,7 +3122,12 @@ function feed_links( $args = array() ) {
 	 * @param bool $show Whether to display the comments feed link. Default true.
 	 */
 	if ( apply_filters( 'feed_links_show_comments_feed', true ) ) {
-		echo '<link rel="alternate" type="' . feed_content_type() . '" title="' . esc_attr( sprintf( $args['comstitle'], get_bloginfo( 'name' ), $args['separator'] ) ) . '" href="' . esc_url( get_feed_link( 'comments_' . get_default_feed() ) ) . "\" />\n";
+		printf(
+			'<link rel="alternate" type="%s" title="%s" href="%s" />' . "\n",
+			feed_content_type(),
+			esc_attr( sprintf( $args['comstitle'], get_bloginfo( 'name' ), $args['separator'] ) ),
+			esc_url( get_feed_link( 'comments_' . get_default_feed() ) )
+		);
 	}
 }
 
@@ -3157,8 +3167,29 @@ function feed_links_extra( $args = array() ) {
 		/** This filter is documented in wp-includes/general-template.php */
 		$show_comments_feed = apply_filters( 'feed_links_show_comments_feed', true );
 
-		if ( $show_comments_feed && ( comments_open() || pings_open() || $post->comment_count > 0 ) ) {
-			$title     = sprintf( $args['singletitle'], get_bloginfo( 'name' ), $args['separator'], the_title_attribute( array( 'echo' => false ) ) );
+		/**
+		 * Filters whether to display the post comments feed link.
+		 *
+		 * This filter allows to enable or disable the feed link for a singular post
+		 * in a way that is independent of {@see 'feed_links_show_comments_feed'}
+		 * (which controls the global comments feed). The result of that filter
+		 * is accepted as a parameter.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param bool $show_comments_feed Whether to display the post comments feed link. Defaults to
+		 *                                 the {@see 'feed_links_show_comments_feed'} filter result.
+		 */
+		$show_post_comments_feed = apply_filters( 'feed_links_extra_show_post_comments_feed', $show_comments_feed );
+
+		if ( $show_post_comments_feed && ( comments_open() || pings_open() || $post->comment_count > 0 ) ) {
+			$title = sprintf(
+				$args['singletitle'],
+				get_bloginfo( 'name' ),
+				$args['separator'],
+				the_title_attribute( array( 'echo' => false ) )
+			);
+
 			$feed_link = get_post_comments_feed_link( $post->ID );
 
 			if ( $feed_link ) {
@@ -3166,48 +3197,159 @@ function feed_links_extra( $args = array() ) {
 			}
 		}
 	} elseif ( is_post_type_archive() ) {
-		$post_type = get_query_var( 'post_type' );
-		if ( is_array( $post_type ) ) {
-			$post_type = reset( $post_type );
+		/**
+		 * Filters whether to display the post type archive feed link.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param bool $show Whether to display the post type archive feed link. Default true.
+		 */
+		$show_post_type_archive_feed = apply_filters( 'feed_links_extra_show_post_type_archive_feed', true );
+
+		if ( $show_post_type_archive_feed ) {
+			$post_type = get_query_var( 'post_type' );
+
+			if ( is_array( $post_type ) ) {
+				$post_type = reset( $post_type );
+			}
+
+			$post_type_obj = get_post_type_object( $post_type );
+
+			$title = sprintf(
+				$args['posttypetitle'],
+				get_bloginfo( 'name' ),
+				$args['separator'],
+				$post_type_obj->labels->name
+			);
+
+			$href = get_post_type_archive_feed_link( $post_type_obj->name );
 		}
-
-		$post_type_obj = get_post_type_object( $post_type );
-		$title         = sprintf( $args['posttypetitle'], get_bloginfo( 'name' ), $args['separator'], $post_type_obj->labels->name );
-		$href          = get_post_type_archive_feed_link( $post_type_obj->name );
 	} elseif ( is_category() ) {
-		$term = get_queried_object();
+		/**
+		 * Filters whether to display the category feed link.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param bool $show Whether to display the category feed link. Default true.
+		 */
+		$show_category_feed = apply_filters( 'feed_links_extra_show_category_feed', true );
 
-		if ( $term ) {
-			$title = sprintf( $args['cattitle'], get_bloginfo( 'name' ), $args['separator'], $term->name );
-			$href  = get_category_feed_link( $term->term_id );
+		if ( $show_category_feed ) {
+			$term = get_queried_object();
+
+			if ( $term ) {
+				$title = sprintf(
+					$args['cattitle'],
+					get_bloginfo( 'name' ),
+					$args['separator'],
+					$term->name
+				);
+
+				$href = get_category_feed_link( $term->term_id );
+			}
 		}
 	} elseif ( is_tag() ) {
-		$term = get_queried_object();
+		/**
+		 * Filters whether to display the tag feed link.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param bool $show Whether to display the tag feed link. Default true.
+		 */
+		$show_tag_feed = apply_filters( 'feed_links_extra_show_tag_feed', true );
 
-		if ( $term ) {
-			$title = sprintf( $args['tagtitle'], get_bloginfo( 'name' ), $args['separator'], $term->name );
-			$href  = get_tag_feed_link( $term->term_id );
+		if ( $show_tag_feed ) {
+			$term = get_queried_object();
+
+			if ( $term ) {
+				$title = sprintf(
+					$args['tagtitle'],
+					get_bloginfo( 'name' ),
+					$args['separator'],
+					$term->name
+				);
+
+				$href = get_tag_feed_link( $term->term_id );
+			}
 		}
 	} elseif ( is_tax() ) {
-		$term = get_queried_object();
+		/**
+		 * Filters whether to display the custom taxonomy feed link.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param bool $show Whether to display the custom taxonomy feed link. Default true.
+		 */
+		$show_tax_feed = apply_filters( 'feed_links_extra_show_tax_feed', true );
 
-		if ( $term ) {
-			$tax   = get_taxonomy( $term->taxonomy );
-			$title = sprintf( $args['taxtitle'], get_bloginfo( 'name' ), $args['separator'], $term->name, $tax->labels->singular_name );
-			$href  = get_term_feed_link( $term->term_id, $term->taxonomy );
+		if ( $show_tax_feed ) {
+			$term = get_queried_object();
+
+			if ( $term ) {
+				$tax = get_taxonomy( $term->taxonomy );
+
+				$title = sprintf(
+					$args['taxtitle'],
+					get_bloginfo( 'name' ),
+					$args['separator'],
+					$term->name,
+					$tax->labels->singular_name
+				);
+
+				$href = get_term_feed_link( $term->term_id, $term->taxonomy );
+			}
 		}
 	} elseif ( is_author() ) {
-		$author_id = (int) get_query_var( 'author' );
+		/**
+		 * Filters whether to display the author feed link.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param bool $show Whether to display the author feed link. Default true.
+		 */
+		$show_author_feed = apply_filters( 'feed_links_extra_show_author_feed', true );
 
-		$title = sprintf( $args['authortitle'], get_bloginfo( 'name' ), $args['separator'], get_the_author_meta( 'display_name', $author_id ) );
-		$href  = get_author_feed_link( $author_id );
+		if ( $show_author_feed ) {
+			$author_id = (int) get_query_var( 'author' );
+
+			$title = sprintf(
+				$args['authortitle'],
+				get_bloginfo( 'name' ),
+				$args['separator'],
+				get_the_author_meta( 'display_name', $author_id )
+			);
+
+			$href = get_author_feed_link( $author_id );
+		}
 	} elseif ( is_search() ) {
-		$title = sprintf( $args['searchtitle'], get_bloginfo( 'name' ), $args['separator'], get_search_query( false ) );
-		$href  = get_search_feed_link();
+		/**
+		 * Filters whether to display the search results feed link.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param bool $show Whether to display the search results feed link. Default true.
+		 */
+		$show_search_feed = apply_filters( 'feed_links_extra_show_search_feed', true );
+
+		if ( $show_search_feed ) {
+			$title = sprintf(
+				$args['searchtitle'],
+				get_bloginfo( 'name' ),
+				$args['separator'],
+				get_search_query( false )
+			);
+
+			$href = get_search_feed_link();
+		}
 	}
 
 	if ( isset( $title ) && isset( $href ) ) {
-		echo '<link rel="alternate" type="' . feed_content_type() . '" title="' . esc_attr( $title ) . '" href="' . esc_url( $href ) . '" />' . "\n";
+		printf(
+			'<link rel="alternate" type="%s" title="%s" href="%s" />' . "\n",
+			feed_content_type(),
+			esc_attr( $title ),
+			esc_url( $href )
+		);
 	}
 }
 
@@ -3218,7 +3360,10 @@ function feed_links_extra( $args = array() ) {
  * @since 2.0.0
  */
 function rsd_link() {
-	echo '<link rel="EditURI" type="application/rsd+xml" title="RSD" href="' . esc_url( site_url( 'xmlrpc.php?rsd', 'rpc' ) ) . '" />' . "\n";
+	printf(
+		'<link rel="EditURI" type="application/rsd+xml" title="RSD" href="%s" />' . "\n",
+		esc_url( site_url( 'xmlrpc.php?rsd', 'rpc' ) )
+	);
 }
 
 /**
@@ -3228,7 +3373,10 @@ function rsd_link() {
  * @since 2.3.1
  */
 function wlwmanifest_link() {
-	echo '<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="' . includes_url( 'wlwmanifest.xml' ) . '" /> ' . "\n";
+	printf(
+		'<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="%s" />' . "\n",
+		includes_url( 'wlwmanifest.xml' )
+	);
 }
 
 /**
@@ -3316,13 +3464,6 @@ function wp_resource_hints() {
 		'prefetch'     => array(),
 		'prerender'    => array(),
 	);
-
-	/*
-	 * Add DNS prefetch for the Emoji CDN.
-	 * The path is removed in the foreach loop below.
-	 */
-	/** This filter is documented in wp-includes/formatting.php */
-	$hints['dns-prefetch'][] = apply_filters( 'emoji_svg_url', 'https://s.w.org/images/core/emoji/13.0.0/svg/' );
 
 	foreach ( $hints as $relation_type => $urls ) {
 		$unique_urls = array();
@@ -4197,6 +4338,7 @@ function the_search_query() {
  * @since 4.3.0
  *
  * @param string $doctype Optional. The type of HTML document. Accepts 'xhtml' or 'html'. Default 'html'.
+ * @return string A space-separated list of language attributes.
  */
 function get_language_attributes( $doctype = 'html' ) {
 	$attributes = array();
@@ -4312,8 +4454,8 @@ function language_attributes( $doctype = 'html' ) {
  *                                      Default 1.
  *     @type int    $mid_size           How many numbers to either side of the current pages. Default 2.
  *     @type bool   $prev_next          Whether to include the previous and next links in the list. Default true.
- *     @type bool   $prev_text          The previous page text. Default '&laquo; Previous'.
- *     @type bool   $next_text          The next page text. Default 'Next &raquo;'.
+ *     @type string $prev_text          The previous page text. Default '&laquo; Previous'.
+ *     @type string $next_text          The next page text. Default 'Next &raquo;'.
  *     @type string $type               Controls format of the returned value. Possible values are 'plain',
  *                                      'array' and 'list'. Default is 'plain'.
  *     @type array  $add_args           An array of query args to add. Default false.
@@ -5031,9 +5173,16 @@ function __checked_selected_helper( $helper, $current, $echo, $type ) { // phpcs
 function wp_required_field_indicator() {
 	/* translators: Character to identify required form fields. */
 	$glyph     = __( '*' );
-	$indicator = '<span class="required" aria-hidden="true">' . esc_html( $glyph ) . '</span>';
+	$indicator = '<span class="required">' . esc_html( $glyph ) . '</span>';
 
-	return $indicator;
+	/**
+	 * Filters the markup for a visual indicator of required form fields.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param string $indicator Markup for the indicator element.
+	 */
+	return apply_filters( 'wp_required_field_indicator', $indicator );
 }
 
 /**
@@ -5045,12 +5194,19 @@ function wp_required_field_indicator() {
  */
 function wp_required_field_message() {
 	$message = sprintf(
-		'<span class="required-field-message" aria-hidden="true">%s</span>',
+		'<span class="required-field-message">%s</span>',
 		/* translators: %s: Asterisk symbol (*). */
 		sprintf( __( 'Required fields are marked %s' ), wp_required_field_indicator() )
 	);
 
-	return $message;
+	/**
+	 * Filters the message to explain required form fields.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param string $message Message text and glyph wrapped in a `span` tag.
+	 */
+	return apply_filters( 'wp_required_field_message', $message );
 }
 
 /**

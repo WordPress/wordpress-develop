@@ -69,6 +69,12 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 			array( 'timezone_string', 0, 0 ),
 			array( 'timezone_string', 'Europe/London', 'Europe/London' ),
 			array( 'timezone_string', get_option( 'timezone_string' ), 'invalid' ),
+			// @ticket 56468
+			'deprecated timezone string is accepted as valid' => array(
+				'option_name' => 'timezone_string',
+				'sanitized'   => 'America/Buenos_Aires',
+				'original'    => 'America/Buenos_Aires',
+			),
 			array( 'permalink_structure', '', '' ),
 			array( 'permalink_structure', '/%year%/%20%postname%', '/%year%/ %postname%' ),
 			array( 'default_role', 'subscriber', 'subscriber' ),

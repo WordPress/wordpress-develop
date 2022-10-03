@@ -3654,7 +3654,7 @@ function post_permalink( $post = 0 ) {
  * @param string|bool $file_path Optional. File path to write request to. Default false.
  * @param int         $red       Optional. The number of Redirects followed, Upon 5 being hit,
  *                               returns false. Default 1.
- * @return bool|string False on failure and string of headers if HEAD request.
+ * @return \Requests_Utility_CaseInsensitiveDictionary|false Headers on success, false on failure.
  */
 function wp_get_http( $url, $file_path = false, $red = 1 ) {
 	_deprecated_function( __FUNCTION__, '4.4.0', 'WP_Http' );
@@ -4439,6 +4439,75 @@ function _get_path_to_translation_from_lang_dir( $domain ) {
 	if ( in_array( $path, $cached_mofiles, true ) ) {
 		return $path;
 	}
+
+	return false;
+}
+
+/**
+  * Allows multiple block styles.
+  *
+  * @since 5.9.0
+  * @deprecated 6.1.0
+  *
+  * @param array $metadata Metadata for registering a block type.
+  * @return array Metadata for registering a block type.
+  */
+  function _wp_multiple_block_styles( $metadata ) {
+	_deprecated_function( __FUNCTION__, '6.1.0' );
+	return $metadata;
+}
+
+/**
+ * Generates an inline style for a typography feature e.g. text decoration,
+ * text transform, and font style.
+ *
+ * @since 5.8.0
+ * @access private
+ * @deprecated 6.1.0 Use wp_style_engine_get_styles() introduced in 6.1.0.
+ *
+ * @see wp_style_engine_get_styles()
+ *
+ * @param array  $attributes   Block's attributes.
+ * @param string $feature      Key for the feature within the typography styles.
+ * @param string $css_property Slug for the CSS property the inline style sets.
+ * @return string CSS inline style.
+ */
+function wp_typography_get_css_variable_inline_style( $attributes, $feature, $css_property ) {
+	_deprecated_function( __FUNCTION__, '6.1.0', 'wp_style_engine_get_styles()' );
+
+	// Retrieve current attribute value or skip if not found.
+	$style_value = _wp_array_get( $attributes, array( 'style', 'typography', $feature ), false );
+	if ( ! $style_value ) {
+		return;
+	}
+
+	// If we don't have a preset CSS variable, we'll assume it's a regular CSS value.
+	if ( strpos( $style_value, "var:preset|{$css_property}|" ) === false ) {
+		return sprintf( '%s:%s;', $css_property, $style_value );
+	}
+
+	/*
+	 * We have a preset CSS variable as the style.
+	 * Get the style value from the string and return CSS style.
+	 */
+	$index_to_splice = strrpos( $style_value, '|' ) + 1;
+	$slug            = substr( $style_value, $index_to_splice );
+
+	// Return the actual CSS inline style e.g. `text-decoration:var(--wp--preset--text-decoration--underline);`.
+	return sprintf( '%s:var(--wp--preset--%s--%s);', $css_property, $css_property, $slug );
+}
+
+/**
+ * Determines whether global terms are enabled.
+ *
+ * @since 3.0.0
+ * @since 6.1.0 This function now always returns false.
+ * @deprecated 6.1.0
+ *
+ * @return bool Always returns false.
+ */
+function global_terms_enabled() {
+	_deprecated_function( __FUNCTION__, '6.1.0' );
 
 	return false;
 }
