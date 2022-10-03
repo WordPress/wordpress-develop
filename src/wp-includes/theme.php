@@ -148,6 +148,18 @@ function wp_clean_themes_cache( $clear_update_cache = true ) {
 }
 
 /**
+ * Clears the cache held by WP_Theme_JSON and WP_Theme_JSON_Resolver classes.
+ *
+ * @since 6.1.0
+ * @param array $args Arguments to be returned when this function is used in a filter.
+ */
+function wp_clean_theme_json_cache( $args ) {
+	WP_Theme_JSON::clean_cached_data();
+	WP_Theme_JSON_Resolver::clean_cached_data();
+	return $args;
+}
+
+/**
  * Whether a child theme is in use.
  *
  * @since 3.0.0

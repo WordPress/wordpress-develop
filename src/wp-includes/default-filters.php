@@ -231,6 +231,7 @@ add_filter( 'widget_block_content', 'wp_filter_content_tags' );
 add_filter( 'widget_block_content', 'do_shortcode', 11 );
 
 add_filter( 'block_type_metadata', 'wp_migrate_old_typography_shape' );
+add_filter( 'register_block_type_args', 'wp_clean_theme_json_cache' );
 
 add_filter( 'wp_get_custom_css', 'wp_replace_insecure_home_url' );
 
