@@ -497,10 +497,21 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		$metadata
 	);
 
-	return WP_Block_Type_Registry::get_instance()->register(
+	$block = WP_Block_Type_Registry::get_instance()->register(
 		$metadata['name'],
 		$settings
 	);
+
+	/**
+	 * Fires after a block type is registered.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param WP_Block_Type|false $block The registered block type on success, or false on failure.
+	 */
+	do_action( 'registered_block_type', $block );
+
+	return $block;
 }
 
 /**
@@ -526,7 +537,18 @@ function register_block_type( $block_type, $args = array() ) {
 		return register_block_type_from_metadata( $block_type, $args );
 	}
 
-	return WP_Block_Type_Registry::get_instance()->register( $block_type, $args );
+	$block = WP_Block_Type_Registry::get_instance()->register( $block_type, $args );
+
+	/**
+	 * Fires after a block type is registered.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param WP_Block_Type|false $block The registered block type on success, or false on failure.
+	 */
+	do_action( 'registered_block_type', $block );
+
+	return $block;
 }
 
 /**
