@@ -85,7 +85,7 @@ jobs:
         run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
 
       - name: Cache PHPCS scan cache
-        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 # v3.0.8
+        uses: actions/cache@ac8075791e805656e71b4ba23325ace9e3421120 # v3.0.8
         with:
           path: .cache/phpcs.json
           key: ${{ runner.os }}-date-${{ steps.get-date.outputs.date }}-phpcs-cache-${{ hashFiles('**/composer.json', 'phpcs.xml.dist') }}
