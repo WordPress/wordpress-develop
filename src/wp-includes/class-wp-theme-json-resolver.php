@@ -162,7 +162,6 @@ class WP_Theme_JSON_Resolver {
 	 * @since 5.8.0
 	 * @since 5.9.0 Theme supports have been inlined and the `$theme_support_data` argument removed.
 	 * @since 6.0.0 Added an `$options` parameter to allow the theme data to be returned without theme supports.
-	 * @since 6.1.0 Clear `$theme` cache if number of registered blocks has changed.
 	 *
 	 * @param array $deprecated Deprecated. Not used.
 	 * @param array $options {
@@ -177,11 +176,11 @@ class WP_Theme_JSON_Resolver {
 			_deprecated_argument( __METHOD__, '5.9.0' );
 		}
 
-		$options       = wp_parse_args( $options, array( 'with_supports' => true ) );
+		$options = wp_parse_args( $options, array( 'with_supports' => true ) );
 
 		if ( null === static::$theme ) {
-			$theme_json_data   = static::read_json_file( static::get_file_path_from_theme( 'theme.json' ) );
-			$theme_json_data   = static::translate( $theme_json_data, wp_get_theme()->get( 'TextDomain' ) );
+			$theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json' ) );
+			$theme_json_data = static::translate( $theme_json_data, wp_get_theme()->get( 'TextDomain' ) );
 			/**
 			 * Filters the data provided by the theme for global styles & settings.
 			 *

@@ -730,13 +730,11 @@ class WP_Theme_JSON {
 	 * @return array Block metadata.
 	 */
 	protected static function get_blocks_metadata() {
-		// $new_cache_key = static::get_new_blocks_cache_key();
 		if ( null !== static::$blocks_metadata ) {
 			return static::$blocks_metadata;
 		}
 
-		// static::$blocks_cache_key = $new_cache_key;
-		static::$blocks_metadata  = array();
+		static::$blocks_metadata = array();
 
 		$registry = WP_Block_Type_Registry::get_instance();
 		$blocks   = $registry->get_all_registered();
