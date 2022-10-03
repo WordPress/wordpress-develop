@@ -53,7 +53,7 @@ jobs:
     steps:
       - name: Determine the status of the previous attempt
         id: previous-attempt-result
-        uses: actions/github-script@d4560e157075e2d93aa3022b5b51a42a880f1f93 # v6.3.0
+        uses: actions/github-script@7dff1a87643417cf3b95bb10b29f4c4bc60d8ebd # v6.3.0
         with:
           retries: 2
           retry-exempt-status-codes: 418
@@ -118,7 +118,7 @@ jobs:
 
       - name: Get the commit message
         id: current-commit-message
-        uses: actions/github-script@d4560e157075e2d93aa3022b5b51a42a880f1f93 # v6.3.0
+        uses: actions/github-script@7dff1a87643417cf3b95bb10b29f4c4bc60d8ebd # v6.3.0
         if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
         with:
           retries: 2

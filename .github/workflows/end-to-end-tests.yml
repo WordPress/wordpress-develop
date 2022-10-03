@@ -146,7 +146,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@d4560e157075e2d93aa3022b5b51a42a880f1f93 # v6.3.0
+        uses: actions/github-script@7dff1a87643417cf3b95bb10b29f4c4bc60d8ebd # v6.3.0
         with:
           retries: 2
           retry-exempt-status-codes: 418
