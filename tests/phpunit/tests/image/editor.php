@@ -116,8 +116,6 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * @ticket 6821
 	 */
 	public function test_set_quality_with_image_conversion() {
-		remove_filter( 'image_editor_output_format', 'wp_default_image_output_mapping' );
-
 		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/test-image.png' );
 		$editor->set_mime_type( 'image/png' ); // Ensure mime-specific filters act properly.
 
