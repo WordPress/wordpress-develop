@@ -3675,10 +3675,6 @@ EOF;
 		foreach ( $sizes_to_compare as $size => $size_data ) {
 			$this->assertLessThan( $webp_sizes['sizes'][ $size ]['filesize'], $jpeg_sizes['sizes'][ $size ]['filesize'] );
 		}
-
-		// Cleanup.
-		remove_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low_jpeg' ), 10, 2 );
-		remove_filter( 'big_image_size_threshold', array( $this, 'add_big_image_size_threshold' ) );
 	}
 
 	/**

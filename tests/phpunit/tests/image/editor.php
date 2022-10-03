@@ -105,9 +105,6 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 
 		// Ensure wp_editor_set_quality filter applies if it exists before editor instantiation.
 		$this->assertSame( 100, $editor->get_quality() );
-
-		// Clean up.
-		remove_filter( 'wp_editor_set_quality', $func_100_percent );
 	}
 
 	/**
@@ -168,8 +165,6 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 			$editor->get_quality(),
 			'After removing image conversion the quality setting should reset to the filtered value for JPEG, 56.'
 		);
-
-		remove_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality' ) );
 	}
 
 	/**
