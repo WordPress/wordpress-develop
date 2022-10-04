@@ -178,29 +178,31 @@ class WP_Theme_JSON_Resolver {
 
 		$options = wp_parse_args( $options, array( 'with_supports' => true ) );
 
-		$theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json' ) );
-		$theme_json_data = static::translate( $theme_json_data, wp_get_theme()->get( 'TextDomain' ) );
-		/**
-		 * Filters the data provided by the theme for global styles & settings.
-		 *
-		 * @since 6.1.0
-		 *
-		 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
-		 */
-		$theme_json      = apply_filters( 'theme_json_theme', new WP_Theme_JSON_Data( $theme_json_data, 'theme' ) );
-		$theme_json_data = $theme_json->get_data();
-		static::$theme   = new WP_Theme_JSON( $theme_json_data );
+		if ( null === static::$theme ) {
+			$theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json' ) );
+			$theme_json_data = static::translate( $theme_json_data, wp_get_theme()->get( 'TextDomain' ) );
+			/**
+			 * Filters the data provided by the theme for global styles & settings.
+			 *
+			 * @since 6.1.0
+			 *
+			 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
+			 */
+			$theme_json      = apply_filters( 'theme_json_theme', new WP_Theme_JSON_Data( $theme_json_data, 'theme' ) );
+			$theme_json_data = $theme_json->get_data();
+			static::$theme   = new WP_Theme_JSON( $theme_json_data );
 
-		if ( wp_get_theme()->parent() ) {
-			// Get parent theme.json.
-			$parent_theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json', true ) );
-			$parent_theme_json_data = static::translate( $parent_theme_json_data, wp_get_theme()->parent()->get( 'TextDomain' ) );
-			$parent_theme           = new WP_Theme_JSON( $parent_theme_json_data );
+			if ( wp_get_theme()->parent() ) {
+				// Get parent theme.json.
+				$parent_theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json', true ) );
+				$parent_theme_json_data = static::translate( $parent_theme_json_data, wp_get_theme()->parent()->get( 'TextDomain' ) );
+				$parent_theme           = new WP_Theme_JSON( $parent_theme_json_data );
 
-			// Merge the child theme.json into the parent theme.json.
-			// The child theme takes precedence over the parent.
-			$parent_theme->merge( static::$theme );
-			static::$theme = $parent_theme;
+				// Merge the child theme.json into the parent theme.json.
+				// The child theme takes precedence over the parent.
+				$parent_theme->merge( static::$theme );
+				static::$theme = $parent_theme;
+			}
 		}
 
 		if ( ! $options['with_supports'] ) {
