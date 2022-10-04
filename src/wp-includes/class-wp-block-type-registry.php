@@ -97,11 +97,11 @@ final class WP_Block_Type_Registry {
 		$this->registered_block_types[ $name ] = $block_type;
 
 		/**
-		 * Fires after a block type is registered.
+		 * Fires after a block type is registered with the WP_Block_Type_Registry class.
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param WP_Block_Type|false $block_type The registered block type on success, or false on failure.
+		 * @param WP_Block_Type $block_type The registered block type on success.
 		 */
 		do_action( 'registered_block_type', $block_type );
 
@@ -136,11 +136,11 @@ final class WP_Block_Type_Registry {
 		unset( $this->registered_block_types[ $name ] );
 
 		/**
-		 * Fires after a block type is unregistered.
+		 * Fires after a block type is unregistered with the WP_Block_Type_Registry class.
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param WP_Block_Type|false $block_type The unregistered block type on success, or false on failure.
+		 * @param WP_Block_Type $block_type The unregistered block type on success.
 		 */
 		do_action( 'unregistered_block_type', $unregistered_block_type );
 

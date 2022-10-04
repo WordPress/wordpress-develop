@@ -150,6 +150,8 @@ function wp_clean_themes_cache( $clear_update_cache = true ) {
 /**
  * Clears the cache held by WP_Theme_JSON and WP_Theme_JSON_Resolver classes.
  *
+ * Ensures that subsequent calls to either class generate fresh core, theme, user, and block data.
+ *
  * @since 6.1.0
  */
 function wp_clean_theme_json_cache() {
