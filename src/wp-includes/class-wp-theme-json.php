@@ -735,7 +735,7 @@ class WP_Theme_JSON {
 
 		// Do we have metadata for all currently registered blocks?
 		$blocks = array_diff_key( $blocks, static::$blocks_metadata );
-		if ( count( $blocks ) === 0 ) {
+		if ( empty( $blocks ) ) {
 			return static::$blocks_metadata;
 		}
 
