@@ -733,7 +733,7 @@ class WP_Theme_JSON {
 		$registry = WP_Block_Type_Registry::get_instance();
 		$blocks   = $registry->get_all_registered();
 
-		// Do we have metadata for all currently registered blocks?
+		// Is there metadata for all currently registered blocks?
 		$blocks = array_diff_key( $blocks, static::$blocks_metadata );
 		if ( empty( $blocks ) ) {
 			return static::$blocks_metadata;
