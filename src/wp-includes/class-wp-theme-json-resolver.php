@@ -186,9 +186,11 @@ class WP_Theme_JSON_Resolver {
 		}
 
 		$options = wp_parse_args( $options, array( 'with_supports' => true ) );
-		if ( null === static::$theme && null === static::$theme_json_data ) {
+		if ( null === static::$theme_json_data ) {
+
 			$theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json' ) );
 			$theme_json_data = static::translate( $theme_json_data, wp_get_theme()->get( 'TextDomain' ) );
+
 			/**
 			 * Filters the data provided by the theme for global styles & settings.
 			 *
@@ -196,9 +198,10 @@ class WP_Theme_JSON_Resolver {
 			 *
 			 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
 			 */
+
+			static::$theme_json_data = $theme_json_data;
 			$theme_json              = apply_filters( 'theme_json_theme', new WP_Theme_JSON_Data( $theme_json_data, 'theme' ) );
 			$theme_json_data         = $theme_json->get_data();
-			static::$theme_json_data = $theme_json_data;
 			static::$theme           = new WP_Theme_JSON( $theme_json_data );
 
 			if ( wp_get_theme()->parent() ) {
@@ -213,7 +216,7 @@ class WP_Theme_JSON_Resolver {
 				static::$theme = $parent_theme;
 			}
 		}
-
+		static::$theme = new WP_Theme_JSON( static::$theme_json_data );
 		if ( ! $options['with_supports'] ) {
 			return static::$theme;
 		}
