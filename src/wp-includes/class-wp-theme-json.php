@@ -33,7 +33,7 @@ class WP_Theme_JSON {
 	 * process it twice.
 	 *
 	 * @since 5.8.0
-	 * @since 6.1.0 Initialize as empty array.
+	 * @since 6.1.0 Initialize as an empty array.
 	 * @var array
 	 */
 	protected static $blocks_metadata = array();
