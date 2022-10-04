@@ -546,12 +546,15 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 function _wp_build_title_and_description_for_single_post_type_block_template( $post_type, $slug, WP_Block_Template $template ) {
 	$post_type_object = get_post_type_object( $post_type );
 
-	$posts = get_posts(
-		array(
-			'name'      => $slug,
-			'post_type' => $post_type,
-		)
+	$args = array(
+		'name'                   => $slug,
+		'post_type'              => $post_type,
+		'posts_per_page'         => 1,
+		'update_post_meta_cache' => false,
+		'update_post_term_cache' => false,
 	);
+
+	$posts = new WP_Query( $args );
 
 	if ( empty( $posts ) ) {
 		$template->title = sprintf(
@@ -579,13 +582,15 @@ function _wp_build_title_and_description_for_single_post_type_block_template( $p
 		$post_title
 	);
 
-	$posts_with_same_title = get_posts(
-		array(
-			'title'       => $post_title,
-			'post_type'   => $post_type,
-			'post_status' => 'publish',
-		)
+	$args = array(
+		'title'                  => $post_title,
+		'post_type'              => $post_type,
+		'post_status'            => 'publish',
+		'update_post_meta_cache' => false,
+		'update_post_term_cache' => false,
 	);
+
+	$posts_with_same_title = new WP_Query( $args );
 
 	if ( count( $posts_with_same_title ) > 1 ) {
 		$template->title = sprintf(
@@ -615,13 +620,15 @@ function _wp_build_title_and_description_for_single_post_type_block_template( $p
 function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy, $slug, WP_Block_Template $template ) {
 	$taxonomy_object = get_taxonomy( $taxonomy );
 
-	$terms = get_terms(
-		array(
-			'taxonomy'   => $taxonomy,
-			'hide_empty' => false,
-			'slug'       => $slug,
-		)
+	$args = array(
+		'taxonomy'               => $taxonomy,
+		'hide_empty'             => false,
+		'slug'                   => $slug,
+		'number'                 => 1,
+		'update_post_term_cache' => false,
 	);
+
+	$terms = get_terms( $args );
 
 	if ( empty( $terms ) ) {
 		$template->title = sprintf(
@@ -648,13 +655,14 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
 		$term_title
 	);
 
-	$terms_with_same_title = get_terms(
-		array(
-			'taxonomy'   => $taxonomy,
-			'hide_empty' => false,
-			'name'       => $term_title,
-		)
+	$args = array(
+		'taxonomy'               => $taxonomy,
+		'hide_empty'             => false,
+		'name'                   => $term_title,
+		'update_post_term_cache' => false,
 	);
+
+	$terms_with_same_title = get_terms( $args );
 
 	if ( count( $terms_with_same_title ) > 1 ) {
 		$template->title = sprintf(
