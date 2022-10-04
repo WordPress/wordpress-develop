@@ -85,7 +85,7 @@ jobs:
         run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
 
       - name: Cache PHPCS scan cache
-        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 # v3.0.8
+        uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 # v3.0.10
         with:
           path: .cache/phpcs.json
           key: ${{ runner.os }}-date-${{ steps.get-date.outputs.date }}-phpcs-cache-${{ hashFiles('**/composer.json', 'phpcs.xml.dist') }}
@@ -102,10 +102,18 @@ jobs:
         run: phpcs -i
 
       - name: Run PHPCS on all Core files
-        run: phpcs -q -n --report=checkstyle | cs2pr
+        continue-on-error: true
+        run: phpcs -n --report-full --report-checkstyle=./.cache/phpcs-report.xml
+
+      - name: Show PHPCS results in PR
+        run: cs2pr ./.cache/phpcs-report.xml
 
       - name: Check test suite files for warnings
-        run: phpcs tests -q --report=checkstyle | cs2pr
+        continue-on-error: true
+        run: phpcs tests --report-full --report-checkstyle=./.cache/phpcs-tests-report.xml
+
+      - name: Show test suite scan results in PR
+        run: cs2pr ./.cache/phpcs-tests-report.xml
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code
@@ -142,7 +150,7 @@ jobs:
           svn --version
 
       - name: Install NodeJS
-        uses: actions/setup-node@2fddd8803e2f5c9604345a0b591c3020ee971a93 # v3.4.1
+        uses: actions/setup-node@969bd2663942d722d85b6a8626225850c2f7be4b # v3.5.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -190,7 +198,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@d4560e157075e2d93aa3022b5b51a42a880f1f93 # v6.3.0
+        uses: actions/github-script@7dff1a87643417cf3b95bb10b29f4c4bc60d8ebd # v6.3.1
         with:
           retries: 2
           retry-exempt-status-codes: 418
