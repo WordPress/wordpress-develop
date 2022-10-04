@@ -76,6 +76,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	/**
 	 * @ticket 52991
 	 * @ticket 54336
+	 * @ticket 56611
 	 */
 	public function test_translations_are_applied() {
 		add_filter( 'locale', array( $this, 'filter_set_locale_to_polish' ) );
@@ -118,6 +119,15 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 							),
 						),
 					),
+					'duotone'        => array(
+						'theme' => array(
+							array(
+								'colors' => array( '#333333', '#aaaaaa' ),
+								'slug'   => 'custom-duotone',
+								'name'   => 'Custom Duotone',
+							),
+						),
+					),
 				),
 				'typography' => array(
 					'customFontSize' => false,
@@ -133,8 +143,9 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 					),
 				),
 				'spacing'    => array(
-					'units'   => array( 'rem' ),
-					'padding' => true,
+					'units'    => array( 'rem' ),
+					'padding'  => true,
+					'blockGap' => true,
 				),
 				'blocks'     => array(
 					'core/paragraph' => array(
@@ -244,6 +255,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 54336
+	 * @ticket 56611
 	 */
 	function test_merges_child_theme_json_into_parent_theme_json() {
 		switch_theme( 'block-theme-child' );
@@ -253,6 +265,15 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 			'color'      => array(
 				'custom'         => false,
 				'customGradient' => false,
+				'duotone'        => array(
+					'theme' => array(
+						array(
+							'colors' => array( '#333333', '#aaaaaa' ),
+							'name'   => 'Custom Duotone',
+							'slug'   => 'custom-duotone',
+						),
+					),
+				),
 				'gradients'      => array(
 					'theme' => array(
 						array(
@@ -297,8 +318,9 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 				),
 			),
 			'spacing'    => array(
-				'units'   => array( 'rem' ),
-				'padding' => true,
+				'blockGap' => true,
+				'units'    => array( 'rem' ),
+				'padding'  => true,
 			),
 			'blocks'     => array(
 				'core/paragraph'  => array(
