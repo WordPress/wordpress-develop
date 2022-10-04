@@ -112,7 +112,7 @@ jobs:
         uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
 
       - name: Install NodeJS
-        uses: actions/setup-node@2fddd8803e2f5c9604345a0b591c3020ee971a93 # v3.4.1
+        uses: actions/setup-node@969bd2663942d722d85b6a8626225850c2f7be4b # v3.5.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -131,7 +131,7 @@ jobs:
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Cache Composer dependencies
-        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 # v3.0.8
+        uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 # v3.0.10
         env:
           cache-name: cache-composer-dependencies
         with:
@@ -258,7 +258,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@d4560e157075e2d93aa3022b5b51a42a880f1f93 # v6.3.0
+        uses: actions/github-script@7dff1a87643417cf3b95bb10b29f4c4bc60d8ebd # v6.3.1
         with:
           retries: 2
           retry-exempt-status-codes: 418
