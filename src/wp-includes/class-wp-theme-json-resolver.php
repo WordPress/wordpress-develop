@@ -71,6 +71,15 @@ class WP_Theme_JSON_Resolver {
 	protected static $i18n_schema = null;
 
 	/**
+	 * Stores the theme json styles from the theme.json file.
+	 * @since 6.1.0
+	 * @var string
+	 * @access private
+	 */
+
+	protected static $theme_json_data = null;
+
+	/**
 	 * Processes a file that adheres to the theme.json schema
 	 * and returns an array with its contents, or a void array if none found.
 	 *
@@ -177,8 +186,7 @@ class WP_Theme_JSON_Resolver {
 		}
 
 		$options = wp_parse_args( $options, array( 'with_supports' => true ) );
-
-		if ( null === static::$theme ) {
+		if ( null === static::$theme && null === static::$theme_json_data ) {
 			$theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json' ) );
 			$theme_json_data = static::translate( $theme_json_data, wp_get_theme()->get( 'TextDomain' ) );
 			/**
@@ -188,9 +196,10 @@ class WP_Theme_JSON_Resolver {
 			 *
 			 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
 			 */
-			$theme_json      = apply_filters( 'theme_json_theme', new WP_Theme_JSON_Data( $theme_json_data, 'theme' ) );
-			$theme_json_data = $theme_json->get_data();
-			static::$theme   = new WP_Theme_JSON( $theme_json_data );
+			$theme_json              = apply_filters( 'theme_json_theme', new WP_Theme_JSON_Data( $theme_json_data, 'theme' ) );
+			$theme_json_data         = $theme_json->get_data();
+			static::$theme_json_data = $theme_json_data;
+			static::$theme           = new WP_Theme_JSON( $theme_json_data );
 
 			if ( wp_get_theme()->parent() ) {
 				// Get parent theme.json.
