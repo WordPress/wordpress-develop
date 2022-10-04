@@ -97,7 +97,7 @@
 		"@wordpress/dom": "3.17.2",
 		"@wordpress/dom-ready": "3.17.1",
 		"@wordpress/edit-post": "6.14.4",
-		"@wordpress/edit-site": "4.14.5",
+		"@wordpress/edit-site": "4.14.6",
 		"@wordpress/edit-widgets": "4.14.4",
 		"@wordpress/editor": "12.16.4",
 		"@wordpress/element": "4.15.1",
