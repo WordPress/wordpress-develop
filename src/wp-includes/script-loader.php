@@ -20,16 +20,16 @@
 require ABSPATH . WPINC . '/class-wp-dependency.php';
 
 /** WordPress Dependencies Class */
-require ABSPATH . WPINC . '/class.wp-dependencies.php';
+require ABSPATH . WPINC . '/class-wp-dependencies.php';
 
 /** WordPress Scripts Class */
-require ABSPATH . WPINC . '/class.wp-scripts.php';
+require ABSPATH . WPINC . '/class-wp-scripts.php';
 
 /** WordPress Scripts Functions */
 require ABSPATH . WPINC . '/functions.wp-scripts.php';
 
 /** WordPress Styles Class */
-require ABSPATH . WPINC . '/class.wp-styles.php';
+require ABSPATH . WPINC . '/class-wp-styles.php';
 
 /** WordPress Styles Functions */
 require ABSPATH . WPINC . '/functions.wp-styles.php';
@@ -169,7 +169,7 @@ function wp_default_packages_vendor( $scripts ) {
  * @since 5.0.0
  *
  * @param WP_Scripts $scripts WP_Scripts object.
- * @param array      $tests   Features to detect.
+ * @param string[]   $tests   Features to detect.
  * @return string Conditional polyfill inline script.
  */
 function wp_get_script_polyfill( $scripts, $tests ) {
@@ -190,7 +190,7 @@ function wp_get_script_polyfill( $scripts, $tests ) {
 			$src = add_query_arg( 'ver', $ver, $src );
 		}
 
-		/** This filter is documented in wp-includes/class.wp-scripts.php */
+		/** This filter is documented in wp-includes/class-wp-scripts.php */
 		$src = esc_url( apply_filters( 'script_loader_src', $src, $handle ) );
 
 		if ( ! $src ) {
@@ -227,6 +227,7 @@ function wp_register_development_scripts( $scripts ) {
 	if (
 		! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG
 		|| empty( $scripts->registered['react'] )
+		|| defined( 'WP_RUN_CORE_TESTS' )
 	) {
 		return;
 	}
@@ -264,8 +265,7 @@ function wp_register_development_scripts( $scripts ) {
  * @param WP_Scripts $scripts WP_Scripts object.
  */
 function wp_default_packages_scripts( $scripts ) {
-	$suffix = wp_scripts_get_suffix();
-
+	$suffix = defined( 'WP_RUN_CORE_TESTS' ) ? '.min' : wp_scripts_get_suffix();
 	/*
 	 * Expects multidimensional array like:
 	 *
@@ -273,10 +273,10 @@ function wp_default_packages_scripts( $scripts ) {
 	 *     'annotations.js' => array('dependencies' => array(...), 'version' => '...'),
 	 *     'api-fetch.js' => array(...
 	 */
-	$assets = include ABSPATH . WPINC . '/assets/script-loader-packages.php';
+	$assets = include ABSPATH . WPINC . "/assets/script-loader-packages{$suffix}.php";
 
-	foreach ( $assets as $package_name => $package_data ) {
-		$basename = basename( $package_name, '.js' );
+	foreach ( $assets as $file_name => $package_data ) {
+		$basename = str_replace( $suffix . '.js', '', basename( $file_name ) );
 		$handle   = 'wp-' . $basename;
 		$path     = "/wp-includes/js/dist/{$basename}{$suffix}.js";
 
@@ -996,8 +996,8 @@ function wp_default_scripts( $scripts ) {
 
 	$scripts->add( 'imgareaselect', "/wp-includes/js/imgareaselect/jquery.imgareaselect$suffix.js", array( 'jquery' ), false, 1 );
 
-	$scripts->add( 'mediaelement', false, array( 'jquery', 'mediaelement-core', 'mediaelement-migrate' ), '4.2.16', 1 );
-	$scripts->add( 'mediaelement-core', "/wp-includes/js/mediaelement/mediaelement-and-player$suffix.js", array(), '4.2.16', 1 );
+	$scripts->add( 'mediaelement', false, array( 'jquery', 'mediaelement-core', 'mediaelement-migrate' ), '4.2.17', 1 );
+	$scripts->add( 'mediaelement-core', "/wp-includes/js/mediaelement/mediaelement-and-player$suffix.js", array(), '4.2.17', 1 );
 	$scripts->add( 'mediaelement-migrate', "/wp-includes/js/mediaelement/mediaelement-migrate$suffix.js", array(), false, 1 );
 
 	did_action( 'init' ) && $scripts->add_inline_script(
@@ -1087,7 +1087,7 @@ function wp_default_scripts( $scripts ) {
 		'before'
 	);
 
-	$scripts->add( 'mediaelement-vimeo', '/wp-includes/js/mediaelement/renderers/vimeo.min.js', array( 'mediaelement' ), '4.2.16', 1 );
+	$scripts->add( 'mediaelement-vimeo', '/wp-includes/js/mediaelement/renderers/vimeo.min.js', array( 'mediaelement' ), '4.2.17', 1 );
 	$scripts->add( 'wp-mediaelement', "/wp-includes/js/mediaelement/wp-mediaelement$suffix.js", array( 'mediaelement' ), false, 1 );
 	$mejs_settings = array(
 		'pluginPath'  => includes_url( 'js/mediaelement/', 'relative' ),
@@ -1550,7 +1550,7 @@ function wp_default_styles( $styles ) {
 	// External libraries and friends.
 	$styles->add( 'imgareaselect', '/wp-includes/js/imgareaselect/imgareaselect.css', array(), '0.9.8' );
 	$styles->add( 'wp-jquery-ui-dialog', "/wp-includes/css/jquery-ui-dialog$suffix.css", array( 'dashicons' ) );
-	$styles->add( 'mediaelement', '/wp-includes/js/mediaelement/mediaelementplayer-legacy.min.css', array(), '4.2.16' );
+	$styles->add( 'mediaelement', '/wp-includes/js/mediaelement/mediaelementplayer-legacy.min.css', array(), '4.2.17' );
 	$styles->add( 'wp-mediaelement', "/wp-includes/js/mediaelement/wp-mediaelement$suffix.css", array( 'mediaelement' ) );
 	$styles->add( 'thickbox', '/wp-includes/js/thickbox/thickbox.css', array( 'dashicons' ) );
 	$styles->add( 'wp-codemirror', '/wp-includes/js/codemirror/codemirror.min.css', array(), '5.29.1-alpha-ee20357' );
@@ -1745,8 +1745,8 @@ function wp_default_styles( $styles ) {
  *
  * @since 2.3.1
  *
- * @param array $js_array JavaScript scripts array
- * @return array Reordered array, if needed.
+ * @param string[] $js_array JavaScript scripts array
+ * @return string[] Reordered array, if needed.
  */
 function wp_prototype_before_jquery( $js_array ) {
 	$prototype = array_search( 'prototype', $js_array, true );
@@ -3639,4 +3639,19 @@ function _wp_theme_json_webfonts_handler() {
 	add_action( 'wp_loaded', $fn_register_webfonts );
 	add_action( 'wp_enqueue_scripts', $fn_generate_and_enqueue_styles );
 	add_action( 'admin_init', $fn_generate_and_enqueue_editor_styles );
+}
+
+/**
+ * Loads classic theme styles on classic themes.
+ *
+ * This is needed for backwards compatibility for button blocks specifically.
+ *
+ * @since 6.1.0
+ */
+function wp_enqueue_classic_theme_styles() {
+	if ( ! wp_is_block_theme() ) {
+		$suffix = wp_scripts_get_suffix();
+		wp_register_style( 'classic-theme-styles', "/wp-includes/css/dist/block-library/classic$suffix.css", array(), true );
+		wp_enqueue_style( 'classic-theme-styles' );
+	}
 }

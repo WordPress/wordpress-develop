@@ -103,6 +103,19 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 				'5.5.0'
 			);
 		}
+
+		if ( count( array_filter( $arg_group['args'], 'is_array' ) ) !== count( $arg_group['args'] ) ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				sprintf(
+					/* translators: 1: $args, 2: The REST API route being registered. */
+					__( 'REST API %1$s should be an array of arrays. Non-array value detected for %2$s.' ),
+					'<code>$args</code>',
+					'<code>' . $clean_namespace . '/' . trim( $route, '/' ) . '</code>'
+				),
+				'6.1.0'
+			);
+		}
 	}
 
 	$full_route = '/' . $clean_namespace . '/' . trim( $route, '/' );

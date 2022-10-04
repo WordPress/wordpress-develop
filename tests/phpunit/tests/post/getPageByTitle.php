@@ -5,6 +5,41 @@
  * @covers ::get_page_by_title
  */
 class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
+
+	/**
+	 * Generate shared fixtures.
+	 *
+	 * These are not used in the tests but are rather used to populate the
+	 * posts table and ensure that the tests return the correct post object
+	 * by design rather than through chance.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		// Fill the database with some pages.
+		$factory->post->create_many(
+			2,
+			array(
+				'post_type' => 'page',
+			)
+		);
+
+		// Fill the database with some attachments.
+		$factory->post->create_many(
+			2,
+			array(
+				'post_type' => 'attachment',
+			)
+		);
+
+		// Fill the database with some test post types.
+		register_post_type( 'wptests_pt' );
+		$factory->post->create_many(
+			2,
+			array(
+				'post_type' => 'wptests_pt',
+			)
+		);
+	}
+
 	/**
 	 * @ticket 36905
 	 */
@@ -41,6 +76,53 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 		$found = get_page_by_title( 'foo' );
 
 		$this->assertSame( $page, $found->ID );
+	}
+
+	/**
+	 * @ticket 36905
+	 * @ticket 56609
+	 */
+	public function test_should_be_case_insensitive_match() {
+		$page = self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'Foo',
+			)
+		);
+
+		$found = get_page_by_title( 'foo' );
+
+		$this->assertSame( $page, $found->ID );
+	}
+
+	/**
+	 * Test the oldest published post is matched first.
+	 *
+	 * Per the docs: in case of more than one post having the same title,
+	 * it will check the oldest publication date, not the smallest ID.
+	 *
+	 * @ticket 36905
+	 * @ticket 56609
+	 */
+	public function test_should_match_oldest_published_date_when_titles_match() {
+		self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'foo',
+			)
+		);
+
+		$old_page = self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'foo',
+				'post_date'  => '1984-01-11 05:00:00',
+			)
+		);
+
+		$found = get_page_by_title( 'foo' );
+
+		$this->assertSame( $old_page, $found->ID );
 	}
 
 	/**
@@ -232,5 +314,27 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 		$this->assertIsArray( $array_a, 'Should be associative array.' );
 		$this->assertSame( $page, $array_a['ID'], 'Should match post id.' );
 		$this->assertSame( $num_queries, get_num_queries(), 'Should not result in another database query.' );
+	}
+
+	/**
+	 * Ensure get_page_by_title() only runs the query once.
+	 *
+	 * @ticket 56721
+	 * @covers ::get_page_by_title
+	 */
+	public function test_should_not_run_query_more_than_once() {
+		$page = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'some-page',
+				'post_type'  => 'page',
+			)
+		);
+
+		// Use the `pre_get_posts` hook to ensure the query is only run once.
+		$ma = new MockAction();
+		add_action( 'pre_get_posts', array( $ma, 'action' ) );
+
+		get_page_by_title( 'some-page' );
+		$this->assertSame( 1, $ma->get_call_count(), 'Query does not run exactly once.' );
 	}
 }

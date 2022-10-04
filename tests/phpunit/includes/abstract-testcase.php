@@ -62,12 +62,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	public static function set_up_before_class() {
 		global $wpdb;
 
+		parent::set_up_before_class();
+
 		$wpdb->suppress_errors = false;
 		$wpdb->show_errors     = true;
 		$wpdb->db_connect();
 		ini_set( 'display_errors', 1 );
-
-		parent::set_up_before_class();
 
 		$class = get_called_class();
 
@@ -82,18 +82,18 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Runs the routine after all tests have been run.
 	 */
 	public static function tear_down_after_class() {
-		parent::tear_down_after_class();
-
-		_delete_all_data();
-		self::flush_cache();
-
 		$class = get_called_class();
 
 		if ( method_exists( $class, 'wpTearDownAfterClass' ) ) {
 			call_user_func( array( $class, 'wpTearDownAfterClass' ) );
 		}
 
+		_delete_all_data();
+		self::flush_cache();
+
 		self::commit_transaction();
+
+		parent::tear_down_after_class();
 	}
 
 	/**
@@ -1348,6 +1348,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Selectively deletes files from a directory.
 	 *
 	 * Does not delete files if their paths are set in the `$ignore_files` property.
+	 *
+	 * @since 4.0.0
 	 *
 	 * @param string $path Directory path.
 	 */
