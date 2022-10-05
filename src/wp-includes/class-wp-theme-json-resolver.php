@@ -195,6 +195,7 @@ class WP_Theme_JSON_Resolver {
 
 		$theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json' ) );
 		$theme_json_data = static::translate( $theme_json_data, wp_get_theme()->get( 'TextDomain' ) );
+		
 		/**
 		 * Filters the data provided by the theme for global styles & settings.
 		 *
