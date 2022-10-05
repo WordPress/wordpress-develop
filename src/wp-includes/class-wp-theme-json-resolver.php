@@ -71,23 +71,38 @@ class WP_Theme_JSON_Resolver {
 	protected static $i18n_schema = null;
 
 	/**
+	 * `theme.json` file cache.
+	 *
+	 * @since 6.1.0
+	 * @var array
+	 * @access private
+	 */
+	protected static $theme_json_file_cache = array();
+
+	/**
 	 * Processes a file that adheres to the theme.json schema
 	 * and returns an array with its contents, or a void array if none found.
 	 *
 	 * @since 5.8.0
+	 * @since 6.1.0 Added caching.
 	 *
 	 * @param string $file_path Path to file. Empty if no file.
 	 * @return array Contents that adhere to the theme.json schema.
 	 */
 	protected static function read_json_file( $file_path ) {
-		$config = array();
 		if ( $file_path ) {
+			if ( array_key_exists( $file_path, static::$theme_json_file_cache ) ) {
+				return static::$theme_json_file_cache[ $file_path ];
+			}
+
 			$decoded_file = wp_json_file_decode( $file_path, array( 'associative' => true ) );
 			if ( is_array( $decoded_file ) ) {
-				$config = $decoded_file;
+				static::$theme_json_file_cache[ $file_path ] = $decoded_file;
+				return static::$theme_json_file_cache[ $file_path ];
 			}
+		} else {
+			return array();
 		}
-		return $config;
 	}
 
 	/**
