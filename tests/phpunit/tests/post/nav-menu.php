@@ -265,6 +265,77 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		$this->assertSameSets( array( $term_id ), $last[1], '_prime_term_caches() was not executed.' );
 	}
 
+
+	/**
+	 * @ticket 55620
+	 * @covers ::update_menu_item_cache
+	 */
+	public function test_wp_get_nav_menu_items_cache_primes_posts() {
+		$post_ids     = self::factory()->post->create_many( 3 );
+		$menu_nav_ids = array();
+		foreach ( $post_ids as $post_id ) {
+			$menu_nav_ids[] = wp_update_nav_menu_item(
+				$this->menu_id,
+				0,
+				array(
+					'menu-item-type'      => 'post_type',
+					'menu-item-object'    => 'post',
+					'menu-item-object-id' => $post_id,
+					'menu-item-status'    => 'publish',
+				)
+			);
+		}
+
+		wp_cache_delete_multiple( $menu_nav_ids, 'posts' );
+		wp_cache_delete_multiple( $post_ids, 'posts' );
+		$action = new MockAction();
+		add_filter( 'update_post_metadata_cache', array( $action, 'filter' ), 10, 2 );
+
+		wp_get_nav_menu_items( $this->menu_id );
+
+		$args = $action->get_args();
+		$this->assertSameSets( $menu_nav_ids, $args[0][1], '_prime_post_caches() was not executed.' );
+		$this->assertSameSets( $post_ids, $args[1][1], '_prime_post_caches() was not executed.' );
+	}
+
+	/**
+	 * @ticket 55620
+	 * @covers ::update_menu_item_cache
+	 */
+	public function test_wp_get_nav_menu_items_cache_primes_terms() {
+		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
+		$term_ids     = self::factory()->term->create_many( 3, array( 'taxonomy' => 'wptests_tax' ) );
+		$menu_nav_ids = array();
+		foreach ( $term_ids as $term_id ) {
+			$menu_nav_ids[] = wp_update_nav_menu_item(
+				$this->menu_id,
+				0,
+				array(
+					'menu-item-type'      => 'taxonomy',
+					'menu-item-object'    => 'wptests_tax',
+					'menu-item-object-id' => $term_id,
+					'menu-item-status'    => 'publish',
+				)
+			);
+		}
+		wp_cache_delete_multiple( $menu_nav_ids, 'posts' );
+		wp_cache_delete_multiple( $term_ids, 'terms' );
+		$action_terms = new MockAction();
+		add_filter( 'update_term_metadata_cache', array( $action_terms, 'filter' ), 10, 2 );
+
+		$action_posts = new MockAction();
+		add_filter( 'update_post_metadata_cache', array( $action_posts, 'filter' ), 10, 2 );
+
+		wp_get_nav_menu_items( $this->menu_id );
+
+		$args = $action_terms->get_args();
+		$last = end( $args );
+		$this->assertSameSets( $term_ids, $last[1], '_prime_term_caches() was not executed.' );
+
+		$args = $action_posts->get_args();
+		$this->assertSameSets( $menu_nav_ids, $args[0][1], '_prime_post_caches() was not executed.' );
+	}
+
 	/**
 	 * @ticket 13910
 	 */
