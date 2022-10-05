@@ -18,8 +18,6 @@ abstract class WP_XMLRPC_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		remove_filter( 'pre_option_enable_xmlrpc', '__return_true' );
-
 		$this->remove_added_uploads();
 
 		parent::tear_down();

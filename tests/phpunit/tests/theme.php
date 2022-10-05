@@ -49,7 +49,6 @@ class Tests_Theme extends WP_UnitTestCase {
 
 		$wp_theme_directories = $this->orig_theme_dir;
 
-		remove_filter( 'extra_theme_headers', array( $this, 'theme_data_extra_headers' ) );
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
 

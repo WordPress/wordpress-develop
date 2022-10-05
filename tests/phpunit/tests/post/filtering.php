@@ -17,11 +17,6 @@ class Tests_Post_Filtering extends WP_UnitTestCase {
 
 	}
 
-	public function tear_down() {
-		kses_remove_filters();
-		parent::tear_down();
-	}
-
 	// A simple test to make sure unclosed tags are fixed.
 	public function test_post_content_unknown_tag() {
 

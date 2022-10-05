@@ -36,7 +36,6 @@ JS;
 
 	public function tear_down() {
 		$GLOBALS['wp_scripts'] = $this->old_wp_scripts;
-		add_action( 'wp_default_scripts', 'wp_default_scripts' );
 		parent::tear_down();
 	}
 

@@ -150,7 +150,6 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 * Clean up after each test method.
 	 */
 	public function tear_down() {
-		remove_filter( 'wp_privacy_personal_data_erasers', array( $this, 'register_custom_personal_data_eraser' ) );
 		$this->new_callback_value = '';
 
 		if ( is_multisite() ) {

@@ -505,7 +505,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 * @ticket 44233
 	 */
 	public function test_send_error_on_last_page_of_last_exporter_when_mail_delivery_fails() {
-		// Cause `wp_mail()` to return false, to simulate mail delivery failure. Filter removed in tearDown.
+		// Cause `wp_mail()` to return false, to simulate mail delivery failure.
 		add_filter( 'wp_mail_from', '__return_empty_string' );
 
 		// Process data, given the last exporter, on the last page and send as email.

@@ -18,8 +18,6 @@ class Tests_Functions_Referer extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		$_SERVER['HTTP_REFERER']      = '';
-		$_SERVER['REQUEST_URI']       = '';
 		$_REQUEST['_wp_http_referer'] = '';
 
 		parent::tear_down();

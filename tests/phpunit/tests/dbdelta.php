@@ -97,7 +97,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 
 		parent::tear_down();
 
-		// This has to be called after the parent `tearDown()` method.
+		// This has to be called after the parent `tear_down()` method.
 		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}dbdelta_test" );
 	}
 

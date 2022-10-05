@@ -164,8 +164,6 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 	 * Clean up after each test method.
 	 */
 	public function tear_down() {
-		remove_filter( 'wp_privacy_personal_data_exporters', array( $this, 'filter_register_custom_personal_data_exporter' ) );
-
 		if ( is_multisite() ) {
 			revoke_super_admin( get_current_user_id() );
 		}

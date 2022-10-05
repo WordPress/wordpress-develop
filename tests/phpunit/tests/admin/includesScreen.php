@@ -155,11 +155,6 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		),
 	);
 
-	public function tear_down() {
-		unset( $GLOBALS['wp_taxonomies']['old-or-new'] );
-		parent::tear_down();
-	}
-
 	public function test_set_current_screen_with_hook_suffix() {
 		global $current_screen;
 

@@ -39,11 +39,6 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		self::$draft_post   = $factory->post->create_and_get( array( 'post_status' => 'draft' ) );
 	}
 
-	public function tear_down() {
-		remove_filter( 'query', array( $this, '_block_comments' ) );
-		parent::tear_down();
-	}
-
 	/**
 	 * Tests reply as a privileged user (administrator).
 	 *
