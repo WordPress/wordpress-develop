@@ -212,8 +212,10 @@ class WP_Theme_JSON_Resolver {
 			$parent_theme_json_data = static::translate( $parent_theme_json_data, wp_get_theme()->parent()->get( 'TextDomain' ) );
 			$parent_theme           = new WP_Theme_JSON( $parent_theme_json_data );
 
-			// Merge the child theme.json into the parent theme.json.
-			// The child theme takes precedence over the parent.
+			/*
+			 * Merge the child theme.json into the parent theme.json.
+			 * The child theme takes precedence over the parent.
+			 */
 			$parent_theme->merge( static::$theme );
 			static::$theme = $parent_theme;
 		}
