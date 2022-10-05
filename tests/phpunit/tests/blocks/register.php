@@ -365,7 +365,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$result   = register_block_style_handle( $metadata, 'style' );
 
 		$this->assertSame( 'unit-tests-test-block-style', $result );
-		$this->assertSame( 'replace', wp_styles()->get_data( 'unit-tests-test-block-style', 'rtl' ) );
+		$this->assertFalse( wp_styles()->get_data( 'unit-tests-test-block-style', 'rtl' ) );
 
 		// @ticket 50328
 		$this->assertSame(
@@ -389,7 +389,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 		$expected_style_handle = 'block-theme-example-block-editor-style';
 		$this->assertSame( $expected_style_handle, $result );
-		$this->assertSame( 'replace', wp_styles()->get_data( $expected_style_handle, 'rtl' ) );
+		$this->assertFalse( wp_styles()->get_data( $expected_style_handle, 'rtl' ) );
 	}
 
 	/**
