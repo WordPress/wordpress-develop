@@ -708,7 +708,7 @@ if ( ! CUSTOM_TAGS ) {
  *                                          for the list of accepted context names.
  * @param string[]       $allowed_protocols Optional. Array of allowed URL protocols.
  *                                          Defaults to the result of wp_allowed_protocols().
- * @param bool           $allowed_comments  Whether or not the HTML comments are allowed.
+ * @param bool           $allowed_comments  Whether HTML comments are allowed or not.
  * @return string Filtered content containing only the allowed HTML.
  */
 function wp_kses( $string, $allowed_html, $allowed_protocols = array(), $allowed_comments = true ) {
@@ -932,14 +932,14 @@ function wp_kses_version() {
  * @global array[]|string $pass_allowed_html      An array of allowed HTML elements and attributes,
  *                                                or a context name such as 'post'.
  * @global string[]       $pass_allowed_protocols Array of allowed URL protocols.
- * @global bool           $pass_allowed_comments  Whether or not the HTML comments are allowed.
+ * @global bool           $pass_allowed_comments  Whether HTML comments are allowed or not.
  *
  * @param string         $string            Content to filter.
  * @param array[]|string $allowed_html      An array of allowed HTML elements and attributes,
  *                                          or a context name such as 'post'. See wp_kses_allowed_html()
  *                                          for the list of accepted context names.
  * @param string[]       $allowed_protocols Array of allowed URL protocols.
- * @param bool           $allowed_comments  Whether or not the HTML comments are allowed.
+ * @param bool           $allowed_comments  Whether HTML comments are allowed or not.
  * @return string Content with fixed HTML tags
  */
 function wp_kses_split( $string, $allowed_html, $allowed_protocols, $allowed_comments ) {
@@ -1012,7 +1012,7 @@ function wp_kses_uri_attributes() {
  * @global array[]|string $pass_allowed_html      An array of allowed HTML elements and attributes,
  *                                                or a context name such as 'post'.
  * @global string[]       $pass_allowed_protocols Array of allowed URL protocols.
- * @global bool           $pass_allowed_comments  Whether or not the HTML comments are allowed.
+ * @global bool           $pass_allowed_comments  Whether HTML comments are allowed or not.
  *
  * @param array $match preg_replace regexp matches
  * @return string
@@ -1044,7 +1044,7 @@ function _wp_kses_split_callback( $match ) {
  *                                          or a context name such as 'post'. See wp_kses_allowed_html()
  *                                          for the list of accepted context names.
  * @param string[]       $allowed_protocols Array of allowed URL protocols.
- * @param bool           $allowed_comments  Whether or not the HTML comments are allowed.
+ * @param bool           $allowed_comments  Whether HTML comments are allowed or not.
  * @return string Fixed HTML element
  */
 function wp_kses_split2( $string, $allowed_html, $allowed_protocols, $allowed_comments ) {
