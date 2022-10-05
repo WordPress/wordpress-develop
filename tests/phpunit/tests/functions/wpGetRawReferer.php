@@ -14,7 +14,6 @@ class Tests_Functions_wpGetRawReferer extends WP_UnitTestCase {
 	 * @ticket 55729
 	 */
 	public function test_wp_get_original__wp_http_referer_referer() {
-
 		$_REQUEST['_wp_http_referer'] = 'http://_wp_http_referer.com';
 		$this->assertSame( 'http://_wp_http_referer.com', wp_get_raw_referer(), '$_REQUEST["_wp_http_referer"] set' );
 	}
