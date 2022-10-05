@@ -899,16 +899,24 @@ function page_template_dropdown( $default_template = '', $post_type = 'page' ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int         $default_page Optional. The default page ID to be pre-selected. Default 0.
- * @param int         $parent       Optional. The parent page ID. Default 0.
+ * @param int         $parent_page  Optional. The parent page ID. Default 0.
  * @param int         $level        Optional. Page depth level. Default 0.
  * @param int|WP_Post $post         Post ID or WP_Post object.
  * @return void|false Void on success, false if the page has no children.
  */
-function parent_dropdown( $default_page = 0, $parent = 0, $level = 0, $post = null ) {
+function parent_dropdown( $default_page = 0, $parent_page = 0, $level = 0, $post = null ) {
 	global $wpdb;
 
 	$post  = get_post( $post );
-	$items = $wpdb->get_results( $wpdb->prepare( "SELECT ID, post_parent, post_title FROM $wpdb->posts WHERE post_parent = %d AND post_type = 'page' ORDER BY menu_order", $parent ) );
+	$items = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT ID, post_parent, post_title
+			FROM $wpdb->posts
+			WHERE post_parent = %d AND post_type = 'page'
+			ORDER BY menu_order",
+			$parent_page
+		)
+	);
 
 	if ( $items ) {
 		foreach ( $items as $item ) {
@@ -954,7 +962,7 @@ function wp_dropdown_roles( $selected = '' ) {
 }
 
 /**
- * Outputs the form used by the importers to accept the data to be imported
+ * Outputs the form used by the importers to accept the data to be imported.
  *
  * @since 2.0.0
  *
@@ -1553,6 +1561,7 @@ function do_accordion_sections( $screen, $context, $data_object ) {
  * fields. It can output nothing if you want.
  *
  * @since 2.7.0
+ * @since 6.1.0 Added an `$args` parameter for the section's HTML wrapper and class name.
  *
  * @global array $wp_settings_sections Storage array of all settings sections added to admin pages.
  *
@@ -1562,9 +1571,28 @@ function do_accordion_sections( $screen, $context, $data_object ) {
  * @param string   $page     The slug-name of the settings page on which to show the section. Built-in pages include
  *                           'general', 'reading', 'writing', 'discussion', 'media', etc. Create your own using
  *                           add_options_page();
+ * @param array    $args     {
+ *     Arguments used to create the settings section.
+ *
+ *     @type string $before_section HTML content to prepend to the section's HTML output.
+ *                                  Receives the section's class name as `%s`. Default empty.
+ *     @type string $after_section  HTML content to append to the section's HTML output. Default empty.
+ *     @type string $section_class  The class name to use for the section. Default empty.
+ * }
  */
-function add_settings_section( $id, $title, $callback, $page ) {
+function add_settings_section( $id, $title, $callback, $page, $args = array() ) {
 	global $wp_settings_sections;
+
+	$defaults = array(
+		'id'             => $id,
+		'title'          => $title,
+		'callback'       => $callback,
+		'before_section' => '',
+		'after_section'  => '',
+		'section_class'  => '',
+	);
+
+	$section = wp_parse_args( $args, $defaults );
 
 	if ( 'misc' === $page ) {
 		_deprecated_argument(
@@ -1592,11 +1620,7 @@ function add_settings_section( $id, $title, $callback, $page ) {
 		$page = 'reading';
 	}
 
-	$wp_settings_sections[ $page ][ $id ] = array(
-		'id'       => $id,
-		'title'    => $title,
-		'callback' => $callback,
-	);
+	$wp_settings_sections[ $page ][ $id ] = $section;
 }
 
 /**
@@ -1625,7 +1649,7 @@ function add_settings_section( $id, $title, $callback, $page ) {
  * @param string   $section  Optional. The slug-name of the section of the settings page
  *                           in which to show the box. Default 'default'.
  * @param array    $args {
- *     Optional. Extra arguments used when outputting the field.
+ *     Optional. Extra arguments that get passed to the callback function.
  *
  *     @type string $label_for When supplied, the setting title will be wrapped
  *                             in a `<label>` element, its `for` attribute populated
@@ -1672,7 +1696,7 @@ function add_settings_field( $id, $title, $callback, $page, $section = 'default'
 }
 
 /**
- * Prints out all settings sections added to a particular settings page
+ * Prints out all settings sections added to a particular settings page.
  *
  * Part of the Settings API. Use this in a settings page callback function
  * to output all the sections and fields that were added to that $page with
@@ -1692,6 +1716,14 @@ function do_settings_sections( $page ) {
 	}
 
 	foreach ( (array) $wp_settings_sections[ $page ] as $section ) {
+		if ( '' !== $section['before_section'] ) {
+			if ( '' !== $section['section_class'] ) {
+				echo wp_kses_post( sprintf( $section['before_section'], esc_attr( $section['section_class'] ) ) );
+			} else {
+				echo wp_kses_post( $section['before_section'] );
+			}
+		}
+
 		if ( $section['title'] ) {
 			echo "<h2>{$section['title']}</h2>\n";
 		}
@@ -1706,6 +1738,10 @@ function do_settings_sections( $page ) {
 		echo '<table class="form-table" role="presentation">';
 		do_settings_fields( $page, $section['id'] );
 		echo '</table>';
+
+		if ( '' !== $section['after_section'] ) {
+			echo wp_kses_post( $section['after_section'] );
+		}
 	}
 }
 
@@ -1768,7 +1804,7 @@ function do_settings_fields( $page, $section ) {
  * @since 3.0.0
  * @since 5.3.0 Added `warning` and `info` as possible values for `$type`.
  *
- * @global array $wp_settings_errors Storage array of errors registered during this pageload
+ * @global array[] $wp_settings_errors Storage array of errors registered during this pageload
  *
  * @param string $setting Slug title of the setting to which this error applies.
  * @param string $code    Slug-name to identify the error. Used as part of 'id' attribute in HTML output.
@@ -1805,7 +1841,7 @@ function add_settings_error( $setting, $code, $message, $type = 'error' ) {
  *
  * @since 3.0.0
  *
- * @global array $wp_settings_errors Storage array of errors registered during this pageload
+ * @global array[] $wp_settings_errors Storage array of errors registered during this pageload
  *
  * @param string $setting  Optional. Slug title of a specific setting whose errors you want.
  * @param bool   $sanitize Optional. Whether to re-sanitize the setting value before returning errors.
@@ -2160,9 +2196,9 @@ function _post_states( $post, $display = true ) {
 		foreach ( $post_states as $state ) {
 			++$i;
 
-			$sep = ( $i < $state_count ) ? ', ' : '';
+			$separator = ( $i < $state_count ) ? ', ' : '';
 
-			$post_states_string .= "<span class='post-state'>$state$sep</span>";
+			$post_states_string .= "<span class='post-state'>{$state}{$separator}</span>";
 		}
 	}
 
@@ -2274,9 +2310,9 @@ function _media_states( $post, $display = true ) {
 		foreach ( $media_states as $state ) {
 			++$i;
 
-			$sep = ( $i < $state_count ) ? ', ' : '';
+			$separator = ( $i < $state_count ) ? ', ' : '';
 
-			$media_states_string .= "<span class='post-state'>$state$sep</span>";
+			$media_states_string .= "<span class='post-state'>{$state}{$separator}</span>";
 		}
 	}
 
@@ -2531,6 +2567,8 @@ function get_submit_button( $text = '', $type = 'primary large', $name = 'submit
 }
 
 /**
+ * Prints out the beginning of the admin HTML header.
+ *
  * @global bool $is_IE
  */
 function _wp_admin_html_begin() {
@@ -2592,7 +2630,7 @@ function convert_to_screen( $hook_name ) {
 }
 
 /**
- * Output the HTML for restoring the post data from DOM storage
+ * Outputs the HTML for restoring the post data from DOM storage
  *
  * @since 3.6.0
  * @access private

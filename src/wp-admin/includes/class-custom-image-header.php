@@ -11,6 +11,7 @@
  *
  * @since 2.1.0
  */
+#[AllowDynamicProperties]
 class Custom_Image_Header {
 
 	/**
@@ -521,7 +522,7 @@ class Custom_Image_Header {
 	<p>
 			<?php
 			/* translators: %s: Home URL. */
-			printf( __( 'Header updated. <a href="%s">Visit your site</a> to see how it looks.' ), home_url( '/' ) );
+			printf( __( 'Header updated. <a href="%s">Visit your site</a> to see how it looks.' ), esc_url( home_url( '/' ) ) );
 			?>
 	</p>
 </div>
@@ -1159,7 +1160,7 @@ endif;
 				return;
 			}
 
-			$choice['url'] = esc_url_raw( $choice['url'] );
+			$choice['url'] = sanitize_url( $choice['url'] );
 
 			$header_image_data = (object) array(
 				'attachment_id' => $choice['attachment_id'],
@@ -1197,7 +1198,7 @@ endif;
 			}
 		}
 
-		set_theme_mod( 'header_image', esc_url_raw( $header_image_data['url'] ) );
+		set_theme_mod( 'header_image', sanitize_url( $header_image_data['url'] ) );
 		set_theme_mod( 'header_image_data', $header_image_data );
 	}
 

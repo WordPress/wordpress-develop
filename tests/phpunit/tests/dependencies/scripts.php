@@ -721,26 +721,16 @@ JS;
 		$wp_scripts->base_url  = '';
 		$wp_scripts->do_concat = true;
 
-		if ( PHP_VERSION_ID >= 80100 ) {
-			/*
-			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
-			 * via hooked in filter functions until a more structural solution to the
-			 * "missing input validation" conundrum has been architected and implemented.
-			 */
-			$this->expectDeprecation();
-			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
-		}
-
 		$ver       = get_bloginfo( 'version' );
 		$suffix    = wp_scripts_get_suffix();
 		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate,regenerator-runtime,wp-polyfill,wp-dom-ready,wp-hooks&amp;ver={$ver}'></script>\n";
 		$expected .= "<script type='text/javascript' id='test-example-js-before'>\nconsole.log(\"before\");\n</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
-		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/i18n{$suffix}.js' id='wp-i18n-js'></script>\n";
+		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/i18n.min.js' id='wp-i18n-js'></script>\n";
 		$expected .= "<script type='text/javascript' id='wp-i18n-js-after'>\n";
 		$expected .= "wp.i18n.setLocaleData( { 'text direction\u0004ltr': [ 'ltr' ] } );\n";
 		$expected .= "</script>\n";
-		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/a11y{$suffix}.js' id='wp-a11y-js'></script>\n";
+		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/a11y.min.js' id='wp-a11y-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example2.com' id='test-example2-js'></script>\n";
 		$expected .= "<script type='text/javascript' id='test-example2-js-after'>\nconsole.log(\"after\");\n</script>\n";
 
@@ -782,16 +772,6 @@ JS;
 
 		$wp_scripts->base_url  = '';
 		$wp_scripts->do_concat = true;
-
-		if ( PHP_VERSION_ID >= 80100 ) {
-			/*
-			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
-			 * via hooked in filter functions until a more structural solution to the
-			 * "missing input validation" conundrum has been architected and implemented.
-			 */
-			$this->expectDeprecation();
-			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
-		}
 
 		$expected_tail  = "<script type='text/javascript' src='/customize-dependency.js' id='customize-dependency-js'></script>\n";
 		$expected_tail .= "<script type='text/javascript' id='customize-dependency-js-after'>\n";
@@ -1428,17 +1408,8 @@ JS;
 	 *
 	 * @param mixed  $l10n_data Localization data passed to wp_localize_script().
 	 * @param string $expected  Expected transformation of localization data.
-	 * @param string $warning   Optional. Whether a PHP native warning/error is expected. Default false.
 	 */
-	public function test_wp_localize_script_data_formats( $l10n_data, $expected, $warning = false ) {
-		if ( $warning ) {
-			if ( PHP_VERSION_ID < 80000 ) {
-				$this->expectWarning();
-			} else {
-				$this->expectError();
-			}
-		}
-
+	public function test_wp_localize_script_data_formats( $l10n_data, $expected ) {
 		if ( ! is_array( $l10n_data ) ) {
 			$this->setExpectedIncorrectUsage( 'WP_Scripts::localize' );
 		}
@@ -1460,7 +1431,6 @@ JS;
 	 *
 	 *     @type mixed  $l10n_data Localization data passed to wp_localize_script().
 	 *     @type string $expected  Expected transformation of localization data.
-	 *     @type string $warning   Optional. Whether a PHP native warning/error is expected.
 	 * }
 	 */
 	public function data_wp_localize_script_data_formats() {
@@ -1471,14 +1441,50 @@ JS;
 			array( array( 'foo' => array( 'bar' => 'foobar' ) ), '{"foo":{"bar":"foobar"}}' ),
 			array( array( 'foo' => 6.6 ), '{"foo":"6.6"}' ),
 			array( array( 'foo' => 6 ), '{"foo":"6"}' ),
+			array( array(), '[]' ),
 
 			// Unofficially supported format.
 			array( 'string', '"string"' ),
 
 			// Unsupported formats.
-			array( 1.5, '1.5', true ),
-			array( 1, '1', true ),
+			array( 1.5, '1.5' ),
+			array( 1, '1' ),
 			array( false, '[""]' ),
+			array( null, 'null' ),
 		);
+	}
+
+	/**
+	 * @ticket 55628
+	 * @covers ::wp_set_script_translations
+	 */
+	public function test_wp_external_wp_i18n_print_order() {
+		global $wp_scripts;
+
+		$wp_scripts->do_concat    = true;
+		$wp_scripts->default_dirs = array( '/default/' );
+
+		// wp-i18n script in a non-default directory.
+		wp_register_script( 'wp-i18n', '/plugins/wp-i18n.js', array(), null );
+		// Script in default dir that's going to be concatenated.
+		wp_enqueue_script( 'jquery-core', '/default/jquery-core.js', array(), null );
+		// Script in default dir that depends on wp-i18n.
+		wp_enqueue_script( 'common', '/default/common.js', array(), null );
+		wp_set_script_translations( 'common' );
+
+		$print_scripts = get_echo(
+			function() {
+				wp_print_scripts();
+				_print_scripts();
+			}
+		);
+
+		// The non-default script should end concatenation and maintain order.
+		$ver       = get_bloginfo( 'version' );
+		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core&amp;ver={$ver}'></script>\n";
+		$expected .= "<script type='text/javascript' src='/plugins/wp-i18n.js' id='wp-i18n-js'></script>\n";
+		$expected .= "<script type='text/javascript' src='/default/common.js' id='common-js'></script>\n";
+
+		$this->assertSame( $expected, $print_scripts );
 	}
 }

@@ -14,10 +14,11 @@
  *
  * @property string $page_template
  *
- * @property-read int[]  $ancestors
- * @property-read int    $post_category
- * @property-read string $tag_input
+ * @property-read int[]    $ancestors
+ * @property-read int[]    $post_category
+ * @property-read string[] $tags_input
  */
+#[AllowDynamicProperties]
 final class WP_Post {
 
 	/**

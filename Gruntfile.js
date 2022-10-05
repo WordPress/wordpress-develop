@@ -3,6 +3,7 @@
 /* globals Set */
 var webpackConfig = require( './webpack.config' );
 var installChanged = require( 'install-changed' );
+var json2php = require( 'json2php' );
 
 module.exports = function(grunt) {
 	var path = require('path'),
@@ -124,7 +125,7 @@ module.exports = function(grunt) {
 			'webpack-assets': [
 				WORKING_DIR + 'wp-includes/assets/*',
 				WORKING_DIR + 'wp-includes/css/dist/',
-				'!' + WORKING_DIR + 'wp-includes/assets/script-loader-*.php'
+				'!' + WORKING_DIR + 'wp-includes/assets/script-loader-packages.min.php'
 			],
 			dynamic: {
 				dot: true,
@@ -1246,9 +1247,6 @@ module.exports = function(grunt) {
 		 * Update any non-@wordpress deps to the same version as required in the @wordpress packages (e.g. react 16 -> 17).
 		 */
 		grunt.task.run( 'wp-packages:refresh-deps' );
-
-		// Build the files stored in the src/ directory.
-		grunt.task.run( 'build:dev' );
 	} );
 
 	grunt.renameTask( 'watch', '_watch' );
@@ -1406,6 +1404,19 @@ module.exports = function(grunt) {
 		}
 	} );
 
+	grunt.registerTask( 'copy:block-json', 'Copies block.json file contents to block-json.php.', function() {
+		var blocks = {};
+		grunt.file.recurse( SOURCE_DIR + 'wp-includes/blocks', function( abspath, rootdir, subdir, filename ) {
+			if ( /^block\.json$/.test( filename ) ) {
+				blocks[ subdir ] = grunt.file.readJSON( abspath );
+			}
+		} );
+		grunt.file.write(
+			SOURCE_DIR + 'wp-includes/blocks/blocks-json.php',
+			'<?php return ' + json2php( blocks ) + ';'
+		);
+	} );
+
 	grunt.registerTask( 'copy:js', [
 		'copy:npm-packages',
 		'copy:vendor-js',
@@ -1454,6 +1465,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'build:files', [
 		'clean:files',
 		'copy:files',
+		'copy:block-json',
 		'copy:version',
 	] );
 
@@ -1675,7 +1687,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'wp-packages:update', 'Update WordPress packages', function() {
 		const distTag = grunt.option('dist-tag') || 'latest';
 		grunt.log.writeln( `Updating WordPress packages (--dist-tag=${distTag})` );
-		spawn( 'npx', [ 'wp-scripts', 'packages-update', '--', `--dist-tag=${distTag}` ], {
+		spawn( 'npx', [ 'wp-scripts', 'packages-update', `--dist-tag=${distTag}` ], {
 			cwd: __dirname,
 			stdio: 'inherit',
 		} );
@@ -1696,6 +1708,12 @@ module.exports = function(grunt) {
 			cwd: __dirname,
 			stdio: 'inherit',
 		} );
+	} );
+
+	grunt.registerTask( 'wp-packages:sync-stable-blocks', 'Refresh the PHP files referring to stable @wordpress/block-library blocks.', function() {
+		grunt.log.writeln( `Syncing stable blocks from @wordpress/block-library to src/` );
+		const { main } = require( './tools/release/sync-stable-blocks' );
+		main();
 	} );
 
 	// Patch task.

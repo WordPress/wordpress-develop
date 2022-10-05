@@ -213,17 +213,17 @@ switch ( $step ) {
 	<table class="form-table" role="presentation">
 		<tr>
 			<th scope="row"><label for="dbname"><?php _e( 'Database Name' ); ?></label></th>
-			<td><input name="dbname" id="dbname" type="text" aria-describedby="dbname-desc" size="25" value="wordpress"<?php echo $autofocus; ?>/></td>
+			<td><input name="dbname" id="dbname" type="text" aria-describedby="dbname-desc" size="25" placeholder="wordpress"<?php echo $autofocus; ?>/></td>
 			<td id="dbname-desc"><?php _e( 'The name of the database you want to use with WordPress.' ); ?></td>
 		</tr>
 		<tr>
 			<th scope="row"><label for="uname"><?php _e( 'Username' ); ?></label></th>
-			<td><input name="uname" id="uname" type="text" aria-describedby="uname-desc" size="25" value="<?php echo htmlspecialchars( _x( 'username', 'example username' ), ENT_QUOTES ); ?>" /></td>
+			<td><input name="uname" id="uname" type="text" aria-describedby="uname-desc" size="25" placeholder="<?php echo htmlspecialchars( _x( 'username', 'example username' ), ENT_QUOTES ); ?>" /></td>
 			<td id="uname-desc"><?php _e( 'Your database username.' ); ?></td>
 		</tr>
 		<tr>
 			<th scope="row"><label for="pwd"><?php _e( 'Password' ); ?></label></th>
-			<td><input name="pwd" id="pwd" type="text" aria-describedby="pwd-desc" size="25" value="<?php echo htmlspecialchars( _x( 'password', 'example password' ), ENT_QUOTES ); ?>" autocomplete="off" /></td>
+			<td><input name="pwd" id="pwd" type="text" aria-describedby="pwd-desc" size="25" placeholder="<?php echo htmlspecialchars( _x( 'password', 'example password' ), ENT_QUOTES ); ?>" autocomplete="off" /></td>
 			<td id="pwd-desc"><?php _e( 'Your database password.' ); ?></td>
 		</tr>
 		<tr>
@@ -278,12 +278,12 @@ switch ( $step ) {
 		$tryagain_link = '</p><p class="step"><a href="' . $step_1 . '" onclick="javascript:history.go(-1);return false;" class="button button-large">' . __( 'Try Again' ) . '</a>';
 
 		if ( empty( $prefix ) ) {
-			wp_die( __( '<strong>Error</strong>: "Table Prefix" must not be empty.' ) . $tryagain_link );
+			wp_die( __( '<strong>Error:</strong> "Table Prefix" must not be empty.' ) . $tryagain_link );
 		}
 
 		// Validate $prefix: it can only contain letters, numbers and underscores.
 		if ( preg_match( '|[^a-z0-9_]|i', $prefix ) ) {
-			wp_die( __( '<strong>Error</strong>: "Table Prefix" can only contain numbers, letters, and underscores.' ) . $tryagain_link );
+			wp_die( __( '<strong>Error:</strong> "Table Prefix" can only contain numbers, letters, and underscores.' ) . $tryagain_link );
 		}
 
 		// Test the DB connection.
@@ -311,12 +311,13 @@ switch ( $step ) {
 			wp_die( $wpdb->error->get_error_message() . $tryagain_link );
 		}
 
-		$errors = $wpdb->hide_errors();
+		$errors = $wpdb->suppress_errors();
 		$wpdb->query( "SELECT $prefix" );
-		$wpdb->show_errors( $errors );
+		$wpdb->suppress_errors( $errors );
+
 		if ( ! $wpdb->last_error ) {
 			// MySQL was able to parse the prefix as a value, which we don't want. Bail.
-			wp_die( __( '<strong>Error</strong>: "Table Prefix" is invalid.' ) );
+			wp_die( __( '<strong>Error:</strong> "Table Prefix" is invalid.' ) );
 		}
 
 		// Generate keys and salts using secure CSPRNG; fallback to API if enabled; further fallback to original wp_generate_password().
@@ -393,13 +394,13 @@ switch ( $step ) {
 		if ( ! is_writable( ABSPATH ) ) :
 			setup_config_display_header();
 			?>
-	<p>
+<p>
 			<?php
 			/* translators: %s: wp-config.php */
 			printf( __( 'Unable to write to %s file.' ), '<code>wp-config.php</code>' );
 			?>
 </p>
-<p>
+<p id="wp-config-description">
 			<?php
 			/* translators: %s: wp-config.php */
 			printf( __( 'You can create the %s file manually and paste the following text into it.' ), '<code>wp-config.php</code>' );
@@ -411,7 +412,13 @@ switch ( $step ) {
 			}
 			?>
 </p>
-<textarea id="wp-config" cols="98" rows="15" class="code" readonly="readonly"><?php echo $config_text; ?></textarea>
+<p class="configuration-rules-label"><label for="wp-config">
+			<?php
+			/* translators: %s: wp-config.php */
+			printf( __( 'Configuration rules for %s:' ), '<code>wp-config.php</code>' );
+			?>
+	</label></p>
+<textarea id="wp-config" cols="98" rows="15" class="code" readonly="readonly" aria-describedby="wp-config-description"><?php echo $config_text; ?></textarea>
 <p><?php _e( 'After you&#8217;ve done that, click &#8220;Run the installation&#8221;.' ); ?></p>
 <p class="step"><a href="<?php echo $install; ?>" class="button button-large"><?php _e( 'Run the installation' ); ?></a></p>
 <script>

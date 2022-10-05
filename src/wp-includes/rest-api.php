@@ -103,6 +103,19 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 				'5.5.0'
 			);
 		}
+
+		if ( count( array_filter( $arg_group['args'], 'is_array' ) ) !== count( $arg_group['args'] ) ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				sprintf(
+					/* translators: 1: $args, 2: The REST API route being registered. */
+					__( 'REST API %1$s should be an array of arrays. Non-array value detected for %2$s.' ),
+					'<code>$args</code>',
+					'<code>' . $clean_namespace . '/' . trim( $route, '/' ) . '</code>'
+				),
+				'6.1.0'
+			);
+		}
 	}
 
 	$full_route = '/' . $clean_namespace . '/' . trim( $route, '/' );
@@ -710,7 +723,7 @@ function rest_send_cors_headers( $value ) {
 	if ( $origin ) {
 		// Requests from file:// and data: URLs send "Origin: null".
 		if ( 'null' !== $origin ) {
-			$origin = esc_url_raw( $origin );
+			$origin = sanitize_url( $origin );
 		}
 		header( 'Access-Control-Allow-Origin: ' . $origin );
 		header( 'Access-Control-Allow-Methods: OPTIONS, GET, POST, PUT, PATCH, DELETE' );
@@ -993,12 +1006,12 @@ function rest_output_link_header() {
 		return;
 	}
 
-	header( sprintf( 'Link: <%s>; rel="https://api.w.org/"', esc_url_raw( $api_root ) ), false );
+	header( sprintf( 'Link: <%s>; rel="https://api.w.org/"', sanitize_url( $api_root ) ), false );
 
 	$resource = rest_get_queried_resource_route();
 
 	if ( $resource ) {
-		header( sprintf( 'Link: <%s>; rel="alternate"; type="application/json"', esc_url_raw( rest_url( $resource ) ) ), false );
+		header( sprintf( 'Link: <%s>; rel="alternate"; type="application/json"', sanitize_url( rest_url( $resource ) ) ), false );
 	}
 }
 
@@ -1191,7 +1204,7 @@ function rest_add_application_passwords_to_index( $response ) {
  *
  * @param mixed $id_or_email The Gravatar to retrieve a URL for. Accepts a user_id, gravatar md5 hash,
  *                           user email, WP_User object, WP_Post object, or WP_Comment object.
- * @return array Avatar URLs keyed by size. Each value can be a URL string or boolean false.
+ * @return (string|false)[] Avatar URLs keyed by size. Each value can be a URL string or boolean false.
  */
 function rest_get_avatar_urls( $id_or_email ) {
 	$avatar_sizes = rest_get_avatar_sizes();
@@ -2795,7 +2808,7 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 				return sanitize_text_field( $value );
 
 			case 'uri':
-				return esc_url_raw( $value );
+				return sanitize_url( $value );
 
 			case 'ip':
 				return sanitize_text_field( $value );
@@ -2870,8 +2883,8 @@ function rest_preload_api_request( $memo, $path ) {
 		$server = rest_get_server();
 		/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
 		$response = apply_filters( 'rest_post_dispatch', rest_ensure_response( $response ), $server, $request );
-		$embed  = $request->has_param( '_embed' ) ? rest_parse_embed_param( $request['_embed'] ) : false;
-		$data   = (array) $server->response_to_data( $response, $embed );
+		$embed    = $request->has_param( '_embed' ) ? rest_parse_embed_param( $request['_embed'] ) : false;
+		$data     = (array) $server->response_to_data( $response, $embed );
 
 		if ( 'OPTIONS' === $method ) {
 			$memo[ $method ][ $path ] = array(

@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+
+ * @covers ::wp_basename
  */
 class Tests_Formatting_wpBasename extends WP_UnitTestCase {
 
@@ -38,5 +40,4 @@ class Tests_Formatting_wpBasename extends WP_UnitTestCase {
 			wp_basename( 'C:\test\щипцы.txt' )
 		);
 	}
-
 }

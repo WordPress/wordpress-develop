@@ -209,7 +209,7 @@ switch ( $action ) {
 					<p><strong><?php _e( 'User updated.' ); ?></strong></p>
 				<?php endif; ?>
 				<?php if ( $wp_http_referer && false === strpos( $wp_http_referer, 'user-new.php' ) && ! IS_PROFILE_PAGE ) : ?>
-					<p><a href="<?php echo esc_url( wp_validate_redirect( esc_url_raw( $wp_http_referer ), self_admin_url( 'users.php' ) ) ); ?>"><?php _e( '&larr; Go to Users' ); ?></a></p>
+					<p><a href="<?php echo esc_url( wp_validate_redirect( sanitize_url( $wp_http_referer ), self_admin_url( 'users.php' ) ) ); ?>"><?php _e( '&larr; Go to Users' ); ?></a></p>
 				<?php endif; ?>
 			</div>
 		<?php endif; ?>
@@ -816,7 +816,7 @@ switch ( $action ) {
 									printf(
 										/* translators: %s: Documentation URL. */
 										__( 'If this is a development website you can <a href="%s" target="_blank">set the environment type accordingly</a> to enable application passwords.' ),
-										__( 'https://wordpress.org/support/article/editing-wp-config-php/#wp_environment_type' )
+										__( 'https://developer.wordpress.org/apis/wp-config-php/#wp-environment-type' )
 									);
 									?>
 								</p>

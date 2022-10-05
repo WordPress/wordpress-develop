@@ -274,7 +274,7 @@ function get_comment_author_IP( $comment_ID = 0 ) { // phpcs:ignore WordPress.Na
 	 * @since 1.5.0
 	 * @since 4.1.0 The `$comment_ID` and `$comment` parameters were added.
 	 *
-	 * @param string     $comment_author_IP The comment author's IP address, or an empty string if it's not available.
+	 * @param string     $comment_author_ip The comment author's IP address, or an empty string if it's not available.
 	 * @param string     $comment_ID        The comment ID as a numeric string.
 	 * @param WP_Comment $comment           The comment object.
 	 */
@@ -426,14 +426,14 @@ function comment_author_url_link( $linktext = '', $before = '', $after = '', $co
  * @param string|string[] $css_class Optional. One or more classes to add to the class list.
  *                                   Default empty.
  * @param int|WP_Comment  $comment   Comment ID or WP_Comment object. Default current comment.
- * @param int|WP_Post     $post_id   Post ID or WP_Post object. Default current post.
+ * @param int|WP_Post     $post      Post ID or WP_Post object. Default current post.
  * @param bool            $display   Optional. Whether to print or return the output.
  *                                   Default true.
  * @return void|string Void if `$display` argument is true, comment classes if `$display` is false.
  */
-function comment_class( $css_class = '', $comment = null, $post_id = null, $display = true ) {
+function comment_class( $css_class = '', $comment = null, $post = null, $display = true ) {
 	// Separates classes with a single space, collates classes for comment DIV.
-	$css_class = 'class="' . implode( ' ', get_comment_class( $css_class, $comment, $post_id ) ) . '"';
+	$css_class = 'class="' . implode( ' ', get_comment_class( $css_class, $comment, $post ) ) . '"';
 
 	if ( $display ) {
 		echo $css_class;
@@ -454,10 +454,10 @@ function comment_class( $css_class = '', $comment = null, $post_id = null, $disp
  *
  * @param string|string[] $css_class  Optional. One or more classes to add to the class list. Default empty.
  * @param int|WP_Comment  $comment_id Comment ID or WP_Comment object. Default current comment.
- * @param int|WP_Post     $post_id    Post ID or WP_Post object. Default current post.
+ * @param int|WP_Post     $post       Post ID or WP_Post object. Default current post.
  * @return string[] An array of classes.
  */
-function get_comment_class( $css_class = '', $comment_id = null, $post_id = null ) {
+function get_comment_class( $css_class = '', $comment_id = null, $post = null ) {
 	global $comment_alt, $comment_depth, $comment_thread_alt;
 
 	$classes = array();
@@ -476,9 +476,9 @@ function get_comment_class( $css_class = '', $comment_id = null, $post_id = null
 		$classes[] = 'byuser';
 		$classes[] = 'comment-author-' . sanitize_html_class( $user->user_nicename, $comment->user_id );
 		// For comment authors who are the author of the post.
-		$post = get_post( $post_id );
-		if ( $post ) {
-			if ( $comment->user_id === $post->post_author ) {
+		$_post = get_post( $post );
+		if ( $_post ) {
+			if ( $comment->user_id === $_post->post_author ) {
 				$classes[] = 'bypostauthor';
 			}
 		}
@@ -534,9 +534,9 @@ function get_comment_class( $css_class = '', $comment_id = null, $post_id = null
 	 * @param string[]    $css_class  An array of additional classes added to the list.
 	 * @param string      $comment_id The comment ID as a numeric string.
 	 * @param WP_Comment  $comment    The comment object.
-	 * @param int|WP_Post $post_id    The post ID or WP_Post object.
+	 * @param int|WP_Post $post       The post ID or WP_Post object.
 	 */
-	return apply_filters( 'comment_class', $classes, $css_class, $comment->comment_ID, $comment, $post_id );
+	return apply_filters( 'comment_class', $classes, $css_class, $comment->comment_ID, $comment, $post );
 }
 
 /**
@@ -808,12 +808,12 @@ function get_comment_link( $comment = null, $args = array() ) {
  *
  * @since 1.5.0
  *
- * @param int|WP_Post $post_id Optional. Post ID or WP_Post object. Default is global $post.
+ * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
  * @return string The link to the comments.
  */
-function get_comments_link( $post_id = 0 ) {
-	$hash          = get_comments_number( $post_id ) ? '#comments' : '#respond';
-	$comments_link = get_permalink( $post_id ) . $hash;
+function get_comments_link( $post = 0 ) {
+	$hash          = get_comments_number( $post ) ? '#comments' : '#respond';
+	$comments_link = get_permalink( $post ) . $hash;
 
 	/**
 	 * Filters the returned post comments permalink.
@@ -821,9 +821,9 @@ function get_comments_link( $post_id = 0 ) {
 	 * @since 3.6.0
 	 *
 	 * @param string      $comments_link Post comments permalink with '#comments' appended.
-	 * @param int|WP_Post $post_id       Post ID or WP_Post object.
+	 * @param int|WP_Post $post          Post ID or WP_Post object.
 	 */
-	return apply_filters( 'get_comments_link', $comments_link, $post_id );
+	return apply_filters( 'get_comments_link', $comments_link, $post );
 }
 
 /**
@@ -849,19 +849,15 @@ function comments_link( $deprecated = '', $deprecated_2 = '' ) {
  *
  * @since 1.5.0
  *
- * @param int|WP_Post $post_id Optional. Post ID or WP_Post object. Default is the global `$post`.
+ * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is the global `$post`.
  * @return string|int If the post exists, a numeric string representing the number of comments
  *                    the post has, otherwise 0.
  */
-function get_comments_number( $post_id = 0 ) {
-	$post = get_post( $post_id );
+function get_comments_number( $post = 0 ) {
+	$post = get_post( $post );
 
-	if ( ! $post ) {
-		$count = 0;
-	} else {
-		$count   = $post->comment_count;
-		$post_id = $post->ID;
-	}
+	$count   = $post ? $post->comment_count : 0;
+	$post_id = $post ? $post->ID : 0;
 
 	/**
 	 * Filters the returned comment count for a post.
@@ -878,31 +874,31 @@ function get_comments_number( $post_id = 0 ) {
  * Displays the language string for the number of comments the current post has.
  *
  * @since 0.71
- * @since 5.4.0 The `$deprecated` parameter was changed to `$post_id`.
+ * @since 5.4.0 The `$deprecated` parameter was changed to `$post`.
  *
- * @param string|false $zero    Optional. Text for no comments. Default false.
- * @param string|false $one     Optional. Text for one comment. Default false.
- * @param string|false $more    Optional. Text for more than one comment. Default false.
- * @param int|WP_Post  $post_id Optional. Post ID or WP_Post object. Default is the global `$post`.
+ * @param string|false $zero Optional. Text for no comments. Default false.
+ * @param string|false $one  Optional. Text for one comment. Default false.
+ * @param string|false $more Optional. Text for more than one comment. Default false.
+ * @param int|WP_Post  $post Optional. Post ID or WP_Post object. Default is the global `$post`.
  */
-function comments_number( $zero = false, $one = false, $more = false, $post_id = 0 ) {
-	echo get_comments_number_text( $zero, $one, $more, $post_id );
+function comments_number( $zero = false, $one = false, $more = false, $post = 0 ) {
+	echo get_comments_number_text( $zero, $one, $more, $post );
 }
 
 /**
  * Displays the language string for the number of comments the current post has.
  *
  * @since 4.0.0
- * @since 5.4.0 Added the `$post_id` parameter to allow using the function outside of the loop.
+ * @since 5.4.0 Added the `$post` parameter to allow using the function outside of the loop.
  *
- * @param string      $zero    Optional. Text for no comments. Default false.
- * @param string      $one     Optional. Text for one comment. Default false.
- * @param string      $more    Optional. Text for more than one comment. Default false.
- * @param int|WP_Post $post_id Optional. Post ID or WP_Post object. Default is the global `$post`.
+ * @param string      $zero Optional. Text for no comments. Default false.
+ * @param string      $one  Optional. Text for one comment. Default false.
+ * @param string      $more Optional. Text for more than one comment. Default false.
+ * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is the global `$post`.
  * @return string Language string for the number of comments a post has.
  */
-function get_comments_number_text( $zero = false, $one = false, $more = false, $post_id = 0 ) {
-	$number = get_comments_number( $post_id );
+function get_comments_number_text( $zero = false, $one = false, $more = false, $post = 0 ) {
+	$number = get_comments_number( $post );
 
 	if ( $number > 1 ) {
 		if ( false === $more ) {
@@ -1150,9 +1146,9 @@ function comment_type( $commenttxt = false, $trackbacktxt = false, $pingbacktxt 
  */
 function get_trackback_url() {
 	if ( get_option( 'permalink_structure' ) ) {
-		$tb_url = trailingslashit( get_permalink() ) . user_trailingslashit( 'trackback', 'single_trackback' );
+		$trackback_url = trailingslashit( get_permalink() ) . user_trailingslashit( 'trackback', 'single_trackback' );
 	} else {
-		$tb_url = get_option( 'siteurl' ) . '/wp-trackback.php?p=' . get_the_ID();
+		$trackback_url = get_option( 'siteurl' ) . '/wp-trackback.php?p=' . get_the_ID();
 	}
 
 	/**
@@ -1160,9 +1156,9 @@ function get_trackback_url() {
 	 *
 	 * @since 2.2.0
 	 *
-	 * @param string $tb_url The trackback URL.
+	 * @param string $trackback_url The trackback URL.
 	 */
-	return apply_filters( 'trackback_url', $tb_url );
+	return apply_filters( 'trackback_url', $trackback_url );
 }
 
 /**
@@ -1235,12 +1231,11 @@ function trackback_rdf( $deprecated = '' ) {
  *
  * @since 1.5.0
  *
- * @param int|WP_Post $post_id Post ID or WP_Post object. Default current post.
+ * @param int|WP_Post $post Post ID or WP_Post object. Default current post.
  * @return bool True if the comments are open.
  */
-function comments_open( $post_id = null ) {
-
-	$_post = get_post( $post_id );
+function comments_open( $post = null ) {
+	$_post = get_post( $post );
 
 	$post_id = $_post ? $_post->ID : 0;
 	$open    = ( $_post && ( 'open' === $_post->comment_status ) );
@@ -1265,12 +1260,11 @@ function comments_open( $post_id = null ) {
  *
  * @since 1.5.0
  *
- * @param int|WP_Post $post_id Post ID or WP_Post object. Default current post.
+ * @param int|WP_Post $post Post ID or WP_Post object. Default current post.
  * @return bool True if pings are accepted
  */
-function pings_open( $post_id = null ) {
-
-	$_post = get_post( $post_id );
+function pings_open( $post = null ) {
+	$_post = get_post( $post );
 
 	$post_id = $_post ? $_post->ID : 0;
 	$open    = ( $_post && ( 'open' === $_post->ping_status ) );
@@ -1515,7 +1509,7 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 	 * @since 2.1.0
 	 *
 	 * @param array $comments Array of comments supplied to the comments template.
-	 * @param int   $post_ID  Post ID.
+	 * @param int   $post_id  Post ID.
 	 */
 	$wp_query->comments = apply_filters( 'comments_array', $comments_flat, $post->ID );
 
@@ -1744,7 +1738,7 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
 		$data_attribute_string = '';
 
 		foreach ( $data_attributes as $name => $value ) {
-			$data_attribute_string .= " data-${name}=\"" . esc_attr( $value ) . '"';
+			$data_attribute_string .= " data-{$name}=\"" . esc_attr( $value ) . '"';
 		}
 
 		$data_attribute_string = trim( $data_attribute_string );
@@ -2033,7 +2027,7 @@ function comment_form_title( $no_reply_text = false, $reply_text = false, $link_
  *
  * @since 2.7.0
  *
- * @see WP_Query->comments
+ * @see WP_Query::$comments
  *
  * @global WP_Query $wp_query           WordPress Query object.
  * @global int      $comment_alt
@@ -2294,7 +2288,8 @@ function wp_list_comments( $args = array(), $comments = null ) {
  *     }
  *     @type string $comment_field        The comment textarea field HTML.
  *     @type string $must_log_in          HTML element for a 'must be logged in to comment' message.
- *     @type string $logged_in_as         HTML element for a 'logged in as [user]' message.
+ *     @type string $logged_in_as         The HTML for the 'logged in as [user]' message, the Edit profile link,
+ *                                        and the Log out link.
  *     @type string $comment_notes_before HTML element for a message displayed before the comment fields
  *                                        if the user is not logged in.
  *                                        Default 'Your email address will not be published.'.
@@ -2324,12 +2319,12 @@ function wp_list_comments( $args = array(), $comments = null ) {
  *                                        submit button markup and %2$s is the comment hidden fields.
  *     @type string $format               The comment form format. Default 'xhtml'. Accepts 'xhtml', 'html5'.
  * }
- * @param int|WP_Post $post_id Post ID or WP_Post object to generate the form for. Default current post.
+ * @param int|WP_Post $post Post ID or WP_Post object to generate the form for. Default current post.
  */
-function comment_form( $args = array(), $post_id = null ) {
-	if ( null === $post_id ) {
-		$post_id = get_the_ID();
-	}
+function comment_form( $args = array(), $post = null ) {
+	$post = get_post( $post );
+
+	$post_id = $post ? $post->ID : get_the_ID();
 
 	// Exit the function when comments for the post are closed.
 	if ( ! comments_open( $post_id ) ) {
@@ -2359,8 +2354,9 @@ function comment_form( $args = array(), $post_id = null ) {
 	$required_attribute = ( $html5 ? ' required' : ' required="required"' );
 	$checked_attribute  = ( $html5 ? ' checked' : ' checked="checked"' );
 
-	// Identify required fields visually.
-	$required_indicator = ' <span class="required" aria-hidden="true">*</span>';
+	// Identify required fields visually and create a message about the indicator.
+	$required_indicator = ' ' . wp_required_field_indicator();
+	$required_text      = ' ' . wp_required_field_message();
 
 	$fields = array(
 		'author' => sprintf(
@@ -2371,7 +2367,7 @@ function comment_form( $args = array(), $post_id = null ) {
 				( $req ? $required_indicator : '' )
 			),
 			sprintf(
-				'<input id="author" name="author" type="text" value="%s" size="30" maxlength="245"%s />',
+				'<input id="author" name="author" type="text" value="%s" size="30" maxlength="245" autocomplete="name"%s />',
 				esc_attr( $commenter['comment_author'] ),
 				( $req ? $required_attribute : '' )
 			)
@@ -2384,7 +2380,7 @@ function comment_form( $args = array(), $post_id = null ) {
 				( $req ? $required_indicator : '' )
 			),
 			sprintf(
-				'<input id="email" name="email" %s value="%s" size="30" maxlength="100" aria-describedby="email-notes"%s />',
+				'<input id="email" name="email" %s value="%s" size="30" maxlength="100" aria-describedby="email-notes" autocomplete="email"%s />',
 				( $html5 ? 'type="email"' : 'type="text"' ),
 				esc_attr( $commenter['comment_author_email'] ),
 				( $req ? $required_attribute : '' )
@@ -2397,7 +2393,7 @@ function comment_form( $args = array(), $post_id = null ) {
 				__( 'Website' )
 			),
 			sprintf(
-				'<input id="url" name="url" %s value="%s" size="30" maxlength="200" />',
+				'<input id="url" name="url" %s value="%s" size="30" maxlength="200" autocomplete="url" />',
 				( $html5 ? 'type="url"' : 'type="text"' ),
 				esc_attr( $commenter['comment_author_url'] )
 			)
@@ -2424,12 +2420,6 @@ function comment_form( $args = array(), $post_id = null ) {
 			$args['fields']['cookies'] = $fields['cookies'];
 		}
 	}
-
-	$required_text = sprintf(
-		/* translators: %s: Asterisk symbol (*). */
-		' <span class="required-field-message" aria-hidden="true">' . __( 'Required fields are marked %s' ) . '</span>',
-		trim( $required_indicator )
-	);
 
 	/**
 	 * Filters the default comment form fields.
@@ -2463,12 +2453,10 @@ function comment_form( $args = array(), $post_id = null ) {
 		'logged_in_as'         => sprintf(
 			'<p class="logged-in-as">%s%s</p>',
 			sprintf(
-				/* translators: 1: Edit user link, 2: Accessibility text, 3: User name, 4: Logout URL. */
-				__( '<a href="%1$s" aria-label="%2$s">Logged in as %3$s</a>. <a href="%4$s">Log out?</a>' ),
-				get_edit_user_link(),
-				/* translators: %s: User name. */
-				esc_attr( sprintf( __( 'Logged in as %s. Edit your profile.' ), $user_identity ) ),
+				/* translators: 1: User name, 2: Edit user link, 3: Logout URL. */
+				__( 'Logged in as %1$s. <a href="%2$s">Edit your profile</a>. <a href="%3$s">Log out?</a>' ),
 				$user_identity,
+				get_edit_user_link(),
 				/** This filter is documented in wp-includes/link-template.php */
 				wp_logout_url( apply_filters( 'the_permalink', get_permalink( $post_id ), $post_id ) )
 			),
@@ -2584,7 +2572,8 @@ function comment_form( $args = array(), $post_id = null ) {
 				 *
 				 * @since 3.0.0
 				 *
-				 * @param string $args_logged_in The logged-in-as HTML-formatted message.
+				 * @param string $args_logged_in The HTML for the 'logged in as [user]' message,
+				 *                               the Edit profile link, and the Log out link.
 				 * @param array  $commenter      An array containing the comment author's
 				 *                               username, email, and URL.
 				 * @param string $user_identity  If the commenter is a registered user,

@@ -13,6 +13,7 @@
  * @since 3.7.0
  * @since 4.6.0 Moved to its own file from wp-admin/includes/class-wp-upgrader.php.
  */
+#[AllowDynamicProperties]
 class WP_Automatic_Updater {
 
 	/**
@@ -222,7 +223,7 @@ class WP_Automatic_Updater {
 		if ( 'core' === $type ) {
 			global $wpdb;
 
-			$php_compat = version_compare( phpversion(), $item->php_version, '>=' );
+			$php_compat = version_compare( PHP_VERSION, $item->php_version, '>=' );
 			if ( file_exists( WP_CONTENT_DIR . '/db.php' ) && empty( $wpdb->is_mysql ) ) {
 				$mysql_compat = true;
 			} else {
@@ -236,7 +237,7 @@ class WP_Automatic_Updater {
 
 		// If updating a plugin or theme, ensure the minimum PHP version requirements are satisfied.
 		if ( in_array( $type, array( 'plugin', 'theme' ), true ) ) {
-			if ( ! empty( $item->requires_php ) && version_compare( phpversion(), $item->requires_php, '<' ) ) {
+			if ( ! empty( $item->requires_php ) && version_compare( PHP_VERSION, $item->requires_php, '<' ) ) {
 				return false;
 			}
 		}
@@ -829,7 +830,7 @@ class WP_Automatic_Updater {
 		}
 
 		if ( $critical_support ) {
-			$body .= ' ' . __( "If you reach out to us, we'll also ensure you'll never have this problem again." );
+			$body .= ' ' . __( "Reach out to WordPress Core developers to ensure you'll never have this problem again." );
 		}
 
 		// If things are successful and we're now on the latest, mention plugins and themes if any are out of date.
@@ -1100,22 +1101,33 @@ class WP_Automatic_Updater {
 				$body[] = __( 'These plugins failed to update:' );
 
 				foreach ( $failed_updates['plugin'] as $item ) {
+					$body_message = '';
+					$item_url     = '';
+
+					if ( ! empty( $item->item->url ) ) {
+						$item_url = ' : ' . esc_url( $item->item->url );
+					}
+
 					if ( $item->item->current_version ) {
-						$body[] = sprintf(
-							/* translators: 1: Plugin name, 2: Current version number, 3: New version number. */
-							__( '- %1$s (from version %2$s to %3$s)' ),
+						$body_message .= sprintf(
+							/* translators: 1: Plugin name, 2: Current version number, 3: New version number, 4: Plugin URL. */
+							__( '- %1$s (from version %2$s to %3$s)%4$s' ),
 							$item->name,
 							$item->item->current_version,
-							$item->item->new_version
+							$item->item->new_version,
+							$item_url
 						);
 					} else {
-						$body[] = sprintf(
-							/* translators: 1: Plugin name, 2: Version number. */
-							__( '- %1$s version %2$s' ),
+						$body_message .= sprintf(
+							/* translators: 1: Plugin name, 2: Version number, 3: Plugin URL. */
+							__( '- %1$s version %2$s%3$s' ),
 							$item->name,
-							$item->item->new_version
+							$item->item->new_version,
+							$item_url
 						);
 					}
+
+					$body[] = $body_message;
 
 					$past_failure_emails[ $item->item->plugin ] = $item->item->new_version;
 				}
@@ -1161,22 +1173,32 @@ class WP_Automatic_Updater {
 				$body[] = __( 'These plugins are now up to date:' );
 
 				foreach ( $successful_updates['plugin'] as $item ) {
+					$body_message = '';
+					$item_url     = '';
+
+					if ( ! empty( $item->item->url ) ) {
+						$item_url = ' : ' . esc_url( $item->item->url );
+					}
+
 					if ( $item->item->current_version ) {
-						$body[] = sprintf(
-							/* translators: 1: Plugin name, 2: Current version number, 3: New version number. */
-							__( '- %1$s (from version %2$s to %3$s)' ),
+						$body_message .= sprintf(
+							/* translators: 1: Plugin name, 2: Current version number, 3: New version number, 4: Plugin URL. */
+							__( '- %1$s (from version %2$s to %3$s)%4$s' ),
 							$item->name,
 							$item->item->current_version,
-							$item->item->new_version
+							$item->item->new_version,
+							$item_url
 						);
 					} else {
-						$body[] = sprintf(
-							/* translators: 1: Plugin name, 2: Version number. */
-							__( '- %1$s version %2$s' ),
+						$body_message .= sprintf(
+							/* translators: 1: Plugin name, 2: Version number, 3: Plugin URL. */
+							__( '- %1$s version %2$s%3$s' ),
 							$item->name,
-							$item->item->new_version
+							$item->item->new_version,
+							$item_url
 						);
 					}
+					$body[] = $body_message;
 
 					unset( $past_failure_emails[ $item->item->plugin ] );
 				}

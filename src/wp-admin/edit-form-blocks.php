@@ -68,8 +68,10 @@ $preload_paths = array(
 	array( rest_get_route_for_post_type_items( 'attachment' ), 'OPTIONS' ),
 	array( rest_get_route_for_post_type_items( 'page' ), 'OPTIONS' ),
 	array( rest_get_route_for_post_type_items( 'wp_block' ), 'OPTIONS' ),
+	array( rest_get_route_for_post_type_items( 'wp_template' ), 'OPTIONS' ),
 	sprintf( '%s/autosaves?context=edit', $rest_path ),
 	'/wp/v2/settings',
+	array( '/wp/v2/settings', 'OPTIONS' ),
 );
 
 block_editor_rest_api_preload( $preload_paths, $block_editor_context );
@@ -208,6 +210,10 @@ $editor_settings = array(
 	// field so that we're not always loading its assets.
 	'enableCustomFields'   => (bool) get_user_meta( get_current_user_id(), 'enable_custom_fields', true ),
 );
+
+// Add additional back-compat patterns registered by `current_screen` et al.
+$editor_settings['__experimentalAdditionalBlockPatterns']          = WP_Block_Patterns_Registry::get_instance()->get_all_registered( true );
+$editor_settings['__experimentalAdditionalBlockPatternCategories'] = WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered( true );
 
 $autosave = wp_get_post_autosave( $post->ID );
 if ( $autosave ) {

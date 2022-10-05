@@ -1084,6 +1084,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		// Check site logo and icon.
 		$this->assertArrayHasKey( 'site_logo', $data );
 		$this->assertArrayHasKey( 'site_icon', $data );
+		$this->assertArrayHasKey( 'site_icon_url', $data );
 	}
 
 	/**
@@ -1239,7 +1240,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$result  = rest_get_server()->serve_request( '/' );
 		$headers = rest_get_server()->sent_headers;
 
-		$this->assertSame( '<' . esc_url_raw( $api_root ) . '>; rel="https://api.w.org/"', $headers['Link'] );
+		$this->assertSame( '<' . sanitize_url( $api_root ) . '>; rel="https://api.w.org/"', $headers['Link'] );
 	}
 
 	public function test_nocache_headers_on_authenticated_requests() {

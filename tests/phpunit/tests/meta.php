@@ -6,6 +6,14 @@
 class Tests_Meta extends WP_UnitTestCase {
 	protected $updated_mids = array();
 
+	/**
+	 * @var \WP_User
+	 */
+	private $author;
+
+	private $meta_id;
+	private $delete_meta_id;
+
 	public function set_up() {
 		parent::set_up();
 		$this->author         = new WP_User( self::factory()->user->create( array( 'role' => 'author' ) ) );

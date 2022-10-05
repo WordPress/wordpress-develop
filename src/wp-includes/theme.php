@@ -861,7 +861,9 @@ function validate_current_theme() {
 		return true;
 	}
 
-	if ( ! file_exists( get_template_directory() . '/templates/index.html' )
+	if (
+		! file_exists( get_template_directory() . '/templates/index.html' )
+		&& ! file_exists( get_template_directory() . '/block-templates/index.html' ) // Deprecated path support since 5.9.0.
 		&& ! file_exists( get_template_directory() . '/index.php' )
 	) {
 		// Invalid.
@@ -1177,7 +1179,21 @@ function get_header_image() {
 		$url = get_random_header_image();
 	}
 
-	return esc_url_raw( set_url_scheme( $url ) );
+	/**
+	 * Filters the header image URL.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param string $url Header image URL.
+	 */
+	$url = apply_filters( 'get_header_image', $url );
+
+	if ( ! is_string( $url ) ) {
+		return false;
+	}
+
+	$url = trim( $url );
+	return sanitize_url( set_url_scheme( $url ) );
 }
 
 /**
@@ -1426,7 +1442,7 @@ function get_uploaded_header_images() {
 	}
 
 	foreach ( (array) $headers as $header ) {
-		$url          = esc_url_raw( wp_get_attachment_url( $header->ID ) );
+		$url          = sanitize_url( wp_get_attachment_url( $header->ID ) );
 		$header_data  = wp_get_attachment_metadata( $header->ID );
 		$header_index = $header->ID;
 
@@ -1587,7 +1603,7 @@ function get_header_video_url() {
 		return false;
 	}
 
-	return esc_url_raw( set_url_scheme( $url ) );
+	return sanitize_url( set_url_scheme( $url ) );
 }
 
 /**
@@ -1804,7 +1820,7 @@ function _custom_background_cb() {
 	$style = $color ? "background-color: #$color;" : '';
 
 	if ( $background ) {
-		$image = ' background-image: url("' . esc_url_raw( $background ) . '");';
+		$image = ' background-image: url("' . sanitize_url( $background ) . '");';
 
 		// Background Position.
 		$position_x = get_theme_mod( 'background_position_x', get_theme_support( 'custom-background', 'default-position-x' ) );
@@ -2052,7 +2068,8 @@ function wp_update_custom_css_post( $css, $args = array() ) {
 			}
 
 			// Trigger creation of a revision. This should be removed once #30854 is resolved.
-			if ( 0 === count( wp_get_post_revisions( $r ) ) ) {
+			$revisions = wp_get_latest_revision_id_and_total_count( $r );
+			if ( ! is_wp_error( $revisions ) && 0 === $revisions['count'] ) {
 				wp_save_post_revision( $r );
 			}
 		}
@@ -2144,7 +2161,7 @@ function get_editor_stylesheets() {
 		// Support externally referenced styles (like, say, fonts).
 		foreach ( $editor_styles as $key => $file ) {
 			if ( preg_match( '~^(https?:)?//~', $file ) ) {
-				$stylesheets[] = esc_url_raw( $file );
+				$stylesheets[] = sanitize_url( $file );
 				unset( $editor_styles[ $key ] );
 			}
 		}
@@ -2521,6 +2538,8 @@ function get_theme_starter_content() {
  * @since 2.9.0
  * @since 3.4.0 The `custom-header-uploads` feature was deprecated.
  * @since 3.6.0 The `html5` feature was added.
+ * @since 3.6.1 The `html5` feature requires an array of types to be passed. Defaults to
+ *              'comment-list', 'comment-form', 'search-form' for backward compatibility.
  * @since 3.9.0 The `html5` feature now also accepts 'gallery' and 'caption'.
  * @since 4.1.0 The `title-tag` feature was added.
  * @since 4.5.0 The `customize-selective-refresh-widgets` feature was added.
@@ -2533,8 +2552,9 @@ function get_theme_starter_content() {
  *              by adding it to the function signature.
  * @since 5.5.0 The `core-block-patterns` feature was added and is enabled by default.
  * @since 5.5.0 The `custom-logo` feature now also accepts 'unlink-homepage-logo'.
- * @since 5.6.0 The `post-formats` feature warns if no array is passed.
+ * @since 5.6.0 The `post-formats` feature warns if no array is passed as the second parameter.
  * @since 5.8.0 The `widgets-block-editor` feature enables the Widgets block editor.
+ * @since 6.0.0 The `html5` feature warns if no array is passed as the second parameter.
  *
  * @global array $_wp_theme_features
  *
@@ -3799,6 +3819,7 @@ function _wp_keep_alive_customize_changeset_dependent_auto_drafts( $new_status, 
  * See {@see 'setup_theme'}.
  *
  * @since 5.5.0
+ * @since 6.0.1 The `block-templates` feature was added.
  */
 function create_initial_theme_features() {
 	register_theme_feature(
@@ -3812,6 +3833,20 @@ function create_initial_theme_features() {
 		'automatic-feed-links',
 		array(
 			'description'  => __( 'Whether posts and comments RSS feed links are added to head.' ),
+			'show_in_rest' => true,
+		)
+	);
+	register_theme_feature(
+		'block-templates',
+		array(
+			'description'  => __( 'Whether a theme uses block-based templates.' ),
+			'show_in_rest' => true,
+		)
+	);
+	register_theme_feature(
+		'block-template-parts',
+		array(
+			'description'  => __( 'Whether a theme uses block-based template parts.' ),
 			'show_in_rest' => true,
 		)
 	);
@@ -3999,6 +4034,13 @@ function create_initial_theme_features() {
 		)
 	);
 	register_theme_feature(
+		'disable-layout-styles',
+		array(
+			'description'  => __( 'Whether the theme disables generated layout styles.' ),
+			'show_in_rest' => true,
+		)
+	);
+	register_theme_feature(
 		'editor-color-palette',
 		array(
 			'type'         => 'array',
@@ -4173,6 +4215,21 @@ function create_initial_theme_features() {
  */
 function wp_is_block_theme() {
 	return wp_get_theme()->is_block_theme();
+}
+
+/**
+ * Given an element name, returns a class name.
+ *
+ * Alias of WP_Theme_JSON::get_element_class_name.
+ *
+ * @since 6.1.0
+ *
+ * @param string $element The name of the element.
+ *
+ * @return string The name of the class.
+ */
+function wp_theme_get_element_class_name( $element ) {
+	return WP_Theme_JSON::get_element_class_name( $element );
 }
 
 /**
