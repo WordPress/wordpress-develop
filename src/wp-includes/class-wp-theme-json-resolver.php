@@ -76,7 +76,6 @@ class WP_Theme_JSON_Resolver {
 	 * @var string
 	 * @access private
 	 */
-
 	protected static $theme_json_data = null;
 
 	/**
@@ -186,10 +185,10 @@ class WP_Theme_JSON_Resolver {
 		}
 
 		$options = wp_parse_args( $options, array( 'with_supports' => true ) );
-		if ( null === static::$theme_json_data ) {
 
-			$theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json' ) );
-			$theme_json_data = static::translate( $theme_json_data, wp_get_theme()->get( 'TextDomain' ) );
+		if ( null === static::$theme_json_data ) {
+			static::$theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json' ) );
+			static::$theme_json_data = static::translate( static::$theme_json_data, wp_get_theme()->get( 'TextDomain' ) );
 
 			/**
 			 * Filters the data provided by the theme for global styles & settings.
@@ -198,9 +197,7 @@ class WP_Theme_JSON_Resolver {
 			 *
 			 * @param WP_Theme_JSON_Data Class to access and update the underlying data.
 			 */
-
-			static::$theme_json_data = $theme_json_data;
-			$theme_json              = apply_filters( 'theme_json_theme', new WP_Theme_JSON_Data( $theme_json_data, 'theme' ) );
+			$theme_json              = apply_filters( 'theme_json_theme', new WP_Theme_JSON_Data( static::$theme_json_data, 'theme' ) );
 			$theme_json_data         = $theme_json->get_data();
 			static::$theme           = new WP_Theme_JSON( $theme_json_data );
 
