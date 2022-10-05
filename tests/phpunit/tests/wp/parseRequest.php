@@ -16,7 +16,22 @@ class Tests_WP_ParseRequest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that PHP 8.1 "passing null to non-nullable" deprecation notice
+	 * Tests the return value of the parse_request() method.
+	 *
+	 * @ticket 10886
+	 */
+	public function test_parse_request_returns_bool() {
+		// Check that parse_request() returns true by default.
+		$this->assertTrue( $this->wp->parse_request() );
+
+		add_filter( 'do_parse_request', '__return_false' );
+
+		// Check that parse_request() returns false if the request was not parsed.
+		$this->assertFalse( $this->wp->parse_request() );
+	}
+
+	/**
+	 * Tests that PHP 8.1 "passing null to non-nullable" deprecation notice
 	 * is not thrown when the home URL has no path/trailing slash (default setup).
 	 *
 	 * Note: This does not test the actual functioning of the parse_request() method.

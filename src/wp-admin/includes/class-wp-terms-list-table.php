@@ -11,7 +11,6 @@
  * Core class used to implement displaying terms in a list table.
  *
  * @since 3.1.0
- * @access private
  *
  * @see WP_List_Table
  */
@@ -262,10 +261,10 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 * @param int    $start
 	 * @param int    $per_page
 	 * @param int    $count
-	 * @param int    $parent
+	 * @param int    $parent_term
 	 * @param int    $level
 	 */
-	private function _rows( $taxonomy, $terms, &$children, $start, $per_page, &$count, $parent = 0, $level = 0 ) {
+	private function _rows( $taxonomy, $terms, &$children, $start, $per_page, &$count, $parent_term = 0, $level = 0 ) {
 
 		$end = $start + $per_page;
 
@@ -275,7 +274,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 				break;
 			}
 
-			if ( $term->parent !== $parent && empty( $_REQUEST['s'] ) ) {
+			if ( $term->parent !== $parent_term && empty( $_REQUEST['s'] ) ) {
 				continue;
 			}
 
@@ -414,19 +413,19 @@ class WP_Terms_List_Table extends WP_List_Table {
 			);
 		}
 
-		$out = sprintf(
+		$output = sprintf(
 			'<strong>%s</strong><br />',
 			$name
 		);
 
-		$out .= '<div class="hidden" id="inline_' . $qe_data->term_id . '">';
-		$out .= '<div class="name">' . $qe_data->name . '</div>';
+		$output .= '<div class="hidden" id="inline_' . $qe_data->term_id . '">';
+		$output .= '<div class="name">' . $qe_data->name . '</div>';
 
 		/** This filter is documented in wp-admin/edit-tag-form.php */
-		$out .= '<div class="slug">' . apply_filters( 'editable_slug', $qe_data->slug, $qe_data ) . '</div>';
-		$out .= '<div class="parent">' . $qe_data->parent . '</div></div>';
+		$output .= '<div class="slug">' . apply_filters( 'editable_slug', $qe_data->slug, $qe_data ) . '</div>';
+		$output .= '<div class="parent">' . $qe_data->parent . '</div></div>';
 
-		return $out;
+		return $output;
 	}
 
 	/**
@@ -460,7 +459,6 @@ class WP_Terms_List_Table extends WP_List_Table {
 		// Restores the more descriptive, specific name for use within this method.
 		$tag      = $item;
 		$taxonomy = $this->screen->taxonomy;
-		$tax      = get_taxonomy( $taxonomy );
 		$uri      = wp_doing_ajax() ? wp_get_referer() : $_SERVER['REQUEST_URI'];
 
 		$edit_link = add_query_arg(
@@ -497,7 +495,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 			);
 		}
 
-		if ( is_taxonomy_viewable( $tax ) ) {
+		if ( is_term_publicly_viewable( $tag ) ) {
 			$actions['view'] = sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
 				get_term_link( $tag ),
@@ -656,6 +654,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 
 			<tr id="inline-edit" class="inline-edit-row" style="display: none">
 			<td colspan="<?php echo $this->get_column_count(); ?>" class="colspanchange">
+			<div class="inline-edit-wrapper">
 
 			<fieldset>
 				<legend class="inline-edit-legend"><?php _e( 'Quick Edit' ); ?></legend>
@@ -665,12 +664,10 @@ class WP_Terms_List_Table extends WP_List_Table {
 					<span class="input-text-wrap"><input type="text" name="name" class="ptitle" value="" /></span>
 				</label>
 
-				<?php if ( ! global_terms_enabled() ) : ?>
-					<label>
-						<span class="title"><?php _e( 'Slug' ); ?></span>
-						<span class="input-text-wrap"><input type="text" name="slug" class="ptitle" value="" /></span>
-					</label>
-				<?php endif; ?>
+				<label>
+					<span class="title"><?php _e( 'Slug' ); ?></span>
+					<span class="input-text-wrap"><input type="text" name="slug" class="ptitle" value="" /></span>
+				</label>
 				</div>
 			</fieldset>
 
@@ -696,18 +693,18 @@ class WP_Terms_List_Table extends WP_List_Table {
 			?>
 
 			<div class="inline-edit-save submit">
-				<button type="button" class="cancel button alignleft"><?php _e( 'Cancel' ); ?></button>
-				<button type="button" class="save button button-primary alignright"><?php echo $tax->labels->update_item; ?></button>
+				<button type="button" class="save button button-primary"><?php echo $tax->labels->update_item; ?></button>
+				<button type="button" class="cancel button"><?php _e( 'Cancel' ); ?></button>
 				<span class="spinner"></span>
 
 				<?php wp_nonce_field( 'taxinlineeditnonce', '_inline_edit', false ); ?>
 				<input type="hidden" name="taxonomy" value="<?php echo esc_attr( $this->screen->taxonomy ); ?>" />
 				<input type="hidden" name="post_type" value="<?php echo esc_attr( $this->screen->post_type ); ?>" />
-				<br class="clear" />
 
 				<div class="notice notice-error notice-alt inline hidden">
 					<p class="error"></p>
 				</div>
+			</div>
 			</div>
 
 			</td></tr>

@@ -14,6 +14,7 @@
  *
  * @see WP_User_Query::prepare_query() for information on accepted arguments.
  */
+#[AllowDynamicProperties]
 class WP_User_Query {
 
 	/**
@@ -124,7 +125,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Prepare the query variables.
+	 * Prepares the query variables.
 	 *
 	 * @since 3.1.0
 	 * @since 4.1.0 Added the ability to order by the `include` value.
@@ -140,8 +141,8 @@ class WP_User_Query {
 	 * @since 5.3.0 Introduced the 'meta_type_key' parameter.
 	 * @since 5.9.0 Added 'capability', 'capability__in', and 'capability__not_in' parameters.
 	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
-	 * @global int  $blog_id
+	 * @global wpdb     $wpdb     WordPress database abstraction object.
+	 * @global WP_Roles $wp_roles WordPress role management object.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or string of Query parameters.
@@ -157,16 +158,16 @@ class WP_User_Query {
 	 *     @type string|string[] $meta_key            Meta key or keys to filter by.
 	 *     @type string|string[] $meta_value          Meta value or values to filter by.
 	 *     @type string          $meta_compare        MySQL operator used for comparing the meta value.
-	 *                                                See WP_Meta_Query::__construct for accepted values and default value.
+	 *                                                See WP_Meta_Query::__construct() for accepted values and default value.
 	 *     @type string          $meta_compare_key    MySQL operator used for comparing the meta key.
-	 *                                                See WP_Meta_Query::__construct for accepted values and default value.
+	 *                                                See WP_Meta_Query::__construct() for accepted values and default value.
 	 *     @type string          $meta_type           MySQL data type that the meta_value column will be CAST to for comparisons.
-	 *                                                See WP_Meta_Query::__construct for accepted values and default value.
+	 *                                                See WP_Meta_Query::__construct() for accepted values and default value.
 	 *     @type string          $meta_type_key       MySQL data type that the meta_key column will be CAST to for comparisons.
-	 *                                                See WP_Meta_Query::__construct for accepted values and default value.
+	 *                                                See WP_Meta_Query::__construct() for accepted values and default value.
 	 *     @type array           $meta_query          An associative array of WP_Meta_Query arguments.
-	 *                                                See WP_Meta_Query::__construct for accepted values.
-	 *     @type string          $capability          An array or a comma-separated list of capability names that users must match
+	 *                                                See WP_Meta_Query::__construct() for accepted values.
+	 *     @type string|string[] $capability          An array or a comma-separated list of capability names that users must match
 	 *                                                to be included in results. Note that this is an inclusive list: users
 	 *                                                must match *each* capability.
 	 *                                                Does NOT work for capabilities not in the database or filtered via {@see 'map_meta_cap'}.
@@ -230,8 +231,13 @@ class WP_User_Query {
 	 *                                                - 'user_email'
 	 *                                                - 'user_url'
 	 *                                                - 'user_registered'
-	 *                                                - 'all' for all fields
-	 *                                                - 'all_with_meta' to include meta fields.
+	 *                                                - 'user_pass'
+	 *                                                - 'user_activation_key'
+	 *                                                - 'user_status'
+	 *                                                - 'spam' (only available on multisite installs)
+	 *                                                - 'deleted' (only available on multisite installs)
+	 *                                                - 'all' for all fields and loads user meta.
+	 *                                                - 'all_with_meta' Deprecated. Use 'all'.
 	 *                                                Default 'all'.
 	 *     @type string          $who                 Type of users to query. Accepts 'authors'.
 	 *                                                Default empty (all users).
@@ -251,7 +257,7 @@ class WP_User_Query {
 	 * }
 	 */
 	public function prepare_query( $query = array() ) {
-		global $wpdb;
+		global $wpdb, $wp_roles;
 
 		if ( empty( $this->query_vars ) || ! empty( $query ) ) {
 			$this->query_limit = null;
@@ -274,19 +280,42 @@ class WP_User_Query {
 		$qv =& $this->query_vars;
 		$qv = $this->fill_query_vars( $qv );
 
+		$allowed_fields = array(
+			'id',
+			'user_login',
+			'user_pass',
+			'user_nicename',
+			'user_email',
+			'user_url',
+			'user_registered',
+			'user_activation_key',
+			'user_status',
+			'display_name',
+		);
+		if ( is_multisite() ) {
+			$allowed_fields[] = 'spam';
+			$allowed_fields[] = 'deleted';
+		}
+
 		if ( is_array( $qv['fields'] ) ) {
-			$qv['fields'] = array_unique( $qv['fields'] );
+			$qv['fields'] = array_map( 'strtolower', $qv['fields'] );
+			$qv['fields'] = array_intersect( array_unique( $qv['fields'] ), $allowed_fields );
+
+			if ( empty( $qv['fields'] ) ) {
+				$qv['fields'] = array( 'id' );
+			}
 
 			$this->query_fields = array();
 			foreach ( $qv['fields'] as $field ) {
-				$field                = 'ID' === $field ? 'ID' : sanitize_key( $field );
+				$field                = 'id' === $field ? 'ID' : sanitize_key( $field );
 				$this->query_fields[] = "$wpdb->users.$field";
 			}
 			$this->query_fields = implode( ',', $this->query_fields );
-		} elseif ( 'all' === $qv['fields'] ) {
-			$this->query_fields = "$wpdb->users.*";
-		} else {
+		} elseif ( 'all_with_meta' === $qv['fields'] || 'all' === $qv['fields'] || ! in_array( $qv['fields'], $allowed_fields, true ) ) {
 			$this->query_fields = "$wpdb->users.ID";
+		} else {
+			$field              = 'id' === strtolower( $qv['fields'] ) ? 'ID' : sanitize_key( $qv['fields'] );
+			$this->query_fields = "$wpdb->users.$field";
 		}
 
 		if ( isset( $qv['count_total'] ) && $qv['count_total'] ) {
@@ -420,8 +449,6 @@ class WP_User_Query {
 		$available_roles = array();
 
 		if ( ! empty( $qv['capability'] ) || ! empty( $qv['capability__in'] ) || ! empty( $qv['capability__not_in'] ) ) {
-			global $wp_roles;
-
 			$wp_roles->for_site( $blog_id );
 			$available_roles = $wp_roles->roles;
 		}
@@ -740,7 +767,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Execute the query, with the current variables.
+	 * Executes the query, with the current variables.
 	 *
 	 * @since 3.1.0
 	 *
@@ -770,9 +797,15 @@ class WP_User_Query {
 		$this->results = apply_filters_ref_array( 'users_pre_query', array( null, &$this ) );
 
 		if ( null === $this->results ) {
-			$this->request = "SELECT $this->query_fields $this->query_from $this->query_where $this->query_orderby $this->query_limit";
+			$this->request = "
+				SELECT {$this->query_fields}
+				{$this->query_from}
+				{$this->query_where}
+				{$this->query_orderby}
+				{$this->query_limit}
+			";
 
-			if ( is_array( $qv['fields'] ) || 'all' === $qv['fields'] ) {
+			if ( is_array( $qv['fields'] ) ) {
 				$this->results = $wpdb->get_results( $this->request );
 			} else {
 				$this->results = $wpdb->get_col( $this->request );
@@ -799,25 +832,31 @@ class WP_User_Query {
 		if ( ! $this->results ) {
 			return;
 		}
-
-		if ( 'all_with_meta' === $qv['fields'] ) {
+		if (
+			is_array( $qv['fields'] ) &&
+			isset( $this->results[0]->ID )
+		) {
+			foreach ( $this->results as $result ) {
+				$result->id = $result->ID;
+			}
+		} elseif ( 'all_with_meta' === $qv['fields'] || 'all' === $qv['fields'] ) {
 			cache_users( $this->results );
 
 			$r = array();
 			foreach ( $this->results as $userid ) {
-				$r[ $userid ] = new WP_User( $userid, '', $qv['blog_id'] );
+				if ( 'all_with_meta' === $qv['fields'] ) {
+					$r[ $userid ] = new WP_User( $userid, '', $qv['blog_id'] );
+				} else {
+					$r[] = new WP_User( $userid, '', $qv['blog_id'] );
+				}
 			}
 
 			$this->results = $r;
-		} elseif ( 'all' === $qv['fields'] ) {
-			foreach ( $this->results as $key => $user ) {
-				$this->results[ $key ] = new WP_User( $user, '', $qv['blog_id'] );
-			}
 		}
 	}
 
 	/**
-	 * Retrieve query variable.
+	 * Retrieves query variable.
 	 *
 	 * @since 3.5.0
 	 *
@@ -833,7 +872,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Set query variable.
+	 * Sets query variable.
 	 *
 	 * @since 3.5.0
 	 *
@@ -845,31 +884,31 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Used internally to generate an SQL string for searching across multiple columns
+	 * Used internally to generate an SQL string for searching across multiple columns.
 	 *
 	 * @since 3.1.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param string $string
-	 * @param array  $cols
-	 * @param bool   $wild   Whether to allow wildcard searches. Default is false for Network Admin, true for single site.
-	 *                       Single site allows leading and trailing wildcards, Network Admin only trailing.
+	 * @param string   $search  Search string.
+	 * @param string[] $columns Array of columns to search.
+	 * @param bool     $wild    Whether to allow wildcard searches. Default is false for Network Admin, true for single site.
+	 *                          Single site allows leading and trailing wildcards, Network Admin only trailing.
 	 * @return string
 	 */
-	protected function get_search_sql( $string, $cols, $wild = false ) {
+	protected function get_search_sql( $search, $columns, $wild = false ) {
 		global $wpdb;
 
 		$searches      = array();
 		$leading_wild  = ( 'leading' === $wild || 'both' === $wild ) ? '%' : '';
 		$trailing_wild = ( 'trailing' === $wild || 'both' === $wild ) ? '%' : '';
-		$like          = $leading_wild . $wpdb->esc_like( $string ) . $trailing_wild;
+		$like          = $leading_wild . $wpdb->esc_like( $search ) . $trailing_wild;
 
-		foreach ( $cols as $col ) {
-			if ( 'ID' === $col ) {
-				$searches[] = $wpdb->prepare( "$col = %s", $string );
+		foreach ( $columns as $column ) {
+			if ( 'ID' === $column ) {
+				$searches[] = $wpdb->prepare( "$column = %s", $search );
 			} else {
-				$searches[] = $wpdb->prepare( "$col LIKE %s", $like );
+				$searches[] = $wpdb->prepare( "$column LIKE %s", $like );
 			}
 		}
 
@@ -877,7 +916,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Return the list of users.
+	 * Returns the list of users.
 	 *
 	 * @since 3.1.0
 	 *
@@ -888,7 +927,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Return the total number of users for the current query.
+	 * Returns the total number of users for the current query.
 	 *
 	 * @since 3.1.0
 	 *
@@ -899,7 +938,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Parse and sanitize 'orderby' keys passed to the user query.
+	 * Parses and sanitizes 'orderby' keys passed to the user query.
 	 *
 	 * @since 4.2.0
 	 *
@@ -958,7 +997,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Parse an 'order' query variable and cast it to ASC or DESC as necessary.
+	 * Parses an 'order' query variable and casts it to ASC or DESC as necessary.
 	 *
 	 * @since 4.2.0
 	 *
@@ -978,7 +1017,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Make private properties readable for backward compatibility.
+	 * Makes private properties readable for backward compatibility.
 	 *
 	 * @since 4.0.0
 	 *
@@ -992,7 +1031,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Make private properties settable for backward compatibility.
+	 * Makes private properties settable for backward compatibility.
 	 *
 	 * @since 4.0.0
 	 *
@@ -1007,7 +1046,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Make private properties checkable for backward compatibility.
+	 * Makes private properties checkable for backward compatibility.
 	 *
 	 * @since 4.0.0
 	 *
@@ -1021,7 +1060,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Make private properties un-settable for backward compatibility.
+	 * Makes private properties un-settable for backward compatibility.
 	 *
 	 * @since 4.0.0
 	 *
@@ -1034,7 +1073,7 @@ class WP_User_Query {
 	}
 
 	/**
-	 * Make private/protected methods readable for backward compatibility.
+	 * Makes private/protected methods readable for backward compatibility.
 	 *
 	 * @since 4.0.0
 	 *

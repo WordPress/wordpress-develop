@@ -217,10 +217,11 @@ function wpmu_delete_user( $id ) {
  *
  * @since MU (3.0.0)
  *
- * @param bool $echo Optional. If $echo is set and the quota is exceeded, a warning message is echoed. Default is true.
+ * @param bool $display_message Optional. If set to true and the quota is exceeded,
+ *                              a warning message is displayed. Default true.
  * @return bool True if user is over upload space quota, otherwise false.
  */
-function upload_is_user_over_quota( $echo = true ) {
+function upload_is_user_over_quota( $display_message = true ) {
 	if ( get_site_option( 'upload_space_check_disabled' ) ) {
 		return false;
 	}
@@ -232,7 +233,7 @@ function upload_is_user_over_quota( $echo = true ) {
 	$space_used = get_space_used();
 
 	if ( ( $space_allowed - $space_used ) < 0 ) {
-		if ( $echo ) {
+		if ( $display_message ) {
 			printf(
 				/* translators: %s: Allowed space allocation. */
 				__( 'Sorry, you have used your space allocation of %s. Please delete some files to upload more files.' ),
@@ -543,29 +544,6 @@ function format_code_lang( $code = '' ) {
 }
 
 /**
- * Synchronizes category and post tag slugs when global terms are enabled.
- *
- * @since 3.0.0
- *
- * @param WP_Term|array $term     The term.
- * @param string        $taxonomy The taxonomy for `$term`. Should be 'category' or 'post_tag', as these are
- *                                the only taxonomies which are processed by this function; anything else
- *                                will be returned untouched.
- * @return WP_Term|array Returns `$term`, after filtering the 'slug' field with `sanitize_title()`
- *                       if `$taxonomy` is 'category' or 'post_tag'.
- */
-function sync_category_tag_slugs( $term, $taxonomy ) {
-	if ( global_terms_enabled() && ( 'category' === $taxonomy || 'post_tag' === $taxonomy ) ) {
-		if ( is_object( $term ) ) {
-			$term->slug = sanitize_title( $term->name );
-		} else {
-			$term['slug'] = sanitize_title( $term['name'] );
-		}
-	}
-	return $term;
-}
-
-/**
  * Displays an access denied message when a user tries to view a site's dashboard they
  * do not have access to.
  *
@@ -692,7 +670,7 @@ function mu_dropdown_languages( $lang_files = array(), $current = '' ) {
  * @since 3.0.0
  *
  * @global int    $wp_db_version WordPress database version.
- * @global string $pagenow
+ * @global string $pagenow       The filename of the current screen.
  *
  * @return void|false Void on success. False if the current user is not a super admin.
  */
@@ -1029,7 +1007,7 @@ jQuery( function($) {
  *
  * @since 4.6.0
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  *
  * @param array $args {
  *     Optional. Array or string of Query parameters. Default empty array.

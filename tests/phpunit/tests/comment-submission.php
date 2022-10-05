@@ -39,6 +39,9 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 		require_once ABSPATH . WPINC . '/class-phpass.php';
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_submitting_comment_to_invalid_post_returns_error() {
 		$error = 'comment_id_not_found';
 
@@ -55,6 +58,9 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_submitting_comment_to_post_with_closed_comments_returns_error() {
 
 		$error = 'comment_closed';
@@ -78,6 +84,9 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_submitting_comment_to_trashed_post_returns_error() {
 
 		$error = 'comment_on_trash';
@@ -99,6 +108,9 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_submitting_comment_to_draft_post_returns_error() {
 		$error = 'comment_on_draft';
 
@@ -124,6 +136,8 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 39650
+	 *
+	 * @covers ::wp_handle_comment_submission
 	 */
 	public function test_submitting_comment_to_draft_post_returns_error_message_for_user_with_correct_caps() {
 		$error = 'comment_on_draft';
@@ -150,6 +164,9 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 		$this->assertNotEmpty( $comment->get_error_message() );
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_submitting_comment_to_scheduled_post_returns_error() {
 
 		// Same error as commenting on a draft.
@@ -176,6 +193,9 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_submitting_comment_to_password_required_post_returns_error() {
 
 		$error = 'comment_on_password_protected';
@@ -199,17 +219,10 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_submitting_comment_to_password_protected_post_succeeds() {
-		if ( PHP_VERSION_ID >= 80100 ) {
-			/*
-			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
-			 * via hooked in filter functions until a more structural solution to the
-			 * "missing input validation" conundrum has been architected and implemented.
-			 */
-			$this->expectDeprecation();
-			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
-		}
-
 		$password = 'password';
 		$hasher   = new PasswordHash( 8, true );
 
@@ -236,6 +249,9 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_submitting_valid_comment_as_logged_in_user_succeeds() {
 
 		$user = self::factory()->user->create_and_get(
@@ -263,6 +279,9 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_submitting_valid_comment_anonymously_succeeds() {
 
 		$data    = array(
@@ -289,18 +308,10 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	 * wp_handle_comment_submission() expects un-slashed data.
 	 *
 	 * @group slashes
+	 *
+	 * @covers ::wp_handle_comment_submission
 	 */
-	public function test_submitting_comment_handles_slashes_correctly_handles_slashes() {
-		if ( PHP_VERSION_ID >= 80100 ) {
-			/*
-			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
-			 * via hooked in filter functions until a more structural solution to the
-			 * "missing input validation" conundrum has been architected and implemented.
-			 */
-			$this->expectDeprecation();
-			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
-		}
-
+	public function test_submitting_comment_handles_slashes_correctly() {
 		$data    = array(
 			'comment_post_ID' => self::$post->ID,
 			'comment'         => 'Comment with 1 slash: \\',
@@ -318,6 +329,9 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_submitting_comment_anonymously_to_private_post_returns_error() {
 
 		$error = 'comment_id_not_found';
@@ -339,6 +353,9 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_submitting_comment_as_logged_in_user_to_inaccessible_private_post_returns_error() {
 
 		$error = 'comment_id_not_found';
@@ -369,6 +386,9 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_submitting_comment_to_private_post_with_closed_comments_returns_correct_error() {
 
 		$error = 'comment_id_not_found';
@@ -400,6 +420,9 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_submitting_comment_to_own_private_post_succeeds() {
 
 		wp_set_current_user( self::$author_id );
@@ -423,6 +446,9 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_submitting_comment_to_accessible_private_post_succeeds() {
 
 		wp_set_current_user( self::$editor_id );
@@ -446,17 +472,10 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_anonymous_user_cannot_comment_unfiltered_html() {
-		if ( PHP_VERSION_ID >= 80100 ) {
-			/*
-			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
-			 * via hooked in filter functions until a more structural solution to the
-			 * "missing input validation" conundrum has been architected and implemented.
-			 */
-			$this->expectDeprecation();
-			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
-		}
-
 		$data    = array(
 			'comment_post_ID' => self::$post->ID,
 			'comment'         => 'Comment <script>alert(document.cookie);</script>',
@@ -471,6 +490,9 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_unprivileged_user_cannot_comment_unfiltered_html() {
 
 		wp_set_current_user( self::$author_id );
@@ -489,6 +511,9 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_unprivileged_user_cannot_comment_unfiltered_html_even_with_valid_nonce() {
 
 		wp_set_current_user( self::$author_id );
@@ -513,6 +538,9 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_privileged_user_can_comment_unfiltered_html_with_valid_nonce() {
 
 		$this->assertFalse( defined( 'DISALLOW_UNFILTERED_HTML' ) );
@@ -545,6 +573,9 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_privileged_user_cannot_comment_unfiltered_html_without_valid_nonce() {
 
 		if ( is_multisite() ) {
@@ -569,6 +600,9 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_submitting_comment_as_anonymous_user_when_registration_required_returns_error() {
 
 		$error = 'not_logged_in';
@@ -588,6 +622,9 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_submitting_comment_with_no_name_when_name_email_required_returns_error() {
 
 		$error = 'require_name_email';
@@ -609,6 +646,9 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_submitting_comment_with_no_email_when_name_email_required_returns_error() {
 
 		$error = 'require_name_email';
@@ -630,6 +670,9 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_submitting_comment_with_invalid_email_when_name_email_required_returns_error() {
 
 		$error = 'require_valid_email';
@@ -652,6 +695,9 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::wp_handle_comment_submission
+	 */
 	public function test_submitting_comment_with_no_comment_content_returns_error() {
 
 		$error = 'require_valid_comment';
@@ -671,6 +717,8 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 10377
+	 *
+	 * @covers ::wp_handle_comment_submission
 	 */
 	public function test_submitting_comment_with_content_too_long_returns_error() {
 		$error = 'comment_content_column_length';
@@ -689,6 +737,8 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 10377
+	 *
+	 * @covers ::wp_handle_comment_submission
 	 */
 	public function test_submitting_comment_with_author_too_long_returns_error() {
 		$error = 'comment_author_column_length';
@@ -707,6 +757,8 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 10377
+	 *
+	 * @covers ::wp_handle_comment_submission
 	 */
 	public function test_submitting_comment_with_email_too_long_returns_error() {
 		$error = 'comment_author_email_column_length';
@@ -725,6 +777,8 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 10377
+	 *
+	 * @covers ::wp_handle_comment_submission
 	 */
 	public function test_submitting_comment_with_url_too_long_returns_error() {
 		$error = 'comment_author_url_column_length';
@@ -744,18 +798,10 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49236
+	 *
+	 * @covers ::wp_handle_comment_submission
 	 */
 	public function test_submitting_comment_with_empty_type_results_in_correct_type() {
-		if ( PHP_VERSION_ID >= 80100 ) {
-			/*
-			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
-			 * via hooked in filter functions until a more structural solution to the
-			 * "missing input validation" conundrum has been architected and implemented.
-			 */
-			$this->expectDeprecation();
-			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
-		}
-
 		$data    = array(
 			'comment_post_ID' => self::$post->ID,
 			'comment'         => 'Comment',
@@ -773,6 +819,8 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49236
+	 *
+	 * @covers ::wp_insert_comment
 	 */
 	public function test_inserting_comment_with_empty_type_results_in_correct_type() {
 		$data       = array(
@@ -793,6 +841,8 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34997
+	 *
+	 * @covers ::wp_handle_comment_submission
 	 */
 	public function test_comment_submission_sends_all_expected_parameters_to_preprocess_comment_filter() {
 
@@ -808,10 +858,8 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 		$comment = wp_handle_comment_submission( $data );
 
-		remove_filter( 'preprocess_comment', array( $this, 'filter_preprocess_comment' ) );
-
 		$this->assertNotWPError( $comment );
-		$this->assertSame(
+		$this->assertSameSetsWithIndex(
 			array(
 				'comment_post_ID'      => self::$post->ID,
 				'comment_author'       => $user->display_name,
@@ -830,6 +878,34 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @ticket 56712
+	 *
+	 * @covers ::wp_handle_comment_submission
+	 */
+	public function test_submitting_comment_without_optional_parameters_sets_them_to_empty_strings() {
+		$data = array(
+			'comment_post_ID' => self::$post->ID,
+		);
+
+		add_filter( 'pre_option_require_name_email', '__return_zero' );
+		add_filter( 'allow_empty_comment', '__return_true' );
+
+		add_filter( 'preprocess_comment', array( $this, 'filter_preprocess_comment' ) );
+
+		$comment = wp_handle_comment_submission( $data );
+
+		$this->assertNotWPError( $comment );
+		$this->assertInstanceOf( 'WP_Comment', $comment );
+
+		$commentdata = $this->preprocess_comment_data;
+
+		$this->assertSame( '', $commentdata['comment_author'], 'Comment author should default to an empty string.' );
+		$this->assertSame( '', $commentdata['comment_author_email'], 'Comment author email should default to an empty string.' );
+		$this->assertSame( '', $commentdata['comment_author_url'], 'Comment author URL should default to an empty string.' );
+		$this->assertSame( '', $commentdata['comment_content'], 'Comment content should default to an empty string.' );
+	}
+
 	public function filter_preprocess_comment( $commentdata ) {
 		$this->preprocess_comment_data = $commentdata;
 		return $commentdata;
@@ -837,18 +913,10 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36901
+	 *
+	 * @covers ::wp_handle_comment_submission
 	 */
 	public function test_submitting_duplicate_comments() {
-		if ( PHP_VERSION_ID >= 80100 ) {
-			/*
-			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
-			 * via hooked in filter functions until a more structural solution to the
-			 * "missing input validation" conundrum has been architected and implemented.
-			 */
-			$this->expectDeprecation();
-			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
-		}
-
 		$data           = array(
 			'comment_post_ID' => self::$post->ID,
 			'comment'         => 'Did I say that?',
@@ -863,18 +931,10 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36901
+	 *
+	 * @covers ::wp_handle_comment_submission
 	 */
 	public function test_comments_flood() {
-		if ( PHP_VERSION_ID >= 80100 ) {
-			/*
-			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
-			 * via hooked in filter functions until a more structural solution to the
-			 * "missing input validation" conundrum has been architected and implemented.
-			 */
-			$this->expectDeprecation();
-			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
-		}
-
 		$data          = array(
 			'comment_post_ID' => self::$post->ID,
 			'comment'         => 'Did I say that?',
@@ -892,6 +952,8 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36901
+	 *
+	 * @covers ::wp_handle_comment_submission
 	 */
 	public function test_comments_flood_user_is_admin() {
 		$user = self::factory()->user->create_and_get(
