@@ -36,6 +36,7 @@ class Tests_Functions_wpGetRawReferer extends WP_UnitTestCase {
 		$_SERVER['HTTP_REFERER']      = 'http://NotUSED.com';
 		$this->assertSame( 'http://_wp_http_referer.com', wp_get_raw_referer(), 'Both set should use _wp_http_referer' );
 	}
+
 	/**
 	 * @ticket 55729
 	 */
