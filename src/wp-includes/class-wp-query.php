@@ -3461,7 +3461,6 @@ class WP_Query {
 			$this->post_count = 0;
 			$this->posts      = array();
 		}
-		
 		if ( ! empty( $this->posts ) && $q['update_menu_item_cache'] ) {
 			update_menu_item_cache( $this->posts );
 		}
