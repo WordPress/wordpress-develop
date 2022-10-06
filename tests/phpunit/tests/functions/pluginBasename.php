@@ -74,7 +74,8 @@ class Tests_Functions_PluginBasename extends WP_UnitTestCase {
 	public function test_should_return_correct_basename_for_plugin_when_wp_plugins_dir_is_subdir_of_symlinked_plugin() {
 		global $wp_plugin_paths;
 
-		$plugin_project_root_directory = dirname( $this->wp_plugin_path, 3 );
+		// Set project root directory to any real absolute path. Using WP_PLUGIN_DIR for convenience.
+		$plugin_project_root_directory = $this->wp_plugin_path;
 
 		$wp_plugin_paths = array(
 			$this->wp_plugin_path . '/plugin-root'        => $plugin_project_root_directory,
