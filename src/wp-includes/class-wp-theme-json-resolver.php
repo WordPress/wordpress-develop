@@ -100,9 +100,9 @@ class WP_Theme_JSON_Resolver {
 				static::$theme_json_file_cache[ $file_path ] = $decoded_file;
 				return static::$theme_json_file_cache[ $file_path ];
 			}
-		} else {
-			return array();
 		}
+
+		return array();
 	}
 
 	/**
