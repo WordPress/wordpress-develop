@@ -65,7 +65,7 @@ class Tests_Menu_wpNavMenu extends WP_UnitTestCase {
 	 *
 	 * @ticket 28620
 	 */
-	public function test_wp_nav_menu_all_depth() {
+	public function test_wp_nav_menu_should_have_has_children_class_without_custom_depth() {
 
 		// Render the menu with all its hierarchy.
 		$menu_html = wp_nav_menu(
