@@ -7,10 +7,10 @@
  */
 class Tests_Menu_wpNavMenu extends WP_UnitTestCase {
 
-	protected $menu_id        = 0;
-	protected $lvl0_menu_item = 0;
-	protected $lvl1_menu_item = 0;
-	protected $lvl2_menu_item = 0;
+	static $menu_id        = 0;
+	static $lvl0_menu_item = 0;
+	static $lvl1_menu_item = 0;
+	static $lvl2_menu_item = 0;
 
 	public function set_up() {
 		parent::set_up();
