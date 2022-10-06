@@ -62,4 +62,26 @@ class Tests_Functions_PluginBasename extends WP_UnitTestCase {
 		$basename = plugin_basename( '/Users/me/Dropbox/Development/Repositories/plugin/trunk/plugin.php' );
 		$this->assertSame( 'trunk/plugin.php', $basename );
 	}
+
+	/**
+	 * Mimic a parent project directory that contains a plugin and WordPress installation. E.g.
+	 *
+	 *   Project directory: ../Projects/plugin-root
+	 *   WordPress install: ../Projects/plugin-root/wordpress
+	 *
+	 * @ticket 42670
+	 */
+	public function test_should_return_correct_basename_for_plugin_when_wp_plugins_dir_is_subdir_of_symlinked_plugin() {
+		global $wp_plugin_paths;
+
+		$plugin_project_root_directory = dirname( $this->wp_plugin_path, 3 );
+
+		$wp_plugin_paths = array(
+			$this->wp_plugin_path . '/plugin-root'        => $plugin_project_root_directory,
+			$this->wp_plugin_path . '/wordpress-importer' => $plugin_project_root_directory . '/wordpress/wp-content/plugins/wordpress-importer',
+		);
+
+		$actual = plugin_basename( $plugin_project_root_directory . '/wordpress/wp-content/plugins/wordpress-importer/wordpress-importer.php' );
+		$this->assertSame( 'wordpress-importer/wordpress-importer.php', $actual, 'The basename returned is incorrect.' );
+	}
 }
