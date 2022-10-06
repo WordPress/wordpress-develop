@@ -105,7 +105,7 @@ class Tests_Menu_wpNavMenu extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test when displaying a menu with a custom depth, the last menu item doesn't have the CSS class
+	 * Tests that when displaying a menu with a custom depth, the last menu item doesn't have the CSS class
 	 * `menu-item-has-children` even if it's the case when displaying the full menu.
 	 *
 	 * @ticket 28620
