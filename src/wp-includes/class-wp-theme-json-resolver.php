@@ -146,12 +146,9 @@ class WP_Theme_JSON_Resolver {
 	 * @return WP_Theme_JSON Entity that holds core data.
 	 */
 	public static function get_core_data() {
-		if ( null !== static::$core ) {
-			return static::$core;
-		}
-
 		$config = static::read_json_file( __DIR__ . '/theme.json' );
 		$config = static::translate( $config );
+
 		/**
 		 * Filters the default data provided by WordPress for global styles & settings.
 		 *
