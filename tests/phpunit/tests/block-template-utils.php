@@ -208,7 +208,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * @dataProvider data_remove_theme_attribute_in_block_template_content
 	 */
 	function test_remove_theme_attribute_in_block_template_content( $template_content, $expected ) {
-		$this->assertEquals( $expected, _remove_theme_attribute_in_block_template_content( $template_content ) );
+		$this->assertSame( $expected, _remove_theme_attribute_in_block_template_content( $template_content ) );
 	}
 
 	function data_remove_theme_attribute_in_block_template_content() {

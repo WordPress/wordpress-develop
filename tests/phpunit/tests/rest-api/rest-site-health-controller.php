@@ -116,12 +116,12 @@ class WP_Test_REST_Site_Health_Controller extends WP_Test_REST_TestCase {
 		$this->assertCount( 1, $route );
 
 		$route = current( $route );
-		$this->assertEquals(
+		$this->assertSame(
 			array( WP_REST_Server::READABLE => true ),
 			$route['methods']
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			'test_page_cache',
 			$route['callback'][1]
 		);

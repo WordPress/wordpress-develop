@@ -846,7 +846,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$meta = get_post_meta( self::$post_id, 'test_custom_schema', false );
 		$this->assertNotEmpty( $meta );
 		$this->assertCount( 1, $meta );
-		$this->assertEquals( 3, $meta[0] );
+		$this->assertSame( '3', $meta[0] );
 
 		$data = $response->get_data();
 		$meta = (array) $data['meta'];
@@ -875,7 +875,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$meta = get_post_meta( self::$post_id, 'test_custom_schema_multi', false );
 		$this->assertNotEmpty( $meta );
 		$this->assertCount( 1, $meta );
-		$this->assertEquals( 2, $meta[0] );
+		$this->assertSame( '2', $meta[0] );
 
 		// Add another value.
 		$data = array(
@@ -2797,7 +2797,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertEquals( array( 0 ), $response->get_data()['meta']['multi_boolean'] );
+		$this->assertSameSetsWithIndex( array( false ), $response->get_data()['meta']['multi_boolean'] );
 
 		$this->assertFalse( get_metadata_by_mid( 'post', $mid1 ) );
 		$this->assertNotFalse( get_metadata_by_mid( 'post', $mid2 ) );
