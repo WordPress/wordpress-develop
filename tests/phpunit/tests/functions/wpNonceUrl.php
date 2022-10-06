@@ -103,10 +103,11 @@ class Tests_Functions_WpNonceUrl extends WP_UnitTestCase {
 	 * @dataProvider data_should_handle_existing_query_args
 	 *
 	 * @param string $actionurl URL to add nonce action.
+	 * @param string $expected  The expected result.
 	 */
-	public function test_should_handle_existing_query_args( $actionurl ) {
+	public function test_should_handle_existing_query_args( $actionurl, $expected ) {
 		$actionurl = preg_replace( '/&(?!amp;)/', '&amp;', $actionurl );
-		$this->assertStringContainsString( $actionurl, wp_nonce_url( $actionurl ) );
+		$this->assertStringContainsString( $expected, wp_nonce_url( $actionurl ) );
 	}
 
 	/**
@@ -118,12 +119,15 @@ class Tests_Functions_WpNonceUrl extends WP_UnitTestCase {
 		return array(
 			'one query arg'            => array(
 				'actionurl' => 'http://example.org/?hello=world',
+				'expected'  => 'http://example.org/?hello=world&amp;_wpnonce=',
 			),
 			'two query args'           => array(
 				'actionurl' => 'http://example.org/?hello=world&howdy=admin',
+				'expected'  => 'http://example.org/?hello=world&amp;howdy=admin&amp;_wpnonce=',
 			),
 			'two query args and &amp;' => array(
 				'actionurl' => 'http://example.org/?hello=world&amp;howdy=admin',
+				'expected'  => 'http://example.org/?hello=world&amp;howdy=admin&amp;_wpnonce=',
 			),
 		);
 	}
