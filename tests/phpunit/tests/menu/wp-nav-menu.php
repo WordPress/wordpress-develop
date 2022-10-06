@@ -2,6 +2,8 @@
 
 /**
  * @group menu
+ *
+ * @covers ::wp_nav_menu
  */
 class Tests_Menu_wpNavMenu extends WP_UnitTestCase {
 
