@@ -106,7 +106,6 @@ class Tests_Functions_WpNonceUrl extends WP_UnitTestCase {
 	 * @param string $expected  The expected result.
 	 */
 	public function test_should_handle_existing_query_args( $actionurl, $expected ) {
-		$actionurl = preg_replace( '/&(?!amp;)/', '&amp;', $actionurl );
 		$this->assertStringContainsString( $expected, wp_nonce_url( $actionurl ) );
 	}
 
