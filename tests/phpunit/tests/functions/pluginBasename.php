@@ -78,7 +78,9 @@ class Tests_Functions_PluginBasename extends WP_UnitTestCase {
 		$plugin_project_root_directory = $this->wp_plugin_path;
 
 		$wp_plugin_paths = array(
+			// Symlinked plugin located at project root.
 			$this->wp_plugin_path . '/plugin-root'        => $plugin_project_root_directory,
+			// Plugin in nested WordPress installation.
 			$this->wp_plugin_path . '/wordpress-importer' => $plugin_project_root_directory . '/wordpress/wp-content/plugins/wordpress-importer',
 		);
 
