@@ -110,7 +110,7 @@ class Tests_Menu_wpNavMenu extends WP_UnitTestCase {
 	 *
 	 * @ticket 28620
 	 */
-	public function test_wp_nav_menu_custom_depth() {
+	public function test_wp_nav_menu_should_not_have_has_children_class_with_custom_depth() {
 
 		// Render the menu limited to 1 level of hierarchy (Lvl0 + Lvl1).
 		$menu_html = wp_nav_menu(
