@@ -3,7 +3,7 @@
 /**
  * @group menu
  */
-class Test_Wp_Nav_Menu extends WP_UnitTestCase {
+class Tests_Menu_wpNavMenu extends WP_UnitTestCase {
 
 	protected $menu_id        = 0;
 	protected $lvl0_menu_item = 0;
