@@ -8,8 +8,6 @@
 class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 
 	/**
-	 * @ticket 55300
-	 *
 	 * @covers WP_List_Util::get_input
 	 */
 	public function test_wp_list_util_get_input() {
@@ -20,8 +18,6 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 55300
-	 *
 	 * @covers WP_List_Util::get_output
 	 */
 	public function test_wp_list_util_get_output_immediately() {
@@ -32,8 +28,6 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 55300
-	 *
 	 * @covers WP_List_Util::get_output
 	 */
 	public function test_wp_list_util_get_output() {
