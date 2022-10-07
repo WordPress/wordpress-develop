@@ -366,7 +366,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 			WP_Theme_JSON_Resolver::clean_cached_data();
 		}
 		$query_count = count( $this->queries ) - $query_count;
-		$this->assertEquals( 0, $query_count, 'Unexpected SQL queries detected for the wp_global_style post type' );
+		$this->assertSame( 0, $query_count, 'Unexpected SQL queries detected for the wp_global_style post type' );
 
 		$user_cpt = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
 		$this->assertEmpty( $user_cpt );
@@ -381,7 +381,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 			$this->assertSameSets( $user_cpt, $new_user_cpt );
 		}
 		$query_count = count( $this->queries ) - $query_count;
-		$this->assertEquals( 0, $query_count, 'Unexpected SQL queries detected for the wp_global_style post type' );
+		$this->assertSame( 0, $query_count, 'Unexpected SQL queries detected for the wp_global_style post type' );
 		remove_filter( 'query', array( $this, 'filter_db_query' ) );
 	}
 

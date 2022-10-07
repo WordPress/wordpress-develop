@@ -176,7 +176,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$this->assertIsInt( add_metadata( 'site', $network_id, $option, $funky_meta, true ) );
 
 		// Check they exists.
-		$this->assertEquals( $funky_meta, get_network_option( $network_id, $option ) );
+		$this->assertEqualSets( $funky_meta, get_network_option( $network_id, $option ) );
 	}
 
 	/**
@@ -190,7 +190,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		add_metadata( 'site', $network_id, $option, 'monday', true );
 		add_metadata( 'site', $network_id, $option, 'tuesday', true );
 		add_metadata( 'site', $network_id, $option, 'wednesday', true );
-		$this->assertEquals( 'monday', get_network_option( $network_id, $option, true ) );
+		$this->assertSame( 'monday', get_network_option( $network_id, $option, true ) );
 	}
 
 	/**
@@ -279,7 +279,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		);
 
 		add_metadata( 'site', $network_id, $option, $array_w_object, true );
-		$this->assertEquals( $array_w_object, get_network_option( $network_id, $option ) );
+		$this->assertEqualSets( $array_w_object, get_network_option( $network_id, $option ) );
 	}
 
 	/**

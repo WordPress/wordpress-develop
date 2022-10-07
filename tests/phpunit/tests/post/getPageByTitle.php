@@ -315,4 +315,26 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 		$this->assertSame( $page, $array_a['ID'], 'Should match post id.' );
 		$this->assertSame( $num_queries, get_num_queries(), 'Should not result in another database query.' );
 	}
+
+	/**
+	 * Ensure get_page_by_title() only runs the query once.
+	 *
+	 * @ticket 56721
+	 * @covers ::get_page_by_title
+	 */
+	public function test_should_not_run_query_more_than_once() {
+		$page = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'some-page',
+				'post_type'  => 'page',
+			)
+		);
+
+		// Use the `pre_get_posts` hook to ensure the query is only run once.
+		$ma = new MockAction();
+		add_action( 'pre_get_posts', array( $ma, 'action' ) );
+
+		get_page_by_title( 'some-page' );
+		$this->assertSame( 1, $ma->get_call_count(), 'Query does not run exactly once.' );
+	}
 }
