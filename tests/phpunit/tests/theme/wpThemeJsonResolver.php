@@ -154,14 +154,15 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 			),
 			$theme_data->get_settings()
 		);
-		$this->assertSameSets(
+
+		$custom_templates = $theme_data->get_custom_templates();
+		$this->assertArrayHasKey( 'page-home', $custom_templates );
+		$this->assertSame(
+			$custom_templates['page-home'],
 			array(
-				'page-home' => array(
-					'title'     => 'Szablon strony głównej',
-					'postTypes' => array( 'page' ),
-				),
-			),
-			$theme_data->get_custom_templates()
+				'title'     => 'Szablon strony głównej',
+				'postTypes' => array( 'page' ),
+			)
 		);
 		$this->assertSameSets(
 			array(
@@ -340,37 +341,93 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$this->assertSame(
 			WP_Theme_JSON_Resolver::get_theme_data()->get_custom_templates(),
 			array(
-				'page-home' => array(
+				'page-home'                   => array(
 					'title'     => 'Homepage',
 					'postTypes' => array( 'page' ),
+				),
+				'custom-single-post-template' => array(
+					'title'     => 'Custom Single Post template',
+					'postTypes' => array( 'post' ),
 				),
 			)
 		);
 	}
 
+	/**
+	 * @covers WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles
+	 */
 	function test_get_user_data_from_wp_global_styles_does_not_use_uncached_queries() {
+		$theme = wp_get_theme();
+		WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
 		add_filter( 'query', array( $this, 'filter_db_query' ) );
 		$query_count = count( $this->queries );
 		for ( $i = 0; $i < 3; $i++ ) {
-			WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( wp_get_theme() );
+			WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
 			WP_Theme_JSON_Resolver::clean_cached_data();
 		}
 		$query_count = count( $this->queries ) - $query_count;
-		$this->assertEquals( 1, $query_count, 'Only one SQL query should be peformed for multiple invocations of WP_Theme_JSON_Resolver::get_global_styles_from_post()' );
+		$this->assertSame( 0, $query_count, 'Unexpected SQL queries detected for the wp_global_style post type' );
 
-		$user_cpt = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( wp_get_theme() );
+		$user_cpt = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
 		$this->assertEmpty( $user_cpt );
 
-		$user_cpt = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( wp_get_theme(), true );
+		$user_cpt = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme, true );
 		$this->assertNotEmpty( $user_cpt );
 
 		$query_count = count( $this->queries );
-		for ( $i = 0; $i < 3; $i++ ) {
-			WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( wp_get_theme() );
+		for ( $i = 0; $i < 3; $i ++ ) {
+			$new_user_cpt = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
 			WP_Theme_JSON_Resolver::clean_cached_data();
+			$this->assertSameSets( $user_cpt, $new_user_cpt );
 		}
 		$query_count = count( $this->queries ) - $query_count;
-		$this->assertEquals( 0, $query_count, 'Unexpected SQL queries detected for the wp_global_style post type' );
+		$this->assertSame( 0, $query_count, 'Unexpected SQL queries detected for the wp_global_style post type' );
 		remove_filter( 'query', array( $this, 'filter_db_query' ) );
+	}
+
+	/**
+	 * @ticket 55392
+	 * @covers WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles
+	 */
+	function test_get_user_data_from_wp_global_styles_does_exist() {
+		$theme = wp_get_theme();
+		$post1 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme, true );
+		$this->assertIsArray( $post1 );
+		$this->assertArrayHasKey( 'ID', $post1 );
+		wp_delete_post( $post1['ID'], true );
+		$post2 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme, true );
+		$this->assertIsArray( $post2 );
+		$this->assertArrayHasKey( 'ID', $post2 );
+	}
+
+	/**
+	 * @ticket 55392
+	 * @covers WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles
+	 */
+	function test_get_user_data_from_wp_global_styles_create_post() {
+		$theme = wp_get_theme( 'testing' );
+		$post1 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
+		$this->assertIsArray( $post1 );
+		$this->assertSameSets( array(), $post1 );
+		$post2 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
+		$this->assertIsArray( $post2 );
+		$this->assertSameSets( array(), $post2 );
+		$post3 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme, true );
+		$this->assertIsArray( $post3 );
+		$this->assertArrayHasKey( 'ID', $post3 );
+	}
+
+	/**
+	 * @ticket 55392
+	 * @covers WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles
+	 */
+	function test_get_user_data_from_wp_global_styles_filter_state() {
+		$theme = wp_get_theme( 'foo' );
+		$post1 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme, true, array( 'publish' ) );
+		$this->assertIsArray( $post1 );
+		$this->assertArrayHasKey( 'ID', $post1 );
+		$post2 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme, false, array( 'draft' ) );
+		$this->assertIsArray( $post2 );
+		$this->assertSameSets( array(), $post2 );
 	}
 }
