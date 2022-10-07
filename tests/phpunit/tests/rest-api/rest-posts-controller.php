@@ -4494,7 +4494,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		);
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( '123', get_post_meta( $post_id, 'my_custom_int', true ) );
+		$this->assertEquals( 123, get_post_meta( $post_id, 'my_custom_int', true ) );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
 		$request->set_body_params(
@@ -4506,7 +4506,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertSame( '123', $response->data['my_custom_int'] );
+		$this->assertEquals( 123, $response->data['my_custom_int'] );
 
 		global $wp_rest_additional_fields;
 		$wp_rest_additional_fields = array();
