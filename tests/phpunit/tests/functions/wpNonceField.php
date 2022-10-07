@@ -3,7 +3,7 @@
 /**
  * Tests for the wp_nonce_field() function.
  *
- * @since 6.0.0
+ * @since 6.1.0
  *
  * @group functions.php
  * @covers ::wp_nonce_field
@@ -25,9 +25,9 @@ class Tests_Functions_wpNonceField extends WP_UnitTestCase {
 	 * @dataProvider data_wp_nonce_field
 	 *
 	 * @param int|string $action Action name.
-	 * @param string $name Nonce name.
-	 * @param bool $referer Whether to set the referer field fior validation.
-	 * @param string $expected_reg_exp The expected regular expression.
+	 * @param string     $name Nonce name.
+	 * @param bool       $referer Whether to set the referer field fior validation.
+	 * @param string     $expected_reg_exp The expected regular expression.
 	 */
 	public function test_wp_nonce_field_return( $action, $name, $referer, $expected_reg_exp ) {
 
