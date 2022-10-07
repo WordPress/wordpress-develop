@@ -182,8 +182,8 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		return false;
 	}
 
-	static $wpinc_path_norm = null;
-	if ( null === $wpinc_path_norm ) {
+	static $wpinc_path_norm = '';
+	if ( ! $wpinc_path_norm ) {
 		$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
 	}
 
