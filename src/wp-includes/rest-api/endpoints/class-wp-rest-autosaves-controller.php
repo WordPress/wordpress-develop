@@ -360,7 +360,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			return $post;
 		}
 
-		// Only create an autosave when it is different to the saved post.
+		// Only create an autosave when it is different from the saved post.
 		$autosave_is_different = false;
 		$new_autosave          = _wp_post_revision_data( $post_data, true );
 
