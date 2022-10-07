@@ -604,7 +604,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 				),
 			),
 			'simple arrays ASC'          => array(
-				'expected'     => array(
+				'expected'      => array(
 					'key1' => array(
 						'id'  => 1,
 						'val' => 'one',
@@ -622,7 +622,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 						'val' => 'four',
 					),
 				),
-				'target_array' => array(
+				'target_array'  => array(
 					'key1' => array(
 						'id'  => 1,
 						'val' => 'one',
@@ -640,8 +640,8 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 						'val' => 'four',
 					),
 				),
-				'orderby'      => array( 'id' => 'asc' ),
-				'order' => null,
+				'orderby'       => array( 'id' => 'asc' ),
+				'order'         => null,
 				'preserve_keys' => true,
 			),
 		);
