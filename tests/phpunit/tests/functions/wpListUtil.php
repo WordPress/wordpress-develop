@@ -132,8 +132,16 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 		$util   = new WP_List_Util( $target_array );
 		$actual = $util->sort();
 
-		$this->assertEqualSets( $expected, $actual );
-		$this->assertEqualSets( $expected, $util->get_output(), 'output failed' );
+		$this->assertEqualSets(
+			$expected,
+			$actual,
+			'The sorted value did not match the expected value.'
+		);
+		$this->assertEqualSets(
+			$expected,
+			$util->get_output(),
+			'::get_output() did not return the expected value.'
+		);
 	}
 
 	/**
@@ -156,10 +164,16 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 		$util   = new WP_List_Util( $target_array );
 		$actual = $util->sort( $orderby, $order, $preserve_keys );
 
-		$this->assertEqualSetsWithIndex( $expected, $actual );
-		$this->assertEqualSetsWithIndex( $expected, $util->get_output(), 'output failed' );
-
-		$this->assertEqualSetsWithIndex( $expected, wp_list_sort( $target_array, $orderby, $order, $preserve_keys ) );
+		$this->assertEqualSetsWithIndex(
+			$expected,
+			$actual,
+			'The sorted value did not match the expected value.'
+		);
+		$this->assertEqualSetsWithIndex(
+			$expected,
+			$util->get_output(),
+			'::get_output() did not return the expected value.'
+		);
 	}
 
 	/**
