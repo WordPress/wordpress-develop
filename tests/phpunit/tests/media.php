@@ -3643,11 +3643,6 @@ EOF;
 
 		$editor = wp_get_image_editor( $file );
 
-		// Verify that the selected editor actually supports WebP output.
-		if ( ! $editor->supports_mime_type( 'image/webp' ) ) {
-			$this->markTestSkipped( 'WebP is not supported by the selected image editor.' );
-		}
-
 		$attachment_id = self::factory()->attachment->create_object(
 			$file,
 			0,
