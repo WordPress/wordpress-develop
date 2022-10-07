@@ -126,7 +126,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		$this->assertSame( 82, $editor->get_quality(), 'Default quality setting is 82.' );
 
 		// Quality should change to the output format's value.
-		// A PNG image will be converted to WEBP whose quality should be 86.
+		// A PNG image will be converted to WEBP whose quialty should be 86.
 		$editor->save();
 		$this->assertSame( 86, $editor->get_quality(), 'Output image format is WEBP. Quality setting for it should be 86.' );
 
