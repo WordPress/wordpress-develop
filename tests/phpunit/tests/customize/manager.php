@@ -2533,10 +2533,10 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$this->assertSame( $default_value, $this->manager->post_value( $setting, $default_value ) );
 		$this->assertSame( $default_value, $setting->post_value( $default_value ) );
 
-		$post_value = '42';
-		$this->manager->set_post_value( 'numeric', $post_value );
-		$this->assertEquals( $post_value, $this->manager->post_value( $setting, $default_value ) );
-		$this->assertEquals( $post_value, $setting->post_value( $default_value ) );
+		$post_value = 42;
+		$this->manager->set_post_value( 'numeric', (string) $post_value );
+		$this->assertSame( $post_value, $this->manager->post_value( $setting, $default_value ) );
+		$this->assertSame( $post_value, $setting->post_value( $default_value ) );
 	}
 
 	/**

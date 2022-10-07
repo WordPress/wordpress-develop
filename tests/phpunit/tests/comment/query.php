@@ -4021,7 +4021,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 3, $q->found_comments );
+		$this->assertSame( 3, $q->found_comments );
 		$this->assertEquals( 2, $q->max_num_pages );
 	}
 
