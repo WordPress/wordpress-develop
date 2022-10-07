@@ -129,7 +129,11 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 	}
 
 	// Path needs to be normalized to work in Windows env.
-	$wpinc_path_norm  = wp_normalize_path( realpath( ABSPATH . WPINC ) );
+	static $wpinc_path_norm = '';
+	if ( ! $wpinc_path_norm ) {
+		$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
+	}
+
 	$theme_path_norm  = wp_normalize_path( get_theme_file_path() );
 	$script_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $script_path ) );
 
