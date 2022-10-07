@@ -78,10 +78,17 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 
 		$actual = $util->pluck( $target_key, $index_key );
 
-		$this->assertEqualSetsWithIndex( $expected, $actual );
-		$this->assertEqualSetsWithIndex( $expected, $util->get_output(), 'output failed' );
-		// test wrapper in functions.php
-//		$this->assertEqualSetsWithIndex( $expected, wp_list_pluck( $target_array, $target_key, $index_key ) );
+		$this->assertEqualSetsWithIndex(
+			$expected,
+			$actual,
+			'The plucked value did not match the expected value.'
+		);
+
+		$this->assertEqualSetsWithIndex(
+			$expected,
+			$util->get_output(),
+			'::get_output() did not return the expected value.'
+		);
 	}
 
 	/**
