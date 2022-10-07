@@ -3838,6 +3838,7 @@ function wp_max_upload_size() {
 function wp_get_image_editor( $path, $args = array() ) {
 	$args['path'] = $path;
 
+	// If the mime type is not set in args, try to extract and set it from the file.
 	if ( ! isset( $args['mime_type'] ) ) {
 		$file_info = wp_check_filetype( $args['path'] );
 
@@ -3848,11 +3849,11 @@ function wp_get_image_editor( $path, $args = array() ) {
 		}
 	}
 
-	$mime_type = isset( $args['mime_type'] ) ? $args['mime_type'] : wp_check_filetype( $path )['type'];
+	$mime_type = isset( $args['mime_type'] ) ? $args['mime_type'] : "";
 
 	/** This filter is documented in wp-includes/class-wp-image-editor.php */
 	$output_format = apply_filters( 'image_editor_output_format', array(), $path, $mime_type );
-	if ( isset( $output_format[ $mime_type ] ) ) {
+	if ( "" !== $mime_type && isset( $output_format[ $mime_type ] ) ) {
 		$args['output_mime_type'] = $output_format[ $mime_type ];
 	}
 
