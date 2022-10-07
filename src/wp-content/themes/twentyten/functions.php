@@ -326,7 +326,7 @@ if ( ! function_exists( 'twentyten_continue_reading_link' ) ) :
 	 * @return string "Continue Reading" link.
 	 */
 	function twentyten_continue_reading_link() {
-		return ' <a href="' . get_permalink() . '">' . __( 'Continue reading <span class="meta-nav">&rarr;</span>', 'twentyten' ) . '</a>';
+		return ' <a href="' . esc_url( get_permalink() ) . '">' . __( 'Continue reading <span class="meta-nav">&rarr;</span>', 'twentyten' ) . '</a>';
 	}
 endif;
 
@@ -607,13 +607,13 @@ if ( ! function_exists( 'twentyten_posted_on' ) ) :
 			'meta-prep meta-prep-author',
 			sprintf(
 				'<a href="%1$s" title="%2$s" rel="bookmark"><span class="entry-date">%3$s</span></a>',
-				get_permalink(),
+				esc_url( get_permalink() ),
 				esc_attr( get_the_time() ),
 				get_the_date()
 			),
 			sprintf(
 				'<span class="author vcard"><a class="url fn n" href="%1$s" title="%2$s">%3$s</a></span>',
-				get_author_posts_url( get_the_author_meta( 'ID' ) ),
+				esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ),
 				/* translators: %s: Author display name. */
 				esc_attr( sprintf( __( 'View all posts by %s', 'twentyten' ), get_the_author() ) ),
 				get_the_author()
@@ -648,7 +648,7 @@ if ( ! function_exists( 'twentyten_posted_in' ) ) :
 			$posted_in,
 			get_the_category_list( ', ' ),
 			$tags_list,
-			get_permalink(),
+			esc_url( get_permalink() ),
 			the_title_attribute( 'echo=0' )
 		);
 	}

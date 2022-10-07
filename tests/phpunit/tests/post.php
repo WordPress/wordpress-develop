@@ -9,6 +9,8 @@ class Tests_Post extends WP_UnitTestCase {
 	protected static $editor_id;
 	protected static $grammarian_id;
 
+	private $post_ids = array();
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
 
@@ -300,6 +302,8 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_excerpt' => 'foo&#x1f610;bat',
 		);
 
+		wp_set_current_user( self::$editor_id );
+
 		edit_post( $data );
 
 		$post = get_post( $post_id );
@@ -310,19 +314,12 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
-	 * If a post is sticky and is updated by a user that does not have the publish_post capability,
-	 * it should _stay_ sticky.
+	 * If a sticky post is updated via `wp_update_post()` by a user
+	 * without the `publish_posts` capability, it should stay sticky.
 	 *
 	 * @ticket 24153
 	 */
-	public function test_user_without_publish_cannot_affect_sticky() {
-		wp_set_current_user( self::$grammarian_id );
-
-		// Sanity check.
-		$this->assertFalse( current_user_can( 'publish_posts' ) );
-		$this->assertTrue( current_user_can( 'edit_others_posts' ) );
-		$this->assertTrue( current_user_can( 'edit_published_posts' ) );
-
+	public function test_user_without_publish_posts_cannot_affect_sticky() {
 		// Create a sticky post.
 		$post = self::factory()->post->create_and_get(
 			array(
@@ -334,6 +331,13 @@ class Tests_Post extends WP_UnitTestCase {
 
 		// Sanity check.
 		$this->assertTrue( is_sticky( $post->ID ) );
+
+		wp_set_current_user( self::$grammarian_id );
+
+		// Sanity check.
+		$this->assertFalse( current_user_can( 'publish_posts' ) );
+		$this->assertTrue( current_user_can( 'edit_others_posts' ) );
+		$this->assertTrue( current_user_can( 'edit_published_posts' ) );
 
 		// Edit the post.
 		$post->post_title   = 'Updated';
@@ -348,12 +352,12 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
-	 * If the `edit_post()` method is invoked by a user without publish_posts permission,
-	 * the sticky status of the post should not be changed.
+	 * If a sticky post is updated via `edit_post()` by a user
+	 * without the `publish_posts` capability, it should stay sticky.
 	 *
 	 * @ticket 24153
 	 */
-	public function test_user_without_publish_cannot_affect_sticky_with_edit_post() {
+	public function test_user_without_publish_posts_cannot_affect_sticky_with_edit_post() {
 		// Create a sticky post.
 		$post = self::factory()->post->create_and_get(
 			array(
@@ -450,7 +454,7 @@ class Tests_Post extends WP_UnitTestCase {
 	public function test_pre_wp_unique_post_slug_filter() {
 		add_filter( 'pre_wp_unique_post_slug', array( $this, 'filter_pre_wp_unique_post_slug' ), 10, 6 );
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'title'       => 'An example',
 				'post_status' => 'publish',
@@ -722,7 +726,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 */
 	public function test_use_block_editor_for_post() {
 		$this->assertFalse( use_block_editor_for_post( -1 ) );
-		$bogus_post_id = $this->factory()->post->create(
+		$bogus_post_id = self::factory()->post->create(
 			array(
 				'post_type' => 'bogus',
 			)
@@ -735,14 +739,14 @@ class Tests_Post extends WP_UnitTestCase {
 				'show_in_rest' => false,
 			)
 		);
-		$restless_post_id = $this->factory()->post->create(
+		$restless_post_id = self::factory()->post->create(
 			array(
 				'post_type' => 'restless',
 			)
 		);
 		$this->assertFalse( use_block_editor_for_post( $restless_post_id ) );
 
-		$generic_post_id = $this->factory()->post->create();
+		$generic_post_id = self::factory()->post->create();
 
 		add_filter( 'use_block_editor_for_post', '__return_false' );
 		$this->assertFalse( use_block_editor_for_post( $generic_post_id ) );

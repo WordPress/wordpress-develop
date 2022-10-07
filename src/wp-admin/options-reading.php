@@ -181,13 +181,13 @@ else :
 <td><fieldset><legend class="screen-reader-text"><span><?php has_action( 'blog_privacy_selector' ) ? _e( 'Site visibility' ) : _e( 'Search engine visibility' ); ?> </span></legend>
 <?php if ( has_action( 'blog_privacy_selector' ) ) : ?>
 	<input id="blog-public" type="radio" name="blog_public" value="1" <?php checked( '1', get_option( 'blog_public' ) ); ?> />
-	<label for="blog-public"><?php _e( 'Allow search engines to index this site' ); ?></label><br/>
+	<label for="blog-public"><?php _e( 'Allow search engines to index this site' ); ?></label><br />
 	<input id="blog-norobots" type="radio" name="blog_public" value="0" <?php checked( '0', get_option( 'blog_public' ) ); ?> />
 	<label for="blog-norobots"><?php _e( 'Discourage search engines from indexing this site' ); ?></label>
 	<p class="description"><?php _e( 'Note: Neither of these options blocks access to your site &mdash; it is up to search engines to honor your request.' ); ?></p>
 	<?php
 	/**
-	 * Enable the legacy 'Site visibility' privacy options.
+	 * Enables the legacy 'Site visibility' privacy options.
 	 *
 	 * By default the privacy options form displays a single checkbox to 'discourage' search
 	 * engines from indexing the site. Hooking to this action serves a dual purpose:

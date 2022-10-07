@@ -12,9 +12,25 @@
 class Tests_REST_Server extends WP_Test_REST_TestCase {
 	protected static $icon_id;
 
+	/**
+	 * Called before setting up all tests.
+	 */
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
+		// Require files that need to load once.
+		require_once DIR_TESTROOT . '/includes/mock-invokable.php';
+	}
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		$filename      = DIR_TESTDATA . '/images/test-image-large.jpg';
 		self::$icon_id = $factory->attachment->create_upload_object( $filename );
+	}
+
+	public static function tear_down_after_class() {
+		wp_delete_attachment( self::$icon_id, true );
+
+		parent::tear_down_after_class();
 	}
 
 	public function set_up() {
@@ -33,16 +49,6 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		unset( $_REQUEST['_wpnonce'] );
 
 		parent::tear_down();
-	}
-
-	/**
-	 * Called before setting up all tests.
-	 */
-	public static function set_up_before_class() {
-		parent::set_up_before_class();
-
-		// Require files that need to load once.
-		require_once DIR_TESTROOT . '/includes/mock-invokable.php';
 	}
 
 	public function test_envelope() {
@@ -1084,6 +1090,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		// Check site logo and icon.
 		$this->assertArrayHasKey( 'site_logo', $data );
 		$this->assertArrayHasKey( 'site_icon', $data );
+		$this->assertArrayHasKey( 'site_icon_url', $data );
 	}
 
 	/**

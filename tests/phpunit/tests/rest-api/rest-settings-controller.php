@@ -14,6 +14,11 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	protected static $administrator;
 	protected static $author;
 
+	/**
+	 * @var WP_REST_Settings_Controller
+	 */
+	private $endpoint;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$administrator = $factory->user->create(
 			array(
@@ -70,7 +75,11 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 404, $response->get_status() );
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_context_param() {
+		// Controller does not use get_context_param().
 	}
 
 	public function test_get_item_is_not_public_not_authenticated() {
@@ -377,8 +386,11 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertNull( $data['mycustomsettinginrest'] );
 	}
 
-
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_create_item() {
+		// Controller does not implement create_item().
 	}
 
 	public function test_update_item() {
@@ -658,10 +670,18 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 404, $response->get_status() );
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_prepare_item() {
+		// Controller does not implement prepare_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_get_item_schema() {
+		// Controller does not implement get_item_schema().
 	}
 
 	/**
@@ -716,5 +736,51 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 				),
 			)
 		);
+	}
+
+	/**
+	 * @ticket 56493
+	 */
+	public function test_register_setting_with_custom_additional_properties_value() {
+		wp_set_current_user( self::$administrator );
+
+		register_setting(
+			'somegroup',
+			'mycustomsetting',
+			array(
+				'type'         => 'object',
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'                 => 'object',
+						'properties'           => array(
+							'test1' => array(
+								'type' => 'string',
+							),
+						),
+						'additionalProperties' => array(
+							'type' => 'integer',
+						),
+					),
+				),
+			)
+		);
+
+		$data    = array(
+			'mycustomsetting' => array(
+				'test1' => 'my-string',
+				'test2' => '2',
+				'test3' => 3,
+			),
+		);
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $data ) );
+
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'my-string', $response->data['mycustomsetting']['test1'] );
+		$this->assertSame( 2, $response->data['mycustomsetting']['test2'] );
+		$this->assertSame( 3, $response->data['mycustomsetting']['test3'] );
 	}
 }

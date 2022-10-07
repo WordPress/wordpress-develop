@@ -3297,7 +3297,7 @@ function update_comment_cache( $comments, $update_meta_cache = true ) {
  * Adds any comments from the given IDs to the cache that do not already exist in cache.
  *
  * @since 4.4.0
- * @access private
+ * @since 6.1.0 This function is no longer marked as "private".
  *
  * @see update_comment_cache()
  * @global wpdb $wpdb WordPress database abstraction object.
@@ -3427,10 +3427,10 @@ function _close_comments_for_old_post( $open, $post_id ) {
  */
 function wp_handle_comment_submission( $comment_data ) {
 	$comment_post_id      = 0;
-	$comment_author       = null;
-	$comment_author_email = null;
-	$comment_author_url   = null;
-	$comment_content      = null;
+	$comment_author       = '';
+	$comment_author_email = '';
+	$comment_author_url   = '';
+	$comment_content      = '';
 	$comment_parent       = 0;
 	$user_id              = 0;
 

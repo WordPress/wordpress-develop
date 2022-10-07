@@ -1555,9 +1555,9 @@ if ( is_multisite() ) :
 			$result = wp_update_site( $site_id, array( 'public' => 1 ) );
 			$site3  = get_site( $site_id );
 
-			$this->assertEquals( 1, $site1->public );
-			$this->assertEquals( 0, $site2->public );
-			$this->assertEquals( 1, $site3->public );
+			$this->assertSame( '1', $site1->public );
+			$this->assertSame( '0', $site2->public );
+			$this->assertSame( '1', $site3->public );
 		}
 
 		/**
@@ -2433,7 +2433,7 @@ if ( is_multisite() ) :
 
 			wpmu_create_blog( 'testsite1.example.org', '/new-blog/', 'New Blog', get_current_user_id(), $meta, 1 );
 
-			$this->assertEquals( $expected_meta, $this->wp_initialize_site_meta );
+			$this->assertSameSetsWithIndex( $expected_meta, $this->wp_initialize_site_meta );
 
 			$this->wp_initialize_site_meta = array();
 		}
@@ -2459,7 +2459,7 @@ if ( is_multisite() ) :
 			$new_site_id = $this->_get_next_site_id();
 			$this->assertNull( get_site( $new_site_id ) );
 
-			$new_site = $this->factory()->blog->create_and_get();
+			$new_site = self::factory()->blog->create_and_get();
 
 			// Double-check we got the ID of the new site correct.
 			$this->assertEquals( $new_site_id, $new_site->blog_id );
@@ -2534,8 +2534,8 @@ if ( is_multisite() ) :
 					),
 					array(
 						'public' => 0,
-						'WPLANG' => 'en_US',
 						'foo'    => 'bar',
+						'WPLANG' => 'en_US',
 					),
 				),
 			);

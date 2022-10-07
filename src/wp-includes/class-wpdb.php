@@ -51,6 +51,7 @@ define( 'ARRAY_N', 'ARRAY_N' );
  *
  * @since 0.71
  */
+#[AllowDynamicProperties]
 class wpdb {
 
 	/**
@@ -339,9 +340,18 @@ class wpdb {
 		'signups',
 		'site',
 		'sitemeta',
-		'sitecategories',
 		'registration_log',
 	);
+
+	/**
+	 * List of deprecated WordPress Multisite global tables.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @see wpdb::tables()
+	 * @var string[]
+	 */
+	public $old_ms_global_tables = array( 'sitecategories' );
 
 	/**
 	 * WordPress Comments table.
@@ -1122,11 +1132,13 @@ class wpdb {
 	 * - 'old' - returns tables which are deprecated.
 	 *
 	 * @since 3.0.0
+	 * @since 6.1.0 `old` now includes deprecated multisite global tables only on multisite.
 	 *
 	 * @uses wpdb::$tables
 	 * @uses wpdb::$old_tables
 	 * @uses wpdb::$global_tables
 	 * @uses wpdb::$ms_global_tables
+	 * @uses wpdb::$old_ms_global_tables
 	 *
 	 * @param string $scope   Optional. Possible values include 'all', 'global', 'ms_global', 'blog',
 	 *                        or 'old' tables. Default 'all'.
@@ -1158,6 +1170,9 @@ class wpdb {
 				break;
 			case 'old':
 				$tables = $this->old_tables;
+				if ( is_multisite() ) {
+					$tables = array_merge( $tables, $this->old_ms_global_tables );
+				}
 				break;
 			default:
 				return array();
@@ -3376,12 +3391,21 @@ class wpdb {
 		}
 
 		// If any of the columns don't have one of these collations, it needs more sanity checking.
+		$safe_collations = array(
+			'utf8_bin',
+			'utf8_general_ci',
+			'utf8mb3_bin',
+			'utf8mb3_general_ci',
+			'utf8mb4_bin',
+			'utf8mb4_general_ci',
+		);
+
 		foreach ( $this->col_meta[ $table ] as $col ) {
 			if ( empty( $col->Collation ) ) {
 				continue;
 			}
 
-			if ( ! in_array( $col->Collation, array( 'utf8_general_ci', 'utf8_bin', 'utf8mb4_general_ci', 'utf8mb4_bin' ), true ) ) {
+			if ( ! in_array( $col->Collation, $safe_collations, true ) ) {
 				return false;
 			}
 		}
@@ -3936,17 +3960,27 @@ class wpdb {
 	 * @return bool True when the database feature is supported, false otherwise.
 	 */
 	public function has_cap( $db_cap ) {
-		$version = $this->db_version();
+		$db_version     = $this->db_version();
+		$db_server_info = $this->db_server_info();
+
+		// Account for MariaDB version being prefixed with '5.5.5-' on older PHP versions.
+		if ( '5.5.5' === $db_version && str_contains( $db_server_info, 'MariaDB' )
+			&& PHP_VERSION_ID < 80016 // PHP 8.0.15 or older.
+		) {
+			// Strip the '5.5.5-' prefix and set the version to the correct value.
+			$db_server_info = preg_replace( '/^5\.5\.5-(.*)/', '$1', $db_server_info );
+			$db_version     = preg_replace( '/[^0-9.].*/', '', $db_server_info );
+		}
 
 		switch ( strtolower( $db_cap ) ) {
 			case 'collation':    // @since 2.5.0
 			case 'group_concat': // @since 2.7.0
 			case 'subqueries':   // @since 2.7.0
-				return version_compare( $version, '4.1', '>=' );
+				return version_compare( $db_version, '4.1', '>=' );
 			case 'set_charset':
-				return version_compare( $version, '5.0.7', '>=' );
+				return version_compare( $db_version, '5.0.7', '>=' );
 			case 'utf8mb4':      // @since 4.1.0
-				if ( version_compare( $version, '5.5.3', '<' ) ) {
+				if ( version_compare( $db_version, '5.5.3', '<' ) ) {
 					return false;
 				}
 				if ( $this->use_mysqli ) {
@@ -3966,7 +4000,7 @@ class wpdb {
 					return version_compare( $client_version, '5.5.3', '>=' );
 				}
 			case 'utf8mb4_520': // @since 4.6.0
-				return version_compare( $version, '5.6', '>=' );
+				return version_compare( $db_version, '5.6', '>=' );
 			case 'identifier_placeholders': // @since 6.1.0
 				/*
 				 * As of WordPress 6.1, wpdb::prepare() supports identifiers via '%i',

@@ -877,6 +877,51 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 19954
+	 */
+	function test_updating_a_post_should_not_trash_categories() {
+		// Create a category and attach it to a new post.
+		$term_id = self::factory()->term->create(
+			array(
+				'name'     => 'Term',
+				'taxonomy' => 'category',
+			)
+		);
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'     => 'post',
+				'post_title'    => 'Post with categories',
+				'post_status'   => 'publish',
+				'post_category' => array( $term_id ),
+			)
+		);
+
+		// Validate that the term got assigned.
+		$assigned_terms = wp_get_object_terms( array( $post_id ), array( 'category' ), array() );
+		$this->assertCount( 1, $assigned_terms );
+		$this->assertSame( $term_id, $assigned_terms[0]->term_id );
+
+		// Update the post with no changes.
+		$post = get_post( $post_id );
+		wp_insert_post( $post );
+
+		// Validate the term is still assigned.
+		$assigned_terms = wp_get_object_terms( array( $post_id ), array( 'category' ), array() );
+		$this->assertCount( 1, $assigned_terms );
+		$this->assertSame( $term_id, $assigned_terms[0]->term_id );
+
+		// Remove the term from the post.
+		$post->post_category = array();
+		wp_insert_post( $post );
+		$assigned_terms = wp_get_object_terms( array( $post_id ), array( 'category' ), array() );
+
+		// Validate that the post has had the default category assigned again.
+		$this->assertCount( 1, $assigned_terms );
+		$this->assertEquals( get_option( 'default_category' ), $assigned_terms[0]->term_id );
+	}
+
+	/**
 	 * @ticket 48113
 	 */
 	public function test_insert_post_should_respect_date_floating_post_status_arg() {
@@ -1380,7 +1425,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	public function test_contributor_cannot_set_post_slug( $post_type ) {
 		wp_set_current_user( self::$user_ids['contributor'] );
 
-		$post_id = $this->factory()->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_title'   => 'Jefferson claim: nice to have Washington on your side.',
 				'post_content' => "I’m in the cabinet. I am complicit in watching him grabbin’ at power and kiss it.\n\nIf Washington isn’t gon’ listen to disciplined dissidents, this is the difference: this kid is out!",
@@ -1419,7 +1464,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	public function test_administrator_can_set_post_slug( $post_type ) {
 		wp_set_current_user( self::$user_ids['administrator'] );
 
-		$post_id = $this->factory()->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_title'   => 'What is the Conner Project?',
 				'post_content' => 'Evan Hansen’s last link to his friend Conner is a signature on his broken arm.',
@@ -1460,7 +1505,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	public function test_administrator_cannot_set_post_slug_on_post_type_they_cannot_publish() {
 		wp_set_current_user( self::$user_ids['administrator'] );
 
-		$post_id = $this->factory()->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_title'   => 'Everything is legal in New Jersey',
 				'post_content' => 'Shortly before his death, Philip Hamilton was heard to claim everything was legal in the garden state.',
@@ -1497,7 +1542,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		$now = new DateTimeImmutable( 'now', new DateTimeZone( 'UTC' ) );
 
-		$post_id = $this->factory()->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_date_gmt' => $now->modify( '-1 year' )->format( 'Y-m-d H:i:s' ),
 				'post_status'   => 'future',
@@ -1506,7 +1551,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		$this->assertSame( 'publish', get_post_status( $post_id ) );
 
-		$post_id = $this->factory()->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_date_gmt' => $now->modify( '+50 years' )->format( 'Y-m-d H:i:s' ),
 				'post_status'   => 'future',
