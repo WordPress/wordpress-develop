@@ -3849,11 +3849,11 @@ function wp_get_image_editor( $path, $args = array() ) {
 		}
 	}
 
-	$mime_type = isset( $args['mime_type'] ) ? $args['mime_type'] : "";
+	$mime_type = isset( $args['mime_type'] ) ? $args['mime_type'] : '';
 
 	/** This filter is documented in wp-includes/class-wp-image-editor.php */
 	$output_format = apply_filters( 'image_editor_output_format', array(), $path, $mime_type );
-	if ( "" !== $mime_type && isset( $output_format[ $mime_type ] ) ) {
+	if ( '' !== $mime_type && isset( $output_format[ $mime_type ] ) ) {
 		$args['output_mime_type'] = $output_format[ $mime_type ];
 	}
 
