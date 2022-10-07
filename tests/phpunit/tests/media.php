@@ -3629,9 +3629,6 @@ EOF;
 	 * @ticket 56442
 	 */
 	public function test_quality_with_image_conversion_file_sizes() {
-		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
-			$this->markTestSkipped( 'WebP is not supported on this system.' );
-		}
 		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_jpeg' ) );
 		$temp_dir = get_temp_dir();
 		$file     = $temp_dir . '/33772.jpg';
@@ -3643,7 +3640,7 @@ EOF;
 
 		$editor = wp_get_image_editor( $file );
 
-		// Verify that the selected editor actually supports WebP output, see https://core.trac.wordpress.org/ticket/54476.
+		// Verify that the selected editor supports WebP output.
 		if ( ! $editor->supports_mime_type( 'image/webp' ) ) {
 			$this->markTestSkipped( 'WebP is not supported by the selected image editor.' );
 		}
