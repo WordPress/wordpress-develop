@@ -64,7 +64,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_list_util_pluck
 	 *
-	 * @covers       WP_List_Util::pluck
+	 * @covers WP_List_Util::pluck
 	 * @covers ::wp_list_pluck
 	 */
 	public function test_wp_list_util_pluck( $target_array, $target_key, $expected, $index_key = null ) {
@@ -80,7 +80,9 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @return array[]  data for test_wp_list_util_pluck_simple
+	 * Data provider for test_wp_list_util_pluck_simple().
+	 *
+	 * @return array[]
 	 */
 	public function data_wp_list_util_pluck() {
 		return array(
@@ -284,7 +286,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_list_util_sort
 	 *
-	 * @covers       WP_List_Util::sort
+	 * @covers WP_List_Util::sort
 	 * @covers ::wp_list_sort
 	 */
 	public function test_wp_list_util_sort( $expected, $target_array, $orderby = array(), $order = 'ASC', $preserve_keys = false ) {
@@ -294,11 +296,15 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 
 		$this->assertEqualSetsWithIndex( $expected, $actual );
 		$this->assertEqualSetsWithIndex( $expected, $util->get_output(), 'output failed' );
-		// test wrapper in functions.php
+
 		$this->assertEqualSetsWithIndex( $expected, wp_list_sort( $target_array, $orderby, $order, $preserve_keys ) );
 	}
 
-
+	/**
+	 * Data provider for test_wp_list_util_sort().
+	 *
+	 * @return array[]
+	 */
 	public function data_wp_list_util_sort() {
 		return array(
 			'default'                    => array(
