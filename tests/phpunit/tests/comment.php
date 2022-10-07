@@ -179,7 +179,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	public function test_wp_update_comment_is_wp_error() {
 		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
 
-		add_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ), 10, 3 );
+		add_filter( 'wp_update_comment_data', array( $this, 'wp_update_comment_data_filter' ), 10, 3 );
 
 		$result = wp_update_comment(
 			array(
@@ -189,7 +189,7 @@ class Tests_Comment extends WP_UnitTestCase {
 			true
 		);
 
-		remove_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ), 10, 3 );
+		remove_filter( 'wp_update_comment_data', array( $this, 'wp_update_comment_data_filter' ), 10, 3 );
 
 		$this->assertWPError( $result );
 	}
@@ -197,7 +197,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * Blocks comments from being updated by returning WP_Error.
 	 */
-	public function _wp_update_comment_data_filter( $data, $comment, $commentarr ) {
+	public function wp_update_comment_data_filter( $data, $comment, $commentarr ) {
 		return new WP_Error( 'comment_wrong', 'wp_update_comment_data filter fails for this comment.', 500 );
 	}
 

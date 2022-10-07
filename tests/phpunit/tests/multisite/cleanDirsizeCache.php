@@ -15,7 +15,7 @@ if ( is_multisite() ) :
 		 *
 		 * @ticket 19879
 		 */
-		function test_get_dirsize_cache_in_recurse_dirsize_mock() {
+		public function test_get_dirsize_cache_in_recurse_dirsize_mock() {
 			$blog_id = self::factory()->blog->create();
 			switch_to_blog( $blog_id );
 
@@ -34,7 +34,7 @@ if ( is_multisite() ) :
 			delete_transient( 'dirsize_cache' );
 
 			// Set the dirsize cache to our mock.
-			set_transient( 'dirsize_cache', $this->_get_mock_dirsize_cache_for_site( $blog_id ) );
+			set_transient( 'dirsize_cache', $this->get_mock_dirsize_cache_for_site( $blog_id ) );
 
 			$upload_dir = wp_upload_dir();
 
@@ -64,7 +64,7 @@ if ( is_multisite() ) :
 		 *
 		 * @ticket 19879
 		 */
-		function test_clean_dirsize_cache_file_input_mock() {
+		public function test_clean_dirsize_cache_file_input_mock() {
 			$blog_id = self::factory()->blog->create();
 			switch_to_blog( $blog_id );
 
@@ -86,7 +86,7 @@ if ( is_multisite() ) :
 			delete_transient( 'dirsize_cache' );
 
 			// Set the dirsize cache to our mock.
-			set_transient( 'dirsize_cache', $this->_get_mock_dirsize_cache_for_site( $blog_id ) );
+			set_transient( 'dirsize_cache', $this->get_mock_dirsize_cache_for_site( $blog_id ) );
 
 			$this->assertArrayHasKey( $cache_key_prefix . '/1/1', get_transient( 'dirsize_cache' ) );
 			$this->assertArrayHasKey( $cache_key_prefix . '/2/1', get_transient( 'dirsize_cache' ) );
@@ -112,7 +112,7 @@ if ( is_multisite() ) :
 		 *
 		 * @ticket 19879
 		 */
-		function test_clean_dirsize_cache_folder_input_mock() {
+		public function test_clean_dirsize_cache_folder_input_mock() {
 			$blog_id = self::factory()->blog->create();
 			switch_to_blog( $blog_id );
 
@@ -134,7 +134,7 @@ if ( is_multisite() ) :
 			delete_transient( 'dirsize_cache' );
 
 			// Set the dirsize cache to our mock.
-			set_transient( 'dirsize_cache', $this->_get_mock_dirsize_cache_for_site( $blog_id ) );
+			set_transient( 'dirsize_cache', $this->get_mock_dirsize_cache_for_site( $blog_id ) );
 
 			$this->assertArrayHasKey( $cache_key_prefix . '/1/1', get_transient( 'dirsize_cache' ) );
 			$this->assertArrayHasKey( $cache_key_prefix . '/2/1', get_transient( 'dirsize_cache' ) );
@@ -160,7 +160,7 @@ if ( is_multisite() ) :
 		 *
 		 * @ticket 19879
 		 */
-		function test_get_dirsize_cache_in_recurse_dirsize_upload() {
+		public function test_get_dirsize_cache_in_recurse_dirsize_upload() {
 			$blog_id = self::factory()->blog->create();
 			switch_to_blog( $blog_id );
 
@@ -206,20 +206,20 @@ if ( is_multisite() ) :
 		 *
 		 * @ticket 19879
 		 */
-		function test_pre_recurse_dirsize_filter() {
-			add_filter( 'pre_recurse_dirsize', array( $this, '_filter_pre_recurse_dirsize' ) );
+		public function test_pre_recurse_dirsize_filter() {
+			add_filter( 'pre_recurse_dirsize', array( $this, 'filter_pre_recurse_dirsize' ) );
 
 			$upload_dir = wp_upload_dir();
 			$this->assertSame( 1042, recurse_dirsize( $upload_dir['path'] ) );
 
-			remove_filter( 'pre_recurse_dirsize', array( $this, '_filter_pre_recurse_dirsize' ) );
+			remove_filter( 'pre_recurse_dirsize', array( $this, 'filter_pre_recurse_dirsize' ) );
 		}
 
-		function _filter_pre_recurse_dirsize() {
+		public function filter_pre_recurse_dirsize() {
 			return 1042;
 		}
 
-		function _get_mock_dirsize_cache_for_site( $site_id ) {
+		private function get_mock_dirsize_cache_for_site( $site_id ) {
 			$prefix = wp_upload_dir()['basedir'];
 
 			return array(
@@ -239,7 +239,7 @@ if ( is_multisite() ) :
 		 *
 		 * @ticket 51913
 		 */
-		function test_5_5_transient_structure_compat() {
+		public function test_5_5_transient_structure_compat() {
 			$blog_id = self::factory()->blog->create();
 			switch_to_blog( $blog_id );
 
@@ -258,7 +258,7 @@ if ( is_multisite() ) :
 			delete_transient( 'dirsize_cache' );
 
 			// Set the dirsize cache to our mock.
-			set_transient( 'dirsize_cache', $this->_get_mock_5_5_dirsize_cache( $blog_id ) );
+			set_transient( 'dirsize_cache', $this->get_mock_5_5_dirsize_cache( $blog_id ) );
 
 			$upload_dir = wp_upload_dir();
 
@@ -281,7 +281,7 @@ if ( is_multisite() ) :
 			delete_transient( 'dirsize_cache' );
 
 			// Set the dirsize cache to our mock.
-			set_transient( 'dirsize_cache', $this->_get_mock_5_5_dirsize_cache( $blog_id ) );
+			set_transient( 'dirsize_cache', $this->get_mock_5_5_dirsize_cache( $blog_id ) );
 
 			/*
 			 * Now that the folder exists, the old cached value should be overwritten
@@ -300,7 +300,7 @@ if ( is_multisite() ) :
 			restore_current_blog();
 		}
 
-		function _get_mock_5_5_dirsize_cache( $site_id ) {
+		private function get_mock_5_5_dirsize_cache( $site_id ) {
 			$prefix = untrailingslashit( wp_upload_dir()['basedir'] );
 
 			return array(

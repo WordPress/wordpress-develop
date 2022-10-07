@@ -151,7 +151,10 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey( self::$themes_route, $routes );
-		$this->assertArrayHasKey( self::$themes_route . '/(?P<stylesheet>[\\w-]+)', $routes );
+		$this->assertArrayHasKey(
+			sprintf( '%s/(?P<stylesheet>%s)', self::$themes_route, WP_REST_Themes_Controller::PATTERN ),
+			$routes
+		);
 	}
 
 	/**
@@ -1279,6 +1282,42 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 54349
+	 */
+	public function test_get_item_subdirectory_theme() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', self::$themes_route . '/subdir/theme2' );
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'My Subdir Theme', $response->get_data()['name']['raw'] );
+	}
+
+	/**
+	 * @ticket 54349
+	 */
+	public function test_can_support_further_routes() {
+		register_rest_route(
+			'wp/v2',
+			sprintf( '/themes/(?P<stylesheet>%s)//test', WP_REST_Themes_Controller::PATTERN ),
+			array(
+				'callback'            => function ( WP_REST_Request $request ) {
+					return $request['stylesheet'];
+				},
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		wp_set_current_user( self::$admin_id );
+
+		$response = rest_do_request( self::$themes_route . '/default//test' );
+		$this->assertSame( 'default', $response->get_data() );
+
+		$response = rest_do_request( self::$themes_route . '/subdir/theme2//test' );
+		$this->assertSame( 'subdir/theme2', $response->get_data() );
 	}
 
 	/**

@@ -4,7 +4,7 @@
  * @group formatting
  */
 class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
-	function data_sanitize_text_field() {
+	public function data_sanitize_text_field() {
 		return array(
 			array(
 				'оРангутанг', // Ensure UTF-8 text is safe. The Р is D0 A0 and A0 is the non-breaking space.
@@ -128,7 +128,7 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 	 * @ticket 32257
 	 * @dataProvider data_sanitize_text_field
 	 */
-	function test_sanitize_text_field( $string, $expected ) {
+	public function test_sanitize_text_field( $string, $expected ) {
 		if ( is_array( $expected ) ) {
 			$expected_oneline   = $expected['oneline'];
 			$expected_multiline = $expected['multiline'];

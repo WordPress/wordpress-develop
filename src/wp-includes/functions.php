@@ -2635,6 +2635,7 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 		// Check if an image will be converted after uploading or some existing images sub-sizes file names may conflict
 		// when regenerated. If yes, ensure the new file name will be unique and will produce unique sub-sizes.
 		if ( $is_image ) {
+			/** This filter is documented in wp-includes/class-wp-image-editor.php */
 			$output_formats = apply_filters( 'image_editor_output_format', array(), $_dir . $filename, $mime_type );
 			$alt_types      = array();
 
@@ -2808,7 +2809,7 @@ function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 
 	$wp_filetype = wp_check_filetype( $name );
 	if ( ! $wp_filetype['ext'] && ! current_user_can( 'unfiltered_upload' ) ) {
-		return array( 'error' => __( 'Sorry, this file type is not permitted for security reasons.' ) );
+		return array( 'error' => __( 'Sorry, you are not allowed to upload this file type.' ) );
 	}
 
 	$upload = wp_upload_dir( $time );

@@ -94,7 +94,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * @param array $allcaps An array of all the user's capabilities.
 	 * @return array All caps.
 	 */
-	function filter_user_has_cap( $allcaps ) {
+	public function filter_user_has_cap( $allcaps ) {
 		$allcaps = array_merge( $allcaps, $this->overridden_caps );
 		return $allcaps;
 	}
@@ -105,7 +105,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * @ticket 30937
 	 * @covers WP_Customize_Manager::save
 	 */
-	function test_save_failures() {
+	public function test_save_failures() {
 		global $wp_customize;
 		$wp_customize = new WP_Customize_Manager();
 		$wp_customize->register_controls();
@@ -272,7 +272,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * @ticket 30937
 	 * @covers WP_Customize_Manager::save
 	 */
-	function test_save_success_publish_create() {
+	public function test_save_success_publish_create() {
 		$wp_customize = $this->set_up_valid_state();
 
 		$_POST['customize_changeset_status'] = 'publish';
@@ -301,7 +301,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * @ticket 30937
 	 * @covers WP_Customize_Manager::save
 	 */
-	function test_save_success_publish_edit() {
+	public function test_save_success_publish_edit() {
 		$uuid = wp_generate_uuid4();
 
 		$post_id      = $this->factory()->post->create(
@@ -340,7 +340,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * @ticket 38943
 	 * @covers WP_Customize_Manager::save
 	 */
-	function test_success_save_post_date() {
+	public function test_success_save_post_date() {
 		$uuid         = wp_generate_uuid4();
 		$post_id      = $this->factory()->post->create(
 			array(

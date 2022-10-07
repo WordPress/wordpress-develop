@@ -1278,7 +1278,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		}
 	}
 
-	function get_illegal_user_logins() {
+	public function get_illegal_user_logins() {
 		return array( 'nope' );
 	}
 

@@ -4,7 +4,7 @@
  * @group formatting
  */
 class Tests_Formatting_IsEmail extends WP_UnitTestCase {
-	function test_returns_the_email_address_if_it_is_valid() {
+	public function test_returns_the_email_address_if_it_is_valid() {
 		$data = array(
 			'bob@example.com',
 			'phil@example.info',
@@ -18,7 +18,7 @@ class Tests_Formatting_IsEmail extends WP_UnitTestCase {
 		}
 	}
 
-	function test_returns_false_if_given_an_invalid_email_address() {
+	public function test_returns_false_if_given_an_invalid_email_address() {
 		$data = array(
 			'khaaaaaaaaaaaaaaan!',
 			'http://bob.example.com/',

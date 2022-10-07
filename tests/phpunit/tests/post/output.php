@@ -8,19 +8,19 @@
  */
 class Tests_Post_Output extends WP_UnitTestCase {
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
-		add_shortcode( 'dumptag', array( $this, '_shortcode_dumptag' ) );
-		add_shortcode( 'paragraph', array( $this, '_shortcode_paragraph' ) );
+		add_shortcode( 'dumptag', array( $this, 'shortcode_dumptag' ) );
+		add_shortcode( 'paragraph', array( $this, 'shortcode_paragraph' ) );
 	}
 
-	function tear_down() {
+	public function tear_down() {
 		global $shortcode_tags;
 		unset( $shortcode_tags['dumptag'], $shortcode_tags['paragraph'] );
 		parent::tear_down();
 	}
 
-	function _shortcode_dumptag( $atts ) {
+	public function shortcode_dumptag( $atts ) {
 		$out = '';
 		foreach ( $atts as $k => $v ) {
 			$out .= "$k = $v\n";
@@ -28,7 +28,7 @@ class Tests_Post_Output extends WP_UnitTestCase {
 		return $out;
 	}
 
-	function _shortcode_paragraph( $atts, $content ) {
+	public function shortcode_paragraph( $atts, $content ) {
 		$processed_atts = shortcode_atts(
 			array(
 				'class' => 'graf',
@@ -39,7 +39,7 @@ class Tests_Post_Output extends WP_UnitTestCase {
 		return "<p class='{$processed_atts['class']}'>$content</p>\n";
 	}
 
-	function test_the_content() {
+	public function test_the_content() {
 		$post_content = <<<EOF
 <i>This is the excerpt.</i>
 <!--more-->
@@ -62,7 +62,7 @@ EOF;
 		$this->assertSame( strip_ws( $expected ), strip_ws( get_echo( 'the_content' ) ) );
 	}
 
-	function test_the_content_shortcode() {
+	public function test_the_content_shortcode() {
 		$post_content = <<<EOF
 [dumptag foo="bar" baz="123"]
 
@@ -90,7 +90,7 @@ EOF;
 		$this->assertSame( strip_ws( $expected ), strip_ws( get_echo( 'the_content' ) ) );
 	}
 
-	function test_the_content_shortcode_paragraph() {
+	public function test_the_content_shortcode_paragraph() {
 		$post_content = <<<EOF
 Graf by itself:
 
@@ -128,7 +128,7 @@ EOF;
 		$this->assertSame( strip_ws( $expected ), strip_ws( get_echo( 'the_content' ) ) );
 	}
 
-	function test_the_content_attribute_filtering() {
+	public function test_the_content_attribute_filtering() {
 		kses_init_filters();
 
 		// http://bpr3.org/?p=87
@@ -152,7 +152,7 @@ EOF;
 		kses_remove_filters();
 	}
 
-	function test_the_content_attribute_value_with_colon() {
+	public function test_the_content_attribute_value_with_colon() {
 		kses_init_filters();
 
 		// http://bpr3.org/?p=87

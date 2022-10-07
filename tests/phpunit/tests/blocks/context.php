@@ -77,7 +77,7 @@ class Tests_Blocks_Context extends WP_UnitTestCase {
 	 *
 	 * @ticket 49927
 	 */
-	function test_provides_block_context() {
+	public function test_provides_block_context() {
 		$provided_context = array();
 
 		$this->register_block_type(
@@ -146,7 +146,7 @@ class Tests_Blocks_Context extends WP_UnitTestCase {
 	 *
 	 * @ticket 49927
 	 */
-	function test_provides_default_context() {
+	public function test_provides_default_context() {
 		global $post;
 
 		$provided_context = array();
@@ -181,7 +181,7 @@ class Tests_Blocks_Context extends WP_UnitTestCase {
 	 *
 	 * @ticket 49927
 	 */
-	function test_default_context_is_filterable() {
+	public function test_default_context_is_filterable() {
 		$provided_context = array();
 
 		$this->register_block_type(

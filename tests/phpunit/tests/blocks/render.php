@@ -83,14 +83,14 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 		$this->assertSame( trim( $classic_filtered_content ), trim( $block_filtered_content ) );
 	}
 
-	function handle_shortcode( $atts, $content ) {
+	public function handle_shortcode( $atts, $content ) {
 		return $content;
 	}
 
 	/**
 	 * @ticket 45495
 	 */
-	function test_nested_calls_to_the_content() {
+	public function test_nested_calls_to_the_content() {
 		register_block_type(
 			'core/test',
 			array(
@@ -108,7 +108,7 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 		$this->assertSame( $content, $the_content );
 	}
 
-	function dynamic_the_content_call( $attrs, $content ) {
+	public function dynamic_the_content_call( $attrs, $content ) {
 		apply_filters( 'the_content', '' );
 		return $content;
 	}
