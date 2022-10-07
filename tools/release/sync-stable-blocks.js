@@ -49,8 +49,8 @@ ${ staticBlockFolderNames }
 		.filter( isDynamic )
 		.map( toDirectoryName )
 		.sort()
-		// To PHP require statement:
-		.map( dirname => `require ABSPATH . WPINC . '/blocks/${ dirname }.php';` )
+		// To PHP require_once statement:
+		.map( dirname => `require_once ABSPATH . WPINC . '/blocks/${ dirname }.php';` )
 		.join( "\n" );
 
 	fs.writeFileSync(
