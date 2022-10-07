@@ -182,7 +182,10 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		return false;
 	}
 
-	$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
+	static $wpinc_path_norm = null;
+	if ( null === $wpinc_path_norm ) {
+		$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
+	}
 
 	$is_core_block = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], $wpinc_path_norm );
 	// Skip registering individual styles for each core block when a bundled version provided.
