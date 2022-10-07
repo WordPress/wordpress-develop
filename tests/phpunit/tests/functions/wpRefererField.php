@@ -3,7 +3,7 @@
 /**
  * Tests for the wp_referer_field() function.
  *
- * @since 6.0.0
+ * @since 6.1.0
  *
  * @group functions.php
  * @covers ::wp_referer_field
