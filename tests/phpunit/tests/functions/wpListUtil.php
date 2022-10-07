@@ -506,22 +506,22 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 			),
 			'simple arrays object'       => array(
 				'expected'     => array(
-					array(
+					(object) array(
 						'group' => 2,
 						'id'    => 1,
 						'val'   => 'two one',
 					),
-					array(
+					(object) array(
 						'group' => 2,
 						'id'    => 2,
 						'val'   => 'two two',
 					),
-					array(
+					(object) array(
 						'group' => 1,
 						'id'    => 3,
 						'val'   => 'one three',
 					),
-					array(
+					(object) array(
 						'group' => 1,
 						'id'    => 4,
 						'val'   => 'one four',
@@ -555,22 +555,22 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 			),
 			'simple arrays multi object' => array(
 				'expected'     => array(
-					array(
+					(object) array(
 						'group' => 1,
 						'id'    => 4,
 						'val'   => 'one four',
 					),
-					array(
+					(object) array(
 						'group' => 1,
 						'id'    => 3,
 						'val'   => 'one three',
 					),
-					array(
+					(object) array(
 						'group' => 2,
 						'id'    => 2,
 						'val'   => 'two two',
 					),
-					array(
+					(object) array(
 						'group' => 2,
 						'id'    => 1,
 						'val'   => 'two one',
