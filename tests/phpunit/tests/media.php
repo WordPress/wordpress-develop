@@ -3644,10 +3644,9 @@ EOF;
 		$editor = wp_get_image_editor( $file );
 
 		$attachment_id = self::factory()->attachment->create_object(
-			$file,
-			0,
 			array(
 				'post_mime_type' => 'image/jpeg',
+				'file'           => $file,
 			)
 		);
 
