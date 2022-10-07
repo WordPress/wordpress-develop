@@ -98,168 +98,19 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 */
 	public function data_wp_list_util_pluck() {
 		return array(
-			'simple'                 => array(
+			'simple'        => array(
 				'target_array' => array(
 					0 => array( 'foo' => 'bar' ),
 				),
 				'target_key'   => 'foo',
 				'expected'     => array( 'bar' ),
 			),
-			'simple_object'          => array(
+			'simple_object' => array(
 				'target_array' => array(
 					0 => (object) array( 'foo' => 'bar' ),
 				),
 				'target_key'   => 'foo',
 				'expected'     => array( 'bar' ),
-			),
-			'not_found'              => array(
-				'target_array' => array(
-					0 => array( 'foo' => 'bar' ),
-				),
-				'target_key'   => 'not_found',
-				'expected'     => array(),
-			),
-			'not_found_object'       => array(
-				'target_array' => array(
-					0 => (object) array( 'foo' => 'bar' ),
-				),
-				'target_key'   => 'not_found',
-				'expected'     => array(),
-			),
-			'complex'                => array(
-				'target_array' => array(
-					'foo' => array( 'foo' => 'bar' ),
-					1     => array(
-						'foo' => 'bar',
-						'bar' => 'baz',
-					),
-					2     => array( 'bar' => 'baz' ),
-				),
-				'target_key'   => 'foo',
-				'expected'     => array(
-					'foo' => 'bar',
-					1     => 'bar',
-				),
-			),
-			'complex_object'         => array(
-				'target_array' => array(
-					'foo' => (object) array( 'foo' => 'bar' ),
-					1     => (object) array(
-						'foo' => 'bar',
-						'bar' => 'baz',
-					),
-					2     => (object) array( 'bar' => 'baz' ),
-				),
-				'target_key'   => 'foo',
-				'expected'     => array(
-					'foo' => 'bar',
-					1     => 'bar',
-				),
-			),
-			'index_not_found'        => array(
-				'target_array' => array(
-					'bar' => array(
-						'foo' => 'bar',
-						'bar' => 'baz',
-					),
-					'ddd' => array(
-						'foo'   => 'bar2',
-						'bar2i' => array(
-							'foo' => 'bar3',
-							'bar' => 'baz',
-						),
-					),
-					'xxx' => array( 'bar' => 'baz2' ),
-				),
-				'target_key'   => 'bar',
-				'expected'     => array( 'baz', 'baz2' ),
-				'index_key'    => 'id',
-			),
-			'index_not_found_object' => array(
-				'target_array' => array(
-					'bar' => (object) array(
-						'foo' => 'bar',
-						'bar' => 'baz',
-					),
-					'ddd' => (object) array(
-						'foo'   => 'bar2',
-						'bar2i' => array(
-							'foo' => 'bar3',
-							'bar' => 'baz',
-						),
-					),
-					'xxx' => (object) array( 'bar' => 'baz2' ),
-				),
-				'target_key'   => 'bar',
-				'expected'     => array( 'baz', 'baz2' ),
-				'index_key'    => 'id',
-			),
-			'index_id'               => array(
-				'target_array' => array(
-					'bar' => array(
-						'foo' => 'bar',
-						'bar' => 'baz',
-						'id'  => 'id_1',
-					),
-					'ddd' => array(
-						'foo'   => 'bar2',
-						'bar2i' => array(
-							'foo' => 'bar3',
-							'bar' => 'baz',
-						),
-						'id'    => 'id_2',
-					),
-					'xxx' => array(
-						'bar' => 'baz2',
-						'id'  => 'id_3',
-					),
-					(object) array(
-						'bar' => 'no id',
-					),
-				),
-				'target_key'   => 'bar',
-				'expected'     => array(
-					'id_1' => 'baz',
-					'id_3' => 'baz2',
-					0      => 'no id',
-				),
-				'index_key'    => 'id',
-			),
-			'index_id_object'        => array(
-				'target_array' => array(
-					'bar' => (object) array(
-						'foo' => 'bar',
-						'bar' => 'baz',
-						'id'  => 'id_1',
-					),
-					'ddd' => (object) array(
-						'foo'   => 'bar2',
-						'bar2i' => array(
-							'foo' => 'bar3',
-							'bar' => 'baz',
-						),
-						'id'    => 'id_2',
-					),
-					'xxx' => (object) array(
-						'bar' => 'baz2',
-						'id'  => 'id_3',
-					),
-					(object) array(
-						'bar' => 'no id',
-					),
-				),
-				'target_key'   => 'bar',
-				'expected'     => array(
-					'id_1' => 'baz',
-					'id_3' => 'baz2',
-					0      => 'no id',
-				),
-				'index_key'    => 'id',
-			),
-			'not_array_passed'       => array(
-				'target_array' => 'I am a string',
-				'target_key'   => 'foo',
-				'expected'     => array(),
 			),
 		);
 	}
