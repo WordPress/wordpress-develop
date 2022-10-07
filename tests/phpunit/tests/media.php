@@ -3668,7 +3668,7 @@ EOF;
 		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_webp' ) );
 
 		// The main (scaled) image: the JPEG should be smaller than the WebP.
-		$this->assertLessThan( $webp_sizes['filesize'], $jpeg_sizes['filesize'] );
+		$this->assertLessThan( $webp_sizes['filesize'], $jpeg_sizes['filesize'], 'The JPEG should be smaller than the WebP.' );
 
 		// Sub-sizes: for each size, the JPEGs should be smaller than the WebP.
 		$sizes_to_compare = array_intersect_key( $jpeg_sizes['sizes'], $webp_sizes['sizes'] );
