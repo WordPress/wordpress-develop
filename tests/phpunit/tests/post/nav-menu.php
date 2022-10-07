@@ -295,10 +295,10 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		$action = new MockAction();
 		add_filter( 'update_post_metadata_cache', array( $action, 'filter' ), 10, 2 );
 
-		$num_queries = get_num_queries();
+		$start_num_queries = get_num_queries();
 		wp_get_nav_menu_items( $this->menu_id );
-
-		$this->assertSame( $num_queries + 7, get_num_queries(), 'Only does 7 database queries when running wp_get_nav_menu_items.' );
+		$queries_made = get_num_queries() - $start_num_queries;
+		$this->assertSame( 7, $queries_made, 'Only does 7 database queries when running wp_get_nav_menu_items.' );
 
 		$args = $action->get_args();
 		$this->assertSameSets( $menu_nav_ids, $args[0][1], '_prime_post_caches() was not executed.' );
@@ -336,10 +336,10 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		$action_posts = new MockAction();
 		add_filter( 'update_post_metadata_cache', array( $action_posts, 'filter' ), 10, 2 );
 
-		$num_queries = get_num_queries();
+		$start_num_queries = get_num_queries();
 		wp_get_nav_menu_items( $this->menu_id );
-
-		$this->assertSame( $num_queries + 7, get_num_queries(), 'Only does 7 database queries when running wp_get_nav_menu_items.' );
+		$queries_made = get_num_queries() - $start_num_queries;
+		$this->assertSame( 7, $queries_made, 'Only does 7 database queries when running wp_get_nav_menu_items.' );
 
 		$args = $action_terms->get_args();
 		$last = end( $args );
