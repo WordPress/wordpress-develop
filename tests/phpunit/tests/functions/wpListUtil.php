@@ -289,8 +289,6 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 
 		$this->assertEqualSets( $expected, $actual );
 		$this->assertEqualSets( $expected, $util->get_output(), 'output failed' );
-		// test wrapper in functions.php
-//		$this->assertEqualSets( $expected, wp_list_sort( $target_array ) );
 	}
 
 	/**
