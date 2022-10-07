@@ -338,11 +338,11 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 					1 => 'one',
 				),
 			),
-			'default_no_keys'            => array(
+			'default no keys'            => array(
 				'expected'     => array( 'four', 'two', 'three', 'one' ),
 				'target_array' => array( 'four', 'two', 'three', 'one' ),
 			),
-			'default_int'                => array(
+			'default int'                => array(
 				'expected'     => array(
 					1 => 1,
 					2 => 2,
@@ -371,7 +371,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 				),
 				'orderby'      => 'DESC',
 			),
-			'Empty_by_DESC'              => array(
+			'empty by DESC'              => array(
 				'expected'     => array(
 					4 => 'four',
 					3 => 'three',
@@ -387,7 +387,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 				'orderby'      => array(),
 				'order'        => 'DESC',
 			),
-			'simple_arrays'              => array(
+			'simple arrays'              => array(
 				'expected'     => array(
 					array(
 						'id'  => 1,
@@ -426,7 +426,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 				),
 				'orderby'      => array( 'id' ),
 			),
-			'simple_arrays_ASC'          => array(
+			'simple arrays ASC'          => array(
 				'expected'     => array(
 					array(
 						'id'  => 1,
@@ -465,7 +465,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 				),
 				'orderby'      => array( 'id' => 'asc' ),
 			),
-			'simple_arrays_DESC'         => array(
+			'simple arrays DESC'         => array(
 				'expected'     => array(
 					array(
 						'id'  => 4,
@@ -504,7 +504,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 				),
 				'orderby'      => array( 'id' => 'desc' ),
 			),
-			'simple_arrays_object'       => array(
+			'simple arrays object'       => array(
 				'expected'     => array(
 					array(
 						'group' => 2,
@@ -553,7 +553,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 					'id' => 'asc',
 				),
 			),
-			'simple_arrays_multi_object' => array(
+			'simple arrays multi object' => array(
 				'expected'     => array(
 					array(
 						'group' => 1,
@@ -603,7 +603,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 					'id'    => 'desc',
 				),
 			),
-			'simple_arrays_ASC'          => array(
+			'simple arrays ASC'          => array(
 				'expected'     => array(
 					'key1' => array(
 						'id'  => 1,
