@@ -49,6 +49,9 @@ class WP_List_Util {
 	 * @param array $input Array to perform operations on.
 	 */
 	public function __construct( $input ) {
+		if ( ! is_array( $input ) ) {
+			$input = array( $input );
+		}
 		$this->output = $input;
 		$this->input  = $input;
 	}
@@ -164,9 +167,9 @@ class WP_List_Util {
 			 * if we knew we had an array of arrays.
 			 */
 			foreach ( $this->output as $key => $value ) {
-				if ( is_object( $value ) ) {
+				if ( is_object( $value ) && isset( $value->$field ) ) {
 					$newlist[ $key ] = $value->$field;
-				} else {
+				} elseif ( is_array( $value ) && isset( $value[ $field ] ) ) {
 					$newlist[ $key ] = $value[ $field ];
 				}
 			}
@@ -181,13 +184,13 @@ class WP_List_Util {
 		 * to the end of the stack. This is how array_column() behaves.
 		 */
 		foreach ( $this->output as $value ) {
-			if ( is_object( $value ) ) {
+			if ( is_object( $value ) && isset( $value->$field ) ) {
 				if ( isset( $value->$index_key ) ) {
 					$newlist[ $value->$index_key ] = $value->$field;
 				} else {
 					$newlist[] = $value->$field;
 				}
-			} else {
+			} elseif ( is_array( $value ) && isset( $value[ $field ] ) ) {
 				if ( isset( $value[ $index_key ] ) ) {
 					$newlist[ $value[ $index_key ] ] = $value[ $field ];
 				} else {
