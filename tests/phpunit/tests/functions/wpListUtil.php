@@ -67,9 +67,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 * @param string $index_key    Optional. Field from the element to use as keys for the new array. Default null.
 	 */
 	public function test_wp_list_util_pluck( $target_array, $target_key, $expected, $index_key = null ) {
-
-		$util = new WP_List_Util( $target_array );
-
+		$util   = new WP_List_Util( $target_array );
 		$actual = $util->pluck( $target_key, $index_key );
 
 		$this->assertEqualSetsWithIndex(
@@ -137,6 +135,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 			$actual,
 			'The sorted value did not match the expected value.'
 		);
+
 		$this->assertEqualSets(
 			$expected,
 			$util->get_output(),
@@ -171,6 +170,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 			$actual,
 			'The sorted value did not match the expected value.'
 		);
+
 		$this->assertEqualSetsWithIndex(
 			$expected,
 			$util->get_output(),
@@ -938,7 +938,6 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 			),
 		);
 	}
-
 
 	/**
 	 * Tests non-existent '$orderby' fields.
