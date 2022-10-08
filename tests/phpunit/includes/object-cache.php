@@ -43,16 +43,16 @@ function wp_cache_add_by_key( $server_key, $key, $value, $group = '', $expiratio
 /**
  * Adds multiple values to the cache in one call, if the cache keys don't already exist.
  *
- * @param array  $data   Array of keys and values to be added.
- * @param string $group  Optional. Where the cache contents are grouped. Default empty.
- * @param int    $expire Optional. When to expire the cache contents, in seconds.
- *                       Default 0 (no expiration).
+ * @param array  $items      Array of keys and values to be added.
+ * @param string $group      Optional. Where the cache contents are grouped. Default empty.
+ * @param int    $expiration Optional. When to expire the cache contents, in seconds.
+ *                           Default 0 (no expiration).
  * @return bool[] Array of return values, grouped by key. Each value is either
  *                true on success, or false if cache key and group already exist.
  */
-function wp_cache_add_multiple( array $data, $group = '', $expire = 0 ) {
+function wp_cache_add_multiple( array $items, $group = '', $expiration = 0 ) {
 	global $wp_object_cache;
-	return $wp_object_cache->addMultiple( $data, $group, $expire );
+	return $wp_object_cache->addMultiple( $items, $group, $expiration );
 }
 
 /**
@@ -767,16 +767,16 @@ function wp_cache_set_multi_by_key( $server_key, $items, $groups = 'default', $e
  *
  * Differs from wp_cache_add_multiple() in that it will always write data.
  *
- * @param array  $data   Array of keys and values to be set.
- * @param string $group  Optional. Where the cache contents are grouped. Default empty.
- * @param int    $expire Optional. When to expire the cache contents, in seconds.
- *                       Default 0 (no expiration).
+ * @param array  $items      Array of keys and values to be set.
+ * @param string $group      Optional. Where the cache contents are grouped. Default empty.
+ * @param int    $expiration Optional. When to expire the cache contents, in seconds.
+ *                           Default 0 (no expiration).
  * @return bool[] Array of return values, grouped by key. Each value is either
  *                true on success, or false on failure.
  */
-function wp_cache_set_multiple( array $data, $group = '', $expire = 0 ) {
+function wp_cache_set_multiple( array $items, $group = '', $expiration = 0 ) {
 	global $wp_object_cache;
-	return $wp_object_cache->setMultiple( $data, $group, $expire );
+	return $wp_object_cache->setMultiple( $items, $group, $expiration );
 }
 
 /**
@@ -1019,17 +1019,18 @@ class WP_Object_Cache {
 	/**
 	 * Adds multiple values to cache.
 	 *
-	 * @param array $data   Array of keys and values to be added.
-	 * @param string $group Optional. Where the cache contents are grouped. Default empty.
-	 * @param int $expire   Optional. When to expire the cache contents, in seconds.
-	 *                      Default 0 (no expiration).
-	 * @return bool[]       Array of return values, grouped by key. Each value is either
-	 *                      true on success, or false if cache key and group already exist.
+	 * @param array  $items      Array of keys and values to be added.
+	 * @param string $group      Optional. Where the cache contents are grouped. Default empty.
+	 * @param int    $expiration Optional. When to expire the cache contents, in seconds.
+	 *                           Default 0 (no expiration).
+	 * @return bool[] Array of return values, grouped by key. Each value is either
+	 *                true on success, or false if cache key and group already exist.
 	 */
-	public function addMultiple( array $data, $group = '', $expire = 0 ) {
+	public function addMultiple( array $items, $group = '', $expiration = 0 ) {
 		$values = array();
-		foreach ( $data as $key => $value ) {
-			$values[ $key ] = $this->add( $key, $value, $group, $expire );
+
+		foreach ( $items as $key => $value ) {
+			$values[ $key ] = $this->add( $key, $value, $group, $expiration );
 		}
 
 		return $values;
@@ -1341,13 +1342,14 @@ class WP_Object_Cache {
 	/**
 	 * Removes multiple items from the cache.
 	 *
-	 * @param array $keys   Array of keys under which the cache to deleted.
+	 * @param array  $keys  Array of keys under which the cache to deleted.
 	 * @param string $group Optional. Where the cache contents are grouped. Default empty.
-	 * @return bool[]       Array of return values, grouped by key. Each value is either
-	 *                      true on success, or false if the contents were not deleted.
+	 * @return bool[] Array of return values, grouped by key. Each value is either
+	 *                true on success, or false if the contents were not deleted.
 	 */
 	public function deleteMultiple( $keys, $group ) {
 		$values = array();
+
 		foreach ( $keys as $key ) {
 			$values[ $key ] = $this->delete( $key, $group );
 		}
@@ -1460,15 +1462,16 @@ class WP_Object_Cache {
 	/**
 	 * Get multiple items from the cache.
 	 *
-	 * @param array $keys   Array of keys under which the cache contents are stored.
+	 * @param array  $keys  Array of keys under which the cache contents are stored.
 	 * @param string $group Optional. Where the cache contents are grouped. Default empty.
-	 * @param bool $force   Optional. Whether to force an update of the local cache
+	 * @param bool   $force Optional. Whether to force an update of the local cache
 	 *                      from the persistent cache. Default false.
-	 * @return array        Array of return values, grouped by key. Each value is either
-	 *                      the cache contents on success, or false on failure.
+	 * @return array Array of return values, grouped by key. Each value is either
+	 *               the cache contents on success, or false on failure.
 	 */
 	public function get_multiple( $keys, $group = '', $force = false ) {
 		$values = array();
+
 		foreach ( $keys as $key ) {
 			$found          = null;
 			$value          = $this->get( $key, $group, $force, $found );
@@ -2072,17 +2075,18 @@ class WP_Object_Cache {
 	/**
 	 * Sets multiple values in cache.
 	 *
-	 * @param array $data   Array of keys and values to be set.
-	 * @param string $group Optional. Where the cache contents are grouped. Default empty.
-	 * @param int $expire   Optional. When to expire the cache contents, in seconds.
-	 *                      Default 0 (no expiration).
-	 * @return bool[]       Array of return values, grouped by key. Each value is either
-	 *                      true on success, or false on failure.
+	 * @param array  $items      Array of keys and values to be set.
+	 * @param string $group      Optional. Where the cache contents are grouped. Default empty.
+	 * @param int    $expiration Optional. When to expire the cache contents, in seconds.
+	 *                           Default 0 (no expiration).
+	 * @return bool[] Array of return values, grouped by key. Each value is either
+	 *                true on success, or false on failure.
 	 */
-	public function setMultiple( array $data, $group = '', $expire = 0 ) {
+	public function setMultiple( array $items, $group = '', $expiration = 0 ) {
 		$values = array();
-		foreach ( $data as $key => $value ) {
-			$values[ $key ] = $this->set( $key, $value, $group, $expire );
+
+		foreach ( $items as $key => $value ) {
+			$values[ $key ] = $this->set( $key, $value, $group, $expiration );
 		}
 
 		return $values;
