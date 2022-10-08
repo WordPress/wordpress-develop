@@ -1460,28 +1460,6 @@ class WP_Object_Cache {
 	}
 
 	/**
-	 * Get multiple items from the cache.
-	 *
-	 * @param array  $keys  Array of keys under which the cache contents are stored.
-	 * @param string $group Optional. Where the cache contents are grouped. Default empty.
-	 * @param bool   $force Optional. Whether to force an update of the local cache
-	 *                      from the persistent cache. Default false.
-	 * @return array Array of return values, grouped by key. Each value is either
-	 *               the cache contents on success, or false on failure.
-	 */
-	public function getMultiple( $keys, $group = '', $force = false ) {
-		$values = array();
-
-		foreach ( $keys as $key ) {
-			$found          = null;
-			$value          = $this->get( $key, $group, $force, $found );
-			$values[ $key ] = $found ? $value : false;
-		}
-
-		return $values;
-	}
-
-	/**
 	 * Retrieves object from cache from specified server.
 	 *
 	 * Gets an object from cache based on $key and $group, and $server_key. In order to fully support
@@ -1654,6 +1632,28 @@ class WP_Object_Cache {
 		} else {
 			return $this->getMulti( $keys, $groups, $server_key );
 		}
+	}
+
+	/**
+	 * Get multiple items from the cache.
+	 *
+	 * @param array  $keys  Array of keys under which the cache contents are stored.
+	 * @param string $group Optional. Where the cache contents are grouped. Default empty.
+	 * @param bool   $force Optional. Whether to force an update of the local cache
+	 *                      from the persistent cache. Default false.
+	 * @return array Array of return values, grouped by key. Each value is either
+	 *               the cache contents on success, or false on failure.
+	 */
+	public function getMultiple( $keys, $group = '', $force = false ) {
+		$values = array();
+
+		foreach ( $keys as $key ) {
+			$found          = null;
+			$value          = $this->get( $key, $group, $force, $found );
+			$values[ $key ] = $found ? $value : false;
+		}
+
+		return $values;
 	}
 
 	/**
