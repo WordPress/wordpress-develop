@@ -696,7 +696,10 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 						'value' => 'one',
 					),
 				),
-				'orderby'       => array( 'id' => 'asc', 'value' => 'DESC' ),
+				'orderby'       => array(
+					'id'    => 'asc',
+					'value' => 'DESC',
+				),
 				'order'         => null,
 				'preserve_keys' => false,
 			),
