@@ -34,6 +34,13 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	protected static $subscriber_user_id;
 
 	/**
+	 * Whether any attachments have been created in the current test run.
+	 *
+	 * @var bool
+	 */
+	private $attachments_created = false;
+
+	/**
 	 * Set up before class.
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory.
@@ -56,6 +63,11 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * Tear down test.
 	 */
 	public function tear_down() {
+		if ( true === $this->attachments_created ) {
+			$this->remove_added_uploads();
+			$this->attachments_created = false;
+		}
+
 		$this->manager = null;
 		unset( $GLOBALS['wp_customize'] );
 		$_REQUEST = array();
@@ -544,6 +556,9 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 				'post_name'      => 'canola',
 			)
 		);
+
+		$this->attachments_created = true;
+
 		$existing_published_home_page_id   = self::factory()->post->create(
 			array(
 				'post_name'   => 'home',
