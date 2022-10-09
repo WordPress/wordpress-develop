@@ -34,20 +34,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	protected static $subscriber_user_id;
 
 	/**
-	 * Path to test file 1.
-	 *
-	 * @var string
-	 */
-	private $test_file;
-
-	/**
-	 * Path to test file 2.
-	 *
-	 * @var string
-	 */
-	private $test_file2;
-
-	/**
 	 * Set up before class.
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory.
@@ -64,13 +50,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$this->manager = $this->instantiate();
-
-		$orig_file       = DIR_TESTDATA . '/images/canola.jpg';
-		$this->test_file = get_temp_dir() . 'canola.jpg';
-		copy( $orig_file, $this->test_file );
-		$orig_file2       = DIR_TESTDATA . '/images/waffles.jpg';
-		$this->test_file2 = get_temp_dir() . 'waffles.jpg';
-		copy( $orig_file2, $this->test_file2 );
 	}
 
 	/**
@@ -557,7 +536,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		add_theme_support( 'custom-background' );
 
 		$existing_canola_attachment_id     = self::factory()->attachment->create_object(
-			$this->test_file,
+			DIR_TESTDATA . '/images/canola.jpg',
 			0,
 			array(
 				'post_mime_type' => 'image/jpeg',
@@ -631,13 +610,13 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 					'post_title'   => 'Waffles',
 					'post_content' => 'Waffles Attachment Description',
 					'post_excerpt' => 'Waffles Attachment Caption',
-					'file'         => $this->test_file2,
+					'file'         => DIR_TESTDATA . '/images/waffles.jpg',
 				),
 				'canola'  => array(
 					'post_title'   => 'Canola',
 					'post_content' => 'Canola Attachment Description',
 					'post_excerpt' => 'Canola Attachment Caption',
-					'file'         => $this->test_file,
+					'file'         => DIR_TESTDATA . '/images/canola.jpg',
 				),
 			),
 			'options'     => array(
