@@ -547,7 +547,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		add_theme_support( 'custom-header' );
 		add_theme_support( 'custom-background' );
 
-		$existing_canola_attachment_id     = self::factory()->attachment->create_object(
+		$existing_canola_attachment_id = self::factory()->attachment->create_object(
 			DIR_TESTDATA . '/images/canola.jpg',
 			0,
 			array(
