@@ -191,9 +191,8 @@ function build_template_part_block_area_variations() {
 function build_template_part_block_instance_variations() {
 	// Block themes are unavailable during installation.
 	if ( wp_installing() ) {
-		return;
+		return array();
 	}
-
 	$variations     = array();
 	$template_parts = get_block_templates(
 		array(
