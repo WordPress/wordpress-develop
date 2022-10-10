@@ -26,7 +26,7 @@ class WP_Theme_JSON_Resolver {
 	 * @since 6.1.0
 	 * @var array
 	 */
-	protected static $blocks_meta = array(
+	protected static $blocks_cache = array(
 		'core'   => array(),
 		'blocks' => array(),
 		'theme'  => array(),
@@ -202,12 +202,12 @@ class WP_Theme_JSON_Resolver {
 		$blocks   = $registry->get_all_registered();
 
 		// Is there metadata for all currently registered blocks?
-		$block_diff = array_diff_key( $blocks, static::$blocks_meta[ $origin ] );
+		$block_diff = array_diff_key( $blocks, static::$blocks_cache[ $origin ] );
 		if ( empty( $block_diff ) ) {
 			return true;
 		}
 
-		static::$blocks_meta[ $origin ] = $blocks;
+		static::$blocks_cache[ $origin ] = $blocks;
 
 		return false;
 	}
@@ -623,7 +623,7 @@ class WP_Theme_JSON_Resolver {
 	public static function clean_cached_data() {
 		static::$core                     = null;
 		static::$blocks                   = null;
-		static::$blocks_meta = array(
+		static::$blocks_cache             = array(
 			'core'   => array(),
 			'blocks' => array(),
 			'theme'  => array(),
