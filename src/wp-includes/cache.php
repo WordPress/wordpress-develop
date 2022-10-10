@@ -312,8 +312,9 @@ function wp_cache_flush_group( $group ) {
  */
 function wp_cache_supports( $feature ) {
 	switch ( $feature ) {
-		'flush_group':
+		case 'flush_group':
 			return true;
+
 		default:
 			return false;
 	}
