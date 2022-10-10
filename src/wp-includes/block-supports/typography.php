@@ -251,8 +251,8 @@ function wp_typography_get_preset_inline_style_value( $style_value, $css_propert
  * @since 6.1.0
  * @access private
  *
- * @param string $raw_value Raw size value from theme.json.
- * @param array  $options   {
+ * @param string|int $raw_value Raw size value from theme.json.
+ * @param array      $options   {
  *     Optional. An associative array of options. Default is empty array.
  *
  *     @type string   $coerce_to        Coerce the value to rem or px. Default `'rem'`.
@@ -263,6 +263,15 @@ function wp_typography_get_preset_inline_style_value( $style_value, $css_propert
  *                    `null` on failure.
  */
 function wp_get_typography_value_and_unit( $raw_value, $options = array() ) {
+	if ( ! is_string( $raw_value ) && ! is_int( $raw_value ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			__( 'Raw size value must be a string or integer.' ),
+			'6.1.0'
+		);
+		return null;
+	}
+
 	if ( empty( $raw_value ) ) {
 		return null;
 	}
@@ -400,9 +409,9 @@ function wp_get_computed_fluid_typography_value( $args = array() ) {
  * @param array $preset                     {
  *     Required. fontSizes preset value as seen in theme.json.
  *
- *     @type string $name Name of the font size preset.
- *     @type string $slug Kebab-case unique identifier for the font size preset.
- *     @type string $size CSS font-size value, including units where applicable.
+ *     @type string     $name Name of the font size preset.
+ *     @type string     $slug Kebab-case unique identifier for the font size preset.
+ *     @type string|int $size CSS font-size value, including units where applicable.
  * }
  * @param bool  $should_use_fluid_typography An override to switch fluid typography "on". Can be used for unit testing.
  *                                           Default is `false`.

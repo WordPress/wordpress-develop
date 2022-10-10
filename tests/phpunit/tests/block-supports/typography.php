@@ -289,12 +289,20 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 				'expected_output'             => '28px',
 			),
 
-			'default_return_value_when_size_is_undefined' => array(
+			'size: int 0'                                 => array(
 				'font_size_preset'            => array(
-					'size' => null,
+					'size' => 0,
 				),
 				'should_use_fluid_typography' => false,
-				'expected_output'             => null,
+				'expected_output'             => 0,
+			),
+
+			'size: string 0'                              => array(
+				'font_size_preset'            => array(
+					'size' => '0',
+				),
+				'should_use_fluid_typography' => false,
+				'expected_output'             => '0',
 			),
 
 			'default_return_value_when_fluid_is_false'    => array(
@@ -377,6 +385,37 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 				'should_use_fluid_typography' => true,
 				'expected_output'             => 'clamp(21px, 1.3125rem + ((1vw - 7.68px) * 7.091), 80px)',
 			),
+		);
+	}
+
+	/**
+	 * Tests generating font size values, including fluid formulae, from fontSizes preset.
+	 *
+	 * @ticket 56467
+	 *
+	 * @covers ::wp_get_typography_value_and_unit
+	 *
+	 * @dataProvider data_invalid_size_wp_get_typography_value_and_unit
+	 * @expectedIncorrectUsage wp_get_typography_value_and_unit
+	 *
+	 * @param mixed $raw_value Raw size value to test.
+	 */
+	function test_invalid_size_wp_get_typography_value_and_unit( $raw_value ) {
+		$this->assertNull( wp_get_typography_value_and_unit( $raw_value ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_invalid_size_wp_get_typography_value_and_unit() {
+		return array(
+			'size: null'  => array( null ),
+			'size: false' => array( false ),
+			'size: true'  => array( true ),
+			'size: float' => array( 10.1234 ),
+			'size: array' => array( array( '10' ) ),
 		);
 	}
 }
