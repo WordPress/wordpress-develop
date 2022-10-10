@@ -267,6 +267,11 @@ function wp_get_typography_value_and_unit( $raw_value, $options = array() ) {
 		return null;
 	}
 
+	// Converts numbers to pixel values by default.
+	if ( is_numeric( $raw_value ) ) {
+		$raw_value = $raw_value . 'px';
+	}
+
 	$defaults = array(
 		'coerce_to'        => '',
 		'root_size_value'  => 16,

@@ -289,6 +289,14 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 				'expected_output'             => '28px',
 			),
 
+			'default_return_value_when_size_is_undefined' => array(
+				'font_size_preset'            => array(
+					'size' => null,
+				),
+				'should_use_fluid_typography' => false,
+				'expected_output'             => null,
+			),
+
 			'default_return_value_when_fluid_is_false'    => array(
 				'font_size_preset'            => array(
 					'size'  => '28px',
