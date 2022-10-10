@@ -27,6 +27,7 @@ class WP_Theme_JSON_Resolver {
 	 * @var array
 	 */
 	protected static $blocks_meta = array(
+		'core'  => array(),
 		'theme' => array(),
 	);
 
@@ -155,6 +156,10 @@ class WP_Theme_JSON_Resolver {
 	 * @return WP_Theme_JSON Entity that holds core data.
 	 */
 	public static function get_core_data() {
+		if ( null !== static::$core && static::has_same_registered_blocks( 'core' ) ) {
+			return static::$core;
+		}
+
 		$config = static::read_json_file( __DIR__ . '/theme.json' );
 		$config = static::translate( $config );
 
