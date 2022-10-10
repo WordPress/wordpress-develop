@@ -141,7 +141,7 @@ if ( ! function_exists( 'wp_cache_flush_runtime' ) ) :
 		if ( ! wp_cache_supports( 'flush_runtime' ) ) {
 			_doing_it_wrong(
 				__FUNCTION__,
-				__( 'Your object cache implementation does not support flushing flushing the in-memory runtime cache.' ),
+				__( 'Your object cache implementation does not support flushing the in-memory runtime cache.' ),
 				'6.1.0'
 			);
 
