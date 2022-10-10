@@ -280,7 +280,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		// returns PHP_FLOAT_MAX if unset
 		$imagick_timeout = Imagick::getResourceLimit( Imagick::RESOURCETYPE_TIME );
 		// convert to a int keeping in mind that (int)PHP_FLOAT_MAX) == 0
-		$imagick_timeout = $imagick_timeout > PHP_INT_MAX ? PHP_INT_MAX : (int)$imagick_timeout;
+		$imagick_timeout = $imagick_timeout > PHP_INT_MAX ? PHP_INT_MAX : (int) $imagick_timeout;
 		$php_timeout = intval( ini_get( 'max_execution_time' ) );
 
 		if ( $php_timeout > 1 && $php_timeout < $imagick_timeout ) {
