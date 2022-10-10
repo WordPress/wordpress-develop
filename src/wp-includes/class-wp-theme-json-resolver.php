@@ -30,6 +30,7 @@ class WP_Theme_JSON_Resolver {
 		'core'   => array(),
 		'blocks' => array(),
 		'theme'  => array(),
+		'user'   => array(),
 	);
 
 	/**
@@ -466,6 +467,10 @@ class WP_Theme_JSON_Resolver {
 	 * @return WP_Theme_JSON Entity that holds styles for user data.
 	 */
 	public static function get_user_data() {
+		if ( null !== static::$user && static::has_same_registered_blocks( 'user' ) ) {
+			return static::$user;
+		}
+
 		$config   = array();
 		$user_cpt = static::get_user_data_from_wp_global_styles( wp_get_theme() );
 
@@ -629,6 +634,7 @@ class WP_Theme_JSON_Resolver {
 			'core'   => array(),
 			'blocks' => array(),
 			'theme'  => array(),
+			'user'   => array(),
 		);
 		static::$theme                    = null;
 		static::$user                     = null;
