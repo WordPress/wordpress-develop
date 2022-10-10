@@ -769,4 +769,20 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'join', $posts_clauses_request );
 		$this->assertSame( '/* posts_join_request */', $posts_clauses_request['join'] );
 	}
+
+	/**
+	 * Tests that is_singular() returns false for an undefined post object.
+	 *
+	 * @ticket 56188
+	 *
+	 * @covers ::is_singular
+	 */
+	public function test_is_singular_should_return_false_for_an_undefined_post_object() {
+		$query = new WP_Query;
+
+		$query->init();
+		$query->set( 'is_singular', true );
+
+		$this->assertFalse( $query->is_singular( 'a_post_type' ) );
+	}
 }
