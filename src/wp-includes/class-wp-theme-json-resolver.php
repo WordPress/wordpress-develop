@@ -27,8 +27,9 @@ class WP_Theme_JSON_Resolver {
 	 * @var array
 	 */
 	protected static $blocks_meta = array(
-		'core'  => array(),
-		'theme' => array(),
+		'core'   => array(),
+		'blocks' => array(),
+		'theme'  => array(),
 	);
 
 	/**
@@ -38,6 +39,15 @@ class WP_Theme_JSON_Resolver {
 	 * @var WP_Theme_JSON
 	 */
 	protected static $core = null;
+
+	/**
+	 * Container for data coming from the blocks.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @var WP_Theme_JSON
+	 */
+	protected static $blocks = null;
 
 	/**
 	 * Container for data coming from the theme.
@@ -313,7 +323,12 @@ class WP_Theme_JSON_Resolver {
 	public static function get_block_data() {
 		$registry = WP_Block_Type_Registry::get_instance();
 		$blocks   = $registry->get_all_registered();
-		$config   = array( 'version' => 1 );
+
+		if ( null !== static::$blocks && static::has_same_registered_blocks( 'blocks' ) ) {
+			return static::$blocks;
+		}
+
+		$config = array( 'version' => 1 );
 		foreach ( $blocks as $block_name => $block_type ) {
 			if ( isset( $block_type->supports['__experimentalStyle'] ) ) {
 				$config['styles']['blocks'][ $block_name ] = static::remove_json_comments( $block_type->supports['__experimentalStyle'] );
@@ -339,7 +354,8 @@ class WP_Theme_JSON_Resolver {
 		$theme_json = apply_filters( 'theme_json_blocks', new WP_Theme_JSON_Data( $config, 'blocks' ) );
 		$config     = $theme_json->get_data();
 
-		return new WP_Theme_JSON( $config, 'blocks' );
+		static::$blocks = new WP_Theme_JSON( $config, 'blocks' );
+		return static::$blocks;
 	}
 
 	/**
@@ -606,6 +622,7 @@ class WP_Theme_JSON_Resolver {
 	 */
 	public static function clean_cached_data() {
 		static::$core                     = null;
+		static::$blocks                   = null;
 		static::$theme                    = null;
 		static::$user                     = null;
 		static::$user_custom_post_type_id = null;
