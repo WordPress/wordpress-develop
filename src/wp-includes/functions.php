@@ -4824,7 +4824,7 @@ function wp_parse_list( $list ) {
 		return preg_split( '/[\s,]+/', $list, -1, PREG_SPLIT_NO_EMPTY );
 	}
 
-	// Validate all entries of the list are scalar.
+	// Validate all entries of the list are scalar
 	$list = array_filter( $list, 'is_scalar' );
 
 	return $list;
