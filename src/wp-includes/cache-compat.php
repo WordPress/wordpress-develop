@@ -138,7 +138,17 @@ if ( ! function_exists( 'wp_cache_flush_runtime' ) ) :
 	 * @return bool True on success, false on failure.
 	 */
 	function wp_cache_flush_runtime() {
-		return wp_using_ext_object_cache() ? false : wp_cache_flush();
+		if ( ! wp_cache_supports( 'flush_runtime' ) ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				__( 'Your object cache implementation does not support flushing flushing the in-memory runtime cache.' ),
+				'6.1.0'
+			);
+
+			return false;
+		}
+
+		return wp_cache_flush();
 	}
 endif;
 
@@ -180,8 +190,9 @@ if ( ! function_exists( 'wp_cache_supports' ) ) :
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param string $feature Name of the feature to check for.
-	 *                        Possible values include: 'flush_group'.
+	 * @param string $feature Name of the feature to check for. Possible values include:
+	 *                        'add_multiple', 'set_multiple', 'get_multiple', 'delete_multiple',
+	 *                        'flush_runtime', 'flush_group'.
 	 * @return bool True if the feature is supported, false otherwise.
 	 */
 	function wp_cache_supports( $feature ) {
