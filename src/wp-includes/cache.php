@@ -311,7 +311,12 @@ function wp_cache_flush_group( $group ) {
  * @return bool True if the feature is supported, false otherwise.
  */
 function wp_cache_supports( $feature ) {
-	return true;
+	switch ( $feature ) {
+		'flush_group':
+			return true;
+		default:
+			return false;
+	}
 }
 
 /**
