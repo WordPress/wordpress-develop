@@ -273,7 +273,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @return int|null Whether the new limit or null if none was set
 	 */
 	public static function setImagickTimeLimit() {
-		if ( !defined( 'Imagick::RESOURCETYPE_TIME' ) ) {
+		if ( ! defined( 'Imagick::RESOURCETYPE_TIME' ) ) {
 			return null;
 		}
 
