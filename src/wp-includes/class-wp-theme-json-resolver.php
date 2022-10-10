@@ -208,7 +208,7 @@ class WP_Theme_JSON_Resolver {
 			return true;
 		}
 
-		foreach( $blocks as $block_name => $block_type ) {
+		foreach ( $blocks as $block_name => $block_type ) {
 			static::$blocks_cache[ $origin ][ $block_name ] = true;
 		}
 
