@@ -623,6 +623,11 @@ class WP_Theme_JSON_Resolver {
 	public static function clean_cached_data() {
 		static::$core                     = null;
 		static::$blocks                   = null;
+		static::$blocks_meta = array(
+			'core'   => array(),
+			'blocks' => array(),
+			'theme'  => array(),
+		);
 		static::$theme                    = null;
 		static::$user                     = null;
 		static::$user_custom_post_type_id = null;
