@@ -5140,6 +5140,43 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
+        "/wp/v2/templates/lookup": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "slug": {
+                            "description": "The slug of the template to get the fallback for",
+                            "type": "string",
+                            "required": true
+                        },
+                        "is_custom": {
+                            "description": "Indicates if a template is custom or part of the template hierarchy",
+                            "type": "boolean",
+                            "required": false
+                        },
+                        "template_prefix": {
+                            "description": "The template prefix for the created template. This is used to extract the main template type, e.g. in `taxonomy-books` extracts the `taxonomy`",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/templates/lookup"
+                    }
+                ]
+            }
+        },
         "/wp/v2/templates/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w-]+)": {
             "namespace": "wp/v2",
             "methods": [
@@ -5788,6 +5825,43 @@ mockedApiResponse.Schema = {
                 "self": [
                     {
                         "href": "http://example.org/index.php?rest_route=/wp/v2/template-parts"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/template-parts/lookup": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "slug": {
+                            "description": "The slug of the template to get the fallback for",
+                            "type": "string",
+                            "required": true
+                        },
+                        "is_custom": {
+                            "description": "Indicates if a template is custom or part of the template hierarchy",
+                            "type": "boolean",
+                            "required": false
+                        },
+                        "template_prefix": {
+                            "description": "The template prefix for the created template. This is used to extract the main template type, e.g. in `taxonomy-books` extracts the `taxonomy`",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/template-parts/lookup"
                     }
                 ]
             }
@@ -9269,6 +9343,24 @@ mockedApiResponse.Schema = {
                                 "type": "string"
                             },
                             "required": false
+                        },
+                        "exclude": {
+                            "description": "Ensure result set excludes specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "include": {
+                            "description": "Limit result set to specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
                         }
                     }
                 }
@@ -10615,6 +10707,27 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
+        "/wp-site-health/v1/tests/page-cache": {
+            "namespace": "wp-site-health/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": []
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-site-health/v1/tests/page-cache"
+                    }
+                ]
+            }
+        },
         "/wp-block-editor/v1": {
             "namespace": "wp-block-editor/v1",
             "methods": [
@@ -10760,7 +10873,8 @@ mockedApiResponse.Schema = {
         }
     },
     "site_logo": 0,
-    "site_icon": 0
+    "site_icon": 0,
+    "site_icon_url": ""
 };
 
 mockedApiResponse.oembed = {
@@ -11549,8 +11663,10 @@ mockedApiResponse.TypesCollection = {
     "post": {
         "description": "",
         "hierarchical": false,
+        "has_archive": false,
         "name": "Posts",
         "slug": "post",
+        "icon": "dashicons-admin-post",
         "taxonomies": [
             "category",
             "post_tag"
@@ -11580,8 +11696,10 @@ mockedApiResponse.TypesCollection = {
     "page": {
         "description": "",
         "hierarchical": true,
+        "has_archive": false,
         "name": "Pages",
         "slug": "page",
+        "icon": "dashicons-admin-page",
         "taxonomies": [],
         "rest_base": "pages",
         "rest_namespace": "wp/v2",
@@ -11608,8 +11726,10 @@ mockedApiResponse.TypesCollection = {
     "attachment": {
         "description": "",
         "hierarchical": false,
+        "has_archive": false,
         "name": "Media",
         "slug": "attachment",
+        "icon": "dashicons-admin-media",
         "taxonomies": [],
         "rest_base": "media",
         "rest_namespace": "wp/v2",
@@ -11636,8 +11756,10 @@ mockedApiResponse.TypesCollection = {
     "nav_menu_item": {
         "description": "",
         "hierarchical": false,
+        "has_archive": false,
         "name": "Navigation Menu Items",
         "slug": "nav_menu_item",
+        "icon": null,
         "taxonomies": [
             "nav_menu"
         ],
@@ -11666,8 +11788,10 @@ mockedApiResponse.TypesCollection = {
     "wp_block": {
         "description": "",
         "hierarchical": false,
+        "has_archive": false,
         "name": "Reusable blocks",
         "slug": "wp_block",
+        "icon": null,
         "taxonomies": [],
         "rest_base": "blocks",
         "rest_namespace": "wp/v2",
@@ -11694,8 +11818,10 @@ mockedApiResponse.TypesCollection = {
     "wp_template": {
         "description": "Templates to include in your theme.",
         "hierarchical": false,
+        "has_archive": false,
         "name": "Templates",
         "slug": "wp_template",
+        "icon": null,
         "taxonomies": [],
         "rest_base": "templates",
         "rest_namespace": "wp/v2",
@@ -11722,8 +11848,10 @@ mockedApiResponse.TypesCollection = {
     "wp_template_part": {
         "description": "Template parts to include in your templates.",
         "hierarchical": false,
+        "has_archive": false,
         "name": "Template Parts",
         "slug": "wp_template_part",
+        "icon": null,
         "taxonomies": [],
         "rest_base": "template-parts",
         "rest_namespace": "wp/v2",
@@ -11750,8 +11878,10 @@ mockedApiResponse.TypesCollection = {
     "wp_navigation": {
         "description": "Navigation menus that can be inserted into your site.",
         "hierarchical": false,
+        "has_archive": false,
         "name": "Navigation Menus",
         "slug": "wp_navigation",
+        "icon": null,
         "taxonomies": [],
         "rest_base": "navigation",
         "rest_namespace": "wp/v2",
@@ -11780,8 +11910,10 @@ mockedApiResponse.TypesCollection = {
 mockedApiResponse.TypeModel = {
     "description": "",
     "hierarchical": false,
+    "has_archive": false,
     "name": "Posts",
     "slug": "post",
+    "icon": "dashicons-admin-post",
     "taxonomies": [
         "category",
         "post_tag"

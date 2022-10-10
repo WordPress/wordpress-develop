@@ -11,6 +11,23 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 
 	public $hook;
 
+	/**
+	 * Temporary storage for action output.
+	 *
+	 * Used in the following tests:
+	 * - `test_remove_and_add_action()`
+	 * - `test_remove_and_add_last_action()`
+	 * - `test_remove_and_recurse_and_add_action()`
+	 *
+	 * @var array
+	 */
+	private $action_output = '';
+
+	public function tear_down() {
+		$this->action_output = '';
+		parent::tear_down();
+	}
+
 	public function test_add_filter_with_function() {
 		$callback      = '__return_null';
 		$hook          = new WP_Hook();
@@ -202,8 +219,7 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 	}
 
 	public function test_remove_and_add_action() {
-		$this->hook          = new WP_Hook();
-		$this->action_output = '';
+		$this->hook = new WP_Hook();
 
 		$this->hook->add_filter( 'remove_and_add_action', '__return_empty_string', 10, 0 );
 
@@ -217,8 +233,7 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 	}
 
 	public function test_remove_and_add_last_action() {
-		$this->hook          = new WP_Hook();
-		$this->action_output = '';
+		$this->hook = new WP_Hook();
 
 		$this->hook->add_filter( 'remove_and_add_action', '__return_empty_string', 10, 0 );
 
@@ -232,8 +247,7 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 	}
 
 	public function test_remove_and_recurse_and_add_action() {
-		$this->hook          = new WP_Hook();
-		$this->action_output = '';
+		$this->hook = new WP_Hook();
 
 		$this->hook->add_filter( 'remove_and_add_action', '__return_empty_string', 10, 0 );
 

@@ -105,6 +105,13 @@ class Tests_Functions extends WP_UnitTestCase {
 			'C:\\',
 			'C:\\WINDOWS',
 			'\\\\sambashare\\foo',
+			'c:/',
+			'c://',
+			'//',
+			'c:/FOO',
+			'//FOO',
+			'C:/WWW/Sites/demo/htdocs/wordpress/wp-content/uploads/2016/03/example.jpg',
+			'//ComputerName/ShareName/SubfolderName/example.txt',
 		);
 		foreach ( $absolute_paths as $path ) {
 			$this->assertTrue( path_is_absolute( $path ), "path_is_absolute('$path') should return true" );
@@ -119,10 +126,14 @@ class Tests_Functions extends WP_UnitTestCase {
 			'../foo',
 			'../',
 			'../foo.bar',
+			'foo.bar',
 			'foo/bar',
 			'foo',
 			'FOO',
 			'..\\WINDOWS',
+			'..//WINDOWS',
+			'c:',
+			'C:',
 		);
 		foreach ( $relative_paths as $path ) {
 			$this->assertFalse( path_is_absolute( $path ), "path_is_absolute('$path') should return false" );
@@ -2045,9 +2056,9 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @ticket 53668
 	 */
 	public function test_wp_get_default_extension_for_mime_type() {
-		$this->assertEquals( 'jpg', wp_get_default_extension_for_mime_type( 'image/jpeg' ), 'jpg not returned as default extension for "image/jpeg"' );
+		$this->assertSame( 'jpg', wp_get_default_extension_for_mime_type( 'image/jpeg' ), 'jpg not returned as default extension for "image/jpeg"' );
 		$this->assertNotEquals( 'jpeg', wp_get_default_extension_for_mime_type( 'image/jpeg' ), 'jpeg should not be returned as default extension for "image/jpeg"' );
-		$this->assertEquals( 'png', wp_get_default_extension_for_mime_type( 'image/png' ), 'png not returned as default extension for "image/png"' );
+		$this->assertSame( 'png', wp_get_default_extension_for_mime_type( 'image/png' ), 'png not returned as default extension for "image/png"' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( 'wibble/wobble' ), 'false not returned for unrecognized mime type' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( '' ), 'false not returned when empty string as mime type supplied' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( '   ' ), 'false not returned when empty string as mime type supplied' );
@@ -2061,7 +2072,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 */
 	function test_wp_filesize_with_nonexistent_file() {
 		$file = 'nonexistent/file.jpg';
-		$this->assertEquals( 0, wp_filesize( $file ) );
+		$this->assertSame( 0, wp_filesize( $file ) );
 	}
 
 	/**
@@ -2071,7 +2082,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	function test_wp_filesize() {
 		$file = DIR_TESTDATA . '/images/test-image-upside-down.jpg';
 
-		$this->assertEquals( filesize( $file ), wp_filesize( $file ) );
+		$this->assertSame( filesize( $file ), wp_filesize( $file ) );
 
 		$filter = function() {
 			return 999;
@@ -2079,7 +2090,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		add_filter( 'wp_filesize', $filter );
 
-		$this->assertEquals( 999, wp_filesize( $file ) );
+		$this->assertSame( 999, wp_filesize( $file ) );
 
 		$pre_filter = function() {
 			return 111;
@@ -2087,7 +2098,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		add_filter( 'pre_wp_filesize', $pre_filter );
 
-		$this->assertEquals( 111, wp_filesize( $file ) );
+		$this->assertSame( 111, wp_filesize( $file ) );
 	}
 
 	/**
@@ -2173,7 +2184,7 @@ class Tests_Functions extends WP_UnitTestCase {
 			),
 			'version'  => 1,
 		);
-		$this->assertEquals( $theme_json, $expected_theme_json );
+		$this->assertSameSetsWithIndex( $theme_json, $expected_theme_json );
 	}
 
 }

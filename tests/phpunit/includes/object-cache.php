@@ -41,6 +41,21 @@ function wp_cache_add_by_key( $server_key, $key, $value, $group = '', $expiratio
 }
 
 /**
+ * Adds multiple values to the cache in one call, if the cache keys don't already exist.
+ *
+ * @param array  $items      Array of keys and values to be added.
+ * @param string $group      Optional. Where the cache contents are grouped. Default empty.
+ * @param int    $expiration Optional. When to expire the cache contents, in seconds.
+ *                           Default 0 (no expiration).
+ * @return bool[] Array of return values, grouped by key. Each value is either
+ *                true on success, or false if cache key and group already exist.
+ */
+function wp_cache_add_multiple( array $items, $group = '', $expiration = 0 ) {
+	global $wp_object_cache;
+	return $wp_object_cache->addMultiple( $items, $group, $expiration );
+}
+
+/**
  * Adds a single server to the list of Memcached servers.
  *
  * @link https://www.php.net/manual/en/memcached.addserver.php
@@ -248,6 +263,19 @@ function wp_cache_delete_by_key( $server_key, $key, $group = '', $time = 0 ) {
 }
 
 /**
+ * Deletes multiple values from the cache in one call.
+ *
+ * @param array  $keys  Array of keys under which the cache to deleted.
+ * @param string $group Optional. Where the cache contents are grouped. Default empty.
+ * @return bool[] Array of return values, grouped by key. Each value is either
+ *                true on success, or false if the contents were not deleted.
+ */
+function wp_cache_delete_multiple( array $keys, $group = '' ) {
+	global $wp_object_cache;
+	return $wp_object_cache->deleteMultiple( $keys, $group );
+}
+
+/**
  * Fetches the next result.
  *
  * @link https://www.php.net/manual/en/memcached.fetch.php
@@ -437,6 +465,21 @@ function wp_cache_get_multi_by_key( $server_key, $keys, $groups = '', &$cas_toke
 	} else {
 		return $wp_object_cache->getMultiByKey( $server_key, $keys, $groups );
 	}
+}
+
+/**
+ * Retrieves multiple values from the cache in one call.
+ *
+ * @param array  $keys  Array of keys under which the cache contents are stored.
+ * @param string $group Optional. Where the cache contents are grouped. Default empty.
+ * @param bool   $force Optional. Whether to force an update of the local cache
+ *                      from the persistent cache. Default false.
+ * @return array Array of return values, grouped by key. Each value is either
+ *               the cache contents on success, or false on failure.
+ */
+function wp_cache_get_multiple( $keys, $group = '', $force = false ) {
+	global $wp_object_cache;
+	return $wp_object_cache->getMultiple( $keys, $group, $force );
 }
 
 /**
@@ -720,6 +763,23 @@ function wp_cache_set_multi_by_key( $server_key, $items, $groups = 'default', $e
 }
 
 /**
+ * Sets multiple values to the cache in one call.
+ *
+ * Differs from wp_cache_add_multiple() in that it will always write data.
+ *
+ * @param array  $items      Array of keys and values to be set.
+ * @param string $group      Optional. Where the cache contents are grouped. Default empty.
+ * @param int    $expiration Optional. When to expire the cache contents, in seconds.
+ *                           Default 0 (no expiration).
+ * @return bool[] Array of return values, grouped by key. Each value is either
+ *                true on success, or false on failure.
+ */
+function wp_cache_set_multiple( array $items, $group = '', $expiration = 0 ) {
+	global $wp_object_cache;
+	return $wp_object_cache->setMultiple( $items, $group, $expiration );
+}
+
+/**
  * Sets a Memcached option.
  *
  * @link https://www.php.net/manual/en/memcached.setoption.php
@@ -954,6 +1014,26 @@ class WP_Object_Cache {
 	 */
 	public function addByKey( $server_key, $key, $value, $group = 'default', $expiration = 0 ) {
 		return $this->add( $key, $value, $group, $expiration, $server_key, true );
+	}
+
+	/**
+	 * Adds multiple values to cache.
+	 *
+	 * @param array  $items      Array of keys and values to be added.
+	 * @param string $group      Optional. Where the cache contents are grouped. Default empty.
+	 * @param int    $expiration Optional. When to expire the cache contents, in seconds.
+	 *                           Default 0 (no expiration).
+	 * @return bool[] Array of return values, grouped by key. Each value is either
+	 *                true on success, or false if cache key and group already exist.
+	 */
+	public function addMultiple( array $items, $group = '', $expiration = 0 ) {
+		$values = array();
+
+		foreach ( $items as $key => $value ) {
+			$values[ $key ] = $this->add( $key, $value, $group, $expiration );
+		}
+
+		return $values;
 	}
 
 	/**
@@ -1260,6 +1340,24 @@ class WP_Object_Cache {
 	}
 
 	/**
+	 * Removes multiple items from the cache.
+	 *
+	 * @param array  $keys  Array of keys under which the cache to deleted.
+	 * @param string $group Optional. Where the cache contents are grouped. Default empty.
+	 * @return bool[] Array of return values, grouped by key. Each value is either
+	 *                true on success, or false if the contents were not deleted.
+	 */
+	public function deleteMultiple( $keys, $group ) {
+		$values = array();
+
+		foreach ( $keys as $key ) {
+			$values[ $key ] = $this->delete( $key, $group );
+		}
+
+		return $values;
+	}
+
+	/**
 	 * Fetches the next result.
 	 *
 	 * @link https://www.php.net/manual/en/memcached.fetch.php
@@ -1534,6 +1632,28 @@ class WP_Object_Cache {
 		} else {
 			return $this->getMulti( $keys, $groups, $server_key );
 		}
+	}
+
+	/**
+	 * Get multiple items from the cache.
+	 *
+	 * @param array  $keys  Array of keys under which the cache contents are stored.
+	 * @param string $group Optional. Where the cache contents are grouped. Default empty.
+	 * @param bool   $force Optional. Whether to force an update of the local cache
+	 *                      from the persistent cache. Default false.
+	 * @return array Array of return values, grouped by key. Each value is either
+	 *               the cache contents on success, or false on failure.
+	 */
+	public function getMultiple( $keys, $group = '', $force = false ) {
+		$values = array();
+
+		foreach ( $keys as $key ) {
+			$found          = null;
+			$value          = $this->get( $key, $group, $force, $found );
+			$values[ $key ] = $found ? $value : false;
+		}
+
+		return $values;
 	}
 
 	/**
@@ -1950,6 +2070,26 @@ class WP_Object_Cache {
 	 */
 	public function setMultiByKey( $server_key, $items, $groups = 'default', $expiration = 0 ) {
 		return $this->setMulti( $items, $groups, $expiration, $server_key, true );
+	}
+
+	/**
+	 * Sets multiple values in cache.
+	 *
+	 * @param array  $items      Array of keys and values to be set.
+	 * @param string $group      Optional. Where the cache contents are grouped. Default empty.
+	 * @param int    $expiration Optional. When to expire the cache contents, in seconds.
+	 *                           Default 0 (no expiration).
+	 * @return bool[] Array of return values, grouped by key. Each value is either
+	 *                true on success, or false on failure.
+	 */
+	public function setMultiple( array $items, $group = '', $expiration = 0 ) {
+		$values = array();
+
+		foreach ( $items as $key => $value ) {
+			$values[ $key ] = $this->set( $key, $value, $group, $expiration );
+		}
+
+		return $values;
 	}
 
 	/**

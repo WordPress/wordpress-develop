@@ -223,16 +223,6 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	 * @covers ::wp_handle_comment_submission
 	 */
 	public function test_submitting_comment_to_password_protected_post_succeeds() {
-		if ( PHP_VERSION_ID >= 80100 ) {
-			/*
-			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
-			 * via hooked in filter functions until a more structural solution to the
-			 * "missing input validation" conundrum has been architected and implemented.
-			 */
-			$this->expectDeprecation();
-			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
-		}
-
 		$password = 'password';
 		$hasher   = new PasswordHash( 8, true );
 
@@ -321,17 +311,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_handle_comment_submission
 	 */
-	public function test_submitting_comment_handles_slashes_correctly_handles_slashes() {
-		if ( PHP_VERSION_ID >= 80100 ) {
-			/*
-			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
-			 * via hooked in filter functions until a more structural solution to the
-			 * "missing input validation" conundrum has been architected and implemented.
-			 */
-			$this->expectDeprecation();
-			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
-		}
-
+	public function test_submitting_comment_handles_slashes_correctly() {
 		$data    = array(
 			'comment_post_ID' => self::$post->ID,
 			'comment'         => 'Comment with 1 slash: \\',
@@ -496,16 +476,6 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	 * @covers ::wp_handle_comment_submission
 	 */
 	public function test_anonymous_user_cannot_comment_unfiltered_html() {
-		if ( PHP_VERSION_ID >= 80100 ) {
-			/*
-			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
-			 * via hooked in filter functions until a more structural solution to the
-			 * "missing input validation" conundrum has been architected and implemented.
-			 */
-			$this->expectDeprecation();
-			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
-		}
-
 		$data    = array(
 			'comment_post_ID' => self::$post->ID,
 			'comment'         => 'Comment <script>alert(document.cookie);</script>',
@@ -832,16 +802,6 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	 * @covers ::wp_handle_comment_submission
 	 */
 	public function test_submitting_comment_with_empty_type_results_in_correct_type() {
-		if ( PHP_VERSION_ID >= 80100 ) {
-			/*
-			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
-			 * via hooked in filter functions until a more structural solution to the
-			 * "missing input validation" conundrum has been architected and implemented.
-			 */
-			$this->expectDeprecation();
-			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
-		}
-
 		$data    = array(
 			'comment_post_ID' => self::$post->ID,
 			'comment'         => 'Comment',
@@ -898,8 +858,6 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 		$comment = wp_handle_comment_submission( $data );
 
-		remove_filter( 'preprocess_comment', array( $this, 'filter_preprocess_comment' ) );
-
 		$this->assertNotWPError( $comment );
 		$this->assertSameSetsWithIndex(
 			array(
@@ -920,6 +878,34 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @ticket 56712
+	 *
+	 * @covers ::wp_handle_comment_submission
+	 */
+	public function test_submitting_comment_without_optional_parameters_sets_them_to_empty_strings() {
+		$data = array(
+			'comment_post_ID' => self::$post->ID,
+		);
+
+		add_filter( 'pre_option_require_name_email', '__return_zero' );
+		add_filter( 'allow_empty_comment', '__return_true' );
+
+		add_filter( 'preprocess_comment', array( $this, 'filter_preprocess_comment' ) );
+
+		$comment = wp_handle_comment_submission( $data );
+
+		$this->assertNotWPError( $comment );
+		$this->assertInstanceOf( 'WP_Comment', $comment );
+
+		$commentdata = $this->preprocess_comment_data;
+
+		$this->assertSame( '', $commentdata['comment_author'], 'Comment author should default to an empty string.' );
+		$this->assertSame( '', $commentdata['comment_author_email'], 'Comment author email should default to an empty string.' );
+		$this->assertSame( '', $commentdata['comment_author_url'], 'Comment author URL should default to an empty string.' );
+		$this->assertSame( '', $commentdata['comment_content'], 'Comment content should default to an empty string.' );
+	}
+
 	public function filter_preprocess_comment( $commentdata ) {
 		$this->preprocess_comment_data = $commentdata;
 		return $commentdata;
@@ -931,16 +917,6 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	 * @covers ::wp_handle_comment_submission
 	 */
 	public function test_submitting_duplicate_comments() {
-		if ( PHP_VERSION_ID >= 80100 ) {
-			/*
-			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
-			 * via hooked in filter functions until a more structural solution to the
-			 * "missing input validation" conundrum has been architected and implemented.
-			 */
-			$this->expectDeprecation();
-			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
-		}
-
 		$data           = array(
 			'comment_post_ID' => self::$post->ID,
 			'comment'         => 'Did I say that?',
@@ -959,16 +935,6 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	 * @covers ::wp_handle_comment_submission
 	 */
 	public function test_comments_flood() {
-		if ( PHP_VERSION_ID >= 80100 ) {
-			/*
-			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
-			 * via hooked in filter functions until a more structural solution to the
-			 * "missing input validation" conundrum has been architected and implemented.
-			 */
-			$this->expectDeprecation();
-			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
-		}
-
 		$data          = array(
 			'comment_post_ID' => self::$post->ID,
 			'comment'         => 'Did I say that?',

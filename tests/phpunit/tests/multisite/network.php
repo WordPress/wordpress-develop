@@ -171,7 +171,7 @@ if ( is_multisite() ) :
 			}
 			wp_update_network_counts();
 
-			$this->assertEquals( $site_count_start, $actual );
+			$this->assertSame( $site_count_start, $actual );
 		}
 
 		/**
@@ -191,7 +191,7 @@ if ( is_multisite() ) :
 			}
 			wp_update_network_counts();
 
-			$this->assertEquals( $site_count_start + 1, $actual );
+			$this->assertSame( $site_count_start + 1, $actual );
 		}
 
 		/**
@@ -202,10 +202,8 @@ if ( is_multisite() ) :
 
 			$site_count = get_blog_count( self::$different_network_id );
 
-			$this->assertEquals( count( self::$different_site_ids ), $site_count );
+			$this->assertSame( count( self::$different_site_ids ), $site_count );
 		}
-
-
 
 		public function test_active_network_plugins() {
 			$path = 'hello.php';
@@ -561,7 +559,7 @@ if ( is_multisite() ) :
 			$new_network_id = $this->_get_next_network_id();
 			$this->assertNull( get_network( $new_network_id ) );
 
-			$new_network = $this->factory()->network->create_and_get();
+			$new_network = self::factory()->network->create_and_get();
 
 			// Double-check we got the ID of the new network correct.
 			$this->assertSame( $new_network_id, $new_network->id );

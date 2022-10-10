@@ -11,7 +11,6 @@
  * Core class used to implement displaying themes in a list table for the network admin.
  *
  * @since 3.1.0
- * @access private
  *
  * @see WP_List_Table
  */
@@ -444,16 +443,15 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 			}
 
 			if ( 'search' !== $type ) {
-				$status_links[ $type ] = sprintf(
-					"<a href='%s'%s>%s</a>",
-					esc_url( add_query_arg( 'theme_status', $type, $url ) ),
-					( $type === $status ) ? ' class="current" aria-current="page"' : '',
-					sprintf( $text, number_format_i18n( $count ) )
+				$status_links[ $type ] = array(
+					'url'     => esc_url( add_query_arg( 'theme_status', $type, $url ) ),
+					'label'   => sprintf( $text, number_format_i18n( $count ) ),
+					'current' => $type === $status,
 				);
 			}
 		}
 
-		return $status_links;
+		return $this->get_views_links( $status_links );
 	}
 
 	/**
