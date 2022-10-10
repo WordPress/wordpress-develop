@@ -2329,8 +2329,7 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 				'%e2%80%ad', // Left-to-right override.
 				'%e2%80%ae', // Right-to-left override.
 				'%ef%bb%bf', // Byte order mark.
-				// Object replacement character.
-				'%ef%bf%bc',
+				'%ef%bf%bc', // Object replacement character.
 			),
 			'',
 			$title
