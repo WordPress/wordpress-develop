@@ -241,6 +241,7 @@ if ( ! class_exists( 'Plural_Forms', false ) ) :
 		 * @return int Plural form value.
 		 */
 		public function get( $num ) {
+			$num = (int) $num;
 			if ( isset( $this->cache[ $num ] ) ) {
 				return $this->cache[ $num ];
 			}
