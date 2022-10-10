@@ -1247,6 +1247,23 @@ EOF;
 				'css'      => 'margin-block-start: 1px;margin-block-end: 2px;margin-inline-start: 3px;margin-inline-end: 4px;padding-block-start: 1px;padding-block-end: 2px;padding-inline-start: 3px;padding-inline-end: 4px',
 				'expected' => 'margin-block-start: 1px;margin-block-end: 2px;margin-inline-start: 3px;margin-inline-end: 4px;padding-block-start: 1px;padding-block-end: 2px;padding-inline-start: 3px;padding-inline-end: 4px',
 			),
+			// Assigning values to CSS variables introduced in 6.1.
+			array(
+				'css'      => '--wp--medium-width: 100px; --var_with_underscores: #cccccc;',
+				'expected' => '--wp--medium-width: 100px;--var_with_underscores: #cccccc',
+			),
+			array(
+				'css'      => '--miXeD-CAse: red; --with-numbers-3_56: red; --with-url-value: url("foo.jpg");',
+				'expected' => '--miXeD-CAse: red;--with-numbers-3_56: red;--with-url-value: url("foo.jpg")',
+			),
+			array(
+				'css'      => '--with-gradient: repeating-linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);',
+				'expected' => '--with-gradient: repeating-linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%)',
+			),
+			array(
+				'css'      => '--?><.%-not-allowed: red;',
+				'expected' => '',
+			),
 		);
 	}
 
@@ -2073,19 +2090,13 @@ HTML;
 	 * @return array
 	 */
 	public function data_kses_globals_are_defined() {
-		return array(
-			'allowedposttags'       => array(
-				'global' => 'allowedposttags',
-			),
-			'allowedtags'           => array(
-				'global' => 'allowedtags',
-			),
-			'allowedentitynames'    => array(
-				'global' => 'allowedentitynames',
-			),
-			'allowedxmlentitynames' => array(
-				'global' => 'allowedxmlentitynames',
-			),
+		$globals = array(
+			'allowedposttags',
+			'allowedtags',
+			'allowedentitynames',
+			'allowedxmlentitynames',
 		);
+
+		return $this->text_array_to_dataprovider( $globals );
 	}
 }
