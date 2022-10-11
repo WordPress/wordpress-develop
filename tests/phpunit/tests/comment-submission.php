@@ -845,7 +845,6 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	 * @covers ::wp_handle_comment_submission
 	 */
 	public function test_comment_submission_sends_all_expected_parameters_to_preprocess_comment_filter() {
-
 		$user = get_userdata( self::$author_id );
 		wp_set_current_user( $user->ID );
 
