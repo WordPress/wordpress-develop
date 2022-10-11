@@ -80,7 +80,7 @@ jobs:
         run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
 
       - name: Cache PHP compatibility scan cache
-        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 # v3.0.8
+        uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 # v3.0.10
         with:
           path: .cache/phpcompat.json
           key: ${{ runner.os }}-date-${{ steps.get-date.outputs.date }}-phpcompat-cache-${{ hashFiles('**/composer.json', 'phpcompat.xml.dist') }}
@@ -88,7 +88,7 @@ jobs:
       - name: Install Composer dependencies
         uses: ramsey/composer-install@f680dac46551dffb2234a240d65ae806c2999dd6 # v2.1.0
         with:
-          composer-options: "--no-progress --no-ansi --no-interaction"
+          composer-options: "--no-progress --no-ansi"
 
       - name: Make Composer packages available globally
         run: echo "${PWD}/vendor/bin" >> $GITHUB_PATH
@@ -97,7 +97,11 @@ jobs:
         run: phpcs -i
 
       - name: Run PHP compatibility tests
-        run: phpcs --standard=phpcompat.xml.dist -q --report=checkstyle | cs2pr
+        continue-on-error: true
+        run: phpcs --standard=phpcompat.xml.dist --report-full --report-checkstyle=./.cache/phpcs-compat-report.xml
+
+      - name: Show PHPCompatibility results in PR
+        run: cs2pr ./.cache/phpcs-compat-report.xml
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code
@@ -130,8 +134,10 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@c713e510dbd7d213d92d41b7a7805a986f4c5c66 # v6.2.0
+        uses: actions/github-script@7dff1a87643417cf3b95bb10b29f4c4bc60d8ebd # v6.3.1
         with:
+          retries: 2
+          retry-exempt-status-codes: 418
           script: |
             github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,

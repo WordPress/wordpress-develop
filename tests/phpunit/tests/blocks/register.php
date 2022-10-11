@@ -365,13 +365,28 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$result   = register_block_style_handle( $metadata, 'style' );
 
 		$this->assertSame( 'unit-tests-test-block-style', $result );
-		$this->assertSame( 'replace', wp_styles()->get_data( 'unit-tests-test-block-style', 'rtl' ) );
+		$this->assertFalse( wp_styles()->get_data( 'unit-tests-test-block-style', 'rtl' ) );
 
 		// @ticket 50328
 		$this->assertSame(
 			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block.css' ) ),
 			wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-style', 'path' ) )
 		);
+	}
+
+	/**
+	 * @ticket 56664
+	 */
+	public function test_register_nonexistent_stylesheet() {
+		$metadata = array(
+			'file'  => DIR_TESTDATA . '/blocks/notice/block.json',
+			'name'  => 'unit-tests/test-block-nonexistent-stylesheet',
+			'style' => 'file:./nonexistent.css',
+		);
+		register_block_style_handle( $metadata, 'style' );
+
+		global $wp_styles;
+		$this->assertFalse( $wp_styles->registered['unit-tests-test-block-nonexistent-stylesheet-style']->src );
 	}
 
 	/**
@@ -389,7 +404,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 		$expected_style_handle = 'block-theme-example-block-editor-style';
 		$this->assertSame( $expected_style_handle, $result );
-		$this->assertSame( 'replace', wp_styles()->get_data( $expected_style_handle, 'rtl' ) );
+		$this->assertFalse( wp_styles()->get_data( $expected_style_handle, 'rtl' ) );
 	}
 
 	/**

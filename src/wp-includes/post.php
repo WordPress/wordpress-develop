@@ -4034,6 +4034,7 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
  *                                         child terms can have the same names with different parent terms,
  *                                         so the only way to connect them is using ID. Default empty.
  *     @type array  $meta_input            Array of post meta values keyed by their post meta key. Default empty.
+ *     @type string $page_template         Page template to use.
  * }
  * @param bool  $wp_error         Optional. Whether to return a WP_Error on failure. Default false.
  * @param bool  $fire_after_hooks Optional. Whether to fire the after insert hooks. Default true.
@@ -5786,7 +5787,7 @@ function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' )
 		'order'                  => 'ASC',
 	);
 	$query = new WP_Query( $args );
-	$pages = $query->get_posts();
+	$pages = $query->posts;
 
 	if ( empty( $pages ) ) {
 		return null;

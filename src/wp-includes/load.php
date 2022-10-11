@@ -1150,23 +1150,8 @@ function wp_clone( $object ) {
  *
  * @return bool True if inside WordPress login screen, false otherwise.
  */
-function is_login_screen() {
+function is_login() {
 	return false !== stripos( wp_login_url(), $_SERVER['SCRIPT_NAME'] );
-}
-
-/**
- * Determines whether the current request is for an administrative interface page.
- *
- * This function is an alias for is_admin().
- *
- * @since 6.1.0
- *
- * @see is_admin()
- *
- * @return bool True if inside WordPress administration interface, false otherwise.
- */
-function is_admin_screen() {
-	return is_admin();
 }
 
 /**
@@ -1198,21 +1183,6 @@ function is_admin() {
 /**
  * Determines whether the current request is for a site's administrative interface.
  *
- * This function is an alias for is_blog_admin().
- *
- * @since 6.1.0
- *
- * @see is_blog_admin()
- *
- * @return bool True if inside WordPress site administration pages.
- */
-function is_site_admin_screen() {
-	return is_blog_admin();
-}
-
-/**
- * Determines whether the current request is for a site's administrative interface.
- *
  * e.g. `/wp-admin/`
  *
  * Does not check if the user is an administrator; use current_user_can()
@@ -1232,23 +1202,6 @@ function is_blog_admin() {
 	}
 
 	return false;
-}
-
-/**
- * Determines whether the current request is for the network administrative interface.
- *
- * e.g. `/wp-admin/network/`
- *
- * This function is an alias for is_network_admin().
- *
- * @since 6.1.0
- *
- * @see is_network_admin()
- *
- * @return bool True if inside WordPress network administration pages.
- */
-function is_network_admin_screen() {
-	return is_network_admin();
 }
 
 /**
@@ -1276,23 +1229,6 @@ function is_network_admin() {
 	}
 
 	return false;
-}
-
-/**
- * Determines whether the current request is for a user admin screen.
- *
- * e.g. `/wp-admin/user/`
- *
- * This function is an alias for is_user_admin().
- *
- * @since 6.1.0
- *
- * @see is_user_admin()
- *
- * @return bool True if inside WordPress user administration pages.
- */
-function is_user_admin_screen() {
-	return is_user_admin();
 }
 
 /**

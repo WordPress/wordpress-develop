@@ -4454,8 +4454,8 @@ function language_attributes( $doctype = 'html' ) {
  *                                      Default 1.
  *     @type int    $mid_size           How many numbers to either side of the current pages. Default 2.
  *     @type bool   $prev_next          Whether to include the previous and next links in the list. Default true.
- *     @type bool   $prev_text          The previous page text. Default '&laquo; Previous'.
- *     @type bool   $next_text          The next page text. Default 'Next &raquo;'.
+ *     @type string $prev_text          The previous page text. Default '&laquo; Previous'.
+ *     @type string $next_text          The next page text. Default 'Next &raquo;'.
  *     @type string $type               Controls format of the returned value. Possible values are 'plain',
  *                                      'array' and 'list'. Default is 'plain'.
  *     @type array  $add_args           An array of query args to add. Default false.
@@ -4463,8 +4463,8 @@ function language_attributes( $doctype = 'html' ) {
  *     @type string $before_page_number A string to appear before the page number. Default empty.
  *     @type string $after_page_number  A string to append after the page number. Default empty.
  * }
- * @return string|array|void String of page links or array of page links, depending on 'type' argument.
- *                           Void if total number of pages is less than 2.
+ * @return string|string[]|void String of page links or array of page links, depending on 'type' argument.
+ *                              Void if total number of pages is less than 2.
  */
 function paginate_links( $args = '' ) {
 	global $wp_query, $wp_rewrite;
