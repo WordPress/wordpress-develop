@@ -184,7 +184,7 @@ class WP_Roles {
 	 * @param string $display_name Role display name.
 	 */
 	public function update_role( $role, $display_name ) {
-		if ( ! isset( $this->roles[ $role ] ) || ! is_string( $display_name ) ) {
+		if ( ! is_string( $role ) || ! isset( $this->roles[ $role ] ) || ! is_string( $display_name ) ) {
 			return;
 		}
 
