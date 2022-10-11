@@ -103,7 +103,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: Link to ?. */
 						__( 'Upgrades to the <a href="%s">controls for design elements and blocks</a> make the layout and site-building process more consistent, complete, and intuitive.' ),
-						'#',
+						'#'
 					);
 					?>
 				</p>
