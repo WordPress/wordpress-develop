@@ -2215,7 +2215,7 @@ function wp_new_comment( $commentdata, $wp_error = false ) {
 	if ( isset( $commentdata['user_ID'] ) ) {
 		$commentdata['user_ID'] = (int) $commentdata['user_ID'];
 		$commentdata['user_id'] = $commentdata['user_ID'];
-	} elseif ( isset( $commentdata['user_id'] )  ) {
+	} elseif ( isset( $commentdata['user_id'] ) ) {
 		$commentdata['user_id'] = (int) $commentdata['user_id'];
 		$commentdata['user_ID'] = $commentdata['user_id'];
 	}
