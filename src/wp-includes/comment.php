@@ -3605,7 +3605,7 @@ function wp_handle_comment_submission( $comment_data ) {
 		'comment_content',
 		'comment_type',
 		'comment_parent',
-		'user_id',
+		'user_id'
 	);
 
 	/**
