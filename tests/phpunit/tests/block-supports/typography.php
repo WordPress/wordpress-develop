@@ -346,7 +346,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 				'expected_output'             => 'clamp(21px, 1.3125rem + ((1vw - 7.68px) * 2.524), 42px)',
 			),
 
-			'default_return_value_with_unsupported_unit'   => array(
+			'default_return_value_with_unsupported_unit'  => array(
 				'font_size_preset'            => array(
 					'size'  => '1000%',
 					'fluid' => false,
@@ -354,7 +354,6 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 				'should_use_fluid_typography' => true,
 				'expected_output'             => '1000%',
 			),
-
 
 			'return_fluid_value'                          => array(
 				'font_size_preset'            => array(
