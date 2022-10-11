@@ -645,7 +645,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * @param mixed $expected  An expected return value.
 	 */
 	public function test_valid_size_wp_get_typography_value_and_unit( $raw_value, $expected ) {
-		$this->assertEquals( $expected, wp_get_typography_value_and_unit( $raw_value ) );
+		$this->assertSame( $expected, wp_get_typography_value_and_unit( $raw_value ) );
 	}
 
 	/**
