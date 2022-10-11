@@ -33,6 +33,52 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 */
 	private $queries = array();
 
+	/**
+	 * WP_Theme_JSON_Resolver::$blocks_cache property.
+	 *
+	 * @var ReflectionProperty
+	 */
+	private static $property_blocks_cache;
+
+	/**
+	 * Original value of the WP_Theme_JSON_Resolver::$blocks_cache property.
+	 *
+	 * @var array
+	 */
+	private static $property_blocks_cache_orig_value;
+
+	/**
+	 * WP_Theme_JSON_Resolver::$core property.
+	 *
+	 * @var ReflectionProperty
+	 */
+	private static $property_core;
+
+	/**
+	 * Original value of the WP_Theme_JSON_Resolver::$core property.
+	 *
+	 * @var WP_Theme_JSON
+	 */
+	private static $property_core_orig_value;
+
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
+		static::$property_blocks_cache = new ReflectionProperty( WP_Theme_JSON_Resolver::class, 'blocks_cache' );
+		static::$property_blocks_cache->setAccessible( true );
+		static::$property_blocks_cache_orig_value = static::$property_blocks_cache->getValue();
+
+		static::$property_core = new ReflectionProperty( WP_Theme_JSON_Resolver::class, 'core' );
+		static::$property_core->setAccessible( true );
+		static::$property_core_orig_value = static::$property_core->getValue();
+	}
+
+	public static function tear_down_after_class() {
+		static::$property_blocks_cache->setValue( WP_Theme_JSON_Resolver::class, static::$property_blocks_cache_orig_value );
+		static::$property_core->setValue( WP_Theme_JSON_Resolver::class, static::$property_core_orig_value );
+		parent::tear_down_after_class();
+	}
+
 	public function set_up() {
 		parent::set_up();
 		$this->theme_root = realpath( DIR_TESTDATA . '/themedir1' );
@@ -55,6 +101,9 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
+
+		// Reset data between tests.
+		WP_Theme_JSON_Resolver::clean_cached_data();
 		parent::tear_down();
 	}
 
@@ -187,6 +236,198 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$this->assertSame(
 			'Wariant motywu blokowego',
 			$style_variations[0]['title']
+		);
+	}
+
+	private function get_registered_block_names( $hard_reset = false ) {
+		static $expected_block_names;
+
+		if ( ! $hard_reset && ! empty( $expected_block_names ) ) {
+			return $expected_block_names;
+		}
+
+		$expected_block_names = array();
+		$resolver             = WP_Block_Type_Registry::get_instance();
+		$blocks               = $resolver->get_all_registered();
+		foreach ( array_keys( $blocks ) as $block_name ) {
+			$expected_block_names[ $block_name ] = true;
+		}
+
+		return $expected_block_names;
+	}
+
+	/**
+	 * Tests when WP_Theme_JSON_Resolver::$blocks_cache is empty or does not match
+	 * the all registered blocks.
+	 *
+	 * Though this is a non-public method, it is vital to other functionality.
+	 * Therefore, tests are provided to validate it functions as expected.
+	 *
+	 * @dataProvider data_has_same_registered_blocks_when_all_blocks_not_cached
+	 * @ticket 56467
+	 *
+	 * @param string $origin The origin to test.
+	 */
+	public function test_has_same_registered_blocks_when_all_blocks_not_cached( $origin, array $cache = array() ) {
+		$has_same_registered_blocks = new ReflectionMethod( WP_Theme_JSON_Resolver::class, 'has_same_registered_blocks' );
+		$has_same_registered_blocks->setAccessible( true );
+		$expected_cache = $this->get_registered_block_names();
+
+		// Set up the blocks cache for the origin.
+		$blocks_cache            = static::$property_blocks_cache->getValue();
+		$blocks_cache[ $origin ] = $cache;
+		static::$property_blocks_cache->setValue( null, $blocks_cache );
+
+		$this->assertFalse( $has_same_registered_blocks->invoke( null, $origin ), 'WP_Theme_JSON_Resolver::has_same_registered_blocks() should return false when same blocks are not cached' );
+		$blocks_cache = static::$property_blocks_cache->getValue();
+		$this->assertSameSets( $expected_cache, $blocks_cache[ $origin ], 'WP_Theme_JSON_Resolver::$blocks_cache should contain all expected block names for the given origin' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_has_same_registered_blocks_when_all_blocks_not_cached() {
+		return array(
+			'origin: core; cache: empty'       => array(
+				'origin' => 'core',
+			),
+			'origin: blocks; cache: empty'     => array(
+				'origin' => 'blocks',
+			),
+			'origin: theme; cache: empty'      => array(
+				'origin' => 'theme',
+			),
+			'origin: user; cache: empty'       => array(
+				'origin' => 'user',
+			),
+			'origin: core; cache: not empty'   => array(
+				'origin' => 'core',
+				'cache'  => array(
+					'core/block' => true,
+				),
+			),
+			'origin: blocks; cache: not empty' => array(
+				'origin' => 'blocks',
+				'cache'  => array(
+					'core/block'    => true,
+					'core/comments' => true,
+				),
+			),
+			'origin: theme; cache: not empty'  => array(
+				'origin' => 'theme',
+				'cache'  => array(
+					'core/cover' => true,
+				),
+			),
+			'origin: user; cache: not empty'   => array(
+				'origin' => 'user',
+				'cache'  => array(
+					'core/gallery' => true,
+				),
+			),
+		);
+	}
+
+	/**
+	 * Tests when WP_Theme_JSON_Resolver::$blocks_cache is empty or does not match
+	 * the all registered blocks.
+	 *
+	 * Though this is a non-public method, it is vital to other functionality.
+	 * Therefore, tests are provided to validate it functions as expected.
+	 *
+	 * @dataProvider data_has_same_registered_blocks_when_all_blocks_are_cached
+	 * @ticket 56467
+	 *
+	 * @param string $origin The origin to test.
+	 */
+	public function test_has_same_registered_blocks_when_all_blocks_are_cached( $origin ) {
+		$has_same_registered_blocks = new ReflectionMethod( WP_Theme_JSON_Resolver::class, 'has_same_registered_blocks' );
+		$has_same_registered_blocks->setAccessible( true );
+		$expected_cache = $this->get_registered_block_names();
+
+		// Set up the cache with all registered blocks.
+		$blocks_cache            = static::$property_blocks_cache->getValue();
+		$blocks_cache[ $origin ] = $this->get_registered_block_names();
+		static::$property_blocks_cache->setValue( null, $blocks_cache );
+
+		$this->assertTrue( $has_same_registered_blocks->invoke( null, $origin ), 'WP_Theme_JSON_Resolver::has_same_registered_blocks() should return true when using the cache' );
+		$this->assertSameSets( $expected_cache, $blocks_cache[ $origin ], 'WP_Theme_JSON_Resolver::$blocks_cache should contain all expected block names for the given origin' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_has_same_registered_blocks_when_all_blocks_are_cached() {
+		return array(
+			'core'   => array( 'core' ),
+			'blocks' => array( 'blocks' ),
+			'theme'  => array( 'theme' ),
+			'user'   => array( 'user' ),
+		);
+	}
+
+	/**
+	 * @dataProvider data_get_core_data
+	 * @covers WP_Theme_JSON_Resolver::get_core_data
+	 * @ticket 56467
+	 */
+	public function test_get_core_data( $should_fire_filter, $core_is_cached, $blocks_are_cached ) {
+		WP_Theme_JSON_Resolver::clean_cached_data();
+
+		// If should cache core, then fire the method to cache it before running the tests.
+		if ( $core_is_cached ) {
+			WP_Theme_JSON_Resolver::get_core_data();
+		}
+
+		// If should cache registered blocks, then set them up before running the tests.
+		if ( $blocks_are_cached ) {
+			$blocks_cache         = static::$property_blocks_cache->getValue();
+			$blocks_cache['core'] = $this->get_registered_block_names();
+			static::$property_blocks_cache->setValue( null, $blocks_cache );
+		}
+
+		$expected_filter_count = did_filter( 'theme_json_default' );
+		$actual                = WP_Theme_JSON_Resolver::get_core_data();
+		if ( $should_fire_filter ) {
+			$expected_filter_count++;
+		}
+
+		$this->assertSame( $expected_filter_count, did_filter( 'theme_json_default' ), 'The filter "theme_json_default" should fire the given number of times' );
+		$this->assertInstanceOf( WP_Theme_JSON::class, $actual, 'WP_Theme_JSON_Resolver::get_core_data() should return instance of WP_Theme_JSON' );
+		$this->assertSame( static::$property_core->getValue(), $actual, 'WP_Theme_JSON_Resolver::$core property should be the same object as returned from WP_Theme_JSON_Resolver::get_core_data()' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_get_core_data() {
+		return array(
+			'When both caches are empty'     => array(
+				'should_fire_filter' => true,
+				'core_is_cached'     => false,
+				'blocks_are_cached'  => false,
+			),
+			'When the blocks_cache is not empty and matches' => array(
+				'should_fire_filter' => true,
+				'core_is_cached'     => false,
+				'blocks_are_cached'  => true,
+			),
+			'When blocks_cache is empty but core cache is not' => array(
+				'should_fire_filter' => true,
+				'core_is_cached'     => true,
+				'blocks_are_cached'  => false,
+			),
+			'When both caches are not empty' => array(
+				'should_fire_filter' => true,
+				'core_is_cached'     => true,
+				'blocks_are_cached'  => false,
+			),
 		);
 	}
 
