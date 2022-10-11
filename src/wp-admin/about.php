@@ -215,6 +215,45 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<div class="about__image">
 					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
 						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
+						<path fill-rule="evenodd" clip-rule="evenodd" d="M22.4373 15.0445C22.5378 14.4418 23.0593 14 23.6703 14H25.3025C25.9136 14 26.4351 14.4418 26.5355 15.0445L26.8409 16.877C27.8252 17.2022 28.7192 17.7257 29.4757 18.4002L31.217 17.7478C31.7892 17.5335 32.4325 17.7642 32.738 18.2934L33.5541 19.7069C33.8597 20.2361 33.7378 20.9086 33.2661 21.297L31.8318 22.4777C31.9332 22.9693 31.9864 23.4784 31.9864 24C31.9864 24.5214 31.9332 25.0304 31.8319 25.5218L33.2672 26.7033C33.739 27.0917 33.8608 27.7642 33.5553 28.2934L32.7392 29.7069C32.4337 30.2361 31.7904 30.4668 31.2182 30.2525L29.4758 29.5997C28.7193 30.2743 27.8252 30.7978 26.8409 31.123L26.5355 32.9555C26.4351 33.5582 25.9136 34 25.3025 34H23.6703C23.0593 34 22.5378 33.5582 22.4373 32.9555L22.1319 31.123C21.1476 30.7978 20.2535 30.2743 19.497 29.5997L17.7547 30.2525C17.1825 30.4668 16.5392 30.2361 16.2336 29.7069L15.4175 28.2934C15.112 27.7642 15.2339 27.0917 15.7056 26.7033L17.1409 25.5218C17.0396 25.0304 16.9864 24.5214 16.9864 24C16.9864 23.4784 17.0397 22.9693 17.141 22.4777L15.7068 21.297C15.235 20.9086 15.1132 20.2361 15.4187 19.7069L16.2348 18.2934C16.5403 17.7642 17.1837 17.5335 17.7559 17.7479L19.4971 18.4002C20.2536 17.7257 21.1476 17.2022 22.1319 16.877L22.4373 15.0445ZM28.2364 24C28.2364 26.0711 26.5575 27.75 24.4864 27.75C22.4154 27.75 20.7364 26.0711 20.7364 24C20.7364 21.9289 22.4154 20.25 24.4864 20.25C26.5575 20.25 28.2364 21.9289 28.2364 24Z" fill="white"/>
+					</svg>
+				</div>
+				<h3 class="is-smaller-heading"><?php _e( 'Keep your Site Editor settings for later' ); ?></h3>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: Link to block editor preferences dev note. */
+						__( 'Site Editor settings are now <a href="%s">persistent for each user</a>. This means your settings will now be consistent across browsers and devices.' ),
+						'https://make.wordpress.org/core/2022/10/10/changes-to-block-editor-preferences-in-wordpress-6-1/'
+					);
+					?>
+				</p>
+			</div>
+			<div class="column">
+				<div class="about__image">
+					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
+						<path fill-rule="evenodd" clip-rule="evenodd" d="M32.75 24C32.75 28.8325 28.8325 32.75 24 32.75V24V15.25C28.8325 15.25 32.75 19.1675 32.75 24ZM24 14C29.5228 14 34 18.4772 34 24C34 29.5228 29.5228 34 24 34C18.4772 34 14 29.5228 14 24C14 18.4772 18.4772 14 24 14Z" fill="white"/>
+					</svg>
+				</div>
+				<h3 class="is-smaller-heading"><?php _e( 'A streamlined style system' ); ?></h3>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: Link style engine dev note. */
+						__( 'The CSS rules for margin, padding, typography, colors, and borders within the <a href="%s">styles engine</a> are now all in one place, reducing time spent on layout-specific tasks and helps to generate semantic class names.' ),
+						'https://make.wordpress.org/core/2022/10/10/block-styles-generation-style-engine/'
+					);
+					?>
+				</p>
+			</div>
+		</div>
+
+		<div class="about__section has-2-columns">
+			<div class="column">
+				<div class="about__image">
+					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
 						<path d="M23.8 15.38C23.2 15.38 22.685 15.165 22.255 14.735C21.825 14.305 21.61 13.79 21.61 13.19C21.61 12.59 21.825 12.075 22.255 11.645C22.685 11.215 23.2 11 23.8 11C24.4 11 24.915 11.215 25.345 11.645C25.775 12.075 25.99 12.59 25.99 13.19C25.99 13.79 25.775 14.305 25.345 14.735C24.915 15.165 24.4 15.38 23.8 15.38ZM20.59 35V19.01C19.23 18.91 17.915 18.77 16.645 18.59C15.375 18.41 14.16 18.18 13 17.9L13.45 16.1C15.15 16.5 16.84 16.785 18.52 16.955C20.2 17.125 21.96 17.21 23.8 17.21C25.64 17.21 27.4 17.125 29.08 16.955C30.76 16.785 32.45 16.5 34.15 16.1L34.6 17.9C33.44 18.18 32.225 18.41 30.955 18.59C29.685 18.77 28.37 18.91 27.01 19.01V35H25.21V27.2H22.39V35H20.59Z" fill="white"/>
 					</svg>
 				</div>
@@ -256,29 +295,6 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<div class="about__image">
 					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
 						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
-						<path fill-rule="evenodd" clip-rule="evenodd" d="M22.4373 15.0445C22.5378 14.4418 23.0593 14 23.6703 14H25.3025C25.9136 14 26.4351 14.4418 26.5355 15.0445L26.8409 16.877C27.8252 17.2022 28.7192 17.7257 29.4757 18.4002L31.217 17.7478C31.7892 17.5335 32.4325 17.7642 32.738 18.2934L33.5541 19.7069C33.8597 20.2361 33.7378 20.9086 33.2661 21.297L31.8318 22.4777C31.9332 22.9693 31.9864 23.4784 31.9864 24C31.9864 24.5214 31.9332 25.0304 31.8319 25.5218L33.2672 26.7033C33.739 27.0917 33.8608 27.7642 33.5553 28.2934L32.7392 29.7069C32.4337 30.2361 31.7904 30.4668 31.2182 30.2525L29.4758 29.5997C28.7193 30.2743 27.8252 30.7978 26.8409 31.123L26.5355 32.9555C26.4351 33.5582 25.9136 34 25.3025 34H23.6703C23.0593 34 22.5378 33.5582 22.4373 32.9555L22.1319 31.123C21.1476 30.7978 20.2535 30.2743 19.497 29.5997L17.7547 30.2525C17.1825 30.4668 16.5392 30.2361 16.2336 29.7069L15.4175 28.2934C15.112 27.7642 15.2339 27.0917 15.7056 26.7033L17.1409 25.5218C17.0396 25.0304 16.9864 24.5214 16.9864 24C16.9864 23.4784 17.0397 22.9693 17.141 22.4777L15.7068 21.297C15.235 20.9086 15.1132 20.2361 15.4187 19.7069L16.2348 18.2934C16.5403 17.7642 17.1837 17.5335 17.7559 17.7479L19.4971 18.4002C20.2536 17.7257 21.1476 17.2022 22.1319 16.877L22.4373 15.0445ZM28.2364 24C28.2364 26.0711 26.5575 27.75 24.4864 27.75C22.4154 27.75 20.7364 26.0711 20.7364 24C20.7364 21.9289 22.4154 20.25 24.4864 20.25C26.5575 20.25 28.2364 21.9289 28.2364 24Z" fill="white"/>
-					</svg>
-				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Keep your Site Editor settings for later' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: Link to block editor preferences dev note. */
-						__( 'Site Editor settings are now <a href="%s">persistent for each user</a>. This means your settings will now be consistent across browsers and devices.' ),
-						'https://make.wordpress.org/core/2022/10/10/changes-to-block-editor-preferences-in-wordpress-6-1/'
-					);
-					?>
-				</p>
-			</div>
-			<div class="column">
-			</div>
-		</div>
-
-		<div class="about__section has-2-columns">
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
 						<rect x="9" y="15" width="30" height="18" rx="9" fill="white"/>
 						<circle cx="18" cy="24" r="5" fill="#1E1E1E"/>
 					</svg>
@@ -298,27 +314,6 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<div class="about__image">
 					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
 						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
-						<path fill-rule="evenodd" clip-rule="evenodd" d="M32.75 24C32.75 28.8325 28.8325 32.75 24 32.75V24V15.25C28.8325 15.25 32.75 19.1675 32.75 24ZM24 14C29.5228 14 34 18.4772 34 24C34 29.5228 29.5228 34 24 34C18.4772 34 14 29.5228 14 24C14 18.4772 18.4772 14 24 14Z" fill="white"/>
-					</svg>
-				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'A streamlined style system' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: Link style engine dev note. */
-						__( 'The CSS rules for margin, padding, typography, colors, and borders within the <a href="%s">styles engine</a> are now all in one place, reducing time spent on layout-specific tasks and helps to generate semantic class names.' ),
-						'https://make.wordpress.org/core/2022/10/10/block-styles-generation-style-engine/'
-					);
-					?>
-				</p>
-			</div>
-		</div>
-
-		<div class="about__section has-2-columns">
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
 						<path fill-rule="evenodd" clip-rule="evenodd" d="M16.5 14H31.5C32.8807 14 34 15.1193 34 16.5V31.5C34 32.8807 32.8807 34 31.5 34H16.5C15.1193 34 14 32.8807 14 31.5V16.5C14 15.1193 15.1193 14 16.5 14ZM31.5 15.875H16.5C16.1548 15.875 15.875 16.1548 15.875 16.5V20.25H32.125V16.5C32.125 16.1548 31.8452 15.875 31.5 15.875ZM32.125 22.125H21.5L21.5 32.125H31.5C31.8452 32.125 32.125 31.8452 32.125 31.5V22.125ZM19.625 22.125H15.875V31.5C15.875 31.8452 16.1548 32.125 16.5 32.125H19.625L19.625 22.125Z" fill="white"/>
 					</svg>
 				</div>
@@ -333,6 +328,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					?>
 				</p>
 			</div>
+		</div>
+
+		<div class="about__section has-2-columns">
 			<div class="column">
 				<div class="about__image">
 					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
@@ -351,20 +349,6 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					);
 					?>
 				</p>
-			</div>
-		</div>
-
-		<div class="about__section has-2-columns">
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
-						<path fill-rule="evenodd" clip-rule="evenodd" d="M33.9426 16.4519L30.3191 12.9453L18.4578 24.9231L17.0032 29.8499L22.0592 28.4519L33.9426 16.4519ZM16 33.9453H24.934V32.2702H16V33.9453Z" fill="white"/>
-					</svg>
-				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Content-only editing support for container blocks' ); ?></h3>
-				<p><?php _e( 'Thanks to content-only editing settings, layouts can be locked within container blocks. In a content-only block, its children are invisible to the List View and entirely uneditable. So you control the layout while your writers can focus on the content.' ); ?></p>
-				<p><?php _e( 'Combine it with block locking options for even more advanced control over your blocks.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
@@ -391,6 +375,24 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<div class="about__image">
 					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
 						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
+						<circle cx="50%" cy="50%" r="30%" fill="red"/>
+					</svg>
+				</div>
+				<h3 class="is-smaller-heading"><?php _e( 'Filters for all your styles' ); ?></h3>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: Link to theme.json filters dev note. */
+						__( '<a href="%s">Leverage filters</a> in the Styles sidebar to control settings at all four levels of your site—core, theme, user, or block, from less to more specific.' ),
+						'https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/'
+					);
+					?>
+				</p>
+			</div>
+			<div class="column">
+				<div class="about__image">
+					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
 						<path d="M17 36.5996H32.333V34.533H17V36.5996Z" fill="white"/>
 						<path d="M17 13.0668L32.333 13.0668V11.0002L17 11.0002V13.0668Z" fill="white"/>
 						<path d="M37.4662 16.1334H35.3996V31.4664H37.4662V16.1334Z" fill="white"/>
@@ -407,29 +409,10 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					);
 					?>
 				</p>
-
-				<h3 class="is-smaller-heading"><?php _e( 'More responsive text with fluid typography' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: Link to fluid typography demo. */
-						__( '<a href="%s">Fluid typography</a> lets you define font sizes that adapt for easy reading in any screen size.' ),
-						'https://make.wordpress.org/core/2022/08/04/whats-new-in-gutenberg-13-8-3-august/#fluid-typography-support'
-					);
-					?>
-				</p>
-
-				<h3 class="is-smaller-heading"><?php _e( 'Filters for all your styles' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: Link to theme.json filters dev note. */
-						__( '<a href="%s">Leverage filters</a> in the Styles sidebar to control settings at all four levels of your site—core, theme, user, or block, from less to more specific.' ),
-						'https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/'
-					);
-					?>
-				</p>
 			</div>
+		</div>
+
+		<div class="about__section has-2-columns">
 			<div class="column">
 				<div class="about__image">
 					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
@@ -459,6 +442,38 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						/* translators: %s: Link to install Performance Lab plugin if permitted, otherwise link to plugin on WordPress.org. */
 						__( 'Be among the first to get the latest improvements by adding the <a href="%s">Performance Lab plugin</a> to your WordPress test site or sandbox.' ),
 						current_user_can( 'install_plugins' ) ? admin_url( 'plugin-install.php?s=slug%253Aperformance-lab&tab=search&type=term' ) : 'https://wordpress.org/plugins/performance-lab/'
+					);
+					?>
+				</p>
+			</div>
+			<div class="column">
+				<div class="about__image">
+					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
+						<path fill-rule="evenodd" clip-rule="evenodd" d="M33.9426 16.4519L30.3191 12.9453L18.4578 24.9231L17.0032 29.8499L22.0592 28.4519L33.9426 16.4519ZM16 33.9453H24.934V32.2702H16V33.9453Z" fill="white"/>
+					</svg>
+				</div>
+				<h3 class="is-smaller-heading"><?php _e( 'Content-only editing support for container blocks' ); ?></h3>
+				<p><?php _e( 'Thanks to content-only editing settings, layouts can be locked within container blocks. In a content-only block, its children are invisible to the List View and entirely uneditable. So you control the layout while your writers can focus on the content.' ); ?></p>
+				<p><?php _e( 'Combine it with block locking options for even more advanced control over your blocks.' ); ?></p>
+			</div>
+		</div>
+
+		<div class="about__section has-2-columns">
+			<div class="column">
+				<div class="about__image">
+					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
+						<circle cx="50%" cy="50%" r="30%" fill="red"/>
+					</svg>
+				</div>
+				<h3 class="is-smaller-heading"><?php _e( 'More responsive text with fluid typography' ); ?></h3>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: Link to fluid typography demo. */
+						__( '<a href="%s">Fluid typography</a> lets you define font sizes that adapt for easy reading in any screen size.' ),
+						'https://make.wordpress.org/core/2022/08/04/whats-new-in-gutenberg-13-8-3-august/#fluid-typography-support'
 					);
 					?>
 				</p>
