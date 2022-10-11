@@ -195,7 +195,7 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param $origin One of 'core', 'theme'. Source of data we cache blocks for.
+	 * @param $origin One of 'core', 'blocks', 'theme', 'user'. Source of data we cache blocks for.
 	 *
 	 * @return boolean True on success, false otherwise.
 	 */
