@@ -29,7 +29,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 		$this->test_block_name = null;
 
 		// Sets up the `wp-content/themes/` directory to ensure consistency when running tests.
-		$this->theme_root                = realpath( __DIR__ . '/../data/themedir1' );
+		$this->theme_root                = realpath( DIR_TESTDATA . '/themedir1' );
 		$this->orig_theme_dir            = $GLOBALS['wp_theme_directories'];
 		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', $this->theme_root );
 
