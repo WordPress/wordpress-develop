@@ -119,7 +119,11 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 		$custom_font_size                    = isset( $block_attributes['style']['typography']['fontSize'] )
 			? $block_attributes['style']['typography']['fontSize']
 			: null;
-		$typography_block_styles['fontSize'] = $preset_font_size ? $preset_font_size : $custom_font_size;
+			$typography_block_styles['fontSize'] = $preset_font_size ? $preset_font_size : wp_get_typography_font_size_value(
+				array(
+					'size' => $custom_font_size,
+				)
+			);
 	}
 
 	if ( $has_font_family_support && ! $should_skip_font_family ) {
@@ -242,6 +246,33 @@ function wp_typography_get_preset_inline_style_value( $style_value, $css_propert
 	// Return the actual CSS inline style value,
 	// e.g. `var(--wp--preset--text-decoration--underline);`.
 	return sprintf( 'var(--wp--preset--%s--%s);', $css_property, $slug );
+}
+
+/**
+ * Renders typography styles/content to the block wrapper.
+ *
+ * @param  string $block_content Rendered block content.
+ * @param  array  $block         Block object.
+ * @return string                Filtered block content.
+ */
+function wp_render_typography_support( $block_content, $block ) {
+	if ( ! isset( $block['attrs']['style']['typography']['fontSize'] ) ) {
+		return $block_content;
+	}
+
+	$custom_font_size = $block['attrs']['style']['typography']['fontSize'];
+	$fluid_font_size  = wp_get_typography_font_size_value( array( 'size' => $custom_font_size ) );
+
+	/*
+	 * Checks that $fluid_font_size does not match $custom_font_size,
+	 * which means it's been mutated by the fluid font size functions.
+	 */
+	if ( ! empty( $fluid_font_size ) && $fluid_font_size !== $custom_font_size ) {
+		// Replaces the first instance of `font-size:$custom_font_size` with `font-size:$fluid_font_size`.
+		return preg_replace( '/font-size\s*:\s*' . preg_quote( $custom_font_size, '/' ) . '\s*;?/', 'font-size:' . esc_attr( $fluid_font_size ) . ';', $block_content, 1 );
+	}
+
+	return $block_content;
 }
 
 /**
@@ -395,15 +426,19 @@ function wp_get_computed_fluid_typography_value( $args = array() ) {
  * @param array $preset                     {
  *     Required. fontSizes preset value as seen in theme.json.
  *
- *     @type string $name Name of the font size preset.
- *     @type string $slug Kebab-case unique identifier for the font size preset.
- *     @type string $size CSS font-size value, including units where applicable.
+ *     @type string     $name Name of the font size preset.
+ *     @type string     $slug Kebab-case unique identifier for the font size preset.
+ *     @type string|int $size CSS font-size value, including units where applicable.
  * }
  * @param bool  $should_use_fluid_typography An override to switch fluid typography "on". Can be used for unit testing.
  *                                           Default is `false`.
- * @return string Font-size value.
+ * @return string|null Font-size value or `null` if a size is not passed in $preset.
  */
 function wp_get_typography_font_size_value( $preset, $should_use_fluid_typography = false ) {
+	if ( ! isset( $preset['size'] ) || empty( $preset['size'] ) ) {
+		return null;
+	}
+
 	// Checks if fluid font sizes are activated.
 	$typography_settings         = wp_get_global_settings( array( 'typography' ) );
 	$should_use_fluid_typography = isset( $typography_settings['fluid'] ) && true === $typography_settings['fluid'] ? true : $should_use_fluid_typography;
@@ -473,3 +508,5 @@ WP_Block_Supports::get_instance()->register(
 		'apply'              => 'wp_apply_typography_support',
 	)
 );
+
+add_filter( 'render_block', 'wp_render_typography_support', 10, 2 );
