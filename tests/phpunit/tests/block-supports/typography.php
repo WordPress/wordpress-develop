@@ -328,6 +328,30 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 				'expected_output'             => '28px',
 			),
 
+			'size: int 0'                                 => array(
+				'font_size_preset'            => array(
+					'size' => 0,
+				),
+				'should_use_fluid_typography' => true,
+				'expected_output'             => 0,
+			),
+
+			'size: string 0'                              => array(
+				'font_size_preset'            => array(
+					'size' => '0',
+				),
+				'should_use_fluid_typography' => true,
+				'expected_output'             => '0',
+			),
+
+			'default_return_value_when_size_is_undefined' => array(
+				'font_size_preset'            => array(
+					'size' => null,
+				),
+				'should_use_fluid_typography' => false,
+				'expected_output'             => null,
+			),
+
 			'default_return_value_when_fluid_is_false'    => array(
 				'font_size_preset'            => array(
 					'size'  => '28px',
@@ -361,6 +385,30 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 				),
 				'should_use_fluid_typography' => true,
 				'expected_output'             => 'clamp(1.3125rem, 1.3125rem + ((1vw - 0.48rem) * 2.524), 2.625rem)',
+			),
+
+			'return_fluid_value_with_floats_with_units'   => array(
+				'font_size_preset'            => array(
+					'size' => '100.175px',
+				),
+				'should_use_fluid_typography' => true,
+				'expected_output'             => 'clamp(75.13125px, 4.695703125rem + ((1vw - 7.68px) * 9.03), 150.2625px)',
+			),
+
+			'return_fluid_value_with_integer_coerced_to_px' => array(
+				'font_size_preset'            => array(
+					'size' => 33,
+				),
+				'should_use_fluid_typography' => true,
+				'expected_output'             => 'clamp(24.75px, 1.546875rem + ((1vw - 7.68px) * 2.975), 49.5px)',
+			),
+
+			'return_fluid_value_with_float_coerced_to_px' => array(
+				'font_size_preset'            => array(
+					'size' => 100.23,
+				),
+				'should_use_fluid_typography' => true,
+				'expected_output'             => 'clamp(75.1725px, 4.69828125rem + ((1vw - 7.68px) * 9.035), 150.345px)',
 			),
 
 			'return_default_fluid_values_with_empty_fluid_array' => array(
@@ -581,6 +629,123 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 				'should_use_fluid_typography' => true,
 				'expected_output'             => "<div class=\"wp-block-group\" style=\"font-size:clamp(0.75em, 0.75em + ((1vw - 0.48em) * 1.442), 1.5em);\"> \n \n<p style=\"font-size:1em\">A paragraph inside a group</p></div>",
 			),
+		);
+	}
+
+	/**
+	 * Tests that valid font size values are parsed.
+	 *
+	 * @ticket 56467
+	 *
+	 * @covers ::wp_get_typography_value_and_unit
+	 *
+	 * @dataProvider data_valid_size_wp_get_typography_value_and_unit
+	 *
+	 * @param mixed $raw_value Raw size value to test.
+	 * @param mixed $expected  An expected return value.
+	 */
+	public function test_valid_size_wp_get_typography_value_and_unit( $raw_value, $expected ) {
+		$this->assertEquals( $expected, wp_get_typography_value_and_unit( $raw_value ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_valid_size_wp_get_typography_value_and_unit() {
+		return array(
+			'size: 10vh with default units do not match' => array(
+				'raw_value' => '10vh',
+				'expected'  => null,
+			),
+			'size: calc() values do not match'           => array(
+				'raw_value' => 'calc(2 * 10px)',
+				'expected'  => null,
+			),
+			'size: clamp() values do not match'          => array(
+				'raw_value' => 'clamp(15px, 0.9375rem + ((1vw - 7.68px) * 5.409), 60px)',
+				'expected'  => null,
+			),
+			'size: `"10"`'                               => array(
+				'raw_value' => '10',
+				'expected'  => array(
+					'value' => 10,
+					'unit'  => 'px',
+				),
+			),
+			'size: `11`'                                 => array(
+				'raw_value' => 11,
+				'expected'  => array(
+					'value' => 11,
+					'unit'  => 'px',
+				),
+			),
+			'size: `11.234`'                             => array(
+				'raw_value' => '11.234',
+				'expected'  => array(
+					'value' => 11.234,
+					'unit'  => 'px',
+				),
+			),
+			'size: `"12rem"`'                            => array(
+				'raw_value' => '12rem',
+				'expected'  => array(
+					'value' => 12,
+					'unit'  => 'rem',
+				),
+			),
+			'size: `"12px"`'                             => array(
+				'raw_value' => '12px',
+				'expected'  => array(
+					'value' => 12,
+					'unit'  => 'px',
+				),
+			),
+			'size: `"12em"`'                             => array(
+				'raw_value' => '12em',
+				'expected'  => array(
+					'value' => 12,
+					'unit'  => 'em',
+				),
+			),
+			'size: `"12.74em"`'                          => array(
+				'raw_value' => '12.74em',
+				'expected'  => array(
+					'value' => 12.74,
+					'unit'  => 'em',
+				),
+			),
+		);
+	}
+
+	/**
+	 * Tests that invalid font size values are not parsed and trigger incorrect usage.
+	 *
+	 * @ticket 56467
+	 *
+	 * @covers ::wp_get_typography_value_and_unit
+	 *
+	 * @dataProvider data_invalid_size_wp_get_typography_value_and_unit
+	 * @expectedIncorrectUsage wp_get_typography_value_and_unit
+	 *
+	 * @param mixed $raw_value Raw size value to test.
+	 */
+	public function test_invalid_size_wp_get_typography_value_and_unit( $raw_value ) {
+		$this->assertNull( wp_get_typography_value_and_unit( $raw_value ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_invalid_size_wp_get_typography_value_and_unit() {
+		return array(
+			'size: null'  => array( null ),
+			'size: false' => array( false ),
+			'size: true'  => array( true ),
+			'size: array' => array( array( '10' ) ),
 		);
 	}
 }
