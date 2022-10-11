@@ -769,4 +769,23 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'join', $posts_clauses_request );
 		$this->assertSame( '/* posts_join_request */', $posts_clauses_request['join'] );
 	}
+
+	/**
+	 * Tests that is_post_type_archive() returns false for an undefined post type.
+	 *
+	 * @ticket 56287
+	 *
+	 * @covers ::is_post_type_archive
+	 */
+	public function test_is_post_type_archive_should_return_false_for_an_undefined_post_type() {
+		global $wp_query;
+
+		$post_type = '56287-post-type';
+
+		// Force the request to be a post type archive.
+		$wp_query->is_post_type_archive = true;
+		$wp_query->set( 'post_type', $post_type );
+
+		$this->assertFalse( is_post_type_archive( $post_type ) );
+	}
 }
