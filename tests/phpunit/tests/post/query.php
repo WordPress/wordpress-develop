@@ -5,6 +5,25 @@
  * @group post
  */
 class Tests_Post_Query extends WP_UnitTestCase {
+
+	/**
+	 * Temporary storage for a post ID for tests using filter callbacks.
+	 *
+	 * Used in the `test_posts_pre_query_filter_should_respect_set_found_posts()` method.
+	 *
+	 * @var int
+	 */
+	private $post_id;
+
+	/**
+	 * Clean up after each test.
+	 */
+	public function tear_down() {
+		unset( $this->post_id );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @group taxonomy
 	 */
@@ -729,7 +748,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 42469
 	 */
 	public function test_found_posts_should_be_integer_not_string() {
-		$this->post_id = self::factory()->post->create();
+		$post_id = self::factory()->post->create();
 
 		$q = new WP_Query(
 			array(
@@ -744,7 +763,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 42469
 	 */
 	public function test_found_posts_should_be_integer_even_if_found_posts_filter_returns_string_value() {
-		$this->post_id = self::factory()->post->create();
+		$post_id = self::factory()->post->create();
 
 		add_filter( 'found_posts', '__return_empty_string' );
 

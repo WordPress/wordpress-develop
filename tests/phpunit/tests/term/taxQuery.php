@@ -59,7 +59,7 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 			'operator'         => 'IN',
 		);
 
-		$this->assertEquals( $expected, $tq->queries[0] );
+		$this->assertSameSetsWithIndex( $expected, $tq->queries[0] );
 	}
 
 	public function test_construct_fill_missing_query_params_merge_with_passed_values() {
@@ -82,7 +82,7 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 			'foo'              => 'bar',
 		);
 
-		$this->assertEquals( $expected, $tq->queries[0] );
+		$this->assertSameSetsWithIndex( $expected, $tq->queries[0] );
 	}
 
 	public function test_construct_cast_terms_to_array() {
@@ -262,7 +262,7 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 		);
 		$tq->transform_query( $tq->queries[0], 'term_taxonomy_id' );
 
-		$this->assertEquals( $tt_ids, $tq->queries[0]['terms'] );
+		$this->assertEqualSets( $tt_ids, $tq->queries[0]['terms'] );
 		$this->assertSame( 'term_taxonomy_id', $tq->queries[0]['field'] );
 	}
 
