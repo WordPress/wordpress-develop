@@ -8,6 +8,8 @@ class Tests_Comment extends WP_UnitTestCase {
 	protected static $post_id;
 	protected static $notify_message = '';
 
+	protected $preprocess_comment_data = array();
+
 	public function set_up() {
 		parent::set_up();
 		reset_phpmailer_instance();
@@ -454,6 +456,53 @@ class Tests_Comment extends WP_UnitTestCase {
 		$comment = get_comment( $id );
 
 		$this->assertSame( strlen( $comment->comment_content ), 65535 );
+	}
+
+	/**
+	 * @ticket 56244
+	 */
+	public function test_wp_new_comment_sends_all_expected_parameters_to_preprocess_comment_filter() {
+		$user = get_userdata( self::$user_id );
+		wp_set_current_user( $user->ID );
+
+		$data = array(
+			'comment_post_ID'      => self::$post_id,
+			'comment_author'       => $user->display_name,
+			'comment_author_email' => $user->user_email,
+			'comment_author_url'   => $user->user_url,
+			'comment_content'      => 'Comment',
+			'comment_type'         => '',
+			'comment_parent'       => 0,
+			'user_id'              => $user->ID,
+		);
+
+		add_filter( 'preprocess_comment', array( $this, 'filter_preprocess_comment' ) );
+
+		$comment = wp_new_comment( $data );
+
+		$this->assertNotWPError( $comment );
+		$this->assertSameSetsWithIndex(
+			array(
+				'comment_post_ID'      => self::$post_id,
+				'comment_author'       => $user->display_name,
+				'comment_author_email' => $user->user_email,
+				'comment_author_url'   => $user->user_url,
+				'comment_content'      => $data['comment_content'],
+				'comment_type'         => '',
+				'comment_parent'       => 0,
+				'user_ID'              => $user->ID,
+				'user_id'              => $user->ID,
+				'comment_author_IP'    => '127.0.0.1',
+				'comment_agent'        => '',
+			),
+			$this->preprocess_comment_data
+		);
+
+	}
+
+	public function filter_preprocess_comment( $commentdata ) {
+		$this->preprocess_comment_data = $commentdata;
+		return $commentdata;
 	}
 
 	/**
