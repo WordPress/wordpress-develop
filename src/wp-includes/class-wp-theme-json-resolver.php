@@ -188,12 +188,12 @@ class WP_Theme_JSON_Resolver {
 	}
 
 	/**
-	 * Checks whether the registered blocks are the same
-	 * as the ones we already processed for this origin.
+	 * Checks whether the registered blocks were already processed for this origin.
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param $origin One of 'core', 'blocks', 'theme', 'user'. Source of data we cache blocks for.
+	 * @param string $origin Data source for which to cache the blocks.
+	                         Valid values are 'core', 'blocks', 'theme', and 'user'.
 	 *
 	 * @return boolean True on success, false otherwise.
 	 */
