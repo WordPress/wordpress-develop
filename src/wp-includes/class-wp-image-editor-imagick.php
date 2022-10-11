@@ -254,9 +254,9 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	}
 
 	/**
-	 * Depending on configuration Imagick processing may take time.
+	 * Depending on configuration, Imagick processing may take time.
 	 *
-	 * Multiple problems exist if PHP timeout before ImageMagick completed:
+	 * Multiple problems exist if PHP timeouts before ImageMagick completed:
 	 * 1. Temporary files aren't cleaned by ImageMagick garbage collection
 	 * 2. No clear error is provided
 	 * 3. The cause of such timeout can be hard to pinpoint.
@@ -264,11 +264,12 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * This function (expected to be run before heavy image routines) resolves
 	 *  above point 1 by aligning Imagick's timeout on PHP one (assuming it's set).
 	 *
-	 * Note: Imagick resource exhaustion do not catchable issue exceptions (yet).
-	 * Note: The resource limit isn't backuped nor restored and will remain
-	 *  for subsequent image operations within the time of the HTTP request.
+	 * Note: Imagick resource exhaustion does not issue catchable exceptions (yet)
+	 *       See https://github.com/Imagick/imagick/issues/333
+	 * Note: The resource limit isn't saved/restored. It applies to
+	 *       subsequent image operations within the time of the HTTP request.
 	 *
-	 * @since 5.7.0
+	 * @since 6.1.0
 	 *
 	 * @return int|null Whether the new limit or null if none was set
 	 */
