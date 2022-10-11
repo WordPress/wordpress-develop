@@ -254,7 +254,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				</div>
 				<h3 class="is-smaller-heading"><?php _e( 'Other notes of interest' ); ?></h3>
 				<p><?php _e( '6.1 includes a new time-to-read feature showing content authors the approximate time-to-read values for pages, posts, and custom post types.' ); ?></p>
-				<p><?php _e( 'The site tagline is empty by default in new sites but can be modified in General Settings.' ); ?></p>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: "General Settings" admin page title, linked to the page if the user can edit options. */
+						__( 'The site tagline is empty by default in new sites but can be modified in %s.' ),
+						current_user_can( 'manage_options' ) ? '<a href="' . esc_url( admin_url( 'options-general.php' ) ) . '">' . __( 'General Settings' ) . '</a>' : __( 'General Settings' )
+					);
+					?>
+				</p>
 				<p><?php _e( 'A new modal design offers a background blur effect, making it easier to focus on the task at hand.' ); ?></p>
 			</div>
 		</div>
