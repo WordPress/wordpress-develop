@@ -1054,7 +1054,6 @@ button {
 
 /* Category 04 can contain any default HTML element. Do not add classes here, just give the elements some basic styles. */
 blockquote {
-	padding: 0;
 	position: relative;
 	margin: var(--global--spacing-vertical) 0 var(--global--spacing-vertical) var(--global--spacing-horizontal);
 }
@@ -1075,7 +1074,6 @@ blockquote > *:last-child {
 blockquote p {
 	letter-spacing: var(--heading--letter-spacing-h4);
 	font-family: var(--quote--font-family);
-	font-size: var(--quote--font-size);
 	font-style: var(--quote--font-style);
 	font-weight: var(--quote--font-weight);
 	line-height: var(--quote--line-height);
@@ -1085,7 +1083,6 @@ blockquote cite,
 blockquote footer {
 	font-weight: normal;
 	color: var(--global--color-primary);
-	font-size: var(--global--font-size-xs);
 	letter-spacing: var(--global--letter-spacing);
 }
 
@@ -1115,7 +1112,6 @@ blockquote strong {
 
 blockquote:before {
 	content: "“";
-	font-size: var(--quote--font-size);
 	line-height: var(--quote--line-height);
 	position: absolute;
 	left: calc(-0.5 * var(--global--spacing-horizontal));
@@ -1125,7 +1121,6 @@ blockquote .wp-block-quote__citation,
 blockquote cite,
 blockquote footer {
 	color: var(--global--color-primary);
-	font-size: var(--global--font-size-xs);
 	font-style: var(--quote--font-style-cite);
 }
 @media only screen and (max-width: 481px) {
@@ -1137,6 +1132,21 @@ blockquote footer {
 	blockquote:before {
 		left: 0;
 	}
+}
+
+/* Ony apply the default font size if the user has not selected a size. */
+blockquote:not([class*=font-size]) {
+	font-size: var(--quote--font-size);
+}
+
+blockquote:not([class*=font-size]):before {
+	font-size: var(--quote--font-size);
+}
+
+blockquote:not([class*=font-size]) .wp-block-quote__citation,
+blockquote:not([class*=font-size]) cite,
+blockquote:not([class*=font-size]) footer {
+	font-size: var(--global--font-size-xs);
 }
 
 input[type=text],
@@ -2968,7 +2978,6 @@ pre.wp-block-preformatted {
 
 .wp-block-quote:before {
 	content: "“";
-	font-size: var(--quote--font-size);
 	line-height: var(--quote--line-height);
 	left: 8px;
 }
@@ -3105,6 +3114,21 @@ pre.wp-block-preformatted {
 		padding-left: 0;
 		padding-right: 0;
 	}
+}
+
+/* Ony apply the default font size if the user has not selected a size. */
+blockquote:not([class*=font-size]) {
+	font-size: var(--quote--font-size);
+}
+
+blockquote:not([class*=font-size]):before {
+	font-size: var(--quote--font-size);
+}
+
+blockquote:not([class*=font-size]) .wp-block-quote__citation,
+blockquote:not([class*=font-size]) cite,
+blockquote:not([class*=font-size]) footer {
+	font-size: var(--global--font-size-xs);
 }
 
 .wp-block-rss {
