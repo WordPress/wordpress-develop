@@ -788,4 +788,113 @@ class Tests_Query extends WP_UnitTestCase {
 
 		$this->assertFalse( is_post_type_archive( $post_type ) );
 	}
+
+	/**
+	 * @ticket 29660
+	 */
+	public function test_query_singular_404_does_not_throw_warning() {
+		$q = new WP_Query(
+			array(
+				'pagename' => 'non-existent-page',
+			)
+		);
+
+		$this->assertSame( 0, $q->post_count );
+		$this->assertFalse( $q->is_single() );
+
+		$this->assertTrue( $q->is_singular() );
+		$this->assertFalse( $q->is_singular( 'page' ) );
+
+		$this->assertTrue( $q->is_page() );
+		$this->assertFalse( $q->is_page( 'non-existent-page' ) );
+	}
+
+	/**
+	 * @ticket 29660
+	 */
+	public function test_query_single_404_does_not_throw_warning() {
+		$q = new WP_Query(
+			array(
+				'name' => 'non-existent-post',
+			)
+		);
+
+		$this->assertSame( 0, $q->post_count );
+		$this->assertFalse( $q->is_page() );
+
+		$this->assertTrue( $q->is_singular() );
+		$this->assertFalse( $q->is_singular( 'post' ) );
+
+		$this->assertTrue( $q->is_single() );
+		$this->assertFalse( $q->is_single( 'non-existent-post' ) );
+	}
+
+	/**
+	 * @ticket 29660
+	 */
+	public function test_query_attachment_404_does_not_throw_warning() {
+		$q = new WP_Query(
+			array(
+				'attachment' => 'non-existent-attachment',
+			)
+		);
+
+		$this->assertSame( 0, $q->post_count );
+
+		$this->assertTrue( $q->is_singular() );
+		$this->assertFalse( $q->is_singular( 'attachment' ) );
+
+		$this->assertTrue( $q->is_attachment() );
+		$this->assertFalse( $q->is_attachment( 'non-existent-attachment' ) );
+	}
+
+	/**
+	 * @ticket 29660
+	 */
+	public function test_query_author_404_does_not_throw_warning() {
+		$q = new WP_Query(
+			array(
+				'author_name' => 'non-existent-author',
+			)
+		);
+
+		$this->assertSame( 0, $q->post_count );
+
+		$this->assertTrue( $q->is_author() );
+		$this->assertFalse( $q->is_author( 'non-existent-author' ) );
+	}
+
+	/**
+	 * @ticket 29660
+	 */
+	public function test_query_category_404_does_not_throw_warning() {
+		$q = new WP_Query(
+			array(
+				'category_name' => 'non-existent-category',
+			)
+		);
+
+		$this->assertSame( 0, $q->post_count );
+
+		$this->assertTrue( $q->is_category() );
+		$this->assertFalse( $q->is_tax() );
+		$this->assertFalse( $q->is_category( 'non-existent-category' ) );
+	}
+
+	/**
+	 * @ticket 29660
+	 */
+	public function test_query_tag_404_does_not_throw_warning() {
+		$q = new WP_Query(
+			array(
+				'tag' => 'non-existent-tag',
+			)
+		);
+
+		$this->assertSame( 0, $q->post_count );
+
+		$this->assertTrue( $q->is_tag() );
+		$this->assertFalse( $q->is_tax() );
+		$this->assertFalse( $q->is_tag( 'non-existent-tag' ) );
+	}
 }
