@@ -771,6 +771,25 @@ class Tests_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that is_post_type_archive() returns false for an undefined post type.
+	 *
+	 * @ticket 56287
+	 *
+	 * @covers ::is_post_type_archive
+	 */
+	public function test_is_post_type_archive_should_return_false_for_an_undefined_post_type() {
+		global $wp_query;
+
+		$post_type = '56287-post-type';
+
+		// Force the request to be a post type archive.
+		$wp_query->is_post_type_archive = true;
+		$wp_query->set( 'post_type', $post_type );
+
+		$this->assertFalse( is_post_type_archive( $post_type ) );
+	}
+
+	/**
 	 * @ticket 29660
 	 */
 	public function test_query_singular_404_doesnt_notice() {
@@ -878,5 +897,4 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertFalse( $q->is_tax() );
 		$this->assertFalse( $q->is_tag( 'non-existant-tag' ) );
 	}
-
 }
