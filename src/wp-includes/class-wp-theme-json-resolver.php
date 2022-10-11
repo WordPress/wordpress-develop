@@ -197,6 +197,11 @@ class WP_Theme_JSON_Resolver {
 	 * @return bool True on success, false otherwise.
 	 */
 	protected static function has_same_registered_blocks( $origin ) {
+		// Bail out if the origin is invalid.
+		if ( ! isset( static::$blocks_cache[ $origin ] ) ) {
+			return false;
+		}
+
 		$registry = WP_Block_Type_Registry::get_instance();
 		$blocks   = $registry->get_all_registered();
 
