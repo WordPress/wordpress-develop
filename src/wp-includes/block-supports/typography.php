@@ -297,7 +297,7 @@ function wp_get_typography_value_and_unit( $raw_value, $options = array() ) {
 	if ( ! is_string( $raw_value ) && ! is_int( $raw_value ) && ! is_float( $raw_value ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
-			__( 'Raw size value must be a string, integer or a float.' ),
+			__( 'Raw size value must be a string, integer, or float.' ),
 			'6.1.0'
 		);
 		return null;
