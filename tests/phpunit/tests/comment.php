@@ -480,8 +480,6 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$comment = wp_new_comment( $data );
 
-		remove_filter( 'preprocess_comment', array( $this, 'filter_preprocess_comment' ) );
-
 		$this->assertNotWPError( $comment );
 		$this->assertSameSetsWithIndex(
 			array(
