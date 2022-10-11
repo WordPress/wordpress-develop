@@ -253,7 +253,7 @@ function wp_typography_get_preset_inline_style_value( $style_value, $css_propert
  *
  * @param string $block_content Rendered block content.
  * @param array  $block         Block object.
- * @return string                Filtered block content.
+ * @return string Filtered block content.
  */
 function wp_render_typography_support( $block_content, $block ) {
 	if ( ! isset( $block['attrs']['style']['typography']['fontSize'] ) ) {
