@@ -24,6 +24,7 @@ class WP_Theme_JSON_Resolver {
 	 * Container for keep track of registered blocks.
 	 *
 	 * @since 6.1.0
+	 *
 	 * @var array
 	 */
 	protected static $blocks_cache = array(
@@ -196,7 +197,7 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @param $origin One of 'core', 'theme'. Source of data we cache blocks for.
 	 *
-	 * @return boolean
+	 * @return boolean True on success, false otherwise.
 	 */
 	protected static function has_same_registered_blocks( $origin ) {
 		$registry = WP_Block_Type_Registry::get_instance();
@@ -626,6 +627,8 @@ class WP_Theme_JSON_Resolver {
 	 * @since 5.8.0
 	 * @since 5.9.0 Added the `$user`, `$user_custom_post_type_id`,
 	 *              and `$i18n_schema` variables to reset.
+	 * @since 6.1.0 Added the `$blocks` and `$blocks_cache` variables
+	 *              to reset.
 	 */
 	public static function clean_cached_data() {
 		static::$core                     = null;
