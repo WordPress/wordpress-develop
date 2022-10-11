@@ -49,7 +49,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					?>
 				</h2>
 				<p class="is-subheading">
-					<?php _e( 'WordPress 6.1 includes more than 850 updates. This page highlights some of the most significant changes to the product since the May 2022 release of WordPress 6.0. You will also find resources for developers and anyone seeking a deeper understanding of WordPress.' ); ?>
+					<?php _e( 'WordPress 6.1 includes more than 2,000 updates. This page highlights some of the most significant changes to the product since the May 2022 release of WordPress 6.0. You will also find resources for developers and anyone seeking a deeper understanding of WordPress.' ); ?>
 				</p>
 			</div>
 		</div>
@@ -63,9 +63,10 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
-						/* translators: %s: Variation announcement post URL. */
-						__( 'Building on the foundational elements in the 5.9 and 6.0 releases for block themes and style variations, the new default theme, Twenty Twenty-Three, includes <a href="%s">10 different styles</a>.' ),
-						'https://make.wordpress.org/design/2022/09/07/tt3-default-theme-announcing-style-variation-selections/'
+						/* translators: 1: Variation announcement post URL, 2: Accessibility-ready handbook page. */
+						__( 'Building on the foundational elements in the 5.9 and 6.0 releases for block themes and style variations, the new default theme, Twenty Twenty-Three, includes <a href="%1$s">10 different styles</a> and is &#147;<a href="%2$s">Accessibility Ready</a>&#148;.' ),
+						'https://make.wordpress.org/design/2022/09/07/tt3-default-theme-announcing-style-variation-selections/',
+						'https://make.wordpress.org/themes/handbook/review/accessibility/'
 					);
 					?>
 				</p>
@@ -97,7 +98,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column is-vertically-aligned-center">
 				<h3><?php _e( 'More consistency and control across design tools' ); ?></h3>
-				<p><?php _e( 'Upgrades to the controls for design elements and blocks make the layout and site-building process more consistent, complete, and intuitive.' ); ?></p>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: Link to ?. */
+						__( 'Upgrades to the <a href="%s">controls for design elements and blocks</a> make the layout and site-building process more consistent, complete, and intuitive.' ),
+						'#',
+					);
+					?>
+				</p>
 			</div>
 		</div>
 
@@ -108,7 +117,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<?php
 					printf(
 						/* translators: %s: Link to navigation block fallback dev note. */
-						__( '<a href="%s">New fallback options</a> in the navigation block mean you can edit the menu that’s open, no searching needed. Plus, the controls for choosing and working on menus have their own place in the block settings. The mobile menu system also gets an upgrade with new features, including different icon options, to make the menu yours.' ),
+						__( '<a href="%s">New fallback options</a> in the navigation block mean you can edit the menu that’s open; no searching needed. Plus, the controls for choosing and working on menus have their own place in the block settings. The mobile menu system also gets an upgrade with new features, including different icon options, to make the menu yours.' ),
 						'https://make.wordpress.org/core/2022/09/27/navigation-block-fallback-behavior-in-wp-6-1-dev-note/'
 					);
 					?>
@@ -125,7 +134,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50%25' cy='50%25' r='30%25' fill='%23E26F56' /%3E%3C/svg%3E" alt="" />
 				</div>
 				<h3><?php _e( 'Improved layout and visualization of document settings' ); ?></h3>
-				<p><?php _e( 'A cleaner, better-organized display helps you view and manage important post and page settings easily, especially the template picker and scheduler.' ); ?></p>
+				<p><?php _e( 'A cleaner, better-organized display helps you easily view and manage important post and page settings, especially the template picker and scheduler.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image has-accent-background-color">
@@ -156,7 +165,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50%25' cy='50%25' r='30%25' fill='%23E26F56' /%3E%3C/svg%3E" alt="" />
 				</div>
 				<h3 class="is-smaller-heading"><?php _e( 'Header and footer patterns for every theme' ); ?></h3>
-				<p><?php _e( 'Explore these block patterns, making header and footer creation more efficient.' ); ?></p>
+				<p>
+					<?php
+					printf(
+						/* translators: 1: Link to tutorial for customizing a header, 2: Link to tutorial for customizing a footer. */
+						__( 'Explore these block patterns, making <a href="%1$s">header</a> and <a href="%2$s">footer</a> creation more efficient.' ),
+						'https://learn.wordpress.org/tutorial/customizing-a-header-with-patterns/',
+						'https://learn.wordpress.org/tutorial/customizing-a-footer-with-patterns/'
+					);
+					?>
 			</div>
 		</div>
 
@@ -187,45 +204,6 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						/* translators: %s: Link to "full site editing" themes on WordPress.org. */
 						__( 'The Themes Directory has <a href="%s">a filter for block themes</a>, and a pattern preview gives a better sense of what the theme might look like while exploring different themes and patterns.' ),
 						__( 'https://wordpress.org/themes/tags/full-site-editing/' )
-					);
-					?>
-				</p>
-			</div>
-		</div>
-
-		<div class="about__section has-2-columns">
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
-						<path d="M21.208 34L22.605 25.3833H17.6304C17.3805 25.3833 17.1988 25.2815 17.0852 25.0778C16.9716 24.8741 16.9716 24.6806 17.0852 24.4972L25.4331 12H26.8301L25.4331 20.5861H30.3396C30.5895 20.5861 30.7769 20.688 30.9018 20.8917C31.0268 21.0954 31.0325 21.2889 30.9189 21.4722L22.605 34H21.208Z" fill="white"/>
-					</svg>
-				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Performance improvements' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: Link to install Performance Lab plugin if permitted, otherwise link to plugin on WordPress.org. */
-						__( 'WordPress 6.1 resolved more than 25 tickets dedicated to enhancing performance. Be among the first to get the latest improvements by adding the <a href="%s">Performance Lab plugin</a> to your WordPress test site or sandbox. Review performance update highlights in the developer section below for additional details.' ),
-						current_user_can( 'install_plugins' ) ? admin_url( 'plugin-install.php?s=slug%253Aperformance-lab&tab=search&type=term' ) : 'https://wordpress.org/plugins/performance-lab/'
-					);
-					?>
-				</p>
-			</div>
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
-						<path fill-rule="evenodd" clip-rule="evenodd" d="M22.4373 15.0445C22.5378 14.4418 23.0593 14 23.6703 14H25.3025C25.9136 14 26.4351 14.4418 26.5355 15.0445L26.8409 16.877C27.8252 17.2022 28.7192 17.7257 29.4757 18.4002L31.217 17.7478C31.7892 17.5335 32.4325 17.7642 32.738 18.2934L33.5541 19.7069C33.8597 20.2361 33.7378 20.9086 33.2661 21.297L31.8318 22.4777C31.9332 22.9693 31.9864 23.4784 31.9864 24C31.9864 24.5214 31.9332 25.0304 31.8319 25.5218L33.2672 26.7033C33.739 27.0917 33.8608 27.7642 33.5553 28.2934L32.7392 29.7069C32.4337 30.2361 31.7904 30.4668 31.2182 30.2525L29.4758 29.5997C28.7193 30.2743 27.8252 30.7978 26.8409 31.123L26.5355 32.9555C26.4351 33.5582 25.9136 34 25.3025 34H23.6703C23.0593 34 22.5378 33.5582 22.4373 32.9555L22.1319 31.123C21.1476 30.7978 20.2535 30.2743 19.497 29.5997L17.7547 30.2525C17.1825 30.4668 16.5392 30.2361 16.2336 29.7069L15.4175 28.2934C15.112 27.7642 15.2339 27.0917 15.7056 26.7033L17.1409 25.5218C17.0396 25.0304 16.9864 24.5214 16.9864 24C16.9864 23.4784 17.0397 22.9693 17.141 22.4777L15.7068 21.297C15.235 20.9086 15.1132 20.2361 15.4187 19.7069L16.2348 18.2934C16.5403 17.7642 17.1837 17.5335 17.7559 17.7479L19.4971 18.4002C20.2536 17.7257 21.1476 17.2022 22.1319 16.877L22.4373 15.0445ZM28.2364 24C28.2364 26.0711 26.5575 27.75 24.4864 27.75C22.4154 27.75 20.7364 26.0711 20.7364 24C20.7364 21.9289 22.4154 20.25 24.4864 20.25C26.5575 20.25 28.2364 21.9289 28.2364 24Z" fill="white"/>
-					</svg>
-				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Keep your Site Editor settings for later' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: Link to block editor preferences dev note. */
-						__( 'Site Editor settings are now <a href="%s">persistent for each user</a>. For instance, if you have List View open by default, it will be open when you leave and return to the Site Editor later.' ),
-						'https://make.wordpress.org/core/2022/10/10/changes-to-block-editor-preferences-in-wordpress-6-1/'
 					);
 					?>
 				</p>
@@ -278,6 +256,29 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<div class="about__image">
 					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
 						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
+						<path fill-rule="evenodd" clip-rule="evenodd" d="M22.4373 15.0445C22.5378 14.4418 23.0593 14 23.6703 14H25.3025C25.9136 14 26.4351 14.4418 26.5355 15.0445L26.8409 16.877C27.8252 17.2022 28.7192 17.7257 29.4757 18.4002L31.217 17.7478C31.7892 17.5335 32.4325 17.7642 32.738 18.2934L33.5541 19.7069C33.8597 20.2361 33.7378 20.9086 33.2661 21.297L31.8318 22.4777C31.9332 22.9693 31.9864 23.4784 31.9864 24C31.9864 24.5214 31.9332 25.0304 31.8319 25.5218L33.2672 26.7033C33.739 27.0917 33.8608 27.7642 33.5553 28.2934L32.7392 29.7069C32.4337 30.2361 31.7904 30.4668 31.2182 30.2525L29.4758 29.5997C28.7193 30.2743 27.8252 30.7978 26.8409 31.123L26.5355 32.9555C26.4351 33.5582 25.9136 34 25.3025 34H23.6703C23.0593 34 22.5378 33.5582 22.4373 32.9555L22.1319 31.123C21.1476 30.7978 20.2535 30.2743 19.497 29.5997L17.7547 30.2525C17.1825 30.4668 16.5392 30.2361 16.2336 29.7069L15.4175 28.2934C15.112 27.7642 15.2339 27.0917 15.7056 26.7033L17.1409 25.5218C17.0396 25.0304 16.9864 24.5214 16.9864 24C16.9864 23.4784 17.0397 22.9693 17.141 22.4777L15.7068 21.297C15.235 20.9086 15.1132 20.2361 15.4187 19.7069L16.2348 18.2934C16.5403 17.7642 17.1837 17.5335 17.7559 17.7479L19.4971 18.4002C20.2536 17.7257 21.1476 17.2022 22.1319 16.877L22.4373 15.0445ZM28.2364 24C28.2364 26.0711 26.5575 27.75 24.4864 27.75C22.4154 27.75 20.7364 26.0711 20.7364 24C20.7364 21.9289 22.4154 20.25 24.4864 20.25C26.5575 20.25 28.2364 21.9289 28.2364 24Z" fill="white"/>
+					</svg>
+				</div>
+				<h3 class="is-smaller-heading"><?php _e( 'Keep your Site Editor settings for later' ); ?></h3>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: Link to block editor preferences dev note. */
+						__( 'Site Editor settings are now <a href="%s">persistent for each user</a>. This means your settings will now be consistent across browsers and devices.' ),
+						'https://make.wordpress.org/core/2022/10/10/changes-to-block-editor-preferences-in-wordpress-6-1/'
+					);
+					?>
+				</p>
+			</div>
+			<div class="column">
+			</div>
+		</div>
+
+		<div class="about__section has-2-columns">
+			<div class="column">
+				<div class="about__image">
+					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
 						<rect x="9" y="15" width="30" height="18" rx="9" fill="white"/>
 						<circle cx="18" cy="24" r="5" fill="#1E1E1E"/>
 					</svg>
@@ -305,7 +306,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<?php
 					printf(
 						/* translators: %s: Link style engine dev note. */
-						__( 'The CSS rules for margin, padding, typography, colors, and borders within the <a href="%s">styles engine</a> are now all in one place, reducing time spent on layout-specific tasks and helps generate semantic class names.' ),
+						__( 'The CSS rules for margin, padding, typography, colors, and borders within the <a href="%s">styles engine</a> are now all in one place, reducing time spent on layout-specific tasks and helps to generate semantic class names.' ),
 						'https://make.wordpress.org/core/2022/10/10/block-styles-generation-style-engine/'
 					);
 					?>
@@ -321,14 +322,13 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						<path fill-rule="evenodd" clip-rule="evenodd" d="M16.5 14H31.5C32.8807 14 34 15.1193 34 16.5V31.5C34 32.8807 32.8807 34 31.5 34H16.5C15.1193 34 14 32.8807 14 31.5V16.5C14 15.1193 15.1193 14 16.5 14ZM31.5 15.875H16.5C16.1548 15.875 15.875 16.1548 15.875 16.5V20.25H32.125V16.5C32.125 16.1548 31.8452 15.875 31.5 15.875ZM32.125 22.125H21.5L21.5 32.125H31.5C31.8452 32.125 32.125 31.8452 32.125 31.5V22.125ZM19.625 22.125H15.875V31.5C15.875 31.8452 16.1548 32.125 16.5 32.125H19.625L19.625 22.125Z" fill="white"/>
 					</svg>
 				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Evolution of layout options' ); ?></h3>
+				<h3 class="is-smaller-heading"><?php _e( 'Continued evolution of layout options' ); ?></h3>
 				<p>
 					<?php
 					printf(
-						/* translators: 1: Link to layout support refactor dev note, 2: Theme support code example. */
-						__( 'The Layout menu of the Styles Sidebar now includes the option to override content dimensions defined by a theme, giving users better control over full-width content; additionally, <a href="%1$s">controls and context are improved</a>. Themes can opt-out of generated layout styles with %2$s.' ),
-						'https://make.wordpress.org/core/2022/10/10/updated-editor-layout-support-in-6-1-after-refactor/',
-						"<code>add_theme_support(&nbsp;'disable-layout-styles'&nbsp;);</code>"
+						/* translators: %s: Link to layout support refactor dev note. */
+						__( 'The default content dimensions provided by themes can now be overridden in the Styles Sidebar, giving site builders better control over full-width content. Developers have <a href="%s">fine-grained control over these controls</a>.' ),
+						'https://make.wordpress.org/core/2022/10/10/updated-editor-layout-support-in-6-1-after-refactor/'
 					);
 					?>
 				</p>
@@ -344,9 +344,10 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
-						/* translators: %s: Link to block-based template parts in classic themes dev note. */
-						__( 'You can use <a href="%s">block template parts in classic themes</a> by adding the HTML files for the desired block templates to a parts directory at the root of your theme.' ),
-						'https://make.wordpress.org/core/2022/10/04/block-based-template-parts-in-traditional-themes/'
+						/* translators: 1: Link to block-based template parts in classic themes dev note, 2: Folder name. */
+						__( '<a href="%1$s">Block template parts can now be defined in classic themes</a> by adding the appropriate HTML files to the %2$s directory at the root of the theme.' ),
+						'https://make.wordpress.org/core/2022/10/04/block-based-template-parts-in-traditional-themes/',
+						'<code>parts</code>'
 					);
 					?>
 				</p>
@@ -362,7 +363,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</svg>
 				</div>
 				<h3 class="is-smaller-heading"><?php _e( 'Content-only editing support for container blocks' ); ?></h3>
-				<p><?php _e( 'Thanks to content-only editing settings, you can preserve the layouts in locked container blocks. If someone adds a content-only block to the canvas, its children are invisible to the List View and entirely uneditable. So you control the layout while your writers can focus on the content.' ); ?></p>
+				<p><?php _e( 'Thanks to content-only editing settings, layouts can be locked within container blocks. In a content-only block, its children are invisible to the List View and entirely uneditable. So you control the layout while your writers can focus on the content.' ); ?></p>
 				<p><?php _e( 'Combine it with block locking options for even more advanced control over your blocks.' ); ?></p>
 			</div>
 			<div class="column">
@@ -376,10 +377,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
-						/* translators: 1: Link to query loop dev note, 2: Filter name. */
-						__( 'A <a href="%1$s">new filter</a> (%2$s) lets Query Block variations support custom queries for powerful variations. Plus, a new parent filter allows for advanced filtering options of hierarchical post types. New UI improvements make these features easier to manage, including a tools panel to better consolidate the filters shown by default.' ),
-						'https://make.wordpress.org/core/2022/10/10/extending-the-query-loop-block/',
-						'<code>build_query_vars_from_query_block</code>'
+						/* translators: %s: Link to query loop dev note. */
+						__( '<a href="%s">New filters</a> let Query Block variations support custom queries for more powerful variations and advanced hierarchical post types filtering options.' ),
+						'https://make.wordpress.org/core/2022/10/10/extending-the-query-loop-block/'
 					);
 					?>
 				</p>
@@ -402,7 +402,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<?php
 					printf(
 						/* translators: %s: Link to spacing presets dev note. */
-						__( 'Save time and help avoid hard-coding a theme with <a href="%s">preset margin and padding values for multiple blocks</a>.' ),
+						__( 'Save time and help avoid hard-coding a values into a theme with <a href="%s">preset margin and padding values for multiple blocks</a>.' ),
 						'https://make.wordpress.org/core/2022/10/07/introduction-of-presets-across-padding-margin-and-block-gap/'
 					);
 					?>
@@ -437,24 +437,31 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						<path d="M21.4667 28.8357C21.9575 29.3156 22.667 29.5399 23.5952 29.5086C24.5235 29.4773 25.201 29.1382 25.6278 28.4914L32.5415 17.8811L21.8188 24.7355C21.1786 25.1528 20.8372 25.8206 20.7945 26.7387C20.7518 27.6568 20.9759 28.3558 21.4667 28.8357V28.8357ZM23.7393 14C24.9556 14 26.2252 14.193 27.5483 14.579C28.8713 14.965 30.1409 15.6275 31.3572 16.5665L29.6928 17.7246C28.7326 17.0986 27.703 16.6343 26.604 16.3318C25.5051 16.0292 24.5502 15.8779 23.7393 15.8779C20.7518 15.8779 18.2019 16.9212 16.0893 19.0078C13.9768 21.0944 12.9205 23.6296 12.9205 26.6135C12.9205 27.5524 13.0539 28.5018 13.3206 29.4617C13.5873 30.4215 13.9661 31.3083 14.4569 32.1221H32.9897C33.4591 31.3709 33.8325 30.4945 34.1099 29.493C34.3873 28.4914 34.526 27.5107 34.526 26.5509C34.526 25.6745 34.3927 24.7303 34.1259 23.7183C33.8592 22.7063 33.3844 21.7726 32.7016 20.9171L33.9499 19.2895C34.7608 20.458 35.3689 21.6317 35.7744 22.8106C36.1798 23.9896 36.4039 25.1737 36.4465 26.3631C36.4892 27.615 36.3612 28.7939 36.0624 29.8998C35.7637 31.0057 35.3263 32.0282 34.7501 32.9671C34.494 33.4471 34.222 33.7392 33.9339 33.8435C33.6458 33.9478 33.2884 34 32.8616 34H14.5849C14.2222 34 13.8647 33.9113 13.5126 33.734C13.1606 33.5566 12.8992 33.301 12.7284 32.9671C12.1736 31.9656 11.7469 30.9484 11.4481 29.9155C11.1494 28.8826 11 27.782 11 26.6135C11 24.8816 11.3361 23.2488 12.0083 21.7152C12.6804 20.1815 13.5927 18.8461 14.745 17.7089C15.8973 16.5717 17.2469 15.6693 18.794 15.0016C20.3411 14.3339 21.9895 14 23.7393 14V14Z" fill="white"/>
 					</svg>
 				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'WordPress 6.1 performance highlights' ); ?></h3>
-				<ul>
-					<li><a href="https://make.wordpress.org/core/2022/10/06/new-cache-site-health-checks-in-wordpress-6-1/"><?php _e( 'Two new cache site health checks' ); ?></a></li>
-					<li><a href="https://make.wordpress.org/core/2022/10/10/performance-improvements-to-the-rest-api/"><?php _e( 'Improvements to the REST API' ); ?></a></li>
-					<li><a href="https://make.wordpress.org/core/2022/10/10/multisite-improvements-in-wordpress-6-1/"><?php _e( 'Multisite performance improvements' ); ?></a></li>
-					<li><a href="https://make.wordpress.org/core/2022/10/07/improved-php-performance-for-core-blocks-registration/"><?php _e( 'Improved PHP performance for core blocks registration' ); ?></a></li>
-					<li><a href="https://make.wordpress.org/core/2022/10/07/improvements-to-wp_query-performance-in-6-1/"><?php _e( 'Improvements to WP_Query performance in 6.1 ' ); ?></a></li>
-					<li><?php _e( 'Addition of async attribute to images' ); ?></li>
-					<li>
-						<?php
-						printf(
-							/* translators: %s: Link to performance field guide. */
-							__( 'Read about the many performance improvements in the <a href="%s">Performance Field Guide</a>' ),
-							'https://make.wordpress.org/core/2022/10/11/performance-field-guide-for-wordpress-6-1/'
-						);
-						?>
-					</li>
-				</ul>
+				<h3 class="is-smaller-heading"><?php _e( 'Performance highlights' ); ?></h3>
+				<p>
+					<?php
+					printf(
+						/* translators: 1: REST API performance dev note, 2: Multisite performance dev note, 3: code-formatted "WP_Query" linked to dev note, 4: Block registration performance dev note, 5: Site health checks dev note; 6: code-formatted "async", 7: Performance field guide. */
+						__( 'WordPress 6.1 resolved more than 25 tickets dedicated to enhancing performance. From the  <a href="%1$s">REST API</a> to <a href="%2$s">multisite</a>, %3$s to <a href="%4$s">core block registration</a>, and <a href="%5$s">new Site Health checks</a> to the addition of the %6$s attribute to images, there are performance improvements for every type of site. A full breakdown can be found in the <a href="%7$s">Performance Field Guide</a>.' ),
+						'https://make.wordpress.org/core/2022/10/10/performance-improvements-to-the-rest-api/',
+						'https://make.wordpress.org/core/2022/10/10/multisite-improvements-in-wordpress-6-1/',
+						'<a href="https://make.wordpress.org/core/2022/10/07/improvements-to-wp_query-performance-in-6-1/"><code>WP_Query</code></a>',
+						'https://make.wordpress.org/core/2022/10/07/improved-php-performance-for-core-blocks-registration/',
+						'https://make.wordpress.org/core/2022/10/06/new-cache-site-health-checks-in-wordpress-6-1/',
+						'<code>async</code>',
+						'https://make.wordpress.org/core/2022/10/11/performance-field-guide-for-wordpress-6-1/'
+					);
+					?>
+				</p>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: Link to install Performance Lab plugin if permitted, otherwise link to plugin on WordPress.org. */
+						__( 'Be among the first to get the latest improvements by adding the <a href="%s">Performance Lab plugin</a> to your WordPress test site or sandbox.' ),
+						current_user_can( 'install_plugins' ) ? admin_url( 'plugin-install.php?s=slug%253Aperformance-lab&tab=search&type=term' ) : 'https://wordpress.org/plugins/performance-lab/'
+					);
+					?>
+				</p>
 			</div>
 		</div>
 
