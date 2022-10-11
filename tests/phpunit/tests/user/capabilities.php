@@ -1125,14 +1125,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 				'role'         => 'janitor',
 				'display_name' => 0.0,
 			),
-			'an empty string as the display name'    => array(
-				'role'         => 'janitor',
-				'display_name' => '',
-			),
-			'a string with only a space as the display name' => array(
-				'role'         => 'janitor',
-				'display_name' => ' ',
-			),
 			'an empty array as the display name'     => array(
 				'role'         => 'janitor',
 				'display_name' => array(),
