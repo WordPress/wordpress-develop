@@ -78,7 +78,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
-						/* translators: %1$s: Link to template options dev note, %2$s: Link to template creation dev note. */
+						/* translators: 1: Link to template options dev note, 2: Link to template creation dev note. */
 						__( '<a href="%1$s">New templates</a> include a custom template for posts and pages in the Site Editor. Search-and-replace tools speed up the design of <a href="%2$s">template parts</a>.' ),
 						'https://make.wordpress.org/core/2022/07/21/core-editor-improvement-deeper-customization-with-more-template-options/',
 						'https://make.wordpress.org/core/2022/08/25/core-editor-improvement-refining-the-template-creation-experience/'
@@ -325,7 +325,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
-						/* translators: %1$s: Link to layout support refactor dev note, %2$s theme support code example. */
+						/* translators: 1: Link to layout support refactor dev note, 2: Theme support code example. */
 						__( 'The Layout menu of the Styles Sidebar now includes the option to override content dimensions defined by a theme, giving users better control over full-width content; additionally, <a href="%1$s">controls and context are improved</a>. Themes can opt-out of generated layout styles with %2$s.' ),
 						'https://make.wordpress.org/core/2022/10/10/updated-editor-layout-support-in-6-1-after-refactor/',
 						"<code>add_theme_support(&nbsp;'disable-layout-styles'&nbsp;);</code>"
@@ -376,7 +376,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
-						/* translators: %1$s: Link to query loop dev note, %2$s filter name. */
+						/* translators: 1: Link to query loop dev note, 2: Filter name. */
 						__( 'A <a href="%1$s">new filter</a> (%2$s) lets Query Block variations support custom queries for powerful variations. Plus, a new parent filter allows for advanced filtering options of hierarchical post types. New UI improvements make these features easier to manage, including a tools panel to better consolidate the filters shown by default.' ),
 						'https://make.wordpress.org/core/2022/10/10/extending-the-query-loop-block/',
 						'<code>build_query_vars_from_query_block</code>'
