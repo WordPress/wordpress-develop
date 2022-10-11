@@ -20,7 +20,7 @@
 
 .about__container {
 	/* Section backgrounds */
-	--background: transparent;
+	--background: #274ACD;
 	--subtle-background: #eff2ff;
 
 	/* Main text color */
@@ -99,7 +99,7 @@
 }
 
 .about__section {
-	background: var(--background);
+	background: transparent;
 	clear: both;
 }
 
@@ -610,7 +610,8 @@
 	position: relative;
 	margin-bottom: var(--gap);
 	padding-top: 0;
-	background: var(--subtle-background) url('../images/about-header-about.svg?ver=6.0') no-repeat;
+	color: var(--text-light);
+	background: var(--background) no-repeat;
 	background-size: var(--about-header-bg-width) var(--about-header-bg-height);
 	background-position: right var(--about-header-bg-offset-inline) center;
 }
