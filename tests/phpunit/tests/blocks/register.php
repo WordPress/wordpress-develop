@@ -375,6 +375,21 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 56664
+	 */
+	public function test_register_nonexistent_stylesheet() {
+		$metadata = array(
+			'file'  => DIR_TESTDATA . '/blocks/notice/block.json',
+			'name'  => 'unit-tests/test-block-nonexistent-stylesheet',
+			'style' => 'file:./nonexistent.css',
+		);
+		register_block_style_handle( $metadata, 'style' );
+
+		global $wp_styles;
+		$this->assertFalse( $wp_styles->registered['unit-tests-test-block-nonexistent-stylesheet-style']->src );
+	}
+
+	/**
 	 * @ticket 55513
 	 */
 	public function test_success_register_block_style_handle_in_theme() {
