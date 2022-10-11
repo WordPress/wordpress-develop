@@ -78,6 +78,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
+						/* translators: %1$s: Link to template options dev note, %2$s: Link to template creation dev note. */
 						__( '<a href="%1$s">New templates</a> include a custom template for posts and pages in the Site Editor. Search-and-replace tools speed up the design of <a href="%2$s">template parts</a>.' ),
 						'https://make.wordpress.org/core/2022/07/21/core-editor-improvement-deeper-customization-with-more-template-options/',
 						'https://make.wordpress.org/core/2022/08/25/core-editor-improvement-refining-the-template-creation-experience/'
@@ -106,6 +107,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
+						/* translators: %s: Link to navigation block fallback dev note. */
 						__( '<a href="%s">New fallback options</a> in the navigation block mean you can edit the menu that’s open, no searching needed. Plus, the controls for choosing and working on menus have their own place in the block settings. The mobile menu system also gets an upgrade with new features, including different icon options, to make the menu yours.' ),
 						'https://make.wordpress.org/core/2022/09/27/navigation-block-fallback-behavior-in-wp-6-1-dev-note/'
 					);
@@ -182,6 +184,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
+						/* translators: %s: Link to "full site editing" themes on WordPress.org. */
 						__( 'The Themes Directory has <a href="%s">a filter for block themes</a>, and a pattern preview gives a better sense of what the theme might look like while exploring different themes and patterns.' ),
 						__( 'https://wordpress.org/themes/tags/full-site-editing/' )
 					);
@@ -202,6 +205,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
+						/* translators: %s: Link to install Performance Lab plugin if permitted, otherwise link to plugin on WordPress.org. */
 						__( 'WordPress 6.1 resolved more than 25 tickets dedicated to enhancing performance. Be among the first to get the latest improvements by adding the <a href="%s">Performance Lab plugin</a> to your WordPress test site or sandbox. Review performance update highlights in the developer section below for additional details.' ),
 						current_user_can( 'install_plugins' ) ? admin_url( 'plugin-install.php?s=slug%253Aperformance-lab&tab=search&type=term' ) : 'https://wordpress.org/plugins/performance-lab/'
 					);
@@ -219,6 +223,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
+						/* translators: %s: Link to block editor preferences dev note. */
 						__( 'Site Editor settings are now <a href="%s">persistent for each user</a>. For instance, if you have List View open by default, it will be open when you leave and return to the Site Editor later.' ),
 						'https://make.wordpress.org/core/2022/10/10/changes-to-block-editor-preferences-in-wordpress-6-1/'
 					);
@@ -239,6 +244,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
+						/* translators: %s: Link to WordPress.org accessibility statement. */
 						__( 'More than 40 improvements in accessibility include resolving focus loss problems in the editor, improving form labels and audible messages, making alternative text easier to edit, and fixing the sub-menu overlap in the expanded admin side navigation at smaller screen sizes and higher zoom levels. Learn more about <a href="%s">accessibility in WordPress</a>.' ),
 						'https://wordpress.org/about/accessibility/'
 					);
@@ -280,6 +286,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
+						/* translators: %s: Link to styling elements dev note. */
 						__( 'Updates include <a href="%s">styling elements</a> like buttons, citations, and links globally; controlling hover, active, and focus states for links using theme.json (not available to control in the interface yet); and customizing outline support for blocks and elements, among other features.' ),
 						'https://make.wordpress.org/core/2022/10/10/styling-elements-in-block-themes/'
 					);
@@ -297,6 +304,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
+						/* translators: %s: Link style engine dev note. */
 						__( 'The CSS rules for margin, padding, typography, colors, and borders within the <a href="%s">styles engine</a> are now all in one place, reducing time spent on layout-specific tasks and helps generate semantic class names.' ),
 						'https://make.wordpress.org/core/2022/10/10/block-styles-generation-style-engine/'
 					);
@@ -317,6 +325,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
+						/* translators: %1$s: Link to layout support refactor dev note, %2$s theme support code example. */
 						__( 'The Layout menu of the Styles Sidebar now includes the option to override content dimensions defined by a theme, giving users better control over full-width content; additionally, <a href="%1$s">controls and context are improved</a>. Themes can opt-out of generated layout styles with %2$s.' ),
 						'https://make.wordpress.org/core/2022/10/10/updated-editor-layout-support-in-6-1-after-refactor/',
 						"<code>add_theme_support(&nbsp;'disable-layout-styles'&nbsp;);</code>"
@@ -335,6 +344,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
+						/* translators: %s: Link to block-based template parts in classic themes dev note. */
 						__( 'You can use <a href="%s">block template parts in classic themes</a> by adding the HTML files for the desired block templates to a parts directory at the root of your theme.' ),
 						'https://make.wordpress.org/core/2022/10/04/block-based-template-parts-in-traditional-themes/'
 					);
@@ -366,6 +376,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
+						/* translators: %1$s: Link to query loop dev note, %2$s filter name. */
 						__( 'A <a href="%1$s">new filter</a> (%2$s) lets Query Block variations support custom queries for powerful variations. Plus, a new parent filter allows for advanced filtering options of hierarchical post types. New UI improvements make these features easier to manage, including a tools panel to better consolidate the filters shown by default.' ),
 						'https://make.wordpress.org/core/2022/10/10/extending-the-query-loop-block/',
 						'<code>build_query_vars_from_query_block</code>'
@@ -390,6 +401,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
+						/* translators: %s: Link to spacing presets dev note. */
 						__( 'Save time and help avoid hard-coding a theme with <a href="%s">preset margin and padding values for multiple blocks</a>.' ),
 						'https://make.wordpress.org/core/2022/10/07/introduction-of-presets-across-padding-margin-and-block-gap/'
 					);
@@ -400,6 +412,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
+						/* translators: %s: Link to fluid typography demo. */
 						__( '<a href="%s">Fluid typography</a> lets you define font sizes that adapt for easy reading in any screen size.' ),
 						'https://make.wordpress.org/core/2022/08/04/whats-new-in-gutenberg-13-8-3-august/#fluid-typography-support'
 					);
@@ -410,6 +423,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
+						/* translators: %s: Link to theme.json filters dev note. */
 						__( '<a href="%s">Leverage filters</a> in the Styles sidebar to control settings at all four levels of your site—core, theme, user, or block, from less to more specific.' ),
 						'https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/'
 					);
@@ -434,8 +448,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<li>
 						<?php
 						printf(
+							/* translators: %s: Link to performance field guide. */
 							__( 'Read about the many performance improvements in the <a href="%s">Performance Field Guide</a>' ),
-							'#'
+							'https://make.wordpress.org/core/2022/10/11/performance-field-guide-for-wordpress-6-1/'
 						);
 						?>
 					</li>
