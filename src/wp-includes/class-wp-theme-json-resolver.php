@@ -24,7 +24,6 @@ class WP_Theme_JSON_Resolver {
 	 * Container for keep track of registered blocks.
 	 *
 	 * @since 6.1.0
-	 *
 	 * @var array
 	 */
 	protected static $blocks_cache = array(
@@ -46,7 +45,6 @@ class WP_Theme_JSON_Resolver {
 	 * Container for data coming from the blocks.
 	 *
 	 * @since 6.1.0
-	 *
 	 * @var WP_Theme_JSON
 	 */
 	protected static $blocks = null;
