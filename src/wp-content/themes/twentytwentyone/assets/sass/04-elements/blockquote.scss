@@ -1,5 +1,4 @@
 blockquote {
-	padding: 0;
 	position: relative;
 	margin: var(--global--spacing-vertical) 0 var(--global--spacing-vertical) var(--global--spacing-horizontal);
 
@@ -19,7 +18,6 @@ blockquote {
 	p {
 		letter-spacing: var(--heading--letter-spacing-h4);
 		font-family: var(--quote--font-family);
-		font-size: var(--quote--font-size);
 		font-style: var(--quote--font-style);
 		font-weight: var(--quote--font-weight);
 		line-height: var(--quote--line-height);
@@ -29,7 +27,6 @@ blockquote {
 	footer {
 		font-weight: normal;
 		color: var(--global--color-primary);
-		font-size: var(--global--font-size-xs);
 		letter-spacing: var(--global--letter-spacing);
 	}
 
@@ -57,7 +54,6 @@ blockquote {
 
 	&:before {
 		content: "\201C";
-		font-size: var(--quote--font-size);
 		line-height: var(--quote--line-height);
 		position: absolute;
 		left: calc(-0.5 * var(--global--spacing-horizontal));
@@ -67,7 +63,6 @@ blockquote {
 	cite,
 	footer {
 		color: var(--global--color-primary);
-		font-size: var(--global--font-size-xs);
 		font-style: var(--quote--font-style-cite);
 	}
 
@@ -77,5 +72,20 @@ blockquote {
 		&:before {
 			left: 0;
 		}
+	}
+}
+
+/* Ony apply the default font size if the user has not selected a size. */
+blockquote:not([class*="font-size"]) {
+	font-size: var(--quote--font-size);
+
+	&:before {
+		font-size: var(--quote--font-size);
+	}
+
+	.wp-block-quote__citation,
+	cite,
+	footer {
+		font-size: var(--global--font-size-xs);
 	}
 }

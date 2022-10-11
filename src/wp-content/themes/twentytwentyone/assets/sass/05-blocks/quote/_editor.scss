@@ -5,7 +5,6 @@
 
 	p {
 		font-family: var(--quote--font-family);
-		font-size: var(--quote--font-size);
 		font-style: var(--quote--font-style);
 		font-weight: var(--quote--font-weight);
 		line-height: var(--quote--line-height);
@@ -17,14 +16,12 @@
 
 	&:before {
 		content: "\201C";
-		font-size: var(--quote--font-size);
 		line-height: var(--quote--line-height);
 		left: calc(-0.5 * var(--global--spacing-horizontal));
 	}
 
 	.wp-block-quote__citation {
 		color: currentColor;
-		font-size: var(--global--font-size-xs);
 		font-style: var(--quote--font-style-cite);
 
 		.has-background &,
@@ -63,6 +60,8 @@
 		}
 	}
 
+	// This block style has been removed from WordPress core,
+	// the CSS is kept for backwards compatibility.
 	&.is-large,
 	&.is-style-large {
 		padding-left: 0;
