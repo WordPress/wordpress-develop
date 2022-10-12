@@ -1893,6 +1893,8 @@ function clean_user_cache( $user ) {
 		wp_cache_delete( $user->user_email, 'useremail' );
 	}
 
+	wp_cache_delete( $user->ID, 'user_meta' );
+
 	/**
 	 * Fires immediately after the given user's cache is cleaned.
 	 *
