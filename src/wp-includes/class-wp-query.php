@@ -3092,7 +3092,7 @@ class WP_Query {
 			);
 
 			$new_request = str_replace( $fields, "{$wpdb->posts}.*", $this->request );
-			$new_request = str_replace( $wpdb->placeholder_escape(), "", $new_request );
+			$new_request = $wpdb->remove_placeholder_escape( $new_request );
 			$key         = md5( serialize( $cache_args ) . $new_request );
 
 			$last_changed = wp_cache_get_last_changed( 'posts' );

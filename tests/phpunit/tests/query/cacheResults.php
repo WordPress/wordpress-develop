@@ -191,6 +191,18 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 					),
 				),
 			),
+			'cache meta query search'                     => array(
+				'args' => array(
+					'cache_results' => true,
+					'meta_query'    => array(
+						array(
+							'key'     => 'color',
+							'value'   => '00',
+							'compare' => 'LIKE',
+						),
+					),
+				),
+			),
 			'cache comment_count'                         => array(
 				'args' => array(
 					'cache_results' => true,
@@ -207,6 +219,12 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 							'field'    => 'slug',
 						),
 					),
+				),
+			),
+			'cache search query'                          => array(
+				'args' => array(
+					'cache_results' => true,
+					's'             => 'e',
 				),
 			),
 		);
@@ -825,6 +843,72 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$this->assertContains( $p1, $posts1 );
 		$this->assertNotEmpty( $posts2 );
 		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
+	}
+
+
+	/**
+	 * @ticket 56802
+	 */
+	public function test_query_cache_like_meta() {
+		static $placeholder;
+		$old_placeholder = $placeholder;
+		$p1              = self::$posts[0];
+
+		$args   = array(
+			'cache_results' => true,
+			'fields'        => 'ids',
+			'meta_query'    => array(
+				array(
+					'key'     => 'color',
+					'value'   => '00',
+					'compare' => 'LIKE',
+				),
+			),
+		);
+		$query1 = new WP_Query();
+		$posts1 = $query1->query( $args );
+
+		// Force placeholder to be different.
+		$placeholder = rand();
+
+		$query2 = new WP_Query();
+		$posts2 = $query2->query( $args );
+
+		$placeholder = $old_placeholder;
+
+		$this->assertSame( $posts1, $posts2 );
+		$this->assertContains( $p1, $posts2 );
+		$this->assertSame( $query1->found_posts, $query2->found_posts );
+	}
+
+	/**
+	 * @ticket 56802
+	 */
+	public function test_query_cache_search() {
+		static $placeholder;
+		$old_placeholder = $placeholder;
+		// Post 0 already has the category foo.
+		$p1 = self::$posts[1];
+
+		$args   = array(
+			'cache_results' => true,
+			'fields'        => 'ids',
+			's'             => 'e',
+		);
+		$query1 = new WP_Query();
+		$posts1 = $query1->query( $args );
+
+		// Force placeholder to be different.
+		$placeholder = rand();
+
+		$query2 = new WP_Query();
+		$posts2 = $query2->query( $args );
+
+		$placeholder = $old_placeholder;
+
+		$this->assertSame( $posts1, $posts2 );
+		$this->assertContains( $p1, $posts2 );
+		$this->assertSame( $query1->found_posts, $query2->found_posts );
 	}
 
 	/**
