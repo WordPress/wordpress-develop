@@ -1179,6 +1179,20 @@ function get_header_image() {
 		$url = get_random_header_image();
 	}
 
+	/**
+	 * Filters the header image URL.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param string $url Header image URL.
+	 */
+	$url = apply_filters( 'get_header_image', $url );
+
+	if ( ! is_string( $url ) ) {
+		return false;
+	}
+
+	$url = trim( $url );
 	return sanitize_url( set_url_scheme( $url ) );
 }
 
@@ -2054,7 +2068,8 @@ function wp_update_custom_css_post( $css, $args = array() ) {
 			}
 
 			// Trigger creation of a revision. This should be removed once #30854 is resolved.
-			if ( 0 === count( wp_get_post_revisions( $r ) ) ) {
+			$revisions = wp_get_latest_revision_id_and_total_count( $r );
+			if ( ! is_wp_error( $revisions ) && 0 === $revisions['count'] ) {
 				wp_save_post_revision( $r );
 			}
 		}
@@ -3804,6 +3819,7 @@ function _wp_keep_alive_customize_changeset_dependent_auto_drafts( $new_status, 
  * See {@see 'setup_theme'}.
  *
  * @since 5.5.0
+ * @since 6.0.1 The `block-templates` feature was added.
  */
 function create_initial_theme_features() {
 	register_theme_feature(
@@ -3817,6 +3833,20 @@ function create_initial_theme_features() {
 		'automatic-feed-links',
 		array(
 			'description'  => __( 'Whether posts and comments RSS feed links are added to head.' ),
+			'show_in_rest' => true,
+		)
+	);
+	register_theme_feature(
+		'block-templates',
+		array(
+			'description'  => __( 'Whether a theme uses block-based templates.' ),
+			'show_in_rest' => true,
+		)
+	);
+	register_theme_feature(
+		'block-template-parts',
+		array(
+			'description'  => __( 'Whether a theme uses block-based template parts.' ),
 			'show_in_rest' => true,
 		)
 	);
@@ -4004,6 +4034,13 @@ function create_initial_theme_features() {
 		)
 	);
 	register_theme_feature(
+		'disable-layout-styles',
+		array(
+			'description'  => __( 'Whether the theme disables generated layout styles.' ),
+			'show_in_rest' => true,
+		)
+	);
+	register_theme_feature(
 		'editor-color-palette',
 		array(
 			'type'         => 'array',
@@ -4181,6 +4218,21 @@ function wp_is_block_theme() {
 }
 
 /**
+ * Given an element name, returns a class name.
+ *
+ * Alias of WP_Theme_JSON::get_element_class_name.
+ *
+ * @since 6.1.0
+ *
+ * @param string $element The name of the element.
+ *
+ * @return string The name of the class.
+ */
+function wp_theme_get_element_class_name( $element ) {
+	return WP_Theme_JSON::get_element_class_name( $element );
+}
+
+/**
  * Adds default theme supports for block themes when the 'setup_theme' action fires.
  *
  * See {@see 'setup_theme'}.
@@ -4205,4 +4257,23 @@ function _add_default_theme_supports() {
 	add_theme_support( 'automatic-feed-links' );
 
 	add_filter( 'should_load_separate_core_block_assets', '__return_true' );
+
+	/*
+	 * Remove the Customizer's Menus panel when block theme is active.
+	 */
+	add_filter(
+		'customize_panel_active',
+		static function ( $active, WP_Customize_Panel $panel ) {
+			if (
+				'nav_menus' === $panel->id &&
+				! current_theme_supports( 'menus' ) &&
+				! current_theme_supports( 'widgets' )
+			) {
+				$active = false;
+			}
+			return $active;
+		},
+		10,
+		2
+	);
 }

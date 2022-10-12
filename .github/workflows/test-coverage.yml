@@ -35,12 +35,12 @@ jobs:
   # Sets up WordPress for testing or development use.
   #
   # Performs the following steps:
-  # - Set environment variables.
+  # - Sets environment variables.
   # - Checks out the repository.
   # - Checks out the WordPress Importer plugin (needed for the Core PHPUnit tests).
-  # - Logs debug information about the runner container.
-  # - Installs NodeJS 14.
-  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # - Logs debug information about the GitHub Action runner.
+  # - Installs NodeJS.
+  # _ Installs NPM dependencies.
   # - Logs Docker debug information (about the Docker installation within the runner).
   # - Starts the WordPress Docker container.
   # - Logs debug general information.
@@ -71,7 +71,7 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
 
       - name: Checkout repository
-        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
 
       - name: Log debug information
         run: |
@@ -87,7 +87,7 @@ jobs:
           locale -a
 
       - name: Install NodeJS
-        uses: actions/setup-node@5b52f097d36d4b0b2f94ed6de710023fbb8b2236 # v3.1.0
+        uses: actions/setup-node@969bd2663942d722d85b6a8626225850c2f7be4b # v3.5.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -106,7 +106,7 @@ jobs:
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Cache Composer dependencies
-        uses: actions/cache@136d96b4aee02b1f0de3ba493b1d47135042d9c0 # v3.0.1
+        uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 # v3.0.10
         env:
           cache-name: cache-composer-dependencies
         with:
@@ -160,7 +160,7 @@ jobs:
 
       - name: Upload single site report to Codecov
         if: ${{ ! matrix.multisite && github.event_name != 'pull_request' }}
-        uses: codecov/codecov-action@e3c560433a6cc60aec8812599b7844a7b4fa0d71 # v3.0.0
+        uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70 # v3.1.1
         with:
           file: wp-code-coverage-single-clover-${{ github.sha }}.xml
           flags: single,php
@@ -175,7 +175,7 @@ jobs:
 
       - name: Upload multisite report to Codecov
         if: ${{ matrix.multisite && github.event_name != 'pull_request' }}
-        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # v2.1.0
+        uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70 # v3.1.1
         with:
           file: wp-code-coverage-multisite-clover-${{ github.sha }}.xml
           flags: multisite,php
@@ -193,3 +193,33 @@ jobs:
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-latest
+    needs: [ test-coverage-report, slack-notifications ]
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_attempt < 2 &&
+      (
+        needs.test-coverage-report.result == 'cancelled' || needs.test-coverage-report.result == 'failure'
+      )
+
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@7dff1a87643417cf3b95bb10b29f4c4bc60d8ebd # v6.3.1
+        with:
+          retries: 2
+          retry-exempt-status-codes: 418
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: '${{ github.ref_name }}',
+              inputs: {
+                run_id: '${{ github.run_id }}'
+              }
+            });

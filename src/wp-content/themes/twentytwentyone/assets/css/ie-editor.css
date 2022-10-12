@@ -613,7 +613,6 @@ a:hover {
 	letter-spacing: normal;
 	line-height: 1.3;
 	padding: 0;
-	max-width: inherit;
 	text-align: inherit;
 }
 @media only screen and (min-width: 652px) {
@@ -628,7 +627,6 @@ a:hover {
 	letter-spacing: normal;
 	line-height: 1.3;
 	padding: 0;
-	max-width: inherit;
 	text-align: inherit;
 }
 @media only screen and (min-width: 652px) {
@@ -1657,7 +1655,7 @@ pre.wp-block-preformatted {
 }
 
 .wp-block-quote .wp-block-quote__citation {
-	color: #28303d;
+	color: currentColor;
 	font-size: 1rem;
 	font-style: normal;
 }

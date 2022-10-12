@@ -157,14 +157,14 @@ CAP;
 			)
 		);
 
-		$this->assertSame( 2, preg_match_all( '/wp-caption/', $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( '/alignnone/', $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( '/' . self::CAPTION . '/', $result, $_r ) );
+		$this->assertSame( 2, substr_count( $result, 'wp-caption' ) );
+		$this->assertSame( 1, substr_count( $result, 'alignnone' ) );
+		$this->assertSame( 1, substr_count( $result, self::CAPTION ) );
 
 		if ( current_theme_supports( 'html5', 'caption' ) ) {
-			$this->assertSame( 1, preg_match_all( '/width: 20/', $result, $_r ) );
+			$this->assertSame( 1, substr_count( $result, 'width: 20' ) );
 		} else {
-			$this->assertSame( 1, preg_match_all( '/width: 30/', $result, $_r ) );
+			$this->assertSame( 1, substr_count( $result, 'width: 30' ) );
 		}
 	}
 
@@ -177,9 +177,9 @@ CAP;
 				'align'   => '&myAlignment',
 			)
 		);
-		$this->assertSame( 1, preg_match_all( '/wp-caption &amp;myAlignment/', $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( '/id="myId"/', $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( '/' . self::CAPTION . '/', $result, $_r ) );
+		$this->assertSame( 1, substr_count( $result, 'wp-caption &amp;myAlignment' ) );
+		$this->assertSame( 1, substr_count( $result, 'id="myId"' ) );
+		$this->assertSame( 1, substr_count( $result, self::CAPTION ) );
 	}
 
 	public function test_img_caption_shortcode_with_old_format_and_class() {
@@ -190,20 +190,19 @@ CAP;
 				'caption' => self::CAPTION,
 			)
 		);
-		$this->assertSame( 1, preg_match_all( '/wp-caption alignnone some-class another-class/', $result, $_r ) );
+		$this->assertSame( 1, substr_count( $result, 'wp-caption alignnone some-class another-class' ) );
 
 	}
 
 	public function test_new_img_caption_shortcode_with_html_caption() {
-		$result   = img_caption_shortcode(
+		$result = img_caption_shortcode(
 			array(
 				'width'   => 20,
 				'caption' => self::HTML_CONTENT,
 			)
 		);
-		$our_preg = preg_quote( self::HTML_CONTENT );
 
-		$this->assertSame( 1, preg_match_all( "~{$our_preg}~", $result, $_r ) );
+		$this->assertSame( 1, substr_count( $result, self::HTML_CONTENT ) );
 	}
 
 	public function test_new_img_caption_shortcode_new_format() {
@@ -214,8 +213,8 @@ CAP;
 		$img_preg     = preg_quote( self::IMG_CONTENT );
 		$content_preg = preg_quote( self::HTML_CONTENT );
 
-		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result, $_r ) );
+		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result ) );
+		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result ) );
 	}
 
 	public function test_new_img_caption_shortcode_new_format_and_linked_image() {
@@ -227,8 +226,8 @@ CAP;
 		$img_preg     = preg_quote( $linked_image );
 		$content_preg = preg_quote( self::HTML_CONTENT );
 
-		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result, $_r ) );
+		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result ) );
+		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result ) );
 	}
 
 	public function test_new_img_caption_shortcode_new_format_and_linked_image_with_newline() {
@@ -240,8 +239,8 @@ CAP;
 		$img_preg     = preg_quote( $linked_image );
 		$content_preg = preg_quote( self::HTML_CONTENT );
 
-		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result, $_r ) );
-		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result, $_r ) );
+		$this->assertSame( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result ) );
+		$this->assertSame( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result ) );
 	}
 
 	/**
@@ -256,7 +255,7 @@ CAP;
 			self::IMG_CONTENT . self::HTML_CONTENT
 		);
 
-		$this->assertSame( 1, preg_match_all( '/aria-describedby="caption-myId"/', $result, $_r ) );
+		$this->assertSame( 1, substr_count( $result, 'aria-describedby="caption-myId"' ) );
 	}
 
 	public function test_add_remove_oembed_provider() {
@@ -502,7 +501,7 @@ https://w.org</a>',
 		);
 
 		$images = get_attached_media( 'image', $post_id );
-		$this->assertEquals( $images, array( $attachment_id => get_post( $attachment_id ) ) );
+		$this->assertEqualSets( $images, array( $attachment_id => get_post( $attachment_id ) ) );
 	}
 
 	/**
@@ -1022,6 +1021,7 @@ VIDEO;
 
 	/**
 	 * @ticket 35367
+	 * @ticket 54788
 	 * @depends test_video_shortcode_body
 	 */
 	public function test_wp_video_shortcode_attributes() {
@@ -1034,6 +1034,7 @@ VIDEO;
 		$this->assertStringContainsString( 'src="https://example.com/foo.mp4', $actual );
 		$this->assertStringNotContainsString( 'loop', $actual );
 		$this->assertStringNotContainsString( 'autoplay', $actual );
+		$this->assertStringNotContainsString( 'muted', $actual );
 		$this->assertStringContainsString( 'preload="metadata"', $actual );
 		$this->assertStringContainsString( 'width="640"', $actual );
 		$this->assertStringContainsString( 'height="360"', $actual );
@@ -1045,6 +1046,7 @@ VIDEO;
 				'poster'   => 'https://example.com/foo.png',
 				'loop'     => true,
 				'autoplay' => true,
+				'muted'    => true,
 				'preload'  => true,
 				'width'    => 123,
 				'height'   => 456,
@@ -1056,6 +1058,7 @@ VIDEO;
 		$this->assertStringContainsString( 'poster="https://example.com/foo.png', $actual );
 		$this->assertStringContainsString( 'loop="1"', $actual );
 		$this->assertStringContainsString( 'autoplay="1"', $actual );
+		$this->assertStringContainsString( 'muted', $actual );
 		$this->assertStringContainsString( 'preload="1"', $actual );
 		$this->assertStringContainsString( 'width="123"', $actual );
 		$this->assertStringContainsString( 'height="456"', $actual );
@@ -1654,11 +1657,11 @@ EOF;
 
 		$expected = trim( $expected, ' ,' );
 
-		foreach ( $intermediates as $int ) {
-			$image_url  = wp_get_attachment_image_url( self::$large_id, $int );
-			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int );
+		foreach ( $intermediates as $int_size ) {
+			$image_url  = wp_get_attachment_image_url( self::$large_id, $int_size );
+			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int_size );
 
-			if ( 'full' === $int ) {
+			if ( 'full' === $int_size ) {
 				// Add the full size image. Expected to be in the srcset when the full size image is used as src.
 				$_expected = $uploads_dir_url . $image_meta['file'] . ' ' . $image_meta['width'] . 'w, ' . $expected;
 			} else {
@@ -1707,11 +1710,19 @@ EOF;
 
 		$expected = trim( $expected, ' ,' );
 
-		foreach ( $intermediates as $int ) {
-			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int );
-			$image_url  = wp_get_attachment_image_url( $id, $int );
+		foreach ( $intermediates as $int_size ) {
+			$image_urls[ $int_size ] = wp_get_attachment_image_url( $id, $int_size );
+		}
 
-			if ( 'full' === $int ) {
+		// Remove the attachment.
+		wp_delete_attachment( $id, true );
+		remove_filter( 'upload_dir', '_upload_dir_no_subdir' );
+
+		foreach ( $intermediates as $int_size ) {
+			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int_size );
+			$image_url  = $image_urls[ $int_size ];
+
+			if ( 'full' === $int_size ) {
 				// Add the full size image. Expected to be in the srcset when the full size image is used as src.
 				$_expected = $uploads_dir_url . $image_meta['file'] . ' ' . $image_meta['width'] . 'w, ' . $expected;
 			} else {
@@ -1722,9 +1733,6 @@ EOF;
 			$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 		}
 
-		// Remove the attachment.
-		wp_delete_attachment( $id, true );
-		remove_filter( 'upload_dir', '_upload_dir_no_subdir' );
 	}
 
 	/**
@@ -1797,11 +1805,11 @@ EOF;
 		// Prepend an absolute path to simulate a pre-2.7 upload.
 		$image_meta['file'] = 'H:\home\wordpress\trunk/wp-content/uploads/' . $image_meta['file'];
 
-		foreach ( $intermediates as $int ) {
-			$image_url  = wp_get_attachment_image_url( self::$large_id, $int );
-			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int );
+		foreach ( $intermediates as $int_size ) {
+			$image_url  = wp_get_attachment_image_url( self::$large_id, $int_size );
+			$size_array = $this->get_image_size_array_from_meta( $image_meta, $int_size );
 
-			if ( 'full' === $int ) {
+			if ( 'full' === $int_size ) {
 				// Add the full size image. Expected to be in the srcset when the full size image is used as src.
 				$_expected = $uploads_dir_url . $full_size_file . ' ' . $image_meta['width'] . 'w, ' . $expected;
 			} else {
@@ -3613,6 +3621,97 @@ EOF;
 		// Clean up the above filter.
 		remove_filter( 'wp_omit_loading_attr_threshold', '__return_null', 100 );
 	}
+
+	/**
+	 * Test that generated files with the `image_editor_output_format` applied use the correct
+	 * quality level based on their mime type.
+	 *
+	 * @ticket 56442
+	 */
+	public function test_quality_with_image_conversion_file_sizes() {
+		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_jpeg' ) );
+		$temp_dir = get_temp_dir();
+		$file     = $temp_dir . '/33772.jpg';
+		copy( DIR_TESTDATA . '/images/33772.jpg', $file );
+
+		// Set JPEG output quality very low and WebP quality very high, this should force all generated WebP images to
+		// be larger than the the matching generated JPEGs.
+		add_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low_jpeg' ), 10, 2 );
+
+		$editor = wp_get_image_editor( $file );
+
+		// Verify that the selected editor supports WebP output.
+		if ( ! $editor->supports_mime_type( 'image/webp' ) ) {
+			$this->markTestSkipped( 'WebP is not supported by the selected image editor.' );
+		}
+
+		$attachment_id = self::factory()->attachment->create_object(
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'file'           => $file,
+			)
+		);
+
+		add_filter( 'big_image_size_threshold', array( $this, 'add_big_image_size_threshold' ) );
+
+		// Generate all sizes as JPEGs.
+		$jpeg_sizes = wp_generate_attachment_metadata( $attachment_id, $file );
+		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_jpeg' ) );
+
+		// Generate all sizes as WebP.
+		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_webp' ) );
+		$webp_sizes = wp_generate_attachment_metadata( $attachment_id, $file );
+		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_webp' ) );
+
+		// The main (scaled) image: the JPEG should be smaller than the WebP.
+		$this->assertLessThan( $webp_sizes['filesize'], $jpeg_sizes['filesize'], 'The JPEG should be smaller than the WebP.' );
+
+		// Sub-sizes: for each size, the JPEGs should be smaller than the WebP.
+		$sizes_to_compare = array_intersect_key( $jpeg_sizes['sizes'], $webp_sizes['sizes'] );
+		foreach ( $sizes_to_compare as $size => $size_data ) {
+			$this->assertLessThan( $webp_sizes['sizes'][ $size ]['filesize'], $jpeg_sizes['sizes'][ $size ]['filesize'] );
+		}
+	}
+
+	/**
+	 * Add threshold to create a `-scaled` output image for testing.
+	 */
+	public function add_big_image_size_threshold() {
+		return 1000;
+	}
+
+	/**
+	 * Output JPEG files.
+	 */
+	public function image_editor_output_jpeg() {
+		return array( 'image/jpeg' => 'image/jpeg' );
+	}
+
+	/**
+	 * Output WebP files.
+	 */
+	public function image_editor_output_webp() {
+		return array( 'image/jpeg' => 'image/webp' );
+	}
+
+	/**
+	 * Changes the quality using very low quality for JPEGs and very high quality
+	 * for WebPs, used to verify the filter is applying correctly.
+	 *
+	 * @param int    $quality   Default quality.
+	 * @param string $mime_type Image mime-type.
+	 * @return int The changed quality.
+	 */
+	public function image_editor_change_quality_low_jpeg( $quality, $mime_type ) {
+		if ( 'image/jpeg' === $mime_type ) {
+			return 1;
+		} elseif ( 'image/webp' === $mime_type ) {
+			return 100;
+		} else {
+			return 30;
+		}
+	}
+
 }
 
 /**

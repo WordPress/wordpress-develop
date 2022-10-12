@@ -16,6 +16,7 @@
  *
  * @since 2.9.0
  */
+#[AllowDynamicProperties]
 class WP_oEmbed {
 
 	/**
@@ -80,6 +81,7 @@ class WP_oEmbed {
 			'#https?://(www\.|embed\.)?ted\.com/talks/.*#i' => array( 'https://www.ted.com/services/v1/oembed.{format}', true ),
 			'#https?://(www\.)?(animoto|video214)\.com/play/.*#i' => array( 'https://animoto.com/oembeds/create', true ),
 			'#https?://(.+)\.tumblr\.com/post/.*#i'        => array( 'https://www.tumblr.com/oembed/1.0', true ),
+			'#https?://(www\.)?tumblr\.com/blog/view/[^/]+/.*#i' => array( 'https://www.tumblr.com/oembed/1.0', true ),
 			'#https?://(www\.)?kickstarter\.com/projects/.*#i' => array( 'https://www.kickstarter.com/services/oembed', true ),
 			'#https?://kck\.st/.*#i'                       => array( 'https://www.kickstarter.com/services/oembed', true ),
 			'#https?://cloudup\.com/.*#i'                  => array( 'https://cloudup.com/oembed', true ),
@@ -104,6 +106,7 @@ class WP_oEmbed {
 			'#https?://(www\.)?tiktok\.com/.*/video/.*#i'  => array( 'https://www.tiktok.com/oembed', true ),
 			'#https?://([a-z]{2}|www)\.pinterest\.com(\.(au|mx))?/.*#i' => array( 'https://www.pinterest.com/oembed.json', true ),
 			'#https?://(www\.)?wolframcloud\.com/obj/.+#i' => array( 'https://www.wolframcloud.com/oembed', true ),
+			'#https?://pca\.st/.+#i'                       => array( 'https://pca.st/oembed.json', true ),
 		);
 
 		if ( ! empty( self::$early_providers['add'] ) ) {
@@ -181,6 +184,7 @@ class WP_oEmbed {
 		 * | TikTok       | tiktok.com                                | 5.4.0   |
 		 * | Pinterest    | pinterest.com                             | 5.9.0   |
 		 * | WolframCloud | wolframcloud.com                          | 5.9.0   |
+		 * | Pocket Casts | pocketcasts.com                           | 6.1.0   |
 		 *
 		 * No longer supported providers:
 		 *
@@ -202,8 +206,8 @@ class WP_oEmbed {
 		 * | Instagram TV | instagram.com        | 5.1.0     | 5.5.2     |
 		 * | Instagram TV | instagr.am           | 5.1.0     | 5.5.2     |
 		 * | Facebook     | facebook.com         | 4.7.0     | 5.5.2     |
-		 * | Meetup.com   | meetup.com           | 3.9.0     | 6.1.0     |
-		 * | Meetup.com   | meetu.ps             | 3.9.0     | 6.1.0     |
+		 * | Meetup.com   | meetup.com           | 3.9.0     | 6.0.1     |
+		 * | Meetup.com   | meetu.ps             | 3.9.0     | 6.0.1     |
 		 *
 		 * @see wp_oembed_add_provider()
 		 *
