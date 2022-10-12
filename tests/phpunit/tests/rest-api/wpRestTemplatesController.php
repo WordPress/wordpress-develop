@@ -343,7 +343,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	 */
 	public function test_sanitize_template_id( $input_id, $sanitized_id ) {
 		$endpoint = new WP_REST_Templates_Controller( 'wp_template' );
-		$this->assertEquals(
+		$this->assertSame(
 			$sanitized_id,
 			$endpoint->_sanitize_template_id( $input_id )
 		);

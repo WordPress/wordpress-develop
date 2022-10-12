@@ -75,7 +75,7 @@ class Tests_Term extends WP_UnitTestCase {
 			)
 		);
 		// There are 5 posts, all Uncategorized.
-		$this->assertEquals( 1, $count );
+		$this->assertSame( '1', $count );
 	}
 
 	/**
@@ -86,14 +86,14 @@ class Tests_Term extends WP_UnitTestCase {
 
 		// Counts all terms (1 default category, 5 tags).
 		$count = wp_count_terms();
-		$this->assertEquals( 6, $count );
+		$this->assertSame( '6', $count );
 
 		// Counts only tags (5), with both current and legacy signature.
 		// Legacy usage should not trigger deprecated notice.
 		$count        = wp_count_terms( array( 'taxonomy' => 'post_tag' ) );
 		$legacy_count = wp_count_terms( 'post_tag' );
-		$this->assertEquals( 5, $count );
-		$this->assertEquals( $count, $legacy_count );
+		$this->assertSame( '5', $count );
+		$this->assertSame( $count, $legacy_count );
 	}
 
 	/**
@@ -159,7 +159,7 @@ class Tests_Term extends WP_UnitTestCase {
 		$this->assertIsNumeric( $t );
 		$this->assertNotWPError( $t );
 		$this->assertGreaterThan( 0, $t );
-		$this->assertEquals( $initial_count + 1, wp_count_terms( array( 'taxonomy' => 'category' ) ) );
+		$this->assertSame( (string) ( $initial_count + 1 ), wp_count_terms( array( 'taxonomy' => 'category' ) ) );
 
 		// Make sure the term exists.
 		$this->assertGreaterThan( 0, term_exists( $term ) );
@@ -169,7 +169,7 @@ class Tests_Term extends WP_UnitTestCase {
 		$this->assertTrue( wp_delete_category( $t ) );
 		$this->assertNull( term_exists( $term ) );
 		$this->assertNull( term_exists( $t ) );
-		$this->assertEquals( $initial_count, wp_count_terms( array( 'taxonomy' => 'category' ) ) );
+		$this->assertSame( $initial_count, wp_count_terms( array( 'taxonomy' => 'category' ) ) );
 	}
 
 	/**

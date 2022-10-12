@@ -81,6 +81,7 @@ class WP_oEmbed {
 			'#https?://(www\.|embed\.)?ted\.com/talks/.*#i' => array( 'https://www.ted.com/services/v1/oembed.{format}', true ),
 			'#https?://(www\.)?(animoto|video214)\.com/play/.*#i' => array( 'https://animoto.com/oembeds/create', true ),
 			'#https?://(.+)\.tumblr\.com/post/.*#i'        => array( 'https://www.tumblr.com/oembed/1.0', true ),
+			'#https?://(www\.)?tumblr\.com/blog/view/[^/]+/.*#i' => array( 'https://www.tumblr.com/oembed/1.0', true ),
 			'#https?://(www\.)?kickstarter\.com/projects/.*#i' => array( 'https://www.kickstarter.com/services/oembed', true ),
 			'#https?://kck\.st/.*#i'                       => array( 'https://www.kickstarter.com/services/oembed', true ),
 			'#https?://cloudup\.com/.*#i'                  => array( 'https://cloudup.com/oembed', true ),
@@ -106,7 +107,6 @@ class WP_oEmbed {
 			'#https?://([a-z]{2}|www)\.pinterest\.com(\.(au|mx))?/.*#i' => array( 'https://www.pinterest.com/oembed.json', true ),
 			'#https?://(www\.)?wolframcloud\.com/obj/.+#i' => array( 'https://www.wolframcloud.com/oembed', true ),
 			'#https?://pca\.st/.+#i'                       => array( 'https://pca.st/oembed.json', true ),
-			'#https?://datastudio\.google\.com/c/u/0/reporting/.+#i' => array( 'https://datastudio.google.com/oembed', true ),
 		);
 
 		if ( ! empty( self::$early_providers['add'] ) ) {
@@ -185,7 +185,6 @@ class WP_oEmbed {
 		 * | Pinterest    | pinterest.com                             | 5.9.0   |
 		 * | WolframCloud | wolframcloud.com                          | 5.9.0   |
 		 * | Pocket Casts | pocketcasts.com                           | 6.1.0   |
-		 * | Data Studio  | datastudio.google.com                     | 6.1.0   |
 		 *
 		 * No longer supported providers:
 		 *
