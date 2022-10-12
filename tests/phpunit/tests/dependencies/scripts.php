@@ -711,7 +711,7 @@ JS;
 
 	/**
 	 * @ticket 36392
-	 * @group thisone
+	 * @ticket 56615
 	 */
 	public function test_wp_add_inline_script_before_after_concat_with_core_dependency() {
 		global $wp_scripts;
@@ -757,7 +757,7 @@ JS;
 			'js',                  // The replacement, `js` without the version arg.
 			$print_scripts         // Printed scripts.
 		);
-		// Strip the production version '.min' suffix to resolve mismatches in testing environments.
+		// Remove the production version '.min' suffix to resolve any mismatches in testing environments.
 		$print_scripts = str_replace( '.min.js', '.js', $print_scripts );
 
 		$this->assertSameIgnoreEOL( $expected, $print_scripts );

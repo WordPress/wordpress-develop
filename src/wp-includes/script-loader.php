@@ -270,8 +270,10 @@ function wp_register_development_scripts( $scripts ) {
 function wp_default_packages_scripts( $scripts ) {
 	$suffix      = wp_scripts_get_suffix();
 	$assets_path = ABSPATH . WPINC . "/assets/script-loader-packages{$suffix}.php";
-	// In the case when the development files are missing (e.g. when running unit tests),
-	// we fallback to the production version of assets that are always present.
+	/*
+	 * In the case when the development files are missing (e.g. when running unit tests),
+	 * fallback to the production version of assets that are always present.
+	 */
 	if ( ! $suffix && ! is_readable( $assets_path ) ) {
 		$suffix      = WP_ASSET_SUFFIX_MIN;
 		$assets_path = ABSPATH . WPINC . "/assets/script-loader-packages{$suffix}.php";
