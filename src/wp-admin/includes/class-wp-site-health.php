@@ -2391,7 +2391,7 @@ class WP_Site_Health {
 					/* translators: %d: Number of caching headers. */
 					_n(
 						'There was %d client caching response header detected:',
-						'There were %d client caching response headers detected:',
+						'There were %d clients caching response headers detected:',
 						count( $page_cache_detail['headers'] )
 					),
 					count( $page_cache_detail['headers'] )
