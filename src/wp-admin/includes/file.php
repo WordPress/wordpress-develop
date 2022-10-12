@@ -1951,7 +1951,7 @@ function copy_dir( $from, $to, $skip_list = array() ) {
  *
  * Assumes that WP_Filesystem() has already been called and setup.
  *
- * @since 6.1.0
+ * @since 6.2.0
  *
  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
@@ -1967,7 +1967,7 @@ function move_dir( $from, $to ) {
 	/**
 	 * Fires before move_dir().
 	 *
-	 * @since 6.1.0
+	 * @since 6.2.0
 	 */
 	do_action( 'pre_move_dir' );
 
@@ -1999,7 +1999,7 @@ function move_dir( $from, $to ) {
 	/**
 	 * Fires after move_dir().
 	 *
-	 * @since 6.1.0
+	 * @since 6.2.0
 	 */
 	do_action( 'post_move_dir' );
 
