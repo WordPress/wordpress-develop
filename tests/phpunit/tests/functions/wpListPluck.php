@@ -366,7 +366,7 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 	 * @param array $input An invalid input array.
 	 */
 	public function test_wp_list_pluck_should_throw_doing_it_wrong_with_invalid_input( $input ) {
-		$this->assertSame( array(), wp_list_pluck( $input, 'a_field' ) ); // I think...
+		$this->assertSame( array(), wp_list_pluck( $input, 'a_field' ) );
 	}
 
 	/**
@@ -384,7 +384,7 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 	 * @param array $input An invalid input array.
 	 */
 	public function test_wp_list_pluck_should_throw_doing_it_wrong_with_index_key_and_invalid_input( $input ) {
-		$this->assertSame( array(), wp_list_pluck( $input, 'a_field', 'an_index_key' ) ); // I think...
+		$this->assertSame( array(), wp_list_pluck( $input, 'a_field', 'an_index_key' ) );
 	}
 
 	/**
