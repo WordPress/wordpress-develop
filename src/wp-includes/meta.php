@@ -1213,9 +1213,7 @@ function update_meta_cache( $meta_type, $object_ids ) {
 function clean_metadata_cache( $meta_type, $object_ids ) {
 	$object_ids = wp_parse_id_list( $object_ids );
 
-	foreach ( $object_ids as $object_id ) {
-		wp_cache_delete( $object_id, $meta_type . '_meta' );
-	}
+	wp_cache_delete_multiple( $object_ids, $meta_type . '_meta' );
 }
 
 /**
