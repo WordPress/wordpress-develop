@@ -48,10 +48,10 @@ jobs:
   # Performs the following steps:
   # - Checks out the repository.
   # - Sets up PHP.
+  # - Installs Composer dependencies.
+  # - Make Composer packages available globally.
   # - Logs debug information.
   # - Configures caching for PHPCS scans.
-  # - Installs Composer dependencies (use cache if possible).
-  # - Make Composer packages available globally.
   # - Logs PHP_CodeSniffer debug information.
   # - Runs PHPCS on the full codebase with warnings suppressed.
   # - Runs PHPCS on the `tests` directory without warnings suppressed.
@@ -83,8 +83,9 @@ jobs:
 
       - name: Log debug information
         run: |
-          php --version
           composer --version
+          php --version
+          php -i
 
       # This date is used to ensure that the PHPCS cache is cleared at least once every week.
       # http://man7.org/linux/man-pages/man1/date.1.html

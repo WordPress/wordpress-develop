@@ -42,11 +42,11 @@ jobs:
   # - Sets up the environment variables needed for testing with memcached (if desired).
   # - Installs NodeJS.
   # - Installs NPM dependencies
-  # - Configures caching for Composer.
+  # - Sets up PHP.
   # - Installs Composer dependencies.
+  # - Logs general debug information about the runner.
   # - Logs Docker debug information (about the Docker installation within the runner).
   # - Starts the WordPress Docker container.
-  # - Logs general debug information about the runner.
   # - Logs the running Docker containers.
   # - Logs debug information from inside the WordPress Docker container.
   # - Logs debug information about what's installed within the WordPress Docker containers.
@@ -111,13 +111,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
 
+      - name: Install NodeJS
+        uses: actions/setup-node@969bd2663942d722d85b6a8626225850c2f7be4b # v3.5.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
+
       ##
+      # This allows Composer dependencies to be installed using a single step.
       #
+      # Since the tests are currently run within the Docker containers where the PHP version varies,
+      # the same PHP version needs to be configured for the action runner machine so that the correct
+      # dependency versions are installed and cached.
       ##
       - name: Setup PHP
         uses: shivammathur/setup-php@e04e1d97f0c0481c6e1ba40f8a538454fe5d7709 # v2.21.2
         with:
-          php-version: ${{ matrix.php }}
+          php-version: '${{ matrix.php }}'
           coverage: none
 
       - name: Install Composer dependencies
@@ -126,14 +139,16 @@ jobs:
           dependency-versions: 'highest'
           composer-options: "${{ matrix.php == '8.2' && '--ignore-platform-req=php+' || '' }}"
 
-      - name: Install NodeJS
-        uses: actions/setup-node@969bd2663942d722d85b6a8626225850c2f7be4b # v3.5.0
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
-      - name: Install Dependencies
-        run: npm ci
+      - name: General debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+          svn --version
+          php --version
+          php -i
+          composer --version
 
       - name: Docker debug information
         run: |
@@ -143,14 +158,6 @@ jobs:
       - name: Start Docker environment
         run: |
           npm run env:start
-
-      - name: General debug information
-        run: |
-          npm --version
-          node --version
-          curl --version
-          git --version
-          svn --version
 
       - name: Log running Docker containers
         run: docker ps -a

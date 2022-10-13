@@ -80,7 +80,11 @@ jobs:
           cache: npm
 
       ##
+      # This allows Composer dependencies to be installed using a single step.
       #
+      # Since the tests are currently run within the Docker containers where the PHP version varies,
+      # the same PHP version needs to be configured for the action runner machine so that the correct
+      # dependency versions are installed and cached.
       ##
       - name: Setup PHP
         uses: shivammathur/setup-php@e04e1d97f0c0481c6e1ba40f8a538454fe5d7709 # v2.21.2

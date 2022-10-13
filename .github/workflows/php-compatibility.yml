@@ -44,10 +44,10 @@ jobs:
   # Performs the following steps:
   # - Checks out the repository.
   # - Sets up PHP.
+  # - Installs Composer dependencies.
+  # - Make Composer packages available globally.
   # - Logs debug information.
   # - Configures caching for PHP compatibility scans.
-  # - Installs Composer dependencies (use cache if possible).
-  # - Make Composer packages available globally.
   # - Logs PHP_CodeSniffer debug information.
   # - Runs the PHP compatibility tests.
   # - Ensures version-controlled files are not modified or deleted.
@@ -78,8 +78,9 @@ jobs:
 
       - name: Log debug information
         run: |
-          php --version
           composer --version
+          php --version
+          php -i
 
       # This date is used to ensure that the PHP compatibility cache is cleared at least once every week.
       # http://man7.org/linux/man-pages/man1/date.1.html
