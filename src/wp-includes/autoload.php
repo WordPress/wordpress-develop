@@ -233,9 +233,9 @@ spl_autoload_register(
 				'WP_REST_Server'                           => ABSPATH . WPINC . '/rest-api/class-wp-rest-server.php',
 
 				/* Classes in wp-includes/sitemaps. */
-				'WP_Sitemaps_Posts'                        => ABSPATH . WPINC . '/sitemaps/class-wp-sitemaps-posts.php',
-				'WP_Sitemaps_Taxonomies'                   => ABSPATH . WPINC . '/sitemaps/class-wp-sitemaps-taxonomies.php',
-				'WP_Sitemaps_Users'                        => ABSPATH . WPINC . '/sitemaps/class-wp-sitemaps-users.php',
+				'WP_Sitemaps_Posts'                        => ABSPATH . WPINC . '/sitemaps/providers/class-wp-sitemaps-posts.php',
+				'WP_Sitemaps_Taxonomies'                   => ABSPATH . WPINC . '/sitemaps/providers/class-wp-sitemaps-taxonomies.php',
+				'WP_Sitemaps_Users'                        => ABSPATH . WPINC . '/sitemaps/providers/class-wp-sitemaps-users.php',
 				'WP_Sitemaps_Index'                        => ABSPATH . WPINC . '/sitemaps/class-wp-sitemaps-index.php',
 				'WP_Sitemaps_Provider'                     => ABSPATH . WPINC . '/sitemaps/class-wp-sitemaps-provider.php',
 				'WP_Sitemaps_Registry'                     => ABSPATH . WPINC . '/sitemaps/class-wp-sitemaps-registry.php',
