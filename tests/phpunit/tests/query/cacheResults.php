@@ -874,10 +874,10 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query2 = new WP_Query();
 		$posts2 = $query2->query( $args );
 
-		$this->assertSame( $posts1, $posts2 );
-		$this->assertSame( $num_queries, get_num_queries() );
-		$this->assertContains( $p1, $posts2 );
-		$this->assertSame( $query1->found_posts, $query2->found_posts );
+		$this->assertSame( $posts1, $posts2, 'Results of first and second query should be the same' );
+		$this->assertSame( $num_queries, get_num_queries(), 'Should not result in another database query.' );
+		$this->assertContains( $p1, $posts2, 'Result should contain post 0.' );
+		$this->assertSame( $query1->found_posts, $query2->found_posts, 'Found posts should match on both queries' );
 	}
 
 	/**
@@ -903,10 +903,10 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query2 = new WP_Query();
 		$posts2 = $query2->query( $args );
 
-		$this->assertSame( $posts1, $posts2 );
-		$this->assertSame( $num_queries, get_num_queries() );
-		$this->assertContains( $p1, $posts2 );
-		$this->assertSame( $query1->found_posts, $query2->found_posts );
+		$this->assertSame( $posts1, $posts2, 'Results of first and second query should be the same' );
+		$this->assertSame( $num_queries, get_num_queries(), 'Should not result in another database query.' );
+		$this->assertContains( $p1, $posts2, 'Result should contain post 0.' );
+		$this->assertSame( $query1->found_posts, $query2->found_posts, 'Found posts should match on both queries' );
 	}
 
 	/**

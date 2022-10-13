@@ -2413,8 +2413,10 @@ class wpdb {
 	 * Generates and returns a placeholder escape string for use in queries returned by ::prepare().
 	 *
 	 * @since 4.8.3
+	 * @since 6.1.0 Added `$reset` parameter.
 	 *
 	 * @param bool $reset Optional. Whether to reset the placeholder. Default false.
+	 *
 	 * @return string String to escape placeholders.
 	 */
 	public function placeholder_escape( $reset = false ) {
