@@ -54,7 +54,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					?>
 				</h2>
 				<p class="is-subheading">
-					<?php _e( 'WordPress 6.1 includes more than 2,000 updates. This page highlights some of the most significant changes to the product since the May 2022 release of WordPress 6.0. You will also find resources for developers and anyone seeking a deeper understanding of WordPress.' ); ?>
+					<?php _e( 'This page highlights some of the most significant changes to the product since the May 2022 release of WordPress 6.0. You will also find resources for developers and anyone seeking a deeper understanding of WordPress.' ); ?>
 				</p>
 			</div>
 		</div>
