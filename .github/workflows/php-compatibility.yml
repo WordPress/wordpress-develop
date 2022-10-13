@@ -73,6 +73,9 @@ jobs:
         with:
           dependency-versions: 'highest'
 
+      - name: Make Composer packages available globally
+        run: echo "${PWD}/vendor/bin" >> $GITHUB_PATH
+
       - name: Log debug information
         run: |
           php --version
