@@ -3101,7 +3101,20 @@ class WP_Query {
 				$last_changed .= wp_cache_get_last_changed( 'terms' );
 			}
 
-			$cache_key   = "wp_query:$key:$last_changed";
+			$cache_key = "wp_query:$key:$last_changed";
+
+			/**
+			 * Filters cache key.
+			 *
+			 * @since 6.1.0
+			 *
+			 * @param string $cache_key Cache key.
+			 * @param array $cache_args Query args used to generate the cache key.
+			 * @param string $new_request SQL Query.
+			 * @param WP_Query $query The WP_Query instance.
+			 */
+			$cache_key = apply_filters( 'wp_query_cache_key', $cache_key, $cache_args, $new_request, $this );
+
 			$cache_found = false;
 			if ( null === $this->posts ) {
 				$cached_results = wp_cache_get( $cache_key, 'posts', false, $cache_found );

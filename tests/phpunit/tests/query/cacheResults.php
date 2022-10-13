@@ -33,6 +33,11 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 */
 	public static $author_id;
 
+	/**
+	 * @var string
+	 */
+	protected $new_request;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Make some post objects.
 		self::$posts = $factory->post->create_many( 5 );
@@ -55,6 +60,11 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 				'role' => 'author',
 			)
 		);
+	}
+
+	function set_up() {
+		parent::set_up();
+		$this->new_request = null;
 	}
 
 	/**
@@ -851,9 +861,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 */
 	public function test_query_cache_like_meta() {
 		global $wpdb;
-		$p1 = self::$posts[0];
 
-		$args        = array(
+		$args = array(
 			'cache_results' => true,
 			'fields'        => 'ids',
 			'meta_query'    => array(
@@ -864,20 +873,13 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 				),
 			),
 		);
-		$query1      = new WP_Query();
-		$posts1      = $query1->query( $args );
-		$num_queries = get_num_queries();
 
-		// Force placeholder to be different.
-		$wpdb->placeholder_escape( true );
+		add_filter( 'wp_query_cache_key', array( $this, 'filter_wp_query_cache_key' ), 15, 3 );
+		$query1 = new WP_Query();
+		$query1->query( $args );
 
-		$query2 = new WP_Query();
-		$posts2 = $query2->query( $args );
-
-		$this->assertSame( $posts1, $posts2, 'Results of first and second query should be the same' );
-		$this->assertSame( $num_queries, get_num_queries(), 'Should not result in another database query.' );
-		$this->assertContains( $p1, $posts2, 'Result should contain post 0.' );
-		$this->assertSame( $query1->found_posts, $query2->found_posts, 'Found posts should match on both queries' );
+		$this->assertNotEmpty( $this->new_request, 'Check new request is not empty' );
+		$this->assertStringNotContainsString( $wpdb->placeholder_escape(), $this->new_request, 'Check if request does not contain placeholder' );
 	}
 
 	/**
@@ -885,28 +887,25 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 */
 	public function test_query_cache_search() {
 		global $wpdb;
-		// Post 0 already has the category foo.
-		$p1 = self::$posts[1];
 
-		$args        = array(
+		$args = array(
 			'cache_results' => true,
 			'fields'        => 'ids',
 			's'             => 'e',
 		);
-		$query1      = new WP_Query();
-		$posts1      = $query1->query( $args );
-		$num_queries = get_num_queries();
 
-		// Force placeholder to be different.
-		$wpdb->placeholder_escape( true );
+		add_filter( 'wp_query_cache_key', array( $this, 'filter_wp_query_cache_key' ), 15, 3 );
+		$query1 = new WP_Query();
+		$query1->query( $args );
 
-		$query2 = new WP_Query();
-		$posts2 = $query2->query( $args );
+		$this->assertNotEmpty( $this->new_request, 'Check new request is not empty' );
+		$this->assertStringNotContainsString( $wpdb->placeholder_escape(), $this->new_request, 'Check if request does not contain placeholder' );
+	}
 
-		$this->assertSame( $posts1, $posts2, 'Results of first and second query should be the same' );
-		$this->assertSame( $num_queries, get_num_queries(), 'Should not result in another database query.' );
-		$this->assertContains( $p1, $posts2, 'Result should contain post 0.' );
-		$this->assertSame( $query1->found_posts, $query2->found_posts, 'Found posts should match on both queries' );
+	public function filter_wp_query_cache_key( $cache_key, $cache_args, $new_request ) {
+		$this->new_request = $new_request;
+
+		return $cache_key;
 	}
 
 	/**
