@@ -34,9 +34,6 @@ env:
 jobs:
   # Runs the PHPUnit tests for WordPress.
   #
-  # Note: Steps running tests on PHP 8.1 + 8.2 are allowed to "continue-on-error" (for now).
-  # This prevents workflow runs from being marked as "failed" when only PHP 8.1/8.2 fails.
-  #
   # Performs the following steps:
   # - Sets environment variables.
   # - Sets up the environment variables needed for testing with memcached (if desired).
