@@ -115,7 +115,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		}
 	}
 
-	function test_wp_list_pages_default() {
+	public function test_wp_list_pages_default() {
 		$args = array(
 			'echo' => false,
 		);
@@ -146,7 +146,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
-	function test_wp_list_pages_depth() {
+	public function test_wp_list_pages_depth() {
 		$args = array(
 			'echo'  => false,
 			'depth' => 1,
@@ -160,7 +160,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
-	function test_wp_list_pages_show_date() {
+	public function test_wp_list_pages_show_date() {
 		$args = array(
 			'echo'      => false,
 			'depth'     => 1,
@@ -176,7 +176,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
-	function test_wp_list_pages_date_format() {
+	public function test_wp_list_pages_date_format() {
 		$args = array(
 			'echo'        => false,
 			'show_date'   => true,
@@ -210,7 +210,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
-	function test_wp_list_pages_child_of() {
+	public function test_wp_list_pages_child_of() {
 		$args = array(
 			'echo'     => false,
 			'child_of' => self::$parent_2,
@@ -224,7 +224,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
-	function test_wp_list_pages_exclude() {
+	public function test_wp_list_pages_exclude() {
 		$args = array(
 			'echo'    => false,
 			'exclude' => self::$parent_2,
@@ -252,7 +252,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
-	function test_wp_list_pages_title_li() {
+	public function test_wp_list_pages_title_li() {
 		$args = array(
 			'echo'     => false,
 			'depth'    => 1,
@@ -267,7 +267,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
-	function test_wp_list_pages_echo() {
+	public function test_wp_list_pages_echo() {
 		$args = array(
 			'echo'  => true,
 			'depth' => 1,
@@ -282,7 +282,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		wp_list_pages( $args );
 	}
 
-	function test_wp_list_pages_authors() {
+	public function test_wp_list_pages_authors() {
 		$args = array(
 			'echo'    => false,
 			'authors' => self::$author,
@@ -294,7 +294,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
-	function test_wp_list_pages_number() {
+	public function test_wp_list_pages_number() {
 		$args = array(
 			'echo'        => false,
 			'number'      => 1,
@@ -307,7 +307,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
-	function test_wp_list_pages_sort_column() {
+	public function test_wp_list_pages_sort_column() {
 		$args = array(
 			'echo'        => false,
 			'depth'       => 1,
@@ -323,7 +323,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
-	function test_wp_list_pages_link_before() {
+	public function test_wp_list_pages_link_before() {
 		$args = array(
 			'echo'        => false,
 			'link_before' => 'BEFORE',
@@ -355,7 +355,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
-	function test_wp_list_pages_link_after() {
+	public function test_wp_list_pages_link_after() {
 		$args = array(
 			'echo'       => false,
 			'link_after' => 'AFTER',
@@ -388,7 +388,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	}
 
 
-	function test_wp_list_pages_include() {
+	public function test_wp_list_pages_include() {
 		$args = array(
 			'echo'    => false,
 			'include' => self::$parent_1 . ',' . self::$parent_3,
@@ -401,7 +401,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
-	function test_wp_list_pages_exclude_tree() {
+	public function test_wp_list_pages_exclude_tree() {
 		$args = array(
 			'echo'         => false,
 			'exclude_tree' => self::$parent_2 . ',' . self::$parent_3,
@@ -419,7 +419,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
-	function test_wp_list_pages_discarded_whitespace() {
+	public function test_wp_list_pages_discarded_whitespace() {
 		$args = array(
 			'echo'         => false,
 			'item_spacing' => 'discard',

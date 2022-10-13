@@ -13,6 +13,9 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 	public static $posts;
 	public static $category;
 
+	private $post_count;
+	private $excerpt_only;
+
 	/**
 	 * Setup a new user and attribute some posts.
 	 */
@@ -51,6 +54,9 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 			wp_set_object_terms( $post, self::$category->slug, 'category' );
 		}
 
+		// Assign a tagline option.
+		update_option( 'blogdescription', 'Just another WordPress site' );
+
 	}
 
 	/**
@@ -64,9 +70,16 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tear down.
+	 */
+	public static function wpTearDownAfterClass() {
+		delete_option( 'blogdescription' );
+	}
+
+	/**
 	 * This is a bit of a hack used to buffer feed content.
 	 */
-	function do_atom() {
+	private function do_atom() {
 		ob_start();
 		// Nasty hack! In the future it would better to leverage do_feed( 'atom' ).
 		global $post;
@@ -85,7 +98,7 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 	 * Test the <feed> element to make sure its present and populated
 	 * with the expected child elements and attributes.
 	 */
-	function test_feed_element() {
+	public function test_feed_element() {
 		$this->go_to( '/?feed=atom' );
 		$feed = $this->do_atom();
 		$xml  = xml_to_array( $feed );
@@ -99,7 +112,6 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 		// Verify attributes.
 		$this->assertSame( 'http://www.w3.org/2005/Atom', $atom[0]['attributes']['xmlns'] );
 		$this->assertSame( 'http://purl.org/syndication/thread/1.0', $atom[0]['attributes']['xmlns:thr'] );
-		$this->assertSame( site_url( '/wp-atom.php' ), $atom[0]['attributes']['xml:base'] );
 
 		// Verify the <feed> element is present and contains a <title> child element.
 		$title = xml_find( $xml, 'feed', 'title' );
@@ -129,7 +141,7 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 	/**
 	 * Validate <entry> child elements.
 	 */
-	function test_entry_elements() {
+	public function test_entry_elements() {
 		$this->go_to( '/?feed=atom' );
 		$feed = $this->do_atom();
 		$xml  = xml_to_array( $feed );
@@ -209,7 +221,7 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 	/**
 	 * @ticket 33591
 	 */
-	function test_atom_enclosure_with_extended_url_length_type_parsing() {
+	public function test_atom_enclosure_with_extended_url_length_type_parsing() {
 		$enclosures = array(
 			array(
 				// URL, length, type.

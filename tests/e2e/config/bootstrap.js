@@ -33,6 +33,7 @@ const pageEvents = [];
 // The Jest timeout is increased because these tests are a bit slow
 jest.setTimeout( PUPPETEER_TIMEOUT || 100000 );
 
+
 /**
  * Adds an event listener to the page to handle additions of page event
  * handlers, to assure that they are removed at test teardown.
@@ -128,6 +129,9 @@ beforeAll( async () => {
 	capturePageEventsForTearDown();
 	enablePageDialogAccept();
 	observeConsoleLogging();
+	await page.emulateMediaFeatures( [
+		{ name: 'prefers-reduced-motion', value: 'reduce' },
+	] );
 	await setBrowserViewport( 'large' );
 } );
 

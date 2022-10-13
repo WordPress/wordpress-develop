@@ -4,16 +4,16 @@ on:
   # PHP compatibility testing was introduced in WordPress 5.5.
   push:
     branches:
-      - master
       - trunk
       - '5.[5-9]'
       - '[6-9].[0-9]'
     tags:
-      - '5.[5-9]*'
-      - '[6-9].[0-9]*'
+      - '[0-9]+.[0-9]'
+      - '[0-9]+.[0-9].[0-9]+'
+      - '![34].[0-9].[0-9]+'
+      - '!5.[0-4].[0-9]+'
   pull_request:
     branches:
-      - master
       - trunk
       - '5.[5-9]'
       - '[6-9].[0-9]'
@@ -22,7 +22,7 @@ on:
       - '**.php'
       # These files configure Composer. Changes could affect the outcome.
       - 'composer.*'
-      # This file configures PHP Compatibility scanning. Changes could affect the outcome.
+      # This file configures PHP compatibility scanning. Changes could affect the outcome.
       - 'phpcompat.xml.dist'
       # Changes to workflow files should always verify all workflows are successful.
       - '.github/workflows/*.yml'
@@ -44,7 +44,8 @@ jobs:
   # Performs the following steps:
   # - Checks out the repository.
   # - Sets up PHP.
-  # - Logs debug information about the runner container.
+  # - Logs debug information.
+  # - Configures caching for PHP compatibility scans.
   # - Installs Composer dependencies (use cache if possible).
   # - Make Composer packages available globally.
   # - Logs PHP_CodeSniffer debug information.
@@ -53,14 +54,15 @@ jobs:
   php-compatibility:
     name: Check PHP compatibility
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@afefcaf556d98dc7896cca380e181decb609ca44 # v2.10.0
+        uses: shivammathur/setup-php@e04e1d97f0c0481c6e1ba40f8a538454fe5d7709 # v2.21.2
         with:
           php-version: '7.4'
           coverage: none
@@ -71,10 +73,22 @@ jobs:
           php --version
           composer --version
 
-      - name: Install Composer dependencies
-        uses: ramsey/composer-install@92a7904348d4ad30236f3611e33b7f0c6f9edd70 # v1.1.0
+      # This date is used to ensure that the PHP compatibility cache is cleared at least once every week.
+      # http://man7.org/linux/man-pages/man1/date.1.html
+      - name: "Get last Monday's date"
+        id: get-date
+        run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
+
+      - name: Cache PHP compatibility scan cache
+        uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 # v3.0.10
         with:
-          composer-options: "--no-progress --no-ansi --no-interaction"
+          path: .cache/phpcompat.json
+          key: ${{ runner.os }}-date-${{ steps.get-date.outputs.date }}-phpcompat-cache-${{ hashFiles('**/composer.json', 'phpcompat.xml.dist') }}
+
+      - name: Install Composer dependencies
+        uses: ramsey/composer-install@f680dac46551dffb2234a240d65ae806c2999dd6 # v2.1.0
+        with:
+          composer-options: "--no-progress --no-ansi"
 
       - name: Make Composer packages available globally
         run: echo "${PWD}/vendor/bin" >> $GITHUB_PATH
@@ -83,18 +97,54 @@ jobs:
         run: phpcs -i
 
       - name: Run PHP compatibility tests
-        run: phpcs --standard=phpcompat.xml.dist -q --report=checkstyle | cs2pr
+        continue-on-error: true
+        run: phpcs --standard=phpcompat.xml.dist --report-full --report-checkstyle=./.cache/phpcs-compat-report.xml
+
+      - name: Show PHPCompatibility results in PR
+        run: cs2pr ./.cache/phpcs-compat-report.xml
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@master
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     needs: [ php-compatibility ]
-    if: ${{ always() }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ needs.php-compatibility.result == 'success' && 'success' || needs.php-compatibility.result == 'cancelled' && 'cancelled' || 'failure' }}
     secrets:
       SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-latest
+    needs: [ php-compatibility, slack-notifications ]
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_attempt < 2 &&
+      (
+        needs.php-compatibility.result == 'cancelled' || needs.php-compatibility.result == 'failure'
+      )
+
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@7dff1a87643417cf3b95bb10b29f4c4bc60d8ebd # v6.3.1
+        with:
+          retries: 2
+          retry-exempt-status-codes: 418
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: '${{ github.ref_name }}',
+              inputs: {
+                run_id: '${{ github.run_id }}'
+              }
+            });

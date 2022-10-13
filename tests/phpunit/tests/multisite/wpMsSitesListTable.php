@@ -14,7 +14,7 @@ if ( is_multisite() ) :
 		 */
 		public $table = false;
 
-		function set_up() {
+		public function set_up() {
 			parent::set_up();
 			$this->table = _get_list_table( 'WP_MS_Sites_List_Table', array( 'screen' => 'ms-sites' ) );
 		}
@@ -229,6 +229,18 @@ if ( is_multisite() ) :
 			);
 
 			$this->assertSameSets( $expected, $items );
+		}
+
+		/**
+		 * @ticket 42066
+		 */
+		public function test_get_views_should_return_views_by_default() {
+			$expected = array(
+				'all'    => '<a href="sites.php" class="current" aria-current="page">All <span class="count">(14)</span></a>',
+				'public' => '<a href="sites.php?status=public">Public <span class="count">(14)</span></a>',
+			);
+
+			$this->assertSame( $expected, $this->table->get_views() );
 		}
 	}
 endif;

@@ -12,6 +12,8 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
  * @subpackage UnitTests
  * @since      3.4.0
  * @group      ajax
+ *
+ * @covers ::wp_ajax_edit_comment
  */
 class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 
@@ -80,7 +82,7 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * @ticket 33154
 	 */
-	function test_editor_can_edit_orphan_comments() {
+	public function test_editor_can_edit_orphan_comments() {
 		global $wpdb;
 
 		// Become an editor.

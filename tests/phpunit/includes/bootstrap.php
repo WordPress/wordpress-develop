@@ -215,7 +215,11 @@ define( 'WP_TESTS_TABLE_PREFIX', $table_prefix );
 define( 'DIR_TESTDATA', __DIR__ . '/../data' );
 define( 'DIR_TESTROOT', realpath( dirname( __DIR__ ) ) );
 
-define( 'WP_LANG_DIR', DIR_TESTDATA . '/languages' );
+define( 'WP_LANG_DIR', realpath( DIR_TESTDATA . '/languages' ) );
+
+if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
+	define( 'WP_PLUGIN_DIR', realpath( DIR_TESTDATA . '/plugins' ) );
+}
 
 if ( ! defined( 'WP_TESTS_FORCE_KNOWN_BUGS' ) ) {
 	define( 'WP_TESTS_FORCE_KNOWN_BUGS', false );
@@ -340,7 +344,7 @@ require __DIR__ . '/class-wp-sitemaps-large-test-provider.php';
  */
 class WP_PHPUnit_Util_Getopt {
 
-	function __construct( $argv ) {
+	public function __construct( $argv ) {
 		$skipped_groups = array(
 			'ajax'          => true,
 			'ms-files'      => true,

@@ -18,7 +18,7 @@ class Tests_XMLRPC_wp_getComment extends WP_XMLRPC_UnitTestCase {
 			'comment_author'       => 'Test commenter',
 			'comment_author_url'   => 'http://example.com/',
 			'comment_author_email' => 'example@example.com',
-			'comment_content'      => rand_str( 100 ),
+			'comment_content'      => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
 		);
 		self::$parent_comment_id   = wp_insert_comment( self::$parent_comment_data );
 
@@ -28,18 +28,18 @@ class Tests_XMLRPC_wp_getComment extends WP_XMLRPC_UnitTestCase {
 			'comment_author_url'   => 'http://example.org/',
 			'comment_author_email' => 'example@example.org',
 			'comment_parent'       => self::$parent_comment_id,
-			'comment_content'      => rand_str( 100 ),
+			'comment_content'      => 'Duis non neque cursus, commodo massa in, bibendum nisl.',
 		);
 		self::$child_comment_id   = wp_insert_comment( self::$child_comment_data );
 	}
 
-	function test_invalid_username_password() {
+	public function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getComment( array( 1, 'username', 'password', self::$parent_comment_id ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
 	}
 
-	function test_incapable_user() {
+	public function test_incapable_user() {
 		$this->make_user_by_role( 'contributor' );
 
 		$result = $this->myxmlrpcserver->wp_getComment( array( 1, 'contributor', 'contributor', self::$parent_comment_id ) );
@@ -47,7 +47,7 @@ class Tests_XMLRPC_wp_getComment extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( 403, $result->code );
 	}
 
-	function test_valid_comment() {
+	public function test_valid_comment() {
 		$this->make_user_by_role( 'editor' );
 
 		$result = $this->myxmlrpcserver->wp_getComment( array( 1, 'editor', 'editor', self::$parent_comment_id ) );
@@ -83,7 +83,7 @@ class Tests_XMLRPC_wp_getComment extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( self::$parent_comment_data['comment_author_email'], $result['author_email'] );
 	}
 
-	function test_valid_child_comment() {
+	public function test_valid_child_comment() {
 		$this->make_user_by_role( 'editor' );
 
 		$result = $this->myxmlrpcserver->wp_getComment( array( 1, 'editor', 'editor', self::$child_comment_id ) );
@@ -93,7 +93,7 @@ class Tests_XMLRPC_wp_getComment extends WP_XMLRPC_UnitTestCase {
 		$this->assertEquals( self::$parent_comment_id, $result['parent'] );
 	}
 
-	function test_invalid_id() {
+	public function test_invalid_id() {
 		$this->make_user_by_role( 'editor' );
 
 		$result = $this->myxmlrpcserver->wp_getComment( array( 1, 'editor', 'editor', 123456789 ) );

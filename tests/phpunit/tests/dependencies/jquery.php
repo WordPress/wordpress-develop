@@ -9,7 +9,7 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 	/**
 	 * @covers WP_Scripts::query
 	 */
-	function test_location_of_jquery() {
+	public function test_location_of_jquery() {
 		$scripts = new WP_Scripts;
 		wp_default_scripts( $scripts );
 
@@ -46,7 +46,7 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_script_is
 	 */
-	function test_dont_allow_deregister_core_scripts_in_admin() {
+	public function test_dont_allow_deregister_core_scripts_in_admin() {
 		set_current_screen( 'edit.php' );
 		$this->assertTrue( is_admin() );
 		$libraries = array(
@@ -89,7 +89,7 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_script_is
 	 */
-	function test_wp_script_is_dep_enqueued() {
+	public function test_wp_script_is_dep_enqueued() {
 		wp_enqueue_script( 'jquery-ui-accordion' );
 
 		$this->assertTrue( wp_script_is( 'jquery', 'enqueued' ) );
@@ -105,7 +105,7 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Scripts::do_items
 	 */
-	function test_jquery_in_footer() {
+	public function test_jquery_in_footer() {
 		$scripts = new WP_Scripts;
 		$scripts->add( 'jquery', false, array( 'jquery-core', 'jquery-migrate' ) );
 		$scripts->add( 'jquery-core', '/jquery.js', array() );

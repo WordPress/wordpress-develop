@@ -103,6 +103,19 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 				'5.5.0'
 			);
 		}
+
+		if ( count( array_filter( $arg_group['args'], 'is_array' ) ) !== count( $arg_group['args'] ) ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				sprintf(
+					/* translators: 1: $args, 2: The REST API route being registered. */
+					__( 'REST API %1$s should be an array of arrays. Non-array value detected for %2$s.' ),
+					'<code>$args</code>',
+					'<code>' . $clean_namespace . '/' . trim( $route, '/' ) . '</code>'
+				),
+				'6.1.0'
+			);
+		}
 	}
 
 	$full_route = '/' . $clean_namespace . '/' . trim( $route, '/' );
@@ -294,11 +307,15 @@ function create_initial_rest_routes() {
 	$controller->register_routes();
 
 	// Block Renderer.
-	$controller = new WP_REST_Block_Renderer_Controller;
+	$controller = new WP_REST_Block_Renderer_Controller();
 	$controller->register_routes();
 
 	// Block Types.
 	$controller = new WP_REST_Block_Types_Controller();
+	$controller->register_routes();
+
+	// Global Styles.
+	$controller = new WP_REST_Global_Styles_Controller;
 	$controller->register_routes();
 
 	// Settings.
@@ -333,9 +350,29 @@ function create_initial_rest_routes() {
 	$controller = new WP_REST_Pattern_Directory_Controller();
 	$controller->register_routes();
 
+	// Block Patterns.
+	$controller = new WP_REST_Block_Patterns_Controller();
+	$controller->register_routes();
+
+	// Block Pattern Categories.
+	$controller = new WP_REST_Block_Pattern_Categories_Controller();
+	$controller->register_routes();
+
 	// Site Health.
 	$site_health = WP_Site_Health::get_instance();
 	$controller  = new WP_REST_Site_Health_Controller( $site_health );
+	$controller->register_routes();
+
+	// URL Details.
+	$controller = new WP_REST_URL_Details_Controller();
+	$controller->register_routes();
+
+	// Menu Locations.
+	$controller = new WP_REST_Menu_Locations_Controller();
+	$controller->register_routes();
+
+	// Site Editor Export.
+	$controller = new WP_REST_Edit_Site_Export_Controller();
 	$controller->register_routes();
 }
 
@@ -686,7 +723,7 @@ function rest_send_cors_headers( $value ) {
 	if ( $origin ) {
 		// Requests from file:// and data: URLs send "Origin: null".
 		if ( 'null' !== $origin ) {
-			$origin = esc_url_raw( $origin );
+			$origin = sanitize_url( $origin );
 		}
 		header( 'Access-Control-Allow-Origin: ' . $origin );
 		header( 'Access-Control-Allow-Methods: OPTIONS, GET, POST, PUT, PATCH, DELETE' );
@@ -969,12 +1006,12 @@ function rest_output_link_header() {
 		return;
 	}
 
-	header( sprintf( 'Link: <%s>; rel="https://api.w.org/"', esc_url_raw( $api_root ) ), false );
+	header( sprintf( 'Link: <%s>; rel="https://api.w.org/"', sanitize_url( $api_root ) ), false );
 
 	$resource = rest_get_queried_resource_route();
 
 	if ( $resource ) {
-		header( sprintf( 'Link: <%s>; rel="alternate"; type="application/json"', esc_url_raw( rest_url( $resource ) ) ), false );
+		header( sprintf( 'Link: <%s>; rel="alternate"; type="application/json"', sanitize_url( rest_url( $resource ) ) ), false );
 	}
 }
 
@@ -1091,7 +1128,7 @@ function rest_application_password_collect_status( $user_or_error, $app_password
  *
  * @global string|null $wp_rest_application_password_uuid
  *
- * @return string|null The App Password UUID, or null if Application Passwords was not used.
+ * @return string|null The Application Password UUID, or null if Application Passwords was not used.
  */
 function rest_get_authenticated_app_password() {
 	global $wp_rest_application_password_uuid;
@@ -1167,7 +1204,7 @@ function rest_add_application_passwords_to_index( $response ) {
  *
  * @param mixed $id_or_email The Gravatar to retrieve a URL for. Accepts a user_id, gravatar md5 hash,
  *                           user email, WP_User object, WP_Post object, or WP_Comment object.
- * @return array Avatar URLs keyed by size. Each value can be a URL string or boolean false.
+ * @return (string|false)[] Avatar URLs keyed by size. Each value can be a URL string or boolean false.
  */
 function rest_get_avatar_urls( $id_or_email ) {
 	$avatar_sizes = rest_get_avatar_sizes();
@@ -2771,7 +2808,7 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 				return sanitize_text_field( $value );
 
 			case 'uri':
-				return esc_url_raw( $value );
+				return sanitize_url( $value );
 
 			case 'ip':
 				return sanitize_text_field( $value );
@@ -2844,12 +2881,12 @@ function rest_preload_api_request( $memo, $path ) {
 	$response = rest_do_request( $request );
 	if ( 200 === $response->status ) {
 		$server = rest_get_server();
-		$embed  = $request->has_param( '_embed' ) ? rest_parse_embed_param( $request['_embed'] ) : false;
-		$data   = (array) $server->response_to_data( $response, $embed );
+		/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
+		$response = apply_filters( 'rest_post_dispatch', rest_ensure_response( $response ), $server, $request );
+		$embed    = $request->has_param( '_embed' ) ? rest_parse_embed_param( $request['_embed'] ) : false;
+		$data     = (array) $server->response_to_data( $response, $embed );
 
 		if ( 'OPTIONS' === $method ) {
-			$response = rest_send_allow_header( $response, $server, $request );
-
 			$memo[ $method ][ $path ] = array(
 				'body'    => $data,
 				'headers' => $response->headers,
@@ -3040,7 +3077,8 @@ function rest_default_additional_properties_to_false( $schema ) {
  * @since 5.5.0
  *
  * @param int|WP_Post $post Post ID or post object.
- * @return string The route path with a leading slash for the given post, or an empty string if there is not a route.
+ * @return string The route path with a leading slash for the given post,
+ *                or an empty string if there is not a route.
  */
 function rest_get_route_for_post( $post ) {
 	$post = get_post( $post );
@@ -3049,24 +3087,12 @@ function rest_get_route_for_post( $post ) {
 		return '';
 	}
 
-	$post_type = get_post_type_object( $post->post_type );
-	if ( ! $post_type ) {
+	$post_type_route = rest_get_route_for_post_type_items( $post->post_type );
+	if ( ! $post_type_route ) {
 		return '';
 	}
 
-	$controller = $post_type->get_rest_controller();
-	if ( ! $controller ) {
-		return '';
-	}
-
-	$route = '';
-
-	// The only two controllers that we can detect are the Attachments and Posts controllers.
-	if ( in_array( get_class( $controller ), array( 'WP_REST_Attachments_Controller', 'WP_REST_Posts_Controller' ), true ) ) {
-		$namespace = 'wp/v2';
-		$rest_base = ! empty( $post_type->rest_base ) ? $post_type->rest_base : $post_type->name;
-		$route     = sprintf( '/%s/%s/%d', $namespace, $rest_base, $post->ID );
-	}
+	$route = sprintf( '%s/%d', $post_type_route, $post->ID );
 
 	/**
 	 * Filters the REST API route for a post.
@@ -3080,12 +3106,47 @@ function rest_get_route_for_post( $post ) {
 }
 
 /**
+ * Gets the REST API route for a post type.
+ *
+ * @since 5.9.0
+ *
+ * @param string $post_type The name of a registered post type.
+ * @return string The route path with a leading slash for the given post type,
+ *                or an empty string if there is not a route.
+ */
+function rest_get_route_for_post_type_items( $post_type ) {
+	$post_type = get_post_type_object( $post_type );
+	if ( ! $post_type ) {
+		return '';
+	}
+
+	if ( ! $post_type->show_in_rest ) {
+		return '';
+	}
+
+	$namespace = ! empty( $post_type->rest_namespace ) ? $post_type->rest_namespace : 'wp/v2';
+	$rest_base = ! empty( $post_type->rest_base ) ? $post_type->rest_base : $post_type->name;
+	$route     = sprintf( '/%s/%s', $namespace, $rest_base );
+
+	/**
+	 * Filters the REST API route for a post type.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string       $route      The route path.
+	 * @param WP_Post_Type $post_type  The post type object.
+	 */
+	return apply_filters( 'rest_route_for_post_type_items', $route, $post_type );
+}
+
+/**
  * Gets the REST API route for a term.
  *
  * @since 5.5.0
  *
  * @param int|WP_Term $term Term ID or term object.
- * @return string The route path with a leading slash for the given term, or an empty string if there is not a route.
+ * @return string The route path with a leading slash for the given term,
+ *                or an empty string if there is not a route.
  */
 function rest_get_route_for_term( $term ) {
 	$term = get_term( $term );
@@ -3094,24 +3155,12 @@ function rest_get_route_for_term( $term ) {
 		return '';
 	}
 
-	$taxonomy = get_taxonomy( $term->taxonomy );
-	if ( ! $taxonomy ) {
+	$taxonomy_route = rest_get_route_for_taxonomy_items( $term->taxonomy );
+	if ( ! $taxonomy_route ) {
 		return '';
 	}
 
-	$controller = $taxonomy->get_rest_controller();
-	if ( ! $controller ) {
-		return '';
-	}
-
-	$route = '';
-
-	// The only controller that works is the Terms controller.
-	if ( $controller instanceof WP_REST_Terms_Controller ) {
-		$namespace = 'wp/v2';
-		$rest_base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-		$route     = sprintf( '/%s/%s/%d', $namespace, $rest_base, $term->term_id );
-	}
+	$route = sprintf( '%s/%d', $taxonomy_route, $term->term_id );
 
 	/**
 	 * Filters the REST API route for a term.
@@ -3122,6 +3171,39 @@ function rest_get_route_for_term( $term ) {
 	 * @param WP_Term $term  The term object.
 	 */
 	return apply_filters( 'rest_route_for_term', $route, $term );
+}
+
+/**
+ * Gets the REST API route for a taxonomy.
+ *
+ * @since 5.9.0
+ *
+ * @param string $taxonomy Name of taxonomy.
+ * @return string The route path with a leading slash for the given taxonomy.
+ */
+function rest_get_route_for_taxonomy_items( $taxonomy ) {
+	$taxonomy = get_taxonomy( $taxonomy );
+	if ( ! $taxonomy ) {
+		return '';
+	}
+
+	if ( ! $taxonomy->show_in_rest ) {
+		return '';
+	}
+
+	$namespace = ! empty( $taxonomy->rest_namespace ) ? $taxonomy->rest_namespace : 'wp/v2';
+	$rest_base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+	$route     = sprintf( '/%s/%s', $namespace, $rest_base );
+
+	/**
+	 * Filters the REST API route for a taxonomy.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string      $route    The route path.
+	 * @param WP_Taxonomy $taxonomy The taxonomy object.
+	 */
+	return apply_filters( 'rest_route_for_taxonomy_items', $route, $taxonomy );
 }
 
 /**

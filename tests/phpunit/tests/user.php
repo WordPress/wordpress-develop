@@ -60,13 +60,13 @@ class Tests_User extends WP_UnitTestCase {
 		self::$_author = get_user_by( 'ID', self::$author_id );
 	}
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 
 		$this->author = clone self::$_author;
 	}
 
-	function test_get_users_of_blog() {
+	public function test_get_users_of_blog() {
 		// Add one of each user role.
 		$nusers = array(
 			self::$contrib_id,
@@ -92,7 +92,7 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	// Simple get/set tests for user_option functions.
-	function test_user_option() {
+	public function test_user_option() {
 		$key = rand_str();
 		$val = rand_str();
 
@@ -104,7 +104,7 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( $val, get_user_option( $key, self::$author_id ) );
 
 		// Change and get again.
-		$val2 = rand_str();
+		$val2 = 'baz';
 		update_user_option( self::$author_id, $key, $val2 );
 		$this->assertSame( $val2, get_user_option( $key, self::$author_id ) );
 	}
@@ -112,7 +112,7 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * Simple tests for usermeta functions.
 	 */
-	function test_usermeta() {
+	public function test_usermeta() {
 		$key = 'key';
 		$val = 'value1';
 
@@ -135,7 +135,7 @@ class Tests_User extends WP_UnitTestCase {
 		// Delete by key AND value.
 		update_user_meta( self::$author_id, $key, $val );
 		// Incorrect key: key still exists.
-		delete_user_meta( self::$author_id, $key, rand_str() );
+		delete_user_meta( self::$author_id, $key, 'foo' );
 		$this->assertSame( $val, get_user_meta( self::$author_id, $key, true ) );
 		// Correct key: deleted.
 		delete_user_meta( self::$author_id, $key, $val );
@@ -146,12 +146,12 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * Test usermeta functions in array mode.
 	 */
-	function test_usermeta_array() {
+	public function test_usermeta_array() {
 		// Some values to set.
 		$vals = array(
-			rand_str() => 'val-' . rand_str(),
-			rand_str() => 'val-' . rand_str(),
-			rand_str() => 'val-' . rand_str(),
+			'key0' => 'val0',
+			'key1' => 'val1',
+			'key2' => 'val2',
 		);
 
 		// There is already some stuff in the array.
@@ -188,7 +188,7 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * Test property magic functions for property get/set/isset.
 	 */
-	function test_user_properties() {
+	public function test_user_properties() {
 		$user = new WP_User( self::$author_id );
 
 		foreach ( $user->data as $key => $data ) {
@@ -247,7 +247,7 @@ class Tests_User extends WP_UnitTestCase {
 	 * @expectedDeprecated WP_User->id
 	 * @ticket 20043
 	 */
-	function test_user_unset_lowercase_id( $user ) {
+	public function test_user_unset_lowercase_id( $user ) {
 		$id = $user->id;
 		unset( $user->id );
 		$this->assertSame( $id, $user->id );
@@ -260,7 +260,7 @@ class Tests_User extends WP_UnitTestCase {
 	 * @depends test_user_unset_lowercase_id
 	 * @ticket 20043
 	 */
-	function test_user_unset_uppercase_id( $user ) {
+	public function test_user_unset_uppercase_id( $user ) {
 		$this->assertNotEmpty( $user->ID );
 		unset( $user->ID );
 		$this->assertNotEmpty( $user->ID );
@@ -269,7 +269,7 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * Test meta property magic functions for property get/set/isset.
 	 */
-	function test_user_meta_properties() {
+	public function test_user_meta_properties() {
 		$user = new WP_User( self::$author_id );
 
 		update_user_option( self::$author_id, 'foo', 'foo', true );
@@ -282,7 +282,7 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * @expectedDeprecated WP_User->id
 	 */
-	function test_id_property_back_compat() {
+	public function test_id_property_back_compat() {
 		$user = new WP_User( self::$author_id );
 
 		$this->assertTrue( isset( $user->id ) );
@@ -294,7 +294,7 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * @ticket 19265
 	 */
-	function test_user_level_property_back_compat() {
+	public function test_user_level_property_back_compat() {
 		$roles = array(
 			self::$admin_id   => 10,
 			self::$editor_id  => 7,
@@ -311,7 +311,7 @@ class Tests_User extends WP_UnitTestCase {
 		}
 	}
 
-	function test_construction() {
+	public function test_construction() {
 		$user = new WP_User( self::$author_id );
 		$this->assertInstanceOf( 'WP_User', $user );
 		$this->assertSame( self::$author_id, $user->ID );
@@ -350,7 +350,7 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( $user->user_login, $user7->user_login );
 	}
 
-	function test_get() {
+	public function test_get() {
 		$user = new WP_User( self::$author_id );
 		$this->assertSame( 'author_login', $user->get( 'user_login' ) );
 		$this->assertSame( 'author@email.com', $user->get( 'user_email' ) );
@@ -361,7 +361,7 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( 'abcdefg', $user->get( 'dashed-key' ) );
 	}
 
-	function test_has_prop() {
+	public function test_has_prop() {
 		$user = new WP_User( self::$author_id );
 		$this->assertTrue( $user->has_prop( 'user_email' ) );
 		$this->assertTrue( $user->has_prop( 'use_ssl' ) );
@@ -371,7 +371,7 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertTrue( $user->has_prop( 'dashed-key' ) );
 	}
 
-	function test_update_user() {
+	public function test_update_user() {
 		$user = new WP_User( self::$author_id );
 
 		update_user_meta( self::$author_id, 'description', 'about me' );
@@ -429,7 +429,7 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * @ticket 19595
 	 */
-	function test_global_userdata() {
+	public function test_global_userdata() {
 		global $userdata, $wpdb;
 
 		wp_set_current_user( self::$sub_id );
@@ -445,13 +445,13 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * @ticket 19769
 	 */
-	function test_global_userdata_is_null_when_logged_out() {
+	public function test_global_userdata_is_null_when_logged_out() {
 		global $userdata;
 		wp_set_current_user( 0 );
 		$this->assertNull( $userdata );
 	}
 
-	function test_exists() {
+	public function test_exists() {
 		$user = new WP_User( self::$author_id );
 
 		$this->assertTrue( $user->exists() );
@@ -465,7 +465,7 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertFalse( $user->exists() );
 	}
 
-	function test_global_authordata() {
+	public function test_global_authordata() {
 		global $authordata, $id;
 
 		$old_post_id = $id;
@@ -475,8 +475,8 @@ class Tests_User extends WP_UnitTestCase {
 		$post = array(
 			'post_author'  => self::$author_id,
 			'post_status'  => 'publish',
-			'post_content' => rand_str(),
-			'post_title'   => rand_str(),
+			'post_content' => 'content',
+			'post_title'   => 'title',
 			'post_type'    => 'post',
 		);
 
@@ -498,7 +498,7 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * @ticket 13317
 	 */
-	function test_get_userdata() {
+	public function test_get_userdata() {
 		$this->assertFalse( get_userdata( 0 ) );
 		$this->assertFalse( get_userdata( '0' ) );
 		$this->assertFalse( get_userdata( 'string' ) );
@@ -508,7 +508,7 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * @ticket 23480
 	 */
-	function test_user_get_data_by_id() {
+	public function test_user_get_data_by_id() {
 		$user = WP_User::get_data_by( 'id', self::$author_id );
 		$this->assertInstanceOf( 'stdClass', $user );
 		$this->assertEquals( self::$author_id, $user->ID );
@@ -547,7 +547,7 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * @ticket 21431
 	 */
-	function test_count_many_users_posts() {
+	public function test_count_many_users_posts() {
 		$user_id_b = self::factory()->user->create( array( 'role' => 'author' ) );
 		$post_id_a = self::factory()->post->create( array( 'post_author' => self::$author_id ) );
 		$post_id_b = self::factory()->post->create( array( 'post_author' => $user_id_b ) );
@@ -560,27 +560,27 @@ class Tests_User extends WP_UnitTestCase {
 
 		wp_set_current_user( self::$author_id );
 		$counts = count_many_users_posts( array( self::$author_id, $user_id_b ), 'post', false );
-		$this->assertEquals( 1, $counts[ self::$author_id ] );
-		$this->assertEquals( 1, $counts[ $user_id_b ] );
+		$this->assertSame( '1', $counts[ self::$author_id ] );
+		$this->assertSame( '1', $counts[ $user_id_b ] );
 
 		$counts = count_many_users_posts( array( self::$author_id, $user_id_b ), 'post', true );
-		$this->assertEquals( 1, $counts[ self::$author_id ] );
-		$this->assertEquals( 1, $counts[ $user_id_b ] );
+		$this->assertSame( '1', $counts[ self::$author_id ] );
+		$this->assertSame( '1', $counts[ $user_id_b ] );
 
 		wp_set_current_user( $user_id_b );
 		$counts = count_many_users_posts( array( self::$author_id, $user_id_b ), 'post', false );
-		$this->assertEquals( 1, $counts[ self::$author_id ] );
-		$this->assertEquals( 2, $counts[ $user_id_b ] );
+		$this->assertSame( '1', $counts[ self::$author_id ] );
+		$this->assertSame( '2', $counts[ $user_id_b ] );
 
 		$counts = count_many_users_posts( array( self::$author_id, $user_id_b ), 'post', true );
-		$this->assertEquals( 1, $counts[ self::$author_id ] );
-		$this->assertEquals( 1, $counts[ $user_id_b ] );
+		$this->assertSame( '1', $counts[ self::$author_id ] );
+		$this->assertSame( '1', $counts[ $user_id_b ] );
 	}
 
 	/**
 	 * @ticket 22858
 	 */
-	function test_wp_update_user_on_nonexistent_users() {
+	public function test_wp_update_user_on_nonexistent_users() {
 		$user_id = 1;
 		// Find me a non-existent user ID.
 		while ( get_userdata( $user_id ) ) {
@@ -594,7 +594,7 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * @ticket 28435
 	 */
-	function test_wp_update_user_should_not_change_password_when_passed_WP_User_instance() {
+	public function test_wp_update_user_should_not_change_password_when_passed_WP_User_instance() {
 		$testuserid = 1;
 		$user       = get_userdata( $testuserid );
 		$pwd_before = $user->user_pass;
@@ -609,7 +609,7 @@ class Tests_User extends WP_UnitTestCase {
 	 * @ticket 45747
 	 * @group ms-excluded
 	 */
-	function test_wp_update_user_should_not_mark_user_as_spam_on_single_site() {
+	public function test_wp_update_user_should_not_mark_user_as_spam_on_single_site() {
 		$u = wp_update_user(
 			array(
 				'ID'   => self::$contrib_id,
@@ -633,10 +633,10 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * @ticket 28315
 	 */
-	function test_user_meta_error() {
+	public function test_user_meta_error() {
 		$id1 = wp_insert_user(
 			array(
-				'user_login' => rand_str(),
+				'user_login' => 'taco_burrito',
 				'user_pass'  => 'password',
 				'user_email' => 'taco@burrito.com',
 			)
@@ -645,7 +645,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		$id2 = wp_insert_user(
 			array(
-				'user_login' => rand_str(),
+				'user_login' => 'taco_burrito2',
 				'user_pass'  => 'password',
 				'user_email' => 'taco@burrito.com',
 			)
@@ -664,7 +664,7 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * @ticket 30647
 	 */
-	function test_user_update_email_error() {
+	public function test_user_update_email_error() {
 		$id1 = wp_insert_user(
 			array(
 				'user_login' => 'blackburn',
@@ -707,22 +707,22 @@ class Tests_User extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 27317
-	 * @dataProvider _illegal_user_logins_data
+	 * @dataProvider data_illegal_user_logins
 	 */
-	function test_illegal_user_logins_single( $user_login ) {
+	public function test_illegal_user_logins_single( $user_login ) {
 		$user_data = array(
 			'user_login' => $user_login,
 			'user_email' => 'testuser@example.com',
 			'user_pass'  => wp_generate_password(),
 		);
 
-		add_filter( 'illegal_user_logins', array( $this, '_illegal_user_logins' ) );
+		add_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
 
 		$response = wp_insert_user( $user_data );
 		$this->assertInstanceOf( 'WP_Error', $response );
 		$this->assertSame( 'invalid_username', $response->get_error_code() );
 
-		remove_filter( 'illegal_user_logins', array( $this, '_illegal_user_logins' ) );
+		remove_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
 
 		$user_id = wp_insert_user( $user_data );
 		$user    = get_user_by( 'id', $user_id );
@@ -731,18 +731,18 @@ class Tests_User extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 27317
-	 * @dataProvider _illegal_user_logins_data
+	 * @dataProvider data_illegal_user_logins
 	 */
-	function test_illegal_user_logins_single_wp_create_user( $user_login ) {
+	public function test_illegal_user_logins_single_wp_create_user( $user_login ) {
 		$user_email = 'testuser-' . $user_login . '@example.com';
 
-		add_filter( 'illegal_user_logins', array( $this, '_illegal_user_logins' ) );
+		add_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
 
 		$response = register_new_user( $user_login, $user_email );
 		$this->assertInstanceOf( 'WP_Error', $response );
 		$this->assertSame( 'invalid_username', $response->get_error_code() );
 
-		remove_filter( 'illegal_user_logins', array( $this, '_illegal_user_logins' ) );
+		remove_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
 
 		$response = register_new_user( $user_login, $user_email );
 		$user     = get_user_by( 'id', $response );
@@ -753,26 +753,26 @@ class Tests_User extends WP_UnitTestCase {
 	 * @ticket 27317
 	 * @group ms-required
 	 */
-	function test_illegal_user_logins_multisite() {
+	public function test_illegal_user_logins_multisite() {
 		$user_data = array(
 			'user_login' => 'testuser',
 			'user_email' => 'testuser@example.com',
 		);
 
-		add_filter( 'illegal_user_logins', array( $this, '_illegal_user_logins' ) );
+		add_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
 
 		$response = wpmu_validate_user_signup( $user_data['user_login'], $user_data['user_email'] );
 		$this->assertInstanceOf( 'WP_Error', $response['errors'] );
 		$this->assertSame( 'user_name', $response['errors']->get_error_code() );
 
-		remove_filter( 'illegal_user_logins', array( $this, '_illegal_user_logins' ) );
+		remove_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
 
 		$response = wpmu_validate_user_signup( $user_data['user_login'], $user_data['user_email'] );
 		$this->assertInstanceOf( 'WP_Error', $response['errors'] );
 		$this->assertCount( 0, $response['errors']->get_error_codes() );
 	}
 
-	function _illegal_user_logins_data() {
+	public function data_illegal_user_logins() {
 		$data = array(
 			array( 'testuser' ),
 		);
@@ -784,7 +784,7 @@ class Tests_User extends WP_UnitTestCase {
 		return $data;
 	}
 
-	function _illegal_user_logins() {
+	public function illegal_user_logins() {
 		return array( 'testuser' );
 	}
 
@@ -826,9 +826,9 @@ class Tests_User extends WP_UnitTestCase {
 	 */
 	public function test_wp_insert_user_should_not_wipe_existing_password() {
 		$user_details = array(
-			'user_login' => rand_str(),
+			'user_login' => 'jonsnow',
 			'user_pass'  => 'password',
-			'user_email' => rand_str() . '@example.com',
+			'user_email' => 'jonsnow@example.com',
 		);
 
 		$user_id = wp_insert_user( $user_details );
@@ -1001,6 +1001,24 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 44107
+	 */
+	public function test_wp_insert_user_should_reject_user_url_over_100_characters() {
+		$user_url = str_repeat( 'a', 101 );
+		$u        = wp_insert_user(
+			array(
+				'user_login' => 'test',
+				'user_email' => 'test@example.com',
+				'user_pass'  => 'password',
+				'user_url'   => $user_url,
+			)
+		);
+
+		$this->assertWPError( $u );
+		$this->assertSame( 'user_url_too_long', $u->get_error_code() );
+	}
+
+	/**
 	 * @ticket 28004
 	 */
 	public function test_wp_insert_user_with_invalid_user_id() {
@@ -1163,7 +1181,7 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * @ticket 32158
 	 */
-	function test_email_case() {
+	public function test_email_case() {
 		// Alter the case of the email address (which stays the same).
 		$userdata = array(
 			'ID'         => self::$editor_id,
@@ -1177,7 +1195,7 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * @ticket 32158
 	 */
-	function test_email_change() {
+	public function test_email_change() {
 		// Change the email address.
 		$userdata = array(
 			'ID'         => self::$editor_id,
@@ -1200,7 +1218,7 @@ class Tests_User extends WP_UnitTestCase {
 	 * @ticket 33654
 	 * @ticket 36009
 	 */
-	function test_wp_new_user_notification( $notify, $admin_email_sent_expected, $user_email_sent_expected ) {
+	public function test_wp_new_user_notification( $notify, $admin_email_sent_expected, $user_email_sent_expected ) {
 		reset_phpmailer_instance();
 
 		$was_admin_email_sent = false;
@@ -1243,7 +1261,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	function data_wp_new_user_notifications() {
+	public function data_wp_new_user_notifications() {
 		return array(
 			array(
 				'',
@@ -1280,7 +1298,7 @@ class Tests_User extends WP_UnitTestCase {
 	 * @ticket 33654
 	 * @expectedDeprecated wp_new_user_notification
 	 */
-	function test_wp_new_user_notification_old_signature_throws_deprecated_warning_but_sends() {
+	public function test_wp_new_user_notification_old_signature_throws_deprecated_warning_but_sends() {
 		reset_phpmailer_instance();
 
 		$was_admin_email_sent = false;
@@ -1305,7 +1323,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *
 	 * @ticket 34377
 	 */
-	function test_wp_new_user_notification_old_signature_no_password() {
+	public function test_wp_new_user_notification_old_signature_no_password() {
 		reset_phpmailer_instance();
 
 		$was_admin_email_sent = false;
@@ -1326,11 +1344,134 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that admin notification of a new user registration is dependent
+	 * on the 'wp_send_new_user_notification_to_admin' filter.
+	 *
+	 * @dataProvider data_wp_send_new_user_notification_filters
+	 *
+	 * @ticket 54874
+	 *
+	 * @covers ::wp_new_user_notification
+	 *
+	 * @param bool   $expected Whether the email should be sent.
+	 * @param string $callback The callback to pass to the filter.
+	 */
+	public function test_wp_send_new_user_notification_to_admin_filter( $expected, $callback ) {
+		reset_phpmailer_instance();
+
+		add_filter( 'wp_send_new_user_notification_to_admin', $callback );
+
+		wp_new_user_notification( self::$contrib_id, null, 'admin' );
+
+		$mailer    = tests_retrieve_phpmailer_instance();
+		$recipient = $mailer->get_recipient( 'to' );
+		$actual    = $recipient ? WP_TESTS_EMAIL === $recipient->address : false;
+
+		$this->assertSame( $expected, $actual, 'Admin email result was not as expected in test_wp_send_new_user_notification_to_admin_filter' );
+	}
+
+	/**
+	 * Test that user notification of a new user registration is dependent
+	 * on the 'wp_send_new_user_notification_to_user' filter.
+	 *
+	 * @dataProvider data_wp_send_new_user_notification_filters
+	 *
+	 * @ticket 54874
+	 *
+	 * @covers ::wp_new_user_notification
+	 *
+	 * @param bool   $expected Whether the email should be sent.
+	 * @param string $callback The callback to pass to the filter.
+	 */
+	public function test_wp_send_new_user_notification_to_user_filter( $expected, $callback ) {
+		reset_phpmailer_instance();
+
+		add_filter( 'wp_send_new_user_notification_to_user', $callback );
+
+		wp_new_user_notification( self::$contrib_id, null, 'user' );
+
+		$mailer    = tests_retrieve_phpmailer_instance();
+		$recipient = $mailer->get_recipient( 'to' );
+		$actual    = $recipient ? 'blackburn@battlefield3.com' === $recipient->address : false;
+
+		$this->assertSame( $expected, $actual, 'User email result was not as expected in test_wp_send_new_user_notification_to_user_filter' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_wp_send_new_user_notification_filters() {
+		return array(
+			'true'          => array(
+				'expected' => true,
+				'callback' => '__return_true',
+			),
+			'false'         => array(
+				'expected' => false,
+				'callback' => '__return_false',
+			),
+			'null'          => array(
+				'expected' => false,
+				'callback' => '__return_null',
+			),
+			'empty array'   => array(
+				'expected' => false,
+				'callback' => '__return_empty_array',
+			),
+			'zero int'      => array(
+				'expected' => false,
+				'callback' => '__return_zero',
+			),
+			'zero float'    => array(
+				'expected' => false,
+				'callback' => array( $this, 'cb_return_zero_float' ),
+			),
+			'zero string'   => array(
+				'expected' => false,
+				'callback' => array( $this, 'cb_return_zero_string' ),
+			),
+			'array( true )' => array(
+				'expected' => false,
+				'callback' => array( $this, 'cb_return_array_true' ),
+			),
+		);
+	}
+
+	/**
+	 * Callback that returns 0.0.
+	 *
+	 * @return float 0.0.
+	 */
+	public function cb_return_zero_float() {
+		return 0.0;
+	}
+
+	/**
+	 * Callback that returns '0'.
+	 *
+	 * @return string '0'.
+	 */
+	public function cb_return_zero_string() {
+		return '0';
+	}
+
+	/**
+	 * Callback that returns array( true ).
+	 *
+	 * @return array array( true )
+	 */
+	public function cb_return_array_true() {
+		return array( true );
+	}
+
+	/**
 	 * Ensure blog's admin email change notification emails do not contain encoded HTML entities
 	 *
 	 * @ticket 40015
 	 */
-	function test_new_admin_email_notification_html_entities_decoded() {
+	public function test_new_admin_email_notification_html_entities_decoded() {
 		reset_phpmailer_instance();
 
 		wp_set_current_user( self::$admin_id );
@@ -1363,7 +1504,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_user_admin_email_confirmation_emails
 	 */
-	function test_new_admin_email_confirmation_not_sent_when_email_invalid( $email, $message ) {
+	public function test_new_admin_email_confirmation_not_sent_when_email_invalid( $email, $message ) {
 		reset_phpmailer_instance();
 
 		update_option_new_admin_email( get_option( 'admin_email' ), $email );
@@ -1383,7 +1524,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	function data_user_admin_email_confirmation_emails() {
+	public function data_user_admin_email_confirmation_emails() {
 		return array(
 			array(
 				get_option( 'admin_email' ),
@@ -1404,7 +1545,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_user_change_email_confirmation_emails
 	 */
-	function test_profile_email_confirmation_not_sent_invalid_email( $email, $message ) {
+	public function test_profile_email_confirmation_not_sent_invalid_email( $email, $message ) {
 
 		$old_current = get_current_user_id();
 
@@ -1447,7 +1588,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	function data_user_change_email_confirmation_emails() {
+	public function data_user_change_email_confirmation_emails() {
 		return array(
 			array(
 				'email@test.dev',
@@ -1470,7 +1611,7 @@ class Tests_User extends WP_UnitTestCase {
 	 * @ticket 35715
 	 * @ticket 42766
 	 */
-	function test_edit_user_blank_password() {
+	public function test_edit_user_blank_password() {
 		$_POST                 = array();
 		$_GET                  = array();
 		$_REQUEST              = array();
@@ -1544,18 +1685,18 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * Check passwords action for test_edit_user_blank_password().
 	 */
-	function action_check_passwords_blank_password( $user_login, &$pass1 ) {
+	public function action_check_passwords_blank_password( $user_login, &$pass1 ) {
 		$pass1 = '';
 	}
 
 	/**
 	 * @ticket 16470
 	 */
-	function test_send_confirmation_on_profile_email() {
+	public function test_send_confirmation_on_profile_email() {
 		reset_phpmailer_instance();
 		$was_confirmation_email_sent = false;
 
-		$user = $this->factory()->user->create_and_get(
+		$user = self::factory()->user->create_and_get(
 			array(
 				'user_email' => 'before@example.com',
 			)
@@ -1586,13 +1727,13 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * @ticket 16470
 	 */
-	function test_remove_send_confirmation_on_profile_email() {
+	public function test_remove_send_confirmation_on_profile_email() {
 		remove_action( 'personal_options_update', 'send_confirmation_on_profile_email' );
 
 		reset_phpmailer_instance();
 		$was_confirmation_email_sent = false;
 
-		$user = $this->factory()->user->create_and_get(
+		$user = self::factory()->user->create_and_get(
 			array(
 				'user_email' => 'before@example.com',
 			)
@@ -1626,7 +1767,7 @@ class Tests_User extends WP_UnitTestCase {
 	 * @ticket 16470
 	 * @ticket 40015
 	 */
-	function test_send_confirmation_on_profile_email_html_entities_decoded() {
+	public function test_send_confirmation_on_profile_email_html_entities_decoded() {
 		$user_id = self::factory()->user->create(
 			array(
 				'role'       => 'subscriber',
@@ -1662,7 +1803,7 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * @ticket 42564
 	 */
-	function test_edit_user_role_update() {
+	public function test_edit_user_role_update() {
 		$_POST    = array();
 		$_GET     = array();
 		$_REQUEST = array();
@@ -1705,7 +1846,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *
 	 * @ticket 43547
 	 */
-	function test_wp_user_personal_data_exporter_no_user() {
+	public function test_wp_user_personal_data_exporter_no_user() {
 		$actual = wp_user_personal_data_exporter( 'not-a-user-email@test.com' );
 
 		$expected = array(
@@ -1722,7 +1863,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *
 	 * @ticket 43547
 	 */
-	function test_wp_user_personal_data_exporter() {
+	public function test_wp_user_personal_data_exporter() {
 		$test_user = new WP_User( self::$contrib_id );
 
 		$actual = wp_user_personal_data_exporter( $test_user->user_email );
@@ -1742,7 +1883,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *
 	 * @ticket 43921
 	 */
-	function test_wp_community_events_location_ip_personal_data_exporter() {
+	public function test_wp_community_events_location_ip_personal_data_exporter() {
 		$test_user = new WP_User( self::$contrib_id );
 
 		$location_data = array( 'ip' => '0.0.0.0' );
@@ -1766,7 +1907,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *
 	 * @ticket 43921
 	 */
-	function test_wp_community_events_location_city_personal_data_exporter() {
+	public function test_wp_community_events_location_city_personal_data_exporter() {
 		$test_user = new WP_User( self::$contrib_id );
 
 		$location_data = array(
@@ -1808,7 +1949,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *
 	 * @ticket 45889
 	 */
-	function test_wp_session_tokens_personal_data_exporter() {
+	public function test_wp_session_tokens_personal_data_exporter() {
 		$test_user = new WP_User( self::$contrib_id );
 
 		$session_tokens_data = array(
@@ -1869,6 +2010,7 @@ class Tests_User extends WP_UnitTestCase {
 		$update_data = array(
 			'ID'         => $create_user,
 			'user_login' => 'test_user',
+			'user_email' => 'user@example.com',
 			'meta_input' => array(
 				'test_meta_key' => 'test_meta_updated',
 				'custom_meta'   => 'updated_value',
@@ -1909,9 +2051,9 @@ class Tests_User extends WP_UnitTestCase {
 	 * This hook is used in `test_wp_insert_user_with_meta()`.
 	 */
 	public function filter_custom_meta( $meta_input ) {
-		// Update some meta inputs
+		// Update some meta inputs.
 		$meta_input['test_meta_key'] = 'update_from_filter';
-		// Add a new meta
+		// Add a new meta.
 		$meta_input['new_meta_from_filter'] = 'new_from_filter';
 
 		return $meta_input;
@@ -1924,7 +2066,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *
 	 * @ticket 47509
 	 */
-	function test_filter_wp_privacy_additional_user_profile_data() {
+	public function test_filter_wp_privacy_additional_user_profile_data() {
 		$test_user = new WP_User( self::$contrib_id );
 
 		add_filter( 'wp_privacy_additional_user_profile_data', array( $this, 'export_additional_user_profile_data' ) );
@@ -1956,7 +2098,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		// _doing_wrong() should be called because the filter callback
+		// _doing_it_wrong() should be called because the filter callback
 		// adds a item with a 'name' that is the same as one generated by core.
 		$this->setExpectedIncorrectUsage( 'wp_user_personal_data_exporter' );
 		add_filter( 'wp_privacy_additional_user_profile_data', array( $this, 'export_additional_user_profile_data_with_dup_name' ) );
