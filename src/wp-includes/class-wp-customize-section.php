@@ -407,12 +407,3 @@ class WP_Customize_Section {
 		<?php
 	}
 }
-
-/** WP_Customize_Themes_Section class */
-require_once ABSPATH . WPINC . '/customize/class-wp-customize-themes-section.php';
-
-/** WP_Customize_Sidebar_Section class */
-require_once ABSPATH . WPINC . '/customize/class-wp-customize-sidebar-section.php';
-
-/** WP_Customize_Nav_Menu_Section class */
-require_once ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-section.php';

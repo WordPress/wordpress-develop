@@ -21,9 +21,6 @@
  * @since 1.5.0
  */
 
-// Initialize the filter globals.
-require __DIR__ . '/class-wp-hook.php';
-
 /** @var WP_Hook[] $wp_filter */
 global $wp_filter;
 

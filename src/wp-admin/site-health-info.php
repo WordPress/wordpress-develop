@@ -10,13 +10,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die();
 }
 
-if ( ! class_exists( 'WP_Debug_Data' ) ) {
-	require_once ABSPATH . 'wp-admin/includes/class-wp-debug-data.php';
-}
-if ( ! class_exists( 'WP_Site_Health' ) ) {
-	require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
-}
-
 $health_check_site_status = WP_Site_Health::get_instance();
 
 wp_admin_notice(

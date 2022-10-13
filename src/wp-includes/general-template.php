@@ -3805,9 +3805,6 @@ function wp_default_editor() {
  * @param array  $settings  See _WP_Editors::parse_settings() for description.
  */
 function wp_editor( $content, $editor_id, $settings = array() ) {
-	if ( ! class_exists( '_WP_Editors', false ) ) {
-		require ABSPATH . WPINC . '/class-wp-editor.php';
-	}
 	_WP_Editors::editor( $content, $editor_id, $settings );
 }
 
@@ -3821,10 +3818,6 @@ function wp_editor( $content, $editor_id, $settings = array() ) {
  * @since 4.8.0
  */
 function wp_enqueue_editor() {
-	if ( ! class_exists( '_WP_Editors', false ) ) {
-		require ABSPATH . WPINC . '/class-wp-editor.php';
-	}
-
 	_WP_Editors::enqueue_default_editor();
 }
 

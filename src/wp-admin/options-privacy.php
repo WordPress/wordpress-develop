@@ -79,11 +79,6 @@ if ( ! empty( $action ) ) {
 
 		add_settings_error( 'page_for_privacy_policy', 'page_for_privacy_policy', $privacy_page_updated_message, 'success' );
 	} elseif ( 'create-privacy-page' === $action ) {
-
-		if ( ! class_exists( 'WP_Privacy_Policy_Content' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/class-wp-privacy-policy-content.php';
-		}
-
 		$privacy_policy_page_content = WP_Privacy_Policy_Content::get_default_content();
 		$privacy_policy_page_id      = wp_insert_post(
 			array(

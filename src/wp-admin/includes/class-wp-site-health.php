@@ -1836,10 +1836,6 @@ class WP_Site_Health {
 			'test'        => 'background_updates',
 		);
 
-		if ( ! class_exists( 'WP_Site_Health_Auto_Updates' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/class-wp-site-health-auto-updates.php';
-		}
-
 		/*
 		 * Run the auto-update tests in a separate class,
 		 * as there are many considerations to be made.

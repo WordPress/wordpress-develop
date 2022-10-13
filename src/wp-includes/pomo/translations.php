@@ -7,9 +7,6 @@
  * @subpackage translations
  */
 
-require_once __DIR__ . '/plural-forms.php';
-require_once __DIR__ . '/entry.php';
-
 if ( ! class_exists( 'Translations', false ) ) :
 	#[AllowDynamicProperties]
 	class Translations {
