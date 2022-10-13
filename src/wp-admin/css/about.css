@@ -652,7 +652,8 @@
 .about__header-title h1 {
 	margin: 0 0 1rem;
 	padding: 0;
-	font-size: clamp(3rem, 18.46vw - 8.08rem, 6rem);
+	/* Fluid font size scales on browser size 960px - 1200px. */
+	font-size: clamp(3rem, 20vw - 9rem, 6rem);
 	line-height: 1;
 	font-weight: 400;
 }
@@ -660,7 +661,8 @@
 .credits-php .about__header-title h1,
 .privacy-php .about__header-title h1,
 .freedoms-php .about__header-title h1 {
-	font-size: clamp(3rem, 9.23vw - 5.54rem, 4.5rem);
+	/* Fluid font size scales on browser size 960px - 1200px. */
+	font-size: clamp(3rem, 10vw - 3rem, 4.5rem);
 }
 
 .about__header-text {
@@ -732,13 +734,15 @@
 	}
 
 	.about__header-title h1 {
-		font-size: clamp(3rem, 18.46vw - 5.08rem, 6rem);
+		/* Fluid font size scales on browser size 600px - 960px. */
+		font-size: clamp(3rem, 13.33vw - 2rem, 6rem);
 	}
 
 	.credits-php .about__header-title h1,
 	.privacy-php .about__header-title h1,
 	.freedoms-php .about__header-title h1 {
-		font-size: clamp(3rem, 9.23vw - 1.04rem, 4.5rem);
+		/* Fluid font size scales on browser size 600px - 960px. */
+		font-size: clamp(3rem, 6.67vw - 0.5rem, 4.5rem);
 	}
 }
 
@@ -792,7 +796,10 @@
 		padding-top: 2rem;
 	}
 
-	.about__header-text {
+	.about__header-text,
+	.credits-php .about__header-text {
+		margin-left: calc(var(--gap) / 2);
+		margin-right: calc(var(--gap) / 2);
 		margin-bottom: 2rem;
 	}
 
