@@ -60,8 +60,10 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		</div>
 
 		<div class="about__section has-2-columns">
-			<div class="column about__image is-edge-to-edge" style="background-color:#353535;">
-				<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50%25' cy='50%25' r='30%25' fill='%23E26F56' /%3E%3C/svg%3E" alt="" />
+			<div class="column">
+				<div class="about__image" style="background-color:#353535;">
+					<img src="https://make.wordpress.org/core/files/2022/10/about-61-style-variations.webp" alt="" />
+				</div>
 			</div>
 			<div class="column is-vertically-aligned-center">
 				<h3><?php _e( 'A new default theme powered by 10 distinct style variations' ); ?></h3>
@@ -92,14 +94,18 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					?>
 				</p>
 			</div>
-			<div class="column about__image is-edge-to-edge has-subtle-background-color">
-				<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50%25' cy='50%25' r='30%25' fill='%23E26F56' /%3E%3C/svg%3E" alt="" />
+			<div class="column">
+				<div class="about__image has-subtle-background-color">
+					<img src="https://make.wordpress.org/core/files/2022/10/about-61-templates.webp" alt="" />
+				</div>
 			</div>
 		</div>
 
 		<div class="about__section has-2-columns">
-			<div class="column about__image is-edge-to-edge has-subtle-background-color">
-				<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50%25' cy='50%25' r='30%25' fill='%23E26F56' /%3E%3C/svg%3E" alt="" />
+			<div class="column">
+				<div class="about__image has-subtle-background-color">
+					<img src="https://make.wordpress.org/core/files/2022/10/about-61-design-tools.webp" alt="" />
+				</div>
 			</div>
 			<div class="column is-vertically-aligned-center">
 				<h3><?php _e( 'More consistency and control across design tools' ); ?></h3>
@@ -128,22 +134,24 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					?>
 				</p>
 			</div>
-			<div class="column about__image is-edge-to-edge has-subtle-background-color">
-				<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50%25' cy='50%25' r='30%25' fill='%23E26F56' /%3E%3C/svg%3E" alt="" />
+			<div class="column">
+				<div class="about__image has-subtle-background-color">
+					<img src="https://make.wordpress.org/core/files/2022/10/about-61-navigation.webp" alt="" />
+				</div>
 			</div>
 		</div>
 
 		<div class="about__section has-2-columns">
 			<div class="column">
 				<div class="about__image has-accent-background-color">
-					<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50%25' cy='50%25' r='30%25' fill='%23E26F56' /%3E%3C/svg%3E" alt="" />
+					<img src="https://make.wordpress.org/core/files/2022/10/about-61-document-settings.webp" alt="" />
 				</div>
 				<h3><?php _e( 'Improved layout and visualization of document settings' ); ?></h3>
 				<p><?php _e( 'A cleaner, better-organized display helps you easily view and manage important post and page settings, especially the template picker and scheduler.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image has-accent-background-color">
-					<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50%25' cy='50%25' r='30%25' fill='%23E26F56' /%3E%3C/svg%3E" alt="" />
+					<img src="https://make.wordpress.org/core/files/2022/10/about-61-lock.webp" alt="" />
 				</div>
 				<h3><?php _e( 'One-click lock settings for all inner blocks' ); ?></h3>
 				<p><?php _e( 'When locking blocks, a new toggle lets you apply your lock settings to all the blocks in a containing block like the group, cover, and column blocks.' ); ?></p>
@@ -153,21 +161,21 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-3-columns">
 			<div class="column">
 				<div class="column about__image is-edge-to-edge has-accent-background-color">
-					<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50%25' cy='50%25' r='30%25' fill='%23E26F56' /%3E%3C/svg%3E" alt="" />
+					<img src="https://make.wordpress.org/core/files/2022/10/about-61-sub-feature-1.webp" alt="" />
 				</div>
 				<h3 class="is-smaller-heading"><?php _e( 'Improved block placeholders' ); ?></h3>
 				<p><?php _e( 'Various blocks have improved placeholders that reflect customization options to help you design your site and its content. For example, the Image block placeholder displays custom borders and duotone filters even before selecting an image.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="column about__image is-edge-to-edge has-accent-background-color">
-					<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50%25' cy='50%25' r='30%25' fill='%23E26F56' /%3E%3C/svg%3E" alt="" />
+					<img src="https://make.wordpress.org/core/files/2022/10/about-61-sub-feature-2.webp" alt="" />
 				</div>
 				<h3 class="is-smaller-heading"><?php _e( 'Compose richer lists and quotes with inner blocks' ); ?></h3>
 				<p><?php _e( 'The List and Quote blocks now support inner blocks, allowing for more flexible and rich compositions like adding headings inside your Quote blocks.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="column about__image is-edge-to-edge has-accent-background-color">
-					<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50%25' cy='50%25' r='30%25' fill='%23E26F56' /%3E%3C/svg%3E" alt="" />
+					<img src="https://make.wordpress.org/core/files/2022/10/about-61-sub-feature-3.webp" alt="" />
 				</div>
 				<h3 class="is-smaller-heading"><?php _e( 'More responsive text with fluid typography' ); ?></h3>
 				<p>
