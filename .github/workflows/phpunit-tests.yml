@@ -111,15 +111,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
 
-      - name: Install NodeJS
-        uses: actions/setup-node@969bd2663942d722d85b6a8626225850c2f7be4b # v3.5.0
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
-      - name: Install Dependencies
-        run: npm ci
-
       ##
       #
       ##
@@ -134,6 +125,15 @@ jobs:
         with:
           dependency-versions: 'highest'
           composer-options: "${{ matrix.php == '8.2' && '--ignore-platform-req=php+' || '' }}"
+
+      - name: Install NodeJS
+        uses: actions/setup-node@969bd2663942d722d85b6a8626225850c2f7be4b # v3.5.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
 
       - name: Docker debug information
         run: |
