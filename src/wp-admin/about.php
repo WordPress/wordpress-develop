@@ -169,16 +169,16 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<div class="column about__image is-edge-to-edge has-accent-background-color">
 					<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50%25' cy='50%25' r='30%25' fill='%23E26F56' /%3E%3C/svg%3E" alt="" />
 				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'Header and footer patterns for every theme' ); ?></h3>
+				<h3 class="is-smaller-heading"><?php _e( 'More responsive text with fluid typography' ); ?></h3>
 				<p>
 					<?php
 					printf(
-						/* translators: 1: Link to tutorial for customizing a header, 2: Link to tutorial for customizing a footer. */
-						__( 'Explore these block patterns, making <a href="%1$s">header</a> and <a href="%2$s">footer</a> creation more efficient.' ),
-						'https://learn.wordpress.org/tutorial/customizing-a-header-with-patterns/',
-						'https://learn.wordpress.org/tutorial/customizing-a-footer-with-patterns/'
+						/* translators: %s: Link to fluid typography demo. */
+						__( '<a href="%s">Fluid typography</a> lets you define font sizes that adapt for easy reading in any screen size.' ),
+						'https://make.wordpress.org/core/2022/10/03/fluid-font-sizes-in-wordpress-6-1/'
 					);
 					?>
+				</p>
 			</div>
 		</div>
 
@@ -469,27 +469,6 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					?>
 				</p>
 				<p><?php _e( 'Combine it with block locking options for even more advanced control over your blocks.' ); ?></p>
-			</div>
-		</div>
-
-		<div class="about__section has-2-columns">
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
-						<circle cx="50%" cy="50%" r="30%" fill="red"/>
-					</svg>
-				</div>
-				<h3 class="is-smaller-heading"><?php _e( 'More responsive text with fluid typography' ); ?></h3>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: Link to fluid typography demo. */
-						__( '<a href="%s">Fluid typography</a> lets you define font sizes that adapt for easy reading in any screen size.' ),
-						'https://make.wordpress.org/core/2022/10/03/fluid-font-sizes-in-wordpress-6-1/'
-					);
-					?>
-				</p>
 			</div>
 		</div>
 
