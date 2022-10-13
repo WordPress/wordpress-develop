@@ -850,11 +850,10 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 * @ticket 56802
 	 */
 	public function test_query_cache_like_meta() {
-		static $placeholder;
-		$old_placeholder = $placeholder;
-		$p1              = self::$posts[0];
+		global $wpdb;
+		$p1 = self::$posts[0];
 
-		$args   = array(
+		$args        = array(
 			'cache_results' => true,
 			'fields'        => 'ids',
 			'meta_query'    => array(
@@ -865,18 +864,18 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 				),
 			),
 		);
-		$query1 = new WP_Query();
-		$posts1 = $query1->query( $args );
+		$query1      = new WP_Query();
+		$posts1      = $query1->query( $args );
+		$num_queries = get_num_queries();
 
 		// Force placeholder to be different.
-		$placeholder = rand();
+		$wpdb->placeholder_escape( true );
 
 		$query2 = new WP_Query();
 		$posts2 = $query2->query( $args );
 
-		$placeholder = $old_placeholder;
-
 		$this->assertSame( $posts1, $posts2 );
+		$this->assertSame( $num_queries, get_num_queries() );
 		$this->assertContains( $p1, $posts2 );
 		$this->assertSame( $query1->found_posts, $query2->found_posts );
 	}
@@ -885,28 +884,27 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 * @ticket 56802
 	 */
 	public function test_query_cache_search() {
-		static $placeholder;
-		$old_placeholder = $placeholder;
+		global $wpdb;
 		// Post 0 already has the category foo.
 		$p1 = self::$posts[1];
 
-		$args   = array(
+		$args        = array(
 			'cache_results' => true,
 			'fields'        => 'ids',
 			's'             => 'e',
 		);
-		$query1 = new WP_Query();
-		$posts1 = $query1->query( $args );
+		$query1      = new WP_Query();
+		$posts1      = $query1->query( $args );
+		$num_queries = get_num_queries();
 
 		// Force placeholder to be different.
-		$placeholder = rand();
+		$wpdb->placeholder_escape( true );
 
 		$query2 = new WP_Query();
 		$posts2 = $query2->query( $args );
 
-		$placeholder = $old_placeholder;
-
 		$this->assertSame( $posts1, $posts2 );
+		$this->assertSame( $num_queries, get_num_queries() );
 		$this->assertContains( $p1, $posts2 );
 		$this->assertSame( $query1->found_posts, $query2->found_posts );
 	}

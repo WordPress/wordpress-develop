@@ -2414,11 +2414,14 @@ class wpdb {
 	 *
 	 * @since 4.8.3
 	 *
+	 * @param bool $reset Optional. Whether to reset the placeholder. Default false.
 	 * @return string String to escape placeholders.
 	 */
-	public function placeholder_escape() {
+	public function placeholder_escape( $reset = false ) {
 		static $placeholder;
-
+		if ( $reset ) {
+			$placeholder = null;
+		}
 		if ( ! $placeholder ) {
 			// If ext/hash is not present, compat.php's hash_hmac() does not support sha256.
 			$algo = function_exists( 'hash' ) ? 'sha256' : 'sha1';
