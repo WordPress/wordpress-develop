@@ -108,7 +108,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: Link to layout support refactor dev note. */
 						__( 'Upgrades to the <a href="%s">controls for design elements and blocks</a> make the layout and site-building process more consistent, complete, and intuitive.' ),
-						'https://make.wordpress.org/core/2022/10/10/updated-editor-layout-support-in-6-1-after-refactor/'
+						'https://make.wordpress.org/core/2022/10/11/roster-of-design-tools-per-block/'
 					);
 					?>
 				</p>
@@ -208,7 +208,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: Link to "full site editing" themes on WordPress.org. */
 						__( 'The Themes Directory has <a href="%s">a filter for block themes</a>, and a pattern preview gives a better sense of what the theme might look like while exploring different themes and patterns.' ),
-						__( 'https://wordpress.org/themes/tags/full-site-editing/' )
+						esc_url( __( 'https://wordpress.org/themes/tags/full-site-editing/' ) )
 					);
 					?>
 				</p>
@@ -266,9 +266,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
-						/* translators: %s: Link to WordPress.org accessibility statement. */
+						/* translators: %s: Link to accessibility improvements dev note. */
 						__( 'More than 40 improvements in accessibility include resolving focus loss problems in the editor, improving form labels and audible messages, making alternative text easier to edit, and fixing the sub-menu overlap in the expanded admin side navigation at smaller screen sizes and higher zoom levels. Learn more about <a href="%s">accessibility in WordPress</a>.' ),
-						'https://wordpress.org/about/accessibility/'
+						'https://make.wordpress.org/core/2022/10/11/wordpress-6-1-accessibility-improvements/'
 					);
 					?>
 				</p>
@@ -446,7 +446,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: Link to install Performance Lab plugin if permitted, otherwise link to plugin on WordPress.org. */
 						__( 'Be among the first to get the latest improvements by adding the <a href="%s">Performance Lab plugin</a> to your WordPress test site or sandbox.' ),
-						current_user_can( 'install_plugins' ) ? admin_url( 'plugin-install.php?s=slug%253Aperformance-lab&tab=search&type=term' ) : 'https://wordpress.org/plugins/performance-lab/'
+						current_user_can( 'install_plugins' ) ? admin_url( 'plugin-install.php?s=slug%253Aperformance-lab&tab=search&type=term' ) : esc_url( __( 'https://wordpress.org/plugins/performance-lab/' ) )
 					);
 					?>
 				</p>
@@ -459,7 +459,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</svg>
 				</div>
 				<h3 class="is-smaller-heading"><?php _e( 'Content-only editing support for container blocks' ); ?></h3>
-				<p><?php _e( 'Thanks to content-only editing settings, layouts can be locked within container blocks. In a content-only block, its children are invisible to the List View and entirely uneditable. So you control the layout while your writers can focus on the content.' ); ?></p>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: Link to content locking dev note. */
+						__( 'Thanks to <a href="%s">content-only editing settings</a>, layouts can be locked within container blocks. In a content-only block, its children are invisible to the List View and entirely uneditable. So you control the layout while your writers can focus on the content.' ),
+						'https://make.wordpress.org/core/2022/10/11/content-locking-features-and-updates/'
+					);
+					?>
+				</p>
 				<p><?php _e( 'Combine it with block locking options for even more advanced control over your blocks.' ); ?></p>
 			</div>
 		</div>
@@ -478,7 +486,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: Link to fluid typography demo. */
 						__( '<a href="%s">Fluid typography</a> lets you define font sizes that adapt for easy reading in any screen size.' ),
-						'https://make.wordpress.org/core/2022/08/04/whats-new-in-gutenberg-13-8-3-august/#fluid-typography-support'
+						'https://make.wordpress.org/core/2022/10/03/fluid-font-sizes-in-wordpress-6-1/'
 					);
 					?>
 				</p>
@@ -520,10 +528,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
-						/* translators: 1: Learn WordPress workshops link, 2: Learn WordPress social learning link. */
-						__( 'Explore <a href="%1$s">learn.wordpress.org/&#8203;workshops</a> for quick how-to videos and lots more on new features in WordPress. Or join a live <a href="%2$s">interactive online learning session</a> on a specific WordPress topic.' ),
-						'https://learn.wordpress.org/workshops/',
-						'https://learn.wordpress.org/social-learning/'
+						/* translators: 1: Learn WordPress link. */
+						__( 'Explore <a href="%s">learn.wordpress.org</a> for tutorial videos, online workshops, courses, and lesson plans for Meetup organizers, including new features in WordPress.' ),
+						'https://learn.wordpress.org/'
 					);
 					?>
 				</p>
