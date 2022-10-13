@@ -120,34 +120,19 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      # This date is used to ensure that the Composer cache is refreshed at least once every week.
-      # http://man7.org/linux/man-pages/man1/date.1.html
-      - name: "Get last Monday's date"
-        id: get-date
-        run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
-
-      - name: Get Composer cache directory
-        id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
-
-      - name: Cache Composer dependencies
-        uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1 # v3.0.10
-        env:
-          cache-name: cache-composer-dependencies
+      ##
+      #
+      ##
+      - name: Setup PHP
+        uses: shivammathur/setup-php@e04e1d97f0c0481c6e1ba40f8a538454fe5d7709 # v2.21.2
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-php-${{ matrix.php }}-date-${{ steps.get-date.outputs.date }}-composer-${{ hashFiles('**/composer.json') }}
+          php-version: ${{ matrix.php }}
 
       - name: Install Composer dependencies
-        run: |
-          docker-compose run --rm php composer --version
-
-          # Install using `composer update` as there is no `composer.lock` file.
-          if [ ${{ env.LOCAL_PHP }} == '8.2-fpm' ]; then
-            docker-compose run --rm php composer update --ignore-platform-req=php+
-          else
-            docker-compose run --rm php composer update
-          fi
+        uses: ramsey/composer-install@f680dac46551dffb2234a240d65ae806c2999dd6 # v2.1.0
+        with:
+          dependency-versions: 'highest'
+          composer-options: "${{ matrix.php == '8.2' && '--ignore-platform-req=php+' || '' }}"
 
       - name: Docker debug information
         run: |
