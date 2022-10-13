@@ -1447,7 +1447,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	public function filter_mime_types_woff( $mimes ) {
-		$mimes['woff'] = 'font-woff/font-woff';
+		$mimes['woff'] = 'application/font-woff';
 		return $mimes;
 	}
 
