@@ -541,7 +541,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: WordPress Field Guide link. */
 						__( 'Check out the latest version of the <a href="%s">WordPress Field Guide</a>. It is overflowing with detailed developer notes to help you build with WordPress.' ),
-						__( '#' )
+						__( 'https://make.wordpress.org/core/2022/10/12/wordpress-6-1-field-guide/' )
 					);
 					?>
 				</p>
