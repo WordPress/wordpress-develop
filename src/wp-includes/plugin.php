@@ -21,6 +21,9 @@
  * @since 1.5.0
  */
 
+require_once ABSPATH . 'wp-includes/class-wp-autoload.php';
+WP_Autoload::register();
+
 /** @var WP_Hook[] $wp_filter */
 global $wp_filter;
 
