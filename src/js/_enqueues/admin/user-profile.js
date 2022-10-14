@@ -52,7 +52,9 @@
 		$( '#pw-weak-text-label' ).text( __( 'Confirm use of weak password' ) );
 
 		// Focus the password field.
-		$( $pass1 ).trigger( 'focus' );
+		if ( 'mailserver_pass' !== $pass1.prop('id' ) ) {
+			$( $pass1 ).trigger( 'focus' );
+		}
 	}
 
 	function bindPass1() {
