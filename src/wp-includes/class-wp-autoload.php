@@ -15,12 +15,9 @@ final class WP_Autoload {
 	/**
 	 * An array of classes and their respective paths.
 	 *
-	 * @static
-	 * @access private
-	 *
 	 * @var array
 	 */
-	private static $classes = array(
+	const CLASSES_PATHS = array(
 		/* Classes in the wp-includes/ folder. */
 		'Walker_CategoryDropdown'                     => 'wp-includes/class-walker-category-dropdown.php',
 		'Walker_Category'                             => 'wp-includes/class-walker-category.php',
@@ -350,12 +347,9 @@ final class WP_Autoload {
 	/**
 	 * Additional autoloaders for bundled libraries.
 	 *
-	 * @static
-	 * @access private
-	 *
 	 * @var array
 	 */
-	private static $extra_autoloaders = array(
+	const LIBRARIES_AUTOLOADERS = array(
 		array(
 			'path'     => 'wp-includes/class-simplepie.php',
 			'callback' => 'wp_simplepie_autoload',
@@ -384,7 +378,7 @@ final class WP_Autoload {
 		spl_autoload_register( array( __CLASS__, 'autoload' ), true, true );
 
 		// Autoload bundled libraries.
-		foreach ( self::$extra_autoloaders as $autoloader ) {
+		foreach ( static::LIBRARIES_AUTOLOADERS as $autoloader ) {
 			require_once ABSPATH . $autoloader['path'];
 
 			if ( is_callable( $autoloader['callback'] ) ) {
@@ -400,8 +394,8 @@ final class WP_Autoload {
 	 * @return void
 	 */
 	public static function autoload( $class ) {
-		if ( isset( self::$classes[ $class ] ) ) {
-			require_once ABSPATH . self::$classes[ $class ];
+		if ( isset( static::CLASSES_PATHS[ $class ] ) ) {
+			require_once ABSPATH . static::CLASSES_PATHS[ $class ];
 		}
 	}
 }
