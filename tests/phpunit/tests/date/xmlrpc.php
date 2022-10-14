@@ -11,7 +11,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 	 * @ticket 30429
 	 */
 	public function test_date_new_post() {
-		$timezone = 'Europe/Kiev';
+		$timezone = 'Europe/Helsinki';
 		update_option( 'timezone_string', $timezone );
 
 		$datetime    = new DateTimeImmutable( 'now', new DateTimeZone( $timezone ) );
@@ -129,7 +129,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 	 * @ticket 30429
 	 */
 	public function test_date_edit_post() {
-		$timezone = 'Europe/Kiev';
+		$timezone = 'Europe/Helsinki';
 		update_option( 'timezone_string', $timezone );
 
 		$datetime    = new DateTimeImmutable( 'now', new DateTimeZone( $timezone ) );
@@ -195,8 +195,8 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 	/**
 	 * @ticket 30429
 	 */
-	function test_date_edit_comment() {
-		$timezone = 'Europe/Kiev';
+	public function test_date_edit_comment() {
+		$timezone = 'Europe/Helsinki';
 		update_option( 'timezone_string', $timezone );
 
 		$datetime    = new DateTimeImmutable( 'now', new DateTimeZone( $timezone ) );
