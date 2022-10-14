@@ -21,6 +21,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', __DIR__ . '/' );
 }
 
+if ( ! defined( 'WPINC' ) ) {
+	define( 'WPINC', 'wp-includes' );
+}
+
 require_once ABSPATH . 'wp-includes/class-wp-autoload.php';
 WP_Autoload::register();
 
@@ -61,9 +65,6 @@ if ( file_exists( ABSPATH . 'wp-config.php' ) ) {
 
 	// A config file doesn't exist.
 
-	define( 'WPINC', 'wp-includes' );
-	require_once ABSPATH . WPINC . '/version.php';
-	require_once ABSPATH . WPINC . '/compat.php';
 	require_once ABSPATH . WPINC . '/load.php';
 
 	// Check for the required PHP version and for the MySQL extension or a database drop-in.

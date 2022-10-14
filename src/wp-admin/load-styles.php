@@ -12,11 +12,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', dirname( __DIR__ ) . '/' );
 }
 
+if ( ! defined( 'WPINC' ) ) {
+	define( 'WPINC', 'wp-includes' );
+}
+define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' );
+
 require_once ABSPATH . 'wp-includes/class-wp-autoload.php';
 WP_Autoload::register();
-
-define( 'WPINC', 'wp-includes' );
-define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' );
 
 require ABSPATH . 'wp-admin/includes/noop.php';
 require ABSPATH . WPINC . '/theme.php';
