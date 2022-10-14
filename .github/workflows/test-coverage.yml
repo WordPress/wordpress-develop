@@ -39,8 +39,8 @@ jobs:
   # - Checks out the repository.
   # - Checks out the WordPress Importer plugin (needed for the Core PHPUnit tests).
   # - Logs debug information about the GitHub Action runner.
-  # - Installs NodeJS.
-  # _ Installs NPM dependencies.
+  # - Installs Node.js.
+  # _ Installs npm dependencies.
   # - Logs Docker debug information (about the Docker installation within the runner).
   # - Starts the WordPress Docker container.
   # - Logs debug general information.
@@ -86,7 +86,7 @@ jobs:
           php -i
           locale -a
 
-      - name: Install NodeJS
+      - name: Install Node.js
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
         with:
           node-version-file: '.nvmrc'
