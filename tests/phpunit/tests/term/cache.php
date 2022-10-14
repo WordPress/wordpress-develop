@@ -154,7 +154,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 
 		// No new queries should have fired.
 		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
-		$this->assertEquals( $term_object, $term_object_2 );
+		$this->assertSimilarObject( $term_object, $term_object_2 );
 	}
 
 	public function test_get_term_by_should_update_term_cache_when_passed_a_valid_term_identifier() {
@@ -183,7 +183,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 
 		// No new queries should have fired.
 		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
-		$this->assertEquals( $term_object, $term_object_2 );
+		$this->assertSimilarObject( $term_object, $term_object_2 );
 	}
 
 	/**
@@ -265,7 +265,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		$this->assertSame( 'Taco', $term->name );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
-		$this->assertEquals( get_term( $term_id, 'post_tag' ), $term );
+		$this->assertSimilarObject( get_term( $term_id, 'post_tag' ), $term );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}
 
@@ -332,7 +332,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		$term = get_term_by( 'name', 'Burrito', 'post_tag' );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
-		$this->assertEquals( get_term( $term_id, 'post_tag' ), $term );
+		$this->assertSimilarObject( get_term( $term_id, 'post_tag' ), $term );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}
 
@@ -394,7 +394,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		// Verify the term is cached.
 		$term2 = get_term_by( 'name', 'Burrito', 'post_tag' );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
-		$this->assertEquals( $term1, $term2 );
+		$this->assertSimilarObject( $term1, $term2 );
 
 		$suspend = wp_suspend_cache_invalidation();
 
@@ -405,7 +405,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		// Verify that the cached term still matches the initial cached term.
 		$term3 = get_term_by( 'name', 'Burrito', 'post_tag' );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
-		$this->assertEquals( $term1, $term3 );
+		$this->assertSimilarObject( $term1, $term3 );
 
 		// Verify that last changed has not been updated as part of an invalidation routine.
 		$this->assertSame( $last_changed, wp_cache_get( 'last_changed', 'terms' ) );

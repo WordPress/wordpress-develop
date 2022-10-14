@@ -45,7 +45,7 @@ class Tests_Formatting_StripslashesDeep extends WP_UnitTestCase {
 		$obj_old->a = $old;
 		$obj_new    = new stdClass;
 		$obj_new->a = $new;
-		$this->assertEquals( $obj_new, stripslashes_deep( $obj_old ) );
+		$this->assertSimilarObject( $obj_new, stripslashes_deep( $obj_old ) );
 	}
 
 	public function test_permits_escaped_slash() {

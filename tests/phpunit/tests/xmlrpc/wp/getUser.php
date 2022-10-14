@@ -43,7 +43,7 @@ class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_getUser( array( 1, 'subscriber', 'subscriber', $subscriber_id ) );
 		$this->assertNotIXRError( $result );
-		$this->assertEquals( $subscriber_id, $result['user_id'] );
+		$this->assertSame( (string) $subscriber_id, $result['user_id'] );
 	}
 
 	public function test_valid_user() {
@@ -84,7 +84,7 @@ class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 		$this->assertIsArray( $result['roles'] );
 
 		// Check expected values.
-		$this->assertEquals( $user_id, $result['user_id'] );
+		$this->assertSame( (string) $user_id, $result['user_id'] );
 		$this->assertSame( $user_data['user_login'], $result['username'] );
 		$this->assertSame( $user_data['first_name'], $result['first_name'] );
 		$this->assertSame( $user_data['last_name'], $result['last_name'] );
@@ -106,7 +106,7 @@ class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_getUser( array( 1, 'administrator', 'administrator', $editor_id, array() ) );
 		$this->assertNotIXRError( $result );
-		$this->assertEquals( $editor_id, $result['user_id'] );
+		$this->assertSame( (string) $editor_id, $result['user_id'] );
 
 		$expected_fields = array( 'user_id' );
 		$this->assertSame( $expected_fields, array_keys( $result ) );
@@ -117,7 +117,7 @@ class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_getUser( array( 1, 'administrator', 'administrator', $editor_id, array( 'basic' ) ) );
 		$this->assertNotIXRError( $result );
-		$this->assertEquals( $editor_id, $result['user_id'] );
+		$this->assertSame( (string) $editor_id, $result['user_id'] );
 
 		$expected_fields = array( 'user_id', 'username', 'email', 'registered', 'display_name', 'nicename' );
 		$keys            = array_keys( $result );
@@ -133,7 +133,7 @@ class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_getUser( array( 1, 'administrator', 'administrator', $editor_id, $fields ) );
 		$this->assertNotIXRError( $result );
-		$this->assertEquals( $editor_id, $result['user_id'] );
+		$this->assertSame( (string) $editor_id, $result['user_id'] );
 
 		$expected_fields = array( 'user_id', 'email', 'bio' );
 		$keys            = array_keys( $result );

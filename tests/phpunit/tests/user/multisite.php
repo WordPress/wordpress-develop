@@ -22,7 +22,7 @@ if ( is_multisite() ) :
 			$post = get_post( $post_id );
 
 			$this->assertNotEquals( $user1->ID, $post->post_author );
-			$this->assertEquals( $user2->ID, $post->post_author );
+			$this->assertSame( (string) $user2->ID, $post->post_author );
 		}
 
 		/**
@@ -81,9 +81,9 @@ if ( is_multisite() ) :
 			$this->assertSame( $blog_ids, $blog_ids_of_user );
 
 			// Check if sites are flagged as expected.
-			$this->assertEquals( 1, $blogs_of_user[ $blog_ids[0] ]->spam );
-			$this->assertEquals( 1, $blogs_of_user[ $blog_ids[1] ]->archived );
-			$this->assertEquals( 1, $blogs_of_user[ $blog_ids[2] ]->deleted );
+			$this->assertSame( '1', $blogs_of_user[ $blog_ids[0] ]->spam );
+			$this->assertSame( '1', $blogs_of_user[ $blog_ids[1] ]->archived );
+			$this->assertSame( '1', $blogs_of_user[ $blog_ids[2] ]->deleted );
 
 			unset( $blog_ids[0] );
 			unset( $blog_ids[1] );

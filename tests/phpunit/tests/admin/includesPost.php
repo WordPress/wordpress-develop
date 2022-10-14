@@ -253,7 +253,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 		// Check that the first post's values don't stomp the second post.
 		$this->assertSame( 'draft', $post->post_status );
-		$this->assertEquals( self::$author_ids[1], $post->post_author );
+		$this->assertSame( (string) self::$author_ids[1], $post->post_author );
 		$this->assertSame( 'closed', $post->comment_status );
 		$this->assertSame( 'closed', $post->ping_status );
 	}
@@ -705,7 +705,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		add_filter(
 			'get_sample_permalink',
 			function( $permalink, $post_id, $title, $name, $post ) use ( $post_original ) {
-				$this->assertEquals( $post_original, $post, 'Modified post object passed to get_sample_permalink filter.' );
+				$this->assertSimilarObject( $post_original, $post, 'Modified post object passed to get_sample_permalink filter.' );
 				return $permalink;
 			},
 			10,
@@ -713,7 +713,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		);
 
 		get_sample_permalink( $post );
-		$this->assertEquals( $post_original, $post, 'get_sample_permalink() modifies the post object.' );
+		$this->assertSimilarObject( $post_original, $post, 'get_sample_permalink() modifies the post object.' );
 	}
 
 	public function test_post_exists_should_match_title() {

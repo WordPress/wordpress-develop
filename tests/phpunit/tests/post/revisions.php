@@ -55,12 +55,12 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$lastrevision = end( $revisions );
 		$this->assertSame( 'I cant spel werds.', $lastrevision->post_content );
 		// #16215
-		$this->assertEquals( self::$author_user_id, $lastrevision->post_author );
+		$this->assertSame( (string) self::$author_user_id, $lastrevision->post_author );
 
 		wp_restore_post_revision( $lastrevision->ID );
 
 		// Is post_meta correctly set to revision author after restoring user?
-		$this->assertEquals( self::$admin_user_id, get_post_meta( $post_id, '_edit_last', true ) );
+		$this->assertSame( (string) self::$admin_user_id, get_post_meta( $post_id, '_edit_last', true ) );
 	}
 
 	/**

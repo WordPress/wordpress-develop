@@ -93,7 +93,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$post = $posts[0];
 		$this->assertSame( 'Many Categories', $post->post_title );
 		$this->assertSame( 'many-categories', $post->post_name );
-		$this->assertEquals( $admin->ID, $post->post_author );
+		$this->assertSame( (string) $admin->ID, $post->post_author );
 		$this->assertSame( 'post', $post->post_type );
 		$this->assertSame( 'publish', $post->post_status );
 		$this->assertSame( 0, $post->post_parent );
@@ -103,7 +103,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$post = $posts[1];
 		$this->assertSame( 'Non-standard post format', $post->post_title );
 		$this->assertSame( 'non-standard-post-format', $post->post_name );
-		$this->assertEquals( $admin->ID, $post->post_author );
+		$this->assertSame( (string) $admin->ID, $post->post_author );
 		$this->assertSame( 'post', $post->post_type );
 		$this->assertSame( 'publish', $post->post_status );
 		$this->assertSame( 0, $post->post_parent );
@@ -114,7 +114,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$post = $posts[2];
 		$this->assertSame( 'Top-level Foo', $post->post_title );
 		$this->assertSame( 'top-level-foo', $post->post_name );
-		$this->assertEquals( $admin->ID, $post->post_author );
+		$this->assertSame( (string) $admin->ID, $post->post_author );
 		$this->assertSame( 'post', $post->post_type );
 		$this->assertSame( 'publish', $post->post_status );
 		$this->assertSame( 0, $post->post_parent );
@@ -125,7 +125,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$post = $posts[3];
 		$this->assertSame( 'Foo-child', $post->post_title );
 		$this->assertSame( 'foo-child', $post->post_name );
-		$this->assertEquals( $editor->ID, $post->post_author );
+		$this->assertSame( (string) $editor->ID, $post->post_author );
 		$this->assertSame( 'post', $post->post_type );
 		$this->assertSame( 'publish', $post->post_status );
 		$this->assertSame( 0, $post->post_parent );
@@ -136,7 +136,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$post = $posts[4];
 		$this->assertSame( 'Private Post', $post->post_title );
 		$this->assertSame( 'private-post', $post->post_name );
-		$this->assertEquals( $admin->ID, $post->post_author );
+		$this->assertSame( (string) $admin->ID, $post->post_author );
 		$this->assertSame( 'post', $post->post_type );
 		$this->assertSame( 'private', $post->post_status );
 		$this->assertSame( 0, $post->post_parent );
@@ -151,7 +151,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$post = $posts[5];
 		$this->assertSame( '1-col page', $post->post_title );
 		$this->assertSame( '1-col-page', $post->post_name );
-		$this->assertEquals( $admin->ID, $post->post_author );
+		$this->assertSame( (string) $admin->ID, $post->post_author );
 		$this->assertSame( 'page', $post->post_type );
 		$this->assertSame( 'publish', $post->post_status );
 		$this->assertSame( 0, $post->post_parent );
@@ -160,7 +160,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$post = $posts[6];
 		$this->assertSame( 'Draft Page', $post->post_title );
 		$this->assertSame( '', $post->post_name );
-		$this->assertEquals( $admin->ID, $post->post_author );
+		$this->assertSame( (string) $admin->ID, $post->post_author );
 		$this->assertSame( 'page', $post->post_type );
 		$this->assertSame( 'draft', $post->post_status );
 		$this->assertSame( 0, $post->post_parent );
@@ -169,7 +169,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$post = $posts[7];
 		$this->assertSame( 'Parent Page', $post->post_title );
 		$this->assertSame( 'parent-page', $post->post_name );
-		$this->assertEquals( $admin->ID, $post->post_author );
+		$this->assertSame( (string) $admin->ID, $post->post_author );
 		$this->assertSame( 'page', $post->post_type );
 		$this->assertSame( 'publish', $post->post_status );
 		$this->assertSame( 0, $post->post_parent );
@@ -178,7 +178,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$post = $posts[8];
 		$this->assertSame( 'Child Page', $post->post_title );
 		$this->assertSame( 'child-page', $post->post_name );
-		$this->assertEquals( $admin->ID, $post->post_author );
+		$this->assertSame( (string) $admin->ID, $post->post_author );
 		$this->assertSame( 'page', $post->post_type );
 		$this->assertSame( 'publish', $post->post_status );
 		$this->assertSame( $posts[7]->ID, $post->post_parent );
@@ -187,7 +187,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$post = $posts[9];
 		$this->assertSame( 'Sample Page', $post->post_title );
 		$this->assertSame( 'sample-page', $post->post_name );
-		$this->assertEquals( $admin->ID, $post->post_author );
+		$this->assertSame( (string) $admin->ID, $post->post_author );
 		$this->assertSame( 'page', $post->post_type );
 		$this->assertSame( 'publish', $post->post_status );
 		$this->assertSame( 0, $post->post_parent );
@@ -196,7 +196,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$post = $posts[10];
 		$this->assertSame( 'Hello world!', $post->post_title );
 		$this->assertSame( 'hello-world', $post->post_name );
-		$this->assertEquals( $author->ID, $post->post_author );
+		$this->assertSame( (string) $author->ID, $post->post_author );
 		$this->assertSame( 'post', $post->post_type );
 		$this->assertSame( 'publish', $post->post_status );
 		$this->assertSame( 0, $post->post_parent );

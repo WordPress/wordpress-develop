@@ -358,7 +358,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 			$column => $value,
 		);
 
-		$this->assertEquals( $expected, $table_row );
+		$this->assertSimilarObject( $expected, $table_row );
 	}
 
 	/**

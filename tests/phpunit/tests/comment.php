@@ -60,7 +60,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertSame( 1, $result );
 
 		$comment = get_comment( $comments[0] );
-		$this->assertEquals( $comments[1], $comment->comment_parent );
+		$this->assertSame( (string) $comments[1], $comment->comment_parent );
 
 		$result = wp_update_comment(
 			array(
@@ -78,7 +78,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		);
 
 		$comment = get_comment( $comments[0] );
-		$this->assertEquals( $post2->ID, $comment->comment_post_ID );
+		$this->assertSame( (string) $post2->ID, $comment->comment_post_ID );
 	}
 
 	/**
@@ -137,7 +137,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		);
 
 		$comment = get_comment( $comment_id );
-		$this->assertEquals( 1, $comment->user_id );
+		$this->assertSame( '1', $comment->user_id );
 	}
 
 	/**
@@ -222,46 +222,46 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * @covers ::get_approved_comments
 	 */
 	public function test_get_approved_comments() {
-		$ca1 = self::factory()->comment->create(
+		$ca1 = (string) self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
 				'comment_approved' => '1',
 			)
 		);
-		$ca2 = self::factory()->comment->create(
+		$ca2 = (string) self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
 				'comment_approved' => '1',
 			)
 		);
-		$ca3 = self::factory()->comment->create(
+		$ca3 = (string) self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
 				'comment_approved' => '0',
 			)
 		);
-		$c2  = self::factory()->comment->create(
+		$c2  = (string) self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
 				'comment_approved' => '1',
 				'comment_type'     => 'pingback',
 			)
 		);
-		$c3  = self::factory()->comment->create(
+		$c3  = (string) self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
 				'comment_approved' => '1',
 				'comment_type'     => 'trackback',
 			)
 		);
-		$c4  = self::factory()->comment->create(
+		$c4  = (string) self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
 				'comment_approved' => '1',
 				'comment_type'     => 'mario',
 			)
 		);
-		$c5  = self::factory()->comment->create(
+		$c5  = (string) self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
 				'comment_approved' => '1',
@@ -272,7 +272,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		$found = get_approved_comments( self::$post_id );
 
 		// All comment types will be returned.
-		$this->assertEquals( array( $ca1, $ca2, $c2, $c3, $c4, $c5 ), wp_list_pluck( $found, 'comment_ID' ) );
+		$this->assertSame( array( $ca1, $ca2, $c2, $c3, $c4, $c5 ), wp_list_pluck( $found, 'comment_ID' ) );
 	}
 
 	/**

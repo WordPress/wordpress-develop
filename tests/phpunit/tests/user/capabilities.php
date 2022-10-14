@@ -1621,7 +1621,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertTrue( $user->exists(), "Problem getting user $id" );
 
 		// Author = user level 2.
-		$this->assertEquals( 2, $user->user_level );
+		$this->assertSame( '2', $user->user_level );
 
 		// They get promoted to editor - level should get bumped to 7.
 		$user->set_role( 'editor' );
@@ -2490,7 +2490,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$role = $wp_roles->get_role( $this->role_test_wp_roles_init['role'] );
 
-		$this->assertEquals( $expected, $role );
+		$this->assertSimilarObject( $expected, $role );
 		$this->assertContains( $this->role_test_wp_roles_init['info']['name'], $wp_roles->role_names );
 	}
 

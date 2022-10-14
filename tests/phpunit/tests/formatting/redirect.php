@@ -85,9 +85,12 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	 * @dataProvider invalid_url_provider
 	 *
 	 * @covers ::wp_validate_redirect
+	 *
+	 * @param $url       The URL to test against.
+	 * @param $expected  Optional. The expected result. Default: false.
 	 */
-	public function test_wp_validate_redirect_invalid_url( $url ) {
-		$this->assertEquals( false, wp_validate_redirect( $url, false ) );
+	public function test_wp_validate_redirect_invalid_url( $url, $expected = false ) {
+		$this->assertSame( $expected, wp_validate_redirect( $url, false ) );
 	}
 
 	public function valid_url_provider() {
@@ -109,7 +112,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	public function invalid_url_provider() {
 		return array(
 			// parse_url() fails.
-			array( '' ),
+			array( '', '' ),
 			array( 'http://:' ),
 
 			// Non-safelisted domain.

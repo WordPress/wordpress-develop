@@ -57,9 +57,9 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $page, get_page_by_title( 'some-page' ), 'should return a post of the requested type before returning an attachment.' );
+		$this->assertSimilarObject( $page, get_page_by_title( 'some-page' ), 'should return a post of the requested type before returning an attachment.' );
 
-		$this->assertEquals( $attachment, get_page_by_title( 'some-other-page', OBJECT, 'attachment' ), "will still select an attachment when a post of the requested type doesn't exist." );
+		$this->assertSimilarObject( $attachment, get_page_by_title( 'some-other-page', OBJECT, 'attachment' ), "will still select an attachment when a post of the requested type doesn't exist." );
 	}
 
 	/**

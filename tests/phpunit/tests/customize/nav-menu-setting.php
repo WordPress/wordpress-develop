@@ -216,7 +216,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		$this->assertSameSets( $value, wp_array_slice_assoc( $term, array_keys( $value ) ) );
 
 		$menu_object = wp_get_nav_menu_object( $menu_id );
-		$this->assertEquals( (object) $term, $menu_object );
+		$this->assertSimilarObject( (object) $term, $menu_object );
 		$this->assertSame( $post_value['name'], $menu_object->name );
 
 		$nav_menu_options = get_option( 'nav_menu_options', array( 'auto_add' => array() ) );
@@ -261,7 +261,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		$this->assertSame( $menu_id, $term['term_taxonomy_id'] );
 
 		$menu_object = wp_get_nav_menu_object( $menu_id );
-		$this->assertEquals( (object) $term, $menu_object );
+		$this->assertSimilarObject( (object) $term, $menu_object );
 		$this->assertSame( $post_value['name'], $menu_object->name );
 
 		$nav_menu_options = $this->get_nav_menu_items_option();

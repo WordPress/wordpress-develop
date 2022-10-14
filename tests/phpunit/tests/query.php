@@ -73,7 +73,7 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertNotEmpty( get_query_var( 'tag' ) );
 		$this->assertEmpty( get_query_var( 'tax_query' ) );
 		$this->assertCount( 1, get_query_var( 'tag_slug__in' ) );
-		$this->assertEquals( get_queried_object(), $tag );
+		$this->assertSimilarObject( get_queried_object(), $tag );
 
 		remove_action( 'pre_get_posts', array( $this, 'tag_queried_object' ), 11 );
 	}
@@ -84,7 +84,7 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertTrue( $query->is_archive() );
 		$this->assertNotEmpty( $query->get( 'tag' ) );
 		$this->assertCount( 1, $query->get( 'tag_slug__in' ) );
-		$this->assertEquals( $query->get_queried_object(), $tag );
+		$this->assertSimilarObject( $query->get_queried_object(), $tag );
 	}
 
 	/**

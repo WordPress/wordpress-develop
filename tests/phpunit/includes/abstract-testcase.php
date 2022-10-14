@@ -1102,6 +1102,31 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	}
 
 	/**
+	 * A wrapper method for assertEquals() to indicate known, acceptable usage of assertEquals()
+	 * when comparing objects.
+	 *
+	 * This gives a more accurate picture of `assertEquals()` usage that needs to be reviewed with
+	 * each release.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param object $expected Expected object.
+	 * @param object $actual   Object to check.
+	 * @param string $message  Optional. Message to display when the assertion fails.
+	 */
+	public function assertSimilarObject( $expected, $actual, $message = '' ) {
+		$this->assertIsObject( $expected, $message . ' Expected value is not an object.' );
+		$this->assertIsObject( $actual, $message . ' Value under test is not an object.' );
+		$this->assertInstanceOf(
+			get_class( $expected ),
+			$actual,
+			$message . ' Value under test is not the same type of object as the expected value.'
+		);
+
+		$this->assertEquals( $expected, $actual, $message );
+	}
+
+	/**
 	 * Helper function to convert a single-level array containing text strings to a named data provider.
 	 *
 	 * The value of the data set will also be used as the name of the data set.

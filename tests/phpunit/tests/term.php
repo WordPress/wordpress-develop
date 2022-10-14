@@ -60,7 +60,7 @@ class Tests_Term extends WP_UnitTestCase {
 		// Clean up.
 		$deleted = wp_delete_term( $t['term_id'], $this->taxonomy );
 
-		$this->assertEquals( $t['term_id'], $exists );
+		$this->assertSame( (string) $t['term_id'], $exists );
 		$this->assertTrue( $deleted );
 	}
 
@@ -181,7 +181,7 @@ class Tests_Term extends WP_UnitTestCase {
 
 		$this->assertIsArray( $post->post_category );
 		$this->assertCount( 1, $post->post_category );
-		$this->assertEquals( get_option( 'default_category' ), $post->post_category[0] );
+		$this->assertSame( (int) get_option( 'default_category' ), $post->post_category[0] );
 
 		$term1 = wp_insert_term( 'Foo', 'category' );
 		$term2 = wp_insert_term( 'Bar', 'category' );
@@ -204,11 +204,11 @@ class Tests_Term extends WP_UnitTestCase {
 
 		wp_set_post_categories( $post_id, array(), true );
 		$this->assertCount( 1, $post->post_category );
-		$this->assertEquals( get_option( 'default_category' ), $post->post_category[0] );
+		$this->assertSame( (int) get_option( 'default_category' ), $post->post_category[0] );
 
 		wp_set_post_categories( $post_id, array() );
 		$this->assertCount( 1, $post->post_category );
-		$this->assertEquals( get_option( 'default_category' ), $post->post_category[0] );
+		$this->assertSame( (int) get_option( 'default_category' ), $post->post_category[0] );
 	}
 
 	/**
@@ -222,7 +222,7 @@ class Tests_Term extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'cpt' ) );
 		$post    = get_post( $post_id );
 
-		$this->assertEquals( get_option( 'default_category' ), $post->post_category[0] );
+		$this->assertSame( (int) get_option( 'default_category' ), $post->post_category[0] );
 
 		$term = wp_insert_term( 'Foo', 'category' );
 
@@ -230,7 +230,7 @@ class Tests_Term extends WP_UnitTestCase {
 		$this->assertSame( $term['term_id'], $post->post_category[0] );
 
 		wp_set_post_categories( $post_id, array() );
-		$this->assertEquals( get_option( 'default_category' ), $post->post_category[0] );
+		$this->assertSame( (int) get_option( 'default_category' ), $post->post_category[0] );
 
 		remove_filter( 'default_category_post_types', array( $this, 'filter_default_category_post_types' ) );
 	}
@@ -262,7 +262,7 @@ class Tests_Term extends WP_UnitTestCase {
 		$post_id  = self::$post_ids[0];
 		$expected = wp_set_object_terms( $post_id, $name, 'category', false );
 		$actual   = wp_set_object_terms( $post_id, $name, 'category', false );
-		$this->assertEquals( $expected, $actual );
+		$this->assertEqualSets( $expected, $actual );
 	}
 
 	/**

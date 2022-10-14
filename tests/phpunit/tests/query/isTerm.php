@@ -71,7 +71,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		$this->assertNotEmpty( get_query_var( 'taxonomy' ) );
 		$this->assertNotEmpty( get_query_var( 'term_id' ) );
 		$this->assertNotEmpty( get_query_var( 'tag_id' ) );
-		$this->assertEquals( get_queried_object(), $this->tag );
+		$this->assertSimilarObject( get_queried_object(), $this->tag );
 	}
 
 	public function test_tag_query_cat_action_tax() {
@@ -83,7 +83,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		$this->assertNotEmpty( get_query_var( 'term_id' ) );
 		$this->assertNotEmpty( get_query_var( 'cat' ) );
 		$this->assertNotEmpty( get_query_var( 'tag_id' ) );
-		$this->assertEquals( get_queried_object(), $this->cat );
+		$this->assertSimilarObject( get_queried_object(), $this->cat );
 	}
 
 	public function test_tag_query_cat_query_tax_action_tax() {
@@ -96,7 +96,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		$this->assertNotEmpty( get_query_var( 'cat' ) );
 		$this->assertNotEmpty( get_query_var( 'tag_id' ) );
 		$this->assertNotEmpty( get_query_var( 'testtax' ) );
-		$this->assertEquals( get_queried_object(), $this->cat );
+		$this->assertSimilarObject( get_queried_object(), $this->cat );
 	}
 
 	public function test_cat_action_tax() {
@@ -107,7 +107,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		$this->assertNotEmpty( get_query_var( 'tax_query' ) );
 		$this->assertNotEmpty( get_query_var( 'taxonomy' ) );
 		$this->assertNotEmpty( get_query_var( 'term_id' ) );
-		$this->assertEquals( get_queried_object(), $this->cat );
+		$this->assertSimilarObject( get_queried_object(), $this->cat );
 	}
 
 	/**
@@ -123,7 +123,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		$this->assertNotEmpty( get_query_var( 'tax_query' ) );
 		$this->assertNotEmpty( get_query_var( 'taxonomy' ) );
 		$this->assertNotEmpty( get_query_var( 'term_id' ) );
-		$this->assertEquals( get_queried_object(), $this->uncat );
+		$this->assertSimilarObject( get_queried_object(), $this->uncat );
 
 		remove_action( 'pre_get_posts', array( $this, 'cat_uncat_action_tax' ), 11 );
 	}
@@ -133,7 +133,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		$this->assertTrue( $query->is_archive() );
 		$this->assertNotEmpty( $query->get( 'category_name' ) );
 		$this->assertNotEmpty( $query->get( 'tax_query' ) );
-		$this->assertEquals( $query->get_queried_object(), $this->uncat );
+		$this->assertSimilarObject( $query->get_queried_object(), $this->uncat );
 	}
 
 	/**
@@ -146,7 +146,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		$this->assertNotEmpty( get_query_var( 'tax_query' ) );
 		$this->assertNotEmpty( get_query_var( 'taxonomy' ) );
 		$this->assertNotEmpty( get_query_var( 'term_id' ) );
-		$this->assertEquals( get_queried_object(), get_term( $this->tax_id, 'testtax' ) );
+		$this->assertSimilarObject( get_queried_object(), get_term( $this->tax_id, 'testtax' ) );
 	}
 
 	public function test_tax_query_tag_action_tax() {
@@ -157,7 +157,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		$this->assertNotEmpty( get_query_var( 'taxonomy' ) );
 		$this->assertNotEmpty( get_query_var( 'term_id' ) );
 		$this->assertNotEmpty( get_query_var( 'tag_id' ) );
-		$this->assertEquals( get_queried_object(), $this->tag );
+		$this->assertSimilarObject( get_queried_object(), $this->tag );
 	}
 
 	public function test_tax_query_cat_action_tax() {
@@ -168,7 +168,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		$this->assertNotEmpty( get_query_var( 'taxonomy' ) );
 		$this->assertNotEmpty( get_query_var( 'term_id' ) );
 		$this->assertNotEmpty( get_query_var( 'cat' ) );
-		$this->assertEquals( get_queried_object(), $this->cat );
+		$this->assertSimilarObject( get_queried_object(), $this->cat );
 	}
 
 	public function pre_get_posts_tax_category_tax_query( &$query ) {
@@ -209,7 +209,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 
 		$expected = get_term( $this->tax_id, 'testtax' );
 
-		$this->assertEquals( $expected, $object );
+		$this->assertSimilarObject( $expected, $object );
 	}
 
 	/**

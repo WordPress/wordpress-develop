@@ -156,7 +156,11 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 			$this->assertSame( 'invalid_permalink_structure', $errors[0]['code'] );
 		}
 
-		$this->assertEquals( $expected, $actual );
+		if ( is_multisite() && false === $expected ) {
+			$expected = '';
+		}
+
+		$this->assertSame( $expected, $actual );
 	}
 
 	public function permalink_structure_provider() {

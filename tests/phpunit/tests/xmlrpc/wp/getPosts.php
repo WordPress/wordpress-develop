@@ -118,7 +118,7 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 		$results3 = $this->myxmlrpcserver->wp_getPosts( array( 1, 'editor', 'editor', $filter3 ) );
 		$this->assertNotIXRError( $results3 );
 		$this->assertCount( 1, $results3 );
-		$this->assertEquals( $post->ID, $results3[0]['post_id'] );
+		$this->assertSame( (string) $post->ID, $results3[0]['post_id'] );
 
 		_unregister_post_type( $cpt_name );
 	}

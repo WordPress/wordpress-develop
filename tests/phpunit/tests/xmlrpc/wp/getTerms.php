@@ -134,7 +134,7 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 		$this->make_user_by_role( 'editor' );
 
 		$name    = __FUNCTION__;
-		$name_id = wp_create_category( $name );
+		$name_id = (string) wp_create_category( $name );
 
 		// Search by full name.
 		$filter  = array( 'search' => $name );
@@ -142,7 +142,7 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $results );
 		$this->assertCount( 1, $results );
 		$this->assertSame( $name, $results[0]['name'] );
-		$this->assertEquals( $name_id, $results[0]['term_id'] );
+		$this->assertSame( $name_id, $results[0]['term_id'] );
 
 		// Search by partial name.
 		$filter   = array( 'search' => substr( $name, 0, 10 ) );
@@ -150,6 +150,6 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $results2 );
 		$this->assertCount( 1, $results2 );
 		$this->assertSame( $name, $results2[0]['name'] );
-		$this->assertEquals( $name_id, $results2[0]['term_id'] );
+		$this->assertSame( $name_id, $results2[0]['term_id'] );
 	}
 }
