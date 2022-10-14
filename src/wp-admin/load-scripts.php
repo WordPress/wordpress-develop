@@ -12,7 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', dirname( __DIR__ ) . '/' );
 }
 
-require_once ABSPATH . 'wp-includes/autoload.php';
+require_once ABSPATH . 'wp-includes/class-wp-autoload.php';
+WP_Autoload::register();
 
 define( 'WPINC', 'wp-includes' );
 
