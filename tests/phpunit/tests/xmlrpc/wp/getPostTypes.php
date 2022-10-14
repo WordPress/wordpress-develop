@@ -4,13 +4,13 @@
  * @group xmlrpc
  */
 class Tests_XMLRPC_wp_getPostTypes extends WP_XMLRPC_UnitTestCase {
-	function test_invalid_username_password() {
+	public function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getPostTypes( array( 1, 'username', 'password', 'post' ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
 	}
 
-	function test_incapable_user() {
+	public function test_incapable_user() {
 		$this->make_user_by_role( 'subscriber' );
 
 		$result = $this->myxmlrpcserver->wp_getPostTypes( array( 1, 'subscriber', 'subscriber' ) );
@@ -19,7 +19,7 @@ class Tests_XMLRPC_wp_getPostTypes extends WP_XMLRPC_UnitTestCase {
 		$this->assertCount( 0, $result );
 	}
 
-	function test_capable_user() {
+	public function test_capable_user() {
 		$this->make_user_by_role( 'editor' );
 
 		$result = $this->myxmlrpcserver->wp_getPostTypes( array( 1, 'editor', 'editor' ) );
@@ -28,7 +28,7 @@ class Tests_XMLRPC_wp_getPostTypes extends WP_XMLRPC_UnitTestCase {
 		$this->assertGreaterThan( 0, count( $result ) );
 	}
 
-	function test_simple_filter() {
+	public function test_simple_filter() {
 		$this->make_user_by_role( 'editor' );
 
 		$result = $this->myxmlrpcserver->wp_getPostTypes( array( 1, 'editor', 'editor', array( 'hierarchical' => true ) ) );

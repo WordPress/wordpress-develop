@@ -114,7 +114,7 @@ function wp_add_inline_style( $handle, $data ) {
  * @since 4.3.0 A return value was added.
  *
  * @param string           $handle Name of the stylesheet. Should be unique.
- * @param string|bool      $src    Full URL of the stylesheet, or path of the stylesheet relative to the WordPress root directory.
+ * @param string|false     $src    Full URL of the stylesheet, or path of the stylesheet relative to the WordPress root directory.
  *                                 If source is set to false, stylesheet is an alias of other stylesheets it depends on.
  * @param string[]         $deps   Optional. An array of registered stylesheet handles this stylesheet depends on. Default empty array.
  * @param string|bool|null $ver    Optional. String specifying stylesheet version number, if it has one, which is added to the URL
@@ -225,14 +225,18 @@ function wp_style_is( $handle, $list = 'enqueued' ) {
  * 'suffix'      string      Optional suffix, used in combination with RTL.
  * 'alt'         bool        For rel="alternate stylesheet".
  * 'title'       string      For preferred/alternate stylesheets.
+ * 'path'        string      The absolute path to a stylesheet. Stylesheet will
+ *                           load inline when 'path'' is set.
  *
  * @see WP_Dependencies::add_data()
  *
  * @since 3.6.0
+ * @since 5.8.0 Added 'path' as an official value for $key.
+ *              See {@see wp_maybe_inline_styles()}.
  *
  * @param string $handle Name of the stylesheet.
  * @param string $key    Name of data point for which we're storing a value.
- *                       Accepts 'conditional', 'rtl' and 'suffix', 'alt' and 'title'.
+ *                       Accepts 'conditional', 'rtl' and 'suffix', 'alt', 'title' and 'path'.
  * @param mixed  $value  String containing the CSS data to be added.
  * @return bool True on success, false on failure.
  */

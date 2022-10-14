@@ -62,6 +62,23 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( array( 'category', 'post_tag' ), $data['taxonomies'] );
 	}
 
+	/**
+	 * @ticket 53656
+	 */
+	public function test_get_item_cpt() {
+		register_post_type(
+			'cpt',
+			array(
+				'show_in_rest'   => true,
+				'rest_base'      => 'cpt',
+				'rest_namespace' => 'wordpress/v1',
+			)
+		);
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/types/cpt' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->check_post_type_object_response( 'view', $response, 'cpt' );
+	}
+
 	public function test_get_item_page() {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/types/page' );
 		$response = rest_get_server()->dispatch( $request );
@@ -77,7 +94,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	public function test_get_item_edit_context() {
-		$editor_id = $this->factory->user->create( array( 'role' => 'editor' ) );
+		$editor_id = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $editor_id );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/types/post' );
 		$request->set_param( 'context', 'edit' );
@@ -139,22 +156,32 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		);
 	}
 
+	/**
+	 * @ticket 56467
+	 *
+	 * @covers WP_REST_Post_Types_Controller::get_item_schema
+	 */
 	public function test_get_item_schema() {
 		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/types' );
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 10, $properties );
-		$this->assertArrayHasKey( 'capabilities', $properties );
-		$this->assertArrayHasKey( 'description', $properties );
-		$this->assertArrayHasKey( 'hierarchical', $properties );
-		$this->assertArrayHasKey( 'viewable', $properties );
-		$this->assertArrayHasKey( 'labels', $properties );
-		$this->assertArrayHasKey( 'name', $properties );
-		$this->assertArrayHasKey( 'slug', $properties );
-		$this->assertArrayHasKey( 'supports', $properties );
-		$this->assertArrayHasKey( 'taxonomies', $properties );
-		$this->assertArrayHasKey( 'rest_base', $properties );
+
+		$this->assertCount( 14, $properties, 'Schema should have 14 properties' );
+		$this->assertArrayHasKey( 'capabilities', $properties, '`capabilities` should be included in the schema' );
+		$this->assertArrayHasKey( 'description', $properties, '`description` should be included in the schema' );
+		$this->assertArrayHasKey( 'hierarchical', $properties, '`hierarchical` should be included in the schema' );
+		$this->assertArrayHasKey( 'viewable', $properties, '`viewable` should be included in the schema' );
+		$this->assertArrayHasKey( 'labels', $properties, '`labels` should be included in the schema' );
+		$this->assertArrayHasKey( 'name', $properties, '`name` should be included in the schema' );
+		$this->assertArrayHasKey( 'slug', $properties, '`slug` should be included in the schema' );
+		$this->assertArrayHasKey( 'supports', $properties, '`supports` should be included in the schema' );
+		$this->assertArrayHasKey( 'has_archive', $properties, '`has_archive` should be included in the schema' );
+		$this->assertArrayHasKey( 'taxonomies', $properties, '`taxonomies` should be included in the schema' );
+		$this->assertArrayHasKey( 'rest_base', $properties, '`rest_base` should be included in the schema' );
+		$this->assertArrayHasKey( 'rest_namespace', $properties, '`rest_namespace` should be included in the schema' );
+		$this->assertArrayHasKey( 'visibility', $properties, '`visibility` should be included in the schema' );
+		$this->assertArrayHasKey( 'icon', $properties, '`icon` should be included in the schema' );
 	}
 
 	public function test_get_additional_field_registration() {
@@ -203,6 +230,8 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( $post_type_obj->description, $data['description'] );
 		$this->assertSame( $post_type_obj->hierarchical, $data['hierarchical'] );
 		$this->assertSame( $post_type_obj->rest_base, $data['rest_base'] );
+		$this->assertSame( $post_type_obj->rest_namespace, $data['rest_namespace'] );
+		$this->assertSame( $post_type_obj->has_archive, $data['has_archive'] );
 
 		$links = test_rest_expand_compact_links( $links );
 		$this->assertSame( rest_url( 'wp/v2/types' ), $links['collection'][0]['href'] );
@@ -216,6 +245,11 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 				$viewable = is_post_type_viewable( $post_type_obj );
 			}
 			$this->assertSame( $viewable, $data['viewable'] );
+			$visibility = array(
+				'show_in_nav_menus' => (bool) $post_type_obj->show_in_nav_menus,
+				'show_ui'           => (bool) $post_type_obj->show_ui,
+			);
+			$this->assertSame( $visibility, $data['visibility'] );
 			$this->assertSame( get_all_post_type_supports( $post_type_obj->name ), $data['supports'] );
 		} else {
 			$this->assertArrayNotHasKey( 'capabilities', $data );

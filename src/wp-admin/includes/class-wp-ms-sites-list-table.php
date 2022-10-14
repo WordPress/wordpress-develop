@@ -11,7 +11,6 @@
  * Core class used to implement displaying sites in a list table for the network admin.
  *
  * @since 3.1.0
- * @access private
  *
  * @see WP_List_Table
  */
@@ -262,23 +261,19 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		$url              = 'sites.php';
 
 		foreach ( $statuses as $status => $label_count ) {
-			$current_link_attributes = $requested_status === $status || ( '' === $requested_status && 'all' === $status )
-				? ' class="current" aria-current="page"'
-				: '';
 			if ( (int) $counts[ $status ] > 0 ) {
 				$label    = sprintf( translate_nooped_plural( $label_count, $counts[ $status ] ), number_format_i18n( $counts[ $status ] ) );
 				$full_url = 'all' === $status ? $url : add_query_arg( 'status', $status, $url );
 
-				$view_links[ $status ] = sprintf(
-					'<a href="%1$s"%2$s>%3$s</a>',
-					esc_url( $full_url ),
-					$current_link_attributes,
-					$label
+				$view_links[ $status ] = array(
+					'url'     => esc_url( $full_url ),
+					'label'   => $label,
+					'current' => $requested_status === $status || ( '' === $requested_status && 'all' === $status ),
 				);
 			}
 		}
 
-		return $view_links;
+		return $this->get_views_links( $view_links );
 	}
 
 	/**
@@ -635,20 +630,25 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		 *
 		 * @since 5.3.0
 		 *
-		 * @param array $site_states An array of site states. Default 'Main',
-		 *                           'Archived', 'Mature', 'Spam', 'Deleted'.
-		 * @param WP_Site $site The current site object.
+		 * @param string[] $site_states An array of site states. Default 'Main',
+		 *                              'Archived', 'Mature', 'Spam', 'Deleted'.
+		 * @param WP_Site  $site        The current site object.
 		 */
 		$site_states = apply_filters( 'display_site_states', $site_states, $_site );
 
 		if ( ! empty( $site_states ) ) {
 			$state_count = count( $site_states );
-			$i           = 0;
+
+			$i = 0;
+
 			echo ' &mdash; ';
+
 			foreach ( $site_states as $state ) {
 				++$i;
-				( $i == $state_count ) ? $sep = '' : $sep = ', ';
-				echo "<span class='post-state'>{$state}{$sep}</span>";
+
+				$separator = ( $i < $state_count ) ? ', ' : '';
+
+				echo "<span class='post-state'>{$state}{$separator}</span>";
 			}
 		}
 	}

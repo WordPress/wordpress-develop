@@ -6,7 +6,22 @@
  * @group query
  */
 class Tests_Canonical_HTTPS extends WP_Canonical_UnitTestCase {
-	function set_up() {
+
+	/**
+	 * Dummy HTTP URL.
+	 *
+	 * @var string
+	 */
+	private $http = '';
+
+	/**
+	 * Dummy HTTPS URL.
+	 *
+	 * @var string
+	 */
+	private $https = '';
+
+	public function set_up() {
 		parent::set_up();
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );

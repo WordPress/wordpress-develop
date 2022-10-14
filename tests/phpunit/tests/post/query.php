@@ -5,10 +5,29 @@
  * @group post
  */
 class Tests_Post_Query extends WP_UnitTestCase {
+
+	/**
+	 * Temporary storage for a post ID for tests using filter callbacks.
+	 *
+	 * Used in the `test_posts_pre_query_filter_should_respect_set_found_posts()` method.
+	 *
+	 * @var int
+	 */
+	private $post_id;
+
+	/**
+	 * Clean up after each test.
+	 */
+	public function tear_down() {
+		unset( $this->post_id );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @group taxonomy
 	 */
-	function test_category__and_var() {
+	public function test_category__and_var() {
 		$q = new WP_Query();
 
 		$term_id  = self::factory()->category->create(
@@ -50,7 +69,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 28099
 	 * @group taxonomy
 	 */
-	function test_empty_category__in() {
+	public function test_empty_category__in() {
 		$cat_id  = self::factory()->category->create();
 		$post_id = self::factory()->post->create();
 		wp_set_post_categories( $post_id, $cat_id );
@@ -79,7 +98,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 22448
 	 */
-	function test_the_posts_filter() {
+	public function test_the_posts_filter() {
 		// Create posts and clear their caches.
 		$post_ids = self::factory()->post->create_many( 4 );
 		foreach ( $post_ids as $post_id ) {
@@ -117,7 +136,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	/**
 	 * Use with the_posts filter, appends a post and adds some custom data.
 	 */
-	function the_posts_filter( $posts ) {
+	public function the_posts_filter( $posts ) {
 		$posts[] = clone $posts[0];
 
 		// Add some custom data to each post.
@@ -128,37 +147,37 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		return $posts;
 	}
 
-	function test_post__in_ordering() {
+	public function test_post__in_ordering() {
 		$post_id1 = self::factory()->post->create(
 			array(
 				'post_type'  => 'page',
-				'menu_order' => rand( 1, 100 ),
+				'menu_order' => 1,
 			)
 		);
 		$post_id2 = self::factory()->post->create(
 			array(
 				'post_type'  => 'page',
-				'menu_order' => rand( 1, 100 ),
+				'menu_order' => 2,
 			)
 		);
 		$post_id3 = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
 				'post_parent' => $post_id2,
-				'menu_order'  => rand( 1, 100 ),
+				'menu_order'  => 3,
 			)
 		);
 		$post_id4 = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
 				'post_parent' => $post_id2,
-				'menu_order'  => rand( 1, 100 ),
+				'menu_order'  => 4,
 			)
 		);
 		$post_id5 = self::factory()->post->create(
 			array(
 				'post_type'  => 'page',
-				'menu_order' => rand( 1, 100 ),
+				'menu_order' => 5,
 			)
 		);
 
@@ -210,7 +229,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertSame( $ordered, wp_list_pluck( $q->posts, 'ID' ) );
 	}
 
-	function test_post__in_attachment_ordering() {
+	public function test_post__in_attachment_ordering() {
 		$post_id    = self::factory()->post->create();
 		$att_ids    = array();
 		$file       = DIR_TESTDATA . '/images/canola.jpg';
@@ -219,7 +238,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			$post_id,
 			array(
 				'post_mime_type' => 'image/jpeg',
-				'menu_order'     => rand( 1, 100 ),
+				'menu_order'     => 1,
 			)
 		);
 		$att_ids[2] = self::factory()->attachment->create_object(
@@ -227,7 +246,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			$post_id,
 			array(
 				'post_mime_type' => 'image/jpeg',
-				'menu_order'     => rand( 1, 100 ),
+				'menu_order'     => 2,
 			)
 		);
 		$att_ids[3] = self::factory()->attachment->create_object(
@@ -235,7 +254,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			$post_id,
 			array(
 				'post_mime_type' => 'image/jpeg',
-				'menu_order'     => rand( 1, 100 ),
+				'menu_order'     => 3,
 			)
 		);
 		$att_ids[4] = self::factory()->attachment->create_object(
@@ -243,7 +262,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			$post_id,
 			array(
 				'post_mime_type' => 'image/jpeg',
-				'menu_order'     => rand( 1, 100 ),
+				'menu_order'     => 4,
 			)
 		);
 		$att_ids[5] = self::factory()->attachment->create_object(
@@ -251,7 +270,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			$post_id,
 			array(
 				'post_mime_type' => 'image/jpeg',
-				'menu_order'     => rand( 1, 100 ),
+				'menu_order'     => 5,
 			)
 		);
 
@@ -308,7 +327,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertSame( $ordered, wp_list_pluck( $q->posts, 'post_name' ) );
 	}
 
-	function test_post_status() {
+	public function test_post_status() {
 		$statuses1 = get_post_stati();
 		$this->assertContains( 'auto-draft', $statuses1 );
 
@@ -331,7 +350,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 17065
 	 */
-	function test_orderby_array() {
+	public function test_orderby_array() {
 		global $wpdb;
 
 		$q1 = new WP_Query(
@@ -367,7 +386,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 17065
 	 */
-	function test_order() {
+	public function test_order() {
 		global $wpdb;
 
 		$q1 = new WP_Query(
@@ -407,7 +426,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 29629
 	 */
-	function test_orderby() {
+	public function test_orderby() {
 		// 'rand' is a valid value.
 		$q = new WP_Query( array( 'orderby' => 'rand' ) );
 		$this->assertStringContainsString( 'ORDER BY RAND()', $q->request );
@@ -729,7 +748,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 42469
 	 */
 	public function test_found_posts_should_be_integer_not_string() {
-		$this->post_id = self::factory()->post->create();
+		$post_id = self::factory()->post->create();
 
 		$q = new WP_Query(
 			array(
@@ -744,7 +763,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 42469
 	 */
 	public function test_found_posts_should_be_integer_even_if_found_posts_filter_returns_string_value() {
-		$this->post_id = self::factory()->post->create();
+		$post_id = self::factory()->post->create();
 
 		add_filter( 'found_posts', '__return_empty_string' );
 

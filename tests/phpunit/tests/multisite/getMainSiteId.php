@@ -8,7 +8,7 @@ if ( is_multisite() ) :
 	 * @group ms-site
 	 * @group multisite
 	 */
-	class Tests_Multisite_Get_Main_Site_ID extends WP_UnitTestCase {
+	class Tests_Multisite_GetMainSiteId extends WP_UnitTestCase {
 		protected static $network_ids;
 		protected static $site_ids;
 
@@ -86,6 +86,17 @@ if ( is_multisite() ) :
 			restore_current_blog();
 
 			$this->assertSame( $main_site_id, $result );
+		}
+
+		/**
+		 * @ticket 55802
+		 */
+		public function test_get_main_site_id_with_different_network_cache_id() {
+			$this->assertSame( self::$site_ids['wordpress.org/'], get_main_site_id( self::$network_ids['wordpress.org/'] ), 'Main blog id needs to match blog id of wordpress.org/' );
+			$this->assertSame( self::$site_ids['wordpress.org/'], (int) get_network_option( self::$network_ids['wordpress.org/'], 'main_site' ), 'Network option needs to match blog id of wordpress.org/' );
+
+			$this->assertSame( 0, get_main_site_id( self::$network_ids['wp.org/'] ), 'Main blog id should not be found' );
+			$this->assertSame( 0, (int) get_network_option( self::$network_ids['wp.org/'], 'main_site' ), 'Network option should not be found' );
 		}
 
 		/**

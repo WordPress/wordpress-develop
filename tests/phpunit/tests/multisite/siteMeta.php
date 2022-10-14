@@ -8,7 +8,7 @@ if ( is_multisite() ) :
 	 * @group meta
 	 * @ticket 37923
 	 */
-	class Tests_Multisite_Site_Meta extends WP_UnitTestCase {
+	class Tests_Multisite_SiteMeta extends WP_UnitTestCase {
 		protected static $site_id;
 		protected static $site_id2;
 		protected static $flag_was_set;

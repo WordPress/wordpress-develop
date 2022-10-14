@@ -3,13 +3,14 @@ name: Test NPM
 on:
   push:
     branches:
-      - master
       - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
+    tags:
+      - '[0-9]+.[0-9]'
+      - '[0-9]+.[0-9].[0-9]+'
   pull_request:
     branches:
-      - master
       - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
@@ -40,9 +41,9 @@ jobs:
   #
   # Performs the following steps:
   # - Checks out the repository.
-  # - Logs debug information about the runner container.
-  # - Installs NodeJS 14.
-  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # - Logs debug information about the GitHub Action runner.
+  # - Installs NodeJS.
+  # _ Installs NPM dependencies.
   # - Builds WordPress to run from the `build` directory.
   # - Cleans up after building WordPress to the `build` directory.
   # - Ensures version-controlled files are not modified or deleted.
@@ -52,6 +53,7 @@ jobs:
   test-npm:
     name: Test NPM on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
@@ -60,7 +62,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
 
       - name: Log debug information
         run: |
@@ -71,22 +73,13 @@ jobs:
           svn --version
 
       - name: Install NodeJS
-        uses: actions/setup-node@38d90ce44d5275ad62cc48384b3d8a58c500bb5f # v2.2.2
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
         with:
-          node-version: 14
+          node-version-file: '.nvmrc'
           cache: npm
 
       - name: Install Dependencies
         run: npm ci
-
-      - name: Build WordPress
-        run: npm run build
-
-      - name: Clean after building
-        run: npm run grunt clean
-
-      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
-        run: git diff --exit-code
 
       - name: Build WordPress in /src
         run: npm run build:dev
@@ -97,15 +90,25 @@ jobs:
       - name: Ensure version-controlled files are not modified or deleted during building and cleaning
         run: git diff --exit-code
 
+      - name: Build WordPress
+        run: npm run build
+
+      - name: Clean after building
+        run: npm run grunt clean
+
+      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
+        run: git diff --exit-code
+
   # Verifies that installing NPM dependencies and building WordPress works as expected on MacOS.
   #
-  # This is a separate job in order to that more strict conditions can be used.
+  # This is separate from the job above in order to use stricter conditions about when to run.
+  # This avoids unintentionally consuming excessive minutes, as MacOS jobs consume minutes at a 10x rate.
   #
   # Performs the following steps:
   # - Checks out the repository.
-  # - Logs debug information about the runner container.
-  # - Installs NodeJS 14.
-  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # - Logs debug information about the GitHub Action runner.
+  # - Installs NodeJS.
+  # _ Installs NPM dependencies.
   # - Builds WordPress to run from the `build` directory.
   # - Cleans up after building WordPress to the `build` directory.
   # - Ensures version-controlled files are not modified or deleted.
@@ -115,10 +118,11 @@ jobs:
   test-npm-macos:
     name: Test NPM on MacOS
     runs-on: macos-latest
+    timeout-minutes: 30
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
 
       - name: Log debug information
         run: |
@@ -129,13 +133,22 @@ jobs:
           svn --version
 
       - name: Install NodeJS
-        uses: actions/setup-node@38d90ce44d5275ad62cc48384b3d8a58c500bb5f # v2.2.2
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
         with:
-          node-version: 14
+          node-version-file: '.nvmrc'
           cache: npm
 
       - name: Install Dependencies
         run: npm ci
+
+      - name: Build WordPress in /src
+        run: npm run build:dev
+
+      - name: Clean after building in /src
+        run: npm run grunt clean -- --dev
+
+      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
+        run: git diff --exit-code
 
       - name: Build WordPress
         run: npm run build
@@ -146,11 +159,46 @@ jobs:
       - name: Ensure version-controlled files are not modified or deleted during building and cleaning
         run: git diff --exit-code
 
-      - name: Build WordPress in /src
-        run: npm run build:dev
+  slack-notifications:
+    name: Slack Notifications
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    needs: [ test-npm, test-npm-macos ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ needs.test-npm.result == 'success' && needs.test-npm-macos.result == 'success' && 'success' || ( needs.test-npm.result == 'cancelled' || needs.test-npm-macos.result == 'cancelled' ) && 'cancelled' || 'failure' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
 
-      - name: Clean after building in /src
-        run: npm run grunt clean -- --dev
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-latest
+    needs: [ test-npm, test-npm-macos, slack-notifications ]
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_attempt < 2 &&
+      (
+        needs.test-npm.result == 'cancelled' || needs.test-npm.result == 'failure' ||
+        needs.test-npm-macos.result == 'cancelled' || needs.test-npm-macos.result == 'failure'
+      )
 
-      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
-        run: git diff --exit-code
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@100527700e8b29ca817ac0e0dfbfc5e8ff38edda # v6.3.2
+        with:
+          retries: 2
+          retry-exempt-status-codes: 418
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: '${{ github.ref_name }}',
+              inputs: {
+                run_id: '${{ github.run_id }}'
+              }
+            });

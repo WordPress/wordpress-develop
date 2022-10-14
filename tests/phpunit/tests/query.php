@@ -2,7 +2,7 @@
 
 class Tests_Query extends WP_UnitTestCase {
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
@@ -12,7 +12,7 @@ class Tests_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 24785
 	 */
-	function test_nested_loop_reset_postdata() {
+	public function test_nested_loop_reset_postdata() {
 		$post_id        = self::factory()->post->create();
 		$nested_post_id = self::factory()->post->create();
 
@@ -32,7 +32,7 @@ class Tests_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 16471
 	 */
-	function test_default_query_var() {
+	public function test_default_query_var() {
 		$query = new WP_Query;
 		$this->assertSame( '', $query->get( 'nonexistent' ) );
 		$this->assertFalse( $query->get( 'nonexistent', false ) );
@@ -42,7 +42,7 @@ class Tests_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 25380
 	 */
-	function test_pre_posts_per_page() {
+	public function test_pre_posts_per_page() {
 		self::factory()->post->create_many( 10 );
 
 		add_action( 'pre_get_posts', array( $this, 'filter_posts_per_page' ) );
@@ -52,19 +52,19 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertSame( 30, get_query_var( 'posts_per_page' ) );
 	}
 
-	function filter_posts_per_page( &$query ) {
+	public function filter_posts_per_page( &$query ) {
 		$query->set( 'posts_per_rss', 30 );
 	}
 
 	/**
 	 * @ticket 26627
 	 */
-	function test_tag_queried_object() {
+	public function test_tag_queried_object() {
 		$slug = 'tag-slug-26627';
 		self::factory()->tag->create( array( 'slug' => $slug ) );
 		$tag = get_term_by( 'slug', $slug, 'post_tag' );
 
-		add_action( 'pre_get_posts', array( $this, '_tag_queried_object' ), 11 );
+		add_action( 'pre_get_posts', array( $this, 'tag_queried_object' ), 11 );
 
 		$this->go_to( get_term_link( $tag ) );
 
@@ -75,10 +75,10 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertCount( 1, get_query_var( 'tag_slug__in' ) );
 		$this->assertEquals( get_queried_object(), $tag );
 
-		remove_action( 'pre_get_posts', array( $this, '_tag_queried_object' ), 11 );
+		remove_action( 'pre_get_posts', array( $this, 'tag_queried_object' ), 11 );
 	}
 
-	function _tag_queried_object( &$query ) {
+	public function tag_queried_object( &$query ) {
 		$tag = get_term_by( 'slug', 'tag-slug-26627', 'post_tag' );
 		$this->assertTrue( $query->is_tag() );
 		$this->assertTrue( $query->is_archive() );
@@ -644,19 +644,19 @@ class Tests_Query extends WP_UnitTestCase {
 		register_taxonomy( 'tax1', 'post' );
 		register_taxonomy( 'tax2', 'post' );
 
-		$term1   = $this->factory->term->create(
+		$term1   = self::factory()->term->create(
 			array(
 				'taxonomy' => 'tax1',
 				'name'     => 'term1',
 			)
 		);
-		$term2   = $this->factory->term->create(
+		$term2   = self::factory()->term->create(
 			array(
 				'taxonomy' => 'tax2',
 				'name'     => 'term2',
 			)
 		);
-		$post_id = $this->factory->post->create();
+		$post_id = self::factory()->post->create();
 		wp_set_object_terms( $post_id, 'term1', 'tax1' );
 		wp_set_object_terms( $post_id, 'term2', 'tax2' );
 
@@ -674,19 +674,19 @@ class Tests_Query extends WP_UnitTestCase {
 		register_taxonomy( 'tax1', 'post' );
 		register_taxonomy( 'tax2', 'post' );
 
-		$term1   = $this->factory->term->create(
+		$term1   = self::factory()->term->create(
 			array(
 				'taxonomy' => 'tax1',
 				'name'     => 'term1',
 			)
 		);
-		$term2   = $this->factory->term->create(
+		$term2   = self::factory()->term->create(
 			array(
 				'taxonomy' => 'tax2',
 				'name'     => 'term2',
 			)
 		);
-		$post_id = $this->factory->post->create();
+		$post_id = self::factory()->post->create();
 		wp_set_object_terms( $post_id, 'term1', 'tax1' );
 		wp_set_object_terms( $post_id, 'term2', 'tax2' );
 
@@ -695,5 +695,206 @@ class Tests_Query extends WP_UnitTestCase {
 
 		$this->assertSame( 'tax1', get_query_var( 'taxonomy' ) );
 		$this->assertSame( 'term1', get_query_var( 'term' ) );
+	}
+
+	/**
+	 * @ticket 55100
+	 */
+	public function test_get_queried_object_should_work_for_author_name_before_get_posts() {
+		$user_id = self::factory()->user->create();
+		$user    = get_user_by( 'ID', $user_id );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => $user_id,
+			)
+		);
+
+		$this->go_to( home_url( '?author=' . $user_id ) );
+
+		$this->assertInstanceOf( 'WP_User', get_queried_object() );
+		$this->assertSame( get_queried_object_id(), $user_id );
+
+		$this->go_to( home_url( '?author_name=' . $user->user_nicename ) );
+
+		$this->assertInstanceOf( 'WP_User', get_queried_object() );
+		$this->assertSame( get_queried_object_id(), $user_id );
+	}
+
+	/**
+	 * Tests that the `posts_clauses` filter receives an array of clauses
+	 * with the other `posts_*` filters applied, e.g. `posts_join_paged`.
+	 *
+	 * @ticket 55699
+	 * @covers WP_Query::get_posts
+	 */
+	public function test_posts_clauses_filter_should_receive_filtered_clauses() {
+		add_filter(
+			'posts_join_paged',
+			static function() {
+				return '/* posts_join_paged */';
+			}
+		);
+
+		$filter = new MockAction();
+		add_filter( 'posts_clauses', array( $filter, 'filter' ), 10, 2 );
+		$this->go_to( '/' );
+		$filter_args   = $filter->get_args();
+		$posts_clauses = $filter_args[0][0];
+
+		$this->assertArrayHasKey( 'join', $posts_clauses );
+		$this->assertSame( '/* posts_join_paged */', $posts_clauses['join'] );
+	}
+
+	/**
+	 * Tests that the `posts_clauses_request` filter receives an array of clauses
+	 * with the other `posts_*_request` filters applied, e.g. `posts_join_request`.
+	 *
+	 * @ticket 55699
+	 * @covers WP_Query::get_posts
+	 */
+	public function test_posts_clauses_request_filter_should_receive_filtered_clauses() {
+		add_filter(
+			'posts_join_request',
+			static function() {
+				return '/* posts_join_request */';
+			}
+		);
+
+		$filter = new MockAction();
+		add_filter( 'posts_clauses_request', array( $filter, 'filter' ), 10, 2 );
+		$this->go_to( '/' );
+		$filter_args           = $filter->get_args();
+		$posts_clauses_request = $filter_args[0][0];
+
+		$this->assertArrayHasKey( 'join', $posts_clauses_request );
+		$this->assertSame( '/* posts_join_request */', $posts_clauses_request['join'] );
+	}
+
+	/**
+	 * Tests that is_post_type_archive() returns false for an undefined post type.
+	 *
+	 * @ticket 56287
+	 *
+	 * @covers ::is_post_type_archive
+	 */
+	public function test_is_post_type_archive_should_return_false_for_an_undefined_post_type() {
+		global $wp_query;
+
+		$post_type = '56287-post-type';
+
+		// Force the request to be a post type archive.
+		$wp_query->is_post_type_archive = true;
+		$wp_query->set( 'post_type', $post_type );
+
+		$this->assertFalse( is_post_type_archive( $post_type ) );
+	}
+
+	/**
+	 * @ticket 29660
+	 */
+	public function test_query_singular_404_does_not_throw_warning() {
+		$q = new WP_Query(
+			array(
+				'pagename' => 'non-existent-page',
+			)
+		);
+
+		$this->assertSame( 0, $q->post_count );
+		$this->assertFalse( $q->is_single() );
+
+		$this->assertTrue( $q->is_singular() );
+		$this->assertFalse( $q->is_singular( 'page' ) );
+
+		$this->assertTrue( $q->is_page() );
+		$this->assertFalse( $q->is_page( 'non-existent-page' ) );
+	}
+
+	/**
+	 * @ticket 29660
+	 */
+	public function test_query_single_404_does_not_throw_warning() {
+		$q = new WP_Query(
+			array(
+				'name' => 'non-existent-post',
+			)
+		);
+
+		$this->assertSame( 0, $q->post_count );
+		$this->assertFalse( $q->is_page() );
+
+		$this->assertTrue( $q->is_singular() );
+		$this->assertFalse( $q->is_singular( 'post' ) );
+
+		$this->assertTrue( $q->is_single() );
+		$this->assertFalse( $q->is_single( 'non-existent-post' ) );
+	}
+
+	/**
+	 * @ticket 29660
+	 */
+	public function test_query_attachment_404_does_not_throw_warning() {
+		$q = new WP_Query(
+			array(
+				'attachment' => 'non-existent-attachment',
+			)
+		);
+
+		$this->assertSame( 0, $q->post_count );
+
+		$this->assertTrue( $q->is_singular() );
+		$this->assertFalse( $q->is_singular( 'attachment' ) );
+
+		$this->assertTrue( $q->is_attachment() );
+		$this->assertFalse( $q->is_attachment( 'non-existent-attachment' ) );
+	}
+
+	/**
+	 * @ticket 29660
+	 */
+	public function test_query_author_404_does_not_throw_warning() {
+		$q = new WP_Query(
+			array(
+				'author_name' => 'non-existent-author',
+			)
+		);
+
+		$this->assertSame( 0, $q->post_count );
+
+		$this->assertTrue( $q->is_author() );
+		$this->assertFalse( $q->is_author( 'non-existent-author' ) );
+	}
+
+	/**
+	 * @ticket 29660
+	 */
+	public function test_query_category_404_does_not_throw_warning() {
+		$q = new WP_Query(
+			array(
+				'category_name' => 'non-existent-category',
+			)
+		);
+
+		$this->assertSame( 0, $q->post_count );
+
+		$this->assertTrue( $q->is_category() );
+		$this->assertFalse( $q->is_tax() );
+		$this->assertFalse( $q->is_category( 'non-existent-category' ) );
+	}
+
+	/**
+	 * @ticket 29660
+	 */
+	public function test_query_tag_404_does_not_throw_warning() {
+		$q = new WP_Query(
+			array(
+				'tag' => 'non-existent-tag',
+			)
+		);
+
+		$this->assertSame( 0, $q->post_count );
+
+		$this->assertTrue( $q->is_tag() );
+		$this->assertFalse( $q->is_tax() );
+		$this->assertFalse( $q->is_tag( 'non-existent-tag' ) );
 	}
 }
