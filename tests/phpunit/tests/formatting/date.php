@@ -197,7 +197,7 @@ class Tests_Formatting_Date extends WP_UnitTestCase {
 	public function timezone_provider() {
 		return array(
 			array(
-				'timezone_string' => 'Europe/Kiev',
+				'timezone_string' => 'Europe/Helsinki',
 				'gmt_offset'      => 3,
 			),
 			array(
