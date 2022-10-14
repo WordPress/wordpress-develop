@@ -752,6 +752,23 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			),
 		);
 
+		$template = get_block_template( $id, $this->post_type );
+		$revisions = wp_get_latest_revision_id_and_total_count( $template->wp_id );
+		$revisions_count = ! is_wp_error( $revisions ) ? $revisions['count'] : 0;
+		$revisions_base  = sprintf( '/%s/%s/%d/revisions', $this->namespace, $this->rest_base, $id );
+
+		$links['version-history'] = array(
+			'href'  => rest_url( $revisions_base ),
+			'count' => $revisions_count,
+		);
+
+		if ( $revisions_count > 0 ) {
+			$links['predecessor-version'] = array(
+				'href' => rest_url( $revisions_base . '/' . $revisions['latest_id'] ),
+				'id'   => $revisions['latest_id'],
+			);
+		}
+
 		return $links;
 	}
 
