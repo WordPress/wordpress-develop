@@ -693,4 +693,14 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$this->assertIsArray( $post2 );
 		$this->assertSameSets( array(), $post2 );
 	}
+
+	function test_get_core_data() {
+		$theme_json = WP_Theme_JSON_Resolver::get_core_data();
+		$this->assertIsObject( $theme_json );
+		$core_data = $theme_json->get_raw_data();
+		$this->assertIsArray( $core_data );
+		$this->assertArrayHasKey( 'version', $core_data );
+		$this->assertArrayHasKey( 'settings', $core_data );
+		$this->assertArrayHasKey( 'styles', $core_data );
+	}
 }
