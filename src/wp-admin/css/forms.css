@@ -551,14 +551,20 @@ fieldset label,
 
 .wp-pwd {
 	margin-top: 1em;
+	position: relative;
 }
 
 .mailserver-pass-wrap .wp-pwd {
 	display: inline-block;
 	margin-top: 0;
-	position: relative;
 }
 
+/* rtl:ignore */
+.mailserver-pass-wrap input[type="password"] {
+	direction: ltr;
+}
+
+/* rtl:ignore */
 .mailserver-pass-wrap .button.wp-hide-pw {
 	background: transparent;
 	border: 1px solid transparent;
