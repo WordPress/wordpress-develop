@@ -365,6 +365,18 @@ final class WP_Autoload {
 	);
 
 	/**
+	 * Whether the autoloader has already been registered or not.
+	 *
+	 * Avoid registering the autoloader multiple times.
+	 *
+	 * @static
+	 * @access private
+	 *
+	 * @var bool
+	 */
+	private static $registered = false;
+
+	/**
 	 * Register the autoloader.
 	 *
 	 * Note: the autoloader is *prepended* in the autoload queue.
@@ -374,6 +386,9 @@ final class WP_Autoload {
 	 * @return void
 	 */
 	public static function register() {
+		if ( static::$registered ) {
+			return;
+		}
 		// Autoload WordPress classes.
 		spl_autoload_register( array( __CLASS__, 'autoload' ), true, true );
 
@@ -385,6 +400,7 @@ final class WP_Autoload {
 				spl_autoload_register( $autoloader['callback'], true, true );
 			}
 		}
+		static::$registered = true;
 	}
 
 	/**
