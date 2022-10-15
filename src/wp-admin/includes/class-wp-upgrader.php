@@ -365,9 +365,6 @@ class WP_Upgrader {
 		$upgrade_files = $wp_filesystem->dirlist( $upgrade_folder );
 		if ( ! empty( $upgrade_files ) ) {
 			foreach ( $upgrade_files as $file ) {
-				if ( 'temp-backup' === $file['name'] ) {
-					continue;
-				}
 				$wp_filesystem->delete( $upgrade_folder . $file['name'], true );
 			}
 		}
