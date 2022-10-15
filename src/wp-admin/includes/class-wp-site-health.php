@@ -1989,9 +1989,9 @@ class WP_Site_Health {
 				'color' => 'blue',
 			),
 			'description' => sprintf(
-				/* translators: %s: wp-content/upgrade/temp-backup */
+				/* translators: %s: wp-content/temp-backup */
 				'<p>' . __( 'The %s directory used to improve the stability of plugin and theme updates is writable.' ) . '</p>',
-				'<code>wp-content/upgrade/temp-backup</code>'
+				'<code>wp-content/temp-backup</code>'
 			),
 			'actions'     => '',
 			'test'        => 'update_temp_backup_writable',
@@ -2009,13 +2009,13 @@ class WP_Site_Health {
 
 		$upgrade_dir_exists      = $wp_filesystem->is_dir( "$wp_content/upgrade" );
 		$upgrade_dir_is_writable = $wp_filesystem->is_writable( "$wp_content/upgrade" );
-		$backup_dir_exists       = $wp_filesystem->is_dir( "$wp_content/upgrade/temp-backup" );
-		$backup_dir_is_writable  = $wp_filesystem->is_writable( "$wp_content/upgrade/temp-backup" );
+		$backup_dir_exists       = $wp_filesystem->is_dir( "$wp_content/temp-backup" );
+		$backup_dir_is_writable  = $wp_filesystem->is_writable( "$wp_content/temp-backup" );
 
-		$plugins_dir_exists      = $wp_filesystem->is_dir( "$wp_content/upgrade/temp-backup/plugins" );
-		$plugins_dir_is_writable = $wp_filesystem->is_writable( "$wp_content/upgrade/temp-backup/plugins" );
-		$themes_dir_exists       = $wp_filesystem->is_dir( "$wp_content/upgrade/temp-backup/themes" );
-		$themes_dir_is_writable  = $wp_filesystem->is_writable( "$wp_content/upgrade/temp-backup/themes" );
+		$plugins_dir_exists      = $wp_filesystem->is_dir( "$wp_content/temp-backup/plugins" );
+		$plugins_dir_is_writable = $wp_filesystem->is_writable( "$wp_content/temp-backup/plugins" );
+		$themes_dir_exists       = $wp_filesystem->is_dir( "$wp_content/temp-backup/themes" );
+		$themes_dir_is_writable  = $wp_filesystem->is_writable( "$wp_content/temp-backup/themes" );
 
 		if ( $plugins_dir_exists && ! $plugins_dir_is_writable && $themes_dir_exists && ! $themes_dir_is_writable ) {
 			$result['status'] = 'critical';
@@ -2025,10 +2025,10 @@ class WP_Site_Health {
 				'temp-backup'
 			);
 			$result['description'] = sprintf(
-				/* translators: 1: wp-content/upgrade/temp-backup/plugins, 2: wp-content/upgrade/temp-backup/themes. */
+				/* translators: 1: wp-content/temp-backup/plugins, 2: wp-content/temp-backup/themes. */
 				'<p>' . __( 'The %1$s and %2$s directories exist but are not writable. These directories are used to improve the stability of plugin updates. Please make sure the server has write permissions to these directories.' ) . '</p>',
-				'<code>wp-content/upgrade/temp-backup/plugins</code>',
-				'<code>wp-content/upgrade/temp-backup/themes</code>'
+				'<code>wp-content/temp-backup/plugins</code>',
+				'<code>wp-content/temp-backup/themes</code>'
 			);
 			return $result;
 		}
@@ -2041,9 +2041,9 @@ class WP_Site_Health {
 				'temp-backup'
 			);
 			$result['description'] = sprintf(
-				/* translators: %s: wp-content/upgrade/temp-backup/plugins */
+				/* translators: %s: wp-content/temp-backup/plugins */
 				'<p>' . __( 'The %s directory exists but is not writable. This directory is used to improve the stability of plugin updates. Please make sure the server has write permissions to this directory.' ) . '</p>',
-				'<code>wp-content/upgrade/temp-backup/plugins</code>'
+				'<code>wp-content/temp-backup/plugins</code>'
 			);
 			return $result;
 		}
@@ -2056,9 +2056,9 @@ class WP_Site_Health {
 				'temp-backup'
 			);
 			$result['description'] = sprintf(
-				/* translators: %s: wp-content/upgrade/temp-backup/themes */
+				/* translators: %s: wp-content/temp-backup/themes */
 				'<p>' . __( 'The %s directory exists but is not writable. This directory is used to improve the stability of theme updates. Please make sure the server has write permissions to this directory.' ) . '</p>',
-				'<code>wp-content/upgrade/temp-backup/themes</code>'
+				'<code>wp-content/temp-backup/themes</code>'
 			);
 			return $result;
 		}
@@ -2071,9 +2071,9 @@ class WP_Site_Health {
 				'temp-backup'
 			);
 			$result['description'] = sprintf(
-				/* translators: %s: wp-content/upgrade/temp-backup */
+				/* translators: %s: wp-content/temp-backup */
 				'<p>' . __( 'The %s directory exists but is not writable. This directory is used to improve the stability of plugin and theme updates. Please make sure the server has write permissions to this directory.' ) . '</p>',
-				'<code>wp-content/upgrade/temp-backup</code>'
+				'<code>wp-content/temp-backup</code>'
 			);
 			return $result;
 		}
