@@ -562,6 +562,7 @@ fieldset label,
 /* rtl:ignore */
 .mailserver-pass-wrap input[type="password"] {
 	direction: ltr;
+	padding-right: 2.5rem;
 }
 
 /* rtl:ignore */
