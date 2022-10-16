@@ -59,6 +59,7 @@ if ( ! function_exists( 'maybe_create_table' ) ) :
 		}
 
 		// Didn't find it, so try to create it.
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- No applicable variables for this query.
 		$wpdb->query( $create_ddl );
 
 		// We cannot directly tell that whether this succeeded!
@@ -95,6 +96,7 @@ if ( ! function_exists( 'maybe_add_column' ) ) :
 		}
 
 		// Didn't find it, so try to create it.
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- No applicable variables for this query.
 		$wpdb->query( $create_ddl );
 
 		// We cannot directly tell that whether this succeeded!
@@ -127,6 +129,7 @@ function maybe_drop_column( $table_name, $column_name, $drop_ddl ) {
 		if ( $column === $column_name ) {
 
 			// Found it, so try to drop it.
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- No applicable variables for this query.
 			$wpdb->query( $drop_ddl );
 
 			// We cannot directly tell that whether this succeeded!
