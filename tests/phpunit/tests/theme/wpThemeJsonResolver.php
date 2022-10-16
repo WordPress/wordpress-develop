@@ -694,13 +694,27 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$this->assertSameSets( array(), $post2 );
 	}
 
-	function test_get_core_data() {
-		$theme_json = WP_Theme_JSON_Resolver::get_core_data();
-		$this->assertIsObject( $theme_json );
-		$core_data = $theme_json->get_raw_data();
-		$this->assertIsArray( $core_data );
-		$this->assertArrayHasKey( 'version', $core_data );
-		$this->assertArrayHasKey( 'settings', $core_data );
-		$this->assertArrayHasKey( 'styles', $core_data );
+
+	/**
+	 * @ticket 56835
+	 * @covers WP_Theme_JSON_Resolver::get_theme_data
+	 */
+	function test_get_theme_data_theme_supports_overrides_theme_json() {
+		// Test that get_theme_data() returns a WP_Theme_JSON object.
+		$theme_json_resolver = new WP_Theme_JSON_Resolver();
+		$theme_data          = $theme_json_resolver->get_theme_data();
+		$this->assertInstanceOf( 'WP_Theme_JSON', $theme_data );
+
+		// Test that wp_theme_json_data_theme filter has been called.
+		$this->assertGreaterThan( 0, did_filter( 'wp_theme_json_data_default' ) );
+
+		// Test that data from theme.json must be backfilled from existing theme supports.
+		$previous_settings    = $theme_data->get_settings();
+		$previous_line_height = $previous_settings['typography']['lineHeight'];
+		$this->assertFalse( $previous_line_height );
+		add_theme_support( 'custom-line-height' );
+		$current_settings = $theme_json_resolver->get_theme_data()->get_settings();
+		$line_height      = $current_settings['typography']['lineHeight'];
+		$this->assertTrue( $line_height );
 	}
 }
