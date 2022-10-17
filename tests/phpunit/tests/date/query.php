@@ -1135,4 +1135,142 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		// MySQL ignores the invalid clause.
 		$this->assertSame( array( $p1, $p2 ), $q->posts );
 	}
+
+	/**
+	 * @covers WP_Date_Query::get_sql
+	 */
+	public function test_relation_in_query_and() {
+		$date_query = array(
+			'relation' => 'AND',
+			array(
+				'before'    => array(
+					'year'  => 2021,
+					'month' => 9,
+					'day'   => 20,
+				),
+				'after'     => array(
+					'year'  => 2019,
+					'month' => 2,
+					'day'   => 25,
+				),
+				'inclusive' => true,
+			),
+			array(
+				'before'    => array(
+					'year'  => 2016,
+					'month' => 9,
+					'day'   => 11,
+				),
+				'after'     => array(
+					'year'  => 2014,
+					'month' => 5,
+					'day'   => 12,
+				),
+				'inclusive' => false,
+			),
+		);
+
+		$q = new WP_Date_Query( $date_query );
+
+		$sql = $q->get_sql();
+
+		$parts = mb_split( '\)\s+AND\s+\(', $sql );
+		$this->assertIsArray( $parts, 'SQL query cannot be split into multiple parts using operator AND.' );
+		$this->assertEquals( 2, count( $parts ), 'SQL query does not contain correct number of AND operators.' );
+
+		$this->assertStringNotContainsString( 'OR', $sql, 'SQL query contains conditions joined by operator OR.' );
+	}
+
+	/**
+	 * @covers WP_Date_Query::get_sql
+	 */
+	public function test_relation_in_query_or() {
+		$date_query = array(
+			'relation' => 'OR',
+			array(
+				'before'    => array(
+					'year'  => 2021,
+					'month' => 9,
+					'day'   => 20,
+				),
+				'after'     => array(
+					'year'  => 2019,
+					'month' => 2,
+					'day'   => 25,
+				),
+				'inclusive' => true,
+			),
+			array(
+				'before'    => array(
+					'year'  => 2016,
+					'month' => 9,
+					'day'   => 11,
+				),
+				'after'     => array(
+					'year'  => 2014,
+					'month' => 5,
+					'day'   => 12,
+				),
+				'inclusive' => false,
+			),
+		);
+
+		$q = new WP_Date_Query( $date_query );
+
+		$sql = $q->get_sql();
+
+		$this->assertStringContainsString( 'OR', $sql, 'SQL query does not contain conditions joined by operator OR.' );
+
+		$parts = mb_split( '\)\s+OR\s+\(', $sql );
+		$this->assertIsArray( $parts, 'SQL query cannot be split into multiple parts using operator OR.' );
+		$this->assertEquals( 2, count( $parts ), 'SQL query does not contain correct number of OR operators.' );
+
+		// Checking number of occurrences of AND while skipping the one at the beginning.
+		$this->assertSame( 2, substr_count( substr( $sql, 5 ), 'AND' ), 'SQL query does not contain expected number conditions joined by operator AND.' );
+	}
+
+	/**
+	 * @covers WP_Date_Query::get_sql
+	 */
+	public function test_relation_in_query_unsupported() {
+		$date_query = array(
+			'relation' => 'UNSUPPORTED',
+			array(
+				'before'    => array(
+					'year'  => 2021,
+					'month' => 9,
+					'day'   => 20,
+				),
+				'after'     => array(
+					'year'  => 2019,
+					'month' => 2,
+					'day'   => 25,
+				),
+				'inclusive' => true,
+			),
+			array(
+				'before'    => array(
+					'year'  => 2016,
+					'month' => 9,
+					'day'   => 11,
+				),
+				'after'     => array(
+					'year'  => 2014,
+					'month' => 5,
+					'day'   => 12,
+				),
+				'inclusive' => false,
+			),
+		);
+
+		$q = new WP_Date_Query( $date_query );
+
+		$sql = $q->get_sql();
+
+		$parts = mb_split( '\)\s+AND\s+\(', $sql );
+		$this->assertIsArray( $parts, 'SQL query cannot be split into multiple parts using operator AND.' );
+		$this->assertEquals( 2, count( $parts ), 'SQL query does not contain correct number of AND operators.' );
+
+		$this->assertStringNotContainsString( 'OR', $sql, 'SQL query contains conditions joined by operator OR.' );
+	}
 }
