@@ -3694,7 +3694,6 @@ function wp_add_editor_classic_theme_styles( $editor_settings ) {
 	// only handles external files or theme files.
 	$editor_settings['styles'][] = array(
 		'css'            => file_get_contents( __DIR__ . $classic_theme_styles ),
-		'baseURL'        => get_theme_file_uri( $classic_theme_styles ),
 		'__unstableType' => 'theme',
 		'isGlobalStyles' => false,
 	);
