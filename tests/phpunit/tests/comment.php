@@ -76,6 +76,90 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertEquals( $post2->ID, $comment->comment_post_ID );
 	}
 
+	public function test_update_comment_from_privileged_user_by_privileged_user() {
+		$admin_id_1 = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_id_1 );
+
+		$comment_id = wp_new_comment(
+			array(
+				'comment_post_ID'      => self::$post_id,
+				'comment_author'       => 'Author',
+				'comment_author_url'   => 'http://example.localhost/',
+				'comment_author_email' => 'test@test.com',
+				'user_id'              => $admin_id_1,
+				'comment_content'      => 'This is a comment',
+			)
+		);
+
+		wp_set_current_user( 0 );
+
+		$admin_id_2 = self::factory()->user->create(
+			array(
+				'role'       => 'administrator',
+				'user_login' => 'test_wp_admin_get',
+				'user_pass'  => 'password',
+				'user_email' => 'testadmin@test.com',
+			)
+		);
+
+		wp_set_current_user( $admin_id_2 );
+
+		wp_update_comment(
+			array(
+				'comment_ID'      => $comment_id,
+				'comment_content' => 'new comment <img onerror=demo src=x>',
+			)
+		);
+
+		$comment          = get_comment( $comment_id );
+		$expected_content = is_multisite()
+			? 'new comment '
+			: 'new comment <img onerror=demo src=x>';
+
+		$this->assertSame( $expected_content, $comment->comment_content );
+
+		wp_set_current_user( 0 );
+	}
+
+	public function test_update_comment_from_unprivileged_user_by_privileged_user() {
+		wp_set_current_user( self::$user_id );
+
+		$comment_id = wp_new_comment(
+			array(
+				'comment_post_ID'      => self::$post_id,
+				'comment_author'       => 'Author',
+				'comment_author_url'   => 'http://example.localhost/',
+				'comment_author_email' => 'test@test.com',
+				'user_id'              => self::$user_id,
+				'comment_content'      => '<a href="http://example.localhost/something.html">click</a>',
+			)
+		);
+
+		wp_set_current_user( 0 );
+
+		$admin_id = self::factory()->user->create(
+			array(
+				'role'       => 'administrator',
+				'user_login' => 'test_wp_admin_get',
+				'user_pass'  => 'password',
+				'user_email' => 'testadmin@test.com',
+			)
+		);
+
+		wp_set_current_user( $admin_id );
+
+		wp_update_comment(
+			array(
+				'comment_ID'      => $comment_id,
+				'comment_content' => '<a href="http://example.localhost/something.html" disallowed=attribute>click</a>',
+			)
+		);
+
+		$comment = get_comment( $comment_id );
+		$this->assertEquals( '<a href="http://example.localhost/something.html" rel="nofollow ugc">click</a>', $comment->comment_content, 'Comment: ' . $comment->comment_content );
+		wp_set_current_user( 0 );
+	}
+
 	/**
 	 * @ticket 30627
 	 */
