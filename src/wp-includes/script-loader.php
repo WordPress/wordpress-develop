@@ -3687,13 +3687,13 @@ function wp_add_editor_classic_theme_styles( $editor_settings ) {
 		return $editor_settings;
 	}
 	$suffix = wp_scripts_get_suffix();
-	$classic_theme_styles = "/css/dist/block-library/classic$suffix.css";
+	$classic_theme_styles = __DIR__ . "/css/dist/block-library/classic$suffix.css";
 
 	// This follows the pattern of get_block_editor_theme_styles,
 	// but we can't use get_block_editor_theme_styles directly as it
 	// only handles external files or theme files.
 	$editor_settings['styles'][] = array(
-		'css'            => file_get_contents( __DIR__ . $classic_theme_styles ),
+		'css'            => file_get_contents( $classic_theme_styles ),
 		'__unstableType' => 'theme',
 		'isGlobalStyles' => false,
 	);
