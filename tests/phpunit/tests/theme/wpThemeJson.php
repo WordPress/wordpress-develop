@@ -431,6 +431,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 53175
 	 * @ticket 54336
+	 * @ticket 56611
 	 */
 	public function test_get_stylesheet() {
 		$theme_json = new WP_Theme_JSON(
@@ -438,11 +439,25 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 				'settings' => array(
 					'color'      => array(
-						'text'    => 'value',
-						'palette' => array(
+						'text'      => 'value',
+						'palette'   => array(
 							array(
 								'slug'  => 'grey',
 								'color' => 'grey',
+							),
+						),
+						'gradients' => array(
+							array(
+								'gradient' => 'linear-gradient(135deg,rgba(0,0,0) 0%,rgb(0,0,0) 100%)',
+								'name'     => 'Custom gradient',
+								'slug'     => 'custom-gradient',
+							),
+						),
+						'duotone'   => array(
+							array(
+								'colors' => array( '#333333', '#aaaaaa' ),
+								'name'   => 'Custom Duotone',
+								'slug'   => 'custom-duotone',
 							),
 						),
 					),
@@ -478,15 +493,21 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					),
 					'misc'     => 'value',
 					'elements' => array(
-						'link' => array(
+						'link'   => array(
 							'color' => array(
 								'text'       => '#111',
 								'background' => '#333',
 							),
 						),
+						'button' => array(
+							'shadow' => '10px 10px 5px 0px rgba(0,0,0,0.66)',
+						),
 					),
 					'blocks'   => array(
 						'core/group'     => array(
+							'color'    => array(
+								'gradient' => 'var:preset|gradient|custom-gradient',
+							),
 							'border'   => array(
 								'radius' => '10px',
 							),
@@ -542,6 +563,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 									'bottom' => '30px',
 								),
 							),
+							'filter'  => array(
+								'duotone' => 'var:preset|duotone|custom-duotone',
+							),
 						),
 					),
 					'spacing'  => array(
@@ -552,9 +576,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$variables = 'body{--wp--preset--color--grey: grey;--wp--preset--font-family--small: 14px;--wp--preset--font-family--big: 41px;}.wp-block-group{--wp--custom--base-font: 16;--wp--custom--line-height--small: 1.2;--wp--custom--line-height--medium: 1.4;--wp--custom--line-height--large: 1.8;}';
-		$styles    = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }body{color: var(--wp--preset--color--grey);}a:where(:not(.wp-element-button)){background-color: #333;color: #111;}.wp-block-group{border-radius: 10px;padding: 24px;}.wp-block-group a:where(:not(.wp-element-button)){color: #111;}h1,h2,h3,h4,h5,h6{color: #123456;}h1 a:where(:not(.wp-element-button)),h2 a:where(:not(.wp-element-button)),h3 a:where(:not(.wp-element-button)),h4 a:where(:not(.wp-element-button)),h5 a:where(:not(.wp-element-button)),h6 a:where(:not(.wp-element-button)){background-color: #333;color: #111;font-size: 60px;}.wp-block-post-date{color: #123456;}.wp-block-post-date a:where(:not(.wp-element-button)){background-color: #777;color: #555;}.wp-block-image{margin-bottom: 30px;}.wp-block-image img, .wp-block-image .wp-block-image__crop-area{border-top-left-radius: 10px;border-bottom-right-radius: 1em;}';
-		$presets   = '.has-grey-color{color: var(--wp--preset--color--grey) !important;}.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}.has-grey-border-color{border-color: var(--wp--preset--color--grey) !important;}.has-small-font-family{font-family: var(--wp--preset--font-family--small) !important;}.has-big-font-family{font-family: var(--wp--preset--font-family--big) !important;}';
+		$variables = "body{--wp--preset--color--grey: grey;--wp--preset--gradient--custom-gradient: linear-gradient(135deg,rgba(0,0,0) 0%,rgb(0,0,0) 100%);--wp--preset--duotone--custom-duotone: url('#wp-duotone-custom-duotone');--wp--preset--font-family--small: 14px;--wp--preset--font-family--big: 41px;}.wp-block-group{--wp--custom--base-font: 16;--wp--custom--line-height--small: 1.2;--wp--custom--line-height--medium: 1.4;--wp--custom--line-height--large: 1.8;}";
+		$styles    = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }body{color: var(--wp--preset--color--grey);}a:where(:not(.wp-element-button)){background-color: #333;color: #111;}.wp-element-button, .wp-block-button__link{box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.66);}.wp-block-group{background: var(--wp--preset--gradient--custom-gradient);border-radius: 10px;padding: 24px;}.wp-block-group a:where(:not(.wp-element-button)){color: #111;}h1,h2,h3,h4,h5,h6{color: #123456;}h1 a:where(:not(.wp-element-button)),h2 a:where(:not(.wp-element-button)),h3 a:where(:not(.wp-element-button)),h4 a:where(:not(.wp-element-button)),h5 a:where(:not(.wp-element-button)),h6 a:where(:not(.wp-element-button)){background-color: #333;color: #111;font-size: 60px;}.wp-block-post-date{color: #123456;}.wp-block-post-date a:where(:not(.wp-element-button)){background-color: #777;color: #555;}.wp-block-image{margin-bottom: 30px;}.wp-block-image img, .wp-block-image .components-placeholder{filter: var(--wp--preset--duotone--custom-duotone);}.wp-block-image img, .wp-block-image .wp-block-image__crop-area{border-top-left-radius: 10px;border-bottom-right-radius: 1em;}';
+		$presets   = '.has-grey-color{color: var(--wp--preset--color--grey) !important;}.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}.has-grey-border-color{border-color: var(--wp--preset--color--grey) !important;}.has-custom-gradient-gradient-background{background: var(--wp--preset--gradient--custom-gradient) !important;}.has-small-font-family{font-family: var(--wp--preset--font-family--small) !important;}.has-big-font-family{font-family: var(--wp--preset--font-family--big) !important;}';
 		$all       = $variables . $styles . $presets;
 		$this->assertSame( $all, $theme_json->get_stylesheet() );
 		$this->assertSame( $styles, $theme_json->get_stylesheet( array( 'styles' ) ) );
@@ -2946,6 +2970,41 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 56611
+	 */
+	function test_export_data_sets_use_root_padding_aware_alignments() {
+		$theme = new WP_Theme_JSON(
+			array(
+				'version'  => 2,
+				'settings' => array(
+					'useRootPaddingAwareAlignments' => true,
+					'blocks'                        => array(
+						'core/paragraph' => array(
+							'useRootPaddingAwareAlignments' => true,
+						),
+					),
+				),
+			)
+		);
+
+		$actual   = $theme->get_data();
+		$expected = array(
+			'version'  => 2,
+			'settings' => array(
+				'useRootPaddingAwareAlignments' => true,
+				'blocks'                        => array(
+					'core/paragraph' => array(
+						'useRootPaddingAwareAlignments' => true,
+					),
+				),
+			),
+		);
+
+		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+
+	/**
 	 * @ticket 56467
 	 */
 	public function test_get_element_class_name_button() {
@@ -2994,6 +3053,54 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$expected = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }body{background-color: #ffffff;color: #000000;}.wp-element-button, .wp-block-button__link{background-color: #000000;color: #ffffff;}';
 		$this->assertSame( $expected, $theme_json->get_stylesheet() );
+	}
+
+	/**
+	 * Tests that get_property_value() static method returns an empty string
+	 * if the path is invalid or the value is null.
+	 *
+	 * Also, tests that PHP 8.1 "passing null to non-nullable" deprecation notice
+	 * is not thrown when passing the value to strncmp() in the method.
+	 *
+	 * The notice that we should not see:
+	 * `Deprecated: strncmp(): Passing null to parameter #1 ($string1) of type string is deprecated`.
+	 *
+	 * @dataProvider data_get_property_value_should_return_string_for_invalid_paths_or_null_values
+	 *
+	 * @ticket 56620
+	 *
+	 * @covers WP_Theme_JSON::get_property_value
+	 *
+	 * @param array $styles An array with style definitions.
+	 * @param array $path   Path to the desired properties.
+	 *
+	 */
+	public function test_get_property_value_should_return_string_for_invalid_paths_or_null_values( $styles, $path ) {
+		$reflection_class = new ReflectionClass( WP_Theme_JSON::class );
+
+		$get_property_value_method = $reflection_class->getMethod( 'get_property_value' );
+		$get_property_value_method->setAccessible( true );
+		$result = $get_property_value_method->invoke( null, $styles, $path );
+
+		$this->assertSame( '', $result );
+	}
+
+	/**
+	 * Data provider for test_get_property_value_should_return_string_for_invalid_paths_or_null_values().
+	 *
+	 * @return array
+	 */
+	public function data_get_property_value_should_return_string_for_invalid_paths_or_null_values() {
+		return array(
+			'empty string' => array(
+				'styles' => array(),
+				'path'   => array( 'non_existent_path' ),
+			),
+			'null'         => array(
+				'styles' => array( 'some_null_value' => null ),
+				'path'   => array( 'some_null_value' ),
+			),
+		);
 	}
 
 	/**
@@ -3083,7 +3190,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$expected = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }body{background-color: #ffffff;}';
 		$this->assertSame( $expected, $theme_json->get_stylesheet() );
 	}
-
 
 	/**
 	 * @dataProvider data_get_layout_definitions
@@ -3305,7 +3411,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'default'
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-site-blocks > * { margin-block-start: 0; margin-block-end: 0; }.wp-site-blocks > * + * { margin-block-start: 1rem; }body { --wp--style--block-gap: 1rem; }body .is-layout-flow > *{margin-block-start: 0;margin-block-end: 0;}body .is-layout-flow > * + *{margin-block-start: 1rem;margin-block-end: 0;}body .is-layout-flex{gap: 1rem;}body .is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}body .is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}body .is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}.wp-block-post-content{color: gray;}.wp-block-social-links.is-layout-flow > *{margin-block-start: 0;margin-block-end: 0;}.wp-block-social-links.is-layout-flow > * + *{margin-block-start: 0;margin-block-end: 0;}.wp-block-social-links.is-layout-flex{gap: 0;}.wp-block-buttons.is-layout-flow > *{margin-block-start: 0;margin-block-end: 0;}.wp-block-buttons.is-layout-flow > * + *{margin-block-start: 0;margin-block-end: 0;}.wp-block-buttons.is-layout-flex{gap: 0;}',
 			$theme_json->get_stylesheet()
 		);
@@ -3420,9 +3526,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$metadata = array(
-			'path'     => array(
-				'0' => 'styles',
-			),
+			'path'     => array( 'styles' ),
 			'selector' => 'body',
 		);
 
@@ -3453,9 +3557,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$metadata = array(
-			'path'     => array(
-				'0' => 'styles',
-			),
+			'path'     => array( 'styles' ),
 			'selector' => 'body',
 		);
 
@@ -3482,9 +3584,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$metadata = array(
-			'path'     => array(
-				'0' => 'settings',
-			),
+			'path'     => array( 'settings' ),
 			'selector' => 'body',
 		);
 
@@ -3492,6 +3592,29 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$root_rules  = $theme_json->get_root_layout_rules( WP_Theme_JSON::ROOT_BLOCK_SELECTOR, $metadata );
 		$style_rules = $theme_json->get_styles_for_block( $metadata );
 		$this->assertSame( $expected, $root_rules . $style_rules );
+	}
+
+	/**
+	 * @ticket 56611
+	 */
+	function test_get_styles_with_appearance_tools() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => 2,
+				'settings' => array(
+					'appearanceTools' => true,
+				),
+			)
+		);
+
+		$metadata = array(
+			'path'     => array( 'settings' ),
+			'selector' => 'body',
+		);
+
+		$expected   = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-site-blocks > * { margin-block-start: 0; margin-block-end: 0; }.wp-site-blocks > * + * { margin-block-start: ; }body { --wp--style--block-gap: ; }';
+		$root_rules = $theme_json->get_root_layout_rules( WP_Theme_JSON::ROOT_BLOCK_SELECTOR, $metadata );
+		$this->assertSame( $expected, $root_rules );
 	}
 
 	/**

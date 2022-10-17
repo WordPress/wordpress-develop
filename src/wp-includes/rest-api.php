@@ -103,6 +103,22 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 				'5.5.0'
 			);
 		}
+
+		foreach ( $arg_group['args'] as $arg ) {
+			if ( ! is_array( $arg ) ) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf(
+						/* translators: 1: $args, 2: The REST API route being registered. */
+						__( 'REST API %1$s should be an array of arrays. Non-array value detected for %2$s.' ),
+						'<code>$args</code>',
+						'<code>' . $clean_namespace . '/' . trim( $route, '/' ) . '</code>'
+					),
+					'6.1.0'
+				);
+				break; // Leave the foreach loop once a non-array argument was found.
+			}
+		}
 	}
 
 	$full_route = '/' . $clean_namespace . '/' . trim( $route, '/' );
