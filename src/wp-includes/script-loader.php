@@ -3658,7 +3658,7 @@ function _wp_theme_json_webfonts_handler() {
 }
 
 /**
- * Loads classic theme styles on classic themes.
+ * Loads classic theme styles on classic themes in the frontend.
  *
  * This is needed for backwards compatibility for button blocks specifically.
  *
@@ -3670,4 +3670,34 @@ function wp_enqueue_classic_theme_styles() {
 		wp_register_style( 'classic-theme-styles', "/wp-includes/css/dist/block-library/classic$suffix.css", array(), true );
 		wp_enqueue_style( 'classic-theme-styles' );
 	}
+}
+
+/**
+ * Loads classic theme styles on classic themes in the editor.
+ *
+ * This is needed for backwards compatibility for button blocks specifically.
+ *
+ * @since 6.1.0
+ *
+ * @param array $editor_settings The array of editor settings.
+ * @return array A filtered array of editor settings.
+ */
+function wp_add_editor_classic_theme_styles( $editor_settings ) {
+	if ( wp_is_block_theme() ) {
+		return $editor_settings;
+	}
+	$suffix = wp_scripts_get_suffix();
+	$classic_theme_styles = "/wp-includes/css/dist/block-library/classic$suffix.css";
+
+	// This follows the pattern of get_block_editor_theme_styles,
+	// but we can't use get_block_editor_theme_styles directly as it
+	// only handles external files or theme files.
+	$editor_settings['styles'][] = array(
+		'css'            => file_get_contents( $classic_theme_styles ),
+		'baseURL'        => get_theme_file_uri( $classic_theme_styles ),
+		'__unstableType' => 'theme',
+		'isGlobalStyles' => false,
+	);
+
+	return $editor_settings;
 }
