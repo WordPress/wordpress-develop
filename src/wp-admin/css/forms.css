@@ -560,7 +560,7 @@ fieldset label,
 }
 
 /* rtl:ignore */
-.mailserver-pass-wrap input[type="password"] {
+#mailserver_pass {
 	direction: ltr;
 	padding-right: 2.5rem;
 }
