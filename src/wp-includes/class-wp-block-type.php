@@ -356,7 +356,7 @@ class WP_Block_Type {
 							__( 'The %s argument must be a string or a string array.' ),
 							'<code>$value</code>'
 						),
-						'6.1.0',
+						'6.1.0'
 					);
 			}
 
