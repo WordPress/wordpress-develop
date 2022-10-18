@@ -553,6 +553,20 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 56707
+	 */
+	public function test_register_block_type_accepts_editor_script_array() {
+		$settings = array( 'editor_script' => array( 'hello', 'world' ) );
+		register_block_type( 'core/test-static', $settings );
+
+		$registry   = WP_Block_Type_Registry::get_instance();
+		$registered = $registry->get_all_registered();
+		$actual     = json_encode( $registered['core/test-static']->editor_script );
+
+		$this->assertSame( $settings['editor_script'], $actual );
+	}
+
+	/**
 	 * @ticket 52301
 	 */
 	public function test_block_registers_with_metadata_i18n_support() {
