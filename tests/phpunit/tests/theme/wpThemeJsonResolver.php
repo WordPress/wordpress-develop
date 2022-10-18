@@ -396,7 +396,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 			$expected_filter_count++;
 		}
 
-		$this->assertSame( $expected_filter_count, did_filter( 'wp_theme_json_data_default' ), 'The filter "theme_json_default" should fire the given number of times' );
+		$this->assertSame( $expected_filter_count, did_filter( 'wp_theme_json_data_default' ), 'The filter "wp_theme_json_data_default" should fire the given number of times' );
 		$this->assertInstanceOf( WP_Theme_JSON::class, $actual, 'WP_Theme_JSON_Resolver::get_core_data() should return instance of WP_Theme_JSON' );
 		$this->assertSame( static::$property_core->getValue(), $actual, 'WP_Theme_JSON_Resolver::$core property should be the same object as returned from WP_Theme_JSON_Resolver::get_core_data()' );
 	}
@@ -705,7 +705,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Theme_JSON', $theme_data, 'Theme data should be an instance of WP_Theme_JSON.' );
 
 		// Test that wp_theme_json_data_theme filter has been called.
-		$this->assertGreaterThan( 0, did_filter( 'wp_theme_json_data_default' ), 'The filter "theme_json_default" should fire.' );
+		$this->assertGreaterThan( 0, did_filter( 'wp_theme_json_data_default' ), 'The filter "wp_theme_json_data_default" should fire.' );
 
 		// Test that data from theme.json is backfilled from existing theme supports.
 		$previous_settings    = $theme_data->get_settings();
