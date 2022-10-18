@@ -396,7 +396,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 			$expected_filter_count++;
 		}
 
-		$this->assertSame( $expected_filter_count, did_filter( 'wp_theme_json_data_default' ), 'The filter "theme_json_default" should fire the given number of times' );
+		$this->assertSame( $expected_filter_count, did_filter( 'wp_theme_json_data_default' ), 'The filter "wp_theme_json_data_default" should fire the given number of times' );
 		$this->assertInstanceOf( WP_Theme_JSON::class, $actual, 'WP_Theme_JSON_Resolver::get_core_data() should return instance of WP_Theme_JSON' );
 		$this->assertSame( static::$property_core->getValue(), $actual, 'WP_Theme_JSON_Resolver::$core property should be the same object as returned from WP_Theme_JSON_Resolver::get_core_data()' );
 	}
@@ -692,5 +692,28 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$post2 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme, false, array( 'draft' ) );
 		$this->assertIsArray( $post2 );
 		$this->assertSameSets( array(), $post2 );
+	}
+
+	/**
+	 * @ticket 56835
+	 * @covers WP_Theme_JSON_Resolver::get_theme_data
+	 */
+	function test_get_theme_data_theme_supports_overrides_theme_json() {
+		// Test that get_theme_data() returns a WP_Theme_JSON object.
+		$theme_json_resolver = new WP_Theme_JSON_Resolver();
+		$theme_data          = $theme_json_resolver->get_theme_data();
+		$this->assertInstanceOf( 'WP_Theme_JSON', $theme_data, 'Theme data should be an instance of WP_Theme_JSON.' );
+
+		// Test that wp_theme_json_data_theme filter has been called.
+		$this->assertGreaterThan( 0, did_filter( 'wp_theme_json_data_default' ), 'The filter "wp_theme_json_data_default" should fire.' );
+
+		// Test that data from theme.json is backfilled from existing theme supports.
+		$previous_settings    = $theme_data->get_settings();
+		$previous_line_height = $previous_settings['typography']['lineHeight'];
+		$this->assertFalse( $previous_line_height, 'lineHeight setting from theme.json should be false.' );
+		add_theme_support( 'custom-line-height' );
+		$current_settings = $theme_json_resolver->get_theme_data()->get_settings();
+		$line_height      = $current_settings['typography']['lineHeight'];
+		$this->assertTrue( $line_height, 'lineHeight setting after add_theme_support() should be true.' );
 	}
 }
