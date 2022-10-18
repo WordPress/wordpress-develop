@@ -352,9 +352,9 @@ class WP_Block_Type {
 					_doing_it_wrong(
 						__METHOD__,
 						sprintf(
-						/* translators: %s: The '$value' argument. */
-						__( 'The %s argument must be a string or a string array.' ),
-						'<code>$value</code>'
+							/* translators: %s: The '$value' argument. */
+							__( 'The %s argument must be a string or a string array.' ),
+							'<code>$value</code>'
 						),
 						'6.1.0',
 					);
