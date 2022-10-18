@@ -3665,7 +3665,7 @@ function _wp_theme_json_webfonts_handler() {
  * @since 6.1.0
  */
 function wp_enqueue_classic_theme_styles() {
-	if ( ! wp_is_block_theme() ) {
+	if ( ! WP_Theme_JSON_Resolver::theme_has_support() ) {
 		$suffix = wp_scripts_get_suffix();
 		wp_register_style( 'classic-theme-styles', "/wp-includes/css/dist/block-library/classic$suffix.css", array(), true );
 		wp_enqueue_style( 'classic-theme-styles' );
@@ -3683,7 +3683,7 @@ function wp_enqueue_classic_theme_styles() {
  * @return array A filtered array of editor settings.
  */
 function wp_add_editor_classic_theme_styles( $editor_settings ) {
-	if ( wp_is_block_theme() ) {
+	if ( WP_Theme_JSON_Resolver::theme_has_support() ) {
 		return $editor_settings;
 	}
 	$suffix = wp_scripts_get_suffix();
