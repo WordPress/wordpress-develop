@@ -2044,7 +2044,7 @@ function wp_welcome_panel() {
 		<div class="welcome-panel-column">
 			<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
 				<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
-				<path fill-rule="evenodd" clip-rule="evenodd" d="M29.25 18.75v2.5h1.5v-2.5h2.5v-1.5h-2.5v-2.5h-1.5v2.5h-2.5v1.5h2.5zm-6.5-1.5h-6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6h-1.5v6a.5.5 0 0 1-.5.5h-12a.5.5 0 0 1-.5-.5v-12a.5.5 0 0 1 .5-.5h6v-1.5z" fill="#fff"/>
+				<path fill-rule="evenodd" clip-rule="evenodd" d="M32.0668 17.0854L28.8221 13.9454L18.2008 24.671L16.8983 29.0827L21.4257 27.8309L32.0668 17.0854ZM16 32.75H24V31.25H16V32.75Z" fill="white"/>
 			</svg>
 			<div class="welcome-panel-column-content">
 				<h3><?php _e( 'Author rich content with blocks and patterns' ); ?></h3>
