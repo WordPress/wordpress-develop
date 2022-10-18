@@ -343,11 +343,31 @@ class WP_Block_Type {
 			return;
 		}
 
-		if ( ! is_string( $value ) ) {
+		$new_name = $name . '_handles';
+
+		if ( is_array( $value ) ) {
+			$filtered = array_filter( $value, 'is_string' );
+
+			if ( count( $filtered ) !== count( $value ) ) {
+					_doing_it_wrong(
+							__METHOD__,
+							sprintf(
+							/* translators: %s: The '$value' argument. */
+							__( 'The %s argument must be a string or a string array.' ),
+							'<code>$value</code>'
+							),
+							'6.1.0',
+					);
+			}
+
+			$this->{$new_name} = $filtered;
 			return;
 		}
 
-		$new_name             = $name . '_handles';
+		if ( ! is_string( $value ) ) {
+				return;
+		}
+
 		$this->{$new_name}[0] = $value;
 	}
 
