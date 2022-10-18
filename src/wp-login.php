@@ -95,7 +95,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 
 	wp_enqueue_style( 'login' );
 
-	/*
+	/**
 	 * Remove all stored post data on logging out.
 	 * This could be added by add_action('login_head'...) like wp_shake_js(),
 	 * but maybe better if it's not removable by plugins.
@@ -424,7 +424,7 @@ function wp_login_viewport_meta() {
 	<?php
 }
 
-/*
+/**
  * Main part: check the request and redirect or display a form based on the current action.
  */
 
@@ -534,7 +534,7 @@ $login_link_separator = apply_filters( 'login_link_separator', ' | ' );
 switch ( $action ) {
 
 	case 'confirm_admin_email':
-		/*
+		/**
 		 * Note that `is_user_logged_in()` will return false immediately after logging in
 		 * as the current user is not set, see wp-includes/pluggable.php.
 		 * However this action runs on a redirect after logging in.
