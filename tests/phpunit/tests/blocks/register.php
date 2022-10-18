@@ -561,7 +561,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 		$registry   = WP_Block_Type_Registry::get_instance();
 		$registered = $registry->get_all_registered();
-		$actual     = json_encode( $registered['core/test-static']->editor_script );
+		$actual     = $registered['core/test-static']->editor_script;
 
 		$this->assertSame( $settings['editor_script'], $actual );
 	}
