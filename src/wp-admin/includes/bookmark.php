@@ -216,7 +216,7 @@ function wp_insert_link( $linkdata, $wp_error = false ) {
 	$link_rss         = ( ! empty( $parsed_args['link_rss'] ) ) ? $parsed_args['link_rss'] : '';
 	$link_rel         = ( ! empty( $parsed_args['link_rel'] ) ) ? $parsed_args['link_rel'] : '';
 	$link_category    = ( ! empty( $parsed_args['link_category'] ) ) ? $parsed_args['link_category'] : array();
-	$link_updated     = date( 'Y-m-d H:i:s', current_time( 'timestamp', 0 ));
+	$link_updated     = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp', 0 ) );
 
 	// Make sure we set a valid category.
 	if ( ! is_array( $link_category ) || 0 === count( $link_category ) ) {
