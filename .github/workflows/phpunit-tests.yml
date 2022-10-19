@@ -121,18 +121,18 @@ jobs:
       # http://man7.org/linux/man-pages/man1/date.1.html
       - name: "Get last Monday's date"
         id: get-date
-        run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
+        run: echo "date=$(/bin/date -u --date='last Mon' "+%F")" >> $GITHUB_OUTPUT
 
       - name: Get Composer cache directory
         id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+        run: echo "composer_dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Cache Composer dependencies
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
         env:
           cache-name: cache-composer-dependencies
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
+          path: ${{ steps.composer-cache.outputs.composer_dir }}
           key: ${{ runner.os }}-php-${{ matrix.php }}-date-${{ steps.get-date.outputs.date }}-composer-${{ hashFiles('**/composer.json') }}
 
       - name: Install Composer dependencies
