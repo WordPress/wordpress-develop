@@ -141,7 +141,7 @@ jobs:
 
       - name: Construct payload and store as an output
         id: create-payload
-        run: echo "payload='{\"workflow_name\":\"${{ github.workflow }}\",\"ref_name\":\"${{ env.CURRENT_BRANCH }}\",\"run_url\":\"https://github.com/WordPress/wordpress-develop/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}\",\"commit_message\":\"${{ steps.commit-message.outputs.commit_message_escaped }}\"}'" >> $GITHUB_OUTPUT
+        run: echo "payload={\"workflow_name\":\"${{ github.workflow }}\",\"ref_name\":\"${{ env.CURRENT_BRANCH }}\",\"run_url\":\"https://github.com/WordPress/wordpress-develop/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}\",\"commit_message\":\"${{ steps.commit-message.outputs.commit_message_escaped }}\"}" >> $GITHUB_OUTPUT
 
   # Posts notifications when a workflow fails.
   failure:
