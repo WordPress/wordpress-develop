@@ -113,17 +113,17 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 
 	$typography_block_styles = array();
 	if ( $has_font_size_support && ! $should_skip_font_size ) {
-		$preset_font_size                        = array_key_exists( 'fontSize', $block_attributes )
+		$preset_font_size                    = array_key_exists( 'fontSize', $block_attributes )
 			? "var:preset|font-size|{$block_attributes['fontSize']}"
 			: null;
-		$custom_font_size                        = isset( $block_attributes['style']['typography']['fontSize'] )
+		$custom_font_size                    = isset( $block_attributes['style']['typography']['fontSize'] )
 			? $block_attributes['style']['typography']['fontSize']
 			: null;
-			$typography_block_styles['fontSize'] = $preset_font_size ? $preset_font_size : wp_get_typography_font_size_value(
-				array(
-					'size' => $custom_font_size,
-				)
-			);
+		$typography_block_styles['fontSize'] = $preset_font_size ? $preset_font_size : wp_get_typography_font_size_value(
+			array(
+				'size' => $custom_font_size,
+			)
+		);
 	}
 
 	if ( $has_font_family_support && ! $should_skip_font_family ) {
