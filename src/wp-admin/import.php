@@ -236,7 +236,6 @@ if ( current_user_can( 'install_plugins' ) ) {
 *
 */
 do_action( 'after_importers' );
-
 ?>
 
 </div>
