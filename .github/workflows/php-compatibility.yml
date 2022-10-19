@@ -108,7 +108,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: desrosj/wordpress-develop/.github/workflows/slack-notifications.yml@096acfd7e078b1330be45d92875be2efa17c26c3
+    uses: desrosj/wordpress-develop/.github/workflows/slack-notifications.yml@trac/56820
     needs: [ php-compatibility ]
     if: ${{ always() }}
     with:
