@@ -364,7 +364,7 @@ class WP_Block_Type {
 					);
 			}
 
-			$this->{$new_name} = $filtered;
+			$this->{$new_name} = array_values( $filtered );
 			return;
 		}
 
