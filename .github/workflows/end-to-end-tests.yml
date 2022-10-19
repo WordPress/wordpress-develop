@@ -36,8 +36,8 @@ jobs:
   # - Sets environment variables.
   # - Checks out the repository.
   # - Logs debug information about the GitHub Action runner.
-  # - Installs NodeJS.
-  # _ Installs NPM dependencies.
+  # - Installs Node.js.
+  # _ Installs npm dependencies.
   # - Builds WordPress to run from the `build` directory.
   # - Starts the WordPress Docker container.
   # - Logs general debug information.
@@ -72,7 +72,7 @@ jobs:
           php -i
           locale -a
 
-      - name: Install NodeJS
+      - name: Install Node.js
         uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
           node-version-file: '.nvmrc'

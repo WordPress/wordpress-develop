@@ -40,8 +40,8 @@ jobs:
   # Performs the following steps:
   # - Sets environment variables.
   # - Sets up the environment variables needed for testing with memcached (if desired).
-  # - Installs NodeJS.
-  # - Installs NPM dependencies
+  # - Installs Node.js.
+  # - Installs npm dependencies
   # - Configures caching for Composer.
   # - Installs Composer dependencies.
   # - Logs Docker debug information (about the Docker installation within the runner).
@@ -112,7 +112,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
 
-      - name: Install NodeJS
+      - name: Install Node.js
         uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
           node-version-file: '.nvmrc'
