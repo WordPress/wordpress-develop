@@ -3006,7 +3006,7 @@ body.page .main-navigation {
   margin-right: calc( .25 * 1rem);
 }
 
-.main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu {
+.main-navigation.js-focus-within .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu, .js-focus-within .main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu {
   display: block;
   left: 0;
   margin-top: 0;
@@ -3029,7 +3029,7 @@ body.page .main-navigation {
 }
 
 @media only screen and (min-width: 768px) {
-  .main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu {
+  .main-navigation.js-focus-within .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu, .js-focus-within .main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu {
     display: block;
     margin-top: 0;
     opacity: 1;
@@ -3061,7 +3061,7 @@ body.page .main-navigation {
   }
 }
 
-.main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu.hidden-links {
+.main-navigation.js-focus-within .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu.hidden-links, .js-focus-within .main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu.hidden-links {
   left: 0;
   width: 100%;
   display: table;
@@ -3076,7 +3076,7 @@ body.page .main-navigation {
 }
 
 @media only screen and (min-width: 768px) {
-  .main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu.hidden-links {
+  .main-navigation.js-focus-within .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu.hidden-links, .js-focus-within .main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu.hidden-links {
     right: 0;
     left: auto;
     display: block;
@@ -3090,7 +3090,7 @@ body.page .main-navigation {
   }
 }
 
-.main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu .submenu-expand {
+.main-navigation.js-focus-within .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu .submenu-expand, .js-focus-within .main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu .submenu-expand {
   display: none;
 }
 
@@ -3098,7 +3098,7 @@ body.page .main-navigation {
   display: none;
 }
 
-.main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu .sub-menu {
+.main-navigation.js-focus-within .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu .sub-menu, .js-focus-within .main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu .sub-menu {
   display: block;
   margin-top: inherit;
   position: relative;
@@ -3119,7 +3119,7 @@ body.page .main-navigation {
 }
 
 @media only screen and (min-width: 768px) {
-  .main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu .sub-menu {
+  .main-navigation.js-focus-within .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu .sub-menu, .js-focus-within .main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu .sub-menu {
     float: none;
     max-width: 100%;
   }
@@ -3129,7 +3129,7 @@ body.page .main-navigation {
   }
 }
 
-.main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu .sub-menu {
+.main-navigation.js-focus-within .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu .sub-menu, .js-focus-within .main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu .sub-menu {
   counter-reset: submenu;
 }
 
@@ -3137,7 +3137,7 @@ body.page .main-navigation {
   counter-reset: submenu;
 }
 
-.main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu .sub-menu > li > a::before {
+.main-navigation.js-focus-within .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu .sub-menu > li > a::before, .js-focus-within .main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu .sub-menu > li > a::before {
   font-family: "NonBreakingSpaceOverride", "Hoefler Text", Garamond, "Times New Roman", serif;
   font-weight: normal;
   content: "– " counters(submenu, "– ", none);
