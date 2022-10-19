@@ -124,13 +124,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ php-compatibility, slack-notifications ]
     if: |
-      always() &&
-      github.repository == 'WordPress/wordpress-develop' &&
-      github.event_name != 'pull_request' &&
-      github.run_attempt < 2 &&
-      (
-        needs.php-compatibility.result == 'cancelled' || needs.php-compatibility.result == 'failure'
-      )
+      always()
 
     steps:
       - name: Dispatch workflow run
