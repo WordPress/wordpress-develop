@@ -34,6 +34,9 @@ function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 	if ( empty( $credentials ) ) {
 		$credentials = array(); // Back-compat for plugins passing an empty string.
 
+		$credentials['user_login']    = '';
+		$credentials['user_password'] = '';
+
 		if ( ! empty( $_POST['log'] ) ) {
 			$credentials['user_login'] = wp_unslash( $_POST['log'] );
 		}
