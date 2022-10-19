@@ -230,6 +230,13 @@ if ( current_user_can( 'install_plugins' ) ) {
 		esc_url( network_admin_url( 'plugin-install.php?tab=search&type=tag&s=importer' ) )
 	) . '</p>';
 }
+	
+/**
+* Fires at the end of the importers Administration screen.
+*
+*/
+do_action( 'after_importers' );
+
 ?>
 
 </div>
