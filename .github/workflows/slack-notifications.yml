@@ -138,11 +138,11 @@ jobs:
           ${{ ( github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' ) && fromJson( steps.current-commit-message.outputs.result ) || github.event.head_commit.message }}
           EOF
           )
-          echo "commit_message_escaped::${COMMIT_MESSAGE}" >> $GITHUB_OUTPUT
+          echo "commit_message_escaped=${COMMIT_MESSAGE}" >> $GITHUB_OUTPUT
 
       - name: Construct payload and store as an output
         id: create-payload
-        run: payload::{\"workflow_name\":\"${{ github.workflow }}\",\"ref_name\":\"${{ env.CURRENT_BRANCH }}\",\"run_url\":\"https://github.com/WordPress/wordpress-develop/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}\",\"commit_message\":\"${{ steps.commit-message.outputs.commit_message_escaped }}\"}" >> $GITHUB_OUTPUT
+        run: payload={\"workflow_name\":\"${{ github.workflow }}\",\"ref_name\":\"${{ env.CURRENT_BRANCH }}\",\"run_url\":\"https://github.com/WordPress/wordpress-develop/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}\",\"commit_message\":\"${{ steps.commit-message.outputs.commit_message_escaped }}\"}" >> $GITHUB_OUTPUT
 
   # Posts notifications when a workflow fails.
   failure:
