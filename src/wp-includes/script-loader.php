@@ -3667,7 +3667,7 @@ function _wp_theme_json_webfonts_handler() {
 function wp_enqueue_classic_theme_styles() {
 	if ( ! WP_Theme_JSON_Resolver::theme_has_support() ) {
 		$suffix = wp_scripts_get_suffix();
-		wp_register_style( 'classic-theme-styles', "/wp-includes/css/dist/block-library/classic$suffix.css", array(), true );
+		wp_register_style( 'classic-theme-styles', '/' . WPINC . "/css/classic-themes$suffix.css", array(), true );
 		wp_enqueue_style( 'classic-theme-styles' );
 	}
 }
@@ -3687,7 +3687,7 @@ function wp_add_editor_classic_theme_styles( $editor_settings ) {
 		return $editor_settings;
 	}
 	$suffix = wp_scripts_get_suffix();
-	$classic_theme_styles = __DIR__ . "/css/dist/block-library/classic$suffix.css";
+	$classic_theme_styles = ABSPATH . WPINC . "/css/classic-themes$suffix.css";
 
 	// This follows the pattern of get_block_editor_theme_styles,
 	// but we can't use get_block_editor_theme_styles directly as it
