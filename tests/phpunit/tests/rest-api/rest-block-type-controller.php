@@ -338,6 +338,36 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertNull( $data['style'] );
 	}
 
+	/**
+	 * @ticket 56733
+	 */
+	public function test_get_item_deprecated() {
+		$block_type = 'fake/deprecated';
+		$settings   = array(
+			'editor_script' => array( 'editor', 'script' ),
+			'script'        => array( 'guten', 'berg' ),
+			'view_script'   => array( 'view', 'script' ),
+			'editor_style'  => array( 'editor', 'style' ),
+			'style'         => array( 'out', 'of', 'style' ),
+		);
+		register_block_type( $block_type, $settings );
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSameSets( $settings['editor_script'], $data['editor_script_handles'] );
+		$this->assertSameSets( $settings['script'], $data['script_handles'] );
+		$this->assertSameSets( $settings['view_script'], $data['view_script_handles'] );
+		$this->assertSameSets( $settings['editor_style'], $data['editor_style_handles'] );
+		$this->assertSameSets( $settings['style'], $data['style_handles'] );
+		// Deprecated properties.
+		$this->assertSameSets( $settings['editor_script'], $data['editor_script'] );
+		$this->assertSameSets( $settings['script'], $data['script'] );
+		$this->assertSameSets( $settings['view_script'], $data['view_script'] );
+		$this->assertSameSets( $settings['editor_style'], $data['editor_style'] );
+		$this->assertSameSets( $settings['style'], $data['style'] );
+	}
+
 	public function test_get_variation() {
 		$block_type = 'fake/variations';
 		$settings   = array(
