@@ -372,7 +372,7 @@ class WP_Block_Type {
 				return;
 		}
 
-		$this->{$new_name}[0] = $value;
+		$this->{$new_name} = array( $value );
 	}
 
 	/**
