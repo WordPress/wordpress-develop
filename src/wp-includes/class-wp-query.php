@@ -446,6 +446,14 @@ class WP_Query {
 	public $thumbnails_cached = false;
 
 	/**
+	 * Controls whether an attachment query should include filenames or not.
+	 *
+	 * @since 6.0.3
+	 * @var bool
+	 */
+	protected $allow_query_attachment_by_filename = false;
+
+	/**
 	 * Cached list of search stopwords.
 	 *
 	 * @since 3.7.0
@@ -1429,8 +1437,13 @@ class WP_Query {
 				$q['search_orderby_title'][] = $wpdb->prepare( "{$wpdb->posts}.post_title LIKE %s", $like );
 			}
 
-			$like      = $n . $wpdb->esc_like( $term ) . $n;
-			$search   .= $wpdb->prepare( "{$searchand}(({$wpdb->posts}.post_title $like_op %s) $andor_op ({$wpdb->posts}.post_excerpt $like_op %s) $andor_op ({$wpdb->posts}.post_content $like_op %s))", $like, $like, $like );
+			$like = $n . $wpdb->esc_like( $term ) . $n;
+
+			if ( ! empty( $this->allow_query_attachment_by_filename ) ) {
+				$search .= $wpdb->prepare( "{$searchand}(({$wpdb->posts}.post_title $like_op %s) $andor_op ({$wpdb->posts}.post_excerpt $like_op %s) $andor_op ({$wpdb->posts}.post_content $like_op %s) $andor_op (sq1.meta_value $like_op %s))", $like, $like, $like, $like );
+			} else {
+				$search .= $wpdb->prepare( "{$searchand}(({$wpdb->posts}.post_title $like_op %s) $andor_op ({$wpdb->posts}.post_excerpt $like_op %s) $andor_op ({$wpdb->posts}.post_content $like_op %s))", $like, $like, $like );
+			}
 			$searchand = ' AND ';
 		}
 
@@ -1824,6 +1837,16 @@ class WP_Query {
 
 		// Fill again in case 'pre_get_posts' unset some vars.
 		$q = $this->fill_query_vars( $q );
+
+		/**
+		 * Filters whether an attachment query should include filenames or not.
+		 *
+		 * @since 6.0.3
+		 *
+		 * @param bool $allow_query_attachment_by_filename Whether or not to include filenames.
+		 */
+		$this->allow_query_attachment_by_filename = apply_filters( 'wp_allow_query_attachment_by_filename', false );
+		remove_all_filters( 'wp_allow_query_attachment_by_filename' );
 
 		// Parse meta query.
 		$this->meta_query = new WP_Meta_Query();
@@ -2256,7 +2279,7 @@ class WP_Query {
 			}
 		}
 
-		if ( ! empty( $this->tax_query->queries ) || ! empty( $this->meta_query->queries ) ) {
+		if ( ! empty( $this->tax_query->queries ) || ! empty( $this->meta_query->queries ) || ! empty( $this->allow_query_attachment_by_filename ) ) {
 			$groupby = "{$wpdb->posts}.ID";
 		}
 
@@ -2332,6 +2355,10 @@ class WP_Query {
 			$whichmimetype = wp_post_mime_type_where( $q['post_mime_type'], $wpdb->posts );
 		}
 		$where .= $search . $whichauthor . $whichmimetype;
+
+		if ( ! empty( $this->allow_query_attachment_by_filename ) ) {
+			$join .= " LEFT JOIN {$wpdb->postmeta} AS sq1 ON ( {$wpdb->posts}.ID = sq1.post_id AND sq1.meta_key = '_wp_attached_file' )";
+		}
 
 		if ( ! empty( $this->meta_query->queries ) ) {
 			$clauses = $this->meta_query->get_sql( 'post', $wpdb->posts, 'ID', $this );
@@ -3088,10 +3115,12 @@ class WP_Query {
 				$cache_args['update_post_meta_cache'],
 				$cache_args['update_post_term_cache'],
 				$cache_args['lazy_load_term_meta'],
-				$cache_args['update_menu_item_cache']
+				$cache_args['update_menu_item_cache'],
+				$cache_args['search_orderby_title']
 			);
 
 			$new_request = str_replace( $fields, "{$wpdb->posts}.*", $this->request );
+			$new_request = $wpdb->remove_placeholder_escape( $new_request );
 			$key         = md5( serialize( $cache_args ) . $new_request );
 
 			$last_changed = wp_cache_get_last_changed( 'posts' );
@@ -3099,7 +3128,20 @@ class WP_Query {
 				$last_changed .= wp_cache_get_last_changed( 'terms' );
 			}
 
-			$cache_key   = "wp_query:$key:$last_changed";
+			$cache_key = "wp_query:$key:$last_changed";
+
+			/**
+			 * Filters query cache key.
+			 *
+			 * @since 6.1.0
+			 *
+			 * @param string   $cache_key   Cache key.
+			 * @param array    $cache_args  Query args used to generate the cache key.
+			 * @param string   $new_request SQL Query.
+			 * @param WP_Query $query       The WP_Query instance.
+			 */
+			$cache_key = apply_filters( 'wp_query_cache_key', $cache_key, $cache_args, $new_request, $this );
+
 			$cache_found = false;
 			if ( null === $this->posts ) {
 				$cached_results = wp_cache_get( $cache_key, 'posts', false, $cache_found );
