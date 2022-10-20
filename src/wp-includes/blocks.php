@@ -305,7 +305,7 @@ function get_block_metadata_i18n_schema() {
  *                               on accepted arguments. Default empty array.
  * @return WP_Block_Type|false The registered block type on success, or false on failure.
  */
-function register_block_type_from_metadata( $file_or_folder = '', $args = array() ) {
+function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	/*
 	 * Get an array of metadata from a PHP file.
 	 * This improves performance for core blocks as it's only necessary to read a single PHP file
