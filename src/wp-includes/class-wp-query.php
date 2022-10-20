@@ -3106,41 +3106,8 @@ class WP_Query {
 		 */
 		$id_query_is_cacheable = ! str_contains( strtoupper( $orderby ), ' RAND(' );
 		if ( $q['cache_results'] && $id_query_is_cacheable ) {
-			$cache_args = $q;
-
-			unset(
-				$cache_args['suppress_filters'],
-				$cache_args['cache_results'],
-				$cache_args['fields'],
-				$cache_args['update_post_meta_cache'],
-				$cache_args['update_post_term_cache'],
-				$cache_args['lazy_load_term_meta'],
-				$cache_args['update_menu_item_cache'],
-				$cache_args['search_orderby_title']
-			);
-
 			$new_request = str_replace( $fields, "{$wpdb->posts}.*", $this->request );
-			$new_request = $wpdb->remove_placeholder_escape( $new_request );
-			$key         = md5( serialize( $cache_args ) . $new_request );
-
-			$last_changed = wp_cache_get_last_changed( 'posts' );
-			if ( ! empty( $this->tax_query->queries ) ) {
-				$last_changed .= wp_cache_get_last_changed( 'terms' );
-			}
-
-			$cache_key = "wp_query:$key:$last_changed";
-
-			/**
-			 * Filters query cache key.
-			 *
-			 * @since 6.1.0
-			 *
-			 * @param string   $cache_key   Cache key.
-			 * @param array    $cache_args  Query args used to generate the cache key.
-			 * @param string   $new_request SQL Query.
-			 * @param WP_Query $query       The WP_Query instance.
-			 */
-			$cache_key = apply_filters( 'wp_query_cache_key', $cache_key, $cache_args, $new_request, $this );
+			$cache_key   = $this->generate_cache_key( $q, $new_request );
 
 			$cache_found = false;
 			if ( null === $this->posts ) {
@@ -4755,6 +4722,55 @@ class WP_Query {
 
 		return $elements;
 	}
+
+	/**
+	 * Generate cache key.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param array $cache_args
+	 * @param string $fields
+	 *
+	 * @return string
+	 */
+	protected function generate_cache_key( array $cache_args, $request ) {
+		global $wpdb;
+
+		unset(
+			$cache_args['suppress_filters'],
+			$cache_args['cache_results'],
+			$cache_args['fields'],
+			$cache_args['update_post_meta_cache'],
+			$cache_args['update_post_term_cache'],
+			$cache_args['lazy_load_term_meta'],
+			$cache_args['update_menu_item_cache'],
+		);
+
+		$placeholder = $wpdb->placeholder_escape();
+		foreach ( $cache_args as $key => $value ) {
+			if ( is_array( $value ) ) {
+				foreach ( $value as $n_key => $n_value ) {
+					if ( is_string( $n_value ) && str_contains( $n_value, $placeholder ) ) {
+						$cache_args[ $key ][ $n_key ] = $wpdb->remove_placeholder_escape( $n_value );
+					}
+				}
+			}
+			if ( is_string( $value ) && str_contains( $value, $placeholder ) ) {
+				$cache_args[ $key ] = $wpdb->remove_placeholder_escape( $value );
+			}
+		}
+
+		$request = $wpdb->remove_placeholder_escape( $request );
+		$key     = md5( serialize( $cache_args ) . $request );
+
+		$last_changed = wp_cache_get_last_changed( 'posts' );
+		if ( ! empty( $this->tax_query->queries ) ) {
+			$last_changed .= wp_cache_get_last_changed( 'terms' );
+		}
+
+		return "wp_query:$key:$last_changed";
+	}
+
 	/**
 	 * After looping through a nested query, this function
 	 * restores the $post global to the current post in this query.

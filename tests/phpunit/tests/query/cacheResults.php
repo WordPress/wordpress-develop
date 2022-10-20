@@ -33,16 +33,6 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 */
 	public static $author_id;
 
-	/**
-	 * @var array
-	 */
-	protected $cache_args;
-
-	/**
-	 * @var string
-	 */
-	protected $new_request;
-
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Make some post objects.
 		self::$posts = $factory->post->create_many( 5 );
@@ -67,11 +57,55 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		);
 	}
 
-	function set_up() {
-		parent::set_up();
-		$this->cache_args  = null;
-		$this->new_request = null;
-		add_filter( 'wp_query_cache_key', array( $this, 'filter_wp_query_cache_key' ), 15, 3 );
+
+	/**
+	 * @dataProvider data_query_cache
+	 * @covers WP_Query::generate_cache_key
+	 * @ticket 22176
+	 */
+	public function test_generate_cache_key( $args ) {
+		global $wpdb;
+		$query1 = new WP_Query();
+		$query1->query( $args );
+
+		$query_vars             = $query1->query_vars;
+		$request                = $query1->request;
+		$request_no_placeholder = $wpdb->remove_placeholder_escape( $request );
+
+		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
+		$reflection->setAccessible( true );
+
+		$result_1 = $reflection->invoke( $query1, $query_vars, $request );
+
+		$result_2 = $reflection->invoke( $query1, $query_vars, $request_no_placeholder );
+
+		$this->assertSame( $result_1, $result_2 );
+	}
+
+
+	/**
+	 * @covers WP_Query::generate_cache_key
+	 * @ticket 22176
+	 */
+	public function test_generate_cache_key_placeholder() {
+		global $wpdb;
+		$query1 = new WP_Query();
+		$query1->query( array() );
+
+		$query_vars                 = $query1->query_vars;
+		$request                    = $query1->request;
+		$query_vars['test']['nest'] = '%';
+
+		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
+		$reflection->setAccessible( true );
+
+		$result_1 = $reflection->invoke( $query1, $query_vars, $request );
+
+		$query_vars['test']['nest'] = $wpdb->placeholder_escape();
+
+		$result_2 = $reflection->invoke( $query1, $query_vars, $request );
+
+		$this->assertSame( $result_1, $result_2 );
 	}
 
 	/**
@@ -79,15 +113,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 * @ticket 22176
 	 */
 	public function test_query_cache( $args ) {
-		global $wpdb;
-
 		$query1 = new WP_Query();
 		$posts1 = $query1->query( $args );
-
-		$placeholder = $wpdb->placeholder_escape();
-		$this->assertNotEmpty( $this->new_request, 'Check new request is not empty' );
-		$this->assertStringNotContainsString( $placeholder, $this->new_request, 'Check if request does not contain placeholder' );
-		$this->assertStringNotContainsString( $placeholder, wp_json_encode( $this->cache_args ), 'Check if cache arrays does not contain placeholder' );
 
 		$queries_before = get_num_queries();
 		$query2         = new WP_Query();
@@ -885,13 +912,6 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$this->assertContains( $p1, $posts1 );
 		$this->assertNotEmpty( $posts2 );
 		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
-	}
-
-	public function filter_wp_query_cache_key( $cache_key, $cache_args, $new_request ) {
-		$this->cache_args  = $cache_args;
-		$this->new_request = $new_request;
-
-		return $cache_key;
 	}
 
 	/**
