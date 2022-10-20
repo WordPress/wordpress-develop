@@ -369,7 +369,7 @@ class WP_Block_Type {
 		}
 
 		if ( ! is_string( $value ) ) {
-				return;
+			return;
 		}
 
 		$this->{$new_name} = array( $value );
