@@ -370,34 +370,32 @@ function register_block_type_from_metadata( $file_or_folder = '', $args = array(
 		}
 	}
 
-	$settings = array();
-	if ( $metadata_file_exists ) {
-		$property_mappings = array(
-			'apiVersion'      => 'api_version',
-			'title'           => 'title',
-			'category'        => 'category',
-			'parent'          => 'parent',
-			'ancestor'        => 'ancestor',
-			'icon'            => 'icon',
-			'description'     => 'description',
-			'keywords'        => 'keywords',
-			'attributes'      => 'attributes',
-			'providesContext' => 'provides_context',
-			'usesContext'     => 'uses_context',
-			'supports'        => 'supports',
-			'styles'          => 'styles',
-			'variations'      => 'variations',
-			'example'         => 'example',
-		);
-		$textdomain        = ! empty( $metadata['textdomain'] ) ? $metadata['textdomain'] : null;
-		$i18n_schema       = get_block_metadata_i18n_schema();
+	$settings          = array();
+	$property_mappings = array(
+		'apiVersion'      => 'api_version',
+		'title'           => 'title',
+		'category'        => 'category',
+		'parent'          => 'parent',
+		'ancestor'        => 'ancestor',
+		'icon'            => 'icon',
+		'description'     => 'description',
+		'keywords'        => 'keywords',
+		'attributes'      => 'attributes',
+		'providesContext' => 'provides_context',
+		'usesContext'     => 'uses_context',
+		'supports'        => 'supports',
+		'styles'          => 'styles',
+		'variations'      => 'variations',
+		'example'         => 'example',
+	);
+	$textdomain        = ! empty( $metadata['textdomain'] ) ? $metadata['textdomain'] : null;
+	$i18n_schema       = get_block_metadata_i18n_schema();
 
-		foreach ( $property_mappings as $key => $mapped_key ) {
-			if ( isset( $metadata[ $key ] ) ) {
-				$settings[ $mapped_key ] = $metadata[ $key ];
-				if ( $textdomain && isset( $i18n_schema->$key ) ) {
-					$settings[ $mapped_key ] = translate_settings_using_i18n_schema( $i18n_schema->$key, $settings[ $key ], $textdomain );
-				}
+	foreach ( $property_mappings as $key => $mapped_key ) {
+		if ( isset( $metadata[ $key ] ) ) {
+			$settings[ $mapped_key ] = $metadata[ $key ];
+			if ( $metadata_file_exists && $textdomain && isset( $i18n_schema->$key ) ) {
+				$settings[ $mapped_key ] = translate_settings_using_i18n_schema( $i18n_schema->$key, $settings[ $key ], $textdomain );
 			}
 		}
 	}
