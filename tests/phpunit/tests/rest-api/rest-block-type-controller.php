@@ -355,17 +355,57 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSameSets( array( 'hello_world' ), $data['editor_script_handles'] );
-		$this->assertSameSets( array( 'gutenberg' ), $data['script_handles'] );
-		$this->assertSameSets( array( 'foo_bar' ), $data['view_script_handles'] );
-		$this->assertSameSets( array( 'guten_tag' ), $data['editor_style_handles'] );
-		$this->assertSameSets( array( 'out_of_style' ), $data['style_handles'] );
+		$this->assertSameSets(
+			array( 'hello_world' ),
+			$data['editor_script_handles'],
+			"Endpoint doesn't return correct array for editor_script_handles."
+		);
+		$this->assertSameSets(
+			array( 'gutenberg' ),
+			$data['script_handles'],
+			"Endpoint doesn't return correct array for script_handles."
+		);
+		$this->assertSameSets(
+			array( 'foo_bar' ),
+			$data['view_script_handles'],
+			"Endpoint doesn't return correct array for view_script_handles."
+		);
+		$this->assertSameSets(
+			array( 'guten_tag' ),
+			$data['editor_style_handles'],
+			"Endpoint doesn't return correct array for editor_style_handles."
+		);
+		$this->assertSameSets(
+			array( 'out_of_style' ),
+			$data['style_handles'],
+			"Endpoint doesn't return correct array for style_handles."
+		);
 		// Deprecated properties.
-		$this->assertSame( 'hello_world', $data['editor_script'] );
-		$this->assertSame( 'gutenberg', $data['script'] );
-		$this->assertSame( 'foo_bar', $data['view_script'] );
-		$this->assertSame( 'guten_tag', $data['editor_style'] );
-		$this->assertSame( 'out_of_style', $data['style'] );
+		$this->assertSame(
+			'hello_world',
+			$data['editor_script'],
+			"Endpoint doesn't return correct string for editor_script."
+		);
+		$this->assertSame(
+			'gutenberg',
+			$data['script'],
+			"Endpoint doesn't return correct string for script."
+		);
+		$this->assertSame(
+			'foo_bar',
+			$data['view_script'],
+			"Endpoint doesn't return correct string for view_script."
+		);
+		$this->assertSame(
+			'guten_tag',
+			$data['editor_style'],
+			"Endpoint doesn't return correct string for editor_style."
+		);
+		$this->assertSame(
+			'out_of_style',
+			$data['style'],
+			"Endpoint doesn't return correct string for style."
+		);
 	}
 
 	/**
@@ -385,18 +425,59 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSameSets( $settings['editor_script'], $data['editor_script_handles'] );
-		$this->assertSameSets( $settings['script'], $data['script_handles'] );
-		$this->assertSameSets( $settings['view_script'], $data['view_script_handles'] );
-		$this->assertSameSets( $settings['editor_style'], $data['editor_style_handles'] );
-		$this->assertSameSets( $settings['style'], $data['style_handles'] );
+		$this->assertSameSets(
+			$settings['editor_script'],
+			$data['editor_script_handles'],
+			"Endpoint doesn't return correct array for editor_script_handles."
+		);
+		$this->assertSameSets(
+			$settings['script'],
+			$data['script_handles'],
+			"Endpoint doesn't return correct array for script_handles."
+		);
+		$this->assertSameSets(
+			$settings['view_script'],
+			$data['view_script_handles'],
+			"Endpoint doesn't return correct array for view_script_handles."
+		);
+		$this->assertSameSets(
+			$settings['editor_style'],
+			$data['editor_style_handles'],
+			"Endpoint doesn't return correct array for editor_style_handles."
+		);
+		$this->assertSameSets(
+			$settings['style'],
+			$data['style_handles'],
+			"Endpoint doesn't return correct array for style_handles."
+		);
 		// Deprecated properties.
 		// Since the schema only allows strings or null (but no arrays), we return the first array item.
-		$this->assertSame( 'hello', $data['editor_script'] );
-		$this->assertSame( 'gutenberg', $data['script'] );
-		$this->assertSame( 'foo', $data['view_script'] );
-		$this->assertSame( 'guten', $data['editor_style'] );
-		$this->assertSame( 'out', $data['style'] );
+		// Deprecated properties.
+		$this->assertSame(
+			'hello',
+			$data['editor_script'],
+			"Endpoint doesn't return first array element for editor_script."
+		);
+		$this->assertSame(
+			'gutenberg',
+			$data['script'],
+			"Endpoint doesn't return first array element for script."
+		);
+		$this->assertSame(
+			'foo',
+			$data['view_script'],
+			"Endpoint doesn't return first array element for view_script."
+		);
+		$this->assertSame(
+			'guten',
+			$data['editor_style'],
+			"Endpoint doesn't return first array element for editor_style."
+		);
+		$this->assertSame(
+			'out',
+			$data['style'],
+			"Endpoint doesn't return first array element for style."
+		);
 	}
 
 	public function test_get_variation() {
