@@ -747,7 +747,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	private function data_should_not_use_dynamic_properties() {
+	public function data_should_not_use_dynamic_properties() {
 		return array(
 			'property_name' => array(
 				'$wp_admin_bar->proto' => 'proto',
