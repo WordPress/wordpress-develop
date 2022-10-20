@@ -4743,7 +4743,7 @@ class WP_Query {
 			$cache_args['update_post_meta_cache'],
 			$cache_args['update_post_term_cache'],
 			$cache_args['lazy_load_term_meta'],
-			$cache_args['update_menu_item_cache'],
+			$cache_args['update_menu_item_cache']
 		);
 
 		$placeholder = $wpdb->placeholder_escape();
