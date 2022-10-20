@@ -317,15 +317,13 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		$core_blocks_meta = include_once ABSPATH . WPINC . '/blocks/blocks-json.php';
 	}
 
-	$metadata_file = $file_or_folder;
-	if ( ! str_ends_with( $file_or_folder, 'block.json' ) ) {
-		$metadata_file = trailingslashit( $file_or_folder ) . 'block.json';
-	}
-
-	$metadata             = array();
+	$metadata_file        = ( ! str_ends_with( $file_or_folder, 'block.json' ) ) ?
+		trailingslashit( $file_or_folder ) . 'block.json' :
+		$file_or_folder;
 	$metadata_file_exists = file_exists( $metadata_file );
 
 	// Try to get metadata from the static cache for core blocks.
+	$metadata = array();
 	if ( str_starts_with( $file_or_folder, ABSPATH . WPINC ) ) {
 		$core_block_name = str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
 		if ( ! empty( $core_blocks_meta[ $core_block_name ] ) ) {
@@ -333,44 +331,17 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		}
 	}
 
+	// If metadata is not found in the static cache, read it from the file.
 	if ( $metadata_file_exists && empty( $metadata ) ) {
-		// If metadata is not found in the static cache, read it from the file.
-		if ( empty( $metadata ) ) {
-			$metadata = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
-		}
-
-		if ( ! is_array( $metadata ) || empty( $metadata['name'] ) ) {
-			return false;
-		}
-		$metadata['file'] = wp_normalize_path( realpath( $metadata_file ) );
+		$metadata = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
 	}
 
-	if ( ! empty( $metadata['render'] ) ) {
-		$template_path = $metadata_file_exists ? wp_normalize_path(
-			realpath(
-				dirname( $metadata['file'] ) . '/' .
-				remove_block_asset_path_prefix( $metadata['render'] )
-			)
-		) : '';
-		if ( $template_path ) {
-			/**
-			 * Renders the block on the server.
-			 *
-			 * @since 6.1.0
-			 *
-			 * @param array    $attributes Block attributes.
-			 * @param string   $content    Block default content.
-			 * @param WP_Block $block      Block instance.
-			 *
-			 * @return string Returns the block content.
-			 */
-			$settings['render_callback'] = function( $attributes, $content, $block ) use ( $template_path ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
-				ob_start();
-				require $template_path;
-				return ob_get_clean();
-			};
-		}
+	$metadata = array_merge( $metadata, $args );
+
+	if ( ! is_array( $metadata ) || empty( $metadata['name'] ) ) {
+		return false;
 	}
+	$metadata['file'] = $metadata_file_exists ? wp_normalize_path( realpath( $metadata_file ) ) : null;
 
 	/**
 	 * Filters the metadata provided for registering a block type.
@@ -379,17 +350,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	 *
 	 * @param array $metadata Metadata for registering a block type.
 	 */
-	$metadata = apply_filters(
-		'block_type_metadata',
-		array_merge(
-			$metadata,
-			$args
-		)
-	);
-
-	if ( ! isset( $metadata['name'] ) ) {
-		return false;
-	}
+	$metadata = apply_filters( 'block_type_metadata', $metadata );
 
 	// Add `style` and `editor_style` for core blocks if missing.
 	if ( ! empty( $metadata['name'] ) && 0 === strpos( $metadata['name'], 'core/' ) ) {
@@ -495,6 +456,33 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 				}
 			}
 			$settings[ $settings_field_name ] = $processed_styles;
+		}
+	}
+
+	if ( ! empty( $metadata['render'] ) ) {
+		$template_path = $metadata_file_exists ? wp_normalize_path(
+			realpath(
+				dirname( $metadata['file'] ) . '/' .
+				remove_block_asset_path_prefix( $metadata['render'] )
+			)
+		) : '';
+		if ( $template_path ) {
+			/**
+			 * Renders the block on the server.
+			 *
+			 * @since 6.1.0
+			 *
+			 * @param array    $attributes Block attributes.
+			 * @param string   $content    Block default content.
+			 * @param WP_Block $block      Block instance.
+			 *
+			 * @return string Returns the block content.
+			 */
+			$settings['render_callback'] = function( $attributes, $content, $block ) use ( $template_path ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+				ob_start();
+				require $template_path;
+				return ob_get_clean();
+			};
 		}
 	}
 
