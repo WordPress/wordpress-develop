@@ -317,9 +317,10 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		$core_blocks_meta = include_once ABSPATH . WPINC . '/blocks/blocks-json.php';
 	}
 
-	$metadata_file = ( ! str_ends_with( $file_or_folder, 'block.json' ) ) ?
-		trailingslashit( $file_or_folder ) . 'block.json' :
-		$file_or_folder;
+	$metadata_file = $file_or_folder;
+	if ( ! str_ends_with( $file_or_folder, 'block.json' ) ) {
+		$metadata_file = trailingslashit( $file_or_folder ) . 'block.json';
+	}
 
 	$metadata             = array();
 	$metadata_file_exists = file_exists( $metadata_file );
