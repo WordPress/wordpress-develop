@@ -574,9 +574,9 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		register_block_type( 'core/test-static', $settings );
 
 		$registry              = WP_Block_Type_Registry::get_instance();
-		$registered            = $registry->get_all_registered();
-		$actual_script         = $registered['core/test-static']->editor_script;
-		$actual_script_handles = $registered['core/test-static']->editor_script_handles;
+		$block_type         = $registry->get_registered('core/test-static');
+		$actual_script         = $block_type->editor_script;
+		$actual_script_handles = $block_type->editor_script_handles;
 
 		$this->assertSame(
 			$expected,
