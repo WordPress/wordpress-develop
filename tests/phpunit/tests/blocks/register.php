@@ -574,7 +574,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		register_block_type( 'core/test-static', $settings );
 
 		$registry              = WP_Block_Type_Registry::get_instance();
-		$block_type            = $registry->get_registered('core/test-static');
+		$block_type            = $registry->get_registered( 'core/test-static' );
 		$actual_script         = $block_type->editor_script;
 		$actual_script_handles = $block_type->editor_script_handles;
 
@@ -639,7 +639,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		register_block_type( 'core/test-static', $settings );
 
 		$registry              = WP_Block_Type_Registry::get_instance();
-		$block_type            = $registry->get_registered('core/test-static');
+		$block_type            = $registry->get_registered( 'core/test-static' );
 		$actual_script         = $block_type->editor_script;
 		$actual_script_handles = $block_type->editor_script_handles;
 
