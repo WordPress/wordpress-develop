@@ -321,10 +321,10 @@ function register_block_type_from_metadata( $file_or_folder = '', $args = array(
 		trailingslashit( $file_or_folder ) . 'block.json' :
 		$file_or_folder;
 
+	$metadata             = array();
 	$metadata_file_exists = file_exists( $metadata_file );
 	if ( $metadata_file_exists ) {
 		// Try to get metadata from the static cache for core blocks.
-		$metadata = false;
 		if ( str_starts_with( $file_or_folder, ABSPATH . WPINC ) ) {
 			$core_block_name = str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
 			if ( ! empty( $core_blocks_meta[ $core_block_name ] ) ) {
@@ -333,7 +333,7 @@ function register_block_type_from_metadata( $file_or_folder = '', $args = array(
 		}
 
 		// If metadata is not found in the static cache, read it from the file.
-		if ( ! $metadata ) {
+		if ( empty( $metadata ) ) {
 			$metadata = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
 		}
 
