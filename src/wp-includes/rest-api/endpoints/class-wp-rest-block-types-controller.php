@@ -297,7 +297,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					$field = $block_type->$extra_field;
 					if ( in_array( $extra_field, $deprecated_fields, true ) && is_array( $field ) ) {
 						// Since the schema only allows strings or null (but no arrays), we return the first array item.
-						$field = !empty( $field ) ? array_shift( $field ) : '';
+						$field = ! empty( $field ) ? array_shift( $field ) : '';
 					}
 				} elseif ( array_key_exists( 'default', $schema['properties'][ $extra_field ] ) ) {
 					$field = $schema['properties'][ $extra_field ]['default'];
