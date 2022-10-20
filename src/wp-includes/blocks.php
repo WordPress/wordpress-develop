@@ -324,15 +324,16 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 
 	$metadata             = array();
 	$metadata_file_exists = file_exists( $metadata_file );
-	if ( $metadata_file_exists ) {
-		// Try to get metadata from the static cache for core blocks.
-		if ( str_starts_with( $file_or_folder, ABSPATH . WPINC ) ) {
-			$core_block_name = str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
-			if ( ! empty( $core_blocks_meta[ $core_block_name ] ) ) {
-				$metadata = $core_blocks_meta[ $core_block_name ];
-			}
-		}
 
+	// Try to get metadata from the static cache for core blocks.
+	if ( str_starts_with( $file_or_folder, ABSPATH . WPINC ) ) {
+		$core_block_name = str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
+		if ( ! empty( $core_blocks_meta[ $core_block_name ] ) ) {
+			$metadata = $core_blocks_meta[ $core_block_name ];
+		}
+	}
+
+	if ( $metadata_file_exists && empty( $metadata ) ) {
 		// If metadata is not found in the static cache, read it from the file.
 		if ( empty( $metadata ) ) {
 			$metadata = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
