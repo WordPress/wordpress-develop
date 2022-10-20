@@ -305,6 +305,10 @@ class WP_Block_Type {
 
 		$new_name = $name . '_handles';
 
+		if ( ! property_exists( $this, $new_name ) || ! is_array( $this->{$new_name} ) ) {
+			return null;
+		}
+
 		if ( count( $this->{$new_name} ) > 1 ) {
 			return $this->{$new_name};
 		}
