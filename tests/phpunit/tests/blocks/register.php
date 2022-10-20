@@ -573,8 +573,8 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$settings = array( 'editor_script' => $editor_script );
 		register_block_type( 'core/test-static', $settings );
 
-		$registry              = WP_Block_Type_Registry::get_instance();
-		$block_type            = $registry->get_registered( 'core/test-static' );
+		$registry   = WP_Block_Type_Registry::get_instance();
+		$block_type = $registry->get_registered( 'core/test-static' );
 		$this->assertObjectHasAttribute( 'editor_script', $block_type );
 		$this->assertObjectHasAttribute( 'editor_script_handles', $block_type );
 		$actual_script         = $block_type->editor_script;
@@ -640,8 +640,8 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$settings = array( 'editor_script' => $editor_script );
 		register_block_type( 'core/test-static', $settings );
 
-		$registry              = WP_Block_Type_Registry::get_instance();
-		$block_type            = $registry->get_registered( 'core/test-static' );
+		$registry   = WP_Block_Type_Registry::get_instance();
+		$block_type = $registry->get_registered( 'core/test-static' );
 		$this->assertObjectHasAttribute( 'editor_script', $block_type );
 		$this->assertObjectHasAttribute( 'editor_script_handles', $block_type );
 		$actual_script         = $block_type->editor_script;
