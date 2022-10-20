@@ -322,6 +322,10 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		$file_or_folder;
 	$metadata_file_exists = file_exists( $metadata_file );
 
+	if ( ! $metadata_file_exists && empty( $args['name'] ) ) {
+		return false;
+	}
+
 	// Try to get metadata from the static cache for core blocks.
 	$metadata = array();
 	if ( str_starts_with( $file_or_folder, ABSPATH . WPINC ) ) {
