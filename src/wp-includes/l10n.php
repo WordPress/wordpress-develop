@@ -716,6 +716,7 @@ function translate_nooped_plural( $nooped_plural, $count, $domain = 'default' ) 
  * @return bool True on success, false on failure.
  */
 function load_textdomain( $domain, $mofile, $locale = null ) {
+	static $mo_files = array();
 	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 	global $l10n, $l10n_unloaded, $wp_textdomain_registry;
 
@@ -758,7 +759,11 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 	 */
 	$mofile = apply_filters( 'load_textdomain_mofile', $mofile, $domain );
 
-	if ( ! is_readable( $mofile ) ) {
+	$mo_file_key = md5( $mofile );
+	if ( ! isset( $mo_files[ $mo_file_key ] ) ) {
+		$mo_files[ $mo_file_key ] = is_readable( $mofile );
+	}
+	if ( ! $mo_files[ $mo_file_key ] ) {
 		return false;
 	}
 
