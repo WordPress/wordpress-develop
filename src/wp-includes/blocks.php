@@ -321,28 +321,27 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		trailingslashit( $file_or_folder ) . 'block.json' :
 		$file_or_folder;
 
-	if ( ! file_exists( $metadata_file ) ) {
-		return false;
-	}
-
-	// Try to get metadata from the static cache for core blocks.
-	$metadata = false;
-	if ( str_starts_with( $file_or_folder, ABSPATH . WPINC ) ) {
-		$core_block_name = str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
-		if ( ! empty( $core_blocks_meta[ $core_block_name ] ) ) {
-			$metadata = $core_blocks_meta[ $core_block_name ];
+	$metadata_file_exists = file_exists( $metadata_file );
+	if ( $metadata_file_exists ) {
+		// Try to get metadata from the static cache for core blocks.
+		$metadata = false;
+		if ( str_starts_with( $file_or_folder, ABSPATH . WPINC ) ) {
+			$core_block_name = str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
+			if ( ! empty( $core_blocks_meta[ $core_block_name ] ) ) {
+				$metadata = $core_blocks_meta[ $core_block_name ];
+			}
 		}
-	}
 
-	// If metadata is not found in the static cache, read it from the file.
-	if ( ! $metadata ) {
-		$metadata = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
-	}
+		// If metadata is not found in the static cache, read it from the file.
+		if ( ! $metadata ) {
+			$metadata = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
+		}
 
-	if ( ! is_array( $metadata ) || empty( $metadata['name'] ) ) {
-		return false;
+		if ( ! is_array( $metadata ) || empty( $metadata['name'] ) ) {
+			return false;
+		}
+		$metadata['file'] = wp_normalize_path( realpath( $metadata_file ) );
 	}
-	$metadata['file'] = wp_normalize_path( realpath( $metadata_file ) );
 
 	/**
 	 * Filters the metadata provided for registering a block type.
@@ -351,7 +350,13 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	 *
 	 * @param array $metadata Metadata for registering a block type.
 	 */
-	$metadata = apply_filters( 'block_type_metadata', $metadata );
+	$metadata = apply_filters(
+		'block_type_metadata',
+		array_merge(
+			$metadata,
+			$args
+		)
+	);
 
 	// Add `style` and `editor_style` for core blocks if missing.
 	if ( ! empty( $metadata['name'] ) && 0 === strpos( $metadata['name'], 'core/' ) ) {
@@ -365,32 +370,34 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		}
 	}
 
-	$settings          = array();
-	$property_mappings = array(
-		'apiVersion'      => 'api_version',
-		'title'           => 'title',
-		'category'        => 'category',
-		'parent'          => 'parent',
-		'ancestor'        => 'ancestor',
-		'icon'            => 'icon',
-		'description'     => 'description',
-		'keywords'        => 'keywords',
-		'attributes'      => 'attributes',
-		'providesContext' => 'provides_context',
-		'usesContext'     => 'uses_context',
-		'supports'        => 'supports',
-		'styles'          => 'styles',
-		'variations'      => 'variations',
-		'example'         => 'example',
-	);
-	$textdomain        = ! empty( $metadata['textdomain'] ) ? $metadata['textdomain'] : null;
-	$i18n_schema       = get_block_metadata_i18n_schema();
+	$settings = array();
+	if ( $metadata_file_exists ) {
+		$property_mappings = array(
+			'apiVersion'      => 'api_version',
+			'title'           => 'title',
+			'category'        => 'category',
+			'parent'          => 'parent',
+			'ancestor'        => 'ancestor',
+			'icon'            => 'icon',
+			'description'     => 'description',
+			'keywords'        => 'keywords',
+			'attributes'      => 'attributes',
+			'providesContext' => 'provides_context',
+			'usesContext'     => 'uses_context',
+			'supports'        => 'supports',
+			'styles'          => 'styles',
+			'variations'      => 'variations',
+			'example'         => 'example',
+		);
+		$textdomain        = ! empty( $metadata['textdomain'] ) ? $metadata['textdomain'] : null;
+		$i18n_schema       = get_block_metadata_i18n_schema();
 
-	foreach ( $property_mappings as $key => $mapped_key ) {
-		if ( isset( $metadata[ $key ] ) ) {
-			$settings[ $mapped_key ] = $metadata[ $key ];
-			if ( $textdomain && isset( $i18n_schema->$key ) ) {
-				$settings[ $mapped_key ] = translate_settings_using_i18n_schema( $i18n_schema->$key, $settings[ $key ], $textdomain );
+		foreach ( $property_mappings as $key => $mapped_key ) {
+			if ( isset( $metadata[ $key ] ) ) {
+				$settings[ $mapped_key ] = $metadata[ $key ];
+				if ( $textdomain && isset( $i18n_schema->$key ) ) {
+					$settings[ $mapped_key ] = translate_settings_using_i18n_schema( $i18n_schema->$key, $settings[ $key ], $textdomain );
+				}
 			}
 		}
 	}
@@ -461,12 +468,12 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	}
 
 	if ( ! empty( $metadata['render'] ) ) {
-		$template_path = wp_normalize_path(
+		$template_path = $metadata_file_exists ? wp_normalize_path(
 			realpath(
 				dirname( $metadata['file'] ) . '/' .
 				remove_block_asset_path_prefix( $metadata['render'] )
 			)
-		);
+		) : '';
 		if ( $template_path ) {
 			/**
 			 * Renders the block on the server.
@@ -495,14 +502,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	 * @param array $settings Array of determined settings for registering a block type.
 	 * @param array $metadata Metadata provided for registering a block type.
 	 */
-	$settings = apply_filters(
-		'block_type_metadata_settings',
-		array_merge(
-			$settings,
-			$args
-		),
-		$metadata
-	);
+	$settings = apply_filters( 'block_type_metadata_settings', $settings, $metadata );
 
 	return WP_Block_Type_Registry::get_instance()->register(
 		$metadata['name'],
