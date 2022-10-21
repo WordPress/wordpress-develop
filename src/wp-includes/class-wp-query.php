@@ -4728,8 +4728,8 @@ class WP_Query {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param array $args Query arguments.
-	 * @param string $sql SQL statement.
+	 * @param array  $args Query arguments.
+	 * @param string $sql  SQL statement.
 	 *
 	 * @return string Cache key.
 	 */
