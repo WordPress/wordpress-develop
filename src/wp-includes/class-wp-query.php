@@ -4728,6 +4728,8 @@ class WP_Query {
 	 *
 	 * @since 6.1.0
 	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
 	 * @param array  $args Query arguments.
 	 * @param string $sql  SQL statement.
 	 *
