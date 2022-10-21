@@ -4728,40 +4728,36 @@ class WP_Query {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param array $cache_args
-	 * @param string $fields
+	 * @param array $args Query arguments.
+	 * @param string $sql SQL statement.
 	 *
-	 * @return string
+	 * @return string Cache key.
 	 */
-	protected function generate_cache_key( array $cache_args, $request ) {
+	protected function generate_cache_key( array $args, $sql ) {
 		global $wpdb;
 
 		unset(
-			$cache_args['suppress_filters'],
-			$cache_args['cache_results'],
-			$cache_args['fields'],
-			$cache_args['update_post_meta_cache'],
-			$cache_args['update_post_term_cache'],
-			$cache_args['lazy_load_term_meta'],
-			$cache_args['update_menu_item_cache']
+			$args['cache_results'],
+			$args['fields'],
+			$args['lazy_load_term_meta'],
+			$args['update_post_meta_cache'],
+			$args['update_post_term_cache'],
+			$args['update_menu_item_cache'],
+			$args['suppress_filters']
 		);
 
-		$placeholder = $wpdb->placeholder_escape();
-		foreach ( $cache_args as $key => $value ) {
-			if ( is_array( $value ) ) {
-				foreach ( $value as $n_key => $n_value ) {
-					if ( is_string( $n_value ) && str_contains( $n_value, $placeholder ) ) {
-						$cache_args[ $key ][ $n_key ] = $wpdb->remove_placeholder_escape( $n_value );
-					}
+		array_walk_recursive(
+			$args,
+			function ( &$value ) use ( $wpdb ) {
+				$placeholder = $wpdb->placeholder_escape();
+				if ( is_string( $value ) && str_contains( $value, $placeholder ) ) {
+					$value = $wpdb->remove_placeholder_escape( $value );
 				}
 			}
-			if ( is_string( $value ) && str_contains( $value, $placeholder ) ) {
-				$cache_args[ $key ] = $wpdb->remove_placeholder_escape( $value );
-			}
-		}
+		);
 
-		$request = $wpdb->remove_placeholder_escape( $request );
-		$key     = md5( serialize( $cache_args ) . $request );
+		$sql = $wpdb->remove_placeholder_escape( $sql );
+		$key = md5( serialize( $args ) . $sql );
 
 		$last_changed = wp_cache_get_last_changed( 'posts' );
 		if ( ! empty( $this->tax_query->queries ) ) {
