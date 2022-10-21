@@ -2,6 +2,8 @@
 
 /**
  * @group post
+ *
+ * @covers ::_truncate_post_slug
  */
 class Tests_Post_TruncatePostSlug extends WP_UnitTestCase {
 
