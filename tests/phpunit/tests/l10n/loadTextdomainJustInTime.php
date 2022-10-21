@@ -262,7 +262,8 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 	public function test_get_locale_is_called_only_once_per_textdomain() {
 		$textdomain = 'foo-bar-baz';
 
-		add_filter( 'locale', array( $this, '_filter_locale_count' ) );
+		$filter = new MockAction();
+		add_filter( 'locale', array( $filter, 'filter' ) );
 
 		__( 'Foo', $textdomain );
 		__( 'Bar', $textdomain );
@@ -270,10 +271,8 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		__( 'Foo Bar', $textdomain );
 		__( 'Foo Bar Baz', $textdomain );
 
-		remove_filter( 'locale', array( $this, '_filter_locale_count' ) );
-
 		$this->assertFalse( is_textdomain_loaded( $textdomain ) );
-		$this->assertSame( 1, $this->locale_count );
+		$this->assertSame( 1, $filter->get_call_count() );
 	}
 
 	/**
@@ -287,7 +286,8 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 
 		$textdomain = 'custom-internationalized-plugin';
 
-		add_filter( 'locale', array( $this, '_filter_locale_count' ) );
+		$filter = new MockAction();
+		add_filter( 'locale', array( $filter, 'filter' ) );
 
 		__( 'Foo', $textdomain );
 		__( 'Bar', $textdomain );
@@ -295,10 +295,8 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		__( 'Foo Bar', $textdomain );
 		__( 'Foo Bar Baz', $textdomain );
 
-		remove_filter( 'locale', array( $this, '_filter_locale_count' ) );
-
 		$this->assertFalse( is_textdomain_loaded( $textdomain ) );
-		$this->assertSame( 1, $this->locale_count );
+		$this->assertSame( 1, $filter->get_call_count() );
 	}
 
 	public function _filter_locale_count( $locale ) {
