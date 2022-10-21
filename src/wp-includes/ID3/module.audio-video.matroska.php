@@ -1748,7 +1748,7 @@ class getid3_matroska extends getid3_handler
 			$EBMLidList[EBML_ID_CODECNAME]                  = 'CodecName';
 			$EBMLidList[EBML_ID_CODECPRIVATE]               = 'CodecPrivate';
 			$EBMLidList[EBML_ID_CODECSETTINGS]              = 'CodecSettings';
-			$EBMLidList[EBML_ID_COLORSPACE]                = 'ColourSpace';
+			$EBMLidList[EBML_ID_COLORSPACE]                 = 'ColorSpace';
 			$EBMLidList[EBML_ID_CONTENTCOMPALGO]            = 'ContentCompAlgo';
 			$EBMLidList[EBML_ID_CONTENTCOMPRESSION]         = 'ContentCompression';
 			$EBMLidList[EBML_ID_CONTENTCOMPSETTINGS]        = 'ContentCompSettings';
