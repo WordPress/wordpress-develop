@@ -171,7 +171,7 @@ if ( is_multisite() ) :
 			}
 			wp_update_network_counts();
 
-			$this->assertSame( $site_count_start, $actual );
+			$this->assertEquals( $site_count_start, $actual );
 		}
 
 		/**
@@ -202,7 +202,7 @@ if ( is_multisite() ) :
 
 			$site_count = get_blog_count( self::$different_network_id );
 
-			$this->assertSame( count( self::$different_site_ids ), $site_count );
+			$this->assertEquals( count( self::$different_site_ids ), $site_count );
 		}
 
 		public function test_active_network_plugins() {
@@ -393,6 +393,54 @@ if ( is_multisite() ) :
 
 			$this->assertGreaterThan( 0, $site_count );
 			$this->assertGreaterThan( 0, $user_count );
+		}
+
+		/**
+		 * Test the default behavior of upload_size_limit_filter.
+		 * If any default option is changed, the function returns the min value between the
+		 * parameter passed and the `fileupload_maxk` site option (1500Kb by default)
+		 *
+		 * @ticket 55926
+		 */
+		public function test_upload_size_limit_filter() {
+			$return = upload_size_limit_filter( 1499 * KB_IN_BYTES );
+			$this->assertSame( 1499 * KB_IN_BYTES, $return );
+			$return = upload_size_limit_filter( 1501 * KB_IN_BYTES );
+			$this->assertSame( 1500 * KB_IN_BYTES, $return );
+		}
+
+		/**
+		 * Test if upload_size_limit_filter behaves as expected when the `fileupload_maxk` is 0 or an empty string.
+		 *
+		 * @ticket 55926
+		 * @dataProvider data_upload_size_limit_filter_empty_fileupload_maxk
+		 */
+		public function test_upload_size_limit_filter_empty_fileupload_maxk( $callable_set_fileupload_maxk ) {
+			add_filter( 'site_option_fileupload_maxk', $callable_set_fileupload_maxk );
+			$return = upload_size_limit_filter( 1500 );
+			$this->assertSame( 0, $return );
+		}
+
+		/**
+		 * @ticket 55926
+		 */
+		public function data_upload_size_limit_filter_empty_fileupload_maxk() {
+			return array(
+				array( '__return_zero' ),
+				array( '__return_empty_string' ),
+			);
+		}
+
+		/**
+		 * When upload_space_check is enabled, the space allowed is also considered by `upload_size_limit_filter`.
+		 *
+		 * @ticket 55926
+		 */
+		public function test_upload_size_limit_filter_when_upload_space_check_enabled() {
+			add_filter( 'get_space_allowed', '__return_zero' );
+			add_filter( 'site_option_upload_space_check_disabled', '__return_false' );
+			$return = upload_size_limit_filter( 100 );
+			$this->assertSame( 0, $return );
 		}
 
 		/**

@@ -19,4 +19,19 @@ class Tests_WP_SendHeaders extends WP_UnitTestCase {
 
 		$this->go_to( home_url() );
 	}
+
+	/**
+	 * @ticket 56840
+	 */
+	public function test_send_headers_sets_x_pingback_for_single_posts_that_allow_pings() {
+		add_action(
+			'wp_headers',
+			function ( $headers ) {
+				$this->assertArrayHasKey( 'X-Pingback', $headers );
+			}
+		);
+
+		$post_id = self::factory()->post->create();
+		$this->go_to( get_permalink( $post_id ) );
+	}
 }

@@ -1,4 +1,6 @@
 {
+	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"version": 2,
 	"title": "Pitch",
 	"settings": {
 		"color": {
@@ -231,7 +233,5 @@
 			"fontSize": "var(--wp--preset--font-size--medium)",
 			"lineHeight": "1.7"
 		}
-	},
-	"version": 2,
-	"$schema": "https://schemas.wp.org/trunk/theme.json"
+	}
 }

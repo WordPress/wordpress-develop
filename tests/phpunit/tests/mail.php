@@ -475,4 +475,21 @@ class Tests_Mail extends WP_UnitTestCase {
 		$this->assertTrue( $result1 );
 		$this->assertFalse( $result2 );
 	}
+
+	/**
+	 * Tests that AltBody is reset between each wp_mail call.
+	 *
+	 * @covers :wp_mail
+	 */
+	public function test_wp_mail_resets_properties() {
+		$wp_mail_set_text_message = function ( $phpmailer ) {
+			$phpmailer->AltBody = 'user1';
+		};
+		add_action( 'phpmailer_init', $wp_mail_set_text_message );
+		wp_mail( 'user1@example.localhost', 'Test 1', '<p>demo</p>', 'Content-Type: text/html' );
+		remove_action( 'phpmailer_init', $wp_mail_set_text_message );
+		wp_mail( 'user2@example.localhost', 'Test 2', 'test2' );
+		$phpmailer = $GLOBALS['phpmailer'];
+		$this->assertNotSame( 'user1', $phpmailer->AltBody );
+	}
 }

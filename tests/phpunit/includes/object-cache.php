@@ -313,13 +313,16 @@ function wp_cache_flush( $delay = 0 ) {
 }
 
 /**
- * Whether the object cache implementation supports flushing individual cache groups.
+ * Determines whether the object cache implementation supports a particular feature.
  *
  * @since 6.1.0
  *
- * @return bool True if group flushing is supported, false otherwise.
+ * @param string $feature Name of the feature to check for. Possible values include:
+ *                        'add_multiple', 'set_multiple', 'get_multiple', 'delete_multiple',
+ *                        'flush_runtime', 'flush_group'.
+ * @return bool True if the feature is supported, false otherwise.
  */
-function wp_cache_supports_group_flush() {
+function wp_cache_supports( $feature ) {
 	return false;
 }
 
