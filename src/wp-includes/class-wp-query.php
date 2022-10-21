@@ -752,6 +752,8 @@ class WP_Query {
 	 *                                                    the 'wp_query_search_exclusion_prefix' filter.
 	 *     @type int             $second                  Second of the minute. Default empty. Accepts numbers 0-59.
 	 *     @type bool            $sentence                Whether to search by phrase. Default false.
+	 *     @type array           $search_columns          Array of column names to be searched. Accepts 'post_title',
+	 *                                                    'post_content', 'post_excerpt'. Default empty array.
 	 *     @type bool            $suppress_filters        Whether to suppress filters. Default false.
 	 *     @type string          $tag                     Tag slug. Comma-separated (either), Plus-separated (all).
 	 *     @type int[]           $tag__and                An array of tag IDs (AND in).
@@ -1410,6 +1412,15 @@ class WP_Query {
 		$searchand                 = '';
 		$q['search_orderby_title'] = array();
 
+		$search_columns = array();
+		if ( ! empty( $q['search_columns'] ) ) {
+			$sc = $q['search_columns'];
+			if ( ! is_array( $sc ) ) {
+				$sc = array( trim( $sc ) );
+			}
+			$search_columns = array_intersect( $sc, array( 'post_title', 'post_content', 'post_excerpt' ) );
+		}
+
 		/**
 		 * Filters the prefix that indicates that a search term should be excluded from results.
 		 *
@@ -1432,14 +1443,23 @@ class WP_Query {
 				$andor_op = 'OR';
 			}
 
-			if ( $n && ! $exclude ) {
+			$search_columns_include_title = ( empty( $search_columns ) || in_array( 'post_title', $search_columns, true ) );
+			if ( $n && ! $exclude && $search_columns_include_title ) {
 				$like                        = '%' . $wpdb->esc_like( $term ) . '%';
 				$q['search_orderby_title'][] = $wpdb->prepare( "{$wpdb->posts}.post_title LIKE %s", $like );
 			}
 
 			$like = $n . $wpdb->esc_like( $term ) . $n;
 
-			if ( ! empty( $this->allow_query_attachment_by_filename ) ) {
+			if ( ! empty( $search_columns ) ) {
+				$search_fields_parts = array();
+				foreach ( $search_columns as $field ) {
+					$search_fields_parts[ $field ] = $wpdb->prepare( "({$wpdb->posts}.%i $like_op %s)", $field, $like );
+				}
+
+				$search .= $searchand;
+				$search .= implode( " $andor_op ", $search_fields_parts );
+			} else if ( ! empty( $this->allow_query_attachment_by_filename ) ) {
 				$search .= $wpdb->prepare( "{$searchand}(({$wpdb->posts}.post_title $like_op %s) $andor_op ({$wpdb->posts}.post_excerpt $like_op %s) $andor_op ({$wpdb->posts}.post_content $like_op %s) $andor_op (sq1.meta_value $like_op %s))", $like, $like, $like, $like );
 			} else {
 				$search .= $wpdb->prepare( "{$searchand}(({$wpdb->posts}.post_title $like_op %s) $andor_op ({$wpdb->posts}.post_excerpt $like_op %s) $andor_op ({$wpdb->posts}.post_content $like_op %s))", $like, $like, $like );
