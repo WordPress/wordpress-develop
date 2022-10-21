@@ -37,7 +37,7 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 		global $wp_textdomain_registry;
 
-		$wp_textdomain_registry->reset();
+		$wp_textdomain_registry = new WP_Textdomain_Registry();
 	}
 
 	public function tear_down() {
@@ -48,7 +48,7 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 		global $wp_textdomain_registry;
 
-		$wp_textdomain_registry->reset();
+		$wp_textdomain_registry = new WP_Textdomain_Registry();
 
 		parent::tear_down();
 	}
@@ -261,6 +261,31 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 	 */
 	public function test_get_locale_is_called_only_once_per_textdomain() {
 		$textdomain = 'foo-bar-baz';
+
+		add_filter( 'locale', array( $this, '_filter_locale_count' ) );
+
+		__( 'Foo', $textdomain );
+		__( 'Bar', $textdomain );
+		__( 'Baz', $textdomain );
+		__( 'Foo Bar', $textdomain );
+		__( 'Foo Bar Baz', $textdomain );
+
+		remove_filter( 'locale', array( $this, '_filter_locale_count' ) );
+
+		$this->assertFalse( is_textdomain_loaded( $textdomain ) );
+		$this->assertSame( 1, $this->locale_count );
+	}
+
+	/**
+	 * @ticket 37997
+	 * @ticket 39210
+	 *
+	 * @covers ::_load_textdomain_just_in_time
+	 */
+	public function test_get_locale_is_called_only_once_per_textdomain_with_custom_lang_dir() {
+		load_plugin_textdomain( 'custom-internationalized-plugin', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+
+		$textdomain = 'custom-internationalized-plugin';
 
 		add_filter( 'locale', array( $this, '_filter_locale_count' ) );
 
