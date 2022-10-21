@@ -61,7 +61,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_query_cache
 	 * @covers WP_Query::generate_cache_key
-	 * @ticket 22176
+	 * @ticket 56802
 	 */
 	public function test_generate_cache_key( $args ) {
 		global $wpdb;
@@ -85,7 +85,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 
 	/**
 	 * @covers WP_Query::generate_cache_key
-	 * @ticket 22176
+	 * @ticket 56802
 	 */
 	public function test_generate_cache_key_placeholder() {
 		global $wpdb;
