@@ -644,4 +644,70 @@ class Tests_Query_Search extends WP_UnitTestCase {
 	public function filter_posts_search( $sql ) {
 		return $sql . ' /* posts_search */';
 	}
+
+	public function test_search_with_one_search_column() {
+		$p1 = self::factory()->post->create(
+			array(
+				'post_status'  => 'publish',
+				'post_title'   => 'Lorem barbaz',
+				'post_content' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi id luctus mi. Donec eu maximus enim.',
+				'post_excerpt' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+			)
+		);
+		$p2 = self::factory()->post->create(
+			array(
+				'post_status'  => 'publish',
+				'post_title'   => 'Nam iaculis ac diam eget interdum.',
+				'post_content' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi id luctus mi. Donec eu maximus enim.',
+				'post_excerpt' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+			)
+		);
+
+		$q = new \WP_Query(
+			array(
+				's'              => 'barbaz',
+				'search_columns' => 'post_title',
+				'fields'         => 'ids',
+			)
+		);
+
+		$this->assertSame( array( $p1 ), $q->posts );
+	}
+
+	public function test_search_with_multiple_search_columns() {
+		$p1 = self::factory()->post->create(
+			array(
+				'post_status'  => 'publish',
+				'post_title'   => 'Lorem foofuz',
+				'post_content' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi id luctus mi. Donec eu maximus enim.',
+				'post_excerpt' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+			)
+		);
+		$p2 = self::factory()->post->create(
+			array(
+				'post_status'  => 'publish',
+				'post_title'   => 'Nam iaculis ac diam eget interdum.',
+				'post_content' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi id luctus mi. Donec eu maximus enim.',
+				'post_excerpt' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+			)
+		);
+		$p3 = self::factory()->post->create(
+			array(
+				'post_status'  => 'publish',
+				'post_title'   => 'Nam iaculis ac diam eget interdum.',
+				'post_content' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi id luctus mi. Donec eu maximus enim.',
+				'post_excerpt' => 'Lorem foofuz',
+			)
+		);
+
+		$q = new \WP_Query(
+			array(
+				's'              => 'foofuz',
+				'search_columns' => array( 'post_title', 'post_excerpt' ),
+				'fields'         => 'ids',
+			)
+		);
+
+		$this->assertSame( array( $p1, $p3 ), $q->posts );
+	}
 }
