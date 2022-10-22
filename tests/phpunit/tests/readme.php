@@ -1,13 +1,14 @@
 <?php
 /**
+ * Validate recommended versions for dependencies referenced in `readme.html`,
+ * based on external site support pages.
+ *
  * @group external-http
  */
-class Tests_External_HTTP_Basic extends WP_UnitTestCase {
+class Tests_Readme extends WP_UnitTestCase {
 
 	/**
-	 * @covers ::wp_remote_get
-	 * @covers ::wp_remote_retrieve_response_code
-	 * @covers ::wp_remote_retrieve_body
+	 * @coversNothing
 	 */
 	public function test_readme_php_version() {
 		$this->markTestSkipped(
@@ -29,9 +30,7 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::wp_remote_get
-	 * @covers ::wp_remote_retrieve_response_code
-	 * @covers ::wp_remote_retrieve_body
+	 * @coversNothing
 	 */
 	public function test_readme_mysql_version() {
 		// This test is designed to only run on trunk.
@@ -62,9 +61,7 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::wp_remote_get
-	 * @covers ::wp_remote_retrieve_response_code
-	 * @covers ::wp_remote_retrieve_body
+	 * @coversNothing
 	 */
 	public function test_readme_mariadb_version() {
 		// This test is designed to only run on trunk.

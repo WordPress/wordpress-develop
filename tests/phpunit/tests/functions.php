@@ -1415,6 +1415,16 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @requires extension fileinfo
 	 */
 	public function test_wp_check_filetype_and_ext_with_filtered_woff() {
+		if ( PHP_VERSION_ID >= 80200 ) {
+			/*
+			 * For the time being, this test is marked skipped on PHP 8.2 as a recent change introduced
+			 * an inconsistency with how the mime-type for WOFF files are handled compared to older versions.
+			 *
+			 * See https://core.trac.wordpress.org/ticket/56817 for more details.
+			 */
+			$this->markTestSkipped( 'This test currently fails on PHP 8.2RC3 and requires further investigation.' );
+		}
+
 		$file     = DIR_TESTDATA . '/uploads/dashicons.woff';
 		$filename = 'dashicons.woff';
 
@@ -2056,9 +2066,9 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @ticket 53668
 	 */
 	public function test_wp_get_default_extension_for_mime_type() {
-		$this->assertEquals( 'jpg', wp_get_default_extension_for_mime_type( 'image/jpeg' ), 'jpg not returned as default extension for "image/jpeg"' );
+		$this->assertSame( 'jpg', wp_get_default_extension_for_mime_type( 'image/jpeg' ), 'jpg not returned as default extension for "image/jpeg"' );
 		$this->assertNotEquals( 'jpeg', wp_get_default_extension_for_mime_type( 'image/jpeg' ), 'jpeg should not be returned as default extension for "image/jpeg"' );
-		$this->assertEquals( 'png', wp_get_default_extension_for_mime_type( 'image/png' ), 'png not returned as default extension for "image/png"' );
+		$this->assertSame( 'png', wp_get_default_extension_for_mime_type( 'image/png' ), 'png not returned as default extension for "image/png"' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( 'wibble/wobble' ), 'false not returned for unrecognized mime type' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( '' ), 'false not returned when empty string as mime type supplied' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( '   ' ), 'false not returned when empty string as mime type supplied' );
@@ -2072,7 +2082,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 */
 	function test_wp_filesize_with_nonexistent_file() {
 		$file = 'nonexistent/file.jpg';
-		$this->assertEquals( 0, wp_filesize( $file ) );
+		$this->assertSame( 0, wp_filesize( $file ) );
 	}
 
 	/**
@@ -2082,7 +2092,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	function test_wp_filesize() {
 		$file = DIR_TESTDATA . '/images/test-image-upside-down.jpg';
 
-		$this->assertEquals( filesize( $file ), wp_filesize( $file ) );
+		$this->assertSame( filesize( $file ), wp_filesize( $file ) );
 
 		$filter = function() {
 			return 999;
@@ -2090,7 +2100,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		add_filter( 'wp_filesize', $filter );
 
-		$this->assertEquals( 999, wp_filesize( $file ) );
+		$this->assertSame( 999, wp_filesize( $file ) );
 
 		$pre_filter = function() {
 			return 111;
@@ -2098,7 +2108,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		add_filter( 'pre_wp_filesize', $pre_filter );
 
-		$this->assertEquals( 111, wp_filesize( $file ) );
+		$this->assertSame( 111, wp_filesize( $file ) );
 	}
 
 	/**
@@ -2184,7 +2194,7 @@ class Tests_Functions extends WP_UnitTestCase {
 			),
 			'version'  => 1,
 		);
-		$this->assertEquals( $theme_json, $expected_theme_json );
+		$this->assertSameSetsWithIndex( $theme_json, $expected_theme_json );
 	}
 
 }

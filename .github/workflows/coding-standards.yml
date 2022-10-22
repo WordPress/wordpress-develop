@@ -21,7 +21,7 @@ on:
       # Any change to a PHP or JavaScript file should run checks.
       - '**.js'
       - '**.php'
-      # These files configure NPM. Changes could affect the outcome.
+      # These files configure npm. Changes could affect the outcome.
       - 'package*.json'
       # These files configure Composer. Changes could affect the outcome.
       - 'composer.*'
@@ -64,7 +64,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
 
       - name: Set up PHP
         uses: shivammathur/setup-php@e04e1d97f0c0481c6e1ba40f8a538454fe5d7709 # v2.21.2
@@ -82,10 +82,10 @@ jobs:
       # http://man7.org/linux/man-pages/man1/date.1.html
       - name: "Get last Monday's date"
         id: get-date
-        run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
+        run: echo "date=$(/bin/date -u --date='last Mon' "+%F")" >> $GITHUB_OUTPUT
 
       - name: Cache PHPCS scan cache
-        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77 # v3.0.8
+        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
         with:
           path: .cache/phpcs.json
           key: ${{ runner.os }}-date-${{ steps.get-date.outputs.date }}-phpcs-cache-${{ hashFiles('**/composer.json', 'phpcs.xml.dist') }}
@@ -102,10 +102,18 @@ jobs:
         run: phpcs -i
 
       - name: Run PHPCS on all Core files
-        run: phpcs -q -n --report=checkstyle | cs2pr
+        continue-on-error: true
+        run: phpcs -n --report-full --report-checkstyle=./.cache/phpcs-report.xml
+
+      - name: Show PHPCS results in PR
+        run: cs2pr ./.cache/phpcs-report.xml
 
       - name: Check test suite files for warnings
-        run: phpcs tests -q --report=checkstyle | cs2pr
+        continue-on-error: true
+        run: phpcs tests --report-full --report-checkstyle=./.cache/phpcs-tests-report.xml
+
+      - name: Show test suite scan results in PR
+        run: cs2pr ./.cache/phpcs-tests-report.xml
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code
@@ -117,9 +125,9 @@ jobs:
   # Performs the following steps:
   # - Checks out the repository.
   # - Logs debug information about the GitHub Action runner.
-  # - Installs NodeJS.
+  # - Installs Node.js.
   # - Logs updated debug information.
-  # _ Installs NPM dependencies.
+  # _ Installs npm dependencies.
   # - Run the WordPress JSHint checks.
   # - Ensures version-controlled files are not modified or deleted.
   jshint:
@@ -132,7 +140,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
 
       - name: Log debug information
         run: |
@@ -141,8 +149,8 @@ jobs:
           git --version
           svn --version
 
-      - name: Install NodeJS
-        uses: actions/setup-node@2fddd8803e2f5c9604345a0b591c3020ee971a93 # v3.4.1
+      - name: Install Node.js
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -190,7 +198,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@d4560e157075e2d93aa3022b5b51a42a880f1f93 # v6.3.0
+        uses: actions/github-script@100527700e8b29ca817ac0e0dfbfc5e8ff38edda # v6.3.2
         with:
           retries: 2
           retry-exempt-status-codes: 418
