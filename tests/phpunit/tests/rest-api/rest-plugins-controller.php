@@ -415,7 +415,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * @ticket 50321
+	 * @ticket 56221
 	 */
 	public function test_create_item_from_url_and_activate() {
 		wp_set_current_user( self::$super_admin );
