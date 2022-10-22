@@ -942,7 +942,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	/**
 	 * Tests non-existent '$orderby' fields.
 	 *
-	 * In PHP < 7.0.0, the sorting behaviour is different, which Core does not
+	 * In PHP < 7.0.0, the sorting behavior is different, which Core does not
 	 * currently handle. Until this is fixed, or the minimum PHP version is
 	 * raised to PHP 7.0.0+, these tests will be skipped on PHP < 7.0.0.
 	 *

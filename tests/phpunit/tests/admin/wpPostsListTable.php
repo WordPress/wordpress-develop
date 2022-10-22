@@ -225,7 +225,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 			$args
 		);
 
-		// Mimic the behaviour of `wp_edit_posts_query()`:
+		// Mimic the behavior of `wp_edit_posts_query()`:
 		if ( ! isset( $args['orderby'] ) ) {
 			$args['orderby']                = 'menu_order title';
 			$args['order']                  = 'asc';
