@@ -51,9 +51,15 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 					'args'                => array(
 						'slug'   => array(
 							'type'        => 'string',
-							'required'    => true,
+							'required'    => false,
 							'description' => __( 'WordPress.org plugin directory slug.' ),
 							'pattern'     => '[\w\-]+',
+						),
+						'url'    => array(
+							'type'        => 'string',
+							'required'    => false,
+							'description' => __( 'A URL to a zip or tar archive.' ),
+							'pattern'     => '^https?://[^\/]*/.*(zip|tar|tar\.gz)$',
 						),
 						'status' => array(
 							'description' => __( 'The plugin activation status.' ),
@@ -278,39 +284,45 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 		require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 
-		$slug = $request['slug'];
+		if ( isset( $request['url'] ) ) {
+			$plugin_url = $request['url'];
+		} else {
+			$slug = $request['slug'];
 
-		// Verify filesystem is accessible first.
-		$filesystem_available = $this->is_filesystem_available();
-		if ( is_wp_error( $filesystem_available ) ) {
-			return $filesystem_available;
-		}
-
-		$api = plugins_api(
-			'plugin_information',
-			array(
-				'slug'   => $slug,
-				'fields' => array(
-					'sections'       => false,
-					'language_packs' => true,
-				),
-			)
-		);
-
-		if ( is_wp_error( $api ) ) {
-			if ( false !== strpos( $api->get_error_message(), 'Plugin not found.' ) ) {
-				$api->add_data( array( 'status' => 404 ) );
-			} else {
-				$api->add_data( array( 'status' => 500 ) );
+			// Verify filesystem is accessible first.
+			$filesystem_available = $this->is_filesystem_available();
+			if ( is_wp_error( $filesystem_available ) ) {
+				return $filesystem_available;
 			}
 
-			return $api;
+			$api = plugins_api(
+				'plugin_information',
+				array(
+					'slug'   => $slug,
+					'fields' => array(
+						'sections'       => false,
+						'language_packs' => true,
+					),
+				)
+			);
+
+			if ( is_wp_error( $api ) ) {
+				if ( false !== strpos( $api->get_error_message(), 'Plugin not found.' ) ) {
+					$api->add_data( array( 'status' => 404 ) );
+				} else {
+					$api->add_data( array( 'status' => 500 ) );
+				}
+
+				return $api;
+			}
+
+			$plugin_url = $api->download_link;
 		}
 
 		$skin     = new WP_Ajax_Upgrader_Skin();
 		$upgrader = new Plugin_Upgrader( $skin );
 
-		$result = $upgrader->install( $api->download_link );
+		$result = $upgrader->install( $plugin_url );
 
 		if ( is_wp_error( $result ) ) {
 			$result->add_data( array( 'status' => 500 ) );
@@ -380,25 +392,27 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 		/** This filter is documented in wp-includes/update.php */
 		$installed_locales = apply_filters( 'plugins_update_check_locales', $installed_locales );
 
-		$language_packs = array_map(
-			static function( $item ) {
-				return (object) $item;
-			},
-			$api->language_packs
-		);
+		if ( isset( $api ) ) {
+			$language_packs = array_map(
+				static function ( $item ) {
+					return (object) $item;
+				},
+				$api->language_packs
+			);
 
-		$language_packs = array_filter(
-			$language_packs,
-			static function( $pack ) use ( $installed_locales ) {
-				return in_array( $pack->language, $installed_locales, true );
+			$language_packs = array_filter(
+				$language_packs,
+				static function ( $pack ) use ( $installed_locales ) {
+					return in_array( $pack->language, $installed_locales, true );
+				}
+			);
+
+			if ( $language_packs ) {
+				$lp_upgrader = new Language_Pack_Upgrader( $skin );
+
+				// Install all applicable language packs for the plugin.
+				$lp_upgrader->bulk_upgrade( $language_packs );
 			}
-		);
-
-		if ( $language_packs ) {
-			$lp_upgrader = new Language_Pack_Upgrader( $skin );
-
-			// Install all applicable language packs for the plugin.
-			$lp_upgrader->bulk_upgrade( $language_packs );
 		}
 
 		$path          = WP_PLUGIN_DIR . '/' . $file;
