@@ -33,7 +33,7 @@ class WP_Textdomain_Registry {
 	protected $current = array();
 
 	/**
-	 * List of domains and their default language directory path.
+	 * List of domains and their default language directory paths.
 	 *
 	 * @see load_plugin_textdomain()
 	 * @see load_theme_textdomain()
@@ -42,7 +42,7 @@ class WP_Textdomain_Registry {
 	 *
 	 * @var array
 	 */
-	protected $default_path = array();
+	protected $default_paths = array();
 
 	/**
 	 * Holds a cached list of available .mo files to improve performance.
@@ -105,7 +105,7 @@ class WP_Textdomain_Registry {
 	}
 
 	/**
-	 * Set the default path to the plugin's/theme's languages directory.
+	 * Sets the default path to the plugin's/theme's languages directory.
 	 *
 	 * Used by {@see load_plugin_textdomain()} and {@see load_theme_textdomain()}.
 	 *
@@ -156,7 +156,7 @@ class WP_Textdomain_Registry {
 			}
 		}
 
-		// If no path is found for the given locale anda default path has been set
+		// If no path is found for the given locale and a default path has been set
 		// using load_plugin_textdomain/load_theme_textdomain, use that one.
 		if ( 'en_US' !== $locale && isset( $this->default_path[ $domain ] ) ) {
 			$path = trailingslashit( $this->default_path[ $domain ] );
