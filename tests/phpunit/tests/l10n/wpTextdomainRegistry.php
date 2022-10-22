@@ -3,7 +3,6 @@
 /**
  * @group l10n
  * @group i18n
- * @ticket 39210
  *
  * @coversDefaultClass WP_Textdomain_Registry
  */
@@ -21,17 +20,21 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::has
-	 * @covers ::set_default_path
+	 * @covers ::set_custom_path
 	 */
-	public function test_set_default_path() {
-		$this->instance->set_default_path( 'foo', WP_LANG_DIR );
+	public function test_set_custom_path() {
+		$this->instance->set_custom_path( 'foo', WP_LANG_DIR . '/bar' );
 		$this->assertTrue( $this->instance->has( 'foo' ) );
+		$this->assertSame( WP_LANG_DIR . '/bar/', $this->instance->get( 'foo', 'de_DE' ) );
 	}
 
 	/**
 	 * @covers ::get
 	 */
 	public function test_get() {
+		$reflection          = new ReflectionClass( $this->instance );
+		$reflection_property = $reflection->getProperty( 'cached_mo_files' );
+		$reflection_property->setAccessible( true );
 		$this->assertFalse( $this->instance->get( 'unknown-plugin', 'de_DE' ) );
 		$this->assertSame(
 			WP_LANG_DIR . '/plugins/',
@@ -44,7 +47,12 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 		$this->assertFalse(
 			$this->instance->get( 'internationalized-plugin', 'en_US' )
 		);
+		$this->assertArrayHasKey(
+			WP_LANG_DIR . '/plugins',
+			$reflection_property->getValue( $this->instance )
+		);
 	}
+
 	/**
 	 * @covers ::set
 	 * @covers ::get
