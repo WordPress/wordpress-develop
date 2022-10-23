@@ -291,7 +291,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 								'key'     => 'color',
 								'value'   => '00',
 								'compare' => 'LIKE',
-								),
+							),
 							array(
 								'relation' => 'AND',
 								array(
