@@ -59,7 +59,8 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 							'type'        => 'string',
 							'required'    => false,
 							'description' => __( 'A URL to a zip or tar archive.' ),
-							'pattern'     => '^https?://[^\/]*/.*(zip|tar|tar\.gz)$',
+							'format'      => 'uri',
+							'pattern'     => '\\.(zip|tar|tar\\.gz)$',
 						),
 						'status' => array(
 							'description' => __( 'The plugin activation status.' ),
