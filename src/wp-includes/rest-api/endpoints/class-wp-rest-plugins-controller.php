@@ -51,13 +51,11 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 					'args'                => array(
 						'slug'   => array(
 							'type'        => 'string',
-							'required'    => false,
 							'description' => __( 'WordPress.org plugin directory slug.' ),
 							'pattern'     => '[\w\-]+',
 						),
 						'url'    => array(
 							'type'        => 'string',
-							'required'    => false,
 							'description' => __( 'A URL to a zip or tar archive.' ),
 							'format'      => 'uri',
 							'pattern'     => '\\.(zip|tar|tar\\.gz)$',
