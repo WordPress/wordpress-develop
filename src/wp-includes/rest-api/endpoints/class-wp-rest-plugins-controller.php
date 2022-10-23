@@ -69,6 +69,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 							'default'     => 'inactive',
 						),
 					),
+					'validate_callback'   => array( $this, 'validate_create_plugin_params' ),
 				),
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
@@ -285,10 +286,9 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 		require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 
-		if ( isset( $request['url'] ) ) {
-			$plugin_url     = $request['url'];
-			$language_packs = array();
-		} elseif ( isset( $request['slug'] ) ) {
+		$language_packs = array();
+
+		if ( isset( $request['slug'] ) ) {
 			$slug = $request['slug'];
 
 			// Verify filesystem is accessible first.
@@ -326,9 +326,10 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 				},
 				$api->language_packs
 			);
-		} else {
-			$response = new WP_REST_Response( null, 400 );
-			return $response;
+		}
+
+		if ( isset( $request['url'] ) ) {
+			$plugin_url = $request['url'];
 		}
 
 		$skin     = new WP_Ajax_Upgrader_Skin();
@@ -796,6 +797,30 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 		$validated = validate_file( plugin_basename( $file ) );
 
 		return 0 === $validated;
+	}
+
+	/**
+	 * When installing a plugin via a POST create request, validate that one of either "url" or "slug" are present.
+	 * If both are present, the plugin URL must be a wordpress.org URL.
+	 *
+	 * @param WP_REST_Request $request
+	 *
+	 * @return bool
+	 */
+	public function validate_create_plugin_params( $request ) {
+
+		$xor_param_required      = array( 'slug', 'url' );
+		$request_params          = $request->get_params();
+		$required_params_present = array_intersect( $xor_param_required, array_keys( $request_params ) );
+
+		switch ( count( $required_params_present ) ) {
+			case 1:
+				return true;
+			case 2:
+				return wp_parse_url( $request_params['url'], PHP_URL_HOST ) === 'downloads.wordpress.org';
+			default:
+				return false;
+		}
 	}
 
 	/**
