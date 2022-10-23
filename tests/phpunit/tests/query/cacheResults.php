@@ -33,6 +33,13 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 */
 	public static $author_id;
 
+	/**
+	 * For testing test_generate_cache_key() includes a test containing the placeholder.
+	 *
+	 * @var bool
+	 */
+	public static $placeholder_cache_key_tested = false;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Make some post objects.
 		self::$posts = $factory->post->create_many( 5 );
@@ -57,7 +64,6 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		);
 	}
 
-
 	/**
 	 * @dataProvider data_query_cache
 	 * @covers WP_Query::generate_cache_key
@@ -72,16 +78,27 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$request                = $query1->request;
 		$request_no_placeholder = $wpdb->remove_placeholder_escape( $request );
 
+		if ( str_contains( $request, $wpdb->placeholder_escape() ) ) {
+			$this->assertStringNotContainsString( $wpdb->placeholder_escape(), $request_no_placeholder, 'Placeholder escape should be removed from the request.' );
+			self::$placeholder_cache_key_tested = true;
+		}
+
 		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
 		$reflection->setAccessible( true );
 
-		$result_1 = $reflection->invoke( $query1, $query_vars, $request );
+		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request );
+		$cache_key_2 = $reflection->invoke( $query1, $query_vars, $request_no_placeholder );
 
-		$result_2 = $reflection->invoke( $query1, $query_vars, $request_no_placeholder );
-
-		$this->assertSame( $result_1, $result_2 );
+		$this->assertSame( $cache_key_1, $cache_key_2, 'Cache key differs when using wpdb placeholder.' );
 	}
 
+	/**
+	 * @ticket 56802
+	 * @depends test_generate_cache_key
+	 */
+	public function test_placeholder_cache_key_tested() {
+		$this->assertTrue( self::$placeholder_cache_key_tested, 'Placeholder cache key was not tested.' );
+	}
 
 	/**
 	 * @covers WP_Query::generate_cache_key
