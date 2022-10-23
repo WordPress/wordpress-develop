@@ -285,8 +285,9 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 		require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 
 		if ( isset( $request['url'] ) ) {
-			$plugin_url = $request['url'];
-		} else {
+			$plugin_url     = $request['url'];
+			$language_packs = array();
+		} elseif ( isset( $request['slug'] ) ) {
 			$slug = $request['slug'];
 
 			// Verify filesystem is accessible first.
@@ -317,6 +318,16 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 			}
 
 			$plugin_url = $api->download_link;
+
+			$language_packs = array_map(
+				static function ( $item ) {
+					return (object) $item;
+				},
+				$api->language_packs
+			);
+		} else {
+			$response = new WP_REST_Response( null, 400 );
+			return $response;
 		}
 
 		$skin     = new WP_Ajax_Upgrader_Skin();
@@ -392,27 +403,18 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 		/** This filter is documented in wp-includes/update.php */
 		$installed_locales = apply_filters( 'plugins_update_check_locales', $installed_locales );
 
-		if ( isset( $api ) ) {
-			$language_packs = array_map(
-				static function ( $item ) {
-					return (object) $item;
-				},
-				$api->language_packs
-			);
-
-			$language_packs = array_filter(
-				$language_packs,
-				static function ( $pack ) use ( $installed_locales ) {
-					return in_array( $pack->language, $installed_locales, true );
-				}
-			);
-
-			if ( $language_packs ) {
-				$lp_upgrader = new Language_Pack_Upgrader( $skin );
-
-				// Install all applicable language packs for the plugin.
-				$lp_upgrader->bulk_upgrade( $language_packs );
+		$language_packs = array_filter(
+			$language_packs,
+			static function ( $pack ) use ( $installed_locales ) {
+				return in_array( $pack->language, $installed_locales, true );
 			}
+		);
+
+		if ( $language_packs ) {
+			$lp_upgrader = new Language_Pack_Upgrader( $skin );
+
+			// Install all applicable language packs for the plugin.
+			$lp_upgrader->bulk_upgrade( $language_packs );
 		}
 
 		$path          = WP_PLUGIN_DIR . '/' . $file;
