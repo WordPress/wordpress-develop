@@ -95,17 +95,21 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query_vars                 = $query1->query_vars;
 		$request                    = $query1->request;
 		$query_vars['test']['nest'] = '%';
+		$query_vars['test2']['nest']['nest']['nest'] = '%';
+		$this->assertStringNotContainsString( $wpdb->placeholder_escape(), serialize( $query_vars ), 'Query vars should not contain the wpdb placeholder.' );
 
 		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
 		$reflection->setAccessible( true );
 
-		$result_1 = $reflection->invoke( $query1, $query_vars, $request );
+		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request );
 
 		$query_vars['test']['nest'] = $wpdb->placeholder_escape();
+		$query_vars['test2']['nest']['nest']['nest'] = $wpdb->placeholder_escape();
+		$this->assertStringContainsString( $wpdb->placeholder_escape(), serialize( $query_vars ), 'Query vars should not contain the wpdb placeholder.' );
 
-		$result_2 = $reflection->invoke( $query1, $query_vars, $request );
+		$cache_key_2 = $reflection->invoke( $query1, $query_vars, $request );
 
-		$this->assertSame( $result_1, $result_2 );
+		$this->assertSame( $cache_key_1, $cache_key_2, 'Cache key differs when using wpdb placeholder.' );
 	}
 
 	/**
