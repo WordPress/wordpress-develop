@@ -254,6 +254,40 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 					),
 				),
 			),
+			'cache nested meta query search'              => array(
+				'args' => array(
+					'cache_results' => true,
+					'meta_query'    => array(
+						'relation' => 'AND',
+						array(
+							'key'     => 'color',
+							'value'   => '00',
+							'compare' => 'LIKE',
+						),
+						array(
+							'relation' => 'OR',
+							array(
+								'key'     => 'color',
+								'value'   => '00',
+								'compare' => 'LIKE',
+								),
+							array(
+								'relation' => 'AND',
+								array(
+									'key'     => 'wp_test_suite',
+									'value'   => '56802',
+									'compare' => 'LIKE',
+								),
+								array(
+									'key'     => 'wp_test_suite_too',
+									'value'   => '56802',
+									'compare' => 'LIKE',
+								),
+							),
+						),
+					),
+				),
+			),
 			'cache meta query not search'                 => array(
 				'args' => array(
 					'cache_results' => true,
