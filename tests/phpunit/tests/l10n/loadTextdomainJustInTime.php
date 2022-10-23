@@ -8,7 +8,6 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 	protected $orig_theme_dir;
 	protected $theme_root;
 	protected static $user_id;
-	private $locale_count;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_id = $factory->user->create(
@@ -24,7 +23,6 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 
 		$this->theme_root     = DIR_TESTDATA . '/themedir1';
 		$this->orig_theme_dir = $GLOBALS['wp_theme_directories'];
-		$this->locale_count   = 0;
 
 		// /themes is necessary as theme.php functions assume /themes is the root if there is only one root.
 		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', $this->theme_root );
@@ -297,11 +295,5 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 
 		$this->assertFalse( is_textdomain_loaded( $textdomain ) );
 		$this->assertSame( 1, $filter->get_call_count() );
-	}
-
-	public function _filter_locale_count( $locale ) {
-		++$this->locale_count;
-
-		return $locale;
 	}
 }
