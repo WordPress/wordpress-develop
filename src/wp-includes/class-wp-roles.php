@@ -173,73 +173,25 @@ class WP_Roles {
 	}
 
 	/**
-	 * Updates an existing role. Creates a new role if it doesn't exist.
+	 * Updates an existing role name.
 	 *
-	 * Modifies the display name and/or capabilities for an existing role.
-	 * If the role does not exist then a new role is created.
-	 *
-	 * The capabilities are defined in the following format: `array( 'read' => true )`.
-	 * To explicitly deny the role a capability, set the value for that capability to false.
+	 * Only modifies the display name for an existing role.
+	 * Use WP_Roles::add_cap() and WP_Roles::remove_cap() to modify the capabilities for an existing role.
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param string      $role         Role name.
-	 * @param string|null $display_name Optional. Role display name. If null, the display name
-	 *                                  is not modified. Default null.
-	 * @param bool[]|null $capabilities Optional. List of capabilities keyed by the capability name,
-	 *                                  e.g. `array( 'edit_posts' => true, 'delete_posts' => false )`.
-	 *                                  If null, don't alter capabilities for the existing role and make
-	 *                                  empty capabilities for the new one. Default null.
-	 * @return WP_Role|void WP_Role object, if the role is updated.
+	 * @param string $role         Role name.
+	 * @param string $display_name Role display name.
 	 */
-	public function update_role( $role, $display_name = null, $capabilities = null ) {
-		if ( ! is_string( $role ) || '' === trim( $role ) ) {
+	public function update_role( $role, $display_name ) {
+		if ( ! is_string( $role ) || ! isset( $this->roles[ $role ] ) || ! is_string( $display_name ) ) {
 			return;
 		}
 
-		if ( null !== $display_name && ( ! is_string( $display_name ) || '' === trim( $display_name ) ) ) {
-			return;
+		$this->roles[ $role ]['name'] = $display_name;
+		if ( $this->use_db ) {
+			update_option( $this->role_key, $this->roles );
 		}
-
-		if ( null !== $capabilities && ! is_array( $capabilities ) ) {
-			return;
-		}
-
-		if ( null === $display_name && null === $capabilities ) {
-			if ( isset( $this->role_objects[ $role ] ) ) {
-				return $this->role_objects[ $role ];
-			}
-			return;
-		}
-
-		if ( null === $display_name ) {
-			if ( ! isset( $this->role_objects[ $role ] ) ) {
-				return;
-			}
-
-			$display_name = $this->roles[ $role ]['name'];
-		}
-
-		if ( null === $capabilities ) {
-			if ( isset( $this->role_objects[ $role ] ) ) {
-				$capabilities = $this->role_objects[ $role ]->capabilities;
-			} else {
-				$capabilities = array();
-			}
-		}
-
-		if ( isset( $this->roles[ $role ] ) ) {
-			if ( null === $capabilities ) {
-				$capabilities = $this->role_objects[ $role ]->capabilities;
-			}
-
-			unset( $this->role_objects[ $role ] );
-			unset( $this->role_names[ $role ] );
-			unset( $this->roles[ $role ] );
-		}
-
-		// The roles database option will be updated in ::add_role().
-		return $this->add_role( $role, $display_name, $capabilities );
 	}
 
 	/**
