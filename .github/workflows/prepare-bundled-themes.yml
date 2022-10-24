@@ -59,23 +59,23 @@ jobs:
 
       - name: Install Node.js
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
-        if: ${{ contains( fromJson( '["twentynineteen", "twentytwenty", "twentytwentyone"]' ), ${{ matrix.theme }} )
+        if: ${{ contains( fromJson( '["twentynineteen", "twentytwenty", "twentytwentyone"]' ), matrix.theme ) }}
         with:
           node-version-file: '.nvmrc'
           cache: npm
 
       - name: Install npm dependencies
-        if: ${{ contains( fromJson( '["twentynineteen", "twentytwenty", "twentytwentyone"]' ), ${{ matrix.theme }} )
+        if: ${{ contains( fromJson( '["twentynineteen", "twentytwenty", "twentytwentyone"]' ), matrix.theme ) }}
         run: npm ci
         working-directory: src/wp-content/themes/${{ matrix.theme }}
 
       - name: Build theme
-        if: ${{ contains( fromJson( '["twentynineteen", "twentytwenty", "twentytwentyone"]' ), ${{ matrix.theme }} )
+        if: ${{ contains( fromJson( '["twentynineteen", "twentytwenty", "twentytwentyone"]' ), matrix.theme ) }}
         run: npm run build
         working-directory: src/wp-content/themes/${{ matrix.theme }}
 
       - name: Ensure version-controlled files are not modified or deleted
-        if: ${{ contains( fromJson( '["twentynineteen", "twentytwenty", "twentytwentyone"]' ), ${{ matrix.theme }} )
+        if: ${{ contains( fromJson( '["twentynineteen", "twentytwenty", "twentytwentyone"]' ), matrix.theme ) }}
         run: git diff --exit-code
         working-directory: src/wp-content/themes/${{ matrix.theme }}
 
