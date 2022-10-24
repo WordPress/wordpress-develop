@@ -18,10 +18,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
   cancel-in-progress: true
 
-defaults:
-  run:
-    working-directory: src/wp-content/themes/${{ matrix.theme }}
-
 jobs:
   # Prepares bundled themes for release.
   #
@@ -71,18 +67,20 @@ jobs:
       - name: Install npm dependencies
         if: ${{ contains( fromJson( '["twentynineteen", "twentytwenty", "twentytwentyone"]' ), ${{ matrix.theme }} )
         run: npm ci
+        working-directory: src/wp-content/themes/${{ matrix.theme }}
 
       - name: Build theme
         if: ${{ contains( fromJson( '["twentynineteen", "twentytwenty", "twentytwentyone"]' ), ${{ matrix.theme }} )
         run: npm run build
+        working-directory: src/wp-content/themes/${{ matrix.theme }}
 
       - name: Ensure version-controlled files are not modified or deleted
         if: ${{ contains( fromJson( '["twentynineteen", "twentytwenty", "twentytwentyone"]' ), ${{ matrix.theme }} )
         run: git diff --exit-code
+        working-directory: src/wp-content/themes/${{ matrix.theme }}
 
       - name: Create theme ZIP
         run: zip -r ${{ matrix.theme }}.zip src/wp-content/themes/${{ matrix.theme }}
-        working-directory: ${{ github.workspace }}
 
       - name: Upload theme ZIP
         uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb # v3.1.1
