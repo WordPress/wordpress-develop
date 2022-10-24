@@ -33,6 +33,7 @@ jobs:
 
             More information about how GitHub pull requests can be used to contribute to WordPress can be found in [this blog post](https://make.wordpress.org/core/2020/02/21/working-on-trac-tickets-using-github-pull-requests/).
 
+            **Please link your WordPress.org account to GitHub.** To ensure your contribution is correctly credited in a WordPress release, please link your WordPress.org account to GitHub. If you have an existing WordPress.org account you can [link it to GitHub in your profile](https://profiles.wordpress.org/me/). If you do not have a WordPress.org account, please [register an account](https://login.wordpress.org/register).
 
             **Please include automated tests.** Including tests in your pull request is one way to help your patch be considered faster. To learn about WordPress' test suites, visit the [Automated Testing](https://make.wordpress.org/core/handbook/testing/automated-testing/) page in the handbook.
 
