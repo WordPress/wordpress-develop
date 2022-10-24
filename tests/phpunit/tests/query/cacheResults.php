@@ -74,9 +74,13 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_query_cache
-	 * @covers WP_Query::generate_cache_key
+	 * Ensure cache keys are generated without WPDB placeholders.
+	 *
 	 * @ticket 56802
+	 *
+	 * @covers WP_Query::generate_cache_key
+	 *
+	 * @dataProvider data_query_cache
 	 */
 	public function test_generate_cache_key( $args ) {
 		global $wpdb;
@@ -107,7 +111,12 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure cache keys tests include WPDB placeholder in SQL Query.
+	 *
 	 * @ticket 56802
+	 *
+	 * @covers WP_Query::generate_cache_key
+	 *
 	 * @depends test_generate_cache_key
 	 */
 	public function test_sql_placeholder_cache_key_tested() {
@@ -115,7 +124,15 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure cache keys tests include WPDB placeholder in WP_Query arguments.
+	 *
+	 * This test mainly covers the search query which generates the `search_orderby_title`
+	 * query_var in WP_Query.
+	 *
 	 * @ticket 56802
+	 *
+	 * @covers WP_Query::generate_cache_key
+	 *
 	 * @depends test_generate_cache_key
 	 */
 	public function test_wp_query_placeholder_cache_key_tested() {
@@ -123,8 +140,11 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers WP_Query::generate_cache_key
+	 * Ensure cache keys are generated without WPDB placeholders.
+	 *
 	 * @ticket 56802
+	 *
+	 * @covers WP_Query::generate_cache_key
 	 */
 	public function test_generate_cache_key_placeholder() {
 		global $wpdb;
