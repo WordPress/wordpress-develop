@@ -63,6 +63,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: npm
+          cache-dependency-path: src/wp-content/themes/${{ matrix.theme }}/package-lock.json
 
       - name: Install npm dependencies
         if: ${{ contains( fromJson( '["twentynineteen", "twentytwenty", "twentytwentyone"]' ), matrix.theme ) }}
