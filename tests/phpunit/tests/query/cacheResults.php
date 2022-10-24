@@ -131,9 +131,9 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query1 = new WP_Query();
 		$query1->query( array() );
 
-		$query_vars                 = $query1->query_vars;
-		$request                    = $query1->request;
-		$query_vars['test']['nest'] = '%';
+		$query_vars                                  = $query1->query_vars;
+		$request                                     = $query1->request;
+		$query_vars['test']['nest']                  = '%';
 		$query_vars['test2']['nest']['nest']['nest'] = '%';
 		$this->assertStringNotContainsString( $wpdb->placeholder_escape(), serialize( $query_vars ), 'Query vars should not contain the wpdb placeholder.' );
 
@@ -142,7 +142,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 
 		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request );
 
-		$query_vars['test']['nest'] = $wpdb->placeholder_escape();
+		$query_vars['test']['nest']                  = $wpdb->placeholder_escape();
 		$query_vars['test2']['nest']['nest']['nest'] = $wpdb->placeholder_escape();
 		$this->assertStringContainsString( $wpdb->placeholder_escape(), serialize( $query_vars ), 'Query vars should not contain the wpdb placeholder.' );
 
