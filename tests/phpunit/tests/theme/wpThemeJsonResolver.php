@@ -13,6 +13,13 @@
 class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 	/**
+	 * Administrator ID.
+	 *
+	 * @var int
+	 */
+	protected static $administrator_id;
+
+	/**
 	 * Theme root directory.
 	 *
 	 * @var string
@@ -63,6 +70,13 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
+
+		self::$administrator_id = self::factory()->user->create(
+			array(
+				'role'       => 'administrator',
+				'user_email' => 'administrator@example.com',
+			)
+		);
 
 		static::$property_blocks_cache = new ReflectionProperty( WP_Theme_JSON_Resolver::class, 'blocks_cache' );
 		static::$property_blocks_cache->setAccessible( true );
@@ -620,6 +634,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @covers WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles
 	 */
 	function test_get_user_data_from_wp_global_styles_does_not_use_uncached_queries() {
+		wp_set_current_user( self::$administrator_id );
 		$theme = wp_get_theme();
 		WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
 		add_filter( 'query', array( $this, 'filter_db_query' ) );
@@ -629,7 +644,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 			WP_Theme_JSON_Resolver::clean_cached_data();
 		}
 		$query_count = count( $this->queries ) - $query_count;
-		$this->assertSame( 0, $query_count, 'Unexpected SQL queries detected for the wp_global_style post type' );
+		$this->assertSame( 0, $query_count, 'Unexpected SQL queries detected for the wp_global_style post type prior to creation.' );
 
 		$user_cpt = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
 		$this->assertEmpty( $user_cpt, 'User CPT is expected to be empty.' );
@@ -644,8 +659,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 			$this->assertSameSets( $user_cpt, $new_user_cpt, "User CPTs do not match on run {$i}." );
 		}
 		$query_count = count( $this->queries ) - $query_count;
-		$this->assertSame( 0, $query_count, 'Unexpected SQL queries detected for the wp_global_style post type' );
-		remove_filter( 'query', array( $this, 'filter_db_query' ) );
+		$this->assertSame( 1, $query_count, 'Unexpected SQL queries detected for the wp_global_style post type after creation.' );
 	}
 
 	/**
