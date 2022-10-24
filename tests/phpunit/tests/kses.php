@@ -1112,6 +1112,11 @@ EOF;
 				'css'      => 'object-position: right top',
 				'expected' => 'object-position: right top',
 			),
+			// `object-fit` introduced in 6.1.
+			array(
+				'css'      => 'object-fit: cover',
+				'expected' => 'object-fit: cover',
+			),
 			// Expressions are not allowed.
 			array(
 				'css'      => 'height: expression( body.scrollTop + 50 + "px" )',
