@@ -102,17 +102,19 @@ jobs:
         run: phpcs -i
 
       - name: Run PHPCS on all Core files
-        continue-on-error: true
+        id: phpcs-core
         run: phpcs -n --report-full --report-checkstyle=./.cache/phpcs-report.xml
 
       - name: Show PHPCS results in PR
+        if: ${{ always() && steps.phpcs-core.outcome == 'failure' }}
         run: cs2pr ./.cache/phpcs-report.xml
 
       - name: Check test suite files for warnings
-        continue-on-error: true
+        id: phpcs-tests
         run: phpcs tests --report-full --report-checkstyle=./.cache/phpcs-tests-report.xml
 
       - name: Show test suite scan results in PR
+        if: ${{ always() && steps.phpcs-tests.outcome == 'failure' }}
         run: cs2pr ./.cache/phpcs-tests-report.xml
 
       - name: Ensure version-controlled files are not modified during the tests
@@ -207,7 +209,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: 'failed-workflow.yml',
-              ref: '${{ github.ref_name }}',
+              ref: 'trunk',
               inputs: {
                 run_id: '${{ github.run_id }}'
               }
