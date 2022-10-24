@@ -34,11 +34,20 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	public static $author_id;
 
 	/**
-	 * For testing test_generate_cache_key() includes a test containing the placeholder.
+	 * For testing test_generate_cache_key() includes a test containing the
+	 * placeholder within the generated SQL query.
 	 *
 	 * @var bool
 	 */
-	public static $placeholder_cache_key_tested = false;
+	public static $sql_placeholder_cache_key_tested = false;
+
+	/**
+	 * For testing test_generate_cache_key() includes a test containing the
+	 * placeholder within the generated WP_Query variables.
+	 *
+	 * @var bool
+	 */
+	public static $wp_query_placeholder_cache_key_tested = false;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Make some post objects.
@@ -78,9 +87,14 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$request                = $query1->request;
 		$request_no_placeholder = $wpdb->remove_placeholder_escape( $request );
 
+		$this->assertStringNotContainsString( $wpdb->placeholder_escape(), $request_no_placeholder, 'Placeholder escape should be removed from the modified request.' );
+
 		if ( str_contains( $request, $wpdb->placeholder_escape() ) ) {
-			$this->assertStringNotContainsString( $wpdb->placeholder_escape(), $request_no_placeholder, 'Placeholder escape should be removed from the request.' );
-			self::$placeholder_cache_key_tested = true;
+			self::$sql_placeholder_cache_key_tested = true;
+		}
+
+		if ( str_contains( serialize( $query_vars ), $wpdb->placeholder_escape() ) ) {
+			self::$wp_query_placeholder_cache_key_tested = true;
 		}
 
 		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
@@ -96,8 +110,16 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 * @ticket 56802
 	 * @depends test_generate_cache_key
 	 */
-	public function test_placeholder_cache_key_tested() {
-		$this->assertTrue( self::$placeholder_cache_key_tested, 'Placeholder cache key was not tested.' );
+	public function test_sql_placeholder_cache_key_tested() {
+		$this->assertTrue( self::$sql_placeholder_cache_key_tested, 'Cache key containing WPDB placeholder in SQL query was not tested.' );
+	}
+
+	/**
+	 * @ticket 56802
+	 * @depends test_generate_cache_key
+	 */
+	public function test_wp_query_placeholder_cache_key_tested() {
+		$this->assertTrue( self::$wp_query_placeholder_cache_key_tested, 'Cache key containing WPDB placeholder in WP_Query arguments was not tested.' );
 	}
 
 	/**
