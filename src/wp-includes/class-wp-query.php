@@ -4751,6 +4751,14 @@ class WP_Query {
 		$placeholder = $wpdb->placeholder_escape();
 		array_walk_recursive(
 			$args,
+			/*
+			 * Replace wpdb placeholders with the string used in the database
+			 * query to avoid unreachable cache keys. This is necessary because
+			 * the placeholder is randomly generated in each request.
+			 *
+			 * $value is passed by reference to allow it to be modified.
+			 * array_walk_recursive() does not return an array.
+			 */
 			function ( &$value ) use ( $wpdb, $placeholder ) {
 				if ( is_string( $value ) && str_contains( $value, $placeholder ) ) {
 					$value = $wpdb->remove_placeholder_escape( $value );
@@ -4758,6 +4766,7 @@ class WP_Query {
 			}
 		);
 
+		// Replace wpdb placeholder in the SQL statement used by the cache key.
 		$sql = $wpdb->remove_placeholder_escape( $sql );
 		$key = md5( serialize( $args ) . $sql );
 
