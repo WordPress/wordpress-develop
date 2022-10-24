@@ -97,10 +97,11 @@ jobs:
         run: phpcs -i
 
       - name: Run PHP compatibility tests
-        continue-on-error: true
+        id: phpcs
         run: phpcs --standard=phpcompat.xml.dist --report-full --report-checkstyle=./.cache/phpcs-compat-report.xml
 
       - name: Show PHPCompatibility results in PR
+        if: ${{ always() && steps.phpcs.outcome == 'failure' }}
         run: cs2pr ./.cache/phpcs-compat-report.xml
 
       - name: Ensure version-controlled files are not modified or deleted
@@ -143,7 +144,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: 'failed-workflow.yml',
-              ref: '${{ github.ref_name }}',
+              ref: 'trunk',
               inputs: {
                 run_id: '${{ github.run_id }}'
               }
