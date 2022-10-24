@@ -619,6 +619,11 @@
 						"background": "var(--wp--preset--color--secondary)",
 						"text": "var(--wp--preset--color--base)"
 					}
+				},
+				":visited": {
+					"color": {
+						"text": "var(--wp--preset--color--contrast)"
+					}
 				}
 			},
 			"h1": {
@@ -718,7 +723,7 @@
 		{
 			"area": "uncategorized",
 			"name": "comments",
-			"title": "Comments"
+			"title": "Comments Template Part"
 		},
 		{
 			"area": "uncategorized",
