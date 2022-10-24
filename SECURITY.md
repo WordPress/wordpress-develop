@@ -9,6 +9,7 @@ currently being supported with security updates.
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 6.1.x   | :white_check_mark: |
 | 6.0.x   | :white_check_mark: |
 | 5.9.x   | :white_check_mark: |
 | 5.8.x   | :white_check_mark: |
@@ -75,7 +76,7 @@ We generally **aren’t** interested in the following problems:
 *   Output from automated scans - please manually verify issues and include a valid proof of concept.
 *   Any non-severe vulnerability on `irclogs.wordpress.org`, `lists.wordpress.org`, or any other low impact site.
 *   Clickjacking with minimal security implications
-*   Vulnerabilities in Composer/NPM `devDependencies`, unless there's a practical way to exploit it remotely.
+*   Vulnerabilities in Composer/npm `devDependencies`, unless there's a practical way to exploit it remotely.
 *   Theoretical vulnerabilities where you can't demonstrate a significant security impact with a PoC.
 
 ## Guidelines

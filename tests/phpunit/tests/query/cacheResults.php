@@ -33,6 +33,16 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 */
 	public static $author_id;
 
+	/**
+	 * @var array
+	 */
+	protected $cache_args;
+
+	/**
+	 * @var string
+	 */
+	protected $new_request;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Make some post objects.
 		self::$posts = $factory->post->create_many( 5 );
@@ -57,13 +67,27 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		);
 	}
 
+	function set_up() {
+		parent::set_up();
+		$this->cache_args  = null;
+		$this->new_request = null;
+		add_filter( 'wp_query_cache_key', array( $this, 'filter_wp_query_cache_key' ), 15, 3 );
+	}
+
 	/**
 	 * @dataProvider data_query_cache
 	 * @ticket 22176
 	 */
 	public function test_query_cache( $args ) {
+		global $wpdb;
+
 		$query1 = new WP_Query();
 		$posts1 = $query1->query( $args );
+
+		$placeholder = $wpdb->placeholder_escape();
+		$this->assertNotEmpty( $this->new_request, 'Check new request is not empty' );
+		$this->assertStringNotContainsString( $placeholder, $this->new_request, 'Check if request does not contain placeholder' );
+		$this->assertStringNotContainsString( $placeholder, wp_json_encode( $this->cache_args ), 'Check if cache arrays does not contain placeholder' );
 
 		$queries_before = get_num_queries();
 		$query2         = new WP_Query();
@@ -191,6 +215,30 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 					),
 				),
 			),
+			'cache meta query search'                     => array(
+				'args' => array(
+					'cache_results' => true,
+					'meta_query'    => array(
+						array(
+							'key'     => 'color',
+							'value'   => '00',
+							'compare' => 'LIKE',
+						),
+					),
+				),
+			),
+			'cache meta query not search'                 => array(
+				'args' => array(
+					'cache_results' => true,
+					'meta_query'    => array(
+						array(
+							'key'     => 'color',
+							'value'   => 'ff',
+							'compare' => 'NOT LIKE',
+						),
+					),
+				),
+			),
 			'cache comment_count'                         => array(
 				'args' => array(
 					'cache_results' => true,
@@ -207,6 +255,18 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 							'field'    => 'slug',
 						),
 					),
+				),
+			),
+			'cache search query'                          => array(
+				'args' => array(
+					'cache_results' => true,
+					's'             => 'title',
+				),
+			),
+			'cache search query multiple terms'           => array(
+				'args' => array(
+					'cache_results' => true,
+					's'             => 'Post title',
 				),
 			),
 		);
@@ -825,6 +885,13 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$this->assertContains( $p1, $posts1 );
 		$this->assertNotEmpty( $posts2 );
 		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
+	}
+
+	public function filter_wp_query_cache_key( $cache_key, $cache_args, $new_request ) {
+		$this->cache_args  = $cache_args;
+		$this->new_request = $new_request;
+
+		return $cache_key;
 	}
 
 	/**
