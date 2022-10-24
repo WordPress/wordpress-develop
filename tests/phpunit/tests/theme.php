@@ -356,7 +356,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		$this->assertNotFalse( $theme->errors() );
 		$this->assertFalse( $theme->exists() );
 
-		// These return the bogus name - perhaps not ideal behaviour?
+		// These return the bogus name - perhaps not ideal behavior?
 		$this->assertSame( $template, get_template() );
 		$this->assertSame( $style, get_stylesheet() );
 	}
