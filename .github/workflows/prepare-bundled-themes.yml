@@ -10,6 +10,12 @@ on:
       # Changes to this workflow file should always verify success.
       - '.github/workflows/prepare-bundled-themes.yml'
   workflow_dispatch:
+    inputs:
+      branch:
+        description: 'The branch to create ZIP files from'
+        required: true
+        type: string
+        default: 'trunk'
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
@@ -56,6 +62,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
 
       - name: Install Node.js
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
