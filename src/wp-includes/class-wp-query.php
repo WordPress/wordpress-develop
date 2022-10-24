@@ -4748,10 +4748,10 @@ class WP_Query {
 			$args['suppress_filters']
 		);
 
+		$placeholder = $wpdb->placeholder_escape();
 		array_walk_recursive(
 			$args,
-			function ( &$value ) use ( $wpdb ) {
-				$placeholder = $wpdb->placeholder_escape();
+			function ( &$value ) use ( $wpdb, $placeholder ) {
 				if ( is_string( $value ) && str_contains( $value, $placeholder ) ) {
 					$value = $wpdb->remove_placeholder_escape( $value );
 				}
