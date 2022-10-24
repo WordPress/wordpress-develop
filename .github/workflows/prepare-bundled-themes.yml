@@ -1,12 +1,28 @@
 name: Prepare Bundled Themes for Release
 
 on:
+  push:
+    branches:
+      - trunk
+      - '3.[89]'
+      - '[4-9].[0-9]'
+    paths:
+      # Changes to any themes with a build script should be confirmed.
+      - 'src/wp-content/themes/twentynineteen/**'
+      - 'src/wp-content/themes/twentytwenty/**'
+      - 'src/wp-content/themes/twentytwentyone/**'
+      # Changes to this workflow file should always verify success.
+      - '.github/workflows/prepare-bundled-themes.yml'
   pull_request:
     branches:
       - trunk
       - '3.[89]'
       - '[4-9].[0-9]'
     paths:
+      # Changes to any themes with a build script should be confirmed.
+      - 'src/wp-content/themes/twentynineteen/**'
+      - 'src/wp-content/themes/twentytwenty/**'
+      - 'src/wp-content/themes/twentytwentyone/**'
       # Changes to this workflow file should always verify success.
       - '.github/workflows/prepare-bundled-themes.yml'
   workflow_dispatch:
@@ -30,11 +46,11 @@ jobs:
   # Performs the following steps:
   # - Checks out the repository.
   # - Installs Node.js (only when theme has a build process)
-  # - Installs npm dependncies (only when theme has a build process)
+  # - Installs npm dependencies (only when theme has a build process)
   # - Runs the theme build script (only when theme has a build process)
   # - Ensures version-controlled files are not modified or deleted.
   # - Creates a ZIP file of the theme for wordpress.org.
-  # - Uploads the ZIP file as an artifact.
+  # - Uploads the ZIP file as a workflow artifact.
   bundle-theme:
     name: Prepare ${{ matrix.theme }}
     runs-on: ubuntu-latest
