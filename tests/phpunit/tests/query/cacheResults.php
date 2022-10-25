@@ -34,14 +34,20 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	public static $author_id;
 
 	/**
-	 * @var array
+	 * For testing test_generate_cache_key() includes a test containing the
+	 * placeholder within the generated SQL query.
+	 *
+	 * @var bool
 	 */
-	protected $cache_args;
+	public static $sql_placeholder_cache_key_tested = false;
 
 	/**
-	 * @var string
+	 * For testing test_generate_cache_key() includes a test containing the
+	 * placeholder within the generated WP_Query variables.
+	 *
+	 * @var bool
 	 */
-	protected $new_request;
+	public static $wp_query_placeholder_cache_key_tested = false;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Make some post objects.
@@ -67,11 +73,102 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		);
 	}
 
-	function set_up() {
-		parent::set_up();
-		$this->cache_args  = null;
-		$this->new_request = null;
-		add_filter( 'wp_query_cache_key', array( $this, 'filter_wp_query_cache_key' ), 15, 3 );
+	/**
+	 * Ensure cache keys are generated without WPDB placeholders.
+	 *
+	 * @ticket 56802
+	 *
+	 * @covers WP_Query::generate_cache_key
+	 *
+	 * @dataProvider data_query_cache
+	 */
+	public function test_generate_cache_key( $args ) {
+		global $wpdb;
+		$query1 = new WP_Query();
+		$query1->query( $args );
+
+		$query_vars             = $query1->query_vars;
+		$request                = $query1->request;
+		$request_no_placeholder = $wpdb->remove_placeholder_escape( $request );
+
+		$this->assertStringNotContainsString( $wpdb->placeholder_escape(), $request_no_placeholder, 'Placeholder escape should be removed from the modified request.' );
+
+		if ( str_contains( $request, $wpdb->placeholder_escape() ) ) {
+			self::$sql_placeholder_cache_key_tested = true;
+		}
+
+		if ( str_contains( serialize( $query_vars ), $wpdb->placeholder_escape() ) ) {
+			self::$wp_query_placeholder_cache_key_tested = true;
+		}
+
+		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
+		$reflection->setAccessible( true );
+
+		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request );
+		$cache_key_2 = $reflection->invoke( $query1, $query_vars, $request_no_placeholder );
+
+		$this->assertSame( $cache_key_1, $cache_key_2, 'Cache key differs when using wpdb placeholder.' );
+	}
+
+	/**
+	 * Ensure cache keys tests include WPDB placeholder in SQL Query.
+	 *
+	 * @ticket 56802
+	 *
+	 * @covers WP_Query::generate_cache_key
+	 *
+	 * @depends test_generate_cache_key
+	 */
+	public function test_sql_placeholder_cache_key_tested() {
+		$this->assertTrue( self::$sql_placeholder_cache_key_tested, 'Cache key containing WPDB placeholder in SQL query was not tested.' );
+	}
+
+	/**
+	 * Ensure cache keys tests include WPDB placeholder in WP_Query arguments.
+	 *
+	 * This test mainly covers the search query which generates the `search_orderby_title`
+	 * query_var in WP_Query.
+	 *
+	 * @ticket 56802
+	 *
+	 * @covers WP_Query::generate_cache_key
+	 *
+	 * @depends test_generate_cache_key
+	 */
+	public function test_wp_query_placeholder_cache_key_tested() {
+		$this->assertTrue( self::$wp_query_placeholder_cache_key_tested, 'Cache key containing WPDB placeholder in WP_Query arguments was not tested.' );
+	}
+
+	/**
+	 * Ensure cache keys are generated without WPDB placeholders.
+	 *
+	 * @ticket 56802
+	 *
+	 * @covers WP_Query::generate_cache_key
+	 */
+	public function test_generate_cache_key_placeholder() {
+		global $wpdb;
+		$query1 = new WP_Query();
+		$query1->query( array() );
+
+		$query_vars                                  = $query1->query_vars;
+		$request                                     = $query1->request;
+		$query_vars['test']['nest']                  = '%';
+		$query_vars['test2']['nest']['nest']['nest'] = '%';
+		$this->assertStringNotContainsString( $wpdb->placeholder_escape(), serialize( $query_vars ), 'Query vars should not contain the wpdb placeholder.' );
+
+		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
+		$reflection->setAccessible( true );
+
+		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request );
+
+		$query_vars['test']['nest']                  = $wpdb->placeholder_escape();
+		$query_vars['test2']['nest']['nest']['nest'] = $wpdb->placeholder_escape();
+		$this->assertStringContainsString( $wpdb->placeholder_escape(), serialize( $query_vars ), 'Query vars should not contain the wpdb placeholder.' );
+
+		$cache_key_2 = $reflection->invoke( $query1, $query_vars, $request );
+
+		$this->assertSame( $cache_key_1, $cache_key_2, 'Cache key differs when using wpdb placeholder.' );
 	}
 
 	/**
@@ -79,15 +176,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 * @ticket 22176
 	 */
 	public function test_query_cache( $args ) {
-		global $wpdb;
-
 		$query1 = new WP_Query();
 		$posts1 = $query1->query( $args );
-
-		$placeholder = $wpdb->placeholder_escape();
-		$this->assertNotEmpty( $this->new_request, 'Check new request is not empty' );
-		$this->assertStringNotContainsString( $placeholder, $this->new_request, 'Check if request does not contain placeholder' );
-		$this->assertStringNotContainsString( $placeholder, wp_json_encode( $this->cache_args ), 'Check if cache arrays does not contain placeholder' );
 
 		$queries_before = get_num_queries();
 		$query2         = new WP_Query();
@@ -223,6 +313,40 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 							'key'     => 'color',
 							'value'   => '00',
 							'compare' => 'LIKE',
+						),
+					),
+				),
+			),
+			'cache nested meta query search'              => array(
+				'args' => array(
+					'cache_results' => true,
+					'meta_query'    => array(
+						'relation' => 'AND',
+						array(
+							'key'     => 'color',
+							'value'   => '00',
+							'compare' => 'LIKE',
+						),
+						array(
+							'relation' => 'OR',
+							array(
+								'key'     => 'color',
+								'value'   => '00',
+								'compare' => 'LIKE',
+							),
+							array(
+								'relation' => 'AND',
+								array(
+									'key'     => 'wp_test_suite',
+									'value'   => '56802',
+									'compare' => 'LIKE',
+								),
+								array(
+									'key'     => 'wp_test_suite_too',
+									'value'   => '56802',
+									'compare' => 'LIKE',
+								),
+							),
 						),
 					),
 				),
@@ -885,13 +1009,6 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$this->assertContains( $p1, $posts1 );
 		$this->assertNotEmpty( $posts2 );
 		$this->assertNotSame( $query1->found_posts, $query2->found_posts );
-	}
-
-	public function filter_wp_query_cache_key( $cache_key, $cache_args, $new_request ) {
-		$this->cache_args  = $cache_args;
-		$this->new_request = $new_request;
-
-		return $cache_key;
 	}
 
 	/**
