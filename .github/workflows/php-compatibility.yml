@@ -109,9 +109,9 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: desrosj/wordpress-develop/.github/workflows/slack-notifications.yml@trac/56820
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     needs: [ php-compatibility ]
-    if: ${{ always() }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ needs.php-compatibility.result == 'success' && 'success' || needs.php-compatibility.result == 'cancelled' && 'cancelled' || 'failure' }}
     secrets:
