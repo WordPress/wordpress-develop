@@ -477,7 +477,7 @@ class WP_Theme_JSON_Resolver {
 		$config   = array();
 		$user_cpt = static::get_user_data_from_wp_global_styles( wp_get_theme() );
 
-		if ( array_key_exists( 'post_content', $user_cpt ) ) {
+		if ( is_array( $user_cpt ) && array_key_exists( 'post_content', $user_cpt ) ) {
 			$decoded_data = json_decode( $user_cpt['post_content'], true );
 
 			$json_decoding_error = json_last_error();
