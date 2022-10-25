@@ -120,6 +120,7 @@ jobs:
           name: ${{ matrix.theme }}
           path: ${{ matrix.theme }}.zip
           if-no-files-found: error
+          retention-days: 7
 
   slack-notifications:
     name: Slack Notifications
