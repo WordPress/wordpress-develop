@@ -119,6 +119,7 @@ jobs:
         with:
           name: ${{ matrix.theme }}
           path: ${{ matrix.theme }}.zip
+          if-no-files-found: error
 
   slack-notifications:
     name: Slack Notifications
