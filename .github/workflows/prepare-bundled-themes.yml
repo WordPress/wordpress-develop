@@ -7,6 +7,8 @@ on:
       - '3.[89]'
       - '[4-9].[0-9]'
     paths:
+      # Changing the preferred version of Node.js could affect themes with build processes.
+      - '.nvm'
       # Changes to any themes with a build script should be confirmed.
       - 'src/wp-content/themes/twentynineteen/**'
       - 'src/wp-content/themes/twentytwenty/**'
@@ -19,6 +21,8 @@ on:
       - '3.[89]'
       - '[4-9].[0-9]'
     paths:
+      # Changing the preferred version of Node.js could affect themes with build processes.
+      - '.nvm'
       # Changes to any themes with a build script should be confirmed.
       - 'src/wp-content/themes/twentynineteen/**'
       - 'src/wp-content/themes/twentytwenty/**'
