@@ -1,4 +1,4 @@
-name: Prepare Bundled Themes for Release
+name: Test Default Themes & Create ZIPs
 
 on:
   push:
