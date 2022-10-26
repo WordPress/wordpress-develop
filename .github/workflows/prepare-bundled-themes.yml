@@ -62,11 +62,10 @@ jobs:
       fail-fast: false
       matrix:
         theme: [
-            theme: [
-                'twentytwentyone',
-                'twentytwenty',
-                'twentynineteen',
-            ]
+            'twentytwentyone',
+            'twentytwenty',
+            'twentynineteen',
+        ]
 
     defaults:
       run:
