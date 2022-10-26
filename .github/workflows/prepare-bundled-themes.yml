@@ -45,7 +45,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Prepares bundled themes for release.
+  # Tests the build script for themes that have one.
   #
   # Performs the following steps:
   # - Checks out the repository.
@@ -54,7 +54,7 @@ jobs:
   # - Runs the theme build script (only when theme has a build process)
   # - Ensures version-controlled files are not modified or deleted.
   test-build-scripts:
-    name: Test ${{ matrix.theme }} build scripts
+    name: Test ${{ matrix.theme }} build script
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -107,7 +107,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ test-build-scripts ]
     timeout-minutes: 10
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'workflow_dispatch' }}
     strategy:
       fail-fast: false
       matrix:
