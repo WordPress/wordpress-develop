@@ -100,7 +100,7 @@ jobs:
   # - Creates a ZIP file of the theme for wordpress.org.
   # - Uploads the ZIP file as a workflow artifact.
   bundle-theme:
-    name: Prepare ${{ matrix.theme }}
+    name: Create ${{ matrix.theme }} ZIP file
     runs-on: ubuntu-latest
     needs: [ test-build-scripts ]
     timeout-minutes: 10
