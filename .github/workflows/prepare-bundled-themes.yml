@@ -37,9 +37,6 @@ on:
         type: string
         default: 'trunk'
 
-env:
-  THEMES_WITH_BUILD_PROCESS: '["twentynineteen", "twentytwenty", "twentytwentyone"]'
-
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
   # The concurrency group contains the workflow name and the branch name for pull requests
@@ -64,7 +61,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        theme: ${{ fromJson( env.THEMES_WITH_BUILD_PROCESS ) }}
+        theme: [
+            theme: [
+                'twentytwentyone',
+                'twentytwenty',
+                'twentynineteen',
+            ]
+
     defaults:
       run:
         working-directory: src/wp-content/themes/${{ matrix.theme }}
@@ -83,15 +86,12 @@ jobs:
           cache-dependency-path: src/wp-content/themes/${{ matrix.theme }}/package-lock.json
 
       - name: Install npm dependencies
-        if: ${{ contains( fromJson( env.THEMES_WITH_BUILD_PROCESS ), matrix.theme ) }}
         run: npm ci
 
       - name: Build theme
-        if: ${{ contains( fromJson( env.THEMES_WITH_BUILD_PROCESS ), matrix.theme ) }}
         run: npm run build
 
       - name: Ensure version-controlled files are not modified or deleted
-        if: ${{ contains( fromJson( env.THEMES_WITH_BUILD_PROCESS ), matrix.theme ) }}
         run: git diff --exit-code
 
   # Prepares bundled themes for release.
