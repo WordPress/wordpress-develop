@@ -14,7 +14,7 @@ on:
       - 'src/wp-content/themes/twentytwenty/**'
       - 'src/wp-content/themes/twentytwentyone/**'
       # Changes to this workflow file should always verify success.
-      - '.github/workflows/prepare-bundled-themes.yml'
+      - '.github/workflows/test-and-zip-default-themes.yml'
   pull_request:
     branches:
       - trunk
@@ -28,7 +28,7 @@ on:
       - 'src/wp-content/themes/twentytwenty/**'
       - 'src/wp-content/themes/twentytwentyone/**'
       # Changes to this workflow file should always verify success.
-      - '.github/workflows/prepare-bundled-themes.yml'
+      - '.github/workflows/test-and-zip-default-themes.yml'
   workflow_dispatch:
     inputs:
       branch:
