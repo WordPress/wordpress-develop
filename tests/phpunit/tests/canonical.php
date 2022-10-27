@@ -383,16 +383,18 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	 */
 	public function test_feed_canonical_with_not_exists_query() {
 		// Set a NOT EXISTS tax_query on the global query.
-		$global_query = $GLOBALS['wp_query'];
-		$GLOBALS['wp_query'] = new WP_Query( array(
-			'post_type' => 'post',
-			'tax_query' => array(
-				array(
-					'taxonomy' => 'post_format',
-					'operator' => 'NOT EXISTS',
+		$global_query        = $GLOBALS['wp_query'];
+		$GLOBALS['wp_query'] = new WP_Query(
+			array(
+				'post_type' => 'post',
+				'tax_query' => array(
+					array(
+						'taxonomy' => 'post_format',
+						'operator' => 'NOT EXISTS',
+					),
 				),
-			),
-		) );
+			)
+		);
 
 		$url = redirect_canonical( get_term_feed_link( self::$terms['/category/parent/'] ), false );
 		$this->assertNull( $url );
