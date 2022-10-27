@@ -352,6 +352,12 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_should_allow_predefined_dynamic_properties
+	 * @ticket       56876
+	 *
+	 * @covers WP_List_Table::__set
+	 * @covers WP_List_Table::__get
+	 *
+	 * @param string $property_name Name of the class property.
 	 */
 	public function test_should_allow_predefined_dynamic_properties( $property_name ) {
 		$value = uniqid();
@@ -363,6 +369,11 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		$this->assertSame( $value, static::$list_table->$property_name );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
 	public function data_should_allow_predefined_dynamic_properties() {
 		// This code doesn't have access to self::$list_table, so the WP_List_Table object has to be called this way.
 		$list_table             = new WP_List_Table();
@@ -382,6 +393,11 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		return $predefined_properties;
 	}
 
+	/**
+	 * @ticket 56876
+	 *
+	 * @covers WP_List_Table::__get
+	 */
 	public function test_should_not_allow_to_get_dynamic_properties() {
 		$this->enable_doing_it_wrong_error();
 		$property_name = uniqid();
@@ -393,6 +409,11 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		static::$list_table->$property_name;
 	}
 
+	/**
+	 * @ticket 56876
+	 *
+	 * @covers WP_List_Table::__get
+	 */
 	public function test_should_not_allow_to_set_dynamic_properties() {
 		$this->enable_doing_it_wrong_error();
 		$property_name = uniqid();
@@ -404,6 +425,10 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		static::$list_table->$property_name = 'value';
 	}
 
+	/**
+	 * This function is needed to remove the filter and disable triggering
+	 * the "doing it wrong" error.
+	 */
 	private function enable_doing_it_wrong_error() {
 		add_filter( 'doing_it_wrong_trigger_error', '__return_true', 9999 );
 	}
