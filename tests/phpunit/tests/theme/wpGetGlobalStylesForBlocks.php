@@ -72,6 +72,10 @@ class Tests_Theme_wpGetGlobalStylesForBlocks extends WP_UnitTestCase {
 	public function test_styles_for_blocks() {
 		switch_theme( 'block-theme' );
 
+		// The 3rd party block styles are only missing
+		// if the assets are loaded per block.
+		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
+
 		$name     = 'my/third-party-block';
 		$settings = array(
 			'icon'            => 'text',
