@@ -5,7 +5,7 @@
  *
  * @group themes
  */
-class Tests_Theme_wpGetGlobalStylesForBlocks extends WP_UnitTestCase {
+class Tests_Theme_wpAddGlobalStylesForBlocks extends WP_UnitTestCase {
 
 	/**
 	 * Theme root directory.
