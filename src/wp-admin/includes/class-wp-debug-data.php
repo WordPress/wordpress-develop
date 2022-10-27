@@ -7,6 +7,7 @@
  * @since 5.2.0
  */
 
+#[AllowDynamicProperties]
 class WP_Debug_Data {
 	/**
 	 * Calls all core functions to check for updates.
@@ -235,7 +236,7 @@ class WP_Debug_Data {
 		}
 
 		// Check WP_ENVIRONMENT_TYPE.
-		if ( defined( 'WP_ENVIRONMENT_TYPE' ) ) {
+		if ( defined( 'WP_ENVIRONMENT_TYPE' ) && WP_ENVIRONMENT_TYPE ) {
 			$wp_environment_type = WP_ENVIRONMENT_TYPE;
 		} else {
 			$wp_environment_type = __( 'Undefined' );
@@ -677,23 +678,18 @@ class WP_Debug_Data {
 			$server_architecture = 'unknown';
 		}
 
-		if ( function_exists( 'phpversion' ) ) {
-			$php_version_debug = phpversion();
-			// Whether PHP supports 64-bit.
-			$php64bit = ( PHP_INT_SIZE * 8 === 64 );
+		$php_version_debug = PHP_VERSION;
+		// Whether PHP supports 64-bit.
+		$php64bit = ( PHP_INT_SIZE * 8 === 64 );
 
-			$php_version = sprintf(
-				'%s %s',
-				$php_version_debug,
-				( $php64bit ? __( '(Supports 64bit values)' ) : __( '(Does not support 64bit values)' ) )
-			);
+		$php_version = sprintf(
+			'%s %s',
+			$php_version_debug,
+			( $php64bit ? __( '(Supports 64bit values)' ) : __( '(Does not support 64bit values)' ) )
+		);
 
-			if ( $php64bit ) {
-				$php_version_debug .= ' 64bit';
-			}
-		} else {
-			$php_version       = __( 'Unable to determine PHP version' );
-			$php_version_debug = 'unknown';
+		if ( $php64bit ) {
+			$php_version_debug .= ' 64bit';
 		}
 
 		if ( function_exists( 'php_sapi_name' ) ) {
@@ -1399,7 +1395,7 @@ class WP_Debug_Data {
 		}
 
 		/**
-		 * Add to or modify the debug information shown on the Tools -> Site Health -> Info screen.
+		 * Filters the debug information shown on the Tools -> Site Health -> Info screen.
 		 *
 		 * Plugin or themes may wish to introduce their own debug information without creating
 		 * additional admin pages. They can utilize this filter to introduce their own sections
@@ -1489,7 +1485,7 @@ class WP_Debug_Data {
 	}
 
 	/**
-	 * Format the information gathered for debugging, in a manner suitable for copying to a forum or support ticket.
+	 * Formats the information gathered for debugging, in a manner suitable for copying to a forum or support ticket.
 	 *
 	 * @since 5.2.0
 	 *
@@ -1558,7 +1554,7 @@ class WP_Debug_Data {
 	}
 
 	/**
-	 * Fetch the total size of all the database tables for the active database user.
+	 * Fetches the total size of all the database tables for the active database user.
 	 *
 	 * @since 5.2.0
 	 *
@@ -1579,7 +1575,7 @@ class WP_Debug_Data {
 	}
 
 	/**
-	 * Fetch the sizes of the WordPress directories: `wordpress` (ABSPATH), `plugins`, `themes`, and `uploads`.
+	 * Fetches the sizes of the WordPress directories: `wordpress` (ABSPATH), `plugins`, `themes`, and `uploads`.
 	 * Intended to supplement the array returned by `WP_Debug_Data::debug_data()`.
 	 *
 	 * @since 5.2.0
@@ -1602,7 +1598,7 @@ class WP_Debug_Data {
 		// The max_execution_time defaults to 0 when PHP runs from cli.
 		// We still want to limit it below.
 		if ( empty( $max_execution_time ) ) {
-			$max_execution_time = 30;
+			$max_execution_time = 30; // 30 seconds.
 		}
 
 		if ( $max_execution_time > 20 ) {

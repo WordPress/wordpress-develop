@@ -143,7 +143,7 @@ function wp_populate_basic_auth_from_authorization_header() {
  */
 function wp_check_php_mysql_versions() {
 	global $required_php_version, $wp_version;
-	$php_version = phpversion();
+	$php_version = PHP_VERSION;
 
 	if ( version_compare( $required_php_version, $php_version, '>' ) ) {
 		$protocol = wp_get_server_protocol();
@@ -227,7 +227,7 @@ function wp_get_environment_type() {
 	}
 
 	// Fetch the environment from a constant, this overrides the global system variable.
-	if ( defined( 'WP_ENVIRONMENT_TYPE' ) ) {
+	if ( defined( 'WP_ENVIRONMENT_TYPE' ) && WP_ENVIRONMENT_TYPE ) {
 		$current_env = WP_ENVIRONMENT_TYPE;
 	}
 
@@ -544,7 +544,8 @@ function wp_set_lang_dir() {
 function require_wp_db() {
 	global $wpdb;
 
-	require_once ABSPATH . WPINC . '/wp-db.php';
+	require_once ABSPATH . WPINC . '/class-wpdb.php';
+
 	if ( file_exists( WP_CONTENT_DIR . '/db.php' ) ) {
 		require_once WP_CONTENT_DIR . '/db.php';
 	}
@@ -624,7 +625,7 @@ function wp_set_wpdb_vars() {
 		wp_die(
 			sprintf(
 				/* translators: 1: $table_prefix, 2: wp-config.php */
-				__( '<strong>Error</strong>: %1$s in %2$s can only contain numbers, letters, and underscores.' ),
+				__( '<strong>Error:</strong> %1$s in %2$s can only contain numbers, letters, and underscores.' ),
 				'<code>$table_prefix</code>',
 				'<code>wp-config.php</code>'
 			)
@@ -730,7 +731,28 @@ function wp_start_object_cache() {
 	}
 
 	if ( function_exists( 'wp_cache_add_global_groups' ) ) {
-		wp_cache_add_global_groups( array( 'users', 'userlogins', 'usermeta', 'user_meta', 'useremail', 'userslugs', 'site-transient', 'site-options', 'blog-lookup', 'blog-details', 'site-details', 'rss', 'global-posts', 'blog-id-cache', 'networks', 'sites', 'blog_meta' ) );
+		wp_cache_add_global_groups(
+			array(
+				'blog-details',
+				'blog-id-cache',
+				'blog-lookup',
+				'blog_meta',
+				'global-posts',
+				'networks',
+				'sites',
+				'site-details',
+				'site-options',
+				'site-transient',
+				'rss',
+				'users',
+				'useremail',
+				'userlogins',
+				'usermeta',
+				'user_meta',
+				'userslugs',
+			)
+		);
+
 		wp_cache_add_non_persistent_groups( array( 'counts', 'plugins' ) );
 	}
 
@@ -746,23 +768,23 @@ function wp_start_object_cache() {
  * @access private
  */
 function wp_not_installed() {
-	if ( is_multisite() ) {
-		if ( ! is_blog_installed() && ! wp_installing() ) {
-			nocache_headers();
-
-			wp_die( __( 'The site you have requested is not installed properly. Please contact the system administrator.' ) );
-		}
-	} elseif ( ! is_blog_installed() && ! wp_installing() ) {
-		nocache_headers();
-
-		require ABSPATH . WPINC . '/kses.php';
-		require ABSPATH . WPINC . '/pluggable.php';
-
-		$link = wp_guess_url() . '/wp-admin/install.php';
-
-		wp_redirect( $link );
-		die();
+	if ( is_blog_installed() || wp_installing() ) {
+		return;
 	}
+
+	nocache_headers();
+
+	if ( is_multisite() ) {
+		wp_die( __( 'The site you have requested is not installed properly. Please contact the system administrator.' ) );
+	}
+
+	require ABSPATH . WPINC . '/kses.php';
+	require ABSPATH . WPINC . '/pluggable.php';
+
+	$link = wp_guess_url() . '/wp-admin/install.php';
+
+	wp_redirect( $link );
+	die();
 }
 
 /**
@@ -1119,6 +1141,19 @@ function wp_clone( $object ) {
 }
 
 /**
+ * Determines whether the current request is for the login screen.
+ *
+ * @since 6.1.0
+ *
+ * @see wp_login_url()
+ *
+ * @return bool True if inside WordPress login screen, false otherwise.
+ */
+function is_login() {
+	return false !== stripos( wp_login_url(), $_SERVER['SCRIPT_NAME'] );
+}
+
+/**
  * Determines whether the current request is for an administrative interface page.
  *
  * Does not check if the user is an administrator; use current_user_can()
@@ -1145,7 +1180,7 @@ function is_admin() {
 }
 
 /**
- * Whether the current request is for a site's administrative interface.
+ * Determines whether the current request is for a site's administrative interface.
  *
  * e.g. `/wp-admin/`
  *
@@ -1156,7 +1191,7 @@ function is_admin() {
  *
  * @global WP_Screen $current_screen WordPress current screen object.
  *
- * @return bool True if inside WordPress blog administration pages.
+ * @return bool True if inside WordPress site administration pages.
  */
 function is_blog_admin() {
 	if ( isset( $GLOBALS['current_screen'] ) ) {
@@ -1169,7 +1204,7 @@ function is_blog_admin() {
 }
 
 /**
- * Whether the current request is for the network administrative interface.
+ * Determines whether the current request is for the network administrative interface.
  *
  * e.g. `/wp-admin/network/`
  *
@@ -1196,7 +1231,7 @@ function is_network_admin() {
 }
 
 /**
- * Whether the current request is for a user admin screen.
+ * Determines whether the current request is for a user admin screen.
  *
  * e.g. `/wp-admin/user/`
  *

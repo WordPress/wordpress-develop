@@ -29,6 +29,6 @@
 		"format": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcbf --report=summary,source",
 		"lint": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --report=summary,source",
 		"lint:errors": "@lint -n",
-		"test": "@php ./vendor/phpunit/phpunit/phpunit"
+		"test": [ "Composer\\Config::disableProcessTimeout", "@php ./vendor/phpunit/phpunit/phpunit" ]
 	}
 }

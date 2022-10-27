@@ -1,6 +1,8 @@
 <?php
 /**
  * @group block-supports
+ *
+ * @covers ::wp_apply_border_support
  */
 class Test_Block_Supports_Border extends WP_UnitTestCase {
 	/**
@@ -21,8 +23,6 @@ class Test_Block_Supports_Border extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
-	 *
-	 * @covers ::wp_apply_border_support
 	 */
 	function test_border_color_slug_with_numbers_is_kebab_cased_properly() {
 		$this->test_block_name = 'test/border-color-slug-with-numbers-is-kebab-cased-properly';
@@ -64,7 +64,7 @@ class Test_Block_Supports_Border extends WP_UnitTestCase {
 		$actual   = wp_apply_border_support( $block_type, $block_atts );
 		$expected = array(
 			'class' => 'has-border-color has-red-border-color',
-			'style' => 'border-radius: 10px; border-style: dashed; border-width: 1px;',
+			'style' => 'border-radius:10px;border-style:dashed;border-width:1px;',
 		);
 
 		$this->assertSame( $expected, $actual );
@@ -72,8 +72,6 @@ class Test_Block_Supports_Border extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
-	 *
-	 * @covers ::wp_apply_border_support
 	 */
 	function test_border_with_skipped_serialization_block_supports() {
 		$this->test_block_name = 'test/border-with-skipped-serialization-block-supports';
@@ -118,8 +116,6 @@ class Test_Block_Supports_Border extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
-	 *
-	 * @covers ::wp_apply_border_support
 	 */
 	function test_radius_with_individual_skipped_serialization_block_supports() {
 		$this->test_block_name = 'test/radius-with-individual-skipped-serialization-block-supports';
@@ -158,7 +154,7 @@ class Test_Block_Supports_Border extends WP_UnitTestCase {
 
 		$actual   = wp_apply_border_support( $block_type, $block_atts );
 		$expected = array(
-			'style' => 'border-style: dotted; border-width: 1px;',
+			'style' => 'border-style:dotted;border-width:1px;',
 		);
 
 		$this->assertSame( $expected, $actual );

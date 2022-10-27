@@ -24,6 +24,7 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 	 *
 	 * @ticket 53949
 	 * @covers WP_Media_List_Table::prepare_items
+	 * @group cron
 	 */
 	public function test_prepare_items_without_cron_option_does_not_throw_warning() {
 		global $wp_query;
@@ -42,7 +43,8 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 		delete_option( 'cron' );
 
 		// Verify that the cause of the error is in place.
-		$this->assertFalse( _get_cron_array(), '_get_cron_array() does not return false' );
+		$this->assertIsArray( _get_cron_array(), '_get_cron_array() does not return an array.' );
+		$this->assertEmpty( _get_cron_array(), '_get_cron_array() does not return an empty array.' );
 
 		// If this test does not error out due to the PHP warning, we're good.
 		$mock->prepare_items();

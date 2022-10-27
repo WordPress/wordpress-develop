@@ -1344,7 +1344,7 @@ ul.cat-checklist {
 }
 
 .plugins tr.paused th.check-column {
-	border-left: 4px solid #d63638;
+	border-left: 4px solid #b32d2e;
 }
 
 .plugins tr.paused th,
@@ -1354,7 +1354,7 @@ ul.cat-checklist {
 
 .plugins tr.paused .plugin-title,
 .plugins .paused .dashicons-warning {
-	color: #d63638;
+	color: #b32d2e;
 }
 
 .plugins .paused .error-display p,
@@ -1364,7 +1364,7 @@ ul.cat-checklist {
 }
 
 .plugins .resume-link {
-	color: #d63638;
+	color: #b32d2e;
 }
 
 .plugin-card .update-now:before {
@@ -1372,11 +1372,11 @@ ul.cat-checklist {
 	content: "\f463";
 	display: inline-block;
 	font: normal 20px/1 dashicons;
-	margin: 3px 5px 0 -2px;
+	margin: -3px 5px 0 -2px;
 	speak: never;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	vertical-align: top;
+	vertical-align: middle;
 }
 
 .plugin-card .updating-message:before {
@@ -1396,6 +1396,17 @@ ul.cat-checklist {
 .plugin-card .updated-message:before {
 	color: #68de7c;
 	content: "\f147";
+}
+
+.plugin-install-php #the-list {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.plugin-install-php .plugin-card {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
 }
 
 .plugin-install-php h2 {
@@ -1750,6 +1761,15 @@ div.action-links,
 
 	.tablenav.top .tablenav-pages.one-page {
 		display: none;
+	}
+
+	.tablenav.bottom .actions select {
+		margin-bottom: 5px;
+	}
+
+	.tablenav.bottom .actions.alignleft + .actions.alignleft {
+		clear: left;
+		margin-top: 10px;
 	}
 
 	.tablenav.bottom .tablenav-pages.one-page {

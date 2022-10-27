@@ -68,8 +68,10 @@ $preload_paths = array(
 	array( rest_get_route_for_post_type_items( 'attachment' ), 'OPTIONS' ),
 	array( rest_get_route_for_post_type_items( 'page' ), 'OPTIONS' ),
 	array( rest_get_route_for_post_type_items( 'wp_block' ), 'OPTIONS' ),
+	array( rest_get_route_for_post_type_items( 'wp_template' ), 'OPTIONS' ),
 	sprintf( '%s/autosaves?context=edit', $rest_path ),
 	'/wp/v2/settings',
+	array( '/wp/v2/settings', 'OPTIONS' ),
 );
 
 block_editor_rest_api_preload( $preload_paths, $block_editor_context );
@@ -209,6 +211,10 @@ $editor_settings = array(
 	'enableCustomFields'   => (bool) get_user_meta( get_current_user_id(), 'enable_custom_fields', true ),
 );
 
+// Add additional back-compat patterns registered by `current_screen` et al.
+$editor_settings['__experimentalAdditionalBlockPatterns']          = WP_Block_Patterns_Registry::get_instance()->get_all_registered( true );
+$editor_settings['__experimentalAdditionalBlockPatternCategories'] = WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered( true );
+
 $autosave = wp_get_post_autosave( $post->ID );
 if ( $autosave ) {
 	if ( mysql2date( 'U', $autosave->post_modified_gmt, false ) > mysql2date( 'U', $post->post_modified_gmt, false ) ) {
@@ -265,7 +271,7 @@ wp_enqueue_style( 'wp-edit-post' );
  */
 do_action( 'enqueue_block_editor_assets' );
 
-// In order to duplicate classic meta box behaviour, we need to run the classic meta box actions.
+// In order to duplicate classic meta box behavior, we need to run the classic meta box actions.
 require_once ABSPATH . 'wp-admin/includes/meta-boxes.php';
 register_and_do_post_meta_boxes( $post );
 

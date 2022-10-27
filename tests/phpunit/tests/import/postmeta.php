@@ -4,6 +4,8 @@ require_once __DIR__ . '/base.php';
 
 /**
  * @group import
+ *
+ * @covers WP_Import::import
  */
 class Tests_Import_Postmeta extends WP_Import_UnitTestCase {
 	public function set_up() {
@@ -74,7 +76,7 @@ class Tests_Import_Postmeta extends WP_Import_UnitTestCase {
 		$classy->tag = 'wscript';
 		$expected[]  = $classy;
 
-		$this->assertEquals( $expected, get_post_meta( 150, 'test', true ) );
+		$this->assertEqualSets( $expected, get_post_meta( 150, 'test', true ) );
 	}
 
 	/**

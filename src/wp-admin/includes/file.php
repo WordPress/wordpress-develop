@@ -21,6 +21,7 @@ $wp_file_descriptions = array(
 	'searchform.php'        => __( 'Search Form' ),
 	'404.php'               => __( '404 Template' ),
 	'link.php'              => __( 'Links Template' ),
+	'theme.json'            => __( 'Theme Styles & Block Settings' ),
 	// Archives.
 	'index.php'             => __( 'Main Index Template' ),
 	'archive.php'           => __( 'Archives' ),
@@ -539,10 +540,10 @@ function wp_edit_theme_plugin_file( $args ) {
 		}
 
 		// Make sure PHP process doesn't die before loopback requests complete.
-		set_time_limit( 300 );
+		set_time_limit( 5 * MINUTE_IN_SECONDS );
 
 		// Time to wait for loopback requests to finish.
-		$timeout = 100;
+		$timeout = 100; // 100 seconds.
 
 		$needle_start = "###### wp_scraping_result_start:$scrape_key ######";
 		$needle_end   = "###### wp_scraping_result_end:$scrape_key ######";
@@ -1385,7 +1386,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 				'<span class="code">' . esc_html( $filename_for_errors ) . '</span>'
 			),
 			array(
-				'php'    => phpversion(),
+				'php'    => PHP_VERSION,
 				'sodium' => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
 			)
 		);
@@ -1420,7 +1421,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 					'<span class="code">' . esc_html( $filename_for_errors ) . '</span>'
 				),
 				array(
-					'php'                => phpversion(),
+					'php'                => PHP_VERSION,
 					'sodium'             => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
 					'polyfill_is_fast'   => false,
 					'max_execution_time' => ini_get( 'max_execution_time' ),
@@ -1493,7 +1494,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 			'hash'        => bin2hex( $file_hash ),
 			'skipped_key' => $skipped_key,
 			'skipped_sig' => $skipped_signature,
-			'php'         => phpversion(),
+			'php'         => PHP_VERSION,
 			'sodium'      => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
 		)
 	);
@@ -1706,7 +1707,7 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 	foreach ( $needed_dirs as $_dir ) {
 		// Only check to see if the Dir exists upon creation failure. Less I/O this way.
 		if ( ! $wp_filesystem->mkdir( $_dir, FS_CHMOD_DIR ) && ! $wp_filesystem->is_dir( $_dir ) ) {
-			return new WP_Error( 'mkdir_failed_ziparchive', __( 'Could not create directory.' ), substr( $_dir, strlen( $to ) ) );
+			return new WP_Error( 'mkdir_failed_ziparchive', __( 'Could not create directory.' ), $_dir );
 		}
 	}
 	unset( $needed_dirs );
@@ -1847,7 +1848,7 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 	foreach ( $needed_dirs as $_dir ) {
 		// Only check to see if the dir exists upon creation failure. Less I/O this way.
 		if ( ! $wp_filesystem->mkdir( $_dir, FS_CHMOD_DIR ) && ! $wp_filesystem->is_dir( $_dir ) ) {
-			return new WP_Error( 'mkdir_failed_pclzip', __( 'Could not create directory.' ), substr( $_dir, strlen( $to ) ) );
+			return new WP_Error( 'mkdir_failed_pclzip', __( 'Could not create directory.' ), $_dir );
 		}
 	}
 	unset( $needed_dirs );
@@ -2007,10 +2008,10 @@ function WP_Filesystem( $args = false, $context = false, $allow_relaxed_file_own
 	 * to allow for per-transport overriding of the default.
 	 */
 	if ( ! defined( 'FS_CONNECT_TIMEOUT' ) ) {
-		define( 'FS_CONNECT_TIMEOUT', 30 );
+		define( 'FS_CONNECT_TIMEOUT', 30 ); // 30 seconds.
 	}
 	if ( ! defined( 'FS_TIMEOUT' ) ) {
-		define( 'FS_TIMEOUT', 30 );
+		define( 'FS_TIMEOUT', 30 ); // 30 seconds.
 	}
 
 	if ( is_wp_error( $wp_filesystem->errors ) && $wp_filesystem->errors->has_errors() ) {
@@ -2302,7 +2303,7 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 	$connection_type = isset( $credentials['connection_type'] ) ? $credentials['connection_type'] : '';
 
 	if ( $error ) {
-		$error_string = __( '<strong>Error</strong>: Could not connect to the server. Please verify the settings are correct.' );
+		$error_string = __( '<strong>Error:</strong> Could not connect to the server. Please verify the settings are correct.' );
 		if ( is_wp_error( $error ) ) {
 			$error_string = esc_html( $error->get_error_message() );
 		}

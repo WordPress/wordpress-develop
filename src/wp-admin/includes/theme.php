@@ -442,7 +442,7 @@ function get_theme_feature_list( $api = true ) {
  * @param string       $action API action to perform: 'query_themes', 'theme_information',
  *                             'hot_tags' or 'feature_list'.
  * @param array|object $args   {
- *     Optional. Array or object of arguments to serialize for the Themes API.
+ *     Optional. Array or object of arguments to serialize for the Themes API. Default empty array.
  *
  *     @type string  $slug     The theme slug. Default empty.
  *     @type int     $per_page Number of themes per page. Default 24.
@@ -712,7 +712,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 			$customize_action = esc_url(
 				add_query_arg(
 					array(
-						'return' => urlencode( esc_url_raw( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ),
+						'return' => urlencode( sanitize_url( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ),
 					),
 					wp_customize_url( $slug )
 				)

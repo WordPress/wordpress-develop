@@ -173,6 +173,6 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 		get_the_author_link();
 
 		$this->assertSame( 1, $filter->get_call_count() );
-		$this->assertSame( array( 'the_author_link' ), $filter->get_tags() );
+		$this->assertSame( array( 'the_author_link' ), $filter->get_hook_names() );
 	}
 }

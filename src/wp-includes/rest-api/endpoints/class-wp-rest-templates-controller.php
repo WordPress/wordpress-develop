@@ -42,6 +42,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * Registers the controllers routes.
 	 *
 	 * @since 5.8.0
+	 * @since 6.1.0 Endpoint for fallback template content.
 	 */
 	public function register_routes() {
 		// Lists all templates.
@@ -62,6 +63,34 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
 				),
 				'schema' => array( $this, 'get_public_item_schema' ),
+			)
+		);
+
+		// Get fallback template content.
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/lookup',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_template_fallback' ),
+					'permission_callback' => array( $this, 'get_item_permissions_check' ),
+					'args'                => array(
+						'slug'            => array(
+							'description' => __( 'The slug of the template to get the fallback for' ),
+							'type'        => 'string',
+							'required'    => true,
+						),
+						'is_custom'       => array(
+							'description' => __( 'Indicates if a template is custom or part of the template hierarchy' ),
+							'type'        => 'boolean',
+						),
+						'template_prefix' => array(
+							'description' => __( 'The template prefix for the created template. This is used to extract the main template type, e.g. in `taxonomy-books` extracts the `taxonomy`' ),
+							'type'        => 'string',
+						),
+					),
+				),
 			)
 		);
 
@@ -115,6 +144,21 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
 		);
+	}
+
+	/**
+	 * Returns the fallback template for the given slug.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param WP_REST_Request $request The request instance.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function get_template_fallback( $request ) {
+		$hierarchy         = get_template_hierarchy( $request['slug'], $request['is_custom'], $request['template_prefix'] );
+		$fallback_template = resolve_block_template( $request['slug'], $hierarchy, '' );
+		$response          = $this->prepare_item_for_response( $fallback_template, $request );
+		return rest_ensure_response( $response );
 	}
 
 	/**
@@ -525,6 +569,15 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$changes->post_excerpt = $template->description;
 		}
 
+		if ( 'wp_template' === $this->post_type && isset( $request['is_wp_suggestion'] ) ) {
+			$changes->meta_input     = wp_parse_args(
+				array(
+					'is_wp_suggestion' => $request['is_wp_suggestion'],
+				),
+				$changes->meta_input = array()
+			);
+		}
+
 		if ( 'wp_template_part' === $this->post_type ) {
 			if ( isset( $request['area'] ) ) {
 				$changes->tax_input['wp_template_part_area'] = _filter_block_template_part_area( $request['area'] );
@@ -662,13 +715,15 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
 
-		$links = $this->prepare_links( $template->id );
-		$response->add_links( $links );
-		if ( ! empty( $links['self']['href'] ) ) {
-			$actions = $this->get_available_actions();
-			$self    = $links['self']['href'];
-			foreach ( $actions as $rel ) {
-				$response->add_link( $rel, $self );
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$links = $this->prepare_links( $template->id );
+			$response->add_links( $links );
+			if ( ! empty( $links['self']['href'] ) ) {
+				$actions = $this->get_available_actions();
+				$self    = $links['self']['href'];
+				foreach ( $actions as $rel ) {
+					$response->add_link( $rel, $self );
+				}
 			}
 		}
 
@@ -685,14 +740,12 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return array Links for the given post.
 	 */
 	protected function prepare_links( $id ) {
-		$base = sprintf( '%s/%s', $this->namespace, $this->rest_base );
-
 		$links = array(
 			'self'       => array(
-				'href' => rest_url( trailingslashit( $base ) . $id ),
+				'href' => rest_url( rest_get_route_for_post( $id ) ),
 			),
 			'collection' => array(
-				'href' => rest_url( $base ),
+				'href' => rest_url( rest_get_route_for_post_type_items( $this->post_type ) ),
 			),
 			'about'      => array(
 				'href' => rest_url( 'wp/v2/types/' . $this->post_type ),

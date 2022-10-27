@@ -8,6 +8,15 @@
 class Tests_Rewrite extends WP_UnitTestCase {
 	private $home_url;
 
+	/**
+	 * Temporary storage for blog id for use with filters.
+	 *
+	 * Used in the `test_url_to_postid_of_http_site_when_current_site_uses_https()` method.
+	 *
+	 * @var int
+	 */
+	private $blog_id_35531;
+
 	public function set_up() {
 		parent::set_up();
 
@@ -22,6 +31,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$wp_rewrite->init();
 
 		update_option( 'home', $this->home_url );
+		unset( $this->blog_id_35531 );
 		parent::tear_down();
 	}
 
@@ -245,8 +255,17 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->assertSame( $grandchild_id_2, url_to_postid( get_permalink( $grandchild_id_2 ) ) );
 	}
 
-	public function test_url_to_postid_home_has_path() {
+	/**
+	 * @covers ::url_to_postid
+	 */
+	public function test_url_to_postid_url_has_only_path() {
+		$this->assertSame( 0, url_to_postid( '/example/' ) );
+	}
 
+	/**
+	 * @covers ::url_to_postid
+	 */
+	public function test_url_to_postid_home_has_only_path() {
 		update_option( 'home', home_url( '/example/' ) );
 
 		$id = self::factory()->post->create(

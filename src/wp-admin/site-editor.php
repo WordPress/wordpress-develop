@@ -6,7 +6,7 @@
  * @subpackage Administration
  */
 
-global $post, $editor_styles;
+global $editor_styles;
 
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
@@ -19,8 +19,13 @@ if ( ! current_user_can( 'edit_theme_options' ) ) {
 	);
 }
 
-if ( ! wp_is_block_theme() ) {
+if ( ! ( current_theme_supports( 'block-template-parts' ) || wp_is_block_theme() ) ) {
 	wp_die( __( 'The theme you are currently using is not compatible with Full Site Editing.' ) );
+}
+
+$is_template_part_editor = isset( $_GET['postType'] ) && 'wp_template_part' === sanitize_key( $_GET['postType'] );
+if ( ! wp_is_block_theme() && ! $is_template_part_editor ) {
+	wp_die( __( 'The theme you are currently using is not compatible with the Site Editor.' ) );
 }
 
 /**
@@ -29,6 +34,9 @@ if ( ! wp_is_block_theme() ) {
  */
 $home_template = _resolve_home_block_template();
 if ( $home_template && empty( $_GET['postType'] ) && empty( $_GET['postId'] ) ) {
+	if ( ! empty( $_GET['styles'] ) ) {
+		$home_template['styles'] = sanitize_key( $_GET['styles'] );
+	}
 	$redirect_url = add_query_arg(
 		$home_template,
 		admin_url( 'site-editor.php' )
@@ -61,14 +69,29 @@ foreach ( get_default_block_template_types() as $slug => $template_type ) {
 
 $block_editor_context = new WP_Block_Editor_Context( array( 'name' => 'core/edit-site' ) );
 $custom_settings      = array(
-	'siteUrl'                  => site_url(),
-	'postsPerPage'             => get_option( 'posts_per_page' ),
-	'styles'                   => get_block_editor_theme_styles(),
-	'defaultTemplateTypes'     => $indexed_template_types,
-	'defaultTemplatePartAreas' => get_allowed_block_template_part_areas(),
-	'__unstableHomeTemplate'   => $home_template,
+	'siteUrl'                   => site_url(),
+	'postsPerPage'              => get_option( 'posts_per_page' ),
+	'styles'                    => get_block_editor_theme_styles(),
+	'defaultTemplateTypes'      => $indexed_template_types,
+	'defaultTemplatePartAreas'  => get_allowed_block_template_part_areas(),
+	'supportsLayout'            => WP_Theme_JSON_Resolver::theme_has_support(),
+	'supportsTemplatePartsMode' => ! wp_is_block_theme() && current_theme_supports( 'block-template-parts' ),
+	'__unstableHomeTemplate'    => $home_template,
 );
-$editor_settings      = get_block_editor_settings( $custom_settings, $block_editor_context );
+
+/**
+ * Home template resolution is not needed when block template parts are supported.
+ * Set the value to `true` to satisfy the editor initialization guard clause.
+ */
+if ( $custom_settings['supportsTemplatePartsMode'] ) {
+	$custom_settings['__unstableHomeTemplate'] = true;
+}
+
+// Add additional back-compat patterns registered by `current_screen` et al.
+$custom_settings['__experimentalAdditionalBlockPatterns']          = WP_Block_Patterns_Registry::get_instance()->get_all_registered( true );
+$custom_settings['__experimentalAdditionalBlockPatternCategories'] = WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered( true );
+
+$editor_settings = get_block_editor_settings( $custom_settings, $block_editor_context );
 
 if ( isset( $_GET['postType'] ) && ! isset( $_GET['postId'] ) ) {
 	$post_type = get_post_type_object( $_GET['postType'] );
@@ -112,7 +135,7 @@ wp_add_inline_script(
 
 wp_add_inline_script(
 	'wp-blocks',
-	sprintf( 'wp.blocks.setCategories( %s );', wp_json_encode( get_block_categories( $post ) ) ),
+	sprintf( 'wp.blocks.setCategories( %s );', wp_json_encode( isset( $editor_settings['blockCategories'] ) ? $editor_settings['blockCategories'] : array() ) ),
 	'after'
 );
 
