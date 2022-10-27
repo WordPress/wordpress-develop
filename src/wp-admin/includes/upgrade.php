@@ -832,6 +832,10 @@ function upgrade_all() {
 		upgrade_600();
 	}
 
+	if ( $wp_current_db_version < 53500 ) {
+		upgrade_620();
+	}
+
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -2282,6 +2286,33 @@ function upgrade_600() {
 
 	if ( $wp_current_db_version < 53011 ) {
 		wp_update_user_counts();
+	}
+}
+
+/**
+ * Executes changes made in WordPress 6.2.0.
+ *
+ * @ignore
+ * @since 6.2.0
+ *
+ * @global int $wp_current_db_version The old (current) database version.
+ */
+function upgrade_620() {
+	global $wp_current_db_version;
+
+	if ( $wp_current_db_version < 53500 ) {
+		$update_options = array(
+			'can_compress_scripts',
+			'medium_crop',
+			'medium_large_crop',
+			'large_crop',
+			'site_logo',
+		);
+		foreach ( $update_options as $option ) {
+			$value = get_option( $option );
+			delete_option( $option );
+			add_option( $option, $value, '', 'yes' );
+		}
 	}
 }
 
