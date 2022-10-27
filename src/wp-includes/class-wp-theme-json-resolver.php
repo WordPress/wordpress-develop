@@ -408,6 +408,9 @@ class WP_Theme_JSON_Resolver {
 	 * @return array Custom Post Type for the user's origin config.
 	 */
 	public static function get_user_data_from_wp_global_styles( $theme, $create_post = false, $post_status_filter = array( 'publish' ) ) {
+		if ( ! static::theme_has_support() ) {
+			return array();
+		}
 		if ( ! $theme instanceof WP_Theme ) {
 			$theme = wp_get_theme();
 		}
