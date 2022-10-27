@@ -397,6 +397,47 @@ final class WP_Post_Type {
 	public $rest_controller;
 
 	/**
+	 * The controller for this post type's REST API endpoints.
+	 *
+	 * Custom controllers must extend WP_REST_Controller.
+	 *
+	 * @since 6.2.0
+	 * @var string|bool $rest_controller_class
+	 */
+	public $revisions_rest_controller_class;
+
+	/**
+	 * The controller instance for this post type's REST API endpoints.
+	 *
+	 * Lazily computed. Should be accessed using {@see WP_Post_Type::get_rest_controller()}.
+	 *
+	 * @since 6.2.0
+	 * @var WP_REST_Controller $rest_controller
+	 */
+	public $revisions_rest_controller;
+
+
+	/**
+	 * The controller for this post type's REST API endpoints.
+	 *
+	 * Custom controllers must extend WP_REST_Controller.
+	 *
+	 * @since 6.2.0
+	 * @var string|bool $rest_controller_class
+	 */
+	public $autosave_rest_controller_class;
+
+	/**
+	 * The controller instance for this post type's REST API endpoints.
+	 *
+	 * Lazily computed. Should be accessed using {@see WP_Post_Type::get_rest_controller()}.
+	 *
+	 * @since 6.2.0
+	 * @var WP_REST_Controller $rest_controller
+	 */
+	public $autosave_rest_controller;
+
+	/**
 	 * Constructor.
 	 *
 	 * See the register_post_type() function for accepted arguments for `$args`.
@@ -813,6 +854,86 @@ final class WP_Post_Type {
 		}
 
 		return $this->rest_controller;
+	}
+
+	/**
+	 * Gets the REST API revisions controller for this post type.
+	 *
+	 * Will only instantiate the controller class once per request.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @return WP_REST_Controller|null The controller instance, or null if the post type
+	 *                                 is set not to show in rest.
+	 */
+	public function get_revisions_rest_controller() {
+		if ( ! $this->show_in_rest ) {
+			return null;
+		}
+
+		if ( ! post_type_supports( $this->name, 'revisions' ) ) {
+			return null;
+		}
+
+		$class = $this->revisions_rest_controller_class ? $this->revisions_rest_controller_class : WP_REST_Revisions_Controller::class;
+
+		if ( ! class_exists( $class ) ) {
+			return null;
+		}
+
+		if ( ! is_subclass_of( $class, WP_REST_Controller::class ) ) {
+			return null;
+		}
+
+		if ( ! $this->revisions_rest_controller ) {
+			$this->revisions_rest_controller = new $class( $this->name );
+		}
+
+		if ( ! ( $this->revisions_rest_controller instanceof $class ) ) {
+			return null;
+		}
+
+		return $this->revisions_rest_controller;
+	}
+
+	/**
+	 * Gets the REST API autosave controller for this post type.
+	 *
+	 * Will only instantiate the controller class once per request.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @return WP_REST_Controller|null The controller instance, or null if the post type
+	 *                                 is set not to show in rest.
+	 */
+	public function get_autosave_rest_controller() {
+		if ( ! $this->show_in_rest ) {
+			return null;
+		}
+
+		if ( 'attachment' !== $this->name  ) {
+			return null;
+		}
+
+		$class = $this->autosave_rest_controller_class ? $this->autosave_rest_controller_class : WP_REST_Autosaves_Controller::class;
+
+		if ( ! class_exists( $class ) ) {
+			return null;
+		}
+
+		if ( ! is_subclass_of( $class, WP_REST_Controller::class ) ) {
+			return null;
+		}
+
+		if ( ! $this->autosave_rest_controller ) {
+			$this->autosave_rest_controller = new $class( $this->name );
+		}
+
+		if ( ! ( $this->autosave_rest_controller instanceof $class ) ) {
+			return null;
+		}
+
+		return $this->autosave_rest_controller;
 	}
 
 	/**
