@@ -25,6 +25,11 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		self::$list_table = new WP_List_Table();
 	}
 
+	public function tear_down() {
+		remove_filter( 'doing_it_wrong_trigger_error', '__return_true', 9999 );
+		parent::tear_down();
+	}
+
 	/**
 	 * Tests that `WP_List_Table::get_column_info()` only adds the primary
 	 * column header when necessary.
@@ -346,21 +351,60 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_should_allow_predefiend_dynamic_properties
+	 * @dataProvider data_should_allow_predefined_dynamic_properties
 	 */
-	public function test_should_allow_predefiend_dynamic_properties( $property_name ) {
-		$value                              = uniqid();
+	public function test_should_allow_predefined_dynamic_properties( $property_name ) {
+		$value = uniqid();
+
+		// Calling the getter first to make sure it doesn't cause errors.
+		static::$list_table->$property_name;
+
 		static::$list_table->$property_name = $value;
 		$this->assertSame( $value, static::$list_table->$property_name );
 	}
 
-	public function data_should_allow_predefiend_dynamic_properties() {
-		$compat_fields_property = new ReflectionProperty( static::$list_table, 'compat_fields' );
+	public function data_should_allow_predefined_dynamic_properties() {
+		// This code doesn't have access to self::$list_table, so the WP_List_Table object has to be called this way.
+		$list_table             = new WP_List_Table();
+		$compat_fields_property = new ReflectionProperty( $list_table, 'compat_fields' );
 		$compat_fields_property->setAccessible( true );
 
-		$predefined_properties = $compat_fields_property->getValue( self::$list_table );
+		$predefined_properties = $compat_fields_property->getValue( $list_table );
 
 		$compat_fields_property->setAccessible( false );
+		$predefined_properties = array_map(
+			function ( $property_name ) {
+				return array( $property_name );
+			},
+			$predefined_properties
+		);
+
 		return $predefined_properties;
+	}
+
+	public function test_should_not_allow_to_get_dynamic_properties() {
+		$this->enable_doing_it_wrong_error();
+		$property_name = uniqid();
+		$this->setExpectedIncorrectUsage( 'WP_List_Table::__get' );
+		$this->expectNotice();
+		$this->expectNoticeMessageMatches( '/^.+' . $property_name . '.+$/' );
+
+		// Invoking WP_List_Table::__get.
+		static::$list_table->$property_name;
+	}
+
+	public function test_should_not_allow_to_set_dynamic_properties() {
+		$this->enable_doing_it_wrong_error();
+		$property_name = uniqid();
+		$this->setExpectedIncorrectUsage( 'WP_List_Table::__set' );
+		$this->expectNotice();
+		$this->expectNoticeMessageMatches( '/^.+' . $property_name . '.+$/' );
+
+		// Invoking WP_List_Table::__set.
+		static::$list_table->$property_name = 'value';
+	}
+
+	private function enable_doing_it_wrong_error() {
+		add_filter( 'doing_it_wrong_trigger_error', '__return_true', 9999 );
 	}
 }
