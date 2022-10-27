@@ -7,6 +7,15 @@ on:
       - trunk
     paths:
       - '.github/workflows/test-coverage.yml'
+      - 'docker-compose.yml'
+      - 'phpunit.xml.dist'
+      - 'tests/phpunit/multisite.xml'
+  pull_request:
+    branches:
+      - trunk
+    paths:
+      - '.github/workflows/test-coverage.yml'
+      - 'docker-compose.yml'
       - 'phpunit.xml.dist'
       - 'tests/phpunit/multisite.xml'
   # Once daily at 00:00 UTC.
@@ -19,18 +28,19 @@ env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
   LOCAL_PHP: '7.4-fpm'
   LOCAL_PHP_XDEBUG: true
+  LOCAL_PHP_XDEBUG_MODE: 'coverage'
   LOCAL_PHP_MEMCACHED: ${{ false }}
 
 jobs:
   # Sets up WordPress for testing or development use.
   #
   # Performs the following steps:
-  # - Set environment variables.
+  # - Sets environment variables.
   # - Checks out the repository.
   # - Checks out the WordPress Importer plugin (needed for the Core PHPUnit tests).
-  # - Logs debug information about the runner container.
-  # - Installs NodeJS 14.
-  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # - Logs debug information about the GitHub Action runner.
+  # - Installs Node.js.
+  # _ Installs npm dependencies.
   # - Logs Docker debug information (about the Docker installation within the runner).
   # - Starts the WordPress Docker container.
   # - Logs debug general information.
@@ -61,7 +71,7 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
 
       - name: Checkout repository
-        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
 
       - name: Log debug information
         run: |
@@ -76,8 +86,8 @@ jobs:
           php -i
           locale -a
 
-      - name: Install NodeJS
-        uses: actions/setup-node@5b52f097d36d4b0b2f94ed6de710023fbb8b2236 # v3.1.0
+      - name: Install Node.js
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -89,18 +99,18 @@ jobs:
       # http://man7.org/linux/man-pages/man1/date.1.html
       - name: "Get last Monday's date"
         id: get-date
-        run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
+        run: echo "date=$(/bin/date -u --date='last Mon' "+%F")" >> $GITHUB_OUTPUT
 
       - name: Get Composer cache directory
         id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+        run: echo "composer_dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Cache Composer dependencies
-        uses: actions/cache@136d96b4aee02b1f0de3ba493b1d47135042d9c0 # v3.0.1
+        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
         env:
           cache-name: cache-composer-dependencies
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
+          path: ${{ steps.composer-cache.outputs.composer_dir }}
           key: ${{ runner.os }}-php-${{ matrix.php }}-date-${{ steps.get-date.outputs.date }}-composer-${{ hashFiles('**/composer.json') }}
 
       - name: Install Composer dependencies
@@ -149,11 +159,12 @@ jobs:
         run: git diff --exit-code
 
       - name: Upload single site report to Codecov
-        if: ${{ ! matrix.multisite }}
-        uses: codecov/codecov-action@e3c560433a6cc60aec8812599b7844a7b4fa0d71 # v3.0.0
+        if: ${{ ! matrix.multisite && github.event_name != 'pull_request' }}
+        uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70 # v3.1.1
         with:
           file: wp-code-coverage-single-clover-${{ github.sha }}.xml
           flags: single,php
+          fail_ci_if_error: true
 
       - name: Run tests as a multisite install
         if: ${{ matrix.multisite }}
@@ -163,11 +174,12 @@ jobs:
         run: git diff --exit-code
 
       - name: Upload multisite report to Codecov
-        if: ${{ matrix.multisite }}
-        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # v2.1.0
+        if: ${{ matrix.multisite && github.event_name != 'pull_request' }}
+        uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70 # v3.1.1
         with:
           file: wp-code-coverage-multisite-clover-${{ github.sha }}.xml
           flags: multisite,php
+          fail_ci_if_error: true
 
   slack-notifications:
     name: Slack Notifications
@@ -181,3 +193,33 @@ jobs:
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-latest
+    needs: [ test-coverage-report, slack-notifications ]
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_attempt < 2 &&
+      (
+        needs.test-coverage-report.result == 'cancelled' || needs.test-coverage-report.result == 'failure'
+      )
+
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@100527700e8b29ca817ac0e0dfbfc5e8ff38edda # v6.3.2
+        with:
+          retries: 2
+          retry-exempt-status-codes: 418
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: 'trunk',
+              inputs: {
+                run_id: '${{ github.run_id }}'
+              }
+            });

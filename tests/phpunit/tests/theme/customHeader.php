@@ -8,6 +8,8 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 
 	protected static $header_video_id;
 
+	private $customize_manager = null;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post = self::factory()->post->create(
 			array(
@@ -79,6 +81,59 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 		$image = get_header_image();
 		$this->assertFalse( has_header_image() );
 		$this->assertFalse( $image );
+	}
+
+	/**
+	 * Tests the "get_header_image" filter.
+	 *
+	 * @ticket 56180
+	 *
+	 * @covers get_header_image
+	 *
+	 * @dataProvider data_filter_header_image
+	 *
+	 * @param mixed  $header_image The header image.
+	 * @param string $expected     The expected return value from get_header_image().
+	 */
+	public function test_filter_header_image( $header_image, $expected ) {
+		add_filter(
+			'get_header_image',
+			static function() use ( $header_image ) {
+				return $header_image;
+			}
+		);
+
+		$this->assertSame( $expected, get_header_image() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_filter_header_image() {
+		return array(
+			'an image url'         => array(
+				'header_image' => 'http://example.org/image.png',
+				'expected'     => 'http://example.org/image.png',
+			),
+			'an empty string'      => array(
+				'header_image' => '',
+				'expected'     => '',
+			),
+			'a string with spaces' => array(
+				'header_image' => ' ',
+				'expected'     => '',
+			),
+			'null'                 => array(
+				'header_image' => null,
+				'expected'     => false,
+			),
+			'false'                => array(
+				'header_image' => false,
+				'expected'     => false,
+			),
+		);
 	}
 
 	public function test_get_header_image_tag_without_registered_default_image() {

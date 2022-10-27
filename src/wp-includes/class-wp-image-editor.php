@@ -11,6 +11,7 @@
  *
  * @since 3.5.0
  */
+#[AllowDynamicProperties]
 abstract class WP_Image_Editor {
 	protected $file              = null;
 	protected $size              = null;
@@ -75,11 +76,21 @@ abstract class WP_Image_Editor {
 	 * Saves current image to file.
 	 *
 	 * @since 3.5.0
+	 * @since 6.0.0 The `$filesize` value was added to the returned array.
 	 * @abstract
 	 *
 	 * @param string $destfilename Optional. Destination filename. Default null.
 	 * @param string $mime_type    Optional. The mime-type. Default null.
-	 * @return array|WP_Error {'path'=>string, 'file'=>string, 'width'=>int, 'height'=>int, 'mime-type'=>string}
+	 * @return array|WP_Error {
+	 *     Array on success or WP_Error if the file failed to save.
+	 *
+	 *     @type string $path      Path to the image file.
+	 *     @type string $file      Name of the image file.
+	 *     @type int    $width     Image width.
+	 *     @type int    $height    Image height.
+	 *     @type string $mime-type The mime type of the image.
+	 *     @type int    $filesize  File size of the image.
+	 * }
 	 */
 	abstract public function save( $destfilename = null, $mime_type = null );
 
@@ -403,8 +414,8 @@ abstract class WP_Image_Editor {
 			// The image will be converted when saving. Set the quality for the new mime-type if not already set.
 			if ( $mime_type !== $this->output_mime_type ) {
 				$this->output_mime_type = $mime_type;
-				$this->set_quality();
 			}
+			$this->set_quality();
 		} elseif ( ! empty( $this->output_mime_type ) ) {
 			// Reset output_mime_type and quality.
 			$this->output_mime_type = null;
@@ -501,7 +512,7 @@ abstract class WP_Image_Editor {
 		switch ( $orientation ) {
 			case 2:
 				// Flip horizontally.
-				$result = $this->flip( true, false );
+				$result = $this->flip( false, true );
 				break;
 			case 3:
 				// Rotate 180 degrees or flip horizontally and vertically.
@@ -510,14 +521,14 @@ abstract class WP_Image_Editor {
 				break;
 			case 4:
 				// Flip vertically.
-				$result = $this->flip( false, true );
+				$result = $this->flip( true, false );
 				break;
 			case 5:
 				// Rotate 90 degrees counter-clockwise and flip vertically.
 				$result = $this->rotate( 90 );
 
 				if ( ! is_wp_error( $result ) ) {
-					$result = $this->flip( false, true );
+					$result = $this->flip( true, false );
 				}
 
 				break;
@@ -530,7 +541,7 @@ abstract class WP_Image_Editor {
 				$result = $this->rotate( 90 );
 
 				if ( ! is_wp_error( $result ) ) {
-					$result = $this->flip( true, false );
+					$result = $this->flip( false, true );
 				}
 
 				break;

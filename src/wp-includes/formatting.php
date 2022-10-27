@@ -943,7 +943,7 @@ function _wp_specialchars( $string, $quote_style = ENT_NOQUOTES, $charset = fals
 		return $string;
 	}
 
-	// Account for the previous behaviour of the function when the $quote_style is not an accepted value.
+	// Account for the previous behavior of the function when the $quote_style is not an accepted value.
 	if ( empty( $quote_style ) ) {
 		$quote_style = ENT_NOQUOTES;
 	} elseif ( ENT_XML1 === $quote_style ) {
@@ -1023,7 +1023,7 @@ function wp_specialchars_decode( $string, $quote_style = ENT_NOQUOTES ) {
 		return $string;
 	}
 
-	// Match the previous behaviour of _wp_specialchars() when the $quote_style is not an accepted value.
+	// Match the previous behavior of _wp_specialchars() when the $quote_style is not an accepted value.
 	if ( empty( $quote_style ) ) {
 		$quote_style = ENT_NOQUOTES;
 	} elseif ( ! in_array( $quote_style, array( 0, 2, 3, 'single', 'double' ), true ) ) {
@@ -1584,6 +1584,7 @@ function utf8_uri_encode( $utf8_string, $length = 0, $encode_ascii_characters = 
  * @since 4.8.0 Added locale support for `bs_BA`.
  * @since 5.7.0 Added locale support for `de_AT`.
  * @since 6.0.0 Added the `$locale` parameter.
+ * @since 6.1.0 Added Unicode NFC encoding normalization support.
  *
  * @param string $string Text that might have accent characters.
  * @param string $locale Optional. The locale to use for accent removal. Some character
@@ -1597,6 +1598,15 @@ function remove_accents( $string, $locale = '' ) {
 	}
 
 	if ( seems_utf8( $string ) ) {
+
+		// Unicode sequence normalization from NFD (Normalization Form Decomposed)
+		// to NFC (Normalization Form [Pre]Composed), the encoding used in this function.
+		if ( function_exists( 'normalizer_normalize' ) ) {
+			if ( ! normalizer_is_normalized( $string, Normalizer::FORM_C ) ) {
+				$string = normalizer_normalize( $string, Normalizer::FORM_C );
+			}
+		}
+
 		$chars = array(
 			// Decompositions for Latin-1 Supplement.
 			'ª' => 'a',
@@ -2319,6 +2329,7 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 				'%e2%80%ad', // Left-to-right override.
 				'%e2%80%ae', // Right-to-left override.
 				'%ef%bb%bf', // Byte order mark.
+				'%ef%bf%bc', // Object replacement character.
 			),
 			'',
 			$title
@@ -2774,9 +2785,6 @@ function untrailingslashit( $string ) {
 
 /**
  * Adds slashes to a string or recursively adds slashes to strings within an array.
- *
- * Slashes will first be removed if magic_quotes_gpc is set, see {@link
- * https://www.php.net/magic_quotes} for more details.
  *
  * @since 0.71
  *
@@ -4326,7 +4334,7 @@ function _deep_replace( $search, $subject ) {
  * is preparing an array for use in an IN clause.
  *
  * NOTE: Since 4.8.3, '%' characters will be replaced with a placeholder string,
- * this prevents certain SQLi attacks from taking place. This change in behaviour
+ * this prevents certain SQLi attacks from taking place. This change in behavior
  * may cause issues for code that expects the return value of esc_sql() to be useable
  * for other purposes.
  *
@@ -4334,8 +4342,8 @@ function _deep_replace( $search, $subject ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string|array $data Unescaped data
- * @return string|array Escaped data
+ * @param string|array $data Unescaped data.
+ * @return string|array Escaped data, in the same type as supplied.
  */
 function esc_sql( $data ) {
 	global $wpdb;
@@ -4346,7 +4354,7 @@ function esc_sql( $data ) {
  * Checks and cleans a URL.
  *
  * A number of characters are removed from the URL. If the URL is for displaying
- * (the default behaviour) ampersands are also replaced. The {@see 'clean_url'} filter
+ * (the default behavior) ampersands are also replaced. The {@see 'clean_url'} filter
  * is applied to the returned cleaned URL.
  *
  * @since 2.8.0
@@ -4763,6 +4771,7 @@ function sanitize_option( $option, $value ) {
 		case 'users_can_register':
 		case 'start_of_week':
 		case 'site_icon':
+		case 'fileupload_maxk':
 			$value = absint( $value );
 			break;
 
@@ -4916,7 +4925,7 @@ function sanitize_option( $option, $value ) {
 			break;
 
 		case 'timezone_string':
-			$allowed_zones = timezone_identifiers_list();
+			$allowed_zones = timezone_identifiers_list( DateTimeZone::ALL_WITH_BC );
 			if ( ! in_array( $value, $allowed_zones, true ) && ! empty( $value ) ) {
 				$error = __( 'The timezone you have entered is not valid. Please select a valid timezone.' );
 			}
@@ -5606,7 +5615,7 @@ function sanitize_trackback_urls( $to_ping ) {
  * @since 5.5.0 Non-string values are left untouched.
  *
  * @param string|array $value String or array of data to slash.
- * @return string|array Slashed `$value`.
+ * @return string|array Slashed `$value`, in the same type as supplied.
  */
 function wp_slash( $value ) {
 	if ( is_array( $value ) ) {
@@ -5629,7 +5638,7 @@ function wp_slash( $value ) {
  * @since 3.6.0
  *
  * @param string|array $value String or array of data to unslash.
- * @return string|array Unslashed `$value`.
+ * @return string|array Unslashed `$value`, in the same type as supplied.
  */
 function wp_unslash( $value ) {
 	return stripslashes_deep( $value );
@@ -5788,14 +5797,14 @@ function _print_emoji_detection_script() {
 
 	if ( SCRIPT_DEBUG ) {
 		$settings['source'] = array(
-			/** This filter is documented in wp-includes/class.wp-scripts.php */
+			/** This filter is documented in wp-includes/class-wp-scripts.php */
 			'wpemoji' => apply_filters( 'script_loader_src', includes_url( "js/wp-emoji.js?$version" ), 'wpemoji' ),
-			/** This filter is documented in wp-includes/class.wp-scripts.php */
+			/** This filter is documented in wp-includes/class-wp-scripts.php */
 			'twemoji' => apply_filters( 'script_loader_src', includes_url( "js/twemoji.js?$version" ), 'twemoji' ),
 		);
 	} else {
 		$settings['source'] = array(
-			/** This filter is documented in wp-includes/class.wp-scripts.php */
+			/** This filter is documented in wp-includes/class-wp-scripts.php */
 			'concatemoji' => apply_filters( 'script_loader_src', includes_url( "js/wp-emoji-release.min.js?$version" ), 'concatemoji' ),
 		);
 	}

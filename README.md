@@ -19,6 +19,8 @@ You will need Node and npm installed on your computer. Node is a JavaScript runt
 
 If you are not using a package manager, see the [Node.js download page](https://nodejs.org/en/download/) for installers and binaries.
 
+**Note:** WordPress currently only supports Node.js `14.x` and npm `6.x`.
+
 You will also need [Docker](https://www.docker.com/products/docker-desktop) installed and running on your computer. Docker is the virtualization software that powers the local development environment. Docker can be installed just like any other regular application.
 
 ### Development Environment Commands
@@ -51,13 +53,13 @@ To stop the watcher, press `ctrl+c`.
 #### To run a [WP-CLI](https://make.wordpress.org/cli/handbook/) command
 
 ```
-npm run env:cli <command>
+npm run env:cli -- <command>
 ```
 
-WP-CLI has a lot of [useful commands](https://developer.wordpress.org/cli/commands/) you can use to work on your WordPress site. Where the documentation mentions running `wp`, run `npm run env:cli` instead. For example:
+WP-CLI has [many useful commands](https://developer.wordpress.org/cli/commands/) you can use to work on your WordPress site. Where the documentation mentions running `wp`, run `npm run env:cli --` instead. For example:
 
 ```
-npm run env:cli help
+npm run env:cli -- help
 ```
 
 #### To run the tests

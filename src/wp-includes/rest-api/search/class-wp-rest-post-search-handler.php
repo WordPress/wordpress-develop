@@ -58,15 +58,23 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 		}
 
 		$query_args = array(
-			'post_type'              => $post_types,
-			'post_status'            => 'publish',
-			'paged'                  => (int) $request['page'],
-			'posts_per_page'         => (int) $request['per_page'],
-			'ignore_sticky_posts'    => true,
+			'post_type'           => $post_types,
+			'post_status'         => 'publish',
+			'paged'               => (int) $request['page'],
+			'posts_per_page'      => (int) $request['per_page'],
+			'ignore_sticky_posts' => true,
 		);
 
 		if ( ! empty( $request['search'] ) ) {
 			$query_args['s'] = $request['search'];
+		}
+
+		if ( ! empty( $request['exclude'] ) ) {
+			$query_args['post__not_in'] = $request['exclude'];
+		}
+
+		if ( ! empty( $request['include'] ) ) {
+			$query_args['post__in'] = $request['include'];
 		}
 
 		/**
@@ -81,8 +89,8 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 		 */
 		$query_args = apply_filters( 'rest_post_search_query', $query_args, $request );
 
-		$query     = new WP_Query();
-		$posts     = $query->query( $query_args );
+		$query = new WP_Query();
+		$posts = $query->query( $query_args );
 		// Querying the whole post object will warm the object cache, avoiding an extra query per result.
 		$found_ids = wp_list_pluck( $posts, 'ID' );
 		$total     = $query->found_posts;
