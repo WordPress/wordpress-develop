@@ -170,8 +170,12 @@ class WP_Theme_JSON_Resolver {
 			return static::$core;
 		}
 
-		$config = static::read_json_file( __DIR__ . '/theme.json' );
-		$config = static::translate( $config );
+		if ( static::theme_has_support() ) {
+			$config = static::read_json_file( __DIR__ . '/theme.json' );
+			$config = static::translate( $config );
+		} else {
+			$config = array();
+		}
 
 		/**
 		 * Filters the default data provided by WordPress for global styles & settings.
@@ -246,8 +250,12 @@ class WP_Theme_JSON_Resolver {
 		$options = wp_parse_args( $options, array( 'with_supports' => true ) );
 
 		if ( null === static::$theme || ! static::has_same_registered_blocks( 'theme' ) ) {
-			$theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json' ) );
-			$theme_json_data = static::translate( $theme_json_data, wp_get_theme()->get( 'TextDomain' ) );
+			if ( static::theme_has_support() ) {
+				$theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json' ) );
+				$theme_json_data = static::translate( $theme_json_data, wp_get_theme()->get( 'TextDomain' ) );
+			} else {
+				$theme_json_data = array();
+			}
 
 			/**
 			 * Filters the data provided by the theme for global styles and settings.
