@@ -69,7 +69,7 @@ class Tests_Theme_wpGetGlobalStylesForBlocks extends WP_UnitTestCase {
 		return $this->theme_root;
 	}
 
-	public function test_styles_for_blocks() {
+	public function test_styles_for_third_party_blocks() {
 		switch_theme( 'block-theme' );
 
 		// The 3rd party block styles are only missing
