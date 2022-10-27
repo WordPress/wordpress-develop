@@ -344,4 +344,23 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @dataProvider data_should_allow_predefiend_dynamic_properties
+	 */
+	public function test_should_allow_predefiend_dynamic_properties( $property_name ) {
+		$value                              = uniqid();
+		static::$list_table->$property_name = $value;
+		$this->assertSame( $value, static::$list_table->$property_name );
+	}
+
+	public function data_should_allow_predefiend_dynamic_properties() {
+		$compat_fields_property = new ReflectionProperty( static::$list_table, 'compat_fields' );
+		$compat_fields_property->setAccessible( true );
+
+		$predefined_properties = $compat_fields_property->getValue( self::$list_table );
+
+		$compat_fields_property->setAccessible( false );
+		return $predefined_properties;
+	}
 }
