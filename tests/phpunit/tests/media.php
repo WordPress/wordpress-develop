@@ -2332,7 +2332,7 @@ EOF;
 
 		// Ensure the img and iframe filters only ran once because the content is a single duplicated img tag and a
 		// single duplicate iframe tag.
-		wp_filter_content_tags( $content );
+		wp_filter_content_tags( $content, 'the_content' );
 		$this->assertSame( 1, $img_filter->get_call_count() );
 		$this->assertSame( 1, $iframe_filter->get_call_count() );
 	}
@@ -3463,7 +3463,10 @@ EOF;
 		$this->assertSame( 'lazy', wp_get_loading_attr_default( 'wp_get_attachment_image' ) );
 
 		// Return 'lazy' if not in the loop or the main query.
-		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
+		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context, 'the_content' ) );
+
+		// Return false if the context is false.
+		$this->assertFalse( wp_get_loading_attr_default( $context, 'the_content' ) );
 
 		$wp_query = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
 		$this->reset_content_media_count();
@@ -3473,7 +3476,7 @@ EOF;
 			the_post();
 
 			// Return 'lazy' if in the loop but not in the main query.
-			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
+			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context, 'the_content' ) );
 
 			// Set as main query.
 			$wp_the_query = $wp_query;
@@ -3483,13 +3486,13 @@ EOF;
 			$this->assertSame( 'lazy', wp_get_loading_attr_default( 'wp_get_attachment_image' ) );
 
 			// Return `false` if in the loop and in the main query and it is the first element.
-			$this->assertFalse( wp_get_loading_attr_default( $context ) );
+			$this->assertFalse( wp_get_loading_attr_default( $context, 'the_content' ) );
 
 			// Return 'lazy' if in the loop and in the main query for any subsequent elements.
-			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
+			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context, 'the_content' ) );
 
 			// Yes, for all subsequent elements.
-			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
+			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context, 'the_content' ) );
 		}
 	}
 
