@@ -1736,7 +1736,7 @@ function wp_lazy_loading_enabled( $tag_name, $context ) {
 	// By default add to all 'img' and 'iframe' tags.
 	// See https://html.spec.whatwg.org/multipage/embedded-content.html#attr-img-loading
 	// See https://html.spec.whatwg.org/multipage/iframe-embed-object.html#attr-iframe-loading
-	$default = ( 'img' === $tag_name || 'iframe' === $tag_name );
+	$default = false !== $context && ( 'img' === $tag_name || 'iframe' === $tag_name );
 
 	/**
 	 * Filters whether to add the `loading` attribute to the specified tag in the specified context.
