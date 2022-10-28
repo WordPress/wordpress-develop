@@ -105,13 +105,6 @@ class Tests_Functions extends WP_UnitTestCase {
 			'C:\\',
 			'C:\\WINDOWS',
 			'\\\\sambashare\\foo',
-			'c:/',
-			'c://',
-			'//',
-			'c:/FOO',
-			'//FOO',
-			'C:/WWW/Sites/demo/htdocs/wordpress/wp-content/uploads/2016/03/example.jpg',
-			'//ComputerName/ShareName/SubfolderName/example.txt',
 		);
 		foreach ( $absolute_paths as $path ) {
 			$this->assertTrue( path_is_absolute( $path ), "path_is_absolute('$path') should return true" );
@@ -126,14 +119,10 @@ class Tests_Functions extends WP_UnitTestCase {
 			'../foo',
 			'../',
 			'../foo.bar',
-			'foo.bar',
 			'foo/bar',
 			'foo',
 			'FOO',
 			'..\\WINDOWS',
-			'..//WINDOWS',
-			'c:',
-			'C:',
 		);
 		foreach ( $relative_paths as $path ) {
 			$this->assertFalse( path_is_absolute( $path ), "path_is_absolute('$path') should return false" );
