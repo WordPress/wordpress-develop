@@ -5,8 +5,10 @@
  *
  * @group upgrade
  * @group dbdelta
+ *
+ * @covers ::dbDelta
  */
-class Tests_dbDelta extends WP_UnitTestCase {
+class Tests_DB_dbDelta extends WP_UnitTestCase {
 
 	/**
 	 * The maximum size of an index with utf8mb4 collation and charset with a standard
