@@ -3050,7 +3050,7 @@ EOF;
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
 
-		$this->assertSame( $content_filtered, wp_filter_content_tags( $content_unfiltered ) );
+		$this->assertSame( $content_filtered, wp_filter_content_tags( $content_unfiltered, 'the_content' ) );
 
 		remove_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
 		remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
@@ -3463,10 +3463,7 @@ EOF;
 		$this->assertSame( 'lazy', wp_get_loading_attr_default( 'wp_get_attachment_image' ) );
 
 		// Return 'lazy' if not in the loop or the main query.
-		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context, 'the_content' ) );
-
-		// Return false if the context is false.
-		$this->assertFalse( wp_get_loading_attr_default( $context, 'the_content' ) );
+		$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
 
 		$wp_query = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
 		$this->reset_content_media_count();
@@ -3476,7 +3473,7 @@ EOF;
 			the_post();
 
 			// Return 'lazy' if in the loop but not in the main query.
-			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context, 'the_content' ) );
+			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
 
 			// Set as main query.
 			$wp_the_query = $wp_query;
@@ -3486,13 +3483,13 @@ EOF;
 			$this->assertSame( 'lazy', wp_get_loading_attr_default( 'wp_get_attachment_image' ) );
 
 			// Return `false` if in the loop and in the main query and it is the first element.
-			$this->assertFalse( wp_get_loading_attr_default( $context, 'the_content' ) );
+			$this->assertFalse( wp_get_loading_attr_default( $context ) );
 
 			// Return 'lazy' if in the loop and in the main query for any subsequent elements.
-			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context, 'the_content' ) );
+			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
 
 			// Yes, for all subsequent elements.
-			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context, 'the_content' ) );
+			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
 		}
 	}
 
