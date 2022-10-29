@@ -62,8 +62,6 @@ class Tests_Ajax_Attachments extends WP_Ajax_UnitTestCase {
 	 * @covers ::wp_ajax_send_attachment_to_editor
 	 */
 	public function test_wp_ajax_send_attachment_to_editor_should_return_a_link() {
-		$this->skipWithMultisite();
-
 		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
