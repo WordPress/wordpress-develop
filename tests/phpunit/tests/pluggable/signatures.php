@@ -2,8 +2,10 @@
 
 /**
  * @group pluggable
+ *
+ * @coversNothing
  */
-class Tests_Pluggable extends WP_UnitTestCase {
+class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 
 	/**
 	 * Tests that the signatures of all functions in pluggable.php match their expected signature.
