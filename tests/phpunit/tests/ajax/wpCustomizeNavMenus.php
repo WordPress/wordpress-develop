@@ -2,12 +2,13 @@
 /**
  * Testing Ajax customize menus functionality.
  *
- * @package    WordPress
+ * @package WordPress
  * @subpackage UnitTests
- * @since      4.3.0
- * @group      ajax
+ * @since 4.3.0
+ *
+ * @group ajax
  */
-class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
+class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Instance of WP_Customize_Manager which is reset for each test.

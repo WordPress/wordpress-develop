@@ -8,14 +8,15 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 /**
  * Testing Ajax comment functionality
  *
- * @package    WordPress
+ * @package WordPress
  * @subpackage UnitTests
- * @since      3.4.0
- * @group      ajax
+ * @since 3.4.0
+ *
+ * @group ajax
  *
  * @covers ::wp_ajax_dim_comment
  */
-class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
+class Tests_Ajax_wpAjaxDimComment extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * List of comments.

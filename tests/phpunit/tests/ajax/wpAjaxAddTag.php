@@ -9,15 +9,16 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
  * Class for testing ajax add tag functionality.
  *
  * @group ajax
+ *
+ * @covers ::wp_ajax_add_tag
  */
-class Tests_Ajax_AddTag extends WP_Ajax_UnitTestCase {
+class Tests_Ajax_wpAjaxAddTag extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * @dataProvider data_add_tag
 	 *
 	 * @ticket 42937
 	 *
-	 * @covers ::wp_ajax_add_tag
 	 * @covers ::wp_insert_term
 	 *
 	 * @param array                 $post_data Data to populate $_POST.
@@ -93,8 +94,6 @@ class Tests_Ajax_AddTag extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * @ticket 42937
-	 *
-	 * @covers ::wp_ajax_add_tag
 	 */
 	public function test_adding_category_without_capability_should_error() {
 		$this->_setRole( 'subscriber' );
@@ -114,7 +113,6 @@ class Tests_Ajax_AddTag extends WP_Ajax_UnitTestCase {
 	/**
 	 * @ticket 42937
 	 *
-	 * @covers ::wp_ajax_add_tag
 	 * @covers ::wp_insert_term
 	 */
 	public function test_adding_existing_category_should_error() {

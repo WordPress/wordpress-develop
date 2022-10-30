@@ -5,13 +5,13 @@
 require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 
 /**
- * Testing Ajax handler for instlaling, updating, and deleting themes.
+ * Testing Ajax handler for installing, updating, and deleting themes.
  *
  * @group ajax
  *
  * @covers ::wp_ajax_update_theme
  */
-class Tests_Ajax_Manage_Themes extends WP_Ajax_UnitTestCase {
+class Tests_Ajax_wpAjaxUpdateTheme extends WP_Ajax_UnitTestCase {
 	private $orig_theme_dir;
 	private $theme_root;
 

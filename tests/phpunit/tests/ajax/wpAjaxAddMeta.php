@@ -9,12 +9,14 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
  * Testing Add Meta AJAX functionality.
  *
  * @group ajax
+ *
+ * @covers ::wp_ajax_add_meta
  */
-class Tests_Ajax_AddMeta extends WP_Ajax_UnitTestCase {
+class Tests_Ajax_wpAjaxAddMeta extends WP_Ajax_UnitTestCase {
+
 	/**
 	 * @ticket 43559
 	 *
-	 * @covers ::wp_ajax_add_meta
 	 * @covers ::add_post_meta
 	 */
 	public function test_wp_ajax_add_meta_allows_empty_values_on_adding() {
@@ -43,7 +45,6 @@ class Tests_Ajax_AddMeta extends WP_Ajax_UnitTestCase {
 	/**
 	 * @ticket 43559
 	 *
-	 * @covers ::wp_ajax_add_meta
 	 * @covers ::update_metadata_by_mid
 	 */
 	public function test_wp_ajax_add_meta_allows_empty_values_on_updating() {

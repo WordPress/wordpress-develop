@@ -5,18 +5,18 @@
 require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 
 /**
- * Testing Ajax handler for updating a plugin.
+ * Testing Ajax handler for deleting a plugin.
  *
  * @group ajax
  *
- * @covers ::wp_ajax_update_plugin
+ * @covers ::wp_ajax_delete_plugin
  */
-class Tests_Ajax_Update_Plugin extends WP_Ajax_UnitTestCase {
+class Tests_Ajax_wpAjaxDeletePlugin extends WP_Ajax_UnitTestCase {
 
 	public function test_missing_nonce() {
 		$this->expectException( 'WPAjaxDieStopException' );
 		$this->expectExceptionMessage( '-1' );
-		$this->_handleAjax( 'update-plugin' );
+		$this->_handleAjax( 'delete-plugin' );
 	}
 
 	public function test_missing_plugin() {
@@ -25,7 +25,7 @@ class Tests_Ajax_Update_Plugin extends WP_Ajax_UnitTestCase {
 
 		// Make the request.
 		try {
-			$this->_handleAjax( 'update-plugin' );
+			$this->_handleAjax( 'delete-plugin' );
 		} catch ( WPAjaxDieContinueException $e ) {
 			unset( $e );
 		}
@@ -51,7 +51,7 @@ class Tests_Ajax_Update_Plugin extends WP_Ajax_UnitTestCase {
 
 		// Make the request.
 		try {
-			$this->_handleAjax( 'update-plugin' );
+			$this->_handleAjax( 'delete-plugin' );
 		} catch ( WPAjaxDieContinueException $e ) {
 			unset( $e );
 		}
@@ -78,7 +78,7 @@ class Tests_Ajax_Update_Plugin extends WP_Ajax_UnitTestCase {
 
 		// Make the request.
 		try {
-			$this->_handleAjax( 'update-plugin' );
+			$this->_handleAjax( 'delete-plugin' );
 		} catch ( WPAjaxDieContinueException $e ) {
 			unset( $e );
 		}
@@ -89,11 +89,9 @@ class Tests_Ajax_Update_Plugin extends WP_Ajax_UnitTestCase {
 		$expected = array(
 			'success' => false,
 			'data'    => array(
-				'update'       => 'plugin',
+				'delete'       => 'plugin',
 				'slug'         => 'foo',
-				'oldVersion'   => '',
-				'newVersion'   => '',
-				'errorMessage' => 'Sorry, you are not allowed to update plugins for this site.',
+				'errorMessage' => 'Sorry, you are not allowed to delete plugins for this site.',
 			),
 		);
 
@@ -109,7 +107,7 @@ class Tests_Ajax_Update_Plugin extends WP_Ajax_UnitTestCase {
 
 		// Make the request.
 		try {
-			$this->_handleAjax( 'update-plugin' );
+			$this->_handleAjax( 'delete-plugin' );
 		} catch ( WPAjaxDieContinueException $e ) {
 			unset( $e );
 		}
@@ -120,11 +118,9 @@ class Tests_Ajax_Update_Plugin extends WP_Ajax_UnitTestCase {
 		$expected = array(
 			'success' => false,
 			'data'    => array(
-				'update'       => 'plugin',
+				'delete'       => 'plugin',
 				'slug'         => 'foo',
-				'oldVersion'   => '',
-				'newVersion'   => '',
-				'errorMessage' => 'Sorry, you are not allowed to update plugins for this site.',
+				'errorMessage' => 'Sorry, you are not allowed to delete plugins for this site.',
 			),
 		);
 
@@ -133,20 +129,19 @@ class Tests_Ajax_Update_Plugin extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * @group ms-excluded
+	 *
+	 * @covers ::delete_plugins
 	 */
-	public function test_update_plugin() {
+	public function test_delete_plugin() {
 		$this->_setRole( 'administrator' );
 
 		$_POST['_ajax_nonce'] = wp_create_nonce( 'updates' );
-		$_POST['plugin']      = 'hello.php';
-		$_POST['slug']        = 'hello-dolly';
+		$_POST['plugin']      = 'foo.php';
+		$_POST['slug']        = 'foo';
 
 		// Make the request.
 		try {
-			// Prevent wp_update_plugins() from running.
-			wp_installing( true );
-			$this->_handleAjax( 'update-plugin' );
-			wp_installing( false );
+			$this->_handleAjax( 'delete-plugin' );
 		} catch ( WPAjaxDieContinueException $e ) {
 			unset( $e );
 		}
@@ -155,16 +150,12 @@ class Tests_Ajax_Update_Plugin extends WP_Ajax_UnitTestCase {
 		$response = json_decode( $this->_last_response, true );
 
 		$expected = array(
-			'success' => false,
+			'success' => true,
 			'data'    => array(
-				'update'       => 'plugin',
-				'slug'         => 'hello-dolly',
-				'oldVersion'   => 'Version 1.7.2',
-				'newVersion'   => '',
-				'plugin'       => 'hello.php',
-				'pluginName'   => 'Hello Dolly',
-				'debug'        => array( 'The plugin is at the latest version.' ),
-				'errorMessage' => 'The plugin is at the latest version.',
+				'delete'     => 'plugin',
+				'slug'       => 'foo',
+				'plugin'     => 'foo.php',
+				'pluginName' => '',
 			),
 		);
 

@@ -16,7 +16,7 @@
  *
  * @covers ::wp_ajax_wp_privacy_export_personal_data
  */
-class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
+class Tests_Ajax_wpAjaxWpPrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * User Request ID.

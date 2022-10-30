@@ -8,12 +8,14 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
  * Testing Ajax attachment handling.
  *
  * @group ajax
+ *
+ * @covers ::wp_ajax_send_attachment_to_editor
  */
-class Tests_Ajax_Attachments extends WP_Ajax_UnitTestCase {
+class Tests_Ajax_wpAjaxSendAttachmentToEditor extends WP_Ajax_UnitTestCase {
+
 	/**
 	 * @ticket 36578
 	 *
-	 * @covers ::wp_ajax_send_attachment_to_editor
 	 * @covers ::get_image_send_to_editor
 	 */
 	public function test_wp_ajax_send_attachment_to_editor_should_return_an_image() {
@@ -58,8 +60,6 @@ class Tests_Ajax_Attachments extends WP_Ajax_UnitTestCase {
 	/**
 	 * @ticket 36578
 	 * @group ms-excluded
-	 *
-	 * @covers ::wp_ajax_send_attachment_to_editor
 	 */
 	public function test_wp_ajax_send_attachment_to_editor_should_return_a_link() {
 		// Become an administrator.

@@ -16,7 +16,7 @@
  *
  * @covers ::wp_ajax_wp_privacy_erase_personal_data
  */
-class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
+class Tests_Ajax_wpAjaxWpPrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * User Request ID.

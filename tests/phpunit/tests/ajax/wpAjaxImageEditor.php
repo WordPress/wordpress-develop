@@ -7,14 +7,17 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 /**
  * Testing Ajax media editing.
  *
- * @package    WordPress
+ * @package WordPress
  * @subpackage UnitTests
- * @since      3.5.0
- * @group      ajax
+ * @since 3.5.0
  *
- * @requires   function imagejpeg
+ * @group ajax
+ *
+ * @covers ::wp_ajax_image_editor
+ *
+ * @requires function imagejpeg
  */
-class Tests_Ajax_MediaEdit extends WP_Ajax_UnitTestCase {
+class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Tear down the test fixture.

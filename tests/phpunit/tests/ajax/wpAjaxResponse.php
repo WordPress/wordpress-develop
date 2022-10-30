@@ -2,14 +2,15 @@
 /**
  * Testing Ajax response class
  *
- * @package    WordPress
+ * @package WordPress
  * @subpackage UnitTests
- * @since      3.5.0
- * @group      ajax
+ * @since 3.5.0
+ *
+ * @group ajax
  *
  * @covers WP_Ajax_Response::send
  */
-class Tests_Ajax_Response extends WP_UnitTestCase {
+class Tests_Ajax_wpAjaxResponse extends WP_UnitTestCase {
 
 	/**
 	 * Saved error reporting level

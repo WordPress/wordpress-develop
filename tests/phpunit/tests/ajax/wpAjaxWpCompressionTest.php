@@ -8,17 +8,18 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 /**
  * Testing Ajax compression test functionality.
  *
- * @package    WordPress
+ * @package WordPress
  * @subpackage UnitTests
- * @since      3.4.0
- * @group      ajax
+ * @since 3.4.0
+ *
+ * @group ajax
+ *
+ * @covers ::wp_ajax_wp_compression_test
  */
-class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
+class Tests_Ajax_wpAjaxWpCompressionTest extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Test as a logged out user
-	 *
-	 * @covers ::wp_ajax_wp_compression_test
 	 */
 	public function test_logged_out() {
 		$this->logout();
@@ -34,8 +35,6 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Fetch the test text
-	 *
-	 * @covers ::wp_ajax_wp_compression_test
 	 */
 	public function test_text() {
 
@@ -60,8 +59,6 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 	 * Fetch the test text (gzdeflate)
 	 *
 	 * @requires function gzdeflate
-	 *
-	 * @covers ::wp_ajax_wp_compression_test
 	 */
 	public function test_gzdeflate() {
 
@@ -87,8 +84,6 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 	 * Fetch the test text (gzencode)
 	 *
 	 * @requires function gzencode
-	 *
-	 * @covers ::wp_ajax_wp_compression_test
 	 */
 	public function test_gzencode() {
 
@@ -112,8 +107,6 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Fetch the test text (unknown encoding)
-	 *
-	 * @covers ::wp_ajax_wp_compression_test
 	 */
 	public function test_unknown_encoding() {
 
@@ -132,8 +125,6 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Set the 'can_compress_scripts' site option to true
-	 *
-	 * @covers ::wp_ajax_wp_compression_test
 	 */
 	public function test_set_yes() {
 
@@ -172,8 +163,6 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Set the 'can_compress_scripts' site option to false
-	 *
-	 * @covers ::wp_ajax_wp_compression_test
 	 */
 	public function test_set_no() {
 

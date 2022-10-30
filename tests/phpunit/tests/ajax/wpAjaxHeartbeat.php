@@ -8,12 +8,15 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 /**
  * Testing Ajax save draft functionality.
  *
- * @package    WordPress
+ * @package WordPress
  * @subpackage UnitTests
- * @since      3.4.0
- * @group      ajax
+ * @since 3.4.0
+ *
+ * @group ajax
+ *
+ * @covers ::wp_ajax_heartbeat
  */
-class Tests_Ajax_Autosave extends WP_Ajax_UnitTestCase {
+class Tests_Ajax_wpAjaxHeartbeat extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Post
@@ -40,8 +43,6 @@ class Tests_Ajax_Autosave extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Tests autosaving a post.
-	 *
-	 * @covers ::wp_ajax_heartbeat
 	 */
 	public function test_autosave_post() {
 		// The original post_author.
@@ -83,8 +84,6 @@ class Tests_Ajax_Autosave extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Tests autosaving a locked post.
-	 *
-	 * @covers ::wp_ajax_heartbeat
 	 */
 	public function test_autosave_locked_post() {
 		// Lock the post to another user.
@@ -136,8 +135,6 @@ class Tests_Ajax_Autosave extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Tests with an invalid nonce.
-	 *
-	 * @covers ::wp_ajax_heartbeat
 	 */
 	public function test_with_invalid_nonce() {
 

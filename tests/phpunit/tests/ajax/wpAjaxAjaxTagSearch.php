@@ -8,14 +8,15 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 /**
  * Testing Ajax tag search functionality.
  *
- * @package    WordPress
+ * @package WordPress
  * @subpackage UnitTests
- * @since      3.4.0
- * @group      ajax
+ * @since 3.4.0
+ *
+ * @group ajax
  *
  * @covers ::wp_ajax_ajax_tag_search
  */
-class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
+class Tests_Ajax_wpAjaxAjaxTagSearch extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * List of terms to insert on setup
