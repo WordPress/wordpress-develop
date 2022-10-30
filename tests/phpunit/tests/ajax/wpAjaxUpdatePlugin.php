@@ -141,15 +141,17 @@ class Tests_Ajax_wpAjaxUpdatePlugin extends WP_Ajax_UnitTestCase {
 		$_POST['plugin']      = 'hello.php';
 		$_POST['slug']        = 'hello-dolly';
 
+		// Prevent wp_update_plugins() from running.
+		wp_installing( true );
+
 		// Make the request.
 		try {
-			// Prevent wp_update_plugins() from running.
-			wp_installing( true );
 			$this->_handleAjax( 'update-plugin' );
-			wp_installing( false );
 		} catch ( WPAjaxDieContinueException $e ) {
 			unset( $e );
 		}
+
+		wp_installing( false );
 
 		// Get the response.
 		$response = json_decode( $this->_last_response, true );

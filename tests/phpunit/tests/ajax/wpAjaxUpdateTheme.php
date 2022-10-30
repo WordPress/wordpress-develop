@@ -112,17 +112,17 @@ class Tests_Ajax_wpAjaxUpdateTheme extends WP_Ajax_UnitTestCase {
 		$_POST['_ajax_nonce'] = wp_create_nonce( 'updates' );
 		$_POST['slug']        = 'twentyten';
 
+		// Prevent wp_update_themes() from running.
+		wp_installing( true );
+
 		// Make the request.
 		try {
-
-			// Prevent wp_update_themes() from running.
-			wp_installing( true );
 			$this->_handleAjax( 'update-theme' );
-			wp_installing( false );
-
 		} catch ( WPAjaxDieContinueException $e ) {
 			unset( $e );
 		}
+
+		wp_installing( false );
 
 		// Get the response.
 		$response = json_decode( $this->_last_response, true );
