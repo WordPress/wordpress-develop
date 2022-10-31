@@ -1404,14 +1404,14 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @requires extension fileinfo
 	 */
 	public function test_wp_check_filetype_and_ext_with_filtered_woff() {
-		if ( PHP_VERSION_ID >= 80200 ) {
+		if ( PHP_VERSION_ID >= 80100 ) {
 			/*
-			 * For the time being, this test is marked skipped on PHP 8.2 as a recent change introduced
+			 * For the time being, this test is marked skipped on PHP 8.1+ as a recent change introduced
 			 * an inconsistency with how the mime-type for WOFF files are handled compared to older versions.
 			 *
 			 * See https://core.trac.wordpress.org/ticket/56817 for more details.
 			 */
-			$this->markTestSkipped( 'This test currently fails on PHP 8.2RC3 and requires further investigation.' );
+			$this->markTestSkipped( 'This test currently fails on PHP 8.1+ and requires further investigation.' );
 		}
 
 		$file     = DIR_TESTDATA . '/uploads/dashicons.woff';
