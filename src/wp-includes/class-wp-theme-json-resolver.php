@@ -56,6 +56,7 @@ class WP_Theme_JSON_Resolver {
 	 * @var WP_Theme_JSON
 	 */
 	protected $theme = null;
+	protected $data = null;
 
 	/**
 	 * Whether or not the theme supports theme.json.
@@ -551,18 +552,19 @@ class WP_Theme_JSON_Resolver {
 			_deprecated_argument( __FUNCTION__, '5.9.0' );
 		}
 
-		$result = $this->get_core_data();
-		$result->merge( $this->get_block_data() );
-		$result->merge( $this->get_theme_data() );
-
-		if ( 'custom' === $origin ) {
-			$result->merge( $this->get_user_data() );
+		if( $this->data ){
+			return $this->data;
 		}
 
+		$this->data = $this->get_core_data();
+		$this->data->merge( $this->get_block_data() );
+		$this->data->merge( $this->get_theme_data() );
+		$this->data->merge( $this->get_user_data() );
+		
 		// Generate the default spacingSizes array based on the merged spacingScale settings.
-		$result->set_spacing_sizes();
+		$this->data->set_spacing_sizes();
 
-		return $result;
+		return $this->data;
 	}
 
 	/**
@@ -637,6 +639,7 @@ class WP_Theme_JSON_Resolver {
 	 */
 	public function clean_cached_data() {
 		$this->core                     = null;
+		$this->data                     = null;
 		$this->blocks                   = null;
 		$this->blocks_cache             = array(
 			'core'   => array(),
