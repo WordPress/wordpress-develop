@@ -1510,6 +1510,20 @@ class Tests_DB extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 56933
+	 *
+	 * @covers wpdb::prepare
+	 */
+	public function test_prepare_with_placeholders() {
+		global $wpdb;
+
+		$sql      = $wpdb->prepare( "'%%%s%%'", 'hello' );
+		$expected = '}hello{';
+
+		$this->assertStringContainsString( $expected, $sql );
+	}
+
+	/**
 	 * @dataProvider data_prepare_with_placeholders
 	 */
 	public function test_prepare_with_placeholders_and_individual_args( $sql, $values, $incorrect_usage, $expected ) {
