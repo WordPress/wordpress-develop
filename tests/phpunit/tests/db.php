@@ -1510,23 +1510,6 @@ class Tests_DB extends WP_UnitTestCase {
 	}
 
 	/**
-	 * When preparing a '%%%s%%', test that the inserted value is not wrapped in single
-	 * quotes between the 2 hex values.
-	 *
-	 * @ticket 56933
-	 *
-	 * @covers wpdb::prepare
-	 */
-	public function test_prepare_for_unquoted_inserted_value_between_hex_values() {
-		global $wpdb;
-
-		$sql      = $wpdb->prepare( "'%%%s%%'", 'hello' );
-		$expected = '}hello{';
-
-		$this->assertStringContainsString( $expected, $sql );
-	}
-
-	/**
 	 * @dataProvider data_prepare_with_placeholders
 	 */
 	public function test_prepare_with_placeholders_and_individual_args( $sql, $values, $incorrect_usage, $expected ) {
@@ -1731,6 +1714,17 @@ class Tests_DB extends WP_UnitTestCase {
 				'hello',
 				false,
 				"'{$placeholder_escape}'{$placeholder_escape}s 'hello'",
+			),
+			/*
+			 * @ticket 56933.
+			 * When preparing a '%%%s%%', test that the inserted value
+			 * is not wrapped in single quotes between the 2 hex values.
+			 */
+			array(
+				'%%%s%%',
+				'hello',
+				false,
+				"{$placeholder_escape}hello{$placeholder_escape}",
 			),
 			array(
 				"'%-'#5s' '%'#-+-5s'",
