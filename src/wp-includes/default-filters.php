@@ -349,8 +349,10 @@ add_action( 'init', array( 'WP_Block_Supports', 'init' ), 22 );
 
 global $wp_theme_json_resolver;
 
-add_action( 'switch_theme', array( $wp_theme_json_resolver, 'clean_cached_data' ) );
-add_action( 'start_previewing_theme', array( $wp_theme_json_resolver, 'clean_cached_data' ) );
+if( $wp_theme_json_resolver ) {
+	add_action( 'switch_theme', array( $wp_theme_json_resolver, 'clean_cached_data' ) );
+	add_action( 'start_previewing_theme', array( $wp_theme_json_resolver, 'clean_cached_data' ) );
+}
 add_action( 'after_switch_theme', '_wp_menus_changed' );
 add_action( 'after_switch_theme', '_wp_sidebars_changed' );
 add_action( 'wp_print_styles', 'print_emoji_styles' );
