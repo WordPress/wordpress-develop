@@ -3201,7 +3201,7 @@ function _wp_theme_json_webfonts_handler() {
 	 * @return array Array of defined webfonts.
 	 */
 	$fn_get_webfonts_from_theme_json = static function() {
-		$wp_theme_json_resolver = new WP_Theme_JSON_Resolver();
+		global $wp_theme_json_resolver;
 		// Get settings from theme.json.
 		$settings = $wp_theme_json_resolver->get_merged_data()->get_settings();
 
