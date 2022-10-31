@@ -6,7 +6,7 @@
  * @subpackage Administration
  */
 
-global $editor_styles;
+global $editor_styles, $wp_theme_json_resolver;
 
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
@@ -74,7 +74,7 @@ $custom_settings      = array(
 	'styles'                    => get_block_editor_theme_styles(),
 	'defaultTemplateTypes'      => $indexed_template_types,
 	'defaultTemplatePartAreas'  => get_allowed_block_template_part_areas(),
-	'supportsLayout'            => WP_Theme_JSON_Resolver::theme_has_support(),
+	'supportsLayout'            => $wp_theme_json_resolver->theme_has_support(),
 	'supportsTemplatePartsMode' => ! wp_is_block_theme() && current_theme_supports( 'block-template-parts' ),
 	'__unstableHomeTemplate'    => $home_template,
 );
@@ -100,7 +100,7 @@ if ( isset( $_GET['postType'] ) && ! isset( $_GET['postId'] ) ) {
 	}
 }
 
-$active_global_styles_id = WP_Theme_JSON_Resolver::get_user_global_styles_post_id();
+$active_global_styles_id = $wp_theme_json_resolver->get_user_global_styles_post_id();
 $active_theme            = wp_get_theme()->get_stylesheet();
 $preload_paths           = array(
 	array( '/wp/v2/media', 'OPTIONS' ),

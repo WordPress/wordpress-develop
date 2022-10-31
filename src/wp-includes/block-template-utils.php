@@ -347,11 +347,12 @@ function _get_block_templates_files( $template_type ) {
  * @return array Template item.
  */
 function _add_block_template_info( $template_item ) {
-	if ( ! WP_Theme_JSON_Resolver::theme_has_support() ) {
+	global $wp_theme_json_resolver;
+	if ( ! $wp_theme_json_resolver->theme_has_support() ) {
 		return $template_item;
 	}
 
-	$theme_data = WP_Theme_JSON_Resolver::get_theme_data()->get_custom_templates();
+	$theme_data = $wp_theme_json_resolver->get_theme_data()->get_custom_templates();
 	if ( isset( $theme_data[ $template_item['slug'] ] ) ) {
 		$template_item['title']     = $theme_data[ $template_item['slug'] ]['title'];
 		$template_item['postTypes'] = $theme_data[ $template_item['slug'] ]['postTypes'];
@@ -370,8 +371,9 @@ function _add_block_template_info( $template_item ) {
  * @return array Template info.
  */
 function _add_block_template_part_area_info( $template_info ) {
-	if ( WP_Theme_JSON_Resolver::theme_has_support() ) {
-		$theme_data = WP_Theme_JSON_Resolver::get_theme_data()->get_template_parts();
+	global $wp_theme_json_resolver;
+	if ( $wp_theme_json_resolver->theme_has_support() ) {
+		$theme_data = $wp_theme_json_resolver->get_theme_data()->get_template_parts();
 	}
 
 	if ( isset( $theme_data[ $template_info['slug'] ]['area'] ) ) {
@@ -1199,6 +1201,7 @@ function wp_is_theme_directory_ignored( $path ) {
  * @return WP_Error|string Path of the ZIP file or error on failure.
  */
 function wp_generate_block_templates_export_file() {
+	global $wp_theme_json_resolver;
 	if ( ! class_exists( 'ZipArchive' ) ) {
 		return new WP_Error( 'missing_zip_package', __( 'Zip Export not supported.' ) );
 	}
@@ -1259,9 +1262,9 @@ function wp_generate_block_templates_export_file() {
 	}
 
 	// Load theme.json into the zip file.
-	$tree = WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) );
+	$tree = $wp_theme_json_resolver->get_theme_data( array(), array( 'with_supports' => false ) );
 	// Merge with user data.
-	$tree->merge( WP_Theme_JSON_Resolver::get_user_data() );
+	$tree->merge( $wp_theme_json_resolver->get_user_data() );
 
 	$theme_json_raw = $tree->get_data();
 	// If a version is defined, add a schema.

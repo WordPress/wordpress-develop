@@ -526,6 +526,14 @@ $GLOBALS['wp_rewrite'] = new WP_Rewrite();
 $GLOBALS['wp'] = new WP();
 
 /**
+ * WordPress Object
+ *
+ * @global WP_Theme_JSON_Resolver $wp_theme_json_resolver Current WordPress environment instance.
+ * @since 2.0.0
+ */
+$GLOBALS['wp_theme_json_resolver'] = new WP_Theme_JSON_Resolver();
+
+/**
  * WordPress Widget Factory Object
  *
  * @global WP_Widget_Factory $wp_widget_factory

@@ -564,6 +564,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_theme_item( $request ) {
+		global $wp_theme_json_resolver;
 		if ( wp_get_theme()->get_stylesheet() !== $request['stylesheet'] ) {
 			// This endpoint only supports the active theme for now.
 			return new WP_Error(
@@ -573,7 +574,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$theme  = WP_Theme_JSON_Resolver::get_merged_data( 'theme' );
+		$theme  = $wp_theme_json_resolver->get_merged_data( 'theme' );
 		$data   = array();
 		$fields = $this->get_fields_for_response( $request );
 
@@ -638,6 +639,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_theme_items( $request ) {
+		global $wp_theme_json_resolver;
 		if ( wp_get_theme()->get_stylesheet() !== $request['stylesheet'] ) {
 			// This endpoint only supports the active theme for now.
 			return new WP_Error(
@@ -647,7 +649,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$variations = WP_Theme_JSON_Resolver::get_style_variations();
+		$variations = $wp_theme_json_resolver->get_style_variations();
 		$response   = rest_ensure_response( $variations );
 
 		return $response;

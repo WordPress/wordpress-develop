@@ -356,6 +356,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * @return array Links for the given block type.
 	 */
 	protected function prepare_links( $theme ) {
+		global $wp_theme_json_resolver;
 		$links = array(
 			'self'       => array(
 				'href' => rest_url( sprintf( '%s/%s/%s', $this->namespace, $this->rest_base, $theme->get_stylesheet() ) ),
@@ -367,9 +368,9 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 
 		if ( $this->is_same_theme( $theme, wp_get_theme() ) ) {
 			// This creates a record for the active theme if not existent.
-			$id = WP_Theme_JSON_Resolver::get_user_global_styles_post_id();
+			$id = $wp_theme_json_resolver->get_user_global_styles_post_id();
 		} else {
-			$user_cpt = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
+			$user_cpt = $wp_theme_json_resolver->get_user_data_from_wp_global_styles( $theme );
 			$id       = isset( $user_cpt['ID'] ) ? $user_cpt['ID'] : null;
 		}
 

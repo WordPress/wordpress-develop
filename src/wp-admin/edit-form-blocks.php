@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @global string       $title
  * @global array        $wp_meta_boxes
  */
-global $post_type, $post_type_object, $post, $title, $wp_meta_boxes;
+global $post_type, $post_type_object, $post, $title, $wp_meta_boxes, $wp_theme_json_resolver;
 
 $block_editor_context = new WP_Block_Editor_Context( array( 'post' => $post ) );
 
@@ -203,7 +203,7 @@ $editor_settings = array(
 		'unlockNonce' => wp_create_nonce( 'update-post_' . $post->ID ),
 		'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
 	),
-	'supportsLayout'       => WP_Theme_JSON_Resolver::theme_has_support(),
+	'supportsLayout'       => $wp_theme_json_resolver->theme_has_support(),
 	'supportsTemplateMode' => current_theme_supports( 'block-templates' ),
 
 	// Whether or not to load the 'postcustom' meta box is stored as a user meta
