@@ -1510,11 +1510,14 @@ class Tests_DB extends WP_UnitTestCase {
 	}
 
 	/**
+	 * When preparing a '%%%s%%', test that the inserted value is not wrapped in single
+	 * quotes between the 2 hex values.
+	 *
 	 * @ticket 56933
 	 *
 	 * @covers wpdb::prepare
 	 */
-	public function test_prepare_with_placeholders() {
+	public function test_prepare_for_unquoted_inserted_value_between_hex_values() {
 		global $wpdb;
 
 		$sql      = $wpdb->prepare( "'%%%s%%'", 'hello' );
