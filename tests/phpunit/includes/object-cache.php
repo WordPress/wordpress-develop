@@ -323,7 +323,12 @@ function wp_cache_flush( $delay = 0 ) {
  * @return bool True if the feature is supported, false otherwise.
  */
 function wp_cache_supports( $feature ) {
-	return false;
+	switch ( $feature ) {
+		case 'get_multiple':
+			return true;
+		default:
+			return false;
+	}
 }
 
 /**
@@ -2162,6 +2167,7 @@ class WP_Object_Cache {
 		if ( ! is_array( $keys ) ) {
 			$keys = (array) $keys;
 		}
+		$keys = array_values( $keys );
 
 		// If we have equal numbers of keys and groups, merge $keys[n] and $group[n].
 		if ( count( $keys ) === count( $groups ) ) {
@@ -2172,7 +2178,6 @@ class WP_Object_Cache {
 			// If more keys are received than groups, merge $keys[n] and $group[n]
 			// until no more groups are left; remaining groups are 'default'.
 		} elseif ( count( $keys ) > count( $groups ) ) {
-			$keys = array_values( $keys );
 			for ( $i = 0; $i < count( $keys ); $i++ ) {
 				if ( isset( $groups[ $i ] ) ) {
 					$derived_keys[] = $this->buildKey( $keys[ $i ], $groups[ $i ] );
