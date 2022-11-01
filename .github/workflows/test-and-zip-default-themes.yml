@@ -131,13 +131,14 @@ jobs:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
 
       - name: Create theme ZIP file
-        run: zip -r ${{ matrix.theme }}.zip src/wp-content/themes/${{ matrix.theme }} -x "*/node_modules/*"
+        run: zip -r ${{ matrix.theme }}.zip ${{ matrix.theme }} -x "*/node_modules/*"
+        working-directory: src/wp-content/themes
 
       - name: Upload theme ZIP as an artifact
         uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb # v3.1.1
         with:
           name: ${{ matrix.theme }}
-          path: ${{ matrix.theme }}.zip
+          path: src/wp-content/themes/${{ matrix.theme }}.zip
 
   slack-notifications:
     name: Slack Notifications
