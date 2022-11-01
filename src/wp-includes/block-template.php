@@ -247,7 +247,7 @@ function get_the_block_template_html() {
 	if ( is_array( $parsed_post_content ) ) {
 		foreach ( $parsed_post_content as $i => $post_content ) {
 			$pos = strpos( $content, $post_content );
-			if ( $pos !== false ) {
+			if ( false !== $pos ) {
 				$content = substr_replace( $content, "<!-- wp-post-content-placeholder-$i -->", $pos, strlen( $post_content ) );
 			}
 		}
