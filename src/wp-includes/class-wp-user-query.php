@@ -809,36 +809,37 @@ class WP_User_Query {
 			if ( false !== $cache_value ) {
 				$this->results     = $cache_value['user_ids'];
 				$this->total_users = $cache_value['total_users'];
-				return;
-			}
-
-			if ( is_array( $qv['fields'] ) ) {
-				$this->results = $wpdb->get_results( $this->request );
 			} else {
-				$this->results = $wpdb->get_col( $this->request );
-			}
 
-			if ( isset( $qv['count_total'] ) && $qv['count_total'] ) {
-				/**
-				 * Filters SELECT FOUND_ROWS() query for the current WP_User_Query instance.
-				 *
-				 * @since 3.2.0
-				 * @since 5.1.0 Added the `$this` parameter.
-				 *
-				 * @global wpdb $wpdb WordPress database abstraction object.
-				 *
-				 * @param string        $sql   The SELECT FOUND_ROWS() query for the current WP_User_Query.
-				 * @param WP_User_Query $query The current WP_User_Query instance.
-				 */
-				$found_users_query = apply_filters( 'found_users_query', 'SELECT FOUND_ROWS()', $this );
+				if ( is_array( $qv['fields'] ) ) {
+					$this->results = $wpdb->get_results( $this->request );
+				} else {
+					$this->results = $wpdb->get_col( $this->request );
+				}
 
-				$this->total_users = (int) $wpdb->get_var( $found_users_query );
+				if ( isset( $qv['count_total'] ) && $qv['count_total'] ) {
+					/**
+					 * Filters SELECT FOUND_ROWS() query for the current WP_User_Query instance.
+					 *
+					 * @param string $sql The SELECT FOUND_ROWS() query for the current WP_User_Query.
+					 * @param WP_User_Query $query The current WP_User_Query instance.
+					 *
+					 * @global wpdb $wpdb WordPress database abstraction object.
+					 *
+					 * @since 3.2.0
+					 * @since 5.1.0 Added the `$this` parameter.
+					 *
+					 */
+					$found_users_query = apply_filters( 'found_users_query', 'SELECT FOUND_ROWS()', $this );
+
+					$this->total_users = (int) $wpdb->get_var( $found_users_query );
+				}
+				$cache_value = array(
+					'user_ids'    => $this->results,
+					'total_users' => $this->total_users,
+				);
+				wp_cache_add( $cache_key, $cache_value, 'users' );
 			}
-			$cache_value = array(
-				'user_ids'    => $this->results,
-				'total_users' => $this->total_users,
-			);
-			wp_cache_add( $cache_key, $cache_value, 'users' );
 		}
 
 		if ( ! $this->results ) {
@@ -1022,7 +1023,7 @@ class WP_User_Query {
 	 */
 	protected function generate_cache_key( $sql ) {
 		$key          = md5( $sql);
-		$last_changed = wp_cache_get_last_changed( 'user' );
+		$last_changed = wp_cache_get_last_changed( 'users' );
 	    return "get_users:$key:$last_changed";
 	}
 
