@@ -482,6 +482,7 @@ function wp_cache_get_multi_by_key( $server_key, $keys, $groups = '', &$cas_toke
  */
 function wp_cache_get_multiple( $keys, $group = '', $force = false ) {
 	global $wp_object_cache;
+	$wp_object_cache->getMulti( $keys, $group );
 	return $wp_object_cache->getMultiple( $keys, $group, $force );
 }
 
@@ -2171,6 +2172,7 @@ class WP_Object_Cache {
 			// If more keys are received than groups, merge $keys[n] and $group[n]
 			// until no more groups are left; remaining groups are 'default'.
 		} elseif ( count( $keys ) > count( $groups ) ) {
+			$keys = array_values( $keys );
 			for ( $i = 0; $i < count( $keys ); $i++ ) {
 				if ( isset( $groups[ $i ] ) ) {
 					$derived_keys[] = $this->buildKey( $keys[ $i ], $groups[ $i ] );
