@@ -551,6 +551,11 @@ function twentytwenty_block_editor_settings() {
 		add_theme_support( 'editor-color-palette', $editor_color_palette );
 	}
 
+	$customizer_block_template_setting = true;
+	if ( $customizer_block_template_setting ) {
+		add_theme_support( 'block-templates' );
+	}
+
 	// Block Editor Font Sizes.
 	add_theme_support(
 		'editor-font-sizes',
