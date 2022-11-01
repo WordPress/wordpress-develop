@@ -97,7 +97,7 @@ jobs:
   #
   # Performs the following steps:
   # - Checks out the repository.
-  # - Uploads the theme files as a workflow artifact (all artifacts are ZIP files).
+  # - Uploads the theme files as a workflow artifact (files uploaded as an artifact are automatically zipped).
   bundle-theme:
     name: Create ${{ matrix.theme }} ZIP file
     runs-on: ubuntu-latest
@@ -134,9 +134,7 @@ jobs:
         with:
           if-no-files-found: error
           name: ${{ matrix.theme }}
-          path: |
-            src/wp-content/themes/${{ matrix.theme }}
-            !*/node_modules/*
+          path: src/wp-content/themes/${{ matrix.theme }}
 
   slack-notifications:
     name: Slack Notifications
