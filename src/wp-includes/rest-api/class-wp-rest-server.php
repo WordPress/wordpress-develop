@@ -727,16 +727,8 @@ class WP_REST_Server {
 
 					$response = $this->dispatch( $request );
 
-					// Normalize to either WP_Error or WP_REST_Response...
-					$response = rest_ensure_response( $response );
-
-					// ...then convert WP_Error across.
-					if ( is_wp_error( $response ) ) {
-						$response = $this->error_to_response( $response );
-					}
-
 					/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
-					$response = apply_filters( 'rest_post_dispatch', $response, $this, $request );
+					$response = apply_filters( 'rest_post_dispatch', rest_ensure_response( $response ), $this, $request );
 
 					$this->embed_cache[ $item['href'] ] = $this->response_to_data( $response, false );
 				}
@@ -991,6 +983,15 @@ class WP_REST_Server {
 		$result = apply_filters( 'rest_pre_dispatch', null, $this, $request );
 
 		if ( ! empty( $result ) ) {
+		
+			// Normalize to either WP_Error or WP_REST_Response...
+			$result = rest_ensure_response( $result );
+
+			// ...then convert WP_Error across.
+			if ( is_wp_error( $result ) ) {
+				$result = $this->error_to_response( $result );
+			}
+
 			return $result;
 		}
 
