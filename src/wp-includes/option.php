@@ -377,7 +377,7 @@ function wp_load_core_site_options( $network_id = null ) {
 		'fileupload_maxk',
 		'upload_space_check_disabled',
 		'upload_filetypes',
-		'main_site'
+		'main_site',
 	);
 
 	if ( wp_using_ext_object_cache() ) {
@@ -389,7 +389,7 @@ function wp_load_core_site_options( $network_id = null ) {
 
 		return;
 	}
-	
+
 	$core_options_in = "'" . implode( "', '", $core_options ) . "'";
 	$options         = $wpdb->get_results( $wpdb->prepare( "SELECT meta_key, meta_value FROM $wpdb->sitemeta WHERE meta_key IN ($core_options_in) AND site_id = %d", $network_id ) );
 
