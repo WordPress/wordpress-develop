@@ -983,7 +983,7 @@ class WP_REST_Server {
 		$result = apply_filters( 'rest_pre_dispatch', null, $this, $request );
 
 		if ( ! empty( $result ) ) {
-		
+
 			// Normalize to either WP_Error or WP_REST_Response...
 			$result = rest_ensure_response( $result );
 
