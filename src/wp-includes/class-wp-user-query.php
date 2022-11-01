@@ -804,6 +804,13 @@ class WP_User_Query {
 				{$this->query_orderby}
 				{$this->query_limit}
 			";
+			$cache_key   = $this->generate_cache_key( $this->request );
+			$cache_value = wp_cache_get( $cache_key, 'users' );
+			if ( false !== $cache_value ) {
+				$this->results     = $cache_value['user_ids'];
+				$this->total_users = $cache_value['total_users'];
+				return;
+			}
 
 			if ( is_array( $qv['fields'] ) ) {
 				$this->results = $wpdb->get_results( $this->request );
@@ -827,6 +834,11 @@ class WP_User_Query {
 
 				$this->total_users = (int) $wpdb->get_var( $found_users_query );
 			}
+			$cache_value = array(
+				'user_ids'    => $this->results,
+				'total_users' => $this->total_users,
+			);
+			wp_cache_add( $cache_key, $cache_value, 'users' );
 		}
 
 		if ( ! $this->results ) {
@@ -994,6 +1006,24 @@ class WP_User_Query {
 		}
 
 		return $_orderby;
+	}
+
+	/**
+	 * Generate cache key.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param array  $args Query arguments.
+	 * @param string $sql  SQL statement.
+	 *
+	 * @return string Cache key.
+	 */
+	protected function generate_cache_key( $sql ) {
+		$key          = md5( $sql);
+		$last_changed = wp_cache_get_last_changed( 'user' );
+	    return "get_users:$key:$last_changed";
 	}
 
 	/**
