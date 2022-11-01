@@ -97,8 +97,7 @@ jobs:
   #
   # Performs the following steps:
   # - Checks out the repository.
-  # - Creates a ZIP file of the theme for wordpress.org.
-  # - Uploads the ZIP file as a workflow artifact.
+  # - Uploads the theme files as a workflow artifact (all artifacts are ZIP files).
   bundle-theme:
     name: Create ${{ matrix.theme }} ZIP file
     runs-on: ubuntu-latest
@@ -130,15 +129,13 @@ jobs:
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
 
-      - name: Create theme ZIP file
-        run: zip -r ${{ matrix.theme }}.zip ${{ matrix.theme }} -x "*/node_modules/*"
-        working-directory: src/wp-content/themes
-
       - name: Upload theme ZIP as an artifact
         uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb # v3.1.1
         with:
-          name: ${{ matrix.theme }}
-          path: src/wp-content/themes/${{ matrix.theme }}.zip
+          name: ${{ matrix.theme }}.zip
+          path: |
+            src/wp-content/themes/${{ matrix.theme }}
+            !*/node_modules/*
 
   slack-notifications:
     name: Slack Notifications
