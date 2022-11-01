@@ -14,6 +14,8 @@
  * @return string Returns the filtered post content of the current post.
  */
 function render_block_core_post_content( $attributes, $content, $block ) {
+	global $_wp_template_parsed_post_content;
+
 	static $seen_ids = array();
 
 	if ( ! isset( $block->context['postId'] ) ) {
@@ -58,6 +60,11 @@ function render_block_core_post_content( $attributes, $content, $block ) {
 	if ( empty( $content ) ) {
 		return '';
 	}
+
+	if ( ! is_array( $_wp_template_parsed_post_content ) ) {
+		$_wp_template_parsed_post_content = array();
+	}
+	$_wp_template_parsed_post_content[] = $content;
 
 	$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => 'entry-content' ) );
 
