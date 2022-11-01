@@ -804,10 +804,10 @@ class WP_User_Query {
 				{$this->query_orderby}
 				{$this->query_limit}
 			";
-			$cache_key   = $this->generate_cache_key( $this->request );
+			$cache_key   = $this->generate_cache_key( $qv, $this->request );
 			$cache_value = wp_cache_get( $cache_key, 'users' );
 			if ( false !== $cache_value ) {
-				$this->results     = $cache_value['user_ids'];
+				$this->results     = $cache_value['user_data'];
 				$this->total_users = $cache_value['total_users'];
 			} else {
 
@@ -835,7 +835,7 @@ class WP_User_Query {
 					$this->total_users = (int) $wpdb->get_var( $found_users_query );
 				}
 				$cache_value = array(
-					'user_ids'    => $this->results,
+					'user_data'   => $this->results,
 					'total_users' => $this->total_users,
 				);
 				wp_cache_add( $cache_key, $cache_value, 'users' );
@@ -1016,13 +1016,13 @@ class WP_User_Query {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param array  $args Query arguments.
 	 * @param string $sql  SQL statement.
 	 *
 	 * @return string Cache key.
 	 */
-	protected function generate_cache_key( $sql ) {
-		$key          = md5( $sql);
+	protected function generate_cache_key( array $args, $sql ) {
+		$count_users  = isset( $args['count_total'] ) ? $args['count_total'] : false;
+		$key          = md5( $sql . $count_users );
 		$last_changed = wp_cache_get_last_changed( 'users' );
 	    return "get_users:$key:$last_changed";
 	}
