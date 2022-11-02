@@ -2284,13 +2284,13 @@ class WP_Theme_JSON {
 			// Replace the spacing.units.
 //			$path    = array_merge( $node['path'], array( 'spacing', 'units' ) );
 			$path = $node['path'];
-			$flipped_path = array_flip($node['path']);
-			if (isset($flipped_path['spacing']) === false) {
+//			$flipped_path = array_flip($node['path']);
+//			if (isset($flipped_path['spacing']) === false) {
 				$path[] = 'spacing';
-		    }
-			if (isset($flipped_path['units']) === false) {
+//		    }
+//			if (isset($flipped_path['units']) === false) {
 				$path[] = 'units';
-		    }
+//		    }
 
 			$content = _wp_array_get( $incoming_data, $path, null );
 			if ( isset( $content ) ) {
@@ -2306,9 +2306,9 @@ class WP_Theme_JSON {
 					$base_path = $node['path'];
 //         			$flipped_path = array_flip($node['path']);
          			foreach($preset['path'] as $leaf) {
-						if (isset($flipped_path[$leaf]) === false) {
+//						if (isset($flipped_path[$leaf]) === false) {
 							$base_path[] = $leaf;
-						}
+//						}
 					}
 
 
@@ -2451,6 +2451,10 @@ class WP_Theme_JSON {
 
 		foreach ( static::PRESETS_METADATA as $metadata ) {
 			$path   = array_merge( $node_path, $metadata['path'], array( 'default' ) );
+
+
+
+
 			$preset = _wp_array_get( $data, $path, null );
 			if ( ! isset( $preset ) ) {
 				continue;
