@@ -11,9 +11,47 @@
  * @group block-templates
  */
 class Tests_Block_Template extends WP_UnitTestCase {
-	private static $post;
+	private static $post_id;
 
 	private static $template_canvas_path = ABSPATH . WPINC . '/template-canvas.php';
+
+	private static $demo_block_template;
+	private static $demo_post_content;
+	private static $demo_parsed_template;
+	private static $demo_parsed_content;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$demo_block_template  = '<!-- wp:group {"tagName":"main"} --> <main class="wp-block-group">';
+		self::$demo_block_template .= '<!-- wp:post-title {"level":1,"align":"wide"} /-->';
+		self::$demo_block_template .= '<!-- wp:spacer {"height":32} --> <div style="height:32px" aria-hidden="true" class="wp-block-spacer"></div> <!-- /wp:spacer -->';
+		self::$demo_block_template .= '<!-- wp:post-content {"layout":{"inherit":true}} /-->';
+		self::$demo_block_template .= '</main> <!-- /wp:group -->';
+
+		self::$demo_post_content  = '<!-- wp:image {"width":1500,"height":1500,"sizeSlug":"large"} -->';
+		self::$demo_post_content .= '<figure class="wp-block-image size-large"><img src="https://picsum.photos/1500" alt="" width="1500" height="1500"/></figure>';
+		self::$demo_post_content .= '<!-- /wp:image -->';
+
+		self::$post_id = $factory->post->create(
+			array(
+				'post_title'   => 'Demo Block Editor Post',
+				'post_content' => self::$demo_post_content,
+				'post_type'    => 'post',
+				'post_status'  => 'publish',
+			)
+		);
+
+		self::$demo_parsed_content  = '<figure class="wp-block-image size-large"><img decoding="async" src="https://picsum.photos/1500" alt="" width="1500" height="1500" /></figure>';
+
+		self::$demo_parsed_template  = ' <main class="is-layout-flow wp-block-group">';
+		self::$demo_parsed_template .= '<h1 class="alignwide wp-block-post-title">Demo Block Editor Post</h1>';
+		self::$demo_parsed_template .= ' <div style="height:32px" aria-hidden="true" class="wp-block-spacer"></div> ';
+		self::$demo_parsed_template .= '<div class="is-layout-constrained entry-content wp-block-post-content">' . self::$demo_parsed_content . '</div>';
+		self::$demo_parsed_template .= '</main> ';
+	}
+
+	public static function wpTearDownAfterClass() {
+		wp_delete_post( self::$post_id, true );
+	}
 
 	public function set_up() {
 		parent::set_up();
@@ -225,5 +263,110 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		$template = _resolve_home_block_template();
 
 		$this->assertNull( $template );
+	}
+
+	/**
+	 * @ticket 55996
+	 */
+	public function test_get_the_block_template_html_parses_template_content() {
+		global $_wp_current_template_content, $wp_query, $wp_the_query;
+
+		$wp_query     = new WP_Query( array( 'p' => self::$post_id ) );
+		$wp_the_query = $wp_query;
+		the_post();
+
+		$_wp_current_template_content = self::$demo_block_template;
+
+		$html = get_the_block_template_html();
+		$this->assertSame( '<div class="wp-site-blocks">' . self::$demo_parsed_template . '</div>', $html );
+	}
+
+	/**
+	 * @ticket 55996
+	 */
+	public function test_get_the_block_template_html_parses_post_content_only_once() {
+		global $_wp_current_template_content, $wp_query, $wp_the_query;
+
+		// This filter should only be run once per image (and the post here only has a single image).
+		add_filter(
+			'wp_content_img_tag',
+			function( $img ) {
+				return str_replace( '<img ', '<img data-attr="value" ', $img );
+			}
+		);
+
+		$wp_query     = new WP_Query( array( 'p' => self::$post_id ) );
+		$wp_the_query = $wp_query;
+		the_post();
+
+		$_wp_current_template_content = self::$demo_block_template;
+
+		$html = get_the_block_template_html();
+		$this->assertStringContainsString( '<img data-attr="value" ', $html );
+		$this->assertStringNotContainsString( '<img data-attr="value" data-attr="value" ', $html );
+	}
+
+	/**
+	 * @ticket 55996
+	 */
+	public function test_get_the_block_template_html_parses_post_content_only_once_with_render_block_filter() {
+		global $_wp_current_template_content, $wp_query, $wp_the_query;
+
+		// This filter should only be run once per image (and the post here only has a single image).
+		add_filter(
+			'wp_content_img_tag',
+			function( $img ) {
+				return str_replace( '<img ', '<img data-attr="value" ', $img );
+			}
+		);
+
+		// Add random block rendering filter that modifies post content in some way.
+		add_filter(
+			'render_block_core/post-content',
+			function( $block_content ) {
+				return str_replace( ' size-large', '', $block_content );
+			}
+		);
+
+		$wp_query     = new WP_Query( array( 'p' => self::$post_id ) );
+		$wp_the_query = $wp_query;
+		the_post();
+
+		$_wp_current_template_content = self::$demo_block_template;
+
+		$html = get_the_block_template_html();
+		$this->assertStringContainsString( '<img data-attr="value" ', $html );
+		$this->assertStringNotContainsString( '<img data-attr="value" data-attr="value" ', $html );
+	}
+
+	/**
+	 * @ticket 55996
+	 */
+	public function test_get_the_block_template_html_uses_unique_content_placeholder() {
+		global $_wp_current_template_content, $wp_query, $wp_the_query;
+
+		// Ensure the block template contains a placeholder similar to the placeholder that the replacement mechanism uses.
+		$demo_block_template = '<!-- wp-post-content-placeholder-0 -->' . self::$demo_block_template;
+
+		// Set the post content to contain a placeholder similar to the placeholder that the replacement mechanism uses.
+		$post_content = '<p>Test content with conflicting placeholder comment: <!-- wp-post-content-placeholder-0 --></p>' . "\n";
+		wp_update_post(
+			array(
+				'ID'                    => self::$post_id,
+				'post_content'          => $post_content,
+				'post_content_filtered' => $post_content,
+			)
+		);
+
+		$expected_parsed_template = str_replace( self::$demo_parsed_content, $post_content, '<!-- wp-post-content-placeholder-0 -->' . self::$demo_parsed_template );
+
+		$wp_query     = new WP_Query( array( 'p' => self::$post_id ) );
+		$wp_the_query = $wp_query;
+		the_post();
+
+		$_wp_current_template_content = $demo_block_template;
+
+		$html = get_the_block_template_html();
+		$this->assertSame( '<div class="wp-site-blocks">' . $expected_parsed_template . '</div>', $html );
 	}
 }
