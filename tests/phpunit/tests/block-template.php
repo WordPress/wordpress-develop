@@ -40,7 +40,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 			)
 		);
 
-		self::$demo_parsed_content  = '<figure class="wp-block-image size-large"><img decoding="async" src="https://picsum.photos/1500" alt="" width="1500" height="1500" /></figure>';
+		self::$demo_parsed_content = '<figure class="wp-block-image size-large"><img decoding="async" src="https://picsum.photos/1500" alt="" width="1500" height="1500" /></figure>';
 
 		self::$demo_parsed_template  = ' <main class="is-layout-flow wp-block-group">';
 		self::$demo_parsed_template .= '<h1 class="alignwide wp-block-post-title">Demo Block Editor Post</h1>';
