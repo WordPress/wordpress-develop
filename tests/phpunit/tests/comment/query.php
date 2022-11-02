@@ -2080,11 +2080,11 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$this->assertSameSets( array( $c3 ), $comment_ids );
 	}
 
-		/**
-		 * @ticket 29885
-		 *
-		 * @covers ::get_comments
-		 */
+	/**
+	 * @ticket 29885
+	 *
+	 * @covers ::get_comments
+	 */
 	public function test_fields_author__in() {
 		$p1 = self::factory()->post->create();
 		$p2 = self::factory()->post->create();
@@ -2130,11 +2130,11 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$this->assertSameSets( array( $c1, $c3 ), $comment_ids );
 	}
 
-		/**
-		 * @ticket 29885
-		 *
-		 * @covers ::get_comments
-		 */
+	/**
+	 * @ticket 29885
+	 *
+	 * @covers ::get_comments
+	 */
 	public function test_fields_author__not_in() {
 		$p1 = self::factory()->post->create();
 		$p2 = self::factory()->post->create();
@@ -3328,7 +3328,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	}
 
 	/**
-	 *
 	 * @covers WP_Comment_Query::query
 	 */
 	public function test_post_name_single_value() {

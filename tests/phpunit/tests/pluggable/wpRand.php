@@ -2,6 +2,7 @@
 
 /**
  * @group pluggable
+ *
  * @covers ::wp_rand
  */
 class Tests_Pluggable_wpRand extends WP_UnitTestCase {
