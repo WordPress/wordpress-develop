@@ -5648,7 +5648,7 @@ function dominant_color_add_inline_style() {
 	$handle = 'dominant-color-styles';
 	wp_register_style( $handle, false );
 	wp_enqueue_style( $handle );
-	$custom_css = 'img[data-dominant-color]:not(.has-transparency) { background-color: var(--dominant-color); background-clip: content-box, padding-box; }';
+	$custom_css = 'img[data-dominant-color]:not(.has-transparency) { background-color: var(--dominant-color); }';
 	wp_add_inline_style( $handle, $custom_css );
 }
 add_filter( 'wp_enqueue_scripts', 'dominant_color_add_inline_style' );
