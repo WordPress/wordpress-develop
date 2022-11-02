@@ -170,11 +170,13 @@ class WP_Theme_JSON_Resolver {
 			return static::$core;
 		}
 
-		if ( static::theme_has_support() ) {
+		// TODO: Generate 'theme-json.php' at build time which returns fully parsed and translation-ready 'theme.json'
+		// as a PHP associative array.
+		if ( file_exists( __DIR__ . '/theme-json.php' ) ) {
+			$config = require __DIR__ . '/theme-json.php';
+		} else {
 			$config = static::read_json_file( __DIR__ . '/theme.json' );
 			$config = static::translate( $config );
-		} else {
-			$config = array();
 		}
 
 		/**
@@ -271,16 +273,19 @@ class WP_Theme_JSON_Resolver {
 
 		if ( wp_get_theme()->parent() ) {
 			// Get parent theme.json.
-			$parent_theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json', true ) );
-			$parent_theme_json_data = static::translate( $parent_theme_json_data, wp_get_theme()->parent()->get( 'TextDomain' ) );
-			$parent_theme           = new WP_Theme_JSON( $parent_theme_json_data );
+			$parent_theme_json_file = static::get_file_path_from_theme( 'theme.json', true );
+			if ( $parent_theme_json_file !== '' ) {
+				$parent_theme_json_data = static::read_json_file( $parent_theme_json_file );
+				$parent_theme_json_data = static::translate( $parent_theme_json_data, wp_get_theme()->parent()->get( 'TextDomain' ) );
+				$parent_theme           = new WP_Theme_JSON( $parent_theme_json_data );
 
-			/*
-			 * Merge the child theme.json into the parent theme.json.
-			 * The child theme takes precedence over the parent.
-			 */
-			$parent_theme->merge( static::$theme );
-			static::$theme = $parent_theme;
+				/*
+				* Merge the child theme.json into the parent theme.json.
+				* The child theme takes precedence over the parent.
+				*/
+				$parent_theme->merge( static::$theme );
+				static::$theme = $parent_theme;
+			}
 		}
 
 		if ( ! $options['with_supports'] ) {
@@ -593,8 +598,8 @@ class WP_Theme_JSON_Resolver {
 	public static function theme_has_support() {
 		if ( ! isset( static::$theme_has_support ) ) {
 			static::$theme_has_support = (
-				is_readable( static::get_file_path_from_theme( 'theme.json' ) ) ||
-				is_readable( static::get_file_path_from_theme( 'theme.json', true ) )
+				static::get_file_path_from_theme( 'theme.json' ) !== '' ||
+				static::get_file_path_from_theme( 'theme.json', true ) !== ''
 			);
 		}
 
