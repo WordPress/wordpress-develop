@@ -2450,9 +2450,12 @@ class WP_Theme_JSON {
 		$slugs = array();
 
 		foreach ( static::PRESETS_METADATA as $metadata ) {
-			$path   = array_merge( $node_path, $metadata['path'], array( 'default' ) );
-
-
+//			$path   = array_merge( $node_path, $metadata['path'], array( 'default' ) );
+			$path = $node_path;
+			foreach($metadata['path'] as $leaf) {
+				$path[] = $leaf;
+			}
+			$path[] = 'default';
 
 
 			$preset = _wp_array_get( $data, $path, null );
