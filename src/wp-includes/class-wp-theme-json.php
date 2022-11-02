@@ -2301,11 +2301,11 @@ class WP_Theme_JSON {
 					}
 
 					if ( 'theme' === $origin && $preset['use_default_names'] ) {
-						foreach ( $content as &$item ) {
+						foreach ( $content as $key => $item ) {
 							if ( ! array_key_exists( 'name', $item ) ) {
 								$name = static::get_name_from_defaults( $item['slug'], $base_path );
 								if ( null !== $name ) {
-									$item['name'] = $name;
+									$content[ $key ]['name'] = $name;
 								}
 							}
 						}
