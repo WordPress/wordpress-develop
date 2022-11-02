@@ -2304,7 +2304,7 @@ class WP_Theme_JSON {
 				foreach ( static::VALID_ORIGINS as $origin ) {
 //					$base_path = array_merge( $node['path'], $preset['path'] );
 					$base_path = $node['path'];
-         			$flipped_path = array_flip($node['path']);
+//         			$flipped_path = array_flip($node['path']);
          			foreach($preset['path'] as $leaf) {
 						if (isset($flipped_path[$leaf]) === false) {
 							$base_path[] = $leaf;
