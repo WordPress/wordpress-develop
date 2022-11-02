@@ -2278,9 +2278,6 @@ class WP_Theme_JSON {
 		$nodes        = static::get_setting_nodes( $incoming_data );
 		$slugs_global = static::get_default_slugs( $this->theme_json, array( 'settings' ) );
 		foreach ( $nodes as $node ) {
-			$slugs_node = static::get_default_slugs( $this->theme_json, $node['path'] );
-			$slugs      = array_merge_recursive( $slugs_global, $slugs_node );
-
 			// Replace the spacing.units.
 //			$path    = array_merge( $node['path'], array( 'spacing', 'units' ) );
 			$path = $node['path'];
@@ -2338,6 +2335,9 @@ class WP_Theme_JSON {
 					) {
 						_wp_array_set( $this->theme_json, $path, $content );
 					} else {
+						$slugs_node = static::get_default_slugs( $this->theme_json, $node['path'] );
+						$slugs      = array_merge_recursive( $slugs_global, $slugs_node );
+
 						$slugs_for_preset = _wp_array_get( $slugs, $preset['path'], array() );
 						$content          = static::filter_slugs( $content, $slugs_for_preset );
 						_wp_array_set( $this->theme_json, $path, $content );
