@@ -2486,7 +2486,8 @@ class WP_Theme_JSON {
 	 * @return string|null
 	 */
 	protected function get_name_from_defaults( $slug, $base_path ) {
-		$path            = array_merge( $base_path, array( 'default' ) );
+		$path   = $base_path;
+		$path[] = 'default';
 		$default_content = _wp_array_get( $this->theme_json, $path, null );
 		if ( ! $default_content ) {
 			return null;
