@@ -1210,4 +1210,55 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			array( 'id=>parent', 'id=>parent' ),
 		);
 	}
+
+	/**
+	 * @ticket 56948
+	 * @covers WP_Query::the_post
+	 */
+	public function test_author_cache_warmed_by_the_loop_when_getting_all_fields() {
+		$query_1 = new WP_Query( array( 'post_type' => 'post' ) );
+		// Start the loop.
+		$query_1->the_post();
+
+		$num_queries = get_num_queries();
+		foreach ( $query_1->posts as $post ) {
+			get_the_author_meta( $post->post_author );
+		}
+		$this->assertSame( $num_queries, get_num_queries(), 'Author cache is not warmed by the loop.' );
+	}
+
+	/**
+	 * @ticket 56948
+	 * @covers WP_Query::the_post
+	 *
+	 * @dataProvider data_author_cache_warming_does_not_error_when_getting_a_subset_of_fields
+	 */
+	public function test_author_cache_warming_does_not_error_when_getting_a_subset_of_fields( $fields ) {
+		$query_1 = new WP_Query(
+			array(
+				'post_type' => 'post',
+				'fields'    => $fields,
+			)
+		);
+		// Start the loop.
+		$query_1->the_post();
+
+		/*
+		 * The test will automatically fail if the function triggers a notice,
+		 * so this dummy assertion is just for accurate stats.
+		 */
+		$this->assertTrue( true );
+	}
+
+	/**
+	 * Data provider for test_author_cache_warming_does_not_error_when_getting_a_subset_of_fields
+	 *
+	 * @return array[]
+	 */
+	public function data_author_cache_warming_does_not_error_when_getting_a_subset_of_fields() {
+		return array(
+			'ids'        => array( 'ids' ),
+			'id=>parent' => array( 'id=>parent' ),
+		);
+	}
 }
