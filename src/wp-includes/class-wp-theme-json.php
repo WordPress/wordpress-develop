@@ -2282,7 +2282,16 @@ class WP_Theme_JSON {
 			$slugs      = array_merge_recursive( $slugs_global, $slugs_node );
 
 			// Replace the spacing.units.
-			$path    = array_merge( $node['path'], array( 'spacing', 'units' ) );
+//			$path    = array_merge( $node['path'], array( 'spacing', 'units' ) );
+			$path = $node['path'];
+			$flipped_path = array_flip($node['path']);
+			if (isset($flipped_path['spacing']) === false) {
+				$path[] = 'spacing';
+		    }
+			if (isset($flipped_path['units']) === false) {
+				$path[] = 'units';
+		    }
+
 			$content = _wp_array_get( $incoming_data, $path, null );
 			if ( isset( $content ) ) {
 				_wp_array_set( $this->theme_json, $path, $content );
