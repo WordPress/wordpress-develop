@@ -225,7 +225,7 @@ function _block_template_render_title_tag() {
  * @return string Block template markup.
  */
 function get_the_block_template_html() {
-	global $_wp_current_template_content, $_wp_template_parsed_post_content;
+	global $_wp_current_template_content;
 	global $wp_embed;
 
 	if ( ! $_wp_current_template_content ) {
@@ -235,20 +235,36 @@ function get_the_block_template_html() {
 		return;
 	}
 
+	// Record all post content strings into this list to avoid double parsing.
+	$parsed_post_content = array();
+	add_filter(
+		'render_block_core/post-content',
+		function( $block_content ) use ( &$parsed_post_content ) {
+			$parsed_post_content[] = $block_content;
+			return $block_content;
+		},
+		PHP_INT_MAX
+	);
+
 	$content = $wp_embed->run_shortcode( $_wp_current_template_content );
 	$content = $wp_embed->autoembed( $content );
 	$content = do_blocks( $content );
 
-	// Write the global into a local variable so that it cannot be modified after this.
-	$parsed_post_content = $_wp_template_parsed_post_content;
-
 	// Replace all post content within the template with a temporary placeholder so that the post content is not
 	// unnecessarily processed again. See https://core.trac.wordpress.org/ticket/55996.
-	if ( is_array( $parsed_post_content ) ) {
+	if ( ! empty( $parsed_post_content ) ) {
+		// Ensure a placeholder is used that is not already present in the content.
+		$content_placeholder        = '<!-- wp-post-content-placeholder-%d -->';
+		$existing_placeholder_count = 0;
+		while ( preg_match( '/' . sprintf( $content_placeholder, '[0-9]+' ) . '/', $content ) ) {
+			$existing_placeholder_count++;
+			$content_placeholder = '<!-- wp' . $existing_placeholder_count . '-post-content-placeholder-%d -->';
+		}
+
 		foreach ( $parsed_post_content as $i => $post_content ) {
 			$pos = strpos( $content, $post_content );
 			if ( false !== $pos ) {
-				$content = substr_replace( $content, "<!-- wp-post-content-placeholder-$i -->", $pos, strlen( $post_content ) );
+				$content = substr_replace( $content, sprintf( $content_placeholder, $i ), $pos, strlen( $post_content ) );
 			}
 		}
 	}
@@ -261,11 +277,11 @@ function get_the_block_template_html() {
 	$content = str_replace( ']]>', ']]&gt;', $content );
 
 	// Now that the template has been fully processed, add back in all post content.
-	if ( is_array( $parsed_post_content ) ) {
+	if ( ! empty( $parsed_post_content ) ) {
 		$content = str_replace(
 			array_map(
-				function( $i ) {
-					return "<!-- wp-post-content-placeholder-$i -->";
+				function( $i ) use ( $content_placeholder ) {
+					return sprintf( $content_placeholder, $i );
 				},
 				array_keys( $parsed_post_content )
 			),
