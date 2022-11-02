@@ -2302,7 +2302,16 @@ class WP_Theme_JSON {
 				$override_preset = ! static::get_metadata_boolean( $this->theme_json['settings'], $preset['prevent_override'], true );
 
 				foreach ( static::VALID_ORIGINS as $origin ) {
-					$base_path = array_merge( $node['path'], $preset['path'] );
+//					$base_path = array_merge( $node['path'], $preset['path'] );
+					$base_path = $node['path'];
+         			$flipped_path = array_flip($node['path']);
+         			foreach($preset['path'] as $leaf) {
+						if (isset($flipped_path[$leaf]) === false) {
+							$base_path[] = $leaf;
+						}
+					}
+
+
 					$path      = array_merge( $base_path, array( $origin ) );
 					$content   = _wp_array_get( $incoming_data, $path, null );
 					if ( ! isset( $content ) ) {
