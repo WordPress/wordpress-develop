@@ -2312,7 +2312,10 @@ class WP_Theme_JSON {
 					}
 
 
-					$path      = array_merge( $base_path, array( $origin ) );
+//					$path      = array_merge( $base_path, array( $origin ) );
+					$path = $base_path;
+					$path[] = $origin;
+
 					$content   = _wp_array_get( $incoming_data, $path, null );
 					if ( ! isset( $content ) ) {
 						continue;
