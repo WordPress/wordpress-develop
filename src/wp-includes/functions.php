@@ -978,7 +978,7 @@ function do_enclose( $content, $post ) {
  *
  * @param string $url        URL to retrieve HTTP headers from.
  * @param bool   $deprecated Not Used.
- * @return string|false Headers on success, false on failure.
+ * @return \Requests_Utility_CaseInsensitiveDictionary|false Headers on success, false on failure.
  */
 function wp_get_http_headers( $url, $deprecated = false ) {
 	if ( ! empty( $deprecated ) ) {
@@ -1496,12 +1496,7 @@ function wp_get_nocache_headers() {
 		 *
 		 * @see wp_get_nocache_headers()
 		 *
-		 * @param array $headers {
-		 *     Header names and field values.
-		 *
-		 *     @type string $Expires       Expires header.
-		 *     @type string $Cache-Control Cache-Control header.
-		 * }
+		 * @param array $headers Header names and field values.
 		 */
 		$headers = (array) apply_filters( 'nocache_headers', $headers );
 	}
@@ -1904,7 +1899,8 @@ function wp_nonce_field( $action = -1, $name = '_wpnonce', $referer = true, $ech
  * @return string Referer field HTML markup.
  */
 function wp_referer_field( $echo = true ) {
-	$referer_field = '<input type="hidden" name="_wp_http_referer" value="' . esc_attr( wp_unslash( $_SERVER['REQUEST_URI'] ) ) . '" />';
+	$request_url   = remove_query_arg( '_wp_http_referer' );
+	$referer_field = '<input type="hidden" name="_wp_http_referer" value="' . esc_url( $request_url ) . '" />';
 
 	if ( $echo ) {
 		echo $referer_field;
@@ -2083,7 +2079,6 @@ function wp_mkdir_p( $target ) {
  * For example, '/foo/bar', or 'c:\windows'.
  *
  * @since 2.5.0
- * @since 6.1.0 Allows normalized Windows paths (forward slashes).
  *
  * @param string $path File path.
  * @return bool True if path is absolute, false is not absolute.
@@ -2111,11 +2106,6 @@ function path_is_absolute( $path ) {
 
 	// Windows allows absolute paths like this.
 	if ( preg_match( '#^[a-zA-Z]:\\\\#', $path ) ) {
-		return true;
-	}
-
-	// Normalized Windows paths for local filesystem and network shares (forward slashes).
-	if ( preg_match( '#(^[a-zA-Z]+:/|^//[\w!@\#\$%\^\(\)\-\'{}\.~]{1,15})#', $path ) ) {
 		return true;
 	}
 
@@ -2690,7 +2680,7 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 		 */
 		if ( $is_image ) {
 			/** This filter is documented in wp-includes/class-wp-image-editor.php */
-			$output_formats = apply_filters( 'image_editor_output_format', array(), $_dir . $filename, $mime_type, '' );
+			$output_formats = apply_filters( 'image_editor_output_format', array(), $_dir . $filename, $mime_type );
 			$alt_types      = array();
 
 			if ( ! empty( $output_formats[ $mime_type ] ) ) {
@@ -3588,10 +3578,12 @@ function wp_nonce_ays( $action ) {
 	} else {
 		$html = __( 'The link you followed has expired.' );
 		if ( wp_get_referer() ) {
+			$wp_http_referer = remove_query_arg( 'updated', wp_get_referer() );
+			$wp_http_referer = wp_validate_redirect( esc_url_raw( $wp_http_referer ) );
 			$html .= '</p><p>';
 			$html .= sprintf(
 				'<a href="%s">%s</a>',
-				esc_url( remove_query_arg( 'updated', wp_get_referer() ) ),
+				esc_url( $wp_http_referer ),
 				__( 'Please try again.' )
 			);
 		}
@@ -4533,7 +4525,8 @@ function wp_check_jsonp_callback( $callback ) {
 function wp_json_file_decode( $filename, $options = array() ) {
 	$result   = null;
 	$filename = wp_normalize_path( realpath( $filename ) );
-	if ( ! file_exists( $filename ) ) {
+
+	if ( ! $filename ) {
 		trigger_error(
 			sprintf(
 				/* translators: %s: Path to the JSON file. */
@@ -4823,6 +4816,9 @@ function wp_parse_list( $list ) {
 	if ( ! is_array( $list ) ) {
 		return preg_split( '/[\s,]+/', $list, -1, PREG_SPLIT_NO_EMPTY );
 	}
+
+	// Validate all entries of the list are scalar.
+	$list = array_filter( $list, 'is_scalar' );
 
 	return $list;
 }
@@ -5261,7 +5257,7 @@ function wp_widgets_add_menu() {
 	}
 
 	$menu_name = __( 'Widgets' );
-	if ( wp_is_block_theme() ) {
+	if ( wp_is_block_theme() || current_theme_supports( 'block-template-parts' ) ) {
 		$submenu['themes.php'][] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
 	} else {
 		$submenu['themes.php'][7] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
@@ -5337,7 +5333,7 @@ function absint( $maybeint ) {
 /**
  * Marks a function as deprecated and inform when it has been used.
  *
- * There is a {@see 'hook deprecated_function_run'} that will be called that can be used
+ * There is a hook {@see 'deprecated_function_run'} that will be called that can be used
  * to get the backtrace up to what file and function called the deprecated
  * function.
  *
@@ -5893,15 +5889,24 @@ function apache_mod_loaded( $mod, $default = false ) {
 		return false;
 	}
 
+	$loaded_mods = array();
+
 	if ( function_exists( 'apache_get_modules' ) ) {
-		$mods = apache_get_modules();
-		if ( in_array( $mod, $mods, true ) ) {
+		$loaded_mods = apache_get_modules();
+
+		if ( in_array( $mod, $loaded_mods, true ) ) {
 			return true;
 		}
-	} elseif ( function_exists( 'phpinfo' ) && false === strpos( ini_get( 'disable_functions' ), 'phpinfo' ) ) {
-			ob_start();
-			phpinfo( 8 );
-			$phpinfo = ob_get_clean();
+	}
+
+	if ( empty( $loaded_mods )
+		&& function_exists( 'phpinfo' )
+		&& false === strpos( ini_get( 'disable_functions' ), 'phpinfo' )
+	) {
+		ob_start();
+		phpinfo( INFO_MODULES );
+		$phpinfo = ob_get_clean();
+
 		if ( false !== strpos( $phpinfo, $mod ) ) {
 			return true;
 		}
@@ -6220,41 +6225,6 @@ function get_main_network_id() {
 }
 
 /**
- * Determines whether global terms are enabled.
- *
- * @since 3.0.0
- *
- * @return bool True if multisite and global terms enabled.
- */
-function global_terms_enabled() {
-	if ( ! is_multisite() ) {
-		return false;
-	}
-
-	static $global_terms = null;
-	if ( is_null( $global_terms ) ) {
-
-		/**
-		 * Filters whether global terms are enabled.
-		 *
-		 * Returning a non-null value from the filter will effectively short-circuit the function
-		 * and return the value of the 'global_terms_enabled' site option instead.
-		 *
-		 * @since 3.0.0
-		 *
-		 * @param null $enabled Whether global terms are enabled.
-		 */
-		$filter = apply_filters( 'global_terms_enabled', null );
-		if ( ! is_null( $filter ) ) {
-			$global_terms = (bool) $filter;
-		} else {
-			$global_terms = (bool) get_site_option( 'global_terms_enabled', false );
-		}
-	}
-	return $global_terms;
-}
-
-/**
  * Determines whether site meta is enabled.
  *
  * This function checks whether the 'blogmeta' database table exists. The result is saved as
@@ -6381,8 +6351,10 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 		$mo_loaded = true;
 	}
 
-	$zonen = array();
-	foreach ( timezone_identifiers_list() as $zone ) {
+	$tz_identifiers = timezone_identifiers_list();
+	$zonen          = array();
+
+	foreach ( $tz_identifiers as $zone ) {
 		$zone = explode( '/', $zone );
 		if ( ! in_array( $zone[0], $continents, true ) ) {
 			continue;
@@ -6415,6 +6387,13 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 
 	if ( empty( $selected_zone ) ) {
 		$structure[] = '<option selected="selected" value="">' . __( 'Select a city' ) . '</option>';
+	}
+
+	// If this is a deprecated, but valid, timezone string, display it at the top of the list as-is.
+	if ( in_array( $selected_zone, $tz_identifiers, true ) === false
+		&& in_array( $selected_zone, timezone_identifiers_list( DateTimeZone::ALL_WITH_BC ), true )
+	) {
+		$structure[] = '<option selected="selected" value="' . esc_attr( $selected_zone ) . '">' . esc_html( $selected_zone ) . '</option>';
 	}
 
 	foreach ( $zonen as $key => $zone ) {
@@ -8451,7 +8430,7 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 /**
  * Sorts the keys of an array alphabetically.
  * The array is passed by reference so it doesn't get returned
- * which mimics the behaviour of ksort.
+ * which mimics the behavior of ksort.
  *
  * @since 6.0.0
  *

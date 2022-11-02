@@ -9,7 +9,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 		parent::set_up();
 
 		if ( wp_using_ext_object_cache() ) {
-			$this->markTestSkipped( 'Not testable with an external object cache.' );
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
 		}
 	}
 

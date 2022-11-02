@@ -845,6 +845,25 @@ $_old_files = array(
 	'wp-includes/blocks/tag-cloud/editor-rtl.min.css',
 	// 6.0
 	'wp-content/themes/twentytwentytwo/assets/fonts/LICENSE.md',
+	// 6.1
+	'wp-content/themes/twentytwentyone/assets/sass/05-blocks/spacer/_style.scss',
+	'wp-content/themes/twentytwentyone/assets/sass/05-blocks/spacer',
+	'wp-includes/blocks/post-comments.php',
+	'wp-includes/blocks/post-comments/block.json',
+	'wp-includes/blocks/post-comments/editor.css',
+	'wp-includes/blocks/post-comments/editor.min.css',
+	'wp-includes/blocks/post-comments/editor-rtl.css',
+	'wp-includes/blocks/post-comments/editor-rtl.min.css',
+	'wp-includes/blocks/post-comments/style.css',
+	'wp-includes/blocks/post-comments/style.min.css',
+	'wp-includes/blocks/post-comments/style-rtl.css',
+	'wp-includes/blocks/post-comments/style-rtl.min.css',
+	'wp-includes/blocks/post-comments',
+	'wp-includes/blocks/comments-query-loop/block.json',
+	'wp-includes/blocks/comments-query-loop/editor.css',
+	'wp-includes/blocks/comments-query-loop/editor.min.css',
+	'wp-includes/blocks/comments-query-loop/editor-rtl.css',
+	'wp-includes/blocks/comments-query-loop/editor-rtl.min.css',
 );
 
 /**
@@ -852,7 +871,7 @@ $_old_files = array(
  *
  * The contents of this array indicate any new bundled plugins/themes which
  * should be installed with the WordPress Upgrade. These items will not be
- * re-installed in future upgrades, this behaviour is controlled by the
+ * re-installed in future upgrades, this behavior is controlled by the
  * introduced version present here being older than the current installed version.
  *
  * The content of this array should follow the following format:
@@ -871,19 +890,20 @@ $_old_files = array(
 global $_new_bundled_files;
 
 $_new_bundled_files = array(
-	'plugins/akismet/'        => '2.0',
-	'themes/twentyten/'       => '3.0',
-	'themes/twentyeleven/'    => '3.2',
-	'themes/twentytwelve/'    => '3.5',
-	'themes/twentythirteen/'  => '3.6',
-	'themes/twentyfourteen/'  => '3.8',
-	'themes/twentyfifteen/'   => '4.1',
-	'themes/twentysixteen/'   => '4.4',
-	'themes/twentyseventeen/' => '4.7',
-	'themes/twentynineteen/'  => '5.0',
-	'themes/twentytwenty/'    => '5.3',
-	'themes/twentytwentyone/' => '5.6',
-	'themes/twentytwentytwo/' => '5.9',
+	'plugins/akismet/'          => '2.0',
+	'themes/twentyten/'         => '3.0',
+	'themes/twentyeleven/'      => '3.2',
+	'themes/twentytwelve/'      => '3.5',
+	'themes/twentythirteen/'    => '3.6',
+	'themes/twentyfourteen/'    => '3.8',
+	'themes/twentyfifteen/'     => '4.1',
+	'themes/twentysixteen/'     => '4.4',
+	'themes/twentyseventeen/'   => '4.7',
+	'themes/twentynineteen/'    => '5.0',
+	'themes/twentytwenty/'      => '5.3',
+	'themes/twentytwentyone/'   => '5.6',
+	'themes/twentytwentytwo/'   => '5.9',
+	'themes/twentytwentythree/' => '6.1',
 );
 
 /**
@@ -1168,7 +1188,7 @@ function update_core( $from, $to ) {
 			if ( $files_not_writable ) {
 				return new WP_Error(
 					'files_not_writable',
-					__( 'The update cannot be installed because we will be unable to copy some files. This is usually due to inconsistent file permissions.' ),
+					__( 'The update cannot be installed because your site is unable to copy some files. This is usually due to inconsistent file permissions.' ),
 					implode( ', ', $error_data )
 				);
 			}
@@ -1204,7 +1224,7 @@ function update_core( $from, $to ) {
 			$wp_filesystem->delete( $from, true );
 			$result = new WP_Error(
 				'copy_failed_for_version_file',
-				__( 'The update cannot be installed because we will be unable to copy some files. This is usually due to inconsistent file permissions.' ),
+				__( 'The update cannot be installed because your site is unable to copy some files. This is usually due to inconsistent file permissions.' ),
 				'wp-includes/version.php'
 			);
 		}

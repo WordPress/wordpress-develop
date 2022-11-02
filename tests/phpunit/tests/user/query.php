@@ -52,7 +52,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	public function test_get_and_set() {
 		$users = new WP_User_Query();
 
-		$this->assertEquals( '', $users->get( 'fields' ) );
+		$this->assertNull( $users->get( 'fields' ) );
 		if ( isset( $users->query_vars['fields'] ) ) {
 			$this->assertSame( '', $users->query_vars['fields'] );
 		}
@@ -582,7 +582,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		// All values get reset.
 		$query->prepare_query( array( 'fields' => 'all' ) );
 		$this->assertEmpty( $query->query_limit );
-		$this->assertEquals( '', $query->query_limit );
+		$this->assertNull( $query->query_limit );
 		$_query_vars = $query->query_vars;
 
 		$query->prepare_query();
@@ -1685,7 +1685,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$ids = $q->get_results();
 
 		// Must include user that has the same string in display_name.
-		$this->assertEquals( array( $new_user1 ), $ids );
+		$this->assertSameSetsWithIndex( array( (string) $new_user1 ), $ids );
 	}
 
 	/**

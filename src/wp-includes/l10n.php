@@ -934,7 +934,7 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
 		$path = WP_PLUGIN_DIR;
 	}
 
-	$wp_textdomain_registry->set( $domain, $locale, $path );
+	$wp_textdomain_registry->set_custom_path( $domain, $path );
 
 	return load_textdomain( $domain, $path . '/' . $mofile, $locale );
 }
@@ -968,7 +968,7 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
 
 	$path = WPMU_PLUGIN_DIR . '/' . ltrim( $mu_plugin_rel_path, '/' );
 
-	$wp_textdomain_registry->set( $domain, $locale, $path );
+	$wp_textdomain_registry->set_custom_path( $domain, $path );
 
 	return load_textdomain( $domain, $path . '/' . $mofile, $locale );
 }
@@ -1016,7 +1016,7 @@ function load_theme_textdomain( $domain, $path = false ) {
 		$path = get_template_directory();
 	}
 
-	$wp_textdomain_registry->set( $domain, $locale, $path );
+	$wp_textdomain_registry->set_custom_path( $domain, $path );
 
 	return load_textdomain( $domain, $path . '/' . $locale . '.mo', $locale );
 }
@@ -1058,7 +1058,7 @@ function load_child_theme_textdomain( $domain, $path = false ) {
  * @return string|false The translated strings in JSON encoding on success,
  *                      false if the script textdomain could not be loaded.
  */
-function load_script_textdomain( $handle, $domain = 'default', $path = null ) {
+function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 	$wp_scripts = wp_scripts();
 
 	if ( ! isset( $wp_scripts->registered[ $handle ] ) ) {
@@ -1243,7 +1243,7 @@ function load_script_translations( $file, $handle, $domain ) {
  *
  * When a textdomain is encountered for the first time, we try to load
  * the translation file from `wp-content/languages`, removing the need
- * to call load_plugin_texdomain() or load_theme_texdomain().
+ * to call load_plugin_textdomain() or load_theme_textdomain().
  *
  * @since 4.6.0
  * @access private
@@ -1265,12 +1265,12 @@ function _load_textdomain_just_in_time( $domain ) {
 		return false;
 	}
 
-	if ( $wp_textdomain_registry->has( $domain ) && ! $wp_textdomain_registry->get_current( $domain ) ) {
+	if ( ! $wp_textdomain_registry->has( $domain ) ) {
 		return false;
 	}
 
 	$locale = determine_locale();
-	$path = $wp_textdomain_registry->get( $domain, $locale );
+	$path   = $wp_textdomain_registry->get( $domain, $locale );
 	if ( ! $path ) {
 		return false;
 	}

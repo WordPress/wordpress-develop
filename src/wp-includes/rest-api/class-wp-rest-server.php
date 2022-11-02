@@ -193,7 +193,7 @@ class WP_REST_Server {
 	 * Converts an error to a response object.
 	 *
 	 * This iterates over all error codes and messages to change it into a flat
-	 * array. This enables simpler client behaviour, as it is represented as a
+	 * array. This enables simpler client behavior, as it is represented as a
 	 * list in JSON rather than an object/map.
 	 *
 	 * @since 4.4.0
@@ -1513,6 +1513,11 @@ class WP_REST_Server {
 				$endpoint_data['args'] = array();
 
 				foreach ( $callback['args'] as $key => $opts ) {
+					if ( is_string( $opts ) ) {
+						$opts = array( $opts => 0 );
+					} elseif ( ! is_array( $opts ) ) {
+						$opts = array();
+					}
 					$arg_data             = array_intersect_key( $opts, $allowed_schema_keywords );
 					$arg_data['required'] = ! empty( $opts['required'] );
 

@@ -24,8 +24,10 @@ jobs:
 
     steps:
       - name: Rerun a workflow
-        uses: actions/github-script@c713e510dbd7d213d92d41b7a7805a986f4c5c66 # v6.2.0
+        uses: actions/github-script@100527700e8b29ca817ac0e0dfbfc5e8ff38edda # v6.3.2
         with:
+          retries: 2
+          retry-exempt-status-codes: 418
           script: |
             const workflow_run = await github.rest.actions.getWorkflowRun({
               owner: context.repo.owner,
@@ -42,4 +44,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               run_id: ${{ inputs.run_id }},
+              enable_debug_logging: true
             });
