@@ -853,7 +853,6 @@ class WP_User_Query {
 					'6.1.1'
 				);
 			}
-			
 
 			$r = array();
 			foreach ( $this->results as $userid ) {
