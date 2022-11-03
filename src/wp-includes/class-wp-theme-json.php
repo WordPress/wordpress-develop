@@ -1929,7 +1929,7 @@ class WP_Theme_JSON {
 	 * Returns a filtered declarations array if there is a separator block with only a background
 	 * style defined in theme.json by adding a color attribute to reflect the changes in the front.
 	 *
-	 * @since 6.1.0
+	 * @since 6.1.1
 	 *
 	 * @param array $declarations List of declarations.
 	 *
