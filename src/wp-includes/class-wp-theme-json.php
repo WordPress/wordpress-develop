@@ -2279,15 +2279,9 @@ class WP_Theme_JSON {
 		$slugs_global = static::get_default_slugs( $this->theme_json, array( 'settings' ) );
 		foreach ( $nodes as $node ) {
 			// Replace the spacing.units.
-//			$path    = array_merge( $node['path'], array( 'spacing', 'units' ) );
-			$path = $node['path'];
-//			$flipped_path = array_flip($node['path']);
-//			if (isset($flipped_path['spacing']) === false) {
-				$path[] = 'spacing';
-//		    }
-//			if (isset($flipped_path['units']) === false) {
-				$path[] = 'units';
-//		    }
+			$path   = $node['path'];
+			$path[] = 'spacing';
+			$path[] = 'units';
 
 			$content = _wp_array_get( $incoming_data, $path, null );
 			if ( isset( $content ) ) {
@@ -2299,21 +2293,15 @@ class WP_Theme_JSON {
 				$override_preset = ! static::get_metadata_boolean( $this->theme_json['settings'], $preset['prevent_override'], true );
 
 				foreach ( static::VALID_ORIGINS as $origin ) {
-//					$base_path = array_merge( $node['path'], $preset['path'] );
 					$base_path = $node['path'];
-//         			$flipped_path = array_flip($node['path']);
-         			foreach($preset['path'] as $leaf) {
-//						if (isset($flipped_path[$leaf]) === false) {
-							$base_path[] = $leaf;
-//						}
+					foreach ( $preset['path'] as $leaf ) {
+						$base_path[] = $leaf;
 					}
 
-
-//					$path      = array_merge( $base_path, array( $origin ) );
-					$path = $base_path;
+					$path   = $base_path;
 					$path[] = $origin;
 
-					$content   = _wp_array_get( $incoming_data, $path, null );
+					$content = _wp_array_get( $incoming_data, $path, null );
 					if ( ! isset( $content ) ) {
 						continue;
 					}
@@ -2450,13 +2438,11 @@ class WP_Theme_JSON {
 		$slugs = array();
 
 		foreach ( static::PRESETS_METADATA as $metadata ) {
-//			$path   = array_merge( $node_path, $metadata['path'], array( 'default' ) );
 			$path = $node_path;
-			foreach($metadata['path'] as $leaf) {
+			foreach ( $metadata['path'] as $leaf ) {
 				$path[] = $leaf;
 			}
 			$path[] = 'default';
-
 
 			$preset = _wp_array_get( $data, $path, null );
 			if ( ! isset( $preset ) ) {
@@ -2486,8 +2472,8 @@ class WP_Theme_JSON {
 	 * @return string|null
 	 */
 	protected function get_name_from_defaults( $slug, $base_path ) {
-		$path   = $base_path;
-		$path[] = 'default';
+		$path            = $base_path;
+		$path[]          = 'default';
 		$default_content = _wp_array_get( $this->theme_json, $path, null );
 		if ( ! $default_content ) {
 			return null;
