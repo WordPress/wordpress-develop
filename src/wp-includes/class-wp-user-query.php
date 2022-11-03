@@ -840,10 +840,20 @@ class WP_User_Query {
 				$result->id = $result->ID;
 			}
 		} elseif ( 'all_with_meta' === $qv['fields'] || 'all' === $qv['fields'] ) {
-			if ( ! function_exists( 'cache_users' ) ) {
-				require_once ABSPATH . WPINC . '/pluggable.php';
+			if ( function_exists( 'cache_users' ) ) {
+				cache_users( $this->results );
+			} else {
+				_doing_it_wrong(
+					'WP_User_Query',
+					sprintf(
+						/* translators: plugins_loaded */
+						__( 'User queries should not be run before the %s hook.' ),
+						'<code>plugins_loaded</code>'
+					);
+					'6.1.1'
+				);
 			}
-			cache_users( $this->results );
+			
 
 			$r = array();
 			foreach ( $this->results as $userid ) {
