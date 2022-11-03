@@ -606,6 +606,7 @@ class WP_Theme_JSON {
 		 */
 		$styles_non_top_level = static::VALID_STYLES;
 		foreach ( array_keys( $styles_non_top_level ) as $section ) {
+			// We need to use array_key_exists() instead of isset() because the value can be null.
 			if ( array_key_exists( $section, $styles_non_top_level ) && is_array( $styles_non_top_level[ $section ] ) ) {
 				foreach ( array_keys( $styles_non_top_level[ $section ] ) as $prop ) {
 					if ( 'top' === $styles_non_top_level[ $section ][ $prop ] ) {
