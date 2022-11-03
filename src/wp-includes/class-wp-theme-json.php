@@ -1670,7 +1670,7 @@ class WP_Theme_JSON {
 			if ( is_array( $value_path ) ) {
 				$path_string = implode( '.', $value_path );
 				if (
-					array_key_exists( $path_string, static::PROTECTED_PROPERTIES ) &&
+					isset( static::PROTECTED_PROPERTIES[ $path_string ] ) &&
 					_wp_array_get( $settings, static::PROTECTED_PROPERTIES[ $path_string ], null ) === null
 				) {
 					continue;
@@ -1745,7 +1745,7 @@ class WP_Theme_JSON {
 		 * where the values is an array with a "ref" key, pointing to a path.
 		 * For example: { "ref": "style.color.background" } => "#fff".
 		 */
-		if ( is_array( $value ) && array_key_exists( 'ref', $value ) ) {
+		if ( is_array( $value ) && isset( $value['ref'] ) ) {
 			$value_path = explode( '.', $value['ref'] );
 			$ref_value  = _wp_array_get( $theme_json, $value_path );
 			// Only use the ref value if we find anything.
@@ -1753,7 +1753,7 @@ class WP_Theme_JSON {
 				$value = $ref_value;
 			}
 
-			if ( is_array( $ref_value ) && array_key_exists( 'ref', $ref_value ) ) {
+			if ( is_array( $ref_value ) && isset( $ref_value['ref'] ) ) {
 				$path_string      = json_encode( $path );
 				$ref_value_string = json_encode( $ref_value );
 				_doing_it_wrong(
@@ -1889,7 +1889,7 @@ class WP_Theme_JSON {
 				);
 
 				// Handle any pseudo selectors for the element.
-				if ( array_key_exists( $element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
+				if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] ) ) {
 					foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
 
 						if ( isset( $theme_json['styles']['elements'][ $element ][ $pseudo_selector ] ) ) {
@@ -1985,7 +1985,7 @@ class WP_Theme_JSON {
 					);
 
 					// Handle any pseudo selectors for the element.
-					if ( array_key_exists( $element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
+					if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] ) ) {
 						foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
 							if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'][ $element ][ $pseudo_selector ] ) ) {
 								$nodes[] = array(
@@ -2062,7 +2062,7 @@ class WP_Theme_JSON {
 
 		$element_pseudo_allowed = array();
 
-		if ( array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
+		if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] ) ) {
 			$element_pseudo_allowed = static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ];
 		}
 
@@ -2087,7 +2087,7 @@ class WP_Theme_JSON {
 		 * Otherwise just compute the styles for the default selector as normal.
 		 */
 		if ( $pseudo_selector && isset( $node[ $pseudo_selector ] ) &&
-			array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS )
+			isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] )
 			&& in_array( $pseudo_selector, static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ], true )
 		) {
 			$declarations = static::compute_style_properties( $node[ $pseudo_selector ], $settings, null, $this->theme_json, $selector, $use_root_padding );
@@ -2316,7 +2316,7 @@ class WP_Theme_JSON {
 
 					if ( 'theme' === $origin && $preset['use_default_names'] ) {
 						foreach ( $content as $key => $item ) {
-							if ( ! array_key_exists( 'name', $item ) ) {
+							if ( ! isset( $item['name'] ) ) {
 								$name = static::get_name_from_defaults( $item['slug'], $base_path );
 								if ( null !== $name ) {
 									$content[ $key ]['name'] = $name;
@@ -2557,7 +2557,7 @@ class WP_Theme_JSON {
 			 * $output is stripped of pseudo selectors. Re-add and process them
 			 * or insecure styles here.
 			 */
-			if ( array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
+			if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] ) ) {
 				foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] as $pseudo_selector ) {
 					if ( isset( $input[ $pseudo_selector ] ) ) {
 						$output[ $pseudo_selector ] = static::remove_insecure_styles( $input[ $pseudo_selector ] );
