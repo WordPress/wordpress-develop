@@ -3571,30 +3571,12 @@ class WP_Query {
 		global $post;
 
 		if ( ! $this->in_the_loop ) {
-			/*
-			 * Warm the author cache with full WP_Post objects.
-			 *
-			 * This prevents an error within `update_post_author_caches()` when
-			 * WP_Query is used to return a sub-set of fields.
-			 */
-			$post_ids = array_map(
-				function( $post ) {
-					if ( is_numeric( $post ) ) {
-						return $post;
-					}
-
-					if ( isset( $post->ID ) ) {
-						return $post->ID;
-					}
-
-					return 0;
-				},
-				$this->posts
-			);
+			$post_ids = array_filter( $this->posts, 'is_numeric' );
 			$post_ids = array_filter( $post_ids );
-			_prime_post_caches( $post_ids, $this->query_vars['update_post_term_cache'], $this->query_vars['update_post_meta_cache'] );
-
-			$post_objects = array_map( 'get_post', $post_ids );
+			if( $post_ids ){
+			     _prime_post_caches( $post_ids, $this->query_vars['update_post_term_cache'], $this->query_vars['update_post_meta_cache'] );
+                         }
+			$post_objects = array_map( 'get_post', $this->posts );
 			update_post_author_caches( $post_objects );
 		}
 
