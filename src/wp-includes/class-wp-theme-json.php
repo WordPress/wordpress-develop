@@ -456,7 +456,7 @@ class WP_Theme_JSON {
 	public static function get_element_class_name( $element ) {
 		$class_name = '';
 
-		if ( array_key_exists( $element, static::__EXPERIMENTAL_ELEMENT_CLASS_NAMES ) ) {
+		if ( isset( static::__EXPERIMENTAL_ELEMENT_CLASS_NAMES[ $element ] ) ) {
 			$class_name = static::__EXPERIMENTAL_ELEMENT_CLASS_NAMES[ $element ];
 		}
 
