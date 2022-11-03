@@ -3571,7 +3571,19 @@ class WP_Query {
 		global $post;
 
 		if ( ! $this->in_the_loop ) {
-			update_post_author_caches( $this->posts );
+			/*
+			 * Only warm the author cache if the posts are WP_Post objects.
+			 *
+			 * This prevents an error within `update_post_author_caches()` when
+			 * WP_Query is used to return a sub-set of fields.
+			 */
+			$post_objects = array_filter(
+				$this->posts,
+				function( $post ) {
+					return $post instanceof WP_Post;
+				}
+			);
+			update_post_author_caches( $post_objects );
 		}
 
 		$this->in_the_loop = true;
