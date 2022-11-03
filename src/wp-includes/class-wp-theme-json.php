@@ -1272,8 +1272,12 @@ class WP_Theme_JSON {
 
 			$selector = $metadata['selector'];
 
-			$node         = _wp_array_get( $this->theme_json, $metadata['path'], array() );
-			$declarations = array_merge( static::compute_preset_vars( $node, $origins ), static::compute_theme_vars( $node ) );
+			$node                    = _wp_array_get( $this->theme_json, $metadata['path'], array() );
+			$declarations            = static::compute_preset_vars( $node, $origins );
+			$theme_vars_declarations = static::compute_theme_vars( $node );
+			foreach ( $theme_vars_declarations as $declaration ) {
+				$declarations[] = $declaration;
+			}
 
 			$stylesheet .= static::to_ruleset( $selector, $declarations );
 		}
