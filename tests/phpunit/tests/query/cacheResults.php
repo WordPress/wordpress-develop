@@ -1242,9 +1242,10 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		// Start the loop.
 		$query_1->the_post();
 
-		$num_queries = get_num_queries();
+		$start_queries = get_num_queries();
 		get_user_by( 'ID', self::$author_id );
-		$this->assertSame( $num_queries, get_num_queries(), 'Author cache is not warmed by the loop.' );
+		$num_queries = get_num_queries() - $start_queries;
+		$this->assertSame( 0, $num_queries, 'Author cache is not warmed by the loop.' );
 	}
 
 	/**
