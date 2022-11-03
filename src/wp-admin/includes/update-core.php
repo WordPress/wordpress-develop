@@ -1640,7 +1640,7 @@ function _upgrade_440_force_deactivate_incompatible_plugins() {
  * @since 6.1.1
  */
 function _upgrade_611_force_deactivate_incompatible_plugins() {
-	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '11.9', '<' ) ) {
+	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '14.1', '<' ) ) {
 		$deactivated_gutenberg['gutenberg'] = array(
 			'plugin_name'         => 'Gutenberg',
 			'version_deactivated' => GUTENBERG_VERSION,
