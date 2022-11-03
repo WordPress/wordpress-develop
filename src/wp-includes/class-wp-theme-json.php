@@ -514,7 +514,10 @@ class WP_Theme_JSON {
 		$nodes = static::get_setting_nodes( $this->theme_json );
 		foreach ( $nodes as $node ) {
 			foreach ( static::PRESETS_METADATA as $preset_metadata ) {
-				$path   = array_merge( $node['path'], $preset_metadata['path'] );
+				$path = $node['path'];
+				foreach ( $preset_metadata['path'] as $subpath ) {
+					$path[] = $subpath;
+				}
 				$preset = _wp_array_get( $this->theme_json, $path, null );
 				if ( null !== $preset ) {
 					// If the preset is not already keyed by origin.
