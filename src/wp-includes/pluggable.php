@@ -1071,7 +1071,7 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 		 * @since 6.2.0 The $user_id parameter was added.
 		 *
 		 * @param bool $send    Whether to send auth cookies to the client.
-		 * @param int  $user_id User ID.
+		 * @param int  $user_id User ID. Zero when clearing cookies.
 		 */
 		if ( ! apply_filters( 'send_auth_cookies', true, $user_id ) ) {
 			return;
@@ -1101,7 +1101,7 @@ if ( ! function_exists( 'wp_clear_auth_cookie' ) ) :
 		do_action( 'clear_auth_cookie' );
 
 		/** This filter is documented in wp-includes/pluggable.php */
-		if ( ! apply_filters( 'send_auth_cookies', true ) ) {
+		if ( ! apply_filters( 'send_auth_cookies', true, 0 ) ) {
 			return;
 		}
 
