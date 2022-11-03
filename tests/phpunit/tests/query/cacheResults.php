@@ -1227,12 +1227,14 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		self::factory()->post->create(
 			array(
 				'post_author' => self::$author_id,
+				'post_parent' => self::$pages[0],
+				'post_type'   => 'page',
 			)
 		);
 
 		$query_1 = new WP_Query(
 			array(
-				'post_type' => 'post',
+				'post_type' => 'page',
 				'fields'    => $fields,
 			)
 		);
