@@ -3578,48 +3578,6 @@ EOF;
 	}
 
 	/**
-	 * @ticket 55996
-	 * @ticket 56930
-	 */
-	public function test_wp_filter_content_tags_lazy_load_first_image_in_block_theme() {
-		global $_wp_current_template_content, $wp_query, $wp_the_query;
-
-		$img1      = get_image_tag( self::$large_id, '', '', '', 'large' );
-		$img2      = get_image_tag( self::$large_id, '', '', '', 'medium' );
-		$lazy_img2 = wp_img_tag_add_loading_attr( $img2, 'the_content' );
-
-		// Only the second image should be lazy-loaded.
-		$post_content     = $img1 . $img2;
-		$expected_content = wpautop( $img1 . $lazy_img2 );
-
-		// Do not add srcset, sizes, or decoding attributes as they are irrelevant for this test.
-		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
-		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
-
-		// Update the post to test with so that it has the above post content.
-		wp_update_post(
-			array(
-				'ID'                    => self::$post_ids['publish'],
-				'post_content'          => $post_content,
-				'post_content_filtered' => $post_content,
-			)
-		);
-
-		$wp_query     = new WP_Query( array( 'p' => self::$post_ids['publish'] ) );
-		$wp_the_query = $wp_query;
-		the_post();
-		$this->reset_content_media_count();
-		$this->reset_omit_loading_attr_filter();
-
-		$_wp_current_template_content = '<!-- wp:post-content /-->';
-
-		// This function must ensure it does not process post content twice, as that leads to the loading="lazy"
-		// attribute being added even on the first image due to the subsequent run.
-		$html = get_the_block_template_html();
-		$this->assertSame( '<div class="wp-site-blocks"><div class="is-layout-flow entry-content wp-block-post-content">' . $expected_content . '</div></div>', $html );
-	}
-
-	/**
 	 * @ticket 53675
 	 */
 	public function test_wp_omit_loading_attr_threshold() {
