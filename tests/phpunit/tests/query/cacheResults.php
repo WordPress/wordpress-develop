@@ -1212,51 +1212,50 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure starting the loop warms the author cache.
+	 *
+	 * @since 6.1.1
 	 * @ticket 56948
-	 * @covers WP_Query::the_post
-	 */
-	public function test_author_cache_warmed_by_the_loop_when_getting_all_fields() {
-		$query_1 = new WP_Query( array( 'post_type' => 'post' ) );
-		// Start the loop.
-		$query_1->the_post();
-
-		$num_queries = get_num_queries();
-		foreach ( $query_1->posts as $post ) {
-			get_the_author_meta( $post->post_author );
-		}
-		$this->assertSame( $num_queries, get_num_queries(), 'Author cache is not warmed by the loop.' );
-	}
-
-	/**
-	 * @ticket 56948
+	 *
 	 * @covers WP_Query::the_post
 	 *
-	 * @dataProvider data_author_cache_warming_does_not_error_when_getting_a_subset_of_fields
+	 * @dataProvider data_author_cache_warmed_by_the_loop
+	 *
+	 * @param string $fields Query fields.
 	 */
-	public function test_author_cache_warming_does_not_error_when_getting_a_subset_of_fields( $fields ) {
+	public function test_author_cache_warmed_by_the_loop( $fields ) {
+		self::factory()->post->create(
+			array(
+				'post_author' => self::$author_id,
+			)
+		);
+
 		$query_1 = new WP_Query(
 			array(
 				'post_type' => 'post',
 				'fields'    => $fields,
 			)
 		);
+
+		// Ensure the cache is clear prior to starting the loop.
+		wp_cache_flush();
 		// Start the loop.
 		$query_1->the_post();
 
-		/*
-		 * The test will automatically fail if the function triggers a notice,
-		 * so this dummy assertion is just for accurate stats.
-		 */
-		$this->assertTrue( true );
+		$num_queries = get_num_queries();
+		get_user_by( 'ID', self::$author_id );
+		$this->assertSame( $num_queries, get_num_queries(), 'Author cache is not warmed by the loop.' );
 	}
 
 	/**
-	 * Data provider for test_author_cache_warming_does_not_error_when_getting_a_subset_of_fields
+	 * Data provider for test_author_cache_warmed_by_the_loop
 	 *
 	 * @return array[]
 	 */
-	public function data_author_cache_warming_does_not_error_when_getting_a_subset_of_fields() {
+	public function data_author_cache_warmed_by_the_loop() {
 		return array(
+			'empty'      => array( '' ),
+			'all'        => array( 'all' ),
 			'ids'        => array( 'ids' ),
 			'id=>parent' => array( 'id=>parent' ),
 		);
