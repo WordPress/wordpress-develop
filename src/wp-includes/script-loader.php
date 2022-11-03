@@ -3658,21 +3658,6 @@ function _wp_theme_json_webfonts_handler() {
 }
 
 /**
- * Loads classic theme styles on classic themes in the frontend.
- *
- * This is needed for backwards compatibility for button blocks specifically.
- *
- * @since 6.1.0
- */
-function wp_enqueue_classic_theme_styles() {
-	if ( ! WP_Theme_JSON_Resolver::theme_has_support() ) {
-		$suffix = wp_scripts_get_suffix();
-		wp_register_style( 'classic-theme-styles', '/' . WPINC . "/css/classic-themes$suffix.css", array(), true );
-		wp_enqueue_style( 'classic-theme-styles' );
-	}
-}
-
-/**
  * Loads classic theme styles on classic themes in the editor.
  *
  * This is needed for backwards compatibility for button blocks specifically.
@@ -3683,6 +3668,7 @@ function wp_enqueue_classic_theme_styles() {
  * @return array A filtered array of editor settings.
  */
 function wp_add_editor_classic_theme_styles( $editor_settings ) {
+	return $editor_settings;
 	if ( WP_Theme_JSON_Resolver::theme_has_support() ) {
 		return $editor_settings;
 	}
