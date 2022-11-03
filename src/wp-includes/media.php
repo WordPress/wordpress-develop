@@ -5428,6 +5428,9 @@ function wp_get_webp_info( $filename ) {
 function wp_get_loading_attr_default( $context ) {
 	// Only elements with 'the_content' or 'the_post_thumbnail' context have special handling.
 	if ( 'the_content' !== $context && 'the_post_thumbnail' !== $context ) {
+		if ( 'the_block_template' === $context ) {
+			return false;
+		}
 		return 'lazy';
 	}
 

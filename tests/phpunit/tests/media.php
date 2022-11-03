@@ -3451,6 +3451,7 @@ EOF;
 
 	/**
 	 * @ticket 53675
+	 * @ticket 56930
 	 * @dataProvider data_wp_get_loading_attr_default
 	 *
 	 * @param string $context
@@ -3490,6 +3491,9 @@ EOF;
 
 			// Yes, for all subsequent elements.
 			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
+
+			// The only exception is 'the_block_template' context, which shouldn't lazy-load images by default.
+			$this->assertFalse( wp_get_loading_attr_default( 'the_block_template' ) );
 		}
 	}
 
@@ -3601,6 +3605,95 @@ EOF;
 		// Only by enforcing a fresh check, the filter gets re-applied.
 		$omit_threshold = wp_omit_loading_attr_threshold( true );
 		$this->assertSame( 3, $omit_threshold );
+	}
+
+	/**
+	 * @ticket 56930
+	 */
+	public function test_wp_filter_content_tags_does_not_lazy_load_first_image_in_block_theme() {
+		global $_wp_current_template_content, $wp_query, $wp_the_query, $post;
+
+		// Do not add srcset, sizes, or decoding attributes as they are irrelevant for this test.
+		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
+
+		$img1      = get_image_tag( self::$large_id, '', '', '', 'large' );
+		$img2      = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$lazy_img2 = wp_img_tag_add_loading_attr( $img2, 'the_content' );
+
+		// Only the second image should be lazy-loaded.
+		$post_content     = $img1 . $img2;
+		$expected_content = wpautop( $img1 . $lazy_img2 );
+
+		// Update the post to test with so that it has the above post content.
+		wp_update_post(
+			array(
+				'ID'                    => self::$post_ids['publish'],
+				'post_content'          => $post_content,
+				'post_content_filtered' => $post_content,
+			)
+		);
+
+		$wp_query     = new WP_Query( array( 'p' => self::$post_ids['publish'] ) );
+		$wp_the_query = $wp_query;
+		$post         = get_post( self::$post_ids['publish'] );
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
+
+		$_wp_current_template_content = '<!-- wp:post-content /-->';
+
+		$html = get_the_block_template_html();
+		$this->assertSame( '<div class="wp-site-blocks"><div class="is-layout-flow entry-content wp-block-post-content">' . $expected_content . '</div></div>', $html );
+	}
+
+	/**
+	 * @ticket 56930
+	 */
+	public function test_wp_filter_content_tags_does_not_lazy_load_first_featured_image_in_block_theme() {
+		global $_wp_current_template_content, $wp_query, $wp_the_query, $post;
+
+		// Do not add srcset, sizes, or decoding attributes as they are irrelevant for this test.
+		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
+		add_filter(
+			'wp_get_attachment_image_attributes',
+			function( $attr ) {
+				unset( $attr['srcset'], $attr['sizes'], $attr['decoding'] );
+				return $attr;
+			}
+		);
+
+		$content_img      = get_image_tag( self::$large_id, '', '', '', 'large' );
+		$lazy_content_img = wp_img_tag_add_loading_attr( $content_img, 'the_content' );
+
+		// The featured image should not be lazy-loaded as it is the first image.
+		$featured_image_id = self::$large_id;
+		update_post_meta( self::$post_ids['publish'], '_thumbnail_id', $featured_image_id );
+		$expected_featured_image = '<figure class="wp-block-post-featured-image">' . get_the_post_thumbnail( self::$post_ids['publish'], 'post-thumbnail', array( 'loading' => false ) ) . '</figure>';
+
+		// The post content image should be lazy-loaded since the featured image appears above.
+		$post_content     = $content_img;
+		$expected_content = wpautop( $lazy_content_img );
+
+		// Update the post to test with so that it has the above post content.
+		wp_update_post(
+			array(
+				'ID'                    => self::$post_ids['publish'],
+				'post_content'          => $post_content,
+				'post_content_filtered' => $post_content,
+			)
+		);
+
+		$wp_query     = new WP_Query( array( 'p' => self::$post_ids['publish'] ) );
+		$wp_the_query = $wp_query;
+		$post         = get_post( self::$post_ids['publish'] );
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
+
+		$_wp_current_template_content = '<!-- wp:post-featured-image /--> <!-- wp:post-content /-->';
+
+		$html = get_the_block_template_html();
+		$this->assertSame( '<div class="wp-site-blocks">' . $expected_featured_image . ' <div class="is-layout-flow entry-content wp-block-post-content">' . $expected_content . '</div></div>', $html );
 	}
 
 	private function reset_content_media_count() {
