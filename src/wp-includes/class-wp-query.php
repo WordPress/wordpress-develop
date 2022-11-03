@@ -3573,9 +3573,9 @@ class WP_Query {
 		if ( ! $this->in_the_loop ) {
 			$post_ids = array_filter( $this->posts, 'is_numeric' );
 			$post_ids = array_filter( $post_ids );
-			if( $post_ids ){
-			     _prime_post_caches( $post_ids, $this->query_vars['update_post_term_cache'], $this->query_vars['update_post_meta_cache'] );
-                         }
+			if ( $post_ids ) {
+				_prime_post_caches( $post_ids, $this->query_vars['update_post_term_cache'], $this->query_vars['update_post_meta_cache'] );
+			}
 			$post_objects = array_map( 'get_post', $this->posts );
 			update_post_author_caches( $post_objects );
 		}
