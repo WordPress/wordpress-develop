@@ -840,6 +840,9 @@ class WP_User_Query {
 				$result->id = $result->ID;
 			}
 		} elseif ( 'all_with_meta' === $qv['fields'] || 'all' === $qv['fields'] ) {
+			if ( ! function_exists( 'cache_users' ) ) {
+				require_once ABSPATH . WPINC . '/pluggable.php';
+			}
 			cache_users( $this->results );
 
 			$r = array();
