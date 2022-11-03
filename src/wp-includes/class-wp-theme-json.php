@@ -1908,7 +1908,10 @@ class WP_Theme_JSON {
 			return $nodes;
 		}
 
-		$nodes = array_merge( $nodes, static::get_block_nodes( $theme_json ) );
+		$block_nodes = static::get_block_nodes( $theme_json );
+		foreach ( $block_nodes as $block_node ) {
+			$nodes[] = $block_node;
+		}
 
 		/**
 		 * Filters the list of style nodes with metadata.
@@ -2038,7 +2041,9 @@ class WP_Theme_JSON {
 					// the feature selector. This may occur when multiple block
 					// support features use the same custom selector.
 					if ( isset( $feature_declarations[ $feature_selector ] ) ) {
-						$feature_declarations[ $feature_selector ] = array_merge( $feature_declarations[ $feature_selector ], $new_feature_declarations );
+						foreach ( $new_feature_declarations as $new_feature_declaration ) {
+							$feature_declarations[ $feature_selector ][] = $feature_declaration;
+						}
 					} else {
 						$feature_declarations[ $feature_selector ] = $new_feature_declarations;
 					}
@@ -2611,8 +2616,9 @@ class WP_Theme_JSON {
 		$output = array();
 		foreach ( static::PRESETS_METADATA as $preset_metadata ) {
 			foreach ( static::VALID_ORIGINS as $origin ) {
-				$path_with_origin = array_merge( $preset_metadata['path'], array( $origin ) );
-				$presets          = _wp_array_get( $input, $path_with_origin, null );
+				$path_with_origin   = $preset_metadata['path'];
+				$path_with_origin[] = $origin;
+				$presets            = _wp_array_get( $input, $path_with_origin, null );
 				if ( null === $presets ) {
 					continue;
 				}
@@ -2857,7 +2863,10 @@ class WP_Theme_JSON {
 		 */
 		foreach ( $nodes as $node ) {
 			foreach ( static::PRESETS_METADATA as $preset_metadata ) {
-				$path   = array_merge( $node['path'], $preset_metadata['path'] );
+				$path = $node['path'];
+				foreach ( $preset_metadata['path'] as $preset_metadata_path ) {
+					$path[] = $preset_metadata_path;
+				}
 				$preset = _wp_array_get( $output, $path, null );
 				if ( null === $preset ) {
 					continue;
@@ -2891,7 +2900,10 @@ class WP_Theme_JSON {
 		foreach ( $nodes as $node ) {
 			$all_opt_ins_are_set = true;
 			foreach ( static::APPEARANCE_TOOLS_OPT_INS as $opt_in_path ) {
-				$full_path = array_merge( $node['path'], $opt_in_path );
+				$full_path = $node['path'];
+				foreach ( $opt_in_path as $opt_in_path_item ) {
+					$full_path[] = $opt_in_path_item;
+				}
 				// Use "unset prop" as a marker instead of "null" because
 				// "null" can be a valid value for some props (e.g. blockGap).
 				$opt_in_value = _wp_array_get( $output, $full_path, 'unset prop' );
@@ -2902,9 +2914,14 @@ class WP_Theme_JSON {
 			}
 
 			if ( $all_opt_ins_are_set ) {
-				_wp_array_set( $output, array_merge( $node['path'], array( 'appearanceTools' ) ), true );
+				$node_path_with_appearance_tools   = $node['path'];
+				$node_path_with_appearance_tools[] = 'appearanceTools';
+				_wp_array_set( $output, $node_path_with_appearance_tools, true );
 				foreach ( static::APPEARANCE_TOOLS_OPT_INS as $opt_in_path ) {
-					$full_path = array_merge( $node['path'], $opt_in_path );
+					$full_path = $node['path'];
+					foreach ( $opt_in_path as $opt_in_path_item ) {
+						$full_path[] = $opt_in_path_item;
+					}
 					// Use "unset prop" as a marker instead of "null" because
 					// "null" can be a valid value for some props (e.g. blockGap).
 					$opt_in_value = _wp_array_get( $output, $full_path, 'unset prop' );
@@ -3054,7 +3071,10 @@ class WP_Theme_JSON {
 			$slug += 10;
 		}
 
-		$spacing_sizes = array_merge( $below_sizes, $above_sizes );
+		$spacing_sizes = $below_sizes;
+		foreach ( $above_sizes as $above_sizes_item ) {
+			$spacing_sizes[] = $above_sizes_item;
+		}
 
 		// If there are 7 or less steps in the scale revert to numbers for labels instead of t-shirt sizes.
 		if ( $spacing_scale['steps'] <= 7 ) {
