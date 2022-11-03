@@ -1224,6 +1224,9 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 * @param string $fields Query fields.
 	 */
 	public function test_author_cache_warmed_by_the_loop( $fields ) {
+		// Update post author for the parent post.
+		self::factory()->post->update_object( self::$pages[0], array( 'post_author' => self::$author_id ) );
+
 		self::factory()->post->create(
 			array(
 				'post_author' => self::$author_id,
