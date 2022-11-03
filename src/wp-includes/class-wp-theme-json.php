@@ -1604,11 +1604,11 @@ class WP_Theme_JSON {
 			);
 
 			if ( is_array( $value ) ) {
-				$new_prefix = $new_key . $token;
-				$result     = array_merge(
-					$result,
-					static::flatten_tree( $value, $new_prefix, $token )
-				);
+				$new_prefix        = $new_key . $token;
+				$flattened_subtree = static::flatten_tree( $value, $new_prefix, $token );
+				foreach ( $flattened_subtree as $subtree_key => $subtree_value ) {
+					$result[ $subtree_key ] = $subtree_value;
+				}
 			} else {
 				$result[ $new_key ] = $value;
 			}
