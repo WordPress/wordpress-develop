@@ -1855,11 +1855,6 @@ function wp_filter_content_tags( $content, $context = null ) {
 				$filtered_image = wp_img_tag_add_decoding_attr( $filtered_image, $context );
 			}
 
-			// Use alternate mime types when specified and available.
-			if ( $attachment_id > 0 && _wp_in_front_end_context() ) {
-				$filtered_image = wp_image_use_alternate_mime_types( $filtered_image, $context, $attachment_id );
-			}
-
 			if ( current_theme_supports( 'dominant-color' ) ) {
 				$filtered_image = img_tag_add_dominant_color( $filtered_image, $context, $attachment_id );
 			}
