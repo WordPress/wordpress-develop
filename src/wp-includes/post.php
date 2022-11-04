@@ -5765,6 +5765,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
  *
  * @since 2.1.0
  * @since 3.0.0 The `$post_type` parameter was added.
+ * @since 6.1.0 Using WP_Query to employ the use of caching.
  *
  * @param string       $page_title Page title.
  * @param string       $output     Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
