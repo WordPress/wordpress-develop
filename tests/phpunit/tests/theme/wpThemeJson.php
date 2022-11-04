@@ -4003,9 +4003,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 */
 	function test_update_separator_declarations() {
 		// If only background is defined, test that includes border-color to the style so it is applied on the front end.
-		$theme_json = new WP_Theme_JSON_Gutenberg(
+		$theme_json = new WP_Theme_JSON(
 			array(
-				'version' => WP_Theme_JSON_Gutenberg::LATEST_SCHEMA,
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 				'styles'  => array(
 					'blocks' => array(
 						'core/separator' => array(
@@ -4023,9 +4023,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEquals( $expected, $stylesheet );
 
 		// If background and text are defined, do not include border-color, as text color is enough.
-		$theme_json = new WP_Theme_JSON_Gutenberg(
+		$theme_json = new WP_Theme_JSON(
 			array(
-				'version' => WP_Theme_JSON_Gutenberg::LATEST_SCHEMA,
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 				'styles'  => array(
 					'blocks' => array(
 						'core/separator' => array(
@@ -4044,9 +4044,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEquals( $expected, $stylesheet );
 
 		// If only text is defined, do not include border-color, as by itself is enough.
-		$theme_json = new WP_Theme_JSON_Gutenberg(
+		$theme_json = new WP_Theme_JSON(
 			array(
-				'version' => WP_Theme_JSON_Gutenberg::LATEST_SCHEMA,
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 				'styles'  => array(
 					'blocks' => array(
 						'core/separator' => array(
@@ -4064,9 +4064,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEquals( $expected, $stylesheet );
 
 		// If background, text, and border-color are defined, include everything, CSS specifity will decide which to apply.
-		$theme_json = new WP_Theme_JSON_Gutenberg(
+		$theme_json = new WP_Theme_JSON(
 			array(
-				'version' => WP_Theme_JSON_Gutenberg::LATEST_SCHEMA,
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 				'styles'  => array(
 					'blocks' => array(
 						'core/separator' => array(
@@ -4088,9 +4088,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEquals( $expected, $stylesheet );
 
 		// If background and border color are defined, include everything, CSS specifity will decide which to apply.
-		$theme_json = new WP_Theme_JSON_Gutenberg(
+		$theme_json = new WP_Theme_JSON(
 			array(
-				'version' => WP_Theme_JSON_Gutenberg::LATEST_SCHEMA,
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 				'styles'  => array(
 					'blocks' => array(
 						'core/separator' => array(
