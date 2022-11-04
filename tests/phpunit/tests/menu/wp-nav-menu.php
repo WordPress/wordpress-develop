@@ -11,6 +11,7 @@ class Tests_Menu_wpNavMenu extends WP_UnitTestCase {
 	static $lvl0_menu_item = 0;
 	static $lvl1_menu_item = 0;
 	static $lvl2_menu_item = 0;
+	static $lvl3_menu_item = 0;
 
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
@@ -49,6 +50,18 @@ class Tests_Menu_wpNavMenu extends WP_UnitTestCase {
 				'menu-item-title'     => 'Lvl2 menu item',
 				'menu-item-url'       => '#',
 				'menu-item-parent-id' => self::$lvl1_menu_item,
+				'menu-item-status'    => 'publish',
+			)
+		);
+
+		// Create lvl3 menu item.
+		self::$lvl3_menu_item = wp_update_nav_menu_item(
+			self::$menu_id,
+			0,
+			array(
+				'menu-item-title'     => 'Lvl3 menu item',
+				'menu-item-url'       => '#',
+				'menu-item-parent-id' => self::$lvl2_menu_item,
 				'menu-item-status'    => 'publish',
 			)
 		);
@@ -112,11 +125,20 @@ class Tests_Menu_wpNavMenu extends WP_UnitTestCase {
 
 		$this->assertStringContainsString(
 			sprintf(
-				'<li id="menu-item-%1$d" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-%1$d">',
+				'<li id="menu-item-%1$d" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-%1$d">',
 				self::$lvl2_menu_item
 			),
 			$menu_html,
-			'Level 2 should be present in the HTML output and not have the `menu-item-has-children` class since it has no children.'
+			'Level 2 should be present in the HTML output and have the `menu-item-has-children` class.'
+		);
+
+		$this->assertStringContainsString(
+			sprintf(
+				'<li id="menu-item-%1$d" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-%1$d">',
+				self::$lvl3_menu_item
+			),
+			$menu_html,
+			'Level 3 should be present in the HTML output and not have the `menu-item-has-children` class since it has no children.'
 		);
 	}
 
@@ -132,7 +154,7 @@ class Tests_Menu_wpNavMenu extends WP_UnitTestCase {
 		$menu_html = wp_nav_menu(
 			array(
 				'menu'  => self::$menu_id,
-				'depth' => 2,
+				'depth' => 3,
 				'echo'  => false,
 			)
 		);
@@ -148,20 +170,29 @@ class Tests_Menu_wpNavMenu extends WP_UnitTestCase {
 
 		$this->assertStringContainsString(
 			sprintf(
-				'<li id="menu-item-%1$d" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-%1$d">',
+				'<li id="menu-item-%1$d" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-%1$d">',
 				self::$lvl1_menu_item
 			),
 			$menu_html,
-			'Level 1 should be present in the HTML output and not have the `menu-item-has-children` class since it is the last item to be rendered.'
+			'Level 1 should be present in the HTML output and have the `menu-item-has-children` class.'
+		);
+
+		$this->assertStringContainsString(
+			sprintf(
+				'<li id="menu-item-%1$d" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-%1$d">',
+				self::$lvl2_menu_item
+			),
+			$menu_html,
+			'Level 2 should be present in the HTML output and not have the `menu-item-has-children` class since it is the last item to be rendered.'
 		);
 
 		$this->assertStringNotContainsString(
 			sprintf(
 				'<li id="menu-item-%d"',
-				self::$lvl2_menu_item
+				self::$lvl3_menu_item
 			),
 			$menu_html,
-			'Level 2 should not be present in the HTML output.'
+			'Level 3 should not be present in the HTML output.'
 		);
 	}
 }
