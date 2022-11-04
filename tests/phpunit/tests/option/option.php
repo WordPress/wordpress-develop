@@ -45,7 +45,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @covers ::add_option
 	 * @covers ::delete_option
 	 */
-	public function test_default_filter() {
+	public function test_default_option_filter() {
 		$value = 'value';
 
 		$this->assertFalse( get_option( 'doesnotexist' ) );
@@ -83,6 +83,21 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		$this->assertTrue( $added );
 		$this->assertSame( 'bar', get_option( 'doesnotexist' ) );
+	}
+
+	/**
+	 * @ticket 37930
+	 *
+	 * @covers ::get_option
+	 */
+	public function test_get_option_should_call_pre_option_filter() {
+		$filter = new MockAction();
+
+		add_filter( 'pre_option', array( $filter, 'filter' ) );
+
+		get_option( 'ignored' );
+
+		$this->assertSame( 1, $filter->get_call_count() );
 	}
 
 	/**
@@ -296,20 +311,5 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			array( 'autoload_no', 'no', 'no' ),
 			array( 'autoload_false', false, 'no' ),
 		);
-	}
-
-	/**
-	 * @ticket 37930
-	 *
-	 * @covers ::get_option
-	 */
-	public function test_filter_pre_option_all_filter_is_called() {
-		$filter = new MockAction();
-
-		add_filter( 'pre_option', array( $filter, 'filter' ) );
-
-		get_option( 'ignored' );
-
-		$this->assertSame( 1, $filter->get_call_count() );
 	}
 }

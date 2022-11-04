@@ -446,6 +446,14 @@ class WP_Query {
 	public $thumbnails_cached = false;
 
 	/**
+	 * Controls whether an attachment query should include filenames or not.
+	 *
+	 * @since 6.0.3
+	 * @var bool
+	 */
+	protected $allow_query_attachment_by_filename = false;
+
+	/**
 	 * Cached list of search stopwords.
 	 *
 	 * @since 3.7.0
@@ -1429,8 +1437,13 @@ class WP_Query {
 				$q['search_orderby_title'][] = $wpdb->prepare( "{$wpdb->posts}.post_title LIKE %s", $like );
 			}
 
-			$like      = $n . $wpdb->esc_like( $term ) . $n;
-			$search   .= $wpdb->prepare( "{$searchand}(({$wpdb->posts}.post_title $like_op %s) $andor_op ({$wpdb->posts}.post_excerpt $like_op %s) $andor_op ({$wpdb->posts}.post_content $like_op %s))", $like, $like, $like );
+			$like = $n . $wpdb->esc_like( $term ) . $n;
+
+			if ( ! empty( $this->allow_query_attachment_by_filename ) ) {
+				$search .= $wpdb->prepare( "{$searchand}(({$wpdb->posts}.post_title $like_op %s) $andor_op ({$wpdb->posts}.post_excerpt $like_op %s) $andor_op ({$wpdb->posts}.post_content $like_op %s) $andor_op (sq1.meta_value $like_op %s))", $like, $like, $like, $like );
+			} else {
+				$search .= $wpdb->prepare( "{$searchand}(({$wpdb->posts}.post_title $like_op %s) $andor_op ({$wpdb->posts}.post_excerpt $like_op %s) $andor_op ({$wpdb->posts}.post_content $like_op %s))", $like, $like, $like );
+			}
 			$searchand = ' AND ';
 		}
 
@@ -1824,6 +1837,16 @@ class WP_Query {
 
 		// Fill again in case 'pre_get_posts' unset some vars.
 		$q = $this->fill_query_vars( $q );
+
+		/**
+		 * Filters whether an attachment query should include filenames or not.
+		 *
+		 * @since 6.0.3
+		 *
+		 * @param bool $allow_query_attachment_by_filename Whether or not to include filenames.
+		 */
+		$this->allow_query_attachment_by_filename = apply_filters( 'wp_allow_query_attachment_by_filename', false );
+		remove_all_filters( 'wp_allow_query_attachment_by_filename' );
 
 		// Parse meta query.
 		$this->meta_query = new WP_Meta_Query();
@@ -2256,7 +2279,7 @@ class WP_Query {
 			}
 		}
 
-		if ( ! empty( $this->tax_query->queries ) || ! empty( $this->meta_query->queries ) ) {
+		if ( ! empty( $this->tax_query->queries ) || ! empty( $this->meta_query->queries ) || ! empty( $this->allow_query_attachment_by_filename ) ) {
 			$groupby = "{$wpdb->posts}.ID";
 		}
 
@@ -2332,6 +2355,10 @@ class WP_Query {
 			$whichmimetype = wp_post_mime_type_where( $q['post_mime_type'], $wpdb->posts );
 		}
 		$where .= $search . $whichauthor . $whichmimetype;
+
+		if ( ! empty( $this->allow_query_attachment_by_filename ) ) {
+			$join .= " LEFT JOIN {$wpdb->postmeta} AS sq1 ON ( {$wpdb->posts}.ID = sq1.post_id AND sq1.meta_key = '_wp_attached_file' )";
+		}
 
 		if ( ! empty( $this->meta_query->queries ) ) {
 			$clauses = $this->meta_query->get_sql( 'post', $wpdb->posts, 'ID', $this );
@@ -3079,30 +3106,12 @@ class WP_Query {
 		 */
 		$id_query_is_cacheable = ! str_contains( strtoupper( $orderby ), ' RAND(' );
 		if ( $q['cache_results'] && $id_query_is_cacheable ) {
-			$cache_args = $q;
-
-			unset(
-				$cache_args['suppress_filters'],
-				$cache_args['cache_results'],
-				$cache_args['fields'],
-				$cache_args['update_post_meta_cache'],
-				$cache_args['update_post_term_cache'],
-				$cache_args['lazy_load_term_meta'],
-				$cache_args['update_menu_item_cache']
-			);
-
 			$new_request = str_replace( $fields, "{$wpdb->posts}.*", $this->request );
-			$key         = md5( serialize( $cache_args ) . $new_request );
+			$cache_key   = $this->generate_cache_key( $q, $new_request );
 
-			$last_changed = wp_cache_get_last_changed( 'posts' );
-			if ( ! empty( $this->tax_query->queries ) ) {
-				$last_changed .= wp_cache_get_last_changed( 'terms' );
-			}
-
-			$cache_key = "wp_query:$key:$last_changed";
-
+			$cache_found = false;
 			if ( null === $this->posts ) {
-				$cached_results = wp_cache_get( $cache_key, 'posts' );
+				$cached_results = wp_cache_get( $cache_key, 'posts', false, $cache_found );
 
 				if ( $cached_results ) {
 					if ( 'ids' === $q['fields'] ) {
@@ -3256,7 +3265,7 @@ class WP_Query {
 			$this->posts = array_map( 'get_post', $this->posts );
 		}
 
-		if ( $q['cache_results'] && $id_query_is_cacheable ) {
+		if ( $q['cache_results'] && $id_query_is_cacheable && ! $cache_found ) {
 			$post_ids = wp_list_pluck( $this->posts, 'ID' );
 
 			$cache_value = array(
@@ -3266,10 +3275,6 @@ class WP_Query {
 			);
 
 			wp_cache_set( $cache_key, $cache_value, 'posts' );
-		}
-
-		if ( ! empty( $this->posts ) && $q['update_menu_item_cache'] ) {
-			update_menu_item_cache( $this->posts );
 		}
 
 		if ( ! $q['suppress_filters'] ) {
@@ -3455,7 +3460,8 @@ class WP_Query {
 			$this->posts = array_map( 'get_post', $this->posts );
 
 			if ( $q['cache_results'] ) {
-				update_post_caches( $this->posts, $post_type, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+				$post_ids = wp_list_pluck( $this->posts, 'ID' );
+				_prime_post_caches( $post_ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 			}
 
 			/** @var WP_Post */
@@ -3463,6 +3469,10 @@ class WP_Query {
 		} else {
 			$this->post_count = 0;
 			$this->posts      = array();
+		}
+
+		if ( ! empty( $this->posts ) && $q['update_menu_item_cache'] ) {
+			update_menu_item_cache( $this->posts );
 		}
 
 		if ( $q['lazy_load_term_meta'] ) {
@@ -3934,6 +3944,10 @@ class WP_Query {
 		}
 		$post_type_object = get_post_type_object( $post_type );
 
+		if ( ! $post_type_object ) {
+			return false;
+		}
+
 		return in_array( $post_type_object->name, (array) $post_types, true );
 	}
 
@@ -3958,6 +3972,9 @@ class WP_Query {
 		$attachment = array_map( 'strval', (array) $attachment );
 
 		$post_obj = $this->get_queried_object();
+		if ( ! $post_obj ) {
+			return false;
+		}
 
 		if ( in_array( (string) $post_obj->ID, $attachment, true ) ) {
 			return true;
@@ -3991,6 +4008,9 @@ class WP_Query {
 		}
 
 		$author_obj = $this->get_queried_object();
+		if ( ! $author_obj ) {
+			return false;
+		}
 
 		$author = array_map( 'strval', (array) $author );
 
@@ -4027,6 +4047,9 @@ class WP_Query {
 		}
 
 		$cat_obj = $this->get_queried_object();
+		if ( ! $cat_obj ) {
+			return false;
+		}
 
 		$category = array_map( 'strval', (array) $category );
 
@@ -4063,6 +4086,9 @@ class WP_Query {
 		}
 
 		$tag_obj = $this->get_queried_object();
+		if ( ! $tag_obj ) {
+			return false;
+		}
 
 		$tag = array_map( 'strval', (array) $tag );
 
@@ -4310,6 +4336,9 @@ class WP_Query {
 		}
 
 		$page_obj = $this->get_queried_object();
+		if ( ! $page_obj ) {
+			return false;
+		}
 
 		$page = array_map( 'strval', (array) $page );
 
@@ -4417,6 +4446,9 @@ class WP_Query {
 		}
 
 		$post_obj = $this->get_queried_object();
+		if ( ! $post_obj ) {
+			return false;
+		}
 
 		$post = array_map( 'strval', (array) $post );
 
@@ -4464,6 +4496,9 @@ class WP_Query {
 		}
 
 		$post_obj = $this->get_queried_object();
+		if ( ! $post_obj ) {
+			return false;
+		}
 
 		return in_array( $post_obj->post_type, (array) $post_types, true );
 	}
@@ -4687,6 +4722,62 @@ class WP_Query {
 
 		return $elements;
 	}
+
+	/**
+	 * Generate cache key.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param array  $args Query arguments.
+	 * @param string $sql  SQL statement.
+	 *
+	 * @return string Cache key.
+	 */
+	protected function generate_cache_key( array $args, $sql ) {
+		global $wpdb;
+
+		unset(
+			$args['cache_results'],
+			$args['fields'],
+			$args['lazy_load_term_meta'],
+			$args['update_post_meta_cache'],
+			$args['update_post_term_cache'],
+			$args['update_menu_item_cache'],
+			$args['suppress_filters']
+		);
+
+		$placeholder = $wpdb->placeholder_escape();
+		array_walk_recursive(
+			$args,
+			/*
+			 * Replace wpdb placeholders with the string used in the database
+			 * query to avoid unreachable cache keys. This is necessary because
+			 * the placeholder is randomly generated in each request.
+			 *
+			 * $value is passed by reference to allow it to be modified.
+			 * array_walk_recursive() does not return an array.
+			 */
+			function ( &$value ) use ( $wpdb, $placeholder ) {
+				if ( is_string( $value ) && str_contains( $value, $placeholder ) ) {
+					$value = $wpdb->remove_placeholder_escape( $value );
+				}
+			}
+		);
+
+		// Replace wpdb placeholder in the SQL statement used by the cache key.
+		$sql = $wpdb->remove_placeholder_escape( $sql );
+		$key = md5( serialize( $args ) . $sql );
+
+		$last_changed = wp_cache_get_last_changed( 'posts' );
+		if ( ! empty( $this->tax_query->queries ) ) {
+			$last_changed .= wp_cache_get_last_changed( 'terms' );
+		}
+
+		return "wp_query:$key:$last_changed";
+	}
+
 	/**
 	 * After looping through a nested query, this function
 	 * restores the $post global to the current post in this query.

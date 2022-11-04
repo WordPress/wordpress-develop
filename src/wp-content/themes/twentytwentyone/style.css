@@ -9,7 +9,7 @@ Description: Twenty Twenty-One is a blank canvas for your ideas and it makes the
 Requires at least: 5.3
 Tested up to: 6.0
 Requires PHP: 5.6
-Version: 1.6
+Version: 1.7
 License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: twentytwentyone
@@ -693,8 +693,8 @@ template {
  */
 .post-thumbnail,
 .entry-content .wp-audio-shortcode,
-.entry-content > *:not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce),
-*[class*=inner-container] > *:not(.entry-content):not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce),
+.entry-content > *:not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator),
+*[class*=inner-container] > *:not(.entry-content):not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator),
 .default-max-width {
 	max-width: var(--responsive--aligndefault-width);
 	margin-left: auto;

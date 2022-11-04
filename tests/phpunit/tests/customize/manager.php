@@ -34,18 +34,11 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	protected static $subscriber_user_id;
 
 	/**
-	 * Path to test file 1.
+	 * Whether any attachments have been created in the current test run.
 	 *
-	 * @var string
+	 * @var bool
 	 */
-	private $test_file;
-
-	/**
-	 * Path to test file 2.
-	 *
-	 * @var string
-	 */
-	private $test_file2;
+	private $attachments_created = false;
 
 	/**
 	 * Set up before class.
@@ -64,19 +57,17 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$this->manager = $this->instantiate();
-
-		$orig_file       = DIR_TESTDATA . '/images/canola.jpg';
-		$this->test_file = get_temp_dir() . 'canola.jpg';
-		copy( $orig_file, $this->test_file );
-		$orig_file2       = DIR_TESTDATA . '/images/waffles.jpg';
-		$this->test_file2 = get_temp_dir() . 'waffles.jpg';
-		copy( $orig_file2, $this->test_file2 );
 	}
 
 	/**
 	 * Tear down test.
 	 */
 	public function tear_down() {
+		if ( true === $this->attachments_created ) {
+			$this->remove_added_uploads();
+			$this->attachments_created = false;
+		}
+
 		$this->manager = null;
 		unset( $GLOBALS['wp_customize'] );
 		$_REQUEST = array();
@@ -556,8 +547,13 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		add_theme_support( 'custom-header' );
 		add_theme_support( 'custom-background' );
 
-		$existing_canola_attachment_id     = self::factory()->attachment->create_object(
-			$this->test_file,
+		// For existing attachment, copy into uploads.
+		$canola_image_file    = DIR_TESTDATA . '/images/canola.jpg';
+		$canola_image_upload  = wp_upload_bits( wp_basename( $canola_image_file ), null, file_get_contents( $canola_image_file ) );
+		$existing_canola_file = $canola_image_upload['file'];
+
+		$existing_canola_attachment_id = self::factory()->attachment->create_object(
+			$existing_canola_file,
 			0,
 			array(
 				'post_mime_type' => 'image/jpeg',
@@ -565,6 +561,9 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 				'post_name'      => 'canola',
 			)
 		);
+
+		$this->attachments_created = true;
+
 		$existing_published_home_page_id   = self::factory()->post->create(
 			array(
 				'post_name'   => 'home',
@@ -631,13 +630,13 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 					'post_title'   => 'Waffles',
 					'post_content' => 'Waffles Attachment Description',
 					'post_excerpt' => 'Waffles Attachment Caption',
-					'file'         => $this->test_file2,
+					'file'         => DIR_TESTDATA . '/images/waffles.jpg',
 				),
 				'canola'  => array(
 					'post_title'   => 'Canola',
 					'post_content' => 'Canola Attachment Description',
 					'post_excerpt' => 'Canola Attachment Caption',
-					'file'         => $this->test_file,
+					'file'         => $existing_canola_file,
 				),
 			),
 			'options'     => array(
@@ -2533,10 +2532,10 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$this->assertSame( $default_value, $this->manager->post_value( $setting, $default_value ) );
 		$this->assertSame( $default_value, $setting->post_value( $default_value ) );
 
-		$post_value = '42';
-		$this->manager->set_post_value( 'numeric', $post_value );
-		$this->assertEquals( $post_value, $this->manager->post_value( $setting, $default_value ) );
-		$this->assertEquals( $post_value, $setting->post_value( $default_value ) );
+		$post_value = 42;
+		$this->manager->set_post_value( 'numeric', (string) $post_value );
+		$this->assertSame( $post_value, $this->manager->post_value( $setting, $default_value ) );
+		$this->assertSame( $post_value, $setting->post_value( $default_value ) );
 	}
 
 	/**
