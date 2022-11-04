@@ -164,4 +164,75 @@ class Tests_Menu_wpNavMenu extends WP_UnitTestCase {
 			'Level 2 should not be present in the HTML output.'
 		);
 	}
+
+	/**
+	 * @ticket 56926
+	 */
+	public function test_if_parent_is_self() {
+		// Create menu item which has itself as parent (in two steps).
+		$own_parent_menu_item = wp_update_nav_menu_item(
+			self::$menu_id,
+			0,
+			array(
+				'menu-item-title'  => 'Parent is self',
+				'menu-item-url'    => '#',
+				'menu-item-status' => 'publish',
+			)
+		);
+
+		wp_update_nav_menu_item(
+			self::$menu_id,
+			$own_parent_menu_item,
+			array(
+				'menu-item-parent-id' => $own_parent_menu_item,
+			)
+		);
+
+		// Render the menu.
+		$menu_html = wp_nav_menu(
+			array(
+				'menu' => self::$menu_id,
+				'echo' => false,
+			)
+		);
+
+		$this->assertStringContainsString(
+			sprintf(
+				'<li id="menu-item-%1$d" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-%1$d">',
+				$own_parent_menu_item
+			),
+			$menu_html,
+			'The menu item with itself as parent should be present in the HTML output.'
+		);
+
+		// Create a child for this menu item.
+		$own_parent_child_menu_item = wp_update_nav_menu_item(
+			self::$menu_id,
+			0,
+			array(
+				'menu-item-title'     => 'Child of parent is self',
+				'menu-item-url'       => '#',
+				'menu-item-status'    => 'publish',
+				'menu-item-parent-id' => $own_parent_menu_item,
+			)
+		);
+
+		// Render the menu.
+		$menu_html = wp_nav_menu(
+			array(
+				'menu' => self::$menu_id,
+				'echo' => false,
+			)
+		);
+
+		$this->assertStringContainsString(
+			sprintf(
+				'<li id="menu-item-%1$d" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-%1$d">',
+				$own_parent_child_menu_item
+			),
+			$menu_html,
+			'The menu item with the item that has itself as parent should be present in the HTML output,
+			and should not have the `menu-item-has-children` class.'
+		);
+	}
 }

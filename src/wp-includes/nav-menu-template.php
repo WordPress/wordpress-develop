@@ -208,7 +208,8 @@ function wp_nav_menu( $args = array() ) {
 		// Calculate the depth of each menu item with children
 		foreach ( $menu_items_with_children as $menu_item_key => &$menu_item_depth ) {
 			$menu_item_parent = $menu_items_tree[ $menu_item_key ];
-			while ( $menu_item_parent ) {
+			// Do not calculate the depth when the current item has itself as parent.
+			while ( $menu_item_parent && (int) $menu_item_parent !== $menu_item_key ) {
 				$menu_item_depth  = $menu_item_depth + 1;
 				$menu_item_parent = $menu_items_tree[ $menu_item_parent ];
 			}
