@@ -139,7 +139,7 @@ function get_default_block_template_types() {
 		),
 		'archive'        => array(
 			'title'       => _x( 'Archive', 'Template name' ),
-			'description' => __( 'Displays post categories, tags, and other archives.' ),
+			'description' => __( 'Displays posts by categories, tags, and other archives.' ),
 		),
 		'author'         => array(
 			'title'       => _x( 'Author', 'Template name' ),
