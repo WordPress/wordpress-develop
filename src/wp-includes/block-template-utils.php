@@ -503,7 +503,7 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 
 	$template                 = new WP_Block_Template();
 	$template->id             = $theme . '//' . $template_file['slug'];
-	$template->theme          = $theme;
+	$template->theme          = ! empty($template_file['theme']) ? $template_file['theme'] : $theme;
 	$template->content        = _inject_theme_attribute_in_block_template_content( $template_content );
 	$template->slug           = $template_file['slug'];
 	$template->source         = 'theme';
@@ -714,7 +714,7 @@ function _build_block_template_result_from_post( $post ) {
 	$template                 = new WP_Block_Template();
 	$template->wp_id          = $post->ID;
 	$template->id             = $theme . '//' . $post->post_name;
-	$template->theme          = $theme;
+	$template->theme          = ! empty($template_file['theme']) ? $template_file['theme'] : $theme;
 	$template->content        = $post->post_content;
 	$template->slug           = $post->post_name;
 	$template->source         = 'custom';
@@ -726,6 +726,8 @@ function _build_block_template_result_from_post( $post ) {
 	$template->has_theme_file = $has_theme_file;
 	$template->is_custom      = empty( $is_wp_suggestion );
 	$template->author         = $post->post_author;
+
+	var_dump($template);
 
 	if ( 'wp_template' === $post->post_type && $has_theme_file && isset( $template_file['postTypes'] ) ) {
 		$template->post_types = $template_file['postTypes'];
