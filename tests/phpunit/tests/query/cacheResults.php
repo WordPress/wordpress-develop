@@ -1239,18 +1239,20 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			array(
 				'post_type' => 'page',
 				'fields'    => $fields,
+				'author'    => self::$author_id,
 			)
 		);
 
-		// Ensure the cache is clear prior to starting the loop.
-		wp_cache_flush();
 		// Start the loop.
+		$start_loop_queries = get_num_queries();
 		$query_1->the_post();
+		$num_loop_queries = get_num_queries() - $start_loop_queries;
+		$this->assertSame( 2, $num_loop_queries, 'Unexpected number of queries while initializing the loop.' );
 
-		$start_queries = get_num_queries();
+		$start_author_queries = get_num_queries();
 		get_user_by( 'ID', self::$author_id );
-		$num_queries = get_num_queries() - $start_queries;
-		$this->assertSame( 0, $num_queries, 'Author cache is not warmed by the loop.' );
+		$num_author_queries = get_num_queries() - $start_author_queries;
+		$this->assertSame( 0, $num_author_queries, 'Author cache is not warmed by the loop.' );
 	}
 
 	/**
