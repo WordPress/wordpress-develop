@@ -1262,9 +1262,9 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 */
 	public function data_author_cache_warmed_by_the_loop() {
 		return array(
-			'empty'      => array( '' ),
-			'all'        => array( 'all' ),
-			'ids'        => array( 'ids' ),
+			'fields: empty' => array( '' ),
+			'fields: all'   => array( 'all' ),
+			'fields: ids'   => array( 'ids' ),
 			/*
 			 * `id=>parent` is untested pending the resolution of an existing bug.
 			 * See https://core.trac.wordpress.org/ticket/56992#ticket
