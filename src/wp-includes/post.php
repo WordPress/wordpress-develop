@@ -5777,7 +5777,7 @@ function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' )
 	$args  = array(
 		'title'                  => $page_title,
 		'post_type'              => $post_type,
-		'post_status'            => get_post_stati(),
+		'post_status'            => get_post_stati( array( 'exclude_from_search' => false ) ),
 		'posts_per_page'         => 1,
 		'update_post_term_cache' => false,
 		'update_post_meta_cache' => false,
