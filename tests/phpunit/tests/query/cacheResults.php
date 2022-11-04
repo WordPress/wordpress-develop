@@ -1265,7 +1265,10 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			'empty'      => array( '' ),
 			'all'        => array( 'all' ),
 			'ids'        => array( 'ids' ),
-			'id=>parent' => array( 'id=>parent' ),
+			/*
+			 * `id=>parent` is untested pending the resolution of an existing bug.
+			 * See https://core.trac.wordpress.org/ticket/56992#ticket
+			 */
 		);
 	}
 }
