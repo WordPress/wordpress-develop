@@ -846,7 +846,7 @@ class WP_User_Query {
 				_doing_it_wrong(
 					'WP_User_Query',
 					sprintf(
-						/* translators: plugins_loaded */
+						/* translators: %s: plugins_loaded */
 						__( 'User queries should not be run before the %s hook.' ),
 						'<code>plugins_loaded</code>'
 					);
