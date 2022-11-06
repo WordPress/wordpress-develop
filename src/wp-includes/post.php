@@ -5765,6 +5765,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
  *
  * @since 2.1.0
  * @since 3.0.0 The `$post_type` parameter was added.
+ * @since 6.0.0 The result is cached to improve performance.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -5777,6 +5778,19 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
  */
 function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' ) {
 	global $wpdb;
+
+	$last_changed = wp_cache_get_last_changed( 'posts' );
+	$cache_key    = "get_page_by_title:{$last_changed}:" . md5( $page_title . serialize( $post_type ) );
+	$cache_found  = false;
+	$page_id      = wp_cache_get( $cache_key, 'posts', false, $cache_found );
+
+	if ( $cache_found ) {
+		if ( ! $page_id ) {
+			return null;
+		} else {
+			return get_post( $page_id, $output );
+		}
+	}
 
 	if ( is_array( $post_type ) ) {
 		$post_type           = esc_sql( $post_type );
@@ -5803,10 +5817,16 @@ function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' )
 		);
 	}
 
-	$page = $wpdb->get_var( $sql );
+	$page_id = $wpdb->get_var( $sql );
 
-	if ( $page ) {
-		return get_post( $page, $output );
+	/*
+	 * Cache both misses and hits. Only cache the Post ID as the post object is
+	 * cached separately.
+	 */
+	wp_cache_set( $cache_key, $page_id, 'posts' );
+
+	if ( $page_id ) {
+		return get_post( $page_id, $output );
 	}
 
 	return null;
