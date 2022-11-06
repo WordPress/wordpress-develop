@@ -7,6 +7,7 @@ if ( is_multisite() ) :
 	 * @group multisite
 	 */
 	class Tests_Multisite_UpdateBlogDetails extends WP_UnitTestCase {
+
 		/**
 		 * If `update_blog_details()` is called with any kind of empty arguments, it
 		 * should return false.
