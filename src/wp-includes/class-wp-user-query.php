@@ -849,7 +849,7 @@ class WP_User_Query {
 						/* translators: %s: plugins_loaded */
 						__( 'User queries should not be run before the %s hook.' ),
 						'<code>plugins_loaded</code>'
-					);
+					),
 					'6.1.1'
 				);
 			}
