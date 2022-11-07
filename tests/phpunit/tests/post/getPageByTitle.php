@@ -337,4 +337,114 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 		get_page_by_title( 'some-page' );
 		$this->assertSame( 1, $ma->get_call_count(), 'Query does not run exactly once.' );
 	}
+
+	/**
+	 * @ticket 56991
+	 * @dataProvider data_should_return_same_result_as_legacy_query_single_post_type
+	 */
+	public function test_should_return_same_result_as_legacy_query_single_post_type( $post_to_trash ) {
+		global $wpdb;
+		$page_title = "Ticket number 56991";
+
+		$pages = self::factory()->post->create_many(
+			5,
+			array(
+				'post_title' => $page_title,
+				'post_type'  => 'page',
+			)
+		);
+
+		// Trash one of the pages.
+		wp_delete_post( $pages[ $post_to_trash ] );
+
+		$legacy_query_post_id = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type = %s",
+				$page_title,
+				'page'
+			)
+		);
+
+		$get_page_by_title_post_id = get_page_by_title( $page_title, OBJECT, 'page' )->ID;
+
+		$this->assertSame( (int) $legacy_query_post_id, (int) $get_page_by_title_post_id, 'Legacy query and get_page_by_title() should return the same post ID.' );
+	}
+
+	public function data_should_return_same_result_as_legacy_query_single_post_type() {
+		$range = range( 0, 4 );
+		return array_map(
+			function( $post_to_trash ) {
+				return array( $post_to_trash );
+			},
+			$range
+		);
+	}
+
+	/**
+	 * @ticket 56991
+	 * @dataProvider data_should_return_same_result_as_legacy_query_multiple_post_types
+	 */
+	public function test_should_return_same_result_as_legacy_query_multiple_post_types( $post_to_trash ) {
+		global $wpdb;
+		register_post_type( 'wptest' );
+
+		$page_title = "Ticket number 56991";
+
+		$pages = self::factory()->post->create_many(
+			5,
+			array(
+				'post_title' => $page_title,
+				'post_type'  => 'page',
+			)
+		);
+
+		$cpts = self::factory()->post->create_many(
+			5,
+			array(
+				'post_title' => $page_title,
+				'post_type'  => 'wptest',
+			)
+		);
+
+		$all_posts = array_merge( $pages, $cpts );
+
+		// Trash one of the post objects.
+		wp_delete_post( $all_posts[ $post_to_trash ] );
+
+		$legacy_query_post_id_1 = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type IN ( %s, %s )",
+				$page_title,
+				'page',
+				'wptest'
+			)
+		);
+
+		$legacy_query_post_id_2 = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type IN ( %s, %s )",
+				$page_title,
+				'wptest',
+				'page'
+			)
+		);
+
+		$get_page_by_title_post_id_1 = get_page_by_title( $page_title, OBJECT, array( 'page', 'wptest' ) )->ID;
+		$get_page_by_title_post_id_2 = get_page_by_title( $page_title, OBJECT, array( 'wptest', 'page' ) )->ID;
+
+		$this->assertSame( (int) $legacy_query_post_id_1, (int) $get_page_by_title_post_id_1, 'Legacy query 1 and get_page_by_title() 1 should return the same post ID.' );
+		$this->assertSame( (int) $legacy_query_post_id_1, (int) $get_page_by_title_post_id_2, 'Legacy query 1 and get_page_by_title() 2 should return the same post ID.' );
+		$this->assertSame( (int) $legacy_query_post_id_2, (int) $get_page_by_title_post_id_1, 'Legacy query 2 and get_page_by_title() 1 should return the same post ID.' );
+		$this->assertSame( (int) $legacy_query_post_id_2, (int) $get_page_by_title_post_id_2, 'Legacy query 2 and get_page_by_title() 2 should return the same post ID.' );
+	}
+
+	public function data_should_return_same_result_as_legacy_query_multiple_post_types() {
+		$range = range( 0, 9 );
+		return array_map(
+			function( $post_to_trash ) {
+				return array( $post_to_trash );
+			},
+			$range
+		);
+	}
 }
