@@ -2,54 +2,48 @@
 
 if ( is_multisite() ) :
 	/**
-	 * Test update_posts_count() get called via filters of WP_Site in multisite.
+	 * Test that update_posts_count() gets called via default filters on multisite.
 	 *
 	 * @group ms-site
 	 * @group multisite
 	 *
-	 * @covers ::_update_posts_count_on_delete
+	 * @covers ::update_posts_count
 	 */
-	class Tests_update_posts_count_on_delete extends WP_UnitTestCase {
+	class Tests_Multisite_UpdatePostsCount extends WP_UnitTestCase {
 
 		/**
-		 * Test that the posts count is updated correctly when a posts are added and deleted.
+		 * Tests that posts count is updated correctly when posts are added or deleted.
+		 *
+		 * @ticket 27952
 		 * @ticket 53443
+		 *
+		 * @covers ::_update_posts_count_on_transition_post_status
+		 * @covers ::_update_posts_count_on_delete
 		 */
-		public function test_update_posts_count_on_delete() {
+		public function test_update_posts_count() {
+			$original_post_count = (int) get_site()->post_count;
 
-			$blog_id = self::factory()->blog->create();
-			switch_to_blog( $blog_id );
+			$post_id = self::factory()->post->create();
 
-			$current_post_count = (int) get_option( 'post_count' );
-
-			$post_id = self::factory()->post->create(
-				array(
-					'post_type'   => 'post',
-					'post_author' => '1',
-					'post_date'   => '2012-10-23 19:34:42',
-					'post_status' => 'publish',
-				)
-			);
-
-			/**
-			 * Check that add_action( 'deleted_post', '_update_posts_count_on_delete' ) is called when a post is created.
-			 * Check that _update_posts_count_on_transition_post_status() is called on that filter which then calls
-			 * update_posts_count to update the count.
+			/*
+			 * Check that posts count is updated when a post is created:
+			 * add_action( 'transition_post_status', '_update_posts_count_on_transition_post_status', 10, 3 );
+			 *
+			 * Check that _update_posts_count_on_transition_post_status() is called on that filter,
+			 * which then calls update_posts_count() to update the count.
 			 */
-			$this->assertEquals( $current_post_count + 1, (int) get_option( 'post_count' ), 'post added' );
+			$this->assertSame( $original_post_count + 1, get_site()->post_count, 'Post count should be incremented by 1.' );
 
 			wp_delete_post( $post_id );
 
-			/**
-			 * Check that add_action( 'transition_post_status', '_update_posts_count_on_transition_post_status', 10, 3 )
-			 * is called when a post is deleted.
-			 * Check that _update_posts_count_on_delete() is called on that filter which then calls update_posts_count
-			 * to update the count.
+			/*
+			 * Check that posts count is updated when a post is deleted:
+			 * add_action( 'deleted_post', '_update_posts_count_on_delete' );
+			 *
+			 * Check that _update_posts_count_on_delete() is called on that filter,
+			 * which then calls update_posts_count() to update the count.
 			 */
-			$this->assertEquals( $current_post_count, (int) get_option( 'post_count' ), 'post deleted' );
-
-			restore_current_blog();
-
+			$this->assertSame( $original_post_count, get_site()->post_count, 'Post count should match the original count.' );
 		}
 	}
 
