@@ -344,7 +344,7 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 	 */
 	public function test_should_return_same_result_as_legacy_query_single_post_type( $post_to_trash ) {
 		global $wpdb;
-		$page_title = "Ticket number 56991";
+		$page_title = 'Ticket number 56991';
 
 		$pages = self::factory()->post->create_many(
 			5,
@@ -388,7 +388,7 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 		global $wpdb;
 		register_post_type( 'wptest' );
 
-		$page_title = "Ticket number 56991";
+		$page_title = 'Ticket number 56991';
 
 		$pages = self::factory()->post->create_many(
 			5,
