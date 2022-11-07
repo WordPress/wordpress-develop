@@ -776,6 +776,18 @@ class WP_User_Query {
 	public function query() {
 		global $wpdb;
 
+		if ( ! did_action( 'plugins_loaded' ) ) {
+			_doing_it_wrong(
+				'WP_User_Query',
+				sprintf(
+				/* translators: %s: plugins_loaded */
+					__( 'User queries should not be run before the %s hook.' ),
+					'<code>plugins_loaded</code>'
+				),
+				'6.1.1'
+			);
+		}
+
 		$qv =& $this->query_vars;
 
 		/**
@@ -842,16 +854,6 @@ class WP_User_Query {
 		} elseif ( 'all_with_meta' === $qv['fields'] || 'all' === $qv['fields'] ) {
 			if ( function_exists( 'cache_users' ) ) {
 				cache_users( $this->results );
-			} else {
-				_doing_it_wrong(
-					'WP_User_Query',
-					sprintf(
-						/* translators: %s: plugins_loaded */
-						__( 'User queries should not be run before the %s hook.' ),
-						'<code>plugins_loaded</code>'
-					),
-					'6.1.1'
-				);
 			}
 
 			$r = array();
