@@ -604,6 +604,20 @@ mockedApiResponse.Schema = {
                             "description": "Limit result set to items that are sticky.",
                             "type": "boolean",
                             "required": false
+                        },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
                         }
                     }
                 },
@@ -1783,6 +1797,20 @@ mockedApiResponse.Schema = {
                                 "type": "string"
                             },
                             "required": false
+                        },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
                         }
                     }
                 },
@@ -2855,6 +2883,20 @@ mockedApiResponse.Schema = {
                             },
                             "required": false
                         },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
+                        },
                         "media_type": {
                             "default": null,
                             "description": "Limit result set to attachments of a particular media type.",
@@ -3661,6 +3703,20 @@ mockedApiResponse.Schema = {
                             ],
                             "required": false
                         },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
+                        },
                         "menu_order": {
                             "description": "Limit result set to posts with a specific menu_order value.",
                             "type": "integer",
@@ -4366,6 +4422,20 @@ mockedApiResponse.Schema = {
                                     "request-failed",
                                     "request-completed",
                                     "any"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
+                        },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
                                 ],
                                 "type": "string"
                             },
@@ -6517,6 +6587,20 @@ mockedApiResponse.Schema = {
                                     "request-failed",
                                     "request-completed",
                                     "any"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
+                        },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
                                 ],
                                 "type": "string"
                             },
