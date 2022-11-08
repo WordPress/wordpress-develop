@@ -1,6 +1,8 @@
 <?php
 /**
  * @group query
+ *  
+ * @covers WP_Query::get_posts
  */
 class Tests_Query_FieldsClause extends WP_UnitTestCase {
 
