@@ -19,6 +19,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	static $page_ids = array();
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		// Register CPT for use with shared fixtures.
 		register_post_type( 'wptests_pt' );
 
 		self::$post_ids = $factory->post->create_many( 5, array( 'post_type' => 'wptests_pt' ) );
@@ -26,7 +27,13 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-
+		/*
+		 * Re-register the CPT for use within each test.
+		 *
+		 * Custom post types are deregistered by the default tear_down method
+		 * so need to be re-registered for each test as WP_Query calls
+		 * get_post_types().
+		 */
 		register_post_type( 'wptests_pt' );
 	}
 
