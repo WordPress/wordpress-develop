@@ -89,7 +89,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	 *
 	 * @ticket 57012
 	 */
-	public function test_should_not_limit_fields() {
+	public function test_should_query_all_fields() {
 		$query_args = array(
 			'post_type' => 'wptests_pt',
 			'fields'    => 'all',
@@ -207,7 +207,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Filter the posts fields.
+	 * Filters the posts fields.
 	 *
 	 * @param string $fields The fields to SELECT.
 	 * @return string The filtered fields.
@@ -217,7 +217,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Filter the posts clauses.
+	 * Filters the posts clauses.
 	 *
 	 * @param array $clauses The WP_Query database clauses.
 	 * @return array The filtered database clauses.
