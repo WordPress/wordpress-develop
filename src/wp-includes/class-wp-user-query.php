@@ -778,7 +778,7 @@ class WP_User_Query {
 
 		if ( ! did_action( 'plugins_loaded' ) ) {
 			_doing_it_wrong(
-				'WP_User_Query',
+				'WP_User_Query::query',
 				sprintf(
 				/* translators: %s: plugins_loaded */
 					__( 'User queries should not be run before the %s hook.' ),
