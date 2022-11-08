@@ -331,9 +331,7 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 			)
 		);
 
-		$sql = $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type = %s", 'foo bar', 'page');
-
-		$page = (int) $wpdb->get_var( $sql );
+		$page = (int) $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type = %s", 'foo bar', 'page' ) );
 
 		$post = get_page_by_title( 'foo bar' );
 		$this->assertSame( $page, $post->ID );
@@ -347,19 +345,21 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 	public function test_return_same_as_old_query_2() {
 		global $wpdb;
 
-		self::factory()->post->create_and_get( array(
-			'post_title' => 'foo bar',
-			'post_type'  => 'page',
-		) );
-		self::factory()->post->create_and_get( array(
-			'post_title' => 'foo bar',
-			'post_type'  => 'page',
-			'post_status' => 'draft'
-		) );
+		self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'foo bar',
+				'post_type'  => 'page',
+			)
+		);
+		self::factory()->post->create_and_get(
+			array(
+				'post_title'  => 'foo bar',
+				'post_type'   => 'page',
+				'post_status' => 'draft',
+			)
+		);
 
-		$sql = $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type = %s", 'foo bar', 'page');
-
-		$page = (int) $wpdb->get_var( $sql );
+		$page = (int) $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type = %s", 'foo bar', 'page' ) );
 
 		$post = get_page_by_title( 'foo bar' );
 		$this->assertSame( $page, $post->ID );
