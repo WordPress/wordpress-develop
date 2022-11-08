@@ -251,6 +251,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'search'         => 's',
 			'slug'           => 'post_name__in',
 			'status'         => 'post_status',
+			'search_columns' => 'search_columns',
 		);
 
 		/*
@@ -2916,6 +2917,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'type'        => 'boolean',
 			);
 		}
+
+		$query_params['search_columns'] = array(
+			'default'           => array(),
+			'description'       => __( 'Array of column names to be searched.' ),
+			'type'              => 'array',
+			'items'             => array(
+				'enum' => array( 'post_title', 'post_content', 'post_excerpt' ),
+				'type' => 'string',
+			),
+		);
 
 		/**
 		 * Filters collection parameters for the posts controller.
