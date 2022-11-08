@@ -5612,7 +5612,7 @@ function dominant_color_img_tag_add_dominant_color( $filtered_image, $context, $
 
 	if ( ! empty( $image_meta['dominant_color'] ) ) {
 		$data .= sprintf( 'data-dominant-color="%s" ', esc_attr( $image_meta['dominant_color'] ) );
-		$style = '--dominant-color: #' . esc_attr( $image_meta['dominant_color'] ) . ';" ';
+		$style = '--dominant-color: #' . esc_attr( $image_meta['dominant_color'] ) . '; ';
 	}
 
 	if ( isset( $image_meta['has_transparency'] ) ) {
@@ -5622,8 +5622,8 @@ function dominant_color_img_tag_add_dominant_color( $filtered_image, $context, $
 	}
 
 	if ( ! empty( $data ) || ! empty( $style ) || ! str_contains( $data, $filtered_image ) ) {
-				if ( strpos( $filtered_image, 'style=' ) ) {
-			$filtered_image = str_replace( 'style="', $data . ' style="' . $style, $filtered_image );
+				if ( str_contains( $filtered_image, 'style=' ) ) {
+			$filtered_image = str_replace( 'style="', $data . ' style="' . $style . '" ', $filtered_image );
 		} else {
 			$filtered_image = str_replace( '<img ', '<img ' . $data . ' style="' . $style, $filtered_image );
 		}
