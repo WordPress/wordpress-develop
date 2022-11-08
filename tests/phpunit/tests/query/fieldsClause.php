@@ -34,6 +34,8 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	 * Tests limiting the WP_Query fields to the ID and parent sub-set.
 	 *
 	 * @ticket 57012
+	 *
+	 * @covers WP_Query::get_posts()
 	 */
 	public function test_should_limit_fields_to_id_and_parent_subset() {
 		$q = new WP_Query(
@@ -64,6 +66,8 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	 * Tests limiting the WP_Query fields to the IDs only.
 	 *
 	 * @ticket 57012
+	 *
+	 * @covers WP_Query::get_posts()
 	 */
 	public function test_should_limit_fields_to_ids() {
 		$query_args = array(
@@ -88,6 +92,8 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	 * Tests querying all fields via WP_Query.
 	 *
 	 * @ticket 57012
+	 *
+	 * @covers WP_Query::get_posts()
 	 */
 	public function test_should_query_all_fields() {
 		$query_args = array(
@@ -112,6 +118,8 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	 * Tests adding fields to WP_Query via filters when requesting the ID and parent sub-set.
 	 *
 	 * @ticket 57012
+	 *
+	 * @covers WP_Query::get_posts()
 	 */
 	public function test_should_include_filtered_values_in_addition_to_id_and_parent_subset() {
 		add_filter( 'posts_fields', array( $this, 'filter_posts_fields' ) );
@@ -151,6 +159,8 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	 * Tests adding fields to WP_Query via filters when requesting the ID field.
 	 *
 	 * @ticket 57012
+	 *
+	 * @covers WP_Query::get_posts()
 	 */
 	public function test_should_include_filtered_values_in_addition_to_id() {
 		add_filter( 'posts_fields', array( $this, 'filter_posts_fields' ) );
@@ -179,6 +189,8 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	 * Tests adding fields to WP_Query via filters when requesting all fields.
 	 *
 	 * @ticket 57012
+	 *
+	 * @covers WP_Query::get_posts()
 	 */
 	public function test_should_include_filtered_values() {
 		add_filter( 'posts_fields', array( $this, 'filter_posts_fields' ) );
