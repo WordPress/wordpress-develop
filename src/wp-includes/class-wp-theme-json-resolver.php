@@ -246,8 +246,9 @@ class WP_Theme_JSON_Resolver {
 		$options = wp_parse_args( $options, array( 'with_supports' => true ) );
 
 		if ( null === static::$theme || ! static::has_same_registered_blocks( 'theme' ) ) {
-			if ( static::theme_has_support() ) {
-				$theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json' ) );
+			$theme_json_file = static::get_file_path_from_theme( 'theme.json' );
+			if ( '' !== $theme_json_file ) {
+				$theme_json_data = static::read_json_file( $theme_json_file );
 				$theme_json_data = static::translate( $theme_json_data, wp_get_theme()->get( 'TextDomain' ) );
 			} else {
 				$theme_json_data = array();
@@ -263,22 +264,22 @@ class WP_Theme_JSON_Resolver {
 			$theme_json      = apply_filters( 'wp_theme_json_data_theme', new WP_Theme_JSON_Data( $theme_json_data, 'theme' ) );
 			$theme_json_data = $theme_json->get_data();
 			static::$theme   = new WP_Theme_JSON( $theme_json_data );
-		}
 
-		if ( wp_get_theme()->parent() ) {
-			// Get parent theme.json.
-			$parent_theme_json_file = static::get_file_path_from_theme( 'theme.json', true );
-			if ( $parent_theme_json_file !== '' ) {
-				$parent_theme_json_data = static::read_json_file( $parent_theme_json_file );
-				$parent_theme_json_data = static::translate( $parent_theme_json_data, wp_get_theme()->parent()->get( 'TextDomain' ) );
-				$parent_theme           = new WP_Theme_JSON( $parent_theme_json_data );
+			if ( wp_get_theme()->parent() ) {
+				// Get parent theme.json.
+				$parent_theme_json_file = static::get_file_path_from_theme( 'theme.json', true );
+				if ( '' !== $parent_theme_json_file ) {
+					$parent_theme_json_data = static::read_json_file( $parent_theme_json_file );
+					$parent_theme_json_data = static::translate( $parent_theme_json_data, wp_get_theme()->parent()->get( 'TextDomain' ) );
+					$parent_theme           = new WP_Theme_JSON( $parent_theme_json_data );
 
-				/*
-				* Merge the child theme.json into the parent theme.json.
-				* The child theme takes precedence over the parent.
-				*/
-				$parent_theme->merge( static::$theme );
-				static::$theme = $parent_theme;
+					/*
+					* Merge the child theme.json into the parent theme.json.
+					* The child theme takes precedence over the parent.
+					*/
+					$parent_theme->merge( static::$theme );
+					static::$theme = $parent_theme;
+				}
 			}
 		}
 
