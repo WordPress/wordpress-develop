@@ -86,6 +86,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'parent_exclude',
 				'per_page',
 				'search',
+				'search_columns',
 				'slug',
 				'status',
 			),
