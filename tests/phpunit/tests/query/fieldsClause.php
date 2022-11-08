@@ -31,9 +31,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure the WP_Query fields parameter is respected.
-	 *
-	 * This tests limiting the fields to the ID and parent sub-set.
+	 * Tests limiting the WP_Query fields to the ID and parent sub-set.
 	 *
 	 * @ticket 57012
 	 */
@@ -63,9 +61,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure the WP_Query fields parameter is respected.
-	 *
-	 * This tests limiting the fields to the IDs only.
+	 * Tests limiting the WP_Query fields to the IDs only.
 	 *
 	 * @ticket 57012
 	 */
@@ -89,7 +85,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure the WP_Query fields parameter is respected.
+	 * Tests querying all fields via WP_Query.
 	 *
 	 * @ticket 57012
 	 */
@@ -113,10 +109,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure the WP_Query fields parameter is respected.
-	 *
-	 * This tests limiting the fields to the ID and parent sub-set but
-	 * requesting additional items using the clause related filters.
+	 * Tests adding fields to WP_Query via filters when requesting the ID and parent sub-set.
 	 *
 	 * @ticket 57012
 	 */
@@ -155,10 +148,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure the WP_Query fields parameter is respected.
-	 *
-	 * This tests limiting the fields to the IDs only but modifying the
-	 * database query via the clause related filters.
+	 * Tests adding fields to WP_Query via filters when requesting the ID field.
 	 *
 	 * @ticket 57012
 	 */
@@ -186,9 +176,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure the WP_Query fields parameter is respected.
-	 *
-	 * This tests requesting additional items using the clause related filters.
+	 * Tests adding fields to WP_Query via filters when requesting all fields.
 	 *
 	 * @ticket 57012
 	 */
@@ -221,7 +209,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	/**
 	 * Filter the posts fields.
 	 *
-	 * @param string $fields The fields to select.
+	 * @param string $fields The fields to SELECT.
 	 * @return string The filtered fields.
 	 */
 	function filter_posts_fields( $fields ) {
@@ -231,8 +219,8 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	/**
 	 * Filter the posts clauses.
 	 *
-	 * @param array $clauses The query clauses.
-	 * @return array The filtered clauses.
+	 * @param array $clauses The WP_Query database clauses.
+	 * @return array The filtered database clauses.
 	 */
 	function filter_posts_clauses( $clauses ) {
 		$clauses['fields'] .= ', 2 as test_post_clauses';
