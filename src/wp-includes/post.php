@@ -5774,6 +5774,11 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
  * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
  */
 function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' ) {
+	$page_title = rtrim( (string) $page_title );
+	if ( empty( $page_title ) ) {
+		return null;
+	}
+
 	$args  = array(
 		'title'                  => $page_title,
 		'post_type'              => $post_type,
