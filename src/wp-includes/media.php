@@ -5622,7 +5622,7 @@ function dominant_color_img_tag_add_dominant_color( $filtered_image, $context, $
 	}
 
 	if ( ! empty( $data ) || ! empty( $style ) || ! str_contains( $data, $filtered_image ) ) {
-				if ( str_contains( $filtered_image, 'style=' ) ) {
+		if ( str_contains( $filtered_image, 'style=' ) ) {
 			$filtered_image = str_replace( 'style="', $data . 'style="' . $style . '" ', $filtered_image );
 		} else {
 			$filtered_image = str_replace( '<img ', '<img ' . $data . ' style="' . $style, $filtered_image );
