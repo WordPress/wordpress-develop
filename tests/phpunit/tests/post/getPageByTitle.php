@@ -309,8 +309,8 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 	}
 
 	/**
-	 *
 	 * @ticket 56991
+	 *
 	 * @covers ::get_page_by_title
 	 */
 	public function test_return_same_as_old_query() {
@@ -338,8 +338,8 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 	}
 
 	/**
-	 *
 	 * @ticket 56991
+	 *
 	 * @covers ::get_page_by_title
 	 */
 	public function test_return_same_as_old_query_2() {
