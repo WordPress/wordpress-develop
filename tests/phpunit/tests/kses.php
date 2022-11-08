@@ -1105,6 +1105,11 @@ EOF;
 				'css'      => 'background: conic-gradient(at 0% 30%, red 10%, yellow 30%, #1e90ff 50%)',
 				'expected' => 'background: conic-gradient(at 0% 30%, red 10%, yellow 30%, #1e90ff 50%)',
 			),
+			// `object-fit` introduced in 6.1.
+			array(
+				'css'      => 'object-fit: cover',
+				'expected' => 'object-fit: cover',
+			),
 			// Expressions are not allowed.
 			array(
 				'css'      => 'height: expression( body.scrollTop + 50 + "px" )',
