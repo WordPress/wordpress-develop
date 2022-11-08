@@ -398,6 +398,7 @@ class WP_Theme_JSON {
 	 * This is to ensure that 'visited' has the lowest specificity
 	 * and the other selectors can always overwrite it.
 	 *
+	 * See https://core.trac.wordpress.org/ticket/56928.
 	 * Note: this will affect both top-level and block-level elements.
 	 *
 	 * @since 6.1.0
