@@ -170,14 +170,8 @@ class WP_Theme_JSON_Resolver {
 			return static::$core;
 		}
 
-		// TODO: Generate 'theme-json.php' at build time which returns fully parsed and translation-ready 'theme.json'
-		// as a PHP associative array.
-		if ( file_exists( __DIR__ . '/theme-json.php' ) ) {
-			$config = require __DIR__ . '/theme-json.php';
-		} else {
-			$config = static::read_json_file( __DIR__ . '/theme.json' );
-			$config = static::translate( $config );
-		}
+		$config = static::read_json_file( __DIR__ . '/theme.json' );
+		$config = static::translate( $config );
 
 		/**
 		 * Filters the default data provided by WordPress for global styles & settings.
