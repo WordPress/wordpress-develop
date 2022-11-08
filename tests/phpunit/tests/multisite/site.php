@@ -441,18 +441,6 @@ if ( is_multisite() ) :
 		}
 
 		/**
-		 * @ticket 27952
-		 */
-		public function test_posts_count() {
-			self::factory()->post->create();
-			$post2 = self::factory()->post->create();
-			$this->assertSame( 2, get_site()->post_count );
-
-			wp_delete_post( $post2 );
-			$this->assertSame( 1, get_site()->post_count );
-		}
-
-		/**
 		 * @ticket 26410
 		 */
 		public function test_blog_details_cache_invalidation() {
