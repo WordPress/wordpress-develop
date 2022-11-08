@@ -412,7 +412,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	/**
 	 * @ticket 56876
 	 *
-	 * @covers WP_List_Table::__get
+	 * @covers WP_List_Table::__set
 	 */
 	public function test_should_not_allow_to_set_dynamic_properties() {
 		$this->enable_doing_it_wrong_error();
