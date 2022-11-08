@@ -2577,6 +2577,9 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		}
 	}
 
+	// Ensure trailing semicolon isn't tripped out.
+	$css = rtrim( $css, ';' ) . ';';
+
 	return $css;
 }
 
