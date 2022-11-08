@@ -37,7 +37,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	 *
 	 * @ticket 57012
 	 */
-	public function test_set_found_posts_fields_idparent() {
+	public function test_should_limit_fields_to_id_and_parent_subset() {
 		$q = new WP_Query(
 			array(
 				'post_type' => 'wptests_pt',
@@ -69,7 +69,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	 *
 	 * @ticket 57012
 	 */
-	public function test_set_found_posts_fields_ids() {
+	public function test_should_limit_fields_to_ids() {
 		$query_args = array(
 			'post_type' => 'wptests_pt',
 			'fields'    => 'ids',
@@ -93,7 +93,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	 *
 	 * @ticket 57012
 	 */
-	public function test_set_found_posts_fields_all() {
+	public function test_should_not_limit_fields() {
 		$query_args = array(
 			'post_type' => 'wptests_pt',
 			'fields'    => 'all',
@@ -120,7 +120,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	 *
 	 * @ticket 57012
 	 */
-	public function test_set_found_posts_fields_idparent_filtered() {
+	public function test_should_include_filtered_values_in_addition_to_id_and_parent_subset() {
 		add_filter( 'posts_fields', array( $this, 'filter_posts_fields' ) );
 		add_filter( 'posts_clauses', array( $this, 'filter_posts_clauses' ) );
 
@@ -162,7 +162,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	 *
 	 * @ticket 57012
 	 */
-	public function test_set_found_posts_fields_id_filtered() {
+	public function test_should_include_filtered_values_in_addition_to_id() {
 		add_filter( 'posts_fields', array( $this, 'filter_posts_fields' ) );
 		add_filter( 'posts_clauses', array( $this, 'filter_posts_clauses' ) );
 
@@ -192,7 +192,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	 *
 	 * @ticket 57012
 	 */
-	public function test_set_found_posts_fields_all_filtered() {
+	public function test_should_include_filtered_values() {
 		add_filter( 'posts_fields', array( $this, 'filter_posts_fields' ) );
 		add_filter( 'posts_clauses', array( $this, 'filter_posts_clauses' ) );
 
