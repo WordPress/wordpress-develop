@@ -96,36 +96,6 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test the oldest published post is matched first.
-	 *
-	 * Per the docs: in case of more than one post having the same title,
-	 * it will check the oldest publication date, not the smallest ID.
-	 *
-	 * @ticket 36905
-	 * @ticket 56609
-	 */
-	public function test_should_match_oldest_published_date_when_titles_match() {
-		self::factory()->post->create(
-			array(
-				'post_type'  => 'page',
-				'post_title' => 'foo',
-			)
-		);
-
-		$old_page = self::factory()->post->create(
-			array(
-				'post_type'  => 'page',
-				'post_title' => 'foo',
-				'post_date'  => '1984-01-11 05:00:00',
-			)
-		);
-
-		$found = get_page_by_title( 'foo' );
-
-		$this->assertSame( $old_page, $found->ID );
-	}
-
-	/**
 	 * @ticket 36905
 	 */
 	public function test_inherit() {
@@ -336,5 +306,62 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 
 		get_page_by_title( 'some-page' );
 		$this->assertSame( 1, $ma->get_call_count(), 'Query does not run exactly once.' );
+	}
+
+	/**
+	 *
+	 * @ticket 56991
+	 * @covers ::get_page_by_title
+	 */
+	public function test_return_same_as_old_query() {
+		global $wpdb;
+
+		$args = array(
+			'post_title' => 'foo bar',
+			'post_type'  => 'page',
+		);
+		self::factory()->post->create_many( 3, $args );
+
+		$page = self::factory()->post->create_and_get( $args );
+
+		wp_update_post(
+			array(
+				'ID'          => $page->ID,
+				'post_status' => 'trash',
+			)
+		);
+
+		$sql = $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type = %s", 'foo bar', 'page');
+
+		$page = (int) $wpdb->get_var( $sql );
+
+		$post = get_page_by_title( 'foo bar' );
+		$this->assertSame( $page, $post->ID );
+	}
+
+	/**
+	 *
+	 * @ticket 56991
+	 * @covers ::get_page_by_title
+	 */
+	public function test_return_same_as_old_query_2() {
+		global $wpdb;
+
+		self::factory()->post->create_and_get( array(
+			'post_title' => 'foo bar',
+			'post_type'  => 'page',
+		) );
+		self::factory()->post->create_and_get( array(
+			'post_title' => 'foo bar',
+			'post_type'  => 'page',
+			'post_status' => 'draft'
+		) );
+
+		$sql = $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type = %s", 'foo bar', 'page');
+
+		$page = (int) $wpdb->get_var( $sql );
+
+		$post = get_page_by_title( 'foo bar' );
+		$this->assertSame( $page, $post->ID );
 	}
 }
