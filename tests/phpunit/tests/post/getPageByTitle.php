@@ -337,4 +337,29 @@ class Tests_Post_GetPageByTitle extends WP_UnitTestCase {
 		get_page_by_title( 'some-page' );
 		$this->assertSame( 1, $ma->get_call_count(), 'Query does not run exactly once.' );
 	}
+
+	/**
+	 * @ticket 57039
+	 *
+	 * @dataProvider data_empty_values
+	 */
+	public function test_empty_page_title( $page_title ) {
+		$result = get_page_by_title( $page_title );
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_empty_values() {
+		return array(
+			'false'        => array( 'page_title' => false ),
+			'empty string' => array( 'page_title' => '' ),
+			'space'        => array( 'page_title' => ' ' ),
+			'null'         => array( 'page_title' => null ),
+			'zero'         => array( 'page_title' => 0 ),
+		);
+	}
 }
