@@ -1437,8 +1437,8 @@ function update_core( $from, $to ) {
 	// Deactivate the REST API plugin if its version is 2.0 Beta 4 or lower.
 	_upgrade_440_force_deactivate_incompatible_plugins();
 
-	// Deactivate the Gutenberg plugin if its version is older than 14.1.0.
-	_upgrade_611_force_deactivate_incompatible_plugins();
+	// Deactivate incompatible plugins.
+	_wp_upgrade_force_deactivate_incompatible_plugins();
 
 	// Upgrade DB with separate request.
 	/** This filter is documented in wp-admin/includes/update-core.php */
@@ -1639,7 +1639,7 @@ function _upgrade_440_force_deactivate_incompatible_plugins() {
  * @ignore
  * @since 6.1.1
  */
-function _upgrade_611_force_deactivate_incompatible_plugins() {
+function _wp_upgrade_force_deactivate_incompatible_plugins() {
 	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '14.1', '<' ) ) {
 		$deactivated_gutenberg['gutenberg'] = array(
 			'plugin_name'         => 'Gutenberg',
