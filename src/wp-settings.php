@@ -145,7 +145,7 @@ if ( is_multisite() ) {
 
 register_shutdown_function( 'shutdown_action_hook' );
 
-// Stop most of WordPress from being loaded if we just want the basics.
+// Stop most of WordPress from being loaded if SHORTINIT is enabled.
 if ( SHORTINIT ) {
 	return false;
 }
