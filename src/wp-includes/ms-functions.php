@@ -330,7 +330,7 @@ function get_blog_permalink( $blog_id, $post_id ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $domain
- * @param string $path   Optional. Not required for subdomain installations.
+ * @param string $path   Optional. Not required for subdomain installations. Default '/'.
  * @return int 0 if no blog found, otherwise the ID of the matching blog
  */
 function get_blog_id_from_url( $domain, $path = '/' ) {
@@ -605,7 +605,7 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
  *
  * @param string         $blogname   The blog name provided by the user. Must be unique.
  * @param string         $blog_title The blog title provided by the user.
- * @param WP_User|string $user       Optional. The user object to check against the new site name.
+ * @param WP_User|string $user       Optional. The user object to check against the new site name. Default empty.
  * @return array {
  *     Array of domain, path, blog name, blog title, user and error messages.
  *
@@ -775,7 +775,7 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
  * @param string $title      The requested site title.
  * @param string $user       The user's requested login name.
  * @param string $user_email The user's email address.
- * @param array  $meta       Optional. Signup meta data. By default, contains the requested privacy setting and lang_id.
+ * @param array  $meta       Optional. Signup meta data. By default, contains the requested privacy setting and lang_id. Default empty array.
  */
 function wpmu_signup_blog( $domain, $path, $title, $user, $user_email, $meta = array() ) {
 	global $wpdb;
@@ -1351,7 +1351,7 @@ function wpmu_create_user( $user_name, $password, $email ) {
  *                           'spam', 'deleted', or 'lang_id') the given site status(es) will be
  *                           updated. Otherwise, keys and values will be used to set options for
  *                           the new site. Default empty array.
- * @param int    $network_id Optional. Network ID. Only relevant on multi-network installations.
+ * @param int    $network_id Optional. Network ID. Only relevant on multi-network installations. Default 1.
  * @return int|WP_Error Returns WP_Error object on failure, the new site ID on success.
  */
 function wpmu_create_blog( $domain, $path, $title, $user_id, $options = array(), $network_id = 1 ) {
@@ -1537,7 +1537,7 @@ Disable these notifications: %3$s'
  *
  * @param string $domain     The domain to be checked.
  * @param string $path       The path to be checked.
- * @param int    $network_id Optional. Network ID. Relevant only on multi-network installations.
+ * @param int    $network_id Optional. Network ID. Relevant only on multi-network installations. Default 1.
  * @return int|null The site ID if the site name exists, null otherwise.
  */
 function domain_exists( $domain, $path, $network_id = 1 ) {
