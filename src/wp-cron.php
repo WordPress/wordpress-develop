@@ -35,7 +35,7 @@ if ( ! empty( $_POST ) || defined( 'DOING_AJAX' ) || defined( 'DOING_CRON' ) ) {
 }
 
 /**
- * Tell WordPress we are doing the cron task.
+ * Tell WordPress the cron task is running.
  *
  * @var bool
  */
