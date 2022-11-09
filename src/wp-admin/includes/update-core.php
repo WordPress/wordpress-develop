@@ -1437,7 +1437,7 @@ function update_core( $from, $to ) {
 	// Deactivate the REST API plugin if its version is 2.0 Beta 4 or lower.
 	_upgrade_440_force_deactivate_incompatible_plugins();
 
-	// Deactivate the Gutenberg plugin if its version is 14.1.0 or lower.
+	// Deactivate the Gutenberg plugin if its version is older than 14.1.0.
 	_upgrade_611_force_deactivate_incompatible_plugins();
 
 	// Upgrade DB with separate request.
