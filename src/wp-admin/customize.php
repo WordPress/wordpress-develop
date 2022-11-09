@@ -222,7 +222,7 @@ do_action( 'customize_controls_head' );
 			</div>
 		</div>
 
-		<div id="widgets-right" class="wp-clearfix"><!-- For Widget Customizer, many widgets try to look for instances under div#widgets-right, so we have to add that ID to a container div in the Customizer for compat -->
+		<div id="widgets-right" class="wp-clearfix"><!-- For Widget Customizer, many widgets try to look for instances under div#widgets-right, so add that ID to a container div in the Customizer for compat -->
 			<div id="customize-notifications-area" class="customize-control-notifications-container">
 				<ul></ul>
 			</div>
