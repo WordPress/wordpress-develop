@@ -634,6 +634,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @covers WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles
 	 */
 	function test_get_user_data_from_wp_global_styles_does_not_use_uncached_queries() {
+		// Switch to a theme that does have support.
+		switch_theme( 'block-theme' );
 		wp_set_current_user( self::$administrator_id );
 		$theme = wp_get_theme();
 		WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
@@ -666,6 +668,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @covers WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles
 	 */
 	function test_get_user_data_from_wp_global_styles_does_not_use_uncached_queries_for_logged_out_users() {
+		// Switch to a theme that does have support.
+		switch_theme( 'block-theme' );
 		$theme = wp_get_theme();
 		WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
 		add_filter( 'query', array( $this, 'filter_db_query' ) );
@@ -682,10 +686,35 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 56945
+	 * @covers WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles
+	 */
+	function test_get_user_data_from_wp_global_styles_does_not_run_for_theme_without_support() {
+		// The 'default' theme does not support theme.json.
+		switch_theme( 'default' );
+		wp_set_current_user( self::$administrator_id );
+		$theme = wp_get_theme();
+
+		// Add filter to record DB query count.
+		add_filter( 'query', array( $this, 'filter_db_query' ) );
+
+		// When theme.json is not supported, the method should not run a query and always return an empty result.
+		$user_cpt = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
+		$this->assertEmpty( $user_cpt, 'User CPT is expected to be empty.' );
+		$this->assertSame( 0, count( $this->queries ), 'Unexpected SQL query detected for theme without theme.json support.' );
+
+		$user_cpt = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme, true );
+		$this->assertEmpty( $user_cpt, 'User CPT is expected to be empty.' );
+		$this->assertSame( 0, count( $this->queries ), 'Unexpected SQL query detected for theme without theme.json support.' );
+	}
+
+	/**
 	 * @ticket 55392
 	 * @covers WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles
 	 */
 	function test_get_user_data_from_wp_global_styles_does_exist() {
+		// Switch to a theme that does have support.
+		switch_theme( 'block-theme' );
 		$theme = wp_get_theme();
 		$post1 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme, true );
 		$this->assertIsArray( $post1 );
@@ -701,6 +730,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @covers WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles
 	 */
 	function test_get_user_data_from_wp_global_styles_create_post() {
+		// Switch to a theme that does have support.
+		switch_theme( 'block-theme' );
 		$theme = wp_get_theme( 'testing' );
 		$post1 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
 		$this->assertIsArray( $post1 );
@@ -718,6 +749,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @covers WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles
 	 */
 	function test_get_user_data_from_wp_global_styles_filter_state() {
+		// Switch to a theme that does have support.
+		switch_theme( 'block-theme' );
 		$theme = wp_get_theme( 'foo' );
 		$post1 = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme, true, array( 'publish' ) );
 		$this->assertIsArray( $post1 );
@@ -748,5 +781,30 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$current_settings = $theme_json_resolver->get_theme_data()->get_settings();
 		$line_height      = $current_settings['typography']['lineHeight'];
 		$this->assertTrue( $line_height, 'lineHeight setting after add_theme_support() should be true.' );
+	}
+
+	/**
+	 * @ticket 56945
+	 * @covers WP_Theme_JSON_Resolver::get_theme_data
+	 */
+	function test_get_theme_data_does_not_parse_theme_json_if_not_present() {
+		// The 'default' theme does not support theme.json.
+		switch_theme( 'default' );
+
+		$theme_json_resolver = new WP_Theme_JSON_Resolver();
+
+		// Force-unset $i18n_schema property to "unload" translation schema.
+		$property = new ReflectionProperty( $theme_json_resolver, 'i18n_schema' );
+		$property->setAccessible( true );
+		$property->setValue( null );
+
+		// A completely empty theme.json data set still has the 'version' key when parsed.
+		$empty_theme_json = array( 'version' => WP_Theme_JSON::LATEST_SCHEMA );
+
+		// Call using 'with_supports' set to false, so that the method only considers theme.json.
+		$theme_data = $theme_json_resolver->get_theme_data( array(), array( 'with_supports' => false ) );
+		$this->assertInstanceOf( 'WP_Theme_JSON', $theme_data, 'Theme data should be an instance of WP_Theme_JSON.' );
+		$this->assertSame( $empty_theme_json, $theme_data->get_raw_data(), 'Theme data should be empty without theme support.' );
+		$this->assertNull( $property->getValue(), 'Theme i18n schema should not have been loaded without theme support.' );
 	}
 }
