@@ -24,7 +24,7 @@ global $post_type, $post_type_object, $post, $title, $wp_meta_boxes;
 
 $block_editor_context = new WP_Block_Editor_Context( array( 'post' => $post ) );
 
-// Flag that we're loading the block editor.
+// Flag that the block editor is loaded.
 $current_screen = get_current_screen();
 $current_screen->is_block_editor( true );
 
