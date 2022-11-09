@@ -45,12 +45,12 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	 * @ticket 57012
 	 */
 	public function test_should_limit_fields_to_id_and_parent_subset() {
-		$q = new WP_Query(
-			array(
-				'post_type' => 'wptests_pt',
-				'fields'    => 'id=>parent',
-			)
+		$query_args = array(
+			'post_type' => 'wptests_pt',
+			'fields'    => 'id=>parent',
 		);
+
+		$q = new WP_Query( $query_args );
 
 		$expected = array();
 		foreach ( self::$post_ids as $post_id ) {
@@ -64,9 +64,13 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 			);
 		}
 
-		$this->assertEquals( $expected, $q->posts, 'Posts property is not of expected form.' );
+		$this->assertEquals( $expected, $q->posts, 'Posts property for first query is not of expected form.' );
 		$this->assertSame( 5, $q->found_posts, 'Number of found posts is not five.' );
 		$this->assertEquals( 1, $q->max_num_pages, 'Number of found pages is not one.' );
+
+		// Test the second query's results match.
+		$q2 = new WP_Query( $query_args );
+		$this->assertEquals( $expected, $q2->posts, 'Posts property for second query is not in the expected form.' );
 	}
 
 	/**
@@ -84,13 +88,13 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 
 		$expected = array_reverse( self::$post_ids );
 
-		$this->assertEquals( $expected, $q->posts, 'Posts property is not of expected form.' );
+		$this->assertEquals( $expected, $q->posts, 'Posts property for first query is not of expected form.' );
 		$this->assertSame( 5, $q->found_posts, 'Number of found posts is not five.' );
 		$this->assertEquals( 1, $q->max_num_pages, 'Number of found pages is not one.' );
 
-		// Test the cached results match.
+		// Test the second query's results match.
 		$q2 = new WP_Query( $query_args );
-		$this->assertEquals( $expected, $q2->posts, 'Posts property is not cached in the expected form.' );
+		$this->assertEquals( $expected, $q2->posts, 'Posts property for second query is not in the expected form.' );
 	}
 
 	/**
@@ -108,13 +112,13 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 
 		$expected = array_map( 'get_post', array_reverse( self::$post_ids ) );
 
-		$this->assertEquals( $expected, $q->posts, 'Posts property is not of expected form.' );
+		$this->assertEquals( $expected, $q->posts, 'Posts property for first query is not of expected form.' );
 		$this->assertSame( 5, $q->found_posts, 'Number of found posts is not five.' );
 		$this->assertEquals( 1, $q->max_num_pages, 'Number of found pages is not one.' );
 
-		// Test the cached results match.
+		// Test the second query's results match.
 		$q2 = new WP_Query( $query_args );
-		$this->assertEquals( $expected, $q2->posts, 'Posts property is not cached in the expected form.' );
+		$this->assertEquals( $expected, $q2->posts, 'Posts property for second query is not in the expected form.' );
 	}
 
 	/**
@@ -147,13 +151,13 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 			);
 		}
 
-		$this->assertEquals( $expected, $q->posts, 'Posts property is not of expected form.' );
+		$this->assertEquals( $expected, $q->posts, 'Posts property for first query is not of expected form.' );
 		$this->assertSame( 5, $q->found_posts, 'Number of found posts is not five.' );
 		$this->assertEquals( 1, $q->max_num_pages, 'Number of found pages is not one.' );
 
-		// Test the cached results match.
+		// Test the second query's results match.
 		$q2 = new WP_Query( $query_args );
-		$this->assertEquals( $expected, $q2->posts, 'Posts property is not cached in the expected form.' );
+		$this->assertEquals( $expected, $q2->posts, 'Posts property for second query is not in the expected form.' );
 	}
 
 	/**
@@ -175,13 +179,13 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 		// Fields => ID does not include the additional fields.
 		$expected = array_reverse( self::$post_ids );
 
-		$this->assertEquals( $expected, $q->posts, 'Posts property is not of expected form.' );
+		$this->assertEquals( $expected, $q->posts, 'Posts property for first query is not of expected form.' );
 		$this->assertSame( 5, $q->found_posts, 'Number of found posts is not five.' );
 		$this->assertEquals( 1, $q->max_num_pages, 'Number of found pages is not one.' );
 
-		// Test the cached results match.
+		// Test the second query's results match.
 		$q2 = new WP_Query( $query_args );
-		$this->assertEquals( $expected, $q2->posts, 'Posts property is not cached in the expected form.' );
+		$this->assertEquals( $expected, $q2->posts, 'Posts property for second query is not in the expected form.' );
 	}
 
 	/**
@@ -206,13 +210,13 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 			$post->test_post_clauses = 2;
 		}
 
-		$this->assertEquals( $expected, $q->posts, 'Posts property is not of expected form.' );
+		$this->assertEquals( $expected, $q->posts, 'Posts property for first query is not of expected form.' );
 		$this->assertSame( 5, $q->found_posts, 'Number of found posts is not five.' );
 		$this->assertEquals( 1, $q->max_num_pages, 'Number of found pages is not one.' );
 
-		// Test the cached results match.
+		// Test the second query's results match.
 		$q2 = new WP_Query( $query_args );
-		$this->assertEquals( $expected, $q2->posts, 'Posts property is not cached in the expected form.' );
+		$this->assertEquals( $expected, $q2->posts, 'Posts property for second query is not in the expected form.' );
 	}
 
 	/**
