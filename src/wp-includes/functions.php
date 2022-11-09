@@ -1439,7 +1439,7 @@ function get_status_header_desc( $code ) {
  * @see get_status_header_desc()
  *
  * @param int    $code        HTTP status code.
- * @param string $description Optional. A custom description for the HTTP status.
+ * @param string $description Optional. A custom description for the HTTP status. Default empty.
  */
 function status_header( $code, $description = '' ) {
 	if ( ! $description ) {
@@ -3001,7 +3001,7 @@ function wp_get_default_extension_for_mime_type( $mime_type ) {
  * @since 2.0.4
  *
  * @param string   $filename File name or path.
- * @param string[] $mimes    Optional. Array of allowed mime types keyed by their file extension regex.
+ * @param string[] $mimes    Optional. Array of allowed mime types keyed by their file extension regex. Default null.
  * @return array {
  *     Values for the extension and mime type.
  *
@@ -3043,7 +3043,7 @@ function wp_check_filetype( $filename, $mimes = null ) {
  * @param string   $file     Full path to the file.
  * @param string   $filename The name of the file (may differ from $file due to $file being
  *                           in a tmp directory).
- * @param string[] $mimes    Optional. Array of allowed mime types keyed by their file extension regex.
+ * @param string[] $mimes    Optional. Array of allowed mime types keyed by their file extension regex. Default null.
  * @return array {
  *     Values for the extension, mime type, and corrected filename.
  *
@@ -4517,7 +4517,7 @@ function wp_check_jsonp_callback( $callback ) {
  *
  * @param string $filename Path to the JSON file.
  * @param array  $options  {
- *     Optional. Options to be used with `json_decode()`.
+ *     Optional. Options to be used with `json_decode()`. Default empty array.
  *
  *     @type bool $associative Optional. When `true`, JSON objects will be returned as associative arrays.
  *                             When `false`, JSON objects will be returned as objects.
@@ -5202,7 +5202,7 @@ function wp_list_pluck( $list, $field, $index_key = null ) {
  * @param string|array $orderby       Optional. Either the field name to order by or an array
  *                                    of multiple orderby fields as $orderby => $order.
  * @param string       $order         Optional. Either 'ASC' or 'DESC'. Only used if $orderby
- *                                    is a string.
+ *                                    is a string. Default 'ASC'.
  * @param bool         $preserve_keys Optional. Whether to preserve keys. Default false.
  * @return array The sorted array.
  */
@@ -5967,7 +5967,7 @@ function iis7_supports_permalinks() {
  * @since 1.2.0
  *
  * @param string   $file          File path.
- * @param string[] $allowed_files Optional. Array of allowed files.
+ * @param string[] $allowed_files Optional. Array of allowed files. Default empty array.
  * @return int 0 means nothing is wrong, greater than 0 means something was wrong.
  */
 function validate_file( $file, $allowed_files = array() ) {
@@ -6084,7 +6084,7 @@ function wp_guess_url() {
  *
  * @since 3.3.0
  *
- * @param bool $suspend Optional. Suspends additions if true, re-enables them if false.
+ * @param bool $suspend Optional. Suspends additions if true, re-enables them if false. Default null.
  * @return bool The current suspend setting
  */
 function wp_suspend_cache_addition( $suspend = null ) {
@@ -6791,7 +6791,7 @@ function _wp_mysql_week( $column ) {
  * @param int      $start         The ID to start the loop check at.
  * @param int      $start_parent  The parent_ID of $start to use instead of calling $callback( $start ).
  *                                Use null to always use $callback
- * @param array    $callback_args Optional. Additional arguments to send to $callback.
+ * @param array    $callback_args Optional. Additional arguments to send to $callback. Default empty array.
  * @return array IDs of all members of loop.
  */
 function wp_find_hierarchy_loop( $callback, $start, $start_parent, $callback_args = array() ) {
@@ -7789,7 +7789,7 @@ function wp_privacy_anonymize_ip( $ip_addr, $ipv6_fallback = false ) {
  * @since 4.9.6
  *
  * @param string $type The type of data to be anonymized.
- * @param string $data Optional The data to be anonymized.
+ * @param string $data Optional The data to be anonymized. Default empty.
  * @return string The anonymous data for the requested type.
  */
 function wp_privacy_anonymize_data( $type, $data = '' ) {
@@ -8221,11 +8221,11 @@ function get_dirsize( $directory, $max_execution_time = null ) {
  *
  * @param string          $directory          Full path of a directory.
  * @param string|string[] $exclude            Optional. Full path of a subdirectory to exclude from the total,
- *                                            or array of paths. Expected without trailing slash(es).
+ *                                            or array of paths. Expected without trailing slash(es). Default null.
  * @param int             $max_execution_time Optional. Maximum time to run before giving up. In seconds.
  *                                            The timeout is global and is measured from the moment
- *                                            WordPress started to load.
- * @param array           $directory_cache    Optional. Array of cached directory paths.
+ *                                            WordPress started to load. Defaut null.
+ * @param array           $directory_cache    Optional. Array of cached directory paths. Default null.
  * @return int|false|null Size in bytes if a valid directory. False if not. Null if timeout.
  */
 function recurse_dirsize( $directory, $exclude = null, $max_execution_time = null, &$directory_cache = null ) {
