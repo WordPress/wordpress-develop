@@ -372,7 +372,7 @@ function is_registered_sidebar( $sidebar_id ) {
  * @param string     $name            Widget display title.
  * @param callable   $output_callback Run when widget is called.
  * @param array      $options {
- *     Optional. An array of supplementary widget options for the instance.
+ *     Optional. An array of supplementary widget options for the instance. Default empty array.
  *
  *     @type string $classname             Class name for the widget's HTML container. Default is a shortened
  *                                         version of the output callback name.
@@ -1191,7 +1191,7 @@ function wp_convert_widget_settings( $base_name, $option_name, $settings ) {
  * @param string $widget   The widget's PHP class name (see class-wp-widget.php).
  * @param array  $instance Optional. The widget's instance settings. Default empty array.
  * @param array  $args {
- *     Optional. Array of arguments to configure the display of the widget.
+ *     Optional. Array of arguments to configure the display of the widget. Default empty array.
  *
  *     @type string $before_widget HTML content that will be prepended to the widget's HTML output.
  *                                 Default `<div class="widget %s">`, where `%s` is the widget's class name.
