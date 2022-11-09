@@ -516,7 +516,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: 1: Learn WordPress link. */
 						__( 'Explore <a href="%s">learn.wordpress.org</a> for tutorial videos, online workshops, courses, and lesson plans for Meetup organizers, including new features in WordPress.' ),
-						'https://learn.wordpress.org/'
+						esc_url( __( 'https://learn.wordpress.org/' ) )
 					);
 					?>
 				</p>
@@ -527,7 +527,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: WordPress Field Guide link. */
 						__( 'Check out the latest version of the <a href="%s">WordPress Field Guide</a>. It is overflowing with detailed developer notes to help you build with WordPress.' ),
-						__( 'https://make.wordpress.org/core/2022/10/12/wordpress-6-1-field-guide/' )
+						esc_url( __( 'https://make.wordpress.org/core/2022/10/12/wordpress-6-1-field-guide/' ) )
 					);
 					?>
 				</p>
