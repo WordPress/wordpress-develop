@@ -218,7 +218,7 @@ do_action( 'customize_controls_head' );
 
 		<div id="customize-sidebar-outer-content">
 			<div id="customize-outer-theme-controls">
-				<ul class="customize-outer-pane-parent"><?php // Outer panel and sections are not implemented, but its here as a placeholder to avoid any side-effect in api.Section. ?></ul>
+				<ul class="customize-outer-pane-parent"><?php // Outer panel and sections are not implemented, but it's here as a placeholder to avoid any side-effect in api.Section. ?></ul>
 			</div>
 		</div>
 
