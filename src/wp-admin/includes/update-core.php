@@ -1438,7 +1438,7 @@ function update_core( $from, $to ) {
 	_upgrade_440_force_deactivate_incompatible_plugins();
 
 	// Deactivate incompatible plugins.
-	_wp_upgrade_force_deactivate_incompatible_plugins();
+	_upgrade_core_deactivate_incompatible_plugins();
 
 	// Upgrade DB with separate request.
 	/** This filter is documented in wp-admin/includes/update-core.php */
@@ -1641,7 +1641,7 @@ function _upgrade_440_force_deactivate_incompatible_plugins() {
  * @since 5.9.0 The minimum compatible version of Gutenberg is 11.9.
  * @since 6.1.1 The minimum compatible version of Gutenberg is 14.1.
  */
-function _wp_upgrade_force_deactivate_incompatible_plugins() {
+function _upgrade_core_deactivate_incompatible_plugins() {
 	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '14.1', '<' ) ) {
 		$deactivated_gutenberg['gutenberg'] = array(
 			'plugin_name'         => 'Gutenberg',
