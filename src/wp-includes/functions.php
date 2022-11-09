@@ -1899,7 +1899,8 @@ function wp_nonce_field( $action = -1, $name = '_wpnonce', $referer = true, $ech
  * @return string Referer field HTML markup.
  */
 function wp_referer_field( $echo = true ) {
-	$referer_field = '<input type="hidden" name="_wp_http_referer" value="' . esc_attr( wp_unslash( $_SERVER['REQUEST_URI'] ) ) . '" />';
+	$request_url   = remove_query_arg( '_wp_http_referer' );
+	$referer_field = '<input type="hidden" name="_wp_http_referer" value="' . esc_url( $request_url ) . '" />';
 
 	if ( $echo ) {
 		echo $referer_field;
@@ -2078,7 +2079,6 @@ function wp_mkdir_p( $target ) {
  * For example, '/foo/bar', or 'c:\windows'.
  *
  * @since 2.5.0
- * @since 6.1.0 Allows normalized Windows paths (forward slashes).
  *
  * @param string $path File path.
  * @return bool True if path is absolute, false is not absolute.
@@ -2106,11 +2106,6 @@ function path_is_absolute( $path ) {
 
 	// Windows allows absolute paths like this.
 	if ( preg_match( '#^[a-zA-Z]:\\\\#', $path ) ) {
-		return true;
-	}
-
-	// Normalized Windows paths for local filesystem and network shares (forward slashes).
-	if ( preg_match( '#(^[a-zA-Z]+:/|^//[\w!@\#\$%\^\(\)\-\'{}\.~]{1,15})#', $path ) ) {
 		return true;
 	}
 
@@ -3572,21 +3567,27 @@ function wp_nonce_ays( $action ) {
 			__( 'You are attempting to log out of %s' ),
 			get_bloginfo( 'name' )
 		);
-		$html        = $title;
-		$html       .= '</p><p>';
+
 		$redirect_to = isset( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : '';
-		$html       .= sprintf(
+
+		$html  = $title;
+		$html .= '</p><p>';
+		$html .= sprintf(
 			/* translators: %s: Logout URL. */
 			__( 'Do you really want to <a href="%s">log out</a>?' ),
 			wp_logout_url( $redirect_to )
 		);
 	} else {
 		$html = __( 'The link you followed has expired.' );
+
 		if ( wp_get_referer() ) {
+			$wp_http_referer = remove_query_arg( 'updated', wp_get_referer() );
+			$wp_http_referer = wp_validate_redirect( esc_url_raw( $wp_http_referer ) );
+
 			$html .= '</p><p>';
 			$html .= sprintf(
 				'<a href="%s">%s</a>',
-				esc_url( remove_query_arg( 'updated', wp_get_referer() ) ),
+				esc_url( $wp_http_referer ),
 				__( 'Please try again.' )
 			);
 		}
@@ -4819,6 +4820,9 @@ function wp_parse_list( $list ) {
 	if ( ! is_array( $list ) ) {
 		return preg_split( '/[\s,]+/', $list, -1, PREG_SPLIT_NO_EMPTY );
 	}
+
+	// Validate all entries of the list are scalar.
+	$list = array_filter( $list, 'is_scalar' );
 
 	return $list;
 }
@@ -8430,7 +8434,7 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 /**
  * Sorts the keys of an array alphabetically.
  * The array is passed by reference so it doesn't get returned
- * which mimics the behaviour of ksort.
+ * which mimics the behavior of ksort.
  *
  * @since 6.0.0
  *

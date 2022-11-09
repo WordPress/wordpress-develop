@@ -845,6 +845,25 @@ $_old_files = array(
 	'wp-includes/blocks/tag-cloud/editor-rtl.min.css',
 	// 6.0
 	'wp-content/themes/twentytwentytwo/assets/fonts/LICENSE.md',
+	// 6.1
+	'wp-content/themes/twentytwentyone/assets/sass/05-blocks/spacer/_style.scss',
+	'wp-content/themes/twentytwentyone/assets/sass/05-blocks/spacer',
+	'wp-includes/blocks/post-comments.php',
+	'wp-includes/blocks/post-comments/block.json',
+	'wp-includes/blocks/post-comments/editor.css',
+	'wp-includes/blocks/post-comments/editor.min.css',
+	'wp-includes/blocks/post-comments/editor-rtl.css',
+	'wp-includes/blocks/post-comments/editor-rtl.min.css',
+	'wp-includes/blocks/post-comments/style.css',
+	'wp-includes/blocks/post-comments/style.min.css',
+	'wp-includes/blocks/post-comments/style-rtl.css',
+	'wp-includes/blocks/post-comments/style-rtl.min.css',
+	'wp-includes/blocks/post-comments',
+	'wp-includes/blocks/comments-query-loop/block.json',
+	'wp-includes/blocks/comments-query-loop/editor.css',
+	'wp-includes/blocks/comments-query-loop/editor.min.css',
+	'wp-includes/blocks/comments-query-loop/editor-rtl.css',
+	'wp-includes/blocks/comments-query-loop/editor-rtl.min.css',
 );
 
 /**
@@ -852,7 +871,7 @@ $_old_files = array(
  *
  * The contents of this array indicate any new bundled plugins/themes which
  * should be installed with the WordPress Upgrade. These items will not be
- * re-installed in future upgrades, this behaviour is controlled by the
+ * re-installed in future upgrades, this behavior is controlled by the
  * introduced version present here being older than the current installed version.
  *
  * The content of this array should follow the following format:

@@ -547,8 +547,13 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		add_theme_support( 'custom-header' );
 		add_theme_support( 'custom-background' );
 
+		// For existing attachment, copy into uploads.
+		$canola_image_file    = DIR_TESTDATA . '/images/canola.jpg';
+		$canola_image_upload  = wp_upload_bits( wp_basename( $canola_image_file ), null, file_get_contents( $canola_image_file ) );
+		$existing_canola_file = $canola_image_upload['file'];
+
 		$existing_canola_attachment_id = self::factory()->attachment->create_object(
-			DIR_TESTDATA . '/images/canola.jpg',
+			$existing_canola_file,
 			0,
 			array(
 				'post_mime_type' => 'image/jpeg',
@@ -631,7 +636,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 					'post_title'   => 'Canola',
 					'post_content' => 'Canola Attachment Description',
 					'post_excerpt' => 'Canola Attachment Caption',
-					'file'         => DIR_TESTDATA . '/images/canola.jpg',
+					'file'         => $existing_canola_file,
 				),
 			),
 			'options'     => array(

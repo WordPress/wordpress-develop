@@ -394,13 +394,18 @@ class WP_Theme_JSON {
 	/**
 	 * Defines which pseudo selectors are enabled for which elements.
 	 *
+	 * The order of the selectors should be: visited, hover, focus, active.
+	 * This is to ensure that 'visited' has the lowest specificity
+	 * and the other selectors can always overwrite it.
+	 *
+	 * See https://core.trac.wordpress.org/ticket/56928.
 	 * Note: this will affect both top-level and block-level elements.
 	 *
 	 * @since 6.1.0
 	 */
 	const VALID_ELEMENT_PSEUDO_SELECTORS = array(
-		'link'   => array( ':hover', ':focus', ':active', ':visited' ),
-		'button' => array( ':hover', ':focus', ':active', ':visited' ),
+		'link'   => array( ':visited', ':hover', ':focus', ':active' ),
+		'button' => array( ':visited', ':hover', ':focus', ':active' ),
 	);
 
 	/**
@@ -1675,6 +1680,18 @@ class WP_Theme_JSON {
 				continue;
 			}
 
+			// Calculates fluid typography rules where available.
+			if ( 'font-size' === $css_property ) {
+				/*
+				 * wp_get_typography_font_size_value() will check
+				 * if fluid typography has been activated and also
+				 * whether the incoming value can be converted to a fluid value.
+				 * Values that already have a clamp() function will not pass the test,
+				 * and therefore the original $value will be returned.
+				 */
+				$value = wp_get_typography_font_size_value( array( 'size' => $value ) );
+			}
+
 			$declarations[] = array(
 				'name'  => $css_property,
 				'value' => $value,
@@ -1899,7 +1916,7 @@ class WP_Theme_JSON {
 		 *
 		 * @param array $nodes Style nodes with metadata.
 		 */
-		return apply_filters( 'theme_json_get_style_nodes', $nodes );
+		return apply_filters( 'wp_theme_json_get_style_nodes', $nodes );
 	}
 
 	/**
