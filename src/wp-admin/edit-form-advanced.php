@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 global $post_type, $post_type_object, $post;
 
-// Flag that we're not loading the block editor.
+// Flag that the block editor is not loaded.
 $current_screen = get_current_screen();
 $current_screen->is_block_editor( false );
 
