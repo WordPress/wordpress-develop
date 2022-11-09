@@ -155,7 +155,7 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
  * @since 4.1.0 Refactored to leverage WP_Comment_Query over a direct query.
  *
  * @param int   $post_id The ID of the post.
- * @param array $args    Optional. See WP_Comment_Query::__construct() for information on accepted arguments.
+ * @param array $args    Optional. See WP_Comment_Query::__construct() for information on accepted arguments. Default empty array.
  * @return WP_Comment[]|int[]|int The approved comments, or number of comments if `$count`
  *                                argument is true.
  */
@@ -465,7 +465,7 @@ function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
  *
  * @param int    $comment_id Comment ID.
  * @param string $key        Optional. The meta key to retrieve. By default,
- *                           returns data for all keys.
+ *                           returns data for all keys. Default empty.
  * @param bool   $single     Optional. Whether to return a single value.
  *                           This parameter has no effect if `$key` is not specified.
  *                           Default false.
@@ -984,9 +984,9 @@ function separate_comments( &$comments ) {
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
- * @param WP_Comment[] $comments Optional. Array of WP_Comment objects. Defaults to `$wp_query->comments`.
- * @param int          $per_page Optional. Comments per page.
- * @param bool         $threaded Optional. Control over flat or threaded comments.
+ * @param WP_Comment[] $comments Optional. Array of WP_Comment objects. Defaults to `$wp_query->comments`. Default null.
+ * @param int          $per_page Optional. Comments per page. Default null.
+ * @param bool         $threaded Optional. Control over flat or threaded comments. Default null.
  * @return int Number of comment pages.
  */
 function get_comment_pages_count( $comments = null, $per_page = null, $threaded = null ) {
