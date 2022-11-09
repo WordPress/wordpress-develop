@@ -274,9 +274,9 @@ class WP_Theme_JSON_Resolver {
 					$parent_theme           = new WP_Theme_JSON( $parent_theme_json_data );
 
 					/*
-					* Merge the child theme.json into the parent theme.json.
-					* The child theme takes precedence over the parent.
-					*/
+					 * Merge the child theme.json into the parent theme.json.
+					 * The child theme takes precedence over the parent.
+					 */
 					$parent_theme->merge( static::$theme );
 					static::$theme = $parent_theme;
 				}
@@ -408,12 +408,16 @@ class WP_Theme_JSON_Resolver {
 	 * @return array Custom Post Type for the user's origin config.
 	 */
 	public static function get_user_data_from_wp_global_styles( $theme, $create_post = false, $post_status_filter = array( 'publish' ) ) {
-		if ( ! static::theme_has_support() ) {
-			return array();
-		}
 		if ( ! $theme instanceof WP_Theme ) {
 			$theme = wp_get_theme();
 		}
+
+		// Bail early if the theme does not support a theme.json. Since WP_Theme_JSON_Resolver::theme_has_support()
+		// only supports the active theme, the extra condition for whether $theme is the active theme is present here.
+		if ( $theme->get_stylesheet() === get_stylesheet() && ! static::theme_has_support() ) {
+			return array();
+		}
+
 		$user_cpt         = array();
 		$post_type_filter = 'wp_global_styles';
 		$stylesheet       = $theme->get_stylesheet();
