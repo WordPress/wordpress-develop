@@ -153,7 +153,7 @@ class WP_Widget {
 	 * @since 2.8.0
 	 *
 	 * @param string $id_base         Optional. Base ID for the widget, lowercase and unique. If left empty,
-	 *                                a portion of the widget's PHP class name will be used. Has to be unique.
+	 *                                a portion of the widget's PHP class name will be used. Has to be unique. Default partial class name.
 	 * @param string $name            Name for the widget displayed on the configuration page.
 	 * @param array  $widget_options  Optional. Widget options. See wp_register_sidebar_widget() for
 	 *                                information on accepted arguments. Default empty array.
@@ -189,7 +189,7 @@ class WP_Widget {
 	 * @see WP_Widget::__construct()
 	 *
 	 * @param string $id_base         Optional. Base ID for the widget, lowercase and unique. If left empty,
-	 *                                a portion of the widget's PHP class name will be used. Has to be unique.
+	 *                                a portion of the widget's PHP class name will be used. Has to be unique. Default partial class name.
 	 * @param string $name            Name for the widget displayed on the configuration page.
 	 * @param array  $widget_options  Optional. Widget options. See wp_register_sidebar_widget() for
 	 *                                information on accepted arguments. Default empty array.
