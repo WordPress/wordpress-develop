@@ -344,7 +344,7 @@ class WP_Meta_Query {
 	 * @param string $primary_table     Database table where the object being filtered is stored (eg wp_users).
 	 * @param string $primary_id_column ID column for the filtered object in $primary_table.
 	 * @param object $context           Optional. The main query object that corresponds to the type, for
-	 *                                  example a `WP_Query`, `WP_User_Query`, or `WP_Site_Query`.
+	 *                                  example a `WP_Query`, `WP_User_Query`, or `WP_Site_Query`. Default null.
 	 * @return string[]|false {
 	 *     Array containing JOIN and WHERE SQL clauses to append to the main query,
 	 *     or false if no table exists for the requested meta type.
@@ -520,7 +520,7 @@ class WP_Meta_Query {
 	 * @param array  $clause       Query clause (passed by reference).
 	 * @param array  $parent_query Parent query array.
 	 * @param string $clause_key   Optional. The array key used to name the clause in the original `$meta_query`
-	 *                             parameters. If not provided, a key will be generated automatically.
+	 *                             parameters. If not provided, a key will be generated automatically. Default empty.
 	 * @return string[] {
 	 *     Array containing JOIN and WHERE SQL clauses to append to a first-order query.
 	 *
