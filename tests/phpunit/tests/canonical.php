@@ -397,9 +397,9 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		);
 
 		$url = redirect_canonical( get_term_feed_link( self::$terms['/category/parent/'] ), false );
-		$this->assertNull( $url );
-
 		// Restore original global.
 		$GLOBALS['wp_query'] = $global_query;
+
+		$this->assertNull( $url );
 	}
 }
