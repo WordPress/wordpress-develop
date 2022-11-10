@@ -1695,11 +1695,11 @@ function wp_kses_bad_protocol( $string, $allowed_protocols ) {
 	$matches = array();
 	if ( 1 === preg_match( $regex, $string, $matches ) ) {
 		$protocol = false;
-	
-		if ( array_key_exists('protocol', $matches ) ) {
+
+		if ( array_key_exists( 'protocol', $matches ) ) {
 			$protocol = strtolower( $matches['protocol'] );
 		}
-	
+
 		if ( false === $protocol ) {
 			return $string;
 		}
