@@ -206,8 +206,7 @@ $editor_settings = array(
 	'supportsLayout'       => wp_theme_has_theme_json(),
 	'supportsTemplateMode' => current_theme_supports( 'block-templates' ),
 
-	// Whether or not to load the 'postcustom' meta box is stored as a user meta
-	// field so that we're not always loading its assets.
+	// Check whether the 'postcustom' meta box should be loaded.
 	'enableCustomFields'   => (bool) get_user_meta( get_current_user_id(), 'enable_custom_fields', true ),
 );
 
