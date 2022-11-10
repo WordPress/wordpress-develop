@@ -64,7 +64,7 @@ if ( ! function_exists( 'maybe_create_table' ) ) :
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- No applicable variables for this query.
 		$wpdb->query( $create_ddl );
 
-		// We cannot directly tell whether this succeeded!
+		// Check if table was created.
 		foreach ( $wpdb->get_col( 'SHOW TABLES', 0 ) as $table ) {
 			if ( $table === $table_name ) {
 				return true;
