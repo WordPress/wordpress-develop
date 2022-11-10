@@ -347,6 +347,13 @@ final class WP_Autoload {
 	);
 
 	/**
+	 * An array of lowercased WP classes to accomodate scenarios where the class name is written with wrong cases.
+	 *
+	 * @var array
+	 */
+	private static $lowercased_wp_classes = array();
+
+	/**
 	 * Additional autoloaders for bundled libraries.
 	 *
 	 * @access private
@@ -404,6 +411,13 @@ final class WP_Autoload {
 				spl_autoload_register( $autoloader['callback'], true, true );
 			}
 		}
+
+		foreach ( static::$classes_paths as $class => $path ) {
+			static::$lowercased_wp_classes[ strtolower( $class ) ] = array(
+				'name' => $class,
+				'path' => $path,
+			);
+		}
 		static::$registered = true;
 	}
 
@@ -416,6 +430,15 @@ final class WP_Autoload {
 	public static function autoload( $class ) {
 		if ( isset( static::$classes_paths[ $class ] ) ) {
 			require_once ABSPATH . static::$classes_paths[ $class ];
+			return;
+		}
+
+		// Account for classes written with incorrect cases.
+		if ( isset( static::$lowercased_wp_classes[ strtolower( $class ) ] ) ) {
+			$class_details = static::$lowercased_wp_classes[ strtolower( $class ) ];
+			trigger_error( sprintf( 'Class name "%s" is invalid. Use "%s" instead.', $class, $class_details['name'] ), E_USER_NOTICE );
+			require_once ABSPATH . $class_details['path'];
+			return;
 		}
 	}
 }
