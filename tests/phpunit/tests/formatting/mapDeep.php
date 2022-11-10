@@ -172,4 +172,24 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 		return $value . 'baba';
 	}
 
+	/**
+	 * @ticket 47164
+	 */
+	public function test_map_deep_object_with_private_and_protected_properties() {
+		$object   = (object) (array) new Dummy_47164();
+		$stripped = stripslashes_deep( $object );
+
+		$this->assertEqualSets(
+			(array) new Dummy_47164(),
+			(array) $stripped
+		);
+
+	}
+
+}
+
+class Dummy_47164 {
+	public    $pub  = 0;
+	protected $prot = 1;
+	private   $priv = 2;
 }
