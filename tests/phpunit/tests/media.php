@@ -3180,7 +3180,7 @@ EOF;
 	 * @ticket 56969
 	 */
 	public function test_decoding_async_not_applied_to_json() {
-		$content = '{"image": "<img src=\"example.png\" alt=\" width=\"300\" height=\"225\" />"}';
+		$content = '{"image": "<img src=\"example.png\" alt=\"\" width=\"300\" height=\"225\" />"}';
 		$content = wp_filter_content_tags( $content );
 		$this->assertStringNotContainsString( ' decoding="async"', $content );
 	}
