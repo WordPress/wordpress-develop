@@ -5017,7 +5017,7 @@ function map_deep( $value, $callback ) {
 	} elseif ( is_object( $value ) ) {
 		$object_vars = get_object_vars( $value );
 		foreach ( $object_vars as $property_name => $property_value ) {
-			if (ord($property_name) === 0) {
+			if ( 0 === ord( $property_name ) ) {
 				continue;
 			}
 			$value->$property_name = map_deep( $property_value, $callback );
