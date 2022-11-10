@@ -348,7 +348,7 @@ switch ( $step ) {
 			}
 		}
 
-		// Deliberately fall through if we can't reach the translations API.
+		// Deliberately fall through if the translations API is unreachable.
 
 	case 1: // Step 1, direct link or from language chooser.
 		if ( ! empty( $language ) ) {
