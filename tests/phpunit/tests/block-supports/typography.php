@@ -292,6 +292,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * Tests generating font size values, including fluid formulae, from fontSizes preset.
 	 *
 	 * @ticket 56467
+	 * @ticket 57065
 	 *
 	 * @covers ::wp_get_typography_font_size_value
 	 *
@@ -565,6 +566,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * when "settings.typography.fluid" is set to true.
 	 *
 	 * @ticket 56467
+	 * @ticket 57065
 	 *
 	 * @covers ::wp_register_typography_support
 	 *
@@ -640,6 +642,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * and the correct block content is generated.
 	 *
 	 * @ticket 56467
+	 * @ticket 57065
 	 *
 	 * @dataProvider data_generate_replace_inline_font_styles_with_fluid_values_fixtures
 	 *
