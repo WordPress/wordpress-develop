@@ -4035,7 +4035,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	function data_update_separator_declarations() {
 		return array(
 			// If only background is defined, test that includes border-color to the style so it is applied on the front end.
-			'only background'  => array(
+			'only background'                      => array(
 				array(
 					'color' => array(
 						'background' => 'blue',
@@ -4044,7 +4044,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'expected_output' => 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-block-separator{background-color: blue;color: blue;}',
 			),
 			// If background and text are defined, do not include border-color, as text color is enough.
-			'background and text, no border-color'  => array(
+			'background and text, no border-color' => array(
 				array(
 					'color' => array(
 						'background' => 'blue',
@@ -4054,7 +4054,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'expected_output' => 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-block-separator{background-color: blue;color: red;}',
 			),
 			// If only text is defined, do not include border-color, as by itself is enough.
-			'only text'  => array(
+			'only text'                            => array(
 				array(
 					'color' => array(
 						'text' => 'red',
@@ -4063,7 +4063,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'expected_output' => 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-block-separator{color: red;}',
 			),
 			// If background, text, and border-color are defined, include everything, CSS specifity will decide which to apply.
-			'background, text, and border-color'  => array(
+			'background, text, and border-color'   => array(
 				array(
 					'color'  => array(
 						'background' => 'blue',
@@ -4076,7 +4076,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'expected_output' => 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-block-separator{background-color: blue;border-color: pink;color: red;}',
 			),
 			// If background and border color are defined, include everything, CSS specifity will decide which to apply.
-			'background, text, and border-color'  => array(
+			'background, text, and border-color'   => array(
 				array(
 					'color'  => array(
 						'background' => 'blue',
