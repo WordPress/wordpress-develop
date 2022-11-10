@@ -17,7 +17,6 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 require_once ABSPATH . 'wp-includes/class-wp-autoload.php';
-WP_Autoload::register();
 
 $protocol = $_SERVER['SERVER_PROTOCOL'];
 if ( ! in_array( $protocol, array( 'HTTP/1.1', 'HTTP/2', 'HTTP/2.0', 'HTTP/3' ), true ) ) {

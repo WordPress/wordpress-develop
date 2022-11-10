@@ -31,7 +31,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once ABSPATH . 'wp-includes/class-wp-autoload.php';
-WP_Autoload::register();
 
 require ABSPATH . 'wp-settings.php';
 

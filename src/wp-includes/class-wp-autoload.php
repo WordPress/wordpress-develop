@@ -419,3 +419,6 @@ final class WP_Autoload {
 		}
 	}
 }
+
+// Register the autoloader.
+WP_Autoload::register();

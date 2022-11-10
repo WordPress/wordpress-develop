@@ -26,7 +26,6 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 require_once ABSPATH . 'wp-includes/class-wp-autoload.php';
-WP_Autoload::register();
 
 /*
  * The error_reporting() function can be disabled in php.ini. On systems where that is the case,
