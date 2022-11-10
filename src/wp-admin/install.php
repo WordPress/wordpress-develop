@@ -25,7 +25,7 @@ if ( false ) {
 }
 
 /**
- * We are installing WordPress.
+ * Installing WordPress.
  *
  * @since 1.5.1
  * @var bool
