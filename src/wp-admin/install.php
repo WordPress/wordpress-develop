@@ -387,7 +387,7 @@ switch ( $step ) {
 		$scripts_to_print[] = 'user-profile';
 
 		display_header();
-		// Fill in the data we gathered.
+		// Fill in the gathered data.
 		$weblog_title         = isset( $_POST['weblog_title'] ) ? trim( wp_unslash( $_POST['weblog_title'] ) ) : '';
 		$user_name            = isset( $_POST['user_name'] ) ? trim( wp_unslash( $_POST['user_name'] ) ) : '';
 		$admin_password       = isset( $_POST['admin_password'] ) ? wp_unslash( $_POST['admin_password'] ) : '';
