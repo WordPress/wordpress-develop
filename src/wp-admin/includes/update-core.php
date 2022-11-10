@@ -1637,7 +1637,7 @@ function _upgrade_440_force_deactivate_incompatible_plugins() {
 /**
  * @access private
  * @ignore
- * @since 5.8.0 The minimum compatible version of Gutenberg is 10.7.
+ * @since 5.8.0
  * @since 5.9.0 The minimum compatible version of Gutenberg is 11.9.
  * @since 6.1.1 The minimum compatible version of Gutenberg is 14.1.
  */
