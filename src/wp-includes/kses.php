@@ -1674,10 +1674,14 @@ function wp_kses_check_attr_val( $value, $vless, $checkname, $checkvalue ) {
 /**
  * Sanitizes a string and removed disallowed URL protocols.
  *
- * This function removes all non-allowed protocols from the beginning of the
+ * This function first tries to return early by checking for a standard http(s)
+ * url, and otherwise removes all non-allowed protocols from the beginning of the
  * string. It ignores whitespace and the case of the letters, and it does
  * understand HTML entities. It does its work recursively, so it won't be
  * fooled by a string like `javascript:javascript:alert(57)`.
+ *
+ * The regular expression is based on the pattern from @diegoperini compared
+ * here: https://mathiasbynens.be/demo/url-regex
  *
  * @since 1.0.0
  *
@@ -1686,6 +1690,25 @@ function wp_kses_check_attr_val( $value, $vless, $checkname, $checkvalue ) {
  * @return string Filtered content.
  */
 function wp_kses_bad_protocol( $string, $allowed_protocols ) {
+	// Detect standard HTTP(S) URL and return early.
+	$regex = '_^(?:(?<protocol>https?)://)(?:\S+(?::\S*)?@)?(?:(?!10(?:\.\d{1,3}){3})(?!127(?:\.\d{1,3}){3})(?!169\.254(?:\.\d{1,3}){2})(?!192\.168(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\x{00a1}-\x{ffff}0-9]+-?)*[a-z\x{00a1}-\x{ffff}0-9]+)(?:\.(?:[a-z\x{00a1}-\x{ffff}0-9]+-?)*[a-z\x{00a1}-\x{ffff}0-9]+)*(?:\.(?:[a-z\x{00a1}-\x{ffff}]{2,})))(?::\d{2,5})?(?:/[^\s]*)?$_iuS';
+	$matches = array();
+	if ( 1 === preg_match( $regex, $string, $matches ) ) {
+		$protocol = false;
+	
+		if ( array_key_exists('protocol', $matches ) ) {
+			$protocol = strtolower( $matches['protocol'] );
+		}
+	
+		if ( false === $protocol ) {
+			return $string;
+		}
+
+		if ( in_array( $protocol, $allowed_protocols, true ) ) {
+			return str_replace( $matches['protocol'], $protocol, $string );
+		}
+	}
+
 	$string     = wp_kses_no_null( $string );
 	$iterations = 0;
 
