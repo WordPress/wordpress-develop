@@ -461,7 +461,8 @@ class WP_Theme_JSON {
 	public static function get_element_class_name( $element ) {
 		$class_name = '';
 
-		// Note: array_key_exists() should be replaced with an isset() check once WordPress drops support for PHP 5.6.
+		// TODO: Replace array_key_exists() with isset() check once WordPress drops
+		// support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
 		if ( array_key_exists( $element, static::__EXPERIMENTAL_ELEMENT_CLASS_NAMES ) ) {
 			$class_name = static::__EXPERIMENTAL_ELEMENT_CLASS_NAMES[ $element ];
 		}
@@ -612,7 +613,7 @@ class WP_Theme_JSON {
 		 */
 		$styles_non_top_level = static::VALID_STYLES;
 		foreach ( array_keys( $styles_non_top_level ) as $section ) {
-			// We need to use array_key_exists() instead of isset() because the value can be null.
+			// array_key_exists() needs to be used instead of isset() because the value can be null.
 			if ( array_key_exists( $section, $styles_non_top_level ) && is_array( $styles_non_top_level[ $section ] ) ) {
 				foreach ( array_keys( $styles_non_top_level[ $section ] ) as $prop ) {
 					if ( 'top' === $styles_non_top_level[ $section ][ $prop ] ) {
@@ -636,7 +637,8 @@ class WP_Theme_JSON {
 		foreach ( $valid_element_names as $element ) {
 			$schema_styles_elements[ $element ] = $styles_non_top_level;
 
-			// Note: array_key_exists() should be replaced with an isset() check once WordPress drops support for PHP 5.6.
+			// TODO: Replace array_key_exists() with isset() check once WordPress drops
+			// support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
 			if ( array_key_exists( $element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
 				foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
 					$schema_styles_elements[ $element ][ $pseudo_selector ] = $styles_non_top_level;
@@ -1677,7 +1679,8 @@ class WP_Theme_JSON {
 			if ( is_array( $value_path ) ) {
 				$path_string = implode( '.', $value_path );
 				if (
-					// Note: array_key_exists() should be replaced with an isset() check once WordPress drops support for PHP 5.6.
+					// TODO: Replace array_key_exists() with isset() check once WordPress drops
+					// support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
 					array_key_exists( $path_string, static::PROTECTED_PROPERTIES ) &&
 					_wp_array_get( $settings, static::PROTECTED_PROPERTIES[ $path_string ], null ) === null
 				) {
@@ -1897,7 +1900,8 @@ class WP_Theme_JSON {
 				);
 
 				// Handle any pseudo selectors for the element.
-				// Note: array_key_exists() should be replaced with an isset() check once WordPress drops support for PHP 5.6.
+				// TODO: Replace array_key_exists() with isset() check once WordPress drops
+				// support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
 				if ( array_key_exists( $element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
 					foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
 
@@ -1997,7 +2001,8 @@ class WP_Theme_JSON {
 					);
 
 					// Handle any pseudo selectors for the element.
-					// Note: array_key_exists() should be replaced with an isset() check once WordPress drops support for PHP 5.6.
+					// TODO: Replace array_key_exists() with isset() check once WordPress drops
+					// support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
 					if ( array_key_exists( $element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
 						foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
 							if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'][ $element ][ $pseudo_selector ] ) ) {
@@ -2077,7 +2082,8 @@ class WP_Theme_JSON {
 
 		$element_pseudo_allowed = array();
 
-		// Note: array_key_exists() should be replaced with an isset() check once WordPress drops support for PHP 5.6.
+		// TODO: Replace array_key_exists() with isset() check once WordPress drops
+		// support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
 		if ( array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
 			$element_pseudo_allowed = static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ];
 		}
@@ -2103,7 +2109,8 @@ class WP_Theme_JSON {
 		 * Otherwise just compute the styles for the default selector as normal.
 		 */
 		if ( $pseudo_selector && isset( $node[ $pseudo_selector ] ) &&
-			// Note: array_key_exists() should be replaced with an isset() check once WordPress drops support for PHP 5.6.
+			// TODO: Replace array_key_exists() with isset() check once WordPress drops
+			// support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
 			array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS )
 			&& in_array( $pseudo_selector, static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ], true )
 		) {
@@ -2574,7 +2581,8 @@ class WP_Theme_JSON {
 			 * $output is stripped of pseudo selectors. Re-add and process them
 			 * or insecure styles here.
 			 */
-			// Note: array_key_exists() should be replaced with an isset() check once WordPress drops support for PHP 5.6.
+			// TODO: Replace array_key_exists() with isset() check once WordPress drops
+			// support for PHP 5.6. See https://core.trac.wordpress.org/ticket/57067.
 			if ( array_key_exists( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS ) ) {
 				foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] as $pseudo_selector ) {
 					if ( isset( $input[ $pseudo_selector ] ) ) {
