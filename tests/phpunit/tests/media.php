@@ -3170,7 +3170,7 @@ EOF;
 	 * @ticket 56969
 	 */
 	public function test_wp_img_tag_add_decoding_attr_with_single_quotes() {
-		$img = "<img src='example.png' alt=' width='300' height='225' />";
+		$img = "<img src='example.png' alt='' width='300' height='225' />";
 		$img = wp_img_tag_add_decoding_attr( $img, 'test' );
 
 		$this->assertStringNotContainsString( ' decoding="async"', $img );
