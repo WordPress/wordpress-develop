@@ -243,11 +243,12 @@ class WP_Theme_JSON_Resolver {
 			_deprecated_argument( __METHOD__, '5.9.0' );
 		}
 
-		$options = wp_parse_args( $options, array( 'with_supports' => true ) );
+		$options  = wp_parse_args( $options, array( 'with_supports' => true ) );
+		$wp_theme = wp_get_theme();
 
 		if ( null === static::$theme || ! static::has_same_registered_blocks( 'theme' ) ) {
 			$theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json' ) );
-			$theme_json_data = static::translate( $theme_json_data, wp_get_theme()->get( 'TextDomain' ) );
+			$theme_json_data = static::translate( $theme_json_data, $wp_theme->get( 'TextDomain' ) );
 
 			/**
 			 * Filters the data provided by the theme for global styles and settings.
@@ -261,10 +262,10 @@ class WP_Theme_JSON_Resolver {
 			static::$theme   = new WP_Theme_JSON( $theme_json_data );
 		}
 
-		if ( wp_get_theme()->parent() ) {
+		if ( $wp_theme->parent() ) {
 			// Get parent theme.json.
 			$parent_theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json', true ) );
-			$parent_theme_json_data = static::translate( $parent_theme_json_data, wp_get_theme()->parent()->get( 'TextDomain' ) );
+			$parent_theme_json_data = static::translate( $parent_theme_json_data, $wp_theme->parent()->get( 'TextDomain' ) );
 			$parent_theme           = new WP_Theme_JSON( $parent_theme_json_data );
 
 			/*
