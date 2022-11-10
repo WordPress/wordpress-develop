@@ -1,5 +1,6 @@
 {
 	"version": 1,
+	"title": "Block theme",
 	"settings": {
 		"color": {
 			"palette": [
@@ -21,6 +22,13 @@
 					"slug": "custom-gradient"
 				}
 			],
+			"duotone": [
+				{
+					"colors": [ "#333333", "#aaaaaa" ],
+					"slug": "custom-duotone",
+					"name": "Custom Duotone"
+				}
+			],
 			"custom": false,
 			"customGradient": false
 		},
@@ -36,10 +44,9 @@
 			"customLineHeight": true
 		},
 		"spacing": {
-			"units": [
-				"rem"
-			],
-			"customPadding": true
+			"units": ["rem"],
+			"customPadding": true,
+			"blockGap": true
 		},
 		"blocks": {
 			"core/paragraph": {
@@ -55,10 +62,59 @@
 			}
 		}
 	},
+	"styles" : {
+		"blocks" :{
+			"core/post-featured-image": {
+				"shadow": "10px 10px 5px 0px rgba(0,0,0,0.66)",
+				"filter": {
+					"duotone": "var(--wp--preset--duotone--custom-duotone)"
+				}
+			},
+			"my/third-party-block": {
+				"color": {
+					"background": "hotpink"
+				}
+			}
+		},
+		"elements": {
+			"button": {
+				"shadow": "10px 10px 5px 0px rgba(0,0,0,0.66)"
+			},
+			"link": {
+				"typography": {
+					"textDecoration": "none"
+				},
+				"border": {
+					"bottom": {
+						"width": "2px",
+						"color": "currentColor",
+						"style": "solid"
+					}
+				},
+				":hover": {
+					"typography": {
+						"textDecoration": "none"
+					},
+					"border": {
+						"bottom": {
+							"width": "2px",
+							"color": "#000",
+							"style": "dotted"
+						}
+					}
+				}
+			}
+		}
+	},
 	"customTemplates": [
 		{
 			"name": "page-home",
 			"title": "Homepage template"
+		},
+		{
+			"name": "custom-single-post-template",
+			"title": "Custom Single Post template",
+			"postTypes": ["post"]
 		}
 	],
 	"templateParts": [

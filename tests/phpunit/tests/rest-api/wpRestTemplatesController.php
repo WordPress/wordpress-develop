@@ -56,6 +56,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	/**
 	 * @covers WP_REST_Templates_Controller::register_routes
 	 * @ticket 54596
+	 * @ticket 56467
 	 */
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
@@ -68,6 +69,11 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 			'/wp/v2/templates/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w-]+)',
 			$routes,
 			'Single template based on the given ID route does not exist'
+		);
+		$this->assertArrayHasKey(
+			'/wp/v2/templates/lookup',
+			$routes,
+			'Get template fallback content route does not exist'
 		);
 	}
 
@@ -337,7 +343,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	 */
 	public function test_sanitize_template_id( $input_id, $sanitized_id ) {
 		$endpoint = new WP_REST_Templates_Controller( 'wp_template' );
-		$this->assertEquals(
+		$this->assertSame(
 			$sanitized_id,
 			$endpoint->_sanitize_template_id( $input_id )
 		);
@@ -614,8 +620,11 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$this->assertErrorResponse( 'rest_template_not_found', $response, 404 );
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_prepare_item() {
-		// TODO: Implement test_prepare_item() method.
+		// Controller does not implement prepare_item().
 	}
 
 	public function test_prepare_item_limit_fields() {
@@ -675,4 +684,109 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		return null;
 	}
 
+	/**
+	 * @dataProvider data_create_item_with_is_wp_suggestion
+	 * @ticket 56467
+	 * @covers WP_REST_Templates_Controller::create_item
+	 *
+	 * @param array $body_params Data set to test.
+	 * @param array $expected    Expected results.
+	 */
+	public function test_create_item_with_is_wp_suggestion( array $body_params, array $expected ) {
+		// Set up the user.
+		$body_params['author'] = self::$admin_id;
+		$expected['author']    = self::$admin_id;
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/templates' );
+		$request->set_body_params( $body_params );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		unset( $data['_links'] );
+		unset( $data['wp_id'] );
+
+		$this->assertSame( $expected, $data );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_create_item_with_is_wp_suggestion() {
+		$expected = array(
+			'id'             => 'default//page-rigas',
+			'theme'          => 'default',
+			'content'        => array(
+				'raw' => 'Content',
+			),
+			'slug'           => 'page-rigas',
+			'source'         => 'custom',
+			'origin'         => null,
+			'type'           => 'wp_template',
+			'description'    => 'Just a description',
+			'title'          => array(
+				'raw'      => 'My Template',
+				'rendered' => 'My Template',
+			),
+			'status'         => 'publish',
+			'has_theme_file' => false,
+			'is_custom'      => false,
+			'author'         => null,
+		);
+
+		return array(
+			'is_wp_suggestion: true'  => array(
+				'body_params' => array(
+					'slug'             => 'page-rigas',
+					'description'      => 'Just a description',
+					'title'            => 'My Template',
+					'content'          => 'Content',
+					'is_wp_suggestion' => true,
+					'author'           => null,
+				),
+				'expected'    => $expected,
+			),
+			'is_wp_suggestion: false' => array(
+				'body_params' => array(
+					'slug'             => 'page-hi',
+					'description'      => 'Just a description',
+					'title'            => 'My Template',
+					'content'          => 'Content',
+					'is_wp_suggestion' => false,
+					'author'           => null,
+				),
+				'expected'    => array_merge(
+					$expected,
+					array(
+						'id'        => 'default//page-hi',
+						'slug'      => 'page-hi',
+						'is_custom' => true,
+					)
+				),
+			),
+		);
+	}
+
+	/**
+	 * @ticket 56467
+	 * @covers WP_REST_Templates_Controller::get_template_fallback
+	 */
+	public function test_get_template_fallback() {
+		wp_set_current_user( self::$admin_id );
+		switch_theme( 'block-theme' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/templates/lookup' );
+		// Should fallback to `index.html`.
+		$request->set_param( 'slug', 'tag-status' );
+		$request->set_param( 'is_custom', false );
+		$request->set_param( 'template_prefix', 'tag' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 'index', $response->get_data()['slug'], 'Should fallback to `index.html`.' );
+		// Should fallback to `page.html`.
+		$request->set_param( 'slug', 'page-hello' );
+		$request->set_param( 'is_custom', false );
+		$request->set_param( 'template_prefix', 'page' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 'page', $response->get_data()['slug'], 'Should fallback to `page.html`.' );
+	}
 }

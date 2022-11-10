@@ -12,6 +12,7 @@
  *
  * @since 4.4.0
  */
+#[AllowDynamicProperties]
 class WP_REST_Server {
 
 	/**
@@ -192,7 +193,7 @@ class WP_REST_Server {
 	 * Converts an error to a response object.
 	 *
 	 * This iterates over all error codes and messages to change it into a flat
-	 * array. This enables simpler client behaviour, as it is represented as a
+	 * array. This enables simpler client behavior, as it is represented as a
 	 * list in JSON rather than an object/map.
 	 *
 	 * @since 4.4.0
@@ -228,6 +229,33 @@ class WP_REST_Server {
 		$error = compact( 'code', 'message' );
 
 		return wp_json_encode( $error );
+	}
+
+	/**
+	 * Gets the encoding options passed to {@see wp_json_encode}.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param \WP_REST_Request $request The current request object.
+	 *
+	 * @return int The JSON encode options.
+	 */
+	protected function get_json_encode_options( WP_REST_Request $request ) {
+		$options = 0;
+
+		if ( $request->has_param( '_pretty' ) ) {
+			$options |= JSON_PRETTY_PRINT;
+		}
+
+		/**
+		 * Filters the JSON encoding options used to send the REST API response.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param int $options             JSON encoding options {@see json_encode()}.
+		 * @param WP_REST_Request $request Current request object.
+		 */
+		return apply_filters( 'rest_json_encode_options', $options, $request );
 	}
 
 	/**
@@ -493,7 +521,7 @@ class WP_REST_Server {
 				return null;
 			}
 
-			$result = wp_json_encode( $result );
+			$result = wp_json_encode( $result, $this->get_json_encode_options( $request ) );
 
 			$json_error_message = $this->get_json_last_error();
 
@@ -506,7 +534,7 @@ class WP_REST_Server {
 				);
 
 				$result = $this->error_to_response( $json_error_obj );
-				$result = wp_json_encode( $result->data );
+				$result = wp_json_encode( $result->data, $this->get_json_encode_options( $request ) );
 			}
 
 			if ( $jsonp_callback ) {
@@ -1308,6 +1336,8 @@ class WP_REST_Server {
 		$site_icon_id = get_option( 'site_icon', 0 );
 
 		$this->add_image_to_index( $response, $site_icon_id, 'site_icon' );
+
+		$response->data['site_icon_url'] = get_site_icon_url();
 	}
 
 	/**
@@ -1483,6 +1513,11 @@ class WP_REST_Server {
 				$endpoint_data['args'] = array();
 
 				foreach ( $callback['args'] as $key => $opts ) {
+					if ( is_string( $opts ) ) {
+						$opts = array( $opts => 0 );
+					} elseif ( ! is_array( $opts ) ) {
+						$opts = array();
+					}
 					$arg_data             = array_intersect_key( $opts, $allowed_schema_keywords );
 					$arg_data['required'] = ! empty( $opts['required'] );
 

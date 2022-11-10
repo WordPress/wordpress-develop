@@ -11,7 +11,6 @@
  * Core class used to implement displaying terms in a list table.
  *
  * @since 3.1.0
- * @access private
  *
  * @see WP_List_Table
  */
@@ -414,19 +413,19 @@ class WP_Terms_List_Table extends WP_List_Table {
 			);
 		}
 
-		$out = sprintf(
+		$output = sprintf(
 			'<strong>%s</strong><br />',
 			$name
 		);
 
-		$out .= '<div class="hidden" id="inline_' . $qe_data->term_id . '">';
-		$out .= '<div class="name">' . $qe_data->name . '</div>';
+		$output .= '<div class="hidden" id="inline_' . $qe_data->term_id . '">';
+		$output .= '<div class="name">' . $qe_data->name . '</div>';
 
 		/** This filter is documented in wp-admin/edit-tag-form.php */
-		$out .= '<div class="slug">' . apply_filters( 'editable_slug', $qe_data->slug, $qe_data ) . '</div>';
-		$out .= '<div class="parent">' . $qe_data->parent . '</div></div>';
+		$output .= '<div class="slug">' . apply_filters( 'editable_slug', $qe_data->slug, $qe_data ) . '</div>';
+		$output .= '<div class="parent">' . $qe_data->parent . '</div></div>';
 
-		return $out;
+		return $output;
 	}
 
 	/**
@@ -460,7 +459,6 @@ class WP_Terms_List_Table extends WP_List_Table {
 		// Restores the more descriptive, specific name for use within this method.
 		$tag      = $item;
 		$taxonomy = $this->screen->taxonomy;
-		$tax      = get_taxonomy( $taxonomy );
 		$uri      = wp_doing_ajax() ? wp_get_referer() : $_SERVER['REQUEST_URI'];
 
 		$edit_link = add_query_arg(
@@ -497,7 +495,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 			);
 		}
 
-		if ( is_taxonomy_viewable( $tax ) ) {
+		if ( is_term_publicly_viewable( $tag ) ) {
 			$actions['view'] = sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
 				get_term_link( $tag ),
@@ -666,12 +664,10 @@ class WP_Terms_List_Table extends WP_List_Table {
 					<span class="input-text-wrap"><input type="text" name="name" class="ptitle" value="" /></span>
 				</label>
 
-				<?php if ( ! global_terms_enabled() ) : ?>
-					<label>
-						<span class="title"><?php _e( 'Slug' ); ?></span>
-						<span class="input-text-wrap"><input type="text" name="slug" class="ptitle" value="" /></span>
-					</label>
-				<?php endif; ?>
+				<label>
+					<span class="title"><?php _e( 'Slug' ); ?></span>
+					<span class="input-text-wrap"><input type="text" name="slug" class="ptitle" value="" /></span>
+				</label>
 				</div>
 			</fieldset>
 

@@ -253,7 +253,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 	protected function grant_write_permission() {
 		// Ensure we have write permission.
-		$user = $this->factory->user->create(
+		$user = self::factory()->user->create(
 			array(
 				'role' => 'editor',
 			)
@@ -2797,7 +2797,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertEquals( array( 0 ), $response->get_data()['meta']['multi_boolean'] );
+		$this->assertSameSetsWithIndex( array( false ), $response->get_data()['meta']['multi_boolean'] );
 
 		$this->assertFalse( get_metadata_by_mid( 'post', $mid1 ) );
 		$this->assertNotFalse( get_metadata_by_mid( 'post', $mid2 ) );

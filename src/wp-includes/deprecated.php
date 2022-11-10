@@ -2027,7 +2027,7 @@ function get_link( $bookmark_id, $output = OBJECT, $filter = 'raw' ) {
  * Checks and cleans a URL.
  *
  * A number of characters are removed from the URL. If the URL is for displaying
- * (the default behaviour) ampersands are also replaced. The 'clean_url' filter
+ * (the default behavior) ampersands are also replaced. The 'clean_url' filter
  * is applied to the returned cleaned URL.
  *
  * @since 1.2.0
@@ -2530,7 +2530,7 @@ function is_term( $term, $taxonomy = '', $parent = 0 ) {
  * @return bool
  */
 function is_plugin_page() {
-	_deprecated_function( __FUNCTION__, '3.1.0'  );
+	_deprecated_function( __FUNCTION__, '3.1.0' );
 
 	global $plugin_page;
 
@@ -2553,7 +2553,7 @@ function is_plugin_page() {
  * @return bool Always return True
  */
 function update_category_cache() {
-	_deprecated_function( __FUNCTION__, '3.1.0'  );
+	_deprecated_function( __FUNCTION__, '3.1.0' );
 
 	return true;
 }
@@ -3654,7 +3654,7 @@ function post_permalink( $post = 0 ) {
  * @param string|bool $file_path Optional. File path to write request to. Default false.
  * @param int         $red       Optional. The number of Redirects followed, Upon 5 being hit,
  *                               returns false. Default 1.
- * @return bool|string False on failure and string of headers if HEAD request.
+ * @return \Requests_Utility_CaseInsensitiveDictionary|false Headers on success, false on failure.
  */
 function wp_get_http( $url, $file_path = false, $red = 1 ) {
 	_deprecated_function( __FUNCTION__, '4.4.0', 'WP_Http' );
@@ -4359,4 +4359,172 @@ function wp_get_attachment_thumb_file( $post_id = 0 ) {
 	}
 
 	return false;
+}
+
+/**
+ * Gets the path to a translation file for loading a textdomain just in time.
+ *
+ * Caches the retrieved results internally.
+ *
+ * @since 4.7.0
+ * @deprecated 6.1.0
+ * @access private
+ *
+ * @see _load_textdomain_just_in_time()
+ *
+ * @param string $domain Text domain. Unique identifier for retrieving translated strings.
+ * @param bool   $reset  Whether to reset the internal cache. Used by the switch to locale functionality.
+ * @return string|false The path to the translation file or false if no translation file was found.
+ */
+function _get_path_to_translation( $domain, $reset = false ) {
+	_deprecated_function( __FUNCTION__, '6.1.0', 'WP_Textdomain_Registry' );
+
+	static $available_translations = array();
+
+	if ( true === $reset ) {
+		$available_translations = array();
+	}
+
+	if ( ! isset( $available_translations[ $domain ] ) ) {
+		$available_translations[ $domain ] = _get_path_to_translation_from_lang_dir( $domain );
+	}
+
+	return $available_translations[ $domain ];
+}
+
+/**
+ * Gets the path to a translation file in the languages directory for the current locale.
+ *
+ * Holds a cached list of available .mo files to improve performance.
+ *
+ * @since 4.7.0
+ * @deprecated 6.1.0
+ * @access private
+ *
+ * @see _get_path_to_translation()
+ *
+ * @param string $domain Text domain. Unique identifier for retrieving translated strings.
+ * @return string|false The path to the translation file or false if no translation file was found.
+ */
+function _get_path_to_translation_from_lang_dir( $domain ) {
+	_deprecated_function( __FUNCTION__, '6.1.0', 'WP_Textdomain_Registry' );
+
+	static $cached_mofiles = null;
+
+	if ( null === $cached_mofiles ) {
+		$cached_mofiles = array();
+
+		$locations = array(
+			WP_LANG_DIR . '/plugins',
+			WP_LANG_DIR . '/themes',
+		);
+
+		foreach ( $locations as $location ) {
+			$mofiles = glob( $location . '/*.mo' );
+			if ( $mofiles ) {
+				$cached_mofiles = array_merge( $cached_mofiles, $mofiles );
+			}
+		}
+	}
+
+	$locale = determine_locale();
+	$mofile = "{$domain}-{$locale}.mo";
+
+	$path = WP_LANG_DIR . '/plugins/' . $mofile;
+	if ( in_array( $path, $cached_mofiles, true ) ) {
+		return $path;
+	}
+
+	$path = WP_LANG_DIR . '/themes/' . $mofile;
+	if ( in_array( $path, $cached_mofiles, true ) ) {
+		return $path;
+	}
+
+	return false;
+}
+
+/**
+  * Allows multiple block styles.
+  *
+  * @since 5.9.0
+  * @deprecated 6.1.0
+  *
+  * @param array $metadata Metadata for registering a block type.
+  * @return array Metadata for registering a block type.
+  */
+  function _wp_multiple_block_styles( $metadata ) {
+	_deprecated_function( __FUNCTION__, '6.1.0' );
+	return $metadata;
+}
+
+/**
+ * Generates an inline style for a typography feature e.g. text decoration,
+ * text transform, and font style.
+ *
+ * @since 5.8.0
+ * @access private
+ * @deprecated 6.1.0 Use wp_style_engine_get_styles() introduced in 6.1.0.
+ *
+ * @see wp_style_engine_get_styles()
+ *
+ * @param array  $attributes   Block's attributes.
+ * @param string $feature      Key for the feature within the typography styles.
+ * @param string $css_property Slug for the CSS property the inline style sets.
+ * @return string CSS inline style.
+ */
+function wp_typography_get_css_variable_inline_style( $attributes, $feature, $css_property ) {
+	_deprecated_function( __FUNCTION__, '6.1.0', 'wp_style_engine_get_styles()' );
+
+	// Retrieve current attribute value or skip if not found.
+	$style_value = _wp_array_get( $attributes, array( 'style', 'typography', $feature ), false );
+	if ( ! $style_value ) {
+		return;
+	}
+
+	// If we don't have a preset CSS variable, we'll assume it's a regular CSS value.
+	if ( strpos( $style_value, "var:preset|{$css_property}|" ) === false ) {
+		return sprintf( '%s:%s;', $css_property, $style_value );
+	}
+
+	/*
+	 * We have a preset CSS variable as the style.
+	 * Get the style value from the string and return CSS style.
+	 */
+	$index_to_splice = strrpos( $style_value, '|' ) + 1;
+	$slug            = substr( $style_value, $index_to_splice );
+
+	// Return the actual CSS inline style e.g. `text-decoration:var(--wp--preset--text-decoration--underline);`.
+	return sprintf( '%s:var(--wp--preset--%s--%s);', $css_property, $css_property, $slug );
+}
+
+/**
+ * Determines whether global terms are enabled.
+ *
+ * @since 3.0.0
+ * @since 6.1.0 This function now always returns false.
+ * @deprecated 6.1.0
+ *
+ * @return bool Always returns false.
+ */
+function global_terms_enabled() {
+	_deprecated_function( __FUNCTION__, '6.1.0' );
+
+	return false;
+}
+
+/**
+ * Filter the SQL clauses of an attachment query to include filenames.
+ *
+ * @since 4.7.0
+ * @deprecated 6.0.3
+ * @access private
+ *
+ * @param array $clauses An array including WHERE, GROUP BY, JOIN, ORDER BY,
+ *                       DISTINCT, fields (SELECT), and LIMITS clauses.
+ * @return array The unmodified clauses.
+ */
+function _filter_query_attachment_filenames( $clauses ) {
+	_deprecated_function( __FUNCTION__, '4.9.9', 'add_filter( "wp_allow_query_attachment_by_filename", "__return_true" )' );
+	remove_filter( 'posts_clauses', __FUNCTION__ );
+	return $clauses;
 }

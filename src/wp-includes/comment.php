@@ -2208,9 +2208,16 @@ function wp_throttle_comment_flood( $block, $time_lastcomment, $time_newcomment 
 function wp_new_comment( $commentdata, $wp_error = false ) {
 	global $wpdb;
 
+	/*
+	 * Normalize `user_ID` to `user_id`, but pass the old key
+	 * to the `preprocess_comment` filter for backward compatibility.
+	 */
 	if ( isset( $commentdata['user_ID'] ) ) {
 		$commentdata['user_ID'] = (int) $commentdata['user_ID'];
 		$commentdata['user_id'] = $commentdata['user_ID'];
+	} elseif ( isset( $commentdata['user_id'] ) ) {
+		$commentdata['user_id'] = (int) $commentdata['user_id'];
+		$commentdata['user_ID'] = $commentdata['user_id'];
 	}
 
 	$prefiltered_user_id = ( isset( $commentdata['user_id'] ) ) ? (int) $commentdata['user_id'] : 0;
@@ -2235,11 +2242,13 @@ function wp_new_comment( $commentdata, $wp_error = false ) {
 
 	$commentdata['comment_post_ID'] = (int) $commentdata['comment_post_ID'];
 
+	// Normalize `user_ID` to `user_id` again, after the filter.
 	if ( isset( $commentdata['user_ID'] ) && $prefiltered_user_id !== (int) $commentdata['user_ID'] ) {
 		$commentdata['user_ID'] = (int) $commentdata['user_ID'];
 		$commentdata['user_id'] = $commentdata['user_ID'];
 	} elseif ( isset( $commentdata['user_id'] ) ) {
 		$commentdata['user_id'] = (int) $commentdata['user_id'];
+		$commentdata['user_ID'] = $commentdata['user_id'];
 	}
 
 	$commentdata['comment_parent'] = isset( $commentdata['comment_parent'] ) ? absint( $commentdata['comment_parent'] ) : 0;
@@ -2490,6 +2499,15 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 		}
 	}
 
+	$filter_comment = false;
+	if ( ! has_filter( 'pre_comment_content', 'wp_filter_kses' ) ) {
+		$filter_comment = ! user_can( isset( $comment['user_id'] ) ? $comment['user_id'] : 0, 'unfiltered_html' );
+	}
+
+	if ( $filter_comment ) {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+	}
+
 	// Escape data pulled from DB.
 	$comment = wp_slash( $comment );
 
@@ -2499,6 +2517,10 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 	$commentarr = array_merge( $comment, $commentarr );
 
 	$commentarr = wp_filter_comment( $commentarr );
+
+	if ( $filter_comment ) {
+		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
+	}
 
 	// Now extract the merged array.
 	$data = wp_unslash( $commentarr );
@@ -3297,7 +3319,7 @@ function update_comment_cache( $comments, $update_meta_cache = true ) {
  * Adds any comments from the given IDs to the cache that do not already exist in cache.
  *
  * @since 4.4.0
- * @access private
+ * @since 6.1.0 This function is no longer marked as "private".
  *
  * @see update_comment_cache()
  * @global wpdb $wpdb WordPress database abstraction object.
@@ -3427,10 +3449,10 @@ function _close_comments_for_old_post( $open, $post_id ) {
  */
 function wp_handle_comment_submission( $comment_data ) {
 	$comment_post_id      = 0;
-	$comment_author       = null;
-	$comment_author_email = null;
-	$comment_author_url   = null;
-	$comment_content      = null;
+	$comment_author       = '';
+	$comment_author_email = '';
+	$comment_author_url   = '';
+	$comment_content      = '';
 	$comment_parent       = 0;
 	$user_id              = 0;
 
@@ -3587,7 +3609,6 @@ function wp_handle_comment_submission( $comment_data ) {
 
 	$commentdata = array(
 		'comment_post_ID' => $comment_post_id,
-		'user_ID'         => $user_id,
 	);
 
 	$commentdata += compact(
@@ -3596,7 +3617,8 @@ function wp_handle_comment_submission( $comment_data ) {
 		'comment_author_url',
 		'comment_content',
 		'comment_type',
-		'comment_parent'
+		'comment_parent',
+		'user_id'
 	);
 
 	/**

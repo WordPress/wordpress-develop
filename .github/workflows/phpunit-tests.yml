@@ -34,19 +34,15 @@ env:
 jobs:
   # Runs the PHPUnit tests for WordPress.
   #
-  # Note: Steps running tests for PHP 8.1 jobs are allowed to "continue-on-error".
-  # This prevents workflow runs from being marked as "failed" when only PHP 8.1 fails.
-  #
   # Performs the following steps:
   # - Sets environment variables.
   # - Sets up the environment variables needed for testing with memcached (if desired).
-  # - Installs NodeJS.
-  # - Installs NPM dependencies
+  # - Installs Node.js.
+  # - Installs npm dependencies
   # - Configures caching for Composer.
   # - Installs Composer dependencies.
   # - Logs Docker debug information (about the Docker installation within the runner).
   # - Starts the WordPress Docker container.
-  # - Starts the Memcached server after the Docker network has been created (if desired).
   # - Logs general debug information about the runner.
   # - Logs the running Docker containers.
   # - Logs debug information from inside the WordPress Docker container.
@@ -65,7 +61,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ '5.6', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1' ]
+        php: [ '5.6', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1', '8.2' ]
         os: [ ubuntu-latest ]
         memcached: [ false ]
         split_slow: [ false ]
@@ -110,10 +106,10 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
 
       - name: Checkout repository
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
 
-      - name: Install NodeJS
-        uses: actions/setup-node@eeb10cff27034e7acf239c5d29f62154018672fd # v3.3.0
+      - name: Install Node.js
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -125,18 +121,18 @@ jobs:
       # http://man7.org/linux/man-pages/man1/date.1.html
       - name: "Get last Monday's date"
         id: get-date
-        run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
+        run: echo "date=$(/bin/date -u --date='last Mon' "+%F")" >> $GITHUB_OUTPUT
 
       - name: Get Composer cache directory
         id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+        run: echo "composer_dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Cache Composer dependencies
-        uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d # v3.0.4
+        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
         env:
           cache-name: cache-composer-dependencies
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
+          path: ${{ steps.composer-cache.outputs.composer_dir }}
           key: ${{ runner.os }}-php-${{ matrix.php }}-date-${{ steps.get-date.outputs.date }}-composer-${{ hashFiles('**/composer.json') }}
 
       - name: Install Composer dependencies
@@ -144,8 +140,8 @@ jobs:
           docker-compose run --rm php composer --version
 
           # Install using `composer update` as there is no `composer.lock` file.
-          if [ ${{ env.LOCAL_PHP }} == '8.1-fpm' ]; then
-            docker-compose run --rm php composer update --ignore-platform-reqs
+          if [ ${{ env.LOCAL_PHP }} == '8.2-fpm' ]; then
+            docker-compose run --rm php composer update --ignore-platform-req=php+
           else
             docker-compose run --rm php composer update
           fi
@@ -158,13 +154,6 @@ jobs:
       - name: Start Docker environment
         run: |
           npm run env:start
-
-      # The memcached server needs to start after the Docker network has been set up with `npm run env:start`.
-      - name: Start the Memcached server.
-        if: ${{ matrix.memcached }}
-        run: |
-          cp tests/phpunit/includes/object-cache.php src/wp-content/object-cache.php
-          docker run --name memcached --net $(basename "$PWD")_wpdevnet -d memcached
 
       - name: General debug information
         run: |
@@ -202,28 +191,24 @@ jobs:
 
       - name: Run PHPUnit tests
         if: ${{ matrix.php >= '7.0' }}
-        continue-on-error: ${{ matrix.php == '8.1' }}
         run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }}
 
       - name: Run AJAX tests
         if: ${{ ! matrix.split_slow }}
-        continue-on-error: ${{ matrix.php == '8.1' }}
         run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ajax
 
       - name: Run ms-files tests as a multisite install
         if: ${{ matrix.multisite && ! matrix.split_slow }}
-        continue-on-error: ${{ matrix.php == '8.1' }}
         run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c tests/phpunit/multisite.xml --group ms-files
 
       - name: Run external HTTP tests
         if: ${{ ! matrix.multisite && ! matrix.split_slow }}
-        continue-on-error: ${{ matrix.php == '8.1' }}
         run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c phpunit.xml.dist --group external-http
 
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
-      - name: Run (xDebug) tests
-        if: ${{ ! matrix.split_slow }}
-        continue-on-error: ${{ matrix.php == '8.1' }}
+      # This test group is not (yet) run against PHP 8.2 as there is no stable Xdebug version available yet for PHP 8.2.
+      - name: Run (Xdebug) tests
+        if: ${{ ! matrix.split_slow && matrix.php != '8.2' }}
         run: LOCAL_PHP_XDEBUG=true node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit -v --group xdebug --exclude-group __fakegroup__
 
       - name: Ensure version-controlled files are not modified or deleted
@@ -231,7 +216,7 @@ jobs:
 
       - name: Checkout the WordPress Test Reporter
         if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/trunk' && matrix.report }}
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
         with:
           repository: 'WordPress/phpunit-test-runner'
           path: 'test-runner'
@@ -254,3 +239,33 @@ jobs:
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-latest
+    needs: [ test-php, slack-notifications ]
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_attempt < 2 &&
+      (
+        needs.test-php.result == 'cancelled' || needs.test-php.result == 'failure'
+      )
+
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@100527700e8b29ca817ac0e0dfbfc5e8ff38edda # v6.3.2
+        with:
+          retries: 2
+          retry-exempt-status-codes: 418
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: 'trunk',
+              inputs: {
+                run_id: '${{ github.run_id }}'
+              }
+            });

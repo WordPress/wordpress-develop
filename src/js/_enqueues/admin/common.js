@@ -617,7 +617,7 @@ window.screenMeta = {
 		 * @return {void}
 		 */
 		panel.slideDown( 'fast', function() {
-			panel.trigger( 'focus' );
+			panel.removeClass( 'hidden' ).trigger( 'focus' );
 			button.addClass( 'screen-meta-active' ).attr( 'aria-expanded', true );
 		});
 
@@ -646,6 +646,7 @@ window.screenMeta = {
 			button.removeClass( 'screen-meta-active' ).attr( 'aria-expanded', false );
 			$('.screen-meta-toggle').css('visibility', '');
 			panel.parent().hide();
+			panel.addClass( 'hidden' );
 		});
 
 		$document.trigger( 'screen:options:close' );
@@ -751,8 +752,14 @@ $availableStructureTags.on( 'click', function() {
 	    selectionStart          = $permalinkStructure[ 0 ].selectionStart,
 	    selectionEnd            = $permalinkStructure[ 0 ].selectionEnd,
 	    textToAppend            = $( this ).text().trim(),
-	    textToAnnounce          = $( this ).attr( 'data-added' ),
+	    textToAnnounce,
 	    newSelectionStart;
+
+	if ( $( this ).hasClass( 'active' ) ) {
+		textToAnnounce = $( this ).attr( 'data-removed' );
+	} else {
+		textToAnnounce = $( this ).attr( 'data-added' );
+	}
 
 	// Remove structure tag if already part of the structure.
 	if ( -1 !== permalinkStructureValue.indexOf( textToAppend ) ) {
@@ -931,7 +938,7 @@ $( function() {
 			adjustment = maxtop;
 		}
 
-		if ( adjustment > 1 ) {
+		if ( adjustment > 1 && $('#wp-admin-bar-menu-toggle').is(':hidden') ) {
 			$submenu.css( 'margin-top', '-' + adjustment + 'px' );
 		} else {
 			$submenu.css( 'margin-top', '' );

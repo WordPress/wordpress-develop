@@ -350,8 +350,8 @@ class PHPMailer
     public $Password = '';
 
     /**
-     * SMTP auth type.
-     * Options are CRAM-MD5, LOGIN, PLAIN, XOAUTH2, attempted in that order if not specified.
+     * SMTP authentication type. Options are CRAM-MD5, LOGIN, PLAIN, XOAUTH2.
+     * If not specified, the first one from that list that the server supports will be selected.
      *
      * @var string
      */
@@ -750,7 +750,7 @@ class PHPMailer
      *
      * @var string
      */
-    const VERSION = '6.6.3';
+    const VERSION = '6.6.5';
 
     /**
      * Error severity: message only, continue processing.
@@ -1096,7 +1096,7 @@ class PHPMailer
 
             return false;
         }
-        if ($name !== null) {
+        if ($name !== null && is_string($name)) {
             $name = trim(preg_replace('/[\r\n]+/', '', $name)); //Strip breaks and trim
         } else {
             $name = '';
@@ -1288,7 +1288,7 @@ class PHPMailer
      */
     public function setFrom($address, $name = '', $auto = true)
     {
-        $address = trim($address);
+        $address = trim((string)$address);
         $name = trim(preg_replace('/[\r\n]+/', '', $name)); //Strip breaks and trim
         //Don't validate now addresses with IDN. Will be done in send().
         $pos = strrpos($address, '@');
@@ -1673,7 +1673,7 @@ class PHPMailer
                     return $this->mailSend($this->MIMEHeader, $this->MIMEBody);
             }
         } catch (Exception $exc) {
-            if ($this->Mailer === 'smtp' && $this->SMTPKeepAlive == true) {
+            if ($this->Mailer === 'smtp' && $this->SMTPKeepAlive == true && $this->smtp->connected()) {
                 $this->smtp->reset();
             }
             $this->setError($exc->getMessage());
@@ -1865,7 +1865,7 @@ class PHPMailer
         if (!static::isPermittedPath($path)) {
             return false;
         }
-        $readable = file_exists($path);
+        $readable = is_file($path);
         //If not a UNC path (expected to start with \\), check read permission, see #2069
         if (strpos($path, '\\\\') !== 0) {
             $readable = $readable && is_readable($path);
@@ -1893,7 +1893,14 @@ class PHPMailer
         foreach ($this->to as $toaddr) {
             $toArr[] = $this->addrFormat($toaddr);
         }
-        $to = implode(', ', $toArr);
+        $to = trim(implode(', ', $toArr));
+
+        //If there are no To-addresses (e.g. when sending only to BCC-addresses)
+        //the following should be added to get a correct DKIM-signature.
+        //Compare with $this->preSend()
+        if ($to === '') {
+            $to = 'undisclosed-recipients:;';
+        }
 
         $params = null;
         //This sets the SMTP envelope sender which gets turned into a return-path header by the receiver
@@ -2096,6 +2103,9 @@ class PHPMailer
         $this->smtp->setDebugLevel($this->SMTPDebug);
         $this->smtp->setDebugOutput($this->Debugoutput);
         $this->smtp->setVerp($this->do_verp);
+        if ($this->Host === null) {
+            $this->Host = 'localhost';
+        }
         $hosts = explode(';', $this->Host);
         $lastexception = null;
 
@@ -4472,6 +4482,7 @@ class PHPMailer
             'ics' => 'text/calendar',
             'xml' => 'text/xml',
             'xsl' => 'text/xml',
+            'csv' => 'text/csv',
             'wmv' => 'video/x-ms-wmv',
             'mpeg' => 'video/mpeg',
             'mpe' => 'video/mpeg',

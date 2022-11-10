@@ -51,6 +51,7 @@ define( 'ARRAY_N', 'ARRAY_N' );
  *
  * @since 0.71
  */
+#[AllowDynamicProperties]
 class wpdb {
 
 	/**
@@ -339,9 +340,18 @@ class wpdb {
 		'signups',
 		'site',
 		'sitemeta',
-		'sitecategories',
 		'registration_log',
 	);
+
+	/**
+	 * List of deprecated WordPress Multisite global tables.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @see wpdb::tables()
+	 * @var string[]
+	 */
+	public $old_ms_global_tables = array( 'sitecategories' );
 
 	/**
 	 * WordPress Comments table.
@@ -643,41 +653,6 @@ class wpdb {
 		'TRADITIONAL',
 		'ANSI',
 	);
-
-	/**
-	 * Backward compatibility, where wpdb::prepare() has not quoted formatted/argnum placeholders.
-	 *
-	 * Historically this could be used for table/field names, or for some string formatting, e.g.
-	 *
-	 *     $wpdb->prepare( 'WHERE `%1s` = "%1s something %1s" OR %1$s = "%-10s"', 'field_1', 'a', 'b', 'c' );
-	 *
-	 * But it's risky, e.g. forgetting to add quotes, resulting in SQL Injection vulnerabilities:
-	 *
-	 *     $wpdb->prepare( 'WHERE (id = %1s) OR (id = %2$s)', $_GET['id'], $_GET['id'] ); // ?id=id
-	 *
-	 * This feature is preserved while plugin authors update their code to use safer approaches:
-	 *
-	 *     $wpdb->prepare( 'WHERE %1s = %s', $_GET['key'], $_GET['value'] );
-	 *     $wpdb->prepare( 'WHERE %i  = %s', $_GET['key'], $_GET['value'] );
-	 *
-	 * While changing to false will be fine for queries not using formatted/argnum placeholders,
-	 * any remaining cases are most likely going to result in SQL errors (good, in a way):
-	 *
-	 *     $wpdb->prepare( 'WHERE %1s = "%-10s"', 'my_field', 'my_value' );
-	 *     true  = WHERE my_field = "my_value  "
-	 *     false = WHERE 'my_field' = "'my_value  '"
-	 *
-	 * But there may be some queries that result in an SQL Injection vulnerability:
-	 *
-	 *     $wpdb->prepare( 'WHERE id = %1s', $_GET['id'] ); // ?id=id
-	 *
-	 * So there may need to be a `_doing_it_wrong()` phase, after we know everyone can use
-	 * identifier placeholders (%i), but before this feature is disabled or removed.
-	 *
-	 * @since 6.1.0
-	 * @var bool
-	 */
-	private $allow_unsafe_unquoted_parameters = true;
 
 	/**
 	 * Whether to use mysqli over mysql. Default false.
@@ -1122,11 +1097,13 @@ class wpdb {
 	 * - 'old' - returns tables which are deprecated.
 	 *
 	 * @since 3.0.0
+	 * @since 6.1.0 `old` now includes deprecated multisite global tables only on multisite.
 	 *
 	 * @uses wpdb::$tables
 	 * @uses wpdb::$old_tables
 	 * @uses wpdb::$global_tables
 	 * @uses wpdb::$ms_global_tables
+	 * @uses wpdb::$old_ms_global_tables
 	 *
 	 * @param string $scope   Optional. Possible values include 'all', 'global', 'ms_global', 'blog',
 	 *                        or 'old' tables. Default 'all'.
@@ -1158,6 +1135,9 @@ class wpdb {
 				break;
 			case 'old':
 				$tables = $this->old_tables;
+				if ( is_multisite() ) {
+					$tables = array_merge( $tables, $this->old_ms_global_tables );
+				}
 				break;
 			default:
 				return array();
@@ -1383,37 +1363,6 @@ class wpdb {
 	}
 
 	/**
-	 * Escapes an identifier for a MySQL database, e.g. table/field names.
-	 *
-	 * @since 6.1.0
-	 *
-	 * @param string $identifier Identifier to escape.
-	 * @return string Escaped identifier.
-	 */
-	public function escape_identifier( $identifier ) {
-		return '`' . $this->_escape_identifier_value( $identifier ) . '`';
-	}
-
-	/**
-	 * Escapes an identifier value without adding the surrounding quotes.
-	 *
-	 * - Permitted characters in quoted identifiers include the full Unicode
-	 *   Basic Multilingual Plane (BMP), except U+0000.
-	 * - To quote the identifier itself, you need to double the character, e.g. `a``b`.
-	 *
-	 * @since 6.1.0
-	 * @access private
-	 *
-	 * @link https://dev.mysql.com/doc/refman/8.0/en/identifiers.html
-	 *
-	 * @param string $identifier Identifier to escape.
-	 * @return string Escaped identifier.
-	 */
-	private function _escape_identifier_value( $identifier ) {
-		return str_replace( '`', '``', $identifier );
-	}
-
-	/**
 	 * Prepares a SQL query for safe execution.
 	 *
 	 * Uses sprintf()-like syntax. The following placeholders can be used in the query string:
@@ -1421,7 +1370,6 @@ class wpdb {
 	 * - %d (integer)
 	 * - %f (float)
 	 * - %s (string)
-	 * - %i (identifier, e.g. table/field names)
 	 *
 	 * All placeholders MUST be left unquoted in the query string. A corresponding argument
 	 * MUST be passed for each placeholder.
@@ -1454,10 +1402,6 @@ class wpdb {
 	 * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
 	 *              by updating the function signature. The second parameter was changed
 	 *              from `$args` to `...$args`.
-	 * @since 6.1.0 Added `%i` for identifiers, e.g. table or field names.
-	 *              Check support via `wpdb::has_cap( 'identifier_placeholders' )`.
-	 *              This preserves compatibility with sprintf(), as the C version uses
-	 *              `%d` and `$i` as a signed integer, whereas PHP only supports `%d`.
 	 *
 	 * @link https://www.php.net/sprintf Description of syntax.
 	 *
@@ -1489,6 +1433,28 @@ class wpdb {
 			);
 		}
 
+		// If args were passed as an array (as in vsprintf), move them up.
+		$passed_as_array = false;
+		if ( isset( $args[0] ) && is_array( $args[0] ) && 1 === count( $args ) ) {
+			$passed_as_array = true;
+			$args            = $args[0];
+		}
+
+		foreach ( $args as $arg ) {
+			if ( ! is_scalar( $arg ) && ! is_null( $arg ) ) {
+				wp_load_translations_early();
+				_doing_it_wrong(
+					'wpdb::prepare',
+					sprintf(
+						/* translators: %s: Value type. */
+						__( 'Unsupported value type (%s).' ),
+						gettype( $arg )
+					),
+					'4.8.2'
+				);
+			}
+		}
+
 		/*
 		 * Specify the formatting allowed in a placeholder. The following are allowed:
 		 *
@@ -1509,106 +1475,20 @@ class wpdb {
 		 */
 		$query = str_replace( "'%s'", '%s', $query ); // Strip any existing single quotes.
 		$query = str_replace( '"%s"', '%s', $query ); // Strip any existing double quotes.
+		$query = preg_replace( '/(?<!%)%s/', "'%s'", $query ); // Quote the strings, avoiding escaped strings like %%s.
 
-		// Escape any unescaped percents (i.e. anything unrecognised).
-		$query = preg_replace( "/%(?:%|$|(?!($allowed_format)?[sdfFi]))/", '%%\\1', $query );
+		$query = preg_replace( "/(?<!%)(%($allowed_format)?f)/", '%\\2F', $query ); // Force floats to be locale-unaware.
 
-		// Extract placeholders from the query.
-		$split_query = preg_split( "/(^|[^%]|(?:%%)+)(%(?:$allowed_format)?[sdfFi])/", $query, -1, PREG_SPLIT_DELIM_CAPTURE );
+		$query = preg_replace( "/%(?:%|$|(?!($allowed_format)?[sdF]))/", '%%\\1', $query ); // Escape any unescaped percents.
 
-		$split_query_count = count( $split_query );
-		/*
-		 * Split always returns with 1 value before the first placeholder (even with $query = "%s"),
-		 * then 3 additional values per placeholder.
-		 */
-		$placeholder_count = ( ( $split_query_count - 1 ) / 3 );
-
-		// If args were passed as an array, as in vsprintf(), move them up.
-		$passed_as_array = ( isset( $args[0] ) && is_array( $args[0] ) && 1 === count( $args ) );
-		if ( $passed_as_array ) {
-			$args = $args[0];
-		}
-
-		$new_query       = '';
-		$key             = 2; // Keys 0 and 1 in $split_query contain values before the first placeholder.
-		$arg_id          = 0;
-		$arg_identifiers = array();
-		$arg_strings     = array();
-
-		while ( $key < $split_query_count ) {
-			$placeholder = $split_query[ $key ];
-
-			$format = substr( $placeholder, 1, -1 );
-			$type   = substr( $placeholder, -1 );
-
-			if ( 'f' === $type ) { // Force floats to be locale-unaware.
-				$type        = 'F';
-				$placeholder = '%' . $format . $type;
-			}
-
-			if ( 'i' === $type ) {
-				$placeholder = '`%' . $format . 's`';
-				// Using a simple strpos() due to previous checking (e.g. $allowed_format).
-				$argnum_pos = strpos( $format, '$' );
-
-				if ( false !== $argnum_pos ) {
-					// sprintf() argnum starts at 1, $arg_id from 0.
-					$arg_identifiers[] = ( intval( substr( $format, 0, $argnum_pos ) ) - 1 );
-				} else {
-					$arg_identifiers[] = $arg_id;
-				}
-			} elseif ( 'd' !== $type && 'F' !== $type ) {
-				/*
-				 * i.e. ( 's' === $type ), where 'd' and 'F' keeps $placeholder unchanged,
-				 * and we ensure string escaping is used as a safe default (e.g. even if 'x').
-				 */
-				$argnum_pos = strpos( $format, '$' );
-
-				if ( false !== $argnum_pos ) {
-					$arg_strings[] = ( intval( substr( $format, 0, $argnum_pos ) ) - 1 );
-				}
-
-				// Unquoted strings for backward compatibility (dangerous).
-				if ( true !== $this->allow_unsafe_unquoted_parameters || '' === $format ) {
-					$placeholder = "'%" . $format . "s'";
-				}
-			}
-
-			// Glue (-2), any leading characters (-1), then the new $placeholder.
-			$new_query .= $split_query[ $key - 2 ] . $split_query[ $key - 1 ] . $placeholder;
-
-			$key += 3;
-			$arg_id++;
-		}
-
-		// Replace $query; and add remaining $query characters, or index 0 if there were no placeholders.
-		$query = $new_query . $split_query[ $key - 2 ];
-
-		$dual_use = array_intersect( $arg_identifiers, $arg_strings );
-
-		if ( count( $dual_use ) ) {
-			wp_load_translations_early();
-			_doing_it_wrong(
-				'wpdb::prepare',
-				sprintf(
-					/* translators: %s: A comma-separated list of arguments found to be a problem. */
-					__( 'Arguments (%s) cannot be used for both String and Identifier escaping.' ),
-					implode( ', ', $dual_use )
-				),
-				'6.1.0'
-			);
-
-			return;
-		}
+		// Count the number of valid placeholders in the query.
+		$placeholders = preg_match_all( "/(^|[^%]|(%%)+)%($allowed_format)?[sdF]/", $query, $matches );
 
 		$args_count = count( $args );
 
-		if ( $args_count !== $placeholder_count ) {
-			if ( 1 === $placeholder_count && $passed_as_array ) {
-				/*
-				 * If the passed query only expected one argument,
-				 * but the wrong number of arguments was sent as an array, bail.
-				 */
+		if ( $args_count !== $placeholders ) {
+			if ( 1 === $placeholders && $passed_as_array ) {
+				// If the passed query only expected one argument, but the wrong number of arguments were sent as an array, bail.
 				wp_load_translations_early();
 				_doing_it_wrong(
 					'wpdb::prepare',
@@ -1629,7 +1509,7 @@ class wpdb {
 					sprintf(
 						/* translators: 1: Number of placeholders, 2: Number of arguments passed. */
 						__( 'The query does not contain the correct number of placeholders (%1$d) for the number of arguments passed (%2$d).' ),
-						$placeholder_count,
+						$placeholders,
 						$args_count
 					),
 					'4.8.3'
@@ -1639,17 +1519,8 @@ class wpdb {
 				 * If we don't have enough arguments to match the placeholders,
 				 * return an empty string to avoid a fatal error on PHP 8.
 				 */
-				if ( $args_count < $placeholder_count ) {
-					$max_numbered_placeholder = 0;
-
-					for ( $i = 2, $l = $split_query_count; $i < $l; $i += 3 ) {
-						// Assume a leading number is for a numbered placeholder, e.g. '%3$s'.
-						$argnum = intval( substr( $split_query[ $i ], 1 ) );
-
-						if ( $max_numbered_placeholder < $argnum ) {
-							$max_numbered_placeholder = $argnum;
-						}
-					}
+				if ( $args_count < $placeholders ) {
+					$max_numbered_placeholder = ! empty( $matches[3] ) ? max( array_map( 'intval', $matches[3] ) ) : 0;
 
 					if ( ! $max_numbered_placeholder || $args_count < $max_numbered_placeholder ) {
 						return '';
@@ -1658,35 +1529,8 @@ class wpdb {
 			}
 		}
 
-		$args_escaped = array();
-
-		foreach ( $args as $i => $value ) {
-			if ( in_array( $i, $arg_identifiers, true ) ) {
-				$args_escaped[] = $this->_escape_identifier_value( $value );
-			} elseif ( is_int( $value ) || is_float( $value ) ) {
-				$args_escaped[] = $value;
-			} else {
-				if ( ! is_scalar( $value ) && ! is_null( $value ) ) {
-					wp_load_translations_early();
-					_doing_it_wrong(
-						'wpdb::prepare',
-						sprintf(
-							/* translators: %s: Value type. */
-							__( 'Unsupported value type (%s).' ),
-							gettype( $value )
-						),
-						'4.8.2'
-					);
-
-					// Preserving old behavior, where values are escaped as strings.
-					$value = '';
-				}
-
-				$args_escaped[] = $this->_real_escape( $value );
-			}
-		}
-
-		$query = vsprintf( $query, $args_escaped );
+		array_walk( $args, array( $this, 'escape_by_ref' ) );
+		$query = vsprintf( $query, $args );
 
 		return $this->add_placeholder_escape( $query );
 	}
@@ -3376,12 +3220,21 @@ class wpdb {
 		}
 
 		// If any of the columns don't have one of these collations, it needs more sanity checking.
+		$safe_collations = array(
+			'utf8_bin',
+			'utf8_general_ci',
+			'utf8mb3_bin',
+			'utf8mb3_general_ci',
+			'utf8mb4_bin',
+			'utf8mb4_general_ci',
+		);
+
 		foreach ( $this->col_meta[ $table ] as $col ) {
 			if ( empty( $col->Collation ) ) {
 				continue;
 			}
 
-			if ( ! in_array( $col->Collation, array( 'utf8_general_ci', 'utf8_bin', 'utf8mb4_general_ci', 'utf8mb4_bin' ), true ) ) {
+			if ( ! in_array( $col->Collation, $safe_collations, true ) ) {
 				return false;
 			}
 		}
@@ -3926,27 +3779,35 @@ class wpdb {
 	 * @since 2.7.0
 	 * @since 4.1.0 Added support for the 'utf8mb4' feature.
 	 * @since 4.6.0 Added support for the 'utf8mb4_520' feature.
-	 * @since 6.1.0 Added support for the 'identifier_placeholders' feature.
 	 *
 	 * @see wpdb::db_version()
 	 *
 	 * @param string $db_cap The feature to check for. Accepts 'collation', 'group_concat',
-	 *                       'subqueries', 'set_charset', 'utf8mb4', 'utf8mb4_520',
-	 *                       or 'identifier_placeholders'.
+	 *                       'subqueries', 'set_charset', 'utf8mb4', or 'utf8mb4_520'.
 	 * @return bool True when the database feature is supported, false otherwise.
 	 */
 	public function has_cap( $db_cap ) {
-		$version = $this->db_version();
+		$db_version     = $this->db_version();
+		$db_server_info = $this->db_server_info();
+
+		// Account for MariaDB version being prefixed with '5.5.5-' on older PHP versions.
+		if ( '5.5.5' === $db_version && str_contains( $db_server_info, 'MariaDB' )
+			&& PHP_VERSION_ID < 80016 // PHP 8.0.15 or older.
+		) {
+			// Strip the '5.5.5-' prefix and set the version to the correct value.
+			$db_server_info = preg_replace( '/^5\.5\.5-(.*)/', '$1', $db_server_info );
+			$db_version     = preg_replace( '/[^0-9.].*/', '', $db_server_info );
+		}
 
 		switch ( strtolower( $db_cap ) ) {
 			case 'collation':    // @since 2.5.0
 			case 'group_concat': // @since 2.7.0
 			case 'subqueries':   // @since 2.7.0
-				return version_compare( $version, '4.1', '>=' );
+				return version_compare( $db_version, '4.1', '>=' );
 			case 'set_charset':
-				return version_compare( $version, '5.0.7', '>=' );
+				return version_compare( $db_version, '5.0.7', '>=' );
 			case 'utf8mb4':      // @since 4.1.0
-				if ( version_compare( $version, '5.5.3', '<' ) ) {
+				if ( version_compare( $db_version, '5.5.3', '<' ) ) {
 					return false;
 				}
 				if ( $this->use_mysqli ) {
@@ -3966,13 +3827,7 @@ class wpdb {
 					return version_compare( $client_version, '5.5.3', '>=' );
 				}
 			case 'utf8mb4_520': // @since 4.6.0
-				return version_compare( $version, '5.6', '>=' );
-			case 'identifier_placeholders': // @since 6.1.0
-				/*
-				 * As of WordPress 6.1, wpdb::prepare() supports identifiers via '%i',
-				 * e.g. table/field names.
-				 */
-				return true;
+				return version_compare( $db_version, '5.6', '>=' );
 		}
 
 		return false;

@@ -12,6 +12,7 @@
  *
  * @since 3.3.0
  */
+#[AllowDynamicProperties]
 final class WP_Screen {
 	/**
 	 * Any action associated with the screen.
@@ -211,6 +212,7 @@ final class WP_Screen {
 			return $hook_name;
 		}
 
+		$id              = '';
 		$post_type       = null;
 		$taxonomy        = null;
 		$in_admin        = false;
@@ -219,7 +221,7 @@ final class WP_Screen {
 
 		if ( $hook_name ) {
 			$id = $hook_name;
-		} else {
+		} elseif ( ! empty( $GLOBALS['hook_suffix'] ) ) {
 			$id = $GLOBALS['hook_suffix'];
 		}
 
@@ -1114,7 +1116,7 @@ final class WP_Screen {
 		<legend><?php _e( 'Screen elements' ); ?></legend>
 		<p>
 			<?php _e( 'Some screen elements can be shown or hidden by using the checkboxes.' ); ?>
-			<?php _e( 'They can be expanded and collapsed by clickling on their headings, and arranged by dragging their headings or by clicking on the up and down arrows.' ); ?>
+			<?php _e( 'Expand or collapse the elements by clicking on their headings, and arrange them by dragging their headings or by clicking on the up and down arrows.' ); ?>
 		</p>
 		<?php
 
