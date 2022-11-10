@@ -3162,8 +3162,6 @@ EOF;
 		$this->assertStringNotContainsString( ' loading=', $img );
 	}
 
-
-
 	/**
 	 * Test that decoding="async" is not applied to img tags with single quotes.
 	 *
