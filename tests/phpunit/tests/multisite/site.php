@@ -687,10 +687,10 @@ if ( is_multisite() ) :
 		}
 
 		/**
-		 * Tests returning the appropriate response for a invalid id given.
+		 * Tests returning an empty string for a non-existing ID.
 		 */
 		public function test_get_blogaddress_by_id_with_invalid_id() {
-			$blogaddress = get_blogaddress_by_id( 42 );
+			$blogaddress = get_blogaddress_by_id( PHP_INT_MAX );
 			$this->assertSame( '', $blogaddress );
 		}
 
