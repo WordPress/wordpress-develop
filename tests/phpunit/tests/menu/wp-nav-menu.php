@@ -94,6 +94,7 @@ class Tests_Menu_wpNavMenu extends WP_UnitTestCase {
 	 * when displaying the menu without specifying a custom depth.
 	 *
 	 * @ticket 28620
+	 * @ticket 56946
 	 */
 	public function test_wp_nav_menu_should_have_has_children_class_without_custom_depth() {
 
@@ -147,6 +148,7 @@ class Tests_Menu_wpNavMenu extends WP_UnitTestCase {
 	 * `menu-item-has-children` even if it's the case when displaying the full menu.
 	 *
 	 * @ticket 28620
+	 * @ticket 56946
 	 */
 	public function test_wp_nav_menu_should_not_have_has_children_class_with_custom_depth() {
 
