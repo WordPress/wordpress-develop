@@ -1932,36 +1932,31 @@ class WP_Theme_JSON {
 	 * @since 6.1.1
 	 *
 	 * @param array $declarations List of declarations.
-	 *
 	 * @return array $declarations List of declarations filtered.
 	 */
 	private static function update_separator_declarations( $declarations ) {
 		$background_matches = array_values(
 			array_filter(
 				$declarations,
-				function( $declaration ) {
+				static function( $declaration ) {
 					return 'background-color' === $declaration['name'];
 				}
 			)
 		);
-		if ( ! empty( $background_matches && isset( $background_matches[0]['value'] ) ) ) {
-			$border_color_matches = array_values(
-				array_filter(
-					$declarations,
-					function( $declaration ) {
-						return 'border-color' === $declaration['name'];
-					}
-				)
-			);
-			$text_color_matches   = array_values(
-				array_filter(
-					$declarations,
-					function( $declaration ) {
-						return 'color' === $declaration['name'];
-					}
-				)
-			);
-			if ( empty( $border_color_matches ) && empty( $text_color_matches ) ) {
+
+		if ( isset( $background_matches[0]['value'] ) ) {
+			$border_color_matches = false;
+			$text_color_matches   = false;
+
+			foreach ( $declarations as $declaration ) {
+				if ( 'border-color' === $declaration['name'] ) {
+					$border_color_matches = true;
+				} elseif ( 'color' === $declaration['name'] ) {
+					$text_color_matches = true;
+				}
+			}
+
+			if ( ! $border_color_matches && ! $text_color_matches ) {
 				$declarations[] = array(
 					'name'  => 'color',
 					'value' => $background_matches[0]['value'],

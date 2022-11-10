@@ -3999,116 +3999,94 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests the core separator block outbut based on various provided settings.
+	 *
 	 * @ticket 56903
+	 *
+	 * @dataProvider data_update_separator_declarations
+	 *
+	 * @param array $separator_block_settings Example separator block settings from the data provider.
+	 * @param array $expected_output          Expected output from data provider.
 	 */
-	function test_update_separator_declarations() {
+	public function test_update_separator_declarations( $separator_block_settings, $expected_output ) {
 		// If only background is defined, test that includes border-color to the style so it is applied on the front end.
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 				'styles'  => array(
 					'blocks' => array(
-						'core/separator' => array(
-							'color' => array(
-								'background' => 'blue',
-							),
-						),
+						'core/separator' => $separator_block_settings,
 					),
 				),
 			),
 			'default'
 		);
-		$expected   = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-block-separator{background-color: blue;color: blue;}';
-		$stylesheet = $theme_json->get_stylesheet( array( 'styles' ) );
-		$this->assertEquals( $expected, $stylesheet );
 
-		// If background and text are defined, do not include border-color, as text color is enough.
-		$theme_json = new WP_Theme_JSON(
-			array(
-				'version' => WP_Theme_JSON::LATEST_SCHEMA,
-				'styles'  => array(
-					'blocks' => array(
-						'core/separator' => array(
-							'color' => array(
-								'background' => 'blue',
-								'text'       => 'red',
-							),
-						),
+		$stylesheet = $theme_json->get_stylesheet( array( 'styles' ) );
+
+		$this->assertSame( $expected_output, $stylesheet );
+	}
+
+	/**
+	 * Data provider for separator declaration tests.
+	 *
+	 * @return array
+	 */
+	function data_update_separator_declarations() {
+		return array(
+			// If only background is defined, test that includes border-color to the style so it is applied on the front end.
+			'only background'  => array(
+				array(
+					'color' => array(
+						'background' => 'blue',
 					),
 				),
+				'expected_output' => 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-block-separator{background-color: blue;color: blue;}',
 			),
-			'default'
-		);
-		$expected   = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-block-separator{background-color: blue;color: red;}';
-		$stylesheet = $theme_json->get_stylesheet( array( 'styles' ) );
-		$this->assertEquals( $expected, $stylesheet );
-
-		// If only text is defined, do not include border-color, as by itself is enough.
-		$theme_json = new WP_Theme_JSON(
-			array(
-				'version' => WP_Theme_JSON::LATEST_SCHEMA,
-				'styles'  => array(
-					'blocks' => array(
-						'core/separator' => array(
-							'color' => array(
-								'text' => 'red',
-							),
-						),
+			// If background and text are defined, do not include border-color, as text color is enough.
+			'background and text, no border-color'  => array(
+				array(
+					'color' => array(
+						'background' => 'blue',
+						'text'       => 'red',
 					),
 				),
+				'expected_output' => 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-block-separator{background-color: blue;color: red;}',
 			),
-			'default'
-		);
-		$expected   = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-block-separator{color: red;}';
-		$stylesheet = $theme_json->get_stylesheet( array( 'styles' ) );
-		$this->assertEquals( $expected, $stylesheet );
-
-		// If background, text, and border-color are defined, include everything, CSS specifity will decide which to apply.
-		$theme_json = new WP_Theme_JSON(
-			array(
-				'version' => WP_Theme_JSON::LATEST_SCHEMA,
-				'styles'  => array(
-					'blocks' => array(
-						'core/separator' => array(
-							'color'  => array(
-								'background' => 'blue',
-								'text'       => 'red',
-							),
-							'border' => array(
-								'color' => 'pink',
-							),
-						),
+			// If only text is defined, do not include border-color, as by itself is enough.
+			'only text'  => array(
+				array(
+					'color' => array(
+						'text' => 'red',
 					),
 				),
+				'expected_output' => 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-block-separator{color: red;}',
 			),
-			'default'
-		);
-		$expected   = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-block-separator{background-color: blue;border-color: pink;color: red;}';
-		$stylesheet = $theme_json->get_stylesheet( array( 'styles' ) );
-		$this->assertEquals( $expected, $stylesheet );
-
-		// If background and border color are defined, include everything, CSS specifity will decide which to apply.
-		$theme_json = new WP_Theme_JSON(
-			array(
-				'version' => WP_Theme_JSON::LATEST_SCHEMA,
-				'styles'  => array(
-					'blocks' => array(
-						'core/separator' => array(
-							'color'  => array(
-								'background' => 'blue',
-							),
-							'border' => array(
-								'color' => 'pink',
-							),
-						),
+			// If background, text, and border-color are defined, include everything, CSS specifity will decide which to apply.
+			'background, text, and border-color'  => array(
+				array(
+					'color'  => array(
+						'background' => 'blue',
+						'text'       => 'red',
+					),
+					'border' => array(
+						'color' => 'pink',
 					),
 				),
+				'expected_output' => 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-block-separator{background-color: blue;border-color: pink;color: red;}',
 			),
-			'default'
+			// If background and border color are defined, include everything, CSS specifity will decide which to apply.
+			'background, text, and border-color'  => array(
+				array(
+					'color'  => array(
+						'background' => 'blue',
+					),
+					'border' => array(
+						'color' => 'pink',
+					),
+				),
+				'expected_output' => 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-block-separator{background-color: blue;border-color: pink;}',
+			),
 		);
-		$expected   = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-block-separator{background-color: blue;border-color: pink;}';
-		$stylesheet = $theme_json->get_stylesheet( array( 'styles' ) );
-		$this->assertEquals( $expected, $stylesheet );
-
 	}
 }
