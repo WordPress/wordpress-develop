@@ -3177,7 +3177,7 @@ EOF;
 	}
 
 	/**
-	 * Test that decoding="async" os not applied to img tags inside JSON.
+	 * Test that decoding="async" is not applied to img tags inside JSON.
 	 *
 	 * @ticket 56969
 	 */
