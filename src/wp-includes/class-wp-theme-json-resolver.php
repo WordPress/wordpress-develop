@@ -412,8 +412,13 @@ class WP_Theme_JSON_Resolver {
 			$theme = wp_get_theme();
 		}
 
-		// Bail early if the theme does not support a theme.json. Since WP_Theme_JSON_Resolver::theme_has_support()
-		// only supports the active theme, the extra condition for whether $theme is the active theme is present here.
+		/*
+		 * Bail early if the theme does not support a theme.json.
+		 *
+		 * Since WP_Theme_JSON_Resolver::theme_has_support() only supports the active
+		 * theme, the extra condition for whether $theme is the active theme is
+		 * present here.
+		 */
 		if ( $theme->get_stylesheet() === get_stylesheet() && ! static::theme_has_support() ) {
 			return array();
 		}
