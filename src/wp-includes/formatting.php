@@ -5020,9 +5020,8 @@ function map_deep( $value, $callback ) {
 			if ( 0 === ord( $property_name ) ) {
 				continue;
 			}
-			$property_value = map_deep( $property_value, $callback );
+			$property_name = map_deep( $property_value, $callback );
 		}
-		unset( $property_value );
 	} else {
 		$value = call_user_func( $callback, $value );
 	}
