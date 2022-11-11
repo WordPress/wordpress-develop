@@ -1287,7 +1287,7 @@ function wp_default_scripts( $scripts ) {
 			'invalidValue'            => __( 'Invalid value.' ),
 			'blockThemeNotification'  => sprintf(
 				/* translators: 1: Link to Site Editor documentation on HelpHub, 2: HTML button. */
-				__( 'Hurray! Your theme supports Full Site Editing with blocks. <a href="%1$s">Tell me more</a>. %2$s' ),
+				__( 'Hurray! Your theme supports site editing with blocks. <a href="%1$s">Tell me more</a>. %2$s' ),
 				__( 'https://wordpress.org/support/article/site-editor/' ),
 				sprintf(
 					'<button type="button" data-action="%1$s" class="button switch-to-editor">%2$s</button>',
@@ -3672,7 +3672,8 @@ function wp_add_editor_classic_theme_styles( $editor_settings ) {
 	if ( WP_Theme_JSON_Resolver::theme_has_support() ) {
 		return $editor_settings;
 	}
-	$suffix = wp_scripts_get_suffix();
+
+	$suffix               = wp_scripts_get_suffix();
 	$classic_theme_styles = ABSPATH . WPINC . "/css/classic-themes$suffix.css";
 
 	// This follows the pattern of get_block_editor_theme_styles,
