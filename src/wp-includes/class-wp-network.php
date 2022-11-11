@@ -130,7 +130,7 @@ class WP_Network {
 	 * @param WP_Network|object $network A network object.
 	 */
 	public function __construct( $network ) {
-		foreach ( get_object_vars( $network ) as $key => $value ) {
+		foreach ( wp_get_object_vars( $network ) as $key => $value ) {
 			$this->$key = $value;
 		}
 

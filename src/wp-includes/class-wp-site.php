@@ -193,7 +193,7 @@ final class WP_Site {
 	 * @param WP_Site|object $site A site object.
 	 */
 	public function __construct( $site ) {
-		foreach ( get_object_vars( $site ) as $key => $value ) {
+		foreach ( wp_get_object_vars( $site ) as $key => $value ) {
 			$this->$key = $value;
 		}
 	}
@@ -324,7 +324,7 @@ final class WP_Site {
 			switch_to_blog( $this->blog_id );
 			// Create a raw copy of the object for backward compatibility with the filter below.
 			$details = new stdClass();
-			foreach ( get_object_vars( $this ) as $key => $value ) {
+			foreach ( wp_get_object_vars( $this ) as $key => $value ) {
 				$details->$key = $value;
 			}
 			$details->blogname   = get_option( 'blogname' );

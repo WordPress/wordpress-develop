@@ -2703,7 +2703,7 @@ function sanitize_post( $post, $context = 'display' ) {
 		if ( ! isset( $post->ID ) ) {
 			$post->ID = 0;
 		}
-		foreach ( array_keys( get_object_vars( $post ) ) as $field ) {
+		foreach ( array_keys( wp_get_object_vars( $post ) ) as $field ) {
 			$post->$field = sanitize_post_field( $field, $post->$field, $post->ID, $context );
 		}
 		$post->filter = $context;
