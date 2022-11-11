@@ -605,7 +605,7 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
  *
  * @param string         $blogname   The blog name provided by the user. Must be unique.
  * @param string         $blog_title The blog title provided by the user.
- * @param WP_User|string $user       Optional. The user object to check against the new site name. Default empty.
+ * @param WP_User|string $user       Optional. The user object to check against the new site name. Default empty string.
  * @return array {
  *     Array of domain, path, blog name, blog title, user and error messages.
  *
