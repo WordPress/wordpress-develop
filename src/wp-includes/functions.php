@@ -2036,7 +2036,7 @@ function wp_mkdir_p( $target ) {
 	}
 
 	// Do not allow path traversals.
-	if ( false !== strpos( $target, '../' ) || false !== strpos( $target, '..' . DIRECTORY_SEPARATOR ) ) {
+	if ( str_contains( $target, '../' ) || str_contains( $target, '..' . DIRECTORY_SEPARATOR ) ) {
 		return false;
 	}
 
@@ -2054,13 +2054,13 @@ function wp_mkdir_p( $target ) {
 		$dir_perms = 0777;
 	}
 
-	if ( @mkdir( $target, $dir_perms, true ) ) {
+	if ( mkdir( $target, $dir_perms, true ) || is_dir( $target ) ) {
 
 		/*
 		 * If a umask is set that modifies $dir_perms, we'll have to re-set
 		 * the $dir_perms correctly with chmod()
 		 */
-		if ( ( $dir_perms & ~umask() ) != $dir_perms ) {
+		if ( ( $dir_perms & ~umask() ) !== $dir_perms ) {
 			$folder_parts = explode( '/', substr( $target, strlen( $target_parent ) + 1 ) );
 			for ( $i = 1, $c = count( $folder_parts ); $i <= $c; $i++ ) {
 				chmod( $target_parent . '/' . implode( '/', array_slice( $folder_parts, 0, $i ) ), $dir_perms );
