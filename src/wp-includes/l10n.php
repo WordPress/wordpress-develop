@@ -730,7 +730,7 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 	 * @param bool   $override Whether to override the .mo file loading. Default false.
 	 * @param string $domain   Text domain. Unique identifier for retrieving translated strings.
 	 * @param string $mofile   Path to the MO file.
-	 * @param string $locale   Locale.
+	 * @param string|null $locale   Locale.
 	 */
 	$plugin_override = apply_filters( 'override_load_textdomain', false, $domain, $mofile, $locale );
 
