@@ -1284,8 +1284,8 @@ class WP_Theme_JSON {
 			$node                    = _wp_array_get( $this->theme_json, $metadata['path'], array() );
 			$declarations            = static::compute_preset_vars( $node, $origins );
 			$theme_vars_declarations = static::compute_theme_vars( $node );
-			foreach ( $theme_vars_declarations as $declaration ) {
-				$declarations[] = $declaration;
+			foreach ( $theme_vars_declarations as $theme_vars_declaration ) {
+				$declarations[] = $theme_vars_declaration;
 			}
 
 			$stylesheet .= static::to_ruleset( $selector, $declarations );
