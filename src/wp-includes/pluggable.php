@@ -91,7 +91,6 @@ if ( ! function_exists( 'get_user_by' ) ) :
 	 *
 	 * @since 2.8.0
 	 * @since 4.4.0 Added 'ID' as an alias of 'id' for the `$field` parameter.
-	 * @since 5.8.0 Returns the global `$current_user` if it's the user being fetched.
 	 *
 	 * @global WP_User $current_user The current user object which holds the user data.
 	 *
@@ -100,16 +99,10 @@ if ( ! function_exists( 'get_user_by' ) ) :
 	 * @return WP_User|false WP_User object on success, false on failure.
 	 */
 	function get_user_by( $field, $value ) {
-		global $current_user;
-
 		$userdata = WP_User::get_data_by( $field, $value );
 
 		if ( ! $userdata ) {
 			return false;
-		}
-
-		if ( $current_user instanceof WP_User && $current_user->ID === (int) $userdata->ID ) {
-			return $current_user;
 		}
 
 		$user = new WP_User;
@@ -360,6 +353,8 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		$phpmailer->clearAttachments();
 		$phpmailer->clearCustomHeaders();
 		$phpmailer->clearReplyTos();
+		$phpmailer->Body    = '';
+		$phpmailer->AltBody = '';
 
 		// Set "From" name and email.
 
@@ -1366,7 +1361,7 @@ if ( ! function_exists( 'wp_redirect' ) ) :
 	 * @param string $location      The path or URL to redirect to.
 	 * @param int    $status        Optional. HTTP response status code to use. Default '302' (Moved Temporarily).
 	 * @param string $x_redirect_by Optional. The application doing the redirect. Default 'WordPress'.
-	 * @return bool False if the redirect was cancelled, true otherwise.
+	 * @return bool False if the redirect was canceled, true otherwise.
 	 */
 	function wp_redirect( $location, $status = 302, $x_redirect_by = 'WordPress' ) {
 		global $is_IIS;
@@ -1509,7 +1504,7 @@ if ( ! function_exists( 'wp_safe_redirect' ) ) :
 	 * @param string $location      The path or URL to redirect to.
 	 * @param int    $status        Optional. HTTP response status code to use. Default '302' (Moved Temporarily).
 	 * @param string $x_redirect_by Optional. The application doing the redirect. Default 'WordPress'.
-	 * @return bool False if the redirect was cancelled, true otherwise.
+	 * @return bool False if the redirect was canceled, true otherwise.
 	 */
 	function wp_safe_redirect( $location, $status = 302, $x_redirect_by = 'WordPress' ) {
 
@@ -2245,18 +2240,22 @@ if ( ! function_exists( 'wp_nonce_tick' ) ) :
 	 * updated, e.g. by autosave.
 	 *
 	 * @since 2.5.0
+	 * @since 6.1.0 Added `$action` argument.
 	 *
+	 * @param string|int $action Optional. The nonce action. Default -1.
 	 * @return float Float value rounded up to the next highest integer.
 	 */
-	function wp_nonce_tick() {
+	function wp_nonce_tick( $action = -1 ) {
 		/**
 		 * Filters the lifespan of nonces in seconds.
 		 *
 		 * @since 2.5.0
+		 * @since 6.1.0 Added `$action` argument to allow for more targeted filters.
 		 *
-		 * @param int $lifespan Lifespan of nonces in seconds. Default 86,400 seconds, or one day.
+		 * @param int        $lifespan Lifespan of nonces in seconds. Default 86,400 seconds, or one day.
+		 * @param string|int $action   The nonce action, or -1 if none was provided.
 		 */
-		$nonce_life = apply_filters( 'nonce_life', DAY_IN_SECONDS );
+		$nonce_life = apply_filters( 'nonce_life', DAY_IN_SECONDS, $action );
 
 		return ceil( time() / ( $nonce_life / 2 ) );
 	}
@@ -2286,8 +2285,8 @@ if ( ! function_exists( 'wp_verify_nonce' ) ) :
 			 *
 			 * @since 3.5.0
 			 *
-			 * @param int    $uid    ID of the nonce-owning user.
-			 * @param string $action The nonce action.
+			 * @param int        $uid    ID of the nonce-owning user.
+			 * @param string|int $action The nonce action, or -1 if none was provided.
 			 */
 			$uid = apply_filters( 'nonce_user_logged_out', $uid, $action );
 		}
@@ -2297,7 +2296,7 @@ if ( ! function_exists( 'wp_verify_nonce' ) ) :
 		}
 
 		$token = wp_get_session_token();
-		$i     = wp_nonce_tick();
+		$i     = wp_nonce_tick( $action );
 
 		// Nonce generated 0-12 hours ago.
 		$expected = substr( wp_hash( $i . '|' . $action . '|' . $uid . '|' . $token, 'nonce' ), -12, 10 );
@@ -2347,8 +2346,8 @@ if ( ! function_exists( 'wp_create_nonce' ) ) :
 			$uid = apply_filters( 'nonce_user_logged_out', $uid, $action );
 		}
 
-		$token = wp_get_session_token();
-		$i     = wp_nonce_tick();
+		$token = wp_get_session_token( $action );
+		$i     = wp_nonce_tick( $action );
 
 		return substr( wp_hash( $i . '|' . $action . '|' . $uid . '|' . $token, 'nonce' ), -12, 10 );
 	}
@@ -2404,7 +2403,15 @@ if ( ! function_exists( 'wp_salt' ) ) :
 
 		static $duplicated_keys;
 		if ( null === $duplicated_keys ) {
-			$duplicated_keys = array( 'put your unique phrase here' => true );
+			$duplicated_keys = array(
+				'put your unique phrase here'       => true,
+				/*
+				 * translators: This string should only be translated if wp-config-sample.php is localized.
+				 * You can check the localized release package or
+				 * https://i18n.svn.wordpress.org/<locale code>/branches/<wp version>/dist/wp-config-sample.php
+				 */
+				__( 'put your unique phrase here' ) => true,
+			);
 			foreach ( array( 'AUTH', 'SECURE_AUTH', 'LOGGED_IN', 'NONCE', 'SECRET' ) as $first ) {
 				foreach ( array( 'KEY', 'SALT' ) as $second ) {
 					if ( ! defined( "{$first}_{$second}" ) ) {
@@ -2612,7 +2619,7 @@ endif;
 
 if ( ! function_exists( 'wp_rand' ) ) :
 	/**
-	 * Generates a random number.
+	 * Generates a random non-negative number.
 	 *
 	 * @since 2.6.2
 	 * @since 4.4.0 Uses PHP7 random_int() or the random_compat library if available.
@@ -2624,7 +2631,7 @@ if ( ! function_exists( 'wp_rand' ) ) :
 	 *                 Accepts positive integers or zero. Defaults to 0.
 	 * @param int $max Optional. Upper limit for the generated number.
 	 *                 Accepts positive integers. Defaults to 4294967295.
-	 * @return int A random number between min and max.
+	 * @return int A random non-negative number between min and max.
 	 */
 	function wp_rand( $min = null, $max = null ) {
 		global $rnd_value;

@@ -7,16 +7,18 @@
  * @since 5.2.0
  */
 
+#[AllowDynamicProperties]
 class WP_Site_Health {
 	private static $instance = null;
 
-	private $mysql_min_version_check;
-	private $mysql_rec_version_check;
+	private $is_acceptable_mysql_version;
+	private $is_recommended_mysql_version;
 
-	public $is_mariadb                           = false;
-	private $mysql_server_version                = '';
-	private $health_check_mysql_required_version = '5.5';
-	private $health_check_mysql_rec_version      = '';
+	public $is_mariadb                   = false;
+	private $mysql_server_version        = '';
+	private $mysql_required_version      = '5.5';
+	private $mysql_recommended_version   = '5.7';
+	private $mariadb_recommended_version = '10.3';
 
 	public $php_memory_limit;
 
@@ -55,7 +57,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Output the content of a tab in the Site Health screen.
+	 * Outputs the content of a tab in the Site Health screen.
 	 *
 	 * @since 5.8.0
 	 *
@@ -68,7 +70,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Return an instance of the WP_Site_Health class, or create one if none exist yet.
+	 * Returns an instance of the WP_Site_Health class, or create one if none exist yet.
 	 *
 	 * @since 5.4.0
 	 *
@@ -160,7 +162,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Run a Site Health test directly.
+	 * Runs a Site Health test directly.
 	 *
 	 * @since 5.4.0
 	 *
@@ -193,7 +195,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Run the SQL version checks.
+	 * Runs the SQL version checks.
 	 *
 	 * These values are used in later tests, but the part of preparing them is more easily managed
 	 * early in the class for ease of access and discovery.
@@ -205,29 +207,21 @@ class WP_Site_Health {
 	private function prepare_sql_data() {
 		global $wpdb;
 
-		if ( $wpdb->use_mysqli ) {
-			// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_get_server_info
-			$mysql_server_type = mysqli_get_server_info( $wpdb->dbh );
-		} else {
-			// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysql_get_server_info,PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved
-			$mysql_server_type = mysql_get_server_info( $wpdb->dbh );
-		}
+		$mysql_server_type = $wpdb->db_server_info();
 
 		$this->mysql_server_version = $wpdb->get_var( 'SELECT VERSION()' );
 
-		$this->health_check_mysql_rec_version = '5.6';
-
 		if ( stristr( $mysql_server_type, 'mariadb' ) ) {
-			$this->is_mariadb                     = true;
-			$this->health_check_mysql_rec_version = '10.0';
+			$this->is_mariadb                = true;
+			$this->mysql_recommended_version = $this->mariadb_recommended_version;
 		}
 
-		$this->mysql_min_version_check = version_compare( '5.5', $this->mysql_server_version, '<=' );
-		$this->mysql_rec_version_check = version_compare( $this->health_check_mysql_rec_version, $this->mysql_server_version, '<=' );
+		$this->is_acceptable_mysql_version  = version_compare( $this->mysql_required_version, $this->mysql_server_version, '<=' );
+		$this->is_recommended_mysql_version = version_compare( $this->mysql_recommended_version, $this->mysql_server_version, '<=' );
 	}
 
 	/**
-	 * Test if `wp_version_check` is blocked.
+	 * Tests whether `wp_version_check` is blocked.
 	 *
 	 * It's possible to block updates with the `wp_version_check` filter, but this can't be checked
 	 * during an Ajax call, as the filter is never introduced then.
@@ -349,9 +343,9 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if plugins are outdated, or unnecessary.
+	 * Tests if plugins are outdated, or unnecessary.
 	 *
-	 * The tests checks if your plugins are up to date, and encourages you to remove any
+	 * The test checks if your plugins are up to date, and encourages you to remove any
 	 * that are not in use.
 	 *
 	 * @since 5.2.0
@@ -482,9 +476,9 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if themes are outdated, or unnecessary.
+	 * Tests if themes are outdated, or unnecessary.
 	 *
-	 * Сhecks if your site has a default theme (to fall back on if there is a need),
+	 * Checks if your site has a default theme (to fall back on if there is a need),
 	 * if your themes are up to date and, finally, encourages you to remove any themes
 	 * that are not needed.
 	 *
@@ -723,7 +717,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if the supplied PHP version is supported.
+	 * Tests if the supplied PHP version is supported.
 	 *
 	 * @since 5.2.0
 	 *
@@ -747,7 +741,7 @@ class WP_Site_Health {
 				'<p>%s</p>',
 				sprintf(
 					/* translators: %s: The minimum recommended PHP version. */
-					__( 'PHP is the programming language used to build and maintain WordPress. Newer versions of PHP are created with increased performance in mind, so you may see a positive effect on your site&#8217;s performance. The minimum recommended version of PHP is %s.' ),
+					__( 'PHP is one of the programming languages used to build WordPress. Newer versions of PHP receive regular security updates and may increase your site&#8217;s performance. The minimum recommended version of PHP is %s.' ),
 					$response ? $response['recommended_version'] : ''
 				)
 			),
@@ -770,10 +764,27 @@ class WP_Site_Health {
 		if ( $response['is_supported'] ) {
 			$result['label'] = sprintf(
 				/* translators: %s: The server PHP version. */
-				__( 'Your site is running an older version of PHP (%s)' ),
+				__( 'Your site is running on an older version of PHP (%s)' ),
 				PHP_VERSION
 			);
 			$result['status'] = 'recommended';
+
+			return $result;
+		}
+
+		// The PHP version is still receiving security fixes, but is lower than
+		// the expected minimum version that will be required by WordPress in the near future.
+		if ( $response['is_secure'] && $response['is_lower_than_future_minimum'] ) {
+			// The `is_secure` array key name doesn't actually imply this is a secure version of PHP. It only means it receives security updates.
+
+			$result['label'] = sprintf(
+				/* translators: %s: The server PHP version. */
+				__( 'Your site is running on an outdated version of PHP (%s), which soon will not be supported by WordPress.' ),
+				PHP_VERSION
+			);
+
+			$result['status']         = 'critical';
+			$result['badge']['label'] = __( 'Requirements' );
 
 			return $result;
 		}
@@ -782,7 +793,7 @@ class WP_Site_Health {
 		if ( $response['is_secure'] ) {
 			$result['label'] = sprintf(
 				/* translators: %s: The server PHP version. */
-				__( 'Your site is running an older version of PHP (%s), which should be updated' ),
+				__( 'Your site is running on an older version of PHP (%s), which should be updated' ),
 				PHP_VERSION
 			);
 			$result['status'] = 'recommended';
@@ -790,20 +801,32 @@ class WP_Site_Health {
 			return $result;
 		}
 
-		// Anything no longer secure must be updated.
-		$result['label'] = sprintf(
-			/* translators: %s: The server PHP version. */
-			__( 'Your site is running an outdated version of PHP (%s), which requires an update' ),
-			PHP_VERSION
-		);
-		$result['status']         = 'critical';
+		// No more security updates for the PHP version, and lower than the expected minimum version required by WordPress.
+		if ( $response['is_lower_than_future_minimum'] ) {
+			$message = sprintf(
+				/* translators: %s: The server PHP version. */
+				__( 'Your site is running on an outdated version of PHP (%s), which does not receive security updates and soon will not be supported by WordPress.' ),
+				PHP_VERSION
+			);
+		} else {
+			// No more security updates for the PHP version, must be updated.
+			$message = sprintf(
+				/* translators: %s: The server PHP version. */
+				__( 'Your site is running on an outdated version of PHP (%s), which does not receive security updates. It should be updated.' ),
+				PHP_VERSION
+			);
+		}
+
+		$result['label']  = $message;
+		$result['status'] = 'critical';
+
 		$result['badge']['label'] = __( 'Security' );
 
 		return $result;
 	}
 
 	/**
-	 * Check if the passed extension or function are available.
+	 * Checks if the passed extension or function are available.
 	 *
 	 * Make the check for available PHP modules into a simple boolean operator for a cleaner test runner.
 	 *
@@ -842,7 +865,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if required PHP modules are installed on the host.
+	 * Tests if required PHP modules are installed on the host.
 	 *
 	 * This test builds on the recommendations made by the WordPress Hosting Team
 	 * as seen at https://make.wordpress.org/hosting/handbook/handbook/server-environment/#php-extensions
@@ -977,7 +1000,7 @@ class WP_Site_Health {
 		);
 
 		/**
-		 * An array representing all the modules we wish to test for.
+		 * Filters the array representing all the modules we wish to test for.
 		 *
 		 * @since 5.2.0
 		 * @since 5.3.0 The `$constant` and `$class` parameters were added.
@@ -1081,7 +1104,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if the PHP default timezone is set to UTC.
+	 * Tests if the PHP default timezone is set to UTC.
 	 *
 	 * @since 5.3.1
 	 *
@@ -1122,7 +1145,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if there's an active PHP session that can affect loopback requests.
+	 * Tests if there's an active PHP session that can affect loopback requests.
 	 *
 	 * @since 5.5.0
 	 *
@@ -1168,7 +1191,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if the SQL server is up to date.
+	 * Tests if the SQL server is up to date.
 	 *
 	 * @since 5.2.0
 	 *
@@ -1203,7 +1226,7 @@ class WP_Site_Health {
 
 		$db_dropin = file_exists( WP_CONTENT_DIR . '/db.php' );
 
-		if ( ! $this->mysql_rec_version_check ) {
+		if ( ! $this->is_recommended_mysql_version ) {
 			$result['status'] = 'recommended';
 
 			$result['label'] = __( 'Outdated SQL server' );
@@ -1214,12 +1237,12 @@ class WP_Site_Health {
 					/* translators: 1: The database engine in use (MySQL or MariaDB). 2: Database server recommended version number. */
 					__( 'For optimal performance and security reasons, you should consider running %1$s version %2$s or higher. Contact your web hosting company to correct this.' ),
 					( $this->is_mariadb ? 'MariaDB' : 'MySQL' ),
-					$this->health_check_mysql_rec_version
+					$this->mysql_recommended_version
 				)
 			);
 		}
 
-		if ( ! $this->mysql_min_version_check ) {
+		if ( ! $this->is_acceptable_mysql_version ) {
 			$result['status'] = 'critical';
 
 			$result['label']          = __( 'Severely outdated SQL server' );
@@ -1231,7 +1254,7 @@ class WP_Site_Health {
 					/* translators: 1: The database engine in use (MySQL or MariaDB). 2: Database server minimum version number. */
 					__( 'WordPress requires %1$s version %2$s or higher. Contact your web hosting company to correct this.' ),
 					( $this->is_mariadb ? 'MariaDB' : 'MySQL' ),
-					$this->health_check_mysql_required_version
+					$this->mysql_required_version
 				)
 			);
 		}
@@ -1257,7 +1280,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if the database server is capable of using utf8mb4.
+	 * Tests if the database server is capable of using utf8mb4.
 	 *
 	 * @since 5.2.0
 	 *
@@ -1378,7 +1401,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if the site can communicate with WordPress.org.
+	 * Tests if the site can communicate with WordPress.org.
 	 *
 	 * @since 5.2.0
 	 *
@@ -1441,7 +1464,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if debug information is enabled.
+	 * Tests if debug information is enabled.
 	 *
 	 * When WP_DEBUG is enabled, errors and information may be disclosed to site visitors,
 	 * or logged to a publicly accessible file.
@@ -1518,7 +1541,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Test if your site is serving content over HTTPS.
+	 * Tests if the site is serving content over HTTPS.
 	 *
 	 * Many sites have varying degrees of HTTPS support, the most common of which is sites that have it
 	 * enabled, but only if you visit the right site address.
@@ -1667,6 +1690,615 @@ class WP_Site_Health {
 	}
 
 	/**
+	 * Checks if the HTTP API can handle SSL/TLS requests.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @return array The test result.
+	 */
+	public function get_test_ssl_support() {
+		$result = array(
+			'label'       => '',
+			'status'      => '',
+			'badge'       => array(
+				'label' => __( 'Security' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'Securely communicating between servers are needed for transactions such as fetching files, conducting sales on store sites, and much more.' )
+			),
+			'actions'     => '',
+			'test'        => 'ssl_support',
+		);
+
+		$supports_https = wp_http_supports( array( 'ssl' ) );
+
+		if ( $supports_https ) {
+			$result['status'] = 'good';
+
+			$result['label'] = __( 'Your site can communicate securely with other services' );
+		} else {
+			$result['status'] = 'critical';
+
+			$result['label'] = __( 'Your site is unable to communicate securely with other services' );
+
+			$result['description'] .= sprintf(
+				'<p>%s</p>',
+				__( 'Talk to your web host about OpenSSL support for PHP.' )
+			);
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Tests if scheduled events run as intended.
+	 *
+	 * If scheduled events are not running, this may indicate something with WP_Cron is not working
+	 * as intended, or that there are orphaned events hanging around from older code.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_scheduled_events() {
+		$result = array(
+			'label'       => __( 'Scheduled events are running' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'Scheduled events are what periodically looks for updates to plugins, themes and WordPress itself. It is also what makes sure scheduled posts are published on time. It may also be used by various plugins to make sure that planned actions are executed.' )
+			),
+			'actions'     => '',
+			'test'        => 'scheduled_events',
+		);
+
+		$this->wp_schedule_test_init();
+
+		if ( is_wp_error( $this->has_missed_cron() ) ) {
+			$result['status'] = 'critical';
+
+			$result['label'] = __( 'It was not possible to check your scheduled events' );
+
+			$result['description'] = sprintf(
+				'<p>%s</p>',
+				sprintf(
+					/* translators: %s: The error message returned while from the cron scheduler. */
+					__( 'While trying to test your site&#8217;s scheduled events, the following error was returned: %s' ),
+					$this->has_missed_cron()->get_error_message()
+				)
+			);
+		} elseif ( $this->has_missed_cron() ) {
+			$result['status'] = 'recommended';
+
+			$result['label'] = __( 'A scheduled event has failed' );
+
+			$result['description'] = sprintf(
+				'<p>%s</p>',
+				sprintf(
+					/* translators: %s: The name of the failed cron event. */
+					__( 'The scheduled event, %s, failed to run. Your site still works, but this may indicate that scheduling posts or automated updates may not work as intended.' ),
+					$this->last_missed_cron
+				)
+			);
+		} elseif ( $this->has_late_cron() ) {
+			$result['status'] = 'recommended';
+
+			$result['label'] = __( 'A scheduled event is late' );
+
+			$result['description'] = sprintf(
+				'<p>%s</p>',
+				sprintf(
+					/* translators: %s: The name of the late cron event. */
+					__( 'The scheduled event, %s, is late to run. Your site still works, but this may indicate that scheduling posts or automated updates may not work as intended.' ),
+					$this->last_late_cron
+				)
+			);
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Tests if WordPress can run automated background updates.
+	 *
+	 * Background updates in WordPress are primarily used for minor releases and security updates.
+	 * It's important to either have these working, or be aware that they are intentionally disabled
+	 * for whatever reason.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_background_updates() {
+		$result = array(
+			'label'       => __( 'Background updates are working' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Security' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'Background updates ensure that WordPress can auto-update if a security update is released for the version you are currently using.' )
+			),
+			'actions'     => '',
+			'test'        => 'background_updates',
+		);
+
+		if ( ! class_exists( 'WP_Site_Health_Auto_Updates' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/class-wp-site-health-auto-updates.php';
+		}
+
+		// Run the auto-update tests in a separate class,
+		// as there are many considerations to be made.
+		$automatic_updates = new WP_Site_Health_Auto_Updates();
+		$tests             = $automatic_updates->run_tests();
+
+		$output = '<ul>';
+
+		foreach ( $tests as $test ) {
+			$severity_string = __( 'Passed' );
+
+			if ( 'fail' === $test->severity ) {
+				$result['label'] = __( 'Background updates are not working as expected' );
+
+				$result['status'] = 'critical';
+
+				$severity_string = __( 'Error' );
+			}
+
+			if ( 'warning' === $test->severity && 'good' === $result['status'] ) {
+				$result['label'] = __( 'Background updates may not be working properly' );
+
+				$result['status'] = 'recommended';
+
+				$severity_string = __( 'Warning' );
+			}
+
+			$output .= sprintf(
+				'<li><span class="dashicons %s"><span class="screen-reader-text">%s</span></span> %s</li>',
+				esc_attr( $test->severity ),
+				$severity_string,
+				$test->description
+			);
+		}
+
+		$output .= '</ul>';
+
+		if ( 'good' !== $result['status'] ) {
+			$result['description'] .= $output;
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Tests if plugin and theme auto-updates appear to be configured correctly.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_plugin_theme_auto_updates() {
+		$result = array(
+			'label'       => __( 'Plugin and theme auto-updates appear to be configured correctly' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Security' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'Plugin and theme auto-updates ensure that the latest versions are always installed.' )
+			),
+			'actions'     => '',
+			'test'        => 'plugin_theme_auto_updates',
+		);
+
+		$check_plugin_theme_updates = $this->detect_plugin_theme_auto_update_issues();
+
+		$result['status'] = $check_plugin_theme_updates->status;
+
+		if ( 'good' !== $result['status'] ) {
+			$result['label'] = __( 'Your site may have problems auto-updating plugins and themes' );
+
+			$result['description'] .= sprintf(
+				'<p>%s</p>',
+				$check_plugin_theme_updates->message
+			);
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Tests if loopbacks work as expected.
+	 *
+	 * A loopback is when WordPress queries itself, for example to start a new WP_Cron instance,
+	 * or when editing a plugin or theme. This has shown itself to be a recurring issue,
+	 * as code can very easily break this interaction.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_loopback_requests() {
+		$result = array(
+			'label'       => __( 'Your site can perform loopback requests' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'Loopback requests are used to run scheduled events, and are also used by the built-in editors for themes and plugins to verify code stability.' )
+			),
+			'actions'     => '',
+			'test'        => 'loopback_requests',
+		);
+
+		$check_loopback = $this->can_perform_loopback();
+
+		$result['status'] = $check_loopback->status;
+
+		if ( 'good' !== $result['status'] ) {
+			$result['label'] = __( 'Your site could not complete a loopback request' );
+
+			$result['description'] .= sprintf(
+				'<p>%s</p>',
+				$check_loopback->message
+			);
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Tests if HTTP requests are blocked.
+	 *
+	 * It's possible to block all outgoing communication (with the possibility of allowing certain
+	 * hosts) via the HTTP API. This may create problems for users as many features are running as
+	 * services these days.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_http_requests() {
+		$result = array(
+			'label'       => __( 'HTTP requests seem to be working as expected' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'It is possible for site maintainers to block all, or some, communication to other sites and services. If set up incorrectly, this may prevent plugins and themes from working as intended.' )
+			),
+			'actions'     => '',
+			'test'        => 'http_requests',
+		);
+
+		$blocked = false;
+		$hosts   = array();
+
+		if ( defined( 'WP_HTTP_BLOCK_EXTERNAL' ) && WP_HTTP_BLOCK_EXTERNAL ) {
+			$blocked = true;
+		}
+
+		if ( defined( 'WP_ACCESSIBLE_HOSTS' ) ) {
+			$hosts = explode( ',', WP_ACCESSIBLE_HOSTS );
+		}
+
+		if ( $blocked && 0 === count( $hosts ) ) {
+			$result['status'] = 'critical';
+
+			$result['label'] = __( 'HTTP requests are blocked' );
+
+			$result['description'] .= sprintf(
+				'<p>%s</p>',
+				sprintf(
+					/* translators: %s: Name of the constant used. */
+					__( 'HTTP requests have been blocked by the %s constant, with no allowed hosts.' ),
+					'<code>WP_HTTP_BLOCK_EXTERNAL</code>'
+				)
+			);
+		}
+
+		if ( $blocked && 0 < count( $hosts ) ) {
+			$result['status'] = 'recommended';
+
+			$result['label'] = __( 'HTTP requests are partially blocked' );
+
+			$result['description'] .= sprintf(
+				'<p>%s</p>',
+				sprintf(
+					/* translators: 1: Name of the constant used. 2: List of allowed hostnames. */
+					__( 'HTTP requests have been blocked by the %1$s constant, with some allowed hosts: %2$s.' ),
+					'<code>WP_HTTP_BLOCK_EXTERNAL</code>',
+					implode( ',', $hosts )
+				)
+			);
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Tests if the REST API is accessible.
+	 *
+	 * Various security measures may block the REST API from working, or it may have been disabled in general.
+	 * This is required for the new block editor to work, so we explicitly test for this.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_rest_availability() {
+		$result = array(
+			'label'       => __( 'The REST API is available' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'The REST API is one way that WordPress and other applications communicate with the server. For example, the block editor screen relies on the REST API to display and save your posts and pages.' )
+			),
+			'actions'     => '',
+			'test'        => 'rest_availability',
+		);
+
+		$cookies = wp_unslash( $_COOKIE );
+		$timeout = 10; // 10 seconds.
+		$headers = array(
+			'Cache-Control' => 'no-cache',
+			'X-WP-Nonce'    => wp_create_nonce( 'wp_rest' ),
+		);
+		/** This filter is documented in wp-includes/class-wp-http-streams.php */
+		$sslverify = apply_filters( 'https_local_ssl_verify', false );
+
+		// Include Basic auth in loopback requests.
+		if ( isset( $_SERVER['PHP_AUTH_USER'] ) && isset( $_SERVER['PHP_AUTH_PW'] ) ) {
+			$headers['Authorization'] = 'Basic ' . base64_encode( wp_unslash( $_SERVER['PHP_AUTH_USER'] ) . ':' . wp_unslash( $_SERVER['PHP_AUTH_PW'] ) );
+		}
+
+		$url = rest_url( 'wp/v2/types/post' );
+
+		// The context for this is editing with the new block editor.
+		$url = add_query_arg(
+			array(
+				'context' => 'edit',
+			),
+			$url
+		);
+
+		$r = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
+
+		if ( is_wp_error( $r ) ) {
+			$result['status'] = 'critical';
+
+			$result['label'] = __( 'The REST API encountered an error' );
+
+			$result['description'] .= sprintf(
+				'<p>%s</p><p>%s<br>%s</p>',
+				__( 'When testing the REST API, an error was encountered:' ),
+				sprintf(
+					// translators: %s: The REST API URL.
+					__( 'REST API Endpoint: %s' ),
+					$url
+				),
+				sprintf(
+					// translators: 1: The WordPress error code. 2: The WordPress error message.
+					__( 'REST API Response: (%1$s) %2$s' ),
+					$r->get_error_code(),
+					$r->get_error_message()
+				)
+			);
+		} elseif ( 200 !== wp_remote_retrieve_response_code( $r ) ) {
+			$result['status'] = 'recommended';
+
+			$result['label'] = __( 'The REST API encountered an unexpected result' );
+
+			$result['description'] .= sprintf(
+				'<p>%s</p><p>%s<br>%s</p>',
+				__( 'When testing the REST API, an unexpected result was returned:' ),
+				sprintf(
+					// translators: %s: The REST API URL.
+					__( 'REST API Endpoint: %s' ),
+					$url
+				),
+				sprintf(
+					// translators: 1: The WordPress error code. 2: The HTTP status code error message.
+					__( 'REST API Response: (%1$s) %2$s' ),
+					wp_remote_retrieve_response_code( $r ),
+					wp_remote_retrieve_response_message( $r )
+				)
+			);
+		} else {
+			$json = json_decode( wp_remote_retrieve_body( $r ), true );
+
+			if ( false !== $json && ! isset( $json['capabilities'] ) ) {
+				$result['status'] = 'recommended';
+
+				$result['label'] = __( 'The REST API did not behave correctly' );
+
+				$result['description'] .= sprintf(
+					'<p>%s</p>',
+					sprintf(
+						/* translators: %s: The name of the query parameter being tested. */
+						__( 'The REST API did not process the %s query parameter correctly.' ),
+						'<code>context</code>'
+					)
+				);
+			}
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Tests if 'file_uploads' directive in PHP.ini is turned off.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_file_uploads() {
+		$result = array(
+			'label'       => __( 'Files can be uploaded' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				sprintf(
+					/* translators: 1: file_uploads, 2: php.ini */
+					__( 'The %1$s directive in %2$s determines if uploading files is allowed on your site.' ),
+					'<code>file_uploads</code>',
+					'<code>php.ini</code>'
+				)
+			),
+			'actions'     => '',
+			'test'        => 'file_uploads',
+		);
+
+		if ( ! function_exists( 'ini_get' ) ) {
+			$result['status']       = 'critical';
+			$result['description'] .= sprintf(
+				/* translators: %s: ini_get() */
+				__( 'The %s function has been disabled, some media settings are unavailable because of this.' ),
+				'<code>ini_get()</code>'
+			);
+			return $result;
+		}
+
+		if ( empty( ini_get( 'file_uploads' ) ) ) {
+			$result['status']       = 'critical';
+			$result['description'] .= sprintf(
+				'<p>%s</p>',
+				sprintf(
+					/* translators: 1: file_uploads, 2: 0 */
+					__( '%1$s is set to %2$s. You won\'t be able to upload files on your site.' ),
+					'<code>file_uploads</code>',
+					'<code>0</code>'
+				)
+			);
+			return $result;
+		}
+
+		$post_max_size       = ini_get( 'post_max_size' );
+		$upload_max_filesize = ini_get( 'upload_max_filesize' );
+
+		if ( wp_convert_hr_to_bytes( $post_max_size ) < wp_convert_hr_to_bytes( $upload_max_filesize ) ) {
+			$result['label'] = sprintf(
+				/* translators: 1: post_max_size, 2: upload_max_filesize */
+				__( 'The "%1$s" value is smaller than "%2$s"' ),
+				'post_max_size',
+				'upload_max_filesize'
+			);
+			$result['status'] = 'recommended';
+
+			if ( 0 === wp_convert_hr_to_bytes( $post_max_size ) ) {
+				$result['description'] = sprintf(
+					'<p>%s</p>',
+					sprintf(
+						/* translators: 1: post_max_size, 2: upload_max_filesize */
+						__( 'The setting for %1$s is currently configured as 0, this could cause some problems when trying to upload files through plugin or theme features that rely on various upload methods. It is recommended to configure this setting to a fixed value, ideally matching the value of %2$s, as some upload methods read the value 0 as either unlimited, or disabled.' ),
+						'<code>post_max_size</code>',
+						'<code>upload_max_filesize</code>'
+					)
+				);
+			} else {
+				$result['description'] = sprintf(
+					'<p>%s</p>',
+					sprintf(
+						/* translators: 1: post_max_size, 2: upload_max_filesize */
+						__( 'The setting for %1$s is smaller than %2$s, this could cause some problems when trying to upload files.' ),
+						'<code>post_max_size</code>',
+						'<code>upload_max_filesize</code>'
+					)
+				);
+			}
+
+			return $result;
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Tests if the Authorization header has the expected values.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @return array
+	 */
+	public function get_test_authorization_header() {
+		$result = array(
+			'label'       => __( 'The Authorization header is working as expected' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Security' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'The Authorization header is used by third-party applications you have approved for this site. Without this header, those apps cannot connect to your site.' )
+			),
+			'actions'     => '',
+			'test'        => 'authorization_header',
+		);
+
+		if ( ! isset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] ) ) {
+			$result['label'] = __( 'The authorization header is missing' );
+		} elseif ( 'user' !== $_SERVER['PHP_AUTH_USER'] || 'pwd' !== $_SERVER['PHP_AUTH_PW'] ) {
+			$result['label'] = __( 'The authorization header is invalid' );
+		} else {
+			return $result;
+		}
+
+		$result['status']       = 'recommended';
+		$result['description'] .= sprintf(
+			'<p>%s</p>',
+			__( 'If you are still seeing this warning after having tried the actions below, you may need to contact your hosting provider for further assistance.' )
+		);
+
+		if ( ! function_exists( 'got_mod_rewrite' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/misc.php';
+		}
+
+		if ( got_mod_rewrite() ) {
+			$result['actions'] .= sprintf(
+				'<p><a href="%s">%s</a></p>',
+				esc_url( admin_url( 'options-permalink.php' ) ),
+				__( 'Flush permalinks' )
+			);
+		} else {
+			$result['actions'] .= sprintf(
+				'<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				__( 'https://developer.wordpress.org/rest-api/frequently-asked-questions/#why-is-authentication-not-working' ),
+				__( 'Learn how to configure the Authorization header.' ),
+				/* translators: Accessibility text. */
+				__( '(opens in a new tab)' )
+			);
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Tests if a full page cache is available.
 	 *
 	 * @since 6.1.0
@@ -1781,606 +2413,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Check if the HTTP API can handle SSL/TLS requests.
-	 *
-	 * @since 5.2.0
-	 *
-	 * @return array The test result.
-	 */
-	public function get_test_ssl_support() {
-		$result = array(
-			'label'       => '',
-			'status'      => '',
-			'badge'       => array(
-				'label' => __( 'Security' ),
-				'color' => 'blue',
-			),
-			'description' => sprintf(
-				'<p>%s</p>',
-				__( 'Securely communicating between servers are needed for transactions such as fetching files, conducting sales on store sites, and much more.' )
-			),
-			'actions'     => '',
-			'test'        => 'ssl_support',
-		);
-
-		$supports_https = wp_http_supports( array( 'ssl' ) );
-
-		if ( $supports_https ) {
-			$result['status'] = 'good';
-
-			$result['label'] = __( 'Your site can communicate securely with other services' );
-		} else {
-			$result['status'] = 'critical';
-
-			$result['label'] = __( 'Your site is unable to communicate securely with other services' );
-
-			$result['description'] .= sprintf(
-				'<p>%s</p>',
-				__( 'Talk to your web host about OpenSSL support for PHP.' )
-			);
-		}
-
-		return $result;
-	}
-
-	/**
-	 * Test if scheduled events run as intended.
-	 *
-	 * If scheduled events are not running, this may indicate something with WP_Cron is not working
-	 * as intended, or that there are orphaned events hanging around from older code.
-	 *
-	 * @since 5.2.0
-	 *
-	 * @return array The test results.
-	 */
-	public function get_test_scheduled_events() {
-		$result = array(
-			'label'       => __( 'Scheduled events are running' ),
-			'status'      => 'good',
-			'badge'       => array(
-				'label' => __( 'Performance' ),
-				'color' => 'blue',
-			),
-			'description' => sprintf(
-				'<p>%s</p>',
-				__( 'Scheduled events are what periodically looks for updates to plugins, themes and WordPress itself. It is also what makes sure scheduled posts are published on time. It may also be used by various plugins to make sure that planned actions are executed.' )
-			),
-			'actions'     => '',
-			'test'        => 'scheduled_events',
-		);
-
-		$this->wp_schedule_test_init();
-
-		if ( is_wp_error( $this->has_missed_cron() ) ) {
-			$result['status'] = 'critical';
-
-			$result['label'] = __( 'It was not possible to check your scheduled events' );
-
-			$result['description'] = sprintf(
-				'<p>%s</p>',
-				sprintf(
-					/* translators: %s: The error message returned while from the cron scheduler. */
-					__( 'While trying to test your site&#8217;s scheduled events, the following error was returned: %s' ),
-					$this->has_missed_cron()->get_error_message()
-				)
-			);
-		} elseif ( $this->has_missed_cron() ) {
-			$result['status'] = 'recommended';
-
-			$result['label'] = __( 'A scheduled event has failed' );
-
-			$result['description'] = sprintf(
-				'<p>%s</p>',
-				sprintf(
-					/* translators: %s: The name of the failed cron event. */
-					__( 'The scheduled event, %s, failed to run. Your site still works, but this may indicate that scheduling posts or automated updates may not work as intended.' ),
-					$this->last_missed_cron
-				)
-			);
-		} elseif ( $this->has_late_cron() ) {
-			$result['status'] = 'recommended';
-
-			$result['label'] = __( 'A scheduled event is late' );
-
-			$result['description'] = sprintf(
-				'<p>%s</p>',
-				sprintf(
-					/* translators: %s: The name of the late cron event. */
-					__( 'The scheduled event, %s, is late to run. Your site still works, but this may indicate that scheduling posts or automated updates may not work as intended.' ),
-					$this->last_late_cron
-				)
-			);
-		}
-
-		return $result;
-	}
-
-	/**
-	 * Test if WordPress can run automated background updates.
-	 *
-	 * Background updates in WordPress are primarily used for minor releases and security updates.
-	 * It's important to either have these working, or be aware that they are intentionally disabled
-	 * for whatever reason.
-	 *
-	 * @since 5.2.0
-	 *
-	 * @return array The test results.
-	 */
-	public function get_test_background_updates() {
-		$result = array(
-			'label'       => __( 'Background updates are working' ),
-			'status'      => 'good',
-			'badge'       => array(
-				'label' => __( 'Security' ),
-				'color' => 'blue',
-			),
-			'description' => sprintf(
-				'<p>%s</p>',
-				__( 'Background updates ensure that WordPress can auto-update if a security update is released for the version you are currently using.' )
-			),
-			'actions'     => '',
-			'test'        => 'background_updates',
-		);
-
-		if ( ! class_exists( 'WP_Site_Health_Auto_Updates' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/class-wp-site-health-auto-updates.php';
-		}
-
-		// Run the auto-update tests in a separate class,
-		// as there are many considerations to be made.
-		$automatic_updates = new WP_Site_Health_Auto_Updates();
-		$tests             = $automatic_updates->run_tests();
-
-		$output = '<ul>';
-
-		foreach ( $tests as $test ) {
-			$severity_string = __( 'Passed' );
-
-			if ( 'fail' === $test->severity ) {
-				$result['label'] = __( 'Background updates are not working as expected' );
-
-				$result['status'] = 'critical';
-
-				$severity_string = __( 'Error' );
-			}
-
-			if ( 'warning' === $test->severity && 'good' === $result['status'] ) {
-				$result['label'] = __( 'Background updates may not be working properly' );
-
-				$result['status'] = 'recommended';
-
-				$severity_string = __( 'Warning' );
-			}
-
-			$output .= sprintf(
-				'<li><span class="dashicons %s"><span class="screen-reader-text">%s</span></span> %s</li>',
-				esc_attr( $test->severity ),
-				$severity_string,
-				$test->description
-			);
-		}
-
-		$output .= '</ul>';
-
-		if ( 'good' !== $result['status'] ) {
-			$result['description'] .= $output;
-		}
-
-		return $result;
-	}
-
-	/**
-	 * Test if plugin and theme auto-updates appear to be configured correctly.
-	 *
-	 * @since 5.5.0
-	 *
-	 * @return array The test results.
-	 */
-	public function get_test_plugin_theme_auto_updates() {
-		$result = array(
-			'label'       => __( 'Plugin and theme auto-updates appear to be configured correctly' ),
-			'status'      => 'good',
-			'badge'       => array(
-				'label' => __( 'Security' ),
-				'color' => 'blue',
-			),
-			'description' => sprintf(
-				'<p>%s</p>',
-				__( 'Plugin and theme auto-updates ensure that the latest versions are always installed.' )
-			),
-			'actions'     => '',
-			'test'        => 'plugin_theme_auto_updates',
-		);
-
-		$check_plugin_theme_updates = $this->detect_plugin_theme_auto_update_issues();
-
-		$result['status'] = $check_plugin_theme_updates->status;
-
-		if ( 'good' !== $result['status'] ) {
-			$result['label'] = __( 'Your site may have problems auto-updating plugins and themes' );
-
-			$result['description'] .= sprintf(
-				'<p>%s</p>',
-				$check_plugin_theme_updates->message
-			);
-		}
-
-		return $result;
-	}
-
-	/**
-	 * Test if loopbacks work as expected.
-	 *
-	 * A loopback is when WordPress queries itself, for example to start a new WP_Cron instance,
-	 * or when editing a plugin or theme. This has shown itself to be a recurring issue,
-	 * as code can very easily break this interaction.
-	 *
-	 * @since 5.2.0
-	 *
-	 * @return array The test results.
-	 */
-	public function get_test_loopback_requests() {
-		$result = array(
-			'label'       => __( 'Your site can perform loopback requests' ),
-			'status'      => 'good',
-			'badge'       => array(
-				'label' => __( 'Performance' ),
-				'color' => 'blue',
-			),
-			'description' => sprintf(
-				'<p>%s</p>',
-				__( 'Loopback requests are used to run scheduled events, and are also used by the built-in editors for themes and plugins to verify code stability.' )
-			),
-			'actions'     => '',
-			'test'        => 'loopback_requests',
-		);
-
-		$check_loopback = $this->can_perform_loopback();
-
-		$result['status'] = $check_loopback->status;
-
-		if ( 'good' !== $result['status'] ) {
-			$result['label'] = __( 'Your site could not complete a loopback request' );
-
-			$result['description'] .= sprintf(
-				'<p>%s</p>',
-				$check_loopback->message
-			);
-		}
-
-		return $result;
-	}
-
-	/**
-	 * Test if HTTP requests are blocked.
-	 *
-	 * It's possible to block all outgoing communication (with the possibility of allowing certain
-	 * hosts) via the HTTP API. This may create problems for users as many features are running as
-	 * services these days.
-	 *
-	 * @since 5.2.0
-	 *
-	 * @return array The test results.
-	 */
-	public function get_test_http_requests() {
-		$result = array(
-			'label'       => __( 'HTTP requests seem to be working as expected' ),
-			'status'      => 'good',
-			'badge'       => array(
-				'label' => __( 'Performance' ),
-				'color' => 'blue',
-			),
-			'description' => sprintf(
-				'<p>%s</p>',
-				__( 'It is possible for site maintainers to block all, or some, communication to other sites and services. If set up incorrectly, this may prevent plugins and themes from working as intended.' )
-			),
-			'actions'     => '',
-			'test'        => 'http_requests',
-		);
-
-		$blocked = false;
-		$hosts   = array();
-
-		if ( defined( 'WP_HTTP_BLOCK_EXTERNAL' ) && WP_HTTP_BLOCK_EXTERNAL ) {
-			$blocked = true;
-		}
-
-		if ( defined( 'WP_ACCESSIBLE_HOSTS' ) ) {
-			$hosts = explode( ',', WP_ACCESSIBLE_HOSTS );
-		}
-
-		if ( $blocked && 0 === count( $hosts ) ) {
-			$result['status'] = 'critical';
-
-			$result['label'] = __( 'HTTP requests are blocked' );
-
-			$result['description'] .= sprintf(
-				'<p>%s</p>',
-				sprintf(
-					/* translators: %s: Name of the constant used. */
-					__( 'HTTP requests have been blocked by the %s constant, with no allowed hosts.' ),
-					'<code>WP_HTTP_BLOCK_EXTERNAL</code>'
-				)
-			);
-		}
-
-		if ( $blocked && 0 < count( $hosts ) ) {
-			$result['status'] = 'recommended';
-
-			$result['label'] = __( 'HTTP requests are partially blocked' );
-
-			$result['description'] .= sprintf(
-				'<p>%s</p>',
-				sprintf(
-					/* translators: 1: Name of the constant used. 2: List of allowed hostnames. */
-					__( 'HTTP requests have been blocked by the %1$s constant, with some allowed hosts: %2$s.' ),
-					'<code>WP_HTTP_BLOCK_EXTERNAL</code>',
-					implode( ',', $hosts )
-				)
-			);
-		}
-
-		return $result;
-	}
-
-	/**
-	 * Test if the REST API is accessible.
-	 *
-	 * Various security measures may block the REST API from working, or it may have been disabled in general.
-	 * This is required for the new block editor to work, so we explicitly test for this.
-	 *
-	 * @since 5.2.0
-	 *
-	 * @return array The test results.
-	 */
-	public function get_test_rest_availability() {
-		$result = array(
-			'label'       => __( 'The REST API is available' ),
-			'status'      => 'good',
-			'badge'       => array(
-				'label' => __( 'Performance' ),
-				'color' => 'blue',
-			),
-			'description' => sprintf(
-				'<p>%s</p>',
-				__( 'The REST API is one way WordPress, and other applications, communicate with the server. One example is the block editor screen, which relies on this to display, and save, your posts and pages.' )
-			),
-			'actions'     => '',
-			'test'        => 'rest_availability',
-		);
-
-		$cookies = wp_unslash( $_COOKIE );
-		$timeout = 10;
-		$headers = array(
-			'Cache-Control' => 'no-cache',
-			'X-WP-Nonce'    => wp_create_nonce( 'wp_rest' ),
-		);
-		/** This filter is documented in wp-includes/class-wp-http-streams.php */
-		$sslverify = apply_filters( 'https_local_ssl_verify', false );
-
-		// Include Basic auth in loopback requests.
-		if ( isset( $_SERVER['PHP_AUTH_USER'] ) && isset( $_SERVER['PHP_AUTH_PW'] ) ) {
-			$headers['Authorization'] = 'Basic ' . base64_encode( wp_unslash( $_SERVER['PHP_AUTH_USER'] ) . ':' . wp_unslash( $_SERVER['PHP_AUTH_PW'] ) );
-		}
-
-		$url = rest_url( 'wp/v2/types/post' );
-
-		// The context for this is editing with the new block editor.
-		$url = add_query_arg(
-			array(
-				'context' => 'edit',
-			),
-			$url
-		);
-
-		$r = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
-
-		if ( is_wp_error( $r ) ) {
-			$result['status'] = 'critical';
-
-			$result['label'] = __( 'The REST API encountered an error' );
-
-			$result['description'] .= sprintf(
-				'<p>%s</p>',
-				sprintf(
-					'%s<br>%s',
-					__( 'The REST API request failed due to an error.' ),
-					sprintf(
-						/* translators: 1: The WordPress error message. 2: The WordPress error code. */
-						__( 'Error: %1$s (%2$s)' ),
-						$r->get_error_message(),
-						$r->get_error_code()
-					)
-				)
-			);
-		} elseif ( 200 !== wp_remote_retrieve_response_code( $r ) ) {
-			$result['status'] = 'recommended';
-
-			$result['label'] = __( 'The REST API encountered an unexpected result' );
-
-			$result['description'] .= sprintf(
-				'<p>%s</p>',
-				sprintf(
-					/* translators: 1: The HTTP error code. 2: The HTTP error message. */
-					__( 'The REST API call gave the following unexpected result: (%1$d) %2$s.' ),
-					wp_remote_retrieve_response_code( $r ),
-					esc_html( wp_remote_retrieve_body( $r ) )
-				)
-			);
-		} else {
-			$json = json_decode( wp_remote_retrieve_body( $r ), true );
-
-			if ( false !== $json && ! isset( $json['capabilities'] ) ) {
-				$result['status'] = 'recommended';
-
-				$result['label'] = __( 'The REST API did not behave correctly' );
-
-				$result['description'] .= sprintf(
-					'<p>%s</p>',
-					sprintf(
-						/* translators: %s: The name of the query parameter being tested. */
-						__( 'The REST API did not process the %s query parameter correctly.' ),
-						'<code>context</code>'
-					)
-				);
-			}
-		}
-
-		return $result;
-	}
-
-	/**
-	 * Test if 'file_uploads' directive in PHP.ini is turned off.
-	 *
-	 * @since 5.5.0
-	 *
-	 * @return array The test results.
-	 */
-	public function get_test_file_uploads() {
-		$result = array(
-			'label'       => __( 'Files can be uploaded' ),
-			'status'      => 'good',
-			'badge'       => array(
-				'label' => __( 'Performance' ),
-				'color' => 'blue',
-			),
-			'description' => sprintf(
-				'<p>%s</p>',
-				sprintf(
-					/* translators: 1: file_uploads, 2: php.ini */
-					__( 'The %1$s directive in %2$s determines if uploading files is allowed on your site.' ),
-					'<code>file_uploads</code>',
-					'<code>php.ini</code>'
-				)
-			),
-			'actions'     => '',
-			'test'        => 'file_uploads',
-		);
-
-		if ( ! function_exists( 'ini_get' ) ) {
-			$result['status']       = 'critical';
-			$result['description'] .= sprintf(
-				/* translators: %s: ini_get() */
-				__( 'The %s function has been disabled, some media settings are unavailable because of this.' ),
-				'<code>ini_get()</code>'
-			);
-			return $result;
-		}
-
-		if ( empty( ini_get( 'file_uploads' ) ) ) {
-			$result['status']       = 'critical';
-			$result['description'] .= sprintf(
-				'<p>%s</p>',
-				sprintf(
-					/* translators: 1: file_uploads, 2: 0 */
-					__( '%1$s is set to %2$s. You won\'t be able to upload files on your site.' ),
-					'<code>file_uploads</code>',
-					'<code>0</code>'
-				)
-			);
-			return $result;
-		}
-
-		$post_max_size       = ini_get( 'post_max_size' );
-		$upload_max_filesize = ini_get( 'upload_max_filesize' );
-
-		if ( wp_convert_hr_to_bytes( $post_max_size ) < wp_convert_hr_to_bytes( $upload_max_filesize ) ) {
-			$result['label'] = sprintf(
-				/* translators: 1: post_max_size, 2: upload_max_filesize */
-				__( 'The "%1$s" value is smaller than "%2$s"' ),
-				'post_max_size',
-				'upload_max_filesize'
-			);
-			$result['status'] = 'recommended';
-
-			if ( 0 === wp_convert_hr_to_bytes( $post_max_size ) ) {
-				$result['description'] = sprintf(
-					'<p>%s</p>',
-					sprintf(
-						/* translators: 1: post_max_size, 2: upload_max_filesize */
-						__( 'The setting for %1$s is currently configured as 0, this could cause some problems when trying to upload files through plugin or theme features that rely on various upload methods. It is recommended to configure this setting to a fixed value, ideally matching the value of %2$s, as some upload methods read the value 0 as either unlimited, or disabled.' ),
-						'<code>post_max_size</code>',
-						'<code>upload_max_filesize</code>'
-					)
-				);
-			} else {
-				$result['description'] = sprintf(
-					'<p>%s</p>',
-					sprintf(
-						/* translators: 1: post_max_size, 2: upload_max_filesize */
-						__( 'The setting for %1$s is smaller than %2$s, this could cause some problems when trying to upload files.' ),
-						'<code>post_max_size</code>',
-						'<code>upload_max_filesize</code>'
-					)
-				);
-			}
-
-			return $result;
-		}
-
-		return $result;
-	}
-
-	/**
-	 * Tests if the Authorization header has the expected values.
-	 *
-	 * @since 5.6.0
-	 *
-	 * @return array
-	 */
-	public function get_test_authorization_header() {
-		$result = array(
-			'label'       => __( 'The Authorization header is working as expected' ),
-			'status'      => 'good',
-			'badge'       => array(
-				'label' => __( 'Security' ),
-				'color' => 'blue',
-			),
-			'description' => sprintf(
-				'<p>%s</p>',
-				__( 'The Authorization header comes from the third-party applications you approve. Without it, those apps cannot connect to your site.' )
-			),
-			'actions'     => '',
-			'test'        => 'authorization_header',
-		);
-
-		if ( ! isset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] ) ) {
-			$result['label'] = __( 'The authorization header is missing' );
-		} elseif ( 'user' !== $_SERVER['PHP_AUTH_USER'] || 'pwd' !== $_SERVER['PHP_AUTH_PW'] ) {
-			$result['label'] = __( 'The authorization header is invalid' );
-		} else {
-			return $result;
-		}
-
-		$result['status'] = 'recommended';
-
-		if ( ! function_exists( 'got_mod_rewrite' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/misc.php';
-		}
-
-		if ( got_mod_rewrite() ) {
-			$result['actions'] .= sprintf(
-				'<p><a href="%s">%s</a></p>',
-				esc_url( admin_url( 'options-permalink.php' ) ),
-				__( 'Flush permalinks' )
-			);
-		} else {
-			$result['actions'] .= sprintf(
-				'<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
-				__( 'https://developer.wordpress.org/rest-api/frequently-asked-questions/#why-is-authentication-not-working' ),
-				__( 'Learn how to configure the Authorization header.' ),
-				/* translators: Accessibility text. */
-				__( '(opens in a new tab)' )
-			);
-		}
-
-		return $result;
-	}
-
-	/**
-	 * Tests if sites uses persistent object cache.
-	 *
-	 * Checks if site uses persistent object cache or recommends to use it if not.
+	 * Tests if the site uses persistent object cache and recommends to use it if not.
 	 *
 	 * @since 6.1.0
 	 *
@@ -2453,8 +2486,8 @@ class WP_Site_Health {
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param string $notes              The notes appended to the health check description.
-		 * @param array  $available_services The list of available persistent object cache services.
+		 * @param string   $notes              The notes appended to the health check description.
+		 * @param string[] $available_services The list of available persistent object cache services.
 		 */
 		$notes = apply_filters( 'site_status_persistent_object_cache_notes', $notes, $available_services );
 
@@ -2477,7 +2510,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Return a set of tests that belong to the site status page.
+	 * Returns a set of tests that belong to the site status page.
 	 *
 	 * Each site status test is defined here, they may be `direct` tests, that run on page load, or `async` tests
 	 * which will run later down the line via JavaScript calls to improve page performance and hopefully also user
@@ -2612,7 +2645,7 @@ class WP_Site_Health {
 		}
 
 		/**
-		 * Add or modify which site status tests are run on a site.
+		 * Filters which site status tests are run on a site.
 		 *
 		 * The site health is determined by a set of tests based on best practices from
 		 * both the WordPress Hosting Team and web standards in general.
@@ -2678,7 +2711,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Add a class to the body HTML tag.
+	 * Adds a class to the body HTML tag.
 	 *
 	 * Filters the body class string for admin pages and adds our own class for easier styling.
 	 *
@@ -2699,7 +2732,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Initiate the WP_Cron schedule test cases.
+	 * Initiates the WP_Cron schedule test cases.
 	 *
 	 * @since 5.2.0
 	 */
@@ -2709,7 +2742,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Populate our list of cron events and store them to a class-wide variable.
+	 * Populates the list of cron events and store them to a class-wide variable.
 	 *
 	 * @since 5.2.0
 	 */
@@ -2742,7 +2775,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Check if any scheduled tasks have been missed.
+	 * Checks if any scheduled tasks have been missed.
 	 *
 	 * Returns a boolean value of `true` if a scheduled task has been missed and ends processing.
 	 *
@@ -2768,7 +2801,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Check if any scheduled tasks are late.
+	 * Checks if any scheduled tasks are late.
 	 *
 	 * Returns a boolean value of `true` if a scheduled task is late and ends processing.
 	 *
@@ -2798,7 +2831,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Check for potential issues with plugin and theme auto-updates.
+	 * Checks for potential issues with plugin and theme auto-updates.
 	 *
 	 * Though there is no way to 100% determine if plugin and theme auto-updates are configured
 	 * correctly, a few educated guesses could be made to flag any conditions that would
@@ -2882,7 +2915,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Run a loopback test on our site.
+	 * Runs a loopback test on the site.
 	 *
 	 * Loopbacks are what WordPress uses to communicate with itself to start up WP_Cron, scheduled posts,
 	 * make sure plugin or theme edits don't cause site failures and similar.
@@ -2894,7 +2927,7 @@ class WP_Site_Health {
 	public function can_perform_loopback() {
 		$body    = array( 'site-health' => 'loopback-test' );
 		$cookies = wp_unslash( $_COOKIE );
-		$timeout = 10;
+		$timeout = 10; // 10 seconds.
 		$headers = array(
 			'Cache-Control' => 'no-cache',
 		);
@@ -2954,7 +2987,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Create a weekly cron event, if one does not already exist.
+	 * Creates a weekly cron event, if one does not already exist.
 	 *
 	 * @since 5.4.0
 	 */
@@ -2965,7 +2998,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Run our scheduled event to check and update the latest site health status for the website.
+	 * Runs the scheduled event to check and update the latest site health status for the website.
 	 *
 	 * @since 5.4.0
 	 */
@@ -3129,7 +3162,7 @@ class WP_Site_Health {
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param int $cache_headers Array of supported cache headers.
+		 * @param array $cache_headers Array of supported cache headers.
 		 */
 		return apply_filters( 'site_status_page_cache_supported_cache_headers', $cache_headers );
 	}
@@ -3212,7 +3245,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Get page cache details.
+	 * Gets page cache details.
 	 *
 	 * @since 6.1.0
 	 *
@@ -3261,7 +3294,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Get the threshold below which a response time is considered good.
+	 * Gets the threshold below which a response time is considered good.
 	 *
 	 * @since 6.1.0
 	 *
@@ -3292,10 +3325,6 @@ class WP_Site_Health {
 	public function should_suggest_persistent_object_cache() {
 		global $wpdb;
 
-		if ( is_multisite() ) {
-			return true;
-		}
-
 		/**
 		 * Filters whether to suggest use of a persistent object cache and bypass default threshold checks.
 		 *
@@ -3311,12 +3340,16 @@ class WP_Site_Health {
 			return $short_circuit;
 		}
 
+		if ( is_multisite() ) {
+			return true;
+		}
+
 		/**
 		 * Filters the thresholds used to determine whether to suggest the use of a persistent object cache.
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param array $thresholds The list of threshold names and numbers.
+		 * @param int[] $thresholds The list of threshold numbers keyed by threshold name.
 		 */
 		$thresholds = apply_filters(
 			'site_status_persistent_object_cache_thresholds',
@@ -3375,7 +3408,7 @@ class WP_Site_Health {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @return array The list of available persistent object cache services.
+	 * @return string[] The list of available persistent object cache services.
 	 */
 	private function available_object_cache_services() {
 		$extensions = array_map(
@@ -3398,7 +3431,7 @@ class WP_Site_Health {
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param array $services The list of available persistent object cache services.
+		 * @param string[] $services The list of available persistent object cache services.
 		 */
 		return apply_filters( 'site_status_available_object_cache_services', $services );
 	}

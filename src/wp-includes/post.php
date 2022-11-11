@@ -724,11 +724,10 @@ function get_attached_file( $attachment_id, $unfiltered = false ) {
 	$file = get_post_meta( $attachment_id, '_wp_attached_file', true );
 
 	// If the file is relative, prepend upload dir.
-	if ( $file ) {
+	if ( $file && 0 !== strpos( $file, '/' ) && ! preg_match( '|^.:\\\|', $file ) ) {
 		$uploads = wp_get_upload_dir();
-
 		if ( false === $uploads['error'] ) {
-			$file = path_join( $uploads['basedir'], $file );
+			$file = $uploads['basedir'] . "/$file";
 		}
 	}
 
@@ -3090,14 +3089,24 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 function wp_count_attachments( $mime_type = '' ) {
 	global $wpdb;
 
-	$and   = wp_post_mime_type_where( $mime_type );
-	$count = $wpdb->get_results( "SELECT post_mime_type, COUNT( * ) AS num_posts FROM $wpdb->posts WHERE post_type = 'attachment' AND post_status != 'trash' $and GROUP BY post_mime_type", ARRAY_A );
+	$cache_key = sprintf(
+		'attachments%s',
+		! empty( $mime_type ) ? ':' . str_replace( '/', '_', implode( '-', (array) $mime_type ) ) : ''
+	);
 
-	$counts = array();
-	foreach ( (array) $count as $row ) {
-		$counts[ $row['post_mime_type'] ] = $row['num_posts'];
+	$counts = wp_cache_get( $cache_key, 'counts' );
+	if ( false == $counts ) {
+		$and   = wp_post_mime_type_where( $mime_type );
+		$count = $wpdb->get_results( "SELECT post_mime_type, COUNT( * ) AS num_posts FROM $wpdb->posts WHERE post_type = 'attachment' AND post_status != 'trash' $and GROUP BY post_mime_type", ARRAY_A );
+
+		$counts = array();
+		foreach ( (array) $count as $row ) {
+			$counts[ $row['post_mime_type'] ] = $row['num_posts'];
+		}
+		$counts['trash'] = $wpdb->get_var( "SELECT COUNT( * ) FROM $wpdb->posts WHERE post_type = 'attachment' AND post_status = 'trash' $and" );
+
+		wp_cache_set( $cache_key, (object) $counts, 'counts' );
 	}
-	$counts['trash'] = $wpdb->get_var( "SELECT COUNT( * ) FROM $wpdb->posts WHERE post_type = 'attachment' AND post_status = 'trash' $and" );
 
 	/**
 	 * Modifies returned attachment counts by mime type.
@@ -3375,7 +3384,7 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param WP_Post|false|null $delete       Whether to go forward with deletion. @TODO description
+	 * @param WP_Post|false|null $delete       Whether to go forward with deletion.
 	 * @param WP_Post            $post         Post object.
 	 * @param bool               $force_delete Whether to bypass the Trash.
 	 */
@@ -4024,6 +4033,7 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
  *                                         child terms can have the same names with different parent terms,
  *                                         so the only way to connect them is using ID. Default empty.
  *     @type array  $meta_input            Array of post meta values keyed by their post meta key. Default empty.
+ *     @type string $page_template         Page template to use.
  * }
  * @param bool  $wp_error         Optional. Whether to return a WP_Error on failure. Default false.
  * @param bool  $fire_after_hooks Optional. Whether to fire the after insert hooks. Default true.
@@ -4945,9 +4955,9 @@ function wp_resolve_post_date( $post_date = '', $post_date_gmt = '' ) {
 	}
 
 	// Validate the date.
-	$month = substr( $post_date, 5, 2 );
-	$day   = substr( $post_date, 8, 2 );
-	$year  = substr( $post_date, 0, 4 );
+	$month = (int) substr( $post_date, 5, 2 );
+	$day   = (int) substr( $post_date, 8, 2 );
+	$year  = (int) substr( $post_date, 0, 4 );
 
 	$valid_date = wp_checkdate( $month, $day, $year, $post_date );
 
@@ -6379,7 +6389,7 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param WP_Post|false|null $delete       Whether to go forward with deletion. @TODO description
+	 * @param WP_Post|false|null $delete       Whether to go forward with deletion.
 	 * @param WP_Post            $post         Post object.
 	 * @param bool               $force_delete Whether to bypass the Trash.
 	 */
@@ -6486,28 +6496,13 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 		$intermediate_dir = path_join( $uploadpath['basedir'], dirname( $file ) );
 
 		foreach ( $meta['sizes'] as $size => $sizeinfo ) {
+			$intermediate_file = str_replace( wp_basename( $file ), $sizeinfo['file'], $file );
 
-			// Check for alternate size mime types in the sizeinfo['sources'] array to delete.
-			if ( isset( $sizeinfo['sources'] ) && is_array( $sizeinfo['sources'] ) ) {
-				foreach ( $sizeinfo['sources'] as $mime => $properties ) {
-					$intermediate_file = str_replace( wp_basename( $file ), $properties['file'], $file );
-					if ( ! empty( $intermediate_file ) ) {
-						$intermediate_file = path_join( $uploadpath['basedir'], $intermediate_file );
-						if ( ! wp_delete_file_from_directory( $intermediate_file, $intermediate_dir ) ) {
-							$deleted = false;
-						}
-					}
-				}
-			} else {
-				// Otherwise, delete files from the sizeinfo data.
-				$intermediate_file = str_replace( wp_basename( $file ), $sizeinfo['file'], $file );
+			if ( ! empty( $intermediate_file ) ) {
+				$intermediate_file = path_join( $uploadpath['basedir'], $intermediate_file );
 
-				if ( ! empty( $intermediate_file ) ) {
-					$intermediate_file = path_join( $uploadpath['basedir'], $intermediate_file );
-
-					if ( ! wp_delete_file_from_directory( $intermediate_file, $intermediate_dir ) ) {
-						$deleted = false;
-					}
+				if ( ! wp_delete_file_from_directory( $intermediate_file, $intermediate_dir ) ) {
+					$deleted = false;
 				}
 			}
 		}
@@ -6529,58 +6524,24 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 		}
 	}
 
-	// Delete the full size images from 'sources' if available, or the root file.
-	if ( isset( $meta['sources'] ) && is_array( $meta['sources'] ) ) {
-		$sources          = $meta['sources'];
-		$intermediate_dir = path_join( $uploadpath['basedir'], dirname( $file ) );
-		foreach ( $sources as $mime => $properties ) {
-			if ( ! is_array( $properties ) || empty( $properties['file'] ) ) {
-				continue;
+	if ( is_array( $backup_sizes ) ) {
+		$del_dir = path_join( $uploadpath['basedir'], dirname( $meta['file'] ) );
+
+		foreach ( $backup_sizes as $size ) {
+			$del_file = path_join( dirname( $meta['file'] ), $size['file'] );
+
+			if ( ! empty( $del_file ) ) {
+				$del_file = path_join( $uploadpath['basedir'], $del_file );
+
+				if ( ! wp_delete_file_from_directory( $del_file, $del_dir ) ) {
+					$deleted = false;
+				}
 			}
-			$intermediate_file = str_replace( wp_basename( $file ), $properties['file'], $file );
-			if ( ! wp_delete_file_from_directory( $intermediate_file, $intermediate_dir ) ) {
-				$deleted = false;
-			}
-		}
-	} else {
-		if ( ! wp_delete_file_from_directory( $file, $uploadpath['basedir'] ) ) {
-			$deleted = false;
 		}
 	}
 
-	if ( is_array( $backup_sizes ) ) {
-
-		$del_dir = path_join( $uploadpath['basedir'], dirname( $meta['file'] ) );
-		// Delete the root (edited) file which was not deleted above.
-		if ( ! wp_delete_file_from_directory( $file, $uploadpath['basedir'] ) ) {
-			$deleted = false;
-		}
-		foreach ( $backup_sizes as $size ) {
-			// Delete files from 'sources' data if available, otherwise from 'sizes' data.
-			if ( isset( $meta['sources'] ) && is_array( $meta['sources'] ) ) {
-				// Delete any backup images stored in the 'sources' array.
-				if ( isset( $size['sources'] ) && is_array( $size['sources'] ) ) {
-					foreach ( $size['sources'] as $mime => $properties ) {
-						$del_file = path_join( dirname( $meta['file'] ), $properties['file'] );
-						if ( ! empty( $del_file ) ) {
-							$del_file = path_join( $uploadpath['basedir'], $del_file );
-							if ( ! wp_delete_file_from_directory( $del_file, $del_dir ) ) {
-								$deleted = false;
-							}
-						}
-					}
-				}
-			} else {
-				$del_file = path_join( dirname( $meta['file'] ), $size['file'] );
-
-				if ( ! empty( $del_file ) ) {
-					$del_file = path_join( $uploadpath['basedir'], $del_file );
-					if ( ! wp_delete_file_from_directory( $del_file, $del_dir ) ) {
-						$deleted = false;
-					}
-				}
-			}
-		}
+	if ( ! wp_delete_file_from_directory( $file, $uploadpath['basedir'] ) ) {
+		$deleted = false;
 	}
 
 	return $deleted;
@@ -7517,6 +7478,15 @@ function update_post_caches( &$posts, $post_type = 'post', $update_term_cache = 
  * @param WP_Post[] $posts Array of post objects.
  */
 function update_post_author_caches( $posts ) {
+	/*
+	 * cache_users() is a pluggable function so is not available prior
+	 * to the `plugins_loaded` hook firing. This is to ensure against
+	 * fatal errors when the function is not available.
+	 */
+	if ( ! function_exists( 'cache_users' ) ) {
+		return;
+	}
+
 	$author_ids = wp_list_pluck( $posts, 'post_author' );
 	$author_ids = array_map( 'absint', $author_ids );
 	$author_ids = array_unique( array_filter( $author_ids ) );
@@ -7988,36 +7958,6 @@ function wp_add_trashed_suffix_to_post_name_for_post( $post ) {
 }
 
 /**
- * Filters the SQL clauses of an attachment query to include filenames.
- *
- * @since 4.7.0
- * @access private
- *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
- * @param string[] $clauses An array including WHERE, GROUP BY, JOIN, ORDER BY,
- *                          DISTINCT, fields (SELECT), and LIMITS clauses.
- * @return string[] The modified array of clauses.
- */
-function _filter_query_attachment_filenames( $clauses ) {
-	global $wpdb;
-	remove_filter( 'posts_clauses', __FUNCTION__ );
-
-	// Add a LEFT JOIN of the postmeta table so we don't trample existing JOINs.
-	$clauses['join'] .= " LEFT JOIN {$wpdb->postmeta} AS sq1 ON ( {$wpdb->posts}.ID = sq1.post_id AND sq1.meta_key = '_wp_attached_file' )";
-
-	$clauses['groupby'] = "{$wpdb->posts}.ID";
-
-	$clauses['where'] = preg_replace(
-		"/\({$wpdb->posts}.post_content (NOT LIKE|LIKE) (\'[^']+\')\)/",
-		'$0 OR ( sq1.meta_value $1 $2 )',
-		$clauses['where']
-	);
-
-	return $clauses;
-}
-
-/**
  * Sets the last changed time for the 'posts' cache group.
  *
  * @since 5.0.0
@@ -8034,7 +7974,7 @@ function wp_cache_set_posts_last_changed() {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $type
- * @return mixed
+ * @return string[] An array of MIME types.
  */
 function get_available_post_mime_types( $type = 'attachment' ) {
 	global $wpdb;

@@ -1308,7 +1308,7 @@ function wp_edit_attachments_query_vars( $q = false ) {
 
 	// Filter query clauses to include filenames.
 	if ( isset( $q['s'] ) ) {
-		add_filter( 'posts_clauses', '_filter_query_attachment_filenames' );
+		add_filter( 'wp_allow_query_attachment_by_filename', '__return_true' );
 	}
 
 	return $q;
@@ -1399,6 +1399,7 @@ function get_sample_permalink( $post, $title = null, $name = null ) {
 	$original_status = $post->post_status;
 	$original_date   = $post->post_date;
 	$original_name   = $post->post_name;
+	$original_filter = $post->filter;
 
 	// Hack: get_permalink() would return plain permalink for drafts, so we will fake that our post is published.
 	if ( in_array( $post->post_status, array( 'draft', 'pending', 'future' ), true ) ) {
@@ -1443,7 +1444,7 @@ function get_sample_permalink( $post, $title = null, $name = null ) {
 	$post->post_status = $original_status;
 	$post->post_date   = $original_date;
 	$post->post_name   = $original_name;
-	unset( $post->filter );
+	$post->filter      = $original_filter;
 
 	/**
 	 * Filters the sample permalink.
@@ -2333,6 +2334,50 @@ function the_block_editor_meta_boxes() {
 		wp_enqueue_script( 'wp-lists' );
 		wp_add_inline_script( 'wp-lists', $script );
 	}
+
+	/*
+	 * Refresh nonces used by the meta box loader.
+	 *
+	 * The logic is very similar to that provided by post.js for the classic editor.
+	 */
+	$script = "( function( $ ) {
+		var check, timeout;
+
+		function schedule() {
+			check = false;
+			window.clearTimeout( timeout );
+			timeout = window.setTimeout( function() { check = true; }, 300000 );
+		}
+
+		$( document ).on( 'heartbeat-send.wp-refresh-nonces', function( e, data ) {
+			var post_id, \$authCheck = $( '#wp-auth-check-wrap' );
+
+			if ( check || ( \$authCheck.length && ! \$authCheck.hasClass( 'hidden' ) ) ) {
+				if ( ( post_id = $( '#post_ID' ).val() ) && $( '#_wpnonce' ).val() ) {
+					data['wp-refresh-metabox-loader-nonces'] = {
+						post_id: post_id
+					};
+				}
+			}
+		}).on( 'heartbeat-tick.wp-refresh-nonces', function( e, data ) {
+			var nonces = data['wp-refresh-metabox-loader-nonces'];
+
+			if ( nonces ) {
+				if ( nonces.replace ) {
+					if ( nonces.replace.metabox_loader_nonce && window._wpMetaBoxUrl && wp.url ) {
+						window._wpMetaBoxUrl= wp.url.addQueryArgs( window._wpMetaBoxUrl, { 'meta-box-loader-nonce': nonces.replace.metabox_loader_nonce } );
+					}
+
+					if ( nonces.replace._wpnonce ) {
+						$( '#_wpnonce' ).val( nonces.replace._wpnonce );
+					}
+				}
+			}
+		}).ready( function() {
+			schedule();
+		});
+	} )( jQuery );";
+	wp_add_inline_script( 'heartbeat', $script );
 
 	// Reset meta box data.
 	$wp_meta_boxes = $_original_meta_boxes;

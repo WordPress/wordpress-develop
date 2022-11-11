@@ -5,10 +5,7 @@
  *
  * @covers ::wp_update_comment_count_now
  */
-class Tests_Update_Comment_Count_Now extends WP_UnitTestCase {
-	public function _return_100() {
-		return 100;
-	}
+class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 
 	public function test_invalid_post_bails_early() {
 		$this->assertFalse( wp_update_comment_count_now( 100 ) );
@@ -49,5 +46,9 @@ class Tests_Update_Comment_Count_Now extends WP_UnitTestCase {
 		$this->assertSame( '100', get_comments_number( $post_id ) );
 
 		remove_filter( 'pre_wp_update_comment_count_now', array( $this, '_return_100' ) );
+	}
+
+	public function _return_100() {
+		return 100;
 	}
 }
