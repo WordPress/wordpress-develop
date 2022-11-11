@@ -520,7 +520,7 @@ class WP_Meta_Query {
 	 * @param array  $clause       Query clause (passed by reference).
 	 * @param array  $parent_query Parent query array.
 	 * @param string $clause_key   Optional. The array key used to name the clause in the original `$meta_query`
-	 *                             parameters. If not provided, a key will be generated automatically. Default empty.
+	 *                             parameters. If not provided, a key will be generated automatically. Default empty string.
 	 * @return string[] {
 	 *     Array containing JOIN and WHERE SQL clauses to append to a first-order query.
 	 *
