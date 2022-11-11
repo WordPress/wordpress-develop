@@ -8448,3 +8448,22 @@ function wp_recursive_ksort( &$array ) {
 	}
 	ksort( $array );
 }
+
+/**
+ * Gets the properties of the given object.
+ * Removes array element with null-byte key from the result.
+ *
+ * @since 6.2.0
+ *
+ * @param object $object An object instance.
+ * @return array
+ */
+function wp_get_object_vars( $object ) {
+	return array_filter(
+			get_object_vars( $object ),
+			function( $key ) {
+					return ord( $key ) !== 0;
+			},
+			ARRAY_FILTER_USE_KEY
+	);
+}
