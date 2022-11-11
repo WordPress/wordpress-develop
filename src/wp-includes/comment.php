@@ -236,7 +236,7 @@ function get_comment( $comment = null, $output = OBJECT ) {
  * @since 2.7.0
  *
  * @param string|array $args Optional. Array or string of arguments. See WP_Comment_Query::__construct()
- *                           for information on accepted arguments. Default empty.
+ *                           for information on accepted arguments. Default empty string.
  * @return WP_Comment[]|int[]|int List of comments or number of found comments if `$count` argument is true.
  */
 function get_comments( $args = '' ) {
@@ -449,7 +449,7 @@ function add_comment_meta( $comment_id, $meta_key, $meta_value, $unique = false 
  * @param string $meta_key   Metadata name.
  * @param mixed  $meta_value Optional. Metadata value. If provided,
  *                           rows will only be removed that match the value.
- *                           Must be serializable if non-scalar. Default empty.
+ *                           Must be serializable if non-scalar. Default empty string.
  * @return bool True on success, false on failure.
  */
 function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
@@ -465,7 +465,7 @@ function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
  *
  * @param int    $comment_id Comment ID.
  * @param string $key        Optional. The meta key to retrieve. By default,
- *                           returns data for all keys. Default empty.
+ *                           returns data for all keys. Default empty string.
  * @param bool   $single     Optional. Whether to return a single value.
  *                           This parameter has no effect if `$key` is not specified.
  *                           Default false.
@@ -495,7 +495,7 @@ function get_comment_meta( $comment_id, $key = '', $single = false ) {
  * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
  * @param mixed  $prev_value Optional. Previous value to check before updating.
  *                           If specified, only update existing metadata entries with
- *                           this value. Otherwise, update all entries. Default empty.
+ *                           this value. Otherwise, update all entries. Default empty string.
  * @return int|bool Meta ID if the key didn't exist, true on successful update,
  *                  false on failure or if the value passed to the function
  *                  is the same as the one that is already in the database.
