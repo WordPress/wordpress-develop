@@ -1506,6 +1506,17 @@ final class WP_Theme implements ArrayAccess {
 	}
 
 	/**
+	 * Determines whether the  theme has a theme.json file.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @return bool
+	 */
+	public function has_json_support() {
+		return is_readable( $this->get_file_path( 'theme.json' ) );
+	}
+
+	/**
 	 * Retrieves the path of a file in the theme.
 	 *
 	 * Searches in the stylesheet directory before the template directory so themes

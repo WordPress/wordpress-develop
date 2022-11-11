@@ -133,7 +133,8 @@ wp_add_inline_script(
  * not empty so we do not trigger the template select element without any options
  * besides the default value.
  */
-$available_templates = wp_get_theme()->get_page_templates( get_post( $post->ID ) );
+$active_theme        = wp_get_theme();
+$available_templates = $active_theme->get_page_templates( get_post( $post->ID ) );
 $available_templates = ! empty( $available_templates ) ? array_replace(
 	array(
 		/** This filter is documented in wp-admin/includes/meta-boxes.php */
@@ -203,7 +204,7 @@ $editor_settings = array(
 		'unlockNonce' => wp_create_nonce( 'update-post_' . $post->ID ),
 		'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
 	),
-	'supportsLayout'       => WP_Theme_JSON_Resolver::theme_has_support(),
+	'supportsLayout'       => $active_theme->has_json_support(),
 	'supportsTemplateMode' => current_theme_supports( 'block-templates' ),
 
 	// Whether or not to load the 'postcustom' meta box is stored as a user meta

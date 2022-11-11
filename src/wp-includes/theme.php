@@ -4218,6 +4218,21 @@ function wp_is_block_theme() {
 }
 
 /**
+ * Whether a theme or its parent have a theme.json file.
+ *
+ * @since 6.2.0
+ *
+ * @param string $stylesheet Optional. Directory name for the theme. Defaults to active theme.
+ * @param string $theme_root Optional. Absolute path of the theme root to look in.
+ *                           If not specified, get_raw_theme_root() is used to calculate
+ *                           the theme root for the $stylesheet provided (or active theme).
+ * @return bool
+ */
+function wp_theme_has_theme_json( $stylesheet = '', $theme_root = '' ) {
+	return wp_get_theme( $stylesheet, $theme_root )->has_json_support();
+}
+
+/**
  * Given an element name, returns a class name.
  *
  * Alias of WP_Theme_JSON::get_element_class_name.

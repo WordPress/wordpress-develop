@@ -68,14 +68,15 @@ foreach ( get_default_block_template_types() as $slug => $template_type ) {
 }
 
 $block_editor_context = new WP_Block_Editor_Context( array( 'name' => 'core/edit-site' ) );
+$active_theme         = wp_get_theme();
 $custom_settings      = array(
 	'siteUrl'                   => site_url(),
 	'postsPerPage'              => get_option( 'posts_per_page' ),
 	'styles'                    => get_block_editor_theme_styles(),
 	'defaultTemplateTypes'      => $indexed_template_types,
 	'defaultTemplatePartAreas'  => get_allowed_block_template_part_areas(),
-	'supportsLayout'            => WP_Theme_JSON_Resolver::theme_has_support(),
-	'supportsTemplatePartsMode' => ! wp_is_block_theme() && current_theme_supports( 'block-template-parts' ),
+	'supportsLayout'            => $active_theme->has_json_support(),
+	'supportsTemplatePartsMode' => ! $active_theme->is_block_theme() && current_theme_supports( 'block-template-parts' ),
 	'__unstableHomeTemplate'    => $home_template,
 );
 
@@ -100,8 +101,7 @@ if ( isset( $_GET['postType'] ) && ! isset( $_GET['postId'] ) ) {
 	}
 }
 
-$active_global_styles_id = WP_Theme_JSON_Resolver::get_user_global_styles_post_id();
-$active_theme            = wp_get_theme()->get_stylesheet();
+$active_global_styles_id = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $active_theme );
 $preload_paths           = array(
 	array( '/wp/v2/media', 'OPTIONS' ),
 	'/wp/v2/types?context=view',
@@ -112,7 +112,7 @@ $preload_paths           = array(
 	'/wp/v2/themes?context=edit&status=active',
 	'/wp/v2/global-styles/' . $active_global_styles_id . '?context=edit',
 	'/wp/v2/global-styles/' . $active_global_styles_id,
-	'/wp/v2/global-styles/themes/' . $active_theme,
+	'/wp/v2/global-styles/themes/' . $active_theme->get_stylesheet(),
 );
 
 block_editor_rest_api_preload( $preload_paths, $block_editor_context );
