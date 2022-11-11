@@ -9,8 +9,9 @@
  * @since 5.8.0
  *
  * @group themes
+ *
+ * @covers WP_Theme_JSON
  */
-
 class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
