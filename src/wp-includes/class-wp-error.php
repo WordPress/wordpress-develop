@@ -56,7 +56,7 @@ class WP_Error {
 	 *
 	 * @param string|int $code    Error code.
 	 * @param string     $message Error message.
-	 * @param mixed      $data    Optional. Error data. Default empty.
+	 * @param mixed      $data    Optional. Error data. Default empty string.
 	 */
 	public function __construct( $code = '', $message = '', $data = '' ) {
 		if ( empty( $code ) ) {
