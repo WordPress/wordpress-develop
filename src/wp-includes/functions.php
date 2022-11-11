@@ -8224,7 +8224,7 @@ function get_dirsize( $directory, $max_execution_time = null ) {
  *                                            or array of paths. Expected without trailing slash(es). Default null.
  * @param int             $max_execution_time Optional. Maximum time to run before giving up. In seconds.
  *                                            The timeout is global and is measured from the moment
- *                                            WordPress started to load. Defaut null.
+ *                                            WordPress started to load. Default null.
  * @param array           $directory_cache    Optional. Array of cached directory paths. Default null.
  * @return int|false|null Size in bytes if a valid directory. False if not. Null if timeout.
  */
