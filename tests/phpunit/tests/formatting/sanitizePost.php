@@ -32,4 +32,43 @@ class Tests_Formatting_SanitizePost extends WP_UnitTestCase {
 			}
 		}
 	}
+
+	/**
+	 * @dataProvider data_test_null_byte
+	 * @ticket 52738
+	 */
+	public function test_null_byte( $post_data ) {
+		$post = sanitize_post( $post_data );
+
+		$this->assertSame( $post->post_type, $post_data->post_type );
+	}
+
+	public function data_test_null_byte() {
+		 return array(
+			 array(
+				 (object) array(
+					 'post_status' => 'publish',
+					 'post_title'  => new WP_UnitTest_Generator_Sequence( 'Post title %s' ),
+					 'post_type'   => 'post',
+					 chr( 0 )      => 'Null-byte',
+				 ),
+			 ),
+			 array(
+				 (object) array(
+					 'post_status'     => 'publish',
+					 'post_title'      => new WP_UnitTest_Generator_Sequence( 'Post title %s' ),
+					 'post_type'       => 'post',
+					 chr( 0 ) . 'prop' => 'Starts with null-byte',
+				 ),
+			 ),
+			 array(
+				 (object) array(
+					 'post_status'     => 'publish',
+					 'post_title'      => new WP_UnitTest_Generator_Sequence( 'Post title %s' ),
+					 'post_type'       => 'post',
+					 'prop' . chr( 0 ) => 'Ends with null-byte',
+				 ),
+			 ),
+		 );
+	}
 }

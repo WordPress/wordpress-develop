@@ -58,4 +58,40 @@ class Tests_Post_wpPost extends WP_UnitTestCase {
 
 		$this->assertSame( 1, $found->ID );
 	}
+
+	/**
+	 * @dataProvider data_test_wp_post_null_byte
+	 * @ticket 52738
+	 */
+	public function test_wp_post_null_byte( $post_data, $expected ) {
+		$post = new WP_Post( $post_data );
+
+		$this->assertSame( $post->post_title, $expected );
+	}
+
+	public function data_test_wp_post_null_byte() {
+		return array(
+			array(
+				(object) array(
+					'post_title' => 'Foo1',
+					chr( 0 )     => 'null-byte',
+				),
+				'Foo1',
+			),
+			array(
+				(object) array(
+					'post_title'      => 'Foo2',
+					chr( 0 ) . 'prop' => 'Starts with null-byte',
+				),
+				'Foo2',
+			),
+			array(
+				(object) array(
+					'post_title'      => 'Foo3',
+					'prop' . chr( 0 ) => 'Ends with null-byte',
+				),
+				'Foo3',
+			),
+		);
+	}
 }

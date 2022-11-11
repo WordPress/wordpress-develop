@@ -89,4 +89,40 @@ class Tests_Term_WpTerm extends WP_UnitTestCase {
 		$found = WP_Term::get_instance( self::$term_id, 'wptests_tax2' );
 		$this->assertFalse( $found );
 	}
+
+	/**
+	 * @dataProvider data_test_wp_term_null_byte
+	 * @ticket 52738
+	 */
+	public function test_wp_term_null_byte( $term_data, $expected ) {
+		$term = new WP_Term( $term_data );
+
+		$this->assertSame( $term->name, $expected );
+	}
+
+	public function data_test_wp_term_null_byte() {
+		return array(
+			array(
+				(object) array(
+					'name'   => 'Foo1',
+					chr( 0 ) => 'null-byte',
+				),
+				'Foo1',
+			),
+			array(
+				(object) array(
+					'name'            => 'Foo2',
+					chr( 0 ) . 'prop' => 'Starts with null-byte',
+				),
+				'Foo2',
+			),
+			array(
+				(object) array(
+					'name'            => 'Foo3',
+					'prop' . chr( 0 ) => 'Ends with null-byte',
+				),
+				'Foo3',
+			),
+		);
+	}
 }
