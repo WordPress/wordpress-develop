@@ -1688,8 +1688,9 @@ function wp_kses_check_attr_val( $value, $vless, $checkname, $checkvalue ) {
 function wp_kses_bad_protocol( $string, $allowed_protocols ) {
 	$string = wp_kses_no_null( $string );
 
+	// Short-circuit if the string starts with `https://` or `http://`. Most common cases.
 	if ( in_array( 'https', $allowed_protocols, true ) ) {
-		// Check if the string starts with `https` and it is lower case. Most common.
+		// Check if the string starts with `https` and it is lower case.
 		if ( 0 === strpos( $string, 'https://' ) ) {
 			return $string;
 		} elseif ( 0 === stripos( $string, 'https://' ) ) {
