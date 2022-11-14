@@ -243,7 +243,9 @@ class WP_Theme_JSON_Resolver {
 			_deprecated_argument( __METHOD__, '5.9.0' );
 		}
 
-		$options = wp_parse_args( $options, array( 'with_supports' => true ) );
+		if ( static::$theme ) {
+			return static::$theme;
+		}
 
 		if ( null === static::$theme || ! static::has_same_registered_blocks( 'theme' ) ) {
 			$theme_json_file = static::get_file_path_from_theme( 'theme.json' );
@@ -284,10 +286,6 @@ class WP_Theme_JSON_Resolver {
 			}
 		}
 
-		if ( ! $options['with_supports'] ) {
-			return static::$theme;
-		}
-
 		/*
 		 * We want the presets and settings declared in theme.json
 		 * to override the ones declared via theme supports.
@@ -324,8 +322,8 @@ class WP_Theme_JSON_Resolver {
 			$theme_support_data['settings']['color']['defaultDuotone'] = false;
 		}
 		$with_theme_supports = new WP_Theme_JSON( $theme_support_data );
-		$with_theme_supports->merge( static::$theme );
-		return $with_theme_supports;
+		static::$theme->merge( $with_theme_supports );
+		return static::$theme;
 	}
 
 	/**
