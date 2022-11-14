@@ -1686,7 +1686,14 @@ function wp_kses_check_attr_val( $value, $vless, $checkname, $checkvalue ) {
  * @return string Filtered content.
  */
 function wp_kses_bad_protocol( $string, $allowed_protocols ) {
-	$string     = wp_kses_no_null( $string );
+	$string = wp_kses_no_null( $string );
+
+	if ( in_array( 'https', $allowed_protocols ) || in_array( 'http', $allowed_protocols ) ) {
+		if ( 0 === stripos( $string, 'https://' ) || 0 === stripos( $string, 'http://' ) ) {
+			return $string;
+		}
+	}
+
 	$iterations = 0;
 
 	do {
