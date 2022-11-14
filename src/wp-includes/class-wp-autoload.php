@@ -397,11 +397,10 @@ final class WP_Autoload {
 	 * @return void
 	 */
 	public static function register() {
+		// Bail early if already registered.
 		if ( static::$registered ) {
 			return;
 		}
-		// Autoload WordPress classes.
-		spl_autoload_register( array( __CLASS__, 'autoload' ), true, true );
 
 		// Autoload bundled libraries.
 		foreach ( static::$libraries_autoloaders as $autoloader ) {
@@ -412,12 +411,14 @@ final class WP_Autoload {
 			}
 		}
 
+		// Build an array of lowercased classnames to accomodate for case-insensitive classnames.
 		foreach ( static::$classes_paths as $class => $path ) {
-			static::$lowercased_wp_classes[ strtolower( $class ) ] = array(
-				'name' => $class,
-				'path' => $path,
-			);
+			static::$lowercased_wp_classes[ strtolower( $class ) ] = $class;
 		}
+
+		// Autoload WordPress classes.
+		spl_autoload_register( array( __CLASS__, 'autoload' ), true, true );
+
 		static::$registered = true;
 	}
 
@@ -428,18 +429,21 @@ final class WP_Autoload {
 	 * @return void
 	 */
 	public static function autoload( $class ) {
-		if ( isset( static::$classes_paths[ $class ] ) ) {
-			require_once ABSPATH . static::$classes_paths[ $class ];
-			return;
+		$class_name = $class;
+		if ( ! isset( static::$classes_paths[ $class ] ) ) {
+
+			// Check if the classname was typed using innacurate casing.
+			// Bail early if the class is not a WP class.
+			if ( ! isset( static::$lowercased_wp_classes[ strtolower( $class ) ] ) ) {
+				return;
+			}
+
+			// The class-name was typed using innacurate casing.
+			$class_name = static::$lowercased_wp_classes[ strtolower( $class ) ];
+			trigger_error( sprintf( 'Class name "%s" is invalid. Use "%s" instead.', $class, $class_name ), E_USER_NOTICE );
 		}
 
-		// Account for classes written with incorrect cases.
-		if ( isset( static::$lowercased_wp_classes[ strtolower( $class ) ] ) ) {
-			$class_details = static::$lowercased_wp_classes[ strtolower( $class ) ];
-			trigger_error( sprintf( 'Class name "%s" is invalid. Use "%s" instead.', $class, $class_details['name'] ), E_USER_NOTICE );
-			require_once ABSPATH . $class_details['path'];
-			return;
-		}
+		require_once ABSPATH . static::$classes_paths[ $class_name ];
 	}
 }
 
