@@ -1688,9 +1688,21 @@ function wp_kses_check_attr_val( $value, $vless, $checkname, $checkvalue ) {
 function wp_kses_bad_protocol( $string, $allowed_protocols ) {
 	$string = wp_kses_no_null( $string );
 
-	if ( in_array( 'https', $allowed_protocols ) || in_array( 'http', $allowed_protocols ) ) {
-		if ( 0 === stripos( $string, 'https://' ) || 0 === stripos( $string, 'http://' ) ) {
+	if ( in_array( 'https', $allowed_protocols, true ) ) {
+		// Check if the string starts with `https` and it is lower case. Most common.
+		if ( 0 === strpos( $string, 'https://' ) ) {
 			return $string;
+		} elseif ( 0 === stripos( $string, 'https://' ) ) {
+			// The protocol matches but it is not lower case.
+			return 'https://' . substr( $string, 8 ) ;
+		}
+	} elseif ( in_array( 'http', $allowed_protocols, true ) ) {
+		// Same as above but for `http`.
+		if ( 0 === strpos( $string, 'http://' ) ) {
+			return $string;
+		} elseif ( 0 === stripos( $string, 'http://' ) ) {
+			// The protocol matches but it is not lower case.
+			return 'http://' . substr( $string, 7 ) ;
 		}
 	}
 
