@@ -1694,7 +1694,7 @@ function wp_kses_bad_protocol( $string, $allowed_protocols ) {
 			return $string;
 		} elseif ( 0 === stripos( $string, 'https://' ) ) {
 			// The protocol matches but it is not lower case.
-			return 'https://' . substr( $string, 8 ) ;
+			return 'https://' . substr( $string, 8 );
 		}
 	} elseif ( in_array( 'http', $allowed_protocols, true ) ) {
 		// Same as above but for `http`.
@@ -1702,7 +1702,7 @@ function wp_kses_bad_protocol( $string, $allowed_protocols ) {
 			return $string;
 		} elseif ( 0 === stripos( $string, 'http://' ) ) {
 			// The protocol matches but it is not lower case.
-			return 'http://' . substr( $string, 7 ) ;
+			return 'http://' . substr( $string, 7 );
 		}
 	}
 
