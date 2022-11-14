@@ -58,6 +58,14 @@ class WP_Theme_JSON_Resolver {
 	protected static $theme = null;
 
 	/**
+	 * Container for data coming from the theme with settings.
+	 *
+	 * @since 6.1.1
+	 * @var WP_Theme_JSON
+	 */
+	protected static $with_theme_supports = null;
+
+	/**
 	 * Whether or not the theme supports theme.json.
 	 *
 	 * @since 5.8.0
@@ -243,9 +251,7 @@ class WP_Theme_JSON_Resolver {
 			_deprecated_argument( __METHOD__, '5.9.0' );
 		}
 
-		if ( static::$theme ) {
-			return static::$theme;
-		}
+		$options = wp_parse_args( $options, array( 'with_supports' => true ) );
 
 		if ( null === static::$theme || ! static::has_same_registered_blocks( 'theme' ) ) {
 			$theme_json_file = static::get_file_path_from_theme( 'theme.json' );
@@ -286,6 +292,14 @@ class WP_Theme_JSON_Resolver {
 			}
 		}
 
+		if ( ! $options['with_supports'] ) {
+			return static::$theme;
+		}
+
+		if ( null !== static::$with_theme_supports ) {
+			return static::$with_theme_supports;
+		}
+
 		/*
 		 * We want the presets and settings declared in theme.json
 		 * to override the ones declared via theme supports.
@@ -321,9 +335,9 @@ class WP_Theme_JSON_Resolver {
 			// Classic themes without a theme.json don't support global duotone.
 			$theme_support_data['settings']['color']['defaultDuotone'] = false;
 		}
-		$with_theme_supports = new WP_Theme_JSON( $theme_support_data );
-		static::$theme->merge( $with_theme_supports );
-		return static::$theme;
+		static::$with_theme_supports = new WP_Theme_JSON( $theme_support_data );
+		static::$with_theme_supports->merge( static::$theme );
+		return static::$with_theme_supports;
 	}
 
 	/**
@@ -647,6 +661,7 @@ class WP_Theme_JSON_Resolver {
 			'user'   => array(),
 		);
 		static::$theme                    = null;
+		static::$with_theme_supports      = null;
 		static::$user                     = null;
 		static::$user_custom_post_type_id = null;
 		static::$theme_has_support        = null;
