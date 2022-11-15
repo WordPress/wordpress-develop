@@ -1210,4 +1210,65 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			array( 'id=>parent', 'id=>parent' ),
 		);
 	}
+
+	/**
+	 * Ensure starting the loop warms the author cache.
+	 *
+	 * @since 6.1.1
+	 * @ticket 56948
+	 *
+	 * @covers WP_Query::the_post
+	 *
+	 * @dataProvider data_author_cache_warmed_by_the_loop
+	 *
+	 * @param string $fields Query fields.
+	 */
+	public function test_author_cache_warmed_by_the_loop( $fields ) {
+		// Update post author for the parent post.
+		self::factory()->post->update_object( self::$pages[0], array( 'post_author' => self::$author_id ) );
+
+		self::factory()->post->create(
+			array(
+				'post_author' => self::$author_id,
+				'post_parent' => self::$pages[0],
+				'post_type'   => 'page',
+			)
+		);
+
+		$query_1 = new WP_Query(
+			array(
+				'post_type' => 'page',
+				'fields'    => $fields,
+				'author'    => self::$author_id,
+			)
+		);
+
+		// Start the loop.
+		$start_loop_queries = get_num_queries();
+		$query_1->the_post();
+		$num_loop_queries = get_num_queries() - $start_loop_queries;
+		$this->assertSame( 2, $num_loop_queries, 'Unexpected number of queries while initializing the loop.' );
+
+		$start_author_queries = get_num_queries();
+		get_user_by( 'ID', self::$author_id );
+		$num_author_queries = get_num_queries() - $start_author_queries;
+		$this->assertSame( 0, $num_author_queries, 'Author cache is not warmed by the loop.' );
+	}
+
+	/**
+	 * Data provider for test_author_cache_warmed_by_the_loop
+	 *
+	 * @return array[]
+	 */
+	public function data_author_cache_warmed_by_the_loop() {
+		return array(
+			'fields: empty' => array( '' ),
+			'fields: all'   => array( 'all' ),
+			'fields: ids'   => array( 'ids' ),
+			/*
+			 * `id=>parent` is untested pending the resolution of an existing bug.
+			 * See https://core.trac.wordpress.org/ticket/56992
+			 */
+		);
+	}
 }
