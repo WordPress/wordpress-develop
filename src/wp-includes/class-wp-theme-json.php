@@ -404,8 +404,8 @@ class WP_Theme_JSON {
 	 * @since 6.1.0
 	 */
 	const VALID_ELEMENT_PSEUDO_SELECTORS = array(
-		'link'   => array( ':visited', ':hover', ':focus', ':active' ),
-		'button' => array( ':visited', ':hover', ':focus', ':active' ),
+		'link'   => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':active' ),
+		'button' => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':active' ),
 	);
 
 	/**
