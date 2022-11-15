@@ -1023,7 +1023,8 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
  *                                  will result in the attribute being omitted for the image.
  *                                  Defaults to 'lazy', depending on wp_lazy_loading_enabled().
  *     @type string       $decoding The 'decoding' attribute value. Possible values are
- *                                  'async' (default), 'sync', or 'auto'.
+ *                                  'async' (default), 'sync', or 'auto'. Passing false or an empty
+ *                                  string will result in the attribute being omitted.
  * }
  * @return string HTML img element or empty string on failure.
  */
