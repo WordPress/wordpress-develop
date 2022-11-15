@@ -37,6 +37,7 @@ class Tests_Theme_wpGetGlobalStylesheet extends WP_UnitTestCase {
 
 		// Clear caches.
 		wp_clean_themes_cache();
+		WP_Theme_JSON_Resolver::clean_cached_data();
 		unset( $GLOBALS['wp_themes'] );
 	}
 
@@ -49,6 +50,7 @@ class Tests_Theme_wpGetGlobalStylesheet extends WP_UnitTestCase {
 		remove_filter( 'template_root', array( $this, 'filter_set_theme_root' ) );
 
 		wp_clean_themes_cache();
+		WP_Theme_JSON_Resolver::clean_cached_data();
 		unset( $GLOBALS['wp_themes'] );
 
 		parent::tear_down();
