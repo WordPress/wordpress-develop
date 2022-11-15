@@ -1050,8 +1050,6 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			'decoding' => 'async',
 		);
 
-
-
 		// Add `loading` attribute.
 		if ( wp_lazy_loading_enabled( 'img', 'wp_get_attachment_image' ) ) {
 			$default_attr['loading'] = wp_get_loading_attr_default( 'wp_get_attachment_image' );

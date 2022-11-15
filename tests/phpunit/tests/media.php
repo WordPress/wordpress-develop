@@ -3311,11 +3311,11 @@ EOF;
 				'decoding' => 'auto',
 				'expected' => '<img width="150" height="150" src="http://example.org/wp-content/uploads/2022/11/test-image-large-150x150.jpg" class="attachment-thumbnail size-thumbnail" alt="" decoding="auto" loading="lazy" />',
 			),
-			'empty' => array(
+			'empty'   => array(
 				'decoding' => '',
 				'expected' => '<img width="150" height="150" src="http://example.org/wp-content/uploads/2022/11/test-image-large-150x150.jpg" class="attachment-thumbnail size-thumbnail" alt="" loading="lazy" />',
 			),
-			'false'     => array(
+			'false'   => array(
 				'decoding' => false,
 				'expected' => '<img width="150" height="150" src="http://example.org/wp-content/uploads/2022/11/test-image-large-150x150.jpg" class="attachment-thumbnail size-thumbnail" alt="" loading="lazy" />',
 			),
