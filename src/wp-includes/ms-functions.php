@@ -113,7 +113,7 @@ function get_active_blog_for_user( $user_id ) {
  * @return int Number of active sites on the network.
  */
 function get_blog_count( $network_id = null ) {
-	return (int) get_network_option( $network_id, 'blog_count' );
+	return get_network_option( $network_id, 'blog_count' );
 }
 
 /**
@@ -2563,7 +2563,7 @@ function get_space_allowed() {
 	 *
 	 * @param int $space_allowed Upload quota in megabytes for the current blog.
 	 */
-	return (int) apply_filters( 'get_space_allowed', $space_allowed );
+	return apply_filters( 'get_space_allowed', $space_allowed );
 }
 
 /**
@@ -2615,12 +2615,14 @@ function is_upload_space_available() {
  * @return int Upload size limit in bytes.
  */
 function upload_size_limit_filter( $size ) {
-	$fileupload_maxk = KB_IN_BYTES * get_site_option( 'fileupload_maxk', 1500 );
+	$fileupload_maxk         = (int) get_site_option( 'fileupload_maxk', 1500 );
+	$max_fileupload_in_bytes = KB_IN_BYTES * $fileupload_maxk;
+
 	if ( get_site_option( 'upload_space_check_disabled' ) ) {
-		return min( $size, $fileupload_maxk );
+		return min( $size, $max_fileupload_in_bytes );
 	}
 
-	return min( $size, $fileupload_maxk, get_upload_space_available() );
+	return min( $size, $max_fileupload_in_bytes, get_upload_space_available() );
 }
 
 /**

@@ -1536,7 +1536,7 @@ function setup_userdata( $for_user_id = 0 ) {
  *                                                 Default empty.
  *     @type string       $show_option_none        Text to show as the drop-down default when no
  *                                                 users were found. Default empty.
- *     @type int|string   $option_none_value       Value to use for $show_option_non when no users
+ *     @type int|string   $option_none_value       Value to use for $show_option_none when no users
  *                                                 were found. Default -1.
  *     @type string       $hide_if_only_one_author Whether to skip generating the drop-down
  *                                                 if only one user was found. Default empty.
@@ -1873,15 +1873,10 @@ function update_user_caches( $user ) {
  *
  * @since 3.0.0
  * @since 4.4.0 'clean_user_cache' action was added.
- * @since 5.8.0 Refreshes the global user instance if cleaning the user cache for the current user.
- *
- * @global WP_User $current_user The current user object which holds the user data.
  *
  * @param WP_User|int $user User object or ID to be cleaned from the cache
  */
 function clean_user_cache( $user ) {
-	global $current_user;
-
 	if ( is_numeric( $user ) ) {
 		$user = new WP_User( $user );
 	}
@@ -1907,13 +1902,6 @@ function clean_user_cache( $user ) {
 	 * @param WP_User $user    User object.
 	 */
 	do_action( 'clean_user_cache', $user->ID, $user );
-
-	// Refresh the global user instance if the cleaning current user.
-	if ( get_current_user_id() === (int) $user->ID ) {
-		$user_id      = (int) $user->ID;
-		$current_user = null;
-		wp_set_current_user( $user_id, '' );
-	}
 }
 
 /**
@@ -3050,15 +3038,22 @@ function retrieve_password( $user_login = null ) {
 		$user_login = $_POST['user_login'];
 	}
 
+	$user_login = trim( wp_unslash( $user_login ) );
+
 	if ( empty( $user_login ) ) {
 		$errors->add( 'empty_username', __( '<strong>Error:</strong> Please enter a username or email address.' ) );
 	} elseif ( strpos( $user_login, '@' ) ) {
-		$user_data = get_user_by( 'email', trim( wp_unslash( $user_login ) ) );
+		$user_data = get_user_by( 'email', $user_login );
+
+		if ( empty( $user_data ) ) {
+			$user_data = get_user_by( 'login', $user_login );
+		}
+
 		if ( empty( $user_data ) ) {
 			$errors->add( 'invalid_email', __( '<strong>Error:</strong> There is no account with that username or email address.' ) );
 		}
 	} else {
-		$user_data = get_user_by( 'login', trim( wp_unslash( $user_login ) ) );
+		$user_data = get_user_by( 'login', $user_login );
 	}
 
 	/**
@@ -4990,11 +4985,11 @@ function wp_register_persisted_preferences_meta() {
 			'type'         => 'object',
 			'single'       => true,
 			'show_in_rest' => array(
-				'name'    => 'persisted_preferences',
-				'type'    => 'object',
-				'context' => array( 'edit' ),
-				'schema'  => array(
+				'name'   => 'persisted_preferences',
+				'type'   => 'object',
+				'schema' => array(
 					'type'                 => 'object',
+					'context'              => array( 'edit' ),
 					'properties'           => array(
 						'_modified' => array(
 							'description' => __( 'The date and time the preferences were updated.' ),
