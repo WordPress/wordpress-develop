@@ -10,6 +10,8 @@
 /**
  * Stores files to be deleted.
  *
+ * This should not include bundled theme files.
+ *
  * @since 2.7.0
  *
  * @global array $_old_files
