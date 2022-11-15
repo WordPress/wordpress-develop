@@ -1050,11 +1050,7 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			'decoding' => 'async',
 		);
 
-		// Omit the `decoding` attribute if it is set to false.
-		if ( array_key_exists( 'decoding', $attr ) && empty( $attr['decoding'] ) ) {
-			unset( $default_attr['decoding'] );
-			unset( $attr['decoding'] );
-		}
+
 
 		// Add `loading` attribute.
 		if ( wp_lazy_loading_enabled( 'img', 'wp_get_attachment_image' ) ) {
@@ -1062,6 +1058,11 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		}
 
 		$attr = wp_parse_args( $attr, $default_attr );
+
+		// Omit the `decoding` attribute if it is set to false.
+		if ( array_key_exists( 'decoding', $attr ) && empty( $attr['decoding'] ) ) {
+			unset( $attr['decoding'] );
+		}
 
 		// If the default value of `lazy` for the `loading` attribute is overridden
 		// to omit the attribute for this image, ensure it is not included.
