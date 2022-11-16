@@ -101,8 +101,10 @@ if ( isset( $_GET['postType'] ) && ! isset( $_GET['postId'] ) ) {
 	}
 }
 
+$active_theme            = wp_get_theme();
 $active_global_styles_id = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $active_theme );
-$preload_paths           = array(
+
+$preload_paths = array(
 	array( '/wp/v2/media', 'OPTIONS' ),
 	'/wp/v2/types?context=view',
 	'/wp/v2/types/wp_template?context=edit',

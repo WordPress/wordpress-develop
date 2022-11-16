@@ -3163,6 +3163,28 @@ EOF;
 	}
 
 	/**
+	 * Test that decoding="async" is not applied to img tags with single quotes.
+	 *
+	 * @ticket 56969
+	 */
+	public function test_wp_img_tag_add_decoding_attr_with_single_quotes() {
+		$img = "<img src='example.png' alt='' width='300' height='225' />";
+		$img = wp_img_tag_add_decoding_attr( $img, 'test' );
+		$this->assertStringNotContainsString( ' decoding="async"', $img );
+	}
+
+	/**
+	 * Test that decoding="async" is not applied to img tags inside JSON.
+	 *
+	 * @ticket 56969
+	 */
+	public function test_decoding_async_not_applied_to_json() {
+		$content = '{"image": "<img src=\"example.png\" alt=\"\" width=\"300\" height=\"225\" />"}';
+		$content = wp_filter_content_tags( $content );
+		$this->assertStringNotContainsString( ' decoding="async"', $content );
+	}
+
+	/**
 	 * @ticket 50756
 	 */
 	public function test_wp_iframe_tag_add_loading_attr() {
