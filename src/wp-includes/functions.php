@@ -2805,7 +2805,7 @@ function _wp_check_existing_file_names( $filename, $files ) {
 	$ext   = pathinfo( $filename, PATHINFO_EXTENSION );
 
 	// Edge case, file names like `.ext`.
-	if ( empty( $fname ) || empty( $ext ) ) {
+	if ( empty( $fname ) ) {
 
 		return false;
 	}
