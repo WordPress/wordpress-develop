@@ -32,26 +32,25 @@ env:
   LOCAL_PHP_MEMCACHED: ${{ false }}
 
 jobs:
-  # Sets up WordPress for testing or development use.
+  # Runs the PHPUnit tests for WordPress.
   #
   # Performs the following steps:
   # - Sets environment variables.
   # - Checks out the repository.
-  # - Checks out the WordPress Importer plugin (needed for the Core PHPUnit tests).
-  # - Logs debug information about the GitHub Action runner.
-  # - Installs Node.js.
-  # _ Installs npm dependencies.
+  # - Sets up Node.js.
+  # - Logs general debug information about the runner.
+  # - Installs npm dependencies
+  # - Configures caching for Composer.
+  # - Installs Composer dependencies.
   # - Logs Docker debug information (about the Docker installation within the runner).
   # - Starts the WordPress Docker container.
-  # - Logs debug general information.
   # - Logs the running Docker containers.
-  # - Logs WordPress Docker container debug information.
   # - Logs debug information about what's installed within the WordPress Docker containers.
   # - Install WordPress within the Docker container.
   # - Run the PHPUnit tests as a single site.
   # - Ensures version-controlled files are not modified or deleted.
   # - Upload the single site code coverage report to Codecov.io.
-  # - Run the PHPUnit tests as a multisite.
+  # - Run the PHPUnit tests as a multisite installation.
   # - Ensures version-controlled files are not modified or deleted.
   # - Upload the multisite code coverage report to Codecov.io.
   test-coverage-report:
@@ -73,6 +72,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
 
+      - name: Set up Node.js
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
       - name: Log debug information
         run: |
           echo "$GITHUB_REF"
@@ -82,17 +87,9 @@ jobs:
           curl --version
           git --version
           svn --version
-          php --version
-          php -i
           locale -a
 
-      - name: Install Node.js
-        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
-      - name: Install Dependencies
+      - name: Install npm Dependencies
         run: npm ci
 
       # This date is used to ensure that the Composer cache is refreshed at least once every week.
@@ -128,14 +125,6 @@ jobs:
       - name: Start Docker environment
         run: |
           npm run env:start
-
-      - name: General debug information
-        run: |
-          npm --version
-          node --version
-          curl --version
-          git --version
-          svn --version
 
       - name: Log running Docker containers
         run: docker ps -a
