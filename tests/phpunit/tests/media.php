@@ -3319,6 +3319,26 @@ EOF;
 				'decoding' => false,
 				'expected' => '<img width="150" height="150" src="http://example.org/wp-content/uploads/2022/11/test-image-large-150x150.jpg" class="attachment-thumbnail size-thumbnail" alt="" loading="lazy" />',
 			),
+			'null'    => array(
+				'decoding' => null,
+				'expected' => '<img width="150" height="150" src="http://example.org/wp-content/uploads/2022/11/test-image-large-150x150.jpg" class="attachment-thumbnail size-thumbnail" alt="" loading="lazy" />',
+			),
+			'zero'    => array(
+				'decoding' => 0,
+				'expected' => '<img width="150" height="150" src="http://example.org/wp-content/uploads/2022/11/test-image-large-150x150.jpg" class="attachment-thumbnail size-thumbnail" alt="" loading="lazy" />',
+			),
+			'zero string' => array(
+				'decoding' => '0',
+				'expected' => '<img width="150" height="150" src="http://example.org/wp-content/uploads/2022/11/test-image-large-150x150.jpg" class="attachment-thumbnail size-thumbnail" alt="" loading="lazy" />',
+			),
+			'zero float' => array(
+				'decoding' => 0.0,
+				'expected' => '<img width="150" height="150" src="http://example.org/wp-content/uploads/2022/11/test-image-large-150x150.jpg" class="attachment-thumbnail size-thumbnail" alt="" loading="lazy" />',
+			),
+			'invalid'  => array(
+				'decoding' => 'invalid',
+				'expected' => '<img width="150" height="150" src="http://example.org/wp-content/uploads/2022/11/test-image-large-150x150.jpg" class="attachment-thumbnail size-thumbnail" alt="" loading="lazy" />',
+			),
 		);
 	}
 
