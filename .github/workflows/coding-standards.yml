@@ -56,7 +56,6 @@ jobs:
   # - Runs PHPCS on the `tests` directory without warnings suppressed.
   # - Generate a report for displaying `test` directory issues as pull request annotations.
   # - Ensures version-controlled files are not modified or deleted.
-
   phpcs:
     name: PHP coding standards
     runs-on: ubuntu-latest
