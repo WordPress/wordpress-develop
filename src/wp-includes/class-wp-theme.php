@@ -752,7 +752,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 3.4.0
 	 */
 	public function cache_delete() {
-		foreach ( array( 'theme', 'screenshot', 'headers', 'post_templates' ) as $key ) {
+		foreach ( array( 'theme', 'screenshot', 'headers', 'post_templates', 'has_json_support' ) as $key ) {
 			wp_cache_delete( $key . '-' . $this->cache_hash, 'themes' );
 		}
 		$this->template          = null;
@@ -1513,7 +1513,15 @@ final class WP_Theme implements ArrayAccess {
 	 * @return bool
 	 */
 	public function has_json_support() {
-		return is_readable( $this->get_file_path( 'theme.json' ) );
+		$has_json_support = $this->cache_get( 'has_json_support' );
+		if ( is_int( $has_json_support ) ) {
+			return (bool) $has_json_support;
+		}
+
+		$has_json_support = is_readable( $this->get_file_path( 'theme.json' ) );
+		$this->cache_add( 'has_json_support', (int) $has_json_support );
+
+		return $has_json_support;
 	}
 
 	/**
