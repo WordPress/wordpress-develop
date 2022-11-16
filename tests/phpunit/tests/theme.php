@@ -21,15 +21,23 @@ class Tests_Theme extends WP_UnitTestCase {
 		'twentytwenty',
 		'twentytwentyone',
 		'twentytwentytwo',
+		'twentytwentythree',
 	);
+
+	/**
+	 * Original theme directory.
+	 *
+	 * @var string[]
+	 */
+	private $orig_theme_dir;
 
 	public function set_up() {
 		global $wp_theme_directories;
 
 		parent::set_up();
 
-		$backup_wp_theme_directories = $wp_theme_directories;
-		$wp_theme_directories        = array( WP_CONTENT_DIR . '/themes' );
+		$this->orig_theme_dir = $wp_theme_directories;
+		$wp_theme_directories = array( WP_CONTENT_DIR . '/themes' );
 
 		add_filter( 'extra_theme_headers', array( $this, 'theme_data_extra_headers' ) );
 		wp_clean_themes_cache();
@@ -39,7 +47,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	public function tear_down() {
 		global $wp_theme_directories;
 
-		$wp_theme_directories = $this->wp_theme_directories;
+		$wp_theme_directories = $this->orig_theme_dir;
 
 		remove_filter( 'extra_theme_headers', array( $this, 'theme_data_extra_headers' ) );
 		wp_clean_themes_cache();
@@ -213,7 +221,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * @ticket 48566
 	 */
 	public function test_year_in_readme() {
-		// This test is designed to only run on trunk/master.
+		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
 
 		foreach ( $this->default_themes as $theme ) {
@@ -221,17 +229,22 @@ class Tests_Theme extends WP_UnitTestCase {
 
 			$path_to_readme_txt = $wp_theme->get_theme_root() . '/' . $wp_theme->get_stylesheet() . '/readme.txt';
 			$this->assertFileExists( $path_to_readme_txt );
+
 			$readme    = file_get_contents( $path_to_readme_txt );
 			$this_year = gmdate( 'Y' );
 
 			preg_match( '#Copyright (\d+) WordPress.org#', $readme, $matches );
 			if ( $matches ) {
-				$this->assertSame( $this_year, trim( $matches[1] ), "Bundled themes readme.txt's year needs to be updated to $this_year." );
+				$readme_year = trim( $matches[1] );
+
+				$this->assertSame( $this_year, $readme_year, "Bundled themes readme.txt's year needs to be updated to $this_year." );
 			}
 
 			preg_match( '#Copyright 20\d\d-(\d+) WordPress.org#', $readme, $matches );
 			if ( $matches ) {
-				$this->assertSame( $this_year, trim( $matches[1] ), "Bundled themes readme.txt's year needs to be updated to $this_year." );
+				$readme_year = trim( $matches[1] );
+
+				$this->assertSame( $this_year, $readme_year, "Bundled themes readme.txt's year needs to be updated to $this_year." );
 			}
 		}
 	}
@@ -343,7 +356,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		$this->assertNotFalse( $theme->errors() );
 		$this->assertFalse( $theme->exists() );
 
-		// These return the bogus name - perhaps not ideal behaviour?
+		// These return the bogus name - perhaps not ideal behavior?
 		$this->assertSame( $template, get_template() );
 		$this->assertSame( $style, get_stylesheet() );
 	}
@@ -354,7 +367,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * @covers ::_wp_keep_alive_customize_changeset_dependent_auto_drafts
 	 */
 	public function test_wp_keep_alive_customize_changeset_dependent_auto_drafts() {
-		$nav_created_post_ids = $this->factory()->post->create_many(
+		$nav_created_post_ids = self::factory()->post->create_many(
 			2,
 			array(
 				'post_status' => 'auto-draft',

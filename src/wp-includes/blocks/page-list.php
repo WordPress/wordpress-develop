@@ -119,7 +119,14 @@ function block_core_page_list_build_css_font_sizes( $context ) {
 		$font_sizes['css_classes'][] = sprintf( 'has-%s-font-size', $context['fontSize'] );
 	} elseif ( $has_custom_font_size ) {
 		// Add the custom font size inline style.
-		$font_sizes['inline_styles'] = sprintf( 'font-size: %s;', $context['style']['typography']['fontSize'] );
+		$font_sizes['inline_styles'] = sprintf(
+			'font-size: %s;',
+			wp_get_typography_font_size_value(
+				array(
+					'size' => $context['style']['typography']['fontSize'],
+				)
+			)
+		);
 	}
 
 	return $font_sizes;
@@ -178,26 +185,26 @@ function block_core_page_list_render_nested_page_list( $open_submenus_on_click, 
 			$css_class .= ' menu-item-home';
 		}
 
-		$title      = wp_kses( $page['title'], wp_kses_allowed_html( 'post' ) );
+		$title      = wp_kses_post( $page['title'] );
 		$aria_label = sprintf(
 			/* translators: Accessibility text. %s: Parent page title. */
 			__( '%s submenu' ),
 			wp_strip_all_tags( $title )
 		);
 
-		$markup .= '<li class="wp-block-pages-list__item' . $css_class . '"' . $style_attribute . '>';
+		$markup .= '<li class="wp-block-pages-list__item' . esc_attr( $css_class ) . '"' . $style_attribute . '>';
 
 		if ( isset( $page['children'] ) && $is_navigation_child && $open_submenus_on_click ) {
-			$markup .= '<button aria-label="' . $aria_label . '" class="' . $navigation_child_content_class . ' wp-block-navigation-submenu__toggle" aria-expanded="false">' . $title . '<span class="wp-block-page-list__submenu-icon wp-block-navigation__submenu-icon"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" role="img" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></span>' .
-			'</button>';
+			$markup .= '<button aria-label="' . esc_attr( $aria_label ) . '" class="' . esc_attr( $navigation_child_content_class ) . ' wp-block-navigation-submenu__toggle" aria-expanded="false">' . esc_html( $title ) .
+			'</button>' . '<span class="wp-block-page-list__submenu-icon wp-block-navigation__submenu-icon"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></span>';
 		} else {
-			$markup .= '<a class="wp-block-pages-list__item__link' . $navigation_child_content_class . '" href="' . esc_url( $page['link'] ) . '"' . $aria_current . '>' . $title . '</a>';
+			$markup .= '<a class="wp-block-pages-list__item__link' . esc_attr( $navigation_child_content_class ) . '" href="' . esc_url( $page['link'] ) . '"' . $aria_current . '>' . $title . '</a>';
 		}
 
 		if ( isset( $page['children'] ) ) {
 			if ( $is_navigation_child && $show_submenu_icons && ! $open_submenus_on_click ) {
-				$markup .= '<button aria-label="' . $aria_label . '" class="wp-block-navigation__submenu-icon wp-block-navigation-submenu__toggle" aria-expanded="false">';
-				$markup .= '<span class="wp-block-page-list__submenu-icon wp-block-navigation__submenu-icon"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" role="img" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></span>';
+				$markup .= '<button aria-label="' . esc_attr( $aria_label ) . '" class="wp-block-navigation__submenu-icon wp-block-navigation-submenu__toggle" aria-expanded="false">';
+				$markup .= '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg>';
 				$markup .= '</button>';
 			}
 			$markup .= '<ul class="submenu-container';
@@ -235,9 +242,9 @@ function block_core_page_list_nest_pages( $current_level, $children ) {
 /**
  * Renders the `core/page-list` block on server.
  *
- * @param array $attributes The block attributes.
- * @param array $content The saved content.
- * @param array $block The parsed block.
+ * @param array    $attributes The block attributes.
+ * @param string   $content    The saved content.
+ * @param WP_Block $block      The parsed block.
  *
  * @return string Returns the page list markup.
  */
@@ -252,7 +259,7 @@ function render_block_core_page_list( $attributes, $content, $block ) {
 		)
 	);
 
-	// If thare are no pages, there is nothing to show.
+	// If there are no pages, there is nothing to show.
 	if ( empty( $all_pages ) ) {
 		return;
 	}
@@ -299,11 +306,6 @@ function render_block_core_page_list( $attributes, $content, $block ) {
 
 	$nested_pages = block_core_page_list_nest_pages( $top_level_pages, $pages_with_children );
 
-	// Limit the number of items to be visually displayed.
-	if ( ! empty( $attributes['__unstableMaxPages'] ) ) {
-		$nested_pages = array_slice( $nested_pages, 0, $attributes['__unstableMaxPages'] );
-	}
-
 	$is_navigation_child = array_key_exists( 'showSubmenuIcon', $block->context );
 
 	$open_submenus_on_click = array_key_exists( 'openSubmenusOnClick', $block->context ) ? $block->context['openSubmenusOnClick'] : false;
@@ -328,9 +330,9 @@ function render_block_core_page_list( $attributes, $content, $block ) {
 	);
 }
 
-	/**
-	 * Registers the `core/pages` block on server.
-	 */
+/**
+ * Registers the `core/pages` block on server.
+ */
 function register_block_core_page_list() {
 	register_block_type_from_metadata(
 		__DIR__ . '/page-list',
@@ -339,4 +341,4 @@ function register_block_core_page_list() {
 		)
 	);
 }
-	add_action( 'init', 'register_block_core_page_list' );
+add_action( 'init', 'register_block_core_page_list' );

@@ -84,7 +84,7 @@ function edit_user( $user_id = 0 ) {
 		if ( empty( $_POST['url'] ) || 'http://' === $_POST['url'] ) {
 			$user->user_url = '';
 		} else {
-			$user->user_url = esc_url_raw( $_POST['url'] );
+			$user->user_url = sanitize_url( $_POST['url'] );
 			$protocols      = implode( '|', array_map( 'preg_quote', wp_allowed_protocols() ) );
 			$user->user_url = preg_match( '/^(' . $protocols . '):/is', $user->user_url ) ? $user->user_url : 'http://' . $user->user_url;
 		}
@@ -143,12 +143,12 @@ function edit_user( $user_id = 0 ) {
 
 	/* checking that username has been typed */
 	if ( '' === $user->user_login ) {
-		$errors->add( 'user_login', __( '<strong>Error</strong>: Please enter a username.' ) );
+		$errors->add( 'user_login', __( '<strong>Error:</strong> Please enter a username.' ) );
 	}
 
 	/* checking that nickname has been typed */
 	if ( $update && empty( $user->nickname ) ) {
-		$errors->add( 'nickname', __( '<strong>Error</strong>: Please enter a nickname.' ) );
+		$errors->add( 'nickname', __( '<strong>Error:</strong> Please enter a nickname.' ) );
 	}
 
 	/**
@@ -164,17 +164,17 @@ function edit_user( $user_id = 0 ) {
 
 	// Check for blank password when adding a user.
 	if ( ! $update && empty( $pass1 ) ) {
-		$errors->add( 'pass', __( '<strong>Error</strong>: Please enter a password.' ), array( 'form-field' => 'pass1' ) );
+		$errors->add( 'pass', __( '<strong>Error:</strong> Please enter a password.' ), array( 'form-field' => 'pass1' ) );
 	}
 
 	// Check for "\" in password.
 	if ( false !== strpos( wp_unslash( $pass1 ), '\\' ) ) {
-		$errors->add( 'pass', __( '<strong>Error</strong>: Passwords may not contain the character "\\".' ), array( 'form-field' => 'pass1' ) );
+		$errors->add( 'pass', __( '<strong>Error:</strong> Passwords may not contain the character "\\".' ), array( 'form-field' => 'pass1' ) );
 	}
 
 	// Checking the password has been typed twice the same.
 	if ( ( $update || ! empty( $pass1 ) ) && $pass1 != $pass2 ) {
-		$errors->add( 'pass', __( '<strong>Error</strong>: Passwords don&#8217;t match. Please enter the same password in both password fields.' ), array( 'form-field' => 'pass1' ) );
+		$errors->add( 'pass', __( '<strong>Error:</strong> Passwords do not match. Please enter the same password in both password fields.' ), array( 'form-field' => 'pass1' ) );
 	}
 
 	if ( ! empty( $pass1 ) ) {
@@ -182,29 +182,29 @@ function edit_user( $user_id = 0 ) {
 	}
 
 	if ( ! $update && isset( $_POST['user_login'] ) && ! validate_username( $_POST['user_login'] ) ) {
-		$errors->add( 'user_login', __( '<strong>Error</strong>: This username is invalid because it uses illegal characters. Please enter a valid username.' ) );
+		$errors->add( 'user_login', __( '<strong>Error:</strong> This username is invalid because it uses illegal characters. Please enter a valid username.' ) );
 	}
 
 	if ( ! $update && username_exists( $user->user_login ) ) {
-		$errors->add( 'user_login', __( '<strong>Error</strong>: This username is already registered. Please choose another one.' ) );
+		$errors->add( 'user_login', __( '<strong>Error:</strong> This username is already registered. Please choose another one.' ) );
 	}
 
 	/** This filter is documented in wp-includes/user.php */
 	$illegal_logins = (array) apply_filters( 'illegal_user_logins', array() );
 
 	if ( in_array( strtolower( $user->user_login ), array_map( 'strtolower', $illegal_logins ), true ) ) {
-		$errors->add( 'invalid_username', __( '<strong>Error</strong>: Sorry, that username is not allowed.' ) );
+		$errors->add( 'invalid_username', __( '<strong>Error:</strong> Sorry, that username is not allowed.' ) );
 	}
 
 	/* checking email address */
 	if ( empty( $user->user_email ) ) {
-		$errors->add( 'empty_email', __( '<strong>Error</strong>: Please enter an email address.' ), array( 'form-field' => 'email' ) );
+		$errors->add( 'empty_email', __( '<strong>Error:</strong> Please enter an email address.' ), array( 'form-field' => 'email' ) );
 	} elseif ( ! is_email( $user->user_email ) ) {
-		$errors->add( 'invalid_email', __( '<strong>Error</strong>: The email address isn&#8217;t correct.' ), array( 'form-field' => 'email' ) );
+		$errors->add( 'invalid_email', __( '<strong>Error:</strong> The email address is not correct.' ), array( 'form-field' => 'email' ) );
 	} else {
 		$owner_id = email_exists( $user->user_email );
 		if ( $owner_id && ( ! $update || ( $owner_id != $user->ID ) ) ) {
-			$errors->add( 'email_exists', __( '<strong>Error</strong>: This email is already registered. Please choose another one.' ), array( 'form-field' => 'email' ) );
+			$errors->add( 'email_exists', __( '<strong>Error:</strong> This email is already registered. Please choose another one.' ), array( 'form-field' => 'email' ) );
 		}
 	}
 
@@ -510,10 +510,11 @@ function default_password_nag_edit_user( $user_ID, $old_data ) {
 /**
  * @since 2.8.0
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  */
 function default_password_nag() {
 	global $pagenow;
+
 	// Short-circuit it.
 	if ( 'profile.php' === $pagenow || ! get_user_option( 'default_password_nag' ) ) {
 		return;
@@ -577,6 +578,12 @@ function admin_created_user_email( $text ) {
 	$roles = get_editable_roles();
 	$role  = $roles[ $_REQUEST['role'] ];
 
+	if ( '' !== get_bloginfo( 'name' ) ) {
+		$site_title = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
+	} else {
+		$site_title = parse_url( home_url(), PHP_URL_HOST );
+	}
+
 	return sprintf(
 		/* translators: 1: Site title, 2: Site URL, 3: User role. */
 		__(
@@ -589,7 +596,7 @@ this email. This invitation will expire in a few days.
 Please click the following link to activate your user account:
 %%s'
 		),
-		wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ),
+		$site_title,
 		home_url(),
 		wp_specialchars_decode( translate_user_role( $role['name'] ) )
 	);

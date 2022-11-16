@@ -1578,7 +1578,7 @@ function wp_widget_rss_output( $rss, $args = array() ) {
 
 	if ( is_wp_error( $rss ) ) {
 		if ( is_admin() || current_user_can( 'manage_options' ) ) {
-			echo '<p><strong>' . __( 'RSS Error:' ) . '</strong> ' . $rss->get_error_message() . '</p>';
+			echo '<p><strong>' . __( 'RSS Error:' ) . '</strong> ' . esc_html( $rss->get_error_message() ) . '</p>';
 		}
 		return;
 	}
@@ -1701,7 +1701,7 @@ function wp_widget_rss_form( $args, $inputs = null ) {
 	$args['show_date']    = isset( $args['show_date'] ) ? (int) $args['show_date'] : (int) $inputs['show_date'];
 
 	if ( ! empty( $args['error'] ) ) {
-		echo '<p class="widget-error"><strong>' . __( 'RSS Error:' ) . '</strong> ' . $args['error'] . '</p>';
+		echo '<p class="widget-error"><strong>' . __( 'RSS Error:' ) . '</strong> ' . esc_html( $args['error'] ) . '</p>';
 	}
 
 	$esc_number = esc_attr( $args['number'] );
@@ -1767,7 +1767,7 @@ function wp_widget_rss_process( $widget_rss, $check_feed = true ) {
 	if ( $items < 1 || 20 < $items ) {
 		$items = 10;
 	}
-	$url          = esc_url_raw( strip_tags( $widget_rss['url'] ) );
+	$url          = sanitize_url( strip_tags( $widget_rss['url'] ) );
 	$title        = isset( $widget_rss['title'] ) ? trim( strip_tags( $widget_rss['title'] ) ) : '';
 	$show_summary = isset( $widget_rss['show_summary'] ) ? (int) $widget_rss['show_summary'] : 0;
 	$show_author  = isset( $widget_rss['show_author'] ) ? (int) $widget_rss['show_author'] : 0;

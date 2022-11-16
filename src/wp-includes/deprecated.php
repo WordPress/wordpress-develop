@@ -76,17 +76,17 @@ function start_wp() {
  * @deprecated 0.71 Use get_the_category()
  * @see get_the_category()
  *
- * @param bool $echo Optional. Whether to echo the output. Default true.
+ * @param bool $display Optional. Whether to display the output. Default true.
  * @return int Category ID.
  */
-function the_category_ID($echo = true) {
+function the_category_ID($display = true) {
 	_deprecated_function( __FUNCTION__, '0.71', 'get_the_category()' );
 
 	// Grab the first cat in the list.
 	$categories = get_the_category();
 	$cat = $categories[0]->term_id;
 
-	if ( $echo )
+	if ( $display )
 		echo $cat;
 
 	return $cat;
@@ -795,17 +795,17 @@ function get_archives($type='', $limit='', $format='html', $before = '', $after 
  * @deprecated 2.1.0 Use get_author_posts_url()
  * @see get_author_posts_url()
  *
- * @param bool $echo
+ * @param bool $display
  * @param int $author_id
  * @param string $author_nicename Optional.
  * @return string|null
  */
-function get_author_link($echo, $author_id, $author_nicename = '') {
+function get_author_link($display, $author_id, $author_nicename = '') {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_author_posts_url()' );
 
 	$link = get_author_posts_url($author_id, $author_nicename);
 
-	if ( $echo )
+	if ( $display )
 		echo $link;
 	return $link;
 }
@@ -939,11 +939,11 @@ function wp_get_links($args = '') {
  * @param int    $limit            Optional. Limit to X entries. If not specified, all entries are shown.
  *                                 Default -1.
  * @param int    $show_updated     Optional. Whether to show last updated timestamp. Default 1.
- * @param bool   $echo             Whether to echo the results, or return them instead.
+ * @param bool   $display          Whether to display the results, or return them instead.
  * @return null|string
  */
 function get_links($category = -1, $before = '', $after = '<br />', $between = ' ', $show_images = true, $orderby = 'name',
-			$show_description = true, $show_rating = false, $limit = -1, $show_updated = 1, $echo = true) {
+			$show_description = true, $show_rating = false, $limit = -1, $show_updated = 1, $display = true) {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'get_bookmarks()' );
 
 	$order = 'ASC';
@@ -1018,7 +1018,7 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 		$output .= "$after\n";
 	} // End while.
 
-	if ( !$echo )
+	if ( !$display )
 		return $output;
 	echo $output;
 }
@@ -1149,16 +1149,16 @@ function comments_rss_link($link_text = 'Comments RSS') {
  * @deprecated 2.5.0 Use get_category_feed_link()
  * @see get_category_feed_link()
  *
- * @param bool $echo
+ * @param bool $display
  * @param int $cat_ID
  * @return string
  */
-function get_category_rss_link($echo = false, $cat_ID = 1) {
+function get_category_rss_link($display = false, $cat_ID = 1) {
 	_deprecated_function( __FUNCTION__, '2.5.0', 'get_category_feed_link()' );
 
 	$link = get_category_feed_link($cat_ID, 'rss2');
 
-	if ( $echo )
+	if ( $display )
 		echo $link;
 	return $link;
 }
@@ -1170,15 +1170,15 @@ function get_category_rss_link($echo = false, $cat_ID = 1) {
  * @deprecated 2.5.0 Use get_author_feed_link()
  * @see get_author_feed_link()
  *
- * @param bool $echo
+ * @param bool $display
  * @param int $author_id
  * @return string
  */
-function get_author_rss_link($echo = false, $author_id = 1) {
+function get_author_rss_link($display = false, $author_id = 1) {
 	_deprecated_function( __FUNCTION__, '2.5.0', 'get_author_feed_link()' );
 
 	$link = get_author_feed_link($author_id);
-	if ( $echo )
+	if ( $display )
 		echo $link;
 	return $link;
 }
@@ -2027,7 +2027,7 @@ function get_link( $bookmark_id, $output = OBJECT, $filter = 'raw' ) {
  * Checks and cleans a URL.
  *
  * A number of characters are removed from the URL. If the URL is for displaying
- * (the default behaviour) ampersands are also replaced. The 'clean_url' filter
+ * (the default behavior) ampersands are also replaced. The 'clean_url' filter
  * is applied to the returned cleaned URL.
  *
  * @since 1.2.0
@@ -2041,7 +2041,7 @@ function get_link( $bookmark_id, $output = OBJECT, $filter = 'raw' ) {
  */
 function clean_url( $url, $protocols = null, $context = 'display' ) {
 	if ( $context == 'db' )
-		_deprecated_function( 'clean_url( $context = \'db\' )', '3.0.0', 'esc_url_raw()' );
+		_deprecated_function( 'clean_url( $context = \'db\' )', '3.0.0', 'sanitize_url()' );
 	else
 		_deprecated_function( __FUNCTION__, '3.0.0', 'esc_url()' );
 	return esc_url( $url, $protocols, $context );
@@ -2070,18 +2070,18 @@ function js_escape( $text ) {
  * @deprecated 2.8.0 Use esc_html()
  * @see esc_html()
  *
- * @param string       $string        String to escape.
+ * @param string       $text          Text to escape.
  * @param string       $quote_style   Unused.
  * @param false|string $charset       Unused.
  * @param false        $double_encode Whether to double encode. Unused.
- * @return string Escaped `$string`.
+ * @return string Escaped `$text`.
  */
-function wp_specialchars( $string, $quote_style = ENT_NOQUOTES, $charset = false, $double_encode = false ) {
+function wp_specialchars( $text, $quote_style = ENT_NOQUOTES, $charset = false, $double_encode = false ) {
 	_deprecated_function( __FUNCTION__, '2.8.0', 'esc_html()' );
 	if ( func_num_args() > 1 ) { // Maintain back-compat for people passing additional arguments.
-		return _wp_specialchars( $string, $quote_style, $charset, $double_encode );
+		return _wp_specialchars( $text, $quote_style, $charset, $double_encode );
 	} else {
-		return esc_html( $string );
+		return esc_html( $text );
 	}
 }
 
@@ -2530,7 +2530,7 @@ function is_term( $term, $taxonomy = '', $parent = 0 ) {
  * @return bool
  */
 function is_plugin_page() {
-	_deprecated_function( __FUNCTION__, '3.1.0'  );
+	_deprecated_function( __FUNCTION__, '3.1.0' );
 
 	global $plugin_page;
 
@@ -2553,7 +2553,7 @@ function is_plugin_page() {
  * @return bool Always return True
  */
 function update_category_cache() {
-	_deprecated_function( __FUNCTION__, '3.1.0'  );
+	_deprecated_function( __FUNCTION__, '3.1.0' );
 
 	return true;
 }
@@ -2858,13 +2858,13 @@ function debug_fopen( $filename, $mode ) {
  *
  * @link https://www.php.net/manual/en/function.error-log.php
  *
- * @param mixed  $fp     Unused.
- * @param string $string Message to log.
+ * @param mixed  $fp      Unused.
+ * @param string $message Message to log.
  */
-function debug_fwrite( $fp, $string ) {
+function debug_fwrite( $fp, $message ) {
 	_deprecated_function( __FUNCTION__, '3.4.0', 'error_log()' );
 	if ( ! empty( $GLOBALS['debug'] ) )
-		error_log( $string );
+		error_log( $message );
 }
 
 /**
@@ -3192,7 +3192,7 @@ function wp_load_image( $file ) {
 
 	if ( ! is_file( $file ) ) {
 		/* translators: %s: File name. */
-		return sprintf( __( 'File &#8220;%s&#8221; doesn&#8217;t exist?' ), $file );
+		return sprintf( __( 'File &#8220;%s&#8221; does not exist?' ), $file );
 	}
 
 	if ( ! function_exists('imagecreatefromstring') )
@@ -3631,13 +3631,13 @@ function wp_htmledit_pre($output) {
  * @deprecated 4.4.0 Use get_permalink()
  * @see get_permalink()
  *
- * @param int|WP_Post $post_id Optional. Post ID or WP_Post object. Default is global $post.
+ * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
  * @return string|false
  */
-function post_permalink( $post_id = 0 ) {
+function post_permalink( $post = 0 ) {
 	_deprecated_function( __FUNCTION__, '4.4.0', 'get_permalink()' );
 
-	return get_permalink( $post_id );
+	return get_permalink( $post );
 }
 
 /**
@@ -3654,7 +3654,7 @@ function post_permalink( $post_id = 0 ) {
  * @param string|bool $file_path Optional. File path to write request to. Default false.
  * @param int         $red       Optional. The number of Redirects followed, Upon 5 being hit,
  *                               returns false. Default 1.
- * @return bool|string False on failure and string of headers if HEAD request.
+ * @return \Requests_Utility_CaseInsensitiveDictionary|false Headers on success, false on failure.
  */
 function wp_get_http( $url, $file_path = false, $red = 1 ) {
 	_deprecated_function( __FUNCTION__, '4.4.0', 'WP_Http' );
@@ -3820,13 +3820,13 @@ function get_paged_template() {
  * @since 1.0.0
  * @deprecated 4.7.0 Officially dropped security support for Netscape 4.
  *
- * @param string $string
+ * @param string $content
  * @return string
  */
-function wp_kses_js_entities( $string ) {
+function wp_kses_js_entities( $content ) {
 	_deprecated_function( __FUNCTION__, '4.7.0' );
 
-	return preg_replace( '%&\s*\{[^}]*(\}\s*;?|$)%', '', $string );
+	return preg_replace( '%&\s*\{[^}]*(\}\s*;?|$)%', '', $content );
 }
 
 /**
@@ -4125,11 +4125,10 @@ function addslashes_strings_only( $value ) {
 }
 
 /**
- * Displays a noindex meta tag if required by the blog configuration.
+ * Displays a `noindex` meta tag if required by the blog configuration.
  *
- * If a blog is marked as not being public then the noindex meta tag will be
- * output to tell web robots not to index the page content. Add this to the
- * {@see 'wp_head'} action.
+ * If a blog is marked as not being public then the `noindex` meta tag will be
+ * output to tell web robots not to index the page content.
  *
  * Typical usage is as a {@see 'wp_head'} callback:
  *
@@ -4150,13 +4149,16 @@ function noindex() {
 }
 
 /**
- * Display a noindex meta tag.
+ * Display a `noindex` meta tag.
  *
- * Outputs a noindex meta tag that tells web robots not to index the page content.
- * Typical usage is as a {@see 'wp_head'} callback. add_action( 'wp_head', 'wp_no_robots' );
+ * Outputs a `noindex` meta tag that tells web robots not to index the page content.
+ *
+ * Typical usage is as a {@see 'wp_head'} callback:
+ *
+ *     add_action( 'wp_head', 'wp_no_robots' );
  *
  * @since 3.3.0
- * @since 5.3.0 Echo "noindex,nofollow" if search engine visibility is discouraged.
+ * @since 5.3.0 Echo `noindex,nofollow` if search engine visibility is discouraged.
  * @deprecated 5.7.0 Use wp_robots_no_robots() instead on 'wp_robots' filter.
  */
 function wp_no_robots() {
@@ -4171,17 +4173,21 @@ function wp_no_robots() {
 }
 
 /**
- * Display a noindex,noarchive meta tag and referrer origin-when-cross-origin meta tag.
+ * Display a `noindex,noarchive` meta tag and referrer `strict-origin-when-cross-origin` meta tag.
  *
- * Outputs a noindex,noarchive meta tag that tells web robots not to index or cache the page content.
- * Outputs a referrer origin-when-cross-origin meta tag that tells the browser not to send the full
- * url as a referrer to other sites when cross-origin assets are loaded.
+ * Outputs a `noindex,noarchive` meta tag that tells web robots not to index or cache the page content.
+ * Outputs a referrer `strict-origin-when-cross-origin` meta tag that tells the browser not to send
+ * the full URL as a referrer to other sites when cross-origin assets are loaded.
  *
- * Typical usage is as a wp_head callback. add_action( 'wp_head', 'wp_sensitive_page_meta' );
+ * Typical usage is as a {@see 'wp_head'} callback:
+ *
+ *     add_action( 'wp_head', 'wp_sensitive_page_meta' );
  *
  * @since 5.0.1
  * @deprecated 5.7.0 Use wp_robots_sensitive_page() instead on 'wp_robots' filter
  *                   and wp_strict_cross_origin_referrer() on 'wp_head' action.
+ *
+ * @see wp_robots_sensitive_page()
  */
 function wp_sensitive_page_meta() {
 	_deprecated_function( __FUNCTION__, '5.7.0', 'wp_robots_sensitive_page()' );
@@ -4196,9 +4202,10 @@ function wp_sensitive_page_meta() {
  * Render inner blocks from the `core/columns` block for generating an excerpt.
  *
  * @since 5.2.0
- * @deprecated 5.8.0
- *
  * @access private
+ * @deprecated 5.8.0 Use _excerpt_render_inner_blocks() introduced in 5.8.0.
+ *
+ * @see _excerpt_render_inner_blocks()
  *
  * @param array $columns        The parsed columns block.
  * @param array $allowed_blocks The list of allowed inner blocks.
@@ -4206,6 +4213,7 @@ function wp_sensitive_page_meta() {
  */
 function _excerpt_render_inner_columns_blocks( $columns, $allowed_blocks ) {
 	_deprecated_function( __FUNCTION__, '5.8.0', '_excerpt_render_inner_blocks()' );
+
 	return _excerpt_render_inner_blocks( $columns, $allowed_blocks );
 }
 
@@ -4214,7 +4222,7 @@ function _excerpt_render_inner_columns_blocks( $columns, $allowed_blocks ) {
  * reference the rendered SVG.
  *
  * @since 5.9.0
- * @deprecated 5.9.1 Use `wp_get_duotone_filter_property` introduced in 5.9.1.
+ * @deprecated 5.9.1 Use wp_get_duotone_filter_property() introduced in 5.9.1.
  *
  * @see wp_get_duotone_filter_property()
  *
@@ -4223,5 +4231,300 @@ function _excerpt_render_inner_columns_blocks( $columns, $allowed_blocks ) {
  */
 function wp_render_duotone_filter_preset( $preset ) {
 	_deprecated_function( __FUNCTION__, '5.9.1', 'wp_get_duotone_filter_property()' );
+
 	return wp_get_duotone_filter_property( $preset );
+}
+
+/**
+ * Checks whether serialization of the current block's border properties should occur.
+ *
+ * @since 5.8.0
+ * @access private
+ * @deprecated 6.0.0 Use wp_should_skip_block_supports_serialization() introduced in 6.0.0.
+ *
+ * @see wp_should_skip_block_supports_serialization()
+ *
+ * @param WP_Block_Type $block_type Block type.
+ * @return bool Whether serialization of the current block's border properties
+ *              should occur.
+ */
+function wp_skip_border_serialization( $block_type ) {
+	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
+
+	$border_support = _wp_array_get( $block_type->supports, array( '__experimentalBorder' ), false );
+
+	return is_array( $border_support ) &&
+		array_key_exists( '__experimentalSkipSerialization', $border_support ) &&
+		$border_support['__experimentalSkipSerialization'];
+}
+
+/**
+ * Checks whether serialization of the current block's dimensions properties should occur.
+ *
+ * @since 5.9.0
+ * @access private
+ * @deprecated 6.0.0 Use wp_should_skip_block_supports_serialization() introduced in 6.0.0.
+ *
+ * @see wp_should_skip_block_supports_serialization()
+ *
+ * @param WP_Block_type $block_type Block type.
+ * @return bool Whether to serialize spacing support styles & classes.
+ */
+function wp_skip_dimensions_serialization( $block_type ) {
+	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
+
+	$dimensions_support = _wp_array_get( $block_type->supports, array( '__experimentalDimensions' ), false );
+
+	return is_array( $dimensions_support ) &&
+		array_key_exists( '__experimentalSkipSerialization', $dimensions_support ) &&
+		$dimensions_support['__experimentalSkipSerialization'];
+}
+
+/**
+ * Checks whether serialization of the current block's spacing properties should occur.
+ *
+ * @since 5.9.0
+ * @access private
+ * @deprecated 6.0.0 Use wp_should_skip_block_supports_serialization() introduced in 6.0.0.
+ *
+ * @see wp_should_skip_block_supports_serialization()
+ *
+ * @param WP_Block_Type $block_type Block type.
+ * @return bool Whether to serialize spacing support styles & classes.
+ */
+function wp_skip_spacing_serialization( $block_type ) {
+	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
+
+	$spacing_support = _wp_array_get( $block_type->supports, array( 'spacing' ), false );
+
+	return is_array( $spacing_support ) &&
+		array_key_exists( '__experimentalSkipSerialization', $spacing_support ) &&
+		$spacing_support['__experimentalSkipSerialization'];
+}
+
+/**
+ * Inject the block editor assets that need to be loaded into the editor's iframe as an inline script.
+ *
+ * @since 5.8.0
+ * @deprecated 6.0.0
+ */
+function wp_add_iframed_editor_assets_html() {
+	_deprecated_function( __FUNCTION__, '6.0.0' );
+}
+
+/**
+ * Retrieves thumbnail for an attachment.
+ * Note that this works only for the (very) old image metadata style where 'thumb' was set,
+ * and the 'sizes' array did not exist. This function returns false for the newer image metadata style
+ * despite that 'thumbnail' is present in the 'sizes' array.
+ *
+ * @since 2.1.0
+ * @deprecated 6.1.0
+ *
+ * @param int $post_id Optional. Attachment ID. Default is the ID of the global `$post`.
+ * @return string|false Thumbnail file path on success, false on failure.
+ */
+function wp_get_attachment_thumb_file( $post_id = 0 ) {
+	_deprecated_function( __FUNCTION__, '6.1.0' );
+
+	$post_id = (int) $post_id;
+	$post    = get_post( $post_id );
+
+	if ( ! $post ) {
+		return false;
+	}
+
+	// Use $post->ID rather than $post_id as get_post() may have used the global $post object.
+	$imagedata = wp_get_attachment_metadata( $post->ID );
+
+	if ( ! is_array( $imagedata ) ) {
+		return false;
+	}
+
+	$file = get_attached_file( $post->ID );
+
+	if ( ! empty( $imagedata['thumb'] ) ) {
+		$thumbfile = str_replace( wp_basename( $file ), $imagedata['thumb'], $file );
+		if ( file_exists( $thumbfile ) ) {
+			/**
+			 * Filters the attachment thumbnail file path.
+			 *
+			 * @since 2.1.0
+			 *
+			 * @param string $thumbfile File path to the attachment thumbnail.
+			 * @param int    $post_id   Attachment ID.
+			 */
+			return apply_filters( 'wp_get_attachment_thumb_file', $thumbfile, $post->ID );
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Gets the path to a translation file for loading a textdomain just in time.
+ *
+ * Caches the retrieved results internally.
+ *
+ * @since 4.7.0
+ * @deprecated 6.1.0
+ * @access private
+ *
+ * @see _load_textdomain_just_in_time()
+ *
+ * @param string $domain Text domain. Unique identifier for retrieving translated strings.
+ * @param bool   $reset  Whether to reset the internal cache. Used by the switch to locale functionality.
+ * @return string|false The path to the translation file or false if no translation file was found.
+ */
+function _get_path_to_translation( $domain, $reset = false ) {
+	_deprecated_function( __FUNCTION__, '6.1.0', 'WP_Textdomain_Registry' );
+
+	static $available_translations = array();
+
+	if ( true === $reset ) {
+		$available_translations = array();
+	}
+
+	if ( ! isset( $available_translations[ $domain ] ) ) {
+		$available_translations[ $domain ] = _get_path_to_translation_from_lang_dir( $domain );
+	}
+
+	return $available_translations[ $domain ];
+}
+
+/**
+ * Gets the path to a translation file in the languages directory for the current locale.
+ *
+ * Holds a cached list of available .mo files to improve performance.
+ *
+ * @since 4.7.0
+ * @deprecated 6.1.0
+ * @access private
+ *
+ * @see _get_path_to_translation()
+ *
+ * @param string $domain Text domain. Unique identifier for retrieving translated strings.
+ * @return string|false The path to the translation file or false if no translation file was found.
+ */
+function _get_path_to_translation_from_lang_dir( $domain ) {
+	_deprecated_function( __FUNCTION__, '6.1.0', 'WP_Textdomain_Registry' );
+
+	static $cached_mofiles = null;
+
+	if ( null === $cached_mofiles ) {
+		$cached_mofiles = array();
+
+		$locations = array(
+			WP_LANG_DIR . '/plugins',
+			WP_LANG_DIR . '/themes',
+		);
+
+		foreach ( $locations as $location ) {
+			$mofiles = glob( $location . '/*.mo' );
+			if ( $mofiles ) {
+				$cached_mofiles = array_merge( $cached_mofiles, $mofiles );
+			}
+		}
+	}
+
+	$locale = determine_locale();
+	$mofile = "{$domain}-{$locale}.mo";
+
+	$path = WP_LANG_DIR . '/plugins/' . $mofile;
+	if ( in_array( $path, $cached_mofiles, true ) ) {
+		return $path;
+	}
+
+	$path = WP_LANG_DIR . '/themes/' . $mofile;
+	if ( in_array( $path, $cached_mofiles, true ) ) {
+		return $path;
+	}
+
+	return false;
+}
+
+/**
+  * Allows multiple block styles.
+  *
+  * @since 5.9.0
+  * @deprecated 6.1.0
+  *
+  * @param array $metadata Metadata for registering a block type.
+  * @return array Metadata for registering a block type.
+  */
+  function _wp_multiple_block_styles( $metadata ) {
+	_deprecated_function( __FUNCTION__, '6.1.0' );
+	return $metadata;
+}
+
+/**
+ * Generates an inline style for a typography feature e.g. text decoration,
+ * text transform, and font style.
+ *
+ * @since 5.8.0
+ * @access private
+ * @deprecated 6.1.0 Use wp_style_engine_get_styles() introduced in 6.1.0.
+ *
+ * @see wp_style_engine_get_styles()
+ *
+ * @param array  $attributes   Block's attributes.
+ * @param string $feature      Key for the feature within the typography styles.
+ * @param string $css_property Slug for the CSS property the inline style sets.
+ * @return string CSS inline style.
+ */
+function wp_typography_get_css_variable_inline_style( $attributes, $feature, $css_property ) {
+	_deprecated_function( __FUNCTION__, '6.1.0', 'wp_style_engine_get_styles()' );
+
+	// Retrieve current attribute value or skip if not found.
+	$style_value = _wp_array_get( $attributes, array( 'style', 'typography', $feature ), false );
+	if ( ! $style_value ) {
+		return;
+	}
+
+	// If we don't have a preset CSS variable, we'll assume it's a regular CSS value.
+	if ( strpos( $style_value, "var:preset|{$css_property}|" ) === false ) {
+		return sprintf( '%s:%s;', $css_property, $style_value );
+	}
+
+	/*
+	 * We have a preset CSS variable as the style.
+	 * Get the style value from the string and return CSS style.
+	 */
+	$index_to_splice = strrpos( $style_value, '|' ) + 1;
+	$slug            = substr( $style_value, $index_to_splice );
+
+	// Return the actual CSS inline style e.g. `text-decoration:var(--wp--preset--text-decoration--underline);`.
+	return sprintf( '%s:var(--wp--preset--%s--%s);', $css_property, $css_property, $slug );
+}
+
+/**
+ * Determines whether global terms are enabled.
+ *
+ * @since 3.0.0
+ * @since 6.1.0 This function now always returns false.
+ * @deprecated 6.1.0
+ *
+ * @return bool Always returns false.
+ */
+function global_terms_enabled() {
+	_deprecated_function( __FUNCTION__, '6.1.0' );
+
+	return false;
+}
+
+/**
+ * Filter the SQL clauses of an attachment query to include filenames.
+ *
+ * @since 4.7.0
+ * @deprecated 6.0.3
+ * @access private
+ *
+ * @param array $clauses An array including WHERE, GROUP BY, JOIN, ORDER BY,
+ *                       DISTINCT, fields (SELECT), and LIMITS clauses.
+ * @return array The unmodified clauses.
+ */
+function _filter_query_attachment_filenames( $clauses ) {
+	_deprecated_function( __FUNCTION__, '4.9.9', 'add_filter( "wp_allow_query_attachment_by_filename", "__return_true" )' );
+	remove_filter( 'posts_clauses', __FUNCTION__ );
+	return $clauses;
 }

@@ -25,6 +25,7 @@ if ( ! class_exists( 'Requests' ) ) {
  *
  * @since 2.7.0
  */
+#[AllowDynamicProperties]
 class WP_Http {
 
 	// Aliases for HTTP response codes.
@@ -246,7 +247,7 @@ class WP_Http {
 		 *  - A WP_Error instance
 		 *  - boolean false to avoid short-circuiting the response
 		 *
-		 * Returning any other value may result in unexpected behaviour.
+		 * Returning any other value may result in unexpected behavior.
 		 *
 		 * @since 2.9.0
 		 *
@@ -324,7 +325,7 @@ class WP_Http {
 			'hooks'     => new WP_HTTP_Requests_Hooks( $url, $parsed_args ),
 		);
 
-		// Ensure redirects follow browser behaviour.
+		// Ensure redirects follow browser behavior.
 		$options['hooks']->register( 'requests.before_redirect', array( get_class(), 'browser_redirect_compatibility' ) );
 
 		// Validate redirected URLs.
@@ -475,7 +476,7 @@ class WP_Http {
 	}
 
 	/**
-	 * Match redirect behaviour to browser handling.
+	 * Match redirect behavior to browser handling.
 	 *
 	 * Changes 302 redirects from POST to GET to match browser handling. Per
 	 * RFC 7231, user agents can deviate from the strict reading of the
@@ -655,7 +656,7 @@ class WP_Http {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param string $str_response The full response string.
+	 * @param string $response The full response string.
 	 * @return array {
 	 *     Array with response headers and body.
 	 *
@@ -663,8 +664,8 @@ class WP_Http {
 	 *     @type string $body    HTTP response body.
 	 * }
 	 */
-	public static function processResponse( $str_response ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
-		$response = explode( "\r\n\r\n", $str_response, 2 );
+	public static function processResponse( $response ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+		$response = explode( "\r\n\r\n", $response, 2 );
 
 		return array(
 			'headers' => $response[0],
@@ -687,8 +688,8 @@ class WP_Http {
 	 *     then a numbered array is returned as the value of that header-key.
 	 *
 	 *     @type array            $response {
-	 *          @type int    $code    The response status code. Default 0.
-	 *          @type string $message The response message. Default empty.
+	 *         @type int    $code    The response status code. Default 0.
+	 *         @type string $message The response message. Default empty.
 	 *     }
 	 *     @type array            $newheaders The processed header data as a multidimensional array.
 	 *     @type WP_Http_Cookie[] $cookies    If the original headers contain the 'Set-Cookie' key,

@@ -9,12 +9,13 @@
 
 if ( ! class_exists( 'Translation_Entry', false ) ) :
 	/**
-	 * Translation_Entry class encapsulates a translatable string
+	 * Translation_Entry class encapsulates a translatable string.
 	 */
+	#[AllowDynamicProperties]
 	class Translation_Entry {
 
 		/**
-		 * Whether the entry contains a string and its plural form, default is false
+		 * Whether the entry contains a string and its plural form, default is false.
 		 *
 		 * @var bool
 		 */
@@ -36,7 +37,7 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 		 *     @type string $singular            The string to translate, if omitted an
 		 *                                       empty entry will be created.
 		 *     @type string $plural              The plural form of the string, setting
-		 *                                       this will set {@link $is_plural} to true.
+		 *                                       this will set `$is_plural` to true.
 		 *     @type array  $translations        Translations of the string and possibly
 		 *                                       its plural forms.
 		 *     @type string $context             A string differentiating two equal strings
@@ -84,12 +85,12 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 		}
 
 		/**
-		 * Generates a unique key for this entry
+		 * Generates a unique key for this entry.
 		 *
-		 * @return string|bool the key or false if the entry is empty
+		 * @return string|false The key or false if the entry is null.
 		 */
 		public function key() {
-			if ( null === $this->singular || '' === $this->singular ) {
+			if ( null === $this->singular ) {
 				return false;
 			}
 

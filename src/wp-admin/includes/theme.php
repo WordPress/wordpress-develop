@@ -7,7 +7,7 @@
  */
 
 /**
- * Remove a theme
+ * Removes a theme.
  *
  * @since 2.8.0
  *
@@ -175,7 +175,7 @@ function theme_update_available( $theme ) {
 }
 
 /**
- * Retrieve the update link if there is a theme update available.
+ * Retrieves the update link if there is a theme update available.
  *
  * Will return a link if there is an update available.
  *
@@ -271,7 +271,7 @@ function get_theme_update_available( $theme ) {
 }
 
 /**
- * Retrieve list of WordPress theme features (aka theme tags).
+ * Retrieves list of WordPress theme features (aka theme tags).
  *
  * @since 3.1.0
  * @since 3.2.0 Added 'Gray' color and 'Featured Image Header', 'Featured Images',
@@ -299,6 +299,7 @@ function get_theme_update_available( $theme ) {
  *              and 'Full Site Editing' features.
  * @since 5.5.0 Added 'Wide Blocks' layout option.
  * @since 5.8.1 Added 'Template Editing' feature.
+ * @since 6.1.1 Replaced 'Full Site Editing' feature name with 'Site Editor'.
  *
  * @param bool $api Optional. Whether try to fetch tags from the WordPress.org API. Defaults to true.
  * @return array Array of features keyed by category with translations keyed by slug.
@@ -331,7 +332,7 @@ function get_theme_feature_list( $api = true ) {
 			'featured-image-header' => __( 'Featured Image Header' ),
 			'featured-images'       => __( 'Featured Images' ),
 			'footer-widgets'        => __( 'Footer Widgets' ),
-			'full-site-editing'     => __( 'Full Site Editing' ),
+			'full-site-editing'     => __( 'Site Editor' ),
 			'full-width-template'   => __( 'Full Width Template' ),
 			'post-formats'          => __( 'Post Formats' ),
 			'sticky-post'           => __( 'Sticky Post' ),
@@ -442,7 +443,7 @@ function get_theme_feature_list( $api = true ) {
  * @param string       $action API action to perform: 'query_themes', 'theme_information',
  *                             'hot_tags' or 'feature_list'.
  * @param array|object $args   {
- *     Optional. Array or object of arguments to serialize for the Themes API.
+ *     Optional. Array or object of arguments to serialize for the Themes API. Default empty array.
  *
  *     @type string  $slug     The theme slug. Default empty.
  *     @type int     $per_page Number of themes per page. Default 24.
@@ -631,7 +632,7 @@ function themes_api( $action, $args = array() ) {
 }
 
 /**
- * Prepare themes for JavaScript.
+ * Prepares themes for JavaScript.
  *
  * @since 3.8.0
  *
@@ -712,7 +713,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 			$customize_action = esc_url(
 				add_query_arg(
 					array(
-						'return' => urlencode( esc_url_raw( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ),
+						'return' => urlencode( sanitize_url( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ),
 					),
 					wp_customize_url( $slug )
 				)
@@ -806,7 +807,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 }
 
 /**
- * Print JS templates for the theme-browsing UI in the Customizer.
+ * Prints JS templates for the theme-browsing UI in the Customizer.
  *
  * @since 4.2.0
  */
@@ -823,7 +824,7 @@ function customize_themes_print_templates() {
 			<div class="theme-about wp-clearfix">
 				<div class="theme-screenshots">
 				<# if ( data.screenshot && data.screenshot[0] ) { #>
-					<div class="screenshot"><img src="{{ data.screenshot[0] }}" alt="" /></div>
+					<div class="screenshot"><img src="{{ data.screenshot[0] }}?ver={{ data.version }}" alt="" /></div>
 				<# } else { #>
 					<div class="screenshot blank"></div>
 				<# } #>
@@ -877,7 +878,7 @@ function customize_themes_print_templates() {
 										<?php
 										printf(
 											/* translators: %s: Theme name. */
-											__( 'There is a new version of %s available, but it doesn&#8217;t work with your versions of WordPress and PHP.' ),
+											__( 'There is a new version of %s available, but it does not work with your versions of WordPress and PHP.' ),
 											'{{{ data.name }}}'
 										);
 										if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
@@ -907,7 +908,7 @@ function customize_themes_print_templates() {
 										<?php
 										printf(
 											/* translators: %s: Theme name. */
-											__( 'There is a new version of %s available, but it doesn&#8217;t work with your version of WordPress.' ),
+											__( 'There is a new version of %s available, but it does not work with your version of WordPress.' ),
 											'{{{ data.name }}}'
 										);
 										if ( current_user_can( 'update_core' ) ) {
@@ -922,7 +923,7 @@ function customize_themes_print_templates() {
 										<?php
 										printf(
 											/* translators: %s: Theme name. */
-											__( 'There is a new version of %s available, but it doesn&#8217;t work with your version of PHP.' ),
+											__( 'There is a new version of %s available, but it does not work with your version of PHP.' ),
 											'{{{ data.name }}}'
 										);
 										if ( current_user_can( 'update_php' ) ) {
@@ -956,7 +957,7 @@ function customize_themes_print_templates() {
 						<div class="notice notice-error notice-alt notice-large"><p>
 							<# if ( ! data.compatibleWP && ! data.compatiblePHP ) { #>
 								<?php
-								_e( 'This theme doesn&#8217;t work with your versions of WordPress and PHP.' );
+								_e( 'This theme does not work with your versions of WordPress and PHP.' );
 								if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
 									printf(
 										/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
@@ -982,7 +983,7 @@ function customize_themes_print_templates() {
 								?>
 							<# } else if ( ! data.compatibleWP ) { #>
 								<?php
-								_e( 'This theme doesn&#8217;t work with your version of WordPress.' );
+								_e( 'This theme does not work with your version of WordPress.' );
 								if ( current_user_can( 'update_core' ) ) {
 									printf(
 										/* translators: %s: URL to WordPress Updates screen. */
@@ -993,7 +994,7 @@ function customize_themes_print_templates() {
 								?>
 							<# } else if ( ! data.compatiblePHP ) { #>
 								<?php
-								_e( 'This theme doesn&#8217;t work with your version of PHP.' );
+								_e( 'This theme does not work with your version of PHP.' );
 								if ( current_user_can( 'update_php' ) ) {
 									printf(
 										/* translators: %s: URL to Update PHP page. */
@@ -1185,7 +1186,7 @@ function resume_theme( $theme, $redirect = '' ) {
  *
  * @since 5.2.0
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  */
 function paused_themes_notice() {
 	if ( 'themes.php' === $GLOBALS['pagenow'] ) {

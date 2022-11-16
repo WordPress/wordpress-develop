@@ -350,6 +350,7 @@ ul#adminmenu > li.current > a.current:after {
 
 /* Admin Menu: bubble */
 
+#adminmenu .menu-counter,
 #adminmenu .awaiting-mod,
 #adminmenu .update-plugins {
 	color: $menu-bubble-text;
@@ -783,15 +784,15 @@ div#wp-responsive-toggle a:before {
 }
 
 /* Welcome Panel */
-
 .welcome-panel {
-	background-color: $highlight-color;
+	background-color: $dashboard-accent-1;
+}
+
+.welcome-panel-header-image circle {
+	stroke: $dashboard-accent-2;
+	fill: $dashboard-accent-1;
 }
 
 [class*="welcome-panel-icon"] {
-	@if ( $scheme-name == "light" ) {
-		background-color: $icon-color;
-	} @else {
-		background-color: $base-color;
-	}
+	background-color: $dashboard-icon-background;
 }

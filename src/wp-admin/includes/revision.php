@@ -279,9 +279,9 @@ function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null
 		$revisions[ $revision->ID ] = apply_filters( 'wp_prepare_revision_for_js', $revisions_data, $revision, $post );
 	}
 
-	/**
-	 * If we only have one revision, the initial revision is missing; This happens
-	 * when we have an autsosave and the user has clicked 'View the Autosave'
+	/*
+	 * If we only have one revision, the initial revision is missing. This happens
+	 * when we have an autosave and the user has clicked 'View the Autosave'.
 	 */
 	if ( 1 === count( $revisions ) ) {
 		$revisions[ $post->ID ] = array(
@@ -300,7 +300,7 @@ function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null
 	}
 
 	/*
-	 * If a post has been saved since the last revision (no revisioned fields
+	 * If a post has been saved since the latest revision (no revisioned fields
 	 * were changed), we may not have a "current" revision. Mark the latest
 	 * revision as "current".
 	 */

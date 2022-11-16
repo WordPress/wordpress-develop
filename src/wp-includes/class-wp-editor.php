@@ -8,6 +8,7 @@
  * Private, not included by default. See wp_editor() in wp-includes/general-template.php.
  */
 
+#[AllowDynamicProperties]
 final class _WP_Editors {
 	public static $mce_locale;
 
@@ -1355,7 +1356,7 @@ final class _WP_Editors {
 				'Words: {0}'                           => sprintf( __( 'Words: %s' ), '{0}' ),
 				'Paste is now in plain text mode. Contents will now be pasted as plain text until you toggle this option off.' =>
 					__( 'Paste is now in plain text mode. Contents will now be pasted as plain text until you toggle this option off.' ) . "\n\n" .
-					__( 'If you&#8217;re looking to paste rich content from Microsoft Word, try turning this option off. The editor will clean up text pasted from Word automatically.' ),
+					__( 'If you are looking to paste rich content from Microsoft Word, try turning this option off. The editor will clean up text pasted from Word automatically.' ),
 				'Rich Text Area. Press ALT-F9 for menu. Press ALT-F10 for toolbar. Press ALT-0 for help' =>
 					__( 'Rich Text Area. Press Alt-Shift-H for help.' ),
 				'Rich Text Area. Press Control-Option-H for help.' => __( 'Rich Text Area. Press Control-Option-H for help.' ),
@@ -1751,7 +1752,17 @@ final class _WP_Editors {
 	 * @since 3.1.0
 	 *
 	 * @param array $args Optional. Accepts 'pagenum' and 's' (search) arguments.
-	 * @return array|false Results.
+	 * @return array|false $results {
+	 *     An array of associative arrays of query results, false if there are none.
+	 *
+	 *     @type array ...$0 {
+	 *         @type int    $ID        Post ID.
+	 *         @type string $title     The trimmed, escaped post title.
+	 *         @type string $permalink Post permalink.
+	 *         @type string $info      A 'Y/m/d'-formatted date for 'post' post type,
+	 *                                 the 'singular_name' post type label otherwise.
+	 *     }
+	 * }
 	 */
 	public static function wp_link_query( $args = array() ) {
 		$pts      = get_post_types( array( 'public' => true ), 'objects' );

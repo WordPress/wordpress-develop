@@ -9,8 +9,9 @@ on:
       - '3.[89]'
       - '[4-9].[0-9]'
     tags:
-      - '3.[89]*'
-      - '[4-9].[0-9]*'
+      - '[0-9]+.[0-9]'
+      - '[0-9]+.[0-9].[0-9]+'
+      - '!3.7.[0-9]+'
   pull_request:
     branches:
       - trunk
@@ -20,7 +21,7 @@ on:
       # Any change to a PHP or JavaScript file should run checks.
       - '**.js'
       - '**.php'
-      # These files configure NPM. Changes could affect the outcome.
+      # These files configure npm. Changes could affect the outcome.
       - 'package*.json'
       # These files configure Composer. Changes could affect the outcome.
       - 'composer.*'
@@ -47,14 +48,15 @@ jobs:
   # Performs the following steps:
   # - Checks out the repository.
   # - Sets up PHP.
-  # - Logs debug information.
   # - Configures caching for PHPCS scans.
-  # - Installs Composer dependencies (use cache if possible).
+  # - Installs Composer dependencies.
   # - Make Composer packages available globally.
-  # - Logs PHP_CodeSniffer debug information.
   # - Runs PHPCS on the full codebase with warnings suppressed.
+  # - Generate a report for displaying issues as pull request annotations.
   # - Runs PHPCS on the `tests` directory without warnings suppressed.
+  # - Generate a report for displaying `test` directory issues as pull request annotations.
   # - Ensures version-controlled files are not modified or deleted.
+
   phpcs:
     name: PHP coding standards
     runs-on: ubuntu-latest
@@ -63,48 +65,50 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@ac7d3d7f84d81a029c20ab72d60264bdb7535831 # v2.15.0
+        uses: shivammathur/setup-php@1a18b2267f80291a81ca1d33e7c851fe09e7dfc4 # v2.22.0
         with:
           php-version: '7.4'
           coverage: none
           tools: composer, cs2pr
 
-      - name: Log debug information
-        run: |
-          php --version
-          composer --version
-
       # This date is used to ensure that the PHPCS cache is cleared at least once every week.
       # http://man7.org/linux/man-pages/man1/date.1.html
       - name: "Get last Monday's date"
         id: get-date
-        run: echo "::set-output name=date::$(/bin/date -u --date='last Mon' "+%F")"
+        run: echo "date=$(/bin/date -u --date='last Mon' "+%F")" >> $GITHUB_OUTPUT
 
       - name: Cache PHPCS scan cache
-        uses: actions/cache@c64c572235d810460d0d6876e9c705ad5002b353 # v2.1.6
+        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
         with:
           path: .cache/phpcs.json
           key: ${{ runner.os }}-date-${{ steps.get-date.outputs.date }}-phpcs-cache-${{ hashFiles('**/composer.json', 'phpcs.xml.dist') }}
 
       - name: Install Composer dependencies
-        uses: ramsey/composer-install@a7320a0581dcd0432930c48a0e7ced67e6ec17e8 # v1.3.0
+        uses: ramsey/composer-install@83af392bf5f031813d25e6fe4cd626cdba9a2df6 # v2.2.0
         with:
-          composer-options: "--no-progress --no-ansi --no-interaction"
+          composer-options: "--no-progress --no-ansi"
 
       - name: Make Composer packages available globally
         run: echo "${PWD}/vendor/bin" >> $GITHUB_PATH
 
-      - name: Log PHPCS debug information
-        run: phpcs -i
-
       - name: Run PHPCS on all Core files
-        run: phpcs -q -n --report=checkstyle | cs2pr
+        id: phpcs-core
+        run: phpcs -n --report-full --report-checkstyle=./.cache/phpcs-report.xml
+
+      - name: Show PHPCS results in PR
+        if: ${{ always() && steps.phpcs-core.outcome == 'failure' }}
+        run: cs2pr ./.cache/phpcs-report.xml
 
       - name: Check test suite files for warnings
-        run: phpcs tests -q --report=checkstyle | cs2pr
+        id: phpcs-tests
+        run: phpcs tests --report-full --report-checkstyle=./.cache/phpcs-tests-report.xml
+
+      - name: Show test suite scan results in PR
+        if: ${{ always() && steps.phpcs-tests.outcome == 'failure' }}
+        run: cs2pr ./.cache/phpcs-tests-report.xml
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code
@@ -115,10 +119,9 @@ jobs:
   #
   # Performs the following steps:
   # - Checks out the repository.
-  # - Logs debug information about the runner container.
-  # - Installs NodeJS 14.
-  # - Logs updated debug information.
-  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # - Sets up Node.js.
+  # - Logs debug information about the GitHub Action runner.
+  # - Installs npm dependencies.
   # - Run the WordPress JSHint checks.
   # - Ensures version-controlled files are not modified or deleted.
   jshint:
@@ -131,7 +134,13 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
 
       - name: Log debug information
         run: |
@@ -140,18 +149,7 @@ jobs:
           git --version
           svn --version
 
-      - name: Install NodeJS
-        uses: actions/setup-node@270253e841af726300e85d718a5f606959b2903c # v2.4.1
-        with:
-          node-version: 14
-          cache: npm
-
-      - name: Log debug information
-        run: |
-          npm --version
-          node --version
-
-      - name: Install Dependencies
+      - name: Install npm Dependencies
         run: npm ci
 
       - name: Run JSHint
@@ -172,3 +170,34 @@ jobs:
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-latest
+    needs: [ phpcs, jshint, slack-notifications ]
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_attempt < 2 &&
+      (
+        needs.phpcs.result == 'cancelled' || needs.phpcs.result == 'failure' ||
+        needs.jshint.result == 'cancelled' || needs.jshint.result == 'failure'
+      )
+
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@100527700e8b29ca817ac0e0dfbfc5e8ff38edda # v6.3.2
+        with:
+          retries: 2
+          retry-exempt-status-codes: 418
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: 'trunk',
+              inputs: {
+                run_id: '${{ github.run_id }}'
+              }
+            });

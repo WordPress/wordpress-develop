@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::wp_html_split
  */
 class Tests_Formatting_wpHtmlSplit extends WP_UnitTestCase {
 
@@ -39,6 +41,8 @@ class Tests_Formatting_wpHtmlSplit extends WP_UnitTestCase {
 	 * Automated performance testing of the main regex.
 	 *
 	 * @dataProvider data_whole_posts
+	 *
+	 * @covers ::get_html_split_regex
 	 */
 	public function test_pcre_performance( $input ) {
 		$regex  = get_html_split_regex();

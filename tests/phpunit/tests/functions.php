@@ -130,6 +130,68 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests path_join().
+	 *
+	 * @ticket 55897
+	 * @dataProvider path_join_data_provider
+	 */
+	public function test_path_join( $base, $path, $expected ) {
+		$this->assertSame( $expected, path_join( $base, $path ) );
+	}
+
+	/**
+	 * Data provider for test_path_join().
+	 *
+	 * @return string[][]
+	 */
+	public function path_join_data_provider() {
+		return array(
+			// Absolute paths.
+			'absolute path should return path' => array(
+				'base'     => 'base',
+				'path'     => '/path',
+				'expected' => '/path',
+			),
+			'windows path with slashes'        => array(
+				'base'     => 'base',
+				'path'     => '//path',
+				'expected' => '//path',
+			),
+			'windows path with backslashes'    => array(
+				'base'     => 'base',
+				'path'     => '\\\\path',
+				'expected' => '\\\\path',
+			),
+			// Non-absolute paths.
+			'join base and path'               => array(
+				'base'     => 'base',
+				'path'     => 'path',
+				'expected' => 'base/path',
+			),
+			'strip trailing slashes in base'   => array(
+				'base'     => 'base///',
+				'path'     => 'path',
+				'expected' => 'base/path',
+			),
+			'empty path'                       => array(
+				'base'     => 'base',
+				'path'     => '',
+				'expected' => 'base/',
+			),
+			'empty base'                       => array(
+				'base'     => '',
+				'path'     => 'path',
+				'expected' => '/path',
+			),
+			'empty path and base'              => array(
+				'base'     => '',
+				'path'     => '',
+				'expected' => '/',
+			),
+		);
+	}
+
+	/**
 	 * @ticket 33265
 	 * @ticket 35996
 	 *
@@ -309,152 +371,6 @@ class Tests_Functions extends WP_UnitTestCase {
 		$formats['image/pct'] = 'image/bmp';
 
 		return $formats;
-	}
-
-	/**
-	 * @dataProvider data_is_not_serialized
-	 */
-	public function test_maybe_serialize( $value ) {
-		if ( is_array( $value ) || is_object( $value ) ) {
-			$expected = serialize( $value );
-		} else {
-			$expected = $value;
-		}
-
-		$this->assertSame( $expected, maybe_serialize( $value ) );
-	}
-
-	/**
-	 * @dataProvider data_is_serialized
-	 */
-	public function test_maybe_serialize_with_double_serialization( $value ) {
-		$expected = serialize( $value );
-
-		$this->assertSame( $expected, maybe_serialize( $value ) );
-	}
-
-	/**
-	 * @dataProvider data_is_serialized
-	 * @dataProvider data_is_not_serialized
-	 */
-	public function test_maybe_unserialize( $value, $is_serialized ) {
-		if ( $is_serialized ) {
-			$expected = unserialize( trim( $value ) );
-		} else {
-			$expected = $value;
-		}
-
-		if ( is_object( $expected ) ) {
-			$this->assertEquals( $expected, maybe_unserialize( $value ) );
-		} else {
-			$this->assertSame( $expected, maybe_unserialize( $value ) );
-		}
-	}
-
-	/**
-	 * @dataProvider data_is_serialized
-	 * @dataProvider data_is_not_serialized
-	 */
-	public function test_is_serialized( $value, $expected ) {
-		$this->assertSame( $expected, is_serialized( $value ) );
-	}
-
-	/**
-	 * @dataProvider data_serialize_deserialize_objects
-	 */
-	public function test_deserialize_request_utility_filtered_iterator_objects( $value ) {
-		$serialized = maybe_serialize( $value );
-		if ( get_class( $value ) === 'Requests_Utility_FilteredIterator' ) {
-			$new_value = unserialize( $serialized );
-			$property  = ( new ReflectionClass( 'Requests_Utility_FilteredIterator' ) )->getProperty( 'callback' );
-			$property->setAccessible( true );
-			$callback_value = $property->getValue( $new_value );
-			$this->assertSame( null, $callback_value );
-		} else {
-			$this->assertSame( $value->count(), unserialize( $serialized )->count() );
-		}
-	}
-
-	public function data_serialize_deserialize_objects() {
-		return array(
-			array( new Requests_Utility_FilteredIterator( array( 1 ), 'md5' ) ),
-			array( new Requests_Utility_FilteredIterator( array( 1, 2 ), 'sha1' ) ),
-			array( new ArrayIterator( array( 1, 2, 3 ) ) ),
-		);
-	}
-
-	public function data_is_serialized() {
-		return array(
-			array( serialize( null ), true ),
-			array( serialize( true ), true ),
-			array( serialize( false ), true ),
-			array( serialize( -25 ), true ),
-			array( serialize( 25 ), true ),
-			array( serialize( 1.1 ), true ),
-			array( serialize( 'this string will be serialized' ), true ),
-			array( serialize( "a\nb" ), true ),
-			array( serialize( array() ), true ),
-			array( serialize( array( 1, 1, 2, 3, 5, 8, 13 ) ), true ),
-			array(
-				serialize(
-					(object) array(
-						'test' => true,
-						'3',
-						4,
-					)
-				),
-				true,
-			),
-			array( '   s:25:"this string is serialized";   ', true ),
-		);
-	}
-
-	public function data_is_not_serialized() {
-		return array(
-			array( null, false ),
-			array( true, false ),
-			array( false, false ),
-			array( -25, false ),
-			array( 25, false ),
-			array( 1.1, false ),
-			array( 'this string will be serialized', false ),
-			array( "a\nb", false ),
-			array( array(), false ),
-			array( array( 1, 1, 2, 3, 5, 8, 13 ), false ),
-			array(
-				(object) array(
-					'test' => true,
-					'3',
-					4,
-				),
-				false,
-			),
-			array( 'a string', false ),
-			array( 'garbage:a:0:garbage;', false ),
-			array( 's:4:test;', false ),
-		);
-	}
-
-	/**
-	 * @ticket 46570
-	 * @dataProvider data_is_serialized_should_return_true_for_large_floats
-	 */
-	public function test_is_serialized_should_return_true_for_large_floats( $value ) {
-		$this->assertTrue( is_serialized( $value ) );
-	}
-
-	public function data_is_serialized_should_return_true_for_large_floats() {
-		return array(
-			array( serialize( 1.7976931348623157E+308 ) ),
-			array( serialize( array( 1.7976931348623157E+308, 1.23e50 ) ) ),
-		);
-	}
-
-	/**
-	 * @ticket 17375
-	 */
-	public function test_no_new_serializable_types() {
-		$this->assertFalse( is_serialized( 'C:16:"Serialized_Class":6:{a:0:{}}' ) );
 	}
 
 	/**
@@ -990,6 +906,10 @@ class Tests_Functions extends WP_UnitTestCase {
 			'ftp://127.0.0.1/',
 			'http://www.woo.com/video?v=exvUH2qKLTU',
 			'http://taco.com?burrito=enchilada#guac',
+			'http://example.org/?post_type=post&p=4',
+			'http://example.org/?post_type=post&p=5',
+			'http://example.org/?post_type=post&p=6',
+			'http://typo-in-query.org/?foo=bar&ampbaz=missing_semicolon',
 		);
 
 		$blob = '
@@ -1052,6 +972,12 @@ class Tests_Functions extends WP_UnitTestCase {
 			http://www.woo.com/video?v=exvUH2qKLTU
 
 			http://taco.com?burrito=enchilada#guac
+
+			http://example.org/?post_type=post&amp;p=4
+			http://example.org/?post_type=post&#038;p=5
+			http://example.org/?post_type=post&p=6
+
+			http://typo-in-query.org/?foo=bar&ampbaz=missing_semicolon
 		';
 
 		$urls = wp_extract_urls( $blob );
@@ -1094,6 +1020,28 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertIsArray( $urls );
 		$this->assertCount( 8, $urls );
 		$this->assertSame( array_slice( $original_urls, 0, 8 ), $urls );
+	}
+
+	/**
+	 * Tests for backward compatibility of `wp_extract_urls` to remove unused semicolons.
+	 *
+	 * @ticket 30580
+	 *
+	 * @covers ::wp_extract_urls
+	 */
+	public function test_wp_extract_urls_remove_semicolon() {
+		$expected = array(
+			'http://typo.com',
+			'http://example.org/?post_type=post&p=8',
+		);
+		$actual   = wp_extract_urls(
+			'
+				http://typo.com;
+				http://example.org/?post_type=;p;o;s;t;&amp;p=8;
+			'
+		);
+
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
@@ -1456,6 +1404,16 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @requires extension fileinfo
 	 */
 	public function test_wp_check_filetype_and_ext_with_filtered_woff() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, this test is marked skipped on PHP 8.1+ as a recent change introduced
+			 * an inconsistency with how the mime-type for WOFF files are handled compared to older versions.
+			 *
+			 * See https://core.trac.wordpress.org/ticket/56817 for more details.
+			 */
+			$this->markTestSkipped( 'This test currently fails on PHP 8.1+ and requires further investigation.' );
+		}
+
 		$file     = DIR_TESTDATA . '/uploads/dashicons.woff';
 		$filename = 'dashicons.woff';
 
@@ -2097,13 +2055,135 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @ticket 53668
 	 */
 	public function test_wp_get_default_extension_for_mime_type() {
-		$this->assertEquals( 'jpg', wp_get_default_extension_for_mime_type( 'image/jpeg' ), 'jpg not returned as default extension for "image/jpeg"' );
+		$this->assertSame( 'jpg', wp_get_default_extension_for_mime_type( 'image/jpeg' ), 'jpg not returned as default extension for "image/jpeg"' );
 		$this->assertNotEquals( 'jpeg', wp_get_default_extension_for_mime_type( 'image/jpeg' ), 'jpeg should not be returned as default extension for "image/jpeg"' );
-		$this->assertEquals( 'png', wp_get_default_extension_for_mime_type( 'image/png' ), 'png not returned as default extension for "image/png"' );
+		$this->assertSame( 'png', wp_get_default_extension_for_mime_type( 'image/png' ), 'png not returned as default extension for "image/png"' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( 'wibble/wobble' ), 'false not returned for unrecognized mime type' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( '' ), 'false not returned when empty string as mime type supplied' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( '   ' ), 'false not returned when empty string as mime type supplied' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( 123 ), 'false not returned when int as mime type supplied' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( null ), 'false not returned when null as mime type supplied' );
 	}
+
+	/**
+	 * @ticket 49412
+	 * @covers ::wp_filesize
+	 */
+	function test_wp_filesize_with_nonexistent_file() {
+		$file = 'nonexistent/file.jpg';
+		$this->assertSame( 0, wp_filesize( $file ) );
+	}
+
+	/**
+	 * @ticket 49412
+	 * @covers ::wp_filesize
+	 */
+	function test_wp_filesize() {
+		$file = DIR_TESTDATA . '/images/test-image-upside-down.jpg';
+
+		$this->assertSame( filesize( $file ), wp_filesize( $file ) );
+
+		$filter = function() {
+			return 999;
+		};
+
+		add_filter( 'wp_filesize', $filter );
+
+		$this->assertSame( 999, wp_filesize( $file ) );
+
+		$pre_filter = function() {
+			return 111;
+		};
+
+		add_filter( 'pre_wp_filesize', $pre_filter );
+
+		$this->assertSame( 111, wp_filesize( $file ) );
+	}
+
+	/**
+	 * @ticket 55505
+	 * @covers ::wp_recursive_ksort
+	 */
+	function test_wp_recursive_ksort() {
+		// Create an array to test.
+		$theme_json = array(
+			'version'  => 1,
+			'settings' => array(
+				'typography' => array(
+					'fontFamilies' => array(
+						'fontFamily' => 'DM Sans, sans-serif',
+						'slug'       => 'dm-sans',
+						'name'       => 'DM Sans',
+					),
+				),
+				'color'      => array(
+					'palette' => array(
+						array(
+							'slug'  => 'foreground',
+							'color' => '#242321',
+							'name'  => 'Foreground',
+						),
+						array(
+							'slug'  => 'background',
+							'color' => '#FCFBF8',
+							'name'  => 'Background',
+						),
+						array(
+							'slug'  => 'primary',
+							'color' => '#71706E',
+							'name'  => 'Primary',
+						),
+						array(
+							'slug'  => 'tertiary',
+							'color' => '#CFCFCF',
+							'name'  => 'Tertiary',
+						),
+					),
+				),
+			),
+		);
+
+		// Sort the array.
+		wp_recursive_ksort( $theme_json );
+
+		// Expected result.
+		$expected_theme_json = array(
+			'settings' => array(
+				'color'      => array(
+					'palette' => array(
+						array(
+							'color' => '#242321',
+							'name'  => 'Foreground',
+							'slug'  => 'foreground',
+						),
+						array(
+							'color' => '#FCFBF8',
+							'name'  => 'Background',
+							'slug'  => 'background',
+						),
+						array(
+							'color' => '#71706E',
+							'name'  => 'Primary',
+							'slug'  => 'primary',
+						),
+						array(
+							'color' => '#CFCFCF',
+							'name'  => 'Tertiary',
+							'slug'  => 'tertiary',
+						),
+					),
+				),
+				'typography' => array(
+					'fontFamilies' => array(
+						'fontFamily' => 'DM Sans, sans-serif',
+						'name'       => 'DM Sans',
+						'slug'       => 'dm-sans',
+					),
+				),
+			),
+			'version'  => 1,
+		);
+		$this->assertSameSetsWithIndex( $theme_json, $expected_theme_json );
+	}
+
 }

@@ -62,8 +62,11 @@ if ( false === $count ) {
 
 if ( 0 === $count ) {
 	$pop3->quit();
-	wp_die( __( 'There doesn&#8217;t seem to be any new mail.' ) );
+	wp_die( __( 'There does not seem to be any new mail.' ) );
 }
+
+// Always run as an unauthenticated user.
+wp_set_current_user( 0 );
 
 for ( $i = 1; $i <= $count; $i++ ) {
 
@@ -134,8 +137,6 @@ for ( $i = 1; $i <= $count; $i++ ) {
 				}
 				$author = sanitize_email( $author );
 				if ( is_email( $author ) ) {
-					/* translators: %s: Post author email address. */
-					echo '<p>' . sprintf( __( 'Author is %s' ), $author ) . '</p>';
 					$userdata = get_user_by( 'email', $author );
 					if ( ! empty( $userdata ) ) {
 						$post_author  = $userdata->ID;

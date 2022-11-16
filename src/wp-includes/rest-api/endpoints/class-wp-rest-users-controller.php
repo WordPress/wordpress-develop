@@ -725,7 +725,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$owner_id = email_exists( $request['email'] );
+		$owner_id = false;
+		if ( is_string( $request['email'] ) ) {
+			$owner_id = email_exists( $request['email'] );
+		}
 
 		if ( $owner_id && $owner_id !== $id ) {
 			return new WP_Error(
@@ -738,7 +741,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		if ( ! empty( $request['username'] ) && $request['username'] !== $user->user_login ) {
 			return new WP_Error(
 				'rest_user_invalid_argument',
-				__( "Username isn't editable." ),
+				__( 'Username is not editable.' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -1072,7 +1075,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
 
-		$response->add_links( $this->prepare_links( $user ) );
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$response->add_links( $this->prepare_links( $user ) );
+		}
 
 		/**
 		 * Filters user data returned from the REST API.
