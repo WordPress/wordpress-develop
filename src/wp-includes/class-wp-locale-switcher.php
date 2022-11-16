@@ -183,10 +183,10 @@ class WP_Locale_Switcher {
 	 * @return false|string Locale if the locale has been switched, false otherwise.
 	 */
 	public function get_current_locale() {
-		$switched_locale = end( $this->stack );
+		$entry = end( $this->stack );
 
-		if ( $switched_locale ) {
-			return $switched_locale[0];
+		if ( $entry ) {
+			return $entry[0];
 		}
 
 		return false;
