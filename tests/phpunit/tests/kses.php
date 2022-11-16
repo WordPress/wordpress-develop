@@ -1107,6 +1107,16 @@ EOF;
 				'css'      => 'background: conic-gradient(at 0% 30%, red 10%, yellow 30%, #1e90ff 50%)',
 				'expected' => 'background: conic-gradient(at 0% 30%, red 10%, yellow 30%, #1e90ff 50%)',
 			),
+			// `object-position` introduced in 5.7.1.
+			array(
+				'css'      => 'object-position: right top',
+				'expected' => 'object-position: right top',
+			),
+			// `object-fit` introduced in 6.1.
+			array(
+				'css'      => 'object-fit: cover',
+				'expected' => 'object-fit: cover',
+			),
 			// Expressions are not allowed.
 			array(
 				'css'      => 'height: expression( body.scrollTop + 50 + "px" )',
@@ -1244,8 +1254,12 @@ EOF;
 			),
 			// Margin and padding logical properties introduced in 6.1.
 			array(
-				'css'      => 'margin-block-start: 1px;margin-block-end: 2px;margin-inline-start: 3px;margin-inline-end: 4px;padding-block-start: 1px;padding-block-end: 2px;padding-inline-start: 3px;padding-inline-end: 4px',
-				'expected' => 'margin-block-start: 1px;margin-block-end: 2px;margin-inline-start: 3px;margin-inline-end: 4px;padding-block-start: 1px;padding-block-end: 2px;padding-inline-start: 3px;padding-inline-end: 4px',
+				'css'      => 'margin-block-start: 1px;margin-block-end: 2px;margin-inline-start: 3px;margin-inline-end: 4px;',
+				'expected' => 'margin-block-start: 1px;margin-block-end: 2px;margin-inline-start: 3px;margin-inline-end: 4px',
+			),
+			array(
+				'css'      => 'padding-block-start: 1px;padding-block-end: 2px;padding-inline-start: 3px;padding-inline-end: 4px;',
+				'expected' => 'padding-block-start: 1px;padding-block-end: 2px;padding-inline-start: 3px;padding-inline-end: 4px',
 			),
 			// Assigning values to CSS variables introduced in 6.1.
 			array(
@@ -2090,19 +2104,13 @@ HTML;
 	 * @return array
 	 */
 	public function data_kses_globals_are_defined() {
-		return array(
-			'allowedposttags'       => array(
-				'global' => 'allowedposttags',
-			),
-			'allowedtags'           => array(
-				'global' => 'allowedtags',
-			),
-			'allowedentitynames'    => array(
-				'global' => 'allowedentitynames',
-			),
-			'allowedxmlentitynames' => array(
-				'global' => 'allowedxmlentitynames',
-			),
+		$globals = array(
+			'allowedposttags',
+			'allowedtags',
+			'allowedentitynames',
+			'allowedxmlentitynames',
 		);
+
+		return $this->text_array_to_dataprovider( $globals );
 	}
 }

@@ -18,18 +18,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 
 		require_once DIR_TESTDATA . '/../includes/mock-image-editor.php';
-		add_filter( 'image_editor_output_format', '__return_empty_array' );
 
 		// This needs to come after the mock image editor class is loaded.
 		parent::set_up();
-	}
-
-	/**
-	 * Tear down the class.
-	 */
-	public function tear_down() {
-		remove_filter( 'image_editor_output_format', '__return_empty_array' );
-		parent::tear_down();
 	}
 
 	/**
@@ -114,9 +105,6 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 
 		// Ensure wp_editor_set_quality filter applies if it exists before editor instantiation.
 		$this->assertSame( 100, $editor->get_quality() );
-
-		// Clean up.
-		remove_filter( 'wp_editor_set_quality', $func_100_percent );
 	}
 
 	/**
@@ -128,18 +116,25 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/test-image.png' );
 		$editor->set_mime_type( 'image/png' ); // Ensure mime-specific filters act properly.
 
+		// Quality setting for the source image. For PNG the fallback default of 82 is used.
+		$this->assertSame( 82, $editor->get_quality(), 'Default quality setting is 82.' );
+
 		// Set conversions for uploaded images.
 		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_formats' ) );
 
 		// Quality setting for the source image. For PNG the fallback default of 82 is used.
 		$this->assertSame( 82, $editor->get_quality(), 'Default quality setting is 82.' );
 
-		// Quality should change to the output format's value.
-		// A PNG image will be converted to WEBP whose quialty should be 86.
+		// When saving, quality should change to the output format's value.
+		// A PNG image will be converted to WebP whose quality should be 86.
 		$editor->save();
-		$this->assertSame( 86, $editor->get_quality(), 'Output image format is WEBP. Quality setting for it should be 86.' );
+		$this->assertSame( 86, $editor->get_quality(), 'Output image format is WebP. Quality setting for it should be 86.' );
 
-		// Removing PNG to WEBP conversion on save. Quality setting should reset to the default.
+		// Saving again should not change the quality.
+		$editor->save();
+		$this->assertSame( 86, $editor->get_quality(), 'Output image format is WebP. Quality setting for it should be 86.' );
+
+		// Removing PNG to WebP conversion on save. Quality setting should reset to the default.
 		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_formats' ) );
 		$editor->save();
 		$this->assertSame( 82, $editor->get_quality(), 'After removing image conversion quality setting should reset to the default of 82.' );
@@ -158,9 +153,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		$this->assertSame( 56, $editor->get_quality(), 'Filtered default quality for JPEG is 56.' );
 
 		// Quality should change to the output format's value as filtered above.
-		// A JPEG image will be converted to WEBP whose quialty should be 42.
+		// A JPEG image will be converted to WebP whose quialty should be 42.
 		$editor->save();
-		$this->assertSame( 42, $editor->get_quality(), 'Image conversion from JPEG to WEBP. Filtered WEBP quality shoild be 42.' );
+		$this->assertSame( 42, $editor->get_quality(), 'Image conversion from JPEG to WEBP. Filtered WEBP quality should be 42.' );
 
 		// After removing the conversion the quality setting should reset to the filtered value for the original image type, JPEG.
 		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_formats' ) );
@@ -170,8 +165,6 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 			$editor->get_quality(),
 			'After removing image conversion the quality setting should reset to the filtered value for JPEG, 56.'
 		);
-
-		remove_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality' ) );
 	}
 
 	/**
@@ -235,10 +228,10 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		$this->assertSame( trailingslashit( realpath( get_temp_dir() ) ), trailingslashit( realpath( dirname( $editor->generate_filename( null, get_temp_dir() ) ) ) ) );
 
 		// Test with a suffix only.
-		$this->assertSame( 'canola-100x50-jpg.png', wp_basename( $editor->generate_filename( null, null, 'png' ) ) );
+		$this->assertSame( 'canola-100x50.png', wp_basename( $editor->generate_filename( null, null, 'png' ) ) );
 
 		// Combo!
-		$this->assertSame( trailingslashit( realpath( get_temp_dir() ) ) . 'canola-new-jpg.png', $editor->generate_filename( 'new', realpath( get_temp_dir() ), 'png' ) );
+		$this->assertSame( trailingslashit( realpath( get_temp_dir() ) ) . 'canola-new.png', $editor->generate_filename( 'new', realpath( get_temp_dir() ), 'png' ) );
 
 		// Test with a stream destination.
 		$this->assertSame( 'file://testing/path/canola-100x50.jpg', $editor->generate_filename( null, 'file://testing/path' ) );

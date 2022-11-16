@@ -7,6 +7,7 @@
  * @since 5.2.0
  */
 
+#[AllowDynamicProperties]
 class WP_Site_Health {
 	private static $instance = null;
 
@@ -477,7 +478,7 @@ class WP_Site_Health {
 	/**
 	 * Tests if themes are outdated, or unnecessary.
 	 *
-	 * Сhecks if your site has a default theme (to fall back on if there is a need),
+	 * Checks if your site has a default theme (to fall back on if there is a need),
 	 * if your themes are up to date and, finally, encourages you to remove any themes
 	 * that are not needed.
 	 *
@@ -740,7 +741,7 @@ class WP_Site_Health {
 				'<p>%s</p>',
 				sprintf(
 					/* translators: %s: The minimum recommended PHP version. */
-					__( 'PHP is the programming language used to build and maintain WordPress. Newer versions of PHP are created with increased performance in mind, so you may see a positive effect on your site&#8217;s performance. The minimum recommended version of PHP is %s.' ),
+					__( 'PHP is one of the programming languages used to build WordPress. Newer versions of PHP receive regular security updates and may increase your site&#8217;s performance. The minimum recommended version of PHP is %s.' ),
 					$response ? $response['recommended_version'] : ''
 				)
 			),
@@ -763,10 +764,27 @@ class WP_Site_Health {
 		if ( $response['is_supported'] ) {
 			$result['label'] = sprintf(
 				/* translators: %s: The server PHP version. */
-				__( 'Your site is running an older version of PHP (%s)' ),
+				__( 'Your site is running on an older version of PHP (%s)' ),
 				PHP_VERSION
 			);
 			$result['status'] = 'recommended';
+
+			return $result;
+		}
+
+		// The PHP version is still receiving security fixes, but is lower than
+		// the expected minimum version that will be required by WordPress in the near future.
+		if ( $response['is_secure'] && $response['is_lower_than_future_minimum'] ) {
+			// The `is_secure` array key name doesn't actually imply this is a secure version of PHP. It only means it receives security updates.
+
+			$result['label'] = sprintf(
+				/* translators: %s: The server PHP version. */
+				__( 'Your site is running on an outdated version of PHP (%s), which soon will not be supported by WordPress.' ),
+				PHP_VERSION
+			);
+
+			$result['status']         = 'critical';
+			$result['badge']['label'] = __( 'Requirements' );
 
 			return $result;
 		}
@@ -775,7 +793,7 @@ class WP_Site_Health {
 		if ( $response['is_secure'] ) {
 			$result['label'] = sprintf(
 				/* translators: %s: The server PHP version. */
-				__( 'Your site is running an older version of PHP (%s), which should be updated' ),
+				__( 'Your site is running on an older version of PHP (%s), which should be updated' ),
 				PHP_VERSION
 			);
 			$result['status'] = 'recommended';
@@ -783,13 +801,25 @@ class WP_Site_Health {
 			return $result;
 		}
 
-		// Anything no longer secure must be updated.
-		$result['label'] = sprintf(
-			/* translators: %s: The server PHP version. */
-			__( 'Your site is running an outdated version of PHP (%s), which requires an update' ),
-			PHP_VERSION
-		);
-		$result['status']         = 'critical';
+		// No more security updates for the PHP version, and lower than the expected minimum version required by WordPress.
+		if ( $response['is_lower_than_future_minimum'] ) {
+			$message = sprintf(
+				/* translators: %s: The server PHP version. */
+				__( 'Your site is running on an outdated version of PHP (%s), which does not receive security updates and soon will not be supported by WordPress.' ),
+				PHP_VERSION
+			);
+		} else {
+			// No more security updates for the PHP version, must be updated.
+			$message = sprintf(
+				/* translators: %s: The server PHP version. */
+				__( 'Your site is running on an outdated version of PHP (%s), which does not receive security updates. It should be updated.' ),
+				PHP_VERSION
+			);
+		}
+
+		$result['label']  = $message;
+		$result['status'] = 'critical';
+
 		$result['badge']['label'] = __( 'Security' );
 
 		return $result;
@@ -2022,7 +2052,7 @@ class WP_Site_Health {
 			),
 			'description' => sprintf(
 				'<p>%s</p>',
-				__( 'The REST API is one way WordPress, and other applications, communicate with the server. One example is the block editor screen, which relies on this to display, and save, your posts and pages.' )
+				__( 'The REST API is one way that WordPress and other applications communicate with the server. For example, the block editor screen relies on the REST API to display and save your posts and pages.' )
 			),
 			'actions'     => '',
 			'test'        => 'rest_availability',
@@ -2060,16 +2090,18 @@ class WP_Site_Health {
 			$result['label'] = __( 'The REST API encountered an error' );
 
 			$result['description'] .= sprintf(
-				'<p>%s</p>',
+				'<p>%s</p><p>%s<br>%s</p>',
+				__( 'When testing the REST API, an error was encountered:' ),
 				sprintf(
-					'%s<br>%s',
-					__( 'The REST API request failed due to an error.' ),
-					sprintf(
-						/* translators: 1: The WordPress error message. 2: The WordPress error code. */
-						__( 'Error: %1$s (%2$s)' ),
-						$r->get_error_message(),
-						$r->get_error_code()
-					)
+					// translators: %s: The REST API URL.
+					__( 'REST API Endpoint: %s' ),
+					$url
+				),
+				sprintf(
+					// translators: 1: The WordPress error code. 2: The WordPress error message.
+					__( 'REST API Response: (%1$s) %2$s' ),
+					$r->get_error_code(),
+					$r->get_error_message()
 				)
 			);
 		} elseif ( 200 !== wp_remote_retrieve_response_code( $r ) ) {
@@ -2078,12 +2110,18 @@ class WP_Site_Health {
 			$result['label'] = __( 'The REST API encountered an unexpected result' );
 
 			$result['description'] .= sprintf(
-				'<p>%s</p>',
+				'<p>%s</p><p>%s<br>%s</p>',
+				__( 'When testing the REST API, an unexpected result was returned:' ),
 				sprintf(
-					/* translators: 1: The HTTP error code. 2: The HTTP error message. */
-					__( 'The REST API call gave the following unexpected result: (%1$d) %2$s.' ),
+					// translators: %s: The REST API URL.
+					__( 'REST API Endpoint: %s' ),
+					$url
+				),
+				sprintf(
+					// translators: 1: The WordPress error code. 2: The HTTP status code error message.
+					__( 'REST API Response: (%1$s) %2$s' ),
 					wp_remote_retrieve_response_code( $r ),
-					esc_html( wp_remote_retrieve_body( $r ) )
+					wp_remote_retrieve_response_message( $r )
 				)
 			);
 		} else {
@@ -2217,7 +2255,7 @@ class WP_Site_Health {
 			),
 			'description' => sprintf(
 				'<p>%s</p>',
-				__( 'The Authorization header comes from the third-party applications you approve. Without it, those apps cannot connect to your site.' )
+				__( 'The Authorization header is used by third-party applications you have approved for this site. Without this header, those apps cannot connect to your site.' )
 			),
 			'actions'     => '',
 			'test'        => 'authorization_header',
@@ -2231,7 +2269,11 @@ class WP_Site_Health {
 			return $result;
 		}
 
-		$result['status'] = 'recommended';
+		$result['status']       = 'recommended';
+		$result['description'] .= sprintf(
+			'<p>%s</p>',
+			__( 'If you are still seeing this warning after having tried the actions below, you may need to contact your hosting provider for further assistance.' )
+		);
 
 		if ( ! function_exists( 'got_mod_rewrite' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/misc.php';
@@ -2444,8 +2486,8 @@ class WP_Site_Health {
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param string $notes              The notes appended to the health check description.
-		 * @param array  $available_services The list of available persistent object cache services.
+		 * @param string   $notes              The notes appended to the health check description.
+		 * @param string[] $available_services The list of available persistent object cache services.
 		 */
 		$notes = apply_filters( 'site_status_persistent_object_cache_notes', $notes, $available_services );
 
@@ -3120,7 +3162,7 @@ class WP_Site_Health {
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param int $cache_headers Array of supported cache headers.
+		 * @param array $cache_headers Array of supported cache headers.
 		 */
 		return apply_filters( 'site_status_page_cache_supported_cache_headers', $cache_headers );
 	}
@@ -3307,7 +3349,7 @@ class WP_Site_Health {
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param array $thresholds The list of threshold names and numbers.
+		 * @param int[] $thresholds The list of threshold numbers keyed by threshold name.
 		 */
 		$thresholds = apply_filters(
 			'site_status_persistent_object_cache_thresholds',
@@ -3366,7 +3408,7 @@ class WP_Site_Health {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @return array The list of available persistent object cache services.
+	 * @return string[] The list of available persistent object cache services.
 	 */
 	private function available_object_cache_services() {
 		$extensions = array_map(
@@ -3389,7 +3431,7 @@ class WP_Site_Health {
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param array $services The list of available persistent object cache services.
+		 * @param string[] $services The list of available persistent object cache services.
 		 */
 		return apply_filters( 'site_status_available_object_cache_services', $services );
 	}
