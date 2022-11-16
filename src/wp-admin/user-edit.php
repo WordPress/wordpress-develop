@@ -9,6 +9,9 @@
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
+/** WordPress Translation Installation API */
+require_once ABSPATH . 'wp-admin/includes/translation-install.php';
+
 wp_reset_vars( array( 'action', 'user_id', 'wp_http_referer' ) );
 
 $user_id      = (int) $user_id;
@@ -345,8 +348,11 @@ switch ( $action ) {
 						</td>
 					</tr>
 
-					<?php $languages = get_available_languages(); ?>
-					<?php if ( $languages ) : ?>
+					<?php
+					$languages = get_available_languages();
+					$can_install_translations = current_user_can( 'install_languages' ) && wp_can_install_language_pack();
+					?>
+					<?php if ( $languages || $can_install_translations ) : ?>
 					<tr class="user-language-wrap">
 						<th scope="row">
 							<?php /* translators: The user language selection field label. */ ?>
@@ -368,7 +374,7 @@ switch ( $action ) {
 									'id'                          => 'locale',
 									'selected'                    => $user_locale,
 									'languages'                   => $languages,
-									'show_available_translations' => current_user_can( 'install_languages' ),
+									'show_available_translations' => $can_install_translations,
 									'show_option_site_default'    => true,
 								)
 							);
