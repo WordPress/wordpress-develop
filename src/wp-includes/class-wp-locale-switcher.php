@@ -125,7 +125,7 @@ class WP_Locale_Switcher {
 		}
 
 		$entry = end( $this->stack );
-		$locale = $entry[0];
+		$locale = is_array( $entry ) ? $entry[0] : false;
 
 		if ( ! $locale ) {
 			// There's nothing left in the stack: go back to the original locale.
