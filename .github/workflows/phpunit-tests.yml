@@ -131,7 +131,6 @@ jobs:
         uses: ramsey/composer-install@83af392bf5f031813d25e6fe4cd626cdba9a2df6 # v2.2.0
         with:
           custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
-        with:
           composer-options: "${{ matrix.php == '8.2' && '--ignore-platform-req=php+' || '' }}"
 
       - name: Install npm dependencies
