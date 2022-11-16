@@ -104,6 +104,10 @@ jobs:
   # This is separate from the job above in order to use stricter conditions about when to run.
   # This avoids unintentionally consuming excessive minutes, as MacOS jobs consume minutes at a 10x rate.
   #
+  # The `matrix` and `runner` contexts are not available for use within `if` expressions. So there is
+  # currently no way to determine the OS being used on a given job.
+  # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
+  #
   # Performs the following steps:
   # - Checks out the repository.
   # - Sets up Node.js.
