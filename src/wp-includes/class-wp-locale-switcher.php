@@ -88,10 +88,12 @@ class WP_Locale_Switcher {
 		 * Fires when the locale is switched.
 		 *
 		 * @since 4.7.0
+		 * @since 6.2.0 The `$user_id` parameter was added.
 		 *
-		 * @param string $locale The new locale.
+		 * @param string   $locale  The new locale.
+		 * @param null|int $user_id User ID for context if available.
 		 */
-		do_action( 'switch_locale', $locale );
+		do_action( 'switch_locale', $locale, $user_id );
 
 		return true;
 	}
