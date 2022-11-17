@@ -70,7 +70,7 @@ date_default_timezone_set( 'UTC' );
 // Standardize $_SERVER variables across setups.
 wp_fix_server_vars();
 
-// Check if site is in maintenance mode.
+// Check if the site is in maintenance mode.
 wp_maintenance();
 
 // Start loading timer.
