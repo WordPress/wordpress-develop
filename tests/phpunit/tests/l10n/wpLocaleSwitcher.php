@@ -503,6 +503,53 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57116
+	 */
+	public function test_switch_reloads_plugin_translations() {
+		/** @var WP_Textdomain_Registry $wp_textdomain_registry */
+		global $wp_locale_switcher, $wp_textdomain_registry;
+
+		$locale_switcher = clone $wp_locale_switcher;
+
+		$wp_locale_switcher = new WP_Locale_Switcher();
+		$wp_locale_switcher->init();
+
+		$has_translations_1 = $wp_textdomain_registry->has( 'internationalized-plugin' );
+
+		require_once DIR_TESTDATA . '/plugins/internationalized-plugin.php';
+
+		$actual = i18n_plugin_test();
+
+		switch_to_locale( 'es_ES' );
+
+		$lang_path_es_es = $wp_textdomain_registry->get( 'internationalized-plugin', determine_locale() );
+
+		switch_to_locale( 'de_DE' );
+
+		$actual_de_de = i18n_plugin_test();
+
+		$has_translations_3 = $wp_textdomain_registry->has( 'internationalized-plugin' );
+
+		restore_previous_locale();
+
+		$actual_es_es = i18n_plugin_test();
+
+		restore_current_locale();
+
+		$lang_path_en_us = $wp_textdomain_registry->get( 'internationalized-plugin', determine_locale() );
+
+		$wp_locale_switcher = $locale_switcher;
+
+		$this->assertSame( 'This is a dummy plugin', $actual );
+		$this->assertSame( 'Das ist ein Dummy Plugin', $actual_de_de );
+		$this->assertSame( 'Este es un plugin dummy', $actual_es_es );
+		$this->assertTrue( $has_translations_1 );
+		$this->assertTrue( $has_translations_3 );
+		$this->assertSame( WP_LANG_DIR . '/plugins/', $lang_path_es_es );
+		$this->assertFalse( $lang_path_en_us );
+	}
+
+	/**
 	 * @ticket 39210
 	 */
 	public function test_switch_reloads_theme_translations_outside_wp_lang_dir() {

@@ -84,7 +84,25 @@ class WP_Textdomain_Registry {
 	 * @return bool Whether any MO file paths are available for the domain.
 	 */
 	public function has( $domain ) {
-		return ! empty( $this->current[ $domain ] ) || empty( $this->all[ $domain ] );
+		if ( ! empty( $this->current[ $domain ] ) || empty( $this->all[ $domain ] ) ) {
+			return true;
+		}
+
+		$locations = $this->get_paths_for_domain( $domain );
+
+		foreach ( $locations as $location ) {
+			if ( ! isset( $this->cached_mo_files[ $location ] ) ) {
+				$this->set_cached_mo_files( $location );
+			}
+
+			foreach ( $this->cached_mo_files[ $location ] as $mofile ) {
+				if ( str_starts_with( str_replace( "$location/", '', $mofile ), "$domain-" ) ) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -109,11 +127,34 @@ class WP_Textdomain_Registry {
 	 *
 	 * Used by {@see load_plugin_textdomain()} and {@see load_theme_textdomain()}.
 	 *
+	 * @since 6.1.0
+	 *
 	 * @param string $domain Text domain.
 	 * @param string $path   Language directory path.
 	 */
 	public function set_custom_path( $domain, $path ) {
 		$this->custom_paths[ $domain ] = untrailingslashit( $path );
+	}
+
+	/**
+	 * Returns possible language directory paths for a given text domain.
+	 *
+	 * @since 6.1.2
+	 *
+	 * @param string $domain Text domain.
+	 * @return string[] Array of language directory paths.
+	 */
+	private function get_paths_for_domain( $domain ) {
+		$locations = array(
+			WP_LANG_DIR . '/plugins',
+			WP_LANG_DIR . '/themes',
+		);
+
+		if ( isset( $this->custom_paths[ $domain ] ) ) {
+			$locations[] = $this->custom_paths[ $domain ];
+		}
+
+		return $locations;
 	}
 
 	/**
@@ -131,14 +172,7 @@ class WP_Textdomain_Registry {
 	 * @return string|false Language directory path or false if there is none available.
 	 */
 	private function get_path_from_lang_dir( $domain, $locale ) {
-		$locations = array(
-			WP_LANG_DIR . '/plugins',
-			WP_LANG_DIR . '/themes',
-		);
-
-		if ( isset( $this->custom_paths[ $domain ] ) ) {
-			$locations[] = $this->custom_paths[ $domain ];
-		}
+		$locations = $this->get_paths_for_domain( $domain );
 
 		$mofile = "$domain-$locale.mo";
 
