@@ -291,7 +291,7 @@ class WP_Scripts extends WP_Dependencies {
 
 		// Add extra attributes based on the strategy.
 		$extra_atts = '';
-		$strategy   = $this->get_strategy( $handle );
+		$strategy   = $this->_get_strategy( $handle );
 		switch ( $strategy ) {
 			case 'defer':
 				// Scripts can only use defer if all scripts that depend on them ("dependents") are also deferred.
@@ -305,6 +305,25 @@ class WP_Scripts extends WP_Dependencies {
 					$extra_atts .= ' async';
 				}
 				break;
+			case 'blocking':
+			default:
+				// No extra attributes are added by default
+		}
+
+		/**
+		 * Custom strategies can be added using the filter.
+		 *
+		 * @since 6.2.0
+		 *
+		 * @param array[string] $strategies[ $strategy_name ] {
+		 *    Indexed array of custom strategies.
+		 *    @type function $callback The callback function to use for the strategy.
+		 * }
+		 * @param WP_Scripts $this The WP_Scripts object.
+		 */
+		$custom_strategies = apply_filters( 'custom_strategies', array(), $this );
+		if ( isset( $custom_strategies[ $strategy ] ) && is_function( $custom_strategies[ $strategy ]['callback'] ) ) {
+			$extra_atts .= ' ' . $custom_strategies[ $strategy ]['callback']( $this );
 		}
 
 		if ( $conditional ) {
@@ -433,19 +452,24 @@ class WP_Scripts extends WP_Dependencies {
 	}
 
 	/**
-	 * Check if all of a scripts dependents are deferred.
+	 * Check if all of a scripts dependents are deferrable.
 	 *
-	 * Iterate through all registered scripts for each script that depends on the given script, check if it uses a defer strategy.
+	 * Recursively iterate through all registered scripts for each script that depends on the given script, check that all of it's.
 	 *
 	 * @since 6.2.0
 	 *
-	 * @param string $handle The script handle.
+	 * @param string $handle  The script handle.
+	 * @param array  $visited An array of already visited script handles. Keep track to avoid looping recursion.
 	 * @return bool True if all dependents are deferred, false otherwise.
 	 */
-	private function _all_dependents_are_deferred( $handle ) {
+	private function _all_dependents_are_deferred( $handle, $visited = array() ) {
+		array_push( $visited, $handle );
 		$dependents = $this->_get_dependents( $handle );
+		if ( empty( $dependents ) ) {
+			return true;
+		}
 		foreach ( $dependents as $dependent ) {
-			if ( ! $this->is_deferred( $dependent ) ) {
+			if ( ! _all_dependents_are_deferred( $dependent, $visited ) ) {
 				return false;
 			}
 		}
@@ -481,7 +505,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * @param string $handle The script handle.
 	 * @return bool Whether the script is deferred.
 	 */
-	public function is_deferred( $handle ) {
+	public function uses_defer_strategy( $handle ) {
 		$obj      = $this->registered[ $handle ];
 		$strategy = $this->_get_strategy( $handle );
 		return 'defer' === $strategy;
@@ -496,10 +520,8 @@ class WP_Scripts extends WP_Dependencies {
 	 * @return string|false The script strategy. False if not set.
 	 */
 	private function _get_strategy( $handle ) {
-		$obj      = $this->registered[ $handle ];
-		$strategy = isset( $obj->args['strategy'] ) ? $obj->args['strategy'] : false;
-
-		return $strategy;
+		$obj = $this->registered[ $handle ];
+		return isset( $obj->args['strategy'] ) ? $obj->args['strategy'] : false;
 	}
 
 	/**
