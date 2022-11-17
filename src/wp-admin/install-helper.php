@@ -102,7 +102,7 @@ if ( ! function_exists( 'maybe_add_column' ) ) :
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- No applicable variables for this query.
 		$wpdb->query( $create_ddl );
 
-		// Check if column was created.
+		// Check if the column was created.
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Cannot be prepared. Fetches columns for table names.
 		foreach ( $wpdb->get_col( "DESC $table_name", 0 ) as $column ) {
 			if ( $column === $column_name ) {
