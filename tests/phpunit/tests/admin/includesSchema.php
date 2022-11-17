@@ -91,7 +91,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 	 * @ticket 44893
 	 * @dataProvider data_populate_options
 	 */
-	function test_populate_options( $options, $expected ) {
+	public function test_populate_options( $options, $expected ) {
 		global $wpdb;
 
 		$orig_options  = $wpdb->options;
@@ -178,12 +178,53 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that deprecated timezone strings set as a default in a translation are handled correctly.
+	 *
+	 * @ticket 56468
+	 */
+	public function test_populate_options_when_locale_uses_deprecated_timezone_string() {
+		global $wpdb;
+
+		// Back up.
+		$orig_options  = $wpdb->options;
+		$wpdb->options = self::$options;
+
+		// Set the "default" value for the timezone to a deprecated timezone.
+		add_filter(
+			'gettext_with_context',
+			static function( $translation, $text, $context ) {
+				if ( '0' === $text && 'default GMT offset or timezone string' === $context ) {
+					return 'America/Buenos_Aires';
+				}
+
+				return $translation;
+			},
+			10,
+			3
+		);
+
+		// Test.
+		populate_options();
+
+		wp_cache_delete( 'alloptions', 'options' );
+
+		$result = get_option( 'timezone_string' );
+
+		// Reset.
+		$wpdb->query( "TRUNCATE TABLE {$wpdb->options}" );
+		$wpdb->options = $orig_options;
+
+		// Assert.
+		$this->assertSame( 'America/Buenos_Aires', $result );
+	}
+
+	/**
 	 * @ticket 44896
 	 * @group multisite
 	 * @group ms-required
 	 * @dataProvider data_populate_site_meta
 	 */
-	function test_populate_site_meta( $meta, $expected ) {
+	public function test_populate_site_meta( $meta, $expected ) {
 		global $wpdb;
 
 		$orig_blogmeta  = $wpdb->blogmeta;
@@ -227,7 +268,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 	 * @group multisite
 	 * @dataProvider data_populate_network_meta
 	 */
-	function test_populate_network_meta( $meta, $expected ) {
+	public function test_populate_network_meta( $meta, $expected ) {
 		global $wpdb;
 
 		$orig_sitemeta  = $wpdb->sitemeta;

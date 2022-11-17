@@ -7,11 +7,12 @@ if ( is_multisite() ) :
 	 * @group multisite
 	 */
 	class Tests_Multisite_UpdateBlogDetails extends WP_UnitTestCase {
+
 		/**
 		 * If `update_blog_details()` is called with any kind of empty arguments, it
 		 * should return false.
 		 */
-		function test_update_blog_details_with_empty_args() {
+		public function test_update_blog_details_with_empty_args() {
 			$result = update_blog_details( 1, array() );
 			$this->assertFalse( $result );
 		}
@@ -19,12 +20,12 @@ if ( is_multisite() ) :
 		/**
 		 * If the ID passed is not that of a current site, we should expect false.
 		 */
-		function test_update_blog_details_invalid_blog_id() {
+		public function test_update_blog_details_invalid_blog_id() {
 			$result = update_blog_details( 999, array( 'domain' => 'example.com' ) );
 			$this->assertFalse( $result );
 		}
 
-		function test_update_blog_details() {
+		public function test_update_blog_details() {
 			$blog_id = self::factory()->blog->create();
 
 			$result = update_blog_details(
@@ -56,8 +57,7 @@ if ( is_multisite() ) :
 		 * @dataProvider data_flag_hooks
 		 */
 		public function test_update_blog_details_flag_action( $flag, $flag_value, $hook ) {
-			global $test_action_counter;
-			$test_action_counter = 0;
+			$test_action_counter = new MockAction();
 
 			$blog_id = self::factory()->blog->create();
 
@@ -66,7 +66,7 @@ if ( is_multisite() ) :
 				update_blog_details( $blog_id, array( $flag => '1' ) );
 			}
 
-			add_action( $hook, array( $this, '_action_counter_cb' ), 10 );
+			add_action( $hook, array( $test_action_counter, 'action' ) );
 
 			update_blog_details( $blog_id, array( $flag => $flag_value ) );
 			$blog = get_site( $blog_id );
@@ -74,15 +74,13 @@ if ( is_multisite() ) :
 			$this->assertSame( $flag_value, $blog->{$flag} );
 
 			// The hook attached to this flag should have fired once during update_blog_details().
-			$this->assertSame( 1, $test_action_counter );
+			$this->assertSame( 1, $test_action_counter->get_call_count() );
 
 			// Update the site to the exact same flag value for this flag.
 			update_blog_details( $blog_id, array( $flag => $flag_value ) );
 
 			// The hook attached to this flag should not have fired again.
-			$this->assertSame( 1, $test_action_counter );
-
-			remove_action( $hook, array( $this, '_action_counter_cb' ), 10 );
+			$this->assertSame( 1, $test_action_counter->get_call_count() );
 		}
 
 		public function data_flag_hooks() {
@@ -96,14 +94,6 @@ if ( is_multisite() ) :
 				array( 'mature', '1', 'mature_blog' ),
 				array( 'mature', '0', 'unmature_blog' ),
 			);
-		}
-
-		/**
-		 * Provide a counter to determine that hooks are firing when intended.
-		 */
-		function _action_counter_cb() {
-			global $test_action_counter;
-			$test_action_counter++;
 		}
 
 		/**

@@ -2,8 +2,9 @@
 
 /**
  * @group formatting
- * @covers ::excerpt_remove_blocks
  * @ticket 46133
+ *
+ * @covers ::excerpt_remove_blocks
  */
 class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 
@@ -50,7 +51,7 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 	 *
 	 * @return string Block output.
 	 */
-	function render_fake_block() {
+	public function render_fake_block() {
 		return get_the_excerpt( self::$post_id );
 	}
 
@@ -59,9 +60,9 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 	 *
 	 * @since 5.2.0
 	 */
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
-		self::$post_id = $this->factory()->post->create(
+		self::$post_id = self::factory()->post->create(
 			array(
 				'post_excerpt' => '', // Empty excerpt, so it has to be generated.
 				'post_content' => '<!-- wp:core/fake /-->',
@@ -80,7 +81,7 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 	 *
 	 * @since 5.2.0
 	 */
-	function tear_down() {
+	public function tear_down() {
 		$registry = WP_Block_Type_Registry::get_instance();
 		$registry->unregister( 'core/fake' );
 
@@ -92,7 +93,7 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 	 *
 	 * @ticket 46133
 	 */
-	function test_excerpt_remove_blocks() {
+	public function test_excerpt_remove_blocks() {
 		// Simple dynamic block..
 		$content = '<!-- wp:core/block /-->';
 
@@ -116,8 +117,10 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 	 * `the_content` gets applied, just like shortcodes.
 	 *
 	 * @ticket 46133
+	 *
+	 * @covers ::do_blocks
 	 */
-	function test_excerpt_infinite_loop() {
+	public function test_excerpt_infinite_loop() {
 		$query = new WP_Query(
 			array(
 				'post__in' => array( self::$post_id ),

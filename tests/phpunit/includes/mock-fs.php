@@ -13,14 +13,14 @@ class WP_Filesystem_MockFS extends WP_Filesystem_Base {
 	public $errors  = array();
 	public $method  = 'MockFS';
 
-	function __construct() {}
+	public function __construct() {}
 
-	function connect() {
+	public function connect() {
 		return true;
 	}
 
 	// Copy of core's function, but accepts a path.
-	function abspath( $path = false ) {
+	public function abspath( $path = false ) {
 		if ( ! $path ) {
 			$path = ABSPATH;
 		}
@@ -40,7 +40,7 @@ class WP_Filesystem_MockFS extends WP_Filesystem_Base {
 	 * Sets initial filesystem environment and/or clears the current environment.
 	 * Can also be passed the initial filesystem to be setup which is passed to self::setfs()
 	 */
-	function init( $paths = '', $home_dir = '/' ) {
+	public function init( $paths = '', $home_dir = '/' ) {
 		$this->fs     = new MockFS_Directory_Node( '/' );
 		$this->fs_map = array(
 			'/' => $this->fs,
@@ -53,7 +53,7 @@ class WP_Filesystem_MockFS extends WP_Filesystem_Base {
 	/**
 	 * "Bulk Loads" a filesystem into the internal virtual filesystem
 	 */
-	function setfs( $paths ) {
+	public function setfs( $paths ) {
 		if ( ! is_array( $paths ) ) {
 			$paths = explode( "\n", $paths );
 		}
@@ -93,7 +93,7 @@ class WP_Filesystem_MockFS extends WP_Filesystem_Base {
 
 	// Here starteth the WP_Filesystem functions.
 
-	function mkdir( $path, /* Optional args are ignored */ $chmod = false, $chown = false, $chgrp = false ) {
+	public function mkdir( $path, /* Optional args are ignored */ $chmod = false, $chown = false, $chgrp = false ) {
 		$path = trailingslashit( $path );
 
 		$parent_node = $this->locate_parent_node( $path );
@@ -114,7 +114,7 @@ class WP_Filesystem_MockFS extends WP_Filesystem_Base {
 		return true;
 	}
 
-	function put_contents( $path, $contents = '', $mode = null ) {
+	public function put_contents( $path, $contents = '', $mode = null ) {
 		if ( ! $this->is_dir( dirname( $path ) ) ) {
 			$this->mkdir( dirname( $path ) );
 		}
@@ -126,18 +126,18 @@ class WP_Filesystem_MockFS extends WP_Filesystem_Base {
 		$this->fs_map[ $path ]               = $new_file;
 	}
 
-	function get_contents( $file ) {
+	public function get_contents( $file ) {
 		if ( ! $this->is_file( $file ) ) {
 			return false;
 		}
 		return $this->fs_map[ $file ]->contents;
 	}
 
-	function cwd() {
+	public function cwd() {
 		return $this->cwd->path;
 	}
 
-	function chdir( $path ) {
+	public function chdir( $path ) {
 		if ( ! isset( $this->fs_map[ $path ] ) ) {
 			return false;
 		}
@@ -146,21 +146,21 @@ class WP_Filesystem_MockFS extends WP_Filesystem_Base {
 		return true;
 	}
 
-	function exists( $path ) {
+	public function exists( $path ) {
 		return isset( $this->fs_map[ $path ] ) || isset( $this->fs_map[ trailingslashit( $path ) ] );
 	}
 
-	function is_file( $file ) {
+	public function is_file( $file ) {
 		return isset( $this->fs_map[ $file ] ) && $this->fs_map[ $file ]->is_file();
 	}
 
-	function is_dir( $path ) {
+	public function is_dir( $path ) {
 		$path = trailingslashit( $path );
 
 		return isset( $this->fs_map[ $path ] ) && $this->fs_map[ $path ]->is_dir();
 	}
 
-	function dirlist( $path = '.', $include_hidden = true, $recursive = false ) {
+	public function dirlist( $path = '.', $include_hidden = true, $recursive = false ) {
 
 		if ( empty( $path ) || '.' === $path ) {
 			$path = $this->cwd();
@@ -214,16 +214,16 @@ class MockFS_Node {
 	public $type; // The type of the entry 'f' for file, 'd' for directory.
 	public $path; // The full path to the entry.
 
-	function __construct( $path ) {
+	public function __construct( $path ) {
 		$this->path = $path;
 		$this->name = basename( $path );
 	}
 
-	function is_file() {
+	public function is_file() {
 		return 'f' === $this->type;
 	}
 
-	function is_dir() {
+	public function is_dir() {
 		return 'd' === $this->type;
 	}
 }
@@ -237,7 +237,7 @@ class MockFS_File_Node extends MockFS_Node {
 	public $type     = 'f';
 	public $contents = ''; // The contents of the file.
 
-	function __construct( $path, $contents = '' ) {
+	public function __construct( $path, $contents = '' ) {
 		parent::__construct( $path );
 		$this->contents = $contents;
 	}

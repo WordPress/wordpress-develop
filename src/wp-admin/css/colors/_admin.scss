@@ -350,6 +350,7 @@ ul#adminmenu > li.current > a.current:after {
 
 /* Admin Menu: bubble */
 
+#adminmenu .menu-counter,
 #adminmenu .awaiting-mod,
 #adminmenu .update-plugins {
 	color: $menu-bubble-text;
@@ -780,4 +781,18 @@ div#wp-responsive-toggle a:before {
 		border-bottom-color: $button-color;
 		color: $link;
 	}
+}
+
+/* Welcome Panel */
+.welcome-panel {
+	background-color: $dashboard-accent-1;
+}
+
+.welcome-panel-header-image circle {
+	stroke: $dashboard-accent-2;
+	fill: $dashboard-accent-1;
+}
+
+[class*="welcome-panel-icon"] {
+	background-color: $dashboard-icon-background;
 }

@@ -2,13 +2,15 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::sanitize_mime_type
  */
 class Tests_Formatting_SanitizeMimeType extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 17855
 	 */
-	function test_sanitize_valid_mime_type() {
+	public function test_sanitize_valid_mime_type() {
 		$inputs = array(
 			'application/atom+xml',
 			'application/EDI-X12',

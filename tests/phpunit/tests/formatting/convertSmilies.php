@@ -3,6 +3,8 @@
 /**
  * @group formatting
  * @group emoji
+ *
+ * @covers ::convert_smilies
  */
 class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 
@@ -17,7 +19,7 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 		return array(
 			array(
 				'Lorem ipsum dolor sit amet mauris ;-) Praesent gravida sodales. :lol: Vivamus nec diam in faucibus eu, bibendum varius nec, imperdiet purus est, at augue at lacus malesuada elit dapibus a, :eek: mauris. Cras mauris viverra elit. Nam laoreet viverra. Pellentesque tortor. Nam libero ante, porta urna ut turpis. Nullam wisi magna, :mrgreen: tincidunt nec, sagittis non, fringilla enim. Nam consectetuer nec, ullamcorper pede eu dui odio consequat vel, vehicula tortor quis pede turpis cursus quis, egestas ipsum ultricies ut, eleifend velit. Mauris vestibulum iaculis. Sed in nunc. Vivamus elit porttitor egestas. Mauris purus :?:',
-				"Lorem ipsum dolor sit amet mauris \xf0\x9f\x98\x89 Praesent gravida sodales. \xf0\x9f\x98\x86 Vivamus nec diam in faucibus eu, bibendum varius nec, imperdiet purus est, at augue at lacus malesuada elit dapibus a, \xf0\x9f\x98\xae mauris. Cras mauris viverra elit. Nam laoreet viverra. Pellentesque tortor. Nam libero ante, porta urna ut turpis. Nullam wisi magna, <img src=\"${includes_path}mrgreen.png\" alt=\":mrgreen:\" class=\"wp-smiley\" style=\"height: 1em; max-height: 1em;\" /> tincidunt nec, sagittis non, fringilla enim. Nam consectetuer nec, ullamcorper pede eu dui odio consequat vel, vehicula tortor quis pede turpis cursus quis, egestas ipsum ultricies ut, eleifend velit. Mauris vestibulum iaculis. Sed in nunc. Vivamus elit porttitor egestas. Mauris purus \xe2\x9d\x93",
+				"Lorem ipsum dolor sit amet mauris \xf0\x9f\x98\x89 Praesent gravida sodales. \xf0\x9f\x98\x86 Vivamus nec diam in faucibus eu, bibendum varius nec, imperdiet purus est, at augue at lacus malesuada elit dapibus a, \xf0\x9f\x98\xae mauris. Cras mauris viverra elit. Nam laoreet viverra. Pellentesque tortor. Nam libero ante, porta urna ut turpis. Nullam wisi magna, <img src=\"{$includes_path}mrgreen.png\" alt=\":mrgreen:\" class=\"wp-smiley\" style=\"height: 1em; max-height: 1em;\" /> tincidunt nec, sagittis non, fringilla enim. Nam consectetuer nec, ullamcorper pede eu dui odio consequat vel, vehicula tortor quis pede turpis cursus quis, egestas ipsum ultricies ut, eleifend velit. Mauris vestibulum iaculis. Sed in nunc. Vivamus elit porttitor egestas. Mauris purus \xe2\x9d\x93",
 			),
 			array(
 				'<strong>Welcome to the jungle!</strong> We got fun n games! :) We got everything you want 8-) <em>Honey we know the names :)</em>',
@@ -48,7 +50,7 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	 * Basic Validation Test to confirm that smilies are converted to image
 	 * when use_smilies = 1 and not when use_smilies = 0
 	 */
-	function test_convert_standard_smilies( $in_txt, $converted_txt ) {
+	public function test_convert_standard_smilies( $in_txt, $converted_txt ) {
 		// Standard smilies, use_smilies: ON.
 		update_option( 'use_smilies', 1 );
 
@@ -91,7 +93,7 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	 *
 	 * Validate Custom Smilies are converted to images when use_smilies = 1
 	 */
-	function test_convert_custom_smilies( $in_txt, $converted_txt ) {
+	public function test_convert_custom_smilies( $in_txt, $converted_txt ) {
 		global $wpsmiliestrans;
 
 		// Custom smilies, use_smilies: ON.
@@ -299,7 +301,7 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	 * @ticket 22692
 	 * @dataProvider get_spaces_around_smilies
 	 */
-	function test_spaces_around_smilies( $in_txt, $converted_txt ) {
+	public function test_spaces_around_smilies( $in_txt, $converted_txt ) {
 		// Standard smilies, use_smilies: ON.
 		update_option( 'use_smilies', 1 );
 

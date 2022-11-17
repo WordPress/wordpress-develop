@@ -10,6 +10,20 @@
  */
 class Tests_Theme_wpTheme extends WP_UnitTestCase {
 
+	/**
+	 * Theme root directory.
+	 *
+	 * @var string
+	 */
+	private $theme_root;
+
+	/**
+	 * Original theme directory.
+	 *
+	 * @var string
+	 */
+	private $orig_theme_dir;
+
 	public function set_up() {
 		parent::set_up();
 		$this->theme_root = realpath( DIR_TESTDATA . '/themedir1' );
@@ -245,5 +259,196 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		unset( $allowed_themes['existing-5'] );
 
 		$this->assertSameSetsWithIndex( $allowed_themes, $new_allowed_themes );
+	}
+
+	/**
+	 * @dataProvider data_is_block_theme
+	 * @ticket 54460
+	 *
+	 * @covers WP_Theme::is_block_theme
+	 *
+	 * @param string $theme_dir Directory of the theme to test.
+	 * @param bool   $expected  Expected result.
+	 */
+	public function test_is_block_theme( $theme_dir, $expected ) {
+		$theme = new WP_Theme( $theme_dir, $this->theme_root );
+		$this->assertSame( $expected, $theme->is_block_theme() );
+	}
+
+	/**
+	 * Test get_files for an existing theme.
+	 *
+	 * @ticket 53599
+	 */
+	public function test_get_files_theme() {
+		$theme = new WP_Theme( 'theme1', $this->theme_root );
+		$files = $theme->get_files();
+
+		$this->assertIsArray( $files );
+		$this->assertCount( 3, $files );
+		$this->assertArrayHasKey( 'functions.php', $files );
+		$this->assertArrayHasKey( 'index.php', $files );
+		$this->assertArrayHasKey( 'style.css', $files );
+	}
+
+	/**
+	 * Test get_files for a non-existing theme.
+	 *
+	 * @ticket 53599
+	 */
+	public function test_get_files_nonexistent_theme() {
+		$theme = new WP_Theme( 'nonexistent', $this->theme_root );
+		$files = $theme->get_files();
+
+		$this->assertIsArray( $files );
+		$this->assertEmpty( $files );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_is_block_theme() {
+		return array(
+			'default - non-block theme' => array(
+				'theme_dir' => 'default',
+				'expected'  => false,
+			),
+			'parent block theme'        => array(
+				'theme_dir' => 'block-theme',
+				'expected'  => true,
+			),
+			'child block theme'         => array(
+				'theme_dir' => 'block-theme-child',
+				'expected'  => true,
+			),
+			'deprecated block theme'    => array(
+				'theme_dir' => 'block-theme-deprecated-path',
+				'expected'  => true,
+			),
+		);
+	}
+
+	/**
+	 * @dataProvider data_get_file_path
+	 * @ticket 54460
+	 *
+	 * @covers WP_Theme::get_file_path
+	 *
+	 * @param string $theme_dir Directory of the theme to test.
+	 * @param string $file      Given file name to test.
+	 * @param string $expected  Expected file path.
+	 */
+	public function test_get_file_path( $theme_dir, $file, $expected ) {
+		$theme = new WP_Theme( $theme_dir, $this->theme_root );
+
+		$this->assertStringEndsWith( $expected, $theme->get_file_path( $file ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_get_file_path() {
+		return array(
+			'no theme: no file given'              => array(
+				'theme_dir' => 'nonexistent',
+				'file'      => '',
+				'expected'  => '/nonexistent',
+			),
+			'parent theme: no file given'          => array(
+				'theme_dir' => 'block-theme',
+				'file'      => '',
+				'expected'  => '/block-theme',
+			),
+			'child theme: no file given'           => array(
+				'theme_dir' => 'block-theme-child',
+				'file'      => '',
+				'expected'  => '/block-theme-child',
+			),
+			'nonexistent theme: file given'        => array(
+				'theme_dir' => 'nonexistent',
+				'file'      => '/templates/page.html',
+				'expected'  => '/nonexistent/templates/page.html',
+			),
+			'parent theme: file exists'            => array(
+				'theme_dir' => 'block-theme',
+				'file'      => '/templates/page-home.html',
+				'expected'  => '/block-theme/templates/page-home.html',
+			),
+			'parent theme: deprecated file exists' => array(
+				'theme_dir' => 'block-theme-deprecated-path',
+				'file'      => '/block-templates/page-home.html',
+				'expected'  => '/block-theme-deprecated-path/block-templates/page-home.html',
+			),
+			'parent theme: file does not exist'    => array(
+				'theme_dir' => 'block-theme',
+				'file'      => '/templates/nonexistent.html',
+				'expected'  => '/block-theme/templates/nonexistent.html',
+			),
+			'child theme: file exists'             => array(
+				'theme_dir' => 'block-theme-child',
+				'file'      => '/templates/page-1.html',
+				'expected'  => '/block-theme-child/templates/page-1.html',
+			),
+			'child theme: file does not exist'     => array(
+				'theme_dir' => 'block-theme-child',
+				'file'      => '/templates/nonexistent.html',
+				'expected'  => '/block-theme/templates/nonexistent.html',
+			),
+			'child theme: file exists in parent, not in child' => array(
+				'theme_dir' => 'block-theme-child',
+				'file'      => '/templates/page.html',
+				'expected'  => '/block-theme/templates/page.html',
+			),
+		);
+	}
+
+	/**
+	 * Tests that the UpdateURI header is retrieved.
+	 *
+	 * @ticket 14179
+	 *
+	 * @covers WP_Theme::get
+	 */
+	public function test_theme_get_update_uri_header() {
+		$theme = new WP_Theme( 'update-uri-theme', $this->theme_root );
+
+		$this->assertTrue(
+			$theme->exists(),
+			'The update-uri-theme does not exist.'
+		);
+
+		$update_uri = $theme->get( 'UpdateURI' );
+
+		$this->assertIsString(
+			$update_uri,
+			'The UpdateURI header was not returned as a string.'
+		);
+
+		$this->assertSame(
+			'http://example.org/update-uri-theme/',
+			$update_uri,
+			'The UpdateURI header did not match the expected value.'
+		);
+	}
+
+	/**
+	 * Tests that WP_Theme::sanitize_header() strips tags from the UpdateURI header.
+	 *
+	 * @ticket 14179
+	 *
+	 * @covers WP_Theme::sanitize_header
+	 */
+	public function test_should_strip_tags_from_update_uri_header() {
+		$theme           = new WP_Theme( 'twentytwentytwo', $this->theme_root );
+		$sanitize_header = new ReflectionMethod( $theme, 'sanitize_header' );
+		$sanitize_header->setAccessible( true );
+
+		$actual = $sanitize_header->invoke( $theme, 'UpdateURI', '<?php?><a href="http://example.org">http://example.org</a>' );
+
+		$this->assertSame( 'http://example.org', $actual );
 	}
 }

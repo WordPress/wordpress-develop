@@ -172,7 +172,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 		);
 
 		wp_set_current_user(
-			$this->factory()->user->create(
+			self::factory()->user->create(
 				array(
 					'role' => 'administrator',
 				)
@@ -185,7 +185,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 			'content' => $instance['content'],
 		);
 		$result   = $widget->update( $instance, array() );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Make sure KSES is applying as expected.
 		add_filter( 'map_meta_cap', array( $this, 'grant_unfiltered_html_cap' ), 10, 2 );
@@ -193,7 +193,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 		$instance['content'] = '<script>alert( "Howdy!" );</script>';
 		$expected['content'] = $instance['content'];
 		$result              = $widget->update( $instance, array() );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 		remove_filter( 'map_meta_cap', array( $this, 'grant_unfiltered_html_cap' ) );
 
 		add_filter( 'map_meta_cap', array( $this, 'revoke_unfiltered_html_cap' ), 10, 2 );
@@ -201,7 +201,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 		$instance['content'] = '<script>alert( "Howdy!" );</script>';
 		$expected['content'] = wp_kses_post( $instance['content'] );
 		$result              = $widget->update( $instance, array() );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 		remove_filter( 'map_meta_cap', array( $this, 'revoke_unfiltered_html_cap' ), 10 );
 	}
 
@@ -241,7 +241,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 	 * @covers WP_Widget_Custom_HTML::enqueue_admin_scripts
 	 */
 	public function test_enqueue_admin_scripts_when_logged_in_and_syntax_highlighting_on() {
-		$user = $this->factory()->user->create();
+		$user = self::factory()->user->create();
 		wp_set_current_user( $user );
 		wp_get_current_user()->syntax_highlighting = 'true';
 		set_current_screen( 'widgets.php' );
@@ -262,7 +262,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 	 * @covers WP_Widget_Custom_HTML::enqueue_admin_scripts
 	 */
 	public function test_enqueue_admin_scripts_when_logged_in_and_syntax_highlighting_off() {
-		$user = $this->factory()->user->create();
+		$user = self::factory()->user->create();
 		wp_set_current_user( $user );
 		update_user_meta( $user, 'syntax_highlighting', 'false' );
 		set_current_screen( 'widgets.php' );
@@ -308,7 +308,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 	 *
 	 * @ticket 46421
 	 */
-	function test_render_links_with_target() {
+	public function test_render_links_with_target() {
 		$widget = new WP_Widget_Custom_HTML();
 
 		$content = 'Test content with an external <a href="https://example.org" target="_blank">link</a>.';
@@ -334,7 +334,7 @@ class Tests_Widgets_wpWidgetCustomHtml extends WP_UnitTestCase {
 	 *
 	 * @ticket 46421
 	 */
-	function test_render_links_without_target() {
+	public function test_render_links_without_target() {
 		$widget = new WP_Widget_Custom_HTML();
 
 		$content = 'Test content with an internal <a href="/">link</a>.';

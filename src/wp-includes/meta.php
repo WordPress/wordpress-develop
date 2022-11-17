@@ -110,7 +110,7 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
 	 *
 	 * @param int    $object_id   ID of the object metadata is for.
 	 * @param string $meta_key    Metadata key.
-	 * @param mixed  $_meta_value Metadata value. Serialized if non-scalar.
+	 * @param mixed  $_meta_value Metadata value.
 	 */
 	do_action( "add_{$meta_type}_meta", $object_id, $meta_key, $_meta_value );
 
@@ -149,7 +149,7 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
 	 * @param int    $mid         The meta ID after successful update.
 	 * @param int    $object_id   ID of the object metadata is for.
 	 * @param string $meta_key    Metadata key.
-	 * @param mixed  $_meta_value Metadata value. Serialized if non-scalar.
+	 * @param mixed  $_meta_value Metadata value.
 	 */
 	do_action( "added_{$meta_type}_meta", $mid, $object_id, $meta_key, $_meta_value );
 
@@ -283,7 +283,7 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 		 * @param int    $meta_id     ID of the metadata entry to update.
 		 * @param int    $object_id   ID of the object metadata is for.
 		 * @param string $meta_key    Metadata key.
-		 * @param mixed  $_meta_value Metadata value. Serialized if non-scalar.
+		 * @param mixed  $_meta_value Metadata value.
 		 */
 		do_action( "update_{$meta_type}_meta", $meta_id, $object_id, $meta_key, $_meta_value );
 
@@ -329,7 +329,7 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 		 * @param int    $meta_id     ID of updated metadata entry.
 		 * @param int    $object_id   ID of the object metadata is for.
 		 * @param string $meta_key    Metadata key.
-		 * @param mixed  $_meta_value Metadata value. Serialized if non-scalar.
+		 * @param mixed  $_meta_value Metadata value.
 		 */
 		do_action( "updated_{$meta_type}_meta", $meta_id, $object_id, $meta_key, $_meta_value );
 
@@ -471,7 +471,7 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
 	 * @param string[] $meta_ids    An array of metadata entry IDs to delete.
 	 * @param int      $object_id   ID of the object metadata is for.
 	 * @param string   $meta_key    Metadata key.
-	 * @param mixed    $_meta_value Metadata value. Serialized if non-scalar.
+	 * @param mixed    $_meta_value Metadata value.
 	 */
 	do_action( "delete_{$meta_type}_meta", $meta_ids, $object_id, $meta_key, $_meta_value );
 
@@ -496,12 +496,11 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
 	}
 
 	if ( $delete_all ) {
-		foreach ( (array) $object_ids as $o_id ) {
-			wp_cache_delete( $o_id, $meta_type . '_meta' );
-		}
+		$data = (array) $object_ids;
 	} else {
-		wp_cache_delete( $object_id, $meta_type . '_meta' );
+		$data = array( $object_id );
 	}
+	wp_cache_delete_multiple( $data, $meta_type . '_meta' );
 
 	/**
 	 * Fires immediately after deleting metadata of a specific type.
@@ -521,7 +520,7 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
 	 * @param string[] $meta_ids    An array of metadata entry IDs to delete.
 	 * @param int      $object_id   ID of the object metadata is for.
 	 * @param string   $meta_key    Metadata key.
-	 * @param mixed    $_meta_value Metadata value. Serialized if non-scalar.
+	 * @param mixed    $_meta_value Metadata value.
 	 */
 	do_action( "deleted_{$meta_type}_meta", $meta_ids, $object_id, $meta_key, $_meta_value );
 
@@ -1079,7 +1078,7 @@ function delete_metadata_by_mid( $meta_type, $meta_id ) {
 			 *
 			 * @since 3.4.0
 			 *
-			 * @param int $meta_ids Deleted metadata entry ID.
+			 * @param int $meta_id Deleted metadata entry ID.
 			 */
 			do_action( "deleted_{$meta_type}meta", $meta_id );
 		}
@@ -1191,12 +1190,14 @@ function update_meta_cache( $meta_type, $object_ids ) {
 		}
 	}
 
+	$data = array();
 	foreach ( $non_cached_ids as $id ) {
 		if ( ! isset( $cache[ $id ] ) ) {
 			$cache[ $id ] = array();
 		}
-		wp_cache_add( $id, $cache[ $id ], $cache_key );
+		$data[ $id ] = $cache[ $id ];
 	}
+	wp_cache_add_multiple( $data, $cache_key );
 
 	return $cache;
 }
@@ -1230,7 +1231,13 @@ function wp_metadata_lazyloader() {
  * @param string $primary_table     Primary database table name.
  * @param string $primary_id_column Primary ID column name.
  * @param object $context           Optional. The main query object
- * @return array Associative array of `JOIN` and `WHERE` SQL.
+ * @return string[]|false {
+ *     Array containing JOIN and WHERE SQL clauses to append to the main query,
+ *     or false if no table exists for the requested meta type.
+ *
+ *     @type string $join  SQL fragment to append to the main JOIN clause.
+ *     @type string $where SQL fragment to append to the main WHERE clause.
+ * }
  */
 function get_meta_sql( $meta_query, $type, $primary_table, $primary_id_column, $context = null ) {
 	$meta_query_obj = new WP_Meta_Query( $meta_query );
@@ -1634,7 +1641,7 @@ function unregister_meta_key( $object_type, $meta_key, $object_subtype = '' ) {
 }
 
 /**
- * Retrieves a list of registered meta keys for an object type.
+ * Retrieves a list of registered metadata args for an object type, keyed by their meta keys.
  *
  * @since 4.6.0
  * @since 4.9.8 The `$object_subtype` parameter was added.
@@ -1642,7 +1649,7 @@ function unregister_meta_key( $object_type, $meta_key, $object_subtype = '' ) {
  * @param string $object_type    Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
  *                               or any other object type with an associated meta table.
  * @param string $object_subtype Optional. The subtype of the object type.
- * @return string[] List of registered meta keys.
+ * @return array[] List of registered metadata args, keyed by their meta keys.
  */
 function get_registered_meta_keys( $object_type, $object_subtype = '' ) {
 	global $wp_meta_keys;

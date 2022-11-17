@@ -17,13 +17,13 @@ if ( is_multisite() ) :
 		protected static $site_ids;
 		protected static $uninitialized_site_id;
 
-		function set_up() {
+		public function set_up() {
 			global $wpdb;
 			parent::set_up();
 			$this->suppress = $wpdb->suppress_errors();
 		}
 
-		function tear_down() {
+		public function tear_down() {
 			global $wpdb;
 			$wpdb->suppress_errors( $this->suppress );
 			parent::tear_down();
@@ -88,7 +88,7 @@ if ( is_multisite() ) :
 			}
 		}
 
-		function test_switch_restore_blog() {
+		public function test_switch_restore_blog() {
 			global $_wp_switched_stack, $wpdb;
 
 			$this->assertSame( array(), $_wp_switched_stack );
@@ -136,7 +136,7 @@ if ( is_multisite() ) :
 		/**
 		 * Test the cache keys and database tables setup through the creation of a site.
 		 */
-		function test_created_site_details() {
+		public function test_created_site_details() {
 			global $wpdb;
 
 			$blog_id = self::factory()->blog->create();
@@ -221,7 +221,7 @@ if ( is_multisite() ) :
 		/**
 		 * When a site is flagged as 'deleted', its data should be cleared from cache.
 		 */
-		function test_data_in_cache_after_wpmu_delete_blog_drop_false() {
+		public function test_data_in_cache_after_wpmu_delete_blog_drop_false() {
 			$blog_id = self::factory()->blog->create();
 
 			$details = get_blog_details( $blog_id, false );
@@ -239,7 +239,7 @@ if ( is_multisite() ) :
 		/**
 		 * When a site is flagged as 'deleted', its data should remain in the database.
 		 */
-		function test_data_in_tables_after_wpmu_delete_blog_drop_false() {
+		public function test_data_in_tables_after_wpmu_delete_blog_drop_false() {
 			global $wpdb;
 
 			$blog_id = self::factory()->blog->create();
@@ -262,7 +262,7 @@ if ( is_multisite() ) :
 		/**
 		 * When a site is fully deleted, its data should be cleared from cache.
 		 */
-		function test_data_in_cache_after_wpmu_delete_blog_drop_true() {
+		public function test_data_in_cache_after_wpmu_delete_blog_drop_true() {
 			$blog_id = self::factory()->blog->create();
 
 			$details = get_blog_details( $blog_id, false );
@@ -280,7 +280,7 @@ if ( is_multisite() ) :
 		/**
 		 * When a site is fully deleted, its data should be removed from the database.
 		 */
-		function test_data_in_tables_after_wpmu_delete_blog_drop_true() {
+		public function test_data_in_tables_after_wpmu_delete_blog_drop_true() {
 			global $wpdb;
 
 			$blog_id = self::factory()->blog->create();
@@ -303,7 +303,7 @@ if ( is_multisite() ) :
 		/**
 		 * When the main site of a network is fully deleted, its data should be cleared from cache.
 		 */
-		function test_data_in_cache_after_wpmu_delete_blog_main_site_drop_true() {
+		public function test_data_in_cache_after_wpmu_delete_blog_main_site_drop_true() {
 			$blog_id = 1; // The main site in our test suite has an ID of 1.
 
 			$details = get_blog_details( $blog_id, false );
@@ -321,7 +321,7 @@ if ( is_multisite() ) :
 		/**
 		 * When the main site of a network is fully deleted, its data should remain in the database.
 		 */
-		function test_data_in_tables_after_wpmu_delete_blog_main_site_drop_true() {
+		public function test_data_in_tables_after_wpmu_delete_blog_main_site_drop_true() {
 			global $wpdb;
 
 			$blog_id = 1; // The main site in our test suite has an ID of 1.
@@ -344,7 +344,7 @@ if ( is_multisite() ) :
 		/**
 		 * The site count of a network should change when a site is flagged as 'deleted'.
 		 */
-		function test_network_count_after_wpmu_delete_blog_drop_false() {
+		public function test_network_count_after_wpmu_delete_blog_drop_false() {
 			$blog_id = self::factory()->blog->create();
 
 			// Delete the site without forcing a table drop.
@@ -358,7 +358,7 @@ if ( is_multisite() ) :
 		/**
 		 * The site count of a network should change when a site is fully deleted.
 		 */
-		function test_blog_count_after_wpmu_delete_blog_drop_true() {
+		public function test_blog_count_after_wpmu_delete_blog_drop_true() {
 			$blog_id = self::factory()->blog->create();
 
 			// Delete the site and force a table drop.
@@ -374,7 +374,7 @@ if ( is_multisite() ) :
 		 * that site should be removed. When wpmu_delete_blog() is run a second time, nothing
 		 * should change with upload directories.
 		 */
-		function test_upload_directories_after_multiple_wpmu_delete_blog() {
+		public function test_upload_directories_after_multiple_wpmu_delete_blog() {
 			$filename = __FUNCTION__ . '.jpg';
 			$contents = __FUNCTION__ . '_contents';
 
@@ -400,7 +400,7 @@ if ( is_multisite() ) :
 			$this->assertFileDoesNotExist( $file2['file'] );
 		}
 
-		function test_wpmu_update_blogs_date() {
+		public function test_wpmu_update_blogs_date() {
 			global $wpdb;
 
 			wpmu_update_blogs_date();
@@ -413,19 +413,11 @@ if ( is_multisite() ) :
 		}
 
 		/**
-		 * Provide a counter to determine that hooks are firing when intended.
-		 */
-		function _action_counter_cb() {
-			global $test_action_counter;
-			$test_action_counter++;
-		}
-
-		/**
 		 * Test cached data for a site that does not exist and then again after it exists.
 		 *
 		 * @ticket 23405
 		 */
-		function test_get_blog_details_when_site_does_not_exist() {
+		public function test_get_blog_details_when_site_does_not_exist() {
 			// Create an unused site so that we can then assume an invalid site ID.
 			$blog_id = self::factory()->blog->create();
 			$blog_id++;
@@ -449,277 +441,9 @@ if ( is_multisite() ) :
 		}
 
 		/**
-		 * Updating a field returns the sme value that was passed.
-		 */
-		function test_update_blog_status() {
-			$result = update_blog_status( 1, 'spam', 0 );
-			$this->assertSame( 0, $result );
-		}
-
-		/**
-		 * Updating an invalid field returns the same value that was passed.
-		 */
-		function test_update_blog_status_invalid_status() {
-			$result = update_blog_status( 1, 'doesnotexist', 'invalid' );
-			$this->assertSame( 'invalid', $result );
-		}
-
-		function test_update_blog_status_make_ham_blog_action() {
-			global $test_action_counter;
-			$test_action_counter = 0;
-
-			$blog_id = self::factory()->blog->create();
-			update_blog_details( $blog_id, array( 'spam' => 1 ) );
-
-			add_action( 'make_ham_blog', array( $this, '_action_counter_cb' ), 10 );
-			update_blog_status( $blog_id, 'spam', 0 );
-			$blog = get_site( $blog_id );
-
-			$this->assertSame( '0', $blog->spam );
-			$this->assertSame( 1, $test_action_counter );
-
-			// The action should not fire if the status of 'spam' stays the same.
-			update_blog_status( $blog_id, 'spam', 0 );
-			$blog = get_site( $blog_id );
-
-			$this->assertSame( '0', $blog->spam );
-			$this->assertSame( 1, $test_action_counter );
-
-			remove_action( 'make_ham_blog', array( $this, '_action_counter_cb' ), 10 );
-		}
-
-		function test_content_from_spam_blog_is_not_available() {
-			$spam_blog_id = self::factory()->blog->create();
-			switch_to_blog( $spam_blog_id );
-			$post_data      = array(
-				'post_title'   => 'Hello World!',
-				'post_content' => 'Hello world content',
-			);
-			$post_id        = self::factory()->post->create( $post_data );
-			$post           = get_post( $post_id );
-			$spam_permalink = site_url() . '/?p=' . $post->ID;
-			$spam_embed_url = get_post_embed_url( $post_id );
-
-			restore_current_blog();
-			$this->assertNotEmpty( $spam_permalink );
-			$this->assertSame( $post_data['post_title'], $post->post_title );
-
-			update_blog_status( $spam_blog_id, 'spam', 1 );
-
-			$post_id = self::factory()->post->create(
-				array(
-					'post_content' => "\n $spam_permalink \n",
-				)
-			);
-			$post    = get_post( $post_id );
-			$content = apply_filters( 'the_content', $post->post_content );
-
-			$this->assertStringNotContainsString( $post_data['post_title'], $content );
-			$this->assertStringNotContainsString( "src=\"{$spam_embed_url}#?", $content );
-		}
-
-		function test_update_blog_status_make_spam_blog_action() {
-			global $test_action_counter;
-			$test_action_counter = 0;
-
-			$blog_id = self::factory()->blog->create();
-
-			add_action( 'make_spam_blog', array( $this, '_action_counter_cb' ), 10 );
-			update_blog_status( $blog_id, 'spam', 1 );
-			$blog = get_site( $blog_id );
-
-			$this->assertSame( '1', $blog->spam );
-			$this->assertSame( 1, $test_action_counter );
-
-			// The action should not fire if the status of 'spam' stays the same.
-			update_blog_status( $blog_id, 'spam', 1 );
-			$blog = get_site( $blog_id );
-
-			$this->assertSame( '1', $blog->spam );
-			$this->assertSame( 1, $test_action_counter );
-
-			remove_action( 'make_spam_blog', array( $this, '_action_counter_cb' ), 10 );
-		}
-
-		function test_update_blog_status_archive_blog_action() {
-			global $test_action_counter;
-			$test_action_counter = 0;
-
-			$blog_id = self::factory()->blog->create();
-
-			add_action( 'archive_blog', array( $this, '_action_counter_cb' ), 10 );
-			update_blog_status( $blog_id, 'archived', 1 );
-			$blog = get_site( $blog_id );
-
-			$this->assertSame( '1', $blog->archived );
-			$this->assertSame( 1, $test_action_counter );
-
-			// The action should not fire if the status of 'archived' stays the same.
-			update_blog_status( $blog_id, 'archived', 1 );
-			$blog = get_site( $blog_id );
-
-			$this->assertSame( '1', $blog->archived );
-			$this->assertSame( 1, $test_action_counter );
-
-			remove_action( 'archive_blog', array( $this, '_action_counter_cb' ), 10 );
-		}
-
-		function test_update_blog_status_unarchive_blog_action() {
-			global $test_action_counter;
-			$test_action_counter = 0;
-
-			$blog_id = self::factory()->blog->create();
-			update_blog_details( $blog_id, array( 'archived' => 1 ) );
-
-			add_action( 'unarchive_blog', array( $this, '_action_counter_cb' ), 10 );
-			update_blog_status( $blog_id, 'archived', 0 );
-			$blog = get_site( $blog_id );
-
-			$this->assertSame( '0', $blog->archived );
-			$this->assertSame( 1, $test_action_counter );
-
-			// The action should not fire if the status of 'archived' stays the same.
-			update_blog_status( $blog_id, 'archived', 0 );
-			$blog = get_site( $blog_id );
-			$this->assertSame( '0', $blog->archived );
-			$this->assertSame( 1, $test_action_counter );
-
-			remove_action( 'unarchive_blog', array( $this, '_action_counter_cb' ), 10 );
-		}
-
-		function test_update_blog_status_make_delete_blog_action() {
-			global $test_action_counter;
-			$test_action_counter = 0;
-
-			$blog_id = self::factory()->blog->create();
-
-			add_action( 'make_delete_blog', array( $this, '_action_counter_cb' ), 10 );
-			update_blog_status( $blog_id, 'deleted', 1 );
-			$blog = get_site( $blog_id );
-
-			$this->assertSame( '1', $blog->deleted );
-			$this->assertSame( 1, $test_action_counter );
-
-			// The action should not fire if the status of 'deleted' stays the same.
-			update_blog_status( $blog_id, 'deleted', 1 );
-			$blog = get_site( $blog_id );
-
-			$this->assertSame( '1', $blog->deleted );
-			$this->assertSame( 1, $test_action_counter );
-
-			remove_action( 'make_delete_blog', array( $this, '_action_counter_cb' ), 10 );
-		}
-
-		function test_update_blog_status_make_undelete_blog_action() {
-			global $test_action_counter;
-			$test_action_counter = 0;
-
-			$blog_id = self::factory()->blog->create();
-			update_blog_details( $blog_id, array( 'deleted' => 1 ) );
-
-			add_action( 'make_undelete_blog', array( $this, '_action_counter_cb' ), 10 );
-			update_blog_status( $blog_id, 'deleted', 0 );
-			$blog = get_site( $blog_id );
-
-			$this->assertSame( '0', $blog->deleted );
-			$this->assertSame( 1, $test_action_counter );
-
-			// The action should not fire if the status of 'deleted' stays the same.
-			update_blog_status( $blog_id, 'deleted', 0 );
-			$blog = get_site( $blog_id );
-
-			$this->assertSame( '0', $blog->deleted );
-			$this->assertSame( 1, $test_action_counter );
-
-			remove_action( 'make_undelete_blog', array( $this, '_action_counter_cb' ), 10 );
-		}
-
-		function test_update_blog_status_mature_blog_action() {
-			global $test_action_counter;
-			$test_action_counter = 0;
-
-			$blog_id = self::factory()->blog->create();
-
-			add_action( 'mature_blog', array( $this, '_action_counter_cb' ), 10 );
-			update_blog_status( $blog_id, 'mature', 1 );
-			$blog = get_site( $blog_id );
-
-			$this->assertSame( '1', $blog->mature );
-			$this->assertSame( 1, $test_action_counter );
-
-			// The action should not fire if the status of 'mature' stays the same.
-			update_blog_status( $blog_id, 'mature', 1 );
-			$blog = get_site( $blog_id );
-
-			$this->assertSame( '1', $blog->mature );
-			$this->assertSame( 1, $test_action_counter );
-
-			remove_action( 'mature_blog', array( $this, '_action_counter_cb' ), 10 );
-		}
-
-		function test_update_blog_status_unmature_blog_action() {
-			global $test_action_counter;
-			$test_action_counter = 0;
-
-			$blog_id = self::factory()->blog->create();
-			update_blog_details( $blog_id, array( 'mature' => 1 ) );
-
-			add_action( 'unmature_blog', array( $this, '_action_counter_cb' ), 10 );
-			update_blog_status( $blog_id, 'mature', 0 );
-
-			$blog = get_site( $blog_id );
-			$this->assertSame( '0', $blog->mature );
-			$this->assertSame( 1, $test_action_counter );
-
-			// The action should not fire if the status of 'mature' stays the same.
-			update_blog_status( $blog_id, 'mature', 0 );
-			$blog = get_site( $blog_id );
-
-			$this->assertSame( '0', $blog->mature );
-			$this->assertSame( 1, $test_action_counter );
-
-			remove_action( 'unmature_blog', array( $this, '_action_counter_cb' ), 10 );
-		}
-
-		function test_update_blog_status_update_blog_public_action() {
-			global $test_action_counter;
-			$test_action_counter = 0;
-
-			$blog_id = self::factory()->blog->create();
-
-			add_action( 'update_blog_public', array( $this, '_action_counter_cb' ), 10 );
-			update_blog_status( $blog_id, 'public', 0 );
-
-			$blog = get_site( $blog_id );
-			$this->assertSame( '0', $blog->public );
-			$this->assertSame( 1, $test_action_counter );
-
-			// The action should not fire if the status of 'mature' stays the same.
-			update_blog_status( $blog_id, 'public', 0 );
-			$blog = get_site( $blog_id );
-
-			$this->assertSame( '0', $blog->public );
-			$this->assertSame( 1, $test_action_counter );
-
-			remove_action( 'update_blog_public', array( $this, '_action_counter_cb' ), 10 );
-		}
-
-		/**
-		 * @ticket 27952
-		 */
-		function test_posts_count() {
-			self::factory()->post->create();
-			$post2 = self::factory()->post->create();
-			$this->assertSame( 2, get_site()->post_count );
-
-			wp_delete_post( $post2 );
-			$this->assertSame( 1, get_site()->post_count );
-		}
-
-		/**
 		 * @ticket 26410
 		 */
-		function test_blog_details_cache_invalidation() {
+		public function test_blog_details_cache_invalidation() {
 			update_option( 'blogname', 'foo' );
 			$details = get_site( get_current_blog_id() );
 			$this->assertSame( 'foo', $details->blogname );
@@ -733,7 +457,7 @@ if ( is_multisite() ) :
 		 * Test the original and cached responses for a created and then deleted site when
 		 * the blog ID is requested through get_blog_id_from_url().
 		 */
-		function test_get_blog_id_from_url() {
+		public function test_get_blog_id_from_url() {
 			$blog_id = self::factory()->blog->create();
 			$details = get_site( $blog_id );
 			$key     = md5( $details->domain . $details->path );
@@ -746,7 +470,7 @@ if ( is_multisite() ) :
 		/**
 		 * Test the case insensitivity of the site lookup.
 		 */
-		function test_get_blog_id_from_url_is_case_insensitive() {
+		public function test_get_blog_id_from_url_is_case_insensitive() {
 			$blog_id = self::factory()->blog->create(
 				array(
 					'domain' => 'example.com',
@@ -761,7 +485,7 @@ if ( is_multisite() ) :
 		/**
 		 * Test the first and cached responses for a site that does not exist.
 		 */
-		function test_get_blog_id_from_url_that_does_not_exist() {
+		public function test_get_blog_id_from_url_that_does_not_exist() {
 			$blog_id = self::factory()->blog->create( array( 'path' => '/xyz' ) );
 			$details = get_site( $blog_id );
 
@@ -773,7 +497,7 @@ if ( is_multisite() ) :
 		 * A blog ID is still available if only the `deleted` flag is set for a site. The same
 		 * behavior would be expected if passing `false` explicitly to `wpmu_delete_blog()`.
 		 */
-		function test_get_blog_id_from_url_with_deleted_flag() {
+		public function test_get_blog_id_from_url_with_deleted_flag() {
 			$blog_id = self::factory()->blog->create();
 			$details = get_site( $blog_id );
 			$key     = md5( $details->domain . $details->path );
@@ -787,7 +511,7 @@ if ( is_multisite() ) :
 		 * When deleted with the drop parameter as true, the cache will first be false, then set to
 		 * -1 after an attempt at `get_blog_id_from_url()` is made.
 		 */
-		function test_get_blog_id_from_url_after_dropped() {
+		public function test_get_blog_id_from_url_after_dropped() {
 			$blog_id = self::factory()->blog->create();
 			$details = get_site( $blog_id );
 			$key     = md5( $details->domain . $details->path );
@@ -801,7 +525,7 @@ if ( is_multisite() ) :
 		/**
 		 * Test with default parameter of site_id as null.
 		 */
-		function test_is_main_site() {
+		public function test_is_main_site() {
 			$this->assertTrue( is_main_site() );
 		}
 
@@ -809,14 +533,14 @@ if ( is_multisite() ) :
 		 * Test with a site id of get_current_blog_id(), which should be the same as the
 		 * default parameter tested above.
 		 */
-		function test_current_blog_id_is_main_site() {
+		public function test_current_blog_id_is_main_site() {
 			$this->assertTrue( is_main_site( get_current_blog_id() ) );
 		}
 
 		/**
 		 * Test with a site ID other than the main site to ensure a false response.
 		 */
-		function test_is_main_site_is_false_with_other_blog_id() {
+		public function test_is_main_site_is_false_with_other_blog_id() {
 			$blog_id = self::factory()->blog->create();
 
 			$this->assertFalse( is_main_site( $blog_id ) );
@@ -825,7 +549,7 @@ if ( is_multisite() ) :
 		/**
 		 * Test with no passed ID after switching to another site ID.
 		 */
-		function test_is_main_site_is_false_after_switch_to_blog() {
+		public function test_is_main_site_is_false_after_switch_to_blog() {
 			$blog_id = self::factory()->blog->create();
 			switch_to_blog( $blog_id );
 
@@ -834,7 +558,7 @@ if ( is_multisite() ) :
 			restore_current_blog();
 		}
 
-		function test_switch_upload_dir() {
+		public function test_switch_upload_dir() {
 			$this->assertTrue( is_main_site() );
 
 			$site = get_current_site();
@@ -867,7 +591,7 @@ if ( is_multisite() ) :
 		 * Test the primary purpose of get_blog_post(), to retrieve a post from
 		 * another site on the network.
 		 */
-		function test_get_blog_post_from_another_site_on_network() {
+		public function test_get_blog_post_from_another_site_on_network() {
 			$blog_id = self::factory()->blog->create();
 			$post_id = self::factory()->post->create(); // Create a post on the primary site, ID 1.
 			$post    = get_post( $post_id );
@@ -882,7 +606,7 @@ if ( is_multisite() ) :
 		/**
 		 * If get_blog_post() is used on the same site, it should still work.
 		 */
-		function test_get_blog_post_from_same_site() {
+		public function test_get_blog_post_from_same_site() {
 			$post_id = self::factory()->post->create();
 
 			$this->assertEquals( get_blog_post( 1, $post_id ), get_post( $post_id ) );
@@ -891,7 +615,7 @@ if ( is_multisite() ) :
 		/**
 		 * A null response should be returned if an invalid post is requested.
 		 */
-		function test_get_blog_post_invalid_returns_null() {
+		public function test_get_blog_post_invalid_returns_null() {
 			$this->assertNull( get_blog_post( 1, 999999 ) );
 		}
 
@@ -899,7 +623,7 @@ if ( is_multisite() ) :
 		 * Added as a callback to the domain_exists filter to provide manual results for
 		 * the testing of the filter and for a test which does not need the database.
 		 */
-		function _domain_exists_cb( $exists, $domain, $path, $site_id ) {
+		public function domain_exists_cb( $exists, $domain, $path, $site_id ) {
 			if ( 'foo' === $domain && 'bar/' === $path ) {
 				return 1234;
 			} else {
@@ -907,13 +631,13 @@ if ( is_multisite() ) :
 			}
 		}
 
-		function test_domain_exists_with_default_site_id() {
+		public function test_domain_exists_with_default_site_id() {
 			$details = get_site( 1 );
 
 			$this->assertSame( 1, domain_exists( $details->domain, $details->path ) );
 		}
 
-		function test_domain_exists_with_specified_site_id() {
+		public function test_domain_exists_with_specified_site_id() {
 			$details = get_site( 1 );
 
 			$this->assertSame( 1, domain_exists( $details->domain, $details->path, $details->site_id ) );
@@ -923,20 +647,20 @@ if ( is_multisite() ) :
 		 * When the domain is valid, but the resulting site does not belong to the specified network,
 		 * it is marked as not existing.
 		 */
-		function test_domain_does_not_exist_with_invalid_site_id() {
+		public function test_domain_does_not_exist_with_invalid_site_id() {
 			$details = get_site( 1 );
 
 			$this->assertNull( domain_exists( $details->domain, $details->path, 999 ) );
 		}
 
-		function test_invalid_domain_does_not_exist_with_default_site_id() {
+		public function test_invalid_domain_does_not_exist_with_default_site_id() {
 			$this->assertNull( domain_exists( 'foo', 'bar' ) );
 		}
 
-		function test_domain_filtered_to_exist() {
-			add_filter( 'domain_exists', array( $this, '_domain_exists_cb' ), 10, 4 );
+		public function test_domain_filtered_to_exist() {
+			add_filter( 'domain_exists', array( $this, 'domain_exists_cb' ), 10, 4 );
 			$exists = domain_exists( 'foo', 'bar' );
-			remove_filter( 'domain_exists', array( $this, '_domain_exists_cb' ), 10, 4 );
+			remove_filter( 'domain_exists', array( $this, 'domain_exists_cb' ), 10, 4 );
 			$this->assertSame( 1234, $exists );
 		}
 
@@ -944,11 +668,11 @@ if ( is_multisite() ) :
 		 * When a path is passed to domain_exists, it is immediately trailing slashed. A path
 		 * value with or without the slash should result in the same return value.
 		 */
-		function test_slashed_path_in_domain_exists() {
-			add_filter( 'domain_exists', array( $this, '_domain_exists_cb' ), 10, 4 );
+		public function test_slashed_path_in_domain_exists() {
+			add_filter( 'domain_exists', array( $this, 'domain_exists_cb' ), 10, 4 );
 			$exists1 = domain_exists( 'foo', 'bar' );
 			$exists2 = domain_exists( 'foo', 'bar/' );
-			remove_filter( 'domain_exists', array( $this, '_domain_exists_cb' ), 10, 4 );
+			remove_filter( 'domain_exists', array( $this, 'domain_exists_cb' ), 10, 4 );
 
 			// Make sure the same result is returned with or without a trailing slash.
 			$this->assertSame( $exists1, $exists2 );
@@ -957,23 +681,23 @@ if ( is_multisite() ) :
 		/**
 		 * Tests returning an address for a given valid ID.
 		 */
-		function test_get_blogaddress_by_id_with_valid_id() {
+		public function test_get_blogaddress_by_id_with_valid_id() {
 			$blogaddress = get_blogaddress_by_id( 1 );
 			$this->assertSame( 'http://' . WP_TESTS_DOMAIN . '/', $blogaddress );
 		}
 
 		/**
-		 * Tests returning the appropriate response for a invalid id given.
+		 * Tests returning an empty string for a non-existing ID.
 		 */
-		function test_get_blogaddress_by_id_with_invalid_id() {
-			$blogaddress = get_blogaddress_by_id( 42 );
+		public function test_get_blogaddress_by_id_with_invalid_id() {
+			$blogaddress = get_blogaddress_by_id( PHP_INT_MAX );
 			$this->assertSame( '', $blogaddress );
 		}
 
 		/**
 		 * @ticket 14867
 		 */
-		function test_get_blogaddress_by_id_scheme_reflects_blog_scheme() {
+		public function test_get_blogaddress_by_id_scheme_reflects_blog_scheme() {
 			$blog = self::factory()->blog->create();
 
 			$this->assertSame( 'http', parse_url( get_blogaddress_by_id( $blog ), PHP_URL_SCHEME ) );
@@ -986,7 +710,7 @@ if ( is_multisite() ) :
 		/**
 		 * @ticket 14867
 		 */
-		function test_get_blogaddress_by_id_scheme_is_unaffected_by_request() {
+		public function test_get_blogaddress_by_id_scheme_is_unaffected_by_request() {
 			$blog = self::factory()->blog->create();
 
 			$this->assertFalse( is_ssl() );
@@ -1005,7 +729,7 @@ if ( is_multisite() ) :
 		 * @ticket 33620
 		 * @dataProvider data_new_blog_url_schemes
 		 */
-		function test_new_blog_url_schemes( $home_scheme, $siteurl_scheme, $force_ssl_admin ) {
+		public function test_new_blog_url_schemes( $home_scheme, $siteurl_scheme, $force_ssl_admin ) {
 			$current_site = get_current_site();
 
 			$home    = get_option( 'home' );
@@ -1031,7 +755,7 @@ if ( is_multisite() ) :
 			$this->assertSame( $siteurl_scheme, parse_url( get_blog_option( $new, 'siteurl' ), PHP_URL_SCHEME ) );
 		}
 
-		function data_new_blog_url_schemes() {
+		public function data_new_blog_url_schemes() {
 			return array(
 				array(
 					'https',
@@ -1064,7 +788,7 @@ if ( is_multisite() ) :
 		/**
 		 * @ticket 36918
 		 */
-		function test_new_blog_locale() {
+		public function test_new_blog_locale() {
 			$current_site = get_current_site();
 
 			add_filter( 'sanitize_option_WPLANG', array( $this, 'filter_allow_unavailable_languages' ), 10, 3 );
@@ -1099,7 +823,7 @@ if ( is_multisite() ) :
 		/**
 		 * @ticket 40503
 		 */
-		function test_different_network_language() {
+		public function test_different_network_language() {
 			$network = get_network( self::$network_ids['make.wordpress.org/'] );
 
 			add_filter( 'sanitize_option_WPLANG', array( $this, 'filter_allow_unavailable_languages' ), 10, 3 );
@@ -1120,7 +844,7 @@ if ( is_multisite() ) :
 		 * @param string $original_value The original value passed to the function.
 		 * @return string The orginal value.
 		 */
-		function filter_allow_unavailable_languages( $value, $option, $original_value ) {
+		public function filter_allow_unavailable_languages( $value, $option, $original_value ) {
 			return $original_value;
 		}
 
@@ -1555,9 +1279,9 @@ if ( is_multisite() ) :
 			$result = wp_update_site( $site_id, array( 'public' => 1 ) );
 			$site3  = get_site( $site_id );
 
-			$this->assertEquals( 1, $site1->public );
-			$this->assertEquals( 0, $site2->public );
-			$this->assertEquals( 1, $site3->public );
+			$this->assertSame( '1', $site1->public );
+			$this->assertSame( '0', $site2->public );
+			$this->assertSame( '1', $site3->public );
 		}
 
 		/**
@@ -2433,7 +2157,7 @@ if ( is_multisite() ) :
 
 			wpmu_create_blog( 'testsite1.example.org', '/new-blog/', 'New Blog', get_current_user_id(), $meta, 1 );
 
-			$this->assertEquals( $expected_meta, $this->wp_initialize_site_meta );
+			$this->assertSameSetsWithIndex( $expected_meta, $this->wp_initialize_site_meta );
 
 			$this->wp_initialize_site_meta = array();
 		}
@@ -2459,7 +2183,7 @@ if ( is_multisite() ) :
 			$new_site_id = $this->_get_next_site_id();
 			$this->assertNull( get_site( $new_site_id ) );
 
-			$new_site = $this->factory()->blog->create_and_get();
+			$new_site = self::factory()->blog->create_and_get();
 
 			// Double-check we got the ID of the new site correct.
 			$this->assertEquals( $new_site_id, $new_site->blog_id );
@@ -2534,8 +2258,8 @@ if ( is_multisite() ) :
 					),
 					array(
 						'public' => 0,
-						'WPLANG' => 'en_US',
 						'foo'    => 'bar',
+						'WPLANG' => 'en_US',
 					),
 				),
 			);

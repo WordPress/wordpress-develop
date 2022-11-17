@@ -4,9 +4,12 @@ require_once ABSPATH . WPINC . '/class-IXR.php';
 require_once ABSPATH . WPINC . '/class-wp-xmlrpc-server.php';
 
 abstract class WP_XMLRPC_UnitTestCase extends WP_UnitTestCase {
+	/**
+	 * @var wp_xmlrpc_server
+	 */
 	protected $myxmlrpcserver;
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 
 		add_filter( 'pre_option_enable_xmlrpc', '__return_true' );
@@ -14,7 +17,7 @@ abstract class WP_XMLRPC_UnitTestCase extends WP_UnitTestCase {
 		$this->myxmlrpcserver = new wp_xmlrpc_server();
 	}
 
-	function tear_down() {
+	public function tear_down() {
 		remove_filter( 'pre_option_enable_xmlrpc', '__return_true' );
 
 		$this->remove_added_uploads();

@@ -43,7 +43,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 	}
 
 	public function test_get_items_logged_in() {
-		$user_id = $this->factory->user->create( array( 'role' => 'author' ) );
+		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
 		wp_set_current_user( $user_id );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/statuses' );
@@ -72,7 +72,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 	}
 
 	public function test_get_item() {
-		$user_id = $this->factory->user->create( array( 'role' => 'author' ) );
+		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
 		wp_set_current_user( $user_id );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/statuses/publish' );
 		$request->set_param( 'context', 'edit' );
@@ -94,7 +94,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 	}
 
 	public function test_get_item_invalid_internal() {
-		$user_id = $this->factory->user->create();
+		$user_id = self::factory()->user->create();
 		wp_set_current_user( $user_id );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/statuses/inherit' );

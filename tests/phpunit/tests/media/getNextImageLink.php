@@ -17,7 +17,7 @@ class Tests_Media_GetNextImageLink extends WP_Test_Adjacent_Image_Link_TestCase 
 	 *
 	 * @dataProvider data_get_next_image_link
 	 */
-	function test_get_next_image_link( $current_attachment_index, $expected_attachment_index, $expected, array $args = array() ) {
+	public function test_get_next_image_link( $current_attachment_index, $expected_attachment_index, $expected, array $args = array() ) {
 		list( $expected, $args ) = $this->setup_test_scenario( $current_attachment_index, $expected_attachment_index, $expected, $args );
 
 		$actual = get_next_image_link( ...$args );
@@ -31,7 +31,7 @@ class Tests_Media_GetNextImageLink extends WP_Test_Adjacent_Image_Link_TestCase 
 			'when has next link'           => array(
 				'current_attachment_index'  => 4,
 				'expected_attachment_index' => 5,
-				'expected'                  => '<a href=\'http://example.org/?attachment_id=%%ID%%\'><img width="1" height="1" src="http://example.org/wp-content/uploads/image5.jpg" class="attachment-thumbnail size-thumbnail" alt="" loading="lazy" /></a>',
+				'expected'                  => '<a href=\'http://example.org/?attachment_id=%%ID%%\'><img width="1" height="1" src="' . WP_CONTENT_URL . '/uploads/image5.jpg" class="attachment-thumbnail size-thumbnail" alt="" decoding="async" loading="lazy" /></a>',
 			),
 			'with text when has next link' => array(
 				'current_attachment_index'  => 4,
