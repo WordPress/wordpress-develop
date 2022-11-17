@@ -36,22 +36,20 @@ jobs:
   #
   # Performs the following steps:
   # - Sets environment variables.
-  # - Sets up the environment variables needed for testing with memcached (if desired).
-  # - Installs Node.js.
+  # - Checks out the repository.
+  # - Sets up Node.js.
+  # - Logs general debug information about the runner.
   # - Installs npm dependencies
   # - Configures caching for Composer.
   # - Installs Composer dependencies.
   # - Logs Docker debug information (about the Docker installation within the runner).
   # - Starts the WordPress Docker container.
-  # - Logs general debug information about the runner.
   # - Logs the running Docker containers.
-  # - Logs debug information from inside the WordPress Docker container.
   # - Logs debug information about what's installed within the WordPress Docker containers.
   # - Install WordPress within the Docker container.
   # - Run the PHPUnit tests.
   # - Ensures version-controlled files are not modified or deleted.
   # - Checks out the WordPress Test reporter repository.
-  # - Reconnect the directory to the Git repository.
   # - Submit the test results to the WordPress.org host test results.
   test-php:
     name: ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.split_slow && ' slow tests' || '' }}${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
@@ -108,13 +106,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
 
-      - name: Install Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
         with:
           node-version-file: '.nvmrc'
           cache: npm
 
-      - name: Install Dependencies
+      - name: General debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+          svn --version
+
+      - name: Install npm dependencies
         run: npm ci
 
       # This date is used to ensure that the Composer cache is refreshed at least once every week.
@@ -154,14 +160,6 @@ jobs:
       - name: Start Docker environment
         run: |
           npm run env:start
-
-      - name: General debug information
-        run: |
-          npm --version
-          node --version
-          curl --version
-          git --version
-          svn --version
 
       - name: Log running Docker containers
         run: docker ps -a

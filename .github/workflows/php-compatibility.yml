@@ -46,10 +46,10 @@ jobs:
   # - Sets up PHP.
   # - Logs debug information.
   # - Configures caching for PHP compatibility scans.
-  # - Installs Composer dependencies (use cache if possible).
+  # - Installs Composer dependencies.
   # - Make Composer packages available globally.
-  # - Logs PHP_CodeSniffer debug information.
   # - Runs the PHP compatibility tests.
+  # - Generate a report for displaying issues as pull request annotations.
   # - Ensures version-controlled files are not modified or deleted.
   php-compatibility:
     name: Check PHP compatibility
@@ -70,7 +70,6 @@ jobs:
 
       - name: Log debug information
         run: |
-          php --version
           composer --version
 
       # This date is used to ensure that the PHP compatibility cache is cleared at least once every week.
@@ -92,9 +91,6 @@ jobs:
 
       - name: Make Composer packages available globally
         run: echo "${PWD}/vendor/bin" >> $GITHUB_PATH
-
-      - name: Log PHPCS debug information
-        run: phpcs -i
 
       - name: Run PHP compatibility tests
         id: phpcs
