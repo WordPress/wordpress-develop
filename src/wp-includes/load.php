@@ -743,7 +743,6 @@ function wp_start_object_cache() {
 				'site-details',
 				'site-options',
 				'site-transient',
-				'site_meta',
 				'rss',
 				'users',
 				'useremail',
@@ -1150,7 +1149,7 @@ function wp_clone( $object ) {
  *
  * @return bool True if inside WordPress login screen, false otherwise.
  */
-function is_login_screen() {
+function is_login() {
 	return false !== stripos( wp_login_url(), $_SERVER['SCRIPT_NAME'] );
 }
 
@@ -1322,10 +1321,11 @@ function get_current_network_id() {
  * @since 3.4.0
  * @access private
  *
+ * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
  * @global WP_Locale $wp_locale WordPress date and time locale object.
  */
 function wp_load_translations_early() {
-	global $wp_locale;
+	global $wp_locale, $wp_textdomain_registry;
 
 	static $loaded = false;
 	if ( $loaded ) {
@@ -1343,6 +1343,7 @@ function wp_load_translations_early() {
 	// Translation and localization.
 	require_once ABSPATH . WPINC . '/pomo/mo.php';
 	require_once ABSPATH . WPINC . '/l10n.php';
+	require_once ABSPATH . WPINC . '/class-wp-textdomain-registry.php';
 	require_once ABSPATH . WPINC . '/class-wp-locale.php';
 	require_once ABSPATH . WPINC . '/class-wp-locale-switcher.php';
 
@@ -1351,6 +1352,10 @@ function wp_load_translations_early() {
 
 	$locales   = array();
 	$locations = array();
+
+	if ( ! $wp_textdomain_registry instanceof WP_Textdomain_Registry ) {
+		$wp_textdomain_registry = new WP_Textdomain_Registry();
+	}
 
 	while ( true ) {
 		if ( defined( 'WPLANG' ) ) {
@@ -1393,9 +1398,9 @@ function wp_load_translations_early() {
 		foreach ( $locales as $locale ) {
 			foreach ( $locations as $location ) {
 				if ( file_exists( $location . '/' . $locale . '.mo' ) ) {
-					load_textdomain( 'default', $location . '/' . $locale . '.mo' );
+					load_textdomain( 'default', $location . '/' . $locale . '.mo', $locale );
 					if ( defined( 'WP_SETUP_CONFIG' ) && file_exists( $location . '/admin-' . $locale . '.mo' ) ) {
-						load_textdomain( 'default', $location . '/admin-' . $locale . '.mo' );
+						load_textdomain( 'default', $location . '/admin-' . $locale . '.mo', $locale );
 					}
 					break 2;
 				}

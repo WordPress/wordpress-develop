@@ -724,11 +724,10 @@ function get_attached_file( $attachment_id, $unfiltered = false ) {
 	$file = get_post_meta( $attachment_id, '_wp_attached_file', true );
 
 	// If the file is relative, prepend upload dir.
-	if ( $file ) {
+	if ( $file && 0 !== strpos( $file, '/' ) && ! preg_match( '|^.:\\\|', $file ) ) {
 		$uploads = wp_get_upload_dir();
-
 		if ( false === $uploads['error'] ) {
-			$file = path_join( $uploads['basedir'], $file );
+			$file = $uploads['basedir'] . "/$file";
 		}
 	}
 
@@ -5767,6 +5766,8 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
  * @since 2.1.0
  * @since 3.0.0 The `$post_type` parameter was added.
  *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
  * @param string       $page_title Page title.
  * @param string       $output     Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
  *                                 correspond to a WP_Post object, an associative array, or a numeric array,
@@ -5775,25 +5776,40 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
  * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
  */
 function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' ) {
-	$args  = array(
-		'title'                  => $page_title,
-		'post_type'              => $post_type,
-		'post_status'            => get_post_stati(),
-		'posts_per_page'         => 1,
-		'update_post_term_cache' => false,
-		'update_post_meta_cache' => false,
-		'no_found_rows'          => true,
-		'orderby'                => 'post_date ID',
-		'order'                  => 'ASC',
-	);
-	$query = new WP_Query( $args );
-	$pages = $query->get_posts();
+	global $wpdb;
 
-	if ( empty( $pages ) ) {
-		return null;
+	if ( is_array( $post_type ) ) {
+		$post_type           = esc_sql( $post_type );
+		$post_type_in_string = "'" . implode( "','", $post_type ) . "'";
+		$sql                 = $wpdb->prepare(
+			"
+			SELECT ID
+			FROM $wpdb->posts
+			WHERE post_title = %s
+			AND post_type IN ($post_type_in_string)
+		",
+			$page_title
+		);
+	} else {
+		$sql = $wpdb->prepare(
+			"
+			SELECT ID
+			FROM $wpdb->posts
+			WHERE post_title = %s
+			AND post_type = %s
+		",
+			$page_title,
+			$post_type
+		);
 	}
 
-	return get_post( $pages[0], $output );
+	$page = $wpdb->get_var( $sql );
+
+	if ( $page ) {
+		return get_post( $page, $output );
+	}
+
+	return null;
 }
 
 /**
@@ -7462,6 +7478,15 @@ function update_post_caches( &$posts, $post_type = 'post', $update_term_cache = 
  * @param WP_Post[] $posts Array of post objects.
  */
 function update_post_author_caches( $posts ) {
+	/*
+	 * cache_users() is a pluggable function so is not available prior
+	 * to the `plugins_loaded` hook firing. This is to ensure against
+	 * fatal errors when the function is not available.
+	 */
+	if ( ! function_exists( 'cache_users' ) ) {
+		return;
+	}
+
 	$author_ids = wp_list_pluck( $posts, 'post_author' );
 	$author_ids = array_map( 'absint', $author_ids );
 	$author_ids = array_unique( array_filter( $author_ids ) );
@@ -7930,36 +7955,6 @@ function wp_add_trashed_suffix_to_post_name_for_post( $post ) {
 	$wpdb->update( $wpdb->posts, array( 'post_name' => $post_name ), array( 'ID' => $post->ID ) );
 	clean_post_cache( $post->ID );
 	return $post_name;
-}
-
-/**
- * Filters the SQL clauses of an attachment query to include filenames.
- *
- * @since 4.7.0
- * @access private
- *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
- * @param string[] $clauses An array including WHERE, GROUP BY, JOIN, ORDER BY,
- *                          DISTINCT, fields (SELECT), and LIMITS clauses.
- * @return string[] The modified array of clauses.
- */
-function _filter_query_attachment_filenames( $clauses ) {
-	global $wpdb;
-	remove_filter( 'posts_clauses', __FUNCTION__ );
-
-	// Add a LEFT JOIN of the postmeta table so we don't trample existing JOINs.
-	$clauses['join'] .= " LEFT JOIN {$wpdb->postmeta} AS sq1 ON ( {$wpdb->posts}.ID = sq1.post_id AND sq1.meta_key = '_wp_attached_file' )";
-
-	$clauses['groupby'] = "{$wpdb->posts}.ID";
-
-	$clauses['where'] = preg_replace(
-		"/\({$wpdb->posts}.post_content (NOT LIKE|LIKE) (\'[^']+\')\)/",
-		'$0 OR ( sq1.meta_value $1 $2 )',
-		$clauses['where']
-	);
-
-	return $clauses;
 }
 
 /**

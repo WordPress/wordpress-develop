@@ -375,6 +375,21 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 56664
+	 */
+	public function test_register_nonexistent_stylesheet() {
+		$metadata = array(
+			'file'  => DIR_TESTDATA . '/blocks/notice/block.json',
+			'name'  => 'unit-tests/test-block-nonexistent-stylesheet',
+			'style' => 'file:./nonexistent.css',
+		);
+		register_block_style_handle( $metadata, 'style' );
+
+		global $wp_styles;
+		$this->assertFalse( $wp_styles->registered['unit-tests-test-block-nonexistent-stylesheet-style']->src );
+	}
+
+	/**
 	 * @ticket 55513
 	 */
 	public function test_success_register_block_style_handle_in_theme() {
@@ -535,6 +550,134 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( 'WP_Block_Type', $result );
 		$this->assertSame( 'tests/notice', $result->name );
+	}
+
+	/**
+	 * Tests that an array value for 'editor_script' is correctly set and retrieved.
+	 *
+	 * As 'editor_script' is now a deprecated property, this should also set
+	 * the value for the 'editor_script_handles' property.
+	 *
+	 * @ticket 56707
+	 *
+	 * @covers ::register_block_type
+	 * @covers WP_Block_Type::__set
+	 * @covers WP_Block_Type::__get
+	 *
+	 * @dataProvider data_register_block_type_accepts_editor_script_array
+	 *
+	 * @param array $editor_script The editor script array to register.
+	 * @param array $expected      The expected registered editor script.
+	 */
+	public function test_register_block_type_accepts_editor_script_array( $editor_script, $expected ) {
+		$settings = array( 'editor_script' => $editor_script );
+		register_block_type( 'core/test-static', $settings );
+
+		$registry   = WP_Block_Type_Registry::get_instance();
+		$block_type = $registry->get_registered( 'core/test-static' );
+		$this->assertObjectHasAttribute( 'editor_script_handles', $block_type );
+		$actual_script         = $block_type->editor_script;
+		$actual_script_handles = $block_type->editor_script_handles;
+
+		$this->assertSame(
+			$expected,
+			$actual_script,
+			'editor_script was not set to the correct value.'
+		);
+
+		$this->assertSame(
+			(array) $expected,
+			$actual_script_handles,
+			'editor_script_handles was not set to the correct value.'
+		);
+	}
+
+	/**
+	 * Data provider for test_register_block_type_accepts_editor_script_array().
+	 *
+	 * @return array
+	 */
+	public function data_register_block_type_accepts_editor_script_array() {
+		return array(
+			'an empty array'      => array(
+				'editor_script' => array(),
+				'expected'      => null,
+			),
+			'a single item array' => array(
+				'editor_script' => array( 'hello' ),
+				'expected'      => 'hello',
+			),
+			'a multi-item array'  => array(
+				'editor_script' => array( 'hello', 'world' ),
+				'expected'      => array( 'hello', 'world' ),
+			),
+		);
+	}
+
+	/**
+	 * Tests that an array value for 'editor_script' containing invalid values
+	 * correctly triggers _doing_it_wrong(), filters the value, and sets the
+	 * property to the result.
+	 *
+	 * As 'editor_script' is now a deprecated property, this should also set
+	 * the value for the 'editor_script_handles' property.
+	 *
+	 * @ticket 56707
+	 *
+	 * @covers ::register_block_type
+	 * @covers WP_Block_Type::__set
+	 * @covers WP_Block_Type::__get
+	 *
+	 * @dataProvider data_register_block_type_throws_doing_it_wrong
+	 *
+	 * @expectedIncorrectUsage WP_Block_Type::__set
+	 *
+	 * @param array $editor_script The editor script array to register.
+	 * @param array $expected      The expected registered editor script.
+	 */
+	public function test_register_block_type_throws_doing_it_wrong( $editor_script, $expected ) {
+		$settings = array( 'editor_script' => $editor_script );
+		register_block_type( 'core/test-static', $settings );
+
+		$registry   = WP_Block_Type_Registry::get_instance();
+		$block_type = $registry->get_registered( 'core/test-static' );
+		$this->assertObjectHasAttribute( 'editor_script_handles', $block_type );
+		$actual_script         = $block_type->editor_script;
+		$actual_script_handles = $block_type->editor_script_handles;
+
+		$this->assertSame(
+			$expected,
+			$actual_script,
+			'editor_script was not set to the correct value.'
+		);
+
+		$this->assertSame(
+			(array) $expected,
+			$actual_script_handles,
+			'editor_script_handles was not set to the correct value.'
+		);
+	}
+
+	/**
+	 * Data provider for test_register_block_type_throws_doing_it_wrong().
+	 *
+	 * @return array
+	 */
+	public function data_register_block_type_throws_doing_it_wrong() {
+		return array(
+			'a non-string array'     => array(
+				'editor_script' => array( null, false, true, -1, 0, 1, -1.0, 0.0, 1.0, INF, NAN, new stdClass() ),
+				'expected'      => null,
+			),
+			'a partial string array' => array(
+				'editor_script' => array( null, false, 'script.js', true, 0, 'actions.js', 1, INF ),
+				'expected'      => array( 'script.js', 'actions.js' ),
+			),
+			'a partial string array that results in one item with non-zero index' => array(
+				'editor_script' => array( null, false, 'script.js' ),
+				'expected'      => 'script.js',
+			),
+		);
 	}
 
 	/**

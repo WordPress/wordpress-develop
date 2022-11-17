@@ -27,7 +27,7 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 		/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 		global $wp_textdomain_registry;
 
-		$wp_textdomain_registry->reset();
+		$wp_textdomain_registry = new WP_Textdomain_Registry();
 	}
 
 	public function tear_down() {
@@ -36,7 +36,7 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 		/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 		global $wp_textdomain_registry;
 
-		$wp_textdomain_registry->reset();
+		$wp_textdomain_registry = new WP_Textdomain_Registry();
 
 		parent::tear_down();
 	}
@@ -478,11 +478,12 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		require_once DIR_TESTDATA . '/plugins/custom-internationalized-plugin/custom-internationalized-plugin.php';
 
-		$registry_value = $wp_textdomain_registry->get( 'custom-internationalized-plugin', determine_locale() );
-
 		$actual = custom_i18n_plugin_test();
 
 		switch_to_locale( 'es_ES' );
+
+		$registry_value = $wp_textdomain_registry->get( 'custom-internationalized-plugin', determine_locale() );
+
 		switch_to_locale( 'de_DE' );
 
 		$actual_de_de = custom_i18n_plugin_test();
@@ -517,11 +518,12 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		require_once get_stylesheet_directory() . '/functions.php';
 
-		$registry_value = $wp_textdomain_registry->get( 'custom-internationalized-theme', determine_locale() );
-
 		$actual = custom_i18n_theme_test();
 
 		switch_to_locale( 'es_ES' );
+
+		$registry_value = $wp_textdomain_registry->get( 'custom-internationalized-theme', determine_locale() );
+
 		switch_to_locale( 'de_DE' );
 
 		$actual_de_de = custom_i18n_theme_test();
