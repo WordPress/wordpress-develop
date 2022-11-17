@@ -409,7 +409,7 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		$tag  = $translations . $cond_before . $before_handle;
- 		$tag .= sprintf( "<script%s src='%s' id='%s-js'%s></script>\n", $this->type_attr, $src, esc_attr( $handle ), $extra_atts );
+		$tag .= sprintf( "<script%s src='%s' id='%s-js'%s></script>\n", $this->type_attr, $src, esc_attr( $handle ), $extra_atts );
 		$tag .= $after_handle . $cond_after;
 
 		/**
@@ -444,7 +444,7 @@ class WP_Scripts extends WP_Dependencies {
 	 */
 	private function _all_dependents_are_deferred( $handle ) {
 		$dependents = $this->_get_dependents( $handle );
-		foreach( $dependents as $dependent ) {
+		foreach ( $dependents as $dependent ) {
 			if ( ! $this->is_deferred( $dependent ) ) {
 				return false;
 			}
@@ -464,7 +464,7 @@ class WP_Scripts extends WP_Dependencies {
 		$dependents = array();
 
 		// Iterate over all registered scripts, finding ones that depend on the script.
-		foreach( $this->registered as $registered_handle => $args ) {
+		foreach ( $this->registered as $registered_handle => $args ) {
 			if ( in_array( $handle, $args->deps ) ) {
 				$dependents[] = $registered_handle;
 			}
@@ -497,7 +497,7 @@ class WP_Scripts extends WP_Dependencies {
 	 */
 	private function _get_strategy( $handle ) {
 		$obj      = $this->registered[ $handle ];
-		$strategy = isset ( $obj->args['strategy'] ) ? $obj->args['strategy'] : false;
+		$strategy = isset( $obj->args['strategy'] ) ? $obj->args['strategy'] : false;
 
 		return $strategy;
 	}
