@@ -137,7 +137,7 @@ function maybe_drop_column( $table_name, $column_name, $drop_ddl ) {
 			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- No applicable variables for this query.
 			$wpdb->query( $drop_ddl );
 
-			// Check if column was dropped.
+			// Check if the column was dropped.
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Cannot be prepared. Fetches columns for table names.
 			foreach ( $wpdb->get_col( "DESC $table_name", 0 ) as $column ) {
 				if ( $column === $column_name ) {
