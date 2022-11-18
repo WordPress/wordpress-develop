@@ -929,6 +929,7 @@
 			});
 
 			$( '.menu-items-delete' ).addClass( 'disabled' );
+			$( '.menu-items-delete' ).addClass( 'hidden' );
 			$( '#pending-menu-items-to-delete ul' ).empty();
 		},
 
@@ -964,6 +965,7 @@
 					});
 
 					$( '.menu-items-delete' ).addClass( 'disabled' );
+					$( '.menu-items-delete' ).addClass( 'hidden' );
 					$( '.bulk-select-switcher' ).prop( 'checked', false );
 
 					itemsPendingDeletion     = '';
