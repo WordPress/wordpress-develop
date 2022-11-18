@@ -19,7 +19,7 @@ on:
     paths:
       # Any change to a JavaScript file should run tests.
       - '**.js'
-      # These files configure NPM. Changes could affect the outcome.
+      # These files configure npm. Changes could affect the outcome.
       - 'package*.json'
       # This file configures ESLint. Changes could affect the outcome.
       - '.eslintignore'
@@ -44,9 +44,9 @@ jobs:
   # Performs the following steps:
   # - Checks out the repository.
   # - Logs debug information about the GitHub Action runner.
-  # - Installs NodeJS.
+  # - Installs Node.js.
   # - Logs updated debug information.
-  # _ Installs NPM dependencies.
+  # _ Installs npm dependencies.
   # - Run the WordPress QUnit tests.
   # - Ensures version-controlled files are not modified or deleted.
   test-js:
@@ -66,7 +66,7 @@ jobs:
           git --version
           svn --version
 
-      - name: Install NodeJS
+      - name: Install Node.js
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
         with:
           node-version-file: '.nvmrc'
