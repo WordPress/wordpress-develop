@@ -195,7 +195,7 @@ input.bulk-select-switcher:focus + .bulk-select-button-label{
 
 	/* WCAG 1.4.3 Text that are part of an inactive user
 	   interface component ... have no contrast requirement. */
-	color: #a7aaa7;
+	color: #a7aaad;
 	box-shadow: none;
 }
 
