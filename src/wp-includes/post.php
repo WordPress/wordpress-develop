@@ -7821,6 +7821,7 @@ function wp_delete_auto_drafts() {
 function wp_queue_posts_for_term_meta_lazyload( $posts ) {
 	$post_type_taxonomies = array();
 	$term_ids             = array();
+	$prime_post_terms     = array();
 	foreach ( $posts as $post ) {
 		if ( ! ( $post instanceof WP_Post ) ) {
 			continue;
@@ -7830,6 +7831,26 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
 			$post_type_taxonomies[ $post->post_type ] = get_object_taxonomies( $post->post_type );
 		}
 
+		foreach ( $post_type_taxonomies[ $post->post_type ] as $taxonomy ) {
+			$prime_post_terms[ $taxonomy ][] = $post->ID;
+		}
+	}
+
+	if ( $prime_post_terms ) {
+		$prime_term_ids = array();
+		foreach ( $prime_post_terms as $taxonomy => $post_ids ) {
+			$prime_term_id = wp_cache_get_multiple( $post_ids, "{$taxonomy}_relationships" );
+			if ( $prime_term_id ) {
+				$prime_term_ids = array_merge( $prime_term_ids, ...$prime_term_id );
+			}
+		}
+		if ( $prime_term_ids ) {
+			$prime_term_ids = array_unique( array_filter( $prime_term_ids ) );
+			_prime_term_caches( $prime_term_ids );
+		}
+	}
+
+	foreach ( $posts as $post ) {
 		foreach ( $post_type_taxonomies[ $post->post_type ] as $taxonomy ) {
 			// Term cache should already be primed by `update_post_term_cache()`.
 			$terms = get_object_term_cache( $post->ID, $taxonomy );
