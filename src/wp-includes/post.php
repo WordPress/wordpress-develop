@@ -7839,9 +7839,10 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
 	if ( $prime_post_terms ) {
 		$prime_term_ids = array();
 		foreach ( $prime_post_terms as $taxonomy => $post_ids ) {
-			$prime_term_id = wp_cache_get_multiple( $post_ids, "{$taxonomy}_relationships" );
-			if ( $prime_term_id ) {
-				$prime_term_ids = array_merge( $prime_term_ids, ...$prime_term_id );
+			$_term_ids = wp_cache_get_multiple( $post_ids, "{$taxonomy}_relationships" );
+			if ( is_array( $_term_ids ) ) {
+				$_term_ids      = array_filter( $_term_ids );
+				$prime_term_ids = array_merge( $prime_term_ids, ...$_term_ids );
 			}
 		}
 		if ( $prime_term_ids ) {
