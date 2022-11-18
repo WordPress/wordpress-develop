@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/bash -i
 
 if [[ ! -z "$CODESPACE_NAME" ]]
 then
