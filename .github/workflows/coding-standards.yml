@@ -82,7 +82,9 @@ jobs:
       - name: Cache PHPCS scan cache
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
         with:
-          path: .cache/phpcs.json
+          path: |
+            .cache/phpcs-src.json
+            .cache/phpcs-tests.json
           key: ${{ runner.os }}-date-${{ steps.get-date.outputs.date }}-phpcs-cache-${{ hashFiles('**/composer.json', 'phpcs.xml.dist') }}
 
       # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
@@ -97,7 +99,7 @@ jobs:
 
       - name: Run PHPCS on all Core files
         id: phpcs-core
-        run: phpcs -n --report-full --report-checkstyle=./.cache/phpcs-report.xml
+        run: phpcs -n --report-full --cache=./.cache/phpcs-src.json --report-checkstyle=./.cache/phpcs-report.xml
 
       - name: Show PHPCS results in PR
         if: ${{ always() && steps.phpcs-core.outcome == 'failure' }}
@@ -105,7 +107,7 @@ jobs:
 
       - name: Check test suite files for warnings
         id: phpcs-tests
-        run: phpcs tests --report-full --report-checkstyle=./.cache/phpcs-tests-report.xml
+        run: phpcs tests --report-full --cache=./.cache/phpcs-tests.json --report-checkstyle=./.cache/phpcs-tests-report.xml
 
       - name: Show test suite scan results in PR
         if: ${{ always() && steps.phpcs-tests.outcome == 'failure' }}
