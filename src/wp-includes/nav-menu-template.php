@@ -643,7 +643,7 @@ function _nav_menu_item_id_use_once( $id, $item ) {
  */
 function wp_nav_menu_remove_menu_item_has_children_class( $classes, $menu_item, $args, $depth ) {
 	// Max-depth is 1-based.
-	$max_depth = (int) $args->depth;
+	$max_depth = isset( $args->depth ) ? (int) $args->depth : 0;
 	// Depth is 0-based so needs to be increased by one.
 	$depth = $depth + 1;
 
