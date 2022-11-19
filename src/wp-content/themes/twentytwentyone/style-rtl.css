@@ -11,7 +11,7 @@ Tested up to: 6.0
 Requires PHP: 5.6
 Version: 1.7
 License: GNU General Public License v2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: twentytwentyone
 Tags: one-column, accessibility-ready, custom-colors, custom-menu, custom-logo, editor-style, featured-images, footer-widgets, block-patterns, rtl-language-support, sticky-post, threaded-comments, translation-ready
 
@@ -1237,7 +1237,7 @@ select {
 	appearance: none;
 	line-height: var(--global--line-height-body);
 	padding: var(--form--spacing-unit) var(--form--spacing-unit) var(--form--spacing-unit) calc(3 * var(--form--spacing-unit));
-	background: var(--global--color-white) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2328303d'><polygon points='0,0 10,0 5,5'/></svg>") no-repeat;
+	background: var(--global--color-white) url("data:image/svg+xml;utf8,<svg xmlns='https://www.w3.org/2000/svg' width='10' height='10' fill='%2328303d'><polygon points='0,0 10,0 5,5'/></svg>") no-repeat;
 	background-position: left var(--form--spacing-unit) top 60%;
 }
 
@@ -1247,7 +1247,7 @@ select:focus {
 }
 
 .is-dark-theme select {
-	background: var(--global--color-white-90) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2328303d'><polygon points='0,0 10,0 5,5'/></svg>") no-repeat;
+	background: var(--global--color-white-90) url("data:image/svg+xml;utf8,<svg xmlns='https://www.w3.org/2000/svg' width='10' height='10' fill='%2328303d'><polygon points='0,0 10,0 5,5'/></svg>") no-repeat;
 	background-position: left var(--form--spacing-unit) top 60%;
 }
 
