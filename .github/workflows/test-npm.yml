@@ -1,4 +1,4 @@
-name: Test NPM
+name: Test npm
 
 on:
   push:
@@ -15,11 +15,11 @@ on:
       - '3.[7-9]'
       - '[4-9].[0-9]'
     paths:
-      # These files configure NPM. Changes could affect the outcome.
+      # These files configure npm. Changes could affect the outcome.
       - 'package*.json'
-      # JavaScript files are built using NPM.
+      # JavaScript files are built using npm.
       - '**.js'
-      # CSS and SCSS files are built using NPM.
+      # CSS and SCSS files are built using npm.
       - '**.scss'
       - '**.css'
       # Changes to workflow files should always verify all workflows are successful.
@@ -37,13 +37,13 @@ env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
 
 jobs:
-  # Verifies that installing NPM dependencies and building WordPress works as expected.
+  # Verifies that installing npm dependencies and building WordPress works as expected.
   #
   # Performs the following steps:
   # - Checks out the repository.
+  # - Sets up Node.js.
   # - Logs debug information about the GitHub Action runner.
-  # - Installs NodeJS.
-  # _ Installs NPM dependencies.
+  # - Installs npm dependencies.
   # - Builds WordPress to run from the `build` directory.
   # - Cleans up after building WordPress to the `build` directory.
   # - Ensures version-controlled files are not modified or deleted.
@@ -51,7 +51,7 @@ jobs:
   # - Cleans up after building WordPress to the `src` directory.
   # - Ensures version-controlled files are not modified or deleted.
   test-npm:
-    name: Test NPM on ${{ matrix.os }}
+    name: Test npm on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -64,6 +64,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
 
+      - name: Set up Node.js
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
       - name: Log debug information
         run: |
           npm --version
@@ -72,13 +78,7 @@ jobs:
           git --version
           svn --version
 
-      - name: Install NodeJS
-        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
-      - name: Install Dependencies
+      - name: Install npm Dependencies
         run: npm ci
 
       - name: Build WordPress in /src
@@ -99,16 +99,20 @@ jobs:
       - name: Ensure version-controlled files are not modified or deleted during building and cleaning
         run: git diff --exit-code
 
-  # Verifies that installing NPM dependencies and building WordPress works as expected on MacOS.
+  # Verifies that installing npm dependencies and building WordPress works as expected on MacOS.
   #
   # This is separate from the job above in order to use stricter conditions about when to run.
   # This avoids unintentionally consuming excessive minutes, as MacOS jobs consume minutes at a 10x rate.
   #
+  # The `matrix` and `runner` contexts are not available for use within `if` expressions. So there is
+  # currently no way to determine the OS being used on a given job.
+  # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
+  #
   # Performs the following steps:
   # - Checks out the repository.
+  # - Sets up Node.js.
   # - Logs debug information about the GitHub Action runner.
-  # - Installs NodeJS.
-  # _ Installs NPM dependencies.
+  # - Installs npm dependencies.
   # - Builds WordPress to run from the `build` directory.
   # - Cleans up after building WordPress to the `build` directory.
   # - Ensures version-controlled files are not modified or deleted.
@@ -116,13 +120,19 @@ jobs:
   # - Cleans up after building WordPress to the `src` directory.
   # - Ensures version-controlled files are not modified or deleted.
   test-npm-macos:
-    name: Test NPM on MacOS
+    name: Test npm on MacOS
     runs-on: macos-latest
     timeout-minutes: 30
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
 
       - name: Log debug information
         run: |
@@ -132,13 +142,7 @@ jobs:
           git --version
           svn --version
 
-      - name: Install NodeJS
-        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
-      - name: Install Dependencies
+      - name: Install npm Dependencies
         run: npm ci
 
       - name: Build WordPress in /src
@@ -197,7 +201,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: 'failed-workflow.yml',
-              ref: '${{ github.ref_name }}',
+              ref: 'trunk',
               inputs: {
                 run_id: '${{ github.run_id }}'
               }

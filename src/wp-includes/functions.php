@@ -934,7 +934,7 @@ function do_enclose( $content, $post ) {
 	 * @since 4.4.0
 	 *
 	 * @param string[] $post_links An array of enclosure links.
-	 * @param int      $post_ID    Post ID.
+	 * @param int      $post_id    Post ID.
 	 */
 	$post_links = apply_filters( 'enclosure_links', $post_links, $post->ID );
 
@@ -2079,7 +2079,6 @@ function wp_mkdir_p( $target ) {
  * For example, '/foo/bar', or 'c:\windows'.
  *
  * @since 2.5.0
- * @since 6.1.0 Allows normalized Windows paths (forward slashes).
  *
  * @param string $path File path.
  * @return bool True if path is absolute, false is not absolute.
@@ -2107,11 +2106,6 @@ function path_is_absolute( $path ) {
 
 	// Windows allows absolute paths like this.
 	if ( preg_match( '#^[a-zA-Z]:\\\\#', $path ) ) {
-		return true;
-	}
-
-	// Normalized Windows paths for local filesystem and network shares (forward slashes).
-	if ( preg_match( '#(^[a-zA-Z]+:/|^//[\w!@\#\$%\^\(\)\-\'{}\.~]{1,15})#', $path ) ) {
 		return true;
 	}
 
@@ -3336,7 +3330,7 @@ function wp_get_mime_types() {
 	 * @since 3.5.0
 	 *
 	 * @param string[] $wp_get_mime_types Mime types keyed by the file extension regex
-	 *                                 corresponding to those types.
+	 *                                    corresponding to those types.
 	 */
 	return apply_filters(
 		'mime_types',
@@ -3573,19 +3567,23 @@ function wp_nonce_ays( $action ) {
 			__( 'You are attempting to log out of %s' ),
 			get_bloginfo( 'name' )
 		);
-		$html        = $title;
-		$html       .= '</p><p>';
+
 		$redirect_to = isset( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : '';
-		$html       .= sprintf(
+
+		$html  = $title;
+		$html .= '</p><p>';
+		$html .= sprintf(
 			/* translators: %s: Logout URL. */
 			__( 'Do you really want to <a href="%s">log out</a>?' ),
 			wp_logout_url( $redirect_to )
 		);
 	} else {
 		$html = __( 'The link you followed has expired.' );
+
 		if ( wp_get_referer() ) {
 			$wp_http_referer = remove_query_arg( 'updated', wp_get_referer() );
 			$wp_http_referer = wp_validate_redirect( esc_url_raw( $wp_http_referer ) );
+
 			$html .= '</p><p>';
 			$html .= sprintf(
 				'<a href="%s">%s</a>',
@@ -5202,9 +5200,10 @@ function wp_list_pluck( $list, $field, $index_key = null ) {
  *
  * @param array        $list          An array of objects or arrays to sort.
  * @param string|array $orderby       Optional. Either the field name to order by or an array
- *                                    of multiple orderby fields as $orderby => $order.
- * @param string       $order         Optional. Either 'ASC' or 'DESC'. Only used if $orderby
- *                                    is a string.
+ *                                    of multiple orderby fields as `$orderby => $order`.
+ *                                    Default empty array.
+ * @param string       $order         Optional. Either 'ASC' or 'DESC'. Only used if `$orderby`
+ *                                    is a string. Default 'ASC'.
  * @param bool         $preserve_keys Optional. Whether to preserve keys. Default false.
  * @return array The sorted array.
  */
@@ -6353,7 +6352,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 		$locale_loaded = $locale ? $locale : get_locale();
 		$mofile        = WP_LANG_DIR . '/continents-cities-' . $locale_loaded . '.mo';
 		unload_textdomain( 'continents-cities' );
-		load_textdomain( 'continents-cities', $mofile );
+		load_textdomain( 'continents-cities', $mofile, $locale_loaded );
 		$mo_loaded = true;
 	}
 
@@ -8436,7 +8435,7 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 /**
  * Sorts the keys of an array alphabetically.
  * The array is passed by reference so it doesn't get returned
- * which mimics the behaviour of ksort.
+ * which mimics the behavior of ksort.
  *
  * @since 6.0.0
  *
