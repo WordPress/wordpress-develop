@@ -19,7 +19,7 @@ on:
     paths:
       # Any change to a JavaScript file should run tests.
       - '**.js'
-      # These files configure NPM. Changes could affect the outcome.
+      # These files configure npm. Changes could affect the outcome.
       - 'package*.json'
       # This file configures ESLint. Changes could affect the outcome.
       - '.eslintignore'
@@ -43,10 +43,9 @@ jobs:
   #
   # Performs the following steps:
   # - Checks out the repository.
+  # - Sets up Node.js.
   # - Logs debug information about the GitHub Action runner.
-  # - Installs NodeJS.
-  # - Logs updated debug information.
-  # _ Installs NPM dependencies.
+  # - Installs npm dependencies.
   # - Run the WordPress QUnit tests.
   # - Ensures version-controlled files are not modified or deleted.
   test-js:
@@ -59,14 +58,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
 
-      - name: Log debug information
-        run: |
-          npm --version
-          node --version
-          git --version
-          svn --version
-
-      - name: Install NodeJS
+      - name: Set up Node.js
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
         with:
           node-version-file: '.nvmrc'
@@ -76,8 +68,10 @@ jobs:
         run: |
           npm --version
           node --version
+          git --version
+          svn --version
 
-      - name: Install Dependencies
+      - name: Install npm Dependencies
         run: npm ci
 
       - name: Run QUnit tests
@@ -123,7 +117,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: 'failed-workflow.yml',
-              ref: '${{ github.ref_name }}',
+              ref: 'trunk',
               inputs: {
                 run_id: '${{ github.run_id }}'
               }

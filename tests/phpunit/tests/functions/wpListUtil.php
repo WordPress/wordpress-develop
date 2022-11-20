@@ -64,7 +64,8 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 * @param array  $target_array The array to create the list from.
 	 * @param string $target_key   The key to pluck.
 	 * @param array  $expected     The expected array.
-	 * @param string $index_key    Optional. Field from the element to use as keys for the new array. Default null.
+	 * @param string $index_key    Optional. Field from the element to use as keys for the new array.
+	 *                             Default null.
 	 */
 	public function test_wp_list_util_pluck( $target_array, $target_key, $expected, $index_key = null ) {
 		$util   = new WP_List_Util( $target_array );
@@ -156,9 +157,11 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 *
 	 * @param array  $expected      The expected array.
 	 * @param array  $target_array  The array to create a list from.
-	 * @param array  $orderby       Optional. Either the field name to order by or an array of multiple orderby fields as $orderby => $order.
+	 * @param array  $orderby       Optional. Either the field name to order by or an array
+	 *                              of multiple orderby fields as `$orderby => $order`.
 	 *                              Default empty array.
-	 * @param string $order         Optional. Either 'ASC' or 'DESC'. Only used if $orderby is a string. Default 'ASC'.
+	 * @param string $order         Optional. Either 'ASC' or 'DESC'. Only used if `$orderby`
+	 *                              is a string. Default 'ASC'.
 	 * @param bool   $preserve_keys Optional. Whether to preserve keys. Default false.
 	 */
 	public function test_wp_list_util_sort( $expected, $target_array, $orderby = array(), $order = 'ASC', $preserve_keys = false ) {
@@ -942,7 +945,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	/**
 	 * Tests non-existent '$orderby' fields.
 	 *
-	 * In PHP < 7.0.0, the sorting behaviour is different, which Core does not
+	 * In PHP < 7.0.0, the sorting behavior is different, which Core does not
 	 * currently handle. Until this is fixed, or the minimum PHP version is
 	 * raised to PHP 7.0.0+, these tests will be skipped on PHP < 7.0.0.
 	 *
@@ -955,9 +958,11 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 *
 	 * @param array  $expected      The expected array.
 	 * @param array  $target_array  The array to create a list from.
-	 * @param array  $orderby       Optional. Either the field name to order by or an array of multiple orderby fields as $orderby => $order.
+	 * @param array  $orderby       Optional. Either the field name to order by or an array
+	 *                              of multiple orderby fields as `$orderby => $order`.
 	 *                              Default empty array.
-	 * @param string $order         Optional. Either 'ASC' or 'DESC'. Only used if $orderby is a string. Default 'ASC'.
+	 * @param string $order         Optional. Either 'ASC' or 'DESC'. Only used if `$orderby`
+	 *                              is a string. Default 'ASC'.
 	 * @param bool   $preserve_keys Optional. Whether to preserve keys. Default false.
 	 */
 	public function test_wp_list_util_sort_php_7_or_greater( $expected, $target_array, $orderby = array(), $order = 'ASC', $preserve_keys = false ) {

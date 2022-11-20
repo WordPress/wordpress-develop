@@ -1308,7 +1308,7 @@ function wp_edit_attachments_query_vars( $q = false ) {
 
 	// Filter query clauses to include filenames.
 	if ( isset( $q['s'] ) ) {
-		add_filter( 'posts_clauses', '_filter_query_attachment_filenames' );
+		add_filter( 'wp_allow_query_attachment_by_filename', '__return_true' );
 	}
 
 	return $q;
@@ -2210,6 +2210,10 @@ function get_block_editor_server_block_settings() {
  * Renders the meta boxes forms.
  *
  * @since 5.0.0
+ *
+ * @global WP_Post   $post           Global post object.
+ * @global WP_Screen $current_screen WordPress current screen object.
+ * @global array     $wp_meta_boxes
  */
 function the_block_editor_meta_boxes() {
 	global $post, $current_screen, $wp_meta_boxes;

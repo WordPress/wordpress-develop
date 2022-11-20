@@ -36,6 +36,13 @@
  * Using `CUSTOM_TAGS` is not recommended and should be considered deprecated. The
  * {@see 'wp_kses_allowed_html'} filter is more powerful and supplies context.
  *
+ * When using this constant, make sure to set all of these globals to arrays:
+ *
+ *  - `$allowedposttags`
+ *  - `$allowedtags`
+ *  - `$allowedentitynames`
+ *  - `$allowedxmlentitynames`
+ *
  * @see wp_kses_allowed_html()
  * @since 1.2.0
  *
@@ -685,6 +692,33 @@ if ( ! CUSTOM_TAGS ) {
 
 	$allowedposttags = array_map( '_wp_add_global_attributes', $allowedposttags );
 } else {
+	$required_kses_globals = array(
+		'allowedposttags',
+		'allowedtags',
+		'allowedentitynames',
+		'allowedxmlentitynames',
+	);
+	$missing_kses_globals  = array();
+
+	foreach ( $required_kses_globals as $global_name ) {
+		if ( ! isset( $GLOBALS[ $global_name ] ) || ! is_array( $GLOBALS[ $global_name ] ) ) {
+			$missing_kses_globals[] = '<code>$' . $global_name . '</code>';
+		}
+	}
+
+	if ( $missing_kses_globals ) {
+		_doing_it_wrong(
+			'wp_kses_allowed_html',
+			sprintf(
+				/* translators: 1: CUSTOM_TAGS, 2: Global variable names. */
+				__( 'When using the %1$s constant, make sure to set these globals to an array: %2$s.' ),
+				'<code>CUSTOM_TAGS</code>',
+				implode( ', ', $missing_kses_globals )
+			),
+			'6.2.0'
+		);
+	}
+
 	$allowedtags     = wp_kses_array_lc( $allowedtags );
 	$allowedposttags = wp_kses_array_lc( $allowedposttags );
 }
@@ -2231,7 +2265,7 @@ function kses_init() {
  * @since 5.8.0 Added support for `calc()` and `var()` values.
  * @since 6.1.0 Added support for `min()`, `max()`, `minmax()`, `clamp()`,
  *              nested `var()` values, and assigning values to CSS variables.
- *              Added support for `gap`, `column-gap`, `row-gap`, and `flex-wrap`.
+ *              Added support for `object-fit`, `gap`, `column-gap`, `row-gap`, and `flex-wrap`.
  *              Extended `margin-*` and `padding-*` support for logical properties.
  *
  * @param string $css        A string of CSS rules.
@@ -2389,6 +2423,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'direction',
 			'float',
 			'list-style-type',
+			'object-fit',
 			'object-position',
 			'overflow',
 			'vertical-align',
