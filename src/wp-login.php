@@ -331,7 +331,7 @@ function login_footer( $input_id = '' ) {
 				<form id="language-switcher" action="" method="get">
 
 					<label for="language-switcher-locales">
-						<span class="dashicons dashicons-translation" aria-hidden="true"></span>
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" aria-hidden="true" focusable="false" class="dashicons-svg"><path d="M11 7H9.49c-.63 0-1.25.3-1.59.7L7 5H4.13l-2.39 7h1.69l.74-2H7v4H2c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h7c1.1 0 2 .9 2 2v2zM6.51 9H4.49l1-2.93zM10 8h7c1.1 0 2 .9 2 2v7c0 1.1-.9 2-2 2h-7c-1.1 0-2-.9-2-2v-7c0-1.1.9-2 2-2zm7.25 5v-1.08h-3.17V9.75h-1.16v2.17H9.75V13h1.28c.11.85.56 1.85 1.28 2.62-.87.36-1.89.62-2.31.62-.01.02.22.97.2 1.46.84 0 2.21-.5 3.28-1.15 1.09.65 2.48 1.15 3.34 1.15-.02-.49.2-1.44.2-1.46-.43 0-1.49-.27-2.38-.63.7-.77 1.14-1.77 1.25-2.61h1.36zm-3.81 1.93c-.5-.46-.85-1.13-1.01-1.93h2.09c-.17.8-.51 1.47-1 1.93l-.04.03s-.03-.02-.04-.03z"></path></svg>
 						<span class="screen-reader-text"><?php _e( 'Language' ); ?></span>
 					</label>
 
@@ -943,7 +943,7 @@ switch ( $action ) {
 			exit;
 		}
 
-		wp_enqueue_script( 'utils' );
+		wp_enqueue_style( 'dashicons' );
 		wp_enqueue_script( 'user-profile' );
 
 		login_header( __( 'Reset Password' ), '<p class="message reset-pass">' . __( 'Enter your new password below or generate one.' ) . '</p>', $errors );
@@ -1410,8 +1410,6 @@ switch ( $action ) {
 		if ( $has_errors && 'message' === $errors->get_error_data() ) {
 			$aria_describedby = ' aria-describedby="login-message"';
 		}
-
-		wp_enqueue_script( 'user-profile' );
 		?>
 
 		<form name="loginform" id="loginform" action="<?php echo esc_url( site_url( 'wp-login.php', 'login_post' ) ); ?>" method="post">
@@ -1425,7 +1423,8 @@ switch ( $action ) {
 				<div class="wp-pwd">
 					<input type="password" name="pwd" id="user_pass"<?php echo $aria_describedby; ?> class="input password-input" value="" size="20" autocomplete="current-password" />
 					<button type="button" class="button button-secondary wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Show password' ); ?>">
-						<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" aria-hidden="true" focusable="false" class="dashicons-svg dashicons-svg-visibility"><path d="M18.3 9.5C15 4.9 8.5 3.8 3.9 7.2c-1.2.9-2.2 2.1-3 3.4.2.4.5.8.8 1.2 3.3 4.6 9.6 5.6 14.2 2.4.9-.7 1.7-1.4 2.4-2.4.3-.4.5-.8.8-1.2-.3-.4-.5-.8-.8-1.1zm-8.2-2.3c.5-.5 1.3-.5 1.8 0s.5 1.3 0 1.8-1.3.5-1.8 0-.5-1.3 0-1.8zm-.1 7.7c-3.1 0-6-1.6-7.7-4.2C3.5 9 5.1 7.8 7 7.2c-.7.8-1 1.7-1 2.7 0 2.2 1.7 4.1 4 4.1 2.2 0 4.1-1.7 4.1-4v-.1c0-1-.4-2-1.1-2.7 1.9.6 3.5 1.8 4.7 3.5-1.7 2.6-4.6 4.2-7.7 4.2z"></path></svg>
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" aria-hidden="true" focusable="false" class="dashicons-svg dashicons-svg-hidden"><path d="M17.3 3.3c-.4-.4-1.1-.4-1.6 0l-2.4 2.4c-1.1-.4-2.2-.6-3.3-.6-3.8.1-7.2 2.1-9 5.4.2.4.5.8.8 1.2.8 1.1 1.8 2 2.9 2.7L3 16.1c-.4.4-.5 1.1 0 1.6.4.4 1.1.5 1.6 0L17.3 4.9c.4-.5.4-1.2 0-1.6zm-10.6 9l-1.3 1.3c-1.2-.7-2.3-1.7-3.1-2.9C3.5 9 5.1 7.8 7 7.2c-1.3 1.4-1.4 3.6-.3 5.1zM10.1 9c-.5-.5-.4-1.3.1-1.8.5-.4 1.2-.4 1.7 0L10.1 9zm8.2.5c-.5-.7-1.1-1.4-1.8-1.9l-1 1c.8.6 1.5 1.3 2.1 2.2C15.9 13.4 13 15 9.9 15h-.8l-1 1c.7-.1 1.3 0 1.9 0 3.3 0 6.4-1.6 8.3-4.3.3-.4.5-.8.8-1.2-.3-.3-.5-.7-.8-1zM14 10l-4 4c2.2 0 4-1.8 4-4z"></path></svg>
 					</button>
 				</div>
 			</div>
@@ -1533,6 +1532,18 @@ switch ( $action ) {
 		?>
 		<script type="text/javascript">
 			<?php echo $login_script; ?>
+			var toggleButton  = document.querySelector('.wp-hide-pw');
+			var passwordInput = document.getElementById('user_pass');
+			toggleButton.addEventListener('click', function () {
+				if ( passwordInput.getAttribute('type') === 'password' ) {
+					passwordInput.setAttribute('type', 'text');
+					this.setAttribute('aria-label', '<?php _e( 'Show password' ); ?>');
+				} else {
+					passwordInput.setAttribute('type', 'password');
+					this.setAttribute('aria-label', '<?php _e( 'Hide password' ); ?>');
+				}
+				this.classList.toggle('is-password-visible');
+			});
 		</script>
 		<?php
 
