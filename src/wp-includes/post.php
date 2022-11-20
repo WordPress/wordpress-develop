@@ -7841,12 +7841,22 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
 		foreach ( $prime_post_terms as $taxonomy => $post_ids ) {
 			$_term_ids = wp_cache_get_multiple( $post_ids, "{$taxonomy}_relationships" );
 			if ( is_array( $_term_ids ) ) {
-				$_term_ids      = array_filter( $_term_ids );
-				$prime_term_ids = array_merge( $prime_term_ids, ...$_term_ids );
+				$_term_ids = array_filter( $_term_ids );
+				foreach ( $_term_ids as $term_ids ) {
+					// Backward compatibility for if a plugin is putting objects into the cache, rather than IDs.
+					foreach ( $term_ids as $term_id ) {
+						if ( is_numeric( $term_id ) ) {
+							$prime_term_ids[] = (int) $term_id;
+						} elseif ( isset( $term_id->term_id ) ) {
+							$prime_term_ids[] = (int) $term_id->term_id;
+						}
+					}
+				}
 			}
 		}
+
 		if ( $prime_term_ids ) {
-			$prime_term_ids = array_unique( array_filter( $prime_term_ids ) );
+			$prime_term_ids = array_unique( $prime_term_ids );
 			_prime_term_caches( $prime_term_ids );
 		}
 	}
