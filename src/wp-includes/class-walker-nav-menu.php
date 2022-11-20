@@ -78,14 +78,14 @@ class Walker_Nav_Menu extends Walker {
 		$atts['class'] = ! empty( $class_names ) ? $class_names : '';
 
 		/**
-		 * Filters the HTML attributes applied to a menu item's ul element.
+		 * Filters the HTML attributes applied to a menu list element.
 		 *
 		 * @since 6.2.0
 		 *
 		 * @param array $atts {
 		 *     The HTML attributes applied to the `<ul>` element, empty strings are ignored.
 		 *
-		 *     @type string $class    HTML CSS class attribute
+		 *     @type string $class    HTML CSS class attribute.
 		 * }
 		 * @param stdClass $args      An object of `wp_nav_menu()` arguments.
 		 * @param int      $depth     Depth of menu item. Used for padding.
@@ -193,7 +193,7 @@ class Walker_Nav_Menu extends Walker {
 		$li_atts['id']    = ! empty( $id ) ? $id : '';
 
 		/**
-		 * Filters the HTML attributes applied to a menu item's li element.
+		 * Filters the HTML attributes applied to a menu's list item element.
 		 *
 		 * @since 6.2.0
 		 *
@@ -201,7 +201,7 @@ class Walker_Nav_Menu extends Walker {
 		 *     The HTML attributes applied to the menu item's `<li>` element, empty strings are ignored.
 		 *
 		 *     @type string $class        HTML CSS class attribute.
-		 *     @type string $id           ID html attribute.
+		 *     @type string $id           HTML id attribute.
 		 * }
 		 * @param WP_Post  $menu_item The current menu item object.
 		 * @param stdClass $args      An object of wp_nav_menu() arguments.
@@ -308,13 +308,13 @@ class Walker_Nav_Menu extends Walker {
 	}
 
 	/**
-	 * Builds an HTML attributes string based on an array of key value pairs
-	 * Empty values are ignored
+	 * Builds a string of HTML attributes from an array of key/value pairs.
+	 * Empty values are ignored.
 	 *
 	 * @since 6.2.0
 	 *
-	 * @param      array   $atts   The atts
-	 * @return     string  HTML attributes string
+	 * @param  array $atts Optional. An array of HTML attribute key/value pairs. Default empty array.
+	 * @return string A string of HTML attributes.
 	 */
 	protected function build_atts( $atts = array() ) {
 		$attributes = '';
