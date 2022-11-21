@@ -186,9 +186,9 @@
 			}
 		},
 		"color": {
-			"background": "#FFFFFF",
+			"background": "var(--wp--preset--color--white)",
 			"gradient": "var(--wp--preset--gradient--primary-secondary-tertiary)",
-			"text": "#000000"
+			"text": "var(--wp--preset--color--black)"
 		},
 		"elements": {
 			"button": {

@@ -370,8 +370,8 @@
 			}
 		},
 		"color": {
-			"background": "#E5E7F2",
-			"text": "#47484B"
+			"background": "var(--wp--preset--color--light-purple)",
+			"text": "var(--wp--preset--color--grey)"
 		},
 		"elements": {
 			"button": {

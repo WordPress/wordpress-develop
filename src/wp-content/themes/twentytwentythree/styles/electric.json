@@ -25,8 +25,8 @@
 	},
 	"styles": {
 		"color": {
-			"background": "#f3f3f1",
-			"text": "#2500ff"
+			"background": "var(--wp--preset--color--primary)",
+			"text": "var(--wp--preset--color--secondary)"
 		},
 		"elements": {
 			"button": {

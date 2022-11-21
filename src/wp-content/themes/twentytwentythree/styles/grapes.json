@@ -60,8 +60,8 @@
 			}
 		},
 		"color": {
-			"background": "#E1E1C7",
-			"text": "#000000"
+			"background": "var(--wp--preset--color--olive)",
+			"text": "var(--wp--preset--color--black)"
 		},
 		"elements": {
 			"button": {

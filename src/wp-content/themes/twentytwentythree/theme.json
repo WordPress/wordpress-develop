@@ -580,8 +580,8 @@
 			}
 		},
 		"color": {
-			"background": "#ffffff",
-			"text": "#000000"
+			"background": "var(--wp--preset--color--white)",
+			"text": "var(--wp--preset--color--black)"
 		},
 		"elements": {
 			"button": {

@@ -216,8 +216,8 @@
 			}
 		},
 		"color": {
-			"background": "#F6F2EC",
-			"text": "#21251F"
+			"background": "var(--wp--preset--color--stone)",
+			"text": "var(--wp--preset--color--dark-grey)"
 		},
 		"elements": {
 			"h1": {

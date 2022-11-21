@@ -145,8 +145,8 @@
 			}
 		},
 		"color": {
-			"background": "#202124",
-			"text": "#e8eaed"
+			"background": "var(--wp--preset--color--dark-grey)",
+			"text": "var(--wp--preset--color--light-grey)"
 		},
 		"elements": {
 			"button": {

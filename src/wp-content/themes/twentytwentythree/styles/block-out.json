@@ -192,8 +192,8 @@
 			}
 		},
 		"color": {
-			"background": "#ff5252",
-			"text": "#252525"
+			"background": "var(--wp--preset--color--block-out-red)",
+			"text": "var(--wp--preset--color--dark-grey)"
 		},
 		"elements": {
 			"button": {
