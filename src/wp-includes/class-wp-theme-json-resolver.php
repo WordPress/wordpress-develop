@@ -428,14 +428,16 @@ class WP_Theme_JSON_Resolver {
 		$post_type_filter = 'wp_global_styles';
 		$stylesheet       = $theme->get_stylesheet();
 		$args             = array(
-			'posts_per_page'      => 1,
-			'orderby'             => 'date',
-			'order'               => 'desc',
-			'post_type'           => $post_type_filter,
-			'post_status'         => $post_status_filter,
-			'ignore_sticky_posts' => true,
-			'no_found_rows'       => true,
-			'tax_query'           => array(
+			'posts_per_page'         => 1,
+			'orderby'                => 'date',
+			'order'                  => 'desc',
+			'post_type'              => $post_type_filter,
+			'post_status'            => $post_status_filter,
+			'ignore_sticky_posts'    => true,
+			'no_found_rows'          => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+			'tax_query'              => array(
 				array(
 					'taxonomy' => 'wp_theme',
 					'field'    => 'name',
