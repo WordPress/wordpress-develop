@@ -3,7 +3,6 @@
 	"dockerComposeFile": "docker-compose.yml",
 	"service": "wordpress",
 	"forwardPorts": [ 8080 ],
-	"workspaceFolder": "/var/www/html/",
 	"postCreateCommand": "/workspaces/wordpress-develop/.devcontainer/setup.sh",
 	"remoteUser": "www-data"
 }
