@@ -459,12 +459,12 @@ function gen_tests_array( $name, $array ) {
 }
 
 /**
- * Use to create objects by yourself
+ * Use to create objects by yourself.
  */
 class MockClass extends stdClass {}
 
 /**
- * Drops all tables from the WordPress database
+ * Drops all tables from the WordPress database.
  */
 function drop_tables() {
 	global $wpdb;
