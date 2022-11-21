@@ -3,7 +3,7 @@ version: '3.1'
 services:
 
   wordpress:
-    image: dinhtungdu/wordpress-codespace
+    build: .
     restart: always
     ports:
       - 8080:80
