@@ -7901,7 +7901,7 @@ function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache
 	$ids_may_have_uncached_data = array_diff( $ids, $non_cached_ids );
 
 	if ( empty( $ids_may_have_uncached_data ) ) {
-		// No work to do.
+		// No work to do, caches primed within update_post_caches().
 		return;
 	}
 
