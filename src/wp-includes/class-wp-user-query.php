@@ -816,8 +816,8 @@ class WP_User_Query {
 				{$this->query_orderby}
 				{$this->query_limit}
 			";
-			$cache_key   = $this->generate_cache_key( $qv, $this->request );
-			$cache_value = wp_cache_get( $cache_key, 'users' );
+			$cache_key     = $this->generate_cache_key( $qv, $this->request );
+			$cache_value   = wp_cache_get( $cache_key, 'users' );
 			if ( false !== $cache_value ) {
 				$this->results     = $cache_value['user_data'];
 				$this->total_users = $cache_value['total_users'];
@@ -1038,7 +1038,27 @@ class WP_User_Query {
 		$count_users  = isset( $args['count_total'] ) ? $args['count_total'] : false;
 		$key          = md5( $sql . $count_users );
 		$last_changed = wp_cache_get_last_changed( 'users' );
-	    return "get_users:$key:$last_changed";
+
+		if ( empty( $args['orderby'] ) ) {
+			// Default order is by 'user_login'.
+			$ordersby = array( 'user_login' => '' );
+		} elseif ( is_array( $args['orderby'] ) ) {
+			$ordersby = $args['orderby'];
+		} else {
+			// 'orderby' values may be a comma- or space-separated list.
+			$ordersby = preg_split( '/[,\s]+/', $args['orderby'] );
+		}
+
+		$blog_id = 0;
+		if ( isset( $arg['blog_id'] ) ) {
+			$blog_id = absint( $arg['blog_id'] );
+		}
+
+		if ( ( $args['has_published_posts'] && $blog_id ) || in_array( 'post_count', $ordersby, true ) ) {
+			$last_changed .= wp_cache_get_last_changed( 'posts' );
+		}
+
+		return "get_users:$key:$last_changed";
 	}
 
 	/**
