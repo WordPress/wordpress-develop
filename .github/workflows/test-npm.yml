@@ -41,9 +41,9 @@ jobs:
   #
   # Performs the following steps:
   # - Checks out the repository.
+  # - Sets up Node.js.
   # - Logs debug information about the GitHub Action runner.
-  # - Installs Node.js.
-  # _ Installs npm dependencies.
+  # - Installs npm dependencies.
   # - Builds WordPress to run from the `build` directory.
   # - Cleans up after building WordPress to the `build` directory.
   # - Ensures version-controlled files are not modified or deleted.
@@ -64,6 +64,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
 
+      - name: Set up Node.js
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
       - name: Log debug information
         run: |
           npm --version
@@ -72,13 +78,7 @@ jobs:
           git --version
           svn --version
 
-      - name: Install Node.js
-        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
-      - name: Install Dependencies
+      - name: Install npm Dependencies
         run: npm ci
 
       - name: Build WordPress in /src
@@ -104,11 +104,15 @@ jobs:
   # This is separate from the job above in order to use stricter conditions about when to run.
   # This avoids unintentionally consuming excessive minutes, as MacOS jobs consume minutes at a 10x rate.
   #
+  # The `matrix` and `runner` contexts are not available for use within `if` expressions. So there is
+  # currently no way to determine the OS being used on a given job.
+  # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
+  #
   # Performs the following steps:
   # - Checks out the repository.
+  # - Sets up Node.js.
   # - Logs debug information about the GitHub Action runner.
-  # - Installs Node.js.
-  # _ Installs npm dependencies.
+  # - Installs npm dependencies.
   # - Builds WordPress to run from the `build` directory.
   # - Cleans up after building WordPress to the `build` directory.
   # - Ensures version-controlled files are not modified or deleted.
@@ -124,6 +128,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
 
+      - name: Set up Node.js
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
       - name: Log debug information
         run: |
           npm --version
@@ -132,13 +142,7 @@ jobs:
           git --version
           svn --version
 
-      - name: Install Node.js
-        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
-      - name: Install Dependencies
+      - name: Install npm Dependencies
         run: npm ci
 
       - name: Build WordPress in /src
