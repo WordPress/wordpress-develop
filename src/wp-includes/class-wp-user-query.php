@@ -1049,12 +1049,7 @@ class WP_User_Query {
 			$ordersby = preg_split( '/[,\s]+/', $args['orderby'] );
 		}
 
-		$blog_id = 0;
-		if ( isset( $arg['blog_id'] ) ) {
-			$blog_id = absint( $arg['blog_id'] );
-		}
-
-		if ( ( $args['has_published_posts'] && $blog_id ) || in_array( 'post_count', $ordersby, true ) ) {
+		if ( $args['has_published_posts'] || in_array( 'post_count', $ordersby, true ) ) {
 			$last_changed .= wp_cache_get_last_changed( 'posts' );
 		}
 

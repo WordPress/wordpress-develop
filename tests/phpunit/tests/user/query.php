@@ -873,6 +873,100 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$this->assertSameSets( $expected, $found );
 	}
 
+
+	public function test_has_published_posts_delete_user() {
+		$user_id = self::factory()->user->create();
+
+		$q1 = new WP_User_Query( array(
+				'include' => array( $user_id ),
+			)
+		);
+
+		$found    = wp_list_pluck( $q1->get_results(), 'ID' );
+		$expected = array( $user_id );
+
+		$this->assertSameSets( $expected, $found, 'Find author in returned values' );
+
+		wp_delete_user( $user_id );
+
+		$q2 = new WP_User_Query( array(
+				'include' => array( $user_id ),
+			)
+		);
+
+		$found = wp_list_pluck( $q2->get_results(), 'ID' );
+		$this->assertNotContains( $user_id, $found, 'Not to find author in returned values' );
+	}
+
+	public function test_has_published_posts_delete_post() {
+		register_post_type( 'wptests_pt_public', array( 'public' => true ) );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$author_ids[2],
+				'post_status' => 'publish',
+				'post_type'   => 'wptests_pt_public',
+			)
+		);
+
+		$q1= new WP_User_Query(
+			array(
+				'has_published_posts' => true,
+			)
+		);
+
+		$found    = wp_list_pluck( $q1->get_results(), 'ID' );
+		$expected = array( self::$author_ids[2] );
+
+		$this->assertSameSets( $expected, $found, 'Find author in returned values' );
+
+		wp_delete_post( $post_id, true );
+
+		$q2 = new WP_User_Query(
+			array(
+				'orderby' => 'post_count',
+			)
+		);
+
+		$found    = wp_list_pluck( $q2->get_results(), 'ID' );
+		$this->assertSameSets( [], $found, 'Not to find author in returned values' );
+	}
+
+	public function test_has_published_posts_delete_post_order() {
+		register_post_type( 'wptests_pt_public', array( 'public' => true ) );
+
+		$user_id = self::factory()->user->create();
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => $user_id,
+				'post_status' => 'publish',
+				'post_type'   => 'wptests_pt_public',
+			)
+		);
+
+		$q1= new WP_User_Query(
+			array(
+				'orderby' => 'post_count',
+			)
+		);
+
+		$found1    = wp_list_pluck( $q1->get_results(), 'ID' );
+		$this->assertContains( $user_id, $found1,'Find author in returned values' );
+
+		wp_delete_post( $post_id, true );
+
+		$q2 = new WP_User_Query(
+			array(
+				'orderby' => 'post_count',
+			)
+		);
+
+		$found2    = wp_list_pluck( $q2->get_results(), 'ID' );
+		$this->assertContains( $user_id, $found1,'Find author in returned values' );
+		$this->assertSameSets( $found1, $found2, 'Not same order' );
+	}
+
 	/**
 	 * @ticket 32250
 	 */
@@ -1026,6 +1120,45 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$found    = wp_list_pluck( $q->get_results(), 'ID' );
 		$expected = array( self::$author_ids[0], self::$author_ids[1] );
+
+		$this->assertSameSets( $expected, $found );
+	}
+
+	public function test_meta_query_cache_invalidation() {
+		add_user_meta( self::$author_ids[0], 'foo', 'bar' );
+		add_user_meta( self::$author_ids[1], 'foo', 'bar' );
+
+		$q1 = new WP_User_Query(
+			array(
+				'meta_query' => array(
+					array(
+						'key'   => 'foo',
+						'value' => 'bar',
+					),
+				),
+			)
+		);
+
+		$found    = wp_list_pluck( $q1->get_results(), 'ID' );
+		$expected = array( self::$author_ids[0], self::$author_ids[1] );
+
+		$this->assertSameSets( $expected, $found );
+
+		delete_user_meta( self::$author_ids[1], 'foo' );
+
+		$q2 = new WP_User_Query(
+			array(
+				'meta_query' => array(
+					array(
+						'key'   => 'foo',
+						'value' => 'bar',
+					),
+				),
+			)
+		);
+
+		$found    = wp_list_pluck( $q2->get_results(), 'ID' );
+		$expected = array( self::$author_ids[0] );
 
 		$this->assertSameSets( $expected, $found );
 	}
