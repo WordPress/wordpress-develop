@@ -189,8 +189,8 @@ class Walker_Nav_Menu extends Walker {
 		$id = apply_filters( 'nav_menu_item_id', 'menu-item-' . $menu_item->ID, $menu_item, $args, $depth );
 
 		$li_atts          = array();
-		$li_atts['class'] = ! empty( $class_names ) ? $class_names : '';
 		$li_atts['id']    = ! empty( $id ) ? $id : '';
+		$li_atts['class'] = ! empty( $class_names ) ? $class_names : '';
 
 		/**
 		 * Filters the HTML attributes applied to a menu's list item element.
