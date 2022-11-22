@@ -1223,7 +1223,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 
 		// Clear the post cache.
 		clean_post_cache( $post_id );
-		$this->assertSame( array( $post_id ), _get_non_cached_ids( array( $post_id ), 'posts', ), 'Post is already cached.' );
+		$this->assertSame( array( $post_id ), _get_non_cached_ids( array( $post_id ), 'posts' ), 'Post is already cached.' );
 
 		// Warm only the post cache.
 		$post = get_post( $post_id );
