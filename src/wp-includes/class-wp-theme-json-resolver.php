@@ -58,9 +58,9 @@ class WP_Theme_JSON_Resolver {
 	protected static $theme = null;
 
 	/**
-	 * Container for data coming from the theme with settings.
+	 * Container for data coming from the theme with supports.
 	 *
-	 * @since 6.1.1
+	 * @since 6.1.2
 	 * @var WP_Theme_JSON
 	 */
 	protected static $with_theme_supports = null;
@@ -649,6 +649,8 @@ class WP_Theme_JSON_Resolver {
 	 * @since 5.9.0 Added the `$user`, `$user_custom_post_type_id`,
 	 *              and `$i18n_schema` variables to reset.
 	 * @since 6.1.0 Added the `$blocks` and `$blocks_cache` variables
+	 *              to reset.
+	 * @since 6.1.2 Added the `$with_theme_supports` variables
 	 *              to reset.
 	 */
 	public static function clean_cached_data() {
