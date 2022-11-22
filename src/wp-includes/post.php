@@ -7891,28 +7891,20 @@ function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache
 	if ( ! empty( $non_cached_ids ) ) {
 		$fresh_posts = $wpdb->get_results( sprintf( "SELECT $wpdb->posts.* FROM $wpdb->posts WHERE ID IN (%s)", implode( ',', $non_cached_ids ) ) );
 
-		update_post_caches( $fresh_posts, 'any', $update_term_cache, $update_meta_cache );
-	}
-
-	if ( ! $update_meta_cache && ! $update_term_cache ) {
-		return;
-	}
-
-	$ids_may_have_uncached_data = array_diff( $ids, $non_cached_ids );
-
-	if ( empty( $ids_may_have_uncached_data ) ) {
-		// No work to do.
-		return;
+		if ( $fresh_posts ) {
+			// Despite the name, update_post_cache() expects an array rather than a single post.
+			update_post_cache( $fresh_posts );
+		}
 	}
 
 	if ( $update_meta_cache ) {
-		$ids_with_uncached_meta = _get_non_cached_ids( $ids_may_have_uncached_data, 'post_meta' );
-		update_postmeta_cache( $ids_with_uncached_meta );
+		update_postmeta_cache( $ids );
 	}
 
 	if ( $update_term_cache ) {
-		// update_object_term_cache() checks for uncached IDs internally.
-		update_object_term_cache( $ids_may_have_uncached_data, 'post' );
+		$post_types = array_map( 'get_post_type', $ids );
+		$post_types = array_unique( $post_types );
+		update_object_term_cache( $ids, $post_types );
 	}
 }
 
