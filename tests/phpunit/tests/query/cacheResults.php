@@ -1237,9 +1237,11 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 
 		$query_1 = new WP_Query(
 			array(
-				'post_type' => 'page',
-				'fields'    => $fields,
-				'author'    => self::$author_id,
+				'post_type'              => 'page',
+				'fields'                 => $fields,
+				'author'                 => self::$author_id,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
 			)
 		);
 
