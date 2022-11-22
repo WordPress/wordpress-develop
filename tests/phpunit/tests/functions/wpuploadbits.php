@@ -61,7 +61,7 @@ class tests_wp_upload_bits extends WP_UnitTestCase {
 			wp_upload_bits( 'filename.txt', null, $content, '99/12' )
 		);
 		$file = fopen( $filename, 'r' );
-		$this->assertEquals( $content, fread( $file, filesize( $filename ) ) );
+		$this->assertSame( $content, fread( $file, filesize( $filename ) ) );
 		fclose( $file );
 		$this->unlink( $filename );
 	}
