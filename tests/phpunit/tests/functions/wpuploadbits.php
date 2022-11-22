@@ -10,7 +10,7 @@
 class tests_wp_upload_bits extends WP_UnitTestCase {
 
 	/**
-	 * @expectedDeprecated
+	 * @expectedDeprecated wp_upload_bits
 	 * @return void
 	 *
 	 */
