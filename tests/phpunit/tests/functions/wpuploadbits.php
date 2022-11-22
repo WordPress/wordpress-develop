@@ -15,9 +15,6 @@ class tests_wp_upload_bits extends WP_UnitTestCase {
 	 *
 	 */
 	public function test_second_parm_present() {
-		$this->expectExceptionMessage( 'Function wp_upload_bits was called with an argument that is deprecated since version 2.0.0 with no alternative available.' );
-		$this->expectDeprecation();
-		$this->expectException( 'PHPUnit\Framework\Error\Deprecated' );
 		wp_upload_bits( 'filename.txt', 'not_null', 'bits' );
 	}
 	/**
