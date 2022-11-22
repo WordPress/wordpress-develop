@@ -26,7 +26,6 @@ class tests_wp_upload_bits extends WP_UnitTestCase {
 
 	/**
 	 * return an array with error message in bad/no extension in the file name
-	 * @expectedDeprecated
 	 **/
 	public function test_no_ext_present() {
 		$this->assertSameSets( array( 'error' => __( 'Sorry, you are not allowed to upload this file type.' ) ), wp_upload_bits( 'filename', '', 'bits' ) );
