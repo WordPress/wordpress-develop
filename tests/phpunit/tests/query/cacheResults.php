@@ -1228,7 +1228,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		// Warm only the post cache.
 		$post = get_post( $post_id );
 		$this->assertNotEmpty( $post, 'Post does not exist.' );
-		$this->assertEmpty( _get_non_cached_ids( array( $post_id ), 'posts', ), 'Post is not already cached.' );
+		$this->assertEmpty( _get_non_cached_ids( array( $post_id ), 'posts' ), 'Post is not already cached.' );
 
 		$args  = array(
 			'post_type'     => 'post',
@@ -1238,8 +1238,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query = new WP_Query();
 
 		$before_num_queries = get_num_queries();
-		$posts = $query->query( $args );
-		$num_queries = get_num_queries() - $before_num_queries;
+		$posts              = $query->query( $args );
+		$num_queries        = get_num_queries() - $before_num_queries;
 
 		$this->assertNotEmpty( $posts, 'Query does return an empty result set.' );
 		// 1 query for the SELECT posts, 1 query for the post meta, 2 queries for the terms.
