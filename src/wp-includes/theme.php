@@ -2835,6 +2835,16 @@ function add_theme_support( $feature, ...$args ) {
 	}
 
 	$_wp_theme_features[ $feature ] = $args;
+
+	/**
+	 * Fires after theme support is added.
+	 *
+	 * @since 6.1.2
+	 *
+	 * @param string $feature The feature being added.
+	 * @param mixed  $args Optional extra arguments to pass along with certain features.
+	 */
+	do_action( 'add_theme_support', $feature, $args );
 }
 
 /**
@@ -3032,6 +3042,15 @@ function _remove_theme_support( $feature ) {
 	}
 
 	unset( $_wp_theme_features[ $feature ] );
+
+	/**
+	 * Fires after theme support is removed.
+	 *
+	 * @since 6.1.2
+	 *
+	 * @param string $feature The feature being added.
+	 */
+	do_action( 'remove_theme_support', $feature );
 
 	return true;
 }
