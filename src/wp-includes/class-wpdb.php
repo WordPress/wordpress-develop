@@ -1805,13 +1805,14 @@ class wpdb {
 		/**
 		 * Filters whether to suppress a query error.
 		 *
-		 * @since 6.0.0
+		 * @since 6.2.0
 		 *
 		 * @param boolean $suppress_error Whether to suppress the error.
-		 * @param string  $error_str      Error string.
+		 * @param string  $str            Error string.
 		 * @param string  $query          SQL query that resulted in error.
 		 */
 		$suppress_error = apply_filters( 'suppress_query_error', $this->suppress_errors, $str, $this->last_query );
+
 		if ( $suppress_error ) {
 			return false;
 		}
@@ -1825,12 +1826,13 @@ class wpdb {
 		}
 
 		error_log( $error_str );
+
 		/**
 		 * Fires after a query error is sent to the error log.
 		 *
-		 * @since 6.0.0
+		 * @since 6.2.0
 		 *
-		 * @param string $error_message Localized error message. Potentially contains non-localized parts.
+		 * @param string $error_str Localized error message. Potentially contains non-localized parts.
 		 */
 		do_action( 'log_query_error', $error_str );
 

@@ -2456,6 +2456,9 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertTrue( $wpdb->use_mysqli );
 	}
 
+     /**
+	 * @ticket 55414
+	 */
 	public function test_suppress_query_error() {
 		global $wpdb;
 
@@ -2467,7 +2470,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$log_query_error_action      = new MockAction();
 
 		try {
-			// disable show_errors to avoid being labeled a risky test
+			// Disable `show_errors` to avoid being labeled a risky test.
 			$wpdb->show_errors = false;
 			$wpdb->last_query  = 'expected-query';
 
@@ -2475,30 +2478,30 @@ class Tests_DB extends WP_UnitTestCase {
 			add_filter( 'log_query_error', array( $log_query_error_action, 'action' ), 10 );
 
 			//
-			// Test that the current suppress_errors setting is passed to filter
+			// Test that the current suppress_errors setting is passed to filter.
 			//
 			$wpdb->suppress_errors = false;
 			$wpdb->print_error( 'expected-error' );
-			$this->assertEquals( 1, $suppress_query_error_filter->get_call_count() );
-			$this->assertEquals(
+			$this->assertSame( 1, $suppress_query_error_filter->get_call_count() );
+			$this->assertSame(
 				$suppress_query_error_filter->events[0]['args'],
 				array( false, 'expected-error', 'expected-query' )
 			);
-			$this->assertEquals( 1, $log_query_error_action->get_call_count() );
+			$this->assertSame( 1, $log_query_error_action->get_call_count() );
 
 			$suppress_query_error_filter->reset();
 			$log_query_error_action->reset();
 			$wpdb->suppress_errors = true;
 			$wpdb->print_error( 'expected-error' );
-			$this->assertEquals( 1, $suppress_query_error_filter->get_call_count() );
-			$this->assertEquals(
+			$this->assertSame( 1, $suppress_query_error_filter->get_call_count() );
+			$this->assertSame(
 				$suppress_query_error_filter->events[0]['args'],
 				array( true, 'expected-error', 'expected-query' )
 			);
-			$this->assertEquals( 0, $log_query_error_action->get_call_count() );
+			$this->assertSame( 0, $log_query_error_action->get_call_count() );
 
 			//
-			// Test altering error suppression with the filter
+			// Test altering error suppression with the filter.
 			//
 			$suppress_query_error_filter->reset();
 			$log_query_error_action->reset();
@@ -2506,12 +2509,12 @@ class Tests_DB extends WP_UnitTestCase {
 			add_filter( 'suppress_query_error', '__return_false', 9 );
 			$wpdb->print_error( 'expected-error' );
 			remove_filter( 'suppress_query_error', '__return_false', 9 );
-			$this->assertEquals( 1, $suppress_query_error_filter->get_call_count() );
-			$this->assertEquals(
+			$this->assertSame( 1, $suppress_query_error_filter->get_call_count() );
+			$this->assertSame(
 				$suppress_query_error_filter->events[0]['args'],
 				array( false, 'expected-error', 'expected-query' )
 			);
-			$this->assertEquals( 1, $log_query_error_action->get_call_count() );
+			$this->assertSame( 1, $log_query_error_action->get_call_count() );
 
 			$suppress_query_error_filter->reset();
 			$log_query_error_action->reset();
@@ -2519,12 +2522,12 @@ class Tests_DB extends WP_UnitTestCase {
 			add_filter( 'suppress_query_error', '__return_true', 9 );
 			$wpdb->print_error( 'expected-error' );
 			remove_filter( 'suppress_query_error', '__return_true', 9 );
-			$this->assertEquals( 1, $suppress_query_error_filter->get_call_count() );
-			$this->assertEquals(
+			$this->assertSame( 1, $suppress_query_error_filter->get_call_count() );
+			$this->assertSame(
 				$suppress_query_error_filter->events[0]['args'],
 				array( true, 'expected-error', 'expected-query' )
 			);
-			$this->assertEquals( 0, $log_query_error_action->get_call_count() );
+			$this->assertSame( 0, $log_query_error_action->get_call_count() );
 		} finally {
 			remove_filter( 'suppress_query_error', array( $suppress_query_error_filter, 'filter' ), 10 );
 			remove_filter( 'log_query_error', array( $suppress_query_error_filter, 'action' ), 10 );
