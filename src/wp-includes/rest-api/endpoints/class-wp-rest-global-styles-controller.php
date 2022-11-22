@@ -565,7 +565,8 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 */
 	public function get_theme_item( $request ) {
 		global $wp_theme_json_resolver;
-		if ( wp_get_theme()->get_stylesheet() !== $request['stylesheet'] ) {
+
+		if ( get_stylesheet() !== $request['stylesheet'] ) {
 			// This endpoint only supports the active theme for now.
 			return new WP_Error(
 				'rest_theme_not_found',
@@ -640,7 +641,8 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 */
 	public function get_theme_items( $request ) {
 		global $wp_theme_json_resolver;
-		if ( wp_get_theme()->get_stylesheet() !== $request['stylesheet'] ) {
+
+		if ( get_stylesheet() !== $request['stylesheet'] ) {
 			// This endpoint only supports the active theme for now.
 			return new WP_Error(
 				'rest_theme_not_found',

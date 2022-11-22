@@ -253,8 +253,14 @@ class WP_Theme_JSON_Resolver {
 		$options = wp_parse_args( $options, array( 'with_supports' => true ) );
 
 		if ( null === $this->theme || ! $this->has_same_registered_blocks( 'theme' ) ) {
-			$theme_json_data = $this->read_json_file( $this->get_file_path_from_theme( 'theme.json' ) );
-			$theme_json_data = $this->translate( $theme_json_data, wp_get_theme()->get( 'TextDomain' ) );
+			$theme_json_file = $this->get_file_path_from_theme( 'theme.json' );
+			$wp_theme        = wp_get_theme();
+			if ( '' !== $theme_json_file ) {
+				$theme_json_data = $this->read_json_file( $theme_json_file );
+				$theme_json_data = $this->translate( $theme_json_data, $wp_theme->get( 'TextDomain' ) );
+			} else {
+				$theme_json_data = array();
+			}
 
 			/**
 			 * Filters the data provided by the theme for global styles and settings.
@@ -267,20 +273,23 @@ class WP_Theme_JSON_Resolver {
 			$theme_json      = apply_filters( 'wp_theme_json_data_theme', new WP_Theme_JSON_Data( $theme_json_data, 'theme' ) );
 			$theme_json_data = $theme_json->get_data();
 			$this->theme     = new WP_Theme_JSON( $theme_json_data );
-		}
 
-		if ( wp_get_theme()->parent() ) {
-			// Get parent theme.json.
-			$parent_theme_json_data = $this->read_json_file( $this->get_file_path_from_theme( 'theme.json', true ) );
-			$parent_theme_json_data = $this->translate( $parent_theme_json_data, wp_get_theme()->parent()->get( 'TextDomain' ) );
-			$parent_theme           = new WP_Theme_JSON( $parent_theme_json_data );
+			if ( $wp_theme->parent() ) {
+				// Get parent theme.json.
+				$parent_theme_json_file = $this->get_file_path_from_theme( 'theme.json', true );
+				if ( '' !== $parent_theme_json_file ) {
+					$parent_theme_json_data = $this->read_json_file( $parent_theme_json_file );
+					$parent_theme_json_data = $this->translate( $parent_theme_json_data, $wp_theme->parent()->get( 'TextDomain' ) );
+					$parent_theme           = new WP_Theme_JSON( $parent_theme_json_data );
 
-			/*
-			 * Merge the child theme.json into the parent theme.json.
-			 * The child theme takes precedence over the parent.
-			 */
-			$parent_theme->merge( $this->theme );
-			$this->theme = $parent_theme;
+					/*
+					 * Merge the child theme.json into the parent theme.json.
+					 * The child theme takes precedence over the parent.
+					 */
+					$parent_theme->merge( static::$theme );
+					$this->theme = $parent_theme;
+				}
+			}
 		}
 
 		if ( ! $options['with_supports'] ) {
@@ -416,12 +425,24 @@ class WP_Theme_JSON_Resolver {
 		if ( ! $theme instanceof WP_Theme ) {
 			$theme = wp_get_theme();
 		}
+
+		/*
+		 * Bail early if the theme does not support a theme.json.
+		 *
+		 * Since WP_Theme_JSON_Resolver::theme_has_support() only supports the active
+		 * theme, the extra condition for whether $theme is the active theme is
+		 * present here.
+		 */
+		if ( $theme->get_stylesheet() === get_stylesheet() && ! static::theme_has_support() ) {
+			return array();
+		}
+
 		$user_cpt         = array();
 		$post_type_filter = 'wp_global_styles';
 		$stylesheet       = $theme->get_stylesheet();
 		$args             = array(
 			'posts_per_page'      => 1,
-			'orderby'             => 'post_date',
+			'orderby'             => 'date',
 			'order'               => 'desc',
 			'post_type'           => $post_type_filter,
 			'post_status'         => $post_status_filter,
