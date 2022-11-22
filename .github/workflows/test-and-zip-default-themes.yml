@@ -49,9 +49,9 @@ jobs:
   #
   # Performs the following steps:
   # - Checks out the repository.
-  # - Installs Node.js (only when theme has a build process)
-  # - Installs npm dependencies (only when theme has a build process)
-  # - Runs the theme build script (only when theme has a build process)
+  # - Sets up Node.js.
+  # - Installs npm dependencies.
+  # - Runs the theme build script.
   # - Ensures version-controlled files are not modified or deleted.
   test-build-scripts:
     name: Test ${{ matrix.theme }} build script
@@ -77,7 +77,7 @@ jobs:
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
 
-      - name: Install Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
         with:
           node-version-file: '.nvmrc'
@@ -97,8 +97,7 @@ jobs:
   #
   # Performs the following steps:
   # - Checks out the repository.
-  # - Creates a ZIP file of the theme for wordpress.org.
-  # - Uploads the ZIP file as a workflow artifact.
+  # - Uploads the theme files as a workflow artifact (files uploaded as an artifact are automatically zipped).
   bundle-theme:
     name: Create ${{ matrix.theme }} ZIP file
     runs-on: ubuntu-latest
@@ -130,14 +129,12 @@ jobs:
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
 
-      - name: Create theme ZIP file
-        run: zip -r ${{ matrix.theme }}.zip src/wp-content/themes/${{ matrix.theme }} -x "*/node_modules/*"
-
       - name: Upload theme ZIP as an artifact
         uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb # v3.1.1
         with:
+          if-no-files-found: error
           name: ${{ matrix.theme }}
-          path: ${{ matrix.theme }}.zip
+          path: src/wp-content/themes/${{ matrix.theme }}
 
   slack-notifications:
     name: Slack Notifications

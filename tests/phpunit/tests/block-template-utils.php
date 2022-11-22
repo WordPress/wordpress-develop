@@ -123,6 +123,25 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( WP_TEMPLATE_PART_AREA_HEADER, $template_part->area );
 	}
 
+	/**
+	 * Tests that _build_block_template_result_from_post() returns the correct theme
+	 * for the template when a child theme is active.
+	 *
+	 * @ticket 55437
+	 *
+	 * @covers ::_build_block_template_result_from_post
+	 */
+	function test_build_block_template_result_from_post_with_child_theme() {
+		switch_theme( 'block-theme-child' );
+
+		$template = _build_block_template_result_from_post(
+			self::$template_post,
+			'wp_template'
+		);
+
+		$this->assertSame( self::TEST_THEME, $template->theme );
+	}
+
 	function test_build_block_template_result_from_file() {
 		$template = _build_block_template_result_from_file(
 			array(
@@ -159,6 +178,29 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( '', $template_part->description );
 		$this->assertSame( 'wp_template_part', $template_part->type );
 		$this->assertSame( WP_TEMPLATE_PART_AREA_HEADER, $template_part->area );
+	}
+
+	/**
+	 * Tests that _build_block_template_result_from_file() returns the correct theme
+	 * for the template when a child theme is active.
+	 *
+	 * @ticket 55437
+	 *
+	 * @covers ::_build_block_template_result_from_file
+	 */
+	function test_build_block_template_result_from_file_with_child_theme() {
+		switch_theme( 'block-theme-child' );
+
+		$template = _build_block_template_result_from_file(
+			array(
+				'slug'  => 'single',
+				'path'  => __DIR__ . '/../data/templates/template.html',
+				'theme' => self::TEST_THEME,
+			),
+			'wp_template'
+		);
+
+		$this->assertSame( self::TEST_THEME, $template->theme );
 	}
 
 	function test_inject_theme_attribute_in_block_template_content() {
