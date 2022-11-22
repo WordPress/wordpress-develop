@@ -19,10 +19,8 @@ class tests_wp_upload_bits extends WP_UnitTestCase {
 	}
 	/**
 	 * return error if no filename pass in
-	 * @expectedDeprecated
 	 **/
 	public function test_no_name_present() {
-		$this->expectDeprecation();
 		$this->assertSameSets( array( 'error' => __( 'Empty filename' ) ), wp_upload_bits( '', '', 'bits' ) );
 	}
 
