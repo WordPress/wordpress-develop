@@ -21,7 +21,12 @@ class Tests_Functions_ConfigWpHome extends WP_UnitTestCase {
 		$this->assertSame( $expected, _config_wp_home( $url ) );
 	}
 
-	function _config_wp_home_dataset() {
+	/**
+	 * Data provider for test_config_wp_home().
+	 *
+	 * @return array[]
+	 */
+	function data_config_wp_home() {
 		return array(
 			'default'   => array(
 				'url'      => '/',
