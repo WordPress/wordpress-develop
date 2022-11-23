@@ -11,7 +11,11 @@ class Test_for_config_wp_home extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 57179
-	 * @dataProvider _config_wp_home_dataset
+	 *
+	 * @dataProvider data_config_wp_home
+	 *
+	 * @param string $url      The URL to pass to _config_wp_home().
+	 * @param string $expected The expected result.
 	 */
 	function test_config_wp_home( $url, $expected ) {
 		$this->assertSame( $expected, _config_wp_home( $url ) );
