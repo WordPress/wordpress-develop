@@ -2018,15 +2018,7 @@ class WP_Query {
 		}
 
 		// MIME-Type stuff for attachment browsing.
-
-		if ( isset( $q['post_mime_type'] ) && '' !== $q['post_mime_type'] ) {
-			$whichmimetype = wp_post_mime_type_where( $q['post_mime_type'], $wpdb->posts );
-		}
-		$where .= $search . $whichauthor . $whichmimetype;
-
-		if ( ! empty( $this->allow_query_attachment_by_filename ) ) {
-			$join .= " LEFT JOIN {$wpdb->postmeta} AS sq1 ON ( {$wpdb->posts}.ID = sq1.post_id AND sq1.meta_key = '_wp_attached_file' )";
-		}
+		$this->set_where_and_join_for_attachments( $search, $whichauthor, $whichmimetype, $where, $join );
 
 		if ( ! empty( $this->meta_query->queries ) ) {
 			$clauses = $this->meta_query->get_sql( 'post', $wpdb->posts, 'ID', $this );
@@ -3818,6 +3810,34 @@ class WP_Query {
 			if ( ! in_array( $q['comment_count']['compare'], $compare_operators, true ) ) {
 				$q['comment_count']['compare'] = '=';
 			}
+		}
+	}
+
+	/**
+	 * Sets the WHERE and JOIN clauses for attachments.
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string $search        The search portion of the WHERE clause.
+	 * @param string $whichauthor   The author portion of the WHERE clause.
+	 * @param string $whichmimetype Reference to the MIME type.
+	 * @param string $where         Reference to the WHERE clause.
+	 * @param string $join          Reference to the JOIN clause.
+	 */
+	private function set_where_and_join_for_attachments( $search, $whichauthor, &$whichmimetype, &$where, &$join ) {
+		global $wpdb;
+
+		$q = &$this->query_vars;
+
+		if ( isset( $q['post_mime_type'] ) && '' !== $q['post_mime_type'] ) {
+			$whichmimetype = wp_post_mime_type_where( $q['post_mime_type'], $wpdb->posts );
+		}
+		$where .= $search . $whichauthor . $whichmimetype;
+
+		if ( ! empty( $this->allow_query_attachment_by_filename ) ) {
+			$join .= " LEFT JOIN {$wpdb->postmeta} AS sq1 ON ( {$wpdb->posts}.ID = sq1.post_id AND sq1.meta_key = '_wp_attached_file' )";
 		}
 	}
 
