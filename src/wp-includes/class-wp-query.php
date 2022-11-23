@@ -1867,41 +1867,8 @@ class WP_Query {
 
 		$this->convert_caller_get_posts_to_ignore_sticky_posts();
 
-		if ( ! isset( $q['ignore_sticky_posts'] ) ) {
-			$q['ignore_sticky_posts'] = false;
-		}
+		$this->set_get_posts_defaults();
 
-		if ( ! isset( $q['suppress_filters'] ) ) {
-			$q['suppress_filters'] = false;
-		}
-
-		if ( ! isset( $q['cache_results'] ) ) {
-			$q['cache_results'] = true;
-		}
-
-		if ( ! isset( $q['update_post_term_cache'] ) ) {
-			$q['update_post_term_cache'] = true;
-		}
-
-		if ( ! isset( $q['update_menu_item_cache'] ) ) {
-			$q['update_menu_item_cache'] = false;
-		}
-
-		if ( ! isset( $q['lazy_load_term_meta'] ) ) {
-			$q['lazy_load_term_meta'] = $q['update_post_term_cache'];
-		}
-
-		if ( ! isset( $q['update_post_meta_cache'] ) ) {
-			$q['update_post_meta_cache'] = true;
-		}
-
-		if ( ! isset( $q['post_type'] ) ) {
-			if ( $this->is_search ) {
-				$q['post_type'] = 'any';
-			} else {
-				$q['post_type'] = '';
-			}
-		}
 		$post_type = $q['post_type'];
 		if ( empty( $q['posts_per_page'] ) ) {
 			$q['posts_per_page'] = get_option( 'posts_per_page' );
@@ -3524,6 +3491,51 @@ class WP_Query {
 
 			if ( ! isset( $q['ignore_sticky_posts'] ) ) {
 				$q['ignore_sticky_posts'] = $q['caller_get_posts'];
+			}
+		}
+	}
+
+	/**
+	 * Sets some default values for WP_Query::get_posts().
+	 *
+	 * @since 6.3.0
+	 */
+	private function set_get_posts_defaults() {
+		$q = &$this->query_vars;
+
+		if ( ! isset( $q['ignore_sticky_posts'] ) ) {
+			$q['ignore_sticky_posts'] = false;
+		}
+
+		if ( ! isset( $q['suppress_filters'] ) ) {
+			$q['suppress_filters'] = false;
+		}
+
+		if ( ! isset( $q['cache_results'] ) ) {
+			$q['cache_results'] = true;
+		}
+
+		if ( ! isset( $q['update_post_term_cache'] ) ) {
+			$q['update_post_term_cache'] = true;
+		}
+
+		if ( ! isset( $q['update_menu_item_cache'] ) ) {
+			$q['update_menu_item_cache'] = false;
+		}
+
+		if ( ! isset( $q['lazy_load_term_meta'] ) ) {
+			$q['lazy_load_term_meta'] = $q['update_post_term_cache'];
+		}
+
+		if ( ! isset( $q['update_post_meta_cache'] ) ) {
+			$q['update_post_meta_cache'] = true;
+		}
+
+		if ( ! isset( $q['post_type'] ) ) {
+			if ( $this->is_search ) {
+				$q['post_type'] = 'any';
+			} else {
+				$q['post_type'] = '';
 			}
 		}
 	}
