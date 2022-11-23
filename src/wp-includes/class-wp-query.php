@@ -1865,22 +1865,7 @@ class WP_Query {
 		$post_status_join = false;
 		$page             = 1;
 
-		if ( isset( $q['caller_get_posts'] ) ) {
-			_deprecated_argument(
-				'WP_Query',
-				'3.1.0',
-				sprintf(
-					/* translators: 1: caller_get_posts, 2: ignore_sticky_posts */
-					__( '%1$s is deprecated. Use %2$s instead.' ),
-					'<code>caller_get_posts</code>',
-					'<code>ignore_sticky_posts</code>'
-				)
-			);
-
-			if ( ! isset( $q['ignore_sticky_posts'] ) ) {
-				$q['ignore_sticky_posts'] = $q['caller_get_posts'];
-			}
-		}
+		$this->convert_caller_get_posts_to_ignore_sticky_posts();
 
 		if ( ! isset( $q['ignore_sticky_posts'] ) ) {
 			$q['ignore_sticky_posts'] = false;
@@ -3515,6 +3500,32 @@ class WP_Query {
 			$this->query_vars_hash    = $hash;
 		}
 		unset( $hash );
+	}
+
+	/**
+	 * Converts 'caller_get_posts' to 'ignore_sticky_posts' for backward compatibility.
+	 *
+	 * @since 6.3.0
+	 */
+	private function convert_caller_get_posts_to_ignore_sticky_posts() {
+		$q = &$this->query_vars;
+
+		if ( isset( $q['caller_get_posts'] ) ) {
+			_deprecated_argument(
+				'WP_Query',
+				'3.1.0',
+				sprintf(
+					/* translators: 1: caller_get_posts, 2: ignore_sticky_posts */
+					__( '%1$s is deprecated. Use %2$s instead.' ),
+					'<code>caller_get_posts</code>',
+					'<code>ignore_sticky_posts</code>'
+				)
+			);
+
+			if ( ! isset( $q['ignore_sticky_posts'] ) ) {
+				$q['ignore_sticky_posts'] = $q['caller_get_posts'];
+			}
+		}
 	}
 
 	/**
