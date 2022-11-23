@@ -1017,7 +1017,7 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 
 	switch ( $args['format'] ) {
 		case 'array':
-			$return =& $a;
+			$return = & $a;
 			break;
 		case 'list':
 			/*
@@ -1279,8 +1279,10 @@ function term_description( $term = 0, $deprecated = null ) {
  *
  * @since 2.5.0
  *
- * @param int|WP_Post $post     Post ID or object.
- * @param string      $taxonomy Taxonomy name.
+ * @param int|WP_Post|null $post     Post ID or object. null or 0 values return taxonomy attached
+ *                                   the current global post inside the loop. A numerically valid
+ *                                   post ID that points to a non-existent post returns false.
+ * @param string           $taxonomy Taxonomy name.
  * @return WP_Term[]|false|WP_Error Array of WP_Term objects on success, false if there are no terms
  *                                  or the post does not exist, WP_Error on failure.
  */
