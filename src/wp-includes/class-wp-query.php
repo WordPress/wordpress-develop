@@ -1939,22 +1939,7 @@ class WP_Query {
 
 		$this->maybe_convert_to_page_query( $where );
 
-		// If a search pattern is specified, load the posts that match.
-		if ( strlen( $q['s'] ) ) {
-			$search = $this->parse_search( $q );
-		}
-
-		if ( ! $q['suppress_filters'] ) {
-			/**
-			 * Filters the search SQL that is used in the WHERE clause of WP_Query.
-			 *
-			 * @since 3.0.0
-			 *
-			 * @param string   $search Search SQL for WHERE clause.
-			 * @param WP_Query $query  The current WP_Query object.
-			 */
-			$search = apply_filters_ref_array( 'posts_search', array( $search, &$this ) );
-		}
+		$search = $this->get_where_for_search();
 
 		// Taxonomies.
 		if ( ! $this->is_singular ) {
@@ -3728,6 +3713,37 @@ class WP_Query {
 				$where  = " AND {$wpdb->posts}.ID = " . $q['page_id'];
 			}
 		}
+	}
+
+	/**
+	 * Gets the WHERE clause if the 's' search parameter has been provided.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @return string The WHERE clause for the 's' search parameter, or an empty string.
+	 */
+	private function get_where_for_search() {
+		$search = '';
+		$q      = &$this->query_vars; // Must be passed by reference for WP_Query::parse_search().
+
+		// If a search pattern is specified, load the posts that match.
+		if ( strlen( $q['s'] ) ) {
+			$search = $this->parse_search( $q );
+		}
+
+		if ( ! $q['suppress_filters'] ) {
+			/**
+			 * Filters the search SQL that is used in the WHERE clause of WP_Query.
+			 *
+			 * @since 3.0.0
+			 *
+			 * @param string   $search Search SQL for WHERE clause.
+			 * @param WP_Query $query  The current WP_Query object.
+			 */
+			$search = apply_filters_ref_array( 'posts_search', array( $search, &$this ) );
+		}
+
+		return $search;
 	}
 
 	/**
