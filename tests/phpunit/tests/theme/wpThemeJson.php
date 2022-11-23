@@ -3026,7 +3026,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Testing that dynamic properties in theme.json return the value they refrence,
+	 * Testing that dynamic properties in theme.json return the value they reference,
 	 * e.g. array( 'ref' => 'styles.color.background' ) => "#ffffff".
 	 *
 	 * @ticket 56467
