@@ -1999,13 +1999,7 @@ class WP_Query {
 		// Author/user stuff.
 		$this->set_author();
 
-		if ( ! empty( $q['author__not_in'] ) ) {
-			$author__not_in = implode( ',', array_map( 'absint', array_unique( (array) $q['author__not_in'] ) ) );
-			$where         .= " AND {$wpdb->posts}.post_author NOT IN ($author__not_in) ";
-		} elseif ( ! empty( $q['author__in'] ) ) {
-			$author__in = implode( ',', array_map( 'absint', array_unique( (array) $q['author__in'] ) ) );
-			$where     .= " AND {$wpdb->posts}.post_author IN ($author__in) ";
-		}
+		$where .= $this->get_where_for_author_in_author_not_in();
 
 		// Author stuff for nice URLs.
 
@@ -3775,6 +3769,32 @@ class WP_Query {
 			}
 			$q['author'] = implode( ',', $authors );
 		}
+	}
+
+	/**
+	 * Gets the WHERE clause for the 'author__in' or 'author__not_in' query parameter.
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @return string The WHERE clause for 'author__in' or 'author__not_in', or an empty string.
+	 */
+	private function get_where_for_author_in_author_not_in() {
+		global $wpdb;
+
+		$author_in_not_in_sql = '';
+		$q                    = &$this->query_vars;
+
+		if ( ! empty( $q['author__not_in'] ) ) {
+			$author__not_in       = implode( ',', array_map( 'absint', array_unique( (array) $q['author__not_in'] ) ) );
+			$author_in_not_in_sql = " AND {$wpdb->posts}.post_author NOT IN ($author__not_in) ";
+		} elseif ( ! empty( $q['author__in'] ) ) {
+			$author__in           = implode( ',', array_map( 'absint', array_unique( (array) $q['author__in'] ) ) );
+			$author_in_not_in_sql = " AND {$wpdb->posts}.post_author IN ($author__in) ";
+		}
+
+		return $author_in_not_in_sql;
 	}
 
 	/**
