@@ -1885,16 +1885,7 @@ class WP_Query {
 
 		$this->set_no_found_rows();
 
-		switch ( $q['fields'] ) {
-			case 'ids':
-				$fields = "{$wpdb->posts}.ID";
-				break;
-			case 'id=>parent':
-				$fields = "{$wpdb->posts}.ID, {$wpdb->posts}.post_parent";
-				break;
-			default:
-				$fields = "{$wpdb->posts}.*";
-		}
+		$fields = $this->get_fields();
 
 		if ( '' !== $q['menu_order'] ) {
 			$where .= " AND {$wpdb->posts}.menu_order = " . $q['menu_order'];
@@ -3583,6 +3574,35 @@ class WP_Query {
 		} else {
 			$q['no_found_rows'] = false;
 		}
+	}
+
+	/**
+	 * Gets the SQL for the fields to select.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @return string The SQL for the fields to select, or an empty string.
+	 */
+	private function get_fields() {
+		global $wpdb;
+
+		$fields = '';
+		$q      = &$this->query_vars;
+
+		switch ( $q['fields'] ) {
+			case 'ids':
+				$fields = "{$wpdb->posts}.ID";
+				break;
+			case 'id=>parent':
+				$fields = "{$wpdb->posts}.ID, {$wpdb->posts}.post_parent";
+				break;
+			default:
+				$fields = "{$wpdb->posts}.*";
+		}
+
+		return $fields;
 	}
 
 	/**
