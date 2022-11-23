@@ -1989,28 +1989,7 @@ class WP_Query {
 			}
 
 			// 'cat', 'category_name', 'tag_id'.
-			foreach ( $this->tax_query->queried_terms as $queried_taxonomy => $queried_items ) {
-				if ( empty( $queried_items['terms'][0] ) ) {
-					continue;
-				}
-
-				if ( 'category' === $queried_taxonomy ) {
-					$the_cat = get_term_by( $queried_items['field'], $queried_items['terms'][0], 'category' );
-					if ( $the_cat ) {
-						$this->set( 'cat', $the_cat->term_id );
-						$this->set( 'category_name', $the_cat->slug );
-					}
-					unset( $the_cat );
-				}
-
-				if ( 'post_tag' === $queried_taxonomy ) {
-					$the_tag = get_term_by( $queried_items['field'], $queried_items['terms'][0], 'post_tag' );
-					if ( $the_tag ) {
-						$this->set( 'tag_id', $the_tag->term_id );
-					}
-					unset( $the_tag );
-				}
-			}
+			$this->set_category_and_tag_params();
 		}
 
 		if ( ! empty( $this->tax_query->queries ) || ! empty( $this->meta_query->queries ) || ! empty( $this->allow_query_attachment_by_filename ) ) {
@@ -3754,6 +3733,36 @@ class WP_Query {
 
 				// Take the first one we find.
 				break;
+			}
+		}
+	}
+
+	/**
+	 * Sets the 'cat', 'category_name' and 'tag_id' query parameters.
+	 *
+	 * @since 6.3.0
+	 */
+	private function set_category_and_tag_params() {
+		foreach ( $this->tax_query->queried_terms as $queried_taxonomy => $queried_items ) {
+			if ( empty( $queried_items['terms'][0] ) ) {
+				continue;
+			}
+
+			if ( 'category' === $queried_taxonomy ) {
+				$the_cat = get_term_by( $queried_items['field'], $queried_items['terms'][0], 'category' );
+				if ( $the_cat ) {
+					$this->set( 'cat', $the_cat->term_id );
+					$this->set( 'category_name', $the_cat->slug );
+				}
+				unset( $the_cat );
+			}
+
+			if ( 'post_tag' === $queried_taxonomy ) {
+				$the_tag = get_term_by( $queried_items['field'], $queried_items['terms'][0], 'post_tag' );
+				if ( $the_tag ) {
+					$this->set( 'tag_id', $the_tag->term_id );
+				}
+				unset( $the_tag );
 			}
 		}
 	}
