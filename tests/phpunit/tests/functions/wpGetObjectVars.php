@@ -60,7 +60,7 @@ class Tests_Functions_WpGetObjectVars extends WP_UnitTestCase {
 				),
 				array(
 					'n' . chr( 0 ) => 'Ends with null-byte',
-					'property'     => 'value',
+					'k'     => 'v',
 				),
 			),
 		);
