@@ -295,7 +295,7 @@ class WP_Scripts extends WP_Dependencies {
 		switch ( $strategy ) {
 			case 'defer':
 				// Scripts can only use defer if all scripts that depend on them ("dependents") are also deferred.
-				if ( $this->_all_dependents_are_deferred( $obj ) ) {
+				if ( $this->_all_dependents_are_deferred( $obj->handle ) ) {
 					$extra_atts .= ' defer';
 				}
 				break;
@@ -469,7 +469,11 @@ class WP_Scripts extends WP_Dependencies {
 			return true;
 		}
 		foreach ( $dependents as $dependent ) {
-			if ( ! _all_dependents_are_deferred( $dependent, $visited ) ) {
+			// If the dependent script is not deferrable, no script in the chain is deferrable.
+			if ( ! $this->uses_defer_strategy( $dependent ) ) {
+				return false;
+			}
+			if ( ! $this->_all_dependents_are_deferred( $dependent, $visited ) ) {
 				return false;
 			}
 		}
@@ -489,7 +493,7 @@ class WP_Scripts extends WP_Dependencies {
 
 		// Iterate over all registered scripts, finding ones that depend on the script.
 		foreach ( $this->registered as $registered_handle => $args ) {
-			if ( in_array( $handle, $args->deps ) ) {
+			if ( in_array( $handle, $args->deps, true ) ) {
 				$dependents[] = $registered_handle;
 			}
 		}
@@ -521,7 +525,7 @@ class WP_Scripts extends WP_Dependencies {
 	 */
 	private function _get_strategy( $handle ) {
 		$obj = $this->registered[ $handle ];
-		return isset( $obj->args['strategy'] ) ? $obj->args['strategy'] : false;
+		return isset( $obj->extra['strategy'] ) ? $obj->extra['strategy'] : false;
 	}
 
 	/**
