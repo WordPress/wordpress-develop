@@ -36,7 +36,7 @@ class Tests_Functions_ConfigWpHome extends WP_UnitTestCase {
 				'url'      => 'https://www.example.com/',
 				'expected' => 'https://www.example.com/',
 			),
-			'blank_url' => array(
+			'URL as empty string' => array(
 				'url'      => '',
 				'expected' => '',
 			),
