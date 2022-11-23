@@ -8,7 +8,7 @@
  * @covers ::wp_upload_bits
  */
 
-class tests_wp_upload_bits extends WP_UnitTestCase {
+class Tests_Functions_WpUploadBits extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 57130
