@@ -57,9 +57,9 @@ class Tests_Functions_WpUploadBits extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 57130
+	 * Tests that wp_upload_bits() creates a file in the upload folder with the given content.
 	 *
-	 * @return void
+	 * @ticket 57130
 	 */
 	public function test_file_content() {
 		$filename = ABSPATH . 'wp-content/uploads/99/1//filename.txt';
