@@ -8,10 +8,17 @@
  */
 
 if ( ! class_exists( 'Requests' ) ) {
+	if (!defined('REQUESTS_SILENCE_PSR0_DEPRECATIONS')) {
+		define('REQUESTS_SILENCE_PSR0_DEPRECATIONS', true);
+	}
+
 	require ABSPATH . WPINC . '/class-requests.php';
 
 	Requests::register_autoloader();
 	Requests::set_certificate_path( ABSPATH . WPINC . '/certificates/ca-bundle.crt' );
+
+	// Ensure a certain class alias gets created for a class used in type declarations by WP.
+	class_exists( 'Requests_Response' );
 }
 
 /**
@@ -468,7 +475,7 @@ class WP_Http {
 				);
 				$cookie_jar[ $value->name ] = new Requests_Cookie( $value->name, $value->value, $attributes, array( 'host-only' => $value->host_only ) );
 			} elseif ( is_scalar( $value ) ) {
-				$cookie_jar[ $name ] = new Requests_Cookie( $name, $value );
+				$cookie_jar[ $name ] = new Requests_Cookie( $name, (string) $value );
 			}
 		}
 
