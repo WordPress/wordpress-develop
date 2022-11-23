@@ -1997,16 +1997,7 @@ class WP_Query {
 		}
 
 		// Author/user stuff.
-
-		if ( ! empty( $q['author'] ) && '0' != $q['author'] ) {
-			$q['author'] = addslashes_gpc( '' . urldecode( $q['author'] ) );
-			$authors     = array_unique( array_map( 'intval', preg_split( '/[,\s]+/', $q['author'] ) ) );
-			foreach ( $authors as $author ) {
-				$key         = $author > 0 ? 'author__in' : 'author__not_in';
-				$q[ $key ][] = abs( $author );
-			}
-			$q['author'] = implode( ',', $authors );
-		}
+		$this->set_author();
 
 		if ( ! empty( $q['author__not_in'] ) ) {
 			$author__not_in = implode( ',', array_map( 'absint', array_unique( (array) $q['author__not_in'] ) ) );
@@ -3764,6 +3755,25 @@ class WP_Query {
 				}
 				unset( $the_tag );
 			}
+		}
+	}
+
+	/**
+	 * Sets the 'author' query parameter.
+	 *
+	 * @since 6.3.0
+	 */
+	private function set_author() {
+		$q = &$this->query_vars;
+
+		if ( ! empty( $q['author'] ) && '0' != $q['author'] ) {
+			$q['author'] = addslashes_gpc( '' . urldecode( $q['author'] ) );
+			$authors     = array_unique( array_map( 'intval', preg_split( '/[,\s]+/', $q['author'] ) ) );
+			foreach ( $authors as $author ) {
+				$key         = $author > 0 ? 'author__in' : 'author__not_in';
+				$q[ $key ][] = abs( $author );
+			}
+			$q['author'] = implode( ',', $authors );
 		}
 	}
 
