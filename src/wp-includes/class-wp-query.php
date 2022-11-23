@@ -1933,16 +1933,7 @@ class WP_Query {
 			$q['p'] = absint( $q['attachment_id'] );
 		}
 
-		// If a post number is specified, load that post.
-		if ( $q['p'] ) {
-			$where .= " AND {$wpdb->posts}.ID = " . $q['p'];
-		} elseif ( $q['post__in'] ) {
-			$post__in = implode( ',', array_map( 'absint', $q['post__in'] ) );
-			$where   .= " AND {$wpdb->posts}.ID IN ($post__in)";
-		} elseif ( $q['post__not_in'] ) {
-			$post__not_in = implode( ',', array_map( 'absint', $q['post__not_in'] ) );
-			$where       .= " AND {$wpdb->posts}.ID NOT IN ($post__not_in)";
-		}
+		$where .= $this->get_where_for_post_id();
 
 		if ( is_numeric( $q['post_parent'] ) ) {
 			$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_parent = %d ", $q['post_parent'] );
@@ -3671,6 +3662,35 @@ class WP_Query {
 		}
 
 		return $reqpage;
+	}
+
+	/**
+	 * Gets the WHERE clause for parameters related to post ID.
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @return string The WHERE clause for parameters related to post ID, or an empty string.
+	 */
+	private function get_where_for_post_id() {
+		global $wpdb;
+
+		$post_id_sql = '';
+		$q           = $this->query_vars;
+
+		// If a post number is specified, load that post.
+		if ( $q['p'] ) {
+			$post_id_sql = " AND {$wpdb->posts}.ID = " . $q['p'];
+		} elseif ( $q['post__in'] ) {
+			$post__in    = implode( ',', array_map( 'absint', $q['post__in'] ) );
+			$post_id_sql = " AND {$wpdb->posts}.ID IN ($post__in)";
+		} elseif ( $q['post__not_in'] ) {
+			$post__not_in = implode( ',', array_map( 'absint', $q['post__not_in'] ) );
+			$post_id_sql  = " AND {$wpdb->posts}.ID NOT IN ($post__not_in)";
+		}
+
+		return $post_id_sql;
 	}
 
 	/**
