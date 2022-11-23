@@ -2245,19 +2245,7 @@ class WP_Query {
 
 		// Paging.
 		if ( empty( $q['nopaging'] ) && ! $this->is_singular ) {
-			$page = absint( $q['paged'] );
-			if ( ! $page ) {
-				$page = 1;
-			}
-
-			// If 'offset' is provided, it takes precedence over 'paged'.
-			if ( isset( $q['offset'] ) && is_numeric( $q['offset'] ) ) {
-				$q['offset'] = absint( $q['offset'] );
-				$pgstrt      = $q['offset'] . ', ';
-			} else {
-				$pgstrt = absint( ( $page - 1 ) * $q['posts_per_page'] ) . ', ';
-			}
-			$limits = 'LIMIT ' . $pgstrt . $q['posts_per_page'];
+			$limits = $this->get_paging_limit( $page );
 		}
 
 		// Comments feeds.
@@ -3872,6 +3860,32 @@ class WP_Query {
 				$post_type_cap = $post_type;
 			}
 		}
+	}
+
+	/**
+	 * Gets the LIMIT clause for paging.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @return string The LIMIT clause for paging.
+	 */
+	private function get_paging_limit( &$page ) {
+		$q    = &$this->query_vars;
+		$page = absint( $q['paged'] );
+
+		if ( ! $page ) {
+			$page = 1;
+		}
+
+		// If 'offset' is provided, it takes precedence over 'paged'.
+		if ( isset( $q['offset'] ) && is_numeric( $q['offset'] ) ) {
+			$q['offset'] = absint( $q['offset'] );
+			$pgstrt      = $q['offset'] . ', ';
+		} else {
+			$pgstrt = absint( ( $page - 1 ) * $q['posts_per_page'] ) . ', ';
+		}
+
+		return 'LIMIT ' . $pgstrt . $q['posts_per_page'];
 	}
 
 	/**
