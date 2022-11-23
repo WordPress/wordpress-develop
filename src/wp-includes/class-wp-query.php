@@ -1849,9 +1849,7 @@ class WP_Query {
 		$this->allow_query_attachment_by_filename = apply_filters( 'wp_allow_query_attachment_by_filename', false );
 		remove_all_filters( 'wp_allow_query_attachment_by_filename' );
 
-		// Parse meta query.
-		$this->meta_query = new WP_Meta_Query();
-		$this->meta_query->parse_query_vars( $q );
+		$this->parse_meta_query();
 
 		// Set a flag if a 'pre_get_posts' hook changed the query vars.
 		$hash = md5( serialize( $this->query_vars ) );
@@ -3495,6 +3493,19 @@ class WP_Query {
 		}
 
 		return $this->posts;
+	}
+
+	/**
+	 * Creates and parses meta query vars.
+	 *
+	 * @since 6.3.0
+	 */
+	private function parse_meta_query() {
+		$q = &$this->query_vars;
+
+		// Parse meta query.
+		$this->meta_query = new WP_Meta_Query();
+		$this->meta_query->parse_query_vars( $q );
 	}
 
 	/**
