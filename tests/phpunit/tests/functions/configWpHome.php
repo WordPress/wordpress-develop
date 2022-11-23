@@ -14,10 +14,10 @@ class Tests_Functions_ConfigWpHome extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_config_wp_home
 	 *
-	 * @param string $url      The URL to pass to _config_wp_home().
+	 * @param string $url The URL to pass to _config_wp_home().
 	 * @param string $expected The expected result.
 	 */
-	function test_config_wp_home( $url, $expected ) {
+	public function test_config_wp_home( $url, $expected ) {
 		$this->assertSame( $expected, _config_wp_home( $url ) );
 	}
 
@@ -26,17 +26,17 @@ class Tests_Functions_ConfigWpHome extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	function data_config_wp_home() {
+	public function data_config_wp_home() {
 		return array(
-			'only a forward slash'   => array(
+			'only a forward slash' => array(
 				'url'      => '/',
 				'expected' => '/',
 			),
-			'https'     => array(
+			'https'                => array(
 				'url'      => 'https://www.example.com/',
 				'expected' => 'https://www.example.com/',
 			),
-			'URL as empty string' => array(
+			'URL as empty string'  => array(
 				'url'      => '',
 				'expected' => '',
 			),
