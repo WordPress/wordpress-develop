@@ -2250,103 +2250,7 @@ class WP_Query {
 
 		// Comments feeds.
 		if ( $this->is_comment_feed && ! $this->is_singular ) {
-			if ( $this->is_archive || $this->is_search ) {
-				$cjoin    = "JOIN {$wpdb->posts} ON ( {$wpdb->comments}.comment_post_ID = {$wpdb->posts}.ID ) $join ";
-				$cwhere   = "WHERE comment_approved = '1' $where";
-				$cgroupby = "{$wpdb->comments}.comment_id";
-			} else { // Other non-singular, e.g. front.
-				$cjoin    = "JOIN {$wpdb->posts} ON ( {$wpdb->comments}.comment_post_ID = {$wpdb->posts}.ID )";
-				$cwhere   = "WHERE ( post_status = 'publish' OR ( post_status = 'inherit' AND post_type = 'attachment' ) ) AND comment_approved = '1'";
-				$cgroupby = '';
-			}
-
-			if ( ! $q['suppress_filters'] ) {
-				/**
-				 * Filters the JOIN clause of the comments feed query before sending.
-				 *
-				 * @since 2.2.0
-				 *
-				 * @param string   $cjoin The JOIN clause of the query.
-				 * @param WP_Query $query The WP_Query instance (passed by reference).
-				 */
-				$cjoin = apply_filters_ref_array( 'comment_feed_join', array( $cjoin, &$this ) );
-
-				/**
-				 * Filters the WHERE clause of the comments feed query before sending.
-				 *
-				 * @since 2.2.0
-				 *
-				 * @param string   $cwhere The WHERE clause of the query.
-				 * @param WP_Query $query  The WP_Query instance (passed by reference).
-				 */
-				$cwhere = apply_filters_ref_array( 'comment_feed_where', array( $cwhere, &$this ) );
-
-				/**
-				 * Filters the GROUP BY clause of the comments feed query before sending.
-				 *
-				 * @since 2.2.0
-				 *
-				 * @param string   $cgroupby The GROUP BY clause of the query.
-				 * @param WP_Query $query    The WP_Query instance (passed by reference).
-				 */
-				$cgroupby = apply_filters_ref_array( 'comment_feed_groupby', array( $cgroupby, &$this ) );
-
-				/**
-				 * Filters the ORDER BY clause of the comments feed query before sending.
-				 *
-				 * @since 2.8.0
-				 *
-				 * @param string   $corderby The ORDER BY clause of the query.
-				 * @param WP_Query $query    The WP_Query instance (passed by reference).
-				 */
-				$corderby = apply_filters_ref_array( 'comment_feed_orderby', array( 'comment_date_gmt DESC', &$this ) );
-
-				/**
-				 * Filters the LIMIT clause of the comments feed query before sending.
-				 *
-				 * @since 2.8.0
-				 *
-				 * @param string   $climits The JOIN clause of the query.
-				 * @param WP_Query $query   The WP_Query instance (passed by reference).
-				 */
-				$climits = apply_filters_ref_array( 'comment_feed_limits', array( 'LIMIT ' . get_option( 'posts_per_rss' ), &$this ) );
-			}
-
-			$cgroupby = ( ! empty( $cgroupby ) ) ? 'GROUP BY ' . $cgroupby : '';
-			$corderby = ( ! empty( $corderby ) ) ? 'ORDER BY ' . $corderby : '';
-			$climits  = ( ! empty( $climits ) ) ? $climits : '';
-
-			$comments_request = "SELECT $distinct {$wpdb->comments}.comment_ID FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
-
-			$key          = md5( $comments_request );
-			$last_changed = wp_cache_get_last_changed( 'comment' ) . ':' . wp_cache_get_last_changed( 'posts' );
-
-			$cache_key   = "comment_feed:$key:$last_changed";
-			$comment_ids = wp_cache_get( $cache_key, 'comment' );
-			if ( false === $comment_ids ) {
-				$comment_ids = $wpdb->get_col( $comments_request );
-				wp_cache_add( $cache_key, $comment_ids, 'comment' );
-			}
-			_prime_comment_caches( $comment_ids, false );
-
-			// Convert to WP_Comment.
-			/** @var WP_Comment[] */
-			$this->comments      = array_map( 'get_comment', $comment_ids );
-			$this->comment_count = count( $this->comments );
-
-			$post_ids = array();
-
-			foreach ( $this->comments as $comment ) {
-				$post_ids[] = (int) $comment->comment_post_ID;
-			}
-
-			$post_ids = implode( ',', $post_ids );
-			$join     = '';
-			if ( $post_ids ) {
-				$where = "AND {$wpdb->posts}.ID IN ($post_ids) ";
-			} else {
-				$where = 'AND 0';
-			}
+			$this->process_comments_feeds( $distinct, $join, $where );
 		}
 
 		$pieces = array( 'where', 'groupby', 'join', 'orderby', 'distinct', 'fields', 'limits' );
@@ -3886,6 +3790,119 @@ class WP_Query {
 		}
 
 		return 'LIMIT ' . $pgstrt . $q['posts_per_page'];
+	}
+
+	/**
+	 * Processes a comments feed query.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string $distinct The DISTINCT clause.
+	 * @param string $join     Reference to the JOIN clause.
+	 * @param string $where    Reference to the WHERE clause.
+	 */
+	private function process_comments_feeds( $distinct, &$join, &$where ) {
+		global $wpdb;
+
+		$q = &$this->query_vars;
+
+		if ( $this->is_archive || $this->is_search ) {
+			$cjoin    = "JOIN {$wpdb->posts} ON ( {$wpdb->comments}.comment_post_ID = {$wpdb->posts}.ID ) $join ";
+			$cwhere   = "WHERE comment_approved = '1' $where";
+			$cgroupby = "{$wpdb->comments}.comment_id";
+		} else { // Other non-singular, e.g. front.
+			$cjoin    = "JOIN {$wpdb->posts} ON ( {$wpdb->comments}.comment_post_ID = {$wpdb->posts}.ID )";
+			$cwhere   = "WHERE ( post_status = 'publish' OR ( post_status = 'inherit' AND post_type = 'attachment' ) ) AND comment_approved = '1'";
+			$cgroupby = '';
+		}
+
+		if ( ! $q['suppress_filters'] ) {
+			/**
+			 * Filters the JOIN clause of the comments feed query before sending.
+			 *
+			 * @since 2.2.0
+			 *
+			 * @param string   $cjoin The JOIN clause of the query.
+			 * @param WP_Query $query The WP_Query instance (passed by reference).
+			 */
+			$cjoin = apply_filters_ref_array( 'comment_feed_join', array( $cjoin, &$this ) );
+
+			/**
+			 * Filters the WHERE clause of the comments feed query before sending.
+			 *
+			 * @since 2.2.0
+			 *
+			 * @param string   $cwhere The WHERE clause of the query.
+			 * @param WP_Query $query  The WP_Query instance (passed by reference).
+			 */
+			$cwhere = apply_filters_ref_array( 'comment_feed_where', array( $cwhere, &$this ) );
+
+			/**
+			 * Filters the GROUP BY clause of the comments feed query before sending.
+			 *
+			 * @since 2.2.0
+			 *
+			 * @param string   $cgroupby The GROUP BY clause of the query.
+			 * @param WP_Query $query    The WP_Query instance (passed by reference).
+			 */
+			$cgroupby = apply_filters_ref_array( 'comment_feed_groupby', array( $cgroupby, &$this ) );
+
+			/**
+			 * Filters the ORDER BY clause of the comments feed query before sending.
+			 *
+			 * @since 2.8.0
+			 *
+			 * @param string   $corderby The ORDER BY clause of the query.
+			 * @param WP_Query $query    The WP_Query instance (passed by reference).
+			 */
+			$corderby = apply_filters_ref_array( 'comment_feed_orderby', array( 'comment_date_gmt DESC', &$this ) );
+
+			/**
+			 * Filters the LIMIT clause of the comments feed query before sending.
+			 *
+			 * @since 2.8.0
+			 *
+			 * @param string   $climits The JOIN clause of the query.
+			 * @param WP_Query $query   The WP_Query instance (passed by reference).
+			 */
+			$climits = apply_filters_ref_array( 'comment_feed_limits', array( 'LIMIT ' . get_option( 'posts_per_rss' ), &$this ) );
+		}
+
+		$cgroupby = ( ! empty( $cgroupby ) ) ? 'GROUP BY ' . $cgroupby : '';
+		$corderby = ( ! empty( $corderby ) ) ? 'ORDER BY ' . $corderby : '';
+		$climits  = ( ! empty( $climits ) ) ? $climits : '';
+
+		$comments_request = "SELECT $distinct {$wpdb->comments}.comment_ID FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
+
+		$key          = md5( $comments_request );
+		$last_changed = wp_cache_get_last_changed( 'comment' ) . ':' . wp_cache_get_last_changed( 'posts' );
+
+		$cache_key   = "comment_feed:$key:$last_changed";
+		$comment_ids = wp_cache_get( $cache_key, 'comment' );
+		if ( false === $comment_ids ) {
+			$comment_ids = $wpdb->get_col( $comments_request );
+			wp_cache_add( $cache_key, $comment_ids, 'comment' );
+		}
+		_prime_comment_caches( $comment_ids, false );
+
+		// Convert to WP_Comment.
+		/** @var WP_Comment[] */
+		$this->comments      = array_map( 'get_comment', $comment_ids );
+		$this->comment_count = count( $this->comments );
+
+		$post_ids = array();
+
+		foreach ( $this->comments as $comment ) {
+			$post_ids[] = (int) $comment->comment_post_ID;
+		}
+
+		$post_ids = implode( ',', $post_ids );
+		$join     = '';
+		if ( $post_ids ) {
+			$where = "AND {$wpdb->posts}.ID IN ($post_ids) ";
+		} else {
+			$where = 'AND 0';
+		}
 	}
 
 	/**
