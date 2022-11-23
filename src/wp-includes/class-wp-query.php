@@ -1902,31 +1902,7 @@ class WP_Query {
 			$q['name'] = sanitize_title_for_query( $q['name'] );
 			$where    .= " AND {$wpdb->posts}.post_name = '" . $q['name'] . "'";
 		} elseif ( '' !== $q['pagename'] ) {
-			if ( isset( $this->queried_object_id ) ) {
-				$reqpage = $this->queried_object_id;
-			} else {
-				if ( 'page' !== $q['post_type'] ) {
-					foreach ( (array) $q['post_type'] as $_post_type ) {
-						$ptype_obj = get_post_type_object( $_post_type );
-						if ( ! $ptype_obj || ! $ptype_obj->hierarchical ) {
-							continue;
-						}
-
-						$reqpage = get_page_by_path( $q['pagename'], OBJECT, $_post_type );
-						if ( $reqpage ) {
-							break;
-						}
-					}
-					unset( $ptype_obj );
-				} else {
-					$reqpage = get_page_by_path( $q['pagename'] );
-				}
-				if ( ! empty( $reqpage ) ) {
-					$reqpage = $reqpage->ID;
-				} else {
-					$reqpage = 0;
-				}
-			}
+			$reqpage = $this->get_reqpage();
 
 			$page_for_posts = get_option( 'page_for_posts' );
 			if ( ( 'page' !== get_option( 'show_on_front' ) ) || empty( $page_for_posts ) || ( $reqpage != $page_for_posts ) ) {
@@ -3655,6 +3631,46 @@ class WP_Query {
 			} // End foreach.
 			unset( $ptype_obj );
 		}
+	}
+
+	/**
+	 * Gets the 'reqpage' query parameter.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @return int The reqpage query parameter.
+	 */
+	private function get_reqpage() {
+		$q = $this->query_vars;
+
+		if ( isset( $this->queried_object_id ) ) {
+			return $this->queried_object_id;
+		}
+
+		if ( 'page' !== $q['post_type'] ) {
+			foreach ( (array) $q['post_type'] as $_post_type ) {
+				$ptype_obj = get_post_type_object( $_post_type );
+				if ( ! $ptype_obj || ! $ptype_obj->hierarchical ) {
+					continue;
+				}
+
+				$reqpage = get_page_by_path( $q['pagename'], OBJECT, $_post_type );
+				if ( $reqpage ) {
+					break;
+				}
+			}
+			unset( $ptype_obj );
+		} else {
+			$reqpage = get_page_by_path( $q['pagename'] );
+		}
+
+		if ( ! empty( $reqpage ) ) {
+			$reqpage = $reqpage->ID;
+		} else {
+			$reqpage = 0;
+		}
+
+		return $reqpage;
 	}
 
 	/**
