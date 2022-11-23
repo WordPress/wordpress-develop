@@ -1881,10 +1881,7 @@ class WP_Query {
 			$q['page_id']  = get_option( 'page_on_front' );
 		}
 
-		if ( isset( $q['page'] ) ) {
-			$q['page'] = trim( $q['page'], '/' );
-			$q['page'] = absint( $q['page'] );
-		}
+		$this->clean_page();
 
 		// If true, forcibly turns off SQL_CALC_FOUND_ROWS even when limits are present.
 		if ( isset( $q['no_found_rows'] ) ) {
@@ -3560,6 +3557,20 @@ class WP_Query {
 
 		if ( ! isset( $q['comments_per_page'] ) || 0 == $q['comments_per_page'] ) {
 			$q['comments_per_page'] = get_option( 'comments_per_page' );
+		}
+	}
+
+	/**
+	 * Cleans the 'page' query parameter.
+	 *
+	 * @since 6.3.0
+	 */
+	private function clean_page() {
+		$q = &$this->query_vars;
+
+		if ( isset( $q['page'] ) ) {
+			$q['page'] = trim( $q['page'], '/' );
+			$q['page'] = absint( $q['page'] );
 		}
 	}
 
