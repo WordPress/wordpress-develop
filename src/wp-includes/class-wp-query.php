@@ -2010,27 +2010,9 @@ class WP_Query {
 
 		// Matching by comment count.
 		if ( isset( $q['comment_count'] ) ) {
-			// Numeric comment count is converted to array format.
-			if ( is_numeric( $q['comment_count'] ) ) {
-				$q['comment_count'] = array(
-					'value' => (int) $q['comment_count'],
-				);
-			}
+			$this->set_comment_count();
 
 			if ( isset( $q['comment_count']['value'] ) ) {
-				$q['comment_count'] = array_merge(
-					array(
-						'compare' => '=',
-					),
-					$q['comment_count']
-				);
-
-				// Fallback for invalid compare operators is '='.
-				$compare_operators = array( '=', '!=', '>', '>=', '<', '<=' );
-				if ( ! in_array( $q['comment_count']['compare'], $compare_operators, true ) ) {
-					$q['comment_count']['compare'] = '=';
-				}
-
 				$where .= $wpdb->prepare( " AND {$wpdb->posts}.comment_count {$q['comment_count']['compare']} %d", $q['comment_count']['value'] );
 			}
 		}
@@ -3805,6 +3787,37 @@ class WP_Query {
 		$q['author']      = get_user_by( 'slug', $q['author_name'] );
 		if ( $q['author'] ) {
 			$q['author'] = $q['author']->ID;
+		}
+	}
+
+	/**
+	 * Sets the 'comment_count' query parameter.
+	 *
+	 * @since 6.3.0
+	 */
+	private function set_comment_count() {
+		$q = &$this->query_vars;
+
+		// Numeric comment count is converted to array format.
+		if ( is_numeric( $q['comment_count'] ) ) {
+			$q['comment_count'] = array(
+				'value' => (int) $q['comment_count'],
+			);
+		}
+
+		if ( isset( $q['comment_count']['value'] ) ) {
+			$q['comment_count'] = array_merge(
+				array(
+					'compare' => '=',
+				),
+				$q['comment_count']
+			);
+
+			// Fallback for invalid compare operators is '='.
+			$compare_operators = array( '=', '!=', '>', '>=', '<', '<=' );
+			if ( ! in_array( $q['comment_count']['compare'], $compare_operators, true ) ) {
+				$q['comment_count']['compare'] = '=';
+			}
 		}
 	}
 
