@@ -1616,6 +1616,14 @@
 
 		wp.a11y.speak( _x( 'Deleted!', 'theme' ) );
 
+		// DecrementCount from update count.
+		if ( 'themes' === pagenow ) {
+			const hasUpdatableThemes = [ ...$themeRows ].some( item => item.getAttribute( 'id' ) === 'update-theme' );
+			if ( hasUpdatableThemes ) {
+				wp.updates.decrementCount( 'theme' );
+			}
+		}
+
 		$document.trigger( 'wp-theme-delete-success', response );
 	};
 
