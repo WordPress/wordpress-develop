@@ -1889,71 +1889,9 @@ class WP_Query {
 
 		$where .= $this->get_where_for_menu_order();
 
-		// Handle the other individual date parameters.
-		$date_parameters = array();
+		$where .= $this->get_where_for_date();
 
-		if ( '' !== $q['hour'] ) {
-			$date_parameters['hour'] = $q['hour'];
-		}
-
-		if ( '' !== $q['minute'] ) {
-			$date_parameters['minute'] = $q['minute'];
-		}
-
-		if ( '' !== $q['second'] ) {
-			$date_parameters['second'] = $q['second'];
-		}
-
-		if ( $q['year'] ) {
-			$date_parameters['year'] = $q['year'];
-		}
-
-		if ( $q['monthnum'] ) {
-			$date_parameters['monthnum'] = $q['monthnum'];
-		}
-
-		if ( $q['w'] ) {
-			$date_parameters['week'] = $q['w'];
-		}
-
-		if ( $q['day'] ) {
-			$date_parameters['day'] = $q['day'];
-		}
-
-		if ( $date_parameters ) {
-			$date_query = new WP_Date_Query( array( $date_parameters ) );
-			$where     .= $date_query->get_sql();
-		}
-		unset( $date_parameters, $date_query );
-
-		// Handle complex date queries.
-		if ( ! empty( $q['date_query'] ) ) {
-			$this->date_query = new WP_Date_Query( $q['date_query'] );
-			$where           .= $this->date_query->get_sql();
-		}
-
-		// If we've got a post_type AND it's not "any" post_type.
-		if ( ! empty( $q['post_type'] ) && 'any' !== $q['post_type'] ) {
-			foreach ( (array) $q['post_type'] as $_post_type ) {
-				$ptype_obj = get_post_type_object( $_post_type );
-				if ( ! $ptype_obj || ! $ptype_obj->query_var || empty( $q[ $ptype_obj->query_var ] ) ) {
-					continue;
-				}
-
-				if ( ! $ptype_obj->hierarchical ) {
-					// Non-hierarchical post types can directly use 'name'.
-					$q['name'] = $q[ $ptype_obj->query_var ];
-				} else {
-					// Hierarchical post types will operate through 'pagename'.
-					$q['pagename'] = $q[ $ptype_obj->query_var ];
-					$q['name']     = '';
-				}
-
-				// Only one request for a slug is possible, this is why name & pagename are overwritten above.
-				break;
-			} // End foreach.
-			unset( $ptype_obj );
-		}
+		
 
 		if ( '' !== $q['title'] ) {
 			$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_title = %s", stripslashes( $q['title'] ) );
@@ -3604,6 +3542,87 @@ class WP_Query {
 		}
 
 		return $menu_order;
+	}
+
+	/**
+	 * Gets the WHERE clause for date-related query parameters.
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @return string The WHERE clause for date-related query parameters, or an empty string.
+	 */
+	private function get_where_for_date() {
+		global $wpdb;
+
+		$sql = '';
+		$q   = &$this->query_vars;
+
+		// The "m" parameter is meant for months but accepts datetimes of varying specificity.
+		if ( $q['m'] ) {
+			$sql .= " AND YEAR({$wpdb->posts}.post_date)=" . substr( $q['m'], 0, 4 );
+			if ( strlen( $q['m'] ) > 5 ) {
+				$sql .= " AND MONTH({$wpdb->posts}.post_date)=" . substr( $q['m'], 4, 2 );
+			}
+			if ( strlen( $q['m'] ) > 7 ) {
+				$sql .= " AND DAYOFMONTH({$wpdb->posts}.post_date)=" . substr( $q['m'], 6, 2 );
+			}
+			if ( strlen( $q['m'] ) > 9 ) {
+				$sql .= " AND HOUR({$wpdb->posts}.post_date)=" . substr( $q['m'], 8, 2 );
+			}
+			if ( strlen( $q['m'] ) > 11 ) {
+				$sql .= " AND MINUTE({$wpdb->posts}.post_date)=" . substr( $q['m'], 10, 2 );
+			}
+			if ( strlen( $q['m'] ) > 13 ) {
+				$sql .= " AND SECOND({$wpdb->posts}.post_date)=" . substr( $q['m'], 12, 2 );
+			}
+		}
+
+		// Handle the other individual date parameters.
+		$date_parameters = array();
+
+		if ( '' !== $q['hour'] ) {
+			$date_parameters['hour'] = $q['hour'];
+		}
+
+		if ( '' !== $q['minute'] ) {
+			$date_parameters['minute'] = $q['minute'];
+		}
+
+		if ( '' !== $q['second'] ) {
+			$date_parameters['second'] = $q['second'];
+		}
+
+		if ( $q['year'] ) {
+			$date_parameters['year'] = $q['year'];
+		}
+
+		if ( $q['monthnum'] ) {
+			$date_parameters['monthnum'] = $q['monthnum'];
+		}
+
+		if ( $q['w'] ) {
+			$date_parameters['week'] = $q['w'];
+		}
+
+		if ( $q['day'] ) {
+			$date_parameters['day'] = $q['day'];
+		}
+
+		if ( $date_parameters ) {
+			$date_query = new WP_Date_Query( array( $date_parameters ) );
+			$sql       .= $date_query->get_sql();
+		}
+		unset( $date_parameters, $date_query );
+
+		// Handle complex date queries.
+		if ( ! empty( $q['date_query'] ) ) {
+			$this->date_query = new WP_Date_Query( $q['date_query'] );
+			$sql             .= $this->date_query->get_sql();
+		}
+
+		return $sql;
 	}
 
 	/**
