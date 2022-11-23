@@ -28,7 +28,7 @@ class Tests_Functions_ConfigWpHome extends WP_UnitTestCase {
 	 */
 	function data_config_wp_home() {
 		return array(
-			'default'   => array(
+			'only a forward slash'   => array(
 				'url'      => '/',
 				'expected' => '/',
 			),
