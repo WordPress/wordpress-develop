@@ -1873,9 +1873,7 @@ class WP_Query {
 
 		$this->set_posts_per_page();
 
-		if ( ! isset( $q['comments_per_page'] ) || 0 == $q['comments_per_page'] ) {
-			$q['comments_per_page'] = get_option( 'comments_per_page' );
-		}
+		$this->set_comments_per_page();
 
 		if ( $this->is_home && ( empty( $this->query ) || 'true' === $q['preview'] ) && ( 'page' === get_option( 'show_on_front' ) ) && get_option( 'page_on_front' ) ) {
 			$this->is_page = true;
@@ -3549,6 +3547,19 @@ class WP_Query {
 			$q['posts_per_page'] = abs( $q['posts_per_page'] );
 		} elseif ( 0 == $q['posts_per_page'] ) {
 			$q['posts_per_page'] = 1;
+		}
+	}
+
+	/**
+	 * Sets the 'comments_per_page' query parameter.
+	 *
+	 * @since 6.3.0
+	 */
+	private function set_comments_per_page() {
+		$q = &$this->query_vars;
+
+		if ( ! isset( $q['comments_per_page'] ) || 0 == $q['comments_per_page'] ) {
+			$q['comments_per_page'] = get_option( 'comments_per_page' );
 		}
 	}
 
