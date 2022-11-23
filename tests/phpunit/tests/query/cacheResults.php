@@ -1256,10 +1256,9 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_author_cache_warmed_by_the_loop
 	 *
-	 * @param string $fields   Query fields.
-	 * @param int    $expected Expected number of queries.
+	 * @param string $fields Query fields.
 	 */
-	public function test_author_cache_warmed_by_the_loop( $fields, $expected ) {
+	public function test_author_cache_warmed_by_the_loop( $fields ) {
 		// Update post author for the parent post.
 		self::factory()->post->update_object( self::$pages[0], array( 'post_author' => self::$author_id ) );
 
@@ -1285,7 +1284,12 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$start_loop_queries = get_num_queries();
 		$query_1->the_post();
 		$num_loop_queries = get_num_queries() - $start_loop_queries;
-		$this->assertSame( $expected, $num_loop_queries, 'Unexpected number of queries while initializing the loop.' );
+		/*
+		 * Two expected queries:
+		 * 1: User meta data,
+		 * 2: User data.
+		 */
+		$this->assertSame( 2, $num_loop_queries, 'Unexpected number of queries while initializing the loop.' );
 
 		$start_author_queries = get_num_queries();
 		get_user_by( 'ID', self::$author_id );
@@ -1300,34 +1304,9 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 */
 	public function data_author_cache_warmed_by_the_loop() {
 		return array(
-			/*
-			 * Two expected queries:
-			 * 1: User meta data,
-			 * 2: User data.
-			 */
-			'fields: empty' => array(
-				'fields'   => '',
-				'expected' => 2,
-			),
-			/*
-			 * Two expected queries:
-			 * 1: User meta data,
-			 * 2: User data.
-			 */
-			'fields: all'   => array(
-				'fields'   => 'all',
-				'expected' => 2,
-			),
-			/*
-			 * Three expected queries:
-			 * 1: Warm the post meta cache (no terms as the test queries pages),
-			 * 2: User meta data,
-			 * 3: User data.
-			 */
-			'fields: ids'   => array(
-				'fields'   => 'ids',
-				'expected' => 3,
-			),
+			'fields: empty' => array( '' ),
+			'fields: all'   => array( 'all' ),
+			'fields: ids'   => array( 'ids' ),
 			/*
 			 * `id=>parent` is untested pending the resolution of an existing bug.
 			 * See https://core.trac.wordpress.org/ticket/56992
