@@ -73,7 +73,8 @@ class Tests_Functions_WpUploadBits extends WP_UnitTestCase {
 				'type'  => 'text/plain',
 
 			),
-			wp_upload_bits( 'filename.txt', null, $content, '99/12' )
+			wp_upload_bits( 'filename.txt', null, $content, '99/12' ),
+			'wp_upload_bits() did not return the expected result.'
 		);
 		$file          = fopen( $filename, 'rb' );
 		$file_contents = fread( $file, filesize( $filename ) );
