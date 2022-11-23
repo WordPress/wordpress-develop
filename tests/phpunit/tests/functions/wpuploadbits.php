@@ -20,9 +20,9 @@ class Tests_Functions_WpUploadBits extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 57130
+	 * Tests that wp_upload_bits() returns an array with an error message if the filename is empty.
 	 *
-	 * return error if no filename pass in
+	 * @ticket 57130
 	 **/
 	public function test_wp_upload_bits_should_return_an_array_with_error_message_if_no_name_present() {
 		$this->assertSameSets( array( 'error' => __( 'Empty filename' ) ), wp_upload_bits( '', '', 'bits' ) );
