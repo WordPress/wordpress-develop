@@ -2028,17 +2028,8 @@ class WP_Query {
 
 		$orderby = $this->clean_order_and_orderby();
 
-		if ( is_array( $post_type ) && count( $post_type ) > 1 ) {
-			$post_type_cap = 'multiple_post_type';
-		} else {
-			if ( is_array( $post_type ) ) {
-				$post_type = reset( $post_type );
-			}
-			$post_type_object = get_post_type_object( $post_type );
-			if ( empty( $post_type_object ) ) {
-				$post_type_cap = $post_type;
-			}
-		}
+		$post_type_cap = $post_type;
+		$this->process_post_type_cap( $post_type, $post_type_cap );
 
 		if ( isset( $q['post_password'] ) ) {
 			$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_password = %s", $q['post_password'] );
@@ -3859,6 +3850,28 @@ class WP_Query {
 		}
 
 		return $orderby;
+	}
+
+	/**
+	 * Sets the 'post_type' and 'post_type_cap' values for WP_Query::get_posts().
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string|array $post_type     Reference to the post type.
+	 * @param string       $post_type_cap Reference to the post type capabilities.
+	 */
+	private function process_post_type_cap( &$post_type, &$post_type_cap ) {
+		if ( is_array( $post_type ) && count( $post_type ) > 1 ) {
+			$post_type_cap = 'multiple_post_type';
+		} else {
+			if ( is_array( $post_type ) ) {
+				$post_type = reset( $post_type );
+			}
+			$post_type_object = get_post_type_object( $post_type );
+			if ( empty( $post_type_object ) ) {
+				$post_type_cap = $post_type;
+			}
+		}
 	}
 
 	/**
