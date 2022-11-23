@@ -37,7 +37,11 @@ class Tests_Formatting_SanitizePost extends WP_UnitTestCase {
 	 * @dataProvider data_test_null_byte
 	 * @ticket 52738
 	 */
-	public function test_null_byte( $post_data ) {
+	public function test_null_byte_php_7_or_greater( $post_data ) {
+		if ( version_compare( PHP_VERSION, '7.0.0', '<' ) ) {
+			$this->markTestSkipped( 'This test can only run on PHP 7.0 or greater due to illegal member variable name.' );
+		}
+
 		$post = sanitize_post( $post_data );
 
 		$this->assertSame( $post->post_type, $post_data->post_type );

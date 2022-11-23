@@ -10,56 +10,57 @@
  */
 class Tests_Functions_WpGetObjectVars extends WP_UnitTestCase {
 
-	/**
-	 * @dataProvider data_wp_get_object_vars
-	 *
-	 * @param $object
-	 * @param $expected
-	 */
-	public function test_wp_get_object_vars( $object, $expected ) {
+	public function test_wp_get_object_vars() {
+		$object   = (object) array( 'k' => 'v' );
+		$expected = array( 'k' => 'v' );
 		$this->assertSame( $expected, wp_get_object_vars( $object ) );
 	}
 
-	public function data_wp_get_object_vars() {
+	/**
+	 * @dataProvider data_wp_get_object_vars_php_7_or_greater
+	 */
+	public function test_wp_get_object_vars_php_7_or_greater( $object, $expected ) {
+		if ( version_compare( PHP_VERSION, '7.0.0', '<' ) ) {
+			$this->markTestSkipped( 'This test can only run on PHP 7.0 or greater due to illegal member variable name.' );
+		}
+
+		$this->assertSame( $expected, wp_get_object_vars( $object ) );
+	}
+
+	public function data_wp_get_object_vars_php_7_or_greater() {
 		return array(
 			array(
 				(object) array(
-					'nb-val'   => chr( 0 ),
-					'property' => 'value',
+					'nb-val' => chr( 0 ),
+					'k'      => 'v',
 				),
 				array(
-					'nb-val'   => chr( 0 ),
-					'property' => 'value',
+					'nb-val' => chr( 0 ),
+					'k'      => 'v',
 				),
 			),
 			array(
 				(object) array(
-					'property' => 'value',
+					chr( 0 ) => 'Null-byte',
+					'k'      => 'v',
 				),
-				array( 'property' => 'value' ),
+				array( 'k' => 'v' ),
 			),
 			array(
 				(object) array(
-					chr( 0 )   => 'Null-byte',
-					'property' => 'value',
+					chr( 0 ) . 'n' => 'Starts with null-byte',
+					'k'            => 'v',
 				),
-				array( 'property' => 'value' ),
+				array( 'k' => 'v' ),
 			),
 			array(
 				(object) array(
-					chr( 0 ) . 'name' => 'Starts with null-byte',
-					'property'        => 'value',
-				),
-				array( 'property' => 'value' ),
-			),
-			array(
-				(object) array(
-					'name' . chr( 0 ) => 'Ends with null-byte',
-					'property'        => 'value',
+					'n' . chr( 0 ) => 'Ends with null-byte',
+					'k'            => 'v',
 				),
 				array(
-					'name' . chr( 0 ) => 'Ends with null-byte',
-					'property'        => 'value',
+					'n' . chr( 0 ) => 'Ends with null-byte',
+					'property'     => 'value',
 				),
 			),
 		);

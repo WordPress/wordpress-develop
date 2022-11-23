@@ -94,7 +94,11 @@ class Tests_Term_WpTerm extends WP_UnitTestCase {
 	 * @dataProvider data_test_wp_term_null_byte
 	 * @ticket 52738
 	 */
-	public function test_wp_term_null_byte( $term_data, $expected ) {
+	public function test_wp_term_null_byte_php_7_or_greater( $term_data, $expected ) {
+		if ( version_compare( PHP_VERSION, '7.0.0', '<' ) ) {
+			$this->markTestSkipped( 'This test can only run on PHP 7.0 or greater due to illegal member variable name.' );
+		}
+
 		$term = new WP_Term( $term_data );
 
 		$this->assertSame( $term->name, $expected );

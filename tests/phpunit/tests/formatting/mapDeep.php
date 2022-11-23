@@ -171,7 +171,11 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 	/**
 	 * @ticket 52738
 	 */
-	public function test_map_deep_should_not_fail_on_null_byte() {
+	public function test_map_deep_should_not_fail_on_null_byte_php_7_or_greater() {
+		if ( version_compare( PHP_VERSION, '7.0.0', '<' ) ) {
+			$this->markTestSkipped( 'This test can only run on PHP 7.0 or greater due to illegal member variable name.' );
+		}
+
 		$this->assertEquals(
 			(object) array(
 				'var0'   => 'ababa',
