@@ -1614,6 +1614,14 @@
 			} );
 		}
 
+		// DecrementCount from update count.
+		if ( 'themes' === pagenow ) {
+		    var theme = _.find( _wpThemeSettings.themes, { id: response.slug })
+		    if ( theme.hasUpdate ) {
+		        wp.updates.decrementCount( 'theme' );
+		    }
+		}
+
 		wp.a11y.speak( _x( 'Deleted!', 'theme' ) );
 
 		$document.trigger( 'wp-theme-delete-success', response );
