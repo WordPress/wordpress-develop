@@ -1985,24 +1985,7 @@ class WP_Query {
 			 * first taxonomy other than 'post_tag' or 'category'.
 			 */
 			if ( ! isset( $q['taxonomy'] ) ) {
-				foreach ( $this->tax_query->queried_terms as $queried_taxonomy => $queried_items ) {
-					if ( empty( $queried_items['terms'][0] ) ) {
-						continue;
-					}
-
-					if ( ! in_array( $queried_taxonomy, array( 'category', 'post_tag' ), true ) ) {
-						$q['taxonomy'] = $queried_taxonomy;
-
-						if ( 'slug' === $queried_items['field'] ) {
-							$q['term'] = $queried_items['terms'][0];
-						} else {
-							$q['term_id'] = $queried_items['terms'][0];
-						}
-
-						// Take the first one we find.
-						break;
-					}
-				}
+				$this->set_taxonomy_and_term_params();
 			}
 
 			// 'cat', 'category_name', 'tag_id'.
@@ -3744,6 +3727,35 @@ class WP_Query {
 		}
 
 		return $search;
+	}
+
+	/**
+	 * Sets the 'taxonomy', 'term', and 'term_id' query parameters
+	 * to the first taxonomy other than 'post_tag' or 'category'.
+	 *
+	 * @since 6.3.0
+	 */
+	private function set_taxonomy_and_term_params() {
+		$q = &$this->query_vars;
+
+		foreach ( $this->tax_query->queried_terms as $queried_taxonomy => $queried_items ) {
+			if ( empty( $queried_items['terms'][0] ) ) {
+				continue;
+			}
+
+			if ( ! in_array( $queried_taxonomy, array( 'category', 'post_tag' ), true ) ) {
+				$q['taxonomy'] = $queried_taxonomy;
+
+				if ( 'slug' === $queried_items['field'] ) {
+					$q['term'] = $queried_items['terms'][0];
+				} else {
+					$q['term_id'] = $queried_items['terms'][0];
+				}
+
+				// Take the first one we find.
+				break;
+			}
+		}
 	}
 
 	/**
