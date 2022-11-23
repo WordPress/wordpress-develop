@@ -2026,93 +2026,7 @@ class WP_Query {
 			$where  .= $clauses['where'];
 		}
 
-		$rand = ( isset( $q['orderby'] ) && 'rand' === $q['orderby'] );
-		if ( ! isset( $q['order'] ) ) {
-			$q['order'] = $rand ? '' : 'DESC';
-		} else {
-			$q['order'] = $rand ? '' : $this->parse_order( $q['order'] );
-		}
-
-		// These values of orderby should ignore the 'order' parameter.
-		$force_asc = array( 'post__in', 'post_name__in', 'post_parent__in' );
-		if ( isset( $q['orderby'] ) && in_array( $q['orderby'], $force_asc, true ) ) {
-			$q['order'] = '';
-		}
-
-		// Order by.
-		if ( empty( $q['orderby'] ) ) {
-			/*
-			 * Boolean false or empty array blanks out ORDER BY,
-			 * while leaving the value unset or otherwise empty sets the default.
-			 */
-			if ( isset( $q['orderby'] ) && ( is_array( $q['orderby'] ) || false === $q['orderby'] ) ) {
-				$orderby = '';
-			} else {
-				$orderby = "{$wpdb->posts}.post_date " . $q['order'];
-			}
-		} elseif ( 'none' === $q['orderby'] ) {
-			$orderby = '';
-		} else {
-			$orderby_array = array();
-			if ( is_array( $q['orderby'] ) ) {
-				foreach ( $q['orderby'] as $_orderby => $order ) {
-					$orderby = addslashes_gpc( urldecode( $_orderby ) );
-					$parsed  = $this->parse_orderby( $orderby );
-
-					if ( ! $parsed ) {
-						continue;
-					}
-
-					$orderby_array[] = $parsed . ' ' . $this->parse_order( $order );
-				}
-				$orderby = implode( ', ', $orderby_array );
-
-			} else {
-				$q['orderby'] = urldecode( $q['orderby'] );
-				$q['orderby'] = addslashes_gpc( $q['orderby'] );
-
-				foreach ( explode( ' ', $q['orderby'] ) as $i => $orderby ) {
-					$parsed = $this->parse_orderby( $orderby );
-					// Only allow certain values for safety.
-					if ( ! $parsed ) {
-						continue;
-					}
-
-					$orderby_array[] = $parsed;
-				}
-				$orderby = implode( ' ' . $q['order'] . ', ', $orderby_array );
-
-				if ( empty( $orderby ) ) {
-					$orderby = "{$wpdb->posts}.post_date " . $q['order'];
-				} elseif ( ! empty( $q['order'] ) ) {
-					$orderby .= " {$q['order']}";
-				}
-			}
-		}
-
-		// Order search results by relevance only when another "orderby" is not specified in the query.
-		if ( ! empty( $q['s'] ) ) {
-			$search_orderby = '';
-			if ( ! empty( $q['search_orderby_title'] ) && ( empty( $q['orderby'] ) && ! $this->is_feed ) || ( isset( $q['orderby'] ) && 'relevance' === $q['orderby'] ) ) {
-				$search_orderby = $this->parse_search_order( $q );
-			}
-
-			if ( ! $q['suppress_filters'] ) {
-				/**
-				 * Filters the ORDER BY used when ordering search results.
-				 *
-				 * @since 3.7.0
-				 *
-				 * @param string   $search_orderby The ORDER BY clause.
-				 * @param WP_Query $query          The current WP_Query instance.
-				 */
-				$search_orderby = apply_filters( 'posts_search_orderby', $search_orderby, $this );
-			}
-
-			if ( $search_orderby ) {
-				$orderby = $orderby ? $search_orderby . ', ' . $orderby : $search_orderby;
-			}
-		}
+		$orderby = $this->clean_order_and_orderby();
 
 		if ( is_array( $post_type ) && count( $post_type ) > 1 ) {
 			$post_type_cap = 'multiple_post_type';
@@ -3839,6 +3753,112 @@ class WP_Query {
 		if ( ! empty( $this->allow_query_attachment_by_filename ) ) {
 			$join .= " LEFT JOIN {$wpdb->postmeta} AS sq1 ON ( {$wpdb->posts}.ID = sq1.post_id AND sq1.meta_key = '_wp_attached_file' )";
 		}
+	}
+
+	/**
+	 * Cleans the 'order' and 'orderby' query parameters.
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @return string The 'orderby' query parameter, or an empty string.
+	 */
+	private function clean_order_and_orderby() {
+		global $wpdb;
+
+		$orderby = '';
+		$q       = &$this->query_vars;
+
+		$rand = ( isset( $q['orderby'] ) && 'rand' === $q['orderby'] );
+		if ( ! isset( $q['order'] ) ) {
+			$q['order'] = $rand ? '' : 'DESC';
+		} else {
+			$q['order'] = $rand ? '' : $this->parse_order( $q['order'] );
+		}
+
+		// These values of orderby should ignore the 'order' parameter.
+		$force_asc = array( 'post__in', 'post_name__in', 'post_parent__in' );
+		if ( isset( $q['orderby'] ) && in_array( $q['orderby'], $force_asc, true ) ) {
+			$q['order'] = '';
+		}
+
+		// Order by.
+		if ( empty( $q['orderby'] ) ) {
+			/*
+			 * Boolean false or empty array blanks out ORDER BY,
+			 * while leaving the value unset or otherwise empty sets the default.
+			 */
+			if ( isset( $q['orderby'] ) && ( is_array( $q['orderby'] ) || false === $q['orderby'] ) ) {
+				$orderby = '';
+			} else {
+				$orderby = "{$wpdb->posts}.post_date " . $q['order'];
+			}
+		} elseif ( 'none' === $q['orderby'] ) {
+			$orderby = '';
+		} else {
+			$orderby_array = array();
+			if ( is_array( $q['orderby'] ) ) {
+				foreach ( $q['orderby'] as $_orderby => $order ) {
+					$orderby = addslashes_gpc( urldecode( $_orderby ) );
+					$parsed  = $this->parse_orderby( $orderby );
+
+					if ( ! $parsed ) {
+						continue;
+					}
+
+					$orderby_array[] = $parsed . ' ' . $this->parse_order( $order );
+				}
+				$orderby = implode( ', ', $orderby_array );
+
+			} else {
+				$q['orderby'] = urldecode( $q['orderby'] );
+				$q['orderby'] = addslashes_gpc( $q['orderby'] );
+
+				foreach ( explode( ' ', $q['orderby'] ) as $i => $orderby ) {
+					$parsed = $this->parse_orderby( $orderby );
+					// Only allow certain values for safety.
+					if ( ! $parsed ) {
+						continue;
+					}
+
+					$orderby_array[] = $parsed;
+				}
+				$orderby = implode( ' ' . $q['order'] . ', ', $orderby_array );
+
+				if ( empty( $orderby ) ) {
+					$orderby = "{$wpdb->posts}.post_date " . $q['order'];
+				} elseif ( ! empty( $q['order'] ) ) {
+					$orderby .= " {$q['order']}";
+				}
+			}
+		}
+
+		// Order search results by relevance only when another "orderby" is not specified in the query.
+		if ( ! empty( $q['s'] ) ) {
+			$search_orderby = '';
+			if ( ! empty( $q['search_orderby_title'] ) && ( empty( $q['orderby'] ) && ! $this->is_feed ) || ( isset( $q['orderby'] ) && 'relevance' === $q['orderby'] ) ) {
+				$search_orderby = $this->parse_search_order( $q );
+			}
+
+			if ( ! $q['suppress_filters'] ) {
+				/**
+				 * Filters the ORDER BY used when ordering search results.
+				 *
+				 * @since 3.7.0
+				 *
+				 * @param string   $search_orderby The ORDER BY clause.
+				 * @param WP_Query $query          The current WP_Query instance.
+				 */
+				$search_orderby = apply_filters( 'posts_search_orderby', $search_orderby, $this );
+			}
+
+			if ( $search_orderby ) {
+				$orderby = $orderby ? $search_orderby . ', ' . $orderby : $search_orderby;
+			}
+		}
+
+		return $orderby;
 	}
 
 	/**
