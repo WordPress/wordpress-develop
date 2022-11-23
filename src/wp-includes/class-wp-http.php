@@ -7,18 +7,11 @@
  * @since 2.7.0
  */
 
-if ( ! class_exists( 'Requests' ) ) {
-	if (!defined('REQUESTS_SILENCE_PSR0_DEPRECATIONS')) {
-		define('REQUESTS_SILENCE_PSR0_DEPRECATIONS', true);
-	}
+if ( ! class_exists( 'WpOrg\Requests\Autoload' ) ) {
+	require ABSPATH . WPINC . '/Requests/Autoload.php';
 
-	require ABSPATH . WPINC . '/class-requests.php';
-
-	Requests::register_autoloader();
-	Requests::set_certificate_path( ABSPATH . WPINC . '/certificates/ca-bundle.crt' );
-
-	// Ensure a certain class alias gets created for a class used in type declarations by WP.
-	class_exists( 'Requests_Response' );
+	WpOrg\Requests\Autoload::register();
+	WpOrg\Requests\Requests::set_certificate_path( ABSPATH . WPINC . '/certificates/ca-bundle.crt' );
 }
 
 /**
@@ -282,14 +275,14 @@ class WP_Http {
 		if ( empty( $url ) || empty( $parsed_url['scheme'] ) ) {
 			$response = new WP_Error( 'http_request_failed', __( 'A valid URL was not provided.' ) );
 			/** This action is documented in wp-includes/class-wp-http.php */
-			do_action( 'http_api_debug', $response, 'response', 'Requests', $parsed_args, $url );
+			do_action( 'http_api_debug', $response, 'response', 'WpOrg\Requests\Requests', $parsed_args, $url );
 			return $response;
 		}
 
 		if ( $this->block_request( $url ) ) {
 			$response = new WP_Error( 'http_request_not_executed', __( 'User has blocked requests through HTTP.' ) );
 			/** This action is documented in wp-includes/class-wp-http.php */
-			do_action( 'http_api_debug', $response, 'response', 'Requests', $parsed_args, $url );
+			do_action( 'http_api_debug', $response, 'response', 'WpOrg\Requests\Requests', $parsed_args, $url );
 			return $response;
 		}
 
@@ -306,7 +299,7 @@ class WP_Http {
 			if ( ! wp_is_writable( dirname( $parsed_args['filename'] ) ) ) {
 				$response = new WP_Error( 'http_request_failed', __( 'Destination directory for file streaming does not exist or is not writable.' ) );
 				/** This action is documented in wp-includes/class-wp-http.php */
-				do_action( 'http_api_debug', $response, 'response', 'Requests', $parsed_args, $url );
+				do_action( 'http_api_debug', $response, 'response', 'WpOrg\Requests\Requests', $parsed_args, $url );
 				return $response;
 			}
 		}
@@ -386,7 +379,7 @@ class WP_Http {
 		// Check for proxies.
 		$proxy = new WP_HTTP_Proxy();
 		if ( $proxy->is_enabled() && $proxy->send_through_proxy( $url ) ) {
-			$options['proxy'] = new Requests_Proxy_HTTP( $proxy->host() . ':' . $proxy->port() );
+			$options['proxy'] = new WpOrg\Requests\Proxy\HTTP( $proxy->host() . ':' . $proxy->port() );
 
 			if ( $proxy->use_authentication() ) {
 				$options['proxy']->use_authentication = true;
@@ -399,7 +392,7 @@ class WP_Http {
 		mbstring_binary_safe_encoding();
 
 		try {
-			$requests_response = Requests::request( $url, $headers, $data, $type, $options );
+			$requests_response = WpOrg\Requests\Requests::request( $url, $headers, $data, $type, $options );
 
 			// Convert the response into an array.
 			$http_response = new WP_HTTP_Requests_Response( $requests_response, $parsed_args['filename'] );
@@ -407,7 +400,7 @@ class WP_Http {
 
 			// Add the original object to the array.
 			$response['http_response'] = $http_response;
-		} catch ( Requests_Exception $e ) {
+		} catch ( WpOrg\Requests\Exception $e ) {
 			$response = new WP_Error( 'http_request_failed', $e->getMessage() );
 		}
 
@@ -424,7 +417,7 @@ class WP_Http {
 		 * @param array          $parsed_args HTTP request arguments.
 		 * @param string         $url         The request URL.
 		 */
-		do_action( 'http_api_debug', $response, 'response', 'Requests', $parsed_args, $url );
+		do_action( 'http_api_debug', $response, 'response', 'WpOrg\Requests\Requests', $parsed_args, $url );
 		if ( is_wp_error( $response ) ) {
 			return $response;
 		}
@@ -463,7 +456,7 @@ class WP_Http {
 	 * @return Requests_Cookie_Jar Cookie holder object.
 	 */
 	public static function normalize_cookies( $cookies ) {
-		$cookie_jar = new Requests_Cookie_Jar();
+		$cookie_jar = new WpOrg\Requests\Cookie\Jar();
 
 		foreach ( $cookies as $name => $value ) {
 			if ( $value instanceof WP_Http_Cookie ) {
@@ -473,9 +466,9 @@ class WP_Http {
 						return null !== $attr;
 					}
 				);
-				$cookie_jar[ $value->name ] = new Requests_Cookie( $value->name, $value->value, $attributes, array( 'host-only' => $value->host_only ) );
+				$cookie_jar[ $value->name ] = new WpOrg\Requests\Cookie( $value->name, $value->value, $attributes, array( 'host-only' => $value->host_only ) );
 			} elseif ( is_scalar( $value ) ) {
-				$cookie_jar[ $name ] = new Requests_Cookie( $name, (string) $value );
+				$cookie_jar[ $name ] = new WpOrg\Requests\Cookie( $name, (string) $value );
 			}
 		}
 
@@ -500,7 +493,7 @@ class WP_Http {
 	public static function browser_redirect_compatibility( $location, $headers, $data, &$options, $original ) {
 		// Browser compatibility.
 		if ( 302 === $original->status_code ) {
-			$options['type'] = Requests::GET;
+			$options['type'] = WpOrg\Requests\Requests::GET;
 		}
 	}
 
@@ -514,7 +507,7 @@ class WP_Http {
 	 */
 	public static function validate_redirects( $location ) {
 		if ( ! wp_http_validate_url( $location ) ) {
-			throw new Requests_Exception( __( 'A valid URL was not provided.' ), 'wp_http.redirect_failed_validation' );
+			throw new WpOrg\Requests\Exception( __( 'A valid URL was not provided.' ), 'wp_http.redirect_failed_validation' );
 		}
 	}
 
