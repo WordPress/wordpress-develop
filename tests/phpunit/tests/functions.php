@@ -2066,41 +2066,6 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 49412
-	 * @covers ::wp_filesize
-	 */
-	function test_wp_filesize_with_nonexistent_file() {
-		$file = 'nonexistent/file.jpg';
-		$this->assertSame( 0, wp_filesize( $file ) );
-	}
-
-	/**
-	 * @ticket 49412
-	 * @covers ::wp_filesize
-	 */
-	function test_wp_filesize() {
-		$file = DIR_TESTDATA . '/images/test-image-upside-down.jpg';
-
-		$this->assertSame( filesize( $file ), wp_filesize( $file ) );
-
-		$filter = function() {
-			return 999;
-		};
-
-		add_filter( 'wp_filesize', $filter );
-
-		$this->assertSame( 999, wp_filesize( $file ) );
-
-		$pre_filter = function() {
-			return 111;
-		};
-
-		add_filter( 'pre_wp_filesize', $pre_filter );
-
-		$this->assertSame( 111, wp_filesize( $file ) );
-	}
-
-	/**
 	 * @ticket 55505
 	 * @covers ::wp_recursive_ksort
 	 */
