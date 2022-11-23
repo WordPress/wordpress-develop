@@ -2004,19 +2004,7 @@ class WP_Query {
 		// Author stuff for nice URLs.
 
 		if ( '' !== $q['author_name'] ) {
-			if ( strpos( $q['author_name'], '/' ) !== false ) {
-				$q['author_name'] = explode( '/', $q['author_name'] );
-				if ( $q['author_name'][ count( $q['author_name'] ) - 1 ] ) {
-					$q['author_name'] = $q['author_name'][ count( $q['author_name'] ) - 1 ]; // No trailing slash.
-				} else {
-					$q['author_name'] = $q['author_name'][ count( $q['author_name'] ) - 2 ]; // There was a trailing slash.
-				}
-			}
-			$q['author_name'] = sanitize_title_for_query( $q['author_name'] );
-			$q['author']      = get_user_by( 'slug', $q['author_name'] );
-			if ( $q['author'] ) {
-				$q['author'] = $q['author']->ID;
-			}
+			$this->process_author_for_nice_urls();
 			$whichauthor .= " AND ({$wpdb->posts}.post_author = " . absint( $q['author'] ) . ')';
 		}
 
@@ -3795,6 +3783,29 @@ class WP_Query {
 		}
 
 		return $author_in_not_in_sql;
+	}
+
+	/**
+	 * Processes the 'author' and 'author_name' query parameters for nice URLs.
+	 *
+	 * @since 6.3.0
+	 */
+	private function process_author_for_nice_urls() {
+		$q = &$this->query_vars;
+
+		if ( strpos( $q['author_name'], '/' ) !== false ) {
+			$q['author_name'] = explode( '/', $q['author_name'] );
+			if ( $q['author_name'][ count( $q['author_name'] ) - 1 ] ) {
+				$q['author_name'] = $q['author_name'][ count( $q['author_name'] ) - 1 ]; // No trailing slash.
+			} else {
+				$q['author_name'] = $q['author_name'][ count( $q['author_name'] ) - 2 ]; // There was a trailing slash.
+			}
+		}
+		$q['author_name'] = sanitize_title_for_query( $q['author_name'] );
+		$q['author']      = get_user_by( 'slug', $q['author_name'] );
+		if ( $q['author'] ) {
+			$q['author'] = $q['author']->ID;
+		}
 	}
 
 	/**
