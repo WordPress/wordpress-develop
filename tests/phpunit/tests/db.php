@@ -2465,11 +2465,18 @@ class Tests_DB extends WP_UnitTestCase {
 		$old_show_errors     = $wpdb->show_errors;
 		$old_suppress_errors = $wpdb->suppress_errors;
 		$old_last_query      = $wpdb->last_query;
+		$old_error_log_path  = ini_get( 'error_log' );
 
 		$suppress_query_error_filter = new MockAction();
 		$log_query_error_action      = new MockAction();
 
 		try {
+			// Redirect error logging so this test doesn't print messages in the test output.
+			$temp_error_log = tmpfile();
+			$this->assertNotEmpty( $temp_error_log, 'Unable to create temp file for error logging' );
+			$temp_error_log_meta = stream_get_meta_data( $temp_error_log );
+			ini_set( 'error_log', $temp_error_log_meta['uri'] );
+
 			// Disable `show_errors` to avoid being labeled a risky test.
 			$wpdb->show_errors = false;
 			$wpdb->last_query  = 'expected-query';
@@ -2529,6 +2536,8 @@ class Tests_DB extends WP_UnitTestCase {
 			);
 			$this->assertSame( 0, $log_query_error_action->get_call_count() );
 		} finally {
+			ini_set( 'error_log', $old_error_log_path );
+
 			remove_filter( 'suppress_query_error', array( $suppress_query_error_filter, 'filter' ), 10 );
 			remove_filter( 'log_query_error', array( $suppress_query_error_filter, 'action' ), 10 );
 
