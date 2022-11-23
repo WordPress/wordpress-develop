@@ -43,7 +43,7 @@ class Tests_Functions_ConfigWpHome extends WP_UnitTestCase {
 		);
 	}
 
-	//  Can't run these test as thery are using the gobal defined WP_HOME.
+	//  Can't run these test as they are using the global defined WP_HOME.
 	//	/**
 	//	 * @ticket 57179
 	//	 */
