@@ -1,9 +1,10 @@
 <?php
 
 /**
- * Test the _config_wp_home function
+ * Tests the _config_wp_home() function.
  *
- * @group Functions
+ * @group functions.php
+ *
  * @covers ::_config_wp_home
  */
 class Test_for_config_wp_home extends WP_UnitTestCase {
