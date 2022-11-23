@@ -29,9 +29,9 @@ class Tests_Functions_WpUploadBits extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 57130
+	 * Tests that wp_upload_bits() returns an array with an error message if the file type is not allowed.
 	 *
-	 * return an array with error message in bad/no extension in the file name
+	 * @ticket 57130
 	 **/
 	public function test_wp_upload_bits_should_return_an_array_with_error_message_if_filename_without_an_extension() {
 		$this->assertSameSets( array( 'error' => __( 'Sorry, you are not allowed to upload this file type.' ) ), wp_upload_bits( 'filename', '', 'bits' ) );
