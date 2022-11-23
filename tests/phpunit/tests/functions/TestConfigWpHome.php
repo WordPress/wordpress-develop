@@ -7,7 +7,7 @@
  *
  * @covers ::_config_wp_home
  */
-class Test_for_config_wp_home extends WP_UnitTestCase {
+class Tests_Functions_ConfigWpHome extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 57179
