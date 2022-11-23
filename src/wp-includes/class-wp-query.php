@@ -1891,7 +1891,7 @@ class WP_Query {
 
 		$where .= $this->get_where_for_date();
 
-		
+		$this->handle_specific_post_type();
 
 		if ( '' !== $q['title'] ) {
 			$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_title = %s", stripslashes( $q['title'] ) );
@@ -3623,6 +3623,38 @@ class WP_Query {
 		}
 
 		return $sql;
+	}
+
+	/**
+	 * Sets the 'name' and 'pagename' query parameters for post types other than "any".
+	 *
+	 * @since 6.3.0
+	 */
+	private function handle_specific_post_type() {
+		$q = &$this->query_vars;
+
+		// If we've got a post_type AND it's not "any" post_type.
+		if ( ! empty( $q['post_type'] ) && 'any' !== $q['post_type'] ) {
+			foreach ( (array) $q['post_type'] as $_post_type ) {
+				$ptype_obj = get_post_type_object( $_post_type );
+				if ( ! $ptype_obj || ! $ptype_obj->query_var || empty( $q[ $ptype_obj->query_var ] ) ) {
+					continue;
+				}
+
+				if ( ! $ptype_obj->hierarchical ) {
+					// Non-hierarchical post types can directly use 'name'.
+					$q['name'] = $q[ $ptype_obj->query_var ];
+				} else {
+					// Hierarchical post types will operate through 'pagename'.
+					$q['pagename'] = $q[ $ptype_obj->query_var ];
+					$q['name']     = '';
+				}
+
+				// Only one request for a slug is possible, this is why name & pagename are overwritten above.
+				break;
+			} // End foreach.
+			unset( $ptype_obj );
+		}
 	}
 
 	/**
