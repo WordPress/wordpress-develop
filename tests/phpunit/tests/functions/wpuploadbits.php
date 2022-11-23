@@ -81,6 +81,6 @@ class Tests_Functions_WpUploadBits extends WP_UnitTestCase {
 		fclose( $file );
 		$this->unlink( $filename );
 
-		$this->assertSame( $content, $file_contents );
+		$this->assertSame( $content, $file_contents, 'The content of the file does not match the expected value.' );
 	}
 }
