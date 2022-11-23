@@ -32,7 +32,7 @@ class Tests_Functions_ConfigWpHome extends WP_UnitTestCase {
 				'url'      => '/',
 				'expected' => '/',
 			),
-			'htpps'     => array(
+			'https'     => array(
 				'url'      => 'https://www.example.com/',
 				'expected' => 'https://www.example.com/',
 			),
