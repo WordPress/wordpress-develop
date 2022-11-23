@@ -1,9 +1,10 @@
 <?php
 /**
- * Test the wp_upload_bits function
+ * Tests the wp_upload_bits() function.
  *
- * @group Functions
- * @group Upload
+ * @group functions.php
+ * @group upload
+ *
  * @covers ::wp_upload_bits
  */
 
