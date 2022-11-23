@@ -213,7 +213,8 @@ class Tests_Functions_MaybeSerialize extends WP_UnitTestCase {
 	public function test_deserialize_request_utility_filtered_iterator_objects( $value ) {
 		$serialized = maybe_serialize( $value );
 
-		if ( get_class( $value ) === 'Requests_Utility_FilteredIterator' ) {
+		$className = get_class( $value );
+		if ( $className === 'Requests_Utility_FilteredIterator' || $className === 'WpOrg\Requests\Utility\FilteredIterator' ) {
 			$new_value = unserialize( $serialized );
 			$property  = ( new ReflectionClass( 'Requests_Utility_FilteredIterator' ) )->getProperty( 'callback' );
 			$property->setAccessible( true );
