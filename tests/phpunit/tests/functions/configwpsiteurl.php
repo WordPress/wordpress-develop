@@ -43,34 +43,34 @@ class Test_Functions_ConfigWpSiteurl extends WP_UnitTestCase {
 		);
 	}
 
-//	Can't test these as they are using the gobal defined WP_SITEURL
-//	/**
-//	 * @ticket 57180
-//	 */
-//	public function test_get_siteurl_url_from_defined() {
-//		if ( ! defined( 'WP_SITEURL' ) ) {
-//			define( 'WP_SITEURL', 'defined_siteurl' );
-//		}
-//		$this->assertSame( 'defined_siteurl', _config_wp_siteurl( 'home' ) );
-//	}
-//
-//	/**
-//	 * @ticket 57180
-//	 */
-//	public function test_get_siteurl_url_from_defined_with_training_slash() {
-//		if ( ! defined( 'WP_SITEURL' ) ) {
-//			define( 'WP_SITEURL', 'defined_siteurl/' );
-//		}
-//		$this->assertSame( 'defined_siteurl', _config_wp_siteurl( 'home' ) );
-//	}
-//
-//	/**
-//	 * @ticket 57180
-//	 */
-//	public function test_get_siteurl_url_from_options() {
-//		if ( ! defined( 'WP_SITEURL' ) ) {
-//			define( 'WP_SITEURL', 'defined_siteurl' );
-//		}
-//		$this->assertSame( 'defined_siteurl', get_option( 'siteurl' ) );
-//	}
+	//	Can't run these test as they are using the global defined  WP_SITEURL
+	//	/**
+	//	 * @ticket 57180
+	//	 */
+	//	public function test_get_siteurl_url_from_defined() {
+	//		if ( ! defined( 'WP_SITEURL' ) ) {
+	//			define( 'WP_SITEURL', 'defined_siteurl' );
+	//		}
+	//		$this->assertSame( 'defined_siteurl', _config_wp_siteurl( 'home' ) );
+	//	}
+	//
+	//	/**
+	//	 * @ticket 57180
+	//	 */
+	//	public function test_get_siteurl_url_from_defined_with_training_slash() {
+	//		if ( ! defined( 'WP_SITEURL' ) ) {
+	//			define( 'WP_SITEURL', 'defined_siteurl/' );
+	//		}
+	//		$this->assertSame( 'defined_siteurl', _config_wp_siteurl( 'home' ) );
+	//	}
+	//
+	//	/**
+	//	 * @ticket 57180
+	//	 */
+	//	public function test_get_siteurl_url_from_options() {
+	//		if ( ! defined( 'WP_SITEURL' ) ) {
+	//			define( 'WP_SITEURL', 'defined_siteurl' );
+	//		}
+	//		$this->assertSame( 'defined_siteurl', get_option( 'siteurl' ) );
+	//	}
 }
