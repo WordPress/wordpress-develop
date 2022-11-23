@@ -1851,13 +1851,7 @@ class WP_Query {
 
 		$this->parse_meta_query();
 
-		// Set a flag if a 'pre_get_posts' hook changed the query vars.
-		$hash = md5( serialize( $this->query_vars ) );
-		if ( $hash != $this->query_vars_hash ) {
-			$this->query_vars_changed = true;
-			$this->query_vars_hash    = $hash;
-		}
-		unset( $hash );
+		$this->set_query_vars_hash();
 
 		// First let's clear some variables.
 		$distinct         = '';
@@ -3506,6 +3500,21 @@ class WP_Query {
 		// Parse meta query.
 		$this->meta_query = new WP_Meta_Query();
 		$this->meta_query->parse_query_vars( $q );
+	}
+
+	/**
+	 * Sets the 'query_vars_changed' and 'query_vars_hash' properties if
+	 * a 'pre_get_posts' hook changes the query vars.
+	 *
+	 * @since 6.3.0
+	 */
+	private function set_query_vars_hash() {
+		$hash = md5( serialize( $this->query_vars ) );
+		if ( $hash != $this->query_vars_hash ) {
+			$this->query_vars_changed = true;
+			$this->query_vars_hash    = $hash;
+		}
+		unset( $hash );
 	}
 
 	/**
