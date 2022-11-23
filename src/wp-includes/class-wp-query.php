@@ -1935,15 +1935,7 @@ class WP_Query {
 
 		$where .= $this->get_where_for_post_id();
 
-		if ( is_numeric( $q['post_parent'] ) ) {
-			$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_parent = %d ", $q['post_parent'] );
-		} elseif ( $q['post_parent__in'] ) {
-			$post_parent__in = implode( ',', array_map( 'absint', $q['post_parent__in'] ) );
-			$where          .= " AND {$wpdb->posts}.post_parent IN ($post_parent__in)";
-		} elseif ( $q['post_parent__not_in'] ) {
-			$post_parent__not_in = implode( ',', array_map( 'absint', $q['post_parent__not_in'] ) );
-			$where              .= " AND {$wpdb->posts}.post_parent NOT IN ($post_parent__not_in)";
-		}
+		$where .= $this->get_where_for_post_parent();
 
 		if ( $q['page_id'] ) {
 			if ( ( 'page' !== get_option( 'show_on_front' ) ) || ( get_option( 'page_for_posts' ) != $q['page_id'] ) ) {
@@ -3691,6 +3683,34 @@ class WP_Query {
 		}
 
 		return $post_id_sql;
+	}
+
+	/**
+	 * Gets the WHERE clause for parameters related to the post's parent.
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @return string The WHERE clause for parameters related to the post's parent, or an empty string.
+	 */
+	private function get_where_for_post_parent() {
+		global $wpdb;
+
+		$post_author_sql = '';
+		$q               = $this->query_vars;
+
+		if ( is_numeric( $q['post_parent'] ) ) {
+			$post_author_sql = $wpdb->prepare( " AND {$wpdb->posts}.post_parent = %d ", $q['post_parent'] );
+		} elseif ( $q['post_parent__in'] ) {
+			$post_parent__in = implode( ',', array_map( 'absint', $q['post_parent__in'] ) );
+			$post_author_sql = " AND {$wpdb->posts}.post_parent IN ($post_parent__in)";
+		} elseif ( $q['post_parent__not_in'] ) {
+			$post_parent__not_in = implode( ',', array_map( 'absint', $q['post_parent__not_in'] ) );
+			$post_author_sql     = " AND {$wpdb->posts}.post_parent NOT IN ($post_parent__not_in)";
+		}
+
+		return $post_author_sql;
 	}
 
 	/**
