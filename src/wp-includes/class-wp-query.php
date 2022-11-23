@@ -2279,122 +2279,7 @@ class WP_Query {
 		 * Regular plugins should use the hooks above.
 		 */
 		if ( ! $q['suppress_filters'] ) {
-			/**
-			 * Filters the WHERE clause of the query.
-			 *
-			 * For use by caching plugins.
-			 *
-			 * @since 2.5.0
-			 *
-			 * @param string   $where The WHERE clause of the query.
-			 * @param WP_Query $query The WP_Query instance (passed by reference).
-			 */
-			$where = apply_filters_ref_array( 'posts_where_request', array( $where, &$this ) );
-
-			/**
-			 * Filters the GROUP BY clause of the query.
-			 *
-			 * For use by caching plugins.
-			 *
-			 * @since 2.5.0
-			 *
-			 * @param string   $groupby The GROUP BY clause of the query.
-			 * @param WP_Query $query   The WP_Query instance (passed by reference).
-			 */
-			$groupby = apply_filters_ref_array( 'posts_groupby_request', array( $groupby, &$this ) );
-
-			/**
-			 * Filters the JOIN clause of the query.
-			 *
-			 * For use by caching plugins.
-			 *
-			 * @since 2.5.0
-			 *
-			 * @param string   $join  The JOIN clause of the query.
-			 * @param WP_Query $query The WP_Query instance (passed by reference).
-			 */
-			$join = apply_filters_ref_array( 'posts_join_request', array( $join, &$this ) );
-
-			/**
-			 * Filters the ORDER BY clause of the query.
-			 *
-			 * For use by caching plugins.
-			 *
-			 * @since 2.5.0
-			 *
-			 * @param string   $orderby The ORDER BY clause of the query.
-			 * @param WP_Query $query   The WP_Query instance (passed by reference).
-			 */
-			$orderby = apply_filters_ref_array( 'posts_orderby_request', array( $orderby, &$this ) );
-
-			/**
-			 * Filters the DISTINCT clause of the query.
-			 *
-			 * For use by caching plugins.
-			 *
-			 * @since 2.5.0
-			 *
-			 * @param string   $distinct The DISTINCT clause of the query.
-			 * @param WP_Query $query    The WP_Query instance (passed by reference).
-			 */
-			$distinct = apply_filters_ref_array( 'posts_distinct_request', array( $distinct, &$this ) );
-
-			/**
-			 * Filters the SELECT clause of the query.
-			 *
-			 * For use by caching plugins.
-			 *
-			 * @since 2.5.0
-			 *
-			 * @param string   $fields The SELECT clause of the query.
-			 * @param WP_Query $query  The WP_Query instance (passed by reference).
-			 */
-			$fields = apply_filters_ref_array( 'posts_fields_request', array( $fields, &$this ) );
-
-			/**
-			 * Filters the LIMIT clause of the query.
-			 *
-			 * For use by caching plugins.
-			 *
-			 * @since 2.5.0
-			 *
-			 * @param string   $limits The LIMIT clause of the query.
-			 * @param WP_Query $query  The WP_Query instance (passed by reference).
-			 */
-			$limits = apply_filters_ref_array( 'post_limits_request', array( $limits, &$this ) );
-
-			/**
-			 * Filters all query clauses at once, for convenience.
-			 *
-			 * For use by caching plugins.
-			 *
-			 * Covers the WHERE, GROUP BY, JOIN, ORDER BY, DISTINCT,
-			 * fields (SELECT), and LIMIT clauses.
-			 *
-			 * @since 3.1.0
-			 *
-			 * @param string[] $clauses {
-			 *     Associative array of the clauses for the query.
-			 *
-			 *     @type string $where    The WHERE clause of the query.
-			 *     @type string $groupby  The GROUP BY clause of the query.
-			 *     @type string $join     The JOIN clause of the query.
-			 *     @type string $orderby  The ORDER BY clause of the query.
-			 *     @type string $distinct The DISTINCT clause of the query.
-			 *     @type string $fields   The SELECT clause of the query.
-			 *     @type string $limits   The LIMIT clause of the query.
-			 * }
-			 * @param WP_Query $query  The WP_Query instance (passed by reference).
-			 */
-			$clauses = (array) apply_filters_ref_array( 'posts_clauses_request', array( compact( $pieces ), &$this ) );
-
-			$where    = isset( $clauses['where'] ) ? $clauses['where'] : '';
-			$groupby  = isset( $clauses['groupby'] ) ? $clauses['groupby'] : '';
-			$join     = isset( $clauses['join'] ) ? $clauses['join'] : '';
-			$orderby  = isset( $clauses['orderby'] ) ? $clauses['orderby'] : '';
-			$distinct = isset( $clauses['distinct'] ) ? $clauses['distinct'] : '';
-			$fields   = isset( $clauses['fields'] ) ? $clauses['fields'] : '';
-			$limits   = isset( $clauses['limits'] ) ? $clauses['limits'] : '';
+			$this->apply_filters_for_caching_plugins( $pieces, $where, $groupby, $join, $orderby, $distinct, $fields, $limits );
 		}
 
 		if ( ! empty( $groupby ) ) {
@@ -3913,6 +3798,139 @@ class WP_Query {
 		 * @param WP_Query $query   The WP_Query instance (passed by reference).
 		 */
 		$clauses = (array) apply_filters_ref_array( 'posts_clauses', array( compact( $pieces ), &$this ) );
+
+		$where    = isset( $clauses['where'] ) ? $clauses['where'] : '';
+		$groupby  = isset( $clauses['groupby'] ) ? $clauses['groupby'] : '';
+		$join     = isset( $clauses['join'] ) ? $clauses['join'] : '';
+		$orderby  = isset( $clauses['orderby'] ) ? $clauses['orderby'] : '';
+		$distinct = isset( $clauses['distinct'] ) ? $clauses['distinct'] : '';
+		$fields   = isset( $clauses['fields'] ) ? $clauses['fields'] : '';
+		$limits   = isset( $clauses['limits'] ) ? $clauses['limits'] : '';
+	}
+
+	/**
+	 * Applies filters for caching plugins.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param array  $pieces   An array of SQL query pieces.
+	 * @param string $where    Reference to the WHERE clause.
+	 * @param string $groupby  Reference to the GROUP BY clause.
+	 * @param string $join     Reference to the JOIN clause.
+	 * @param string $orderby  Reference to the ORDER BY clause.
+	 * @param string $distinct Reference to the DISTINCT clause.
+	 * @param string $limits   Reference to the LIMIT clause.
+	 * @param string $fields   Reference to the fields to select.
+	 */
+	private function apply_filters_for_caching_plugins( $pieces, &$where, &$groupby, &$join, &$orderby, &$distinct, &$fields, &$limits ) {
+		/**
+		 * Filters the WHERE clause of the query.
+		 *
+		 * For use by caching plugins.
+		 *
+		 * @since 2.5.0
+		 *
+		 * @param string   $where The WHERE clause of the query.
+		 * @param WP_Query $query The WP_Query instance (passed by reference).
+		 */
+		$where = apply_filters_ref_array( 'posts_where_request', array( $where, &$this ) );
+
+		/**
+		 * Filters the GROUP BY clause of the query.
+		 *
+		 * For use by caching plugins.
+		 *
+		 * @since 2.5.0
+		 *
+		 * @param string   $groupby The GROUP BY clause of the query.
+		 * @param WP_Query $query   The WP_Query instance (passed by reference).
+		 */
+		$groupby = apply_filters_ref_array( 'posts_groupby_request', array( $groupby, &$this ) );
+
+		/**
+		 * Filters the JOIN clause of the query.
+		 *
+		 * For use by caching plugins.
+		 *
+		 * @since 2.5.0
+		 *
+		 * @param string   $join  The JOIN clause of the query.
+		 * @param WP_Query $query The WP_Query instance (passed by reference).
+		 */
+		$join = apply_filters_ref_array( 'posts_join_request', array( $join, &$this ) );
+
+		/**
+		 * Filters the ORDER BY clause of the query.
+		 *
+		 * For use by caching plugins.
+		 *
+		 * @since 2.5.0
+		 *
+		 * @param string   $orderby The ORDER BY clause of the query.
+		 * @param WP_Query $query   The WP_Query instance (passed by reference).
+		 */
+		$orderby = apply_filters_ref_array( 'posts_orderby_request', array( $orderby, &$this ) );
+
+		/**
+		 * Filters the DISTINCT clause of the query.
+		 *
+		 * For use by caching plugins.
+		 *
+		 * @since 2.5.0
+		 *
+		 * @param string   $distinct The DISTINCT clause of the query.
+		 * @param WP_Query $query    The WP_Query instance (passed by reference).
+		 */
+		$distinct = apply_filters_ref_array( 'posts_distinct_request', array( $distinct, &$this ) );
+
+		/**
+		 * Filters the SELECT clause of the query.
+		 *
+		 * For use by caching plugins.
+		 *
+		 * @since 2.5.0
+		 *
+		 * @param string   $fields The SELECT clause of the query.
+		 * @param WP_Query $query  The WP_Query instance (passed by reference).
+		 */
+		$fields = apply_filters_ref_array( 'posts_fields_request', array( $fields, &$this ) );
+
+		/**
+		 * Filters the LIMIT clause of the query.
+		 *
+		 * For use by caching plugins.
+		 *
+		 * @since 2.5.0
+		 *
+		 * @param string   $limits The LIMIT clause of the query.
+		 * @param WP_Query $query  The WP_Query instance (passed by reference).
+		 */
+		$limits = apply_filters_ref_array( 'post_limits_request', array( $limits, &$this ) );
+
+		/**
+		 * Filters all query clauses at once, for convenience.
+		 *
+		 * For use by caching plugins.
+		 *
+		 * Covers the WHERE, GROUP BY, JOIN, ORDER BY, DISTINCT,
+		 * fields (SELECT), and LIMIT clauses.
+		 *
+		 * @since 3.1.0
+		 *
+		 * @param string[] $clauses {
+		 *     Associative array of the clauses for the query.
+		 *
+		 *     @type string $where    The WHERE clause of the query.
+		 *     @type string $groupby  The GROUP BY clause of the query.
+		 *     @type string $join     The JOIN clause of the query.
+		 *     @type string $orderby  The ORDER BY clause of the query.
+		 *     @type string $distinct The DISTINCT clause of the query.
+		 *     @type string $fields   The SELECT clause of the query.
+		 *     @type string $limits   The LIMIT clause of the query.
+		 * }
+		 * @param WP_Query $query  The WP_Query instance (passed by reference).
+		 */
+		$clauses = (array) apply_filters_ref_array( 'posts_clauses_request', array( compact( $pieces ), &$this ) );
 
 		$where    = isset( $clauses['where'] ) ? $clauses['where'] : '';
 		$groupby  = isset( $clauses['groupby'] ) ? $clauses['groupby'] : '';
