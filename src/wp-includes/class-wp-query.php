@@ -1937,12 +1937,7 @@ class WP_Query {
 
 		$where .= $this->get_where_for_post_parent();
 
-		if ( $q['page_id'] ) {
-			if ( ( 'page' !== get_option( 'show_on_front' ) ) || ( get_option( 'page_for_posts' ) != $q['page_id'] ) ) {
-				$q['p'] = $q['page_id'];
-				$where  = " AND {$wpdb->posts}.ID = " . $q['page_id'];
-			}
-		}
+		$this->maybe_convert_to_page_query( $where );
 
 		// If a search pattern is specified, load the posts that match.
 		if ( strlen( $q['s'] ) ) {
@@ -3711,6 +3706,28 @@ class WP_Query {
 		}
 
 		return $post_author_sql;
+	}
+
+	/**
+	 * Converts to a page query if the 'page_id' parameter has been provided.
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string $where Reference to the WHERE clause.
+	 */
+	private function maybe_convert_to_page_query( &$where ) {
+		global $wpdb;
+
+		$q = &$this->query_vars;
+
+		if ( $q['page_id'] ) {
+			if ( ( 'page' !== get_option( 'show_on_front' ) ) || ( get_option( 'page_for_posts' ) != $q['page_id'] ) ) {
+				$q['p'] = $q['page_id'];
+				$where  = " AND {$wpdb->posts}.ID = " . $q['page_id'];
+			}
+		}
 	}
 
 	/**
