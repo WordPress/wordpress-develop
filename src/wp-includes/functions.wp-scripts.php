@@ -169,7 +169,7 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
  * @param bool             $in_footer Optional. Whether to enqueue the script before `</body>` instead of in the `<head>`.
  *                                    Default 'false'.
  * @param array            $attr      Optional.  Accepts an array of key value pairs.
- *                                    Supports a `strategy` key with potential values of 'async' or 'defer'.
+ *                                    Supports a `strategy` key with potential values of 'blocking', 'async' or 'defer'.
  * @since 6.2.0 Added the `$attr` parameter.
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
@@ -179,8 +179,7 @@ function wp_register_script( $handle, $src, $deps = array(), $ver = false, $in_f
 	$wp_scripts = wp_scripts();
 
 	$registered = $wp_scripts->add( $handle, $src, $deps, $ver );
-
-	if ( true === $attr ) {
+	if ( $in_footer ) {
 		$wp_scripts->add_data( $handle, 'group', 1 );
 	}
 
@@ -355,22 +354,21 @@ function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $
 
 	$wp_scripts = wp_scripts();
 
-	if ( $src || $attr ) {
+	if ( $src || $in_footer ) {
 		$_handle = explode( '?', $handle );
 
 		if ( $src ) {
 			$wp_scripts->add( $_handle[0], $src, $deps, $ver );
 		}
 
-		if ( true === $attr ) {
+		if ( true === $in_footer ) {
 			$wp_scripts->add_data( $_handle[0], 'group', 1 );
-		}
-
-		if ( is_array( $attr ) && ! empty( $attr['strategy'] ) ) {
-			$wp_scripts->add_data( $_handle[0], 'strategy', $attr['strategy'] );
 		}
 	}
 
+	if ( is_array( $attr ) && ! empty( $attr['strategy'] ) ) {
+		$wp_scripts->add_data( $_handle[0], 'strategy', $attr['strategy'] );
+	}
 	$wp_scripts->enqueue( $handle );
 }
 
