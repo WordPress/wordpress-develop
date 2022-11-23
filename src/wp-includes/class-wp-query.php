@@ -1883,12 +1883,7 @@ class WP_Query {
 
 		$this->clean_page();
 
-		// If true, forcibly turns off SQL_CALC_FOUND_ROWS even when limits are present.
-		if ( isset( $q['no_found_rows'] ) ) {
-			$q['no_found_rows'] = (bool) $q['no_found_rows'];
-		} else {
-			$q['no_found_rows'] = false;
-		}
+		$this->set_no_found_rows();
 
 		switch ( $q['fields'] ) {
 			case 'ids':
@@ -3571,6 +3566,22 @@ class WP_Query {
 		if ( isset( $q['page'] ) ) {
 			$q['page'] = trim( $q['page'], '/' );
 			$q['page'] = absint( $q['page'] );
+		}
+	}
+
+	/**
+	 * Sets the 'no_found_rows' query parameter.
+	 *
+	 * @since 6.3.0
+	 */
+	private function set_no_found_rows() {
+		$q = &$this->query_vars;
+
+		// If true, forcibly turns off SQL_CALC_FOUND_ROWS even when limits are present.
+		if ( isset( $q['no_found_rows'] ) ) {
+			$q['no_found_rows'] = (bool) $q['no_found_rows'];
+		} else {
+			$q['no_found_rows'] = false;
 		}
 	}
 
