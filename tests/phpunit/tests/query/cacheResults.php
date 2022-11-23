@@ -1212,6 +1212,41 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure post meta/term caches are warmed even if a post is already cached.
+	 *
+	 * @covers ::_prime_post_caches
+	 *
+	 * @ticket 57163
+	 */
+	public function test_post_meta_and_term_caches_are_warmed_even_if_post_is_already_cached() {
+		$post_id = self::$posts[0];
+
+		// Clear the post cache.
+		clean_post_cache( $post_id );
+		$this->assertSame( array( $post_id ), _get_non_cached_ids( array( $post_id ), 'posts' ), 'Post is already cached.' );
+
+		// Warm only the post cache.
+		$post = get_post( $post_id );
+		$this->assertNotEmpty( $post, 'Post does not exist.' );
+		$this->assertEmpty( _get_non_cached_ids( array( $post_id ), 'posts' ), 'Post is not already cached.' );
+
+		$args  = array(
+			'post_type'     => 'post',
+			'post__in'      => array( $post_id ),
+			'no_found_rows' => true,
+		);
+		$query = new WP_Query();
+
+		$before_num_queries = get_num_queries();
+		$posts              = $query->query( $args );
+		$num_queries        = get_num_queries() - $before_num_queries;
+
+		$this->assertNotEmpty( $posts, 'Query does return an empty result set.' );
+		// 1 query for the SELECT posts, 1 query for the post meta, 2 queries for the terms.
+		$this->assertSame( 4, $num_queries, 'Unexpected number of queries.' );
+	}
+
+	/**
 	 * Ensure starting the loop warms the author cache.
 	 *
 	 * @since 6.1.1
@@ -1238,9 +1273,11 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 
 		$query_1 = new WP_Query(
 			array(
-				'post_type' => 'page',
-				'fields'    => $fields,
-				'author'    => self::$author_id,
+				'post_type'              => 'page',
+				'fields'                 => $fields,
+				'author'                 => self::$author_id,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
 			)
 		);
 
