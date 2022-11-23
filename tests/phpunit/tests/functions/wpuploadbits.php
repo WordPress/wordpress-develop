@@ -42,17 +42,17 @@ class Tests_Functions_WpUploadBits extends WP_UnitTestCase {
 	 *
 	 *
 	 **/
-	public function test_bad_time_present() {
+	public function test_should_return_error_if_bad_time_path_is_passed() {
 		$this->assertSameSets(
 			array(
-				'path'    => ABSPATH . 'wp-content/uploads/../1/',
-				'url'     => 'http://example.org/wp-content/uploads/../1/',
-				'subdir'  => '/../1/',
+				'path'    => ABSPATH . 'wp-content/uploads/.././/1',
+				'url'     => 'http://example.org/wp-content/uploads/.././/1',
+				'subdir'  => '/.././/1',
 				'basedir' => ABSPATH . 'wp-content/uploads',
 				'baseurl' => 'http://example.org/wp-content/uploads',
-				'error'   => 'Unable to create directory wp-content/uploads/../1/. Is its parent directory writable by the server?',
+				'error'   => 'Unable to create directory wp-content/uploads/.././/1. Is its parent directory writable by the server?',
 			),
-			wp_upload_bits( 'filename.jpg', null, 'bits', '../12' )
+			wp_upload_bits( 'filename.jpg', null, 'bits', '../../12' )
 		);
 	}
 
@@ -62,18 +62,18 @@ class Tests_Functions_WpUploadBits extends WP_UnitTestCase {
 	 * @ticket 57130
 	 */
 	public function test_wp_upload_bits_should_create_file_in_upload_folder_with_given_content() {
-		$filename = ABSPATH . 'wp-content/uploads/99/1//filename.txt';
+		$filename = ABSPATH . 'wp-content/uploads/9999/12/filename.txt';
 		$content  = 'file content';
 
 		$this->assertSameSets(
 			array(
 				'error' => false,
 				'path'  => $filename,
-				'url'   => 'http://example.org/wp-content/uploads/99/1//filename.txt',
+				'url'   => 'http://example.org/wp-content/uploads/9999/12/filename.txt',
 				'type'  => 'text/plain',
 
 			),
-			wp_upload_bits( 'filename.txt', null, $content, '99/12' ),
+			wp_upload_bits( 'filename.txt', null, $content, '9999/12' ),
 			'wp_upload_bits() did not return the expected result.'
 		);
 		$file          = fopen( $filename, 'rb' );
