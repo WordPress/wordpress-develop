@@ -295,7 +295,7 @@ class WP_Scripts extends WP_Dependencies {
 		switch ( $strategy ) {
 			case 'defer':
 				// Scripts can only use defer if all scripts that depend on them ("dependents") are also deferred.
-				if ( $this->_all_dependents_are_deferred( $obj->handle ) ) {
+				if ( $this->_all_dependents_are_deferrable( $obj->handle ) ) {
 					$extra_atts .= ' defer';
 				}
 				break;
@@ -462,7 +462,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * @param array  $visited An array of already visited script handles. Keep track to avoid looping recursion.
 	 * @return bool True if all dependents are deferred, false otherwise.
 	 */
-	private function _all_dependents_are_deferred( $handle, $visited = array() ) {
+	private function _all_dependents_are_deferrable( $handle, $visited = array() ) {
 		array_push( $visited, $handle );
 		$dependents = $this->_get_dependents( $handle );
 		if ( empty( $dependents ) ) {
@@ -473,7 +473,7 @@ class WP_Scripts extends WP_Dependencies {
 			if ( ! $this->uses_defer_strategy( $dependent ) ) {
 				return false;
 			}
-			if ( ! $this->_all_dependents_are_deferred( $dependent, $visited ) ) {
+			if ( ! $this->_all_dependents_are_deferrable( $dependent, $visited ) ) {
 				return false;
 			}
 		}

@@ -1495,7 +1495,7 @@ JS;
 	 *
 	 * @ticket 22249
 	 */
-	public function test_wp_enqueue_script_strategy( $strategy, $expected) {
+	public function test_wp_enqueue_script_strategy( $strategy, $expected ) {
 		wp_enqueue_script( 'test-example', 'example.com', array(), null, false, array( 'strategy' => $strategy ) );
 		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 	}
@@ -1519,7 +1519,7 @@ JS;
 	 *
 	 * @ticket 22249
 	 */
-	public function test_wp_enqueue_script_strategy_with_dependencies( $strategy, $dependent_strategy, $expected) {
+	public function test_wp_enqueue_script_strategy_with_dependencies( $strategy, $dependent_strategy, $expected ) {
 		wp_enqueue_script( 'test-example', 'example.com', array(), null, false, array( 'strategy' => $strategy ) );
 
 		// Add a dependent script.
@@ -1551,12 +1551,12 @@ JS;
 
 		// Test with Scripts B & C depend on script A
 
-		// Scripts B & C depend on script A; script A and B are deferred. No script can be deferred.
+		// Scripts B & C depend on script A; script A and B are deferred. Script B can be deferred.
 		wp_enqueue_script( 'script-a', 'example.com', array(), null, false, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'script-b', 'example.com-b', array( 'script-a' ), null, false, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'script-c', 'example.com-c', array( 'script-a' ), null, false, array( 'strategy' => 'blocking' ) );
 		$expected = "<script type='text/javascript' src='http://example.com' id='script-a-js'></script>
-<script type='text/javascript' src='http://example.com-b' id='script-b-js'></script>
+<script type='text/javascript' src='http://example.com-b' id='script-b-js' defer></script>
 <script type='text/javascript' src='http://example.com-c' id='script-c-js'></script>
 ";
 		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
@@ -1584,7 +1584,7 @@ JS;
 		$expected = "<script type='text/javascript' src='http://example.com' id='script-a-js' defer></script>
 <script type='text/javascript' src='http://example.com-b' id='script-b-js' defer></script>
 <script type='text/javascript' src='http://example.com-c' id='script-c-js' defer></script>
-	";
+";
 		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 
 		// Test with Scripts C depend on script B which depends on script A.
@@ -1599,7 +1599,7 @@ JS;
 		$expected = "<script type='text/javascript' src='http://example.com' id='script-a-js'></script>
 <script type='text/javascript' src='http://example.com-b' id='script-b-js'></script>
 <script type='text/javascript' src='http://example.com-c' id='script-c-js'></script>
-	";
+";
 		//error_log( get_echo( 'wp_print_scripts' )  );
 		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 
@@ -1613,7 +1613,7 @@ JS;
 		$expected = "<script type='text/javascript' src='http://example.com' id='script-a-js'></script>
 <script type='text/javascript' src='http://example.com-b' id='script-b-js' defer></script>
 <script type='text/javascript' src='http://example.com-c' id='script-c-js' defer></script>
-	";
+";
 		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 
 		// Reset WP_Scripts.
@@ -1626,7 +1626,7 @@ JS;
 		$expected = "<script type='text/javascript' src='http://example.com' id='script-a-js' defer></script>
 <script type='text/javascript' src='http://example.com-b' id='script-b-js' defer></script>
 <script type='text/javascript' src='http://example.com-c' id='script-c-js' defer></script>
-	";
+";
 		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 }
