@@ -14,7 +14,7 @@ describe( 'Gutenberg plugin', () => {
 		await uninstallPlugin( 'gutenberg' );
 	} );
 
-	it( 'Activate the Gutenberg plugin', async () => {
+	it( 'should activate', async () => {
 		await activatePlugin( 'gutenberg' );
 		/*
 		 * If plugin activation fails, it will time out and throw an error,
