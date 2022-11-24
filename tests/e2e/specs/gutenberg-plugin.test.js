@@ -16,9 +16,11 @@ describe( 'Gutenberg plugin', () => {
 
 	it( 'Activate the Gutenberg plugin', async () => {
 		await activatePlugin( 'gutenberg' );
-		// If plugin activation fails, it will time out and throw an error,
-		// since the activatePlugin helper is looking for a `.deactivate` link
-		// which is only there if activation succeeds.
+		/*
+		 * If plugin activation fails, it will time out and throw an error,
+		 * since the activatePlugin helper is looking for a `.deactivate` link
+		 * which is only there if activation succeeds.
+		 */
 		await deactivatePlugin( 'gutenberg' );
 	} );
 } );
