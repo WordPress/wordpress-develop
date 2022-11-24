@@ -445,7 +445,6 @@ function update_option( $option, $value, $autoload = null ) {
 		$value = clone $value;
 	}
 
-	$value     = sanitize_option( $option, $value );
 	$old_value = get_option( $option );
 
 	/**
@@ -496,6 +495,7 @@ function update_option( $option, $value, $autoload = null ) {
 		return add_option( $option, $value, '', $autoload );
 	}
 
+	$value            = sanitize_option( $option, $value );
 	$serialized_value = maybe_serialize( $value );
 
 	/**
