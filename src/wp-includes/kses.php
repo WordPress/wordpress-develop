@@ -1689,22 +1689,11 @@ function wp_kses_bad_protocol( $string, $allowed_protocols ) {
 	$string = wp_kses_no_null( $string );
 
 	// Short-circuit if the string starts with `https://` or `http://`. Most common cases.
-	if ( in_array( 'https', $allowed_protocols, true ) ) {
-		// Check if the string starts with `https` and it is lower case.
-		if ( 0 === strpos( $string, 'https://' ) ) {
-			return $string;
-		} elseif ( 0 === stripos( $string, 'https://' ) ) {
-			// The protocol matches but it is not lower case.
-			return 'https://' . substr( $string, 8 );
-		}
-	} elseif ( in_array( 'http', $allowed_protocols, true ) ) {
-		// Same as above but for `http`.
-		if ( 0 === strpos( $string, 'http://' ) ) {
-			return $string;
-		} elseif ( 0 === stripos( $string, 'http://' ) ) {
-			// The protocol matches but it is not lower case.
-			return 'http://' . substr( $string, 7 );
-		}
+	if (
+		( 0 === strpos( $string, 'https://' ) && in_array( 'https', $allowed_protocols, true ) ) ||
+		( 0 === strpos( $string, 'http://' ) && in_array( 'http', $allowed_protocols, true ) )
+	) {
+		return $string;
 	}
 
 	$iterations = 0;
