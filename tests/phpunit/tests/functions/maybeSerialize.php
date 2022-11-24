@@ -213,10 +213,9 @@ class Tests_Functions_MaybeSerialize extends WP_UnitTestCase {
 	public function test_deserialize_request_utility_filtered_iterator_objects( $value ) {
 		$serialized = maybe_serialize( $value );
 
-		$className = get_class( $value );
-		if ( $className === 'Requests_Utility_FilteredIterator' || $className === 'WpOrg\Requests\Utility\FilteredIterator' ) {
+		if ( get_class( $value ) === 'WpOrg\Requests\Utility\FilteredIterator' ) {
 			$new_value = unserialize( $serialized );
-			$property  = ( new ReflectionClass( 'Requests_Utility_FilteredIterator' ) )->getProperty( 'callback' );
+			$property  = ( new ReflectionClass( 'WpOrg\Requests\Utility\FilteredIterator' ) )->getProperty( 'callback' );
 			$property->setAccessible( true );
 			$callback_value = $property->getValue( $new_value );
 
@@ -234,10 +233,10 @@ class Tests_Functions_MaybeSerialize extends WP_UnitTestCase {
 	public function data_serialize_deserialize_objects() {
 		return array(
 			'filtered iterator using md5'  => array(
-				new Requests_Utility_FilteredIterator( array( 1 ), 'md5' ),
+				new WpOrg\Requests\Utility\FilteredIterator( array( 1 ), 'md5' ),
 			),
 			'filtered iterator using sha1' => array(
-				new Requests_Utility_FilteredIterator( array( 1, 2 ), 'sha1' ),
+				new WpOrg\Requests\Utility\FilteredIterator( array( 1, 2 ), 'sha1' ),
 			),
 			'array iterator'               => array(
 				new ArrayIterator( array( 1, 2, 3 ) ),

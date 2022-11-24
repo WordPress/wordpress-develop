@@ -216,9 +216,9 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 */
 	public function test_get_cookie_host_only() {
 		// Emulate WP_Http::request() internals.
-		$requests_response = new Requests_Response();
+		$requests_response = new WpOrg\Requests\Response();
 
-		$requests_response->cookies['test'] = Requests_Cookie::parse( 'test=foo; domain=.wordpress.org' );
+		$requests_response->cookies['test'] = WpOrg\Requests\Cookie::parse( 'test=foo; domain=.wordpress.org' );
 
 		$requests_response->cookies['test']->flags['host-only'] = false; // https://github.com/WordPress/Requests/issues/306
 
