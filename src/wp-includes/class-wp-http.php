@@ -347,7 +347,7 @@ class WP_Http {
 			$options['max_bytes'] = $parsed_args['limit_response_size'];
 		}
 
-		// If we've got cookies, use and convert them to Requests_Cookie.
+		// If we've got cookies, use and convert them to WpOrg\Requests\Cookie.
 		if ( ! empty( $parsed_args['cookies'] ) ) {
 			$options['cookies'] = WP_Http::normalize_cookies( $parsed_args['cookies'] );
 		}
@@ -453,7 +453,7 @@ class WP_Http {
 	 * @since 4.6.0
 	 *
 	 * @param array $cookies Array of cookies to send with the request.
-	 * @return Requests_Cookie_Jar Cookie holder object.
+	 * @return WpOrg\Requests\Cookie\Jar Cookie holder object.
 	 */
 	public static function normalize_cookies( $cookies ) {
 		$cookie_jar = new WpOrg\Requests\Cookie\Jar();
@@ -484,11 +484,11 @@ class WP_Http {
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param string            $location URL to redirect to.
-	 * @param array             $headers  Headers for the redirect.
-	 * @param string|array      $data     Body to send with the request.
-	 * @param array             $options  Redirect request options.
-	 * @param Requests_Response $original Response object.
+	 * @param string                  $location URL to redirect to.
+	 * @param array                   $headers  Headers for the redirect.
+	 * @param string|array            $data     Body to send with the request.
+	 * @param array                   $options  Redirect request options.
+	 * @param WpOrg\Requests\Response $original Response object.
 	 */
 	public static function browser_redirect_compatibility( $location, $headers, $data, &$options, $original ) {
 		// Browser compatibility.
@@ -502,7 +502,7 @@ class WP_Http {
 	 *
 	 * @since 4.7.5
 	 *
-	 * @throws Requests_Exception On unsuccessful URL validation.
+	 * @throws WpOrg\Requests\Exception On unsuccessful URL validation.
 	 * @param string $location URL to redirect to.
 	 */
 	public static function validate_redirects( $location ) {

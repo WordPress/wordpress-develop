@@ -12,7 +12,7 @@
  *
  * @since 4.7.0
  *
- * @see Requests_Hooks
+ * @see WpOrg\Requests\Hooks
  */
 #[AllowDynamicProperties]
 class WP_HTTP_Requests_Hooks extends WpOrg\Requests\Hooks {

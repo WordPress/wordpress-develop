@@ -231,7 +231,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$this->assertSame( $cookie->domain, 'wordpress.org' );
 		$this->assertFalse( $cookie->host_only, 'host-only flag not set' );
 
-		// Regurgitate (Requests_Cookie -> WP_Http_Cookie -> Requests_Cookie).
+		// Regurgitate (WpOrg\Requests\Cookie -> WP_Http_Cookie -> WpOrg\Requests\Cookie).
 		$cookies = WP_Http::normalize_cookies( wp_remote_retrieve_cookies( $response ) );
 		$this->assertFalse( $cookies['test']->flags['host-only'], 'host-only flag data lost' );
 	}
