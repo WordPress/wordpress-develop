@@ -5,7 +5,7 @@
  * @output wp-admin/js/updates.js
  */
 
-/* global pagenow */
+/* global pagenow, _wpThemeSettings */
 
 /**
  * @param {jQuery}  $                                        jQuery object.
@@ -1616,7 +1616,7 @@
 
 		// DecrementCount from update count.
 		if ( 'themes' === pagenow ) {
-			var wpThemeSettings = _wpThemeSettings || {};
+			var wpThemeSettings = _wpThemeSettings || {},
 				theme           = _.find( wpThemeSettings.themes, { id: response.slug } );
 
 		    if ( theme.hasUpdate ) {
