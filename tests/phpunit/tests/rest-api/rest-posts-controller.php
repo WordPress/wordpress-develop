@@ -194,6 +194,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'categories',
 				'categories_exclude',
 				'context',
+				'exact_search',
 				'exclude',
 				'include',
 				'modified_after',
@@ -747,6 +748,48 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		foreach ( $all_data as $post ) {
 			$this->assertNotEquals( $draft_id, $post['id'] );
 		}
+	}
+
+	/**
+	 * @ticket 56350
+	 */
+	public function test_get_items_exact_search() {
+
+		self::factory()->post->create(
+			array(
+				'post_title'   => 'Rye',
+				'post_content' => 'This is a post about Rye Bread',
+				'post_status'  => 'publish',
+			)
+		);
+
+		self::factory()->post->create(
+			array(
+				'post_title'   => 'Types of Bread',
+				'post_content' => 'Types of bread are White and Rye Bread',
+				'post_status'  => 'publish',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+
+		// General search.
+		$request->set_param( 'search', 'Rye' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertCount( 2, $data, 'Querying the API without exact_search should return all posts containing the search keyword' );
+
+		// Exact search using same search param.
+		$request->set_param( 'exact_search', true );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertCount( 1, $data, 'Querying the API with exact_search should return posts matching the search keyword' );
+
+		// Note that "exact_search" is still true.
+		$request->set_param( 'search', 'Rye Bread' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertCount( 0, $data, 'Querying the API with exact_search should return posts matching the search keyword' );
 	}
 
 	public function test_get_items_order_and_orderby() {
