@@ -481,6 +481,120 @@ EOF;
 	}
 
 	/**
+	* Test results when HTML comments are allowed or disallowed.
+	*
+	* @dataProvider data_html_comments
+	* @ticket 54488
+	*/
+	public function test_kses_html_comments( $input, $expected, $allow ) {
+		$output = wp_kses( $input, 'post', array(), $allow );
+		$this->assertSame( $expected, $output );
+	}
+
+	/**
+	 * @ticket 54488
+	 */
+	public function data_html_comments() {
+		return array(
+			// Test Basic validation.
+			array(
+				'<p>Hello world.</p><!-- html comment. -->',
+				'<p>Hello world.</p><!-- html comment. -->',
+				true,
+			),
+			array(
+				'<p>Hello world.</p><!-- html comment. -->',
+				'<p>Hello world.</p>',
+				false,
+			),
+			// Test No spaces between arrows and comment.
+			array(
+				'<p>Hello world.</p><!--html comment.-->',
+				'<p>Hello world.</p><!--html comment.-->',
+				true,
+			),
+			array(
+				'<p>Hello world.</p><!--html comment.-->',
+				'<p>Hello world.</p>',
+				false,
+			),
+			// HTML comments Inside HTML tags.
+			array(
+				'<p>Hello world.<!-- html comment. --></p>',
+				'<p>Hello world.</p>',
+				false,
+			),
+			// HTML comments containing HTML tags are escaped, not stripped.
+			array(
+				'<p>Hello world. <!-- <a href="https://wordpress.org">WordPress.org</a> --> </p>',
+				'<p>Hello world. &lt;!-- <a href="https://wordpress.org">WordPress.org</a> --&gt; </p>',
+				true,
+			),
+			array(
+				'<p>Hello world. <!-- <a href="https://wordpress.org">WordPress.org</a> --> </p>',
+				'<p>Hello world. &lt;!-- <a href="https://wordpress.org">WordPress.org</a> --&gt; </p>',
+				false,
+			),
+			// HTML comments overlapping HTML elements.
+			array(
+				'<p>Hello world. <!-- html comment </p> -->',
+				'<p>Hello world. &lt;!-- html comment </p> --&gt;',
+				true,
+			),
+			array(
+				'<p>Hello world. <!-- html comment </p> -->',
+				'<p>Hello world. &lt;!-- html comment </p> --&gt;',
+				false,
+			),
+			// Multi-line comments.
+			array(
+				'<!--
+				html comment
+				this is a second line
+				this is a third line
+				-->',
+				'<!--
+				html comment
+				this is a second line
+				this is a third line
+				-->',
+				true,
+			),
+			array(
+				'<!--
+				html comment
+				this is a second line
+				this is a third line
+				-->',
+				'',
+				false,
+			),
+			// Conditionals are stripped.
+			array(
+				'<!-[if IE 6]>Hello world<![endif]-->',
+				'Hello world',
+				true,
+			),
+			array(
+				'<!-[if IE 6]>Hello world<![endif]-->',
+				'Hello world',
+				false,
+			),
+			// Script tags are still handled properly.
+			array(
+				'<!-- <script>alert("XSS");</script> -->',
+				'&lt;!-- alert("XSS"); --&gt;',
+				true,
+			),
+			array(
+				'<!-- <script>alert("XSS");</script> -->',
+				'&lt;!-- alert("XSS"); --&gt;',
+				false,
+			),
+		);
+	}
+
+	/**
 	 * @ticket 20210
 	 */
 	public function test_wp_kses_allowed_html() {
