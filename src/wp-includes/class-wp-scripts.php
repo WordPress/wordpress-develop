@@ -289,19 +289,19 @@ class WP_Scripts extends WP_Dependencies {
 		$cond_after  = '';
 		$conditional = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
 
-		// Add extra attributes based on the strategy.
+		// Check if the script uses a loading strategy and determine which attributes to add.
 		$extra_atts = '';
 		$strategy   = $this->_get_strategy( $handle );
 		switch ( $strategy ) {
 			case 'defer':
-				// Scripts can only use defer if all scripts that depend on them ("dependents") are also deferred.
+				// Scripts can only use defer (aka. "deferrable") if all scripts that depend on them ("dependents") are also deferrable.
 				if ( $this->_all_dependents_are_deferrable( $obj->handle ) ) {
 					$extra_atts .= ' defer';
 				}
 				break;
 			case 'async':
 				// Scripts can only use async if no other scripts depend on them.
-				if ( ! $this->_get_dependents( $handle ) ) {
+				if ( empty( $this->_get_dependents( $handle ) ) ) {
 					$extra_atts .= ' async';
 				}
 				break;
@@ -452,31 +452,37 @@ class WP_Scripts extends WP_Dependencies {
 	}
 
 	/**
-	 * Check if all of a scripts dependents are deferrable.
+	 * Check if all of a scripts dependents are deferrable which is required to maintain execution order.
 	 *
-	 * Recursively iterate through all registered scripts for each script that depends on the given script, check that all of it's.
+	 * Recursively iterate through all registered scripts and for each script that depends on the passed script, check
+	 * that it is deferrable, meaning it uses the defer strategy and so do any scripts that depend on it.
 	 *
 	 * @since 6.2.0
 	 *
 	 * @param string $handle  The script handle.
-	 * @param array  $visited An array of already visited script handles. Keep track to avoid looping recursion.
-	 * @return bool True if all dependents are deferred, false otherwise.
+	 * @param array  $visited An array of already visited script handles used to avoid looping recursion.
+	 * @return bool True if all dependents are deferrable, false otherwise.
 	 */
 	private function _all_dependents_are_deferrable( $handle, $visited = array() ) {
-		// If this node was already visited, return
+		// If this node was already visited, this script can be deferred and the branch ends.
 		if ( in_array( $handle, $visited, true ) ) {
 			return true;
 		}
 		$visited[] = $handle;
 		$dependents = $this->_get_dependents( $handle );
+		// If there are no dependents remaining to consider, the script can be deferred and the branch ends.
 		if ( empty( $dependents ) ) {
 			return true;
 		}
+
+		// Consider each dependent and check if it is deferrable.
 		foreach ( $dependents as $dependent ) {
-			// If the dependent script is not deferrable, no script in the chain is deferrable.
+			// If the dependent script is not using the defer strategy, no script in the chain is deferrable.
 			if ( ! $this->uses_defer_strategy( $dependent ) ) {
 				return false;
 			}
+			// Recursively check any dependents of the dependent script. If any dependent script is not deferrable,
+			// no script in the chain is deferrable.
 			if ( ! $this->_all_dependents_are_deferrable( $dependent, $visited ) ) {
 				return false;
 			}
@@ -506,12 +512,12 @@ class WP_Scripts extends WP_Dependencies {
 	}
 
 	/**
-	 * Check if a script supports a strategy of 'defer'.
+	 * Check if a script uses a strategy of 'defer'.
 	 *
 	 * @since 6.2.0
 	 *
 	 * @param string $handle The script handle.
-	 * @return bool Whether the script is deferred.
+	 * @return bool Whether the script uses a `defer` strategy.
 	 */
 	public function uses_defer_strategy( $handle ) {
 		$obj      = $this->registered[ $handle ];
