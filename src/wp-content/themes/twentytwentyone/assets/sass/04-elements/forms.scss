@@ -69,7 +69,7 @@ select {
 	appearance: none;
 	line-height: var(--global--line-height-body);
 	padding: var(--form--spacing-unit) calc(3 * var(--form--spacing-unit)) var(--form--spacing-unit) var(--form--spacing-unit);
-	background: var(--global--color-white) url("data:image/svg+xml;utf8,<svg xmlns='https://www.w3.org/2000/svg' width='10' height='10' fill='%2328303d'><polygon points='0,0 10,0 5,5'/></svg>") no-repeat; // stylelint-disable-line function-url-quotes
+	background: var(--global--color-white) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2328303d'><polygon points='0,0 10,0 5,5'/></svg>") no-repeat; // stylelint-disable-line function-url-quotes
 	background-position: right var(--form--spacing-unit) top 60%;
 
 	&:focus {
@@ -78,7 +78,7 @@ select {
 	}
 
 	.is-dark-theme & {
-		background: var(--global--color-white-90) url("data:image/svg+xml;utf8,<svg xmlns='https://www.w3.org/2000/svg' width='10' height='10' fill='%2328303d'><polygon points='0,0 10,0 5,5'/></svg>") no-repeat; // stylelint-disable-line function-url-quotes
+		background: var(--global--color-white-90) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2328303d'><polygon points='0,0 10,0 5,5'/></svg>") no-repeat; // stylelint-disable-line function-url-quotes
 		background-position: right var(--form--spacing-unit) top 60%;
 	}
 }
