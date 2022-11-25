@@ -68,11 +68,7 @@ if ( file_exists( ABSPATH . 'wp-config.php' ) ) {
 
 	$path = wp_guess_url() . '/wp-admin/setup-config.php';
 
-	/*
-	 * We're going to redirect to setup-config.php. While this shouldn't result
-	 * in an infinite loop, that's a silly thing to assume, don't you think? If
-	 * we're traveling in circles, our last-ditch effort is "Need more help?"
-	 */
+	// Redirect to setup-config.php.
 	if ( false === strpos( $_SERVER['REQUEST_URI'], 'setup-config' ) ) {
 		header( 'Location: ' . $path );
 		exit;
@@ -87,7 +83,7 @@ if ( file_exists( ABSPATH . 'wp-config.php' ) ) {
 	// Die with an error message.
 	$die = '<p>' . sprintf(
 		/* translators: %s: wp-config.php */
-		__( "There doesn't seem to be a %s file. I need this before we can get started." ),
+		__( "There doesn't seem to be a %s file. It is needed before the installation can continue." ),
 		'<code>wp-config.php</code>'
 	) . '</p>';
 	$die .= '<p>' . sprintf(

@@ -3207,7 +3207,7 @@ function edit_form_image_editor( $post ) {
 	<?php if ( 'image' === substr( $post->post_mime_type, 0, 5 ) ) : ?>
 		<p class="attachment-alt-text">
 			<label for="attachment_alt"><strong><?php _e( 'Alternative Text' ); ?></strong></label><br />
-			<input type="text" class="widefat" name="_wp_attachment_image_alt" id="attachment_alt" aria-describedby="alt-text-description" value="<?php echo esc_attr( $alt_text ); ?>" />
+			<textarea class="widefat" name="_wp_attachment_image_alt" id="attachment_alt" aria-describedby="alt-text-description"><?php echo esc_attr( $alt_text ); ?></textarea>
 		</p>
 		<p class="attachment-alt-text-description" id="alt-text-description">
 		<?php
@@ -3842,19 +3842,4 @@ function wp_media_attach_action( $parent_id, $action = 'attach' ) {
 		wp_redirect( $location );
 		exit;
 	}
-}
-
-/**
- * Filters the default image output mapping.
- *
- * With this filter callback, WebP image files will be generated for certain JPEG source files.
- *
- * @since 6.1.0
- *
- * @param array $output_mapping Map of mime type to output format.
- * @retun array The adjusted default output mapping.
- */
-function wp_default_image_output_mapping( $output_mapping ) {
-	$output_mapping['image/jpeg'] = 'image/webp';
-	return $output_mapping;
 }

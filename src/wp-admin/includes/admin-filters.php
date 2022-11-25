@@ -37,8 +37,6 @@ add_filter( 'media_upload_library', 'media_upload_library' );
 
 add_filter( 'media_upload_tabs', 'update_gallery_tab' );
 
-add_filter( 'image_editor_output_format', 'wp_default_image_output_mapping' );
-
 // Admin color schemes.
 add_action( 'admin_init', 'register_admin_color_schemes', 1 );
 add_action( 'admin_head', 'wp_color_scheme_settings' );
@@ -82,6 +80,7 @@ add_filter( 'heartbeat_received', 'wp_refresh_post_lock', 10, 3 );
 add_filter( 'heartbeat_received', 'heartbeat_autosave', 500, 2 );
 
 add_filter( 'wp_refresh_nonces', 'wp_refresh_post_nonces', 10, 3 );
+add_filter( 'wp_refresh_nonces', 'wp_refresh_metabox_loader_nonces', 10, 2 );
 add_filter( 'wp_refresh_nonces', 'wp_refresh_heartbeat_nonces' );
 
 add_filter( 'heartbeat_settings', 'wp_heartbeat_set_suspension' );

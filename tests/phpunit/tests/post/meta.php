@@ -248,7 +248,7 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 		$this->assertIsInt( add_post_meta( self::$post_id, 'test_funky_post_meta', $funky_meta, true ) );
 
 		// Check it exists.
-		$this->assertEquals( $funky_meta, get_post_meta( self::$post_id, 'test_funky_post_meta', true ) );
+		$this->assertEqualSets( $funky_meta, get_post_meta( self::$post_id, 'test_funky_post_meta', true ) );
 
 	}
 

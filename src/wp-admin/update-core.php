@@ -890,7 +890,7 @@ function do_core_upgrade( $reinstall = false ) {
 
 	if ( is_wp_error( $result ) ) {
 		show_message( $result );
-		if ( 'up_to_date' != $result->get_error_code() && 'locked' != $result->get_error_code() ) {
+		if ( 'up_to_date' !== $result->get_error_code() && 'locked' !== $result->get_error_code() ) {
 			show_message( __( 'Installation failed.' ) );
 		}
 		echo '</div>';
@@ -1008,7 +1008,7 @@ if ( ( current_user_can( 'update_themes' ) && wp_is_auto_update_enabled_for_type
 		)
 	);
 
-	$help_sidebar_autoupdates = '<p>' . __( '<a href="https://wordpress.org/support/article/plugins-themes-auto-updates/">Learn more: Auto-updates documentation</a>' ) . '</p>';
+	$help_sidebar_autoupdates = '<p>' . __( '<a href="https://wordpress.org/support/article/plugins-themes-auto-updates/">Documentation on Auto-updates</a>' ) . '</p>';
 }
 
 get_current_screen()->set_help_sidebar(

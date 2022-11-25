@@ -1529,6 +1529,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	/**
 	 * @ticket 55592
+	 *
 	 * @covers WP_REST_Posts_Controller::get_items
 	 * @covers ::update_post_thumbnail_cache
 	 */
@@ -1566,6 +1567,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	/**
 	 * @ticket 55593
+	 *
 	 * @covers WP_REST_Posts_Controller::get_items
 	 * @covers ::update_post_parent_caches
 	 */
@@ -1954,8 +1956,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertErrorResponse( 'rest_forbidden', $response, 401 );
 	}
 
+	/**
+	 * Tests that authenticated users are only allowed to read password protected content
+	 * if they have the 'edit_post' meta capability for the post.
+	 */
 	public function test_get_post_draft_edit_context() {
 		$post_content = 'Hello World!';
+
+		// Create a password protected post as an Editor.
 		self::factory()->post->create(
 			array(
 				'post_title'    => 'Hola',
@@ -1965,6 +1973,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'post_author'   => self::$editor_id,
 			)
 		);
+
+		// Create a draft with the Latest Posts block as a Contributor.
 		$draft_id = self::factory()->post->create(
 			array(
 				'post_status'  => 'draft',
@@ -1972,11 +1982,18 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'post_content' => '<!-- wp:latest-posts {"displayPostContent":true} /--> <!-- wp:latest-posts {"displayPostContent":true,"displayPostContentRadio":"full_post"} /-->',
 			)
 		);
+
+		// Set the current user to Contributor and request the draft for editing.
 		wp_set_current_user( self::$contributor_id );
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $draft_id ) );
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+
+		/*
+		 * Verify that the content of a password protected post created by an Editor
+		 * is not viewable by a Contributor.
+		 */
 		$this->assertStringNotContainsString( $post_content, $data['content']['rendered'] );
 	}
 

@@ -11,6 +11,7 @@
  *
  * @since 3.5.0
  */
+#[AllowDynamicProperties]
 abstract class WP_Image_Editor {
 	protected $file              = null;
 	protected $size              = null;
@@ -413,8 +414,8 @@ abstract class WP_Image_Editor {
 			// The image will be converted when saving. Set the quality for the new mime-type if not already set.
 			if ( $mime_type !== $this->output_mime_type ) {
 				$this->output_mime_type = $mime_type;
-				$this->set_quality();
 			}
+			$this->set_quality();
 		} elseif ( ! empty( $this->output_mime_type ) ) {
 			// Reset output_mime_type and quality.
 			$this->output_mime_type = null;
@@ -424,26 +425,19 @@ abstract class WP_Image_Editor {
 		return array( $filename, $new_ext, $mime_type );
 	}
 
-		/**
-	 * Builds an output filename based on current file, and adding proper suffix.
+	/**
+	 * Builds an output filename based on current file, and adding proper suffix
 	 *
 	 * @since 3.5.0
-	 * @since 6.1.0 Skips adding a suffix when set to an empty string. When the
-	 *              file extension being generated doesn't match the image file extension,
-	 *              add the extension to the suffix
 	 *
-	 * @param string $suffix    Optional. Suffix to add to the filename. The default null
-	 *                          will result in a 'widthxheight' suffix. Passing
-	 *                          an empty string will result in no suffix.
-	 * @param string $dest_path Optional. The path to save the file to. The default null
-	 *                          will use the image file path.
-	 * @param string $extension Optional. The file extension to use. The default null
-	 *                          will use the image file extension.
-	 * @return string filename The generated file name.
+	 * @param string $suffix
+	 * @param string $dest_path
+	 * @param string $extension
+	 * @return string filename
 	 */
 	public function generate_filename( $suffix = null, $dest_path = null, $extension = null ) {
 		// $suffix will be appended to the destination filename, just before the extension.
-		if ( null === $suffix ) {
+		if ( ! $suffix ) {
 			$suffix = $this->get_suffix();
 		}
 
@@ -464,21 +458,7 @@ abstract class WP_Image_Editor {
 			}
 		}
 
-		if ( empty( $suffix ) ) {
-			$suffix = '';
-		} else {
-			$suffix = "-{$suffix}";
-		}
-
-		// When the file extension being generated doesn't match the image file extension,
-		// add the extension to the suffix to ensure a unique file name. Prevents
-		// name conflicts when a single image type can have multiple extensions,
-		// eg. .jpg, .jpeg and .jpe are all valid JPEG extensions.
-		if ( ! empty( $extension ) && $extension !== $ext ) {
-			$suffix .= "-{$ext}";
-		}
-
-		return trailingslashit( $dir ) . "{$name}{$suffix}.{$new_ext}";
+		return trailingslashit( $dir ) . "{$name}-{$suffix}.{$new_ext}";
 	}
 
 	/**
@@ -532,7 +512,7 @@ abstract class WP_Image_Editor {
 		switch ( $orientation ) {
 			case 2:
 				// Flip horizontally.
-				$result = $this->flip( true, false );
+				$result = $this->flip( false, true );
 				break;
 			case 3:
 				// Rotate 180 degrees or flip horizontally and vertically.
@@ -541,14 +521,14 @@ abstract class WP_Image_Editor {
 				break;
 			case 4:
 				// Flip vertically.
-				$result = $this->flip( false, true );
+				$result = $this->flip( true, false );
 				break;
 			case 5:
 				// Rotate 90 degrees counter-clockwise and flip vertically.
 				$result = $this->rotate( 90 );
 
 				if ( ! is_wp_error( $result ) ) {
-					$result = $this->flip( false, true );
+					$result = $this->flip( true, false );
 				}
 
 				break;
@@ -561,7 +541,7 @@ abstract class WP_Image_Editor {
 				$result = $this->rotate( 90 );
 
 				if ( ! is_wp_error( $result ) ) {
-					$result = $this->flip( true, false );
+					$result = $this->flip( false, true );
 				}
 
 				break;

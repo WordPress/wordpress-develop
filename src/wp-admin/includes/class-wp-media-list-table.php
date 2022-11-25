@@ -11,7 +11,6 @@
  * Core class used to implement displaying media items in a list table.
  *
  * @since 3.1.0
- * @access private
  *
  * @see WP_List_Table
  */
@@ -111,6 +110,8 @@ class WP_Media_List_Table extends WP_List_Table {
 				'per_page'    => $wp_query->query_vars['posts_per_page'],
 			)
 		);
+
+		update_post_parent_caches( $wp_query->posts );
 	}
 
 	/**
@@ -671,7 +672,8 @@ class WP_Media_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global WP_Post $post Global post object.
+	 * @global WP_Post  $post     Global post object.
+	 * @global WP_Query $wp_query WordPress Query object.
 	 */
 	public function display_rows() {
 		global $post, $wp_query;

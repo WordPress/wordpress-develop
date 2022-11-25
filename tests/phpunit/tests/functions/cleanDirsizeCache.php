@@ -105,7 +105,7 @@ class Tests_Functions_CleanDirsizeCache extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the behaviour of the function when the transient doesn't exist.
+	 * Tests the behavior of the function when the transient doesn't exist.
 	 *
 	 * @ticket 52241
 	 * @ticket 53635
@@ -121,7 +121,7 @@ class Tests_Functions_CleanDirsizeCache extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the behaviour of the function when the transient does exist, but is not an array.
+	 * Tests the behavior of the function when the transient does exist, but is not an array.
 	 *
 	 * In particular, this tests that no PHP TypeErrors are being thrown.
 	 *

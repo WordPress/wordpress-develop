@@ -12,6 +12,7 @@
  *
  * @since 4.7.0
  */
+#[AllowDynamicProperties]
 class WP_Locale_Switcher {
 	/**
 	 * Locale stack.
@@ -33,7 +34,7 @@ class WP_Locale_Switcher {
 	 * Holds all available languages.
 	 *
 	 * @since 4.7.0
-	 * @var array An array of language codes (file names without the .mo extension).
+	 * @var string[] An array of language codes (file names without the .mo extension).
 	 */
 	private $available_languages = array();
 

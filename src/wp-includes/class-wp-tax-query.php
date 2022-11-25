@@ -19,6 +19,7 @@
  *
  * @since 3.1.0
  */
+#[AllowDynamicProperties]
 class WP_Tax_Query {
 
 	/**
@@ -587,8 +588,6 @@ class WP_Tax_Query {
 	 * `$query` is converted to a WP_Error object.
 	 *
 	 * @since 3.2.0
-	 *
-	 * @global wpdb $wpdb The WordPress database abstraction object.
 	 *
 	 * @param array  $query           The single query. Passed by reference.
 	 * @param string $resulting_field The resulting field. Accepts 'slug', 'name', 'term_taxonomy_id',

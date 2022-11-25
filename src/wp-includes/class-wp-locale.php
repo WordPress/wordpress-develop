@@ -13,6 +13,7 @@
  * @since 2.1.0
  * @since 4.6.0 Moved to its own file from wp-includes/locale.php.
  */
+#[AllowDynamicProperties]
 class WP_Locale {
 	/**
 	 * Stores the translated strings for the full weekday names.
@@ -123,7 +124,6 @@ class WP_Locale {
 	 * @since 2.1.0
 	 *
 	 * @global string $text_direction
-	 * @global string $wp_version     The WordPress version string.
 	 */
 	public function init() {
 		// The weekdays.

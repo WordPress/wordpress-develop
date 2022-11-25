@@ -935,6 +935,8 @@ EOF;
 	 * @ticket 37248
 	 * @ticket 42729
 	 * @ticket 48376
+	 * @ticket 55966
+	 * @ticket 56122
 	 * @dataProvider data_test_safecss_filter_attr
 	 *
 	 * @param string $css      A string of CSS rules.
@@ -1033,8 +1035,8 @@ EOF;
 			),
 			// `flex` and related attributes introduced in 5.3.
 			array(
-				'css'      => 'flex: 0 1 auto;flex-basis: 75%;flex-direction: row-reverse;flex-flow: row-reverse nowrap;flex-grow: 2;flex-shrink: 1',
-				'expected' => 'flex: 0 1 auto;flex-basis: 75%;flex-direction: row-reverse;flex-flow: row-reverse nowrap;flex-grow: 2;flex-shrink: 1',
+				'css'      => 'flex: 0 1 auto;flex-basis: 75%;flex-direction: row-reverse;flex-flow: row-reverse nowrap;flex-grow: 2;flex-shrink: 1;flex-wrap: nowrap',
+				'expected' => 'flex: 0 1 auto;flex-basis: 75%;flex-direction: row-reverse;flex-flow: row-reverse nowrap;flex-grow: 2;flex-shrink: 1;flex-wrap: nowrap',
 			),
 			// `grid` and related attributes introduced in 5.3.
 			array(
@@ -1105,6 +1107,16 @@ EOF;
 				'css'      => 'background: conic-gradient(at 0% 30%, red 10%, yellow 30%, #1e90ff 50%)',
 				'expected' => 'background: conic-gradient(at 0% 30%, red 10%, yellow 30%, #1e90ff 50%)',
 			),
+			// `object-position` introduced in 5.7.1.
+			array(
+				'css'      => 'object-position: right top',
+				'expected' => 'object-position: right top',
+			),
+			// `object-fit` introduced in 6.1.
+			array(
+				'css'      => 'object-fit: cover',
+				'expected' => 'object-fit: cover',
+			),
 			// Expressions are not allowed.
 			array(
 				'css'      => 'height: expression( body.scrollTop + 50 + "px" )',
@@ -1118,6 +1130,152 @@ EOF;
 			// RGBA color values are not allowed.
 			array(
 				'css'      => 'color: rgb( 100, 100, 100, .4 )',
+				'expected' => '',
+			),
+			// Allow min().
+			array(
+				'css'      => 'width: min(50%, 400px)',
+				'expected' => 'width: min(50%, 400px)',
+			),
+			// Allow max().
+			array(
+				'css'      => 'width: max(50%, 40rem)',
+				'expected' => 'width: max(50%, 40rem)',
+			),
+			// Allow minmax().
+			array(
+				'css'      => 'width: minmax(100px, 50%)',
+				'expected' => 'width: minmax(100px, 50%)',
+			),
+			// Allow clamp().
+			array(
+				'css'      => 'width: clamp(100px, 50%, 100vw)',
+				'expected' => 'width: clamp(100px, 50%, 100vw)',
+			),
+			// Allow two functions in the same CSS.
+			array(
+				'css'      => 'width: clamp(min(100px, 350px), 50%, 500px), 600px)',
+				'expected' => 'width: clamp(min(100px, 350px), 50%, 500px), 600px)',
+			),
+			// Allow gradient() function.
+			array(
+				'css'      => 'background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(0,212,255,1) 100%)',
+				'expected' => 'background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(0,212,255,1) 100%)',
+			),
+			// Combined CSS function names.
+			array(
+				'css'      => 'width: calcmax(100px + 50%)',
+				'expected' => '',
+			),
+			// Allow calc().
+			array(
+				'css'      => 'width: calc(2em + 3px)',
+				'expected' => 'width: calc(2em + 3px)',
+			),
+			// Allow calc() with nested brackets.
+			array(
+				'css'      => 'width: calc(3em + (10px * 2))',
+				'expected' => 'width: calc(3em + (10px * 2))',
+			),
+			// Allow var().
+			array(
+				'css'      => 'padding: var(--wp-var1) var(--wp-var2)',
+				'expected' => 'padding: var(--wp-var1) var(--wp-var2)',
+			),
+			// Allow var() with fallback (commas).
+			array(
+				'css'      => 'padding: var(--wp-var1, 10px)',
+				'expected' => 'padding: var(--wp-var1, 10px)',
+			),
+			// Allow var() with fallback (percentage).
+			array(
+				'css'      => 'padding: var(--wp-var1, 50%)',
+				'expected' => 'padding: var(--wp-var1, 50%)',
+			),
+			// Allow var() with fallback var().
+			array(
+				'css'      => 'background-color: var(--wp-var, var(--wp-var-fallback, pink))',
+				'expected' => 'background-color: var(--wp-var, var(--wp-var-fallback, pink))',
+			),
+			// Allow var() with square brackets.
+			array(
+				'css'      => 'background-color: var(--wp-var, [pink])',
+				'expected' => 'background-color: var(--wp-var, [pink])',
+			),
+			// Allow calc() with var().
+			array(
+				'css'      => 'margin-top: calc(var(--wp-var1) * 3 + 2em)',
+				'expected' => 'margin-top: calc(var(--wp-var1) * 3 + 2em)',
+			),
+			// Malformed min, no closing `)`.
+			array(
+				'css'      => 'width: min(3em + 10px',
+				'expected' => '',
+			),
+			// Malformed max, no closing `)`.
+			array(
+				'css'      => 'width: max(3em + 10px',
+				'expected' => '',
+			),
+			// Malformed minmax, no closing `)`.
+			array(
+				'css'      => 'width: minmax(3em + 10px',
+				'expected' => '',
+			),
+			// Malformed calc, no closing `)`.
+			array(
+				'css'      => 'width: calc(3em + 10px',
+				'expected' => '',
+			),
+			// Malformed var, no closing `)`.
+			array(
+				'css'      => 'width: var(--wp-var1',
+				'expected' => '',
+			),
+			// Malformed calc, mismatching brackets.
+			array(
+				'css'      => 'width: calc(3em + (10px * 2)',
+				'expected' => '',
+			),
+			// Malformed var, mismatching brackets.
+			array(
+				'css'      => 'background-color: var(--wp-var, var(--wp-var-fallback, pink)',
+				'expected' => '',
+			),
+			// Don't allow expressions outside of a calc().
+			array(
+				'css'      => 'width: (3em + (10px * 2))',
+				'expected' => '',
+			),
+			// Gap introduced in 6.1.
+			array(
+				'css'      => 'gap: 10px;column-gap: 5px;row-gap: 20px',
+				'expected' => 'gap: 10px;column-gap: 5px;row-gap: 20px',
+			),
+			// Margin and padding logical properties introduced in 6.1.
+			array(
+				'css'      => 'margin-block-start: 1px;margin-block-end: 2px;margin-inline-start: 3px;margin-inline-end: 4px;',
+				'expected' => 'margin-block-start: 1px;margin-block-end: 2px;margin-inline-start: 3px;margin-inline-end: 4px',
+			),
+			array(
+				'css'      => 'padding-block-start: 1px;padding-block-end: 2px;padding-inline-start: 3px;padding-inline-end: 4px;',
+				'expected' => 'padding-block-start: 1px;padding-block-end: 2px;padding-inline-start: 3px;padding-inline-end: 4px',
+			),
+			// Assigning values to CSS variables introduced in 6.1.
+			array(
+				'css'      => '--wp--medium-width: 100px; --var_with_underscores: #cccccc;',
+				'expected' => '--wp--medium-width: 100px;--var_with_underscores: #cccccc',
+			),
+			array(
+				'css'      => '--miXeD-CAse: red; --with-numbers-3_56: red; --with-url-value: url("foo.jpg");',
+				'expected' => '--miXeD-CAse: red;--with-numbers-3_56: red;--with-url-value: url("foo.jpg")',
+			),
+			array(
+				'css'      => '--with-gradient: repeating-linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);',
+				'expected' => '--with-gradient: repeating-linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%)',
+			),
+			array(
+				'css'      => '--?><.%-not-allowed: red;',
 				'expected' => '',
 			),
 		);
@@ -1301,24 +1459,6 @@ EOF;
 				'background: red',
 			),
 
-			// CSS calc().
-			array(
-				'width: calc(2em + 3px)',
-				'width: calc(2em + 3px)',
-			),
-
-			// CSS variable.
-			array(
-				'padding: var(--wp-var1) var(--wp-var2)',
-				'padding: var(--wp-var1) var(--wp-var2)',
-			),
-
-			// CSS calc() with var().
-			array(
-				'margin-top: calc(var(--wp-var1) * 3 + 2em)',
-				'margin-top: calc(var(--wp-var1) * 3 + 2em)',
-			),
-
 			/*
 			 * Invalid use cases.
 			 */
@@ -1380,18 +1520,6 @@ EOF;
 			// Malformed, no closing `"`.
 			array(
 				'background-image: url( "http://example.com );',
-				'',
-			),
-
-			// Malformed calc, no closing `)`.
-			array(
-				'width: calc(3em + 10px',
-				'',
-			),
-
-			// Malformed var, no closing `)`.
-			array(
-				'width: var(--wp-var1',
 				'',
 			),
 		);
@@ -1976,19 +2104,13 @@ HTML;
 	 * @return array
 	 */
 	public function data_kses_globals_are_defined() {
-		return array(
-			'allowedposttags'       => array(
-				'global' => 'allowedposttags',
-			),
-			'allowedtags'           => array(
-				'global' => 'allowedtags',
-			),
-			'allowedentitynames'    => array(
-				'global' => 'allowedentitynames',
-			),
-			'allowedxmlentitynames' => array(
-				'global' => 'allowedxmlentitynames',
-			),
+		$globals = array(
+			'allowedposttags',
+			'allowedtags',
+			'allowedentitynames',
+			'allowedxmlentitynames',
 		);
+
+		return $this->text_array_to_dataprovider( $globals );
 	}
 }
