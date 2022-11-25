@@ -1549,9 +1549,14 @@ JS;
 	 */
 	public function test_wp_enqueue_script_strategy_with_complex_dependencies() {
 
-		// Test with Scripts B & C depend on script A
+		/*
+		 * Test with Scripts B & C depend on script A.
+		 *
+		 * B-->A;
+		 * C-->A;
+		 */
 
-		// Scripts B & C depend on script A; script A and B are deferred. Script B can be deferred.
+		// Script A and B are deferred. Script B can be deferred.
 		wp_enqueue_script( 'script-a', 'example.com', array(), null, false, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'script-b', 'example.com-b', array( 'script-a' ), null, false, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'script-c', 'example.com-c', array( 'script-a' ), null, false, array( 'strategy' => 'blocking' ) );
@@ -1563,7 +1568,7 @@ JS;
 		// Reset WP_Scripts.
 		$GLOBALS['wp_scripts'] = new WP_Scripts();
 
-		// Scripts B & C depend on script A; script B and C are deferred. B and C can be deferred.
+		// Script B and C are deferred. Scripts B and C can be deferred.
 		wp_enqueue_script( 'script-a', 'example.com', array(), null, false, array( 'strategy' => 'blocking' ) );
 		wp_enqueue_script( 'script-b', 'example.com-b', array( 'script-a' ), null, false, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'script-c', 'example.com-c', array( 'script-a' ), null, false, array( 'strategy' => 'defer' ) );
@@ -1575,7 +1580,7 @@ JS;
 		// Reset WP_Scripts.
 		$GLOBALS['wp_scripts'] = new WP_Scripts();
 
-		// Scripts B & C depend on script A; script A, B and C are deferred. All scripts can be deferred.
+		// Script A, B and C are deferred. All scripts can be deferred.
 		wp_enqueue_script( 'script-a', 'example.com', array(), null, false, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'script-b', 'example.com-b', array( 'script-a' ), null, false, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'script-c', 'example.com-c', array( 'script-a' ), null, false, array( 'strategy' => 'defer' ) );
@@ -1585,11 +1590,19 @@ JS;
 ";
 		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 
-		// Test with Scripts C depend on script B which depends on script A.
+		//
+
+		/**
+		 * Script C depends on script B which depends on script A.
+		 *
+		 * C-->B;
+		 * B-->A;
+		 */
+
 		// Reset WP_Scripts.
 		$GLOBALS['wp_scripts'] = new WP_Scripts();
 
-		// Scripts C depend on script B which depends on script A; script A and B are deferred. No script can be deferred.
+		// Script A and B are deferred. No script can be deferred.
 		wp_enqueue_script( 'script-a', 'example.com', array(), null, false, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'script-b', 'example.com-b', array( 'script-a' ), null, false, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'script-c', 'example.com-c', array( 'script-b' ), null, false, array( 'strategy' => 'blocking' ) );
@@ -1602,7 +1615,7 @@ JS;
 		// Reset WP_Scripts.
 		$GLOBALS['wp_scripts'] = new WP_Scripts();
 
-		// Scripts C depend on script B which depends on script A; script B and C are deferred. B and C can be deferred.
+		// Script B and C are deferred. B and C can be deferred.
 		wp_enqueue_script( 'script-a', 'example.com', array(), null, false, array( 'strategy' => 'blocking' ) );
 		wp_enqueue_script( 'script-b', 'example.com-b', array( 'script-a' ), null, false, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'script-c', 'example.com-c', array( 'script-b' ), null, false, array( 'strategy' => 'defer' ) );
@@ -1614,7 +1627,7 @@ JS;
 		// Reset WP_Scripts.
 		$GLOBALS['wp_scripts'] = new WP_Scripts();
 
-		// Scripts C depend on script B which depends on script A; script A, B and C are deferred. All scripts can be deferred.
+		// Script A, B and C are deferred. All scripts can be deferred.
 		wp_enqueue_script( 'script-a', 'example.com', array(), null, false, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'script-b', 'example.com-b', array( 'script-a' ), null, false, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'script-c', 'example.com-c', array( 'script-b' ), null, false, array( 'strategy' => 'defer' ) );
@@ -1623,10 +1636,19 @@ JS;
 <script type='text/javascript' src='http://example.com-c' id='script-c-js' defer></script>
 ";
 		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
+
 		// Reset WP_Scripts.
 		$GLOBALS['wp_scripts'] = new WP_Scripts();
 
-		// Script D depends on script C. Script C depends on script A and script B. Script B depends on script A. A & C are deferred.
+		/**
+		 * Script D depends on script C. Script C depends on script A and script B. Script B depends on script A.
+		 *
+		 * D-->C;
+		 * C-->A;
+		 * C-->B;
+		 * B-->A;
+		 */
+		// Scripts A & C are deferred.
 		// No script can be deferred.
 		wp_enqueue_script( 'script-a', 'example.com', array(), null, false, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'script-b', 'example.com-b', array( 'script-a' ), null, false, array( 'strategy' => 'blocking' ) );
@@ -1638,10 +1660,11 @@ JS;
 <script type='text/javascript' src='http://example.com-d' id='script-d-js'></script>
 ";
 		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
+
 		// Reset WP_Scripts.
 		$GLOBALS['wp_scripts'] = new WP_Scripts();
 
-		// Script D depends on script C. Script C depends on script A and script B. Script B depends on script A. Scripts C and D are deferred.
+		// Scripts C and D are deferred.
 		// Scripts C & D can be deferred.
 		wp_enqueue_script( 'script-a', 'example.com', array(), null, false, array( 'strategy' => 'blocking' ) );
 		wp_enqueue_script( 'script-b', 'example.com-b', array( 'script-a' ), null, false, array( 'strategy' => 'blocking' ) );
@@ -1657,7 +1680,7 @@ JS;
 		// Reset WP_Scripts.
 		$GLOBALS['wp_scripts'] = new WP_Scripts();
 
-		// Script D depends on script C. Script C depends on script A and script B. Script B depends on script A. Scripts A, C and D are deferred.
+		// Scripts A, C and D are deferred.
 		// Scripts C & D can be deferred.
 		wp_enqueue_script( 'script-a', 'example.com', array(), null, false, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'script-b', 'example.com-b', array( 'script-a' ), null, false, array( 'strategy' => 'blocking' ) );
@@ -1670,11 +1693,18 @@ JS;
 ";
 		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 
-		// Semi-Circular dependency ABC.
+		/**
+		 * Script C depends on script A. Script B depends on scripts A and C.
+		 *
+		 * C-->A;
+		 * B-->A;
+		 * B-->C;
+		 */
+
 		// Reset WP_Scripts.
 		$GLOBALS['wp_scripts'] = new WP_Scripts();
 
-		// Script C depends on script A. Script B depends on scripts A and C. Scripts A, and C are deferred.
+		//  Scripts A, and C are deferred.
 		// No script can be deferred.
 		wp_enqueue_script( 'script-a', 'example.com', array(), null, false, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'script-b', 'example.com-b', array( 'script-a', 'script-c' ), null, false, array( 'strategy' => 'blocking' ) );
@@ -1688,7 +1718,7 @@ JS;
 		// Reset WP_Scripts.
 		$GLOBALS['wp_scripts'] = new WP_Scripts();
 
-		// Script C depends on script A. Script B depends on scripts A and C. Scripts B, and C are deferred.
+		// Scripts B, and C are deferred.
 		// Scripts B & C can be deferred.
 		wp_enqueue_script( 'script-a', 'example.com', array(), null, false, array( 'strategy' => 'blocking' ) );
 		wp_enqueue_script( 'script-b', 'example.com-b', array( 'script-a', 'script-c' ), null, false, array( 'strategy' => 'defer' ) );
@@ -1702,7 +1732,7 @@ JS;
 		// Reset WP_Scripts.
 		$GLOBALS['wp_scripts'] = new WP_Scripts();
 
-		// Script C depends on script A. Script B depends on scripts A and C. Scripts A, and B are deferred.
+		// Scripts A, and B are deferred.
 		// Scripts B can be deferred.
 		wp_enqueue_script( 'script-a', 'example.com', array(), null, false, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'script-b', 'example.com-b', array( 'script-a', 'script-c' ), null, false, array( 'strategy' => 'defer' ) );
