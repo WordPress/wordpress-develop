@@ -463,7 +463,11 @@ class WP_Scripts extends WP_Dependencies {
 	 * @return bool True if all dependents are deferred, false otherwise.
 	 */
 	private function _all_dependents_are_deferrable( $handle, $visited = array() ) {
-		array_push( $visited, $handle );
+		// If this node was already visited, return
+		if ( in_array( $handle, $visited, true ) ) {
+			return true;
+		}
+		$visited[] = $handle;
 		$dependents = $this->_get_dependents( $handle );
 		if ( empty( $dependents ) ) {
 			return true;
