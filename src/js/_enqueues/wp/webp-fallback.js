@@ -76,7 +76,7 @@ window.wpPerfLab = window.wpPerfLab || {};
 			var srcset = node.getAttribute( 'srcset' ) || '';
 
 			if (
-				node.nodeName !== "IMG" ||
+				node.nodeName !== 'IMG' ||
 				( ! node.src.match( /\.webp$/i ) && ! srcset.match( /\.webp\s+/ ) )
 			) {
 				continue;
@@ -90,8 +90,8 @@ window.wpPerfLab = window.wpPerfLab || {};
 
 		for ( var page = 0, pages = Math.ceil( ids.length / 100 ); page < pages; page++ ) {
 			var pageIds = [];
-			for ( var i = 0; i < 100 && i + page * 100 < ids.length; i++ ) {
-				pageIds.push( ids[ i + page * 100 ] );
+			for ( var j = 0; j < 100 && j + page * 100 < ids.length; j++ ) {
+				pageIds.push( ids[ j + page * 100 ] );
 			}
 
 			var jsonp = document.createElement( 'script' );
@@ -117,7 +117,7 @@ window.wpPerfLab = window.wpPerfLab || {};
 
 		observer.observe( document.body, {
 			subtree: true,
-			childList: true,
+			childList: true
 		} );
 	} catch ( e ) {
 	}
