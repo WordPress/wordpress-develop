@@ -564,7 +564,7 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 			</ul>
 		</div><!-- /.tabs-panel -->
 
-		<div class="tabs-panel <?php echo ( 'search' === $current_tab ? 'tabs-panel-active' : 'tabs-panel-inactive' ); ?>" id="tabs-panel-posttype-<?php echo esc_attr( $post_type_name. '-search' ); ?>" role="region" aria-label="<?php echo $post_type->labels->search_items; ?>" tabindex="0">
+		<div class="tabs-panel <?php echo ( 'search' === $current_tab ? 'tabs-panel-active' : 'tabs-panel-inactive' ); ?>" id="tabs-panel-posttype-<?php echo esc_attr( $post_type_name . '-search' ); ?>" role="region" aria-label="<?php echo $post_type->labels->search_items; ?>" tabindex="0">
 			<?php
 			if ( isset( $_REQUEST[ 'quick-search-posttype-' . $post_type_name ] ) ) {
 				$searched       = esc_attr( $_REQUEST[ 'quick-search-posttype-' . $post_type_name ] );
