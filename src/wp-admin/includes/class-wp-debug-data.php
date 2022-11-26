@@ -35,6 +35,7 @@ class WP_Debug_Data {
 	 */
 	public static function debug_data() {
 		global $wpdb;
+		global $wp_theme_directories;
 
 		// Save few function calls.
 		$upload_dir             = wp_upload_dir();
@@ -339,7 +340,10 @@ class WP_Debug_Data {
 		$is_writable_wp_content_dir     = wp_is_writable( WP_CONTENT_DIR );
 		$is_writable_upload_dir         = wp_is_writable( $upload_dir['basedir'] );
 		$is_writable_wp_plugin_dir      = wp_is_writable( WP_PLUGIN_DIR );
-		$is_writable_template_directory = wp_is_writable( get_theme_root( get_template() ) );
+		$is_writable_template_directory = false;
+		foreach ( $wp_theme_directories as $wp_directory_listing ) {
+			$is_writable_template_directory = wp_is_writable( $wp_directory_listing );
+		}
 
 		$info['wp-filesystem'] = array(
 			'label'       => __( 'Filesystem Permissions' ),
