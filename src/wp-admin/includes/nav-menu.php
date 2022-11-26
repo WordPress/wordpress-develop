@@ -505,8 +505,8 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 		$search_url      = esc_url( add_query_arg( $tab_name, 'search', remove_query_arg( $removed_args ) ) );
 	}
 	?>
-	<div id="posttype-<?php echo esc_attr( $post_type_name ); ?>" class="posttypediv">
-		<ul id="posttype-<?php echo esc_attr( $post_type_name ); ?>-tabs" class="posttype-tabs add-menu-item-tabs">
+	<div id="<?php echo esc_attr( 'posttype-'. $post_type_name ); ?>" class="posttypediv">
+		<ul id="<?php echo esc_attr( 'posttype-'. $post_type_name ); ?>-tabs" class="posttype-tabs add-menu-item-tabs">
 			<li <?php echo ( 'most-recent' === $current_tab ? ' class="tabs"' : '' ); ?>>
 				<a class="nav-tab-link" data-type="tabs-panel-posttype-<?php echo esc_attr( $post_type_name ); ?>-most-recent" href="<?php echo $most_recent_url; ?>#tabs-panel-posttype-<?php echo $post_type_name; ?>-most-recent">
 					<?php _e( 'Most Recent' ); ?>
@@ -525,7 +525,7 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 		</ul><!-- .posttype-tabs -->
 
 		<div id="<?php echo esc_attr( 'tabs-panel-posttype-' . $post_type_name . '-most-recent' ); ?>" class="tabs-panel <?php echo ( 'most-recent' === $current_tab ? 'tabs-panel-active' : 'tabs-panel-inactive' ); ?>" role="region" aria-label="<?php esc_attr_e( 'Most Recent' ); ?>" tabindex="0">
-			<ul id="<?php echo esc_attr( $post_type_name ); ?>checklist-most-recent" class="categorychecklist form-no-clear">
+			<ul id="<?php echo esc_attr( $post_type_name . 'checklist-most-recent' ); ?>" class="categorychecklist form-no-clear">
 				<?php
 				$recent_args    = array_merge(
 					$args,
@@ -564,7 +564,7 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 			</ul>
 		</div><!-- /.tabs-panel -->
 
-		<div class="tabs-panel <?php echo ( 'search' === $current_tab ? 'tabs-panel-active' : 'tabs-panel-inactive' ); ?>" id="tabs-panel-posttype-<?php echo esc_attr( $post_type_name ); ?>-search" role="region" aria-label="<?php echo $post_type->labels->search_items; ?>" tabindex="0">
+		<div class="tabs-panel <?php echo ( 'search' === $current_tab ? 'tabs-panel-active' : 'tabs-panel-inactive' ); ?>" id="tabs-panel-posttype-<?php echo esc_attr( $post_type_name. '-search' ); ?>" role="region" aria-label="<?php echo $post_type->labels->search_items; ?>" tabindex="0">
 			<?php
 			if ( isset( $_REQUEST[ 'quick-search-posttype-' . $post_type_name ] ) ) {
 				$searched       = esc_attr( $_REQUEST[ 'quick-search-posttype-' . $post_type_name ] );
@@ -582,13 +582,13 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 			}
 			?>
 			<p class="quick-search-wrap">
-				<label for="quick-search-posttype-<?php echo esc_attr( $post_type_name ); ?>" class="screen-reader-text"><?php _e( 'Search' ); ?></label>
-				<input type="search"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?> class="quick-search" value="<?php echo $searched; ?>" name="quick-search-posttype-<?php echo esc_attr( $post_type_name ); ?>" id="quick-search-posttype-<?php echo esc_attr( $post_type_name ); ?>" />
+				<label for="<?php echo esc_attr( 'quick-search-posttype-' . $post_type_name ); ?>" class="screen-reader-text"><?php _e( 'Search' ); ?></label>
+				<input type="search"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?> class="quick-search" value="<?php echo $searched; ?>" name="<?php echo esc_attr( 'quick-search-posttype-' . $post_type_name ); ?>" id="<?php echo esc_attr( 'quick-search-posttype-' . $post_type_name ); ?>" />
 				<span class="spinner"></span>
 				<?php submit_button( __( 'Search' ), 'small quick-search-submit hide-if-js', 'submit', false, array( 'id' => 'submit-quick-search-posttype-' . $post_type_name ) ); ?>
 			</p>
 
-			<ul id="<?php echo esc_attr( $post_type_name ); ?>-search-checklist" data-wp-lists="list:<?php echo esc_attr( $post_type_name ); ?>" class="categorychecklist form-no-clear">
+			<ul id="<?php echo esc_attr( $post_type_name . '-search-checklist' ); ?>" data-wp-lists="<?php echo esc_attr( 'list:' . $post_type_name ); ?>" class="categorychecklist form-no-clear">
 			<?php if ( ! empty( $search_results ) && ! is_wp_error( $search_results ) ) : ?>
 				<?php
 				$args['walker'] = $walker;
@@ -602,13 +602,13 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 			</ul>
 		</div><!-- /.tabs-panel -->
 
-		<div id="<?php echo esc_attr( $post_type_name ); ?>-all" class="tabs-panel tabs-panel-view-all <?php echo ( 'all' === $current_tab ? 'tabs-panel-active' : 'tabs-panel-inactive' ); ?>" role="region" aria-label="<?php echo $post_type->labels->all_items; ?>" tabindex="0">
+		<div id="<?php echo esc_attr( $post_type_name . '-all' ); ?>" class="tabs-panel tabs-panel-view-all <?php echo ( 'all' === $current_tab ? 'tabs-panel-active' : 'tabs-panel-inactive' ); ?>" role="region" aria-label="<?php echo $post_type->labels->all_items; ?>" tabindex="0">
 			<?php if ( ! empty( $page_links ) ) : ?>
 				<div class="add-menu-item-pagelinks">
 					<?php echo $page_links; ?>
 				</div>
 			<?php endif; ?>
-			<ul id="<?php echo esc_attr( $post_type_name ); ?>checklist" data-wp-lists="list:<?php echo esc_attr( $post_type_name ); ?>" class="categorychecklist form-no-clear">
+			<ul id="<?php echo esc_attr( $post_type_name . 'checklist' ); ?>" data-wp-lists="<?php echo esc_attr( 'list:' . $post_type_name ); ?>" class="categorychecklist form-no-clear">
 				<?php
 				$args['walker'] = $walker;
 
