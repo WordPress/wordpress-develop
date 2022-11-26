@@ -260,7 +260,7 @@ function wp_popular_terms_checklist( $taxonomy, $default_term = 0, $number = 10,
  *
  * @since 2.5.1
  *
- * @param int $link_id
+ * @param int $link_id Optional. The link ID.
  */
 function wp_link_category_checklist( $link_id = 0 ) {
 	$default = 1;
@@ -402,10 +402,10 @@ function get_inline_data( $post ) {
  *
  * @global WP_List_Table $wp_list_table
  *
- * @param int    $position
- * @param bool   $checkbox
- * @param string $mode
- * @param bool   $table_row
+ * @param int    $position  Optional. Value to assign to the position input field.
+ * @param bool   $checkbox  Optional. Value to assign to the checkbox input field.
+ * @param string $mode      Optional. Use WP_Post_Comments_List_Table instead WP_Comments_List_Table.
+ * @param bool   $table_row Optional. Use table instead div.
  */
 function wp_comment_reply( $position = 1, $checkbox = false, $mode = 'single', $table_row = true ) {
 	global $wp_list_table;
@@ -565,7 +565,7 @@ function wp_comment_trashnotice() {
  *
  * @since 1.2.0
  *
- * @param array $meta
+ * @param array $meta Array of meta data arrays.
  */
 function list_meta( $meta ) {
 	// Exit if no meta.
@@ -609,9 +609,9 @@ function list_meta( $meta ) {
  *
  * @since 2.5.0
  *
- * @param array $entry
- * @param int   $count
- * @return string
+ * @param array $entry Array of meta data.
+ * @param int   $count Counter variable passed by reference.
+ * @return string      Single row of public meta data.
  */
 function _list_meta_row( $entry, &$count ) {
 	static $update_nonce = '';
@@ -1969,7 +1969,7 @@ function settings_errors( $setting = '', $sanitize = false, $hide_on_update = fa
  *
  * @since 2.7.0
  *
- * @param string $found_action
+ * @param string $found_action Optional. Value to assign to the found_action input field.
  */
 function find_posts_div( $found_action = '' ) {
 	?>
