@@ -505,8 +505,8 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 		$search_url      = esc_url( add_query_arg( $tab_name, 'search', remove_query_arg( $removed_args ) ) );
 	}
 	?>
-	<div id="<?php echo esc_attr( 'posttype-'. $post_type_name ); ?>" class="posttypediv">
-		<ul id="<?php echo esc_attr( 'posttype-'. $post_type_name ); ?>-tabs" class="posttype-tabs add-menu-item-tabs">
+	<div id="<?php echo esc_attr( 'posttype-' . $post_type_name ); ?>" class="posttypediv">
+		<ul id="<?php echo esc_attr( 'posttype-' . $post_type_name ); ?>-tabs" class="posttype-tabs add-menu-item-tabs">
 			<li <?php echo ( 'most-recent' === $current_tab ? ' class="tabs"' : '' ); ?>>
 				<a class="nav-tab-link" data-type="tabs-panel-posttype-<?php echo esc_attr( $post_type_name ); ?>-most-recent" href="<?php echo $most_recent_url; ?>#tabs-panel-posttype-<?php echo $post_type_name; ?>-most-recent">
 					<?php _e( 'Most Recent' ); ?>
