@@ -76,7 +76,7 @@ class Tests_Post_PrimePostCaches extends WP_UnitTestCase {
 
 		// Test post meta cache.
 		$before_num_queries = get_num_queries();
-		$meta = get_post_meta( $post_id, 'meta', true );
+		$meta               = get_post_meta( $post_id, 'meta', true );
 		$num_queries        = get_num_queries() - $before_num_queries;
 
 		$this->assertSame( 'foo', $meta, 'Meta has unexpected value.' );
@@ -84,7 +84,7 @@ class Tests_Post_PrimePostCaches extends WP_UnitTestCase {
 
 		// Test term cache.
 		$before_num_queries = get_num_queries();
-		$categories = get_the_category( $post_id );
+		$categories         = get_the_category( $post_id );
 		$num_queries        = get_num_queries() - $before_num_queries;
 
 		$this->assertNotEmpty( $categories, 'Categories does return an empty result set.' );
@@ -154,7 +154,7 @@ class Tests_Post_PrimePostCaches extends WP_UnitTestCase {
 
 		// Test term cache.
 		$before_num_queries = get_num_queries();
-		$categories = get_the_category( self::$posts[0] );
+		$categories         = get_the_category( self::$posts[0] );
 		$num_queries        = get_num_queries() - $before_num_queries;
 
 		$this->assertNotEmpty( $categories, 'Categories does return an empty result set.' );
@@ -182,8 +182,8 @@ class Tests_Post_PrimePostCaches extends WP_UnitTestCase {
 
 		// Test post meta cache.
 		$before_num_queries = get_num_queries();
-		$meta_1 = get_post_meta( self::$posts[0], 'meta', true );
-		$meta_2 = get_post_meta( self::$posts[1], 'meta', true );
+		$meta_1             = get_post_meta( self::$posts[0], 'meta', true );
+		$meta_2             = get_post_meta( self::$posts[1], 'meta', true );
 		$num_queries        = get_num_queries() - $before_num_queries;
 
 		$this->assertSame( 'foo', $meta_1, 'Meta 1 has unexpected value.' );
