@@ -9,6 +9,7 @@
  * Test class for `_prime_post_caches()`.
  *
  * @group post
+ * @group cache
  *
  * @covers ::_prime_post_caches
  */
