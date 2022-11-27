@@ -1306,7 +1306,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query_posts       = $query->query(
 			array(
 				'lazy_load_term_meta' => true,
-				'no_found_rows' => true,
+				'no_found_rows'       => true,
 			)
 		);
 		$num_queries       = get_num_queries() - $num_queries_start;
