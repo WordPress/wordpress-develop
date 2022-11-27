@@ -765,11 +765,13 @@ class WP_Query {
 	 *                                                    See WP_Tax_Query::__construct().
 	 *     @type string          $title                   Post title.
 	 *     @type bool            $update_post_meta_cache  Whether to update the post meta cache. Default true.
-	 *     @type bool            $update_post_term_cache  Whether to update the post term cache. Default true.
+	 *     @type bool|string[]   $update_post_term_cache  Whether to update the post term cache. Use an array of taxonomy
+	 *                                                    slugs to limit term cache updates. Default true.
 	 *     @type bool            $update_menu_item_cache  Whether to update the menu item cache. Default false.
-	 *     @type bool            $lazy_load_term_meta     Whether to lazy-load term meta. Setting to false will
+	 *     @type bool|string[]   $lazy_load_term_meta     Whether to lazy-load term meta. Setting to false will
 	 *                                                    disable cache priming for term meta, so that each
-	 *                                                    get_term_meta() call will hit the database.
+	 *                                                    get_term_meta() call will hit the database. Use an array
+	 *                                                    of taxonomy slugs to limit term cache updates.
 	 *                                                    Defaults to the value of `$update_post_term_cache`.
 	 *     @type int             $w                       The week number of the year. Default empty. Accepts numbers 0-53.
 	 *     @type int             $year                    The four-digit year. Default empty. Accepts any four-digit year.
@@ -3491,7 +3493,8 @@ class WP_Query {
 		}
 
 		if ( $q['lazy_load_term_meta'] ) {
-			wp_queue_posts_for_term_meta_lazyload( $this->posts );
+			$taxonomies = is_array( $q['lazy_load_term_meta'] ) ? $q['lazy_load_term_meta'] : null;
+			wp_queue_posts_for_term_meta_lazyload( $this->posts, $taxonomies );
 		}
 
 		return $this->posts;

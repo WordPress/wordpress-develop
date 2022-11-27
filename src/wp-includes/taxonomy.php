@@ -3726,10 +3726,26 @@ function update_object_term_cache( $object_ids, $object_type ) {
 		$object_ids = explode( ',', $object_ids );
 	}
 
-	$object_ids     = array_map( 'intval', $object_ids );
-	$non_cached_ids = array();
-
+	$object_ids = array_map( 'intval', $object_ids );
 	$taxonomies = get_object_taxonomies( $object_type );
+
+	return update_object_term_cache_for_taxonomy( $object_ids, $taxonomies );
+}
+
+/**
+ * Updates the cache for the given term object ID(s).
+ *
+ * Caches will only be updated for terms not already cached.
+ *
+ * @since 6.2.0
+ *
+ * @param int[]    $object_ids An array of term object IDs.
+ * @param string[] $taxonomies An array of taxonomy slugs.
+ * @return void|false Void on success, false if all of the terms in `$object_ids` are
+ *                    already cached.
+ */
+function update_object_term_cache_for_taxonomy( $object_ids, $taxonomies ) {
+	$non_cached_ids = array();
 
 	foreach ( $taxonomies as $taxonomy ) {
 		$cache_values = wp_cache_get_multiple( (array) $object_ids, "{$taxonomy}_relationships" );

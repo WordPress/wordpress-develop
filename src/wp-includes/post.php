@@ -7423,10 +7423,11 @@ function clean_post_cache( $post ) {
  *
  * @since 1.5.0
  *
- * @param WP_Post[] $posts             Array of post objects (passed by reference).
- * @param string    $post_type         Optional. Post type. Default 'post'.
- * @param bool      $update_term_cache Optional. Whether to update the term cache. Default true.
- * @param bool      $update_meta_cache Optional. Whether to update the meta cache. Default true.
+ * @param WP_Post[]     $posts             Array of post objects (passed by reference).
+ * @param string        $post_type         Optional. Post type. Default 'post'.
+ * @param bool|string[] $update_term_cache Optional. Whether to update the term cache. Use an array of taxonomy
+ *                                     slugs to limit term cache updates. Default true.
+ * @param bool          $update_meta_cache Optional. Whether to update the meta cache. Default true.
  */
 function update_post_caches( &$posts, $post_type = 'post', $update_term_cache = true, $update_meta_cache = true ) {
 	// No point in doing all this work if we didn't match any posts.
@@ -7445,7 +7446,10 @@ function update_post_caches( &$posts, $post_type = 'post', $update_term_cache = 
 		$post_type = 'any';
 	}
 
-	if ( $update_term_cache ) {
+	if ( is_array( $update_term_cache ) ) {
+		// $update_term_cache is an array of taxonomy slugs.
+		update_object_term_cache_for_taxonomy( $post_ids, $update_term_cache );
+	} else if ( $update_term_cache ) {
 		if ( is_array( $post_type ) ) {
 			$ptypes = $post_type;
 		} elseif ( 'any' === $post_type ) {
@@ -7816,9 +7820,10 @@ function wp_delete_auto_drafts() {
  *
  * @since 4.5.0
  *
- * @param WP_Post[] $posts Array of WP_Post objects.
+ * @param WP_Post[]     $posts      Array of WP_Post objects.
+ * @param string[]|null $taxonomies Optional. Limit lazy-loading to specific taxonomies. Default null.
  */
-function wp_queue_posts_for_term_meta_lazyload( $posts ) {
+function wp_queue_posts_for_term_meta_lazyload( $posts, $taxonomies = null ) {
 	$post_type_taxonomies = array();
 	$term_ids             = array();
 	foreach ( $posts as $post ) {
@@ -7826,17 +7831,31 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
 			continue;
 		}
 
-		if ( ! isset( $post_type_taxonomies[ $post->post_type ] ) ) {
-			$post_type_taxonomies[ $post->post_type ] = get_object_taxonomies( $post->post_type );
-		}
+		if ( $taxonomies ) {
+			foreach ( $taxonomies as $taxonomy ) {
+				// Term cache should already be primed by `update_post_term_cache()`.
+				$terms = get_object_term_cache( $post->ID, $taxonomy );
+				if ( false !== $terms ) {
+					foreach ( $terms as $term ) {
+						if ( ! in_array( $term->term_id, $term_ids, true ) ) {
+							$term_ids[] = $term->term_id;
+						}
+					}
+				}
+			}
+		} else {
+			if ( ! isset( $post_type_taxonomies[ $post->post_type ] ) ) {
+				$post_type_taxonomies[ $post->post_type ] = get_object_taxonomies( $post->post_type );
+			}
 
-		foreach ( $post_type_taxonomies[ $post->post_type ] as $taxonomy ) {
-			// Term cache should already be primed by `update_post_term_cache()`.
-			$terms = get_object_term_cache( $post->ID, $taxonomy );
-			if ( false !== $terms ) {
-				foreach ( $terms as $term ) {
-					if ( ! in_array( $term->term_id, $term_ids, true ) ) {
-						$term_ids[] = $term->term_id;
+			foreach ( $post_type_taxonomies[ $post->post_type ] as $taxonomy ) {
+				// Term cache should already be primed by `update_post_term_cache()`.
+				$terms = get_object_term_cache( $post->ID, $taxonomy );
+				if ( false !== $terms ) {
+					foreach ( $terms as $term ) {
+						if ( ! in_array( $term->term_id, $term_ids, true ) ) {
+							$term_ids[] = $term->term_id;
+						}
 					}
 				}
 			}
@@ -7880,9 +7899,10 @@ function _update_term_count_on_transition_post_status( $new_status, $old_status,
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int[] $ids               ID list.
- * @param bool  $update_term_cache Optional. Whether to update the term cache. Default true.
- * @param bool  $update_meta_cache Optional. Whether to update the meta cache. Default true.
+ * @param int[]         $ids               ID list.
+ * @param bool|string[] $update_term_cache Optional. Whether to update the term cache. Use an array of taxonomy
+ *                                         slugs to limit term cache updates. Default true.
+ * @param bool          $update_meta_cache Optional. Whether to update the meta cache. Default true.
  */
 function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache = true ) {
 	global $wpdb;
