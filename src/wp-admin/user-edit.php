@@ -917,6 +917,19 @@ switch ( $action ) {
 	}
 </script>
 
+<script type="text/javascript">
+	jQuery( function( $ ) {
+		var languageSelect = $( '#locale' );
+		$( 'form' ).on( 'submit', function() {
+			// Don't show a spinner for English and installed languages,
+			// as there is nothing to download.
+			if ( ! languageSelect.find( 'option:selected' ).data( 'installed' ) ) {
+				$( '#submit', this ).after( '<span class="spinner language-install-spinner is-active" />' );
+			}
+		});
+	} );
+</script>
+
 <?php if ( isset( $application_passwords_list_table ) ) : ?>
 	<script type="text/html" id="tmpl-new-application-password">
 		<div class="notice notice-success is-dismissible new-application-password-notice" role="alert" tabindex="-1">
