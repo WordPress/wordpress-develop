@@ -1278,4 +1278,64 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			 */
 		);
 	}
+
+	/**
+	 * Ensure lazy loading term meta queries all term meta in a single query.
+	 *
+	 * @since 6.1.2
+	 * @ticket 57163
+	 * @ticket 22176
+	 */
+	public function test_get_post_meta_lazy_loads_all_term_meta_data() {
+		$query = new WP_Query();
+
+		$t2 = $this->factory()->term->create(
+			array(
+				'taxonomy' => 'category',
+				'slug'     => 'bar',
+				'name'     => 'Bar',
+			)
+		);
+
+		wp_set_post_terms( self::$posts[0], $t2, 'category', true );
+		// Clean data added to cache by factory and setting terms.
+		clean_term_cache( array( self::$t1, $t2 ), 'category' );
+		clean_post_cache( self::$posts[0] );
+
+		$num_queries_start = get_num_queries();
+		$query_posts       = $query->query(
+			array(
+				'lazy_load_term_meta' => true,
+				'no_found_rows' => true,
+			)
+		);
+		$num_queries       = get_num_queries() - $num_queries_start;
+
+		/*
+		 * Four expected queries:
+		 * 1: Post IDs
+		 * 2: Post data
+		 * 3: Post meta data.
+		 * 4: Post term data.
+		 */
+		$this->assertSame( 4, $num_queries, 'Unexpected number of queries while querying posts.' );
+		$this->assertNotEmpty( $query_posts, 'Query posts is empty.' );
+
+		$num_queries_start = get_num_queries();
+		get_term_meta( self::$t1 );
+		$num_queries = get_num_queries() - $num_queries_start;
+
+		/*
+		 * One expected query:
+		 * 1: Term meta data.
+		 */
+		$this->assertSame( 1, $num_queries, 'Unexpected number of queries during first query of term meta.' );
+
+		$num_queries_start = get_num_queries();
+		get_term_meta( $t2 );
+		$num_queries = get_num_queries() - $num_queries_start;
+
+		// No additional queries expected.
+		$this->assertSame( 0, $num_queries, 'Unexpected number of queries during second query of term meta.' );
+	}
 }
