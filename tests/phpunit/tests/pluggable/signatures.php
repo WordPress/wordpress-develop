@@ -76,7 +76,7 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 	 */
 	public function get_defined_pluggable_functions() {
 
-		require_once ABSPATH . '/wp-admin/includes/upgrade.php';
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 		$test_functions = array(
 			'install_network',
@@ -103,7 +103,7 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 		}
 
 		foreach ( $test_files as $file ) {
-			preg_match_all( '#^\t?function (\w+)#m', file_get_contents( ABSPATH . '/' . $file ), $functions );
+			preg_match_all( '#^\t?function (\w+)#m', file_get_contents( ABSPATH . $file ), $functions );
 
 			foreach ( $functions[1] as $function ) {
 				$data[] = array(
