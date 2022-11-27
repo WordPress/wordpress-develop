@@ -42,14 +42,6 @@ class Tests_Post_PrimePostCaches extends WP_UnitTestCase {
 		add_post_meta( self::$posts[1], 'meta', 'bar' );
 	}
 
-	public function set_up() {
-		parent::set_up();
-
-		foreach ( self::$posts as $post_id ) {
-			clean_post_cache( $post_id );
-		}
-	}
-
 	/**
 	 * @ticket 57163
 	 */
@@ -176,7 +168,7 @@ class Tests_Post_PrimePostCaches extends WP_UnitTestCase {
 		 * 1: Posts data.
 		 * 2: Post meta data.
 		 */
-		$this->assertSame( 2, $num_queries, 'Unexpected number of queries.' );
+		$this->assertSame( 2, $num_queries, 'Unexpected number of queries warming cache.' );
 
 		$this->assertSame( array(), _get_non_cached_ids( self::$posts, 'posts' ), 'Posts are not cached.' );
 
@@ -188,7 +180,7 @@ class Tests_Post_PrimePostCaches extends WP_UnitTestCase {
 
 		$this->assertSame( 'foo', $meta_1, 'Meta 1 has unexpected value.' );
 		$this->assertSame( 'bar', $meta_2, 'Meta 2 has unexpected value.' );
-		$this->assertSame( 0, $num_queries, 'Unexpected number of queries.' );
+		$this->assertSame( 0, $num_queries, 'Unexpected number of queries getting post meta.' );
 	}
 
 	/**
@@ -209,7 +201,7 @@ class Tests_Post_PrimePostCaches extends WP_UnitTestCase {
 		$num_queries = get_num_queries() - $before_num_queries;
 
 		/*
-		 * Two expected queries:
+		 * Three expected queries:
 		 * 1: Post meta data,
 		 * 2: Taxonomy data,
 		 * 3: Term data.
