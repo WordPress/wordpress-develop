@@ -75,6 +75,23 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				)
 			);
 		}
+
+		// Set up posts for the exact search tests.
+		self::$post_ids[] = $factory->post->create(
+			array(
+				'post_title'   => 'Rye',
+				'post_content' => 'This is a post about Rye Bread',
+				'post_status'  => 'publish',
+			)
+		);
+
+		self::$post_ids[] = $factory->post->create(
+			array(
+				'post_title'   => 'Types of Bread',
+				'post_content' => 'Types of bread are White and Rye Bread',
+				'post_status'  => 'publish',
+			)
+		);
 	}
 
 	public static function wpTearDownAfterClass() {
@@ -751,45 +768,48 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
-	 * @ticket 56350
+	 * Data provider for test_get_items_exact_search().
+	 *
+	 * @return array[]
 	 */
-	public function test_get_items_exact_search() {
-
-		self::factory()->post->create(
-			array(
-				'post_title'   => 'Rye',
-				'post_content' => 'This is a post about Rye Bread',
-				'post_status'  => 'publish',
-			)
+	public function data_get_items_exact_search() {
+		return array(
+			'general search, one exact match and one partial match' => array(
+				'search_term'  => 'Rye',
+				'exact_search' => false,
+				'expected'     => 2,
+			),
+			'exact search, one exact match and one partial match'   => array(
+				'search_term'  => 'Rye',
+				'exact_search' => true,
+				'expected'     => 1,
+			),
+			'exact search, no match and one partial match'          => array(
+				'search_term'  => 'Rye Bread',
+				'exact_search' => true,
+				'expected'     => 0,
+			),
 		);
+	}
 
-		self::factory()->post->create(
-			array(
-				'post_title'   => 'Types of Bread',
-				'post_content' => 'Types of bread are White and Rye Bread',
-				'post_status'  => 'publish',
-			)
-		);
-
+	/**
+	 * @ticket 56350
+	 *
+	 * @dataProvider data_get_items_exact_search
+	 *
+	 * @param string $search_term  The search term.
+	 * @param bool   $exact_search Whether the search is an exact or general search.
+	 * @param int    $expected     The expected number of matching posts.
+	 */
+	public function test_get_items_exact_search( $search_term, $exact_search, $expected ) {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 
-		// General search.
-		$request->set_param( 'search', 'Rye' );
-		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
-		$this->assertCount( 2, $data, 'Querying the API without exact_search should return all posts containing the search keyword' );
+		$request->set_param( 'search', $search_term );
+		$request->set_param( 'exact_search', $exact_search );
 
-		// Exact search using same search param.
-		$request->set_param( 'exact_search', true );
 		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
-		$this->assertCount( 1, $data, 'Querying the API with exact_search should return posts matching the search keyword' );
 
-		// Note that "exact_search" is still true.
-		$request->set_param( 'search', 'Rye Bread' );
-		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
-		$this->assertCount( 0, $data, 'Querying the API with exact_search should return posts matching the search keyword' );
+		$this->assertCount( $expected, $response->get_data() );
 	}
 
 	public function test_get_items_order_and_orderby() {
