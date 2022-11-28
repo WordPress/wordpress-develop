@@ -393,7 +393,7 @@ final class WP_Autoload {
 	 * Autoload a Requests class.
 	 *
 	 * @param string $class Class name.
-	 * @return void
+	 * @return bool True if the class was loaded, false otherwise.
 	 */
 	public static function autoload( $class_name ) {
 		// Lowercase the classname to accomodate for WP classes written with wrong cases.
