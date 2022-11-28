@@ -20,7 +20,7 @@ class Tests_Functions_MceSetDirection extends WP_UnitTestCase {
 	/**
 	 * @ticket 57192
 	 */
-	public function test__mce_set_direction() {
+	public function test_mce_set_direction() {
 		global $wp_locale;
 		$direction = $wp_locale->text_direction;
 
