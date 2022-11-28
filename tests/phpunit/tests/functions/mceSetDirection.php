@@ -28,7 +28,7 @@ class Tests_Functions_MceSetDirection extends WP_UnitTestCase {
 			'plugins'  => 'some_plugin_name',
 			'toolbar1' => 'some_button_name',
 		);
-		$this->assertEquals( $mce_init, _mce_set_direction( $mce_init ), ' set to ltr' );
+		$this->assertEquals( $mce_init, _mce_set_direction( $mce_init ), 'set to ltr' );
 
 		$wp_locale->text_direction = 'rtl';
 
