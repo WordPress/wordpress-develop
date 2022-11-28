@@ -38,14 +38,17 @@ class Tests_Functions_MceSetDirection extends WP_UnitTestCase {
 			'directionality' => 'rtl',
 			'rtl_ui'         => true,
 		);
-		$this->assertEquals( $mce_init_expected, _mce_set_direction( $mce_init ), 'set to rtl' );
+		$is_set_to_rtl     = _mce_set_direction( $mce_init );
 
-		$mce_init = array(
+		$mce_init        = array(
 			'plugins'  => 'some_plugin_name,directionality',
 			'toolbar1' => 'some_button_name,ltr',
 		);
-		$this->assertEquals( $mce_init_expected, _mce_set_direction( $mce_init ), "checking we don't get to strings added" );
+		$no_extra_string = _mce_set_direction( $mce_init );
 
 		$wp_locale->text_direction = $direction;
+
+		$this->assertSame( $mce_init_expected, $is_set_to_rtl, 'set to rtl' );
+		$this->assertEquals( $mce_init_expected, $no_extra_string, "checking we don't get to strings added" );
 	}
 }
