@@ -75,23 +75,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				)
 			);
 		}
-
-		// Set up posts for the exact search tests.
-		self::$post_ids[] = $factory->post->create(
-			array(
-				'post_title'   => 'Rye',
-				'post_content' => 'This is a post about Rye Bread',
-				'post_status'  => 'publish',
-			)
-		);
-
-		self::$post_ids[] = $factory->post->create(
-			array(
-				'post_title'   => 'Types of Bread',
-				'post_content' => 'Types of bread are White and Rye Bread',
-				'post_status'  => 'publish',
-			)
-		);
 	}
 
 	public static function wpTearDownAfterClass() {
@@ -802,13 +785,24 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 * @param int    $expected     The expected number of matching posts.
 	 */
 	public function test_get_items_exact_search( $search_term, $exact_search, $expected ) {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		self::factory()->post->create(
+			array(
+				'post_title'   => 'Rye',
+				'post_content' => 'This is a post about Rye Bread',
+			)
+		);
 
+		self::factory()->post->create(
+			array(
+				'post_title'   => 'Types of Bread',
+				'post_content' => 'Types of bread are White and Rye Bread',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'search', $search_term );
 		$request->set_param( 'exact_search', $exact_search );
-
 		$response = rest_get_server()->dispatch( $request );
-
 		$this->assertCount( $expected, $response->get_data() );
 	}
 
