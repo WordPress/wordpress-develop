@@ -779,12 +779,12 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'exact_search' => false,
 				'expected'     => 2,
 			),
-			'exact search, one exact match and one partial match'   => array(
+			'exact search, one exact match and one partial match' => array(
 				'search_term'  => 'Rye',
 				'exact_search' => true,
 				'expected'     => 1,
 			),
-			'exact search, no match and one partial match'          => array(
+			'exact search, no match and one partial match' => array(
 				'search_term'  => 'Rye Bread',
 				'exact_search' => true,
 				'expected'     => 0,
