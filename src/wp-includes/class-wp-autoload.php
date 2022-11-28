@@ -349,28 +349,6 @@ final class WP_Autoload {
 	);
 
 	/**
-	 * Additional autoloaders for bundled libraries.
-	 *
-	 * @access private
-	 *
-	 * @var array
-	 */
-	private static $libraries_autoloaders = array(
-		array(
-			'path'     => 'wp-includes/class-simplepie.php',
-			'callback' => 'wp_simplepie_autoload',
-		),
-		array(
-			'path'     => 'wp-includes/class-requests.php',
-			'callback' => array( 'Requests', 'autoloader' ),
-		),
-		array(
-			'path'     => 'wp-includes/sodium_compat/autoload.php',
-			'callback' => null,
-		),
-	);
-
-	/**
 	 * Whether the autoloader has already been registered or not.
 	 *
 	 * Avoid registering the autoloader multiple times.
@@ -397,14 +375,13 @@ final class WP_Autoload {
 			return;
 		}
 
-		// Autoload bundled libraries.
-		foreach ( static::$libraries_autoloaders as $autoloader ) {
-			require_once ABSPATH . $autoloader['path'];
+		// Register autoloaders for external, bundled libraries.
+		require_once ABSPATH . 'wp-includes/class-simplepie.php';
+		require_once ABSPATH . 'wp-includes/class-requests.php';
+		require_once ABSPATH . 'wp-includes/sodium_compat/autoload.php';
 
-			if ( is_callable( $autoloader['callback'] ) ) {
-				spl_autoload_register( $autoloader['callback'], true, true );
-			}
-		}
+		spl_autoload_register( 'wp_simplepie_autoload' );
+		spl_autoload_register( array( 'Requests', 'autoloader' ) );
 
 		// Autoload WordPress classes.
 		spl_autoload_register( array( __CLASS__, 'autoload' ), true, true );
