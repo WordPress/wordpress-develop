@@ -401,7 +401,7 @@ final class WP_Autoload {
 	}
 
 	/**
-	 * Autoload a Requests class.
+	 * Autoload a WordPress class.
 	 *
 	 * @param string $class Class name.
 	 * @return bool True if the class was loaded, false otherwise.
