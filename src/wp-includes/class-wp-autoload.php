@@ -363,10 +363,6 @@ final class WP_Autoload {
 	/**
 	 * Register the autoloader.
 	 *
-	 * Note: the autoloader is *prepended* in the autoload queue.
-	 * This is done to ensure that the Requests 2.0 autoloader takes precedence
-	 * over a potentially (dependency-registered) Requests 1.x autoloader.
-	 *
 	 * @return void
 	 */
 	public static function register() {
@@ -375,18 +371,33 @@ final class WP_Autoload {
 			return;
 		}
 
-		// Register autoloaders for external, bundled libraries.
+		static::register_external_bundled();
+		static::register_core();
+
+		static::$registered = true;
+	}
+
+	/**
+	 * Register the autoloader for external, bundled libraries.
+	 *
+	 * @return void
+	 */
+	public static function register_external_bundled() {
 		require_once ABSPATH . 'wp-includes/class-simplepie.php';
 		require_once ABSPATH . 'wp-includes/class-requests.php';
 		require_once ABSPATH . 'wp-includes/sodium_compat/autoload.php';
 
 		spl_autoload_register( 'wp_simplepie_autoload' );
 		spl_autoload_register( array( 'Requests', 'autoloader' ) );
+	}
 
-		// Autoload WordPress classes.
-		spl_autoload_register( array( __CLASS__, 'autoload' ), true, true );
-
-		static::$registered = true;
+	/**
+	 * Register the autoloader for WordPress Core classes.
+	 *
+	 * @return void
+	 */
+	public static function register_core() {
+		spl_autoload_register( array( __CLASS__, 'autoload_core' ), true, true );
 	}
 
 	/**
@@ -395,7 +406,7 @@ final class WP_Autoload {
 	 * @param string $class Class name.
 	 * @return bool True if the class was loaded, false otherwise.
 	 */
-	public static function autoload( $class_name ) {
+	public static function autoload_core( $class_name ) {
 		// Lowercase the classname to accomodate for WP classes written with wrong cases.
 		$class_name = strtolower( $class_name );
 
