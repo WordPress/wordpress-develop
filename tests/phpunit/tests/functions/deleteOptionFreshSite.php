@@ -17,8 +17,9 @@ class Tests_Functions_DeleteOptionFreshSite extends WP_UnitTestCase {
 		update_option( 'fresh_site', '1' );
 
 		_delete_option_fresh_site();
-		$this->assertSame( '0', get_option( 'fresh_site' ) );
-
+		$actual = get_option( 'fresh_site' );
 		update_option( 'fresh_site', $current_option );
+
+		$this->assertSame( '0', $actual );
 	}
 }
