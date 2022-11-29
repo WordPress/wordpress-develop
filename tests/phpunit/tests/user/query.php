@@ -877,7 +877,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 	public function test_has_published_posts_delete_user() {
 		$user_id = self::factory()->user->create();
 
-		$q1 = new WP_User_Query( array(
+		$q1 = new WP_User_Query(
+			array(
 				'include' => array( $user_id ),
 			)
 		);
@@ -889,7 +890,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		wp_delete_user( $user_id );
 
-		$q2 = new WP_User_Query( array(
+		$q2 = new WP_User_Query(
+			array(
 				'include' => array( $user_id ),
 			)
 		);
@@ -909,7 +911,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$q1= new WP_User_Query(
+		$q1 = new WP_User_Query(
 			array(
 				'has_published_posts' => true,
 			)
@@ -924,12 +926,12 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$q2 = new WP_User_Query(
 			array(
-				'orderby' => 'post_count',
+				'has_published_posts' => true,
 			)
 		);
 
-		$found    = wp_list_pluck( $q2->get_results(), 'ID' );
-		$this->assertSameSets( [], $found, 'Not to find author in returned values' );
+		$found = wp_list_pluck( $q2->get_results(), 'ID' );
+		$this->assertSameSets( array(), $found, 'Not to find author in returned values' );
 	}
 
 	public function test_has_published_posts_delete_post_order() {
@@ -945,14 +947,14 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$q1= new WP_User_Query(
+		$q1 = new WP_User_Query(
 			array(
 				'orderby' => 'post_count',
 			)
 		);
 
-		$found1    = wp_list_pluck( $q1->get_results(), 'ID' );
-		$this->assertContains( $user_id, $found1,'Find author in returned values' );
+		$found1 = wp_list_pluck( $q1->get_results(), 'ID' );
+		$this->assertContains( $user_id, $found1, 'Find author in returned values' );
 
 		wp_delete_post( $post_id, true );
 
@@ -962,8 +964,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$found2    = wp_list_pluck( $q2->get_results(), 'ID' );
-		$this->assertContains( $user_id, $found1,'Find author in returned values' );
+		$found2 = wp_list_pluck( $q2->get_results(), 'ID' );
+		$this->assertContains( $user_id, $found1, 'Find author in returned values' );
 		$this->assertSameSets( $found1, $found2, 'Not same order' );
 	}
 
