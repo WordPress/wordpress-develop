@@ -715,13 +715,16 @@ function locate_template( $template_names, $load = false, $require_once = true, 
 		}
 
 		if ( file_exists( STYLESHEETPATH . '/' . $template_name ) ) {
-			$located = $template_cache[ $template_name ] = STYLESHEETPATH . '/' . $template_name;
+			$located = STYLESHEETPATH . '/' . $template_name;
+			$template_cache[ $template_name ] = $located;
 			break;
 		} elseif ( file_exists( TEMPLATEPATH . '/' . $template_name ) ) {
-			$located = $template_cache[ $template_name ] = TEMPLATEPATH . '/' . $template_name;
+			$located = TEMPLATEPATH . '/' . $template_name;
+			$template_cache[ $template_name ] = $located;
 			break;
 		} elseif ( file_exists( ABSPATH . WPINC . '/theme-compat/' . $template_name ) ) {
-			$located = $template_cache[ $template_name ] = ABSPATH . WPINC . '/theme-compat/' . $template_name;
+			$located = ABSPATH . WPINC . '/theme-compat/' . $template_name;
+			$template_cache[ $template_name ] = $located;
 			break;
 		}
 		$template_cache[ $template_name ] = '';
