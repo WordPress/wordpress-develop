@@ -4652,7 +4652,6 @@ function wp_send_user_request( $request_id ) {
 		$switched_locale = switch_to_locale( get_locale() );
 	}
 
-
 	$email_data = array(
 		'request'     => $request,
 		'email'       => $request->email,

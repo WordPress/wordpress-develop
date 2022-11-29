@@ -600,7 +600,6 @@ function wp_privacy_send_personal_data_export_email( $request_id ) {
 		$switched_locale = switch_to_locale( get_locale() );
 	}
 
-
 	/** This filter is documented in wp-includes/functions.php */
 	$expiration      = apply_filters( 'wp_privacy_export_expiration', 3 * DAY_IN_SECONDS );
 	$expiration_date = date_i18n( get_option( 'date_format' ), time() + $expiration );
