@@ -312,4 +312,63 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			array( 'autoload_false', false, 'no' ),
 		);
 	}
+
+	/**
+	 * Tests that add_option() only causes the "sanitize_option_{$option}"
+	 * filter to run once.
+	 *
+	 * @ticket 21989
+	 *
+	 * @covers ::add_option
+	 */
+	public function test_add_option_should_only_sanitize_once() {
+		$option   = 'option_21989_1';
+		$value    = 'value_21989_1';
+		$previous = get_option( $option );
+
+		$hook_name = "sanitize_option_{$option}";
+		$filter    = new MockAction();
+		add_filter( $hook_name, array( &$filter, 'filter' ) );
+
+		add_option( $option, $value );
+
+		$actual = $filter->get_call_count();
+
+		// Reset.
+		$this->assertTrue( update_option( $option, $previous ), 'The value was not reset.' );
+
+		$this->assertSame( 1, $actual, 'The filter did not run once.' );
+	}
+
+	/**
+	 * Tests that add_option() only causes the "sanitize_option_{$option}"
+	 * filter to run once when called via update_option().
+	 *
+	 * @ticket 21989
+	 *
+	 * @covers ::add_option
+	 */
+	public function test_update_option_should_cause_sanitization_to_run_only_once_for_a_new_option() {
+		$option   = 'option_21989_2';
+		$value    = 'value_21989_2';
+		$previous = get_option( $option );
+
+		$hook_name = "sanitize_option_{$option}";
+		$filter    = new MockAction();
+		add_filter( $hook_name, array( &$filter, 'filter' ) );
+
+		if ( false !== $previous ) {
+			// update_option() only calls add_option() when a value does not exist.
+			$this->assertTrue( delete_option( $option ), 'The option was not deleted before testing.' );
+		}
+
+		update_option( $option, $value . '_updated' );
+
+		$actual = $filter->get_call_count();
+
+		// Reset.
+		$this->assertTrue( update_option( $option, $previous ), 'The value was not reset.' );
+
+		$this->assertSame( 1, $actual, 'The filter did not run once.' );
+	}
 }
