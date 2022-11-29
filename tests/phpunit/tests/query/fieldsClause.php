@@ -11,14 +11,14 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	 *
 	 * @var int[]
 	 */
-	static $post_ids = array();
+	private static $post_ids = array();
 
 	/**
 	 * Page IDs.
 	 *
 	 * @var int[]
 	 */
-	static $page_ids = array();
+	private static $page_ids = array();
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Register CPT for use with shared fixtures.
