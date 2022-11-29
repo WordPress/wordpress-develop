@@ -97,7 +97,7 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 			 * Check the comment fields for moderation keywords. If any are found,
 			 * fail the check for the given field by returning false.
 			 */
-			$pattern = "#$word#i";
+			$pattern = "#$word#iu";
 			if ( preg_match( $pattern, $author ) ) {
 				return false;
 			}
@@ -171,7 +171,7 @@ function get_approved_comments( $post_id, $args = array() ) {
 	);
 	$parsed_args = wp_parse_args( $args, $defaults );
 
-	$query = new WP_Comment_Query;
+	$query = new WP_Comment_Query();
 	return $query->query( $parsed_args );
 }
 
@@ -240,7 +240,7 @@ function get_comment( $comment = null, $output = OBJECT ) {
  * @return WP_Comment[]|int[]|int List of comments or number of found comments if `$count` argument is true.
  */
 function get_comments( $args = '' ) {
-	$query = new WP_Comment_Query;
+	$query = new WP_Comment_Query();
 	return $query->query( $args );
 }
 
@@ -1023,7 +1023,7 @@ function get_comment_pages_count( $comments = null, $per_page = null, $threaded 
 	}
 
 	if ( $threaded ) {
-		$walker = new Walker_Comment;
+		$walker = new Walker_Comment();
 		$count  = ceil( $walker->get_number_of_root_elements( $comments ) / $per_page );
 	} else {
 		$count = ceil( count( $comments ) / $per_page );
@@ -1357,7 +1357,7 @@ function wp_check_comment_disallowed_list( $author, $email, $url, $comment, $use
 		// in the spam words don't break things:
 		$word = preg_quote( $word, '#' );
 
-		$pattern = "#$word#i";
+		$pattern = "#$word#iu";
 		if ( preg_match( $pattern, $author )
 			|| preg_match( $pattern, $email )
 			|| preg_match( $pattern, $url )
@@ -3782,6 +3782,8 @@ function wp_register_comment_personal_data_eraser( $erasers ) {
  * Erases personal data associated with an email address from the comments table.
  *
  * @since 4.9.6
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $email_address The comment author email address.
  * @param int    $page          Comment page.

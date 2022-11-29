@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Tests the `wp_img_tag_add_decoding_attr()` function.
+ * Tests for the `wp_img_tag_add_decoding_attr()` function.
  *
  * @group media
  * @covers ::wp_img_tag_add_decoding_attr
