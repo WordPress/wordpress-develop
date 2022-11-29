@@ -276,7 +276,7 @@ JS;
 	 * @covers WP_Dependencies::do_items
 	 */
 	public function test_group_mismatch_in_deps() {
-		$scripts = new WP_Scripts;
+		$scripts = new WP_Scripts();
 		$scripts->add( 'one', 'one', array(), 'v1', 1 );
 		$scripts->add( 'two', 'two', array( 'one' ) );
 		$scripts->add( 'three', 'three', array( 'two' ), 'v1', 1 );
@@ -295,7 +295,7 @@ JS;
 		$this->assertContains( 'two', $scripts->done );
 		$this->assertContains( 'three', $scripts->done );
 
-		$scripts = new WP_Scripts;
+		$scripts = new WP_Scripts();
 		$scripts->add( 'one', 'one', array(), 'v1', 1 );
 		$scripts->add( 'two', 'two', array( 'one' ), 'v1', 1 );
 		$scripts->add( 'three', 'three', array( 'one' ) );

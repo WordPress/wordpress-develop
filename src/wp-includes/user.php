@@ -951,7 +951,7 @@ function get_blogs_of_user( $user_id, $all = false ) {
 
 	if ( ! is_multisite() ) {
 		$site_id                        = get_current_blog_id();
-		$sites                          = array( $site_id => new stdClass );
+		$sites                          = array( $site_id => new stdClass() );
 		$sites[ $site_id ]->userblog_id = $site_id;
 		$sites[ $site_id ]->blogname    = get_option( 'blogname' );
 		$sites[ $site_id ]->domain      = '';
@@ -1536,7 +1536,7 @@ function setup_userdata( $for_user_id = 0 ) {
  *                                                 Default empty.
  *     @type string       $show_option_none        Text to show as the drop-down default when no
  *                                                 users were found. Default empty.
- *     @type int|string   $option_none_value       Value to use for $show_option_non when no users
+ *     @type int|string   $option_none_value       Value to use for $show_option_none when no users
  *                                                 were found. Default -1.
  *     @type string       $hide_if_only_one_author Whether to skip generating the drop-down
  *                                                 if only one user was found. Default empty.
@@ -3038,15 +3038,22 @@ function retrieve_password( $user_login = null ) {
 		$user_login = $_POST['user_login'];
 	}
 
+	$user_login = trim( wp_unslash( $user_login ) );
+
 	if ( empty( $user_login ) ) {
 		$errors->add( 'empty_username', __( '<strong>Error:</strong> Please enter a username or email address.' ) );
 	} elseif ( strpos( $user_login, '@' ) ) {
-		$user_data = get_user_by( 'email', trim( wp_unslash( $user_login ) ) );
+		$user_data = get_user_by( 'email', $user_login );
+
+		if ( empty( $user_data ) ) {
+			$user_data = get_user_by( 'login', $user_login );
+		}
+
 		if ( empty( $user_data ) ) {
 			$errors->add( 'invalid_email', __( '<strong>Error:</strong> There is no account with that username or email address.' ) );
 		}
 	} else {
-		$user_data = get_user_by( 'login', trim( wp_unslash( $user_login ) ) );
+		$user_data = get_user_by( 'login', $user_login );
 	}
 
 	/**

@@ -879,7 +879,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	/**
 	 * @ticket 19954
 	 */
-	function test_updating_a_post_should_not_trash_categories() {
+	public function test_updating_a_post_should_not_trash_categories() {
 		// Create a category and attach it to a new post.
 		$term_id = self::factory()->term->create(
 			array(

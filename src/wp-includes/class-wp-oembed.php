@@ -80,8 +80,7 @@ class WP_oEmbed {
 			'#https?://(www\.)?mixcloud\.com/.*#i'         => array( 'https://www.mixcloud.com/oembed', true ),
 			'#https?://(www\.|embed\.)?ted\.com/talks/.*#i' => array( 'https://www.ted.com/services/v1/oembed.{format}', true ),
 			'#https?://(www\.)?(animoto|video214)\.com/play/.*#i' => array( 'https://animoto.com/oembeds/create', true ),
-			'#https?://(.+)\.tumblr\.com/post/.*#i'        => array( 'https://www.tumblr.com/oembed/1.0', true ),
-			'#https?://(www\.)?tumblr\.com/blog/view/[^/]+/.*#i' => array( 'https://www.tumblr.com/oembed/1.0', true ),
+			'#https?://(.+)\.tumblr\.com/.*#i'             => array( 'https://www.tumblr.com/oembed/1.0', true ),
 			'#https?://(www\.)?kickstarter\.com/projects/.*#i' => array( 'https://www.kickstarter.com/services/oembed', true ),
 			'#https?://kck\.st/.*#i'                       => array( 'https://www.kickstarter.com/services/oembed', true ),
 			'#https?://cloudup\.com/.*#i'                  => array( 'https://cloudup.com/oembed', true ),
@@ -640,7 +639,7 @@ class WP_oEmbed {
 			return false;
 		}
 
-		$dom     = new DOMDocument;
+		$dom     = new DOMDocument();
 		$success = $dom->loadXML( $response_body );
 		if ( ! $success ) {
 			return false;
@@ -661,7 +660,7 @@ class WP_oEmbed {
 			return false;
 		}
 
-		$return = new stdClass;
+		$return = new stdClass();
 		foreach ( $xml as $key => $value ) {
 			$return->$key = (string) $value;
 		}

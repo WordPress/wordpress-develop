@@ -1107,6 +1107,16 @@ EOF;
 				'css'      => 'background: conic-gradient(at 0% 30%, red 10%, yellow 30%, #1e90ff 50%)',
 				'expected' => 'background: conic-gradient(at 0% 30%, red 10%, yellow 30%, #1e90ff 50%)',
 			),
+			// `object-position` introduced in 5.7.1.
+			array(
+				'css'      => 'object-position: right top',
+				'expected' => 'object-position: right top',
+			),
+			// `object-fit` introduced in 6.1.
+			array(
+				'css'      => 'object-fit: cover',
+				'expected' => 'object-fit: cover',
+			),
 			// Expressions are not allowed.
 			array(
 				'css'      => 'height: expression( body.scrollTop + 50 + "px" )',
@@ -1244,8 +1254,12 @@ EOF;
 			),
 			// Margin and padding logical properties introduced in 6.1.
 			array(
-				'css'      => 'margin-block-start: 1px;margin-block-end: 2px;margin-inline-start: 3px;margin-inline-end: 4px;padding-block-start: 1px;padding-block-end: 2px;padding-inline-start: 3px;padding-inline-end: 4px',
-				'expected' => 'margin-block-start: 1px;margin-block-end: 2px;margin-inline-start: 3px;margin-inline-end: 4px;padding-block-start: 1px;padding-block-end: 2px;padding-inline-start: 3px;padding-inline-end: 4px',
+				'css'      => 'margin-block-start: 1px;margin-block-end: 2px;margin-inline-start: 3px;margin-inline-end: 4px;',
+				'expected' => 'margin-block-start: 1px;margin-block-end: 2px;margin-inline-start: 3px;margin-inline-end: 4px',
+			),
+			array(
+				'css'      => 'padding-block-start: 1px;padding-block-end: 2px;padding-inline-start: 3px;padding-inline-end: 4px;',
+				'expected' => 'padding-block-start: 1px;padding-block-end: 2px;padding-inline-start: 3px;padding-inline-end: 4px',
 			),
 			// Assigning values to CSS variables introduced in 6.1.
 			array(
@@ -1633,14 +1647,14 @@ EOF;
 	 * @param string $html     A string of HTML to test.
 	 * @param string $expected The expected result from KSES.
 	 */
-	function test_wp_kses_object_tag_allowed( $html, $expected ) {
+	public function test_wp_kses_object_tag_allowed( $html, $expected ) {
 		$this->assertSame( $expected, wp_kses_post( $html ) );
 	}
 
 	/**
 	 * Data provider for test_wp_kses_object_tag_allowed().
 	 */
-	function data_wp_kses_object_tag_allowed() {
+	public function data_wp_kses_object_tag_allowed() {
 		return array(
 			'valid value for type'                    => array(
 				'<object type="application/pdf" data="https://example.org/foo.pdf" />',
@@ -1743,7 +1757,7 @@ EOF;
 	 * @param string $html     A string of HTML to test.
 	 * @param string $expected The expected result from KSES.
 	 */
-	function test_wp_kses_object_data_url_with_port_number_allowed( $html, $expected ) {
+	public function test_wp_kses_object_data_url_with_port_number_allowed( $html, $expected ) {
 		add_filter( 'upload_dir', array( $this, 'wp_kses_upload_dir_filter' ), 10, 2 );
 		$this->assertSame( $expected, wp_kses_post( $html ) );
 	}
@@ -1751,7 +1765,7 @@ EOF;
 	/**
 	 * Data provider for test_wp_kses_object_data_url_with_port_number_allowed().
 	 */
-	function data_wp_kses_object_data_url_with_port_number_allowed() {
+	public function data_wp_kses_object_data_url_with_port_number_allowed() {
 		return array(
 			'url with port number'                   => array(
 				'<object type="application/pdf" data="https://example.org:8888/cat/foo.pdf" />',
@@ -1790,7 +1804,7 @@ EOF;
 	 *
 	 * @ticket 54261
 	 */
-	function test_wp_kses_object_added_in_html_filter() {
+	public function test_wp_kses_object_added_in_html_filter() {
 		$html = <<<HTML
 <object type="application/pdf" data="https://wordpress.org/foo.pdf" />
 <object type="application/x-shockwave-flash" data="https://wordpress.org/foo.swf">
@@ -1807,7 +1821,7 @@ HTML;
 		$this->assertSame( $html, $filtered_html );
 	}
 
-	function filter_wp_kses_object_added_in_html_filter( $tags, $context ) {
+	public function filter_wp_kses_object_added_in_html_filter( $tags, $context ) {
 		if ( 'post' === $context ) {
 			$tags['object'] = array(
 				'type' => true,
@@ -1834,14 +1848,14 @@ HTML;
 	 * @param string $expected     The expected result from KSES.
 	 * @param array  $allowed_html The allowed HTML to pass to KSES.
 	 */
-	function test_wp_kses_allowed_values_list( $html, $expected, $allowed_html ) {
+	public function test_wp_kses_allowed_values_list( $html, $expected, $allowed_html ) {
 		$this->assertSame( $expected, wp_kses( $html, $allowed_html ) );
 	}
 
 	/**
 	 * Data provider for test_wp_kses_allowed_values_list().
 	 */
-	function data_wp_kses_allowed_values_list() {
+	public function data_wp_kses_allowed_values_list() {
 		$data = array(
 			'valid dir attribute value'             => array(
 				'<p dir="ltr">foo</p>',
@@ -1892,14 +1906,14 @@ HTML;
 	 * @param string $expected     The expected result from KSES.
 	 * @param array  $allowed_html The allowed HTML to pass to KSES.
 	 */
-	function test_wp_kses_required_attribute( $html, $expected, $allowed_html ) {
+	public function test_wp_kses_required_attribute( $html, $expected, $allowed_html ) {
 		$this->assertSame( $expected, wp_kses( $html, $allowed_html ) );
 	}
 
 	/**
 	 * Data provider for test_wp_kses_required_attribute().
 	 */
-	function data_wp_kses_required_attribute() {
+	public function data_wp_kses_required_attribute() {
 		$data = array(
 			'valid dir attribute value'             => array(
 				'<p dir="ltr">foo</p>', // Test HTML.

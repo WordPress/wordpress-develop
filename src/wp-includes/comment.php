@@ -97,7 +97,7 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 			 * Check the comment fields for moderation keywords. If any are found,
 			 * fail the check for the given field by returning false.
 			 */
-			$pattern = "#$word#i";
+			$pattern = "#$word#iu";
 			if ( preg_match( $pattern, $author ) ) {
 				return false;
 			}
@@ -171,7 +171,7 @@ function get_approved_comments( $post_id, $args = array() ) {
 	);
 	$parsed_args = wp_parse_args( $args, $defaults );
 
-	$query = new WP_Comment_Query;
+	$query = new WP_Comment_Query();
 	return $query->query( $parsed_args );
 }
 
@@ -240,7 +240,7 @@ function get_comment( $comment = null, $output = OBJECT ) {
  * @return WP_Comment[]|int[]|int List of comments or number of found comments if `$count` argument is true.
  */
 function get_comments( $args = '' ) {
-	$query = new WP_Comment_Query;
+	$query = new WP_Comment_Query();
 	return $query->query( $args );
 }
 
@@ -1023,7 +1023,7 @@ function get_comment_pages_count( $comments = null, $per_page = null, $threaded 
 	}
 
 	if ( $threaded ) {
-		$walker = new Walker_Comment;
+		$walker = new Walker_Comment();
 		$count  = ceil( $walker->get_number_of_root_elements( $comments ) / $per_page );
 	} else {
 		$count = ceil( count( $comments ) / $per_page );
@@ -1357,7 +1357,7 @@ function wp_check_comment_disallowed_list( $author, $email, $url, $comment, $use
 		// in the spam words don't break things:
 		$word = preg_quote( $word, '#' );
 
-		$pattern = "#$word#i";
+		$pattern = "#$word#iu";
 		if ( preg_match( $pattern, $author )
 			|| preg_match( $pattern, $email )
 			|| preg_match( $pattern, $url )
@@ -2208,9 +2208,16 @@ function wp_throttle_comment_flood( $block, $time_lastcomment, $time_newcomment 
 function wp_new_comment( $commentdata, $wp_error = false ) {
 	global $wpdb;
 
+	/*
+	 * Normalize `user_ID` to `user_id`, but pass the old key
+	 * to the `preprocess_comment` filter for backward compatibility.
+	 */
 	if ( isset( $commentdata['user_ID'] ) ) {
 		$commentdata['user_ID'] = (int) $commentdata['user_ID'];
 		$commentdata['user_id'] = $commentdata['user_ID'];
+	} elseif ( isset( $commentdata['user_id'] ) ) {
+		$commentdata['user_id'] = (int) $commentdata['user_id'];
+		$commentdata['user_ID'] = $commentdata['user_id'];
 	}
 
 	$prefiltered_user_id = ( isset( $commentdata['user_id'] ) ) ? (int) $commentdata['user_id'] : 0;
@@ -2235,11 +2242,13 @@ function wp_new_comment( $commentdata, $wp_error = false ) {
 
 	$commentdata['comment_post_ID'] = (int) $commentdata['comment_post_ID'];
 
+	// Normalize `user_ID` to `user_id` again, after the filter.
 	if ( isset( $commentdata['user_ID'] ) && $prefiltered_user_id !== (int) $commentdata['user_ID'] ) {
 		$commentdata['user_ID'] = (int) $commentdata['user_ID'];
 		$commentdata['user_id'] = $commentdata['user_ID'];
 	} elseif ( isset( $commentdata['user_id'] ) ) {
 		$commentdata['user_id'] = (int) $commentdata['user_id'];
+		$commentdata['user_ID'] = $commentdata['user_id'];
 	}
 
 	$commentdata['comment_parent'] = isset( $commentdata['comment_parent'] ) ? absint( $commentdata['comment_parent'] ) : 0;
@@ -2490,6 +2499,15 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 		}
 	}
 
+	$filter_comment = false;
+	if ( ! has_filter( 'pre_comment_content', 'wp_filter_kses' ) ) {
+		$filter_comment = ! user_can( isset( $comment['user_id'] ) ? $comment['user_id'] : 0, 'unfiltered_html' );
+	}
+
+	if ( $filter_comment ) {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+	}
+
 	// Escape data pulled from DB.
 	$comment = wp_slash( $comment );
 
@@ -2499,6 +2517,10 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 	$commentarr = array_merge( $comment, $commentarr );
 
 	$commentarr = wp_filter_comment( $commentarr );
+
+	if ( $filter_comment ) {
+		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
+	}
 
 	// Now extract the merged array.
 	$data = wp_unslash( $commentarr );
@@ -3587,7 +3609,6 @@ function wp_handle_comment_submission( $comment_data ) {
 
 	$commentdata = array(
 		'comment_post_ID' => $comment_post_id,
-		'user_ID'         => $user_id,
 	);
 
 	$commentdata += compact(
@@ -3596,7 +3617,8 @@ function wp_handle_comment_submission( $comment_data ) {
 		'comment_author_url',
 		'comment_content',
 		'comment_type',
-		'comment_parent'
+		'comment_parent',
+		'user_id'
 	);
 
 	/**
@@ -3760,6 +3782,8 @@ function wp_register_comment_personal_data_eraser( $erasers ) {
  * Erases personal data associated with an email address from the comments table.
  *
  * @since 4.9.6
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $email_address The comment author email address.
  * @param int    $page          Comment page.
