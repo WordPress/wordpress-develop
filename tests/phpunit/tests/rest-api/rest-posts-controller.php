@@ -751,31 +751,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
-	 * Data provider for test_get_items_exact_search().
-	 *
-	 * @return array[]
-	 */
-	public function data_get_items_exact_search() {
-		return array(
-			'general search, one exact match and one partial match' => array(
-				'search_term'  => 'Rye',
-				'exact_search' => false,
-				'expected'     => 2,
-			),
-			'exact search, one exact match and one partial match' => array(
-				'search_term'  => 'Rye',
-				'exact_search' => true,
-				'expected'     => 1,
-			),
-			'exact search, no match and one partial match' => array(
-				'search_term'  => 'Rye Bread',
-				'exact_search' => true,
-				'expected'     => 0,
-			),
-		);
-	}
-
-	/**
 	 * @ticket 56350
 	 *
 	 * @dataProvider data_get_items_exact_search
@@ -804,6 +779,31 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'exact_search', $exact_search );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( $expected, $response->get_data() );
+	}
+
+	/**
+	 * Data provider for test_get_items_exact_search().
+	 *
+	 * @return array[]
+	 */
+	public function data_get_items_exact_search() {
+		return array(
+			'general search, one exact match and one partial match' => array(
+				'search_term'  => 'Rye',
+				'exact_search' => false,
+				'expected'     => 2,
+			),
+			'exact search, one exact match and one partial match' => array(
+				'search_term'  => 'Rye',
+				'exact_search' => true,
+				'expected'     => 1,
+			),
+			'exact search, no match and one partial match' => array(
+				'search_term'  => 'Rye Bread',
+				'exact_search' => true,
+				'expected'     => 0,
+			),
+		);
 	}
 
 	public function test_get_items_order_and_orderby() {
