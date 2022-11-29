@@ -97,7 +97,7 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 			 * Check the comment fields for moderation keywords. If any are found,
 			 * fail the check for the given field by returning false.
 			 */
-			$pattern = "#$word#i";
+			$pattern = "#$word#iu";
 			if ( preg_match( $pattern, $author ) ) {
 				return false;
 			}
@@ -1357,7 +1357,7 @@ function wp_check_comment_disallowed_list( $author, $email, $url, $comment, $use
 		// in the spam words don't break things:
 		$word = preg_quote( $word, '#' );
 
-		$pattern = "#$word#i";
+		$pattern = "#$word#iu";
 		if ( preg_match( $pattern, $author )
 			|| preg_match( $pattern, $email )
 			|| preg_match( $pattern, $url )
@@ -2499,6 +2499,15 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 		}
 	}
 
+	$filter_comment = false;
+	if ( ! has_filter( 'pre_comment_content', 'wp_filter_kses' ) ) {
+		$filter_comment = ! user_can( isset( $comment['user_id'] ) ? $comment['user_id'] : 0, 'unfiltered_html' );
+	}
+
+	if ( $filter_comment ) {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+	}
+
 	// Escape data pulled from DB.
 	$comment = wp_slash( $comment );
 
@@ -2508,6 +2517,10 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 	$commentarr = array_merge( $comment, $commentarr );
 
 	$commentarr = wp_filter_comment( $commentarr );
+
+	if ( $filter_comment ) {
+		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
+	}
 
 	// Now extract the merged array.
 	$data = wp_unslash( $commentarr );
@@ -3769,6 +3782,8 @@ function wp_register_comment_personal_data_eraser( $erasers ) {
  * Erases personal data associated with an email address from the comments table.
  *
  * @since 4.9.6
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $email_address The comment author email address.
  * @param int    $page          Comment page.

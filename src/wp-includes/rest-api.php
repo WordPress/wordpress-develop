@@ -104,17 +104,20 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 			);
 		}
 
-		if ( count( array_filter( $arg_group['args'], 'is_array' ) ) !== count( $arg_group['args'] ) ) {
-			_doing_it_wrong(
-				__FUNCTION__,
-				sprintf(
-					/* translators: 1: $args, 2: The REST API route being registered. */
-					__( 'REST API %1$s should be an array of arrays. Non-array value detected for %2$s.' ),
-					'<code>$args</code>',
-					'<code>' . $clean_namespace . '/' . trim( $route, '/' ) . '</code>'
-				),
-				'6.1.0'
-			);
+		foreach ( $arg_group['args'] as $arg ) {
+			if ( ! is_array( $arg ) ) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf(
+						/* translators: 1: $args, 2: The REST API route being registered. */
+						__( 'REST API %1$s should be an array of arrays. Non-array value detected for %2$s.' ),
+						'<code>$args</code>',
+						'<code>' . $clean_namespace . '/' . trim( $route, '/' ) . '</code>'
+					),
+					'6.1.0'
+				);
+				break; // Leave the foreach loop once a non-array argument was found.
+			}
 		}
 	}
 
@@ -3304,7 +3307,7 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
  * Converts an error to a response object.
  *
  * This iterates over all error codes and messages to change it into a flat
- * array. This enables simpler client behaviour, as it is represented as a
+ * array. This enables simpler client behavior, as it is represented as a
  * list in JSON rather than an object/map.
  *
  * @since 5.7.0

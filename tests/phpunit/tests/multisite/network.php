@@ -171,7 +171,7 @@ if ( is_multisite() ) :
 			}
 			wp_update_network_counts();
 
-			$this->assertSame( $site_count_start, $actual );
+			$this->assertEquals( $site_count_start, $actual );
 		}
 
 		/**
@@ -202,7 +202,7 @@ if ( is_multisite() ) :
 
 			$site_count = get_blog_count( self::$different_network_id );
 
-			$this->assertSame( count( self::$different_site_ids ), $site_count );
+			$this->assertEquals( count( self::$different_site_ids ), $site_count );
 		}
 
 		public function test_active_network_plugins() {

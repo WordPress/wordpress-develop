@@ -813,7 +813,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		);
 
 		wp_widgets_init();
-		require_once ABSPATH . '/wp-admin/includes/widgets.php';
+		require_once ABSPATH . 'wp-admin/includes/widgets.php';
 		$widget_id    = 'search-2';
 		$widget       = $wp_registered_widgets[ $widget_id ];
 		$params       = array(
