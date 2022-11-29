@@ -7,34 +7,34 @@ Full details of the WordPress Security Policy can be found on [HackerOne](https:
 Use this section to tell people about which versions of your project are
 currently being supported with security updates.
 
-| Version | Supported              |
-| ------- | ---------------------- |
-| 6.1.x   | :white_check_mark: Yes |
-| 6.0.x   | :white_check_mark: Yes |
-| 5.9.x   | :white_check_mark: Yes |
-| 5.8.x   | :white_check_mark: Yes |
-| 5.7.x   | :white_check_mark: Yes |
-| 5.6.x   | :white_check_mark: Yes |
-| 5.5.x   | :white_check_mark: Yes |
-| 5.4.x   | :white_check_mark: Yes |
-| 5.3.x   | :white_check_mark: Yes |
-| 5.2.x   | :white_check_mark: Yes |
-| 5.1.x   | :white_check_mark: Yes |
-| 5.0.x   | :white_check_mark: Yes |
-| 4.9.x   | :white_check_mark: Yes |
-| 4.8.x   | :white_check_mark: Yes |
-| 4.7.x   | :white_check_mark: Yes |
-| 4.6.x   | :white_check_mark: Yes |
-| 4.5.x   | :white_check_mark: Yes |
-| 4.4.x   | :white_check_mark: Yes |
-| 4.3.x   | :white_check_mark: Yes |
-| 4.2.x   | :white_check_mark: Yes |
-| 4.1.x   | :white_check_mark: Yes |
-| 4.0.x   | :white_check_mark: Yes |
-| 3.9.x   | :white_check_mark: Yes |
-| 3.8.x   | :white_check_mark: Yes |
-| 3.7.x   | :white_check_mark: Yes |
-| < 3.7.0 | :x: No                 |
+| Version | Supported |
+| ------- | --------- |
+| 6.1.x   | Yes       |
+| 6.0.x   | Yes       |
+| 5.9.x   | Yes       |
+| 5.8.x   | Yes       |
+| 5.7.x   | Yes       |
+| 5.6.x   | Yes       |
+| 5.5.x   | Yes       |
+| 5.4.x   | Yes       |
+| 5.3.x   | Yes       |
+| 5.2.x   | Yes       |
+| 5.1.x   | Yes       |
+| 5.0.x   | Yes       |
+| 4.9.x   | Yes       |
+| 4.8.x   | Yes       |
+| 4.7.x   | Yes       |
+| 4.6.x   | Yes       |
+| 4.5.x   | Yes       |
+| 4.4.x   | Yes       |
+| 4.3.x   | Yes       |
+| 4.2.x   | Yes       |
+| 4.1.x   | Yes       |
+| 4.0.x   | Yes       |
+| 3.9.x   | Yes       |
+| 3.8.x   | Yes       |
+| 3.7.x   | Yes       |
+| < 3.7.0 | No        |
 
 ## Reporting a Vulnerability
 
