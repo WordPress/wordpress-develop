@@ -660,11 +660,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			&& in_array( $prepared_post->post_status, array( 'draft', 'pending' ), true )
 		) {
 			/*
-			 * `wp_unique_post_slug()` returns the same
-			 * slug for 'draft' or 'pending' posts.
+			 * `wp_unique_post_slug()` returns the same slug for 'draft' or 'pending' posts.
 			 *
-			 * To ensure that a unique slug is generated,
-			 * pass the post data with the 'publish' status.
+			 * To ensure that a unique slug is generated, pass the post data with the 'publish' status.
 			 */
 			$prepared_post->post_name = wp_unique_post_slug(
 				$prepared_post->post_name,
@@ -863,15 +861,19 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		/*
-		 * `wp_unique_post_slug()` returns the same
-		 * slug for 'draft' or 'pending' posts.
+		 * `wp_unique_post_slug()` returns the same slug for 'draft' or 'pending' posts.
 		 *
-		 * To ensure that a unique slug is generated,
-		 * pass the post data with the 'publish' status.
+		 * To ensure that a unique slug is generated, pass the post data with the 'publish' status.
 		 */
 		if ( ! empty( $post->post_name ) && in_array( $post_status, array( 'draft', 'pending' ), true ) ) {
 			$post_parent     = ! empty( $post->post_parent ) ? $post->post_parent : 0;
-			$post->post_name = wp_unique_post_slug( $post->post_name, $post->ID, 'publish', $post->post_type, $post_parent );
+			$post->post_name = wp_unique_post_slug(
+				$post->post_name,
+				$post->ID,
+				'publish',
+				$post->post_type,
+				$post_parent
+			);
 		}
 
 		// Convert the post object to an array, otherwise wp_update_post() will expect non-escaped input.
@@ -1796,7 +1798,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			 * with the site's timezone offset applied.
 			 */
 			if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
-				$post_modified_gmt = gmdate( 'Y-m-d H:i:s', strtotime( $post->post_modified ) - ( get_option( 'gmt_offset' ) * 3600 ) );
+				$post_modified_gmt = gmdate( 'Y-m-d H:i:s', strtotime( $post->post_modified ) - ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) );
 			} else {
 				$post_modified_gmt = $post->post_modified_gmt;
 			}

@@ -145,7 +145,7 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 
 	public function test_export_should_not_include_empty_translations() {
 		$entries = array();
-		$mo      = new MO;
+		$mo      = new MO();
 		$mo->add_entry(
 			array(
 				'singular'     => 'baba',

@@ -2011,7 +2011,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	function data_returning_field_subset_as_string() {
+	public function data_returning_field_subset_as_string() {
 		$data = array(
 			'id'            => array(
 				'fields'   => 'id',
@@ -2093,7 +2093,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	function data_returning_field_subset_as_array() {
+	public function data_returning_field_subset_as_array() {
 		$data = array(
 			'id'                 => array(
 				'fields'   => array( 'id' ),

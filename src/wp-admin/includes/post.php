@@ -716,7 +716,7 @@ function get_default_post_to_edit( $post_type = 'post', $create_in_db = false ) 
 			wp_schedule_event( time(), 'daily', 'wp_scheduled_auto_draft_delete' );
 		}
 	} else {
-		$post                 = new stdClass;
+		$post                 = new stdClass();
 		$post->ID             = 0;
 		$post->post_author    = '';
 		$post->post_date      = '';
@@ -2210,6 +2210,10 @@ function get_block_editor_server_block_settings() {
  * Renders the meta boxes forms.
  *
  * @since 5.0.0
+ *
+ * @global WP_Post   $post           Global post object.
+ * @global WP_Screen $current_screen WordPress current screen object.
+ * @global array     $wp_meta_boxes
  */
 function the_block_editor_meta_boxes() {
 	global $post, $current_screen, $wp_meta_boxes;

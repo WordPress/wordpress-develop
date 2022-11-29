@@ -322,7 +322,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Saves the action and filter-related globals so they can be restored later.
 	 *
 	 * Stores $wp_actions, $wp_current_filter, and $wp_filter on a class variable
-	 * so they can be restored on tearDown() using _restore_hooks().
+	 * so they can be restored on tear_down() using _restore_hooks().
 	 *
 	 * @global array $wp_actions
 	 * @global array $wp_current_filter
@@ -340,7 +340,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	}
 
 	/**
-	 * Restores the hook-related globals to their state at setUp()
+	 * Restores the hook-related globals to their state at set_up()
 	 * so that future tests aren't affected by hooks set during this last test.
 	 *
 	 * @global array $wp_actions
@@ -1365,11 +1365,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	/**
 	 * Deletes files added to the `uploads` directory during tests.
 	 *
-	 * This method works in tandem with the `setUp()` and `rmdir()` methods:
-	 * - `setUp()` scans the `uploads` directory before every test, and stores its contents inside of the
-	 *   `$ignore_files` property.
-	 * - `rmdir()` and its helper methods only delete files that are not listed in the `$ignore_files` property. If
-	 *   called during `tearDown()` in tests, this will only delete files added during the previously run test.
+	 * This method works in tandem with the `set_up()` and `rmdir()` methods:
+	 * - `set_up()` scans the `uploads` directory before every test, and stores
+	 *   its contents inside of the `$ignore_files` property.
+	 * - `rmdir()` and its helper methods only delete files that are not listed
+	 *   in the `$ignore_files` property. If called during `tear_down()` in tests,
+	 *   this will only delete files added during the previously run test.
 	 */
 	public function remove_added_uploads() {
 		$uploads = wp_upload_dir();
