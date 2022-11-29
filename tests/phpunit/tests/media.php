@@ -3477,7 +3477,7 @@ EOF;
 	 *
 	 * @param string $context
 	 */
-	function test_wp_get_loading_attr_default( $context ) {
+	public function test_wp_get_loading_attr_default( $context ) {
 		global $wp_query, $wp_the_query;
 
 		// Return 'lazy' by default.
@@ -3515,7 +3515,7 @@ EOF;
 		}
 	}
 
-	function data_wp_get_loading_attr_default() {
+	public function data_wp_get_loading_attr_default() {
 		return array(
 			array( 'the_content' ),
 			array( 'the_post_thumbnail' ),
@@ -3525,7 +3525,7 @@ EOF;
 	/**
 	 * @ticket 53675
 	 */
-	function test_wp_omit_loading_attr_threshold_filter() {
+	public function test_wp_omit_loading_attr_threshold_filter() {
 		global $wp_query, $wp_the_query;
 
 		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
@@ -3557,7 +3557,7 @@ EOF;
 	/**
 	 * @ticket 53675
 	 */
-	function test_wp_filter_content_tags_with_wp_get_loading_attr_default() {
+	public function test_wp_filter_content_tags_with_wp_get_loading_attr_default() {
 		global $wp_query, $wp_the_query;
 
 		$img1         = get_image_tag( self::$large_id, '', '', '', 'large' );

@@ -201,7 +201,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected_no_origin, $actual_no_origin );
 	}
 
-	function test_get_settings_appearance_true_opts_in() {
+	public function test_get_settings_appearance_true_opts_in() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
@@ -280,7 +280,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected, $actual );
 	}
 
-	function test_get_settings_appearance_false_does_not_opt_in() {
+	public function test_get_settings_appearance_false_does_not_opt_in() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
@@ -2735,7 +2735,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 55505
 	 */
-	function test_export_data() {
+	public function test_export_data() {
 		$theme = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
@@ -2813,7 +2813,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 55505
 	 */
-	function test_export_data_deals_with_empty_user_data() {
+	public function test_export_data_deals_with_empty_user_data() {
 		$theme = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
@@ -2863,7 +2863,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 55505
 	 */
-	function test_export_data_deals_with_empty_theme_data() {
+	public function test_export_data_deals_with_empty_theme_data() {
 		$user = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
@@ -2914,7 +2914,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 55505
 	 */
-	function test_export_data_deals_with_empty_data() {
+	public function test_export_data_deals_with_empty_data() {
 		$theme_v2    = new WP_Theme_JSON(
 			array(
 				'version' => 2,
@@ -2939,7 +2939,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 55505
 	 */
-	function test_export_data_sets_appearance_tools() {
+	public function test_export_data_sets_appearance_tools() {
 		$theme = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
@@ -2973,7 +2973,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 56611
 	 */
-	function test_export_data_sets_use_root_padding_aware_alignments() {
+	public function test_export_data_sets_use_root_padding_aware_alignments() {
 		$theme = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
@@ -3506,7 +3506,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 56467
 	 */
-	function test_get_styles_for_block_with_padding_aware_alignments() {
+	public function test_get_styles_for_block_with_padding_aware_alignments() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
@@ -3540,7 +3540,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 56467
 	 */
-	function test_get_styles_for_block_without_padding_aware_alignments() {
+	public function test_get_styles_for_block_without_padding_aware_alignments() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version' => 2,
@@ -3571,7 +3571,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 56467
 	 */
-	function test_get_styles_for_block_with_content_width() {
+	public function test_get_styles_for_block_with_content_width() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
@@ -3598,7 +3598,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 56611
 	 */
-	function test_get_styles_with_appearance_tools() {
+	public function test_get_styles_with_appearance_tools() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
@@ -3628,7 +3628,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @param array $spacing_scale   Example spacing scale definitions from the data provider.
 	 * @param array $expected_output Expected output from data provider.
 	 */
-	function test_should_set_spacing_sizes( $spacing_scale, $expected_output ) {
+	public function test_should_set_spacing_sizes( $spacing_scale, $expected_output ) {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
@@ -3651,7 +3651,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	function data_generate_spacing_scale_fixtures() {
+	public function data_generate_spacing_scale_fixtures() {
 		return array(
 			'only one value when single step in spacing scale' => array(
 				'spacing_scale'   => array(
@@ -3945,7 +3945,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	function data_set_spacing_sizes_when_invalid() {
+	public function data_set_spacing_sizes_when_invalid() {
 		return array(
 			'missing operator value'  => array(
 				'spacing_scale'   => array(
@@ -4033,7 +4033,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	function data_update_separator_declarations() {
+	public function data_update_separator_declarations() {
 		return array(
 			// If only background is defined, test that includes border-color to the style so it is applied on the front end.
 			'only background'                      => array(

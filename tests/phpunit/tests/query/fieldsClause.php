@@ -217,7 +217,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	 * @param string $fields The fields to SELECT.
 	 * @return string The filtered fields.
 	 */
-	function filter_posts_fields( $fields ) {
+	public function filter_posts_fields( $fields ) {
 		return "$fields, 1 as test_post_fields";
 	}
 
@@ -227,7 +227,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	 * @param array $clauses The WP_Query database clauses.
 	 * @return array The filtered database clauses.
 	 */
-	function filter_posts_clauses( $clauses ) {
+	public function filter_posts_clauses( $clauses ) {
 		$clauses['fields'] .= ', 2 as test_post_clauses';
 		return $clauses;
 	}

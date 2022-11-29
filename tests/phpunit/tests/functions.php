@@ -2069,7 +2069,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @ticket 55505
 	 * @covers ::wp_recursive_ksort
 	 */
-	function test_wp_recursive_ksort() {
+	public function test_wp_recursive_ksort() {
 		// Create an array to test.
 		$theme_json = array(
 			'version'  => 1,

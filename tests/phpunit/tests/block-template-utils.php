@@ -131,7 +131,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 *
 	 * @covers ::_build_block_template_result_from_post
 	 */
-	function test_build_block_template_result_from_post_with_child_theme() {
+	public function test_build_block_template_result_from_post_with_child_theme() {
 		switch_theme( 'block-theme-child' );
 
 		$template = _build_block_template_result_from_post(
@@ -142,7 +142,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( self::TEST_THEME, $template->theme );
 	}
 
-	function test_build_block_template_result_from_file() {
+	public function test_build_block_template_result_from_file() {
 		$template = _build_block_template_result_from_file(
 			array(
 				'slug' => 'single',
@@ -188,7 +188,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 *
 	 * @covers ::_build_block_template_result_from_file
 	 */
-	function test_build_block_template_result_from_file_with_child_theme() {
+	public function test_build_block_template_result_from_file_with_child_theme() {
 		switch_theme( 'block-theme-child' );
 
 		$template = _build_block_template_result_from_file(
@@ -203,7 +203,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( self::TEST_THEME, $template->theme );
 	}
 
-	function test_inject_theme_attribute_in_block_template_content() {
+	public function test_inject_theme_attribute_in_block_template_content() {
 		$theme                           = get_stylesheet();
 		$content_without_theme_attribute = '<!-- wp:template-part {"slug":"header","align":"full", "tagName":"header","className":"site-header"} /-->';
 		$template_content                = _inject_theme_attribute_in_block_template_content(
@@ -249,11 +249,11 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_remove_theme_attribute_in_block_template_content
 	 */
-	function test_remove_theme_attribute_in_block_template_content( $template_content, $expected ) {
+	public function test_remove_theme_attribute_in_block_template_content( $template_content, $expected ) {
 		$this->assertSame( $expected, _remove_theme_attribute_in_block_template_content( $template_content ) );
 	}
 
-	function data_remove_theme_attribute_in_block_template_content() {
+	public function data_remove_theme_attribute_in_block_template_content() {
 		return array(
 			array(
 				'<!-- wp:template-part {"slug":"header","theme":"tt1-blocks","align":"full","tagName":"header","className":"site-header"} /-->',
@@ -279,7 +279,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	/**
 	 * Should retrieve the template from the theme files.
 	 */
-	function test_get_block_template_from_file() {
+	public function test_get_block_template_from_file() {
 		$id       = get_stylesheet() . '//' . 'index';
 		$template = get_block_template( $id, 'wp_template' );
 		$this->assertSame( $id, $template->id );
@@ -329,7 +329,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	/**
 	 * Should flatten nested blocks
 	 */
-	function test_flatten_blocks() {
+	public function test_flatten_blocks() {
 		$content_template_part_inside_group = '<!-- wp:group --><!-- wp:template-part {"slug":"header"} /--><!-- /wp:group -->';
 		$blocks                             = parse_blocks( $content_template_part_inside_group );
 		$actual                             = _flatten_blocks( $blocks );
@@ -355,7 +355,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * @ticket 54448
 	 * @requires extension zip
 	 */
-	function test_wp_generate_block_templates_export_file() {
+	public function test_wp_generate_block_templates_export_file() {
 		$filename = wp_generate_block_templates_export_file();
 		$this->assertFileExists( $filename, 'zip file is created at the specified path' );
 		$this->assertTrue( filesize( $filename ) > 0, 'zip file is larger than 0 bytes' );
