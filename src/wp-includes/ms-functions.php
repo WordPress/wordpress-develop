@@ -954,7 +954,7 @@ function wpmu_signup_blog_notification( $domain, $path, $title, $user_login, $us
 	$message_headers = "From: \"{$from_name}\" <{$admin_email}>\n" . 'Content-Type: text/plain; charset="' . get_option( 'blog_charset' ) . "\"\n";
 
 	$user            = get_user_by( 'login', $user_login );
-	$switched_locale = switch_to_user_locale( $user->ID );
+	$switched_locale = $user && switch_to_user_locale($user->ID);
 
 	$message = sprintf(
 		/**
@@ -1068,7 +1068,7 @@ function wpmu_signup_user_notification( $user_login, $user_email, $key, $meta = 
 	}
 
 	$user            = get_user_by( 'login', $user_login );
-	$switched_locale = switch_to_user_locale( $user->ID );
+	$switched_locale = $user && switch_to_user_locale($user->ID);
 
 	// Send email with activation link.
 	$admin_email = get_site_option( 'admin_email' );
