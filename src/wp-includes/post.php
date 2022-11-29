@@ -7820,7 +7820,6 @@ function wp_delete_auto_drafts() {
  */
 function wp_queue_posts_for_term_meta_lazyload( $posts ) {
 	$post_type_taxonomies = array();
-	$term_ids             = array();
 	$prime_post_terms     = array();
 	foreach ( $posts as $post ) {
 		if ( ! ( $post instanceof WP_Post ) ) {
@@ -7839,10 +7838,10 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
 	if ( $prime_post_terms ) {
 		$prime_term_ids = array();
 		foreach ( $prime_post_terms as $taxonomy => $post_ids ) {
-			$_term_ids = wp_cache_get_multiple( $post_ids, "{$taxonomy}_relationships" );
-			if ( is_array( $_term_ids ) ) {
-				$_term_ids = array_filter( $_term_ids );
-				foreach ( $_term_ids as $term_ids ) {
+			$cached_term_ids = wp_cache_get_multiple( $post_ids, "{$taxonomy}_relationships" );
+			if ( is_array( $cached_term_ids ) ) {
+				$cached_term_ids = array_filter( $cached_term_ids );
+				foreach ( $cached_term_ids as $term_ids ) {
 					// Backward compatibility for if a plugin is putting objects into the cache, rather than IDs.
 					foreach ( $term_ids as $term_id ) {
 						if ( is_numeric( $term_id ) ) {
@@ -7861,6 +7860,7 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
 		}
 	}
 
+	$term_ids = array();
 	foreach ( $posts as $post ) {
 		foreach ( $post_type_taxonomies[ $post->post_type ] as $taxonomy ) {
 			// Term cache should already be primed by `update_post_term_cache()`.
