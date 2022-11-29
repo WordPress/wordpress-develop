@@ -705,26 +705,26 @@ function locate_template( $template_names, $load = false, $require_once = true, 
 			continue;
 		}
 
-		if ( isset( $template_cache[$template_name] ) && $template_cache[$template_name] === '' ) {
+		if ( isset( $template_cache[ $template_name ] ) && '' === $template_cache[ $template_name ] ) {
 			continue;
 		}
 
-		if ( isset( $template_cache[$template_name] ) ) {
-			$located = $template_cache[$template_name];
+		if ( isset( $template_cache[ $template_name ] ) ) {
+			$located = $template_cache[ $template_name ];
 			break;
 		}
 
 		if ( file_exists( STYLESHEETPATH . '/' . $template_name ) ) {
-			$located = $template_cache[$template_name] = STYLESHEETPATH . '/' . $template_name;
+			$located = $template_cache[ $template_name ] = STYLESHEETPATH . '/' . $template_name;
 			break;
 		} elseif ( file_exists( TEMPLATEPATH . '/' . $template_name ) ) {
-			$located = $template_cache[$template_name] = TEMPLATEPATH . '/' . $template_name;
+			$located = $template_cache[ $template_name ] = TEMPLATEPATH . '/' . $template_name;
 			break;
 		} elseif ( file_exists( ABSPATH . WPINC . '/theme-compat/' . $template_name ) ) {
-			$located = $template_cache[$template_name] = ABSPATH . WPINC . '/theme-compat/' . $template_name;
+			$located = $template_cache[ $template_name ] = ABSPATH . WPINC . '/theme-compat/' . $template_name;
 			break;
 		}
-		$template_cache[$template_name] = '';
+		$template_cache[ $template_name ] = '';
 	}
 
 	if ( $load && '' !== $located ) {
