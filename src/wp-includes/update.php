@@ -139,7 +139,8 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	}
 
 	if ( class_exists( 'SQLite3' ) ) {
-		$query['sqlite'] = SQLite3::version()['versionString'];
+		// Overwrite the sqlite3 extension version with the actual version.
+		$query['extensions']['sqlite3'] = SQLite3::version()['versionString'];
 	}
 
 	/**
