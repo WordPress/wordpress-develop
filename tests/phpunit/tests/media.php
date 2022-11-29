@@ -361,7 +361,7 @@ https://w.org</a>',
 	 * @dataProvider data_autoembed
 	 */
 	public function test_autoembed( $content, $result = null ) {
-		$wp_embed = new Test_Autoembed;
+		$wp_embed = new Test_Autoembed();
 
 		$this->assertSame( $wp_embed->autoembed( $content ), $result ? $result : $content );
 	}

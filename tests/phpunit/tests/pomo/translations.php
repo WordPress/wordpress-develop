@@ -121,7 +121,7 @@ class Tests_POMO_Translations extends WP_UnitTestCase {
 		$domain        = new Translations();
 		$domain->add_entry( $entry_digit_1 );
 		$domain->add_entry( $entry_digit_2 );
-		$dummy_translation = new Translations;
+		$dummy_translation = new Translations();
 		$this->assertSame( '1', $domain->translate( '1' ) );
 		$domain->merge_with( $dummy_translation );
 		$this->assertSame( '1', $domain->translate( '1' ) );

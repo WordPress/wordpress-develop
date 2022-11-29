@@ -5,7 +5,7 @@
  */
 class Tests_Functions extends WP_UnitTestCase {
 	public function test_wp_parse_args_object() {
-		$x        = new MockClass;
+		$x        = new MockClass();
 		$x->_baba = 5;
 		$x->yZ    = 'baba'; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		$x->a     = array( 5, 111, 'x' );
@@ -17,7 +17,7 @@ class Tests_Functions extends WP_UnitTestCase {
 			),
 			wp_parse_args( $x )
 		);
-		$y = new MockClass;
+		$y = new MockClass();
 		$this->assertSame( array(), wp_parse_args( $y ) );
 	}
 
@@ -41,7 +41,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	public function test_wp_parse_args_defaults() {
-		$x        = new MockClass;
+		$x        = new MockClass();
 		$x->_baba = 5;
 		$x->yZ    = 'baba'; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		$x->a     = array( 5, 111, 'x' );
@@ -1113,7 +1113,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @ticket 28786
 	 */
 	public function test_wp_json_encode_object() {
-		$object    = new stdClass;
+		$object    = new stdClass();
 		$object->a = 'b';
 		$this->assertSame( wp_json_encode( $object ), '{"a":"b"}' );
 	}
