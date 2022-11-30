@@ -556,27 +556,27 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 		$wp_locale_switcher = new WP_Locale_Switcher();
 		$wp_locale_switcher->init();
 
-		$locale_1 = $wp_locale_switcher->get_current_locale();
+		$locale_1  = $wp_locale_switcher->get_current_locale();
 		$user_id_1 = $wp_locale_switcher->get_current_user_id();
 
 		switch_to_user_locale( self::$user_id );
 
-		$locale_2 = $wp_locale_switcher->get_current_locale();
+		$locale_2  = $wp_locale_switcher->get_current_locale();
 		$user_id_2 = $wp_locale_switcher->get_current_user_id();
 
 		switch_to_locale( 'en_GB' );
 
-		$locale_3 = $wp_locale_switcher->get_current_locale();
+		$locale_3  = $wp_locale_switcher->get_current_locale();
 		$user_id_3 = $wp_locale_switcher->get_current_user_id();
 
 		switch_to_user_locale( $user_2 );
 
-		$locale_4 = $wp_locale_switcher->get_current_locale();
+		$locale_4  = $wp_locale_switcher->get_current_locale();
 		$user_id_4 = $wp_locale_switcher->get_current_user_id();
 
 		restore_current_locale();
 
-		$locale_5 = $wp_locale_switcher->get_current_locale();
+		$locale_5  = $wp_locale_switcher->get_current_locale();
 		$user_id_5 = $wp_locale_switcher->get_current_user_id();
 
 		$wp_locale_switcher = $locale_switcher;
