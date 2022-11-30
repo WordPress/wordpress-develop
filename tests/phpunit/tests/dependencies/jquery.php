@@ -10,7 +10,7 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 	 * @covers WP_Scripts::query
 	 */
 	public function test_location_of_jquery() {
-		$scripts = new WP_Scripts;
+		$scripts = new WP_Scripts();
 		wp_default_scripts( $scripts );
 
 		if ( SCRIPT_DEBUG ) {
@@ -106,7 +106,7 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 	 * @covers WP_Scripts::do_items
 	 */
 	public function test_jquery_in_footer() {
-		$scripts = new WP_Scripts;
+		$scripts = new WP_Scripts();
 		$scripts->add( 'jquery', false, array( 'jquery-core', 'jquery-migrate' ) );
 		$scripts->add( 'jquery-core', '/jquery.js', array() );
 		$scripts->add( 'jquery-migrate', '/jquery-migrate.js', array() );

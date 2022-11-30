@@ -10,12 +10,12 @@ class Test_Block_Supports_Border extends WP_UnitTestCase {
 	 */
 	private $test_block_name;
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		$this->test_block_name = null;
 	}
 
-	function tear_down() {
+	public function tear_down() {
 		unregister_block_type( $this->test_block_name );
 		$this->test_block_name = null;
 		parent::set_up();
@@ -24,7 +24,7 @@ class Test_Block_Supports_Border extends WP_UnitTestCase {
 	/**
 	 * @ticket 55505
 	 */
-	function test_border_color_slug_with_numbers_is_kebab_cased_properly() {
+	public function test_border_color_slug_with_numbers_is_kebab_cased_properly() {
 		$this->test_block_name = 'test/border-color-slug-with-numbers-is-kebab-cased-properly';
 		register_block_type(
 			$this->test_block_name,
@@ -73,7 +73,7 @@ class Test_Block_Supports_Border extends WP_UnitTestCase {
 	/**
 	 * @ticket 55505
 	 */
-	function test_border_with_skipped_serialization_block_supports() {
+	public function test_border_with_skipped_serialization_block_supports() {
 		$this->test_block_name = 'test/border-with-skipped-serialization-block-supports';
 		register_block_type(
 			$this->test_block_name,
@@ -117,7 +117,7 @@ class Test_Block_Supports_Border extends WP_UnitTestCase {
 	/**
 	 * @ticket 55505
 	 */
-	function test_radius_with_individual_skipped_serialization_block_supports() {
+	public function test_radius_with_individual_skipped_serialization_block_supports() {
 		$this->test_block_name = 'test/radius-with-individual-skipped-serialization-block-supports';
 		register_block_type(
 			$this->test_block_name,

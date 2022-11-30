@@ -105,7 +105,7 @@ if ( ! function_exists( 'get_user_by' ) ) :
 			return false;
 		}
 
-		$user = new WP_User;
+		$user = new WP_User();
 		$user->init( $userdata );
 
 		return $user;
@@ -2879,7 +2879,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			$extra_attr .= "loading='{$loading}'";
 		}
 
-		if ( in_array( $args['decoding'], array( 'async', 'sync', 'auto' ) ) && ! preg_match( '/\bdecoding\s*=/', $extra_attr ) ) {
+		if ( in_array( $args['decoding'], array( 'async', 'sync', 'auto' ), true ) && ! preg_match( '/\bdecoding\s*=/', $extra_attr ) ) {
 			if ( ! empty( $extra_attr ) ) {
 				$extra_attr .= ' ';
 			}

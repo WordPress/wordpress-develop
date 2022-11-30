@@ -30,11 +30,7 @@ currently being supported with security updates.
 | 4.3.x   | Yes       |
 | 4.2.x   | Yes       |
 | 4.1.x   | Yes       |
-| 4.0.x   | Yes       |
-| 3.9.x   | Yes       |
-| 3.8.x   | Yes       |
-| 3.7.x   | Yes       |
-| < 3.7.0 | No        |
+| < 4.1.0 | No        |
 
 ## Reporting a Vulnerability
 
