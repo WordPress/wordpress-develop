@@ -126,7 +126,7 @@ class WP_Locale_Switcher {
 			return false;
 		}
 
-		$entry = end( $this->stack );
+		$entry  = end( $this->stack );
 		$locale = is_array( $entry ) ? $entry[0] : false;
 
 		if ( ! $locale ) {
