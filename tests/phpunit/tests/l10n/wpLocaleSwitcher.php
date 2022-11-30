@@ -16,6 +16,20 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 	 */
 	protected $previous_locale = '';
 
+	/**
+	 * @var int
+	 */
+	protected static $user_id;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$user_id = $factory->user->create(
+			array(
+				'role'   => 'administrator',
+				'locale' => 'de_DE',
+			)
+		);
+	}
+
 	public function set_up() {
 		parent::set_up();
 
@@ -326,14 +340,7 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		$site_locale = get_locale();
 
-		$user_id = self::factory()->user->create(
-			array(
-				'role'   => 'administrator',
-				'locale' => 'de_DE',
-			)
-		);
-
-		wp_set_current_user( $user_id );
+		wp_set_current_user( self::$user_id );
 		set_current_screen( 'dashboard' );
 
 		$locale_switcher = clone $wp_locale_switcher;
@@ -378,14 +385,7 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		$site_locale = get_locale();
 
-		$user_id = self::factory()->user->create(
-			array(
-				'role'   => 'administrator',
-				'locale' => 'de_DE',
-			)
-		);
-
-		wp_set_current_user( $user_id );
+		wp_set_current_user( self::$user_id );
 		set_current_screen( 'dashboard' );
 
 		$locale_switcher = clone $wp_locale_switcher;
@@ -430,14 +430,7 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		$site_locale = get_locale();
 
-		$user_id = self::factory()->user->create(
-			array(
-				'role'   => 'administrator',
-				'locale' => 'en_GB',
-			)
-		);
-
-		wp_set_current_user( $user_id );
+		wp_set_current_user( self::$user_id );
 		set_current_screen( 'dashboard' );
 
 		$locale_switcher = clone $wp_locale_switcher;
@@ -540,6 +533,69 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 		$this->assertSame( 'This is a dummy theme', $actual );
 		$this->assertSame( 'Das ist ein Dummy Theme', $actual_de_de );
 		$this->assertSame( 'Este es un tema dummy', $actual_es_es );
+	}
+
+	/**
+	 * @covers ::switch_to_locale
+	 * @covers ::switch_to_user_locale
+	 * @covers WP_Locale_Switcher::get_current_locale
+	 * @covers WP_Locale_Switcher::get_current_user_id
+	 */
+	public function test_returns_current_locale_and_user_after_switching() {
+		global $wp_locale_switcher;
+
+		$user_2 = self::factory()->user->create(
+			array(
+				'role'   => 'administrator',
+				'locale' => 'es_ES',
+			)
+		);
+
+		$locale_switcher = clone $wp_locale_switcher;
+
+		$wp_locale_switcher = new WP_Locale_Switcher();
+		$wp_locale_switcher->init();
+
+		$locale_1 = $wp_locale_switcher->get_current_locale();
+		$user_id_1 = $wp_locale_switcher->get_current_user_id();
+
+		switch_to_user_locale( self::$user_id );
+
+		$locale_2 = $wp_locale_switcher->get_current_locale();
+		$user_id_2 = $wp_locale_switcher->get_current_user_id();
+
+		switch_to_locale( 'en_GB' );
+
+		$locale_3 = $wp_locale_switcher->get_current_locale();
+		$user_id_3 = $wp_locale_switcher->get_current_user_id();
+
+		switch_to_user_locale( $user_2 );
+
+		$locale_4 = $wp_locale_switcher->get_current_locale();
+		$user_id_4 = $wp_locale_switcher->get_current_user_id();
+
+		restore_current_locale();
+
+		$locale_5 = $wp_locale_switcher->get_current_locale();
+		$user_id_5 = $wp_locale_switcher->get_current_user_id();
+
+		$wp_locale_switcher = $locale_switcher;
+
+		$this->assertFalse( $locale_1 );
+		$this->assertFalse( $user_id_1 );
+
+		$this->assertSame( 'de_DE', $locale_2 );
+		$this->assertSame( self::$user_id, $user_id_2 );
+
+		$this->assertSame( 'en_GB', $locale_3 );
+		$this->assertFalse( $user_id_3 );
+
+		$this->assertSame( 'es_ES', $locale_4 );
+		$this->assertSame( $user_2, $user_id_4 );
+
+		$this->assertFalse( $locale_5 );
+		$this->assertFalse( $user_id_5 );
+
 	}
 
 	public function filter_locale() {
