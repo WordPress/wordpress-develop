@@ -457,6 +457,7 @@ add_filter( 'render_block', 'wp_render_layout_support_flag', 10, 2 );
  * @return string Filtered block content.
  */
 function wp_restore_group_inner_container( $block_content, $block ) {
+	global $wp_theme_json_resolver;
 	$tag_name                         = isset( $block['attrs']['tagName'] ) ? $block['attrs']['tagName'] : 'div';
 	$group_with_inner_container_regex = sprintf(
 		'/(^\s*<%1$s\b[^>]*wp-block-group(\s|")[^>]*>)(\s*<div\b[^>]*wp-block-group__inner-container(\s|")[^>]*>)((.|\S|\s)*)/U',
@@ -464,7 +465,7 @@ function wp_restore_group_inner_container( $block_content, $block ) {
 	);
 
 	if (
-		WP_Theme_JSON_Resolver::theme_has_support() ||
+		$wp_theme_json_resolver->theme_has_support() ||
 		1 === preg_match( $group_with_inner_container_regex, $block_content ) ||
 		( isset( $block['attrs']['layout']['type'] ) && 'flex' === $block['attrs']['layout']['type'] )
 	) {
@@ -500,6 +501,7 @@ add_filter( 'render_block_core/group', 'wp_restore_group_inner_container', 10, 2
  * @return string Filtered block content.
  */
 function wp_restore_image_outer_container( $block_content, $block ) {
+	global $wp_theme_json_resolver;
 	$image_with_align = "
 /# 1) everything up to the class attribute contents
 (
@@ -527,7 +529,7 @@ function wp_restore_image_outer_container( $block_content, $block ) {
 )/iUx";
 
 	if (
-		WP_Theme_JSON_Resolver::theme_has_support() ||
+		$wp_theme_json_resolver->theme_has_support() ||
 		0 === preg_match( $image_with_align, $block_content, $matches )
 	) {
 		return $block_content;

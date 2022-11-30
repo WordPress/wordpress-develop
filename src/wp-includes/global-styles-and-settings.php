@@ -24,6 +24,7 @@
  * @return array The settings to retrieve.
  */
 function wp_get_global_settings( $path = array(), $context = array() ) {
+	global $wp_theme_json_resolver;
 	if ( ! empty( $context['block_name'] ) ) {
 		$path = array_merge( array( 'blocks', $context['block_name'] ), $path );
 	}
@@ -33,7 +34,7 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
 		$origin = 'theme';
 	}
 
-	$settings = WP_Theme_JSON_Resolver::get_merged_data( $origin )->get_settings();
+	$settings = $wp_theme_json_resolver->get_merged_data( $origin )->get_settings();
 
 	return _wp_array_get( $settings, $path, $settings );
 }
@@ -57,6 +58,7 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
  * @return array The styles to retrieve.
  */
 function wp_get_global_styles( $path = array(), $context = array() ) {
+	global $wp_theme_json_resolver;
 	if ( ! empty( $context['block_name'] ) ) {
 		$path = array_merge( array( 'blocks', $context['block_name'] ), $path );
 	}
@@ -66,7 +68,7 @@ function wp_get_global_styles( $path = array(), $context = array() ) {
 		$origin = 'theme';
 	}
 
-	$styles = WP_Theme_JSON_Resolver::get_merged_data( $origin )->get_raw_data()['styles'];
+	$styles = $wp_theme_json_resolver->get_merged_data( $origin )->get_raw_data()['styles'];
 
 	return _wp_array_get( $styles, $path, $styles );
 }
@@ -83,6 +85,7 @@ function wp_get_global_styles( $path = array(), $context = array() ) {
  * @return string Stylesheet.
  */
 function wp_get_global_stylesheet( $types = array() ) {
+	global $wp_theme_json_resolver;
 	// Return cached value if it can be used and exists.
 	// It's cached by theme to make sure that theme switching clears the cache.
 	$can_use_cached = (
@@ -100,9 +103,9 @@ function wp_get_global_stylesheet( $types = array() ) {
 		}
 	}
 
-	$tree = WP_Theme_JSON_Resolver::get_merged_data();
+	$tree = $wp_theme_json_resolver->get_merged_data();
 
-	$supports_theme_json = WP_Theme_JSON_Resolver::theme_has_support();
+	$supports_theme_json = $wp_theme_json_resolver->theme_has_support();
 	if ( empty( $types ) && ! $supports_theme_json ) {
 		$types = array( 'variables', 'presets', 'base-layout-styles' );
 	} elseif ( empty( $types ) ) {
@@ -168,6 +171,7 @@ function wp_get_global_stylesheet( $types = array() ) {
  * @return string
  */
 function wp_get_global_styles_svg_filters() {
+	global $wp_theme_json_resolver;
 	// Return cached value if it can be used and exists.
 	// It's cached by theme to make sure that theme switching clears the cache.
 	$can_use_cached = (
@@ -184,14 +188,14 @@ function wp_get_global_styles_svg_filters() {
 		}
 	}
 
-	$supports_theme_json = WP_Theme_JSON_Resolver::theme_has_support();
+	$supports_theme_json = $wp_theme_json_resolver->theme_has_support();
 
 	$origins = array( 'default', 'theme', 'custom' );
 	if ( ! $supports_theme_json ) {
 		$origins = array( 'default' );
 	}
 
-	$tree = WP_Theme_JSON_Resolver::get_merged_data();
+	$tree = $wp_theme_json_resolver->get_merged_data();
 	$svgs = $tree->get_svg_filters( $origins );
 
 	if ( $can_use_cached ) {
@@ -208,7 +212,8 @@ function wp_get_global_styles_svg_filters() {
  * @since 6.1.0
  */
 function wp_add_global_styles_for_blocks() {
-	$tree        = WP_Theme_JSON_Resolver::get_merged_data();
+	global $wp_theme_json_resolver;
+	$tree        = $wp_theme_json_resolver->get_merged_data();
 	$block_nodes = $tree->get_styles_block_nodes();
 	foreach ( $block_nodes as $metadata ) {
 		$block_css = $tree->get_styles_for_block( $metadata );

@@ -387,6 +387,7 @@ function _wp_get_iframed_editor_assets() {
  * @return array The contextualized block editor settings.
  */
 function get_block_editor_settings( array $custom_settings, $block_editor_context ) {
+	global $wp_theme_json_resolver;
 	$editor_settings = array_merge(
 		get_default_block_editor_settings(),
 		array(
@@ -417,7 +418,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		}
 	}
 
-	if ( WP_Theme_JSON_Resolver::theme_has_support() ) {
+	if ( $wp_theme_json_resolver->theme_has_support() ) {
 		$block_classes = array(
 			'css'            => 'styles',
 			'__unstableType' => 'theme',

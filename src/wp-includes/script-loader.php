@@ -1468,7 +1468,7 @@ function wp_default_scripts( $scripts ) {
  * @param WP_Styles $styles
  */
 function wp_default_styles( $styles ) {
-	global $editor_styles;
+	global $editor_styles, $wp_theme_json_resolver;
 
 	// Include an unmodified $wp_version.
 	require ABSPATH . WPINC . '/version.php';
@@ -1618,7 +1618,7 @@ function wp_default_styles( $styles ) {
 	);
 
 	// Only load the default layout and margin styles for themes without theme.json file.
-	if ( ! WP_Theme_JSON_Resolver::theme_has_support() ) {
+	if ( ! $wp_theme_json_resolver->theme_has_support() ) {
 		$wp_edit_blocks_dependencies[] = 'wp-editor-classic-layout-styles';
 	}
 
@@ -3201,12 +3201,13 @@ function _wp_theme_json_webfonts_handler() {
 	 * @return array Array of defined webfonts.
 	 */
 	$fn_get_webfonts_from_theme_json = static function() {
+		global $wp_theme_json_resolver;
 		// Get settings from theme.json.
-		$settings = WP_Theme_JSON_Resolver::get_merged_data()->get_settings();
+		$settings = $wp_theme_json_resolver->get_merged_data()->get_settings();
 
 		// If in the editor, add webfonts defined in variations.
 		if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
-			$variations = WP_Theme_JSON_Resolver::get_style_variations();
+			$variations = $wp_theme_json_resolver->get_style_variations();
 			foreach ( $variations as $variation ) {
 				// Skip if fontFamilies are not defined in the variation.
 				if ( empty( $variation['settings']['typography']['fontFamilies'] ) ) {
@@ -3665,7 +3666,8 @@ function _wp_theme_json_webfonts_handler() {
  * @since 6.1.0
  */
 function wp_enqueue_classic_theme_styles() {
-	if ( ! WP_Theme_JSON_Resolver::theme_has_support() ) {
+	global $wp_theme_json_resolver;
+	if ( ! $wp_theme_json_resolver->theme_has_support() ) {
 		$suffix = wp_scripts_get_suffix();
 		wp_register_style( 'classic-theme-styles', '/' . WPINC . "/css/classic-themes$suffix.css", array(), true );
 		wp_enqueue_style( 'classic-theme-styles' );
@@ -3683,7 +3685,8 @@ function wp_enqueue_classic_theme_styles() {
  * @return array A filtered array of editor settings.
  */
 function wp_add_editor_classic_theme_styles( $editor_settings ) {
-	if ( WP_Theme_JSON_Resolver::theme_has_support() ) {
+	global $wp_theme_json_resolver;
+	if ( $wp_theme_json_resolver->theme_has_support() ) {
 		return $editor_settings;
 	}
 
