@@ -1616,9 +1616,7 @@
 
 		// DecrementCount from update count.
 		if ( 'themes' === pagenow ) {
-			var wpThemeSettings = _wpThemeSettings || {},
-				theme           = _.find( wpThemeSettings.themes, { id: response.slug } );
-
+		    var theme = _.find( _wpThemeSettings.themes, { id: response.slug } );
 		    if ( theme.hasUpdate ) {
 		        wp.updates.decrementCount( 'theme' );
 		    }
