@@ -304,7 +304,7 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 					'2.7.0',
 					sprintf(
 						/* translators: %s: The option/setting. */
-						__( 'The %s setting is unregistered. Unregistered settings are deprecated. See https://developer.wordpress.org/plugins/settings/settings-api/' ),
+						__( 'The %s setting is unregistered. Unregistered settings are deprecated. See: https://developer.wordpress.org/plugins/settings/settings-api/' ),
 						'<code>' . esc_html( $option ) . '</code>'
 					)
 				);
