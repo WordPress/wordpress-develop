@@ -431,6 +431,7 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 		$site_locale = get_locale();
 
 		wp_set_current_user( self::$user_id );
+		update_user_meta( self::$user_id, 'locale', 'en_GB' );
 		set_current_screen( 'dashboard' );
 
 		$locale_switcher = clone $wp_locale_switcher;
