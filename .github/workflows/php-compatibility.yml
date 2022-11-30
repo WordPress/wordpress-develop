@@ -66,7 +66,7 @@ jobs:
         with:
           php-version: '7.4'
           coverage: none
-          tools: composer, cs2pr
+          tools: cs2pr
 
       - name: Log debug information
         run: |
@@ -84,10 +84,12 @@ jobs:
           path: .cache/phpcompat.json
           key: ${{ runner.os }}-date-${{ steps.get-date.outputs.date }}-phpcompat-cache-${{ hashFiles('**/composer.json', 'phpcompat.xml.dist') }}
 
+      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
+      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
       - name: Install Composer dependencies
         uses: ramsey/composer-install@83af392bf5f031813d25e6fe4cd626cdba9a2df6 # v2.2.0
         with:
-          composer-options: "--no-progress --no-ansi"
+          custom-cache-suffix: ${{ steps.get-date.outputs.date }}
 
       - name: Make Composer packages available globally
         run: echo "${PWD}/vendor/bin" >> $GITHUB_PATH

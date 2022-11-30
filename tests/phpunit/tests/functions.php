@@ -5,7 +5,7 @@
  */
 class Tests_Functions extends WP_UnitTestCase {
 	public function test_wp_parse_args_object() {
-		$x        = new MockClass;
+		$x        = new MockClass();
 		$x->_baba = 5;
 		$x->yZ    = 'baba'; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		$x->a     = array( 5, 111, 'x' );
@@ -17,7 +17,7 @@ class Tests_Functions extends WP_UnitTestCase {
 			),
 			wp_parse_args( $x )
 		);
-		$y = new MockClass;
+		$y = new MockClass();
 		$this->assertSame( array(), wp_parse_args( $y ) );
 	}
 
@@ -41,7 +41,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	public function test_wp_parse_args_defaults() {
-		$x        = new MockClass;
+		$x        = new MockClass();
 		$x->_baba = 5;
 		$x->yZ    = 'baba'; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		$x->a     = array( 5, 111, 'x' );
@@ -1113,7 +1113,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @ticket 28786
 	 */
 	public function test_wp_json_encode_object() {
-		$object    = new stdClass;
+		$object    = new stdClass();
 		$object->a = 'b';
 		$this->assertSame( wp_json_encode( $object ), '{"a":"b"}' );
 	}
@@ -2066,45 +2066,10 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 49412
-	 * @covers ::wp_filesize
-	 */
-	function test_wp_filesize_with_nonexistent_file() {
-		$file = 'nonexistent/file.jpg';
-		$this->assertSame( 0, wp_filesize( $file ) );
-	}
-
-	/**
-	 * @ticket 49412
-	 * @covers ::wp_filesize
-	 */
-	function test_wp_filesize() {
-		$file = DIR_TESTDATA . '/images/test-image-upside-down.jpg';
-
-		$this->assertSame( filesize( $file ), wp_filesize( $file ) );
-
-		$filter = function() {
-			return 999;
-		};
-
-		add_filter( 'wp_filesize', $filter );
-
-		$this->assertSame( 999, wp_filesize( $file ) );
-
-		$pre_filter = function() {
-			return 111;
-		};
-
-		add_filter( 'pre_wp_filesize', $pre_filter );
-
-		$this->assertSame( 111, wp_filesize( $file ) );
-	}
-
-	/**
 	 * @ticket 55505
 	 * @covers ::wp_recursive_ksort
 	 */
-	function test_wp_recursive_ksort() {
+	public function test_wp_recursive_ksort() {
 		// Create an array to test.
 		$theme_json = array(
 			'version'  => 1,

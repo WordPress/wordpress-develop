@@ -1547,9 +1547,8 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *
  * @global array $wp_post_types List of post types.
  *
- * @param string       $post_type Post type key. Must not exceed 20 characters and may
- *                                only contain lowercase alphanumeric characters, dashes,
- *                                and underscores. See sanitize_key().
+ * @param string       $post_type Post type key. Must not exceed 20 characters and may only contain
+ *                                lowercase alphanumeric characters, dashes, and underscores. See sanitize_key().
  * @param array|string $args {
  *     Array or string of arguments for registering a post type.
  *
@@ -2411,7 +2410,7 @@ function get_posts( $args = null ) {
 	$parsed_args['ignore_sticky_posts'] = true;
 	$parsed_args['no_found_rows']       = true;
 
-	$get_posts = new WP_Query;
+	$get_posts = new WP_Query();
 	return $get_posts->query( $parsed_args );
 
 }
@@ -3014,7 +3013,7 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 	global $wpdb;
 
 	if ( ! post_type_exists( $type ) ) {
-		return new stdClass;
+		return new stdClass();
 	}
 
 	$cache_key = _count_posts_cache_key( $type, $perm );
@@ -3057,7 +3056,7 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 	wp_cache_set( $cache_key, $counts, 'counts' );
 
 	/**
-	 * Modifies returned post counts by status for the current post type.
+	 * Filters the post counts by status for the current post type.
 	 *
 	 * @since 3.7.0
 	 *
@@ -3109,7 +3108,7 @@ function wp_count_attachments( $mime_type = '' ) {
 	}
 
 	/**
-	 * Modifies returned attachment counts by mime type.
+	 * Filters the attachment counts by mime type.
 	 *
 	 * @since 3.7.0
 	 *
@@ -4198,7 +4197,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 
 		if ( $update && strtolower( urlencode( $post_name ) ) == $check_name && get_post_field( 'post_name', $post_ID ) == $check_name ) {
 			$post_name = $check_name;
-		} else { // new post, or slug has changed.
+		} else { // New post, or slug has changed.
 			$post_name = sanitize_title( $post_name );
 		}
 	}
@@ -7877,7 +7876,9 @@ function _update_term_count_on_transition_post_status( $new_status, $old_status,
  * @since 3.4.0
  * @since 6.1.0 This function is no longer marked as "private".
  *
- * @see update_post_caches()
+ * @see update_post_cache()
+ * @see update_postmeta_cache()
+ * @see update_object_term_cache()
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -7892,7 +7893,20 @@ function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache
 	if ( ! empty( $non_cached_ids ) ) {
 		$fresh_posts = $wpdb->get_results( sprintf( "SELECT $wpdb->posts.* FROM $wpdb->posts WHERE ID IN (%s)", implode( ',', $non_cached_ids ) ) );
 
-		update_post_caches( $fresh_posts, 'any', $update_term_cache, $update_meta_cache );
+		if ( $fresh_posts ) {
+			// Despite the name, update_post_cache() expects an array rather than a single post.
+			update_post_cache( $fresh_posts );
+		}
+	}
+
+	if ( $update_meta_cache ) {
+		update_postmeta_cache( $ids );
+	}
+
+	if ( $update_term_cache ) {
+		$post_types = array_map( 'get_post_type', $ids );
+		$post_types = array_unique( $post_types );
+		update_object_term_cache( $ids, $post_types );
 	}
 }
 
