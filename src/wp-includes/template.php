@@ -705,11 +705,11 @@ function locate_template( $template_names, $load = false, $require_once = true, 
 			continue;
 		}
 
-		if ( isset( $template_cache[ $template_name ] ) && '' === $template_cache[ $template_name ] ) {
-			continue;
-		}
-
 		if ( isset( $template_cache[ $template_name ] ) ) {
+			if ( '' === $template_cache[ $template_name ] ) {
+				continue;
+			}
+
 			$located = $template_cache[ $template_name ];
 			break;
 		}
