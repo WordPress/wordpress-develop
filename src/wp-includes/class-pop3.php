@@ -59,7 +59,9 @@ class POP3 {
         if(!empty($timeout)) {
             settype($timeout,"integer");
             $this->TIMEOUT = $timeout;
-            set_time_limit($timeout);
+			if (strpos(ini_get('disable_functions'), 'set_time_limit') === 0){
+				set_time_limit($timeout);
+			}
         }
         return true;
     }
@@ -72,7 +74,9 @@ class POP3 {
 	}
 
     function update_timer () {
-        set_time_limit($this->TIMEOUT);
+		if (strpos(ini_get('disable_functions'), 'set_time_limit') === 0){
+			set_time_limit($this->TIMEOUT);
+		}
         return true;
     }
 
