@@ -3112,8 +3112,8 @@ function pingback( $content, $post ) {
 
 		if ( $pingback_server_url ) {
 
-			if (strpos(ini_get('disable_functions'), 'set_time_limit') === 0) {
-				set_time_limit(60);
+			if ( strpos( ini_get( 'disable_functions' ), 'set_time_limit' ) === 0 ) {
+				set_time_limit( 60 );
 			}
 
 			// Now, the RPC call.

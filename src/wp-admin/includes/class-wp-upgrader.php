@@ -470,8 +470,8 @@ class WP_Upgrader {
 		$destination       = $args['destination'];
 		$clear_destination = $args['clear_destination'];
 
-		if (strpos(ini_get('disable_functions'), 'set_time_limit') === 0) {
-			set_time_limit(300);
+		if ( strpos( ini_get( 'disable_functions' ), 'set_time_limit' ) === 0 ) {
+			set_time_limit( 300 );
 		}
 
 		if ( empty( $source ) || empty( $destination ) ) {

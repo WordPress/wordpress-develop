@@ -3518,8 +3518,8 @@ function wp_ajax_get_revision_diffs() {
 
 	$return = array();
 
-	if (strpos(ini_get('disable_functions'), 'set_time_limit') === 0) {
-		set_time_limit(0);
+	if ( strpos( ini_get( 'disable_functions' ), 'set_time_limit' ) === 0 ) {
+		set_time_limit( 0 );
 	}
 
 	foreach ( $_REQUEST['compare'] as $compare_key ) {
