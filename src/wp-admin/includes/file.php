@@ -540,7 +540,7 @@ function wp_edit_theme_plugin_file( $args ) {
 		}
 
 		// Make sure PHP process doesn't die before loopback requests complete.
-		if ( strpos( ini_get( 'disable_functions' ), 'set_time_limit' ) === 0 ) {
+		if ( strpos( ini_get( 'disable_functions' ), 'set_time_limit' ) !== 0 ) {
 			set_time_limit( 5 * MINUTE_IN_SECONDS );
 		}
 
