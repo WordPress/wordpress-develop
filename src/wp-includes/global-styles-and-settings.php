@@ -83,18 +83,12 @@ function wp_get_global_styles( $path = array(), $context = array() ) {
  * @return string Stylesheet.
  */
 function wp_get_global_stylesheet( $types = array() ) {
-	// Return cached value if it can be used and exists.
-	// It's cached by theme to make sure that theme switching clears the cache.
-	$can_use_cached = (
-		( empty( $types ) ) &&
-		( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) &&
-		( ! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG ) &&
-		( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST ) &&
-		! is_admin()
-	);
-	$transient_name = 'global_styles_' . get_stylesheet();
+	// Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme developers workflow.
+	$can_use_cached = empty( $types ) && ! WP_DEBUG;
+	$cache_key      = 'wp_get_global_stylesheet';
+	$cache_group    = 'theme_json';
 	if ( $can_use_cached ) {
-		$cached = get_transient( $transient_name );
+		$cached = wp_cache_get( $cache_key, $cache_group );
 		if ( $cached ) {
 			return $cached;
 		}
@@ -148,15 +142,10 @@ function wp_get_global_stylesheet( $types = array() ) {
 		}
 		$styles_rest = $tree->get_stylesheet( $types, $origins );
 	}
-
 	$stylesheet = $styles_variables . $styles_rest;
-
 	if ( $can_use_cached ) {
-		// Cache for a minute.
-		// This cache doesn't need to be any longer, we only want to avoid spikes on high-traffic sites.
-		set_transient( $transient_name, $stylesheet, MINUTE_IN_SECONDS );
+		wp_cache_set( $cache_key, $stylesheet, $cache_group );
 	}
-
 	return $stylesheet;
 }
 
@@ -283,3 +272,31 @@ function wp_theme_has_theme_json() {
 function wp_clean_theme_json_cache() {
 	WP_Theme_JSON_Resolver::clean_cached_data();
 }
+
+/**
+ * Tell the cache mechanisms not to persist theme.json data across requests.
+ * The data stored under this cache group:
+ *
+ * - wp_get_global_stylesheet
+ *
+ * There is some hooks consumers can use to modify parts
+ * of the theme.json logic.
+ * See https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
+ *
+ * The rationale to make this cache group non persistent is to make sure derived data
+ * from theme.json is always fresh from the potential modifications done via hooks
+ * that can use dynamic data (modify the stylesheet depending on some option,
+ * or settings depending on user permissions, etc.).
+ *
+ * A different alternative considered was to invalidate the cache upon certain
+ * events such as options add/update/delete, user meta, etc.
+ * It was judged not enough, hence this approach.
+ * See https://github.com/WordPress/gutenberg/pull/45372
+ *
+ * @since 6.1.2
+ * @access private
+ */
+function _wp_add_non_persistent_theme_json_cache_group() {
+	wp_cache_add_non_persistent_groups( 'theme_json' );
+}
+add_action( 'plugins_loaded', '_wp_add_non_persistent_theme_json_cache_group' );
