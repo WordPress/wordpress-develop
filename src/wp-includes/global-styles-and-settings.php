@@ -299,4 +299,3 @@ function wp_clean_theme_json_cache() {
 function _wp_add_non_persistent_theme_json_cache_group() {
 	wp_cache_add_non_persistent_groups( 'theme_json' );
 }
-add_action( 'plugins_loaded', '_wp_add_non_persistent_theme_json_cache_group' );
