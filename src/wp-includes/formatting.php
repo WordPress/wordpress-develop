@@ -2094,7 +2094,7 @@ function sanitize_file_name( $filename ) {
 		}
 	}
 
-	$filename .= '.' . $extension;
+	$filename = trim($filename, '.') . '.' . $extension;
 
 	/**
 	 * Filters a sanitized filename string.
