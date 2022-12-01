@@ -3518,7 +3518,7 @@ function wp_ajax_get_revision_diffs() {
 
 	$return = array();
 
-	if ( strpos( ini_get( 'disable_functions' ), 'set_time_limit' ) !== 0 ) {
+	if ( function_exists( 'set_time_limit' ) ) {
 		set_time_limit( 0 );
 	}
 
