@@ -737,11 +737,13 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		$restrict_network_active = false;
 		$restrict_network_only   = false;
 
-		$requires_php = isset( $plugin_data['RequiresPHP'] ) ? $plugin_data['RequiresPHP'] : null;
-		$requires_wp  = isset( $plugin_data['RequiresWP'] ) ? $plugin_data['RequiresWP'] : null;
+		$requires_php     = isset( $plugin_data['RequiresPHP'] ) ? $plugin_data['RequiresPHP'] : null;
+		$requires_wp      = isset( $plugin_data['RequiresWP'] ) ? $plugin_data['RequiresWP'] : null;
+		$requires_network = isset( $plugin_data['Requires Network'] ) ? $plugin_data['Requires Network'] : null;
 
-		$compatible_php = is_php_version_compatible( $requires_php );
-		$compatible_wp  = is_wp_version_compatible( $requires_wp );
+		$compatible_php             = is_php_version_compatible( $requires_php );
+		$compatible_wp              = is_wp_version_compatible( $requires_wp );
+		$compatible_wp_installation = is_wp_installation_compatible( $requires_network );
 
 		if ( 'mustuse' === $context ) {
 			$is_active = true;
@@ -857,7 +859,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					}
 				} else {
 					if ( current_user_can( 'activate_plugin', $plugin_file ) ) {
-						if ( $compatible_php && $compatible_wp ) {
+						if ( $compatible_php && $compatible_wp && $compatible_wp_installation ) {
 							$actions['activate'] = sprintf(
 								'<a href="%s" id="activate-%s" class="edit" aria-label="%s">%s</a>',
 								wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'activate-plugin_' . $plugin_file ),
@@ -997,7 +999,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		}
 
 		if ( ! empty( $totals['upgrade'] ) && ! empty( $plugin_data['update'] )
-			|| ! $compatible_php || ! $compatible_wp
+			|| ! $compatible_php || ! $compatible_wp || ! $compatible_wp_installation
 		) {
 			$class .= ' update';
 		}
@@ -1261,7 +1263,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 		echo '</tr>';
 
-		if ( ! $compatible_php || ! $compatible_wp ) {
+		if ( ! $compatible_php || ! $compatible_wp || ! $compatible_wp_installation ) {
 			printf(
 				'<tr class="plugin-update-tr">' .
 				'<td colspan="%s" class="plugin-update colspanchange">' .
@@ -1311,6 +1313,15 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						esc_url( wp_get_update_php_url() )
 					);
 					wp_update_php_annotation( '</p><p><em>', '</em>' );
+				}
+			} elseif ( ! $compatible_wp_installation ) {
+				_e( 'The uploaded plugin requires a network installation to work.' );
+				if ( current_user_can( 'setup_network' ) ) {
+					printf(
+						/* translators: %s: URL to Update PHP page. */
+						' ' . __( '<a href="%s">Learn more about network installation.</a>.' ),
+						esc_url( wp_get_default_network_installation_url() )
+					);
 				}
 			}
 
