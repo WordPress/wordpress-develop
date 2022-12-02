@@ -5056,11 +5056,11 @@ function wp_parse_str( $input, &$result ) {
  *
  * @since 2.3.0
  *
- * @param string $text Text to be converted.
+ * @param string $content Text to be converted.
  * @return string Converted text.
  */
-function wp_pre_kses_less_than( $text ) {
-	return preg_replace_callback( '%<[^>]*?((?=<)|>|$)%', 'wp_pre_kses_less_than_callback', $text );
+function wp_pre_kses_less_than( $content ) {
+	return preg_replace_callback( '%<[^>]*?((?=<)|>|$)%', 'wp_pre_kses_less_than_callback', $content );
 }
 
 /**
@@ -5389,19 +5389,19 @@ function normalize_whitespace( $str ) {
  *
  * @since 2.9.0
  *
- * @param string $content       String containing HTML tags
+ * @param string $text          String containing HTML tags
  * @param bool   $remove_breaks Optional. Whether to remove left over line breaks and white space chars
  * @return string The processed string.
  */
-function wp_strip_all_tags( $content, $remove_breaks = false ) {
-	$content = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $content );
-	$content = strip_tags( $content );
+function wp_strip_all_tags( $text, $remove_breaks = false ) {
+	$text = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $text );
+	$text = strip_tags( $text );
 
 	if ( $remove_breaks ) {
-		$content = preg_replace( '/[\r\n\t ]+/', ' ', $content );
+		$text = preg_replace( '/[\r\n\t ]+/', ' ', $text );
 	}
 
-	return trim( $content );
+	return trim( $text );
 }
 
 /**
