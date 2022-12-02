@@ -121,8 +121,8 @@ function get_option( $option, $default_value = false ) {
 	 * @since 4.4.0 The `$option` parameter was added.
 	 * @since 4.9.0 The `$default_value` parameter was added.
 	 *
-	 * @param mixed  $pre_option    The value to return instead of the option value. This differs
-	 *                              from `$default_value`, which is used as the fallback value in the event
+	 * @param mixed  $pre_option    The value to return instead of the option value. This differs from
+	 *                              `$default_value`, which is used as the fallback value in the event
 	 *                              the option doesn't exist elsewhere in get_option().
 	 *                              Default false (to skip past the short-circuit).
 	 * @param string $option        Option name.
@@ -139,15 +139,15 @@ function get_option( $option, $default_value = false ) {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param mixed  $pre_option  The value to return instead of the option value. This differs
-	 *                            from `$default`, which is used as the fallback value in the event
-	 *                            the option doesn't exist elsewhere in get_option().
-	 *                            Default false (to skip past the short-circuit).
-	 * @param string $option      Name of the option.
-	 * @param mixed  $default     The fallback value to return if the option does not exist.
-	 *                            Default false.
+	 * @param mixed  $pre_option    The value to return instead of the option value. This differs from
+	 *                              `$default_value`, which is used as the fallback value in the event
+	 *                              the option doesn't exist elsewhere in get_option().
+	 *                              Default false (to skip past the short-circuit).
+	 * @param string $option        Name of the option.
+	 * @param mixed  $default_value The fallback value to return if the option does not exist.
+	 *                              Default false.
 	 */
-	$pre = apply_filters( 'pre_option', $pre, $option, $default );
+	$pre = apply_filters( 'pre_option', $pre, $option, $default_value );
 
 	if ( false !== $pre ) {
 		return $pre;
@@ -1424,8 +1424,8 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 	 * @since 4.7.0 The `$network_id` parameter was added.
 	 * @since 4.9.0 The `$default_value` parameter was added.
 	 *
-	 * @param mixed  $pre_option    The value to return instead of the option value. This differs
-	 *                              from `$default_value`, which is used as the fallback value in the event
+	 * @param mixed  $pre_option    The value to return instead of the option value. This differs from
+	 *                              `$default_value`, which is used as the fallback value in the event
 	 *                              the option doesn't exist elsewhere in get_network_option().
 	 *                              Default false (to skip past the short-circuit).
 	 * @param string $option        Option name.
