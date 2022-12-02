@@ -6,7 +6,7 @@
  *
  * @covers ::wp_widgets_add_menu
  */#
-class Tests_functions_WpWidgetsAddMenu extends WP_UnitTestCase {
+class Tests_Functions_WpWidgetsAddMenu extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 57224
