@@ -15,7 +15,7 @@ class Tests_Functions_WpWidgetsAddMenu extends WP_UnitTestCase {
 		global $submenu;
 		$widget_support  = current_theme_supports( 'widgets' );
 		$current_submenu = $submenu;
-		// have to use the private call and the public does not allow to remove the widgets support.
+		// Have to use the private call and the public does not allow to remove the widgets support.
 		_remove_theme_support( 'widgets' );
 
 		wp_widgets_add_menu();
