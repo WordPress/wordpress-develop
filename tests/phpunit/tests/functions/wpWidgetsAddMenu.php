@@ -5,7 +5,7 @@
  * @group functions.php
  *
  * @covers ::wp_widgets_add_menu
- */#
+ */
 class Tests_Functions_WpWidgetsAddMenu extends WP_UnitTestCase {
 
 	/**
