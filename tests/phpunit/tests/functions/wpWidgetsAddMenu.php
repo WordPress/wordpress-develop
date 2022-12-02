@@ -25,7 +25,7 @@ class Tests_Functions_WpWidgetsAddMenu extends WP_UnitTestCase {
 		}
 		// Reset the global variable.
 		$submenu = $current_submenu;
-		$this->assertSame( $current_submenu, $update_submenu, 'no widget theme support so not menu added' );
+		$this->assertSame( $current_submenu, $update_submenu, 'theme did not support widgets so menu item not added' );
 	}
 
 	/**
