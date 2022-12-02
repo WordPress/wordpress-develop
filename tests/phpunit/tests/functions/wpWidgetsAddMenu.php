@@ -23,7 +23,7 @@ class Tests_Functions_WpWidgetsAddMenu extends WP_UnitTestCase {
 		if ( $widget_support ) {
 			add_theme_support( 'widgets' );
 		}
-		// reset the global variable
+		// Reset the global variable.
 		$submenu = $current_submenu;
 		$this->assertSame( $current_submenu, $update_submenu, 'no widget theme support so not menu added' );
 	}
