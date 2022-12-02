@@ -42,7 +42,7 @@ class Tests_Functions_WpWidgetsAddMenu extends WP_UnitTestCase {
 		if ( ! $widget_support ) {
 			remove_theme_support( 'widgets' );
 		}
-		// reset the global variable
+		// Reset the global variable.
 		$submenu                   = $current_submenu;
 		$expected['themes.php'][7] = array( __( 'Widgets' ), 'edit_theme_options', 'widgets.php' );
 		$this->assertSame( $update_submenu, $expected, 'theme support widgets so menu item added' );
