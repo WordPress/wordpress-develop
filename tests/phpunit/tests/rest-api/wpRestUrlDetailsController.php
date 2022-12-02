@@ -102,7 +102,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @covers WP_REST_URL_Details_Controller::get_routes
+	 * @covers WP_REST_URL_Details_Controller::register_routes
 	 *
 	 * @ticket 54358
 	 */
@@ -1048,28 +1048,46 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 		);
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_context_param() {
-		$this->markTestSkipped( 'Controller does not use context_param.' );
+		// Controller does not use get_context_param().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_get_item() {
-		$this->markTestSkipped( 'Controller does not have get_item route.' );
+		// Controller does not implement get_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_create_item() {
-		$this->markTestSkipped( 'Controller does not have create_item route.' );
+		// Controller does not implement create_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_update_item() {
-		$this->markTestSkipped( 'Controller does not have update_item route.' );
+		// Controller does not implement update_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_delete_item() {
-		$this->markTestSkipped( 'Controller does not have delete_item route.' );
+		// Controller does not implement delete_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_prepare_item() {
-		$this->markTestSkipped( 'Controller does not have prepare_item route.' );
+		// Controller does not implement prepare_item().
 	}
 
 	/**

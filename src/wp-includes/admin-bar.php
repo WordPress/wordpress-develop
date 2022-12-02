@@ -41,7 +41,7 @@ function _wp_admin_bar_init() {
 	 */
 	$admin_bar_class = apply_filters( 'wp_admin_bar_class', 'WP_Admin_Bar' );
 	if ( class_exists( $admin_bar_class ) ) {
-		$wp_admin_bar = new $admin_bar_class;
+		$wp_admin_bar = new $admin_bar_class();
 	} else {
 		return false;
 	}
@@ -724,7 +724,7 @@ function wp_admin_bar_shortlink_menu( $wp_admin_bar ) {
 		return;
 	}
 
-	$html = '<input class="shortlink-input" type="text" readonly="readonly" value="' . esc_attr( $short ) . '" />';
+	$html = '<input class="shortlink-input" type="text" readonly="readonly" value="' . esc_attr( $short ) . '" aria-label="' . __( 'Shortlink' ) . '" />';
 
 	$wp_admin_bar->add_node(
 		array(
@@ -809,7 +809,7 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 			);
 		} elseif ( 'term' === $current_screen->base && isset( $tag ) && is_object( $tag ) && ! is_wp_error( $tag ) ) {
 			$tax = get_taxonomy( $tag->taxonomy );
-			if ( is_taxonomy_viewable( $tax ) ) {
+			if ( is_term_publicly_viewable( $tag ) ) {
 				$wp_admin_bar->add_node(
 					array(
 						'id'    => 'view',

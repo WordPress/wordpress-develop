@@ -12,6 +12,7 @@
  *
  * @since 5.5.0
  */
+#[AllowDynamicProperties]
 final class WP_Block_Patterns_Registry {
 	/**
 	 * Registered block patterns array.
@@ -20,6 +21,14 @@ final class WP_Block_Patterns_Registry {
 	 * @var array[]
 	 */
 	private $registered_patterns = array();
+
+	/**
+	 * Patterns registered outside the `init` action.
+	 *
+	 * @since 6.0.0
+	 * @var array[]
+	 */
+	private $registered_patterns_outside_init = array();
 
 	/**
 	 * Container for the main instance of the class.
@@ -59,6 +68,10 @@ final class WP_Block_Patterns_Registry {
 	 *                                 Certain blocks support further specificity besides the block name
 	 *                                 (e.g. for `core/template-part` you can specify areas
 	 *                                 like `core/template-part/header` or `core/template-part/footer`).
+	 *     @type array  $postTypes     An array of post types that the pattern is restricted to be used with.
+	 *                                 The pattern will only be available when editing one of the post types
+	 *                                 passed on the array. For all the other post types not part of the array
+	 *                                 the pattern is not available at all.
 	 *     @type array  $keywords      Optional. A list of aliases or keywords that help users discover the
 	 *                                 pattern while searching.
 	 * }
@@ -92,10 +105,19 @@ final class WP_Block_Patterns_Registry {
 			return false;
 		}
 
-		$this->registered_patterns[ $pattern_name ] = array_merge(
+		$pattern = array_merge(
 			$pattern_properties,
 			array( 'name' => $pattern_name )
 		);
+
+		$this->registered_patterns[ $pattern_name ] = $pattern;
+
+		// If the pattern is registered inside an action other than `init`, store it
+		// also to a dedicated array. Used to detect deprecated registrations inside
+		// `admin_init` or `current_screen`.
+		if ( current_action() && 'init' !== current_action() ) {
+			$this->registered_patterns_outside_init[ $pattern_name ] = $pattern;
+		}
 
 		return true;
 	}
@@ -120,6 +142,7 @@ final class WP_Block_Patterns_Registry {
 		}
 
 		unset( $this->registered_patterns[ $pattern_name ] );
+		unset( $this->registered_patterns_outside_init[ $pattern_name ] );
 
 		return true;
 	}
@@ -145,11 +168,16 @@ final class WP_Block_Patterns_Registry {
 	 *
 	 * @since 5.5.0
 	 *
+	 * @param bool $outside_init_only Return only patterns registered outside the `init` action.
 	 * @return array[] Array of arrays containing the registered block patterns properties,
 	 *                 and per style.
 	 */
-	public function get_all_registered() {
-		return array_values( $this->registered_patterns );
+	public function get_all_registered( $outside_init_only = false ) {
+		return array_values(
+			$outside_init_only
+				? $this->registered_patterns_outside_init
+				: $this->registered_patterns
+		);
 	}
 
 	/**

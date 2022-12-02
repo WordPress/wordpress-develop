@@ -3,7 +3,7 @@
 /**
  * @group user
  */
-class Tests_User_WpAuthenticateSpamCheck extends WP_UnitTestCase {
+class Tests_User_wpAuthenticateSpamCheck extends WP_UnitTestCase {
 
 	/**
 	 * @group ms-excluded

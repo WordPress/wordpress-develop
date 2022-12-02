@@ -38,6 +38,7 @@ services:
 
     environment:
       - LOCAL_PHP_XDEBUG=${LOCAL_PHP_XDEBUG-false}
+      - XDEBUG_MODE=${LOCAL_PHP_XDEBUG_MODE-develop,debug}
       - LOCAL_PHP_MEMCACHED=${LOCAL_PHP_MEMCACHED-false}
       - PHP_FPM_UID=${PHP_FPM_UID-1000}
       - PHP_FPM_GID=${PHP_FPM_GID-1000}
@@ -48,14 +49,23 @@ services:
       - ./tools/local-env/php-config.ini:/usr/local/etc/php/conf.d/php-config.ini
       - ./:/var/www
 
+    # Copy or delete the Memcached dropin plugin file as appropriate.
+    command: /bin/sh -c "if [ $LOCAL_PHP_MEMCACHED = true ]; then cp -n /var/www/tests/phpunit/includes/object-cache.php /var/www/src/wp-content/object-cache.php; else rm -f /var/www/src/wp-content/object-cache.php; fi && exec php-fpm"
+
     depends_on:
       - mysql
+
+    # The init directive ensures the command runs with a PID > 1, so Ctrl+C works correctly.
+    init: true
+
+    extra_hosts:
+      - localhost:host-gateway
 
   ##
   # The MySQL container.
   ##
   mysql:
-    image: ${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-latest}
+    image: amd64/${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-latest}
 
     networks:
       - wpdevnet
@@ -93,6 +103,21 @@ services:
 
     # The init directive ensures the command runs with a PID > 1, so Ctrl+C works correctly.
     init: true
+
+    extra_hosts:
+      - localhost:host-gateway
+
+  ##
+  # The Memcached container.
+  ##
+  memcached:
+    image: memcached
+
+    networks:
+      - wpdevnet
+
+    ports:
+      - 11211:11211
 
 volumes:
   # So that sites aren't wiped every time containers are restarted, MySQL uses a persistent volume.

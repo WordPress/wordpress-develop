@@ -18,6 +18,8 @@ $menu-submenu-background: #fff;
 $menu-collapse-text: #777;
 $menu-collapse-focus-icon: #555;
 
+$dashboard-icon-background: $text-color;
+
 @import "../_admin.scss";
 
 /* Override the theme filter highlight color for this scheme */

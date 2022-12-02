@@ -72,7 +72,7 @@ foreach ( array(
 	'pre_post_guid',
 ) as $filter ) {
 	add_filter( $filter, 'wp_strip_all_tags' );
-	add_filter( $filter, 'esc_url_raw' );
+	add_filter( $filter, 'sanitize_url' );
 	add_filter( $filter, 'wp_filter_kses' );
 }
 
@@ -324,6 +324,7 @@ add_filter( 'rest_authentication_errors', 'rest_cookie_check_errors', 100 );
 add_action( 'wp_head', '_wp_render_title_tag', 1 );
 add_action( 'wp_head', 'wp_enqueue_scripts', 1 );
 add_action( 'wp_head', 'wp_resource_hints', 2 );
+add_action( 'wp_head', 'wp_preload_resources', 1 );
 add_action( 'wp_head', 'feed_links', 2 );
 add_action( 'wp_head', 'feed_links_extra', 3 );
 add_action( 'wp_head', 'rsd_link' );
@@ -556,6 +557,7 @@ add_action( 'wp_default_scripts', 'wp_default_packages' );
 
 add_action( 'wp_enqueue_scripts', 'wp_localize_jquery_ui_datepicker', 1000 );
 add_action( 'wp_enqueue_scripts', 'wp_common_block_scripts_and_styles' );
+add_action( 'wp_enqueue_scripts', 'wp_enqueue_classic_theme_styles' );
 add_action( 'admin_enqueue_scripts', 'wp_localize_jquery_ui_datepicker', 1000 );
 add_action( 'admin_enqueue_scripts', 'wp_common_block_scripts_and_styles' );
 add_action( 'enqueue_block_assets', 'wp_enqueue_registered_block_scripts_and_styles' );
@@ -569,10 +571,15 @@ add_filter( 'wp_print_scripts', 'wp_just_in_time_script_localization' );
 add_filter( 'print_scripts_array', 'wp_prototype_before_jquery' );
 add_filter( 'customize_controls_print_styles', 'wp_resource_hints', 1 );
 add_action( 'admin_head', 'wp_check_widget_editor_deps' );
+add_filter( 'block_editor_settings_all', 'wp_add_editor_classic_theme_styles' );
 
 // Global styles can be enqueued in both the header and the footer. See https://core.trac.wordpress.org/ticket/53494.
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles' );
 add_action( 'wp_footer', 'wp_enqueue_global_styles', 1 );
+
+// Block supports, and other styles parsed and stored in the Style Engine.
+add_action( 'wp_enqueue_scripts', 'wp_enqueue_stored_styles' );
+add_action( 'wp_footer', 'wp_enqueue_stored_styles', 1 );
 
 // SVG filters like duotone have to be loaded at the beginning of the body in both admin and the front-end.
 add_action( 'wp_body_open', 'wp_global_styles_render_svg_filters' );
@@ -679,5 +686,11 @@ add_action( 'save_post_wp_template_part', 'wp_set_unique_slug_on_create_template
 add_action( 'wp_footer', 'the_block_template_skip_link' );
 add_action( 'setup_theme', 'wp_enable_block_templates' );
 add_action( 'wp_loaded', '_add_template_loader_filters' );
+
+// Fluid typography.
+add_filter( 'render_block', 'wp_render_typography_support', 10, 2 );
+
+// User preferences.
+add_action( 'init', 'wp_register_persisted_preferences_meta' );
 
 unset( $filter, $action );

@@ -11,7 +11,6 @@
  * Core class used to implement displaying posts in a list table.
  *
  * @since 3.1.0
- * @access private
  *
  * @see WP_List_Table
  */
@@ -331,14 +330,14 @@ class WP_Posts_List_Table extends WP_List_Table {
 				number_format_i18n( $this->user_posts_count )
 			);
 
-			$mine = $this->get_edit_link( $mine_args, $mine_inner_html, $class );
+			$mine = array(
+				'url'     => esc_url( add_query_arg( $mine_args, 'edit.php' ) ),
+				'label'   => $mine_inner_html,
+				'current' => isset( $_GET['author'] ) && ( $current_user_id === (int) $_GET['author'] ),
+			);
 
 			$all_args['all_posts'] = 1;
 			$class                 = '';
-		}
-
-		if ( empty( $class ) && ( $this->is_base_request() || isset( $_REQUEST['all_posts'] ) ) ) {
-			$class = 'current';
 		}
 
 		$all_inner_html = sprintf(
@@ -352,7 +351,11 @@ class WP_Posts_List_Table extends WP_List_Table {
 			number_format_i18n( $total_posts )
 		);
 
-		$status_links['all'] = $this->get_edit_link( $all_args, $all_inner_html, $class );
+		$status_links['all'] = array(
+			'url'     => esc_url( add_query_arg( $all_args, 'edit.php' ) ),
+			'label'   => $all_inner_html,
+			'current' => empty( $class ) && ( $this->is_base_request() || isset( $_REQUEST['all_posts'] ) ),
+		);
 
 		if ( $mine ) {
 			$status_links['mine'] = $mine;
@@ -381,7 +384,11 @@ class WP_Posts_List_Table extends WP_List_Table {
 				number_format_i18n( $num_posts->$status_name )
 			);
 
-			$status_links[ $status_name ] = $this->get_edit_link( $status_args, $status_label, $class );
+			$status_links[ $status_name ] = array(
+				'url'     => esc_url( add_query_arg( $status_args, 'edit.php' ) ),
+				'label'   => $status_label,
+				'current' => isset( $_REQUEST['post_status'] ) && $status_name === $_REQUEST['post_status'],
+			);
 		}
 
 		if ( ! empty( $this->sticky_posts_count ) ) {
@@ -404,7 +411,11 @@ class WP_Posts_List_Table extends WP_List_Table {
 			);
 
 			$sticky_link = array(
-				'sticky' => $this->get_edit_link( $sticky_args, $sticky_inner_html, $class ),
+				'sticky' => array(
+					'url'     => esc_url( add_query_arg( $sticky_args, 'edit.php' ) ),
+					'label'   => $sticky_inner_html,
+					'current' => ! empty( $_REQUEST['show_sticky'] ),
+				),
 			);
 
 			// Sticky comes after Publish, or if not listed, after All.
@@ -412,7 +423,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$status_links = array_merge( array_slice( $status_links, 0, $split ), $sticky_link, array_slice( $status_links, $split ) );
 		}
 
-		return $status_links;
+		return $this->get_views_links( $status_links );
 	}
 
 	/**
@@ -691,7 +702,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			&& ! in_array( $post_status, array( 'pending', 'draft', 'future' ), true )
 		) {
 			$posts_columns['comments'] = sprintf(
-				'<span class="vers comment-grey-bubble" title="%1$s"><span class="screen-reader-text">%2$s</span></span>',
+				'<span class="vers comment-grey-bubble" title="%1$s" aria-hidden="true"></span><span class="screen-reader-text">%2$s</span>',
 				esc_attr__( 'Comments' ),
 				__( 'Comments' )
 			);
@@ -790,6 +801,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		if ( post_type_supports( $post_type, 'comments' ) ) {
 			$this->comment_pending_count = get_pending_comments_num( $post_ids );
 		}
+		update_post_author_caches( $posts );
 
 		foreach ( $posts as $post ) {
 			$this->single_row( $post, $level );
@@ -885,6 +897,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		$ids = array_keys( $to_display );
 		_prime_post_caches( $ids );
+		$_posts = array_map( 'get_post', $ids );
+		update_post_author_caches( $_posts );
 
 		if ( ! isset( $GLOBALS['post'] ) ) {
 			$GLOBALS['post'] = reset( $ids );

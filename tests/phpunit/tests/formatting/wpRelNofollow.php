@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::wp_rel_nofollow
  */
 class Tests_Formatting_wpRelNofollow extends WP_UnitTestCase {
 
