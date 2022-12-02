@@ -2742,14 +2742,14 @@ function zeroise( $number, $threshold ) {
  *
  * @since 0.71
  *
- * @param string $text Value to which backslashes will be added.
+ * @param string $value Value to which backslashes will be added.
  * @return string String with backslashes inserted.
  */
-function backslashit( $text ) {
-	if ( isset( $text[0] ) && $text[0] >= '0' && $text[0] <= '9' ) {
-		$text = '\\\\' . $text;
+function backslashit( $value ) {
+	if ( isset( $value[0] ) && $value[0] >= '0' && $value[0] <= '9' ) {
+		$value = '\\\\' . $value;
 	}
-	return addcslashes( $text, 'A..Za..z' );
+	return addcslashes( $value, 'A..Za..z' );
 }
 
 /**
@@ -2763,11 +2763,11 @@ function backslashit( $text ) {
  *
  * @since 1.2.0
  *
- * @param string $text Value to which trailing slash will be added.
+ * @param string $value Value to which trailing slash will be added.
  * @return string String with trailing slash added.
  */
-function trailingslashit( $text ) {
-	return untrailingslashit( $text ) . '/';
+function trailingslashit( $value ) {
+	return untrailingslashit( $value ) . '/';
 }
 
 /**
@@ -2781,8 +2781,8 @@ function trailingslashit( $text ) {
  * @param string $text Value from which trailing slashes will be removed.
  * @return string String without the trailing slashes.
  */
-function untrailingslashit( $text ) {
-	return rtrim( $text, '/\\' );
+function untrailingslashit( $value ) {
+	return rtrim( $value, '/\\' );
 }
 
 /**
@@ -5033,11 +5033,11 @@ function map_deep( $value, $callback ) {
  *
  * @since 2.2.1
  *
- * @param string $text   The string to be parsed.
+ * @param string $input  The string to be parsed.
  * @param array  $result Variables will be stored in this array.
  */
-function wp_parse_str( $text, &$result ) {
-	parse_str( (string) $text, $result );
+function wp_parse_str( $input, &$result ) {
+	parse_str( (string) $input, $result );
 
 	/**
 	 * Filters the array of variables derived from a parsed string.
