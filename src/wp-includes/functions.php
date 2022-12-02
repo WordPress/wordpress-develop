@@ -6004,19 +6004,25 @@ function validate_file( $file, $allowed_files = array() ) {
 
 /**
  * Determines whether to force SSL used for the Administration Screens.
+ * @ticket #57262 added bool check and doing it wrong
+ * @param bool $force Optional. Whether to force SSL in admin screens. Default null.
  *
- * @since 2.6.0
- *
- * @param string|bool $force Optional. Whether to force SSL in admin screens. Default null.
  * @return bool True if forced, false if not forced.
+ * @since 2.6.0
+ * @since 6.1.1
  */
 function force_ssl_admin( $force = null ) {
 	static $forced = false;
 
-	if ( ! is_null( $force ) ) {
+	if ( is_bool( $force ) ) {
 		$old_forced = $forced;
 		$forced     = $force;
+
 		return $old_forced;
+	}
+
+	if ( ! is_null( $force ) ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Boolean value not passed to function' ), '6.1.1' );
 	}
 
 	return $forced;
