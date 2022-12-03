@@ -24,6 +24,9 @@ class Tests_functions_WpSuspendCacheInvalidation extends WP_UnitTestCase {
 		$this->assertTrue( wp_suspend_cache_invalidation( false ), 'Set to false' );
 		$this->assertEmpty( $_wp_suspend_cache_invalidation, 'check is still false' );
 
-		wp_suspend_cache_invalidation( $default );
+		$this->assertEmpty( wp_suspend_cache_invalidation( 'true' ), 'Try to set string' );
+		$this->assertEmpty( wp_suspend_cache_invalidation(), 'check is still false' );
+
+		$_wp_suspend_cache_invalidation = $default;
 	}
 }
