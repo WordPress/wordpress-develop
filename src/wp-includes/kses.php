@@ -1733,11 +1733,11 @@ function wp_kses_no_null( $content, $options = null ) {
  *
  * @since 1.0.0
  *
- * @param string $text String to strip slashes from.
+ * @param string $content String to strip slashes from.
  * @return string Fixed string with quoted slashes.
  */
-function wp_kses_stripslashes( $text ) {
-	return preg_replace( '%\\\\"%', '"', $text );
+function wp_kses_stripslashes( $content ) {
+	return preg_replace( '%\\\\"%', '"', $content );
 }
 
 /**
