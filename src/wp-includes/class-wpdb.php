@@ -4044,6 +4044,7 @@ class wpdb {
 				 * As of WordPress 6.2, wpdb::prepare() supports identifiers via '%i',
 				 * e.g. table/field names.
 				 */
+				return true;
 		}
 
 		return false;
