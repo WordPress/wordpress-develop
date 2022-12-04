@@ -15,7 +15,7 @@
  * assumed.
  *
  * @since 1.5.0
- * @since 4.4.0 Added the ability for `$comment_ID` to also accept a WP_Comment object.
+ * @since 6.2.0 Added the ability for `$comment_ID` to also accept a WP_Comment object.
  *
  * @param int|WP_Comment $comment_ID Optional. WP_Comment or the ID of the comment for which to retrieve the author.
  *                                   Default current comment.
