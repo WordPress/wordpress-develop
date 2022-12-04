@@ -1,3 +1,4 @@
+
 <?php
 /**
  * WordPress scripts and styles default loader.
@@ -1175,6 +1176,18 @@ function wp_default_scripts( $scripts ) {
 		array(
 			'user_id' => $user_id,
 			'nonce'   => wp_installing() ? '' : wp_create_nonce( 'reset-password-for-' . $user_id ),
+		)
+	);
+
+	$scripts->add( 'setup-config', "/wp-admin/js/setup-config$suffix.js", array(), false, 1 );
+	did_action( 'init' ) && $scripts->localize(
+		'setup-config',
+		'setupConfigL10n',
+		array(
+			'show'     => __( 'Show' ),
+			'hide'     => __( 'Hide' ),
+			'ariaShow' => esc_attr__( 'Show password' ),
+			'ariaHide' => esc_attr__( 'Hide password' ),
 		)
 	);
 

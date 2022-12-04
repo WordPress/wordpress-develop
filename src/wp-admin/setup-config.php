@@ -223,7 +223,14 @@ switch ( $step ) {
 		</tr>
 		<tr>
 			<th scope="row"><label for="pwd"><?php _e( 'Password' ); ?></label></th>
-			<td><input name="pwd" id="pwd" type="text" aria-describedby="pwd-desc" size="25" placeholder="<?php echo htmlspecialchars( _x( 'password', 'example password' ), ENT_QUOTES ); ?>" autocomplete="off" /></td>
+			<td>
+				<span class="wp-pwd">
+					<input name="pwd" id="pwd" type="password" class="regular-text" data-reveal="1" data-pw="<?php echo esc_attr( get_option( '' ) ); ?>" aria-describedby="pwd-desc" size="25" placeholder="<?php echo htmlspecialchars( _x( 'password', 'example password' ), ENT_QUOTES ); ?>" autocomplete="off" />
+					<button id="pwd-toggle" type="button" class="button hide" data-toggle="0" data-start-masked="1" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
+						<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
+					</button>
+				</span>
+			</td>
 			<td id="pwd-desc"><?php _e( 'Your database password.' ); ?></td>
 		</tr>
 		<tr>
@@ -250,6 +257,7 @@ switch ( $step ) {
 	<p class="step"><input name="submit" type="submit" value="<?php echo htmlspecialchars( __( 'Submit' ), ENT_QUOTES ); ?>" class="button button-large" /></p>
 </form>
 		<?php
+		wp_print_scripts( 'setup-config' );
 		break;
 
 	case 2:
