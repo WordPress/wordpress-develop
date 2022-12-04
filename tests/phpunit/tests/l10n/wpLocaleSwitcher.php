@@ -99,6 +99,20 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::switch_to_locale
+	 */
+	public function test_switch_to_locale_changes_determined_locale() {
+		switch_to_locale( 'en_GB' );
+
+		$locale = determine_locale();
+
+		// Cleanup.
+		restore_previous_locale();
+
+		$this->assertSame( 'en_GB', $locale );
+	}
+
+	/**
+	 * @covers ::switch_to_locale
 	 * @covers ::translate
 	 * @covers ::__
 	 */
