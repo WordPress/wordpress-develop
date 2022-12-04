@@ -550,7 +550,8 @@ fieldset label,
 }
 
 .wp-pwd {
-	display: flex;
+	display: inline-block;
+	margin-top: 0;
 	position: relative;
 }
 
