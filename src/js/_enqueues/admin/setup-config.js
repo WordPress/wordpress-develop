@@ -5,7 +5,6 @@
  * @output wp-admin/js/setup-config.js
  */
 
-/* global setupConfigL10n */
 ( function () {
 	var toggle, status, input, icon, label;
 
@@ -24,15 +23,11 @@
 			input.setAttribute( 'type', 'text' );
 			icon.classList.remove( 'dashicons-visibility' );
 			icon.classList.add( 'dashicons-hidden' );
-			label.innerHTML = setupConfigL10n.hide;
-			toggle.setAttribute( 'aria-label', setupConfigL10n.ariaShow );
 		} else {
 			toggle.setAttribute( 'data-toggle', 0 );
 			input.setAttribute( 'type', 'password' );
 			icon.classList.remove( 'dashicons-hidden' );
 			icon.classList.add( 'dashicons-visibility' );
-			label.innerHTML = setupConfigL10n.show;
-			toggle.setAttribute( 'aria-label', setupConfigL10n.ariaHide );
 		}
 	}
 } )();
