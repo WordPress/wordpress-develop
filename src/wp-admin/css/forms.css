@@ -550,7 +550,7 @@ fieldset label,
 }
 
 .wp-pwd {
-	margin-top: 1em;
+	display: flex;
 	position: relative;
 }
 
@@ -570,8 +570,8 @@ fieldset label,
 	margin: 0;
 	padding: 0;
 	position: absolute;
-	right: 4px;
-	top: -7px;
+	right: 0;
+	top: 0;
 }
 
 .wp-pwd button#pwd-toggle:hover {
