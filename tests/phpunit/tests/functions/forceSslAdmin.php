@@ -5,7 +5,7 @@
  * @group functions.php
  *
  * @covers ::force_ssl_admin
- */#
+ */
 class Tests_Functions_ForceSslAdmin extends WP_UnitTestCase {
 
 	/**
