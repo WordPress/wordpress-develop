@@ -1593,7 +1593,7 @@ class wpdb {
 				// Unquoted strings for backward compatibility (dangerous).
 				// First, "numbered or formatted string placeholders (eg, %1$s, %5s)".
 				// Second, if "%s" has a "%" before it, even if it's unrelated (e.g. "LIKE '%%%s%%'").
-				if ( true !== $this->allow_unsafe_unquoted_parameters || ( '' === $format && substr( $split_query[ $key - 1 ], -1 ) !== '%' ) ) {
+				if ( true !== $this->allow_unsafe_unquoted_parameters || ( '' === $format && ! str_ends_with( $split_query[ $key - 1 ], '%' ) ) ) {
 					$placeholder = "'%" . $format . "s'";
 				}
 			}
