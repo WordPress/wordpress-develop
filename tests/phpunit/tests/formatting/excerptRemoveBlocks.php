@@ -20,7 +20,19 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 	<li>list item</li>
 	<!-- /wp:list-item -->
 	<!-- wp:list-item -->
-	<li>list item</li>
+	<li>
+		list item
+		<!-- wp:list {"ordered":true} -->
+		<ol>
+			<!-- wp:list-item -->
+			<li>list item</li>
+			<!-- /wp:list-item -->
+			<!-- wp:list-item -->
+			<li>list item</li>
+			<!-- /wp:list-item -->
+		</ol>
+		<!-- /wp:list -->
+	</li>
 	<!-- /wp:list-item -->
 </ul>
 <!-- /wp:list -->
@@ -53,7 +65,19 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 	<li>list item</li>
 	
 	
-	<li>list item</li>
+	<li>
+		list item
+		
+		<ol>
+			
+			<li>list item</li>
+			
+			
+			<li>list item</li>
+			
+		</ol>
+		
+	</li>
 	
 </ul>
 

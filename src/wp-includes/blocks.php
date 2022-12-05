@@ -880,6 +880,7 @@ function excerpt_remove_blocks( $content ) {
 		'core/freeform',
 		'core/heading',
 		'core/html',
+		'core/list',
 		'core/media-text',
 		'core/paragraph',
 		'core/preformatted',
@@ -893,8 +894,6 @@ function excerpt_remove_blocks( $content ) {
 		'core/columns',
 		'core/column',
 		'core/group',
-		'core/list',
-		'core/list-item',
 	);
 
 	/**
@@ -928,6 +927,14 @@ function excerpt_remove_blocks( $content ) {
 			if ( ! empty( $block['innerBlocks'] ) ) {
 				if ( in_array( $block['blockName'], $allowed_wrapper_blocks, true ) ) {
 					$output .= _excerpt_render_inner_blocks( $block, $allowed_blocks );
+					continue;
+				}
+
+				if (
+					in_array( $block['blockName'], $allowed_inner_blocks, true ) &&
+					'core/list' === $block['blockName']
+				) {
+					$output .= render_block( $block );
 					continue;
 				}
 
