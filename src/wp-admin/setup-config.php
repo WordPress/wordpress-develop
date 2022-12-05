@@ -257,7 +257,7 @@ switch ( $step ) {
 	<p class="step"><input name="submit" type="submit" value="<?php echo htmlspecialchars( __( 'Submit' ), ENT_QUOTES ); ?>" class="button button-large" /></p>
 </form>
 		<?php
-		wp_print_scripts( 'setup-config' );
+		wp_print_scripts( 'password-toggle' );
 		break;
 
 	case 2:
