@@ -815,8 +815,8 @@ function wp_kses_one_attr( $attr, $element ) {
 			$value = wp_kses_bad_protocol( $value, $allowed_protocols );
 		}
 
-		$attr = "$name=$quote$value$quote";
-		$vless  = 'n';
+		$attr  = "$name=$quote$value$quote";
+		$vless = 'n';
 	} else {
 		$value = '';
 		$vless = 'y';
@@ -1691,7 +1691,7 @@ function wp_kses_bad_protocol( $content, $allowed_protocols ) {
 
 	do {
 		$original_content = $content;
-		$content         = wp_kses_bad_protocol_once( $content, $allowed_protocols );
+		$content          = wp_kses_bad_protocol_once( $content, $allowed_protocols );
 	} while ( $original_content != $content && ++$iterations < 6 );
 
 	if ( $original_content != $content ) {
@@ -1795,8 +1795,9 @@ function wp_kses_html_error( $attr ) {
 function wp_kses_bad_protocol_once( $content, $allowed_protocols, $count = 1 ) {
 	$content  = preg_replace( '/(&#0*58(?![;0-9])|&#x0*3a(?![;a-f0-9]))/i', '$1;', $content );
 	$content2 = preg_split( '/:|&#0*58;|&#x0*3a;|&colon;/i', $content, 2 );
+
 	if ( isset( $content2[1] ) && ! preg_match( '%/\?%', $content2[0] ) ) {
-		$content   = trim( $content2[1] );
+		$content  = trim( $content2[1] );
 		$protocol = wp_kses_bad_protocol_once2( $content2[0], $allowed_protocols );
 		if ( 'feed:' === $protocol ) {
 			if ( $count > 2 ) {
