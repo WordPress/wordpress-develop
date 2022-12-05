@@ -880,8 +880,6 @@ function excerpt_remove_blocks( $content ) {
 		'core/freeform',
 		'core/heading',
 		'core/html',
-		'core/list',
-		'core/list-item',
 		'core/media-text',
 		'core/paragraph',
 		'core/preformatted',
@@ -895,6 +893,8 @@ function excerpt_remove_blocks( $content ) {
 		'core/columns',
 		'core/column',
 		'core/group',
+		'core/list',
+		'core/list-item',
 	);
 
 	/**
