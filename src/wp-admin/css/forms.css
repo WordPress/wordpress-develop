@@ -1703,7 +1703,6 @@ table.form-table td .updated p {
 	}
 
 	.wp-pwd button.button {
-		display: initial;
 		background: transparent;
 		border: 1px solid transparent;
 		box-shadow: none;
