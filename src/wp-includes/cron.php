@@ -300,6 +300,26 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp
 
 	$crons = _get_cron_array();
 
+	/*
+	 * Do not attempt to update the cron array if the event is already scheduled.
+	 * This is to differentiate from the error code `could_not_set` caused by the
+	 * cron array failing to update with an identical option.
+	 */
+	if (
+		isset( $crons[ $event->timestamp ][ $event->hook ][ $key ] )
+		&& $event->schedule === $crons[ $event->timestamp ][ $event->hook ][ $key ]['schedule']
+		&& $event->interval === $crons[ $event->timestamp ][ $event->hook ][ $key ]['interval']
+	) {
+		if ( $wp_error ) {
+			return new WP_Error(
+				'duplicate_event',
+				__( 'A duplicate event already exists.' )
+			);
+		}
+
+		return false;
+	}
+
 	$crons[ $event->timestamp ][ $event->hook ][ $key ] = array(
 		'schedule' => $event->schedule,
 		'args'     => $event->args,
