@@ -9,36 +9,6 @@
  * @since Twenty Twenty-Two 1.0
  */
 
-$content = '
-<!-- wp:list -->
-<ul>
-	<!-- wp:list-item -->
-	<li>list item</li>
-	<!-- /wp:list-item -->
-	<!-- wp:list-item -->
-	<li>
-		list item
-		<!-- wp:list {"ordered":true} -->
-		<ol>
-			<!-- wp:list-item -->
-			<li>list item</li>
-			<!-- /wp:list-item -->
-			<!-- wp:list-item -->
-			<li>list item</li>
-			<!-- /wp:list-item -->
-		</ol>
-		<!-- /wp:list -->
-	</li>
-	<!-- /wp:list-item -->
-</ul>
-<!-- /wp:list -->
-';
-
-echo '<pre style="border:1px red solid;">';
-var_dump( excerpt_remove_blocks( $content ) );
-echo '</pre>';
-
-exit;
 
 if ( ! function_exists( 'twentytwentytwo_support' ) ) :
 
