@@ -686,6 +686,36 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertSame( 'child-page', $actual[1] );
 	}
 
+	/**
+	 * Tests that get_sample_permalink() preserves the original WP_Post properties.
+	 *
+	 * @ticket 54736
+	 *
+	 * @covers ::get_sample_permalink
+	 */
+	public function test_get_sample_permalink_should_preserve_the_original_post_properties() {
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'draft',
+			)
+		);
+
+		$post_original = clone $post;
+
+		add_filter(
+			'get_sample_permalink',
+			function( $permalink, $post_id, $title, $name, $post ) use ( $post_original ) {
+				$this->assertEquals( $post_original, $post, 'Modified post object passed to get_sample_permalink filter.' );
+				return $permalink;
+			},
+			10,
+			5
+		);
+
+		get_sample_permalink( $post );
+		$this->assertEquals( $post_original, $post, 'get_sample_permalink() modifies the post object.' );
+	}
+
 	public function test_post_exists_should_match_title() {
 		$p = self::factory()->post->create(
 			array(

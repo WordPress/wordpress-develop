@@ -879,7 +879,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	/**
 	 * @ticket 19954
 	 */
-	function test_updating_a_post_should_not_trash_categories() {
+	public function test_updating_a_post_should_not_trash_categories() {
 		// Create a category and attach it to a new post.
 		$term_id = self::factory()->term->create(
 			array(
@@ -900,7 +900,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		// Validate that the term got assigned.
 		$assigned_terms = wp_get_object_terms( array( $post_id ), array( 'category' ), array() );
 		$this->assertCount( 1, $assigned_terms );
-		$this->assertEquals( $term_id, $assigned_terms[0]->term_id );
+		$this->assertSame( $term_id, $assigned_terms[0]->term_id );
 
 		// Update the post with no changes.
 		$post = get_post( $post_id );
@@ -909,7 +909,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		// Validate the term is still assigned.
 		$assigned_terms = wp_get_object_terms( array( $post_id ), array( 'category' ), array() );
 		$this->assertCount( 1, $assigned_terms );
-		$this->assertEquals( $term_id, $assigned_terms[0]->term_id );
+		$this->assertSame( $term_id, $assigned_terms[0]->term_id );
 
 		// Remove the term from the post.
 		$post->post_category = array();

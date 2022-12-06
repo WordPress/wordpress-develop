@@ -28,7 +28,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
-	function test_page_home_block_template_takes_precedence_over_less_specific_block_templates() {
+	public function test_page_home_block_template_takes_precedence_over_less_specific_block_templates() {
 		global $_wp_current_template_content;
 		$type                   = 'page';
 		$templates              = array(
@@ -41,7 +41,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		$this->assertStringEqualsFile( get_stylesheet_directory() . '/templates/page-home.html', $_wp_current_template_content );
 	}
 
-	function test_page_block_template_takes_precedence() {
+	public function test_page_block_template_takes_precedence() {
 		global $_wp_current_template_content;
 		$type                   = 'page';
 		$templates              = array(
@@ -54,7 +54,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		$this->assertStringEqualsFile( get_stylesheet_directory() . '/templates/page.html', $_wp_current_template_content );
 	}
 
-	function test_block_template_takes_precedence_over_equally_specific_php_template() {
+	public function test_block_template_takes_precedence_over_equally_specific_php_template() {
 		global $_wp_current_template_content;
 		$type                   = 'index';
 		$templates              = array(
@@ -71,7 +71,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 *
 	 * Covers https://github.com/WordPress/gutenberg/pull/29026.
 	 */
-	function test_more_specific_php_template_takes_precedence_over_less_specific_block_template() {
+	public function test_more_specific_php_template_takes_precedence_over_less_specific_block_template() {
 		$page_id_template       = 'page-1.php';
 		$page_id_template_path  = get_stylesheet_directory() . '/' . $page_id_template;
 		$type                   = 'page';
@@ -93,7 +93,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 * Covers https://core.trac.wordpress.org/ticket/54515.
 	 *
 	 */
-	function test_child_theme_php_template_takes_precedence_over_equally_specific_parent_theme_block_template() {
+	public function test_child_theme_php_template_takes_precedence_over_equally_specific_parent_theme_block_template() {
 		switch_theme( 'block-theme-child' );
 
 		$page_slug_template      = 'page-home.php';
@@ -108,7 +108,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		$this->assertSame( $page_slug_template_path, $resolved_template_path );
 	}
 
-	function test_child_theme_block_template_takes_precedence_over_equally_specific_parent_theme_php_template() {
+	public function test_child_theme_block_template_takes_precedence_over_equally_specific_parent_theme_php_template() {
 		global $_wp_current_template_content;
 
 		switch_theme( 'block-theme-child' );

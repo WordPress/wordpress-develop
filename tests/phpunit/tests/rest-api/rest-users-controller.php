@@ -974,7 +974,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_prepare_item() {
 		wp_set_current_user( self::$user );
 
-		$request = new WP_REST_Request;
+		$request = new WP_REST_Request();
 		$request->set_param( 'context', 'edit' );
 		$user = get_user_by( 'id', get_current_user_id() );
 		$data = $this->endpoint->prepare_item_for_response( $user, $request );
@@ -984,7 +984,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_prepare_item_limit_fields() {
 		wp_set_current_user( self::$user );
 
-		$request = new WP_REST_Request;
+		$request = new WP_REST_Request();
 		$request->set_param( 'context', 'edit' );
 		$request->set_param( '_fields', 'id,name' );
 		$user     = get_user_by( 'id', get_current_user_id() );

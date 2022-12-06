@@ -11,7 +11,6 @@
  * Core class used to implement displaying plugins to install in a list table.
  *
  * @since 3.1.0
- * @access private
  *
  * @see WP_List_Table
  */
@@ -310,14 +309,16 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 
 		$display_tabs = array();
 		foreach ( (array) $tabs as $action => $text ) {
-			$current_link_attributes                     = ( $action === $tab ) ? ' class="current" aria-current="page"' : '';
-			$href                                        = self_admin_url( 'plugin-install.php?tab=' . $action );
-			$display_tabs[ 'plugin-install-' . $action ] = "<a href='$href'$current_link_attributes>$text</a>";
+			$display_tabs[ 'plugin-install-' . $action ] = array(
+				'url'     => self_admin_url( 'plugin-install.php?tab=' . $action ),
+				'label'   => $text,
+				'current' => $action === $tab,
+			);
 		}
 		// No longer a real tab.
 		unset( $display_tabs['plugin-install-upload'] );
 
-		return $display_tabs;
+		return $this->get_views_links( $display_tabs );
 	}
 
 	/**

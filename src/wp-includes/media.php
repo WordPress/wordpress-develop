@@ -1544,7 +1544,7 @@ function wp_image_file_matches_image_meta( $image_location, $image_meta, $attach
 
 	// Ensure the $image_meta is valid.
 	if ( isset( $image_meta['file'] ) && strlen( $image_meta['file'] ) > 4 ) {
-		// Remove quiery args if image URI.
+		// Remove query args in image URI.
 		list( $image_location ) = explode( '?', $image_location );
 
 		// Check if the relative image path from the image meta is at the end of $image_location.
@@ -1962,6 +1962,12 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
  * @return string Converted `img` tag with `decoding` attribute added.
  */
 function wp_img_tag_add_decoding_attr( $image, $context ) {
+	// Only apply the decoding attribute to images that have a src attribute that
+	// starts with a double quote, ensuring escaped JSON is also excluded.
+	if ( false === strpos( $image, ' src="' ) ) {
+		return $image;
+	}
+
 	/**
 	 * Filters the `decoding` attribute value to add to an image. Default `async`.
 	 *
@@ -3838,6 +3844,7 @@ function wp_max_upload_size() {
 function wp_get_image_editor( $path, $args = array() ) {
 	$args['path'] = $path;
 
+	// If the mime type is not set in args, try to extract and set it from the file.
 	if ( ! isset( $args['mime_type'] ) ) {
 		$file_info = wp_check_filetype( $args['path'] );
 
@@ -3845,6 +3852,15 @@ function wp_get_image_editor( $path, $args = array() ) {
 		// figure out the file type, rather than forcing a failure based on extension.
 		if ( isset( $file_info ) && $file_info['type'] ) {
 			$args['mime_type'] = $file_info['type'];
+		}
+	}
+
+	// Check and set the output mime type mapped to the input type.
+	if ( isset( $args['mime_type'] ) ) {
+		/** This filter is documented in wp-includes/class-wp-image-editor.php */
+		$output_format = apply_filters( 'image_editor_output_format', array(), $path, $args['mime_type'] );
+		if ( isset( $output_format[ $args['mime_type'] ] ) ) {
+			$args['output_mime_type'] = $output_format[ $args['mime_type'] ];
 		}
 	}
 
@@ -3900,12 +3916,14 @@ function _wp_image_editor_choose( $args = array() ) {
 	 *                                'WP_Image_Editor_Imagick', 'WP_Image_Editor_GD'.
 	 */
 	$implementations = apply_filters( 'wp_image_editors', array( 'WP_Image_Editor_Imagick', 'WP_Image_Editor_GD' ) );
+	$supports_input  = false;
 
 	foreach ( $implementations as $implementation ) {
 		if ( ! call_user_func( array( $implementation, 'test' ), $args ) ) {
 			continue;
 		}
 
+		// Implementation should support the passed mime type.
 		if ( isset( $args['mime_type'] ) &&
 			! call_user_func(
 				array( $implementation, 'supports_mime_type' ),
@@ -3914,61 +3932,31 @@ function _wp_image_editor_choose( $args = array() ) {
 			continue;
 		}
 
+		// Implementation should support requested methods.
 		if ( isset( $args['methods'] ) &&
 			array_diff( $args['methods'], get_class_methods( $implementation ) ) ) {
 
 			continue;
 		}
 
+		// Implementation should ideally support the output mime type as well if set and different than the passed type.
+		if (
+			isset( $args['mime_type'] ) &&
+			isset( $args['output_mime_type'] ) &&
+			$args['mime_type'] !== $args['output_mime_type'] &&
+			! call_user_func( array( $implementation, 'supports_mime_type' ), $args['output_mime_type'] )
+		) {
+			// This implementation supports the imput type but not the output type.
+			// Keep looking to see if we can find an implementation that supports both.
+			$supports_input = $implementation;
+			continue;
+		}
+
+		// Favor the implementation that supports both input and output mime types.
 		return $implementation;
 	}
 
-	return false;
-}
-
-/**
- * Filters the default image output mapping.
- *
- * With this filter callback, WebP image files will be generated for certain JPEG source files.
- *
- * @since 6.1.0
- *
- * @param array $output_mapping Map of mime type to output format.
- * @param string $filename  Path to the image.
- * @param string $mime_type The source image mime type.
- * @param string $size_name Optional. The image size name to create, or empty string if not set. Default empty string.
- * @return array The adjusted default output mapping.
- */
-function wp_default_image_output_mapping( $output_mapping, $filename, $mime_type, $size_name = '' ) {
-	// If size name is specified, check whether the size supports additional MIME types like WebP.
-	if ( $size_name ) {
-		// Include only the core sizes that do not rely on add_image_size(). Additional image sizes are opt-in.
-		$enabled_sizes = array(
-			'thumbnail'      => true,
-			'medium'         => true,
-			'medium_large'   => true,
-			'large'          => true,
-			'post-thumbnail' => true,
-		);
-
-		/**
-		 * Filters the sizes that support secondary mime type output. Developers can use this
-		 * to control the generation of additional mime type sub-sized images.
-		 *
-		 * @since 6.1.0
-		 *
-		 * @param array $enabled_sizes Map of size names and whether they support secondary mime type output.
-		 */
-		$enabled_sizes = apply_filters( 'wp_image_sizes_with_additional_mime_type_support', $enabled_sizes );
-
-		// Bail early if the size does not support additional MIME types.
-		if ( empty( $enabled_sizes[ $size_name ] ) ) {
-			return $output_mapping;
-		}
-	}
-
-	$output_mapping['image/jpeg'] = 'image/webp';
-	return $output_mapping;
+	return $supports_input;
 }
 
 /**
