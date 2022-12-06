@@ -1530,7 +1530,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertSame( $expected, $sql );
 
 		if ( is_string( $incorrect_usage ) && array_key_exists( 'wpdb::prepare', $this->caught_doing_it_wrong ) ) {
-			$this->assertStringContainsString( $incorrect_usage, $this->caught_doing_it_wrong['wpdb::prepare'] );
+			$this->assertStringContainsString( $incorrect_usage, $this->caught_doing_it_wrong['wpdb::prepare'], 'The "_doing_it_wrong" message does not match' );
 		}
 	}
 
@@ -1553,7 +1553,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertSame( $expected, $sql );
 
 		if ( is_string( $incorrect_usage ) && array_key_exists( 'wpdb::prepare', $this->caught_doing_it_wrong ) ) {
-			$this->assertStringContainsString( $incorrect_usage, $this->caught_doing_it_wrong['wpdb::prepare'] );
+			$this->assertStringContainsString( $incorrect_usage, $this->caught_doing_it_wrong['wpdb::prepare'], 'The "_doing_it_wrong" message does not match' );
 		}
 	}
 
@@ -1876,21 +1876,21 @@ class Tests_DB extends WP_UnitTestCase {
 
 		$property = new ReflectionProperty( $wpdb, 'allow_unsafe_unquoted_parameters' );
 		$property->setAccessible( true );
-
 		$property->setValue( $wpdb, true );
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$part = $wpdb->prepare( $sql, $values );
-		$this->assertSame( 'WHERE (`field_a` = \'string_a\') OR (`   field_b` =   string_b) OR (`field_c` = string_c)', $part ); // Unsafe, unquoted parameters.
+		$prepared_unquoted = $wpdb->prepare( $sql, $values );
 
 		$property->setValue( $wpdb, false );
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$part = $wpdb->prepare( $sql, $values );
-		$this->assertSame( 'WHERE (`field_a` = \'string_a\') OR (`   field_b` = \'  string_b\') OR (`field_c` = \'string_c\')', $part );
+		$prepared_quoted = $wpdb->prepare( $sql, $values );
 
 		$property->setValue( $wpdb, $default );
 		$property->setAccessible( false );
+
+		$this->assertSame( 'WHERE (`field_a` = \'string_a\') OR (`   field_b` =   string_b) OR (`field_c` = string_c)', $prepared_unquoted ); // Unsafe, unquoted parameters.
+		$this->assertSame( 'WHERE (`field_a` = \'string_a\') OR (`   field_b` = \'  string_b\') OR (`field_c` = \'string_c\')', $prepared_quoted );
 
 	}
 
@@ -1900,7 +1900,7 @@ class Tests_DB extends WP_UnitTestCase {
 	public function test_escape_and_prepare( $escape, $sql, $values, $incorrect_usage, $expected ) {
 		global $wpdb;
 
-		if ( is_string( $incorrect_usage ) || true === $incorrect_usage ) {
+		if ( $incorrect_usage ) {
 			$this->setExpectedIncorrectUsage( 'wpdb::prepare' );
 		}
 
@@ -1912,10 +1912,6 @@ class Tests_DB extends WP_UnitTestCase {
 		$actual = $wpdb->prepare( $sql, $values );
 
 		$this->assertSame( $expected, $actual );
-
-		if ( is_string( $incorrect_usage ) && array_key_exists( 'wpdb::prepare', $this->caught_doing_it_wrong ) ) {
-			$this->assertStringContainsString( $incorrect_usage, $this->caught_doing_it_wrong['wpdb::prepare'] );
-		}
 	}
 
 	public function data_escape_and_prepare() {
