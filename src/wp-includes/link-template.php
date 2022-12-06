@@ -1500,7 +1500,7 @@ function get_edit_post_link( $post = 0, $context = 'display' ) {
  * @param int|WP_Post $post      Optional. Post ID or post object. Default is the global `$post`.
  * @param string      $css_class Optional. Add custom class to link. Default 'post-edit-link'.
  */
-function edit_post_link( $text = null, $before = '', $after = '', $post = 0, $class = 'post-edit-link' ) {
+function edit_post_link( $text = null, $before = '', $after = '', $post = 0, $css_class = 'post-edit-link' ) {
 	$post = get_post( $post );
 
 	if ( ! $post ) {
