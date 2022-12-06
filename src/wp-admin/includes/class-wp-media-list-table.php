@@ -113,6 +113,7 @@ class WP_Media_List_Table extends WP_List_Table {
 		);
 
 		update_post_parent_caches( $wp_query->posts );
+		update_post_thumbnail_cache( $wp_query );
 	}
 
 	/**
@@ -427,8 +428,8 @@ class WP_Media_List_Table extends WP_List_Table {
 
 		$attachment_id = $post->ID;
 
-		if ( wp_attachment_is( 'video', $post ) || wp_attachment_is( 'audio', $post ) ) {
-			$thumbnail_id = get_post_thumbnail_id( $attachment_id );
+		if ( has_post_thumbnail( $post ) ) {
+			$thumbnail_id = get_post_thumbnail_id( $post );
 
 			if ( ! empty( $thumbnail_id ) ) {
 				$attachment_id = $thumbnail_id;
