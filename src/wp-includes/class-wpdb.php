@@ -1574,7 +1574,7 @@ class wpdb {
 
 				if ( false !== $argnum_pos ) {
 					// sprintf() argnum starts at 1, $arg_id from 0.
-					$arg_identifiers[] = ( intval( substr( $format, 0, $argnum_pos ) ) - 1 );
+					$arg_identifiers[] = ( ( (int) substr( $format, 0, $argnum_pos ) ) - 1 );
 				} else {
 					$arg_identifiers[] = $arg_id;
 				}
@@ -1586,7 +1586,7 @@ class wpdb {
 				$argnum_pos = strpos( $format, '$' );
 
 				if ( false !== $argnum_pos ) {
-					$arg_strings[] = ( intval( substr( $format, 0, $argnum_pos ) ) - 1 );
+					$arg_strings[] = ( ( (int) substr( $format, 0, $argnum_pos ) ) - 1 );
 				} else {
 					$arg_strings[] = $arg_id;
 				}
@@ -1629,7 +1629,7 @@ class wpdb {
 				$argnum_pos = strpos( $format, '$' );
 
 				if ( false !== $argnum_pos ) {
-					$arg_pos = ( intval( substr( $format, 0, $argnum_pos ) ) - 1 );
+					$arg_pos = ( ( (int) substr( $format, 0, $argnum_pos ) ) - 1 );
 				} else {
 					$arg_pos = $arg_id;
 				}
@@ -1701,7 +1701,7 @@ class wpdb {
 
 					for ( $i = 2, $l = $split_query_count; $i < $l; $i += 3 ) {
 						// Assume a leading number is for a numbered placeholder, e.g. '%3$s'.
-						$argnum = intval( substr( $split_query[ $i ], 1 ) );
+						$argnum = (int) substr( $split_query[ $i ], 1 );
 
 						if ( $max_numbered_placeholder < $argnum ) {
 							$max_numbered_placeholder = $argnum;
