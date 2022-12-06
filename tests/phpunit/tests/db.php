@@ -1527,7 +1527,7 @@ class Tests_DB extends WP_UnitTestCase {
 
 		// phpcs:ignore WordPress.DB.PreparedSQL
 		$sql = $wpdb->prepare( $sql, ...$values );
-		$this->assertSame( $expected, $sql );
+		$this->assertSame( $expected, $sql, 'The expected SQL does not match' );
 
 		if ( is_string( $incorrect_usage ) && array_key_exists( 'wpdb::prepare', $this->caught_doing_it_wrong ) ) {
 			$this->assertStringContainsString( $incorrect_usage, $this->caught_doing_it_wrong['wpdb::prepare'], 'The "_doing_it_wrong" message does not match' );
@@ -1550,7 +1550,7 @@ class Tests_DB extends WP_UnitTestCase {
 
 		// phpcs:ignore WordPress.DB.PreparedSQL
 		$sql = $wpdb->prepare( $sql, $values );
-		$this->assertSame( $expected, $sql );
+		$this->assertSame( $expected, $sql, 'The expected SQL does not match' );
 
 		if ( is_string( $incorrect_usage ) && array_key_exists( 'wpdb::prepare', $this->caught_doing_it_wrong ) ) {
 			$this->assertStringContainsString( $incorrect_usage, $this->caught_doing_it_wrong['wpdb::prepare'], 'The "_doing_it_wrong" message does not match' );
