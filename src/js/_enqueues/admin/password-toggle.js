@@ -2,7 +2,7 @@
  * Adds show/hide toggle for the setup config database password.
  *
  * @since 6.2.0
- * @output wp-admin/js/setup-config.js
+ * @output wp-admin/js/password-toggle.js
  */
 
 ( function () {
