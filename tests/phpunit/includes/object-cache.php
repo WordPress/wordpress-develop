@@ -487,7 +487,10 @@ function wp_cache_get_multi_by_key( $server_key, $keys, $groups = '', &$cas_toke
  */
 function wp_cache_get_multiple( $keys, $group = '', $force = false ) {
 	global $wp_object_cache;
+
+	// Prime multiple keys in a single Memcached call.
 	$wp_object_cache->getMulti( $keys, $group );
+
 	return $wp_object_cache->getMultiple( $keys, $group, $force );
 }
 
