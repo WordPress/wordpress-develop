@@ -36,22 +36,20 @@ jobs:
   #
   # Performs the following steps:
   # - Sets environment variables.
-  # - Sets up the environment variables needed for testing with memcached (if desired).
-  # - Installs Node.js.
-  # - Installs npm dependencies
-  # - Configures caching for Composer.
+  # - Checks out the repository.
+  # - Sets up Node.js.
+  # - Sets up PHP.
   # - Installs Composer dependencies.
+  # - Installs npm dependencies
+  # - Logs general debug information about the runner.
   # - Logs Docker debug information (about the Docker installation within the runner).
   # - Starts the WordPress Docker container.
-  # - Logs general debug information about the runner.
   # - Logs the running Docker containers.
-  # - Logs debug information from inside the WordPress Docker container.
   # - Logs debug information about what's installed within the WordPress Docker containers.
   # - Install WordPress within the Docker container.
   # - Run the PHPUnit tests.
   # - Ensures version-controlled files are not modified or deleted.
   # - Checks out the WordPress Test reporter repository.
-  # - Reconnect the directory to the Git repository.
   # - Submit the test results to the WordPress.org host test results.
   test-php:
     name: ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.split_slow && ' slow tests' || '' }}${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
@@ -108,43 +106,44 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
 
-      - name: Install Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
         with:
           node-version-file: '.nvmrc'
           cache: npm
 
-      - name: Install Dependencies
+      ##
+      # This allows Composer dependencies to be installed using a single step.
+      #
+      # Since the tests are currently run within the Docker containers where the PHP version varies,
+      # the same PHP version needs to be configured for the action runner machine so that the correct
+      # dependency versions are installed and cached.
+      ##
+      - name: Set up PHP
+        uses: shivammathur/setup-php@1a18b2267f80291a81ca1d33e7c851fe09e7dfc4 # v2.22.0
+        with:
+          php-version: '${{ matrix.php }}'
+          coverage: none
+
+      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
+      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
+      - name: Install Composer dependencies
+        uses: ramsey/composer-install@83af392bf5f031813d25e6fe4cd626cdba9a2df6 # v2.2.0
+        with:
+          custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
+
+      - name: Install npm dependencies
         run: npm ci
 
-      # This date is used to ensure that the Composer cache is refreshed at least once every week.
-      # http://man7.org/linux/man-pages/man1/date.1.html
-      - name: "Get last Monday's date"
-        id: get-date
-        run: echo "date=$(/bin/date -u --date='last Mon' "+%F")" >> $GITHUB_OUTPUT
-
-      - name: Get Composer cache directory
-        id: composer-cache
-        run: echo "composer_dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache Composer dependencies
-        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
-        env:
-          cache-name: cache-composer-dependencies
-        with:
-          path: ${{ steps.composer-cache.outputs.composer_dir }}
-          key: ${{ runner.os }}-php-${{ matrix.php }}-date-${{ steps.get-date.outputs.date }}-composer-${{ hashFiles('**/composer.json') }}
-
-      - name: Install Composer dependencies
+      - name: General debug information
         run: |
-          docker-compose run --rm php composer --version
-
-          # Install using `composer update` as there is no `composer.lock` file.
-          if [ ${{ env.LOCAL_PHP }} == '8.2-fpm' ]; then
-            docker-compose run --rm php composer update --ignore-platform-req=php+
-          else
-            docker-compose run --rm php composer update
-          fi
+          npm --version
+          node --version
+          curl --version
+          git --version
+          svn --version
+          composer --version
+          locale -a
 
       - name: Docker debug information
         run: |
@@ -154,14 +153,6 @@ jobs:
       - name: Start Docker environment
         run: |
           npm run env:start
-
-      - name: General debug information
-        run: |
-          npm --version
-          node --version
-          curl --version
-          git --version
-          svn --version
 
       - name: Log running Docker containers
         run: docker ps -a

@@ -390,8 +390,8 @@ function is_taxonomy_hierarchical( $taxonomy ) {
  *
  * @global WP_Taxonomy[] $wp_taxonomies Registered taxonomies.
  *
- * @param string       $taxonomy    Taxonomy key, must not exceed 32 characters and may only contain lowercase alphanumeric
- *                                  characters, dashes, and underscores. See sanitize_key().
+ * @param string       $taxonomy    Taxonomy key. Must not exceed 32 characters and may only contain
+ *                                  lowercase alphanumeric characters, dashes, and underscores. See sanitize_key().
  * @param array|string $object_type Object type or array of object types with which the taxonomy should be associated.
  * @param array|string $args        {
  *     Optional. Array or query string of arguments for registering a taxonomy.
@@ -558,13 +558,14 @@ function register_taxonomy( $taxonomy, $object_type, $args = array() ) {
  *
  * @since 4.5.0
  *
- * @global WP            $wp            Current WordPress environment instance.
  * @global WP_Taxonomy[] $wp_taxonomies List of taxonomies.
  *
  * @param string $taxonomy Taxonomy name.
  * @return true|WP_Error True on success, WP_Error on failure or if the taxonomy doesn't exist.
  */
 function unregister_taxonomy( $taxonomy ) {
+	global $wp_taxonomies;
+
 	if ( ! taxonomy_exists( $taxonomy ) ) {
 		return new WP_Error( 'invalid_taxonomy', __( 'Invalid taxonomy.' ) );
 	}
@@ -575,8 +576,6 @@ function unregister_taxonomy( $taxonomy ) {
 	if ( $taxonomy_object->_builtin ) {
 		return new WP_Error( 'invalid_taxonomy', __( 'Unregistering a built-in taxonomy is not allowed.' ) );
 	}
-
-	global $wp_taxonomies;
 
 	$taxonomy_object->remove_rewrite_rules();
 	$taxonomy_object->remove_hooks();
@@ -4521,6 +4520,8 @@ function wp_get_split_term( $old_term_id, $taxonomy ) {
  * other delays in upgrade routines may cause shared terms to remain.
  *
  * @since 4.4.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int $term_id Term ID.
  * @return bool Returns false if a term is not shared between multiple taxonomies or
