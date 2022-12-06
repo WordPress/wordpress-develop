@@ -239,6 +239,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$parameter_mappings = array(
 			'author'         => 'author__in',
 			'author_exclude' => 'author__not_in',
+			'exact_search'   => 'exact',
 			'exclude'        => 'post__not_in',
 			'include'        => 'post__in',
 			'menu_order'     => 'menu_order',
@@ -251,7 +252,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'search'         => 's',
 			'slug'           => 'post_name__in',
 			'status'         => 'post_status',
-			'exact_search'   => 'exact',
 		);
 
 		/*
