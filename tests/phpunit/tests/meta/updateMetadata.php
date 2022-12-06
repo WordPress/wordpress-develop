@@ -30,6 +30,12 @@ class Tests_Meta_UpdateMetadata extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 54316
+	 *
+	 * @group user
+	 *
+	 * @covers ::clean_user_cache
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
 	public function test_clear_user_metadata_caches() {
 		global $wpdb;
@@ -63,6 +69,12 @@ class Tests_Meta_UpdateMetadata extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 54316
+	 *
+	 * @group user
+	 *
+	 * @covers ::clean_user_cache
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
 	public function test_clear_post_metadata_caches() {
 		global $wpdb;
