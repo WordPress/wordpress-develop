@@ -1561,7 +1561,8 @@ class wpdb {
 			$format = substr( $placeholder, 1, -1 );
 			$type   = substr( $placeholder, -1 );
 
-			if ( 'f' === $type ) { // Force floats to be locale-unaware.
+			// Force floats to be locale-unaware.
+			if ( 'f' === $type ) {
 				$type        = 'F';
 				$placeholder = '%' . $format . $type;
 			}
@@ -1590,9 +1591,11 @@ class wpdb {
 					$arg_strings[] = $arg_id;
 				}
 
-				// Unquoted strings for backward compatibility (dangerous).
-				// First, "numbered or formatted string placeholders (eg, %1$s, %5s)".
-				// Second, if "%s" has a "%" before it, even if it's unrelated (e.g. "LIKE '%%%s%%'").
+				/*
+				 * Unquoted strings for backward compatibility (dangerous).
+				 * First, "numbered or formatted string placeholders (eg, %1$s, %5s)".
+				 * Second, if "%s" has a "%" before it, even if it's unrelated (e.g. "LIKE '%%%s%%'").
+				 */
 				if ( true !== $this->allow_unsafe_unquoted_parameters || ( '' === $format && ! str_ends_with( $split_query[ $key - 1 ], '%' ) ) ) {
 					$placeholder = "'%" . $format . "s'";
 				}
@@ -1617,7 +1620,8 @@ class wpdb {
 
 			$key    = 2;
 			$arg_id = 0;
-			while ( $key < $split_query_count ) { // Parse again (only used when there is an error).
+			// Parse again (only used when there is an error).
+			while ( $key < $split_query_count ) {
 				$placeholder = $split_query[ $key ];
 
 				$format = substr( $placeholder, 1, -1 );
