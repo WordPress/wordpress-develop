@@ -49,6 +49,137 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @dataProvider data_returning_field_subset_as_array
+	 *
+	 * @param array $args
+	 */
+	public function test_query_cache( $args ) {
+		$query1       = new WP_User_Query( $args );
+		$users1       = $query1->get_results();
+		$users_total1 = $query1->get_total();
+
+		$queries_before = get_num_queries();
+		$query2         = new WP_User_Query( $args );
+		$users2         = $query2->get_results();
+		$users_total2   = $query2->get_total();
+		$queries_after  = get_num_queries();
+
+		$this->assertSame( $queries_before, $queries_after );
+		$this->assertSame( $users_total1, $users_total2 );
+		$this->assertSameSets( $users1, $users2 );
+	}
+
+	/**
+	 * Data provider
+	 *
+	 * @return array
+	 */
+	public function data_returning_field_subset_as_array() {
+		$data = array(
+			'id'                    => array(
+				'args' => array( 'fields' => array( 'id' ) ),
+
+			),
+			'ID'                    => array(
+				'args' => array( 'fields' => array( 'ID' ) ),
+
+			),
+			'user_login'            => array(
+				'args' => array( 'fields' => array( 'user_login' ) ),
+			),
+			'user_nicename'         => array(
+				'args' => array( 'fields' => array( 'user_nicename' ) ),
+			),
+			'user_email'            => array(
+				'args' => array( 'fields' => array( 'user_email' ) ),
+			),
+			'user_url'              => array(
+				'args' => array( 'fields' => array( 'user_url' ) ),
+			),
+			'user_status'           => array(
+				'args' => array( 'fields' => array( 'user_status' ) ),
+			),
+			'display_name'          => array(
+				'args' => array( 'fields' => array( 'display_name' ) ),
+			),
+			'invalid_field'         => array(
+				'args' => array( 'fields' => array( 'invalid_field' ) ),
+			),
+			'valid array inc id'    => array(
+				'args' => array( 'fields' => array( 'display_name', 'user_email', 'id' ) ),
+			),
+			'valid array inc ID'    => array(
+				'args' => array( 'fields' => array( 'display_name', 'user_email', 'ID' ) ),
+			),
+			'partly valid array'    => array(
+				'args' => array( 'fields' => array( 'display_name', 'invalid_field' ) ),
+			),
+			'meta query'            => array(
+				'args' => array(
+					'fields'     => array( 'ID' ),
+					'meta_query' => array(
+						'foo_key' => array(
+							'key'     => 'foo',
+							'compare' => 'EXISTS',
+						),
+					),
+					'orderby'    => 'foo_key',
+					'order'      => 'DESC',
+				),
+			),
+			'published posts'       => array(
+				'args' => array(
+					'has_published_posts' => true,
+					'fields'              => array( 'ID' ),
+				),
+			),
+			'published posts order' => array(
+				'args' => array(
+					'orderby' => 'post_count',
+					'fields'  => array( 'ID' ),
+				),
+			),
+			'published count_total' => array(
+				'args' => array(
+
+					'count_total' => false,
+					'fields'      => array( 'ID' ),
+				),
+			),
+			'capability'            => array(
+				'args' => array(
+					'capability' => 'install_plugins',
+					'fields'     => array( 'ID' ),
+				),
+			),
+			'include'               => array(
+				'args' => array(
+					'includes' => self::$author_ids,
+					'fields'   => array( 'ID' ),
+				),
+			),
+			'exclude'               => array(
+				'args' => array(
+					'exclude' => self::$author_ids,
+					'fields'  => array( 'ID' ),
+				),
+			),
+
+		);
+
+		if ( is_multisite() ) {
+			$data['spam']    = array(
+				'args' => array( 'fields' => array( 'spam' ) ),
+			);
+			$data['deleted'] = array(
+				'args' => array( 'fields' => array( 'deleted' ) ),
+			);
+		}
+
+		return $data;
+	}
+
 	public function test_query_cache_update_user_role() {
 		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
 
@@ -298,5 +429,64 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		$this->assertNotContains( self::$author_ids[0], $found );
 		$this->assertContains( self::$author_ids[1], $found );
 		$this->assertNotContains( self::$author_ids[2], $found );
+	}
+
+	/**
+	 * @ticket 32250
+	 * @group ms-required
+	 */
+	public function test_has_published_posts_should_respect_blog_id() {
+		$blogs = self::factory()->blog->create_many( 2 );
+
+		add_user_to_blog( $blogs[0], self::$author_ids[0], 'author' );
+		add_user_to_blog( $blogs[0], self::$author_ids[1], 'author' );
+		add_user_to_blog( $blogs[1], self::$author_ids[0], 'author' );
+		add_user_to_blog( $blogs[1], self::$author_ids[1], 'author' );
+
+		switch_to_blog( $blogs[0] );
+		self::factory()->post->create(
+			array(
+				'post_author' => self::$author_ids[0],
+				'post_status' => 'publish',
+				'post_type'   => 'post',
+			)
+		);
+		restore_current_blog();
+
+		switch_to_blog( $blogs[1] );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$author_ids[1],
+				'post_status' => 'publish',
+				'post_type'   => 'post',
+			)
+		);
+		restore_current_blog();
+
+		$q = new WP_User_Query(
+			array(
+				'has_published_posts' => array( 'post' ),
+				'blog_id'             => $blogs[1],
+			)
+		);
+
+		$found    = wp_list_pluck( $q->get_results(), 'ID' );
+		$expected = array( self::$author_ids[1] );
+
+		$this->assertSameSets( $expected, $found );
+		switch_to_blog( $blogs[1] );
+		wp_delete_post( $post_id, true );
+		restore_current_blog();
+
+		$q = new WP_User_Query(
+			array(
+				'has_published_posts' => array( 'post' ),
+				'blog_id'             => $blogs[1],
+			)
+		);
+
+		$found = wp_list_pluck( $q->get_results(), 'ID' );
+
+		$this->assertSameSets( array(), $found );
 	}
 }

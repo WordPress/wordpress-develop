@@ -1049,8 +1049,18 @@ class WP_User_Query {
 			$ordersby = preg_split( '/[,\s]+/', $args['orderby'] );
 		}
 
-		if ( $args['has_published_posts'] || in_array( 'post_count', $ordersby, true ) ) {
+		$blog_id = 0;
+		if ( isset( $args['blog_id'] ) ) {
+			$blog_id = absint( $args['blog_id'] );
+		}
+		if ( ( $args['has_published_posts'] && $blog_id ) || in_array( 'post_count', $ordersby, true ) ) {
+			if ( get_current_blog_id() !== $blog_id ) {
+				switch_to_blog( $blog_id );
+			}
 			$last_changed .= wp_cache_get_last_changed( 'posts' );
+			if ( get_current_blog_id() !== $blog_id ) {
+				restore_current_blog();
+			}
 		}
 
 		return "get_users:$key:$last_changed";

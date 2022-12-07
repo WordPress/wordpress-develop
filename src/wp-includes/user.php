@@ -1895,7 +1895,7 @@ function clean_user_cache( $user ) {
 	}
 
 	wp_cache_delete( $user->ID, 'user_meta' );
-  wp_cache_set_users_last_changed();
+	wp_cache_set_users_last_changed();
 
 	/**
 	 * Fires immediately after the given user's cache is cleaned.
