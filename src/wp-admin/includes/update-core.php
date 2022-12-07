@@ -1546,6 +1546,36 @@ function update_core( $from, $to ) {
 }
 
 /**
+ * Preloads old Requests files stored in $_old_files
+ * that may be needed during the update process.
+ *
+ * @since 6.2.0
+ *
+ * @param string $to Path to old WordPress installation.
+ */
+function _preload_old_requests_files( $to ) {
+	global $_old_files, $wp_filesystem;
+
+	foreach ( $_old_files as $old_file ) {
+		if ( ! str_ends_with( $old_file, '.php' ) ) {
+			continue;
+		}
+
+		if ( ! str_starts_with( $old_file, 'wp-includes/Requests/' ) ) {
+			continue;
+		}
+
+		$old_file = $to . $old_file;
+
+		if ( ! $wp_filesystem->is_file( $old_file ) ) {
+			continue;
+		}
+
+		require_once $old_file;
+	}
+}
+
+/**
  * Redirect to the About WordPress page after a successful upgrade.
  *
  * This function is only needed when the existing installation is older than 3.4.0.
