@@ -29,7 +29,7 @@
  *
  * Exceptions:
  *
- * 1. When the option has not been saved in the database, the `default_value` value
+ * 1. When the option has not been saved in the database, the `$default_value` value
  *    is returned if provided. If not, boolean `false` is returned.
  * 2. When one of the Options API filters is used: {@see 'pre_option_$option'},
  *    {@see 'default_option_$option'}, or {@see 'option_$option'}, the returned
