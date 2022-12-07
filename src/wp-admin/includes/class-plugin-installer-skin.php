@@ -261,7 +261,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 
 		$requires_php     = isset( $new_plugin_data['RequiresPHP'] ) ? $new_plugin_data['RequiresPHP'] : null;
 		$requires_wp      = isset( $new_plugin_data['RequiresWP'] ) ? $new_plugin_data['RequiresWP'] : null;
-		$requires_network = isset( $new_plugin_data['Requires Network'] ) ? $new_plugin_data['Requires Network'] : null;
+		$requires_network = isset( $new_plugin_data['RequiresNetwork'] ) ? $new_plugin_data['RequiresNetwork'] : null;
 
 		if ( ! is_php_version_compatible( $requires_php ) ) {
 			$error = sprintf(
