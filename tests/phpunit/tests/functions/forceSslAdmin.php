@@ -13,11 +13,14 @@ class Tests_Functions_ForceSslAdmin extends WP_UnitTestCase {
 	 */
 	public function test_force_ssl_admin() {
 		$default = force_ssl_admin();
-		$this->assertFalse( $default, 'default' );
-		$this->assertFalse( force_ssl_admin( true ), 'set true' );
-		$this->assertTrue( force_ssl_admin(), 'check is still true' );
-
+		$before_setting_to_true = force_ssl_admin( true );
+		$after_setting_to_true = force_ssl_admin();
 		// Reset to default.
-		$this->assertTrue( force_ssl_admin( $default ), 'set false and back to default' );
+		$before_reset = force_ssl_admin( $default );
+
+		$this->assertFalse( $default, 'is was set to false as the default value' );
+		$this->assertFalse( $before_setting_to_true, 'when setting to true the previous call to the function changed the value from false' );
+		$this->assertTrue( $after_setting_to_true, 'check the new value is true' );
+		$this->assertTrue( $before_reset, 'set false and back to default' );
 	}
 }
