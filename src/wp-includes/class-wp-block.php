@@ -223,7 +223,7 @@ class WP_Block {
 			foreach ( $this->inner_content as $chunk ) {
 				if ( is_string( $chunk ) ) {
 					$block_content .= $chunk;
-				} else {
+				} else if ( ! empty( $this->inner_blocks[ $index ] ) ) {
 					$inner_block  = $this->inner_blocks[ $index ];
 					$parent_block = $this;
 
