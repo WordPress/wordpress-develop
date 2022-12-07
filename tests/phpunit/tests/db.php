@@ -1867,7 +1867,7 @@ class Tests_DB extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The wbdb->allow_unsafe_unquoted_parameters is true (for now), purely for backwards compatibility reasons.
+	 * The wpdb->allow_unsafe_unquoted_parameters is true (for now), purely for backwards compatibility reasons.
 	 *
 	 * @ticket 52506
 	 *
@@ -1936,7 +1936,7 @@ class Tests_DB extends WP_UnitTestCase {
 				'expected' => 'WHERE (`field_a` = \'string_a\') OR (`field_b` = \'0 OR EvilSQL\')',
 			),
 
-			'format-true1'     => array(
+			'format-true-1'    => array(
 				'allow'    => true,
 				'sql'      => 'WHERE (%10i = %10s)',
 				'values'   => array( 'field_a', 'string_a' ),
