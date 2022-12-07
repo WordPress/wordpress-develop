@@ -739,7 +739,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 		$requires_php     = isset( $plugin_data['RequiresPHP'] ) ? $plugin_data['RequiresPHP'] : null;
 		$requires_wp      = isset( $plugin_data['RequiresWP'] ) ? $plugin_data['RequiresWP'] : null;
-		$requires_network = isset( $plugin_data['Requires Network'] ) ? $plugin_data['Requires Network'] : null;
+		$requires_network = isset( $plugin_data['RequiresNetwork'] ) ? $plugin_data['RequiresNetwork'] : null;
 
 		$compatible_php             = is_php_version_compatible( $requires_php );
 		$compatible_wp              = is_wp_version_compatible( $requires_wp );
