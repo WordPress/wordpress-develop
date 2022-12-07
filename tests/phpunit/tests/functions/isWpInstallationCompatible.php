@@ -12,7 +12,7 @@ class Tests_Functions_IsWpInstallationCompatible extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_is_wp_installation_compatible
 	 *
-	 * @param mixed $required The required WordPress installation, truthy for multisite and falsy for .
+	 * @param mixed $required The required WordPress installation, true for multisite false otherwise.
 	 * @param bool  $expected The expected result.
 	 */
 	public function test_is_wp_installation_compatible( $required, $expected ) {
