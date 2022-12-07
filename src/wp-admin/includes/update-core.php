@@ -1031,6 +1031,8 @@ function update_core( $from, $to ) {
 
 	set_time_limit( 300 );
 
+	_preload_old_requests_files( $to );
+
 	/**
 	 * Filters feedback messages displayed during the core update process.
 	 *
