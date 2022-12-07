@@ -1866,32 +1866,127 @@ class Tests_DB extends WP_UnitTestCase {
 		);
 	}
 
-	public function test_allow_unsafe_unquoted_parameters() {
+	/**
+	 * The wbdb->allow_unsafe_unquoted_parameters is true (for now), purely for backwards compatibility reasons.
+	 *
+	 * @ticket 52506
+	 *
+	 * @dataProvider data_prepare_should_respect_the_allow_unsafe_unquoted_parameters_property
+	 *
+	 * @covers wpdb::prepare
+	 *
+	 * @param bool   $allow    Whether to allow unsafe unquoted parameters.
+	 * @param string $sql      The SQL to prepare.
+	 * @param array  $values   The values for prepare.
+	 * @param string $expected The expected prepared parameters.
+	 */
+	public function test_prepare_should_respect_the_allow_unsafe_unquoted_parameters_property( $allow, $sql, $values, $expected ) {
 		global $wpdb;
-
-		$sql    = 'WHERE (%i = %s) OR (%10i = %10s) OR (%5$i = %6$s)';
-		$values = array( 'field_a', 'string_a', 'field_b', 'string_b', 'field_c', 'string_c' );
 
 		$default = $wpdb->allow_unsafe_unquoted_parameters;
 
 		$property = new ReflectionProperty( $wpdb, 'allow_unsafe_unquoted_parameters' );
 		$property->setAccessible( true );
-		$property->setValue( $wpdb, true );
+		$property->setValue( $wpdb, $allow );
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$prepared_unquoted = $wpdb->prepare( $sql, $values );
+		$actual = $wpdb->prepare( $sql, $values );
 
-		$property->setValue( $wpdb, false );
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$prepared_quoted = $wpdb->prepare( $sql, $values );
-
+		// Reset.
 		$property->setValue( $wpdb, $default );
 		$property->setAccessible( false );
 
-		$this->assertSame( 'WHERE (`field_a` = \'string_a\') OR (`   field_b` =   string_b) OR (`field_c` = string_c)', $prepared_unquoted ); // Unsafe, unquoted parameters.
-		$this->assertSame( 'WHERE (`field_a` = \'string_a\') OR (`   field_b` = \'  string_b\') OR (`field_c` = \'string_c\')', $prepared_quoted );
+		$this->assertSame( $expected, $actual );
+	}
 
+	/**
+	 * Data provider for test_prepare_should_respect_the_allow_unsafe_unquoted_parameters_property().
+	 *
+	 * @return array[]
+	 */
+	public function data_prepare_should_respect_the_allow_unsafe_unquoted_parameters_property() {
+		global $wpdb;
+
+		$placeholder_escape = $wpdb->placeholder_escape();
+
+		return array(
+
+			'numbered-true-1'  => array(
+				'allow'    => true,
+				'sql'      => 'WHERE (%i = %s) OR (%3$i = %4$s)',
+				'values'   => array( 'field_a', 'string_a', 'field_b', 'string_b' ),
+				'expected' => 'WHERE (`field_a` = \'string_a\') OR (`field_b` = string_b)',
+			),
+			'numbered-false-1' => array(
+				'allow'    => false,
+				'sql'      => 'WHERE (%i = %s) OR (%3$i = %4$s)',
+				'values'   => array( 'field_a', 'string_a', 'field_b', 'string_b' ),
+				'expected' => 'WHERE (`field_a` = \'string_a\') OR (`field_b` = \'string_b\')',
+			),
+			'numbered-true-2'  => array(
+				'allow'    => true,
+				'sql'      => 'WHERE (%i = %s) OR (%3$i = %4$s)',
+				'values'   => array( 'field_a', 'string_a', 'field_b', '0 OR EvilSQL' ),
+				'expected' => 'WHERE (`field_a` = \'string_a\') OR (`field_b` = 0 OR EvilSQL)',
+			),
+			'numbered-false-2' => array(
+				'allow'    => false,
+				'sql'      => 'WHERE (%i = %s) OR (%3$i = %4$s)',
+				'values'   => array( 'field_a', 'string_a', 'field_b', '0 OR EvilSQL' ),
+				'expected' => 'WHERE (`field_a` = \'string_a\') OR (`field_b` = \'0 OR EvilSQL\')',
+			),
+
+			'format-true1'     => array(
+				'allow'    => true,
+				'sql'      => 'WHERE (%10i = %10s)',
+				'values'   => array( 'field_a', 'string_a' ),
+				'expected' => 'WHERE (`   field_a` =   string_a)',
+			),
+			'format-false-1'   => array(
+				'allow'    => false,
+				'sql'      => 'WHERE (%10i = %10s)',
+				'values'   => array( 'field_a', 'string_a' ),
+				'expected' => 'WHERE (`   field_a` = \'  string_a\')',
+			),
+			'format-true-2'    => array(
+				'allow'    => true,
+				'sql'      => 'WHERE (%10i = %10s)',
+				'values'   => array( 'field_a', '0 OR EvilSQL' ),
+				'expected' => 'WHERE (`   field_a` = 0 OR EvilSQL)',
+			),
+			'format-false-2'   => array(
+				'allow'    => false,
+				'sql'      => 'WHERE (%10i = %10s)',
+				'values'   => array( 'field_a', '0 OR EvilSQL' ),
+				'expected' => 'WHERE (`   field_a` = \'0 OR EvilSQL\')',
+			),
+
+			'escaped-true-1'   => array(
+				'allow'    => true,
+				'sql'      => 'SELECT 9%%%s',
+				'values'   => array( '7' ),
+				'expected' => "SELECT 9{$placeholder_escape}7", // SELECT 9%7.
+			),
+			'escaped-false-1'  => array(
+				'allow'    => false,
+				'sql'      => 'SELECT 9%%%s',
+				'values'   => array( '7' ),
+				'expected' => "SELECT 9{$placeholder_escape}'7'", // SELECT 9%'7'.
+			),
+			'escaped-true-2'   => array(
+				'allow'    => true,
+				'sql'      => 'SELECT 9%%%s',
+				'values'   => array( '7 OR EvilSQL' ),
+				'expected' => "SELECT 9{$placeholder_escape}7 OR EvilSQL", // SELECT 9%7 OR EvilSQL.
+			),
+			'escaped-false-2'  => array(
+				'allow'    => false,
+				'sql'      => 'SELECT 9%%%s',
+				'values'   => array( '7 OR EvilSQL' ),
+				'expected' => "SELECT 9{$placeholder_escape}'7 OR EvilSQL'", // SELECT 9%'7 OR EvilSQL'.
+			),
+
+		);
 	}
 
 	/**
