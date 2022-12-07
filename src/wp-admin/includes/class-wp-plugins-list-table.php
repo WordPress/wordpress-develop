@@ -1319,7 +1319,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				if ( current_user_can( 'setup_network' ) ) {
 					printf(
 						/* translators: %s: URL to Update PHP page. */
-						' ' . __( '<a href="%s">Learn more about network installation.</a>.' ),
+						' ' . __( '<a href="%s">Learn more about network installation</a>.' ),
 						esc_url( wp_get_default_network_installation_url() )
 					);
 				}
