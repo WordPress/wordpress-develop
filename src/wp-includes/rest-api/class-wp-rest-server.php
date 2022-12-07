@@ -842,7 +842,7 @@ class WP_REST_Server {
 		 * @param string $route      The REST route.
 		 * @param bool   $override   Whether the route is going to be overridden even if it already exists.
 		 */
-		$route_args = apply_filters( 'register_route_args', $route_args, $namespace, $route, $override );	
+		$route_args = apply_filters( 'register_route_args', $route_args, $namespace, $route, $override );
 
 		if ( $override || empty( $this->endpoints[ $route ] ) ) {
 			$this->endpoints[ $route ] = $route_args;
