@@ -442,7 +442,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 
 		$requires_php     = isset( $info['RequiresPHP'] ) ? $info['RequiresPHP'] : null;
 		$requires_wp      = isset( $info['RequiresWP'] ) ? $info['RequiresWP'] : null;
-		$requires_network = isset( $new_plugin_data['Requires Network'] ) ? $new_plugin_data['Requires Network'] : null;
+		$requires_network = isset( $new_plugin_data['RequiresNetwork'] ) ? $new_plugin_data['RequiresNetwork'] : null;
 
 		if ( ! is_php_version_compatible( $requires_php ) ) {
 			$error = sprintf(
