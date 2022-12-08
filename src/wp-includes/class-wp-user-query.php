@@ -119,6 +119,7 @@ class WP_User_Query {
 			'login'               => '',
 			'login__in'           => array(),
 			'login__not_in'       => array(),
+			'cache_results'       => true,
 		);
 
 		return wp_parse_args( $args, $defaults );
@@ -140,6 +141,7 @@ class WP_User_Query {
 	 * @since 5.1.0 Introduced the 'meta_compare_key' parameter.
 	 * @since 5.3.0 Introduced the 'meta_type_key' parameter.
 	 * @since 5.9.0 Added 'capability', 'capability__in', and 'capability__not_in' parameters.
+	 * @since 6.2.0 Added 'cache_results' parameter.
 	 *
 	 * @global wpdb     $wpdb     WordPress database abstraction object.
 	 * @global WP_Roles $wp_roles WordPress role management object.
@@ -254,6 +256,7 @@ class WP_User_Query {
 	 *                                                logins will be included in results. Default empty array.
 	 *     @type string[]        $login__not_in       An array of logins to exclude. Users matching one of these
 	 *                                                logins will not be included in results. Default empty array.
+	 *     @type bool            $cache_results       Whether to cache user information. Default true.
 	 * }
 	 */
 	public function prepare_query( $query = array() ) {
@@ -816,8 +819,11 @@ class WP_User_Query {
 				{$this->query_orderby}
 				{$this->query_limit}
 			";
+			$cache_value   = false;
 			$cache_key     = $this->generate_cache_key( $qv, $this->request );
-			$cache_value   = wp_cache_get( $cache_key, 'users' );
+			if ( $qv['cache_results'] ) {
+				$cache_value = wp_cache_get( $cache_key, 'users' );
+			}
 			if ( false !== $cache_value ) {
 				$this->results     = $cache_value['user_data'];
 				$this->total_users = $cache_value['total_users'];
@@ -1035,8 +1041,12 @@ class WP_User_Query {
 	 * @return string Cache key.
 	 */
 	protected function generate_cache_key( array $args, $sql ) {
-		$count_users  = isset( $args['count_total'] ) ? $args['count_total'] : false;
-		$key          = md5( $sql . $count_users );
+		global $wpdb;
+
+		// Replace wpdb placeholder in the SQL statement used by the cache key.
+		$sql = $wpdb->remove_placeholder_escape( $sql );
+
+		$key          = md5( $sql );
 		$last_changed = wp_cache_get_last_changed( 'users' );
 
 		if ( empty( $args['orderby'] ) ) {
