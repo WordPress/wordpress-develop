@@ -951,7 +951,7 @@ function get_blogs_of_user( $user_id, $all = false ) {
 
 	if ( ! is_multisite() ) {
 		$site_id                        = get_current_blog_id();
-		$sites                          = array( $site_id => new stdClass );
+		$sites                          = array( $site_id => new stdClass() );
 		$sites[ $site_id ]->userblog_id = $site_id;
 		$sites[ $site_id ]->blogname    = get_option( 'blogname' );
 		$sites[ $site_id ]->domain      = '';
@@ -1873,6 +1873,7 @@ function update_user_caches( $user ) {
  *
  * @since 3.0.0
  * @since 4.4.0 'clean_user_cache' action was added.
+ * @since 6.2.0 User metadata caches are now cleared.
  *
  * @param WP_User|int $user User object or ID to be cleaned from the cache
  */
@@ -1892,6 +1893,8 @@ function clean_user_cache( $user ) {
 	if ( ! empty( $user->user_email ) ) {
 		wp_cache_delete( $user->user_email, 'useremail' );
 	}
+
+	wp_cache_delete( $user->ID, 'user_meta' );
 
 	/**
 	 * Fires immediately after the given user's cache is cleaned.
