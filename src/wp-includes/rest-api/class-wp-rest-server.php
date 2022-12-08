@@ -828,8 +828,9 @@ class WP_REST_Server {
 		}
 
 		// Associative to avoid double-registration.
-		$this->namespaces[ $namespace ][ $route ] = true;
-		$route_args['namespace']                  = $namespace;
+		$this->namespaces[ $route_namespace ][ $route ] = true;
+
+		$route_args['namespace'] = $route_namespace;
 
 		if ( $override || empty( $this->endpoints[ $route ] ) ) {
 			$this->endpoints[ $route ] = $route_args;
