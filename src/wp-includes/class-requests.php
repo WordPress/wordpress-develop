@@ -72,7 +72,7 @@ class Requests extends WpOrg\Requests\Requests {
 	 * @codeCoverageIgnore
 	 */
 	public static function register_autoloader() {
-		require_once __DIR__ . '/Requests/Autoload.php';
+		require_once __DIR__ . '/Requests/src/Autoload.php';
 		WpOrg\Requests\Autoload::register();
 	}
 }
