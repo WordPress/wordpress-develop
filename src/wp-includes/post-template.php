@@ -477,7 +477,7 @@ function post_class( $css_class = '', $post = null ) {
  *
  * @since 2.7.0
  * @since 4.2.0 Custom taxonomy class names were added.
- 
+ *
  * @param string|string[] $css_class Space-separated string or array of class names to add to the class list.
  * @param int|WP_Post     $post      Optional. Post ID or post object.
  * @return string[] Array of class names.
