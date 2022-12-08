@@ -57,7 +57,7 @@ class Requests extends WpOrg\Requests\Requests {
 	 */
 	public static function autoloader($class) {
 		if (class_exists('WpOrg\Requests\Autoload') === false) {
-			require_once __DIR__ . '/Requests/Autoload.php';
+			require_once __DIR__ . '/Requests/src/Autoload.php';
 		}
 
 		return WpOrg\Requests\Autoload::load($class);
