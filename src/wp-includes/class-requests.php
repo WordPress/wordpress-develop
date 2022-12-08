@@ -30,7 +30,7 @@ if (!defined('REQUESTS_SILENCE_PSR0_DEPRECATIONS') || REQUESTS_SILENCE_PSR0_DEPR
 	}
 }
 
-require_once __DIR__ . '/Requests/Requests.php';
+require_once __DIR__ . '/Requests/src/Requests.php';
 
 /**
  * Requests for PHP
