@@ -57,7 +57,7 @@ $preload_paths = array(
 	'/wp/v2/taxonomies?context=view',
 	add_query_arg(
 		array(
-			'context' => 'edit',
+			'context'  => 'edit',
 			'per_page' => -1,
 		),
 		rest_get_route_for_post_type_items( 'wp_block' )
@@ -68,8 +68,10 @@ $preload_paths = array(
 	array( rest_get_route_for_post_type_items( 'attachment' ), 'OPTIONS' ),
 	array( rest_get_route_for_post_type_items( 'page' ), 'OPTIONS' ),
 	array( rest_get_route_for_post_type_items( 'wp_block' ), 'OPTIONS' ),
+	array( rest_get_route_for_post_type_items( 'wp_template' ), 'OPTIONS' ),
 	sprintf( '%s/autosaves?context=edit', $rest_path ),
 	'/wp/v2/settings',
+	array( '/wp/v2/settings', 'OPTIONS' ),
 );
 
 block_editor_rest_api_preload( $preload_paths, $block_editor_context );
@@ -188,26 +190,30 @@ if ( $user_id ) {
 $body_placeholder = apply_filters( 'write_your_story', __( 'Type / to choose a block' ), $post );
 
 $editor_settings = array(
-	'availableTemplates'                   => $available_templates,
-	'disablePostFormats'                   => ! current_theme_supports( 'post-formats' ),
+	'availableTemplates'   => $available_templates,
+	'disablePostFormats'   => ! current_theme_supports( 'post-formats' ),
 	/** This filter is documented in wp-admin/edit-form-advanced.php */
-	'titlePlaceholder'                     => apply_filters( 'enter_title_here', __( 'Add title' ), $post ),
-	'bodyPlaceholder'                      => $body_placeholder,
-	'autosaveInterval'                     => AUTOSAVE_INTERVAL,
-	'richEditingEnabled'                   => user_can_richedit(),
-	'postLock'                             => $lock_details,
-	'postLockUtils'                        => array(
+	'titlePlaceholder'     => apply_filters( 'enter_title_here', __( 'Add title' ), $post ),
+	'bodyPlaceholder'      => $body_placeholder,
+	'autosaveInterval'     => AUTOSAVE_INTERVAL,
+	'richEditingEnabled'   => user_can_richedit(),
+	'postLock'             => $lock_details,
+	'postLockUtils'        => array(
 		'nonce'       => wp_create_nonce( 'lock-post_' . $post->ID ),
 		'unlockNonce' => wp_create_nonce( 'update-post_' . $post->ID ),
 		'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
 	),
-	'supportsLayout'                       => WP_Theme_JSON_Resolver::theme_has_support(),
-	'supportsTemplateMode'                 => current_theme_supports( 'block-templates' ),
+	'supportsLayout'       => WP_Theme_JSON_Resolver::theme_has_support(),
+	'supportsTemplateMode' => current_theme_supports( 'block-templates' ),
 
 	// Whether or not to load the 'postcustom' meta box is stored as a user meta
 	// field so that we're not always loading its assets.
-	'enableCustomFields'                   => (bool) get_user_meta( get_current_user_id(), 'enable_custom_fields', true ),
+	'enableCustomFields'   => (bool) get_user_meta( get_current_user_id(), 'enable_custom_fields', true ),
 );
+
+// Add additional back-compat patterns registered by `current_screen` et al.
+$editor_settings['__experimentalAdditionalBlockPatterns']          = WP_Block_Patterns_Registry::get_instance()->get_all_registered( true );
+$editor_settings['__experimentalAdditionalBlockPatternCategories'] = WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered( true );
 
 $autosave = wp_get_post_autosave( $post->ID );
 if ( $autosave ) {
@@ -265,7 +271,7 @@ wp_enqueue_style( 'wp-edit-post' );
  */
 do_action( 'enqueue_block_editor_assets' );
 
-// In order to duplicate classic meta box behaviour, we need to run the classic meta box actions.
+// In order to duplicate classic meta box behavior, we need to run the classic meta box actions.
 require_once ABSPATH . 'wp-admin/includes/meta-boxes.php';
 register_and_do_post_meta_boxes( $post );
 

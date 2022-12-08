@@ -22,6 +22,33 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 		self::register_custom_taxonomy();
 	}
 
+	/**
+	 * Helper to register a custom taxonomy for use in tests.
+	 *
+	 * @since 5.9.0
+	 */
+	private static function register_custom_taxonomy() {
+		register_taxonomy( 'wptests_tax', 'post' );
+	}
+
+	/**
+	 * Helper to get the term for the given taxonomy.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $taxonomy Taxonomy being tested (used for index of term keys).
+	 * @param bool   $use_id   Whether to return term ID or term object.
+	 * @return WP_Term|int Term ID if `$use_id` is true, WP_Term instance otherwise.
+	 */
+	private function get_term( $taxonomy, $use_id ) {
+		$term = self::$terms[ $taxonomy ];
+		if ( $use_id ) {
+			$term = $term->term_id;
+		}
+
+		return $term;
+	}
+
 	public function test_integer_should_be_interpreted_as_term_id() {
 		$t1 = self::factory()->term->create(
 			array(
@@ -220,14 +247,14 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_get_term_link
+	 * @dataProvider data_term_link_filter_should_receive_term_object
 	 *
 	 * @ticket 50225
 	 *
-	 * @param string $taxonomy Taxonomy being tested (used for index of term keys).
-	 * @param bool   $use_id   When true, pass term ID. Else, pass term object.
+	 * @param string $taxonomy Taxonomy being tested.
+	 * @param bool   $use_id   Whether to pass term ID or term object to `get_term_link()`.
 	 */
-	public function test_get_term_link_filter_is_object_by_term_id( $taxonomy, $use_id ) {
+	public function test_term_link_filter_should_receive_term_object( $taxonomy, $use_id ) {
 		$term = $this->get_term( $taxonomy, $use_id );
 
 		add_filter(
@@ -243,48 +270,54 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_get_term_link
+	 * Data provider.
 	 *
-	 * @ticket 50225
-	 *
-	 * @param string $taxonomy Taxonomy being tested (used for index of term keys).
-	 * @param bool   $use_id   When true, pass term ID. Else, pass term object.
+	 * @return array
 	 */
-	public function test_get_term_link_filter_is_object_by_term_object( $taxonomy, $use_id ) {
-		$term = $this->get_term( $taxonomy, $use_id );
-
-		add_filter(
-			'term_link',
-			function( $location, $term ) {
-				$this->assertInstanceOf( 'WP_Term', $term );
-			},
-			10,
-			2
+	public function data_term_link_filter_should_receive_term_object() {
+		return array(
+			'category passing term_id'              => array(
+				'taxonomy' => 'category',
+				'use_id'   => true,
+			),
+			'category passing term object'          => array(
+				'taxonomy' => 'category',
+				'use_id'   => false,
+			),
+			'post_tag passing term_id'              => array(
+				'taxonomy' => 'post_tag',
+				'use_id'   => true,
+			),
+			'post_tag passing term object'          => array(
+				'taxonomy' => 'post_tag',
+				'use_id'   => false,
+			),
+			'a custom taxonomy passing term_id'     => array(
+				'taxonomy' => 'wptests_tax',
+				'use_id'   => true,
+			),
+			'a custom taxonomy passing term object' => array(
+				'taxonomy' => 'wptests_tax',
+				'use_id'   => false,
+			),
 		);
-
-		get_term_link( get_term( $term, $taxonomy ), $taxonomy );
 	}
 
 	/**
-	 * @dataProvider data_get_term_link
+	 * @dataProvider data_get_term_feed_link_should_use_term_taxonomy_when_term_id_is_passed
 	 *
 	 * @ticket 50225
 	 *
-	 * @param string $taxonomy Taxonomy being tested (used for index of term keys).
-	 * @param bool   $use_id   When true, pass term ID. Else, skip the test.
+	 * @param string $taxonomy Taxonomy being tested.
 	 */
-	public function test_get_term_feed_link_backward_compatibility( $taxonomy, $use_id ) {
-		if ( $use_id ) {
-			$term = $this->get_term( $taxonomy, $use_id );
+	public function test_get_term_feed_link_should_use_term_taxonomy_when_term_id_is_passed( $taxonomy ) {
+		$term = $this->get_term( $taxonomy, true );
 
-			$term_feed_link = get_term_feed_link( $term, $taxonomy );
-			$this->assertIsString( $term_feed_link );
+		$term_feed_link = get_term_feed_link( $term, $taxonomy );
+		$this->assertIsString( $term_feed_link );
 
-			$term_feed_link = get_term_feed_link( $term, '' );
-			$this->assertIsString( $term_feed_link );
-		} else {
-			$this->markTestSkipped( 'This test requires to pass an ID to get_term_feed_link()' );
-		}
+		$term_feed_link = get_term_feed_link( $term, '' );
+		$this->assertIsString( $term_feed_link );
 	}
 
 	/**
@@ -292,60 +325,9 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_term_link() {
-		return array(
-			'category passing term_id'          => array(
-				'taxonomy' => 'category',
-				'use_id'   => false,
-			),
-			'category passing term object'      => array(
-				'taxonomy' => 'category',
-				'use_id'   => true,
-			),
-			'post_tag passing term_id'          => array(
-				'taxonomy' => 'post_tag',
-				'use_id'   => false,
-			),
-			'post_tag passing term object'      => array(
-				'taxonomy' => 'post_tag',
-				'use_id'   => true,
-			),
-			'a custom taxonomy passing term_id' => array(
-				'taxonomy' => 'wptests_tax',
-				'use_id'   => false,
-			),
-			'a custom taxonomy passing term_id' => array(
-				'taxonomy' => 'wptests_tax',
-				'use_id'   => true,
-				'expected' => 'term.php?taxonomy=custom_taxonomy&tag_ID=%ID%&post_type=post',
-			),
-		);
-	}
+	public function data_get_term_feed_link_should_use_term_taxonomy_when_term_id_is_passed() {
+		$taxonomies = array( 'category', 'post_tag', 'wptests_tax' );
 
-	/**
-	 * Helper to register a custom taxonomy for use in tests.
-	 *
-	 * @since 5.9.0
-	 */
-	private static function register_custom_taxonomy() {
-		register_taxonomy( 'wptests_tax', 'post' );
-	}
-
-	/**
-	 * Helper to get the term for the given taxonomy.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param string $taxonomy Taxonomy being tested (used for index of term keys).
-	 * @param bool   $use_id   When true, pass term ID. Else, pass term object.
-	 * @return WP_Term|int If $use_id is true, term ID is returned; else instance of WP_Term.
-	 */
-	private function get_term( $taxonomy, $use_id ) {
-		$term = self::$terms[ $taxonomy ];
-		if ( $use_id ) {
-			$term = $term->term_id;
-		}
-
-		return $term;
+		return $this->text_array_to_dataprovider( $taxonomies );
 	}
 }

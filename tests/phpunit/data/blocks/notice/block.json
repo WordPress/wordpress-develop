@@ -4,7 +4,10 @@
 	"title": "Notice",
 	"category": "common",
 	"parent": [
-		"core/group"
+		"tests/group"
+	],
+	"ancestor": [
+		"tests/section"
 	],
 	"providesContext": {
 		"tests/message": "message"
@@ -21,9 +24,7 @@
 	"textdomain": "notice",
 	"attributes": {
 		"message": {
-			"type": "string",
-			"source": "html",
-			"selector": ".message"
+			"type": "string"
 		}
 	},
 	"supports": {
@@ -56,7 +57,8 @@
 	},
 	"editorScript": "tests-notice-editor-script",
 	"script": "tests-notice-script",
-	"viewScript": "tests-notice-view-script",
+	"viewScript": [ "tests-notice-view-script", "tests-notice-view-script-2" ],
 	"editorStyle": "tests-notice-editor-style",
-	"style": "tests-notice-style"
+	"style": [ "tests-notice-style", "tests-notice-style-2" ],
+	"render": "file:./render.php"
 }

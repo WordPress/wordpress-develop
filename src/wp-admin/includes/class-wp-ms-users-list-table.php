@@ -11,7 +11,6 @@
  * Core class used to implement displaying users in a list table for the network admin.
  *
  * @since 3.1.0
- * @access private
  *
  * @see WP_List_Table
  */
@@ -137,13 +136,10 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 		$super_admins = get_super_admins();
 		$total_admins = count( $super_admins );
 
-		$current_link_attributes = 'super' !== $role ? ' class="current" aria-current="page"' : '';
-		$role_links              = array();
-		$role_links['all']       = sprintf(
-			'<a href="%s"%s>%s</a>',
-			network_admin_url( 'users.php' ),
-			$current_link_attributes,
-			sprintf(
+		$role_links        = array();
+		$role_links['all'] = array(
+			'url'     => network_admin_url( 'users.php' ),
+			'label'   => sprintf(
 				/* translators: Number of users. */
 				_nx(
 					'All <span class="count">(%s)</span>',
@@ -152,14 +148,13 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 					'users'
 				),
 				number_format_i18n( $total_users )
-			)
+			),
+			'current' => 'super' !== $role,
 		);
-		$current_link_attributes = 'super' === $role ? ' class="current" aria-current="page"' : '';
-		$role_links['super']     = sprintf(
-			'<a href="%s"%s>%s</a>',
-			network_admin_url( 'users.php?role=super' ),
-			$current_link_attributes,
-			sprintf(
+
+		$role_links['super'] = array(
+			'url'     => network_admin_url( 'users.php?role=super' ),
+			'label'   => sprintf(
 				/* translators: Number of users. */
 				_n(
 					'Super Admin <span class="count">(%s)</span>',
@@ -167,10 +162,11 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 					$total_admins
 				),
 				number_format_i18n( $total_admins )
-			)
+			),
+			'current' => 'super' === $role,
 		);
 
-		return $role_links;
+		return $this->get_views_links( $role_links );
 	}
 
 	/**
@@ -302,7 +298,12 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 */
 	public function column_name( $user ) {
 		if ( $user->first_name && $user->last_name ) {
-			echo "$user->first_name $user->last_name";
+			printf(
+				/* translators: 1: User's first name, 2: Last name. */
+				_x( '%1$s %2$s', 'Display name based on first name and last name' ),
+				$user->first_name,
+				$user->last_name
+			);
 		} elseif ( $user->first_name ) {
 			echo $user->first_name;
 		} elseif ( $user->last_name ) {
@@ -433,12 +434,12 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 			foreach ( $actions as $action => $link ) {
 				++$i;
 
-				$sep = ( $i < $action_count ) ? ' | ' : '';
+				$separator = ( $i < $action_count ) ? ' | ' : '';
 
-				echo "<span class='$action'>$link$sep</span>";
+				echo "<span class='$action'>{$link}{$separator}</span>";
 			}
 
-			echo '</small></span><br/>';
+			echo '</small></span><br />';
 		}
 	}
 

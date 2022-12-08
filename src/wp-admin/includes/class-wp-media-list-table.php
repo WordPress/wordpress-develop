@@ -11,7 +11,6 @@
  * Core class used to implement displaying media items in a list table.
  *
  * @since 3.1.0
- * @access private
  *
  * @see WP_List_Table
  */
@@ -111,6 +110,10 @@ class WP_Media_List_Table extends WP_List_Table {
 				'per_page'    => $wp_query->query_vars['posts_per_page'],
 			)
 		);
+		if ( $wp_query->posts ) {
+			update_post_thumbnail_cache( $wp_query );
+			update_post_parent_caches( $wp_query->posts );
+		}
 	}
 
 	/**
@@ -350,8 +353,13 @@ class WP_Media_List_Table extends WP_List_Table {
 		/* translators: Column name. */
 		if ( ! $this->detached ) {
 			$posts_columns['parent'] = _x( 'Uploaded to', 'column name' );
+
 			if ( post_type_supports( 'attachment', 'comments' ) ) {
-				$posts_columns['comments'] = '<span class="vers comment-grey-bubble" title="' . esc_attr__( 'Comments' ) . '"><span class="screen-reader-text">' . __( 'Comments' ) . '</span></span>';
+				$posts_columns['comments'] = sprintf(
+					'<span class="vers comment-grey-bubble" title="%1$s" aria-hidden="true"></span><span class="screen-reader-text">%2$s</span>',
+					esc_attr__( 'Comments' ),
+					__( 'Comments' )
+				);
 			}
 		}
 
@@ -418,8 +426,18 @@ class WP_Media_List_Table extends WP_List_Table {
 	public function column_title( $post ) {
 		list( $mime ) = explode( '/', $post->post_mime_type );
 
+		$attachment_id = $post->ID;
+
+		if ( has_post_thumbnail( $post ) ) {
+			$thumbnail_id = get_post_thumbnail_id( $post );
+
+			if ( ! empty( $thumbnail_id ) ) {
+				$attachment_id = $thumbnail_id;
+			}
+		}
+
 		$title      = _draft_or_post_title();
-		$thumb      = wp_get_attachment_image( $post->ID, array( 60, 60 ), true, array( 'alt' => '' ) );
+		$thumb      = wp_get_attachment_image( $attachment_id, array( 60, 60 ), true, array( 'alt' => '' ) );
 		$link_start = '';
 		$link_end   = '';
 
@@ -509,12 +527,12 @@ class WP_Media_List_Table extends WP_List_Table {
 		}
 
 		/**
-		 * Filters the published time of the post.
+		 * Filters the published time of an attachment displayed in the Media list table.
 		 *
 		 * @since 6.0.0
 		 *
 		 * @param string  $h_time      The published time.
-		 * @param WP_Post $post        Post object.
+		 * @param WP_Post $post        Attachment object.
 		 * @param string  $column_name The column name.
 		 */
 		echo apply_filters( 'media_date_column_time', $h_time, $post, 'date' );
@@ -630,19 +648,21 @@ class WP_Media_List_Table extends WP_List_Table {
 			$terms = get_the_terms( $post->ID, $taxonomy );
 
 			if ( is_array( $terms ) ) {
-				$out = array();
+				$output = array();
+
 				foreach ( $terms as $t ) {
 					$posts_in_term_qv             = array();
 					$posts_in_term_qv['taxonomy'] = $taxonomy;
 					$posts_in_term_qv['term']     = $t->slug;
 
-					$out[] = sprintf(
+					$output[] = sprintf(
 						'<a href="%s">%s</a>',
 						esc_url( add_query_arg( $posts_in_term_qv, 'upload.php' ) ),
 						esc_html( sanitize_term_field( 'name', $t->name, $t->term_id, $taxonomy, 'display' ) )
 					);
 				}
-				echo implode( wp_get_list_item_separator(), $out );
+
+				echo implode( wp_get_list_item_separator(), $output );
 			} else {
 				echo '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' . get_taxonomy( $taxonomy )->labels->no_terms . '</span>';
 			}
@@ -664,7 +684,8 @@ class WP_Media_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global WP_Post $post Global post object.
+	 * @global WP_Post  $post     Global post object.
+	 * @global WP_Query $wp_query WordPress Query object.
 	 */
 	public function display_rows() {
 		global $post, $wp_query;

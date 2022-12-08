@@ -126,7 +126,7 @@ if ( ! class_exists( 'PO', false ) ) :
 
 			$text = str_replace( array_keys( $replaces ), array_values( $replaces ), $text );
 
-			$po = $quote . implode( "${slash}n$quote$newline$quote", explode( $newline, $text ) ) . $quote;
+			$po = $quote . implode( "{$slash}n{$quote}{$newline}{$quote}", explode( $newline, $text ) ) . $quote;
 			// Add empty string on first line for readbility.
 			if ( false !== strpos( $text, $newline ) &&
 				( substr_count( $text, $newline ) > 1 || substr( $text, -strlen( $newline ) ) !== $newline ) ) {

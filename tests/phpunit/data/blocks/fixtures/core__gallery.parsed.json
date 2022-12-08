@@ -1,13 +1,45 @@
 [
-    {
-        "blockName": "core/gallery",
-        "attrs": {},
-        "innerBlocks": [],
-        "innerHTML": "\n<ul class=\"wp-block-gallery columns-2 is-cropped\">\n\t<li class=\"blocks-gallery-item\">\n\t\t<figure>\n\t\t\t<img src=\"https://cldup.com/uuUqE_dXzy.jpg\" alt=\"title\" />\n\t\t</figure>\n\t</li>\n\t<li class=\"blocks-gallery-item\">\n\t\t<figure>\n\t\t\t<img src=\"http://google.com/hi.png\" alt=\"title\" />\n\t\t</figure>\n\t</li>\n</ul>\n",
-        "innerContent": [
-            "\n<ul class=\"wp-block-gallery columns-2 is-cropped\">\n\t<li class=\"blocks-gallery-item\">\n\t\t<figure>\n\t\t\t<img src=\"https://cldup.com/uuUqE_dXzy.jpg\" alt=\"title\" />\n\t\t</figure>\n\t</li>\n\t<li class=\"blocks-gallery-item\">\n\t\t<figure>\n\t\t\t<img src=\"http://google.com/hi.png\" alt=\"title\" />\n\t\t</figure>\n\t</li>\n</ul>\n"
-        ]
-    },
+	{
+		"blockName": "core/gallery",
+		"attrs": {
+			"linkTo": "none",
+			"className": "columns-2"
+		},
+		"innerBlocks": [
+			{
+				"blockName": "core/image",
+				"attrs": {
+					"sizeSlug": "large",
+					"linkDestination": "none"
+				},
+				"innerBlocks": [],
+				"innerHTML": "\n\t<figure class=\"wp-block-image size-large\">\n\t\t<img src=\"https://cldup.com/uuUqE_dXzy.jpg\" alt=\"Image gallery image\" />\n\t</figure>\n\t",
+				"innerContent": [
+					"\n\t<figure class=\"wp-block-image size-large\">\n\t\t<img src=\"https://cldup.com/uuUqE_dXzy.jpg\" alt=\"Image gallery image\" />\n\t</figure>\n\t"
+				]
+			},
+			{
+				"blockName": "core/image",
+				"attrs": {
+					"sizeSlug": "large",
+					"linkDestination": "none"
+				},
+				"innerBlocks": [],
+				"innerHTML": "\n\t<figure class=\"wp-block-image size-large\">\n\t\t<img src=\"http://google.com/hi.png\" alt=\"Image gallery image\" />\n\t</figure>\n\t",
+				"innerContent": [
+					"\n\t<figure class=\"wp-block-image size-large\">\n\t\t<img src=\"http://google.com/hi.png\" alt=\"Image gallery image\" />\n\t</figure>\n\t"
+				]
+			}
+		],
+		"innerHTML": "\n<figure class=\"wp-block-gallery has-nested-images columns-default is-cropped columns-2\">\n\t\n\n\t\n</figure>\n",
+		"innerContent": [
+			"\n<figure class=\"wp-block-gallery has-nested-images columns-default is-cropped columns-2\">\n\t",
+			null,
+			"\n\n\t",
+			null,
+			"\n</figure>\n"
+		]
+	},
     {
         "blockName": null,
         "attrs": {},

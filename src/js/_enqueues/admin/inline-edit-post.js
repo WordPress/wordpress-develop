@@ -294,6 +294,10 @@ window.wp = window.wp || {};
 		editRow = $('#inline-edit').clone(true);
 		$( 'td', editRow ).attr( 'colspan', $( 'th:visible, td:visible', '.widefat:first thead' ).length );
 
+		// Remove the ID from the copied row and let the `for` attribute reference the hidden ID.
+		$( 'td', editRow ).find('#quick-edit-legend').removeAttr('id');
+		$( 'td', editRow ).find('p[id^="quick-edit-"]').removeAttr('id');
+
 		$(t.what+id).removeClass('is-expanded').hide().after(editRow).after('<tr class="hidden"></tr>');
 
 		// Populate fields in the quick edit window.
@@ -301,7 +305,7 @@ window.wp = window.wp || {};
 		if ( !$(':input[name="post_author"] option[value="' + $('.post_author', rowData).text() + '"]', editRow).val() ) {
 
 			// The post author no longer has edit capabilities, so we need to add them to the list of authors.
-			$(':input[name="post_author"]', editRow).prepend('<option value="' + $('.post_author', rowData).text() + '">' + $('#' + t.type + '-' + id + ' .author').text() + '</option>');
+			$(':input[name="post_author"]', editRow).prepend('<option value="' + $('.post_author', rowData).text() + '">' + $('#post-' + id + ' .author').text() + '</option>');
 		}
 		if ( $( ':input[name="post_author"] option', editRow ).length === 1 ) {
 			$('label.inline-edit-author', editRow).hide();
