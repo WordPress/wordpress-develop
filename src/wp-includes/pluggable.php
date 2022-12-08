@@ -2912,7 +2912,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 		 *                              user email, WP_User object, WP_Post object, or WP_Comment object.
 		 * @param int    $size          Square avatar width and height in pixels to retrieve.
 		 * @param string $default_value URL for the default image or a default type. Accepts '404', 'retro', 'monsterid',
-		 *                              'wavatar', 'indenticon', 'mystery', 'mm', 'mysteryman', 'blank', or gravatar_default'.
+		 *                              'wavatar', 'indenticon', 'mystery', 'mm', 'mysteryman', 'blank', or 'gravatar_default'.
 		 * @param string $alt           Alternative text to use in the avatar image tag.
 		 * @param array  $args          Arguments passed to get_avatar_data(), after processing.
 		 */
