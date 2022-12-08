@@ -46,8 +46,8 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory The factory instance.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
-		self::$pid1 = self::factory()->post->create(
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$pid1 = $factory->post->create(
 			array(
 				'post_status'  => 'publish',
 				'post_title'   => 'foo title',
@@ -55,7 +55,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 				'post_content' => 'foo content',
 			)
 		);
-		self::$pid2 = self::factory()->post->create(
+		self::$pid2 = $factory->post->create(
 			array(
 				'post_status'  => 'publish',
 				'post_title'   => 'bar title',
@@ -64,7 +64,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 			)
 		);
 
-		self::$pid3 = self::factory()->post->create(
+		self::$pid3 = $factory->post->create(
 			array(
 				'post_status'  => 'publish',
 				'post_title'   => 'baz title',
