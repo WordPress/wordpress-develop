@@ -161,7 +161,6 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 			),
 			'ID'                    => array(
 				'args' => array( 'fields' => array( 'ID' ) ),
-
 			),
 			'user_login'            => array(
 				'args' => array( 'fields' => array( 'user_login' ) ),
@@ -193,6 +192,12 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 			'partly valid array'    => array(
 				'args' => array( 'fields' => array( 'display_name', 'invalid_field' ) ),
 			),
+			'orderby'               => array(
+				'args' => array(
+					'fields'  => array( 'ID' ),
+					'orderby' => array( 'login', 'nicename' ),
+				),
+			),
 			'meta query'            => array(
 				'args' => array(
 					'fields'     => array( 'ID' ),
@@ -200,6 +205,20 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 						'foo_key' => array(
 							'key'     => 'foo',
 							'compare' => 'EXISTS',
+						),
+					),
+					'orderby'    => 'foo_key',
+					'order'      => 'DESC',
+				),
+			),
+			'meta query LIKE'       => array(
+				'args' => array(
+					'fields'     => array( 'ID' ),
+					'meta_query' => array(
+						array(
+							'key'     => 'foo',
+							'value'   => '00',
+							'compare' => 'LIKE',
 						),
 					),
 					'orderby'    => 'foo_key',
