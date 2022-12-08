@@ -791,8 +791,8 @@ function load_template( $_template_file, $load_once = true, $args = array() ) {
 	 * @since 6.1.0
 	 *
 	 * @param string $_template_file The full path to the template file.
-	 * @param bool   $require_once   Whether to require_once or require.
+	 * @param bool   $load_once      Whether to require_once or require.
 	 * @param array  $args           Additional arguments passed to the template.
 	 */
-	do_action( 'wp_after_load_template', $_template_file, $require_once, $args );
+	do_action( 'wp_after_load_template', $_template_file, $load_once, $args );
 }
