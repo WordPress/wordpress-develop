@@ -91,7 +91,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'post_title', $q->request, 'SQL request should contain post_title string.' );
 		$this->assertStringContainsString( 'post_excerpt', $q->request, 'SQL request should contain post_excerpt string.' );
 		$this->assertStringContainsString( 'post_content', $q->request, 'SQL request should contain post_content string.' );
-		$this->assertEqualSets( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts, 'Query results should be equal to the set.' );
+		$this->assertSameSetsWithIndex( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts, 'Query results should be equal to the set.' );
 	}
 
 	/**
@@ -108,7 +108,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( self::$pid1 ), $q->posts );
+		$this->assertSameSetsWithIndex( array( self::$pid1 ), $q->posts );
 	}
 
 	/**
@@ -125,7 +125,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( self::$pid1, self::$pid2 ), $q->posts );
+		$this->assertSameSetsWithIndex( array( self::$pid1, self::$pid2 ), $q->posts );
 	}
 
 	/**
@@ -141,7 +141,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 				'fields'         => 'ids',
 			)
 		);
-		$this->assertEqualSets( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts );
+		$this->assertSameSetsWithIndex( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts );
 	}
 
 	/**
@@ -158,7 +158,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( self::$pid1, self::$pid2 ), $q->posts );
+		$this->assertSameSetsWithIndex( array( self::$pid1, self::$pid2 ), $q->posts );
 	}
 
 	/**
@@ -175,7 +175,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts );
+		$this->assertSameSetsWithIndex( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts );
 	}
 
 	/**
@@ -192,7 +192,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts );
+		$this->assertSameSetsWithIndex( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts );
 	}
 
 	/**
@@ -209,7 +209,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts );
+		$this->assertSameSetsWithIndex( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts );
 	}
 
 	/**
@@ -226,10 +226,10 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertStringContainsString( 'post_title', $q->request );
-		$this->assertStringContainsString( 'post_excerpt', $q->request );
-		$this->assertStringContainsString( 'post_content', $q->request );
-		$this->assertEqualSets( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts );
+		$this->assertStringContainsString( 'post_title', $q->request, 'SQL request should contain post_title string.' );
+		$this->assertStringContainsString( 'post_excerpt', $q->request, 'SQL request should contain post_excerpt string.' );
+		$this->assertStringContainsString( 'post_content', $q->request, 'SQL request should contain post_content string.' );
+		$this->assertSameSetsWithIndex( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts, 'Query results should be equal to the set.' );
 	}
 
 	/**
@@ -246,7 +246,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( self::$pid1 ), $q->posts );
+		$this->assertSameSetsWithIndex( array( self::$pid1 ), $q->posts );
 	}
 
 	/**
@@ -263,7 +263,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( self::$pid2, self::$pid3 ), $q->posts );
+		$this->assertSameSetsWithIndex( array( self::$pid2, self::$pid3 ), $q->posts );
 	}
 
 	/**
@@ -281,7 +281,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( self::$pid3 ), $q->posts );
+		$this->assertSameSetsWithIndex( array( self::$pid3 ), $q->posts );
 	}
 
 	/**
@@ -299,7 +299,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( self::$pid2, self::$pid3 ), $q->posts );
+		$this->assertSameSetsWithIndex( array( self::$pid2, self::$pid3 ), $q->posts );
 	}
 
 	/**
@@ -316,7 +316,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( self::$pid2 ), $q->posts );
+		$this->assertSameSetsWithIndex( array( self::$pid2 ), $q->posts );
 	}
 
 	/**
@@ -334,7 +334,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 		);
 		remove_filter( 'post_search_columns', array( $this, 'post_supported_search_column' ) );
 
-		$this->assertEqualSets( array( self::$pid1 ), $q->posts );
+		$this->assertSameSetsWithIndex( array( self::$pid1 ), $q->posts );
 	}
 
 	/**
@@ -365,8 +365,8 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 		);
 		remove_filter( 'post_search_columns', array( $this, 'post_non_supported_search_column' ) );
 
-		$this->assertStringNotContainsString( 'post_name', $q->request );
-		$this->assertEqualSets( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts );
+		$this->assertStringNotContainsString( 'post_name', $q->request, "SQL request shouldn't contain post_name string." );
+		$this->assertSameSetsWithIndex( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts, 'Query results should be equal to the set.' );
 	}
 
 	/**
@@ -397,8 +397,8 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 		);
 		remove_filter( 'post_search_columns', array( $this, 'post_non_existing_search_column' ) );
 
-		$this->assertNotContains( 'post_non_existing_column', $q->request );
-		$this->assertEqualSets( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts );
+		$this->assertNotContains( 'post_non_existing_column', $q->request, "SQL request shouldn't contain post_non_existing_column string." );
+		$this->assertSameSetsWithIndex( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts, 'Query results should be equal to the set.' );
 	}
 
 	/**
