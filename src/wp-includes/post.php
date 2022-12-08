@@ -6031,9 +6031,7 @@ function get_pages( $args = array() ) {
 		return false;
 	}
 
-	$query_args = array();
-
-	$query_defaults = array(
+	$query_args = array(
 		'orderby'                => 'post_title',
 		'order'                  => 'ASC',
 		'post__not_in'           => wp_parse_id_list( $parsed_args['exclude'] ),
@@ -6050,8 +6048,6 @@ function get_pages( $args = array() ) {
 		'ignore_sticky_posts'    => true,
 		'no_found_rows'          => true,
 	);
-
-	$query_args = wp_parse_args( $query_args, $query_defaults );
 
 	$orderby = wp_parse_list( $parsed_args['sort_column'] );
 	$orderby = array_map( 'trim', $orderby );
