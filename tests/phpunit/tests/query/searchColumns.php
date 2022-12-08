@@ -332,7 +332,6 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 				'fields' => 'ids',
 			)
 		);
-		remove_filter( 'post_search_columns', array( $this, 'post_supported_search_column' ) );
 
 		$this->assertSameSetsWithIndex( array( self::$pid1 ), $q->posts );
 	}
@@ -363,7 +362,6 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 				'fields' => 'ids',
 			)
 		);
-		remove_filter( 'post_search_columns', array( $this, 'post_non_supported_search_column' ) );
 
 		$this->assertStringNotContainsString( 'post_name', $q->request, "SQL request shouldn't contain post_name string." );
 		$this->assertSameSetsWithIndex( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts, 'Query results should be equal to the set.' );
@@ -395,7 +393,6 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 				'fields' => 'ids',
 			)
 		);
-		remove_filter( 'post_search_columns', array( $this, 'post_non_existing_search_column' ) );
 
 		$this->assertNotContains( 'post_non_existing_column', $q->request, "SQL request shouldn't contain post_non_existing_column string." );
 		$this->assertSameSetsWithIndex( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts, 'Query results should be equal to the set.' );
