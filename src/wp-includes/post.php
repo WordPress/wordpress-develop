@@ -5947,6 +5947,7 @@ function get_page_uri( $page = 0 ) {
  * Retrieves an array of pages (or hierarchical post type items).
  *
  * @since 1.5.0
+ * @since 6.2.0 Use WP_Query internally.
  *
  * @param array|string $args {
  *     Optional. Array or string of arguments to retrieve pages.
