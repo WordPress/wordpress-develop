@@ -1553,6 +1553,9 @@ function update_core( $from, $to ) {
  *
  * @since 6.2.0
  *
+ * @global array              $_old_files     Files to be deleted.
+ * @global WP_Filesystem_Base $wp_filesystem  WordPress filesystem subclass.
+ *
  * @param string $to Path to old WordPress installation.
  */
 function _preload_old_requests_files( $to ) {
