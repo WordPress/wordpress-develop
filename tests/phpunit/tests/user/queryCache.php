@@ -660,4 +660,28 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 
 		$this->assertSameSets( array(), $found, 'Asset that no users returned with posts on this site as posts have been deleted' );
 	}
+
+	/**
+	 * Ensure cache keys are generated without WPDB placeholders.
+	 *
+	 * @ticket 40613
+	 *
+	 * @covers WP_User_Query::generate_cache_key
+	 */
+	public function test_generate_cache_key_placeholder() {
+		global $wpdb;
+		$query1 = new WP_User_Query( array( 'capability' => 'edit_posts' ) );
+
+		$query_vars                  = $query1->query_vars;
+		$request_with_placeholder    = $query1->request;
+		$request_without_placeholder = $wpdb->remove_placeholder_escape( $query1->request );
+
+		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
+		$reflection->setAccessible( true );
+
+		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request_with_placeholder );
+		$cache_key_2 = $reflection->invoke( $query1, $query_vars, $request_without_placeholder );
+
+		$this->assertSame( $cache_key_1, $cache_key_2, 'Cache key differs when using wpdb placeholder.' );
+	}
 }
