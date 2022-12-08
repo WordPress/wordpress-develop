@@ -1244,14 +1244,14 @@ class wpdb {
 	 * @see wpdb::prepare()
 	 * @see esc_sql()
 	 *
-	 * @param string $query
+	 * @param string $data
 	 * @return string
 	 */
-	public function _weak_escape( $query ) {
+	public function _weak_escape( $data ) {
 		if ( func_num_args() === 1 && function_exists( '_deprecated_function' ) ) {
 			_deprecated_function( __METHOD__, '3.6.0', 'wpdb::prepare() or esc_sql()' );
 		}
-		return addslashes( $query );
+		return addslashes( $data );
 	}
 
 	/**
@@ -1262,19 +1262,19 @@ class wpdb {
 	 * @see mysqli_real_escape_string()
 	 * @see mysql_real_escape_string()
 	 *
-	 * @param string $unescaped_string String to escape.
+	 * @param string $data String to escape.
 	 * @return string Escaped string.
 	 */
-	public function _real_escape( $unescaped_string ) {
-		if ( ! is_scalar( $unescaped_string ) ) {
+	public function _real_escape( $data ) {
+		if ( ! is_scalar( $data ) ) {
 			return '';
 		}
 
 		if ( $this->dbh ) {
 			if ( $this->use_mysqli ) {
-				$escaped = mysqli_real_escape_string( $this->dbh, $unescaped_string );
+				$escaped = mysqli_real_escape_string( $this->dbh, $data );
 			} else {
-				$escaped = mysql_real_escape_string( $unescaped_string, $this->dbh );
+				$escaped = mysql_real_escape_string( $data, $this->dbh );
 			}
 		} else {
 			$class = get_class( $this );
@@ -1283,7 +1283,7 @@ class wpdb {
 			/* translators: %s: Database access abstraction class, usually wpdb or a class extending wpdb. */
 			_doing_it_wrong( $class, sprintf( __( '%s must set a database connection for use with escaping.' ), $class ), '3.6.0' );
 
-			$escaped = addslashes( $unescaped_string );
+			$escaped = addslashes( $data );
 		}
 
 		return $this->add_placeholder_escape( $escaped );
@@ -1354,11 +1354,11 @@ class wpdb {
 	 *
 	 * @since 2.3.0
 	 *
-	 * @param string $unescaped_string String to escape.
+	 * @param string $data String to escape.
 	 */
-	public function escape_by_ref( &$unescaped_string ) {
-		if ( ! is_float( $unescaped_string ) ) {
-			$unescaped_string = $this->_real_escape( $unescaped_string );
+	public function escape_by_ref( &$data ) {
+		if ( ! is_float( $data ) ) {
+			$data = $this->_real_escape( $data );
 		}
 	}
 
@@ -3161,15 +3161,15 @@ class wpdb {
 	 *
 	 * @since 4.2.0
 	 *
-	 * @param string $value String to check.
+	 * @param string $input_string String to check.
 	 * @return bool True if ASCII, false if not.
 	 */
-	protected function check_ascii( $value ) {
+	protected function check_ascii( $input_string ) {
 		if ( function_exists( 'mb_check_encoding' ) ) {
-			if ( mb_check_encoding( $value, 'ASCII' ) ) {
+			if ( mb_check_encoding( $input_string, 'ASCII' ) ) {
 				return true;
 			}
-		} elseif ( ! preg_match( '/[^\x00-\x7F]/', $value ) ) {
+		} elseif ( ! preg_match( '/[^\x00-\x7F]/', $input_string ) ) {
 			return true;
 		}
 
