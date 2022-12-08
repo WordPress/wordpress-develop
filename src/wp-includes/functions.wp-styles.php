@@ -114,7 +114,7 @@ function wp_add_inline_style( $handle, $data ) {
  * @since 4.3.0 A return value was added.
  *
  * @param string           $handle Name of the stylesheet. Should be unique.
- * @param string|bool      $src    Full URL of the stylesheet, or path of the stylesheet relative to the WordPress root directory.
+ * @param string|false     $src    Full URL of the stylesheet, or path of the stylesheet relative to the WordPress root directory.
  *                                 If source is set to false, stylesheet is an alias of other stylesheets it depends on.
  * @param string[]         $deps   Optional. An array of registered stylesheet handles this stylesheet depends on. Default empty array.
  * @param string|bool|null $ver    Optional. String specifying stylesheet version number, if it has one, which is added to the URL
@@ -204,14 +204,14 @@ function wp_dequeue_style( $handle ) {
  * @since 2.8.0
  *
  * @param string $handle Name of the stylesheet.
- * @param string $list   Optional. Status of the stylesheet to check. Default 'enqueued'.
+ * @param string $status Optional. Status of the stylesheet to check. Default 'enqueued'.
  *                       Accepts 'enqueued', 'registered', 'queue', 'to_do', and 'done'.
  * @return bool Whether style is queued.
  */
-function wp_style_is( $handle, $list = 'enqueued' ) {
+function wp_style_is( $handle, $status = 'enqueued' ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
-	return (bool) wp_styles()->query( $handle, $list );
+	return (bool) wp_styles()->query( $handle, $status );
 }
 
 /**

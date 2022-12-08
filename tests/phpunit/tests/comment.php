@@ -8,6 +8,8 @@ class Tests_Comment extends WP_UnitTestCase {
 	protected static $post_id;
 	protected static $notify_message = '';
 
+	protected $preprocess_comment_data = array();
+
 	public function set_up() {
 		parent::set_up();
 		reset_phpmailer_instance();
@@ -77,6 +79,90 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$comment = get_comment( $comments[0] );
 		$this->assertEquals( $post2->ID, $comment->comment_post_ID );
+	}
+
+	public function test_update_comment_from_privileged_user_by_privileged_user() {
+		$admin_id_1 = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_id_1 );
+
+		$comment_id = wp_new_comment(
+			array(
+				'comment_post_ID'      => self::$post_id,
+				'comment_author'       => 'Author',
+				'comment_author_url'   => 'http://example.localhost/',
+				'comment_author_email' => 'test@test.com',
+				'user_id'              => $admin_id_1,
+				'comment_content'      => 'This is a comment',
+			)
+		);
+
+		wp_set_current_user( 0 );
+
+		$admin_id_2 = self::factory()->user->create(
+			array(
+				'role'       => 'administrator',
+				'user_login' => 'test_wp_admin_get',
+				'user_pass'  => 'password',
+				'user_email' => 'testadmin@test.com',
+			)
+		);
+
+		wp_set_current_user( $admin_id_2 );
+
+		wp_update_comment(
+			array(
+				'comment_ID'      => $comment_id,
+				'comment_content' => 'new comment <img onerror=demo src=x>',
+			)
+		);
+
+		$comment          = get_comment( $comment_id );
+		$expected_content = is_multisite()
+			? 'new comment '
+			: 'new comment <img onerror=demo src=x>';
+
+		$this->assertSame( $expected_content, $comment->comment_content );
+
+		wp_set_current_user( 0 );
+	}
+
+	public function test_update_comment_from_unprivileged_user_by_privileged_user() {
+		wp_set_current_user( self::$user_id );
+
+		$comment_id = wp_new_comment(
+			array(
+				'comment_post_ID'      => self::$post_id,
+				'comment_author'       => 'Author',
+				'comment_author_url'   => 'http://example.localhost/',
+				'comment_author_email' => 'test@test.com',
+				'user_id'              => self::$user_id,
+				'comment_content'      => '<a href="http://example.localhost/something.html">click</a>',
+			)
+		);
+
+		wp_set_current_user( 0 );
+
+		$admin_id = self::factory()->user->create(
+			array(
+				'role'       => 'administrator',
+				'user_login' => 'test_wp_admin_get',
+				'user_pass'  => 'password',
+				'user_email' => 'testadmin@test.com',
+			)
+		);
+
+		wp_set_current_user( $admin_id );
+
+		wp_update_comment(
+			array(
+				'comment_ID'      => $comment_id,
+				'comment_content' => '<a href="http://example.localhost/something.html" disallowed=attribute>click</a>',
+			)
+		);
+
+		$comment = get_comment( $comment_id );
+		$this->assertEquals( '<a href="http://example.localhost/something.html" rel="nofollow ugc">click</a>', $comment->comment_content, 'Comment: ' . $comment->comment_content );
+		wp_set_current_user( 0 );
 	}
 
 	/**
@@ -454,6 +540,53 @@ class Tests_Comment extends WP_UnitTestCase {
 		$comment = get_comment( $id );
 
 		$this->assertSame( strlen( $comment->comment_content ), 65535 );
+	}
+
+	/**
+	 * @ticket 56244
+	 */
+	public function test_wp_new_comment_sends_all_expected_parameters_to_preprocess_comment_filter() {
+		$user = get_userdata( self::$user_id );
+		wp_set_current_user( $user->ID );
+
+		$data = array(
+			'comment_post_ID'      => self::$post_id,
+			'comment_author'       => $user->display_name,
+			'comment_author_email' => $user->user_email,
+			'comment_author_url'   => $user->user_url,
+			'comment_content'      => 'Comment',
+			'comment_type'         => '',
+			'comment_parent'       => 0,
+			'user_id'              => $user->ID,
+		);
+
+		add_filter( 'preprocess_comment', array( $this, 'filter_preprocess_comment' ) );
+
+		$comment = wp_new_comment( $data );
+
+		$this->assertNotWPError( $comment );
+		$this->assertSameSetsWithIndex(
+			array(
+				'comment_post_ID'      => self::$post_id,
+				'comment_author'       => $user->display_name,
+				'comment_author_email' => $user->user_email,
+				'comment_author_url'   => $user->user_url,
+				'comment_content'      => $data['comment_content'],
+				'comment_type'         => '',
+				'comment_parent'       => 0,
+				'user_ID'              => $user->ID,
+				'user_id'              => $user->ID,
+				'comment_author_IP'    => '127.0.0.1',
+				'comment_agent'        => '',
+			),
+			$this->preprocess_comment_data
+		);
+
+	}
+
+	public function filter_preprocess_comment( $commentdata ) {
+		$this->preprocess_comment_data = $commentdata;
+		return $commentdata;
 	}
 
 	/**

@@ -143,7 +143,7 @@ function register_nav_menu( $location, $description ) {
  *
  * @global array $_wp_registered_nav_menus
  *
- * @return string[] Associative array of egistered navigation menu descriptions keyed
+ * @return string[] Associative array of registered navigation menu descriptions keyed
  *                  by their location. If none are registered, an empty array.
  */
 function get_registered_nav_menus() {
@@ -1010,7 +1010,7 @@ function wp_get_associated_nav_menu_items( $object_id = 0, $object_type = 'post_
 	$object_id     = (int) $object_id;
 	$menu_item_ids = array();
 
-	$query      = new WP_Query;
+	$query      = new WP_Query();
 	$menu_items = $query->query(
 		array(
 			'meta_key'       => '_menu_item_object_id',

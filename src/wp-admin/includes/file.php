@@ -1707,7 +1707,7 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 	foreach ( $needed_dirs as $_dir ) {
 		// Only check to see if the Dir exists upon creation failure. Less I/O this way.
 		if ( ! $wp_filesystem->mkdir( $_dir, FS_CHMOD_DIR ) && ! $wp_filesystem->is_dir( $_dir ) ) {
-			return new WP_Error( 'mkdir_failed_ziparchive', __( 'Could not create directory.' ), substr( $_dir, strlen( $to ) ) );
+			return new WP_Error( 'mkdir_failed_ziparchive', __( 'Could not create directory.' ), $_dir );
 		}
 	}
 	unset( $needed_dirs );
@@ -1848,7 +1848,7 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 	foreach ( $needed_dirs as $_dir ) {
 		// Only check to see if the dir exists upon creation failure. Less I/O this way.
 		if ( ! $wp_filesystem->mkdir( $_dir, FS_CHMOD_DIR ) && ! $wp_filesystem->is_dir( $_dir ) ) {
-			return new WP_Error( 'mkdir_failed_pclzip', __( 'Could not create directory.' ), substr( $_dir, strlen( $to ) ) );
+			return new WP_Error( 'mkdir_failed_pclzip', __( 'Could not create directory.' ), $_dir );
 		}
 	}
 	unset( $needed_dirs );
@@ -2393,7 +2393,8 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 		<input name="password" type="password" id="password" value="<?php echo $password_value; ?>"<?php disabled( defined( 'FTP_PASS' ) ); ?> />
 		<?php
 		if ( ! defined( 'FTP_PASS' ) ) {
-			_e( 'This password will not be stored on the server.' );}
+			_e( 'This password will not be stored on the server.' );
+		}
 		?>
 	</label>
 </div>
@@ -2442,7 +2443,7 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 	// Make sure the `submit_button()` function is available during the REST API call
 	// from WP_Site_Health_Auto_Updates::test_check_wp_filesystem_method().
 	if ( ! function_exists( 'submit_button' ) ) {
-		require_once ABSPATH . '/wp-admin/includes/template.php';
+		require_once ABSPATH . 'wp-admin/includes/template.php';
 	}
 	?>
 	<p class="request-filesystem-credentials-action-buttons">

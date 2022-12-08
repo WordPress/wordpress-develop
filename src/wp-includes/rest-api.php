@@ -104,17 +104,20 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 			);
 		}
 
-		if ( count( array_filter( $arg_group['args'], 'is_array' ) ) !== count( $arg_group['args'] ) ) {
-			_doing_it_wrong(
-				__FUNCTION__,
-				sprintf(
-					/* translators: 1: $args, 2: The REST API route being registered. */
-					__( 'REST API %1$s should be an array of arrays. Non-array value detected for %2$s.' ),
-					'<code>$args</code>',
-					'<code>' . $clean_namespace . '/' . trim( $route, '/' ) . '</code>'
-				),
-				'6.1.0'
-			);
+		foreach ( $arg_group['args'] as $arg ) {
+			if ( ! is_array( $arg ) ) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf(
+						/* translators: 1: $args, 2: The REST API route being registered. */
+						__( 'REST API %1$s should be an array of arrays. Non-array value detected for %2$s.' ),
+						'<code>$args</code>',
+						'<code>' . $clean_namespace . '/' . trim( $route, '/' ) . '</code>'
+					),
+					'6.1.0'
+				);
+				break; // Leave the foreach loop once a non-array argument was found.
+			}
 		}
 	}
 
@@ -252,15 +255,15 @@ function create_initial_rest_routes() {
 	}
 
 	// Post types.
-	$controller = new WP_REST_Post_Types_Controller;
+	$controller = new WP_REST_Post_Types_Controller();
 	$controller->register_routes();
 
 	// Post statuses.
-	$controller = new WP_REST_Post_Statuses_Controller;
+	$controller = new WP_REST_Post_Statuses_Controller();
 	$controller->register_routes();
 
 	// Taxonomies.
-	$controller = new WP_REST_Taxonomies_Controller;
+	$controller = new WP_REST_Taxonomies_Controller();
 	$controller->register_routes();
 
 	// Terms.
@@ -275,7 +278,7 @@ function create_initial_rest_routes() {
 	}
 
 	// Users.
-	$controller = new WP_REST_Users_Controller;
+	$controller = new WP_REST_Users_Controller();
 	$controller->register_routes();
 
 	// Application Passwords
@@ -283,7 +286,7 @@ function create_initial_rest_routes() {
 	$controller->register_routes();
 
 	// Comments.
-	$controller = new WP_REST_Comments_Controller;
+	$controller = new WP_REST_Comments_Controller();
 	$controller->register_routes();
 
 	$search_handlers = array(
@@ -315,15 +318,15 @@ function create_initial_rest_routes() {
 	$controller->register_routes();
 
 	// Global Styles.
-	$controller = new WP_REST_Global_Styles_Controller;
+	$controller = new WP_REST_Global_Styles_Controller();
 	$controller->register_routes();
 
 	// Settings.
-	$controller = new WP_REST_Settings_Controller;
+	$controller = new WP_REST_Settings_Controller();
 	$controller->register_routes();
 
 	// Themes.
-	$controller = new WP_REST_Themes_Controller;
+	$controller = new WP_REST_Themes_Controller();
 	$controller->register_routes();
 
 	// Plugins.
@@ -559,7 +562,7 @@ function rest_get_server() {
 		 * @param string $class_name The name of the server class. Default 'WP_REST_Server'.
 		 */
 		$wp_rest_server_class = apply_filters( 'wp_rest_server_class', 'WP_REST_Server' );
-		$wp_rest_server       = new $wp_rest_server_class;
+		$wp_rest_server       = new $wp_rest_server_class();
 
 		/**
 		 * Fires when preparing to serve a REST API request.
@@ -3304,7 +3307,7 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
  * Converts an error to a response object.
  *
  * This iterates over all error codes and messages to change it into a flat
- * array. This enables simpler client behaviour, as it is represented as a
+ * array. This enables simpler client behavior, as it is represented as a
  * list in JSON rather than an object/map.
  *
  * @since 5.7.0

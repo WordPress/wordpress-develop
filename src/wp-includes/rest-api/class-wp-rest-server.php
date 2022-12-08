@@ -193,7 +193,7 @@ class WP_REST_Server {
 	 * Converts an error to a response object.
 	 *
 	 * This iterates over all error codes and messages to change it into a flat
-	 * array. This enables simpler client behaviour, as it is represented as a
+	 * array. This enables simpler client behavior, as it is represented as a
 	 * list in JSON rather than an object/map.
 	 *
 	 * @since 4.4.0
@@ -553,7 +553,7 @@ class WP_REST_Server {
 	 * Converts a response to data to send.
 	 *
 	 * @since 4.4.0
-	 * @since 5.4.0 The $embed parameter can now contain a list of link relations to include.
+	 * @since 5.4.0 The `$embed` parameter can now contain a list of link relations to include.
 	 *
 	 * @param WP_REST_Response $response Response object.
 	 * @param bool|string[]    $embed    Whether to embed all links, a filtered list of link relations, or no links.
@@ -677,7 +677,7 @@ class WP_REST_Server {
 	 * Embeds the links from the data into the request.
 	 *
 	 * @since 4.4.0
-	 * @since 5.4.0 The $embed parameter can now contain a list of link relations to include.
+	 * @since 5.4.0 The `$embed` parameter can now contain a list of link relations to include.
 	 *
 	 * @param array         $data  Data from the request.
 	 * @param bool|string[] $embed Whether to embed all links or a filtered list of link relations.
@@ -759,7 +759,7 @@ class WP_REST_Server {
 	 * data instead.
 	 *
 	 * @since 4.4.0
-	 * @since 6.0.0 The $embed parameter can now contain a list of link relations to include
+	 * @since 6.0.0 The `$embed` parameter can now contain a list of link relations to include.
 	 *
 	 * @param WP_REST_Response $response Response object.
 	 * @param bool|string[]    $embed    Whether to embed all links, a filtered list of link relations, or no links.
