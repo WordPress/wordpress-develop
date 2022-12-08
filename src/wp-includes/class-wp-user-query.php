@@ -839,14 +839,13 @@ class WP_User_Query {
 					/**
 					 * Filters SELECT FOUND_ROWS() query for the current WP_User_Query instance.
 					 *
-					 * @param string $sql The SELECT FOUND_ROWS() query for the current WP_User_Query.
-					 * @param WP_User_Query $query The current WP_User_Query instance.
-					 *
-					 * @global wpdb $wpdb WordPress database abstraction object.
-					 *
 					 * @since 3.2.0
 					 * @since 5.1.0 Added the `$this` parameter.
 					 *
+					 * @global wpdb $wpdb WordPress database abstraction object.
+					 *
+					 * @param string        $sql   The SELECT FOUND_ROWS() query for the current WP_User_Query.
+					 * @param WP_User_Query $query The current WP_User_Query instance.
 					 */
 					$found_users_query = apply_filters( 'found_users_query', 'SELECT FOUND_ROWS()', $this );
 
