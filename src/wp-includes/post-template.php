@@ -558,9 +558,9 @@ function get_post_class( $css_class = '', $post = null ) {
 	 * @param string[] $taxonomies List of all taxonomy names to generate classes for.
 	 * @param int      $post_id    The post ID.
 	 * @param string[] $classes    An array of post class names.
-	 * @param string[] $class      An array of additional class names added to the post.
+	 * @param string[] $css_class  An array of additional class names added to the post.
 	*/
-	$taxonomies = apply_filters( 'post_class_taxonomies', $taxonomies, $post->ID, $classes, $class );
+	$taxonomies = apply_filters( 'post_class_taxonomies', $taxonomies, $post->ID, $classes, $css_class );
 
 	foreach ( (array) $taxonomies as $taxonomy ) {
 		if ( is_object_in_taxonomy( $post->post_type, $taxonomy ) ) {
