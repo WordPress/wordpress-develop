@@ -1548,7 +1548,7 @@ function update_core( $from, $to ) {
 }
 
 /**
- * Preloads old Requests files stored in $_old_files
+ * Preloads Requests files stored in $_old_files
  * that may be needed during the update process.
  *
  * @since 6.2.0
