@@ -720,33 +720,41 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}
 
+	/**
+	 * @ticket 12821
+	 * @covers ::get_pages
+	 */
 	public function test_orderby() {
 		global $wpdb;
 		// 'rand' is a valid value.
 		get_pages( array( 'sort_column' => 'rand' ) );
-		$this->assertStringContainsString( 'ORDER BY RAND()', $wpdb->last_query );
+		$this->assertStringContainsString( 'ORDER BY RAND()', $wpdb->last_query, 'Check order is random' );
 
 		// This isn't allowed.
 		get_pages( array( 'sort_order' => 'rand' ) );
-		$this->assertStringContainsString( 'ORDER BY', $wpdb->last_query );
-		$this->assertStringNotContainsString( 'RAND()', $wpdb->last_query );
-		$this->assertStringContainsString( 'DESC', $wpdb->last_query );
+		$this->assertStringContainsString( 'ORDER BY', $wpdb->last_query, 'Check orderby is present' );
+		$this->assertStringNotContainsString( 'RAND()', $wpdb->last_query, 'Check order is random is not present' );
+		$this->assertStringContainsString( 'DESC', $wpdb->last_query, 'Check DESC is random is not present' );
 
 		// 'none' is a valid value.
 		get_pages( array( 'sort_column' => 'none' ) );
-		$this->assertStringNotContainsString( 'ORDER BY', $wpdb->last_query );
-		$this->assertStringNotContainsString( 'DESC', $wpdb->last_query );
-		$this->assertStringNotContainsString( 'ASC', $wpdb->last_query );
+		$this->assertStringNotContainsString( 'ORDER BY', $wpdb->last_query, 'Check orderby is not present' );
+		$this->assertStringNotContainsString( 'DESC', $wpdb->last_query, 'Check DESC is not present' );
+		$this->assertStringNotContainsString( 'ASC', $wpdb->last_query, 'Check ASC is not present' );
 
 		// False is a valid value.
 		get_pages( array( 'sort_column' => false ) );
-		$this->assertStringContainsString( 'ORDER BY', $wpdb->last_query );
+		$this->assertStringContainsString( 'ORDER BY', $wpdb->last_query, 'Check orderby is present' );
 
 		// Empty array() is a valid value.
 		get_pages( array( 'sort_column' => array() ) );
-		$this->assertStringContainsString( 'ORDER BY', $wpdb->last_query );
+		$this->assertStringContainsString( 'ORDER BY', $wpdb->last_query, 'Check orderby is present' );
 	}
 
+	/**
+	 * @ticket 12821
+	 * @covers ::get_pages
+	 */
 	public function test_order() {
 		global $wpdb;
 
@@ -757,7 +765,8 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		);
 		$this->assertStringContainsString(
 			"ORDER BY $wpdb->posts.post_type ASC",
-			$wpdb->last_query
+			$wpdb->last_query,
+			'Check order is post type'
 		);
 
 		get_pages(
@@ -768,7 +777,8 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		);
 		$this->assertStringContainsString(
 			"ORDER BY $wpdb->posts.post_title DESC",
-			$wpdb->last_query
+			$wpdb->last_query,
+			'Check order is default'
 		);
 
 		get_pages(
@@ -779,7 +789,8 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		);
 		$this->assertStringContainsString(
 			"ORDER BY $wpdb->posts.post_date ASC",
-			$wpdb->last_query
+			$wpdb->last_query,
+			'Check order is post date'
 		);
 	}
 }
