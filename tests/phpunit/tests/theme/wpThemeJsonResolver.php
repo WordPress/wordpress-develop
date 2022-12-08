@@ -648,7 +648,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$this->assertNotEmpty( $user_cpt, 'User CPT is expected not to be empty.' );
 
 		$global_styles_query_count = 0;
-		for ( $i = 0; $i < 3; $i ++ ) {
+		for ( $i = 0; $i < 3; $i++ ) {
 			$new_user_cpt = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
 			WP_Theme_JSON_Resolver::clean_cached_data();
 			$this->assertSameSets( $user_cpt, $new_user_cpt, "User CPTs do not match on run {$i}." );
