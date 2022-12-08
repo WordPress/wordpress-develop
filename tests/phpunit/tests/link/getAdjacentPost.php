@@ -356,7 +356,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 	 */
 	public function test_get_adjacent_post_cache() {
 		global $wpdb;
-		// Need some sample posts to test adjacency
+		// Need some sample posts to test adjacency.
 		$post_one = self::factory()->post->create_and_get(
 			array(
 				'post_title' => 'First',
