@@ -1519,7 +1519,9 @@ if ( ! function_exists( 'wp_safe_redirect' ) ) :
 		 * @param string $fallback_url The fallback URL to use by default.
 		 * @param int    $status       The HTTP response status code to use.
 		 */
-		$location = wp_validate_redirect( $location, apply_filters( 'wp_safe_redirect_fallback', admin_url(), $status ) );
+		$fallback_url = apply_filters( 'wp_safe_redirect_fallback', admin_url(), $status );
+
+		$location = wp_validate_redirect( $location, $fallback_url );
 
 		return wp_redirect( $location, $status, $x_redirect_by );
 	}
@@ -1533,15 +1535,15 @@ if ( ! function_exists( 'wp_validate_redirect' ) ) :
 	 * path. A plugin can therefore set or remove allowed host(s) to or from the
 	 * list.
 	 *
-	 * If the host is not allowed, then the redirect is to $default_value supplied.
+	 * If the host is not allowed, then the redirect is to $fallback_url supplied.
 	 *
 	 * @since 2.8.1
 	 *
-	 * @param string $location      The redirect to validate.
-	 * @param string $default_value The value to return if $location is not allowed.
+	 * @param string $location     The redirect to validate.
+	 * @param string $fallback_url The value to return if $location is not allowed.
 	 * @return string Redirect-sanitized URL.
 	 */
-	function wp_validate_redirect( $location, $default_value = '' ) {
+	function wp_validate_redirect( $location, $fallback_url = '' ) {
 		$location = wp_sanitize_redirect( trim( $location, " \t\n\r\0\x08\x0B" ) );
 		// Browsers will assume 'http' is your protocol, and will obey a redirect to a URL starting with '//'.
 		if ( '//' === substr( $location, 0, 2 ) ) {
@@ -1557,12 +1559,12 @@ if ( ! function_exists( 'wp_validate_redirect' ) ) :
 
 		// Give up if malformed URL.
 		if ( false === $lp ) {
-			return $default_value;
+			return $fallback_url;
 		}
 
 		// Allow only 'http' and 'https' schemes. No 'data:', etc.
 		if ( isset( $lp['scheme'] ) && ! ( 'http' === $lp['scheme'] || 'https' === $lp['scheme'] ) ) {
-			return $default_value;
+			return $fallback_url;
 		}
 
 		if ( ! isset( $lp['host'] ) && ! empty( $lp['path'] ) && '/' !== $lp['path'][0] ) {
@@ -1577,13 +1579,13 @@ if ( ! function_exists( 'wp_validate_redirect' ) ) :
 		// Reject if certain components are set but host is not.
 		// This catches URLs like https:host.com for which parse_url() does not set the host field.
 		if ( ! isset( $lp['host'] ) && ( isset( $lp['scheme'] ) || isset( $lp['user'] ) || isset( $lp['pass'] ) || isset( $lp['port'] ) ) ) {
-			return $default_value;
+			return $fallback_url;
 		}
 
 		// Reject malformed components parse_url() can return on odd inputs.
 		foreach ( array( 'user', 'pass', 'host' ) as $component ) {
 			if ( isset( $lp[ $component ] ) && strpbrk( $lp[ $component ], ':/?#@' ) ) {
-				return $default_value;
+				return $fallback_url;
 			}
 		}
 
@@ -1600,7 +1602,7 @@ if ( ! function_exists( 'wp_validate_redirect' ) ) :
 		$allowed_hosts = (array) apply_filters( 'allowed_redirect_hosts', array( $wpp['host'] ), isset( $lp['host'] ) ? $lp['host'] : '' );
 
 		if ( isset( $lp['host'] ) && ( ! in_array( $lp['host'], $allowed_hosts, true ) && strtolower( $wpp['host'] ) !== $lp['host'] ) ) {
-			$location = $default_value;
+			$location = $fallback_url;
 		}
 
 		return $location;

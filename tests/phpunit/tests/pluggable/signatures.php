@@ -189,7 +189,7 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 			),
 			'wp_validate_redirect'            => array(
 				'location',
-				'default_value' => '',
+				'fallback_url' => '',
 			),
 			'wp_notify_postauthor'            => array(
 				'comment_id',
