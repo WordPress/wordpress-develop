@@ -152,7 +152,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	public function set_up() {
 		parent::set_up();
-		$this->endpoint = new WP_REST_Comments_Controller;
+		$this->endpoint = new WP_REST_Comments_Controller();
 		if ( is_multisite() ) {
 			update_site_option( 'site_admins', array( 'superadmin' ) );
 		}
@@ -953,7 +953,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	public function test_prepare_item_limit_fields() {
 		wp_set_current_user( self::$admin_id );
 
-		$endpoint = new WP_REST_Comments_Controller;
+		$endpoint = new WP_REST_Comments_Controller();
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', self::$approved_id ) );
 		$request->set_param( 'context', 'edit' );
 		$request->set_param( '_fields', 'id,status' );

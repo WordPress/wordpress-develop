@@ -593,7 +593,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 	/**
 	 * @ticket 52728
 	 */
-	function test_widget_display_callback_handles_arrayobject() {
+	public function test_widget_display_callback_handles_arrayobject() {
 		$widget = new WP_Widget_Text();
 
 		register_widget( $widget );
