@@ -1554,10 +1554,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'search', 'foo bar' );
 		$request->set_param( 'search_columns', array( 'post_title' ) );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status(), 'Response should have a status code 200.' );
 		$data = $response->get_data();
-		$this->assertCount( 1, $data );
-		$this->assertSame( $id1, $data[0]['id'] );
+		$this->assertCount( 1, $data, 'Response should contain one result.' );
+		$this->assertSame( $id1, $data[0]['id'], 'Result should match expected value.' );
 	}
 
 	/**
