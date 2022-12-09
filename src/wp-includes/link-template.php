@@ -1788,8 +1788,6 @@ function get_next_post( $in_same_term = false, $excluded_terms = '', $taxonomy =
  *
  * @since 2.5.0
  *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
  * @param bool         $in_same_term   Optional. Whether post should be in the same taxonomy term.
  *                                     Default false.
  * @param int[]|string $excluded_terms Optional. Array or comma-separated list of excluded term IDs.
@@ -1801,8 +1799,6 @@ function get_next_post( $in_same_term = false, $excluded_terms = '', $taxonomy =
  *                             Empty string if no corresponding post exists.
  */
 function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previous = true, $taxonomy = 'category' ) {
-	global $wpdb;
-
 	$post = get_post();
 
 	if ( ! $post || ! taxonomy_exists( $taxonomy ) ) {
@@ -1811,9 +1807,30 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 
 	$current_post_date = $post->post_date;
 
-	$join     = '';
-	$where    = '';
 	$adjacent = $previous ? 'previous' : 'next';
+	$order    = $previous ? 'DESC' : 'ASC';
+
+	$args = array(
+		'posts_per_page'         => 1,
+		'author__in'             => array(),
+		'order'                  => $order,
+		'orderby'                => 'post_date',
+		'post_type'              => $post->post_type,
+		'ignore_sticky_posts'    => true,
+		'no_found_rows'          => true,
+		'update_post_term_cache' => false,
+		'update_post_meta_cache' => false,
+	);
+
+	if ( $previous ) {
+		$args['date_query'] = array(
+			'before' => $current_post_date,
+		);
+	} else {
+		$args['date_query'] = array(
+			'after' => $current_post_date,
+		);
+	}
 
 	if ( ! empty( $excluded_terms ) && ! is_array( $excluded_terms ) ) {
 		// Back-compat, $excluded_terms used to be $excluded_categories with IDs separated by " and ".
@@ -1853,10 +1870,8 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	$excluded_terms = apply_filters( "get_{$adjacent}_post_excluded_terms", $excluded_terms );
 
 	if ( $in_same_term || ! empty( $excluded_terms ) ) {
+		$args['tax_query'] = array( 'relation' => 'AND' );
 		if ( $in_same_term ) {
-			$join  .= " INNER JOIN $wpdb->term_relationships AS tr ON p.ID = tr.object_id INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id";
-			$where .= $wpdb->prepare( 'AND tt.taxonomy = %s', $taxonomy );
-
 			if ( ! is_object_in_taxonomy( $post->post_type, $taxonomy ) ) {
 				return '';
 			}
@@ -1870,11 +1885,21 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 				return '';
 			}
 
-			$where .= ' AND tt.term_id IN (' . implode( ',', $term_array ) . ')';
+			$args['tax_query'][] = array(
+				'taxonomy' => $taxonomy,
+				'terms'    => $term_array,
+				'field'    => 'term_id',
+				'operator' => 'IN',
+			);
 		}
 
 		if ( ! empty( $excluded_terms ) ) {
-			$where .= " AND p.ID NOT IN ( SELECT tr.object_id FROM $wpdb->term_relationships tr LEFT JOIN $wpdb->term_taxonomy tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id) WHERE tt.term_id IN (" . implode( ',', array_map( 'intval', $excluded_terms ) ) . ') )';
+			$args['tax_query'][] = array(
+				'taxonomy' => $taxonomy,
+				'terms'    => $excluded_terms,
+				'field'    => 'term_id',
+				'operator' => 'NOT IN',
+			);
 		}
 	}
 
@@ -1895,109 +1920,131 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 		 * current user has the 'read_private_posts' cap.
 		 */
 		$private_states = get_post_stati( array( 'private' => true ) );
-		$where         .= " AND ( p.post_status = 'publish'";
+		$args['post_status'] = array( 'publish' );
 		foreach ( $private_states as $state ) {
 			if ( current_user_can( $read_private_cap ) ) {
-				$where .= $wpdb->prepare( ' OR p.post_status = %s', $state );
+				$args['post_status'][] = $state;
 			} else {
-				$where .= $wpdb->prepare( ' OR (p.post_author = %d AND p.post_status = %s)', $user_id, $state );
+				$args['post_status'][] = $state;
+				$args['author__in'][]  = $user_id;
 			}
 		}
-		$where .= ' )';
 	} else {
-		$where .= " AND p.post_status = 'publish'";
+		$args['post_status'] = 'publish';
 	}
 
-	$op    = $previous ? '<' : '>';
-	$order = $previous ? 'DESC' : 'ASC';
+	$callback = function( $request, $wp_query, $clauses ) use ( $adjacent, $in_same_term, $excluded_terms, $taxonomy, $post, $order ) {
+		global $wpdb;
 
-	/**
-	 * Filters the JOIN clause in the SQL for an adjacent post query.
-	 *
-	 * The dynamic portion of the hook name, `$adjacent`, refers to the type
-	 * of adjacency, 'next' or 'previous'.
-	 *
-	 * Possible hook names include:
-	 *
-	 *  - `get_next_post_join`
-	 *  - `get_previous_post_join`
-	 *
-	 * @since 2.5.0
-	 * @since 4.4.0 Added the `$taxonomy` and `$post` parameters.
-	 *
-	 * @param string       $join           The JOIN clause in the SQL.
-	 * @param bool         $in_same_term   Whether post should be in the same taxonomy term.
-	 * @param int[]|string $excluded_terms Array of excluded term IDs. Empty string if none were provided.
-	 * @param string       $taxonomy       Taxonomy. Used to identify the term used when `$in_same_term` is true.
-	 * @param WP_Post      $post           WP_Post object.
-	 */
-	$join = apply_filters( "get_{$adjacent}_post_join", $join, $in_same_term, $excluded_terms, $taxonomy, $post );
+		$where    = isset( $clauses['where'] ) ? $clauses['where'] : '';
+		$groupby  = isset( $clauses['groupby'] ) ? $clauses['groupby'] : '';
+		$join     = isset( $clauses['join'] ) ? $clauses['join'] : '';
+		$orderby  = isset( $clauses['orderby'] ) ? $clauses['orderby'] : '';
+		$distinct = isset( $clauses['distinct'] ) ? $clauses['distinct'] : '';
+		$fields   = isset( $clauses['fields'] ) ? $clauses['fields'] : '';
+		$limits   = isset( $clauses['limits'] ) ? $clauses['limits'] : '';
 
-	/**
-	 * Filters the WHERE clause in the SQL for an adjacent post query.
-	 *
-	 * The dynamic portion of the hook name, `$adjacent`, refers to the type
-	 * of adjacency, 'next' or 'previous'.
-	 *
-	 * Possible hook names include:
-	 *
-	 *  - `get_next_post_where`
-	 *  - `get_previous_post_where`
-	 *
-	 * @since 2.5.0
-	 * @since 4.4.0 Added the `$taxonomy` and `$post` parameters.
-	 *
-	 * @param string       $where          The `WHERE` clause in the SQL.
-	 * @param bool         $in_same_term   Whether post should be in the same taxonomy term.
-	 * @param int[]|string $excluded_terms Array of excluded term IDs. Empty string if none were provided.
-	 * @param string       $taxonomy       Taxonomy. Used to identify the term used when `$in_same_term` is true.
-	 * @param WP_Post      $post           WP_Post object.
-	 */
-	$where = apply_filters( "get_{$adjacent}_post_where", $wpdb->prepare( "WHERE p.post_date $op %s AND p.post_type = %s $where", $current_post_date, $post->post_type ), $in_same_term, $excluded_terms, $taxonomy, $post );
-
-	/**
-	 * Filters the ORDER BY clause in the SQL for an adjacent post query.
-	 *
-	 * The dynamic portion of the hook name, `$adjacent`, refers to the type
-	 * of adjacency, 'next' or 'previous'.
-	 *
-	 * Possible hook names include:
-	 *
-	 *  - `get_next_post_sort`
-	 *  - `get_previous_post_sort`
-	 *
-	 * @since 2.5.0
-	 * @since 4.4.0 Added the `$post` parameter.
-	 * @since 4.9.0 Added the `$order` parameter.
-	 *
-	 * @param string $order_by The `ORDER BY` clause in the SQL.
-	 * @param WP_Post $post    WP_Post object.
-	 * @param string  $order   Sort order. 'DESC' for previous post, 'ASC' for next.
-	 */
-	$sort = apply_filters( "get_{$adjacent}_post_sort", "ORDER BY p.post_date $order LIMIT 1", $post, $order );
-
-	$query     = "SELECT p.ID FROM $wpdb->posts AS p $join $where $sort";
-	$query_key = 'adjacent_post_' . md5( $query );
-	$result    = wp_cache_get( $query_key, 'counts' );
-	if ( false !== $result ) {
-		if ( $result ) {
-			$result = get_post( $result );
+		if ( ! empty( $where ) ) {
+			$where = 'WHERE 1=1 ' . $where;
 		}
-		return $result;
+		if ( ! empty( $groupby ) ) {
+			$groupby = 'GROUP BY ' . $groupby;
+		}
+		if ( ! empty( $orderby ) ) {
+			$orderby = 'ORDER BY ' . $orderby;
+		}
+
+		$found_rows = '';
+		if ( ! $wp_query->query_vars['no_found_rows'] && ! empty( $limits ) ) {
+			$found_rows = 'SQL_CALC_FOUND_ROWS';
+		}
+
+		/**
+		 * Filters the JOIN clause in the SQL for an adjacent post query.
+		 *
+		 * The dynamic portion of the hook name, `$adjacent`, refers to the type
+		 * of adjacency, 'next' or 'previous'.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `get_next_post_join`
+		 *  - `get_previous_post_join`
+		 *
+		 * @since 2.5.0
+		 * @since 4.4.0 Added the `$taxonomy` and `$post` parameters.
+		 *
+		 * @param string       $join           The JOIN clause in the SQL.
+		 * @param bool         $in_same_term   Whether post should be in the same taxonomy term.
+		 * @param int[]|string $excluded_terms Array of excluded term IDs. Empty string if none were provided.
+		 * @param string       $taxonomy       Taxonomy. Used to identify the term used when `$in_same_term` is true.
+		 * @param WP_Post      $post           WP_Post object.
+		 */
+		$join = apply_filters( "get_{$adjacent}_post_join", $join, $in_same_term, $excluded_terms, $taxonomy, $post );
+
+		/**
+		 * Filters the WHERE clause in the SQL for an adjacent post query.
+		 *
+		 * The dynamic portion of the hook name, `$adjacent`, refers to the type
+		 * of adjacency, 'next' or 'previous'.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `get_next_post_where`
+		 *  - `get_previous_post_where`
+		 *
+		 * @since 2.5.0
+		 * @since 4.4.0 Added the `$taxonomy` and `$post` parameters.
+		 *
+		 * @param string       $where          The `WHERE` clause in the SQL.
+		 * @param bool         $in_same_term   Whether post should be in the same taxonomy term.
+		 * @param int[]|string $excluded_terms Array of excluded term IDs. Empty string if none were provided.
+		 * @param string       $taxonomy       Taxonomy. Used to identify the term used when `$in_same_term` is true.
+		 * @param WP_Post      $post           WP_Post object.
+		 */
+		$where = apply_filters( "get_{$adjacent}_post_where", $where, $in_same_term, $excluded_terms, $taxonomy, $post );
+
+		/**
+		 * Filters the ORDER BY clause in the SQL for an adjacent post query.
+		 *
+		 * The dynamic portion of the hook name, `$adjacent`, refers to the type
+		 * of adjacency, 'next' or 'previous'.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `get_next_post_sort`
+		 *  - `get_previous_post_sort`
+		 *
+		 * @since 2.5.0
+		 * @since 4.4.0 Added the `$post` parameter.
+		 * @since 4.9.0 Added the `$order` parameter.
+		 *
+		 * @param string $order_by The `ORDER BY` clause in the SQL.
+		 * @param WP_Post $post    WP_Post object.
+		 * @param string  $order   Sort order. 'DESC' for previous post, 'ASC' for next.
+		 */
+		$sort = apply_filters( "get_{$adjacent}_post_sort", $orderby . ' ' . $limits, $post, $order );
+
+		$old_request = "
+			SELECT $found_rows $distinct $fields
+			FROM {$wpdb->posts} $join
+			$where
+			$groupby
+			$sort
+		";
+
+		return $old_request;
+	};
+
+	add_filter( 'posts_request', $callback, 1, 3 );
+	$query = new WP_Query( $args );
+	$posts = $query->get_posts();
+	remove_filter( 'posts_request', $callback );
+
+	if ( ! $posts ) {
+		return '';
 	}
 
-	$result = $wpdb->get_var( $query );
-	if ( null === $result ) {
-		$result = '';
-	}
-
-	wp_cache_set( $query_key, $result, 'counts' );
-
-	if ( $result ) {
-		$result = get_post( $result );
-	}
-
-	return $result;
+	return $posts[0];
 }
 
 /**

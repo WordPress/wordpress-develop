@@ -3074,8 +3074,19 @@ class WP_Query {
 			 *
 			 * @param string   $request The complete SQL query.
 			 * @param WP_Query $query   The WP_Query instance (passed by reference).
+			 * @param string[] $clauses {
+			 *     Associative array of the clauses for the query.
+			 *
+			 *     @type string $where    The WHERE clause of the query.
+			 *     @type string $groupby  The GROUP BY clause of the query.
+			 *     @type string $join     The JOIN clause of the query.
+			 *     @type string $orderby  The ORDER BY clause of the query.
+			 *     @type string $distinct The DISTINCT clause of the query.
+			 *     @type string $fields   The SELECT clause of the query.
+			 *     @type string $limits   The LIMIT clause of the query.
+			 * }
 			 */
-			$this->request = apply_filters_ref_array( 'posts_request', array( $this->request, &$this ) );
+			$this->request = apply_filters_ref_array( 'posts_request', array( $this->request, &$this, $clauses ) );
 		}
 
 		/**
