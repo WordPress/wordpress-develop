@@ -58,7 +58,7 @@ class WP_Textdomain_Registry {
 	 *
 	 * @since 6.1.2
 	 *
-	 * @var array
+	 * @var string[]
 	 */
 	protected $domains_with_translations = array();
 
@@ -180,7 +180,7 @@ class WP_Textdomain_Registry {
 
 			foreach ( $this->cached_mo_files[ $location ] as $mo_path ) {
 				if ( str_starts_with( str_replace( "$location/", '', $mo_path ), "$domain-" ) ) {
-					$this->domains_with_translations[ $domain ] = true;
+					$this->domains_with_translations[] = $domain;
 				}
 
 				if ( $mo_path === $path ) {
