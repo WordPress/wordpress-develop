@@ -34,13 +34,14 @@ class Tests_Functions_ForceSslAdmin extends WP_UnitTestCase {
 	public function test_force_ssl_admin_try_test_string_which_should_set_true() {
 		$expected = force_ssl_admin();
 
-		$value  = force_ssl_admin();
+		$value = force_ssl_admin();
+
 		$value1 = force_ssl_admin( 'a string' );
 		$this->setExpectedIncorrectUsage( 'force_ssl_admin' );
 		$value2 = force_ssl_admin();
+
 		$value3 = force_ssl_admin( $expected );
 		$value4 = force_ssl_admin();
-
 
 		$this->assertSame( $expected, $value, 'default' );
 
@@ -48,7 +49,6 @@ class Tests_Functions_ForceSslAdmin extends WP_UnitTestCase {
 		$this->assertTrue( $value2, 'check value is still as expecting after setting a string' );
 
 		$this->assertTrue( $value3, 'set back to default but old valuer is still true' );
-
 		$this->assertSame( $expected, $value4, 'set back to default' );
 	}
 
