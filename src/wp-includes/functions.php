@@ -6009,20 +6009,30 @@ function validate_file( $file, $allowed_files = array() ) {
  *
  * @return bool True if forced, false if not forced.
  * @since 2.6.0
- * @since 6.1.1
+ * @since 6.2.0
  */
 function force_ssl_admin( $force = null ) {
 	static $forced = false;
 
+	if ( ! is_bool( $force ) && ! is_null( $force ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+			/* translators: %s: The "$force" variable name. */
+				__( '"%s" must be of type "bool".' ),
+				$force
+			),
+			'6.2.0'
+		);
+		// handle string "false" as value
+		$force = ( 'false' === strtolower( $force ) ) ? false : $force;
+		$force = (bool) $force;
+	}
 	if ( is_bool( $force ) ) {
 		$old_forced = $forced;
 		$forced     = $force;
 
 		return $old_forced;
-	}
-
-	if ( ! is_null( $force ) ) {
-		_doing_it_wrong( __FUNCTION__, __( 'Boolean value not passed to function' ), '6.1.1' );
 	}
 
 	return $forced;
