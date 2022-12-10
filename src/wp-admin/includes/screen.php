@@ -15,29 +15,23 @@
  * @return string[] The column header labels keyed by column ID.
  */
 function get_column_headers( $screen ) {
-	static $column_headers = array();
-
 	if ( is_string( $screen ) ) {
 		$screen = convert_to_screen( $screen );
 	}
 
-	if ( ! isset( $column_headers[ $screen->id ] ) ) {
-		/**
-		 * Filters the column headers for a list table on a specific screen.
-		 *
-		 * The dynamic portion of the hook name, `$screen->id`, refers to the
-		 * ID of a specific screen. For example, the screen ID for the Posts
-		 * list table is edit-post, so the filter for that screen would be
-		 * manage_edit-post_columns.
-		 *
-		 * @since 3.0.0
-		 *
-		 * @param string[] $columns The column header labels keyed by column ID.
-		 */
-		$column_headers[ $screen->id ] = apply_filters( "manage_{$screen->id}_columns", array() );
-	}
-
-	return $column_headers[ $screen->id ];
+	/**
+	 * Filters the column headers for a list table on a specific screen.
+	 *
+	 * The dynamic portion of the hook name, `$screen->id`, refers to the
+	 * ID of a specific screen. For example, the screen ID for the Posts
+	 * list table is edit-post, so the filter for that screen would be
+	 * manage_edit-post_columns.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param string[] $columns The column header labels keyed by column ID.
+	 */
+	return apply_filters( "manage_{$screen->id}_columns", array() );
 }
 
 /**
