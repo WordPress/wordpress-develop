@@ -1577,30 +1577,31 @@ function update_core( $from, $to ) {
  *
  * @since 6.2.0
  *
- * @global array              $_old_files     Files to be deleted.
- * @global WP_Filesystem_Base $wp_filesystem  WordPress filesystem subclass.
+ * @global array              $_old_requests_files Requests files to be preloaded.
+ * @global WP_Filesystem_Base $wp_filesystem       WordPress filesystem subclass.
  *
  * @param string $to Path to old WordPress installation.
  */
 function _preload_old_requests_files( $to ) {
-	global $_old_files, $wp_filesystem;
+	global $_old_requests_files, $wp_filesystem;
 
-	foreach ( $_old_files as $old_file ) {
-		if ( ! str_ends_with( $old_file, '.php' ) ) {
+	foreach ( $_old_requests_files as $name => $file ) {
+		// Skip files that aren't interfaces or classes.
+		if ( is_int( $name ) ) {
 			continue;
 		}
 
-		if ( ! str_starts_with( $old_file, 'wp-includes/Requests/' ) ) {
+		// Skip if it's already loaded.
+		if ( class_exists( $name ) || interface_exists( $name ) ) {
 			continue;
 		}
 
-		$old_file = $to . $old_file;
-
-		if ( ! $wp_filesystem->is_file( $old_file ) ) {
+		// Skip if the file is missing.
+		if ( ! $wp_filesystem->is_file( $to . $file ) ) {
 			continue;
 		}
 
-		require_once $old_file;
+		require_once $to . $file;
 	}
 }
 
