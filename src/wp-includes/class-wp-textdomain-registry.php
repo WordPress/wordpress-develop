@@ -179,7 +179,10 @@ class WP_Textdomain_Registry {
 			$path = "$location/$domain-$locale.mo";
 
 			foreach ( $this->cached_mo_files[ $location ] as $mo_path ) {
-				if ( str_starts_with( str_replace( "$location/", '', $mo_path ), "$domain-" ) ) {
+				if (
+					! in_array( $domain, $this->domains_with_translations, true ) &&
+					str_starts_with( str_replace( "$location/", '', $mo_path ), "$domain-" )
+				) {
 					$this->domains_with_translations[] = $domain;
 				}
 
