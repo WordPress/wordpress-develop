@@ -1039,6 +1039,7 @@ $_new_bundled_files = array(
  *
  * @global WP_Filesystem_Base $wp_filesystem          WordPress filesystem subclass.
  * @global array              $_old_files
+ * @global array              $_old_requests_files
  * @global array              $_new_bundled_files
  * @global wpdb               $wpdb                   WordPress database abstraction object.
  * @global string             $wp_version
@@ -1050,11 +1051,11 @@ $_new_bundled_files = array(
  * @return string|WP_Error New WordPress version on success, WP_Error on failure.
  */
 function update_core( $from, $to ) {
-	global $wp_filesystem, $_old_files, $_new_bundled_files, $wpdb;
+	global $wp_filesystem, $_old_files, $_old_requests_files, $_new_bundled_files, $wpdb;
 
 	set_time_limit( 300 );
 
-	_preload_old_requests_files( $to );
+	$_old_files = array_merge( $_old_files, array_values( $_old_requests_files ) );
 
 	/**
 	 * Filters feedback messages displayed during the core update process.
