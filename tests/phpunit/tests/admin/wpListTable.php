@@ -365,6 +365,6 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		// CSS class only exists if the table has at least one comment.
-		$this->assertContains( 'class="submitted-on"', $output );
+		$this->assertStringContainsString( 'class="submitted-on"', $output );
 	}
 }
