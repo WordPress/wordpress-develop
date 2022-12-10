@@ -1056,6 +1056,7 @@ function update_core( $from, $to ) {
 	set_time_limit( 300 );
 
 	$_old_files = array_merge( $_old_files, array_values( $_old_requests_files ) );
+	_preload_old_requests_classes_and_interfaces( $to );
 
 	/**
 	 * Filters feedback messages displayed during the core update process.
@@ -1572,8 +1573,10 @@ function update_core( $from, $to ) {
 }
 
 /**
- * Preloads Requests files stored in $_old_files
- * that may be needed during the update process.
+ * Preloads old Requests classes and interfaces.
+ *
+ * Old Requests classes and interfaces will be deleted during the core update.
+ * Preloading these prevents fatal errors later in the update process.
  *
  * @since 6.2.0
  *
@@ -1582,7 +1585,7 @@ function update_core( $from, $to ) {
  *
  * @param string $to Path to old WordPress installation.
  */
-function _preload_old_requests_files( $to ) {
+function _preload_old_requests_classes_and_interfaces( $to ) {
 	global $_old_requests_files, $wp_filesystem;
 
 	foreach ( $_old_requests_files as $name => $file ) {
