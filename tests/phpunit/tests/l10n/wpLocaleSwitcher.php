@@ -328,7 +328,7 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 	 * @covers ::switch_to_locale
 	 */
 	public function test_switch_to_site_locale_if_user_locale_is_set() {
-		global $l10n;
+		global $l10n, $wp_locale_switcher;
 
 		$site_locale = get_locale();
 
@@ -341,6 +341,11 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		wp_set_current_user( $user_id );
 		set_current_screen( 'dashboard' );
+
+		// Reset $wp_locale_switcher so it thinks es_ES is the original locale.
+		remove_filter( 'locale', array( $wp_locale_switcher, 'filter_locale' ) );
+		$wp_locale_switcher = new WP_Locale_Switcher();
+		$wp_locale_switcher->init();
 
 		$user_locale = get_user_locale();
 
@@ -370,7 +375,7 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 	 * @covers ::switch_to_locale
 	 */
 	public function test_switch_to_different_site_locale_if_user_locale_is_set() {
-		global $l10n;
+		global $l10n, $wp_locale_switcher;
 
 		// Change site locale to es_ES.
 		add_filter( 'locale', array( $this, 'filter_locale' ) );
@@ -386,6 +391,11 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		wp_set_current_user( $user_id );
 		set_current_screen( 'dashboard' );
+
+		// Reset $wp_locale_switcher so it thinks es_ES is the original locale.
+		remove_filter( 'locale', array( $wp_locale_switcher, 'filter_locale' ) );
+		$wp_locale_switcher = new WP_Locale_Switcher();
+		$wp_locale_switcher->init();
 
 		$user_locale = get_user_locale();
 
@@ -418,8 +428,6 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 	 * @covers ::load_default_textdomain
 	 */
 	public function test_multiple_switches_to_site_locale_and_user_locale() {
-		global $wp_locale_switcher;
-
 		$site_locale = get_locale();
 
 		$user_id = self::factory()->user->create(
