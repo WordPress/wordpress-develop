@@ -453,7 +453,8 @@ function has_excerpt( $post = 0 ) {
  *
  * @since 2.7.0
  *
- * @param string|string[] $css_class One or more classes to add to the class list.
+ * @param string|string[] $css_class Optional. One or more classes to add to the class list.
+ *                                   Default empty.
  * @param int|WP_Post     $post      Optional. Post ID or post object. Defaults to the global `$post`.
  */
 function post_class( $css_class = '', $post = null ) {
@@ -478,7 +479,8 @@ function post_class( $css_class = '', $post = null ) {
  * @since 2.7.0
  * @since 4.2.0 Custom taxonomy class names were added.
  *
- * @param string|string[] $css_class Space-separated string or array of class names to add to the class list.
+ * @param string|string[] $css_class Optional. Space-separated string or array of class names
+ *                                   to add to the class list. Default empty.
  * @param int|WP_Post     $post      Optional. Post ID or post object.
  * @return string[] Array of class names.
  */
@@ -605,7 +607,8 @@ function get_post_class( $css_class = '', $post = null ) {
  *
  * @since 2.8.0
  *
- * @param string|string[] $css_class Space-separated string or array of class names to add to the class list.
+ * @param string|string[] $css_class Optional. Space-separated string or array of class names
+ *                                   to add to the class list. Default empty.
  */
 function body_class( $css_class = '' ) {
 	// Separates class names with a single space, collates class names for body element.
@@ -619,7 +622,8 @@ function body_class( $css_class = '' ) {
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
- * @param string|string[] $css_class Space-separated string or array of class names to add to the class list.
+ * @param string|string[] $css_class Optional. Space-separated string or array of class names
+ *                                   to add to the class list. Default empty.
  * @return string[] Array of class names.
  */
 function get_body_class( $css_class = '' ) {
