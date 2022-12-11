@@ -1570,7 +1570,7 @@ function wp_ajax_add_menu_item() {
 			'before'      => '',
 			'link_after'  => '',
 			'link_before' => '',
-			'walker'      => new $walker_class_name,
+			'walker'      => new $walker_class_name(),
 		);
 
 		echo walk_nav_menu_tree( $menu_items, 0, (object) $args );
@@ -3023,7 +3023,7 @@ function wp_ajax_query_attachments() {
 
 	// Filter query clauses to include filenames.
 	if ( isset( $query['s'] ) ) {
-		add_filter( 'posts_clauses', '_filter_query_attachment_filenames' );
+		add_filter( 'wp_allow_query_attachment_by_filename', '__return_true' );
 	}
 
 	/**
@@ -3788,7 +3788,7 @@ function wp_ajax_parse_embed() {
 			$styles .= sprintf( '<link rel="stylesheet" href="%s" />', $style );
 		}
 
-		$html = apply_shortcodes( $parsed );
+		$html = do_shortcode( $parsed );
 
 		global $wp_scripts;
 
@@ -3861,7 +3861,7 @@ function wp_ajax_parse_media_shortcode() {
 		setup_postdata( $post );
 	}
 
-	$parsed = apply_shortcodes( $shortcode );
+	$parsed = do_shortcode( $shortcode );
 
 	if ( empty( $parsed ) ) {
 		wp_send_json_error(

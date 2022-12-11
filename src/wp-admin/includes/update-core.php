@@ -10,6 +10,8 @@
 /**
  * Stores files to be deleted.
  *
+ * Bundled theme files should not be included in this list.
+ *
  * @since 2.7.0
  *
  * @global array $_old_files
@@ -843,8 +845,24 @@ $_old_files = array(
 	'wp-includes/blocks/tag-cloud/editor.min.css',
 	'wp-includes/blocks/tag-cloud/editor-rtl.css',
 	'wp-includes/blocks/tag-cloud/editor-rtl.min.css',
-	// 6.0
-	'wp-content/themes/twentytwentytwo/assets/fonts/LICENSE.md',
+	// 6.1
+	'wp-includes/blocks/post-comments.php',
+	'wp-includes/blocks/post-comments/block.json',
+	'wp-includes/blocks/post-comments/editor.css',
+	'wp-includes/blocks/post-comments/editor.min.css',
+	'wp-includes/blocks/post-comments/editor-rtl.css',
+	'wp-includes/blocks/post-comments/editor-rtl.min.css',
+	'wp-includes/blocks/post-comments/style.css',
+	'wp-includes/blocks/post-comments/style.min.css',
+	'wp-includes/blocks/post-comments/style-rtl.css',
+	'wp-includes/blocks/post-comments/style-rtl.min.css',
+	'wp-includes/blocks/post-comments',
+	'wp-includes/blocks/comments-query-loop/block.json',
+	'wp-includes/blocks/comments-query-loop/editor.css',
+	'wp-includes/blocks/comments-query-loop/editor.min.css',
+	'wp-includes/blocks/comments-query-loop/editor-rtl.css',
+	'wp-includes/blocks/comments-query-loop/editor-rtl.min.css',
+	'wp-includes/blocks/comments-query-loop',
 );
 
 /**
@@ -852,7 +870,7 @@ $_old_files = array(
  *
  * The contents of this array indicate any new bundled plugins/themes which
  * should be installed with the WordPress Upgrade. These items will not be
- * re-installed in future upgrades, this behaviour is controlled by the
+ * re-installed in future upgrades, this behavior is controlled by the
  * introduced version present here being older than the current installed version.
  *
  * The content of this array should follow the following format:
@@ -1377,7 +1395,7 @@ function update_core( $from, $to ) {
 					// If a error occurs partway through this final step, keep the error flowing through, but keep process going.
 					if ( is_wp_error( $_result ) ) {
 						if ( ! is_wp_error( $result ) ) {
-							$result = new WP_Error;
+							$result = new WP_Error();
 						}
 
 						$result->add(
@@ -1418,8 +1436,8 @@ function update_core( $from, $to ) {
 	// Deactivate the REST API plugin if its version is 2.0 Beta 4 or lower.
 	_upgrade_440_force_deactivate_incompatible_plugins();
 
-	// Deactivate the Gutenberg plugin if its version is 11.8 or lower.
-	_upgrade_590_force_deactivate_incompatible_plugins();
+	// Deactivate incompatible plugins.
+	_upgrade_core_deactivate_incompatible_plugins();
 
 	// Upgrade DB with separate request.
 	/** This filter is documented in wp-admin/includes/update-core.php */
@@ -1618,14 +1636,16 @@ function _upgrade_440_force_deactivate_incompatible_plugins() {
 /**
  * @access private
  * @ignore
- * @since 5.9.0
+ * @since 5.8.0
+ * @since 5.9.0 The minimum compatible version of Gutenberg is 11.9.
+ * @since 6.1.1 The minimum compatible version of Gutenberg is 14.1.
  */
-function _upgrade_590_force_deactivate_incompatible_plugins() {
-	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '11.9', '<' ) ) {
+function _upgrade_core_deactivate_incompatible_plugins() {
+	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '14.1', '<' ) ) {
 		$deactivated_gutenberg['gutenberg'] = array(
 			'plugin_name'         => 'Gutenberg',
 			'version_deactivated' => GUTENBERG_VERSION,
-			'version_compatible'  => '11.9',
+			'version_compatible'  => '14.1',
 		);
 		if ( is_plugin_active_for_network( 'gutenberg/gutenberg.php' ) ) {
 			$deactivated_plugins = get_site_option( 'wp_force_deactivated_plugins', array() );

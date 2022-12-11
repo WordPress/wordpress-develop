@@ -1093,7 +1093,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	public function test_prepare_item_limit_fields() {
-		$request  = new WP_REST_Request;
+		$request  = new WP_REST_Request();
 		$endpoint = new WP_REST_Terms_Controller( 'category' );
 		$request->set_param( '_fields', 'id,name' );
 		$term     = get_term( 1, 'category' );
