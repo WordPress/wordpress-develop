@@ -1159,7 +1159,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		if ( 0 !== (int) $comment->user_id ) {
 			$links['author'] = array(
-				'href'       => rest_url( 'wp/v2/users/' . $comment->user_id ),
+				'href'       => rest_url( $this->namespace . '/users/' . $comment->user_id ),
 				'embeddable' => true,
 			);
 		}
