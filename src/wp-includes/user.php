@@ -1873,6 +1873,7 @@ function update_user_caches( $user ) {
  *
  * @since 3.0.0
  * @since 4.4.0 'clean_user_cache' action was added.
+ * @since 6.2.0 User metadata caches are now cleared.
  *
  * @param WP_User|int $user User object or ID to be cleaned from the cache
  */
@@ -1892,6 +1893,8 @@ function clean_user_cache( $user ) {
 	if ( ! empty( $user->user_email ) ) {
 		wp_cache_delete( $user->user_email, 'useremail' );
 	}
+
+	wp_cache_delete( $user->ID, 'user_meta' );
 
 	/**
 	 * Fires immediately after the given user's cache is cleaned.
@@ -3504,6 +3507,8 @@ function wp_destroy_all_sessions() {
  *
  * @since 4.4.0
  * @since 4.9.0 The `$site_id` parameter was added to support multisite.
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int|null $site_id Optional. The site ID to get users with no role for. Defaults to the current site.
  * @return string[] Array of user IDs as strings.
