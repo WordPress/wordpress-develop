@@ -567,4 +567,79 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	public function callback_remove_safe_ports( $ports ) {
 		return array();
 	}
+
+	/**
+	 * Test HTTP Redirects with multiple Location headers specified.
+	 *
+	 * Ensure the WP_HTTP::handle_redirects() method handles multiple Location headers
+	 * and the HTTP request it makes uses the last Location header.
+	 *
+	 * @ticket 16890
+	 * @ticket 57306
+	 *
+	 * @covers WP_HTTP::handle_redirects
+	 */
+	public function test_multiple_location_headers() {
+		// Filter the response made by WP_HTTP::handle_redirects().
+		add_filter(
+			'pre_http_request',
+			function( $response, $args, $url ) {
+				// Assert the redirect URL is correct.
+				$this->assertSame(
+					$url,
+					'http://api.wordpress.org/core/tests/1.0/redirection.php?multiple-location-headers=1&redirected=two'
+				);
+
+				return array(
+					'headers'  => array(),
+					'body'     => 'PASS',
+					'response' => array(
+						'code'    => 200,
+						'message' => 'OK',
+					),
+					'cookies'  => array(),
+					'filename' => null,
+				);
+			},
+			10,
+			3
+		);
+
+		$headers = array(
+			'server'       => 'nginx',
+			'date'         => 'Sun, 11 Dec 2022 23:11:22 GMT',
+			'content-type' => 'text/html; charset=utf-8',
+			'location'     => array(
+				'http://api.wordpress.org/core/tests/1.0/redirection.php?multiple-location-headers=1&redirected=one',
+				'http://api.wordpress.org/core/tests/1.0/redirection.php?multiple-location-headers=1&redirected=two',
+			),
+		);
+
+		// Test the tests: ensure multiple locations are passed to WP_HTTP::handle_redirects().
+		$this->assertIsArray( $headers['location'] );
+		$this->assertCount( 2, $headers['location'] );
+
+		$args = array(
+			'timeout'      => 30,
+			'_redirection' => 3,
+			'redirection'  => 2,
+			'method'       => 'GET',
+		);
+
+		$response = WP_HTTP::handle_redirects(
+			'http://api.wordpress.org/core/tests/1.0/redirection.php?multiple-location-headers=1',
+			$args,
+			array(
+				'headers'  => $headers,
+				'body'     => '',
+				'cookies'  => array(),
+				'filename' => null,
+				'response' => array(
+					'code'    => 302,
+					'message' => 'Found',
+				),
+			)
+		);
+		$this->assertSame( 'PASS', wp_remote_retrieve_body( $response ) );
+	}
 }
