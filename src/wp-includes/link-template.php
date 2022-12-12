@@ -1807,12 +1807,15 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 
 	$current_post_date = $post->post_date;
 
-	$adjacent = $previous ? 'previous' : 'next';
-	$order    = $previous ? 'DESC' : 'ASC';
+	$adjacent        = $previous ? 'previous' : 'next';
+	$order           = $previous ? 'DESC' : 'ASC';
+	$date_query_type = $previous ? 'before' : 'after';
 
 	$args = array(
+		'date_query'             => array(
+			$date_query_type => $current_post_date,
+		),
 		'posts_per_page'         => 1,
-		'author__in'             => array(),
 		'order'                  => $order,
 		'orderby'                => 'post_date',
 		'post_type'              => $post->post_type,
@@ -1821,16 +1824,6 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 		'update_post_term_cache' => false,
 		'update_post_meta_cache' => false,
 	);
-
-	if ( $previous ) {
-		$args['date_query'] = array(
-			'before' => $current_post_date,
-		);
-	} else {
-		$args['date_query'] = array(
-			'after' => $current_post_date,
-		);
-	}
 
 	if ( ! empty( $excluded_terms ) && ! is_array( $excluded_terms ) ) {
 		// Back-compat, $excluded_terms used to be $excluded_categories with IDs separated by " and ".
@@ -1901,36 +1894,6 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 				'operator' => 'NOT IN',
 			);
 		}
-	}
-
-	// 'post_status' clause depends on the current user.
-	if ( is_user_logged_in() ) {
-		$user_id = get_current_user_id();
-
-		$post_type_object = get_post_type_object( $post->post_type );
-		if ( empty( $post_type_object ) ) {
-			$post_type_cap    = $post->post_type;
-			$read_private_cap = 'read_private_' . $post_type_cap . 's';
-		} else {
-			$read_private_cap = $post_type_object->cap->read_private_posts;
-		}
-
-		/*
-		 * Results should include private posts belonging to the current user, or private posts where the
-		 * current user has the 'read_private_posts' cap.
-		 */
-		$private_states = get_post_stati( array( 'private' => true ) );
-		$args['post_status'] = array( 'publish' );
-		foreach ( $private_states as $state ) {
-			if ( current_user_can( $read_private_cap ) ) {
-				$args['post_status'][] = $state;
-			} else {
-				$args['post_status'][] = $state;
-				$args['author__in'][]  = $user_id;
-			}
-		}
-	} else {
-		$args['post_status'] = 'publish';
 	}
 
 	$callback = function( $request, $wp_query, $clauses ) use ( $adjacent, $in_same_term, $excluded_terms, $taxonomy, $post, $order ) {
