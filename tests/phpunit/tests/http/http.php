@@ -593,9 +593,15 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 					'http://example.com/?multiple-location-headers=1&redirected=two'
 				);
 
+				if ( 'http://example.com/?multiple-location-headers=1&redirected=two' === $url ) {
+					$body = 'PASS';
+				} else {
+					$body = 'FAIL';
+				}
+
 				return array(
 					'headers'  => array(),
-					'body'     => 'PASS',
+					'body'     => $body,
 					'response' => array(
 						'code'    => 200,
 						'message' => 'OK',
