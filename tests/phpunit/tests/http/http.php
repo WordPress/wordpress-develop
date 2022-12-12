@@ -580,10 +580,13 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	 * @covers WP_HTTP::handle_redirects
 	 */
 	public function test_multiple_location_headers() {
+		$pre_http_request_filter_has_run = false;
 		// Filter the response made by WP_HTTP::handle_redirects().
 		add_filter(
 			'pre_http_request',
-			function( $response, $args, $url ) {
+			function( $response, $args, $url ) use ( &$pre_http_request_filter_has_run ) {
+				$pre_http_request_filter_has_run = true;
+
 				// Assert the redirect URL is correct.
 				$this->assertSame(
 					$url,
@@ -616,8 +619,8 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		);
 
 		// Test the tests: ensure multiple locations are passed to WP_HTTP::handle_redirects().
-		$this->assertIsArray( $headers['location'] );
-		$this->assertCount( 2, $headers['location'] );
+		$this->assertIsArray( $headers['location'], 'Location header is expected to be an array.' );
+		$this->assertCount( 2, $headers['location'], 'Location header is expected to contain two values.' );
 
 		$args = array(
 			'timeout'      => 30,
@@ -640,6 +643,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 				),
 			)
 		);
-		$this->assertSame( 'PASS', wp_remote_retrieve_body( $response ) );
+		$this->assertSame( 'PASS', wp_remote_retrieve_body( $response ), 'Redirect response body is expected to be PASS.' );
+		$this->assertTrue( $pre_http_request_filter_has_run, 'The pre_http_request filter is expected to run.' );
 	}
 }
