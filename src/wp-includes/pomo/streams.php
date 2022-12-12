@@ -85,46 +85,46 @@ if ( ! class_exists( 'POMO_Reader', false ) ) :
 		}
 
 		/**
-		 * @param string $text
+		 * @param string $input_string
 		 * @param int    $start
 		 * @param int    $length
 		 * @return string
 		 */
-		public function substr( $text, $start, $length ) {
+		public function substr( $input_string, $start, $length ) {
 			if ( $this->is_overloaded ) {
-				return mb_substr( $text, $start, $length, 'ascii' );
+				return mb_substr( $input_string, $start, $length, 'ascii' );
 			} else {
-				return substr( $text, $start, $length );
+				return substr( $input_string, $start, $length );
 			}
 		}
 
 		/**
-		 * @param string $text
+		 * @param string $input_string
 		 * @return int
 		 */
-		public function strlen( $text ) {
+		public function strlen( $input_string ) {
 			if ( $this->is_overloaded ) {
-				return mb_strlen( $text, 'ascii' );
+				return mb_strlen( $input_string, 'ascii' );
 			} else {
-				return strlen( $text );
+				return strlen( $input_string );
 			}
 		}
 
 		/**
-		 * @param string $text
+		 * @param string $input_string
 		 * @param int    $chunk_size
 		 * @return array
 		 */
-		public function str_split( $text, $chunk_size ) {
+		public function str_split( $input_string, $chunk_size ) {
 			if ( ! function_exists( 'str_split' ) ) {
-				$length = $this->strlen( $text );
+				$length = $this->strlen( $input_string );
 				$out    = array();
 				for ( $i = 0; $i < $length; $i += $chunk_size ) {
-					$out[] = $this->substr( $text, $i, $chunk_size );
+					$out[] = $this->substr( $input_string, $i, $chunk_size );
 				}
 				return $out;
 			} else {
-				return str_split( $text, $chunk_size );
+				return str_split( $input_string, $chunk_size );
 			}
 		}
 
