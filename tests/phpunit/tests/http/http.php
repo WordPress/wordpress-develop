@@ -587,7 +587,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 				// Assert the redirect URL is correct.
 				$this->assertSame(
 					$url,
-					'http://api.wordpress.org/core/tests/1.0/redirection.php?multiple-location-headers=1&redirected=two'
+					'http://example.com/?multiple-location-headers=1&redirected=two'
 				);
 
 				return array(
@@ -610,8 +610,8 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			'date'         => 'Sun, 11 Dec 2022 23:11:22 GMT',
 			'content-type' => 'text/html; charset=utf-8',
 			'location'     => array(
-				'http://api.wordpress.org/core/tests/1.0/redirection.php?multiple-location-headers=1&redirected=one',
-				'http://api.wordpress.org/core/tests/1.0/redirection.php?multiple-location-headers=1&redirected=two',
+				'http://example.com/?multiple-location-headers=1&redirected=one',
+				'http://example.com/?multiple-location-headers=1&redirected=two',
 			),
 		);
 
@@ -627,7 +627,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		);
 
 		$response = WP_HTTP::handle_redirects(
-			'http://api.wordpress.org/core/tests/1.0/redirection.php?multiple-location-headers=1',
+			'http://example.com/?multiple-location-headers=1',
 			$args,
 			array(
 				'headers'  => $headers,
