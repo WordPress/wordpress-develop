@@ -329,7 +329,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @global array $wp_filter
 	 */
 	protected function _backup_hooks() {
-		$globals = array( 'wp_actions', 'wp_current_filter' );
+		$globals = array( 'wp_actions', 'wp_current_filter', 'wp_filters' );
 		foreach ( $globals as $key ) {
 			self::$hooks_saved[ $key ] = $GLOBALS[ $key ];
 		}
@@ -348,7 +348,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @global array $wp_filter
 	 */
 	protected function _restore_hooks() {
-		$globals = array( 'wp_actions', 'wp_current_filter' );
+		$globals = array( 'wp_actions', 'wp_current_filter', 'wp_filters' );
 		foreach ( $globals as $key ) {
 			if ( isset( self::$hooks_saved[ $key ] ) ) {
 				$GLOBALS[ $key ] = self::$hooks_saved[ $key ];
