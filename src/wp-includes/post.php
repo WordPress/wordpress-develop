@@ -2035,7 +2035,8 @@ function _get_custom_object_labels( $data_object, $nohier_vs_hier_defaults ) {
 	}
 
 	if ( ! isset( $data_object->labels['name_admin_bar'] ) ) {
-		$data_object->labels['name_admin_bar'] = isset( $data_object->labels['singular_name'] )
+		$data_object->labels['name_admin_bar'] =
+			isset( $data_object->labels['singular_name'] )
 			? $data_object->labels['singular_name']
 			: $data_object->name;
 	}
