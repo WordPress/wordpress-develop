@@ -629,7 +629,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			'method'       => 'GET',
 		);
 
-		$response = WP_HTTP::handle_redirects(
+		$redirect_response = WP_HTTP::handle_redirects(
 			'http://example.com/?multiple-location-headers=1',
 			$args,
 			array(
@@ -643,7 +643,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 				),
 			)
 		);
-		$this->assertSame( 'PASS', wp_remote_retrieve_body( $response ), 'Redirect response body is expected to be PASS.' );
+		$this->assertSame( 'PASS', wp_remote_retrieve_body( $redirect_response ), 'Redirect response body is expected to be PASS.' );
 		$this->assertTrue( $pre_http_request_filter_has_run, 'The pre_http_request filter is expected to run.' );
 	}
 }
