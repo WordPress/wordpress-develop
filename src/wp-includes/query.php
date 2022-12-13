@@ -20,7 +20,8 @@
  * @global WP_Query $wp_query WordPress Query object.
  *
  * @param string $query_var     The variable key to retrieve.
- * @param mixed  $default_value Optional. Value to return if the query variable is not set. Default empty.
+ * @param mixed  $default_value Optional. Value to return if the query variable is not set.
+ *                              Default empty string.
  * @return mixed Contents of the query variable.
  */
 function get_query_var( $query_var, $default_value = '' ) {
