@@ -270,4 +270,12 @@ class Tests_Theme_wpGetGlobalStylesheet extends WP_UnitTestCase {
 			'Registered styles with handle of "wp-style-engine-my-styles" do not match expected value from the Style Engine store.'
 		);
 	}
+
+	public function test_switching_themes_recalculates_stylesheet() {
+		$stylesheet_for_default_theme = wp_get_global_stylesheet();
+		switch_theme( 'block-theme' );
+		$stylesheet_for_block_theme = wp_get_global_stylesheet();
+		$this->assertStringNotContainsString( '--wp--preset--font-size--custom: 100px;', $stylesheet_for_default_theme, 'custom font size (100px) not present for default theme' );
+		$this->assertStringContainsString( '--wp--preset--font-size--custom: 100px;', $stylesheet_for_block_theme, 'custom font size (100px) is present for block theme' );
+	}
 }
