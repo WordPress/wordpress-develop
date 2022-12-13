@@ -2394,18 +2394,18 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			array(
 				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 				'styles'  => array(
+					'spacing' => array(
+						'blockGap' => '3em',
+					),
 					'blocks'  => array(
 						'core/social-links' => array(
 							'spacing' => array(
 								'blockGap' => array(
-									'top'  => '1em',
 									'left' => '2em',
+									'top'  => '1em',
 								),
 							),
 						),
-					),
-					'spacing' => array(
-						'blockGap' => '3em',
 					),
 				),
 			)
@@ -2414,23 +2414,23 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$expected = array(
 			'version' => WP_Theme_JSON::LATEST_SCHEMA,
 			'styles'  => array(
+				'spacing' => array(
+					'blockGap' => '3em',
+				),
 				'blocks'  => array(
 					'core/social-links' => array(
 						'spacing' => array(
 							'blockGap' => array(
-								'top'  => '1em',
 								'left' => '2em',
+								'top'  => '1em',
 							),
 						),
 					),
 				),
-				'spacing' => array(
-					'blockGap' => '3em',
-				),
 			),
 		);
 
-		$this->assertEqualSetsWithIndex( $expected, $actual );
+		$this->assertSameSetsWithIndex( $expected, $actual );
 	}
 
 	/**
