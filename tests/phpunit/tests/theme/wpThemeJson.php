@@ -2385,6 +2385,53 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57321
+	 */
+	public function test_allow_indirect_properties() {
+		$actual = WP_Theme_JSON::remove_insecure_properties(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks'  => array(
+						'core/social-links' => array(
+							'spacing' => array(
+								'blockGap' => array(
+									'top'  => '1em',
+									'left' => '2em',
+								),
+							),
+						),
+					),
+					'spacing' => array(
+						'blockGap' => '3em',
+					),
+				),
+			)
+		);
+
+		$expected = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'blocks'  => array(
+					'core/social-links' => array(
+						'spacing' => array(
+							'blockGap' => array(
+								'top'  => '1em',
+								'left' => '2em',
+							),
+						),
+					),
+				),
+				'spacing' => array(
+					'blockGap' => '3em',
+				),
+			),
+		);
+
+		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+	/**
 	 * @ticket 56467
 	 */
 	public function test_remove_invalid_element_pseudo_selectors() {

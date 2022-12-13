@@ -252,6 +252,25 @@ class WP_Theme_JSON {
 	);
 
 	/**
+	 * Indirect metadata for style properties that are not directly output.
+	 *
+	 * Each element is a direct mapping from a CSS property name to the
+	 * path to the value in theme.json & block attributes.
+	 *
+	 * Indirect properties are not output directly by `compute_style_properties`,
+	 * but are used elsewhere in the processing of global styles. The indirect
+	 * property is used to validate whether or not a style value is allowed.
+	 *
+	 * @since 6.1.2
+	 * @var array
+	 */
+	const INDIRECT_PROPERTIES_METADATA = array(
+		'gap'        => array( 'spacing', 'blockGap' ),
+		'column-gap' => array( 'spacing', 'blockGap', 'left' ),
+		'row-gap'    => array( 'spacing', 'blockGap', 'top' ),
+	);
+
+	/**
 	 * Protected style properties.
 	 *
 	 * These style properties are only rendered if a setting enables it
@@ -2764,6 +2783,19 @@ class WP_Theme_JSON {
 				}
 			}
 		}
+
+		// Ensure indirect properties not handled by `compute_style_properties` are allowed.
+		foreach ( static::INDIRECT_PROPERTIES_METADATA as $property => $path ) {
+			$value = _wp_array_get( $input, $path, array() );
+			if (
+				isset( $value ) &&
+				! is_array( $value ) &&
+				static::is_safe_css_declaration( $property, $value )
+			) {
+				_wp_array_set( $output, $path, $value );
+			}
+		}
+
 		return $output;
 	}
 

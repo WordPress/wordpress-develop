@@ -695,3 +695,7 @@ add_filter( 'render_block', 'wp_render_typography_support', 10, 2 );
 add_action( 'init', 'wp_register_persisted_preferences_meta' );
 
 unset( $filter, $action );
+
+
+// Custom for testing.
+add_action( 'init', 'kses_init_filters' );
