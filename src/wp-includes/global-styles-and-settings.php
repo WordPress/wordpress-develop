@@ -102,7 +102,7 @@ function wp_get_global_stylesheet( $types = array() ) {
 
 	$tree = WP_Theme_JSON_Resolver::get_merged_data();
 
-	$supports_theme_json = WP_Theme_JSON_Resolver::theme_has_support();
+	$supports_theme_json = wp_theme_has_theme_json();
 	if ( empty( $types ) && ! $supports_theme_json ) {
 		$types = array( 'variables', 'presets', 'base-layout-styles' );
 	} elseif ( empty( $types ) ) {
@@ -184,7 +184,7 @@ function wp_get_global_styles_svg_filters() {
 		}
 	}
 
-	$supports_theme_json = WP_Theme_JSON_Resolver::theme_has_support();
+	$supports_theme_json = wp_theme_has_theme_json();
 
 	$origins = array( 'default', 'theme', 'custom' );
 	if ( ! $supports_theme_json ) {

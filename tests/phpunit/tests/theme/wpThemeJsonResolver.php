@@ -477,7 +477,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		remove_theme_support( 'custom-line-height' );
 		remove_theme_support( 'editor-color-palette' );
 
-		$this->assertFalse( WP_Theme_JSON_Resolver::theme_has_support() );
+		$this->assertFalse( wp_theme_has_theme_json() );
 		$this->assertTrue( $settings['typography']['lineHeight'] );
 		$this->assertSame( $color_palette, $settings['color']['palette']['theme'] );
 	}
