@@ -5687,13 +5687,12 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	$args = array(
 		'post_name__in'          => $parts,
 		'post_type'              => $post_types,
-		'post_status'            => get_post_stati(),
+		'post_status'            => 'all',
 		'posts_per_page'         => -1,
 		'update_post_term_cache' => false,
 		'update_post_meta_cache' => false,
 		'no_found_rows'          => true,
-		'orderby'                => 'post_date ID',
-		'order'                  => 'ASC',
+		'orderby'                => 'none',
 	);
 
 	$query = new WP_Query( $args );
