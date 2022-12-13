@@ -352,7 +352,6 @@ add_action( 'after_switch_theme', '_wp_menus_changed' );
 add_action( 'after_switch_theme', '_wp_sidebars_changed' );
 add_action( 'wp_print_styles', 'print_emoji_styles' );
 add_action( 'plugins_loaded', '_wp_theme_json_webfonts_handler' );
-add_action( 'plugins_loaded', '_wp_add_non_persistent_theme_json_cache_group' );
 
 if ( isset( $_GET['replytocom'] ) ) {
 	add_filter( 'wp_robots', 'wp_robots_no_robots' );

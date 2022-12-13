@@ -85,8 +85,24 @@ function wp_get_global_styles( $path = array(), $context = array() ) {
 function wp_get_global_stylesheet( $types = array() ) {
 	// Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme developers workflow.
 	$can_use_cached = empty( $types ) && ! WP_DEBUG;
-	$cache_key      = 'wp_get_global_stylesheet';
+	/**
+	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
+	 * See `wp_cache_add_non_persistent_groups` in src/wp-includes/load.php
+	 *
+	 * The rationale for this is to make sure derived data from theme.json
+	 * is always fresh from the potential modifications done via hooks
+	 * that can use dynamic data (modify the stylesheet depending on some option,
+	 * settings depending on user permissions, etc.).
+	 * See some of the existing hooks to modify theme.json behaviour:
+	 * https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
+	 *
+	 * A different alternative considered was to invalidate the cache upon certain
+	 * events such as options add/update/delete, user meta, etc.
+	 * It was judged not enough, hence this approach.
+	 * See https://github.com/WordPress/gutenberg/pull/45372
+	 */
 	$cache_group    = 'theme_json';
+	$cache_key      = 'wp_get_global_stylesheet';
 	if ( $can_use_cached ) {
 		$cached = wp_cache_get( $cache_key, $cache_group );
 		if ( $cached ) {
@@ -271,31 +287,4 @@ function wp_theme_has_theme_json() {
  */
 function wp_clean_theme_json_cache() {
 	WP_Theme_JSON_Resolver::clean_cached_data();
-}
-
-/**
- * Tell the cache mechanisms not to persist theme.json data across requests.
- * The data stored under this cache group:
- *
- * - wp_get_global_stylesheet
- *
- * There is some hooks consumers can use to modify parts
- * of the theme.json logic.
- * See https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
- *
- * The rationale to make this cache group non persistent is to make sure derived data
- * from theme.json is always fresh from the potential modifications done via hooks
- * that can use dynamic data (modify the stylesheet depending on some option,
- * or settings depending on user permissions, etc.).
- *
- * A different alternative considered was to invalidate the cache upon certain
- * events such as options add/update/delete, user meta, etc.
- * It was judged not enough, hence this approach.
- * See https://github.com/WordPress/gutenberg/pull/45372
- *
- * @since 6.1.2
- * @access private
- */
-function _wp_add_non_persistent_theme_json_cache_group() {
-	wp_cache_add_non_persistent_groups( 'theme_json' );
 }
