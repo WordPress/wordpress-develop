@@ -1811,9 +1811,11 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 
 	$current_post_date = $post->post_date;
 
-	$join     = '';
-	$where    = '';
-	$adjacent = $previous ? 'previous' : 'next';
+	$join      = '';
+	$where     = '';
+	$adjacent  = $previous ? 'previous' : 'next';
+	$order     = $previous ? 'DESC' : 'ASC';
+	$tax_query = array();
 
 	if ( ! empty( $excluded_terms ) && ! is_array( $excluded_terms ) ) {
 		// Back-compat, $excluded_terms used to be $excluded_categories with IDs separated by " and ".
@@ -1853,6 +1855,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	$excluded_terms = apply_filters( "get_{$adjacent}_post_excluded_terms", $excluded_terms );
 
 	if ( $in_same_term || ! empty( $excluded_terms ) ) {
+		$tax_query = array( 'relation' => 'AND' );
 		if ( $in_same_term ) {
 			$join  .= " INNER JOIN $wpdb->term_relationships AS tr ON p.ID = tr.object_id INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id";
 			$where .= $wpdb->prepare( 'AND tt.taxonomy = %s', $taxonomy );
@@ -1871,11 +1874,49 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 			}
 
 			$where .= ' AND tt.term_id IN (' . implode( ',', $term_array ) . ')';
+			$tax_query[] = array(
+				'taxonomy' => $taxonomy,
+				'terms'    => $term_array,
+				'field'    => 'term_id',
+				'operator' => 'IN',
+			);
 		}
 
 		if ( ! empty( $excluded_terms ) ) {
 			$where .= " AND p.ID NOT IN ( SELECT tr.object_id FROM $wpdb->term_relationships tr LEFT JOIN $wpdb->term_taxonomy tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id) WHERE tt.term_id IN (" . implode( ',', array_map( 'intval', $excluded_terms ) ) . ') )';
+			$tax_query[] = array(
+				'taxonomy' => $taxonomy,
+				'terms'    => $excluded_terms,
+				'field'    => 'term_id',
+				'operator' => 'NOT IN',
+			);
 		}
+	}
+
+	if ( ! has_filter( "get_{$adjacent}_post_join" ) && ! has_filter( "get_{$adjacent}_post_where" ) && ! has_filter( "get_{$adjacent}_post_sort" ) ) {
+		$date_query_type = $previous ? 'before' : 'after';
+
+		$args  = array(
+			'date_query'             => array(
+				$date_query_type => $current_post_date,
+			),
+			'posts_per_page'         => 1,
+			'order'                  => $order,
+			'orderby'                => 'post_date',
+			'tax_query'              => $tax_query,
+			'post_type'              => $post->post_type,
+			'ignore_sticky_posts'    => true,
+			'no_found_rows'          => true,
+			'update_post_term_cache' => false,
+			'update_post_meta_cache' => false,
+		);
+		$query = new WP_Query( $args );
+		$posts = $query->get_posts();
+		if ( ! $posts ) {
+			return '';
+		}
+
+		return $posts[0];
 	}
 
 	// 'post_status' clause depends on the current user.
@@ -1909,7 +1950,6 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	}
 
 	$op    = $previous ? '<' : '>';
-	$order = $previous ? 'DESC' : 'ASC';
 
 	/**
 	 * Filters the JOIN clause in the SQL for an adjacent post query.
