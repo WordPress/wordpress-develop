@@ -394,7 +394,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotContains( 'post_non_existing_column', $q->request, "SQL request shouldn't contain post_non_existing_column string." );
+		$this->assertStringNotContainsString( 'post_non_existing_column', $q->request, "SQL request shouldn't contain post_non_existing_column string." );
 		$this->assertSameSetsWithIndex( array( self::$pid1, self::$pid2, self::$pid3 ), $q->posts, 'Query results should be equal to the set.' );
 	}
 
