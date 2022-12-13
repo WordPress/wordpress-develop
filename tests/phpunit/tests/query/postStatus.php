@@ -87,7 +87,7 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 	 * Register custom post types and statuses used in multiple tests.
 	 *
 	 * CPTs and CPSs are reset between each test run so need to be registered
-	 * in both the wpSetUpBeforeClass() and setUp() methods.
+	 * in both the wpSetUpBeforeClass() and set_up() methods.
 	 */
 	public static function register_custom_post_objects() {
 		register_post_type(

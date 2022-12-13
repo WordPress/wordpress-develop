@@ -20,7 +20,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
-		$wp_rest_server = new Spy_REST_Server;
+		$wp_rest_server = new Spy_REST_Server();
 		do_action( 'rest_api_init', $wp_rest_server );
 
 		add_filter( 'pre_http_request', array( $this, 'mock_embed_request' ), 10, 3 );
@@ -150,12 +150,14 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/template-parts/(?P<parent>[\d]+)/autosaves/(?P<id>[\d]+)',
 			'/wp/v2/template-parts/(?P<parent>[\d]+)/revisions',
 			'/wp/v2/template-parts/(?P<parent>[\d]+)/revisions/(?P<id>[\d]+)',
+			'/wp/v2/template-parts/lookup',
 			'/wp/v2/templates',
 			'/wp/v2/templates/(?P<id>[\d]+)/autosaves',
 			'/wp/v2/templates/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w-]+)',
 			'/wp/v2/templates/(?P<parent>[\d]+)/autosaves/(?P<id>[\d]+)',
 			'/wp/v2/templates/(?P<parent>[\d]+)/revisions',
 			'/wp/v2/templates/(?P<parent>[\d]+)/revisions/(?P<id>[\d]+)',
+			'/wp/v2/templates/lookup',
 			'/wp/v2/themes',
 			'/wp/v2/themes/(?P<stylesheet>[^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)',
 			'/wp/v2/plugins',

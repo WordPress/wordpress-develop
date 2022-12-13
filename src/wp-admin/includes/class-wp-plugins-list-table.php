@@ -11,7 +11,6 @@
  * Core class used to implement displaying installed plugins in a list table.
  *
  * @since 3.1.0
- * @access private
  *
  * @see WP_List_Table
  */
@@ -404,7 +403,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		global $plugins;
 
 		if ( ! empty( $_REQUEST['s'] ) ) {
-			$s = esc_html( wp_unslash( $_REQUEST['s'] ) );
+			$s = esc_html( urldecode( wp_unslash( $_REQUEST['s'] ) ) );
 
 			/* translators: %s: Plugin search term. */
 			printf( __( 'No plugins found for: %s.' ), '<strong>' . $s . '</strong>' );
@@ -576,16 +575,15 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			}
 
 			if ( 'search' !== $type ) {
-				$status_links[ $type ] = sprintf(
-					"<a href='%s'%s>%s</a>",
-					add_query_arg( 'plugin_status', $type, 'plugins.php' ),
-					( $type === $status ) ? ' class="current" aria-current="page"' : '',
-					sprintf( $text, number_format_i18n( $count ) )
+				$status_links[ $type ] = array(
+					'url'     => add_query_arg( 'plugin_status', $type, 'plugins.php' ),
+					'label'   => sprintf( $text, number_format_i18n( $count ) ),
+					'current' => $type === $status,
 				);
 			}
 		}
 
-		return $status_links;
+		return $this->get_views_links( $status_links );
 	}
 
 	/**

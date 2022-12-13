@@ -475,9 +475,9 @@ function wp_print_media_templates() {
 			<div class="settings">
 				<# var maybeReadOnly = data.can.save || data.allowLocalEdits ? '' : 'readonly'; #>
 				<# if ( 'image' === data.type ) { #>
-					<span class="setting has-description" data-setting="alt">
+					<span class="setting alt-text has-description" data-setting="alt">
 						<label for="attachment-details-two-column-alt-text" class="name"><?php _e( 'Alternative Text' ); ?></label>
-						<input type="text" id="attachment-details-two-column-alt-text" value="{{ data.alt }}" aria-describedby="alt-text-description" {{ maybeReadOnly }} />
+						<textarea id="attachment-details-two-column-alt-text" aria-describedby="alt-text-description" {{ maybeReadOnly }}>{{ data.alt }}</textarea>
 					</span>
 					<p class="description" id="alt-text-description"><?php echo $alt_text_description; ?></p>
 				<# } #>
@@ -707,9 +707,9 @@ function wp_print_media_templates() {
 		</div>
 		<# var maybeReadOnly = data.can.save || data.allowLocalEdits ? '' : 'readonly'; #>
 		<# if ( 'image' === data.type ) { #>
-			<span class="setting has-description" data-setting="alt">
+			<span class="setting alt-text has-description" data-setting="alt">
 				<label for="attachment-details-alt-text" class="name"><?php _e( 'Alt Text' ); ?></label>
-				<input type="text" id="attachment-details-alt-text" value="{{ data.alt }}" aria-describedby="alt-text-description" {{ maybeReadOnly }} />
+				<textarea id="attachment-details-alt-text" aria-describedby="alt-text-description" {{ maybeReadOnly }}>{{ data.alt }}</textarea>
 			</span>
 			<p class="description" id="alt-text-description"><?php echo $alt_text_description; ?></p>
 		<# } #>
@@ -1015,7 +1015,7 @@ function wp_print_media_templates() {
 
 		<span class="setting alt-text has-description">
 			<label for="embed-image-settings-alt-text" class="name"><?php _e( 'Alternative Text' ); ?></label>
-			<input type="text" id="embed-image-settings-alt-text" data-setting="alt" aria-describedby="alt-text-description" />
+			<textarea id="embed-image-settings-alt-text" data-setting="alt" aria-describedby="alt-text-description"></textarea>
 		</span>
 		<p class="description" id="alt-text-description"><?php echo $alt_text_description; ?></p>
 
@@ -1078,7 +1078,7 @@ function wp_print_media_templates() {
 				<div class="column-settings">
 					<span class="setting alt-text has-description">
 						<label for="image-details-alt-text" class="name"><?php _e( 'Alternative Text' ); ?></label>
-						<input type="text" id="image-details-alt-text" data-setting="alt" value="{{ data.model.alt }}" aria-describedby="alt-text-description" />
+						<textarea id="image-details-alt-text" data-setting="alt" aria-describedby="alt-text-description">{{ data.model.alt }}</textarea>
 					</span>
 					<p class="description" id="alt-text-description"><?php echo $alt_text_description; ?></p>
 
@@ -1498,7 +1498,7 @@ function wp_print_media_templates() {
 			<div class="favicon">
 				<img id="preview-favicon" src="{{ data.url }}" alt="<?php esc_attr_e( 'Preview as a browser icon' ); ?>" />
 			</div>
-			<span class="browser-title" aria-hidden="true"><# print( '<?php bloginfo( 'name' ); ?>' ) #></span>
+			<span class="browser-title" aria-hidden="true"><# print( '<?php echo esc_js( get_bloginfo( 'name' ) ); ?>' ) #></span>
 		</div>
 
 		<strong aria-hidden="true"><?php _e( 'As an app icon' ); ?></strong>

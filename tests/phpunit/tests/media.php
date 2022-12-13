@@ -33,8 +33,7 @@ CAP;
 		self::$_sizes                          = wp_get_additional_image_sizes();
 		$GLOBALS['_wp_additional_image_sizes'] = array();
 
-		$filename = DIR_TESTDATA . '/images/' . self::$large_filename;
-		add_filter( 'image_editor_output_format', '__return_empty_array' );
+		$filename       = DIR_TESTDATA . '/images/' . self::$large_filename;
 		self::$large_id = $factory->attachment->create_upload_object( $filename );
 
 		$post_statuses = array( 'publish', 'future', 'draft', 'auto-draft', 'trash' );
@@ -69,7 +68,6 @@ CAP;
 
 	public static function wpTearDownAfterClass() {
 		$GLOBALS['_wp_additional_image_sizes'] = self::$_sizes;
-		remove_filter( 'image_editor_output_format', '__return_empty_array' );
 	}
 
 	public static function tear_down_after_class() {
@@ -363,7 +361,7 @@ https://w.org</a>',
 	 * @dataProvider data_autoembed
 	 */
 	public function test_autoembed( $content, $result = null ) {
-		$wp_embed = new Test_Autoembed;
+		$wp_embed = new Test_Autoembed();
 
 		$this->assertSame( $wp_embed->autoembed( $content ), $result ? $result : $content );
 	}
@@ -503,7 +501,7 @@ https://w.org</a>',
 		);
 
 		$images = get_attached_media( 'image', $post_id );
-		$this->assertEquals( $images, array( $attachment_id => get_post( $attachment_id ) ) );
+		$this->assertEqualSets( $images, array( $attachment_id => get_post( $attachment_id ) ) );
 	}
 
 	/**
@@ -3165,6 +3163,28 @@ EOF;
 	}
 
 	/**
+	 * Test that decoding="async" is not applied to img tags with single quotes.
+	 *
+	 * @ticket 56969
+	 */
+	public function test_wp_img_tag_add_decoding_attr_with_single_quotes() {
+		$img = "<img src='example.png' alt='' width='300' height='225' />";
+		$img = wp_img_tag_add_decoding_attr( $img, 'test' );
+		$this->assertStringNotContainsString( ' decoding="async"', $img );
+	}
+
+	/**
+	 * Test that decoding="async" is not applied to img tags inside JSON.
+	 *
+	 * @ticket 56969
+	 */
+	public function test_decoding_async_not_applied_to_json() {
+		$content = '{"image": "<img src=\"example.png\" alt=\"\" width=\"300\" height=\"225\" />"}';
+		$content = wp_filter_content_tags( $content );
+		$this->assertStringNotContainsString( ' decoding="async"', $content );
+	}
+
+	/**
 	 * @ticket 50756
 	 */
 	public function test_wp_iframe_tag_add_loading_attr() {
@@ -3457,7 +3477,7 @@ EOF;
 	 *
 	 * @param string $context
 	 */
-	function test_wp_get_loading_attr_default( $context ) {
+	public function test_wp_get_loading_attr_default( $context ) {
 		global $wp_query, $wp_the_query;
 
 		// Return 'lazy' by default.
@@ -3495,7 +3515,7 @@ EOF;
 		}
 	}
 
-	function data_wp_get_loading_attr_default() {
+	public function data_wp_get_loading_attr_default() {
 		return array(
 			array( 'the_content' ),
 			array( 'the_post_thumbnail' ),
@@ -3505,7 +3525,7 @@ EOF;
 	/**
 	 * @ticket 53675
 	 */
-	function test_wp_omit_loading_attr_threshold_filter() {
+	public function test_wp_omit_loading_attr_threshold_filter() {
 		global $wp_query, $wp_the_query;
 
 		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
@@ -3537,7 +3557,7 @@ EOF;
 	/**
 	 * @ticket 53675
 	 */
-	function test_wp_filter_content_tags_with_wp_get_loading_attr_default() {
+	public function test_wp_filter_content_tags_with_wp_get_loading_attr_default() {
 		global $wp_query, $wp_the_query;
 
 		$img1         = get_image_tag( self::$large_id, '', '', '', 'large' );
@@ -3625,129 +3645,95 @@ EOF;
 	}
 
 	/**
-	 * Test the wp_default_image_output_mapping function.
+	 * Test that generated files with the `image_editor_output_format` applied use the correct
+	 * quality level based on their mime type.
 	 *
-	 * @ticket 55443
+	 * @ticket 56442
 	 */
-	public function test_wp_default_image_output_mapping() {
-		$mapping = wp_default_image_output_mapping( array(), 'test.jpg', 'image/jpeg', '' );
-		$this->assertSame( array( 'image/jpeg' => 'image/webp' ), $mapping );
-	}
+	public function test_quality_with_image_conversion_file_sizes() {
+		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_jpeg' ) );
+		$temp_dir = get_temp_dir();
+		$file     = $temp_dir . '/33772.jpg';
+		copy( DIR_TESTDATA . '/images/33772.jpg', $file );
 
-	/**
-	 * Test that wp_default_image_output_mapping doesn't overwrite existing mappings.
-	 *
-	 * @ticket 55443
-	 */
-	public function test_wp_default_image_output_mapping_existing() {
-		$mapping = array( 'mime/png' => 'mime/webp' );
-		$mapping = wp_default_image_output_mapping( $mapping, 'test.jpg', 'image/jpeg', '' );
-		$this->assertSame(
+		// Set JPEG output quality very low and WebP quality very high, this should force all generated WebP images to
+		// be larger than the the matching generated JPEGs.
+		add_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low_jpeg' ), 10, 2 );
+
+		$editor = wp_get_image_editor( $file );
+
+		// Verify that the selected editor supports WebP output.
+		if ( ! $editor->supports_mime_type( 'image/webp' ) ) {
+			$this->markTestSkipped( 'WebP is not supported by the selected image editor.' );
+		}
+
+		$attachment_id = self::factory()->attachment->create_object(
 			array(
-				'mime/png'   => 'mime/webp',
-				'image/jpeg' => 'image/webp',
-			),
-			$mapping
+				'post_mime_type' => 'image/jpeg',
+				'file'           => $file,
+			)
 		);
+
+		add_filter( 'big_image_size_threshold', array( $this, 'add_big_image_size_threshold' ) );
+
+		// Generate all sizes as JPEGs.
+		$jpeg_sizes = wp_generate_attachment_metadata( $attachment_id, $file );
+		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_jpeg' ) );
+
+		// Generate all sizes as WebP.
+		add_filter( 'image_editor_output_format', array( $this, 'image_editor_output_webp' ) );
+		$webp_sizes = wp_generate_attachment_metadata( $attachment_id, $file );
+		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_webp' ) );
+
+		// The main (scaled) image: the JPEG should be smaller than the WebP.
+		$this->assertLessThan( $webp_sizes['filesize'], $jpeg_sizes['filesize'], 'The JPEG should be smaller than the WebP.' );
+
+		// Sub-sizes: for each size, the JPEGs should be smaller than the WebP.
+		$sizes_to_compare = array_intersect_key( $jpeg_sizes['sizes'], $webp_sizes['sizes'] );
+		foreach ( $sizes_to_compare as $size => $size_data ) {
+			$this->assertLessThan( $webp_sizes['sizes'][ $size ]['filesize'], $jpeg_sizes['sizes'][ $size ]['filesize'] );
+		}
 	}
 
 	/**
-	 * Test that the image editor default output for JPEGs is WebP.
+	 * Add threshold to create a `-scaled` output image for testing.
+	 */
+	public function add_big_image_size_threshold() {
+		return 1000;
+	}
+
+	/**
+	 * Output JPEG files.
+	 */
+	public function image_editor_output_jpeg() {
+		return array( 'image/jpeg' => 'image/jpeg' );
+	}
+
+	/**
+	 * Output WebP files.
+	 */
+	public function image_editor_output_webp() {
+		return array( 'image/jpeg' => 'image/webp' );
+	}
+
+	/**
+	 * Changes the quality using very low quality for JPEGs and very high quality
+	 * for WebPs, used to verify the filter is applying correctly.
 	 *
-	 * @ticket 55443
+	 * @param int    $quality   Default quality.
+	 * @param string $mime_type Image mime-type.
+	 * @return int The changed quality.
 	 */
-	public function test_wp_image_editor_default_output_maps_to_webp() {
-		remove_filter( 'image_editor_output_format', '__return_empty_array' );
-
-		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
-		$this->assertNotWPError( $editor );
-
-		$resized = $editor->resize( 100, 100, false );
-		$this->assertNotWPError( $resized );
-
-		$saved = $editor->save();
-		$this->assertNotWPError( $saved );
-
-		if ( $editor->supports_mime_type( 'image/webp' ) ) {
-			$this->assertSame( 'image/webp', $saved['mime-type'] );
-			$this->assertSame( 'canola-100x75-jpg.webp', $saved['file'] );
+	public function image_editor_change_quality_low_jpeg( $quality, $mime_type ) {
+		if ( 'image/jpeg' === $mime_type ) {
+			return 1;
+		} elseif ( 'image/webp' === $mime_type ) {
+			return 100;
 		} else {
-			$this->assertSame( 'image/jpeg', $saved['mime-type'] );
-			$this->assertSame( 'canola-100x75.jpg', $saved['file'] );
+			return 30;
 		}
 	}
 
-	/**
-	 * @ticket 56526
-	 * @dataProvider data_wp_default_image_output_mapping_size_filter
-	 */
-	public function test_wp_default_image_output_mapping_size_filter( $size_name, $filter_callback, $expects_webp ) {
-		remove_all_filters( 'wp_image_sizes_with_additional_mime_type_support' );
-		if ( $filter_callback ) {
-			add_filter( 'wp_image_sizes_with_additional_mime_type_support', $filter_callback );
-		}
-
-		$mapping = wp_default_image_output_mapping( array(), 'test.jpg', 'image/jpeg', $size_name );
-		if ( $expects_webp ) {
-			$this->assertSame( array( 'image/jpeg' => 'image/webp' ), $mapping );
-		} else {
-			$this->assertSame( array(), $mapping );
-		}
-	}
-
-	public function data_wp_default_image_output_mapping_size_filter() {
-		return array(
-			'default size thumbnail'    => array(
-				'thumbnail',
-				null,
-				true,
-			),
-			'default size medium'       => array(
-				'medium',
-				null,
-				true,
-			),
-			'default size medium_large' => array(
-				'medium_large',
-				null,
-				true,
-			),
-			'default size large'        => array(
-				'large',
-				null,
-				true,
-			),
-			'default size unset'        => array(
-				'medium',
-				function( $enabled_sizes ) {
-					unset( $enabled_sizes['medium'] );
-					return $enabled_sizes;
-				},
-				false,
-			),
-			'default size set to false' => array(
-				'medium',
-				function( $enabled_sizes ) {
-					$enabled_sizes['medium'] = false;
-					return $enabled_sizes;
-				},
-				false,
-			),
-			'custom size'               => array(
-				'custom',
-				null,
-				false,
-			),
-			'custom size opted in'      => array(
-				'custom',
-				function( $enabled_sizes ) {
-					$enabled_sizes['custom'] = true;
-					return $enabled_sizes;
-				},
-				true,
-			),
-		);
-	}
 }
 
 /**

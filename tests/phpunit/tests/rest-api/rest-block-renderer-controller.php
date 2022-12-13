@@ -421,7 +421,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$data = $response->get_data();
 
 		$this->assertSame( $expected_attributes, json_decode( $data['rendered'], true ) );
-		$this->assertEquals(
+		$this->assertEqualSetsWithIndex(
 			json_decode( $block_type->render( $attributes ), true ),
 			json_decode( $data['rendered'], true )
 		);

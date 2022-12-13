@@ -724,11 +724,10 @@ function get_attached_file( $attachment_id, $unfiltered = false ) {
 	$file = get_post_meta( $attachment_id, '_wp_attached_file', true );
 
 	// If the file is relative, prepend upload dir.
-	if ( $file ) {
+	if ( $file && 0 !== strpos( $file, '/' ) && ! preg_match( '|^.:\\\|', $file ) ) {
 		$uploads = wp_get_upload_dir();
-
 		if ( false === $uploads['error'] ) {
-			$file = path_join( $uploads['basedir'], $file );
+			$file = $uploads['basedir'] . "/$file";
 		}
 	}
 
@@ -1548,9 +1547,8 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *
  * @global array $wp_post_types List of post types.
  *
- * @param string       $post_type Post type key. Must not exceed 20 characters and may
- *                                only contain lowercase alphanumeric characters, dashes,
- *                                and underscores. See sanitize_key().
+ * @param string       $post_type Post type key. Must not exceed 20 characters and may only contain
+ *                                lowercase alphanumeric characters, dashes, and underscores. See sanitize_key().
  * @param array|string $args {
  *     Array or string of arguments for registering a post type.
  *
@@ -2021,43 +2019,47 @@ function get_post_type_labels( $post_type_object ) {
  * @since 3.0.0
  * @access private
  *
- * @param object $object                  A custom-something object.
+ * @param object $data_object             A custom-something object.
  * @param array  $nohier_vs_hier_defaults Hierarchical vs non-hierarchical default labels.
  * @return object Object containing labels for the given custom-something object.
  */
-function _get_custom_object_labels( $object, $nohier_vs_hier_defaults ) {
-	$object->labels = (array) $object->labels;
+function _get_custom_object_labels( $data_object, $nohier_vs_hier_defaults ) {
+	$data_object->labels = (array) $data_object->labels;
 
-	if ( isset( $object->label ) && empty( $object->labels['name'] ) ) {
-		$object->labels['name'] = $object->label;
+	if ( isset( $data_object->label ) && empty( $data_object->labels['name'] ) ) {
+		$data_object->labels['name'] = $data_object->label;
 	}
 
-	if ( ! isset( $object->labels['singular_name'] ) && isset( $object->labels['name'] ) ) {
-		$object->labels['singular_name'] = $object->labels['name'];
+	if ( ! isset( $data_object->labels['singular_name'] ) && isset( $data_object->labels['name'] ) ) {
+		$data_object->labels['singular_name'] = $data_object->labels['name'];
 	}
 
-	if ( ! isset( $object->labels['name_admin_bar'] ) ) {
-		$object->labels['name_admin_bar'] = isset( $object->labels['singular_name'] ) ? $object->labels['singular_name'] : $object->name;
+	if ( ! isset( $data_object->labels['name_admin_bar'] ) ) {
+		$data_object->labels['name_admin_bar'] =
+			isset( $data_object->labels['singular_name'] )
+			? $data_object->labels['singular_name']
+			: $data_object->name;
 	}
 
-	if ( ! isset( $object->labels['menu_name'] ) && isset( $object->labels['name'] ) ) {
-		$object->labels['menu_name'] = $object->labels['name'];
+	if ( ! isset( $data_object->labels['menu_name'] ) && isset( $data_object->labels['name'] ) ) {
+		$data_object->labels['menu_name'] = $data_object->labels['name'];
 	}
 
-	if ( ! isset( $object->labels['all_items'] ) && isset( $object->labels['menu_name'] ) ) {
-		$object->labels['all_items'] = $object->labels['menu_name'];
+	if ( ! isset( $data_object->labels['all_items'] ) && isset( $data_object->labels['menu_name'] ) ) {
+		$data_object->labels['all_items'] = $data_object->labels['menu_name'];
 	}
 
-	if ( ! isset( $object->labels['archives'] ) && isset( $object->labels['all_items'] ) ) {
-		$object->labels['archives'] = $object->labels['all_items'];
+	if ( ! isset( $data_object->labels['archives'] ) && isset( $data_object->labels['all_items'] ) ) {
+		$data_object->labels['archives'] = $data_object->labels['all_items'];
 	}
 
 	$defaults = array();
 	foreach ( $nohier_vs_hier_defaults as $key => $value ) {
-		$defaults[ $key ] = $object->hierarchical ? $value[1] : $value[0];
+		$defaults[ $key ] = $data_object->hierarchical ? $value[1] : $value[0];
 	}
-	$labels         = array_merge( $defaults, $object->labels );
-	$object->labels = (object) $object->labels;
+
+	$labels              = array_merge( $defaults, $data_object->labels );
+	$data_object->labels = (object) $data_object->labels;
 
 	return (object) $labels;
 }
@@ -2412,7 +2414,7 @@ function get_posts( $args = null ) {
 	$parsed_args['ignore_sticky_posts'] = true;
 	$parsed_args['no_found_rows']       = true;
 
-	$get_posts = new WP_Query;
+	$get_posts = new WP_Query();
 	return $get_posts->query( $parsed_args );
 
 }
@@ -3015,7 +3017,7 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 	global $wpdb;
 
 	if ( ! post_type_exists( $type ) ) {
-		return new stdClass;
+		return new stdClass();
 	}
 
 	$cache_key = _count_posts_cache_key( $type, $perm );
@@ -3058,7 +3060,7 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 	wp_cache_set( $cache_key, $counts, 'counts' );
 
 	/**
-	 * Modifies returned post counts by status for the current post type.
+	 * Filters the post counts by status for the current post type.
 	 *
 	 * @since 3.7.0
 	 *
@@ -3090,17 +3092,27 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 function wp_count_attachments( $mime_type = '' ) {
 	global $wpdb;
 
-	$and   = wp_post_mime_type_where( $mime_type );
-	$count = $wpdb->get_results( "SELECT post_mime_type, COUNT( * ) AS num_posts FROM $wpdb->posts WHERE post_type = 'attachment' AND post_status != 'trash' $and GROUP BY post_mime_type", ARRAY_A );
+	$cache_key = sprintf(
+		'attachments%s',
+		! empty( $mime_type ) ? ':' . str_replace( '/', '_', implode( '-', (array) $mime_type ) ) : ''
+	);
 
-	$counts = array();
-	foreach ( (array) $count as $row ) {
-		$counts[ $row['post_mime_type'] ] = $row['num_posts'];
+	$counts = wp_cache_get( $cache_key, 'counts' );
+	if ( false == $counts ) {
+		$and   = wp_post_mime_type_where( $mime_type );
+		$count = $wpdb->get_results( "SELECT post_mime_type, COUNT( * ) AS num_posts FROM $wpdb->posts WHERE post_type = 'attachment' AND post_status != 'trash' $and GROUP BY post_mime_type", ARRAY_A );
+
+		$counts = array();
+		foreach ( (array) $count as $row ) {
+			$counts[ $row['post_mime_type'] ] = $row['num_posts'];
+		}
+		$counts['trash'] = $wpdb->get_var( "SELECT COUNT( * ) FROM $wpdb->posts WHERE post_type = 'attachment' AND post_status = 'trash' $and" );
+
+		wp_cache_set( $cache_key, (object) $counts, 'counts' );
 	}
-	$counts['trash'] = $wpdb->get_var( "SELECT COUNT( * ) FROM $wpdb->posts WHERE post_type = 'attachment' AND post_status = 'trash' $and" );
 
 	/**
-	 * Modifies returned attachment counts by mime type.
+	 * Filters the attachment counts by mime type.
 	 *
 	 * @since 3.7.0
 	 *
@@ -3375,7 +3387,7 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param WP_Post|false|null $delete       Whether to go forward with deletion. @TODO description
+	 * @param WP_Post|false|null $delete       Whether to go forward with deletion.
 	 * @param WP_Post            $post         Post object.
 	 * @param bool               $force_delete Whether to bypass the Trash.
 	 */
@@ -4024,6 +4036,7 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
  *                                         child terms can have the same names with different parent terms,
  *                                         so the only way to connect them is using ID. Default empty.
  *     @type array  $meta_input            Array of post meta values keyed by their post meta key. Default empty.
+ *     @type string $page_template         Page template to use.
  * }
  * @param bool  $wp_error         Optional. Whether to return a WP_Error on failure. Default false.
  * @param bool  $fire_after_hooks Optional. Whether to fire the after insert hooks. Default true.
@@ -4188,7 +4201,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 
 		if ( $update && strtolower( urlencode( $post_name ) ) == $check_name && get_post_field( 'post_name', $post_ID ) == $check_name ) {
 			$post_name = $check_name;
-		} else { // new post, or slug has changed.
+		} else { // New post, or slug has changed.
 			$post_name = sanitize_title( $post_name );
 		}
 	}
@@ -6314,12 +6327,12 @@ function is_local_attachment( $url ) {
  *
  * @param string|array $args             Arguments for inserting an attachment.
  * @param string|false $file             Optional. Filename.
- * @param int          $parent           Optional. Parent post ID.
+ * @param int          $parent_post      Optional. Parent post ID.
  * @param bool         $wp_error         Optional. Whether to return a WP_Error on failure. Default false.
  * @param bool         $fire_after_hooks Optional. Whether to fire the after insert hooks. Default true.
  * @return int|WP_Error The attachment ID on success. The value 0 or WP_Error on failure.
  */
-function wp_insert_attachment( $args, $file = false, $parent = 0, $wp_error = false, $fire_after_hooks = true ) {
+function wp_insert_attachment( $args, $file = false, $parent_post = 0, $wp_error = false, $fire_after_hooks = true ) {
 	$defaults = array(
 		'file'        => $file,
 		'post_parent' => 0,
@@ -6327,8 +6340,8 @@ function wp_insert_attachment( $args, $file = false, $parent = 0, $wp_error = fa
 
 	$data = wp_parse_args( $args, $defaults );
 
-	if ( ! empty( $parent ) ) {
-		$data['post_parent'] = $parent;
+	if ( ! empty( $parent_post ) ) {
+		$data['post_parent'] = $parent_post;
 	}
 
 	$data['post_type'] = 'attachment';
@@ -6379,7 +6392,7 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param WP_Post|false|null $delete       Whether to go forward with deletion. @TODO description
+	 * @param WP_Post|false|null $delete       Whether to go forward with deletion.
 	 * @param WP_Post            $post         Post object.
 	 * @param bool               $force_delete Whether to bypass the Trash.
 	 */
@@ -7468,6 +7481,15 @@ function update_post_caches( &$posts, $post_type = 'post', $update_term_cache = 
  * @param WP_Post[] $posts Array of post objects.
  */
 function update_post_author_caches( $posts ) {
+	/*
+	 * cache_users() is a pluggable function so is not available prior
+	 * to the `plugins_loaded` hook firing. This is to ensure against
+	 * fatal errors when the function is not available.
+	 */
+	if ( ! function_exists( 'cache_users' ) ) {
+		return;
+	}
+
 	$author_ids = wp_list_pluck( $posts, 'post_author' );
 	$author_ids = array_map( 'absint', $author_ids );
 	$author_ids = array_unique( array_filter( $author_ids ) );
@@ -7858,7 +7880,9 @@ function _update_term_count_on_transition_post_status( $new_status, $old_status,
  * @since 3.4.0
  * @since 6.1.0 This function is no longer marked as "private".
  *
- * @see update_post_caches()
+ * @see update_post_cache()
+ * @see update_postmeta_cache()
+ * @see update_object_term_cache()
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -7873,7 +7897,20 @@ function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache
 	if ( ! empty( $non_cached_ids ) ) {
 		$fresh_posts = $wpdb->get_results( sprintf( "SELECT $wpdb->posts.* FROM $wpdb->posts WHERE ID IN (%s)", implode( ',', $non_cached_ids ) ) );
 
-		update_post_caches( $fresh_posts, 'any', $update_term_cache, $update_meta_cache );
+		if ( $fresh_posts ) {
+			// Despite the name, update_post_cache() expects an array rather than a single post.
+			update_post_cache( $fresh_posts );
+		}
+	}
+
+	if ( $update_meta_cache ) {
+		update_postmeta_cache( $ids );
+	}
+
+	if ( $update_term_cache ) {
+		$post_types = array_map( 'get_post_type', $ids );
+		$post_types = array_unique( $post_types );
+		update_object_term_cache( $ids, $post_types );
 	}
 }
 
@@ -7920,6 +7957,8 @@ function wp_add_trashed_suffix_to_post_name_for_trashed_posts( $post_name, $post
  * @since 4.5.0
  * @access private
  *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
  * @param WP_Post $post The post.
  * @return string New slug for the post.
  */
@@ -7939,36 +7978,6 @@ function wp_add_trashed_suffix_to_post_name_for_post( $post ) {
 }
 
 /**
- * Filters the SQL clauses of an attachment query to include filenames.
- *
- * @since 4.7.0
- * @access private
- *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
- * @param string[] $clauses An array including WHERE, GROUP BY, JOIN, ORDER BY,
- *                          DISTINCT, fields (SELECT), and LIMITS clauses.
- * @return string[] The modified array of clauses.
- */
-function _filter_query_attachment_filenames( $clauses ) {
-	global $wpdb;
-	remove_filter( 'posts_clauses', __FUNCTION__ );
-
-	// Add a LEFT JOIN of the postmeta table so we don't trample existing JOINs.
-	$clauses['join'] .= " LEFT JOIN {$wpdb->postmeta} AS sq1 ON ( {$wpdb->posts}.ID = sq1.post_id AND sq1.meta_key = '_wp_attached_file' )";
-
-	$clauses['groupby'] = "{$wpdb->posts}.ID";
-
-	$clauses['where'] = preg_replace(
-		"/\({$wpdb->posts}.post_content (NOT LIKE|LIKE) (\'[^']+\')\)/",
-		'$0 OR ( sq1.meta_value $1 $2 )',
-		$clauses['where']
-	);
-
-	return $clauses;
-}
-
-/**
  * Sets the last changed time for the 'posts' cache group.
  *
  * @since 5.0.0
@@ -7985,7 +7994,7 @@ function wp_cache_set_posts_last_changed() {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $type
- * @return mixed
+ * @return string[] An array of MIME types.
  */
 function get_available_post_mime_types( $type = 'attachment' ) {
 	global $wpdb;
