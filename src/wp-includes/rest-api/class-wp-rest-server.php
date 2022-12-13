@@ -855,7 +855,7 @@ class WP_REST_Server {
 	 * used as the delimiter with preg_match()
 	 *
 	 * @since 4.4.0
-	 * @since 5.4.0 Add $route_namespace parameter.
+	 * @since 5.4.0 Added `$route_namespace` parameter.
 	 *
 	 * @param string $route_namespace Optionally, only return routes in the given namespace.
 	 * @return array `'/path/regex' => array( $callback, $bitmask )` or
