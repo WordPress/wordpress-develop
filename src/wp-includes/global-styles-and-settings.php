@@ -255,3 +255,43 @@ function wp_add_global_styles_for_blocks() {
 		}
 	}
 }
+
+/**
+ * Whether a theme or its parent have a theme.json file.
+ *
+ * @since 6.2.0
+ *
+ * @return boolean
+ */
+function wp_theme_has_theme_json() {
+	$cache_group       = 'theme_json';
+	$cache_key         = 'wp_theme_has_theme_json';
+	$theme_has_support = wp_cache_get( $cache_key, $cache_group );
+
+	/**
+	 * $theme_has_support is stored as an int in the cache.
+	 *
+	 * The reason not to store it as a boolean is to avoid working
+	 * with the $found parameter which apparently had some issues in some implementations
+	 * https://developer.wordpress.org/reference/functions/wp_cache_get/
+	 *
+	 * Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme developers workflow.
+	 */
+	if ( ! WP_DEBUG && is_int( $theme_has_support ) ) {
+		return (bool) $theme_has_support;
+	}
+
+	// Has the own theme a theme.json?
+	$theme_has_support = is_readable( get_stylesheet_directory() . '/theme.json' );
+
+	// Look up the parent if the child does not have a theme.json.
+	if ( ! $theme_has_support ) {
+		$theme_has_support = is_readable( get_template_directory() . '/theme.json' );
+	}
+
+	$theme_has_support = $theme_has_support ? 1 : 0;
+
+	wp_cache_set( $cache_key, $theme_has_support, $cache_group );
+
+	return (bool) $theme_has_support;
+}
