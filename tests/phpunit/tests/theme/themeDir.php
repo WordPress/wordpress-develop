@@ -163,6 +163,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 		$theme_names = array_keys( $themes );
 		$expected    = array(
 			'WordPress Default',
+			'Default Child Theme with no theme.json',
 			'Sandbox',
 			'Stylesheet Only',
 			'My Theme',
@@ -177,6 +178,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'REST Theme',
 			'Block Theme',
 			'Block Theme Child Theme',
+			'Block Theme Child with no theme.json',
 			'Block Theme Child Theme With Fluid Typography',
 			'Block Theme [0.4.0]',
 			'Block Theme [1.0.0] in subdirectory',

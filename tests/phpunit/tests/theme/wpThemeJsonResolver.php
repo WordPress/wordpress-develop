@@ -432,22 +432,6 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 52991
-	 */
-	public function test_switching_themes_recalculates_data() {
-		// The "default" theme doesn't have theme.json support.
-		switch_theme( 'default' );
-		$default = WP_Theme_JSON_Resolver::theme_has_support();
-
-		// Switch to a theme that does have support.
-		switch_theme( 'block-theme' );
-		$has_theme_json_support = WP_Theme_JSON_Resolver::theme_has_support();
-
-		$this->assertFalse( $default );
-		$this->assertTrue( $has_theme_json_support );
-	}
-
-	/**
 	 * @ticket 54336
 	 */
 	public function test_add_theme_supports_are_loaded_for_themes_without_theme_json() {
