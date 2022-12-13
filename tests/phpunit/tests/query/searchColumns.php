@@ -307,7 +307,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 	 *
 	 * @ticket 43867
 	 */
-	public function test_s_should_support_search_columns_when_searched_with_term_exclusion() {
+	public function test_s_should_support_search_columns_when_searching_with_term_exclusion() {
 		$q = new WP_Query(
 			array(
 				's'              => 'bar -baz',
