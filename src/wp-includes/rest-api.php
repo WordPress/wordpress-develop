@@ -24,11 +24,11 @@ define( 'REST_API_VERSION', '2.0' );
  * @since 5.5.0 Added a `_doing_it_wrong()` notice when the required `permission_callback` argument is not set.
  *
  * @param string $route_namespace The first URL segment after core prefix. Should be unique to your package/plugin.
- * @param string $route     The base URL for route you are adding.
- * @param array  $args      Optional. Either an array of options for the endpoint, or an array of arrays for
- *                          multiple methods. Default empty array.
- * @param bool   $override  Optional. If the route already exists, should we override it? True overrides,
- *                          false merges (with newer overriding if duplicate keys exist). Default false.
+ * @param string $route           The base URL for route you are adding.
+ * @param array  $args            Optional. Either an array of options for the endpoint, or an array of arrays for
+ *                                multiple methods. Default empty array.
+ * @param bool   $override        Optional. If the route already exists, should we override it? True overrides,
+ *                                false merges (with newer overriding if duplicate keys exist). Default false.
  * @return bool True on success, false on error.
  */
 function register_rest_route( $route_namespace, $route, $args = array(), $override = false ) {
@@ -1656,13 +1656,13 @@ function rest_handle_multi_type_schema( $value, $args, $param = '' ) {
  *
  * @since 5.5.0
  *
- * @param array $array_value The array to check.
+ * @param array $input_array The array to check.
  * @return bool True if the array contains unique items, false otherwise.
  */
-function rest_validate_array_contains_unique_items( $array_value ) {
+function rest_validate_array_contains_unique_items( $input_array ) {
 	$seen = array();
 
-	foreach ( $array_value as $item ) {
+	foreach ( $input_array as $item ) {
 		$stabilized = rest_stabilize_value( $item );
 		$key        = serialize( $stabilized );
 
