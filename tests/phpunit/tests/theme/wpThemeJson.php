@@ -2386,6 +2386,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 57321
+	 *
+	 * @covers WP_Theme_JSON::remove_insecure_properties
 	 */
 	public function test_remove_insecure_properties_should_allow_indirect_properties() {
 		$actual = WP_Theme_JSON::remove_insecure_properties(
