@@ -13,11 +13,11 @@ if ( is_multisite() ) :
 
 		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 			self::$site_ids = array(
-				WP_TESTS_DOMAIN . '/foo/'      => array(
+				WP_TESTS_DOMAIN . '/foo/'          => array(
 					'domain' => WP_TESTS_DOMAIN,
 					'path'   => '/foo/',
 				),
-				'foo.' . WP_TESTS_DOMAIN . '/' => array(
+				'foo.' . WP_TESTS_DOMAIN . '/'     => array(
 					'domain' => 'foo.' . WP_TESTS_DOMAIN,
 					'path'   => '/',
 				),
@@ -25,7 +25,7 @@ if ( is_multisite() ) :
 					'domain' => 'foo.' . WP_TESTS_DOMAIN,
 					'path'   => '/bar/',
 				),
-				'wordpress.org/'               => array(
+				'wordpress.org/'                   => array(
 					'domain' => 'wordpress.org',
 					'path'   => '/',
 				),
