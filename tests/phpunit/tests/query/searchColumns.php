@@ -354,7 +354,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 	 *
 	 * @ticket 43867
 	 */
-	public function test_search_columns_should_not_filterable_when_non_supported_search_columns() {
+	public function test_search_columns_should_not_be_filterable_with_non_supported_search_columns() {
 		add_filter( 'post_search_columns', array( $this, 'post_non_supported_search_column' ), 10, 3 );
 		$q = new WP_Query(
 			array(
