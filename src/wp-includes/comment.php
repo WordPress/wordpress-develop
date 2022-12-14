@@ -1549,6 +1549,8 @@ function wp_trash_comment( $comment_id ) {
 		add_comment_meta( $comment->comment_ID, '_wp_trash_meta_status', $comment->comment_approved );
 		add_comment_meta( $comment->comment_ID, '_wp_trash_meta_time', time() );
 
+		clean_comment_cache( $comment->comment_ID );
+
 		/**
 		 * Fires immediately after a comment is sent to Trash.
 		 *
@@ -1600,6 +1602,8 @@ function wp_untrash_comment( $comment_id ) {
 		delete_comment_meta( $comment->comment_ID, '_wp_trash_meta_time' );
 		delete_comment_meta( $comment->comment_ID, '_wp_trash_meta_status' );
 
+		clean_comment_cache( $comment->comment_ID );
+
 		/**
 		 * Fires immediately after a comment is restored from the Trash.
 		 *
@@ -1647,6 +1651,8 @@ function wp_spam_comment( $comment_id ) {
 		delete_comment_meta( $comment->comment_ID, '_wp_trash_meta_time' );
 		add_comment_meta( $comment->comment_ID, '_wp_trash_meta_status', $comment->comment_approved );
 		add_comment_meta( $comment->comment_ID, '_wp_trash_meta_time', time() );
+
+		clean_comment_cache( $comment->comment_ID );
 
 		/**
 		 * Fires immediately after a comment is marked as Spam.
@@ -1698,6 +1704,8 @@ function wp_unspam_comment( $comment_id ) {
 	if ( wp_set_comment_status( $comment, $status ) ) {
 		delete_comment_meta( $comment->comment_ID, '_wp_trash_meta_status' );
 		delete_comment_meta( $comment->comment_ID, '_wp_trash_meta_time' );
+
+		clean_comment_cache( $comment->comment_ID );
 
 		/**
 		 * Fires immediately after a comment is unmarked as Spam.
