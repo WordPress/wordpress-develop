@@ -12,49 +12,50 @@ require_once __DIR__ . '/base.php';
 class Tests_Theme_WpThemeHasThemeJson extends WP_Theme_UnitTestCase {
 
 	/**
-	 * Test that it reports correctly themes that have a theme.json.
+	 * Tests that wp_theme_has_theme_json() correctly reports whether a theme has a theme.json file.
+	 *
+	 * @dataProvider data_theme_has_theme_json_reports_correctly
+	 *
+	 * @param string $theme    The slug of the theme to switch to.
+	 * @param bool   $expected The expected result.
 	 */
-	public function test_theme_has_theme_json() {
-		switch_theme( 'block-theme' );
-		$this->assertTrue( wp_theme_has_theme_json() );
+	public function test_theme_has_theme_json_reports_correctly( $theme, $expected ) {
+		switch_theme( $theme );
+		$this->assertSame( $expected, wp_theme_has_theme_json() );
 	}
 
 	/**
-	 * Test that it reports correctly themes that do not have a theme.json.
+	 * Data provider for test_theme_has_theme_json_reports_correctly().
+	 *
+	 * @return array[]
 	 */
-	public function test_theme_has_no_theme_json() {
-		switch_theme( 'default' );
-		$this->assertFalse( wp_theme_has_theme_json() );
+	public function data_theme_has_theme_json_reports_correctly() {
+		return array(
+			'a theme with theme.json'       => array(
+				'theme'    => 'block-theme',
+				'expected' => true,
+			),
+			'a theme without theme.json'    => array(
+				'theme'    => 'default',
+				'expected' => false,
+			),
+			'a child theme with theme.json' => array(
+				'theme'    => 'block-theme-child',
+				'expected' => true,
+			),
+			'a child theme without theme.json and parent theme with theme.json' => array(
+				'theme'    => 'block-theme-child-no-theme-json',
+				'expected' => true,
+			),
+			'a child theme without theme.json and parent theme without theme.json' => array(
+				'theme'    => 'default-child-no-theme-json',
+				'expected' => false,
+			),
+		);
 	}
 
 	/**
-	 * Test it reports correctly child themes that have a theme.json.
-	 */
-	public function test_child_theme_has_theme_json() {
-		switch_theme( 'block-theme-child' );
-		$this->assertTrue( wp_theme_has_theme_json() );
-	}
-
-	/**
-	 * Test that it reports correctly child themes that do not have a theme.json
-	 * and the parent does.
-	 */
-	public function test_child_theme_has_not_theme_json_but_parent_has() {
-		switch_theme( 'block-theme-child-no-theme-json' );
-		$this->assertTrue( wp_theme_has_theme_json() );
-	}
-
-	/**
-	 * Test that it reports correctly child themes that do not have a theme.json
-	 * and the parent does not either.
-	 */
-	public function test_neither_child_or_parent_themes_have_theme_json() {
-		switch_theme( 'default-child-no-theme-json' );
-		$this->assertFalse( wp_theme_has_theme_json() );
-	}
-
-	/**
-	 * Test that switching themes recalculates theme support.
+	 * Tests that switching themes recalculates theme support.
 	 *
 	 * @ticket 52991
 	 *
@@ -69,7 +70,7 @@ class Tests_Theme_WpThemeHasThemeJson extends WP_Theme_UnitTestCase {
 		$block_theme = wp_theme_has_theme_json();
 
 		$this->assertFalse( $default, 'The "default" theme should not report theme.json support.' );
-		$this->assertTrue ( $block_theme, 'The block theme should report theme.json support.' );
+		$this->assertTrue( $block_theme, 'The block theme should report theme.json support.' );
 	}
 
 }
