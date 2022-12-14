@@ -385,7 +385,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 	 *
 	 * @ticket 43867
 	 */
-	public function xtest_search_columns_should_not_filterable_non_existing_search_column() {
+	public function test_search_columns_should_not_be_filterable_with_non_existing_search_column() {
 		add_filter( 'post_search_columns', array( $this, 'post_non_existing_search_column' ), 10, 3 );
 		$q = new WP_Query(
 			array(
