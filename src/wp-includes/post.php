@@ -3093,7 +3093,8 @@ function wp_count_attachments( $mime_type = '' ) {
 	global $wpdb;
 
 	$cache_key = sprintf(
-		'attachments%s',
+		'%s-attachments%s',
+		wp_cache_get_last_changed( 'posts' ),
 		! empty( $mime_type ) ? ':' . str_replace( '/', '_', implode( '-', (array) $mime_type ) ) : ''
 	);
 

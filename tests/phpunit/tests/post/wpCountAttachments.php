@@ -16,7 +16,7 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 	 */
 	public function test_wp_count_attachments_should_cache_the_result() {
 		$mime_type = 'image/jpeg';
-		$cache_key = 'attachments:image_jpeg';
+		$cache_key = wp_cache_get_last_changed( 'posts' ) . '-attachments:image_jpeg';
 
 		self::factory()->post->create_many(
 			3,
