@@ -9,7 +9,7 @@ require_once __DIR__ . '/base.php';
  *
  * @covers ::wp_get_global_stylesheet
  */
-class Tests_Theme_wpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
+class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 
 	public function test_block_theme_using_variables() {
 		switch_theme( 'block-theme' );
