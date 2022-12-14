@@ -68,8 +68,8 @@ class Tests_Theme_WpThemeHasThemeJson extends WP_Theme_UnitTestCase {
 		switch_theme( 'block-theme' );
 		$block_theme = wp_theme_has_theme_json();
 
-		$this->assertFalse( $default );
-		$this->assertTrue( $block_theme );
+		$this->assertFalse( $default, 'The "default" theme should not report theme.json support.' );
+		$this->assertTrue ( $block_theme, 'The block theme should report theme.json support.' );
 	}
 
 }
