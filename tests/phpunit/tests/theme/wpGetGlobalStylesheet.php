@@ -6,6 +6,8 @@ require_once __DIR__ . '/base.php';
  * Tests wp_get_global_stylesheet().
  *
  * @group themes
+ *
+ * @covers ::wp_get_global_stylesheet
  */
 class Tests_Theme_wpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 
