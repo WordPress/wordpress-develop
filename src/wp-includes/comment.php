@@ -1412,7 +1412,9 @@ function wp_count_comments( $post_id = 0 ) {
 		return $filtered;
 	}
 
-	$count = wp_cache_get( "comments-{$post_id}", 'counts' );
+	$cache_key = wp_cache_get_last_changed( 'comments' ) . "-comments-{$post_id}";
+
+	$count = wp_cache_get( $cache_key, 'counts' );
 	if ( false !== $count ) {
 		return $count;
 	}
@@ -1422,7 +1424,7 @@ function wp_count_comments( $post_id = 0 ) {
 	unset( $stats['awaiting_moderation'] );
 
 	$stats_object = (object) $stats;
-	wp_cache_set( "comments-{$post_id}", $stats_object, 'counts' );
+	wp_cache_set( $cache_key, $stats_object, 'counts' );
 
 	return $stats_object;
 }
@@ -2722,8 +2724,7 @@ function wp_update_comment_count_now( $post_id ) {
 		return false;
 	}
 
-	wp_cache_delete( 'comments-0', 'counts' );
-	wp_cache_delete( "comments-{$post_id}", 'counts' );
+	wp_cache_delete( 'last_changed', 'comment' );
 
 	$post = get_post( $post_id );
 
