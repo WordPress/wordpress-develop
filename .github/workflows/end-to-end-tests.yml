@@ -47,7 +47,7 @@ jobs:
   # - Ensures version-controlled files are not modified or deleted.
   e2e-tests:
     name: E2E Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
@@ -122,7 +122,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [ e2e-tests, slack-notifications ]
     if: |
       always() &&

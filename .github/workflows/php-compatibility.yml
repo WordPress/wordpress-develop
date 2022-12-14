@@ -53,7 +53,7 @@ jobs:
   # - Ensures version-controlled files are not modified or deleted.
   php-compatibility:
     name: Check PHP compatibility
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
@@ -120,7 +120,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [ php-compatibility, slack-notifications ]
     if: |
       always() &&

@@ -43,7 +43,7 @@ jobs:
   # - Constructs and stores a message payload as an output.
   prepare:
     name: Prepare notifications
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 5
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event.workflow_run.event != 'pull_request' }}
     outputs:
@@ -147,7 +147,7 @@ jobs:
   # Posts notifications when a workflow fails.
   failure:
     name: Failure notifications
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ inputs.calling_status == 'failure' || failure() }}
@@ -163,7 +163,7 @@ jobs:
   # Posts notifications the first time a workflow run succeeds after previously failing.
   fixed:
     name: Fixed notifications
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ contains( fromJson( '["failure", "cancelled", "none"]' ), needs.prepare.outputs.previous_conclusion ) && inputs.calling_status == 'success' && success() }}
@@ -179,7 +179,7 @@ jobs:
   # Posts notifications when a workflow is successful.
   success:
     name: Success notifications
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ inputs.calling_status == 'success' && success() }}
@@ -195,7 +195,7 @@ jobs:
   # Posts notifications when a workflow is cancelled.
   cancelled:
     name: Cancelled notifications
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ inputs.calling_status == 'cancelled' || cancelled() }}

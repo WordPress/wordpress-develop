@@ -58,7 +58,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, windows-latest ]
+        os: [ ubuntu-22.04, windows-latest ]
 
     steps:
       - name: Checkout repository
@@ -178,7 +178,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [ test-npm, test-npm-macos, slack-notifications ]
     if: |
       always() &&

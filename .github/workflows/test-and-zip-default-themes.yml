@@ -55,7 +55,7 @@ jobs:
   # - Ensures version-controlled files are not modified or deleted.
   test-build-scripts:
     name: Test ${{ matrix.theme }} build script
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 10
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
@@ -100,7 +100,7 @@ jobs:
   # - Uploads the theme files as a workflow artifact (files uploaded as an artifact are automatically zipped).
   bundle-theme:
     name: Create ${{ matrix.theme }} ZIP file
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [ test-build-scripts ]
     timeout-minutes: 10
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -151,7 +151,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [ test-build-scripts, bundle-theme, slack-notifications ]
     if: |
       always() &&
