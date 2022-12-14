@@ -270,8 +270,12 @@ class Tests_Theme_wpGetGlobalStylesheet extends WP_UnitTestCase {
 			'Registered styles with handle of "wp-style-engine-my-styles" do not match expected value from the Style Engine store.'
 		);
 	}
-
-	public function test_switching_themes_recalculates_stylesheet() {
+	/**
+	 * Tests that switching themes recalculates the stylesheet.
+	 *
+	 * @ticket 56970
+	 */
+	public function test_switching_themes_should_recalculate_stylesheet() {
 		$stylesheet_for_default_theme = wp_get_global_stylesheet();
 		switch_theme( 'block-theme' );
 		$stylesheet_for_block_theme = wp_get_global_stylesheet();
