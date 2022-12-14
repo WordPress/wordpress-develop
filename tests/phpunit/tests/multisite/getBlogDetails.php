@@ -250,6 +250,10 @@ if ( is_multisite() ) :
 		public function test_get_blog_details_with_domain_no_path_hits_cache() {
 			global $wpdb;
 
+			if ( ! is_subdomain_install() ) {
+				$this->markTestSkipped( 'This test is only valid in a subdomain configuration.' );
+			}
+
 			// Fetch /bar/ first, to ensure that the blog-lookup cache is set with /bar/
 			$site = get_blog_details(
 				array(
