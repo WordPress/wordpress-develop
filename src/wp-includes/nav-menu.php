@@ -1280,7 +1280,9 @@ function wp_map_nav_menu_locations( $new_nav_menu_locations, $old_nav_menu_locat
 }
 
 /**
- * Private function to reset menu_item_parent when it is the same as the menu item ID.
+ * Prevents menu items from being their own parent.
+ *
+ * Resets menu_item_parent to 0 when the parent is set to the item itself.
  * For use before saving `_menu_item_menu_item_parent` in nav-menus.php.
  *
  * @since 6.1.2
