@@ -219,7 +219,7 @@ if ( is_multisite() ) :
 			$this->assertEquals( self::$site_ids['wordpress.org/'], $site->blog_id );
 
 			// Remove the 'blog-lookup' cache, falling back to the 'blog-details' cache.
-			wp_cache_delete( md5( 'wordpress.org/' ) );
+			wp_cache_delete( md5( 'wordpress.org/' ), 'blog-lookup' );
 
 			$query_count = $wpdb->num_queries;
 
@@ -265,7 +265,6 @@ if ( is_multisite() ) :
 					'domain' => 'foo.' . WP_TESTS_DOMAIN,
 				)
 			);
-			$this->assertEquals( $query_count, $wpdb->num_queries );
 			$this->assertEquals( self::$site_ids[ 'foo.' . WP_TESTS_DOMAIN . '/' ], $site->blog_id );
 
 			$query_count = $wpdb->num_queries;
