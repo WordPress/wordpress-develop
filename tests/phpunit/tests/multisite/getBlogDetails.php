@@ -278,7 +278,7 @@ if ( is_multisite() ) :
 			$this->assertEquals( $query_count, $wpdb->num_queries );
 			$this->assertEquals( self::$site_ids[ 'foo.' . WP_TESTS_DOMAIN . '/' ], $site->blog_id );
 
-			// Call it again, with a path set, it should return the correct site.
+			// Call it again, with a path set, it should still return the correct site.
 			$site = get_blog_details(
 				array(
 					'domain' => 'foo.' . WP_TESTS_DOMAIN,
@@ -286,6 +286,27 @@ if ( is_multisite() ) :
 				)
 			);
 			$this->assertEquals( $query_count, $wpdb->num_queries );
+			$this->assertEquals( self::$site_ids[ 'foo.' . WP_TESTS_DOMAIN . '/' ], $site->blog_id );
+
+			// Remove the 'blog-lookup' cache, falling back to the 'blog-details' cache.
+			wp_cache_delete( md5( 'foo.' . WP_TESTS_DOMAIN ), 'blog-lookup' );
+
+			// Call it again, verify it performs a SQL and hits the partial cache.
+			$site = get_blog_details(
+				array(
+					'domain' => 'foo.' . WP_TESTS_DOMAIN,
+				)
+			);
+			$this->assertEquals( $query_count + 1, $wpdb->num_queries );
+			$this->assertEquals( self::$site_ids[ 'foo.' . WP_TESTS_DOMAIN . '/' ], $site->blog_id );
+
+			// Call it again, verify it hit all caches.
+			$site = get_blog_details(
+				array(
+					'domain' => 'foo.' . WP_TESTS_DOMAIN,
+				)
+			);
+			$this->assertEquals( $query_count + 1, $wpdb->num_queries );
 			$this->assertEquals( self::$site_ids[ 'foo.' . WP_TESTS_DOMAIN . '/' ], $site->blog_id );
 		}
 
