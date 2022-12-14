@@ -157,12 +157,10 @@ if ( is_multisite() ) :
 
 			// These are empty until get_blog_details() is called with $get_all = true.
 			$this->assertFalse( wp_cache_get( $blog_id, 'blog-details' ) );
-			$this->assertFalse( wp_cache_get( $key, 'blog-lookup' ) );
 
 			// $get_all = true, populate the full blog-details cache and the blog slug lookup cache.
 			$details = get_blog_details( $blog_id, true );
 			$this->assertEquals( $details, wp_cache_get( $blog_id, 'blog-details' ) );
-			$this->assertEquals( $details, wp_cache_get( $key, 'blog-lookup' ) );
 
 			// Check existence of each database table for the created site.
 			foreach ( $wpdb->tables( 'blog', false ) as $table ) {
@@ -232,7 +230,6 @@ if ( is_multisite() ) :
 
 			$this->assertFalse( wp_cache_get( $blog_id, 'blog-details' ) );
 			$this->assertFalse( wp_cache_get( $blog_id . 'short', 'blog-details' ) );
-			$this->assertFalse( wp_cache_get( $key, 'blog-lookup' ) );
 			$this->assertFalse( wp_cache_get( $key, 'blog-id-cache' ) );
 		}
 
@@ -273,7 +270,6 @@ if ( is_multisite() ) :
 
 			$this->assertFalse( wp_cache_get( $blog_id, 'blog-details' ) );
 			$this->assertFalse( wp_cache_get( $blog_id . 'short', 'blog-details' ) );
-			$this->assertFalse( wp_cache_get( $key, 'blog-lookup' ) );
 			$this->assertFalse( wp_cache_get( $key, 'blog-id-cache' ) );
 		}
 
@@ -314,7 +310,6 @@ if ( is_multisite() ) :
 
 			$this->assertFalse( wp_cache_get( $blog_id, 'blog-details' ) );
 			$this->assertFalse( wp_cache_get( $blog_id . 'short', 'blog-details' ) );
-			$this->assertFalse( wp_cache_get( $key, 'blog-lookup' ) );
 			$this->assertFalse( wp_cache_get( $key, 'blog-id-cache' ) );
 		}
 
@@ -1042,7 +1037,6 @@ if ( is_multisite() ) :
 				array( '%blog_id%', 'site-details' ),
 				array( '%blog_id%', 'blog-details' ),
 				array( '%blog_id%' . 'short', 'blog-details' ),
-				array( '%domain_path_key%', 'blog-lookup' ),
 				array( '%domain_path_key%', 'blog-id-cache' ),
 			);
 		}
@@ -1616,11 +1610,9 @@ if ( is_multisite() ) :
 
 			// Ensure all respective cache values are empty.
 			$result = array(
-				wp_cache_get( $domain_path_key_old, 'blog-lookup' ),
 				wp_cache_get( $domain_path_key_old, 'blog-id-cache' ),
 				wp_cache_get( 'current_blog_' . $old_domain, 'site-options' ),
 				wp_cache_get( 'current_blog_' . $old_domain . '/', 'site-options' ),
-				wp_cache_get( $domain_path_key_new, 'blog-lookup' ),
 				wp_cache_get( $domain_path_key_new, 'blog-id-cache' ),
 				wp_cache_get( 'current_blog_' . $new_domain, 'site-options' ),
 				wp_cache_get( 'current_blog_' . $new_domain . '/', 'site-options' ),
@@ -1671,10 +1663,8 @@ if ( is_multisite() ) :
 
 			// Ensure all respective cache values are empty.
 			$result = array(
-				wp_cache_get( $domain_path_key_old, 'blog-lookup' ),
 				wp_cache_get( $domain_path_key_old, 'blog-id-cache' ),
 				wp_cache_get( 'current_blog_test.wordpress.org' . $old_path, 'site-options' ),
-				wp_cache_get( $domain_path_key_new, 'blog-lookup' ),
 				wp_cache_get( $domain_path_key_new, 'blog-id-cache' ),
 				wp_cache_get( 'current_blog_test.wordpress.org' . $new_path, 'site-options' ),
 			);

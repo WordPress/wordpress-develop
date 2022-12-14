@@ -383,7 +383,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			array(
 				'blog-details',
 				'blog-id-cache',
-				'blog-lookup',
 				'blog_meta',
 				'global-posts',
 				'networks',
