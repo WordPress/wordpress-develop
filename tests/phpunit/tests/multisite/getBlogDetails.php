@@ -254,10 +254,10 @@ if ( is_multisite() ) :
 			$site = get_blog_details(
 				array(
 					'domain' => 'foo.' . WP_TESTS_DOMAIN,
-					'path'   => '/bar/'
+					'path'   => '/bar/',
 				)
 			);
-			$this->assertEquals( self::$site_ids['foo.' . WP_TESTS_DOMAIN . '/bar/'], $site->blog_id );
+			$this->assertEquals( self::$site_ids[ 'foo.' . WP_TESTS_DOMAIN . '/bar/' ], $site->blog_id );
 
 			// Validate that by-domain returns the correct site.
 			$site = get_blog_details(
@@ -266,7 +266,7 @@ if ( is_multisite() ) :
 				)
 			);
 			$this->assertEquals( $query_count, $wpdb->num_queries );
-			$this->assertEquals( self::$site_ids['foo.' . WP_TESTS_DOMAIN . '/'], $site->blog_id );
+			$this->assertEquals( self::$site_ids[ 'foo.' . WP_TESTS_DOMAIN . '/' ], $site->blog_id );
 
 			$query_count = $wpdb->num_queries;
 
@@ -277,17 +277,17 @@ if ( is_multisite() ) :
 				)
 			);
 			$this->assertEquals( $query_count, $wpdb->num_queries );
-			$this->assertEquals( self::$site_ids['foo.' . WP_TESTS_DOMAIN . '/'], $site->blog_id );
+			$this->assertEquals( self::$site_ids[ 'foo.' . WP_TESTS_DOMAIN . '/' ], $site->blog_id );
 
 			// Call it again, with a path set, it should return the correct site.
 			$site = get_blog_details(
 				array(
 					'domain' => 'foo.' . WP_TESTS_DOMAIN,
-					'path'   => '/'
+					'path'   => '/',
 				)
 			);
-			$this->assertSame( $query_count, $wpdb->num_queries );
-			$this->assertEquals( self::$site_ids['foo.' . WP_TESTS_DOMAIN . '/'], $site->blog_id );
+			$this->assertEquals( $query_count, $wpdb->num_queries );
+			$this->assertEquals( self::$site_ids[ 'foo.' . WP_TESTS_DOMAIN . '/' ], $site->blog_id );
 		}
 
 		protected function get_fields( $all = false ) {
