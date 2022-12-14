@@ -531,7 +531,6 @@ function switch_to_blog( $new_blog_id, $deprecated = null ) {
 					array(
 						'blog-details',
 						'blog-id-cache',
-						'blog-lookup',
 						'blog_meta',
 						'global-posts',
 						'networks',
@@ -622,7 +621,6 @@ function restore_current_blog() {
 					array(
 						'blog-details',
 						'blog-id-cache',
-						'blog-lookup',
 						'blog_meta',
 						'global-posts',
 						'networks',
