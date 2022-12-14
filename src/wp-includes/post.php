@@ -2981,7 +2981,7 @@ function unstick_post( $post_id ) {
  * @return string The cache key.
  */
 function _count_posts_cache_key( $type = 'post', $perm = '' ) {
-	$cache_key = 'posts-' . $type;
+	$cache_key = wp_cache_get_last_changed( 'posts' ) . '-posts-' . $type;
 
 	if ( 'readable' === $perm && is_user_logged_in() ) {
 		$post_type_object = get_post_type_object( $type );
@@ -7615,11 +7615,6 @@ function _transition_post_status( $new_status, $old_status, $post ) {
 			wp_cache_delete( "lastpostdate:$timezone", 'timeinfo' );
 			wp_cache_delete( "lastpostdate:$timezone:{$post->post_type}", 'timeinfo' );
 		}
-	}
-
-	if ( $new_status !== $old_status ) {
-		wp_cache_delete( _count_posts_cache_key( $post->post_type ), 'counts' );
-		wp_cache_delete( _count_posts_cache_key( $post->post_type, 'readable' ), 'counts' );
 	}
 
 	// Always clears the hook in case the post status bounced from future to draft.
