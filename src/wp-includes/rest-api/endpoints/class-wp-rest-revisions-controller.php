@@ -143,12 +143,16 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			__( 'Invalid post parent ID.' ),
 			array( 'status' => 404 )
 		);
+
 		if ( (int) $parent_post <= 0 ) {
 			return $error;
 		}
 
 		$parent_post = get_post( (int) $parent_post );
-		if ( empty( $parent_post ) || empty( $parent_post->ID ) || $this->parent_post_type !== $parent_post->post_type ) {
+
+		if ( empty( $parent_post ) || empty( $parent_post->ID )
+			|| $this->parent_post_type !== $parent_post->post_type
+		) {
 			return $error;
 		}
 
