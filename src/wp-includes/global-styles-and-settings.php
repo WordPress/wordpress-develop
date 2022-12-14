@@ -261,10 +261,10 @@ function wp_add_global_styles_for_blocks() {
  *
  * @since 6.2.0
  *
- * @return boolean
+ * @return bool
  */
 function wp_theme_has_theme_json() {
-	/**
+	/*
 	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
 	 * See `wp_cache_add_non_persistent_groups` in src/wp-includes/load.php and other places.
 	 *
@@ -284,7 +284,7 @@ function wp_theme_has_theme_json() {
 	$cache_key         = 'wp_theme_has_theme_json';
 	$theme_has_support = wp_cache_get( $cache_key, $cache_group );
 
-	/**
+	/*
 	 * $theme_has_support is stored as an int in the cache.
 	 *
 	 * The reason not to store it as a boolean is to avoid working
@@ -297,7 +297,7 @@ function wp_theme_has_theme_json() {
 		return (bool) $theme_has_support;
 	}
 
-	// Has the own theme a theme.json?
+	// Does the theme have its own theme.json?
 	$theme_has_support = is_readable( get_stylesheet_directory() . '/theme.json' );
 
 	// Look up the parent if the child does not have a theme.json.

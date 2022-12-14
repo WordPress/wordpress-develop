@@ -13,8 +13,6 @@ class Tests_Theme_WpThemeHasThemeJson extends WP_Theme_UnitTestCase {
 
 	/**
 	 * Test that it reports correctly themes that have a theme.json.
-	 *
-	 * @covers wp_theme_has_theme_json
 	 */
 	public function test_theme_has_theme_json() {
 		switch_theme( 'block-theme' );
@@ -23,8 +21,6 @@ class Tests_Theme_WpThemeHasThemeJson extends WP_Theme_UnitTestCase {
 
 	/**
 	 * Test that it reports correctly themes that do not have a theme.json.
-	 *
-	 * @covers wp_theme_has_theme_json
 	 */
 	public function test_theme_has_no_theme_json() {
 		switch_theme( 'default' );
@@ -33,8 +29,6 @@ class Tests_Theme_WpThemeHasThemeJson extends WP_Theme_UnitTestCase {
 
 	/**
 	 * Test it reports correctly child themes that have a theme.json.
-	 *
-	 * @covers wp_theme_has_theme_json
 	 */
 	public function test_child_theme_has_theme_json() {
 		switch_theme( 'block-theme-child' );
@@ -44,8 +38,6 @@ class Tests_Theme_WpThemeHasThemeJson extends WP_Theme_UnitTestCase {
 	/**
 	 * Test that it reports correctly child themes that do not have a theme.json
 	 * and the parent does.
-	 *
-	 * @covers wp_theme_has_theme_json
 	 */
 	public function test_child_theme_has_not_theme_json_but_parent_has() {
 		switch_theme( 'block-theme-child-no-theme-json' );
@@ -55,8 +47,6 @@ class Tests_Theme_WpThemeHasThemeJson extends WP_Theme_UnitTestCase {
 	/**
 	 * Test that it reports correctly child themes that do not have a theme.json
 	 * and the parent does not either.
-	 *
-	 * @covers wp_theme_has_theme_json
 	 */
 	public function test_neither_child_or_parent_themes_have_theme_json() {
 		switch_theme( 'default-child-no-theme-json' );
@@ -68,7 +58,6 @@ class Tests_Theme_WpThemeHasThemeJson extends WP_Theme_UnitTestCase {
 	 *
 	 * @ticket 52991
 	 *
-	 * @covers wp_theme_has_theme_json
 	 */
 	public function test_switching_themes_recalculates_support() {
 		// The "default" theme doesn't have theme.json support.
