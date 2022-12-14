@@ -21,6 +21,10 @@ if ( is_multisite() ) :
 					'domain' => 'foo.' . WP_TESTS_DOMAIN,
 					'path'   => '/',
 				),
+				'foo.' . WP_TESTS_DOMAIN . '/bar/' => array(
+					'domain' => 'foo.' . WP_TESTS_DOMAIN,
+					'path'   => '/bar/',
+				),
 				'wordpress.org/'               => array(
 					'domain' => 'wordpress.org',
 					'path'   => '/',
@@ -198,6 +202,92 @@ if ( is_multisite() ) :
 				array( false ),
 				array( true ),
 			);
+		}
+
+		/**
+		 * @ticket 57326
+		 */
+		public function test_get_blog_details_with_domain_path_hits_cache() {
+			global $wpdb;
+
+			$site = get_blog_details(
+				array(
+					'domain' => 'wordpress.org',
+					'path'   => '/',
+				)
+			);
+			$this->assertEquals( self::$site_ids['wordpress.org/'], $site->blog_id );
+
+			// Remove the 'blog-lookup' cache, falling back to the 'blog-details' cache.
+			wp_cache_delete( md5( 'wordpress.org/' ) );
+
+			$query_count = $wpdb->num_queries;
+
+			// Call it again, it should make a SQL query, and then use the `blog-details` cache.
+			get_blog_details(
+				array(
+					'domain' => 'wordpress.org',
+					'path'   => '/',
+				)
+			);
+
+			$this->assertEquals( $query_count + 1, $wpdb->num_queries );
+
+			// Call it again, it should have cached details from the previous call.
+			get_blog_details(
+				array(
+					'domain' => 'wordpress.org',
+					'path'   => '/',
+				)
+			);
+
+			$this->assertEquals( $query_count + 1, $wpdb->num_queries );
+		}
+
+		/**
+		 * @ticket 57326
+		 */
+		public function test_get_blog_details_with_domain_no_path_hits_cache() {
+			global $wpdb;
+
+			// Fetch /bar/ first, to ensure that the blog-lookup cache is set with /bar/
+			$site = get_blog_details(
+				array(
+					'domain' => 'foo.' . WP_TESTS_DOMAIN,
+					'path'   => '/bar/'
+				)
+			);
+			$this->assertEquals( self::$site_ids['foo.' . WP_TESTS_DOMAIN . '/bar/'], $site->blog_id );
+
+			// Validate that by-domain returns the correct site.
+			$site = get_blog_details(
+				array(
+					'domain' => 'foo.' . WP_TESTS_DOMAIN,
+				)
+			);
+			$this->assertEquals( $query_count, $wpdb->num_queries );
+			$this->assertEquals( self::$site_ids['foo.' . WP_TESTS_DOMAIN . '/'], $site->blog_id );
+
+			$query_count = $wpdb->num_queries;
+
+			// Call it again, verify it hits caches.
+			$site = get_blog_details(
+				array(
+					'domain' => 'foo.' . WP_TESTS_DOMAIN,
+				)
+			);
+			$this->assertEquals( $query_count, $wpdb->num_queries );
+			$this->assertEquals( self::$site_ids['foo.' . WP_TESTS_DOMAIN . '/'], $site->blog_id );
+
+			// Call it again, with a path set, it should return the correct site.
+			$site = get_blog_details(
+				array(
+					'domain' => 'foo.' . WP_TESTS_DOMAIN,
+					'path'   => '/'
+				)
+			);
+			$this->assertSame( $query_count, $wpdb->num_queries );
+			$this->assertEquals( self::$site_ids['foo.' . WP_TESTS_DOMAIN . '/'], $site->blog_id );
 		}
 
 		protected function get_fields( $all = false ) {
