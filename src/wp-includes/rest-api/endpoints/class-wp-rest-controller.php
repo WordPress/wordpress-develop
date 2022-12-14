@@ -431,7 +431,13 @@ abstract class WP_REST_Controller {
 				continue;
 			}
 
-			$prepared[ $field_name ] = call_user_func( $field_options['get_callback'], $prepared, $field_name, $request, $this->get_object_type() );
+			$prepared[ $field_name ] = call_user_func(
+				$field_options['get_callback'],
+				$prepared,
+				$field_name,
+				$request,
+				$this->get_object_type()
+			);
 		}
 
 		return $prepared;
@@ -459,7 +465,14 @@ abstract class WP_REST_Controller {
 				continue;
 			}
 
-			$result = call_user_func( $field_options['update_callback'], $request[ $field_name ], $data_object, $field_name, $request, $this->get_object_type() );
+			$result = call_user_func(
+				$field_options['update_callback'],
+				$request[ $field_name ],
+				$data_object,
+				$field_name,
+				$request,
+				$this->get_object_type()
+			);
 
 			if ( is_wp_error( $result ) ) {
 				return $result;
