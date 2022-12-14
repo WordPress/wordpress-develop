@@ -14,8 +14,8 @@ class Tests_Functions_wpRefererField extends WP_UnitTestCase {
 	 * @ticket 55578
 	 */
 	public function test_wp_referer_field() {
-
 		$_SERVER['REQUEST_URI'] = '/test/';
+
 		wp_referer_field();
 		$this->expectOutputString( '<input type="hidden" name="_wp_http_referer" value="/test/" />' );
 	}
@@ -24,7 +24,6 @@ class Tests_Functions_wpRefererField extends WP_UnitTestCase {
 	 * @ticket 55578
 	 */
 	public function test_wp_referer_field_return() {
-
 		$_SERVER['REQUEST_URI'] = '/test/';
 
 		$this->assertSame( '<input type="hidden" name="_wp_http_referer" value="/test/" />', wp_referer_field( false ) );
