@@ -442,11 +442,11 @@ abstract class WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param object          $item    Data model like WP_Term or WP_Post.
-	 * @param WP_REST_Request $request Full details about the request.
+	 * @param object          $data_object Data model like WP_Term or WP_Post.
+	 * @param WP_REST_Request $request     Full details about the request.
 	 * @return true|WP_Error True on success, WP_Error object if a field cannot be updated.
 	 */
-	protected function update_additional_fields_for_object( $item, $request ) {
+	protected function update_additional_fields_for_object( $data_object, $request ) {
 		$additional_fields = $this->get_additional_fields();
 
 		foreach ( $additional_fields as $field_name => $field_options ) {
@@ -459,7 +459,7 @@ abstract class WP_REST_Controller {
 				continue;
 			}
 
-			$result = call_user_func( $field_options['update_callback'], $request[ $field_name ], $item, $field_name, $request, $this->get_object_type() );
+			$result = call_user_func( $field_options['update_callback'], $request[ $field_name ], $data_object, $field_name, $request, $this->get_object_type() );
 
 			if ( is_wp_error( $result ) ) {
 				return $result;
