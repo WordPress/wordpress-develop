@@ -1421,17 +1421,17 @@ class WP_Query {
 		}
 
 		/**
-		* Filters the columns to search in a WP_Query search.
-		*
-		* The supported columns are `post_title`, `post_excerpt` and `post_content`.
-		* They are all included by default.
-		*
-		* @since 6.2.0
-		*
-		* @param string[] $search_columns Array of column names to be searched.
-		* @param string   $search         Text being searched.
-		* @param WP_Query $this           The current WP_Query instance.
-		*/
+		 * Filters the columns to search in a WP_Query search.
+		 *
+		 * The supported columns are `post_title`, `post_excerpt` and `post_content`.
+		 * They are all included by default.
+		 *
+		 * @since 6.2.0
+		 *
+		 * @param string[] $search_columns Array of column names to be searched.
+		 * @param string   $search         Text being searched.
+		 * @param WP_Query $this           The current WP_Query instance.
+		 */
 		$search_columns = (array) apply_filters( 'post_search_columns', $search_columns, $q['s'], $this );
 
 		// Use only supported search columns.
