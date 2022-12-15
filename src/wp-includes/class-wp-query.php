@@ -752,10 +752,10 @@ class WP_Query {
 	 *                                                    return posts containing 'pillow' but not 'sofa'. The
 	 *                                                    character used for exclusion can be modified using the
 	 *                                                    the 'wp_query_search_exclusion_prefix' filter.
-	 *     @type int             $second                  Second of the minute. Default empty. Accepts numbers 0-59.
-	 *     @type bool            $sentence                Whether to search by phrase. Default false.
 	 *     @type array           $search_columns          Array of column names to be searched. Accepts 'post_title',
 	 *                                                    'post_excerpt' and 'post_content'. Default empty array.
+	 *     @type int             $second                  Second of the minute. Default empty. Accepts numbers 0-59.
+	 *     @type bool            $sentence                Whether to search by phrase. Default false.
 	 *     @type bool            $suppress_filters        Whether to suppress filters. Default false.
 	 *     @type string          $tag                     Tag slug. Comma-separated (either), Plus-separated (all).
 	 *     @type int[]           $tag__and                An array of tag IDs (AND in).

@@ -395,6 +395,20 @@ mockedApiResponse.Schema = {
                             ],
                             "required": false
                         },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
+                        },
                         "slug": {
                             "description": "Limit result set to posts with one or more specific slugs.",
                             "type": "array",
@@ -603,20 +617,6 @@ mockedApiResponse.Schema = {
                         "sticky": {
                             "description": "Limit result set to items that are sticky.",
                             "type": "boolean",
-                            "required": false
-                        },
-                        "search_columns": {
-                            "default": [],
-                            "description": "Array of column names to be searched.",
-                            "type": "array",
-                            "items": {
-                                "enum": [
-                                    "post_title",
-                                    "post_content",
-                                    "post_excerpt"
-                                ],
-                                "type": "string"
-                            },
                             "required": false
                         }
                     }
@@ -1766,6 +1766,20 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
+                        },
                         "slug": {
                             "description": "Limit result set to posts with one or more specific slugs.",
                             "type": "array",
@@ -1793,20 +1807,6 @@ mockedApiResponse.Schema = {
                                     "request-failed",
                                     "request-completed",
                                     "any"
-                                ],
-                                "type": "string"
-                            },
-                            "required": false
-                        },
-                        "search_columns": {
-                            "default": [],
-                            "description": "Array of column names to be searched.",
-                            "type": "array",
-                            "items": {
-                                "enum": [
-                                    "post_title",
-                                    "post_content",
-                                    "post_excerpt"
                                 ],
                                 "type": "string"
                             },
@@ -2861,6 +2861,20 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
+                        },
                         "slug": {
                             "description": "Limit result set to posts with one or more specific slugs.",
                             "type": "array",
@@ -2878,20 +2892,6 @@ mockedApiResponse.Schema = {
                                     "inherit",
                                     "private",
                                     "trash"
-                                ],
-                                "type": "string"
-                            },
-                            "required": false
-                        },
-                        "search_columns": {
-                            "default": [],
-                            "description": "Array of column names to be searched.",
-                            "type": "array",
-                            "items": {
-                                "enum": [
-                                    "post_title",
-                                    "post_content",
-                                    "post_excerpt"
                                 ],
                                 "type": "string"
                             },
@@ -3585,6 +3585,20 @@ mockedApiResponse.Schema = {
                             ],
                             "required": false
                         },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
+                        },
                         "slug": {
                             "description": "Limit result set to posts with one or more specific slugs.",
                             "type": "array",
@@ -3701,20 +3715,6 @@ mockedApiResponse.Schema = {
                                     "additionalProperties": false
                                 }
                             ],
-                            "required": false
-                        },
-                        "search_columns": {
-                            "default": [],
-                            "description": "Array of column names to be searched.",
-                            "type": "array",
-                            "items": {
-                                "enum": [
-                                    "post_title",
-                                    "post_content",
-                                    "post_excerpt"
-                                ],
-                                "type": "string"
-                            },
                             "required": false
                         },
                         "menu_order": {
@@ -4395,6 +4395,20 @@ mockedApiResponse.Schema = {
                             ],
                             "required": false
                         },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
+                        },
                         "slug": {
                             "description": "Limit result set to posts with one or more specific slugs.",
                             "type": "array",
@@ -4422,20 +4436,6 @@ mockedApiResponse.Schema = {
                                     "request-failed",
                                     "request-completed",
                                     "any"
-                                ],
-                                "type": "string"
-                            },
-                            "required": false
-                        },
-                        "search_columns": {
-                            "default": [],
-                            "description": "Array of column names to be searched.",
-                            "type": "array",
-                            "items": {
-                                "enum": [
-                                    "post_title",
-                                    "post_content",
-                                    "post_excerpt"
                                 ],
                                 "type": "string"
                             },
@@ -6560,6 +6560,20 @@ mockedApiResponse.Schema = {
                             ],
                             "required": false
                         },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
+                        },
                         "slug": {
                             "description": "Limit result set to posts with one or more specific slugs.",
                             "type": "array",
@@ -6587,20 +6601,6 @@ mockedApiResponse.Schema = {
                                     "request-failed",
                                     "request-completed",
                                     "any"
-                                ],
-                                "type": "string"
-                            },
-                            "required": false
-                        },
-                        "search_columns": {
-                            "default": [],
-                            "description": "Array of column names to be searched.",
-                            "type": "array",
-                            "items": {
-                                "enum": [
-                                    "post_title",
-                                    "post_content",
-                                    "post_excerpt"
                                 ],
                                 "type": "string"
                             },
