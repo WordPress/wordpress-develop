@@ -384,7 +384,6 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	 * @covers WP_HTTP::handle_redirects
 	 */
 	public function test_multiple_location_headers() {
-		$pre_http_request_filter_has_run = false;
 		// Filter the response made by WP_HTTP::handle_redirects().
 		add_filter(
 			'pre_http_request',
@@ -447,6 +446,6 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			),
 			'cookies'  => array(),
 			'filename' => null,
-		);		
+		);
 	}
 }
