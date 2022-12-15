@@ -135,32 +135,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		// Filter the response made by WP_HTTP::handle_redirects().
 		add_filter(
 			'pre_http_request',
-			function( $response, $args, $url ) use ( &$pre_http_request_filter_has_run ) {
-				$pre_http_request_filter_has_run = true;
-
-				// Assert the redirect URL is correct.
-				$this->assertSame(
-					$url,
-					'http://example.com/?multiple-location-headers=1&redirected=two'
-				);
-
-				if ( 'http://example.com/?multiple-location-headers=1&redirected=two' === $url ) {
-					$body = 'PASS';
-				} else {
-					$body = 'FAIL';
-				}
-
-				return array(
-					'headers'  => array(),
-					'body'     => $body,
-					'response' => array(
-						'code'    => 200,
-						'message' => 'OK',
-					),
-					'cookies'  => array(),
-					'filename' => null,
-				);
-			},
+			array( $this, 'filter_for_multiple_location_headers' ),
 			10,
 			3
 		);
@@ -176,7 +151,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		);
 
 		// Test the tests: ensure multiple locations are passed to WP_HTTP::handle_redirects().
-		$this->assertIsArray( $headers['location'], 'Location header is expected to be an array.' );
+		$this->assertTrue( is_array( $headers['location'] ), 'Location header is expected to be an array.' );
 		$this->assertCount( 2, $headers['location'], 'Location header is expected to contain two values.' );
 
 		$args = array(
@@ -186,7 +161,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			'method'       => 'GET',
 		);
 
-		$redirect_response = WP_HTTP::handle_redirects(
+		$redirect_response = _wp_http_get_object()->handle_redirects(
 			'http://example.com/?multiple-location-headers=1',
 			$args,
 			array(
@@ -201,6 +176,24 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			)
 		);
 		$this->assertSame( 'PASS', wp_remote_retrieve_body( $redirect_response ), 'Redirect response body is expected to be PASS.' );
-		$this->assertTrue( $pre_http_request_filter_has_run, 'The pre_http_request filter is expected to run.' );
+	}
+	
+	public function filter_for_multiple_location_headers( $response, $args, $url ) {
+		if ( 'http://example.com/?multiple-location-headers=1&redirected=two' === $url ) {
+			$body = 'PASS';
+		} else {
+			$body = 'FAIL';
+		}
+
+		return array(
+			'headers'  => array(),
+			'body'     => $body,
+			'response' => array(
+				'code'    => 200,
+				'message' => 'OK',
+			),
+			'cookies'  => array(),
+			'filename' => null,
+		);		
 	}
 }
