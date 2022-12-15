@@ -1055,6 +1055,11 @@ function update_core( $from, $to ) {
 
 	set_time_limit( 300 );
 
+	/*
+	 * Merge the old Requests files and directories into the `$_old_files`.
+	 * Then preload these Requests files first, before the files are deleted
+	 * and replaced to ensure the code is in memory if needed.
+	 */
 	$_old_files = array_merge( $_old_files, array_values( $_old_requests_files ) );
 	_preload_old_requests_classes_and_interfaces( $to );
 
@@ -1575,15 +1580,21 @@ function update_core( $from, $to ) {
 /**
  * Preloads old Requests classes and interfaces.
  *
- * Old Requests classes and interfaces will be deleted during the core update.
- * Preloading these prevents fatal errors later in the update process.
+ * This function preloads the old Requests code into memory before the
+ * upgrade process deletes the files. Why? Requests code is loaded into
+ * memory via an autoloader, meaning when a class or interface is needed
+ * If a request is in process, Requests could attempt to access code. If
+ * the file is not there, a fatal error could occur. If the file was
+ * replaced, the new code is not compatible with the old, resulting in
+ * a fatal error. Preloading ensures the code is in memory before the
+ * code is updated.
  *
  * @since 6.2.0
  *
- * @global array              $_old_requests_files Requests files to be preloaded.
- * @global WP_Filesystem_Base $wp_filesystem       WordPress filesystem subclass.
- *
  * @param string $to Path to old WordPress installation.
+ *@global WP_Filesystem_Base $wp_filesystem        WordPress filesystem subclass.
+ *
+ * @global array              $_old_requests_files Requests files to be preloaded.
  */
 function _preload_old_requests_classes_and_interfaces( $to ) {
 	global $_old_requests_files, $wp_filesystem;
