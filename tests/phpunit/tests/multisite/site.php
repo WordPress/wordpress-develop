@@ -398,6 +398,8 @@ if ( is_multisite() ) :
 			// The file on the main site should still exist. The file on the deleted site should not.
 			$this->assertFileExists( $file1['file'] );
 			$this->assertFileDoesNotExist( $file2['file'] );
+
+			unlink( $file1['file'] );
 		}
 
 		public function test_wpmu_update_blogs_date() {
@@ -687,10 +689,10 @@ if ( is_multisite() ) :
 		}
 
 		/**
-		 * Tests returning the appropriate response for a invalid id given.
+		 * Tests returning an empty string for a non-existing ID.
 		 */
 		public function test_get_blogaddress_by_id_with_invalid_id() {
-			$blogaddress = get_blogaddress_by_id( 42 );
+			$blogaddress = get_blogaddress_by_id( PHP_INT_MAX );
 			$this->assertSame( '', $blogaddress );
 		}
 

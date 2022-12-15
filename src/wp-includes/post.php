@@ -1547,9 +1547,8 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *
  * @global array $wp_post_types List of post types.
  *
- * @param string       $post_type Post type key. Must not exceed 20 characters and may
- *                                only contain lowercase alphanumeric characters, dashes,
- *                                and underscores. See sanitize_key().
+ * @param string       $post_type Post type key. Must not exceed 20 characters and may only contain
+ *                                lowercase alphanumeric characters, dashes, and underscores. See sanitize_key().
  * @param array|string $args {
  *     Array or string of arguments for registering a post type.
  *
@@ -2020,43 +2019,47 @@ function get_post_type_labels( $post_type_object ) {
  * @since 3.0.0
  * @access private
  *
- * @param object $object                  A custom-something object.
+ * @param object $data_object             A custom-something object.
  * @param array  $nohier_vs_hier_defaults Hierarchical vs non-hierarchical default labels.
  * @return object Object containing labels for the given custom-something object.
  */
-function _get_custom_object_labels( $object, $nohier_vs_hier_defaults ) {
-	$object->labels = (array) $object->labels;
+function _get_custom_object_labels( $data_object, $nohier_vs_hier_defaults ) {
+	$data_object->labels = (array) $data_object->labels;
 
-	if ( isset( $object->label ) && empty( $object->labels['name'] ) ) {
-		$object->labels['name'] = $object->label;
+	if ( isset( $data_object->label ) && empty( $data_object->labels['name'] ) ) {
+		$data_object->labels['name'] = $data_object->label;
 	}
 
-	if ( ! isset( $object->labels['singular_name'] ) && isset( $object->labels['name'] ) ) {
-		$object->labels['singular_name'] = $object->labels['name'];
+	if ( ! isset( $data_object->labels['singular_name'] ) && isset( $data_object->labels['name'] ) ) {
+		$data_object->labels['singular_name'] = $data_object->labels['name'];
 	}
 
-	if ( ! isset( $object->labels['name_admin_bar'] ) ) {
-		$object->labels['name_admin_bar'] = isset( $object->labels['singular_name'] ) ? $object->labels['singular_name'] : $object->name;
+	if ( ! isset( $data_object->labels['name_admin_bar'] ) ) {
+		$data_object->labels['name_admin_bar'] =
+			isset( $data_object->labels['singular_name'] )
+			? $data_object->labels['singular_name']
+			: $data_object->name;
 	}
 
-	if ( ! isset( $object->labels['menu_name'] ) && isset( $object->labels['name'] ) ) {
-		$object->labels['menu_name'] = $object->labels['name'];
+	if ( ! isset( $data_object->labels['menu_name'] ) && isset( $data_object->labels['name'] ) ) {
+		$data_object->labels['menu_name'] = $data_object->labels['name'];
 	}
 
-	if ( ! isset( $object->labels['all_items'] ) && isset( $object->labels['menu_name'] ) ) {
-		$object->labels['all_items'] = $object->labels['menu_name'];
+	if ( ! isset( $data_object->labels['all_items'] ) && isset( $data_object->labels['menu_name'] ) ) {
+		$data_object->labels['all_items'] = $data_object->labels['menu_name'];
 	}
 
-	if ( ! isset( $object->labels['archives'] ) && isset( $object->labels['all_items'] ) ) {
-		$object->labels['archives'] = $object->labels['all_items'];
+	if ( ! isset( $data_object->labels['archives'] ) && isset( $data_object->labels['all_items'] ) ) {
+		$data_object->labels['archives'] = $data_object->labels['all_items'];
 	}
 
 	$defaults = array();
 	foreach ( $nohier_vs_hier_defaults as $key => $value ) {
-		$defaults[ $key ] = $object->hierarchical ? $value[1] : $value[0];
+		$defaults[ $key ] = $data_object->hierarchical ? $value[1] : $value[0];
 	}
-	$labels         = array_merge( $defaults, $object->labels );
-	$object->labels = (object) $object->labels;
+
+	$labels              = array_merge( $defaults, $data_object->labels );
+	$data_object->labels = (object) $data_object->labels;
 
 	return (object) $labels;
 }
@@ -2411,7 +2414,7 @@ function get_posts( $args = null ) {
 	$parsed_args['ignore_sticky_posts'] = true;
 	$parsed_args['no_found_rows']       = true;
 
-	$get_posts = new WP_Query;
+	$get_posts = new WP_Query();
 	return $get_posts->query( $parsed_args );
 
 }
@@ -3014,7 +3017,7 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 	global $wpdb;
 
 	if ( ! post_type_exists( $type ) ) {
-		return new stdClass;
+		return new stdClass();
 	}
 
 	$cache_key = _count_posts_cache_key( $type, $perm );
@@ -3057,7 +3060,7 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 	wp_cache_set( $cache_key, $counts, 'counts' );
 
 	/**
-	 * Modifies returned post counts by status for the current post type.
+	 * Filters the post counts by status for the current post type.
 	 *
 	 * @since 3.7.0
 	 *
@@ -3109,7 +3112,7 @@ function wp_count_attachments( $mime_type = '' ) {
 	}
 
 	/**
-	 * Modifies returned attachment counts by mime type.
+	 * Filters the attachment counts by mime type.
 	 *
 	 * @since 3.7.0
 	 *
@@ -4198,7 +4201,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 
 		if ( $update && strtolower( urlencode( $post_name ) ) == $check_name && get_post_field( 'post_name', $post_ID ) == $check_name ) {
 			$post_name = $check_name;
-		} else { // new post, or slug has changed.
+		} else { // New post, or slug has changed.
 			$post_name = sanitize_title( $post_name );
 		}
 	}
@@ -5766,6 +5769,8 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
  * @since 2.1.0
  * @since 3.0.0 The `$post_type` parameter was added.
  *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
  * @param string       $page_title Page title.
  * @param string       $output     Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
  *                                 correspond to a WP_Post object, an associative array, or a numeric array,
@@ -5774,25 +5779,40 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
  * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
  */
 function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' ) {
-	$args  = array(
-		'title'                  => $page_title,
-		'post_type'              => $post_type,
-		'post_status'            => get_post_stati(),
-		'posts_per_page'         => 1,
-		'update_post_term_cache' => false,
-		'update_post_meta_cache' => false,
-		'no_found_rows'          => true,
-		'orderby'                => 'post_date ID',
-		'order'                  => 'ASC',
-	);
-	$query = new WP_Query( $args );
-	$pages = $query->posts;
+	global $wpdb;
 
-	if ( empty( $pages ) ) {
-		return null;
+	if ( is_array( $post_type ) ) {
+		$post_type           = esc_sql( $post_type );
+		$post_type_in_string = "'" . implode( "','", $post_type ) . "'";
+		$sql                 = $wpdb->prepare(
+			"
+			SELECT ID
+			FROM $wpdb->posts
+			WHERE post_title = %s
+			AND post_type IN ($post_type_in_string)
+		",
+			$page_title
+		);
+	} else {
+		$sql = $wpdb->prepare(
+			"
+			SELECT ID
+			FROM $wpdb->posts
+			WHERE post_title = %s
+			AND post_type = %s
+		",
+			$page_title,
+			$post_type
+		);
 	}
 
-	return get_post( $pages[0], $output );
+	$page = $wpdb->get_var( $sql );
+
+	if ( $page ) {
+		return get_post( $page, $output );
+	}
+
+	return null;
 }
 
 /**
@@ -6307,12 +6327,12 @@ function is_local_attachment( $url ) {
  *
  * @param string|array $args             Arguments for inserting an attachment.
  * @param string|false $file             Optional. Filename.
- * @param int          $parent           Optional. Parent post ID.
+ * @param int          $parent_post      Optional. Parent post ID.
  * @param bool         $wp_error         Optional. Whether to return a WP_Error on failure. Default false.
  * @param bool         $fire_after_hooks Optional. Whether to fire the after insert hooks. Default true.
  * @return int|WP_Error The attachment ID on success. The value 0 or WP_Error on failure.
  */
-function wp_insert_attachment( $args, $file = false, $parent = 0, $wp_error = false, $fire_after_hooks = true ) {
+function wp_insert_attachment( $args, $file = false, $parent_post = 0, $wp_error = false, $fire_after_hooks = true ) {
 	$defaults = array(
 		'file'        => $file,
 		'post_parent' => 0,
@@ -6320,8 +6340,8 @@ function wp_insert_attachment( $args, $file = false, $parent = 0, $wp_error = fa
 
 	$data = wp_parse_args( $args, $defaults );
 
-	if ( ! empty( $parent ) ) {
-		$data['post_parent'] = $parent;
+	if ( ! empty( $parent_post ) ) {
+		$data['post_parent'] = $parent_post;
 	}
 
 	$data['post_type'] = 'attachment';
@@ -7855,7 +7875,9 @@ function _update_term_count_on_transition_post_status( $new_status, $old_status,
  * @since 3.4.0
  * @since 6.1.0 This function is no longer marked as "private".
  *
- * @see update_post_caches()
+ * @see update_post_cache()
+ * @see update_postmeta_cache()
+ * @see update_object_term_cache()
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -7870,7 +7892,20 @@ function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache
 	if ( ! empty( $non_cached_ids ) ) {
 		$fresh_posts = $wpdb->get_results( sprintf( "SELECT $wpdb->posts.* FROM $wpdb->posts WHERE ID IN (%s)", implode( ',', $non_cached_ids ) ) );
 
-		update_post_caches( $fresh_posts, 'any', $update_term_cache, $update_meta_cache );
+		if ( $fresh_posts ) {
+			// Despite the name, update_post_cache() expects an array rather than a single post.
+			update_post_cache( $fresh_posts );
+		}
+	}
+
+	if ( $update_meta_cache ) {
+		update_postmeta_cache( $ids );
+	}
+
+	if ( $update_term_cache ) {
+		$post_types = array_map( 'get_post_type', $ids );
+		$post_types = array_unique( $post_types );
+		update_object_term_cache( $ids, $post_types );
 	}
 }
 
@@ -7916,6 +7951,8 @@ function wp_add_trashed_suffix_to_post_name_for_trashed_posts( $post_name, $post
  *
  * @since 4.5.0
  * @access private
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param WP_Post $post The post.
  * @return string New slug for the post.
