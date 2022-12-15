@@ -85,7 +85,7 @@ function wp_get_global_styles( $path = array(), $context = array() ) {
 function wp_get_global_stylesheet( $types = array() ) {
 	// Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme developers workflow.
 	$can_use_cached = empty( $types ) && ! WP_DEBUG;
-	/**
+	/*
 	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
 	 * See `wp_cache_add_non_persistent_groups` in src/wp-includes/load.php and other places.
 	 *
