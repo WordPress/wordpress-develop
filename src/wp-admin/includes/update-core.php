@@ -1592,7 +1592,7 @@ function update_core( $from, $to ) {
  * @since 6.2.0
  *
  * @param string $to Path to old WordPress installation.
- *@global WP_Filesystem_Base $wp_filesystem        WordPress filesystem subclass.
+ * @global WP_Filesystem_Base $wp_filesystem       WordPress filesystem subclass.
  *
  * @global array              $_old_requests_files Requests files to be preloaded.
  */
