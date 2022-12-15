@@ -981,8 +981,30 @@ class WP_Automatic_Updater {
 			 * @since 5.5.0
 			 * @since 5.5.1 Added the `$update_results` parameter.
 			 *
-			 * @param bool  $enabled        True if theme update notifications are enabled, false otherwise.
-			 * @param array $update_results The results of theme update tasks.
+			 * @param bool  $enabled True if theme update notifications are enabled, false otherwise.
+			 * @param array $update_results {
+			 *     An array of results of theme update tasks.
+			 *
+			 *     @type array ...$0 {
+			 *         Each element is an object containing theme update result data.
+			 *
+			 *         @type object $item {
+			 *             Data for the theme update.
+			 *
+			 *             @type string $theme            Theme slug.
+			 *             @type string $new_version      New theme version.
+			 *             @type string $url              Theme URL.
+			 *             @type string $package          Theme update package URL.
+			 *             @type string $requires         The version of WordPress which the theme requires.
+			 *             @type string $requires_php     The version of PHP which the theme requires.
+			 *             @type string $current_version  The currently installed version of the theme.
+			 *         }
+			 *         @type bool|WP_Error $result   The result of the update.
+			 *                                       True on success, otherwise false or WP_Error on failure.
+			 *         @type string        $name     The name of the theme.
+			 *         @type string[]      $messages The upgrade messages.
+			 *     }
+			 * }
 			 */
 			$notifications_enabled = apply_filters( 'auto_theme_update_send_email', true, $update_results['theme'] );
 
