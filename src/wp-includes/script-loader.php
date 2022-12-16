@@ -319,6 +319,12 @@ function wp_default_packages_scripts( $scripts ) {
 			$scripts->add_inline_script( $handle, $script, 'after' );
 		}
 	}
+
+	/*
+	 * wp-nux has been deprecated then removed, an empty script is left here
+	 * to prevent breaking plugins that define it as a depdendency.
+	 */
+	$scripts->add( 'wp-nux', false );
 }
 
 /**
@@ -1644,18 +1650,15 @@ function wp_default_styles( $styles ) {
 			'wp-editor',
 			'wp-edit-blocks',
 			'wp-block-library',
-			'wp-nux',
 		),
 		'editor'               => array(
 			'wp-components',
 			'wp-block-editor',
-			'wp-nux',
 			'wp-reusable-blocks',
 		),
 		'format-library'       => array(),
 		'list-reusable-blocks' => array( 'wp-components' ),
 		'reusable-blocks'      => array( 'wp-components' ),
-		'nux'                  => array( 'wp-components' ),
 		'widgets'              => array(
 			'wp-components',
 		),
@@ -1741,7 +1744,6 @@ function wp_default_styles( $styles ) {
 		'wp-format-library',
 		'wp-list-reusable-blocks',
 		'wp-reusable-blocks',
-		'wp-nux',
 		'wp-widgets',
 		// Deprecated CSS.
 		'deprecated-media',
@@ -1754,6 +1756,12 @@ function wp_default_styles( $styles ) {
 			$styles->add_data( $rtl_style, 'suffix', $suffix );
 		}
 	}
+
+	/*
+	 * wp-nux has been deprecated then removed, an empty script is left here
+	 * to prevent breaking plugins that define it as a depdendency.
+	 */
+	$styles->add( 'wp-nux', false );
 }
 
 /**
