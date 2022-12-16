@@ -254,7 +254,7 @@
 				base: browserSupportsSvgAsImage() ? settings.svgUrl : settings.baseUrl,
 				ext:  browserSupportsSvgAsImage() ? settings.svgExt : settings.ext,
 				className: args.className || 'emoji',
-				callback: function( icon, options ) {
+				callback: function( icon, options, textNode ) {
 					// Ignore some standard characters that TinyMCE recommends in its character map.
 					switch ( icon ) {
 						case 'a9':
