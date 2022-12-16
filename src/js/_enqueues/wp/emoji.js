@@ -53,6 +53,33 @@
 		}
 
 		/**
+		 * Detects if the node should have emojis within converted.
+		 */
+		function shouldParseNode( node ) {
+			if ( ! node ) {
+				return false;
+			}
+
+			/*
+			 * If the class name of a non-element node contains 'wp-exclude-emoji' ignore it.
+			 *
+			 * Node type 1 is an ELEMENT_NODE.
+			 */
+			do {
+				if (
+					node.nodeType === 1 &&
+					node.className &&
+					typeof node.className === 'string' &&
+					node.className.indexOf( 'wp-exclude-emoji' ) !== -1
+				) {
+					return false;
+				}
+			} while( (node = node.parentNode) && node );
+
+			return true;
+		}
+
+		/**
 		 * Runs when the document load event is fired, so we can do our first parse of
 		 * the page.
 		 *
@@ -147,12 +174,9 @@
 
 							/*
 							 * If the class name of a non-element node contains 'wp-exclude-emoji' ignore it.
-							 *
-							 * Node type 1 is an ELEMENT_NODE.
+							 * NOTE: Works with twemoji as-is, duplicative of the callback inclusion below.
 							 */
-							if ( ! node || node.nodeType !== 1 ||
-								( node.className && typeof node.className === 'string' && node.className.indexOf( 'wp-exclude-emoji' ) !== -1 ) ) {
-
+							if ( ! shouldParseNode( node ) ) {
 								continue;
 							}
 
@@ -248,6 +272,12 @@
 						! /^1f1(?:e[6-9a-f]|f[0-9a-f])-1f1(?:e[6-9a-f]|f[0-9a-f])$/.test( icon ) && // Country flags.
 						! /^(1f3f3-fe0f-200d-1f308|1f3f4-200d-2620-fe0f)$/.test( icon )             // Rainbow and pirate flags.
 					) {
+						return false;
+					}
+
+					// Ignore textNodes within a wp-exclude-emoji node.
+					// NOTE: requires twemoji patch.
+					if ( textNode && ! shouldParseNode( textNode ) ) {
 						return false;
 					}
 
