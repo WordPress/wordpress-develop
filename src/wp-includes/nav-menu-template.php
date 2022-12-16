@@ -198,6 +198,11 @@ function wp_nav_menu( $args = array() ) {
 	$sorted_menu_items        = array();
 	$menu_items_with_children = array();
 	foreach ( (array) $menu_items as $menu_item ) {
+		// Fix invalid `menu_item_parent`. See: https://core.trac.wordpress.org/ticket/56926.
+		if ( (int) $menu_item->ID === (int) $menu_item->menu_item_parent ) {
+			$menu_item->menu_item_parent = 0;
+		}
+
 		$sorted_menu_items[ $menu_item->menu_order ] = $menu_item;
 		if ( $menu_item->menu_item_parent ) {
 			$menu_items_with_children[ $menu_item->menu_item_parent ] = true;
@@ -603,7 +608,7 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
  * @return string The HTML list content for the menu items.
  */
 function walk_nav_menu_tree( $items, $depth, $args ) {
-	$walker = ( empty( $args->walker ) ) ? new Walker_Nav_Menu : $args->walker;
+	$walker = ( empty( $args->walker ) ) ? new Walker_Nav_Menu() : $args->walker;
 
 	return $walker->walk( $items, $depth, $args );
 }

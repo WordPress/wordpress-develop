@@ -38,10 +38,10 @@ jobs:
   # - Sets environment variables.
   # - Checks out the repository.
   # - Sets up Node.js.
-  # - Logs general debug information about the runner.
-  # - Installs npm dependencies
-  # - Configures caching for Composer.
+  # - Sets up PHP.
   # - Installs Composer dependencies.
+  # - Installs npm dependencies
+  # - Logs general debug information about the runner.
   # - Logs Docker debug information (about the Docker installation within the runner).
   # - Starts the WordPress Docker container.
   # - Logs the running Docker containers.
@@ -78,6 +78,29 @@ jobs:
           node-version-file: '.nvmrc'
           cache: npm
 
+      ##
+      # This allows Composer dependencies to be installed using a single step.
+      #
+      # Since the tests are currently run within the Docker containers where the PHP version varies,
+      # the same PHP version needs to be configured for the action runner machine so that the correct
+      # dependency versions are installed and cached.
+      ##
+      - name: Set up PHP
+        uses: shivammathur/setup-php@1a18b2267f80291a81ca1d33e7c851fe09e7dfc4 # v2.22.0
+        with:
+          php-version: '7.4'
+          coverage: none
+
+      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
+      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
+      - name: Install Composer dependencies
+        uses: ramsey/composer-install@83af392bf5f031813d25e6fe4cd626cdba9a2df6 # v2.2.0
+        with:
+          custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
+
+      - name: Install npm Dependencies
+        run: npm ci
+
       - name: Log debug information
         run: |
           echo "$GITHUB_REF"
@@ -87,35 +110,8 @@ jobs:
           curl --version
           git --version
           svn --version
+          composer --version
           locale -a
-
-      - name: Install npm Dependencies
-        run: npm ci
-
-      # This date is used to ensure that the Composer cache is refreshed at least once every week.
-      # http://man7.org/linux/man-pages/man1/date.1.html
-      - name: "Get last Monday's date"
-        id: get-date
-        run: echo "date=$(/bin/date -u --date='last Mon' "+%F")" >> $GITHUB_OUTPUT
-
-      - name: Get Composer cache directory
-        id: composer-cache
-        run: echo "composer_dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache Composer dependencies
-        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v3.0.11
-        env:
-          cache-name: cache-composer-dependencies
-        with:
-          path: ${{ steps.composer-cache.outputs.composer_dir }}
-          key: ${{ runner.os }}-php-${{ matrix.php }}-date-${{ steps.get-date.outputs.date }}-composer-${{ hashFiles('**/composer.json') }}
-
-      - name: Install Composer dependencies
-        run: |
-          docker-compose run --rm php composer --version
-
-          # Install using `composer update` as there is no `composer.lock` file.
-          docker-compose run --rm php composer update
 
       - name: Docker debug information
         run: |

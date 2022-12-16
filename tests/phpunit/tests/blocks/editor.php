@@ -31,7 +31,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$post = self::factory()->post->create_and_get( $args );
 
 		global $wp_rest_server;
-		$wp_rest_server = new Spy_REST_Server;
+		$wp_rest_server = new Spy_REST_Server();
 		do_action( 'rest_api_init', $wp_rest_server );
 	}
 
