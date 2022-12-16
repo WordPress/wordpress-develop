@@ -1543,6 +1543,85 @@ JS;
 	}
 
 	/**
+	 * Test the script strategy feature with a dependent script added with `wp_add_inline_script()`.
+	 *
+	 * @dataProvider data_wp_enqueue_script_strategy_with_inline_dependencies
+	 *
+	 * @ticket 22249
+	 */
+	public function test_wp_enqueue_script_strategy_with_inline_dependencies( $strategy, $position, $expected ) {
+		$GLOBALS['wp_scripts'] = new WP_Scripts();
+
+		wp_enqueue_script( 'test-example', 'example.com', array(), null, false, array( 'strategy' => $strategy ) );
+
+		// Add a dependent script.
+		wp_add_inline_script( 'test-example', "console.log( 'test' );", $position );
+
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * Data provider for test_wp_enqueue_script_strategy_with_inline_dependencies().
+	 */
+	public function data_wp_enqueue_script_strategy_with_inline_dependencies() {
+		return array(
+
+			array(
+				false,
+				false,
+				"<script type='text/javascript' id='test-example-js-before'>
+console.log( 'test' );
+</script>
+<script type='text/javascript' src='http://example.com' id='test-example-js'></script>
+",
+			),
+			// Defer with position 'after'. Script can't be deferred.
+			array(
+				'defer',
+				'after',
+				"<script type='text/javascript' src='http://example.com' id='test-example-js'></script>
+<script type='text/javascript' id='test-example-js-after'>
+console.log( 'test' );
+</script>
+",
+			),
+			// Defer with position 'before'. Script can be deferred.
+			array(
+				'defer',
+				'before',
+				"<script type='text/javascript' id='test-example-js-before'>
+console.log( 'test' );
+</script>
+<script type='text/javascript' src='http://example.com' id='test-example-js' defer></script>
+",
+			),
+
+			// Async with position 'after'. Script can't be asynced.
+			array(
+				'async',
+				'after',
+				"<script type='text/javascript' src='http://example.com' id='test-example-js'></script>
+<script type='text/javascript' id='test-example-js-after'>
+console.log( 'test' );
+</script>
+",
+			),
+			// Async with position 'before'. Script can be asynced.
+			array(
+				'async',
+				'before',
+				"<script type='text/javascript' id='test-example-js-before'>
+console.log( 'test' );
+</script>
+<script type='text/javascript' src='http://example.com' id='test-example-js' async></script>
+",
+			),
+
+		);
+	}
+
+
+	/**
 	 * Test more complicated dependency scenarios.
 	 *
 	 * @ticket 22249

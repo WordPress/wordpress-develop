@@ -295,13 +295,19 @@ class WP_Scripts extends WP_Dependencies {
 		switch ( $strategy ) {
 			case 'defer':
 				// Scripts can only use defer (aka. "deferrable") if all scripts that depend on them ("dependents") are also deferrable.
-				if ( $this->_all_dependents_are_deferrable( $obj->handle ) ) {
+				if (
+					! $this->_has_after_inline_dependency( $handle ) &&
+					$this->_all_dependents_are_deferrable( $handle )
+				) {
 					$extra_atts .= ' defer';
 				}
 				break;
 			case 'async':
 				// Scripts can only use async if no other scripts depend on them.
-				if ( empty( $this->_get_dependents( $handle ) ) ) {
+				if (
+					! $this->_has_after_inline_dependency( $handle ) &&
+					empty( $this->_get_dependents( $handle ) )
+				) {
 					$extra_atts .= ' async';
 				}
 				break;
@@ -468,7 +474,7 @@ class WP_Scripts extends WP_Dependencies {
 		if ( in_array( $handle, $visited, true ) ) {
 			return true;
 		}
-		$visited[] = $handle;
+		$visited[]  = $handle;
 		$dependents = $this->_get_dependents( $handle );
 		// If there are no dependents remaining to consider, the script can be deferred and the branch ends.
 		if ( empty( $dependents ) ) {
@@ -481,6 +487,12 @@ class WP_Scripts extends WP_Dependencies {
 			if ( ! $this->uses_defer_strategy( $dependent ) ) {
 				return false;
 			}
+
+			// If the script has an 'after' inline dependency, no script in the chain is deferrable.
+			if ( $this->_has_after_inline_dependency( $dependent ) ) {
+				return false;
+			}
+
 			// Recursively check any dependents of the dependent script. If any dependent script is not deferrable,
 			// no script in the chain is deferrable.
 			if ( ! $this->_all_dependents_are_deferrable( $dependent, $visited ) ) {
@@ -488,6 +500,13 @@ class WP_Scripts extends WP_Dependencies {
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Helper function to check if a script has an `after` inline dependency.
+	 */
+	private function _has_after_inline_dependency( $handle ) {
+		return false !== $this->get_data( $handle, 'after' );
 	}
 
 	/**
