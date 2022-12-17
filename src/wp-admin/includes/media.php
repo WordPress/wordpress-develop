@@ -1017,8 +1017,10 @@ function media_sideload_image( $file, $post_id = 0, $desc = null, $return_type =
 		 *  - `jpe`
 		 *  - `png`
 		 *  - `gif`
+		 *  - `webp`
 		 *
 		 * @since 5.6.0
+		 * @since 5.8.0 Added 'webp' to the default list of allowed file extensions.
 		 *
 		 * @param string[] $allowed_extensions Array of allowed file extensions.
 		 * @param string   $file               The URL of the image to download.
