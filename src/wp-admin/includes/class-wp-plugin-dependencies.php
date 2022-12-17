@@ -624,7 +624,8 @@ class WP_Plugin_Dependencies {
 
 			$circular_dependencies = $this->get_circular_dependencies();
 			if ( ! empty( $circular_dependencies ) && count( $circular_dependencies ) > 1 ) {
-				$messages  = __( 'You have circular dependencies with the following plugins: ' . implode( ', ', $circular_dependencies['names'] ) );
+				/* translators: circular dependencies names */
+				$messages  = sprintf( __( 'You have circular dependencies with the following plugins: %s' ), implode( ', ', $circular_dependencies['names'] ) );
 				$messages .= '<br>' . __( 'Please contact the plugin developers and make them aware.' );
 				printf(
 					'<div class="notice-warning notice is-dismissible"><p>%s</p></div>',
