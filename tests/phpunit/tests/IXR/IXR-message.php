@@ -13,7 +13,12 @@
  */
 class Tests_IXR_IXR_Message extends WP_UnitTestCase {
 
-	public function test_parse() {
+	/**
+	 * @ticket 56033
+	 *
+	 * @covers IXR_Message::tag_open
+	 */    
+	public function test_tag_open_does_not_create_dynamic_property() {
 		$message = new IXR_Message( '<methodResponse><params><param><value>1</value></param></params></methodResponse>' );
 		$this->assertTrue( $message->parse() );
 		$this->assertSame( 'methodResponse', $message->messageType ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
