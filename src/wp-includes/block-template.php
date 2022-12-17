@@ -43,7 +43,7 @@ function _add_template_loader_filters() {
  * @param string   $template  Path to the template. See locate_template().
  * @param string   $type      Sanitized filename without extension.
  * @param string[] $templates A list of template candidates, in descending order of priority.
- * @return string The path to the Full Site Editing template canvas file, or the fallback PHP template.
+ * @return string The path to the Site Editor template canvas file, or the fallback PHP template.
  */
 function locate_block_template( $template, $type, array $templates ) {
 	global $_wp_current_template_content;
@@ -145,7 +145,7 @@ function resolve_block_template( $template_type, $template_hierarchy, $fallback_
 
 	// Find all potential templates 'wp_template' post matching the hierarchy.
 	$query     = array(
-		'theme'    => wp_get_theme()->get_stylesheet(),
+		'theme'    => get_stylesheet(),
 		'slug__in' => $slugs,
 	);
 	$templates = get_block_templates( $query );

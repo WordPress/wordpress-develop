@@ -124,12 +124,18 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		);
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_context_param() {
-		$this->markTestSkipped( 'Controller does not implement context_param().' );
+		// Controller does not use get_context_param().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_get_items() {
-		$this->markTestSkipped( 'Controller does not implement get_items().' );
+		// Controller does not implement get_items().
 	}
 
 	/**
@@ -365,7 +371,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$data     = $response->get_data();
 		$links    = $response->get_links();
 
-		$this->assertEquals(
+		$this->assertEqualSets(
 			array(
 				'id'       => self::$global_styles_id,
 				'title'    => array(
@@ -382,8 +388,11 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$this->assertStringContainsString( '/wp/v2/global-styles/' . self::$global_styles_id, $links['self'][0]['href'] );
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_create_item() {
-		$this->markTestSkipped( 'Controller does not implement create_item().' );
+		// Controller does not implement create_item().
 	}
 
 	/**
@@ -400,7 +409,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'My new global styles title', $data['title']['raw'] );
+		$this->assertSame( 'My new global styles title', $data['title']['raw'] );
 	}
 
 
@@ -437,12 +446,18 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_delete_item() {
-		$this->markTestSkipped( 'Controller does not implement delete_item().' );
+		// Controller does not implement delete_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_prepare_item() {
-		$this->markTestSkipped( 'Controller does not implement prepare_item().' );
+		// Controller does not implement prepare_item().
 	}
 
 	/**
@@ -471,6 +486,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$expected = array(
 			array(
 				'version'  => 2,
+				'title'    => 'Block theme variation',
 				'settings' => array(
 					'color' => array(
 						'palette' => array(
@@ -493,7 +509,6 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 						),
 					),
 				),
-				'title'    => 'variation',
 			),
 		);
 		$this->assertSameSetsWithIndex( $data, $expected );

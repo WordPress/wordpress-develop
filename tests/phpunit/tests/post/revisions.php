@@ -5,6 +5,9 @@
  * @group revision
  */
 class Tests_Post_Revisions extends WP_UnitTestCase {
+
+	const POST_TYPE = 'test-revision';
+
 	protected static $admin_user_id;
 	protected static $editor_user_id;
 	protected static $author_user_id;
@@ -13,11 +16,6 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		self::$admin_user_id  = $factory->user->create( array( 'role' => 'administrator' ) );
 		self::$editor_user_id = $factory->user->create( array( 'role' => 'editor' ) );
 		self::$author_user_id = $factory->user->create( array( 'role' => 'author' ) );
-	}
-
-	public function set_up() {
-		parent::set_up();
-		$this->post_type = 'test-revision';
 	}
 
 	/**
@@ -318,7 +316,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 */
 	public function test_revision_view_caps_cpt() {
 		register_post_type(
-			$this->post_type,
+			self::POST_TYPE,
 			array(
 				'capability_type' => 'event',
 				'map_meta_cap'    => true,
@@ -328,7 +326,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		$post_id = self::factory()->post->create(
 			array(
-				'post_type'   => $this->post_type,
+				'post_type'   => self::POST_TYPE,
 				'post_author' => self::$editor_user_id,
 			)
 		);
@@ -360,7 +358,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 */
 	public function test_revision_restore_caps_cpt() {
 		register_post_type(
-			$this->post_type,
+			self::POST_TYPE,
 			array(
 				'capability_type' => 'event',
 				'map_meta_cap'    => true,
@@ -375,7 +373,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		// Create a post as Editor.
 		$post_id = self::factory()->post->create(
 			array(
-				'post_type'   => $this->post_type,
+				'post_type'   => self::POST_TYPE,
 				'post_author' => self::$editor_user_id,
 			)
 		);
@@ -406,7 +404,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 */
 	public function test_revision_restore_caps_before_publish() {
 		register_post_type(
-			$this->post_type,
+			self::POST_TYPE,
 			array(
 				'capability_type' => 'post',
 				'capabilities'    => array(
@@ -424,7 +422,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		$post_id = self::factory()->post->create(
 			array(
-				'post_type'   => $this->post_type,
+				'post_type'   => self::POST_TYPE,
 				'post_status' => 'draft',
 			)
 		);
@@ -466,7 +464,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 */
 	public function test_revision_diff_caps_cpt() {
 		register_post_type(
-			$this->post_type,
+			self::POST_TYPE,
 			array(
 				'capability_type' => 'event',
 				'map_meta_cap'    => true,
@@ -476,7 +474,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		$post_id = self::factory()->post->create(
 			array(
-				'post_type'   => $this->post_type,
+				'post_type'   => self::POST_TYPE,
 				'post_author' => self::$editor_user_id,
 			)
 		);
@@ -675,17 +673,17 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		$post_revisions       = wp_get_post_revisions( $post_id );
 		$latest_post_revision = current( $post_revisions );
-		$revision             = wp_get_latest_revision_id_and_total_count( $post_id );
+		$revisions            = wp_get_latest_revision_id_and_total_count( $post_id );
 
 		$this->assertSame(
 			$latest_post_revision->ID,
-			$revision['revision'],
+			$revisions['latest_id'],
 			'The latest revision ID does not match.'
 		);
 
 		$this->assertSame(
 			count( $post_revisions ),
-			$revision['count'],
+			$revisions['count'],
 			'The total count of revisions does not match.'
 		);
 	}

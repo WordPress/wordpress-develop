@@ -23,15 +23,14 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	protected static $hooks_saved = array();
 	protected static $ignore_files;
 
-	public function __isset( $name ) {
-		return 'factory' === $name;
-	}
-
-	public function __get( $name ) {
-		if ( 'factory' === $name ) {
-			return self::factory();
-		}
-	}
+	/**
+	 * Fixture factory.
+	 *
+	 * @deprecated 6.1.0 Use the WP_UnitTestCase_Base::factory() method instead.
+	 *
+	 * @var WP_UnitTest_Factory
+	 */
+	protected $factory;
 
 	/**
 	 * Fetches the factory object for generating WordPress fixtures.
@@ -63,12 +62,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	public static function set_up_before_class() {
 		global $wpdb;
 
+		parent::set_up_before_class();
+
 		$wpdb->suppress_errors = false;
 		$wpdb->show_errors     = true;
 		$wpdb->db_connect();
 		ini_set( 'display_errors', 1 );
-
-		parent::set_up_before_class();
 
 		$class = get_called_class();
 
@@ -83,18 +82,18 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Runs the routine after all tests have been run.
 	 */
 	public static function tear_down_after_class() {
-		parent::tear_down_after_class();
-
-		_delete_all_data();
-		self::flush_cache();
-
 		$class = get_called_class();
 
 		if ( method_exists( $class, 'wpTearDownAfterClass' ) ) {
 			call_user_func( array( $class, 'wpTearDownAfterClass' ) );
 		}
 
+		_delete_all_data();
+		self::flush_cache();
+
 		self::commit_transaction();
+
+		parent::tear_down_after_class();
 	}
 
 	/**
@@ -102,6 +101,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 */
 	public function set_up() {
 		set_time_limit( 0 );
+
+		$this->factory = self::factory();
 
 		if ( ! self::$ignore_files ) {
 			self::$ignore_files = $this->scan_user_uploads();
@@ -321,7 +322,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Saves the action and filter-related globals so they can be restored later.
 	 *
 	 * Stores $wp_actions, $wp_current_filter, and $wp_filter on a class variable
-	 * so they can be restored on tearDown() using _restore_hooks().
+	 * so they can be restored on tear_down() using _restore_hooks().
 	 *
 	 * @global array $wp_actions
 	 * @global array $wp_current_filter
@@ -339,7 +340,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	}
 
 	/**
-	 * Restores the hook-related globals to their state at setUp()
+	 * Restores the hook-related globals to their state at set_up()
 	 * so that future tests aren't affected by hooks set during this last test.
 	 *
 	 * @global array $wp_actions
@@ -366,16 +367,41 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 */
 	public static function flush_cache() {
 		global $wp_object_cache;
+
 		$wp_object_cache->group_ops      = array();
 		$wp_object_cache->stats          = array();
 		$wp_object_cache->memcache_debug = array();
 		$wp_object_cache->cache          = array();
+
 		if ( method_exists( $wp_object_cache, '__remoteset' ) ) {
 			$wp_object_cache->__remoteset();
 		}
+
 		wp_cache_flush();
-		wp_cache_add_global_groups( array( 'users', 'userlogins', 'usermeta', 'user_meta', 'useremail', 'userslugs', 'site-transient', 'site-options', 'blog-lookup', 'blog-details', 'rss', 'global-posts', 'blog-id-cache', 'networks', 'sites', 'site-details', 'blog_meta' ) );
-		wp_cache_add_non_persistent_groups( array( 'comment', 'counts', 'plugins' ) );
+
+		wp_cache_add_global_groups(
+			array(
+				'blog-details',
+				'blog-id-cache',
+				'blog-lookup',
+				'blog_meta',
+				'global-posts',
+				'networks',
+				'sites',
+				'site-details',
+				'site-options',
+				'site-transient',
+				'rss',
+				'users',
+				'useremail',
+				'userlogins',
+				'usermeta',
+				'user_meta',
+				'userslugs',
+			)
+		);
+
+		wp_cache_add_non_persistent_groups( array( 'counts', 'plugins' ) );
 	}
 
 	/**
@@ -1323,6 +1349,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * Does not delete files if their paths are set in the `$ignore_files` property.
 	 *
+	 * @since 4.0.0
+	 *
 	 * @param string $path Directory path.
 	 */
 	public function rmdir( $path ) {
@@ -1337,11 +1365,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	/**
 	 * Deletes files added to the `uploads` directory during tests.
 	 *
-	 * This method works in tandem with the `setUp()` and `rmdir()` methods:
-	 * - `setUp()` scans the `uploads` directory before every test, and stores its contents inside of the
-	 *   `$ignore_files` property.
-	 * - `rmdir()` and its helper methods only delete files that are not listed in the `$ignore_files` property. If
-	 *   called during `tearDown()` in tests, this will only delete files added during the previously run test.
+	 * This method works in tandem with the `set_up()` and `rmdir()` methods:
+	 * - `set_up()` scans the `uploads` directory before every test, and stores
+	 *   its contents inside of the `$ignore_files` property.
+	 * - `rmdir()` and its helper methods only delete files that are not listed
+	 *   in the `$ignore_files` property. If called during `tear_down()` in tests,
+	 *   this will only delete files added during the previously run test.
 	 */
 	public function remove_added_uploads() {
 		$uploads = wp_upload_dir();
@@ -1396,35 +1425,51 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string $path Path to the directory to scan.
 	 */
 	public function delete_folders( $path ) {
-		$this->matched_dirs = array();
 		if ( ! is_dir( $path ) ) {
 			return;
 		}
 
-		$this->scandir( $path );
-		foreach ( array_reverse( $this->matched_dirs ) as $dir ) {
+		$matched_dirs = $this->scandir( $path );
+
+		foreach ( array_reverse( $matched_dirs ) as $dir ) {
 			rmdir( $dir );
 		}
+
 		rmdir( $path );
 	}
 
 	/**
-	 * Retrieves all directories contained inside a directory and stores them in the `$matched_dirs` property.
+	 * Retrieves all directories contained inside a directory.
 	 * Hidden directories are ignored.
 	 *
 	 * This is a helper for the `delete_folders()` method.
 	 *
 	 * @since 4.1.0
+	 * @since 6.1.0 No longer sets a (dynamic) property to keep track of the directories,
+	 *              but returns an array of the directories instead.
 	 *
 	 * @param string $dir Path to the directory to scan.
+	 * @return string[] List of directories.
 	 */
 	public function scandir( $dir ) {
+		$matched_dirs = array();
+
 		foreach ( scandir( $dir ) as $path ) {
 			if ( 0 !== strpos( $path, '.' ) && is_dir( $dir . '/' . $path ) ) {
-				$this->matched_dirs[] = $dir . '/' . $path;
-				$this->scandir( $dir . '/' . $path );
+				$matched_dirs[] = array( $dir . '/' . $path );
+				$matched_dirs[] = $this->scandir( $dir . '/' . $path );
 			}
 		}
+
+		/*
+		 * Compatibility check for PHP < 7.4, where array_merge() expects at least one array.
+		 * See: https://3v4l.org/BIQMA
+		 */
+		if ( array() === $matched_dirs ) {
+			return array();
+		}
+
+		return array_merge( ...$matched_dirs );
 	}
 
 	/**

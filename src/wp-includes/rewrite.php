@@ -244,10 +244,10 @@ function remove_permastruct( $name ) {
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param string   $feedname Feed name.
- * @param callable $function Callback to run on feed display.
+ * @param callable $callback Callback to run on feed display.
  * @return string Feed action name.
  */
-function add_feed( $feedname, $function ) {
+function add_feed( $feedname, $callback ) {
 	global $wp_rewrite;
 
 	if ( ! in_array( $feedname, $wp_rewrite->feeds, true ) ) {
@@ -259,7 +259,7 @@ function add_feed( $feedname, $function ) {
 	// Remove default function hook.
 	remove_action( $hook, $hook );
 
-	add_action( $hook, $function, 10, 2 );
+	add_action( $hook, $callback, 10, 2 );
 
 	return $hook;
 }
@@ -410,7 +410,10 @@ function wp_resolve_numeric_slug_conflicts( $query_vars = array() ) {
 	}
 
 	// This is the potentially clashing slug.
-	$value = $query_vars[ $compare ];
+	$value = '';
+	if ( $compare && array_key_exists( $compare, $query_vars ) ) {
+		$value = $query_vars[ $compare ];
+	}
 
 	$post = get_page_by_path( $value, OBJECT, 'post' );
 	if ( ! ( $post instanceof WP_Post ) ) {
@@ -497,8 +500,21 @@ function url_to_postid( $url ) {
 	 */
 	$url = apply_filters( 'url_to_postid', $url );
 
-	$url_host      = str_replace( 'www.', '', parse_url( $url, PHP_URL_HOST ) );
-	$home_url_host = str_replace( 'www.', '', parse_url( home_url(), PHP_URL_HOST ) );
+	$url_host = parse_url( $url, PHP_URL_HOST );
+
+	if ( is_string( $url_host ) ) {
+		$url_host = str_replace( 'www.', '', $url_host );
+	} else {
+		$url_host = '';
+	}
+
+	$home_url_host = parse_url( home_url(), PHP_URL_HOST );
+
+	if ( is_string( $home_url_host ) ) {
+		$home_url_host = str_replace( 'www.', '', $home_url_host );
+	} else {
+		$home_url_host = '';
+	}
 
 	// Bail early if the URL does not belong to this site.
 	if ( $url_host && $url_host !== $home_url_host ) {

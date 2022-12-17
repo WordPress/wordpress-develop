@@ -48,6 +48,7 @@ require_once ABSPATH . 'wp-admin/includes/class-wp-ajax-upgrader-skin.php';
  *
  * @since 2.8.0
  */
+#[AllowDynamicProperties]
 class WP_Upgrader {
 
 	/**
@@ -909,6 +910,8 @@ class WP_Upgrader {
 	 * Creates a lock using WordPress options.
 	 *
 	 * @since 4.5.0
+	 *
+	 * @global wpdb $wpdb The WordPress database abstraction object.
 	 *
 	 * @param string $lock_name       The name of this unique lock.
 	 * @param int    $release_timeout Optional. The duration in seconds to respect an existing lock.

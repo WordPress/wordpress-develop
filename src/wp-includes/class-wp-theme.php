@@ -6,6 +6,7 @@
  * @subpackage Theme
  * @since 3.4.0
  */
+#[AllowDynamicProperties]
 final class WP_Theme implements ArrayAccess {
 
 	/**
@@ -23,6 +24,7 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @since 3.4.0
 	 * @since 5.4.0 Added `Requires at least` and `Requires PHP` headers.
+	 * @since 6.1.0 Added `Update URI` header.
 	 * @var string[]
 	 */
 	private static $file_headers = array(
@@ -39,6 +41,7 @@ final class WP_Theme implements ArrayAccess {
 		'DomainPath'  => 'Domain Path',
 		'RequiresWP'  => 'Requires at least',
 		'RequiresPHP' => 'Requires PHP',
+		'UpdateURI'   => 'Update URI',
 	);
 
 	/**
@@ -58,20 +61,21 @@ final class WP_Theme implements ArrayAccess {
 	 * @var string[]
 	 */
 	private static $default_themes = array(
-		'classic'         => 'WordPress Classic',
-		'default'         => 'WordPress Default',
-		'twentyten'       => 'Twenty Ten',
-		'twentyeleven'    => 'Twenty Eleven',
-		'twentytwelve'    => 'Twenty Twelve',
-		'twentythirteen'  => 'Twenty Thirteen',
-		'twentyfourteen'  => 'Twenty Fourteen',
-		'twentyfifteen'   => 'Twenty Fifteen',
-		'twentysixteen'   => 'Twenty Sixteen',
-		'twentyseventeen' => 'Twenty Seventeen',
-		'twentynineteen'  => 'Twenty Nineteen',
-		'twentytwenty'    => 'Twenty Twenty',
-		'twentytwentyone' => 'Twenty Twenty-One',
-		'twentytwentytwo' => 'Twenty Twenty-Two',
+		'classic'           => 'WordPress Classic',
+		'default'           => 'WordPress Default',
+		'twentyten'         => 'Twenty Ten',
+		'twentyeleven'      => 'Twenty Eleven',
+		'twentytwelve'      => 'Twenty Twelve',
+		'twentythirteen'    => 'Twenty Thirteen',
+		'twentyfourteen'    => 'Twenty Fourteen',
+		'twentyfifteen'     => 'Twenty Fifteen',
+		'twentysixteen'     => 'Twenty Sixteen',
+		'twentyseventeen'   => 'Twenty Seventeen',
+		'twentynineteen'    => 'Twenty Nineteen',
+		'twentytwenty'      => 'Twenty Twenty',
+		'twentytwentyone'   => 'Twenty Twenty-One',
+		'twentytwentytwo'   => 'Twenty Twenty-Two',
+		'twentytwentythree' => 'Twenty Twenty-Three',
 	);
 
 	/**
@@ -844,9 +848,11 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @since 3.4.0
 	 * @since 5.4.0 Added support for `Requires at least` and `Requires PHP` headers.
+	 * @since 6.1.0 Added support for `Update URI` header.
 	 *
 	 * @param string $header Theme header. Accepts 'Name', 'Description', 'Author', 'Version',
-	 *                       'ThemeURI', 'AuthorURI', 'Status', 'Tags', 'RequiresWP', 'RequiresPHP'.
+	 *                       'ThemeURI', 'AuthorURI', 'Status', 'Tags', 'RequiresWP', 'RequiresPHP',
+	 *                       'UpdateURI'.
 	 * @param string $value  Value to sanitize.
 	 * @return string|array An array for Tags header, string otherwise.
 	 */
@@ -896,6 +902,7 @@ final class WP_Theme implements ArrayAccess {
 			case 'Version':
 			case 'RequiresWP':
 			case 'RequiresPHP':
+			case 'UpdateURI':
 				$value = strip_tags( $value );
 				break;
 		}

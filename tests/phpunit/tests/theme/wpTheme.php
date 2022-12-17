@@ -10,6 +10,20 @@
  */
 class Tests_Theme_wpTheme extends WP_UnitTestCase {
 
+	/**
+	 * Theme root directory.
+	 *
+	 * @var string
+	 */
+	private $theme_root;
+
+	/**
+	 * Original theme directory.
+	 *
+	 * @var string
+	 */
+	private $orig_theme_dir;
+
 	public function set_up() {
 		parent::set_up();
 		$this->theme_root = realpath( DIR_TESTDATA . '/themedir1' );
@@ -390,5 +404,51 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 				'expected'  => '/block-theme/templates/page.html',
 			),
 		);
+	}
+
+	/**
+	 * Tests that the UpdateURI header is retrieved.
+	 *
+	 * @ticket 14179
+	 *
+	 * @covers WP_Theme::get
+	 */
+	public function test_theme_get_update_uri_header() {
+		$theme = new WP_Theme( 'update-uri-theme', $this->theme_root );
+
+		$this->assertTrue(
+			$theme->exists(),
+			'The update-uri-theme does not exist.'
+		);
+
+		$update_uri = $theme->get( 'UpdateURI' );
+
+		$this->assertIsString(
+			$update_uri,
+			'The UpdateURI header was not returned as a string.'
+		);
+
+		$this->assertSame(
+			'http://example.org/update-uri-theme/',
+			$update_uri,
+			'The UpdateURI header did not match the expected value.'
+		);
+	}
+
+	/**
+	 * Tests that WP_Theme::sanitize_header() strips tags from the UpdateURI header.
+	 *
+	 * @ticket 14179
+	 *
+	 * @covers WP_Theme::sanitize_header
+	 */
+	public function test_should_strip_tags_from_update_uri_header() {
+		$theme           = new WP_Theme( 'twentytwentytwo', $this->theme_root );
+		$sanitize_header = new ReflectionMethod( $theme, 'sanitize_header' );
+		$sanitize_header->setAccessible( true );
+
+		$actual = $sanitize_header->invoke( $theme, 'UpdateURI', '<?php?><a href="http://example.org">http://example.org</a>' );
+
+		$this->assertSame( 'http://example.org', $actual );
 	}
 }

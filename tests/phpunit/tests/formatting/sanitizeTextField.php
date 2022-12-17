@@ -105,7 +105,7 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 				'',
 			),
 			array(
-				new WP_Query,
+				new WP_Query(),
 				'',
 			),
 			array(

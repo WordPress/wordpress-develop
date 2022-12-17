@@ -213,17 +213,17 @@ switch ( $step ) {
 	<table class="form-table" role="presentation">
 		<tr>
 			<th scope="row"><label for="dbname"><?php _e( 'Database Name' ); ?></label></th>
-			<td><input name="dbname" id="dbname" type="text" aria-describedby="dbname-desc" size="25" value="wordpress"<?php echo $autofocus; ?>/></td>
+			<td><input name="dbname" id="dbname" type="text" aria-describedby="dbname-desc" size="25" placeholder="wordpress"<?php echo $autofocus; ?>/></td>
 			<td id="dbname-desc"><?php _e( 'The name of the database you want to use with WordPress.' ); ?></td>
 		</tr>
 		<tr>
 			<th scope="row"><label for="uname"><?php _e( 'Username' ); ?></label></th>
-			<td><input name="uname" id="uname" type="text" aria-describedby="uname-desc" size="25" value="<?php echo htmlspecialchars( _x( 'username', 'example username' ), ENT_QUOTES ); ?>" /></td>
+			<td><input name="uname" id="uname" type="text" aria-describedby="uname-desc" size="25" placeholder="<?php echo htmlspecialchars( _x( 'username', 'example username' ), ENT_QUOTES ); ?>" /></td>
 			<td id="uname-desc"><?php _e( 'Your database username.' ); ?></td>
 		</tr>
 		<tr>
 			<th scope="row"><label for="pwd"><?php _e( 'Password' ); ?></label></th>
-			<td><input name="pwd" id="pwd" type="text" aria-describedby="pwd-desc" size="25" value="<?php echo htmlspecialchars( _x( 'password', 'example password' ), ENT_QUOTES ); ?>" autocomplete="off" /></td>
+			<td><input name="pwd" id="pwd" type="text" aria-describedby="pwd-desc" size="25" placeholder="<?php echo htmlspecialchars( _x( 'password', 'example password' ), ENT_QUOTES ); ?>" autocomplete="off" /></td>
 			<td id="pwd-desc"><?php _e( 'Your database password.' ); ?></td>
 		</tr>
 		<tr>
@@ -311,9 +311,10 @@ switch ( $step ) {
 			wp_die( $wpdb->error->get_error_message() . $tryagain_link );
 		}
 
-		$errors = $wpdb->hide_errors();
+		$errors = $wpdb->suppress_errors();
 		$wpdb->query( "SELECT $prefix" );
-		$wpdb->show_errors( $errors );
+		$wpdb->suppress_errors( $errors );
+
 		if ( ! $wpdb->last_error ) {
 			// MySQL was able to parse the prefix as a value, which we don't want. Bail.
 			wp_die( __( '<strong>Error:</strong> "Table Prefix" is invalid.' ) );
