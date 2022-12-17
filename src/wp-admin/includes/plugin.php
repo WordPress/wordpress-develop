@@ -412,7 +412,7 @@ function get_mu_plugins() {
 	 *
 	 * @since 6.2.0
 	 *
-	 * @param array $wp_plugins An array of arrays of mu-plugin data, keyed by plugin file name.
+	 * @param array[] $wp_plugins An array of arrays of mu-plugin data, keyed by plugin file name.
 	 */
 	return apply_filters( 'mu_plugins', $wp_plugins );
 }
