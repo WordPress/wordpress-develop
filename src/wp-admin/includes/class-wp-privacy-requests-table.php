@@ -110,7 +110,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 		global $wpdb;
 
 		// This duplicates wp_count_posts() with an additional post_name clause.
-		$cache_key = wp_cache_get_last_changed( 'posts' ) . '-' . $this->post_type . '-' . $this->request_type;
+		$cache_key = wp_cache_get_last_changed( 'posts' ) . ':' . $this->post_type . '-' . $this->request_type;
 		$counts    = wp_cache_get( $cache_key, 'counts' );
 
 		if ( false !== $counts ) {

@@ -1412,7 +1412,7 @@ function wp_count_comments( $post_id = 0 ) {
 		return $filtered;
 	}
 
-	$cache_key = wp_cache_get_last_changed( 'comment' ) . "-comments-{$post_id}";
+	$cache_key = wp_cache_get_last_changed( 'comment' ) . ":comments-{$post_id}";
 
 	$count = wp_cache_get( $cache_key, 'counts' );
 	if ( false !== $count ) {

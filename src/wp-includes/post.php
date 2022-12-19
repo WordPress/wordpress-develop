@@ -2981,7 +2981,7 @@ function unstick_post( $post_id ) {
  * @return string The cache key.
  */
 function _count_posts_cache_key( $type = 'post', $perm = '' ) {
-	$cache_key = wp_cache_get_last_changed( 'posts' ) . '-posts-' . $type;
+	$cache_key = wp_cache_get_last_changed( 'posts' ) . ':posts-' . $type;
 
 	if ( 'readable' === $perm && is_user_logged_in() ) {
 		$post_type_object = get_post_type_object( $type );
@@ -3093,7 +3093,7 @@ function wp_count_attachments( $mime_type = '' ) {
 	global $wpdb;
 
 	$cache_key = sprintf(
-		'%s-attachments%s',
+		'%s:attachments%s',
 		wp_cache_get_last_changed( 'posts' ),
 		! empty( $mime_type ) ? ':' . str_replace( '/', '_', implode( '-', (array) $mime_type ) ) : ''
 	);
