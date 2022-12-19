@@ -3022,7 +3022,7 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 
 	$cache_key = _count_posts_cache_key( $type, $perm );
 
-	$counts = wp_cache_get( $cache_key, 'counts' );
+	$counts = wp_cache_get( $cache_key, 'persistent-counts' );
 	if ( false !== $counts ) {
 		// We may have cached this before every status was registered.
 		foreach ( get_post_stati() as $status ) {
@@ -3057,7 +3057,7 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 	}
 
 	$counts = (object) $counts;
-	wp_cache_set( $cache_key, $counts, 'counts' );
+	wp_cache_set( $cache_key, $counts, 'persistent-counts' );
 
 	/**
 	 * Filters the post counts by status for the current post type.
@@ -3098,7 +3098,7 @@ function wp_count_attachments( $mime_type = '' ) {
 		! empty( $mime_type ) ? ':' . str_replace( '/', '_', implode( '-', (array) $mime_type ) ) : ''
 	);
 
-	$counts = wp_cache_get( $cache_key, 'counts' );
+	$counts = wp_cache_get( $cache_key, 'persistent-counts' );
 	if ( false == $counts ) {
 		$and   = wp_post_mime_type_where( $mime_type );
 		$count = $wpdb->get_results( "SELECT post_mime_type, COUNT( * ) AS num_posts FROM $wpdb->posts WHERE post_type = 'attachment' AND post_status != 'trash' $and GROUP BY post_mime_type", ARRAY_A );
@@ -3109,7 +3109,7 @@ function wp_count_attachments( $mime_type = '' ) {
 		}
 		$counts['trash'] = $wpdb->get_var( "SELECT COUNT( * ) FROM $wpdb->posts WHERE post_type = 'attachment' AND post_status = 'trash' $and" );
 
-		wp_cache_set( $cache_key, (object) $counts, 'counts' );
+		wp_cache_set( $cache_key, (object) $counts, 'persistent-counts' );
 	}
 
 	/**

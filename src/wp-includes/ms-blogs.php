@@ -666,7 +666,7 @@ function restore_current_blog() {
 				);
 			}
 
-			wp_cache_add_non_persistent_groups( array( 'plugins' ) );
+			wp_cache_add_non_persistent_groups( array( 'counts', 'plugins' ) );
 		}
 	}
 

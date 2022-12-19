@@ -27,7 +27,7 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 
 		$expected  = wp_count_attachments( $mime_type );
 		$cache_key = wp_cache_get_last_changed( 'posts' ) . ':attachments:image_jpeg';
-		$actual    = wp_cache_get( $cache_key, 'counts' );
+		$actual    = wp_cache_get( $cache_key, 'persistent-counts' );
 
 		$this->assertEquals( $expected, $actual );
 	}

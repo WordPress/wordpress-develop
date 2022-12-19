@@ -1414,7 +1414,7 @@ function wp_count_comments( $post_id = 0 ) {
 
 	$cache_key = wp_cache_get_last_changed( 'comment' ) . ":comments-{$post_id}";
 
-	$count = wp_cache_get( $cache_key, 'counts' );
+	$count = wp_cache_get( $cache_key, 'persistent-counts' );
 	if ( false !== $count ) {
 		return $count;
 	}
@@ -1424,7 +1424,7 @@ function wp_count_comments( $post_id = 0 ) {
 	unset( $stats['awaiting_moderation'] );
 
 	$stats_object = (object) $stats;
-	wp_cache_set( $cache_key, $stats_object, 'counts' );
+	wp_cache_set( $cache_key, $stats_object, 'persistent-counts' );
 
 	return $stats_object;
 }
