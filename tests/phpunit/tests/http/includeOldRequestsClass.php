@@ -9,8 +9,6 @@
 class Tests_HTTP_IncludeOldRequestsClass extends WP_UnitTestCase {
 
 	/**
-	 * Tests that the old Requests class is included for plugins or themes that still use it.
-	 *
 	 * @ticket 57341
 	 *
 	 * @coversNothing
@@ -21,5 +19,4 @@ class Tests_HTTP_IncludeOldRequestsClass extends WP_UnitTestCase {
 
 		new Requests();
 	}
-
 }
