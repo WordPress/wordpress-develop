@@ -21,19 +21,35 @@
  *                              Valid values are 'all' (core, theme, and user) or 'base' (core and theme).
  *                              If empty or unknown, 'all' is used.
  * }
+ *
  * @return array The settings to retrieve.
  */
 function wp_get_global_settings( $path = array(), $context = array() ) {
 	if ( ! empty( $context['block_name'] ) ) {
-		$path = array_merge( array( 'blocks', $context['block_name'] ), $path );
+		$new_path = array( 'blocks', $context['block_name'] );
+		foreach ( $path as $subpath ) {
+			$new_path[] = $subpath;
+		}
+		$path = $new_path;
 	}
 
+	// This is the default value when no origin is provided or when it is 'all'.
 	$origin = 'custom';
-	if ( isset( $context['origin'] ) && 'base' === $context['origin'] ) {
+	if (
+		! wp_theme_has_theme_json() ||
+		( isset( $context['origin'] ) && 'base' === $context['origin'] )
+	) {
 		$origin = 'theme';
 	}
 
-	$settings = WP_Theme_JSON_Resolver::get_merged_data( $origin )->get_settings();
+	$cache_group = 'theme_json';
+	$cache_key   = 'wp_get_global_settings_' . $origin;
+	$settings    = wp_cache_get( $cache_key, $cache_group );
+
+	if ( false === $settings || WP_DEBUG ) {
+		$settings = WP_Theme_JSON_Resolver::get_merged_data( $origin )->get_settings();
+		wp_cache_set( $cache_key, $settings, $cache_group );
+	}
 
 	return _wp_array_get( $settings, $path, $settings );
 }
@@ -281,5 +297,6 @@ function wp_theme_has_theme_json() {
  * @since 6.2.0
  */
 function wp_clean_theme_json_cache() {
+	wp_cache_delete( 'wp_get_global_settings', 'theme_json' );
 	WP_Theme_JSON_Resolver::clean_cached_data();
 }
