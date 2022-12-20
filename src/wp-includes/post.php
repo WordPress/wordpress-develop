@@ -6007,8 +6007,8 @@ function get_pages( $args = array() ) {
 
 	$parsed_args = wp_parse_args( $args, $defaults );
 
-	$child_of     = (int) $parsed_args['child_of'];
 	$number       = (int) $parsed_args['number'];
+	$child_of     = (int) $parsed_args['child_of'];
 	$hierarchical = $parsed_args['hierarchical'];
 	$parent       = $parsed_args['parent'];
 	$post_status  = $parsed_args['post_status'];
@@ -6056,6 +6056,15 @@ function get_pages( $args = array() ) {
 		$query_args['post__in'] = wp_parse_id_list( $parsed_args['include'] );
 	}
 
+	if ( is_array( $parent ) ) {
+		$post_parent__in = array_map( 'absint', (array) $parent );
+		if ( ! empty( $post_parent__in ) ) {
+			$query_args['post_parent__in'] = $post_parent__in;
+		}
+	} elseif ( $parent >= 0 ) {
+		$query_args['post_parent'] = $parent;
+	}
+
 	$orderby = wp_parse_list( $parsed_args['sort_column'] );
 	$orderby = array_map( 'trim', $orderby );
 	if ( $orderby ) {
@@ -6069,15 +6078,6 @@ function get_pages( $args = array() ) {
 
 	if ( ! empty( $number ) ) {
 		$query_args['posts_per_page'] = $number;
-	}
-
-	if ( is_array( $parent ) ) {
-		$post_parent__in = array_map( 'absint', (array) $parent );
-		if ( ! empty( $post_parent__in ) ) {
-			$query_args['post_parent__in'] = $post_parent__in;
-		}
-	} elseif ( $parent >= 0 ) {
-		$query_args['post_parent'] = $parent;
 	}
 
 	$query = new WP_Query( $query_args );
