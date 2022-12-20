@@ -1516,7 +1516,7 @@ function update_core( $from, $to ) {
 	}
 
 	// Remove old files.
-	_cleanup_old_files( $checksums )
+	_cleanup_old_files( $checksums );
 
 	// Remove any Genericons example.html's from the filesystem.
 	_upgrade_422_remove_genericons();
