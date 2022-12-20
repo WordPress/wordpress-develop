@@ -143,7 +143,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		$users_total2   = $query2->get_total();
 		$queries_after  = get_num_queries();
 
-		$this->assertSame( $queries_before, $queries_after, 'Assert that no queries are run' );
+		$this->assertSame( 0, $queries_after - $queries_before, 'Assert that no queries are run' );
 		$this->assertSame( $users_total1, $users_total2, 'Assert that totals do match' );
 		$this->assertSameSets( $users1, $users2, 'Asset that results of query match' );
 	}
