@@ -1616,12 +1616,13 @@ function _preload_old_requests_classes_and_interfaces( $to ) {
  *
  * @see update_core()
  *
+ * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  * @global array $_old_files
  *
  * @param array $checksums An array of checksums for the new WordPress version.
  */
 function _cleanup_old_files( $checksums ) {
-	global $_old_files;
+	global $wp_filesystem, $_old_files;
 
 	/*
 	 * Compare the files from the old version and the new version in a case-insensitive manner,
