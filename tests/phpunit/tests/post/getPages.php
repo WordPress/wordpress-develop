@@ -724,6 +724,138 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	 * @ticket 12821
 	 * @covers ::get_pages
 	 */
+	public function test_get_pages_post_type() {
+		register_post_type( 'wptests_pt', array( 'hierarchical' => true ) );
+		$posts = self::factory()->post->create_many( 2, array( 'post_type' => 'wptests_pt' ) );
+		$pages = get_pages(
+			array(
+				'post_type' => 'wptests_pt',
+			)
+		);
+		$this->assertSameSets( $posts, wp_list_pluck( $pages, 'ID' ) );
+	}
+
+
+	/**
+	 * @ticket 12821
+	 * @covers ::get_pages
+	 */
+	public function test_get_pages_author() {
+		$author_1 = self::factory()->user->create(
+			array(
+				'user_login' => 'author1',
+				'role'       => 'author',
+			)
+		);
+		$posts    = self::factory()->post->create_many(
+			2,
+			array(
+				'post_type'   => 'page',
+				'post_author' => $author_1,
+			)
+		);
+		$pages    = get_pages(
+			array(
+				'authors' => $author_1,
+			)
+		);
+
+		$this->assertSameSets( $posts, wp_list_pluck( $pages, 'ID' ) );
+	}
+
+
+	/**
+	 * @ticket 12821
+	 * @covers ::get_pages
+	 */
+	public function test_get_pages_post_status() {
+		register_post_status(
+			'foo',
+			array(
+				'public' => true,
+			)
+		);
+
+		$posts = self::factory()->post->create_many(
+			2,
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'foo',
+			)
+		);
+		$pages = get_pages(
+			array(
+				'post_status' => 'foo',
+			)
+		);
+
+		$this->assertSameSets( $posts, wp_list_pluck( $pages, 'ID' ) );
+	}
+
+	/**
+	 * @ticket 12821
+	 * @covers ::get_pages
+	 */
+	public function test_get_pages_offset() {
+		$posts = self::factory()->post->create_many( 4, array( 'post_type' => 'page' ) );
+		$pages = get_pages(
+			array(
+				'offset' => 2,
+				'number' => 2,
+			)
+		);
+
+		$this->assertSameSets( array( $posts[2], $posts[3] ), wp_list_pluck( $pages, 'ID' ) );
+	}
+
+
+	/**
+	 * @ticket 12821
+	 * @covers ::get_pages
+	 */
+	public function test_get_pages_authors() {
+		$author_1 = self::factory()->user->create(
+			array(
+				'user_login' => 'author1',
+				'role'       => 'author',
+			)
+		);
+		$post_1   = self::factory()->post->create(
+			array(
+				'post_title'  => 'Page 1',
+				'post_type'   => 'page',
+				'post_author' => $author_1,
+				'post_date'   => '2007-01-01 00:00:00',
+			)
+		);
+
+		$author_2 = self::factory()->user->create(
+			array(
+				'user_login' => 'author2',
+				'role'       => 'author',
+			)
+		);
+		$post_2   = self::factory()->post->create(
+			array(
+				'post_title'  => 'Page 2',
+				'post_type'   => 'page',
+				'post_author' => $author_2,
+				'post_date'   => '2007-01-01 00:00:00',
+			)
+		);
+		$pages    = get_pages(
+			array(
+				'authors' => "{$author_1}, {$author_2}",
+			)
+		);
+
+		$this->assertSameSets( array( $post_1, $post_2 ), wp_list_pluck( $pages, 'ID' ) );
+	}
+
+	/**
+	 * @ticket 12821
+	 * @covers ::get_pages
+	 */
 	public function test_orderby() {
 		global $wpdb;
 		// 'rand' is a valid value.

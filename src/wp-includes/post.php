@@ -6035,7 +6035,6 @@ function get_pages( $args = array() ) {
 		'orderby'                => 'post_title',
 		'order'                  => 'ASC',
 		'post__not_in'           => wp_parse_id_list( $parsed_args['exclude'] ),
-		'post__in'               => wp_parse_id_list( $parsed_args['include'] ),
 		'meta_key'               => $parsed_args['meta_key'],
 		'meta_value'             => $parsed_args['meta_value'],
 		'author__in'             => wp_parse_list( $parsed_args['authors'] ),
@@ -6048,6 +6047,16 @@ function get_pages( $args = array() ) {
 		'ignore_sticky_posts'    => true,
 		'no_found_rows'          => true,
 	);
+
+	if ( ! empty( $parsed_args['include'] ) ) {
+		$child_of = 0; // Ignore child_of, parent, exclude, meta_key, and meta_value params if using include.
+		$parent   = -1;
+		unset( $query_args['post__not_in'] );
+		unset( $query_args['meta_key'] );
+		unset( $query_args['meta_value'] );
+		$hierarchical           = false;
+		$query_args['post__in'] = wp_parse_id_list( $parsed_args['include'] );
+	}
 
 	$orderby = wp_parse_list( $parsed_args['sort_column'] );
 	$orderby = array_map( 'trim', $orderby );
