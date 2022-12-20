@@ -3476,8 +3476,27 @@ class WP_Query {
 			$this->posts = array_map( 'get_post', $this->posts );
 
 			if ( $q['cache_results'] ) {
-				$post_ids = wp_list_pluck( $this->posts, 'ID' );
-				_prime_post_caches( $post_ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+				$post_ids       = wp_list_pluck( $this->posts, 'ID' );
+				$non_cached_ids = _get_non_cached_ids( $post_ids, 'posts' );
+				if ( ! empty( $non_cached_ids ) ) {
+					$fresh_posts = array_filter(
+						$this->posts,
+						function ( $post ) use ( $non_cached_ids ) {
+							return in_array( $post->ID, $non_cached_ids, true );
+						}
+					);
+					update_post_cache( $fresh_posts );
+				}
+
+				if ( $q['update_post_meta_cache'] ) {
+					update_postmeta_cache( $post_ids );
+				}
+
+				if ( $q['update_post_term_cache'] ) {
+					$post_types = array_map( 'get_post_type', $post_ids );
+					$post_types = array_unique( $post_types );
+					update_object_term_cache( $post_ids, $post_types );
+				}
 			}
 
 			/** @var WP_Post */
