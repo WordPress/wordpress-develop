@@ -1612,7 +1612,7 @@ function _preload_old_requests_classes_and_interfaces( $to ) {
  * Removes files from the `$_old_files` array after a core update.
  *
  * @ignore
- * @since 6.1.0
+ * @since 6.2.0
  *
  * @see update_core()
  *
