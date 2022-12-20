@@ -6051,9 +6051,7 @@ function get_pages( $args = array() ) {
 	if ( ! empty( $parsed_args['include'] ) ) {
 		$child_of = 0; // Ignore child_of, parent, exclude, meta_key, and meta_value params if using include.
 		$parent   = -1;
-		unset( $query_args['post__not_in'] );
-		unset( $query_args['meta_key'] );
-		unset( $query_args['meta_value'] );
+		unset( $query_args['post__not_in'], $query_args['meta_key'], $query_args['meta_value'] );
 		$hierarchical           = false;
 		$query_args['post__in'] = wp_parse_id_list( $parsed_args['include'] );
 	}

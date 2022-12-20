@@ -173,6 +173,60 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 12821
+	 * @covers ::get_pages
+	 */
+	public function test_include_ignore_meta_key() {
+		$posts = self::factory()->post->create_many(
+			2,
+			array(
+				'post_type' => 'page',
+			)
+		);
+
+		$pages = get_pages(
+			array(
+				'include'    => $posts,
+				'meta_key'   => 'foo',
+				'meta_value' => 'bar',
+			)
+		);
+
+		$page_ids = wp_list_pluck( $pages, 'ID' );
+		$this->assertSameSets( $posts, $page_ids );
+	}
+
+	/**
+	 * @ticket 12821
+	 * @covers ::get_pages
+	 */
+	public function test_include_ignore_exclude() {
+		$includes = self::factory()->post->create_many(
+			2,
+			array(
+				'post_type' => 'page',
+			)
+		);
+
+		$excludes = self::factory()->post->create_many(
+			2,
+			array(
+				'post_type' => 'page',
+			)
+		);
+
+		$pages = get_pages(
+			array(
+				'include' => $includes,
+				'exclude' => $excludes,
+			)
+		);
+
+		$page_ids = wp_list_pluck( $pages, 'ID' );
+		$this->assertSameSets( $includes, $page_ids );
+	}
+
+	/**
 	 * @ticket 40669
 	 */
 	public function test_cache_should_be_invalidated_by_delete_post_meta() {
