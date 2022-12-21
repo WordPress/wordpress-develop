@@ -3717,7 +3717,7 @@ EOF;
 		);
 		$this->assertEquals(
 			'test-square-150.jpg',
-			$metadata['file']
+			basename( $metadata['file'] )
 		);
 		$this->assertEquals(
 			'150',
