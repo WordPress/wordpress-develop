@@ -264,26 +264,26 @@ function get_taxonomies( $args = array(), $output = 'names', $operator = 'and' )
  *
  * @global WP_Taxonomy[] $wp_taxonomies The registered taxonomies.
  *
- * @param string|string[]|WP_Post $item   Name of the type of taxonomy object, or an object (row from posts)
- * @param string                  $output Optional. The type of output to return in the array. Accepts either
- *                                        'names' or 'objects'. Default 'names'.
+ * @param string|string[]|WP_Post $object_type Name of the type of taxonomy object, or an object (row from posts).
+ * @param string                  $output      Optional. The type of output to return in the array. Accepts either
+ *                                             'names' or 'objects'. Default 'names'.
  * @return string[]|WP_Taxonomy[] The names or objects of all taxonomies of `$object_type`.
  */
-function get_object_taxonomies( $item, $output = 'names' ) {
+function get_object_taxonomies( $object_type, $output = 'names' ) {
 	global $wp_taxonomies;
 
-	if ( is_object( $item ) ) {
-		if ( 'attachment' === $item->post_type ) {
-			return get_attachment_taxonomies( $item, $output );
+	if ( is_object( $object_type ) ) {
+		if ( 'attachment' === $object_type->post_type ) {
+			return get_attachment_taxonomies( $object_type, $output );
 		}
-		$item = $item->post_type;
+		$object_type = $object_type->post_type;
 	}
 
-	$item = (array) $item;
+	$object_type = (array) $object_type;
 
 	$taxonomies = array();
 	foreach ( (array) $wp_taxonomies as $tax_name => $tax_obj ) {
-		if ( array_intersect( $item, (array) $tax_obj->object_type ) ) {
+		if ( array_intersect( $object_type, (array) $tax_obj->object_type ) ) {
 			if ( 'names' === $output ) {
 				$taxonomies[] = $tax_name;
 			} else {
