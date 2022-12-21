@@ -594,19 +594,14 @@ class WP_Upgrader {
 		}
 
 		/**
-		 * Filters whether to skip use of standard directory copy function so that
-		 * custom function may be more easily substituted.
+		 * Filters callback function to use for copying directory.
 		 *
 		 * @since 6.2.0
 		 *
-		 * @param bool|WP_Error $result             Filter response.
-		 * @param string        $source             File source location.
-		 * @param string        $remote_destination The remote package destination.
+		 * @param string $callback Name of callback.
 		 */
-		$result = apply_filters( 'upgrader_copy_directory', false, $source, $remote_destination );
-		if ( false === $result ) {
-			$result = copy_dir( $source, $remote_destination );
-		}
+		$callback = apply_filters( 'upgrader_copy_directory', 'copy_dir' );
+		$result   = call_user_func( $callback, $source, $remote_destination );
 
 		if ( is_wp_error( $result ) ) {
 			if ( $args['clear_working'] ) {
