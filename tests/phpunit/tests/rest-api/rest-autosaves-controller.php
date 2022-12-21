@@ -690,13 +690,13 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$post_id   = wp_insert_post( $post_data );
 
 		wp_set_current_user( self::$editor_id );
-		
+
 		$autosave_data = array(
 			'post_content' => $post_data['post_content'],
 		);
 
 		// Create multiple autosaves response.
-		for ( $i=0; $i < 5; $i++ ) { 
+		for ( $i = 0; $i < 5; $i++ ) {
 			$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/autosaves' );
 			$request->add_header( 'content-type', 'application/json' );
 			$request->set_body( wp_json_encode( $autosave_data ) );

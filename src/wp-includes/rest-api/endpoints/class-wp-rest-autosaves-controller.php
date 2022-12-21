@@ -364,13 +364,13 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		$autosave_is_different = false;
 		$new_autosave          = _wp_post_revision_data( $post_data, true );
 
-			foreach ( array_intersect( array_keys( $new_autosave ), array_keys( _wp_post_revision_fields( $post ) ) ) as $field ) {
-				if ( normalize_whitespace( $new_autosave[ $field ] ) !== normalize_whitespace( $post->$field ) ) {
-					$autosave_is_different = true;
+		foreach ( array_intersect( array_keys( $new_autosave ), array_keys( _wp_post_revision_fields( $post ) ) ) as $field ) {
+			if ( normalize_whitespace( $new_autosave[ $field ] ) !== normalize_whitespace( $post->$field ) ) {
+				$autosave_is_different = true;
 				break;
 			}
 		}
-	
+
 		if ( ! $autosave_is_different ) {
 			return new WP_Error(
 				'rest_autosave_no_changes',
