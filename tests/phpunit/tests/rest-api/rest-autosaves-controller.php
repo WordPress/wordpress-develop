@@ -674,4 +674,38 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 
 		wp_delete_post( $post_id );
 	}
+
+	/**
+	 * @ticket 55659
+	 */
+	public function test_rest_autosave_do_not_create_duplicate_revision_when_it_call_multiple_times() {
+		// Create a post by the editor.
+		$post_data = array(
+			'post_content' => 'Test post content',
+			'post_title'   => 'Test post title',
+			'post_excerpt' => 'Test post excerpt',
+			'post_author'  => self::$editor_id,
+			'post_status'  => 'publish',
+		);
+		$post_id   = wp_insert_post( $post_data );
+
+		wp_set_current_user( self::$editor_id );
+		
+		$autosave_data = array(
+			'post_content' => $post_data['post_content'],
+		);
+
+		// Create multiple autosaves response.
+		for ( $i=0; $i < 5; $i++ ) { 
+			$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/autosaves' );
+			$request->add_header( 'content-type', 'application/json' );
+			$request->set_body( wp_json_encode( $autosave_data ) );
+
+			$response = rest_get_server()->dispatch( $request );
+			$data     = $response->get_data();
+
+			$this->assertSame( 400, $response->get_status() );
+			$this->assertSame( 'rest_autosave_no_changes', $data['code'] );
+		}
+	}
 }
