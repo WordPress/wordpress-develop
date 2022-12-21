@@ -260,6 +260,15 @@
 					"width": "6px 0 0 0"
 				}
 			},
+			"core/site-logo": {
+				"elements": {
+					"link": {
+						"border": {
+							"width": "0"
+						}
+					}
+				}
+			},
 			"core/site-title": {
 				"elements": {
 					"link": {
