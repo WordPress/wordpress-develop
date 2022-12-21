@@ -676,7 +676,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	}
 
 	/**
-	 * @ticket 55659
+	 * @ticket 49532
 	 */
 	public function test_rest_autosave_do_not_create_duplicate_revision_when_it_call_multiple_times() {
 		// Create a post by the editor.
