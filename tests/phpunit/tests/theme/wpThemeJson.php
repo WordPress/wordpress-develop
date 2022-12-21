@@ -4090,4 +4090,42 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @ticket 57354
+	 */
+	public function test_get_stylesheet_returns_outline_styles() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'elements' => array(
+						'button' => array(
+							'outline' => array(
+								'offset' => '3px',
+								'width'  => '3px',
+								'style'  => 'dashed',
+								'color'  => 'red',
+							),
+							':hover'  => array(
+								'outline' => array(
+									'offset' => '3px',
+									'width'  => '3px',
+									'style'  => 'solid',
+									'color'  => 'blue',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$base_styles = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }';
+
+		$element_styles = '.wp-element-button, .wp-block-button__link{outline-color: red;outline-offset: 3px;outline-style: dashed;outline-width: 3px;}.wp-element-button:hover, .wp-block-button__link:hover{outline-color: blue;outline-offset: 3px;outline-style: solid;outline-width: 3px;}';
+
+		$expected = $base_styles . $element_styles;
+		$this->assertSame( $expected, $theme_json->get_stylesheet() );
+	}
 }
