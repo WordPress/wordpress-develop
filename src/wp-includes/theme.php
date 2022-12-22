@@ -3125,12 +3125,12 @@ function current_theme_supports( $feature, ...$args ) {
  *
  * @param string $feature The feature being checked. See add_theme_support() for the list
  *                        of possible values.
- * @param string $path    Path to the file.
+ * @param string $file    Path to the file.
  * @return bool True if the active theme supports the supplied feature, false otherwise.
  */
-function require_if_theme_supports( $feature, $path ) {
+function require_if_theme_supports( $feature, $file ) {
 	if ( current_theme_supports( $feature ) ) {
-		require $path;
+		require $file;
 		return true;
 	}
 	return false;
