@@ -603,16 +603,13 @@ class WP_Upgrader {
 		$callback = apply_filters( 'upgrader_copy_directory', 'copy_dir' );
 		$result   = call_user_func( $callback, $source, $remote_destination );
 
-		if ( is_wp_error( $result ) ) {
-			if ( $args['clear_working'] ) {
-				$wp_filesystem->delete( $remote_source, true );
-			}
-			return $result;
-		}
-
 		// Clear the working folder?
 		if ( $args['clear_working'] ) {
 			$wp_filesystem->delete( $remote_source, true );
+		}
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
 		}
 
 		$destination_name = basename( str_replace( $local_destination, '', $destination ) );
