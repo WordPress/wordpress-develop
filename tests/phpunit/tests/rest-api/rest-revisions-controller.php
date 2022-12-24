@@ -16,6 +16,15 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	protected static $editor_id;
 	protected static $contributor_id;
 
+	private $total_revisions;
+	private $revisions;
+	private $revision_1;
+	private $revision_id1;
+	private $revision_2;
+	private $revision_id2;
+	private $revision_3;
+	private $revision_id3;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
 		self::$page_id = $factory->post->create( array( 'post_type' => 'page' ) );

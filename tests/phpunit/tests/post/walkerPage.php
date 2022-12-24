@@ -28,7 +28,7 @@ class Tests_Post_Walker_Page extends WP_UnitTestCase {
 	 */
 	public function test_start_el_with_empty_attributes( $value, $expected ) {
 		$output = '';
-		$page   = $this->factory->post->create_and_get( array( 'post_type' => 'page' ) );
+		$page   = self::factory()->post->create_and_get( array( 'post_type' => 'page' ) );
 		$link   = get_permalink( $page );
 
 		add_filter(

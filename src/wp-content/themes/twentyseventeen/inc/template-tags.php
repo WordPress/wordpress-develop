@@ -112,7 +112,7 @@ if ( ! function_exists( 'twentyseventeen_edit_link' ) ) :
 	function twentyseventeen_edit_link() {
 		edit_post_link(
 			sprintf(
-				/* translators: %s: Post title. */
+				/* translators: %s: Post title. Only visible to screen readers. */
 				__( 'Edit<span class="screen-reader-text"> "%s"</span>', 'twentyseventeen' ),
 				get_the_title()
 			),
@@ -124,6 +124,9 @@ endif;
 
 /**
  * Display a front page section.
+ *
+ * @global int|string $twentyseventeencounter Front page section counter.
+ * @global WP_Post    $post                   Global post object.
  *
  * @param WP_Customize_Partial $partial Partial associated with a selective refresh request.
  * @param int                  $id Front page section to display.

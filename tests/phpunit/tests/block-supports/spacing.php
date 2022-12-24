@@ -1,6 +1,8 @@
 <?php
 /**
  * @group block-supports
+ *
+ * @covers ::wp_apply_spacing_support
  */
 class Test_Block_Supports_Spacing extends WP_UnitTestCase {
 	/**
@@ -8,12 +10,12 @@ class Test_Block_Supports_Spacing extends WP_UnitTestCase {
 	 */
 	private $test_block_name;
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		$this->test_block_name = null;
 	}
 
-	function tear_down() {
+	public function tear_down() {
 		unregister_block_type( $this->test_block_name );
 		$this->test_block_name = null;
 		parent::set_up();
@@ -21,10 +23,8 @@ class Test_Block_Supports_Spacing extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
-	 *
-	 * @covers ::wp_apply_spacing_support
 	 */
-	function test_spacing_style_is_applied() {
+	public function test_spacing_style_is_applied() {
 		$this->test_block_name = 'test/spacing-style-is-applied';
 		register_block_type(
 			$this->test_block_name,
@@ -63,7 +63,7 @@ class Test_Block_Supports_Spacing extends WP_UnitTestCase {
 
 		$actual   = wp_apply_spacing_support( $block_type, $block_atts );
 		$expected = array(
-			'style' => 'padding: 111px; margin-top: 1px; margin-right: 2px; margin-bottom: 3px; margin-left: 4px;',
+			'style' => 'padding:111px;margin-top:1px;margin-right:2px;margin-bottom:3px;margin-left:4px;',
 		);
 
 		$this->assertSame( $expected, $actual );
@@ -71,10 +71,8 @@ class Test_Block_Supports_Spacing extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
-	 *
-	 * @covers ::wp_apply_spacing_support
 	 */
-	function test_spacing_with_skipped_serialization_block_supports() {
+	public function test_spacing_with_skipped_serialization_block_supports() {
 		$this->test_block_name = 'test/spacing-with-skipped-serialization-block-supports';
 		register_block_type(
 			$this->test_block_name,
@@ -120,10 +118,8 @@ class Test_Block_Supports_Spacing extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
-	 *
-	 * @covers ::wp_apply_spacing_support
 	 */
-	function test_margin_with_individual_skipped_serialization_block_supports() {
+	public function test_margin_with_individual_skipped_serialization_block_supports() {
 		$this->test_block_name = 'test/margin-with-individual-skipped-serialization-block-supports';
 		register_block_type(
 			$this->test_block_name,
@@ -163,7 +159,7 @@ class Test_Block_Supports_Spacing extends WP_UnitTestCase {
 
 		$actual   = wp_apply_spacing_support( $block_type, $block_atts );
 		$expected = array(
-			'style' => 'padding-top: 1px; padding-right: 2px; padding-bottom: 3px; padding-left: 4px;',
+			'style' => 'padding-top:1px;padding-right:2px;padding-bottom:3px;padding-left:4px;',
 		);
 
 		$this->assertSame( $expected, $actual );

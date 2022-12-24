@@ -40,7 +40,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 
 		// This class uses the timeout on a per-connection basis, others use it on a per-action basis.
 		if ( ! defined( 'FS_TIMEOUT' ) ) {
-			define( 'FS_TIMEOUT', 240 );
+			define( 'FS_TIMEOUT', 4 * MINUTE_IN_SECONDS );
 		}
 
 		if ( empty( $opt['port'] ) ) {
@@ -413,13 +413,13 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 *
 	 * @since 2.5.0
 	 *
-	 * @param string $file Path to file or directory.
-	 * @return bool Whether $file exists or not.
+	 * @param string $path Path to file or directory.
+	 * @return bool Whether $path exists or not.
 	 */
-	public function exists( $file ) {
-		$list = ftp_nlist( $this->link, $file );
+	public function exists( $path ) {
+		$list = ftp_nlist( $this->link, $path );
 
-		if ( empty( $list ) && $this->is_dir( $file ) ) {
+		if ( empty( $list ) && $this->is_dir( $path ) ) {
 			return true; // File is an empty directory.
 		}
 
@@ -475,10 +475,10 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 *
 	 * @since 2.5.0
 	 *
-	 * @param string $file Path to file or directory.
-	 * @return bool Whether $file is writable.
+	 * @param string $path Path to file or directory.
+	 * @return bool Whether $path is writable.
 	 */
-	public function is_writable( $file ) {
+	public function is_writable( $path ) {
 		return true;
 	}
 
@@ -515,7 +515,9 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * @return int|false Size of the file in bytes on success, false on failure.
 	 */
 	public function size( $file ) {
-		return ftp_size( $this->link, $file );
+		$size = ftp_size( $this->link, $file );
+
+		return ( $size > -1 ) ? $size : false;
 	}
 
 	/**

@@ -74,19 +74,11 @@
 	--global--color-white: #fff;
 	--global--color-white-50: rgba(255, 255, 255, 0.5);
 	--global--color-white-90: rgba(255, 255, 255, 0.9);
-	--global--color-primary: var(--global--color-dark-gray);
-
-	/* Body text color, site title, footer text color. */
-	--global--color-secondary: var(--global--color-gray);
-
-	/* Headings */
+	--global--color-primary: var(--global--color-dark-gray); /* Body text color, site title, footer text color. */
+	--global--color-secondary: var(--global--color-gray); /* Headings */
 	--global--color-primary-hover: var(--global--color-primary);
-	--global--color-background: var(--global--color-green);
-
-	/* Mint, default body background */
-	--global--color-border: var(--global--color-primary);
-
-	/* Used for borders (separators) */
+	--global--color-background: var(--global--color-green); /* Mint, default body background */
+	--global--color-border: var(--global--color-primary); /* Used for borders (separators) */
 
 	/* Spacing */
 	--global--spacing-unit: 20px;
@@ -772,7 +764,6 @@ a:hover {
 	letter-spacing: var(--heading--letter-spacing-h2);
 	line-height: var(--heading--line-height-h2);
 	padding: 0;
-	max-width: inherit;
 	text-align: inherit;
 }
 
@@ -1561,7 +1552,7 @@ pre.wp-block-preformatted {
 }
 
 .wp-block-quote .wp-block-quote__citation {
-	color: var(--global--color-primary);
+	color: currentColor;
 	font-size: var(--global--font-size-xs);
 	font-style: var(--quote--font-style-cite);
 }

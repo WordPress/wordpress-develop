@@ -1078,7 +1078,7 @@ function delete_metadata_by_mid( $meta_type, $meta_id ) {
 			 *
 			 * @since 3.4.0
 			 *
-			 * @param int $meta_ids Deleted metadata entry ID.
+			 * @param int $meta_id Deleted metadata entry ID.
 			 */
 			do_action( "deleted_{$meta_type}meta", $meta_id );
 		}
@@ -1231,7 +1231,13 @@ function wp_metadata_lazyloader() {
  * @param string $primary_table     Primary database table name.
  * @param string $primary_id_column Primary ID column name.
  * @param object $context           Optional. The main query object
- * @return array Associative array of `JOIN` and `WHERE` SQL.
+ * @return string[]|false {
+ *     Array containing JOIN and WHERE SQL clauses to append to the main query,
+ *     or false if no table exists for the requested meta type.
+ *
+ *     @type string $join  SQL fragment to append to the main JOIN clause.
+ *     @type string $where SQL fragment to append to the main WHERE clause.
+ * }
  */
 function get_meta_sql( $meta_query, $type, $primary_table, $primary_id_column, $context = null ) {
 	$meta_query_obj = new WP_Meta_Query( $meta_query );
@@ -1635,7 +1641,7 @@ function unregister_meta_key( $object_type, $meta_key, $object_subtype = '' ) {
 }
 
 /**
- * Retrieves a list of registered meta keys for an object type.
+ * Retrieves a list of registered metadata args for an object type, keyed by their meta keys.
  *
  * @since 4.6.0
  * @since 4.9.8 The `$object_subtype` parameter was added.
@@ -1643,7 +1649,7 @@ function unregister_meta_key( $object_type, $meta_key, $object_subtype = '' ) {
  * @param string $object_type    Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
  *                               or any other object type with an associated meta table.
  * @param string $object_subtype Optional. The subtype of the object type.
- * @return string[] List of registered meta keys.
+ * @return array[] List of registered metadata args, keyed by their meta keys.
  */
 function get_registered_meta_keys( $object_type, $object_subtype = '' ) {
 	global $wp_meta_keys;

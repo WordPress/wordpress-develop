@@ -37,7 +37,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		register_post_type( 'content', array( 'show_in_admin_bar' => true ) );
 
-		$admin_bar = new WP_Admin_Bar;
+		$admin_bar = new WP_Admin_Bar();
 
 		wp_admin_bar_new_content_menu( $admin_bar );
 
@@ -54,7 +54,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	public function test_merging_existing_meta_values() {
 		wp_set_current_user( self::$editor_id );
 
-		$admin_bar = new WP_Admin_Bar;
+		$admin_bar = new WP_Admin_Bar();
 
 		$admin_bar->add_node(
 			array(
@@ -656,7 +656,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$this->go_to( home_url( "/?customize_changeset_uuid=$uuid" ) );
 		wp_set_current_user( self::$admin_id );
 
-		$this->factory()->post->create(
+		self::factory()->post->create(
 			array(
 				'post_type'   => 'customize_changeset',
 				'post_status' => 'auto-draft',

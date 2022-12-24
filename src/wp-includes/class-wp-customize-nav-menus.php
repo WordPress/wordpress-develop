@@ -16,6 +16,7 @@
  *
  * @see WP_Customize_Manager
  */
+#[AllowDynamicProperties]
 final class WP_Customize_Nav_Menus {
 
 	/**
@@ -1199,7 +1200,6 @@ final class WP_Customize_Nav_Menus {
 	 * @since 4.7.0
 	 *
 	 * @param array $available_item_type Menu item data to output, including title, type, and label.
-	 * @return void
 	 */
 	protected function print_post_type_container( $available_item_type ) {
 		$id = sprintf( 'available-menu-items-%s-%s', $available_item_type['type'], $available_item_type['object'] );
@@ -1240,8 +1240,6 @@ final class WP_Customize_Nav_Menus {
 	 * Prints the markup for available menu item custom links.
 	 *
 	 * @since 4.7.0
-	 *
-	 * @return void
 	 */
 	protected function print_custom_links_available_menu_item() {
 		?>
@@ -1325,7 +1323,7 @@ final class WP_Customize_Nav_Menus {
 		add_action( 'wp_enqueue_scripts', array( $this, 'customize_preview_enqueue_deps' ) );
 		add_filter( 'wp_nav_menu_args', array( $this, 'filter_wp_nav_menu_args' ), 1000 );
 		add_filter( 'wp_nav_menu', array( $this, 'filter_wp_nav_menu' ), 10, 2 );
-		add_filter( 'wp_footer', array( $this, 'export_preview_data' ), 1 );
+		add_action( 'wp_footer', array( $this, 'export_preview_data' ), 1 );
 		add_filter( 'customize_render_partials_response', array( $this, 'export_partial_rendered_nav_menu_instances' ) );
 	}
 

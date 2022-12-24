@@ -1,6 +1,8 @@
 <?php
 /**
  * @group block-supports
+ *
+ * @covers ::wp_apply_colors_support
  */
 class Tests_Block_Supports_Colors extends WP_UnitTestCase {
 	/**
@@ -8,12 +10,12 @@ class Tests_Block_Supports_Colors extends WP_UnitTestCase {
 	 */
 	private $test_block_name;
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		$this->test_block_name = null;
 	}
 
-	function tear_down() {
+	public function tear_down() {
 		unregister_block_type( $this->test_block_name );
 		$this->test_block_name = null;
 		parent::set_up();
@@ -21,10 +23,8 @@ class Tests_Block_Supports_Colors extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 54337
-	 *
-	 * @covers ::wp_apply_colors_support
 	 */
-	function test_color_slugs_with_numbers_are_kebab_cased_properly() {
+	public function test_color_slugs_with_numbers_are_kebab_cased_properly() {
 		$this->test_block_name = 'test/color-slug-with-numbers';
 		register_block_type(
 			$this->test_block_name,
@@ -60,17 +60,15 @@ class Tests_Block_Supports_Colors extends WP_UnitTestCase {
 		);
 
 		$actual   = wp_apply_colors_support( $block_type, $block_atts );
-		$expected = array( 'class' => 'has-text-color has-fg-1-color has-background has-bg-2-background-color has-background has-gr-3-gradient-background' );
+		$expected = array( 'class' => 'has-text-color has-fg-1-color has-background has-bg-2-background-color has-gr-3-gradient-background' );
 
 		$this->assertSame( $expected, $actual );
 	}
 
 	/**
 	 * @ticket 55505
-	 *
-	 * @covers ::wp_apply_colors_support
 	 */
-	function test_color_with_skipped_serialization_block_supports() {
+	public function test_color_with_skipped_serialization_block_supports() {
 		$this->test_block_name = 'test/color-with-skipped-serialization-block-supports';
 		register_block_type(
 			$this->test_block_name,
@@ -110,10 +108,8 @@ class Tests_Block_Supports_Colors extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
-	 *
-	 * @covers ::wp_apply_colors_support
 	 */
-	function test_gradient_with_individual_skipped_serialization_block_supports() {
+	public function test_gradient_with_individual_skipped_serialization_block_supports() {
 		$this->test_block_name = 'test/gradient-with-individual-skipped-serialization-block-support';
 		register_block_type(
 			$this->test_block_name,
@@ -147,7 +143,7 @@ class Tests_Block_Supports_Colors extends WP_UnitTestCase {
 		$actual   = wp_apply_colors_support( $block_type, $block_atts );
 		$expected = array(
 			'class' => 'has-text-color',
-			'style' => 'color: #d92828;',
+			'style' => 'color:#d92828;',
 		);
 
 		$this->assertSame( $expected, $actual );

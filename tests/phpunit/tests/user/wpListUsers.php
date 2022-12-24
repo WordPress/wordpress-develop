@@ -4,7 +4,7 @@
  *
  * @covers ::wp_list_users
  */
-class Tests_Functions_wpListUsers extends WP_UnitTestCase {
+class Tests_User_wpListUsers extends WP_UnitTestCase {
 	private static $user_ids = array();
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
