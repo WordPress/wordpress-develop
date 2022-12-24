@@ -814,6 +814,7 @@ function wp_uninitialize_site( $site_id ) {
 	$drop_tables = apply_filters( 'wpmu_drop_tables', $tables, $site->id );
 
 	foreach ( (array) $drop_tables as $table ) {
+		// Disable foreign key checks when deleting site.
 		$wpdb->query( "SET FOREIGN_KEY_CHECKS=0; DROP TABLE IF EXISTS `$table`; SET FOREIGN_KEY_CHECKS=1;" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	}
 
