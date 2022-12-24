@@ -54,19 +54,21 @@ abstract class WP_UnitTest_Factory_For_Thing {
 		}
 
 		$generated_args = $this->generate_args( $args, $generation_definitions, $callbacks );
-		$created        = $this->create_object( $generated_args );
-		if ( ! $created || is_wp_error( $created ) ) {
-			return $created;
+		$created_object = $this->create_object( $generated_args );
+
+		if ( ! $created_object || is_wp_error( $created_object ) ) {
+			return $created_object;
 		}
 
 		if ( $callbacks ) {
-			$updated_fields = $this->apply_callbacks( $callbacks, $created );
-			$save_result    = $this->update_object( $created, $updated_fields );
+			$updated_fields = $this->apply_callbacks( $callbacks, $created_object );
+			$save_result    = $this->update_object( $created_object, $updated_fields );
 			if ( ! $save_result || is_wp_error( $save_result ) ) {
 				return $save_result;
 			}
 		}
-		return $created;
+
+		return $created_object;
 	}
 
 	/**
@@ -156,17 +158,18 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	/**
 	 * Applies the callbacks on the created object.
 	 *
-	 * @param WP_UnitTest_Factory_Callback_After_Create[] $callbacks Array with callback functions.
-	 * @param mixed                                       $created   The object to apply callbacks for.
+	 * @param WP_UnitTest_Factory_Callback_After_Create[] $callbacks      Array with callback functions.
+	 * @param mixed                                       $created_object The object to apply callbacks for.
 	 *
 	 * @return array The altered fields.
 	 */
-	public function apply_callbacks( $callbacks, $created ) {
+	public function apply_callbacks( $callbacks, $created_object ) {
 		$updated_fields = array();
 
 		foreach ( $callbacks as $field_name => $generator ) {
-			$updated_fields[ $field_name ] = $generator->call( $created );
+			$updated_fields[ $field_name ] = $generator->call( $created_object );
 		}
+
 		return $updated_fields;
 	}
 
