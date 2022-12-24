@@ -198,4 +198,17 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @ticket 42066
+	 *
+	 * @covers WP_Privacy_Requests_List_Table::get_views
+	 */
+	public function test_get_views_should_return_views_by_default() {
+		$expected = array(
+			'all' => '<a href="http://example.org/wp-admin/export-personal-data.php" class="current" aria-current="page">All <span class="count">(0)</span></a>',
+		);
+
+		$this->assertSame( $expected, $this->get_mocked_class_instance()->get_views() );
+	}
 }

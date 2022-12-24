@@ -65,7 +65,7 @@ class WP_Site_Health {
 	 */
 	public function show_site_health_tab( $tab ) {
 		if ( 'debug' === $tab ) {
-			require_once ABSPATH . '/wp-admin/site-health-info.php';
+			require_once ABSPATH . 'wp-admin/site-health-info.php';
 		}
 	}
 
@@ -478,7 +478,7 @@ class WP_Site_Health {
 	/**
 	 * Tests if themes are outdated, or unnecessary.
 	 *
-	 * Сhecks if your site has a default theme (to fall back on if there is a need),
+	 * Checks if your site has a default theme (to fall back on if there is a need),
 	 * if your themes are up to date and, finally, encourages you to remove any themes
 	 * that are not needed.
 	 *
@@ -1283,6 +1283,8 @@ class WP_Site_Health {
 	 * Tests if the database server is capable of using utf8mb4.
 	 *
 	 * @since 5.2.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @return array The test results.
 	 */
@@ -2486,8 +2488,8 @@ class WP_Site_Health {
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param string $notes              The notes appended to the health check description.
-		 * @param array  $available_services The list of available persistent object cache services.
+		 * @param string   $notes              The notes appended to the health check description.
+		 * @param string[] $available_services The list of available persistent object cache services.
 		 */
 		$notes = apply_filters( 'site_status_persistent_object_cache_notes', $notes, $available_services );
 
@@ -3162,7 +3164,7 @@ class WP_Site_Health {
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param int $cache_headers Array of supported cache headers.
+		 * @param array $cache_headers Array of supported cache headers.
 		 */
 		return apply_filters( 'site_status_page_cache_supported_cache_headers', $cache_headers );
 	}
@@ -3349,7 +3351,7 @@ class WP_Site_Health {
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param array $thresholds The list of threshold names and numbers.
+		 * @param int[] $thresholds The list of threshold numbers keyed by threshold name.
 		 */
 		$thresholds = apply_filters(
 			'site_status_persistent_object_cache_thresholds',
@@ -3408,7 +3410,7 @@ class WP_Site_Health {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @return array The list of available persistent object cache services.
+	 * @return string[] The list of available persistent object cache services.
 	 */
 	private function available_object_cache_services() {
 		$extensions = array_map(
@@ -3431,7 +3433,7 @@ class WP_Site_Health {
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param array $services The list of available persistent object cache services.
+		 * @param string[] $services The list of available persistent object cache services.
 		 */
 		return apply_filters( 'site_status_available_object_cache_services', $services );
 	}

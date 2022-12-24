@@ -1211,7 +1211,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_prepare_item_limit_fields() {
-		$request  = new WP_REST_Request;
+		$request  = new WP_REST_Request();
 		$endpoint = new WP_REST_Terms_Controller( 'post_tag' );
 		$request->set_param( '_fields', 'id,name' );
 		$term     = get_term_by( 'id', self::factory()->tag->create(), 'post_tag' );

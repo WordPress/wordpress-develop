@@ -276,7 +276,7 @@ JS;
 	 * @covers WP_Dependencies::do_items
 	 */
 	public function test_group_mismatch_in_deps() {
-		$scripts = new WP_Scripts;
+		$scripts = new WP_Scripts();
 		$scripts->add( 'one', 'one', array(), 'v1', 1 );
 		$scripts->add( 'two', 'two', array( 'one' ) );
 		$scripts->add( 'three', 'three', array( 'two' ), 'v1', 1 );
@@ -295,7 +295,7 @@ JS;
 		$this->assertContains( 'two', $scripts->done );
 		$this->assertContains( 'three', $scripts->done );
 
-		$scripts = new WP_Scripts;
+		$scripts = new WP_Scripts();
 		$scripts->add( 'one', 'one', array(), 'v1', 1 );
 		$scripts->add( 'two', 'two', array( 'one' ), 'v1', 1 );
 		$scripts->add( 'three', 'three', array( 'one' ) );
@@ -721,26 +721,16 @@ JS;
 		$wp_scripts->base_url  = '';
 		$wp_scripts->do_concat = true;
 
-		if ( PHP_VERSION_ID >= 80100 ) {
-			/*
-			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
-			 * via hooked in filter functions until a more structural solution to the
-			 * "missing input validation" conundrum has been architected and implemented.
-			 */
-			$this->expectDeprecation();
-			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
-		}
-
 		$ver       = get_bloginfo( 'version' );
 		$suffix    = wp_scripts_get_suffix();
 		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate,regenerator-runtime,wp-polyfill,wp-dom-ready,wp-hooks&amp;ver={$ver}'></script>\n";
 		$expected .= "<script type='text/javascript' id='test-example-js-before'>\nconsole.log(\"before\");\n</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
-		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/i18n{$suffix}.js' id='wp-i18n-js'></script>\n";
+		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/i18n.min.js' id='wp-i18n-js'></script>\n";
 		$expected .= "<script type='text/javascript' id='wp-i18n-js-after'>\n";
 		$expected .= "wp.i18n.setLocaleData( { 'text direction\u0004ltr': [ 'ltr' ] } );\n";
 		$expected .= "</script>\n";
-		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/a11y{$suffix}.js' id='wp-a11y-js'></script>\n";
+		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/a11y.min.js' id='wp-a11y-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example2.com' id='test-example2-js'></script>\n";
 		$expected .= "<script type='text/javascript' id='test-example2-js-after'>\nconsole.log(\"after\");\n</script>\n";
 
@@ -782,16 +772,6 @@ JS;
 
 		$wp_scripts->base_url  = '';
 		$wp_scripts->do_concat = true;
-
-		if ( PHP_VERSION_ID >= 80100 ) {
-			/*
-			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
-			 * via hooked in filter functions until a more structural solution to the
-			 * "missing input validation" conundrum has been architected and implemented.
-			 */
-			$this->expectDeprecation();
-			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
-		}
 
 		$expected_tail  = "<script type='text/javascript' src='/customize-dependency.js' id='customize-dependency-js'></script>\n";
 		$expected_tail .= "<script type='text/javascript' id='customize-dependency-js-after'>\n";

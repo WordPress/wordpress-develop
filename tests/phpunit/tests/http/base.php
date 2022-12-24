@@ -436,31 +436,6 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test HTTP Redirects with multiple Location headers specified.
-	 *
-	 * @ticket 16890
-	 *
-	 * @covers ::wp_remote_head
-	 * @covers ::wp_remote_retrieve_header
-	 * @covers ::wp_remote_get
-	 * @covers ::wp_remote_retrieve_body
-	 */
-	public function test_multiple_location_headers() {
-		$url = 'http://api.wordpress.org/core/tests/1.0/redirection.php?multiple-location-headers=1';
-		$res = wp_remote_head( $url, array( 'timeout' => 30 ) );
-
-		$this->skipTestOnTimeout( $res );
-		$this->assertIsArray( wp_remote_retrieve_header( $res, 'location' ) );
-		$this->assertCount( 2, wp_remote_retrieve_header( $res, 'location' ) );
-
-		$res = wp_remote_get( $url, array( 'timeout' => 30 ) );
-
-		$this->skipTestOnTimeout( $res );
-		$this->assertSame( 'PASS', wp_remote_retrieve_body( $res ) );
-
-	}
-
-	/**
 	 * Test HTTP Cookie handling.
 	 *
 	 * @ticket 21182
