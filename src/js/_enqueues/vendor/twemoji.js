@@ -4,6 +4,11 @@ var twemoji = (function (
     https://github.com/twitter/twemoji/blob/gh-pages/LICENSE
   */
 
+  /*
+   * Note: this file was modified in two places to add support for a doNotParse() callback.
+   * The modifications are surrounded by // WP start and // WP end comments.
+   */
+
   // WARNING:   this file is generated automatically via
   //            `node scripts/build.js`
   //            please update its `createTwemoji` function
@@ -309,7 +314,7 @@ var twemoji = (function (
         // WP start
         // Use doNotParse() callback if set.
         if ( twemoji.doNotParse && twemoji.doNotParse( subnode ) ) {
-        	continue;
+            continue;
         }
         // WP end
 
@@ -531,8 +536,8 @@ var twemoji = (function (
 
     // WP start
     // Allow passing of the doNotParse() callback in the settings.
-	twemoji.doNotParse = how.doNotParse;
-	// WP end
+    twemoji.doNotParse = how.doNotParse;
+    // WP end
 
     // if first argument is string, inject html <img> tags
     // otherwise use the DOM tree and parse text nodes only
