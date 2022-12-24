@@ -741,6 +741,7 @@ function delete_user_option( $user_id, $option_name, $is_global = false ) {
 	if ( ! $is_global ) {
 		$option_name = $wpdb->get_blog_prefix() . $option_name;
 	}
+
 	return delete_user_meta( $user_id, $option_name );
 }
 
