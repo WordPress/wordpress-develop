@@ -682,26 +682,26 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @since 3.7.0
 	 * @since 6.1.0 Added the `$replacement`, `$version`, and `$message` parameters.
 	 *
-	 * @param string $function    The deprecated function.
-	 * @param string $replacement The function that should have been called.
-	 * @param string $version     The version of WordPress that deprecated the function.
-	 * @param string $message     Optional. A message regarding the change.
+	 * @param string $function_name The deprecated function.
+	 * @param string $replacement   The function that should have been called.
+	 * @param string $version       The version of WordPress that deprecated the function.
+	 * @param string $message       Optional. A message regarding the change.
 	 */
-	public function deprecated_function_run( $function, $replacement, $version, $message = '' ) {
-		if ( ! isset( $this->caught_deprecated[ $function ] ) ) {
+	public function deprecated_function_run( $function_name, $replacement, $version, $message = '' ) {
+		if ( ! isset( $this->caught_deprecated[ $function_name ] ) ) {
 			switch ( current_action() ) {
 				case 'deprecated_function_run':
 					if ( $replacement ) {
 						$message = sprintf(
 							'Function %1$s is deprecated since version %2$s! Use %3$s instead.',
-							$function,
+							$function_name,
 							$version,
 							$replacement
 						);
 					} else {
 						$message = sprintf(
 							'Function %1$s is deprecated since version %2$s with no alternative available.',
-							$function,
+							$function_name,
 							$version
 						);
 					}
@@ -711,14 +711,14 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 					if ( $replacement ) {
 						$message = sprintf(
 							'Function %1$s was called with an argument that is deprecated since version %2$s! %3$s',
-							$function,
+							$function_name,
 							$version,
 							$replacement
 						);
 					} else {
 						$message = sprintf(
 							'Function %1$s was called with an argument that is deprecated since version %2$s with no alternative available.',
-							$function,
+							$function_name,
 							$version
 						);
 					}
@@ -728,14 +728,14 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 					if ( $replacement ) {
 						$message = sprintf(
 							'File %1$s is deprecated since version %2$s! Use %3$s instead.',
-							$function,
+							$function_name,
 							$version,
 							$replacement
 						) . ' ' . $message;
 					} else {
 						$message = sprintf(
 							'File %1$s is deprecated since version %2$s with no alternative available.',
-							$function,
+							$function_name,
 							$version
 						) . ' ' . $message;
 					}
@@ -745,21 +745,21 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 					if ( $replacement ) {
 						$message = sprintf(
 							'Hook %1$s is deprecated since version %2$s! Use %3$s instead.',
-							$function,
+							$function_name,
 							$version,
 							$replacement
 						) . ' ' . $message;
 					} else {
 						$message = sprintf(
 							'Hook %1$s is deprecated since version %2$s with no alternative available.',
-							$function,
+							$function_name,
 							$version
 						) . ' ' . $message;
 					}
 					break;
 			}
 
-			$this->caught_deprecated[ $function ] = $message;
+			$this->caught_deprecated[ $function_name ] = $message;
 		}
 	}
 
@@ -769,17 +769,17 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @since 3.7.0
 	 * @since 6.1.0 Added the `$message` and `$version` parameters.
 	 *
-	 * @param string $function The function to add.
-	 * @param string $message  A message explaining what has been done incorrectly.
-	 * @param string $version  The version of WordPress where the message was added.
+	 * @param string $function_name The function to add.
+	 * @param string $message       A message explaining what has been done incorrectly.
+	 * @param string $version       The version of WordPress where the message was added.
 	 */
-	public function doing_it_wrong_run( $function, $message, $version ) {
-		if ( ! isset( $this->caught_doing_it_wrong[ $function ] ) ) {
+	public function doing_it_wrong_run( $function_name, $message, $version ) {
+		if ( ! isset( $this->caught_doing_it_wrong[ $function_name ] ) ) {
 			if ( $version ) {
 				$message .= ' ' . sprintf( '(This message was added in version %s.)', $version );
 			}
 
-			$this->caught_doing_it_wrong[ $function ] = $message;
+			$this->caught_doing_it_wrong[ $function_name ] = $message;
 		}
 	}
 
@@ -837,18 +837,18 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @since UT (3.7.0)
 	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param object $object  The object to check.
+	 * @param object $actual  The object to check.
 	 * @param array  $fields  The fields to check.
 	 * @param string $message Optional. Message to display when the assertion fails.
 	 */
-	public function assertEqualFields( $object, $fields, $message = '' ) {
-		$this->assertIsObject( $object, $message . ' Passed $object is not an object.' );
+	public function assertEqualFields( $actual, $fields, $message = '' ) {
+		$this->assertIsObject( $actual, $message . ' Passed $actual is not an object.' );
 		$this->assertIsArray( $fields, $message . ' Passed $fields is not an array.' );
 		$this->assertNotEmpty( $fields, $message . ' Fields array is empty.' );
 
 		foreach ( $fields as $field_name => $field_value ) {
-			$this->assertObjectHasAttribute( $field_name, $object, $message . " Property $field_name does not exist on the object." );
-			$this->assertSame( $field_value, $object->$field_name, $message . " Value of property $field_name is not $field_value." );
+			$this->assertObjectHasAttribute( $field_name, $actual, $message . " Property $field_name does not exist on the object." );
+			$this->assertSame( $field_value, $actual->$field_name, $message . " Value of property $field_name is not $field_value." );
 		}
 	}
 
@@ -1012,14 +1012,14 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @since 4.8.0
 	 * @since 5.9.0 Added the `$message` parameter.
 	 *
-	 * @param array  $array   Array to check.
+	 * @param array  $actual  Array to check.
 	 * @param string $message Optional. Message to display when the assertion fails.
 	 */
-	public function assertNonEmptyMultidimensionalArray( $array, $message = '' ) {
-		$this->assertIsArray( $array, $message . ' Value under test is not an array.' );
-		$this->assertNotEmpty( $array, $message . ' Array is empty.' );
+	public function assertNonEmptyMultidimensionalArray( $actual, $message = '' ) {
+		$this->assertIsArray( $actual, $message . ' Value under test is not an array.' );
+		$this->assertNotEmpty( $actual, $message . ' Array is empty.' );
 
-		foreach ( $array as $sub_array ) {
+		foreach ( $actual as $sub_array ) {
 			$this->assertIsArray( $sub_array, $message . ' Subitem of the array is not an array.' );
 			$this->assertNotEmpty( $sub_array, $message . ' Subitem of the array is empty.' );
 		}
