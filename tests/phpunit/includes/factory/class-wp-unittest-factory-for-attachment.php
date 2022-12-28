@@ -51,7 +51,7 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 
 	/**
 	 * Saves an attachment.
-	 
+	 *
 	 * @since 4.4.0
 	 * @since 6.2.0 Returns a WP_Error object on failure.
 	 *
