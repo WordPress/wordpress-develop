@@ -44,7 +44,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__section">
 			<div class="column">
-				<h2 class="aligncenter">
+				<h2>
 					<?php
 					printf(
 						/* translators: %s: Version number. */
