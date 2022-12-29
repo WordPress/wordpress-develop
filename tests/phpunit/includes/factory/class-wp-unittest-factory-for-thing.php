@@ -211,16 +211,16 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	}
 
 	/**
-	 * Instantiates a callback objects for the given function name.
+	 * Instantiates a callback object for the given function name.
 	 *
 	 * @since UT (3.7.0)
 	 *
-	 * @param string $function The callback function.
+	 * @param callable $callback The callback function.
 	 *
 	 * @return WP_UnitTest_Factory_Callback_After_Create
 	 */
-	public function callback( $function ) {
-		return new WP_UnitTest_Factory_Callback_After_Create( $function );
+	public function callback( $callback ) {
+		return new WP_UnitTest_Factory_Callback_After_Create( $callback );
 	}
 
 	/**
