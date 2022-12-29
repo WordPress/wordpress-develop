@@ -4,7 +4,7 @@
  * Tests get_the_posts_navigation function.
  *
  * @ticket 55751
- * @since 6.1.0
+ * @since 6.2.0
  *
  * @covers ::get_the_posts_navigation
  */
@@ -24,52 +24,47 @@ class Tests_Functions_GetThePostsNavigation extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_get_the_posts_navigation
 	 *
-	 * @param int    $post_per_page      Posts per page to be queried.
-	 * @param int    $paged_num          Pagination page number.
-	 * @param bool   $assert_older_posts Assert older posts nav string.
-	 * @param bool   $assert_newer_posts Assert newer posts nav string.
-	 * @param bool   $assert_empty       Assert empty posts nav string.
+	 * @param int  $per_page  Posts per page to be queried.
+	 * @param int  $paged_num Pagination page number.
+	 * @param bool $older     Whether an "Older posts" link should be included.
+	 * @param bool $newer     Whether a "Newer posts" link should be included.
 	 */
-	public function test_get_the_posts_navigation(
-		$post_per_page, $paged_num,
-		$assert_older_posts,
-		$assert_newer_posts,
-		$assert_empty ) {
+	public function test_get_the_posts_navigation( $per_page, $paged_num, $older, $newer ) {
 		global $wp_query, $paged;
+
 		$paged    = $paged_num;
 		$wp_query = new WP_Query(
 			array(
 				'post_type'      => 'post',
-				'posts_per_page' => $post_per_page,
+				'posts_per_page' => $per_page,
 				'paged'          => $paged,
 			)
 		);
 
 		$actual = get_the_posts_navigation();
 
-		if ( $assert_older_posts ) {
+		if ( $older ) {
 			$this->assertStringContainsString(
 				'Older posts',
 				$actual,
-				'Posts navigation must contain string Older posts.'
+				'Posts navigation must contain an "Older posts" link.'
 			);
 		}
 
-		if ( $assert_newer_posts ) {
+		if ( $newer ) {
 			$this->assertStringContainsString(
 				'Newer posts',
 				$actual,
-				'Posts navigation must contain string Newer posts.'
+				'Posts navigation must contain a "Newer posts" link.'
 			);
 		}
 
-		if ( $assert_empty ) {
+		if ( ! $older && ! $newer ) {
 			$this->assertEmpty(
 				$actual,
-				'Posts navigation must return empty string.'
+				'Posts navigation must be an empty string.'
 			);
 		}
-
 	}
 
 	/**
@@ -79,33 +74,29 @@ class Tests_Functions_GetThePostsNavigation extends WP_UnitTestCase {
 	 */
 	public function data_get_the_posts_navigation() {
 		return array(
-			'Assert Older posts navigation string' => array(
-				'post_per_page'      => 1,
-				'paged_num'          => 1,
-				'assert_older_posts' => true,
-				'assert_newer_posts' => false,
-				'assert_empty'       => false,
+			'older posts'                 => array(
+				'post_per_page' => 1,
+				'paged_num'     => 1,
+				'older'         => true,
+				'newer'         => false,
 			),
-			'Assert Newer posts navigation string' => array(
-				'post_per_page'      => 1,
-				'paged_num'          => 3,
-				'assert_older_posts' => false,
-				'assert_newer_posts' => true,
-				'assert_empty'       => false,
+			'newer posts'                 => array(
+				'post_per_page' => 1,
+				'paged_num'     => 3,
+				'older'         => false,
+				'newer'         => true,
 			),
-			'Assert Newer posts and Older navigation string' => array(
-				'post_per_page'      => 1,
-				'paged_num'          => 2,
-				'assert_older_posts' => true,
-				'assert_newer_posts' => true,
-				'assert_empty'       => false,
+			'newer posts and older posts' => array(
+				'post_per_page' => 1,
+				'paged_num'     => 2,
+				'older'         => true,
+				'newer'         => true,
 			),
-			'Empty navigation string'              => array(
-				'post_per_page'      => 3,
-				'paged_num'          => 1,
-				'assert_older_posts' => false,
-				'assert_newer_posts' => false,
-				'assert_empty'       => true,
+			'empty posts'                 => array(
+				'post_per_page' => 3,
+				'paged_num'     => 1,
+				'older'         => false,
+				'newer'         => false,
 			),
 		);
 	}
