@@ -55,12 +55,12 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 	 * @since 4.4.0
 	 * @since 6.2.0 Returns a WP_Error object on failure.
 	 *
-	 * @param string $file   The file name to create attachment object for.
-	 * @param int    $parent ID of the post to attach the file to.
+	 * @param string $file           The file name to create attachment object for.
+	 * @param int    $parent_post_id ID of the post to attach the file to.
 	 *
 	 * @return int|WP_Error The attachment ID on success, WP_Error object on failure.
 	 */
-	public function create_upload_object( $file, $parent = 0 ) {
+	public function create_upload_object( $file, $parent_post_id = 0 ) {
 		$contents = file_get_contents( $file );
 		$upload   = wp_upload_bits( wp_basename( $file ), null, $contents );
 
@@ -78,13 +78,13 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 			'post_title'     => wp_basename( $upload['file'] ),
 			'post_content'   => '',
 			'post_type'      => 'attachment',
-			'post_parent'    => $parent,
+			'post_parent'    => $parent_post_id,
 			'post_mime_type' => $type,
 			'guid'           => $upload['url'],
 		);
 
 		// Save the data.
-		$attachment_id = wp_insert_attachment( $attachment, $upload['file'], $parent, true );
+		$attachment_id = wp_insert_attachment( $attachment, $upload['file'], $parent_post_id, true );
 
 		if ( is_wp_error( $attachment_id ) ) {
 			return $attachment_id;
