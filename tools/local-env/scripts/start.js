@@ -14,7 +14,7 @@ try {
 	execSync( 'docker info' );
 } catch ( e ) {
 	if ( e.message.startsWith( 'Command failed: docker info' ) ) {
-		throw new Error( `Running docker info returned an error. Is docker service and server running?` );
+		throw new Error( 'Running docker info returned an error. Is docker service and server running?' );
 	}
 	throw e;
 }
