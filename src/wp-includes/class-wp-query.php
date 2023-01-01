@@ -3479,12 +3479,12 @@ class WP_Query {
 				$post_ids       = wp_list_pluck( $this->posts, 'ID' );
 				$non_cached_ids = _get_non_cached_ids( $post_ids, 'posts' );
 				if ( ! empty( $non_cached_ids ) ) {
-					$fresh_posts = array_filter(
-						$this->posts,
-						function ( $post ) use ( $non_cached_ids ) {
-							return in_array( $post->ID, $non_cached_ids, true );
-						}
-					);
+				$fresh_posts = array();
+				foreach ( $this->posts as $post ) {
+					if ( in_array( $post->ID, $non_cached_ids, true ) ) {
+						$fresh_posts[] = $post;
+					}
+				}
 					update_post_cache( $fresh_posts );
 				}
 
