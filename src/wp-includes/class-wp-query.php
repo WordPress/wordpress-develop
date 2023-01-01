@@ -3479,12 +3479,12 @@ class WP_Query {
 				$post_ids       = wp_list_pluck( $this->posts, 'ID' );
 				$non_cached_ids = _get_non_cached_ids( $post_ids, 'posts' );
 				if ( ! empty( $non_cached_ids ) ) {
-				        $fresh_posts = array();
-				        foreach ( $this->posts as $post ) {
-					      if ( in_array( $post->ID, $non_cached_ids, true ) ) {
-						    $fresh_posts[] = $post;
-					      }
-				       }
+					$fresh_posts = array();
+					foreach ( $this->posts as $post ) {
+						if ( in_array( $post->ID, $non_cached_ids, true ) ) {
+							$fresh_posts[] = $post;
+						}
+					}
 					update_post_cache( $fresh_posts );
 				}
 
@@ -3493,7 +3493,7 @@ class WP_Query {
 				}
 
 				if ( $q['update_post_term_cache'] ) {
-					$post_types = array_map( 'get_post_type', $post_ids );
+					$post_types = wp_list_pluck( $this->posts, 'post_type' );
 					$post_types = array_unique( $post_types );
 					update_object_term_cache( $post_ids, $post_types );
 				}
