@@ -3281,16 +3281,28 @@ class WP_Query {
 			$this->posts = array_map( 'get_post', $this->posts );
 		}
 
-		if ( $q['cache_results'] && $id_query_is_cacheable && ! $cache_found ) {
+		if ( $q['cache_results'] ) {
 			$post_ids = wp_list_pluck( $this->posts, 'ID' );
+			$non_cached_ids = _get_non_cached_ids( $post_ids, 'posts' );
+			if ( ! empty( $non_cached_ids ) ) {
+				$fresh_posts = array();
+				foreach ( $this->posts as $post ) {
+					if ( ! in_array( $post->ID, $non_cached_ids, true ) ) {
+						$fresh_posts[] = $post;
+					}
+				}
+				update_post_cache( $fresh_posts );
+			}
 
-			$cache_value = array(
-				'posts'         => $post_ids,
-				'found_posts'   => $this->found_posts,
-				'max_num_pages' => $this->max_num_pages,
-			);
+			if ( $id_query_is_cacheable && ! $cache_found ) {
+				$cache_value = array(
+					'posts'         => $post_ids,
+					'found_posts'   => $this->found_posts,
+					'max_num_pages' => $this->max_num_pages,
+				);
 
-			wp_cache_set( $cache_key, $cache_value, 'posts' );
+				wp_cache_set( $cache_key, $cache_value, 'posts' );
+			}
 		}
 
 		if ( ! $q['suppress_filters'] ) {
