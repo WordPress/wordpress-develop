@@ -4,6 +4,21 @@ const { execSync } = require( 'child_process' );
 
 dotenvExpand.expand( dotenv.config() );
 
+/*
+ * Check if Docker server is available.
+ * @ticket 54898
+ *
+ * The docker info command will throw an error if server is not available.
+ */
+try {
+	execSync( 'docker info' );
+} catch ( e ) {
+	if ( e.message.startsWith( 'Command failed: docker info' ) ) {
+		throw new Error( `Running docker info returned an error. Is docker service and server running?` );
+	}
+	throw e;
+}
+
 // Start the local-env containers.
 const containers = ( process.env.LOCAL_PHP_MEMCACHED === 'true' )
 	? 'wordpress-develop memcached'
