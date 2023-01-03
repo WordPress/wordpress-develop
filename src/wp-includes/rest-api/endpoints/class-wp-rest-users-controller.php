@@ -762,6 +762,14 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			}
 		}
 
+		// Maybe send the change email confirmation.
+		if ( ! empty( $request['email'] ) ) {
+			$email_sent = send_user_email_change_confirmation_email( $user, $request['email'] );
+			if ( true === $email_sent ) {
+				unset( $request['email'] );
+			}
+		}
+
 		$user = $this->prepare_item_for_database( $request );
 
 		// Ensure we're operating on the same user we already checked.
