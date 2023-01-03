@@ -3029,7 +3029,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
-		wp_set_current_user( self::$user );
+		wp_set_current_user( self::$superadmin );
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
 		$request->set_param( 'email', 'after@example.com' );
