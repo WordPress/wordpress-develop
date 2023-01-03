@@ -2771,7 +2771,7 @@ class WP_Theme_JSON {
 			foreach ( $paths as $path ) {
 				$value = _wp_array_get( $input, $path, array() );
 				if (
-					isset( $value ) &&
+					null !== $value &&
 					! is_array( $value ) &&
 					static::is_safe_css_declaration( $property, $value )
 				) {
