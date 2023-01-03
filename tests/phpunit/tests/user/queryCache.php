@@ -95,7 +95,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 
 		$this->assertNotSame( $queries_before, $queries_after, 'Assert that queries are run' );
 		$this->assertNotSame( $users_total1, $users_total2, 'Assert that totals do not match' );
-		$this->assertSameSets( $users1, $users2, 'Asset that results of query match' );
+		$this->assertSameSets( $users1, $users2, 'Results of the query are expected to match.' );
 	}
 
 	/**
@@ -121,7 +121,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		$queries_after = get_num_queries();
 
 		$this->assertNotSame( $queries_before, $queries_after, 'Assert that queries are run' );
-		$this->assertSameSets( $users1, $users2, 'Asset that results of query match' );
+		$this->assertSameSets( $users1, $users2, 'Results of the query are expected to match.' );
 	}
 
 	/**
@@ -145,9 +145,9 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		$users_total2   = $query2->get_total();
 		$queries_after  = get_num_queries();
 
-		$this->assertSame( $queries_before, $queries_after, 'Assert that no queries are run' );
-		$this->assertSame( $users_total1, $users_total2, 'Assert that totals do match' );
-		$this->assertSameSets( $users1, $users2, 'Asset that results of query match' );
+		$this->assertSame( $queries_before, $queries_after, 'No queries are expected run.' );
+		$this->assertSame( $users_total1, $users_total2, 'Number of users returned us expected to match.' );
+		$this->assertSameSets( $users1, $users2, 'Results of the query are expected to match.' );
 	}
 
 	/**
@@ -167,9 +167,9 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		$users_total2   = $query2->get_total();
 		$queries_after  = get_num_queries();
 
-		$this->assertSame( $queries_before, $queries_after, 'Assert that no queries are run' );
-		$this->assertSame( $users_total1, $users_total2, 'Assert that totals do match' );
-		$this->assertSameSets( $users1, $users2, 'Asset that results of query match' );
+		$this->assertSame( $queries_before, $queries_after, 'No queries are expected run.' );
+		$this->assertSame( $users_total1, $users_total2, 'Number of users returned us expected to match.' );
+		$this->assertSameSets( $users1, $users2, 'Results of the query are expected to match.' );
 	}
 
 	/**
@@ -321,7 +321,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 
 		$found = wp_list_pluck( $q1->get_results(), 'ID' );
 
-		$this->assertContains( $user_id, $found, 'Find author in returned values' );
+		$this->assertContains( $user_id, $found, 'Expected to find author in returned values.' );
 
 		$user = get_user_by( 'id', $user_id );
 		$user->remove_role( 'author' );
@@ -333,7 +333,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		);
 
 		$found = wp_list_pluck( $q2->get_results(), 'ID' );
-		$this->assertNotContains( $user_id, $found, 'Not to find author in returned values' );
+		$this->assertNotContains( $user_id, $found, 'Expected not to find author in returned values.' );
 	}
 
 	/**
@@ -351,7 +351,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 
 		$found = wp_list_pluck( $q1->get_results(), 'ID' );
 
-		$this->assertContains( $user_id, $found, 'Find author in returned values' );
+		$this->assertContains( $user_id, $found, 'Expected to find author in returned values.' );
 
 		$user = get_user_by( 'id', $user_id );
 		$user->set_role( 'editor' );
@@ -363,7 +363,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		);
 
 		$found = wp_list_pluck( $q2->get_results(), 'ID' );
-		$this->assertNotContains( $user_id, $found, 'Not to find author in returned values' );
+		$this->assertNotContains( $user_id, $found, 'Expected not to find author in returned values.' );
 	}
 
 	/**
@@ -393,7 +393,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		);
 
 		$found = wp_list_pluck( $q2->get_results(), 'ID' );
-		$this->assertNotContains( $user_id, $found, 'Not to find author in returned values' );
+		$this->assertNotContains( $user_id, $found, 'Expected not to find author in returned values.' );
 	}
 
 	/**
@@ -431,7 +431,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		$q2 = new WP_User_Query( $args );
 
 		$found = wp_list_pluck( $q2->get_results(), 'ID' );
-		$this->assertNotContains( $user_id, $found, 'Not to find author in returned values' );
+		$this->assertNotContains( $user_id, $found, 'Expected not to find author in returned values.' );
 	}
 
 	/**
@@ -447,7 +447,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 
 		$found = wp_list_pluck( $q1->get_results(), 'ID' );
 
-		$this->assertContains( $user_id, $found, 'Find author in returned values' );
+		$this->assertContains( $user_id, $found, 'Expected to find author in returned values.' );
 
 		$user_id_2 = self::factory()->user->create();
 
@@ -519,7 +519,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		);
 
 		$found1 = wp_list_pluck( $q1->get_results(), 'ID' );
-		$this->assertContains( $user_id, $found1, 'Find author in returned values' );
+		$this->assertContains( $user_id, $found1, 'Find author in returned values in first run of WP_User_Query' );
 
 		wp_delete_post( $post_id, true );
 
@@ -530,7 +530,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		);
 
 		$found2 = wp_list_pluck( $q2->get_results(), 'ID' );
-		$this->assertContains( $user_id, $found1, 'Find author in returned values' );
+		$this->assertContains( $user_id, $found1, 'Find author in returned values in second run of WP_User_Query' );
 		$this->assertSameSets( $found1, $found2, 'Not same order' );
 	}
 
@@ -598,9 +598,9 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 
 		$found = wp_list_pluck( $q1->get_results(), 'ID' );
 
-		$this->assertNotContains( self::$author_ids[0], $found, 'Asset that results do not contain author without capability on site' );
-		$this->assertContains( self::$author_ids[1], $found, 'Asset that results do contain author with capability on site' );
-		$this->assertContains( self::$author_ids[2], $found, 'Asset that results do contain author with capability on site' );
+		$this->assertNotContains( self::$author_ids[0], $found, 'Asset that results do not contain author 0 without capability on site on first run' );
+		$this->assertContains( self::$author_ids[1], $found, 'Asset that results do contain author with capability on site on first run' );
+		$this->assertContains( self::$author_ids[2], $found, 'Asset that results do contain author with capability on site on first run' );
 
 		remove_user_from_blog( self::$author_ids[2], $blog_id );
 
@@ -612,9 +612,9 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		);
 
 		$found = wp_list_pluck( $q2->get_results(), 'ID' );
-		$this->assertNotContains( self::$author_ids[0], $found, 'Asset that results do not contain author without capability on site' );
-		$this->assertContains( self::$author_ids[1], $found, 'Asset that results do contain author with capability on site' );
-		$this->assertNotContains( self::$author_ids[2], $found, 'Asset that results do not contain author without capability on site' );
+		$this->assertNotContains( self::$author_ids[0], $found, 'Asset that results do not contain author 0 without capability on site on second run' );
+		$this->assertContains( self::$author_ids[1], $found, 'Asset that results do contain author with capability on site on second run' );
+		$this->assertNotContains( self::$author_ids[2], $found, 'Asset that results do not contain author 1 without capability on site on second run' );
 	}
 
 	/**
