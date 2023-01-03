@@ -2392,8 +2392,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	public function test_remove_insecure_properties_should_allow_indirect_properties() {
 		$actual = WP_Theme_JSON::remove_insecure_properties(
 			array(
-				'version' => WP_Theme_JSON::LATEST_SCHEMA,
-				'styles'  => array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'   => array(
 					'spacing' => array(
 						'blockGap' => '3em',
 					),
@@ -2408,12 +2408,18 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						),
 					),
 				),
+				'settings' => array(
+					'layout' => array(
+						'contentSize' => '800px',
+						'wideSize'    => '1000px',
+					),
+				),
 			)
 		);
 
 		$expected = array(
-			'version' => WP_Theme_JSON::LATEST_SCHEMA,
-			'styles'  => array(
+			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'   => array(
 				'spacing' => array(
 					'blockGap' => '3em',
 				),
@@ -2426,6 +2432,12 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 							),
 						),
 					),
+				),
+			),
+			'settings' => array(
+				'layout' => array(
+					'contentSize' => '800px',
+					'wideSize'    => '1000px',
 				),
 			),
 		);

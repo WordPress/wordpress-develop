@@ -265,9 +265,19 @@ class WP_Theme_JSON {
 	 * @var array
 	 */
 	const INDIRECT_PROPERTIES_METADATA = array(
-		'gap'        => array( 'spacing', 'blockGap' ),
-		'column-gap' => array( 'spacing', 'blockGap', 'left' ),
-		'row-gap'    => array( 'spacing', 'blockGap', 'top' ),
+		'gap'        => array(
+			array( 'spacing', 'blockGap' ),
+		),
+		'column-gap' => array(
+			array( 'spacing', 'blockGap', 'left' ),
+		),
+		'row-gap'    => array(
+			array( 'spacing', 'blockGap', 'top' ),
+		),
+		'max-width'  => array(
+			array( 'layout', 'contentSize' ),
+			array( 'layout', 'wideSize' ),
+		),
 	);
 
 	/**
@@ -2755,6 +2765,20 @@ class WP_Theme_JSON {
 				}
 			}
 		}
+
+		// Ensure indirect properties not handled by `compute_style_properties` are allowed.
+		foreach ( static::INDIRECT_PROPERTIES_METADATA as $property => $paths ) {
+			foreach ( $paths as $path ) {
+				$value = _wp_array_get( $input, $path, array() );
+				if (
+					isset( $value ) &&
+					! is_array( $value ) &&
+					static::is_safe_css_declaration( $property, $value )
+				) {
+					_wp_array_set( $output, $path, $value );
+				}
+			}
+		}
 		return $output;
 	}
 
@@ -2785,14 +2809,16 @@ class WP_Theme_JSON {
 		}
 
 		// Ensure indirect properties not handled by `compute_style_properties` are allowed.
-		foreach ( static::INDIRECT_PROPERTIES_METADATA as $property => $path ) {
+		foreach ( static::INDIRECT_PROPERTIES_METADATA as $property => $paths ) {
+			foreach ( $paths as $path ) {
 			$value = _wp_array_get( $input, $path, array() );
-			if (
-				null !== $value &&
-				! is_array( $value ) &&
-				static::is_safe_css_declaration( $property, $value )
-			) {
-				_wp_array_set( $output, $path, $value );
+				if (
+					null !== $value &&
+					! is_array( $value ) &&
+					static::is_safe_css_declaration( $property, $value )
+				) {
+					_wp_array_set( $output, $path, $value );
+				}
 			}
 		}
 
