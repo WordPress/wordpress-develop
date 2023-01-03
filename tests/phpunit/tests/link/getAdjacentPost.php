@@ -355,7 +355,6 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 	 * @ticket 41131
 	 */
 	public function test_get_adjacent_post_cache() {
-		global $wpdb;
 		// Need some sample posts to test adjacency.
 		$post_one = self::factory()->post->create_and_get(
 			array(
@@ -396,14 +395,16 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		$this->go_to( get_permalink( $post_two->ID ) );
 
 		// Test getting the right result
-		$this->assertEquals( $post_one, get_adjacent_post( false, '', true ) );
-		$this->assertNotEquals( $post_two, get_adjacent_post( false, '', true ) );
+		$first_run = get_adjacent_post( false, '', true );
+		$this->assertEquals( $post_one, $first_run, 'Get first post when on second post' );
+		$this->assertNotEquals( $post_two, $first_run, 'Do not get second post when on second post'  );
 
 		// Query count to test caching.
-		$num_queries = $wpdb->num_queries;
-		$this->assertNotEquals( $post_two, get_adjacent_post( false, '', true ) );
-		$this->assertEquals( $post_one, get_adjacent_post( false, '', true ) );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$num_queries = get_num_queries();
+		$second_run = get_adjacent_post( false, '', true );
+		$this->assertNotEquals( $post_two, $second_run, 'Do not get second post when on second post on second run'  );
+		$this->assertEquals( $post_one, $second_run, 'Get first post when on second post on second run'  );
+		$this->assertSame( $num_queries, get_num_queries() );
 
 		// Test creating new post busts cache.
 		$post_five   = self::factory()->post->create_and_get(
@@ -412,19 +413,19 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 				'post_date'  => '2012-04-01 12:00:00',
 			)
 		);
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
-		$this->assertEquals( $post_one, get_adjacent_post( false, '', true ) );
-		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+		$this->assertEquals( $post_one, get_adjacent_post( false, '', true ), 'Get first post after new post is added' );
+		$this->assertSame( get_num_queries() - $num_queries, 1, 'Check to see query uncached after adding new post'  );
 
-		$this->assertEquals( $post_four, get_adjacent_post( true, '', false ) );
-		$num_queries = $wpdb->num_queries;
-		$this->assertEquals( $post_four, get_adjacent_post( true, '', false ) );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertEquals( $post_four, get_adjacent_post( true, '', false ), 'Get forth post after new post is added' );
+		$num_queries = get_num_queries();
+		$this->assertEquals( $post_four, get_adjacent_post( true, '', false ), 'Get forth post after new post is added' );
+		$this->assertSame( $num_queries, get_num_queries() );
 		wp_set_object_terms( $post_four->ID, 'themes', 'post_tag', false );
 
-		$num_queries = $wpdb->num_queries;
-		$this->assertEquals( $post_four, get_adjacent_post( true, '', false ) );
-		$this->assertSame( $num_queries + 2, $wpdb->num_queries );
+		$num_queries = get_num_queries();
+		$this->assertEquals( $post_four, get_adjacent_post( true, '', false ) , 'Check to see query uncached after adding new term'  );
+		$this->assertSame( get_num_queries() - $num_queries,2, 'Check to see query uncached after adding new term'  );
 	}
 }
