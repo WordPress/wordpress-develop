@@ -6,7 +6,7 @@ var twemoji = (function (
 
   /*
    * Note: this file was modified in two places to add support for a doNotParse() callback.
-   * The modifications are surrounded by // WP start and // WP end comments.
+   * The modifications are surrounded by `// WP start` and `// WP end` comments.
    */
 
   // WARNING:   this file is generated automatically via
@@ -536,6 +536,8 @@ var twemoji = (function (
 
     // WP start
     // Allow passing of the doNotParse() callback in the settings.
+    // The callback is used in `grabAllTextNodes()` (DOM mode only) as a filter
+    // that allows bypassing of some of the text nodes. It gets the current subnode as argument.
     twemoji.doNotParse = how.doNotParse;
     // WP end
 
