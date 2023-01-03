@@ -385,27 +385,27 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 			)
 		);
 
-		// Assign some terms
+		// Assign some terms.
 		wp_set_object_terms( $post_one->ID, 'WordPress', 'category', false );
 		wp_set_object_terms( $post_three->ID, 'WordPress', 'category', false );
 
 		wp_set_object_terms( $post_two->ID, 'plugins', 'post_tag', false );
 		wp_set_object_terms( $post_four->ID, 'plugins', 'post_tag', false );
 
-		// Test normal post adjacency
+		// Test normal post adjacency.
 		$this->go_to( get_permalink( $post_two->ID ) );
 
 		// Test getting the right result
 		$this->assertEquals( $post_one, get_adjacent_post( false, '', true ) );
 		$this->assertNotEquals( $post_two, get_adjacent_post( false, '', true ) );
 
-		// Query count to test cachcing.
+		// Query count to test caching.
 		$num_queries = $wpdb->num_queries;
 		$this->assertNotEquals( $post_two, get_adjacent_post( false, '', true ) );
 		$this->assertEquals( $post_one, get_adjacent_post( false, '', true ) );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
-		// Test creating new post busts cache
+		// Test creating new post busts cache.
 		$post_five   = self::factory()->post->create_and_get(
 			array(
 				'post_title' => 'Five',
