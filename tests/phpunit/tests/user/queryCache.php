@@ -166,7 +166,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		$users2         = $query2->get_results();
 		$users_total2   = $query2->get_total();
 		$queries_after  = get_num_queries();
-		
+
 		$this->assertSame( 0, $queries_after - $queries_before, 'Assert that no queries are run' );
 		$this->assertSame( $users_total1, $users_total2, 'Assert that totals do match' );
 		$this->assertSameSets( $users1, $users2, 'Asset that results of query match' );
@@ -394,6 +394,43 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 
 		$found = wp_list_pluck( $q2->get_results(), 'ID' );
 		$this->assertNotContains( $user_id, $found, 'Expected not to find author in returned values.' );
+	}
+
+	/**
+	 * @ticket 40613
+	 * @covers ::query
+	 */
+	public function test_query_cache_do_not_cache() {
+		$user_id = self::factory()->user->create();
+
+		$args = array(
+			'fields'  => array(
+				'user_login',
+				'user_nicename',
+				'user_email',
+				'user_url',
+				'user_status',
+				'display_name',
+			),
+			'include' => array( $user_id ),
+		);
+
+		$q1       = new WP_User_Query( $args );
+		$found1   = $q1->get_results();
+		$callback = static function( $user ) {
+			return (array) $user;
+		};
+
+		$found1 = array_map( $callback, $found1 );
+
+		$queries_before = get_num_queries();
+		$q2             = new WP_User_Query( $args );
+		$found2         = $q2->get_results();
+		$found2         = array_map( $callback, $found2 );
+		$queries_after  = get_num_queries();
+
+		$this->assertSame( $queries_after - $queries_before, 2, 'Ensure that query is not cached' );
+		$this->assertSameSets( $found1, $found2, 'Expected results to match.', 'Ensure that to results match' );
 	}
 
 	/**

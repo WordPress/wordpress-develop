@@ -793,6 +793,11 @@ class WP_User_Query {
 
 		$qv =& $this->query_vars;
 
+		// Do not cache results if more than 3 fields are requested. 
+		if ( is_array( $qv['fields'] ) && count( $qv['fields'] ) > 3 ) {
+			$qv['cache_results'] = false;
+		}
+
 		/**
 		 * Filters the users array before the query takes place.
 		 *
@@ -851,11 +856,14 @@ class WP_User_Query {
 
 					$this->total_users = (int) $wpdb->get_var( $found_users_query );
 				}
-				$cache_value = array(
-					'user_data'   => $this->results,
-					'total_users' => $this->total_users,
-				);
-				wp_cache_add( $cache_key, $cache_value, 'users' );
+
+				if ( $qv['cache_results'] ) {
+					$cache_value = array(
+						'user_data'   => $this->results,
+						'total_users' => $this->total_users,
+					);
+					wp_cache_add( $cache_key, $cache_value, 'users' );
+				}
 			}
 		}
 
@@ -1035,6 +1043,7 @@ class WP_User_Query {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
+	 * @param array  $args Query arguments.
 	 * @param string $sql  SQL statement.
 	 *
 	 * @return string Cache key.
