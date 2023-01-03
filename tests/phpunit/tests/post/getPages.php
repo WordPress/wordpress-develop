@@ -910,6 +910,49 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	 * @ticket 12821
 	 * @covers ::get_pages
 	 */
+	public function test_get_pages_authors_names() {
+		$author_1 = self::factory()->user->create(
+			array(
+				'user_login' => 'author1',
+				'role'       => 'author',
+			)
+		);
+		$post_1   = self::factory()->post->create(
+			array(
+				'post_title'  => 'Page 1',
+				'post_type'   => 'page',
+				'post_author' => $author_1,
+				'post_date'   => '2007-01-01 00:00:00',
+			)
+		);
+
+		$author_2 = self::factory()->user->create(
+			array(
+				'user_login' => 'author2',
+				'role'       => 'author',
+			)
+		);
+		$post_2   = self::factory()->post->create(
+			array(
+				'post_title'  => 'Page 2',
+				'post_type'   => 'page',
+				'post_author' => $author_2,
+				'post_date'   => '2007-01-01 00:00:00',
+			)
+		);
+		$pages    = get_pages(
+			array(
+				'authors' => 'author1, author2',
+			)
+		);
+
+		$this->assertSameSets( array( $post_1, $post_2 ), wp_list_pluck( $pages, 'ID' ) );
+	}
+
+	/**
+	 * @ticket 12821
+	 * @covers ::get_pages
+	 */
 	public function test_orderby() {
 		global $wpdb;
 		// 'rand' is a valid value.

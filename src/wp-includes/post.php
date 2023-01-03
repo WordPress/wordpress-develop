@@ -6012,8 +6012,12 @@ function get_pages( $args = array() ) {
 	$parsed_args = wp_parse_args( $args, $defaults );
 
 	$number       = (int) $parsed_args['number'];
+	$offset       = (int) $parsed_args['offset'];
 	$child_of     = (int) $parsed_args['child_of'];
 	$hierarchical = $parsed_args['hierarchical'];
+	$exclude      = $parsed_args['exclude'];
+	$meta_key     = $parsed_args['meta_key'];
+	$meta_value   = $parsed_args['meta_value'];
 	$parent       = $parsed_args['parent'];
 	$post_status  = $parsed_args['post_status'];
 
@@ -6038,12 +6042,11 @@ function get_pages( $args = array() ) {
 	$query_args = array(
 		'orderby'                => 'post_title',
 		'order'                  => 'ASC',
-		'post__not_in'           => wp_parse_id_list( $parsed_args['exclude'] ),
-		'meta_key'               => $parsed_args['meta_key'],
-		'meta_value'             => $parsed_args['meta_value'],
-		'author__in'             => wp_parse_list( $parsed_args['authors'] ),
+		'post__not_in'           => wp_parse_id_list( $exclude ),
+		'meta_key'               => $meta_key,
+		'meta_value'             => $meta_value,
 		'posts_per_page'         => -1,
-		'offset'                 => (int) $parsed_args['offset'],
+		'offset'                 => $offset,
 		'post_type'              => $parsed_args['post_type'],
 		'post_status'            => $post_status,
 		'update_post_term_cache' => false,
@@ -6058,6 +6061,28 @@ function get_pages( $args = array() ) {
 		unset( $query_args['post__not_in'], $query_args['meta_key'], $query_args['meta_value'] );
 		$hierarchical           = false;
 		$query_args['post__in'] = wp_parse_id_list( $parsed_args['include'] );
+	}
+
+	if ( ! empty( $parsed_args['authors'] ) ) {
+		$post_authors = wp_parse_list( $parsed_args['authors'] );
+
+		if ( ! empty( $post_authors ) ) {
+			$query_args['author__in'] = array();
+			foreach ( $post_authors as $post_author ) {
+				// Do we have an author id or an author login?
+				if ( 0 == (int) $post_author ) {
+					$post_author = get_user_by( 'login', $post_author );
+					if ( empty( $post_author ) ) {
+						continue;
+					}
+					if ( empty( $post_author->ID ) ) {
+						continue;
+					}
+					$post_author = $post_author->ID;
+				}
+				$query_args['author__in'][] = $post_author;
+			}
+		}
 	}
 
 	if ( is_array( $parent ) ) {
