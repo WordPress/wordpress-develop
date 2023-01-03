@@ -2982,6 +2982,74 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( $expected, $meta[ $meta_key ] );
 	}
 
+	/**
+	 * @ticket 57413
+	 */
+	public function test_send_confirmation_on_profile_email() {
+		reset_phpmailer_instance();
+		$was_confirmation_email_sent = false;
+
+		$user_id = self::factory()->user->create(
+			array(
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		wp_set_current_user( $user_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request->set_param( 'email', 'after@example.com' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$new_data = $response->get_data();
+		$this->assertSame( 'before@example.com', $new_data['email'] );
+
+		if ( ! empty( $GLOBALS['phpmailer']->mock_sent ) ) {
+			$was_confirmation_email_sent = ( isset( $GLOBALS['phpmailer']->mock_sent[0] ) && 'after@example.com' === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] );
+		}
+
+		// A confirmation email is sent.
+		$this->assertTrue( $was_confirmation_email_sent );
+
+		// The new email address gets put into user_meta.
+		$new_email_meta = get_user_meta( $user_id, '_new_email', true );
+		$this->assertSame( 'after@example.com', $new_email_meta['newemail'] );
+	}
+
+	/**
+	 * @ticket 57413
+	 */
+	public function test_no_confirmation_on_profile_email_by_admin() {
+		reset_phpmailer_instance();
+		$was_confirmation_email_sent = false;
+
+		$user_id = self::factory()->user->create(
+			array(
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		wp_set_current_user( self::$user );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request->set_param( 'email', 'after@example.com' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$new_data = $response->get_data();
+		$this->assertSame( 'after@example.com', $new_data['email'] );
+
+		if ( ! empty( $GLOBALS['phpmailer']->mock_sent ) ) {
+			$was_confirmation_email_sent = ( isset( $GLOBALS['phpmailer']->mock_sent[0] ) && 'after@example.com' === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] );
+		}
+
+		// No confirmation email is sent.
+		$this->assertFalse( $was_confirmation_email_sent );
+
+		// No usermeta is created.
+		$new_email_meta = get_user_meta( $user_id, '_new_email', true );
+		$this->assertEmpty( $new_email_meta );
+	}
+
 	public function data_get_default_data() {
 		return array(
 			array(

@@ -1762,6 +1762,41 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57413
+	 */
+	public function test_no_confirmation_on_profile_email_by_admin() {
+		reset_phpmailer_instance();
+		$was_confirmation_email_sent = false;
+
+		$user = self::factory()->user->create_and_get(
+			array(
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		$_POST['email']   = 'after@example.com';
+		$_POST['user_id'] = $user->ID;
+
+		wp_set_current_user( self::$admin_id );
+
+		do_action( 'personal_options_update' );
+
+		if ( ! empty( $GLOBALS['phpmailer']->mock_sent ) ) {
+			$was_confirmation_email_sent = ( isset( $GLOBALS['phpmailer']->mock_sent[0] ) && 'after@example.com' === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] );
+		}
+
+		// No confirmation email is sent.
+		$this->assertFalse( $was_confirmation_email_sent );
+
+		// No usermeta is created.
+		$new_email_meta = get_user_meta( $user->ID, '_new_email', true );
+		$this->assertEmpty( $new_email_meta );
+
+		// $_POST['email'] should be the email address posted from the form.
+		$this->assertSame( 'after@example.com', $_POST['email'] );
+	}
+
+	/**
 	 * Ensure user email address change confirmation emails do not contain encoded HTML entities
 	 *
 	 * @ticket 16470
