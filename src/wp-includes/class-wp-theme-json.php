@@ -254,8 +254,8 @@ class WP_Theme_JSON {
 	/**
 	 * Indirect metadata for style properties that are not directly output.
 	 *
-	 * Each element is a direct mapping from a CSS property name to the
-	 * path to the value in theme.json & block attributes.
+	 * Each element maps from a CSS property name to an array of
+	 * paths to the value in theme.json & block attributes.
 	 *
 	 * Indirect properties are not output directly by `compute_style_properties`,
 	 * but are used elsewhere in the processing of global styles. The indirect
