@@ -3629,53 +3629,101 @@ function _wp_get_current_user() {
 function send_confirmation_on_profile_email() {
 	global $errors;
 
-	$current_user = wp_get_current_user();
 	if ( ! is_object( $errors ) ) {
 		$errors = new WP_Error();
 	}
 
-	if ( $current_user->ID != $_POST['user_id'] ) {
-		return false;
+	$user       = get_user_by( 'id', $_POST['user_id'] );
+	$email_sent = send_user_email_change_confirmation_email( $user, $_POST['email'] );
+
+	if ( is_wp_error( $email_sent ) ) {
+		// WP_Error::copy_errors() with the addition of adding data.
+		foreach ( $email_sent->get_error_codes() as $code ) {
+			$errors->add(
+				$code,
+				$email_sent->get_error_message( $code ),
+				array(
+					'form-field' => 'email',
+				)
+			);
+		}
 	}
 
-	if ( $current_user->user_email != $_POST['email'] ) {
-		if ( ! is_email( $_POST['email'] ) ) {
-			$errors->add(
-				'user_email',
-				__( '<strong>Error:</strong> The email address is not correct.' ),
-				array(
-					'form-field' => 'email',
-				)
-			);
+	if ( true === $email_sent ) {
+		$_POST['email'] = $user->user_email;
+	}
+}
 
-			return;
-		}
+/**
+ * Send the 'confirm your email' email.
+ *
+ * @since x.x
+ *
+ * @param WP_User $user  The user to act upon.
+ * @param string  $email The new email address.
+ * @return null|true|WP_Error true if email sent, WP_Error on error, and null otherwise.
+ */
+function send_user_email_change_confirmation_email( $user, $email ) {
+	if ( $user->user_email == $email ) {
+		return;
+	}
 
-		if ( email_exists( $_POST['email'] ) ) {
-			$errors->add(
-				'user_email',
-				__( '<strong>Error:</strong> The email address is already used.' ),
-				array(
-					'form-field' => 'email',
-				)
-			);
-			delete_user_meta( $current_user->ID, '_new_email' );
-
-			return;
-		}
-
-		$hash           = md5( $_POST['email'] . time() . wp_rand() );
-		$new_user_email = array(
-			'hash'     => $hash,
-			'newemail' => $_POST['email'],
+	if ( ! is_email( $email ) ) {
+		return new WP_Error(
+			'user_email',
+			__( '<strong>Error:</strong> The email address is not correct.' )
 		);
-		update_user_meta( $current_user->ID, '_new_email', $new_user_email );
+	}
 
-		$sitename = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+	if ( email_exists( $email ) ) {
+		delete_user_meta( $user->ID, '_new_email' );
 
-		/* translators: Do not translate USERNAME, ADMIN_URL, EMAIL, SITENAME, SITEURL: those are placeholders. */
-		$email_text = __(
-			'Howdy ###USERNAME###,
+		return new WP_Error(
+			'user_email',
+			__( '<strong>Error:</strong> The email address is already used.' )
+		);
+	}
+
+	// The email is only sent if a user changes their own email.
+	$should_send_email_for_change = ( get_current_user_id() === $user->ID );
+
+	/**
+	 * Filters whether a 'confirm your email address' email should be sent.
+	 * If false is returned, the change is made immediately.
+	 *
+	 * @since x.x
+	 *
+	 * @param bool    $should_send_email_for_change Whether to use an email confirmation.
+	 * @param WP_User $user                         The user having their email changed.
+	 * @param string  $email                        The new email address.
+	 */
+	$should_send_email_for_change = apply_filters( 'should_send_email_for_email_change', $should_send_email_for_change, $user, $email );
+
+	if ( ! $should_send_email_for_change ) {
+		return;
+	}
+
+	$hash           = md5( $email . time() . wp_rand() );
+	$new_user_email = array(
+		'hash'     => $hash,
+		'newemail' => $email,
+	);
+	update_user_meta( $user->ID, '_new_email', $new_user_email );
+
+	$confirm_url = add_query_arg(
+		array(
+			'action' => 'confirmemail',
+			'id'     => $user->ID,
+			'hash'   => $hash,
+		),
+		wp_login_url()
+	);
+
+	$sitename = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+
+	/* translators: Do not translate USERNAME, ADMIN_URL, EMAIL, SITENAME, SITEURL: those are placeholders. */
+	$email_text = __(
+		'Howdy ###USERNAME###,
 
 You recently requested to have the email address on your account changed.
 
@@ -3690,41 +3738,43 @@ This email has been sent to ###EMAIL###
 Regards,
 All at ###SITENAME###
 ###SITEURL###'
-		);
+	);
 
-		/**
-		 * Filters the text of the email sent when a change of user email address is attempted.
-		 *
-		 * The following strings have a special meaning and will get replaced dynamically:
-		 * - ###USERNAME###  The current user's username.
-		 * - ###ADMIN_URL### The link to click on to confirm the email change.
-		 * - ###EMAIL###     The new email.
-		 * - ###SITENAME###  The name of the site.
-		 * - ###SITEURL###   The URL to the site.
-		 *
-		 * @since MU (3.0.0)
-		 * @since 4.9.0 This filter is no longer Multisite specific.
-		 *
-		 * @param string $email_text     Text in the email.
-		 * @param array  $new_user_email {
-		 *     Data relating to the new user email address.
-		 *
-		 *     @type string $hash     The secure hash used in the confirmation link URL.
-		 *     @type string $newemail The proposed new email address.
-		 * }
-		 */
-		$content = apply_filters( 'new_user_email_content', $email_text, $new_user_email );
+	/**
+	 * Filters the text of the email sent when a change of user email address is attempted.
+	 *
+	 * The following strings have a special meaning and will get replaced dynamically:
+	 * - ###USERNAME###  The current user's username.
+	 * - ###ADMIN_URL### The link to click on to confirm the email change.
+	 * - ###EMAIL###     The new email.
+	 * - ###SITENAME###  The name of the site.
+	 * - ###SITEURL###   The URL to the site.
+	 *
+	 * @since MU (3.0.0)
+	 * @since 4.9.0 This filter is no longer Multisite specific.
+	 *
+	 * @param string $email_text     Text in the email.
+	 * @param array  $new_user_email {
+	 *     Data relating to the new user email address.
+	 *
+	 *     @type string $hash     The secure hash used in the confirmation link URL.
+	 *     @type string $newemail The proposed new email address.
+	 * }
+	 */
+	$content = apply_filters( 'new_user_email_content', $email_text, $new_user_email );
 
-		$content = str_replace( '###USERNAME###', $current_user->user_login, $content );
-		$content = str_replace( '###ADMIN_URL###', esc_url( admin_url( 'profile.php?newuseremail=' . $hash ) ), $content );
-		$content = str_replace( '###EMAIL###', $_POST['email'], $content );
-		$content = str_replace( '###SITENAME###', $sitename, $content );
-		$content = str_replace( '###SITEURL###', home_url(), $content );
+	$content = str_replace( '###USERNAME###', $user->user_login, $content );
+	$content = str_replace( '###ADMIN_URL###', esc_url( $confirm_url ), $content );
+	$content = str_replace( '###EMAIL###', $email, $content );
+	$content = str_replace( '###SITENAME###', $sitename, $content );
+	$content = str_replace( '###SITEURL###', home_url(), $content );
 
-		/* translators: New email address notification email subject. %s: Site title. */
-		wp_mail( $_POST['email'], sprintf( __( '[%s] Email Change Request' ), $sitename ), $content );
+	/* translators: New email address notification email subject. %s: Site title. */
+	wp_mail( $email, sprintf( __( '[%s] Email Change Request' ), $sitename ), $content );
 
-		$_POST['email'] = $current_user->user_email;
+	return true;
+}
+
 	}
 }
 
