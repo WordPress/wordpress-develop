@@ -793,7 +793,7 @@ class WP_User_Query {
 
 		$qv =& $this->query_vars;
 
-		// Do not cache results if more than 3 fields are requested. 
+		// Do not cache results if more than 3 fields are requested.
 		if ( is_array( $qv['fields'] ) && count( $qv['fields'] ) > 3 ) {
 			$qv['cache_results'] = false;
 		}
