@@ -3775,7 +3775,36 @@ All at ###SITENAME###
 	return true;
 }
 
+/**
+ * Process the confirmation of an email change request.
+ *
+ * @since x.x
+ *
+ * @param int    $user_id    The User ID being acted upon.
+ * @param string $email_hash The email hash of the request
+ *
+ * @return bool Whether or not the change succeeded.
+ */
+function send_user_email_change_confirmation_process( $user_id, $email_hash ) {
+
+	$new_email = get_user_meta( $user_id, '_new_email', true );
+	if ( ! $new_email || ! hash_equals( $new_email['hash'], $email_hash ) ) {
+		return false;
 	}
+
+	$the_user         = get_user_by( 'id', $user_id );
+	$user             = new stdClass();
+	$user->ID         = $the_user->ID;
+	$user->user_email = esc_html( trim( $new_email['newemail'] ) );
+	if ( is_multisite() && $wpdb->get_var( $wpdb->prepare( "SELECT user_login FROM {$wpdb->signups} WHERE user_login = %s", $the_user->user_login ) ) ) {
+		$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->signups} SET user_email = %s WHERE user_login = %s", $user->user_email, $the_user->user_login ) );
+	}
+
+	wp_update_user( $user );
+
+	delete_user_meta( $user->ID, '_new_email' );
+
+	return true;
 }
 
 /**
