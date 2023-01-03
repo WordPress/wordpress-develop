@@ -930,11 +930,11 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 
 		// False is a valid value.
 		get_pages( array( 'sort_column' => false ) );
-		$this->assertStringContainsString( 'ORDER BY', $wpdb->last_query, 'Check orderby is present' );
+		$this->assertStringContainsString( 'ORDER BY', $wpdb->last_query, 'Check orderby is present if sort_column equal false is passed.' );
 
 		// Empty array() is a valid value.
 		get_pages( array( 'sort_column' => array() ) );
-		$this->assertStringContainsString( 'ORDER BY', $wpdb->last_query, 'Check orderby is present' );
+		$this->assertStringContainsString( 'ORDER BY', $wpdb->last_query, 'Check orderby is present  if sort_column equals an empty array is passed.' );
 	}
 
 	/**
