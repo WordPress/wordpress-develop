@@ -166,10 +166,10 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		$users2         = $query2->get_results();
 		$users_total2   = $query2->get_total();
 		$queries_after  = get_num_queries();
-
-		$this->assertSame( $queries_before, $queries_after, 'No queries are expected run.' );
-		$this->assertSame( $users_total1, $users_total2, 'Number of users returned us expected to match.' );
-		$this->assertSameSets( $users1, $users2, 'Results of the query are expected to match.' );
+		
+		$this->assertSame( 0, $queries_after - $queries_before, 'Assert that no queries are run' );
+		$this->assertSame( $users_total1, $users_total2, 'Assert that totals do match' );
+		$this->assertSameSets( $users1, $users2, 'Asset that results of query match' );
 	}
 
 	/**
