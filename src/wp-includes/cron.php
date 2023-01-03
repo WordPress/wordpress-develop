@@ -529,10 +529,10 @@ function wp_unschedule_event( $timestamp, $hook, $args = array(), $wp_error = fa
 
 	/*
 	 * If the event does not exist as described, no attempt
-	 * to update the cron array is required. Return false.
+	 * to update the cron array is required. Return true.
 	 */
 	if ( ! isset( $crons[ $timestamp ][ $hook ][ $key ] ) ) {
-		return false;
+		return true;
 	}
 
 	unset( $crons[ $timestamp ][ $hook ][ $key ] );
