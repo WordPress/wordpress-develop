@@ -438,10 +438,10 @@ function get_echo( $callback, $args = array() ) {
 }
 
 // Recursively generate some quick assertEquals() tests based on an array.
-function gen_tests_array( $name, $input_array ) {
+function gen_tests_array( $name, $expected_data ) {
 	$out = array();
 
-	foreach ( $input_array as $k => $v ) {
+	foreach ( $expected_data as $k => $v ) {
 		if ( is_numeric( $k ) ) {
 			$index = (string) $k;
 		} else {
