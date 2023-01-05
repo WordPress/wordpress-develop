@@ -8,7 +8,7 @@
 ( function () {
 	var toggle, status, input, icon, label;
 
-	toggle = document.getElementById( 'pwd-toggle' );
+	toggle = document.querySelector( '.pwd-toggle' );
 	toggle.classList.remove('hide-if-no-js');
 	toggle.addEventListener( 'click', togglePassword );
 
