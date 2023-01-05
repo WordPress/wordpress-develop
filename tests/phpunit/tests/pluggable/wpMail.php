@@ -461,10 +461,16 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 	 * @ticket 28407
 	 */
 	public function test_wp_mail_sends_attachments_with_original_name() {
-		wp_mail( 'user@example.org', 'Subject', 'Hello World', '', array(
-			DIR_TESTDATA . '/images/canola.jpg',
-			DIR_TESTDATA . '/images/waffles.jpg'
-		) );
+		wp_mail(
+			'user@example.org',
+			'Subject',
+			'Hello World',
+			'',
+			array(
+				DIR_TESTDATA . '/images/canola.jpg',
+				DIR_TESTDATA . '/images/waffles.jpg',
+			)
+		);
 
 		/** @var PHPMailer $mailer */
 		$mailer = tests_retrieve_phpmailer_instance();
@@ -483,10 +489,16 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 	 * @ticket 28407
 	 */
 	public function test_wp_mail_sends_attachments_with_custom_name() {
-		wp_mail( 'user@example.org', 'Subject', 'Hello World', '', array(
-			'alonac.jpg'  => DIR_TESTDATA . '/images/canola.jpg',
-			'selffaw.jpg' => DIR_TESTDATA . '/images/waffles.jpg'
-		) );
+		wp_mail(
+			'user@example.org',
+			'Subject',
+			'Hello World',
+			'',
+			array(
+				'alonac.jpg'  => DIR_TESTDATA . '/images/canola.jpg',
+				'selffaw.jpg' => DIR_TESTDATA . '/images/waffles.jpg',
+			)
+		);
 
 		/** @var PHPMailer $mailer */
 		$mailer = tests_retrieve_phpmailer_instance();
