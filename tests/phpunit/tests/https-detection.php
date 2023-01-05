@@ -264,37 +264,37 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 		$this->assertNull( wp_is_local_html_output( $html ) );
 	}
 
-	public function record_request_url( $preempt, $parsed_args, $url ) {
+	public function record_request_url( $response, $parsed_args, $url ) {
 		$this->last_request_url = $url;
-		return $preempt;
+		return $response;
 	}
 
-	public function mock_success_with_sslverify( $preempt, $parsed_args ) {
+	public function mock_success_with_sslverify( $response, $parsed_args ) {
 		if ( ! empty( $parsed_args['sslverify'] ) ) {
 			return $this->mock_success();
 		}
-		return $preempt;
+		return $response;
 	}
 
-	public function mock_error_with_sslverify( $preempt, $parsed_args ) {
+	public function mock_error_with_sslverify( $response, $parsed_args ) {
 		if ( ! empty( $parsed_args['sslverify'] ) ) {
 			return $this->mock_error();
 		}
-		return $preempt;
+		return $response;
 	}
 
-	public function mock_success_without_sslverify( $preempt, $parsed_args ) {
+	public function mock_success_without_sslverify( $response, $parsed_args ) {
 		if ( empty( $parsed_args['sslverify'] ) ) {
 			return $this->mock_success();
 		}
-		return $preempt;
+		return $response;
 	}
 
-	public function mock_error_without_sslverify( $preempt, $parsed_args ) {
+	public function mock_error_without_sslverify( $response, $parsed_args ) {
 		if ( empty( $parsed_args['sslverify'] ) ) {
 			return $this->mock_error();
 		}
-		return $preempt;
+		return $response;
 	}
 
 	public function mock_not_found() {
