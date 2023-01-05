@@ -8,23 +8,26 @@
 ( function () {
 	var toggle, status, input, icon, label;
 
-	toggle = document.querySelector( '.pwd-toggle' );
-	toggle.classList.remove('hide-if-no-js');
-	toggle.addEventListener( 'click', togglePassword );
+	toggle = document.querySelectorAll('.pwd-toggle');
+
+	toggle.forEach( function (t) {
+		t.classList.remove('hide-if-no-js');
+		t.addEventListener( 'click', togglePassword );
+	} );
 
 	function togglePassword() {
-		status = toggle.getAttribute( 'data-toggle' );
+		status = this.getAttribute( 'data-toggle' );
 		input = document.getElementById( 'pwd' );
-		icon = toggle.getElementsByClassName( 'dashicons' )[ 0 ];
-		label = toggle.getElementsByClassName( 'text' )[ 0 ];
+		icon = this.getElementsByClassName( 'dashicons' )[ 0 ];
+		label = this.getElementsByClassName( 'text' )[ 0 ];
 
 		if ( 0 === parseInt( status, 10 ) ) {
-			toggle.setAttribute( 'data-toggle', 1 );
+			this.setAttribute( 'data-toggle', 1 );
 			input.setAttribute( 'type', 'text' );
 			icon.classList.remove( 'dashicons-visibility' );
 			icon.classList.add( 'dashicons-hidden' );
 		} else {
-			toggle.setAttribute( 'data-toggle', 0 );
+			this.setAttribute( 'data-toggle', 0 );
 			input.setAttribute( 'type', 'password' );
 			icon.classList.remove( 'dashicons-hidden' );
 			icon.classList.add( 'dashicons-visibility' );
