@@ -199,9 +199,8 @@ function wp_nav_menu( $args = array() ) {
 	$menu_items_with_children = array();
 	foreach ( (array) $menu_items as $menu_item ) {
 		// Fix invalid `menu_item_parent`. See: https://core.trac.wordpress.org/ticket/56926.
-		$menu_item_id = intval( $menu_item->ID ); // May be changed to a string in plugins.
-
-		if ( $menu_item_id === (int) $menu_item->menu_item_parent ) {
+		// Compare as strings. Plugins may change the ID to string.
+		if ( "$menu_item->ID" === "$menu_item->menu_item_parent" ) {
 			$menu_item->menu_item_parent = 0;
 		}
 
