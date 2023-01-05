@@ -10,7 +10,7 @@ class Tests_Block_Supports_Elements extends WP_UnitTestCase {
 	 * this function returns a string where the id is one instead of being unique.
 	 *
 	 * @param  string $css_class String containing unique id classes.
-	 * @return string                String where the unique id classes were replaced with "wp-elements-1".
+	 * @return string String where the unique id classes were replaced with "wp-elements-1".
 	 */
 	private static function make_unique_id_one( $css_class ) {
 		return preg_replace( '/wp-elements-[a-zA-Z0-9]+/', 'wp-elements-1', $css_class );
