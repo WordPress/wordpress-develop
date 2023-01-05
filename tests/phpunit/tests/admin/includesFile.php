@@ -69,7 +69,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	}
 
 	public function _fake_download_url_non_200_response_code( $response, $parsed_args, $url ) {
-		file_put_contents( $args['filename'], 'This is an unexpected error message from your favorite server.' );
+		file_put_contents( $parsed_args['filename'], 'This is an unexpected error message from your favorite server.' );
 		return array(
 			'response' => array(
 				'code'    => 418,
