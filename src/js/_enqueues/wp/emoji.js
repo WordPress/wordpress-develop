@@ -263,6 +263,19 @@
 						this.setAttribute( 'data-error', 'load-failed' );
 						twemoji.parentNode.replaceChild( document.createTextNode( twemoji.alt ), twemoji );
 					}
+				},
+				doNotParse: function( node ) {
+					if (
+						node &&
+						node.className &&
+						typeof node.className === 'string' &&
+						node.className.indexOf( 'wp-exclude-emoji' ) !== -1
+					) {
+						// Do not parse this node. Emojis will not be replaced in this node and all sub-nodes.
+						return true;
+					}
+
+					return false;
 				}
 			};
 

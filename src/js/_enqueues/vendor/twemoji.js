@@ -306,6 +306,13 @@ var twemoji = (function (
       else if (nodeType === 1 && !('ownerSVGElement' in subnode) &&
           !shouldntBeParsed.test(subnode.nodeName.toLowerCase())) {
 
+        // WP start
+        // Use doNotParse() callback if set.
+        if ( twemoji.doNotParse && twemoji.doNotParse( subnode ) ) {
+        	continue;
+        }
+        // WP end
+
         grabAllTextNodes(subnode, allText);
       }
     }
@@ -521,6 +528,11 @@ var twemoji = (function (
     if (!how || typeof how === 'function') {
       how = {callback: how};
     }
+
+    // WP start
+    // Allow passing of the doNotParse() callback in the settings.
+	twemoji.doNotParse = how.doNotParse;
+	// WP end
 
     // if first argument is string, inject html <img> tags
     // otherwise use the DOM tree and parse text nodes only
