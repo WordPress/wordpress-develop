@@ -337,9 +337,9 @@ function signup_another_blog( $blogname = '', $blog_title = '', $errors = '' ) {
 	}
 
 	$signup_defaults = array(
-		'blogname'   => $blogname,
+		'blogname' => $blogname,
 		'blog_title' => $blog_title,
-		'errors'     => $errors,
+		'errors' => $errors,
 	);
 
 	/**
