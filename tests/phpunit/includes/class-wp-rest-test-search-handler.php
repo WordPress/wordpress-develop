@@ -23,10 +23,10 @@ class WP_REST_Test_Search_Handler extends WP_REST_Search_Handler {
 			$subtype = $i > $amount / 2 ? 'test_second_type' : 'test_first_type';
 
 			$this->items[ $i ] = (object) array(
-				'test_id' => $i,
+				'test_id'    => $i,
 				'test_title' => sprintf( 'Title %d', $i ),
-				'test_url' => sprintf( home_url( '/tests/%d' ), $i ),
-				'test_type' => $subtype,
+				'test_url'   => sprintf( home_url( '/tests/%d' ), $i ),
+				'test_type'  => $subtype,
 			);
 		}
 	}
