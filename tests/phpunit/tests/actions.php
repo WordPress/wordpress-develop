@@ -8,6 +8,35 @@
 class Tests_Actions extends WP_UnitTestCase {
 
 	/**
+	 * Flag to keep track whether a certain filter has been applied.
+	 *
+	 * Used in the `test_doing_filter_real()` test method.
+	 *
+	 * @var bool
+	 */
+	private $apply_testing_filter = false;
+
+	/**
+	 * Flag to keep track whether a certain filter has been applied.
+	 *
+	 * Used in the `test_doing_filter_real()` test method.
+	 *
+	 * @var bool
+	 */
+	private $apply_testing_nested_filter = false;
+
+	/**
+	 * Clean up after each test.
+	 */
+	public function tear_down() {
+		// Make sure potentially changed properties are reverted to their default value.
+		$this->apply_testing_filter        = false;
+		$this->apply_testing_nested_filter = false;
+
+		parent::tear_down();
+	}
+
+	/**
 	 * @covers ::do_action
 	 */
 	public function test_simple_action() {

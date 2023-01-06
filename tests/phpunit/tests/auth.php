@@ -407,7 +407,7 @@ class Tests_Auth extends WP_UnitTestCase {
 			'user_email' => 'mail@example.com',
 			'user_pass'  => 'password',
 		);
-		$this->factory->user->create( $user_args );
+		self::factory()->user->create( $user_args );
 
 		$this->assertInstanceOf( 'WP_User', wp_authenticate( $user_args['user_email'], $user_args['user_pass'] ) );
 		$this->assertInstanceOf( 'WP_User', wp_authenticate( $user_args['user_login'], $user_args['user_pass'] ) );
@@ -421,7 +421,7 @@ class Tests_Auth extends WP_UnitTestCase {
 			'user_email' => "mail\'@example.com",
 			'user_pass'  => 'password',
 		);
-		$this->factory()->user->create( $user_args );
+		self::factory()->user->create( $user_args );
 
 		$_POST['log'] = $user_args['user_email'];
 		$_POST['pwd'] = $user_args['user_pass'];
@@ -436,7 +436,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * @covers ::wp_validate_application_password
 	 */
 	public function test_application_password_authentication() {
-		$user_id = $this->factory()->user->create(
+		$user_id = self::factory()->user->create(
 			array(
 				'user_login' => 'http_auth_login',
 				'user_pass'  => 'http_auth_pass', // Shouldn't be allowed for API login.

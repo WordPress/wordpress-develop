@@ -309,7 +309,7 @@ class Tests_L10n extends WP_UnitTestCase {
 			'post_excerpt' => '',
 		);
 
-		$post = $this->factory()->post->create_and_get( $args );
+		$post = self::factory()->post->create_and_get( $args );
 		setup_postdata( $post );
 
 		$expect = "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat [&hellip;]</p>\n";
@@ -335,7 +335,7 @@ class Tests_L10n extends WP_UnitTestCase {
 			'post_excerpt' => '',
 		);
 
-		$post = $this->factory()->post->create_and_get( $args );
+		$post = self::factory()->post->create_and_get( $args );
 		setup_postdata( $post );
 
 		$expect = "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore  [&hellip;]</p>\n";
@@ -361,7 +361,7 @@ class Tests_L10n extends WP_UnitTestCase {
 			'post_excerpt' => '',
 		);
 
-		$post = $this->factory()->post->create_and_get( $args );
+		$post = self::factory()->post->create_and_get( $args );
 		setup_postdata( $post );
 
 		$expect = '<p>' . str_repeat( 'あ', 110 ) . " [&hellip;]</p>\n";
@@ -387,7 +387,7 @@ class Tests_L10n extends WP_UnitTestCase {
 			'post_excerpt' => '',
 		);
 
-		$post = $this->factory()->post->create_and_get( $args );
+		$post = self::factory()->post->create_and_get( $args );
 		setup_postdata( $post );
 
 		$expect = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat [&#8230;]';
@@ -413,7 +413,7 @@ class Tests_L10n extends WP_UnitTestCase {
 			'post_excerpt' => '',
 		);
 
-		$post = $this->factory()->post->create_and_get( $args );
+		$post = self::factory()->post->create_and_get( $args );
 		setup_postdata( $post );
 
 		$expect = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore  [&#8230;]';
@@ -435,13 +435,26 @@ class Tests_L10n extends WP_UnitTestCase {
 
 		switch_to_locale( 'en_US' );
 
+		/*
+		 * The recent drafts list is only displayed on the Dashboard screen for users
+		 * with the 'edit_posts' capability.
+		 *
+		 * This means the current user needs to be set to Editor as a prerequisite
+		 * for the call to the wp_dashboard_recent_drafts() function.
+		 *
+		 * This allows the subsequent call to get_edit_post_link() to work as expected
+		 * and return a string instead of null, which would otherwise cause a PHP 8.1
+		 * "passing null to non-nullable" deprecation notice.
+		 */
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+
 		$args = array(
 			'post_content' => $this->long_text,
 			'post_excerpt' => '',
 			'post_status'  => 'draft',
 		);
 
-		$this->factory()->post->create( $args );
+		self::factory()->post->create( $args );
 
 		$expect = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do&hellip;';
 		$this->expectOutputRegex( '/' . $expect . '/' );
@@ -461,13 +474,26 @@ class Tests_L10n extends WP_UnitTestCase {
 
 		switch_to_locale( 'ja_JP' );
 
+		/*
+		 * The recent drafts list is only displayed on the Dashboard screen for users
+		 * with the 'edit_posts' capability.
+		 *
+		 * This means the current user needs to be set to Editor as a prerequisite
+		 * for the call to the wp_dashboard_recent_drafts() function.
+		 *
+		 * This allows the subsequent call to get_edit_post_link() to work as expected
+		 * and return a string instead of null, which would otherwise cause a PHP 8.1
+		 * "passing null to non-nullable" deprecation notice.
+		 */
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+
 		$args = array(
 			'post_content' => $this->long_text,
 			'post_excerpt' => '',
 			'post_status'  => 'draft',
 		);
 
-		$post = $this->factory()->post->create( $args );
+		$post = self::factory()->post->create( $args );
 
 		$expect = 'Lorem ipsum dolor sit amet, consectetur &hellip;';
 		$this->expectOutputRegex( '/' . $expect . '/' );
@@ -487,13 +513,26 @@ class Tests_L10n extends WP_UnitTestCase {
 
 		switch_to_locale( 'ja_JP' );
 
+		/*
+		 * The recent drafts list is only displayed on the Dashboard screen for users
+		 * with the 'edit_posts' capability.
+		 *
+		 * This means the current user needs to be set to Editor as a prerequisite
+		 * for the call to the wp_dashboard_recent_drafts() function.
+		 *
+		 * This allows the subsequent call to get_edit_post_link() to work as expected
+		 * and return a string instead of null, which would otherwise cause a PHP 8.1
+		 * "passing null to non-nullable" deprecation notice.
+		 */
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+
 		$args = array(
 			'post_content' => str_repeat( 'あ', 200 ),
 			'post_excerpt' => '',
 			'post_status'  => 'draft',
 		);
 
-		$this->factory()->post->create( $args );
+		self::factory()->post->create( $args );
 
 		$expect = str_repeat( 'あ', 40 ) . '&hellip;';
 		$this->expectOutputRegex( '/' . $expect . '/' );
@@ -514,7 +553,7 @@ class Tests_L10n extends WP_UnitTestCase {
 		$args            = array(
 			'comment_content' => $this->long_text,
 		);
-		$comment_id      = $this->factory()->comment->create( $args );
+		$comment_id      = self::factory()->comment->create( $args );
 		$expect          = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut&hellip;';
 		$comment_excerpt = get_comment_excerpt( $comment_id );
 
@@ -534,7 +573,7 @@ class Tests_L10n extends WP_UnitTestCase {
 		$args            = array(
 			'comment_content' => $this->long_text,
 		);
-		$comment_id      = $this->factory()->comment->create( $args );
+		$comment_id      = self::factory()->comment->create( $args );
 		$expect          = 'Lorem ipsum dolor sit amet, consectetur &hellip;';
 		$comment_excerpt = get_comment_excerpt( $comment_id );
 
@@ -554,7 +593,7 @@ class Tests_L10n extends WP_UnitTestCase {
 		$args            = array(
 			'comment_content' => str_repeat( 'あ', 200 ),
 		);
-		$comment_id      = $this->factory()->comment->create( $args );
+		$comment_id      = self::factory()->comment->create( $args );
 		$expect          = str_repeat( 'あ', 40 ) . '&hellip;';
 		$comment_excerpt = get_comment_excerpt( $comment_id );
 

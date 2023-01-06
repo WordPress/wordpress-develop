@@ -13,6 +13,9 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 	public static $posts;
 	public static $category;
 
+	private $post_count;
+	private $excerpt_only;
+
 	/**
 	 * Setup a new user and attribute some posts.
 	 */

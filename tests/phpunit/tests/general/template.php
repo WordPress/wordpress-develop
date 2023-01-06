@@ -104,7 +104,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::has_site_icon
 	 */
 	public function test_has_site_icon_returns_true_when_called_for_other_site_with_site_icon_set() {
-		$blog_id = $this->factory->blog->create();
+		$blog_id = self::factory()->blog->create();
 		switch_to_blog( $blog_id );
 		$this->set_site_icon();
 		restore_current_blog();
@@ -119,7 +119,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::has_site_icon
 	 */
 	public function test_has_site_icon_returns_false_when_called_for_other_site_without_site_icon_set() {
-		$blog_id = $this->factory->blog->create();
+		$blog_id = self::factory()->blog->create();
 
 		$this->assertFalse( has_site_icon( $blog_id ) );
 	}
@@ -180,7 +180,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 */
 	public function test_customize_preview_wp_site_icon_empty() {
 		global $wp_customize;
-		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$wp_customize = new WP_Customize_Manager();
@@ -198,7 +198,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 */
 	public function test_customize_preview_wp_site_icon_dirty() {
 		global $wp_customize;
-		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$wp_customize = new WP_Customize_Manager();
@@ -298,7 +298,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::has_custom_logo
 	 */
 	public function test_has_custom_logo_returns_true_when_called_for_other_site_with_custom_logo_set() {
-		$blog_id = $this->factory->blog->create();
+		$blog_id = self::factory()->blog->create();
 		switch_to_blog( $blog_id );
 		$this->set_custom_logo();
 		restore_current_blog();
@@ -313,7 +313,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::has_custom_logo
 	 */
 	public function test_has_custom_logo_returns_false_when_called_for_other_site_without_custom_logo_set() {
-		$blog_id = $this->factory->blog->create();
+		$blog_id = self::factory()->blog->create();
 
 		$this->assertFalse( has_custom_logo( $blog_id ) );
 	}
@@ -343,7 +343,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::get_custom_logo
 	 */
 	public function test_get_custom_logo_returns_logo_when_called_for_other_site_with_custom_logo_set() {
-		$blog_id = $this->factory->blog->create();
+		$blog_id = self::factory()->blog->create();
 		switch_to_blog( $blog_id );
 
 		$this->set_custom_logo();
@@ -466,7 +466,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::get_site_icon_url
 	 */
 	public function test_get_site_icon_url_preserves_switched_state() {
-		$blog_id = $this->factory->blog->create();
+		$blog_id = self::factory()->blog->create();
 		switch_to_blog( $blog_id );
 
 		$expected = $GLOBALS['_wp_switched_stack'];
@@ -486,7 +486,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::has_custom_logo
 	 */
 	public function test_has_custom_logo_preserves_switched_state() {
-		$blog_id = $this->factory->blog->create();
+		$blog_id = self::factory()->blog->create();
 		switch_to_blog( $blog_id );
 
 		$expected = $GLOBALS['_wp_switched_stack'];
@@ -506,7 +506,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::get_custom_logo
 	 */
 	public function test_get_custom_logo_preserves_switched_state() {
-		$blog_id = $this->factory->blog->create();
+		$blog_id = self::factory()->blog->create();
 		switch_to_blog( $blog_id );
 
 		$expected = $GLOBALS['_wp_switched_stack'];
@@ -598,18 +598,18 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::get_the_archive_title
 	 */
 	public function test_get_the_archive_title_is_correct_for_author_queries() {
-		$user_with_posts    = $this->factory()->user->create_and_get(
+		$user_with_posts    = self::factory()->user->create_and_get(
 			array(
 				'role' => 'author',
 			)
 		);
-		$user_with_no_posts = $this->factory()->user->create_and_get(
+		$user_with_no_posts = self::factory()->user->create_and_get(
 			array(
 				'role' => 'author',
 			)
 		);
 
-		$this->factory()->post->create(
+		self::factory()->post->create(
 			array(
 				'post_author' => $user_with_posts->ID,
 			)

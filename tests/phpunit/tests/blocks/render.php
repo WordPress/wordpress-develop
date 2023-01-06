@@ -47,6 +47,9 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 		if ( $registry->is_registered( 'core/dynamic' ) ) {
 			$registry->unregister( 'core/dynamic' );
 		}
+		if ( $registry->is_registered( 'tests/notice' ) ) {
+			$registry->unregister( 'tests/notice' );
+		}
 
 		parent::tear_down();
 	}
@@ -236,6 +239,19 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 			"File '$html_path' does not match expected value"
 		);
 	}
+
+	/**
+	 * @ticket 53148
+	 */
+	public function test_render_field_in_block_json() {
+		$result = register_block_type(
+			DIR_TESTDATA . '/blocks/notice'
+		);
+
+		$actual_content = do_blocks( '<!-- wp:tests/notice {"message":"Hello from the test"} --><!-- /wp:tests/notice -->' );
+		$this->assertSame( '<p class="wp-block-tests-notice">Hello from the test</p>', trim( $actual_content ) );
+	}
+
 
 	/**
 	 * @ticket 45109

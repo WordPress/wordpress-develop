@@ -53,8 +53,10 @@ jobs:
     steps:
       - name: Determine the status of the previous attempt
         id: previous-attempt-result
-        uses: actions/github-script@7a5c598405937d486b0331594b5da2b14db670da # v6.1.0
+        uses: actions/github-script@100527700e8b29ca817ac0e0dfbfc5e8ff38edda # v6.3.2
         with:
+          retries: 2
+          retry-exempt-status-codes: 418
           script: |
             const workflow_run = await github.rest.actions.getWorkflowRun({
               owner: context.repo.owner,
@@ -112,13 +114,15 @@ jobs:
 
       - name: Store previous conclusion as an output
         id: previous-conclusion
-        run: echo "::set-output name=previous_conclusion::${{ steps.previous-attempt-result.outputs.result }}"
+        run: echo "previous_conclusion=${{ steps.previous-attempt-result.outputs.result }}" >> $GITHUB_OUTPUT
 
       - name: Get the commit message
         id: current-commit-message
-        uses: actions/github-script@7a5c598405937d486b0331594b5da2b14db670da # v6.1.0
+        uses: actions/github-script@100527700e8b29ca817ac0e0dfbfc5e8ff38edda # v6.3.2
         if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
         with:
+          retries: 2
+          retry-exempt-status-codes: 418
           script: |
             const commit_details = await github.rest.repos.getCommit({
               owner: context.repo.owner,
@@ -134,11 +138,11 @@ jobs:
           ${{ ( github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' ) && fromJson( steps.current-commit-message.outputs.result ) || github.event.head_commit.message }}
           EOF
           )
-          echo "::set-output name=commit_message_escaped::${COMMIT_MESSAGE}"
+          echo "commit_message_escaped=${COMMIT_MESSAGE}" >> $GITHUB_OUTPUT
 
       - name: Construct payload and store as an output
         id: create-payload
-        run: echo "::set-output name=payload::{\"workflow_name\":\"${{ github.workflow }}\",\"ref_name\":\"${{ env.CURRENT_BRANCH }}\",\"run_url\":\"https://github.com/WordPress/wordpress-develop/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}\",\"commit_message\":\"${{ steps.commit-message.outputs.commit_message_escaped }}\"}"
+        run: echo "payload={\"workflow_name\":\"${{ github.workflow }}\",\"ref_name\":\"${{ env.CURRENT_BRANCH }}\",\"run_url\":\"https://github.com/WordPress/wordpress-develop/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}\",\"commit_message\":\"${{ steps.commit-message.outputs.commit_message_escaped }}\"}" >> $GITHUB_OUTPUT
 
   # Posts notifications when a workflow fails.
   failure:
@@ -150,7 +154,7 @@ jobs:
 
     steps:
       - name: Post failure notifications to Slack
-        uses: slackapi/slack-github-action@34c3fd73326693ef04728f8611669d918a2d781d # v1.19.0
+        uses: slackapi/slack-github-action@007b2c3c751a190b6f0f040e47ed024deaa72844 # v1.23.0
         with:
           payload: ${{ needs.prepare.outputs.payload }}
         env:
@@ -166,7 +170,7 @@ jobs:
 
     steps:
       - name: Post failure notifications to Slack
-        uses: slackapi/slack-github-action@34c3fd73326693ef04728f8611669d918a2d781d # v1.19.0
+        uses: slackapi/slack-github-action@007b2c3c751a190b6f0f040e47ed024deaa72844 # v1.23.0
         with:
           payload: ${{ needs.prepare.outputs.payload }}
         env:
@@ -182,7 +186,7 @@ jobs:
 
     steps:
       - name: Post success notifications to Slack
-        uses: slackapi/slack-github-action@34c3fd73326693ef04728f8611669d918a2d781d # v1.19.0
+        uses: slackapi/slack-github-action@007b2c3c751a190b6f0f040e47ed024deaa72844 # v1.23.0
         with:
           payload: ${{ needs.prepare.outputs.payload }}
         env:
@@ -198,7 +202,7 @@ jobs:
 
     steps:
       - name: Post cancelled notifications to Slack
-        uses: slackapi/slack-github-action@34c3fd73326693ef04728f8611669d918a2d781d # v1.19.0
+        uses: slackapi/slack-github-action@007b2c3c751a190b6f0f040e47ed024deaa72844 # v1.23.0
         with:
           payload: ${{ needs.prepare.outputs.payload }}
         env:

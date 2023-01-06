@@ -580,7 +580,7 @@ if ( current_user_can( 'update_plugins' ) && wp_is_auto_update_enabled_for_type(
 		)
 	);
 
-	$help_sidebar_autoupdates = '<p>' . __( '<a href="https://wordpress.org/support/article/plugins-themes-auto-updates/">Learn more: Auto-updates documentation</a>' ) . '</p>';
+	$help_sidebar_autoupdates = '<p>' . __( '<a href="https://wordpress.org/support/article/plugins-themes-auto-updates/">Documentation on Auto-updates</a>' ) . '</p>';
 }
 
 get_current_screen()->set_help_sidebar(
@@ -612,7 +612,7 @@ if ( ! empty( $invalid ) ) {
 			/* translators: 1: Plugin file, 2: Error message. */
 			__( 'The plugin %1$s has been deactivated due to an error: %2$s' ),
 			'<code>' . esc_html( $plugin_file ) . '</code>',
-			$error->get_error_message()
+			esc_html( $error->get_error_message() )
 		);
 		echo '</p></div>';
 	}
@@ -676,7 +676,7 @@ elseif ( isset( $_GET['deleted'] ) ) :
 				printf(
 					/* translators: %s: Error message. */
 					__( 'Plugin could not be deleted due to an error: %s' ),
-					$delete_result->get_error_message()
+					esc_html( $delete_result->get_error_message() )
 				);
 				?>
 			</p>

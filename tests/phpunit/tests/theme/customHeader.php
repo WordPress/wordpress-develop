@@ -8,6 +8,8 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 
 	protected static $header_video_id;
 
+	private $customize_manager = null;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post = self::factory()->post->create(
 			array(

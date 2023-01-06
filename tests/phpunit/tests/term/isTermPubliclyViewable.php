@@ -25,7 +25,7 @@ class Tests_Term_IsTermPubliclyViewable extends WP_UnitTestCase {
 	 * @param bool   $expected The expected result of the function call.
 	 */
 	public function test_is_term_publicly_viewable( $taxonomy, $expected ) {
-		$term_id = $this->factory()->term->create(
+		$term_id = self::factory()->term->create(
 			array(
 				'taxonomy' => $taxonomy,
 			)

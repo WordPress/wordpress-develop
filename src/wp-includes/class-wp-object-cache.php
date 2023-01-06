@@ -21,6 +21,7 @@
  *
  * @since 2.0.0
  */
+#[AllowDynamicProperties]
 class WP_Object_Cache {
 
 	/**
@@ -51,7 +52,7 @@ class WP_Object_Cache {
 	 * List of global cache groups.
 	 *
 	 * @since 3.0.0
-	 * @var array
+	 * @var string[]
 	 */
 	protected $global_groups = array();
 

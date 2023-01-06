@@ -230,7 +230,7 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	 * @ticket 28121
 	 */
 	public function test_get_theme_featured_list_api() {
-		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		$featured_list_api = get_theme_feature_list( true );
 		$this->assertNonEmptyMultidimensionalArray( $featured_list_api );
 	}

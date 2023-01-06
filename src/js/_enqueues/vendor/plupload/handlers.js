@@ -399,7 +399,7 @@ jQuery( document ).ready( function( $ ) {
 	var tryAgainCount = {};
 	var tryAgain;
 
-	$( '.media-upload-form' ).bind( 'click.uploader', function( e ) {
+	$( '.media-upload-form' ).on( 'click.uploader', function( e ) {
 		var target = $( e.target ), tr, c;
 
 		if ( target.is( 'input[type="radio"]' ) ) { // Remember the last used image size and alignment.
@@ -486,7 +486,7 @@ jQuery( document ).ready( function( $ ) {
 
 		times = tryAgainCount[ file.id ];
 
-		if ( times && times > 8 ) {
+		if ( times && times > 4 ) {
 			/*
 			 * The file may have been uploaded and attachment post created,
 			 * but post-processing and resizing failed...
@@ -557,7 +557,7 @@ jQuery( document ).ready( function( $ ) {
 	uploader_init = function() {
 		uploader = new plupload.Uploader( wpUploaderInit );
 
-		$( '#image_resize' ).bind( 'change', function() {
+		$( '#image_resize' ).on( 'change', function() {
 			var arg = $( this ).prop( 'checked' );
 
 			setResize( arg );
