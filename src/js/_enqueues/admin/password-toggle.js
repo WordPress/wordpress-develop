@@ -6,13 +6,13 @@
  */
 
 ( function () {
-	var toggle, status, input, icon, label;
+	var toggleElements, status, input, icon, label;
 
-	toggle = document.querySelectorAll( '.pwd-toggle' );
+	toggleElements = document.querySelectorAll( '.pwd-toggle' );
 
-	toggle.forEach( function (t) {
-		t.classList.remove( 'hide-if-no-js' );
-		t.addEventListener( 'click', togglePassword );
+	toggleElements.forEach( function (toggle) {
+		toggle.classList.remove( 'hide-if-no-js' );
+		toggle.addEventListener( 'click', togglePassword );
 	} );
 
 	function togglePassword() {
