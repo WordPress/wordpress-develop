@@ -151,6 +151,10 @@ textarea {
 	padding: 3px 5px;
 }
 
+.wp-pwd {
+	margin-top: 0;
+}
+
 .wp-pwd input#pwd {
 	padding-right: 2.5rem;
 }
