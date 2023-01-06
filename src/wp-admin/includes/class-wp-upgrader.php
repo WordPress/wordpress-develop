@@ -594,14 +594,17 @@ class WP_Upgrader {
 		}
 
 		/**
-		 * Filters callback function to use for copying directory.
+		 * Filters whether to use move_dir() or copy_dir().
 		 *
 		 * @since 6.2.0
 		 *
-		 * @param string $callback Name of callback.
+		 * @param bool false to use copy_dir().
 		 */
-		$callback = apply_filters( 'upgrader_copy_directory', 'copy_dir' );
-		$result   = call_user_func( $callback, $source, $remote_destination );
+		if ( ! apply_filters( 'upgrader_use_move_dir', false ) ) {
+			$result = copy_dir( $source, $remote_destination );
+		} else {
+			$result = move_dir( $source, $remote_destination );
+		}
 
 		// Clear the working folder?
 		if ( $args['clear_working'] ) {
