@@ -21,7 +21,7 @@ class WP_Locale {
 	 * @since 2.1.0
 	 * @var string[]
 	 */
-	public $weekday;
+	public $weekday = array();
 
 	/**
 	 * Stores the translated strings for the one character weekday names.
@@ -34,7 +34,7 @@ class WP_Locale {
 	 * @since 2.1.0
 	 * @var string[]
 	 */
-	public $weekday_initial;
+	public $weekday_initial = array();
 
 	/**
 	 * Stores the translated strings for the abbreviated weekday names.
@@ -42,7 +42,7 @@ class WP_Locale {
 	 * @since 2.1.0
 	 * @var string[]
 	 */
-	public $weekday_abbrev;
+	public $weekday_abbrev = array();
 
 	/**
 	 * Stores the translated strings for the full month names.
@@ -50,7 +50,7 @@ class WP_Locale {
 	 * @since 2.1.0
 	 * @var string[]
 	 */
-	public $month;
+	public $month = array();
 
 	/**
 	 * Stores the translated strings for the month names in genitive case, if the locale specifies.
@@ -66,7 +66,7 @@ class WP_Locale {
 	 * @since 2.1.0
 	 * @var string[]
 	 */
-	public $month_abbrev;
+	public $month_abbrev = array();
 
 	/**
 	 * Stores the translated strings for 'am' and 'pm'.
@@ -76,7 +76,7 @@ class WP_Locale {
 	 * @since 2.1.0
 	 * @var string[]
 	 */
-	public $meridiem;
+	public $meridiem = array();
 
 	/**
 	 * The text direction of the locale language.
@@ -94,7 +94,7 @@ class WP_Locale {
 	 * @since 2.3.0
 	 * @var array
 	 */
-	public $number_format;
+	public $number_format = array();
 
 	/**
 	 * The separator string used for localizing list item separator.
