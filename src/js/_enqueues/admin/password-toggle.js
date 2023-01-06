@@ -1,5 +1,5 @@
 /**
- * Adds show/hide toggle for the setup config database password.
+ * Adds functionality for password visibility buttons to toggle between text and password input types.
  *
  * @since 6.2.0
  * @output wp-admin/js/password-toggle.js
