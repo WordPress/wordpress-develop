@@ -224,12 +224,12 @@ switch ( $step ) {
 		<tr>
 			<th scope="row"><label for="pwd"><?php _e( 'Password' ); ?></label></th>
 			<td>
-				<span class="wp-pwd">
+				<div class="wp-pwd">
 					<input name="pwd" id="pwd" type="password" class="regular-text" data-reveal="1" data-pw="<?php echo esc_attr( get_option( '' ) ); ?>" aria-describedby="pwd-desc" size="25" placeholder="<?php echo htmlspecialchars( _x( 'password', 'example password' ), ENT_QUOTES ); ?>" autocomplete="off" />
 					<button type="button" class="button pwd-toggle" data-toggle="0" data-start-masked="1" aria-label="<?php esc_attr_e( 'Show password' ); ?>">
 						<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
 					</button>
-				</span>
+				</div>
 			</td>
 			<td id="pwd-desc"><?php _e( 'Your database password.' ); ?></td>
 		</tr>
