@@ -125,8 +125,12 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		// Quality setting for the source image. For PNG the fallback default of 82 is used.
 		$this->assertSame( 82, $editor->get_quality(), 'Default quality setting is 82.' );
 
-		// Saving again should not change the quality.
+		// When saving, quality should change to the output format's value.
 		// A PNG image will be converted to WebP whose quality should be 82.
+		$editor->save();
+		$this->assertSame( 82, $editor->get_quality(), 'Output image format is WebP. Quality setting for it should be 86.' );
+
+		// Saving again should not change the quality.
 		$editor->save();
 		$this->assertSame( 82, $editor->get_quality(), 'Output image format is WebP. Quality setting for it should be 82.' );
 
@@ -151,7 +155,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		// Quality should change to the output format's value as filtered above.
 		// A JPEG image will be converted to WebP whose quality should be 42.
 		$editor->save();
-		$this->assertSame( 42, $editor->get_quality(), 'Image conversion from JPEG to WebP. Filtered WebP quality should be 42.' );
+		$this->assertSame( 42, $editor->get_quality(), 'Image conversion from JPEG to WEBP. Filtered WEBP quality should be 42.' );
 
 		// After removing the conversion the quality setting should reset to the filtered value for the original image type, JPEG.
 		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_formats' ) );
