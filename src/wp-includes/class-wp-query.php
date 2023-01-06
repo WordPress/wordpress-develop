@@ -3487,16 +3487,7 @@ class WP_Query {
 					}
 					update_post_cache( $fresh_posts );
 				}
-
-				if ( $q['update_post_meta_cache'] ) {
-					update_postmeta_cache( $post_ids );
-				}
-
-				if ( $q['update_post_term_cache'] ) {
-					$post_types = wp_list_pluck( $this->posts, 'post_type' );
-					$post_types = array_unique( $post_types );
-					update_object_term_cache( $post_ids, $post_types );
-				}
+				_prime_post_caches( $post_ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 			}
 
 			/** @var WP_Post */
