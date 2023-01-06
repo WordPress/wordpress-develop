@@ -306,7 +306,7 @@ abstract class WP_Image_Editor {
 	 * @param string $mime_type Deprecated.
 	 * @return int The default quality setting.
 	 */
-	protected function get_default_quality( $mime_type ) {
+	protected function get_default_quality( $mime_type = null ) {
 		return $this->default_quality;
 	}
 
