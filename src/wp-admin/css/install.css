@@ -151,7 +151,7 @@ textarea {
 	padding: 3px 5px;
 }
 
-.form-table .wp-pwd input {
+.wp-pwd input#pwd {
 	padding-right: 2.5rem;
 }
 
