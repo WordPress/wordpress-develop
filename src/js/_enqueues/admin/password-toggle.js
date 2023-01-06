@@ -17,7 +17,7 @@
 
 	function togglePassword() {
 		status = this.getAttribute( 'data-toggle' );
-		input = document.getElementById( 'pwd' );
+		input = this.parentElement.children.namedItem( 'pwd' );
 		icon = this.getElementsByClassName( 'dashicons' )[ 0 ];
 		label = this.getElementsByClassName( 'text' )[ 0 ];
 
