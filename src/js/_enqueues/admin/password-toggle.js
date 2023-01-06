@@ -8,10 +8,10 @@
 ( function () {
 	var toggle, status, input, icon, label;
 
-	toggle = document.querySelectorAll('.pwd-toggle');
+	toggle = document.querySelectorAll( '.pwd-toggle' );
 
 	toggle.forEach( function (t) {
-		t.classList.remove('hide-if-no-js');
+		t.classList.remove( 'hide-if-no-js' );
 		t.addEventListener( 'click', togglePassword );
 	} );
 
