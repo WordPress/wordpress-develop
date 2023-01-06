@@ -598,9 +598,11 @@ class WP_Upgrader {
 		 *
 		 * @since 6.2.0
 		 *
-		 * @param bool false to use copy_dir().
+		 * @param bool                       false to use copy_dir().
+		 * @param string $source             File source location.
+		 * @param string $remote_destination The remote package destination.
 		 */
-		if ( ! apply_filters( 'upgrader_use_move_dir', false ) ) {
+		if ( ! apply_filters( 'upgrader_use_move_dir', false, $source, $remote_destination ) ) {
 			$result = copy_dir( $source, $remote_destination );
 		} else {
 			$result = move_dir( $source, $remote_destination );
