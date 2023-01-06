@@ -598,7 +598,7 @@ class WP_Upgrader {
 		 *
 		 * @since 6.2.0
 		 *
-		 * @param bool                       false to use copy_dir().
+		 * @param bool                       Default, false to use copy_dir().
 		 * @param string $source             File source location.
 		 * @param string $remote_destination The remote package destination.
 		 */
