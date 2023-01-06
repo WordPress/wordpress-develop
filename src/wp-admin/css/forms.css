@@ -554,11 +554,6 @@ fieldset label,
 	position: relative;
 }
 
-.wp-pwd input {
-	direction: ltr;
-	padding-right: 2.5rem;
-}
-
 .wp-pwd button.pwd-toggle {
 	background: transparent;
 	border: 1px solid transparent;
