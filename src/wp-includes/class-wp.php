@@ -429,7 +429,7 @@ class WP {
 				continue;
 			}
 
-			$is_between = $this->query_vars[ $key ] >= $check['min'] && $this->query_vars <= $check['max'];
+			$is_between = $this->query_vars[ $key ] >= $check['min'] && $this->query_vars[ $key ] <= $check['max'];
 
 			if ( ! is_numeric( $this->query_vars[ $key ] ) || ! $is_between ) {
 				unset( $this->query_vars[ $key ] );
