@@ -3499,6 +3499,7 @@ function _wp_theme_json_webfonts_handler() {
 	$fn_compile_src = static function( $font_family, array $value ) {
 		$src = '';
 
+		$items = array();
 		foreach ( $value as $item ) {
 
 			if (
@@ -3508,10 +3509,12 @@ function _wp_theme_json_webfonts_handler() {
 				$item['url'] = wp_make_link_relative( $item['url'] );
 			}
 
-			$src .= ( 'data' === $item['format'] )
+			$items[] = ( 'data' === $item['format'] )
 				? ", url({$item['url']})"
 				: ", url('{$item['url']}') format('{$item['format']}')";
 		}
+
+		$src = implode( ', ', $items );
 
 		return $src;
 	};
