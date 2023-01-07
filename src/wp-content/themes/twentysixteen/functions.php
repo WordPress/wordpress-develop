@@ -382,10 +382,13 @@ add_action( 'wp_head', 'twentysixteen_javascript_detection', 0 );
  */
 function twentysixteen_scripts() {
 	/**
-	 * The dependencies for our font stylesheed.
-	 * We register our sub-fonts as dependencies for the main font stylesheet. This way we can
+	 * The dependencies for our font stylesheet.
+	 *
+	 * We register our sub-fonts as dependencies for the main font stylesheet. This way, we can
 	 * enqueue the main font stylesheet and all sub-fonts will be loaded as well. On the other hand,
 	 * if the user has unenqueued the main font stylesheet, all sub-fonts will be unequeued as well.
+	 *
+	 * @var array $font_dependencies An array of dependencies for the main font stylesheet.
 	 */
 	$font_dependencies = array();
 
@@ -457,10 +460,13 @@ function twentysixteen_block_editor_styles() {
 	wp_enqueue_style( 'twentysixteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20221004' );
 
 	/**
-	 * The dependencies for our font stylesheed.
-	 * We register our sub-fonts as dependencies for the main font stylesheet. This way we can
+	 * The dependencies for our font stylesheet.
+	 *
+	 * We register our sub-fonts as dependencies for the main font stylesheet. This way, we can
 	 * enqueue the main font stylesheet and all sub-fonts will be loaded as well. On the other hand,
 	 * if the user has unenqueued the main font stylesheet, all sub-fonts will be unequeued as well.
+	 *
+	 * @var array $font_dependencies An array of dependencies for the main font stylesheet.
 	 */
 	$font_dependencies = array();
 
