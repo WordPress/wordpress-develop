@@ -22,6 +22,9 @@ class Tests_Option_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the model function that expects un-slashed data
+	 *
+	 * @covers ::add_option
+	 * @covers ::get_option
 	 */
 	public function test_add_option() {
 		add_option( 'slash_test_1', self::SLASH_1 );
@@ -37,6 +40,10 @@ class Tests_Option_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the model function that expects un-slashed data
+	 *
+	 * @covers ::add_option
+	 * @covers ::update_option
+	 * @covers ::get_option
 	 */
 	public function test_update_option() {
 		add_option( 'slash_test_5', 'foo' );

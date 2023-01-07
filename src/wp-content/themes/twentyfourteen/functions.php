@@ -359,13 +359,13 @@ function twentyfourteen_scripts() {
 	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.0.3' );
 
 	// Load our main stylesheet.
-	wp_enqueue_style( 'twentyfourteen-style', get_stylesheet_uri(), array(), '20190507' );
+	wp_enqueue_style( 'twentyfourteen-style', get_stylesheet_uri(), array(), '20221101' );
 
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentyfourteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentyfourteen-style' ), '20190102' );
+	wp_enqueue_style( 'twentyfourteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentyfourteen-style' ), '20210622' );
 
 	// Load the Internet Explorer specific stylesheet.
-	wp_enqueue_style( 'twentyfourteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentyfourteen-style' ), '20140701' );
+	wp_enqueue_style( 'twentyfourteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentyfourteen-style' ), '20140711' );
 	wp_style_add_data( 'twentyfourteen-ie', 'conditional', 'lt IE 9' );
 
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
@@ -392,7 +392,7 @@ function twentyfourteen_scripts() {
 		);
 	}
 
-	wp_enqueue_script( 'twentyfourteen-script', get_template_directory_uri() . '/js/functions.js', array( 'jquery' ), '20171218', true );
+	wp_enqueue_script( 'twentyfourteen-script', get_template_directory_uri() . '/js/functions.js', array( 'jquery' ), '20210122', true );
 }
 add_action( 'wp_enqueue_scripts', 'twentyfourteen_scripts' );
 
@@ -434,7 +434,7 @@ add_filter( 'wp_resource_hints', 'twentyfourteen_resource_hints', 10, 2 );
  */
 function twentyfourteen_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentyfourteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20201208' );
+	wp_enqueue_style( 'twentyfourteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20210216' );
 
 	// Add custom fonts, used in the main stylesheet.
 	foreach ( twentyfourteen_fonts_urls() as $font_slug => $font_url ) {

@@ -39,6 +39,7 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 			'update_post_term_cache' => false,
 			'ignore_sticky_posts'    => false,
 			'no_found_rows'          => true,
+			'cache_results'          => false,
 		);
 		$q1->query( $args );
 		$num_queries = $wpdb->num_queries;
@@ -98,6 +99,7 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
 			'ignore_sticky_posts'    => false,
+			'cache_results'          => false,
 		);
 
 		$q1->query( $args );

@@ -978,13 +978,13 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	public function test_is_single_with_slug_that_clashes_with_attachment() {
 		$this->set_permalink_structure( '/%postname%/' );
 
-		$attachment_id = $this->factory->post->create(
+		$attachment_id = self::factory()->post->create(
 			array(
 				'post_type' => 'attachment',
 			)
 		);
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_title' => get_post( $attachment_id )->post_title,
 			)

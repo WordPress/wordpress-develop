@@ -37,63 +37,70 @@ function tests_reset__SERVER() { // phpcs:ignore WordPress.NamingConventions.Val
 /**
  * Adds hooks before loading WP.
  *
- * @see add_filter()
+ * @since UT (3.7.0)
  *
- * @param string   $tag             The name of the filter to hook the $function_to_add callback to.
- * @param callable $function_to_add The callback to be run when the filter is applied.
- * @param int      $priority        Optional. Used to specify the order in which the functions
- *                                  associated with a particular action are executed.
- *                                  Lower numbers correspond with earlier execution,
- *                                  and functions with the same priority are executed
- *                                  in the order in which they were added to the action. Default 10.
- * @param int      $accepted_args   Optional. The number of arguments the function accepts. Default 1.
- * @return true
+ * @see add_filter()
+ * @global WP_Hook[] $wp_filter A multidimensional array of all hooks and the callbacks hooked to them.
+ *
+ * @param string   $hook_name     The name of the filter to add the callback to.
+ * @param callable $callback      The callback to be run when the filter is applied.
+ * @param int      $priority      Optional. Used to specify the order in which the functions
+ *                                associated with a particular action are executed.
+ *                                Lower numbers correspond with earlier execution,
+ *                                and functions with the same priority are executed
+ *                                in the order in which they were added to the action. Default 10.
+ * @param int      $accepted_args Optional. The number of arguments the function accepts. Default 1.
+ * @return true Always returns true.
  */
-function tests_add_filter( $tag, $function_to_add, $priority = 10, $accepted_args = 1 ) {
+function tests_add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1 ) {
 	global $wp_filter;
 
 	if ( function_exists( 'add_filter' ) ) {
-		add_filter( $tag, $function_to_add, $priority, $accepted_args );
+		add_filter( $hook_name, $callback, $priority, $accepted_args );
 	} else {
-		$idx = _test_filter_build_unique_id( $tag, $function_to_add, $priority );
+		$idx = _test_filter_build_unique_id( $hook_name, $callback, $priority );
 
-		$wp_filter[ $tag ][ $priority ][ $idx ] = array(
-			'function'      => $function_to_add,
+		$wp_filter[ $hook_name ][ $priority ][ $idx ] = array(
+			'function'      => $callback,
 			'accepted_args' => $accepted_args,
 		);
 	}
+
 	return true;
 }
 
 /**
  * Generates a unique function ID based on the given arguments.
  *
+ * @since UT (3.7.0)
+ *
  * @see _wp_filter_build_unique_id()
  *
- * @param string   $tag      Unused. The name of the filter to build ID for.
- * @param callable $function The function to generate ID for.
- * @param int      $priority Unused. The order in which the functions
- *                           associated with a particular action are executed.
+ * @param string                $hook_name Unused. The name of the filter to build ID for.
+ * @param callable|string|array $callback  The callback to generate ID for. The callback may
+ *                                         or may not exist.
+ * @param int                   $priority  Unused. The order in which the functions
+ *                                         associated with a particular action are executed.
  * @return string Unique function ID for usage as array key.
  */
-function _test_filter_build_unique_id( $tag, $function, $priority ) {
-	if ( is_string( $function ) ) {
-		return $function;
+function _test_filter_build_unique_id( $hook_name, $callback, $priority ) {
+	if ( is_string( $callback ) ) {
+		return $callback;
 	}
 
-	if ( is_object( $function ) ) {
+	if ( is_object( $callback ) ) {
 		// Closures are currently implemented as objects.
-		$function = array( $function, '' );
+		$callback = array( $callback, '' );
 	} else {
-		$function = (array) $function;
+		$callback = (array) $callback;
 	}
 
-	if ( is_object( $function[0] ) ) {
+	if ( is_object( $callback[0] ) ) {
 		// Object class calling.
-		return spl_object_hash( $function[0] ) . $function[1];
-	} elseif ( is_string( $function[0] ) ) {
+		return spl_object_hash( $callback[0] ) . $callback[1];
+	} elseif ( is_string( $callback[0] ) ) {
 		// Static calling.
-		return $function[0] . '::' . $function[1];
+		return $callback[0] . '::' . $callback[1];
 	}
 }
 
@@ -152,9 +159,12 @@ function _delete_all_posts() {
 /**
  * Handles the WP die handler by outputting the given values as text.
  *
- * @param string $message The message.
- * @param string $title   The title.
- * @param array  $args    Array with arguments.
+ * @since UT (3.7.0)
+ * @since 6.1.0 The `$message` parameter can accept a `WP_Error` object.
+ *
+ * @param string|WP_Error $message Error message or WP_Error object.
+ * @param string          $title   Error title.
+ * @param array           $args    Arguments passed to wp_die().
  */
 function _wp_die_handler( $message, $title = '', $args = array() ) {
 	if ( ! $GLOBALS['_wp_die_disabled'] ) {
@@ -166,6 +176,8 @@ function _wp_die_handler( $message, $title = '', $args = array() ) {
 
 /**
  * Disables the WP die handler.
+ *
+ * @since UT (3.7.0)
  */
 function _disable_wp_die() {
 	$GLOBALS['_wp_die_disabled'] = true;
@@ -173,6 +185,8 @@ function _disable_wp_die() {
 
 /**
  * Enables the WP die handler.
+ *
+ * @since UT (3.7.0)
  */
 function _enable_wp_die() {
 	$GLOBALS['_wp_die_disabled'] = false;
@@ -180,6 +194,8 @@ function _enable_wp_die() {
 
 /**
  * Returns the die handler.
+ *
+ * @since UT (3.7.0)
  *
  * @return string The die handler.
  */
@@ -190,6 +206,8 @@ function _wp_die_handler_filter() {
 /**
  * Returns the die handler.
  *
+ * @since 4.9.0
+ *
  * @return string The die handler.
  */
 function _wp_die_handler_filter_exit() {
@@ -199,12 +217,17 @@ function _wp_die_handler_filter_exit() {
 /**
  * Dies without an exit.
  *
- * @param string $message The message.
- * @param string $title   The title.
- * @param array  $args    Array with arguments.
+ * @since 4.0.0
+ * @since 6.1.0 The `$message` parameter can accept a `WP_Error` object.
+ *
+ * @param string|WP_Error $message Error message or WP_Error object.
+ * @param string          $title   Error title.
+ * @param array           $args    Arguments passed to wp_die().
  */
 function _wp_die_handler_txt( $message, $title, $args ) {
-	echo "\nwp_die called\n";
+	list( $message, $title, $args ) = _wp_die_process_input( $message, $title, $args );
+
+	echo "\nwp_die() called\n";
 	echo "Message: $message\n";
 
 	if ( ! empty( $title ) ) {
@@ -212,9 +235,13 @@ function _wp_die_handler_txt( $message, $title, $args ) {
 	}
 
 	if ( ! empty( $args ) ) {
-		echo "Args: \n";
-		foreach ( $args as $k => $v ) {
-			echo "\t $k : $v\n";
+		echo "Args:\n";
+		foreach ( $args as $key => $value ) {
+			if ( ! is_scalar( $value ) ) {
+				$value = var_export( $value, true );
+			}
+
+			echo "\t$key: $value\n";
 		}
 	}
 }
@@ -222,12 +249,17 @@ function _wp_die_handler_txt( $message, $title, $args ) {
 /**
  * Dies with an exit.
  *
- * @param string $message The message.
- * @param string $title   The title.
- * @param array  $args    Array with arguments.
+ * @since 4.9.0
+ * @since 6.1.0 The `$message` parameter can accept a `WP_Error` object.
+ *
+ * @param string|WP_Error $message Error message or WP_Error object.
+ * @param string          $title   Error title.
+ * @param array           $args    Arguments passed to wp_die().
  */
 function _wp_die_handler_exit( $message, $title, $args ) {
-	echo "\nwp_die called\n";
+	list( $message, $title, $args ) = _wp_die_process_input( $message, $title, $args );
+
+	echo "\nwp_die() called\n";
 	echo "Message: $message\n";
 
 	if ( ! empty( $title ) ) {
@@ -235,11 +267,16 @@ function _wp_die_handler_exit( $message, $title, $args ) {
 	}
 
 	if ( ! empty( $args ) ) {
-		echo "Args: \n";
-		foreach ( $args as $k => $v ) {
-			echo "\t $k : $v\n";
+		echo "Args:\n";
+		foreach ( $args as $key => $value ) {
+			if ( ! is_scalar( $value ) ) {
+				$value = var_export( $value, true );
+			}
+
+			echo "\t$key: $value\n";
 		}
 	}
+
 	exit( 1 );
 }
 
@@ -302,68 +339,10 @@ tests_add_filter( 'send_auth_cookies', '__return_false' );
  * @since 5.0.0
  */
 function _unhook_block_registration() {
-	remove_action( 'init', 'register_block_core_archives' );
-	remove_action( 'init', 'register_block_core_avatar' );
-	remove_action( 'init', 'register_block_core_block' );
-	remove_action( 'init', 'register_block_core_calendar' );
-	remove_action( 'init', 'register_block_core_categories' );
-	remove_action( 'init', 'register_block_core_comment_author_name' );
-	remove_action( 'init', 'register_block_core_comment_content' );
-	remove_action( 'init', 'register_block_core_comment_date' );
-	remove_action( 'init', 'register_block_core_comment_edit_link' );
-	remove_action( 'init', 'register_block_core_comment_reply_link' );
-	remove_action( 'init', 'register_block_core_comment_template' );
-	remove_action( 'init', 'register_block_core_comments_pagination' );
-	remove_action( 'init', 'register_block_core_comments_pagination_next' );
-	remove_action( 'init', 'register_block_core_comments_pagination_numbers' );
-	remove_action( 'init', 'register_block_core_comments_pagination_previous' );
-	remove_action( 'init', 'register_block_core_comments_title' );
-	remove_action( 'init', 'register_block_core_cover' );
-	remove_action( 'init', 'register_block_core_file' );
-	remove_action( 'init', 'register_block_core_gallery' );
-	remove_action( 'init', 'register_block_core_home_link' );
-	remove_action( 'init', 'register_block_core_image' );
-	remove_action( 'init', 'register_block_core_latest_comments' );
-	remove_action( 'init', 'register_block_core_latest_posts' );
-	remove_action( 'init', 'register_block_core_legacy_widget' );
-	remove_action( 'init', 'register_block_core_loginout' );
-	remove_action( 'init', 'register_block_core_navigation' );
-	remove_action( 'init', 'register_block_core_navigation_link' );
-	remove_action( 'init', 'register_block_core_navigation_submenu' );
-	remove_action( 'init', 'register_block_core_page_list' );
-	remove_action( 'init', 'register_block_core_pattern' );
-	remove_action( 'init', 'register_block_core_post_author' );
-	remove_action( 'init', 'register_block_core_post_author_biography' );
-	remove_action( 'init', 'register_block_core_post_comments' );
-	remove_action( 'init', 'register_block_core_post_comments_form' );
-	remove_action( 'init', 'register_block_core_post_content' );
-	remove_action( 'init', 'register_block_core_post_date' );
-	remove_action( 'init', 'register_block_core_post_excerpt' );
-	remove_action( 'init', 'register_block_core_post_featured_image' );
-	remove_action( 'init', 'register_block_core_post_navigation_link' );
-	remove_action( 'init', 'register_block_core_post_template' );
-	remove_action( 'init', 'register_block_core_post_terms' );
-	remove_action( 'init', 'register_block_core_post_title' );
-	remove_action( 'init', 'register_block_core_query' );
-	remove_action( 'init', 'register_block_core_query_no_results' );
-	remove_action( 'init', 'register_block_core_query_pagination' );
-	remove_action( 'init', 'register_block_core_query_pagination_next' );
-	remove_action( 'init', 'register_block_core_query_pagination_numbers' );
-	remove_action( 'init', 'register_block_core_query_pagination_previous' );
-	remove_action( 'init', 'register_block_core_query_title' );
-	remove_action( 'init', 'register_block_core_read_more' );
-	remove_action( 'init', 'register_block_core_rss' );
-	remove_action( 'init', 'register_block_core_search' );
-	remove_action( 'init', 'register_block_core_shortcode' );
-	remove_action( 'init', 'register_block_core_site_logo' );
-	remove_action( 'init', 'register_block_core_site_tagline' );
-	remove_action( 'init', 'register_block_core_site_title' );
-	remove_action( 'init', 'register_block_core_social_link' );
-	remove_action( 'init', 'register_block_core_social_link' );
-	remove_action( 'init', 'register_block_core_tag_cloud' );
-	remove_action( 'init', 'register_block_core_template_part' );
-	remove_action( 'init', 'register_block_core_term_description' );
+	require __DIR__ . '/unregister-blocks-hooks.php';
 	remove_action( 'init', 'register_core_block_types_from_metadata' );
+	remove_action( 'init', 'register_block_core_legacy_widget' );
 	remove_action( 'init', 'register_block_core_widget_group' );
+	remove_action( 'init', 'register_core_block_types_from_metadata' );
 }
 tests_add_filter( 'init', '_unhook_block_registration', 1000 );

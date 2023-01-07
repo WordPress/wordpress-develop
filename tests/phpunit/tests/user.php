@@ -560,21 +560,21 @@ class Tests_User extends WP_UnitTestCase {
 
 		wp_set_current_user( self::$author_id );
 		$counts = count_many_users_posts( array( self::$author_id, $user_id_b ), 'post', false );
-		$this->assertEquals( 1, $counts[ self::$author_id ] );
-		$this->assertEquals( 1, $counts[ $user_id_b ] );
+		$this->assertSame( '1', $counts[ self::$author_id ] );
+		$this->assertSame( '1', $counts[ $user_id_b ] );
 
 		$counts = count_many_users_posts( array( self::$author_id, $user_id_b ), 'post', true );
-		$this->assertEquals( 1, $counts[ self::$author_id ] );
-		$this->assertEquals( 1, $counts[ $user_id_b ] );
+		$this->assertSame( '1', $counts[ self::$author_id ] );
+		$this->assertSame( '1', $counts[ $user_id_b ] );
 
 		wp_set_current_user( $user_id_b );
 		$counts = count_many_users_posts( array( self::$author_id, $user_id_b ), 'post', false );
-		$this->assertEquals( 1, $counts[ self::$author_id ] );
-		$this->assertEquals( 2, $counts[ $user_id_b ] );
+		$this->assertSame( '1', $counts[ self::$author_id ] );
+		$this->assertSame( '2', $counts[ $user_id_b ] );
 
 		$counts = count_many_users_posts( array( self::$author_id, $user_id_b ), 'post', true );
-		$this->assertEquals( 1, $counts[ self::$author_id ] );
-		$this->assertEquals( 1, $counts[ $user_id_b ] );
+		$this->assertSame( '1', $counts[ self::$author_id ] );
+		$this->assertSame( '1', $counts[ $user_id_b ] );
 	}
 
 	/**
@@ -1344,6 +1344,129 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that admin notification of a new user registration is dependent
+	 * on the 'wp_send_new_user_notification_to_admin' filter.
+	 *
+	 * @dataProvider data_wp_send_new_user_notification_filters
+	 *
+	 * @ticket 54874
+	 *
+	 * @covers ::wp_new_user_notification
+	 *
+	 * @param bool   $expected Whether the email should be sent.
+	 * @param string $callback The callback to pass to the filter.
+	 */
+	public function test_wp_send_new_user_notification_to_admin_filter( $expected, $callback ) {
+		reset_phpmailer_instance();
+
+		add_filter( 'wp_send_new_user_notification_to_admin', $callback );
+
+		wp_new_user_notification( self::$contrib_id, null, 'admin' );
+
+		$mailer    = tests_retrieve_phpmailer_instance();
+		$recipient = $mailer->get_recipient( 'to' );
+		$actual    = $recipient ? WP_TESTS_EMAIL === $recipient->address : false;
+
+		$this->assertSame( $expected, $actual, 'Admin email result was not as expected in test_wp_send_new_user_notification_to_admin_filter' );
+	}
+
+	/**
+	 * Test that user notification of a new user registration is dependent
+	 * on the 'wp_send_new_user_notification_to_user' filter.
+	 *
+	 * @dataProvider data_wp_send_new_user_notification_filters
+	 *
+	 * @ticket 54874
+	 *
+	 * @covers ::wp_new_user_notification
+	 *
+	 * @param bool   $expected Whether the email should be sent.
+	 * @param string $callback The callback to pass to the filter.
+	 */
+	public function test_wp_send_new_user_notification_to_user_filter( $expected, $callback ) {
+		reset_phpmailer_instance();
+
+		add_filter( 'wp_send_new_user_notification_to_user', $callback );
+
+		wp_new_user_notification( self::$contrib_id, null, 'user' );
+
+		$mailer    = tests_retrieve_phpmailer_instance();
+		$recipient = $mailer->get_recipient( 'to' );
+		$actual    = $recipient ? 'blackburn@battlefield3.com' === $recipient->address : false;
+
+		$this->assertSame( $expected, $actual, 'User email result was not as expected in test_wp_send_new_user_notification_to_user_filter' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_wp_send_new_user_notification_filters() {
+		return array(
+			'true'          => array(
+				'expected' => true,
+				'callback' => '__return_true',
+			),
+			'false'         => array(
+				'expected' => false,
+				'callback' => '__return_false',
+			),
+			'null'          => array(
+				'expected' => false,
+				'callback' => '__return_null',
+			),
+			'empty array'   => array(
+				'expected' => false,
+				'callback' => '__return_empty_array',
+			),
+			'zero int'      => array(
+				'expected' => false,
+				'callback' => '__return_zero',
+			),
+			'zero float'    => array(
+				'expected' => false,
+				'callback' => array( $this, 'cb_return_zero_float' ),
+			),
+			'zero string'   => array(
+				'expected' => false,
+				'callback' => array( $this, 'cb_return_zero_string' ),
+			),
+			'array( true )' => array(
+				'expected' => false,
+				'callback' => array( $this, 'cb_return_array_true' ),
+			),
+		);
+	}
+
+	/**
+	 * Callback that returns 0.0.
+	 *
+	 * @return float 0.0.
+	 */
+	public function cb_return_zero_float() {
+		return 0.0;
+	}
+
+	/**
+	 * Callback that returns '0'.
+	 *
+	 * @return string '0'.
+	 */
+	public function cb_return_zero_string() {
+		return '0';
+	}
+
+	/**
+	 * Callback that returns array( true ).
+	 *
+	 * @return array array( true )
+	 */
+	public function cb_return_array_true() {
+		return array( true );
+	}
+
+	/**
 	 * Ensure blog's admin email change notification emails do not contain encoded HTML entities
 	 *
 	 * @ticket 40015
@@ -1573,7 +1696,7 @@ class Tests_User extends WP_UnitTestCase {
 		reset_phpmailer_instance();
 		$was_confirmation_email_sent = false;
 
-		$user = $this->factory()->user->create_and_get(
+		$user = self::factory()->user->create_and_get(
 			array(
 				'user_email' => 'before@example.com',
 			)
@@ -1610,7 +1733,7 @@ class Tests_User extends WP_UnitTestCase {
 		reset_phpmailer_instance();
 		$was_confirmation_email_sent = false;
 
-		$user = $this->factory()->user->create_and_get(
+		$user = self::factory()->user->create_and_get(
 			array(
 				'user_email' => 'before@example.com',
 			)
@@ -1887,6 +2010,7 @@ class Tests_User extends WP_UnitTestCase {
 		$update_data = array(
 			'ID'         => $create_user,
 			'user_login' => 'test_user',
+			'user_email' => 'user@example.com',
 			'meta_input' => array(
 				'test_meta_key' => 'test_meta_updated',
 				'custom_meta'   => 'updated_value',

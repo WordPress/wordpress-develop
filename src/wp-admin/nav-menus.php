@@ -117,6 +117,10 @@ switch ( $action ) {
 						if ( ! is_wp_error( $parent_object ) ) {
 							$parent_data                        = (array) $parent_object;
 							$menu_item_data['menu_item_parent'] = $parent_data['menu_item_parent'];
+
+							// Reset invalid `menu_item_parent`.
+							$menu_item_data = _wp_reset_invalid_menu_item_parent( $menu_item_data );
+
 							update_post_meta( $menu_item_data['ID'], '_menu_item_menu_item_parent', (int) $menu_item_data['menu_item_parent'] );
 						}
 
@@ -126,6 +130,10 @@ switch ( $action ) {
 						$menu_item_data['menu_order'] = $menu_item_data['menu_order'] + 1;
 
 						$menu_item_data['menu_item_parent'] = $next_item_data['ID'];
+
+						// Reset invalid `menu_item_parent`.
+						$menu_item_data = _wp_reset_invalid_menu_item_parent( $menu_item_data );
+
 						update_post_meta( $menu_item_data['ID'], '_menu_item_menu_item_parent', (int) $menu_item_data['menu_item_parent'] );
 
 						wp_update_post( $menu_item_data );
@@ -137,6 +145,10 @@ switch ( $action ) {
 					&& in_array( (int) $menu_item_data['menu_item_parent'], $orders_to_dbids, true )
 				) {
 					$menu_item_data['menu_item_parent'] = (int) get_post_meta( $menu_item_data['menu_item_parent'], '_menu_item_menu_item_parent', true );
+
+					// Reset invalid `menu_item_parent`.
+					$menu_item_data = _wp_reset_invalid_menu_item_parent( $menu_item_data );
+
 					update_post_meta( $menu_item_data['ID'], '_menu_item_menu_item_parent', (int) $menu_item_data['menu_item_parent'] );
 				}
 			}
@@ -247,6 +259,10 @@ switch ( $action ) {
 					) {
 						// Just make it a child of the previous; keep the order.
 						$menu_item_data['menu_item_parent'] = (int) $orders_to_dbids[ $dbids_to_orders[ $menu_item_id ] - 1 ];
+
+						// Reset invalid `menu_item_parent`.
+						$menu_item_data = _wp_reset_invalid_menu_item_parent( $menu_item_data );
+
 						update_post_meta( $menu_item_data['ID'], '_menu_item_menu_item_parent', (int) $menu_item_data['menu_item_parent'] );
 						wp_update_post( $menu_item_data );
 					}
@@ -652,7 +668,7 @@ if ( ! $locations_screen ) : // Main tab.
 	);
 else : // Locations tab.
 	$locations_overview  = '<p>' . __( 'This screen is used for globally assigning menus to locations defined by your theme.' ) . '</p>';
-	$locations_overview .= '<ul><li>' . __( 'To assign menus to one or more theme locations, <strong>select a menu from each location&#8217;s dropdown.</strong> When you are finished, <strong>click Save Changes</strong>' ) . '</li>';
+	$locations_overview .= '<ul><li>' . __( 'To assign menus to one or more theme locations, <strong>select a menu from each location&#8217;s dropdown</strong>. When you are finished, <strong>click Save Changes</strong>' ) . '</li>';
 	$locations_overview .= '<li>' . __( 'To edit a menu currently assigned to a theme location, <strong>click the adjacent &#8217;Edit&#8217; link</strong>' ) . '</li>';
 	$locations_overview .= '<li>' . __( 'To add a new menu instead of assigning an existing one, <strong>click the &#8217;Use new menu&#8217; link</strong>. Your new menu will be automatically assigned to that theme location' ) . '</li></ul>';
 
@@ -1000,7 +1016,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 								</div>
 
 								<?php if ( ! $add_new_screen ) : ?>
-									<div id="nav-menu-bulk-actions-top" class="bulk-actions">
+									<div id="nav-menu-bulk-actions-top" class="bulk-actions" <?php echo $hide_style; ?>>
 										<label class="bulk-select-button" for="bulk-select-switcher-top">
 											<input type="checkbox" id="bulk-select-switcher-top" name="bulk-select-switcher-top" class="bulk-select-switcher">
 											<span class="bulk-select-button-label"><?php _e( 'Bulk Select' ); ?></span>
@@ -1035,12 +1051,12 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 							?>
 
 							<?php if ( ! $add_new_screen ) : ?>
-								<div id="nav-menu-bulk-actions-bottom" class="bulk-actions">
+								<div id="nav-menu-bulk-actions-bottom" class="bulk-actions" <?php echo $hide_style; ?>>
 									<label class="bulk-select-button" for="bulk-select-switcher-bottom">
 										<input type="checkbox" id="bulk-select-switcher-bottom" name="bulk-select-switcher-top" class="bulk-select-switcher">
 										<span class="bulk-select-button-label"><?php _e( 'Bulk Select' ); ?></span>
 									</label>
-									<input type="button" class="deletion menu-items-delete disabled" value="<?php _e( 'Remove Selected Items' ); ?>">
+									<input type="button" class="deletion menu-items-delete disabled" value="<?php esc_attr_e( 'Remove Selected Items' ); ?>">
 									<div id="pending-menu-items-to-delete">
 										<p><?php _e( 'List of menu items selected for deletion:' ); ?></p>
 										<ul></ul>

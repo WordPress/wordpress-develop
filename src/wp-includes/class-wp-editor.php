@@ -8,6 +8,7 @@
  * Private, not included by default. See wp_editor() in wp-includes/general-template.php.
  */
 
+#[AllowDynamicProperties]
 final class _WP_Editors {
 	public static $mce_locale;
 
@@ -1798,7 +1799,7 @@ final class _WP_Editors {
 		$query = apply_filters( 'wp_link_query_args', $query );
 
 		// Do main query.
-		$get_posts = new WP_Query;
+		$get_posts = new WP_Query();
 		$posts     = $get_posts->query( $query );
 
 		// Build results.
