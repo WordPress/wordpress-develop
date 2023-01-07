@@ -10,6 +10,10 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_body
 	 */
 	public function test_readme_php_version() {
+		$this->markTestSkipped(
+			'Temporarily disabled. Test should be re-enabled once WordPress is fully compatible with PHP 8.0+.'
+		);
+
 		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
 
@@ -21,8 +25,7 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 
 		preg_match_all( '#<tr class="stable">\s*<td>\s*<a [^>]*>\s*([0-9.]*)#s', $response_body, $php_matches );
 
-		// TODO: Enable this check once PHP 8.0 compatibility is achieved.
-		// $this->assertContains( $matches[1], $php_matches[1], "readme.html's Recommended PHP version is too old. Remember to update the WordPress.org Requirements page, too." );
+		$this->assertContains( $matches[1], $php_matches[1], "readme.html's Recommended PHP version is too old. Remember to update the WordPress.org Requirements page, too." );
 	}
 
 	/**

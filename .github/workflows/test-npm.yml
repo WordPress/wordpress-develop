@@ -6,6 +6,9 @@ on:
       - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
+    tags:
+      - '[0-9]+.[0-9]'
+      - '[0-9]+.[0-9].[0-9]+'
   pull_request:
     branches:
       - trunk
@@ -38,9 +41,9 @@ jobs:
   #
   # Performs the following steps:
   # - Checks out the repository.
-  # - Logs debug information about the runner container.
-  # - Installs NodeJS 14.
-  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # - Logs debug information about the GitHub Action runner.
+  # - Installs NodeJS.
+  # _ Installs NPM dependencies.
   # - Builds WordPress to run from the `build` directory.
   # - Cleans up after building WordPress to the `build` directory.
   # - Ensures version-controlled files are not modified or deleted.
@@ -70,22 +73,13 @@ jobs:
           svn --version
 
       - name: Install NodeJS
-        uses: actions/setup-node@eeb10cff27034e7acf239c5d29f62154018672fd # v3.3.0
+        uses: actions/setup-node@2fddd8803e2f5c9604345a0b591c3020ee971a93 # v3.4.1
         with:
           node-version-file: '.nvmrc'
           cache: npm
 
       - name: Install Dependencies
         run: npm ci
-
-      - name: Build WordPress
-        run: npm run build
-
-      - name: Clean after building
-        run: npm run grunt clean
-
-      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
-        run: git diff --exit-code
 
       - name: Build WordPress in /src
         run: npm run build:dev
@@ -96,15 +90,25 @@ jobs:
       - name: Ensure version-controlled files are not modified or deleted during building and cleaning
         run: git diff --exit-code
 
+      - name: Build WordPress
+        run: npm run build
+
+      - name: Clean after building
+        run: npm run grunt clean
+
+      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
+        run: git diff --exit-code
+
   # Verifies that installing NPM dependencies and building WordPress works as expected on MacOS.
   #
-  # This is a separate job in order to that more strict conditions can be used.
+  # This is separate from the job above in order to use stricter conditions about when to run.
+  # This avoids unintentionally consuming excessive minutes, as MacOS jobs consume minutes at a 10x rate.
   #
   # Performs the following steps:
   # - Checks out the repository.
-  # - Logs debug information about the runner container.
-  # - Installs NodeJS 14.
-  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # - Logs debug information about the GitHub Action runner.
+  # - Installs NodeJS.
+  # _ Installs NPM dependencies.
   # - Builds WordPress to run from the `build` directory.
   # - Cleans up after building WordPress to the `build` directory.
   # - Ensures version-controlled files are not modified or deleted.
@@ -114,7 +118,7 @@ jobs:
   test-npm-macos:
     name: Test NPM on MacOS
     runs-on: macos-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     steps:
       - name: Checkout repository
@@ -129,7 +133,7 @@ jobs:
           svn --version
 
       - name: Install NodeJS
-        uses: actions/setup-node@eeb10cff27034e7acf239c5d29f62154018672fd # v3.3.0
+        uses: actions/setup-node@2fddd8803e2f5c9604345a0b591c3020ee971a93 # v3.4.1
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -137,20 +141,20 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Build WordPress
-        run: npm run build
-
-      - name: Clean after building
-        run: npm run grunt clean
-
-      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
-        run: git diff --exit-code
-
       - name: Build WordPress in /src
         run: npm run build:dev
 
       - name: Clean after building in /src
         run: npm run grunt clean -- --dev
+
+      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
+        run: git diff --exit-code
+
+      - name: Build WordPress
+        run: npm run build
+
+      - name: Clean after building
+        run: npm run grunt clean
 
       - name: Ensure version-controlled files are not modified or deleted during building and cleaning
         run: git diff --exit-code
@@ -167,3 +171,32 @@ jobs:
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-latest
+    needs: [ test-npm, test-npm-macos, slack-notifications ]
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_attempt < 2 &&
+      (
+        needs.test-npm.result == 'cancelled' || needs.test-npm.result == 'failure' ||
+        needs.test-npm-macos.result == 'cancelled' || needs.test-npm-macos.result == 'failure'
+      )
+
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@c713e510dbd7d213d92d41b7a7805a986f4c5c66 # v6.2.0
+        with:
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: '${{ github.ref_name }}',
+              inputs: {
+                run_id: '${{ github.run_id }}'
+              }
+            });

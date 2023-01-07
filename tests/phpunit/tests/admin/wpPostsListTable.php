@@ -319,4 +319,26 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'id="delete_all"', $output );
 	}
 
+	/**
+	 * @ticket 42066
+	 *
+	 * @covers WP_Posts_List_Table::get_views
+	 */
+	public function test_get_views_should_return_views_by_default() {
+		global $avail_post_stati;
+
+		$avail_post_stati_backup = $avail_post_stati;
+		$avail_post_stati        = get_available_post_statuses();
+
+		$actual           = $this->table->get_views();
+		$avail_post_stati = $avail_post_stati_backup;
+
+		$expected = array(
+			'all'     => '<a href="edit.php?post_type=page">All <span class="count">(38)</span></a>',
+			'publish' => '<a href="edit.php?post_status=publish&#038;post_type=page">Published <span class="count">(38)</span></a>',
+		);
+
+		$this->assertSame( $expected, $actual );
+	}
+
 }

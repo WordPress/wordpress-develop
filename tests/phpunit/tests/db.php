@@ -1970,6 +1970,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @dataProvider parse_db_host_data_provider
 	 * @ticket 41722
+	 * @ticket 54877
 	 */
 	public function test_parse_db_host( $host_string, $expect_bail, $host, $port, $socket, $is_ipv6 ) {
 		global $wpdb;
@@ -2002,7 +2003,7 @@ class Tests_DB extends WP_UnitTestCase {
 				':3306',
 				false,
 				'',
-				'3306',
+				3306,
 				null,
 				false,
 			),
@@ -2031,10 +2032,18 @@ class Tests_DB extends WP_UnitTestCase {
 				false,
 			),
 			array(
+				'127.0.0.1:port_as_string',
+				false,
+				'127.0.0.1',
+				null,
+				null,
+				false,
+			),
+			array(
 				'127.0.0.1:3306',
 				false,
 				'127.0.0.1',
-				'3306',
+				3306,
 				null,
 				false,
 			),
@@ -2042,7 +2051,7 @@ class Tests_DB extends WP_UnitTestCase {
 				'127.0.0.1:3306:/tmp/mysql:with_colon.sock',
 				false,
 				'127.0.0.1',
-				'3306',
+				3306,
 				'/tmp/mysql:with_colon.sock',
 				false,
 			),
@@ -2055,15 +2064,31 @@ class Tests_DB extends WP_UnitTestCase {
 				false,
 			),
 			array(
+				'example.com:port_as_string',
+				false,
+				'example.com',
+				null,
+				null,
+				false,
+			),
+			array(
 				'example.com:3306',
 				false,
 				'example.com',
-				'3306',
+				3306,
 				null,
 				false,
 			),
 			array(
 				'localhost',
+				false,
+				'localhost',
+				null,
+				null,
+				false,
+			),
+			array(
+				'localhost:port_as_string',
 				false,
 				'localhost',
 				null,
@@ -2080,6 +2105,14 @@ class Tests_DB extends WP_UnitTestCase {
 			),
 			array(
 				'localhost:/tmp/mysql:with_colon.sock',
+				false,
+				'localhost',
+				null,
+				'/tmp/mysql:with_colon.sock',
+				false,
+			),
+			array(
+				'localhost:port_as_string:/tmp/mysql:with_colon.sock',
 				false,
 				'localhost',
 				null,
@@ -2114,7 +2147,15 @@ class Tests_DB extends WP_UnitTestCase {
 				'[::1]:3306',
 				false,
 				'::1',
-				'3306',
+				3306,
+				null,
+				true,
+			),
+			array(
+				'[::1]:port_as_string',
+				false,
+				'::1',
+				null,
 				null,
 				true,
 			),
@@ -2122,7 +2163,7 @@ class Tests_DB extends WP_UnitTestCase {
 				'[::1]:3306:/tmp/mysql:with_colon.sock',
 				false,
 				'::1',
-				'3306',
+				3306,
 				'/tmp/mysql:with_colon.sock',
 				true,
 			),

@@ -4,6 +4,8 @@
  * @group attachment
  * @group slashes
  * @ticket 21767
+ *
+ * @covers ::wp_insert_attachment
  */
 class Tests_Attachment_Slashes extends WP_UnitTestCase {
 

@@ -736,11 +736,11 @@ JS;
 		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate,regenerator-runtime,wp-polyfill,wp-dom-ready,wp-hooks&amp;ver={$ver}'></script>\n";
 		$expected .= "<script type='text/javascript' id='test-example-js-before'>\nconsole.log(\"before\");\n</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
-		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/i18n{$suffix}.js' id='wp-i18n-js'></script>\n";
+		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/i18n.min.js' id='wp-i18n-js'></script>\n";
 		$expected .= "<script type='text/javascript' id='wp-i18n-js-after'>\n";
 		$expected .= "wp.i18n.setLocaleData( { 'text direction\u0004ltr': [ 'ltr' ] } );\n";
 		$expected .= "</script>\n";
-		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/a11y{$suffix}.js' id='wp-a11y-js'></script>\n";
+		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/a11y.min.js' id='wp-a11y-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example2.com' id='test-example2-js'></script>\n";
 		$expected .= "<script type='text/javascript' id='test-example2-js-after'>\nconsole.log(\"after\");\n</script>\n";
 
@@ -1428,17 +1428,8 @@ JS;
 	 *
 	 * @param mixed  $l10n_data Localization data passed to wp_localize_script().
 	 * @param string $expected  Expected transformation of localization data.
-	 * @param string $warning   Optional. Whether a PHP native warning/error is expected. Default false.
 	 */
-	public function test_wp_localize_script_data_formats( $l10n_data, $expected, $warning = false ) {
-		if ( $warning ) {
-			if ( PHP_VERSION_ID < 80000 ) {
-				$this->expectWarning();
-			} else {
-				$this->expectError();
-			}
-		}
-
+	public function test_wp_localize_script_data_formats( $l10n_data, $expected ) {
 		if ( ! is_array( $l10n_data ) ) {
 			$this->setExpectedIncorrectUsage( 'WP_Scripts::localize' );
 		}
@@ -1460,7 +1451,6 @@ JS;
 	 *
 	 *     @type mixed  $l10n_data Localization data passed to wp_localize_script().
 	 *     @type string $expected  Expected transformation of localization data.
-	 *     @type string $warning   Optional. Whether a PHP native warning/error is expected.
 	 * }
 	 */
 	public function data_wp_localize_script_data_formats() {
@@ -1471,14 +1461,16 @@ JS;
 			array( array( 'foo' => array( 'bar' => 'foobar' ) ), '{"foo":{"bar":"foobar"}}' ),
 			array( array( 'foo' => 6.6 ), '{"foo":"6.6"}' ),
 			array( array( 'foo' => 6 ), '{"foo":"6"}' ),
+			array( array(), '[]' ),
 
 			// Unofficially supported format.
 			array( 'string', '"string"' ),
 
 			// Unsupported formats.
-			array( 1.5, '1.5', true ),
-			array( 1, '1', true ),
+			array( 1.5, '1.5' ),
+			array( 1, '1' ),
 			array( false, '[""]' ),
+			array( null, 'null' ),
 		);
 	}
 

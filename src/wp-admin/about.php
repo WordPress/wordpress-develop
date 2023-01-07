@@ -206,10 +206,10 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column">
 				<div class="about__image aligncenter">
-					<svg width="41" height="40" viewBox="0 0 41 40" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-						<circle cx="20.5" cy="20" r="12" fill="#fff"/>
-						<circle cx="20.5" cy="20" r="12" fill="url(#a)"/>
-						<circle cx="20.5" cy="20" r="12" stroke="#1E1E1E" stroke-width="2"/>
+					<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+						<circle cx="16" cy="16" r="12" fill="#fff"/>
+						<circle cx="16" cy="16" r="12" fill="url(#a)"/>
+						<circle cx="16" cy="16" r="12" stroke="#1E1E1E" stroke-width="2"/>
 						<defs>
 							<pattern id="a" patternContentUnits="objectBoundingBox" width=".385" height=".385">
 								<use xlink:href="#b" transform="scale(.01923)"/>
@@ -298,7 +298,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
-						/* translators: %s: WordPress 6.0 Field Guide link. */
+						/* translators: %s: WordPress Field Guide link. */
 						__( 'Check out the latest version of the <a href="%s">WordPress Field Guide</a>. It is overflowing with detailed developer notes to help you build with WordPress.' ),
 						__( 'https://make.wordpress.org/core/2022/05/03/wordpress-6-0-field-guide/' )
 					);
@@ -309,13 +309,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
-						/* translators: %s: WordPress 6.0 Release Notes link. */
-						__( '<a href="%s">Read the WordPress 6.0 Release Notes</a> for more information on the included enhancements and issues fixed, installation information, developer notes and resources, release contributors, and the list of file changes in this release.' ),
+						/* translators: 1: WordPress Release Notes link, 2: WordPress version number. */
+						__( '<a href="%1$s">Read the WordPress %2$s Release Notes</a> for more information on the included enhancements and issues fixed, installation information, developer notes and resources, release contributors, and the list of file changes in this release.' ),
 						sprintf(
-							/* translators: %s: WordPress version. */
+							/* translators: %s: WordPress version number. */
 							esc_url( __( 'https://wordpress.org/support/wordpress-version/version-%s/' ) ),
 							'6-0'
-						)
+						),
+						'6.0'
 					);
 					?>
 				</p>

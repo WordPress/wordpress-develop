@@ -544,8 +544,6 @@ line 2<br/>
 	 * wpautop() should not add extra </p> before <figcaption>
 	 *
 	 * @ticket 39307
-	 *
-	 * @uses ::trim
 	 */
 	public function test_that_wpautop_does_not_add_extra_closing_p_in_figure() {
 		$content1  = '<figure><img src="example.jpg" /><figcaption>Caption</figcaption></figure>';

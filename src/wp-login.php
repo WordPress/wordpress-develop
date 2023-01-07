@@ -261,7 +261,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 			 *
 			 * @param string $messages Login messages.
 			 */
-			echo '<p class="message">' . apply_filters( 'login_messages', $messages ) . "</p>\n";
+			echo '<p class="message" id="login-message">' . apply_filters( 'login_messages', $messages ) . "</p>\n";
 		}
 	}
 } // End of login_header().
@@ -347,6 +347,8 @@ function login_footer( $input_id = '' ) {
 
 					/**
 					 * Filters default arguments for the Languages select input on the login screen.
+					 *
+					 * The arguments get passed to the wp_dropdown_languages() function.
 					 *
 					 * @since 5.9.0
 					 *
@@ -1101,8 +1103,16 @@ switch ( $action ) {
 
 		<p id="nav">
 			<a href="<?php echo esc_url( wp_login_url() ); ?>"><?php _e( 'Log in' ); ?></a>
-				<?php echo esc_html( $login_link_separator ); ?>
-			<a href="<?php echo esc_url( wp_lostpassword_url() ); ?>"><?php _e( 'Lost your password?' ); ?></a>
+			<?php
+
+			echo esc_html( $login_link_separator );
+
+			$html_link = sprintf( '<a href="%s">%s</a>', esc_url( wp_lostpassword_url() ), __( 'Lost your password?' ) );
+
+			/** This filter is documented in wp-login.php */
+			echo apply_filters( 'lost_password_html_link', $html_link );
+
+			?>
 		</p>
 		<?php
 
@@ -1388,10 +1398,15 @@ switch ( $action ) {
 
 		$rememberme = ! empty( $_POST['rememberme'] );
 
-		if ( $errors->has_errors() ) {
-			$aria_describedby_error = ' aria-describedby="login_error"';
-		} else {
-			$aria_describedby_error = '';
+		$aria_describedby = '';
+		$has_errors       = $errors->has_errors();
+
+		if ( $has_errors ) {
+			$aria_describedby = ' aria-describedby="login_error"';
+		}
+
+		if ( $has_errors && 'message' === $errors->get_error_data() ) {
+			$aria_describedby = ' aria-describedby="login-message"';
 		}
 
 		wp_enqueue_script( 'user-profile' );
@@ -1400,13 +1415,13 @@ switch ( $action ) {
 		<form name="loginform" id="loginform" action="<?php echo esc_url( site_url( 'wp-login.php', 'login_post' ) ); ?>" method="post">
 			<p>
 				<label for="user_login"><?php _e( 'Username or Email Address' ); ?></label>
-				<input type="text" name="log" id="user_login"<?php echo $aria_describedby_error; ?> class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" />
+				<input type="text" name="log" id="user_login"<?php echo $aria_describedby; ?> class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" autocomplete="username" />
 			</p>
 
 			<div class="user-pass-wrap">
 				<label for="user_pass"><?php _e( 'Password' ); ?></label>
 				<div class="wp-pwd">
-					<input type="password" name="pwd" id="user_pass"<?php echo $aria_describedby_error; ?> class="input password-input" value="" size="20" autocomplete="current-password" />
+					<input type="password" name="pwd" id="user_pass"<?php echo $aria_describedby; ?> class="input password-input" value="" size="20" autocomplete="current-password" />
 					<button type="button" class="button button-secondary wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Show password' ); ?>">
 						<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
 					</button>
@@ -1464,8 +1479,18 @@ switch ( $action ) {
 					echo esc_html( $login_link_separator );
 				}
 
+				$html_link = sprintf( '<a href="%s">%s</a>', esc_url( wp_lostpassword_url() ), __( 'Lost your password?' ) );
+
+				/**
+				 * Filters the link that allows the user to reset the lost password.
+				 *
+				 * @since 6.1.0
+				 *
+				 * @param string $html_link HTML link to the lost password form.
+				 */
+				echo apply_filters( 'lost_password_html_link', $html_link );
+
 				?>
-				<a href="<?php echo esc_url( wp_lostpassword_url() ); ?>"><?php _e( 'Lost your password?' ); ?></a>
 			</p>
 			<?php
 		}

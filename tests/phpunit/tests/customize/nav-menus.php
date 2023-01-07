@@ -417,7 +417,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 			)
 		);
 
-		$term_id = $this->factory->term->create(
+		$term_id = self::factory()->term->create(
 			array(
 				'taxonomy' => 'wptests_tax',
 				'name'     => 'foobar',
@@ -851,11 +851,11 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 */
 	public function test_sanitize_nav_menus_created_posts() {
 		$menus                 = new WP_Customize_Nav_Menus( $this->wp_customize );
-		$contributor_user_id   = $this->factory()->user->create( array( 'role' => 'contributor' ) );
-		$author_user_id        = $this->factory()->user->create( array( 'role' => 'author' ) );
-		$administrator_user_id = $this->factory()->user->create( array( 'role' => 'administrator' ) );
+		$contributor_user_id   = self::factory()->user->create( array( 'role' => 'contributor' ) );
+		$author_user_id        = self::factory()->user->create( array( 'role' => 'author' ) );
+		$administrator_user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 
-		$contributor_post_id   = $this->factory()->post->create(
+		$contributor_post_id   = self::factory()->post->create(
 			array(
 				'post_status' => 'auto-draft',
 				'post_title'  => 'Contributor Post',
@@ -863,7 +863,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 				'post_author' => $contributor_user_id,
 			)
 		);
-		$author_post_id        = $this->factory()->post->create(
+		$author_post_id        = self::factory()->post->create(
 			array(
 				'post_status' => 'auto-draft',
 				'post_title'  => 'Author Post',
@@ -871,7 +871,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 				'post_author' => $author_user_id,
 			)
 		);
-		$administrator_post_id = $this->factory()->post->create(
+		$administrator_post_id = self::factory()->post->create(
 			array(
 				'post_status' => 'auto-draft',
 				'post_title'  => 'Admin Post',
@@ -880,7 +880,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 			)
 		);
 
-		$draft_post_id = $this->factory()->post->create(
+		$draft_post_id = self::factory()->post->create(
 			array(
 				'post_status' => 'draft',
 				'post_title'  => 'Draft',
@@ -888,7 +888,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 			)
 		);
 
-		$private_post_id = $this->factory()->post->create(
+		$private_post_id = self::factory()->post->create(
 			array(
 				'post_status' => 'private',
 				'post_title'  => 'Private',
@@ -990,7 +990,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		$post_ids[]      = $r->ID;
 		$trashed_post_id = $r->ID;
 
-		$pre_published_post_id = $this->factory()->post->create( array( 'post_status' => 'publish' ) );
+		$pre_published_post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
 		$setting_id = 'nav_menus_created_posts';
 		$this->wp_customize->set_post_value( $setting_id, array_merge( $post_ids, array( $pre_published_post_id ) ) );

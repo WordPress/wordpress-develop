@@ -1,5 +1,6 @@
 {
 	"version": 1,
+	"title": "Block theme",
 	"settings": {
 		"color": {
 			"palette": [
@@ -36,9 +37,7 @@
 			"customLineHeight": true
 		},
 		"spacing": {
-			"units": [
-				"rem"
-			],
+			"units": ["rem"],
 			"customPadding": true
 		},
 		"blocks": {
@@ -59,6 +58,11 @@
 		{
 			"name": "page-home",
 			"title": "Homepage template"
+		},
+		{
+			"name": "custom-single-post-template",
+			"title": "Custom Single Post template",
+			"postTypes": ["post"]
 		}
 	],
 	"templateParts": [

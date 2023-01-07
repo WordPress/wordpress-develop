@@ -119,9 +119,6 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error
 	 * are considered duplicates.
 	 */
 	$crons = _get_cron_array();
-	if ( ! is_array( $crons ) ) {
-		$crons = array();
-	}
 
 	$key       = md5( serialize( $event->args ) );
 	$duplicate = false;
@@ -306,9 +303,6 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp
 	$key = md5( serialize( $event->args ) );
 
 	$crons = _get_cron_array();
-	if ( ! is_array( $crons ) ) {
-		$crons = array();
-	}
 
 	$crons[ $event->timestamp ][ $event->hook ][ $key ] = array(
 		'schedule' => $event->schedule,
@@ -383,7 +377,7 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
 	);
 
 	/**
-	 * Filter to preflight or hijack rescheduling of events.
+	 * Filter to preflight or hijack rescheduling of a recurring event.
 	 *
 	 * Returning a non-null value will short-circuit the normal rescheduling
 	 * process, causing the function to return the filtered value instead.
@@ -398,11 +392,11 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
 	 * @param stdClass           $event    {
 	 *     An object containing an event's data.
 	 *
-	 *     @type string       $hook      Action hook to execute when the event is run.
-	 *     @type int          $timestamp Unix timestamp (UTC) for when to next run the event.
-	 *     @type string|false $schedule  How often the event should subsequently recur.
-	 *     @type array        $args      Array containing each separate argument to pass to the hook's callback function.
-	 *     @type int          $interval  The interval time in seconds for the schedule. Only present for recurring events.
+	 *     @type string $hook      Action hook to execute when the event is run.
+	 *     @type int    $timestamp Unix timestamp (UTC) for when to next run the event.
+	 *     @type string $schedule  How often the event should subsequently recur.
+	 *     @type array  $args      Array containing each separate argument to pass to the hook's callback function.
+	 *     @type int    $interval  The interval time in seconds for the schedule.
 	 * }
 	 * @param bool               $wp_error Whether to return a WP_Error on failure.
 	 */
@@ -1128,26 +1122,20 @@ function wp_get_ready_cron_jobs() {
 	 *                          to continue using results from _get_cron_array().
 	 */
 	$pre = apply_filters( 'pre_get_ready_cron_jobs', null );
+
 	if ( null !== $pre ) {
 		return $pre;
 	}
 
-	$crons = _get_cron_array();
-	if ( ! is_array( $crons ) ) {
-		return array();
-	}
-
+	$crons    = _get_cron_array();
 	$gmt_time = microtime( true );
-	$keys     = array_keys( $crons );
-	if ( isset( $keys[0] ) && $keys[0] > $gmt_time ) {
-		return array();
-	}
+	$results  = array();
 
-	$results = array();
 	foreach ( $crons as $timestamp => $cronhooks ) {
 		if ( $timestamp > $gmt_time ) {
 			break;
 		}
+
 		$results[ $timestamp ] = $cronhooks;
 	}
 
@@ -1162,14 +1150,15 @@ function wp_get_ready_cron_jobs() {
  * Retrieve cron info array option.
  *
  * @since 2.1.0
+ * @since 6.1.0 Return type modified to consistenty return an array.
  * @access private
  *
- * @return array[]|false Array of cron info arrays on success, false on failure.
+ * @return array[] Array of cron events.
  */
 function _get_cron_array() {
 	$cron = get_option( 'cron' );
 	if ( ! is_array( $cron ) ) {
-		return false;
+		return array();
 	}
 
 	if ( ! isset( $cron['version'] ) ) {
@@ -1213,15 +1202,15 @@ function _set_cron_array( $cron, $wp_error = false ) {
 }
 
 /**
- * Upgrade a Cron info array.
+ * Upgrade a cron info array.
  *
- * This function upgrades the Cron info array to version 2.
+ * This function upgrades the cron info array to version 2.
  *
  * @since 2.1.0
  * @access private
  *
  * @param array $cron Cron info array from _get_cron_array().
- * @return array An upgraded Cron info array.
+ * @return array An upgraded cron info array.
  */
 function _upgrade_cron_array( $cron ) {
 	if ( isset( $cron['version'] ) && 2 == $cron['version'] ) {

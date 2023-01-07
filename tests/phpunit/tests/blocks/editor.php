@@ -28,7 +28,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 			'post_title' => 'Example',
 		);
 
-		$post = $this->factory()->post->create_and_get( $args );
+		$post = self::factory()->post->create_and_get( $args );
 
 		global $wp_rest_server;
 		$wp_rest_server = new Spy_REST_Server;
@@ -202,7 +202,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	public function test_get_default_block_editor_settings() {
 		$settings = get_default_block_editor_settings();
 
-		$this->assertCount( 18, $settings );
+		$this->assertCount( 19, $settings );
 		$this->assertFalse( $settings['alignWide'] );
 		$this->assertIsArray( $settings['allowedMimeTypes'] );
 		$this->assertTrue( $settings['allowedBlockTypes'] );
@@ -249,6 +249,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$this->assertFalse( $settings['disableCustomColors'] );
 		$this->assertFalse( $settings['disableCustomFontSizes'] );
 		$this->assertFalse( $settings['disableCustomGradients'] );
+		$this->assertFalse( $settings['disableLayoutStyles'] );
 		$this->assertFalse( $settings['enableCustomLineHeight'] );
 		$this->assertFalse( $settings['enableCustomSpacing'] );
 		$this->assertFalse( $settings['enableCustomUnits'] );

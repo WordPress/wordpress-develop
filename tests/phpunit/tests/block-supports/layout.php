@@ -13,8 +13,25 @@
  * @since 6.0.0
  *
  * @group block-supports
+ *
+ * @covers ::wp_restore_image_outer_container
  */
 class Test_Block_Supports_Layout extends WP_UnitTestCase {
+
+	/**
+	 * Theme root directory.
+	 *
+	 * @var string
+	 */
+	private $theme_root;
+
+	/**
+	 * Original theme directory.
+	 *
+	 * @var string
+	 */
+	private $orig_theme_dir;
+
 	function set_up() {
 		parent::set_up();
 		$this->theme_root     = realpath( DIR_TESTDATA . '/themedir1' );
@@ -28,7 +45,6 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 		add_filter( 'stylesheet_root', array( $this, 'filter_set_theme_root' ) );
 		add_filter( 'template_root', array( $this, 'filter_set_theme_root' ) );
 
-		$this->queries = array();
 		// Clear caches.
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
@@ -53,8 +69,6 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
-	 *
-	 * @covers ::wp_restore_image_outer_container
 	 */
 	function test_outer_container_not_restored_for_non_aligned_image_block_with_non_themejson_theme() {
 		// The "default" theme doesn't have theme.json support.
@@ -71,8 +85,6 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
-	 *
-	 * @covers ::wp_restore_image_outer_container
 	 */
 	function test_outer_container_restored_for_aligned_image_block_with_non_themejson_theme() {
 		// The "default" theme doesn't have theme.json support.
@@ -89,8 +101,6 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
-	 *
-	 * @covers ::wp_restore_image_outer_container
 	 *
 	 * @dataProvider data_block_image_html_restored_outer_container
 	 *
@@ -149,8 +159,6 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
-	 *
-	 * @covers ::wp_restore_image_outer_container
 	 */
 	function test_outer_container_not_restored_for_aligned_image_block_with_themejson_theme() {
 		switch_theme( 'block-theme' );

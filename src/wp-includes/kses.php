@@ -706,7 +706,8 @@ if ( ! CUSTOM_TAGS ) {
  * @param array[]|string $allowed_html      An array of allowed HTML elements and attributes,
  *                                          or a context name such as 'post'. See wp_kses_allowed_html()
  *                                          for the list of accepted context names.
- * @param string[]       $allowed_protocols Array of allowed URL protocols.
+ * @param string[]       $allowed_protocols Optional. Array of allowed URL protocols.
+ *                                          Defaults to the result of wp_allowed_protocols().
  * @return string Filtered content containing only the allowed HTML.
  */
 function wp_kses( $string, $allowed_html, $allowed_protocols = array() ) {
@@ -2224,10 +2225,14 @@ function kses_init() {
  * @since 5.1.0 Added support for `text-transform`.
  * @since 5.2.0 Added support for `background-position` and `grid-template-columns`.
  * @since 5.3.0 Added support for `grid`, `flex` and `column` layout properties.
- *              Extend `background-*` support of individual properties.
+ *              Extended `background-*` support for individual properties.
  * @since 5.3.1 Added support for gradient backgrounds.
  * @since 5.7.1 Added support for `object-position`.
  * @since 5.8.0 Added support for `calc()` and `var()` values.
+ * @since 6.1.0 Added support for `min()`, `max()`, `minmax()`, `clamp()`,
+ *              nested `var()` values, and assigning values to CSS variables.
+ *              Added support for `gap`, `column-gap`, `row-gap`, and `flex-wrap`.
+ *              Extended `margin-*` and `padding-*` support for logical properties.
  *
  * @param string $css        A string of CSS rules.
  * @param string $deprecated Not used.
@@ -2333,12 +2338,20 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'margin-bottom',
 			'margin-left',
 			'margin-top',
+			'margin-block-start',
+			'margin-block-end',
+			'margin-inline-start',
+			'margin-inline-end',
 
 			'padding',
 			'padding-right',
 			'padding-bottom',
 			'padding-left',
 			'padding-top',
+			'padding-block-start',
+			'padding-block-end',
+			'padding-inline-start',
+			'padding-inline-end',
 
 			'flex',
 			'flex-basis',
@@ -2346,6 +2359,11 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'flex-flow',
 			'flex-grow',
 			'flex-shrink',
+			'flex-wrap',
+
+			'gap',
+			'column-gap',
+			'row-gap',
 
 			'grid-template-columns',
 			'grid-auto-columns',
@@ -2374,6 +2392,9 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'object-position',
 			'overflow',
 			'vertical-align',
+
+			// Custom CSS properties.
+			'--*',
 		)
 	);
 
@@ -2419,6 +2440,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		$found           = false;
 		$url_attr        = false;
 		$gradient_attr   = false;
+		$is_custom_var   = false;
 
 		if ( strpos( $css_item, ':' ) === false ) {
 			$found = true;
@@ -2426,10 +2448,22 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			$parts        = explode( ':', $css_item, 2 );
 			$css_selector = trim( $parts[0] );
 
+			// Allow assigning values to CSS variables.
+			if ( in_array( '--*', $allowed_attr, true ) && preg_match( '/^--[a-zA-Z0-9-_]+$/', $css_selector ) ) {
+				$allowed_attr[] = $css_selector;
+				$is_custom_var  = true;
+			}
+
 			if ( in_array( $css_selector, $allowed_attr, true ) ) {
 				$found         = true;
 				$url_attr      = in_array( $css_selector, $css_url_data_types, true );
 				$gradient_attr = in_array( $css_selector, $css_gradient_data_types, true );
+			}
+
+			if ( $is_custom_var ) {
+				$css_value     = trim( $parts[1] );
+				$url_attr      = str_starts_with( $css_value, 'url(' );
+				$gradient_attr = str_contains( $css_value, '-gradient(' );
 			}
 		}
 
@@ -2467,13 +2501,20 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		}
 
 		if ( $found ) {
-			// Allow CSS calc().
-			$css_test_string = preg_replace( '/calc\(((?:\([^()]*\)?|[^()])*)\)/', '', $css_test_string );
-			// Allow CSS var().
-			$css_test_string = preg_replace( '/\(?var\(--[a-zA-Z0-9_-]*\)/', '', $css_test_string );
+			/*
+			 * Allow CSS functions like var(), calc(), etc. by removing them from the test string.
+			 * Nested functions and parentheses are also removed, so long as the parentheses are balanced.
+			 */
+			$css_test_string = preg_replace(
+				'/\b(?:var|calc|min|max|minmax|clamp)(\((?:[^()]|(?1))*\))/',
+				'',
+				$css_test_string
+			);
 
-			// Check for any CSS containing \ ( & } = or comments,
-			// except for url(), calc(), or var() usage checked above.
+			/*
+			 * Disallow CSS containing \ ( & } = or comments, except for within url(), var(), calc(), etc.
+			 * which were removed from the test string above.
+			 */
 			$allow_css = ! preg_match( '%[\\\(&=}]|/\*%', $css_test_string );
 
 			/**

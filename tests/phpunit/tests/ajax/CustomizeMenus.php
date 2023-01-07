@@ -706,7 +706,7 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 		$this->assertSame( 'bad_nonce', $response['data'] );
 
 		// Bad nonce.
-		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'subscriber' ) ) );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
 		$_POST                = wp_slash(
 			array(
 				'customize-menus-nonce' => wp_create_nonce( 'customize-menus' ),
@@ -719,7 +719,7 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 		$this->assertSame( 'customize_not_allowed', $response['data'] );
 
 		// Missing params.
-		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		$_POST                = wp_slash(
 			array(
 				'customize-menus-nonce' => wp_create_nonce( 'customize-menus' ),

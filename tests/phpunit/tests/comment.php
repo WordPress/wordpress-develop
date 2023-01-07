@@ -30,6 +30,9 @@ class Tests_Comment extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::wp_update_comment
+	 */
 	public function test_wp_update_comment() {
 		$post  = self::factory()->post->create_and_get(
 			array(
@@ -78,6 +81,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30627
+	 *
+	 * @covers ::wp_update_comment
 	 */
 	public function test_wp_update_comment_updates_comment_type() {
 		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
@@ -95,6 +100,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36784
+	 *
+	 * @covers ::wp_update_comment
 	 */
 	public function test_wp_update_comment_updates_comment_meta() {
 		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
@@ -114,6 +121,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30307
+	 *
+	 * @covers ::wp_update_comment
 	 */
 	public function test_wp_update_comment_updates_user_id() {
 		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
@@ -131,6 +140,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34954
+	 *
+	 * @covers ::wp_update_comment
 	 */
 	public function test_wp_update_comment_with_no_post_id() {
 		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => 0 ) );
@@ -152,6 +163,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 39732
+	 *
+	 * @covers ::wp_update_comment
 	 */
 	public function test_wp_update_comment_returns_false_for_invalid_comment_or_post_id() {
 		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
@@ -175,6 +188,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 39732
+	 *
+	 * @covers ::wp_update_comment
 	 */
 	public function test_wp_update_comment_is_wp_error() {
 		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
@@ -201,6 +216,9 @@ class Tests_Comment extends WP_UnitTestCase {
 		return new WP_Error( 'comment_wrong', 'wp_update_comment_data filter fails for this comment.', 500 );
 	}
 
+	/**
+	 * @covers ::get_approved_comments
+	 */
 	public function test_get_approved_comments() {
 		$ca1 = self::factory()->comment->create(
 			array(
@@ -257,6 +275,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30412
+	 *
+	 * @covers ::get_approved_comments
 	 */
 	public function test_get_approved_comments_with_post_id_0_should_return_empty_array() {
 		$ca1 = self::factory()->comment->create(
@@ -273,6 +293,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 14279
+	 *
+	 * @covers ::wp_new_comment
 	 */
 	public function test_wp_new_comment_respects_dates() {
 		$data = array(
@@ -296,6 +318,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 14601
+	 *
+	 * @covers ::wp_new_comment
 	 */
 	public function test_wp_new_comment_respects_author_ip() {
 		$data = array(
@@ -317,6 +341,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 14601
+	 *
+	 * @covers ::wp_new_comment
 	 */
 	public function test_wp_new_comment_respects_author_ip_empty_string() {
 		$data = array(
@@ -338,6 +364,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 14601
+	 *
+	 * @covers ::wp_new_comment
 	 */
 	public function test_wp_new_comment_respects_comment_agent() {
 		$data = array(
@@ -360,6 +388,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 14601
+	 *
+	 * @covers ::wp_new_comment
 	 */
 	public function test_wp_new_comment_should_trim_provided_comment_agent_to_254_chars() {
 		$data = array(
@@ -382,6 +412,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 14601
+	 *
+	 * @covers ::wp_new_comment
 	 */
 	public function test_wp_new_comment_respects_comment_agent_empty_string() {
 		$data = array(
@@ -402,7 +434,9 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertSame( $data['comment_agent'], $comment->comment_agent );
 	}
 
-
+	/**
+	 * @covers ::wp_new_comment
+	 */
 	public function test_comment_field_lengths() {
 		$data = array(
 			'comment_post_ID'      => self::$post_id,
@@ -424,6 +458,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 32566
+	 *
+	 * @covers ::wp_notify_moderator
 	 */
 	public function test_wp_notify_moderator_should_not_throw_notice_when_post_author_is_0() {
 		$p = self::factory()->post->create(
@@ -441,6 +477,9 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertTrue( wp_notify_moderator( $c ) );
 	}
 
+	/**
+	 * @covers ::wp_new_comment_notify_postauthor
+	 */
 	public function test_wp_new_comment_notify_postauthor_should_send_email_when_comment_is_approved() {
 		$c = self::factory()->comment->create(
 			array(
@@ -452,6 +491,9 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertTrue( $sent );
 	}
 
+	/**
+	 * @covers ::wp_new_comment_notify_postauthor
+	 */
 	public function test_wp_new_comment_notify_postauthor_should_not_send_email_when_comment_is_unapproved() {
 		$c = self::factory()->comment->create(
 			array(
@@ -466,6 +508,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 33587
+	 *
+	 * @covers ::wp_new_comment_notify_postauthor
 	 */
 	public function test_wp_new_comment_notify_postauthor_should_not_send_email_when_comment_has_been_marked_as_spam() {
 		$c = self::factory()->comment->create(
@@ -481,6 +525,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35006
+	 *
+	 * @covers ::wp_new_comment_notify_postauthor
 	 */
 	public function test_wp_new_comment_notify_postauthor_should_not_send_email_when_comment_has_been_trashed() {
 		$c = self::factory()->comment->create(
@@ -496,6 +542,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 43805
+	 *
+	 * @covers ::wp_new_comment_notify_postauthor
 	 */
 	public function test_wp_new_comment_notify_postauthor_content_should_include_link_to_parent() {
 		$c1 = self::factory()->comment->create(
@@ -520,6 +568,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 43805
+	 *
+	 * @covers ::wp_new_comment_notify_moderator
 	 */
 	public function test_wp_new_comment_notify_moderator_content_should_include_link_to_parent() {
 		$c1 = self::factory()->comment->create(
@@ -556,6 +606,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 12431
+	 *
+	 * @covers ::get_comment_meta
 	 */
 	public function test_wp_new_comment_with_meta() {
 		$c = self::factory()->comment->create(
@@ -573,6 +625,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 8071
+	 *
+	 * @covers WP_Comment::get_children
 	 */
 	public function test_wp_comment_get_children_should_fill_children() {
 		$c1 = self::factory()->comment->create(
@@ -633,6 +687,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 27571
+	 *
+	 * @covers ::get_comment
 	 */
 	public function test_post_properties_should_be_lazyloaded() {
 		$c = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
@@ -664,13 +720,13 @@ class Tests_Comment extends WP_UnitTestCase {
 		/**
 		 * Set up a comment for testing.
 		 */
-		$post = $this->factory->post->create(
+		$post = self::factory()->post->create(
 			array(
 				'post_author' => self::$user_id,
 			)
 		);
 
-		$comment = $this->factory->comment->create(
+		$comment = self::factory()->comment->create(
 			array(
 				'comment_post_ID' => $post,
 			)
@@ -684,6 +740,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 761
+	 *
+	 * @covers ::wp_new_comment
 	 */
 	public function test_wp_notify_moderator_filter_moderation_notify_option_true_filter_false() {
 		$comment_data = $this->setup_notify_comment();
@@ -705,6 +763,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 761
+	 *
+	 * @covers ::wp_new_comment
 	 */
 	public function test_wp_notify_moderator_filter_moderation_notify_option_false_filter_true() {
 		$comment_data = $this->setup_notify_comment();
@@ -726,6 +786,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 761
+	 *
+	 * @covers ::wp_new_comment
 	 */
 	public function test_wp_notify_post_author_filter_comments_notify_option_true_filter_false() {
 
@@ -748,6 +810,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 761
+	 *
+	 * @covers ::wp_new_comment
 	 */
 	public function test_wp_notify_post_author_filter_comments_notify_option_false_filter_true() {
 		$comment_data = $this->setup_notify_comment();
@@ -852,6 +916,9 @@ class Tests_Comment extends WP_UnitTestCase {
 		return $email_sent_when_comment_approved || $email_sent_when_comment_added;
 	}
 
+	/**
+	 * @covers ::_close_comments_for_old_post
+	 */
 	public function test_close_comments_for_old_post() {
 		update_option( 'close_comments_for_old_posts', true );
 		// Close comments more than one day old.
@@ -867,6 +934,9 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertTrue( $new_post_comment_status );
 	}
 
+	/**
+	 * @covers ::_close_comments_for_old_post
+	 */
 	public function test_close_comments_for_old_post_undated_draft() {
 		$draft_id             = self::factory()->post->create(
 			array(
@@ -881,6 +951,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35276
+	 *
+	 * @covers ::wp_update_comment
 	 */
 	public function test_wp_update_comment_author_id_and_agent() {
 
@@ -917,6 +989,9 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertSame( 'SHIELD_AGENT', $updated->comment_agent );
 	}
 
+	/**
+	 * @covers ::wp_get_comment_fields_max_lengths
+	 */
 	public function test_wp_get_comment_fields_max_lengths() {
 		$expected = array(
 			'comment_author'       => 245,
@@ -937,6 +1012,8 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @group privacy
 	 * @ticket 43442
+	 *
+	 * @covers ::wp_comments_personal_data_eraser
 	 */
 	public function test_wp_comments_personal_data_eraser() {
 
@@ -994,6 +1071,8 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @group privacy
 	 * @ticket 43442
+	 *
+	 * @covers ::wp_comments_personal_data_eraser
 	 */
 	public function test_wp_comments_personal_data_eraser_empty_first_page_output() {
 
@@ -1013,6 +1092,8 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @group privacy
 	 * @ticket 43442
+	 *
+	 * @covers ::wp_comments_personal_data_eraser
 	 */
 	public function test_wp_comments_personal_data_eraser_non_empty_first_page_output() {
 
@@ -1045,6 +1126,8 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @group privacy
 	 * @ticket 43442
+	 *
+	 * @covers ::wp_comments_personal_data_eraser
 	 */
 	public function test_wp_comments_personal_data_eraser_empty_second_page_output() {
 
@@ -1077,6 +1160,8 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @group privacy
 	 * @ticket 43442
+	 *
+	 * @covers ::wp_comments_personal_data_eraser
 	 */
 	public function test_wp_anonymize_comment_filter_to_prevent_comment_anonymization() {
 
@@ -1114,6 +1199,8 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @group privacy
 	 * @ticket 43442
+	 *
+	 * @covers ::wp_comments_personal_data_eraser
 	 */
 	public function test_wp_anonymize_comment_filter_to_prevent_comment_anonymization_with_custom_message() {
 
@@ -1179,6 +1266,9 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertSame( 'Bar', $comment->comment_author );
 	}
 
+	/**
+	 * @covers ::wp_trash_comment
+	 */
 	public function test_trash_should_invalidate_comment_cache() {
 		global $wpdb;
 
@@ -1193,6 +1283,9 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertSame( 'trash', $comment->comment_approved );
 	}
 
+	/**
+	 * @covers ::wp_untrash_comment
+	 */
 	public function test_untrash_should_invalidate_comment_cache() {
 		global $wpdb;
 
@@ -1209,6 +1302,9 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertSame( '1', $comment->comment_approved );
 	}
 
+	/**
+	 * @covers ::wp_spam_comment
+	 */
 	public function test_spam_should_invalidate_comment_cache() {
 		global $wpdb;
 
@@ -1223,6 +1319,9 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertSame( 'spam', $comment->comment_approved );
 	}
 
+	/**
+	 * @covers ::wp_unspam_comment
+	 */
 	public function test_unspam_should_invalidate_comment_cache() {
 		global $wpdb;
 
@@ -1244,6 +1343,8 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @group privacy
 	 * @ticket 43440
+	 *
+	 * @covers ::wp_comments_personal_data_exporter
 	 */
 	public function test_wp_comments_personal_data_exporter() {
 		$args = array(
@@ -1290,6 +1391,8 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @group privacy
 	 * @ticket 43440
+	 *
+	 * @covers ::wp_comments_personal_data_exporter
 	 */
 	public function test_wp_comments_personal_data_exporter_no_comments_found() {
 
@@ -1308,6 +1411,8 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @group privacy
 	 * @ticket 43440
+	 *
+	 * @covers ::wp_comments_personal_data_exporter
 	 */
 	public function test_wp_comments_personal_data_exporter_empty_comment_prop() {
 		$args = array(
@@ -1339,6 +1444,8 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @group privacy
 	 * @ticket 43440
+	 *
+	 * @covers ::wp_comments_personal_data_exporter
 	 */
 	public function test_wp_comments_personal_data_exporter_empty_second_page() {
 		$args = array(

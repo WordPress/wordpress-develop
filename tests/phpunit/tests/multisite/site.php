@@ -2459,7 +2459,7 @@ if ( is_multisite() ) :
 			$new_site_id = $this->_get_next_site_id();
 			$this->assertNull( get_site( $new_site_id ) );
 
-			$new_site = $this->factory()->blog->create_and_get();
+			$new_site = self::factory()->blog->create_and_get();
 
 			// Double-check we got the ID of the new site correct.
 			$this->assertEquals( $new_site_id, $new_site->blog_id );

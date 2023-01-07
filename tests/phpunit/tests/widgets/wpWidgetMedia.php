@@ -116,7 +116,7 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 	public function test_constructor_in_customize_preview() {
 		global $wp_customize;
 		wp_set_current_user(
-			$this->factory()->user->create(
+			self::factory()->user->create(
 				array(
 					'role' => 'administrator',
 				)
@@ -159,7 +159,7 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 		$this->assertFalse( $widget->is_attachment_with_mime_type( 0, 'image' ) );
 		$this->assertFalse( $widget->is_attachment_with_mime_type( -123, 'image' ) );
 
-		$post_id = $this->factory()->post->create();
+		$post_id = self::factory()->post->create();
 		$this->assertFalse( $widget->is_attachment_with_mime_type( $post_id, 'image' ) );
 		$this->assertFalse( $widget->is_attachment_with_mime_type( $attachment_id, 'video' ) );
 		$this->assertTrue( $widget->is_attachment_with_mime_type( $attachment_id, 'image' ) );

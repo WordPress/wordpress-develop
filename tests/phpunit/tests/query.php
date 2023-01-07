@@ -644,19 +644,19 @@ class Tests_Query extends WP_UnitTestCase {
 		register_taxonomy( 'tax1', 'post' );
 		register_taxonomy( 'tax2', 'post' );
 
-		$term1   = $this->factory->term->create(
+		$term1   = self::factory()->term->create(
 			array(
 				'taxonomy' => 'tax1',
 				'name'     => 'term1',
 			)
 		);
-		$term2   = $this->factory->term->create(
+		$term2   = self::factory()->term->create(
 			array(
 				'taxonomy' => 'tax2',
 				'name'     => 'term2',
 			)
 		);
-		$post_id = $this->factory->post->create();
+		$post_id = self::factory()->post->create();
 		wp_set_object_terms( $post_id, 'term1', 'tax1' );
 		wp_set_object_terms( $post_id, 'term2', 'tax2' );
 
@@ -674,19 +674,19 @@ class Tests_Query extends WP_UnitTestCase {
 		register_taxonomy( 'tax1', 'post' );
 		register_taxonomy( 'tax2', 'post' );
 
-		$term1   = $this->factory->term->create(
+		$term1   = self::factory()->term->create(
 			array(
 				'taxonomy' => 'tax1',
 				'name'     => 'term1',
 			)
 		);
-		$term2   = $this->factory->term->create(
+		$term2   = self::factory()->term->create(
 			array(
 				'taxonomy' => 'tax2',
 				'name'     => 'term2',
 			)
 		);
-		$post_id = $this->factory->post->create();
+		$post_id = self::factory()->post->create();
 		wp_set_object_terms( $post_id, 'term1', 'tax1' );
 		wp_set_object_terms( $post_id, 'term2', 'tax2' );
 

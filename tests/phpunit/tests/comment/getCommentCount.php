@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * @group comment
+ *
+ * Class Tests_Get_Comment_Count
+ *
+ * @covers ::get_comment_count
+ */
 class Tests_Get_Comment_Count extends WP_UnitTestCase {
 
 	public function test_get_comment_count() {

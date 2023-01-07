@@ -13,6 +13,11 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::get_site_transient
+	 * @covers ::set_site_transient
+	 * @covers ::delete_site_transient
+	 */
 	public function test_the_basics() {
 		$key    = 'key1';
 		$value  = 'value1';
@@ -29,6 +34,11 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 		$this->assertFalse( delete_site_transient( $key ) );
 	}
 
+	/**
+	 * @covers ::get_site_transient
+	 * @covers ::set_site_transient
+	 * @covers ::delete_site_transient
+	 */
 	public function test_serialized_data() {
 		$key   = __FUNCTION__;
 		$value = array(
@@ -48,6 +58,9 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 	/**
 	 * @ticket 22846
 	 * @group ms-excluded
+	 *
+	 * @covers ::set_site_transient
+	 * @covers ::wp_load_alloptions
 	 */
 	public function test_set_site_transient_is_not_stored_as_autoload_option() {
 		$key = 'not_autoloaded';
