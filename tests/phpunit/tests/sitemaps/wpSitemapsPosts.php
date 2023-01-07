@@ -63,11 +63,20 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Callback for 'wp_sitemaps_posts_show_on_front_entry' filter.
+	 */
+	public function _show_on_front_entry( $sitemap_entry ) {
+		$sitemap_entry['lastmod'] = wp_date( DATE_W3C, time() );
+
+		return $sitemap_entry;
+	}
+
+	/**
 	 * Tests that sticky posts are not moved to the front of the first page of the post sitemap.
 	 *
 	 * @ticket 55633
 	 */
-	public function test_posts_sticky_posts() {
+	public function test_posts_sticky_posts_not_moved_to_front() {
 		$factory = self::factory();
 
 		// Create 4 posts, and stick the last one.
@@ -79,19 +88,15 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 
 		$url_list = $posts_provider->get_url_list( 1, 'post' );
 
-		$this->assertCount( count( $post_ids ), $url_list );
-		// Check that the URL list is still in the order of the post IDs (i.e., sticky post wasn't moved to the front).
-		foreach ( $post_ids as $idx => $post_id ) {
-			$this->assertSame( array( 'loc' => home_url( "?p={$post_id}" ) ), $url_list[ $idx ] );
+		$this->assertCount( count( $post_ids ), $url_list, 'The post count did not match.' );
+
+		$expected = array();
+
+		foreach ( $post_ids as $post_id ) {
+			$expected[] = array( 'loc' => home_url( "?p={$post_id}" ) );
 		}
-	}
 
-	/**
-	 * Callback for 'wp_sitemaps_posts_show_on_front_entry' filter.
-	 */
-	public function _show_on_front_entry( $sitemap_entry ) {
-		$sitemap_entry['lastmod'] = wp_date( DATE_W3C, time() );
-
-		return $sitemap_entry;
+		// Check that the URL list is still in the order of the post IDs (i.e., sticky post wasn't moved to the front).
+		$this->assertSame( $expected, $url_list, 'The post order did not match.' );
 	}
 }

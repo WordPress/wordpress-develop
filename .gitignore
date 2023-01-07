@@ -27,6 +27,8 @@ wp-tests-config.php
 /src/wp-admin/css/*-rtl.css
 /src/wp-admin/css/colors/*/*.css
 /src/wp-admin/js
+/src/wp-includes/assets/*
+!/src/wp-includes/assets/script-loader-packages.min.php
 /src/wp-includes/js
 /src/wp-includes/css/dist
 /src/wp-includes/css/*.min.css
@@ -55,6 +57,7 @@ wp-tests-config.php
 !/src/wp-content/themes/twentytwenty
 !/src/wp-content/themes/twentytwentyone
 !/src/wp-content/themes/twentytwentytwo
+!/src/wp-content/themes/twentytwentythree
 /src/wp-content/upgrade
 /src/wp-content/uploads
 /src/wp-content/advanced-cache.php

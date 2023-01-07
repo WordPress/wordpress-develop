@@ -111,6 +111,9 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		$this->assertGreaterThan( 0, count( $patterns ) );
 
 		array_walk( $patterns, array( $this, 'assertPatternMatchesSchema' ) );
+		$this->assertSame( array( 'blog post' ), $patterns[0]['keywords'] );
+		$this->assertSame( array( 'header', 'hero' ), $patterns[1]['keywords'] );
+		$this->assertSame( array( 'call to action', 'hero section' ), $patterns[2]['keywords'] );
 	}
 
 	/**
@@ -157,10 +160,6 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		$this->assertGreaterThan( 0, count( $patterns ) );
 
 		array_walk( $patterns, array( $this, 'assertPatternMatchesSchema' ) );
-
-		foreach ( $patterns as $pattern ) {
-			$this->assertContains( 'core', $pattern['keywords'] );
-		}
 	}
 
 	/**
@@ -311,20 +310,32 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		$this->assertSame( 'modified the cache', $patterns[0] );
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_get_item() {
-		$this->markTestSkipped( 'Controller does not have get_item route.' );
+		// Controller does not implement get_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_create_item() {
-		$this->markTestSkipped( 'Controller does not have create_item route.' );
+		// Controller does not implement create_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_update_item() {
-		$this->markTestSkipped( 'Controller does not have update_item route.' );
+		// Controller does not implement update_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_delete_item() {
-		$this->markTestSkipped( 'Controller does not have delete_item route.' );
+		// Controller does not implement delete_item().
 	}
 
 	/**
@@ -403,9 +414,11 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 * @covers WP_REST_Pattern_Directory_Controller::get_item_schema
 	 *
 	 * @since 5.8.0
+	 *
+	 * @doesNotPerformAssertions
 	 */
 	public function test_get_item_schema() {
-		$this->markTestSkipped( "The controller's schema is hardcoded, so tests would not be meaningful." );
+		// The controller's schema is hardcoded, so tests would not be meaningful.
 	}
 
 	/**
@@ -509,10 +522,10 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	private static function mock_successful_response( $action, $expects_results ) {
 		add_filter(
 			'pre_http_request',
-			static function ( $preempt, $args, $url ) use ( $action, $expects_results ) {
+			static function ( $response, $parsed_args, $url ) use ( $action, $expects_results ) {
 
 				if ( 'api.wordpress.org' !== wp_parse_url( $url, PHP_URL_HOST ) ) {
-					return $preempt;
+					return $response;
 				}
 
 				$response = array(
@@ -543,7 +556,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	private static function prevent_requests_to_host( $blocked_host = 'api.wordpress.org' ) {
 		add_filter(
 			'pre_http_request',
-			static function ( $return, $args, $url ) use ( $blocked_host ) {
+			static function ( $response, $parsed_args, $url ) use ( $blocked_host ) {
 
 				if ( wp_parse_url( $url, PHP_URL_HOST ) === $blocked_host ) {
 					return new WP_Error(
@@ -554,7 +567,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 
 				}
 
-				return $return;
+				return $response;
 			},
 			10,
 			3

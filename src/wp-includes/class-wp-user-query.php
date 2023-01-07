@@ -14,6 +14,7 @@
  *
  * @see WP_User_Query::prepare_query() for information on accepted arguments.
  */
+#[AllowDynamicProperties]
 class WP_User_Query {
 
 	/**
@@ -140,8 +141,8 @@ class WP_User_Query {
 	 * @since 5.3.0 Introduced the 'meta_type_key' parameter.
 	 * @since 5.9.0 Added 'capability', 'capability__in', and 'capability__not_in' parameters.
 	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
-	 * @global int  $blog_id
+	 * @global wpdb     $wpdb     WordPress database abstraction object.
+	 * @global WP_Roles $wp_roles WordPress role management object.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or string of Query parameters.
@@ -235,8 +236,8 @@ class WP_User_Query {
 	 *                                                - 'user_status'
 	 *                                                - 'spam' (only available on multisite installs)
 	 *                                                - 'deleted' (only available on multisite installs)
-	 *                                                - 'all' for all fields
-	 *                                                - 'all_with_meta' to include meta fields.
+	 *                                                - 'all' for all fields and loads user meta.
+	 *                                                - 'all_with_meta' Deprecated. Use 'all'.
 	 *                                                Default 'all'.
 	 *     @type string          $who                 Type of users to query. Accepts 'authors'.
 	 *                                                Default empty (all users).
@@ -256,7 +257,7 @@ class WP_User_Query {
 	 * }
 	 */
 	public function prepare_query( $query = array() ) {
-		global $wpdb;
+		global $wpdb, $wp_roles;
 
 		if ( empty( $this->query_vars ) || ! empty( $query ) ) {
 			$this->query_limit = null;
@@ -310,9 +311,7 @@ class WP_User_Query {
 				$this->query_fields[] = "$wpdb->users.$field";
 			}
 			$this->query_fields = implode( ',', $this->query_fields );
-		} elseif ( 'all' === $qv['fields'] ) {
-			$this->query_fields = "$wpdb->users.*";
-		} elseif ( ! in_array( $qv['fields'], $allowed_fields, true ) ) {
+		} elseif ( 'all_with_meta' === $qv['fields'] || 'all' === $qv['fields'] || ! in_array( $qv['fields'], $allowed_fields, true ) ) {
 			$this->query_fields = "$wpdb->users.ID";
 		} else {
 			$field              = 'id' === strtolower( $qv['fields'] ) ? 'ID' : sanitize_key( $qv['fields'] );
@@ -450,8 +449,6 @@ class WP_User_Query {
 		$available_roles = array();
 
 		if ( ! empty( $qv['capability'] ) || ! empty( $qv['capability__in'] ) || ! empty( $qv['capability__not_in'] ) ) {
-			global $wp_roles;
-
 			$wp_roles->for_site( $blog_id );
 			$available_roles = $wp_roles->roles;
 		}
@@ -779,6 +776,18 @@ class WP_User_Query {
 	public function query() {
 		global $wpdb;
 
+		if ( ! did_action( 'plugins_loaded' ) ) {
+			_doing_it_wrong(
+				'WP_User_Query::query',
+				sprintf(
+				/* translators: %s: plugins_loaded */
+					__( 'User queries should not be run before the %s hook.' ),
+					'<code>plugins_loaded</code>'
+				),
+				'6.1.1'
+			);
+		}
+
 		$qv =& $this->query_vars;
 
 		/**
@@ -808,7 +817,7 @@ class WP_User_Query {
 				{$this->query_limit}
 			";
 
-			if ( is_array( $qv['fields'] ) || 'all' === $qv['fields'] ) {
+			if ( is_array( $qv['fields'] ) ) {
 				$this->results = $wpdb->get_results( $this->request );
 			} else {
 				$this->results = $wpdb->get_col( $this->request );
@@ -842,19 +851,21 @@ class WP_User_Query {
 			foreach ( $this->results as $result ) {
 				$result->id = $result->ID;
 			}
-		} elseif ( 'all_with_meta' === $qv['fields'] ) {
-			cache_users( $this->results );
+		} elseif ( 'all_with_meta' === $qv['fields'] || 'all' === $qv['fields'] ) {
+			if ( function_exists( 'cache_users' ) ) {
+				cache_users( $this->results );
+			}
 
 			$r = array();
 			foreach ( $this->results as $userid ) {
-				$r[ $userid ] = new WP_User( $userid, '', $qv['blog_id'] );
+				if ( 'all_with_meta' === $qv['fields'] ) {
+					$r[ $userid ] = new WP_User( $userid, '', $qv['blog_id'] );
+				} else {
+					$r[] = new WP_User( $userid, '', $qv['blog_id'] );
+				}
 			}
 
 			$this->results = $r;
-		} elseif ( 'all' === $qv['fields'] ) {
-			foreach ( $this->results as $key => $user ) {
-				$this->results[ $key ] = new WP_User( $user, '', $qv['blog_id'] );
-			}
 		}
 	}
 

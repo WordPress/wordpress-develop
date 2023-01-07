@@ -686,6 +686,36 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertSame( 'child-page', $actual[1] );
 	}
 
+	/**
+	 * Tests that get_sample_permalink() preserves the original WP_Post properties.
+	 *
+	 * @ticket 54736
+	 *
+	 * @covers ::get_sample_permalink
+	 */
+	public function test_get_sample_permalink_should_preserve_the_original_post_properties() {
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'draft',
+			)
+		);
+
+		$post_original = clone $post;
+
+		add_filter(
+			'get_sample_permalink',
+			function( $permalink, $post_id, $title, $name, $post ) use ( $post_original ) {
+				$this->assertEquals( $post_original, $post, 'Modified post object passed to get_sample_permalink filter.' );
+				return $permalink;
+			},
+			10,
+			5
+		);
+
+		get_sample_permalink( $post );
+		$this->assertEquals( $post_original, $post, 'get_sample_permalink() modifies the post object.' );
+	}
+
 	public function test_post_exists_should_match_title() {
 		$p = self::factory()->post->create(
 			array(
@@ -789,39 +819,6 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertSame( $p, post_exists( $title, $content, $date ) );
 	}
 
-	public function test_use_block_editor_for_post() {
-		$this->assertFalse( use_block_editor_for_post( -1 ) );
-		$bogus_post_id = $this->factory()->post->create(
-			array(
-				'post_type' => 'bogus',
-			)
-		);
-		$this->assertFalse( use_block_editor_for_post( $bogus_post_id ) );
-
-		register_post_type(
-			'restless',
-			array(
-				'show_in_rest' => false,
-			)
-		);
-		$restless_post_id = $this->factory()->post->create(
-			array(
-				'post_type' => 'restless',
-			)
-		);
-		$this->assertFalse( use_block_editor_for_post( $restless_post_id ) );
-
-		$generic_post_id = $this->factory()->post->create();
-
-		add_filter( 'use_block_editor_for_post', '__return_false' );
-		$this->assertFalse( use_block_editor_for_post( $generic_post_id ) );
-		remove_filter( 'use_block_editor_for_post', '__return_false' );
-
-		add_filter( 'use_block_editor_for_post', '__return_true' );
-		$this->assertTrue( use_block_editor_for_post( $restless_post_id ) );
-		remove_filter( 'use_block_editor_for_post', '__return_true' );
-	}
-
 	public function test_get_block_editor_server_block_settings() {
 		$name     = 'core/test';
 		$settings = array(
@@ -860,8 +857,10 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 43559
+	 *
+	 * @covers ::add_meta
 	 */
-	public function test_post_add_meta_empty_is_allowed() {
+	public function test_add_meta_allows_empty_values() {
 		$p = self::factory()->post->create();
 
 		$_POST = array(
@@ -1046,5 +1045,43 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 		$this->assertSame( 0, post_exists( $title, null, null, $post_type, 'draft' ) );
 		$this->assertSame( 0, post_exists( $title, null, null, 'wp_tests', $post_status ) );
+	}
+
+	/**
+	 * Test refreshed nonce for metabox loader.
+	 *
+	 * @return void
+	 */
+	public function test_user_get_refreshed_metabox_nonce() {
+
+		// Create a post by the current user.
+		wp_set_current_user( self::$editor_id );
+
+		$post_data = array(
+			'post_content' => 'Test post content',
+			'post_title'   => 'Test post title',
+			'post_excerpt' => 'Test post excerpt',
+			'post_author'  => self::$editor_id,
+			'post_status'  => 'draft',
+		);
+		$post_id   = wp_insert_post( $post_data );
+
+		// Simulate the $_POST data from the heartbeat.
+		$data = array(
+			'wp-refresh-metabox-loader-nonces' => array(
+				'post_id' => (string) $post_id,
+			),
+			'wp-refresh-post-lock'             => array(
+				'lock'    => '1658203298:1',
+				'post_id' => (string) $post_id,
+			),
+		);
+
+		// Call the function we're testing.
+		$response = wp_refresh_metabox_loader_nonces( array(), $data );
+
+		// Ensure that both nonces were created.
+		$this->assertNotEmpty( $response['wp-refresh-metabox-loader-nonces']['replace']['_wpnonce'] );
+		$this->assertNotEmpty( $response['wp-refresh-metabox-loader-nonces']['replace']['metabox_loader_nonce'] );
 	}
 }

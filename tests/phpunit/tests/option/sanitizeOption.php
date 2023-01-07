@@ -69,6 +69,12 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 			array( 'timezone_string', 0, 0 ),
 			array( 'timezone_string', 'Europe/London', 'Europe/London' ),
 			array( 'timezone_string', get_option( 'timezone_string' ), 'invalid' ),
+			// @ticket 56468
+			'deprecated timezone string is accepted as valid' => array(
+				'option_name' => 'timezone_string',
+				'sanitized'   => 'America/Buenos_Aires',
+				'original'    => 'America/Buenos_Aires',
+			),
 			array( 'permalink_structure', '', '' ),
 			array( 'permalink_structure', '/%year%/%20%postname%', '/%year%/ %postname%' ),
 			array( 'default_role', 'subscriber', 'subscriber' ),
@@ -81,6 +87,8 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider sanitize_option_provider
+	 *
+	 * @covers ::sanitize_option
 	 */
 	public function test_sanitize_option( $option_name, $sanitized, $original ) {
 		$this->assertSame( $sanitized, sanitize_option( $option_name, $original ) );
@@ -97,6 +105,8 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider upload_path_provider
+	 *
+	 * @covers ::sanitize_option
 	 */
 	public function test_sanitize_option_upload_path( $provided, $expected ) {
 		$this->assertSame( $expected, sanitize_option( 'upload_path', $provided ) );
@@ -104,6 +114,8 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36122
+	 *
+	 * @covers ::sanitize_option
 	 */
 	public function test_emoji_in_blogname_and_description() {
 		global $wpdb;
@@ -122,6 +134,9 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider permalink_structure_provider
+	 *
+	 * @covers ::sanitize_option
+	 * @covers ::get_settings_errors
 	 */
 	public function test_sanitize_permalink_structure( $provided, $expected, $valid ) {
 		global $wp_settings_errors;

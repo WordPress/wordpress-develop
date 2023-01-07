@@ -11,13 +11,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', __DIR__ . '/' );
 }
 
-define( 'WPINC', 'wp-includes' );
-
-if ( file_exists( ABSPATH . WPINC . '/js/dist/edit-post.js' ) ) {
+/*
+ * Load the actual index.php file if the assets were already built.
+ * Note: WPINC is not defined yet, it is defined later in wp-settings.php.
+ */
+if ( file_exists( ABSPATH . 'wp-includes/js/dist/edit-post.js' ) ) {
 	require_once ABSPATH . '_index.php';
 	return;
 }
 
+define( 'WPINC', 'wp-includes' );
 require_once ABSPATH . WPINC . '/load.php';
 
 // Standardize $_SERVER variables across setups.
@@ -52,8 +55,8 @@ $die .= '<code style="color: green;">npm run build</code></li>';
 $die .= '</ul>';
 
 $die .= '<p>' . sprintf(
-	/* translators: 1: NPM URL, 2: Handbook URL. */
-	__( 'This requires <a href="%1$s">NPM</a>. <a href="%2$s">Learn more about setting up your local development environment</a>.' ),
+	/* translators: 1: npm URL, 2: Handbook URL. */
+	__( 'This requires <a href="%1$s">npm</a>. <a href="%2$s">Learn more about setting up your local development environment</a>.' ),
 	'https://www.npmjs.com/get-npm',
 	__( 'https://make.wordpress.org/core/handbook/tutorials/installing-wordpress-locally/' )
 ) . '</p>';
