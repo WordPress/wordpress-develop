@@ -32,7 +32,7 @@ function _add_template_loader_filters() {
 }
 
 /**
- * Find a block template with equal or higher specificity than a given PHP template file.
+ * Finds a block template with equal or higher specificity than a given PHP template file.
  *
  * Internally, this communicates the block content that needs to be used by the template canvas through a global variable.
  *
@@ -43,7 +43,7 @@ function _add_template_loader_filters() {
  * @param string   $template  Path to the template. See locate_template().
  * @param string   $type      Sanitized filename without extension.
  * @param string[] $templates A list of template candidates, in descending order of priority.
- * @return string The path to the Full Site Editing template canvas file, or the fallback PHP template.
+ * @return string The path to the Site Editor template canvas file, or the fallback PHP template.
  */
 function locate_block_template( $template, $type, array $templates ) {
 	global $_wp_current_template_content;
@@ -118,7 +118,7 @@ function locate_block_template( $template, $type, array $templates ) {
 }
 
 /**
- * Return the correct 'wp_template' to render for the request template type.
+ * Returns the correct 'wp_template' to render for the request template type.
  *
  * @access private
  * @since 5.8.0
@@ -145,7 +145,7 @@ function resolve_block_template( $template_type, $template_hierarchy, $fallback_
 
 	// Find all potential templates 'wp_template' post matching the hierarchy.
 	$query     = array(
-		'theme'    => wp_get_theme()->get_stylesheet(),
+		'theme'    => get_stylesheet(),
 		'slug__in' => $slugs,
 	);
 	$templates = get_block_templates( $query );
@@ -312,6 +312,10 @@ function _block_template_render_without_post_block_context( $context ) {
  * @param WP_Query $wp_query Current WP_Query instance, passed by reference.
  */
 function _resolve_template_for_new_post( $wp_query ) {
+	if ( ! $wp_query->is_main_query() ) {
+		return;
+	}
+
 	remove_filter( 'pre_get_posts', '_resolve_template_for_new_post' );
 
 	// Pages.

@@ -3,6 +3,8 @@
 /**
  * @group formatting
  * @ticket 22300
+ *
+ * @covers ::map_deep
  */
 class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 
@@ -47,7 +49,7 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 	}
 
 	public function test_map_deep_should_map_each_object_element_of_an_array() {
-		$this->assertEquals(
+		$this->assertEqualSets(
 			array(
 				'var0' => 'ababa',
 				'var1' => (object) array(

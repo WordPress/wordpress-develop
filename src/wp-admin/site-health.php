@@ -118,7 +118,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 	<div class="health-check-title-section site-health-progress-wrapper loading hide-if-no-js">
 		<div class="site-health-progress">
-			<svg role="img" aria-hidden="true" focusable="false" width="100%" height="100%" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
+			<svg aria-hidden="true" focusable="false" width="100%" height="100%" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
 				<circle r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
 				<circle id="bar" r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
 			</svg>
@@ -233,9 +233,9 @@ if ( isset( $_GET['tab'] ) && ! empty( $_GET['tab'] ) ) {
 			<?php _e( 'Site Health Status' ); ?>
 		</h2>
 
-		<p><?php _e( 'The site health check shows critical information about your WordPress configuration and items that require your attention.' ); ?></p>
+		<p><?php _e( 'The site health check shows information about your WordPress configuration and items that may need your attention.' ); ?></p>
 
-		<div class="site-health-issues-wrapper" id="health-check-issues-critical">
+		<div class="site-health-issues-wrapper hidden" id="health-check-issues-critical">
 			<h3 class="site-health-issue-count-title">
 				<?php
 					/* translators: %s: Number of critical issues found. */
@@ -243,16 +243,20 @@ if ( isset( $_GET['tab'] ) && ! empty( $_GET['tab'] ) ) {
 				?>
 			</h3>
 
+			<p><?php _e( 'Critical issues are items that may have a high impact on your sites performance or security, and resolving these issues should be prioritized.' ); ?></p>
+
 			<div id="health-check-site-status-critical" class="health-check-accordion issues"></div>
 		</div>
 
-		<div class="site-health-issues-wrapper" id="health-check-issues-recommended">
+		<div class="site-health-issues-wrapper hidden" id="health-check-issues-recommended">
 			<h3 class="site-health-issue-count-title">
 				<?php
 					/* translators: %s: Number of recommended improvements. */
 					printf( _n( '%s recommended improvement', '%s recommended improvements', 0 ), '<span class="issue-count">0</span>' );
 				?>
 			</h3>
+
+			<p><?php _e( 'Recommended items are considered beneficial to your site, although not as important to prioritize as a critical issue, they may include improvements to things such as; Performance, user experience, and more.' ); ?></p>
 
 			<div id="health-check-site-status-recommended" class="health-check-accordion issues"></div>
 		</div>

@@ -104,7 +104,7 @@ function wp_terms_checklist( $post_id = 0, $args = array() ) {
 	$parsed_args = wp_parse_args( $params, $defaults );
 
 	if ( empty( $parsed_args['walker'] ) || ! ( $parsed_args['walker'] instanceof Walker ) ) {
-		$walker = new Walker_Category_Checklist;
+		$walker = new Walker_Category_Checklist();
 	} else {
 		$walker = $parsed_args['walker'];
 	}
@@ -260,7 +260,7 @@ function wp_popular_terms_checklist( $taxonomy, $default_term = 0, $number = 10,
  *
  * @since 2.5.1
  *
- * @param int $link_id
+ * @param int $link_id Optional. The link ID. Default 0.
  */
 function wp_link_category_checklist( $link_id = 0 ) {
 	$default = 1;
@@ -402,10 +402,11 @@ function get_inline_data( $post ) {
  *
  * @global WP_List_Table $wp_list_table
  *
- * @param int    $position
- * @param bool   $checkbox
- * @param string $mode
- * @param bool   $table_row
+ * @param int    $position  Optional. The value of the 'position' input field. Default 1.
+ * @param bool   $checkbox  Optional. The value of the 'checkbox' input field. Default false.
+ * @param string $mode      Optional. If set to 'single', will use WP_Post_Comments_List_Table,
+ *                          otherwise WP_Comments_List_Table. Default 'single'.
+ * @param bool   $table_row Optional. Whether to use a table instead of a div element. Default true.
  */
 function wp_comment_reply( $position = 1, $checkbox = false, $mode = 'single', $table_row = true ) {
 	global $wp_list_table;
@@ -565,7 +566,7 @@ function wp_comment_trashnotice() {
  *
  * @since 1.2.0
  *
- * @param array $meta
+ * @param array[] $meta An array of meta data arrays keyed on 'meta_key' and 'meta_value'.
  */
 function list_meta( $meta ) {
 	// Exit if no meta.
@@ -609,9 +610,9 @@ function list_meta( $meta ) {
  *
  * @since 2.5.0
  *
- * @param array $entry
- * @param int   $count
- * @return string
+ * @param array $entry An array of meta data keyed on 'meta_key' and 'meta_value'.
+ * @param int   $count Reference to the row number.
+ * @return string A single row of public meta data.
  */
 function _list_meta_row( $entry, &$count ) {
 	static $update_nonce = '';
@@ -625,7 +626,7 @@ function _list_meta_row( $entry, &$count ) {
 	}
 
 	$r = '';
-	++ $count;
+	++$count;
 
 	if ( is_serialized( $entry['meta_value'] ) ) {
 		if ( is_serialized_string( $entry['meta_value'] ) ) {
@@ -962,7 +963,7 @@ function wp_dropdown_roles( $selected = '' ) {
 }
 
 /**
- * Outputs the form used by the importers to accept the data to be imported
+ * Outputs the form used by the importers to accept the data to be imported.
  *
  * @since 2.0.0
  *
@@ -1561,6 +1562,7 @@ function do_accordion_sections( $screen, $context, $data_object ) {
  * fields. It can output nothing if you want.
  *
  * @since 2.7.0
+ * @since 6.1.0 Added an `$args` parameter for the section's HTML wrapper and class name.
  *
  * @global array $wp_settings_sections Storage array of all settings sections added to admin pages.
  *
@@ -1570,9 +1572,28 @@ function do_accordion_sections( $screen, $context, $data_object ) {
  * @param string   $page     The slug-name of the settings page on which to show the section. Built-in pages include
  *                           'general', 'reading', 'writing', 'discussion', 'media', etc. Create your own using
  *                           add_options_page();
+ * @param array    $args     {
+ *     Arguments used to create the settings section.
+ *
+ *     @type string $before_section HTML content to prepend to the section's HTML output.
+ *                                  Receives the section's class name as `%s`. Default empty.
+ *     @type string $after_section  HTML content to append to the section's HTML output. Default empty.
+ *     @type string $section_class  The class name to use for the section. Default empty.
+ * }
  */
-function add_settings_section( $id, $title, $callback, $page ) {
+function add_settings_section( $id, $title, $callback, $page, $args = array() ) {
 	global $wp_settings_sections;
+
+	$defaults = array(
+		'id'             => $id,
+		'title'          => $title,
+		'callback'       => $callback,
+		'before_section' => '',
+		'after_section'  => '',
+		'section_class'  => '',
+	);
+
+	$section = wp_parse_args( $args, $defaults );
 
 	if ( 'misc' === $page ) {
 		_deprecated_argument(
@@ -1600,11 +1621,7 @@ function add_settings_section( $id, $title, $callback, $page ) {
 		$page = 'reading';
 	}
 
-	$wp_settings_sections[ $page ][ $id ] = array(
-		'id'       => $id,
-		'title'    => $title,
-		'callback' => $callback,
-	);
+	$wp_settings_sections[ $page ][ $id ] = $section;
 }
 
 /**
@@ -1633,7 +1650,7 @@ function add_settings_section( $id, $title, $callback, $page ) {
  * @param string   $section  Optional. The slug-name of the section of the settings page
  *                           in which to show the box. Default 'default'.
  * @param array    $args {
- *     Optional. Extra arguments used when outputting the field.
+ *     Optional. Extra arguments that get passed to the callback function.
  *
  *     @type string $label_for When supplied, the setting title will be wrapped
  *                             in a `<label>` element, its `for` attribute populated
@@ -1680,7 +1697,7 @@ function add_settings_field( $id, $title, $callback, $page, $section = 'default'
 }
 
 /**
- * Prints out all settings sections added to a particular settings page
+ * Prints out all settings sections added to a particular settings page.
  *
  * Part of the Settings API. Use this in a settings page callback function
  * to output all the sections and fields that were added to that $page with
@@ -1700,6 +1717,14 @@ function do_settings_sections( $page ) {
 	}
 
 	foreach ( (array) $wp_settings_sections[ $page ] as $section ) {
+		if ( '' !== $section['before_section'] ) {
+			if ( '' !== $section['section_class'] ) {
+				echo wp_kses_post( sprintf( $section['before_section'], esc_attr( $section['section_class'] ) ) );
+			} else {
+				echo wp_kses_post( $section['before_section'] );
+			}
+		}
+
 		if ( $section['title'] ) {
 			echo "<h2>{$section['title']}</h2>\n";
 		}
@@ -1714,6 +1739,10 @@ function do_settings_sections( $page ) {
 		echo '<table class="form-table" role="presentation">';
 		do_settings_fields( $page, $section['id'] );
 		echo '</table>';
+
+		if ( '' !== $section['after_section'] ) {
+			echo wp_kses_post( $section['after_section'] );
+		}
 	}
 }
 
@@ -1776,7 +1805,7 @@ function do_settings_fields( $page, $section ) {
  * @since 3.0.0
  * @since 5.3.0 Added `warning` and `info` as possible values for `$type`.
  *
- * @global array $wp_settings_errors Storage array of errors registered during this pageload
+ * @global array[] $wp_settings_errors Storage array of errors registered during this pageload
  *
  * @param string $setting Slug title of the setting to which this error applies.
  * @param string $code    Slug-name to identify the error. Used as part of 'id' attribute in HTML output.
@@ -1813,19 +1842,23 @@ function add_settings_error( $setting, $code, $message, $type = 'error' ) {
  *
  * @since 3.0.0
  *
- * @global array $wp_settings_errors Storage array of errors registered during this pageload
+ * @global array[] $wp_settings_errors Storage array of errors registered during this pageload
  *
  * @param string $setting  Optional. Slug title of a specific setting whose errors you want.
  * @param bool   $sanitize Optional. Whether to re-sanitize the setting value before returning errors.
- * @return array {
- *     Array of settings errors.
+ * @return array[] {
+ *     Array of settings error arrays.
  *
- *     @type string $setting Slug title of the setting to which this error applies.
- *     @type string $code    Slug-name to identify the error. Used as part of 'id' attribute in HTML output.
- *     @type string $message The formatted message text to display to the user (will be shown inside styled
- *                           `<div>` and `<p>` tags).
- *     @type string $type    Optional. Message type, controls HTML class. Possible values include 'error',
- *                           'success', 'warning', 'info'. Default 'error'.
+ *     @type array ...$0 {
+ *         Associative array of setting error data.
+ *
+ *         @type string $setting Slug title of the setting to which this error applies.
+ *         @type string $code    Slug-name to identify the error. Used as part of 'id' attribute in HTML output.
+ *         @type string $message The formatted message text to display to the user (will be shown inside styled
+ *                               `<div>` and `<p>` tags).
+ *         @type string $type    Optional. Message type, controls HTML class. Possible values include 'error',
+ *                               'success', 'warning', 'info'. Default 'error'.
+ *     }
  * }
  */
 function get_settings_errors( $setting = '', $sanitize = false ) {
@@ -1941,7 +1974,7 @@ function settings_errors( $setting = '', $sanitize = false, $hide_on_update = fa
  *
  * @since 2.7.0
  *
- * @param string $found_action
+ * @param string $found_action Optional. The value of the 'found_action' input field. Default empty string.
  */
 function find_posts_div( $found_action = '' ) {
 	?>
@@ -2168,9 +2201,9 @@ function _post_states( $post, $display = true ) {
 		foreach ( $post_states as $state ) {
 			++$i;
 
-			$sep = ( $i < $state_count ) ? ', ' : '';
+			$separator = ( $i < $state_count ) ? ', ' : '';
 
-			$post_states_string .= "<span class='post-state'>$state$sep</span>";
+			$post_states_string .= "<span class='post-state'>{$state}{$separator}</span>";
 		}
 	}
 
@@ -2282,9 +2315,9 @@ function _media_states( $post, $display = true ) {
 		foreach ( $media_states as $state ) {
 			++$i;
 
-			$sep = ( $i < $state_count ) ? ', ' : '';
+			$separator = ( $i < $state_count ) ? ', ' : '';
 
-			$media_states_string .= "<span class='post-state'>$state$sep</span>";
+			$media_states_string .= "<span class='post-state'>{$state}{$separator}</span>";
 		}
 	}
 
@@ -2539,6 +2572,8 @@ function get_submit_button( $text = '', $type = 'primary large', $name = 'submit
 }
 
 /**
+ * Prints out the beginning of the admin HTML header.
+ *
  * @global bool $is_IE
  */
 function _wp_admin_html_begin() {
@@ -2600,7 +2635,7 @@ function convert_to_screen( $hook_name ) {
 }
 
 /**
- * Output the HTML for restoring the post data from DOM storage
+ * Outputs the HTML for restoring the post data from DOM storage
  *
  * @since 3.6.0
  * @access private
