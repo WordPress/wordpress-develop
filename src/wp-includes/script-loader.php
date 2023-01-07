@@ -3497,8 +3497,6 @@ function _wp_theme_json_webfonts_handler() {
 	 * @return string The CSS.
 	 */
 	$fn_compile_src = static function( $font_family, array $value ) {
-		$src = '';
-
 		$items = array();
 		foreach ( $value as $item ) {
 
@@ -3514,9 +3512,7 @@ function _wp_theme_json_webfonts_handler() {
 				: "url('{$item['url']}') format('{$item['format']}')";
 		}
 
-		$src = implode( ', ', $items );
-
-		return $src;
+		return implode( ', ', $items );;
 	};
 
 	/**
