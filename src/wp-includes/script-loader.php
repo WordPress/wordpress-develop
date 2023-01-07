@@ -3512,7 +3512,7 @@ function _wp_theme_json_webfonts_handler() {
 				: "url('{$item['url']}') format('{$item['format']}')";
 		}
 
-		return implode( ', ', $items );;
+		return implode( ', ', $items );
 	};
 
 	/**
