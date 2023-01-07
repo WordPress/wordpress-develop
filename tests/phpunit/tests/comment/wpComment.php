@@ -5,7 +5,7 @@
  *
  * @covers WP_Comment::get_instance
  */
-class Tests_Term_WpComment extends WP_UnitTestCase {
+class Tests_Comment_WpComment extends WP_UnitTestCase {
 	protected static $comment_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {

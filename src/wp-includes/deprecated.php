@@ -2027,7 +2027,7 @@ function get_link( $bookmark_id, $output = OBJECT, $filter = 'raw' ) {
  * Checks and cleans a URL.
  *
  * A number of characters are removed from the URL. If the URL is for displaying
- * (the default behaviour) ampersands are also replaced. The 'clean_url' filter
+ * (the default behavior) ampersands are also replaced. The 'clean_url' filter
  * is applied to the returned cleaned URL.
  *
  * @since 1.2.0
@@ -2530,7 +2530,7 @@ function is_term( $term, $taxonomy = '', $parent = 0 ) {
  * @return bool
  */
 function is_plugin_page() {
-	_deprecated_function( __FUNCTION__, '3.1.0'  );
+	_deprecated_function( __FUNCTION__, '3.1.0' );
 
 	global $plugin_page;
 
@@ -2553,7 +2553,7 @@ function is_plugin_page() {
  * @return bool Always return True
  */
 function update_category_cache() {
-	_deprecated_function( __FUNCTION__, '3.1.0'  );
+	_deprecated_function( __FUNCTION__, '3.1.0' );
 
 	return true;
 }
@@ -3654,7 +3654,7 @@ function post_permalink( $post = 0 ) {
  * @param string|bool $file_path Optional. File path to write request to. Default false.
  * @param int         $red       Optional. The number of Redirects followed, Upon 5 being hit,
  *                               returns false. Default 1.
- * @return \Requests_Utility_CaseInsensitiveDictionary|false Headers on success, false on failure.
+ * @return \WpOrg\Requests\Utility\CaseInsensitiveDictionary|false Headers on success, false on failure.
  */
 function wp_get_http( $url, $file_path = false, $red = 1 ) {
 	_deprecated_function( __FUNCTION__, '4.4.0', 'WP_Http' );
@@ -4510,4 +4510,21 @@ function global_terms_enabled() {
 	_deprecated_function( __FUNCTION__, '6.1.0' );
 
 	return false;
+}
+
+/**
+ * Filter the SQL clauses of an attachment query to include filenames.
+ *
+ * @since 4.7.0
+ * @deprecated 6.0.3
+ * @access private
+ *
+ * @param array $clauses An array including WHERE, GROUP BY, JOIN, ORDER BY,
+ *                       DISTINCT, fields (SELECT), and LIMITS clauses.
+ * @return array The unmodified clauses.
+ */
+function _filter_query_attachment_filenames( $clauses ) {
+	_deprecated_function( __FUNCTION__, '6.0.3', 'add_filter( "wp_allow_query_attachment_by_filename", "__return_true" )' );
+	remove_filter( 'posts_clauses', __FUNCTION__ );
+	return $clauses;
 }

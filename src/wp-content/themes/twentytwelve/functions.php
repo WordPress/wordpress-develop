@@ -223,7 +223,7 @@ function twentytwelve_scripts_styles() {
 	wp_enqueue_style( 'twentytwelve-fonts' );
 
 	// Loads our main stylesheet.
-	wp_enqueue_style( 'twentytwelve-style', get_stylesheet_uri(), array(), '20190507' );
+	wp_enqueue_style( 'twentytwelve-style', get_stylesheet_uri(), array(), '20221101' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentytwelve-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentytwelve-style' ), '20190406' );
@@ -243,14 +243,25 @@ function twentytwelve_block_editor_styles() {
 	// Block styles.
 	wp_enqueue_style( 'twentytwelve-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20190406' );
 
+	/**
+	 * The dependencies for our font stylesheed.
+	 * We register our sub-fonts as dependencies for the main font stylesheet. This way we can
+	 * enqueue the main font stylesheet and all sub-fonts will be loaded as well. On the other hand,
+	 * if the user has unenqueued the main font stylesheet, all sub-fonts will be unequeued as well.
+	 */
+	$font_dependencies = array();
+
 	// Add custom fonts, used in the main stylesheet.
 	foreach ( twentytwelve_fonts_urls() as $font_slug => $font_url ) {
-		wp_enqueue_style( 'twentytwelve-font-' . $font_slug, $font_url, array(), null );
+		$font_dependencies[] = 'twentytwelve-font-' . $font_slug;
+		wp_register_style( 'twentytwelve-font-' . $font_slug, $font_url, array(), null );
 	}
 
 	// Register the style 'twentytwelve-fonts' for backwards compatibility.
-	wp_register_style( 'twentytwelve-fonts', false );
+	wp_register_style( 'twentytwelve-fonts', false, $font_dependencies );
 	wp_enqueue_style( 'twentytwelve-fonts' );
+
+	wp_enqueue_style( 'twentytwelve-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20200713' );
 }
 add_action( 'enqueue_block_editor_assets', 'twentytwelve_block_editor_styles' );
 
@@ -440,6 +451,8 @@ if ( ! function_exists( 'twentytwelve_comment' ) ) :
 	 * Used as a callback by wp_list_comments() for displaying the comments.
 	 *
 	 * @since Twenty Twelve 1.0
+	 *
+	 * @global WP_Post $post Global post object.
 	 */
 	function twentytwelve_comment( $comment, $args, $depth ) {
 		$GLOBALS['comment'] = $comment;
@@ -710,7 +723,7 @@ function twentytwelve_customize_partial_blogdescription() {
  * @since Twenty Twelve 1.0
  */
 function twentytwelve_customize_preview_js() {
-	wp_enqueue_script( 'twentytwelve-customizer', get_template_directory_uri() . '/js/theme-customizer.js', array( 'customize-preview' ), '20141120', true );
+	wp_enqueue_script( 'twentytwelve-customizer', get_template_directory_uri() . '/js/theme-customizer.js', array( 'customize-preview' ), '20200516', true );
 }
 add_action( 'customize_preview_init', 'twentytwelve_customize_preview_js' );
 

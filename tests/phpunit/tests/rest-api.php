@@ -2518,4 +2518,23 @@ class Tests_REST_API extends WP_UnitTestCase {
 			array( 'description', '_links' )
 		);
 	}
+
+	/**
+	 * @ticket 51986
+	 */
+	public function test_route_args_is_array_of_arrays() {
+		$this->setExpectedIncorrectUsage( 'register_rest_route' );
+
+		$registered = register_rest_route(
+			'my-ns/v1',
+			'/my-route',
+			array(
+				'callback'            => '__return_true',
+				'permission_callback' => '__return_true',
+				'args'                => array( 'pattern' ),
+			)
+		);
+
+		$this->assertTrue( $registered );
+	}
 }
