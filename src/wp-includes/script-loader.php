@@ -3497,7 +3497,7 @@ function _wp_theme_json_webfonts_handler() {
 	 * @return string The CSS.
 	 */
 	$fn_compile_src = static function( $font_family, array $value ) {
-		$src = "local($font_family)";
+		$src = '';
 
 		foreach ( $value as $item ) {
 
