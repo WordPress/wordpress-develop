@@ -381,13 +381,22 @@ add_action( 'wp_head', 'twentysixteen_javascript_detection', 0 );
  * @since Twenty Sixteen 1.0
  */
 function twentysixteen_scripts() {
-	// Add custom fonts, used in the main stylesheet.
+	/**
+	 * The dependencies for our font stylesheed.
+	 * We register our sub-fonts as dependencies for the main font stylesheet. This way we can
+	 * enqueue the main font stylesheet and all sub-fonts will be loaded as well. On the other hand,
+	 * if the user has unenqueued the main font stylesheet, all sub-fonts will be unequeued as well.
+	 */
+	$font_dependencies = array();
+
+	// Add custom fonts.
 	foreach ( twentysixteen_fonts_urls() as $font_slug => $font_url ) {
-		wp_enqueue_style( 'twentysixteen-font-' . $font_slug, $font_url, array(), null );
+		$font_dependencies[] = 'twentysixteen-font-' . $font_slug;
+		wp_register_style( 'twentysixteen-font-' . $font_slug, $font_url, array(), null );
 	}
 
 	// Register the style 'twentysixteen-fonts' for backwards compatibility.
-	wp_register_style( 'twentysixteen-fonts', false );
+	wp_register_style( 'twentysixteen-fonts', false, $font_dependencies );
 	wp_enqueue_style( 'twentysixteen-fonts' );
 
 	// Add Genericons, used in the main stylesheet.
@@ -447,13 +456,22 @@ function twentysixteen_block_editor_styles() {
 	// Block styles.
 	wp_enqueue_style( 'twentysixteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20221004' );
 
+	/**
+	 * The dependencies for our font stylesheed.
+	 * We register our sub-fonts as dependencies for the main font stylesheet. This way we can
+	 * enqueue the main font stylesheet and all sub-fonts will be loaded as well. On the other hand,
+	 * if the user has unenqueued the main font stylesheet, all sub-fonts will be unequeued as well.
+	 */
+	$font_dependencies = array();
+
 	// Add custom fonts.
 	foreach ( twentysixteen_fonts_urls() as $font_slug => $font_url ) {
-		wp_enqueue_style( 'twentysixteen-font-' . $font_slug, $font_url, array(), null );
+		$font_dependencies[] = 'twentysixteen-font-' . $font_slug;
+		wp_register_style( 'twentysixteen-font-' . $font_slug, $font_url, array(), null );
 	}
 
 	// Register the style 'twentysixteen-fonts' for backwards compatibility.
-	wp_register_style( 'twentysixteen-fonts', false );
+	wp_register_style( 'twentysixteen-fonts', false, $font_dependencies );
 	wp_enqueue_style( 'twentysixteen-fonts' );
 }
 add_action( 'enqueue_block_editor_assets', 'twentysixteen_block_editor_styles' );
