@@ -3510,8 +3510,8 @@ function _wp_theme_json_webfonts_handler() {
 			}
 
 			$items[] = ( 'data' === $item['format'] )
-				? ", url({$item['url']})"
-				: ", url('{$item['url']}') format('{$item['format']}')";
+				? "url({$item['url']})"
+				: "url('{$item['url']}') format('{$item['format']}')";
 		}
 
 		$src = implode( ', ', $items );
