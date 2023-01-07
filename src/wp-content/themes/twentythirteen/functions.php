@@ -366,7 +366,7 @@ add_filter( 'wp_resource_hints', 'twentythirteen_resource_hints', 10, 2 );
  */
 function twentythirteen_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentythirteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20201208' );
+	wp_enqueue_style( 'twentythirteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20210621' );
 
 	// Add custom fonts, used in the main stylesheet.
 	foreach ( twentythirteen_fonts_urls() as $font_slug => $font_url ) {
