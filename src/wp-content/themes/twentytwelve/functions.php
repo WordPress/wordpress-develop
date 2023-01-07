@@ -205,10 +205,13 @@ function twentytwelve_scripts_styles() {
 	wp_enqueue_script( 'twentytwelve-navigation', get_template_directory_uri() . '/js/navigation.js', array( 'jquery' ), '20141205', true );
 
 	/**
-	 * The dependencies for our font stylesheed.
-	 * We register our sub-fonts as dependencies for the main font stylesheet. This way we can
+	 * The dependencies for our font stylesheet.
+	 *
+	 * We register our sub-fonts as dependencies for the main font stylesheet. This way, we can
 	 * enqueue the main font stylesheet and all sub-fonts will be loaded as well. On the other hand,
 	 * if the user has unenqueued the main font stylesheet, all sub-fonts will be unequeued as well.
+	 *
+	 * @var array $font_dependencies An array of dependencies for the main font stylesheet.
 	 */
 	$font_dependencies = array();
 
