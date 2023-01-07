@@ -204,13 +204,22 @@ function twentytwelve_scripts_styles() {
 	// Adds JavaScript for handling the navigation menu hide-and-show behavior.
 	wp_enqueue_script( 'twentytwelve-navigation', get_template_directory_uri() . '/js/navigation.js', array( 'jquery' ), '20141205', true );
 
+	/**
+	 * The dependencies for our font stylesheed.
+	 * We register our sub-fonts as dependencies for the main font stylesheet. This way we can
+	 * enqueue the main font stylesheet and all sub-fonts will be loaded as well. On the other hand,
+	 * if the user has unenqueued the main font stylesheet, all sub-fonts will be unequeued as well.
+	 */
+	$font_dependencies = array();
+
 	// Add custom fonts, used in the main stylesheet.
 	foreach ( twentytwelve_fonts_urls() as $font_slug => $font_url ) {
-		wp_enqueue_style( 'twentytwelve-font-' . $font_slug, $font_url, array(), null );
+		$font_dependencies[] = 'twentytwelve-font-' . $font_slug;
+		wp_register_style( 'twentytwelve-font-' . $font_slug, $font_url, array(), null );
 	}
 
 	// Register the style 'twentytwelve-fonts' for backwards compatibility.
-	wp_register_style( 'twentytwelve-fonts', false );
+	wp_register_style( 'twentytwelve-fonts', false, $font_dependencies );
 	wp_enqueue_style( 'twentytwelve-fonts' );
 
 	// Loads our main stylesheet.
