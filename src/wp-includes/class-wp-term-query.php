@@ -15,6 +15,7 @@
  *
  * @see WP_Term_Query::__construct() for accepted arguments.
  */
+#[AllowDynamicProperties]
 class WP_Term_Query {
 
 	/**
@@ -908,8 +909,6 @@ class WP_Term_Query {
 	 * Parse and sanitize 'orderby' keys passed to the term query.
 	 *
 	 * @since 4.6.0
-	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param string $orderby_raw Alias for the field to order by.
 	 * @return string|false Value to used in the ORDER clause. False otherwise.

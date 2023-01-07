@@ -17,7 +17,7 @@ class Tests_Admin_IncludesUser extends WP_UnitTestCase {
 
 		if ( $error_code ) {
 			$this->assertWPError( $error );
-			$this->assertEquals( $error_code, $error->get_error_code() );
+			$this->assertSame( $error_code, $error->get_error_code() );
 		} else {
 			$this->assertNotWPError( $error );
 		}

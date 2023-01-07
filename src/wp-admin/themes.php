@@ -199,7 +199,7 @@ if ( current_user_can( 'update_themes' ) && wp_is_auto_update_enabled_for_type( 
 		)
 	);
 
-	$help_sidebar_autoupdates = '<p>' . __( '<a href="https://wordpress.org/support/article/plugins-themes-auto-updates/">Learn more: Auto-updates documentation</a>' ) . '</p>';
+	$help_sidebar_autoupdates = '<p>' . __( '<a href="https://wordpress.org/support/article/plugins-themes-auto-updates/">Documentation on Auto-updates</a>' ) . '</p>';
 } // End if 'update_themes' && 'wp_is_auto_update_enabled_for_type'.
 
 get_current_screen()->set_help_sidebar(
@@ -266,11 +266,11 @@ if ( ! validate_current_theme() || isset( $_GET['broken'] ) ) {
 } elseif ( isset( $_GET['activated'] ) ) {
 	if ( isset( $_GET['previewed'] ) ) {
 		?>
-		<div id="message2" class="updated notice is-dismissible"><p><?php _e( 'Settings saved and theme activated.' ); ?> <a href="<?php echo home_url( '/' ); ?>"><?php _e( 'Visit site' ); ?></a></p></div>
+		<div id="message2" class="updated notice is-dismissible"><p><?php _e( 'Settings saved and theme activated.' ); ?> <a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php _e( 'Visit site' ); ?></a></p></div>
 		<?php
 	} else {
 		?>
-		<div id="message2" class="updated notice is-dismissible"><p><?php _e( 'New theme activated.' ); ?> <a href="<?php echo home_url( '/' ); ?>"><?php _e( 'Visit site' ); ?></a></p></div>
+		<div id="message2" class="updated notice is-dismissible"><p><?php _e( 'New theme activated.' ); ?> <a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php _e( 'Visit site' ); ?></a></p></div>
 		<?php
 	}
 } elseif ( isset( $_GET['deleted'] ) ) {

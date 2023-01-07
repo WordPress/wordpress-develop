@@ -247,13 +247,13 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
-		$wp_rest_server = new Spy_REST_Server;
+		$wp_rest_server = new Spy_REST_Server();
 		do_action( 'rest_api_init', $wp_rest_server );
 	}
 
 	protected function grant_write_permission() {
 		// Ensure we have write permission.
-		$user = $this->factory->user->create(
+		$user = self::factory()->user->create(
 			array(
 				'role' => 'editor',
 			)
@@ -380,7 +380,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
-		$wp_rest_server = new Spy_REST_Server;
+		$wp_rest_server = new Spy_REST_Server();
 		do_action( 'rest_api_init', $wp_rest_server );
 
 		add_post_meta( self::$post_id, 'test_string', 42 );
@@ -2797,7 +2797,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertEquals( array( 0 ), $response->get_data()['meta']['multi_boolean'] );
+		$this->assertSameSetsWithIndex( array( false ), $response->get_data()['meta']['multi_boolean'] );
 
 		$this->assertFalse( get_metadata_by_mid( 'post', $mid1 ) );
 		$this->assertNotFalse( get_metadata_by_mid( 'post', $mid2 ) );
