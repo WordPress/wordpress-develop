@@ -346,13 +346,25 @@ endif;
  * @since Twenty Fourteen 1.0
  */
 function twentyfourteen_scripts() {
+	/**
+	 * The dependencies for our font stylesheet.
+	 *
+	 * We register our sub-fonts as dependencies for the main font stylesheet. This way, we can
+	 * enqueue the main font stylesheet and all sub-fonts will be loaded as well. On the other hand,
+	 * if the user has unenqueued the main font stylesheet, all sub-fonts will be unequeued as well.
+	 *
+	 * @var array $font_dependencies An array of dependencies for the main font stylesheet.
+	 */
+	$font_dependencies = array();
+
 	// Add custom fonts, used in the main stylesheet.
 	foreach ( twentyfourteen_fonts_urls() as $font_slug => $font_url ) {
-		wp_enqueue_style( 'twentyfourteen-font-' . $font_slug, $font_url, array(), null );
+		$font_dependencies[] = 'twentyfourteen-font-' . $font_slug;
+		wp_register_style( 'twentyfourteen-font-' . $font_slug, $font_url, array(), null );
 	}
 
-	// Add Lato font, used in the main stylesheet.
-	wp_register_style( 'twentyfourteen-lato', false );
+	// Register the old handle for BC purposes.
+	wp_register_style( 'twentyfourteen-lato', false, $font_dependencies );
 	wp_enqueue_style( 'twentyfourteen-lato' );
 
 	// Add Genericons font, used in the main stylesheet.
@@ -402,13 +414,25 @@ add_action( 'wp_enqueue_scripts', 'twentyfourteen_scripts' );
  * @since Twenty Fourteen 1.0
  */
 function twentyfourteen_admin_fonts() {
+	/**
+	 * The dependencies for our font stylesheet.
+	 *
+	 * We register our sub-fonts as dependencies for the main font stylesheet. This way, we can
+	 * enqueue the main font stylesheet and all sub-fonts will be loaded as well. On the other hand,
+	 * if the user has unenqueued the main font stylesheet, all sub-fonts will be unequeued as well.
+	 *
+	 * @var array $font_dependencies An array of dependencies for the main font stylesheet.
+	 */
+	$font_dependencies = array();
+
 	// Add custom fonts, used in the main stylesheet.
 	foreach ( twentyfourteen_fonts_urls() as $font_slug => $font_url ) {
-		wp_enqueue_style( 'twentyfourteen-font-' . $font_slug, $font_url, array(), null );
+		$font_dependencies[] = 'twentyfourteen-font-' . $font_slug;
+		wp_register_style( 'twentyfourteen-font-' . $font_slug, $font_url, array(), null );
 	}
 
-	// Add Lato font, used in the main stylesheet.
-	wp_register_style( 'twentyfourteen-lato', false );
+	// Register the old handle for BC purposes.
+	wp_register_style( 'twentyfourteen-lato', false, $font_dependencies );
 	wp_enqueue_style( 'twentyfourteen-lato' );
 }
 add_action( 'admin_print_scripts-appearance_page_custom-header', 'twentyfourteen_admin_fonts' );
@@ -436,14 +460,26 @@ function twentyfourteen_block_editor_styles() {
 	// Block styles.
 	wp_enqueue_style( 'twentyfourteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20210216' );
 
+	/**
+	 * The dependencies for our font stylesheet.
+	 *
+	 * We register our sub-fonts as dependencies for the main font stylesheet. This way, we can
+	 * enqueue the main font stylesheet and all sub-fonts will be loaded as well. On the other hand,
+	 * if the user has unenqueued the main font stylesheet, all sub-fonts will be unequeued as well.
+	 *
+	 * @var array $font_dependencies An array of dependencies for the main font stylesheet.
+	 */
+	$font_dependencies = array();
+
 	// Add custom fonts, used in the main stylesheet.
 	foreach ( twentyfourteen_fonts_urls() as $font_slug => $font_url ) {
-		wp_enqueue_style( 'twentyfourteen-font-' . $font_slug, $font_url, array(), null );
+		$font_dependencies[] = 'twentyfourteen-font-' . $font_slug;
+		wp_register_style( 'twentyfourteen-font-' . $font_slug, $font_url, array(), null );
 	}
 
 	// Register the old handle for BC purposes.
-	wp_register_style( 'twentyfourteen-fonts', false );
-	wp_enqueue_style( 'twentyfourteen-fonts' );
+	wp_register_style( 'twentyfourteen-lato', false, $font_dependencies );
+	wp_enqueue_style( 'twentyfourteen-lato' );
 }
 add_action( 'enqueue_block_editor_assets', 'twentyfourteen_block_editor_styles' );
 
