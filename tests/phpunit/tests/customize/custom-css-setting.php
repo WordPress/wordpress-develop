@@ -25,7 +25,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	/**
 	 * Set up the test case.
 	 *
-	 * @see WP_UnitTestCase::setup()
+	 * @see WP_UnitTestCase_Base::set_up()
 	 */
 	public function set_up() {
 		parent::set_up();
@@ -120,7 +120,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 		$this->assertNull( wp_get_custom_css_post( 'twentyten' ) );
 
 		$original_css      = 'body { color: black; }';
-		$post_id           = $this->factory()->post->create(
+		$post_id           = self::factory()->post->create(
 			array(
 				'post_title'   => $this->setting->stylesheet,
 				'post_name'    => $this->setting->stylesheet,
@@ -130,7 +130,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 			)
 		);
 		$twentyten_css     = 'body { color: red; }';
-		$twentyten_post_id = $this->factory()->post->create(
+		$twentyten_post_id = self::factory()->post->create(
 			array(
 				'post_title'   => 'twentyten',
 				'post_name'    => 'twentyten',
@@ -273,7 +273,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 		$this->setting->default = '/*default*/';
 		$this->assertSame( '/*default*//*filtered*/', $this->setting->value() );
 
-		$this->factory()->post->create(
+		self::factory()->post->create(
 			array(
 				'post_title'   => $this->setting->stylesheet,
 				'post_name'    => $this->setting->stylesheet,
@@ -310,7 +310,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	 */
 	public function test_update_filter() {
 		$original_css = 'body { color:red; }';
-		$post_id      = $this->factory()->post->create(
+		$post_id      = self::factory()->post->create(
 			array(
 				'post_title'   => $this->setting->stylesheet,
 				'post_name'    => $this->setting->stylesheet,

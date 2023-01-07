@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::esc_url
  */
 class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 
@@ -40,6 +42,9 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 		$this->assertSame( '?foo=bar', esc_url( '?foo=bar' ) );
 	}
 
+	/**
+	 * @covers ::sanitize_url
+	 */
 	public function test_all_url_parts() {
 		$url = 'https://user:pass@host.example.com:1234/path;p=1?query=2&r[]=3#fragment';
 
@@ -68,6 +73,9 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 		$this->assertSame( 'http://баба.org/баба', esc_url( 'баба.org/баба' ) );
 	}
 
+	/**
+	 * @covers ::sanitize_url
+	 */
 	public function test_encoding() {
 		$this->assertSame( 'http://example.com?foo=1&bar=2', sanitize_url( 'http://example.com?foo=1&bar=2' ) );
 		$this->assertSame( 'http://example.com?foo=1&amp;bar=2', sanitize_url( 'http://example.com?foo=1&amp;bar=2' ) );
@@ -81,6 +89,9 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 		$this->assertSame( "http://example.com?url={$param}", esc_url( "http://example.com?url={$param}" ) );
 	}
 
+	/**
+	 * @covers ::wp_allowed_protocols
+	 */
 	public function test_protocol() {
 		$this->assertSame( 'http://example.com', esc_url( 'http://example.com' ) );
 		$this->assertSame( '', esc_url( 'nasty://example.com/' ) );
@@ -187,6 +198,8 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 
 	/**
 	 * Courtesy of http://blog.lunatech.com/2009/02/03/what-every-web-developer-must-know-about-url-encoding
+	 *
+	 * @covers ::sanitize_url
 	 */
 	public function test_reserved_characters() {
 		$url = "http://example.com/:@-._~!$&'()*+,=;:@-._~!$&'()*+,=:@-._~!$&'()*+,==?/?:@-._~!$%27()*+,;=/?:@-._~!$%27()*+,;==#/?:@-._~!$&'()*+,;=";
@@ -243,6 +256,8 @@ EOT;
 
 	/**
 	 * @ticket 28015
+	 *
+	 * @covers ::sanitize_url
 	 */
 	public function test_invalid_charaters() {
 		$this->assertEmpty( sanitize_url( '"^<>{}`' ) );

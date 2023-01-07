@@ -36,6 +36,7 @@
  * @property string $syntax_highlighting
  * @property string $use_ssl
  */
+#[AllowDynamicProperties]
 class WP_User {
 	/**
 	 * User data container.
@@ -155,7 +156,7 @@ class WP_User {
 		if ( $data ) {
 			$this->init( $data, $site_id );
 		} else {
-			$this->data = new stdClass;
+			$this->data = new stdClass();
 		}
 	}
 

@@ -11,6 +11,7 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 	/**
 	 * Translation_Entry class encapsulates a translatable string.
 	 */
+	#[AllowDynamicProperties]
 	class Translation_Entry {
 
 		/**
@@ -86,10 +87,10 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 		/**
 		 * Generates a unique key for this entry.
 		 *
-		 * @return string|false The key or false if the entry is empty.
+		 * @return string|false The key or false if the entry is null.
 		 */
 		public function key() {
-			if ( null === $this->singular || '' === $this->singular ) {
+			if ( null === $this->singular ) {
 				return false;
 			}
 

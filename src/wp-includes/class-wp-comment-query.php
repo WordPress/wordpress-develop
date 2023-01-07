@@ -14,6 +14,7 @@
  *
  * @see WP_Comment_Query::__construct() for accepted arguments.
  */
+#[AllowDynamicProperties]
 class WP_Comment_Query {
 
 	/**
@@ -159,7 +160,6 @@ class WP_Comment_Query {
 	 *                                                      Default null.
 	 *     @type string          $fields                    Comment fields to return. Accepts 'ids' for comment IDs
 	 *                                                      only or empty for all fields. Default empty.
-	 *     @type int             $ID                        Currently unused.
 	 *     @type array           $include_unapproved        Array of IDs or email addresses of users whose unapproved
 	 *                                                      comments will be returned by the query regardless of
 	 *                                                      `$status`. Default empty.
@@ -223,7 +223,6 @@ class WP_Comment_Query {
 	 *                                                      Default empty.
 	 *     @type int[]           $post_author__not_in       Array of author IDs *not* to retrieve comments for.
 	 *                                                      Default empty.
-	 *     @type int             $post_ID                   Currently unused.
 	 *     @type int             $post_id                   Limit results to those affiliated with a given post ID.
 	 *                                                      Default 0.
 	 *     @type int[]           $post__in                  Array of post IDs to include affiliated comments for.

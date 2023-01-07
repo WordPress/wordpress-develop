@@ -16,6 +16,25 @@
  * @since 5.1.0
  */
 class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
+
+	/**
+	 * Temporary storage for SQL to allow a filter to access it.
+	 *
+	 * Used in the `test_columns_should_be_sortable()` test method.
+	 *
+	 * @var string
+	 */
+	private $sql;
+
+	/**
+	 * Clean up after each test.
+	 */
+	public function tear_down() {
+		unset( $this->sql );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Get instance for mocked class.
 	 *
@@ -178,5 +197,18 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 				'expected' => 'post_date ASC',
 			),
 		);
+	}
+
+	/**
+	 * @ticket 42066
+	 *
+	 * @covers WP_Privacy_Requests_List_Table::get_views
+	 */
+	public function test_get_views_should_return_views_by_default() {
+		$expected = array(
+			'all' => '<a href="http://example.org/wp-admin/export-personal-data.php" class="current" aria-current="page">All <span class="count">(0)</span></a>',
+		);
+
+		$this->assertSame( $expected, $this->get_mocked_class_instance()->get_views() );
 	}
 }

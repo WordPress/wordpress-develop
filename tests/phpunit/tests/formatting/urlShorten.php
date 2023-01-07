@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::url_shorten
  */
 class Tests_Formatting_UrlShorten extends WP_UnitTestCase {
 	public function test_url_shorten() {
