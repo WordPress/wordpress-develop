@@ -572,12 +572,12 @@ if ( current_user_can( 'create_users' ) ) {
 				<?php $initial_password = wp_generate_password( 24 ); ?>
 				<span class="password-input-wrapper">
 					<input type="password" name="pass1" id="pass1" class="regular-text" autocomplete="new-password" data-reveal="1" data-pw="<?php echo esc_attr( $initial_password ); ?>" aria-describedby="pass-strength-result" />
+					<div style="display:none" id="pass-strength-result" aria-live="polite"></div>
 				</span>
 				<button type="button" class="button wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 					<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
 					<span class="text"><?php _e( 'Hide' ); ?></span>
 				</button>
-				<div style="display:none" id="pass-strength-result" aria-live="polite"></div>
 			</div>
 		</td>
 	</tr>
