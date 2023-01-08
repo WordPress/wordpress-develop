@@ -156,7 +156,7 @@ textarea {
 }
 
 .wp-pwd input#pwd {
-	padding-right: 2.5rem;
+	width: calc(218px - 2.75rem);
 }
 
 input,

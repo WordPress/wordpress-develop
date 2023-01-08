@@ -6,7 +6,7 @@
  */
 
 ( function () {
-	var toggleElements, status, input, icon, label;
+	var toggleElements, status, input, icon, label, __ = wp.i18n.__;
 
 	toggleElements = document.querySelectorAll( '.pwd-toggle' );
 
@@ -23,16 +23,16 @@
 
 		if ( 0 === parseInt( status, 10 ) ) {
 			this.setAttribute( 'data-toggle', 1 );
-			this.setAttribute( 'aria-label', this.getAttribute( 'data-hide-label' ) );
+			this.setAttribute( 'aria-label', __( 'Hide password' ) );
 			input.setAttribute( 'type', 'text' );
-			icon.classList.remove( 'dashicons-visibility' );
-			icon.classList.add( 'dashicons-hidden' );
+			label.innerHTML = __( 'Hide' );
+			this.classList.add( 'button-primary' );
 		} else {
 			this.setAttribute( 'data-toggle', 0 );
-			this.setAttribute( 'aria-label', this.getAttribute( 'data-show-label' ) );
+			this.setAttribute( 'aria-label', __( 'Show password' ) );
 			input.setAttribute( 'type', 'password' );
-			icon.classList.remove( 'dashicons-hidden' );
-			icon.classList.add( 'dashicons-visibility' );
+			label.innerHTML = __( 'Show' );
+			this.classList.remove( 'button-primary' );
 		}
 	}
 } )();

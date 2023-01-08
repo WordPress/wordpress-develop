@@ -552,45 +552,17 @@ fieldset label,
 .wp-pwd {
 	margin-top: 1em;
 	position: relative;
+	display: flex;
 }
 
 .wp-pwd button.pwd-toggle {
-	background: transparent;
-	border: 1px solid transparent;
-	box-shadow: none;
-	font-size: 14px;
-	line-height: 2;
-	width: 2rem;
+	width: 2.75rem;
 	min-width: 40px;
 	margin: 0;
 	padding: 0;
-	position: absolute;
+	display: inline;
 	right: 0;
 	top: 0;
-}
-
-.wp-pwd button.pwd-toggle:hover {
-	background: transparent;
-	border-color: transparent;
-}
-
-.wp-pwd button.pwd-toggle:focus {
-	background: transparent;
-	border-color: #3582c4;
-	border-radius: 4px;
-	box-shadow: 0 0 0 1px #3582c4;
-	/* Only visible in Windows High Contrast mode */
-	outline: 2px solid transparent;
-}
-
-.wp-pwd button.pwd-toggle:active {
-	background: transparent;
-	box-shadow: none;
-	transform: none;
-}
-
-.wp-pwd button.pwd-toggle .dashicons {
-	line-height: 1.375;
 }
 
 #misc-publishing-actions label {
