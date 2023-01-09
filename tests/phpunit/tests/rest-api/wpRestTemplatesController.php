@@ -294,6 +294,26 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 					'post_excerpt' => 'Description of page home template.',
 				),
 			),
+			'template parts: parent theme with non latin characters'                => array(
+				'theme_dir' => 'themedir1/block-theme',
+				'template'  => 'small-header-%cf%84%ce%b5%cf%83%cf%84',
+				'args'      => array(
+					'post_name'    => 'small-header-τεστ',
+					'post_title'   => 'Small Header τεστ Template',
+					'post_content' => file_get_contents( $theme_root_dir . '/block-theme/parts/small-header-τεστ.html' ),
+					'post_excerpt' => 'Description of small header τεστ template.',
+				),
+			),
+			'template: parent theme with non latin name'                      => array(
+				'theme_dir' => 'themedir1/block-theme',
+				'template'  => 'page-%cf%84%ce%b5%cf%83%cf%84',
+				'args'      => array(
+					'post_name'    => 'page-τεστ',
+					'post_title'   => 'τεστ Page Template',
+					'post_content' => file_get_contents( $theme_root_dir . 'block-theme/templates/page-τεστ.html' ),
+					'post_excerpt' => 'Description of page τεστ template.',
+				),
+			),
 			'template: parent theme deprecated path'      => array(
 				'theme_dir' => 'themedir1/block-theme-deprecated-path',
 				'template'  => 'page-home',
