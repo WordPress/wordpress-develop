@@ -178,6 +178,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'Block Theme',
 			'Block Theme Child Theme',
 			'Block Theme Child Theme With Fluid Typography',
+			'Block Theme Non Latin',
 			'Block Theme [0.4.0]',
 			'Block Theme [1.0.0] in subdirectory',
 			'Block Theme Deprecated Path',
