@@ -294,7 +294,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 					'post_excerpt' => 'Description of page home template.',
 				),
 			),
-			'template parts: parent theme with non latin characters'                => array(
+			'template parts: parent theme with non latin characters' => array(
 				'theme_dir' => 'themedir1/block-theme-non-latin',
 				'template'  => 'small-header-%cf%84%ce%b5%cf%83%cf%84',
 				'args'      => array(
@@ -304,7 +304,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 					'post_excerpt' => 'Description of small header τεστ template.',
 				),
 			),
-			'template: parent theme with non latin name'                      => array(
+			'template: parent theme with non latin name'  => array(
 				'theme_dir' => 'themedir1/block-theme-non-latin',
 				'template'  => 'page-%cf%84%ce%b5%cf%83%cf%84',
 				'args'      => array(
