@@ -19,6 +19,7 @@ class WP_Locale {
 	 * Stores the translated strings for the full weekday names.
 	 *
 	 * @since 2.1.0
+	 * @since 6.2.0 Initialized to an empty array.
 	 * @var string[]
 	 */
 	public $weekday = array();
@@ -32,6 +33,7 @@ class WP_Locale {
 	 * @see WP_Locale::init() for how to handle the hack.
 	 *
 	 * @since 2.1.0
+	 * @since 6.2.0 Initialized to an empty array.
 	 * @var string[]
 	 */
 	public $weekday_initial = array();
@@ -40,6 +42,7 @@ class WP_Locale {
 	 * Stores the translated strings for the abbreviated weekday names.
 	 *
 	 * @since 2.1.0
+	 * @since 6.2.0 Initialized to an empty array.
 	 * @var string[]
 	 */
 	public $weekday_abbrev = array();
@@ -48,6 +51,7 @@ class WP_Locale {
 	 * Stores the translated strings for the full month names.
 	 *
 	 * @since 2.1.0
+	 * @since 6.2.0 Initialized to an empty array.
 	 * @var string[]
 	 */
 	public $month = array();
@@ -56,6 +60,7 @@ class WP_Locale {
 	 * Stores the translated strings for the month names in genitive case, if the locale specifies.
 	 *
 	 * @since 4.4.0
+	 * @since 6.2.0 Initialized to an empty array.
 	 * @var string[]
 	 */
 	public $month_genitive = array();
@@ -64,6 +69,7 @@ class WP_Locale {
 	 * Stores the translated strings for the abbreviated month names.
 	 *
 	 * @since 2.1.0
+	 * @since 6.2.0 Initialized to an empty array.
 	 * @var string[]
 	 */
 	public $month_abbrev = array();
@@ -74,6 +80,7 @@ class WP_Locale {
 	 * Also the capitalized versions.
 	 *
 	 * @since 2.1.0
+	 * @since 6.2.0 Initialized to an empty array.
 	 * @var string[]
 	 */
 	public $meridiem = array();
@@ -92,6 +99,7 @@ class WP_Locale {
 	 * The thousands separator and decimal point values used for localizing numbers.
 	 *
 	 * @since 2.3.0
+	 * @since 6.2.0 Initialized to an empty array.
 	 * @var array
 	 */
 	public $number_format = array();
