@@ -58,7 +58,7 @@ class WP_Locale {
 	 * @since 4.4.0
 	 * @var string[]
 	 */
-	public $month_genitive;
+	public $month_genitive = array();
 
 	/**
 	 * Stores the translated strings for the abbreviated month names.
