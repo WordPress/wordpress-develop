@@ -2766,7 +2766,7 @@ class WP_Theme_JSON {
 			}
 		}
 
-		// Ensure indirect properties not handled by `compute_style_properties` are allowed.
+		// Ensure indirect properties not included in any `PRESETS_METADATA` value are allowed.
 		foreach ( static::INDIRECT_PROPERTIES_METADATA as $property => $paths ) {
 			foreach ( $paths as $path ) {
 				$value = _wp_array_get( $input, $path, array() );
