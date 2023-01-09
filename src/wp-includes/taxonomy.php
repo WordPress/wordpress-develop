@@ -3682,7 +3682,7 @@ function get_object_term_cache( $id, $taxonomy ) {
 	}
 
 	// Fill the term objects.
-	_prime_term_caches( $term_ids );
+	_prime_term_caches( $term_ids, false );
 
 	$terms = array();
 	foreach ( $term_ids as $term_id ) {
@@ -4017,10 +4017,9 @@ function _prime_term_caches( $term_ids, $update_meta_cache = true ) {
 		$fresh_terms = $wpdb->get_results( sprintf( "SELECT t.*, tt.* FROM $wpdb->terms AS t INNER JOIN $wpdb->term_taxonomy AS tt ON t.term_id = tt.term_id WHERE t.term_id IN (%s)", implode( ',', array_map( 'intval', $non_cached_ids ) ) ) );
 
 		update_term_cache( $fresh_terms );
-
-		if ( $update_meta_cache ) {
-			update_termmeta_cache( $non_cached_ids );
-		}
+	}
+	if ( $update_meta_cache ) {
+		update_termmeta_cache( $term_ids );
 	}
 }
 
