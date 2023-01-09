@@ -4019,7 +4019,7 @@ function _prime_term_caches( $term_ids, $update_meta_cache = true ) {
 		update_term_cache( $fresh_terms );
 
 		if ( $update_meta_cache ) {
-			update_termmeta_cache( $term_ids );
+			update_termmeta_cache( $non_cached_ids );
 		}
 	}
 }
