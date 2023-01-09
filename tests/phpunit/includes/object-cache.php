@@ -323,7 +323,12 @@ function wp_cache_flush( $delay = 0 ) {
  * @return bool True if the feature is supported, false otherwise.
  */
 function wp_cache_supports( $feature ) {
-	return false;
+	switch ( $feature ) {
+		case 'get_multiple':
+			return true;
+		default:
+			return false;
+	}
 }
 
 /**
@@ -482,6 +487,10 @@ function wp_cache_get_multi_by_key( $server_key, $keys, $groups = '', &$cas_toke
  */
 function wp_cache_get_multiple( $keys, $group = '', $force = false ) {
 	global $wp_object_cache;
+
+	// Prime multiple keys in a single Memcached call.
+	$wp_object_cache->getMulti( $keys, $group );
+
 	return $wp_object_cache->getMultiple( $keys, $group, $force );
 }
 
@@ -2161,6 +2170,7 @@ class WP_Object_Cache {
 		if ( ! is_array( $keys ) ) {
 			$keys = (array) $keys;
 		}
+		$keys = array_values( $keys );
 
 		// If we have equal numbers of keys and groups, merge $keys[n] and $group[n].
 		if ( count( $keys ) === count( $groups ) ) {

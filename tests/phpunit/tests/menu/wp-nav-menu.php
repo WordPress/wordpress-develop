@@ -7,11 +7,11 @@
  */
 class Tests_Menu_wpNavMenu extends WP_UnitTestCase {
 
-	static $menu_id        = 0;
-	static $lvl0_menu_item = 0;
-	static $lvl1_menu_item = 0;
-	static $lvl2_menu_item = 0;
-	static $lvl3_menu_item = 0;
+	private static $menu_id        = 0;
+	private static $lvl0_menu_item = 0;
+	private static $lvl1_menu_item = 0;
+	private static $lvl2_menu_item = 0;
+	private static $lvl3_menu_item = 0;
 
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
