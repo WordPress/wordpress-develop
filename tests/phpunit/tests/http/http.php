@@ -584,7 +584,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		// Filter the response made by WP_HTTP::handle_redirects().
 		add_filter(
 			'pre_http_request',
-			function( $response, $args, $url ) use ( &$pre_http_request_filter_has_run ) {
+			function( $response, $parsed_args, $url ) use ( &$pre_http_request_filter_has_run ) {
 				$pre_http_request_filter_has_run = true;
 
 				// Assert the redirect URL is correct.

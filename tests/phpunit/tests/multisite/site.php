@@ -2125,8 +2125,10 @@ if ( is_multisite() ) :
 
 			$blog_id = wpmu_create_blog( 'testsite1.example.org', '/test', 'test', 1, array( 'public' => 1 ), 2 );
 
-			// Should not hit blog_details cache initialised in $this->populate_options_callback tirggered during
-			// populate_options callback's call of get_blog_details.
+			/*
+			 * Should not hit blog_details cache initialized in $this->populate_options_callback triggered during
+			 * populate_options callback's call of get_blog_details.
+			 */
 			$this->assertSame( 'http://testsite1.example.org/test', get_blog_details( $blog_id )->siteurl );
 			$this->assertSame( 'http://testsite1.example.org/test', get_site( $blog_id )->siteurl );
 
