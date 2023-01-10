@@ -351,7 +351,7 @@ function _add_block_template_info( $template_item ) {
 		return $template_item;
 	}
 
-	$theme_data = WP_Theme_JSON_Resolver::get_theme_data()->get_custom_templates();
+	$theme_data = WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_custom_templates();
 	if ( isset( $theme_data[ $template_item['slug'] ] ) ) {
 		$template_item['title']     = $theme_data[ $template_item['slug'] ]['title'];
 		$template_item['postTypes'] = $theme_data[ $template_item['slug'] ]['postTypes'];
@@ -371,7 +371,7 @@ function _add_block_template_info( $template_item ) {
  */
 function _add_block_template_part_area_info( $template_info ) {
 	if ( WP_Theme_JSON_Resolver::theme_has_support() ) {
-		$theme_data = WP_Theme_JSON_Resolver::get_theme_data()->get_template_parts();
+		$theme_data = WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_template_parts();
 	}
 
 	if ( isset( $theme_data[ $template_info['slug'] ]['area'] ) ) {
@@ -503,7 +503,7 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 
 	$template                 = new WP_Block_Template();
 	$template->id             = $theme . '//' . $template_file['slug'];
-	$template->theme          = $theme;
+	$template->theme          = ! empty( $template_file['theme'] ) ? $template_file['theme'] : $theme;
 	$template->content        = _inject_theme_attribute_in_block_template_content( $template_content );
 	$template->slug           = $template_file['slug'];
 	$template->source         = 'theme';
@@ -1366,4 +1366,4 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
 	$template_hierarchy[] = 'index';
 
 	return $template_hierarchy;
-};
+}

@@ -556,7 +556,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 */
 	private function get_test_widget_control_args() {
 		global $wp_registered_widgets;
-		require_once ABSPATH . '/wp-admin/includes/widgets.php';
+		require_once ABSPATH . 'wp-admin/includes/widgets.php';
 		$widget_id = 'search-2';
 		$widget    = $wp_registered_widgets[ $widget_id ];
 		$args      = array(
