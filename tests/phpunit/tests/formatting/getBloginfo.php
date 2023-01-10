@@ -37,6 +37,7 @@ class Tests_Formatting_GetBloginfo extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 27942
+	 *
 	 * @covers ::sanitize_option
 	 */
 	public function test_bloginfo_sanitize_option() {

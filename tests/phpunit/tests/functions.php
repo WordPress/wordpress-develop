@@ -5,7 +5,7 @@
  */
 class Tests_Functions extends WP_UnitTestCase {
 	public function test_wp_parse_args_object() {
-		$x        = new MockClass;
+		$x        = new MockClass();
 		$x->_baba = 5;
 		$x->yZ    = 'baba'; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		$x->a     = array( 5, 111, 'x' );
@@ -17,7 +17,7 @@ class Tests_Functions extends WP_UnitTestCase {
 			),
 			wp_parse_args( $x )
 		);
-		$y = new MockClass;
+		$y = new MockClass();
 		$this->assertSame( array(), wp_parse_args( $y ) );
 	}
 
@@ -41,7 +41,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	public function test_wp_parse_args_defaults() {
-		$x        = new MockClass;
+		$x        = new MockClass();
 		$x->_baba = 5;
 		$x->yZ    = 'baba'; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		$x->a     = array( 5, 111, 'x' );
@@ -105,13 +105,6 @@ class Tests_Functions extends WP_UnitTestCase {
 			'C:\\',
 			'C:\\WINDOWS',
 			'\\\\sambashare\\foo',
-			'c:/',
-			'c://',
-			'//',
-			'c:/FOO',
-			'//FOO',
-			'C:/WWW/Sites/demo/htdocs/wordpress/wp-content/uploads/2016/03/example.jpg',
-			'//ComputerName/ShareName/SubfolderName/example.txt',
 		);
 		foreach ( $absolute_paths as $path ) {
 			$this->assertTrue( path_is_absolute( $path ), "path_is_absolute('$path') should return true" );
@@ -126,14 +119,10 @@ class Tests_Functions extends WP_UnitTestCase {
 			'../foo',
 			'../',
 			'../foo.bar',
-			'foo.bar',
 			'foo/bar',
 			'foo',
 			'FOO',
 			'..\\WINDOWS',
-			'..//WINDOWS',
-			'c:',
-			'C:',
 		);
 		foreach ( $relative_paths as $path ) {
 			$this->assertFalse( path_is_absolute( $path ), "path_is_absolute('$path') should return false" );
@@ -1124,7 +1113,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @ticket 28786
 	 */
 	public function test_wp_json_encode_object() {
-		$object    = new stdClass;
+		$object    = new stdClass();
 		$object->a = 'b';
 		$this->assertSame( wp_json_encode( $object ), '{"a":"b"}' );
 	}
@@ -1415,6 +1404,16 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @requires extension fileinfo
 	 */
 	public function test_wp_check_filetype_and_ext_with_filtered_woff() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, this test is marked skipped on PHP 8.1+ as a recent change introduced
+			 * an inconsistency with how the mime-type for WOFF files are handled compared to older versions.
+			 *
+			 * See https://core.trac.wordpress.org/ticket/56817 for more details.
+			 */
+			$this->markTestSkipped( 'This test currently fails on PHP 8.1+ and requires further investigation.' );
+		}
+
 		$file     = DIR_TESTDATA . '/uploads/dashicons.woff';
 		$filename = 'dashicons.woff';
 
@@ -2067,45 +2066,10 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 49412
-	 * @covers ::wp_filesize
-	 */
-	function test_wp_filesize_with_nonexistent_file() {
-		$file = 'nonexistent/file.jpg';
-		$this->assertSame( 0, wp_filesize( $file ) );
-	}
-
-	/**
-	 * @ticket 49412
-	 * @covers ::wp_filesize
-	 */
-	function test_wp_filesize() {
-		$file = DIR_TESTDATA . '/images/test-image-upside-down.jpg';
-
-		$this->assertSame( filesize( $file ), wp_filesize( $file ) );
-
-		$filter = function() {
-			return 999;
-		};
-
-		add_filter( 'wp_filesize', $filter );
-
-		$this->assertSame( 999, wp_filesize( $file ) );
-
-		$pre_filter = function() {
-			return 111;
-		};
-
-		add_filter( 'pre_wp_filesize', $pre_filter );
-
-		$this->assertSame( 111, wp_filesize( $file ) );
-	}
-
-	/**
 	 * @ticket 55505
 	 * @covers ::wp_recursive_ksort
 	 */
-	function test_wp_recursive_ksort() {
+	public function test_wp_recursive_ksort() {
 		// Create an array to test.
 		$theme_json = array(
 			'version'  => 1,

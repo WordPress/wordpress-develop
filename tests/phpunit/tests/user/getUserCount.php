@@ -11,7 +11,6 @@ class Tests_User_GetUserCount extends WP_UnitTestCase {
 	 * @group ms-required
 	 */
 	public function test_wp_update_network_counts_on_different_network() {
-		$this->skipWithoutMultisite();
 		$different_network_id = self::factory()->network->create(
 			array(
 				'domain' => 'wordpress.org',
@@ -34,7 +33,6 @@ class Tests_User_GetUserCount extends WP_UnitTestCase {
 	 * @group ms-required
 	 */
 	public function test_get_user_count_on_different_network() {
-		$this->skipWithoutMultisite();
 		$different_network_id = self::factory()->network->create(
 			array(
 				'domain' => 'wordpress.org',
@@ -60,7 +58,6 @@ class Tests_User_GetUserCount extends WP_UnitTestCase {
 	 * @group ms-required
 	 */
 	public function test_enable_live_network_user_counts_filter() {
-		$this->skipWithoutMultisite();
 		// False for large networks by default.
 		add_filter( 'enable_live_network_counts', '__return_false' );
 
@@ -102,11 +99,10 @@ class Tests_User_GetUserCount extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @group ms-excluded
 	 * @ticket 38741
+	 * @group ms-excluded
 	 */
 	public function test_get_user_count_update_on_delete() {
-		$this->skipWithMultisite();
 		wp_update_user_counts();
 		$current_network_user_count = get_user_count();
 
@@ -124,11 +120,10 @@ class Tests_User_GetUserCount extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @group ms-required
 	 * @ticket 38741
+	 * @group ms-required
 	 */
 	public function test_get_user_count_update_on_delete_multisite() {
-		$this->skipWithoutMultisite();
 		wp_update_user_counts();
 		$current_network_user_count = get_user_count();
 
@@ -146,12 +141,11 @@ class Tests_User_GetUserCount extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 38741
 	 * @group multisite
 	 * @group ms-required
-	 * @ticket 38741
 	 */
 	public function test_get_user_count() {
-		$this->skipWithoutMultisite();
 		// Refresh the cache.
 		wp_update_network_counts();
 		$start_count = get_user_count();
