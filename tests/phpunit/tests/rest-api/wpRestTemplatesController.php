@@ -314,6 +314,26 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 					'post_excerpt' => 'Description of page τεστ template.',
 				),
 			),
+			'template parts: parent theme with chinese characters' => array(
+				'theme_dir' => 'themedir1/block-theme-non-latin',
+				'template'  => 'small-header-%e6%b5%8b%e8%af%95',
+				'args'      => array(
+					'post_name'    => 'small-header-测试',
+					'post_title'   => 'Small Header 测试 Template',
+					'post_content' => file_get_contents( $theme_root_dir . '/block-theme-non-latin/parts/small-header-测试.html' ),
+					'post_excerpt' => 'Description of small header 测试 template.',
+				),
+			),
+			'template: parent theme with non latin name using chinese characters'  => array(
+				'theme_dir' => 'themedir1/block-theme-non-latin',
+				'template'  => 'page-%e6%b5%8b%e8%af%95',
+				'args'      => array(
+					'post_name'    => 'page-测试',
+					'post_title'   => '测试 Page Template',
+					'post_content' => file_get_contents( $theme_root_dir . 'block-theme-non-latin/templates/page-测试.html' ),
+					'post_excerpt' => 'Description of page 测试 template.',
+				),
+			),
 			'template: parent theme deprecated path'      => array(
 				'theme_dir' => 'themedir1/block-theme-deprecated-path',
 				'template'  => 'page-home',

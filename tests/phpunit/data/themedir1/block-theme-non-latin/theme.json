@@ -59,6 +59,10 @@
 		{
 			"name": "page-τεστ",
 			"title": "Homepage template"
+		},
+		{
+			"name": "page-测试",
+			"title": "Homepage template"
 		}
 	],
 	"templateParts": [
@@ -66,6 +70,11 @@
 			"name": "small-header-τεστ",
 			"title": "Small Header",
 			"area": "header"
-		}
+		},
+		{
+			"name": "small-header-测试",
+			"title": "Small Header",
+			"area": "header"
+		},
 	]
 }
