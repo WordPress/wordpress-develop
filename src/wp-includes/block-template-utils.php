@@ -932,7 +932,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 		if ( isset( $query['slug__in'] ) && ! in_array( $post->post_name, $query['slug__in'], true ) ) {
 			continue;
 		}
-		if ( isset( $query['wp_id'] ) && ! $post->ID !== $query['wp_id'] ) {
+		if ( isset( $query['wp_id'] ) &&  $post->ID !== $query['wp_id'] ) {
 			continue;
 		}
 		$template = _build_block_template_result_from_post( $post );
