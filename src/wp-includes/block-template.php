@@ -237,11 +237,24 @@ function get_the_block_template_html() {
 
 	$content = $wp_embed->run_shortcode( $_wp_current_template_content );
 	$content = $wp_embed->autoembed( $content );
+
+	$filters = array(
+		'widget_text_content',
+		'widget_block_content',
+		'the_content',
+		'the_excerpt'
+	);
+	foreach( $filters as $filter ){
+		remove_filter( $filter, 'wp_filter_content_tags' );
+	}
 	$content = do_blocks( $content );
+	foreach( $filters as $filter ){
+		add_filter( $filter, 'wp_filter_content_tags' );
+	}
 	$content = wptexturize( $content );
 	$content = convert_smilies( $content );
 	$content = shortcode_unautop( $content );
-	$content = wp_filter_content_tags( $content );
+	$content = wp_filter_content_tags( $content, 'the_block_template_html' );
 	$content = do_shortcode( $content );
 	$content = str_replace( ']]>', ']]&gt;', $content );
 
