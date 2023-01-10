@@ -133,8 +133,8 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 
 	public function test_prepare_item() {
 		$obj      = get_post_type_object( 'post' );
-		$endpoint = new WP_REST_Post_Types_Controller;
-		$request  = new WP_REST_Request;
+		$endpoint = new WP_REST_Post_Types_Controller();
+		$request  = new WP_REST_Request();
 		$request->set_param( 'context', 'edit' );
 		$response = $endpoint->prepare_item_for_response( $obj, $request );
 		$this->check_post_type_obj( 'edit', $obj, $response->get_data(), $response->get_links() );
@@ -142,8 +142,8 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 
 	public function test_prepare_item_limit_fields() {
 		$obj      = get_post_type_object( 'post' );
-		$request  = new WP_REST_Request;
-		$endpoint = new WP_REST_Post_Types_Controller;
+		$request  = new WP_REST_Request();
+		$endpoint = new WP_REST_Post_Types_Controller();
 		$request->set_param( 'context', 'edit' );
 		$request->set_param( '_fields', 'id,name' );
 		$response = $endpoint->prepare_item_for_response( $obj, $request );

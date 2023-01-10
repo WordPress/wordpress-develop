@@ -17,10 +17,10 @@ class Tests_Meta_isProtectedMeta extends WP_UnitTestCase {
 		$protected_keys = array(
 			array( '_wp_attachment' ),
 		);
-		for ( $i = 0, $max = 31; $i < $max; $i ++ ) {
+		for ( $i = 0, $max = 31; $i < $max; $i++ ) {
 			$protected_keys[] = array( chr( $i ) . '_wp_attachment' );
 		}
-		for ( $i = 127, $max = 159; $i <= $max; $i ++ ) {
+		for ( $i = 127, $max = 159; $i <= $max; $i++ ) {
 			$protected_keys[] = array( chr( $i ) . '_wp_attachment' );
 		}
 		$protected_keys[] = array( chr( 95 ) . '_wp_attachment' );
@@ -42,10 +42,10 @@ class Tests_Meta_isProtectedMeta extends WP_UnitTestCase {
 			array( 'ąŌ_not_so_protected_meta' ),
 		);
 
-		for ( $i = 32, $max = 94; $i <= $max; $i ++ ) {
+		for ( $i = 32, $max = 94; $i <= $max; $i++ ) {
 			$unprotected_keys[] = array( chr( $i ) . '_wp_attachment' );
 		}
-		for ( $i = 96, $max = 126; $i <= $max; $i ++ ) {
+		for ( $i = 96, $max = 126; $i <= $max; $i++ ) {
 			$unprotected_keys[] = array( chr( $i ) . '_wp_attachment' );
 		}
 

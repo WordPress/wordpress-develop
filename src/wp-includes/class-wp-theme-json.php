@@ -114,7 +114,7 @@ class WP_Theme_JSON {
 	 * @since 5.9.0 Added the `color.duotone` and `typography.fontFamilies` presets,
 	 *              `use_default_names` preset key, and simplified the metadata structure.
 	 * @since 6.0.0 Replaced `override` with `prevent_override` and updated the
-	 *              `prevent_overried` value for `color.duotone` to use `color.defaultDuotone`.
+	 *              `prevent_override` value for `color.duotone` to use `color.defaultDuotone`.
 	 * @var array
 	 */
 	const PRESETS_METADATA = array(
@@ -192,6 +192,8 @@ class WP_Theme_JSON {
 	 * @since 6.1.0 Added the `border-*-color`, `border-*-width`, `border-*-style`,
 	 *              `--wp--style--root--padding-*`, and `box-shadow` properties,
 	 *              removed the `--wp--style--block-gap` property.
+	 * @since 6.2.0 Added `outline-*` properties.
+	 *
 	 * @var array
 	 */
 	const PROPERTIES_METADATA = array(
@@ -229,6 +231,10 @@ class WP_Theme_JSON {
 		'margin-right'                      => array( 'spacing', 'margin', 'right' ),
 		'margin-bottom'                     => array( 'spacing', 'margin', 'bottom' ),
 		'margin-left'                       => array( 'spacing', 'margin', 'left' ),
+		'outline-color'                     => array( 'outline', 'color' ),
+		'outline-offset'                    => array( 'outline', 'offset' ),
+		'outline-style'                     => array( 'outline', 'style' ),
+		'outline-width'                     => array( 'outline', 'width' ),
 		'padding'                           => array( 'spacing', 'padding' ),
 		'padding-top'                       => array( 'spacing', 'padding', 'top' ),
 		'padding-right'                     => array( 'spacing', 'padding', 'right' ),
@@ -274,8 +280,8 @@ class WP_Theme_JSON {
 		'settings',
 		'styles',
 		'templateParts',
-		'version',
 		'title',
+		'version',
 	);
 
 	/**
@@ -352,6 +358,8 @@ class WP_Theme_JSON {
 	 * @since 6.1.0 Added new side properties for `border`,
 	 *              added new property `shadow`,
 	 *              updated `blockGap` to be allowed at any level.
+	 * @since 6.2.0 Added `outline` properties.
+	 *
 	 * @var array
 	 */
 	const VALID_STYLES = array(
@@ -372,6 +380,12 @@ class WP_Theme_JSON {
 		),
 		'filter'     => array(
 			'duotone' => null,
+		),
+		'outline'    => array(
+			'color'  => null,
+			'offset' => null,
+			'style'  => null,
+			'width'  => null,
 		),
 		'shadow'     => null,
 		'spacing'    => array(
@@ -412,7 +426,7 @@ class WP_Theme_JSON {
 	 * The valid elements that can be found under styles.
 	 *
 	 * @since 5.8.0
-	 * @since 6.1.0 Added `heading`, `button`. and `caption` elements.
+	 * @since 6.1.0 Added `heading`, `button`, and `caption` elements.
 	 * @var string[]
 	 */
 	const ELEMENTS = array(
@@ -1950,6 +1964,44 @@ class WP_Theme_JSON {
 	}
 
 	/**
+	 * Returns a filtered declarations array if there is a separator block with only a background
+	 * style defined in theme.json by adding a color attribute to reflect the changes in the front.
+	 *
+	 * @since 6.1.1
+	 *
+	 * @param array $declarations List of declarations.
+	 * @return array $declarations List of declarations filtered.
+	 */
+	private static function update_separator_declarations( $declarations ) {
+		$background_color     = '';
+		$border_color_matches = false;
+		$text_color_matches   = false;
+
+		foreach ( $declarations as $declaration ) {
+			if ( 'background-color' === $declaration['name'] && ! $background_color && isset( $declaration['value'] ) ) {
+				$background_color = $declaration['value'];
+			} elseif ( 'border-color' === $declaration['name'] ) {
+				$border_color_matches = true;
+			} elseif ( 'color' === $declaration['name'] ) {
+				$text_color_matches = true;
+			}
+
+			if ( $background_color && $border_color_matches && $text_color_matches ) {
+				break;
+			}
+		}
+
+		if ( $background_color && ! $border_color_matches && ! $text_color_matches ) {
+			$declarations[] = array(
+				'name'  => 'color',
+				'value' => $background_color,
+			);
+		}
+
+		return $declarations;
+	}
+
+	/**
 	 * An internal method to get the block nodes from a theme.json file.
 	 *
 	 * @since 6.1.0
@@ -2131,6 +2183,11 @@ class WP_Theme_JSON {
 				unset( $declarations[ $index ] );
 				$declarations_duotone[] = $declaration;
 			}
+		}
+
+		// Update declarations if there are separators with only background color defined.
+		if ( '.wp-block-separator' === $selector ) {
+			$declarations = static::update_separator_declarations( $declarations );
 		}
 
 		// 2. Generate and append the rules that use the general selector.
