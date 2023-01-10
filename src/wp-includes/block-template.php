@@ -242,13 +242,14 @@ function get_the_block_template_html() {
 		'widget_text_content',
 		'widget_block_content',
 		'the_content',
-		'the_excerpt'
+		'the_excerpt',
+		'render_block_core_template_part_content',
 	);
-	foreach( $filters as $filter ){
+	foreach ( $filters as $filter ) {
 		remove_filter( $filter, 'wp_filter_content_tags' );
 	}
 	$content = do_blocks( $content );
-	foreach( $filters as $filter ){
+	foreach ( $filters as $filter ) {
 		add_filter( $filter, 'wp_filter_content_tags' );
 	}
 	$content = wptexturize( $content );

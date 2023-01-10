@@ -216,6 +216,12 @@ add_filter( 'list_cats', 'wptexturize' );
 
 add_filter( 'wp_sprintf', 'wp_sprintf_l', 10, 2 );
 
+add_filter( 'render_block_core_template_part_content', 'wptexturize' );
+add_filter( 'render_block_core_template_part_content', 'convert_smilies' );
+add_filter( 'render_block_core_template_part_content', 'shortcode_unautop' );
+add_filter( 'render_block_core_template_part_content', 'wp_filter_content_tags' );
+add_filter( 'render_block_core_template_part_content', 'do_shortcode' );
+
 add_filter( 'widget_text', 'balanceTags' );
 add_filter( 'widget_text_content', 'capital_P_dangit', 11 );
 add_filter( 'widget_text_content', 'wptexturize' );
