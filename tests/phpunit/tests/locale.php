@@ -16,8 +16,9 @@ class Tests_Locale extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_property_initializes_to_array
 	 * @ticket 57427
+	 *
+	 * @dataProvider data_property_initializes_to_array
 	 *
 	 * @param string $name Property name to test.
 	 */
