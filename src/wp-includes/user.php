@@ -691,7 +691,7 @@ function get_user_option( $option, $user = 0, $deprecated = '' ) {
  * Updates user option with global blog capability.
  *
  * User options are just like user metadata except that they have support for
- * global blog options. If the 'global' parameter is false, which it is by default
+ * global blog options. If the 'is_global' parameter is false, which it is by default,
  * it will prepend the WordPress table prefix to the option name.
  *
  * Deletes the user option if $newvalue is empty.
@@ -703,15 +703,15 @@ function get_user_option( $option, $user = 0, $deprecated = '' ) {
  * @param int    $user_id     User ID.
  * @param string $option_name User option name.
  * @param mixed  $newvalue    User option value.
- * @param bool   $global      Optional. Whether option name is global or blog specific.
+ * @param bool   $is_global   Optional. Whether option name is global or blog specific.
  *                            Default false (blog specific).
  * @return int|bool User meta ID if the option didn't exist, true on successful update,
  *                  false on failure.
  */
-function update_user_option( $user_id, $option_name, $newvalue, $global = false ) {
+function update_user_option( $user_id, $option_name, $newvalue, $is_global = false ) {
 	global $wpdb;
 
-	if ( ! $global ) {
+	if ( ! $is_global ) {
 		$option_name = $wpdb->get_blog_prefix() . $option_name;
 	}
 
@@ -722,7 +722,7 @@ function update_user_option( $user_id, $option_name, $newvalue, $global = false 
  * Deletes user option with global blog capability.
  *
  * User options are just like user metadata except that they have support for
- * global blog options. If the 'global' parameter is false, which it is by default
+ * global blog options. If the 'is_global' parameter is false, which it is by default,
  * it will prepend the WordPress table prefix to the option name.
  *
  * @since 3.0.0
@@ -731,16 +731,17 @@ function update_user_option( $user_id, $option_name, $newvalue, $global = false 
  *
  * @param int    $user_id     User ID
  * @param string $option_name User option name.
- * @param bool   $global      Optional. Whether option name is global or blog specific.
+ * @param bool   $is_global   Optional. Whether option name is global or blog specific.
  *                            Default false (blog specific).
  * @return bool True on success, false on failure.
  */
-function delete_user_option( $user_id, $option_name, $global = false ) {
+function delete_user_option( $user_id, $option_name, $is_global = false ) {
 	global $wpdb;
 
-	if ( ! $global ) {
+	if ( ! $is_global ) {
 		$option_name = $wpdb->get_blog_prefix() . $option_name;
 	}
+
 	return delete_user_meta( $user_id, $option_name );
 }
 
@@ -811,22 +812,33 @@ function wp_list_users( $args = array() ) {
 		'include'       => '',
 	);
 
-	$args = wp_parse_args( $args, $defaults );
+	$parsed_args = wp_parse_args( $args, $defaults );
 
 	$return = '';
 
-	$query_args           = wp_array_slice_assoc( $args, array( 'orderby', 'order', 'number', 'exclude', 'include' ) );
+	$query_args           = wp_array_slice_assoc( $parsed_args, array( 'orderby', 'order', 'number', 'exclude', 'include' ) );
 	$query_args['fields'] = 'ids';
-	$users                = get_users( $query_args );
+
+	/**
+	 * Filters the query arguments for the list of all users of the site.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param array $query_args  The query arguments for get_users().
+	 * @param array $parsed_args The arguments passed to wp_list_users() combined with the defaults.
+	 */
+	$query_args = apply_filters( 'wp_list_users_args', $query_args, $parsed_args );
+
+	$users = get_users( $query_args );
 
 	foreach ( $users as $user_id ) {
 		$user = get_userdata( $user_id );
 
-		if ( $args['exclude_admin'] && 'admin' === $user->display_name ) {
+		if ( $parsed_args['exclude_admin'] && 'admin' === $user->display_name ) {
 			continue;
 		}
 
-		if ( $args['show_fullname'] && '' !== $user->first_name && '' !== $user->last_name ) {
+		if ( $parsed_args['show_fullname'] && '' !== $user->first_name && '' !== $user->last_name ) {
 			$name = sprintf(
 				/* translators: 1: User's first name, 2: Last name. */
 				_x( '%1$s %2$s', 'Display name based on first name and last name' ),
@@ -837,54 +849,54 @@ function wp_list_users( $args = array() ) {
 			$name = $user->display_name;
 		}
 
-		if ( ! $args['html'] ) {
+		if ( ! $parsed_args['html'] ) {
 			$return .= $name . ', ';
 
 			continue; // No need to go further to process HTML.
 		}
 
-		if ( 'list' === $args['style'] ) {
+		if ( 'list' === $parsed_args['style'] ) {
 			$return .= '<li>';
 		}
 
 		$row = $name;
 
-		if ( ! empty( $args['feed_image'] ) || ! empty( $args['feed'] ) ) {
+		if ( ! empty( $parsed_args['feed_image'] ) || ! empty( $parsed_args['feed'] ) ) {
 			$row .= ' ';
-			if ( empty( $args['feed_image'] ) ) {
+			if ( empty( $parsed_args['feed_image'] ) ) {
 				$row .= '(';
 			}
 
-			$row .= '<a href="' . get_author_feed_link( $user->ID, $args['feed_type'] ) . '"';
+			$row .= '<a href="' . get_author_feed_link( $user->ID, $parsed_args['feed_type'] ) . '"';
 
 			$alt = '';
-			if ( ! empty( $args['feed'] ) ) {
-				$alt  = ' alt="' . esc_attr( $args['feed'] ) . '"';
-				$name = $args['feed'];
+			if ( ! empty( $parsed_args['feed'] ) ) {
+				$alt  = ' alt="' . esc_attr( $parsed_args['feed'] ) . '"';
+				$name = $parsed_args['feed'];
 			}
 
 			$row .= '>';
 
-			if ( ! empty( $args['feed_image'] ) ) {
-				$row .= '<img src="' . esc_url( $args['feed_image'] ) . '" style="border: none;"' . $alt . ' />';
+			if ( ! empty( $parsed_args['feed_image'] ) ) {
+				$row .= '<img src="' . esc_url( $parsed_args['feed_image'] ) . '" style="border: none;"' . $alt . ' />';
 			} else {
 				$row .= $name;
 			}
 
 			$row .= '</a>';
 
-			if ( empty( $args['feed_image'] ) ) {
+			if ( empty( $parsed_args['feed_image'] ) ) {
 				$row .= ')';
 			}
 		}
 
 		$return .= $row;
-		$return .= ( 'list' === $args['style'] ) ? '</li>' : ', ';
+		$return .= ( 'list' === $parsed_args['style'] ) ? '</li>' : ', ';
 	}
 
 	$return = rtrim( $return, ', ' );
 
-	if ( ! $args['echo'] ) {
+	if ( ! $parsed_args['echo'] ) {
 		return $return;
 	}
 	echo $return;
@@ -940,7 +952,7 @@ function get_blogs_of_user( $user_id, $all = false ) {
 
 	if ( ! is_multisite() ) {
 		$site_id                        = get_current_blog_id();
-		$sites                          = array( $site_id => new stdClass );
+		$sites                          = array( $site_id => new stdClass() );
 		$sites[ $site_id ]->userblog_id = $site_id;
 		$sites[ $site_id ]->blogname    = get_option( 'blogname' );
 		$sites[ $site_id ]->domain      = '';
@@ -1525,7 +1537,7 @@ function setup_userdata( $for_user_id = 0 ) {
  *                                                 Default empty.
  *     @type string       $show_option_none        Text to show as the drop-down default when no
  *                                                 users were found. Default empty.
- *     @type int|string   $option_none_value       Value to use for $show_option_non when no users
+ *     @type int|string   $option_none_value       Value to use for $show_option_none when no users
  *                                                 were found. Default -1.
  *     @type string       $hide_if_only_one_author Whether to skip generating the drop-down
  *                                                 if only one user was found. Default empty.
@@ -1862,15 +1874,11 @@ function update_user_caches( $user ) {
  *
  * @since 3.0.0
  * @since 4.4.0 'clean_user_cache' action was added.
- * @since 5.8.0 Refreshes the global user instance if cleaning the user cache for the current user.
- *
- * @global WP_User $current_user The current user object which holds the user data.
+ * @since 6.2.0 User metadata caches are now cleared.
  *
  * @param WP_User|int $user User object or ID to be cleaned from the cache
  */
 function clean_user_cache( $user ) {
-	global $current_user;
-
 	if ( is_numeric( $user ) ) {
 		$user = new WP_User( $user );
 	}
@@ -1887,6 +1895,8 @@ function clean_user_cache( $user ) {
 		wp_cache_delete( $user->user_email, 'useremail' );
 	}
 
+	wp_cache_delete( $user->ID, 'user_meta' );
+
 	/**
 	 * Fires immediately after the given user's cache is cleaned.
 	 *
@@ -1896,13 +1906,6 @@ function clean_user_cache( $user ) {
 	 * @param WP_User $user    User object.
 	 */
 	do_action( 'clean_user_cache', $user->ID, $user );
-
-	// Refresh the global user instance if the cleaning current user.
-	if ( get_current_user_id() === (int) $user->ID ) {
-		$user_id      = (int) $user->ID;
-		$current_user = null;
-		wp_set_current_user( $user_id, '' );
-	}
 }
 
 /**
@@ -3039,15 +3042,22 @@ function retrieve_password( $user_login = null ) {
 		$user_login = $_POST['user_login'];
 	}
 
+	$user_login = trim( wp_unslash( $user_login ) );
+
 	if ( empty( $user_login ) ) {
 		$errors->add( 'empty_username', __( '<strong>Error:</strong> Please enter a username or email address.' ) );
 	} elseif ( strpos( $user_login, '@' ) ) {
-		$user_data = get_user_by( 'email', trim( wp_unslash( $user_login ) ) );
+		$user_data = get_user_by( 'email', $user_login );
+
+		if ( empty( $user_data ) ) {
+			$user_data = get_user_by( 'login', $user_login );
+		}
+
 		if ( empty( $user_data ) ) {
 			$errors->add( 'invalid_email', __( '<strong>Error:</strong> There is no account with that username or email address.' ) );
 		}
 	} else {
-		$user_data = get_user_by( 'login', trim( wp_unslash( $user_login ) ) );
+		$user_data = get_user_by( 'login', $user_login );
 	}
 
 	/**
@@ -3498,6 +3508,8 @@ function wp_destroy_all_sessions() {
  *
  * @since 4.4.0
  * @since 4.9.0 The `$site_id` parameter was added to support multisite.
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int|null $site_id Optional. The site ID to get users with no role for. Defaults to the current site.
  * @return string[] Array of user IDs as strings.
@@ -4950,4 +4962,51 @@ function wp_is_application_passwords_available_for_user( $user ) {
 	 * @param WP_User $user      The user to check.
 	 */
 	return apply_filters( 'wp_is_application_passwords_available_for_user', true, $user );
+}
+
+/**
+ * Registers the user meta property for persisted preferences.
+ *
+ * This property is used to store user preferences across page reloads and is
+ * currently used by the block editor for preferences like 'fullscreenMode' and
+ * 'fixedToolbar'.
+ *
+ * @since 6.1.0
+ * @access private
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ */
+function wp_register_persisted_preferences_meta() {
+	/*
+	 * Create a meta key that incorporates the blog prefix so that each site
+	 * on a multisite can have distinct user preferences.
+	 */
+	global $wpdb;
+	$meta_key = $wpdb->get_blog_prefix() . 'persisted_preferences';
+
+	register_meta(
+		'user',
+		$meta_key,
+		array(
+			'type'         => 'object',
+			'single'       => true,
+			'show_in_rest' => array(
+				'name'   => 'persisted_preferences',
+				'type'   => 'object',
+				'schema' => array(
+					'type'                 => 'object',
+					'context'              => array( 'edit' ),
+					'properties'           => array(
+						'_modified' => array(
+							'description' => __( 'The date and time the preferences were updated.' ),
+							'type'        => 'string',
+							'format'      => 'date-time',
+							'readonly'    => false,
+						),
+					),
+					'additionalProperties' => true,
+				),
+			),
+		)
+	);
 }

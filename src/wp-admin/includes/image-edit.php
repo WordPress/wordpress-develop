@@ -739,7 +739,7 @@ function wp_restore_image( $post_id ) {
 	$backup_sizes     = get_post_meta( $post_id, '_wp_attachment_backup_sizes', true );
 	$old_backup_sizes = $backup_sizes;
 	$restored         = false;
-	$msg              = new stdClass;
+	$msg              = new stdClass();
 
 	if ( ! is_array( $backup_sizes ) ) {
 		$msg->error = __( 'Cannot load image metadata.' );
@@ -827,7 +827,7 @@ function wp_restore_image( $post_id ) {
 function wp_save_image( $post_id ) {
 	$_wp_additional_image_sizes = wp_get_additional_image_sizes();
 
-	$return  = new stdClass;
+	$return  = new stdClass();
 	$success = false;
 	$delete  = false;
 	$scaled  = false;
@@ -917,12 +917,10 @@ function wp_save_image( $post_id ) {
 	}
 
 	// Save the full-size file, also needed to create sub-sizes.
-	$saved = wp_save_image_file( $new_path, $img, $post->post_mime_type, $post_id );
-	if ( ! $saved ) {
+	if ( ! wp_save_image_file( $new_path, $img, $post->post_mime_type, $post_id ) ) {
 		$return->error = esc_js( __( 'Unable to save the image.' ) );
 		return $return;
 	}
-	$new_path = $saved['path'];
 
 	if ( 'nothumb' === $target || 'all' === $target || 'full' === $target || $scaled ) {
 		$tag = false;

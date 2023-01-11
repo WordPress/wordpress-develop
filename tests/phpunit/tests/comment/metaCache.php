@@ -2,7 +2,7 @@
 /**
  * @group comment
  */
-class Tests_Comment_Meta_Cache extends WP_UnitTestCase {
+class Tests_Comment_MetaCache extends WP_UnitTestCase {
 	protected $i       = 0;
 	protected $queries = 0;
 
