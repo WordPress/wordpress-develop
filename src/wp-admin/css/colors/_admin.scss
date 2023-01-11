@@ -2,6 +2,10 @@
 @import 'variables';
 @import 'mixins';
 
+/**
+ * Use British English to maintain backward compatibility, 
+ * developers may use the function in their own admin CSS files.
+ */
 @function url-friendly-colour( $color ) {
 	@return '%23' + str-slice( '#{ $color }', 2, -1 );
 }
