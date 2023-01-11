@@ -523,7 +523,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_new_comment
 	 */
-	public function test_comment_field_lengths() {
+	public function test_wp_new_comment_respects_comment_field_lengths() {
 		$data = array(
 			'comment_post_ID'      => self::$post_id,
 			'comment_author'       => 'Comment Author',
@@ -539,11 +539,13 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$comment = get_comment( $id );
 
-		$this->assertSame( strlen( $comment->comment_content ), 65535 );
+		$this->assertSame( 65535, strlen( $comment->comment_content ) );
 	}
 
 	/**
 	 * @ticket 56244
+	 *
+	 * @covers ::wp_new_comment
 	 */
 	public function test_wp_new_comment_sends_all_expected_parameters_to_preprocess_comment_filter() {
 		$user = get_userdata( self::$user_id );

@@ -147,7 +147,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 
 			if ( preg_match( '/Date: /i', $line ) ) { // Of the form '20 Mar 2002 20:32:37 +0100'.
 				$ddate = str_replace( 'Date: ', '', trim( $line ) );
-				// Remove parenthesised timezone string if it exists, as this confuses strtotime().
+				// Remove parenthesized timezone string if it exists, as this confuses strtotime().
 				$ddate           = preg_replace( '!\s*\(.+\)\s*$!', '', $ddate );
 				$ddate_timestamp = strtotime( $ddate );
 				$post_date       = gmdate( 'Y-m-d H:i:s', $ddate_timestamp + $time_difference );
@@ -231,7 +231,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 		echo "\n" . $post_ID->get_error_message();
 	}
 
-	// We couldn't post, for whatever reason. Better move forward to the next email.
+	// The post wasn't inserted or updated, for whatever reason. Better move forward to the next email.
 	if ( empty( $post_ID ) ) {
 		continue;
 	}

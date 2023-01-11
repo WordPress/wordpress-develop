@@ -318,6 +318,8 @@ function export_wp( $args = array() ) {
 	 *
 	 * @since 4.6.0
 	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
 	 * @param WP_Term $term Term object.
 	 */
 	function wxr_term_meta( $term ) {
@@ -519,7 +521,8 @@ function export_wp( $args = array() ) {
 	<?php endforeach; ?>
 	<?php
 	if ( 'all' === $args['content'] ) {
-		wxr_nav_menu_terms();}
+		wxr_nav_menu_terms();
+	}
 	?>
 
 	<?php
