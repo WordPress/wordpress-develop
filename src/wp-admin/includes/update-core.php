@@ -1656,7 +1656,6 @@ function _cleanup_old_files( $checksums ) {
 		}
 
 		// We are now left with only the files that are similar from old to new except for their case.
-
 		$old_basename      = basename( $old_realpath );
 		$new_filepath      = $new_filepaths[ $lowercase_old_filepath_to_check ];
 		$expected_basename = basename( $new_filepath );
