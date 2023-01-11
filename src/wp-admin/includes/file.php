@@ -2631,35 +2631,28 @@ function wp_opcache_invalidate( $filepath, $force = false ) {
  *
  * @since 6.2.0
  *
- * @param string $dir Path to directory.
+ * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+ *
+ * @param string|array $dir  The path to invalidate, or the results of ::dirlist().
+ * @param string       $path The path to invalidate for nested directories.
  *
  * @return void
  */
-function wp_opcache_invalidate_directory( $dir ) {
+function wp_opcache_invalidate_directory( $dir, $path = '' ) {
 	global $wp_filesystem;
 
-	$dirlist = $wp_filesystem->dirlist( $dir, false, true );
+	if ( is_string( $dir ) ) {
+		$path = $dir;
+		$dir  = $wp_filesystem->dirlist( $dir, false, true );
+		wp_opcache_invalidate_directory( $dir, trailingslashit( $path ) );
+		return;
+	}
 
-	// Local version of WP_Upgrader::flatten_dirlist().
-	$flatten_dirlist = function( $nested_files, $path = '' ) use ( &$flatten_dirlist ) {
-		$files = array();
-
-		foreach ( $nested_files as $name => $details ) {
-			$files[ $path . $name ] = $details;
-
-			// Append children recursively.
-			if ( ! empty( $details['files'] ) ) {
-				$children = $flatten_dirlist( $details['files'], $path . $name . '/' );
-
-				// Merge keeping possible numeric keys, which array_merge() will reindex from 0..n.
-				$files = $files + $children;
-			}
+	foreach ( $dir as $name => $details ) {
+		if ( ! empty( $details['files'] ) ) {
+			wp_opcache_invalidate_directory( $details['files'], $path . $name . '/' );
+			continue;
 		}
-		return $files;
-	};
-	$files           = $flatten_dirlist( $dirlist );
-
-	foreach ( array_keys( $files ) as $file ) {
-		wp_opcache_invalidate( trailingslashit( $dir ) . $file );
+		wp_opcache_invalidate( $path . $name );
 	}
 }
