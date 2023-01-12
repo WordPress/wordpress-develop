@@ -642,7 +642,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	public function test_wp_set_password_action() {
 		$user_id = self::factory()->user->create(
 			array(
-				'role'   => 'administrator',
+				'role'       => 'administrator',
 				'user_login' => 'janedoe',
 			)
 		);
