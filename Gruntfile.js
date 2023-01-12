@@ -121,8 +121,8 @@ module.exports = function(grunt) {
 				SOURCE_DIR + 'wp-includes/blocks/**/*.-rtl*.css'
 			],
 			js: [
-				WORKING_DIR + 'wp-admin/js/',
-				WORKING_DIR + 'wp-includes/js/'
+				SOURCE_DIR + 'wp-admin/js/',
+				SOURCE_DIR + 'wp-includes/js/',
 			],
 			'webpack-assets': [
 				WORKING_DIR + 'wp-includes/assets/*',
