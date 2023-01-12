@@ -103,6 +103,7 @@ module.exports = function(grunt) {
 		clean: {
 			plugins: [BUILD_DIR + 'wp-content/plugins'],
 			themes: [BUILD_DIR + 'wp-content/themes'],
+			// Clean files from /build.
 			files: buildFiles.concat( [
 				'!wp-config.php',
 			] ).map( function( file ) {
@@ -111,6 +112,7 @@ module.exports = function(grunt) {
 				}
 				return BUILD_DIR + file;
 			} ),
+			// Clean compiled CSS files from /src.
 			css: [
 				SOURCE_DIR + 'wp-admin/css/*.min.css',
 				SOURCE_DIR + 'wp-admin/css/*-rtl*.css',
@@ -120,12 +122,14 @@ module.exports = function(grunt) {
 				SOURCE_DIR + 'wp-includes/blocks/**/*.css',
 				SOURCE_DIR + 'wp-includes/blocks/**/*.-rtl*.css'
 			],
+			// Clean compiled JS files from /src.
 			js: [
 				SOURCE_DIR + 'wp-admin/js/',
 				SOURCE_DIR + 'wp-includes/js/',
 				SOURCE_DIR + 'wp-includes/blocks/**/*.js',
 				SOURCE_DIR + 'wp-includes/blocks/**/*.map'
 			],
+			// Clean Webpack generated files from /src.
 			'webpack-assets': [
 				SOURCE_DIR + 'wp-includes/assets/*',
 				SOURCE_DIR + 'wp-includes/css/dist/',
