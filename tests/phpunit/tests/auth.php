@@ -101,6 +101,26 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57436
+	 */
+	public function test_wp_set_password_action() {
+		$user_id             = self::$user_id;
+		$expected_meta_value = 'Meta value';
+		add_action(
+			'wp_set_password',
+			function( $password, $user_id ) {
+				update_user_meta( $user_id, 'my-password-user-meta', $expected_meta_value );
+				clean_user_cache( $user_id );
+			}
+		);
+
+		wp_set_password( 'A simple password', $user_id );
+		$user_meta_value = get_user_meta( $user_id, 'my-password-user-meta', true );
+
+		$this->assertSame( $expected_meta_value, $user_meta_value );
+	}
+
+	/**
 	 * Test wp_hash_password trims whitespace
 	 *
 	 * This is similar to test_password_trimming but tests the "lower level"
@@ -634,26 +654,6 @@ class Tests_Auth extends WP_UnitTestCase {
 		unset( $_SERVER['PHP_AUTH_PW'] );
 
 		$this->assertNull( wp_validate_application_password( null ) );
-	}
-
-	/**
-	 * @ticket 57436
-	 */
-	public function test_wp_set_password_action() {
-		$user_id             = self::$user_id;
-		$expected_meta_value = 'Meta value';
-		add_action(
-			'wp_set_password',
-			function( $password, $user_id ) {
-				update_user_meta( $user_id, 'my-password-user-meta', $expected_meta_value );
-				clean_user_cache( $user_id );
-			}
-		);
-
-		wp_set_password( 'A simple password', $user_id );
-		$user_meta_value = get_user_meta( $user_id, 'my-password-user-meta', true );
-
-		$this->assertSame( $expected_meta_value, $user_meta_value );
 	}
 
 	/**
