@@ -3351,33 +3351,33 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Return 'Test_Dynamic_Customize_Setting' in 'customize_dynamic_setting_class.
+	 * Returns 'Test_Dynamic_Customize_Setting' in 'customize_dynamic_setting_class'.
 	 *
-	 * @param string $class Setting class.
-	 * @param array  $args  Setting args.
-	 * @param string $id    Setting ID.
-	 * @return string       Setting class.
+	 * @param string $setting_class Setting class.
+	 * @param array  $setting_args  Setting args.
+	 * @param string $setting_id    Setting ID.
+	 * @return string Setting class.
 	 */
-	public function return_dynamic_customize_setting_class( $class, $id, $args ) {
-		unset( $args );
-		if ( 0 === strpos( $id, 'dynamic' ) ) {
-			$class = 'Test_Dynamic_Customize_Setting';
+	public function return_dynamic_customize_setting_class( $setting_class, $setting_id, $setting_args ) {
+		unset( $setting_args );
+		if ( 0 === strpos( $setting_id, 'dynamic' ) ) {
+			$setting_class = 'Test_Dynamic_Customize_Setting';
 		}
-		return $class;
+		return $setting_class;
 	}
 
 	/**
-	 * Return 'Test_Dynamic_Customize_Setting' in 'customize_dynamic_setting_class.
+	 * Returns 'foo' in 'customize_dynamic_setting_args'.
 	 *
-	 * @param array  $args Setting args.
-	 * @param string $id   Setting ID.
-	 * @return string      Setting args.
+	 * @param array  $setting_args Setting args.
+	 * @param string $setting_id   Setting ID.
+	 * @return array Setting args.
 	 */
-	public function return_dynamic_customize_setting_args( $args, $id ) {
-		if ( 0 === strpos( $id, 'dynamic' ) ) {
-			$args['custom'] = 'foo';
+	public function return_dynamic_customize_setting_args( $setting_args, $setting_id ) {
+		if ( 0 === strpos( $setting_id, 'dynamic' ) ) {
+			$setting_args['custom'] = 'foo';
 		}
-		return $args;
+		return $setting_args;
 	}
 
 	/**
