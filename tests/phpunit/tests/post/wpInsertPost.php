@@ -1192,7 +1192,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 				'post_status' => 'draft',
 			)
 		);
-		$this->assertSame( 0, $post_id );
+		$this->assertWPError( $post_id );
 
 		$post_id = self::factory()->post->create(
 			array(
@@ -1201,7 +1201,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 				'post_status'   => 'draft',
 			)
 		);
-		$this->assertSame( 0, $post_id );
+		$this->assertWPError( $post_id );
 
 		// Empty post_date_gmt without floating status
 		$post_id = self::factory()->post->create(
@@ -1210,7 +1210,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 				'post_status' => 'publish',
 			)
 		);
-		$this->assertSame( 0, $post_id );
+		$this->assertWPError( $post_id );
 
 		$post_id = self::factory()->post->create(
 			array(
@@ -1219,7 +1219,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 				'post_status'   => 'publish',
 			)
 		);
-		$this->assertSame( 0, $post_id );
+		$this->assertWPError( $post_id );
 
 		// Valid post_date_gmt
 		$post_id = self::factory()->post->create(
@@ -1228,7 +1228,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 				'post_date_gmt' => $post_date_gmt,
 			)
 		);
-		$this->assertSame( 0, $post_id );
+		$this->assertWPError( $post_id );
 
 		// Invalid post_date_gmt
 		$post_id = self::factory()->post->create(
@@ -1237,7 +1237,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 				'post_date_gmt' => $invalid_date,
 			)
 		);
-		$this->assertSame( 0, $post_id );
+		$this->assertWPError( $post_id );
 	}
 
 	/**
