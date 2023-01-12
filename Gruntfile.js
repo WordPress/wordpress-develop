@@ -123,6 +123,8 @@ module.exports = function(grunt) {
 			js: [
 				SOURCE_DIR + 'wp-admin/js/',
 				SOURCE_DIR + 'wp-includes/js/',
+				SOURCE_DIR + 'wp-includes/blocks/**/*.js',
+				SOURCE_DIR + 'wp-includes/blocks/**/*.map'
 			],
 			'webpack-assets': [
 				WORKING_DIR + 'wp-includes/assets/*',
