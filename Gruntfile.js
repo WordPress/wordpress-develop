@@ -127,9 +127,9 @@ module.exports = function(grunt) {
 				SOURCE_DIR + 'wp-includes/blocks/**/*.map'
 			],
 			'webpack-assets': [
-				WORKING_DIR + 'wp-includes/assets/*',
-				WORKING_DIR + 'wp-includes/css/dist/',
-				'!' + WORKING_DIR + 'wp-includes/assets/script-loader-packages.min.php'
+				SOURCE_DIR + 'wp-includes/assets/*',
+				SOURCE_DIR + 'wp-includes/css/dist/',
+				'!' + SOURCE_DIR + 'wp-includes/assets/script-loader-packages.min.php'
 			],
 			dynamic: {
 				dot: true,
