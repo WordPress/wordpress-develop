@@ -1673,15 +1673,16 @@ function _cleanup_old_files( $checksums ) {
 		// There might still be an incorrectly cased file on other OS than Windows.
 		if ( basename( $old_filepath_to_check ) === $old_basename ) {
 			// Check if case-insensitive file system, eg on OSX.
-			if ( fileinode( $old_realpath ) === fileinode( $new_realpath ) ) {
-				// Check deeper because even realpath or glob might not return the actual case.
-				if ( ! in_array( $expected_basename, scandir( dirname( $new_realpath ) ), true ) ) {
-					$wp_filesystem->move( ABSPATH . $old_filepath_to_check, ABSPATH . $old_filepath_to_check . '.tmp' );
-					$wp_filesystem->move( ABSPATH . $old_filepath_to_check . '.tmp', ABSPATH . $new_filepath );
-				}
-			} else {
+			if ( fileinode( $old_realpath ) !== fileinode( $new_realpath ) ) {
 				// On Unix with both files: Delete the incorrectly cased file.
 				$files_to_remove[] = $old_filepath_to_check;
+				continue;
+			}
+
+			// Check deeper because even realpath or glob might not return the actual case.
+			if ( ! in_array( $expected_basename, scandir( dirname( $new_realpath ) ), true ) ) {
+				$wp_filesystem->move( ABSPATH . $old_filepath_to_check, ABSPATH . $old_filepath_to_check . '.tmp' );
+				$wp_filesystem->move( ABSPATH . $old_filepath_to_check . '.tmp', ABSPATH . $new_filepath );
 			}
 		}
 	}
