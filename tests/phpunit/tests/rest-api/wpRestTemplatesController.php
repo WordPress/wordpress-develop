@@ -324,7 +324,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 					'post_excerpt' => 'Description of small header 测试 template.',
 				),
 			),
-			'template: parent theme with non latin name using chinese characters'  => array(
+			'template: parent theme with non latin name using chinese characters' => array(
 				'theme_dir' => 'themedir1/block-theme-non-latin',
 				'template'  => 'page-%e6%b5%8b%e8%af%95',
 				'args'      => array(
