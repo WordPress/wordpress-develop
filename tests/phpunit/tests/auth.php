@@ -643,8 +643,8 @@ class Tests_Auth extends WP_UnitTestCase {
 		$expected_meta_value = 'Meta value';
 		add_action(
 			'wp_set_password',
-			static function ( $password, $user_id ) {
-				update_user_meta( $user_id, 'my-password-user-meta', $expected_meta_value );
+			static function ( $password, self::$user_id ) {
+				update_user_meta( self::$user_id, 'my-password-user-meta', $expected_meta_value );
 			}
 		);
 		wp_set_password( 'A simple password', self::$user_id );
