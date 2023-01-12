@@ -645,6 +645,7 @@ class Tests_Auth extends WP_UnitTestCase {
 			'wp_set_password',
 			function( $password, $this->user->ID ) {
 				update_user_meta( $this->user->ID, 'my-password-user-meta', $expected_meta_value );
+				clean_user_cache( $this->user );
 			}
 		);
 
