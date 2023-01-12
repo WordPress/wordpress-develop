@@ -640,18 +640,16 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * @ticket 57436
 	 */
 	public function test_wp_set_password_action() {
-		$user = self::factory()->user->create( array( 'user_login' => 'janedoe' ) );
-
 		$expected_meta_value = 'Meta value';
 		add_action(
 			'wp_set_password',
-			function( $password, $user->ID ) {
-				update_user_meta( $user->ID, 'my-password-user-meta', $expected_meta_value );
+			function( $password, $this->user->ID ) {
+				update_user_meta( $this->user->ID, 'my-password-user-meta', $expected_meta_value );
 			}
 		);
 
-		wp_set_password( 'A simple password', $user->ID );
-		$user_meta_value = get_user_meta( $user->ID, 'my-password-user-meta', true );
+		wp_set_password( 'A simple password', $this->user->ID );
+		$user_meta_value = get_user_meta( $this->user->ID, 'my-password-user-meta', true );
 
 		$this->assertSame( $expected_meta_value, $user_meta_value );
 	}
