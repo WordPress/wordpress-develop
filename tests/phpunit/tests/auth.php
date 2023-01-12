@@ -637,6 +637,23 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57436
+	 */
+	public function test_wp_set_password_action() {
+		$expected_meta_value = 'Meta value';
+		add_action(
+			'wp_set_password',
+			static function ( $password, $user_id ) {
+				update_user_meta( $user_id, 'my-password-user-meta', $expected_meta_value );
+			}
+		);
+		wp_set_password( 'A simple password', $this->user->ID );
+		$user_meta_value = get_user_meta( $this->user->ID, 'my-password-user-meta', true );
+
+		$this->assertSame( $expected_meta_value, $user_meta_value );
+	}
+
+	/**
 	 * @ticket 53386
 	 * @dataProvider data_application_passwords_can_use_capability_checks_to_determine_feature_availability
 	 */
