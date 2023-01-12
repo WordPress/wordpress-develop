@@ -117,6 +117,8 @@ module.exports = function(grunt) {
 				SOURCE_DIR + 'wp-includes/css/*.min.css',
 				SOURCE_DIR + 'wp-includes/css/*-rtl*.css',
 				SOURCE_DIR + 'wp-admin/css/colors/**/*.css',
+				SOURCE_DIR + 'wp-includes/blocks/**/*.css',
+				SOURCE_DIR + 'wp-includes/blocks/**/*.-rtl*.css'
 			],
 			js: [
 				WORKING_DIR + 'wp-admin/js/',
