@@ -643,13 +643,13 @@ class Tests_Auth extends WP_UnitTestCase {
 		$expected_meta_value = 'Meta value';
 		add_action(
 			'wp_set_password',
-			function( $password, $this->user->ID ) {
-				update_user_meta( $this->user->ID, 'my-password-user-meta', $expected_meta_value );
+			function( $password, self::$_user->ID ) {
+				update_user_meta( self::$_user->ID, 'my-password-user-meta', $expected_meta_value );
 			}
 		);
 
-		wp_set_password( 'A simple password', $this->user->ID );
-		$user_meta_value = get_user_meta( $this->user->ID, 'my-password-user-meta', true );
+		wp_set_password( 'A simple password', self::$_user->ID );
+		$user_meta_value = get_user_meta( self::$_user->ID, 'my-password-user-meta', true );
 
 		$this->assertSame( $expected_meta_value, $user_meta_value );
 	}
