@@ -425,7 +425,9 @@ function wp_login_viewport_meta() {
 }
 
 /*
- * Main part: check the request and redirect or display a form based on the current action.
+ * Main part.
+ *
+ * Check the request and redirect or display a form based on the current action.
  */
 
 $action = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : 'login';
@@ -1242,7 +1244,7 @@ switch ( $action ) {
 					)
 				);
 			} elseif ( isset( $_POST['testcookie'] ) && empty( $_COOKIE[ TEST_COOKIE ] ) ) {
-				// If cookies are disabled, we can't log in even with a valid user and password.
+				// If cookies are disabled, the user can't log in even with a valid username and password.
 				$user = new WP_Error(
 					'test_cookie',
 					sprintf(

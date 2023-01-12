@@ -1529,6 +1529,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	/**
 	 * @ticket 55592
+	 *
 	 * @covers WP_REST_Posts_Controller::get_items
 	 * @covers ::update_post_thumbnail_cache
 	 */
@@ -1566,6 +1567,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	/**
 	 * @ticket 55593
+	 *
 	 * @covers WP_REST_Posts_Controller::get_items
 	 * @covers ::update_post_parent_caches
 	 */

@@ -65,7 +65,7 @@ class WP_Site_Health {
 	 */
 	public function show_site_health_tab( $tab ) {
 		if ( 'debug' === $tab ) {
-			require_once ABSPATH . '/wp-admin/site-health-info.php';
+			require_once ABSPATH . 'wp-admin/site-health-info.php';
 		}
 	}
 
@@ -1283,6 +1283,8 @@ class WP_Site_Health {
 	 * Tests if the database server is capable of using utf8mb4.
 	 *
 	 * @since 5.2.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @return array The test results.
 	 */
