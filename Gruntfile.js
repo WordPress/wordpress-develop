@@ -112,11 +112,11 @@ module.exports = function(grunt) {
 				return BUILD_DIR + file;
 			} ),
 			css: [
-				WORKING_DIR + 'wp-admin/css/*.min.css',
-				WORKING_DIR + 'wp-admin/css/*-rtl*.css',
-				WORKING_DIR + 'wp-includes/css/*.min.css',
-				WORKING_DIR + 'wp-includes/css/*-rtl*.css',
-				WORKING_DIR + 'wp-admin/css/colors/**/*.css'
+				SOURCE_DIR + 'wp-admin/css/*.min.css',
+				SOURCE_DIR + 'wp-admin/css/*-rtl*.css',
+				SOURCE_DIR + 'wp-includes/css/*.min.css',
+				SOURCE_DIR + 'wp-includes/css/*-rtl*.css',
+				SOURCE_DIR + 'wp-admin/css/colors/**/*.css',
 			],
 			js: [
 				WORKING_DIR + 'wp-admin/js/',
