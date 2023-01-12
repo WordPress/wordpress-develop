@@ -251,7 +251,7 @@ class WP_Http {
 		 *
 		 * @since 2.9.0
 		 *
-		 * @param false|array|WP_Error $preempt     A preemptive return value of an HTTP request. Default false.
+		 * @param false|array|WP_Error $response    A preemptive return value of an HTTP request. Default false.
 		 * @param array                $parsed_args HTTP request arguments.
 		 * @param string               $url         The request URL.
 		 */
@@ -379,7 +379,7 @@ class WP_Http {
 		// Check for proxies.
 		$proxy = new WP_HTTP_Proxy();
 		if ( $proxy->is_enabled() && $proxy->send_through_proxy( $url ) ) {
-			$options['proxy'] = new WpOrg\Requests\Proxy\HTTP( $proxy->host() . ':' . $proxy->port() );
+			$options['proxy'] = new WpOrg\Requests\Proxy\Http( $proxy->host() . ':' . $proxy->port() );
 
 			if ( $proxy->use_authentication() ) {
 				$options['proxy']->use_authentication = true;
