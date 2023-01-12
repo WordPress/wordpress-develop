@@ -640,7 +640,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * @ticket 57436
 	 */
 	public function test_wp_set_password_action() {
-		$user = self::factory()->user->create_and_get( array( 'user_login' => 'janedoe' ) );
+		$user = self::factory()->user->create( array( 'user_login' => 'janedoe' ) );
 
 		$expected_meta_value = 'Meta value';
 		add_action(
