@@ -1688,7 +1688,6 @@ function _cleanup_old_files( $checksums ) {
 
 	if ( ! empty( $files_to_remove ) ) {
 		foreach ( $files_to_remove as $file ) {
-
 			$old_file = ABSPATH . $file;
 
 			if ( ! $wp_filesystem->exists( $old_file ) ) {
