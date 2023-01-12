@@ -1620,7 +1620,8 @@ module.exports = function(grunt) {
 				'build:js',
 				'build:css',
 				'replace:source-maps',
-				'verify:build'
+				'verify:build',
+				'clean:js'
 			] );
 		}
 	} );
