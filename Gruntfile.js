@@ -1621,6 +1621,7 @@ module.exports = function(grunt) {
 				'build:css',
 				'replace:source-maps',
 				'verify:build',
+				// Clean leftover compiled JS files from /src.
 				'clean:js'
 			] );
 		}
