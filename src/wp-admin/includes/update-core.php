@@ -1664,8 +1664,8 @@ function _cleanup_old_files( $checksums ) {
 
 		// On Windows or Unix with only the incorrectly cased file.
 		if ( $new_basename !== $expected_basename ) {
-			rename( ABSPATH . $old_filepath_to_check, ABSPATH . $old_filepath_to_check . '.tmp' );
-			rename( ABSPATH . $old_filepath_to_check . '.tmp', ABSPATH . $new_filepath );
+			$wp_filesystem->move( ABSPATH . $old_filepath_to_check, ABSPATH . $old_filepath_to_check . '.tmp' );
+			$wp_filesystem->move( ABSPATH . $old_filepath_to_check . '.tmp', ABSPATH . $new_filepath );
 
 			continue;
 		}
@@ -1676,8 +1676,8 @@ function _cleanup_old_files( $checksums ) {
 			if ( fileinode( $old_realpath ) === fileinode( $new_realpath ) ) {
 				// Check deeper because even realpath or glob might not return the actual case.
 				if ( ! in_array( $expected_basename, scandir( dirname( $new_realpath ) ), true ) ) {
-					rename( ABSPATH . $old_filepath_to_check, ABSPATH . $old_filepath_to_check . '.tmp' );
-					rename( ABSPATH . $old_filepath_to_check . '.tmp', ABSPATH . $new_filepath );
+					$wp_filesystem->move( ABSPATH . $old_filepath_to_check, ABSPATH . $old_filepath_to_check . '.tmp' );
+					$wp_filesystem->move( ABSPATH . $old_filepath_to_check . '.tmp', ABSPATH . $new_filepath );
 				}
 			} else {
 				// On Unix with both files: Delete the incorrectly cased file.
