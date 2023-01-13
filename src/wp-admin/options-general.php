@@ -79,7 +79,28 @@ if ( is_multisite() ) {
 <td><input name="blogdescription" type="text" id="blogdescription" aria-describedby="tagline-description" value="<?php form_option( 'blogdescription' ); ?>" class="regular-text" placeholder="<?php echo $sample_tagline; ?>" />
 <p class="description" id="tagline-description"><?php _e( 'In a few words, explain what this site is about.' ); ?></p></td>
 </tr>
-
+<tr>
+<th>
+<?php _e( 'Enable Classic Editor' ); ?>
+</th>
+<td>
+<label for="classic_editor_enabled">
+	<input type="checkbox" name="classic_editor_enabled" id="classic_editor_enabled" value="enabled" <?php checked( $classic_editor_enabled, 'enabled' ); ?>>
+	Enable Classic Editor
+</label>
+<td>
+<tr>
+<?php
+    }
+    // Disable Gutenberg if the checkbox is checked
+    add_filter( 'use_block_editor_for_post', 'disable_gutenberg_on_check', 10, 2 );
+    function disable_gutenberg_on_check( $use_block_editor, $post ) {
+        if ( get_option( 'classic_editor_enabled', 'enabled' ) === 'enabled' ) {
+            return false;
+        }
+        return $use_block_editor;
+    }
+?>
 <?php
 if ( ! is_multisite() ) {
 	$wp_site_url_class = '';
