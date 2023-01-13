@@ -79,6 +79,9 @@ if ( is_multisite() ) {
 <td><input name="blogdescription" type="text" id="blogdescription" aria-describedby="tagline-description" value="<?php form_option( 'blogdescription' ); ?>" class="regular-text" placeholder="<?php echo $sample_tagline; ?>" />
 <p class="description" id="tagline-description"><?php _e( 'In a few words, explain what this site is about.' ); ?></p></td>
 </tr>
+/*
+* Add option to enable the classic editor without a plugin
+*/
 <tr>
 <th>
 <?php _e( 'Enable Classic Editor' ); ?>
