@@ -482,6 +482,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$this->assertFalse( WP_Theme_JSON_Resolver::theme_has_support() );
 		$this->assertTrue( $settings['typography']['lineHeight'] );
 		$this->assertSame( $color_palette, $settings['color']['palette']['theme'] );
+		$this->assertTrue( $settings['border']['color'], 'Support for appearance-tools was not added.' );
 	}
 
 	/**
