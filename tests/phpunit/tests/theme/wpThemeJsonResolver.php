@@ -449,6 +449,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 54336
+	 * @ticket 56467
 	 */
 	public function test_add_theme_supports_are_loaded_for_themes_without_theme_json() {
 		switch_theme( 'default' );
