@@ -471,11 +471,13 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		);
 		add_theme_support( 'editor-color-palette', $color_palette );
 		add_theme_support( 'custom-line-height' );
+		add_theme_support( 'appearance-tools' );
 
 		$settings = WP_Theme_JSON_Resolver::get_theme_data()->get_settings();
 
 		remove_theme_support( 'custom-line-height' );
 		remove_theme_support( 'editor-color-palette' );
+		remove_theme_support( 'appearance-tools' );
 
 		$this->assertFalse( WP_Theme_JSON_Resolver::theme_has_support() );
 		$this->assertTrue( $settings['typography']['lineHeight'] );
