@@ -328,6 +328,29 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that wp_save_image_file() throws a deprecated argument notice when passed a GD resource.
+	 *
+	 * @ticket 6821
+	 * @expectedDeprecated wp_save_image_file
+	 * @requires function imagejpeg
+	 *
+	 * @covers ::wp_save_image_file
+	 */
+	public function test_wp_save_image_file_deprecated_argument_with_gd_resource() {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		// Call wp_save_image_file().
+		$file = wp_tempnam();
+		$img  = imagecreatefromjpeg( DIR_TESTDATA . '/images/canola.jpg' );
+		$ret  = wp_save_image_file( $file, $img, 'image/jpeg', 1 );
+
+		imagedestroy( $img );
+		unlink( $file );
+
+		$this->assertTrue( $ret, 'Image failed to save.' );
+	}
+
+	/**
 	 * Tests that a passed mime type overrides the extension in the filename when saving an image.
 	 *
 	 * @dataProvider data_image_editor_engine_classes
