@@ -26,13 +26,15 @@
 			this.setAttribute( 'aria-label', __( 'Hide password' ) );
 			input.setAttribute( 'type', 'text' );
 			label.innerHTML = __( 'Hide' );
-			this.classList.add( 'button-primary' );
+			icon.classList.remove( 'dashicons-visibility' );
+			icon.classList.add( 'dashicons-hidden' );
 		} else {
 			this.setAttribute( 'data-toggle', 0 );
 			this.setAttribute( 'aria-label', __( 'Show password' ) );
 			input.setAttribute( 'type', 'password' );
 			label.innerHTML = __( 'Show' );
-			this.classList.remove( 'button-primary' );
+			icon.classList.remove( 'dashicons-hidden' );
+			icon.classList.add( 'dashicons-visibility' );
 		}
 	}
 } )();

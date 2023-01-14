@@ -561,9 +561,13 @@ fieldset label,
 }
 
 .wp-pwd button.pwd-toggle {
-	width: 2.75rem;
-	min-width: 40px;
+	width: 4.25rem;
 	padding: 0;
+}
+
+.wp-pwd button.pwd-toggle .dashicons {
+	position: relative;
+	top: 0.25rem
 }
 
 #misc-publishing-actions label {
