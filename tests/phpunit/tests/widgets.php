@@ -1288,8 +1288,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 	public function test_sidebars_with_same_slug() {
 		$this->register_sidebars( array( 'primary', 'secondary' ) );
 		$prev_theme_sidebars = array(
-			'primary'             => 1,
-			'secondary'           => 2,
+			'primary'             => array( 1 ),
+			'secondary'           => array( 2 ),
 			'wp_inactive_widgets' => array(),
 		);
 
@@ -1364,4 +1364,29 @@ class Tests_Widgets extends WP_UnitTestCase {
 		);
 		$this->assertSameSetsWithIndex( $expected_sidebars, $new_next_theme_sidebars );
 	}
+
+	/**
+	 * Make sure wp_map_sidebars_widgets always return an array of mapped sidebar widgets
+	 *
+	 * @ticket 57469
+	 *
+	 * @covers ::wp_map_sidebars_widgets
+	 */
+	public function test_wp_map_sidebar_widgets_enforce_array() {
+		$this->register_sidebars( array( 'primary', 'main' ) );
+
+		$prev_theme_sidebars = array(
+			'main' => null,
+		);
+
+		$new_next_theme_sidebars = wp_map_sidebars_widgets( $prev_theme_sidebars );
+
+		$expected_sidebars = array(
+			'main'                => array(),
+			'primary'             => array(),
+			'wp_inactive_widgets' => array(),
+		);
+		$this->assertSameSetsWithIndex( $expected_sidebars, $new_next_theme_sidebars );
+	}
+
 }

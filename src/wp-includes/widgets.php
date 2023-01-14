@@ -1400,7 +1400,7 @@ function wp_map_sidebars_widgets( $existing_sidebars_widgets ) {
 
 	foreach ( $wp_registered_sidebars as $sidebar => $name ) {
 		if ( in_array( $sidebar, $existing_sidebars, true ) ) {
-			$new_sidebars_widgets[ $sidebar ] = $existing_sidebars_widgets[ $sidebar ];
+			$new_sidebars_widgets[ $sidebar ] = (array) $existing_sidebars_widgets[ $sidebar ];
 			unset( $existing_sidebars_widgets[ $sidebar ] );
 		} elseif ( ! array_key_exists( $sidebar, $new_sidebars_widgets ) ) {
 			$new_sidebars_widgets[ $sidebar ] = array();
