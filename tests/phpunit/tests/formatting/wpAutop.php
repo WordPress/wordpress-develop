@@ -308,7 +308,6 @@ Paragraph two.';
 			'map',
 			'area',
 			'address',
-			'math',
 			'style',
 			'p',
 			'h1',
