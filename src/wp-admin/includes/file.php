@@ -2644,8 +2644,6 @@ function wp_opcache_invalidate_directory( $dir, $path = '' ) {
 	if ( is_string( $dir ) ) {
 		$path = $dir;
 		$dir  = $wp_filesystem->dirlist( $dir, false, true );
-		wp_opcache_invalidate_directory( $dir, trailingslashit( $path ) );
-		return;
 	}
 
 	foreach ( $dir as $name => $details ) {
@@ -2653,6 +2651,6 @@ function wp_opcache_invalidate_directory( $dir, $path = '' ) {
 			wp_opcache_invalidate_directory( $details['files'], trailingslashit( $path ) . trailingslashit( $name ) );
 			continue;
 		}
-		wp_opcache_invalidate( $path . $name );
+		wp_opcache_invalidate( trailingslashit( $path ) . $name );
 	}
 }
