@@ -131,7 +131,7 @@ textarea {
 	font-size: 14px;
 	text-align: left;
 	padding: 10px 20px 10px 0;
-	width: 140px;
+	width: 115px;
 	vertical-align: top;
 }
 
@@ -156,7 +156,7 @@ textarea {
 }
 
 .wp-pwd input#pwd {
-	width: calc(218px - 4.5rem);
+	width: calc(230px - 4.5rem);
 }
 
 input,
@@ -169,7 +169,7 @@ submit {
 .form-table input[type=url],
 .form-table input[type=password],
 #pass-strength-result {
-	width: 218px;
+	width: 230px;
 }
 
 .form-table th p {
