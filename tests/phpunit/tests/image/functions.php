@@ -283,8 +283,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$ret  = wp_save_image_file( $file, $img, $mime_type, 1 );
 
 		// Make assertions.
-		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned.' );
 		$this->assertNotWPError( $ret, 'Image failed to save - WP_Error returned.' );
+		$this->assertIsArray( $ret, 'Image failed to save - non-array response returned.' );
 		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image does not match.' );
 
 		// Clean up.
@@ -374,8 +374,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$ret       = $img->save( $file, $mime_type );
 
 		// Make assertions.
-		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned.' );
 		$this->assertNotWPError( $ret, 'Image failed to save - WP_Error returned.' );
+		$this->assertIsArray( $ret, 'Image failed to save - non-array response returned.' );
 		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image did not override file name.' );
 
 		// Clean up.
@@ -420,8 +420,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$ret  = $img->save( trailingslashit( $temp ) . $file );
 
 		// Make assertions.
-		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned.' );
 		$this->assertNotWPError( $ret, 'Image failed to save - WP Error returned.' );
+		$this->assertIsArray( $ret, 'Image failed to save - non-array response returned.' );
 		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image was not inferred correctly.' );
 
 		// Clean up.
@@ -679,7 +679,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotEmpty( $attachment_id );
+		$this->assertNotWPError( $attachment_id, 'Could not create attachment - WP_Error returned.' );
+		$this->assertIsInt( $attachment_id, 'Could not create attachment - non-integer response returned.' );
 
 		$temp_dir = get_temp_dir();
 
@@ -756,7 +757,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotEmpty( $attachment_id );
+		$this->assertNotWPError( $attachment_id, 'Could not create attachment - WP_Error returned.' );
+		$this->assertIsInt( $attachment_id, 'Could not create attachment - non-integer response returned.' );
 
 		$temp_dir = get_temp_dir();
 
@@ -829,7 +831,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotEmpty( $attachment_id );
+		$this->assertNotWPError( $attachment_id, 'Could not create attachment - WP_Error returned.' );
+		$this->assertIsInt( $attachment_id, 'Could not create attachment - non-integer response returned.' );
 
 		add_image_size( 'test-size', 100, 100 );
 		add_filter( 'fallback_intermediate_image_sizes', array( $this, 'filter_fallback_intermediate_image_sizes' ), 10, 2 );
