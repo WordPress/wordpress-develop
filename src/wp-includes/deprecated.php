@@ -3654,7 +3654,7 @@ function post_permalink( $post = 0 ) {
  * @param string|bool $file_path Optional. File path to write request to. Default false.
  * @param int         $red       Optional. The number of Redirects followed, Upon 5 being hit,
  *                               returns false. Default 1.
- * @return \Requests_Utility_CaseInsensitiveDictionary|false Headers on success, false on failure.
+ * @return \WpOrg\Requests\Utility\CaseInsensitiveDictionary|false Headers on success, false on failure.
  */
 function wp_get_http( $url, $file_path = false, $red = 1 ) {
 	_deprecated_function( __FUNCTION__, '4.4.0', 'WP_Http' );
@@ -4524,7 +4524,7 @@ function global_terms_enabled() {
  * @return array The unmodified clauses.
  */
 function _filter_query_attachment_filenames( $clauses ) {
-	_deprecated_function( __FUNCTION__, '4.9.9', 'add_filter( "wp_allow_query_attachment_by_filename", "__return_true" )' );
+	_deprecated_function( __FUNCTION__, '6.0.3', 'add_filter( "wp_allow_query_attachment_by_filename", "__return_true" )' );
 	remove_filter( 'posts_clauses', __FUNCTION__ );
 	return $clauses;
 }

@@ -33,7 +33,7 @@ class Tests_Query extends WP_UnitTestCase {
 	 * @ticket 16471
 	 */
 	public function test_default_query_var() {
-		$query = new WP_Query;
+		$query = new WP_Query();
 		$this->assertSame( '', $query->get( 'nonexistent' ) );
 		$this->assertFalse( $query->get( 'nonexistent', false ) );
 		$this->assertTrue( $query->get( 'nonexistent', true ) );
