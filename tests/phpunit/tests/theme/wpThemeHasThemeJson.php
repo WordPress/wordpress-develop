@@ -12,7 +12,7 @@ require_once __DIR__ . '/base.php';
 class Tests_Theme_WpThemeHasThemeJson extends WP_Theme_UnitTestCase {
 
 	/**
-	 * Tests that wp_theme_has_theme_json() correctly reports whether a theme has a theme.json file.
+	 * @ticket 56975
 	 *
 	 * @dataProvider data_theme_has_theme_json_reports_correctly
 	 *
@@ -25,7 +25,7 @@ class Tests_Theme_WpThemeHasThemeJson extends WP_Theme_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_theme_has_theme_json_reports_correctly().
+	 * Data provider.
 	 *
 	 * @return array[]
 	 */
@@ -55,10 +55,7 @@ class Tests_Theme_WpThemeHasThemeJson extends WP_Theme_UnitTestCase {
 	}
 
 	/**
-	 * Tests that switching themes recalculates theme support.
-	 *
 	 * @ticket 52991
-	 *
 	 */
 	public function test_switching_themes_recalculates_support() {
 		// The "default" theme doesn't have theme.json support.
@@ -72,5 +69,4 @@ class Tests_Theme_WpThemeHasThemeJson extends WP_Theme_UnitTestCase {
 		$this->assertFalse( $default, 'The "default" theme should not report theme.json support.' );
 		$this->assertTrue( $block_theme, 'The block theme should report theme.json support.' );
 	}
-
 }
