@@ -3513,10 +3513,11 @@ EOF;
 
 			// Yes, for all subsequent elements.
 			$this->assertSame( 'lazy', wp_get_loading_attr_default( $context ) );
-
-			// The only exception is 'the_block_template' context, which shouldn't lazy-load images by default.
-			$this->assertFalse( wp_get_loading_attr_default( 'the_block_template' ) );
 		}
+
+		// Exceptions: In the following contexts, images shouldn't be lazy-loaded by default.
+		$this->assertFalse( wp_get_loading_attr_default( 'the_template' ) );
+		$this->assertFalse( wp_get_loading_attr_default( 'the_template_part_' . WP_TEMPLATE_PART_AREA_HEADER ) );
 	}
 
 	public function data_wp_get_loading_attr_default() {
@@ -3716,6 +3717,52 @@ EOF;
 
 		$html = get_the_block_template_html();
 		$this->assertSame( '<div class="wp-site-blocks">' . $expected_featured_image . ' <div class="is-layout-flow entry-content wp-block-post-content">' . $expected_content . '</div></div>', $html );
+	}
+
+	/**
+	 * @ticket 56930
+	 */
+	public function test_wp_filter_content_tags_does_not_lazy_load_images_in_header() {
+		global $_wp_current_template_content;
+
+		// Do not add srcset, sizes, or decoding attributes as they are irrelevant for this test.
+		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+		add_filter( 'wp_img_tag_add_decoding_attr', '__return_false' );
+
+		// Use a single image for each header and footer template parts.
+		$header_img = get_image_tag( self::$large_id, '', '', '', 'large' );
+		$footer_img = get_image_tag( self::$large_id, '', '', '', 'medium' );
+
+		// Create header and footer template parts.
+		$header_post_id = self::factory()->post->create(
+			array(
+				'post_type'      => 'wp_template_part',
+				'post_status'    => 'publish',
+				'post_name'      => 'header',
+				'post_content'   => $header_img,
+			)
+		);
+		wp_set_post_terms( $header_post_id, WP_TEMPLATE_PART_AREA_HEADER, 'wp_template_part_area' );
+		wp_set_post_terms( $header_post_id, get_stylesheet(), 'wp_theme' );
+		$footer_post_id = self::factory()->post->create(
+			array(
+				'post_type'      => 'wp_template_part',
+				'post_status'    => 'publish',
+				'post_name'      => 'footer',
+				'post_content'   => $footer_img,
+			)
+		);
+		wp_set_post_terms( $footer_post_id, WP_TEMPLATE_PART_AREA_FOOTER, 'wp_template_part_area' );
+		wp_set_post_terms( $footer_post_id, get_stylesheet(), 'wp_theme' );
+
+		$_wp_current_template_content = '<!-- wp:template-part {"slug":"header","theme":"' . get_stylesheet() . '","tagName":"header"} /--><!-- wp:template-part {"slug":"footer","theme":"' . get_stylesheet() . '","tagName":"footer"} /-->';
+
+		// Header image should not be lazy-loaded, footer image should be lazy-loaded.
+		$expected_template_content  = '<header class="wp-block-template-part">' . $header_img . '</header>';
+		$expected_template_content .= '<footer class="wp-block-template-part">' . wp_img_tag_add_loading_attr( $footer_img, 'force-lazy' ) . '</footer>';
+
+		$html = get_the_block_template_html();
+		$this->assertSame( '<div class="wp-site-blocks">' . $expected_template_content . '</div>', $html );
 	}
 
 	private function reset_content_media_count() {
