@@ -288,9 +288,9 @@ function wp_load_alloptions( $force_cache = false ) {
 	 * @param null|array $alloptions  An array of alloptions.
 	 * @param bool       $force_cache Whether to force an update of the local cache from the persistent cache. Default false.
 	 */
-	$pre = apply_filters( 'pre_wp_load_alloptions', null, $force_cache );
-	if ( null !== $pre ) {
-		return $pre;
+	$alloptions = apply_filters( 'pre_wp_load_alloptions', null, $force_cache );
+	if ( null !== $alloptions ) {
+		return $alloptions ;
 	}
 
 	if ( ! wp_installing() || ! is_multisite() ) {
