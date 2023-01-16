@@ -774,8 +774,8 @@ class WP_Term_Query {
 			return $this->terms;
 		}
 
-		$cache_key    = $this->generate_cache_key( $args, $this->request );
-		$cache        = wp_cache_get( $cache_key, 'terms' );
+		$cache_key = $this->generate_cache_key( $args, $this->request );
+		$cache     = wp_cache_get( $cache_key, 'terms' );
 
 		if ( false !== $cache ) {
 			if ( 'ids' === $_fields ) {

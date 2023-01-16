@@ -867,4 +867,114 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 		$this->assertContains( $t1, $q->terms );
 	}
+
+	/**
+	 * Ensure cache keys are generated without WPDB placeholders.
+	 *
+	 * @ticket 57298
+	 *
+	 * @covers       WP_Term_Query::generate_cache_key
+	 * @dataProvider data_query_cache
+	 */
+	public function test_generate_cache_key_placeholder( $args ) {
+		global $wpdb;
+		$query1 = new WP_Term_Query();
+		$query1->query( $args );
+
+		$query_vars = $query1->query_vars;
+		$request    = $query1->request;
+
+		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
+		$reflection->setAccessible( true );
+
+		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request );
+
+		$request_with_placeholder = $wpdb->remove_placeholder_escape( $request );
+
+		$cache_key_2 = $reflection->invoke( $query1, $query_vars, $request_with_placeholder );
+
+		$this->assertSame( $cache_key_1, $cache_key_2, 'Cache key differs when using wpdb placeholder.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[] Test parameters.
+	 */
+	public function data_query_cache() {
+		return array(
+			'empty query'                    => array(
+				'args' => array(),
+			),
+			'cache search query'             => array(
+				'args' => array(
+					'search' => 'title',
+				),
+			),
+			'cache meta query'               => array(
+				'args' => array(
+					'meta_query' => array(
+						array(
+							'key' => 'color',
+						),
+					),
+				),
+			),
+			'cache meta query search'        => array(
+				'args' => array(
+					'meta_query' => array(
+						array(
+							'key'     => 'color',
+							'value'   => '00',
+							'compare' => 'LIKE',
+						),
+					),
+				),
+			),
+			'cache nested meta query search' => array(
+				'args' => array(
+					'meta_query' => array(
+						'relation' => 'AND',
+						array(
+							'key'     => 'color',
+							'value'   => '00',
+							'compare' => 'LIKE',
+						),
+						array(
+							'relation' => 'OR',
+							array(
+								'key'     => 'color',
+								'value'   => '00',
+								'compare' => 'LIKE',
+							),
+							array(
+								'relation' => 'AND',
+								array(
+									'key'     => 'wp_test_suite',
+									'value'   => '56802',
+									'compare' => 'LIKE',
+								),
+								array(
+									'key'     => 'wp_test_suite_too',
+									'value'   => '56802',
+									'compare' => 'LIKE',
+								),
+							),
+						),
+					),
+				),
+			),
+			'cache meta query not search'    => array(
+				'args' => array(
+					'meta_query' => array(
+						array(
+							'key'     => 'color',
+							'value'   => 'ff',
+							'compare' => 'NOT LIKE',
+						),
+					),
+				),
+			),
+		);
+	}
 }
