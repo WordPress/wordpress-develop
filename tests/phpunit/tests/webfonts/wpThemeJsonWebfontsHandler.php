@@ -129,7 +129,7 @@ EOF;
 	private function setup_theme_and_test( $theme_name ) {
 		switch_theme( $theme_name );
 		do_action( 'after_setup_theme' );
-		_wp_clean_theme_json_caches();
+		wp_clean_theme_json_caches();
 		do_action( 'wp_loaded' );
 		do_action( 'wp_enqueue_scripts' );
 	}

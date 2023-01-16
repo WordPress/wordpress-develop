@@ -313,12 +313,11 @@ function wp_theme_has_theme_json() {
 }
 
 /**
- * Private function to clean the caches under the theme_json group.
+ * Cleans the caches under the theme_json group.
  *
- * @since 6.1.2
- * @access private
+ * @since 6.2.0
  */
-function _wp_clean_theme_json_caches() {
+function wp_clean_theme_json_caches() {
 	wp_cache_delete( 'wp_theme_has_theme_json', 'theme_json' );
 	WP_Theme_JSON_Resolver::clean_cached_data();
 }

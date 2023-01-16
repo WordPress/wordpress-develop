@@ -110,7 +110,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		unset( $GLOBALS['wp_themes'] );
 
 		// Reset data between tests.
-		_wp_clean_theme_json_caches();
+		wp_clean_theme_json_caches();
 		parent::tear_down();
 	}
 
@@ -376,7 +376,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @ticket 56467
 	 */
 	public function test_get_core_data( $should_fire_filter, $core_is_cached, $blocks_are_cached ) {
-		_wp_clean_theme_json_caches();
+		wp_clean_theme_json_caches();
 
 		// If should cache core, then fire the method to cache it before running the tests.
 		if ( $core_is_cached ) {
@@ -621,7 +621,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		);
 		for ( $i = 0; $i < 3; $i++ ) {
 			WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
-			_wp_clean_theme_json_caches();
+			wp_clean_theme_json_caches();
 		}
 		$this->assertSame( 0, $global_styles_query_count, 'Unexpected SQL queries detected for the wp_global_style post type prior to creation.' );
 
@@ -634,7 +634,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$global_styles_query_count = 0;
 		for ( $i = 0; $i < 3; $i++ ) {
 			$new_user_cpt = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
-			_wp_clean_theme_json_caches();
+			wp_clean_theme_json_caches();
 			$this->assertSameSets( $user_cpt, $new_user_cpt, "User CPTs do not match on run {$i}." );
 		}
 		$this->assertSame( 1, $global_styles_query_count, 'Unexpected SQL queries detected for the wp_global_style post type after creation.' );
@@ -651,7 +651,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$query_count = get_num_queries();
 		for ( $i = 0; $i < 3; $i++ ) {
 			WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( $theme );
-			_wp_clean_theme_json_caches();
+			wp_clean_theme_json_caches();
 		}
 		$query_count = get_num_queries() - $query_count;
 		$this->assertSame( 0, $query_count, 'Unexpected SQL queries detected for the wp_global_style post type prior to creation.' );
