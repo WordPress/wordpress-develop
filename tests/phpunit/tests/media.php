@@ -3736,20 +3736,20 @@ EOF;
 		// Create header and footer template parts.
 		$header_post_id = self::factory()->post->create(
 			array(
-				'post_type'      => 'wp_template_part',
-				'post_status'    => 'publish',
-				'post_name'      => 'header',
-				'post_content'   => $header_img,
+				'post_type'    => 'wp_template_part',
+				'post_status'  => 'publish',
+				'post_name'    => 'header',
+				'post_content' => $header_img,
 			)
 		);
 		wp_set_post_terms( $header_post_id, WP_TEMPLATE_PART_AREA_HEADER, 'wp_template_part_area' );
 		wp_set_post_terms( $header_post_id, get_stylesheet(), 'wp_theme' );
 		$footer_post_id = self::factory()->post->create(
 			array(
-				'post_type'      => 'wp_template_part',
-				'post_status'    => 'publish',
-				'post_name'      => 'footer',
-				'post_content'   => $footer_img,
+				'post_type'    => 'wp_template_part',
+				'post_status'  => 'publish',
+				'post_name'    => 'footer',
+				'post_content' => $footer_img,
 			)
 		);
 		wp_set_post_terms( $footer_post_id, WP_TEMPLATE_PART_AREA_FOOTER, 'wp_template_part_area' );
