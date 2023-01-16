@@ -10,6 +10,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 	const TEST_THEME = 'block-theme';
 
+	const TEST_SHORTCODE = 'test_shortcode';
+
 	private static $template_post;
 	private static $template_part_post;
 
@@ -339,5 +341,27 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			}
 		}
 		$this->assertTrue( $has_html_files, 'contains at least one html file' );
+	}
+
+	/**
+	 * Should expand shortcodes in block template part.
+	 *
+	 * @ticket 56780
+	 * @covers ::block_template_part
+	 */
+	public function test_block_template_part_render_shortcode() {
+		add_shortcode( self::TEST_SHORTCODE, array( $this, 'render_test_shortcode' ) );
+
+		ob_start();
+		block_template_part( 'template-part-shortcode' );
+		$generated_content = ob_get_clean();
+
+		remove_shortcode( self::TEST_SHORTCODE );
+
+		$this->assertStringContainsString( 'test_shortcode_rendered', $generated_content );
+	}
+
+	public function render_test_shortcode() {
+		return 'test_shortcode_rendered';
 	}
 }
