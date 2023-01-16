@@ -16,6 +16,39 @@ class Tests_Locale extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57427
+	 *
+	 * @dataProvider data_property_initializes_to_array
+	 *
+	 * @param string $name Property name to test.
+	 */
+	public function test_property_initializes_to_array( $name ) {
+		$this->assertIsArray( $this->locale->$name, "WP_Locale::{$name} property should be an array" );
+
+		// Test a custom implementation when `init()` is not invoked in the constructor.
+		$wp_locale = new Custom_WP_Locale();
+		$this->assertIsArray( $wp_locale->$name, "Custom_WP_Locale::{$name} property should be an array" );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_property_initializes_to_array() {
+		return array(
+			'weekday'         => array( 'weekday' ),
+			'weekday_initial' => array( 'weekday_initial' ),
+			'weekday_abbrev'  => array( 'weekday_abbrev' ),
+			'month'           => array( 'month' ),
+			'month_genitive'  => array( 'month_genitive' ),
+			'month_abbrev'    => array( 'month_abbrev' ),
+			'meridiem'        => array( 'meridiem' ),
+			'number_format'   => array( 'number_format' ),
+		);
+	}
+
+	/**
 	 * @covers WP_Locale::get_weekday
 	 */
 	public function test_get_weekday() {
@@ -139,5 +172,13 @@ class Tests_Locale extends WP_UnitTestCase {
 		$this->assertTrue( $this->locale->is_rtl() );
 		$this->locale->text_direction = 'ltr';
 		$this->assertFalse( $this->locale->is_rtl() );
+	}
+}
+
+class Custom_WP_Locale extends WP_Locale {
+	public function __construct() {
+		// Do not initialize to test property initialization.
+		// $this->init();
+		$this->register_globals();
 	}
 }
