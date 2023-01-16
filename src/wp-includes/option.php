@@ -302,11 +302,14 @@ function wp_load_alloptions( $force_cache = false ) {
 	global $wpdb;
 
 	/**
-	 * This filter allows the wp load all options function to be shortcut.
+	 * Filters the array of alloptions before it is populated.
 	 *
-	 * @since 6.1.0
+	 * Returning a non-null value from the filter will effectively short circuit
+	 * wp_load_alloptions(), returning that value instead.
 	 *
-	 * @param null|array $pre if an array is returned then the wp_load_alloptions will be shortcuted and the array returned.
+	 * @since 6.2.0
+	 *
+	 * @param null|array $alloptions  An array of alloptions.
 	 * @param bool       $force_cache Whether to force an update of the local cache from the persistent cache. Default false.
 	 */
 	$pre = apply_filters( 'pre_wp_load_alloptions', null, $force_cache );
