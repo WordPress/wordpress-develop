@@ -1139,7 +1139,7 @@ class WP_Term_Query {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param array  $args Query arguments.
+	 * @param array  $args WP_Term_Query arguments.
 	 * @param string $sql  SQL statement.
 	 *
 	 * @return string Cache key.
