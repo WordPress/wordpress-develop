@@ -314,7 +314,7 @@ function wp_load_alloptions( $force_cache = false ) {
 	 */
 	$alloptions = apply_filters( 'pre_wp_load_alloptions', null, $force_cache );
 	if ( null !== $alloptions ) {
-		return $alloptions ;
+		return $alloptions;
 	}
 
 	if ( ! wp_installing() || ! is_multisite() ) {
