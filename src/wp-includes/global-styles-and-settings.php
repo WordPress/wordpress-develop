@@ -257,28 +257,28 @@ function wp_add_global_styles_for_blocks() {
 }
 
 /**
- * Whether a theme or its parent have a theme.json file.
+ * Checks whether a theme or its parent has a theme.json file.
  *
  * @since 6.2.0
  *
- * @return bool
+ * @return bool Returns true if theme or its parent has a theme.json file, false otherwise.
  */
 function wp_theme_has_theme_json() {
 	/*
 	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
-	 * See `wp_cache_add_non_persistent_groups` in src/wp-includes/load.php and other places.
+	 * @see `wp_cache_add_non_persistent_groups()`.
 	 *
 	 * The rationale for this is to make sure derived data from theme.json
 	 * is always fresh from the potential modifications done via hooks
 	 * that can use dynamic data (modify the stylesheet depending on some option,
 	 * settings depending on user permissions, etc.).
-	 * See some of the existing hooks to modify theme.json behaviour:
-	 * https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
+	 * For some of the existing hooks to modify theme.json behavior:
+	 * @see https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
 	 *
 	 * A different alternative considered was to invalidate the cache upon certain
 	 * events such as options add/update/delete, user meta, etc.
 	 * It was judged not enough, hence this approach.
-	 * See https://github.com/WordPress/gutenberg/pull/45372
+	 * @see https://github.com/WordPress/gutenberg/pull/45372
 	 */
 	$cache_group       = 'theme_json';
 	$cache_key         = 'wp_theme_has_theme_json';
@@ -289,9 +289,10 @@ function wp_theme_has_theme_json() {
 	 *
 	 * The reason not to store it as a boolean is to avoid working
 	 * with the $found parameter which apparently had some issues in some implementations
-	 * https://developer.wordpress.org/reference/functions/wp_cache_get/
+	 * @see https://developer.wordpress.org/reference/functions/wp_cache_get/
 	 *
-	 * Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme developers workflow.
+	 * Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme
+	 * developers workflow.
 	 */
 	if ( ! WP_DEBUG && is_int( $theme_has_support ) ) {
 		return (bool) $theme_has_support;
