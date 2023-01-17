@@ -344,12 +344,12 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Should expand shortcodes in block template part.
+	 * Should run `do_shortcode` in block template part.
 	 *
 	 * @ticket 56780
 	 * @covers ::block_template_part
 	 */
-	public function test_block_template_part_render_shortcode() {
+	public function test_block_template_part_do_shortcode() {
 		add_shortcode( self::TEST_SHORTCODE, array( $this, 'render_test_shortcode' ) );
 
 		ob_start();
@@ -358,7 +358,65 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 		remove_shortcode( self::TEST_SHORTCODE );
 
-		$this->assertStringContainsString( 'test_shortcode_rendered', $generated_content );
+		$this->assertStringContainsString( 'test_shortcode_rendered_unautop', $generated_content, 'Should render shortcodes in paragraph tags' );
+		$this->assertStringContainsString( 'test_shortcode_rendered_shortcode_block', $generated_content, 'Should render shortcodes in shortcode blocks' );
+	}
+
+	/**
+	 * Should run `wp_filter_content_tags` in block template part.
+	 *
+	 * @ticket 56780
+	 * @covers ::block_template_part
+	 */
+	public function test_block_template_part_wp_filter_content_tags() {
+		ob_start();
+		block_template_part( 'template-part-shortcode' );
+		$generated_content = ob_get_clean();
+
+		$this->assertStringContainsString( '<img decoding="async" loading="lazy" width="408" height="287" src="https://placekitten.com/408/287">', $generated_content );
+	}
+
+	/**
+	 * Should run `convert_smilies` in block template part.
+	 *
+	 * @ticket 56780
+	 * @covers ::block_template_part
+	 */
+	public function test_block_template_part_convert_smilies() {
+		ob_start();
+		block_template_part( 'template-part-shortcode' );
+		$generated_content = ob_get_clean();
+
+		$this->assertStringContainsString( '🙂', $generated_content );
+	}
+
+	/**
+	 * Should run `WP_Embed::autoembed` in block template part.
+	 *
+	 * @ticket 56780
+	 * @covers ::block_template_part
+	 */
+	public function test_block_template_part_autoembed() {
+		ob_start();
+		block_template_part( 'template-part-shortcode' );
+		$generated_content = ob_get_clean();
+
+		$this->assertStringContainsString( '<iframe', $generated_content, 'Should replace Youtube link with an iframe' );
+		$this->assertStringContainsString( 'src="https://www.youtube.com/embed/_H4vwkGvWjE', $generated_content, 'Should use the correct src for the iframe' );
+	}
+
+	/**
+	 * Should run `wptexturize` in block template part.
+	 *
+	 * @ticket 56780
+	 * @covers ::block_template_part
+	 */
+	public function test_block_template_part_wptexturize() {
+		ob_start();
+		block_template_part( 'template-part-shortcode' );
+		$generated_content = ob_get_clean();
+
+		$this->assertStringContainsString( '&#8217;cause today&#8217;s effort makes it worth tomorrow&#8217;s &#8220;holiday&#8221;&#8230;', $generated_content );
 	}
 
 	public function render_test_shortcode() {
