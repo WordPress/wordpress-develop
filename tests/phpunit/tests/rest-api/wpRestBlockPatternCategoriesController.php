@@ -74,8 +74,20 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 		self::$registry_instance_property->setValue( $test_registry );
 
 		// Register some categories in the test registry.
-		$test_registry->register( 'test', array( 'label' => 'Test', 'description' => 'Test description' ) );
-		$test_registry->register( 'query', array( 'label' => 'Query', 'description' => 'Query' ) );
+		$test_registry->register(
+			'test',
+			array(
+				'label'       => 'Test',
+				'description' => 'Test description',
+			)
+		);
+		$test_registry->register(
+			'query',
+			array(
+				'label'       => 'Query',
+				'description' => 'Query',
+			)
+		);
 	}
 
 	public static function wpTearDownAfterClass() {
