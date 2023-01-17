@@ -294,7 +294,7 @@ function wp_theme_has_theme_json() {
 	 * Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme
 	 * developer's workflow.
 	 *
-	 * TODO Replace `WP_DEBUG` once an "in development mode" check is available in Core.
+	 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
 	 */
 	if ( ! WP_DEBUG && is_int( $theme_has_support ) ) {
 		return (bool) $theme_has_support;
