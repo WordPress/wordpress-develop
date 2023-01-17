@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Test the add_filter method of WP_Hook
  *
