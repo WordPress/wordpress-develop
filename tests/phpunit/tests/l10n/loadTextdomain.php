@@ -28,7 +28,7 @@ class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 		/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 		global $wp_textdomain_registry;
 
-		$wp_textdomain_registry->reset();
+		$wp_textdomain_registry = new WP_Textdomain_Registry();
 	}
 
 	public function tear_down() {
@@ -36,7 +36,7 @@ class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 		/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 		global $wp_textdomain_registry;
 
-		$wp_textdomain_registry->reset();
+		$wp_textdomain_registry = new WP_Textdomain_Registry();
 
 		parent::tear_down();
 	}

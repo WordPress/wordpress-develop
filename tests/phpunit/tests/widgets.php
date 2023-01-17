@@ -593,7 +593,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 	/**
 	 * @ticket 52728
 	 */
-	function test_widget_display_callback_handles_arrayobject() {
+	public function test_widget_display_callback_handles_arrayobject() {
 		$widget = new WP_Widget_Text();
 
 		register_widget( $widget );
@@ -813,7 +813,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		);
 
 		wp_widgets_init();
-		require_once ABSPATH . '/wp-admin/includes/widgets.php';
+		require_once ABSPATH . 'wp-admin/includes/widgets.php';
 		$widget_id    = 'search-2';
 		$widget       = $wp_registered_widgets[ $widget_id ];
 		$params       = array(
@@ -1274,10 +1274,10 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$new_next_theme_sidebars = wp_map_sidebars_widgets( $prev_theme_sidebars );
 
 		$expected_sidebars = array(
-			'primary'             => 1,
 			'wp_inactive_widgets' => array(),
+			'primary'             => 1,
 		);
-		$this->assertEquals( $expected_sidebars, $new_next_theme_sidebars );
+		$this->assertSameSetsWithIndex( $expected_sidebars, $new_next_theme_sidebars );
 	}
 
 	/**
@@ -1295,7 +1295,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 		$new_next_theme_sidebars = wp_map_sidebars_widgets( $prev_theme_sidebars );
 
-		$this->assertEquals( $prev_theme_sidebars, $new_next_theme_sidebars );
+		$this->assertSameSetsWithIndex( $prev_theme_sidebars, $new_next_theme_sidebars );
 	}
 
 	/**
@@ -1318,7 +1318,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 			'secondary'           => array(),
 			'wp_inactive_widgets' => array(),
 		);
-		$this->assertEquals( $expected_sidebars, $new_next_theme_sidebars );
+		$this->assertSameSetsWithIndex( $expected_sidebars, $new_next_theme_sidebars );
 	}
 
 	/**
@@ -1362,6 +1362,6 @@ class Tests_Widgets extends WP_UnitTestCase {
 			'primary'             => array(),
 			'wp_inactive_widgets' => array(),
 		);
-		$this->assertEquals( $expected_sidebars, $new_next_theme_sidebars );
+		$this->assertSameSetsWithIndex( $expected_sidebars, $new_next_theme_sidebars );
 	}
 }
