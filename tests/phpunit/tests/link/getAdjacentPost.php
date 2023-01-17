@@ -397,13 +397,13 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		// Test getting the right result
 		$first_run = get_adjacent_post( false, '', true );
 		$this->assertEquals( $post_one, $first_run, 'Get first post when on second post' );
-		$this->assertNotEquals( $post_two, $first_run, 'Do not get second post when on second post'  );
+		$this->assertNotEquals( $post_two, $first_run, 'Do not get second post when on second post' );
 
 		// Query count to test caching.
 		$num_queries = get_num_queries();
-		$second_run = get_adjacent_post( false, '', true );
-		$this->assertNotEquals( $post_two, $second_run, 'Do not get second post when on second post on second run'  );
-		$this->assertEquals( $post_one, $second_run, 'Get first post when on second post on second run'  );
+		$second_run  = get_adjacent_post( false, '', true );
+		$this->assertNotEquals( $post_two, $second_run, 'Do not get second post when on second post on second run' );
+		$this->assertEquals( $post_one, $second_run, 'Get first post when on second post on second run' );
 		$this->assertSame( $num_queries, get_num_queries() );
 
 		// Test creating new post busts cache.
@@ -416,7 +416,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		$num_queries = get_num_queries();
 
 		$this->assertEquals( $post_one, get_adjacent_post( false, '', true ), 'Get first post after new post is added' );
-		$this->assertSame( get_num_queries() - $num_queries, 1, 'Check to see query uncached after adding new post'  );
+		$this->assertSame( get_num_queries() - $num_queries, 1, 'Check to see query uncached after adding new post' );
 
 		$this->assertEquals( $post_four, get_adjacent_post( true, '', false ), 'Get forth post after new post is added' );
 		$num_queries = get_num_queries();
@@ -425,7 +425,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		wp_set_object_terms( $post_four->ID, 'themes', 'post_tag', false );
 
 		$num_queries = get_num_queries();
-		$this->assertEquals( $post_four, get_adjacent_post( true, '', false ) , 'Check to see query uncached after adding new term'  );
-		$this->assertSame( get_num_queries() - $num_queries,2, 'Check to see query uncached after adding new term'  );
+		$this->assertEquals( $post_four, get_adjacent_post( true, '', false ), 'Check to see query uncached after adding new term' );
+		$this->assertSame( get_num_queries() - $num_queries, 2, 'Check to see query uncached after adding new term' );
 	}
 }
