@@ -283,8 +283,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$ret  = wp_save_image_file( $file, $img, $mime_type, 1 );
 
 		// Make assertions.
-		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned.' );
 		$this->assertNotWPError( $ret, 'Image failed to save - WP_Error returned.' );
+		$this->assertIsArray( $ret, 'Image failed to save - non-array response returned.' );
 		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image does not match.' );
 
 		// Clean up.
@@ -328,6 +328,29 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that wp_save_image_file() throws a deprecated argument notice when passed a GD resource.
+	 *
+	 * @ticket 6821
+	 * @expectedDeprecated wp_save_image_file
+	 * @requires function imagejpeg
+	 *
+	 * @covers ::wp_save_image_file
+	 */
+	public function test_wp_save_image_file_deprecated_argument_with_gd_resource() {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		// Call wp_save_image_file().
+		$file = wp_tempnam();
+		$img  = imagecreatefromjpeg( DIR_TESTDATA . '/images/canola.jpg' );
+		$ret  = wp_save_image_file( $file, $img, 'image/jpeg', 1 );
+
+		imagedestroy( $img );
+		unlink( $file );
+
+		$this->assertTrue( $ret, 'Image failed to save.' );
+	}
+
+	/**
 	 * Tests that a passed mime type overrides the extension in the filename when saving an image.
 	 *
 	 * @dataProvider data_image_editor_engine_classes
@@ -351,8 +374,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$ret       = $img->save( $file, $mime_type );
 
 		// Make assertions.
-		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned.' );
 		$this->assertNotWPError( $ret, 'Image failed to save - WP_Error returned.' );
+		$this->assertIsArray( $ret, 'Image failed to save - non-array response returned.' );
 		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image did not override file name.' );
 
 		// Clean up.
@@ -397,8 +420,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$ret  = $img->save( trailingslashit( $temp ) . $file );
 
 		// Make assertions.
-		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned.' );
 		$this->assertNotWPError( $ret, 'Image failed to save - WP Error returned.' );
+		$this->assertIsArray( $ret, 'Image failed to save - non-array response returned.' );
 		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image was not inferred correctly.' );
 
 		// Clean up.
@@ -656,7 +679,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotEmpty( $attachment_id );
+		$this->assertNotWPError( $attachment_id, 'Could not create attachment - WP_Error returned.' );
+		$this->assertIsInt( $attachment_id, 'Could not create attachment - non-integer response returned.' );
 
 		$temp_dir = get_temp_dir();
 
@@ -733,7 +757,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotEmpty( $attachment_id );
+		$this->assertNotWPError( $attachment_id, 'Could not create attachment - WP_Error returned.' );
+		$this->assertIsInt( $attachment_id, 'Could not create attachment - non-integer response returned.' );
 
 		$temp_dir = get_temp_dir();
 
@@ -806,7 +831,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotEmpty( $attachment_id );
+		$this->assertNotWPError( $attachment_id, 'Could not create attachment - WP_Error returned.' );
+		$this->assertIsInt( $attachment_id, 'Could not create attachment - non-integer response returned.' );
 
 		add_image_size( 'test-size', 100, 100 );
 		add_filter( 'fallback_intermediate_image_sizes', array( $this, 'filter_fallback_intermediate_image_sizes' ), 10, 2 );
