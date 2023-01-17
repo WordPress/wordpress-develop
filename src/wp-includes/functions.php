@@ -72,7 +72,7 @@ function mysql2date( $format, $date, $translate = true ) {
 function current_time( $type, $gmt = 0 ) {
 	// Don't use non-GMT timestamp, unless you know the difference and really need to.
 	if ( 'timestamp' === $type || 'U' === $type ) {
-		return $gmt ? time() : time() + (int) ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
+		return $gmt ? time() : time() + ( (int) get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
 	}
 
 	if ( 'mysql' === $type ) {
@@ -976,7 +976,7 @@ function do_enclose( $content, $post ) {
  *
  * @param string $url        URL to retrieve HTTP headers from.
  * @param bool   $deprecated Not Used.
- * @return \Requests_Utility_CaseInsensitiveDictionary|false Headers on success, false on failure.
+ * @return \WpOrg\Requests\Utility\CaseInsensitiveDictionary|false Headers on success, false on failure.
  */
 function wp_get_http_headers( $url, $deprecated = false ) {
 	if ( ! empty( $deprecated ) ) {
