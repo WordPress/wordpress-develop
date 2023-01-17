@@ -197,9 +197,8 @@ jobs:
         run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c phpunit.xml.dist --group external-http
 
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
-      # This test group is not (yet) run against PHP 8.2 as there is no stable Xdebug version available yet for PHP 8.2.
       - name: Run (Xdebug) tests
-        if: ${{ ! matrix.split_slow && matrix.php != '8.2' }}
+        if: ${{ ! matrix.split_slow }}
         run: LOCAL_PHP_XDEBUG=true node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit -v --group xdebug --exclude-group __fakegroup__
 
       - name: Ensure version-controlled files are not modified or deleted

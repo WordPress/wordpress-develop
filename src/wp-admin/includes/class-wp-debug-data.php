@@ -29,12 +29,13 @@ class WP_Debug_Data {
 	 * @since 5.5.0 Added pretty permalinks support information.
 	 *
 	 * @throws ImagickException
-	 * @global wpdb $wpdb WordPress database abstraction object.
+	 * @global wpdb  $wpdb               WordPress database abstraction object.
+	 * @global array $_wp_theme_features
 	 *
 	 * @return array The debug data for the site.
 	 */
 	public static function debug_data() {
-		global $wpdb;
+		global $wpdb, $_wp_theme_features;
 
 		// Save few function calls.
 		$upload_dir             = wp_upload_dir();
@@ -1064,7 +1065,6 @@ class WP_Debug_Data {
 		}
 
 		// Populate the section for the currently active theme.
-		global $_wp_theme_features;
 		$theme_features = array();
 
 		if ( ! empty( $_wp_theme_features ) ) {
@@ -1557,6 +1557,8 @@ class WP_Debug_Data {
 	 * Fetches the total size of all the database tables for the active database user.
 	 *
 	 * @since 5.2.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @return int The size of the database, in bytes.
 	 */

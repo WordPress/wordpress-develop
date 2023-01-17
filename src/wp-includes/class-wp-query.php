@@ -1779,7 +1779,8 @@ class WP_Query {
 	 * @since 3.9.0 The `$default_value` argument was introduced.
 	 *
 	 * @param string $query_var     Query variable key.
-	 * @param mixed  $default_value Optional. Value to return if the query variable is not set. Default empty string.
+	 * @param mixed  $default_value Optional. Value to return if the query variable is not set.
+	 *                              Default empty string.
 	 * @return mixed Contents of the query variable.
 	 */
 	public function get( $query_var, $default_value = '' ) {
@@ -3482,8 +3483,7 @@ class WP_Query {
 			$this->posts = array_map( 'get_post', $this->posts );
 
 			if ( $q['cache_results'] ) {
-				$post_ids = wp_list_pluck( $this->posts, 'ID' );
-				_prime_post_caches( $post_ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+				update_post_caches( $this->posts, $post_type, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 			}
 
 			/** @var WP_Post */

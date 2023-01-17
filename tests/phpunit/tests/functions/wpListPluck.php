@@ -195,13 +195,13 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_test_wp_list_pluck
 	 *
-	 * @param array      $list      List of objects or arrays.
-	 * @param int|string $field     Field from the object to place instead of the entire object
-	 * @param int|string $index_key Field from the object to use as keys for the new array.
-	 * @param array      $expected  Expected result.
+	 * @param array      $input_list List of objects or arrays.
+	 * @param int|string $field      Field from the object to place instead of the entire object
+	 * @param int|string $index_key  Field from the object to use as keys for the new array.
+	 * @param array      $expected   Expected result.
 	 */
-	public function test_wp_list_pluck( $list, $field, $index_key, $expected ) {
-		$this->assertSameSetsWithIndex( $expected, wp_list_pluck( $list, $field, $index_key ) );
+	public function test_wp_list_pluck( $input_list, $field, $index_key, $expected ) {
+		$this->assertSameSetsWithIndex( $expected, wp_list_pluck( $input_list, $field, $index_key ) );
 	}
 
 	public function data_test_wp_list_pluck() {

@@ -1033,6 +1033,8 @@ function set_transient( $transient, $value, $expiration = 0 ) {
  * The multi-table delete syntax is used to delete the transient record
  * from table a, and the corresponding transient_timeout record from table b.
  *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
  * @since 4.9.0
  *
  * @param bool $force_db Optional. Force cleanup to run against the database even when an external object cache is used.
@@ -1465,7 +1467,7 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 	if ( ! is_multisite() ) {
 		/** This filter is documented in wp-includes/option.php */
 		$default_value = apply_filters( 'default_site_option_' . $option, $default_value, $option, $network_id );
-		$value   = get_option( $option, $default_value );
+		$value         = get_option( $option, $default_value );
 	} else {
 		$cache_key = "$network_id:$option";
 		$value     = wp_cache_get( $cache_key, 'site-options' );
