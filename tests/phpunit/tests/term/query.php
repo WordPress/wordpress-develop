@@ -889,9 +889,9 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request );
 
-		$request_with_placeholder = $wpdb->remove_placeholder_escape( $request );
+		$request_without_placeholder = $wpdb->remove_placeholder_escape( $request );
 
-		$cache_key_2 = $reflection->invoke( $query1, $query_vars, $request_with_placeholder );
+		$cache_key_2 = $reflection->invoke( $query1, $query_vars, $request_without_placeholder );
 
 		$this->assertSame( $cache_key_1, $cache_key_2, 'Cache key differs when using wpdb placeholder.' );
 	}
@@ -903,15 +903,25 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	 */
 	public function data_query_cache() {
 		return array(
-			'empty query'                    => array(
+			'empty query'                => array(
 				'args' => array(),
 			),
-			'cache search query'             => array(
+			'search query'               => array(
 				'args' => array(
 					'search' => 'title',
 				),
 			),
-			'cache meta query'               => array(
+			'search name query'          => array(
+				'args' => array(
+					'name__like' => 'title',
+				),
+			),
+			'search description query'   => array(
+				'args' => array(
+					'description__like' => 'title',
+				),
+			),
+			'meta query'                 => array(
 				'args' => array(
 					'meta_query' => array(
 						array(
@@ -920,7 +930,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 					),
 				),
 			),
-			'cache meta query search'        => array(
+			'meta query search'          => array(
 				'args' => array(
 					'meta_query' => array(
 						array(
@@ -931,7 +941,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 					),
 				),
 			),
-			'cache nested meta query search' => array(
+			'nested meta query search'   => array(
 				'args' => array(
 					'meta_query' => array(
 						'relation' => 'AND',
@@ -964,7 +974,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 					),
 				),
 			),
-			'cache meta query not search'    => array(
+			'meta query not like search' => array(
 				'args' => array(
 					'meta_query' => array(
 						array(
