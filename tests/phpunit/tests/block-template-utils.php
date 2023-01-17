@@ -347,6 +347,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * Should run `do_shortcode` in block template part.
 	 *
 	 * @ticket 56780
+	 *
 	 * @covers ::block_template_part
 	 */
 	public function test_block_template_part_do_shortcode() {
@@ -366,6 +367,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * Should run `wp_filter_content_tags` in block template part.
 	 *
 	 * @ticket 56780
+	 *
 	 * @covers ::block_template_part
 	 */
 	public function test_block_template_part_wp_filter_content_tags() {
@@ -380,6 +382,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * Should run `convert_smilies` in block template part.
 	 *
 	 * @ticket 56780
+	 *
 	 * @covers ::block_template_part
 	 */
 	public function test_block_template_part_convert_smilies() {
@@ -394,6 +397,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * Should run `WP_Embed::autoembed` in block template part.
 	 *
 	 * @ticket 56780
+	 *
 	 * @covers ::block_template_part
 	 */
 	public function test_block_template_part_autoembed() {
@@ -409,6 +413,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * Should run `wptexturize` in block template part.
 	 *
 	 * @ticket 56780
+	 *
 	 * @covers ::block_template_part
 	 */
 	public function test_block_template_part_wptexturize() {
