@@ -1462,8 +1462,7 @@ class WP_Query {
 				$andor_op = 'OR';
 			}
 
-			$search_columns_include_title = in_array( 'post_title', $search_columns, true );
-			if ( $n && ! $exclude && $search_columns_include_title ) {
+			if ( $n && ! $exclude ) {
 				$like                        = '%' . $wpdb->esc_like( $term ) . '%';
 				$q['search_orderby_title'][] = $wpdb->prepare( "{$wpdb->posts}.post_title LIKE %s", $like );
 			}
