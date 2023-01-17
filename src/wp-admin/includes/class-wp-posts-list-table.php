@@ -1101,7 +1101,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		echo '<strong>';
 
 		$title = $post->post_title;
-		$title = empty( $title ) ? __( '(no title)' ) : strip_tags( $title, array( 'sub', 'sup' ) );
+		$title = empty( $title ) ? __( '(no title)' ) : strip_tags( $title );
 
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
 			printf(
