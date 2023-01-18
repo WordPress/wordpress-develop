@@ -4,6 +4,10 @@
  * @group query
  */
 class Tests_Query_NoFoundRows extends WP_UnitTestCase {
+
+	/**
+	 * @ticket 47280
+	 */
 	public function test_no_found_rows_default() {
 		$q = new WP_Query(
 			array(
@@ -11,9 +15,12 @@ class Tests_Query_NoFoundRows extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertStringContainsString( 'SQL_CALC_FOUND_ROWS', $q->request );
+		$this->assertStringNotContainsString( 'SQL_CALC_FOUND_ROWS', $q->request );
 	}
 
+	/**
+	 * @ticket 47280
+	 */
 	public function test_no_found_rows_false() {
 		$q = new WP_Query(
 			array(
@@ -22,9 +29,12 @@ class Tests_Query_NoFoundRows extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertStringContainsString( 'SQL_CALC_FOUND_ROWS', $q->request );
+		$this->assertStringNotContainsString( 'SQL_CALC_FOUND_ROWS', $q->request );
 	}
 
+	/**
+	 * @ticket 47280
+	 */
 	public function test_no_found_rows_0() {
 		$q = new WP_Query(
 			array(
@@ -33,9 +43,12 @@ class Tests_Query_NoFoundRows extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertStringContainsString( 'SQL_CALC_FOUND_ROWS', $q->request );
+		$this->assertStringNotContainsString( 'SQL_CALC_FOUND_ROWS', $q->request );
 	}
 
+	/**
+	 * @ticket 47280
+	 */
 	public function test_no_found_rows_empty_string() {
 		$q = new WP_Query(
 			array(
@@ -44,9 +57,12 @@ class Tests_Query_NoFoundRows extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertStringContainsString( 'SQL_CALC_FOUND_ROWS', $q->request );
+		$this->assertStringNotContainsString( 'SQL_CALC_FOUND_ROWS', $q->request );
 	}
 
+	/**
+	 * @ticket 47280
+	 */
 	public function test_no_found_rows_true() {
 		$q = new WP_Query(
 			array(
@@ -58,6 +74,9 @@ class Tests_Query_NoFoundRows extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'SQL_CALC_FOUND_ROWS', $q->request );
 	}
 
+	/**
+	 * @ticket 47280
+	 */
 	public function test_no_found_rows_non_bool_cast_to_true() {
 		$q = new WP_Query(
 			array(
@@ -71,6 +90,7 @@ class Tests_Query_NoFoundRows extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 29552
+	 * @ticket 47280
 	 */
 	public function test_no_found_rows_default_with_nopaging_true() {
 		$p = self::factory()->post->create();
@@ -88,6 +108,7 @@ class Tests_Query_NoFoundRows extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 29552
+	 * @ticket 47280
 	 */
 	public function test_no_found_rows_default_with_postsperpage_minus1() {
 		$p = self::factory()->post->create();
