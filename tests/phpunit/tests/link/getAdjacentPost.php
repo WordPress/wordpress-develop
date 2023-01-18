@@ -394,7 +394,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		// Test normal post adjacency.
 		$this->go_to( get_permalink( $post_two->ID ) );
 
-		// Test getting the right result
+		// Test getting the right result.
 		$first_run = get_adjacent_post( false, '', true );
 		$this->assertEquals( $post_one, $first_run, 'Did not get first post when on second post' );
 		$this->assertNotEquals( $post_two, $first_run, 'Got second post when on second post' );
