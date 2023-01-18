@@ -677,8 +677,10 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 
 	/**
 	 * @ticket 49532
+	 *
+	 * @covers WP_REST_Autosaves_Controller::create_post_autosave
 	 */
-	public function test_rest_autosave_do_not_create_duplicate_revision_when_it_call_multiple_times() {
+	public function test_rest_autosave_do_not_create_autosave_when_post_is_unchanged() {
 		// Create a post by the editor.
 		$post_data = array(
 			'post_content' => 'Test post content',
@@ -695,17 +697,15 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 			'post_content' => $post_data['post_content'],
 		);
 
-		// Create multiple autosaves response.
-		for ( $i = 0; $i < 5; $i++ ) {
-			$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/autosaves' );
-			$request->add_header( 'content-type', 'application/json' );
-			$request->set_body( wp_json_encode( $autosave_data ) );
+		// Create autosaves response.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/autosaves' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $autosave_data ) );
 
-			$response = rest_get_server()->dispatch( $request );
-			$data     = $response->get_data();
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
 
-			$this->assertSame( 400, $response->get_status() );
-			$this->assertSame( 'rest_autosave_no_changes', $data['code'] );
-		}
+		$this->assertSame( 400, $response->get_status(), 'Response status is not 400.' );
+		$this->assertSame( 'rest_autosave_no_changes', $data['code'], 'Response "code" is not "rest_autosave_no_changes"' );
 	}
 }
