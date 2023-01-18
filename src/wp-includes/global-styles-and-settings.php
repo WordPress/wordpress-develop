@@ -320,7 +320,7 @@ function wp_theme_has_theme_json() {
  *
  * @since 6.2.0
  */
-function wp_clean_theme_json_caches() {
+function wp_clean_theme_json_cache() {
 	wp_cache_delete( 'wp_theme_has_theme_json', 'theme_json' );
 	WP_Theme_JSON_Resolver::clean_cached_data();
 }
