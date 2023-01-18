@@ -2633,12 +2633,11 @@ function wp_opcache_invalidate( $filepath, $force = false ) {
  *
  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
- * @param string|array $dir  The path to invalidate, or the results of ::dirlist().
- * @param string       $path The path to invalidate for nested directories.
+ * @param string $dir The path to invalidate.
  *
  * @return void
  */
-function wp_opcache_invalidate_directory( $dir, $path = '' ) {
+function wp_opcache_invalidate_directory( $dir ) {
 	global $wp_filesystem;
 
 	if ( ! is_string( $dir ) || '' === trim( $dir ) ) {
