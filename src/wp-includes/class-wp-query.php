@@ -4099,6 +4099,7 @@ class WP_Query implements JsonSerializable, Serializable {
 	 *
 	 * @return array The properties of the object as an associative array.
 	 */
+	#[ReturnTypeWillChange]
 	public function jsonSerialize() {
 		$this->set_found_posts();
 
