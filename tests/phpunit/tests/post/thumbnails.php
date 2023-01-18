@@ -425,10 +425,10 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		set_post_thumbnail( self::$post, self::$attachment_id );
 
 		$html = get_the_post_thumbnail( self::$post, 'post-thumbnail', array( 'loading' => 'eager' ) );
-		$this->assertStringContainsString( ' loading="eager"', $html, 'Attributes array with loading=eager was overwritten.' );
+		$this->assertStringContainsString( ' loading="eager"', $html, 'loading=eager was not present in img tag because attributes array with loading=eager was overwritten.' );
 
 		$html = get_the_post_thumbnail( self::$post, 'post-thumbnail', 'loading=eager' );
-		$this->assertStringContainsString( ' loading="eager"', $html, 'Attributes string with loading=eager was overwritten.' );
+		$this->assertStringContainsString( ' loading="eager"', $html, 'loading=eager was not present in img tag because attributes string with loading=eager was overwritten.' );
 	}
 
 	/**
