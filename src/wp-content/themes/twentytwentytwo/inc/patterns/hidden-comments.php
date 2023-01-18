@@ -1,9 +1,9 @@
 <?php
 /**
- * Comments block (for WP >= 6.1), or legacy Post Comments block.
+ * Comments block (for WP >= 6.2), or legacy Post Comments block.
  */
 
-if ( WP_Block_Type_Registry::get_instance()->is_registered( 'core/comments' ) && version_compare( $GLOBALS['wp_version'], '6.1', '>=' ) ) {
+if ( WP_Block_Type_Registry::get_instance()->is_registered( 'core/comments' ) && version_compare( $GLOBALS['wp_version'], '6.2', '>=' ) ) {
 	return array(
 		'title'    => __( 'Comments block', 'twentytwentytwo' ),
 		'inserter' => false,
