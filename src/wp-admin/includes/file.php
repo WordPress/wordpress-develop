@@ -2641,16 +2641,42 @@ function wp_opcache_invalidate( $filepath, $force = false ) {
 function wp_opcache_invalidate_directory( $dir, $path = '' ) {
 	global $wp_filesystem;
 
-	if ( is_string( $dir ) ) {
-		$path = $dir;
-		$dir  = $wp_filesystem->dirlist( $dir, false, true );
+	if ( ! is_string( $dir ) || '' === trim( $dir ) ) {
+		$error_message = sprintf(
+			/* translators: %s: The '$dir' argument. */
+			__( 'The %s argument must be a non-empty string.' ),
+			'<code>$dir</code>'
+		);
+		trigger_error( $error_message );
+		return;
 	}
 
-	foreach ( $dir as $name => $details ) {
-		if ( ! empty( $details['files'] ) ) {
-			wp_opcache_invalidate_directory( $details['files'], trailingslashit( $path ) . trailingslashit( $name ) );
-			continue;
-		}
-		wp_opcache_invalidate( trailingslashit( $path ) . $name );
+	$dirlist = $wp_filesystem->dirlist( $dir, false, true );
+
+	if ( empty( $dirlist ) ) {
+		return;
 	}
+
+	/*
+	 * Recursively invalidate opcache of nested files.
+	 *
+	 * @param array  $dirlist Array of file/directory information from WP_Filesystem_Base::dirlist().
+	 * @param string $path    Path to directory.
+	 */
+	$invalidate_directory = function( $dirlist, $path ) use ( &$invalidate_directory ) {
+		$path = trailingslashit( $path );
+
+		foreach ( $dirlist as $name => $details ) {
+			if ( 'f' === $details['type'] ) {
+				wp_opcache_invalidate( $path . $name, true );
+				continue;
+			}
+
+			if ( is_array( $details['files'] ) && ! empty( $details['files'] ) ) {
+				$invalidate_directory( $details['files'], $path . $name );
+			}
+		}
+	};
+
+	$invalidate_directory( $dirlist, $dir );
 }
