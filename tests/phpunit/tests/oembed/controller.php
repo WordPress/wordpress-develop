@@ -84,13 +84,13 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	/**
 	 * Intercept oEmbed requests and mock responses.
 	 *
-	 * @param mixed  $preempt Whether to preempt an HTTP request's return value. Default false.
-	 * @param mixed  $r       HTTP request arguments.
-	 * @param string $url     The request URL.
+	 * @param false|array|WP_Error $response    A preemptive return value of an HTTP request. Default false.
+	 * @param array                $parsed_args HTTP request arguments.
+	 * @param string               $url         The request URL.
 	 * @return array Response data.
 	 */
-	public function mock_embed_request( $preempt, $r, $url ) {
-		unset( $preempt, $r );
+	public function mock_embed_request( $response, $parsed_args, $url ) {
+		unset( $response, $parsed_args );
 
 		$parsed_url = wp_parse_url( $url );
 		$query      = isset( $parsed_url['query'] ) ? $parsed_url['query'] : '';
