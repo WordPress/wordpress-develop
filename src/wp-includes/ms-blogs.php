@@ -348,12 +348,12 @@ function clean_site_details_cache( $site_id = 0 ) {
  *
  * @since MU (3.0.0)
  *
- * @param int    $id      A blog ID. Can be null to refer to the current blog.
- * @param string $option  Name of option to retrieve. Expected to not be SQL-escaped.
- * @param mixed  $default Optional. Default value to return if the option does not exist.
+ * @param int    $id            A blog ID. Can be null to refer to the current blog.
+ * @param string $option        Name of option to retrieve. Expected to not be SQL-escaped.
+ * @param mixed  $default_value Optional. Default value to return if the option does not exist.
  * @return mixed Value set for the option.
  */
-function get_blog_option( $id, $option, $default = false ) {
+function get_blog_option( $id, $option, $default_value = false ) {
 	$id = (int) $id;
 
 	if ( empty( $id ) ) {
@@ -361,11 +361,11 @@ function get_blog_option( $id, $option, $default = false ) {
 	}
 
 	if ( get_current_blog_id() == $id ) {
-		return get_option( $option, $default );
+		return get_option( $option, $default_value );
 	}
 
 	switch_to_blog( $id );
-	$value = get_option( $option, $default );
+	$value = get_option( $option, $default_value );
 	restore_current_blog();
 
 	/**
@@ -575,7 +575,7 @@ function switch_to_blog( $new_blog_id, $deprecated = null ) {
 				);
 			}
 
-			wp_cache_add_non_persistent_groups( array( 'counts', 'plugins' ) );
+			wp_cache_add_non_persistent_groups( array( 'counts', 'plugins', 'theme_json' ) );
 		}
 	}
 
@@ -666,7 +666,7 @@ function restore_current_blog() {
 				);
 			}
 
-			wp_cache_add_non_persistent_groups( array( 'counts', 'plugins' ) );
+			wp_cache_add_non_persistent_groups( array( 'counts', 'plugins', 'theme_json' ) );
 		}
 	}
 

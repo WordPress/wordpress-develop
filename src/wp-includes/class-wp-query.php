@@ -1779,7 +1779,8 @@ class WP_Query {
 	 * @since 3.9.0 The `$default_value` argument was introduced.
 	 *
 	 * @param string $query_var     Query variable key.
-	 * @param mixed  $default_value Optional. Value to return if the query variable is not set. Default empty string.
+	 * @param mixed  $default_value Optional. Value to return if the query variable is not set.
+	 *                              Default empty string.
 	 * @return mixed Contents of the query variable.
 	 */
 	public function get( $query_var, $default_value = '' ) {
@@ -3103,44 +3104,26 @@ class WP_Query {
 		 * cannot be cached. Note the space before `RAND` in the string
 		 * search, that to ensure against a collision with another
 		 * function.
+		 *
+		 * If `$fields` has been modified by the `posts_fields`,
+		 * `posts_fields_request`, `post_clauses` or `posts_clauses_request`
+		 * filters, then caching is disabled to prevent caching collisions.
 		 */
 		$id_query_is_cacheable = ! str_contains( strtoupper( $orderby ), ' RAND(' );
+
+		$cacheable_field_values = array(
+			"{$wpdb->posts}.*",
+			"{$wpdb->posts}.ID, {$wpdb->posts}.post_parent",
+			"{$wpdb->posts}.ID",
+		);
+
+		if ( ! in_array( $fields, $cacheable_field_values, true ) ) {
+			$id_query_is_cacheable = false;
+		}
+
 		if ( $q['cache_results'] && $id_query_is_cacheable ) {
-			$cache_args = $q;
-
-			unset(
-				$cache_args['suppress_filters'],
-				$cache_args['cache_results'],
-				$cache_args['fields'],
-				$cache_args['update_post_meta_cache'],
-				$cache_args['update_post_term_cache'],
-				$cache_args['lazy_load_term_meta'],
-				$cache_args['update_menu_item_cache'],
-				$cache_args['search_orderby_title']
-			);
-
 			$new_request = str_replace( $fields, "{$wpdb->posts}.*", $this->request );
-			$new_request = $wpdb->remove_placeholder_escape( $new_request );
-			$key         = md5( serialize( $cache_args ) . $new_request );
-
-			$last_changed = wp_cache_get_last_changed( 'posts' );
-			if ( ! empty( $this->tax_query->queries ) ) {
-				$last_changed .= wp_cache_get_last_changed( 'terms' );
-			}
-
-			$cache_key = "wp_query:$key:$last_changed";
-
-			/**
-			 * Filters query cache key.
-			 *
-			 * @since 6.1.0
-			 *
-			 * @param string   $cache_key   Cache key.
-			 * @param array    $cache_args  Query args used to generate the cache key.
-			 * @param string   $new_request SQL Query.
-			 * @param WP_Query $query       The WP_Query instance.
-			 */
-			$cache_key = apply_filters( 'wp_query_cache_key', $cache_key, $cache_args, $new_request, $this );
+			$cache_key   = $this->generate_cache_key( $q, $new_request );
 
 			$cache_found = false;
 			if ( null === $this->posts ) {
@@ -3493,8 +3476,7 @@ class WP_Query {
 			$this->posts = array_map( 'get_post', $this->posts );
 
 			if ( $q['cache_results'] ) {
-				$post_ids = wp_list_pluck( $this->posts, 'ID' );
-				_prime_post_caches( $post_ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+				update_post_caches( $this->posts, $post_type, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 			}
 
 			/** @var WP_Post */
@@ -3604,7 +3586,15 @@ class WP_Query {
 		global $post;
 
 		if ( ! $this->in_the_loop ) {
-			update_post_author_caches( $this->posts );
+			// Only prime the post cache for queries limited to the ID field.
+			$post_ids = array_filter( $this->posts, 'is_numeric' );
+			// Exclude any falsey values, such as 0.
+			$post_ids = array_filter( $post_ids );
+			if ( $post_ids ) {
+				_prime_post_caches( $post_ids, $this->query_vars['update_post_term_cache'], $this->query_vars['update_post_meta_cache'] );
+			}
+			$post_objects = array_map( 'get_post', $this->posts );
+			update_post_author_caches( $post_objects );
 		}
 
 		$this->in_the_loop = true;
@@ -4755,6 +4745,62 @@ class WP_Query {
 
 		return $elements;
 	}
+
+	/**
+	 * Generate cache key.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param array  $args Query arguments.
+	 * @param string $sql  SQL statement.
+	 *
+	 * @return string Cache key.
+	 */
+	protected function generate_cache_key( array $args, $sql ) {
+		global $wpdb;
+
+		unset(
+			$args['cache_results'],
+			$args['fields'],
+			$args['lazy_load_term_meta'],
+			$args['update_post_meta_cache'],
+			$args['update_post_term_cache'],
+			$args['update_menu_item_cache'],
+			$args['suppress_filters']
+		);
+
+		$placeholder = $wpdb->placeholder_escape();
+		array_walk_recursive(
+			$args,
+			/*
+			 * Replace wpdb placeholders with the string used in the database
+			 * query to avoid unreachable cache keys. This is necessary because
+			 * the placeholder is randomly generated in each request.
+			 *
+			 * $value is passed by reference to allow it to be modified.
+			 * array_walk_recursive() does not return an array.
+			 */
+			function ( &$value ) use ( $wpdb, $placeholder ) {
+				if ( is_string( $value ) && str_contains( $value, $placeholder ) ) {
+					$value = $wpdb->remove_placeholder_escape( $value );
+				}
+			}
+		);
+
+		// Replace wpdb placeholder in the SQL statement used by the cache key.
+		$sql = $wpdb->remove_placeholder_escape( $sql );
+		$key = md5( serialize( $args ) . $sql );
+
+		$last_changed = wp_cache_get_last_changed( 'posts' );
+		if ( ! empty( $this->tax_query->queries ) ) {
+			$last_changed .= wp_cache_get_last_changed( 'terms' );
+		}
+
+		return "wp_query:$key:$last_changed";
+	}
+
 	/**
 	 * After looping through a nested query, this function
 	 * restores the $post global to the current post in this query.

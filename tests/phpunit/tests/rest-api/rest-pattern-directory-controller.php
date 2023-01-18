@@ -522,10 +522,10 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	private static function mock_successful_response( $action, $expects_results ) {
 		add_filter(
 			'pre_http_request',
-			static function ( $preempt, $args, $url ) use ( $action, $expects_results ) {
+			static function ( $response, $parsed_args, $url ) use ( $action, $expects_results ) {
 
 				if ( 'api.wordpress.org' !== wp_parse_url( $url, PHP_URL_HOST ) ) {
-					return $preempt;
+					return $response;
 				}
 
 				$response = array(
@@ -556,7 +556,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	private static function prevent_requests_to_host( $blocked_host = 'api.wordpress.org' ) {
 		add_filter(
 			'pre_http_request',
-			static function ( $return, $args, $url ) use ( $blocked_host ) {
+			static function ( $response, $parsed_args, $url ) use ( $blocked_host ) {
 
 				if ( wp_parse_url( $url, PHP_URL_HOST ) === $blocked_host ) {
 					return new WP_Error(
@@ -567,7 +567,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 
 				}
 
-				return $return;
+				return $response;
 			},
 			10,
 			3
