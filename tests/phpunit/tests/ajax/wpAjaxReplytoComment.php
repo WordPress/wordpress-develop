@@ -98,7 +98,7 @@ class Tests_Ajax_wpAjaxReplytoComment extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_as_subscriber() {
 
-		// Become an administrator.
+		// Become a subscriber.
 		$this->_setRole( 'subscriber' );
 
 		// Get a comment.
