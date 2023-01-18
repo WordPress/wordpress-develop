@@ -593,8 +593,8 @@ class WP_Upgrader {
 			}
 		}
 
-		// Copy new version of item into place.
-		$result = copy_dir( $source, $remote_destination );
+		// Move new version of directory into place.
+		$result = move_dir( $source, $remote_destination );
 
 		// Clear the working folder?
 		if ( $args['clear_working'] ) {
