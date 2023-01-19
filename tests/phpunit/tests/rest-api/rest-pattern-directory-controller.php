@@ -375,36 +375,136 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	}
 
 	/**
-	 * Data provider for test_get_items_query_args.
+	 * Data provider.
 	 *
-	 * @since 6.2.0
+	 * return array[]
 	 */
 	public function data_get_items_query_args() {
 		return array(
-			'per_page default'   => array( 'per_page', false, false, 100 ),
-			'per_page custom-1'  => array( 'per_page', 5, false, 5 ),
-			'per_page custom-2'  => array( 'per_page', 50, false, 50 ),
-			'per_page invalid-1' => array( 'per_page', 200, true, 'rest_invalid_param' ),
-			'per_page invalid-2' => array( 'per_page', 'abc', true, 'rest_invalid_param' ),
+			'per_page default'   => array(
+				'param'    => 'per_page',
+				'value'    => false,
+				'is_error' => false,
+				'expected' => 100,
+			),
+			'per_page custom-1'  => array(
+				'param'    => 'per_page',
+				'value'    => 5,
+				'is_error' => false,
+				'expected' => 5,
+			),
+			'per_page custom-2'  => array(
+				'param'    => 'per_page',
+				'value'    => 50,
+				'is_error' => false,
+				'expected' => 50,
+			),
+			'per_page invalid-1' => array(
+				'param'    => 'per_page',
+				'value'    => 200,
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
+			'per_page invalid-2' => array(
+				'param'    => 'per_page',
+				'value'    => 'abc',
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
 
-			'page default'       => array( 'page', false, false, 1 ),
-			'page custom'        => array( 'page', 5, false, 5 ),
-			'page invalid'       => array( 'page', 'abc', true, 'rest_invalid_param' ),
+			'page default'       => array(
+				'param'    => 'page',
+				'value'    => false,
+				'is_error' => false,
+				'expected' => 1,
+			),
+			'page custom'        => array(
+				'param'    => 'page',
+				'value'    => 5,
+				'is_error' => false,
+				'expected' => 5,
+			),
+			'page invalid'       => array(
+				'param'    => 'page',
+				'value'    => 'abc',
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
 
-			'offset custom'      => array( 'offset', 5, false, 5 ),
-			'offset invalid-1'   => array( 'offset', 'abc', true, 'rest_invalid_param' ),
+			'offset custom'      => array(
+				'param'    => 'offset',
+				'value'    => 5,
+				'is_error' => false,
+				'expected' => 5,
+			),
+			'offset invalid-1'   => array(
+				'param'    => 'offset',
+				'value'    => 'abc',
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
 
-			'order default'      => array( 'order', false, false, 'desc' ),
-			'order custom'       => array( 'order', 'asc', false, 'asc' ),
-			'order invalid-1'    => array( 'order', 10, true, 'rest_invalid_param' ),
-			'order invalid-2'    => array( 'order', 'fake', true, 'rest_invalid_param' ),
+			'order default'      => array(
+				'param'    => 'order',
+				'value'    => false,
+				'is_error' => false,
+				'expected' => 'desc',
+			),
+			'order custom'       => array(
+				'param'    => 'order',
+				'value'    => 'asc',
+				'is_error' => false,
+				'expected' => 'asc',
+			),
+			'order invalid-1'    => array(
+				'param'    => 'order',
+				'value'    => 10,
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
+			'order invalid-2'    => array(
+				'param'    => 'order',
+				'value'    => 'fake',
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
 
-			'orderby default'    => array( 'orderby', false, false, 'date' ),
-			'orderby custom-1'   => array( 'orderby', 'title', false, 'title' ),
-			'orderby custom-2'   => array( 'orderby', 'date', false, 'date' ),
-			'orderby custom-3'   => array( 'orderby', 'favorite_count', false, 'favorite_count' ),
-			'orderby invalid-1'  => array( 'orderby', 10, true, 'rest_invalid_param' ),
-			'orderby invalid-2'  => array( 'orderby', 'fake', true, 'rest_invalid_param' ),
+			'orderby default'    => array(
+				'param'    => 'orderby',
+				'value'    => false,
+				'is_error' => false,
+				'expected' => 'date',
+			),
+			'orderby custom-1'   => array(
+				'param'    => 'orderby',
+				'value'    => 'title',
+				'is_error' => false,
+				'expected' => 'title',
+			),
+			'orderby custom-2'   => array(
+				'param'    => 'orderby',
+				'value'    => 'date',
+				'is_error' => false,
+				'expected' => 'date',
+			),
+			'orderby custom-3'   => array(
+				'param'    => 'orderby',
+				'value'    => 'favorite_count',
+				'is_error' => false,
+				'expected' => 'favorite_count',
+			),
+			'orderby invalid-1'  => array(
+				'param'    => 'orderby',
+				'value'    => 10,
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
+			'orderby invalid-2'  => array(
+				'param'    => 'orderby',
+				'value'    => 'fake',
+				'is_error' => true,
+				'expected' => 'rest_invalid_param',
+			),
 		);
 	}
 
