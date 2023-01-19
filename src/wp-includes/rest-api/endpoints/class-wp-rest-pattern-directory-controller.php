@@ -94,15 +94,19 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 		 */
 		require ABSPATH . WPINC . '/version.php';
 
-		$valid_query_args = array( 'offset', 'order', 'orderby', 'page', 'per_page', 'search', 'slug' );
-		$query_args       = array_merge(
-			array_intersect_key( $request->get_params(), array_flip( $valid_query_args ) ),
-			array(
-				'locale'     => get_user_locale(),
-				'wp-version' => $wp_version, // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UndefinedVariable -- it's defined in `version.php` above.
-			)
+		$valid_query_args = array(
+			'offset'   => true,
+			'order'    => true,
+			'orderby'  => true,
+			'page'     => true,
+			'per_page' => true,
+			'search'   => true,
+			'slug'     => true,
 		);
+		$query_args = array_intersect_key( $request->get_params(), $valid_query_args );
 
+		$query_args['locale']             = get_user_locale();
+		$query_args['wp-version']         = $wp_version; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UndefinedVariable -- it's defined in `version.php` above.
 		$query_args['pattern-categories'] = isset( $request['category'] ) ? $request['category'] : false;
 		$query_args['pattern-keywords']   = isset( $request['keyword'] ) ? $request['keyword'] : false;
 
