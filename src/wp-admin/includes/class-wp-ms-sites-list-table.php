@@ -586,7 +586,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 			reset( $this->status_list );
 
 			foreach ( $this->status_list as $status => $col ) {
-				if ( 1 == $blog[ $status ] ) {
+				if ( 1 === (int) $blog[ $status ] ) {
 					$class = " class='{$col[0]}'";
 				}
 			}
