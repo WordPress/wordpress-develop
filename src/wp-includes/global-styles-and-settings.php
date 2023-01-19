@@ -275,32 +275,32 @@ function wp_theme_has_theme_json() {
 
 	if ( $can_use_cache ) {
 		/*
-		* By using the 'theme_json' group, this data is marked to be non-persistent across requests.
-		* @see `wp_cache_add_non_persistent_groups()`.
-		*
-		* The rationale for this is to make sure derived data from theme.json
-		* is always fresh from the potential modifications done via hooks
-		* that can use dynamic data (modify the stylesheet depending on some option,
-		* settings depending on user permissions, etc.).
-		* For some of the existing hooks to modify theme.json behavior:
-		* @see https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
-		*
-		* A different alternative considered was to invalidate the cache upon certain
-		* events such as options add/update/delete, user meta, etc.
-		* It was judged not enough, hence this approach.
-		* @see https://github.com/WordPress/gutenberg/pull/45372
-		*/
+		 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
+		 * @see `wp_cache_add_non_persistent_groups()`.
+		 *
+		 * The rationale for this is to make sure derived data from theme.json
+		 * is always fresh from the potential modifications done via hooks
+		 * that can use dynamic data (modify the stylesheet depending on some option,
+		 * settings depending on user permissions, etc.).
+		 * For some of the existing hooks to modify theme.json behavior:
+		 * @see https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
+		 *
+		 * A different alternative considered was to invalidate the cache upon certain
+		 * events such as options add/update/delete, user meta, etc.
+		 * It was judged not enough, hence this approach.
+		 * @see https://github.com/WordPress/gutenberg/pull/45372
+		 */
 		$cache_group       = 'theme_json';
 		$cache_key         = 'wp_theme_has_theme_json';
 		$theme_has_support = wp_cache_get( $cache_key, $cache_group );
 
 		/*
-		* $theme_has_support is stored as an int in the cache.
-		*
-		* The reason not to store it as a boolean is to avoid working
-		* with the $found parameter which apparently had some issues in some implementations
-		* @see https://developer.wordpress.org/reference/functions/wp_cache_get/
-		*/
+		 * $theme_has_support is stored as an int in the cache.
+		 *
+		 * The reason not to store it as a boolean is to avoid working
+		 * with the $found parameter which apparently had some issues in some implementations
+		 * @see https://developer.wordpress.org/reference/functions/wp_cache_get/
+		 */
 		if ( is_int( $theme_has_support ) ) {
 			return (bool) $theme_has_support;
 		}
