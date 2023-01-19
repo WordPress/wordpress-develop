@@ -7939,7 +7939,7 @@ function _prime_post_caches( $posts, $update_term_cache = true, $update_meta_cac
 	}
 
 	if ( $update_term_cache ) {
-		$post_types = array_map( 'get_post_type', $objects );
+		$post_types = array_map( 'get_post_type', $ids );
 		$post_types = array_unique( $post_types );
 		update_object_term_cache( $ids, $post_types );
 	}
