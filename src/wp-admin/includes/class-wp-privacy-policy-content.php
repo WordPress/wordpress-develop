@@ -105,7 +105,7 @@ final class WP_Privacy_Policy_Content {
 
 		// The == operator (equal, not identical) was used intentionally.
 		// See http://php.net/manual/en/language.operators.array.php
-		if ( $new != $old ) {
+		if ( $new != $old ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			// A plugin was activated or deactivated, or some policy text has changed.
 			// Show a notice on the relevant screens to inform the admin.
 			add_action( 'admin_notices', array( 'WP_Privacy_Policy_Content', 'policy_text_changed_notice' ) );
