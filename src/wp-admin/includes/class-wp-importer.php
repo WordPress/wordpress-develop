@@ -41,7 +41,7 @@ class WP_Importer {
 					$hashtable[ $r->meta_value ] = (int) $r->post_id;
 				}
 			}
-		} while ( count( $results ) == $limit );
+		} while ( count( $results ) === $limit );
 
 		return $hashtable;
 	}
@@ -105,12 +105,12 @@ class WP_Importer {
 					$source_comment_id = (int) $source_comment_id;
 
 					// Check if this comment came from this blog.
-					if ( $blog_id == $comment_agent_blog_id ) {
+					if ( (int) $blog_id === (int) $comment_agent_blog_id ) {
 						$hashtable[ $source_comment_id ] = (int) $r->comment_ID;
 					}
 				}
 			}
-		} while ( count( $results ) == $limit );
+		} while ( count( $results ) === $limit );
 
 		return $hashtable;
 	}
