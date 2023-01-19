@@ -2438,6 +2438,13 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'overflow',
 			'vertical-align',
 
+			'position',
+			'top',
+			'right',
+			'bottom',
+			'left',
+			'z-index',
+
 			// Custom CSS properties.
 			'--*',
 		)
