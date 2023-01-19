@@ -1958,6 +1958,7 @@ function copy_dir( $from, $to, $skip_list = array() ) {
  *
  * @param string $from        Source directory.
  * @param string $to          Destination directory.
+ *
  * @return true|WP_Error True on success, WP_Error on failure.
  */
 function move_dir( $from, $to ) {
