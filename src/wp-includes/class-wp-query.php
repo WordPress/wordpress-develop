@@ -3221,6 +3221,8 @@ class WP_Query {
 			return $post_parents;
 		}
 
+		$needs_cache_prime = true;
+
 		if ( null === $this->posts ) {
 			$split_the_query = ( $old_request == $this->request && "{$wpdb->posts}.*" === $fields && ! empty( $limits ) && $q['posts_per_page'] < 500 );
 
@@ -3266,6 +3268,7 @@ class WP_Query {
 					$this->posts = $post_ids;
 					$this->set_found_posts( $q, $limits );
 					_prime_post_caches( $post_ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+					$needs_cache_prime = false;
 				} else {
 					$this->posts = array();
 				}
@@ -3281,16 +3284,36 @@ class WP_Query {
 			$this->posts = array_map( 'get_post', $this->posts );
 		}
 
-		if ( $q['cache_results'] && $id_query_is_cacheable && ! $cache_found ) {
+
+		if ( $q['cache_results'] ) {
 			$post_ids = wp_list_pluck( $this->posts, 'ID' );
 
-			$cache_value = array(
-				'posts'         => $post_ids,
-				'found_posts'   => $this->found_posts,
-				'max_num_pages' => $this->max_num_pages,
-			);
+			if ( $this->posts && $needs_cache_prime ) {
+				$non_cached_ids = _get_non_cached_ids( $post_ids, 'posts' );
+				if ( ! empty( $non_cached_ids ) ) {
+					$fresh_posts = array();
+					foreach ( $this->posts as $_post ) {
+						if ( in_array( $_post->ID, $non_cached_ids, true ) ) {
+							$fresh_posts[] = $_post;
+						}
+					}
 
-			wp_cache_set( $cache_key, $cache_value, 'posts' );
+					if ( $fresh_posts ) {
+						// Despite the name, update_post_cache() expects an array rather than a single post.
+						update_post_cache( $fresh_posts );
+					}
+				}
+			}
+
+			if ( $id_query_is_cacheable && ! $cache_found ) {
+				$cache_value = array(
+					'posts'         => $post_ids,
+					'found_posts'   => $this->found_posts,
+					'max_num_pages' => $this->max_num_pages,
+				);
+
+				wp_cache_set( $cache_key, $cache_value, 'posts' );
+			}
 		}
 
 		if ( ! $q['suppress_filters'] ) {
@@ -3476,7 +3499,8 @@ class WP_Query {
 			$this->posts = array_map( 'get_post', $this->posts );
 
 			if ( $q['cache_results'] ) {
-				update_post_caches( $this->posts, $post_type, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+				$post_ids = wp_list_pluck( $this->posts, 'ID' );
+				_prime_post_caches( $post_ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 			}
 
 			/** @var WP_Post */
