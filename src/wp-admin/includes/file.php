@@ -2647,6 +2647,7 @@ function wp_opcache_invalidate_directory( $dir ) {
 			__( 'The %s argument must be a non-empty string.' ),
 			'<code>$dir</code>'
 		);
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_trigger_error
 		trigger_error( $error_message );
 		return;
 	}
