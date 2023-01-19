@@ -356,7 +356,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 */
 	public function test_get_items_query_args( $param, $value, $is_error, $expected ) {
 		wp_set_current_user( self::$contributor_id );
-		self::capture_http_urls();
+		add_filter( 'pre_http_request', array( $this, 'mock_request_to_apiwporg_url' ), 10, 3 );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/pattern-directory/patterns' );
 		if ( $value ) {
@@ -505,40 +505,6 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 				'is_error' => true,
 				'expected' => 'rest_invalid_param',
 			),
-		);
-	}
-
-	/**
-	 * Attach a filter to capture requested wp.org URL.
-	 *
-	 * @since 6.2.0
-	 */
-	private static function capture_http_urls() {
-		add_filter(
-			'pre_http_request',
-			function ( $preempt, $args, $url ) {
-				if ( 'api.wordpress.org' !== wp_parse_url( $url, PHP_URL_HOST ) ) {
-					return $preempt;
-				}
-
-				self::$http_request_urls[] = $url;
-
-				// Return a response to prevent external API request.
-				$response = array(
-					'headers'  => array(),
-					'response' => array(
-						'code'    => 200,
-						'message' => 'OK',
-					),
-					'body'     => '[]',
-					'cookies'  => array(),
-					'filename' => null,
-				);
-
-				return $response;
-			},
-			10,
-			3
 		);
 	}
 
@@ -804,5 +770,34 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 			10,
 			3
 		);
+	}
+
+	/**
+	 * Mock the request to wp.org URL to capture the URLs.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @return array faux/mocked response.
+	 */
+	public function mock_request_to_apiwporg_url( $response, $args, $url ) {
+		if ( 'api.wordpress.org' !== wp_parse_url( $url, PHP_URL_HOST ) ) {
+			return $response;
+		}
+
+		self::$http_request_urls[] = $url;
+
+		// Return a response to prevent external API request.
+		$response = array(
+			'headers'  => array(),
+			'response' => array(
+				'code'    => 200,
+				'message' => 'OK',
+			),
+			'body'     => '[]',
+			'cookies'  => array(),
+			'filename' => null,
+		);
+
+		return $response;
 	}
 }
