@@ -596,7 +596,7 @@ function image_edit_apply_changes( $image, $changes ) {
 		$filtered = array( $changes[0] );
 		for ( $i = 0, $j = 1, $c = count( $changes ); $j < $c; $j++ ) {
 			$combined = false;
-			if ( $filtered[ $i ]->type == $changes[ $j ]->type ) {
+			if ( $filtered[ $i ]->type === $changes[ $j ]->type ) {
 				switch ( $filtered[ $i ]->type ) {
 					case 'rotate':
 						$filtered[ $i ]->angle += $changes[ $j ]->angle;
@@ -753,7 +753,7 @@ function wp_restore_image( $post_id ) {
 	if ( isset( $backup_sizes['full-orig'] ) && is_array( $backup_sizes['full-orig'] ) ) {
 		$data = $backup_sizes['full-orig'];
 
-		if ( $parts['basename'] != $data['file'] ) {
+		if ( $parts['basename'] !== $data['file'] ) {
 			if ( defined( 'IMAGE_EDIT_OVERWRITE' ) && IMAGE_EDIT_OVERWRITE ) {
 
 				// Delete only if it's an edited image.
@@ -780,7 +780,7 @@ function wp_restore_image( $post_id ) {
 	foreach ( $default_sizes as $default_size ) {
 		if ( isset( $backup_sizes[ "$default_size-orig" ] ) ) {
 			$data = $backup_sizes[ "$default_size-orig" ];
-			if ( isset( $meta['sizes'][ $default_size ] ) && $meta['sizes'][ $default_size ]['file'] != $data['file'] ) {
+			if ( isset( $meta['sizes'][ $default_size ] ) && $meta['sizes'][ $default_size ]['file'] !== $data['file'] ) {
 				if ( defined( 'IMAGE_EDIT_OVERWRITE' ) && IMAGE_EDIT_OVERWRITE ) {
 
 					// Delete only if it's an edited image.
@@ -895,7 +895,7 @@ function wp_save_image( $post_id ) {
 	$suffix   = time() . rand( 100, 999 );
 
 	if ( defined( 'IMAGE_EDIT_OVERWRITE' ) && IMAGE_EDIT_OVERWRITE &&
-		isset( $backup_sizes['full-orig'] ) && $backup_sizes['full-orig']['file'] != $basename ) {
+		isset( $backup_sizes['full-orig'] ) && $backup_sizes['full-orig']['file'] !== $basename ) {
 
 		if ( 'thumbnail' === $target ) {
 			$new_path = "{$dirname}/{$filename}-temp.{$ext}";
@@ -994,7 +994,7 @@ function wp_save_image( $post_id ) {
 			$tag = false;
 			if ( isset( $meta['sizes'][ $size ] ) ) {
 				if ( isset( $backup_sizes[ "$size-orig" ] ) ) {
-					if ( ( ! defined( 'IMAGE_EDIT_OVERWRITE' ) || ! IMAGE_EDIT_OVERWRITE ) && $backup_sizes[ "$size-orig" ]['file'] != $meta['sizes'][ $size ]['file'] ) {
+					if ( ( ! defined( 'IMAGE_EDIT_OVERWRITE' ) || ! IMAGE_EDIT_OVERWRITE ) && $backup_sizes[ "$size-orig" ]['file'] !== $meta['sizes'][ $size ]['file'] ) {
 						$tag = "$size-$suffix";
 					}
 				} else {
