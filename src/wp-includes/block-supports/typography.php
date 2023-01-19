@@ -480,18 +480,25 @@ function wp_get_typography_font_size_value( $preset, $should_use_fluid_typograph
 
 	// Checks if fluid font sizes are activated.
 	$typography_settings         = wp_get_global_settings( array( 'typography' ) );
-	$should_use_fluid_typography = isset( $typography_settings['fluid'] ) && true === $typography_settings['fluid'] ? true : $should_use_fluid_typography;
+	$should_use_fluid_typography =
+		isset( $typography_settings['fluid'] ) &&
+		( true === $typography_settings['fluid'] || is_array( $typography_settings['fluid'] ) ) ?
+			true :
+			$should_use_fluid_typography;
 
 	if ( ! $should_use_fluid_typography ) {
 		return $preset['size'];
 	}
+
+	$fluid_settings = isset( $typography_settings['fluid'] ) && is_array( $typography_settings['fluid'] ) ? $typography_settings['fluid'] : array();
 
 	// Defaults.
 	$default_maximum_viewport_width   = '1600px';
 	$default_minimum_viewport_width   = '768px';
 	$default_minimum_font_size_factor = 0.75;
 	$default_scale_factor             = 1;
-	$default_minimum_font_size_limit  = '14px';
+	$has_min_font_size                = isset( $fluid_settings['minFontSize'] ) && ! empty( wp_get_typography_value_and_unit( $fluid_settings['minFontSize'] ) );
+	$default_minimum_font_size_limit  = $has_min_font_size ? $fluid_settings['minFontSize'] : '14px';
 
 	// Font sizes.
 	$fluid_font_size_settings = isset( $preset['fluid'] ) ? $preset['fluid'] : null;
@@ -513,10 +520,7 @@ function wp_get_typography_font_size_value( $preset, $should_use_fluid_typograph
 		return $preset['size'];
 	}
 
-	/*
-	 * Normalizes the minimum font size limit according to the incoming unit,
-	 * in order to perform comparative checks.
-	 */
+	// Parses the minimum font size limit, so we can perform checks using it.
 	$minimum_font_size_limit = wp_get_typography_value_and_unit(
 		$default_minimum_font_size_limit,
 		array(
@@ -546,10 +550,7 @@ function wp_get_typography_font_size_value( $preset, $should_use_fluid_typograph
 	 * the given font size multiplied by the min font size scale factor.
 	 */
 	if ( ! $minimum_font_size_raw ) {
-		$calculated_minimum_font_size = round(
-			$preferred_size['value'] * $default_minimum_font_size_factor,
-			3
-		);
+		$calculated_minimum_font_size = round( $preferred_size['value'] * $default_minimum_font_size_factor, 3 );
 
 		// Only use calculated min font size if it's > $minimum_font_size_limit value.
 		if ( ! empty( $minimum_font_size_limit ) && $calculated_minimum_font_size <= $minimum_font_size_limit['value'] ) {
