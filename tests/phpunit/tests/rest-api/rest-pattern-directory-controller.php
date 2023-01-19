@@ -366,11 +366,11 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 		$response = rest_do_request( $request );
 		$data     = $response->get_data();
 		if ( $is_error ) {
-			$this->assertSame( $expected, $data['code'] );
-			$this->assertStringContainsString( $param, $data['message'] );
+			$this->assertSame( $expected, $data['code'], 'Response error code does not match' );
+			$this->assertStringContainsString( $param, $data['message'], 'Response error message does not match' );
 		} else {
-			$this->assertCount( 1, self::$http_request_urls );
-			$this->assertStringContainsString( $param . '=' . $expected, self::$http_request_urls[0] );
+			$this->assertCount( 1, self::$http_request_urls, 'The number of HTTP Request URLs is not 1' );
+			$this->assertStringContainsString( $param . '=' . $expected, self::$http_request_urls[0], 'The param and/or value do not match' );
 		}
 	}
 
