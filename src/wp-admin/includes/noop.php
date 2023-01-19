@@ -104,3 +104,19 @@ function get_file( $path ) {
 
 	return @file_get_contents( $path );
 }
+
+/**
+ * @ignore
+ * @since 6.2.0
+ */
+function wp_cache_get() {
+	return false;
+}
+
+/**
+ * @ignore
+ * @since 6.2.0
+ */
+function wp_cache_set() {
+	return false;
+}
