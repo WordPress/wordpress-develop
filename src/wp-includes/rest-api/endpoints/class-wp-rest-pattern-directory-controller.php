@@ -325,19 +325,19 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 		);
 
 		$query_params['offset'] = array(
-			'description' => __( 'Offset the result set by a specific number of items.', 'gutenberg' ),
+			'description' => __( 'Offset the result set by a specific number of items.' ),
 			'type'        => 'integer',
 		);
 
 		$query_params['order'] = array(
-			'description' => __( 'Order sort attribute ascending or descending.', 'gutenberg' ),
+			'description' => __( 'Order sort attribute ascending or descending.' ),
 			'type'        => 'string',
 			'default'     => 'desc',
 			'enum'        => array( 'asc', 'desc' ),
 		);
 
 		$query_params['orderby'] = array(
-			'description' => __( 'Sort collection by post attribute.', 'gutenberg' ),
+			'description' => __( 'Sort collection by post attribute.' ),
 			'type'        => 'string',
 			'default'     => 'date',
 			'enum'        => array(
