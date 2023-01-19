@@ -3146,6 +3146,16 @@ function wp_ajax_save_attachment() {
 		wp_update_post( $post );
 	}
 
+	/**
+	 * Fires after attachment attributes are updated.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param WP_Post $post    Post object.
+	 * @param array   $changes An array containing the updated attributes.
+	 */
+	do_action( 'wp_ajax_save_attachment', $post, $changes );
+
 	wp_send_json_success();
 }
 
