@@ -477,9 +477,9 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 
 		$attachments = $mailer->getAttachments();
 
-		$this->assertTrue( $mailer->attachmentExists() );
-		$this->assertSame( $attachments[0][1], $attachments[0][2] );
-		$this->assertSame( $attachments[1][1], $attachments[1][2] );
+		$this->assertTrue( $mailer->attachmentExists(), 'There are no attachments.' );
+		$this->assertSame( $attachments[0][1], $attachments[0][2], 'The first attachment name did not match.' );
+		$this->assertSame( $attachments[1][1], $attachments[1][2], 'The second attachment name did not match.' );
 	}
 
 	/**
@@ -505,9 +505,9 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 
 		$attachments = $mailer->getAttachments();
 
-		$this->assertTrue( $mailer->attachmentExists() );
-		$this->assertSame( 'alonac.jpg', $attachments[0][2] );
-		$this->assertSame( 'selffaw.jpg', $attachments[1][2] );
+		$this->assertTrue( $mailer->attachmentExists(), 'There are no attachments.' );
+		$this->assertSame( 'alonac.jpg', $attachments[0][2], 'The first attachment name did not match.' );
+		$this->assertSame( 'selffaw.jpg', $attachments[1][2], 'The second attachment name did not match.' );
 	}
 
 	/**
