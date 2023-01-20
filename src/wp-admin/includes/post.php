@@ -664,7 +664,7 @@ function bulk_edit_posts( $post_data = null ) {
 	}
 
 	/**
-	 * Fires after the post data are processed for bulk edit.
+	 * Fires after processing the post data for bulk edit.
 	 *
 	 * @since 6.2.0
 	 *
