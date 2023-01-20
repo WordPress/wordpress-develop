@@ -1561,43 +1561,68 @@ class wpdb {
 			$format = substr( $placeholder, 1, -1 );
 			$type   = substr( $placeholder, -1 );
 
-			// Force floats to be locale-unaware.
-			if ( 'f' === $type ) {
-				$type        = 'F';
-				$placeholder = '%' . $format . $type;
-			}
-
-			if ( 'i' === $type ) {
-				$placeholder = '`%' . $format . 's`';
-				// Using a simple strpos() due to previous checking (e.g. $allowed_format).
-				$argnum_pos = strpos( $format, '$' );
-
-				if ( false !== $argnum_pos ) {
-					// sprintf() argnum starts at 1, $arg_id from 0.
-					$arg_identifiers[] = ( ( (int) substr( $format, 0, $argnum_pos ) ) - 1 );
-				} else {
-					$arg_identifiers[] = $arg_id;
-				}
-			} elseif ( 'd' !== $type && 'F' !== $type ) {
-				/*
-				 * i.e. ( 's' === $type ), where 'd' and 'F' keeps $placeholder unchanged,
-				 * and we ensure string escaping is used as a safe default (e.g. even if 'x').
-				 */
-				$argnum_pos = strpos( $format, '$' );
-
-				if ( false !== $argnum_pos ) {
-					$arg_strings[] = ( ( (int) substr( $format, 0, $argnum_pos ) ) - 1 );
-				} else {
-					$arg_strings[] = $arg_id;
-				}
+			if ( 'f' === $type && true === $this->allow_unsafe_unquoted_parameters && str_ends_with( $split_query[ $key - 1 ], '%' ) ) {
 
 				/*
-				 * Unquoted strings for backward compatibility (dangerous).
-				 * First, "numbered or formatted string placeholders (eg, %1$s, %5s)".
-				 * Second, if "%s" has a "%" before it, even if it's unrelated (e.g. "LIKE '%%%s%%'").
+				 * Before WP 6.2 the "force floats to be locale-unaware" RegEx didn't
+				 * convert "%%%.4f" to "%%%.4F" (note the uppercase F).
+				 * This was because it didn't check to see if the leading "%" was escaped.
+				 * And because the "Escape any unescaped percents" RegEx used "[sdF]" in its
+				 * negative lookahead assertion, when there was an odd number of "%", it added
+				 * an extra "%", to give the fully escaped "%%%%.4f" (not a placeholder).
 				 */
-				if ( true !== $this->allow_unsafe_unquoted_parameters || ( '' === $format && ! str_ends_with( $split_query[ $key - 1 ], '%' ) ) ) {
-					$placeholder = "'%" . $format . "s'";
+
+				$s = $split_query[ $key - 2 ] . $split_query[ $key - 1 ];
+				$k = 1;
+				$l = strlen( $s );
+				while ( $k <= $l && '%' === $s[ $l - $k ] ) {
+					$k++;
+				}
+
+				$placeholder = '%' . ( $k % 2 ? '%' : '' ) . $format . $type;
+
+				--$placeholder_count;
+
+			} else {
+
+				// Force floats to be locale-unaware.
+				if ( 'f' === $type ) {
+					$type        = 'F';
+					$placeholder = '%' . $format . $type;
+				}
+
+				if ( 'i' === $type ) {
+					$placeholder = '`%' . $format . 's`';
+					// Using a simple strpos() due to previous checking (e.g. $allowed_format).
+					$argnum_pos = strpos( $format, '$' );
+
+					if ( false !== $argnum_pos ) {
+						// sprintf() argnum starts at 1, $arg_id from 0.
+						$arg_identifiers[] = ( ( (int) substr( $format, 0, $argnum_pos ) ) - 1 );
+					} else {
+						$arg_identifiers[] = $arg_id;
+					}
+				} elseif ( 'd' !== $type && 'F' !== $type ) {
+					/*
+					 * i.e. ( 's' === $type ), where 'd' and 'F' keeps $placeholder unchanged,
+					 * and we ensure string escaping is used as a safe default (e.g. even if 'x').
+					 */
+					$argnum_pos = strpos( $format, '$' );
+
+					if ( false !== $argnum_pos ) {
+						$arg_strings[] = ( ( (int) substr( $format, 0, $argnum_pos ) ) - 1 );
+					} else {
+						$arg_strings[] = $arg_id;
+					}
+
+					/*
+					 * Unquoted strings for backward compatibility (dangerous).
+					 * First, "numbered or formatted string placeholders (eg, %1$s, %5s)".
+					 * Second, if "%s" has a "%" before it, even if it's unrelated (e.g. "LIKE '%%%s%%'").
+					 */
+					if ( true !== $this->allow_unsafe_unquoted_parameters || ( '' === $format && ! str_ends_with( $split_query[ $key - 1 ], '%' ) ) ) {
+						$placeholder = "'%" . $format . "s'";
+					}
 				}
 			}
 

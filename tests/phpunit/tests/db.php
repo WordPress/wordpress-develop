@@ -1743,6 +1743,86 @@ class Tests_DB extends WP_UnitTestCase {
 				false,
 				"'hello' 'foo##'",
 			),
+
+			/*
+			 * Before WP 6.2 the "force floats to be locale-unaware" RegEx didn't
+			 * convert "%%%.4f" to "%%%.4F" (note the uppercase F).
+			 * This was because it didn't check to see if the leading "%" was escaped.
+			 * And because the "Escape any unescaped percents" RegEx used "[sdF]" in its
+			 * negative lookahead assertion, when there was an odd number of "%", it added
+			 * an extra "%", to give the fully escaped "%%%%.4f" (not a placeholder).
+			 */
+			array(
+				"WHERE id = %d AND content LIKE '%.4f'",
+				array( 1, 2 ),
+				false,
+				"WHERE id = 1 AND content LIKE '2.0000'",
+			),
+			array(
+				"WHERE id = %d AND content LIKE '%%.4f'",
+				array( 1 ),
+				false,
+				"WHERE id = 1 AND content LIKE '{$placeholder_escape}.4f'",
+			),
+			array(
+				"WHERE id = %d AND content LIKE '%%%.4f'",
+				array( 1 ),
+				false,
+				"WHERE id = 1 AND content LIKE '{$placeholder_escape}{$placeholder_escape}.4f'",
+			),
+			array(
+				"WHERE id = %d AND content LIKE '%%%%.4f'",
+				array( 1 ),
+				false,
+				"WHERE id = 1 AND content LIKE '{$placeholder_escape}{$placeholder_escape}.4f'",
+			),
+			array(
+				"WHERE id = %d AND content LIKE '%%%%%.4f'",
+				array( 1 ),
+				false,
+				"WHERE id = 1 AND content LIKE '{$placeholder_escape}{$placeholder_escape}{$placeholder_escape}.4f'",
+			),
+			array(
+				'%.4f',
+				array( 1 ),
+				false,
+				'1.0000',
+			),
+			array(
+				'%.4f OR id = %d',
+				array( 1, 5 ),
+				false,
+				'1.0000 OR id = 5',
+			),
+			array(
+				'%%.4f OR id = %d',
+				array( 5 ),
+				false,
+				"{$placeholder_escape}.4f OR id = 5",
+			),
+			array(
+				'%%%.4f OR id = %d',
+				array( 5 ),
+				false,
+				"{$placeholder_escape}{$placeholder_escape}.4f OR id = 5",
+			),
+			array(
+				'%%%%.4f OR id = %d',
+				array( 5 ),
+				false,
+				"{$placeholder_escape}{$placeholder_escape}.4f OR id = 5",
+			),
+			array(
+				'%%%%%.4f OR id = %d',
+				array( 5 ),
+				false,
+				"{$placeholder_escape}{$placeholder_escape}{$placeholder_escape}.4f OR id = 5",
+			),
+
+			/*
+			 * @ticket 52506.
+			 * Adding an escape method for Identifiers (e.g. table/field names).
+			 */
 			array(
 				'SELECT * FROM %i WHERE %i = %d;',
 				array( 'my_table', 'my_field', 321 ),
