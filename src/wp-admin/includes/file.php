@@ -2634,7 +2634,6 @@ function wp_opcache_invalidate( $filepath, $force = false ) {
  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
  * @param string $dir The path to invalidate.
- *
  * @return void
  */
 function wp_opcache_invalidate_directory( $dir ) {
