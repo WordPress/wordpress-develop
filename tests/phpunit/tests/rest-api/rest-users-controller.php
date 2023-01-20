@@ -2825,8 +2825,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$wp_rest_additional_fields = array();
 	}
 
-	public function additional_field_get_callback( $object, $field_name ) {
-		return get_user_meta( $object['id'], $field_name, true );
+	public function additional_field_get_callback( $response_data, $field_name ) {
+		return get_user_meta( $response_data['id'], $field_name, true );
 	}
 
 	public function additional_field_update_callback( $value, $user, $field_name ) {

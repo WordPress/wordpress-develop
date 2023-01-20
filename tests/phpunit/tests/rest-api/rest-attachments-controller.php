@@ -1678,7 +1678,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$wp_rest_additional_fields = array();
 	}
 
-	public function additional_field_get_callback( $object, $field_name ) {
+	public function additional_field_get_callback( $response_data, $field_name ) {
 		return 123;
 	}
 
