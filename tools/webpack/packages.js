@@ -5,7 +5,6 @@ const { DefinePlugin } = require( 'webpack' );
 const CopyWebpackPlugin = require( 'copy-webpack-plugin' );
 const LiveReloadPlugin = require( 'webpack-livereload-plugin' );
 const UglifyJS = require( 'uglify-js' );
-const { join } = require( 'path' );
 
 /**
  * WordPress dependencies
@@ -18,7 +17,7 @@ const DependencyExtractionPlugin = require( '@wordpress/dependency-extraction-we
 /**
  * Internal dependencies
  */
-const { stylesTransform, baseConfig, baseDir } = require( './shared' );
+const { normalizeJoin, stylesTransform, baseConfig, baseDir } = require( './shared' );
 const { dependencies } = require( '../../package' );
 
 const exportDefaultPackages = [
@@ -42,8 +41,8 @@ const exportDefaultPackages = [
  */
 function mapVendorCopies( vendors, buildTarget ) {
 	return Object.keys( vendors ).map( ( filename ) => ( {
-		from: join( baseDir, `node_modules/${ vendors[ filename ] }` ),
-		to: join( baseDir, `${ buildTarget }/js/dist/vendor/${ filename }` ),
+		from: normalizeJoin(baseDir, `node_modules/${ vendors[ filename ] }` ),
+		to: normalizeJoin(baseDir, `${ buildTarget }/js/dist/vendor/${ filename }` ),
 	} ) );
 }
 
@@ -54,7 +53,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	buildTarget = buildTarget  + '/wp-includes';
 
 	const WORDPRESS_NAMESPACE = '@wordpress/';
-	const BUNDLED_PACKAGES = [ '@wordpress/icons', '@wordpress/interface', '@wordpress/style-engine' ];
+	const BUNDLED_PACKAGES = [ '@wordpress/icons', '@wordpress/interface' ];
 	const packages = Object.keys( dependencies )
 		.filter( ( packageName ) =>
  			! BUNDLED_PACKAGES.includes( packageName ) &&
@@ -72,6 +71,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'wp-polyfill-dom-rect.js': 'polyfill-library/polyfills/__dist/DOMRect/raw.js',
 		'wp-polyfill-formdata.js': 'formdata-polyfill/FormData.js',
 		'wp-polyfill-object-fit.js': 'objectFitPolyfill/src/objectFitPolyfill.js',
+		'wp-polyfill-inert.js': 'wicg-inert/dist/inert.js',
 		'moment.js': 'moment/moment.js',
 		'react.js': 'react/umd/react.development.js',
 		'react-dom.js': 'react-dom/umd/react-dom.development.js',
@@ -84,6 +84,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'wp-polyfill-formdata.min.js': 'formdata-polyfill/formdata.min.js',
 		'wp-polyfill-url.min.js': 'core-js-url-browser/url.min.js',
 		'wp-polyfill-object-fit.min.js': 'objectFitPolyfill/dist/objectFitPolyfill.min.js',
+		'wp-polyfill-inert.min.js': 'wicg-inert/dist/inert.min.js',
 		'moment.min.js': 'moment/min/moment.min.js',
 		'react.min.js': 'react/umd/react.production.min.js',
 		'react-dom.min.js': 'react-dom/umd/react-dom.production.min.js',
@@ -115,22 +116,22 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	let vendorCopies = mode === "development" ? developmentCopies : [ ...minifiedCopies, ...minifyCopies ];
 
 	let cssCopies = packages.map( ( packageName ) => ( {
-		from: join( baseDir, `node_modules/@wordpress/${ packageName }/build-style/*.css` ),
-		to: join( baseDir, `${ buildTarget }/css/dist/${ packageName }/[name]${ suffix }.css` ),
+		from: normalizeJoin(baseDir, `node_modules/@wordpress/${ packageName }/build-style/*.css` ),
+		to: normalizeJoin(baseDir, `${ buildTarget }/css/dist/${ packageName }/[name]${ suffix }.css` ),
 		transform: stylesTransform( mode ),
 		noErrorOnMissing: true,
 	} ) );
 
 	const phpCopies = Object.keys( phpFiles ).map( ( filename ) => ( {
-		from: join( baseDir, `node_modules/@wordpress/${ filename }` ),
-		to: join( baseDir, `src/${ phpFiles[ filename ] }` ),
+		from: normalizeJoin(baseDir, `node_modules/@wordpress/${ filename }` ),
+		to: normalizeJoin(baseDir, `src/${ phpFiles[ filename ] }` ),
 	} ) );
 
 	const config = {
 		...baseConfig( env ),
 		entry: packages.reduce( ( memo, packageName ) => {
 			memo[ packageName ] = {
-				import: join( baseDir, `node_modules/@wordpress/${ packageName }` ),
+				import: normalizeJoin(baseDir, `node_modules/@wordpress/${ packageName }` ),
 				library: {
 					name: [ 'wp', camelCaseDash( packageName ) ],
 					type: 'window',
@@ -145,7 +146,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		output: {
 			devtoolNamespace: 'wp',
 			filename: `[name]${ suffix }.js`,
-			path: join( baseDir, `${ buildTarget }/js/dist` ),
+			path: normalizeJoin(baseDir, `${ buildTarget }/js/dist` ),
 		},
 		plugins: [
 			new DefinePlugin( {
@@ -158,7 +159,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			new DependencyExtractionPlugin( {
 				injectPolyfill: true,
 				combineAssets: true,
-				combinedOutputFile: '../../assets/script-loader-packages.php',
+				combinedOutputFile: `../../assets/script-loader-packages${ suffix }.php`,
 			} ),
 			new CopyWebpackPlugin( {
 				patterns: [

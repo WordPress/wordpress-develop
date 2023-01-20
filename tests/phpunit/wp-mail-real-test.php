@@ -59,7 +59,7 @@ assert( true === is_blog_installed() );
 define( 'PHPUnit_MAIN_METHOD', false );
 $original_wpdb = $GLOBALS['wpdb'];
 
-// Hide warnings during testing, since that's the normal WP behaviour.
+// Hide warnings during testing, since that's the normal WP behavior.
 if ( ! WP_DEBUG ) {
 	error_reporting( E_ALL ^ E_NOTICE );
 }

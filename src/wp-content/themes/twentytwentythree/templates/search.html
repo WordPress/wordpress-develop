@@ -10,16 +10,12 @@
 			<!-- wp:post-featured-image {"isLink":true,"width":"100%","height":"max(15vw, 30vh)","align":"wide"} /-->
 			<!-- wp:post-title {"isLink":true} /-->
 			<!-- wp:post-excerpt /-->
-			<!-- wp:post-date {"format":"F j, Y","isLink":true} /-->
+			<!-- wp:post-date {"isLink":true} /-->
 
 			<!-- wp:spacer {"height":"var(--wp--preset--spacing--70)"} -->
 			<div style="height:var(--wp--preset--spacing--70)" aria-hidden="true" class="wp-block-spacer"></div>
 			<!-- /wp:spacer -->
 		<!-- /wp:post-template -->
-
-		<!-- wp:separator {"style":{"spacing":{"margin":{"bottom":"var(--wp--preset--spacing--70)"}}}} -->
-		<hr class="wp-block-separator has-alpha-channel-opacity" style="margin-bottom:var(--wp--preset--spacing--70)"/>
-		<!-- /wp:separator -->
 
 		<!-- wp:query-pagination {"paginationArrow":"arrow","layout":{"type":"flex","justifyContent":"space-between"}} -->
 			<!-- wp:query-pagination-previous {"label":"Newer Posts"} /-->
@@ -27,11 +23,7 @@
 		<!-- /wp:query-pagination -->
 
 		<!-- wp:query-no-results -->
-			<!-- wp:paragraph -->
-			<p>Sorry, but nothing matched your search terms. Please try again with some different keywords.</p>
-			<!-- /wp:paragraph -->
-
-			<!-- wp:search {"label":"Search","showLabel":false,"buttonText":"Search","buttonUseIcon":true} /-->
+			<!-- wp:pattern {"slug":"twentytwentythree/hidden-no-results-content"} /-->
 		<!-- /wp:query-no-results -->
 	</div>
 	<!-- /wp:query -->

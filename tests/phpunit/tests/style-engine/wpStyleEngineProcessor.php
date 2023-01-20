@@ -92,7 +92,7 @@ class Tests_Style_Engine_wpStyleEngineProcessor extends WP_UnitTestCase {
 	background-color: orange;
 }
 ';
-		$this->assertSame(
+		$this->assertSameIgnoreEOL(
 			$expected,
 			$a_wonderful_processor->get_css( array( 'prettify' => true ) )
 		);
