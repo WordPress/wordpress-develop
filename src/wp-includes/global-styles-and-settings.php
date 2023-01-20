@@ -62,6 +62,13 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
 	$cache_key   = 'wp_get_global_settings_' . $origin;
 	$settings    = wp_cache_get( $cache_key, $cache_group );
 
+	/*
+	 *
+	 * Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme
+	 * developer's workflow.
+	 *
+	 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
+	 */
 	if ( false === $settings || WP_DEBUG ) {
 		$settings = WP_Theme_JSON_Resolver::get_merged_data( $origin )->get_settings();
 		wp_cache_set( $cache_key, $settings, $cache_group );
