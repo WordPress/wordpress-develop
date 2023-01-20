@@ -83,7 +83,13 @@ function wp_get_global_styles( $path = array(), $context = array() ) {
  * @return string Stylesheet.
  */
 function wp_get_global_stylesheet( $types = array() ) {
-	// Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme developers workflow.
+	/*
+	 *
+	 * Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme
+	 * developer's workflow.
+	 *
+	 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
+	 */
 	$can_use_cached = empty( $types ) && ! WP_DEBUG;
 	/*
 	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
