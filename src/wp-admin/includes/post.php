@@ -664,15 +664,14 @@ function bulk_edit_posts( $post_data = null ) {
 	}
 
 	/**
- 	 * Execute an action with all the post data processed by `bulk_edit_posts`.
- 	 *
- 	 * @since 6.1.0
- 	 *
- 	 * @param array $post_data Associative array containing the post data.
+	 * Fires after the post data are processed for bulk edit.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param array $post_data Associative array containing the post data.
 	 */
+	do_action( 'bulk_edit_posts', $post_data );
 
- 	do_action( 'bulk_edit_posts', $post_data );
-	
 	return array(
 		'updated' => $updated,
 		'skipped' => $skipped,
