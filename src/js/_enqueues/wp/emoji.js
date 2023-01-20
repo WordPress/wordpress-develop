@@ -142,7 +142,7 @@
 		 * @since 4.2.0
 		 * @private
 		 */
-		const load = () => {
+		function load() {
 			if ( loaded ) {
 				return;
 			}
@@ -178,6 +178,9 @@
 			parse( document.body );
 		}
 
+		// Explicitly bind the scope
+		load = load.bind( this );
+
 		/**
 		 * Get the MutationObserver instance.
 		 *
@@ -188,9 +191,12 @@
 		 *
 		 * @return {MutationObserver|null} Either the mutation observer instance or null.
 		 */
-		const getObserver = () => {
+		function getObserver() {
 			return this.observer || null;
 		}
+
+		// Explicitly bind the scope
+		getObserver = getObserver.bind( this );
 
 		/**
 		 * Tests if a text string contains emoji characters.
