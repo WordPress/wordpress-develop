@@ -1717,8 +1717,32 @@ class Tests_DB extends WP_UnitTestCase {
 			/*
 			 * @ticket 56933.
 			 * When preparing a '%%%s%%', test that the inserted value
-			 * is not wrapped in single quotes between the 2 hex values.
+			 * is not wrapped in single quotes between the 2 "%".
 			 */
+			array(
+				'%%s %d',
+				1,
+				false,
+				"{$placeholder_escape}s 1",
+			),
+			array(
+				'%%%s',
+				'hello',
+				false,
+				"{$placeholder_escape}hello",
+			),
+			array(
+				'%%%%s',
+				'hello',
+				false,
+				"{$placeholder_escape}{$placeholder_escape}s",
+			),
+			array(
+				'%%%%%s',
+				'hello',
+				false,
+				"{$placeholder_escape}{$placeholder_escape}hello",
+			),
 			array(
 				'%%%s%%',
 				'hello',
