@@ -264,15 +264,7 @@ function wp_add_global_styles_for_blocks() {
  * @return bool Returns true if theme or its parent has a theme.json file, false otherwise.
  */
 function wp_theme_has_theme_json() {
-	// Does the theme have its own theme.json?
-	$theme_has_support = is_readable( get_stylesheet_directory() . '/theme.json' );
-
-	// Look up the parent if the child does not have a theme.json.
-	if ( ! $theme_has_support ) {
-		$theme_has_support = is_readable( get_template_directory() . '/theme.json' );
-	}
-
-	return $theme_has_support;
+	return is_readable( get_theme_file_path( 'theme.json' ) );
 }
 
 /**
