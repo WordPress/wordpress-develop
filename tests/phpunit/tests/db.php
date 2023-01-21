@@ -1780,7 +1780,7 @@ class Tests_DB extends WP_UnitTestCase {
 				'%f OR id = %d',
 				array( 3, 5 ),
 				false,
-				"3.000000 OR id = 5",
+				'3.000000 OR id = 5',
 			),
 			array(
 				'%%f OR id = %d',
