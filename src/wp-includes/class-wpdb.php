@@ -1565,11 +1565,11 @@ class wpdb {
 
 				/*
 				 * Before WP 6.2 the "force floats to be locale-unaware" RegEx didn't
-				 * convert "%%%.4f" to "%%%.4F" (note the uppercase F).
+				 * convert "%%%f" to "%%%F" (note the uppercase F).
 				 * This was because it didn't check to see if the leading "%" was escaped.
 				 * And because the "Escape any unescaped percents" RegEx used "[sdF]" in its
 				 * negative lookahead assertion, when there was an odd number of "%", it added
-				 * an extra "%", to give the fully escaped "%%%%.4f" (not a placeholder).
+				 * an extra "%", to give the fully escaped "%%%%f" (not a placeholder).
 				 */
 
 				$s = $split_query[ $key - 2 ] . $split_query[ $key - 1 ];

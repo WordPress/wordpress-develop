@@ -1770,12 +1770,36 @@ class Tests_DB extends WP_UnitTestCase {
 
 			/*
 			 * Before WP 6.2 the "force floats to be locale-unaware" RegEx didn't
-			 * convert "%%%.4f" to "%%%.4F" (note the uppercase F).
+			 * convert "%%%f" to "%%%F" (note the uppercase F).
 			 * This was because it didn't check to see if the leading "%" was escaped.
 			 * And because the "Escape any unescaped percents" RegEx used "[sdF]" in its
 			 * negative lookahead assertion, when there was an odd number of "%", it added
-			 * an extra "%", to give the fully escaped "%%%%.4f" (not a placeholder).
+			 * an extra "%", to give the fully escaped "%%%%f" (not a placeholder).
 			 */
+			array(
+				'%f OR id = %d',
+				array( 3, 5 ),
+				false,
+				"3.000000 OR id = 5",
+			),
+			array(
+				'%%f OR id = %d',
+				array( 5 ),
+				false,
+				"{$placeholder_escape}f OR id = 5",
+			),
+			array(
+				'%%%f OR id = %d',
+				array( 5 ),
+				false,
+				"{$placeholder_escape}{$placeholder_escape}f OR id = 5",
+			),
+			array(
+				'%%%%f OR id = %d',
+				array( 5 ),
+				false,
+				"{$placeholder_escape}{$placeholder_escape}f OR id = 5",
+			),
 			array(
 				"WHERE id = %d AND content LIKE '%.4f'",
 				array( 1, 2 ),
