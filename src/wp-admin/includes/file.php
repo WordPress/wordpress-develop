@@ -2020,10 +2020,11 @@ function move_dir( $from, $to ) {
 	 *
 	 * @since 6.2.0
 	 *
-	 * @param string $from Source directory.
-	 * @param string $to   Destination directory.
+	 * @param string $from  Source directory.
+	 * @param string $to    Destination directory.
+	 * @param true|WP_Error Result from move_dir().
 	 */
-	do_action( 'post_move_dir', $from, $to );
+	do_action( 'post_move_dir', $from, $to, $result );
 
 	return $result;
 }
