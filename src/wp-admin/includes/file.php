@@ -1989,8 +1989,7 @@ function move_dir( $from, $to ) {
 		 * When using an environment with shared folders,
 		 * there is a delay in updating the filesystem's cache.
 		 *
-		 * This is an issue known primarily in environments
-		 * with a VirtualBox provider.
+		 * This is a known issue in environments with a VirtualBox provider.
 		 *
 		 * A 200ms delay gives time for the filesystem to update
 		 * its cache, and prevents "Operation not permitted" and
