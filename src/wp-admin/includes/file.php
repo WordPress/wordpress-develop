@@ -2647,7 +2647,7 @@ function wp_opcache_invalidate_directory( $dir ) {
 			'<code>$dir</code>'
 		);
 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_trigger_error
-		trigger_error( $error_message );
+		trigger_error( wp_kses_post( $error_message ) );
 		return;
 	}
 
