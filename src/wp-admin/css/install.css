@@ -155,10 +155,6 @@ textarea {
 	margin-top: 0;
 }
 
-.wp-pwd input#pwd {
-	width: calc(230px - 4.5rem);
-}
-
 input,
 submit {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
@@ -247,6 +243,12 @@ body.rtl,
 	}
 	#logo a {
 		margin: -125px auto 30px;
+	}
+}
+
+@media screen and (min-width: 783px) {
+	.wp-pwd input#pwd {
+		width: calc(230px - 5.125rem);
 	}
 }
 
