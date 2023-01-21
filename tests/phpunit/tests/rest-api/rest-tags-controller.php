@@ -1324,6 +1324,16 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$wp_rest_additional_fields = array();
 	}
 
+	public function additional_field_get_callback( $response_data, $field_name ) {
+		return 123;
+	}
+
+	public function additional_field_update_callback( $value, $tag ) {
+		if ( 'returnError' === $value ) {
+			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
+		}
+	}
+
 	/**
 	 * @ticket 38504
 	 */
@@ -1394,16 +1404,6 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$data = $response->get_data();
 		$this->assertArrayHasKey( $edit_field, $data );
 		$this->assertArrayNotHasKey( $view_field, $data );
-	}
-
-	public function additional_field_get_callback( $object, $request ) {
-		return 123;
-	}
-
-	public function additional_field_update_callback( $value, $tag ) {
-		if ( 'returnError' === $value ) {
-			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
-		}
 	}
 
 	protected function check_get_taxonomy_terms_response( $response ) {
