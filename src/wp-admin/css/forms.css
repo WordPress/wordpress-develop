@@ -560,11 +560,6 @@ fieldset label,
 	height: min-content;
 }
 
-.wp-pwd button.pwd-toggle {
-	width: 4.25rem;
-	padding: 0;
-}
-
 .wp-pwd button.pwd-toggle .dashicons {
 	position: relative;
 	top: 0.25rem
