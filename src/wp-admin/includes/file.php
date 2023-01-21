@@ -1978,13 +1978,25 @@ function move_dir( $from, $to ) {
 	if ( 'direct' === $wp_filesystem->method ) {
 		if ( $wp_filesystem->rmdir( $to ) ) {
 			$result = @rename( $from, $to );
-			usleep( 200000 ); // VirtualBox needs to nap.
-			wp_opcache_invalidate_directory( $to );
 		}
 	} else {
 		// Non-direct filesystems use some version of rename without a fallback.
 		$result = $wp_filesystem->move( $from, $to );
-		usleep( 200000 ); // VirtualBox needs to nap.
+	}
+
+	if ( $result ) {
+		/*
+		 * When using an environment with shared folders,
+		 * there is a delay in updating the filesystem's cache.
+		 *
+		 * This is an issue known primarily in environments
+		 * with a VirtualBox provider.
+		 *
+		 * A 200ms delay gives time for the filesystem to update
+		 * its cache, and prevents "Operation not permitted" and
+		 * "No such file or directory" warnings.
+		 */
+		usleep( 200000 );
 		wp_opcache_invalidate_directory( $to );
 	}
 
