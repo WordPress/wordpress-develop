@@ -1180,7 +1180,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$wp_rest_additional_fields = array();
 	}
 
-	public function additional_field_get_callback( $object, $request ) {
+	public function additional_field_get_callback( $response_data, $field_name ) {
 		return 123;
 	}
 

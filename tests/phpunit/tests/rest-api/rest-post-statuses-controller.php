@@ -200,7 +200,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$wp_rest_additional_fields = array();
 	}
 
-	public function additional_field_get_callback( $object ) {
+	public function additional_field_get_callback( $response_data ) {
 		return 123;
 	}
 

@@ -9,6 +9,9 @@
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
+/** WordPress Translation Installation API */
+require_once ABSPATH . 'wp-admin/includes/translation-install.php';
+
 wp_reset_vars( array( 'action', 'user_id', 'wp_http_referer' ) );
 
 $user_id      = (int) $user_id;
@@ -330,7 +333,7 @@ switch ( $action ) {
 								<input type="checkbox" name="comment_shortcuts" id="comment_shortcuts" value="true" <?php checked( 'true', $profile_user->comment_shortcuts ); ?> />
 								<?php _e( 'Enable keyboard shortcuts for comment moderation.' ); ?>
 							</label>
-							<?php _e( '<a href="https://wordpress.org/support/article/keyboard-shortcuts/" target="_blank">More information</a>' ); ?>
+							<?php _e( '<a href="https://wordpress.org/support/article/keyboard-shortcuts/#keyboard-shortcuts-for-comments">Documentation on Keyboard Shortcuts</a>' ); ?>
 						</td>
 					</tr>
 					<?php endif; ?>
@@ -345,8 +348,11 @@ switch ( $action ) {
 						</td>
 					</tr>
 
-					<?php $languages = get_available_languages(); ?>
-					<?php if ( $languages ) : ?>
+					<?php
+					$languages = get_available_languages();
+					$can_install_translations = current_user_can( 'install_languages' ) && wp_can_install_language_pack();
+					?>
+					<?php if ( $languages || $can_install_translations ) : ?>
 					<tr class="user-language-wrap">
 						<th scope="row">
 							<?php /* translators: The user language selection field label. */ ?>
@@ -364,12 +370,12 @@ switch ( $action ) {
 
 							wp_dropdown_languages(
 								array(
-									'name'      => 'locale',
-									'id'        => 'locale',
-									'selected'  => $user_locale,
-									'languages' => $languages,
-									'show_available_translations' => false,
-									'show_option_site_default' => true,
+									'name'                        => 'locale',
+									'id'                          => 'locale',
+									'selected'                    => $user_locale,
+									'languages'                   => $languages,
+									'show_available_translations' => $can_install_translations,
+									'show_option_site_default'    => true,
 								)
 							);
 							?>
@@ -638,7 +644,7 @@ switch ( $action ) {
 									<button type="button" class="button wp-generate-pw hide-if-no-js" aria-expanded="false"><?php _e( 'Set New Password' ); ?></button>
 									<div class="wp-pwd hide-if-js">
 										<span class="password-input-wrapper">
-											<input type="password" name="pass1" id="pass1" class="regular-text" value="" autocomplete="new-password" data-pw="<?php echo esc_attr( wp_generate_password( 24 ) ); ?>" aria-describedby="pass-strength-result" />
+											<input type="password" name="pass1" id="pass1" class="regular-text" value="" autocomplete="new-password" spellcheck="false" data-pw="<?php echo esc_attr( wp_generate_password( 24 ) ); ?>" aria-describedby="pass-strength-result" />
 										</span>
 										<button type="button" class="button wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 											<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
@@ -655,7 +661,7 @@ switch ( $action ) {
 							<tr class="user-pass2-wrap hide-if-js">
 								<th scope="row"><label for="pass2"><?php _e( 'Repeat New Password' ); ?></label></th>
 								<td>
-								<input name="pass2" type="password" id="pass2" class="regular-text" value="" autocomplete="new-password" aria-describedby="pass2-desc" />
+								<input name="pass2" type="password" id="pass2" class="regular-text" value="" autocomplete="new-password" spellcheck="false" aria-describedby="pass2-desc" />
 									<?php if ( IS_PROFILE_PAGE ) : ?>
 										<p class="description" id="pass2-desc"><?php _e( 'Type your new password again.' ); ?></p>
 									<?php else : ?>
@@ -779,7 +785,7 @@ switch ( $action ) {
 									<div class="create-application-password form-wrap">
 										<div class="form-field">
 											<label for="new_application_password_name"><?php _e( 'New Application Password Name' ); ?></label>
-											<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" class="input" aria-required="true" aria-describedby="new_application_password_name_desc" />
+											<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" class="input" aria-required="true" aria-describedby="new_application_password_name_desc" spellcheck="false" />
 											<p class="description" id="new_application_password_name_desc"><?php _e( 'Required to create an Application Password, but not to update the user.' ); ?></p>
 										</div>
 
@@ -909,6 +915,19 @@ switch ( $action ) {
 	if (window.location.hash == '#password') {
 		document.getElementById('pass1').focus();
 	}
+</script>
+
+<script type="text/javascript">
+	jQuery( function( $ ) {
+		var languageSelect = $( '#locale' );
+		$( 'form' ).on( 'submit', function() {
+			// Don't show a spinner for English and installed languages,
+			// as there is nothing to download.
+			if ( ! languageSelect.find( 'option:selected' ).data( 'installed' ) ) {
+				$( '#submit', this ).after( '<span class="spinner language-install-spinner is-active" />' );
+			}
+		});
+	} );
 </script>
 
 <?php if ( isset( $application_passwords_list_table ) ) : ?>
