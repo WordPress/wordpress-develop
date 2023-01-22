@@ -264,6 +264,11 @@ function wp_add_global_styles_for_blocks() {
  * @return bool Returns true if theme or its parent has a theme.json file, false otherwise.
  */
 function wp_theme_has_theme_json() {
+	static $theme_has_support = null;
+	if ( null !== $theme_has_support ) {
+		return $theme_has_support;
+	}
+
 	// Does the theme have its own theme.json?
 	$theme_has_support = is_readable( get_stylesheet_directory() . '/theme.json' );
 
