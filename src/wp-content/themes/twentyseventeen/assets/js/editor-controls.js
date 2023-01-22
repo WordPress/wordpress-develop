@@ -46,14 +46,20 @@ function reverseItalicControl() {
 
 	function eventHandler() {
 		var btnItalic = document.querySelector( '#editor .components-toolbar button[aria-label="Italic"]' );
-		var parentNode = document.getSelection().focusNode?.parentNode;
+		var selection = document.getSelection();
 
-		if ( btnItalic && 'FIGCAPTION' === parentNode?.parentNode?.nodeName && ( 'EM' === parentNode?.nodeName || 'I' === parentNode?.nodeName || 'CITE' === parentNode?.nodeName ) ) {
-			btnItalic?.classList.remove( 'is-pressed' );
-			btnItalic.ariaPressed = 'false';
-		} else if ( btnItalic && 'FIGCAPTION' === parentNode?.nodeName ) {
-			btnItalic?.classList.add( 'is-pressed' );
-			btnItalic.ariaPressed = 'true';
+		if ( selection.focusNode ) {
+			var parentNode = selection.focusNode.parentNode;
+
+			if ( btnItalic && parentNode.nodeName ) {
+				if ( btnItalic && 'FIGCAPTION' === parentNode.parentNode.nodeName && ( 'EM' === parentNode.nodeName || 'I' === parentNode.nodeName || 'CITE' === parentNode.nodeName ) ) {
+					btnItalic.classList.remove( 'is-pressed' );
+					btnItalic.ariaPressed = 'false';
+				} else if ( btnItalic && 'FIGCAPTION' === parentNode.nodeName ) {
+					btnItalic.classList.add( 'is-pressed' );
+					btnItalic.ariaPressed = 'true';
+				}
+			}
 		}
 	}
 }
