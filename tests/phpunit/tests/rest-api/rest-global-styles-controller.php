@@ -513,4 +513,23 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		);
 		$this->assertSameSetsWithIndex( $data, $expected );
 	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::get_available_actions
+	 */
+	public function test_assign_edit_css_action_admin() {
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_do_request( $request );
+		$links    = $response->get_links();
+
+		// Admins can only edit css on single site.
+		if ( is_multisite() ) {
+			$this->assertArrayNotHasKey( 'https://api.w.org/action-edit-css', $links );
+		} else {
+			$this->assertArrayHasKey( 'https://api.w.org/action-edit-css', $links );
+		}
+	}
 }

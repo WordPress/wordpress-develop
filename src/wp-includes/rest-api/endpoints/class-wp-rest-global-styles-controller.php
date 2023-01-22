@@ -442,6 +442,10 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 			$rels[] = 'https://api.w.org/action-publish';
 		}
 
+		if ( current_user_can( 'edit_css' ) ) {
+			$rels[] = 'https://api.w.org/action-edit-css';
+		}
+
 		return $rels;
 	}
 
