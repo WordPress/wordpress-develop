@@ -1,7 +1,5 @@
 /**
  * Modifies the editor controls based on default Twenty Seventeen styles.
- *
- * @since 3.2
  */
 
 window.addEventListener( 'load', function () {
