@@ -261,11 +261,15 @@ function wp_add_global_styles_for_blocks() {
  *
  * @since 6.2.0
  *
+ * @param bool $can_use_cache Whether the cached value can be used or should be recalculated.
+ *                            True by default.
+ *
  * @return bool Returns true if theme or its parent has a theme.json file, false otherwise.
  */
-function wp_theme_has_theme_json() {
+function wp_theme_has_theme_json( $can_use_cache = true ) {
 	static $theme_has_support = null;
-	if ( null !== $theme_has_support ) {
+
+	if ( $can_use_cache && ( null !== $theme_has_support ) ) {
 		return $theme_has_support;
 	}
 
@@ -286,5 +290,6 @@ function wp_theme_has_theme_json() {
  * @since 6.2.0
  */
 function wp_clean_theme_json_cache() {
+	wp_theme_has_theme_json( false );
 	WP_Theme_JSON_Resolver::clean_cached_data();
 }
