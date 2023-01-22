@@ -7,26 +7,99 @@
  */
 class Tests_Post_TruncatePostSlug extends WP_UnitTestCase {
 
-	public function test_truncate_post_slug_truncates_too_long_slugs() {
-		$this->assertSame( 'truncated', _truncate_post_slug( 'truncated slug', 9 ), '"truncated slug" should have been truncated to "truncated".' );
+	/**
+	 * Tests that _truncate_post_slug() correctly truncates slugs.
+	 *
+	 * @ticket 56868
+	 *
+	 * @dataProvider data_truncate_post_slug_should_truncate
+	 *
+	 * @param string $slug     The slug to truncate.
+	 * @param int    $length   Max length of the slug.
+	 * @param string $expected The expected truncated slug.
+	 * @param string $message  Test feedback message.
+	 */
+	public function test_truncate_post_slug_should_truncate( $slug, $length, $expected, $message ) {
+		$this->assertSame( $expected, _truncate_post_slug( $slug, $length ), $message );
 	}
 
-	public function test_truncate_post_slug_truncates_too_long_slugs_without_dashes() {
-		$this->assertSame( 'truncated', _truncate_post_slug( 'truncated-slug', 10 ), '"truncated-slug" should have been truncated to "truncated".' );
-	}
+	/**
+	 * Data provider for test_truncate_post_slug_should_truncate().
+	 *
+	 * @return array[]
+	 */
+	public function data_truncate_post_slug_should_truncate() {
+		return array(
+			'a slug that is too long'                      => array(
+				'slug'     => 'truncated slug',
+				'length'   => 9,
+				'expected' => 'truncated',
+				'message'  => '"truncated slug" should have been truncated to "truncated".',
+			),
+			'a slug that is too long and ends with a dash' => array(
+				'slug'     => 'truncated-slug',
+				'length'   => 10,
+				'expected' => 'truncated',
+				'message'  => '"truncated-slug" should have been truncated to "truncated".',
+			),
 
-	public function test_truncate_post_slug_strips_urlencoded_characters_as_a_unit_slash() {
-		$this->assertSame( 'myslug', _truncate_post_slug( 'myslug%2F', 7 ), '"myslug%2F" should have been truncated to "myslug".' );
-		$this->assertSame( 'myslug', _truncate_post_slug( 'myslug%2F', 8 ), '"myslug%2F" should have been truncated to "myslug".' );
-		$this->assertSame( 'myslug%2F', _truncate_post_slug( 'myslug%2F', 9 ), '"myslug%2F" should have been truncated to "myslug%2F".' );
-	}
+			// URL-encoded characters.
+			'URL-encoded characters and "length" includes the first URL-encoded character' => array(
+				'slug'     => 'myslug%2F',
+				'length'   => 7,
+				'expected' => 'myslug',
+				'message'  => '"myslug%2F" should have been truncated to "myslug".',
+			),
+			'URL-encoded characters and "length" includes the second URL-encoded character' => array(
+				'slug'     => 'myslug%2F',
+				'length'   => 8,
+				'expected' => 'myslug',
+				'message'  => '"myslug%2F" should have been truncated to "myslug".',
+			),
+			'URL-encoded characters and "length" includes the third URL-encoded character' => array(
+				'slug'     => 'myslug%2F',
+				'length'   => 9,
+				'expected' => 'myslug%2F',
+				'message'  => '"myslug%2F" should have been truncated to "myslug%2F".',
+			),
 
-	public function test_truncate_post_slug_strips_urlencoded_characters_as_a_unit_accent() {
-		$this->assertSame( 'myslug', _truncate_post_slug( 'myslug%C4%85', 7 ), '"myslug%C4%85" should have been truncated to "myslug".' );
-		$this->assertSame( 'myslug', _truncate_post_slug( 'myslug%C4%85', 8 ), '"myslug%C4%85" should have been truncated to "myslug".' );
-		$this->assertSame( 'myslug', _truncate_post_slug( 'myslug%C4%85', 9 ), '"myslug%C4%85" should have been truncated to "myslug".' );
-		$this->assertSame( 'myslug', _truncate_post_slug( 'myslug%C4%85', 10 ), '"myslug%C4%85" should have been truncated to "myslug".' );
-		$this->assertSame( 'myslug', _truncate_post_slug( 'myslug%C4%85', 11 ), '"myslug%C4%85" should have been truncated to "myslug".' );
-		$this->assertSame( 'myslug%C4%85', _truncate_post_slug( 'myslug%C4%85', 12 ), '"myslug%C4%85" should have been truncated to "myslug%C4%85".' );
+			// URL-encoded accent characters.
+			'URL-encoded accent characters and "length" includes the first URL-encoded character' => array(
+				'slug'     => 'myslug%C4%85',
+				'length'   => 7,
+				'expected' => 'myslug',
+				'message'  => '"myslug%C4%85" should have been truncated to "myslug".',
+			),
+			'URL-encoded accent characters and "length" includes the second URL-encoded character' => array(
+				'slug'     => 'myslug%C4%85',
+				'length'   => 8,
+				'expected' => 'myslug',
+				'message'  => '"myslug%C4%85" should have been truncated to "myslug".',
+			),
+			'URL-encoded accent characters and "length" includes the third URL-encoded character' => array(
+				'slug'     => 'myslug%C4%85',
+				'length'   => 9,
+				'expected' => 'myslug',
+				'message'  => '"myslug%C4%85" should have been truncated to "myslug".',
+			),
+			'URL-encoded accent characters and "length" includes the fourth URL-encoded character' => array(
+				'slug'     => 'myslug%C4%85',
+				'length'   => 10,
+				'expected' => 'myslug',
+				'message'  => '"myslug%C4%85" should have been truncated to "myslug".',
+			),
+			'URL-encoded accent characters and "length" includes the fifth URL-encoded character' => array(
+				'slug'     => 'myslug%C4%85',
+				'length'   => 11,
+				'expected' => 'myslug',
+				'message'  => '"myslug%C4%85" should have been truncated to "myslug".',
+			),
+			'URL-encoded accent characters and "length" includes the fifth URL-encoded character' => array(
+				'slug'     => 'myslug%C4%85',
+				'length'   => 12,
+				'expected' => 'myslug%C4%85',
+				'message'  => '"myslug%C4%85" should have been truncated to "myslug%C4%85".',
+			),
+		);
 	}
 }
