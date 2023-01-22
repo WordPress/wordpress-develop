@@ -509,17 +509,19 @@ function twentyseventeen_scripts() {
 add_action( 'wp_enqueue_scripts', 'twentyseventeen_scripts' );
 
 /**
- * Enqueues styles for the block-based editor.
+ * Enqueues styles and scripts for the block-based editor.
  *
  * @since Twenty Seventeen 1.8
  */
-function twentyseventeen_block_editor_styles() {
+function twentyseventeen_block_editor_assets() {
 	// Block styles.
 	wp_enqueue_style( 'twentyseventeen-block-editor-style', get_theme_file_uri( '/assets/css/editor-blocks.css' ), array(), '20220912' );
 	// Add custom fonts.
 	wp_enqueue_style( 'twentyseventeen-fonts', twentyseventeen_fonts_url(), array(), null );
+	// Add block editor script that modifies block controls based on default theme styles.
+	wp_enqueue_script( 'twentyseventeen-editor-controls', get_theme_file_uri( '/assets/js/editor-controls.js' ), array(), '20230122' );
 }
-add_action( 'enqueue_block_editor_assets', 'twentyseventeen_block_editor_styles' );
+add_action( 'enqueue_block_editor_assets', 'twentyseventeen_block_editor_assets' );
 
 /**
  * Add custom image sizes attribute to enhance responsive image functionality
