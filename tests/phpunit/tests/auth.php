@@ -106,23 +106,12 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * @ticket 57436
 	 */
 	public function test_wp_set_password_action() {
-		$user_id             = self::$user_id;
-		$expected_meta_value = 'Meta value';
+		$action = new MockAction();
 
-		add_action(
-			'wp_set_password',
-			function( $password, $user_id ) {
-				update_user_meta( $user_id, 'my-password-user-meta', 'Meta value' );
-				clean_user_cache( $user_id );
-			},
-			10,
-			2
-		);
+		add_action( 'wp_set_password', array( $action, 'action' ) );
+		wp_set_password( 'A simple password', self::$user_id );
 
-		wp_set_password( 'A simple password', $user_id );
-		$user_meta_value = get_user_meta( $user_id, 'my-password-user-meta', true );
-
-		$this->assertSame( $expected_meta_value, $user_meta_value );
+		$this->assertSame( 1, $action->get_call_count() );
 	}
 
 	/**
