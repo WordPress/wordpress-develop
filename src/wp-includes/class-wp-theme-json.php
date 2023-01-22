@@ -396,7 +396,7 @@ class WP_Theme_JSON {
 	 *
 	 * The order of the selectors should be: link, any-link, visited, hover, focus, active.
 	 * This is to ensure the user action (hover, focus and active) styles have a
-	 * higher specificity than the visited styles, which in turn have a higher 
+	 * higher specificity than the visited styles, which in turn have a higher
 	 * specificity than the unvisited styles.
 	 *
 	 * See https://core.trac.wordpress.org/ticket/56928.
