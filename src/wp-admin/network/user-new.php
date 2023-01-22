@@ -109,13 +109,13 @@ require_once ABSPATH . 'wp-admin/admin-header.php'; ?>
 <?php
 if ( ! empty( $messages ) ) {
 	foreach ( $messages as $msg ) {
-		echo '<div id="message" class="updated notice is-dismissible"><p>' . $msg . '</p></div>';
+		echo '<div id="message" class="notice notice-success is-dismissible"><p>' . $msg . '</p></div>';
 	}
 }
 
 if ( isset( $add_user_errors ) && is_wp_error( $add_user_errors ) ) {
 	?>
-	<div class="error">
+	<div class="notice notice-error is-dismissible">
 		<?php
 		foreach ( $add_user_errors->get_error_messages() as $message ) {
 			echo "<p>$message</p>";
