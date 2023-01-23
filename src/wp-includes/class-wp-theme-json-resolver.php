@@ -58,14 +58,6 @@ class WP_Theme_JSON_Resolver {
 	protected static $theme = null;
 
 	/**
-	 * Whether or not the theme supports theme.json.
-	 *
-	 * @since 5.8.0
-	 * @var bool
-	 */
-	protected static $theme_has_support = null;
-
-	/**
 	 * Container for data coming from the user.
 	 *
 	 * @since 5.9.0
@@ -246,8 +238,14 @@ class WP_Theme_JSON_Resolver {
 		$options = wp_parse_args( $options, array( 'with_supports' => true ) );
 
 		if ( null === static::$theme || ! static::has_same_registered_blocks( 'theme' ) ) {
-			$theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json' ) );
-			$theme_json_data = static::translate( $theme_json_data, wp_get_theme()->get( 'TextDomain' ) );
+			$theme_json_file = static::get_file_path_from_theme( 'theme.json' );
+			$wp_theme        = wp_get_theme();
+			if ( '' !== $theme_json_file ) {
+				$theme_json_data = static::read_json_file( $theme_json_file );
+				$theme_json_data = static::translate( $theme_json_data, $wp_theme->get( 'TextDomain' ) );
+			} else {
+				$theme_json_data = array();
+			}
 
 			/**
 			 * Filters the data provided by the theme for global styles and settings.
@@ -259,20 +257,23 @@ class WP_Theme_JSON_Resolver {
 			$theme_json      = apply_filters( 'wp_theme_json_data_theme', new WP_Theme_JSON_Data( $theme_json_data, 'theme' ) );
 			$theme_json_data = $theme_json->get_data();
 			static::$theme   = new WP_Theme_JSON( $theme_json_data );
-		}
 
-		if ( wp_get_theme()->parent() ) {
-			// Get parent theme.json.
-			$parent_theme_json_data = static::read_json_file( static::get_file_path_from_theme( 'theme.json', true ) );
-			$parent_theme_json_data = static::translate( $parent_theme_json_data, wp_get_theme()->parent()->get( 'TextDomain' ) );
-			$parent_theme           = new WP_Theme_JSON( $parent_theme_json_data );
+			if ( $wp_theme->parent() ) {
+				// Get parent theme.json.
+				$parent_theme_json_file = static::get_file_path_from_theme( 'theme.json', true );
+				if ( '' !== $parent_theme_json_file ) {
+					$parent_theme_json_data = static::read_json_file( $parent_theme_json_file );
+					$parent_theme_json_data = static::translate( $parent_theme_json_data, $wp_theme->parent()->get( 'TextDomain' ) );
+					$parent_theme           = new WP_Theme_JSON( $parent_theme_json_data );
 
-			/*
-			 * Merge the child theme.json into the parent theme.json.
-			 * The child theme takes precedence over the parent.
-			 */
-			$parent_theme->merge( static::$theme );
-			static::$theme = $parent_theme;
+					/*
+					 * Merge the child theme.json into the parent theme.json.
+					 * The child theme takes precedence over the parent.
+					 */
+					$parent_theme->merge( static::$theme );
+					static::$theme = $parent_theme;
+				}
+			}
 		}
 
 		if ( ! $options['with_supports'] ) {
@@ -286,7 +287,7 @@ class WP_Theme_JSON_Resolver {
 		 * and merge the static::$theme upon that.
 		 */
 		$theme_support_data = WP_Theme_JSON::get_from_editor_settings( get_default_block_editor_settings() );
-		if ( ! static::theme_has_support() ) {
+		if ( ! wp_theme_has_theme_json() ) {
 			if ( ! isset( $theme_support_data['settings']['color'] ) ) {
 				$theme_support_data['settings']['color'] = array();
 			}
@@ -313,6 +314,11 @@ class WP_Theme_JSON_Resolver {
 
 			// Classic themes without a theme.json don't support global duotone.
 			$theme_support_data['settings']['color']['defaultDuotone'] = false;
+
+			// Allow themes to enable appearance tools via theme_support.
+			if ( current_theme_supports( 'appearance-tools' ) ) {
+				$theme_support_data['settings']['appearanceTools'] = true;
+			}
 		}
 		$with_theme_supports = new WP_Theme_JSON( $theme_support_data );
 		$with_theme_supports->merge( static::$theme );
@@ -403,6 +409,18 @@ class WP_Theme_JSON_Resolver {
 		if ( ! $theme instanceof WP_Theme ) {
 			$theme = wp_get_theme();
 		}
+
+		/*
+		 * Bail early if the theme does not support a theme.json.
+		 *
+		 * Since wp_theme_has_theme_json() only supports the active
+		 * theme, the extra condition for whether $theme is the active theme is
+		 * present here.
+		 */
+		if ( $theme->get_stylesheet() === get_stylesheet() && ! wp_theme_has_theme_json() ) {
+			return array();
+		}
+
 		$user_cpt         = array();
 		$post_type_filter = 'wp_global_styles';
 		$stylesheet       = $theme->get_stylesheet();
@@ -576,18 +594,14 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 5.8.0
 	 * @since 5.9.0 Added a check in the parent theme.
+	 * @deprecated 6.2.0 Use wp_theme_has_theme_json() instead.
 	 *
 	 * @return bool
 	 */
 	public static function theme_has_support() {
-		if ( ! isset( static::$theme_has_support ) ) {
-			static::$theme_has_support = (
-				is_readable( static::get_file_path_from_theme( 'theme.json' ) ) ||
-				is_readable( static::get_file_path_from_theme( 'theme.json', true ) )
-			);
-		}
+		_deprecated_function( __METHOD__, '6.2.0', 'wp_theme_has_theme_json()' );
 
-		return static::$theme_has_support;
+		return wp_theme_has_theme_json();
 	}
 
 	/**
@@ -630,7 +644,6 @@ class WP_Theme_JSON_Resolver {
 		static::$theme                    = null;
 		static::$user                     = null;
 		static::$user_custom_post_type_id = null;
-		static::$theme_has_support        = null;
 		static::$i18n_schema              = null;
 	}
 

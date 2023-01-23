@@ -691,7 +691,7 @@ function get_user_option( $option, $user = 0, $deprecated = '' ) {
  * Updates user option with global blog capability.
  *
  * User options are just like user metadata except that they have support for
- * global blog options. If the 'global' parameter is false, which it is by default
+ * global blog options. If the 'is_global' parameter is false, which it is by default,
  * it will prepend the WordPress table prefix to the option name.
  *
  * Deletes the user option if $newvalue is empty.
@@ -703,15 +703,15 @@ function get_user_option( $option, $user = 0, $deprecated = '' ) {
  * @param int    $user_id     User ID.
  * @param string $option_name User option name.
  * @param mixed  $newvalue    User option value.
- * @param bool   $global      Optional. Whether option name is global or blog specific.
+ * @param bool   $is_global   Optional. Whether option name is global or blog specific.
  *                            Default false (blog specific).
  * @return int|bool User meta ID if the option didn't exist, true on successful update,
  *                  false on failure.
  */
-function update_user_option( $user_id, $option_name, $newvalue, $global = false ) {
+function update_user_option( $user_id, $option_name, $newvalue, $is_global = false ) {
 	global $wpdb;
 
-	if ( ! $global ) {
+	if ( ! $is_global ) {
 		$option_name = $wpdb->get_blog_prefix() . $option_name;
 	}
 
@@ -722,7 +722,7 @@ function update_user_option( $user_id, $option_name, $newvalue, $global = false 
  * Deletes user option with global blog capability.
  *
  * User options are just like user metadata except that they have support for
- * global blog options. If the 'global' parameter is false, which it is by default
+ * global blog options. If the 'is_global' parameter is false, which it is by default,
  * it will prepend the WordPress table prefix to the option name.
  *
  * @since 3.0.0
@@ -731,16 +731,17 @@ function update_user_option( $user_id, $option_name, $newvalue, $global = false 
  *
  * @param int    $user_id     User ID
  * @param string $option_name User option name.
- * @param bool   $global      Optional. Whether option name is global or blog specific.
+ * @param bool   $is_global   Optional. Whether option name is global or blog specific.
  *                            Default false (blog specific).
  * @return bool True on success, false on failure.
  */
-function delete_user_option( $user_id, $option_name, $global = false ) {
+function delete_user_option( $user_id, $option_name, $is_global = false ) {
 	global $wpdb;
 
-	if ( ! $global ) {
+	if ( ! $is_global ) {
 		$option_name = $wpdb->get_blog_prefix() . $option_name;
 	}
+
 	return delete_user_meta( $user_id, $option_name );
 }
 
@@ -951,7 +952,7 @@ function get_blogs_of_user( $user_id, $all = false ) {
 
 	if ( ! is_multisite() ) {
 		$site_id                        = get_current_blog_id();
-		$sites                          = array( $site_id => new stdClass );
+		$sites                          = array( $site_id => new stdClass() );
 		$sites[ $site_id ]->userblog_id = $site_id;
 		$sites[ $site_id ]->blogname    = get_option( 'blogname' );
 		$sites[ $site_id ]->domain      = '';
@@ -1873,6 +1874,7 @@ function update_user_caches( $user ) {
  *
  * @since 3.0.0
  * @since 4.4.0 'clean_user_cache' action was added.
+ * @since 6.2.0 User metadata caches are now cleared.
  *
  * @param WP_User|int $user User object or ID to be cleaned from the cache
  */
@@ -1892,6 +1894,8 @@ function clean_user_cache( $user ) {
 	if ( ! empty( $user->user_email ) ) {
 		wp_cache_delete( $user->user_email, 'useremail' );
 	}
+
+	wp_cache_delete( $user->ID, 'user_meta' );
 
 	/**
 	 * Fires immediately after the given user's cache is cleaned.
@@ -3504,6 +3508,8 @@ function wp_destroy_all_sessions() {
  *
  * @since 4.4.0
  * @since 4.9.0 The `$site_id` parameter was added to support multisite.
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int|null $site_id Optional. The site ID to get users with no role for. Defaults to the current site.
  * @return string[] Array of user IDs as strings.
