@@ -143,6 +143,25 @@ if ( ! empty( $messages ) ) {
 				}
 			}
 
+			$ltr_fields = array(
+				'siteurl',
+				'home',
+				'admin_email',
+				'new_admin_email',
+				'mailserver_url',
+				'mailserver_login',
+				'mailserver_pass',
+				'ping_sites',
+				'permalink_structure',
+				'category_base',
+				'tag_base',
+				'upload_path',
+				'upload_url_path',
+			);
+			if ( in_array( $option->option_name, $ltr_fields, true ) ) {
+				$class .= ' ltr';
+			}
+
 			if ( strpos( $option->option_value, "\n" ) !== false ) {
 				?>
 				<tr class="form-field">
