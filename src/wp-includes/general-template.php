@@ -598,7 +598,7 @@ function wp_login_form( $args = array() ) {
 		sprintf(
 			'<p class="login-password">
 				<label for="%1$s">%2$s</label>
-				<input type="password" name="pwd" id="%1$s" autocomplete="current-password" class="input" value="" size="20" %3$s/>
+				<input type="password" name="pwd" id="%1$s" autocomplete="current-password" spellcheck="false" class="input ltr" value="" size="20" %3$s/>
 			</p>',
 			esc_attr( $args['id_password'] ),
 			esc_html( $args['label_password'] ),

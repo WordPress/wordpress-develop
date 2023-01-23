@@ -1348,7 +1348,7 @@ if ( ! function_exists( 'wp_redirect' ) ) :
 	 *     exit;
 	 *
 	 * Exiting can also be selectively manipulated by using wp_redirect() as a conditional
-	 * in conjunction with the {@see 'wp_redirect'} and {@see 'wp_redirect_location'} filters:
+	 * in conjunction with the {@see 'wp_redirect'} and {@see 'wp_redirect_status'} filters:
 	 *
 	 *     if ( wp_redirect( $url ) ) {
 	 *         exit;
@@ -1494,7 +1494,7 @@ if ( ! function_exists( 'wp_safe_redirect' ) ) :
 	 *     exit;
 	 *
 	 * Exiting can also be selectively manipulated by using wp_safe_redirect() as a conditional
-	 * in conjunction with the {@see 'wp_redirect'} and {@see 'wp_redirect_location'} filters:
+	 * in conjunction with the {@see 'wp_redirect'} and {@see 'wp_redirect_status'} filters:
 	 *
 	 *     if ( wp_safe_redirect( $url ) ) {
 	 *         exit;
@@ -2740,6 +2740,16 @@ if ( ! function_exists( 'wp_set_password' ) ) :
 		);
 
 		clean_user_cache( $user_id );
+
+		/**
+		 * Fires after the user password is set.
+		 *
+		 * @since 6.2.0
+		 *
+		 * @param string $password The plaintext password just set.
+		 * @param int    $user_id  The ID of the user whose password was just set.
+		 */
+		do_action( 'wp_set_password', $password, $user_id );
 	}
 endif;
 
