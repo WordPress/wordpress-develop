@@ -113,6 +113,9 @@ $preload_paths           = array(
 	'/wp/v2/global-styles/' . $active_global_styles_id . '?context=edit',
 	'/wp/v2/global-styles/' . $active_global_styles_id,
 	'/wp/v2/global-styles/themes/' . $active_theme,
+	'/wp/v2/media?context=edit&per_page=1&orderBy=date&media_type=image',
+	'/wp/v2/media?context=edit&per_page=1&orderBy=date&media_type=video',
+	'/wp/v2/media?context=edit&per_page=1&orderBy=date&media_type=audio',
 );
 
 block_editor_rest_api_preload( $preload_paths, $block_editor_context );

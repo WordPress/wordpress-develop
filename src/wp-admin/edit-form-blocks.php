@@ -72,6 +72,9 @@ $preload_paths = array(
 	sprintf( '%s/autosaves?context=edit', $rest_path ),
 	'/wp/v2/settings',
 	array( '/wp/v2/settings', 'OPTIONS' ),
+	'/wp/v2/media?context=edit&per_page=1&orderBy=date&media_type=image',
+	'/wp/v2/media?context=edit&per_page=1&orderBy=date&media_type=video',
+	'/wp/v2/media?context=edit&per_page=1&orderBy=date&media_type=audio',
 );
 
 block_editor_rest_api_preload( $preload_paths, $block_editor_context );
