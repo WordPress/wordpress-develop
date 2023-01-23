@@ -25,6 +25,18 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 	private $remote_patterns_loaded;
 
 	/**
+	 * An array that maps old categories names to new ones.
+	 *
+	 * @since 6.2.0
+	 * @var array
+	 */
+	protected static $categories_migration = array(
+		'buttons' => 'call-to-action',
+		'columns' => 'text',
+		'query'   => 'posts',
+	);
+
+	/**
 	 * Constructs the controller.
 	 *
 	 * @since 6.0.0
@@ -84,6 +96,7 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 	 * Retrieves all block patterns.
 	 *
 	 * @since 6.0.0
+	 * @since 6.2.0 Added migration for old core pattern categories to the new ones.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
@@ -101,10 +114,33 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 		$response = array();
 		$patterns = WP_Block_Patterns_Registry::get_instance()->get_all_registered();
 		foreach ( $patterns as $pattern ) {
-			$prepared_pattern = $this->prepare_item_for_response( $pattern, $request );
+			$migrated_pattern = $this->migrate_pattern_categories( $pattern );
+			$prepared_pattern = $this->prepare_item_for_response( $migrated_pattern, $request );
 			$response[]       = $this->prepare_response_for_collection( $prepared_pattern );
 		}
 		return rest_ensure_response( $response );
+	}
+
+	/**
+	 * Migrates old core pattern categories to new ones.
+	 *
+	 * Core pattern categories are being revamped and we need to handle the migration
+	 * to the new ones and ensure backwards compatibility.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param array $pattern Raw pattern as registered, before applying any changes.
+	 * @return array Migrated pattern.
+	 */
+	protected function migrate_pattern_categories( $pattern ) {
+		if ( isset( $pattern['categories'] ) && is_array( $pattern['categories'] ) ) {
+			foreach ( $pattern['categories'] as $i => $category ) {
+				if ( array_key_exists( $category, static::$categories_migration ) ) {
+					$pattern['categories'][ $i ] = static::$categories_migration[ $category ];
+				}
+			}
+		}
+		return $pattern;
 	}
 
 	/**
