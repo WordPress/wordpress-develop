@@ -122,10 +122,10 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Migrates old core pattern categories to new ones.
+	 * Migrates old core pattern categories to the new categories.
 	 *
-	 * Core pattern categories are being revamped and we need to handle the migration
-	 * to the new ones and ensure backwards compatibility.
+	 * Core pattern categories are revamped. Migration is needed to ensure
+	 * backwards compatibility.
 	 *
 	 * @since 6.2.0
 	 *
@@ -133,13 +133,21 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 	 * @return array Migrated pattern.
 	 */
 	protected function migrate_pattern_categories( $pattern ) {
-		if ( isset( $pattern['categories'] ) && is_array( $pattern['categories'] ) ) {
-			foreach ( $pattern['categories'] as $i => $category ) {
-				if ( array_key_exists( $category, static::$categories_migration ) ) {
-					$pattern['categories'][ $i ] = static::$categories_migration[ $category ];
-				}
+		// No categories to migrate.
+		if (
+			! isset( $pattern['categories'] ) ||
+			! is_array( $pattern['categories'] )
+		) {
+			return $pattern;
+		}
+
+		foreach ( $pattern['categories'] as $index => $category ) {
+			// If the category exists as a key, then it needs migration.
+			if ( isset( static::$categories_migration[ $category ] ) ) {
+				$pattern['categories'][ $index ] = static::$categories_migration[ $category ];
 			}
 		}
+
 		return $pattern;
 	}
 
