@@ -5350,7 +5350,7 @@ function absint( $maybeint ) {
  *
  * @param string $function_name The function that was called.
  * @param string $version       The version of WordPress that deprecated the function.
- * @param string $replacement   Optional. The function that should have been called. Default empty.
+ * @param string $replacement   Optional. The function that should have been called. Default empty string.
  */
 function _deprecated_function( $function_name, $version, $replacement = '' ) {
 
@@ -5634,7 +5634,7 @@ function _deprecated_file( $file, $version, $replacement = '', $message = '' ) {
  *
  * @param string $function_name The function that was called.
  * @param string $version       The version of WordPress that deprecated the argument used.
- * @param string $message       Optional. A message regarding the change. Default empty.
+ * @param string $message       Optional. A message regarding the change. Default empty string.
  */
 function _deprecated_argument( $function_name, $version, $message = '' ) {
 
