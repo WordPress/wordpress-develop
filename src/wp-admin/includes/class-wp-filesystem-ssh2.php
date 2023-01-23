@@ -724,6 +724,25 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	}
 
 	/**
+	 * Moves a directory from one location to another.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param string $from Source directory.
+	 * @param string $to   Destination directory.
+	 * @return true|WP_Error True on success, WP_Error on failure.
+	 */
+	public function move_dir( $from, $to ) {
+		$result = $this->move( $from, $to );
+
+		if ( ! $result ) {
+			$result = new \WP_Error( 'mkdir_failed_move_dir', __( 'Could not create directory.' ), $to );
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Gets details for files in a directory or a specific file.
 	 *
 	 * @since 2.7.0

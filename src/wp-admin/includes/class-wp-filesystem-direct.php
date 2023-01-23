@@ -574,6 +574,54 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	}
 
 	/**
+	 * Moves a directory from one location to another via the rename() PHP function.
+	 * If the renaming failed, falls back to copy_dir().
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param string $from Source directory.
+	 * @param string $to   Destination directory.
+	 * @return true|WP_Error True on success, WP_Error on failure.
+	 */
+	public function move_dir( $from, $to ) {
+		$result = false;
+
+		if ( $this->rmdir( $to ) ) {
+			$result = @rename( $from, $to );
+		}
+
+		if ( $result ) {
+			/*
+			* When using an environment with shared folders,
+			* there is a delay in updating the filesystem's cache.
+			*
+			* This is a known issue in environments with a VirtualBox provider.
+			*
+			* A 200ms delay gives time for the filesystem to update
+			* its cache, and prevents "Operation not permitted" and
+			* "No such file or directory" warnings.
+			*/
+			usleep( 200000 );
+			wp_opcache_invalidate_directory( $to );
+		} else {
+			if ( ! $this->is_dir( $to ) ) {
+				if ( ! $this->mkdir( $to, FS_CHMOD_DIR ) ) {
+					return new \WP_Error( 'mkdir_failed_move_dir', __( 'Could not create directory.' ), $to );
+				}
+			}
+
+			$result = copy_dir( $from, $to, array( basename( $to ) ) );
+
+			// Clear the source directory.
+			if ( ! is_wp_error( $result ) ) {
+				$this->delete( $from, true );
+			}
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Gets details for files in a directory or a specific file.
 	 *
 	 * @since 2.5.0
