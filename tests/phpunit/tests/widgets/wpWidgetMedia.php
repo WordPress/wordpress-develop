@@ -386,7 +386,7 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 	 * @param WP_Widget_Media $widget   Widget object.
 	 * @return array Instance.
 	 */
-	public function filter_widget_mocked_instance( $instance, $args, $widget_object ) {
+	public function filter_widget_mocked_instance( $instance, $args, $widget ) {
 		$this->widget_instance_filter_args = func_get_args();
 		return $instance;
 	}
