@@ -266,6 +266,17 @@ function wp_add_global_styles_for_blocks() {
 function wp_theme_has_theme_json() {
 	static $theme_has_support = null;
 
+	/*
+	 * Ignore cache when `WP_DEBUG` is enabled. Why?
+	 * - to avoid interfering with the theme developer's workflow.
+	 * - to reset between each automated test.
+	 *
+	 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
+	 */
+	if ( WP_DEBUG ) {
+		$theme_has_support = null;
+	}
+
 	if ( null !== $theme_has_support ) {
 		return $theme_has_support;
 	}
