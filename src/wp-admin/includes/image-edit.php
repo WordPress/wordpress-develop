@@ -255,12 +255,12 @@ function wp_image_editor( $post_id, $msg = false ) {
 
 			/** This filter is documented in wp-admin/includes/media.php */
 			$image_size_names = apply_filters(
-					'image_size_names_choose',
-					array(
-							'medium'       => __( 'Medium' ),
-							'medium_large' => __( 'Medium Large' ),
-							'large'        => __( 'Large' ),
-					)
+				'image_size_names_choose',
+				array(
+					'medium'       => __( 'Medium' ),
+					'medium_large' => __( 'Medium Large' ),
+					'large'        => __( 'Large' ),
+				)
 			);
 
 			foreach ( array_unique( $edit_custom_sizes ) as $key => $size ) {
