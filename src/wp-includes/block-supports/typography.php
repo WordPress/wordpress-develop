@@ -520,7 +520,10 @@ function wp_get_typography_font_size_value( $preset, $should_use_fluid_typograph
 		return $preset['size'];
 	}
 
-	// Parses the minimum font size limit, so we can perform checks using it.
+	/*
+	 * Normalizes the minimum font size limit according to the incoming unit,
+	 * in order to perform comparative checks.
+	 */
 	$minimum_font_size_limit = wp_get_typography_value_and_unit(
 		$default_minimum_font_size_limit,
 		array(
