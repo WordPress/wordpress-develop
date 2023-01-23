@@ -826,7 +826,7 @@ EOF;
 
 		// Pass arguments.
 		$arr = array(
-			'return' => 'p11',
+			'output' => 'p11',
 			'key'    => $str,
 			'atts'   => array(
 				'a' => 'b',
@@ -864,9 +864,9 @@ EOF;
 		return 'p11';
 	}
 
-	public function filter_pre_do_shortcode_tag_attr( $returned_value, $key, $atts, $m ) {
+	public function filter_pre_do_shortcode_tag_attr( $output, $key, $atts, $m ) {
 		$arr = array(
-			'return' => $returned_value,
+			'output' => $output,
 			'key'    => $key,
 			'atts'   => $atts,
 			'm'      => $m,
@@ -896,7 +896,7 @@ EOF;
 
 		// Pass arguments.
 		$arr = array(
-			'return' => 'foobar',
+			'output' => 'foobar',
 			'key'    => $str,
 			'atts'   => array(
 				'a' => 'b',
@@ -926,17 +926,17 @@ EOF;
 		return 'foo';
 	}
 
-	public function filter_do_shortcode_tag_replace( $original_value ) {
-		return str_replace( 'oo', 'ee', $original_value );
+	public function filter_do_shortcode_tag_replace( $output ) {
+		return str_replace( 'oo', 'ee', $output );
 	}
 
-	public function filter_do_shortcode_tag_generate( $original_value ) {
+	public function filter_do_shortcode_tag_generate( $output ) {
 		return 'foobar';
 	}
 
-	public function filter_do_shortcode_tag_attr( $returned_value, $key, $atts, $m ) {
+	public function filter_do_shortcode_tag_attr( $output, $key, $atts, $m ) {
 		$arr = array(
-			'return' => $returned_value,
+			'output' => $output,
 			'key'    => $key,
 			'atts'   => $atts,
 			'm'      => $m,
