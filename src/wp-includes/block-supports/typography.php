@@ -553,7 +553,10 @@ function wp_get_typography_font_size_value( $preset, $should_use_fluid_typograph
 	 * the given font size multiplied by the min font size scale factor.
 	 */
 	if ( ! $minimum_font_size_raw ) {
-		$calculated_minimum_font_size = round( $preferred_size['value'] * $default_minimum_font_size_factor, 3 );
+		$calculated_minimum_font_size = round(
+			$preferred_size['value'] * $default_minimum_font_size_factor,
+			3
+		);
 
 		// Only use calculated min font size if it's > $minimum_font_size_limit value.
 		if ( ! empty( $minimum_font_size_limit ) && $calculated_minimum_font_size <= $minimum_font_size_limit['value'] ) {
