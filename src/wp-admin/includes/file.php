@@ -1991,9 +1991,11 @@ function move_dir( $from, $to ) {
 		 *
 		 * This is a known issue in environments with a VirtualBox provider.
 		 *
-		 * A 200ms delay gives time for the filesystem to update
-		 * its cache, and prevents "Operation not permitted" and
-		 * "No such file or directory" warnings.
+		 * A 200ms delay gives time for the filesystem to update its cache,
+		 * prevents "Operation not permitted", and "No such file or directory" warnings.
+		 *
+		 * This delay is used in other projects, including Composer.
+		 * @link https://github.com/composer/composer/blob/main/src/Composer/Util/Platform.php#L228-L233
 		 */
 		usleep( 200000 );
 		wp_opcache_invalidate_directory( $to );
