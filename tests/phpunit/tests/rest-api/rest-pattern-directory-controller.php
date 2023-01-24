@@ -343,11 +343,13 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	/**
 	 * Tests if the provided query args are passed through to the wp.org API.
 	 *
-	 * @dataProvider data_get_items_query_args
+	 * @since 6.2.0
+	 *
+	 * @ticket 57501
 	 *
 	 * @covers WP_REST_Pattern_Directory_Controller::get_items
 	 *
-	 * @since 6.2.0
+	 * @dataProvider data_get_items_query_args
 	 *
 	 * @param string $param    Query parameter name (ex, page).
 	 * @param mixed  $value    Query value to test.
