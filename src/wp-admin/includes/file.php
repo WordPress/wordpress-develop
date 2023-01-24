@@ -2636,13 +2636,15 @@ function wp_opcache_invalidate_directory( $dir ) {
 	global $wp_filesystem;
 
 	if ( ! is_string( $dir ) || '' === trim( $dir ) ) {
-		$error_message = sprintf(
-			/* translators: %s: The '$dir' argument. */
-			__( 'The %s argument must be a non-empty string.' ),
-			'<code>$dir</code>'
-		);
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_trigger_error
-		trigger_error( wp_kses_post( $error_message ) );
+		if ( WP_DEBUG ) {
+			$error_message = sprintf(
+			/* translators: %s: The function. */
+				__( 'The %s argument must be a non-empty string.' ),
+				'<code>wp_opcache_invalidate_directory()</code>'
+			);
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_trigger_error
+			trigger_error( $error_message );
+		}
 		return;
 	}
 
