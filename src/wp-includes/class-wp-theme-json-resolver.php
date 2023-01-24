@@ -551,6 +551,7 @@ class WP_Theme_JSON_Resolver {
 	 * @since 5.9.0 Added user data, removed the `$settings` parameter,
 	 *              added the `$origin` parameter.
 	 * @since 6.1.0 Added block data and generation of spacingSizes array.
+	 * @since 6.2.0 Changed ' $origin' parameter values to 'default', 'blocks', 'theme' or 'custom'.
 	 *
 	 * @param string $origin Optional. To what level should we merge data: 'default', 'blocks', 'theme' or 'custom'.
 	 *                       'custom' is used as default value as well as fallback value if the origin is unknown.
