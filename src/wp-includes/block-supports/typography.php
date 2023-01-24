@@ -482,7 +482,7 @@ function wp_get_typography_font_size_value( $preset, $should_use_fluid_typograph
 	$typography_settings = wp_get_global_settings( array( 'typography' ) );
 	if (
 		isset( $typography_settings['fluid'] ) &&
-		( true === $typography_settings['fluid'] || is_array( $typography_settings['fluid'] )
+		( true === $typography_settings['fluid'] || is_array( $typography_settings['fluid'] ) )
 	) {
 		$should_use_fluid_typography = true;
 	}
