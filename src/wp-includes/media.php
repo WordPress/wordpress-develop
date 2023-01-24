@@ -1057,7 +1057,7 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 
 		$attr = wp_parse_args( $attr, $default_attr );
 
-		// Omit the `decoding` attribute if empty or false.
+		// Omit the `decoding` attribute if the value is invalid according to the spec.
 		if ( array_key_exists( 'decoding', $attr ) && ! in_array( $attr['decoding'], array( 'async', 'sync', 'auto' ), true ) ) {
 			unset( $attr['decoding'] );
 		}
