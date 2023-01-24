@@ -3281,7 +3281,9 @@ EOF;
 	/**
 	 * @ticket 57086
 	 *
-	 * @dataProvider data_test_wp_get_attachment_image_decoding_attr
+	 * @dataProvider data_wp_get_attachment_image_decoding_attr
+	 *
+	 * @covers ::wp_get_attachment_image
 	 */
 	public function test_wp_get_attachment_image_decoding_attr( $decoding, $expected ) {
 		if ( 'no value' === $decoding ) {
