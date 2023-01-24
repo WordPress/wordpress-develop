@@ -1965,16 +1965,6 @@ function move_dir( $from, $to ) {
 
 	$result = false;
 
-	/**
-	 * Fires before move_dir().
-	 *
-	 * @since 6.2.0
-	 *
-	 * @param string $from Source directory.
-	 * @param string $to   Destination directory.
-	 */
-	do_action( 'pre_move_dir', $from, $to );
-
 	if ( 'direct' === $wp_filesystem->method ) {
 		if ( $wp_filesystem->rmdir( $to ) ) {
 			$result = @rename( $from, $to );
@@ -2015,17 +2005,6 @@ function move_dir( $from, $to ) {
 			$wp_filesystem->delete( $from, true );
 		}
 	}
-
-	/**
-	 * Fires after move_dir().
-	 *
-	 * @since 6.2.0
-	 *
-	 * @param string        $from   Source directory.
-	 * @param string        $to     Destination directory.
-	 * @param true|WP_Error $result Result from move_dir().
-	 */
-	do_action( 'post_move_dir', $from, $to, $result );
 
 	return $result;
 }
