@@ -468,7 +468,6 @@ function _remove_theme_attribute_in_block_template_content( $template_content ) 
 	$template_blocks     = parse_blocks( $template_content );
 
 	$blocks = _flatten_blocks( $template_blocks );
-	die();
 	foreach ( $blocks as $key => $block ) {
 		if ( 'core/template-part' === $block['blockName'] && isset( $block['attrs']['theme'] ) ) {
 			unset( $blocks[ $key ]['attrs']['theme'] );
