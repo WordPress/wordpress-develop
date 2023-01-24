@@ -481,6 +481,12 @@ function _remove_theme_attribute_in_block_template_content( $template_content ) 
 			unset( $blocks[ $key ]['attrs']['queryId'] );
 			$has_updated_content = true;
 		}
+		if ( 'core/image' === $block['blockName'] || 'core/cover' === $block['blockName'] && isset( $block['attrs']['id'] ) ) {
+			unset( $blocks[ $key ]['attrs']['id'] );
+			$blocks[ $key ]['innerHTML'] = preg_replace( '/\s?wp-image-\d*/', '', $block['innerHTML'] );
+			$blocks[ $key ]['innerContent'][0] = preg_replace( '/\s?wp-image-\d*/', '', $block['innerContent'][0] );
+			$has_updated_content = true;
+		}
 	}
 
 	if ( ! $has_updated_content ) {
