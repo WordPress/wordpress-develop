@@ -479,18 +479,21 @@ function wp_get_typography_font_size_value( $preset, $should_use_fluid_typograph
 	}
 
 	// Checks if fluid font sizes are activated.
-	$typography_settings         = wp_get_global_settings( array( 'typography' ) );
-	$should_use_fluid_typography =
+	$typography_settings = wp_get_global_settings( array( 'typography' ) );
+	if (
 		isset( $typography_settings['fluid'] ) &&
-		( true === $typography_settings['fluid'] || is_array( $typography_settings['fluid'] ) ) ?
-			true :
-			$should_use_fluid_typography;
+		( true === $typography_settings['fluid'] || is_array( $typography_settings['fluid'] )
+	) {
+		$should_use_fluid_typography = true;
+	}
 
 	if ( ! $should_use_fluid_typography ) {
 		return $preset['size'];
 	}
 
-	$fluid_settings = isset( $typography_settings['fluid'] ) && is_array( $typography_settings['fluid'] ) ? $typography_settings['fluid'] : array();
+	$fluid_settings = isset( $typography_settings['fluid'] ) && is_array( $typography_settings['fluid'] )
+		? $typography_settings['fluid']
+		: array();
 
 	// Defaults.
 	$default_maximum_viewport_width   = '1600px';
