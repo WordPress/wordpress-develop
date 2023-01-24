@@ -454,9 +454,10 @@ function _inject_theme_attribute_in_block_template_content( $template_content ) 
 }
 
 /**
- * Parses a block template and removes the theme attribute from each template part.
+ * Parses a block template and removes the theme and site specific attributes from each template part.
  *
  * @since 5.9.0
+ * @since 6.2.0 Remove other site specific block attributes not needed on export.
  * @access private
  *
  * @param string $template_content Serialized block template content.
