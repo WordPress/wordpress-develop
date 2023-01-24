@@ -3293,7 +3293,12 @@ EOF;
 		$this->assertSame( $expected, $image );
 	}
 
-	public function data_test_wp_get_attachment_image_decoding_attr() {
+	/**
+	 * Data provider for test_wp_get_attachment_image_decoding_attr().
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_get_attachment_image_decoding_attr() {
 		return array(
 			'default'     => array(
 				'decoding' => 'no value',
