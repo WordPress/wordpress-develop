@@ -970,7 +970,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		wp_recursive_ksort( $actual_settings );
 		wp_recursive_ksort( $expected_settings );
 
-		$this->assertSameSets(
+		$this->assertSame(
 			$expected_settings,
 			$actual_settings
 		);
