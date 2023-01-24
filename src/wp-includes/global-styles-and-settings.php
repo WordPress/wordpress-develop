@@ -266,18 +266,21 @@ function wp_add_global_styles_for_blocks() {
 function wp_theme_has_theme_json() {
 	static $theme_has_support = null;
 
-	/*
-	 * Ignore cache when `WP_DEBUG` is enabled. Why?
-	 * - to avoid interfering with the theme developer's workflow.
-	 * - to reset between each automated test.
-	 *
-	 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
-	 */
-	if ( WP_DEBUG ) {
-		$theme_has_support = null;
-	}
-
-	if ( null !== $theme_has_support ) {
+	if (
+		null !== $theme_has_support &&
+		/*
+		 * Ignore static cache when `WP_DEBUG` is enabled. Why? To avoid interfering with
+		 * the theme developer's workflow.
+		 *
+		 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
+		 */
+		! WP_DEBUG &&
+		/*
+		 * Ignore cache when automated test suites are running. Why? To ensure
+		 * the static cache is reset between each test.
+		 */
+		! ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS )
+	) {
 		return $theme_has_support;
 	}
 
