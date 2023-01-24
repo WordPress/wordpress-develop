@@ -567,6 +567,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @ticket 56467
 	 * @ticket 57065
+	 * @ticket 57529
 	 *
 	 * @covers ::wp_register_typography_support
 	 *

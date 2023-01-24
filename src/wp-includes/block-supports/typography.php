@@ -453,6 +453,7 @@ function wp_get_computed_fluid_typography_value( $args = array() ) {
  *
  * @since 6.1.0
  * @since 6.1.1 Adjusted rules for min and max font sizes.
+ * @since 6.2.0 Added 'settings.typography.fluid.minFontSize' support.
  *
  * @param array $preset                     {
  *     Required. fontSizes preset value as seen in theme.json.
