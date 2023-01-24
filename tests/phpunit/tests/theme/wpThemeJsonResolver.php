@@ -235,7 +235,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		);
 		$this->assertSame(
 			'Wariant motywu blokowego',
-			$style_variations[0]['title']
+			$style_variations[1]['title']
 		);
 	}
 
@@ -920,10 +920,10 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$expected_settings = array(
 			array(
 				'version'  => 2,
-				'title'    => 'variation-a',
+				'title'    => 'variation-b',
 				'settings' => array(
 					'blocks' => array(
-						'core/paragraph' => array(
+						'core/post-title' => array(
 							'color' => array(
 								'palette' => array(
 									'theme' => array(
@@ -941,20 +941,25 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 			),
 			array(
 				'version'  => 2,
-				'title'    => 'variation-b',
+				'title'    => 'Block theme variation',
 				'settings' => array(
+					'color' => array(
+						'palette' => array(
+							'theme' => array(
+								array(
+									'slug'  => 'foreground',
+									'name'  => 'Foreground',
+									'color' => '#3F67C6',
+								),
+							),
+						),
+					),
+				),
+				'styles'   => array(
 					'blocks' => array(
 						'core/post-title' => array(
-							'color' => array(
-								'palette' => array(
-									'theme' => array(
-										array(
-											'slug'  => 'light',
-											'name'  => 'Light',
-											'color' => '#f1f1f1',
-										),
-									),
-								),
+							'typography' => array(
+								'fontWeight' => '700',
 							),
 						),
 					),
