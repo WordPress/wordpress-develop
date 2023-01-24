@@ -2092,10 +2092,10 @@ HTML;
 	 *
 	 * @ticket 54060
 	 *
-	 * @param string $global The name of the global variable.
+	 * @param string $global_name The name of the global variable.
 	 */
-	public function test_kses_globals_are_defined( $global ) {
-		$this->assertArrayHasKey( $global, $GLOBALS );
+	public function test_kses_globals_are_defined( $global_name ) {
+		$this->assertArrayHasKey( $global_name, $GLOBALS );
 	}
 
 	/**
@@ -2104,13 +2104,13 @@ HTML;
 	 * @return array
 	 */
 	public function data_kses_globals_are_defined() {
-		$globals = array(
+		$required_kses_globals = array(
 			'allowedposttags',
 			'allowedtags',
 			'allowedentitynames',
 			'allowedxmlentitynames',
 		);
 
-		return $this->text_array_to_dataprovider( $globals );
+		return $this->text_array_to_dataprovider( $required_kses_globals );
 	}
 }
