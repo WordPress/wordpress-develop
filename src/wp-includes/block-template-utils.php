@@ -468,9 +468,18 @@ function _remove_theme_attribute_in_block_template_content( $template_content ) 
 	$template_blocks     = parse_blocks( $template_content );
 
 	$blocks = _flatten_blocks( $template_blocks );
+	die();
 	foreach ( $blocks as $key => $block ) {
 		if ( 'core/template-part' === $block['blockName'] && isset( $block['attrs']['theme'] ) ) {
 			unset( $blocks[ $key ]['attrs']['theme'] );
+			$has_updated_content = true;
+		}
+		if ( 'core/navigation' === $block['blockName'] && isset( $block['attrs']['ref'] ) ) {
+			unset( $blocks[ $key ]['attrs']['ref'] );
+			$has_updated_content = true;
+		}
+		if ( 'core/query' === $block['blockName'] && isset( $block['attrs']['queryId'] ) ) {
+			unset( $blocks[ $key ]['attrs']['queryId'] );
 			$has_updated_content = true;
 		}
 	}
@@ -1260,6 +1269,8 @@ function wp_generate_block_templates_export_file() {
 	// Load template parts into the zip file.
 	$template_parts = get_block_templates( array(), 'wp_template_part' );
 	foreach ( $template_parts as $template_part ) {
+		$template_part->content = _remove_theme_attribute_in_block_template_content( $template_part->content );
+
 		$zip->addFromString(
 			'parts/' . $template_part->slug . '.html',
 			$template_part->content
