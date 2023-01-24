@@ -2638,8 +2638,8 @@ function wp_opcache_invalidate_directory( $dir ) {
 	if ( ! is_string( $dir ) || '' === trim( $dir ) ) {
 		if ( WP_DEBUG ) {
 			$error_message = sprintf(
-			/* translators: %s: The function. */
-				__( 'The %s argument must be a non-empty string.' ),
+				/* translators: %s: The function name. */
+				__( '%s expects a non-empty string.' ),
 				'<code>wp_opcache_invalidate_directory()</code>'
 			);
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_trigger_error
