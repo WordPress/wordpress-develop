@@ -1947,6 +1947,75 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 }
 
 /**
+ * Moves a directory from one location to another.
+ *
+ * Recursively invalidates OPcache on success.
+ *
+ * If the renaming failed, falls back to copy_dir().
+ *
+ * Assumes that WP_Filesystem() has already been called and setup.
+ *
+ * @since 6.2.0
+ *
+ * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+ *
+ * @param string $from      Source directory.
+ * @param string $to        Destination directory.
+ * @param bool   $overwrite Overwrite destination.
+ *                          Default is false.
+ * @return true|WP_Error True on success, WP_Error on failure.
+ */
+function move_dir( $from, $to, $overwrite = false ) {
+	global $wp_filesystem;
+
+	if ( ! $overwrite && $wp_filesystem->exists( $to ) ) {
+		return new WP_Error(
+			'to_directory_already_exists_move_dir',
+			sprintf(
+				/* translators: %s: The destination directory path. */
+				__( 'The destination folder, %s, already exists.' ),
+				"<code>$to</code>"
+			)
+		);
+	}
+
+	if ( $wp_filesystem->move( $from, $to, $overwrite ) ) {
+		/*
+		 * When using an environment with shared folders,
+		 * there is a delay in updating the filesystem's cache.
+		 *
+		 * This is a known issue in environments with a VirtualBox provider.
+		 *
+		 * A 200ms delay gives time for the filesystem to update its cache,
+		 * prevents "Operation not permitted", and "No such file or directory" warnings.
+		 *
+		 * This delay is used in other projects, including Composer.
+		 * @link https://github.com/composer/composer/blob/main/src/Composer/Util/Platform.php#L228-L233
+		 */
+		usleep( 200000 );
+		wp_opcache_invalidate_directory( $to );
+
+		return true;
+	}
+
+	// Fall back to a recursive copy.
+	if ( ! $wp_filesystem->is_dir( $to ) ) {
+		if ( ! $wp_filesystem->mkdir( $to, FS_CHMOD_DIR ) ) {
+			return new WP_Error( 'mkdir_failed_move_dir', __( 'Could not create directory.' ), $to );
+		}
+	}
+
+	$result = copy_dir( $from, $to, array( basename( $to ) ) );
+
+	// Clear the source directory.
+	if ( ! is_wp_error( $result ) ) {
+		$wp_filesystem->delete( $from, true );
+	}
+
+	return $result;
+}
+
+/**
  * Initializes and connects the WordPress Filesystem Abstraction classes.
  *
  * This function will include the chosen transport and attempt connecting.
