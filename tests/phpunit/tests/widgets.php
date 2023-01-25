@@ -1378,7 +1378,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		unregister_sidebar( 'sidebar-1' );
 		unregister_sidebar( 'sidebar-2' );
 
-		// Register stored classic sidebars for block themes..
+		// Register stored classic sidebars for block themes.
 		wp_widgets_init();
 
 		$this->assertArrayHasKey( 'sidebar-1', $wp_registered_sidebars );
