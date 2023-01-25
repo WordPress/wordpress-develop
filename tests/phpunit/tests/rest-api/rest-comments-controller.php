@@ -152,7 +152,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	public function set_up() {
 		parent::set_up();
-		$this->endpoint = new WP_REST_Comments_Controller;
+		$this->endpoint = new WP_REST_Comments_Controller();
 		if ( is_multisite() ) {
 			update_site_option( 'site_admins', array( 'superadmin' ) );
 		}
@@ -953,7 +953,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	public function test_prepare_item_limit_fields() {
 		wp_set_current_user( self::$admin_id );
 
-		$endpoint = new WP_REST_Comments_Controller;
+		$endpoint = new WP_REST_Comments_Controller();
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', self::$approved_id ) );
 		$request->set_param( 'context', 'edit' );
 		$request->set_param( '_fields', 'id,status' );
@@ -3298,15 +3298,15 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$wp_rest_additional_fields = array();
 	}
 
-	public function additional_field_get_callback( $object ) {
-		return get_comment_meta( $object['id'], 'my_custom_int', true );
+	public function additional_field_get_callback( $response_data, $field_name ) {
+		return get_comment_meta( $response_data['id'], $field_name, true );
 	}
 
-	public function additional_field_update_callback( $value, $comment ) {
+	public function additional_field_update_callback( $value, $comment, $field_name ) {
 		if ( 'returnError' === $value ) {
 			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
 		}
-		update_comment_meta( $comment->comment_ID, 'my_custom_int', $value );
+		update_comment_meta( $comment->comment_ID, $field_name, $value );
 	}
 
 	protected function check_comment_data( $data, $context, $links ) {

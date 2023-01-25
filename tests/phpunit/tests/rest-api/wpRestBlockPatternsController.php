@@ -92,6 +92,15 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 				'content'    => '<!-- wp:paragraph --><p>Two</p><!-- /wp:paragraph -->',
 			)
 		);
+
+		$test_registry->register(
+			'test/three',
+			array(
+				'title'      => 'Pattern Three',
+				'categories' => array( 'test', 'buttons', 'query' ),
+				'content'    => '<!-- wp:paragraph --><p>Three</p><!-- /wp:paragraph -->',
+			)
+		);
 	}
 
 	public static function wpTearDownAfterClass() {
@@ -169,6 +178,51 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 
 		$this->assertWPError( $response->as_error() );
 		$this->assertSame( 403, $response->get_status() );
+	}
+
+	/**
+	 * Tests the proper migration of old core pattern categories to new ones.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @ticket 57532
+	 *
+	 * @covers WP_REST_Block_Patterns_Controller::get_items
+	 */
+	public function test_get_items_migrate_pattern_categories() {
+		wp_set_current_user( self::$admin_id );
+
+		$request            = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
+		$request['_fields'] = 'name,categories';
+		$response           = rest_get_server()->dispatch( $request );
+		$data               = $response->get_data();
+
+		$this->assertIsArray( $data, 'WP_REST_Block_Patterns_Controller::get_items() should return an array' );
+		$this->assertGreaterThanOrEqual( 3, count( $data ), 'WP_REST_Block_Patterns_Controller::get_items() should return at least 3 items' );
+		$this->assertSame(
+			array(
+				'name'       => 'test/one',
+				'categories' => array( 'test' ),
+			),
+			$data[0],
+			'WP_REST_Block_Patterns_Controller::get_items() should return test/one'
+		);
+		$this->assertSame(
+			array(
+				'name'       => 'test/two',
+				'categories' => array( 'test' ),
+			),
+			$data[1],
+			'WP_REST_Block_Patterns_Controller::get_items() should return test/two'
+		);
+		$this->assertSame(
+			array(
+				'name'       => 'test/three',
+				'categories' => array( 'test', 'call-to-action', 'posts' ),
+			),
+			$data[2],
+			'WP_REST_Block_Patterns_Controller::get_items() should return test/three'
+		);
 	}
 
 	/**

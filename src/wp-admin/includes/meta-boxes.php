@@ -804,7 +804,7 @@ function post_comment_status_meta_box( $post ) {
 		<?php
 		printf(
 			/* translators: %s: Documentation URL. */
-			__( 'Allow <a href="%s">trackbacks and pingbacks</a> on this page' ),
+			__( 'Allow <a href="%s">trackbacks and pingbacks</a>' ),
 			__( 'https://wordpress.org/support/article/introduction-to-blogging/#managing-comments' )
 		);
 		?>
@@ -888,7 +888,7 @@ function post_slug_meta_box( $post ) {
 	/** This filter is documented in wp-admin/edit-tag-form.php */
 	$editable_slug = apply_filters( 'editable_slug', $post->post_name, $post );
 	?>
-<label class="screen-reader-text" for="post_name"><?php _e( 'Slug' ); ?></label><input name="post_name" type="text" size="13" id="post_name" value="<?php echo esc_attr( $editable_slug ); ?>" />
+<label class="screen-reader-text" for="post_name"><?php _e( 'Slug' ); ?></label><input name="post_name" type="text" class="large-text" id="post_name" value="<?php echo esc_attr( $editable_slug ); ?>" />
 	<?php
 }
 
