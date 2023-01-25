@@ -2240,7 +2240,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 * @param string $property_name Name of the class property.
 	 */
 	public function test_should_allow_predefined_dynamic_properties( $property_name ) {
-		$value = uniqid();
+		$value      = uniqid();
 		$user_query = new WP_User_Query();
 
 		// Calling the getter first to make sure it doesn't cause errors.
