@@ -9,6 +9,13 @@
 class Tests_Functions_MoveDir extends WP_UnitTestCase {
 
 	/**
+	 * Filesystem backup.
+	 *
+	 * @var null|WP_Filesystem_Base $wp_filesystem_backup
+	 */
+	private static $wp_filesystem_backup;
+
+	/**
 	 * The test directory.
 	 *
 	 * @var string $test_dir
@@ -64,12 +71,12 @@ class Tests_Functions_MoveDir extends WP_UnitTestCase {
 	public static function set_up_before_class() {
 		global $wp_filesystem;
 
+		self::$wp_filesystem_backup = $wp_filesystem;
+
 		parent::set_up_before_class();
 
-		if ( ! $wp_filesystem ) {
-			require_once ABSPATH . 'wp-admin/includes/file.php';
-			WP_Filesystem();
-		}
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		WP_Filesystem( array( 'method' => 'direct' ) );
 
 		self::$test_dir                  = trailingslashit( DIR_TESTDATA ) . 'functions/move_dir/';
 		self::$existing_from             = self::$test_dir . 'existing_from/';
@@ -112,6 +119,14 @@ class Tests_Functions_MoveDir extends WP_UnitTestCase {
 		$wp_filesystem->delete( self::$test_dir, true );
 
 		parent::tear_down();
+	}
+
+	public static function tear_down_after_class() {
+		global $wp_filesystem;
+
+		$wp_filesystem = self::$wp_filesystem_backup;
+
+		parent::tear_down_after_class();
 	}
 
 	/**
