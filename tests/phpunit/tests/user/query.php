@@ -2241,12 +2241,13 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 */
 	public function test_should_allow_predefined_dynamic_properties( $property_name ) {
 		$value = uniqid();
+		$user_query = new WP_User_Query();
 
 		// Calling the getter first to make sure it doesn't cause errors.
-		static::$list_table->$property_name;
+		$user_query->$property_name;
 
-		static::$list_table->$property_name = $value;
-		$this->assertSame( $value, static::$list_table->$property_name );
+		$user_query->$property_name = $value;
+		$this->assertSame( $value, $user_query->$property_name );
 	}
 
 	/**
@@ -2255,12 +2256,11 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 * @return array
 	 */
 	public function data_should_allow_predefined_dynamic_properties() {
-		// This code doesn't have access to self::$list_table, so the WP_User_Query object has to be called this way.
-		$list_table             = new WP_User_Query();
-		$compat_fields_property = new ReflectionProperty( $list_table, 'compat_fields' );
+		$user_query             = new WP_User_Query();
+		$compat_fields_property = new ReflectionProperty( $user_query, 'compat_fields' );
 		$compat_fields_property->setAccessible( true );
 
-		$predefined_properties = $compat_fields_property->getValue( $list_table );
+		$predefined_properties = $compat_fields_property->getValue( $user_query );
 
 		$compat_fields_property->setAccessible( false );
 		$predefined_properties = array_map(
@@ -2285,8 +2285,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$this->expectNotice();
 		$this->expectNoticeMessageMatches( '/^.+' . $property_name . '.+$/' );
 
+		$user_query = new WP_User_Query();
 		// Invoking WP_User_Query::__get.
-		static::$list_table->$property_name;
+		$user_query->$property_name;
 	}
 
 	/**
@@ -2301,8 +2302,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$this->expectNotice();
 		$this->expectNoticeMessageMatches( '/^.+' . $property_name . '.+$/' );
 
+		$user_query = new WP_User_Query();
 		// Invoking WP_User_Query::__set.
-		static::$list_table->$property_name = 'value';
+		$user_query->$property_name = 'value';
 	}
 
 	/**
