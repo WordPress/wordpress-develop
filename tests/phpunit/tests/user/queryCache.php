@@ -153,7 +153,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 	/**
 	 * @ticket 40613
 	 * @covers ::query
-	 * @dataProvider data_returning_field_subset_as_array
+	 * @dataProvider data_query_cache
 	 * @param array $args Optional. See WP_User_Query::prepare_query()
 	 */
 	public function test_query_cache( array $args ) {
@@ -177,7 +177,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_returning_field_subset_as_array() {
+	public function data_query_cache() {
 		$data = array(
 			'id'                    => array(
 				'args' => array( 'fields' => array( 'id' ) ),
