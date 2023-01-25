@@ -102,11 +102,13 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 * @covers WP_REST_Pattern_Directory_Controller::register_routes
 	 *
 	 * @since 5.8.0
+	 * @since 6.2.0 Added pattern directory categories endpoint.
 	 */
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 
 		$this->assertArrayHasKey( '/wp/v2/pattern-directory/patterns', $routes );
+		$this->assertArrayHasKey( '/wp/v2/pattern-directory/categories', $routes );
 	}
 
 	/**
@@ -507,6 +509,37 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 				'is_error' => true,
 				'expected' => 'rest_invalid_param',
 			),
+		);
+	}
+
+	/**
+	 * @covers WP_REST_Pattern_Directory_Controller::prepare_pattern_category_for_response
+	 *
+	 * @since 6.2.0
+	 *
+	 * @ticket 57551
+	 */
+	public function test_prepare_pattern_category_for_response() {
+		$raw_categories = array(
+			(object) array(
+				'id'          => 3,
+				'name'        => 'Columns',
+				'slug'        => 'columns',
+				'description' => 'A description',
+			),
+		);
+
+		$prepared_category = static::$controller->prepare_response_for_collection(
+			static::$controller->prepare_pattern_category_for_response( $raw_categories[0], new WP_REST_Request() )
+		);
+
+		$this->assertSame(
+			array(
+				'id'   => 3,
+				'name' => 'Columns',
+				'slug' => 'columns',
+			),
+			$prepared_category,
 		);
 	}
 

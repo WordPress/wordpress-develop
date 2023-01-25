@@ -10453,6 +10453,27 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
+        "/wp/v2/pattern-directory/categories": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": []
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/pattern-directory/categories"
+                    }
+                ]
+            }
+        },
         "/wp/v2/pattern-directory/patterns": {
             "namespace": "wp/v2",
             "methods": [
