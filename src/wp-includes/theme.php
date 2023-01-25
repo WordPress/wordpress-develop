@@ -815,9 +815,9 @@ function switch_theme( $stylesheet ) {
 		}
 	}
 
-	// Store legacy sidebars for later use by block themes.
+	// Stores classic sidebars for later use by block themes.
 	if ( $new_theme->is_block_theme() ) {
-		set_theme_mod( 'wp_legacy_sidebars', $wp_registered_sidebars );
+		set_theme_mod( 'wp_classic_sidebars', $wp_registered_sidebars );
 	}
 
 	update_option( 'theme_switched', $old_theme->get_stylesheet() );

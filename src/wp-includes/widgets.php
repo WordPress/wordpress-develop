@@ -2107,27 +2107,27 @@ function wp_check_widget_editor_deps() {
 }
 
 /**
- * Register the previous theme's sidebars for the block themes.
+ * Registers the previous theme's sidebars for the block themes.
  *
  * @since 6.2.0
  * @access private
  *
  * @global array $wp_registered_sidebars Registered sidebars.
  */
-function _wp_block_theme_register_legacy_sidebars() {
+function _wp_block_theme_register_classic_sidebars() {
 	global $wp_registered_sidebars;
 
 	if ( ! wp_is_block_theme() ) {
 		return;
 	}
 
-	$legacy_sidebars = get_theme_mod( 'wp_legacy_sidebars' );
-	if ( empty( $legacy_sidebars ) ) {
+	$classic_sidebars = get_theme_mod( 'wp_classic_sidebars' );
+	if ( empty( $classic_sidebars ) ) {
 		return;
 	}
 
 	// Don't use `register_sidebar` since it will enable the `widgets` support for a theme.
-	foreach ( $legacy_sidebars as $sidebar ) {
+	foreach ( $classic_sidebars as $sidebar ) {
 		$wp_registered_sidebars[ $sidebar['id'] ] = $sidebar;
 	}
 }
