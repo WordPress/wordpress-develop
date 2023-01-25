@@ -8,6 +8,9 @@
  */
 class Tests_Functions_WpOpcacheInvalidateDirectory extends WP_UnitTestCase {
 
+	/**
+	 * Sets up the filesystem before any tests run.
+	 */
 	public static function set_up_before_class() {
 		global $wp_filesystem;
 
