@@ -105,7 +105,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				// Excludes invalid directory name characters: `/:<>*?"|`.
 				'([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)',
 				// Matches the template name.
-				'[\/\pL0-9_-]+'
+				'[\/\w%-]+'
 			),
 			array(
 				'args'   => array(

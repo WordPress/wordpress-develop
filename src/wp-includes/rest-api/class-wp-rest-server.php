@@ -1047,7 +1047,7 @@ class WP_REST_Server {
 		}
 
 		foreach ( $routes as $route => $handlers ) {
-			$match = preg_match( '@^' . $route . '$@ui', rawurldecode( $path ), $matches );
+			$match = preg_match( '@^' . $route . '$@i', $path, $matches );
 
 			if ( ! $match ) {
 				continue;
