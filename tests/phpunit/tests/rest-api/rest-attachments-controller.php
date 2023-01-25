@@ -1678,6 +1678,16 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$wp_rest_additional_fields = array();
 	}
 
+	public function additional_field_get_callback( $response_data, $field_name ) {
+		return 123;
+	}
+
+	public function additional_field_update_callback( $value, $attachment ) {
+		if ( 'returnError' === $value ) {
+			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
+		}
+	}
+
 	public function test_search_item_by_filename() {
 		$id1 = self::factory()->attachment->create_object(
 			self::$test_file,
@@ -1704,16 +1714,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertCount( 1, $data );
 		$this->assertSame( $id2, $data[0]['id'] );
 		$this->assertSame( 'image/png', $data[0]['mime_type'] );
-	}
-
-	public function additional_field_get_callback( $object, $request ) {
-		return 123;
-	}
-
-	public function additional_field_update_callback( $value, $attachment ) {
-		if ( 'returnError' === $value ) {
-			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
-		}
 	}
 
 	public function test_links_exist() {

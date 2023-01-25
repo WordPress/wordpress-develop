@@ -102,7 +102,7 @@ function wp_get_global_stylesheet( $types = array() ) {
 
 	$tree = WP_Theme_JSON_Resolver::get_merged_data();
 
-	$supports_theme_json = WP_Theme_JSON_Resolver::theme_has_support();
+	$supports_theme_json = wp_theme_has_theme_json();
 	if ( empty( $types ) && ! $supports_theme_json ) {
 		$types = array( 'variables', 'presets', 'base-layout-styles' );
 	} elseif ( empty( $types ) ) {
@@ -184,7 +184,7 @@ function wp_get_global_styles_svg_filters() {
 		}
 	}
 
-	$supports_theme_json = WP_Theme_JSON_Resolver::theme_has_support();
+	$supports_theme_json = wp_theme_has_theme_json();
 
 	$origins = array( 'default', 'theme', 'custom' );
 	if ( ! $supports_theme_json ) {
@@ -254,4 +254,32 @@ function wp_add_global_styles_for_blocks() {
 			}
 		}
 	}
+}
+
+/**
+ * Checks whether a theme or its parent has a theme.json file.
+ *
+ * @since 6.2.0
+ *
+ * @return bool Returns true if theme or its parent has a theme.json file, false otherwise.
+ */
+function wp_theme_has_theme_json() {
+	// Does the theme have its own theme.json?
+	$theme_has_support = is_readable( get_stylesheet_directory() . '/theme.json' );
+
+	// Look up the parent if the child does not have a theme.json.
+	if ( ! $theme_has_support ) {
+		$theme_has_support = is_readable( get_template_directory() . '/theme.json' );
+	}
+
+	return $theme_has_support;
+}
+
+/**
+ * Cleans the caches under the theme_json group.
+ *
+ * @since 6.2.0
+ */
+function wp_clean_theme_json_cache() {
+	WP_Theme_JSON_Resolver::clean_cached_data();
 }
