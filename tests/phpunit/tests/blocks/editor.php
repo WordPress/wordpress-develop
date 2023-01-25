@@ -569,6 +569,42 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57547
+	 */
+	public function test_get_classic_theme_supports_block_editor_settings() {
+		$font_sizes = array(
+			array(
+				'name' => 'Small',
+				'size' => 12,
+				'slug' => 'small',
+			),
+			array(
+				'name' => 'Regular',
+				'size' => 16,
+				'slug' => 'regular',
+			),
+		);
+
+		add_theme_support( 'editor-font-sizes', $font_sizes );
+		$settings = get_classic_theme_supports_block_editor_settings();
+
+		$this->assertFalse( $settings['disableCustomColors'] );
+		$this->assertFalse( $settings['disableCustomFontSizes'] );
+		$this->assertFalse( $settings['disableCustomGradients'] );
+		$this->assertFalse( $settings['disableLayoutStyles'] );
+		$this->assertFalse( $settings['enableCustomLineHeight'] );
+		$this->assertFalse( $settings['enableCustomSpacing'] );
+		$this->assertFalse( $settings['enableCustomUnits'] );
+
+		$this->assertSame(
+			$font_sizes,
+			$settings['fontSizes']
+		);
+
+		remove_theme_support( 'editor-font-sizes' );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array
