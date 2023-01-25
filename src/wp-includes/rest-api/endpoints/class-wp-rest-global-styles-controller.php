@@ -431,6 +431,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * Get the link relations available for the post and current user.
 	 *
 	 * @since 5.9.0
+	 * @since 6.2.0 Added 'edit-css' action.
 	 *
 	 * @return array List of link relations.
 	 */
