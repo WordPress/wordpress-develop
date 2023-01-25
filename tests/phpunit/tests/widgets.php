@@ -1364,4 +1364,24 @@ class Tests_Widgets extends WP_UnitTestCase {
 		);
 		$this->assertSameSetsWithIndex( $expected_sidebars, $new_next_theme_sidebars );
 	}
+
+	/**
+	 * @ticket 57531
+	 */
+	public function test_stores_classic_sidebars_when_switching_to_block_theme() {
+		global $wp_registered_sidebars;
+
+		$this->register_sidebars( array( 'sidebar-1', 'sidebar-2' ) );
+
+		switch_theme( 'block-theme' );
+
+		unregister_sidebar( 'sidebar-1' );
+		unregister_sidebar( 'sidebar-2' );
+
+		// Register stored classic sidebars for block themes..
+		wp_widgets_init();
+
+		$this->assertArrayHasKey( 'sidebar-1', $wp_registered_sidebars );
+		$this->assertArrayHasKey( 'sidebar-2', $wp_registered_sidebars );
+	}
 }
