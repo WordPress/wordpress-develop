@@ -318,8 +318,6 @@ function _wp_get_iframed_editor_assets() {
 
 	$script_handles = array();
 	$style_handles  = array(
-		'wp-block-editor',
-		'wp-block-library',
 		'wp-edit-blocks',
 	);
 
