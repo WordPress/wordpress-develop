@@ -1956,7 +1956,7 @@ function copy_dir( $from, $to, $skip_list = array() ) {
  *
  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
-* @param string $from      Source directory.
+ * @param string $from      Source directory.
  * @param string $to        Destination directory.
  * @param bool   $overwrite Overwrite destination.
  *                          Default is false.
