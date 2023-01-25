@@ -843,8 +843,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * @dataProvider jsonp_callback_provider
 	 */
-	public function test_jsonp_callback_check( $callback, $valid ) {
-		$this->assertSame( $valid, wp_check_jsonp_callback( $callback ) );
+	public function test_jsonp_callback_check( $callback, $expected ) {
+		$this->assertSame( $expected, wp_check_jsonp_callback( $callback ) );
 	}
 
 	public function rest_date_provider() {
@@ -875,8 +875,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * @dataProvider rest_date_provider
 	 */
-	public function test_rest_parse_date( $string, $value ) {
-		$this->assertEquals( $value, rest_parse_date( $string ) );
+	public function test_rest_parse_date( $date, $expected ) {
+		$this->assertEquals( $expected, rest_parse_date( $date ) );
 	}
 
 	public function rest_date_force_utc_provider() {
@@ -907,8 +907,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * @dataProvider rest_date_force_utc_provider
 	 */
-	public function test_rest_parse_date_force_utc( $string, $value ) {
-		$this->assertSame( $value, rest_parse_date( $string, true ) );
+	public function test_rest_parse_date_force_utc( $date, $expected ) {
+		$this->assertSame( $expected, rest_parse_date( $date, true ) );
 	}
 
 	public function filter_wp_rest_server_class( $class_name ) {
