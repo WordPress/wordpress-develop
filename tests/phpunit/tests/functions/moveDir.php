@@ -130,6 +130,7 @@ class Tests_Functions_MoveDir extends WP_UnitTestCase {
 	public static function tear_down_after_class() {
 		global $wp_filesystem;
 
+		// Restore the filesystem.
 		$wp_filesystem = self::$wp_filesystem_backup;
 
 		parent::tear_down_after_class();
