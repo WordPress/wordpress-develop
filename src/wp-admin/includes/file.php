@@ -2557,3 +2557,67 @@ function wp_opcache_invalidate( $filepath, $force = false ) {
 
 	return false;
 }
+
+/**
+ * Attempts to clear the opcode cache for a directory of files.
+ *
+ * @since 6.2.0
+ *
+ * @see wp_opcache_invalidate()
+ * @link https://www.php.net/manual/en/function.opcache-invalidate.php
+ * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+ *
+ * @param string $dir The path to the directory for which the opcode cache is to be cleared.
+ */
+function wp_opcache_invalidate_directory( $dir ) {
+	global $wp_filesystem;
+
+	if ( ! is_string( $dir ) || '' === trim( $dir ) ) {
+		if ( WP_DEBUG ) {
+			$error_message = sprintf(
+				/* translators: %s: The function name. */
+				__( '%s expects a non-empty string.' ),
+				'<code>wp_opcache_invalidate_directory()</code>'
+			);
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_trigger_error
+			trigger_error( $error_message );
+		}
+		return;
+	}
+
+	$dirlist = $wp_filesystem->dirlist( $dir, false, true );
+
+	if ( empty( $dirlist ) ) {
+		return;
+	}
+
+	/*
+	 * Recursively invalidate opcache of files in a directory.
+	 *
+	 * WP_Filesystem_*::dirlist() returns an array of file and directory information.
+	 *
+	 * This does not include a path to the file or directory.
+	 * To invalidate files within sub-directories, recursion is needed
+	 * to prepend an absolute path containing the sub-directory's name.
+	 *
+	 * @param array  $dirlist Array of file/directory information from WP_Filesystem_Base::dirlist(),
+	 *                        with sub-directories represented as nested arrays.
+	 * @param string $path    Absolute path to the directory.
+	 */
+	$invalidate_directory = function( $dirlist, $path ) use ( &$invalidate_directory ) {
+		$path = trailingslashit( $path );
+
+		foreach ( $dirlist as $name => $details ) {
+			if ( 'f' === $details['type'] ) {
+				wp_opcache_invalidate( $path . $name, true );
+				continue;
+			}
+
+			if ( is_array( $details['files'] ) && ! empty( $details['files'] ) ) {
+				$invalidate_directory( $details['files'], $path . $name );
+			}
+		}
+	};
+
+	$invalidate_directory( $dirlist, $dir );
+}
