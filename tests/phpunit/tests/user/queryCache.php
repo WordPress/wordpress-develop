@@ -11,18 +11,22 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 	 * @var int[]
 	 */
 	protected static $author_ids;
+
 	/**
 	 * @var int[]
 	 */
 	protected static $sub_ids;
+
 	/**
 	 * @var int[]
 	 */
 	protected static $editor_ids;
+
 	/**
 	 * @var int[]
 	 */
 	protected static $contrib_id;
+	 
 	/**
 	 * @var int[]
 	 */
