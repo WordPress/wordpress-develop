@@ -276,6 +276,60 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @dataProvider data_is_block_theme
+	 * @ticket 57114
+	 *
+	 * @covers WP_Theme::is_block_theme
+	 */
+	public function test_is_block_theme_property( $theme_dir, $expected ) {
+		$theme = new WP_Theme( $theme_dir, $this->theme_root );
+		$theme->is_block_theme();
+		$reflection          = new ReflectionClass( $theme );
+		$reflection_property = $reflection->getProperty( 'block_theme' );
+		$reflection_property->setAccessible( true );
+
+		$this->assertSame( $expected, $reflection_property->getValue( $theme ) );
+	}
+
+	/**
+	 * @ticket 57114
+	 *
+	 * @covers WP_Theme::is_block_theme
+	 * @covers WP_Theme::cache_get
+	 */
+	public function test_is_block_theme_check_cache() {
+		$filter = new MockAction();
+		add_filter( 'theme_file_path', array( $filter, 'filter' ) );
+
+		$theme = new WP_Theme( 'block-theme', $this->theme_root );
+		// First run.
+		$theme->is_block_theme();
+		// Second run.
+		$theme->is_block_theme();
+		$this->assertCount( 2, $filter->get_events(), 'Should only be 2, as second run should be cached' );
+	}
+
+	/**
+	 * @ticket 57114
+	 *
+	 * @covers WP_Theme::is_block_theme
+	 * @covers WP_Theme::cache_delete
+	 */
+	public function test_is_block_theme_delete_cache() {
+		$filter = new MockAction();
+		add_filter( 'theme_file_path', array( $filter, 'filter' ) );
+
+		$theme = new WP_Theme( 'block-theme', $this->theme_root );
+		// First run.
+		$theme->is_block_theme();
+		// Clear cache.
+		$theme->cache_delete();
+		// Second run.
+		$theme->is_block_theme();
+		$this->assertCount( 4, $filter->get_events(), 'Should only be 4, as second run should not be cached' );
+	}
+
+	/**
 	 * Test get_files for an existing theme.
 	 *
 	 * @ticket 53599
