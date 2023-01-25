@@ -75,6 +75,12 @@ class Tests_Functions_MoveDir extends WP_UnitTestCase {
 
 		parent::set_up_before_class();
 
+		/*
+		 * WP_Filesystem_MockFS has a bug that appears in CI.
+		 *
+		 * Until this is resolved, use WP_Filesystem_Direct and restore
+		 * $wp_filesystem to its original state after the tests.
+		 */
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		WP_Filesystem( array( 'method' => 'direct' ) );
 
