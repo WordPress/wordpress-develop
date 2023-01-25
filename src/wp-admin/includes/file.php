@@ -1979,7 +1979,7 @@ function move_dir( $from, $to, $overwrite = false ) {
 	$result = false;
 
 	if ( 'direct' === $wp_filesystem->method ) {
-		if ( $wp_filesystem->rmdir( $to ) ) {
+		if ( $wp_filesystem->delete( $to, true ) ) {
 			$result = @rename( $from, $to );
 		}
 	} else {
