@@ -1956,12 +1956,25 @@ function copy_dir( $from, $to, $skip_list = array() ) {
  *
  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
- * @param string $from Source directory.
- * @param string $to   Destination directory.
+* @param string $from      Source directory.
+ * @param string $to        Destination directory.
+ * @param bool   $overwrite Overwrite destination.
+ *                          Default is false.
  * @return true|WP_Error True on success, WP_Error on failure.
  */
-function move_dir( $from, $to ) {
+function move_dir( $from, $to, $overwrite = false ) {
 	global $wp_filesystem;
+
+	if ( ! $overwrite && $wp_filesystem->exists( $to ) ) {
+		return new WP_Error(
+			'to_directory_already_exists_move_dir',
+			sprintf(
+				/* translators: %s: The '$to' argument name. */
+				__( '%s already exists.' ),
+				'<code>$to</code>'
+			)
+		);
+	}
 
 	$result = false;
 
