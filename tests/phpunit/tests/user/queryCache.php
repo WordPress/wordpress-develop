@@ -26,7 +26,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 	 * @var int[]
 	 */
 	protected static $contrib_id;
-	 
+
 	/**
 	 * @var int[]
 	 */
@@ -442,7 +442,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 	 * @covers ::query
 	 */
 	public function test_query_cache_update_user() {
-		$user_id = self::factory()->user->create();
+		$user_id = end( self::$admin_ids );
 
 		wp_update_user(
 			array(
@@ -480,7 +480,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 	 * @covers ::query
 	 */
 	public function test_query_cache_create_user() {
-		$user_id = self::factory()->user->create();
+		$user_id = end( self::$admin_ids );
 
 		$args = array( 'blog_id' => get_current_blog_id() );
 
