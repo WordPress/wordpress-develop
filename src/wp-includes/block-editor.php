@@ -226,9 +226,12 @@ function get_default_block_editor_settings() {
 		'__unstableGalleryWithImageBlocks' => true,
 	);
 
-	$theme_settings = get_legacy_theme_supports_block_editor_settings();
+	$theme_settings = get_classic_theme_supports_block_editor_settings();
+	foreach ( $theme_settings as $key => $value ) {
+		$editor_settings[ $key ] = $value;
+	}
 
-	return array_merge( $editor_settings, $theme_settings );
+	return $editor_settings;
 }
 
 /**
@@ -675,13 +678,13 @@ function get_block_editor_theme_styles() {
 }
 
 /**
- * Returns the legacy theme supports settings for block editor.
+ * Returns the classic theme supports settings for block editor.
  *
  * @since 6.2.0
  *
- * @return array The legacy theme supports settings.
+ * @return array The classic theme supports settings.
  */
-function get_legacy_theme_supports_block_editor_settings() {
+function get_classic_theme_supports_block_editor_settings() {
 	$theme_settings = array(
 		'disableCustomColors'    => get_theme_support( 'disable-custom-colors' ),
 		'disableCustomFontSizes' => get_theme_support( 'disable-custom-font-sizes' ),
