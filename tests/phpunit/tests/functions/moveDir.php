@@ -11,7 +11,7 @@ class Tests_Functions_MoveDir extends WP_UnitTestCase {
 	/**
 	 * Filesystem backup.
 	 *
-	 * @var null|WP_Filesystem_Base $wp_filesystem_backup
+	 * @var WP_Filesystem_Base|null $wp_filesystem_backup
 	 */
 	private static $wp_filesystem_backup;
 
