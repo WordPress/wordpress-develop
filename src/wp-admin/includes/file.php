@@ -1970,7 +1970,7 @@ function move_dir( $from, $to, $overwrite = false ) {
 
 	if ( ! $overwrite && $wp_filesystem->exists( $to ) ) {
 		return new WP_Error(
-			'to_directory_already_exists_move_dir',
+			'destination_already_exists_move_dir',
 			sprintf(
 				/* translators: %s: The destination directory path. */
 				__( 'The destination folder, %s, already exists.' ),
