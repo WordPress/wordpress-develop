@@ -1961,8 +1961,9 @@ function copy_dir( $from, $to, $skip_list = array() ) {
  *
  * @param string $from      Source directory.
  * @param string $to        Destination directory.
- * @param bool   $overwrite Overwrite destination.
- *                          Default is false.
+ * @param bool   $overwrite Optional. Whether to overwrite the destination directory if it exists.
+ *                          Default false.
+
  * @return true|WP_Error True on success, WP_Error on failure.
  */
 function move_dir( $from, $to, $overwrite = false ) {
