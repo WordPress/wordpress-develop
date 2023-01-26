@@ -145,7 +145,7 @@ function get_core_checksums( $version, $locale ) {
 		$response = wp_remote_get( $http_url, $options );
 	}
 
-	if ( is_wp_error( $response ) || 200 != wp_remote_retrieve_response_code( $response ) ) {
+	if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
 		return false;
 	}
 
@@ -212,7 +212,7 @@ function find_core_update( $version, $locale ) {
 
 	$updates = $from_api->updates;
 	foreach ( $updates as $update ) {
-		if ( $update->current == $version && $update->locale == $locale ) {
+		if ( $update->current === $version && $update->locale === $locale ) {
 			return $update;
 		}
 	}
