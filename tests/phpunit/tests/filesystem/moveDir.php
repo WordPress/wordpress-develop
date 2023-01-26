@@ -3,10 +3,10 @@
 /**
  * Tests move_dir().
  *
- * @group functions.php
+ * @group file.php
  * @covers ::move_dir
  */
-class Tests_Functions_MoveDir extends WP_UnitTestCase {
+class Tests_Filesystem_MoveDir extends WP_UnitTestCase {
 
 	/**
 	 * Filesystem backup.

@@ -3,10 +3,10 @@
 /**
  * Tests wp_opcache_invalidate_directory().
  *
- * @group functions.php
+ * @group file.php
  * @covers ::wp_opcache_invalidate_directory
  */
-class Tests_Functions_WpOpcacheInvalidateDirectory extends WP_UnitTestCase {
+class Tests_Filesystem_WpOpcacheInvalidateDirectory extends WP_UnitTestCase {
 
 	/**
 	 * Sets up the filesystem before any tests run.
