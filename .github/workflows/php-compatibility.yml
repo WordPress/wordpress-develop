@@ -46,10 +46,10 @@ jobs:
   # - Sets up PHP.
   # - Logs debug information.
   # - Configures caching for PHP compatibility scans.
-  # - Installs Composer dependencies (use cache if possible).
+  # - Installs Composer dependencies.
   # - Make Composer packages available globally.
-  # - Logs PHP_CodeSniffer debug information.
   # - Runs the PHP compatibility tests.
+  # - Generate a report for displaying issues as pull request annotations.
   # - Ensures version-controlled files are not modified or deleted.
   php-compatibility:
     name: Check PHP compatibility
@@ -62,15 +62,14 @@ jobs:
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@e04e1d97f0c0481c6e1ba40f8a538454fe5d7709 # v2.21.2
+        uses: shivammathur/setup-php@1a18b2267f80291a81ca1d33e7c851fe09e7dfc4 # v2.22.0
         with:
           php-version: '7.4'
           coverage: none
-          tools: composer, cs2pr
+          tools: cs2pr
 
       - name: Log debug information
         run: |
-          php --version
           composer --version
 
       # This date is used to ensure that the PHP compatibility cache is cleared at least once every week.
@@ -85,16 +84,15 @@ jobs:
           path: .cache/phpcompat.json
           key: ${{ runner.os }}-date-${{ steps.get-date.outputs.date }}-phpcompat-cache-${{ hashFiles('**/composer.json', 'phpcompat.xml.dist') }}
 
+      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
+      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
       - name: Install Composer dependencies
-        uses: ramsey/composer-install@f680dac46551dffb2234a240d65ae806c2999dd6 # v2.1.0
+        uses: ramsey/composer-install@83af392bf5f031813d25e6fe4cd626cdba9a2df6 # v2.2.0
         with:
-          composer-options: "--no-progress --no-ansi"
+          custom-cache-suffix: ${{ steps.get-date.outputs.date }}
 
       - name: Make Composer packages available globally
         run: echo "${PWD}/vendor/bin" >> $GITHUB_PATH
-
-      - name: Log PHPCS debug information
-        run: phpcs -i
 
       - name: Run PHP compatibility tests
         id: phpcs
