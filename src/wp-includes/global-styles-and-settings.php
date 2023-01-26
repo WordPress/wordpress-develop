@@ -71,7 +71,7 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
 
 	$settings = false;
 	if ( $can_use_cached ) {
-		$settings    = wp_cache_get( $cache_key, $cache_group );
+		$settings = wp_cache_get( $cache_key, $cache_group );
 	}
 
 	if ( false === $settings ) {
