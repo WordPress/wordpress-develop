@@ -193,7 +193,7 @@ class Tests_Filesystem_MoveDir extends WP_UnitTestCase {
 				'from'      => 'existing_from',
 				'to'        => 'existing_to',
 				'overwrite' => false,
-				'expected'  => 'to_directory_already_exists_move_dir',
+				'expected'  => 'destination_already_exists_move_dir',
 			),
 		);
 	}
