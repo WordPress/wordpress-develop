@@ -146,3 +146,17 @@ body > .is-root-container > .wp-block-template-part > .wp-block-cover,
 	padding-left: var(--wp--custom--spacing--outer);
 }
 
+
+/*
+ * Margins to improve UI on comment responses.
+ * https://core.trac.wordpress.org/ticket/57560
+*/
+
+.wp-block-post-comments ol.commentlist ul.children {
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+
+.wp-block-post-comments ol.commentlist ul.children li:not(:last-child) {
+	margin-bottom: 20px;
+}
