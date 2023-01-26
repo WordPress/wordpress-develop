@@ -38,22 +38,23 @@ class Tests_Formatting_wpStripAllTags extends WP_UnitTestCase {
 	 *
 	 * @ticket 56434
 	 *
-	 * @expectedIncorrectUsage wp_strip_all_tags
-	 *
-	 * @dataProvider data_wp_strip_all_tags_should_throw_doing_it_wrong_for_non_string
+	 * @dataProvider data_wp_strip_all_tags_should_return_empty_string_and_trigger_an_error_for_non_string_arg
 	 *
 	 * @param mixed $non_string A non-string value.
 	 */
-	public function test_wp_strip_all_tags_should_return_empty_string_and_throw_doing_it_wrong_for_non_string_arg( $non_string ) {
+	public function test_wp_strip_all_tags_should_return_empty_string_and_trigger_an_error_for_non_string_arg( $non_string ) {
+		$type = gettype( $non_string );
+		$this->expectError();
+		$this->expectErrorMessage( "Warning: wp_strip_all_tags expects parameter 1 to be a string, $type given." );
 		$this->assertSame( '', wp_strip_all_tags( $non_string ) );
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for test_wp_strip_all_tags_should_return_empty_string_and_trigger_an_error_for_non_string_arg().
 	 *
-	 * @return array
+	 * @return array[]
 	 */
-	public function data_wp_strip_all_tags_should_throw_doing_it_wrong_for_non_string() {
+	public function data_wp_strip_all_tags_should_return_empty_string_and_trigger_an_error_for_non_string_arg() {
 		return array(
 			'(int) 0'           => array( 'non_string' => 0 ),
 			'(int) 1'           => array( 'non_string' => 1 ),
