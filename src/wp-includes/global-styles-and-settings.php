@@ -264,7 +264,30 @@ function wp_add_global_styles_for_blocks() {
  * @return bool Returns true if theme or its parent has a theme.json file, false otherwise.
  */
 function wp_theme_has_theme_json() {
-	return is_readable( get_theme_file_path( 'theme.json' ) );
+	static $theme_has_support = null;
+
+	if (
+		null !== $theme_has_support &&
+		/*
+		 * Ignore static cache when `WP_DEBUG` is enabled. Why? To avoid interfering with
+		 * the theme developer's workflow.
+		 *
+		 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
+		 */
+		! WP_DEBUG &&
+		/*
+		 * Ignore cache when automated test suites are running. Why? To ensure
+		 * the static cache is reset between each test.
+		 */
+		! ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS )
+	) {
+		return $theme_has_support;
+	}
+
+	// Does the theme have its own theme.json?
+	$theme_has_support = is_readable( get_theme_file_path( 'theme.json' ) );
+  
+	return $theme_has_support;
 }
 
 /**
