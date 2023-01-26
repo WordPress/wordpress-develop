@@ -9,13 +9,6 @@
 class Tests_Filesystem_MoveDir extends WP_UnitTestCase {
 
 	/**
-	 * Filesystem backup.
-	 *
-	 * @var WP_Filesystem_Base|null $wp_filesystem_backup
-	 */
-	private static $wp_filesystem_backup;
-
-	/**
 	 * The test directory.
 	 *
 	 * @var string $test_dir
@@ -69,20 +62,10 @@ class Tests_Filesystem_MoveDir extends WP_UnitTestCase {
 	 * before any tests run.
 	 */
 	public static function set_up_before_class() {
-		global $wp_filesystem;
-
-		self::$wp_filesystem_backup = $wp_filesystem;
-
 		parent::set_up_before_class();
 
-		/*
-		 * WP_Filesystem_MockFS has a bug that appears in CI.
-		 *
-		 * Until this is resolved, use WP_Filesystem_Direct and restore
-		 * $wp_filesystem to its original state after the tests.
-		 */
 		require_once ABSPATH . 'wp-admin/includes/file.php';
-		WP_Filesystem( array( 'method' => 'direct' ) );
+		WP_Filesystem();
 
 		self::$test_dir                  = get_temp_dir() . 'move_dir/';
 		self::$existing_from             = self::$test_dir . 'existing_from/';
@@ -125,18 +108,6 @@ class Tests_Filesystem_MoveDir extends WP_UnitTestCase {
 		$wp_filesystem->delete( self::$test_dir, true );
 
 		parent::tear_down();
-	}
-
-	/**
-	 * Restores the filesystem after all tests have run.
-	 */
-	public static function tear_down_after_class() {
-		global $wp_filesystem;
-
-		// Restore the filesystem.
-		$wp_filesystem = self::$wp_filesystem_backup;
-
-		parent::tear_down_after_class();
 	}
 
 	/**
