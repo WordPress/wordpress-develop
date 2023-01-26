@@ -5399,15 +5399,19 @@ function wp_strip_all_tags( $text, $remove_breaks = false ) {
 	}
 
 	if ( ! is_string( $text ) ) {
-		_doing_it_wrong(
-			__FUNCTION__,
-			sprintf(
-				/* translators: %s: The `$string` argument. */
-				__( 'The %s argument must be a string' ),
-				'$text'
-			),
-			'6.1.0'
-		);
+		if ( WP_DEBUG ) {
+			trigger_error(
+				sprintf(
+					/* translators: 1: The function name, 2: The argument number, 3: The expected type, 4: The provided type. */
+					__( 'Warning: %1$s expects parameter %2$d to be a %3$s, %4$s given.' ),
+					__FUNCTION__,
+					'1',
+					'string',
+					gettype( $text )
+				),
+				E_USER_WARNING
+			);
+		}
 
 		return '';
 	}
