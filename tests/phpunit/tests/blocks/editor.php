@@ -587,6 +587,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 		add_theme_support( 'editor-font-sizes', $font_sizes );
 		$settings = get_classic_theme_supports_block_editor_settings();
+		remove_theme_support( 'editor-font-sizes' );
 
 		$this->assertFalse( $settings['disableCustomColors'] );
 		$this->assertFalse( $settings['disableCustomFontSizes'] );
@@ -600,8 +601,6 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 			$font_sizes,
 			$settings['fontSizes']
 		);
-
-		remove_theme_support( 'editor-font-sizes' );
 	}
 
 	/**
