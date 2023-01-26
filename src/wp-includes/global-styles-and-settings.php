@@ -75,11 +75,13 @@ function wp_get_global_styles( $path = array(), $context = array() ) {
  * Returns the stylesheet resulting of merging core, theme, and user data.
  *
  * @since 5.9.0
+ * @since 6.1.0 Added 'base-layout-styles' support.
  *
- * @param array $types Types of styles to load. Optional.
- *                     It accepts 'variables', 'styles', 'presets' as values.
- *                     If empty, it'll load all for themes with theme.json support
- *                     and only [ 'variables', 'presets' ] for themes without theme.json support.
+ * @param array $types Optional. Types of styles to load.
+ *                     It accepts as values 'variables', 'presets', 'styles', 'base-layout-styles'.
+ *                     If empty, it'll load the following:
+ *                     - for themes without theme.json: 'variables', 'presets', 'base-layout-styles'.
+ *                     - for themes with theme.json: 'variables', 'presets', 'styles'.
  * @return string Stylesheet.
  */
 function wp_get_global_stylesheet( $types = array() ) {
@@ -264,6 +266,26 @@ function wp_add_global_styles_for_blocks() {
  * @return bool Returns true if theme or its parent has a theme.json file, false otherwise.
  */
 function wp_theme_has_theme_json() {
+	static $theme_has_support = null;
+
+	if (
+		null !== $theme_has_support &&
+		/*
+		 * Ignore static cache when `WP_DEBUG` is enabled. Why? To avoid interfering with
+		 * the theme developer's workflow.
+		 *
+		 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
+		 */
+		! WP_DEBUG &&
+		/*
+		 * Ignore cache when automated test suites are running. Why? To ensure
+		 * the static cache is reset between each test.
+		 */
+		! ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS )
+	) {
+		return $theme_has_support;
+	}
+
 	// Does the theme have its own theme.json?
 	$theme_has_support = is_readable( get_stylesheet_directory() . '/theme.json' );
 
