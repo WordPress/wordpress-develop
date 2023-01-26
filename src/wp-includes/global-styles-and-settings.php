@@ -77,9 +77,10 @@ function wp_get_global_styles( $path = array(), $context = array() ) {
  * @since 5.9.0
  *
  * @param array $types Types of styles to load. Optional.
- *                     It accepts 'variables', 'styles', 'presets' as values.
- *                     If empty, it'll load all for themes with theme.json support
- *                     and only [ 'variables', 'presets' ] for themes without theme.json support.
+ *                     It accepts as values 'variables', 'presets', 'styles', 'base-layout-styles'.
+ *                     If empty, it'll load the following:
+ *                     - for themes without theme.json: 'variables', 'presets', 'base-layout-styles'.
+ *                     - for themes with theme.json: 'variables', 'presets', 'styles'.
  * @return string Stylesheet.
  */
 function wp_get_global_stylesheet( $types = array() ) {
@@ -106,7 +107,7 @@ function wp_get_global_stylesheet( $types = array() ) {
 	if ( empty( $types ) && ! $supports_theme_json ) {
 		$types = array( 'variables', 'presets', 'base-layout-styles' );
 	} elseif ( empty( $types ) ) {
-		$types = array( 'variables', 'styles', 'presets' );
+		$types = array( 'variables', 'presets', 'styles' );
 	}
 
 	/*
