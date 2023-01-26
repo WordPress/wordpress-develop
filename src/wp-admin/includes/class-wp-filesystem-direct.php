@@ -348,7 +348,7 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 			return true;
 		}
 
-		// Backwards Compatibility: Only fall back to `::copy()` for single files.
+		// Backward compatibility: Only fall back to `::copy()` for single files.
 		if ( $this->is_file( $source ) && $this->copy( $source, $destination, $overwrite ) && $this->exists( $destination ) ) {
 			$this->delete( $source );
 
