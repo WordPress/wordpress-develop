@@ -106,7 +106,7 @@ foreach ( $menu as $id => $data ) {
 	 * If the first submenu is not the same as the assigned parent,
 	 * make the first submenu the new parent.
 	 */
-	if ( $new_parent != $old_parent ) {
+	if ( $new_parent !== $old_parent ) {
 		$_wp_real_parent_file[ $old_parent ] = $new_parent;
 		$menu[ $id ][2]                      = $new_parent;
 
@@ -171,7 +171,7 @@ foreach ( $menu as $id => $data ) {
 	if ( ! empty( $submenu[ $data[2] ] ) && 1 === count( $submenu[ $data[2] ] ) ) {
 		$subs      = $submenu[ $data[2] ];
 		$first_sub = reset( $subs );
-		if ( $data[2] == $first_sub[2] ) {
+		if ( $data[2] === $first_sub[2] ) {
 			unset( $submenu[ $data[2] ] );
 		}
 	}
@@ -222,7 +222,7 @@ function add_menu_classes( $menu ) {
 	foreach ( $menu as $order => $top ) {
 		$i++;
 
-		if ( 0 == $order ) { // Dashboard is always shown/single.
+		if ( 0 === $order ) { // Dashboard is always shown/single.
 			$menu[0][4] = add_cssclass( 'menu-top-first', $top[4] );
 			$last_order = 0;
 			continue;
@@ -241,7 +241,7 @@ function add_menu_classes( $menu ) {
 			$first_item        = false;
 		}
 
-		if ( $i == $items_count ) { // Last item.
+		if ( $i === $items_count ) { // Last item.
 			$classes           = $menu[ $order ][4];
 			$menu[ $order ][4] = add_cssclass( 'menu-top-last', $classes );
 		}
@@ -311,7 +311,7 @@ if ( apply_filters( 'custom_menu_order', false ) ) {
 		} elseif ( ! isset( $menu_order[ $a ] ) && isset( $menu_order[ $b ] ) ) {
 			return 1;
 		} elseif ( isset( $menu_order[ $a ] ) && isset( $menu_order[ $b ] ) ) {
-			if ( $menu_order[ $a ] == $menu_order[ $b ] ) {
+			if ( $menu_order[ $a ] === $menu_order[ $b ] ) {
 				return 0;
 			}
 			return ( $menu_order[ $a ] < $menu_order[ $b ] ) ? -1 : 1;
