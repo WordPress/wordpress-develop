@@ -1624,7 +1624,10 @@ function wp_default_styles( $styles ) {
 		$wp_edit_blocks_dependencies[] = 'wp-editor-classic-layout-styles';
 	}
 
-	if ( ! is_array( $editor_styles ) || count( $editor_styles ) === 0 ) {
+	if (
+		current_theme_supports( 'wp-block-styles' ) &&
+		( ! is_array( $editor_styles ) || count( $editor_styles ) === 0 )
+	) {
 		// Include opinionated block styles if no $editor_styles are declared, so the editor never appears broken.
 		$wp_edit_blocks_dependencies[] = 'wp-block-library-theme';
 	}
