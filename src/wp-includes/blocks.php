@@ -114,13 +114,12 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 			substr_replace( $script_path, '.asset.php', - strlen( '.js' ) )
 		)
 	);
-	if ( false !== $script_asset_path ) {
+	if ( false === $script_asset_path ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
 				/* translators: 1: Field name, 2: Block name. */
-				__( 'The asset file ("%1$s") for the "%2$s" defined in "%3$s" block definition is missing.' ),
-				$script_asset_path,
+				__( 'The asset file for the "%2$s" defined in "%3$s" block definition is missing.' ),
 				$field_name,
 				$metadata['name']
 			),
