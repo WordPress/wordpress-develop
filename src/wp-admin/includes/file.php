@@ -1990,7 +1990,7 @@ function move_dir( $from, $to, $overwrite = false ) {
 		 * prevents "Operation not permitted", and "No such file or directory" warnings.
 		 *
 		 * This delay is used in other projects, including Composer.
-		 * @link https://github.com/composer/composer/blob/main/src/Composer/Util/Platform.php#L228-L233
+		 * @link https://github.com/composer/composer/blob/2.5.1/src/Composer/Util/Platform.php#L228-L233
 		 */
 		usleep( 200000 );
 		wp_opcache_invalidate_directory( $to );
