@@ -2634,6 +2634,7 @@ function wp_opcache_invalidate( $filepath, $force = false ) {
  *
  * @see wp_opcache_invalidate()
  * @link https://www.php.net/manual/en/function.opcache-invalidate.php
+ *
  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
  * @param string $dir The path to the directory for which the opcode cache is to be cleared.
