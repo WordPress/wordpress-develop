@@ -75,8 +75,9 @@ function wp_get_global_styles( $path = array(), $context = array() ) {
  * Returns the stylesheet resulting of merging core, theme, and user data.
  *
  * @since 5.9.0
+ * @since 6.1.0 Added 'base-layout-styles' support.
  *
- * @param array $types Types of styles to load. Optional.
+ * @param array $types Optional. Types of styles to load.
  *                     It accepts as values 'variables', 'presets', 'styles', 'base-layout-styles'.
  *                     If empty, it'll load the following:
  *                     - for themes without theme.json: 'variables', 'presets', 'base-layout-styles'.
