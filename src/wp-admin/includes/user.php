@@ -612,7 +612,7 @@ Please click the following link to activate your user account:
  * Checks if the Authorize Application Password request is valid.
  *
  * @since 5.6.0
- * @since 5.8.0 Allow unsecure connection for the local environment.
+ * @since 6.2.0 Allow insecure HTTP connections for the local environment.
  *
  * @param array   $request {
  *     The array of request data. All arguments are optional and may be empty.
