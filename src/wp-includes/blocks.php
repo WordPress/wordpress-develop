@@ -119,7 +119,7 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 			__FUNCTION__,
 			sprintf(
 				/* translators: 1: Field name, 2: Block name. */
-				__( 'The asset file for the "%2$s" defined in "%3$s" block definition is missing.' ),
+				__( 'The asset file for the "%1$s" defined in "%2$s" block definition is missing.' ),
 				$field_name,
 				$metadata['name']
 			),
