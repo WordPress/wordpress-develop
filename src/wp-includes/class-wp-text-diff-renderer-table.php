@@ -519,7 +519,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 */
 	public function __set( $name, $value ) {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
-			return $this->$name = $value;
+			$this->$name = $value;
 		}
 	}
 
@@ -535,6 +535,8 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return isset( $this->$name );
 		}
+
+		return false;
 	}
 
 	/**
