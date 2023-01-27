@@ -216,9 +216,6 @@ if ( is_multisite() ) :
 			// Delete the site without forcing a table drop.
 			wpmu_delete_blog( $blog_id, false );
 
-			$this->assertFalse( wp_cache_get( $blog_id, 'blog-details' ) );
-			$this->assertFalse( wp_cache_get( $blog_id . 'short', 'blog-details' ) );
-			$this->assertFalse( wp_cache_get( $key, 'blog-lookup' ) );
 			$this->assertFalse( wp_cache_get( $key, 'blog-id-cache' ) );
 		}
 
@@ -257,9 +254,6 @@ if ( is_multisite() ) :
 			// Delete the site and force a table drop.
 			wpmu_delete_blog( $blog_id, true );
 
-			$this->assertFalse( wp_cache_get( $blog_id, 'blog-details' ) );
-			$this->assertFalse( wp_cache_get( $blog_id . 'short', 'blog-details' ) );
-			$this->assertFalse( wp_cache_get( $key, 'blog-lookup' ) );
 			$this->assertFalse( wp_cache_get( $key, 'blog-id-cache' ) );
 		}
 
@@ -298,9 +292,6 @@ if ( is_multisite() ) :
 			// Delete the site and force a table drop.
 			wpmu_delete_blog( $blog_id, true );
 
-			$this->assertFalse( wp_cache_get( $blog_id, 'blog-details' ) );
-			$this->assertFalse( wp_cache_get( $blog_id . 'short', 'blog-details' ) );
-			$this->assertFalse( wp_cache_get( $key, 'blog-lookup' ) );
 			$this->assertFalse( wp_cache_get( $key, 'blog-id-cache' ) );
 		}
 
@@ -1026,9 +1017,6 @@ if ( is_multisite() ) :
 			return array(
 				array( '%blog_id%', 'sites' ),
 				array( '%blog_id%', 'site-details' ),
-				array( '%blog_id%', 'blog-details' ),
-				array( '%blog_id%' . 'short', 'blog-details' ),
-				array( '%domain_path_key%', 'blog-lookup' ),
 				array( '%domain_path_key%', 'blog-id-cache' ),
 			);
 		}

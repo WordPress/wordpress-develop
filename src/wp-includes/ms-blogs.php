@@ -269,7 +269,6 @@ function clean_site_details_cache( $site_id = 0 ) {
 	}
 
 	wp_cache_delete( $site_id, 'site-details' );
-	wp_cache_delete( $site_id, 'blog-details' );
 }
 
 /**
