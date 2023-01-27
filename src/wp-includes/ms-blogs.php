@@ -130,21 +130,18 @@ function get_blog_details( $fields = null, $get_all = true ) {
 		$args = array();
 		if ( isset( $fields['blog_id'] ) ) {
 			$args['site__in'][] = $fields['blog_id'];
-		} elseif ( isset( $fields['domain'] ) && isset( $fields['path'] ) ) {
+		} elseif ( isset( $fields['domain'] ) ) {
 			$domains = array( $fields['domain'] );
-			if ( substr( $fields['domain'], 0, 4 ) == 'www.' ) {
+			if ( 'www.' === substr( $fields['domain'], 0, 4 ) ) {
 				$nowww     = substr( $fields['domain'], 4 );
 				$domains[] = $nowww;
 			}
 			$args['domain__in'] = $domains;
-			$args['path']       = $fields['path'];
-		} elseif ( isset( $fields['domain'] ) && is_subdomain_install() ) {
-			$domains = array( $fields['domain'] );
-			if ( substr( $fields['domain'], 0, 4 ) == 'www.' ) {
-				$nowww     = substr( $fields['domain'], 4 );
-				$domains[] = $nowww;
+			if ( isset( $fields['path'] ) ) {
+				$args['path'] = $fields['path'];
+			} elseif ( ! is_subdomain_install() ) {
+				return false;
 			}
-			$args['domain__in'] = $domains;
 		} else {
 			return false;
 		}
