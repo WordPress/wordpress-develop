@@ -24,7 +24,8 @@
       "clean": true,
       "greedy": false,
       "processUrls": false,
-      "stringMap": []
+      "stringMap": [],
+      "disablePolyfillReadyClass": true
     },
     "plugins": [],
     "map": false
