@@ -133,8 +133,7 @@ function get_blog_details( $fields = null, $get_all = true ) {
 		} elseif ( isset( $fields['domain'] ) ) {
 			$domains = array( $fields['domain'] );
 			if ( 'www.' === substr( $fields['domain'], 0, 4 ) ) {
-				$nowww     = substr( $fields['domain'], 4 );
-				$domains[] = $nowww;
+				$domains[] = substr( $fields['domain'], 4 );
 			}
 			$args['domain__in'] = $domains;
 			if ( isset( $fields['path'] ) ) {
