@@ -60,6 +60,8 @@ class Tests_Admin_IncludesUser extends WP_UnitTestCase {
 	 * Tests that wp_is_authorize_application_password_request_valid() accepts
 	 * an insecure scheme for a local environment.
 	 *
+	 * @ticket 52617
+	 *
 	 * @covers ::wp_is_authorize_application_password_request_valid
 	 */
 	public function test_should_accept_insecure_scheme_for_local_environment() {
@@ -81,9 +83,11 @@ class Tests_Admin_IncludesUser extends WP_UnitTestCase {
 	 * Tests that wp_is_authorize_application_password_request_valid() accepts
 	 * an insecure scheme for a local environment.
 	 *
-	 * @dataProvider data_should_not_accept_insecure_scheme_for_non_local_environment
+	 * @ticket 52617
 	 *
 	 * @covers ::wp_is_authorize_application_password_request_valid
+	 *
+	 * @dataProvider data_should_not_accept_insecure_scheme_for_non_local_environment
 	 *
 	 * @param string $env The environment type.
 	 */
