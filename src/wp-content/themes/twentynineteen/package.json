@@ -8,13 +8,13 @@
   "homepage": "https://wordpress.org/themes/twentynineteen/",
   "devDependencies": {
     "@wordpress/browserslist-config": "^5.3.0",
-    "autoprefixer": "^10.4.12",
+    "autoprefixer": "^10.4.13",
     "chokidar-cli": "^3.0.0",
     "node-sass": "^7.0.3",
     "npm-run-all": "^4.1.5",
-    "postcss": "^8.4.18",
-    "postcss-cli": "^10.0.0",
-    "postcss-focus-within": "^6.1.1",
+    "postcss": "^8.4.21",
+    "postcss-cli": "^10.1.0",
+    "postcss-focus-within": "^7.0.0",
     "rtlcss": "^4.0.0"
   },
   "rtlcssConfig": {
