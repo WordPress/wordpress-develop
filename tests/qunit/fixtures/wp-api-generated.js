@@ -18,13 +18,7 @@ mockedApiResponse.Schema = {
         "wp-site-health/v1",
         "wp-block-editor/v1"
     ],
-    "authentication": {
-        "application-passwords": {
-            "endpoints": {
-                "authorization": "http://example.org/wp-admin/authorize-application.php"
-            }
-        }
-    },
+    "authentication": [],
     "routes": {
         "/": {
             "namespace": "",
@@ -5035,7 +5029,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": true
                         },
                         "theme": {
@@ -5177,7 +5171,7 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
-        "/wp/v2/templates/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w-]+)": {
+        "/wp/v2/templates/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w%-]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -5226,7 +5220,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": false
                         },
                         "theme": {
@@ -5540,7 +5534,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": false
                         },
                         "theme": {
@@ -5719,7 +5713,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": true
                         },
                         "theme": {
@@ -5866,7 +5860,7 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
-        "/wp/v2/template-parts/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w-]+)": {
+        "/wp/v2/template-parts/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w%-]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -5915,7 +5909,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": false
                         },
                         "theme": {
@@ -6234,7 +6228,7 @@ mockedApiResponse.Schema = {
                             "description": "Unique slug identifying the template.",
                             "type": "string",
                             "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\-]+",
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
                             "required": false
                         },
                         "theme": {
@@ -8395,7 +8389,25 @@ mockedApiResponse.Schema = {
                         "meta": {
                             "description": "Meta fields.",
                             "type": "object",
-                            "properties": [],
+                            "properties": {
+                                "persisted_preferences": {
+                                    "type": "object",
+                                    "description": "",
+                                    "default": [],
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "properties": {
+                                        "_modified": {
+                                            "description": "The date and time the preferences were updated.",
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "readonly": false
+                                        }
+                                    },
+                                    "additionalProperties": true
+                                }
+                            },
                             "required": false
                         }
                     }
@@ -8526,7 +8538,25 @@ mockedApiResponse.Schema = {
                         "meta": {
                             "description": "Meta fields.",
                             "type": "object",
-                            "properties": [],
+                            "properties": {
+                                "persisted_preferences": {
+                                    "type": "object",
+                                    "description": "",
+                                    "default": [],
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "properties": {
+                                        "_modified": {
+                                            "description": "The date and time the preferences were updated.",
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "readonly": false
+                                        }
+                                    },
+                                    "additionalProperties": true
+                                }
+                            },
                             "required": false
                         }
                     }
@@ -8667,7 +8697,25 @@ mockedApiResponse.Schema = {
                         "meta": {
                             "description": "Meta fields.",
                             "type": "object",
-                            "properties": [],
+                            "properties": {
+                                "persisted_preferences": {
+                                    "type": "object",
+                                    "description": "",
+                                    "default": [],
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "properties": {
+                                        "_modified": {
+                                            "description": "The date and time the preferences were updated.",
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "readonly": false
+                                        }
+                                    },
+                                    "additionalProperties": true
+                                }
+                            },
                             "required": false
                         }
                     }
