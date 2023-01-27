@@ -127,6 +127,21 @@ function render_block_core_template_part( $attributes ) {
 			'';
 	}
 
+	// Look up area definition.
+	$area_definition = null;
+	$defined_areas   = get_allowed_block_template_part_areas();
+	foreach ( $defined_areas as $defined_area ) {
+		if ( $defined_area['area'] === $area ) {
+			$area_definition = $defined_area;
+			break;
+		}
+	}
+
+	// If $area is not allowed, set it back to the uncategorized default.
+	if ( ! $area_definition ) {
+		$area = WP_TEMPLATE_PART_AREA_UNCATEGORIZED;
+	}
+
 	// Run through the actions that are typically taken on the_content.
 	$seen_ids[ $template_part_id ] = true;
 	$content                       = do_blocks( $content );
@@ -142,12 +157,9 @@ function render_block_core_template_part( $attributes ) {
 	$content = $wp_embed->autoembed( $content );
 
 	if ( empty( $attributes['tagName'] ) ) {
-		$defined_areas = get_allowed_block_template_part_areas();
-		$area_tag      = 'div';
-		foreach ( $defined_areas as $defined_area ) {
-			if ( $defined_area['area'] === $area && isset( $defined_area['area_tag'] ) ) {
-				$area_tag = $defined_area['area_tag'];
-			}
+		$area_tag = 'div';
+		if ( $area_definition && isset( $area_definition['area_tag'] ) ) {
+			$area_tag = $area_definition['area_tag'];
 		}
 		$html_tag = $area_tag;
 	} else {
