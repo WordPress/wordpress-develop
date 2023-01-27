@@ -249,7 +249,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 			$template_path_norm   = wp_normalize_path( get_template_directory() );
 			$stylesheet_path_norm = wp_normalize_path( get_stylesheet_directory() );
 		}
-          
+  
 		// Determine if the block style was registered in a theme, by checking if the script path starts with either
 		// the parent (template) or child (stylesheet) directory path.
 		$is_parent_theme_block = str_starts_with( $style_path_norm, $template_path_norm );
