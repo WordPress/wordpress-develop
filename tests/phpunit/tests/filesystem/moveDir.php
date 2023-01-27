@@ -140,16 +140,18 @@ class Tests_Filesystem_MoveDir extends WP_UnitTestCase {
 			'The expected error code was not returned.'
 		);
 
-		$this->assertTrue(
-			$wp_filesystem->exists( $from ),
-			'The $from directory does not exist anymore.'
-		);
-
-		if ( false === $overwrite && 'existing_to' === untrailingslashit( $to ) ) {
+		if ( 'source_destination_same_move_dir' !== $expected ) {
 			$this->assertTrue(
-				$wp_filesystem->exists( $to ),
-				'The $to directory does not exist anymore.'
+				$wp_filesystem->exists( $from ),
+				'The $from directory does not exist anymore.'
 			);
+
+			if ( false === $overwrite && 'existing_to' === untrailingslashit( $to ) ) {
+				$this->assertTrue(
+					$wp_filesystem->exists( $to ),
+					'The $to directory does not exist anymore.'
+				);
+			}
 		}
 	}
 
@@ -165,6 +167,36 @@ class Tests_Filesystem_MoveDir extends WP_UnitTestCase {
 				'to'        => 'existing_to',
 				'overwrite' => false,
 				'expected'  => 'destination_already_exists_move_dir',
+			),
+			'same source and destination, source has trailing slash' => array(
+				'from'      => 'existing_from/',
+				'to'        => 'existing_from',
+				'overwrite' => false,
+				'expected'  => 'source_destination_same_move_dir',
+			),
+			'same source and destination, destination has trailing slash' => array(
+				'from'      => 'existing_from',
+				'to'        => 'existing_from/',
+				'overwrite' => false,
+				'expected'  => 'source_destination_same_move_dir',
+			),
+			'same source and destination, source lowercase, destination uppercase' => array(
+				'from'      => 'existing_from',
+				'to'        => 'EXISTING_FROM',
+				'overwrite' => false,
+				'expected'  => 'source_destination_same_move_dir',
+			),
+			'same source and destination, source uppercase, destination lowercase' => array(
+				'from'      => 'EXISTING_FROM',
+				'to'        => 'existing_from',
+				'overwrite' => false,
+				'expected'  => 'source_destination_same_move_dir',
+			),
+			'same source and destination, source and destination in inverted case' => array(
+				'from'      => 'ExIsTiNg_FrOm',
+				'to'        => 'eXiStInG_fRoM',
+				'overwrite' => false,
+				'expected'  => 'source_destination_same_move_dir',
 			),
 		);
 	}
