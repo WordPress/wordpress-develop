@@ -36,71 +36,59 @@ class Tests_Admin_IncludesUser extends WP_UnitTestCase {
 	}
 
 	public function data_is_authorize_application_password_request_valid() {
-		return array(
-			'prod, empty request args'      => array(
-				array(),
-				'',
-			),
-			'prod, http success URL'        => array(
-				array( 'success_url' => 'http://example.org' ),
-				'invalid_redirect_scheme',
-			),
-			'prod, http reject URL'         => array(
-				array( 'reject_url' => 'http://example.org' ),
-				'invalid_redirect_scheme',
-			),
-			'prod, https success URL'       => array(
-				array( 'success_url' => 'https://example.org' ),
-				'',
-			),
-			'prod, https reject URL'        => array(
-				array( 'reject_url' => 'https://example.org' ),
-				'',
-			),
-			'prod, app scheme success URL'  => array(
-				array( 'success_url' => 'wordpress://example' ),
-				'',
-			),
-			'prod, app scheme reject URL'   => array(
-				array( 'reject_url' => 'wordpress://example' ),
-				'',
-			),
-			'local, empty request args'     => array(
-				array(),
-				'',
-				'local',
-			),
-			'local, http success URL'       => array(
-				array( 'success_url' => 'http://example.org' ),
-				'',
-				'local',
-			),
-			'local, http reject URL'        => array(
-				array( 'reject_url' => 'http://example.org' ),
-				'',
-				'local',
-			),
-			'local, https success URL'      => array(
-				array( 'success_url' => 'https://example.org' ),
-				'',
-				'local',
-			),
-			'local, https reject URL'       => array(
-				array( 'reject_url' => 'https://example.org' ),
-				'',
-				'local',
-			),
-			'local, app scheme success URL' => array(
-				array( 'success_url' => 'wordpress://example' ),
-				'',
-				'local',
-			),
-			'local, app scheme reject URL'  => array(
-				array( 'reject_url' => 'wordpress://example' ),
-				'',
-				'local',
-			),
+		$environment_types = array( 'local', 'development', 'staging', 'production' );
 
-		);
+		$datasets = array();
+		foreach ( $environment_types as $environment_type ) {
+			$datasets[ $environment_type . ' and no request arguments' ] = array(
+				'request'             => array(),
+				'expected_error_code' => '',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a "https" scheme "success_url"' ] = array(
+				'request'             => array( 'success_url' => 'https://example.org' ),
+				'expected_error_code' => '',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and an app scheme "success_url"' ] = array(
+				'request'             => array( 'success_url' => 'wordpress://example' ),
+				'expected_error_code' => '',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and an app scheme "reject_url"' ] = array(
+				'request'             => array( 'reject_url' => 'wordpress://example' ),
+				'expected_error_code' => '',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a "https" scheme "success_url"' ] = array(
+				'request'             => array( 'success_url' => 'https://example.org' ),
+				'expected_error_code' => '',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a "https" scheme "reject_url"' ] = array(
+				'request'             => array( 'reject_url' => 'https://example.org' ),
+				'expected_error_code' => '',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a "http" scheme "success_url"' ] = array(
+				'request'             => array( 'success_url' => 'http://example.org' ),
+				'expected_error_code' => 'local' === $environment_type ? '' : 'invalid_redirect_scheme',
+				'env'                 => $environment_type,
+			);
+
+			$datasets[ $environment_type . ' and a "http" scheme "reject_url"' ] = array(
+				'request'             => array( 'reject_url' => 'http://example.org' ),
+				'expected_error_code' => 'local' === $environment_type ? '' : 'invalid_redirect_scheme',
+				'env'                 => $environment_type,
+			);
+		}
+
+		return $datasets;
 	}
 }
