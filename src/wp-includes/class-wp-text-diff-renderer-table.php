@@ -35,26 +35,36 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 *
 	 * @var float
 	 * @since 2.6.0
+	 *
+	 * This property must be declared protected,
+	 * but it's declared as public not to break the backward compatibility.
+	 * @since 6.3.0
 	 */
-	protected $_diff_threshold = 0.6;
+	public $_diff_threshold = 0.6;
 
 	/**
 	 * Inline display helper object name.
 	 *
 	 * @var string
 	 * @since 2.6.0
+	 *
+	 * This property must be declared protected,
+	 * but it's declared as public not to break the backward compatibility.
+	 * @since 6.3.0
 	 */
-	protected $inline_diff_renderer = 'WP_Text_Diff_Renderer_inline';
+	public $inline_diff_renderer = 'WP_Text_Diff_Renderer_inline';
 
 	/**
 	 * Should we show the split view or not
 	 *
 	 * @var string
 	 * @since 3.6.0
+	 *
+	 * This property must be declared protected,
+	 * but it's declared as public not to break the backward compatibility.
+	 * @since 6.3.0
 	 */
-	protected $_show_split_view = true;
-
-	protected $compat_fields = array( '_show_split_view', 'inline_diff_renderer', '_diff_threshold' );
+	public $_show_split_view = true;
 
 	/**
 	 * Caches the output of count_chars() in compute_string_distance()
@@ -492,63 +502,5 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 */
 	public function difference( $a, $b ) {
 		return abs( $a - $b );
-	}
-
-	/**
-	 * Make private properties readable for backward compatibility.
-	 *
-	 * @since 4.0.0
-	 *
-	 * @param string $name Property to get.
-	 * @return mixed Property.
-	 */
-	public function __get( $name ) {
-		if ( in_array( $name, $this->compat_fields, true ) ) {
-			return $this->$name;
-		}
-	}
-
-	/**
-	 * Make private properties settable for backward compatibility.
-	 *
-	 * @since 4.0.0
-	 *
-	 * @param string $name  Property to check if set.
-	 * @param mixed  $value Property value.
-	 * @return mixed Newly-set property.
-	 */
-	public function __set( $name, $value ) {
-		if ( in_array( $name, $this->compat_fields, true ) ) {
-			$this->$name = $value;
-		}
-	}
-
-	/**
-	 * Make private properties checkable for backward compatibility.
-	 *
-	 * @since 4.0.0
-	 *
-	 * @param string $name Property to check if set.
-	 * @return bool Whether the property is set.
-	 */
-	public function __isset( $name ) {
-		if ( in_array( $name, $this->compat_fields, true ) ) {
-			return isset( $this->$name );
-		}
-
-		return false;
-	}
-
-	/**
-	 * Make private properties un-settable for backward compatibility.
-	 *
-	 * @since 4.0.0
-	 *
-	 * @param string $name Property to unset.
-	 */
-	public function __unset( $name ) {
-		if ( in_array( $name, $this->compat_fields, true ) ) {
-			unset( $this->$name );
-		}
 	}
 }
