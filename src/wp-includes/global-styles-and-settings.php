@@ -33,7 +33,12 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
 		$path = $new_path;
 	}
 
-	// This is the default value when no origin is provided or when it is 'all'.
+	/*
+	 * This is the default value when no origin is provided or when it is 'all'.
+	 *
+	 * The $origin is used as part of the cache key. Changes here need to account
+	 * for clearing the cache appropriately.
+	 */
 	$origin = 'custom';
 	if (
 		! wp_theme_has_theme_json() ||
@@ -363,6 +368,7 @@ function wp_theme_has_theme_json() {
  */
 function wp_clean_theme_json_cache() {
 	wp_cache_delete( 'wp_get_global_stylesheet', 'theme_json' );
-	wp_cache_delete( 'wp_get_global_settings', 'theme_json' );
+	wp_cache_delete( 'wp_get_global_settings_custom', 'theme_json' );
+	wp_cache_delete( 'wp_get_global_settings_theme', 'theme_json' );
 	WP_Theme_JSON_Resolver::clean_cached_data();
 }
