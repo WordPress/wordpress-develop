@@ -1969,6 +1969,13 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 function move_dir( $from, $to, $overwrite = false ) {
 	global $wp_filesystem;
 
+	if ( trailingslashit( strtolower( $from ) ) === trailingslashit( strtolower( $to ) ) ) {
+		return new WP_Error(
+			'source_destination_same_move_dir',
+			__( 'The source and destination are the same.' )
+		);
+	}
+
 	if ( ! $overwrite && $wp_filesystem->exists( $to ) ) {
 		return new WP_Error(
 			'destination_already_exists_move_dir',
@@ -1977,13 +1984,6 @@ function move_dir( $from, $to, $overwrite = false ) {
 				__( 'The destination folder, %s, already exists.' ),
 				"<code>$to</code>"
 			)
-		);
-	}
-
-	if ( trailingslashit( strtolower( $from ) ) === trailingslashit( strtolower( $to ) ) ) {
-		return new WP_Error(
-			'source_destination_same_move_dir',
-			__( 'The source and destination are the same.' )
 		);
 	}
 
