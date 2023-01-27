@@ -76,7 +76,7 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error
 	 * @since 5.1.0
 	 * @since 5.7.0 The `$wp_error` parameter was added, and a `WP_Error` object can now be returned.
 	 *
-	 * @param null|bool|WP_Error $pre      Value to return instead. Default null to continue adding the event.
+	 * @param null|bool|WP_Error $result   The value to return instead. Default null to continue adding the event.
 	 * @param stdClass           $event    {
 	 *     An object containing an event's data.
 	 *
@@ -1146,7 +1146,7 @@ function wp_get_ready_cron_jobs() {
  * Retrieve cron info array option.
  *
  * @since 2.1.0
- * @since 6.1.0 Return type modified to consistenty return an array.
+ * @since 6.1.0 Return type modified to consistently return an array.
  * @access private
  *
  * @return array[] Array of cron events.

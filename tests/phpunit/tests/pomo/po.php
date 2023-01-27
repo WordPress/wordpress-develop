@@ -48,7 +48,7 @@ http://wordpress.org/
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
 
-		require_once ABSPATH . '/wp-includes/pomo/po.php';
+		require_once ABSPATH . 'wp-includes/pomo/po.php';
 	}
 
 	public function test_prepend_each_line() {

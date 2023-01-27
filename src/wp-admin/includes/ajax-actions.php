@@ -1570,7 +1570,7 @@ function wp_ajax_add_menu_item() {
 			'before'      => '',
 			'link_after'  => '',
 			'link_before' => '',
-			'walker'      => new $walker_class_name,
+			'walker'      => new $walker_class_name(),
 		);
 
 		echo walk_nav_menu_tree( $menu_items, 0, (object) $args );
@@ -3023,7 +3023,7 @@ function wp_ajax_query_attachments() {
 
 	// Filter query clauses to include filenames.
 	if ( isset( $query['s'] ) ) {
-		add_filter( 'posts_clauses', '_filter_query_attachment_filenames' );
+		add_filter( 'wp_allow_query_attachment_by_filename', '__return_true' );
 	}
 
 	/**
@@ -3144,6 +3144,17 @@ function wp_ajax_save_attachment() {
 		wp_delete_post( $id );
 	} else {
 		wp_update_post( $post );
+
+		/**
+		 * Fires after an attachment has been updated via the Ajax handler
+		 * and before the JSON response is sent.
+		 *
+		 * @since 6.2.0
+		 *
+		 * @param array $post    The attachment data.
+		 * @param array $changes An array containing the updated attachment attributes.
+		 */
+		do_action( 'wp_ajax_save_attachment', $post, $changes );
 	}
 
 	wp_send_json_success();

@@ -69,6 +69,11 @@
 				"filter": {
 					"duotone": "var(--wp--preset--duotone--custom-duotone)"
 				}
+			},
+			"my/third-party-block": {
+				"color": {
+					"background": "hotpink"
+				}
 			}
 		},
 		"elements": {

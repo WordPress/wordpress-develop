@@ -663,6 +663,15 @@ function bulk_edit_posts( $post_data = null ) {
 		}
 	}
 
+	/**
+	 * Fires after processing the post data for bulk edit.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param array $post_data Associative array containing the post data.
+	 */
+	do_action( 'bulk_edit_posts', $post_data );
+
 	return array(
 		'updated' => $updated,
 		'skipped' => $skipped,
@@ -716,7 +725,7 @@ function get_default_post_to_edit( $post_type = 'post', $create_in_db = false ) 
 			wp_schedule_event( time(), 'daily', 'wp_scheduled_auto_draft_delete' );
 		}
 	} else {
-		$post                 = new stdClass;
+		$post                 = new stdClass();
 		$post->ID             = 0;
 		$post->post_author    = '';
 		$post->post_date      = '';
@@ -1308,7 +1317,7 @@ function wp_edit_attachments_query_vars( $q = false ) {
 
 	// Filter query clauses to include filenames.
 	if ( isset( $q['s'] ) ) {
-		add_filter( 'posts_clauses', '_filter_query_attachment_filenames' );
+		add_filter( 'wp_allow_query_attachment_by_filename', '__return_true' );
 	}
 
 	return $q;
@@ -2210,6 +2219,10 @@ function get_block_editor_server_block_settings() {
  * Renders the meta boxes forms.
  *
  * @since 5.0.0
+ *
+ * @global WP_Post   $post           Global post object.
+ * @global WP_Screen $current_screen WordPress current screen object.
+ * @global array     $wp_meta_boxes
  */
 function the_block_editor_meta_boxes() {
 	global $post, $current_screen, $wp_meta_boxes;

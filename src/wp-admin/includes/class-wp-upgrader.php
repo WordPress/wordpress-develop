@@ -653,8 +653,8 @@ class WP_Upgrader {
 			}
 		}
 
-		// Move new version of item into place.
-		$result = move_dir( $source, $remote_destination );
+		// Copy new version of item into place.
+		$result = copy_dir( $source, $remote_destination );
 
 		// Clear the working directory?
 		if ( $args['clear_working'] ) {
@@ -969,6 +969,8 @@ class WP_Upgrader {
 	 * Creates a lock using WordPress options.
 	 *
 	 * @since 4.5.0
+	 *
+	 * @global wpdb $wpdb The WordPress database abstraction object.
 	 *
 	 * @param string $lock_name       The name of this unique lock.
 	 * @param int    $release_timeout Optional. The duration in seconds to respect an existing lock.

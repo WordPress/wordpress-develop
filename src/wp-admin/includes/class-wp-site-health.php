@@ -65,7 +65,7 @@ class WP_Site_Health {
 	 */
 	public function show_site_health_tab( $tab ) {
 		if ( 'debug' === $tab ) {
-			require_once ABSPATH . '/wp-admin/site-health-info.php';
+			require_once ABSPATH . 'wp-admin/site-health-info.php';
 		}
 	}
 
@@ -1283,6 +1283,8 @@ class WP_Site_Health {
 	 * Tests if the database server is capable of using utf8mb4.
 	 *
 	 * @since 5.2.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @return array The test results.
 	 */
@@ -3366,7 +3368,7 @@ class WP_Site_Health {
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param int $cache_headers Array of supported cache headers.
+		 * @param array $cache_headers Array of supported cache headers.
 		 */
 		return apply_filters( 'site_status_page_cache_supported_cache_headers', $cache_headers );
 	}
