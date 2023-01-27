@@ -5433,13 +5433,13 @@ function wp_get_webp_info( $filename ) {
  */
 function wp_get_loading_attr_default( $context ) {
 	// Skip lazy-loading for the overall block template, as it is handled more granularly.
-	if ( 'the_template' === $context ) {
+	if ( 'template' === $context ) {
 		return false;
 	}
 
 	// Do not lazy-load images in the header block template part, as they are likely above the fold.
 	$header_area = WP_TEMPLATE_PART_AREA_HEADER;
-	if ( "the_template_part_{$header_area}" === $context ) {
+	if ( "template_part_{$header_area}" === $context ) {
 		return false;
 	}
 

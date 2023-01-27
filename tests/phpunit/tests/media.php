@@ -3516,8 +3516,8 @@ EOF;
 		}
 
 		// Exceptions: In the following contexts, images shouldn't be lazy-loaded by default.
-		$this->assertFalse( wp_get_loading_attr_default( 'the_template' ) );
-		$this->assertFalse( wp_get_loading_attr_default( 'the_template_part_' . WP_TEMPLATE_PART_AREA_HEADER ) );
+		$this->assertFalse( wp_get_loading_attr_default( 'template' ) );
+		$this->assertFalse( wp_get_loading_attr_default( 'template_part_' . WP_TEMPLATE_PART_AREA_HEADER ) );
 	}
 
 	public function data_wp_get_loading_attr_default() {
