@@ -2390,10 +2390,11 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 <div class="ftp-password">
 	<label for="password">
 		<span class="field-title"><?php echo $label_pass; ?></span>
-		<input name="password" type="password" id="password" value="<?php echo $password_value; ?>"<?php disabled( defined( 'FTP_PASS' ) ); ?> />
+		<input name="password" type="password" id="password" value="<?php echo $password_value; ?>"<?php disabled( defined( 'FTP_PASS' ) ); ?> spellcheck="false" />
 		<?php
 		if ( ! defined( 'FTP_PASS' ) ) {
-			_e( 'This password will not be stored on the server.' );}
+			_e( 'This password will not be stored on the server.' );
+		}
 		?>
 	</label>
 </div>
@@ -2442,7 +2443,7 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 	// Make sure the `submit_button()` function is available during the REST API call
 	// from WP_Site_Health_Auto_Updates::test_check_wp_filesystem_method().
 	if ( ! function_exists( 'submit_button' ) ) {
-		require_once ABSPATH . '/wp-admin/includes/template.php';
+		require_once ABSPATH . 'wp-admin/includes/template.php';
 	}
 	?>
 	<p class="request-filesystem-credentials-action-buttons">

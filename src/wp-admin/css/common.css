@@ -3030,9 +3030,15 @@ div.action-links {
 
 .plugin-details-modal #TB_closeWindowButton:hover,
 .plugin-details-modal #TB_closeWindowButton:focus {
-	color: #135e96;
 	outline: none;
 	box-shadow: none;
+}
+
+.plugin-details-modal #TB_closeWindowButton:hover::after,
+.plugin-details-modal #TB_closeWindowButton:focus::after {
+	outline: 2px solid;
+	outline-offset: -4px;
+	border-radius: 4px;
 }
 
 .plugin-details-modal .tb-close-icon {
@@ -3154,7 +3160,6 @@ img {
 	font-family: Consolas, Monaco, monospace;
 	font-size: 13px;
 	background: #f6f7f7;
-	-o-tab-size: 4;
 	tab-size: 4;
 }
 

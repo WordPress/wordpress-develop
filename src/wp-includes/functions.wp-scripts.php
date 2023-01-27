@@ -9,7 +9,7 @@
  */
 
 /**
- * Initialize $wp_scripts if it has not been set.
+ * Initializes $wp_scripts if it has not been set.
  *
  * @global WP_Scripts $wp_scripts
  *
@@ -34,11 +34,11 @@ function wp_scripts() {
  * @since 4.2.0
  * @since 5.5.0 Added the `$handle` parameter.
  *
- * @param string $function Function name.
- * @param string $handle   Optional. Name of the script or stylesheet that was
- *                         registered or enqueued too early. Default empty.
+ * @param string $function_name Function name.
+ * @param string $handle        Optional. Name of the script or stylesheet that was
+ *                              registered or enqueued too early. Default empty.
  */
-function _wp_scripts_maybe_doing_it_wrong( $function, $handle = '' ) {
+function _wp_scripts_maybe_doing_it_wrong( $function_name, $handle = '' ) {
 	if ( did_action( 'init' ) || did_action( 'wp_enqueue_scripts' )
 		|| did_action( 'admin_enqueue_scripts' ) || did_action( 'login_enqueue_scripts' )
 	) {
@@ -62,7 +62,7 @@ function _wp_scripts_maybe_doing_it_wrong( $function, $handle = '' ) {
 	}
 
 	_doing_it_wrong(
-		$function,
+		$function_name,
 		$message,
 		'3.3.0'
 	);
@@ -148,7 +148,7 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
 }
 
 /**
- * Register a new script.
+ * Registers a new script.
  *
  * Registers a script to be enqueued later using the wp_enqueue_script() function.
  *
@@ -184,7 +184,7 @@ function wp_register_script( $handle, $src, $deps = array(), $ver = false, $in_f
 }
 
 /**
- * Localize a script.
+ * Localizes a script.
  *
  * Works only if the script has already been registered.
  *
@@ -249,7 +249,7 @@ function wp_set_script_translations( $handle, $domain = 'default', $path = '' ) 
 }
 
 /**
- * Remove a registered script.
+ * Removes a registered script.
  *
  * Note: there are intentional safeguards in place to prevent critical admin scripts,
  * such as jQuery core, from being unregistered.
@@ -322,7 +322,7 @@ function wp_deregister_script( $handle ) {
 }
 
 /**
- * Enqueue a script.
+ * Enqueues a script.
  *
  * Registers the script if $src provided (does NOT overwrite), and enqueues it.
  *
@@ -364,7 +364,7 @@ function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $
 }
 
 /**
- * Remove a previously enqueued script.
+ * Removes a previously enqueued script.
  *
  * @see WP_Dependencies::dequeue()
  *
@@ -389,18 +389,18 @@ function wp_dequeue_script( $handle ) {
  * @since 3.5.0 'enqueued' added as an alias of the 'queue' list.
  *
  * @param string $handle Name of the script.
- * @param string $list   Optional. Status of the script to check. Default 'enqueued'.
+ * @param string $status Optional. Status of the script to check. Default 'enqueued'.
  *                       Accepts 'enqueued', 'registered', 'queue', 'to_do', and 'done'.
  * @return bool Whether the script is queued.
  */
-function wp_script_is( $handle, $list = 'enqueued' ) {
+function wp_script_is( $handle, $status = 'enqueued' ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
-	return (bool) wp_scripts()->query( $handle, $list );
+	return (bool) wp_scripts()->query( $handle, $status );
 }
 
 /**
- * Add metadata to a script.
+ * Adds metadata to a script.
  *
  * Works only if the script has already been registered.
  *

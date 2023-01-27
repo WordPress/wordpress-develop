@@ -106,7 +106,7 @@ class Tests_Widgets_wpWidgetRss extends WP_UnitTestCase {
 		);
 
 		return array(
-			'headers'  => new Requests_Utility_CaseInsensitiveDictionary( $single_value_headers ),
+			'headers'  => new WpOrg\Requests\Utility\CaseInsensitiveDictionary( $single_value_headers ),
 			'body'     => file_get_contents( DIR_TESTDATA . '/feed/wordpress-org-news.xml' ),
 			'response' => array(
 				'code'    => 200,
