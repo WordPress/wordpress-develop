@@ -201,7 +201,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected_no_origin, $actual_no_origin );
 	}
 
-	function test_get_settings_appearance_true_opts_in() {
+	public function test_get_settings_appearance_true_opts_in() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
@@ -280,7 +280,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected, $actual );
 	}
 
-	function test_get_settings_appearance_false_does_not_opt_in() {
+	public function test_get_settings_appearance_false_does_not_opt_in() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
@@ -2645,7 +2645,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 */
 	public function test_get_editor_settings_custom_units_can_be_disabled() {
 		add_theme_support( 'custom-units', array() );
-		$actual = WP_Theme_JSON::get_from_editor_settings( get_default_block_editor_settings() );
+		$actual = WP_Theme_JSON::get_from_editor_settings( get_classic_theme_supports_block_editor_settings() );
 		remove_theme_support( 'custom-units' );
 
 		$expected = array(
@@ -2662,7 +2662,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 */
 	public function test_get_editor_settings_custom_units_can_be_enabled() {
 		add_theme_support( 'custom-units' );
-		$actual = WP_Theme_JSON::get_from_editor_settings( get_default_block_editor_settings() );
+		$actual = WP_Theme_JSON::get_from_editor_settings( get_classic_theme_supports_block_editor_settings() );
 		remove_theme_support( 'custom-units' );
 
 		$expected = array(
@@ -2679,7 +2679,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 */
 	public function test_get_editor_settings_custom_units_can_be_filtered() {
 		add_theme_support( 'custom-units', 'rem', 'em' );
-		$actual = WP_Theme_JSON::get_from_editor_settings( get_default_block_editor_settings() );
+		$actual = WP_Theme_JSON::get_from_editor_settings( get_classic_theme_supports_block_editor_settings() );
 		remove_theme_support( 'custom-units' );
 
 		$expected = array(
@@ -2735,7 +2735,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 55505
 	 */
-	function test_export_data() {
+	public function test_export_data() {
 		$theme = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
@@ -2813,7 +2813,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 55505
 	 */
-	function test_export_data_deals_with_empty_user_data() {
+	public function test_export_data_deals_with_empty_user_data() {
 		$theme = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
@@ -2863,7 +2863,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 55505
 	 */
-	function test_export_data_deals_with_empty_theme_data() {
+	public function test_export_data_deals_with_empty_theme_data() {
 		$user = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
@@ -2914,7 +2914,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 55505
 	 */
-	function test_export_data_deals_with_empty_data() {
+	public function test_export_data_deals_with_empty_data() {
 		$theme_v2    = new WP_Theme_JSON(
 			array(
 				'version' => 2,
@@ -2939,7 +2939,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 55505
 	 */
-	function test_export_data_sets_appearance_tools() {
+	public function test_export_data_sets_appearance_tools() {
 		$theme = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
@@ -2973,7 +2973,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 56611
 	 */
-	function test_export_data_sets_use_root_padding_aware_alignments() {
+	public function test_export_data_sets_use_root_padding_aware_alignments() {
 		$theme = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
@@ -3026,7 +3026,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Testing that dynamic properties in theme.json return the value they refrence,
+	 * Testing that dynamic properties in theme.json return the value they reference,
 	 * e.g. array( 'ref' => 'styles.color.background' ) => "#ffffff".
 	 *
 	 * @ticket 56467
@@ -3506,7 +3506,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 56467
 	 */
-	function test_get_styles_for_block_with_padding_aware_alignments() {
+	public function test_get_styles_for_block_with_padding_aware_alignments() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
@@ -3540,7 +3540,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 56467
 	 */
-	function test_get_styles_for_block_without_padding_aware_alignments() {
+	public function test_get_styles_for_block_without_padding_aware_alignments() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version' => 2,
@@ -3571,7 +3571,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 56467
 	 */
-	function test_get_styles_for_block_with_content_width() {
+	public function test_get_styles_for_block_with_content_width() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
@@ -3598,7 +3598,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 56611
 	 */
-	function test_get_styles_with_appearance_tools() {
+	public function test_get_styles_with_appearance_tools() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
@@ -3628,7 +3628,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @param array $spacing_scale   Example spacing scale definitions from the data provider.
 	 * @param array $expected_output Expected output from data provider.
 	 */
-	function test_should_set_spacing_sizes( $spacing_scale, $expected_output ) {
+	public function test_should_set_spacing_sizes( $spacing_scale, $expected_output ) {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version'  => 2,
@@ -3651,7 +3651,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	function data_generate_spacing_scale_fixtures() {
+	public function data_generate_spacing_scale_fixtures() {
 		return array(
 			'only one value when single step in spacing scale' => array(
 				'spacing_scale'   => array(
@@ -3945,7 +3945,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	function data_set_spacing_sizes_when_invalid() {
+	public function data_set_spacing_sizes_when_invalid() {
 		return array(
 			'missing operator value'  => array(
 				'spacing_scale'   => array(
@@ -4033,7 +4033,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	function data_update_separator_declarations() {
+	public function data_update_separator_declarations() {
 		return array(
 			// If only background is defined, test that includes border-color to the style so it is applied on the front end.
 			'only background'                      => array(
@@ -4089,5 +4089,43 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'expected_output' => 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.wp-block-separator{background-color: blue;border-color: pink;}',
 			),
 		);
+	}
+
+	/**
+	 * @ticket 57354
+	 */
+	public function test_get_stylesheet_returns_outline_styles() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'elements' => array(
+						'button' => array(
+							'outline' => array(
+								'offset' => '3px',
+								'width'  => '3px',
+								'style'  => 'dashed',
+								'color'  => 'red',
+							),
+							':hover'  => array(
+								'outline' => array(
+									'offset' => '3px',
+									'width'  => '3px',
+									'style'  => 'solid',
+									'color'  => 'blue',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$base_styles = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }';
+
+		$element_styles = '.wp-element-button, .wp-block-button__link{outline-color: red;outline-offset: 3px;outline-style: dashed;outline-width: 3px;}.wp-element-button:hover, .wp-block-button__link:hover{outline-color: blue;outline-offset: 3px;outline-style: solid;outline-width: 3px;}';
+
+		$expected = $base_styles . $element_styles;
+		$this->assertSame( $expected, $theme_json->get_stylesheet() );
 	}
 }

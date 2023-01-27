@@ -974,7 +974,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_prepare_item() {
 		wp_set_current_user( self::$user );
 
-		$request = new WP_REST_Request;
+		$request = new WP_REST_Request();
 		$request->set_param( 'context', 'edit' );
 		$user = get_user_by( 'id', get_current_user_id() );
 		$data = $this->endpoint->prepare_item_for_response( $user, $request );
@@ -984,7 +984,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_prepare_item_limit_fields() {
 		wp_set_current_user( self::$user );
 
-		$request = new WP_REST_Request;
+		$request = new WP_REST_Request();
 		$request->set_param( 'context', 'edit' );
 		$request->set_param( '_fields', 'id,name' );
 		$user     = get_user_by( 'id', get_current_user_id() );
@@ -2825,6 +2825,17 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$wp_rest_additional_fields = array();
 	}
 
+	public function additional_field_get_callback( $response_data, $field_name ) {
+		return get_user_meta( $response_data['id'], $field_name, true );
+	}
+
+	public function additional_field_update_callback( $value, $user, $field_name ) {
+		if ( 'returnError' === $value ) {
+			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
+		}
+		update_user_meta( $user->ID, $field_name, $value );
+	}
+
 	/**
 	 * @ticket 39701
 	 * @group ms-required
@@ -3070,17 +3081,6 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 				array( array( 'dibble' ) ),
 			),
 		);
-	}
-
-	public function additional_field_get_callback( $object ) {
-		return get_user_meta( $object['id'], 'my_custom_int', true );
-	}
-
-	public function additional_field_update_callback( $value, $user ) {
-		if ( 'returnError' === $value ) {
-			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
-		}
-		update_user_meta( $user->ID, 'my_custom_int', $value );
 	}
 
 	protected function check_user_data( $user, $data, $context, $links ) {

@@ -30,8 +30,7 @@ jobs:
         branch: [
             '6.1','6.0',
             '5.9', '5.8', '5.7', '5.6', '5.5', '5.4', '5.3', '5.2', '5.1', '5.0',
-            '4.9', '4.8', '4.7', '4.6', '4.5', '4.4', '4.3', '4.2', '4.1', '4.0',
-            '3.9', '3.8', '3.7'
+            '4.9', '4.8', '4.7', '4.6', '4.5', '4.4', '4.3', '4.2', '4.1'
         ]
         include:
           # PHP Compatibility testing was introduced in 5.5.
@@ -61,12 +60,6 @@ jobs:
             workflow: 'end-to-end-tests.yml'
           - branch: '5.8'
             workflow: 'end-to-end-tests.yml'
-        exclude:
-          # Coding standards and JavaScript testing did not take place in 3.7.
-          - branch: '3.7'
-            workflow: 'coding-standards.yml'
-          - branch: '3.7'
-            workflow: 'javascript-tests.yml'
 
     # Run all branches monthly, but only the currently supported one twice per month.
     steps:
