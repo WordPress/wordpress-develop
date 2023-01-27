@@ -185,15 +185,11 @@ function wp_get_global_stylesheet( $types = array() ) {
 function wp_get_global_styles_svg_filters() {
 	// Return cached value if it can be used and exists.
 	// It's cached by theme to make sure that theme switching clears the cache.
-	$can_use_cached = (
-		( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) &&
-		( ! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG ) &&
-		( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST ) &&
-		! is_admin()
-	);
-	$transient_name = 'global_styles_svg_filters_' . get_stylesheet();
+	$can_use_cached = ! WP_DEBUG && ! is_admin();
+	$cache_group    = 'theme_json';
+	$cache_key      = 'wp_get_global_styles_svg_filters';
 	if ( $can_use_cached ) {
-		$cached = get_transient( $transient_name );
+		$cached = wp_cache_get( $cache_key, $cache_group );
 		if ( $cached ) {
 			return $cached;
 		}
@@ -210,8 +206,7 @@ function wp_get_global_styles_svg_filters() {
 	$svgs = $tree->get_svg_filters( $origins );
 
 	if ( $can_use_cached ) {
-		// Cache for a minute, same as wp_get_global_stylesheet.
-		set_transient( $transient_name, $svgs, MINUTE_IN_SECONDS );
+		wp_cache_set( $cache_key, $svgs, $cache_group );
 	}
 
 	return $svgs;
@@ -317,5 +312,6 @@ function wp_theme_has_theme_json() {
  */
 function wp_clean_theme_json_cache() {
 	wp_cache_delete( 'wp_get_global_stylesheet', 'theme_json' );
+	wp_cache_delete( 'wp_get_global_styles_svg_filters', 'theme_json' );
 	WP_Theme_JSON_Resolver::clean_cached_data();
 }
