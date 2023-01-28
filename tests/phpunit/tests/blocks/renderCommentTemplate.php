@@ -333,7 +333,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 
 		$top_level_ids = self::$comment_ids;
 		$expected      = str_replace(
-			array( "\n", "\t" ),
+			array( "\r\n", "\n", "\t" ),
 			'',
 			<<<END
 				<ol class="wp-block-comment-template">
@@ -387,7 +387,7 @@ END
 
 		$this->assertSame(
 			$expected,
-			str_replace( array( "\n", "\t" ), '', $block->render() )
+			str_replace( array( "\r\n", "\n", "\t" ), '', $block->render() )
 		);
 	}
 
