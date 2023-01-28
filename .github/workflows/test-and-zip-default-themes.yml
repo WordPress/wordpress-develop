@@ -49,9 +49,9 @@ jobs:
   #
   # Performs the following steps:
   # - Checks out the repository.
-  # - Installs Node.js (only when theme has a build process)
-  # - Installs npm dependencies (only when theme has a build process)
-  # - Runs the theme build script (only when theme has a build process)
+  # - Sets up Node.js.
+  # - Installs npm dependencies.
+  # - Runs the theme build script.
   # - Ensures version-controlled files are not modified or deleted.
   test-build-scripts:
     name: Test ${{ matrix.theme }} build script
@@ -77,7 +77,7 @@ jobs:
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
 
-      - name: Install Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # v3.5.1
         with:
           node-version-file: '.nvmrc'

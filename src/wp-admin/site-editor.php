@@ -20,7 +20,7 @@ if ( ! current_user_can( 'edit_theme_options' ) ) {
 }
 
 if ( ! ( current_theme_supports( 'block-template-parts' ) || wp_is_block_theme() ) ) {
-	wp_die( __( 'The theme you are currently using is not compatible with Full Site Editing.' ) );
+	wp_die( __( 'The theme you are currently using is not compatible with the Site Editor.' ) );
 }
 
 $is_template_part_editor = isset( $_GET['postType'] ) && 'wp_template_part' === sanitize_key( $_GET['postType'] );
@@ -74,7 +74,7 @@ $custom_settings      = array(
 	'styles'                    => get_block_editor_theme_styles(),
 	'defaultTemplateTypes'      => $indexed_template_types,
 	'defaultTemplatePartAreas'  => get_allowed_block_template_part_areas(),
-	'supportsLayout'            => WP_Theme_JSON_Resolver::theme_has_support(),
+	'supportsLayout'            => wp_theme_has_theme_json(),
 	'supportsTemplatePartsMode' => ! wp_is_block_theme() && current_theme_supports( 'block-template-parts' ),
 	'__unstableHomeTemplate'    => $home_template,
 );
@@ -101,7 +101,7 @@ if ( isset( $_GET['postType'] ) && ! isset( $_GET['postId'] ) ) {
 }
 
 $active_global_styles_id = WP_Theme_JSON_Resolver::get_user_global_styles_post_id();
-$active_theme            = wp_get_theme()->get_stylesheet();
+$active_theme            = get_stylesheet();
 $preload_paths           = array(
 	array( '/wp/v2/media', 'OPTIONS' ),
 	'/wp/v2/types?context=view',
