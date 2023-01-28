@@ -56,6 +56,8 @@ jobs:
   test-build-scripts:
     name: Test ${{ matrix.theme }} build script
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     timeout-minutes: 10
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
@@ -101,6 +103,8 @@ jobs:
   bundle-theme:
     name: Create ${{ matrix.theme }} ZIP file
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: [ test-build-scripts ]
     timeout-minutes: 10
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -152,6 +156,8 @@ jobs:
   failed-workflow:
     name: Failed workflow tasks
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
     needs: [ test-build-scripts, bundle-theme, slack-notifications ]
     if: |
       always() &&

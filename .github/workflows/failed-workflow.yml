@@ -20,6 +20,8 @@ jobs:
   failed-workflow:
     name: Rerun a workflow
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
     timeout-minutes: 5
 
     steps:

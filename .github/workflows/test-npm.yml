@@ -53,6 +53,8 @@ jobs:
   test-npm:
     name: Test npm on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
     timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
@@ -122,6 +124,8 @@ jobs:
   test-npm-macos:
     name: Test npm on MacOS
     runs-on: macos-latest
+    permissions:
+      contents: read
     timeout-minutes: 30
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     steps:
@@ -179,6 +183,8 @@ jobs:
   failed-workflow:
     name: Failed workflow tasks
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
     needs: [ test-npm, test-npm-macos, slack-notifications ]
     if: |
       always() &&

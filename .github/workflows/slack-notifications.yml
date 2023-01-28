@@ -44,6 +44,9 @@ jobs:
   prepare:
     name: Prepare notifications
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
     timeout-minutes: 5
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event.workflow_run.event != 'pull_request' }}
     outputs:
@@ -148,6 +151,7 @@ jobs:
   failure:
     name: Failure notifications
     runs-on: ubuntu-latest
+    permissions: {}
     timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ inputs.calling_status == 'failure' || failure() }}
@@ -164,6 +168,7 @@ jobs:
   fixed:
     name: Fixed notifications
     runs-on: ubuntu-latest
+    permissions: {}
     timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ contains( fromJson( '["failure", "cancelled", "none"]' ), needs.prepare.outputs.previous_conclusion ) && inputs.calling_status == 'success' && success() }}
@@ -180,6 +185,7 @@ jobs:
   success:
     name: Success notifications
     runs-on: ubuntu-latest
+    permissions: {}
     timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ inputs.calling_status == 'success' && success() }}
@@ -196,6 +202,7 @@ jobs:
   cancelled:
     name: Cancelled notifications
     runs-on: ubuntu-latest
+    permissions: {}
     timeout-minutes: 5
     needs: [ prepare ]
     if: ${{ inputs.calling_status == 'cancelled' || cancelled() }}
