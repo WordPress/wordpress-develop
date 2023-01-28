@@ -60,7 +60,7 @@ class WP_Rollback_Auto_Update {
 	 * @return void
 	 */
 	public static function init() {
-		//( new WP_Rollback_Auto_Update() )->load_hooks();
+		( new WP_Rollback_Auto_Update() )->load_hooks();
 	}
 
 	/**
@@ -69,7 +69,7 @@ class WP_Rollback_Auto_Update {
 	 * @return void
 	 */
 	public function load_hooks() {
-		//add_filter( 'upgrader_install_package_result', array( $this, 'auto_update_check' ), 15, 2 );
+		add_filter( 'upgrader_install_package_result', array( $this, 'auto_update_check' ), 15, 2 );
 	}
 
 	/**
