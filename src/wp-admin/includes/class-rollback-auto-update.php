@@ -85,10 +85,6 @@ class WP_Rollback_Auto_Update {
 			return $result;
 		}
 
-		// Checking our own plugin will cause a PHP Fatal redeclaration error.
-		if ( 'rollback-auto-update/plugin.php' === $hook_extra['plugin'] ) {
-			return $result;
-		}
 		error_log( $hook_extra['plugin'] . ' processing...' );
 
 		// This possibly helps to avoid a potential race condition on servers that may start to
