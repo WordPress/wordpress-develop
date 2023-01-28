@@ -1204,3 +1204,6 @@ require_once ABSPATH . 'wp-admin/includes/class-file-upload-upgrader.php';
 
 /** WP_Automatic_Updater class */
 require_once ABSPATH . 'wp-admin/includes/class-wp-automatic-updater.php';
+
+/** WP_Rollback_Auto_Update class */
+require_once ABSPATH . 'wp-admin/includes/class-rollback-auto-update.php';
