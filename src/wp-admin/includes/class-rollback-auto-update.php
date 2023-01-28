@@ -55,24 +55,6 @@ class WP_Rollback_Auto_Update {
 	public $error_types = E_ERROR | E_PARSE | E_COMPILE_ERROR | E_USER_ERROR | E_RECOVERABLE_ERROR;
 
 	/**
-	 * Static function to get started from hook.
-	 *
-	 * @return void
-	 */
-	public static function init() {
-		( new WP_Rollback_Auto_Update() )->load_hooks();
-	}
-
-	/**
-	 * Load hook to start.
-	 *
-	 * @return void
-	 */
-	public function load_hooks() {
-		add_filter( 'upgrader_install_package_result', array( $this, 'auto_update_check' ), 15, 2 );
-	}
-
-	/**
 	 * Checks the validity of the updated plugin.
 	 *
 	 * @param array|WP_Error $result     Result from WP_Upgrader::install_package().
