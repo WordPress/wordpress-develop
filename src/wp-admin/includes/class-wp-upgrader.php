@@ -154,10 +154,12 @@ class WP_Upgrader {
 	 * This will set the relationship between the skin being used and this upgrader,
 	 * and also add the generic strings to `WP_Upgrader::$strings`.
 	 *
-	 * Additionally, it will schedule a weekly task to clean up the temp-backup directory.
+	 * Additionally, it will schedule a weekly task to clean up the temp-backup directory
+	 * and initiate the WP_Rollback_Auto_Update::auto_update_check().
 	 *
 	 * @since 2.8.0
-	 * @since 6.2.0 Added the `schedule_temp_backup_cleanup()` task.
+	 * @since 6.2.0 Added the `schedule_temp_backup_cleanup()` task
+	 *              and the WP_Rollback_Auto_Update::auto_update_check().
 	 */
 	public function init() {
 		$this->skin->set_upgrader( $this );
