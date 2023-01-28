@@ -147,7 +147,6 @@ add_action( 'upgrader_process_complete', array( 'Language_Pack_Upgrader', 'async
 add_action( 'upgrader_process_complete', 'wp_version_check', 10, 0 );
 add_action( 'upgrader_process_complete', 'wp_update_plugins', 10, 0 );
 add_action( 'upgrader_process_complete', 'wp_update_themes', 10, 0 );
-add_action( 'init', array( 'WP_Rollback_Auto_Update', 'init' ) );
 
 // Privacy hooks.
 add_filter( 'wp_privacy_personal_data_erasure_page', 'wp_privacy_process_personal_data_erasure_page', 10, 5 );

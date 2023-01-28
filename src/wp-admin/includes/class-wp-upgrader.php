@@ -166,6 +166,7 @@ class WP_Upgrader {
 		if ( ! wp_installing() ) {
 			$this->schedule_temp_backup_cleanup();
 		}
+		add_filter( 'upgrader_install_package_result', array( new WP_Rollback_Auto_Update(), 'auto_update_check' ), 15, 2 );
 	}
 
 	/**
