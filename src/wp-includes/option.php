@@ -285,7 +285,7 @@ function wp_load_alloptions( $force_cache = false ) {
 	 *
 	 * @since 6.2.0
 	 *
-	 * @param null|array $alloptions  An array of alloptions.
+	 * @param array|null $alloptions  An array of alloptions. Default null.
 	 * @param bool       $force_cache Whether to force an update of the local cache from the persistent cache. Default false.
 	 */
 	$alloptions = apply_filters( 'pre_wp_load_alloptions', null, $force_cache );
