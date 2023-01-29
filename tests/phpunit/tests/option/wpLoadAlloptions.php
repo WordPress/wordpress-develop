@@ -109,7 +109,7 @@ class Tests_Option_wpLoadAlloptions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test ensuring that `$alloptions` can be filtered with a custom value, short circuiting `wp_load_alloptions()`.
+	 * Tests that `$alloptions` can be filtered with a custom value, short circuiting `wp_load_alloptions()`.
 	 *
 	 * @ticket 56045
 	 */
