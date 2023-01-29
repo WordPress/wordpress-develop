@@ -866,7 +866,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		if ( isset( $actions['quickedit'] ) || isset( $actions['quickedit hide-if-no-js'] ) ) {
 			ob_start();
-				wp_comment_reply( '-1', true, 'detail' );
+			wp_comment_reply( '-1', true, 'detail' );
 			$output .= ob_get_clean();
 		}
 
