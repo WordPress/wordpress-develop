@@ -1430,7 +1430,7 @@ class WP_Query {
 		 *
 		 * @param string[] $search_columns Array of column names to be searched.
 		 * @param string   $search         Text being searched.
-		 * @param WP_Query $this           The current WP_Query instance.
+		 * @param WP_Query $query          The current WP_Query instance.
 		 */
 		$search_columns = (array) apply_filters( 'post_search_columns', $search_columns, $q['s'], $this );
 
