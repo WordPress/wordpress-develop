@@ -591,8 +591,9 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 		$this->assertSame( 'Este es un plugin dummy', $actual_es_es );
 	}
 
-
 	/**
+	 * @ticket 57123
+	 *
 	 * @covers ::switch_to_locale
 	 * @covers ::switch_to_user_locale
 	 * @covers WP_Locale_Switcher::get_current_locale
@@ -631,20 +632,20 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 		$locale_5  = $wp_locale_switcher->get_current_locale();
 		$user_id_5 = $wp_locale_switcher->get_current_user_id();
 
-		$this->assertFalse( $locale_1 );
-		$this->assertFalse( $user_id_1 );
+		$this->assertFalse( $locale_1, 'Locale should be false before switching' );
+		$this->assertFalse( $user_id_1, 'User ID should be false before switching' );
 
-		$this->assertSame( 'de_DE', $locale_2 );
-		$this->assertSame( self::$user_id, $user_id_2 );
+		$this->assertSame( 'de_DE', $locale_2, 'The locale was not changed to de_DE' );
+		$this->assertSame( self::$user_id, $user_id_2, 'User ID should match the main admin ID' );
 
-		$this->assertSame( 'en_GB', $locale_3 );
-		$this->assertFalse( $user_id_3 );
+		$this->assertSame( 'en_GB', $locale_3, 'The locale was not changed to en_GB' );
+		$this->assertFalse( $user_id_3, 'User ID should be false after normal locale switching' );
 
-		$this->assertSame( 'es_ES', $locale_4 );
-		$this->assertSame( $user_2, $user_id_4 );
+		$this->assertSame( 'es_ES', $locale_4, 'The locale was not changed to es_ES' );
+		$this->assertSame( $user_2, $user_id_4, 'User ID should match the second admin ID' );
 
-		$this->assertFalse( $locale_5 );
-		$this->assertFalse( $user_id_5 );
+		$this->assertFalse( $locale_5, 'Locale should be false after restoring' );
+		$this->assertFalse( $user_id_5, 'User ID should be false after restoring' );
 
 	}
 
