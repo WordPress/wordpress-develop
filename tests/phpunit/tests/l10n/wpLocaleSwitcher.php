@@ -104,6 +104,8 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57123
+	 *
 	 * @covers ::switch_to_locale
 	 */
 	public function test_switch_to_locale_changes_determined_locale() {
