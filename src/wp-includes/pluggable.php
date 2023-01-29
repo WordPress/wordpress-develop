@@ -517,9 +517,11 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		}
 
 		if ( ! empty( $attachments ) ) {
-			foreach ( $attachments as $attachment ) {
+			foreach ( $attachments as $filename => $attachment ) {
+				$filename = is_string( $filename ) ? $filename : '';
+
 				try {
-					$phpmailer->addAttachment( $attachment );
+					$phpmailer->addAttachment( $attachment, $filename );
 				} catch ( PHPMailer\PHPMailer\Exception $e ) {
 					continue;
 				}
@@ -1236,7 +1238,7 @@ if ( ! function_exists( 'check_admin_referer' ) ) :
 	 * Ensures intent by verifying that a user was referred from another admin page with the correct security nonce.
 	 *
 	 * This function ensures the user intends to perform a given action, which helps protect against clickjacking style
-	 * attacks. It verifies intent, not authorisation, therefore it does not verify the user's capabilities. This should
+	 * attacks. It verifies intent, not authorization, therefore it does not verify the user's capabilities. This should
 	 * be performed with `current_user_can()` or similar.
 	 *
 	 * If the nonce value is invalid, the function will exit with an "Are You Sure?" style message.
@@ -1346,7 +1348,7 @@ if ( ! function_exists( 'wp_redirect' ) ) :
 	 *     exit;
 	 *
 	 * Exiting can also be selectively manipulated by using wp_redirect() as a conditional
-	 * in conjunction with the {@see 'wp_redirect'} and {@see 'wp_redirect_location'} filters:
+	 * in conjunction with the {@see 'wp_redirect'} and {@see 'wp_redirect_status'} filters:
 	 *
 	 *     if ( wp_redirect( $url ) ) {
 	 *         exit;
@@ -1492,7 +1494,7 @@ if ( ! function_exists( 'wp_safe_redirect' ) ) :
 	 *     exit;
 	 *
 	 * Exiting can also be selectively manipulated by using wp_safe_redirect() as a conditional
-	 * in conjunction with the {@see 'wp_redirect'} and {@see 'wp_redirect_location'} filters:
+	 * in conjunction with the {@see 'wp_redirect'} and {@see 'wp_redirect_status'} filters:
 	 *
 	 *     if ( wp_safe_redirect( $url ) ) {
 	 *         exit;
@@ -2738,6 +2740,16 @@ if ( ! function_exists( 'wp_set_password' ) ) :
 		);
 
 		clean_user_cache( $user_id );
+
+		/**
+		 * Fires after the user password is set.
+		 *
+		 * @since 6.2.0
+		 *
+		 * @param string $password The plaintext password just set.
+		 * @param int    $user_id  The ID of the user whose password was just set.
+		 */
+		do_action( 'wp_set_password', $password, $user_id );
 	}
 endif;
 

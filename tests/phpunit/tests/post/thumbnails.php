@@ -408,6 +408,41 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		$this->assertSame( $expected, $result );
 	}
 
+	/**
+	 * @ticket 57490
+	 */
+	public function test_get_the_post_thumbnail_includes_loading_lazy() {
+		set_post_thumbnail( self::$post, self::$attachment_id );
+
+		$html = get_the_post_thumbnail( self::$post );
+		$this->assertStringContainsString( ' loading="lazy"', $html );
+	}
+
+	/**
+	 * @ticket 57490
+	 */
+	public function test_get_the_post_thumbnail_respects_passed_loading_attr() {
+		set_post_thumbnail( self::$post, self::$attachment_id );
+
+		$html = get_the_post_thumbnail( self::$post, 'post-thumbnail', array( 'loading' => 'eager' ) );
+		$this->assertStringContainsString( ' loading="eager"', $html, 'loading=eager was not present in img tag because attributes array with loading=eager was overwritten.' );
+
+		$html = get_the_post_thumbnail( self::$post, 'post-thumbnail', 'loading=eager' );
+		$this->assertStringContainsString( ' loading="eager"', $html, 'loading=eager was not present in img tag because attributes string with loading=eager was overwritten.' );
+	}
+
+	/**
+	 * @ticket 57490
+	 */
+	public function test_get_the_post_thumbnail_respects_wp_lazy_loading_enabled_filter() {
+		set_post_thumbnail( self::$post, self::$attachment_id );
+
+		add_filter( 'wp_lazy_loading_enabled', '__return_false' );
+
+		$html = get_the_post_thumbnail( self::$post );
+		$this->assertStringNotContainsString( ' loading="lazy"', $html );
+	}
+
 	public function data_post_thumbnail_size_filter_complex() {
 		return array(
 			array( 0, 'medium' ),
