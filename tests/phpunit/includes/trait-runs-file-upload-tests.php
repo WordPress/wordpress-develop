@@ -19,7 +19,7 @@ trait WP_Test_RunsFileUploadTests {
 	 * @param array $filename       Absolute path to the file to upload.
 	 * @param int   $parent_post_id Optional. Parent post ID.
 	 *
-	 * @return int|WP_Error The attachment ID on success. The value 0 or WP_Error on failure.
+	 * @return int|WP_Error The attachment ID on success, WP_Error object on failure.
 	 */
 	public function _upload_file_and_make_attachment( $filename, $parent_post_id = 0 ) {
 		$contents = file_get_contents( $filename );
