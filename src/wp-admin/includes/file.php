@@ -1977,14 +1977,7 @@ function move_dir( $from, $to, $overwrite = false ) {
 	}
 
 	if ( ! $overwrite && $wp_filesystem->exists( $to ) ) {
-		return new WP_Error(
-			'destination_already_exists_move_dir',
-			sprintf(
-				/* translators: %s: The destination directory path. */
-				__( 'The destination folder, %s, already exists.' ),
-				"<code>$to</code>"
-			)
-		);
+		return new WP_Error( 'destination_already_exists_move_dir', __( 'The destination folder already exists.' ), $to );
 	}
 
 	if ( $wp_filesystem->move( $from, $to, $overwrite ) ) {
