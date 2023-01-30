@@ -55,7 +55,7 @@ function wp_apply_dimensions_support( $block_type, $block_attributes ) { // phpc
 		return array();
 	}
 
-	$styles = array();
+	$attributes = array();
 
 	// Width support to be added in near future.
 
