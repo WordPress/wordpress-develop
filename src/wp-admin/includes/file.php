@@ -2688,10 +2688,7 @@ function wp_opcache_invalidate_directory( $dir ) {
 		foreach ( $dirlist as $name => $details ) {
 			if ( 'f' === $details['type'] ) {
 				wp_opcache_invalidate( $path . $name, true );
-				continue;
-			}
-
-			if ( is_array( $details['files'] ) && ! empty( $details['files'] ) ) {
+			} elseif ( is_array( $details['files'] ) && ! empty( $details['files'] ) ) {
 				$invalidate_directory( $details['files'], $path . $name );
 			}
 		}
