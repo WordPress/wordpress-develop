@@ -153,10 +153,10 @@ body > .is-root-container > .wp-block-template-part > .wp-block-cover,
 */
 
 .wp-block-post-comments ol.commentlist ul.children {
-	margin-top: 20px;
-	margin-bottom: 20px;
+	margin-top: 1rem;
+	margin-bottom: 1rem;
 }
 
 .wp-block-post-comments ol.commentlist ul.children li:not(:last-child) {
-	margin-bottom: 20px;
+	margin-bottom: 1rem;
 }
