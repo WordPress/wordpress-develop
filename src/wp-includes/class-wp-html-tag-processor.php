@@ -239,7 +239,7 @@ class WP_HTML_Tag_Processor {
 	 * Whether to visit tag closers, e.g. </div>, when walking an input document.
 	 *
 	 * @since 6.2.0
-	 * @var boolean
+	 * @var bool
 	 */
 	private $stop_on_tag_closers;
 
@@ -279,7 +279,7 @@ class WP_HTML_Tag_Processor {
 	 * ```
 	 *
 	 * @since 6.2.0
-	 * @var ?int
+	 * @var int|null
 	 */
 	private $tag_name_starts_at;
 
@@ -294,7 +294,7 @@ class WP_HTML_Tag_Processor {
 	 * ```
 	 *
 	 * @since 6.2.0
-	 * @var ?int
+	 * @var int|null
 	 */
 	private $tag_name_length;
 
@@ -310,14 +310,14 @@ class WP_HTML_Tag_Processor {
 	 * ```
 	 *
 	 * @since 6.2.0
-	 * @var ?int
+	 * @var int|null
 	 */
 	private $tag_ends_at;
 
 	/**
 	 * Whether the current tag is an opening tag, e.g. <div>, or a closing tag, e.g. </div>.
 	 *
-	 * @var boolean
+	 * @var bool
 	 */
 	private $is_closing_tag;
 
@@ -445,8 +445,8 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.2.0
 	 *
-	 * @param array|string $query {
-	 *     Which tag name to find, having which class, etc.
+	 * @param array|string|null $query {
+	 *     Optional. Which tag name to find, having which class, etc. Default is to find any tag.
 	 *
 	 *     @type string|null $tag_name     Which tag to find, or `null` for "any tag."
 	 *     @type int|null    $match_offset Find the Nth tag matching all search criteria.
@@ -570,21 +570,23 @@ class WP_HTML_Tag_Processor {
 	 *     }
 	 * ```
 	 *
-	 * Because bookmarks maintain their position they don't
-	 * expose any internal offsets for the HTML document
+	 * Because bookmarks maintain their position, they don't
+	 * expose any internal offsets for the HTML document,
 	 * and can't be used with normal string functions.
 	 *
 	 * Because bookmarks allocate memory and require processing
-	 * for every applied update they are limited and require
+	 * for every applied update, they are limited and require
 	 * a name. They should not be created inside a loop.
 	 *
-	 * Bookmarks are a powerful tool to enable complicated behavior;
-	 * consider double-checking that you need this tool if you are
+	 * Bookmarks are a powerful tool to enable complicated behavior.
+	 * Consider double-checking that you need this tool if you are
 	 * reaching for it, as inappropriate use could lead to broken
 	 * HTML structure or unwanted processing overhead.
 	 *
+	 * @since 6.2.0
+	 *
 	 * @param string $name Identifies this particular bookmark.
-	 * @return false|void
+	 * @return bool|void
 	 * @throws Exception Throws on invalid bookmark name if WP_DEBUG set.
 	 */
 	public function set_bookmark( $name ) {
@@ -742,7 +744,7 @@ class WP_HTML_Tag_Processor {
 			 * escaped mode if we aren't already there.
 			 *
 			 * Inside the escaped modes it's ignored and
-			 * shouldn't ever pull us out of double-escaped
+			 * should never pull us out of double-escaped
 			 * and back into escaped.
 			 *
 			 * We'll continue parsing past it regardless of
@@ -878,9 +880,11 @@ class WP_HTML_Tag_Processor {
 				return true;
 			}
 
-			// If we didn't find a tag opener, and we can't be
-			// transitioning into different markup states, then
-			// we can abort because there aren't any more tags.
+			/*
+			 * If we didn't find a tag opener, and we can't be
+			 * transitioning into different markup states, then
+			 * we can abort because there aren't any more tags.
+			 */
 			if ( $at + 1 >= strlen( $html ) ) {
 				return false;
 			}
@@ -1111,11 +1115,12 @@ class WP_HTML_Tag_Processor {
 	 * Converts class name updates into tag attributes updates
 	 * (they are accumulated in different data formats for performance).
 	 *
-	 * @return void
 	 * @since 6.2.0
 	 *
 	 * @see $classname_updates
 	 * @see $lexical_updates
+	 *
+	 * @return void
 	 */
 	private function class_name_updates_to_attributes_updates() {
 		if ( count( $this->classname_updates ) === 0 ) {
@@ -1155,7 +1160,7 @@ class WP_HTML_Tag_Processor {
 		 * Tracks the cursor position in the existing class
 		 * attribute value where we're currently parsing.
 		 *
-		 * @var integer
+		 * @var int
 		 */
 		$at = 0;
 
@@ -1173,7 +1178,7 @@ class WP_HTML_Tag_Processor {
 		 *
 		 * This flag is set upon the first change that requires a string update.
 		 *
-		 * @var boolean
+		 * @var bool
 		 */
 		$modified = false;
 

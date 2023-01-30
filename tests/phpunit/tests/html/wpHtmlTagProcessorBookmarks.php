@@ -18,7 +18,7 @@ class WP_HTML_Tag_Processor_Bookmark_Test extends WP_UnitTestCase {
 	/**
 	 * @ticket 56299
 	 *
-	 * @covers set_bookmark
+	 * @covers ::set_bookmark
 	 */
 	public function test_set_bookmark() {
 		$p = new WP_HTML_Tag_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
@@ -32,7 +32,7 @@ class WP_HTML_Tag_Processor_Bookmark_Test extends WP_UnitTestCase {
 	/**
 	 * @ticket 56299
 	 *
-	 * @covers release_bookmark
+	 * @covers ::release_bookmark
 	 */
 	public function test_release_bookmark() {
 		$p = new WP_HTML_Tag_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
@@ -45,8 +45,8 @@ class WP_HTML_Tag_Processor_Bookmark_Test extends WP_UnitTestCase {
 	/**
 	 * @ticket 56299
 	 *
-	 * @covers seek
-	 * @covers set_bookmark
+	 * @covers ::seek
+	 * @covers ::set_bookmark
 	 */
 	public function test_seek() {
 		$p = new WP_HTML_Tag_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
@@ -100,9 +100,9 @@ class WP_HTML_Tag_Processor_Bookmark_Test extends WP_UnitTestCase {
 	 *
 	 * @ticket 56299
 	 *
-	 * @covers seek
-	 * @covers set_bookmark
-	 * @covers apply_attributes_updates
+	 * @covers ::seek
+	 * @covers ::set_bookmark
+	 * @covers ::apply_attributes_updates
 	 */
 	public function test_removing_long_attributes_doesnt_break_seek() {
 		$input = <<<HTML
@@ -130,8 +130,8 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-	 * @covers seek
-	 * @covers set_bookmark
+	 * @covers ::seek
+	 * @covers ::set_bookmark
 	 */
 	public function test_bookmarks_complex_use_case() {
 		$input           = <<<HTML
@@ -239,8 +239,8 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-	 * @covers seek
-	 * @covers set_bookmark
+	 * @covers ::seek
+	 * @covers ::set_bookmark
 	 */
 	public function test_updates_bookmark_for_additions_after_both_sides() {
 		$p = new WP_HTML_Tag_Processor( '<div>First</div><div>Second</div>' );
@@ -261,8 +261,8 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-	 * @covers seek
-	 * @covers set_bookmark
+	 * @covers ::seek
+	 * @covers ::set_bookmark
 	 */
 	public function test_updates_bookmark_for_additions_before_both_sides() {
 		$p = new WP_HTML_Tag_Processor( '<div>First</div><div>Second</div>' );
@@ -286,8 +286,8 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-	 * @covers seek
-	 * @covers set_bookmark
+	 * @covers ::seek
+	 * @covers ::set_bookmark
 	 */
 	public function test_updates_bookmark_for_deletions_after_both_sides() {
 		$p = new WP_HTML_Tag_Processor( '<div>First</div><div disabled>Second</div>' );
@@ -309,8 +309,8 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-	 * @covers seek
-	 * @covers set_bookmark
+	 * @covers ::seek
+	 * @covers ::set_bookmark
 	 */
 	public function test_updates_bookmark_for_deletions_before_both_sides() {
 		$p = new WP_HTML_Tag_Processor( '<div disabled>First</div><div>Second</div>' );
@@ -335,7 +335,7 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-	 * @covers set_bookmark
+	 * @covers ::set_bookmark
 	 */
 	public function test_limits_the_number_of_bookmarks() {
 		$p = new WP_HTML_Tag_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
@@ -353,7 +353,7 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-	 * @covers seek
+	 * @covers ::seek
 	 */
 	public function test_limits_the_number_of_seek_calls() {
 		$p = new WP_HTML_Tag_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
