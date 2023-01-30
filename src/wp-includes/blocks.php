@@ -382,6 +382,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'attributes'      => 'attributes',
 		'providesContext' => 'provides_context',
 		'usesContext'     => 'uses_context',
+		'selectors'       => 'selectors',
 		'supports'        => 'supports',
 		'styles'          => 'styles',
 		'variations'      => 'variations',

@@ -278,6 +278,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 				'ancestor',
 				'provides_context',
 				'uses_context',
+				'selectors',
 				'supports',
 				'styles',
 				'textdomain',
@@ -515,6 +516,14 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'items'       => array(
 						'type' => 'string',
 					),
+					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
+				),
+				'selectors'             => array(
+					'description' => __( 'Custom CSS selectors.' ),
+					'type'        => 'object',
+					'default'     => array(),
+					'properties'  => array(),
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
