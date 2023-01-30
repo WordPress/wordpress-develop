@@ -6,11 +6,6 @@
  * @subpackage HTML
  */
 
-require_once ABSPATH . WPINC . '/class-wp-html-attribute-token.php';
-require_once ABSPATH . WPINC . '/class-wp-html-span.php';
-require_once ABSPATH . WPINC . '/class-wp-html-text-replacement.php';
-require_once ABSPATH . WPINC . '/class-wp-html-tag-processor.php';
-
 /**
  * @group html
  *
