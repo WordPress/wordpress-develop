@@ -239,7 +239,7 @@ function wp_get_global_styles_svg_filters() {
 	 *
 	 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
 	 */
-	$can_use_cached = ! WP_DEBUG && ! is_admin();
+	$can_use_cached = ! WP_DEBUG;
 	$cache_group    = 'theme_json';
 	$cache_key      = 'wp_get_global_styles_svg_filters';
 	if ( $can_use_cached ) {
