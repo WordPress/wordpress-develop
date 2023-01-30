@@ -139,7 +139,7 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 
 		$this->assertSame( 1, $queries_after - $queries_before, 'Only one query should run' );
 		$this->assertSame( $p3, $found->ID, 'Check to see if the result is correct' );
-		$this->assertIsObject( $cached_post, 'The cached post is not an object' );
+		$this->assertInstanceOf( 'WP_Post', $cached_post, 'The cached post is not a WP_Post object' );
 	}
 
 	/**
@@ -179,7 +179,7 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 
 		$this->assertSame( 1, $queries_after - $queries_before, 'Only one query should run' );
 		$this->assertSame( $p3, $found->ID, 'Check to see if the result is correct' );
-		$this->assertIsObject( $cached_post, 'The cached post is not an object' );
+		$this->assertInstanceOf( 'WP_Post', $cached_post, 'The cached post is not a WP_Post object' );
 	}
 
 	public function test_should_not_make_partial_match() {
