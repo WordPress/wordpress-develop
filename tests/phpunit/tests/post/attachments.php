@@ -7,6 +7,8 @@
  */
 class Tests_Post_Attachments extends WP_UnitTestCase {
 
+	use WP_Test_RunsFileUploadTests;
+
 	public function tear_down() {
 		// Remove all uploads.
 		$this->remove_added_uploads();

@@ -13,6 +13,8 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
  */
 class Tests_Ajax_wpAjaxSendAttachmentToEditor extends WP_Ajax_UnitTestCase {
 
+	use WP_Test_RunsFileUploadTests;
+
 	/**
 	 * @ticket 36578
 	 *

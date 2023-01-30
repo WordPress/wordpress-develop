@@ -19,6 +19,8 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
  */
 class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 
+	use WP_Test_RunsFileUploadTests;
+
 	/**
 	 * Tear down the test fixture.
 	 */
