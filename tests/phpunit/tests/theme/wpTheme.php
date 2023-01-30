@@ -276,10 +276,11 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_is_block_theme
 	 * @ticket 57114
 	 *
 	 * @covers WP_Theme::is_block_theme
+	 *
+	 * @dataProvider data_is_block_theme
 	 */
 	public function test_is_block_theme_property( $theme_dir, $expected ) {
 		$theme = new WP_Theme( $theme_dir, $this->theme_root );
