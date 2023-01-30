@@ -233,8 +233,12 @@ function wp_get_global_stylesheet( $types = array() ) {
  * @return string
  */
 function wp_get_global_styles_svg_filters() {
-	// Return cached value if it can be used and exists.
-	// It's cached by theme to make sure that theme switching clears the cache.
+	/*
+	 * Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme
+	 * developer's workflow.
+	 *
+	 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
+	 */
 	$can_use_cached = ! WP_DEBUG && ! is_admin();
 	$cache_group    = 'theme_json';
 	$cache_key      = 'wp_get_global_styles_svg_filters';
