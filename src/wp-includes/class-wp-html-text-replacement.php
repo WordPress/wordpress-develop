@@ -7,8 +7,6 @@
  * @since 6.2.0
  */
 
-if ( ! class_exists( 'WP_HTML_Text_Replacement' ) ) :
-
 /**
  * Data structure used to replace existing content from start to end that allows to drastically improve performance.
  *
@@ -59,5 +57,3 @@ class WP_HTML_Text_Replacement {
 		$this->text  = $text;
 	}
 }
-
-endif;

@@ -7,8 +7,6 @@
  * @since 6.2.0
  */
 
-if ( ! class_exists( 'WP_HTML_Attribute_Token' ) ) :
-
 /**
  * Data structure for the attribute token that allows to drastically improve performance.
  *
@@ -89,5 +87,3 @@ class WP_HTML_Attribute_Token {
 		$this->is_true         = $is_true;
 	}
 }
-
-endif;

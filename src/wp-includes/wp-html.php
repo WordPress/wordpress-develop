@@ -15,14 +15,20 @@
  * terms of speed as well as memory use.
  */
 
-/** WP_HTML_Attribute_Token class */
-require_once ABSPATH . WPINC . '/class-wp-html-attribute-token.php';
+if ( ! class_exists( 'WP_HTML_Attribute_Token' ) ) {
+	/** WP_HTML_Attribute_Token class */
+	require_once ABSPATH . WPINC . '/class-wp-html-attribute-token.php';
+}
 
-/** WP_HTML_Span class */
-require_once ABSPATH . WPINC . '/class-wp-html-span.php';
+if ( ! class_exists( 'WP_HTML_Span' ) ) {
+	/** WP_HTML_Span class */
+	require_once ABSPATH . WPINC . '/class-wp-html-span.php';
+}
 
-/** WP_HTML_Text_Replacement class */
-require_once ABSPATH . WPINC . '/class-wp-html-text-replacement.php';
+if ( ! class_exists( 'WP_HTML_Text_Replacement' ) ) {
+	/** WP_HTML_Text_Replacement class */
+	require_once ABSPATH . WPINC . '/class-wp-html-text-replacement.php';
+}
 
 /*
  * The WP_HTML_Tag_Processor is intended for linearly scanning through
@@ -30,5 +36,7 @@ require_once ABSPATH . WPINC . '/class-wp-html-text-replacement.php';
  * and adding, removing, or modifying attributes on those tags.
  */
 
-/** WP_HTML_Tag_Processor class */
-require_once ABSPATH . WPINC . '/class-wp-html-tag-processor.php';
+if ( ! class_exists( 'WP_HTML_Tag_Processor' ) ) {
+	/** WP_HTML_Tag_Processor class */
+	require_once ABSPATH . WPINC . '/class-wp-html-tag-processor.php';
+}

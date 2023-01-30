@@ -26,8 +26,6 @@
  * @since 6.2.0
  */
 
-if ( ! class_exists( 'WP_HTML_Tag_Processor' ) ) :
-
 /**
  * Processes an input HTML document by applying a specified set
  * of patches to that input. Tokenizes HTML but does not fully
@@ -2042,6 +2040,3 @@ class WP_HTML_Tag_Processor {
 		return true;
 	}
 }
-
-endif;
-
