@@ -5398,7 +5398,7 @@ function wp_strip_all_tags( $text, $remove_breaks = false ) {
 		return '';
 	}
 
-	if ( ! is_string( $text ) ) {
+	if ( ! is_scalar( $text ) ) {
 		if ( WP_DEBUG ) {
 			trigger_error(
 				sprintf(
@@ -5416,6 +5416,7 @@ function wp_strip_all_tags( $text, $remove_breaks = false ) {
 		return '';
 	}
 
+	$text = (string) $text;
 	$text = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $text );
 	$text = strip_tags( $text );
 
