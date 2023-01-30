@@ -11,7 +11,7 @@
  *
  * @coversDefaultClass WP_HTML_Tag_Processor
  */
-class WP_HTML_Tag_Processor_Bookmark_Test extends WP_UnitTestCase {
+class Tests_HTML_wpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 56299
