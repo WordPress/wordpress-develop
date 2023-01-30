@@ -17,7 +17,7 @@
  *
  * @see WP_HTML_Tag_Processor
  */
-class WP_HTML_Attribute_Token {
+final class WP_HTML_Attribute_Token {
 	/**
 	 * Attribute name.
 	 *
