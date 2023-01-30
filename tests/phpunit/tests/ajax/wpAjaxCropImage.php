@@ -16,6 +16,8 @@ require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
  */
 class Tests_Ajax_WpAjaxCropImage extends WP_Ajax_UnitTestCase {
 
+	use WP_Test_RunsFileUploadTests;
+
 	/**
 	 * @var WP_Post|null
 	 */
