@@ -407,14 +407,7 @@ function get_mu_plugins() {
 
 	uasort( $wp_plugins, '_sort_uname_callback' );
 
-	/**
-	 * Filters the array of must-use plugins.
-	 *
-	 * @since 6.2.0
-	 *
-	 * @param array[] $wp_plugins An array of arrays of mu-plugin data, keyed by plugin file name.
-	 */
-	return apply_filters( 'mu_plugins', $wp_plugins );
+	return $wp_plugins;
 }
 
 /**
