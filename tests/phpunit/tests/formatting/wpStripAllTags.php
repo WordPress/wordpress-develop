@@ -34,7 +34,7 @@ class Tests_Formatting_wpStripAllTags extends WP_UnitTestCase {
 
 	/**
 	 * Tests that `wp_strip_all_tags()` throws a `_doing_it_wrong()` and returns
-	 * an empty string when passed a non-string `$string` argument.
+	 * an empty string when passed a non-string argument.
 	 *
 	 * @ticket 56434
 	 *
@@ -56,13 +56,38 @@ class Tests_Formatting_wpStripAllTags extends WP_UnitTestCase {
 	 */
 	public function data_wp_strip_all_tags_should_return_empty_string_and_trigger_an_error_for_non_string_arg() {
 		return array(
-			'(int) 0'           => array( 'non_string' => 0 ),
-			'(int) 1'           => array( 'non_string' => 1 ),
-			'(bool) false'      => array( 'non_string' => false ),
-			'(bool) true'       => array( 'non_string' => true ),
 			'an empty array'    => array( 'non_string' => array() ),
 			'a non-empty array' => array( 'non_string' => array( 'a string' ) ),
 			'an object'         => array( 'non_string' => new stdClass() ),
+		);
+	}
+
+	/**
+	 * Tests that `wp_strip_all_tags()` casts scalar values to string.
+	 *
+	 * @ticket 56434
+	 *
+	 * @dataProvider data_wp_strip_all_tags_should_cast_scalar_values_to_string
+	 *
+	 * @param mixed $text A scalar value.
+	 */
+	public function test_wp_strip_all_tags_should_cast_scalar_values_to_string( $text ) {
+		$this->assertSame( (string) $text, wp_strip_all_tags( $text ) );
+	}
+
+	/**
+	 * Data provider for test_wp_strip_all_tags_should_cast_scalar_values_to_string()/
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_strip_all_tags_should_cast_scalar_values_to_string() {
+		return array(
+			'(int) 0'      => array( 'text' => 0 ),
+			'(int) 1'      => array( 'text' => 1 ),
+			'(float) 0.0'  => array( 'text' => 0.0 ),
+			'(float) 1.0'  => array( 'text' => 1.0 ),
+			'(bool) false' => array( 'text' => false ),
+			'(bool) true'  => array( 'text' => true ),
 		);
 	}
 }
