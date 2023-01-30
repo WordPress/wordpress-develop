@@ -269,7 +269,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'link' => true,
 					),
 					'dimensions' => array(
-						'minHeight' => true
+						'minHeight' => true,
 					),
 					'spacing'    => array(
 						'blockGap' => false,
