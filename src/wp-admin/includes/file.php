@@ -2009,7 +2009,7 @@ function move_dir( $from, $to, $overwrite = false ) {
 	$result = copy_dir( $from, $to, array( basename( $to ) ) );
 
 	// Clear the source directory.
-	if ( ! is_wp_error( $result ) ) {
+	if ( true === $result ) {
 		$wp_filesystem->delete( $from, true );
 	}
 
