@@ -1528,13 +1528,8 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-<<<<<<< HEAD
-	 * @covers ::set_attribute
-	 * @covers ::get_updated_html
-=======
 	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 * @covers WP_HTML_Tag_Processor::get_updated_html
->>>>>>> 43ac2567fa (WP_HTML_Tag_Processor_Test: test improvements)
 	 */
 	public function test_setting_a_boolean_attribute_to_false_removes_it_from_the_markup() {
 		$p = new WP_HTML_Tag_Processor(
@@ -1551,13 +1546,8 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-<<<<<<< HEAD
-	 * @covers ::set_attribute
-	 * @covers ::get_updated_html
-=======
 	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 * @covers WP_HTML_Tag_Processor::get_updated_html
->>>>>>> 43ac2567fa (WP_HTML_Tag_Processor_Test: test improvements)
 	 */
 	public function test_setting_a_missing_attribute_to_false_does_not_change_the_markup() {
 		$html_input = '<form action="/action_page.php"><input type="checkbox" name="vehicle" value="Bike"><label for="vehicle">I have a bike</label></form>';
@@ -1570,13 +1560,8 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-<<<<<<< HEAD
-	 * @covers ::set_attribute
-	 * @covers ::get_updated_html
-=======
 	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 * @covers WP_HTML_Tag_Processor::get_updated_html
->>>>>>> 43ac2567fa (WP_HTML_Tag_Processor_Test: test improvements)
 	 */
 	public function test_setting_a_boolean_attribute_to_a_string_value_adds_explicit_value_to_the_markup() {
 		$p = new WP_HTML_Tag_Processor(
@@ -1593,13 +1578,8 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-<<<<<<< HEAD
-	 * @covers ::get_tag
-	 * @covers ::next_tag
-=======
 	 * @covers WP_HTML_Tag_Processor::get_tag
 	 * @covers WP_HTML_Tag_Processor::next_tag
->>>>>>> 43ac2567fa (WP_HTML_Tag_Processor_Test: test improvements)
 	 */
 	public function test_unclosed_script_tag_should_not_cause_an_infinite_loop() {
 		$p = new WP_HTML_Tag_Processor( '<script>' );
@@ -1611,11 +1591,7 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-<<<<<<< HEAD
-	 * @covers ::next_tag
-=======
 	 * @covers WP_HTML_Tag_Processor::next_tag
->>>>>>> 43ac2567fa (WP_HTML_Tag_Processor_Test: test improvements)
 	 *
 	 * @dataProvider data_next_tag_ignores_script_tag_contents
 	 *
@@ -1689,11 +1665,7 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-<<<<<<< HEAD
-	 * @covers ::next_tag
-=======
 	 * @covers WP_HTML_Tag_Processor::next_tag
->>>>>>> 43ac2567fa (WP_HTML_Tag_Processor_Test: test improvements)
 	 *
 	 * @dataProvider data_next_tag_ignores_contents_of_rcdata_tag
 	 *
@@ -1745,15 +1717,9 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-<<<<<<< HEAD
-	 * @covers ::next_tag
-	 * @covers ::set_attribute
-	 * @covers ::get_updated_html
-=======
 	 * @covers WP_HTML_Tag_Processor::next_tag
 	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 * @covers WP_HTML_Tag_Processor::get_updated_html
->>>>>>> 43ac2567fa (WP_HTML_Tag_Processor_Test: test improvements)
 	 */
 	public function test_can_query_and_update_wrongly_nested_tags() {
 		$p = new WP_HTML_Tag_Processor(
@@ -1772,15 +1738,9 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-<<<<<<< HEAD
-	 * @covers ::next_tag
-	 * @covers ::remove_attribute
-	 * @covers ::get_updated_html
-=======
 	 * @covers WP_HTML_Tag_Processor::next_tag
 	 * @covers WP_HTML_Tag_Processor::remove_attribute
 	 * @covers WP_HTML_Tag_Processor::get_updated_html
->>>>>>> 43ac2567fa (WP_HTML_Tag_Processor_Test: test improvements)
 	 */
 	public function test_removing_specific_attributes_in_malformed_html() {
 		$p = new WP_HTML_Tag_Processor( self::HTML_MALFORMED );
@@ -1795,15 +1755,9 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-<<<<<<< HEAD
-	 * @covers ::next_Tag
-	 * @covers ::set_attribute
-	 * @covers ::get_updated_html
-=======
 	 * @covers WP_HTML_Tag_Processor::next_Tag
 	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 * @covers WP_HTML_Tag_Processor::get_updated_html
->>>>>>> 43ac2567fa (WP_HTML_Tag_Processor_Test: test improvements)
 	 */
 	public function test_updating_specific_attributes_in_malformed_html() {
 		$p = new WP_HTML_Tag_Processor( self::HTML_MALFORMED );
@@ -1820,17 +1774,10 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-<<<<<<< HEAD
-	 * @covers ::next_tag
-	 * @covers ::set_attribute
-	 * @covers ::add_class
-	 * @covers ::get_updated_html
-=======
 	 * @covers WP_HTML_Tag_Processor::next_tag
 	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 * @covers WP_HTML_Tag_Processor::add_class
 	 * @covers WP_HTML_Tag_Processor::get_updated_html
->>>>>>> 43ac2567fa (WP_HTML_Tag_Processor_Test: test improvements)
 	 *
 	 * @dataProvider data_updating_attributes
 	 *
