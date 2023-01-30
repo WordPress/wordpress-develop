@@ -3646,7 +3646,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'variations' => array(
 				array(
 					'path'     => array( 'styles', 'blocks', 'core/quote', 'variations', 'plain' ),
-					'selector' => '.is-style-plain .is-style-plain .wp-block-quote',
+					'selector' => '.is-style-plain.is-style-plain.wp-block-quote',
 				),
 			),
 		);
