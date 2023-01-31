@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - trunk
+      - pull_request
       - 'feature/**'
 
 jobs:
