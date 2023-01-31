@@ -3,11 +3,11 @@
  * Unit tests covering WP_HTML_Tag_Processor functionality.
  *
  * @package WordPress
- * @subpackage HTML
+ * @subpackage HTML-API
  */
 
 /**
- * @group html
+ * @group html-api
  *
  * @coversDefaultClass WP_HTML_Tag_Processor
  */

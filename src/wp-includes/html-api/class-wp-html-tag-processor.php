@@ -22,7 +22,7 @@
  *        doesn't handle attribute character reference decoding rules.
  *
  * @package WordPress
- * @subpackage HTML
+ * @subpackage HTML-API
  * @since 6.2.0
  */
 
