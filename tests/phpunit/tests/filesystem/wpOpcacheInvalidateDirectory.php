@@ -4,6 +4,7 @@
  * Tests wp_opcache_invalidate_directory().
  *
  * @group file.php
+ *
  * @covers ::wp_opcache_invalidate_directory
  */
 class Tests_Filesystem_WpOpcacheInvalidateDirectory extends WP_UnitTestCase {
@@ -43,7 +44,7 @@ class Tests_Filesystem_WpOpcacheInvalidateDirectory extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_trigger_should_error_with_invalid_dir().
+	 * Data provider.
 	 *
 	 * @return array[]
 	 */
@@ -91,7 +92,7 @@ class Tests_Filesystem_WpOpcacheInvalidateDirectory extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_should_not_trigger_error_wp_opcache_valid_directory().
+	 * Data provider.
 	 *
 	 * @return array[]
 	 */

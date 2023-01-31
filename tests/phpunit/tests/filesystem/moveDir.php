@@ -4,6 +4,7 @@
  * Tests move_dir().
  *
  * @group file.php
+ *
  * @covers ::move_dir
  */
 class Tests_Filesystem_MoveDir extends WP_UnitTestCase {
@@ -156,7 +157,7 @@ class Tests_Filesystem_MoveDir extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_should_return_wp_error().
+	 * Data provider.
 	 *
 	 * @return array[]
 	 */
@@ -262,7 +263,7 @@ class Tests_Filesystem_MoveDir extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_should_move_directory().
+	 * Data provider.
 	 *
 	 * @return array[]
 	 */
