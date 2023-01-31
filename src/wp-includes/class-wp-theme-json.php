@@ -2186,16 +2186,20 @@ class WP_Theme_JSON {
 						// Compute declarations for the feature.
 						$new_feature_declarations = static::compute_style_properties( array( $feature_name => $style_variation_node[ $feature_name ] ), $settings, null, $this->theme_json );
 
-						// Merge new declarations with any that already exist for
-						// the feature selector. This may occur when multiple block
-						// support features use the same custom selector.
+						/*
+						 * Merge new declarations with any that already exist for
+						 * the feature selector. This may occur when multiple block
+						 * support features use the same custom selector.
+						 */
 						if ( isset( $style_variation_declarations[ $combined_feature_selectors ] ) ) {
 							$style_variation_declarations[ $combined_feature_selectors ] = array_merge( $style_variation_declarations[ $combined_feature_selectors ], $new_feature_declarations );
 						} else {
 							$style_variation_declarations[ $combined_feature_selectors ] = $new_feature_declarations;
 						}
-						// Remove the feature from the variation's node now the
-						// styles will be included under the feature level selector.
+						/*
+						 * Remove the feature from the variation's node now the
+						 * styles will be included under the feature level selector.
+						 */
 						unset( $style_variation_node[ $feature_name ] );
 					}
 				}
