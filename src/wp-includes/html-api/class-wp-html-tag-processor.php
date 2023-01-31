@@ -655,7 +655,6 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @param string $name Identifies this particular bookmark.
 	 * @return bool
-	 * @throws Exception Throws on invalid bookmark name if WP_DEBUG set.
 	 */
 	public function set_bookmark( $name ) {
 		if ( null === $this->tag_name_starts_at ) {
@@ -663,8 +662,8 @@ class WP_HTML_Tag_Processor {
 		}
 
 		if ( ! array_key_exists( $name, $this->bookmarks ) && count( $this->bookmarks ) >= self::MAX_BOOKMARKS ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				throw new Exception( "Tried to jump to a non-existent HTML bookmark {$name}." );
+			if ( WP_DEBUG ) {
+				trigger_error( "Tried to jump to a non-existent HTML bookmark {$name}.", E_USER_WARNING );
 			}
 			return false;
 		}
@@ -1184,7 +1183,6 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 *
 	 * @return void
-	 * @throws Exception
 	 */
 	private function after_tag() {
 		$this->class_name_updates_to_attributes_updates();
@@ -1206,7 +1204,6 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 *
 	 * @return void
-	 * @throws Exception
 	 */
 	private function class_name_updates_to_attributes_updates() {
 		if ( count( $this->classname_updates ) === 0 ) {
@@ -1421,19 +1418,18 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @param string $bookmark_name Jump to the place in the document identified by this bookmark name.
 	 * @return bool
-	 * @throws Exception Throws on invalid bookmark name if WP_DEBUG set.
 	 */
 	public function seek( $bookmark_name ) {
 		if ( ! array_key_exists( $bookmark_name, $this->bookmarks ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				throw new Exception( 'Invalid bookmark name' );
+			if ( WP_DEBUG ) {
+				trigger_error( 'Invalid bookmark name', E_USER_WARNING );
 			}
 			return false;
 		}
 
 		if ( ++$this->seek_count > self::MAX_SEEK_OPS ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				throw new Exception( 'Too many calls to seek() - this can lead to performance issues.' );
+			if ( WP_DEBUG ) {
+				trigger_error( 'Too many calls to seek() - this can lead to performance issues.', E_USER_WARNING );
 			}
 			return false;
 		}
@@ -1557,7 +1553,6 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @param string $name Name of attribute whose value is requested.
 	 * @return string|true|null Value of attribute or `null` if not available. Boolean attributes return `true`.
-	 * @throws Exception
 	 */
 	public function get_attribute( $name ) {
 		if ( null === $this->tag_name_starts_at ) {
@@ -1718,7 +1713,6 @@ class WP_HTML_Tag_Processor {
 	 * @param string      $name  The attribute name to target.
 	 * @param string|bool $value The new attribute value.
 	 * @return bool Whether an attribute value was set.
-	 * @throws Exception When WP_DEBUG is true and the attribute name is invalid.
 	 */
 	public function set_attribute( $name, $value ) {
 		if ( $this->is_closing_tag || null === $this->tag_name_starts_at ) {
@@ -1761,7 +1755,7 @@ class WP_HTML_Tag_Processor {
 			$name
 		) ) {
 			if ( WP_DEBUG ) {
-				throw new Exception( 'Invalid attribute name' );
+				trigger_error( 'Invalid attribute name', E_USER_WARNING );
 			}
 
 			return false;
@@ -1954,7 +1948,6 @@ class WP_HTML_Tag_Processor {
 	 * @see get_updated_html
 	 *
 	 * @return string The processed HTML.
-	 * @throws Exception
 	 */
 	public function __toString() {
 		return $this->get_updated_html();
@@ -1966,7 +1959,6 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 *
 	 * @return string The processed HTML.
-	 * @throws Exception
 	 */
 	public function get_updated_html() {
 		// Short-circuit if there are no new updates to apply.
