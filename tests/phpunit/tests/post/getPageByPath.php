@@ -139,7 +139,7 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 
 		$this->assertSame( 1, $queries_after - $queries_before, 'Only one query should run' );
 		$this->assertSame( $p3, $found->ID, 'Check to see if the result is correct' );
-		$this->assertInstanceOf( 'WP_Post', $cached_post, 'The cached post is not a WP_Post object' );
+		$this->assertIsObject( $cached_post, 'The cached post is not an object' );
 	}
 
 	/**
@@ -179,7 +179,23 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 
 		$this->assertSame( 1, $queries_after - $queries_before, 'Only one query should run' );
 		$this->assertSame( $p3, $found->ID, 'Check to see if the result is correct' );
-		$this->assertInstanceOf( 'WP_Post', $cached_post, 'The cached post is not a WP_Post object' );
+		$this->assertIsObject( $cached_post, 'The cached post is not an object' );
+	}
+
+	/**
+	 * @ticket 56689
+	 *
+	 * @covers ::get_page_by_path
+	 */
+	public function test_should_return_null_for_invalid_path() {
+		$queries_before = get_num_queries();
+		$get_1          = get_page_by_path( 'should/return/null/for/an/invalid/path' );
+		$get_2          = get_page_by_path( 'should/return/null/for/an/invalid/path' );
+		$queries_after  = get_num_queries();
+
+		$this->assertNull( $get_1, 'Invalid path should return null.' );
+		$this->assertSame( 1, $queries_after - $queries_before, 'Only one query should run.' );
+		$this->assertSame( $get_1, $get_2, 'The cached result should be the same as the uncached result.' );
 	}
 
 	public function test_should_not_make_partial_match() {
