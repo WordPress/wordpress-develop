@@ -20,7 +20,7 @@
  *
  * @see WP_HTML_Tag_Processor
  */
-final class WP_HTML_Span {
+class WP_HTML_Span {
 	/**
 	 * Byte offset into document where span begins.
 	 *

@@ -17,7 +17,7 @@
  *
  * @see WP_HTML_Tag_Processor
  */
-final class WP_HTML_Text_Replacement {
+class WP_HTML_Text_Replacement {
 	/**
 	 * Byte offset into document where replacement span begins.
 	 *
