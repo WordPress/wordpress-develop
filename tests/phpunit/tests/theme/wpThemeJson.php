@@ -3596,6 +3596,66 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57583
+	 */
+	public function test_get_styles_for_block_with_style_variations() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => 2,
+				'styles' => array(
+					'blocks' => array(
+						'core/quote' => array(
+							'variations' => array(
+								'plain' => array(
+									'color' => array(
+										'background' => 'hotpink',
+									),
+									'unregisteredProperty' => 'value'
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		// Validate structure is sanitized.
+		$expected_theme_json  = array(
+			'version'  => 2,
+			'styles' => array(
+				'blocks' => array(
+					'core/quote' => array(
+						'variations' => array(
+							'plain' => array(
+								'color' => array(
+									'background' => 'hotpink',
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+		$sanitized_theme_json = $theme_json->get_raw_data();
+		$this->assertEqualSetsWithIndex( $expected_theme_json, $sanitized_theme_json );
+
+		// Validate styles are generated properly.
+		$metadata = array(
+			'path'       => array( 'styles', 'blocks', 'core/quote' ),
+			'selector'   => '.wp-block-quote',
+			'variations' => array(
+				array(
+					'path'     => array( 'styles', 'blocks', 'core/quote', 'variations', 'plain' ),
+					'selector' => '.is-style-plain.is-style-plain.wp-block-quote',
+				),
+			),
+		);
+		$expected_styles = '.is-style-plain .is-style-plain .wp-block-quote{background-color: hotpink;}';
+		$actual_styles   = $theme_json->get_styles_for_block( $metadata );
+		$this->assertSame( $expected_styles, $actual_styles );
+	}
+
+	/**
 	 * @ticket 56611
 	 */
 	public function test_get_styles_with_appearance_tools() {
