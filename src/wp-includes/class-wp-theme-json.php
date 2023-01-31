@@ -498,7 +498,7 @@ class WP_Theme_JSON {
 	 * Options that settings.appearanceTools enables.
 	 *
 	 * @since 6.0.0
-	 * @since 6.2.0 Added `dimensions.minHeight`
+	 * @since 6.2.0 Added `dimensions.minHeight`.
 	 * @var array
 	 */
 	const APPEARANCE_TOOLS_OPT_INS = array(
