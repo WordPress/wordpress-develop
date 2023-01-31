@@ -425,6 +425,7 @@ class WP_Theme_JSON {
 			'textDecoration' => null,
 			'textTransform'  => null,
 		),
+		'css'        => null,
 	);
 
 	/**
@@ -1000,6 +1001,11 @@ class WP_Theme_JSON {
 
 		if ( in_array( 'presets', $types, true ) ) {
 			$stylesheet .= $this->get_preset_classes( $setting_nodes, $origins );
+		}
+
+		// Load the custom CSS last so it has the highest specificity.
+		if ( in_array( 'custom-css', $types, true ) ) {
+			$stylesheet .= _wp_array_get( $this->theme_json, array( 'styles', 'css' ) );
 		}
 
 		return $stylesheet;
