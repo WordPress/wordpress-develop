@@ -33,6 +33,15 @@ class Tests_Formatting_wpStripAllTags extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `wp_strip_all_tags()` returns an empty string when null is passed.
+	 *
+	 * @ticket 56434
+	 */
+	public function test_wp_strip_all_tags_should_return_empty_string_for_a_null_arg() {
+		$this->assertSame( '', wp_strip_all_tags( null ) );
+	}
+
+	/**
 	 * Tests that `wp_strip_all_tags()` throws a `_doing_it_wrong()` and returns
 	 * an empty string when passed a non-string argument.
 	 *
@@ -56,9 +65,10 @@ class Tests_Formatting_wpStripAllTags extends WP_UnitTestCase {
 	 */
 	public function data_wp_strip_all_tags_should_return_empty_string_and_trigger_an_error_for_non_string_arg() {
 		return array(
-			'an empty array'    => array( 'non_string' => array() ),
-			'a non-empty array' => array( 'non_string' => array( 'a string' ) ),
-			'an object'         => array( 'non_string' => new stdClass() ),
+			'an empty array'     => array( 'non_string' => array() ),
+			'a non-empty array'  => array( 'non_string' => array( 'a string' ) ),
+			'an empty object'    => array( 'non_string' => new stdClass() ),
+			'a non-empty object' => array( 'non_string' => (object) array( 'howdy' => 'admin' ) ),
 		);
 	}
 
@@ -84,8 +94,10 @@ class Tests_Formatting_wpStripAllTags extends WP_UnitTestCase {
 		return array(
 			'(int) 0'      => array( 'text' => 0 ),
 			'(int) 1'      => array( 'text' => 1 ),
+			'(int) -1'     => array( 'text' => -1 ),
 			'(float) 0.0'  => array( 'text' => 0.0 ),
 			'(float) 1.0'  => array( 'text' => 1.0 ),
+			'(float) -1.0' => array( 'text' => -1.0 ),
 			'(bool) false' => array( 'text' => false ),
 			'(bool) true'  => array( 'text' => true ),
 		);
