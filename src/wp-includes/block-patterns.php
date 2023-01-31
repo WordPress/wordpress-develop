@@ -302,6 +302,7 @@ function _register_remote_theme_patterns() {
  *   - Keywords         (comma-separated values)
  *   - Block Types      (comma-separated values)
  *   - Post Types       (comma-separated values)
+ *   - Template Types   (comma-separated values)
  *   - Inserter         (yes/no)
  *
  * @since 6.0.0
