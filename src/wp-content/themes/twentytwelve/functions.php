@@ -150,7 +150,7 @@ function twentytwelve_get_font_url() {
 
 if ( ! function_exists( 'twentytwelve_fonts_urls' ) ) :
 	/**
-	 * Return an array of font URLs to be enqueued in Twenty Thirteen.
+	 * Return an array of font URLs to be enqueued in Twenty Twelve.
 	 *
 	 * Create your own twentytwelve_fonts_urls() function to override in a child theme.
 	 * The use of Open Sans by default is localized. For languages
