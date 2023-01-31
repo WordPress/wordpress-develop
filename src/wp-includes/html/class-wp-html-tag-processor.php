@@ -220,7 +220,7 @@ class WP_HTML_Tag_Processor {
 	 * The maximum number of bookmarks allowed to exist at
 	 * any given time.
 	 *
-	 * @see set_bookmark();
+	 * @see set_bookmark()
 	 * @since 6.2.0
 	 * @var int
 	 */
@@ -433,13 +433,13 @@ class WP_HTML_Tag_Processor {
 	/**
 	 * Lexical replacements to apply to input HTML document.
 	 *
-	 * "Lexical" in this class refers to the fact that we're operating on
-	 * pure text _as text_ and not as HTML. There's a line between the
-	 * public interface to this class, with HTML-semantic methods like
+	 * "Lexical" in this class refers to the part of this class which
+	 * operates on pure text _as text_ and not as HTML. There's a line
+	 * between the public interface, with HTML-semantic methods like
 	 * `set_attribute` and `add_class`, and an internal state that tracks
 	 * text offsets in the input document.
 	 *
-	 * When higher-level HTML methods are called we have to transform those
+	 * When higher-level HTML methods are called, those have to transform their
 	 * operations (such as setting an attribute's value) into text diffing
 	 * operations (such as replacing the sub-string from indices A to B with
 	 * some given new string). These text-diffing operations are the lexical
@@ -453,8 +453,8 @@ class WP_HTML_Tag_Processor {
 	 * class or any classes which intentionally expand its functionality.
 	 *
 	 * These are enqueued while editing the document instead of being immediately
-	 * applied so that we can avoid processing overhead and string allocations
-	 * and copies when applied many updates to a single document.
+	 * applied to avoid processing overhead, string allocations, and string
+	 * copies when applying many updates to a single document.
 	 *
 	 * Example:
 	 * ```php
@@ -476,8 +476,7 @@ class WP_HTML_Tag_Processor {
 	private $lexical_updates = array();
 
 	/**
-	 * Tracks how many times we've performed a `seek()`
-	 * so that we can prevent accidental infinite loops.
+	 * Tracks and limits `seek()` calls to prevent accidental infinite loops.
 	 *
 	 * @see seek
 	 * @since 6.2.0
@@ -522,21 +521,19 @@ class WP_HTML_Tag_Processor {
 				return false;
 			}
 
-			/*
-			 * Unfortunately we can't try to search for only the tag name we want because that might
-			 * lead us to skip over other tags and lose track of our place. So we need to search for
-			 * _every_ tag and then check after we find one if it's the one we are looking for.
-			 */
+			// Find the next tag if it exists.
 			if ( false === $this->parse_next_tag() ) {
 				$this->parsed_bytes = strlen( $this->html );
 
 				return false;
 			}
 
+			// Parse all of its attributes.
 			while ( $this->parse_next_attribute() ) {
 				continue;
 			}
 
+			// Ensure that the tag closes before the end of the document.
 			$tag_ends_at = strpos( $this->html, '>', $this->parsed_bytes );
 			if ( false === $tag_ends_at ) {
 				return false;
@@ -544,11 +541,18 @@ class WP_HTML_Tag_Processor {
 			$this->tag_ends_at  = $tag_ends_at;
 			$this->parsed_bytes = $tag_ends_at;
 
+			// Finally, check if the parsed tag and its attributes match the search query.
 			if ( $this->matches() ) {
 				++$already_found;
 			}
 
-			// Avoid copying the tag name string when possible.
+			/*
+			 * For non-DATA sections which might contain text that looks like HTML tags but
+			 * isn't, scan with the appropriate alternative mode. Looking at the first letter
+			 * of the tag name as a pre-check avoids a string allocation when it's not needed.
+			 *
+			 * @TODO: Add unit test case and fix (if necessary) for RCDATA tag closer coming before RCDATA tag opener.
+			 */
 			$t = $this->html[ $this->tag_name_starts_at ];
 			if ( 's' === $t || 'S' === $t || 't' === $t || 'T' === $t ) {
 				$tag_name = $this->get_tag();
@@ -650,7 +654,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 *
 	 * @param string $name Identifies this particular bookmark.
-	 * @return bool|void
+	 * @return bool
 	 * @throws Exception Throws on invalid bookmark name if WP_DEBUG set.
 	 */
 	public function set_bookmark( $name ) {
@@ -675,11 +679,10 @@ class WP_HTML_Tag_Processor {
 
 
 	/**
-	 * Removes a bookmark if you no longer need to use it.
+	 * Removes a bookmark that is no longer needed.
 	 *
-	 * Releasing a bookmark frees up the small performance
-	 * overhead they require, mainly in the form of compute
-	 * costs when modifying the document.
+	 * Releasing a bookmark frees up the small
+	 * performance overhead it requires.
 	 *
 	 * @param string $name Name of the bookmark to remove.
 	 * @return bool
@@ -715,7 +718,7 @@ class WP_HTML_Tag_Processor {
 		while ( false !== $at && $at < $doc_length ) {
 			$at = strpos( $this->html, '</', $at );
 
-			// If we have no possible tag closer then fail.
+			// If there is no possible tag closer then fail.
 			if ( false === $at || ( $at + $tag_length ) >= $doc_length ) {
 				$this->parsed_bytes = $doc_length;
 				return false;
@@ -724,11 +727,12 @@ class WP_HTML_Tag_Processor {
 			$at += 2;
 
 			/*
-			 * We have to find a case-insensitive match to the tag name.
-			 * Note also that since tag names are limited to US-ASCII
-			 * characters we can ignore any kind of Unicode normalizing
-			 * forms when comparing. If we get a non-ASCII character it
-			 * will never be a match.
+			 * Find a case-insensitive match to the tag name.
+			 *
+			 * Because tag names are limited to US-ASCII there is no
+			 * need to perform any kind of Unicode normalization when
+			 * comparing; any character which could be impacted by such
+			 * normalization could not be part of a tag name.
 			 */
 			for ( $i = 0; $i < $tag_length; $i++ ) {
 				$tag_char  = $tag_name[ $i ];
@@ -744,9 +748,10 @@ class WP_HTML_Tag_Processor {
 			$this->parsed_bytes = $at;
 
 			/*
-			 * Ensure we terminate the tag name, otherwise we might,
-			 * for example, accidentally match the sequence
-			 * "</textarearug" for "</textarea".
+			 * Ensure that the tag name terminates to avoid matching on
+			 * substrings of a longer tag name. For example, the sequence
+			 * "</textarearug" should not match for "</textarea" even
+			 * though "textarea" is found within the text.
 			 */
 			$c = $html[ $at ];
 			if ( ' ' !== $c && "\t" !== $c && "\r" !== $c && "\n" !== $c && '/' !== $c && '>' !== $c ) {
@@ -785,9 +790,9 @@ class WP_HTML_Tag_Processor {
 			$at += strcspn( $html, '-<', $at );
 
 			/*
-			 * Regardless of the state we're in, a "-->"
-			 * will break out of it and bring us back
-			 * into the normal unescaped script mode.
+			 * For all script states a "-->"  transitions
+			 * back into the normal unescaped script mode,
+			 * even if that's the current state.
 			 */
 			if (
 				$at + 2 < $doc_length &&
@@ -800,22 +805,22 @@ class WP_HTML_Tag_Processor {
 				continue;
 			}
 
-			// Everything past here has to start with "<".
+			// Everything of interest past here starts with "<".
 			if ( $at + 1 >= $doc_length || '<' !== $html[ $at++ ] ) {
 				continue;
 			}
 
 			/*
-			 * On the other hand, "<!--" only enters the
-			 * escaped mode if we aren't already there.
+			 * Unlike with "-->", the "<!--" only transitions
+			 * into the escaped mode if not already there.
 			 *
-			 * Inside the escaped modes it's ignored and
-			 * should never pull us out of double-escaped
-			 * and back into escaped.
+			 * Inside the escaped modes it will be ignored; and
+			 * should never break out of the double-escaped
+			 * mode and back into the escaped mode.
 			 *
-			 * We'll continue parsing past it regardless of
-			 * our state though to avoid backtracking once
-			 * we recognize the snippet.
+			 * While this requires a mode change, it does not
+			 * impact the parsing otherwise, so continue
+			 * parsing after updating the state.
 			 */
 			if (
 				$at + 2 < $doc_length &&
@@ -836,10 +841,9 @@ class WP_HTML_Tag_Processor {
 			}
 
 			/*
-			 * At this point we're only examining state-changes based off of
-			 * the <script> or </script> tags, so if we're not seeing the
-			 * start of one of these tokens we can proceed to the next
-			 * potential match in the text.
+			 * At this point the only remaining state-changes occur with the
+			 * <script> and </script> tags; unless one of these appears next,
+			 * proceed scanning to the next potential token in the text.
 			 */
 			if ( ! (
 				$at + 6 < $doc_length &&
@@ -855,8 +859,10 @@ class WP_HTML_Tag_Processor {
 			}
 
 			/*
-			 * We also have to make sure we terminate the script tag opener/closer
-			 * to avoid making partial matches on strings like `<script123`.
+			 * Ensure that the script tag terminates to avoid matching on
+			 * substrings of a non-match. For example, the sequence
+			 * "<script123" should not end a script region even though
+			 * "<script" is found within the text.
 			 */
 			if ( $at + 6 >= $doc_length ) {
 				continue;
@@ -929,11 +935,13 @@ class WP_HTML_Tag_Processor {
 
 			/*
 			 * HTML tag names must start with [a-zA-Z] otherwise they are not tags.
-			 * For example, "<3" is rendered as text, not a tag opener. This means
-			 * if we have at least one letter following the "<" then we _do_ have
-			 * a tag opener and can process it as such. This is more common than
-			 * HTML comments, DOCTYPE tags, and other structure starting with "<"
-			 * so it's good to check first for the presence of the tag.
+			 * For example, "<3" is rendered as text, not a tag opener. If at least
+			 * one letter follows the "<" then _it is_ a tag, but if the following
+			 * character is anything else it _is not a tag_.
+			 *
+			 * It's not uncommon to find non-tags starting with `<` in an HTML
+			 * document, so it's good for performance to make this pre-check before
+			 * continuing to attempt to parse a tag name.
 			 *
 			 * Reference:
 			 * * https://html.spec.whatwg.org/multipage/parsing.html#data-state
@@ -949,9 +957,8 @@ class WP_HTML_Tag_Processor {
 			}
 
 			/*
-			 * If we didn't find a tag opener, and we can't be
-			 * transitioning into different markup states, then
-			 * we can abort because there aren't any more tags.
+			 * Abort if no tag is found before the end of
+			 * the document. There is nothing left to parse.
 			 */
 			if ( $at + 1 >= strlen( $html ) ) {
 				return false;
@@ -963,7 +970,7 @@ class WP_HTML_Tag_Processor {
 			 */
 			if ( '!' === $html[ $at + 1 ] ) {
 				/*
-				 * <!-- transitions to a bogus comment state – we can skip to the nearest -->
+				 * <!-- transitions to a bogus comment state – skip to the nearest -->
 				 * https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
 				 */
 				if (
@@ -981,7 +988,7 @@ class WP_HTML_Tag_Processor {
 				}
 
 				/*
-				 * <![CDATA[ transitions to CDATA section state – we can skip to the nearest ]]>
+				 * <![CDATA[ transitions to CDATA section state – skip to the nearest ]]>
 				 * The CDATA is case-sensitive.
 				 * https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
 				 */
@@ -1005,7 +1012,7 @@ class WP_HTML_Tag_Processor {
 				}
 
 				/*
-				 * <!DOCTYPE transitions to DOCTYPE state – we can skip to the nearest >
+				 * <!DOCTYPE transitions to DOCTYPE state – skip to the nearest >
 				 * These are ASCII-case-insensitive.
 				 * https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
 				 */
@@ -1030,14 +1037,14 @@ class WP_HTML_Tag_Processor {
 
 				/*
 				 * Anything else here is an incorrectly-opened comment and transitions
-				 * to the bogus comment state - we can skip to the nearest >.
+				 * to the bogus comment state - skip to the nearest >.
 				 */
 				$at = strpos( $html, '>', $at + 1 );
 				continue;
 			}
 
 			/*
-			 * <? transitions to a bogus comment state – we can skip to the nearest >
+			 * <? transitions to a bogus comment state – skip to the nearest >
 			 * https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
 			 */
 			if ( '?' === $html[ $at + 1 ] ) {
@@ -1071,9 +1078,10 @@ class WP_HTML_Tag_Processor {
 		}
 
 		/*
-		 * Treat the equal sign ("=") as a part of the attribute name if it is the
-		 * first encountered byte:
-		 * https://html.spec.whatwg.org/multipage/parsing.html#before-attribute-name-state
+		 * Treat the equal sign as a part of the attribute
+		 * name if it is the first encountered byte.
+		 *
+		 * @see https://html.spec.whatwg.org/multipage/parsing.html#before-attribute-name-state
 		 */
 		$name_length = '=' === $this->html[ $this->parsed_bytes ]
 			? 1 + strcspn( $this->html, "=/> \t\f\r\n", $this->parsed_bytes + 1 )
@@ -1176,6 +1184,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 *
 	 * @return void
+	 * @throws Exception
 	 */
 	private function after_tag() {
 		$this->class_name_updates_to_attributes_updates();
@@ -1224,9 +1233,9 @@ class WP_HTML_Tag_Processor {
 		/**
 		 * Updated "class" attribute value.
 		 *
-		 * This is incrementally built as we scan through the existing class
-		 * attribute, omitting removed classes as we do so, and then appending
-		 * added classes at the end. Only when we're done processing will the
+		 * This is incrementally built while scanning through the existing class
+		 * attribute, skipping removed classes on the way, and then appending
+		 * added classes at the end. Only when finished processing will the
 		 * value contain the final new value.
 
 		 * @var string $class
@@ -1234,24 +1243,25 @@ class WP_HTML_Tag_Processor {
 		$class = '';
 
 		/**
-		 * Tracks the cursor position in the existing class
-		 * attribute value where we're currently parsing.
+		 * Tracks the cursor position in the existing
+		 * class attribute value while parsing.
 		 *
 		 * @var int $at
 		 */
 		$at = 0;
 
 		/**
-		 * Indicates if we have made any actual modifications to the existing
-		 * class attribute value, used to short-circuit string copying.
+		 * Indicates if there's any need to modify the existing class attribute.
 		 *
-		 * It's possible that we are intending to remove certain classes and add
-		 * others in such a way that we don't modify the existing value because
-		 * calls to `add_class()` and `remove_class()` occur independent of the
-		 * input values sent to the WP_HTML_Tag_Processor. That is, we might call
-		 * `remove_class()` for a class that isn't already present and we might
-		 * call `add_class()` for one that is, in which case we wouldn't need
-		 * to break apart the string and rebuild it.
+		 * If a call to `add_class()` and `remove_class()` wouldn't impact
+		 * the `class` attribute value then there's no need to rebuild it.
+		 * For example, when adding a class that's already present or
+		 * removing one that isn't.
+		 *
+		 * This flag enables a performance optimization when none of the enqueued
+		 * class updates would impact the `class` attribute; namely, that the
+		 * processor can continue without modifying the input document, as if
+		 * none of the `add_class()` or `remove_class()` calls had been made.
 		 *
 		 * This flag is set upon the first change that requires a string update.
 		 *
@@ -1270,7 +1280,7 @@ class WP_HTML_Tag_Processor {
 			// Capture the class name – it's everything until the next whitespace.
 			$name_length = strcspn( $existing_class, " \t\f\r\n", $at );
 			if ( 0 === $name_length ) {
-				// We're done, no more class names.
+				// If no more class names are found then that's the end.
 				break;
 			}
 
@@ -1283,7 +1293,7 @@ class WP_HTML_Tag_Processor {
 				self::REMOVE_CLASS === $this->classname_updates[ $name ]
 			);
 
-			// Once we've seen a class, we should never add it again.
+			// If a class has already been seen then skip it; it should not be added twice.
 			if ( ! $remove_class ) {
 				$this->classname_updates[ $name ] = self::SKIP_CLASS;
 			}
@@ -1296,16 +1306,20 @@ class WP_HTML_Tag_Processor {
 			/*
 			 * Otherwise, append it to the new "class" attribute value.
 			 *
-			 * By preserving the existing whitespace instead of only adding a single
-			 * space (which is a valid transformation we can make) we'll introduce
-			 * fewer changes to the HTML content and hopefully make comparing
-			 * before/after easier for people trying to debug the modified output.
+			 * There are options for handling whitespace between tags.
+			 * Preserving the existing whitespace produces fewer changes
+			 * to the HTML content and should clarify the before/after
+			 * content when debugging the modified output.
+			 *
+			 * This approach contrasts normalizing the inter-class
+			 * whitespace to a single space, which might appear cleaner
+			 * in the output HTML but produce a noisier change.
 			 */
 			$class .= substr( $existing_class, $ws_at, $ws_length );
 			$class .= $name;
 		}
 
-		// Add new classes by appending the ones we haven't already seen.
+		// Add new classes by appending those which haven't already been seen.
 		foreach ( $this->classname_updates as $name => $operation ) {
 			if ( self::ADD_CLASS === $operation ) {
 				$modified = true;
@@ -1340,14 +1354,14 @@ class WP_HTML_Tag_Processor {
 		}
 
 		/*
-		 * Attribute updates can be enqueued in any order but as we
-		 * progress through the document to replace them we have to
-		 * make our replacements in the order in which they are found
-		 * in that document.
+		 * Attribute updates can be enqueued in any order but updates
+		 * to the document must occur in lexical order; that is, each
+		 * replacement must be made before all others which follow it
+		 * at later string indices in the input document.
 		 *
-		 * Sorting the updates ensures we don't make our replacements
-		 * out of order, which could otherwise lead to mangled output,
-		 * partially-duplicate attributes, and overwritten attributes.
+		 * Sorting avoid making out-of-order replacements which
+		 * can lead to mangled output, partially-duplicated
+		 * attributes, and overwritten attributes.
 		 */
 		usort( $this->lexical_updates, array( self::class, 'sort_start_ascending' ) );
 
@@ -1357,15 +1371,16 @@ class WP_HTML_Tag_Processor {
 			$this->updated_bytes = $diff->end;
 		}
 
+		/*
+		 * Adjust bookmark locations to account for how the text
+		 * replacements adjust offsets in the input document.
+		 */
 		foreach ( $this->bookmarks as $bookmark ) {
 			/*
-			 * As we loop through $this->lexical_updates, we not only need to track
-			 * each bookmark's start and end offsets to $diff->start, but also
-			 * against all the accumulated changes which are being applied before the
-			 * bookmark. Each of these changes could impact that starting offset.
-			 *
-			 * To account for this we run a first pass through all changes for each
-			 * bookmark and accumulate that total delta before applying it at the end.
+			 * Each lexical update which appears before the bookmark's endpoints
+			 * might shift the offsets for those endpoints. Loop through each change
+			 * and accumulate the total shift for each bookmark, then apply that
+			 * shift after tallying the full delta.
 			 */
 			$head_delta = 0;
 			$tail_delta = 0;
@@ -1454,11 +1469,8 @@ class WP_HTML_Tag_Processor {
 		}
 
 		/*
-		 * We shouldn't ever get here because it would imply
-		 * that we have two identical updates, or that we're
-		 * trying to replace the same input text twice. Still
-		 * we'll handle this sort to preserve determinism,
-		 * which might come in handy when debugging.
+		 * This code should be unreachable, because it implies the two replacements
+		 * start at the same location and contain the same text.
 		 */
 		return $a->end - $b->end;
 	}
@@ -1501,7 +1513,7 @@ class WP_HTML_Tag_Processor {
 		 *     'update' === $p->get_enqueued_attribute_value( 'data-test-id' );
 		 * ```
 		 *
-		 * Here we detect this based on the absence of the `=`, which _must_ exist in any
+		 * Detect this difference based on the absence of the `=`, which _must_ exist in any
 		 * attribute containing a value, e.g. `<input type="text" enabled />`.
 		 *                                            ¹           ²
 		 *                                       1. Attribute with a string value.
@@ -1555,19 +1567,21 @@ class WP_HTML_Tag_Processor {
 		$comparable = strtolower( $name );
 
 		/*
-		 * For every attribute other than `class` we can perform a quick check if there's an
-		 * enqueued lexical update whose value we should prefer over what's in the input HTML.
+		 * For every attribute other than `class` it's possible to perform a quick check if
+		 * there's an enqueued lexical update whose value takes priority over what's found in
+		 * the input document.
 		 *
-		 * The `class` attribute is special though because we expose the helpers `add_class`
-		 * and `remove_class` which form a builder for the `class` attribute, so we have to
-		 * additionally check if there are any enqueued class changes. If there are, we need
-		 * to first flush them out so can report the full string value of the attribute.
+		 * The `class` attribute is special though because of the exposed helpers `add_class`
+		 * and `remove_class`. These form a builder for the `class` attribute, so an additional
+		 * check for enqueued class changes is required in addition to the check for any enqueued
+		 * attribute values. If any exist, those enqueued class changes must first be flushed out
+		 * into an attribute value update.
 		 */
 		if ( 'class' === $name ) {
 			$this->class_name_updates_to_attributes_updates();
 		}
 
-		// If we have an update for this attribute, return the updated value.
+		// Return any enqueued attribute value updates if they exist.
 		$enqueued_value = $this->get_enqueued_attribute_value( $comparable );
 		if ( false !== $enqueued_value ) {
 			return $enqueued_value;
@@ -1712,26 +1726,23 @@ class WP_HTML_Tag_Processor {
 		}
 
 		/*
-		 * Verify that the attribute name is allowable. In WP_DEBUG
-		 * environments we want to crash quickly to alert developers
-		 * of typos and issues; but in production we don't want to
-		 * interrupt a normal page view, so we'll silently avoid
-		 * updating the attribute in those cases.
+		 * WordPress rejects more characters than are strictly forbidden
+		 * in HTML5. This is to prevent additional security risks deeper
+		 * in the WordPress and plugin stack. Specifically the
+		 * less-than (<) greater-than (>) and ampersand (&) aren't allowed.
 		 *
-		 * Of note, we're disallowing more characters than are strictly
-		 * forbidden in HTML5. This is to prevent additional security
-		 * risks deeper in the WordPress and plugin stack. Specifically
-		 * we reject the less-than (<) greater-than (>) and ampersand (&).
-		 *
-		 * The use of a PCRE match allows us to look for specific Unicode
+		 * The use of a PCRE match enables looking for specific Unicode
 		 * code points without writing a UTF-8 decoder. Whereas scanning
 		 * for one-byte characters is trivial (with `strcspn`), scanning
 		 * for the longer byte sequences would be more complicated. Given
-		 * that this shouldn't be in the hot path for execution, we can
-		 * compromise the efficiency at this point without a noticeable
-		 * impact on the overall system.
+		 * that this shouldn't be in the hot path for execution, it's a
+		 * reasonable compromise in efficiency without introducing a
+		 * noticeable impact on the overall system.
 		 *
 		 * @see https://html.spec.whatwg.org/#attributes-2
+		 *
+		 * @TODO as the only regex pattern maybe we should take it out? are
+		 *       Unicode patterns available broadly in Core?
 		 */
 		if ( preg_match(
 			'~[' .
@@ -1861,7 +1872,14 @@ class WP_HTML_Tag_Processor {
 			$this->classname_updates = array();
 		}
 
-		// If we updated an attribute we didn't originally have, remove the enqueued update and move on.
+		/*
+		 * If updating an attribute that didn't exist in the input
+		 * document, then remove the enqueued update and move on.
+		 *
+		 * For example, this might occur when calling `remove_attribute()`
+		 * after calling `set_attribute()` for the same attribute
+		 * and when that attribute wasn't originally present.
+		 */
 		if ( ! isset( $this->attributes[ $name ] ) ) {
 			if ( isset( $this->lexical_updates[ $name ] ) ) {
 				unset( $this->lexical_updates[ $name ] );
@@ -1936,6 +1954,7 @@ class WP_HTML_Tag_Processor {
 	 * @see get_updated_html
 	 *
 	 * @return string The processed HTML.
+	 * @throws Exception
 	 */
 	public function __toString() {
 		return $this->get_updated_html();
@@ -1975,7 +1994,12 @@ class WP_HTML_Tag_Processor {
 		// 3. Point this tag processor at the original tag opener and consume it
 
 		/*
-		 * When we get here we're at the end of the tag name, and we want to rewind to before it
+		 * At this point the internal cursor points to the end of the tag name.
+		 * Rewind before the tag name starts so that it's as if the cursor didn't
+		 * move; a call to `next_tag()` will reparse the recently-updated attributes
+		 * and additional calls to modify the attributes will apply at this same
+		 * lcoation.
+		 *
 		 * <p>Previous HTML<em>More HTML</em></p>
 		 *                 ^  | back up by the length of the tag name plus the opening <
 		 *                 \<-/ back up by strlen("em") + 1 ==> 3
@@ -2021,7 +2045,7 @@ class WP_HTML_Tag_Processor {
 			return;
 		}
 
-		// If not using the string interface we have to pass an associative array.
+		// If not using the string interface, an associative array is required.
 		if ( ! is_array( $query ) ) {
 			return;
 		}
@@ -2056,7 +2080,7 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		// Do we match a case-insensitive HTML tag name?
+		// Does the tag name match the requested tag name in a case-insensitive manner?
 		if ( null !== $this->sought_tag_name ) {
 			/*
 			 * String (byte) length lookup is fast. If they aren't the
@@ -2067,12 +2091,16 @@ class WP_HTML_Tag_Processor {
 			}
 
 			/*
-			 * Otherwise we have to check for each character if they
-			 * are the same, and only `strtoupper()` if we have to.
-			 * Presuming that most people will supply lowercase tag
-			 * names and most HTML will contain lowercase tag names,
-			 * most of the time this runs we shouldn't expect to
-			 * actually run the case-folding comparison.
+			 * Check each character to determine if they are the same.
+			 * Defer calls to `strtoupper()` to avoid them when possible.
+			 * Calling `strcasecmp()` here tested slowed than comparing each
+			 * character, so unless benchmarks show otherwise, it should
+			 * not be used.
+			 *
+			 * It's expected that most of the time that this runs, a
+			 * lower-case tag name will be supplied and the input will
+			 * contain lower-case tag names, thus normally bypassing
+			 * the case comparison code.
 			 */
 			for ( $i = 0; $i < $this->tag_name_length; $i++ ) {
 				$html_char = $this->html[ $this->tag_name_starts_at + $i ];
@@ -2090,19 +2118,22 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		// Do we match a byte-for-byte (case-sensitive and encoding-form-sensitive) class name?
+		/*
+		 * Match byte-for-byte (case-sensitive and encoding-form-sensitive) on the class name.
+		 *
+		 * This will overlook certain classes that exist in other lexical variations
+		 * than was supplied to the search query, but requires more complicated searching.
+		 */
 		if ( $needs_class_name ) {
 			$class_start = $this->attributes['class']->value_starts_at;
 			$class_end   = $class_start + $this->attributes['class']->value_length;
 			$class_at    = $class_start;
 
 			/*
-			 * We're going to have to jump through potential matches here because
-			 * it's possible that we have classes containing the class name we're
-			 * looking for. For instance, if we are looking for "even" we don't
-			 * want to be confused when we come to the class "not-even." This is
-			 * secured by ensuring that we find our sought-after class and that
-			 * it's surrounded on both sides by proper boundaries.
+			 * Ensure that boundaries surround the class name to avoid matching on
+			 * substrings of a longer name. For example, the sequence "not-odd"
+			 * should not match for the class "odd" even though "odd" is found
+			 * within the class attribute text.
 			 *
 			 * See https://html.spec.whatwg.org/#attributes-3
 			 * See https://html.spec.whatwg.org/#space-separated-tokens
@@ -2113,9 +2144,7 @@ class WP_HTML_Tag_Processor {
 				$class_at < $class_end
 			) {
 				/*
-				 * Verify this class starts at a boundary. If it were at 0 we'd be at
-				 * the start of the string and that would be fine, otherwise we have
-				 * to start at a place where the preceding character is whitespace.
+				 * Verify this class starts at a boundary.
 				 */
 				if ( $class_at > $class_start ) {
 					$character = $this->html[ $class_at - 1 ];
@@ -2127,9 +2156,7 @@ class WP_HTML_Tag_Processor {
 				}
 
 				/*
-				 * Similarly, verify this class ends at a boundary as well. Here we
-				 * can end at the very end of the string value, otherwise we have
-				 * to end at a place where the next character is whitespace.
+				 * Verify this class ends at a boundary as well.
 				 */
 				if ( $class_at + strlen( $this->sought_class_name ) < $class_end ) {
 					$character = $this->html[ $class_at + strlen( $this->sought_class_name ) ];
