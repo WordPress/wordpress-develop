@@ -182,6 +182,11 @@ class Walker_Nav_Menu extends Walker {
 		} else {
 			$atts['rel'] = $menu_item->xfn;
 		}
+
+		if ( ! empty( $menu_item->url ) && get_privacy_policy_url() === $menu_item->url ) {
+			$atts['rel'] = empty( $atts['rel'] ) ? 'privacy-policy' : $atts['rel'] . ' privacy-policy';
+		}
+
 		$atts['href']         = ! empty( $menu_item->url ) ? $menu_item->url : '';
 		$atts['aria-current'] = $menu_item->current ? 'page' : '';
 
