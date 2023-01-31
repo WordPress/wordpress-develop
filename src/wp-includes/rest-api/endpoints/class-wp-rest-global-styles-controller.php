@@ -324,6 +324,10 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 					}
 				}
 				$config['styles'] = $request['styles'];
+				$validate_custom_css = $this->validate_custom_css( $request['styles']['css'] );
+				if ( is_wp_error( $validate_custom_css ) ) {
+					return $validate_custom_css;
+				}
 			} elseif ( isset( $existing_config['styles'] ) ) {
 				$config['styles'] = $existing_config['styles'];
 			}
