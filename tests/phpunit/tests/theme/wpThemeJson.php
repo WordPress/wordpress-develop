@@ -3616,7 +3616,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						),
 					),
 				),
-			),
+			)
 		);
 
 		// Validate structure is sanitized.
