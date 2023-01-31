@@ -1,0 +1,50 @@
+name: Performance Tests
+
+on:
+  push:
+    branches:
+      - trunk
+      - 'feature/**'
+
+jobs:
+  performance:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == '10up/wordpress-develop' || github.event_name == 'push' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Docker debug information
+        run: |
+          docker -v
+          docker-compose -v
+          docker-compose run --rm mysql mysql --version
+          docker-compose run --rm php php --version
+          docker-compose run --rm php php -m
+          docker-compose run --rm php php -i
+          docker-compose run --rm php locale -a
+
+      - name: Build WordPress
+        run: npm run build
+
+      - name: Start Docker environment
+        run: npm run env:start
+
+      - name: Install WordPress
+        run: npm run env:install
+
+      - name: Run Performance tests
+        run: npm run test:performance
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code
