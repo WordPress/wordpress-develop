@@ -8,7 +8,8 @@ require_once __DIR__ . '/base.php';
  */
 class Tests_Block_Templates_GetTemplate_Hierarchy extends WP_Block_Templates_UnitTestCase {
 
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+	public function set_up() {
+		parent::set_up();
 		register_post_type(
 			'custom_book',
 			array(
@@ -17,11 +18,14 @@ class Tests_Block_Templates_GetTemplate_Hierarchy extends WP_Block_Templates_Uni
 			)
 		);
 		register_taxonomy( 'book_type', 'custom_book' );
+		register_taxonomy( 'books', 'custom_book' );
 	}
 
-	public static function wpTearDownAfterClass() {
+	public function tear_down() {
 		unregister_post_type( 'custom_book' );
 		unregister_taxonomy( 'book_type' );
+		unregister_taxonomy( 'books' );
+		parent::tear_down();
 	}
 
 	/**
