@@ -3650,7 +3650,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 			),
 		);
-		$expected_styles = '.is-style-plain .is-style-plain .wp-block-quote{background-color: hotpink;}';
+		$expected_styles = '.is-style-plain.is-style-plain.wp-block-quote{background-color: hotpink;}';
 		$actual_styles   = $theme_json->get_styles_for_block( $metadata );
 		$this->assertSame( $expected_styles, $actual_styles );
 	}
