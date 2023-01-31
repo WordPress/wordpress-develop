@@ -23,8 +23,21 @@ class WP_Block_Supports_Dimensions_Test extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
-	public function test_dimensions_style_is_applied() {
-		$this->test_block_name = 'test/dimensions-style-is-applied';
+	/**
+	 * Tests that minimum height block support works as expected.
+	 *
+	 * @ticket 57582
+	 *
+	 * @covers ::wp_apply_dimensions_support
+	 *
+	 * @dataProvider data_minimum_height_block_support
+	 *
+	 * @param string $block_name The test block name to register.
+	 * @param mixed $dimensions  The dimensions block support settings.
+	 * @param mixed $expected    An expected return value.
+	 */
+	public function test_minimum_height_block_support( $block_name, $dimensions, $expected ) {
+		$this->test_block_name = $block_name;
 		register_block_type(
 			$this->test_block_name,
 			array(
@@ -35,81 +48,7 @@ class WP_Block_Supports_Dimensions_Test extends WP_UnitTestCase {
 					),
 				),
 				'supports'    => array(
-					'dimensions' => array(
-						'minHeight' => true,
-					),
-				),
-			)
-		);
-		$registry    = WP_Block_Type_Registry::get_instance();
-		$block_type  = $registry->get_registered( $this->test_block_name );
-		$block_attrs = array(
-			'style' => array(
-				'dimensions' => array(
-					'minHeight' => '50vh',
-				),
-			),
-		);
-
-		$actual   = wp_apply_dimensions_support( $block_type, $block_attrs );
-		$expected = array(
-			'style' => 'min-height:50vh;',
-		);
-
-		$this->assertSame( $expected, $actual );
-	}
-
-	public function test_dimensions_with_skipped_serialization_block_supports() {
-		$this->test_block_name = 'test/dimensions-with-skipped-serialization-block-supports';
-		register_block_type(
-			$this->test_block_name,
-			array(
-				'api_version' => 2,
-				'attributes'  => array(
-					'style' => array(
-						'type' => 'object',
-					),
-				),
-				'supports'    => array(
-					'dimensions' => array(
-						'minHeight'                       => true,
-						'__experimentalSkipSerialization' => true,
-					),
-				),
-			)
-		);
-		$registry    = WP_Block_Type_Registry::get_instance();
-		$block_type  = $registry->get_registered( $this->test_block_name );
-		$block_attrs = array(
-			'style' => array(
-				'dimensions' => array(
-					'minHeight' => '50vh',
-				),
-			),
-		);
-
-		$actual   = wp_apply_dimensions_support( $block_type, $block_attrs );
-		$expected = array();
-
-		$this->assertSame( $expected, $actual );
-	}
-
-	public function test_min_height_with_individual_skipped_serialization_block_supports() {
-		$this->test_block_name = 'test/min-height-with-individual-skipped-serialization-block-supports';
-		register_block_type(
-			$this->test_block_name,
-			array(
-				'api_version' => 2,
-				'attributes'  => array(
-					'style' => array(
-						'type' => 'object',
-					),
-				),
-				'supports'    => array(
-					'dimensions' => array(
-						'minHeight'                       => true,
-						'__experimentalSkipSerialization' => array( 'minHeight' ),
-					),
+					'dimensions' => $dimensions,
 				),
 			)
 		);
@@ -125,14 +64,41 @@ class WP_Block_Supports_Dimensions_Test extends WP_UnitTestCase {
 
 		$actual = wp_apply_dimensions_support( $block_type, $block_attrs );
 
-		/*
-		 * There is currently only one dimensions property available,
-		 * so the expected result is an empty array. This test exists
-		 * so that as new properties are added, this test can be expanded
-		 * to check that skipping individual serialization works as expected.
-		 */
-		$expected = array();
-
 		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider for test_minimum_height_block_support().
+	 *
+	 * @return array
+	 */
+	public function data_minimum_height_block_support() {
+		return array(
+			'style is applied'                                                         => array(
+				'block_name' => 'test/dimensions-block-supports',
+				'dimensions' => array(
+					'minHeight' => true,
+				),
+				'expected'   => array(
+					'style'  => 'min-height:50vh;',
+				),
+			),
+			'style output is skipped when serialization is skipped'                    => array(
+				'block_name' => 'test/dimensions-with-skipped-serialization-block-supports',
+				'dimensions' => array(
+					'minHeight'                       => true,
+					'__experimentalSkipSerialization' => true,
+				),
+				'expected'  => array(),
+			),
+			'style output is skipped when individual feature serialization is skipped' => array(
+				'block_name' => 'test/min-height-with-individual-skipped-serialization-block-supports',
+				'dimensions' => array(
+					'minHeight'                       => true,
+					'__experimentalSkipSerialization' => array( 'minHeight' ),
+				),
+				'expected'  => array(),
+			),
+		);
 	}
 }
