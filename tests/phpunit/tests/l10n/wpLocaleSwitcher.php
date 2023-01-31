@@ -648,7 +648,48 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		$this->assertFalse( $locale_5, 'Locale should be false after restoring' );
 		$this->assertFalse( $user_id_5, 'User ID should be false after restoring' );
+	}
 
+	/**
+	 * @ticket 57123
+	 *
+	 * @covers ::switch_to_locale
+	 * @covers ::switch_to_user_locale
+	 * @covers WP_Locale_Switcher::get_current_locale
+	 * @covers WP_Locale_Switcher::get_current_user_id
+	 */
+	public function test_returns_previous_locale_and_user_after_switching() {
+		global $wp_locale_switcher;
+
+		$locale_1  = $wp_locale_switcher->get_current_locale();
+		$user_id_1 = $wp_locale_switcher->get_current_user_id();
+
+		switch_to_user_locale( self::$user_id );
+
+		$locale_2  = $wp_locale_switcher->get_current_locale();
+		$user_id_2 = $wp_locale_switcher->get_current_user_id();
+
+		switch_to_locale( 'en_GB' );
+
+		$locale_3  = $wp_locale_switcher->get_current_locale();
+		$user_id_3 = $wp_locale_switcher->get_current_user_id();
+
+		restore_previous_locale();
+
+		$locale_4  = $wp_locale_switcher->get_current_locale();
+		$user_id_4 = $wp_locale_switcher->get_current_user_id();
+
+		$this->assertFalse( $locale_1, 'Locale should be false before switching' );
+		$this->assertFalse( $user_id_1, 'User ID should be false before switching' );
+
+		$this->assertSame( 'de_DE', $locale_2, 'The locale was not changed to de_DE' );
+		$this->assertSame( self::$user_id, $user_id_2, 'User ID should match the main admin ID' );
+
+		$this->assertSame( 'en_GB', $locale_3, 'The locale was not changed to en_GB' );
+		$this->assertFalse( $user_id_3, 'User ID should be false after normal locale switching' );
+
+		$this->assertSame( 'de_DE', $locale_4, 'The locale was not changed back to de_DE' );
+		$this->assertSame( self::$user_id, $user_id_4, 'User ID should match the main admin ID again' );
 	}
 
 	public function filter_locale() {
