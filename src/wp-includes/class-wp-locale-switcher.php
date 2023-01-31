@@ -186,7 +186,7 @@ class WP_Locale_Switcher {
 	 *
 	 * @return string|false Locale if the locale has been switched, false otherwise.
 	 */
-	public function get_current_locale() {
+	public function get_locale() {
 		$entry = end( $this->stack );
 
 		if ( $entry ) {
@@ -203,7 +203,7 @@ class WP_Locale_Switcher {
 	 *
 	 * @return int|false User ID if set and if the locale has been switched, false otherwise.
 	 */
-	public function get_current_user_id() {
+	public function get_user_id() {
 		$entry = end( $this->stack );
 
 		if ( $entry ) {
@@ -222,7 +222,7 @@ class WP_Locale_Switcher {
 	 * @return string The locale currently being switched to.
 	 */
 	public function filter_locale( $locale ) {
-		$switched_locale = $this->get_current_locale();
+		$switched_locale = $this->get_locale();
 
 		if ( $switched_locale ) {
 			return $switched_locale;
