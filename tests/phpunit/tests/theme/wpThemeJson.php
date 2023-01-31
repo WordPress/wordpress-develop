@@ -3610,7 +3610,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 									'color' => array(
 										'background' => 'hotpink',
 									),
-									'unregisteredProperty' => 'value'
+									'unregisteredProperty' => 'value',
 								),
 							),
 						),
