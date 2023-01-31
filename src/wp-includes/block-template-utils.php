@@ -1328,7 +1328,7 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
 	$template_hierarchy = array( $slug );
 	// Most default templates don't have `$template_prefix` assigned.
 	if ( ! empty( $template_prefix ) ) {
-		list($type) = explode( '-', $template_prefix );
+		list( $type ) = explode( '-', $template_prefix );
 		// We need these checks because we always add the `$slug` above.
 		if ( ! in_array( $template_prefix, array( $slug, $type ), true ) ) {
 			$template_hierarchy[] = $template_prefix;
