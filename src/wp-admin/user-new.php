@@ -110,7 +110,7 @@ if ( isset( $_REQUEST['action'] ) && 'adduser' === $_REQUEST['action'] ) {
 			 */
 			do_action( 'invite_user', $user_id, $role, $newuser_key );
 
-			$switched_locale = switch_to_locale( get_user_locale( $user_details ) );
+			$switched_locale = switch_to_user_locale( $user_id );
 
 			if ( '' !== get_option( 'blogname' ) ) {
 				$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
@@ -584,7 +584,7 @@ if ( current_user_can( 'create_users' ) ) {
 	<tr class="form-field form-required user-pass2-wrap hide-if-js">
 		<th scope="row"><label for="pass2"><?php _e( 'Repeat Password' ); ?> <span class="description"><?php _e( '(required)' ); ?></span></label></th>
 		<td>
-		<input name="pass2" type="password" id="pass2" autocomplete="new-password" spellcheck="false" aria-describedby="pass2-desc" />
+		<input type="password" name="pass2" id="pass2" autocomplete="new-password" spellcheck="false" aria-describedby="pass2-desc" />
 		<p class="description" id="pass2-desc"><?php _e( 'Type the password again.' ); ?></p>
 		</td>
 	</tr>
