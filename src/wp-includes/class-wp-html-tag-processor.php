@@ -392,12 +392,28 @@ class WP_HTML_Tag_Processor {
 	/**
 	 * Lexical replacements to apply to input HTML document.
 	 *
-	 * HTML modifications collapse into lexical replacements in order to
-	 * provide an efficient mechanism to update documents lazily and in
-	 * order to support a variety of semantic modifications without
-	 * building a complicated parsing machinery. That is, it's up to
-	 * the calling class to generate the lexical modification from the
-	 * semantic change requested.
+	 * "Lexical" in this class refers to the fact that we're operating on
+	 * pure text _as text_ and not as HTML. There's a line between the
+	 * public interface to this class, with HTML-semantic methods like
+	 * `set_attribute` and `add_class`, and an internal state that tracks
+	 * text offsets in the input document.
+	 *
+	 * When higher-level HTML methods are called we have to transform those
+	 * operations (such as setting an attribute's value) into text diffing
+	 * operations (such as replacing the sub-string from indices A to B with
+	 * some given new string). These text-diffing operations are the lexical
+	 * updates.
+	 *
+	 * As new higher-level methods are added they need to collapse their
+	 * operations into these lower-level lexical updates since that's the
+	 * Tag Processor's internal language of change. Any code which creates
+	 * these lexical updates must ensure that they do not cross HTML syntax
+	 * boundaries, however, so these should never be exposed outside of this
+	 * class or any classes which intentionally expand its functionality.
+	 *
+	 * These are enqueued while editing the document instead of immediately
+	 * applied so that we can avoid processing overhead and string allocations
+	 * and copies when applied many updates to a single document.
 	 *
 	 * Example:
 	 * <code>
