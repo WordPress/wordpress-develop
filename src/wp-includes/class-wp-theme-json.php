@@ -408,18 +408,20 @@ class WP_Theme_JSON {
 	/**
 	 * Defines which pseudo selectors are enabled for which elements.
 	 *
-	 * The order of the selectors should be: visited, hover, focus, active.
-	 * This is to ensure that 'visited' has the lowest specificity
-	 * and the other selectors can always overwrite it.
+	 * The order of the selectors should be: link, any-link, visited, hover, focus, active.
+	 * This is to ensure the user action (hover, focus and active) styles have a higher
+	 * specificity than the visited styles, which in turn have a higher specificity than
+	 * the unvisited styles.
 	 *
 	 * See https://core.trac.wordpress.org/ticket/56928.
 	 * Note: this will affect both top-level and block-level elements.
 	 *
 	 * @since 6.1.0
+	 * @since 6.2.0 Added support for ':link' and ':any-link'.
 	 */
 	const VALID_ELEMENT_PSEUDO_SELECTORS = array(
-		'link'   => array( ':visited', ':hover', ':focus', ':active' ),
-		'button' => array( ':visited', ':hover', ':focus', ':active' ),
+		'link'   => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':active' ),
+		'button' => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':active' ),
 	);
 
 	/**
@@ -2109,7 +2111,7 @@ class WP_Theme_JSON {
 					// support features use the same custom selector.
 					if ( isset( $feature_declarations[ $feature_selector ] ) ) {
 						foreach ( $new_feature_declarations as $new_feature_declaration ) {
-							$feature_declarations[ $feature_selector ][] = $feature_declaration;
+							$feature_declarations[ $feature_selector ][] = $new_feature_declaration;
 						}
 					} else {
 						$feature_declarations[ $feature_selector ] = $new_feature_declarations;
@@ -2309,13 +2311,13 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.0.0
 	 *
-	 * @param array      $data    The data to inspect.
-	 * @param bool|array $path    Boolean or path to a boolean.
-	 * @param bool       $default Default value if the referenced path is missing.
-	 *                            Default false.
+	 * @param array      $data          The data to inspect.
+	 * @param bool|array $path          Boolean or path to a boolean.
+	 * @param bool       $default_value Default value if the referenced path is missing.
+	 *                                  Default false.
 	 * @return bool Value of boolean metadata.
 	 */
-	protected static function get_metadata_boolean( $data, $path, $default = false ) {
+	protected static function get_metadata_boolean( $data, $path, $default_value = false ) {
 		if ( is_bool( $path ) ) {
 			return $path;
 		}
@@ -2327,7 +2329,7 @@ class WP_Theme_JSON {
 			}
 		}
 
-		return $default;
+		return $default_value;
 	}
 
 	/**
