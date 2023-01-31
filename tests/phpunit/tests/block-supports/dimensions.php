@@ -74,22 +74,22 @@ class WP_Block_Supports_Dimensions_Test extends WP_UnitTestCase {
 	 */
 	public function data_minimum_height_block_support() {
 		return array(
-			'style is applied'                                                         => array(
+			'style is applied' => array(
 				'block_name' => 'test/dimensions-block-supports',
 				'dimensions' => array(
 					'minHeight' => true,
 				),
 				'expected'   => array(
-					'style'  => 'min-height:50vh;',
+					'style' => 'min-height:50vh;',
 				),
 			),
-			'style output is skipped when serialization is skipped'                    => array(
+			'style output is skipped when serialization is skipped' => array(
 				'block_name' => 'test/dimensions-with-skipped-serialization-block-supports',
 				'dimensions' => array(
 					'minHeight'                       => true,
 					'__experimentalSkipSerialization' => true,
 				),
-				'expected'  => array(),
+				'expected'   => array(),
 			),
 			'style output is skipped when individual feature serialization is skipped' => array(
 				'block_name' => 'test/min-height-with-individual-skipped-serialization-block-supports',
@@ -97,7 +97,7 @@ class WP_Block_Supports_Dimensions_Test extends WP_UnitTestCase {
 					'minHeight'                       => true,
 					'__experimentalSkipSerialization' => array( 'minHeight' ),
 				),
-				'expected'  => array(),
+				'expected'   => array(),
 			),
 		);
 	}
