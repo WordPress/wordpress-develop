@@ -114,9 +114,8 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @return string
 	 */
 	public function addedLine( $line ) {
-		$a = 5;
-		while ( $a < 5 ) {
-			// Nothing to do here.
+		while ( $this->parse_next_attribute() ) {
+			// No code is needed here.
 		}
 
 		return "<td class='diff-addedline'><span aria-hidden='true' class='dashicons dashicons-plus'></span><span class='screen-reader-text'>" . __( 'Added:' ) . " </span>{$line}</td>";
