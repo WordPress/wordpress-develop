@@ -3723,6 +3723,52 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 57583
 	 *
+	 * @dataProvider data_sanitize_with_invalid_style_variation
+	 *
+	 * @param array $theme_json_variations The theme.json variations to test.
+	 */
+	public function test_sanitize_with_invalid_style_variation( $theme_json_variations ) {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => 2,
+				'styles'  => array(
+					'blocks' => array(
+						'core/quote' => $theme_json_variations,
+					),
+				),
+			)
+		);
+
+		// Validate structure is sanitized.
+		$sanitized_theme_json = $theme_json->get_raw_data();
+		$this->assertIsArray( $sanitized_theme_json, 'Sanitized theme.json is not an array data type' );
+		$this->assertArrayNotHasKey( 'styles', $sanitized_theme_json, 'Sanitized theme.json should not have a "styles" key' );
+
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_sanitize_with_invalid_style_variation() {
+		return array(
+			'empty string variation' => array(
+				array(
+					'variations' => '',
+				),
+			),
+			'boolean variation'      => array(
+				array(
+					'variations' => false,
+				),
+			),
+		);
+	}
+
+	/**
+	 * @ticket 57583
+	 *
 	 * @dataProvider data_get_styles_for_block_with_style_variations
 	 *
 	 * @param array  $theme_json_variations Theme.json variations to test.

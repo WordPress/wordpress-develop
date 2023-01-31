@@ -666,7 +666,14 @@ class WP_Theme_JSON {
 		$schema_settings_blocks = array();
 		foreach ( $valid_block_names as $block ) {
 			// Build the schema for each block style variation.
-			$style_variation_names    = isset( $input['styles']['blocks'][ $block ]['variations'] ) ? array_keys( $input['styles']['blocks'][ $block ]['variations'] ) : array();
+			$style_variation_names = array();
+			if (
+				! empty( $input['styles']['blocks'][ $block ]['variations'] ) &&
+				is_array( $input['styles']['blocks'][ $block ]['variations'] )
+			) {
+				$style_variation_names = array_keys( $input['styles']['blocks'][ $block ]['variations'] );
+			}
+
 			$schema_styles_variations = array();
 			if ( ! empty( $style_variation_names ) ) {
 				$schema_styles_variations = array_fill_keys( $style_variation_names, $styles_non_top_level );
