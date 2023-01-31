@@ -3601,13 +3601,13 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	public function test_get_styles_for_block_with_style_variations() {
 		$theme_json = new WP_Theme_JSON(
 			array(
-				'version'  => 2,
-				'styles' => array(
+				'version' => 2,
+				'styles'  => array(
 					'blocks' => array(
 						'core/quote' => array(
 							'variations' => array(
 								'plain' => array(
-									'color' => array(
+									'color'                => array(
 										'background' => 'hotpink',
 									),
 									'unregisteredProperty' => 'value',
@@ -3621,8 +3621,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		// Validate structure is sanitized.
 		$expected_theme_json  = array(
-			'version'  => 2,
-			'styles' => array(
+			'version' => 2,
+			'styles'  => array(
 				'blocks' => array(
 					'core/quote' => array(
 						'variations' => array(
@@ -3640,7 +3640,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected_theme_json, $sanitized_theme_json );
 
 		// Validate styles are generated properly.
-		$metadata = array(
+		$metadata        = array(
 			'path'       => array( 'styles', 'blocks', 'core/quote' ),
 			'selector'   => '.wp-block-quote',
 			'variations' => array(
