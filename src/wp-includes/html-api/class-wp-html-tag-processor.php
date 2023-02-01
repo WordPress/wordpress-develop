@@ -206,12 +206,46 @@
  *     }
  * ```
  *
- * ## Design limitations
+ * ## Design and limitations
  *
- * @TODO: Expand this section
+ * The Tag Processor is designed to linearly scan HTML documents and tokenize
+ * HTML tags and their attributes. It's designed to do this as efficiently as
+ * possible without compromising parsing integrity. Therefore it will be
+ * slower than some methods of modifying HTML, such as those incorporating
+ * over-simplified PCRE patterns, but will not introduce the defects and
+ * failures that those methods bring in, which lead to broken page renders
+ * and often to security vulnerabilities. On the other hand, it will be faster
+ * than full-blown HTML parsers such as DOMDocument and use considerably
+ * less memory. It requires a negligible memory overhead, enough to consider
+ * it a zero-overhead system.
  *
- *  - No nesting: cannot match open and close tag.
- *  - Class names are not decoded if they contain character references.
+ * The performance characteristics are maintained by avoiding tree construction
+ * and semantic cleanups which are specified in HTML5. Because of this, for
+ * example, it's not possible for the Tag Processor to associate any given
+ * opening tag with its corresponding closing tag, or to return the inner markup
+ * inside an element. Systems may be built on top of the Tag Processor to do
+ * this, but the Tag Processor is and should be constrained so it can remain an
+ * efficient, low-level, and reliable HTML scanner.
+ *
+ * The Tag Processor's design incorporates a "garbage-in-garbage-out" philosophy.
+ * HTML5 specifies that certain invalid content be transformed into different forms
+ * for display, such as removing null bytes from an input document and replacing
+ * invalid characters with the Unicode replacement character U+FFFD �. Where errors
+ * or transformations exist within the HTML5 specification, the Tag Processor leaves
+ * those invalid inputs untouched, passing them through to the final browser to handle.
+ * While this implies that certain operations will be non-spec-compliant, such as
+ * reading the value of an attribute with invalid content, it also preserves a
+ * simplicity and efficiency for handling those error cases.
+ *
+ * Most operations within the Tag Processor are designed to minimize the difference
+ * between an input and output document for any given change. For example, the
+ * `add_class` and `remove_class` methods preserve whitespace and the class ordering
+ * within the `class` attribute; and when encountering tags with duplicated attributes,
+ * the Tag Processor will leave those invalid duplicate attributes where they are but
+ * update the proper attribute which the browser will read for parsing its value. An
+ * exception to this rule is that all attribute updates store their values as
+ * double-quoted strings, meaning that attributes on input with single-quoted or
+ * unquoted values will appear in the output with double-quotes.
  *
  * @since 6.2.0
  */
