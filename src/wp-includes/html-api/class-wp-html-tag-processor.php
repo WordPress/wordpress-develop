@@ -8,18 +8,18 @@
  * Instead this scans linearly through a document and only parses
  * the HTML tag openers.
  *
- * @TODO: Unify language around "currently-opened tag."
- * @TODO: Organize unit test cases into normative tests, edge-case tests, regression tests.
- * @TODO: Clean up attribute token class after is_true addition
- * @TODO: Prune whitespace when removing classes/attributes: e.g. "a b c" -> "c" not " c"
- * @TODO: Skip over `/` in attributes area, split attribute names by `/`
- * @TODO: Decode HTML references/entities in class names when matching.
- *        E.g. match having class `1<"2` needs to recognize `class="1&lt;&quot;2"`.
- * @TODO: Decode character references in `get_attribute()`
- * @TODO: Properly escape attribute value in `set_attribute()`
- * @TODO: Add slow mode to escape character entities in CSS class names?
- *        (This requires a custom decoder since `html_entity_decode()`
- *        doesn't handle attribute character reference decoding rules.
+ * ### Possible future direction for this module
+ *
+ *  - Prune the whitespace when removing classes/attributes: e.g. "a b c" -> "c" not " c".
+ *    This would increase the size of the changes for some operations but leave more
+ *    natural-looking output HTML.
+ *  - Decode HTML character references within class names when matching. E.g. match having
+ *    class `1<"2` needs to recognize `class="1&lt;&quot;2"`. Currently the Tag Processor
+ *    will fail to find the right tag if the class name is encoded as such.
+ *  - Properly decode HTML character references in `get_attribute()`. PHP's
+ *    `html_entity_decode()` is wrong in a couple ways: it doesn't account for the
+ *    no-ambiguous-ampersand rule, and it improperly handles the way semicolons may
+ *    or may not terminate a character reference.
  *
  * @package WordPress
  * @subpackage HTML-API
@@ -550,8 +550,6 @@ class WP_HTML_Tag_Processor {
 			 * For non-DATA sections which might contain text that looks like HTML tags but
 			 * isn't, scan with the appropriate alternative mode. Looking at the first letter
 			 * of the tag name as a pre-check avoids a string allocation when it's not needed.
-			 *
-			 * @TODO: Add unit test case and fix (if necessary) for RCDATA tag closer coming before RCDATA tag opener.
 			 */
 			$t = $this->html[ $this->tag_name_starts_at ];
 			if ( ! $this->is_closing_tag && ( 's' === $t || 'S' === $t || 't' === $t || 'T' === $t ) ) {
