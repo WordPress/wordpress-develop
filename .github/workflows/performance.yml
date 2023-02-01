@@ -13,9 +13,10 @@ jobs:
   # - Checks out the repository.
   # - Sets up Node.js.
   # - Installs npm dependencies.
-  # - Logs the running Docker containers.
+  # - Logs Docker debug information (about the Docker installation within the runner).
   # - Builds WordPress to run from the `build` directory.
   # - Starts the WordPress Docker container.
+  # - Logs the running Docker containers.
   # - Install WordPress within the Docker container.
   # - Run the Performance tests.
   # - Ensures version-controlled files are not modified or deleted.
@@ -40,17 +41,20 @@ jobs:
         run: |
           docker -v
           docker-compose -v
-          docker-compose run --rm mysql mysql --version
-          docker-compose run --rm php php --version
-          docker-compose run --rm php php -m
-          docker-compose run --rm php php -i
-          docker-compose run --rm php locale -a
 
       - name: Build WordPress
         run: npm run build
 
       - name: Start Docker environment
         run: npm run env:start
+
+      - name: WordPress Docker container debug information
+        run: |
+          docker-compose run --rm mysql mysql --version
+          docker-compose run --rm php php --version
+          docker-compose run --rm php php -m
+          docker-compose run --rm php php -i
+          docker-compose run --rm php locale -a
 
       - name: Install WordPress
         run: npm run env:install
