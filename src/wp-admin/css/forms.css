@@ -556,6 +556,7 @@ fieldset label,
 
 .wp-pwd button {
 	height: min-content;
+	width: 4.875rem;
 }
 
 .wp-pwd button.pwd-toggle .dashicons {
