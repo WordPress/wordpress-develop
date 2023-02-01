@@ -299,6 +299,25 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 }
 
 /**
+ * Gets classname from last tag in a string of HTML.
+ *
+ * @since 6.2.0
+ *
+ * @param string $html markup to be processed.
+ * @return string String of inner wrapper classnames.
+ */
+function wp_get_classnames_from_last_tag( $html ) {
+	$tags            = new WP_HTML_Tag_Processor( $html );
+	$last_classnames = '';
+
+	while ( $tags->next_tag() ) {
+		$last_classnames = $tags->get_attribute( 'class' );
+	}
+
+	return (string) $last_classnames;
+}
+
+/**
  * Renders the layout config to the block wrapper.
  *
  * @since 5.8.0
@@ -309,11 +328,58 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
  * @return string Filtered block content.
  */
 function wp_render_layout_support_flag( $block_content, $block ) {
-	$block_type     = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
-	$support_layout = block_has_support( $block_type, array( '__experimentalLayout' ), false );
+	$block_type       = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
+	$support_layout   = block_has_support( $block_type, array( '__experimentalLayout' ), false );
+	$has_child_layout = isset( $block['attrs']['style']['layout']['selfStretch'] );
 
-	if ( ! $support_layout ) {
+	if ( ! $support_layout
+	&& ! $has_child_layout ) {
 		return $block_content;
+	}
+
+	$outer_class_names = array();
+
+	if ( $has_child_layout && ( 'fixed' === $block['attrs']['style']['layout']['selfStretch'] || 'fill' === $block['attrs']['style']['layout']['selfStretch'] ) ) {
+
+		$container_content_class = wp_unique_id( 'wp-container-content-' );
+
+		$child_layout_styles = array();
+
+		if ( 'fixed' === $block['attrs']['style']['layout']['selfStretch'] && isset( $block['attrs']['style']['layout']['flexSize'] ) ) {
+			$child_layout_styles[] = array(
+				'selector'     => ".$container_content_class",
+				'declarations' => array(
+					'flex-basis' => $block['attrs']['style']['layout']['flexSize'],
+					'box-sizing' => 'border-box',
+				),
+			);
+		} elseif ( 'fill' === $block['attrs']['style']['layout']['selfStretch'] ) {
+			$child_layout_styles[] = array(
+				'selector'     => ".$container_content_class",
+				'declarations' => array(
+					'flex-grow' => '1',
+				),
+			);
+		}
+
+		wp_style_engine_get_stylesheet_from_css_rules(
+			$child_layout_styles,
+			array(
+				'context'  => 'block-supports',
+				'prettify' => false,
+			)
+		);
+
+		$outer_class_names[] = $container_content_class;
+
+	}
+
+	// Return early if only child layout exists.
+	if ( ! $support_layout && ! empty( $outer_class_names ) ) {
+		$content = new WP_HTML_Tag_Processor( $block_content );
+		$content->next_tag();
+		$content->add_class( implode( ' ', $outer_class_names ) );
+		return (string) $content;
 	}
 
 	$block_gap              = wp_get_global_settings( array( 'spacing', 'blockGap' ) );
@@ -330,7 +396,6 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 
 	$class_names        = array();
 	$layout_definitions = _wp_array_get( $global_layout_settings, array( 'definitions' ), array() );
-	$block_classname    = wp_get_block_default_classname( $block['blockName'] );
 	$container_class    = wp_unique_id( 'wp-container-' );
 	$layout_classname   = '';
 
@@ -406,7 +471,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		$should_skip_gap_serialization = wp_should_skip_block_supports_serialization( $block_type, 'spacing', 'blockGap' );
 
 		$style = wp_get_layout_style(
-			".$block_classname.$container_class",
+			".$container_class.$container_class",
 			$used_layout,
 			$has_block_gap_support,
 			$gap_value,
@@ -421,6 +486,40 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		}
 	}
 
+	$content_with_outer_classnames = '';
+
+	if ( ! empty( $outer_class_names ) ) {
+		$content_with_outer_classnames = new WP_HTML_Tag_Processor( $block_content );
+		$content_with_outer_classnames->next_tag();
+		foreach ( $outer_class_names as $outer_class_name ) {
+			$content_with_outer_classnames->add_class( $outer_class_name );
+		}
+
+		$content_with_outer_classnames = (string) $content_with_outer_classnames;
+	}
+
+	/**
+	* The first chunk of innerContent contains the block markup up until the inner blocks start.
+	* We want to target the opening tag of the inner blocks wrapper, which is the last tag in that chunk.
+	*/
+	$inner_content_classnames = isset( $block['innerContent'][0] ) && 'string' === gettype( $block['innerContent'][0] ) ? wp_get_classnames_from_last_tag( $block['innerContent'][0] ) : '';
+
+	$content = $content_with_outer_classnames ? new WP_HTML_Tag_Processor( $content_with_outer_classnames ) : new WP_HTML_Tag_Processor( $block_content );
+
+	if ( $inner_content_classnames ) {
+		$content->next_tag( array( 'class_name' => $inner_content_classnames ) );
+		foreach ( $class_names as $class_name ) {
+			$content->add_class( $class_name );
+		}
+	} else {
+		$content->next_tag();
+		foreach ( $class_names as $class_name ) {
+			$content->add_class( $class_name );
+		}
+	}
+
+	return (string) $content;
+
 	/*
 	 * This assumes the hook only applies to blocks with a single wrapper.
 	 * A limitation of this hook is that nested inner blocks wrappers are not yet supported.
@@ -432,7 +531,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		1
 	);
 
-	return $content;
+	return (string) $content;
 }
 
 // Register the block support.
