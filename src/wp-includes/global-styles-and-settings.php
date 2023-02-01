@@ -233,10 +233,33 @@ function wp_get_global_stylesheet( $types = array() ) {
  * @return string Stylesheet.
  */
 function wp_get_global_styles_custom_css() {
-	// Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme developers workflow.
+function wp_get_global_styles_custom_css() {
+	/*
+	 * Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme
+	 * developer's workflow.
+	 *
+	 * @todo Replace `WP_DEBUG` once an "in development mode" check is available in Core.
+	 */
 	$can_use_cached = ! WP_DEBUG;
-	$cache_key      = 'gutenberg_get_global_custom_css';
-	$cache_group    = 'theme_json';
+
+	/*
+	 * By using the 'theme_json' group, this data is marked to be non-persistent across requests.
+	 * @see `wp_cache_add_non_persistent_groups()`.
+	 *
+	 * The rationale for this is to make sure derived data from theme.json
+	 * is always fresh from the potential modifications done via hooks
+	 * that can use dynamic data (modify the stylesheet depending on some option,
+	 * settings depending on user permissions, etc.).
+	 * See some of the existing hooks to modify theme.json behavior:
+	 * @see https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
+	 *
+	 * A different alternative considered was to invalidate the cache upon certain
+	 * events such as options add/update/delete, user meta, etc.
+	 * It was judged not enough, hence this approach.
+	 * @see https://github.com/WordPress/gutenberg/pull/45372
+	 */
+	$cache_key   = 'wp_get_global_styles_custom_css';
+	$cache_group = 'theme_json';
 	if ( $can_use_cached ) {
 		$cached = wp_cache_get( $cache_key, $cache_group );
 		if ( $cached ) {
