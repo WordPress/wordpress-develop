@@ -179,22 +179,22 @@ class Tests_Locale extends WP_UnitTestCase {
 	 */
 	public function test_get_word_count_type() {
 		// Default value is 'words'.
-		$this->assertSame( 'words' ), $this->locale->get_word_count_type() );
+		$this->assertSame( 'words', $this->locale->get_word_count_type() );
 		// Type set to empty, fallsback to 'words'.
 		$this->locale->word_count_type = '';
-		$this->assertSame( 'words' ), $this->locale->get_word_count_type() );
+		$this->assertSame( 'words', $this->locale->get_word_count_type() );
 		// Type set to 'foo' (wrong), fallsback to 'words'.
 		$this->locale->word_count_type = 'foo';
-		$this->assertSame( 'words' ), $this->locale->get_word_count_type() );
+		$this->assertSame( 'words', $this->locale->get_word_count_type() );
 		// Type set to 'words' (correct).
 		$this->locale->word_count_type = 'words';
-		$this->assertSame( 'words' ), $this->locale->get_word_count_type() );
+		$this->assertSame( 'words', $this->locale->get_word_count_type() );
 		// Type set to 'characters_excluding_spaces' (correct).
 		$this->locale->word_count_type = 'characters_excluding_spaces';
-		$this->assertSame( 'characters_excluding_spaces' ), $this->locale->get_word_count_type() );
+		$this->assertSame( 'characters_excluding_spaces', $this->locale->get_word_count_type() );
 		// Type set to 'characters_including_spaces' (correct).
 		$this->locale->word_count_type = 'characters_including_spaces';
-		$this->assertSame( 'characters_including_spaces' ), $this->locale->get_word_count_type() );
+		$this->assertSame( 'characters_including_spaces', $this->locale->get_word_count_type() );
 	}
 }
 
