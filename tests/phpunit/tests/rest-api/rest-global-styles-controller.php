@@ -66,10 +66,6 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 			)
 		);
 
-		if ( is_multisite() ) {
-			grant_super_admin( self::$admin_id );
-		}
-
 		// This creates the global styles for the current theme.
 		self::$global_styles_id = $factory->post->create(
 			array(
@@ -543,6 +539,9 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	 */
 	public function test_update_item_valid_styles_css() {
 		wp_set_current_user( self::$admin_id );
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+		}
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/global-styles/' . self::$global_styles_id );
 		$request->set_body_params(
 			array(
@@ -560,6 +559,9 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	 */
 	public function test_update_item_invalid_styles_css() {
 		wp_set_current_user( self::$admin_id );
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+		}
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/global-styles/' . self::$global_styles_id );
 		$request->set_body_params(
 			array(
@@ -569,5 +571,4 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_custom_css_illegal_markup', $response, 400 );
 	}
-
 }
