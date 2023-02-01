@@ -15,6 +15,36 @@
 class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
+	 * Administrator ID.
+	 *
+	 * @var int
+	 */
+	private static $administrator_id;
+
+	/**
+	 * User ID.
+	 *
+	 * @var int
+	 */
+	private static $user_id;
+
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
+		static::$administrator_id = self::factory()->user->create(
+			array(
+				'role' => 'administrator',
+			)
+		);
+
+		if ( is_multisite() ) {
+			grant_super_admin( self::$administrator_id );
+		}
+
+		static::$user_id = self::factory()->user->create();
+	}
+
+	/**
 	 * @ticket 52991
 	 * @ticket 54336
 	 */
