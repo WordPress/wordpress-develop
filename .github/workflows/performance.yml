@@ -17,6 +17,7 @@ jobs:
   # - Builds WordPress to run from the `build` directory.
   # - Starts the WordPress Docker container.
   # - Logs the running Docker containers.
+  # - Install Server-Timing MU plugin.
   # - Install WordPress within the Docker container.
   # - Run the Performance tests.
   # - Ensures version-controlled files are not modified or deleted.
@@ -55,6 +56,11 @@ jobs:
           docker-compose run --rm php php -m
           docker-compose run --rm php php -i
           docker-compose run --rm php locale -a
+
+      - name: Install MU plugin
+        run: |
+          mkdir ./src/wp-content/mu-plugins
+          cp ./tests/performance/plugins/server-timing/mu-plugin.php ./src/wp-content/mu-plugins/server-timing.php
 
       - name: Install WordPress
         run: npm run env:install
