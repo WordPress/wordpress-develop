@@ -2041,7 +2041,7 @@ class WP_HTML_Tag_Processor {
 		);
 
 		/*
-		 * 1. Apply the edits by flushing them to the output_buffer and updating the copied byte count.
+		 * 1. Apply the edits by flushing them to the output buffer and updating the copied byte count.
 		 *
 		 * Note: `apply_attributes_updates()` modifies `$this->output_buffer`.
 		 */
@@ -2049,8 +2049,8 @@ class WP_HTML_Tag_Processor {
 		$this->apply_attributes_updates();
 
 		/*
-		 * 2. Replace the original HTML with the now-updated HTML it's possible to seek to a previous
-		 *    location and have a consistent view of the updated document.
+		 * 2. Replace the original HTML with the now-updated HTML so that it's possible to
+		 *    seek to a previous location and have a consistent view of the updated document.
 		 */
 		$this->html                 = $this->output_buffer . substr( $this->html, $this->bytes_already_copied );
 		$this->output_buffer        = $content_up_to_opened_tag_name;
