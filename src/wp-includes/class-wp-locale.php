@@ -112,7 +112,7 @@ class WP_Locale {
 	 * @since 6.2.0
 	 * @var string
 	 */
-	public $word_count_type = 'words';
+	public $word_count_type;
 
 	/**
 	 * Constructor which calls helper methods to set up object variables.
@@ -245,10 +245,14 @@ class WP_Locale {
 		 * enter 'characters_excluding_spaces' or 'characters_including_spaces'. Otherwise, enter 'words'.
 		 * Do not translate into your own language.
 		 */
-		$word_count_type = _x( 'words', 'Word count type. Do not translate!' );
+		$word_count_type = is_null( $this->word_count_type ) ? _x( 'words', 'Word count type. Do not translate!' ) : $this->word_count_type;
 
+		// Check for valid types.
 		if ( 'characters_excluding_spaces' === $word_count_type || 'characters_including_spaces' === $word_count_type ) {
 			$this->word_count_type = $word_count_type;
+		} else {
+			// Defaults to 'words'.
+			$this->word_count_type = 'words';
 		}
 	}
 
