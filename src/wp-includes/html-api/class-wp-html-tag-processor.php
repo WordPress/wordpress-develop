@@ -2118,6 +2118,11 @@ class WP_HTML_Tag_Processor {
 			return;
 		}
 
+		// An empty query parameter applies no restrictions on the search.
+		if ( null === $query ) {
+			return;
+		}
+
 		// If not using the string interface, an associative array is required.
 		if ( ! is_array( $query ) ) {
 			_doing_it_wrong(
