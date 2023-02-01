@@ -1723,7 +1723,7 @@ HTML;
 	 *
 	 * @param $input_html HTML with multiple divs, one of which carries the "target" attribute.
 	 */
-	public function test_skips_contents_of_script_and_rcdata_regions($input_html ) {
+	public function test_skips_contents_of_script_and_rcdata_regions( $input_html ) {
 		$p = new WP_HTML_Tag_Processor( $input_html );
 		$p->next_tag( 'div' );
 
