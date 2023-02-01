@@ -68,7 +68,7 @@ class WP_Block_Supports_Dimensions_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_minimum_height_block_support().
+	 * Data provider.
 	 *
 	 * @return array
 	 */
