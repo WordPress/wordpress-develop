@@ -330,6 +330,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 						return $css_validation_result;
 					}
 				}
+				$config['styles'] = $request['styles'];
 			} elseif ( isset( $existing_config['styles'] ) ) {
 				$config['styles'] = $existing_config['styles'];
 			}
