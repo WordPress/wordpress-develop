@@ -1718,6 +1718,39 @@ HTML;
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
+	 *
+	 * @dataProvider data_skips_contents_of_script_and_rcdata_regions
+	 *
+	 * @param $input_html HTML with multiple divs, one of which carries the "target" attribute.
+	 */
+	public function test_skips_contents_of_script_and_rcdata_regions($input_html ) {
+		$p = new WP_HTML_Tag_Processor( $input_html );
+		$p->next_tag( 'div' );
+
+		$this->assertTrue( $p->get_attribute( 'target' ) );
+	}
+
+	/**
+	 * Data provider
+	 *
+	 * @return string[]
+	 */
+	public function data_skips_contents_of_script_and_rcdata_regions() {
+		return array(
+			'Balanced SCRIPT tags'                => '<script>console.log("<div>");</script><div target><div>',
+			'Unexpected SCRIPT closer after DIV'  => 'console.log("<div target>")</script><div><div>',
+			'Unexpected SCRIPT closer before DIV' => 'console.log("<span>")</script><div target><div>',
+			'Missing SCRIPT closer'               => '<script>console.log("<div>");<div><div></script><div target>',
+			'TITLE before DIV'                    => '<title><div></title><div target><div>',
+			'SCRIPT inside TITLE'                 => '<title><script><div></title><div target><div></script><div>',
+			'TITLE in TEXTAREA'                   => '<textarea><div><title><div></textarea><div target></title><div>',
+		);
+	}
+
+	/**
+	 * @ticket 56299
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
 	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 * @covers WP_HTML_Tag_Processor::get_updated_html
 	 */
