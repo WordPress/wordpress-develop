@@ -248,7 +248,7 @@ function wp_get_global_styles_custom_css() {
 		return '';
 	}
 
-	$tree       = WP_Theme_JSON_Resolver_Gutenberg::get_merged_data();
+	$tree       = WP_Theme_JSON_Resolver::get_merged_data();
 	$stylesheet = $tree->get_custom_css();
 
 	if ( $can_use_cached ) {
