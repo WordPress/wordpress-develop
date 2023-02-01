@@ -42,7 +42,7 @@ class Tests_Formatting_wpStripAllTags extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that `wp_strip_all_tags()` trigger a warning and returns
+	 * Tests that `wp_strip_all_tags()` triggers a warning and returns
 	 * an empty string when passed a non-string argument.
 	 *
 	 * @ticket 56434
