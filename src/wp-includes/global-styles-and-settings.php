@@ -227,7 +227,7 @@ function wp_get_global_stylesheet( $types = array() ) {
 
 /**
  * Gets the global styles custom css from theme.json.
- * 
+ *
  * @since 6.2.0 Added custom css support to theme.json.
  *
  * @return string Stylesheet.
