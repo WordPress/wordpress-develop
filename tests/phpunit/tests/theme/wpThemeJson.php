@@ -241,6 +241,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'color'      => array(
 				'link' => true,
 			),
+			'dimensions' => array(
+				'minHeight' => true,
+			),
 			'spacing'    => array(
 				'blockGap' => false,
 				'margin'   => true,
@@ -264,6 +267,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					),
 					'color'      => array(
 						'link' => true,
+					),
+					'dimensions' => array(
+						'minHeight' => true,
 					),
 					'spacing'    => array(
 						'blockGap' => false,
