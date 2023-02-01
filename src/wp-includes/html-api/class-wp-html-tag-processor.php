@@ -2020,7 +2020,7 @@ class WP_HTML_Tag_Processor {
 		 * When there is nothing more to update and nothing has already been
 		 * updated, return the original document and avoid a string copy.
 		 */
-		if ( $requires_no_updating && $this->bytes_already_copied === 0 ) {
+		if ( $requires_no_updating && 0 === $this->bytes_already_copied ) {
 			return $this->html;
 		}
 
