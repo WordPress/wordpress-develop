@@ -237,16 +237,10 @@ class Tests_Filesystem_MoveDir extends WP_UnitTestCase {
 
 		$dirlist = $wp_filesystem->dirlist( $to, true, true );
 
-		$this->assertIsArray(
-			$dirlist,
-			'The directory listing of the destination directory could not be retrieved.'
-		);
-
 		// Prevent PHP array sorting bugs from breaking tests.
 		$to_contents = array_keys( $dirlist );
-		sort( $to_contents );
 
-		$this->assertSame(
+		$this->assertSameSets(
 			array(
 				'existing_from_file.txt',
 				'existing_from_subdir',
