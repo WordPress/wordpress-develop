@@ -4518,7 +4518,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				),
 			)
 		);
-
 		$custom_css = 'body { color:purple; }';
 		$this->assertEquals( $custom_css, $theme_json->get_custom_css() );
 	}
