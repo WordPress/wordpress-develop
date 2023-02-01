@@ -50,8 +50,12 @@ module.exports = function(grunt) {
 
 	// Load tasks.
 	require('matchdep').filterDev(['grunt-*', '!grunt-legacy-util']).forEach( grunt.loadNpmTasks );
+
 	// Load legacy utils.
 	grunt.util = require('grunt-legacy-util');
+
+	// Load PostCSS tasks.
+	grunt.loadNpmTasks('@lodder/grunt-postcss');
 
 	// Project configuration.
 	grunt.initConfig({
