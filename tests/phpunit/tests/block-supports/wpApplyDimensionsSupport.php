@@ -6,7 +6,7 @@
  * @covers ::wp_apply_dimensions_support
  */
 
-class WP_Block_Supports_Dimensions_Test extends WP_UnitTestCase {
+class Tests_Block_Supports_wpApplyDimensionsSupport extends WP_UnitTestCase {
 	/**
 	 * @var string|null
 	 */
