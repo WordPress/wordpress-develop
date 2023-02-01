@@ -552,8 +552,6 @@ fieldset label,
 .wp-pwd {
 	margin-top: 1em;
 	position: relative;
-	display: flex;
-	gap: 0.25rem;
 }
 
 .wp-pwd button {
