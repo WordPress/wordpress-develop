@@ -317,13 +317,13 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		if ( isset( $request['styles'] ) || isset( $request['settings'] ) ) {
 			$config = array();
 			if ( isset( $request['styles'] ) ) {
-				$config['styles'] = $request['styles'];
-				if ( isset( $config['styles']['css'] ) ) {
-					$css_validation_result = $this->validate_custom_css( $config['styles']['css'] );
+				if ( isset( $request['styles']['css'] ) ) {
+					$css_validation_result = $this->validate_custom_css( $request['styles']['css'] );
 					if ( is_wp_error( $css_validation_result ) ) {
 						return $css_validation_result;
 					}
 				}
+				$config['styles'] = $request['styles'];
 			} elseif ( isset( $existing_config['styles'] ) ) {
 				$config['styles'] = $existing_config['styles'];
 			}
