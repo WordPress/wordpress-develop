@@ -104,8 +104,8 @@ function wp_default_packages_vendor( $scripts ) {
 	);
 
 	$vendor_scripts_versions = array(
-		'react'                       => '17.0.1',
-		'react-dom'                   => '17.0.1',
+		'react'                       => '18.2.0',
+		'react-dom'                   => '18.2.0',
 		'regenerator-runtime'         => '0.13.9',
 		'moment'                      => '2.29.4',
 		'lodash'                      => '4.17.19',
@@ -1609,6 +1609,12 @@ function wp_default_styles( $styles ) {
 		array()
 	);
 
+	$styles->add(
+		'wp-block-editor-content',
+		"/wp-includes/css/dist/block-editor/content$suffix.css",
+		array()
+	);
+
 	$wp_edit_blocks_dependencies = array(
 		'wp-components',
 		'wp-editor',
@@ -1617,6 +1623,7 @@ function wp_default_styles( $styles ) {
 		'wp-reset-editor-styles',
 		'wp-block-library',
 		'wp-reusable-blocks',
+		'wp-block-editor-content',
 	);
 
 	// Only load the default layout and margin styles for themes without theme.json file.
