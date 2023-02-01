@@ -54,6 +54,10 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		$wp_textdomain_registry = new WP_Textdomain_Registry();
 
+		// Clean up after any tests that don't restore the locale afterwards,
+		// before resetting $wp_locale_switcher.
+		restore_current_locale();
+
 		remove_filter( 'locale', array( $wp_locale_switcher, 'filter_locale' ) );
 		$wp_locale_switcher = new WP_Locale_Switcher();
 		$wp_locale_switcher->init();
