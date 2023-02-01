@@ -4542,6 +4542,7 @@ function _filter_query_attachment_filenames( $clauses ) {
  *
  * @since 2.1.0
  * @since 3.0.0 The `$post_type` parameter was added.
+ * @deprecated 6.2.0 Use WP_Query.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
