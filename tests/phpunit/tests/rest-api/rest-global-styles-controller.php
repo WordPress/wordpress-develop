@@ -54,6 +54,10 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	 * @param WP_UnitTest_Factory $factory Helper that lets us create fake data.
 	 */
 	public static function wpSetupBeforeClass( $factory ) {
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+		}
+
 		self::$admin_id = $factory->user->create(
 			array(
 				'role' => 'administrator',
