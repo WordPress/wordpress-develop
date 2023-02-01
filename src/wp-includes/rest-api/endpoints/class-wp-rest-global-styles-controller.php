@@ -297,7 +297,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * @since 6.2.0 Added validation of styles.css property.
 	 *
 	 * @param WP_REST_Request $request Request object.
-	 * @return stdClass Changes to pass to wp_update_post.
+	 * @return stdClass|WP_Error Prepared item on success. WP_Error on when the custom CSS is not valid.
 	 */
 	protected function prepare_item_for_database( $request ) {
 		$changes     = new stdClass();
@@ -318,9 +318,11 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 			$config = array();
 			if ( isset( $request['styles'] ) ) {
 				$config['styles'] = $request['styles'];
-				$validate_custom_css = $this->validate_custom_css( $request['styles']['css'] );
-				if ( is_wp_error( $validate_custom_css ) ) {
-					return $validate_custom_css;
+				if ( isset( $config['styles']['css'] ) ) {
+					$css_validation_result = $this->validate_custom_css( $config['styles']['css'] );
+					if ( is_wp_error( $css_validation_result ) ) {
+						return $css_validation_result;
+					}
 				}
 			} elseif ( isset( $existing_config['styles'] ) ) {
 				$config['styles'] = $existing_config['styles'];
@@ -681,7 +683,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		if ( preg_match( '#</?\w+#', $css ) ) {
 			return new WP_Error(
 				'rest_custom_css_illegal_markup',
-				__( 'Markup is not allowed in CSS.', 'gutenberg' ),
+				__( 'Markup is not allowed in CSS.' ),
 				array( 'status' => 400 )
 			);
 		}

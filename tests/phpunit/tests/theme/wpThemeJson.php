@@ -4540,7 +4540,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 		$custom_css = 'body { color:purple; }';
-		$this->assertEquals( $custom_css, $theme_json->get_custom_css() );
+		$this->assertSame( $custom_css, $theme_json->get_custom_css() );
 	}
 
 	/**
@@ -4549,7 +4549,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 57536
 	 *
 	 * @dataProvider data_custom_css_for_user_caps
-	 *
 	 *
 	 * @param string $user_property The property name for current user.
 	 * @param array  $expected      Expected results.
