@@ -66,10 +66,6 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 			)
 		);
 
-		if ( is_multisite() ) {
-			grant_super_admin( self::$admin_id );
-		}
-
 		// This creates the global styles for the current theme.
 		self::$global_styles_id = $factory->post->create(
 			array(
