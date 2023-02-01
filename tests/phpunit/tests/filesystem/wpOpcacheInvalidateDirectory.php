@@ -84,10 +84,6 @@ class Tests_Filesystem_WpOpcacheInvalidateDirectory extends WP_UnitTestCase {
 	 * @param string $dir A directory path.
 	 */
 	public function test_should_not_trigger_error_wp_opcache_valid_directory( $dir ) {
-		if ( 'test_dir' === $dir ) {
-			$dir = DIR_TESTDATA;
-		}
-
 		$this->assertNull( wp_opcache_invalidate_directory( $dir ) );
 	}
 
@@ -98,7 +94,7 @@ class Tests_Filesystem_WpOpcacheInvalidateDirectory extends WP_UnitTestCase {
 	 */
 	public function data_should_not_trigger_error_wp_opcache_valid_directory() {
 		return array(
-			'an existing directory'    => array( 'test_dir' ),
+			'an existing directory'    => array( DIR_TESTDATA ),
 			'a non-existent directory' => array( 'non_existent_directory' ),
 		);
 	}
