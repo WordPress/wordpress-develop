@@ -1733,17 +1733,17 @@ HTML;
 	/**
 	 * Data provider
 	 *
-	 * @return string[]
+	 * @return array[]
 	 */
 	public function data_skips_contents_of_script_and_rcdata_regions() {
 		return array(
-			'Balanced SCRIPT tags'                => '<script>console.log("<div>");</script><div target><div>',
-			'Unexpected SCRIPT closer after DIV'  => 'console.log("<div target>")</script><div><div>',
-			'Unexpected SCRIPT closer before DIV' => 'console.log("<span>")</script><div target><div>',
-			'Missing SCRIPT closer'               => '<script>console.log("<div>");<div><div></script><div target>',
-			'TITLE before DIV'                    => '<title><div></title><div target><div>',
-			'SCRIPT inside TITLE'                 => '<title><script><div></title><div target><div></script><div>',
-			'TITLE in TEXTAREA'                   => '<textarea><div><title><div></textarea><div target></title><div>',
+			'Balanced SCRIPT tags'                => array( '<script>console.log("<div>");</script><div target><div>' ),
+			'Unexpected SCRIPT closer after DIV'  => array( 'console.log("<div target>")</script><div><div>' ),
+			'Unexpected SCRIPT closer before DIV' => array( 'console.log("<span>")</script><div target><div>' ),
+			'Missing SCRIPT closer'               => array( '<script>console.log("<div>");<div><div></script><div target>' ),
+			'TITLE before DIV'                    => array( '<title><div></title><div target><div>' ),
+			'SCRIPT inside TITLE'                 => array( '<title><script><div></title><div target><div></script><div>' ),
+			'TITLE in TEXTAREA'                   => array( '<textarea><div><title><div></textarea><div target></title><div>' ),
 		);
 	}
 

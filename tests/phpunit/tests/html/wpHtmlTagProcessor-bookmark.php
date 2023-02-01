@@ -339,8 +339,6 @@ HTML;
 		$p = new WP_HTML_Tag_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
 		$p->next_tag( 'li' );
 
-		$this->expectException( Exception::class );
-
 		for ( $i = 0;$i < WP_HTML_Tag_Processor::MAX_BOOKMARKS;$i++ ) {
 			$this->assertTrue( $p->set_bookmark( "bookmark $i" ), "Could not allocate the bookmark #$i" );
 		}
@@ -357,8 +355,6 @@ HTML;
 		$p = new WP_HTML_Tag_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
 		$p->next_tag( 'li' );
 		$p->set_bookmark( 'bookmark' );
-
-		$this->expectException( Exception::class );
 
 		for ( $i = 0; $i < WP_HTML_Tag_Processor::MAX_SEEK_OPS; $i++ ) {
 			$this->assertTrue( $p->seek( 'bookmark' ), 'Could not seek to the "bookmark"' );
