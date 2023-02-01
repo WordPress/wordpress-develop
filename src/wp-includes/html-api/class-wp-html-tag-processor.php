@@ -319,29 +319,50 @@ class WP_HTML_Tag_Processor {
 	private $stop_on_tag_closers;
 
 	/**
-	 * The updated HTML document.
+	 * Holds updated HTML as updates are applied.
+	 *
+	 * Updates and unmodified portions of the input document are
+	 * appended to this value as they are applied. It will hold
+	 * a copy of the updated document up until the point of the
+	 * latest applied update. The fully-updated HTML document
+	 * will comprise this value plus the part of the input document
+	 * which follows that latest update.
+	 *
+	 * @see $bytes_already_copied
 	 *
 	 * @since 6.2.0
 	 * @var string
 	 */
-	private $updated_html = '';
+	private $output_buffer = '';
 
 	/**
-	 * How many bytes from the original HTML document were already read.
+	 * How many bytes from the original HTML document have been read and parsed.
+	 *
+	 * This value points to the latest byte offset in the input document which
+	 * has been already parsed. It is the internal cursor for the Tag Processor
+	 * and updates while scanning through the HTML tokens.
 	 *
 	 * @since 6.2.0
 	 * @var int
 	 */
-	private $parsed_bytes = 0;
+	private $bytes_already_parsed = 0;
 
 	/**
-	 * How many bytes from the original HTML document were already treated
-	 * with the requested replacements.
+	 * How many bytes from the input HTML document have already been
+	 * copied into the output buffer.
+	 *
+	 * Lexical updates are enqueued and processed in batches. Prior
+	 * to any given update in the input document, there might exist
+	 * a span of HTML unaffected by any changes. This span ought to
+	 * be copied verbatim into the output buffer before applying the
+	 * following update. This value will point to the starting byte
+	 * offset in the input document where that unaffected span of
+	 * HTML starts.
 	 *
 	 * @since 6.2.0
 	 * @var int
 	 */
-	private $updated_bytes = 0;
+	private $bytes_already_copied = 0;
 
 	/**
 	 * Byte offset in input document where current tag name starts.
@@ -458,7 +479,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @var WP_HTML_Span[]
 	 */
-	private $bookmarks = array();
+	protected $bookmarks = array();
 
 	const ADD_CLASS    = true;
 	const REMOVE_CLASS = false;
@@ -507,7 +528,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @var WP_HTML_Text_Replacement[]
 	 */
-	private $lexical_updates = array();
+	protected $lexical_updates = array();
 
 	/**
 	 * Tracks and limits `seek()` calls to prevent accidental infinite loops.
@@ -516,7 +537,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @var int
 	 */
-	private $seek_count = 0;
+	protected $seek_count = 0;
 
 	/**
 	 * Constructor.
@@ -551,13 +572,13 @@ class WP_HTML_Tag_Processor {
 		$already_found = 0;
 
 		do {
-			if ( $this->parsed_bytes >= strlen( $this->html ) ) {
+			if ( $this->bytes_already_parsed >= strlen( $this->html ) ) {
 				return false;
 			}
 
 			// Find the next tag if it exists.
 			if ( false === $this->parse_next_tag() ) {
-				$this->parsed_bytes = strlen( $this->html );
+				$this->bytes_already_parsed = strlen( $this->html );
 
 				return false;
 			}
@@ -568,12 +589,12 @@ class WP_HTML_Tag_Processor {
 			}
 
 			// Ensure that the tag closes before the end of the document.
-			$tag_ends_at = strpos( $this->html, '>', $this->parsed_bytes );
+			$tag_ends_at = strpos( $this->html, '>', $this->bytes_already_parsed );
 			if ( false === $tag_ends_at ) {
 				return false;
 			}
-			$this->tag_ends_at  = $tag_ends_at;
-			$this->parsed_bytes = $tag_ends_at;
+			$this->tag_ends_at          = $tag_ends_at;
+			$this->bytes_already_parsed = $tag_ends_at;
 
 			// Finally, check if the parsed tag and its attributes match the search query.
 			if ( $this->matches() ) {
@@ -590,13 +611,13 @@ class WP_HTML_Tag_Processor {
 				$tag_name = $this->get_tag();
 
 				if ( 'SCRIPT' === $tag_name && ! $this->skip_script_data() ) {
-					$this->parsed_bytes = strlen( $this->html );
+					$this->bytes_already_parsed = strlen( $this->html );
 					return false;
 				} elseif (
 					( 'TEXTAREA' === $tag_name || 'TITLE' === $tag_name ) &&
 					! $this->skip_rcdata( $tag_name )
 				) {
-					$this->parsed_bytes = strlen( $this->html );
+					$this->bytes_already_parsed = strlen( $this->html );
 					return false;
 				}
 			}
@@ -744,14 +765,14 @@ class WP_HTML_Tag_Processor {
 		$doc_length = strlen( $html );
 		$tag_length = strlen( $tag_name );
 
-		$at = $this->parsed_bytes;
+		$at = $this->bytes_already_parsed;
 
 		while ( false !== $at && $at < $doc_length ) {
 			$at = strpos( $this->html, '</', $at );
 
 			// If there is no possible tag closer then fail.
 			if ( false === $at || ( $at + $tag_length ) >= $doc_length ) {
-				$this->parsed_bytes = $doc_length;
+				$this->bytes_already_parsed = $doc_length;
 				return false;
 			}
 
@@ -775,8 +796,8 @@ class WP_HTML_Tag_Processor {
 				}
 			}
 
-			$at                += $tag_length;
-			$this->parsed_bytes = $at;
+			$at                        += $tag_length;
+			$this->bytes_already_parsed = $at;
 
 			/*
 			 * Ensure that the tag name terminates to avoid matching on
@@ -792,13 +813,13 @@ class WP_HTML_Tag_Processor {
 			while ( $this->parse_next_attribute() ) {
 				continue;
 			}
-			$at = $this->parsed_bytes;
+			$at = $this->bytes_already_parsed;
 			if ( $at >= strlen( $this->html ) ) {
 				return false;
 			}
 
 			if ( '>' === $html[ $at ] || '/' === $html[ $at ] ) {
-				++$this->parsed_bytes;
+				++$this->bytes_already_parsed;
 				return true;
 			}
 		}
@@ -815,7 +836,7 @@ class WP_HTML_Tag_Processor {
 		$state      = 'unescaped';
 		$html       = $this->html;
 		$doc_length = strlen( $html );
-		$at         = $this->parsed_bytes;
+		$at         = $this->bytes_already_parsed;
 
 		while ( false !== $at && $at < $doc_length ) {
 			$at += strcspn( $html, '-<', $at );
@@ -916,8 +937,8 @@ class WP_HTML_Tag_Processor {
 			}
 
 			if ( $is_closing ) {
-				$this->parsed_bytes = $at;
-				if ( $this->parsed_bytes >= $doc_length ) {
+				$this->bytes_already_parsed = $at;
+				if ( $this->bytes_already_parsed >= $doc_length ) {
 					return false;
 				}
 
@@ -925,8 +946,8 @@ class WP_HTML_Tag_Processor {
 					continue;
 				}
 
-				if ( '>' === $html[ $this->parsed_bytes ] ) {
-					++$this->parsed_bytes;
+				if ( '>' === $html[ $this->bytes_already_parsed ] ) {
+					++$this->bytes_already_parsed;
 					return true;
 				}
 			}
@@ -949,7 +970,7 @@ class WP_HTML_Tag_Processor {
 
 		$html       = $this->html;
 		$doc_length = strlen( $html );
-		$at         = $this->parsed_bytes;
+		$at         = $this->bytes_already_parsed;
 
 		while ( false !== $at && $at < $doc_length ) {
 			$at = strpos( $html, '<', $at );
@@ -981,9 +1002,9 @@ class WP_HTML_Tag_Processor {
 			$tag_name_prefix_length = strspn( $html, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', $at + 1 );
 			if ( $tag_name_prefix_length > 0 ) {
 				++$at;
-				$this->tag_name_length    = $tag_name_prefix_length + strcspn( $html, " \t\f\r\n/>", $at + $tag_name_prefix_length );
-				$this->tag_name_starts_at = $at;
-				$this->parsed_bytes       = $at + $this->tag_name_length;
+				$this->tag_name_length      = $tag_name_prefix_length + strcspn( $html, " \t\f\r\n/>", $at + $tag_name_prefix_length );
+				$this->tag_name_starts_at   = $at;
+				$this->bytes_already_parsed = $at + $this->tag_name_length;
 				return true;
 			}
 
@@ -1103,8 +1124,8 @@ class WP_HTML_Tag_Processor {
 	 */
 	private function parse_next_attribute() {
 		// Skip whitespace and slashes.
-		$this->parsed_bytes += strspn( $this->html, " \t\f\r\n/", $this->parsed_bytes );
-		if ( $this->parsed_bytes >= strlen( $this->html ) ) {
+		$this->bytes_already_parsed += strspn( $this->html, " \t\f\r\n/", $this->bytes_already_parsed );
+		if ( $this->bytes_already_parsed >= strlen( $this->html ) ) {
 			return false;
 		}
 
@@ -1114,53 +1135,53 @@ class WP_HTML_Tag_Processor {
 		 *
 		 * @see https://html.spec.whatwg.org/multipage/parsing.html#before-attribute-name-state
 		 */
-		$name_length = '=' === $this->html[ $this->parsed_bytes ]
-			? 1 + strcspn( $this->html, "=/> \t\f\r\n", $this->parsed_bytes + 1 )
-			: strcspn( $this->html, "=/> \t\f\r\n", $this->parsed_bytes );
+		$name_length = '=' === $this->html[ $this->bytes_already_parsed ]
+			? 1 + strcspn( $this->html, "=/> \t\f\r\n", $this->bytes_already_parsed + 1 )
+			: strcspn( $this->html, "=/> \t\f\r\n", $this->bytes_already_parsed );
 
 		// No attribute, just tag closer.
-		if ( 0 === $name_length || $this->parsed_bytes + $name_length >= strlen( $this->html ) ) {
+		if ( 0 === $name_length || $this->bytes_already_parsed + $name_length >= strlen( $this->html ) ) {
 			return false;
 		}
 
-		$attribute_start     = $this->parsed_bytes;
-		$attribute_name      = substr( $this->html, $attribute_start, $name_length );
-		$this->parsed_bytes += $name_length;
-		if ( $this->parsed_bytes >= strlen( $this->html ) ) {
+		$attribute_start             = $this->bytes_already_parsed;
+		$attribute_name              = substr( $this->html, $attribute_start, $name_length );
+		$this->bytes_already_parsed += $name_length;
+		if ( $this->bytes_already_parsed >= strlen( $this->html ) ) {
 			return false;
 		}
 
 		$this->skip_whitespace();
-		if ( $this->parsed_bytes >= strlen( $this->html ) ) {
+		if ( $this->bytes_already_parsed >= strlen( $this->html ) ) {
 			return false;
 		}
 
-		$has_value = '=' === $this->html[ $this->parsed_bytes ];
+		$has_value = '=' === $this->html[ $this->bytes_already_parsed ];
 		if ( $has_value ) {
-			++$this->parsed_bytes;
+			++$this->bytes_already_parsed;
 			$this->skip_whitespace();
-			if ( $this->parsed_bytes >= strlen( $this->html ) ) {
+			if ( $this->bytes_already_parsed >= strlen( $this->html ) ) {
 				return false;
 			}
 
-			switch ( $this->html[ $this->parsed_bytes ] ) {
+			switch ( $this->html[ $this->bytes_already_parsed ] ) {
 				case "'":
 				case '"':
-					$quote              = $this->html[ $this->parsed_bytes ];
-					$value_start        = $this->parsed_bytes + 1;
-					$value_length       = strcspn( $this->html, $quote, $value_start );
-					$attribute_end      = $value_start + $value_length + 1;
-					$this->parsed_bytes = $attribute_end;
+					$quote                      = $this->html[ $this->bytes_already_parsed ];
+					$value_start                = $this->bytes_already_parsed + 1;
+					$value_length               = strcspn( $this->html, $quote, $value_start );
+					$attribute_end              = $value_start + $value_length + 1;
+					$this->bytes_already_parsed = $attribute_end;
 					break;
 
 				default:
-					$value_start        = $this->parsed_bytes;
-					$value_length       = strcspn( $this->html, "> \t\f\r\n", $value_start );
-					$attribute_end      = $value_start + $value_length;
-					$this->parsed_bytes = $attribute_end;
+					$value_start                = $this->bytes_already_parsed;
+					$value_length               = strcspn( $this->html, "> \t\f\r\n", $value_start );
+					$attribute_end              = $value_start + $value_length;
+					$this->bytes_already_parsed = $attribute_end;
 			}
 		} else {
-			$value_start   = $this->parsed_bytes;
+			$value_start   = $this->bytes_already_parsed;
 			$value_length  = 0;
 			$attribute_end = $attribute_start + $name_length;
 		}
@@ -1206,7 +1227,7 @@ class WP_HTML_Tag_Processor {
 	 * @return void
 	 */
 	private function skip_whitespace() {
-		$this->parsed_bytes += strspn( $this->html, " \t\f\r\n", $this->parsed_bytes );
+		$this->bytes_already_parsed += strspn( $this->html, " \t\f\r\n", $this->bytes_already_parsed );
 	}
 
 	/**
@@ -1395,9 +1416,9 @@ class WP_HTML_Tag_Processor {
 		usort( $this->lexical_updates, array( self::class, 'sort_start_ascending' ) );
 
 		foreach ( $this->lexical_updates as $diff ) {
-			$this->updated_html .= substr( $this->html, $this->updated_bytes, $diff->start - $this->updated_bytes );
-			$this->updated_html .= $diff->text;
-			$this->updated_bytes = $diff->end;
+			$this->output_buffer       .= substr( $this->html, $this->bytes_already_copied, $diff->start - $this->bytes_already_copied );
+			$this->output_buffer       .= $diff->text;
+			$this->bytes_already_copied = $diff->end;
 		}
 
 		/*
@@ -1470,9 +1491,9 @@ class WP_HTML_Tag_Processor {
 		$this->get_updated_html();
 
 		// Point this tag processor before the sought tag opener and consume it.
-		$this->parsed_bytes  = $this->bookmarks[ $bookmark_name ]->start;
-		$this->updated_bytes = $this->parsed_bytes;
-		$this->updated_html  = substr( $this->html, 0, $this->updated_bytes );
+		$this->bytes_already_parsed = $this->bookmarks[ $bookmark_name ]->start;
+		$this->bytes_already_copied = $this->bytes_already_parsed;
+		$this->output_buffer        = substr( $this->html, 0, $this->bytes_already_copied );
 		return $this->next_tag();
 	}
 
@@ -1993,42 +2014,62 @@ class WP_HTML_Tag_Processor {
 	 * @return string The processed HTML.
 	 */
 	public function get_updated_html() {
-		// Short-circuit if there are no new updates to apply.
-		if ( ! count( $this->classname_updates ) && ! count( $this->lexical_updates ) ) {
-			return $this->updated_html . substr( $this->html, $this->updated_bytes );
+		$requires_no_updating = 0 === count( $this->classname_updates ) && 0 === count( $this->lexical_updates );
+
+		/*
+		 * When there is nothing more to update and nothing has already been
+		 * updated, return the original document and avoid a string copy.
+		 */
+		if ( $requires_no_updating && $this->bytes_already_copied === 0 ) {
+			return $this->html;
 		}
 
-		// Otherwise: apply the updates, rewind before the current tag, and parse it again.
-		$delta_between_updated_html_end_and_current_tag_end = substr(
-			$this->html,
-			$this->updated_bytes,
-			$this->tag_name_starts_at + $this->tag_name_length - $this->updated_bytes
-		);
-		$updated_html_up_to_current_tag_name_end            = $this->updated_html . $delta_between_updated_html_end_and_current_tag_end;
+		/*
+		 * If there are no updates left to apply, but some have already
+		 * been applied, then finish by copying the rest of the input
+		 * to the end of the updated document and return.
+		 */
+		if ( $requires_no_updating && $this->bytes_already_copied > 0 ) {
+			return $this->output_buffer . substr( $this->html, $this->bytes_already_copied );
+		}
 
-		// 1. Apply the attributes updates to the original HTML
+		// Apply the updates, rewind to before the current tag, and reparse the attributes.
+		$content_up_to_opened_tag_name = $this->output_buffer . substr(
+			$this->html,
+			$this->bytes_already_copied,
+			$this->tag_name_starts_at + $this->tag_name_length - $this->bytes_already_copied
+		);
+
+		/*
+		 * 1. Apply the edits by flushing them to the output_buffer and updating the copied byte count.
+		 *
+		 * Note: `apply_attributes_updates()` modifies `$this->output_buffer`.
+		 */
 		$this->class_name_updates_to_attributes_updates();
 		$this->apply_attributes_updates();
 
-		// 2. Replace the original HTML with the updated HTML
-		$this->html          = $this->updated_html . substr( $this->html, $this->updated_bytes );
-		$this->updated_html  = $updated_html_up_to_current_tag_name_end;
-		$this->updated_bytes = strlen( $this->updated_html );
-
-		// 3. Point this tag processor at the original tag opener and consume it
+		/*
+		 * 2. Replace the original HTML with the now-updated HTML it's possible to seek to a previous
+		 *    location and have a consistent view of the updated document.
+		 */
+		$this->html                 = $this->output_buffer . substr( $this->html, $this->bytes_already_copied );
+		$this->output_buffer        = $content_up_to_opened_tag_name;
+		$this->bytes_already_copied = strlen( $this->output_buffer );
 
 		/*
+		 * 3. Point this tag processor at the original tag opener and consume it
+		 *
 		 * At this point the internal cursor points to the end of the tag name.
 		 * Rewind before the tag name starts so that it's as if the cursor didn't
 		 * move; a call to `next_tag()` will reparse the recently-updated attributes
 		 * and additional calls to modify the attributes will apply at this same
-		 * lcoation.
+		 * location.
 		 *
 		 * <p>Previous HTML<em>More HTML</em></p>
 		 *                 ^  | back up by the length of the tag name plus the opening <
 		 *                 \<-/ back up by strlen("em") + 1 ==> 3
 		 */
-		$this->parsed_bytes = strlen( $updated_html_up_to_current_tag_name_end ) - $this->tag_name_length - 1;
+		$this->bytes_already_parsed = strlen( $content_up_to_opened_tag_name ) - $this->tag_name_length - 1;
 		$this->next_tag();
 
 		return $this->html;
