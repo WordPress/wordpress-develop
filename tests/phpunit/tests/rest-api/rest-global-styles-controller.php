@@ -550,8 +550,11 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		echo var_dump( $data );
-		$this->assertSame( 'body { color: red; }', $data['styles']['css'] );
+		if (is_array($data['styles'])) {
+			$this->assertSame( 'body { color: red; }', $data['styles']['css'] );
+		} else {
+			$this->assertSame( 'body { color: red; }', $data['styles']->css );
+		}
 	}
 
 	/**
