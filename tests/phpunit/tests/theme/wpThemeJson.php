@@ -4624,4 +4624,78 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Tests that custom CSS is kept for users with correct capabilities and removed for others.
+	 *
+	 * @ticket 57536
+	 *
+	 * @dataProvider data_custom_css_for_user_caps
+	 *
+	 *
+	 * @param string $user_property The property name for current user.
+	 * @param array  $expected      Expected results.
+	 */
+	public function test_custom_css_for_user_caps( $user_property, array $expected ) {
+		wp_set_current_user( static::${$user_property} );
+
+		$actual = WP_Theme_JSON::remove_insecure_properties(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'css'    => 'body { color:purple; }',
+					'blocks' => array(
+						'core/separator' => array(
+							'color' => array(
+								'background' => 'blue',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$this->assertSameSetsWithIndex( $expected, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_custom_css_for_user_caps() {
+		return array(
+			'allows custom css for users with caps'     => array(
+				'user_property' => 'administrator_id',
+				'expected'      => array(
+					'version' => WP_Theme_JSON::LATEST_SCHEMA,
+					'styles'  => array(
+						'css'    => 'body { color:purple; }',
+						'blocks' => array(
+							'core/separator' => array(
+								'color' => array(
+									'background' => 'blue',
+								),
+							),
+						),
+					),
+				),
+			),
+			'removes custom css for users without caps' => array(
+				'user_property' => 'user_id',
+				'expected'      => array(
+					'version' => WP_Theme_JSON::LATEST_SCHEMA,
+					'styles'  => array(
+						'blocks' => array(
+							'core/separator' => array(
+								'color' => array(
+									'background' => 'blue',
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+	}
 }
