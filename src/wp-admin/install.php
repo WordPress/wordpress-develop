@@ -140,10 +140,10 @@ function display_setup_form( $error = null ) {
 			<td>
 				<div class="wp-pwd">
 					<?php $initial_password = isset( $_POST['admin_password'] ) ? stripslashes( $_POST['admin_password'] ) : wp_generate_password( 18 ); ?>
-					<div>
+					<span class="password-input-wrapper">
 						<input type="password" name="admin_password" id="pass1" class="regular-text" spellcheck="false" autocomplete="new-password" data-reveal="1" data-pw="<?php echo esc_attr( $initial_password ); ?>" aria-describedby="pass-strength-result" />
 						<div id="pass-strength-result" aria-live="polite"></div>
-					</div>
+					</span>
 					<button type="button" class="button wp-hide-pw hide-if-no-js" data-start-masked="<?php echo (int) isset( $_POST['admin_password'] ); ?>" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 						<span class="dashicons dashicons-hidden"></span>
 						<span class="text"><?php _e( 'Hide' ); ?></span>

@@ -604,6 +604,10 @@ fieldset label,
 	opacity: 1;
 }
 
+.password-input-wrapper {
+	display: inline-block;
+}
+
 .password-input-wrapper input {
 	font-family: Consolas, Monaco, monospace;
 }
