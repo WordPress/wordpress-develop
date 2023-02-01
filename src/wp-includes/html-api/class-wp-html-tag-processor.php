@@ -715,9 +715,11 @@ class WP_HTML_Tag_Processor {
 		}
 
 		if ( ! array_key_exists( $name, $this->bookmarks ) && count( $this->bookmarks ) >= self::MAX_BOOKMARKS ) {
-			if ( WP_DEBUG ) {
-				trigger_error( "Too many bookmarks: cannot create '{$name}'", E_USER_WARNING );
-			}
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Too many bookmarks: cannot create any more.' ),
+				'6.2.0'
+			);
 			return false;
 		}
 
@@ -1474,16 +1476,20 @@ class WP_HTML_Tag_Processor {
 	 */
 	public function seek( $bookmark_name ) {
 		if ( ! array_key_exists( $bookmark_name, $this->bookmarks ) ) {
-			if ( WP_DEBUG ) {
-				trigger_error( 'Invalid bookmark name', E_USER_WARNING );
-			}
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Unknown bookmark name.' ),
+				'6.2.0'
+			);
 			return false;
 		}
 
 		if ( ++$this->seek_count > self::MAX_SEEK_OPS ) {
-			if ( WP_DEBUG ) {
-				trigger_error( 'Too many calls to seek() - this can lead to performance issues.', E_USER_WARNING );
-			}
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Too many calls to seek() - this can lead to performance issues.' ),
+				'6.2.0'
+			);
 			return false;
 		}
 
@@ -1807,9 +1813,11 @@ class WP_HTML_Tag_Processor {
 			']~Ssu',
 			$name
 		) ) {
-			if ( WP_DEBUG ) {
-				trigger_error( 'Invalid attribute name', E_USER_WARNING );
-			}
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Invalid attribute name.' ),
+				'6.2.0'
+			);
 
 			return false;
 		}
@@ -2112,6 +2120,11 @@ class WP_HTML_Tag_Processor {
 
 		// If not using the string interface, an associative array is required.
 		if ( ! is_array( $query ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The query argument must be an array or a tag name.' ),
+				'6.2.0'
+			);
 			return;
 		}
 
