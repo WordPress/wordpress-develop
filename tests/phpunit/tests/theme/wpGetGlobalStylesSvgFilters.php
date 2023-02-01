@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Tests wp_get_global_styles_svg_filters().
  *
@@ -23,7 +22,7 @@ class Tests_Theme_wpGetGlobalStylesSvgFilters extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_get_global_styles_svg_filters
 	 *
-	 * @ticket 56970
+	 * @ticket 57568
 	 */
 	public function test_switching_themes_should_recalculate_svg() {
 		$svg_for_default_theme = wp_get_global_styles_svg_filters();
