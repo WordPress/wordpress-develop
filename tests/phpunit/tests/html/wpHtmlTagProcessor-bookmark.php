@@ -16,7 +16,7 @@ class Tests_HTML_wpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 	/**
 	 * @ticket 56299
 	 *
-	 * @covers ::set_bookmark
+	 * @covers WP_HTML_Tag_Processor::set_bookmark
 	 */
 	public function test_set_bookmark() {
 		$p = new WP_HTML_Tag_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
@@ -30,7 +30,7 @@ class Tests_HTML_wpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 	/**
 	 * @ticket 56299
 	 *
-	 * @covers ::release_bookmark
+	 * @covers WP_HTML_Tag_Processor::release_bookmark
 	 */
 	public function test_release_bookmark() {
 		$p = new WP_HTML_Tag_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
@@ -43,8 +43,7 @@ class Tests_HTML_wpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 	/**
 	 * @ticket 56299
 	 *
-	 * @covers ::seek
-	 * @covers ::set_bookmark
+	 * @covers WP_HTML_Tag_Processor::seek
 	 */
 	public function test_seek() {
 		$p = new WP_HTML_Tag_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
@@ -57,7 +56,7 @@ class Tests_HTML_wpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 		$p->seek( 'first li' );
 		$p->set_attribute( 'foo-1', 'bar-1' );
 
-		$this->assertEquals(
+		$this->assertSame(
 			'<ul><li foo-1="bar-1">One</li><li foo-2="bar-2">Two</li><li>Three</li></ul>',
 			$p->get_updated_html()
 		);
@@ -98,9 +97,8 @@ class Tests_HTML_wpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 	 *
 	 * @ticket 56299
 	 *
-	 * @covers ::seek
-	 * @covers ::set_bookmark
-	 * @covers ::apply_attributes_updates
+	 * @covers WP_HTML_Tag_Processor::seek
+	 * @covers WP_HTML_Tag_Processor::set_bookmark
 	 */
 	public function test_removing_long_attributes_doesnt_break_seek() {
 		$input = <<<HTML
@@ -128,8 +126,8 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-	 * @covers ::seek
-	 * @covers ::set_bookmark
+	 * @covers WP_HTML_Tag_Processor::seek
+	 * @covers WP_HTML_Tag_Processor::set_bookmark
 	 */
 	public function test_bookmarks_complex_use_case() {
 		$input           = <<<HTML
@@ -228,7 +226,7 @@ HTML;
 		$p->remove_attribute( 'type' );
 		$p->set_attribute( 'class', 'hx_create-pr-button' );
 
-		$this->assertEquals(
+		$this->assertSame(
 			$expected_output,
 			$p->get_updated_html()
 		);
@@ -237,8 +235,7 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-	 * @covers ::seek
-	 * @covers ::set_bookmark
+	 * @covers WP_HTML_Tag_Processor::seek
 	 */
 	public function test_updates_bookmark_for_additions_after_both_sides() {
 		$p = new WP_HTML_Tag_Processor( '<div>First</div><div>Second</div>' );
@@ -250,7 +247,7 @@ HTML;
 		$p->seek( 'first' );
 		$p->add_class( 'first' );
 
-		$this->assertEquals(
+		$this->assertSame(
 			'<div class="first">First</div><div class="second">Second</div>',
 			$p->get_updated_html()
 		);
@@ -259,8 +256,7 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-	 * @covers ::seek
-	 * @covers ::set_bookmark
+	 * @covers WP_HTML_Tag_Processor::seek
 	 */
 	public function test_updates_bookmark_for_additions_before_both_sides() {
 		$p = new WP_HTML_Tag_Processor( '<div>First</div><div>Second</div>' );
@@ -275,7 +271,7 @@ HTML;
 		$p->seek( 'second' );
 		$p->add_class( 'second' );
 
-		$this->assertEquals(
+		$this->assertSame(
 			'<div class="first">First</div><div class="second">Second</div>',
 			$p->get_updated_html()
 		);
@@ -284,8 +280,7 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-	 * @covers ::seek
-	 * @covers ::set_bookmark
+	 * @covers WP_HTML_Tag_Processor::seek
 	 */
 	public function test_updates_bookmark_for_deletions_after_both_sides() {
 		$p = new WP_HTML_Tag_Processor( '<div>First</div><div disabled>Second</div>' );
@@ -297,7 +292,7 @@ HTML;
 		$p->seek( 'first' );
 		$p->set_attribute( 'untouched', true );
 
-		$this->assertEquals(
+		$this->assertSame(
 			/** @TODO: we shouldn't have to assert the extra space after removing the attribute. */
 			'<div untouched>First</div><div >Second</div>',
 			$p->get_updated_html()
@@ -307,8 +302,7 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-	 * @covers ::seek
-	 * @covers ::set_bookmark
+	 * @covers WP_HTML_Tag_Processor::seek
 	 */
 	public function test_updates_bookmark_for_deletions_before_both_sides() {
 		$p = new WP_HTML_Tag_Processor( '<div disabled>First</div><div>Second</div>' );
@@ -323,7 +317,7 @@ HTML;
 		$p->seek( 'second' );
 		$p->set_attribute( 'safe', true );
 
-		$this->assertEquals(
+		$this->assertSame(
 			/** @TODO: we shouldn't have to assert the extra space after removing the attribute. */
 			'<div >First</div><div safe>Second</div>',
 			$p->get_updated_html()
@@ -333,7 +327,7 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-	 * @covers ::set_bookmark
+	 * @covers WP_HTML_Tag_Processor::set_bookmark
 	 */
 	public function test_limits_the_number_of_bookmarks() {
 		$p = new WP_HTML_Tag_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
@@ -350,7 +344,7 @@ HTML;
 	/**
 	 * @ticket 56299
 	 *
-	 * @covers ::seek
+	 * @covers WP_HTML_Tag_Processor::seek
 	 */
 	public function test_limits_the_number_of_seek_calls() {
 		$p = new WP_HTML_Tag_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
