@@ -126,7 +126,6 @@ function wp_get_global_styles( $path = array(), $context = array() ) {
  *
  * @since 5.9.0
  * @since 6.1.0 Added 'base-layout-styles' support.
- * @since 6.2.0 Support for custom-css type added.
  *
  * @param array $types Optional. Types of styles to load.
  *                     It accepts as values 'variables', 'presets', 'styles', 'base-layout-styles'.
@@ -175,7 +174,7 @@ function wp_get_global_stylesheet( $types = array() ) {
 	if ( empty( $types ) && ! $supports_theme_json ) {
 		$types = array( 'variables', 'presets', 'base-layout-styles' );
 	} elseif ( empty( $types ) ) {
-		$types = array( 'variables', 'styles', 'presets', 'custom-css' );
+		$types = array( 'variables', 'styles', 'presets' );
 	}
 
 	/*
