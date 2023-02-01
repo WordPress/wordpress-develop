@@ -233,7 +233,9 @@ function wp_get_global_stylesheet( $types = array() ) {
  * @return string Stylesheet.
  */
 function wp_get_global_styles_custom_css() {
-function wp_get_global_styles_custom_css() {
+	if ( ! wp_theme_has_theme_json() ) {
+		return '';
+	}
 	/*
 	 * Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme
 	 * developer's workflow.
@@ -265,10 +267,6 @@ function wp_get_global_styles_custom_css() {
 		if ( $cached ) {
 			return $cached;
 		}
-	}
-
-	if ( ! wp_theme_has_theme_json() ) {
-		return '';
 	}
 
 	$tree       = WP_Theme_JSON_Resolver::get_merged_data();
