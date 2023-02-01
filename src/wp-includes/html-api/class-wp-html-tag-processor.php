@@ -554,7 +554,7 @@ class WP_HTML_Tag_Processor {
 			 * @TODO: Add unit test case and fix (if necessary) for RCDATA tag closer coming before RCDATA tag opener.
 			 */
 			$t = $this->html[ $this->tag_name_starts_at ];
-			if ( 's' === $t || 'S' === $t || 't' === $t || 'T' === $t ) {
+			if ( ! $this->is_closing_tag && ( 's' === $t || 'S' === $t || 't' === $t || 'T' === $t ) ) {
 				$tag_name = $this->get_tag();
 
 				if ( 'SCRIPT' === $tag_name && ! $this->skip_script_data() ) {
@@ -663,7 +663,7 @@ class WP_HTML_Tag_Processor {
 
 		if ( ! array_key_exists( $name, $this->bookmarks ) && count( $this->bookmarks ) >= self::MAX_BOOKMARKS ) {
 			if ( WP_DEBUG ) {
-				trigger_error( "Tried to jump to a non-existent HTML bookmark {$name}.", E_USER_WARNING );
+				trigger_error( "Too many bookmarks: cannot create '{$name}'", E_USER_WARNING );
 			}
 			return false;
 		}
