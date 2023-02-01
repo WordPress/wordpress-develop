@@ -5,7 +5,6 @@
  *
  * @covers ::wp_apply_dimensions_support
  */
-
 class Tests_Block_Supports_wpApplyDimensionsSupport extends WP_UnitTestCase {
 	/**
 	 * @var string|null
@@ -33,8 +32,8 @@ class Tests_Block_Supports_wpApplyDimensionsSupport extends WP_UnitTestCase {
 	 * @dataProvider data_minimum_height_block_support
 	 *
 	 * @param string $block_name The test block name to register.
-	 * @param mixed $dimensions  The dimensions block support settings.
-	 * @param mixed $expected    An expected return value.
+	 * @param mixed  $dimensions The dimensions block support settings.
+	 * @param mixed  $expected   The expected results.
 	 */
 	public function test_minimum_height_block_support( $block_name, $dimensions, $expected ) {
 		$this->test_block_name = $block_name;
