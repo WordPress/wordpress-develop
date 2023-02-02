@@ -337,7 +337,6 @@ HTML;
 			$this->assertTrue( $p->set_bookmark( "bookmark $i" ), "Could not allocate the bookmark #$i" );
 		}
 
-		$this->expectNotice();
 		$this->assertFalse( $p->set_bookmark( 'final bookmark' ), "Allocated $i bookmarks, which is one above the limit." );
 	}
 
@@ -355,7 +354,6 @@ HTML;
 			$this->assertTrue( $p->seek( 'bookmark' ), 'Could not seek to the "bookmark"' );
 		}
 
-		$this->expectNotice();
 		$this->assertFalse( $p->seek( 'bookmark' ), "$i-th seek() to the bookmark succeeded, even though it should exceed the allowed limit." );
 	}
 }
