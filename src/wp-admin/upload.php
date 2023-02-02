@@ -334,7 +334,7 @@ get_current_screen()->add_help_tab(
 					'<li>' . __( '<strong>Delete Permanently</strong> will delete the file from the media library (as well as from any posts to which it is currently attached).' ) . '</li>' .
 					'<li>' . __( '<strong>View</strong> will take you to a public display page for that file.' ) . '</li>' .
 					'<li>' . __( '<strong>Copy URL</strong> copies the URL for the media file to your clipboard.' ) . '</li>' .
-					'<li>' . __( '<strong>Download file</strong> downloads the source media file to your computer.' ) . '</li>' .
+					'<li>' . __( '<strong>Download file</strong> downloads the original media file to your device.' ) . '</li>' .
 				'</ul>',
 	)
 );
