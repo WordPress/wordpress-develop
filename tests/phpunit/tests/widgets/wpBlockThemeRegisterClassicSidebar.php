@@ -29,29 +29,38 @@ class Tests_Widgets_WpBlockThemeRegisterClassicSidebars extends WP_UnitTestCase 
 		parent::tear_down();
 	}
 
+	public function test_a_sidebar_should_be_registered() {
+		global $wp_registered_sidebars;
+
+		$sidebar_id = array_key_first( $wp_registered_sidebars );
+		$this->assertNotEmpty( $sidebar_id );
+	}
+
 	/**
 	 * @ticket 57531
 	 */
 	public function test_should_reregister_previous_theme_sidebar() {
 		global $wp_registered_sidebars;
 
+		$sidebar_id = array_key_first( $wp_registered_sidebars );
+
 		switch_theme( 'block-theme' );
-		unregister_sidebar( 'sidebar-1' );
+		unregister_sidebar( $sidebar_id );
 
 		// Test before.
 		$this->assertArrayNotHasKey(
-			'sidebar-1',
+			$sidebar_id,
 			$wp_registered_sidebars,
-			'Sidebar 1 should not be in registered sidebars after unregister'
+			'Sidebar should not be in registered sidebars after unregister'
 		);
 
 		_wp_block_theme_register_classic_sidebars();
 
 		// Test after.
 		$this->assertArrayHasKey(
-			'sidebar-1',
+			$sidebar_id,
 			$wp_registered_sidebars,
-			'Sidebar 1 should be in registered sidebars after invoking _wp_block_theme_register_classic_sidebars()'
+			'Sidebar should be in registered sidebars after invoking _wp_block_theme_register_classic_sidebars()'
 		);
 	}
 
