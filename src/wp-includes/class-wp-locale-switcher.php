@@ -222,7 +222,7 @@ class WP_Locale_Switcher {
 	 * @return string The locale currently being switched to.
 	 */
 	public function filter_locale( $locale ) {
-		$switched_locale = $this->get_locale();
+		$switched_locale = $this->get_switched_locale();
 
 		if ( $switched_locale ) {
 			return $switched_locale;
