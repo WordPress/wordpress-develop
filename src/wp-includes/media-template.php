@@ -439,7 +439,7 @@ function wp_print_media_templates() {
 
 					<# if ( data.originalImageURL && data.originalImageName ) { #>
 						<div class="word-wrap-break-word">
-							<?php _e( 'Original image:' ); ?>
+							<strong><?php _e( 'Original image:' ); ?></strong>
 							<a href="{{ data.originalImageURL }}">{{data.originalImageName}}</a>
 						</div>
 					<# } #>
@@ -528,6 +528,10 @@ function wp_print_media_templates() {
 						<span class="links-separator">|</span>
 					<# } #>
 					<a href="{{ data.editLink }}"><?php _e( 'Edit more details' ); ?></a>
+				<# } #>
+				<# if ( data.can.save && data.link ) { #>
+					<span class="links-separator">|</span>
+					<a href="{{ data.url }}" download><?php _e( 'Download file' ); ?></a>
 				<# } #>
 				<# if ( ! data.uploading && data.can.remove ) { #>
 					<# if ( data.link || data.can.save ) { #>

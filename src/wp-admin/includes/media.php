@@ -3336,6 +3336,9 @@ function attachment_submitbox_metadata() {
 			<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
 		</span>
 	</div>
+	<div class="misc-pub-section misc-pub-download">
+		<a href="<?php echo esc_attr( $att_url ); ?>" download><?php _e( 'Download file' ); ?></a>
+	</div>
 	<div class="misc-pub-section misc-pub-filename">
 		<?php _e( 'File name:' ); ?> <strong><?php echo $filename; ?></strong>
 	</div>
@@ -3472,7 +3475,7 @@ function attachment_submitbox_metadata() {
 		<div class="misc-pub-section misc-pub-original-image word-wrap-break-word">
 			<?php _e( 'Original image:' ); ?>
 			<a href="<?php echo esc_url( wp_get_original_image_url( $attachment_id ) ); ?>">
-				<?php echo esc_html( wp_basename( wp_get_original_image_path( $attachment_id ) ) ); ?>
+				<strong><?php echo esc_html( wp_basename( wp_get_original_image_path( $attachment_id ) ) ); ?></strong>
 			</a>
 		</div>
 		<?php
