@@ -275,7 +275,7 @@ async function runPerformanceTests( branches, options ) {
 
 	log( '    >> Installing dependencies and building packages' );
 	await runShellScript(
-		'npm ci && node ./bin/packages/build.js',
+		'npm ci && npm run build',
 		performanceTestDirectory
 	);
 	log( '    >> Creating the environment folders' );
@@ -310,7 +310,7 @@ async function runPerformanceTests( branches, options ) {
 
 			log( `        >> Building the ${ fancyBranch } branch` );
 			await runShellScript(
-				'npm ci && npm run prebuild:packages && node ./bin/packages/build.js && npx wp-scripts build',
+				'npm ci && npm run build',
 				buildPath
 			);
 		}
@@ -319,7 +319,7 @@ async function runPerformanceTests( branches, options ) {
 			'cp ' +
 				path.resolve(
 					performanceTestDirectory,
-					'bin/plugin/utils/.wp-env.performance.json'
+					'tests/performance/.wp-env.performance.json'
 				) +
 				' ' +
 				environmentDirectory +
