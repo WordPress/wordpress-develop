@@ -31,7 +31,7 @@
 		"@wordpress/e2e-test-utils": "8.1.1",
 		"@wordpress/scripts": "24.1.2",
 		"autoprefixer": "^10.4.13",
-		"chalk": "5.1.0",
+		"chalk": "4.1.1",
 		"check-node-version": "4.2.1",
 		"copy-webpack-plugin": "11.0.0",
 		"cssnano": "5.1.14",
