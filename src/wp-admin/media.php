@@ -134,7 +134,7 @@ switch ( $action ) {
 
 	<form method="post" class="media-upload-form" id="media-single-form">
 	<p class="submit" style="padding-bottom: 0;">
-		<?php submit_button( __( 'Update Media' ), 'primary', 'save', false ); ?>
+		<?php submit_button( __( 'Update' ), 'primary', 'save', false ); ?>
 	</p>
 
 	<div class="media-single">
@@ -154,7 +154,7 @@ switch ( $action ) {
 	</div>
 	</div>
 
-		<?php submit_button( __( 'Update Media' ), 'primary', 'save' ); ?>
+		<?php submit_button( __( 'Update' ), 'primary', 'save' ); ?>
 	<input type="hidden" name="post_id" id="post_id" value="<?php echo isset( $post_id ) ? esc_attr( $post_id ) : ''; ?>" />
 	<input type="hidden" name="attachment_id" id="attachment_id" value="<?php echo esc_attr( $att_id ); ?>" />
 	<input type="hidden" name="action" value="editattachment" />
