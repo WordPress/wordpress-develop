@@ -189,8 +189,8 @@ function display_setup_form( $error = null ) {
 						_e( 'Site visibility' ) :
 						/* translators: hidden accessibility text */
 						_e( 'Search engine visibility' );
-						?> 
-					</span></legend>
+						?>
+					 </span></legend>
 					<?php
 					if ( has_action( 'blog_privacy_selector' ) ) {
 						?>
