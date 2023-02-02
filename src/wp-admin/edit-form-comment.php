@@ -79,9 +79,9 @@ if ( 'approved' === wp_get_comment_status( $comment ) && $comment->comment_post_
 
 <div id="postdiv" class="postarea">
 <?php
-	echo '<label for="content" class="screen-reader-text">' . 
+	echo '<label for="content" class="screen-reader-text">' .
 	/* translators: hidden accessibility text */
-	__( 'Comment' ) . 
+	__( 'Comment' ) .
 	'</label>';
 	$quicktags_settings = array( 'buttons' => 'strong,em,link,block,del,ins,img,ul,ol,li,code,close' );
 	wp_editor(

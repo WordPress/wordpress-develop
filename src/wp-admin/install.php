@@ -186,11 +186,11 @@ function display_setup_form( $error = null ) {
 						<?php
 						has_action( 'blog_privacy_selector' ) ?
 						/* translators: hidden accessibility text */
-						_e( 'Site visibility' ) : 
+						_e( 'Site visibility' ) :
 						/* translators: hidden accessibility text */
 						_e( 'Search engine visibility' );
 						?> 
-						</span></legend>
+					</span></legend>
 					<?php
 					if ( has_action( 'blog_privacy_selector' ) ) {
 						?>
