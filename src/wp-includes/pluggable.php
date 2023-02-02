@@ -597,7 +597,7 @@ if ( ! function_exists( 'wp_authenticate' ) ) :
 	 */
 	function wp_authenticate( $username, $password ) {
 		$username = sanitize_user( $username );
-		$password = trim( $password );
+		$password = trim( (string) $password );
 
 		/**
 		 * Filters whether a set of user login credentials are valid.
