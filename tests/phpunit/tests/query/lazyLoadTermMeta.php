@@ -104,4 +104,32 @@ class Test_Lazy_Load_Term_Meta extends WP_UnitTestCase {
 		$term_ids = end( $first );
 		$this->assertSameSets( $term_ids, array( $term_id ) );
 	}
+
+	/**
+	 * @ticket 57150
+	 * @covers ::wp_queue_posts_for_term_meta_lazyload
+	 */
+	public function test_wp_queue_posts_for_term_meta_lazyload_delete_term() {
+		$filter = new MockAction();
+		add_filter( 'update_term_metadata_cache', array( $filter, 'filter' ), 10, 2 );
+
+		$remove_term_id = end( self::$term_ids );
+		$term           = get_term( $remove_term_id );
+		wp_delete_term( $remove_term_id, $term->taxonomy );
+
+		new WP_Query(
+			array(
+				'post__in'            => self::$post_ids,
+				'lazy_load_term_meta' => true,
+			)
+		);
+
+		$term_id = end( self::$term_ids );
+		get_term_meta( $term_id );
+
+		$args     = $filter->get_args();
+		$first    = reset( $args );
+		$term_ids = end( $first );
+		$this->assertNotContains( $remove_term_id, $term_ids );
+	}
 }
