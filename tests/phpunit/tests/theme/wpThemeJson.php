@@ -15,6 +15,36 @@
 class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
+	 * Administrator ID.
+	 *
+	 * @var int
+	 */
+	private static $administrator_id;
+
+	/**
+	 * User ID.
+	 *
+	 * @var int
+	 */
+	private static $user_id;
+
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
+		static::$administrator_id = self::factory()->user->create(
+			array(
+				'role' => 'administrator',
+			)
+		);
+
+		if ( is_multisite() ) {
+			grant_super_admin( self::$administrator_id );
+		}
+
+		static::$user_id = self::factory()->user->create();
+	}
+
+	/**
 	 * @ticket 52991
 	 * @ticket 54336
 	 */
@@ -4504,5 +4534,94 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$expected_styles = $global_styles . $element_styles;
 
 		$this->assertSame( $expected_styles, $theme_json->get_stylesheet() );
+	}
+
+	/**
+	 * @ticket 57536
+	 */
+	public function test_get_custom_css_handles_global_custom_css() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'css' => 'body { color:purple; }',
+				),
+			)
+		);
+		$custom_css = 'body { color:purple; }';
+		$this->assertSame( $custom_css, $theme_json->get_custom_css() );
+	}
+
+	/**
+	 * Tests that custom CSS is kept for users with correct capabilities and removed for others.
+	 *
+	 * @ticket 57536
+	 *
+	 * @dataProvider data_custom_css_for_user_caps
+	 *
+	 * @param string $user_property The property name for current user.
+	 * @param array  $expected      Expected results.
+	 */
+	public function test_custom_css_for_user_caps( $user_property, array $expected ) {
+		wp_set_current_user( static::${$user_property} );
+
+		$actual = WP_Theme_JSON::remove_insecure_properties(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'css'    => 'body { color:purple; }',
+					'blocks' => array(
+						'core/separator' => array(
+							'color' => array(
+								'background' => 'blue',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$this->assertSameSetsWithIndex( $expected, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_custom_css_for_user_caps() {
+		return array(
+			'allows custom css for users with caps'     => array(
+				'user_property' => 'administrator_id',
+				'expected'      => array(
+					'version' => WP_Theme_JSON::LATEST_SCHEMA,
+					'styles'  => array(
+						'css'    => 'body { color:purple; }',
+						'blocks' => array(
+							'core/separator' => array(
+								'color' => array(
+									'background' => 'blue',
+								),
+							),
+						),
+					),
+				),
+			),
+			'removes custom css for users without caps' => array(
+				'user_property' => 'user_id',
+				'expected'      => array(
+					'version' => WP_Theme_JSON::LATEST_SCHEMA,
+					'styles'  => array(
+						'blocks' => array(
+							'core/separator' => array(
+								'color' => array(
+									'background' => 'blue',
+								),
+							),
+						),
+					),
+				),
+			),
+		);
 	}
 }
