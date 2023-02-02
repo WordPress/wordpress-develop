@@ -226,7 +226,7 @@ function _load_remote_block_patterns( $deprecated = null ) {
 		foreach ( $patterns as $pattern ) {
 			$normalized_pattern = _normalize_remote_pattern( $pattern );
 			$pattern_name       = 'core/' . sanitize_title( $normalized_pattern['title'] );
-			register_block_pattern( $pattern_name, (array) $normalized_pattern );
+			register_block_pattern( $pattern_name, $normalized_pattern );
 		}
 	}
 }
@@ -263,7 +263,7 @@ function _load_remote_featured_patterns() {
 		// Some patterns might be already registered as core patterns with the `core` prefix.
 		$is_registered = $registry->is_registered( $pattern_name ) || $registry->is_registered( "core/$pattern_name" );
 		if ( ! $is_registered ) {
-			register_block_pattern( $pattern_name, (array) $normalized_pattern );
+			register_block_pattern( $pattern_name, $normalized_pattern );
 		}
 	}
 }
@@ -306,7 +306,7 @@ function _register_remote_theme_patterns() {
 		// Some patterns might be already registered as core patterns with the `core` prefix.
 		$is_registered = $patterns_registry->is_registered( $pattern_name ) || $patterns_registry->is_registered( "core/$pattern_name" );
 		if ( ! $is_registered ) {
-			register_block_pattern( $pattern_name, (array) $normalized_pattern );
+			register_block_pattern( $pattern_name, $normalized_pattern );
 		}
 	}
 }
