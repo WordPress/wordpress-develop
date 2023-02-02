@@ -207,9 +207,9 @@ function twentytwelve_scripts_styles() {
 	/**
 	 * The dependencies for our font stylesheet.
 	 *
-	 * We register our sub-fonts as dependencies for the main font stylesheet. This way, we can
-	 * enqueue the main font stylesheet and all sub-fonts will be loaded as well. On the other hand,
-	 * if the user has unenqueued the main font stylesheet, all sub-fonts will be unequeued as well.
+	 * We register our font variants as dependencies for the main font stylesheet. This way, we can
+	 * enqueue the main font stylesheet and all font variants will be loaded as well. On the other hand,
+	 * if the user has unenqueued the main font stylesheet, all font variants will be unequeued as well.
 	 *
 	 * @var array $font_dependencies An array of dependencies for the main font stylesheet.
 	 */
@@ -249,9 +249,9 @@ function twentytwelve_block_editor_styles() {
 	/**
 	 * The dependencies for our font stylesheet.
 	 *
-	 * We register our sub-fonts as dependencies for the main font stylesheet. This way, we can
-	 * enqueue the main font stylesheet and all sub-fonts will be loaded as well. On the other hand,
-	 * if the user has unenqueued the main font stylesheet, all sub-fonts will be unequeued as well.
+	 * We register our font variants as dependencies for the main font stylesheet. This way, we can
+	 * enqueue the main font stylesheet and all font variants will be loaded as well. On the other hand,
+	 * if the user has unenqueued the main font stylesheet, all font variants will be unequeued as well.
 	 *
 	 * @var array $font_dependencies An array of dependencies for the main font stylesheet.
 	 */
