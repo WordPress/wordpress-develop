@@ -12,7 +12,6 @@ return array(
 	'embed',
 	'freeform',
 	'group',
-	'heading',
 	'html',
 	'list',
 	'list-item',
