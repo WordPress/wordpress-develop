@@ -4014,10 +4014,6 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
  *                                         Default empty.
  *     @type string $pinged                Space or carriage return-separated list of URLs that have
  *                                         been pinged. Default empty.
- *     @type string $post_modified         The date when the post was last modified. Default is
- *                                         the current time.
- *     @type string $post_modified_gmt     The date when the post was last modified in the GMT
- *                                         timezone. Default is the current time.
  *     @type int    $post_parent           Set this for the post it belongs to, if any. Default 0.
  *     @type int    $menu_order            The order the post should be displayed in. Default 0.
  *     @type string $post_mime_type        The mime type of the post. Default empty.
@@ -5664,8 +5660,6 @@ function get_page( $page, $output = OBJECT, $filter = 'raw' ) {
  *
  * @since 2.1.0
  *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
  * @param string       $page_path Page path.
  * @param string       $output    Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
  *                                correspond to a WP_Post object, an associative array, or a numeric array,
@@ -5674,30 +5668,11 @@ function get_page( $page, $output = OBJECT, $filter = 'raw' ) {
  * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
  */
 function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
-	global $wpdb;
-
-	$last_changed = wp_cache_get_last_changed( 'posts' );
-
-	$hash      = md5( $page_path . serialize( $post_type ) );
-	$cache_key = "get_page_by_path:$hash:$last_changed";
-	$cached    = wp_cache_get( $cache_key, 'posts' );
-	if ( false !== $cached ) {
-		// Special case: '0' is a bad `$page_path`.
-		if ( '0' === $cached || 0 === $cached ) {
-			return;
-		} else {
-			return get_post( $cached, $output );
-		}
-	}
-
-	$page_path     = rawurlencode( urldecode( $page_path ) );
-	$page_path     = str_replace( '%2F', '/', $page_path );
-	$page_path     = str_replace( '%20', ' ', $page_path );
-	$parts         = explode( '/', trim( $page_path, '/' ) );
-	$parts         = array_map( 'sanitize_title_for_query', $parts );
-	$escaped_parts = esc_sql( $parts );
-
-	$in_string = "'" . implode( "','", $escaped_parts ) . "'";
+	$page_path = rawurlencode( urldecode( $page_path ) );
+	$page_path = str_replace( '%2F', '/', $page_path );
+	$page_path = str_replace( '%20', ' ', $page_path );
+	$parts     = explode( '/', trim( $page_path, '/' ) );
+	$parts     = array_map( 'sanitize_title_for_query', $parts );
 
 	if ( is_array( $post_type ) ) {
 		$post_types = $post_type;
@@ -5705,21 +5680,29 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 		$post_types = array( $post_type, 'attachment' );
 	}
 
-	$post_types          = esc_sql( $post_types );
-	$post_type_in_string = "'" . implode( "','", $post_types ) . "'";
-	$sql                 = "
-		SELECT ID, post_name, post_parent, post_type
-		FROM $wpdb->posts
-		WHERE post_name IN ($in_string)
-		AND post_type IN ($post_type_in_string)
-	";
+	$args = array(
+		'post_name__in'          => $parts,
+		'post_type'              => $post_types,
+		'post_status'            => 'all',
+		'posts_per_page'         => -1,
+		'update_post_term_cache' => false,
+		'update_post_meta_cache' => false,
+		'no_found_rows'          => true,
+		'orderby'                => 'none',
+	);
 
-	$pages = $wpdb->get_results( $sql, OBJECT_K );
+	$query = new WP_Query( $args );
+	$posts = $query->get_posts();
+	$pages = array();
+
+	foreach ( $posts as $post ) {
+		$pages[ $post->ID ] = $post;
+	}
 
 	$revparts = array_reverse( $parts );
 
 	$foundid = 0;
-	foreach ( (array) $pages as $page ) {
+	foreach ( $pages as $page ) {
 		if ( $page->post_name == $revparts[0] ) {
 			$count = 0;
 			$p     = $page;
@@ -5745,9 +5728,6 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 			}
 		}
 	}
-
-	// We cache misses as well as hits.
-	wp_cache_set( $cache_key, $foundid, 'posts' );
 
 	if ( $foundid ) {
 		return get_post( $foundid, $output );

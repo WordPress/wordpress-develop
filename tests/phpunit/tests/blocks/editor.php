@@ -569,6 +569,44 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57547
+	 *
+	 * @covers ::get_classic_theme_supports_block_editor_settings
+	 */
+	public function test_get_classic_theme_supports_block_editor_settings() {
+		$font_sizes = array(
+			array(
+				'name' => 'Small',
+				'size' => 12,
+				'slug' => 'small',
+			),
+			array(
+				'name' => 'Regular',
+				'size' => 16,
+				'slug' => 'regular',
+			),
+		);
+
+		add_theme_support( 'editor-font-sizes', $font_sizes );
+		$settings = get_classic_theme_supports_block_editor_settings();
+		remove_theme_support( 'editor-font-sizes' );
+
+		$this->assertFalse( $settings['disableCustomColors'], 'Value for array key "disableCustomColors" does not match expectations' );
+		$this->assertFalse( $settings['disableCustomFontSizes'], 'Value for array key "disableCustomFontSizes" does not match expectations' );
+		$this->assertFalse( $settings['disableCustomGradients'], 'Value for array key "disableCustomGradients" does not match expectations' );
+		$this->assertFalse( $settings['disableLayoutStyles'], 'Value for array key "disableLayoutStyles" does not match expectations' );
+		$this->assertFalse( $settings['enableCustomLineHeight'], 'Value for array key "enableCustomLineHeight" does not match expectations' );
+		$this->assertFalse( $settings['enableCustomSpacing'], 'Value for array key "enableCustomSpacing" does not match expectations' );
+		$this->assertFalse( $settings['enableCustomUnits'], 'Value for array key "enableCustomUnits" does not match expectations' );
+
+		$this->assertSame(
+			$font_sizes,
+			$settings['fontSizes'],
+			'Value for array key "fontSizes" does not match expectations'
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array

@@ -1070,10 +1070,17 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 		 * Allows preventing auth cookies from actually being sent to the client.
 		 *
 		 * @since 4.7.4
+		 * @since 6.2.0 The `$user_id`, `$expire`, `$expiration`, and `$token` parameters were added.
 		 *
-		 * @param bool $send Whether to send auth cookies to the client.
+		 * @param bool   $send       Whether to send auth cookies to the client. Default true.
+		 * @param int    $user_id    User ID. Zero when clearing cookies.
+		 * @param int    $expire     The time the login grace period expires as a UNIX timestamp.
+		 *                           Default is 12 hours past the cookie's expiration time. Zero when clearing cookies.
+		 * @param int    $expiration The time when the logged-in authentication cookie expires as a UNIX timestamp.
+		 *                           Default is 14 days from now. Zero when clearing cookies.
+		 * @param string $token      User's session token to use for this cookie. Empty string when clearing cookies.
 		 */
-		if ( ! apply_filters( 'send_auth_cookies', true ) ) {
+		if ( ! apply_filters( 'send_auth_cookies', true, $user_id, $expire, $expiration, $token ) ) {
 			return;
 		}
 
@@ -1101,7 +1108,7 @@ if ( ! function_exists( 'wp_clear_auth_cookie' ) ) :
 		do_action( 'clear_auth_cookie' );
 
 		/** This filter is documented in wp-includes/pluggable.php */
-		if ( ! apply_filters( 'send_auth_cookies', true ) ) {
+		if ( ! apply_filters( 'send_auth_cookies', true, 0, 0, 0, '' ) ) {
 			return;
 		}
 
@@ -1238,7 +1245,7 @@ if ( ! function_exists( 'check_admin_referer' ) ) :
 	 * Ensures intent by verifying that a user was referred from another admin page with the correct security nonce.
 	 *
 	 * This function ensures the user intends to perform a given action, which helps protect against clickjacking style
-	 * attacks. It verifies intent, not authorisation, therefore it does not verify the user's capabilities. This should
+	 * attacks. It verifies intent, not authorization, therefore it does not verify the user's capabilities. This should
 	 * be performed with `current_user_can()` or similar.
 	 *
 	 * If the nonce value is invalid, the function will exit with an "Are You Sure?" style message.
@@ -1348,7 +1355,7 @@ if ( ! function_exists( 'wp_redirect' ) ) :
 	 *     exit;
 	 *
 	 * Exiting can also be selectively manipulated by using wp_redirect() as a conditional
-	 * in conjunction with the {@see 'wp_redirect'} and {@see 'wp_redirect_location'} filters:
+	 * in conjunction with the {@see 'wp_redirect'} and {@see 'wp_redirect_status'} filters:
 	 *
 	 *     if ( wp_redirect( $url ) ) {
 	 *         exit;
@@ -1494,7 +1501,7 @@ if ( ! function_exists( 'wp_safe_redirect' ) ) :
 	 *     exit;
 	 *
 	 * Exiting can also be selectively manipulated by using wp_safe_redirect() as a conditional
-	 * in conjunction with the {@see 'wp_redirect'} and {@see 'wp_redirect_location'} filters:
+	 * in conjunction with the {@see 'wp_redirect'} and {@see 'wp_redirect_status'} filters:
 	 *
 	 *     if ( wp_safe_redirect( $url ) ) {
 	 *         exit;
@@ -2188,7 +2195,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 			return;
 		}
 
-		$switched_locale = switch_to_locale( get_user_locale( $user ) );
+		$switched_locale = switch_to_user_locale( $user_id );
 
 		/* translators: %s: User login. */
 		$message  = sprintf( __( 'Username: %s' ), $user->user_login ) . "\r\n\r\n";
@@ -2740,6 +2747,16 @@ if ( ! function_exists( 'wp_set_password' ) ) :
 		);
 
 		clean_user_cache( $user_id );
+
+		/**
+		 * Fires after the user password is set.
+		 *
+		 * @since 6.2.0
+		 *
+		 * @param string $password The plaintext password just set.
+		 * @param int    $user_id  The ID of the user whose password was just set.
+		 */
+		do_action( 'wp_set_password', $password, $user_id );
 	}
 endif;
 
