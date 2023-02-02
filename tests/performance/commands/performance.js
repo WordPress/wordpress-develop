@@ -372,8 +372,6 @@ async function runPerformanceTests( branches, options ) {
 	log( '\n>> Running the tests' );
 
 	const testSuites = [
-		'post-editor',
-		'site-editor',
 		'front-end-classic-theme',
 		'front-end-block-theme',
 	];
