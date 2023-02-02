@@ -159,11 +159,15 @@ function _register_core_block_patterns_and_categories() {
 }
 
 /**
- * Normalize the pattern from the API (snake_case) to the format expected by `register_block_pattern` (camelCase).
+ * Normalize the pattern properties to camelCase.
+ *
+ * The API's format is snake_case, `register_block_pattern()` expects camelCase.
  *
  * @since 6.2.0
+ * @access private
  *
  * @param array $pattern Pattern as returned from the Pattern Directory API.
+ * @return array Normalized pattern.
  */
 function _normalize_remote_pattern( $pattern ) {
 	if ( isset( $pattern['block_types'] ) ) {
@@ -184,7 +188,8 @@ function _normalize_remote_pattern( $pattern ) {
  *
  * @since 5.8.0
  * @since 5.9.0 The $current_screen argument was removed.
- * @since 6.2.0 Normalize the pattern from the API (snake_case) to the format expected by `register_block_pattern` (camelCase).
+ * @since 6.2.0 Normalize the pattern from the API (snake_case) to the
+ *              format expected by `register_block_pattern` (camelCase).
  *
  * @param WP_Screen $deprecated Unused. Formerly the screen that the current request was triggered from.
  */
@@ -230,7 +235,8 @@ function _load_remote_block_patterns( $deprecated = null ) {
  * Register `Featured` (category) patterns from wordpress.org/patterns.
  *
  * @since 5.9.0
- * @since 6.2.0 Normalize the pattern from the API (snake_case) to the format expected by `register_block_pattern` (camelCase).
+ * @since 6.2.0 Normalized the pattern from the API (snake_case) to the
+ *              format expected by `register_block_pattern()` (camelCase).
  */
 function _load_remote_featured_patterns() {
 	$supports_core_patterns = get_theme_support( 'core-block-patterns' );
@@ -267,7 +273,8 @@ function _load_remote_featured_patterns() {
  * `theme.json` file.
  *
  * @since 6.0.0
- * @since 6.2.0 Normalize the pattern from the API (snake_case) to the format expected by `register_block_pattern` (camelCase).
+ * @since 6.2.0 Normalized the pattern from the API (snake_case) to the
+ *              format expected by `register_block_pattern()` (camelCase).
  * @access private
  */
 function _register_remote_theme_patterns() {
