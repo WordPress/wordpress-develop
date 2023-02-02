@@ -3,31 +3,29 @@
 add_action(
 	'template_redirect',
 	function() {
-		ob_start();
 
-		global $server_timing_values, $timestart;
+		global $server_timing_values, $timestart, $template_start;
 
 		if ( ! is_array( $server_timing_values ) ) {
 			$server_timing_values = array();
 		}
 
-		$server_timing_values['before-template'] = microtime( true ) - $timestart;
+		$template_start = microtime( true );
+		$server_timing_values['before-template'] = $template_start - $timestart;
+
+		ob_start();
 
 		add_action(
 			'shutdown',
 			function() {
 
-				global $server_timing_values, $timestart;
-
-				if ( ! is_array( $server_timing_values ) ) {
-					$server_timing_values = array();
-				}
-
-				$server_timing_values['template'] = microtime( true ) - $timestart;
-
-				$server_timing_values['total'] = $server_timing_values['before-template'] + $server_timing_values['template'];
+				global $server_timing_values, $timestart, $template_start;
 
 				$output = ob_get_clean();
+
+				$server_timing_values['template'] = microtime( true ) - $template_start;
+
+				$server_timing_values['total'] = $server_timing_values['before-template'] + $server_timing_values['template'];
 
 				$header_values = array();
 				foreach ( $server_timing_values as $slug => $value ) {
@@ -43,5 +41,5 @@ add_action(
 			-9999
 		);
 	},
-	-9999
+	PHP_INT_MAX
 );
