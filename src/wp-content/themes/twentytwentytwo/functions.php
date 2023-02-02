@@ -67,7 +67,7 @@ add_action( 'wp_enqueue_scripts', 'twentytwentytwo_styles' );
 require get_template_directory() . '/inc/block-patterns.php';
 
 /**
- * Change post comments block heading.
+ * Changes Post Comments block heading.
  *
  * @param  string $block_content Block content to be rendered.
  * @param  array  $block         Block attributes.
