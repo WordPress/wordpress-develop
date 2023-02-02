@@ -21,10 +21,10 @@ class Tests_HTML_wpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 	public function test_set_bookmark() {
 		$p = new WP_HTML_Tag_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
 		$p->next_tag( 'li' );
-		$this->assertTrue( $p->set_bookmark( 'first li' ), 'Could not allocate a "first li" bookmark.' );
+		$this->assertTrue( $p->set_bookmark( 'first li' ), 'Could not allocate a "first li" bookmark' );
 		$p->next_tag( 'li' );
-		$this->assertTrue( $p->set_bookmark( 'second li' ), 'Could not allocate a "second li" bookmark.' );
-		$this->assertTrue( $p->set_bookmark( 'first li' ), 'Could not move the "first li" bookmark.' );
+		$this->assertTrue( $p->set_bookmark( 'second li' ), 'Could not allocate a "second li" bookmark' );
+		$this->assertTrue( $p->set_bookmark( 'first li' ), 'Could not move the "first li" bookmark' );
 	}
 
 	/**
@@ -35,9 +35,9 @@ class Tests_HTML_wpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 	public function test_release_bookmark() {
 		$p = new WP_HTML_Tag_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
 		$p->next_tag( 'li' );
-		$this->assertFalse( $p->release_bookmark( 'first li' ), 'Released a non-existing bookmark.' );
+		$this->assertFalse( $p->release_bookmark( 'first li' ), 'Released a non-existing bookmark' );
 		$p->set_bookmark( 'first li' );
-		$this->assertTrue( $p->release_bookmark( 'first li' ), 'Could not release a bookmark.' );
+		$this->assertTrue( $p->release_bookmark( 'first li' ), 'Could not release a bookmark' );
 	}
 
 	/**
@@ -58,7 +58,8 @@ class Tests_HTML_wpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 
 		$this->assertSame(
 			'<ul><li foo-1="bar-1">One</li><li foo-2="bar-2">Two</li><li>Three</li></ul>',
-			$p->get_updated_html()
+			$p->get_updated_html(),
+			'Did not seek to the intended bookmark locations'
 		);
 	}
 
@@ -228,7 +229,8 @@ HTML;
 
 		$this->assertSame(
 			$expected_output,
-			$p->get_updated_html()
+			$p->get_updated_html(),
+			'Performing several attribute updates on different tags does not produce the expected HTML snippet'
 		);
 	}
 
@@ -249,7 +251,8 @@ HTML;
 
 		$this->assertSame(
 			'<div class="first">First</div><div class="second">Second</div>',
-			$p->get_updated_html()
+			$p->get_updated_html(),
+			'The bookmark was updated incorrectly in response to HTML markup updates'
 		);
 	}
 
@@ -273,7 +276,8 @@ HTML;
 
 		$this->assertSame(
 			'<div class="first">First</div><div class="second">Second</div>',
-			$p->get_updated_html()
+			$p->get_updated_html(),
+			'The bookmark was updated incorrectly in response to HTML markup updates'
 		);
 	}
 
@@ -293,9 +297,17 @@ HTML;
 		$p->set_attribute( 'untouched', true );
 
 		$this->assertSame(
-			/** @TODO: we shouldn't have to assert the extra space after removing the attribute. */
+			/*
+			 * It shouldn't be necessary to assert the extra space after the tag
+			 * following the attribute removal, but doing so makes the test easier
+			 * to see than it would be if parsing the output HTML for proper
+			 * validation. If the Tag Processor changes so that this space no longer
+			 * appears then this test should be updated to reflect that. The space
+			 * is not required.
+			 */
 			'<div untouched>First</div><div >Second</div>',
-			$p->get_updated_html()
+			$p->get_updated_html(),
+			'The bookmark was incorrectly in response to HTML markup updates'
 		);
 	}
 
@@ -318,9 +330,17 @@ HTML;
 		$p->set_attribute( 'safe', true );
 
 		$this->assertSame(
-			/** @TODO: we shouldn't have to assert the extra space after removing the attribute. */
+			/*
+			 * It shouldn't be necessary to assert the extra space after the tag
+			 * following the attribute removal, but doing so makes the test easier
+			 * to see than it would be if parsing the output HTML for proper
+			 * validation. If the Tag Processor changes so that this space no longer
+			 * appears then this test should be updated to reflect that. The space
+			 * is not required.
+			 */
 			'<div >First</div><div safe>Second</div>',
-			$p->get_updated_html()
+			$p->get_updated_html(),
+			'The bookmark was updated incorrectly in response to HTML markup updates'
 		);
 	}
 
@@ -338,7 +358,7 @@ HTML;
 		}
 
 		$this->setExpectedIncorrectUsage( 'WP_HTML_Tag_Processor::set_bookmark' );
-		$this->assertFalse( $p->set_bookmark( 'final bookmark' ), "Allocated $i bookmarks, which is one above the limit." );
+		$this->assertFalse( $p->set_bookmark( 'final bookmark' ), "Allocated $i bookmarks, which is one above the limit" );
 	}
 
 	/**
@@ -356,6 +376,6 @@ HTML;
 		}
 
 		$this->setExpectedIncorrectUsage( 'WP_HTML_Tag_Processor::seek' );
-		$this->assertFalse( $p->seek( 'bookmark' ), "$i-th seek() to the bookmark succeeded, even though it should exceed the allowed limit." );
+		$this->assertFalse( $p->seek( 'bookmark' ), "$i-th seek() to the bookmark succeeded, even though it should exceed the allowed limit" );
 	}
 }

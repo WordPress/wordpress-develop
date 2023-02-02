@@ -24,7 +24,7 @@ class Tests_HTML_wpHtmlTagProcessor extends WP_UnitTestCase {
 	public function test_get_tag_returns_null_before_finding_tags() {
 		$p = new WP_HTML_Tag_Processor( '<div>Test</div>' );
 
-		$this->assertNull( $p->get_tag() );
+		$this->assertNull( $p->get_tag(), 'Calling get_tag() without selecting a tag did not return null' );
 	}
 
 	/**
@@ -59,7 +59,7 @@ class Tests_HTML_wpHtmlTagProcessor extends WP_UnitTestCase {
 	public function test_get_attribute_returns_null_before_finding_tags() {
 		$p = new WP_HTML_Tag_Processor( '<div class="test">Test</div>' );
 
-		$this->assertNull( $p->get_attribute( 'class' ) );
+		$this->assertNull( $p->get_attribute( 'class' ), 'Accessing an attribute without selecting a tag did not return null' );
 	}
 
 	/**
@@ -178,7 +178,11 @@ class Tests_HTML_wpHtmlTagProcessor extends WP_UnitTestCase {
 		$p = new WP_HTML_Tag_Processor( '<div DATA-enabled="true">Test</div>' );
 		$p->next_tag();
 
-		$this->assertSame( 'true', $p->get_attribute( $attribute_name ) );
+		$this->assertSame(
+			'true',
+			$p->get_attribute( $attribute_name ),
+			'Accessing an attribute by a differently-cased name did not return its value'
+		);
 	}
 
 	/**
@@ -194,7 +198,10 @@ class Tests_HTML_wpHtmlTagProcessor extends WP_UnitTestCase {
 		$p = new WP_HTML_Tag_Processor( '<div DATA-enabled>Test</div>' );
 		$p->next_tag();
 
-		$this->assertTrue( $p->get_attribute( $attribute_name ) );
+		$this->assertTrue(
+			$p->get_attribute( $attribute_name ),
+			'Accessing an attribute by a differently-cased name did not return its value'
+		);
 	}
 
 	/**
@@ -221,7 +228,7 @@ class Tests_HTML_wpHtmlTagProcessor extends WP_UnitTestCase {
 		$p->next_tag();
 		$p->remove_attribute( 'data-enabled' );
 
-		$this->assertSame( '<div >Test</div>', $p->get_updated_html(), 'A case-insensitive remove_attribute call did not remove the attribute.' );
+		$this->assertSame( '<div >Test</div>', $p->get_updated_html(), 'A case-insensitive remove_attribute call did not remove the attribute' );
 	}
 
 	/**
@@ -234,7 +241,7 @@ class Tests_HTML_wpHtmlTagProcessor extends WP_UnitTestCase {
 		$p->next_tag();
 		$p->set_attribute( 'data-enabled', 'abc' );
 
-		$this->assertSame( '<div data-enabled="abc">Test</div>', $p->get_updated_html(), 'A case-insensitive set_attribute call did not update the existing attribute.' );
+		$this->assertSame( '<div data-enabled="abc">Test</div>', $p->get_updated_html(), 'A case-insensitive set_attribute call did not update the existing attribute' );
 	}
 
 	/**
@@ -244,7 +251,10 @@ class Tests_HTML_wpHtmlTagProcessor extends WP_UnitTestCase {
 	 */
 	public function test_get_attribute_names_with_prefix_returns_null_before_finding_tags() {
 		$p = new WP_HTML_Tag_Processor( '<div data-foo="bar">Test</div>' );
-		$this->assertNull( $p->get_attribute_names_with_prefix( 'data-' ) );
+		$this->assertNull(
+			$p->get_attribute_names_with_prefix( 'data-' ),
+			'Accessing attributes by their prefix did not return null when no tag was selected'
+		);
 	}
 
 	/**
@@ -294,7 +304,8 @@ class Tests_HTML_wpHtmlTagProcessor extends WP_UnitTestCase {
 
 		$this->assertSame(
 			array( 'data-enabled', 'data-test-id' ),
-			$p->get_attribute_names_with_prefix( 'data-' )
+			$p->get_attribute_names_with_prefix( 'data-' ),
+			'Accessing attributes by their prefix did not return their lowercase names'
 		);
 	}
 
@@ -336,7 +347,8 @@ class Tests_HTML_wpHtmlTagProcessor extends WP_UnitTestCase {
 
 		$this->assertSame(
 			$p->get_updated_html(),
-			(string) $p
+			(string) $p,
+			'get_updated_html() returned a different value than __toString()'
 		);
 	}
 
@@ -387,7 +399,11 @@ class Tests_HTML_wpHtmlTagProcessor extends WP_UnitTestCase {
 	public function test_get_updated_html_without_updating_any_attributes_returns_the_original_html() {
 		$p = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
 
-		$this->assertSame( self::HTML_SIMPLE, $p->get_updated_html() );
+		$this->assertSame(
+			self::HTML_SIMPLE,
+			$p->get_updated_html(),
+			'Casting WP_HTML_Tag_Processor to a string without performing any updates did not return the initial HTML snippet'
+		);
 	}
 
 	/**
@@ -525,7 +541,7 @@ class Tests_HTML_wpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @dataProvider data_set_attribute_prevents_xss
 	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 *
-	 * @param string $attribute_value AValue with potential XSS exploit.
+	 * @param string $attribute_value A value with potential XSS exploit.
 	 */
 	public function test_set_attribute_prevents_xss( $attribute_value ) {
 		$p = new WP_HTML_Tag_Processor( '<div></div>' );
@@ -547,7 +563,7 @@ class Tests_HTML_wpHtmlTagProcessor extends WP_UnitTestCase {
 		preg_match( '~^<div test=(.*)></div>$~', $p->get_updated_html(), $match );
 		list( , $actual_value ) = $match;
 
-		$this->assertSame( '"' . esc_attr( $attribute_value ) . '"', $actual_value );
+		$this->assertSame( '"' . esc_attr( $attribute_value ) . '"', $actual_value, 'Entities were not properly escaped in the attribute value' );
 	}
 
 	/**
@@ -833,7 +849,11 @@ class Tests_HTML_wpHtmlTagProcessor extends WP_UnitTestCase {
 		$p->next_tag();
 		$p->set_attribute( 'id', 'updated-id' );
 
-		$this->assertSame( '<div id="updated-id" id="ignored-id"><span id="second">Text</span></div>', $p->get_updated_html() );
+		$this->assertSame(
+			'<div id="updated-id" id="ignored-id"><span id="second">Text</span></div>',
+			$p->get_updated_html(),
+			'Proper (first) appearance of attribute was not updated when duplicates exist'
+		);
 	}
 
 	/**
@@ -845,7 +865,11 @@ class Tests_HTML_wpHtmlTagProcessor extends WP_UnitTestCase {
 		$p = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
 		$p->next_tag();
 		$p->set_attribute( 'id', 'new-id' );
-		$this->assertSame( '<div id="new-id"><span id="second">Text</span></div>', $p->get_updated_html() );
+		$this->assertSame(
+			'<div id="new-id"><span id="second">Text</span></div>',
+			$p->get_updated_html(),
+			'Existing attribute was not updated'
+		);
 	}
 
 	/**
@@ -860,7 +884,11 @@ class Tests_HTML_wpHtmlTagProcessor extends WP_UnitTestCase {
 			$p->set_attribute( 'data-foo', 'bar' );
 		}
 
-		$this->assertSame( '<div data-foo="bar" id="first"><span data-foo="bar" id="second">Text</span></div>', $p->get_updated_html() );
+		$this->assertSame(
+			'<div data-foo="bar" id="first"><span data-foo="bar" id="second">Text</span></div>',
+			$p->get_updated_html(),
+			'Not all tags were updated when looping with next_tag() and set_attribute()'
+		);
 	}
 
 	/**
@@ -884,7 +912,11 @@ class Tests_HTML_wpHtmlTagProcessor extends WP_UnitTestCase {
 		$p->next_tag();
 		$p->remove_attribute( 'id' );
 
-		$this->assertSame( '<div  id="ignored-id"><span id="second">Text</span></div>', $p->get_updated_html() );
+		$this->assertSame(
+			'<div  id="ignored-id"><span id="second">Text</span></div>',
+			$p->get_updated_html(),
+			'First attribute (when duplicates exist) was not removed'
+		);
 	}
 
 	/**
@@ -897,7 +929,11 @@ class Tests_HTML_wpHtmlTagProcessor extends WP_UnitTestCase {
 		$p->next_tag();
 		$p->remove_attribute( 'id' );
 
-		$this->assertSame( '<div ><span id="second">Text</span></div>', $p->get_updated_html() );
+		$this->assertSame(
+			'<div ><span id="second">Text</span></div>',
+			$p->get_updated_html(),
+			'Attribute was not removed'
+		);
 	}
 
 	/**
@@ -910,7 +946,11 @@ class Tests_HTML_wpHtmlTagProcessor extends WP_UnitTestCase {
 		$p->next_tag();
 		$p->remove_attribute( 'no-such-attribute' );
 
-		$this->assertSame( self::HTML_SIMPLE, $p->get_updated_html() );
+		$this->assertSame(
+			self::HTML_SIMPLE,
+			$p->get_updated_html(),
+			'Content was changed when attempting to remove an attribute that did not exist'
+		);
 	}
 
 	/**
@@ -1422,7 +1462,8 @@ HTML;
 		$p->set_attribute( 'id', 'single-quote' );
 		$this->assertSame(
 			'<div ><span id="single-quote">Text</span></div>',
-			$p->get_updated_html()
+			$p->get_updated_html(),
+			'Did not remove single-quoted attribute'
 		);
 	}
 
@@ -1439,7 +1480,8 @@ HTML;
 		$p->set_attribute( 'checked', true );
 		$this->assertSame(
 			'<form action="/action_page.php"><input checked type="checkbox" name="vehicle" value="Bike"><label for="vehicle">I have a bike</label></form>',
-			$p->get_updated_html()
+			$p->get_updated_html(),
+			'Did not add "checked" as an expected boolean attribute'
 		);
 	}
 
@@ -1456,7 +1498,8 @@ HTML;
 		$p->set_attribute( 'checked', false );
 		$this->assertSame(
 			'<form action="/action_page.php"><input  type="checkbox" name="vehicle" value="Bike"><label for="vehicle">I have a bike</label></form>',
-			$p->get_updated_html()
+			$p->get_updated_html(),
+			'Did not remove boolean attribute when set to false'
 		);
 	}
 
@@ -1470,7 +1513,11 @@ HTML;
 		$p          = new WP_HTML_Tag_Processor( $html_input );
 		$p->next_tag( 'input' );
 		$p->set_attribute( 'checked', false );
-		$this->assertSame( $html_input, $p->get_updated_html() );
+		$this->assertSame(
+			$html_input,
+			$p->get_updated_html(),
+			'Changed the markup unexpectedly when setting a non-existing attribute to false'
+		);
 	}
 
 	/**
@@ -1486,7 +1533,8 @@ HTML;
 		$p->set_attribute( 'checked', 'checked' );
 		$this->assertSame(
 			'<form action="/action_page.php"><input checked="checked" type="checkbox" name="vehicle" value="Bike"><label for="vehicle">I have a bike</label></form>',
-			$p->get_updated_html()
+			$p->get_updated_html(),
+			'Did not add string value to existing boolean attribute'
 		);
 	}
 
@@ -1498,7 +1546,7 @@ HTML;
 	public function test_unclosed_script_tag_should_not_cause_an_infinite_loop() {
 		$p = new WP_HTML_Tag_Processor( '<script>' );
 		$p->next_tag();
-		$this->assertSame( 'SCRIPT', $p->get_tag() );
+		$this->assertSame( 'SCRIPT', $p->get_tag(), 'Did not find script tag' );
 		$p->next_tag();
 	}
 
@@ -1641,7 +1689,10 @@ HTML;
 		$p = new WP_HTML_Tag_Processor( $input_html );
 		$p->next_tag( 'div' );
 
-		$this->assertTrue( $p->get_attribute( 'target' ) );
+		$this->assertTrue(
+			$p->get_attribute( 'target' ),
+			'Did not properly skip over script and rcdata regions; incorrectly found tags inside'
+		);
 	}
 
 	/**
@@ -1677,7 +1728,8 @@ HTML;
 		$p->set_attribute( 'class', 'p-class' );
 		$this->assertSame(
 			'<span class="span-class">123<p class="p-class">456</span>789</p>',
-			$p->get_updated_html()
+			$p->get_updated_html(),
+			'Did not find overlapping p tag'
 		);
 	}
 
@@ -1693,7 +1745,8 @@ HTML;
 		$p->remove_attribute( 'Notifications<' );
 		$this->assertSame(
 			'<div><span class="d-md-none" /span><span class="d-none d-md-inline">Back to notifications</span></div>',
-			$p->get_updated_html()
+			$p->get_updated_html(),
+			'Did not remove "Notifications<" attribute in malformed input'
 		);
 	}
 
@@ -1710,7 +1763,8 @@ HTML;
 		$p->set_attribute( 'id', 'second' );
 		$this->assertSame(
 			'<div><span id="first" class="d-md-none" Notifications</span><span id="second" class="d-none d-md-inline">Back to notifications</span></div>',
-			$p->get_updated_html()
+			$p->get_updated_html(),
+			'Did not add id attributes properly to malformed input'
 		);
 	}
 
@@ -1735,7 +1789,8 @@ HTML;
 
 		$this->assertSame(
 			$expected,
-			$p->get_updated_html()
+			$p->get_updated_html(),
+			'Did not properly add attributes and class names'
 		);
 	}
 
@@ -1798,7 +1853,8 @@ HTML;
 
 		$this->assertSame(
 			$expected,
-			$p->get_updated_html()
+			$p->get_updated_html(),
+			'Did not properly update attributes and classnames given malformed input'
 		);
 	}
 
