@@ -38,10 +38,21 @@ class Tests_Widgets_WpBlockThemeRegisterClassicSidebars extends WP_UnitTestCase 
 		switch_theme( 'block-theme' );
 		unregister_sidebar( 'sidebar-1' );
 
-		$this->assertArrayNotHasKey( 'sidebar-1', $wp_registered_sidebars, 'Sidebar 1 should not be in registered sidebars after unregister' );
+		// Test before.
+		$this->assertArrayNotHasKey(
+			'sidebar-1',
+			$wp_registered_sidebars,
+			'Sidebar 1 should not be in registered sidebars after unregister'
+		);
+
 		_wp_block_theme_register_classic_sidebars();
 
-		$this->assertArrayHasKey( 'sidebar-1', $wp_registered_sidebars, 'Sidebar 1 should be in registered sidebars after invoking _wp_block_theme_register_classic_sidebars()' );
+		// Test after.
+		$this->assertArrayHasKey(
+			'sidebar-1',
+			$wp_registered_sidebars,
+			'Sidebar 1 should be in registered sidebars after invoking _wp_block_theme_register_classic_sidebars()'
+		);
 	}
 
 	/**
@@ -50,11 +61,20 @@ class Tests_Widgets_WpBlockThemeRegisterClassicSidebars extends WP_UnitTestCase 
 	public function test_should_bail_out_when_theme_mod_is_empty() {
 		global $wp_registered_sidebars;
 
-		$this->assertFalse( get_theme_mod( 'wp_classic_sidebars' ) );
+		// Test state before invoking.
+		$this->assertFalse(
+			get_theme_mod( 'wp_classic_sidebars' ),
+			'Theme mod should not be set before invoking _wp_block_theme_register_classic_sidebars()'
+		);
 
 		$before = $wp_registered_sidebars;
 		_wp_block_theme_register_classic_sidebars();
 
-		$this->assertSameSetsWithIndex( $before, $wp_registered_sidebars, 'No change should happen after invoking _wp_block_theme_register_classic_sidebars()' );
+		// Test state after invoking.
+		$this->assertSameSetsWithIndex(
+			$before,
+			$wp_registered_sidebars,
+			'No change should happen after invoking _wp_block_theme_register_classic_sidebars()'
+		);
 	}
 }
