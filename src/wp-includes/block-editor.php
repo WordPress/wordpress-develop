@@ -298,10 +298,10 @@ function get_legacy_widget_block_editor_settings() {
 function _wp_get_iframed_editor_assets() {
 	global $pagenow;
 
-	$script_handles = array();
+	$script_handles = array(
+		'wp-polyfill',
+	);
 	$style_handles  = array(
-		'wp-block-editor',
-		'wp-block-library',
 		'wp-edit-blocks',
 	);
 
