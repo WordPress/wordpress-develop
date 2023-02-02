@@ -27,9 +27,7 @@
  */
 
 /**
- * Processes an input HTML document by applying a specified set
- * of patches to that input. Tokenizes HTML but does not fully
- * parse the input document.
+ * Modifies attributes in an HTML document for tags matching a query.
  *
  * ## Usage
  *
@@ -707,7 +705,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 *
 	 * @param string $name Identifies this particular bookmark.
-	 * @return bool
+	 * @return bool Whether the bookmark was successfully created.
 	 */
 	public function set_bookmark( $name ) {
 		if ( null === $this->tag_name_starts_at ) {
@@ -739,7 +737,7 @@ class WP_HTML_Tag_Processor {
 	 * performance overhead it requires.
 	 *
 	 * @param string $name Name of the bookmark to remove.
-	 * @return bool
+	 * @return bool Whether the bookmark already existed before removal.
 	 */
 	public function release_bookmark( $name ) {
 		if ( ! array_key_exists( $name, $this->bookmarks ) ) {
@@ -753,8 +751,7 @@ class WP_HTML_Tag_Processor {
 
 
 	/**
-	 * Skips the contents of the title and textarea tags until an appropriate
-	 * tag closer is found.
+	 * Skips contents of title and textarea tags.
 	 *
 	 * @see https://html.spec.whatwg.org/multipage/parsing.html#rcdata-state
 	 * @since 6.2.0
@@ -830,9 +827,11 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Skips the contents of <script> tags.
+	 * Skips contents of script tags.
 	 *
 	 * @since 6.2.0
+	 *
+	 * @return bool Whether the script tag was closed before the end of the document.
 	 */
 	private function skip_script_data() {
 		$state      = 'unescaped';
@@ -962,6 +961,11 @@ class WP_HTML_Tag_Processor {
 
 	/**
 	 * Parses the next tag.
+	 *
+	 * This will find and start parsing the next tag, including
+	 * the opening `<`, the potential closer `/`, and the tag
+	 * name. It does not parse the attributes or scan to the
+	 * closing `>`; these are left for other methods.
 	 *
 	 * @since 6.2.0
 	 *
@@ -1472,7 +1476,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 *
 	 * @param string $bookmark_name Jump to the place in the document identified by this bookmark name.
-	 * @return bool
+	 * @return bool Whether the internal cursor was successfully moved to the bookmark's location.
 	 */
 	public function seek( $bookmark_name ) {
 		if ( ! array_key_exists( $bookmark_name, $this->bookmarks ) ) {
@@ -1510,7 +1514,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @param WP_HTML_Text_Replacement $a First attribute update.
 	 * @param WP_HTML_Text_Replacement $b Second attribute update.
-	 * @return int
+	 * @return int Comparison value for string order.
 	 */
 	private static function sort_start_ascending( $a, $b ) {
 		$by_start = $a->start - $b->start;
@@ -1752,7 +1756,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.2.0
 	 *
-	 * @return bool
+	 * @return bool Whether the current tag is a tag closer.
 	 */
 	public function is_tag_closer() {
 		return $this->is_closing_tag;
@@ -2098,7 +2102,6 @@ class WP_HTML_Tag_Processor {
 	 *     @type string|null $class_name   Tag must contain this class name to match.
 	 *     @type string      $tag_closers  "visit" or "skip": whether to stop on tag closers, e.g. </div>.
 	 * }
-	 *
 	 * @return void
 	 */
 	private function parse_query( $query ) {
@@ -2156,7 +2159,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.2.0
 	 *
-	 * @return boolean
+	 * @return boolean Whether the given tag and its attribute match the search criteria.
 	 */
 	private function matches() {
 		if ( $this->is_closing_tag && ! $this->stop_on_tag_closers ) {
