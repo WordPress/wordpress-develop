@@ -47,10 +47,12 @@ if ( 'approved' === wp_get_comment_status( $comment ) && $comment->comment_post_
 <div class="inside">
 <h2 class="edit-comment-author"><?php _e( 'Author' ); ?></h2>
 <fieldset>
-<legend class="screen-reader-text"><?php
-/* translators: hidden accessibility text */
-_e( 'Comment Author' );
-?></legend>
+<legend class="screen-reader-text">
+	<?php
+	/* translators: hidden accessibility text */
+	_e( 'Comment Author' );
+	?>
+</legend>
 <table class="form-table editcomment" role="presentation">
 <tbody>
 <tr>
