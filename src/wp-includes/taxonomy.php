@@ -3682,7 +3682,7 @@ function get_object_term_cache( $id, $taxonomy ) {
 	}
 
 	// Fill the term objects.
-	_prime_term_caches( $term_ids, false );
+	_prime_term_caches( $term_ids );
 
 	$terms = array();
 	foreach ( $term_ids as $term_id ) {
