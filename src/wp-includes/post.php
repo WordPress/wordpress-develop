@@ -7860,7 +7860,8 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
 
 		if ( $prime_term_ids ) {
 			$prime_term_ids = array_unique( $prime_term_ids );
-			_prime_term_caches( $prime_term_ids );
+			// Do not prime term meta at this point, let the lazy loader take care of that.
+			_prime_term_caches( $prime_term_ids, false );
 		}
 	}
 
