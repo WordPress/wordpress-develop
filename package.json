@@ -62,7 +62,7 @@
 		"jest-image-snapshot": "3.0.1",
 		"matchdep": "~2.0.0",
 		"postcss": "^8.4.21",
-		"prettier": "npm:wp-prettier@2.0.5",
+		"prettier": "npm:wp-prettier@2.6.2",
 		"qunit": "~2.19.4",
 		"react-refresh": "0.10.0",
 		"sass": "^1.58.0",
