@@ -2445,7 +2445,7 @@ function get_pagenum_link( $pagenum = 1, $escape = true ) {
 		$request = preg_replace( '|^' . preg_quote( $wp_rewrite->index, '|' ) . '|i', '', $request );
 		$request = ltrim( $request, '/' );
 
-		if ( $wp_rewrite->using_index_permalinks() && ( $pagenum > 1 || '' != $request ) ) {
+		if ( $wp_rewrite->using_index_permalinks() && ( $pagenum > 1 || '' !== $request ) ) {
 			$parts[] = $wp_rewrite->index;
 		}
 
