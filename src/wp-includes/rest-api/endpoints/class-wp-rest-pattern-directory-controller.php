@@ -225,6 +225,7 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 	 * Retrieves the block pattern's schema, conforming to JSON Schema.
 	 *
 	 * @since 5.8.0
+	 * @since 6.2.0 Added `'block_types'` to schema.
 	 *
 	 * @return array Item schema data.
 	 */
