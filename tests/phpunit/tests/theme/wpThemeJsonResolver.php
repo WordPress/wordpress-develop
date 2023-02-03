@@ -839,7 +839,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$theme_json = WP_Theme_JSON_Resolver::get_merged_data( $origin );
 		$settings   = $theme_json->get_settings();
 		$styles     = $theme_json->get_styles_block_nodes();
-		$styles = array_filter(
+		$styles     = array_filter(
 			$styles,
 			static function( $element ) {
 				return isset( $element['name'] ) && 'my/block-with-styles' === $element['name'];
