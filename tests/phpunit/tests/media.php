@@ -3279,6 +3279,81 @@ EOF;
 	}
 
 	/**
+	 * @ticket 57086
+	 *
+	 * @dataProvider data_wp_get_attachment_image_decoding_attr
+	 *
+	 * @covers ::wp_get_attachment_image
+	 */
+	public function test_wp_get_attachment_image_decoding_attr( $decoding, $expected ) {
+		if ( 'no value' === $decoding ) {
+			$image = wp_get_attachment_image( self::$large_id, 'thumbnail', false, array() );
+		} else {
+			$image = wp_get_attachment_image( self::$large_id, 'thumbnail', false, array( 'decoding' => $decoding ) );
+		}
+
+		if ( 'no value' === $expected ) {
+			$this->assertStringNotContainsString( ' decoding=', $image );
+		} else {
+			$this->assertStringContainsString( ' decoding="' . esc_attr( $expected ) . '"', $image );
+		}
+	}
+
+	/**
+	 * Data provider for test_wp_get_attachment_image_decoding_attr().
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_get_attachment_image_decoding_attr() {
+		return array(
+			'default'     => array(
+				'decoding' => 'no value',
+				'expected' => 'async',
+			),
+			'async'       => array(
+				'decoding' => 'async',
+				'expected' => 'async',
+			),
+			'sync'        => array(
+				'decoding' => 'sync',
+				'expected' => 'sync',
+			),
+			'auto'        => array(
+				'decoding' => 'auto',
+				'expected' => 'auto',
+			),
+			'empty'       => array(
+				'decoding' => '',
+				'expected' => 'no value',
+			),
+			'false'       => array(
+				'decoding' => false,
+				'expected' => 'no value',
+			),
+			'null'        => array(
+				'decoding' => null,
+				'expected' => 'no value',
+			),
+			'zero'        => array(
+				'decoding' => 0,
+				'expected' => 'no value',
+			),
+			'zero string' => array(
+				'decoding' => '0',
+				'expected' => 'no value',
+			),
+			'zero float'  => array(
+				'decoding' => 0.0,
+				'expected' => 'no value',
+			),
+			'invalid'     => array(
+				'decoding' => 'invalid',
+				'expected' => 'no value',
+			),
+		);
+	}
+
+	/**
 	 * @ticket 44427
 	 * @ticket 50425
 	 * @ticket 50756

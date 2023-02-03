@@ -497,11 +497,12 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * Handles the description column output.
 	 *
 	 * @since 4.3.0
+	 * @deprecated 6.2.0
 	 *
 	 * @param WP_Post $post The current WP_Post object.
 	 */
 	public function column_desc( $post ) {
-		echo has_excerpt() ? $post->post_excerpt : '';
+		_deprecated_function( __METHOD__, '6.2.0' );
 	}
 
 	/**
@@ -841,8 +842,16 @@ class WP_Media_List_Table extends WP_List_Table {
 					esc_url( wp_get_attachment_url( $post->ID ) ),
 					/* translators: %s: Attachment title. */
 					esc_attr( sprintf( __( 'Copy &#8220;%s&#8221; URL to clipboard' ), $att_title ) ),
-					__( 'Copy URL to clipboard' ),
+					__( 'Copy URL' ),
 					__( 'Copied!' )
+				);
+
+				$actions['download'] = sprintf(
+					'<a href="%s" aria-label="%s" download>%s</a>',
+					wp_get_attachment_url( $post->ID ),
+					/* translators: %s: Attachment title. */
+					esc_attr( sprintf( __( 'Download &#8220;%s&#8221;' ), $att_title ) ),
+					__( 'Download file' )
 				);
 			}
 		}
