@@ -5400,6 +5400,11 @@ function wp_strip_all_tags( $text, $remove_breaks = false ) {
 
 	if ( ! is_scalar( $text ) ) {
 		if ( WP_DEBUG ) {
+			/*
+			 * To maintain consistency with pre-PHP 8 error levels,
+			 * trigger_error() is used to trigger an E_USER_WARNING,
+			 * rather than _doing_it_wrong(), which triggers an E_USER_NOTICE.
+			 */
 			trigger_error(
 				sprintf(
 					/* translators: 1: The function name, 2: The argument number, 3: The argument name, 4: The expected type, 5: The provided type. */
