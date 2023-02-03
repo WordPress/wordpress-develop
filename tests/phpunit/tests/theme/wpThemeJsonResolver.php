@@ -854,9 +854,9 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_get_merged_data_returns_origin
+	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_get_merged_data_returns_origin() {
 		return array(
