@@ -19,9 +19,11 @@ Bacon pastrami short loin, venison tri-tip ham short ribs doner swine. Tenderloi
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		unset( $GLOBALS['comment'] );
 
-		self::$comment = $factory->comment->create_and_get( array(
-			'comment_content' => self::$comment_content,
-		) );
+		self::$comment = $factory->comment->create_and_get(
+			array(
+				'comment_content' => self::$comment_content,
+			)
+		);
 	}
 
 	public function test_no_comment() {

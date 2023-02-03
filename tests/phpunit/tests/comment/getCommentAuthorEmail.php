@@ -11,9 +11,13 @@ class Tests_Comment_GetCommentAuthorEmail extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		unset( $GLOBALS['comment'] );
 
-		$comment_id_with_email    = $factory->comment->create_post_comments( 0, 1, array(
-			'comment_author_email' => ( new WP_UnitTest_Generator_Sequence( 'commenter.%s@example.com' ) )->get_template_string(),
-		) );
+		$comment_id_with_email    = $factory->comment->create_post_comments(
+			0,
+			1,
+			array(
+				'comment_author_email' => ( new WP_UnitTest_Generator_Sequence( 'commenter.%s@example.com' ) )->get_template_string(),
+			)
+		);
 		$comment_id_without_email = $factory->comment->create_post_comments( 0, 1 );
 		self::$comments           = array_map(
 			'get_comment',

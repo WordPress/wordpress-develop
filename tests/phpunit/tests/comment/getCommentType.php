@@ -30,9 +30,9 @@ class Tests_Comment_GetCommentType extends WP_UnitTestCase {
 	}
 
 	public function test_global_comment() {
-		$comment = end( self::$comments );
+		$comment            = end( self::$comments );
 		$GLOBALS['comment'] = $comment;
-		$type = get_comment_type();
+		$type               = get_comment_type();
 		$this->assertSame( $comment->comment_type, $type );
 		unset( $GLOBALS['comment'] );
 	}

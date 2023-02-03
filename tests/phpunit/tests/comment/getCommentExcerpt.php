@@ -20,7 +20,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 
 	public function test_invalid_comment() {
 		$comment_id = self::factory()->comment->create();
-		$excerpt = get_comment_excerpt( $comment_id + 1 );
+		$excerpt    = get_comment_excerpt( $comment_id + 1 );
 		$this->assertSame( '', $excerpt );
 	}
 

@@ -12,10 +12,14 @@ class Tests_Comment_GetCommentAuthorLink extends WP_UnitTestCase {
 		unset( $GLOBALS['comment'] );
 
 		$comment_id_with_url    = $factory->comment->create_post_comments( 0, 1 );
-		$comment_id_without_url = $factory->comment->create_post_comments( 0, 1, array(
-			'comment_author_url' => '',
-		) );
-		self::$comments          = array_map(
+		$comment_id_without_url = $factory->comment->create_post_comments(
+			0,
+			1,
+			array(
+				'comment_author_url' => '',
+			)
+		);
+		self::$comments         = array_map(
 			'get_comment',
 			array_merge(
 				$comment_id_with_url,

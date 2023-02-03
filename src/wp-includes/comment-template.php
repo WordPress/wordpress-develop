@@ -222,10 +222,10 @@ function get_comment_author_email_link( $linktext = '', $before = '', $after = '
  * @return string The comment author name or HTML link for author's URL.
  */
 function get_comment_author_link( $comment_ID = 0 ) {
-	$comment = get_comment( $comment_ID );
+	$comment    = get_comment( $comment_ID );
 	$comment_ID = $comment->comment_ID ?? (string) $comment_ID;
-	$url     = get_comment_author_url( $comment );
-	$author  = get_comment_author( $comment );
+	$url        = get_comment_author_url( $comment );
+	$author     = get_comment_author( $comment );
 
 	if ( empty( $url ) || 'http://' === $url ) {
 		$return = $author;

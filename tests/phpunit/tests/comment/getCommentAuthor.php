@@ -12,11 +12,15 @@ class Tests_Comment_GetCommentAuthor extends WP_UnitTestCase {
 		unset( $GLOBALS['comment'] );
 
 		$comment_ids                = $factory->comment->create_post_comments( 0, 1 );
-		$user_generated_comment_ids = $factory->comment->create_post_comments( 0, 1, array(
-			'user_id'        => $factory->user->create(),
-			'comment_author' => '',
-		) );
-		self::$comments = array_map(
+		$user_generated_comment_ids = $factory->comment->create_post_comments(
+			0,
+			1,
+			array(
+				'user_id'        => $factory->user->create(),
+				'comment_author' => '',
+			)
+		);
+		self::$comments             = array_map(
 			'get_comment',
 			array_merge(
 				$comment_ids,
