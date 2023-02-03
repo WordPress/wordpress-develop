@@ -274,6 +274,10 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'dimensions' => array(
 				'minHeight' => true,
 			),
+			'position'   => array(
+				'fixed'  => true,
+				'sticky' => true,
+			),
 			'spacing'    => array(
 				'blockGap' => false,
 				'margin'   => true,
@@ -300,6 +304,10 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					),
 					'dimensions' => array(
 						'minHeight' => true,
+					),
+					'position'   => array(
+						'fixed'  => true,
+						'sticky' => true,
 					),
 					'spacing'    => array(
 						'blockGap' => false,
