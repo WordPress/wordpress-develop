@@ -3549,6 +3549,7 @@ EOF;
 	/**
 	 * @ticket 53675
 	 * @ticket 56930
+	 * @covers ::wp_get_loading_attr_default
 	 * @dataProvider data_wp_get_loading_attr_default
 	 *
 	 * @param string $context
@@ -3707,6 +3708,8 @@ EOF;
 
 	/**
 	 * @ticket 56930
+	 * @covers ::wp_filter_content_tags
+	 * @covers ::wp_get_loading_attr_default
 	 */
 	public function test_wp_filter_content_tags_does_not_lazy_load_first_image_in_block_theme() {
 		global $_wp_current_template_content, $wp_query, $wp_the_query, $post;
@@ -3746,6 +3749,8 @@ EOF;
 
 	/**
 	 * @ticket 56930
+	 * @covers ::wp_filter_content_tags
+	 * @covers ::wp_get_loading_attr_default
 	 */
 	public function test_wp_filter_content_tags_does_not_lazy_load_first_featured_image_in_block_theme() {
 		global $_wp_current_template_content, $wp_query, $wp_the_query, $post;
@@ -3796,6 +3801,8 @@ EOF;
 
 	/**
 	 * @ticket 56930
+	 * @covers ::wp_filter_content_tags
+	 * @covers ::wp_get_loading_attr_default
 	 */
 	public function test_wp_filter_content_tags_does_not_lazy_load_images_in_header() {
 		global $_wp_current_template_content;
