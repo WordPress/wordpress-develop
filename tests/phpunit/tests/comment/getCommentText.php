@@ -53,9 +53,11 @@ class Tests_Comment_GetCommentText extends WP_UnitTestCase {
 	public function test_comment_feed_reply_to() {
 
 		$comment_post_id = self::factory()->post->create();
-		$parent_comment  = self::factory()->comment->create_and_get( array(
-			'comment_post_ID' => $comment_post_id,
-		) );
+		$parent_comment  = self::factory()->comment->create_and_get(
+			array(
+				'comment_post_ID' => $comment_post_id,
+			)
+		);
 		$comment         = self::factory()->comment->create_and_get(
 			array(
 				'comment_post_id' => $comment_post_id,
