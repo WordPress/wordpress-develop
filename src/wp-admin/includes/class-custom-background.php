@@ -414,11 +414,11 @@ class Custom_Background {
 <tr>
 <th scope="row"><?php _e( 'Image Position' ); ?></th>
 <td><fieldset><legend class="screen-reader-text"><span>
-	<?php
-	/* translators: hidden accessibility text */
-	_e( 'Image Position' );
-	?>
-</span></legend>
+			<?php
+			/* translators: hidden accessibility text */
+			_e( 'Image Position' );
+			?>
+		</span></legend>
 <div class="background-position-control">
 			<?php foreach ( $background_position_options as $group ) : ?>
 	<div class="button-group">
@@ -438,10 +438,10 @@ class Custom_Background {
 <tr>
 <th scope="row"><label for="background-size"><?php _e( 'Image Size' ); ?></label></th>
 <td><fieldset><legend class="screen-reader-text"><span>
-	<?php
-	/* translators: hidden accessibility text */
-	_e( 'Image Size' );
-	?>
+			<?php
+			/* translators: hidden accessibility text */
+			_e( 'Image Size' );
+			?>
 </span></legend>
 <select id="background-size" name="background-size">
 <option value="auto"<?php selected( 'auto', get_theme_mod( 'background_size', get_theme_support( 'custom-background', 'default-size' ) ) ); ?>><?php _ex( 'Original', 'Original Size' ); ?></option>
@@ -454,10 +454,10 @@ class Custom_Background {
 <tr>
 <th scope="row"><?php _ex( 'Repeat', 'Background Repeat' ); ?></th>
 <td><fieldset><legend class="screen-reader-text"><span>
-	<?php
-	/* translators: hidden accessibility text */
-	_ex( 'Repeat', 'Background Repeat' );
-	?>
+			<?php
+			/* translators: hidden accessibility text */
+			_ex( 'Repeat', 'Background Repeat' );
+			?>
 </span></legend>
 <input name="background-repeat" type="hidden" value="no-repeat">
 <label><input type="checkbox" name="background-repeat" value="repeat"<?php checked( 'repeat', get_theme_mod( 'background_repeat', get_theme_support( 'custom-background', 'default-repeat' ) ) ); ?>> <?php _e( 'Repeat Background Image' ); ?></label>
