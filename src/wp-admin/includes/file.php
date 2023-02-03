@@ -1189,7 +1189,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 		return new WP_Error( 'http_404', trim( wp_remote_retrieve_response_message( $response ) ), $data );
 	}
 
-	$content_disposition = wp_remote_retrieve_header( $response, 'content-disposition' );
+	$content_disposition = wp_remote_retrieve_header( $response, 'Content-Disposition' );
 
 	if ( $content_disposition ) {
 		$content_disposition = strtolower( $content_disposition );
@@ -1216,7 +1216,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 		}
 	}
 
-	$content_md5 = wp_remote_retrieve_header( $response, 'content-md5' );
+	$content_md5 = wp_remote_retrieve_header( $response, 'Content-MD5' );
 
 	if ( $content_md5 ) {
 		$md5_check = verify_file_md5( $tmpfname, $content_md5 );
@@ -1243,7 +1243,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 
 	// Perform signature valiation if supported.
 	if ( $signature_verification ) {
-		$signature = wp_remote_retrieve_header( $response, 'x-content-signature' );
+		$signature = wp_remote_retrieve_header( $response, 'X-Content-Signature' );
 
 		if ( ! $signature ) {
 			// Retrieve signatures from a file if the header wasn't included.
