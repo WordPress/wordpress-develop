@@ -908,7 +908,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that get_style_variations returns all variations, including parent theme variations if the theme is a child,
+	 * Tests that get_style_variations returns all variations, including parent theme variations if the theme is a child,
 	 * and that the child variation overwrites the parent variation of the same name.
 	 *
 	 * @covers WP_Theme_JSON_Resolver::get_style_variations
