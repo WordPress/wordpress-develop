@@ -313,7 +313,7 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
  *
  * @since 6.2.0
  * @access private
- * 
+ *
  * @param string $html markup to be processed.
  * @return string String of inner wrapper classnames.
  */
