@@ -332,7 +332,12 @@ function login_footer( $input_id = '' ) {
 
 					<label for="language-switcher-locales">
 						<span class="dashicons dashicons-translation" aria-hidden="true"></span>
-						<span class="screen-reader-text"><?php _e( 'Language' ); ?></span>
+						<span class="screen-reader-text">
+							<?php
+							/* translators: hidden accessibility text */
+							_e( 'Language' );
+							?>
+						</span>
 					</label>
 
 					<?php
@@ -649,7 +654,11 @@ switch ( $action ) {
 				$admin_email_help_url = __( 'https://wordpress.org/support/article/settings-general-screen/#email-address' );
 
 				/* translators: Accessibility text. */
-				$accessibility_text = sprintf( '<span class="screen-reader-text"> %s</span>', __( '(opens in a new tab)' ) );
+				$accessibility_text = sprintf(
+					'<span class="screen-reader-text"> %s</span>',
+					/* translators: hidden accessibility text */
+					__( '(opens in a new tab)' )
+				);
 
 				printf(
 					'<a href="%s" rel="noopener" target="_blank">%s%s</a>',
