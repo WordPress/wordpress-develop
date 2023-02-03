@@ -1052,7 +1052,7 @@ class WP_Site_Health {
 					$result['status'] = 'critical';
 
 					$class         = 'error';
-					$screen_reader = 
+					$screen_reader =
 					/* translators: hidden accessibility text */
 					__( 'Error' );
 					$message       = sprintf(
@@ -1062,7 +1062,9 @@ class WP_Site_Health {
 					);
 				} else {
 					$class         = 'warning';
-					$screen_reader = __( 'Warning' );
+					$screen_reader =
+					/* translators: hidden accessibility text */
+					__( 'Warning' );
 					$message       = sprintf(
 						/* translators: %s: The module name. */
 						__( 'The optional module, %s, is not installed, or has been disabled.' ),

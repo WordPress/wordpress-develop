@@ -479,8 +479,8 @@ class WP_Media_List_Table extends WP_List_Table {
 				<?php
 				/* translators: hidden accessibility text */
 				_e( 'File name:' );
-				?> 
-				</span>
+				?>
+				 </span>
 			<?php
 			$file = get_attached_file( $post->ID );
 			echo esc_html( wp_basename( $file ) );
