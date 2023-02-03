@@ -271,8 +271,8 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 			),
 			'ogg' => array(
 				'headers' => array(
-					'content-length' => 321,
-					'content-type'   => 'audio/ogg',
+					'Content-Length' => 321,
+					'Content-Type'   => 'audio/ogg',
 				),
 			),
 		);
