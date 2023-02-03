@@ -286,7 +286,7 @@ class WP_Theme_JSON_Resolver {
 		 * So we take theme supports, transform it to theme.json shape
 		 * and merge the static::$theme upon that.
 		 */
-		$theme_support_data = WP_Theme_JSON::get_from_editor_settings( get_default_block_editor_settings() );
+		$theme_support_data = WP_Theme_JSON::get_from_editor_settings( get_classic_theme_supports_block_editor_settings() );
 		if ( ! wp_theme_has_theme_json() ) {
 			if ( ! isset( $theme_support_data['settings']['color'] ) ) {
 				$theme_support_data['settings']['color'] = array();
@@ -373,18 +373,20 @@ class WP_Theme_JSON_Resolver {
 	/**
 	 * When given an array, this will remove any keys with the name `//`.
 	 *
-	 * @param array $array The array to filter.
+	 * @since 6.1.0
+	 *
+	 * @param array $input_array The array to filter.
 	 * @return array The filtered array.
 	 */
-	private static function remove_json_comments( $array ) {
-		unset( $array['//'] );
-		foreach ( $array as $k => $v ) {
+	private static function remove_json_comments( $input_array ) {
+		unset( $input_array['//'] );
+		foreach ( $input_array as $k => $v ) {
 			if ( is_array( $v ) ) {
-				$array[ $k ] = static::remove_json_comments( $v );
+				$input_array[ $k ] = static::remove_json_comments( $v );
 			}
 		}
 
-		return $array;
+		return $input_array;
 	}
 
 	/**

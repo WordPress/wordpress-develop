@@ -1278,6 +1278,11 @@ EOF;
 				'css'      => '--?><.%-not-allowed: red;',
 				'expected' => '',
 			),
+			// Position properties introduced in 6.2.
+			array(
+				'css'      => 'position: sticky;top: 0;left: 0;right: 0;bottom: 0;z-index: 10;',
+				'expected' => 'position: sticky;top: 0;left: 0;right: 0;bottom: 0;z-index: 10',
+			),
 		);
 	}
 
@@ -2092,10 +2097,10 @@ HTML;
 	 *
 	 * @ticket 54060
 	 *
-	 * @param string $global The name of the global variable.
+	 * @param string $global_name The name of the global variable.
 	 */
-	public function test_kses_globals_are_defined( $global ) {
-		$this->assertArrayHasKey( $global, $GLOBALS );
+	public function test_kses_globals_are_defined( $global_name ) {
+		$this->assertArrayHasKey( $global_name, $GLOBALS );
 	}
 
 	/**
@@ -2104,13 +2109,13 @@ HTML;
 	 * @return array
 	 */
 	public function data_kses_globals_are_defined() {
-		$globals = array(
+		$required_kses_globals = array(
 			'allowedposttags',
 			'allowedtags',
 			'allowedentitynames',
 			'allowedxmlentitynames',
 		);
 
-		return $this->text_array_to_dataprovider( $globals );
+		return $this->text_array_to_dataprovider( $required_kses_globals );
 	}
 }
