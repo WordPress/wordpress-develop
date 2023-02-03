@@ -24,15 +24,18 @@ class Test_Lazy_Load_Term_Meta extends WP_UnitTestCase {
 				'post_status' => 'publish',
 			)
 		);
-		$taxonomies     = get_object_taxonomies( $post_type );
+		$taxonomies     = get_object_taxonomies( $post_type, 'object' );
 		foreach ( self::$post_ids  as $post_id ) {
 			foreach ( $taxonomies as $taxonomy ) {
-				$terms          = $factory->term->create_many( 3, array( 'taxonomy' => $taxonomy ) );
+				if ( ! $taxonomy->_builtin ) {
+					continue;
+				}
+				$terms          = $factory->term->create_many( 3, array( 'taxonomy' => $taxonomy->name ) );
 				self::$term_ids = array_merge( self::$term_ids, $terms );
 				foreach ( $terms as $term ) {
 					add_term_meta( $term, wp_rand(), 'test' );
 				}
-				wp_set_object_terms( $post_id, $terms, $taxonomy );
+				wp_set_object_terms( $post_id, $terms, $taxonomy->name );
 			}
 		}
 	}
