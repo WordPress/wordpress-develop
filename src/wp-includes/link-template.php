@@ -2456,8 +2456,10 @@ function get_pagenum_link( $pagenum = 1, $escape = true ) {
 			$parts[] = $pagenum;
 		}
 
-		$parts[] = $query_string;
-		$result  = user_trailingslashit( implode( '/', array_filter( $parts ) ), 'paged' );
+		$result = user_trailingslashit( implode( '/', array_filter( $parts ) ), 'paged' );
+		if ( ! empty( $query_string ) ) {
+			$result .= $query_string;
+		}
 	}
 
 	/**
