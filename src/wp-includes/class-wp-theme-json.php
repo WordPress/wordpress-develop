@@ -1009,9 +1009,10 @@ class WP_Theme_JSON {
 	/**
 	 * Processes the CSS, to apply nesting.
 	 *
+	 * @since 6.2.0
+	 *
 	 * @param string $css      The CSS to process.
 	 * @param string $selector The selector to nest.
-	 *
 	 * @return string The processed CSS.
 	 */
 	protected function process_blocks_custom_css( $css, $selector ) {
@@ -1032,7 +1033,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.2.0
 	 *
-	 * @return string
+	 * @return string The global styles custom CSS.
 	 */
 	public function get_custom_css() {
 		// Add the global styles root CSS.
