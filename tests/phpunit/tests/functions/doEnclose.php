@@ -265,8 +265,8 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 		$fake_headers = array(
 			'mp4' => array(
 				'headers' => array(
-					'content-length' => 123,
-					'content-type'   => 'video/mp4',
+					'Content-Length' => 123,
+					'Content-Type'   => 'video/mp4',
 				),
 			),
 			'ogg' => array(
@@ -289,8 +289,8 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 		// Fallback header.
 		return array(
 			'headers' => array(
-				'content-length' => 0,
-				'content-type'   => '',
+				'Content-Length' => 0,
+				'Content-Type'   => '',
 			),
 		);
 	}
