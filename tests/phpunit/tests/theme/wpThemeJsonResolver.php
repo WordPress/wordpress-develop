@@ -779,6 +779,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	/**
 	 * Test that get_merged_data returns the data merged up to the proper origin.
 	 *
+	 * @ticket 57545
+	 *
 	 * @covers WP_Theme_JSON_Resolver::get_merged_data
 	 *
 	 * @dataProvider data_get_merged_data_returns_origin
