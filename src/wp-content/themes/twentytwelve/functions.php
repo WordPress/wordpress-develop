@@ -141,6 +141,7 @@ require get_template_directory() . '/inc/block-patterns.php';
  * Return the font stylesheet URL if available.
  *
  * @since Twenty Twelve 1.2
+ * @since Twenty Twelve 3.8 Replaced Google URL with self-hosted font.
  *
  * @return string Font stylesheet or empty string if disabled.
  */
@@ -275,6 +276,7 @@ add_action( 'enqueue_block_editor_assets', 'twentytwelve_block_editor_styles' );
  * Add preconnect for Fonts.
  *
  * @since Twenty Twelve 2.2
+ * @deprecated Twenty Twelve 3.8 Removed filter because, by default, fonts are self-hosted.
  *
  * @param array   $urls          URLs to print for resource hints.
  * @param string  $relation_type The relation type the URLs are printed.
@@ -283,7 +285,7 @@ add_action( 'enqueue_block_editor_assets', 'twentytwelve_block_editor_styles' );
 function twentytwelve_resource_hints( $urls, $relation_type ) {
 	return $urls;
 }
-add_filter( 'wp_resource_hints', 'twentytwelve_resource_hints', 10, 2 );
+// add_filter( 'wp_resource_hints', 'twentytwelve_resource_hints', 10, 2 );
 
 /**
  * Filter TinyMCE CSS path to include Google Fonts.
