@@ -335,6 +335,7 @@ require ABSPATH . WPINC . '/block-supports/duotone.php';
 require ABSPATH . WPINC . '/block-supports/elements.php';
 require ABSPATH . WPINC . '/block-supports/generated-classname.php';
 require ABSPATH . WPINC . '/block-supports/layout.php';
+require ABSPATH . WPINC . '/block-supports/position.php';
 require ABSPATH . WPINC . '/block-supports/spacing.php';
 require ABSPATH . WPINC . '/block-supports/typography.php';
 require ABSPATH . WPINC . '/style-engine.php';
