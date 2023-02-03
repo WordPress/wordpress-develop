@@ -1609,6 +1609,12 @@ function wp_default_styles( $styles ) {
 		array()
 	);
 
+	$styles->add(
+		'wp-block-editor-content',
+		"/wp-includes/css/dist/block-editor/content$suffix.css",
+		array()
+	);
+
 	$wp_edit_blocks_dependencies = array(
 		'wp-components',
 		'wp-editor',
@@ -1617,6 +1623,7 @@ function wp_default_styles( $styles ) {
 		'wp-reset-editor-styles',
 		'wp-block-library',
 		'wp-reusable-blocks',
+		'wp-block-editor-content',
 	);
 
 	// Only load the default layout and margin styles for themes without theme.json file.
@@ -2445,6 +2452,27 @@ function wp_enqueue_global_styles() {
 
 	// Add each block as an inline css.
 	wp_add_global_styles_for_blocks();
+}
+
+/**
+ * Enqueues the global styles custom css defined via theme.json.
+ *
+ * @since 6.2.0
+ */
+function wp_enqueue_global_styles_custom_css() {
+	if ( ! wp_is_block_theme() ) {
+		return;
+	}
+
+	// Don't enqueue Customizer's custom CSS separately.
+	remove_action( 'wp_head', 'wp_custom_css_cb', 101 );
+
+	$custom_css  = wp_get_custom_css();
+	$custom_css .= wp_get_global_styles_custom_css();
+
+	if ( ! empty( $custom_css ) ) {
+		wp_add_inline_style( 'global-styles', $custom_css );
+	}
 }
 
 /**
