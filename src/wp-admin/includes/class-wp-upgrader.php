@@ -594,8 +594,20 @@ class WP_Upgrader {
 			}
 		}
 
-		// Move new version of directory into place.
-		$result = move_dir( $source, $remote_destination, true );
+		/*
+		 * Partial updates may want to retain the destination.
+		 * move_dir() returns a WP_Error when the destination exists,
+		 * so copy_dir() should be used.
+		 *
+		 * If 'clear_working' is false, the source shouldn't be removed.
+		 * After move_dir() runs, the source will no longer exist.
+		 * Therefore, copy_dir() should be used.
+		 */
+		if ( $clear_destination && $args['clear_working'] ) {
+			$result = move_dir( $source, $remote_destination, true );
+		} else {
+			$result = copy_dir( $source, $remote_destination );
+		}
 
 		// Clear the working folder?
 		if ( $args['clear_working'] ) {
