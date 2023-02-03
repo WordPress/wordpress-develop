@@ -158,10 +158,10 @@ switch ( $step ) {
 		}
 		?>
 <h1 class="screen-reader-text">
-	<?php
-	/* translators: hidden accessibility text */
-	_e( 'Before getting started' );
-	?>
+		<?php
+		/* translators: hidden accessibility text */
+		_e( 'Before getting started' );
+		?>
 </h1>
 <p><?php _e( 'Welcome to WordPress. Before getting started, you will need to know the following items.' ); ?></p>
 <ol>
@@ -213,10 +213,10 @@ switch ( $step ) {
 		$autofocus = wp_is_mobile() ? '' : ' autofocus';
 		?>
 <h1 class="screen-reader-text">
-	<?php
-	/* translators: hidden accessibility text */
-	_e( 'Set up your database connection' );
-	?>
+		<?php
+		/* translators: hidden accessibility text */
+		_e( 'Set up your database connection' );
+		?>
 </h1>
 <form method="post" action="setup-config.php?step=2">
 	<p><?php _e( 'Below you should enter your database connection details. If you are not sure about these, contact your host.' ); ?></p>
@@ -488,10 +488,10 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 			if ( false !== $handle ) :
 				?>
 <h1 class="screen-reader-text">
-	<?php
-	/* translators: hidden accessibility text */
-	_e( 'Successful database connection' );
-	?>
+				<?php
+				/* translators: hidden accessibility text */
+				_e( 'Successful database connection' );
+				?>
 </h1>
 <p><?php _e( 'All right, sparky! You&#8217;ve made it through this part of the installation. WordPress can now communicate with your database. If you are ready, time now to&hellip;' ); ?></p>
 
