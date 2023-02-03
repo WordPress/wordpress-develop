@@ -23,7 +23,7 @@
  */
 function get_comment_author( $comment_ID = 0 ) {
 	$comment    = get_comment( $comment_ID );
-	$comment_ID = $comment->comment_ID ?? $comment_ID;
+	$comment_ID = ! empty( $comment->comment_ID ) ? $comment->comment_ID ? (string) $comment_ID;
 
 	if ( empty( $comment->comment_author ) ) {
 		$user = ! empty( $comment->user_id ) ? get_userdata( $comment->user_id ) : false;
@@ -60,7 +60,7 @@ function get_comment_author( $comment_ID = 0 ) {
  */
 function comment_author( $comment_ID = 0 ) {
 	$comment    = get_comment( $comment_ID );
-	$comment_ID = $comment->comment_ID ?? (string) $comment_ID;
+	$comment_ID = ! empty( $comment->comment_ID ) ? $comment->comment_ID : (string) $comment_ID;
 	$author     = get_comment_author( $comment );
 
 	/**
@@ -87,8 +87,8 @@ function comment_author( $comment_ID = 0 ) {
  */
 function get_comment_author_email( $comment_ID = 0 ) {
 	$comment              = get_comment( $comment_ID );
-	$comment_ID           = $comment->comment_ID ?? (string) $comment_ID;
-	$comment_author_email = $comment->comment_author_email ?? '';
+	$comment_ID           = ! empty( $comment->comment_ID ) ? $comment->comment_ID : (string) $comment_ID;
+	$comment_author_email = ! empty( $comment->comment_author_email ) ? $comment->comment_author_email : '';
 
 	/**
 	 * Filters the comment author's returned email address.
@@ -120,7 +120,7 @@ function get_comment_author_email( $comment_ID = 0 ) {
  */
 function comment_author_email( $comment_ID = 0 ) {
 	$comment      = get_comment( $comment_ID );
-	$comment_ID   = $comment->comment_ID ?? (string) $comment_ID;
+	$comment_ID   = ! empty( $comment->comment_ID ) ? $comment->comment_ID : (string) $comment_ID;
 	$author_email = get_comment_author_email( $comment );
 
 	/**
@@ -223,7 +223,7 @@ function get_comment_author_email_link( $linktext = '', $before = '', $after = '
  */
 function get_comment_author_link( $comment_ID = 0 ) {
 	$comment    = get_comment( $comment_ID );
-	$comment_ID = $comment->comment_ID ?? (string) $comment_ID;
+	$comment_ID = ! empty( $comment->comment_ID ) ? $comment->comment_ID : (string) $comment_ID;
 	$url        = get_comment_author_url( $comment );
 	$author     = get_comment_author( $comment );
 
@@ -272,8 +272,8 @@ function comment_author_link( $comment_ID = 0 ) {
  */
 function get_comment_author_IP( $comment_ID = 0 ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	$comment           = get_comment( $comment_ID );
-	$comment_ID        = $comment->comment_ID ?? (string) $comment_ID;
-	$comment_author_IP = $comment->comment_author_IP ?? '';
+	$comment_ID        = ! empty( $comment->comment_ID ) ? $comment->comment_ID : (string) $comment_ID;
+	$comment_author_IP = ! empty( $comment->comment_author_IP ) ? $comment->comment_author_IP : '';
 
 	/**
 	 * Filters the comment author's returned IP address.
@@ -346,7 +346,7 @@ function get_comment_author_url( $comment_ID = 0 ) {
  */
 function comment_author_url( $comment_ID = 0 ) {
 	$comment    = get_comment( $comment_ID );
-	$comment_ID = $comment->comment_ID ?? (string) $comment_ID;
+	$comment_ID = ! empty( $comment->comment_ID ) ? $comment->comment_ID : (string) $comment_ID;
 	$author_url = get_comment_author_url( $comment );
 
 	/**
@@ -606,7 +606,7 @@ function comment_date( $format = '', $comment_ID = 0 ) {
  */
 function get_comment_excerpt( $comment_ID = 0 ) {
 	$comment    = get_comment( $comment_ID );
-	$comment_ID = $comment->comment_ID ?? (string) $comment_ID;
+	$comment_ID = ! empty( $comment->comment_ID ) ? $comment->comment_ID : (string) $comment_ID;
 
 	$comment_text = '';
 	if ( $comment instanceof WP_Comment ) {
@@ -655,7 +655,7 @@ function get_comment_excerpt( $comment_ID = 0 ) {
  */
 function comment_excerpt( $comment_ID = 0 ) {
 	$comment         = get_comment( $comment_ID );
-	$comment_ID      = $comment->comment_ID ?? (string) $comment_ID;
+	$comment_ID      = ! empty( $comment->comment_ID ) ? $comment->comment_ID : (string) $comment_ID;
 	$comment_excerpt = get_comment_excerpt( $comment );
 
 	/**
@@ -1097,7 +1097,7 @@ function comment_time( $format = '' ) {
  */
 function get_comment_type( $comment_ID = 0 ) {
 	$comment      = get_comment( $comment_ID );
-	$comment_ID   = $comment->comment_ID ?? (string) $comment_ID;
+	$comment_ID   = ! empty( $comment->comment_ID ) ? $comment->comment_ID : (string) $comment_ID;
 	$comment_type = ! empty( $comment->comment_type ) ? $comment->comment_type : 'comment';
 
 	/**
