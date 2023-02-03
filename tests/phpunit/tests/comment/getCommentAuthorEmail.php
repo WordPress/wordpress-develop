@@ -23,7 +23,7 @@ class Tests_Comment_GetCommentAuthorEmail extends WP_UnitTestCase {
 			'get_comment',
 			array_merge(
 				$comment_id_with_email,
-				$comment_id_without_email,
+				$comment_id_without_email
 			)
 		);
 

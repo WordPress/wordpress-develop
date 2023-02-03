@@ -23,7 +23,7 @@ class Tests_Comment_GetCommentAuthorLink extends WP_UnitTestCase {
 			'get_comment',
 			array_merge(
 				$comment_id_with_url,
-				$comment_id_without_url,
+				$comment_id_without_url
 			)
 		);
 

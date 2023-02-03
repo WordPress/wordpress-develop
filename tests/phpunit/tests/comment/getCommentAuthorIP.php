@@ -23,7 +23,7 @@ class Tests_Comment_GetCommentAuthorIP extends WP_UnitTestCase {
 			'get_comment',
 			array_merge(
 				$comment_id_with_ip,
-				$comment_id_without_ip,
+				$comment_id_without_ip
 			)
 		);
 	}
