@@ -301,26 +301,28 @@ function twentyfourteen_widgets_init() {
 }
 add_action( 'widgets_init', 'twentyfourteen_widgets_init' );
 
-/**
- * Register Lato font for Twenty Fourteen.
- *
- * @since Twenty Fourteen 1.0
- * @since Twenty Fourteen 3.6 Replaced Google URL with self-hosted fonts.
- *
- * @return string
- */
-function twentyfourteen_font_url() {
-	$font_url = '';
-	/*
-	 * translators: If there are characters in your language that are not supported
-	 * by Lato, translate this to 'off'. Do not translate into your own language.
+if ( ! function_exists( 'twentyfourteen_font_url' ) ) :
+	/**
+	 * Register Lato font for Twenty Fourteen.
+	 *
+	 * @since Twenty Fourteen 1.0
+	 * @since Twenty Fourteen 3.6 Replaced Google URL with self-hosted fonts.
+	 *
+	 * @return string
 	 */
-	if ( 'off' !== _x( 'on', 'Lato font: on or off', 'twentyfourteen' ) ) {
-		$font_url = get_template_directory_uri() . '/fonts/font-lato.css';
-	}
+	function twentyfourteen_font_url() {
+		$font_url = '';
+		/*
+		 * translators: If there are characters in your language that are not supported
+		 * by Lato, translate this to 'off'. Do not translate into your own language.
+		 */
+		if ( 'off' !== _x( 'on', 'Lato font: on or off', 'twentyfourteen' ) ) {
+			$font_url = get_template_directory_uri() . '/fonts/font-lato.css';
+		}
 
-	return $font_url;
-}
+		return $font_url;
+	}
+endif;
 
 /**
  * Enqueue scripts and styles for the front end.
