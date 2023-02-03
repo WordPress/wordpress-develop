@@ -29,7 +29,8 @@
 			<?php
 			/* translators: hidden accessibility text */
 			_e( 'Skip to content', 'twentysixteen' );
-			?></a>
+			?>
+		</a>
 
 		<header id="masthead" class="site-header">
 			<div class="site-header-main">
