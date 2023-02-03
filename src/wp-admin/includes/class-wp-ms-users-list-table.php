@@ -237,7 +237,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 		?>
 		<label class="screen-reader-text" for="blog_<?php echo $user->ID; ?>">
 			<?php
-			/* translators: translators: hidden accessibility text. %s: User login. */
+			/* translators: hidden accessibility text. %s: User login. */
 			printf( __( 'Select %s' ), $user->user_login );
 			?>
 		</label>
