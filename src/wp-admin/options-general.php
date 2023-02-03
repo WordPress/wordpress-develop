@@ -368,7 +368,12 @@ foreach ( $date_formats as $format ) {
 <tr>
 <th scope="row"><?php _e( 'Time Format' ); ?></th>
 <td>
-	<fieldset><legend class="screen-reader-text"><span><?php _e( 'Time Format' ); ?></span></legend>
+	<fieldset><legend class="screen-reader-text"><span>
+		<?php
+		/* translators: hidden accessibility text */
+		_e( 'Time Format' );
+		?>
+	</span></legend>
 <?php
 	/**
 	 * Filters the default time formats.
