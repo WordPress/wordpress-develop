@@ -807,7 +807,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 									">
 										<span aria-hidden="true"><?php _ex( 'Edit', 'menu' ); ?></span><span class="screen-reader-text">
 											<?php
-											/* translators: hidden accessibility text */
+											/* translators: Hidden accessibility text. */
 											_e( 'Edit selected menu' );
 											?>
 										</span>
@@ -858,7 +858,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<?php _e( 'Create your first menu below.' ); ?>
 			<span class="screen-reader-text">
 				<?php
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				_e( 'Fill in the Menu Name and click the Create Menu button to create your first menu.' );
 				?>
 			</span>
@@ -882,7 +882,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			?>
 			<span class="screen-reader-text">
 				<?php
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				_e( 'Click the Save Menu button to save your changes.' );
 				?>
 			</span>
@@ -952,7 +952,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				?>
 				<span class="screen-reader-text">
 					<?php
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_e( 'Click the Save Menu button to save your changes.' );
 					?>
 				</span>

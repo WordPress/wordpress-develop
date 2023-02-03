@@ -926,7 +926,7 @@ function wp_print_admin_notice_templates() {
 						<# } #>
 						<span class="screen-reader-text">
 							<?php
-							/* translators: hidden accessibility text */
+							/* translators: Hidden accessibility text. */
 							_e( 'Show more details' );
 							?>
 						</span>

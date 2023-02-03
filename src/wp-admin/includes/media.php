@@ -2263,7 +2263,7 @@ function media_upload_form( $errors = null ) {
 	<p id="async-upload-wrap">
 		<label class="screen-reader-text" for="async-upload">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Upload' );
 			?>
 		</label>
@@ -2736,7 +2736,7 @@ function media_upload_library_form( $errors ) {
 	<p id="media-search" class="search-box">
 		<label class="screen-reader-text" for="media-search-input">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Search Media' );
 			?>
 		:</label>
@@ -3232,7 +3232,7 @@ function edit_form_image_editor( $post ) {
 			'target="_blank" rel="noopener"',
 			sprintf(
 				'<span class="screen-reader-text"> %s</span>',
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				__( '(opens in a new tab)' )
 			)
 		);

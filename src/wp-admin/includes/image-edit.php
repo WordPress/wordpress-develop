@@ -114,7 +114,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 		<h2><?php _e( 'Scale Image' ); ?></h2>
 		<button type="button" class="dashicons dashicons-editor-help imgedit-help-toggle" onclick="imageEdit.toggleHelp(this);" aria-expanded="false"><span class="screen-reader-text">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			esc_html_e( 'Scale Image Help' );
 			?>
 		</span></button>
@@ -139,7 +139,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 		<div class="nowrap">
 		<label for="imgedit-scale-width-<?php echo $post_id; ?>" class="screen-reader-text">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'scale width' );
 			?>
 		</label>
@@ -147,7 +147,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 		<span class="imgedit-separator" aria-hidden="true">&times;</span>
 		<label for="imgedit-scale-height-<?php echo $post_id; ?>" class="screen-reader-text">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'scale height' );
 			?>
 		</label>
@@ -190,7 +190,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 		<h2><?php _e( 'Image Crop' ); ?></h2>
 		<button type="button" class="dashicons dashicons-editor-help imgedit-help-toggle" onclick="imageEdit.toggleHelp(this);" aria-expanded="false"><span class="screen-reader-text">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			esc_html_e( 'Image Crop Help' );
 			?>
 		</span></button>
@@ -211,7 +211,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 		<div class="nowrap">
 		<label for="imgedit-crop-width-<?php echo $post_id; ?>" class="screen-reader-text">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'crop ratio width' );
 			?>
 		</label>
@@ -219,7 +219,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 		<span class="imgedit-separator" aria-hidden="true">:</span>
 		<label for="imgedit-crop-height-<?php echo $post_id; ?>" class="screen-reader-text">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'crop ratio height' );
 			?>
 		</label>
@@ -232,7 +232,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 		<div class="nowrap">
 		<label for="imgedit-sel-width-<?php echo $post_id; ?>" class="screen-reader-text">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'selection width' );
 			?>
 		</label>
@@ -240,7 +240,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 		<span class="imgedit-separator" aria-hidden="true">&times;</span>
 		<label for="imgedit-sel-height-<?php echo $post_id; ?>" class="screen-reader-text">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'selection height' );
 			?>
 		</label>
@@ -260,7 +260,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 		<h2><?php _e( 'Thumbnail Settings' ); ?></h2>
 		<button type="button" class="dashicons dashicons-editor-help imgedit-help-toggle" onclick="imageEdit.toggleHelp(this);" aria-expanded="false"><span class="screen-reader-text">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			esc_html_e( 'Thumbnail Settings Help' );
 			?>
 		</span></button>

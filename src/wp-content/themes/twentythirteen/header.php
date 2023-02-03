@@ -44,7 +44,7 @@
 					<button class="menu-toggle"><?php _e( 'Menu', 'twentythirteen' ); ?></button>
 					<a class="screen-reader-text skip-link" href="#content">
 						<?php
-						/* translators: hidden accessibility text */
+						/* translators: Hidden accessibility text. */
 						_e( 'Skip to content', 'twentythirteen' );
 						?>
 					</a>

@@ -360,7 +360,7 @@ if ( ! function_exists( 'wp_body_open' ) ) {
  */
 function twentytwenty_skip_link() {
 	echo '<a class="skip-link screen-reader-text" href="#site-content">' .
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	__( 'Skip to the content', 'twentytwenty' ) .
 	'</a>';
 }

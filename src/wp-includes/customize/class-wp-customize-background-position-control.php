@@ -92,7 +92,7 @@ class WP_Customize_Background_Position_Control extends WP_Customize_Control {
 			<fieldset>
 				<legend class="screen-reader-text"><span>
 					<?php
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_e( 'Image Position' );
 					?>
 				</span></legend>

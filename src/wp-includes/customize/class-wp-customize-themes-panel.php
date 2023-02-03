@@ -69,7 +69,7 @@ class WP_Customize_Themes_Panel extends WP_Customize_Panel {
 		<li class="panel-meta customize-info accordion-section <# if ( ! data.description ) { #> cannot-expand<# } #>">
 			<button class="customize-panel-back" tabindex="-1" type="button"><span class="screen-reader-text">
 				<?php
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				_e( 'Back' );
 				?>
 			</span></button>
@@ -87,7 +87,7 @@ class WP_Customize_Themes_Panel extends WP_Customize_Panel {
 					<# if ( data.description ) { #>
 						<button class="customize-help-toggle dashicons dashicons-editor-help" type="button" aria-expanded="false"><span class="screen-reader-text">
 							<?php
-							/* translators: hidden accessibility text */
+							/* translators: Hidden accessibility text. */
 							_e( 'Help' );
 							?>
 						</span></button>

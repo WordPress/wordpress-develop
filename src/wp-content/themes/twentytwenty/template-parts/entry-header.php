@@ -35,7 +35,7 @@ if ( is_singular() ) {
 			<div class="entry-categories">
 				<span class="screen-reader-text">
 					<?php
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_e( 'Categories', 'twentytwenty' );
 					?>
 				</span>

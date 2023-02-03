@@ -185,9 +185,9 @@ function display_setup_form( $error = null ) {
 					<legend class="screen-reader-text"><span>
 						<?php
 						has_action( 'blog_privacy_selector' ) ?
-						/* translators: hidden accessibility text */
+						/* translators: Hidden accessibility text. */
 						_e( 'Site visibility' ) :
-						/* translators: hidden accessibility text */
+						/* translators: Hidden accessibility text. */
 						_e( 'Search engine visibility' );
 						?>
 					 </span></legend>

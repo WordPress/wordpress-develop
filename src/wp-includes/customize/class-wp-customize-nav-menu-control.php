@@ -59,7 +59,7 @@ class WP_Customize_Nav_Menu_Control extends WP_Customize_Control {
 		</div>
 		<p class="screen-reader-text" id="reorder-items-desc-{{ data.menu_id }}">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'When in reorder mode, additional controls to reorder menu items will be available in the items list above.' );
 			?>
 		</p>

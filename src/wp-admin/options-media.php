@@ -60,7 +60,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <th scope="row"><?php _e( 'Thumbnail size' ); ?></th>
 <td><fieldset><legend class="screen-reader-text"><span>
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Thumbnail size' );
 	?>
 </span></legend>
@@ -79,7 +79,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <th scope="row"><?php _e( 'Medium size' ); ?></th>
 <td><fieldset><legend class="screen-reader-text"><span>
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Medium size' );
 	?>
 </span></legend>
@@ -95,7 +95,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <th scope="row"><?php _e( 'Large size' ); ?></th>
 <td><fieldset><legend class="screen-reader-text"><span>
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Large size' );
 	?>
 </span></legend>

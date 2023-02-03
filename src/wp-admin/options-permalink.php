@@ -332,7 +332,7 @@ printf(
 		<fieldset class="structure-selection">
 			<legend class="screen-reader-text">
 				<?php
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				_e( 'Permalink structure' );
 				?>
 			</legend>
@@ -362,7 +362,7 @@ printf(
 					<p>
 						<label for="permalink_structure" class="screen-reader-text">
 							<?php
-							/* translators: hidden accessibility text */
+							/* translators: Hidden accessibility text. */
 							_e( 'Customize permalink structure by selecting available tags' );
 							?>
 						</label>

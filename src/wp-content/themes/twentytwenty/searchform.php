@@ -27,7 +27,7 @@ if ( empty( $twentytwenty_aria_label ) && ! empty( $args['label'] ) ) {
 	<label for="<?php echo esc_attr( $twentytwenty_unique_id ); ?>">
 		<span class="screen-reader-text">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Search for:', 'twentytwenty' ); // phpcs:ignore: WordPress.Security.EscapeOutput.UnsafePrintingFunction -- core trusts translations
 			?>
 			</span>

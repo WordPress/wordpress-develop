@@ -163,7 +163,7 @@ function wp_print_media_templates() {
 		'target="_blank" rel="noopener"',
 		sprintf(
 			'<span class="screen-reader-text"> %s</span>',
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			__( '(opens in a new tab)' )
 		)
 	);
@@ -184,7 +184,7 @@ function wp_print_media_templates() {
 		</div>
 		<h2 class="media-frame-actions-heading screen-reader-text">
 		<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Selected media actions' );
 		?>
 		</h2>
@@ -198,7 +198,7 @@ function wp_print_media_templates() {
 			<# if ( data.hasCloseButton ) { #>
 				<button type="button" class="media-modal-close"><span class="media-modal-icon"><span class="screen-reader-text">
 					<?php
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_e( 'Close dialog' );
 					?>
 				</span></span></button>
@@ -228,7 +228,7 @@ function wp_print_media_templates() {
 		<# if ( data.canClose ) { #>
 		<button class="close dashicons dashicons-no"><span class="screen-reader-text">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Close uploader' );
 			?>
 		</span></button>
@@ -322,7 +322,7 @@ function wp_print_media_templates() {
 		<a href="<?php echo esc_url( add_query_arg( 'mode', 'list', admin_url( 'upload.php' ) ) ); ?>" class="view-list">
 			<span class="screen-reader-text">
 				<?php
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				_e( 'List view' );
 				?>
 			</span>
@@ -330,7 +330,7 @@ function wp_print_media_templates() {
 		<a href="<?php echo esc_url( add_query_arg( 'mode', 'grid', admin_url( 'upload.php' ) ) ); ?>" class="view-grid current" aria-current="page">
 			<span class="screen-reader-text">
 				<?php
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				_e( 'Grid view' );
 				?>
 			</span>
@@ -362,8 +362,8 @@ function wp_print_media_templates() {
 	<?php // Template for the Attachment Details layout in the media browser. ?>
 	<script type="text/html" id="tmpl-edit-attachment-frame">
 		<div class="edit-media-header">
-			<button class="left dashicons"<# if ( ! data.hasPrevious ) { #> disabled<# } #>><span class="screen-reader-text"><?php /* translators: hidden accessibility text */ _e( 'Edit previous media item' ); ?></span></button>
-			<button class="right dashicons"<# if ( ! data.hasNext ) { #> disabled<# } #>><span class="screen-reader-text"><?php /* translators: hidden accessibility text */ _e( 'Edit next media item' ); ?></span></button>
+			<button class="left dashicons"<# if ( ! data.hasPrevious ) { #> disabled<# } #>><span class="screen-reader-text"><?php /* translators: Hidden accessibility text. */ _e( 'Edit previous media item' ); ?></span></button>
+			<button class="right dashicons"<# if ( ! data.hasNext ) { #> disabled<# } #>><span class="screen-reader-text"><?php /* translators: Hidden accessibility text. */ _e( 'Edit next media item' ); ?></span></button>
 			<button type="button" class="media-modal-close"><span class="media-modal-icon"><span class="screen-reader-text"><?php _e( 'Close dialog' ); ?></span></span></button>
 		</div>
 		<div class="media-frame-title"></div>
@@ -373,7 +373,7 @@ function wp_print_media_templates() {
 	<?php // Template for the Attachment Details two columns layout. ?>
 	<script type="text/html" id="tmpl-attachment-details-two-column">
 		<div class="attachment-media-view {{ data.orientation }}">
-			<h2 class="screen-reader-text"><?php /* translators: hidden accessibility text */ _e( 'Attachment Preview' ); ?></h2>
+			<h2 class="screen-reader-text"><?php /* translators: Hidden accessibility text. */ _e( 'Attachment Preview' ); ?></h2>
 			<div class="thumbnail thumbnail-{{ data.type }}">
 				<# if ( data.uploading ) { #>
 					<div class="media-progress-bar"><div></div></div>
@@ -426,7 +426,7 @@ function wp_print_media_templates() {
 			<div class="details">
 				<h2 class="screen-reader-text">
 					<?php
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_e( 'Details' );
 					?>
 				</h2>
@@ -604,7 +604,7 @@ function wp_print_media_templates() {
 			<# if ( data.buttons.close ) { #>
 				<button type="button" class="button-link attachment-close media-modal-icon"><span class="screen-reader-text">
 					<?php
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_e( 'Remove' );
 					?>
 				</span></button>
@@ -613,7 +613,7 @@ function wp_print_media_templates() {
 		<# if ( data.buttons.check ) { #>
 			<button type="button" class="check" tabindex="-1"><span class="media-modal-icon"></span><span class="screen-reader-text">
 				<?php
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				_e( 'Deselect' );
 				?>
 			</span></button>

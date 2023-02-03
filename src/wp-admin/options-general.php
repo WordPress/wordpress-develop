@@ -150,7 +150,7 @@ if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) :
 <th scope="row"><?php _e( 'Membership' ); ?></th>
 <td> <fieldset><legend class="screen-reader-text"><span>
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Membership' );
 	?>
 </span></legend><label for="users_can_register">
@@ -321,7 +321,7 @@ if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists.
 <td>
 	<fieldset><legend class="screen-reader-text"><span>
 		<?php
-		/* translators: hidden accessibility text */
+		/* translators: Hidden accessibility text. */
 		_e( 'Date Format' );
 		?>
 	</span></legend>
@@ -350,11 +350,11 @@ foreach ( $date_formats as $format ) {
 	echo '<label><input type="radio" name="date_format" id="date_format_custom_radio" value="\c\u\s\t\o\m"';
 	checked( $custom );
 	echo '/> <span class="date-time-text date-time-custom-text">' . __( 'Custom:' ) . '<span class="screen-reader-text"> ' .
-		/* translators: hidden accessibility text */
+		/* translators: Hidden accessibility text. */
 		__( 'enter a custom date format in the following field' ) .
 		'</span></span></label>' .
 		'<label for="date_format_custom" class="screen-reader-text">' .
-		/* translators: hidden accessibility text */
+		/* translators: Hidden accessibility text. */
 		__( 'Custom date format:' ) .
 		'</label>' .
 		'<input type="text" name="date_format_custom" id="date_format_custom" value="' . esc_attr( get_option( 'date_format' ) ) . '" class="small-text" />' .
@@ -370,7 +370,7 @@ foreach ( $date_formats as $format ) {
 <td>
 	<fieldset><legend class="screen-reader-text"><span>
 		<?php
-		/* translators: hidden accessibility text */
+		/* translators: Hidden accessibility text. */
 		_e( 'Time Format' );
 		?>
 	</span></legend>
@@ -398,11 +398,11 @@ foreach ( $time_formats as $format ) {
 	echo '<label><input type="radio" name="time_format" id="time_format_custom_radio" value="\c\u\s\t\o\m"';
 	checked( $custom );
 	echo '/> <span class="date-time-text date-time-custom-text">' . __( 'Custom:' ) . '<span class="screen-reader-text"> ' .
-		/* translators: hidden accessibility text */
+		/* translators: Hidden accessibility text. */
 		__( 'enter a custom time format in the following field' ) .
 		'</span></span></label>' .
 		'<label for="time_format_custom" class="screen-reader-text">' .
-		/* translators: hidden accessibility text */
+		/* translators: Hidden accessibility text. */
 		__( 'Custom time format:' ) .
 		'</label>' .
 		'<input type="text" name="time_format_custom" id="time_format_custom" value="' . esc_attr( get_option( 'time_format' ) ) . '" class="small-text" />' .

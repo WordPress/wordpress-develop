@@ -100,7 +100,7 @@ function install_theme_search_form( $type_selector = true ) {
 	<?php if ( $type_selector ) : ?>
 	<label class="screen-reader-text" for="typeselector">
 		<?php
-		/* translators: hidden accessibility text */
+		/* translators: Hidden accessibility text. */
 		_e( 'Type of search' );
 		?>
 	</label>
@@ -113,15 +113,15 @@ function install_theme_search_form( $type_selector = true ) {
 		<?php
 		switch ( $type ) {
 			case 'term':
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				_e( 'Search by keyword' );
 				break;
 			case 'author':
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				_e( 'Search by author' );
 				break;
 			case 'tag':
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				_e( 'Search by tag' );
 				break;
 		}
@@ -130,7 +130,7 @@ function install_theme_search_form( $type_selector = true ) {
 	<?php else : ?>
 	<label class="screen-reader-text" for="s">
 		<?php
-		/* translators: hidden accessibility text */
+		/* translators: Hidden accessibility text. */
 		_e( 'Search by keyword' );
 		?>
 	</label>
@@ -199,7 +199,7 @@ function install_themes_upload() {
 	<?php wp_nonce_field( 'theme-upload' ); ?>
 	<label class="screen-reader-text" for="themezip">
 		<?php
-		/* translators: hidden accessibility text */
+		/* translators: Hidden accessibility text. */
 		_e( 'Theme zip file' );
 		?>
 	</label>

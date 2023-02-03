@@ -49,7 +49,7 @@ if ( 'approved' === wp_get_comment_status( $comment ) && $comment->comment_post_
 <fieldset>
 <legend class="screen-reader-text">
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Comment Author' );
 	?>
 </legend>
@@ -80,7 +80,7 @@ if ( 'approved' === wp_get_comment_status( $comment ) && $comment->comment_post_
 <div id="postdiv" class="postarea">
 <?php
 	echo '<label for="content" class="screen-reader-text">' .
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	__( 'Comment' ) .
 	'</label>';
 	$quicktags_settings = array( 'buttons' => 'strong,em,link,block,del,ins,img,ul,ol,li,code,close' );
@@ -127,7 +127,7 @@ switch ( $comment->comment_approved ) {
 <fieldset id="comment-status-radio">
 <legend class="screen-reader-text">
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Comment status' );
 	?>
 </legend>
@@ -156,14 +156,14 @@ printf( __( 'Submitted on: %s' ), '<b>' . $submitted . '</b>' );
 </span>
 <a href="#edit_timestamp" class="edit-timestamp hide-if-no-js"><span aria-hidden="true"><?php _e( 'Edit' ); ?></span> <span class="screen-reader-text">
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Edit date and time' );
 	?>
 </span></a>
 <fieldset id='timestampdiv' class='hide-if-js'>
 <legend class="screen-reader-text">
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Date and time' );
 	?>
 </legend>

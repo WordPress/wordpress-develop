@@ -359,7 +359,7 @@ class WP_Customize_Section {
 				{{ data.title }}
 				<span class="screen-reader-text">
 					<?php
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_e( 'Press return or enter to open this section' );
 					?>
 				</span>
@@ -370,7 +370,7 @@ class WP_Customize_Section {
 						<button class="customize-section-back" tabindex="-1">
 							<span class="screen-reader-text">
 								<?php
-								/* translators: hidden accessibility text */
+								/* translators: Hidden accessibility text. */
 								_e( 'Back' );
 								?>
 							</span>
@@ -384,7 +384,7 @@ class WP_Customize_Section {
 						<# if ( data.description && data.description_hidden ) { #>
 							<button type="button" class="customize-help-toggle dashicons dashicons-editor-help" aria-expanded="false"><span class="screen-reader-text">
 								<?php
-								/* translators: hidden accessibility text */
+								/* translators: Hidden accessibility text. */
 								_e( 'Help' );
 								?>
 							</span></button>

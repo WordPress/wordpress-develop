@@ -4287,7 +4287,7 @@ final class WP_Customize_Manager {
 				<# if ( data.dismissible ) { #>
 					<button type="button" class="notice-dismiss"><span class="screen-reader-text">
 						<?php
-						/* translators: hidden accessibility text */
+						/* translators: Hidden accessibility text. */
 						_e( 'Dismiss' );
 						?>
 					</span></button>
@@ -4359,7 +4359,7 @@ final class WP_Customize_Manager {
 			<div class="preview-link-wrapper">
 				<label for="{{ elementPrefix }}customize-preview-link-input" class="screen-reader-text">
 					<?php
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					esc_html_e( 'Preview Link' );
 					?>
 				</label>
@@ -4367,7 +4367,7 @@ final class WP_Customize_Manager {
 					<span class="preview-control-element" data-component="url"></span>
 					<span class="screen-reader-text">
 						<?php
-						/* translators: hidden accessibility text */
+						/* translators: Hidden accessibility text. */
 						_e( '(opens in a new tab)' );
 						?>
 					</span>
@@ -5691,7 +5691,7 @@ final class WP_Customize_Manager {
 			' <a href="%1$s" class="external-link" target="_blank">%2$s<span class="screen-reader-text"> %3$s</span></a>',
 			esc_url( __( 'https://wordpress.org/support/article/css/' ) ),
 			__( 'Learn more about CSS' ),
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			__( '(opens in a new tab)' )
 		);
 		$section_description .= '</p>';
@@ -5712,7 +5712,7 @@ final class WP_Customize_Manager {
 				'class="external-link" target="_blank"',
 				sprintf(
 					'<span class="screen-reader-text"> %s</span>',
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					__( '(opens in a new tab)' )
 				)
 			);

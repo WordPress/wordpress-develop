@@ -159,7 +159,7 @@ switch ( $step ) {
 		?>
 <h1 class="screen-reader-text">
 		<?php
-		/* translators: hidden accessibility text */
+		/* translators: Hidden accessibility text. */
 		_e( 'Before getting started' );
 		?>
 </h1>
@@ -214,7 +214,7 @@ switch ( $step ) {
 		?>
 <h1 class="screen-reader-text">
 		<?php
-		/* translators: hidden accessibility text */
+		/* translators: Hidden accessibility text. */
 		_e( 'Set up your database connection' );
 		?>
 </h1>
@@ -489,7 +489,7 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 				?>
 <h1 class="screen-reader-text">
 				<?php
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				_e( 'Successful database connection' );
 				?>
 </h1>

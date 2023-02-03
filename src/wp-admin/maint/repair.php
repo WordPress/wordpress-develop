@@ -28,7 +28,7 @@ header( 'Content-Type: text/html; charset=utf-8' );
 if ( ! defined( 'WP_ALLOW_REPAIR' ) || ! WP_ALLOW_REPAIR ) {
 
 	echo '<h1 class="screen-reader-text">' .
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	__( 'Allow automatic database repair' ) .
 	'</h1>';
 
@@ -77,7 +77,7 @@ if ( ! defined( 'WP_ALLOW_REPAIR' ) || ! WP_ALLOW_REPAIR ) {
 	if ( $duplicated_keys || $missing_key ) {
 
 		echo '<h2 class="screen-reader-text">' .
-		/* translators: hidden accessibility text */
+		/* translators: Hidden accessibility text. */
 		__( 'Check secret keys' ) .
 		'</h2>';
 
@@ -87,7 +87,7 @@ if ( ! defined( 'WP_ALLOW_REPAIR' ) || ! WP_ALLOW_REPAIR ) {
 } elseif ( isset( $_GET['repair'] ) ) {
 
 	echo '<h1 class="screen-reader-text">' .
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	__( 'Database repair results' ) .
 	'</h1>';
 
@@ -178,7 +178,7 @@ if ( ! defined( 'WP_ALLOW_REPAIR' ) || ! WP_ALLOW_REPAIR ) {
 } else {
 
 	echo '<h1 class="screen-reader-text">' .
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	__( 'WordPress database repair' ) .
 	'</h1>';
 

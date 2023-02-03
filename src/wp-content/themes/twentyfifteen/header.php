@@ -26,7 +26,7 @@
 <div id="page" class="hfeed site">
 	<a class="skip-link screen-reader-text" href="#content">
 		<?php
-		/* translators: hidden accessibility text */
+		/* translators: Hidden accessibility text. */
 		_e( 'Skip to content', 'twentyfifteen' );
 		?>
 	</a>

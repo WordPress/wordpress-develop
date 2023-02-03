@@ -334,7 +334,7 @@ function login_footer( $input_id = '' ) {
 						<span class="dashicons dashicons-translation" aria-hidden="true"></span>
 						<span class="screen-reader-text">
 							<?php
-							/* translators: hidden accessibility text */
+							/* translators: Hidden accessibility text. */
 							_e( 'Language' );
 							?>
 						</span>
@@ -653,10 +653,9 @@ switch ( $action ) {
 				/* translators: URL to the WordPress help section about admin email. */
 				$admin_email_help_url = __( 'https://wordpress.org/support/article/settings-general-screen/#email-address' );
 
-				/* translators: Accessibility text. */
 				$accessibility_text = sprintf(
 					'<span class="screen-reader-text"> %s</span>',
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					__( '(opens in a new tab)' )
 				);
 

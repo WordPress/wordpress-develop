@@ -425,7 +425,7 @@ do_action( 'widgets_admin_page' );
 			<button type="button" class="handlediv hide-if-no-js" aria-expanded="true">
 				<span class="screen-reader-text">
 					<?php
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_e( 'Available Widgets' );
 					?>
 					</span>

@@ -322,7 +322,7 @@ function install_search_form( $deprecated = true ) {
 		<input type="hidden" name="tab" value="search" />
 		<label class="screen-reader-text" for="typeselector">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Search plugins by:' );
 			?>
 		</label>
@@ -333,7 +333,7 @@ function install_search_form( $deprecated = true ) {
 		</select>
 		<label class="screen-reader-text" for="search-plugins">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Search Plugins' );
 			?>
 		</label>
@@ -356,7 +356,7 @@ function install_plugins_upload() {
 		<?php wp_nonce_field( 'plugin-upload' ); ?>
 		<label class="screen-reader-text" for="pluginzip">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Plugin zip file' );
 			?>
 		</label>

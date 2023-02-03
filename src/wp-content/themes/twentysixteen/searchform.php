@@ -12,7 +12,7 @@
 	<label>
 		<span class="screen-reader-text">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			echo _x( 'Search for:', 'label', 'twentysixteen' );
 			?>
 		</span>
@@ -20,7 +20,7 @@
 	</label>
 	<button type="submit" class="search-submit"><span class="screen-reader-text">
 		<?php
-		/* translators: hidden accessibility text */
+		/* translators: Hidden accessibility text. */
 		echo _x( 'Search', 'submit button', 'twentysixteen' );
 		?>
 	</span></button>

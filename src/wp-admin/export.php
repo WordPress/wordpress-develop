@@ -179,7 +179,7 @@ function export_date_options( $post_type = 'post' ) {
 <fieldset>
 <legend class="screen-reader-text">
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Content to export' );
 	?>
 </legend>
@@ -214,7 +214,7 @@ function export_date_options( $post_type = 'post' ) {
 		<fieldset>
 		<legend class="screen-reader-text">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Date range:' )
 			?>
 		</legend>
@@ -266,7 +266,7 @@ function export_date_options( $post_type = 'post' ) {
 		<fieldset>
 		<legend class="screen-reader-text">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Date range:' );
 			?>
 		</legend>
@@ -311,7 +311,7 @@ foreach ( get_post_types(
 		<fieldset>
 		<legend class="screen-reader-text">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Date range:' );
 			?>
 		</legend>

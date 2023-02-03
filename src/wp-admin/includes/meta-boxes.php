@@ -76,7 +76,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 				$preview_button = sprintf(
 					'%1$s<span class="screen-reader-text"> %2$s</span>',
 					$preview_button_text,
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					__( '(opens in a new tab)' )
 				);
 				?>
@@ -134,7 +134,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 				?>
 				<a href="#post_status" <?php echo $private_style; ?> class="edit-post-status hide-if-no-js" role="button"><span aria-hidden="true"><?php _e( 'Edit' ); ?></span> <span class="screen-reader-text">
 					<?php
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_e( 'Edit status' );
 					?>
 				</span></a>
@@ -143,7 +143,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 					<input type="hidden" name="hidden_post_status" id="hidden_post_status" value="<?php echo esc_attr( ( 'auto-draft' === $post->post_status ) ? 'draft' : $post->post_status ); ?>" />
 					<label for="post_status" class="screen-reader-text">
 						<?php
-						/* translators: hidden accessibility text */
+						/* translators: Hidden accessibility text. */
 						_e( 'Set status' );
 						?>
 					</label>
@@ -196,7 +196,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 			<?php if ( $can_publish ) { ?>
 				<a href="#visibility" class="edit-visibility hide-if-no-js" role="button"><span aria-hidden="true"><?php _e( 'Edit' ); ?></span> <span class="screen-reader-text">
 					<?php
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_e( 'Edit visibility' );
 					?>
 				</span></a>
@@ -274,7 +274,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 				?>
 				<a class="hide-if-no-js" href="<?php echo esc_url( get_edit_post_link( $args['args']['revision_id'] ) ); ?>"><span aria-hidden="true"><?php _ex( 'Browse', 'revisions' ); ?></span> <span class="screen-reader-text">
 					<?php
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_e( 'Browse revisions' );
 					?>
 				</span></a>
@@ -292,7 +292,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 					<span aria-hidden="true"><?php _e( 'Edit' ); ?></span>
 					<span class="screen-reader-text">
 						<?php
-						/* translators: hidden accessibility text */
+						/* translators: Hidden accessibility text. */
 						_e( 'Edit date and time' );
 						?>
 					</span>
@@ -300,7 +300,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 				<fieldset id="timestampdiv" class="hide-if-js">
 					<legend class="screen-reader-text">
 						<?php
-						/* translators: hidden accessibility text */
+						/* translators: Hidden accessibility text. */
 						_e( 'Date and time' );
 						?>
 					</legend>
@@ -524,7 +524,7 @@ function post_format_meta_box( $post, $box ) {
 		<fieldset>
 			<legend class="screen-reader-text">
 				<?php
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				_e( 'Post Formats' );
 				?>
 			</legend>
@@ -737,7 +737,7 @@ function post_excerpt_meta_box( $post ) {
 	?>
 <label class="screen-reader-text" for="excerpt">
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Excerpt' );
 	?>
 </label><textarea rows="1" cols="40" name="excerpt" id="excerpt"><?php echo $post->post_excerpt; // textarea_escaped ?></textarea>
@@ -930,7 +930,7 @@ function post_slug_meta_box( $post ) {
 	?>
 <label class="screen-reader-text" for="post_name">
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Slug' );
 	?>
 </label><input name="post_name" type="text" class="large-text" id="post_name" value="<?php echo esc_attr( $editable_slug ); ?>" />
@@ -953,7 +953,7 @@ function post_author_meta_box( $post ) {
 	?>
 <label class="screen-reader-text" for="post_author_override">
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Author' );
 	?>
 </label>
@@ -1195,7 +1195,7 @@ function link_categories_meta_box( $link ) {
 		<p id="link-category-add" class="wp-hidden-child">
 			<label class="screen-reader-text" for="newcat">
 				<?php
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				_e( '+ Add New Category' );
 				?>
 			</label>
@@ -1221,7 +1221,7 @@ function link_target_meta_box( $link ) {
 	?>
 <fieldset><legend class="screen-reader-text"><span>
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Target' );
 	?>
 </span></legend>
@@ -1314,7 +1314,7 @@ function link_xfn_meta_box( $link ) {
 	</tr>
 	<tr>
 		<th scope="row"><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'identity' ); ?></th>
-		<td><fieldset><legend class="screen-reader-text"><span><?php /* translators: hidden accessibility text: xfn: https://gmpg.org/xfn/ */ _e( 'identity' ); ?></span></legend>
+		<td><fieldset><legend class="screen-reader-text"><span><?php /* translators: Hidden accessibility text: xfn: https://gmpg.org/xfn/ */ _e( 'identity' ); ?></span></legend>
 			<label for="me">
 			<input type="checkbox" name="identity" value="me" id="me" <?php xfn_check( 'identity', 'me' ); ?> />
 			<?php _e( 'another web address of mine' ); ?></label>
@@ -1322,7 +1322,7 @@ function link_xfn_meta_box( $link ) {
 	</tr>
 	<tr>
 		<th scope="row"><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'friendship' ); ?></th>
-		<td><fieldset><legend class="screen-reader-text"><span><?php /* translators: hidden accessibility text: xfn: https://gmpg.org/xfn/ */ _e( 'friendship' ); ?></span></legend>
+		<td><fieldset><legend class="screen-reader-text"><span><?php /* translators: Hidden accessibility text: xfn: https://gmpg.org/xfn/ */ _e( 'friendship' ); ?></span></legend>
 			<label for="contact">
 			<input class="valinp" type="radio" name="friendship" value="contact" id="contact" <?php xfn_check( 'friendship', 'contact' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'contact' ); ?>
 			</label>
@@ -1339,7 +1339,7 @@ function link_xfn_meta_box( $link ) {
 	</tr>
 	<tr>
 		<th scope="row"> <?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'physical' ); ?> </th>
-		<td><fieldset><legend class="screen-reader-text"><span><?php /* translators: hidden accessibility text: xfn: https://gmpg.org/xfn/ */ _e( 'physical' ); ?></span></legend>
+		<td><fieldset><legend class="screen-reader-text"><span><?php /* translators: Hidden accessibility text: xfn: https://gmpg.org/xfn/ */ _e( 'physical' ); ?></span></legend>
 			<label for="met">
 			<input class="valinp" type="checkbox" name="physical" value="met" id="met" <?php xfn_check( 'physical', 'met' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'met' ); ?>
 			</label>
@@ -1347,7 +1347,7 @@ function link_xfn_meta_box( $link ) {
 	</tr>
 	<tr>
 		<th scope="row"> <?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'professional' ); ?> </th>
-		<td><fieldset><legend class="screen-reader-text"><span><?php /* translators: hidden accessibility text: xfn: https://gmpg.org/xfn/ */ _e( 'professional' ); ?></span></legend>
+		<td><fieldset><legend class="screen-reader-text"><span><?php /* translators: Hidden accessibility text: xfn: https://gmpg.org/xfn/ */ _e( 'professional' ); ?></span></legend>
 			<label for="co-worker">
 			<input class="valinp" type="checkbox" name="professional" value="co-worker" id="co-worker" <?php xfn_check( 'professional', 'co-worker' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'co-worker' ); ?>
 			</label>
@@ -1358,7 +1358,7 @@ function link_xfn_meta_box( $link ) {
 	</tr>
 	<tr>
 		<th scope="row"><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'geographical' ); ?></th>
-		<td><fieldset><legend class="screen-reader-text"><span> <?php /* translators: hidden accessibility text: xfn: https://gmpg.org/xfn/ */ _e( 'geographical' ); ?> </span></legend>
+		<td><fieldset><legend class="screen-reader-text"><span> <?php /* translators: Hidden accessibility text: xfn: https://gmpg.org/xfn/ */ _e( 'geographical' ); ?> </span></legend>
 			<label for="co-resident">
 			<input class="valinp" type="radio" name="geographical" value="co-resident" id="co-resident" <?php xfn_check( 'geographical', 'co-resident' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'co-resident' ); ?>
 			</label>
@@ -1372,7 +1372,7 @@ function link_xfn_meta_box( $link ) {
 	</tr>
 	<tr>
 		<th scope="row"><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'family' ); ?></th>
-		<td><fieldset><legend class="screen-reader-text"><span> <?php /* translators: hidden accessibility text: xfn: https://gmpg.org/xfn/ */ _e( 'family' ); ?> </span></legend>
+		<td><fieldset><legend class="screen-reader-text"><span> <?php /* translators: Hidden accessibility text: xfn: https://gmpg.org/xfn/ */ _e( 'family' ); ?> </span></legend>
 			<label for="child">
 			<input class="valinp" type="radio" name="family" value="child" id="child" <?php xfn_check( 'family', 'child' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'child' ); ?>
 			</label>
@@ -1395,7 +1395,7 @@ function link_xfn_meta_box( $link ) {
 	</tr>
 	<tr>
 		<th scope="row"><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'romantic' ); ?></th>
-		<td><fieldset><legend class="screen-reader-text"><span> <?php /* translators: hidden accessibility text: xfn: https://gmpg.org/xfn/ */ _e( 'romantic' ); ?> </span></legend>
+		<td><fieldset><legend class="screen-reader-text"><span> <?php /* translators: Hidden accessibility text: xfn: https://gmpg.org/xfn/ */ _e( 'romantic' ); ?> </span></legend>
 			<label for="muse">
 			<input class="valinp" type="checkbox" name="romantic" value="muse" id="muse" <?php xfn_check( 'romantic', 'muse' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'muse' ); ?>
 			</label>

@@ -350,7 +350,7 @@ class WP_Customize_Panel {
 				{{ data.title }}
 				<span class="screen-reader-text">
 					<?php
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_e( 'Press return or enter to open this panel' );
 					?>
 				</span>
@@ -375,7 +375,7 @@ class WP_Customize_Panel {
 		<li class="panel-meta customize-info accordion-section <# if ( ! data.description ) { #> cannot-expand<# } #>">
 			<button class="customize-panel-back" tabindex="-1"><span class="screen-reader-text">
 				<?php
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				_e( 'Back' );
 				?>
 			</span></button>
@@ -389,7 +389,7 @@ class WP_Customize_Panel {
 				<# if ( data.description ) { #>
 					<button type="button" class="customize-help-toggle dashicons dashicons-editor-help" aria-expanded="false"><span class="screen-reader-text">
 						<?php
-						/* translators: hidden accessibility text */
+						/* translators: Hidden accessibility text. */
 						_e( 'Help' );
 						?>
 					</span></button>

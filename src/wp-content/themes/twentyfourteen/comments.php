@@ -49,7 +49,7 @@ if ( post_password_required() ) {
 	<nav id="comment-nav-above" class="navigation comment-navigation">
 		<h1 class="screen-reader-text">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Comment navigation', 'twentyfourteen' );
 			?>
 		</h1>
@@ -74,7 +74,7 @@ if ( post_password_required() ) {
 	<nav id="comment-nav-below" class="navigation comment-navigation">
 		<h1 class="screen-reader-text">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Comment navigation', 'twentyfourteen' );
 			?>
 		</h1>

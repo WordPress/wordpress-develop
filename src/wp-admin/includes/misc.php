@@ -416,7 +416,7 @@ function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
 				aria-posinset="<?php echo esc_attr( $index ); ?>">
 				<span class="folder-label"><?php echo esc_html( $label ); ?> <span class="screen-reader-text">
 					<?php
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_e( 'folder' );
 					?>
 				</span><span aria-hidden="true" class="icon"></span></span>
@@ -518,7 +518,7 @@ function wp_print_plugin_file_tree( $tree, $label = '', $level = 2, $size = 1, $
 				aria-posinset="<?php echo esc_attr( $index ); ?>">
 				<span class="folder-label"><?php echo esc_html( $label ); ?> <span class="screen-reader-text">
 					<?php
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_e( 'folder' );
 					?>
 				</span><span aria-hidden="true" class="icon"></span></span>
@@ -1024,7 +1024,7 @@ function admin_color_scheme_picker( $user_id ) {
 	<fieldset id="color-picker" class="scheme-list">
 		<legend class="screen-reader-text"><span>
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Admin Color Scheme' );
 			?>
 		</span></legend>

@@ -69,7 +69,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <th scope="row"><?php _e( 'Formatting' ); ?></th>
 <td><fieldset><legend class="screen-reader-text"><span>
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Formatting' );
 	?>
 </span></legend>

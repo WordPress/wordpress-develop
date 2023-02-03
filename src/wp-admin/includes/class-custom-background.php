@@ -415,7 +415,7 @@ class Custom_Background {
 <th scope="row"><?php _e( 'Image Position' ); ?></th>
 <td><fieldset><legend class="screen-reader-text"><span>
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Image Position' );
 			?>
 		</span></legend>
@@ -439,7 +439,7 @@ class Custom_Background {
 <th scope="row"><label for="background-size"><?php _e( 'Image Size' ); ?></label></th>
 <td><fieldset><legend class="screen-reader-text"><span>
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Image Size' );
 			?>
 </span></legend>
@@ -455,7 +455,7 @@ class Custom_Background {
 <th scope="row"><?php _ex( 'Repeat', 'Background Repeat' ); ?></th>
 <td><fieldset><legend class="screen-reader-text"><span>
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_ex( 'Repeat', 'Background Repeat' );
 			?>
 </span></legend>
@@ -468,7 +468,7 @@ class Custom_Background {
 <th scope="row"><?php _ex( 'Scroll', 'Background Scroll' ); ?></th>
 <td><fieldset><legend class="screen-reader-text"><span>
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_ex( 'Scroll', 'Background Scroll' );
 			?>
 </span></legend>
@@ -481,7 +481,7 @@ class Custom_Background {
 <th scope="row"><?php _e( 'Background Color' ); ?></th>
 <td><fieldset><legend class="screen-reader-text"><span>
 		<?php
-		/* translators: hidden accessibility text */
+		/* translators: Hidden accessibility text. */
 		_e( 'Background Color' );
 		?>
 </span></legend>

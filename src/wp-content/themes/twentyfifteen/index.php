@@ -47,7 +47,7 @@ get_header(); ?>
 				array(
 					'prev_text'          => __( 'Previous page', 'twentyfifteen' ),
 					'next_text'          => __( 'Next page', 'twentyfifteen' ),
-					'before_page_number' => '<span class="meta-nav screen-reader-text">' . /* translators: hidden accessibility text */ __( 'Page', 'twentyfifteen' ) . ' </span>',
+					'before_page_number' => '<span class="meta-nav screen-reader-text">' . /* translators: Hidden accessibility text. */ __( 'Page', 'twentyfifteen' ) . ' </span>',
 				)
 			);
 

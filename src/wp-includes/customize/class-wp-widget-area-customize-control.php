@@ -62,7 +62,7 @@ class WP_Widget_Area_Customize_Control extends WP_Customize_Control {
 		</button>
 		<p class="screen-reader-text" id="<?php echo esc_attr( $id ); ?>">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'When in reorder mode, additional controls to reorder widgets will be available in the widgets list above.' );
 			?>
 		</p>

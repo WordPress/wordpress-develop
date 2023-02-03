@@ -516,7 +516,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		<label class="screen-reader-text" for="<?php echo $checkbox_id; ?>" >
 			<?php
 			printf(
-				/* translators: hidden accessibility text. %s: Theme name */
+				/* translators: Hidden accessibility text. %s: Theme name */
 				__( 'Select %s' ),
 				$theme->display( 'Name' )
 			);

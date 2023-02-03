@@ -305,7 +305,7 @@ class WP_Users_List_Table extends WP_List_Table {
 		<?php if ( current_user_can( 'promote_users' ) && $this->has_items() ) : ?>
 		<label class="screen-reader-text" for="<?php echo $id; ?>">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Change role to&hellip;' );
 			?>
 		</label>
@@ -526,7 +526,7 @@ class WP_Users_List_Table extends WP_List_Table {
 				'<label class="screen-reader-text" for="user_%1$s">%2$s</label>' .
 				'<input type="checkbox" name="users[]" id="user_%1$s" class="%3$s" value="%1$s" />',
 				$user_object->ID,
-				/* translators: hidden accessibility text. %s: User login. */
+				/* translators: Hidden accessibility text. %s: User login. */
 				sprintf( __( 'Select %s' ), $user_object->user_login ),
 				$role_classes
 			);
@@ -584,7 +584,7 @@ class WP_Users_List_Table extends WP_List_Table {
 						} else {
 							$row .= sprintf(
 								'<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">%s</span>',
-								/* translators: hidden accessibility text */
+								/* translators: Hidden accessibility text. */
 								_x( 'Unknown', 'name' )
 							);
 						}
@@ -602,7 +602,7 @@ class WP_Users_List_Table extends WP_List_Table {
 								"edit.php?author={$user_object->ID}",
 								$numposts,
 								sprintf(
-									/* translators: hidden accessibility text. %s: Number of posts. */
+									/* translators: Hidden accessibility text. %s: Number of posts. */
 									_n( '%s post by this author', '%s posts by this author', $numposts ),
 									number_format_i18n( $numposts )
 								)

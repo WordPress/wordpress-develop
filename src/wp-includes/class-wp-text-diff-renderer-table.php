@@ -115,7 +115,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 */
 	public function addedLine( $line ) {
 		return "<td class='diff-addedline'><span aria-hidden='true' class='dashicons dashicons-plus'></span><span class='screen-reader-text'>" .
-		/* translators: hidden accessibility text */
+		/* translators: Hidden accessibility text. */
 		__( 'Added:' ) .
 		" </span>{$line}</td>";
 
@@ -129,7 +129,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 */
 	public function deletedLine( $line ) {
 		return "<td class='diff-deletedline'><span aria-hidden='true' class='dashicons dashicons-minus'></span><span class='screen-reader-text'>" .
-		/* translators: hidden accessibility text */
+		/* translators: Hidden accessibility text. */
 		__( 'Deleted:' ) .
 		" </span>{$line}</td>";
 	}
@@ -142,7 +142,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 */
 	public function contextLine( $line ) {
 		return "<td class='diff-context'><span class='screen-reader-text'>" .
-		/* translators: hidden accessibility text */
+		/* translators: Hidden accessibility text. */
 		__( 'Unchanged:' ) .
 		" </span>{$line}</td>";
 	}

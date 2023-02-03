@@ -196,7 +196,7 @@ if ( ! empty( $messages ) ) {
 			<fieldset>
 			<legend class="screen-reader-text">
 				<?php
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				_e( 'Set site attributes' );
 				?>
 			</legend>

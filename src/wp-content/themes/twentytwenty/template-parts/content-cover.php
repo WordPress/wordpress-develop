@@ -69,7 +69,7 @@
 								<div class="entry-categories">
 									<span class="screen-reader-text">
 										<?php
-										/* translators: hidden accessibility text */
+										/* translators: Hidden accessibility text. */
 										_e( 'Categories', 'twentytwenty' );
 										?>
 								</span>
@@ -92,7 +92,7 @@
 										<?php twentytwenty_the_theme_svg( 'arrow-down' ); ?>
 										<div class="screen-reader-text">
 											<?php
-											/* translators: hidden accessibility text */
+											/* translators: Hidden accessibility text. */
 											_e( 'Scroll Down', 'twentytwenty' );
 											?>
 										</div>

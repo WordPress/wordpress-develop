@@ -561,7 +561,7 @@ class WP_List_Table {
 		}
 
 		echo '<label for="bulk-action-selector-' . esc_attr( $which ) . '" class="screen-reader-text">' .
-		/* translators: hidden accessibility text */
+		/* translators: Hidden accessibility text. */
 		__( 'Select bulk action' ) .
 		'</label>';
 		echo '<select name="action' . $two . '" id="bulk-action-selector-' . esc_attr( $which ) . "\">\n";
@@ -646,7 +646,7 @@ class WP_List_Table {
 		$output .= '</div>';
 
 		$output .= '<button type="button" class="toggle-row"><span class="screen-reader-text">' .
-		/* translators: hidden accessibility text */
+		/* translators: Hidden accessibility text. */
 		__( 'Show more details' ) .
 		'</span></button>';
 
@@ -853,9 +853,9 @@ class WP_List_Table {
 				'<span class="post-com-count post-com-count-no-comments"><span class="comment-count comment-count-no-comments" aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></span>',
 				$approved_comments_number,
 				$pending_comments ?
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				__( 'No approved comments' ) :
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				__( 'No comments' )
 			);
 		}
@@ -880,9 +880,9 @@ class WP_List_Table {
 				'<span class="post-com-count post-com-count-pending post-com-count-no-pending"><span class="comment-count comment-count-no-pending" aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></span>',
 				$pending_comments_number,
 				$approved_comments ?
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				__( 'No pending comments' ) :
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				__( 'No comments' )
 			);
 		}
@@ -1008,7 +1008,7 @@ class WP_List_Table {
 			$page_links[] = sprintf(
 				"<a class='first-page button' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
 				esc_url( remove_query_arg( 'paged', $current_url ) ),
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				__( 'First page' ),
 				'&laquo;'
 			);
@@ -1020,7 +1020,7 @@ class WP_List_Table {
 			$page_links[] = sprintf(
 				"<a class='prev-page button' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
 				esc_url( add_query_arg( 'paged', max( 1, $current - 1 ), $current_url ) ),
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				__( 'Previous page' ),
 				'&lsaquo;'
 			);
@@ -1029,14 +1029,14 @@ class WP_List_Table {
 		if ( 'bottom' === $which ) {
 			$html_current_page  = $current;
 			$total_pages_before = '<span class="screen-reader-text">' .
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			__( 'Current Page' ) .
 			'</span><span id="table-paging" class="paging-input"><span class="tablenav-paging-text">';
 		} else {
 			$html_current_page = sprintf(
 				"%s<input class='current-page' id='current-page-selector' type='text' name='paged' value='%s' size='%d' aria-describedby='table-paging' /><span class='tablenav-paging-text'>",
 				'<label for="current-page-selector" class="screen-reader-text">' .
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				__( 'Current Page' ) .
 				'</label>',
 				$current,
@@ -1057,7 +1057,7 @@ class WP_List_Table {
 			$page_links[] = sprintf(
 				"<a class='next-page button' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
 				esc_url( add_query_arg( 'paged', min( $total_pages, $current + 1 ), $current_url ) ),
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				__( 'Next page' ),
 				'&rsaquo;'
 			);
@@ -1069,7 +1069,7 @@ class WP_List_Table {
 			$page_links[] = sprintf(
 				"<a class='last-page button' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
 				esc_url( add_query_arg( 'paged', $total_pages, $current_url ) ),
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				__( 'Last page' ),
 				'&raquo;'
 			);
@@ -1307,7 +1307,7 @@ class WP_List_Table {
 		if ( ! empty( $columns['cb'] ) ) {
 			static $cb_counter = 1;
 			$columns['cb']     = '<label class="screen-reader-text" for="cb-select-all-' . $cb_counter . '">' .
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			__( 'Select All' ) .
 			'</label>'
 				. '<input id="cb-select-all-' . $cb_counter . '" type="checkbox" />';
@@ -1576,7 +1576,7 @@ class WP_List_Table {
 	 */
 	protected function handle_row_actions( $item, $column_name, $primary ) {
 		return $column_name === $primary ? '<button type="button" class="toggle-row"><span class="screen-reader-text">' .
-		/* translators: hidden accessibility text */
+		/* translators: Hidden accessibility text. */
 		__( 'Show more details' ) .
 		'</span></button>' : '';
 	}

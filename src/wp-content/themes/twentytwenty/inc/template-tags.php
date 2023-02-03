@@ -369,7 +369,7 @@ function twentytwenty_get_post_meta( $post_id = null, $location = 'single-top' )
 						<span class="meta-icon">
 							<span class="screen-reader-text">
 								<?php
-								/* translators: hidden accessibility text */
+								/* translators: Hidden accessibility text. */
 								_e( 'Post author', 'twentytwenty' );
 								?>
 							</span>
@@ -398,7 +398,7 @@ function twentytwenty_get_post_meta( $post_id = null, $location = 'single-top' )
 						<span class="meta-icon">
 							<span class="screen-reader-text">
 								<?php
-								/* translators: hidden accessibility text */
+								/* translators: Hidden accessibility text. */
 								_e( 'Post date', 'twentytwenty' );
 								?>
 							</span>
@@ -421,7 +421,7 @@ function twentytwenty_get_post_meta( $post_id = null, $location = 'single-top' )
 						<span class="meta-icon">
 							<span class="screen-reader-text">
 								<?php
-								/* translators: hidden accessibility text */
+								/* translators: Hidden accessibility text. */
 								_e( 'Categories', 'twentytwenty' );
 								?>
 							</span>
@@ -444,7 +444,7 @@ function twentytwenty_get_post_meta( $post_id = null, $location = 'single-top' )
 						<span class="meta-icon">
 							<span class="screen-reader-text">
 								<?php
-								/* translators: hidden accessibility text */
+								/* translators: Hidden accessibility text. */
 								_e( 'Tags', 'twentytwenty' );
 								?>
 							</span>
@@ -600,7 +600,7 @@ function twentytwenty_add_sub_toggles_to_main_menu( $args, $item, $depth ) {
 
 			// Add the sub menu toggle.
 			$args->after .= '<button class="toggle sub-menu-toggle fill-children-current-color" data-toggle-target="' . $toggle_target_string . '" data-toggle-type="slidetoggle" data-toggle-duration="' . absint( $toggle_duration ) . '" aria-expanded="false"><span class="screen-reader-text">' .
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			__( 'Show sub menu', 'twentytwenty' ) .
 			'</span>' . twentytwenty_get_theme_svg( 'chevron-down' ) . '</button>';
 

@@ -209,7 +209,7 @@ do_action( 'customize_controls_head' );
 			<a class="customize-controls-close" href="<?php echo esc_url( $wp_customize->get_return_url() ); ?>">
 				<span class="screen-reader-text">
 					<?php
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_e( 'Close the Customizer and go back to the previous page' );
 					?>
 				</span>
@@ -237,7 +237,7 @@ do_action( 'customize_controls_head' );
 						</span>
 						<button type="button" class="customize-help-toggle dashicons dashicons-editor-help" aria-expanded="false"><span class="screen-reader-text">
 							<?php
-							/* translators: hidden accessibility text */
+							/* translators: Hidden accessibility text. */
 							_e( 'Help' );
 							?>
 						</span></button>

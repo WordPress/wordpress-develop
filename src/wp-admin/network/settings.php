@@ -201,7 +201,7 @@ if ( isset( $_GET['updated'] ) ) {
 					<fieldset>
 					<legend class="screen-reader-text">
 						<?php
-						/* translators: hidden accessibility text */
+						/* translators: Hidden accessibility text. */
 						_e( 'New registrations settings' );
 						?>
 					</legend>
@@ -406,7 +406,7 @@ if ( isset( $_GET['updated'] ) ) {
 					</label><br />
 					<p class="screen-reader-text" id="blog-upload-space-desc">
 						<?php
-						/* translators: hidden accessibility text */
+						/* translators: Hidden accessibility text. */
 						_e( 'Size in megabytes' );
 						?>
 					</p>
@@ -435,7 +435,7 @@ if ( isset( $_GET['updated'] ) ) {
 						?>
 					<p class="screen-reader-text" id="fileupload-maxk-desc">
 						<?php
-						/* translators: hidden accessibility text */
+						/* translators: Hidden accessibility text. */
 						_e( 'Size in kilobytes' );
 						?>
 					</p>
@@ -505,7 +505,7 @@ if ( isset( $_GET['updated'] ) ) {
 					<td>
 						<?php
 						echo '<fieldset><legend class="screen-reader-text">' .
-						/* translators: hidden accessibility text */
+						/* translators: Hidden accessibility text. */
 						__( 'Enable menus' ) .
 						'</legend>';
 

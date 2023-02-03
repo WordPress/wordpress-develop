@@ -1868,7 +1868,7 @@ final class _WP_Editors {
 		<h1 id="link-modal-title"><?php _e( 'Insert/edit link' ); ?></h1>
 		<button type="button" id="wp-link-close"><span class="screen-reader-text">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Close' );
 			?>
 		</span></button>
@@ -1908,7 +1908,7 @@ final class _WP_Editors {
 						<em class="query-notice-default"><?php _e( 'No search term specified. Showing recent items.' ); ?></em>
 						<em class="query-notice-hint screen-reader-text">
 							<?php
-							/* translators: hidden accessibility text */
+							/* translators: Hidden accessibility text. */
 							_e( 'Search or use up and down arrow keys to select an item.' );
 							?>
 						</em>

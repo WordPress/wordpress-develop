@@ -237,7 +237,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 		?>
 		<label class="screen-reader-text" for="blog_<?php echo $user->ID; ?>">
 			<?php
-			/* translators: hidden accessibility text. %s: User login. */
+			/* translators: Hidden accessibility text. %s: User login. */
 			printf( __( 'Select %s' ), $user->user_login );
 			?>
 		</label>
@@ -310,7 +310,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 			echo $user->last_name;
 		} else {
 			echo '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' .
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_x( 'Unknown', 'name' ) .
 			'</span>';
 		}

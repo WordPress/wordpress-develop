@@ -949,7 +949,7 @@ switch ( $action ) {
 			<button type="button" class="notice-dismiss">
 				<span class="screen-reader-text">
 					<?php
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_e( 'Dismiss this notice.' );
 					?>
 				</span>

@@ -494,7 +494,7 @@ function wp_network_dashboard_right_now() {
 		<p>
 			<label class="screen-reader-text" for="search-users">
 				<?php
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				_e( 'Search Users' );
 				?>
 			</label>
@@ -507,7 +507,7 @@ function wp_network_dashboard_right_now() {
 		<p>
 			<label class="screen-reader-text" for="search-sites">
 				<?php
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				_e( 'Search Sites' );
 				?>
 			</label>
@@ -1107,7 +1107,7 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
 
 		if ( current_user_can( 'edit_posts' ) ) {
 			echo '<h3 class="screen-reader-text">' .
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			__( 'View more comments' ) .
 			'</h3>';
 			_get_list_table( 'WP_Comments_List_Table' )->views();
@@ -1300,7 +1300,7 @@ function wp_dashboard_events_news() {
 				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 				'https://make.wordpress.org/community/meetups-landing-page',
 				__( 'Meetups' ),
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				__( '(opens in a new tab)' )
 			);
 		?>
@@ -1312,7 +1312,7 @@ function wp_dashboard_events_news() {
 				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 				'https://central.wordcamp.org/schedule/',
 				__( 'WordCamps' ),
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				__( '(opens in a new tab)' )
 			);
 		?>
@@ -1325,7 +1325,7 @@ function wp_dashboard_events_news() {
 				/* translators: If a Rosetta site exists (e.g. https://es.wordpress.org/news/), then use that. Otherwise, leave untranslated. */
 				esc_url( _x( 'https://wordpress.org/news/', 'Events and News dashboard widget' ) ),
 				__( 'News' ),
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				__( '(opens in a new tab)' )
 			);
 		?>
@@ -1650,7 +1650,7 @@ function wp_dashboard_quota() {
 				'<a href="%1$s">%2$s <span class="screen-reader-text">(%3$s)</span></a>',
 				esc_url( admin_url( 'upload.php' ) ),
 				$text,
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				__( 'Manage Uploads' )
 			);
 			?>
@@ -1666,7 +1666,7 @@ function wp_dashboard_quota() {
 				'<a href="%1$s" class="musublink">%2$s <span class="screen-reader-text">(%3$s)</span></a>',
 				esc_url( admin_url( 'upload.php' ) ),
 				$text,
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				__( 'Manage Uploads' )
 			);
 			?>
@@ -1897,7 +1897,7 @@ function wp_dashboard_php_nag() {
 			'<a class="button button-primary" href="%1$s" target="_blank" rel="noopener">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 			esc_url( wp_get_update_php_url() ),
 			__( 'Learn more about updating PHP' ),
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			__( '(opens in a new tab)' )
 		);
 		?>

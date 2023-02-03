@@ -893,7 +893,7 @@ final class WP_Customize_Widgets {
 				<button class="customize-section-back" tabindex="-1">
 					<span class="screen-reader-text">
 						<?php
-						/* translators: hidden accessibility text */
+						/* translators: Hidden accessibility text. */
 						_e( 'Back' );
 						?>
 					</span>
@@ -911,7 +911,7 @@ final class WP_Customize_Widgets {
 			<div id="available-widgets-filter">
 				<label class="screen-reader-text" for="widgets-search">
 					<?php
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_e( 'Search Widgets' );
 					?>
 				</label>
@@ -919,13 +919,13 @@ final class WP_Customize_Widgets {
 				<div class="search-icon" aria-hidden="true"></div>
 				<button type="button" class="clear-results"><span class="screen-reader-text">
 					<?php
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_e( 'Clear Results' );
 					?>
 				</span></button>
 				<p class="screen-reader-text" id="widgets-search-desc">
 					<?php
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_e( 'The search results will be updated as you type.' );
 					?>
 				</p>

@@ -87,7 +87,7 @@ else :
 <th scope="row"><?php _e( 'Your homepage displays' ); ?></th>
 <td id="front-static-pages"><fieldset><legend class="screen-reader-text"><span>
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Your homepage displays' );
 	?>
 </span></legend>
@@ -166,7 +166,7 @@ else :
 <th scope="row"><?php _e( 'For each post in a feed, include' ); ?> </th>
 <td><fieldset><legend class="screen-reader-text"><span>
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'For each post in a feed, include' );
 	?>
 	</span></legend>
@@ -191,9 +191,9 @@ else :
 <td><fieldset><legend class="screen-reader-text"><span>
 	<?php
 	has_action( 'blog_privacy_selector' ) ?
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Site visibility' ) :
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Search engine visibility' );
 	?>
 </span></legend>

@@ -635,7 +635,7 @@ class WP_Customize_Control {
 					<div class="new-content-item">
 						<label for="create-input-<?php echo esc_attr( $this->id ); ?>"><span class="screen-reader-text">
 							<?php
-							/* translators: hidden accessibility text */
+							/* translators: Hidden accessibility text. */
 							_e( 'New page title' );
 							?>
 						</span></label>

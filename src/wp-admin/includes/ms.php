@@ -307,7 +307,7 @@ function upload_space_setting( $id ) {
 			<input type="number" step="1" min="0" style="width: 100px" name="option[blog_upload_space]" id="blog-upload-space-number" aria-describedby="blog-upload-space-desc" value="<?php echo $quota; ?>" />
 			<span id="blog-upload-space-desc"><span class="screen-reader-text">
 				<?php
-				/* translators: hidden accessibility text */
+				/* translators: Hidden accessibility text. */
 				_e( 'Size in megabytes' );
 				?>
 			</span> <?php _e( 'MB (Leave blank for network default)' ); ?></span>
@@ -922,7 +922,7 @@ function confirm_delete_users( $users ) {
 					if ( is_array( $blog_users ) && ! empty( $blog_users ) ) {
 						$user_site      = "<a href='" . esc_url( get_home_url( $details->userblog_id ) ) . "'>{$details->blogname}</a>";
 						$user_dropdown  = '<label for="reassign_user" class="screen-reader-text">' .
-						/* translators: hidden accessibility text */
+						/* translators: Hidden accessibility text. */
 						__( 'Select a user' ) .
 						'</label>';
 						$user_dropdown .= "<select name='blog[$user_id][$key]' id='reassign_user'>";

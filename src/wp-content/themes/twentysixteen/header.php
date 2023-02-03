@@ -27,7 +27,7 @@
 	<div class="site-inner">
 		<a class="skip-link screen-reader-text" href="#content">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Skip to content', 'twentysixteen' );
 			?>
 		</a>

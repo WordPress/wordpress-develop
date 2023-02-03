@@ -47,7 +47,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <th scope="row"><?php _e( 'Default post settings' ); ?></th>
 <td><fieldset><legend class="screen-reader-text"><span>
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Default post settings' );
 	?>
 </span></legend>
@@ -70,7 +70,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <th scope="row"><?php _e( 'Other comment settings' ); ?></th>
 <td><fieldset><legend class="screen-reader-text"><span>
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Other comment settings' );
 	?>
 </span></legend>
@@ -178,7 +178,7 @@ printf( __( 'Comments should be displayed with the %s comments at the top of eac
 <th scope="row"><?php _e( 'Email me whenever' ); ?></th>
 <td><fieldset><legend class="screen-reader-text"><span>
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Email me whenever' );
 	?>
 </span></legend>
@@ -195,7 +195,7 @@ printf( __( 'Comments should be displayed with the %s comments at the top of eac
 <th scope="row"><?php _e( 'Before a comment appears' ); ?></th>
 <td><fieldset><legend class="screen-reader-text"><span>
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Before a comment appears' );
 	?>
 </span></legend>
@@ -210,7 +210,7 @@ printf( __( 'Comments should be displayed with the %s comments at the top of eac
 <th scope="row"><?php _e( 'Comment Moderation' ); ?></th>
 <td><fieldset><legend class="screen-reader-text"><span>
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Comment Moderation' );
 	?>
 </span></legend>
@@ -234,7 +234,7 @@ printf(
 <th scope="row"><?php _e( 'Disallowed Comment Keys' ); ?></th>
 <td><fieldset><legend class="screen-reader-text"><span>
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Disallowed Comment Keys' );
 	?>
 </span></legend>
@@ -275,7 +275,7 @@ if ( ! $show_avatars ) {
 <th scope="row"><?php _e( 'Maximum Rating' ); ?></th>
 <td><fieldset><legend class="screen-reader-text"><span>
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Maximum Rating' );
 	?>
 </span></legend>
@@ -303,7 +303,7 @@ endforeach;
 <th scope="row"><?php _e( 'Default Avatar' ); ?></th>
 <td class="defaultavatarpicker"><fieldset><legend class="screen-reader-text"><span>
 	<?php
-	/* translators: hidden accessibility text */
+	/* translators: Hidden accessibility text. */
 	_e( 'Default Avatar' );
 	?>
 </span></legend>

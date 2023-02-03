@@ -461,7 +461,7 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 			'format'             => '',
 			'prev_text'          => '<span aria-label="' . esc_attr__( 'Previous page' ) . '">' . __( '&laquo;' ) . '</span>',
 			'next_text'          => '<span aria-label="' . esc_attr__( 'Next page' ) . '">' . __( '&raquo;' ) . '</span>',
-			'before_page_number' => '<span class="screen-reader-text">' . /* translators: hidden accessibility text */ __( 'Page' ) . '</span> ',
+			'before_page_number' => '<span class="screen-reader-text">' . /* translators: Hidden accessibility text. */ __( 'Page' ) . '</span> ',
 			'total'              => $num_pages,
 			'current'            => $pagenum,
 		)
@@ -584,7 +584,7 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 			<p class="quick-search-wrap">
 				<label for="quick-search-posttype-<?php echo $post_type_name; ?>" class="screen-reader-text">
 					<?php
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_e( 'Search' );
 					?>
 				</label>
@@ -762,7 +762,7 @@ function wp_nav_menu_item_taxonomy_meta_box( $data_object, $box ) {
 			'format'             => '',
 			'prev_text'          => '<span aria-label="' . esc_attr__( 'Previous page' ) . '">' . __( '&laquo;' ) . '</span>',
 			'next_text'          => '<span aria-label="' . esc_attr__( 'Next page' ) . '">' . __( '&raquo;' ) . '</span>',
-			'before_page_number' => '<span class="screen-reader-text">' . /* translators: hidden accessibility text */ __( 'Page' ) . '</span> ',
+			'before_page_number' => '<span class="screen-reader-text">' . /* translators: Hidden accessibility text. */ __( 'Page' ) . '</span> ',
 			'total'              => $num_pages,
 			'current'            => $pagenum,
 		)
@@ -884,7 +884,7 @@ function wp_nav_menu_item_taxonomy_meta_box( $data_object, $box ) {
 			<p class="quick-search-wrap">
 				<label for="quick-search-taxonomy-<?php echo $taxonomy_name; ?>" class="screen-reader-text">
 					<?php
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_e( 'Search' );
 					?>
 				</label>

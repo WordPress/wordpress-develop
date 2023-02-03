@@ -323,7 +323,7 @@ function get_search_form( $args = array() ) {
 			$form = '<form role="search" ' . $aria_label . 'method="get" class="search-form" action="' . esc_url( home_url( '/' ) ) . '">
 				<label>
 					<span class="screen-reader-text">' .
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_x( 'Search for:', 'label' ) .
 					'</span>
 					<input type="search" class="search-field" placeholder="' . esc_attr_x( 'Search &hellip;', 'placeholder' ) . '" value="' . get_search_query() . '" name="s" />
@@ -334,7 +334,7 @@ function get_search_form( $args = array() ) {
 			$form = '<form role="search" ' . $aria_label . 'method="get" id="searchform" class="searchform" action="' . esc_url( home_url( '/' ) ) . '">
 				<div>
 					<label class="screen-reader-text" for="s">' .
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_x( 'Search for:', 'label' ) .
 					'</label>
 					<input type="text" value="' . get_search_query() . '" name="s" id="s" />

@@ -162,7 +162,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<span class="dashicons dashicons-ellipsis"></span>
 				<span class="screen-reader-text">
 					<?php
-					/* translators: hidden accessibility text */
+					/* translators: Hidden accessibility text. */
 					_e( 'Toggle extra menu items' );
 					?>
 				</span>

@@ -59,7 +59,7 @@ if ( ! function_exists( 'twentyfourteen_paging_nav' ) ) :
 		<nav class="navigation paging-navigation">
 		<h1 class="screen-reader-text">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Posts navigation', 'twentyfourteen' );
 			?>
 		</h1>
@@ -91,7 +91,7 @@ if ( ! function_exists( 'twentyfourteen_post_nav' ) ) :
 		<nav class="navigation post-navigation">
 		<h1 class="screen-reader-text">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Post navigation', 'twentyfourteen' );
 			?>
 		</h1>

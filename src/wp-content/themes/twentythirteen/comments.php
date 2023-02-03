@@ -59,7 +59,7 @@ if ( post_password_required() ) {
 		<nav class="navigation comment-navigation">
 		<h1 class="screen-reader-text section-heading">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Comment navigation', 'twentythirteen' );
 			?>
 		</h1>

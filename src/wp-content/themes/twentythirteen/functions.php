@@ -469,7 +469,7 @@ if ( ! function_exists( 'twentythirteen_paging_nav' ) ) :
 		<nav class="navigation paging-navigation">
 		<h1 class="screen-reader-text">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Posts navigation', 'twentythirteen' );
 			?>
 		</h1>
@@ -511,7 +511,7 @@ if ( ! function_exists( 'twentythirteen_post_nav' ) ) :
 		<nav class="navigation post-navigation">
 		<h1 class="screen-reader-text">
 			<?php
-			/* translators: hidden accessibility text */
+			/* translators: Hidden accessibility text. */
 			_e( 'Post navigation', 'twentythirteen' );
 			?>
 		</h1>
