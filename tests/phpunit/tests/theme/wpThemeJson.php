@@ -275,7 +275,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'minHeight' => true,
 			),
 			'position'   => array(
-				'fixed'  => true,
 				'sticky' => true,
 			),
 			'spacing'    => array(
@@ -306,7 +305,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'minHeight' => true,
 					),
 					'position'   => array(
-						'fixed'  => true,
 						'sticky' => true,
 					),
 					'spacing'    => array(
