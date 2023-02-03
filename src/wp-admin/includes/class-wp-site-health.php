@@ -749,7 +749,7 @@ class WP_Site_Health {
 				'<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				esc_url( wp_get_update_php_url() ),
 				__( 'Learn more about updating PHP' ),
-				/* translators: Accessibility text. */
+				/* translators: hidden accessibility text */
 				__( '(opens in a new tab)' )
 			),
 			'test'        => 'php_version',
@@ -893,7 +893,7 @@ class WP_Site_Health {
 					'target="_blank" rel="noopener"',
 					sprintf(
 						' <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span>',
-						/* translators: Accessibility text. */
+						/* translators: hidden accessibility text */
 						__( '(opens in a new tab)' )
 					)
 				)
@@ -1052,7 +1052,9 @@ class WP_Site_Health {
 					$result['status'] = 'critical';
 
 					$class         = 'error';
-					$screen_reader = __( 'Error' );
+					$screen_reader = 
+					/* translators: hidden accessibility text */
+					__( 'Error' );
 					$message       = sprintf(
 						/* translators: %s: The module name. */
 						__( 'The required module, %s, is not installed, or has been disabled.' ),
