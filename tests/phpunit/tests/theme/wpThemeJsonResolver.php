@@ -783,15 +783,15 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_get_merged_data_returns_origin
 	 *
-	 * @param string $origin            What origin to get data from.
-	 * @param bool   $core_palette      Whether the core palette is present.
-	 * @param string $core_palette_text Message.
-	 * @param string $block_styles      Whether the block styles are present.
-	 * @param string $block_styles_text Message.
+	 * @param string $origin             What origin to get data from.
+	 * @param bool   $core_palette       Whether the core palette is present.
+	 * @param string $core_palette_text  Message.
+	 * @param string $block_styles       Whether the block styles are present.
+	 * @param string $block_styles_text  Message.
 	 * @param bool   $theme_palette      Whether the theme palette is present.
 	 * @param string $theme_palette_text Message.
-	 * @param bool   $user_palette      Whether the user palette is present.
-	 * @param string $user_palette_text Message.
+	 * @param bool   $user_palette        Whether the user palette is present.
+	 * @param string $user_palette_text   Message.
 	 */
 	public function test_get_merged_data_returns_origin( $origin, $core_palette, $core_palette_text, $block_styles, $block_styles_text, $theme_palette, $theme_palette_text, $user_palette, $user_palette_text ) {
 		// Make sure there is data from the blocks origin.
