@@ -311,7 +311,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		wp_set_current_user( self::$editor_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
-		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
 
 		$params = $this->set_post_data(
 			array(
@@ -327,7 +327,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	public function test_update_item() {
 		wp_set_current_user( self::$editor_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
-		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
 
 		$params = $this->set_post_data(
 			array(
@@ -346,7 +346,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		wp_set_current_user( self::$contributor_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
-		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
 
 		$params = $this->set_post_data(
 			array(
@@ -365,7 +365,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		wp_set_current_user( self::$editor_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
-		$request->add_header( 'content-type', 'application/json' );
+		$request->add_header( 'Content-Type', 'application/json' );
 
 		$current_post = get_post( self::$post_id );
 
@@ -412,7 +412,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		);
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
-		$request->add_header( 'content-type', 'application/json' );
+		$request->add_header( 'Content-Type', 'application/json' );
 		$request->set_body( wp_json_encode( $autosave_data ) );
 
 		$response = rest_get_server()->dispatch( $request );
@@ -451,7 +451,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		);
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
-		$request->add_header( 'content-type', 'application/json' );
+		$request->add_header( 'Content-Type', 'application/json' );
 		$request->set_body( wp_json_encode( $autosave_data ) );
 
 		$response     = rest_get_server()->dispatch( $request );
@@ -572,7 +572,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	public function test_update_item_draft_page_with_parent() {
 		wp_set_current_user( self::$editor_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/pages/' . self::$child_draft_page_id . '/autosaves' );
-		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
 
 		$params = $this->set_post_data(
 			array(
@@ -593,7 +593,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		wp_set_current_user( self::$editor_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/pages/' . self::$draft_page_id . '/autosaves' );
-		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
 
 		$params = $this->set_post_data(
 			array(
@@ -648,7 +648,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 
 		// Initiate an autosave via the REST API as Gutenberg does.
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
-		$request->add_header( 'content-type', 'application/json' );
+		$request->add_header( 'Content-Type', 'application/json' );
 		$request->set_body( wp_json_encode( $autosave_data ) );
 
 		$response = rest_get_server()->dispatch( $request );
@@ -699,7 +699,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 
 		// Create autosaves response.
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/autosaves' );
-		$request->add_header( 'content-type', 'application/json' );
+		$request->add_header( 'Content-Type', 'application/json' );
 		$request->set_body( wp_json_encode( $autosave_data ) );
 
 		$response = rest_get_server()->dispatch( $request );
