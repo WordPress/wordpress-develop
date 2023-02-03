@@ -23,7 +23,7 @@
  */
 function get_comment_author( $comment_ID = 0 ) {
 	$comment    = get_comment( $comment_ID );
-	$comment_ID = ! empty( $comment->comment_ID ) ? $comment->comment_ID ? (string) $comment_ID;
+	$comment_ID = ! empty( $comment->comment_ID ) ? $comment->comment_ID : (string) $comment_ID;
 
 	if ( empty( $comment->comment_author ) ) {
 		$user = ! empty( $comment->user_id ) ? get_userdata( $comment->user_id ) : false;
