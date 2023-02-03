@@ -26,7 +26,7 @@ if ( empty( $twentytwenty_aria_label ) && ! empty( $args['label'] ) ) {
 <form role="search" <?php echo $twentytwenty_aria_label; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above. ?> method="get" class="search-form" action="<?php echo esc_url( home_url( '/' ) ); ?>">
 	<label for="<?php echo esc_attr( $twentytwenty_unique_id ); ?>">
 		<span class="screen-reader-text">
-			<?php 
+			<?php
 			/* translators: hidden accessibility text */
 			_e( 'Search for:', 'twentytwenty' ); // phpcs:ignore: WordPress.Security.EscapeOutput.UnsafePrintingFunction -- core trusts translations
 			?>
