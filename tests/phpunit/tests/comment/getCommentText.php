@@ -52,17 +52,19 @@ class Tests_Comment_GetCommentText extends WP_UnitTestCase {
 
 	public function test_comment_feed_reply_to() {
 
-		$comment_post_ID = self::factory()->post->create();
-		$parent_comment  = self::factory()->comment->create_and_get( compact( 'comment_post_ID' ) );
+		$comment_post_id = self::factory()->post->create();
+		$parent_comment  = self::factory()->comment->create_and_get( array(
+			'comment_post_ID' => $comment_post_id,
+		) );
 		$comment         = self::factory()->comment->create_and_get(
 			array(
-				'comment_post_ID' => $comment_post_ID,
+				'comment_post_id' => $comment_post_id,
 				'comment_parent'  => $parent_comment->comment_ID,
 				'comment_content' => self::$comment_content,
 			)
 		);
 
-		$this->go_to( get_post_comments_feed_link( $comment_post_ID ) );
+		$this->go_to( get_post_comments_feed_link( $comment_post_id ) );
 
 		$expected = sprintf(
 			'In reply to <a href="%1$s">%2$s</a>.',
