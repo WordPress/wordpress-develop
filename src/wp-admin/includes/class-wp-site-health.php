@@ -1848,7 +1848,7 @@ class WP_Site_Health {
 		$output = '<ul>';
 
 		foreach ( $tests as $test ) {
-			$severity_string = 
+			$severity_string =
 			/* translators: hidden accessibility text */
 			__( 'Passed' );
 
@@ -1857,7 +1857,7 @@ class WP_Site_Health {
 
 				$result['status'] = 'critical';
 
-				$severity_string = 
+				$severity_string =
 				/* translators: hidden accessibility text */
 				__( 'Error' );
 			}
@@ -1867,7 +1867,7 @@ class WP_Site_Health {
 
 				$result['status'] = 'recommended';
 
-				$severity_string = 
+				$severity_string =
 				/* translators: hidden accessibility text */
 				__( 'Warning' );
 			}
