@@ -604,7 +604,7 @@ class WP_Upgrader {
 		 * Therefore, copy_dir() should be used.
 		 */
 		if ( $clear_destination && $args['clear_working'] ) {
-			$result = move_dir( $source, $remote_destination, true );
+			$result = move_dir( $source, $remote_destination );
 		} else {
 			$result = copy_dir( $source, $remote_destination );
 		}
