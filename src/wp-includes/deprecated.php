@@ -4529,7 +4529,6 @@ function _filter_query_attachment_filenames( $clauses ) {
 	return $clauses;
 }
 
-
 /**
  * Retrieves a page given its title.
  *
