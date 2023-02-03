@@ -370,15 +370,39 @@ function _add_block_template_info( $template_item ) {
  * @return array Template info.
  */
 function _add_block_template_part_area_info( $template_info ) {
-	if ( wp_theme_has_theme_json() ) {
-		$theme_data = WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_template_parts();
+	static $additional_template_info = null;
+
+	// Calculate all template part info at once to avoid redundant calls to the
+	// same code, since most template parts are being used anyway and running
+	// this logic once for all of them does not add any notable overhead.
+	if ( null === $additional_template_info ) {
+		$additional_template_info = array();
+		if ( wp_theme_has_theme_json() ) {
+			$theme_data = WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_template_parts();
+			foreach ( $theme_data as $part_slug => $part_info ) {
+				if ( isset( $part_info['area'] ) ) {
+					$additional_template_info[ $part_slug ] = array(
+						'title' => $part_info['title'],
+						'area'  => _filter_block_template_part_area( $part_info['area'] ),
+					);
+				} else {
+					$additional_template_info[ $part_slug ] = array(
+						'area' => WP_TEMPLATE_PART_AREA_UNCATEGORIZED,
+					);
+				}
+			}
+		}
 	}
 
-	if ( isset( $theme_data[ $template_info['slug'] ]['area'] ) ) {
-		$template_info['title'] = $theme_data[ $template_info['slug'] ]['title'];
-		$template_info['area']  = _filter_block_template_part_area( $theme_data[ $template_info['slug'] ]['area'] );
-	} else {
-		$template_info['area'] = WP_TEMPLATE_PART_AREA_UNCATEGORIZED;
+	// Fallback for any template part that was not found in theme data.
+	if ( ! isset( $additional_template_info[ $template_info['slug'] ] ) ) {
+		$additional_template_info[ $template_info['slug'] ] = array(
+			'area' => WP_TEMPLATE_PART_AREA_UNCATEGORIZED,
+		);
+	}
+
+	foreach ( $additional_template_info[ $template_info['slug'] ] as $key => $value ) {
+		$template_info[ $key ] = $value;
 	}
 
 	return $template_info;
