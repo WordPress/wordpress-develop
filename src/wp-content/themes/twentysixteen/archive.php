@@ -51,7 +51,7 @@ get_header(); ?>
 				array(
 					'prev_text'          => __( 'Previous page', 'twentysixteen' ),
 					'next_text'          => __( 'Next page', 'twentysixteen' ),
-					'before_page_number' => '<span class="meta-nav screen-reader-text">' . __( 'Page', 'twentysixteen' ) . ' </span>',
+					'before_page_number' => '<span class="meta-nav screen-reader-text">' . /* translators: hidden accessibility text */ __( 'Page', 'twentysixteen' ) . ' </span>',
 				)
 			);
 

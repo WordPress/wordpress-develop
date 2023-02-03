@@ -466,8 +466,8 @@ function twentyfifteen_scripts() {
 		'twentyfifteen-script',
 		'screenReaderText',
 		array(
-			'expand'   => '<span class="screen-reader-text">' . __( 'expand child menu', 'twentyfifteen' ) . '</span>',
-			'collapse' => '<span class="screen-reader-text">' . __( 'collapse child menu', 'twentyfifteen' ) . '</span>',
+			'expand'   => '<span class="screen-reader-text">' . /* translators: hidden accessibility text */ __( 'expand child menu', 'twentyfifteen' ) . '</span>',
+			'collapse' => '<span class="screen-reader-text">' . /* translators: hidden accessibility text */ __( 'collapse child menu', 'twentyfifteen' ) . '</span>',
 		)
 	);
 }
