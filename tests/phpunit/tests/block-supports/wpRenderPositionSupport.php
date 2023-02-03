@@ -27,8 +27,8 @@ class Tests_Block_Supports_WpRenderPositionSupport extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		$this->test_block_name = null;
-		$this->theme_root     = realpath( DIR_TESTDATA . '/themedir1' );
-		$this->orig_theme_dir = $GLOBALS['wp_theme_directories'];
+		$this->theme_root      = realpath( DIR_TESTDATA . '/themedir1' );
+		$this->orig_theme_dir  = $GLOBALS['wp_theme_directories'];
 
 		// /themes is necessary as theme.php functions assume /themes is the root if there is only one root.
 		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', $this->theme_root );
@@ -36,13 +36,21 @@ class Tests_Block_Supports_WpRenderPositionSupport extends WP_UnitTestCase {
 		add_filter( 'theme_root', array( $this, 'filter_set_theme_root' ) );
 		add_filter( 'stylesheet_root', array( $this, 'filter_set_theme_root' ) );
 		add_filter( 'template_root', array( $this, 'filter_set_theme_root' ) );
+
 		// Clear caches.
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
+		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
 	}
 
 	public function tear_down() {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
+
+		// Clear up the filters to modify the theme root.
+		remove_filter( 'theme_root', array( $this, 'filter_set_theme_root' ) );
+		remove_filter( 'stylesheet_root', array( $this, 'filter_set_theme_root' ) );
+		remove_filter( 'template_root', array( $this, 'filter_set_theme_root' ) );
+
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
 		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
