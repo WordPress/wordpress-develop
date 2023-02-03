@@ -265,15 +265,15 @@ if ( ! function_exists( 'twentythirteen_fonts_url' ) ) :
 		$fonts_url = '';
 
 		/*
-		* translators: If there are characters in your language that are not supported
-		* by Source Sans Pro, translate this to 'off'. Do not translate into your own language.
-		*/
+		 * translators: If there are characters in your language that are not supported
+		 * by Source Sans Pro, translate this to 'off'. Do not translate into your own language.
+		 */
 		$source_sans_pro = _x( 'on', 'Source Sans Pro font: on or off', 'twentythirteen' );
 
 		/*
-		* translators: If there are characters in your language that are not supported
-		* by Bitter, translate this to 'off'. Do not translate into your own language.
-		*/
+		 * translators: If there are characters in your language that are not supported
+		 * by Bitter, translate this to 'off'. Do not translate into your own language.
+		 */
 		$bitter = _x( 'on', 'Bitter font: on or off', 'twentythirteen' );
 
 		if ( 'off' !== $source_sans_pro || 'off' !== $bitter ) {
