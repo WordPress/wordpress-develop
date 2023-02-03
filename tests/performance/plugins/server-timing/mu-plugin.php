@@ -4,22 +4,20 @@ add_action(
 	'template_redirect',
 	function() {
 
-		global $server_timing_values, $timestart, $template_start;
+		global $timestart;
 
-		if ( ! is_array( $server_timing_values ) ) {
-			$server_timing_values = array();
-		}
+		$server_timing_values = array();
+		$template_start       = microtime( true );
 
-		$template_start = microtime( true );
 		$server_timing_values['before-template'] = $template_start - $timestart;
 
 		ob_start();
 
 		add_action(
 			'shutdown',
-			function() {
+			function() use ( $server_timing_values, $template_start ) {
 
-				global $server_timing_values, $timestart, $template_start;
+				global $timestart;
 
 				$output = ob_get_clean();
 
