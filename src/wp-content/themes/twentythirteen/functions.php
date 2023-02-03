@@ -249,48 +249,50 @@ function twentythirteen_setup() {
 }
 add_action( 'after_setup_theme', 'twentythirteen_setup' );
 
-/**
- * Return the font stylesheet URL, if available.
- *
- * The use of Source Sans Pro and Bitter by default is localized. For languages
- * that use characters not supported by the font, the font can be disabled.
- *
- * @since Twenty Thirteen 1.0
- * @since Twenty Thirteen 3.8 Replaced Google URL with self-hosted fonts.
- *
- * @return string Font stylesheet or empty string if disabled.
- */
-function twentythirteen_fonts_url() {
-	$fonts_url = '';
-
-	/*
-	 * translators: If there are characters in your language that are not supported
-	 * by Source Sans Pro, translate this to 'off'. Do not translate into your own language.
+if ( ! function_exists( 'twentythirteen_fonts_url' ) ) :
+	/**
+	 * Return the font stylesheet URL, if available.
+	 *
+	 * The use of Source Sans Pro and Bitter by default is localized. For languages
+	 * that use characters not supported by the font, the font can be disabled.
+	 *
+	 * @since Twenty Thirteen 1.0
+	 * @since Twenty Thirteen 3.8 Replaced Google URL with self-hosted fonts.
+	 *
+	 * @return string Font stylesheet or empty string if disabled.
 	 */
-	$source_sans_pro = _x( 'on', 'Source Sans Pro font: on or off', 'twentythirteen' );
+	function twentythirteen_fonts_url() {
+		$fonts_url = '';
 
-	/*
-	 * translators: If there are characters in your language that are not supported
-	 * by Bitter, translate this to 'off'. Do not translate into your own language.
-	 */
-	$bitter = _x( 'on', 'Bitter font: on or off', 'twentythirteen' );
+		/*
+		* translators: If there are characters in your language that are not supported
+		* by Source Sans Pro, translate this to 'off'. Do not translate into your own language.
+		*/
+		$source_sans_pro = _x( 'on', 'Source Sans Pro font: on or off', 'twentythirteen' );
 
-	if ( 'off' !== $source_sans_pro || 'off' !== $bitter ) {
-		$font_families = array();
+		/*
+		* translators: If there are characters in your language that are not supported
+		* by Bitter, translate this to 'off'. Do not translate into your own language.
+		*/
+		$bitter = _x( 'on', 'Bitter font: on or off', 'twentythirteen' );
 
-		if ( 'off' !== $source_sans_pro ) {
-			$font_families[] = 'source-sans-pro';
+		if ( 'off' !== $source_sans_pro || 'off' !== $bitter ) {
+			$font_families = array();
+
+			if ( 'off' !== $source_sans_pro ) {
+				$font_families[] = 'source-sans-pro';
+			}
+
+			if ( 'off' !== $bitter ) {
+				$font_families[] = 'bitter';
+			}
+
+			$fonts_url = get_template_directory_uri() . '/fonts/' . implode( '-plus-', $font_families ) . '.css';
 		}
 
-		if ( 'off' !== $bitter ) {
-			$font_families[] = 'bitter';
-		}
-
-		$fonts_url = get_template_directory_uri() . '/fonts/' . implode( '-plus-', $font_families ) . '.css';
+		return $fonts_url;
 	}
-
-	return $fonts_url;
-}
+endif;
 
 /**
  * Enqueue scripts and styles for the front end.
