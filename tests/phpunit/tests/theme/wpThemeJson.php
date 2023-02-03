@@ -4624,4 +4624,57 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @dataProvider data_process_blocks_custom_css
+	 *
+	 * @param array  $input    An array containing the selector and css to test.
+	 * @param string $expected Expected results.
+	 */
+	public function test_process_blocks_custom_css( $input, $expected ) {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(),
+			)
+		);
+		$reflection = new ReflectionMethod( $theme_json, 'process_blocks_custom_css' );
+		$reflection->setAccessible( true );
+
+		$this->assertEquals( $expected, $reflection->invoke( $theme_json, $input['css'], $input['selector'] ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_process_blocks_custom_css() {
+		return array(
+			// Simple CSS without any child selectors.
+			'no child selectors'                => array(
+				'input'    => array(
+					'selector' => '.foo',
+					'css'      => 'color: red; margin: auto;',
+				),
+				'expected' => '.foo{color: red; margin: auto;}',
+			),
+			// CSS with child selectors.
+			'with children'                     => array(
+				'input'    => array(
+					'selector' => '.foo',
+					'css'      => 'color: red; margin: auto; & .bar{color: blue;}',
+				),
+				'expected' => '.foo{color: red; margin: auto;}.foo .bar{color: blue;}',
+			),
+			// CSS with child selectors and pseudo elements.
+			'with children and pseudo elements' => array(
+				'input'    => array(
+					'selector' => '.foo',
+					'css'      => 'color: red; margin: auto; & .bar{color: blue;} &::before{color: green;}',
+				),
+				'expected' => '.foo{color: red; margin: auto;}.foo .bar{color: blue;}.foo::before{color: green;}',
+			),
+		);
+	}
 }
