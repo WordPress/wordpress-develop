@@ -666,7 +666,7 @@ class WP_Theme_JSON_Resolver {
 	}
 
 	/**
-	 * Returns an array of all nested json files within a given directory.
+	 * Returns an array of all nested JSON files within a given directory.
 	 *
 	 * @since 6.2.0
 	 *
