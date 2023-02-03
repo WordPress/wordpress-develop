@@ -276,7 +276,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$attachment->guid           = $url;
 
 		if ( empty( $attachment->post_title ) ) {
-			$attachment->post_title = preg_replace( '/\.[^.]+$/', '', wp_basename( $file ) );
+			$upload = $files['file']['name'];
+			$ext    = pathinfo( $upload, PATHINFO_EXTENSION );
+			$title  = wp_basename( $upload, ".$ext" );
+
+			$attachment->post_title = sanitize_text_field( $title );
 		}
 
 		// $post_parent is inherited from $attachment['post_parent'].
