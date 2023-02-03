@@ -137,30 +137,32 @@ require get_template_directory() . '/inc/custom-header.php';
  */
 require get_template_directory() . '/inc/block-patterns.php';
 
-/**
- * Return the font stylesheet URL if available.
- *
- * The use of Open Sans by default is localized. For languages that use
- * characters not supported by the font, the font can be disabled.
- *
- * @since Twenty Twelve 1.2
- * @since Twenty Twelve 3.9 Replaced Google URL with self-hosted font.
- *
- * @return string Font stylesheet or empty string if disabled.
- */
-function twentytwelve_get_font_url() {
-	$font_url = '';
-
-	/*
-	 * translators: If there are characters in your language that are not supported
-	 * by Open Sans, translate this to 'off'. Do not translate into your own language.
+if ( ! function_exists( 'twentytwelve_get_font_url' ) ) :
+	/**
+	 * Return the font stylesheet URL if available.
+	 *
+	 * The use of Open Sans by default is localized. For languages that use
+	 * characters not supported by the font, the font can be disabled.
+	 *
+	 * @since Twenty Twelve 1.2
+	 * @since Twenty Twelve 3.9 Replaced Google URL with self-hosted font.
+	 *
+	 * @return string Font stylesheet or empty string if disabled.
 	 */
-	if ( 'off' !== _x( 'on', 'Open Sans font: on or off', 'twentytwelve' ) ) {
-		$font_url = get_template_directory_uri() . '/fonts/font-open-sans.css';
-	}
+	function twentytwelve_get_font_url() {
+		$font_url = '';
 
-	return $font_url;
-}
+		/*
+		* translators: If there are characters in your language that are not supported
+		* by Open Sans, translate this to 'off'. Do not translate into your own language.
+		*/
+		if ( 'off' !== _x( 'on', 'Open Sans font: on or off', 'twentytwelve' ) ) {
+			$font_url = get_template_directory_uri() . '/fonts/font-open-sans.css';
+		}
+
+		return $font_url;
+	}
+endif;
 
 /**
  * Enqueue scripts and styles for front end.
