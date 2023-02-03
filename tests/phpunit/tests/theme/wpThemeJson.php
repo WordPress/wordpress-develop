@@ -4632,14 +4632,16 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @param string $expected Expected results.
 	 */
 	public function test_process_blocks_custom_css( $input, $expected ) {
-		$theme_json = new WP_Theme_JSON_Gutenberg(
+		$theme_json = new WP_Theme_JSON(
 			array(
-				'version' => WP_Theme_JSON_Gutenberg::LATEST_SCHEMA,
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 				'styles'  => array(),
 			)
 		);
+		$reflection = new ReflectionMethod( $theme_json, 'process_blocks_custom_css' );
+		$reflection->setAccessible( true );
 
-		$this->assertEquals( $expected, $theme_json->process_blocks_custom_css( $input['css'], $input['selector'] ) );
+		$this->assertEquals( $expected, $reflection->invoke( $theme_json, $input['css'], $input['selector'] ) );
 	}
 
 	/**
