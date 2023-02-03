@@ -467,10 +467,10 @@ class Custom_Background {
 <tr>
 <th scope="row"><?php _ex( 'Scroll', 'Background Scroll' ); ?></th>
 <td><fieldset><legend class="screen-reader-text"><span>
-	<?php
-	/* translators: hidden accessibility text */
-	_ex( 'Scroll', 'Background Scroll' );
-	?>
+			<?php
+			/* translators: hidden accessibility text */
+			_ex( 'Scroll', 'Background Scroll' );
+			?>
 </span></legend>
 <input name="background-attachment" type="hidden" value="fixed">
 <label><input name="background-attachment" type="checkbox" value="scroll" <?php checked( 'scroll', get_theme_mod( 'background_attachment', get_theme_support( 'custom-background', 'default-attachment' ) ) ); ?>> <?php _e( 'Scroll with Page' ); ?></label>
@@ -480,10 +480,10 @@ class Custom_Background {
 <tr>
 <th scope="row"><?php _e( 'Background Color' ); ?></th>
 <td><fieldset><legend class="screen-reader-text"><span>
-	<?php
-	/* translators: hidden accessibility text */
-	_e( 'Background Color' );
-	?>
+		<?php
+		/* translators: hidden accessibility text */
+		_e( 'Background Color' );
+		?>
 </span></legend>
 		<?php
 		$default_color = '';
