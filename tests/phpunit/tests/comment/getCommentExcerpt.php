@@ -12,6 +12,18 @@ Brisket shank rump, tongue beef ribs swine fatback turducken capicola meatball p
 
 Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket bacon pork chop. Cupim hamburger pork loin short loin. Boudin ball tip cupim ground round ham shoulder. Sausage rump cow tongue bresaola pork pancetta biltong tail chicken turkey hamburger. Kevin flank pork loin salami biltong. Alcatra landjaeger pastrami andouille kielbasa ham tenderloin drumstick sausage turducken tongue corned beef.';
 
+	public function test_no_comment() {
+		unset( $GLOBALS['comment'] );
+		$excerpt = get_comment_excerpt();
+		$this->assertSame( '', $excerpt );
+	}
+
+	public function test_invalid_comment() {
+		$comment_id = self::factory()->comment->create();
+		$excerpt = get_comment_excerpt( $comment_id + 1 );
+		$this->assertSame( '', $excerpt );
+	}
+
 	public function test_get_comment_excerpt() {
 		$comment_id = self::factory()->comment->create(
 			array(
@@ -36,6 +48,15 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$excerpt = get_comment_excerpt( $comment_id );
 
 		$this->assertCount( 10, explode( ' ', $excerpt ) );
+	}
+
+	public function test_get_comment_excerpt_password_protected_post() {
+		$post_id     = self::factory()->post->create( array( 'post_password' => 'password' ) );
+		$comment_ids = self::factory()->comment->create_post_comments( $post_id, 1 );
+		$comment_id  = reset( $comment_ids );
+
+		$excerpt = get_comment_excerpt( $comment_id );
+		$this->assertSame( 'Password protected', $excerpt );
 	}
 
 	public function _filter_comment_excerpt_length() {

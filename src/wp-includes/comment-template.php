@@ -23,7 +23,7 @@
  */
 function get_comment_author( $comment_ID = 0 ) {
 	$comment    = get_comment( $comment_ID );
-	$comment_ID = ! empty( $comment->comment_ID ) ? $comment->comment_ID : $comment_ID;
+	$comment_ID = $comment->comment_ID ?? $comment_ID;
 
 	if ( empty( $comment->comment_author ) ) {
 		$user = ! empty( $comment->user_id ) ? get_userdata( $comment->user_id ) : false;
@@ -59,8 +59,9 @@ function get_comment_author( $comment_ID = 0 ) {
  *                                   Default current comment.
  */
 function comment_author( $comment_ID = 0 ) {
-	$comment = get_comment( $comment_ID );
-	$author  = get_comment_author( $comment );
+	$comment    = get_comment( $comment_ID );
+	$comment_ID = $comment->comment_ID ?? (string) $comment_ID;
+	$author     = get_comment_author( $comment );
 
 	/**
 	 * Filters the comment author's name for display.
@@ -71,7 +72,7 @@ function comment_author( $comment_ID = 0 ) {
 	 * @param string $author     The comment author's username.
 	 * @param string $comment_ID The comment ID as a numeric string.
 	 */
-	echo apply_filters( 'comment_author', $author, $comment->comment_ID );
+	echo apply_filters( 'comment_author', $author, $comment_ID );
 }
 
 /**
@@ -85,7 +86,9 @@ function comment_author( $comment_ID = 0 ) {
  * @return string The current comment author's email
  */
 function get_comment_author_email( $comment_ID = 0 ) {
-	$comment = get_comment( $comment_ID );
+	$comment              = get_comment( $comment_ID );
+	$comment_ID           = $comment->comment_ID ?? (string) $comment_ID;
+	$comment_author_email = $comment->comment_author_email ?? '';
 
 	/**
 	 * Filters the comment author's returned email address.
@@ -97,7 +100,7 @@ function get_comment_author_email( $comment_ID = 0 ) {
 	 * @param string     $comment_ID           The comment ID as a numeric string.
 	 * @param WP_Comment $comment              The comment object.
 	 */
-	return apply_filters( 'get_comment_author_email', $comment->comment_author_email, $comment->comment_ID, $comment );
+	return apply_filters( 'get_comment_author_email', $comment_author_email, $comment_ID, $comment );
 }
 
 /**
@@ -117,6 +120,7 @@ function get_comment_author_email( $comment_ID = 0 ) {
  */
 function comment_author_email( $comment_ID = 0 ) {
 	$comment      = get_comment( $comment_ID );
+	$comment_ID   = $comment->comment_ID ?? (string) $comment_ID;
 	$author_email = get_comment_author_email( $comment );
 
 	/**
@@ -128,7 +132,7 @@ function comment_author_email( $comment_ID = 0 ) {
 	 * @param string $author_email The comment author's email address.
 	 * @param string $comment_ID   The comment ID as a numeric string.
 	 */
-	echo apply_filters( 'author_email', $author_email, $comment->comment_ID );
+	echo apply_filters( 'author_email', $author_email, $comment_ID );
 }
 
 /**
@@ -219,6 +223,7 @@ function get_comment_author_email_link( $linktext = '', $before = '', $after = '
  */
 function get_comment_author_link( $comment_ID = 0 ) {
 	$comment = get_comment( $comment_ID );
+	$comment_ID = $comment->comment_ID ?? (string) $comment_ID;
 	$url     = get_comment_author_url( $comment );
 	$author  = get_comment_author( $comment );
 
@@ -239,7 +244,7 @@ function get_comment_author_link( $comment_ID = 0 ) {
 	 * @param string $author     The comment author's username.
 	 * @param string $comment_ID The comment ID as a numeric string.
 	 */
-	return apply_filters( 'get_comment_author_link', $return, $author, $comment->comment_ID );
+	return apply_filters( 'get_comment_author_link', $return, $author, $comment_ID );
 }
 
 /**
@@ -266,7 +271,9 @@ function comment_author_link( $comment_ID = 0 ) {
  * @return string Comment author's IP address, or an empty string if it's not available.
  */
 function get_comment_author_IP( $comment_ID = 0 ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
-	$comment = get_comment( $comment_ID );
+	$comment           = get_comment( $comment_ID );
+	$comment_ID        = $comment->comment_ID ?? (string) $comment_ID;
+	$comment_author_IP = $comment->comment_author_IP ?? '';
 
 	/**
 	 * Filters the comment author's returned IP address.
@@ -274,11 +281,11 @@ function get_comment_author_IP( $comment_ID = 0 ) { // phpcs:ignore WordPress.Na
 	 * @since 1.5.0
 	 * @since 4.1.0 The `$comment_ID` and `$comment` parameters were added.
 	 *
-	 * @param string     $comment_author_ip The comment author's IP address, or an empty string if it's not available.
+	 * @param string     $comment_author_IP The comment author's IP address, or an empty string if it's not available.
 	 * @param string     $comment_ID        The comment ID as a numeric string.
 	 * @param WP_Comment $comment           The comment object.
 	 */
-	return apply_filters( 'get_comment_author_IP', $comment->comment_author_IP, $comment->comment_ID, $comment );  // phpcs:ignore WordPress.NamingConventions.ValidHookName.NotLowercase
+	return apply_filters( 'get_comment_author_IP', $comment_author_IP, $comment_ID, $comment );  // phpcs:ignore WordPress.NamingConventions.ValidHookName.NotLowercase
 }
 
 /**
@@ -339,6 +346,7 @@ function get_comment_author_url( $comment_ID = 0 ) {
  */
 function comment_author_url( $comment_ID = 0 ) {
 	$comment    = get_comment( $comment_ID );
+	$comment_ID = $comment->comment_ID ?? (string) $comment_ID;
 	$author_url = get_comment_author_url( $comment );
 
 	/**
@@ -350,7 +358,7 @@ function comment_author_url( $comment_ID = 0 ) {
 	 * @param string $author_url The comment author's URL.
 	 * @param string $comment_ID The comment ID as a numeric string.
 	 */
-	echo apply_filters( 'comment_url', $author_url, $comment->comment_ID );
+	echo apply_filters( 'comment_url', $author_url, $comment_ID );
 }
 
 /**
@@ -597,12 +605,16 @@ function comment_date( $format = '', $comment_ID = 0 ) {
  * @return string The possibly truncated comment excerpt.
  */
 function get_comment_excerpt( $comment_ID = 0 ) {
-	$comment = get_comment( $comment_ID );
+	$comment    = get_comment( $comment_ID );
+	$comment_ID = $comment->comment_ID ?? (string) $comment_ID;
 
-	if ( ! post_password_required( $comment->comment_post_ID ) ) {
-		$comment_text = strip_tags( str_replace( array( "\n", "\r" ), ' ', $comment->comment_content ) );
-	} else {
-		$comment_text = __( 'Password protected' );
+	$comment_text = '';
+	if ( $comment instanceof WP_Comment ) {
+		if ( ! post_password_required( $comment->comment_post_ID ) ) {
+			$comment_text = strip_tags( str_replace( array( "\n", "\r" ), ' ', $comment->comment_content ) );
+		} else {
+			$comment_text = __( 'Password protected' );
+		}
 	}
 
 	/* translators: Maximum number of words used in a comment excerpt. */
@@ -629,7 +641,7 @@ function get_comment_excerpt( $comment_ID = 0 ) {
 	 * @param string     $comment_ID The comment ID as a numeric string.
 	 * @param WP_Comment $comment    The comment object.
 	 */
-	return apply_filters( 'get_comment_excerpt', $excerpt, $comment->comment_ID, $comment );
+	return apply_filters( 'get_comment_excerpt', $excerpt, $comment_ID, $comment );
 }
 
 /**
@@ -643,6 +655,7 @@ function get_comment_excerpt( $comment_ID = 0 ) {
  */
 function comment_excerpt( $comment_ID = 0 ) {
 	$comment         = get_comment( $comment_ID );
+	$comment_ID      = $comment->comment_ID ?? (string) $comment_ID;
 	$comment_excerpt = get_comment_excerpt( $comment );
 
 	/**
@@ -654,7 +667,7 @@ function comment_excerpt( $comment_ID = 0 ) {
 	 * @param string $comment_excerpt The comment excerpt text.
 	 * @param string $comment_ID      The comment ID as a numeric string.
 	 */
-	echo apply_filters( 'comment_excerpt', $comment_excerpt, $comment->comment_ID );
+	echo apply_filters( 'comment_excerpt', $comment_excerpt, $comment_ID );
 }
 
 /**
@@ -1083,11 +1096,9 @@ function comment_time( $format = '' ) {
  * @return string The comment type.
  */
 function get_comment_type( $comment_ID = 0 ) {
-	$comment = get_comment( $comment_ID );
-
-	if ( '' === $comment->comment_type ) {
-		$comment->comment_type = 'comment';
-	}
+	$comment      = get_comment( $comment_ID );
+	$comment_ID   = $comment->comment_ID ?? (string) $comment_ID;
+	$comment_type = ! empty( $comment->comment_type ) ? $comment->comment_type : 'comment';
 
 	/**
 	 * Filters the returned comment type.
@@ -1099,7 +1110,7 @@ function get_comment_type( $comment_ID = 0 ) {
 	 * @param string     $comment_ID   The comment ID as a numeric string.
 	 * @param WP_Comment $comment      The comment object.
 	 */
-	return apply_filters( 'get_comment_type', $comment->comment_type, $comment->comment_ID, $comment );
+	return apply_filters( 'get_comment_type', $comment_type, $comment_ID, $comment );
 }
 
 /**
