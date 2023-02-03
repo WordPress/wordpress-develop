@@ -1072,7 +1072,7 @@ function wp_get_sidebar( $id ) {
  * Set the sidebar widget option to update sidebars.
  *
  * @since 2.2.0
- * @since 6.2.0 Added the optional $refresh_global_sidebars_widgets argument.
+ * @since 6.2.0 Added the optional `$refresh_global_sidebars_widgets` parameter.
  * @access private
  *
  * @global array $_wp_sidebars_widgets
