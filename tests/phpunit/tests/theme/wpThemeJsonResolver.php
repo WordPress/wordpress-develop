@@ -777,7 +777,6 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 						),
 					),
 				);
-		
 				return $theme_json->update_with( $new_data );
 			}
 		);
@@ -785,7 +784,6 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		// expect that $core_settings['spacing']['padding'] is true
 		$core_settings = WP_Theme_JSON_Resolver::get_core_data()->get_settings();
 		$this->assertTrue( $core_settings['spacing']['padding'] );
-		
 		// expect that $merged_settings['spacing']['padding'] is true
 		$merged_settings = WP_Theme_JSON_Resolver::get_merged_data()->get_settings();
 		$this->assertTrue( $merged_settings['spacing']['padding'] );
