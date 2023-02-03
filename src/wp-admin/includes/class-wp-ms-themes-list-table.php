@@ -515,8 +515,11 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		<input type="checkbox" name="checked[]" value="<?php echo esc_attr( $theme->get_stylesheet() ); ?>" id="<?php echo $checkbox_id; ?>" />
 		<label class="screen-reader-text" for="<?php echo $checkbox_id; ?>" >
 			<?php
-			/* translators: hidden accessibility text */
-			_e( 'Select' ); ?>  <?php echo $theme->display( 'Name' );
+			printf(
+				/* translators: hidden accessibility text. %s: Theme name */
+				__( 'Select %s' ),
+				$theme->display( 'Name' )
+			);
 			?>
 		</label>
 		<?php
