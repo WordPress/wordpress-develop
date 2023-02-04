@@ -292,10 +292,10 @@ add_action( 'template_redirect', 'twentyseventeen_content_width', 0 );
 if ( ! function_exists( 'twentyseventeen_fonts_url' ) ) :
 	/**
 	 * Register custom fonts.
-	 * 
+	 *
 	 * @since Twenty Seventeen 1.0
 	 * @since Twenty Seventeen 3.2 Replaced Google URL with self-hosted fonts.
-	 * 
+	 *
 	 * @return string Fonts URL for the theme.
 	 */
 	function twentyseventeen_fonts_url() {
