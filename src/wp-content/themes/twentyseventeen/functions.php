@@ -289,29 +289,31 @@ function twentyseventeen_content_width() {
 }
 add_action( 'template_redirect', 'twentyseventeen_content_width', 0 );
 
-/**
- * Register custom fonts.
- * 
- * @since Twenty Seventeen 1.0
- * @since Twenty Seventeen 3.2 Replaced Google URL with self-hosted fonts.
- * 
- * @return string Fonts URL for the theme.
- */
-function twentyseventeen_fonts_url() {
-	$fonts_url = '';
-
-	/*
-	 * translators: If there are characters in your language that are not supported
-	 * by Libre Franklin, translate this to 'off'. Do not translate into your own language.
+if ( ! function_exists( 'twentyseventeen_fonts_url' ) ) :
+	/**
+	 * Register custom fonts.
+	 * 
+	 * @since Twenty Seventeen 1.0
+	 * @since Twenty Seventeen 3.2 Replaced Google URL with self-hosted fonts.
+	 * 
+	 * @return string Fonts URL for the theme.
 	 */
-	$libre_franklin = _x( 'on', 'Libre Franklin font: on or off', 'twentyseventeen' );
+	function twentyseventeen_fonts_url() {
+		$fonts_url = '';
 
-	if ( 'off' !== $libre_franklin ) {
-		$fonts_url = get_template_directory_uri() . '/assets/fonts/font-libre-franklin.css';
+		/*
+		 * translators: If there are characters in your language that are not supported
+		 * by Libre Franklin, translate this to 'off'. Do not translate into your own language.
+		 */
+		$libre_franklin = _x( 'on', 'Libre Franklin font: on or off', 'twentyseventeen' );
+
+		if ( 'off' !== $libre_franklin ) {
+			$fonts_url = get_template_directory_uri() . '/assets/fonts/font-libre-franklin.css';
+		}
+
+		return esc_url_raw( $fonts_url );
 	}
-
-	return esc_url_raw( $fonts_url );
-}
+endif;
 
 /**
  * Add preconnect for Google Fonts.
