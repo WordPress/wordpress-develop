@@ -353,11 +353,12 @@ add_action( 'widgets_init', 'twentyfifteen_widgets_init' );
 
 if ( ! function_exists( 'twentyfifteen_fonts_url' ) ) :
 	/**
-	 * Register Google fonts for Twenty Fifteen.
+	 * Register fonts for Twenty Fifteen.
 	 *
 	 * @since Twenty Fifteen 1.0
+	 * @since Twenty Fifteen 3.4 Replaced Google URL with self-hosted fonts.
 	 *
-	 * @return string Google fonts URL for the theme.
+	 * @return string Fonts URL for the theme.
 	 */
 	function twentyfifteen_fonts_url() {
 		$fonts_url = '';
