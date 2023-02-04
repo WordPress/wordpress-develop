@@ -1498,7 +1498,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				}
 			} elseif ( 'trash' !== $post->post_status ) {
 				$permalink = get_permalink( $post->ID );
-				if( $permalink ) {
+				if ( $permalink ) {
 					$actions['view'] = sprintf(
 						'<a href="%s" rel="bookmark" aria-label="%s">%s</a>',
 						$permalink,
