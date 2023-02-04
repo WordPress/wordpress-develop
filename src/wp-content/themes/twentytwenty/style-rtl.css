@@ -3369,6 +3369,11 @@ figure.wp-block-table.is-style-stripes {
 	padding: 0 2rem 0 0;
 }
 
+.wp-block-quote.has-text-color cite,
+.wp-block-pullquote.has-text-color cite {
+	color: inherit;
+}
+
 /* STYLE: LARGE */
 
 .wp-block-quote.is-large,

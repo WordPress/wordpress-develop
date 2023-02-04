@@ -5359,6 +5359,11 @@ a.to-the-top > * {
 		font-size: 2.8rem;
 	}
 
+	.wp-block-quote.has-text-color cite,
+	.wp-block-pullquote.has-text-color cite {
+		color: inherit;
+	}
+
 	/* BLOCK: SEPARATOR */
 
 	hr.wp-block-separator {
