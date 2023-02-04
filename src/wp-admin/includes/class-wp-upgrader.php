@@ -587,13 +587,6 @@ class WP_Upgrader {
 			}
 		}
 
-		// Create destination if needed.
-		if ( ! $wp_filesystem->exists( $remote_destination ) ) {
-			if ( ! $wp_filesystem->mkdir( $remote_destination, FS_CHMOD_DIR ) ) {
-				return new WP_Error( 'mkdir_failed_destination', $this->strings['mkdir_failed'], $remote_destination );
-			}
-		}
-
 		/*
 		 * Partial updates may want to retain the destination.
 		 * move_dir() returns a WP_Error when the destination exists,
@@ -606,6 +599,12 @@ class WP_Upgrader {
 		if ( $clear_destination && $args['clear_working'] ) {
 			$result = move_dir( $source, $remote_destination, true );
 		} else {
+			// Create destination if needed.
+			if ( ! $wp_filesystem->exists( $remote_destination ) ) {
+				if ( ! $wp_filesystem->mkdir( $remote_destination, FS_CHMOD_DIR ) ) {
+					return new WP_Error( 'mkdir_failed_destination', $this->strings['mkdir_failed'], $remote_destination );
+				}
+			}
 			$result = copy_dir( $source, $remote_destination );
 		}
 
