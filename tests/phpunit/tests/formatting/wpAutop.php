@@ -121,8 +121,7 @@ PS.  Not yet subscribed for update notifications?  <a href="%1$s" title="Subscri
 	 * @ticket 13340
 	 */
 	public function test_skip_block_math_elements() {
-		$str = '
-<math display="block">
+		$str = '<math display="block">
 	<mtable>
 		<mtr>
 			<mtd>
@@ -157,8 +156,7 @@ PS.  Not yet subscribed for update notifications?  <a href="%1$s" title="Subscri
 			<mtd><msup><mi>c</mi><mn>2</mn></msup></mtd>
 		</mtr>
 	</mtable>
-</math>
-';
+</math>';
 
 		$this->assertSame( "<p>$str</p>", trim( wpautop( $str ) ) );
 	}
