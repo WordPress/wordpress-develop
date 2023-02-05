@@ -114,7 +114,7 @@ PS.  Not yet subscribed for update notifications?  <a href="%1$s" title="Subscri
 
 		$this->assertSame( $str, trim( wpautop( $str ) ) );
 	}
-*
+
 	/**
 	 * wpautop() Should not add <p> around block "<math>" elements or <br> inside <math> elements.
 	 *
