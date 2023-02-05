@@ -112,7 +112,7 @@ PS.  Not yet subscribed for update notifications?  <a href="%1$s" title="Subscri
 	public function test_skip_inline_math_elements() {
 		$str = '<math><mrow><msup><mi>a</mi><mn>2</mn></msup><mo>+</mo><msup><mi>b</mi><mn>2</mn></msup><mo>=</mo><msup><mi>c</mi><mn>2</mn></msup></mrow></math>';
 
-		$this->assertSame( "<p>$str</p>", trim( wpautop( $str ) ) );
+		$this->assertSame( $str, trim( wpautop( $str ) ) );
 	}
 
 	/**
@@ -145,7 +145,7 @@ PS.  Not yet subscribed for update notifications?  <a href="%1$s" title="Subscri
 </math>
 ';
 
-		$this->assertSame( "<p>$str</p>", trim( wpautop( $str ) ) );
+		$this->assertSame( $str, trim( wpautop( $str ) ) );
 	}
 
 	/**
