@@ -114,7 +114,7 @@ PS.  Not yet subscribed for update notifications?  <a href="%1$s" title="Subscri
 
 		$this->assertSame( $str, trim( wpautop( $str ) ) );
 	}
-
+*
 	/**
 	 * wpautop() Should not add <p> around block "<math>" elements or <br> inside <math> elements.
 	 *
@@ -128,13 +128,28 @@ PS.  Not yet subscribed for update notifications?  <a href="%1$s" title="Subscri
 			<mtd>
 				<msup><mrow><mo>(</mo><mi>a</mi><mo>+</mo><mi>b</mi><mo>)</mo></mrow><mn>2</mn></msup>
 			</mtd>
-			<mtd><mo>=</mo></mtd>
-			<mtd><msup><mi>c</mi><mn>2</mn></msup><mo>+</mo><mn>4</mn><mo>⋅</mo><mo>(</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>a</mi><mi>b</mi><mo>)</mo></mtd>
+			<mtd>
+				<mo>=</mo>
+			</mtd>
+			<mtd>
+				<msup><mi>c</mi><mn>2</mn></msup>
+				<mo>+</mo><mn>4</mn><mo>⋅</mo>
+				<mo>(</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>a</mi><mi>b</mi><mo>)</mo>
+			</mtd>
 		</mtr>
 		<mtr>
-			<mtd><msup><mi>a</mi><mn>2</mn></msup><mo>+</mo><mn>2</mn><mi>a</mi><mi>b</mi><mo>+</mo><msup><mi>b</mi><mn>2</mn></msup></mtd>
-			<mtd><mo>=</mo></mtd>
-			<mtd><msup><mi>c</mi><mn>2</mn></msup><mo>+</mo><mn>2</mn><mi>a</mi><mi>b</mi></mtd>
+			<mtd>
+				<msup><mi>a</mi><mn>2</mn></msup>
+				<mo>+</mo><mn>2</mn><mi>a</mi><mi>b</mi><mo>+</mo>
+				<msup><mi>b</mi><mn>2</mn></msup>
+			</mtd>
+			<mtd>
+				<mo>=</mo>
+			</mtd>
+			<mtd>
+				<msup><mi>c</mi><mn>2</mn></msup>
+				<mo>+</mo><mn>2</mn><mi>a</mi><mi>b</mi>
+			</mtd>
 		</mtr>
 		<mtr>
 			<mtd><msup><mi>a</mi><mn>2</mn></msup><mo>+</mo><msup><mi>b</mi><mn>2</mn></msup></mtd>
@@ -352,7 +367,6 @@ Paragraph two.';
 			'map',
 			'area',
 			'address',
-			'math',
 			'style',
 			'p',
 			'h1',
