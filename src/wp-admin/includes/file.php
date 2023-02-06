@@ -1184,7 +1184,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 		return new WP_Error( 'http_404', trim( wp_remote_retrieve_response_message( $response ) ), $data );
 	}
 
-	$content_disposition = wp_remote_retrieve_header( $response, 'content-disposition' );
+	$content_disposition = wp_remote_retrieve_header( $response, 'Content-Disposition' );
 
 	if ( $content_disposition ) {
 		$content_disposition = strtolower( $content_disposition );
@@ -1211,7 +1211,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 		}
 	}
 
-	$content_md5 = wp_remote_retrieve_header( $response, 'content-md5' );
+	$content_md5 = wp_remote_retrieve_header( $response, 'Content-MD5' );
 
 	if ( $content_md5 ) {
 		$md5_check = verify_file_md5( $tmpfname, $content_md5 );
@@ -1238,7 +1238,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 
 	// Perform signature valiation if supported.
 	if ( $signature_verification ) {
-		$signature = wp_remote_retrieve_header( $response, 'x-content-signature' );
+		$signature = wp_remote_retrieve_header( $response, 'X-Content-Signature' );
 
 		if ( ! $signature ) {
 			// Retrieve signatures from a file if the header wasn't included.
@@ -1955,6 +1955,8 @@ function copy_dir( $from, $to, $skip_list = array() ) {
  *
  * Assumes that WP_Filesystem() has already been called and setup.
  *
+ * This function is not designed to merge directories, copy_dir() should be used instead.
+ *
  * @since 6.2.0
  *
  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
@@ -1969,17 +1971,19 @@ function move_dir( $from, $to, $overwrite = false ) {
 	global $wp_filesystem;
 
 	if ( trailingslashit( strtolower( $from ) ) === trailingslashit( strtolower( $to ) ) ) {
-		return new WP_Error(
-			'source_destination_same_move_dir',
-			__( 'The source and destination are the same.' )
-		);
+		return new WP_Error( 'source_destination_same_move_dir', __( 'The source and destination are the same.' ) );
 	}
 
-	if ( ! $overwrite && $wp_filesystem->exists( $to ) ) {
-		return new WP_Error( 'destination_already_exists_move_dir', __( 'The destination folder already exists.' ), $to );
+	if ( $wp_filesystem->exists( $to ) ) {
+		if ( ! $overwrite ) {
+			return new WP_Error( 'destination_already_exists_move_dir', __( 'The destination folder already exists.' ), $to );
+		} elseif ( ! $wp_filesystem->delete( $to, true ) ) {
+			// Can't overwrite if the destination couldn't be deleted.
+			return WP_Error( 'destination_not_deleted_move_dir', __( 'The destination directory already exists and could not be removed.' ) );
+		}
 	}
 
-	if ( $wp_filesystem->move( $from, $to, $overwrite ) ) {
+	if ( $wp_filesystem->move( $from, $to ) ) {
 		/*
 		 * When using an environment with shared folders,
 		 * there is a delay in updating the filesystem's cache.
