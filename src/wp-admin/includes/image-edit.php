@@ -271,9 +271,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 					?>
 					<span class="imgedit-label">
 						<input type="radio" id="imgedit-target-custom<?php echo esc_attr( $key ); ?>" name="imgedit-target-<?php echo $post_id; ?>" value="<?php echo esc_attr( $size ); ?>" />
-						<label for="imgedit-target-custom<?php echo esc_attr( $key ); ?>">
-							<?php echo isset( $image_size_names[ $size ] ) ? esc_html( $image_size_names[ $size ] ) : esc_html( $size ); ?>
-						</label>
+						<label for="imgedit-target-custom<?php echo esc_attr( $key ); ?>"><?php echo esc_html( isset( $image_size_names[ $size ] ) ? $image_size_names[ $size ] : $size ); ?></label>
 					</span>
 					<?php
 				}
