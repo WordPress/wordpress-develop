@@ -3703,7 +3703,7 @@ function wp_enqueue_classic_theme_styles() {
 	$suffix               = wp_scripts_get_suffix();
 	$classic_theme_styles = ABSPATH . WPINC . "/css/classic-themes$suffix.css";
 
-	wp_register_style( 'classic-theme-styles', false, array(), true );
+	wp_register_style( 'classic-theme-styles', false, array(), null );
 	wp_add_inline_style( 'classic-theme-styles', file_get_contents( $classic_theme_styles ) );
 	wp_enqueue_style( 'classic-theme-styles' );
 }
