@@ -7810,6 +7810,7 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
 							$prime_taxonomy_ids[ $taxonomy ][] = (int) $term_id;
 						} elseif ( isset( $term_id->term_id ) ) {
 							$prime_taxonomy_ids[ $taxonomy ][] = (int) $term_id->term_id;
+							$prime_term_ids[]                  = (int) $term_id->term_id;
 						}
 					}
 				}
@@ -7823,13 +7824,14 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
 
 			foreach ( $prime_taxonomy_ids as $taxonomy => $_term_ids ) {
 				foreach ( $_term_ids as $term_id ) {
+					if ( in_array( $term_id, $term_ids, true ) ) {
+						continue;
+					}
 					$term = get_term( $term_id, $taxonomy );
 					if ( is_wp_error( $term ) ) {
 						continue;
 					}
-					if ( in_array( $term_id, $term_ids, true ) ) {
-						continue;
-					}
+
 					$term_ids[] = $term_id;
 				}
 			}
