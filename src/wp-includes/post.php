@@ -705,23 +705,38 @@ function create_initial_post_types() {
 /**
  * Retrieves attached file path based on attachment ID.
  *
- * By default the path will go through the 'get_attached_file' filter, but
- * passing a true to the $unfiltered argument of get_attached_file() will
- * return the file path unfiltered.
+ * Will return intermediate size path if the `$size` parameter is provided.
  *
- * The function works by getting the single post meta name, named
- * '_wp_attached_file' and returning it. This is a convenience function to
- * prevent looking up the meta name and provide a mechanism for sending the
- * attached filename through a filter.
+ * By default the path will go through the {@see 'get_attached_file'} filter, but
+ * passing `true` to the `$unfiltered` argument will return the file path unfiltered.
+ *
+ * The function works by retrieving the `_wp_attached_file` post meta value.
+ * This is a convenience function to prevent looking up the meta name and provide
+ * a mechanism for sending the attached filename through a filter.
  *
  * @since 2.0.0
+ * @since 6.2.0 The `$size` parameter was added.
  *
- * @param int  $attachment_id Attachment ID.
- * @param bool $unfiltered    Optional. Whether to apply filters. Default false.
+ * @param int          $attachment_id Attachment ID.
+ * @param bool         $unfiltered    Optional. Whether to skip the {@see 'get_attached_file'} filter.
+ *                                    Default false.
+ * @param string|int[] $size          Optional. Image size. Accepts any registered image size name, or an array
+ *                                    of width and height values in pixels (in that order). Default empty string.
  * @return string|false The file path to where the attached file should be, false otherwise.
  */
-function get_attached_file( $attachment_id, $unfiltered = false ) {
-	$file = get_post_meta( $attachment_id, '_wp_attached_file', true );
+function get_attached_file( $attachment_id, $unfiltered = false, $size = '' ) {
+
+	// Check for intermediate sizes first, otherwise fall back to the original attachment size.
+	if ( ! empty( $size ) ) {
+		$intermediate_image = image_get_intermediate_size( $attachment_id, $size );
+		if ( ! $intermediate_image || ! isset( $intermediate_image['path'] ) ) {
+			return false;
+		}
+
+		$file = $intermediate_image['path'];
+	} else {
+		$file = get_post_meta( $attachment_id, '_wp_attached_file', true );
+	}
 
 	// If the file is relative, prepend upload dir.
 	if ( $file && 0 !== strpos( $file, '/' ) && ! preg_match( '|^.:\\\|', $file ) ) {
@@ -739,11 +754,14 @@ function get_attached_file( $attachment_id, $unfiltered = false ) {
 	 * Filters the attached file based on the given ID.
 	 *
 	 * @since 2.1.0
+	 * @since 6.2.0 The `$size` parameter was added.
 	 *
 	 * @param string|false $file          The file path to where the attached file should be, false otherwise.
 	 * @param int          $attachment_id Attachment ID.
+	 * @param string|int[] $size          Optional. Image size. Accepts any registered image size name, or an array
+	 *                                    of width and height values in pixels (in that order). Default empty string.
 	 */
-	return apply_filters( 'get_attached_file', $file, $attachment_id );
+	return apply_filters( 'get_attached_file', $file, $attachment_id, $size );
 }
 
 /**
@@ -5660,6 +5678,8 @@ function get_page( $page, $output = OBJECT, $filter = 'raw' ) {
  *
  * @since 2.1.0
  *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
  * @param string       $page_path Page path.
  * @param string       $output    Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
  *                                correspond to a WP_Post object, an associative array, or a numeric array,
@@ -5668,11 +5688,30 @@ function get_page( $page, $output = OBJECT, $filter = 'raw' ) {
  * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
  */
 function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
-	$page_path = rawurlencode( urldecode( $page_path ) );
-	$page_path = str_replace( '%2F', '/', $page_path );
-	$page_path = str_replace( '%20', ' ', $page_path );
-	$parts     = explode( '/', trim( $page_path, '/' ) );
-	$parts     = array_map( 'sanitize_title_for_query', $parts );
+	global $wpdb;
+
+	$last_changed = wp_cache_get_last_changed( 'posts' );
+
+	$hash      = md5( $page_path . serialize( $post_type ) );
+	$cache_key = "get_page_by_path:$hash:$last_changed";
+	$cached    = wp_cache_get( $cache_key, 'posts' );
+	if ( false !== $cached ) {
+		// Special case: '0' is a bad `$page_path`.
+		if ( '0' === $cached || 0 === $cached ) {
+			return;
+		} else {
+			return get_post( $cached, $output );
+		}
+	}
+
+	$page_path     = rawurlencode( urldecode( $page_path ) );
+	$page_path     = str_replace( '%2F', '/', $page_path );
+	$page_path     = str_replace( '%20', ' ', $page_path );
+	$parts         = explode( '/', trim( $page_path, '/' ) );
+	$parts         = array_map( 'sanitize_title_for_query', $parts );
+	$escaped_parts = esc_sql( $parts );
+
+	$in_string = "'" . implode( "','", $escaped_parts ) . "'";
 
 	if ( is_array( $post_type ) ) {
 		$post_types = $post_type;
@@ -5680,29 +5719,21 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 		$post_types = array( $post_type, 'attachment' );
 	}
 
-	$args = array(
-		'post_name__in'          => $parts,
-		'post_type'              => $post_types,
-		'post_status'            => 'all',
-		'posts_per_page'         => -1,
-		'update_post_term_cache' => false,
-		'update_post_meta_cache' => false,
-		'no_found_rows'          => true,
-		'orderby'                => 'none',
-	);
+	$post_types          = esc_sql( $post_types );
+	$post_type_in_string = "'" . implode( "','", $post_types ) . "'";
+	$sql                 = "
+		SELECT ID, post_name, post_parent, post_type
+		FROM $wpdb->posts
+		WHERE post_name IN ($in_string)
+		AND post_type IN ($post_type_in_string)
+	";
 
-	$query = new WP_Query( $args );
-	$posts = $query->get_posts();
-	$pages = array();
-
-	foreach ( $posts as $post ) {
-		$pages[ $post->ID ] = $post;
-	}
+	$pages = $wpdb->get_results( $sql, OBJECT_K );
 
 	$revparts = array_reverse( $parts );
 
 	$foundid = 0;
-	foreach ( $pages as $page ) {
+	foreach ( (array) $pages as $page ) {
 		if ( $page->post_name == $revparts[0] ) {
 			$count = 0;
 			$p     = $page;
@@ -5729,67 +5760,11 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 		}
 	}
 
+	// We cache misses as well as hits.
+	wp_cache_set( $cache_key, $foundid, 'posts' );
+
 	if ( $foundid ) {
 		return get_post( $foundid, $output );
-	}
-
-	return null;
-}
-
-/**
- * Retrieves a page given its title.
- *
- * If more than one post uses the same title, the post with the smallest ID will be returned.
- * Be careful: in case of more than one post having the same title, it will check the oldest
- * publication date, not the smallest ID.
- *
- * Because this function uses the MySQL '=' comparison, $page_title will usually be matched
- * as case-insensitive with default collation.
- *
- * @since 2.1.0
- * @since 3.0.0 The `$post_type` parameter was added.
- *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
- * @param string       $page_title Page title.
- * @param string       $output     Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
- *                                 correspond to a WP_Post object, an associative array, or a numeric array,
- *                                 respectively. Default OBJECT.
- * @param string|array $post_type  Optional. Post type or array of post types. Default 'page'.
- * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
- */
-function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' ) {
-	global $wpdb;
-
-	if ( is_array( $post_type ) ) {
-		$post_type           = esc_sql( $post_type );
-		$post_type_in_string = "'" . implode( "','", $post_type ) . "'";
-		$sql                 = $wpdb->prepare(
-			"
-			SELECT ID
-			FROM $wpdb->posts
-			WHERE post_title = %s
-			AND post_type IN ($post_type_in_string)
-		",
-			$page_title
-		);
-	} else {
-		$sql = $wpdb->prepare(
-			"
-			SELECT ID
-			FROM $wpdb->posts
-			WHERE post_title = %s
-			AND post_type = %s
-		",
-			$page_title,
-			$post_type
-		);
-	}
-
-	$page = $wpdb->get_var( $sql );
-
-	if ( $page ) {
-		return get_post( $page, $output );
 	}
 
 	return null;
