@@ -309,26 +309,6 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 }
 
 /**
- * Gets classname from last tag in a string of HTML.
- *
- * @since 6.2.0
- * @access private
- *
- * @param string $html markup to be processed.
- * @return string String of inner wrapper classnames.
- */
-function wp_get_classnames_from_last_tag( $html ) {
-	$tags            = new WP_HTML_Tag_Processor( $html );
-	$last_classnames = '';
-
-	while ( $tags->next_tag() ) {
-		$last_classnames = $tags->get_attribute( 'class' );
-	}
-
-	return (string) $last_classnames;
-}
-
-/**
  * Renders the layout config to the block wrapper.
  *
  * @since 5.8.0
@@ -343,14 +323,12 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	$support_layout = block_has_support( $block_type, array( '__experimentalLayout' ), false );
 	$has_child_layout = isset( $block['attrs']['style']['layout']['selfStretch'] );
 
-	if ( ! $support_layout
-	&& ! $has_child_layout ) {
+	if ( ! $support_layout && ! $has_child_layout ) {
 		return $block_content;
 	}
 	$outer_class_names = array();
 
 	if ( $has_child_layout && ( 'fixed' === $block['attrs']['style']['layout']['selfStretch'] || 'fill' === $block['attrs']['style']['layout']['selfStretch'] ) ) {
-
 		$container_content_class = wp_unique_id( 'wp-container-content-' );
 
 		$child_layout_styles = array();
@@ -381,7 +359,6 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		);
 
 		$outer_class_names[] = $container_content_class;
-
 	}
 
 	// Return early if only child layout exists.
@@ -511,9 +488,19 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 
 	/**
 	* The first chunk of innerContent contains the block markup up until the inner blocks start.
-	* We want to target the opening tag of the inner blocks wrapper, which is the last tag in that chunk.
+	* This targets the opening tag of the inner blocks wrapper, which is the last tag in that chunk.
 	*/
-	$inner_content_classnames = isset( $block['innerContent'][0] ) && 'string' === gettype( $block['innerContent'][0] ) ? wp_get_classnames_from_last_tag( $block['innerContent'][0] ) : '';
+	$inner_content_classnames = '';
+
+	if ( isset( $block['innerContent'][0] ) && 'string' === gettype( $block['innerContent'][0] ) ) {
+		$tags            = new WP_HTML_Tag_Processor( $block['innerContent'][0] );
+		$last_classnames = '';
+		while ( $tags->next_tag() ) {
+			$last_classnames = $tags->get_attribute( 'class' );
+		}
+
+		$inner_content_classnames = (string) $last_classnames;
+	}
 
 	$content = $content_with_outer_classnames ? new WP_HTML_Tag_Processor( $content_with_outer_classnames ) : new WP_HTML_Tag_Processor( $block_content );
 
