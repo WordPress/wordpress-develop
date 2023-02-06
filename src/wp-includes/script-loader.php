@@ -3693,13 +3693,19 @@ function _wp_theme_json_webfonts_handler() {
  * This is needed for backwards compatibility for button blocks specifically.
  *
  * @since 6.1.0
+ * @since 6.2.0 Uses an inline <style> tag instead of an external file request.
  */
 function wp_enqueue_classic_theme_styles() {
-	if ( ! wp_theme_has_theme_json() ) {
-		$suffix = wp_scripts_get_suffix();
-		wp_register_style( 'classic-theme-styles', '/' . WPINC . "/css/classic-themes$suffix.css", array(), true );
-		wp_enqueue_style( 'classic-theme-styles' );
+	if ( wp_theme_has_theme_json() ) {
+		return;
 	}
+
+	$suffix               = wp_scripts_get_suffix();
+	$classic_theme_styles = ABSPATH . WPINC . "/css/classic-themes$suffix.css";
+
+	wp_register_style( 'classic-theme-styles', false, array(), true );
+	wp_add_inline_style( 'classic-theme-styles', file_get_contents( $classic_theme_styles ) );
+	wp_enqueue_style( 'classic-theme-styles' );
 }
 
 /**
