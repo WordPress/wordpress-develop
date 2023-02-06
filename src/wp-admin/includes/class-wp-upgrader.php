@@ -588,15 +588,19 @@ class WP_Upgrader {
 		}
 
 		/*
-		 * Partial updates may want to retain the destination.
-		 * move_dir() returns a WP_Error when the destination exists,
-		 * so copy_dir() should be used.
+		 * If 'clear_working' is false, the source shouldn't be removed, so use copy_dir() instead.
 		 *
-		 * If 'clear_working' is false, the source shouldn't be removed.
-		 * After move_dir() runs, the source will no longer exist.
-		 * Therefore, copy_dir() should be used.
+		 * Partial updates may want to retain the destination, like language packs.
+		 * If the destination exists or has contents, this may be a partial update,
+		 * and the destination shouldn't be removed, so use copy_dir() instead.
 		 */
-		if ( $clear_destination && $args['clear_working'] && ! isset( $args['hook_extra']['language_update_type'] ) ) {
+		if ( $args['clear_working']
+			&& (
+				// Doesn't exist or has no contents.
+				! $wp_filesystem->exists( $remote_destination )
+				|| empty( $wp_filesystem->dirlist( $remote_destination ) )
+			)
+		) {
 			$result = move_dir( $source, $remote_destination, true );
 		} else {
 			// Create destination if needed.
