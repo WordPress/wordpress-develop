@@ -302,12 +302,14 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		$filter = new MockAction();
 		add_filter( 'theme_file_path', array( $filter, 'filter' ) );
 
-		$theme = new WP_Theme( 'block-theme', $this->theme_root );
+		$theme1 = new WP_Theme( 'block-theme', $this->theme_root );
 		// First run.
-		$theme->is_block_theme();
+		$this->assertTrue( $theme1->is_block_theme(), 'is_block_theme should return true on first run' );
+
+		$theme2 = new WP_Theme( 'block-theme', $this->theme_root );
 		// Second run.
-		$theme->is_block_theme();
-		$this->assertCount( 2, $filter->get_events(), 'Should only be 2, as second run should be cached' );
+		$this->assertTrue( $theme2->is_block_theme(), 'is_block_theme should return true on second run' );
+		$this->assertCount( 0, $filter->get_events(), 'Should only be 0, as second run should be cached' );
 	}
 
 	/**
@@ -322,12 +324,12 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 
 		$theme = new WP_Theme( 'block-theme', $this->theme_root );
 		// First run.
-		$theme->is_block_theme();
+		$this->assertTrue( $theme->is_block_theme(), 'is_block_theme should return true on first run' );
 		// Clear cache.
 		$theme->cache_delete();
 		// Second run.
-		$theme->is_block_theme();
-		$this->assertCount( 4, $filter->get_events(), 'Should only be 4, as second run should not be cached' );
+		$this->assertTrue( $theme->is_block_theme(), 'is_block_theme should return true on second run' );
+		$this->assertCount( 2, $filter->get_events(), 'Should only be 4, as second run should not be cached' );
 	}
 
 	/**
