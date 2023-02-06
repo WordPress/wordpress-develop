@@ -24,14 +24,14 @@ class WP_Rollback_Auto_Update {
 	 *
 	 * @var array
 	 */
-	private $processed = array();
+	private static $processed = array();
 
 	/**
 	 * Stores fataling plugins.
 	 *
 	 * @var array
 	 */
-	private $fatals = array();
+	private static $fatals = array();
 
 	/**
 	 * Stores `update_plugins` transient.
@@ -66,10 +66,11 @@ class WP_Rollback_Auto_Update {
 			return $result;
 		}
 
-		// Checking our own plugin will cause a PHP Fatal redeclaration error.
-		if ( 'rollback-update-failure/plugin.php' === $hook_extra['plugin'] ) {
+		// Already processed.
+		if ( in_array( $hook_extra['plugin'], self::$processed, true ) ) {
 			return $result;
 		}
+
 		error_log( $hook_extra['plugin'] . ' processing...' );
 
 		/**
@@ -90,7 +91,7 @@ class WP_Rollback_Auto_Update {
 		// Register exception and shutdown handlers.
 		$this->initialize_handlers();
 
-		$this->processed[] = $hook_extra['plugin'];
+		self::$processed[] = $hook_extra['plugin'];
 
 		if ( is_plugin_inactive( $hook_extra['plugin'] ) ) {
 			// Working parts of plugin_sandbox_scrape().
@@ -194,12 +195,15 @@ class WP_Rollback_Auto_Update {
 		if ( $skip ) {
 			return;
 		}
-		$this->fatals[] = $this->handler_args['hook_extra']['plugin'];
+		self::$fatals[] = $this->handler_args['hook_extra']['plugin'];
 
 		$this->cron_rollback();
 
-		// Let's sleep for a couple of seconds here.
-		// After the error handler and before restarting updates.
+		/**
+		 * This possibly helps to avoid a potential race condition on servers that may start to
+		 * process the next plugin for auto-updating before the handler can pick up an error from
+		 * the previously processed plugin.
+		 */
 		sleep( 2 );
 
 		$this->restart_updates();
@@ -306,7 +310,7 @@ class WP_Rollback_Auto_Update {
 		$current_auto_updates = array_intersect( $auto_updates, $current_plugins );
 
 		// Get array of non-fatal auto-updates remaining.
-		$remaining_auto_updates = array_diff( $current_auto_updates, $this->processed, $this->fatals );
+		$remaining_auto_updates = array_diff( $current_auto_updates, self::$processed, self::$fatals );
 
 		return $remaining_auto_updates;
 	}
@@ -350,14 +354,14 @@ class WP_Rollback_Auto_Update {
 				'item' => $item,
 			);
 
-			$success = array_diff( $this->processed, $this->fatals );
+			$success = array_diff( self::$processed, self::$fatals );
 
 			if ( in_array( $update->plugin, $success, true ) ) {
 				$successful['plugin'][] = $plugin_result;
 				continue;
 			}
 
-			if ( in_array( $update->plugin, $this->fatals, true ) ) {
+			if ( in_array( $update->plugin, self::$fatals, true ) ) {
 				$failed['plugin'][] = $plugin_result;
 			}
 		}
