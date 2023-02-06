@@ -2,6 +2,7 @@
 
 /**
  * @group block-supports
+ *
  * @covers ::wp_render_position_support
  */
 class Tests_Block_Supports_WpRenderPositionSupport extends WP_UnitTestCase {
@@ -65,6 +66,8 @@ class Tests_Block_Supports_WpRenderPositionSupport extends WP_UnitTestCase {
 
 	/**
 	 * Tests that position block support works as expected.
+	 *
+	 * @ticket 57618
 	 *
 	 * @covers ::wp_render_position_support
 	 *
