@@ -169,7 +169,7 @@ function _register_core_block_patterns_and_categories() {
  * @param array $pattern Pattern as returned from the Pattern Directory API.
  * @return array Normalized pattern.
  */
-function _normalize_remote_block_pattern( $pattern ) {
+function wp_normalize_remote_block_pattern( $pattern ) {
 	if ( isset( $pattern['block_types'] ) ) {
 		$pattern['blockTypes'] = $pattern['block_types'];
 		unset( $pattern['block_types'] );
@@ -224,7 +224,7 @@ function _load_remote_block_patterns( $deprecated = null ) {
 		$patterns = $response->get_data();
 
 		foreach ( $patterns as $pattern ) {
-			$normalized_pattern = _normalize_remote_block_pattern( $pattern );
+			$normalized_pattern = wp_normalize_remote_block_pattern( $pattern );
 			$pattern_name       = 'core/' . sanitize_title( $normalized_pattern['title'] );
 			register_block_pattern( $pattern_name, $normalized_pattern );
 		}
@@ -258,7 +258,7 @@ function _load_remote_featured_patterns() {
 	$patterns = $response->get_data();
 	$registry = WP_Block_Patterns_Registry::get_instance();
 	foreach ( $patterns as $pattern ) {
-		$normalized_pattern = _normalize_remote_block_pattern( $pattern );
+		$normalized_pattern = wp_normalize_remote_block_pattern( $pattern );
 		$pattern_name       = sanitize_title( $normalized_pattern['title'] );
 		// Some patterns might be already registered as core patterns with the `core` prefix.
 		$is_registered = $registry->is_registered( $pattern_name ) || $registry->is_registered( "core/$pattern_name" );
@@ -301,7 +301,7 @@ function _register_remote_theme_patterns() {
 	$patterns          = $response->get_data();
 	$patterns_registry = WP_Block_Patterns_Registry::get_instance();
 	foreach ( $patterns as $pattern ) {
-		$normalized_pattern = _normalize_remote_block_pattern( $pattern );
+		$normalized_pattern = wp_normalize_remote_block_pattern( $pattern );
 		$pattern_name       = sanitize_title( $normalized_pattern['title'] );
 		// Some patterns might be already registered as core patterns with the `core` prefix.
 		$is_registered = $patterns_registry->is_registered( $pattern_name ) || $patterns_registry->is_registered( "core/$pattern_name" );
