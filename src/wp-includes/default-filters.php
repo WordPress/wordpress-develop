@@ -577,6 +577,9 @@ add_filter( 'block_editor_settings_all', 'wp_add_editor_classic_theme_styles' );
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles' );
 add_action( 'wp_footer', 'wp_enqueue_global_styles', 1 );
 
+// Global styles custom CSS.
+add_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles_custom_css' );
+
 // Block supports, and other styles parsed and stored in the Style Engine.
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_stored_styles' );
 add_action( 'wp_footer', 'wp_enqueue_stored_styles', 1 );
@@ -623,6 +626,7 @@ add_filter( 'nav_menu_css_class', 'wp_nav_menu_remove_menu_item_has_children_cla
 add_action( 'after_setup_theme', 'wp_setup_widgets_block_editor', 1 );
 add_action( 'init', 'wp_widgets_init', 1 );
 add_action( 'change_locale', array( 'WP_Widget_Media', 'reset_default_labels' ) );
+add_action( 'widgets_init', '_wp_block_theme_register_classic_sidebars', 1 );
 
 // Admin Bar.
 // Don't remove. Wrong way to disable.
