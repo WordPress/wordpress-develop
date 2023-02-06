@@ -78,9 +78,9 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 			'test/one',
 			array(
 				'title'         => 'Pattern One',
-				'categories'    => array( 'test' ),
-				'viewportWidth' => 1440,
 				'content'       => '<!-- wp:heading {"level":1} --><h1>One</h1><!-- /wp:heading -->',
+				'viewportWidth' => 1440,
+				'categories'    => array( 'test' ),
 				'templateTypes' => array( 'page' ),
 			)
 		);
@@ -89,8 +89,8 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 			'test/two',
 			array(
 				'title'         => 'Pattern Two',
-				'categories'    => array( 'test' ),
 				'content'       => '<!-- wp:paragraph --><p>Two</p><!-- /wp:paragraph -->',
+				'categories'    => array( 'test' ),
 				'templateTypes' => array( 'single' ),
 			)
 		);
@@ -99,8 +99,8 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 			'test/three',
 			array(
 				'title'      => 'Pattern Three',
-				'categories' => array( 'test', 'buttons', 'query' ),
 				'content'    => '<!-- wp:paragraph --><p>Three</p><!-- /wp:paragraph -->',
+				'categories' => array( 'test', 'buttons', 'query' ),
 			)
 		);
 	}
