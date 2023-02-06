@@ -1040,7 +1040,8 @@ function comment_text( $comment_ID = 0, $args = array() ) {
  * @param bool           $gmt        Optional. Whether to use the GMT date. Default false.
  * @param bool           $translate  Optional. Whether to translate the time (for use in feeds).
  *                                   Default true.
- * @param int|WP_Comment $comment_ID WP_Comment or ID of the comment for which to get the date.
+ * @param int|WP_Comment $comment_ID Optional. WP_Comment or ID of the comment for which to get the date.
+                                     Default is 0, or the global comment.
  * @return string The formatted time.
  */
 function get_comment_time( $format = '', $gmt = false, $translate = true, $comment_ID = 0 ) {
