@@ -25,10 +25,10 @@ jobs:
   # - Checks out the repository.
   # - Sets up Node.js.
   # - Installs npm dependencies.
-  # - Logs Docker debug information (about the Docker installation within the runner).
   # - Builds WordPress to run from the `build` directory.
   # - Starts the WordPress Docker container.
   # - Logs the running Docker containers.
+  # - Install Server-Timing MU plugin.
   # - Install WordPress within the Docker container.
   # - Run the Performance tests.
   # - Ensures version-controlled files are not modified or deleted.
@@ -54,11 +54,6 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
-      - name: Docker debug information
-        run: |
-          docker -v
-          docker-compose -v
-
       - name: Build WordPress
         run: npm run build
 
@@ -67,11 +62,18 @@ jobs:
 
       - name: WordPress Docker container debug information
         run: |
+          docker -v
+          docker-compose -v
           docker-compose run --rm mysql mysql --version
           docker-compose run --rm php php --version
           docker-compose run --rm php php -m
           docker-compose run --rm php php -i
           docker-compose run --rm php locale -a
+
+      - name: Install MU plugin
+        run: |
+          mkdir ./src/wp-content/mu-plugins
+          cp ./tests/performance/mu-plugins/server-timing.php ./src/wp-content/mu-plugins/server-timing.php
 
       - name: Install WordPress
         run: npm run env:install
