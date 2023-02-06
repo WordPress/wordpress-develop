@@ -596,7 +596,7 @@ class WP_Upgrader {
 		 * After move_dir() runs, the source will no longer exist.
 		 * Therefore, copy_dir() should be used.
 		 */
-		if ( $clear_destination && $args['clear_working'] ) {
+		if ( $clear_destination && $args['clear_working'] && ! isset( $args['hook_extra']['language_update_type'] ) ) {
 			$result = move_dir( $source, $remote_destination, true );
 		} else {
 			// Create destination if needed.
