@@ -21,6 +21,7 @@
  * @access private
  * @since 6.1.0
  */
+#[AllowDynamicProperties]
 final class WP_Style_Engine {
 	/**
 	 * Style definitions that contain the instructions to
@@ -133,6 +134,17 @@ final class WP_Style_Engine {
 				'path'       => array( 'border', 'left' ),
 				'css_vars'   => array(
 					'color' => '--wp--preset--color--$slug',
+				),
+			),
+		),
+		'dimensions' => array(
+			'minHeight' => array(
+				'property_keys' => array(
+					'default' => 'min-height',
+				),
+				'path'          => array( 'dimensions', 'minHeight' ),
+				'css_vars'      => array(
+					'spacing' => '--wp--preset--spacing--$slug',
 				),
 			),
 		),

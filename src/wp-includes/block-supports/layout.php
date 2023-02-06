@@ -207,7 +207,11 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 		);
 
 		if ( 'horizontal' === $layout_orientation ) {
-			$justify_content_options += array( 'space-between' => 'space-between' );
+			$justify_content_options    += array( 'space-between' => 'space-between' );
+			$vertical_alignment_options += array( 'stretch' => 'stretch' );
+		} else {
+			$justify_content_options    += array( 'stretch' => 'stretch' );
+			$vertical_alignment_options += array( 'space-between' => 'space-between' );
 		}
 
 		if ( ! empty( $layout['flexWrap'] ) && 'nowrap' === $layout['flexWrap'] ) {
@@ -276,6 +280,12 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 					'declarations' => array( 'align-items' => 'flex-start' ),
 				);
 			}
+			if ( ! empty( $layout['verticalAlignment'] ) && array_key_exists( $layout['verticalAlignment'], $vertical_alignment_options ) ) {
+				$layout_styles[] = array(
+					'selector'     => $selector,
+					'declarations' => array( 'justify-content' => $vertical_alignment_options[ $layout['verticalAlignment'] ] ),
+				);
+			}
 		}
 	}
 
@@ -316,16 +326,17 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		return $block_content;
 	}
 
-	$block_gap              = wp_get_global_settings( array( 'spacing', 'blockGap' ) );
-	$global_layout_settings = wp_get_global_settings( array( 'layout' ) );
-	$has_block_gap_support  = isset( $block_gap ) ? null !== $block_gap : false;
-	$default_block_layout   = _wp_array_get( $block_type->supports, array( '__experimentalLayout', 'default' ), array() );
-	$used_layout            = isset( $block['attrs']['layout'] ) ? $block['attrs']['layout'] : $default_block_layout;
+	$global_settings               = wp_get_global_settings();
+	$block_gap                     = _wp_array_get( $global_settings, array( 'spacing', 'blockGap' ), null );
+	$has_block_gap_support         = isset( $block_gap );
+	$global_layout_settings        = _wp_array_get( $global_settings, array( 'layout' ), null );
+	$root_padding_aware_alignments = _wp_array_get( $global_settings, array( 'useRootPaddingAwareAlignments' ), false );
 
-	if ( isset( $used_layout['inherit'] ) && $used_layout['inherit'] ) {
-		if ( ! $global_layout_settings ) {
-			return $block_content;
-		}
+	$default_block_layout = _wp_array_get( $block_type->supports, array( '__experimentalLayout', 'default' ), array() );
+	$used_layout          = isset( $block['attrs']['layout'] ) ? $block['attrs']['layout'] : $default_block_layout;
+
+	if ( isset( $used_layout['inherit'] ) && $used_layout['inherit'] && ! $global_layout_settings ) {
+		return $block_content;
 	}
 
 	$class_names        = array();
@@ -340,7 +351,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	}
 
 	if (
-		wp_get_global_settings( array( 'useRootPaddingAwareAlignments' ) ) &&
+		$root_padding_aware_alignments &&
 		isset( $used_layout['type'] ) &&
 		'constrained' === $used_layout['type']
 	) {
@@ -464,9 +475,9 @@ function wp_restore_group_inner_container( $block_content, $block ) {
 	);
 
 	if (
-		WP_Theme_JSON_Resolver::theme_has_support() ||
+		wp_theme_has_theme_json() ||
 		1 === preg_match( $group_with_inner_container_regex, $block_content ) ||
-		( isset( $block['attrs']['layout']['type'] ) && 'default' !== $block['attrs']['layout']['type'] )
+		( isset( $block['attrs']['layout']['type'] ) && 'flex' === $block['attrs']['layout']['type'] )
 	) {
 		return $block_content;
 	}
@@ -527,7 +538,7 @@ function wp_restore_image_outer_container( $block_content, $block ) {
 )/iUx";
 
 	if (
-		WP_Theme_JSON_Resolver::theme_has_support() ||
+		wp_theme_has_theme_json() ||
 		0 === preg_match( $image_with_align, $block_content, $matches )
 	) {
 		return $block_content;

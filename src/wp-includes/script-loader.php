@@ -99,7 +99,8 @@ function wp_default_packages_vendor( $scripts ) {
 		'wp-polyfill-dom-rect',
 		'wp-polyfill-element-closest',
 		'wp-polyfill-object-fit',
-		'wp-polyfill' => array( 'regenerator-runtime' ),
+		'wp-polyfill-inert',
+		'wp-polyfill' => array( 'wp-polyfill-inert', 'regenerator-runtime' ),
 	);
 
 	$vendor_scripts_versions = array(
@@ -115,6 +116,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'wp-polyfill-dom-rect'        => '4.4.0',
 		'wp-polyfill-element-closest' => '3.0.2',
 		'wp-polyfill-object-fit'      => '2.3.5',
+		'wp-polyfill-inert'           => '3.1.2',
 		'wp-polyfill'                 => '3.15.0',
 	);
 
@@ -380,6 +382,22 @@ function wp_default_packages_inline_scripts( $scripts ) {
 			} ) ();',
 			wp_json_encode( $preload_data ),
 			$user_id
+		)
+	);
+
+	// Backwards compatibility - configure the old wp-data persistence system.
+	$scripts->add_inline_script(
+		'wp-data',
+		implode(
+			"\n",
+			array(
+				'( function() {',
+				'	var userId = ' . get_current_user_ID() . ';',
+				'	var storageKey = "WP_DATA_USER_" + userId;',
+				'	wp.data',
+				'		.use( wp.data.plugins.persistence, { storageKey: storageKey } );',
+				'} )();',
+			)
 		)
 	);
 
@@ -804,8 +822,8 @@ function wp_default_scripts( $scripts ) {
 
 	// jQuery.
 	// The unminified jquery.js and jquery-migrate.js are included to facilitate debugging.
-	$scripts->add( 'jquery', false, array( 'jquery-core', 'jquery-migrate' ), '3.6.1' );
-	$scripts->add( 'jquery-core', "/wp-includes/js/jquery/jquery$suffix.js", array(), '3.6.1' );
+	$scripts->add( 'jquery', false, array( 'jquery-core', 'jquery-migrate' ), '3.6.3' );
+	$scripts->add( 'jquery-core', "/wp-includes/js/jquery/jquery$suffix.js", array(), '3.6.3' );
 	$scripts->add( 'jquery-migrate', "/wp-includes/js/jquery/jquery-migrate$suffix.js", array(), '3.3.2' );
 
 	// Full jQuery UI.
@@ -1271,7 +1289,7 @@ function wp_default_scripts( $scripts ) {
 			'invalidValue'            => __( 'Invalid value.' ),
 			'blockThemeNotification'  => sprintf(
 				/* translators: 1: Link to Site Editor documentation on HelpHub, 2: HTML button. */
-				__( 'Hurray! Your theme supports Full Site Editing with blocks. <a href="%1$s">Tell me more</a>. %2$s' ),
+				__( 'Hurray! Your theme supports site editing with blocks. <a href="%1$s">Tell me more</a>. %2$s' ),
 				__( 'https://wordpress.org/support/article/site-editor/' ),
 				sprintf(
 					'<button type="button" data-action="%1$s" class="button switch-to-editor">%2$s</button>',
@@ -1591,6 +1609,12 @@ function wp_default_styles( $styles ) {
 		array()
 	);
 
+	$styles->add(
+		'wp-block-editor-content',
+		"/wp-includes/css/dist/block-editor/content$suffix.css",
+		array()
+	);
+
 	$wp_edit_blocks_dependencies = array(
 		'wp-components',
 		'wp-editor',
@@ -1599,10 +1623,11 @@ function wp_default_styles( $styles ) {
 		'wp-reset-editor-styles',
 		'wp-block-library',
 		'wp-reusable-blocks',
+		'wp-block-editor-content',
 	);
 
 	// Only load the default layout and margin styles for themes without theme.json file.
-	if ( ! WP_Theme_JSON_Resolver::theme_has_support() ) {
+	if ( ! wp_theme_has_theme_json() ) {
 		$wp_edit_blocks_dependencies[] = 'wp-editor-classic-layout-styles';
 	}
 
@@ -2409,14 +2434,11 @@ function wp_enqueue_global_styles() {
 	}
 
 	/*
-	 * If we are loading CSS for each block separately, then we can load the theme.json CSS conditionally.
+	 * If loading the CSS for each block separately, then load the theme.json CSS conditionally.
 	 * This removes the CSS from the global-styles stylesheet and adds it to the inline CSS for each block.
+	 * This filter must be registered before calling wp_get_global_stylesheet();
 	 */
-	if ( $separate_assets ) {
-		add_filter( 'theme_json_get_style_nodes', 'wp_filter_out_block_nodes' );
-		// Add each block as an inline css.
-		wp_add_global_styles_for_blocks();
-	}
+	add_filter( 'wp_theme_json_get_style_nodes', 'wp_filter_out_block_nodes' );
 
 	$stylesheet = wp_get_global_stylesheet();
 
@@ -2427,6 +2449,30 @@ function wp_enqueue_global_styles() {
 	wp_register_style( 'global-styles', false, array(), true, true );
 	wp_add_inline_style( 'global-styles', $stylesheet );
 	wp_enqueue_style( 'global-styles' );
+
+	// Add each block as an inline css.
+	wp_add_global_styles_for_blocks();
+}
+
+/**
+ * Enqueues the global styles custom css defined via theme.json.
+ *
+ * @since 6.2.0
+ */
+function wp_enqueue_global_styles_custom_css() {
+	if ( ! wp_is_block_theme() ) {
+		return;
+	}
+
+	// Don't enqueue Customizer's custom CSS separately.
+	remove_action( 'wp_head', 'wp_custom_css_cb', 101 );
+
+	$custom_css  = wp_get_custom_css();
+	$custom_css .= wp_get_global_styles_custom_css();
+
+	if ( ! empty( $custom_css ) ) {
+		wp_add_inline_style( 'global-styles', $custom_css );
+	}
 }
 
 /**
@@ -3642,16 +3688,49 @@ function _wp_theme_json_webfonts_handler() {
 }
 
 /**
- * Loads classic theme styles on classic themes.
+ * Loads classic theme styles on classic themes in the frontend.
  *
  * This is needed for backwards compatibility for button blocks specifically.
  *
  * @since 6.1.0
  */
 function wp_enqueue_classic_theme_styles() {
-	if ( ! wp_is_block_theme() ) {
+	if ( ! wp_theme_has_theme_json() ) {
 		$suffix = wp_scripts_get_suffix();
-		wp_register_style( 'classic-theme-styles', "/wp-includes/css/dist/block-library/classic$suffix.css", array(), true );
+		wp_register_style( 'classic-theme-styles', '/' . WPINC . "/css/classic-themes$suffix.css", array(), true );
 		wp_enqueue_style( 'classic-theme-styles' );
 	}
+}
+
+/**
+ * Loads classic theme styles on classic themes in the editor.
+ *
+ * This is needed for backwards compatibility for button blocks specifically.
+ *
+ * @since 6.1.0
+ *
+ * @param array $editor_settings The array of editor settings.
+ * @return array A filtered array of editor settings.
+ */
+function wp_add_editor_classic_theme_styles( $editor_settings ) {
+	if ( wp_theme_has_theme_json() ) {
+		return $editor_settings;
+	}
+
+	$suffix               = wp_scripts_get_suffix();
+	$classic_theme_styles = ABSPATH . WPINC . "/css/classic-themes$suffix.css";
+
+	// This follows the pattern of get_block_editor_theme_styles,
+	// but we can't use get_block_editor_theme_styles directly as it
+	// only handles external files or theme files.
+	$classic_theme_styles_settings = array(
+		'css'            => file_get_contents( $classic_theme_styles ),
+		'__unstableType' => 'core',
+		'isGlobalStyles' => false,
+	);
+
+	// Add these settings to the start of the array so that themes can override them.
+	array_unshift( $editor_settings['styles'], $classic_theme_styles_settings );
+
+	return $editor_settings;
 }

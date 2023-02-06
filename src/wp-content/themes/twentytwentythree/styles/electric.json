@@ -1,4 +1,6 @@
 {
+	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"version": 2,
 	"title": "Electric",
 	"settings": {
 		"color": {
@@ -71,6 +73,11 @@
 						"background": "var(--wp--preset--color--base)",
 						"text": "var(--wp--preset--color--contrast)"
 					}
+				},
+				":visited": {
+					"color": {
+						"text": "var(--wp--preset--color--base)"
+					}
 				}
 			},
 			"link": {
@@ -89,7 +96,5 @@
 		"typography": {
 			"fontFamily": "var(--wp--preset--font-family--dm-sans)"
 		}
-	},
-	"version": 2,
-	"$schema": "https://schemas.wp.org/trunk/theme.json"
+	}
 }

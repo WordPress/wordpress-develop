@@ -32,7 +32,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 	 */
 	private $orig_theme_dir;
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		$this->theme_root     = realpath( DIR_TESTDATA . '/themedir1' );
 		$this->orig_theme_dir = $GLOBALS['wp_theme_directories'];
@@ -50,7 +50,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 		unset( $GLOBALS['wp_themes'] );
 	}
 
-	function tear_down() {
+	public function tear_down() {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 
 		// Clear up the filters to modify the theme root.
@@ -63,14 +63,14 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
-	function filter_set_theme_root() {
+	public function filter_set_theme_root() {
 		return $this->theme_root;
 	}
 
 	/**
 	 * @ticket 55505
 	 */
-	function test_outer_container_not_restored_for_non_aligned_image_block_with_non_themejson_theme() {
+	public function test_outer_container_not_restored_for_non_aligned_image_block_with_non_themejson_theme() {
 		// The "default" theme doesn't have theme.json support.
 		switch_theme( 'default' );
 		$block         = array(
@@ -86,7 +86,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 	/**
 	 * @ticket 55505
 	 */
-	function test_outer_container_restored_for_aligned_image_block_with_non_themejson_theme() {
+	public function test_outer_container_restored_for_aligned_image_block_with_non_themejson_theme() {
 		// The "default" theme doesn't have theme.json support.
 		switch_theme( 'default' );
 		$block         = array(
@@ -107,7 +107,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 	 * @param string $block_image_html The block image HTML passed to `wp_restore_image_outer_container`.
 	 * @param string $expected         The expected block image HTML.
 	 */
-	function test_additional_styles_moved_to_restored_outer_container_for_aligned_image_block_with_non_themejson_theme( $block_image_html, $expected ) {
+	public function test_additional_styles_moved_to_restored_outer_container_for_aligned_image_block_with_non_themejson_theme( $block_image_html, $expected ) {
 		// The "default" theme doesn't have theme.json support.
 		switch_theme( 'default' );
 		$block = array(
@@ -160,7 +160,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 	/**
 	 * @ticket 55505
 	 */
-	function test_outer_container_not_restored_for_aligned_image_block_with_themejson_theme() {
+	public function test_outer_container_not_restored_for_aligned_image_block_with_themejson_theme() {
 		switch_theme( 'block-theme' );
 		$block         = array(
 			'blockName' => 'core/image',

@@ -358,13 +358,20 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	}
 
 	/**
-	 * Moves a file.
+	 * Moves a file or directory.
+	 *
+	 * After moving files or directories, OPcache will need to be invalidated.
+	 *
+	 * If moving a directory fails, `copy_dir()` can be used for a recursive copy.
+	 *
+	 * Use `move_dir()` for moving directories with OPcache invalidation and a
+	 * fallback to `copy_dir()`.
 	 *
 	 * @since 2.5.0
 	 *
-	 * @param string $source      Path to the source file.
-	 * @param string $destination Path to the destination file.
-	 * @param bool   $overwrite   Optional. Whether to overwrite the destination file if it exists.
+	 * @param string $source      Path to the source file or directory.
+	 * @param string $destination Path to the destination file or directory.
+	 * @param bool   $overwrite   Optional. Whether to overwrite the destination if it exists.
 	 *                            Default false.
 	 * @return bool True on success, false on failure.
 	 */
@@ -412,18 +419,18 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * Checks if a file or directory exists.
 	 *
 	 * @since 2.5.0
-	 * @since 6.1.0 Uses WP_Filesystem_FTPext::is_dir() to check for directory existence
-	 *              and ftp_rawlist() to check for file existence.
 	 *
 	 * @param string $path Path to file or directory.
 	 * @return bool Whether $path exists or not.
 	 */
 	public function exists( $path ) {
-		if ( $this->is_dir( $path ) ) {
-			return true;
+		$list = ftp_nlist( $this->link, $path );
+
+		if ( empty( $list ) && $this->is_dir( $path ) ) {
+			return true; // File is an empty directory.
 		}
 
-		return ! empty( ftp_rawlist( $this->link, $path ) );
+		return ! empty( $list ); // Empty list = no file, so invert.
 	}
 
 	/**

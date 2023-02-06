@@ -110,8 +110,10 @@ class WP_Media_List_Table extends WP_List_Table {
 				'per_page'    => $wp_query->query_vars['posts_per_page'],
 			)
 		);
-
-		update_post_parent_caches( $wp_query->posts );
+		if ( $wp_query->posts ) {
+			update_post_thumbnail_cache( $wp_query );
+			update_post_parent_caches( $wp_query->posts );
+		}
 	}
 
 	/**
@@ -424,8 +426,18 @@ class WP_Media_List_Table extends WP_List_Table {
 	public function column_title( $post ) {
 		list( $mime ) = explode( '/', $post->post_mime_type );
 
+		$attachment_id = $post->ID;
+
+		if ( has_post_thumbnail( $post ) ) {
+			$thumbnail_id = get_post_thumbnail_id( $post );
+
+			if ( ! empty( $thumbnail_id ) ) {
+				$attachment_id = $thumbnail_id;
+			}
+		}
+
 		$title      = _draft_or_post_title();
-		$thumb      = wp_get_attachment_image( $post->ID, array( 60, 60 ), true, array( 'alt' => '' ) );
+		$thumb      = wp_get_attachment_image( $attachment_id, array( 60, 60 ), true, array( 'alt' => '' ) );
 		$link_start = '';
 		$link_end   = '';
 
@@ -485,11 +497,12 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * Handles the description column output.
 	 *
 	 * @since 4.3.0
+	 * @deprecated 6.2.0
 	 *
 	 * @param WP_Post $post The current WP_Post object.
 	 */
 	public function column_desc( $post ) {
-		echo has_excerpt() ? $post->post_excerpt : '';
+		_deprecated_function( __METHOD__, '6.2.0' );
 	}
 
 	/**
@@ -672,7 +685,8 @@ class WP_Media_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global WP_Post $post Global post object.
+	 * @global WP_Post  $post     Global post object.
+	 * @global WP_Query $wp_query WordPress Query object.
 	 */
 	public function display_rows() {
 		global $post, $wp_query;
@@ -754,13 +768,15 @@ class WP_Media_List_Table extends WP_List_Table {
 				}
 			}
 
-			$actions['view'] = sprintf(
-				'<a href="%s" aria-label="%s" rel="bookmark">%s</a>',
-				get_permalink( $post->ID ),
-				/* translators: %s: Attachment title. */
-				esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $att_title ) ),
-				__( 'View' )
-			);
+			if ( get_permalink( $post->ID ) ) {
+				$actions['view'] = sprintf(
+					'<a href="%s" aria-label="%s" rel="bookmark">%s</a>',
+					get_permalink( $post->ID ),
+					/* translators: %s: Attachment title. */
+					esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $att_title ) ),
+					__( 'View' )
+				);
+			}
 
 			if ( current_user_can( 'edit_post', $post->ID ) ) {
 				$actions['attach'] = sprintf(
@@ -815,21 +831,31 @@ class WP_Media_List_Table extends WP_List_Table {
 			}
 
 			if ( ! $this->is_trash ) {
-				$actions['view'] = sprintf(
-					'<a href="%s" aria-label="%s" rel="bookmark">%s</a>',
-					get_permalink( $post->ID ),
-					/* translators: %s: Attachment title. */
-					esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $att_title ) ),
-					__( 'View' )
-				);
+				if ( get_permalink( $post->ID ) ) {
+					$actions['view'] = sprintf(
+						'<a href="%s" aria-label="%s" rel="bookmark">%s</a>',
+						get_permalink( $post->ID ),
+						/* translators: %s: Attachment title. */
+						esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $att_title ) ),
+						__( 'View' )
+					);
+				}
 
 				$actions['copy'] = sprintf(
 					'<span class="copy-to-clipboard-container"><button type="button" class="button-link copy-attachment-url media-library" data-clipboard-text="%s" aria-label="%s">%s</button><span class="success hidden" aria-hidden="true">%s</span></span>',
 					esc_url( wp_get_attachment_url( $post->ID ) ),
 					/* translators: %s: Attachment title. */
 					esc_attr( sprintf( __( 'Copy &#8220;%s&#8221; URL to clipboard' ), $att_title ) ),
-					__( 'Copy URL to clipboard' ),
+					__( 'Copy URL' ),
 					__( 'Copied!' )
+				);
+
+				$actions['download'] = sprintf(
+					'<a href="%s" aria-label="%s" download>%s</a>',
+					esc_url( wp_get_attachment_url( $post->ID ) ),
+					/* translators: %s: Attachment title. */
+					esc_attr( sprintf( __( 'Download &#8220;%s&#8221;' ), $att_title ) ),
+					__( 'Download file' )
 				);
 			}
 		}

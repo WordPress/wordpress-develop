@@ -276,7 +276,7 @@ JS;
 	 * @covers WP_Dependencies::do_items
 	 */
 	public function test_group_mismatch_in_deps() {
-		$scripts = new WP_Scripts;
+		$scripts = new WP_Scripts();
 		$scripts->add( 'one', 'one', array(), 'v1', 1 );
 		$scripts->add( 'two', 'two', array( 'one' ) );
 		$scripts->add( 'three', 'three', array( 'two' ), 'v1', 1 );
@@ -295,7 +295,7 @@ JS;
 		$this->assertContains( 'two', $scripts->done );
 		$this->assertContains( 'three', $scripts->done );
 
-		$scripts = new WP_Scripts;
+		$scripts = new WP_Scripts();
 		$scripts->add( 'one', 'one', array(), 'v1', 1 );
 		$scripts->add( 'two', 'two', array( 'one' ), 'v1', 1 );
 		$scripts->add( 'three', 'three', array( 'one' ) );
@@ -723,7 +723,7 @@ JS;
 
 		$ver       = get_bloginfo( 'version' );
 		$suffix    = wp_scripts_get_suffix();
-		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate,regenerator-runtime,wp-polyfill,wp-dom-ready,wp-hooks&amp;ver={$ver}'></script>\n";
+		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate,wp-polyfill-inert,regenerator-runtime,wp-polyfill,wp-dom-ready,wp-hooks&amp;ver={$ver}'></script>\n";
 		$expected .= "<script type='text/javascript' id='test-example-js-before'>\nconsole.log(\"before\");\n</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/i18n.min.js' id='wp-i18n-js'></script>\n";
