@@ -101,6 +101,22 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests hooking into wp_set_password().
+	 *
+	 * @ticket 57436
+	 *
+	 * @covers ::wp_set_password
+	 */
+	public function test_wp_set_password_action() {
+		$action = new MockAction();
+
+		add_action( 'wp_set_password', array( $action, 'action' ) );
+		wp_set_password( 'A simple password', self::$user_id );
+
+		$this->assertSame( 1, $action->get_call_count() );
+	}
+
+	/**
 	 * Test wp_hash_password trims whitespace
 	 *
 	 * This is similar to test_password_trimming but tests the "lower level"
