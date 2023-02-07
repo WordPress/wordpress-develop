@@ -240,7 +240,11 @@ do_action( 'customize_controls_head' );
 						</p>
 						<p>
 							<?php
-							_e( '<a href="https://wordpress.org/support/article/appearance-customize-screen/">Documentation on Customizer</a>' );
+							printf(
+								/* translators: %s: Documentation URL. */
+								__( '<a href="%s">Documentation on Customizer</a>.' ),
+								__( 'https://wordpress.org/support/article/appearance-customize-screen/' )
+							);
 							?>
 						</p>
 					</div>
