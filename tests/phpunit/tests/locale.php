@@ -203,27 +203,27 @@ class Tests_Locale extends WP_UnitTestCase {
 	 */
 	public function data_get_word_count_type() {
 		return array(
-			'default'                     => array(
+			'default'                   => array(
 				'word_count_type' => null,
 				'expected'        => 'words',
 			),
-			'empty string'                => array(
+			'empty string'              => array(
 				'word_count_type' => '',
 				'expected'        => 'words',
 			),
-			'an invalid option'           => array(
+			'an invalid option - "foo"' => array(
 				'word_count_type' => 'foo',
 				'expected'        => 'words',
 			),
-			'a valid option'              => array(
+			'a valid option - "words"'  => array(
 				'word_count_type' => 'words',
 				'expected'        => 'words',
 			),
-			'characters_excluding_spaces' => array(
+			'a valid option - "characters_excluding_spaces"' => array(
 				'word_count_type' => 'characters_excluding_spaces',
 				'expected'        => 'characters_excluding_spaces',
 			),
-			'characters_including_spaces' => array(
+			'a valid option - "characters_including_spaces"' => array(
 				'word_count_type' => 'characters_including_spaces',
 				'expected'        => 'characters_including_spaces',
 			),
