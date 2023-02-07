@@ -283,7 +283,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$this->skipTestOnTimeout( $res );
 		$this->assertNotWPError( $res );
 		$this->assertSame( '', $res['body'] ); // The body should be empty.
-		$this->assertEquals( $size, $res['headers']['content-length'] );   // Check the headers are returned (and the size is the same).
+		$this->assertEquals( $size, $res['headers']['Content-Length'] );   // Check the headers are returned (and the size is the same).
 		$this->assertSame( $size, $filesize ); // Check that the file is written to disk correctly without any extra characters.
 		$this->assertStringStartsWith( get_temp_dir(), $res['filename'] ); // Check it's saving within the temp directory.
 	}
@@ -433,31 +433,6 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$this->skipTestOnTimeout( $res );
 		$this->assertNotEmpty( $this->http_request_args['sslcertificates'] );
 		$this->assertNotWPError( $res );
-	}
-
-	/**
-	 * Test HTTP Redirects with multiple Location headers specified.
-	 *
-	 * @ticket 16890
-	 *
-	 * @covers ::wp_remote_head
-	 * @covers ::wp_remote_retrieve_header
-	 * @covers ::wp_remote_get
-	 * @covers ::wp_remote_retrieve_body
-	 */
-	public function test_multiple_location_headers() {
-		$url = 'http://api.wordpress.org/core/tests/1.0/redirection.php?multiple-location-headers=1';
-		$res = wp_remote_head( $url, array( 'timeout' => 30 ) );
-
-		$this->skipTestOnTimeout( $res );
-		$this->assertIsArray( wp_remote_retrieve_header( $res, 'location' ) );
-		$this->assertCount( 2, wp_remote_retrieve_header( $res, 'location' ) );
-
-		$res = wp_remote_get( $url, array( 'timeout' => 30 ) );
-
-		$this->skipTestOnTimeout( $res );
-		$this->assertSame( 'PASS', wp_remote_retrieve_body( $res ) );
-
 	}
 
 	/**

@@ -70,7 +70,7 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 		$this->assertTrue( $results );
 	}
 
-	public function test_should_return_false_when_content_matches_moderation_key() {
+	public function test_should_return_false_when_content_matches_moderation_keys() {
 		update_option( 'comment_previously_approved', 0 );
 
 		$author       = 'WendytheBuilder';
@@ -82,6 +82,25 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 		$comment_type = '';
 
 		update_option( 'moderation_keys', "foo\nbar\nscoop" );
+		$results = check_comment( $author, $author_email, $author_url, $comment, $author_ip, $user_agent, $comment_type );
+		$this->assertFalse( $results );
+	}
+
+	/**
+	 * @ticket 57207
+	 */
+	public function test_should_return_false_when_content_with_non_latin_words_matches_moderation_keys() {
+		update_option( 'comment_previously_approved', 0 );
+
+		$author       = 'Setup';
+		$author_email = 'setup@example.com';
+		$author_url   = 'http://example.com';
+		$comment      = 'Установка';
+		$author_ip    = '192.168.0.1';
+		$user_agent   = '';
+		$comment_type = '';
+
+		update_option( 'moderation_keys', "установка\nfoo" );
 		$results = check_comment( $author, $author_email, $author_url, $comment, $author_ip, $user_agent, $comment_type );
 		$this->assertFalse( $results );
 	}

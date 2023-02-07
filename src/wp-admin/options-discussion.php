@@ -71,7 +71,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <?php _e( 'Users must be registered and logged in to comment' ); ?>
 <?php
 if ( ! get_option( 'users_can_register' ) && is_multisite() ) {
-	echo ' ' . __( '(Signup has been disabled. Only members of this site can comment.)' );}
+	echo ' ' . __( '(Signup has been disabled. Only members of this site can comment.)' );
+}
 ?>
 </label>
 <br />
@@ -280,6 +281,7 @@ $avatar_defaults = array(
 	'wavatar'          => __( 'Wavatar (Generated)' ),
 	'monsterid'        => __( 'MonsterID (Generated)' ),
 	'retro'            => __( 'Retro (Generated)' ),
+	'robohash'         => __( 'RoboHash (Generated)' ),
 );
 /**
  * Filters the default avatars.

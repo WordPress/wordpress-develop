@@ -2,6 +2,10 @@
 @import 'variables';
 @import 'mixins';
 
+/**
+ * This function name uses British English to maintain backward compatibility, as developers
+ * may use the function in their own admin CSS files. See #56811.
+ */
 @function url-friendly-colour( $color ) {
 	@return '%23' + str-slice( '#{ $color }', 2, -1 );
 }
@@ -788,7 +792,7 @@ div#wp-responsive-toggle a:before {
 	background-color: $dashboard-accent-1;
 }
 
-.welcome-panel-header-image path {
+.welcome-panel-header-image circle {
 	stroke: $dashboard-accent-2;
 	fill: $dashboard-accent-1;
 }

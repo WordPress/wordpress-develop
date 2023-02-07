@@ -361,7 +361,7 @@ https://w.org</a>',
 	 * @dataProvider data_autoembed
 	 */
 	public function test_autoembed( $content, $result = null ) {
-		$wp_embed = new Test_Autoembed;
+		$wp_embed = new Test_Autoembed();
 
 		$this->assertSame( $wp_embed->autoembed( $content ), $result ? $result : $content );
 	}
@@ -3163,6 +3163,28 @@ EOF;
 	}
 
 	/**
+	 * Test that decoding="async" is not applied to img tags with single quotes.
+	 *
+	 * @ticket 56969
+	 */
+	public function test_wp_img_tag_add_decoding_attr_with_single_quotes() {
+		$img = "<img src='example.png' alt='' width='300' height='225' />";
+		$img = wp_img_tag_add_decoding_attr( $img, 'test' );
+		$this->assertStringNotContainsString( ' decoding="async"', $img );
+	}
+
+	/**
+	 * Test that decoding="async" is not applied to img tags inside JSON.
+	 *
+	 * @ticket 56969
+	 */
+	public function test_decoding_async_not_applied_to_json() {
+		$content = '{"image": "<img src=\"example.png\" alt=\"\" width=\"300\" height=\"225\" />"}';
+		$content = wp_filter_content_tags( $content );
+		$this->assertStringNotContainsString( ' decoding="async"', $content );
+	}
+
+	/**
 	 * @ticket 50756
 	 */
 	public function test_wp_iframe_tag_add_loading_attr() {
@@ -3254,6 +3276,81 @@ EOF;
 
 		// There should not be any loading attribute in this case.
 		$this->assertStringNotContainsString( ' loading=', $img );
+	}
+
+	/**
+	 * @ticket 57086
+	 *
+	 * @dataProvider data_wp_get_attachment_image_decoding_attr
+	 *
+	 * @covers ::wp_get_attachment_image
+	 */
+	public function test_wp_get_attachment_image_decoding_attr( $decoding, $expected ) {
+		if ( 'no value' === $decoding ) {
+			$image = wp_get_attachment_image( self::$large_id, 'thumbnail', false, array() );
+		} else {
+			$image = wp_get_attachment_image( self::$large_id, 'thumbnail', false, array( 'decoding' => $decoding ) );
+		}
+
+		if ( 'no value' === $expected ) {
+			$this->assertStringNotContainsString( ' decoding=', $image );
+		} else {
+			$this->assertStringContainsString( ' decoding="' . esc_attr( $expected ) . '"', $image );
+		}
+	}
+
+	/**
+	 * Data provider for test_wp_get_attachment_image_decoding_attr().
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_get_attachment_image_decoding_attr() {
+		return array(
+			'default'     => array(
+				'decoding' => 'no value',
+				'expected' => 'async',
+			),
+			'async'       => array(
+				'decoding' => 'async',
+				'expected' => 'async',
+			),
+			'sync'        => array(
+				'decoding' => 'sync',
+				'expected' => 'sync',
+			),
+			'auto'        => array(
+				'decoding' => 'auto',
+				'expected' => 'auto',
+			),
+			'empty'       => array(
+				'decoding' => '',
+				'expected' => 'no value',
+			),
+			'false'       => array(
+				'decoding' => false,
+				'expected' => 'no value',
+			),
+			'null'        => array(
+				'decoding' => null,
+				'expected' => 'no value',
+			),
+			'zero'        => array(
+				'decoding' => 0,
+				'expected' => 'no value',
+			),
+			'zero string' => array(
+				'decoding' => '0',
+				'expected' => 'no value',
+			),
+			'zero float'  => array(
+				'decoding' => 0.0,
+				'expected' => 'no value',
+			),
+			'invalid'     => array(
+				'decoding' => 'invalid',
+				'expected' => 'no value',
+			),
+		);
 	}
 
 	/**
@@ -3455,7 +3552,7 @@ EOF;
 	 *
 	 * @param string $context
 	 */
-	function test_wp_get_loading_attr_default( $context ) {
+	public function test_wp_get_loading_attr_default( $context ) {
 		global $wp_query, $wp_the_query;
 
 		// Return 'lazy' by default.
@@ -3493,7 +3590,7 @@ EOF;
 		}
 	}
 
-	function data_wp_get_loading_attr_default() {
+	public function data_wp_get_loading_attr_default() {
 		return array(
 			array( 'the_content' ),
 			array( 'the_post_thumbnail' ),
@@ -3503,7 +3600,7 @@ EOF;
 	/**
 	 * @ticket 53675
 	 */
-	function test_wp_omit_loading_attr_threshold_filter() {
+	public function test_wp_omit_loading_attr_threshold_filter() {
 		global $wp_query, $wp_the_query;
 
 		$wp_query     = new WP_Query( array( 'post__in' => array( self::$post_ids['publish'] ) ) );
@@ -3535,7 +3632,7 @@ EOF;
 	/**
 	 * @ticket 53675
 	 */
-	function test_wp_filter_content_tags_with_wp_get_loading_attr_default() {
+	public function test_wp_filter_content_tags_with_wp_get_loading_attr_default() {
 		global $wp_query, $wp_the_query;
 
 		$img1         = get_image_tag( self::$large_id, '', '', '', 'large' );

@@ -1570,7 +1570,7 @@ function wp_ajax_add_menu_item() {
 			'before'      => '',
 			'link_after'  => '',
 			'link_before' => '',
-			'walker'      => new $walker_class_name,
+			'walker'      => new $walker_class_name(),
 		);
 
 		echo walk_nav_menu_tree( $menu_items, 0, (object) $args );
@@ -2532,7 +2532,7 @@ function wp_ajax_upload_attachment() {
 	check_ajax_referer( 'media-form' );
 	/*
 	 * This function does not use wp_send_json_success() / wp_send_json_error()
-	 * as the html4 Plupload handler requires a text/html content-type for older IE.
+	 * as the html4 Plupload handler requires a text/html Content-Type for older IE.
 	 * See https://core.trac.wordpress.org/ticket/31037
 	 */
 
@@ -3144,6 +3144,17 @@ function wp_ajax_save_attachment() {
 		wp_delete_post( $id );
 	} else {
 		wp_update_post( $post );
+
+		/**
+		 * Fires after an attachment has been updated via the Ajax handler
+		 * and before the JSON response is sent.
+		 *
+		 * @since 6.2.0
+		 *
+		 * @param array $post    The attachment data.
+		 * @param array $changes An array containing the updated attachment attributes.
+		 */
+		do_action( 'wp_ajax_save_attachment', $post, $changes );
 	}
 
 	wp_send_json_success();

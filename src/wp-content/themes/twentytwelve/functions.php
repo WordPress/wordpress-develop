@@ -428,6 +428,8 @@ if ( ! function_exists( 'twentytwelve_comment' ) ) :
 	 * Used as a callback by wp_list_comments() for displaying the comments.
 	 *
 	 * @since Twenty Twelve 1.0
+	 *
+	 * @global WP_Post $post Global post object.
 	 */
 	function twentytwelve_comment( $comment, $args, $depth ) {
 		$GLOBALS['comment'] = $comment;
