@@ -147,6 +147,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 		$this->assertArrayHasKey( 'page', $properties );
 		$this->assertArrayHasKey( 'per_page', $properties );
 		$this->assertArrayHasKey( 'search', $properties );
+		$this->assertArrayHasKey( 'search_columns', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'status', $properties );
 	}
