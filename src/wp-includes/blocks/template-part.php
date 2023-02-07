@@ -131,11 +131,8 @@ function render_block_core_template_part( $attributes ) {
 	$seen_ids[ $template_part_id ] = true;
 	$content                       = do_blocks( $content );
 	unset( $seen_ids[ $template_part_id ] );
-	$content = wptexturize( $content );
-	$content = convert_smilies( $content );
-	$content = shortcode_unautop( $content );
-	$content = wp_filter_content_tags( $content );
-	$content = do_shortcode( $content );
+
+	$content = apply_filters( 'render_block_core_template_part_content', $content );
 
 	// Handle embeds for block template parts.
 	global $wp_embed;
