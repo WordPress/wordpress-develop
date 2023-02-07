@@ -11,22 +11,19 @@ class Tests_Comment_GetCommentAuthorLink extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		unset( $GLOBALS['comment'] );
 
-		$comment_id_with_url    = $factory->comment->create_post_comments( 0, 1 );
-		$comment_id_without_url = $factory->comment->create_post_comments(
-			0,
-			1,
-			array(
-				'comment_author_url' => '',
-			)
+		self::$comments = array(
+			'external_url' => $factory->comment->create_and_get(),
+			'internal_url' => $factory->comment->create_and_get(
+				array(
+					'comment_author_url' => home_url( 'comment-author-url' ),
+				)
+			),
+			'empty_url'    => $factory->comment->create_and_get(
+				array(
+					'comment_author_url' => '',
+				)
+			),
 		);
-		self::$comments         = array_map(
-			'get_comment',
-			array_merge(
-				$comment_id_with_url,
-				$comment_id_without_url
-			)
-		);
-
 	}
 
 	public function test_no_comment() {
@@ -42,25 +39,43 @@ class Tests_Comment_GetCommentAuthorLink extends WP_UnitTestCase {
 	}
 
 	public function test_global_comment() {
-		$comment            = reset( self::$comments );
+		$comment            = self::$comments['external_url'];
 		$GLOBALS['comment'] = $comment;
-		$expect             = "<a href='$comment->comment_author_url' rel='external nofollow ugc' class='url'>$comment->comment_author</a>";
+		$expect             = "<a href=\"$comment->comment_author_url\" class=\"url\" rel=\"ugc external nofollow\">$comment->comment_author</a>";
 		$link               = get_comment_author_link();
 		$this->assertSame( $expect, $link );
 		unset( $GLOBALS['comment'] );
 	}
 
 	public function test_comment_arg() {
-		$comment = reset( self::$comments );
-		$expect  = "<a href='$comment->comment_author_url' rel='external nofollow ugc' class='url'>$comment->comment_author</a>";
+		$comment = self::$comments['external_url'];
+		$expect  = "<a href=\"$comment->comment_author_url\" class=\"url\" rel=\"ugc external nofollow\">$comment->comment_author</a>";
+		$link    = get_comment_author_link( $comment );
+		$this->assertSame( $expect, $link );
+	}
+
+	public function test_comment_with_internal_comment_author_url() {
+		$comment = self::$comments['internal_url'];
+		$expect  = "<a href=\"$comment->comment_author_url\" class=\"url\" rel=\"ugc\">$comment->comment_author</a>";
 		$link    = get_comment_author_link( $comment );
 		$this->assertSame( $expect, $link );
 	}
 
 	public function test_comment_with_empty_comment_author_url() {
-		$comment = end( self::$comments );
+		$comment = self::$comments['empty_url'];
 		$link    = get_comment_author_link( $comment );
 		$this->assertSame( $comment->comment_author, $link );
+	}
+
+	public function test_comment_with_no_rel() {
+		add_filter( 'comment_author_link_rel', '__return_empty_array' );
+
+		$comment = self::$comments['external_url'];
+		$expect  = "<a href=\"$comment->comment_author_url\" class=\"url\">$comment->comment_author</a>";
+		$link    = get_comment_author_link( $comment );
+		$this->assertSame( $expect, $link );
+
+		remove_filter( 'comment_author_link_rel', '__return_empty_array' );
 	}
 
 }
