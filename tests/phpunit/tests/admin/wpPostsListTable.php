@@ -405,7 +405,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_handle_row_actions_should_conditionally_render_quick_edit_markup().
+	 * Data provider.
 	 *
 	 * @return array[]
 	 */
