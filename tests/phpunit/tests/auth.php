@@ -101,9 +101,11 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test hooking into wp_set_password().
+	 * Tests hooking into wp_set_password().
 	 *
 	 * @ticket 57436
+	 *
+	 * @covers ::wp_set_password
 	 */
 	public function test_wp_set_password_action() {
 		$action = new MockAction();
