@@ -104,8 +104,8 @@ function wp_default_packages_vendor( $scripts ) {
 	);
 
 	$vendor_scripts_versions = array(
-		'react'                       => '17.0.1',
-		'react-dom'                   => '17.0.1',
+		'react'                       => '18.2.0',
+		'react-dom'                   => '18.2.0',
 		'regenerator-runtime'         => '0.13.9',
 		'moment'                      => '2.29.4',
 		'lodash'                      => '4.17.19',
@@ -824,7 +824,7 @@ function wp_default_scripts( $scripts ) {
 	// The unminified jquery.js and jquery-migrate.js are included to facilitate debugging.
 	$scripts->add( 'jquery', false, array( 'jquery-core', 'jquery-migrate' ), '3.6.3' );
 	$scripts->add( 'jquery-core', "/wp-includes/js/jquery/jquery$suffix.js", array(), '3.6.3' );
-	$scripts->add( 'jquery-migrate', "/wp-includes/js/jquery/jquery-migrate$suffix.js", array(), '3.3.2' );
+	$scripts->add( 'jquery-migrate', "/wp-includes/js/jquery/jquery-migrate$suffix.js", array(), '3.4.0' );
 
 	// Full jQuery UI.
 	// The build process in 1.12.1 has changed significantly.
