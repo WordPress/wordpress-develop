@@ -341,4 +341,121 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
+	/**
+	 * Tests that `WP_Posts_List_Table::handle_row_actions()` conditionally renders
+	 * Quick Edit markup depending on the presence of the 'inline hide-if-no-js' action.
+	 *
+	 * @ticket 16502
+	 *
+	 * @covers WP_Posts_List_Table::handle_row_actions
+	 *
+	 * @dataProvider data_post_types
+	 *
+	 * @param bool   $has_inline_action Whether the 'inline hide-if-no-js' should be present.
+	 * @param bool   $expected          Whether the Quick Edit markup should be present.
+	 * @param string $post_type         The post type to test.
+	 * @param bool   $hierarchical      Optional. Whether the post type is hierarchical.
+	 *                                  For custom post types only.
+	 *                                  If hierarchical, the 'page_row_actions' hook is used,
+	 *                                  otherwise 'post_row_actions'.
+	 *                                  Default false.
+	 */
+	public function test_handle_row_actions_should_conditionally_render_quick_edit_markup( $has_inline_action, $expected, $post_type, $hierarchical = false ) {
+		$hook = 'page' === $post_type || $hierarchical ? 'page_row_actions' : 'post_row_actions';
+		add_filter(
+			$hook,
+			static function( $actions ) use ( $has_inline_action ) {
+				if ( $has_inline_action ) {
+					$actions['inline hide-if-no-js'] = 'Should render';
+				} else {
+					unset( $actions['inline hide-if-no-js'] );
+				}
+				return $actions;
+			}
+		);
+
+		if ( str_contains( $post_type, 'cpt' ) ) {
+			register_post_type(
+				$post_type,
+				array(
+					'labels'       => array( 'name' => $post_type ),
+					'hierarchical' => $hierarchical,
+				)
+			);
+		}
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'Post Title',
+				'post_type'  => $post_type,
+			)
+		);
+
+		$handle_row_actions = new ReflectionMethod( $this->table, 'handle_row_actions' );
+
+		$handle_row_actions->setAccessible( true );
+		$actual = $handle_row_actions->invokeArgs( $this->table, array( $post, 'primary', 'primary' ) );
+		$handle_row_actions->setAccessible( false );
+
+		if ( $expected ) {
+			$this->assertStringContainsString( 'inline hide-if-no-js', $actual );
+		} else {
+			$this->assertStringNotContainsString( 'inline hide-if-no-js', $actual );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_post_types() {
+		return array(
+			'a post with the "inline hide-if-no-js" action'    => array(
+				'has_inline_action' => true,
+				'expected'          => true,
+				'post_type'         => 'post',
+			),
+			'a page with the "inline hide-if-no-js" action'    => array(
+				'has_inline_action' => true,
+				'expected'          => true,
+				'post_type'         => 'page',
+			),
+			'a hierarchical custom post type with the "inline hide-if-no-js" action' => array(
+				'has_inline_action' => true,
+				'expected'          => true,
+				'post_type'         => 'my_cpt',
+				'hierarchical'      => true,
+			),
+			'a non-hierarchical custom post type with the "inline hide-if-no-js" action' => array(
+				'has_inline_action' => true,
+				'expected'          => true,
+				'post_type'         => 'my_cpt',
+				'hierarchical'      => false,
+			),
+			'a post without the "inline hide-if-no-js" action' => array(
+				'has_inline_action' => false,
+				'expected'          => false,
+				'post_type'         => 'post',
+			),
+			'a page without the "inline hide-if-no-js" action' => array(
+				'has_inline_action' => false,
+				'expected'          => false,
+				'post_type'         => 'page',
+			),
+			'a hierarchical custom post type without the "inline hide-if-no-js" action' => array(
+				'has_inline_action' => false,
+				'expected'          => false,
+				'post_type'         => 'my_cpt',
+				'hierarchical'      => true,
+			),
+			'a non-hierarchical custom post type without the "inline hide-if-no-js" action' => array(
+				'has_inline_action' => false,
+				'expected'          => false,
+				'post_type'         => 'my_cpt',
+				'hierarchical'      => false,
+			),
+		);
+	}
+
 }
