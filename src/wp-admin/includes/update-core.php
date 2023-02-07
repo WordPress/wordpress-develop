@@ -1053,7 +1053,9 @@ $_new_bundled_files = array(
 function update_core( $from, $to ) {
 	global $wp_filesystem, $_old_files, $_old_requests_files, $_new_bundled_files, $wpdb;
 
-	set_time_limit( 300 );
+	if ( function_exists( 'set_time_limit' ) ) {
+		set_time_limit( 300 );
+	}
 
 	/*
 	 * Merge the old Requests files and directories into the `$_old_files`.
@@ -1598,6 +1600,10 @@ function update_core( $from, $to ) {
  */
 function _preload_old_requests_classes_and_interfaces( $to ) {
 	global $_old_requests_files, $wp_filesystem;
+
+	if ( ! defined( 'REQUESTS_SILENCE_PSR0_DEPRECATIONS' ) ) {
+		define( 'REQUESTS_SILENCE_PSR0_DEPRECATIONS', true );
+	}
 
 	foreach ( $_old_requests_files as $name => $file ) {
 		// Skip files that aren't interfaces or classes.

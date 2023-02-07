@@ -480,7 +480,7 @@ function wpautop( $text, $br = true ) {
 	// Change multiple <br>'s into two line breaks, which will turn into paragraphs.
 	$text = preg_replace( '|<br\s*/?>\s*<br\s*/?>|', "\n\n", $text );
 
-	$allblocks = '(?:table|thead|tfoot|caption|col|colgroup|tbody|tr|td|th|div|dl|dd|dt|ul|ol|li|pre|form|map|area|blockquote|address|math|style|p|h[1-6]|hr|fieldset|legend|section|article|aside|hgroup|header|footer|nav|figure|figcaption|details|menu|summary)';
+	$allblocks = '(?:table|thead|tfoot|caption|col|colgroup|tbody|tr|td|th|div|dl|dd|dt|ul|ol|li|pre|form|map|area|blockquote|address|style|p|h[1-6]|hr|fieldset|legend|section|article|aside|hgroup|header|footer|nav|figure|figcaption|details|menu|summary)';
 
 	// Add a double line break above block-level opening tags.
 	$text = preg_replace( '!(<' . $allblocks . '[\s/>])!', "\n\n$1", $text );
@@ -568,7 +568,7 @@ function wpautop( $text, $br = true ) {
 	// Optionally insert line breaks.
 	if ( $br ) {
 		// Replace newlines that shouldn't be touched with a placeholder.
-		$text = preg_replace_callback( '/<(script|style|svg).*?<\/\\1>/s', '_autop_newline_preservation_helper', $text );
+		$text = preg_replace_callback( '/<(script|style|svg|math).*?<\/\\1>/s', '_autop_newline_preservation_helper', $text );
 
 		// Normalize <br>
 		$text = str_replace( array( '<br>', '<br/>' ), '<br />', $text );
@@ -2047,6 +2047,7 @@ function sanitize_file_name( $filename ) {
 
 	$filename = str_replace( $special_chars, '', $filename );
 	$filename = str_replace( array( '%20', '+' ), '-', $filename );
+	$filename = preg_replace( '/\.{2,}/', '.', $filename );
 	$filename = preg_replace( '/[\r\n\t -]+/', '-', $filename );
 	$filename = trim( $filename, '.-_' );
 
@@ -2916,24 +2917,9 @@ function _make_url_clickable_cb( $matches ) {
 		return $matches[0];
 	}
 
-	if ( 'comment_text' === current_filter() ) {
-		$rel = 'nofollow ugc';
-	} else {
-		$rel = 'nofollow';
-	}
+	$rel_attr = _make_clickable_rel_attr( $url );
+	return $matches[1] . "<a href=\"$url\"$rel_attr>$url</a>" . $suffix;
 
-	/**
-	 * Filters the rel value that is added to URL matches converted to links.
-	 *
-	 * @since 5.3.0
-	 *
-	 * @param string $rel The rel value.
-	 * @param string $url The matched URL being converted to a link tag.
-	 */
-	$rel = apply_filters( 'make_clickable_rel', $rel, $url );
-	$rel = esc_attr( $rel );
-
-	return $matches[1] . "<a href=\"$url\" rel=\"$rel\">$url</a>" . $suffix;
 }
 
 /**
@@ -2964,17 +2950,8 @@ function _make_web_ftp_clickable_cb( $matches ) {
 		return $matches[0];
 	}
 
-	if ( 'comment_text' === current_filter() ) {
-		$rel = 'nofollow ugc';
-	} else {
-		$rel = 'nofollow';
-	}
-
-	/** This filter is documented in wp-includes/formatting.php */
-	$rel = apply_filters( 'make_clickable_rel', $rel, $dest );
-	$rel = esc_attr( $rel );
-
-	return $matches[1] . "<a href=\"$dest\" rel=\"$rel\">$dest</a>$ret";
+	$rel_attr = _make_clickable_rel_attr( $dest );
+	return $matches[1] . "<a href='{$dest}'{$rel_attr}>{$dest}</a>{$ret}";
 }
 
 /**
@@ -2991,6 +2968,48 @@ function _make_web_ftp_clickable_cb( $matches ) {
 function _make_email_clickable_cb( $matches ) {
 	$email = $matches[2] . '@' . $matches[3];
 	return $matches[1] . "<a href=\"mailto:$email\">$email</a>";
+}
+
+/**
+ * Helper function used to build the "rel" attribute for a URL when creating an anchor using make_clickable().
+ *
+ * @since 6.2.0
+ *
+ * @param string $url The URL.
+ * @return string The rel attribute for the anchor or an empty string if no rel attribute should be added.
+ */
+function _make_clickable_rel_attr( $url ) {
+
+	$rel_parts        = array();
+	$scheme           = strtolower( wp_parse_url( $url, PHP_URL_SCHEME ) );
+	$nofollow_schemes = array_intersect( wp_allowed_protocols(), array( 'https', 'http' ) );
+
+	// Apply "nofollow" to external links with qualifying URL schemes (mailto:, tel:, etc... shouldn't be followed).
+	if ( ! wp_is_internal_link( $url ) && in_array( $scheme, $nofollow_schemes, true ) ) {
+		$rel_parts[] = 'nofollow';
+	}
+
+	// Apply "ugc" when in comment context.
+	if ( 'comment_text' === current_filter() ) {
+		$rel_parts[] = 'ugc';
+	}
+
+	$rel = implode( ' ', $rel_parts );
+
+	/**
+	 * Filters the rel value that is added to URL matches converted to links.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param string $rel The rel value.
+	 * @param string $url The matched URL being converted to a link tag.
+	 */
+	$rel = apply_filters( 'make_clickable_rel', $rel, $url );
+
+	$rel_attr = $rel ? ' rel="' . esc_attr( $rel ) . '"' : '';
+
+	return $rel_attr;
+
 }
 
 /**
@@ -3136,12 +3155,8 @@ function wp_rel_callback( $matches, $rel ) {
 	$text = $matches[1];
 	$atts = wp_kses_hair( $matches[1], wp_allowed_protocols() );
 
-	if ( ! empty( $atts['href'] ) ) {
-		if ( in_array( strtolower( wp_parse_url( $atts['href']['value'], PHP_URL_SCHEME ) ), array( 'http', 'https' ), true ) ) {
-			if ( strtolower( wp_parse_url( $atts['href']['value'], PHP_URL_HOST ) ) === strtolower( wp_parse_url( home_url(), PHP_URL_HOST ) ) ) {
-				return "<a $text>";
-			}
-		}
+	if ( ! empty( $atts['href'] ) && wp_is_internal_link( $atts['href']['value'] ) ) {
+		$rel = trim( str_replace( 'nofollow', '', $rel ) );
 	}
 
 	if ( ! empty( $atts['rel'] ) ) {
@@ -3161,7 +3176,10 @@ function wp_rel_callback( $matches, $rel ) {
 		}
 		$text = trim( $html );
 	}
-	return "<a $text rel=\"" . esc_attr( $rel ) . '">';
+
+	$rel_attr = $rel ? ' rel="' . esc_attr( $rel ) . '"' : '';
+
+	return "<a {$text}{$rel_attr}>";
 }
 
 /**
@@ -3944,12 +3962,7 @@ function wp_trim_words( $text, $num_words = 55, $more = null ) {
 	$text          = wp_strip_all_tags( $text );
 	$num_words     = (int) $num_words;
 
-	/*
-	 * translators: If your word count is based on single characters (e.g. East Asian characters),
-	 * enter 'characters_excluding_spaces' or 'characters_including_spaces'. Otherwise, enter 'words'.
-	 * Do not translate into your own language.
-	 */
-	if ( strpos( _x( 'words', 'Word count type. Do not translate!' ), 'characters' ) === 0 && preg_match( '/^utf\-?8$/i', get_option( 'blog_charset' ) ) ) {
+	if ( str_starts_with( wp_get_word_count_type(), 'characters' ) && preg_match( '/^utf\-?8$/i', get_option( 'blog_charset' ) ) ) {
 		$text = trim( preg_replace( "/[\n\r\t ]+/", ' ', $text ), ' ' );
 		preg_match_all( '/./u', $text, $words_array );
 		$words_array = array_slice( $words_array[0], 0, $num_words + 1 );
@@ -5394,6 +5407,32 @@ function normalize_whitespace( $str ) {
  * @return string The processed string.
  */
 function wp_strip_all_tags( $text, $remove_breaks = false ) {
+	if ( is_null( $text ) ) {
+		return '';
+	}
+
+	if ( ! is_scalar( $text ) ) {
+		/*
+		 * To maintain consistency with pre-PHP 8 error levels,
+		 * trigger_error() is used to trigger an E_USER_WARNING,
+		 * rather than _doing_it_wrong(), which triggers an E_USER_NOTICE.
+		 */
+		trigger_error(
+			sprintf(
+				/* translators: 1: The function name, 2: The argument number, 3: The argument name, 4: The expected type, 5: The provided type. */
+				__( 'Warning: %1$s expects parameter %2$s (%3$s) to be a %4$s, %5$s given.' ),
+				__FUNCTION__,
+				'#1',
+				'$text',
+				'string',
+				gettype( $text )
+			),
+			E_USER_WARNING
+		);
+
+		return '';
+	}
+
 	$text = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $text );
 	$text = strip_tags( $text );
 

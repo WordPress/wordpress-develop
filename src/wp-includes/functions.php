@@ -943,8 +943,8 @@ function do_enclose( $content, $post ) {
 
 			$headers = wp_get_http_headers( $url );
 			if ( $headers ) {
-				$len           = isset( $headers['content-length'] ) ? (int) $headers['content-length'] : 0;
-				$type          = isset( $headers['content-type'] ) ? $headers['content-type'] : '';
+				$len           = isset( $headers['Content-Length'] ) ? (int) $headers['Content-Length'] : 0;
+				$type          = isset( $headers['Content-Type'] ) ? $headers['Content-Type'] : '';
 				$allowed_types = array( 'video', 'audio' );
 
 				// Check to see if we can figure out the mime type from the extension.
@@ -7147,7 +7147,12 @@ function wp_auth_check_html() {
 	<div id="wp-auth-check-wrap" class="<?php echo $wrap_class; ?>">
 	<div id="wp-auth-check-bg"></div>
 	<div id="wp-auth-check">
-	<button type="button" class="wp-auth-check-close button-link"><span class="screen-reader-text"><?php _e( 'Close dialog' ); ?></span></button>
+	<button type="button" class="wp-auth-check-close button-link"><span class="screen-reader-text">
+		<?php
+		/* translators: Hidden accessibility text. */
+		_e( 'Close dialog' );
+		?>
+	</span></button>
 	<?php
 
 	if ( $same_domain ) {
@@ -8110,7 +8115,7 @@ function wp_direct_php_update_button() {
 		'<a class="button button-primary" href="%1$s" target="_blank" rel="noopener">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 		esc_url( $direct_update_url ),
 		__( 'Update PHP' ),
-		/* translators: Accessibility text. */
+		/* translators: Hidden accessibility text. */
 		__( '(opens in a new tab)' )
 	);
 	echo '</p>';
