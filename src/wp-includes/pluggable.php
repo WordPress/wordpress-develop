@@ -1073,14 +1073,15 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 		 * @since 6.2.0 The `$user_id`, `$expire`, `$expiration`, and `$token` parameters were added.
 		 *
 		 * @param bool   $send       Whether to send auth cookies to the client. Default true.
-		 * @param int    $user_id    User ID. Zero when clearing cookies.
 		 * @param int    $expire     The time the login grace period expires as a UNIX timestamp.
 		 *                           Default is 12 hours past the cookie's expiration time. Zero when clearing cookies.
 		 * @param int    $expiration The time when the logged-in authentication cookie expires as a UNIX timestamp.
 		 *                           Default is 14 days from now. Zero when clearing cookies.
+		 * @param int    $user_id    User ID. Zero when clearing cookies.
+		 * @param string $scheme     Authentication scheme. Values include 'auth' or 'secure_auth'.
 		 * @param string $token      User's session token to use for this cookie. Empty string when clearing cookies.
 		 */
-		if ( ! apply_filters( 'send_auth_cookies', true, $user_id, $expire, $expiration, $token ) ) {
+		if ( ! apply_filters( 'send_auth_cookies', true, $expire, $expiration, $user_id, $scheme, $token ) ) {
 			return;
 		}
 
