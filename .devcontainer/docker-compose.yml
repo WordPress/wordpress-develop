@@ -28,3 +28,4 @@ services:
 volumes:
   wordpress:
   db:
+  
