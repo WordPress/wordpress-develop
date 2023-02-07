@@ -136,7 +136,7 @@ if ( ! function_exists( 'twentysixteen_setup' ) ) :
 		 * This theme styles the visual editor to resemble the theme style,
 		 * specifically font, colors, icons, and column width.
 		 */
-		add_editor_style( array( 'css/editor-style.css', twentysixteen_fonts_url() ) );
+		add_editor_style( array_merge( array( 'css/editor-style.css' ), twentysixteen_fonts_urls() ) );
 
 		// Load regular editor styles into the new block-based editor.
 		add_theme_support( 'editor-styles' );
@@ -247,13 +247,6 @@ add_action( 'after_setup_theme', 'twentysixteen_content_width', 0 );
  * @return array URLs to print for resource hints.
  */
 function twentysixteen_resource_hints( $urls, $relation_type ) {
-	if ( wp_style_is( 'twentysixteen-fonts', 'queue' ) && 'preconnect' === $relation_type ) {
-		$urls[] = array(
-			'href' => 'https://fonts.gstatic.com',
-			'crossorigin',
-		);
-	}
-
 	return $urls;
 }
 add_filter( 'wp_resource_hints', 'twentysixteen_resource_hints', 10, 2 );
@@ -306,25 +299,38 @@ add_action( 'widgets_init', 'twentysixteen_widgets_init' );
 
 if ( ! function_exists( 'twentysixteen_fonts_url' ) ) :
 	/**
-	 * Register Google fonts for Twenty Sixteen.
+	 * Register Fonts for Twenty Sixteen.
 	 *
 	 * Create your own twentysixteen_fonts_url() function to override in a child theme.
 	 *
 	 * @since Twenty Sixteen 1.0
 	 *
-	 * @return string Google fonts URL for the theme.
+	 * @return string Fonts URL for the theme.
 	 */
 	function twentysixteen_fonts_url() {
-		$fonts_url = '';
-		$fonts     = array();
-		$subsets   = 'latin,latin-ext';
+		return '';
+	}
+endif;
+
+if ( ! function_exists( 'twentysixteen_fonts_urls' ) ) :
+	/**
+	 * Return an array of font URLs to be enqueued in Twenty Sixteen.
+	 *
+	 * Create your own twentysixteen_fonts_urls() function to override in a child theme.
+	 *
+	 * @since Twenty Sixteen 2.8
+	 *
+	 * @return array<string,string> Font URLs for the theme.
+	 */
+	function twentysixteen_fonts_urls() {
+		$font_urls = array();
 
 		/*
 		 * translators: If there are characters in your language that are not supported
 		 * by Merriweather, translate this to 'off'. Do not translate into your own language.
 		 */
 		if ( 'off' !== _x( 'on', 'Merriweather font: on or off', 'twentysixteen' ) ) {
-			$fonts[] = 'Merriweather:400,700,900,400italic,700italic,900italic';
+			$font_urls['merriweather'] = get_template_directory_uri() . '/fonts/merriweather/font-merriweather.css';
 		}
 
 		/*
@@ -332,7 +338,7 @@ if ( ! function_exists( 'twentysixteen_fonts_url' ) ) :
 		 * by Montserrat, translate this to 'off'. Do not translate into your own language.
 		 */
 		if ( 'off' !== _x( 'on', 'Montserrat font: on or off', 'twentysixteen' ) ) {
-			$fonts[] = 'Montserrat:400,700';
+			$font_urls['montserrat'] = get_template_directory_uri() . '/fonts/montserrat/font-montserrat.css';
 		}
 
 		/*
@@ -340,21 +346,20 @@ if ( ! function_exists( 'twentysixteen_fonts_url' ) ) :
 		 * by Inconsolata, translate this to 'off'. Do not translate into your own language.
 		 */
 		if ( 'off' !== _x( 'on', 'Inconsolata font: on or off', 'twentysixteen' ) ) {
-			$fonts[] = 'Inconsolata:400';
+			$font_urls['inconsolata'] = get_template_directory_uri() . '/fonts/inconsolata/font-inconsolata.css';
 		}
 
-		if ( $fonts ) {
-			$fonts_url = add_query_arg(
-				array(
-					'family'  => urlencode( implode( '|', $fonts ) ),
-					'subset'  => urlencode( $subsets ),
-					'display' => urlencode( 'fallback' ),
-				),
-				'https://fonts.googleapis.com/css'
-			);
+		/**
+		 * If the `twentysixteen_fonts_url` function does not return an empty string,
+		 * we can assume that the user has defined a custom font URL.
+		 */
+		if ( ! empty( twentysixteen_fonts_url() ) ) {
+			// Empty the fonts urls array to prevent loading of fonts the user did not intent to load.
+			$fonts_url           = array();
+			$fonts_url['legacy'] = twentysixteen_fonts_url();
 		}
 
-		return $fonts_url;
+		return $font_urls;
 	}
 endif;
 
@@ -376,8 +381,26 @@ add_action( 'wp_head', 'twentysixteen_javascript_detection', 0 );
  * @since Twenty Sixteen 1.0
  */
 function twentysixteen_scripts() {
-	// Add custom fonts, used in the main stylesheet.
-	wp_enqueue_style( 'twentysixteen-fonts', twentysixteen_fonts_url(), array(), null );
+	/**
+	 * The dependencies for our font stylesheet.
+	 *
+	 * We register our sub-fonts as dependencies for the main font stylesheet. This way, we can
+	 * enqueue the main font stylesheet and all sub-fonts will be loaded as well. On the other hand,
+	 * if the user has unenqueued the main font stylesheet, all sub-fonts will be unequeued as well.
+	 *
+	 * @var array $font_dependencies An array of dependencies for the main font stylesheet.
+	 */
+	$font_dependencies = array();
+
+	// Add custom fonts.
+	foreach ( twentysixteen_fonts_urls() as $font_slug => $font_url ) {
+		$font_dependencies[] = 'twentysixteen-font-' . $font_slug;
+		wp_register_style( 'twentysixteen-font-' . $font_slug, $font_url, array(), null );
+	}
+
+	// Register the style 'twentysixteen-fonts' for backwards compatibility.
+	wp_register_style( 'twentysixteen-fonts', false, $font_dependencies );
+	wp_enqueue_style( 'twentysixteen-fonts' );
 
 	// Add Genericons, used in the main stylesheet.
 	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '20201208' );
@@ -435,8 +458,27 @@ add_action( 'wp_enqueue_scripts', 'twentysixteen_scripts' );
 function twentysixteen_block_editor_styles() {
 	// Block styles.
 	wp_enqueue_style( 'twentysixteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20221004' );
+
+	/**
+	 * The dependencies for our font stylesheet.
+	 *
+	 * We register our sub-fonts as dependencies for the main font stylesheet. This way, we can
+	 * enqueue the main font stylesheet and all sub-fonts will be loaded as well. On the other hand,
+	 * if the user has unenqueued the main font stylesheet, all sub-fonts will be unequeued as well.
+	 *
+	 * @var array $font_dependencies An array of dependencies for the main font stylesheet.
+	 */
+	$font_dependencies = array();
+
 	// Add custom fonts.
-	wp_enqueue_style( 'twentysixteen-fonts', twentysixteen_fonts_url(), array(), null );
+	foreach ( twentysixteen_fonts_urls() as $font_slug => $font_url ) {
+		$font_dependencies[] = 'twentysixteen-font-' . $font_slug;
+		wp_register_style( 'twentysixteen-font-' . $font_slug, $font_url, array(), null );
+	}
+
+	// Register the style 'twentysixteen-fonts' for backwards compatibility.
+	wp_register_style( 'twentysixteen-fonts', false, $font_dependencies );
+	wp_enqueue_style( 'twentysixteen-fonts' );
 }
 add_action( 'enqueue_block_editor_assets', 'twentysixteen_block_editor_styles' );
 
