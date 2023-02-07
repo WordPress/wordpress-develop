@@ -1078,10 +1078,9 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 		 * @param int    $expiration The time when the logged-in authentication cookie expires as a UNIX timestamp.
 		 *                           Default is 14 days from now. Zero when clearing cookies.
 		 * @param int    $user_id    User ID. Zero when clearing cookies.
-		 * @param string $scheme     Authentication scheme. Values include 'auth' or 'secure_auth'.
 		 * @param string $token      User's session token to use for this cookie. Empty string when clearing cookies.
 		 */
-		if ( ! apply_filters( 'send_auth_cookies', true, $expire, $expiration, $user_id, $scheme, $token ) ) {
+		if ( ! apply_filters( 'send_auth_cookies', true, $expire, $expiration, $user_id, $token ) ) {
 			return;
 		}
 
