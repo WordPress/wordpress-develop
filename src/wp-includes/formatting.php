@@ -480,7 +480,7 @@ function wpautop( $text, $br = true ) {
 	// Change multiple <br>'s into two line breaks, which will turn into paragraphs.
 	$text = preg_replace( '|<br\s*/?>\s*<br\s*/?>|', "\n\n", $text );
 
-	$allblocks = '(?:table|thead|tfoot|caption|col|colgroup|tbody|tr|td|th|div|dl|dd|dt|ul|ol|li|pre|form|map|area|blockquote|address|math|style|p|h[1-6]|hr|fieldset|legend|section|article|aside|hgroup|header|footer|nav|figure|figcaption|details|menu|summary)';
+	$allblocks = '(?:table|thead|tfoot|caption|col|colgroup|tbody|tr|td|th|div|dl|dd|dt|ul|ol|li|pre|form|map|area|blockquote|address|style|p|h[1-6]|hr|fieldset|legend|section|article|aside|hgroup|header|footer|nav|figure|figcaption|details|menu|summary)';
 
 	// Add a double line break above block-level opening tags.
 	$text = preg_replace( '!(<' . $allblocks . '[\s/>])!', "\n\n$1", $text );
@@ -568,7 +568,7 @@ function wpautop( $text, $br = true ) {
 	// Optionally insert line breaks.
 	if ( $br ) {
 		// Replace newlines that shouldn't be touched with a placeholder.
-		$text = preg_replace_callback( '/<(script|style|svg).*?<\/\\1>/s', '_autop_newline_preservation_helper', $text );
+		$text = preg_replace_callback( '/<(script|style|svg|math).*?<\/\\1>/s', '_autop_newline_preservation_helper', $text );
 
 		// Normalize <br>
 		$text = str_replace( array( '<br>', '<br/>' ), '<br />', $text );
@@ -2047,6 +2047,7 @@ function sanitize_file_name( $filename ) {
 
 	$filename = str_replace( $special_chars, '', $filename );
 	$filename = str_replace( array( '%20', '+' ), '-', $filename );
+	$filename = preg_replace( '/\.{2,}/', '.', $filename );
 	$filename = preg_replace( '/[\r\n\t -]+/', '-', $filename );
 	$filename = trim( $filename, '.-_' );
 
@@ -5394,6 +5395,32 @@ function normalize_whitespace( $str ) {
  * @return string The processed string.
  */
 function wp_strip_all_tags( $text, $remove_breaks = false ) {
+	if ( is_null( $text ) ) {
+		return '';
+	}
+
+	if ( ! is_scalar( $text ) ) {
+		/*
+		 * To maintain consistency with pre-PHP 8 error levels,
+		 * trigger_error() is used to trigger an E_USER_WARNING,
+		 * rather than _doing_it_wrong(), which triggers an E_USER_NOTICE.
+		 */
+		trigger_error(
+			sprintf(
+				/* translators: 1: The function name, 2: The argument number, 3: The argument name, 4: The expected type, 5: The provided type. */
+				__( 'Warning: %1$s expects parameter %2$s (%3$s) to be a %4$s, %5$s given.' ),
+				__FUNCTION__,
+				'#1',
+				'$text',
+				'string',
+				gettype( $text )
+			),
+			E_USER_WARNING
+		);
+
+		return '';
+	}
+
 	$text = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $text );
 	$text = strip_tags( $text );
 
