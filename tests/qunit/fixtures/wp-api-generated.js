@@ -395,6 +395,20 @@ mockedApiResponse.Schema = {
                             ],
                             "required": false
                         },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
+                        },
                         "slug": {
                             "description": "Limit result set to posts with one or more specific slugs.",
                             "type": "array",
@@ -1752,6 +1766,20 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
+                        },
                         "slug": {
                             "description": "Limit result set to posts with one or more specific slugs.",
                             "type": "array",
@@ -2833,6 +2861,20 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
+                        },
                         "slug": {
                             "description": "Limit result set to posts with one or more specific slugs.",
                             "type": "array",
@@ -3541,6 +3583,20 @@ mockedApiResponse.Schema = {
                                 "title",
                                 "menu_order"
                             ],
+                            "required": false
+                        },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
                             "required": false
                         },
                         "slug": {
@@ -4337,6 +4393,20 @@ mockedApiResponse.Schema = {
                                 "include_slugs",
                                 "title"
                             ],
+                            "required": false
+                        },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
                             "required": false
                         },
                         "slug": {
@@ -6488,6 +6558,20 @@ mockedApiResponse.Schema = {
                                 "include_slugs",
                                 "title"
                             ],
+                            "required": false
+                        },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
                             "required": false
                         },
                         "slug": {

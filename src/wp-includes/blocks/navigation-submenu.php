@@ -155,7 +155,7 @@ function render_block_core_navigation_submenu( $attributes, $content, $block ) {
 
 	$css_classes = trim( implode( ' ', $classes ) );
 	$has_submenu = count( $block->inner_blocks ) > 0;
-	$is_active   = ! empty( $attributes['id'] ) && ( get_the_ID() === (int) $attributes['id'] );
+	$is_active   = ! empty( $attributes['id'] ) && ( get_queried_object_id() === (int) $attributes['id'] );
 
 	$show_submenu_indicators = isset( $block->context['showSubmenuIcon'] ) && $block->context['showSubmenuIcon'];
 	$open_on_click           = isset( $block->context['openSubmenusOnClick'] ) && $block->context['openSubmenusOnClick'];
@@ -253,6 +253,14 @@ function render_block_core_navigation_submenu( $attributes, $content, $block ) {
 		$inner_blocks_html = '';
 		foreach ( $block->inner_blocks as $inner_block ) {
 			$inner_blocks_html .= $inner_block->render();
+		}
+
+		if ( strpos( $inner_blocks_html, 'current-menu-item' ) ) {
+			$tag_processor = new WP_HTML_Tag_Processor( $html );
+			while ( $tag_processor->next_tag( array( 'class_name' => 'wp-block-navigation-item__content' ) ) ) {
+				$tag_processor->add_class( 'current-menu-ancestor' );
+			}
+			$html = $tag_processor->get_updated_html();
 		}
 
 		$html .= sprintf(
