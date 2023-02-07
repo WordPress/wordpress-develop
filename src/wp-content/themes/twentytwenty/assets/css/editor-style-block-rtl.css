@@ -885,7 +885,7 @@ hr.wp-block-separator.is-style-dots::before {
 
 .editor-styles-wrapper .wp-block-quote.has-text-color cite,
 .editor-styles-wrapper .wp-block-pullquote.has-text-color cite {
-  color: inherit;
+	color: inherit;
 }
 
 /* STYLE: SOLID COLOR */
