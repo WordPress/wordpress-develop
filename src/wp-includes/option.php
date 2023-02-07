@@ -304,7 +304,7 @@ function wp_load_alloptions( $force_cache = false ) {
 	/**
 	 * Filters the array of alloptions before it is populated.
 	 *
-	 * Returning a non-null value from the filter will effectively short circuit
+	 * Returning an array from the filter will effectively short circuit
 	 * wp_load_alloptions(), returning that value instead.
 	 *
 	 * @since 6.2.0
@@ -313,7 +313,7 @@ function wp_load_alloptions( $force_cache = false ) {
 	 * @param bool       $force_cache Whether to force an update of the local cache from the persistent cache. Default false.
 	 */
 	$alloptions = apply_filters( 'pre_wp_load_alloptions', null, $force_cache );
-	if ( null !== $alloptions ) {
+	if ( is_array( $alloptions ) ) {
 		return $alloptions;
 	}
 
