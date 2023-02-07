@@ -30,6 +30,12 @@ Description: Used to style blocks.
 	text-align: right;
 }
 
+[class^="wp-block-"]:not(.wp-block-gallery) figcaption cite,
+[class^="wp-block-"]:not(.wp-block-gallery) figcaption em,
+[class^="wp-block-"]:not(.wp-block-gallery) figcaption i {
+	font-style: normal;
+}
+
 /*--------------------------------------------------------------
 2.0 Blocks - Common Blocks
 --------------------------------------------------------------*/

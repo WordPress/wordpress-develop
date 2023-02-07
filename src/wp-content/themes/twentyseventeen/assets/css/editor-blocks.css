@@ -458,16 +458,27 @@ html[lang="th"] .edit-post-visual-editor * {
 	margin-top: 0.5em;
 }
 
-/* Caption styles*/
+/* Caption styles */
 
-[class^="wp-block-"]:not(.wp-block-gallery) figcaption {
+[class^="wp-block-"]:not(.wp-block-gallery) figcaption,
+[class*=" wp-block-"]:not(.wp-block-gallery) figcaption {
 	font-style: italic;
 	margin-bottom: 1.5em;
 	text-align: left;
 }
 
-.rtl [class^="wp-block-"]:not(.wp-block-gallery) figcaption {
+.rtl [class^="wp-block-"]:not(.wp-block-gallery) figcaption,
+.rtl [class*=" wp-block-"]:not(.wp-block-gallery) figcaption {
 	text-align: right;
+}
+
+[class^="wp-block-"]:not(.wp-block-gallery) figcaption cite,
+[class*=" wp-block-"]:not(.wp-block-gallery) figcaption cite,
+[class^="wp-block-"]:not(.wp-block-gallery) figcaption em,
+[class*=" wp-block-"]:not(.wp-block-gallery) figcaption em,
+[class^="wp-block-"]:not(.wp-block-gallery) figcaption i,
+[class*=" wp-block-"]:not(.wp-block-gallery) figcaption i {
+	font-style: normal;
 }
 
 /* Code styles */
