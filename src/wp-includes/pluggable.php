@@ -1070,7 +1070,7 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 		 * Allows preventing auth cookies from actually being sent to the client.
 		 *
 		 * @since 4.7.4
-		 * @since 6.2.0 The `$user_id`, `$expire`, `$expiration`, and `$token` parameters were added.
+		 * @since 6.2.0 The `$expire`, `$expiration`, `$user_id`, and `$token` parameters were added.
 		 *
 		 * @param bool   $send       Whether to send auth cookies to the client. Default true.
 		 * @param int    $expire     The time the login grace period expires as a UNIX timestamp.
