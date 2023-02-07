@@ -203,7 +203,7 @@ if ( ! is_multisite() && current_user_can( 'update_themes' ) ) {
 	$submenu['themes.php'][5] = array( sprintf( __( 'Themes %s' ), $count ), $appearance_cap, 'themes.php' );
 
 if ( wp_is_block_theme() ) {
-	$submenu['themes.php'][6] = array( _x( 'Editor', 'site editor' ), 'edit_theme_options', 'site-editor.php' );
+	$submenu['themes.php'][6] = array( _x( 'Editor', 'site editor menu item' ), 'edit_theme_options', 'site-editor.php' );
 }
 
 if ( ! wp_is_block_theme() && current_theme_supports( 'block-template-parts' ) ) {
