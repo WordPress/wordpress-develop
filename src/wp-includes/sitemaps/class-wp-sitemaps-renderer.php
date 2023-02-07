@@ -252,12 +252,7 @@ class WP_Sitemaps_Renderer {
 	 */
 	private function check_for_simple_xml_availability() {
 		if ( ! class_exists( 'SimpleXMLElement' ) ) {
-			add_filter(
-				'wp_die_handler',
-				static function () {
-					return '_xml_wp_die_handler';
-				}
-			);
+			add_filter( 'wp_die_handler', array( __CLASS__, 'return_xml_wp_die_handler' ) );
 
 			wp_die(
 				sprintf(
@@ -271,5 +266,16 @@ class WP_Sitemaps_Renderer {
 				)
 			);
 		}
+	}
+
+	/**
+	 * Returns the _xml_wp_die_handler function name.
+	 *
+	 * Used to prevent using a lambda function in the 'wp_die_handler' filter.
+	 *
+	 * @return string The XML WP Die handler function name.
+	 */
+	protected static function return_xml_wp_die_handler() {
+		return '_xml_wp_die_handler';
 	}
 }

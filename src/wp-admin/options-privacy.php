@@ -18,15 +18,6 @@ if ( isset( $_GET['tab'] ) && 'policyguide' === $_GET['tab'] ) {
 	return;
 }
 
-add_filter(
-	'admin_body_class',
-	static function( $body_class ) {
-		$body_class .= ' privacy-settings ';
-
-		return $body_class;
-	}
-);
-
 $action = isset( $_POST['action'] ) ? $_POST['action'] : '';
 
 get_current_screen()->add_help_tab(

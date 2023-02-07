@@ -52,6 +52,10 @@ add_action( 'admin_head', 'wp_admin_viewport_meta' );
 add_action( 'customize_controls_head', 'wp_admin_viewport_meta' );
 add_filter( 'nav_menu_meta_box_object', '_wp_nav_menu_meta_box_object' );
 
+// Body classes for admin pages.
+add_filter( 'admin_body_class', 'body_class_edit_form_blocks' );
+add_filter( 'admin_body_class', 'body_class_options_privacy' );
+
 // Prerendering.
 if ( ! is_customize_preview() ) {
 	add_filter( 'admin_print_styles', 'wp_resource_hints', 1 );
