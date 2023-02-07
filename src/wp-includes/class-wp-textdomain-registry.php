@@ -1,6 +1,9 @@
 <?php
 /**
- * Locale API: WP_Textdomain_Registry class
+ * Locale API: WP_Textdomain_Registry class.
+ *
+ * This file uses rtrim() instead of untrailingslashit() and trailingslashit()
+ * to avoid formatting.php dependency.
  *
  * @package WordPress
  * @subpackage i18n
