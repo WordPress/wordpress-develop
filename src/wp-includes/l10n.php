@@ -1821,6 +1821,10 @@ function wp_get_list_item_separator() {
  */
 function wp_get_word_count_type() {
 	global $wp_locale;
+	if ( ! ( $wp_locale instanceof WP_Locale ) ) {
+		// Default value of get_word_count_type.
+		return 'words';
+	}
 
 	return $wp_locale->get_word_count_type();
 }
