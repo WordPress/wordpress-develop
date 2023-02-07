@@ -748,7 +748,7 @@ function list_theme_updates() {
 				<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $stylesheet ); ?>" />
 				<label for="<?php echo $checkbox_id; ?>" class="screen-reader-text">
 					<?php
-					/* translators: %hidden accessibility text. %s: Theme name. */
+					/* translators: Hidden accessibility text. %s: Theme name. */
 					printf( __( 'Select %s' ), $theme->display( 'Name' ) );
 					?>
 				</label>
