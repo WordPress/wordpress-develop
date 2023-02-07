@@ -18,7 +18,13 @@ mockedApiResponse.Schema = {
         "wp-site-health/v1",
         "wp-block-editor/v1"
     ],
-    "authentication": [],
+    "authentication": {
+        "application-passwords": {
+            "endpoints": {
+                "authorization": "http://example.org/wp-admin/authorize-application.php"
+            }
+        }
+    },
     "routes": {
         "/": {
             "namespace": "",
@@ -8473,25 +8479,7 @@ mockedApiResponse.Schema = {
                         "meta": {
                             "description": "Meta fields.",
                             "type": "object",
-                            "properties": {
-                                "persisted_preferences": {
-                                    "type": "object",
-                                    "description": "",
-                                    "default": [],
-                                    "context": [
-                                        "edit"
-                                    ],
-                                    "properties": {
-                                        "_modified": {
-                                            "description": "The date and time the preferences were updated.",
-                                            "type": "string",
-                                            "format": "date-time",
-                                            "readonly": false
-                                        }
-                                    },
-                                    "additionalProperties": true
-                                }
-                            },
+                            "properties": [],
                             "required": false
                         }
                     }
@@ -8622,25 +8610,7 @@ mockedApiResponse.Schema = {
                         "meta": {
                             "description": "Meta fields.",
                             "type": "object",
-                            "properties": {
-                                "persisted_preferences": {
-                                    "type": "object",
-                                    "description": "",
-                                    "default": [],
-                                    "context": [
-                                        "edit"
-                                    ],
-                                    "properties": {
-                                        "_modified": {
-                                            "description": "The date and time the preferences were updated.",
-                                            "type": "string",
-                                            "format": "date-time",
-                                            "readonly": false
-                                        }
-                                    },
-                                    "additionalProperties": true
-                                }
-                            },
+                            "properties": [],
                             "required": false
                         }
                     }
@@ -8781,25 +8751,7 @@ mockedApiResponse.Schema = {
                         "meta": {
                             "description": "Meta fields.",
                             "type": "object",
-                            "properties": {
-                                "persisted_preferences": {
-                                    "type": "object",
-                                    "description": "",
-                                    "default": [],
-                                    "context": [
-                                        "edit"
-                                    ],
-                                    "properties": {
-                                        "_modified": {
-                                            "description": "The date and time the preferences were updated.",
-                                            "type": "string",
-                                            "format": "date-time",
-                                            "readonly": false
-                                        }
-                                    },
-                                    "additionalProperties": true
-                                }
-                            },
+                            "properties": [],
                             "required": false
                         }
                     }
