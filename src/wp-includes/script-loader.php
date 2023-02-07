@@ -106,15 +106,15 @@ function wp_default_packages_vendor( $scripts ) {
 	$vendor_scripts_versions = array(
 		'react'                       => '18.2.0',
 		'react-dom'                   => '18.2.0',
-		'regenerator-runtime'         => '0.13.9',
+		'regenerator-runtime'         => '0.13.11',
 		'moment'                      => '2.29.4',
 		'lodash'                      => '4.17.19',
 		'wp-polyfill-fetch'           => '3.6.2',
 		'wp-polyfill-formdata'        => '4.0.10',
-		'wp-polyfill-node-contains'   => '4.4.0',
+		'wp-polyfill-node-contains'   => '4.6.0',
 		'wp-polyfill-url'             => '3.6.4',
-		'wp-polyfill-dom-rect'        => '4.4.0',
-		'wp-polyfill-element-closest' => '2.0.2',
+		'wp-polyfill-dom-rect'        => '4.6.0',
+		'wp-polyfill-element-closest' => '3.0.2',
 		'wp-polyfill-object-fit'      => '2.3.5',
 		'wp-polyfill-inert'           => '3.1.2',
 		'wp-polyfill'                 => '3.15.0',
@@ -1111,6 +1111,10 @@ function wp_default_scripts( $scripts ) {
 		'pluginPath'  => includes_url( 'js/mediaelement/', 'relative' ),
 		'classPrefix' => 'mejs-',
 		'stretching'  => 'responsive',
+		/** This filter is documented in wp-includes/media.php */
+		'audioShortcodeLibrary' => apply_filters( 'wp_audio_shortcode_library', 'mediaelement' ),
+		/** This filter is documented in wp-includes/media.php */
+		'videoShortcodeLibrary' => apply_filters( 'wp_video_shortcode_library', 'mediaelement' ),
 	);
 	did_action( 'init' ) && $scripts->localize(
 		'mediaelement',
