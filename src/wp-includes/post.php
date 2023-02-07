@@ -5690,6 +5690,10 @@ function get_page( $page, $output = OBJECT, $filter = 'raw' ) {
 function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	global $wpdb;
 
+	/*
+	 * Only use WP_Query if not called from the 'posts_pre_query' or 'pre_get_posts' hook,
+	 * to avoid an infinite loop. Otherwise, perform a direct SQL query.
+	 */
 	$use_wp_query = ! has_filter( 'posts_pre_query' ) && ! has_action( 'pre_get_posts' );
 
 	if ( ! $use_wp_query ) {
@@ -5744,7 +5748,12 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 		$in_string           = "'" . implode( "','", $escaped_parts ) . "'";
 		$post_types          = esc_sql( $post_types );
 		$post_type_in_string = "'" . implode( "','", $post_types ) . "'";
-		$sql                 = "SELECT ID, post_name, post_parent, post_type FROM $wpdb->posts WHERE post_name IN ($in_string) AND post_type IN ($post_type_in_string)";
+		$sql                 = "
+			SELECT ID, post_name, post_parent, post_type
+			FROM $wpdb->posts
+			WHERE post_name IN ($in_string)
+			AND post_type IN ($post_type_in_string)
+		";
 		$pages               = $wpdb->get_results( $sql, OBJECT_K );
 	}
 
