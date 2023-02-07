@@ -4,15 +4,19 @@
  * @group diff
  */
 class Tests_Diff_WpTextDiffRendererTable extends WP_UnitTestCase {
-
 	/**
 	 * @var WP_Text_Diff_Renderer_Table
 	 */
 	private $diff_renderer_table;
 
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+		require_once ABSPATH . 'wp-includes/Text/Diff/Renderer.php';
+		require_once ABSPATH . 'wp-includes/class-wp-text-diff-renderer-table.php';
+	}
+
 	public function set_up() {
 		parent::set_up();
-		require_once ABSPATH . 'wp-includes/class-wp-text-diff-renderer-table.php';
 		$this->diff_renderer_table = new WP_Text_Diff_Renderer_Table();
 	}
 
@@ -41,11 +45,12 @@ class Tests_Diff_WpTextDiffRendererTable extends WP_UnitTestCase {
 	 * @return array
 	 */
 	public function data_should_allow_predefined_dynamic_properties() {
-		// This code doesn't have access to self::$list_table, so the WP_Text_Diff_Renderer_Table object has to be called this way.
-		$compat_fields_property = new ReflectionProperty( $this->diff_renderer_table, 'compat_fields' );
+		// This code doesn't have access to self::$renderer_table, so the WP_Text_Diff_Renderer_Table object has to be instantiated this way.
+		$renderer_table         = new WP_Text_Diff_Renderer_Table();
+		$compat_fields_property = new ReflectionProperty( $renderer_table, 'compat_fields' );
 		$compat_fields_property->setAccessible( true );
 
-		$predefined_properties = $compat_fields_property->getValue( $this->diff_renderer_table );
+		$predefined_properties = $compat_fields_property->getValue( $renderer_table );
 
 		$compat_fields_property->setAccessible( false );
 		$predefined_properties = array_map(
