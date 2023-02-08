@@ -157,8 +157,11 @@ class Tests_Functions_Referer extends WP_UnitTestCase {
 		$this->assertSame( 'http://foo.bar/baz', wp_get_raw_referer() );
 	}
 
+	/**
+	 * @ticket 57670
+	 */
 	public function test_raw_referer_is_empty_on_invalid_request_parameter() {
-		$_REQUEST['_wp_http_referer'] = ['demo'];
+		$_REQUEST['_wp_http_referer'] = array( 'demo' );
 		$this->assertFalse( wp_get_raw_referer() );
 	}
 }
