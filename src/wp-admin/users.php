@@ -59,7 +59,10 @@ if ( is_multisite() ) {
 } else {
 	$help .= '<li>' . __( '<strong>Delete</strong> brings you to the Delete Users screen for confirmation, where you can permanently remove a user from your site and delete their content. You can also delete multiple users at once by using bulk actions.' ) . '</li>';
 }
-
+$author_posts_url = get_author_posts_url( get_current_user_id() );
+if ( $author_posts_url ) {
+	$help .= '<li>' . __( '<strong>View</strong> takes you to a public author archive which lists all the posts published by the user.' ) . '</li>';
+}
 if ( current_user_can( 'edit_users' ) ) {
 	$help .= '<li>' . __( '<strong>Send password reset</strong> sends the user an email with a link to set a new password.' ) . '</li>';
 }
