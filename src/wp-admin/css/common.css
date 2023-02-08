@@ -1729,7 +1729,6 @@ p.auto-update-status {
 
 #screen-meta-links .show-settings {
 	border: 1px solid #c3c4c7;
-	border-top: none;
 	height: auto;
 	margin-bottom: 0;
 	padding: 3px 6px 3px 16px;
@@ -1737,8 +1736,8 @@ p.auto-update-status {
 	border-radius: 0 0 4px 4px;
 	color: #646970;
 	line-height: 1.7;
-	box-shadow: 0 0 0 transparent;
-	transition: box-shadow 0.1s linear;
+	/* box-shadow: 0 0 0 transparent;
+	transition: box-shadow 0.1s linear; */
 }
 
 #screen-meta-links .show-settings:hover,
@@ -1748,8 +1747,11 @@ p.auto-update-status {
 }
 
 #screen-meta-links .show-settings:focus {
-	border-color: #4f94d4;
-	box-shadow: 0 0 3px rgba(34, 113, 177, 0.8);
+	/* border-color: #4f94d4;
+	box-shadow: 0 0 3px rgba(34, 113, 177, 0.8); */
+	box-shadow: 0 0 0 1px #3582c4;
+	outline: 2px solid transparent;
+	outline-offset: 0;
 }
 
 #screen-meta-links .show-settings:active {
@@ -1876,7 +1878,7 @@ p.auto-update-status {
 	border: 1px solid #c3c4c7;
 	border-top: none;
 	border-bottom: none;
-	background: #f0f6fc;
+	background: #fff;
 }
 
 #contextual-help-wrap.no-sidebar #contextual-help-back {
@@ -1889,6 +1891,7 @@ p.auto-update-status {
 	float: left;
 	width: 150px;
 	margin: 0;
+	background-color: #f0f6fc;
 }
 
 .contextual-help-tabs ul {
@@ -1905,7 +1908,7 @@ p.auto-update-status {
 
 .contextual-help-tabs a {
 	display: block;
-	padding: 5px 5px 5px 12px;
+	padding: 8px 5px 8px 12px;
 	line-height: 1.4;
 	text-decoration: none;
 	border: 1px solid transparent;
@@ -1920,8 +1923,8 @@ p.auto-update-status {
 .contextual-help-tabs .active {
 	padding: 0;
 	margin: 0 -1px 0 0;
-	border-left: 2px solid #72aee6;
-	background: #f0f6fc;
+	border-left: 3px solid #2271b1;
+	background: #fff;
 	box-shadow: 0 2px 0 rgba(0, 0, 0, 0.02), 0 1px 0 rgba(0, 0, 0, 0.02);
 }
 
@@ -1955,6 +1958,7 @@ p.auto-update-status {
 	float: right;
 	padding: 0 8px 0 12px;
 	overflow: auto;
+	background-color: #f0f6fc;
 }
 
 /*------------------------------------------------------------------------------
