@@ -4,6 +4,7 @@ import {
 	publishPost,
 	trashAllPosts,
 	visitAdminPage,
+	canvas,
 } from '@wordpress/e2e-test-utils';
 
 describe( 'Edit Posts', () => {
@@ -58,10 +59,11 @@ describe( 'Edit Posts', () => {
 		await page.waitForNavigation();
 
 		// Wait for title field to render onscreen.
-		await page.waitForSelector( '.editor-post-title__input' );
+		await page.waitForSelector( 'iframe[name="editor-canvas"]' );
+		await canvas().waitForSelector( '.editor-post-title__input' );
 
 		// Expect to now be in the editor with the correct post title shown.
-		const editorPostTitleInput = await page.$x(
+		const editorPostTitleInput = await canvas().$x(
 			`//h1[contains(@class, "editor-post-title__input")][contains(text(), "${ title }")]`
 		);
 		expect( editorPostTitleInput.length ).toBe( 1 );

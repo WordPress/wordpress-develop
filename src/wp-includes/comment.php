@@ -2781,9 +2781,9 @@ function wp_update_comment_count_now( $post_id ) {
 /**
  * Finds a pingback server URI based on the given URL.
  *
- * Checks the HTML for the rel="pingback" link and x-pingback headers. It does
- * a check for the x-pingback headers first and returns that, if available. The
- * check for the rel="pingback" has more overhead than just the header.
+ * Checks the HTML for the rel="pingback" link and X-Pingback headers. It does
+ * a check for the X-Pingback headers first and returns that, if available.
+ * The check for the rel="pingback" has more overhead than just the header.
  *
  * @since 1.5.0
  *
@@ -2824,12 +2824,12 @@ function discover_pingback_server_uri( $url, $deprecated = '' ) {
 		return false;
 	}
 
-	if ( wp_remote_retrieve_header( $response, 'x-pingback' ) ) {
-		return wp_remote_retrieve_header( $response, 'x-pingback' );
+	if ( wp_remote_retrieve_header( $response, 'X-Pingback' ) ) {
+		return wp_remote_retrieve_header( $response, 'X-Pingback' );
 	}
 
 	// Not an (x)html, sgml, or xml page, no use going further.
-	if ( preg_match( '#(image|audio|video|model)/#is', wp_remote_retrieve_header( $response, 'content-type' ) ) ) {
+	if ( preg_match( '#(image|audio|video|model)/#is', wp_remote_retrieve_header( $response, 'Content-Type' ) ) ) {
 		return false;
 	}
 
@@ -3111,7 +3111,10 @@ function pingback( $content, $post ) {
 		$pingback_server_url = discover_pingback_server_uri( $pagelinkedto );
 
 		if ( $pingback_server_url ) {
-			set_time_limit( 60 );
+			if ( function_exists( 'set_time_limit' ) ) {
+				set_time_limit( 60 );
+			}
+
 			// Now, the RPC call.
 			$pagelinkedfrom = get_permalink( $post );
 
