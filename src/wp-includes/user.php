@@ -691,7 +691,7 @@ function get_user_option( $option, $user = 0, $deprecated = '' ) {
  * Updates user option with global blog capability.
  *
  * User options are just like user metadata except that they have support for
- * global blog options. If the 'global' parameter is false, which it is by default
+ * global blog options. If the 'is_global' parameter is false, which it is by default,
  * it will prepend the WordPress table prefix to the option name.
  *
  * Deletes the user option if $newvalue is empty.
@@ -703,15 +703,15 @@ function get_user_option( $option, $user = 0, $deprecated = '' ) {
  * @param int    $user_id     User ID.
  * @param string $option_name User option name.
  * @param mixed  $newvalue    User option value.
- * @param bool   $global      Optional. Whether option name is global or blog specific.
+ * @param bool   $is_global   Optional. Whether option name is global or blog specific.
  *                            Default false (blog specific).
  * @return int|bool User meta ID if the option didn't exist, true on successful update,
  *                  false on failure.
  */
-function update_user_option( $user_id, $option_name, $newvalue, $global = false ) {
+function update_user_option( $user_id, $option_name, $newvalue, $is_global = false ) {
 	global $wpdb;
 
-	if ( ! $global ) {
+	if ( ! $is_global ) {
 		$option_name = $wpdb->get_blog_prefix() . $option_name;
 	}
 
@@ -722,7 +722,7 @@ function update_user_option( $user_id, $option_name, $newvalue, $global = false 
  * Deletes user option with global blog capability.
  *
  * User options are just like user metadata except that they have support for
- * global blog options. If the 'global' parameter is false, which it is by default
+ * global blog options. If the 'is_global' parameter is false, which it is by default,
  * it will prepend the WordPress table prefix to the option name.
  *
  * @since 3.0.0
@@ -731,16 +731,17 @@ function update_user_option( $user_id, $option_name, $newvalue, $global = false 
  *
  * @param int    $user_id     User ID
  * @param string $option_name User option name.
- * @param bool   $global      Optional. Whether option name is global or blog specific.
+ * @param bool   $is_global   Optional. Whether option name is global or blog specific.
  *                            Default false (blog specific).
  * @return bool True on success, false on failure.
  */
-function delete_user_option( $user_id, $option_name, $global = false ) {
+function delete_user_option( $user_id, $option_name, $is_global = false ) {
 	global $wpdb;
 
-	if ( ! $global ) {
+	if ( ! $is_global ) {
 		$option_name = $wpdb->get_blog_prefix() . $option_name;
 	}
+
 	return delete_user_meta( $user_id, $option_name );
 }
 
@@ -2577,7 +2578,7 @@ function wp_update_user( $userdata ) {
 
 	$switched_locale = false;
 	if ( ! empty( $send_password_change_email ) || ! empty( $send_email_change_email ) ) {
-		$switched_locale = switch_to_locale( get_user_locale( $user_id ) );
+		$switched_locale = switch_to_user_locale( $user_id );
 	}
 
 	if ( ! empty( $send_password_change_email ) ) {
@@ -3138,7 +3139,7 @@ function retrieve_password( $user_login = null ) {
 	// Localize password reset message content for user.
 	$locale = get_user_locale( $user_data );
 
-	$switched_locale = switch_to_locale( $locale );
+	$switched_locale = switch_to_user_locale( $user_data->ID );
 
 	if ( is_multisite() ) {
 		$site_name = get_network()->site_name;
@@ -4243,12 +4244,10 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 
 	// Localize message content for user; fallback to site default for visitors.
 	if ( ! empty( $request->user_id ) ) {
-		$locale = get_user_locale( $request->user_id );
+		$switched_locale = switch_to_user_locale( $request->user_id );
 	} else {
-		$locale = get_locale();
+		$switched_locale = switch_to_locale( get_locale() );
 	}
-
-	$switched_locale = switch_to_locale( $locale );
 
 	/**
 	 * Filters the recipient of the data erasure fulfillment notification.
@@ -4654,12 +4653,10 @@ function wp_send_user_request( $request_id ) {
 
 	// Localize message content for user; fallback to site default for visitors.
 	if ( ! empty( $request->user_id ) ) {
-		$locale = get_user_locale( $request->user_id );
+		$switched_locale = switch_to_user_locale( $request->user_id );
 	} else {
-		$locale = get_locale();
+		$switched_locale = switch_to_locale( get_locale() );
 	}
-
-	$switched_locale = switch_to_locale( $locale );
 
 	$email_data = array(
 		'request'     => $request,

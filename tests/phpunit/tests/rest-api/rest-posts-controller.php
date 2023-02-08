@@ -204,6 +204,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'page',
 				'per_page',
 				'search',
+				'search_columns',
 				'slug',
 				'status',
 				'sticky',
@@ -1525,6 +1526,38 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertNotContains( $id3, $ids );
 
 		$this->assertPostsWhere( " AND {posts}.ID NOT IN ($id3) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
+	}
+
+	/**
+	 * Tests that Rest Post controller supports search columns.
+	 *
+	 * @ticket 43867
+	 * @covers WP_REST_Posts_Controller::get_items
+	 */
+	public function test_get_items_with_custom_search_columns() {
+		$id1 = self::factory()->post->create(
+			array(
+				'post_title'   => 'Title contain foo and bar',
+				'post_content' => 'Content contain bar',
+				'post_excerpt' => 'Excerpt contain baz',
+			)
+		);
+		$id2 = self::factory()->post->create(
+			array(
+				'post_title'   => 'Title contain baz',
+				'post_content' => 'Content contain foo and bar',
+				'post_excerpt' => 'Excerpt contain foo, bar and baz',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'search', 'foo bar' );
+		$request->set_param( 'search_columns', array( 'post_title' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Response should have a status code 200.' );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data, 'Response should contain one result.' );
+		$this->assertSame( $id1, $data[0]['id'], 'Result should match expected value.' );
 	}
 
 	/**
@@ -4586,15 +4619,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$wp_rest_additional_fields = array();
 	}
 
-	public function additional_field_get_callback( $object ) {
-		return get_post_meta( $object['id'], 'my_custom_int', true );
+	public function additional_field_get_callback( $response_data, $field_name ) {
+		return get_post_meta( $response_data['id'], $field_name, true );
 	}
 
-	public function additional_field_update_callback( $value, $post ) {
+	public function additional_field_update_callback( $value, $post, $field_name ) {
 		if ( 'returnError' === $value ) {
 			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
 		}
-		update_post_meta( $post->ID, 'my_custom_int', $value );
+		update_post_meta( $post->ID, $field_name, $value );
 	}
 
 	public function test_publish_action_ldo_registered() {

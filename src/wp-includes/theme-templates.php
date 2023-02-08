@@ -193,7 +193,7 @@ function the_block_template_skip_link() {
 		skipLink = document.createElement( 'a' );
 		skipLink.classList.add( 'skip-link', 'screen-reader-text' );
 		skipLink.href = '#' + skipLinkTargetID;
-		skipLink.innerHTML = '<?php esc_html_e( 'Skip to content' ); ?>';
+		skipLink.innerHTML = '<?php /* translators: Hidden accessibility text. */ esc_html_e( 'Skip to content' ); ?>';
 
 		// Inject the skip link.
 		sibling.parentElement.insertBefore( skipLink, sibling );
@@ -209,7 +209,7 @@ function the_block_template_skip_link() {
  * @since 5.8.0
  */
 function wp_enable_block_templates() {
-	if ( wp_is_block_theme() || WP_Theme_JSON_Resolver::theme_has_support() ) {
+	if ( wp_is_block_theme() || wp_theme_has_theme_json() ) {
 		add_theme_support( 'block-templates' );
 	}
 }

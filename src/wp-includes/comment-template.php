@@ -218,14 +218,45 @@ function get_comment_author_email_link( $linktext = '', $before = '', $after = '
  * @return string The comment author name or HTML link for author's URL.
  */
 function get_comment_author_link( $comment_ID = 0 ) {
-	$comment = get_comment( $comment_ID );
-	$url     = get_comment_author_url( $comment );
-	$author  = get_comment_author( $comment );
+	$comment    = get_comment( $comment_ID );
+	$comment_ID = ! empty( $comment->comment_ID ) ? $comment->comment_ID : (string) $comment_ID;
+	$url        = get_comment_author_url( $comment );
+	$author     = get_comment_author( $comment );
 
 	if ( empty( $url ) || 'http://' === $url ) {
 		$return = $author;
 	} else {
-		$return = "<a href='$url' rel='external nofollow ugc' class='url'>$author</a>";
+		$rel_parts = array( 'ugc' );
+		if ( ! wp_is_internal_link( $url ) ) {
+			$rel_parts = array_merge(
+				$rel_parts,
+				array( 'external', 'nofollow' )
+			);
+		}
+
+		/**
+		 * Filters the rel attributes of the comment author's link.
+		 *
+		 * @since 6.2.0
+		 *
+		 * @param string[]   $rel_parts An array of strings representing the rel
+		 *                              tags which will be joined into the anchor's
+		 *                              rel attribute.
+		 * @param WP_Comment $comment   The comment object
+		 */
+		$rel_parts = apply_filters( 'comment_author_link_rel', $rel_parts, $comment );
+
+		$rel = implode( ' ', $rel_parts );
+		$rel = esc_attr( $rel );
+		// empty space before rel necessary for later sprintf.
+		$rel = ! empty( $rel ) ? sprintf( ' rel="%s"', $rel ) : '';
+
+		$return = sprintf(
+			'<a href="%1$s" class="url"%2$s>%3$s</a>',
+			$url,
+			$rel,
+			$author
+		);
 	}
 
 	/**
@@ -239,7 +270,7 @@ function get_comment_author_link( $comment_ID = 0 ) {
 	 * @param string $author     The comment author's username.
 	 * @param string $comment_ID The comment ID as a numeric string.
 	 */
-	return apply_filters( 'get_comment_author_link', $return, $author, $comment->comment_ID );
+	return apply_filters( 'get_comment_author_link', $return, $author, $comment_ID );
 }
 
 /**
@@ -547,7 +578,7 @@ function get_comment_class( $css_class = '', $comment_id = null, $post = null ) 
  * @since 4.4.0 Added the ability for `$comment_ID` to also accept a WP_Comment object.
  *
  * @param string         $format     Optional. PHP date format. Defaults to the 'date_format' option.
- * @param int|WP_Comment $comment_ID WP_Comment or ID of the comment for which to get the date.
+ * @param int|WP_Comment $comment_ID Optional. WP_Comment or ID of the comment for which to get the date.
  *                                   Default current comment.
  * @return string The comment's date.
  */
@@ -1031,15 +1062,22 @@ function comment_text( $comment_ID = 0, $args = array() ) {
  * Retrieves the comment time of the current comment.
  *
  * @since 1.5.0
+ * @since 6.2.0 Added the `$comment_ID` parameter.
  *
- * @param string $format    Optional. PHP time format. Defaults to the 'time_format' option.
- * @param bool   $gmt       Optional. Whether to use the GMT date. Default false.
- * @param bool   $translate Optional. Whether to translate the time (for use in feeds).
- *                          Default true.
+ * @param string         $format     Optional. PHP date format. Defaults to the 'time_format' option.
+ * @param bool           $gmt        Optional. Whether to use the GMT date. Default false.
+ * @param bool           $translate  Optional. Whether to translate the time (for use in feeds).
+ *                                   Default true.
+ * @param int|WP_Comment $comment_ID Optional. WP_Comment or ID of the comment for which to get the time.
+ *                                   Default current comment.
  * @return string The formatted time.
  */
-function get_comment_time( $format = '', $gmt = false, $translate = true ) {
-	$comment = get_comment();
+function get_comment_time( $format = '', $gmt = false, $translate = true, $comment_ID = 0 ) {
+	$comment = get_comment( $comment_ID );
+
+	if ( null === $comment ) {
+		return '';
+	}
 
 	$comment_date = $gmt ? $comment->comment_date_gmt : $comment->comment_date;
 
@@ -1065,11 +1103,14 @@ function get_comment_time( $format = '', $gmt = false, $translate = true ) {
  * Displays the comment time of the current comment.
  *
  * @since 0.71
+ * @since 6.2.0 Added the `$comment_ID` parameter.
  *
- * @param string $format Optional. PHP time format. Defaults to the 'time_format' option.
+ * @param string         $format     Optional. PHP time format. Defaults to the 'time_format' option.
+ * @param int|WP_Comment $comment_ID Optional. WP_Comment or ID of the comment for which to get the time.
+ *                                   Default current comment.
  */
-function comment_time( $format = '' ) {
-	echo get_comment_time( $format );
+function comment_time( $format = '', $comment_ID = 0 ) {
+	echo get_comment_time( $format, $comment_ID );
 }
 
 /**

@@ -278,7 +278,12 @@ class WP_Media_List_Table extends WP_List_Table {
 			<div class="filter-items">
 				<?php $this->view_switcher( $mode ); ?>
 
-				<label for="attachment-filter" class="screen-reader-text"><?php _e( 'Filter by type' ); ?></label>
+				<label for="attachment-filter" class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Filter by type' );
+					?>
+				</label>
 				<select class="attachment-filters" name="attachment-filter" id="attachment-filter">
 					<?php
 					if ( ! empty( $views ) ) {
@@ -358,6 +363,7 @@ class WP_Media_List_Table extends WP_List_Table {
 				$posts_columns['comments'] = sprintf(
 					'<span class="vers comment-grey-bubble" title="%1$s" aria-hidden="true"></span><span class="screen-reader-text">%2$s</span>',
 					esc_attr__( 'Comments' ),
+					/* translators: Hidden accessibility text. */
 					__( 'Comments' )
 				);
 			}
@@ -407,7 +413,7 @@ class WP_Media_List_Table extends WP_List_Table {
 			?>
 			<label class="screen-reader-text" for="cb-select-<?php echo $post->ID; ?>">
 				<?php
-				/* translators: %s: Attachment title. */
+				/* translators: Hidden accessibility text. %s: Attachment title. */
 				printf( __( 'Select %s' ), _draft_or_post_title() );
 				?>
 			</label>
@@ -469,7 +475,12 @@ class WP_Media_List_Table extends WP_List_Table {
 			?>
 		</strong>
 		<p class="filename">
-			<span class="screen-reader-text"><?php _e( 'File name:' ); ?> </span>
+			<span class="screen-reader-text">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'File name:' );
+				?>
+			</span>
 			<?php
 			$file = get_attached_file( $post->ID );
 			echo esc_html( wp_basename( $file ) );
@@ -497,10 +508,13 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * Handles the description column output.
 	 *
 	 * @since 4.3.0
+	 * @deprecated 6.2.0
 	 *
 	 * @param WP_Post $post The current WP_Post object.
 	 */
 	public function column_desc( $post ) {
+		_deprecated_function( __METHOD__, '6.2.0' );
+
 		echo has_excerpt() ? $post->post_excerpt : '';
 	}
 
@@ -767,13 +781,15 @@ class WP_Media_List_Table extends WP_List_Table {
 				}
 			}
 
-			$actions['view'] = sprintf(
-				'<a href="%s" aria-label="%s" rel="bookmark">%s</a>',
-				get_permalink( $post->ID ),
-				/* translators: %s: Attachment title. */
-				esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $att_title ) ),
-				__( 'View' )
-			);
+			if ( get_permalink( $post->ID ) ) {
+				$actions['view'] = sprintf(
+					'<a href="%s" aria-label="%s" rel="bookmark">%s</a>',
+					get_permalink( $post->ID ),
+					/* translators: %s: Attachment title. */
+					esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $att_title ) ),
+					__( 'View' )
+				);
+			}
 
 			if ( current_user_can( 'edit_post', $post->ID ) ) {
 				$actions['attach'] = sprintf(
@@ -828,21 +844,31 @@ class WP_Media_List_Table extends WP_List_Table {
 			}
 
 			if ( ! $this->is_trash ) {
-				$actions['view'] = sprintf(
-					'<a href="%s" aria-label="%s" rel="bookmark">%s</a>',
-					get_permalink( $post->ID ),
-					/* translators: %s: Attachment title. */
-					esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $att_title ) ),
-					__( 'View' )
-				);
+				if ( get_permalink( $post->ID ) ) {
+					$actions['view'] = sprintf(
+						'<a href="%s" aria-label="%s" rel="bookmark">%s</a>',
+						get_permalink( $post->ID ),
+						/* translators: %s: Attachment title. */
+						esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $att_title ) ),
+						__( 'View' )
+					);
+				}
 
 				$actions['copy'] = sprintf(
 					'<span class="copy-to-clipboard-container"><button type="button" class="button-link copy-attachment-url media-library" data-clipboard-text="%s" aria-label="%s">%s</button><span class="success hidden" aria-hidden="true">%s</span></span>',
 					esc_url( wp_get_attachment_url( $post->ID ) ),
 					/* translators: %s: Attachment title. */
 					esc_attr( sprintf( __( 'Copy &#8220;%s&#8221; URL to clipboard' ), $att_title ) ),
-					__( 'Copy URL to clipboard' ),
+					__( 'Copy URL' ),
 					__( 'Copied!' )
+				);
+
+				$actions['download'] = sprintf(
+					'<a href="%s" aria-label="%s" download>%s</a>',
+					esc_url( wp_get_attachment_url( $post->ID ) ),
+					/* translators: %s: Attachment title. */
+					esc_attr( sprintf( __( 'Download &#8220;%s&#8221;' ), $att_title ) ),
+					__( 'Download file' )
 				);
 			}
 		}
