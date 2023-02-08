@@ -2532,7 +2532,7 @@ function wp_ajax_upload_attachment() {
 	check_ajax_referer( 'media-form' );
 	/*
 	 * This function does not use wp_send_json_success() / wp_send_json_error()
-	 * as the html4 Plupload handler requires a text/html content-type for older IE.
+	 * as the html4 Plupload handler requires a text/html Content-Type for older IE.
 	 * See https://core.trac.wordpress.org/ticket/31037
 	 */
 
@@ -3528,7 +3528,10 @@ function wp_ajax_get_revision_diffs() {
 	}
 
 	$return = array();
-	set_time_limit( 0 );
+
+	if ( function_exists( 'set_time_limit' ) ) {
+		set_time_limit( 0 );
+	}
 
 	foreach ( $_REQUEST['compare'] as $compare_key ) {
 		list( $compare_from, $compare_to ) = explode( ':', $compare_key ); // from:to
