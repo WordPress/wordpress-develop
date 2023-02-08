@@ -164,7 +164,7 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 					E_WARNING => 'Warning',
 					E_NOTICE  => 'Notice',
 				);
-				$error_type = isset( $error_types[ $errno ] ) ? $error_types[ $errno ] : 'Unknown';
+				$error_type  = isset( $error_types[ $errno ] ) ? $error_types[ $errno ] : 'Unknown';
 				$this->fail( 'PHP ' . $error_type . ': ' . $errstr );
 				return false;
 			}
