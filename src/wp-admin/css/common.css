@@ -1866,7 +1866,8 @@ p.auto-update-status {
 }
 
 #contextual-help-columns {
-	position: relative;
+	display: flex;
+	flex-direction: row;
 }
 
 #contextual-help-back {
@@ -1879,6 +1880,8 @@ p.auto-update-status {
 	border-top: none;
 	border-bottom: none;
 	background: #fff;
+
+	display: none;
 }
 
 #contextual-help-wrap.no-sidebar #contextual-help-back {
@@ -1888,10 +1891,10 @@ p.auto-update-status {
 }
 
 .contextual-help-tabs {
-	float: left;
+	order: 1;
 	width: 150px;
-	margin: 0;
 	background-color: #f0f6fc;
+	z-index: 1;
 }
 
 .contextual-help-tabs ul {
@@ -1926,6 +1929,7 @@ p.auto-update-status {
 	border-left: 3px solid #2271b1;
 	background: #fff;
 	box-shadow: 0 2px 0 rgba(0, 0, 0, 0.02), 0 1px 0 rgba(0, 0, 0, 0.02);
+	font-weight: 600;
 }
 
 .contextual-help-tabs .active a {
@@ -1934,14 +1938,21 @@ p.auto-update-status {
 }
 
 .contextual-help-tabs-wrap {
-	padding: 0 20px;
+	order: 2;
 	overflow: auto;
+	max-width: calc(100% - 300px);
+	border: 1px solid #c3c4c7;
+	border-top: none;
+	border-bottom: none;
+}
+
+.contextual-help-tabs-wrap > * {
+	padding: 0 20px;
 }
 
 .help-tab-content {
 	display: none;
-	margin: 0 22px 12px 0;
-	line-height: 1.6;
+	margin: 0 0 12px 0;
 }
 
 .help-tab-content.active {
@@ -1955,10 +1966,13 @@ p.auto-update-status {
 
 .contextual-help-sidebar {
 	width: 150px;
-	float: right;
-	padding: 0 8px 0 12px;
+	order: 3;
 	overflow: auto;
 	background-color: #f0f6fc;
+}
+
+.contextual-help-sidebar > * {
+	padding: 0 8px 0 12px;
 }
 
 /*------------------------------------------------------------------------------
@@ -4035,10 +4049,12 @@ img {
 		display: none;
 	}
 
+	#contextual-help-columns {
+		flex-direction: column;
+	}	
+
 	#screen-meta .contextual-help-tabs {
-		clear: both;
 		width: 100%;
-		float: none;
 	}
 
 	#screen-meta .contextual-help-tabs ul {
