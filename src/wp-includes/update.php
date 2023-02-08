@@ -1080,7 +1080,7 @@ function wp_clean_update_cache() {
 /**
  * Deletes all contents of the temp-backup directory.
  *
- * @since 6.2.0
+ * @since 6.3.0
  */
 function wp_delete_all_temp_backups() {
 	/*
@@ -1100,7 +1100,7 @@ function wp_delete_all_temp_backups() {
 /**
  * Remove `temp-backup` directory.
  *
- * @since 6.2.0
+ * @since 6.3.0
  *
  * @access private
  *
