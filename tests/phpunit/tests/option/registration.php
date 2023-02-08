@@ -160,9 +160,9 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 		set_error_handler(
 			function ( $errno = 0, $errstr = '' ) {
 				$error_types = array(
-					E_ERROR => 'Fatal',
+					E_ERROR   => 'Fatal',
 					E_WARNING => 'Warning',
-					E_NOTICE => 'Notice',
+					E_NOTICE  => 'Notice',
 				);
 				$error_type = isset( $error_types[ $errno ] ) ? $error_types[ $errno ] : 'Unknown';
 				$this->fail( 'PHP ' . $error_type . ': ' . $errstr );
