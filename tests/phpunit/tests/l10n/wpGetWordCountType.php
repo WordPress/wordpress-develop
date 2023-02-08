@@ -12,7 +12,7 @@ class Tests_L10n_WpGetWordCountType extends WP_UnitTestCase {
 	 */
 	public function test_should_return_default_if_locale_unset() {
 		global $wp_locale;
-		$locale = $wp_locale;
+		$locale    = $wp_locale;
 		$wp_locale = null;
 		$this->assertEquals( 'words', wp_get_word_count_type() );
 		$wp_locale = $locale;
