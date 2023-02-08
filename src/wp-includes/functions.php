@@ -1970,7 +1970,7 @@ function wp_get_referer() {
  * @return string|false Referer URL on success, false on failure.
  */
 function wp_get_raw_referer() {
-	if ( ! empty( $_REQUEST['_wp_http_referer'] ) ) {
+	if ( ! empty( $_REQUEST['_wp_http_referer'] ) && is_string( $_REQUEST['_wp_http_referer'] ) ) {
 		return wp_unslash( $_REQUEST['_wp_http_referer'] );
 	} elseif ( ! empty( $_SERVER['HTTP_REFERER'] ) ) {
 		return wp_unslash( $_SERVER['HTTP_REFERER'] );
