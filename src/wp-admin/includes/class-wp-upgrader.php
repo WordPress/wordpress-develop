@@ -117,7 +117,7 @@ class WP_Upgrader {
 	 *
 	 * Used by rollback functions.
 	 *
-	 * @since 6.2.0
+	 * @since 6.3.0
 	 * @var array
 	 */
 	private $temp_backups = array();
@@ -127,7 +127,7 @@ class WP_Upgrader {
 	 *
 	 * Used by rollback functions.
 	 *
-	 * @since 6.2.0
+	 * @since 6.3.0
 	 * @var array
 	 */
 	private $temp_restores = array();

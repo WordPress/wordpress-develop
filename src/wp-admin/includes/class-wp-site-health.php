@@ -1928,7 +1928,7 @@ class WP_Site_Health {
 	/**
 	 * Tests available disk space for updates.
 	 *
-	 * @since 6.2.0
+	 * @since 6.3.0
 	 *
 	 * @return array The test results.
 	 */
@@ -1976,7 +1976,7 @@ class WP_Site_Health {
 	/**
 	 * Test if plugin and theme updates temp-backup directories are writable or can be created.
 	 *
-	 * @since 6.2.0
+	 * @since 6.3.0
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
