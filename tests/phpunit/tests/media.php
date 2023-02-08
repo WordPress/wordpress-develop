@@ -3771,6 +3771,40 @@ EOF;
 	}
 
 	/**
+	 * Test that an image size isn't generated if it matches the original image size.
+	 */
+	public function test_wp_generate_attachment_metadata_doesnt_generate_sizes_for_150_square_image() {
+		$temp_dir = get_temp_dir();
+		$file     = $temp_dir . '/test-square-150.jpg';
+		copy( DIR_TESTDATA . '/images/test-square-150.jpg', $file );
+
+		$attachment_id = self::factory()->attachment->create_object(
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'file'           => $file,
+			)
+		);
+
+		$metadata = wp_generate_attachment_metadata( $attachment_id, $file );
+		$this->assertEquals(
+			array(),
+			$metadata['sizes']
+		);
+		$this->assertEquals(
+			'test-square-150.jpg',
+			basename( $metadata['file'] )
+		);
+		$this->assertEquals(
+			'150',
+			$metadata['width']
+		);
+		$this->assertEquals(
+			'150',
+			$metadata['height']
+		);
+	}
+
+	/**
 	 * Add threshold to create a `-scaled` output image for testing.
 	 */
 	public function add_big_image_size_threshold() {

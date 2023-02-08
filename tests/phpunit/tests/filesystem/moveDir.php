@@ -276,4 +276,37 @@ class Tests_Filesystem_MoveDir extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Tests that `move_dir()` returns a WP_Error object when overwriting
+	 * is enabled, the destination exists, but cannot be deleted.
+	 *
+	 * @ticket 57375
+	 */
+	public function test_should_return_wp_error_when_overwriting_is_enabled_the_destination_exists_but_cannot_be_deleted() {
+		global $wp_filesystem;
+		$wpfilesystem_backup = $wp_filesystem;
+
+		// Force failure conditions.
+		$filesystem_mock = $this->getMockBuilder( 'WP_Filesystem_Direct' )->setConstructorArgs( array( null ) )->getMock();
+		$filesystem_mock->expects( $this->once() )->method( 'exists' )->willReturn( true );
+		$filesystem_mock->expects( $this->once() )->method( 'delete' )->willReturn( false );
+		$wp_filesystem = $filesystem_mock;
+
+		$actual = move_dir( self::$existing_from, self::$existing_from_subdir, true );
+
+		// Restore the filesystem.
+		$wp_filesystem = $wpfilesystem_backup;
+
+		$this->assertWPError(
+			$actual,
+			'A WP_Error object was not returned.'
+		);
+
+		$this->assertSame(
+			'destination_not_deleted_move_dir',
+			$actual->get_error_code(),
+			'An unexpected error code was returned.'
+		);
+	}
+
 }

@@ -2974,7 +2974,7 @@ function the_posts_pagination( $args = array() ) {
  */
 function _navigation_markup( $links, $css_class = 'posts-navigation', $screen_reader_text = '', $aria_label = '' ) {
 	if ( empty( $screen_reader_text ) ) {
-		$screen_reader_text = __( 'Posts navigation' );
+		$screen_reader_text = /* translators: Hidden accessibility text. */ __( 'Posts navigation' );
 	}
 	if ( empty( $aria_label ) ) {
 		$aria_label = $screen_reader_text;
@@ -4223,10 +4223,10 @@ function the_shortlink( $text = '', $title = '', $before = '', $after = '' ) {
  *
  *     @type int    $size           Height and width of the avatar in pixels. Default 96.
  *     @type string $default        URL for the default image or a default type. Accepts '404' (return
- *                                  a 404 instead of a default image), 'retro' (8bit), 'monsterid' (monster),
- *                                  'wavatar' (cartoon face), 'indenticon' (the "quilt"), 'mystery', 'mm',
- *                                  or 'mysteryman' (The Oyster Man), 'blank' (transparent GIF), or
- *                                  'gravatar_default' (the Gravatar logo). Default is the value of the
+ *                                  a 404 instead of a default image), 'retro' (8bit), 'RoboHash' (robohash),
+ *                                  'monsterid' (monster), 'wavatar' (cartoon face), 'indenticon' (the "quilt"),
+ *                                  'mystery', 'mm', or 'mysteryman' (The Oyster Man), 'blank' (transparent GIF),
+ *                                  or 'gravatar_default' (the Gravatar logo). Default is the value of the
  *                                  'avatar_default' option, with a fallback of 'mystery'.
  *     @type bool   $force_default  Whether to always show the default image, never the Gravatar. Default false.
  *     @type string $rating         What rating to display avatars up to. Accepts 'G', 'PG', 'R', 'X', and are
@@ -4664,7 +4664,7 @@ function get_the_privacy_policy_link( $before = '', $after = '' ) {
 
 	if ( $privacy_policy_url && $page_title ) {
 		$link = sprintf(
-			'<a class="privacy-policy-link" href="%s">%s</a>',
+			'<a class="privacy-policy-link" href="%s" rel="privacy-policy">%s</a>',
 			esc_url( $privacy_policy_url ),
 			esc_html( $page_title )
 		);
@@ -4687,4 +4687,64 @@ function get_the_privacy_policy_link( $before = '', $after = '' ) {
 	}
 
 	return '';
+}
+
+/**
+ * Returns an array of URL hosts which are considered to be internal hosts.
+ *
+ * By default the list of internal hosts is comproside of the PHP_URL_HOST of
+ * the site's home_url() (as parsed by wp_parse_url()).
+ *
+ * This list is used when determining if a specificed URL is a link to a page on
+ * the site itself or a link offsite (to an external host). This is used, for
+ * example, when determining if the "nofollow" attribute should be applied to a
+ * link.
+ *
+ * @see wp_is_internal_link
+ *
+ * @since 6.2.0
+ *
+ * @return string[] An array of URL hosts.
+ */
+function wp_internal_hosts() {
+	static $internal_hosts;
+
+	if ( empty( $internal_hosts ) ) {
+		/**
+		 * Filters the array of URL hosts which are considered internal.
+		 *
+		 * @since 6.2.9
+		 *
+		 * @param array $internal_hosts An array of internal URL hostnames.
+		 */
+		$internal_hosts = apply_filters(
+			'wp_internal_hosts',
+			array(
+				wp_parse_url( home_url(), PHP_URL_HOST ),
+			)
+		);
+		$internal_hosts = array_unique(
+			array_map( 'strtolower', (array) $internal_hosts )
+		);
+	}
+
+	return $internal_hosts;
+}
+
+/**
+ * Determines whether or not the specified URL is of a host included in the internal hosts list.
+ *
+ * @see wp_internal_hosts()
+ *
+ * @since 6.2.0
+ *
+ * @param string $link The URL to test.
+ * @return bool Returns true for internal URLs and false for all other URLs.
+ */
+function wp_is_internal_link( $link ) {
+	$link = strtolower( $link );
+	if ( in_array( wp_parse_url( $link, PHP_URL_SCHEME ), wp_allowed_protocols(), true ) ) {
+		return in_array( wp_parse_url( $link, PHP_URL_HOST ), wp_internal_hosts(), true );
+	}
+	return false;
 }
