@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Administration
- * @since 6.2.0
+ * @since 6.3.0
  */
 
 /**
