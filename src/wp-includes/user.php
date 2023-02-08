@@ -1855,7 +1855,7 @@ function wp_insert_user( $userdata ) {
 	 * If a nicename is provided, remove unsafe user characters before using it.
 	 * Otherwise build a nicename from the user_login.
 	 */
-	if ( ! empty( $userdata['user_nicename'] ) ) {
+	if ( ! empty( sanitize_user( $userdata['user_nicename'], true ) ) ) {
 		$user_nicename = sanitize_user( $userdata['user_nicename'], true );
 		if ( mb_strlen( $user_nicename ) > 50 ) {
 			return new WP_Error( 'user_nicename_too_long', __( 'Nicename may not be longer than 50 characters.' ) );
