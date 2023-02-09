@@ -1,4 +1,4 @@
-👋 Welcome to "WordPress development" in Codespaces!
+👋 Welcome to "WordPress Core Development" in Codespaces!
 
 🛠️  Your environment is fully setup with all the required software.
 
