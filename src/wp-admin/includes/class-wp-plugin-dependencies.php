@@ -148,7 +148,6 @@ class WP_Plugin_Dependencies {
 	 * Sanitize headers.
 	 *
 	 * @param array $required_headers Array of required plugin headers.
-	 *
 	 * @return array
 	 */
 	private function sanitize_required_headers( $required_headers ) {
@@ -217,11 +216,10 @@ class WP_Plugin_Dependencies {
 	/**
 	 * Modify plugins_api() response.
 	 *
-	 * @param \stdClas  $res    Object of results.
-	 * @param string    $action Variable for plugins_api().
-	 * @param \stdClass $args   Object of plugins_api() args.
-	 *
-	 * @return \stdClass
+	 * @param stdClass $res    Object of results.
+	 * @param string   $action Variable for plugins_api().
+	 * @param stdClass $args   Object of plugins_api() args.
+	 * @return stdClass
 	 */
 	public function plugins_api_result( $res, $action, $args ) {
 		if ( property_exists( $args, 'browse' ) && 'dependencies' === $args->browse ) {
@@ -327,7 +325,6 @@ class WP_Plugin_Dependencies {
 	 * Actually make modifications to plugin row of plugin dependencies.
 	 *
 	 * @param string $plugin_file Plugin file.
-	 *
 	 * @return void
 	 */
 	public function modify_dependency_plugin_row( $plugin_file ) {
@@ -340,7 +337,6 @@ class WP_Plugin_Dependencies {
 	 * Actually make modifications to plugin row of requiring plugin.
 	 *
 	 * @param string $plugin_file Plugin file.
-	 *
 	 * @return void
 	 */
 	public function modify_requires_plugin_row( $plugin_file ) {
@@ -356,7 +352,6 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @param string $plugin_file Plugin file.
 	 * @param array  $plugin_data Array of plugin data.
-	 *
 	 * @return void
 	 */
 	public function modify_plugin_row_elements( $plugin_file, $plugin_data ) {
@@ -378,7 +373,6 @@ class WP_Plugin_Dependencies {
 	 * Add `Requires: ...` information
 	 *
 	 * @param string $plugin_file Plugin file.
-	 *
 	 * @return void
 	 */
 	public function modify_plugin_row_elements_requires( $plugin_file ) {
@@ -400,7 +394,6 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @param array $action_links Plugin install card action links.
 	 * @param array $plugin       Plugin data.
-	 *
 	 * @return array
 	 */
 	public function modify_plugin_install_action_links( $action_links, $plugin ) {
@@ -432,8 +425,7 @@ class WP_Plugin_Dependencies {
 	 * Add 'Required by: ...' and 'Requires: ...' to plugin install cards.
 	 *
 	 * @param string $description Short description of plugin.
-	 * @param array  $plugin Array of plugin data.
-	 *
+	 * @param array  $plugin      Array of plugin data.
 	 * @return string
 	 */
 	public function plugin_install_description( $description, $plugin ) {
@@ -462,7 +454,6 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @param string $plugin_file Plugin file name.
 	 * @param string $names       Names of required plugins.
-	 *
 	 * @return string 'View details' like links for required plugins.
 	 */
 	private function get_view_details_links( $plugin_file, $names ) {
@@ -506,8 +497,7 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @param array  $actions     Action links.
 	 * @param string $plugin_file Plugin file.
-	 *
-	 * @return array Plugin action links after checking for an active requiring plugin.
+	 * @return array
 	 */
 	public function unset_action_links( $actions, $plugin_file ) {
 		foreach ( $this->requires_plugins as $plugin => $requires ) {
@@ -526,8 +516,7 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @param array  $actions     Plugin action links.
 	 * @param string $plugin_file File name.
-	 *
-	 * @return array Plugin action links after checking for unmet dependencies.
+	 * @return array
 	 */
 	public function cannot_activate_unmet_dependencies( $actions, $plugin_file ) {
 		$dependencies        = $this->get_dependency_filepaths();
@@ -554,7 +543,6 @@ class WP_Plugin_Dependencies {
 	 * Hide plugin row column checkbox for plugins with unmet dependencies.
 	 *
 	 * @param string $plugin_file File name.
-	 *
 	 * @return void
 	 */
 	public function hide_column_checkbox( $plugin_file ) {
@@ -702,7 +690,6 @@ class WP_Plugin_Dependencies {
 	 * Get formatted string of dependent plugins.
 	 *
 	 * @param array $plugin_data Array of plugin data.
-	 *
 	 * @return string
 	 */
 	private function get_dependency_sources( $plugin_data ) {
@@ -727,7 +714,6 @@ class WP_Plugin_Dependencies {
 	 * Get Dependencies link.
 	 *
 	 * @param bool $include_warning Include the warning <span>.
-	 *
 	 * @return string
 	 */
 	private function get_dependency_link( $include_warning = false ) {
@@ -742,7 +728,6 @@ class WP_Plugin_Dependencies {
 	 * Get array of plugin requirement filepaths.
 	 *
 	 * @param array $plugin_data Array of plugin data.
-	 *
 	 * @return array
 	 */
 	private function get_requires_paths( $plugin_data ) {
@@ -766,10 +751,9 @@ class WP_Plugin_Dependencies {
 	/**
 	 * Return empty plugins_api() response.
 	 *
-	 * @param \stdClass|WP_Error $response Response from plugins_api().
-	 * @param array              $args     Array of arguments passed to plugins_api().
-	 *
-	 * @return \stdClass
+	 * @param stdClass|WP_Error $response Response from plugins_api().
+	 * @param array             $args     Array of arguments passed to plugins_api().
+	 * @return stdClass
 	 */
 	private function get_empty_plugins_api_response( $response, $args ) {
 		if ( is_wp_error( $response ) || property_exists( $response, 'error' )
@@ -834,7 +818,6 @@ class WP_Plugin_Dependencies {
 	 * Get names of required plugins.
 	 *
 	 * @param string $data Plugin file.
-	 *
 	 * @return string
 	 */
 	private function get_requires_plugins_names( $data ) {
