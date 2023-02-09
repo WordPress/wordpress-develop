@@ -32,6 +32,39 @@ module.exports = function(grunt) {
 			'wp-content/plugins/akismet/**',
 			'!wp-content/themes/twenty*/node_modules/**',
 		],
+
+		// All built CSS files, in /src or /build.
+		cssFiles = [
+			'wp-admin/css/*.min.css',
+			'wp-admin/css/*-rtl*.css',
+			'wp-includes/css/*.min.css',
+			'wp-includes/css/*-rtl*.css',
+			'wp-admin/css/colors/**/*.css',
+			'wp-includes/blocks/**/*.css',
+		],
+
+		// All built js files, in /src or /build.
+		jsFiles = [
+			'wp-admin/js/',
+			'wp-includes/js/',
+			'wp-includes/blocks/**/*.js',
+		],
+
+		// All files built by Webpack, in /src or /build.
+		webpackFiles = [
+			'wp-includes/assets/*',
+			'wp-includes/css/dist',
+			'!wp-includes/assets/script-loader-packages.min.php',
+		],
+
+		// Prepend `dir` to `file`, and keep `!` in place.
+		setFilePath = function( dir, file ) {
+			if ( '!' === file.charAt( 0 ) ) {
+				return '!' + dir + file.substring( 1 );
+			}
+
+			return dir + file;
+		},
 		changedFiles = {
 			php: []
 		};
@@ -110,27 +143,39 @@ module.exports = function(grunt) {
 			files: buildFiles.concat( [
 				'!wp-config.php',
 			] ).map( function( file ) {
-				if ( '!' === file.charAt( 0 ) ) {
-					return '!' + BUILD_DIR + file.substring( 1 );
-				}
-				return BUILD_DIR + file;
+				return setFilePath( BUILD_DIR, file );
 			} ),
-			css: [
-				WORKING_DIR + 'wp-admin/css/*.min.css',
-				WORKING_DIR + 'wp-admin/css/*-rtl*.css',
-				WORKING_DIR + 'wp-includes/css/*.min.css',
-				WORKING_DIR + 'wp-includes/css/*-rtl*.css',
-				WORKING_DIR + 'wp-admin/css/colors/**/*.css'
-			],
-			js: [
-				WORKING_DIR + 'wp-admin/js/',
-				WORKING_DIR + 'wp-includes/js/'
-			],
-			'webpack-assets': [
-				WORKING_DIR + 'wp-includes/assets/*',
-				WORKING_DIR + 'wp-includes/css/dist/',
-				'!' + WORKING_DIR + 'wp-includes/assets/script-loader-packages.min.php'
-			],
+
+			// Always clean built JS and CSS files from /src. Also from /build when building there.
+			// The build:css, build:js, etc. tasks may be run independently,
+			// and should clean all old files to avoid errors.
+			css: cssFiles.map( function( file ) {
+				return setFilePath( SOURCE_DIR, file );
+			} ).concat(
+				WORKING_DIR === BUILD_DIR
+				? cssFiles.map( function( file ) {
+					return setFilePath( BUILD_DIR, file );
+				} )
+				: []
+			),
+			js: jsFiles.map( function( file ) {
+				return setFilePath( SOURCE_DIR, file );
+			} ).concat(
+				WORKING_DIR === BUILD_DIR
+				? jsFiles.map( function( file ) {
+					return setFilePath( BUILD_DIR, file );
+				} )
+				: []
+			),
+			'webpack-assets': webpackFiles.map( function( file ) {
+				return setFilePath( SOURCE_DIR, file );
+			} ).concat(
+				WORKING_DIR === BUILD_DIR
+				? webpackFiles.map( function( file ) {
+					return setFilePath( BUILD_DIR, file );
+				} )
+				: []
+			),
 			dynamic: {
 				dot: true,
 				expand: true,
