@@ -62,4 +62,13 @@ class Tests_Comment_WpComment extends WP_UnitTestCase {
 
 		$this->assertEquals( 1, $found->comment_ID );
 	}
+
+	/**
+	 * @ticket 40143
+	 */
+	public function test_get_instance_should_fail_for_true() {
+		$found = WP_Comment::get_instance( true );
+		$this->assertFalse( $found );
+	}
+
 }
