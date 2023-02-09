@@ -171,7 +171,6 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
  * 
  *      @type boolean	$in_footer 	  Optional. Default true 
  *      @type string	$strategy 	  Optional. Default 'blocking'
- * 
  * }
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
