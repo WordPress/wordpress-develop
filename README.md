@@ -17,6 +17,10 @@ A codespace will open in a web-based version of Visual Studio Code. The [dev con
 
 **Note**: Dev containers is an open spec which is supported by [GitHub Codespaces](https://github.com/codespaces) and [other tools](https://containers.dev/supporting).
 
+In some browsers the keyboard shortcut for opening the command palette (Ctrl/Command + Shift + P) may collide with a browser shortcut. The command palette can be opened via the `F1` key or via the cog icon in the bottom left of the editor.
+
+When opening your codespace, be sure to wait for the `postCreateCommand` to finish running to ensure your WordPress install is successfully set up. This can take a few minutes.
+
 ### Local development
 
 WordPress is a PHP, MySQL, and JavaScript based project, and uses Node for its JavaScript dependencies. A local development environment is available to quickly get up and running.
