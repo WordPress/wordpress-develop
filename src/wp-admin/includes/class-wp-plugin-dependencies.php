@@ -66,15 +66,6 @@ class WP_Plugin_Dependencies {
 	}
 
 	/**
-	 * Static function to get rolling.
-	 *
-	 * @return void
-	 */
-	public static function init() {
-		( new WP_Plugin_Dependencies() )->start();
-	}
-
-	/**
 	 * Initialize, load filters, and get started.
 	 *
 	 * @return void
@@ -844,3 +835,5 @@ class WP_Plugin_Dependencies {
 		return isset( $names ) ? $names : '';
 	}
 }
+
+add_action( 'admin_init', array( new WP_Plugin_Dependencies(), 'start' ) );
