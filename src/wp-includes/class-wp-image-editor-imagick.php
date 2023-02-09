@@ -257,19 +257,19 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * Depending on configuration, Imagick processing may take time.
 	 *
 	 * Multiple problems exist if PHP timeouts before ImageMagick completed:
-	 * 1. Temporary files aren't cleaned by ImageMagick garbage collection
-	 * 2. No clear error is provided
+	 * 1. Temporary files aren't cleaned by ImageMagick garbage collection.
+	 * 2. No clear error is provided.
 	 * 3. The cause of such timeout can be hard to pinpoint.
 	 *
-	 * This function (expected to be run before heavy image routines) resolves
-	 *  above point 1 by aligning Imagick's timeout on PHP one (assuming it's set).
+	 * This function, which is expected to be run before heavy image routines, resolves
+	 * point 1 above by aligning Imagick's timeout with PHP's timeout, assuming it's set.
 	 *
 	 * Note: Imagick resource exhaustion does not issue catchable exceptions (yet)
 	 *       See https://github.com/Imagick/imagick/issues/333
 	 * Note: The resource limit isn't saved/restored. It applies to
 	 *       subsequent image operations within the time of the HTTP request.
 	 *
-	 * @since 6.1.0
+	 * @since 6.2.0
 	 *
 	 * @return int|null Whether the new limit or null if none was set
 	 */
@@ -278,10 +278,12 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			return null;
 		}
 
-		// returns PHP_FLOAT_MAX if unset
+		// Returns PHP_FLOAT_MAX if unset.
 		$imagick_timeout = Imagick::getResourceLimit( Imagick::RESOURCETYPE_TIME );
-		// convert to a int keeping in mind that (int)PHP_FLOAT_MAX) == 0
+
+		// Convert to an integer, keeping in mind that: 0 === (int) PHP_FLOAT_MAX.
 		$imagick_timeout = $imagick_timeout > PHP_INT_MAX ? PHP_INT_MAX : (int) $imagick_timeout;
+
 		$php_timeout = intval( ini_get( 'max_execution_time' ) );
 
 		if ( $php_timeout > 1 && $php_timeout < $imagick_timeout ) {
