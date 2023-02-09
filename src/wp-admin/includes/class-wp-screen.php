@@ -894,12 +894,6 @@ final class WP_Screen {
 						</ul>
 					</div>
 
-					<?php if ( $help_sidebar ) : ?>
-					<div class="contextual-help-sidebar">
-						<?php echo $help_sidebar; ?>
-					</div>
-					<?php endif; ?>
-
 					<div class="contextual-help-tabs-wrap">
 						<?php
 						$classes = 'help-tab-content active';
@@ -923,6 +917,12 @@ final class WP_Screen {
 						endforeach;
 						?>
 					</div>
+
+					<?php if ( $help_sidebar ) : ?>
+					<div class="contextual-help-sidebar">
+						<?php echo $help_sidebar; ?>
+					</div>
+					<?php endif; ?>
 				</div>
 			</div>
 		<?php
