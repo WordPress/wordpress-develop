@@ -1,4 +1,6 @@
 <?php
+require_once ABSPATH . 'wp-includes/Text/Diff/Renderer.php';
+require_once ABSPATH . 'wp-includes/class-wp-text-diff-renderer-table.php';
 
 /**
  * @group diff
@@ -11,8 +13,6 @@ class Tests_Diff_WpTextDiffRendererTable extends WP_UnitTestCase {
 
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
-		require_once ABSPATH . 'wp-includes/Text/Diff/Renderer.php';
-		require_once ABSPATH . 'wp-includes/class-wp-text-diff-renderer-table.php';
 	}
 
 	public function set_up() {
