@@ -167,10 +167,10 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
  *                                    number is automatically added equal to current installed WordPress version.
  *                                    If set to null, no version is added.
  * @param array             $args 	  {
- * 	Optional. An array of additional script strategies. Default empty array.
+ *      Optional. An array of additional script strategies. Default empty array.
  * 
- *      @type boolean	$in_footer 	  Optional. Default true 
- *      @type string	$strategy 	  Optional. Default 'blocking'
+ *      @type boolean   $in_footer    Optional. Default true.
+ *      @type string    $strategy     Optional. Default 'blocking'
  * }
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
@@ -180,7 +180,6 @@ function wp_register_script( $handle, $src, $deps = array(), $ver = false, $args
 	$wp_scripts = wp_scripts();
 
 	$registered = $wp_scripts->add( $handle, $src, $deps, $ver );
-
 
 	if ( ! empty( $args ) ) {
 		$wp_scripts->add_data( $handle, 'args', $args );
