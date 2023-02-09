@@ -120,4 +120,31 @@ class Tests_Option_wpLoadAlloptions extends WP_UnitTestCase {
 		$this->alloptions = $alloptions;
 		return $this->alloptions;
 	}
+
+	/**
+	 * Tests that `$alloptions` can be filtered with a custom value, short circuiting `wp_load_alloptions()`.
+	 *
+	 * @ticket 56045
+	 *
+	 * @covers ::wp_load_alloptions
+	 */
+	public function test_filter_pre_wp_load_alloptions_filter_is_called() {
+		$filter = new MockAction();
+
+		add_filter( 'pre_wp_load_alloptions', array( &$filter, 'filter' ) );
+
+		wp_load_alloptions();
+
+		$this->assertSame(
+			1,
+			$filter->get_call_count(),
+			'The filter was not called 1 time.'
+		);
+
+		$this->assertSame(
+			array( 'pre_wp_load_alloptions' ),
+			$filter->get_hook_names(),
+			'The hook name was incorrect.'
+		);
+	}
 }
