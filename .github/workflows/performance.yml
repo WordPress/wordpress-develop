@@ -1,0 +1,68 @@
+name: Performance Tests
+
+on:
+  push:
+    branches:
+      - trunk
+      - 'feature/**'
+      - '3.[7-9]'
+      - '[4-9].[0-9]'
+    tags:
+      - '[0-9]+.[0-9]'
+      - '[0-9]+.[0-9].[0-9]+'
+  pull_request:
+    branches:
+      - trunk
+      - 'feature/**'
+      - '3.[7-9]'
+      - '[4-9].[0-9]'
+
+jobs:
+  # Runs the performance test suite.
+  #
+  # Performs the following steps:
+  # - Sets environment variables.
+  # - Checks out the repository.
+  # - Sets up Node.js.
+  # - Installs npm dependencies.
+  # - Logs the running Docker containers.
+  # - Run the Performance tests.
+  # - Ensures version-controlled files are not modified or deleted.
+  performance:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == '10up/wordpress-develop' || github.event_name == 'push' }}
+
+    steps:
+      - name: Configure environment variables
+        run: |
+          echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
+          echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
+
+      - name: Checkout repository
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: WordPress Docker container debug information
+        run: |
+          docker -v
+          docker-compose -v
+          docker-compose run --rm mysql mysql --version
+          docker-compose run --rm php php --version
+          docker-compose run --rm php php -m
+          docker-compose run --rm php php -i
+          docker-compose run --rm php locale -a
+
+      - name: Compare performance with trunk
+        if: github.event_name == 'pull_request'
+        run: node ./tests/performance/cli.js perf $GITHUB_SHA trunk --tests-branch $GITHUB_SHA
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code
