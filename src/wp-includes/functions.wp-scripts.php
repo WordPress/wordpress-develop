@@ -167,6 +167,7 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
  *                                    number is automatically added equal to current installed WordPress version.
  *                                    If set to null, no version is added.
  * @param array             $args 	  {
+ * 	Optional. An array of additional script strategies. Default empty array.
  * 
  *      @type boolean	$in_footer 	  Optional. Default true 
  *      @type string	$strategy 	  Optional. Default 'blocking'
