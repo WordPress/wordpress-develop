@@ -2078,7 +2078,8 @@ function comment_form_title( $no_reply_text = false, $reply_text = false, $link_
 /**
  * Gets the comment's reply to ID from the $_GET['replytocom'].
  *
- * @since 5.9.0
+ * @since 6.2.0
+ *
  * @access private
  *
  * @param int|WP_Post $post_id Post ID or WP_Post object. Default current post.
