@@ -182,7 +182,7 @@ function wp_register_script( $handle, $src, $deps = array(), $ver = false, $args
 	$registered = $wp_scripts->add( $handle, $src, $deps, $ver );
 
 	if ( ! empty( $args ) ) {
-		$wp_scripts->add_data( $handle, 'args', $args );
+		$wp_scripts->add_data( $handle, 'in_footer_args', $args );
 	}
 
 	return $registered;
@@ -368,7 +368,7 @@ function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $
 		}
 
 		if ( ! empty( $args ) ) {
-			$wp_scripts->add_data( $_handle[0], 'args', $args );
+			$wp_scripts->add_data( $_handle[0], 'in_footer_args', $args );
 		}
 	}
 
