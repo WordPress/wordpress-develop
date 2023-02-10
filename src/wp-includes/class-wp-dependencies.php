@@ -289,9 +289,6 @@ class WP_Dependencies {
 		if ( ! isset( $this->registered[ $handle ] ) ) {
 			return false;
 		}
-		if( 'in_footer_args' === $key ) {
-			$this->normalize_script_in_footer_args( $handle, $value );
-		}
 		return $this->registered[ $handle ]->add_data( $key, $value );
 	}
 

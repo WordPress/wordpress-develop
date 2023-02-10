@@ -715,6 +715,21 @@ JS;
 	}
 
 	/**
+	 * The overrides the add_data function from WP_Dependencies, to support normalizing of $args. 
+	 *
+	 * @param string $handle Name of the item. Should be unique.
+	 * @param string $key    The data key.
+	 * @param mixed  $value  The data value.
+	 * @return bool True on success, false on failure.
+	 */
+	public function add_data( $handle, $key, $value ) {
+		if( 'in_footer_args' === $key ) {
+			return $this->normalize_script_in_footer_args( $handle, $value );
+		}
+		return parent::add_data( $handle, $key, $value );
+	}
+
+	/**
 	 * Normalize in_footer data.
 	 *
 	 * 
@@ -732,9 +747,7 @@ JS;
 				$in_footer = true;
 			}
 		}
-		
 		$this->add_data( $handle, 'strategy', $strategy );
-
 		if ( $in_footer ) {
 			$this->add_data( $handle, 'group', 1 );
 		}

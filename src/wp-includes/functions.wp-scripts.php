@@ -360,7 +360,7 @@ function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $
 
 	$wp_scripts = wp_scripts();
 
-	if ( $src || $in_footer ) {
+	if ( $src || ! empty( $args ) ) {
 		$_handle = explode( '?', $handle );
 
 		if ( $src ) {
