@@ -180,11 +180,7 @@ function wp_register_script( $handle, $src, $deps = array(), $ver = false, $args
 	$wp_scripts = wp_scripts();
 
 	$registered = $wp_scripts->add( $handle, $src, $deps, $ver );
-
-	if ( ! empty( $args ) ) {
-		$wp_scripts->add_data( $handle, 'in_footer_args', $args );
-	}
-
+	$wp_scripts->add_data( $handle, 'script_args', $args );
 	return $registered;
 }
 

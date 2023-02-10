@@ -723,12 +723,12 @@ JS;
 	 * @return bool True on success, false on failure.
 	 */
 	public function add_data( $handle, $key, $value ) {
-		if( 'in_footer_args' === $key ) {
+		if( 'script_args' === $key ) {
 			$args = $this->get_normalized_script_args( $handle, $value );
 			if( $args['in_footer'] ) {
 				parent::add_data( $handle, 'group', 1 );
 			}
-			return parent::add_data( $handle, 'script_args', $args );
+			return parent::add_data( $handle, $key, $args );
 		}
 		return parent::add_data( $handle, $key, $value );
 	}
@@ -736,10 +736,12 @@ JS;
 	/**
 	 * Normalize the data inside $args parameter and support backward compatibility.
 	 * 
-	 * @param string        $handle Name of the script to register a translation domain to.
-	 * @param bool|array    $args boolean for $in_footer backward compatibility.
+	 * @param string        $handle Name of the script.
+	 * @param bool|array    $args array of script arguments or boolean for old usage ($in_footer).
+	 *                      Default empty array.
+	 * @return array 		Normalized argument array. 
 	 */
-	private function get_normalized_script_args( $handle, $args ) {
+	private function get_normalized_script_args( $handle, $args = array() ) {
 		$default_args = array(
 			'in_footer'  => false,
 			'strategy'   => 'blocking'
