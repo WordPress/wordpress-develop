@@ -2449,6 +2449,12 @@ function wp_enqueue_global_styles() {
 	wp_add_inline_style( 'global-styles', $stylesheet );
 	wp_enqueue_style( 'global-styles' );
 
+	if ( ! wp_theme_has_theme_json() ) {
+		$suffix = wp_scripts_get_suffix();
+		$classic_theme_styles = file_get_contents( WPINC . "/css/classic-themes$suffix.css" );
+		wp_add_inline_style( 'global-styles', $classic_theme_styles );
+	}
+
 	// Add each block as an inline css.
 	wp_add_global_styles_for_blocks();
 }
@@ -3684,21 +3690,6 @@ function _wp_theme_json_webfonts_handler() {
 	add_action( 'wp_loaded', $fn_register_webfonts );
 	add_action( 'wp_enqueue_scripts', $fn_generate_and_enqueue_styles );
 	add_action( 'admin_init', $fn_generate_and_enqueue_editor_styles );
-}
-
-/**
- * Loads classic theme styles on classic themes in the frontend.
- *
- * This is needed for backwards compatibility for button blocks specifically.
- *
- * @since 6.1.0
- */
-function wp_enqueue_classic_theme_styles() {
-	if ( ! wp_theme_has_theme_json() ) {
-		$suffix = wp_scripts_get_suffix();
-		wp_register_style( 'classic-theme-styles', '/' . WPINC . "/css/classic-themes$suffix.css", array(), true );
-		wp_enqueue_style( 'classic-theme-styles' );
-	}
 }
 
 /**
