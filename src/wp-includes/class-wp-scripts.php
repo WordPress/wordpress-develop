@@ -734,7 +734,7 @@ JS;
 	}
 
 	/**
-	 * Normalize the data inside $args parameter and handle backward compatibility.
+	 * Normalize the data inside $args parameter and support backward compatibility.
 	 * 
 	 * @param string        $handle Name of the script to register a translation domain to.
 	 * @param bool|array    $args boolean for $in_footer backward compatibility.
