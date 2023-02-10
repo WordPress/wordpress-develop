@@ -715,6 +715,32 @@ JS;
 	}
 
 	/**
+	 * Normalize in_footer data.
+	 *
+	 * 
+	 * @param string        $handle Name of the script to register a translation domain to.
+	 * @param bool|array    $args boolean for $in_footer backward compatibility.
+	 */
+	private function normalize_script_in_footer_args( $handle, $args ) {
+		$in_footer = false;
+		$strategy  = 'blocking';
+		
+		if( 'boolean' === gettype( $args ) && $args ) {
+			$in_footer = true;
+		} else {
+			if( isset( $args["in_footer"] ) && $args["in_footer"] ) {
+				$in_footer = true;
+			}
+		}
+		
+		$this->add_data( $handle, 'strategy', $strategy );
+
+		if ( $in_footer ) {
+			$this->add_data( $handle, 'group', 1 );
+		}
+	}
+
+	/**
 	 * Resets class properties.
 	 *
 	 * @since 2.8.0
