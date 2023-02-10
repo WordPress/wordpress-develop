@@ -7,7 +7,7 @@ dotenv_expand.expand( dotenv.config() );
 
 // Run the tests, passing additional arguments through to the test script.
 execSync(
-	'wp-scripts test-e2e --config tests/e2e/jest.performance.config.js ' +
+	'wp-scripts test-e2e --config tests/performance/jest.config.js ' +
 		process.argv.slice( 2 ).join( ' ' ),
 	{ stdio: 'inherit' }
 );

@@ -7,14 +7,18 @@ import { writeFileSync } from 'fs';
 /**
  * WordPress dependencies
  */
-import { createURL, logout } from '@wordpress/e2e-test-utils';
+import { activateTheme, createURL } from '@wordpress/e2e-test-utils';
 
-describe( 'Front End Performance', () => {
+describe( 'Server Timing – Twenty Twenty Three', () => {
 	const results = {
 		wpBeforeTemplate: [],
 		wpTemplate: [],
 		wpTotal: [],
 	};
+
+	beforeAll( async () => {
+		await activateTheme( 'twentytwentythree' );
+	} );
 
 	afterAll( async () => {
 		const resultsFilename = basename( __filename, '.js' ) + '.results.json';

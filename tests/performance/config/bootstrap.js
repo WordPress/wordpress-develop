@@ -5,7 +5,6 @@ import {
 	clearLocalStorage,
 	enablePageDialogAccept,
 	setBrowserViewport,
-	trashAllPosts,
 } from '@wordpress/e2e-test-utils';
 
 /**
