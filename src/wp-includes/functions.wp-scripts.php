@@ -358,14 +358,11 @@ function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $
 
 	if ( $src || ! empty( $args ) ) {
 		$_handle = explode( '?', $handle );
-
 		if ( $src ) {
 			$wp_scripts->add( $_handle[0], $src, $deps, $ver );
 		}
 
-		if ( ! empty( $args ) ) {
-			$wp_scripts->add_data( $_handle[0], 'in_footer_args', $args );
-		}
+        $wp_scripts->add_data( $_handle[0], 'script_args', $args );
 	}
 
 	$wp_scripts->enqueue( $handle );
