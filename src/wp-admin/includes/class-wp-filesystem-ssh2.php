@@ -496,20 +496,27 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	}
 
 	/**
-	 * Moves a file.
+	 * Moves a file or directory.
+	 *
+	 * After moving files or directories, OPcache will need to be invalidated.
+	 *
+	 * If moving a directory fails, `copy_dir()` can be used for a recursive copy.
+	 *
+	 * Use `move_dir()` for moving directories with OPcache invalidation and a
+	 * fallback to `copy_dir()`.
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param string $source      Path to the source file.
-	 * @param string $destination Path to the destination file.
-	 * @param bool   $overwrite   Optional. Whether to overwrite the destination file if it exists.
+	 * @param string $source      Path to the source file or directory.
+	 * @param string $destination Path to the destination file or directory.
+	 * @param bool   $overwrite   Optional. Whether to overwrite the destination if it exists.
 	 *                            Default false.
 	 * @return bool True on success, false on failure.
 	 */
 	public function move( $source, $destination, $overwrite = false ) {
 		if ( $this->exists( $destination ) ) {
 			if ( $overwrite ) {
-				// We need to remove the destination file before we can rename the source.
+				// We need to remove the destination before we can rename the source.
 				$this->delete( $destination, false, 'f' );
 			} else {
 				// If we're not overwriting, the rename will fail, so return early.
@@ -557,11 +564,11 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param string $file Path to file or directory.
-	 * @return bool Whether $file exists or not.
+	 * @param string $path Path to file or directory.
+	 * @return bool Whether $path exists or not.
 	 */
-	public function exists( $file ) {
-		return file_exists( $this->sftp_path( $file ) );
+	public function exists( $path ) {
+		return file_exists( $this->sftp_path( $path ) );
 	}
 
 	/**
@@ -605,10 +612,10 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param string $file Path to file or directory.
-	 * @return bool Whether $file is writable.
+	 * @param string $path Path to file or directory.
+	 * @return bool Whether $path is writable.
 	 */
-	public function is_writable( $file ) {
+	public function is_writable( $path ) {
 		// PHP will base its writable checks on system_user === file_owner, not ssh_user === file_owner.
 		return true;
 	}

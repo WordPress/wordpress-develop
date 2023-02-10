@@ -30,8 +30,8 @@ function render_block_core_calendar( $attributes ) {
 	if ( isset( $attributes['month'] ) && isset( $attributes['year'] ) ) {
 		$permalink_structure = get_option( 'permalink_structure' );
 		if (
-			strpos( $permalink_structure, '%monthnum%' ) !== false &&
-			strpos( $permalink_structure, '%year%' ) !== false
+			str_contains( $permalink_structure, '%monthnum%' ) &&
+			str_contains( $permalink_structure, '%year%' )
 		) {
 			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.OverrideProhibited
 			$monthnum = $attributes['month'];
@@ -40,11 +40,34 @@ function render_block_core_calendar( $attributes ) {
 		}
 	}
 
+	$color_block_styles = array();
+
+	// Text color.
+	$preset_text_color          = array_key_exists( 'textColor', $attributes ) ? "var:preset|color|{$attributes['textColor']}" : null;
+	$custom_text_color          = _wp_array_get( $attributes, array( 'style', 'color', 'text' ), null );
+	$color_block_styles['text'] = $preset_text_color ? $preset_text_color : $custom_text_color;
+
+	// Background Color.
+	$preset_background_color          = array_key_exists( 'backgroundColor', $attributes ) ? "var:preset|color|{$attributes['backgroundColor']}" : null;
+	$custom_background_color          = _wp_array_get( $attributes, array( 'style', 'color', 'background' ), null );
+	$color_block_styles['background'] = $preset_background_color ? $preset_background_color : $custom_background_color;
+
+	// Generate color styles and classes.
+	$styles        = wp_style_engine_get_styles( array( 'color' => $color_block_styles ), array( 'convert_vars_to_classnames' => true ) );
+	$inline_styles = empty( $styles['css'] ) ? '' : sprintf( ' style="%s"', esc_attr( $styles['css'] ) );
+	$classnames    = empty( $styles['classnames'] ) ? '' : ' ' . esc_attr( $styles['classnames'] );
+	if ( isset( $attributes['style']['elements']['link']['color']['text'] ) ) {
+		$classnames .= ' has-link-color';
+	}
+	// Apply color classes and styles to the calendar.
+	$calendar = str_replace( '<table', '<table' . $inline_styles, get_calendar( true, false ) );
+	$calendar = str_replace( 'class="wp-calendar-table', 'class="wp-calendar-table' . $classnames, $calendar );
+
 	$wrapper_attributes = get_block_wrapper_attributes();
 	$output             = sprintf(
 		'<div %1$s>%2$s</div>',
 		$wrapper_attributes,
-		get_calendar( true, false )
+		$calendar
 	);
 
 	// phpcs:ignore WordPress.WP.GlobalVariablesOverride.OverrideProhibited
@@ -107,51 +130,47 @@ function block_core_calendar_update_has_published_posts() {
 	return $has_published_posts;
 }
 
-/**
- * Handler for updating the has published posts flag when a post is deleted.
- *
- * @param int $post_id Deleted post ID.
- */
-function block_core_calendar_update_has_published_post_on_delete( $post_id ) {
-	if ( is_multisite() ) {
-		return;
+// We only want to register these functions and actions when
+// we are on single sites. On multi sites we use `post_count` option.
+if ( ! is_multisite() ) {
+	/**
+	 * Handler for updating the has published posts flag when a post is deleted.
+	 *
+	 * @param int $post_id Deleted post ID.
+	 */
+	function block_core_calendar_update_has_published_post_on_delete( $post_id ) {
+		$post = get_post( $post_id );
+
+		if ( ! $post || 'publish' !== $post->post_status || 'post' !== $post->post_type ) {
+			return;
+		}
+
+		block_core_calendar_update_has_published_posts();
 	}
 
-	$post = get_post( $post_id );
+	/**
+	 * Handler for updating the has published posts flag when a post status changes.
+	 *
+	 * @param string  $new_status The status the post is changing to.
+	 * @param string  $old_status The status the post is changing from.
+	 * @param WP_Post $post       Post object.
+	 */
+	function block_core_calendar_update_has_published_post_on_transition_post_status( $new_status, $old_status, $post ) {
+		if ( $new_status === $old_status ) {
+			return;
+		}
 
-	if ( ! $post || 'publish' !== $post->post_status || 'post' !== $post->post_type ) {
-		return;
+		if ( 'post' !== get_post_type( $post ) ) {
+			return;
+		}
+
+		if ( 'publish' !== $new_status && 'publish' !== $old_status ) {
+			return;
+		}
+
+		block_core_calendar_update_has_published_posts();
 	}
 
-	block_core_calendar_update_has_published_posts();
+	add_action( 'delete_post', 'block_core_calendar_update_has_published_post_on_delete' );
+	add_action( 'transition_post_status', 'block_core_calendar_update_has_published_post_on_transition_post_status', 10, 3 );
 }
-
-/**
- * Handler for updating the has published posts flag when a post status changes.
- *
- * @param string  $new_status The status the post is changing to.
- * @param string  $old_status The status the post is changing from.
- * @param WP_Post $post       Post object.
- */
-function block_core_calendar_update_has_published_post_on_transition_post_status( $new_status, $old_status, $post ) {
-	if ( is_multisite() ) {
-		return;
-	}
-
-	if ( $new_status === $old_status ) {
-		return;
-	}
-
-	if ( 'post' !== get_post_type( $post ) ) {
-		return;
-	}
-
-	if ( 'publish' !== $new_status && 'publish' !== $old_status ) {
-		return;
-	}
-
-	block_core_calendar_update_has_published_posts();
-}
-
-add_action( 'delete_post', 'block_core_calendar_update_has_published_post_on_delete' );
-add_action( 'transition_post_status', 'block_core_calendar_update_has_published_post_on_transition_post_status', 10, 3 );

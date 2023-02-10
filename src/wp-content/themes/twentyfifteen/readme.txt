@@ -1,8 +1,8 @@
 === Twenty Fifteen ===
 Contributors: wordpressdotorg
 Requires at least: WordPress 4.1
-Tested up to: 5.9
-Version: 3.1
+Tested up to: 6.1
+Version: 3.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, two-columns, left-sidebar, accessibility-ready, custom-background, custom-colors, custom-header, custom-logo, custom-menu, editor-style, featured-images, microformats, post-formats, rtl-language-support, sticky-post, threaded-comments, translation-ready, block-patterns
@@ -30,7 +30,7 @@ For more information about Twenty Fifteen please go to https://wordpress.org/sup
 
 == Copyright ==
 
-Twenty Fifteen WordPress Theme, Copyright 2014-2022 WordPress.org & Automattic.com
+Twenty Fifteen WordPress Theme, Copyright 2014-2023 WordPress.org & Automattic.com
 Twenty Fifteen is distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify
@@ -53,6 +53,21 @@ Genericons icon font, Copyright 2013-2017 Automattic.com
 License: GNU GPL, Version 2 (or later)
 Source: http://www.genericons.com
 
+Noto Sans Font
+Copyright 2015-2021 Google LLC. All Rights Reserved.
+License: SIL Open Font License, 1.1, https://opensource.org/licenses/OFL-1.1
+Source: https://fontsource.org/fonts/noto-sans
+
+Noto Serif Font
+Copyright 2012 Google Inc. All Rights Reserved.
+License: SIL Open Font License, 1.1, https://opensource.org/licenses/OFL-1.1
+Source: https://fontsource.org/fonts/noto-serif
+
+Inconsolata Font
+Copyright 2006 The Inconsolata Project Authors (https://github.com/cyrealtype/Inconsolata)
+License: SIL Open Font License, 1.1, https://opensource.org/licenses/OFL-1.1
+Source: https://fontsource.org/fonts/inconsolata
+
 Block Pattern Images
 License: CC0
 Source: https://stocksnap.io/photo/purple-yellow-ACF0693B9C
@@ -60,6 +75,16 @@ Source: https://stocksnap.io/photo/purple-yellow-ACF0693B9C
         https://stocksnap.io/photo/sunset-pier-77F43EA43C
 
 == Changelog ==
+
+= 3.3 =
+* Released: November 1, 2022
+
+https://codex.wordpress.org/Twenty_Fifteen_Theme_Changelog#Version_3.3
+
+= 3.2 =
+* Released: May 24, 2022
+
+https://codex.wordpress.org/Twenty_Fifteen_Theme_Changelog#Version_3.2
 
 = 3.1 =
 * Released: January 25, 2022

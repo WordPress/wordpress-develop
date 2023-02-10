@@ -7,6 +7,7 @@
  * @since 4.9.6
  */
 
+#[AllowDynamicProperties]
 final class WP_Privacy_Policy_Content {
 
 	private static $policy_content = array();
@@ -360,7 +361,7 @@ final class WP_Privacy_Policy_Content {
 					' <a href="%s" target="_blank">%s <span class="screen-reader-text">%s</span></a>',
 					$url,
 					$label,
-					/* translators: Accessibility text. */
+					/* translators: Hidden accessibility text. */
 					__( '(opens in a new tab)' )
 				);
 				?>
@@ -427,7 +428,7 @@ final class WP_Privacy_Policy_Content {
 						<span aria-hidden="true"><?php _e( 'Copy suggested policy text to clipboard' ); ?></span>
 						<span class="screen-reader-text">
 							<?php
-							/* translators: %s: Plugin name. */
+							/* translators: Hidden accessibility text. %s: Plugin name. */
 							printf( __( 'Copy suggested policy text from %s.' ), $plugin_name );
 							?>
 						</span>
@@ -591,7 +592,7 @@ final class WP_Privacy_Policy_Content {
 		}
 
 		/* translators: Default privacy policy heading. */
-		$strings[] = '<h2>' . __( 'Where we send your data' ) . '</h2>';
+		$strings[] = '<h2>' . __( 'Where your data is sent' ) . '</h2>';
 
 		if ( $description ) {
 			/* translators: Privacy policy tutorial. */

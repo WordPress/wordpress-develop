@@ -24,7 +24,7 @@ function render_block_core_post_excerpt( $attributes, $content, $block ) {
 		return '';
 	}
 
-	$more_text           = ! empty( $attributes['moreText'] ) ? '<a class="wp-block-post-excerpt__more-link" href="' . esc_url( get_the_permalink( $block->context['postId'] ) ) . '">' . $attributes['moreText'] . '</a>' : '';
+	$more_text           = ! empty( $attributes['moreText'] ) ? '<a class="wp-block-post-excerpt__more-link" href="' . esc_url( get_the_permalink( $block->context['postId'] ) ) . '">' . wp_kses_post( $attributes['moreText'] ) . '</a>' : '';
 	$filter_excerpt_more = function( $more ) use ( $more_text ) {
 		return empty( $more_text ) ? $more : '';
 	};
@@ -38,11 +38,14 @@ function render_block_core_post_excerpt( $attributes, $content, $block ) {
 	 * result in showing only one `read more` link at a time.
 	 */
 	add_filter( 'excerpt_more', $filter_excerpt_more );
-	$classes = '';
+	$classes = array();
 	if ( isset( $attributes['textAlign'] ) ) {
-		$classes .= "has-text-align-{$attributes['textAlign']}";
+		$classes[] = 'has-text-align-' . $attributes['textAlign'];
 	}
-	$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => $classes ) );
+	if ( isset( $attributes['style']['elements']['link']['color']['text'] ) ) {
+		$classes[] = 'has-link-color';
+	}
+	$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => implode( ' ', $classes ) ) );
 
 	$content               = '<p class="wp-block-post-excerpt__excerpt">' . $excerpt;
 	$show_more_on_new_line = ! isset( $attributes['showMoreOnNewLine'] ) || $attributes['showMoreOnNewLine'];

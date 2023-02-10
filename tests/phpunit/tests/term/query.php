@@ -4,6 +4,27 @@
  * @group taxonomy
  */
 class Tests_Term_Query extends WP_UnitTestCase {
+
+	/**
+	 * Temporary storage for a term ID for tests using filter callbacks.
+	 *
+	 * Used in the following tests:
+	 * - `test_null_term_object_should_be_discarded()`
+	 * - `test_error_term_object_should_be_discarded()`
+	 *
+	 * @var int
+	 */
+	private $term_id;
+
+	/**
+	 * Clean up after each test.
+	 */
+	public function tear_down() {
+		unset( $this->term_id );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 37545
 	 */
@@ -845,5 +866,125 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertContains( $t1, $q->terms );
+	}
+
+	/**
+	 * Ensure cache keys are generated without WPDB placeholders.
+	 *
+	 * @ticket 57298
+	 *
+	 * @covers       WP_Term_Query::generate_cache_key
+	 * @dataProvider data_query_cache
+	 */
+	public function test_generate_cache_key_placeholder( $args ) {
+		global $wpdb;
+		$query1 = new WP_Term_Query();
+		$query1->query( $args );
+
+		$query_vars = $query1->query_vars;
+		$request    = $query1->request;
+
+		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
+		$reflection->setAccessible( true );
+
+		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request );
+
+		$request_without_placeholder = $wpdb->remove_placeholder_escape( $request );
+
+		$cache_key_2 = $reflection->invoke( $query1, $query_vars, $request_without_placeholder );
+
+		$this->assertSame( $cache_key_1, $cache_key_2, 'Cache key differs when using wpdb placeholder.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[] Test parameters.
+	 */
+	public function data_query_cache() {
+		return array(
+			'empty query'                => array(
+				'args' => array(),
+			),
+			'search query'               => array(
+				'args' => array(
+					'search' => 'title',
+				),
+			),
+			'search name query'          => array(
+				'args' => array(
+					'name__like' => 'title',
+				),
+			),
+			'search description query'   => array(
+				'args' => array(
+					'description__like' => 'title',
+				),
+			),
+			'meta query'                 => array(
+				'args' => array(
+					'meta_query' => array(
+						array(
+							'key' => 'color',
+						),
+					),
+				),
+			),
+			'meta query search'          => array(
+				'args' => array(
+					'meta_query' => array(
+						array(
+							'key'     => 'color',
+							'value'   => '00',
+							'compare' => 'LIKE',
+						),
+					),
+				),
+			),
+			'nested meta query search'   => array(
+				'args' => array(
+					'meta_query' => array(
+						'relation' => 'AND',
+						array(
+							'key'     => 'color',
+							'value'   => '00',
+							'compare' => 'LIKE',
+						),
+						array(
+							'relation' => 'OR',
+							array(
+								'key'     => 'color',
+								'value'   => '00',
+								'compare' => 'LIKE',
+							),
+							array(
+								'relation' => 'AND',
+								array(
+									'key'     => 'wp_test_suite',
+									'value'   => '56802',
+									'compare' => 'LIKE',
+								),
+								array(
+									'key'     => 'wp_test_suite_too',
+									'value'   => '56802',
+									'compare' => 'LIKE',
+								),
+							),
+						),
+					),
+				),
+			),
+			'meta query not like search' => array(
+				'args' => array(
+					'meta_query' => array(
+						array(
+							'key'     => 'color',
+							'value'   => 'ff',
+							'compare' => 'NOT LIKE',
+						),
+					),
+				),
+			),
+		);
 	}
 }

@@ -59,7 +59,7 @@ function edit_link( $link_id = 0 ) {
  * @return stdClass Default link object.
  */
 function get_default_link_to_edit() {
-	$link = new stdClass;
+	$link = new stdClass();
 	if ( isset( $_GET['linkurl'] ) ) {
 		$link->link_url = esc_url( wp_unslash( $_GET['linkurl'] ) );
 	} else {
@@ -327,7 +327,7 @@ function wp_update_link( $linkdata ) {
  * @since 3.5.0
  * @access private
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  */
 function wp_link_manager_disabled_message() {
 	global $pagenow;

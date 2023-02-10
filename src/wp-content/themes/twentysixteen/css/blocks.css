@@ -58,6 +58,12 @@ p.has-drop-cap:not(:focus)::first-letter {
 		margin-left: 0;
 		margin-right: -40%;
 	}
+
+	body:not(.search-results) article:not(.type-page) .wp-block-gallery .wp-block-image img.below-entry-meta,
+	body:not(.search-results) article:not(.type-page) .wp-block-gallery .wp-block-image figcaption.below-entry-meta {
+		margin: 0;
+		max-width: 100%;
+	}
 }
 
 /* Gallery */
@@ -172,6 +178,13 @@ p.has-drop-cap:not(:focus)::first-letter {
 	padding: 0 24px 0 0;
 }
 
+.wp-block-pullquote.has-text-color blockquote,
+.wp-block-pullquote.has-background blockquote,
+.has-background .wp-block-pullquote blockquote,
+.wp-block-pullquote.has-text-color cite {
+	color: inherit;
+}
+
 .wp-block-pullquote p {
 	font-size: 19px;
 	font-size: 1.1875rem;
@@ -282,7 +295,8 @@ hr.wp-block-separator {
 	max-width: 100px;
 }
 
-.wp-block-separator.is-style-wide {
+.wp-block-separator.is-style-wide,
+.wp-block-separator.is-style-dots {
 	max-width: 100%;
 }
 

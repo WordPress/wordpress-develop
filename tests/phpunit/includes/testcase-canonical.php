@@ -37,7 +37,7 @@ abstract class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * Generate fixtures to be shared between canonical tests.
 	 *
-	 * Abstracted here because it's invoked by setUpBeforeClass() in more than one class.
+	 * Abstracted here because it's invoked by wpSetUpBeforeClass() in more than one class.
 	 *
 	 * @since 4.1.0
 	 */
@@ -46,7 +46,7 @@ abstract class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 		self::$author_id        = $factory->user->create( array( 'user_login' => 'canonical-author' ) );
 
 		/*
-		 * Also set in self::setUp(), but we must configure here to make sure that
+		 * Also set in self::set_up(), but we must configure here to make sure that
 		 * post authorship is properly attributed for fixtures.
 		 */
 		wp_set_current_user( self::$author_id );

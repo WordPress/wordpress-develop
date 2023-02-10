@@ -1,4 +1,5 @@
 {
+	"title": "Style variation name",
 	"settings": {
 		"typography": {
 				"fontSizes": [
@@ -29,6 +30,13 @@
 					}
 				]
 		},
+		"spacing": {
+			"spacingSizes": [
+				{
+					"name": "Space size name"
+				}
+			]
+		},
 		"blocks": {
 			"*": {
 				"typography": {
@@ -52,6 +60,13 @@
 					"gradients": [
 						{
 							"name": "Gradient name"
+						}
+					]
+				},
+				"spacing": {
+					"spacingSizes": [
+						{
+							"name": "Space size name"
 						}
 					]
 				}

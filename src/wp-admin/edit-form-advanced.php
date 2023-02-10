@@ -346,7 +346,7 @@ if ( 'post' === $post_type ) {
 				'<p>' . __( 'This screen allows you to edit fields for metadata in a file within the media library.' ) . '</p>' .
 				'<p>' . __( 'For images only, you can click on Edit Image under the thumbnail to expand out an inline image editor with icons for cropping, rotating, or flipping the image as well as for undoing and redoing. The boxes on the right give you more options for scaling the image, for cropping it, and for cropping the thumbnail in a different way than you crop the original image. You can click on Help in those boxes to get more information.' ) . '</p>' .
 				'<p>' . __( 'Note that you crop the image by clicking on it (the Crop icon is already selected) and dragging the cropping frame to select the desired part. Then click Save to retain the cropping.' ) . '</p>' .
-				'<p>' . __( 'Remember to click Update Media to save metadata entered or changed.' ) . '</p>',
+				'<p>' . __( 'Remember to click Update to save metadata entered or changed.' ) . '</p>',
 		)
 	);
 
@@ -448,7 +448,7 @@ if ( isset( $post_new_file ) && current_user_can( $post_type_object->cap->create
 <?php endif; ?>
 <div id="lost-connection-notice" class="error hidden">
 	<p><span class="spinner"></span> <?php _e( '<strong>Connection lost.</strong> Saving has been disabled until you are reconnected.' ); ?>
-	<span class="hide-if-no-sessionstorage"><?php _e( 'We are backing up this post in your browser, just in case.' ); ?></span>
+	<span class="hide-if-no-sessionstorage"><?php _e( 'This post is being backed up in your browser, just in case.' ); ?></span>
 	</p>
 </div>
 <form name="post" action="post.php" method="post" id="post"

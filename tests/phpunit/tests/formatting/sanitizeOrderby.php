@@ -2,11 +2,12 @@
 
 /**
  * @group sanitize_sql_orderby
+ *
+ * @covers ::sanitize_sql_orderby
  */
 class Tests_Formatting_SanitizeOrderby extends WP_UnitTestCase {
 
 	/**
-	 * @covers ::sanitize_sql_orderby
 	 * @dataProvider valid_orderbys
 	 */
 	public function test_valid( $orderby ) {
@@ -33,7 +34,6 @@ class Tests_Formatting_SanitizeOrderby extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::sanitize_sql_orderby
 	 * @dataProvider invalid_orderbys
 	 */
 	public function test_invalid( $orderby ) {

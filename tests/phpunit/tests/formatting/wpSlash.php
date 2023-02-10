@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::wp_slash
  */
 class Tests_Formatting_wpSlash extends WP_UnitTestCase {
 
@@ -82,7 +84,7 @@ class Tests_Formatting_wpSlash extends WP_UnitTestCase {
 		$this->assertSame( $arr, wp_slash( $arr ) ); // Keyed array.
 		$this->assertSame( array_values( $arr ), wp_slash( array_values( $arr ) ) ); // Non-keyed.
 
-		$obj = new stdClass;
+		$obj = new stdClass();
 		foreach ( $arr as $k => $v ) {
 			$obj->$k = $v;
 		}

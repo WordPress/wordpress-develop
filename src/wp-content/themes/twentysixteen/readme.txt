@@ -1,7 +1,7 @@
 === Twenty Sixteen ===
 Contributors: wordpressdotorg
-Tested up to: 5.9
-Version: 2.6
+Tested up to: 6.1
+Version: 2.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: one-column, two-columns, right-sidebar, accessibility-ready, custom-background, custom-colors, custom-header, custom-menu, editor-style, featured-images, flexible-header, microformats, post-formats, rtl-language-support, sticky-post, threaded-comments, translation-ready, blog, block-patterns
@@ -28,7 +28,7 @@ For more information about Twenty Sixteen please go to https://wordpress.org/sup
 
 == Copyright ==
 
-Twenty Sixteen WordPress Theme, Copyright 2014-2022 WordPress.org
+Twenty Sixteen WordPress Theme, Copyright 2014-2023 WordPress.org
 Twenty Sixteen is distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify
@@ -51,9 +51,34 @@ Genericons icon font, Copyright 2013-2017 Automattic.com
 License: GNU GPL, Version 2 (or later)
 Source: http://www.genericons.com
 
+Merriweather Font
+Copyright 2016 The Merriweather Project Authors (https://github.com/EbenSorkin/Merriweather), with Reserved Font Name "Merriweather".
+License: SIL Open Font License, 1.1, https://opensource.org/licenses/OFL-1.1
+Source: https://fontsource.org/fonts/merriweather
+
+Montserrat Font
+Copyright 2011 The Montserrat Project Authors (https://github.com/JulietaUla/Montserrat)
+License: SIL Open Font License, 1.1, https://opensource.org/licenses/OFL-1.1
+Source: https://fontsource.org/fonts/montserrat
+
+Inconsolata Font
+Copyright 2006 The Inconsolata Project Authors (https://github.com/cyrealtype/Inconsolata)
+License: SIL Open Font License, 1.1, https://opensource.org/licenses/OFL-1.1
+Source: https://fontsource.org/fonts/inconsolata
+
 Image used in screenshot.png: A photo by Austin Schmid (https://unsplash.com/schmidy/), licensed under Creative Commons Zero(http://creativecommons.org/publicdomain/zero/1.0/)
 
 == Changelog ==
+
+= 2.8 =
+* Released: November 1, 2022
+
+https://codex.wordpress.org/Twenty_Sixteen_Theme_Changelog#Version_2.8
+
+= 2.7 =
+* Released: May 24, 2022
+
+https://codex.wordpress.org/Twenty_Sixteen_Theme_Changelog#Version_2.7
 
 = 2.6 =
 * Released: January 25, 2022

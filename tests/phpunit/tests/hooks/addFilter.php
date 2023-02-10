@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Test the add_filter method of WP_Hook
  *
@@ -11,16 +10,33 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 
 	public $hook;
 
+	/**
+	 * Temporary storage for action output.
+	 *
+	 * Used in the following tests:
+	 * - `test_remove_and_add_action()`
+	 * - `test_remove_and_add_last_action()`
+	 * - `test_remove_and_recurse_and_add_action()`
+	 *
+	 * @var array
+	 */
+	private $action_output = '';
+
+	public function tear_down() {
+		$this->action_output = '';
+		parent::tear_down();
+	}
+
 	public function test_add_filter_with_function() {
 		$callback      = '__return_null';
 		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
+		$hook_name     = __FUNCTION__;
 		$priority      = 1;
 		$accepted_args = 2;
 
-		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
+		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
 
-		$function_index = _wp_filter_build_unique_id( $tag, $callback, $priority );
+		$function_index = _wp_filter_build_unique_id( $hook_name, $callback, $priority );
 		$this->assertSame( $callback, $hook->callbacks[ $priority ][ $function_index ]['function'] );
 		$this->assertSame( $accepted_args, $hook->callbacks[ $priority ][ $function_index ]['accepted_args'] );
 	}
@@ -29,13 +45,13 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$a             = new MockAction();
 		$callback      = array( $a, 'action' );
 		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
+		$hook_name     = __FUNCTION__;
 		$priority      = 1;
 		$accepted_args = 2;
 
-		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
+		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
 
-		$function_index = _wp_filter_build_unique_id( $tag, $callback, $priority );
+		$function_index = _wp_filter_build_unique_id( $hook_name, $callback, $priority );
 		$this->assertSame( $callback, $hook->callbacks[ $priority ][ $function_index ]['function'] );
 		$this->assertSame( $accepted_args, $hook->callbacks[ $priority ][ $function_index ]['accepted_args'] );
 	}
@@ -43,13 +59,13 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 	public function test_add_filter_with_static_method() {
 		$callback      = array( 'MockAction', 'action' );
 		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
+		$hook_name     = __FUNCTION__;
 		$priority      = 1;
 		$accepted_args = 2;
 
-		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
+		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
 
-		$function_index = _wp_filter_build_unique_id( $tag, $callback, $priority );
+		$function_index = _wp_filter_build_unique_id( $hook_name, $callback, $priority );
 		$this->assertSame( $callback, $hook->callbacks[ $priority ][ $function_index ]['function'] );
 		$this->assertSame( $accepted_args, $hook->callbacks[ $priority ][ $function_index ]['accepted_args'] );
 	}
@@ -58,14 +74,14 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$callback_one  = '__return_null';
 		$callback_two  = '__return_false';
 		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
+		$hook_name     = __FUNCTION__;
 		$priority      = 1;
 		$accepted_args = 2;
 
-		$hook->add_filter( $tag, $callback_one, $priority, $accepted_args );
+		$hook->add_filter( $hook_name, $callback_one, $priority, $accepted_args );
 		$this->assertCount( 1, $hook->callbacks[ $priority ] );
 
-		$hook->add_filter( $tag, $callback_two, $priority, $accepted_args );
+		$hook->add_filter( $hook_name, $callback_two, $priority, $accepted_args );
 		$this->assertCount( 2, $hook->callbacks[ $priority ] );
 	}
 
@@ -73,14 +89,14 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$callback_one  = '__return_null';
 		$callback_two  = '__return_false';
 		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
+		$hook_name     = __FUNCTION__;
 		$priority      = 1;
 		$accepted_args = 2;
 
-		$hook->add_filter( $tag, $callback_one, $priority, $accepted_args );
+		$hook->add_filter( $hook_name, $callback_one, $priority, $accepted_args );
 		$this->assertCount( 1, $hook->callbacks[ $priority ] );
 
-		$hook->add_filter( $tag, $callback_two, $priority + 1, $accepted_args );
+		$hook->add_filter( $hook_name, $callback_two, $priority + 1, $accepted_args );
 		$this->assertCount( 1, $hook->callbacks[ $priority ] );
 		$this->assertCount( 1, $hook->callbacks[ $priority + 1 ] );
 	}
@@ -88,48 +104,48 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 	public function test_readd_filter() {
 		$callback      = '__return_null';
 		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
+		$hook_name     = __FUNCTION__;
 		$priority      = 1;
 		$accepted_args = 2;
 
-		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
+		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
 		$this->assertCount( 1, $hook->callbacks[ $priority ] );
 
-		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
+		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
 		$this->assertCount( 1, $hook->callbacks[ $priority ] );
 	}
 
 	public function test_readd_filter_with_different_priority() {
 		$callback      = '__return_null';
 		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
+		$hook_name     = __FUNCTION__;
 		$priority      = 1;
 		$accepted_args = 2;
 
-		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
+		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
 		$this->assertCount( 1, $hook->callbacks[ $priority ] );
 
-		$hook->add_filter( $tag, $callback, $priority + 1, $accepted_args );
+		$hook->add_filter( $hook_name, $callback, $priority + 1, $accepted_args );
 		$this->assertCount( 1, $hook->callbacks[ $priority ] );
 		$this->assertCount( 1, $hook->callbacks[ $priority + 1 ] );
 	}
 
 	public function test_sort_after_add_filter() {
-		$a    = new MockAction();
-		$b    = new MockAction();
-		$c    = new MockAction();
-		$hook = new WP_Hook();
-		$tag  = __FUNCTION__;
+		$a         = new MockAction();
+		$b         = new MockAction();
+		$c         = new MockAction();
+		$hook      = new WP_Hook();
+		$hook_name = __FUNCTION__;
 
-		$hook->add_filter( $tag, array( $a, 'action' ), 10, 1 );
-		$hook->add_filter( $tag, array( $b, 'action' ), 5, 1 );
-		$hook->add_filter( $tag, array( $c, 'action' ), 8, 1 );
+		$hook->add_filter( $hook_name, array( $a, 'action' ), 10, 1 );
+		$hook->add_filter( $hook_name, array( $b, 'action' ), 5, 1 );
+		$hook->add_filter( $hook_name, array( $c, 'action' ), 8, 1 );
 
 		$this->assertSame( array( 5, 8, 10 ), array_keys( $hook->callbacks ) );
 	}
 
 	public function test_remove_and_add() {
-		$this->hook = new Wp_Hook();
+		$this->hook = new WP_Hook();
 
 		$this->hook->add_filter( 'remove_and_add', '__return_empty_string', 10, 0 );
 
@@ -143,7 +159,7 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 	}
 
 	public function test_remove_and_add_last_filter() {
-		$this->hook = new Wp_Hook();
+		$this->hook = new WP_Hook();
 
 		$this->hook->add_filter( 'remove_and_add', '__return_empty_string', 10, 0 );
 
@@ -157,7 +173,7 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 	}
 
 	public function test_remove_and_recurse_and_add() {
-		$this->hook = new Wp_Hook();
+		$this->hook = new WP_Hook();
 
 		$this->hook->add_filter( 'remove_and_add', '__return_empty_string', 10, 0 );
 
@@ -172,38 +188,37 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 		$this->assertSame( '1-134-234', $value );
 	}
 
-	public function _filter_remove_and_add1( $string ) {
-		return $string . '1';
+	public function _filter_remove_and_add1( $value ) {
+		return $value . '1';
 	}
 
-	public function _filter_remove_and_add2( $string ) {
+	public function _filter_remove_and_add2( $value ) {
 		$this->hook->remove_filter( 'remove_and_add', array( $this, '_filter_remove_and_add2' ), 11 );
 		$this->hook->add_filter( 'remove_and_add', array( $this, '_filter_remove_and_add2' ), 11, 1 );
 
-		return $string . '2';
+		return $value . '2';
 	}
 
-	public function _filter_remove_and_recurse_and_add2( $string ) {
+	public function _filter_remove_and_recurse_and_add2( $value ) {
 		$this->hook->remove_filter( 'remove_and_add', array( $this, '_filter_remove_and_recurse_and_add2' ), 11 );
 
-		$string .= '-' . $this->hook->apply_filters( '', array() ) . '-';
+		$value .= '-' . $this->hook->apply_filters( '', array() ) . '-';
 
 		$this->hook->add_filter( 'remove_and_add', array( $this, '_filter_remove_and_recurse_and_add2' ), 11, 1 );
 
-		return $string . '2';
+		return $value . '2';
 	}
 
-	public function _filter_remove_and_add3( $string ) {
-		return $string . '3';
+	public function _filter_remove_and_add3( $value ) {
+		return $value . '3';
 	}
 
-	public function _filter_remove_and_add4( $string ) {
-		return $string . '4';
+	public function _filter_remove_and_add4( $value ) {
+		return $value . '4';
 	}
 
 	public function test_remove_and_add_action() {
-		$this->hook          = new Wp_Hook();
-		$this->action_output = '';
+		$this->hook = new WP_Hook();
 
 		$this->hook->add_filter( 'remove_and_add_action', '__return_empty_string', 10, 0 );
 
@@ -217,8 +232,7 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 	}
 
 	public function test_remove_and_add_last_action() {
-		$this->hook          = new Wp_Hook();
-		$this->action_output = '';
+		$this->hook = new WP_Hook();
 
 		$this->hook->add_filter( 'remove_and_add_action', '__return_empty_string', 10, 0 );
 
@@ -232,8 +246,7 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 	}
 
 	public function test_remove_and_recurse_and_add_action() {
-		$this->hook          = new Wp_Hook();
-		$this->action_output = '';
+		$this->hook = new WP_Hook();
 
 		$this->hook->add_filter( 'remove_and_add_action', '__return_empty_string', 10, 0 );
 

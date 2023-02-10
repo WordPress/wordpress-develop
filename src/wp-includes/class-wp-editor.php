@@ -8,6 +8,7 @@
  * Private, not included by default. See wp_editor() in wp-includes/general-template.php.
  */
 
+#[AllowDynamicProperties]
 final class _WP_Editors {
 	public static $mce_locale;
 
@@ -1751,7 +1752,17 @@ final class _WP_Editors {
 	 * @since 3.1.0
 	 *
 	 * @param array $args Optional. Accepts 'pagenum' and 's' (search) arguments.
-	 * @return array|false Results.
+	 * @return array|false $results {
+	 *     An array of associative arrays of query results, false if there are none.
+	 *
+	 *     @type array ...$0 {
+	 *         @type int    $ID        Post ID.
+	 *         @type string $title     The trimmed, escaped post title.
+	 *         @type string $permalink Post permalink.
+	 *         @type string $info      A 'Y/m/d'-formatted date for 'post' post type,
+	 *                                 the 'singular_name' post type label otherwise.
+	 *     }
+	 * }
 	 */
 	public static function wp_link_query( $args = array() ) {
 		$pts      = get_post_types( array( 'public' => true ), 'objects' );
@@ -1788,7 +1799,7 @@ final class _WP_Editors {
 		$query = apply_filters( 'wp_link_query_args', $query );
 
 		// Do main query.
-		$get_posts = new WP_Query;
+		$get_posts = new WP_Query();
 		$posts     = $get_posts->query( $query );
 
 		// Build results.
@@ -1855,7 +1866,12 @@ final class _WP_Editors {
 		<form id="wp-link" tabindex="-1">
 		<?php wp_nonce_field( 'internal-linking', '_ajax_linking_nonce', false ); ?>
 		<h1 id="link-modal-title"><?php _e( 'Insert/edit link' ); ?></h1>
-		<button type="button" id="wp-link-close"><span class="screen-reader-text"><?php _e( 'Close' ); ?></span></button>
+		<button type="button" id="wp-link-close"><span class="screen-reader-text">
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'Close' );
+			?>
+		</span></button>
 		<div id="link-selector">
 			<div id="link-options">
 				<p class="howto" id="wplink-enter-url"><?php _e( 'Enter the destination URL' ); ?></p>
@@ -1890,7 +1906,12 @@ final class _WP_Editors {
 				<div id="most-recent-results" class="query-results" tabindex="0">
 					<div class="query-notice" id="query-notice-message">
 						<em class="query-notice-default"><?php _e( 'No search term specified. Showing recent items.' ); ?></em>
-						<em class="query-notice-hint screen-reader-text"><?php _e( 'Search or use up and down arrow keys to select an item.' ); ?></em>
+						<em class="query-notice-hint screen-reader-text">
+							<?php
+							/* translators: Hidden accessibility text. */
+							_e( 'Search or use up and down arrow keys to select an item.' );
+							?>
+						</em>
 					</div>
 					<ul></ul>
 					<div class="river-waiting">
