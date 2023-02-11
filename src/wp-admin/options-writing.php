@@ -22,11 +22,7 @@ get_current_screen()->add_help_tab(
 		'id'      => 'overview',
 		'title'   => __( 'Overview' ),
 		'content' => '<p>' . __( 'You can submit content in several different ways; this screen holds the settings for all of them. The top section controls the editor within the dashboard, while the rest control external publishing methods. For more information on any of these methods, use the documentation links.' ) . '</p>' .
-			'<p>' . sprintf(
-				'<strong>%1$s</strong> %2$s',
-				__( 'Remember to save your changes!' ),
-				__( 'You must click the Save Changes button at the bottom of the screen for new settings to take effect.' )
-			) . '</p>',
+			'<p>' . __( 'You must click the Save Changes button at the bottom of the screen for new settings to take effect.' ) . '</p>',
 	)
 );
 

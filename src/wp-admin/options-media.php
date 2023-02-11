@@ -26,11 +26,7 @@ if ( ! is_multisite()
 	$media_options_help .= '<p>' . __( 'Uploading Files allows you to choose the folder and path for storing your uploaded files.' ) . '</p>';
 }
 
-$media_options_help .= '<p>' . sprintf(
-	'<strong>%1$s</strong> %2$s',
-	__( 'Remember to save your changes!' ),
-	__( 'You must click the Save Changes button at the bottom of the screen for new settings to take effect.' )
-) . '</p>';
+$media_options_help .= '<p>' . __( 'You must click the Save Changes button at the bottom of the screen for new settings to take effect.' ) . '</p>';
 
 get_current_screen()->add_help_tab(
 	array(
