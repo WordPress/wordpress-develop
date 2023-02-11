@@ -64,6 +64,61 @@ JS;
 	}
 
 	/**
+	 * 
+	 */
+	public function test_old_and_new_in_footer_scripts() {
+		wp_register_script( 'header-old', '/header-old.js', array(), null, false );         									// In head.
+		wp_enqueue_script( 'header-old' );
+		wp_register_script( 'header-new', '/header-new.js', array(), null, array( 'in_footer' => false ) );     				// In head.
+		wp_enqueue_script( 'header-new' );
+		wp_enqueue_script( 'enqueue-header-old', '/enqueue-header-old.js', array(), null, false );   							// In head.
+		wp_enqueue_script( 'enqueue-header-new', '/enqueue-header-new.js', array(), null, array( 'in_footer' => false ) );   	// In head.
+	
+		wp_register_script( 'footer-old', '/footer-old.js', array(), null, true );         					 					// In footer.
+		wp_enqueue_script( 'footer-old' );
+		wp_register_script( 'footer-new', '/footer-new.js', array(), null, array( 'in_footer' => true ) );   					// In footer.
+		wp_enqueue_script( 'footer-new' );
+		wp_enqueue_script( 'enqueue-footer-old', '/enqueue-footer-old.js', array(), null, true );    							// In footer.
+		wp_enqueue_script( 'enqueue-footer-new', '/enqueue-footer-new.js', array(), null, array( 'in_footer' => true ) );    	// In footer.
+		
+		$header = get_echo( 'wp_print_head_scripts' );
+		$footer = get_echo( 'wp_print_footer_scripts' );
+
+		$expected_header  = "<script type='text/javascript' src='/header-old.js' id='header-old-js'></script>\n";
+		$expected_header .= "<script type='text/javascript' src='/header-new.js' id='header-new-js'></script>\n";
+		$expected_header .= "<script type='text/javascript' src='/enqueue-header-old.js' id='enqueue-header-old-js'></script>\n";
+		$expected_header .= "<script type='text/javascript' src='/enqueue-header-new.js' id='enqueue-header-new-js'></script>\n";
+
+		$expected_footer  = "<script type='text/javascript' src='/footer-old.js' id='footer-old-js'></script>\n";
+		$expected_footer .= "<script type='text/javascript' src='/footer-new.js' id='footer-new-js'></script>\n";
+		$expected_footer .= "<script type='text/javascript' src='/enqueue-footer-old.js' id='enqueue-footer-old-js'></script>\n";
+		$expected_footer .= "<script type='text/javascript' src='/enqueue-footer-new.js' id='enqueue-footer-new-js'></script>\n";
+
+		$this->assertSame( $expected_header, $header );
+		$this->assertSame( $expected_footer, $footer );
+	}
+
+	/**
+	 * 
+	 */
+	public function test_get_normalized_script_args() {
+		global $wp_scripts;
+		$args = array( 
+			'in_footer' => false, 
+			'strategy'  => 'defer'
+		);
+		wp_register_script( 'header-defer', '/header-defer.js', array(), null, $args );
+		$this->assertSame( $args, $wp_scripts->get_data( 'header-defer', 'script_args' ) );
+
+		$args = array( 
+			'in_footer' => true, 
+			'strategy'  => 'async'
+		);
+		wp_enqueue_script( 'footer-async', '/footer-async.js', array(), null, $args );
+		$this->assertSame( $args, $wp_scripts->get_data( 'footer-async', 'script_args' ) );
+	}
+
+	/**
 	 * @ticket 42804
 	 */
 	public function test_wp_enqueue_script_with_html5_support_does_not_contain_type_attribute() {
