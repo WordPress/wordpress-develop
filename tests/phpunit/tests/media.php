@@ -3549,7 +3549,9 @@ EOF;
 	/**
 	 * @ticket 53675
 	 * @ticket 56930
+	 *
 	 * @covers ::wp_get_loading_attr_default
+	 *
 	 * @dataProvider data_wp_get_loading_attr_default
 	 *
 	 * @param string $context
@@ -3592,8 +3594,8 @@ EOF;
 		}
 
 		// Exceptions: In the following contexts, images shouldn't be lazy-loaded by default.
-		$this->assertFalse( wp_get_loading_attr_default( 'template' ) );
-		$this->assertFalse( wp_get_loading_attr_default( 'template_part_' . WP_TEMPLATE_PART_AREA_HEADER ) );
+		$this->assertFalse( wp_get_loading_attr_default( 'template' ), 'Images run through the overall block template filter should not be lazy-loaded.' );
+		$this->assertFalse( wp_get_loading_attr_default( 'template_part_' . WP_TEMPLATE_PART_AREA_HEADER ), 'Images in the footer block template part should not be lazy-loaded.' );
 	}
 
 	public function data_wp_get_loading_attr_default() {
@@ -3708,6 +3710,7 @@ EOF;
 
 	/**
 	 * @ticket 56930
+	 *
 	 * @covers ::wp_filter_content_tags
 	 * @covers ::wp_get_loading_attr_default
 	 */
@@ -3749,6 +3752,7 @@ EOF;
 
 	/**
 	 * @ticket 56930
+	 *
 	 * @covers ::wp_filter_content_tags
 	 * @covers ::wp_get_loading_attr_default
 	 */
@@ -3801,6 +3805,7 @@ EOF;
 
 	/**
 	 * @ticket 56930
+	 *
 	 * @covers ::wp_filter_content_tags
 	 * @covers ::wp_get_loading_attr_default
 	 */
