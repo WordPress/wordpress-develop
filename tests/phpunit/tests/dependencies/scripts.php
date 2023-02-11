@@ -64,22 +64,22 @@ JS;
 	}
 
 	/**
-	 * 
+	 * Test old and new in_footer logic.
 	 */
 	public function test_old_and_new_in_footer_scripts() {
-		wp_register_script( 'header-old', '/header-old.js', array(), null, false );         									// In head.
+		wp_register_script( 'header-old', '/header-old.js', array(), null, false );                                         // In head.
 		wp_enqueue_script( 'header-old' );
-		wp_register_script( 'header-new', '/header-new.js', array(), null, array( 'in_footer' => false ) );     				// In head.
+		wp_register_script( 'header-new', '/header-new.js', array(), null, array( 'in_footer' => false ) );                 // In head.
 		wp_enqueue_script( 'header-new' );
-		wp_enqueue_script( 'enqueue-header-old', '/enqueue-header-old.js', array(), null, false );   							// In head.
-		wp_enqueue_script( 'enqueue-header-new', '/enqueue-header-new.js', array(), null, array( 'in_footer' => false ) );   	// In head.
+		wp_enqueue_script( 'enqueue-header-old', '/enqueue-header-old.js', array(), null, false );   					    // In head.
+		wp_enqueue_script( 'enqueue-header-new', '/enqueue-header-new.js', array(), null, array( 'in_footer' => false ) );  // In head.
 	
-		wp_register_script( 'footer-old', '/footer-old.js', array(), null, true );         					 					// In footer.
+		wp_register_script( 'footer-old', '/footer-old.js', array(), null, true );                                          // In footer.
 		wp_enqueue_script( 'footer-old' );
-		wp_register_script( 'footer-new', '/footer-new.js', array(), null, array( 'in_footer' => true ) );   					// In footer.
+		wp_register_script( 'footer-new', '/footer-new.js', array(), null, array( 'in_footer' => true ) );                  // In footer.
 		wp_enqueue_script( 'footer-new' );
-		wp_enqueue_script( 'enqueue-footer-old', '/enqueue-footer-old.js', array(), null, true );    							// In footer.
-		wp_enqueue_script( 'enqueue-footer-new', '/enqueue-footer-new.js', array(), null, array( 'in_footer' => true ) );    	// In footer.
+		wp_enqueue_script( 'enqueue-footer-old', '/enqueue-footer-old.js', array(), null, true );                           // In footer.
+		wp_enqueue_script( 'enqueue-footer-new', '/enqueue-footer-new.js', array(), null, array( 'in_footer' => true ) );   // In footer.
 		
 		$header = get_echo( 'wp_print_head_scripts' );
 		$footer = get_echo( 'wp_print_footer_scripts' );
@@ -99,7 +99,7 @@ JS;
 	}
 
 	/**
-	 * 
+	 * Test normalized script args.
 	 */
 	public function test_get_normalized_script_args() {
 		global $wp_scripts;
