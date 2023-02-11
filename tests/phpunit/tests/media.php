@@ -3547,6 +3547,8 @@ EOF;
 	}
 
 	/**
+	 * Tests that wp_get_loading_attr_default() returns the expected loading attribute value.
+	 *
 	 * @ticket 53675
 	 * @ticket 56930
 	 *
@@ -3709,6 +3711,9 @@ EOF;
 	}
 
 	/**
+	 * Tests that wp_filter_content_tags() does not add loading="lazy" to the first
+	 * image in the loop when using a block theme.
+	 *
 	 * @ticket 56930
 	 *
 	 * @covers ::wp_filter_content_tags
@@ -3751,6 +3756,9 @@ EOF;
 	}
 
 	/**
+	 * Tests that wp_filter_content_tags() does not add loading="lazy"
+	 * to the featured image when using a block theme.
+	 *
 	 * @ticket 56930
 	 *
 	 * @covers ::wp_filter_content_tags
@@ -3804,6 +3812,9 @@ EOF;
 	}
 
 	/**
+	 * Tests that wp_filter_content_tags() does not add loading="lazy" to images
+	 * in a "Header" template part.
+	 *
 	 * @ticket 56930
 	 *
 	 * @covers ::wp_filter_content_tags
