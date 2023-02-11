@@ -737,9 +737,13 @@ JS;
 	 * Normalize the data inside $args parameter and support backward compatibility.
 	 * 
 	 * @param string        $handle Name of the script.
-	 * @param bool|array    $args array of script arguments or boolean for old usage ($in_footer).
-	 *                      Default empty array.
-	 * @return array 		Normalized argument array. 
+	 * @param array         $args     {
+	 *      Optional. Additional script arguments. Default empty array.
+	 * 
+	 *      @type boolean   $in_footer    Optional. Default true.
+	 *      @type string    $strategy     Optional. Default 'blocking'.
+	 * }
+	 * @return array 		Normalized $args array. 
 	 */
 	private function get_normalized_script_args( $handle, $args = array() ) {
 		$default_args = array(
