@@ -104,18 +104,27 @@ JS;
 	public function test_get_normalized_script_args() {
 		global $wp_scripts;
 		$args = array( 
-			'in_footer' => false, 
-			'strategy'  => 'defer'
-		);
-		wp_register_script( 'header-defer', '/header-defer.js', array(), null, $args );
-		$this->assertSame( $args, $wp_scripts->get_data( 'header-defer', 'script_args' ) );
-
-		$args = array( 
 			'in_footer' => true, 
 			'strategy'  => 'async'
 		);
 		wp_enqueue_script( 'footer-async', '/footer-async.js', array(), null, $args );
 		$this->assertSame( $args, $wp_scripts->get_data( 'footer-async', 'script_args' ) );
+		
+		$expected_args = array( 
+			'in_footer' => false, 
+			'strategy'  => 'blocking'
+		);
+		$args = array();
+		wp_register_script( 'defaults', '/defaults.js', array(), null, $args );
+		$this->assertSame( $expected_args, $wp_scripts->get_data( 'defaults', 'script_args' ) );
+
+		//test backward compatibility.
+		$args = array( 
+			'in_footer' => true, 
+			'strategy'  => 'blocking'
+		);
+		wp_enqueue_script( 'footer-old', '/footer-async.js', array(), null, true );
+		$this->assertSame( $args, $wp_scripts->get_data( 'footer-old', 'script_args' ) );
 	}
 
 	/**
