@@ -170,7 +170,7 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
  *      Optional. An array of additional script strategies. Default empty array.
  * 
  *      @type boolean   $in_footer    Optional. Default true.
- *      @type string    $strategy     Optional. Default 'blocking'.
+ *      @type string    $strategy     Optional. Values blocking|defer|async. Default 'blocking'.
  * }
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
@@ -345,7 +345,7 @@ function wp_deregister_script( $handle ) {
  *      Optional. An array of additional script strategies. Default empty array.
  * 
  *      @type boolean   $in_footer    Optional. Default true.
- *      @type string    $strategy     Optional. Default 'blocking'.
+ *      @type string    $strategy     Optional. Values blocking|defer|async. Default 'blocking'.
  * }
  * 
  * @param bool             $in_footer Optional. Whether to enqueue the script before `</body>` instead of in the `<head>`.
