@@ -5455,8 +5455,10 @@ function wp_get_loading_attr_default( $context ) {
 		return false;
 	}
 
-	// The first elements in 'the_content' or 'the_post_thumbnail' should not be lazy-loaded,
-	// as they are likely above the fold.
+	/*
+	 * The first elements in 'the_content' or 'the_post_thumbnail' should not be lazy-loaded,
+	 * as they are likely above the fold.
+	 */
 	if ( 'the_content' === $context || 'the_post_thumbnail' === $context ) {
 		// Only elements within the main query loop have special handling.
 		if ( is_admin() || ! in_the_loop() || ! is_main_query() ) {
