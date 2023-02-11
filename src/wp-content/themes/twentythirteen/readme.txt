@@ -1,6 +1,6 @@
 === Twenty Thirteen ===
 Contributors: wordpressdotorg
-Tested up to: 6.1
+Tested up to: 6.2
 Stable tag: 3.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
