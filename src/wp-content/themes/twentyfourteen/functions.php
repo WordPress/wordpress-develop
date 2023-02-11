@@ -330,6 +330,9 @@ endif;
  * @since Twenty Fourteen 1.0
  */
 function twentyfourteen_scripts() {
+	// Remove default styles for button block.
+	wp_dequeue_style( 'classic-theme-styles' );
+
 	// Add Lato font, used in the main stylesheet.
 	$font_version = ( 0 === strpos( (string) twentyfourteen_font_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
 	wp_enqueue_style( 'twentyfourteen-lato', twentyfourteen_font_url(), array(), $font_version );

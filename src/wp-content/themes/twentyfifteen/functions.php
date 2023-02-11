@@ -414,6 +414,9 @@ add_action( 'wp_head', 'twentyfifteen_javascript_detection', 0 );
  * @since Twenty Fifteen 1.0
  */
 function twentyfifteen_scripts() {
+	// Remove default styles for button block.
+	wp_dequeue_style( 'classic-theme-styles' );
+
 	// Add custom fonts, used in the main stylesheet.
 	$font_version = ( 0 === strpos( (string) twentyfifteen_fonts_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
 	wp_enqueue_style( 'twentyfifteen-fonts', twentyfifteen_fonts_url(), array(), $font_version );

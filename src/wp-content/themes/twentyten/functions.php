@@ -723,6 +723,9 @@ add_filter( 'widget_tag_cloud_args', 'twentyten_widget_tag_cloud_args' );
  * @since Twenty Ten 2.6
  */
 function twentyten_scripts_styles() {
+	// Removes default styles for button block.
+	wp_dequeue_style( 'classic-theme-styles' );
+
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentyten-block-style', get_template_directory_uri() . '/blocks.css', array(), '20190704' );
 }

@@ -201,6 +201,9 @@ function twentytwenty_register_styles() {
 	// Add print CSS.
 	wp_enqueue_style( 'twentytwenty-print-style', get_template_directory_uri() . '/print.css', null, $theme_version, 'print' );
 
+	// Remove default styles for button block.
+	wp_dequeue_style( 'classic-theme-styles' );
+
 }
 
 add_action( 'wp_enqueue_scripts', 'twentytwenty_register_styles' );

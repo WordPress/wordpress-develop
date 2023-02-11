@@ -454,6 +454,9 @@ add_action( 'wp_head', 'twentyseventeen_colors_css_wrap' );
  * Enqueues scripts and styles.
  */
 function twentyseventeen_scripts() {
+	// Remove default styles for button block.
+	wp_dequeue_style( 'classic-theme-styles' );
+
 	// Add custom fonts, used in the main stylesheet.
 	$font_version = ( 0 === strpos( (string) twentyseventeen_fonts_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
 	wp_enqueue_style( 'twentyseventeen-fonts', twentyseventeen_fonts_url(), array(), $font_version );
