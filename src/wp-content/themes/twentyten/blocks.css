@@ -155,6 +155,15 @@ p.has-drop-cap:not(:focus)::first-letter {
 4.0 Blocks - Layout Elements
 --------------------------------------------------------------*/
 
+/* Button */
+
+.wp-block-button__link {
+	color: #fff;
+	background-color: #32373c;
+	font-size: 1.125em;
+	padding: calc(0.667em + 2px) calc(1.333em + 2px);
+}
+
 /* Separator */
 
 .wp-block-separator {
