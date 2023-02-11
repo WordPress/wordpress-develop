@@ -362,7 +362,7 @@ function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $
 			$wp_scripts->add( $_handle[0], $src, $deps, $ver );
 		}
 
-        $wp_scripts->add_data( $_handle[0], 'script_args', $args );
+		$wp_scripts->add_data( $_handle[0], 'script_args', $args );
 	}
 
 	$wp_scripts->enqueue( $handle );
