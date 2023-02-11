@@ -23,7 +23,11 @@ get_current_screen()->add_help_tab(
 		'id'      => 'overview',
 		'title'   => __( 'Overview' ),
 		'content' => '<p>' . __( 'This screen provides many options for controlling the management and display of comments and links to your posts/pages. So many, in fact, they will not all fit here! :) Use the documentation links to get information on what each discussion setting does.' ) . '</p>' .
-			'<p>' . __( 'You must click the Save Changes button at the bottom of the screen for new settings to take effect.' ) . '</p>',
+			'<p>' . sprintf(
+				'<strong>%1$s</strong> %2$s',
+				__( 'Remember to save your changes!' ),
+				__( 'You must click the Save Changes button at the bottom of the screen for new settings to take effect.' )
+			) . '</p>',
 	)
 );
 

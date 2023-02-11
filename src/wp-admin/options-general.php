@@ -41,7 +41,11 @@ if ( ! is_multisite() ) {
 
 $options_help .= '<p>' . __( 'You can set the language, and WordPress will automatically download and install the translation files (available if your filesystem is writable).' ) . '</p>' .
 	'<p>' . __( 'UTC means Coordinated Universal Time.' ) . '</p>' .
-	'<p>' . __( 'You must click the Save Changes button at the bottom of the screen for new settings to take effect.' ) . '</p>';
+	'<p>' . sprintf(
+		'<strong>%1$s</strong> %2$s',
+		__( 'Remember to save your changes!' ),
+		__( 'You must click the Save Changes button at the bottom of the screen for new settings to take effect.' )
+	) . '</p>';
 
 get_current_screen()->add_help_tab(
 	array(

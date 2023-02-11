@@ -23,7 +23,11 @@ get_current_screen()->add_help_tab(
 		'title'   => __( 'Overview' ),
 		'content' => '<p>' . __( 'Permalinks are the permanent URLs to your individual pages and blog posts, as well as your category and tag archives. A permalink is the web address used to link to your content. The URL to each post should be permanent, and never change &#8212; hence the name permalink.' ) . '</p>' .
 			'<p>' . __( 'This screen allows you to choose your permalink structure. You can choose from common settings or create custom URL structures.' ) . '</p>' .
-			'<p>' . __( 'You must click the Save Changes button at the bottom of the screen for new settings to take effect.' ) . '</p>',
+			'<p>' . sprintf(
+				'<strong>%1$s</strong> %2$s',
+				__( 'Remember to save your changes!' ),
+				__( 'You must click the Save Changes button at the bottom of the screen for new settings to take effect.' )
+			) . '</p>',
 	)
 );
 
@@ -43,7 +47,11 @@ get_current_screen()->add_help_tab(
 				'<code>%category%</code>',
 				'<code>%tag%</code>'
 			) . '</p>' .
-			'<p>' . __( 'You must click the Save Changes button at the bottom of the screen for new settings to take effect.' ) . '</p>',
+			'<p>' . sprintf(
+				'<strong>%1$s</strong> %2$s',
+				__( 'Remember to save your changes!' ),
+				__( 'You must click the Save Changes button at the bottom of the screen for new settings to take effect.' )
+			) . '</p>',
 	)
 );
 
@@ -52,7 +60,11 @@ get_current_screen()->add_help_tab(
 		'id'      => 'custom-structures',
 		'title'   => __( 'Custom Structures' ),
 		'content' => '<p>' . __( 'The Optional fields let you customize the &#8220;category&#8221; and &#8220;tag&#8221; base names that will appear in archive URLs. For example, the page listing all posts in the &#8220;Uncategorized&#8221; category could be <code>/topics/uncategorized</code> instead of <code>/category/uncategorized</code>.' ) . '</p>' .
-			'<p>' . __( 'You must click the Save Changes button at the bottom of the screen for new settings to take effect.' ) . '</p>',
+			'<p>' . sprintf(
+				'<strong>%1$s</strong> %2$s',
+				__( 'Remember to save your changes!' ),
+				__( 'You must click the Save Changes button at the bottom of the screen for new settings to take effect.' )
+			) . '</p>',
 	)
 );
 
