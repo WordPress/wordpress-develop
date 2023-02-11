@@ -22,13 +22,10 @@ class Tests_PasswordHash extends WP_UnitTestCase {
 	 * @ticket 56340
 	 *
 	 * @covers PasswordHash::gensalt_blowfish
+	 *
+	 * @requires PHP 8.1
 	 */
 	public function test_gensalt_blowfish_should_not_throw_deprecation_notice_in_php81() {
-		if ( version_compare( PHP_VERSION, '8.1.0', '<' ) ) {
-			$this->markTestSkipped( 'This test should only run on PHP 8.1 or greater.' );
-		}
-
-		try {
 			$this->expectNotToPerformAssertions();
 
 			$hasher = new PasswordHash( 8, true );
