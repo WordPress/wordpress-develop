@@ -1731,19 +1731,12 @@ final class WP_Theme implements ArrayAccess {
 			$site_id = $current_site_id;
 		}
 
-		if ( $site_id !== $current_site_id ) {
-			switch_to_blog( $site_id );
-		}
-
-		$allowed_themes = get_option( 'allowedthemes' );
+		$allowed_themes = get_blog_option( $site_id, 'allowedthemes' );
 		foreach ( $stylesheets as $stylesheet ) {
 			$allowed_themes[ $stylesheet ] = true;
 		}
-		update_option( 'allowedthemes', $allowed_themes );
 
-		if ( $site_id !== $current_site_id ) {
-			restore_current_blog();
-		}
+		update_blog_option( $site_id, 'allowedthemes', $allowed_themes );
 	}
 
 	/**
@@ -1770,21 +1763,14 @@ final class WP_Theme implements ArrayAccess {
 			$site_id = $current_site_id;
 		}
 
-		if ( $site_id !== $current_site_id ) {
-			switch_to_blog( $site_id );
-		}
-
-		$allowed_themes = get_option( 'allowedthemes' );
+		$allowed_themes = get_blog_option( $site_id, 'allowedthemes' );
 		foreach ( $stylesheets as $stylesheet ) {
 			if ( isset( $allowed_themes[ $stylesheet ] ) ) {
 				unset( $allowed_themes[ $stylesheet ] );
 			}
 		}
-		update_option( 'allowedthemes', $allowed_themes );
 
-		if ( $site_id !== $current_site_id ) {
-			restore_current_blog();
-		}
+		update_blog_option( $site_id, 'allowedthemes', $allowed_themes );
 	}
 
 	/**
