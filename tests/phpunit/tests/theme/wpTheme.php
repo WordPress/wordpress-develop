@@ -214,7 +214,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 * Disable a single theme on a network.
 	 *
 	 * @ticket 30594
-	 * @group ms-required, fail
+	 * @group ms-required
 	 */
 	public function test_network_disable_single_theme() {
 		$current_allowed_themes = get_site_option( 'allowedthemes' );
