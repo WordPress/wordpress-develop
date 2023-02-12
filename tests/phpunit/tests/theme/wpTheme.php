@@ -269,6 +269,9 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 */
 	public function test_wp_theme_site_enable_single_theme() {
 		$blog_id                = self::factory()->blog->create();
+		$default_allowed_themes = [ 'sandbox' ];
+		update_blog_option( $blog_id, 'allowedthemes', $default_allowed_themes ); // Random default allowed theme.
+
 		$theme                  = 'testtheme-1';
 		$current_allowed_themes = get_blog_option( $blog_id, 'allowedthemes' );
 		WP_Theme::site_enable_theme( $theme, $blog_id );
@@ -287,6 +290,9 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 */
 	public function test_wp_theme_site_enable_multiple_themes() {
 		$blog_id = self::factory()->blog->create();
+		$default_allowed_themes = [ 'sandbox' ];
+		update_blog_option( $blog_id, 'allowedthemes', $default_allowed_themes ); // Random default allowed theme.
+
 		$themes                 = array( 'testtheme-2', 'testtheme-3' );
 		$current_allowed_themes = get_blog_option( $blog_id, 'allowedthemes' );
 		WP_Theme::site_enable_theme( $themes, $blog_id );
@@ -311,6 +317,9 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 */
 	public function test_site_disable_single_theme() {
 		$blog_id = self::factory()->blog->create();
+		$default_allowed_themes = [ 'sandbox' ];
+		update_blog_option( $blog_id, 'allowedthemes', $default_allowed_themes ); // Random default allowed theme.
+
 		$current_allowed_themes = get_blog_option( $blog_id, 'allowedthemes' );
 
 		$allowed_themes = array(
@@ -337,6 +346,9 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 */
 	public function test_site_disable_multiple_themes() {
 		$blog_id = self::factory()->blog->create();
+		$default_allowed_themes = [ 'sandbox' ];
+		update_blog_option( $blog_id, 'allowedthemes', $default_allowed_themes ); // Random default allowed theme.
+
 		$current_allowed_themes = get_blog_option( $blog_id, 'allowedthemes' );
 
 		$allowed_themes = array(
