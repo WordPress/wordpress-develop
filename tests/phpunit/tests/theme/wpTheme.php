@@ -214,7 +214,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 * Disable a single theme on a network.
 	 *
 	 * @ticket 30594
-	 * @group ms-required
+	 * @group ms-required, fail
 	 */
 	public function test_network_disable_single_theme() {
 		$current_allowed_themes = get_site_option( 'allowedthemes' );
@@ -269,7 +269,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 */
 	public function test_wp_theme_site_enable_single_theme() {
 		$blog_id = self::factory()->blog->create();
-		update_blog_option( $blog_id, 'allowedthemes', [] ); // default value.
+		update_blog_option( $blog_id, 'allowedthemes', array() ); // default value.
 
 		$theme                  = 'testtheme-1';
 		$current_allowed_themes = get_blog_option( $blog_id, 'allowedthemes' );
@@ -289,7 +289,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 */
 	public function test_wp_theme_site_enable_multiple_themes() {
 		$blog_id = self::factory()->blog->create();
-		update_blog_option( $blog_id, 'allowedthemes', [] ); // default value.
+		update_blog_option( $blog_id, 'allowedthemes', array() ); // default value.
 
 		$themes                 = array( 'testtheme-2', 'testtheme-3' );
 		$current_allowed_themes = get_blog_option( $blog_id, 'allowedthemes' );
@@ -324,8 +324,9 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		update_blog_option( $blog_id, 'allowedthemes', $allowed_themes );
 
 		$disable_theme = 'existing-2';
-		WP_Theme::site_disable_theme( $disable_theme );
+		WP_Theme::site_disable_theme( $disable_theme, $blog_id );
 		$new_allowed_themes = get_blog_option( $blog_id, 'allowedthemes' );
+
 		update_blog_option( $blog_id, 'allowedthemes', $allowed_themes ); // Reset previous value.
 		unset( $allowed_themes[ $disable_theme ] ); // Remove deleted theme from initial set.
 
@@ -349,7 +350,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		update_blog_option( $blog_id, 'allowedthemes', $allowed_themes );
 
 		$disable_themes = array( 'existing-4', 'existing-5' );
-		WP_Theme::site_disable_theme( $disable_themes );
+		WP_Theme::site_disable_theme( $disable_themes, $blog_id );
 		$new_allowed_themes = get_blog_option( $blog_id, 'allowedthemes' );
 		update_blog_option( $blog_id, 'allowedthemes', $allowed_themes ); // Reset previous value.
 		unset( $allowed_themes['existing-4'] );
