@@ -265,7 +265,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 * Enable a single theme on a network site.
 	 *
 	 * @ticket 43728
-	 * @group ms-required, failure
+	 * @group ms-required
 	 */
 	public function test_wp_theme_site_enable_single_theme() {
 		$theme                  = 'testtheme-1';
@@ -279,10 +279,33 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Enable multiple themes on a network site.
+	 *
+	 * @ticket 43728
+	 * @group ms-required
+	 */
+	public function test_wp_theme_site_enable_multiple_themes() {
+		$themes                 = array( 'testtheme-2', 'testtheme-3' );
+		$current_allowed_themes = get_blog_option( 2, 'allowedthemes' );
+		WP_Theme::site_enable_theme( $themes );
+		$new_allowed_themes = get_blog_option( 2, 'allowedthemes' );
+		update_blog_option( 2, 'allowedthemes', $current_allowed_themes ); // Reset previous value.
+		$current_allowed_themes = array_merge(
+			$current_allowed_themes,
+			array(
+				'testtheme-2' => true,
+				'testtheme-3' => true,
+			)
+		);
+
+		$this->assertSameSetsWithIndex( $current_allowed_themes, $new_allowed_themes );
+	}
+
+	/**
 	 * Disable a single theme on a network site.
 	 *
 	 * @ticket 43728
-	 * @group ms-required, failure
+	 * @group ms-required
 	 */
 	public function test_site_disable_single_theme() {
 		$current_allowed_themes = get_blog_option( 2, 'allowedthemes' );
@@ -299,6 +322,32 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		$new_allowed_themes = get_blog_option( 2, 'allowedthemes' );
 		update_blog_option( 2, 'allowedthemes', $current_allowed_themes ); // Reset previous value.
 		unset( $allowed_themes[ $disable_theme ] ); // Remove deleted theme from initial set.
+
+		$this->assertSameSetsWithIndex( $allowed_themes, $new_allowed_themes );
+	}
+
+	/**
+	 * Disable multiple themes on a network site.
+	 *
+	 * @ticket 43728
+	 * @group ms-required
+	 */
+	public function test_site_disable_multiple_themes() {
+		$current_allowed_themes = get_blog_option( 2, 'allowedthemes' );
+
+		$allowed_themes = array(
+			'existing-4' => true,
+			'existing-5' => true,
+			'existing-6' => true,
+		);
+		update_blog_option( 2, 'allowedthemes', $allowed_themes );
+
+		$disable_themes = array( 'existing-4', 'existing-5' );
+		WP_Theme::site_disable_theme( $disable_themes );
+		$new_allowed_themes = get_blog_option( 2, 'allowedthemes' );
+		update_blog_option( 2, 'allowedthemes', $current_allowed_themes ); // Reset previous value.
+		unset( $allowed_themes['existing-4'] );
+		unset( $allowed_themes['existing-5'] );
 
 		$this->assertSameSetsWithIndex( $allowed_themes, $new_allowed_themes );
 	}
