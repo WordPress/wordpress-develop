@@ -339,6 +339,12 @@ test</p>',
 </p>',
 			),
 
+			// Should embed on Apple Silicon.
+			array(
+				"test\r\nhttps://w.org\r\ntest",
+				"test\r\n[embed]\r\ntest",
+			),
+
 			// Should NOT embed.
 			array(
 				'test https://w.org</p>',
