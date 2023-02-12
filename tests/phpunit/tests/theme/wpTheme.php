@@ -268,9 +268,8 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 * @group ms-required
 	 */
 	public function test_wp_theme_site_enable_single_theme() {
-		$blog_id                = self::factory()->blog->create();
-		$default_allowed_themes = [ 'sandbox' ];
-		update_blog_option( $blog_id, 'allowedthemes', $default_allowed_themes ); // Random default allowed theme.
+		$blog_id = self::factory()->blog->create();
+		update_blog_option( $blog_id, 'allowedthemes', [] ); // default value.
 
 		$theme                  = 'testtheme-1';
 		$current_allowed_themes = get_blog_option( $blog_id, 'allowedthemes' );
@@ -290,8 +289,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 */
 	public function test_wp_theme_site_enable_multiple_themes() {
 		$blog_id = self::factory()->blog->create();
-		$default_allowed_themes = [ 'sandbox' ];
-		update_blog_option( $blog_id, 'allowedthemes', $default_allowed_themes ); // Random default allowed theme.
+		update_blog_option( $blog_id, 'allowedthemes', [] ); // default value.
 
 		$themes                 = array( 'testtheme-2', 'testtheme-3' );
 		$current_allowed_themes = get_blog_option( $blog_id, 'allowedthemes' );
@@ -317,10 +315,6 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 */
 	public function test_site_disable_single_theme() {
 		$blog_id = self::factory()->blog->create();
-		$default_allowed_themes = [ 'sandbox' ];
-		update_blog_option( $blog_id, 'allowedthemes', $default_allowed_themes ); // Random default allowed theme.
-
-		$current_allowed_themes = get_blog_option( $blog_id, 'allowedthemes' );
 
 		$allowed_themes = array(
 			'existing-1' => true,
@@ -332,7 +326,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		$disable_theme = 'existing-2';
 		WP_Theme::site_disable_theme( $disable_theme );
 		$new_allowed_themes = get_blog_option( $blog_id, 'allowedthemes' );
-		update_blog_option( $blog_id, 'allowedthemes', $current_allowed_themes ); // Reset previous value.
+		update_blog_option( $blog_id, 'allowedthemes', $allowed_themes ); // Reset previous value.
 		unset( $allowed_themes[ $disable_theme ] ); // Remove deleted theme from initial set.
 
 		$this->assertSameSetsWithIndex( $allowed_themes, $new_allowed_themes );
@@ -346,10 +340,6 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 */
 	public function test_site_disable_multiple_themes() {
 		$blog_id = self::factory()->blog->create();
-		$default_allowed_themes = [ 'sandbox' ];
-		update_blog_option( $blog_id, 'allowedthemes', $default_allowed_themes ); // Random default allowed theme.
-
-		$current_allowed_themes = get_blog_option( $blog_id, 'allowedthemes' );
 
 		$allowed_themes = array(
 			'existing-4' => true,
@@ -361,7 +351,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		$disable_themes = array( 'existing-4', 'existing-5' );
 		WP_Theme::site_disable_theme( $disable_themes );
 		$new_allowed_themes = get_blog_option( $blog_id, 'allowedthemes' );
-		update_blog_option( $blog_id, 'allowedthemes', $current_allowed_themes ); // Reset previous value.
+		update_blog_option( $blog_id, 'allowedthemes', $allowed_themes ); // Reset previous value.
 		unset( $allowed_themes['existing-4'] );
 		unset( $allowed_themes['existing-5'] );
 
