@@ -1142,6 +1142,9 @@ class Tests_Comment extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::wp_update_comment
+	 */
 	public function test_update_should_invalidate_comment_cache() {
 		global $wpdb;
 
