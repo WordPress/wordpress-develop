@@ -68,21 +68,17 @@ JS;
 	 */
 	public function test_old_and_new_in_footer_scripts() {
 		wp_register_script( 'header-old', '/header-old.js', array(), null, false );                                         // In head.
-		wp_enqueue_script( 'header-old' );
-		wp_register_script( 'header-new', '/header-new.js', array(), null, array( 'in_footer' => false ) );                 // In head.
-		wp_enqueue_script( 'header-new' );
-		wp_enqueue_script( 'enqueue-header-old', '/enqueue-header-old.js', array(), null, false );                          // In head.
-		wp_enqueue_script( 'enqueue-header-new', '/enqueue-header-new.js', array(), null, array( 'in_footer' => false ) );  // In head.
+		wp_register_script( 'header-new', '/header-new.js', array( 'header-old' ), null, array( 'in_footer' => false ) );                 // In head.
+		wp_enqueue_script( 'enqueue-header-old', '/enqueue-header-old.js', array( 'header-new' ), null, false );                          // In head.
+		wp_enqueue_script( 'enqueue-header-new', '/enqueue-header-new.js', array( 'enqueue-header-old' ), null, array( 'in_footer' => false ) );  // In head.
 
 		wp_register_script( 'footer-old', '/footer-old.js', array(), null, true );                                          // In footer.
-		wp_enqueue_script( 'footer-old' );
-		wp_register_script( 'footer-new', '/footer-new.js', array(), null, array( 'in_footer' => true ) );                  // In footer.
-		wp_enqueue_script( 'footer-new' );
-		wp_enqueue_script( 'enqueue-footer-old', '/enqueue-footer-old.js', array(), null, true );                           // In footer.
-		wp_enqueue_script( 'enqueue-footer-new', '/enqueue-footer-new.js', array(), null, array( 'in_footer' => true ) );   // In footer.
+		wp_register_script( 'footer-new', '/footer-new.js', array( 'footer-old' ), null, array( 'in_footer' => true ) );                  // In footer.
+		wp_enqueue_script( 'enqueue-footer-old', '/enqueue-footer-old.js', array( 'footer-new' ), null, true );                           // In footer.
+		wp_enqueue_script( 'enqueue-footer-new', '/enqueue-footer-new.js', array( 'enqueue-footer-old' ), null, array( 'in_footer' => true ) );   // In footer.
 
 		$header = get_echo( 'wp_print_head_scripts' );
-		$footer = get_echo( 'wp_print_footer_scripts' );
+		$footer = get_echo( 'wp_print_scripts' );
 
 		$expected_header  = "<script type='text/javascript' src='/header-old.js' id='header-old-js'></script>\n";
 		$expected_header .= "<script type='text/javascript' src='/header-new.js' id='header-new-js'></script>\n";
