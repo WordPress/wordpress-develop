@@ -735,26 +735,24 @@ JS;
 
 	/**
 	 * Normalize the data inside $args parameter and support backward compatibility.
-	 * 
+	 *
 	 * @param string        $handle Name of the script.
 	 * @param array         $args     {
 	 *      Optional. Additional script arguments. Default empty array.
-	 * 
+	 *
 	 *      @type boolean   $in_footer    Optional. Default true.
 	 *      @type string    $strategy     Optional. Values blocking|defer|async .Default 'blocking'.
 	 * }
-	 * @return array 		Normalized $args array. 
+	 * @return array        Normalized $args array.
 	 */
 	private function get_normalized_script_args( $handle, $args = array() ) {
 		$default_args = array(
-			'in_footer'  => false,
-			'strategy'   => 'blocking'
-		);			
+			'in_footer' => false,
+			'strategy'  => 'blocking',
+		);
 		// handle backward compatibility for $in_footer
-		if( 'boolean' === gettype( $args ) && $args ) {
-			$args = array(
-				'in_footer'  => true
-			);
+		if ( 'boolean' === gettype( $args ) && $args ) {
+			$args = array( 'in_footer' => true );
 		}
 		return wp_parse_args( $args, $default_args );
 	}

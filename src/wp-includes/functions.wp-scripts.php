@@ -168,7 +168,7 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
  *                                    If set to null, no version is added.
  * @param array             $args     {
  *      Optional. An array of additional script strategies. Default empty array.
- * 
+ *
  *      @type boolean   $in_footer    Optional. Default true.
  *      @type string    $strategy     Optional. Values blocking|defer|async. Default 'blocking'.
  * }
@@ -343,11 +343,11 @@ function wp_deregister_script( $handle ) {
  *                                    If set to null, no version is added.
  * @param array            $args      {
  *      Optional. An array of additional script strategies. Default empty array.
- * 
+ *
  *      @type boolean   $in_footer    Optional. Default true.
  *      @type string    $strategy     Optional. Values blocking|defer|async. Default 'blocking'.
  * }
- * 
+ *
  * @param bool             $in_footer Optional. Whether to enqueue the script before `</body>` instead of in the `<head>`.
  *                                    Default 'false'.
  */
