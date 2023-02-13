@@ -75,6 +75,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			array( '/path/#frag', 'http://example.org/', 'http://example.org/path/#frag' ),
 			array( '/path#frag&ment=1', 'http://example.org/', 'http://example.org/path#frag&ment=1' ),
 			array( '/path?query=string#frag', 'http://example.org/', 'http://example.org/path?query=string#frag' ),
+			array( '/path?query=string%23frag', 'http://example.org/', 'http://example.org/path?query=string%23frag' ),
 		);
 	}
 
