@@ -29,7 +29,11 @@ $options_help = '<p>' . __( 'The fields on this screen determine some of the bas
 
 if ( ! is_multisite() ) {
 	$options_help .= '<p>' . __( 'Two terms you will want to know are the WordPress URL and the site URL. The WordPress URL is where the core WordPress installation files are, and the site URL is the address a visitor uses in the browser to go to your site.' ) . '</p>' .
-		'<p>' . __( 'Though the terms refer to two different concepts, in practice, they can be the same address or different. For example, you can have the WordPress core files in the root directory (<code>https://example.com</code>), in which case the two URLs would be the same. Or the WordPress files can be in a subdirectory (<code>https://example.com/wordpress</code>). In that case, the site URL and the WordPress URL would be different.' ) . '</p>' .
+		'<p>' . sprintf(
+			/* translators: %s: Documentation URL. */
+			__( 'Though the terms refer to two different concepts, in practice, they can be the same address or different. For example, you can have the WordPress core files in the root directory (<code>https://example.com</code>), in which case the two URLs would be the same. Or the <a href="%s">WordPress files can be in a subdirectory</a> (<code>https://example.com/wordpress</code>). In that case, the site URL and the WordPress URL would be different.' ),
+			__( 'https://wordpress.org/support/article/giving-wordpress-its-own-directory/' )
+		) . '</p>' .
 		'<p>' . sprintf(
 			/* translators: 1: http://, 2: https:// */
 			__( 'Both site URLs and WordPress URLs can start with either %1$s or %2$s. A URL starting with %2$s will also show a padlock next to the address in the browser address bar. Both of those things signal to visitors that your site meets some basic security requirements, which can build trust with your users and with search engines.' ),
