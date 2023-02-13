@@ -10,7 +10,6 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 	/**
 	 * @since 3.7.0 Test method introduced.
-	 *
 	 * @ticket 56231
 	 *
 	 * @dataProvider make_absolute_url_testcases
