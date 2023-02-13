@@ -3514,6 +3514,8 @@ function _wp_theme_json_webfonts_handler() {
 				: ", url('{$item['url']}') format('{$item['format']}')";
 		}
 
+		$src = ltrim( $src, ', ' );
+
 		return $src;
 	};
 
