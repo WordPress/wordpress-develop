@@ -152,29 +152,23 @@ module.exports = function(grunt) {
 			css: cssFiles.map( function( file ) {
 				return setFilePath( SOURCE_DIR, file );
 			} ).concat(
-				WORKING_DIR === BUILD_DIR
-				? cssFiles.map( function( file ) {
+				WORKING_DIR === BUILD_DIR ? cssFiles.map( function( file ) {
 					return setFilePath( BUILD_DIR, file );
-				} )
-				: []
+				} ) : []
 			),
 			js: jsFiles.map( function( file ) {
 				return setFilePath( SOURCE_DIR, file );
 			} ).concat(
-				WORKING_DIR === BUILD_DIR
-				? jsFiles.map( function( file ) {
+				WORKING_DIR === BUILD_DIR ? jsFiles.map( function( file ) {
 					return setFilePath( BUILD_DIR, file );
-				} )
-				: []
+				} ) : []
 			),
 			'webpack-assets': webpackFiles.map( function( file ) {
 				return setFilePath( SOURCE_DIR, file );
 			} ).concat(
-				WORKING_DIR === BUILD_DIR
-				? webpackFiles.map( function( file ) {
+				WORKING_DIR === BUILD_DIR ? webpackFiles.map( function( file ) {
 					return setFilePath( BUILD_DIR, file );
-				} )
-				: []
+				} ) : []
 			),
 			dynamic: {
 				dot: true,
