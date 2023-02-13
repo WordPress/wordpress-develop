@@ -322,16 +322,16 @@ async function runPerformanceTests( branches, options ) {
 			// );
 		}
 		
-		await runShellScript(
-			'cp ' +
-				path.resolve(
-					performanceTestDirectory,
-					'tests/performance/.wp-env.performance.json'
-				) +
-				' ' +
-				environmentDirectory +
-				'/.wp-env.json'
-		);
+		// await runShellScript(
+		// 	'cp ' +
+		// 		path.resolve(
+		// 			performanceTestDirectory,
+		// 			'tests/performance/.wp-env.performance.json'
+		// 		) +
+		// 		' ' +
+		// 		environmentDirectory +
+		// 		'/.wp-env.json'
+		// );
 
 		if ( options.wpVersion ) {
 			// In order to match the topology of ZIP files at wp.org, remap .0
