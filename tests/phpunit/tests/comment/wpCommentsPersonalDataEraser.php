@@ -8,6 +8,12 @@
  */
 class Tests_Comment_wpCommentsPersonalDataEraser extends WP_UnitTestCase {
 
+	protected static $post_id;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$post_id = $factory->post->create();
+	}
+
 	/**
 	 * The `wp_comments_personal_data_eraser()` function should erase user's comments.
 	 *
@@ -15,12 +21,11 @@ class Tests_Comment_wpCommentsPersonalDataEraser extends WP_UnitTestCase {
 	 */
 	public function test_wp_comments_personal_data_eraser() {
 
-		$post_id = self::factory()->post->create();
 		$user_id = self::factory()->user->create();
 
 		$args       = array(
 			'user_id'              => $user_id,
-			'comment_post_ID'      => $post_id,
+			'comment_post_ID'      => self::$post_id,
 			'comment_author'       => 'Comment Author',
 			'comment_author_email' => 'personal@local.host',
 			'comment_author_url'   => 'https://local.host/',
@@ -89,9 +94,8 @@ class Tests_Comment_wpCommentsPersonalDataEraser extends WP_UnitTestCase {
 	 */
 	public function test_wp_comments_personal_data_eraser_non_empty_first_page_output() {
 
-		$post_id = self::factory()->post->create();
-		$args    = array(
-			'comment_post_ID'      => $post_id,
+		$args = array(
+			'comment_post_ID'      => self::$post_id,
 			'comment_author'       => 'Comment Author',
 			'comment_author_email' => 'personal@local.host',
 			'comment_author_url'   => 'https://local.host/',
@@ -120,9 +124,8 @@ class Tests_Comment_wpCommentsPersonalDataEraser extends WP_UnitTestCase {
 	 */
 	public function test_wp_comments_personal_data_eraser_empty_second_page_output() {
 
-		$post_id = self::factory()->post->create();
-		$args    = array(
-			'comment_post_ID'      => $post_id,
+		$args = array(
+			'comment_post_ID'      => self::$post_id,
 			'comment_author'       => 'Comment Author',
 			'comment_author_email' => 'personal@local.host',
 			'comment_author_url'   => 'https://local.host/',
@@ -151,9 +154,8 @@ class Tests_Comment_wpCommentsPersonalDataEraser extends WP_UnitTestCase {
 	 */
 	public function test_wp_anonymize_comment_filter_to_prevent_comment_anonymization() {
 
-		$post_id    = self::factory()->post->create();
 		$args       = array(
-			'comment_post_ID'      => $post_id,
+			'comment_post_ID'      => self::$post_id,
 			'comment_author'       => 'Comment Author',
 			'comment_author_email' => 'personal@local.host',
 			'comment_author_url'   => 'https://local.host/',
@@ -187,9 +189,8 @@ class Tests_Comment_wpCommentsPersonalDataEraser extends WP_UnitTestCase {
 	 */
 	public function test_wp_anonymize_comment_filter_to_prevent_comment_anonymization_with_custom_message() {
 
-		$post_id    = self::factory()->post->create();
 		$args       = array(
-			'comment_post_ID'      => $post_id,
+			'comment_post_ID'      => self::$post_id,
 			'comment_author'       => 'Comment Author',
 			'comment_author_email' => 'personal@local.host',
 			'comment_author_url'   => 'https://local.host/',

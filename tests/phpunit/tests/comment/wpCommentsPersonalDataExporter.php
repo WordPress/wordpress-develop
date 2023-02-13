@@ -8,6 +8,12 @@
  */
 class Tests_Comment_wpCommentsPersonalDataExporter extends WP_UnitTestCase {
 
+	protected static $post_id;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$post_id = $factory->post->create();
+	}
+
 	/**
 	 * Testing the `wp_comments_personal_data_exporter()` function.
 	 *
