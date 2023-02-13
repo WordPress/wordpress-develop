@@ -71,16 +71,16 @@ JS;
 		wp_enqueue_script( 'header-old' );
 		wp_register_script( 'header-new', '/header-new.js', array(), null, array( 'in_footer' => false ) );                 // In head.
 		wp_enqueue_script( 'header-new' );
-		wp_enqueue_script( 'enqueue-header-old', '/enqueue-header-old.js', array(), null, false );   					    // In head.
+		wp_enqueue_script( 'enqueue-header-old', '/enqueue-header-old.js', array(), null, false );                          // In head.
 		wp_enqueue_script( 'enqueue-header-new', '/enqueue-header-new.js', array(), null, array( 'in_footer' => false ) );  // In head.
-	
+
 		wp_register_script( 'footer-old', '/footer-old.js', array(), null, true );                                          // In footer.
 		wp_enqueue_script( 'footer-old' );
 		wp_register_script( 'footer-new', '/footer-new.js', array(), null, array( 'in_footer' => true ) );                  // In footer.
 		wp_enqueue_script( 'footer-new' );
 		wp_enqueue_script( 'enqueue-footer-old', '/enqueue-footer-old.js', array(), null, true );                           // In footer.
 		wp_enqueue_script( 'enqueue-footer-new', '/enqueue-footer-new.js', array(), null, array( 'in_footer' => true ) );   // In footer.
-		
+
 		$header = get_echo( 'wp_print_head_scripts' );
 		$footer = get_echo( 'wp_print_footer_scripts' );
 
@@ -103,25 +103,26 @@ JS;
 	 */
 	public function test_get_normalized_script_args() {
 		global $wp_scripts;
-		$args = array( 
-			'in_footer' => true, 
-			'strategy'  => 'async'
+		$args = array(
+			'in_footer' => true,
+			'strategy'  => 'async',
 		);
 		wp_enqueue_script( 'footer-async', '/footer-async.js', array(), null, $args );
 		$this->assertSame( $args, $wp_scripts->get_data( 'footer-async', 'script_args' ) );
-		
-		$expected_args = array( 
-			'in_footer' => false, 
-			'strategy'  => 'blocking'
+
+		$expected_args = array(
+			'in_footer' => false,
+			'strategy'  => 'blocking',
 		);
+
 		$args = array();
 		wp_register_script( 'defaults', '/defaults.js', array(), null, $args );
 		$this->assertSame( $expected_args, $wp_scripts->get_data( 'defaults', 'script_args' ) );
 
 		//test backward compatibility.
-		$args = array( 
-			'in_footer' => true, 
-			'strategy'  => 'blocking'
+		$args = array(
+			'in_footer' => true,
+			'strategy'  => 'blocking',
 		);
 		wp_enqueue_script( 'footer-old', '/footer-async.js', array(), null, true );
 		$this->assertSame( $args, $wp_scripts->get_data( 'footer-old', 'script_args' ) );
