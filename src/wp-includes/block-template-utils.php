@@ -478,10 +478,6 @@ function _remove_theme_attribute_in_block_template_content( $template_content ) 
 			unset( $blocks[ $key ]['attrs']['ref'] );
 			$has_updated_content = true;
 		}
-		if ( 'core/query' === $block['blockName'] && isset( $block['attrs']['queryId'] ) ) {
-			unset( $blocks[ $key ]['attrs']['queryId'] );
-			$has_updated_content = true;
-		}
 		if ( 'core/image' === $block['blockName'] || 'core/cover' === $block['blockName'] && isset( $block['attrs']['id'] ) ) {
 			unset( $blocks[ $key ]['attrs']['id'] );
 			$blocks[ $key ]['innerHTML'] = preg_replace( '/\s?wp-image-\d*/', '', $block['innerHTML'] );
