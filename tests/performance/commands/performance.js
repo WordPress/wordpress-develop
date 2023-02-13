@@ -192,13 +192,13 @@ function curateResults( testSuite, results ) {
 async function runTestSuite( testSuite, performanceTestDirectory ) {
 	await runShellScript(
 		//`npm run test:performance -- packages/e2e-tests/specs/performance/${ testSuite }.test.js`,
-		`npm run test:performance tests/e2e/specs/performance/${ testSuite }.test.js`,
+		`npm run test:performance tests/performance/specs/${ testSuite }.test.js`,
 		performanceTestDirectory
 	);
 	const rawResults = await readJSONFile(
 		path.join(
 			performanceTestDirectory,
-			`tests/e2e/specs/performance/${ testSuite }.test.results.json`
+			`tests/performance/specs/${ testSuite }.test.results.json`
 		)
 	);
 	return curateResults( testSuite, rawResults );
