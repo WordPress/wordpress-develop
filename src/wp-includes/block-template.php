@@ -235,15 +235,60 @@ function get_the_block_template_html() {
 		return;
 	}
 
+	// Record all post content strings into this list to avoid double parsing.
+	$parsed_post_content = array();
+	add_filter(
+		'render_block_core/post-content',
+		function( $block_content ) use ( &$parsed_post_content ) {
+			$parsed_post_content[] = $block_content;
+			return $block_content;
+		},
+		PHP_INT_MAX
+	);
+
 	$content = $wp_embed->run_shortcode( $_wp_current_template_content );
 	$content = $wp_embed->autoembed( $content );
 	$content = do_blocks( $content );
+
+	// Replace all post content within the template with a temporary placeholder so that the post content is not
+	// unnecessarily processed again. See https://core.trac.wordpress.org/ticket/55996.
+	if ( ! empty( $parsed_post_content ) ) {
+		// Ensure a placeholder is used that is not already present in the content.
+		$content_placeholder        = '<!-- wp-post-content-placeholder-%d -->';
+		$existing_placeholder_count = 0;
+		while ( preg_match( '/' . sprintf( $content_placeholder, '[0-9]+' ) . '/', $content ) ) {
+			$existing_placeholder_count++;
+			$content_placeholder = '<!-- wp' . $existing_placeholder_count . '-post-content-placeholder-%d -->';
+		}
+
+		foreach ( $parsed_post_content as $i => $post_content ) {
+			$pos = strpos( $content, $post_content );
+			if ( false !== $pos ) {
+				$content = substr_replace( $content, sprintf( $content_placeholder, $i ), $pos, strlen( $post_content ) );
+			}
+		}
+	}
+
 	$content = wptexturize( $content );
 	$content = convert_smilies( $content );
 	$content = shortcode_unautop( $content );
-	$content = wp_filter_content_tags( $content );
+	$content = wp_filter_content_tags( $content, 'the_block_template' );
 	$content = do_shortcode( $content );
 	$content = str_replace( ']]>', ']]&gt;', $content );
+
+	// Now that the template has been fully processed, add back in all post content.
+	if ( ! empty( $parsed_post_content ) ) {
+		$content = str_replace(
+			array_map(
+				function( $i ) use ( $content_placeholder ) {
+					return sprintf( $content_placeholder, $i );
+				},
+				array_keys( $parsed_post_content )
+			),
+			$parsed_post_content,
+			$content
+		);
+	}
 
 	// Wrap block template in .wp-site-blocks to allow for specific descendant styles
 	// (e.g. `.wp-site-blocks > *`).
