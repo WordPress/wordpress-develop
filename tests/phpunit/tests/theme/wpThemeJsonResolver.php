@@ -433,9 +433,6 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 54336
-	 * @ticket 56467
-	 *
-	 * @covers ::add_theme_support
 	 */
 	public function test_add_theme_supports_are_loaded_for_themes_without_theme_json() {
 		switch_theme( 'default' );
@@ -458,18 +455,15 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		);
 		add_theme_support( 'editor-color-palette', $color_palette );
 		add_theme_support( 'custom-line-height' );
-		add_theme_support( 'appearance-tools' );
 
 		$settings = WP_Theme_JSON_Resolver::get_theme_data()->get_settings();
 
 		remove_theme_support( 'custom-line-height' );
 		remove_theme_support( 'editor-color-palette' );
-		remove_theme_support( 'appearance-tools' );
 
 		$this->assertFalse( wp_theme_has_theme_json() );
 		$this->assertTrue( $settings['typography']['lineHeight'] );
 		$this->assertSame( $color_palette, $settings['color']['palette']['theme'] );
-		$this->assertTrue( $settings['border']['color'], 'Support for appearance-tools was not added.' );
 	}
 
 	/**

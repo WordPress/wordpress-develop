@@ -1070,17 +1070,19 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 		 * Allows preventing auth cookies from actually being sent to the client.
 		 *
 		 * @since 4.7.4
-		 * @since 6.2.0 The `$user_id`, `$expire`, `$expiration`, and `$token` parameters were added.
+		 * @since 6.2.0 The `$expire`, `$expiration`, `$user_id`, `$scheme`, and `$token` parameters were added.
 		 *
 		 * @param bool   $send       Whether to send auth cookies to the client. Default true.
-		 * @param int    $user_id    User ID. Zero when clearing cookies.
 		 * @param int    $expire     The time the login grace period expires as a UNIX timestamp.
 		 *                           Default is 12 hours past the cookie's expiration time. Zero when clearing cookies.
 		 * @param int    $expiration The time when the logged-in authentication cookie expires as a UNIX timestamp.
 		 *                           Default is 14 days from now. Zero when clearing cookies.
+		 * @param int    $user_id    User ID. Zero when clearing cookies.
+		 * @param string $scheme     Authentication scheme. Values include 'auth' or 'secure_auth'.
+		 *                           Empty string when clearing cookies.
 		 * @param string $token      User's session token to use for this cookie. Empty string when clearing cookies.
 		 */
-		if ( ! apply_filters( 'send_auth_cookies', true, $user_id, $expire, $expiration, $token ) ) {
+		if ( ! apply_filters( 'send_auth_cookies', true, $expire, $expiration, $user_id, $scheme, $token ) ) {
 			return;
 		}
 
@@ -1108,7 +1110,7 @@ if ( ! function_exists( 'wp_clear_auth_cookie' ) ) :
 		do_action( 'clear_auth_cookie' );
 
 		/** This filter is documented in wp-includes/pluggable.php */
-		if ( ! apply_filters( 'send_auth_cookies', true, 0, 0, 0, '' ) ) {
+		if ( ! apply_filters( 'send_auth_cookies', true, 0, 0, 0, '', '' ) ) {
 			return;
 		}
 
@@ -1873,7 +1875,7 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 		 * @since 4.4.0
 		 *
 		 * @param bool $maybe_notify Whether to notify blog moderator.
-		 * @param int  $comment_ID   The id of the comment for the notification.
+		 * @param int  $comment_id   The ID of the comment for the notification.
 		 */
 		$maybe_notify = apply_filters( 'notify_moderator', $maybe_notify, $comment_id );
 
