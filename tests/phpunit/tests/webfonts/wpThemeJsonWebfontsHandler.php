@@ -76,6 +76,7 @@ class Tests_Webfonts_wpThemeJsonWebfontsHandler extends WP_UnitTestCase {
 	/**
 	 * @ticket 55567
 	 * @ticket 46370
+	 * @ticket 57430
 	 */
 	public function test_font_face_generated_from_themejson() {
 		$this->setup_theme_and_test( 'webfonts-theme' );
