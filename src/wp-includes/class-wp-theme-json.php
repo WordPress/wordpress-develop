@@ -855,7 +855,7 @@ class WP_Theme_JSON {
 				static::$blocks_metadata[ $block_name ]['elements'][ $el_name ] = implode( ',', $element_selector );
 			}
 			// If the block has style variations, append their selectors to the block metadata.
-			if ( ! empty( $block_type->styles ) && is_array( $block_type->styles ) ) {
+			if ( is_array( $block_type->styles ) ) {
 				$style_selectors = array();
 				foreach ( $block_type->styles as $style ) {
 					// The style variation classname is duplicated in the selector to ensure that it overrides core block styles.
