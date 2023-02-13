@@ -715,7 +715,7 @@ JS;
 	}
 
 	/**
-	 * The overrides the add_data function from WP_Dependencies, to support normalizing of $args. 
+	 * The overrides the add_data function from WP_Dependencies, to support normalizing of $args.
 	 *
 	 * @param string $handle Name of the item. Should be unique.
 	 * @param string $key    The data key.
@@ -723,9 +723,9 @@ JS;
 	 * @return bool True on success, false on failure.
 	 */
 	public function add_data( $handle, $key, $value ) {
-		if( 'script_args' === $key ) {
+		if ( 'script_args' === $key ) {
 			$args = $this->get_normalized_script_args( $handle, $value );
-			if( $args['in_footer'] ) {
+			if ( $args['in_footer'] ) {
 				parent::add_data( $handle, 'group', 1 );
 			}
 			return parent::add_data( $handle, $key, $args );
