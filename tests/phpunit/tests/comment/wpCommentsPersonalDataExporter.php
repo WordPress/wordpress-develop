@@ -132,4 +132,33 @@ class Tests_Comment_wpCommentsPersonalDataExporter extends WP_UnitTestCase {
 		// Number of exported comments.
 		$this->assertCount( 0, $actual['data'] );
 	}
+
+	/**
+	 * Testing that `wp_comments_personal_data_exporter()` orders comments by ID.
+	 *
+	 * @ticket 57700
+	 */
+	public function test_wp_comments_personal_data_exporter_orders_comments_by_id() {
+
+		$args = array(
+			'comment_post_ID'      => self::$post_id,
+			'comment_author'       => 'Comment Author',
+			'comment_author_email' => 'personal@local.host',
+			'comment_author_url'   => 'https://local.host/',
+			'comment_author_IP'    => '192.168.0.1',
+			'comment_date'         => '2018-03-28 20:05:00',
+			'comment_agent'        => 'SOME_AGENT',
+			'comment_content'      => 'Comment',
+		);
+		self::factory()->comment->create( $args );
+
+		$filter = new MockAction();
+		add_filter( 'comments_clauses', array( &$filter, 'filter' ) );
+
+		wp_comments_personal_data_exporter( $args['comment_author_email'] );
+
+		$clauses = $filter->get_args()[0][0];
+
+		$this->assertStringContainsString( 'comment_ID', $clauses['orderby'] );
+	}
 }

@@ -229,4 +229,33 @@ class Tests_Comment_wpCommentsPersonalDataEraser extends WP_UnitTestCase {
 	public function wp_anonymize_comment_custom_message( $anonymize, $comment, $anonymized_comment ) {
 		return sprintf( 'Some custom message for comment %d.', $comment->comment_ID );
 	}
+
+	/**
+	 * Testing that `wp_comments_personal_data_eraser()` orders comments by ID.
+	 *
+	 * @ticket 57700
+	 */
+	public function test_wp_comments_personal_data_eraser_orders_comments_by_id() {
+
+		$args = array(
+			'comment_post_ID'      => self::$post_id,
+			'comment_author'       => 'Comment Author',
+			'comment_author_email' => 'personal@local.host',
+			'comment_author_url'   => 'https://local.host/',
+			'comment_author_IP'    => '192.168.0.1',
+			'comment_date'         => '2018-04-14 17:20:00',
+			'comment_agent'        => 'COMMENT_AGENT',
+			'comment_content'      => 'Comment Content',
+		);
+		self::factory()->comment->create( $args );
+
+		$filter = new MockAction();
+		add_filter( 'comments_clauses', array( &$filter, 'filter' ) );
+
+		wp_comments_personal_data_eraser( $args['comment_author_email'] );
+
+		$clauses = $filter->get_args()[0][0];
+
+		$this->assertStringContainsString( 'comment_ID', $clauses['orderby'] );
+	}
 }
