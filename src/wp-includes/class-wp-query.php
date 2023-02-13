@@ -466,6 +466,14 @@ class WP_Query {
 	private $compat_methods = array( 'init_query_flags', 'parse_tax_query' );
 
 	/**
+	 * Private variable to cache the timezone string.
+	 *
+	 * @since 6.2.0
+	 * @var string $timezone The cached timezone string.
+	 */
+	private $timezone = '';
+
+	/**
 	 * Resets query flags to false.
 	 *
 	 * The query flags are what page info WordPress was able to figure out.
@@ -4710,12 +4718,16 @@ class WP_Query {
 			return false;
 		}
 
+		if ( ! isset( $this->timezone ) ) {
+			$this->timezone = wp_timezone_string();
+		}
+
 		$id = (int) $post->ID;
 
 		$authordata = get_userdata( $post->post_author );
 
-		$currentday   = mysql2date( 'd.m.y', $post->post_date, false );
-		$currentmonth = mysql2date( 'm', $post->post_date, false );
+		$currentday   = mysql2date( 'd.m.y', $post->post_date, false, $this->timezone );
+		$currentmonth = mysql2date( 'm', $post->post_date, false, $this->timezone );
 		$numpages     = 1;
 		$multipage    = 0;
 		$page         = $this->get( 'page' );
