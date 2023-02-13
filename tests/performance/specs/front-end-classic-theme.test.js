@@ -7,20 +7,20 @@ import { writeFileSync } from 'fs';
 /**
  * WordPress dependencies
  */
-import { activateTheme, createURL, logout } from '@wordpress/e2e-test-utils';
+import { activateTheme, createURL } from '@wordpress/e2e-test-utils';
 
-describe( 'Front End Performance', () => {
+describe( 'Server Timing – Twenty Twenty One', () => {
 	const results = {
-		timeToFirstByte: [],
+		wpBeforeTemplate: [],
+		wpTemplate: [],
+		wpTotal: [],
 	};
 
 	beforeAll( async () => {
-		await activateTheme( 'twentytwentythree' );
-		await logout();
+		await activateTheme( 'twentytwentyone' );
 	} );
 
 	afterAll( async () => {
-		await activateTheme( 'twentytwentyone' );
 		const resultsFilename = basename( __filename, '.js' ) + '.results.json';
 		writeFileSync(
 			join( __dirname, resultsFilename ),

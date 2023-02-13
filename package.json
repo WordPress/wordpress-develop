@@ -178,7 +178,7 @@
 		"env:cli": "node ./tools/local-env/scripts/docker.js run cli",
 		"env:logs": "node ./tools/local-env/scripts/docker.js logs",
 		"env:pull": "node ./tools/local-env/scripts/docker.js pull",
-		"test:performance": "node ./tests/e2e/run-performance-tests.js",
+		"test:performance": "node ./tests/performance/run-tests.js",
 		"test:php": "node ./tools/local-env/scripts/docker.js run -T php composer update -W && node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit",
 		"test:e2e": "node ./tests/e2e/run-tests.js",
 		"test:visual": "node ./tests/visual-regression/run-tests.js",
