@@ -40,13 +40,15 @@ jobs:
   # - Starts the WordPress Docker container.
   # - Logs the running Docker containers.
   # - Logs Docker debug info.
-  # - Installs the Server Timing MU plugin.
   # - Installs WordPress.
+  # - Installs the Server Timing MU plugin.
+  # - Install wordpress importer plugin and import dummy data.
+  # - Update permalink structure.
   # - Run the Performance tests.
   # - Ensures version-controlled files are not modified or deleted.
   performance:
     runs-on: ubuntu-latest
-    if: ${{ github.repository == '10up/wordpress-develop' || github.event_name == 'push' }}
+    if: ${{ github.repository == 'mukeshpanchal27/wordpress-develop' || github.event_name == 'push' }}
 
     steps:
       - name: Configure environment variables
@@ -95,13 +97,24 @@ jobs:
           docker-compose run --rm php php -i
           docker-compose run --rm php locale -a
 
+      - name: Install WordPress
+        run: npm run env:install
+
+      - name: Install wordpress importer plugin and import dummy data
+        run: |
+          npm run env:cli -- plugin install wordpress-importer --activate
+          curl -O https://raw.githubusercontent.com/WPTT/theme-unit-test/master/themeunittestdata.wordpress.xml
+          npm run env:cli -- import themeunittestdata.wordpress.xml --authors=create
+          rm themeunittestdata.wordpress.xml
+
+      - name: Update permalink structure
+        run: |
+          npm run env:cli -- rewrite structure '/%year%/%monthnum%/%postname%/'
+
       - name: Install MU plugin
         run: |
           mkdir ./build/wp-content/mu-plugins
           cp ./tests/performance/mu-plugins/server-timing.php ./build/wp-content/mu-plugins/server-timing.php
-
-      - name: Install WordPress
-        run: npm run env:install
 
       - name: Run Performance tests
         run: npm run test:performance
