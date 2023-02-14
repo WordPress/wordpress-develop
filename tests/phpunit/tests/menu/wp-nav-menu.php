@@ -199,7 +199,7 @@ class Tests_Menu_wpNavMenu extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the order in which menu items are created does not matter.
+	 * The order in which parent/child menu items are created should not matter.
 	 *
 	 * @ticket 57122
 	 */
