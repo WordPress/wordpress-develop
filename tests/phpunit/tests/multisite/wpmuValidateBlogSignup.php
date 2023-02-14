@@ -62,6 +62,8 @@ if ( is_multisite() ) :
 			$data = array(
 				array( '', 'Site names must not be empty.' ),
 				array( 'foo_hello', 'Site names must not contain underscores.' ),
+				array( '-foo-hello', 'Site names must not begin with a hyphen.' ),
+				array( 'foo-hello-', 'Site names must not end with a hyphen.' ),
 				array( 'foo hello', 'Site names must not contain spaces.' ),
 				array( 'FooHello', 'Site names must not contain uppercase letters.' ),
 				array( '12345678', 'Site names must not consist of numbers only.' ),
