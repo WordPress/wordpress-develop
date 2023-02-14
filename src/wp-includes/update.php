@@ -463,7 +463,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 
 	// Support updates for any plugins using the `Update URI` header field.
 	foreach ( $plugins as $plugin_file => $plugin_data ) {
-		if ( ! $plugin_data['UpdateURI'] || isset( $updates->response[ $plugin_file ] ) ) {
+		if ( ! $plugin_data['UpdateURI'] ) {
 			continue;
 		}
 
