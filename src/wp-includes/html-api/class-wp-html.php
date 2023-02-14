@@ -32,7 +32,7 @@ class WP_HTML {
 	 *     WP_HTML::tag_with_inner_html( 'p', array( 'class' => 'summary' ), 'this <em>is</em> important' );
 	 *     // <p class="summary">this <em>is</em> important</p>
 	 *
-	 *     WP_HTML::tag_with_inner_html( 'div', null, WP_HTML::tag( 'p', null, 'Fire & Ice' ) . ' & Bubblegum');
+	 *     WP_HTML::tag_with_inner_html( 'div', null, WP_HTML::tag( 'p', null, 'Fire & Ice' ) . ' & Bubblegum' );
 	 *     // <div><p>Fire &amp; Ice</p> & Bubblegum</div>
 	 *                     └─┬─┘    └────┴── Not Escaped because it was passed into `WP_HTML::tag_with_inner_html`.
 	 *                       └────────────── Escaped because it was created with `WP_HTML::tag`.
