@@ -17,7 +17,7 @@ class Tests_HtmlApi_wpHtml extends WP_UnitTestCase {
 			'script',
 			array(
 				'defer' => true,
-				'nonce' => 'HXhIuUk5lfXb'
+				'nonce' => 'HXhIuUk5lfXb',
 			),
 			'console.log("loaded");'
 		);
