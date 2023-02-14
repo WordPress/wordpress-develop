@@ -172,7 +172,7 @@ class WP_List_Util {
 					_doing_it_wrong(
 						__METHOD__,
 						__( 'Values for the input array must be either objects or arrays.' ),
-						'6.1.0'
+						'6.2.0'
 					);
 				}
 			}
@@ -203,7 +203,7 @@ class WP_List_Util {
 				_doing_it_wrong(
 					__METHOD__,
 					__( 'Values for the input array must be either objects or arrays.' ),
-					'6.1.0'
+					'6.2.0'
 				);
 			}
 		}
