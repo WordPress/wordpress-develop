@@ -2,8 +2,11 @@
 
 /**
  * Test post navigation link attribute filters.
- * @ticket 55751
+ *
  * @since 6.2.0
+ * @ticket 55751
+ *
+ * @group link
  *
  * @covers ::next_posts_link_attributes
  * @covers ::previous_posts_link_attributes
@@ -40,8 +43,7 @@ class Tests_Link_PostNavigationLinkAttributeFilters extends WP_UnitTestCase {
 			}
 		);
 
-		$next_posts_link = get_next_posts_link();
-		$this->assertStringContainsString( $expected, $next_posts_link );
+		$this->assertStringContainsString( $expected, get_next_posts_link() );
 	}
 
 	/**
@@ -56,8 +58,7 @@ class Tests_Link_PostNavigationLinkAttributeFilters extends WP_UnitTestCase {
 			}
 		);
 
-		$previous_posts_link = get_previous_posts_link();
-		$this->assertStringContainsString( $expected, $previous_posts_link );
+		$this->assertStringContainsString( $expected, get_previous_posts_link() );
 	}
 
 }
