@@ -48,7 +48,7 @@ jobs:
   # - Ensures version-controlled files are not modified or deleted.
   performance:
     runs-on: ubuntu-latest
-    if: ${{ github.repository == 'mukeshpanchal27/wordpress-develop' || github.event_name == 'push' }}
+    if: ${{ github.repository == '10up/wordpress-develop' || github.event_name == 'push' }}
 
     steps:
       - name: Configure environment variables
