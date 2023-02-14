@@ -15,7 +15,10 @@ class Tests_HtmlApi_wpHtml extends WP_UnitTestCase {
 	public function test_tag() {
 		$script = WP_HTML::tag(
 			'script',
-			array( 'defer' => true, 'nonce' => 'HXhIuUk5lfXb' ),
+			array(
+				'defer' => true,
+				'nonce' => 'HXhIuUk5lfXb'
+			),
 			'console.log("loaded");'
 		);
 
