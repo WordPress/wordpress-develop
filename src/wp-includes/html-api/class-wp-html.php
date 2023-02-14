@@ -8,10 +8,10 @@ class WP_HTML {
 	 * Serializes an HTML tag, escaping inner text if provided.
 	 *
 	 * Example:
-	 *     echo WP_HTML::tag( 'p', array( 'class' => 'summary' ), '<p> makes a paragraph.' );
+	 *     WP_HTML::tag( 'p', array( 'class' => 'summary' ), '<p> makes a paragraph.' );
 	 *     // <p class="summary">&lt;p> makes a paragraph.</p>
 	 *
-	 *     echo WP_HTML::tag( 'input', array( 'enabled' => true, 'inert' => false, 'type' => 'text', 'value' => '<3 HTML' ) );
+	 *     WP_HTML::tag( 'input', array( 'enabled' => true, 'inert' => false, 'type' => 'text', 'value' => '<3 HTML' ) );
 	 *     // <input enabled type="text" value="&lt;3 HTML">
 	 *
 	 * @since 6.3.0
@@ -29,10 +29,10 @@ class WP_HTML {
 	 * Serializes an HTML tag, inserting verbatim inner HTML if provided.
 	 *
 	 * Example:
-	 *     echo WP_HTML::tag_with_inner_html( 'p', array( 'class' => 'summary' ), 'this <em>is</em> important' );
+	 *     WP_HTML::tag_with_inner_html( 'p', array( 'class' => 'summary' ), 'this <em>is</em> important' );
 	 *     // <p class="summary">this <em>is</em> important</p>
 	 *
-	 *     echo WP_HTML::tag_with_inner_html( 'div', null, WP_HTML::tag( 'p', null, 'Fire & Ice' ) . ' & Bubblegum');
+	 *     WP_HTML::tag_with_inner_html( 'div', null, WP_HTML::tag( 'p', null, 'Fire & Ice' ) . ' & Bubblegum');
 	 *     // <div><p>Fire &amp; Ice</p> & Bubblegum</div>
 	 *                     └─┬─┘    └────┴── Not Escaped because it was passed into `WP_HTML::tag_with_inner_html`.
 	 *                       └────────────── Escaped because it was created with `WP_HTML::tag`.
