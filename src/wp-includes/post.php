@@ -7424,7 +7424,8 @@ function update_post_caches( &$posts, $post_type = 'post', $update_term_cache = 
 	}
 
 	if ( $update_meta_cache ) {
-		update_postmeta_cache( $post_ids );
+		$lazyloader = wp_metadata_lazyloader();
+		$lazyloader->queue_objects( 'post', $post_ids );
 	}
 }
 
@@ -7895,7 +7896,8 @@ function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache
 	}
 
 	if ( $update_meta_cache ) {
-		update_postmeta_cache( $ids );
+		$lazyloader = wp_metadata_lazyloader();
+		$lazyloader->queue_objects( 'post', $ids );
 	}
 
 	if ( $update_term_cache ) {
