@@ -9,7 +9,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	const FULL_TEST_URL = 'http://username:password@host.name:9090/path?arg1=value1&arg2=value2#anchor';
 
 	/**
-	 * @since 3.7.0 Test method introduced.
+	 * @ticket 20434
 	 * @ticket 56231
 	 *
 	 * @dataProvider make_absolute_url_testcases
