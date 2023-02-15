@@ -6998,6 +6998,12 @@ function wp_debug_backtrace_summary( $ignore_class = null, $skip_frames = 0, $pr
  * @return int[] Array of IDs not present in the cache.
  */
 function _get_non_cached_ids( $object_ids, $cache_key ) {
+	$object_ids     = array_filter(
+		static function ( $object_id ) {
+			return filter_var($int, FILTER_VALIDATE_INT);
+		},
+		$object_ids
+	);
 	$non_cached_ids = array();
 	$cache_values   = wp_cache_get_multiple( $object_ids, $cache_key );
 
