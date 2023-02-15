@@ -1977,15 +1977,19 @@ function cancel_comment_reply_link( $text = '' ) {
  * Retrieves hidden input HTML for replying to comments.
  *
  * @since 3.0.0
+ * @since 6.2.0 Renamed `$post_id` to `$post` and added WP_Post support.
  *
- * @param int $post_id Optional. Post ID. Defaults to the current post ID.
+ * @param int|WP_Post $post Optional. The post the comment is being displayed for.
+ *                          Defaults to the current global post.
  * @return string Hidden input HTML for replying to comments.
  */
-function get_comment_id_fields( $post_id = 0 ) {
-	if ( 0 === $post_id ) {
-		$post_id = get_the_ID();
+function get_comment_id_fields( $post = null ) {
+	$post = get_post( $post );
+	if ( ! $post ) {
+		return '';
 	}
 
+	$post_id     = $post->ID;
 	$reply_to_id = _get_comment_reply_id( $post_id );
 	$result      = "<input type='hidden' name='comment_post_ID' value='$post_id' id='comment_post_ID' />\n";
 	$result     .= "<input type='hidden' name='comment_parent' id='comment_parent' value='$reply_to_id' />\n";
